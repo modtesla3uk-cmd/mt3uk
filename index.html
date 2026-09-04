@@ -723,5 +723,55 @@
     })();
 </script>
 
+  <script>
+    (function () {
+        var style = document.createElement('style');
+        style.textContent = '.mobile-menu-btn { display: none; background: transparent; border: 1px solid var(--ink); color: var(--ink); width: 38px; height: 34px; font-size: 1.2rem; line-height: 1; cursor: pointer; align-items: center; justify-content: center; } .mobile-menu-panel { display: none; flex-direction: column; background: var(--paper); border-top: 1px solid var(--ink); padding: 6px 28px 18px; } .mobile-menu-panel.open { display: flex; } .mobile-menu-panel a { padding: 12px 0; font-size: 1rem; font-weight: 500; color: var(--ink); border-bottom: 1px solid rgba(22,35,61,0.12); } .mobile-menu-panel a:last-child { border-bottom: none; } @media (max-width: 780px) { .mobile-menu-btn { display: flex; } }';
+        document.head.appendChild(style);
+
+        var nav = document.querySelector('header nav');
+        var joinMobile = document.querySelector('.navlinks-mobile');
+        if (!nav || !joinMobile) return;
+
+        var btn = document.createElement('button');
+        btn.className = 'mobile-menu-btn';
+        btn.setAttribute('aria-label', 'Open menu');
+        btn.innerHTML = '&#9776;';
+
+        var wrapper = document.createElement('div');
+        wrapper.style.display = 'flex';
+        wrapper.style.alignItems = 'center';
+        wrapper.style.gap = '10px';
+        joinMobile.parentNode.insertBefore(wrapper, joinMobile);
+        wrapper.appendChild(joinMobile);
+        wrapper.appendChild(btn);
+
+        var panel = document.createElement('div');
+        panel.className = 'mobile-menu-panel';
+        panel.innerHTML = '<a href="#about">About</a><a href="#gallery">Gallery</a><a href="#events">Events</a><a href="#shop">Shop</a>';
+        var header = document.querySelector('header');
+        header.appendChild(panel);
+
+        function closeMenu() {
+              panel.classList.remove('open');
+              btn.innerHTML = '&#9776;';
+        }
+
+        btn.addEventListener('click', function (e) {
+              e.stopPropagation();
+              var open = panel.classList.toggle('open');
+              btn.innerHTML = open ? '&#10005;' : '&#9776;';
+        });
+
+        panel.addEventListener('click', function (e) {
+              if (e.target.tagName === 'A') closeMenu();
+        });
+
+        document.addEventListener('click', function (e) {
+              if (!header.contains(e.target)) closeMenu();
+        });
+    })();
+  </script>
+
 </body>
 </html>

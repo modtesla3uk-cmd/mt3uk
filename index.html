@@ -638,10 +638,12 @@
   </div>
 </footer>
 
+
+
   <script>
     (function () {
         var style = document.createElement('style');
-        style.textContent = '.gallery-slot.filled img { cursor: zoom-in; } .lightbox { position: fixed; inset: 0; background: rgba(22,35,61,0.94); display: none; align-items: center; justify-content: center; flex-direction: column; z-index: 200; padding: 40px 20px; } .lightbox.open { display: flex; } .lightbox-img { max-width: min(92vw, 1100px); max-height: 78vh; object-fit: contain; border: 1px solid rgba(243,241,234,0.25); } .lightbox-caption { margin-top: 16px; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; letter-spacing: 0.04em; color: var(--paper); } .lightbox-close { position: absolute; top: 22px; right: 28px; background: transparent; border: 1px solid var(--paper); color: var(--paper); width: 40px; height: 40px; font-size: 1.4rem; line-height: 1; cursor: pointer; } .lightbox-close:hover { background: var(--orange); border-color: var(--orange); } @media (max-width: 600px) { .lightbox-close { top: 14px; right: 14px; width: 36px; height: 36px; } }';
+        style.textContent = '.gallery-slot.filled img { cursor: zoom-in; } .lightbox { position: fixed; inset: 0; background: rgba(22,35,61,0.94); display: none; align-items: center; justify-content: center; flex-direction: column; z-index: 200; padding: 40px 20px; } .lightbox.open { display: flex; } .lightbox-img { max-width: min(92vw, 1100px); max-height: 78vh; object-fit: contain; border: 1px solid rgba(243,241,234,0.25); } .lightbox-caption { margin-top: 16px; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; letter-spacing: 0.04em; color: var(--paper); } .lightbox-close { position: absolute; top: 22px; right: 28px; background: transparent; border: 1px solid var(--paper); color: var(--paper); width: 40px; height: 40px; font-size: 1.4rem; line-height: 1; cursor: pointer; } .lightbox-close:hover { background: var(--orange); border-color: var(--orange); } .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(22,35,61,0.6); border: 1px solid var(--paper); color: var(--paper); width: 46px; height: 46px; font-size: 1.6rem; line-height: 1; cursor: pointer; } .lightbox-nav:hover { background: var(--orange); border-color: var(--orange); } .lightbox-prev { left: 20px; } .lightbox-next { right: 20px; } @media (max-width: 700px) { .lightbox-nav { width: 38px; height: 38px; font-size: 1.3rem; } .lightbox-prev { left: 8px; } .lightbox-next { right: 8px; } } @media (max-width: 600px) { .lightbox-close { top: 14px; right: 14px; width: 36px; height: 36px; } }';
         document.head.appendChild(style);
 
         var lightbox = document.createElement('div');
@@ -650,18 +652,33 @@
         lightbox.setAttribute('role', 'dialog');
         lightbox.setAttribute('aria-modal', 'true');
         lightbox.setAttribute('aria-hidden', 'true');
-        lightbox.innerHTML = '<button class="lightbox-close" aria-label="Close">&times;</button><img class="lightbox-img" src="" alt=""><div class="lightbox-caption"></div>';
+        lightbox.innerHTML = '<button class="lightbox-close" aria-label="Close">&times;</button><button class="lightbox-nav lightbox-prev" aria-label="Previous photo">&lsaquo;</button><button class="lightbox-nav lightbox-next" aria-label="Next photo">&rsaquo;</button><img class="lightbox-img" src="" alt=""><div class="lightbox-caption"></div>';
         document.body.appendChild(lightbox);
 
         var lightboxImg = lightbox.querySelector('.lightbox-img');
         var lightboxCaption = lightbox.querySelector('.lightbox-caption');
         var closeBtn = lightbox.querySelector('.lightbox-close');
+        var prevBtn = lightbox.querySelector('.lightbox-prev');
+        var nextBtn = lightbox.querySelector('.lightbox-next');
         var galleryGrid = document.getElementById('gallery-grid');
+        var currentIndex = -1;
 
-        function openLightbox(src, alt) {
-              lightboxImg.src = src;
-              lightboxImg.alt = alt || '';
-              lightboxCaption.textContent = alt || '';
+        function getGalleryImgs() {
+              return galleryGrid ? Array.prototype.slice.call(galleryGrid.querySelectorAll('img')) : [];
+        }
+
+        function showAt(index) {
+              var imgs = getGalleryImgs();
+              if (!imgs.length) return;
+              currentIndex = (index + imgs.length) % imgs.length;
+              var img = imgs[currentIndex];
+              lightboxImg.src = img.src;
+              lightboxImg.alt = img.alt || '';
+              lightboxCaption.textContent = img.alt || '';
+        }
+
+        function openLightbox(index) {
+              showAt(index);
               lightbox.classList.add('open');
               lightbox.setAttribute('aria-hidden', 'false');
               document.body.style.overflow = 'hidden';
@@ -677,19 +694,34 @@
         if (galleryGrid) {
               galleryGrid.addEventListener('click', function (e) {
                       var img = e.target.closest('img');
-                      if (img) openLightbox(img.src, img.alt);
+                      if (!img) return;
+                      var imgs = getGalleryImgs();
+                      openLightbox(imgs.indexOf(img));
               });
         }
 
         closeBtn.addEventListener('click', closeLightbox);
+        prevBtn.addEventListener('click', function (e) {
+              e.stopPropagation();
+              showAt(currentIndex - 1);
+        });
+        nextBtn.addEventListener('click', function (e) {
+              e.stopPropagation();
+              showAt(currentIndex + 1);
+        });
+
         lightbox.addEventListener('click', function (e) {
               if (e.target === lightbox) closeLightbox();
         });
+
         document.addEventListener('keydown', function (e) {
+              if (!lightbox.classList.contains('open')) return;
               if (e.key === 'Escape') closeLightbox();
+              if (e.key === 'ArrowRight') showAt(currentIndex + 1);
+              if (e.key === 'ArrowLeft') showAt(currentIndex - 1);
         });
     })();
-  </script>
+</script>
 
 </body>
 </html>

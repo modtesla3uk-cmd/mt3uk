@@ -334,6 +334,45 @@
     color: var(--steel);
   }
 
+  /* ---------- SUBMIT PHOTO ---------- */
+  .submit-photo {
+    margin-top: 44px;
+    padding-top: 34px;
+    border-top: 1px dashed var(--steel);
+  }
+  .submit-photo h3 {
+    font-family: 'Archivo Expanded', sans-serif;
+    font-size: 1.1rem;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  .submit-photo > p {
+    color: var(--steel);
+    font-size: 0.88rem;
+    max-width: 54ch;
+    margin-bottom: 22px;
+  }
+  .submit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 440px;
+  }
+  .form-row { display: flex; flex-direction: column; gap: 6px; }
+  .form-row label { color: var(--steel); }
+  .form-row input[type="text"],
+  .form-row input[type="file"] {
+    border: 1px solid var(--ink);
+    background: var(--white);
+    padding: 11px 12px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.92rem;
+    color: var(--charcoal);
+  }
+  .form-row input[type="text"]:focus { outline: none; border-color: var(--orange); }
+  .submit-form button { align-self: flex-start; }
+  .submit-form .hp-field { position: absolute; left: -9999px; }
+
   /* ---------- EVENTS ---------- */
   .events-list { border-top: 1px solid var(--ink); }
   .event-row {
@@ -455,6 +494,7 @@
       <a href="#about">About</a>
       <a href="#gallery">Gallery</a>
       <a href="#events">Events</a>
+      <a href="#track-days">Track Days</a>
       <a href="#shop">Shop</a>
       <a href="https://www.facebook.com/share/g/1EnNkFvxr7/" class="nav-cta" target="_blank" rel="noopener">Join the group</a>
     </div>
@@ -530,6 +570,32 @@
       <p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">Loading builds…</p>
     </div>
     <p class="gallery-note">A snapshot of what the group's driving — drop a new photo into <code>images/gallery/</code> on GitHub and it'll show up here automatically.</p>
+
+    <div class="submit-photo">
+      <h3>Not on GitHub? Submit a photo instead</h3>
+      <p>Send us a shot of your build and a caption, and we'll get it added to the gallery for you.</p>
+      <form id="photo-submit-form" class="submit-form">
+        <input type="checkbox" name="botcheck" class="hp-field" tabindex="-1" autocomplete="off">
+        <input type="hidden" name="access_key" value="77fa003b-0602-4cb5-8280-f0d58adef261">
+        <input type="hidden" name="subject" value="New MT3UK gallery photo submission">
+        <input type="hidden" name="from_name" value="MT3UK site">
+        <div class="form-row">
+          <label class="mono" for="submitter-name">Name (optional)</label>
+          <input type="text" id="submitter-name" name="name" placeholder="Your name or MT3UK handle">
+        </div>
+        <div class="form-row">
+          <label class="mono" for="submitter-caption">Caption</label>
+          <input type="text" id="submitter-caption" name="caption" placeholder="e.g. Viper Green Model Y" required>
+        </div>
+        <div class="form-row">
+          <label class="mono" for="submitter-photo">Photo</label>
+          <input type="file" id="submitter-photo" name="photo" accept="image/*" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit photo</button>
+        <p id="submit-status" class="mono" style="margin-top:2px;"></p>
+      </form>
+    </div>
+
     <script>
       (function () {
         var grid = document.getElementById('gallery-grid');
@@ -585,11 +651,34 @@
   </div>
 </section>
 
+<section id="track-days">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="section-num">04 / TRACK DAYS</span>
+        <h2>From sighting laps to setting your PB</h2>
+      </div>
+      <p>Prep, upgrades and honest advice — for first timers and seasoned track goers alike.</p>
+    </div>
+    <div class="about-grid">
+      <div>
+        <p>This corner of MT3UK is dedicated to taking your Tesla on track — properly. Whether you're booking your very first track day or you've lost count of how many you've done, we're building this into the go-to spot for everything in between.</p>
+        <p>Expect prep checklists for first timers (tyres, brakes, cooling, what to actually pack), recommended upgrades that hold up under real track conditions rather than just Instagram, and unfiltered advice from members who've already made the mistakes so you don't have to.</p>
+        <p>It's early days — for now, consider this your pit lane. Got track photos, lap times or lessons learned? Share them in the Facebook group and they'll find a home here.</p>
+      </div>
+      <div class="gallery-slot" style="aspect-ratio:auto; min-height:280px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="5" width="18" height="14" rx="1"/><circle cx="9" cy="12" r="2.4"/><path d="M14 15l2.5-3 2.5 3"/></svg>
+        <span class="mono">TRACK DAY PHOTO — COMING SOON</span>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section id="shop" class="shop-band">
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">04 / SHOP</span>
+        <span class="section-num">05 / SHOP</span>
         <h2>Merch — coming soon</h2>
       </div>
       <p>T-shirts and hoodies for the group. Get told the moment they land.</p>
@@ -623,7 +712,7 @@
 
 <section class="join-cta">
   <div class="wrap">
-    <span class="section-num" style="text-align:center; display:block;">05 / JOIN</span>
+    <span class="section-num" style="text-align:center; display:block;">06 / JOIN</span>
     <h2>3,000+ modified Tesla owners are already in. You're next.</h2>
     <p>Post your build, ask the questions, find the meets. It's free and it takes ten seconds.</p>
     <a href="https://www.facebook.com/share/g/1EnNkFvxr7/" class="btn btn-primary" target="_blank" rel="noopener">Join MT3UK on Facebook</a>
@@ -748,7 +837,7 @@
 
         var panel = document.createElement('div');
         panel.className = 'mobile-menu-panel';
-        panel.innerHTML = '<a href="#about">About</a><a href="#gallery">Gallery</a><a href="#events">Events</a><a href="#shop">Shop</a>';
+        panel.innerHTML = '<a href="#about">About</a><a href="#gallery">Gallery</a><a href="#events">Events</a><a href="#track-days">Track Days</a><a href="#shop">Shop</a>';
         var header = document.querySelector('header');
         header.appendChild(panel);
 
@@ -769,6 +858,86 @@
 
         document.addEventListener('click', function (e) {
               if (!header.contains(e.target)) closeMenu();
+        });
+    })();
+  </script>
+
+  <script>
+    (function () {
+        var CLOUDINARY_CLOUD_NAME = 'fwiyn07p';
+        var CLOUDINARY_UPLOAD_PRESET = 'mt3uk_gallery';
+
+        var form = document.getElementById('photo-submit-form');
+        if (!form) return;
+        var status = document.getElementById('submit-status');
+        var btn = form.querySelector('button[type="submit"]');
+        var fileInput = document.getElementById('submitter-photo');
+
+        function fail(message) {
+              status.style.color = 'var(--orange)';
+              status.textContent = message;
+              btn.disabled = false;
+              btn.textContent = 'Submit photo';
+        }
+
+        form.addEventListener('submit', function (e) {
+              e.preventDefault();
+              status.textContent = '';
+
+              var key = form.querySelector('[name="access_key"]').value;
+              if (!key || key === 'YOUR_WEB3FORMS_ACCESS_KEY') {
+                    return fail('Submissions aren\'t connected yet — check back soon.');
+              }
+              if (!CLOUDINARY_CLOUD_NAME || CLOUDINARY_CLOUD_NAME === 'YOUR_CLOUDINARY_CLOUD_NAME') {
+                    return fail('Photo uploads aren\'t connected yet — check back soon.');
+              }
+              var file = fileInput.files[0];
+              if (!file) return fail('Please choose a photo.');
+              if (file.size > 10 * 1024 * 1024) return fail('That photo is too large — please use one under 10MB.');
+
+              btn.disabled = true;
+              btn.textContent = 'Uploading photo…';
+
+              var cloudData = new FormData();
+              cloudData.append('file', file);
+              cloudData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+              fetch('https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD_NAME + '/image/upload', {
+                    method: 'POST',
+                    body: cloudData
+              })
+                    .then(function (res) { return res.json(); })
+                    .then(function (cloudRes) {
+                          if (!cloudRes.secure_url) throw new Error('cloudinary upload failed');
+                          btn.textContent = 'Sending…';
+                          var formData = new FormData();
+                          formData.append('access_key', key);
+                          formData.append('subject', form.querySelector('[name="subject"]').value);
+                          formData.append('from_name', form.querySelector('[name="from_name"]').value);
+                          formData.append('name', form.querySelector('[name="name"]').value);
+                          formData.append('caption', form.querySelector('[name="caption"]').value);
+                          formData.append('photo_url', cloudRes.secure_url);
+                          return fetch('https://api.web3forms.com/submit', {
+                                method: 'POST',
+                                body: formData,
+                                headers: { Accept: 'application/json' }
+                          });
+                    })
+                    .then(function (res) { return res.json(); })
+                    .then(function (json) {
+                          if (json.success) {
+                                status.style.color = 'var(--ink)';
+                                status.textContent = 'Thanks — your photo\'s been sent for review.';
+                                form.reset();
+                                btn.disabled = false;
+                                btn.textContent = 'Submit photo';
+                          } else {
+                                fail('Something went wrong — please try again.');
+                          }
+                    })
+                    .catch(function () {
+                          fail('Something went wrong — please try again.');
+                    });
         });
     })();
   </script>

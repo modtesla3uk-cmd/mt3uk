@@ -754,11 +754,12 @@
         <p>Expect prep checklists for first timers (tyres, brakes, cooling, what to actually pack), recommended upgrades that hold up under real track conditions rather than just Instagram, and unfiltered advice from members who've already made the mistakes so you don't have to.</p>
         <p>It's early days — for now, consider this your pit lane. Got track photos, lap times or lessons learned? Share them in the Facebook group and they'll find a home here.</p>
       </div>
-      <div class="track-day-slot" style="background: var(--white); border: 1px solid var(--line); aspect-ratio: 16/9; position: relative; overflow: hidden;">
-        <img src="images/track-days/thruxton-airfield-2025.jpg" alt="Snetterton Track" loading="lazy">
-        <span class="g-caption" style="display: none;">Snetterton Track</span>
-      </div>
     </div>
+    <div class="gallery-grid" id="track-day-grid" style="margin-top: 40px;">
+      <p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">Loading track days…</p>
+    </div>
+    <div class="gallery-pagination" id="track-day-pagination"></div>
+    <p class="gallery-note" style="margin-top: 20px;">Track day photos from the community. Drop a new photo into <code>images/track-days/</code> on GitHub and it'll show up here automatically.</p>
   </div>
 </section>
 
@@ -1003,44 +1004,88 @@
 
   <script>
     (function () {
-      // Track day image - standalone lightbox (no gallery nav)
-      var trackDayImg = document.querySelector('.track-day-slot img');
+      var PAGE_SIZE = 1; // One track day per page
+      var grid = document.getElementById('track-day-grid');
+      var pagination = document.getElementById('track-day-pagination');
+      var allTrackDays = [];
+      var currentPage = 1;
+
+      function renderGrid(photos) {
+        if (!photos.length) {
+          grid.innerHTML = '<p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">No track days yet — drop some into images/track-days/ on GitHub.</p>';
+          return;
+        }
+        grid.innerHTML = photos.map(function (p) {
+          var safeCaption = p.caption.replace(/</g, '&lt;');
+          return '<div class="gallery-slot filled">' +
+                   '<img src="images/track-days/' + p.file + '" alt="' + safeCaption + '" loading="lazy">' +
+                   '<span class="g-caption">' + safeCaption + '</span>' +
+                 '</div>';
+        }).join('');
+      }
+
+      function renderPagination(totalPages) {
+        if (totalPages <= 1) {
+          pagination.innerHTML = '';
+          return;
+        }
+        pagination.innerHTML =
+          '<button type="button" class="page-btn" id="track-day-prev"' + (currentPage === 1 ? ' disabled' : '') + '>&lsaquo; Prev</button>' +
+          '<span class="mono">Track Day ' + currentPage + ' of ' + totalPages + '</span>' +
+          '<button type="button" class="page-btn" id="track-day-next"' + (currentPage === totalPages ? ' disabled' : '') + '>Next &rsaquo;</button>';
+
+        var prevBtn = document.getElementById('track-day-prev');
+        var nextBtn = document.getElementById('track-day-next');
+        if (prevBtn) prevBtn.addEventListener('click', function () { goToPage(currentPage - 1); });
+        if (nextBtn) nextBtn.addEventListener('click', function () { goToPage(currentPage + 1); });
+      }
+
+      function goToPage(page) {
+        var totalPages = Math.max(1, Math.ceil(allTrackDays.length / PAGE_SIZE));
+        if (page < 1 || page > totalPages) return;
+        currentPage = page;
+        var start = (page - 1) * PAGE_SIZE;
+        renderGrid(allTrackDays.slice(start, start + PAGE_SIZE));
+        renderPagination(totalPages);
+        window.scrollTo({ top: grid.offsetTop - 100, behavior: 'smooth' });
+      }
+
+      fetch('images/track-days/manifest.json', { cache: 'no-store' })
+        .then(function (response) { return response.json(); })
+        .then(function (photos) {
+          allTrackDays = photos || [];
+          var totalPages = Math.max(1, Math.ceil(allTrackDays.length / PAGE_SIZE));
+          renderGrid(allTrackDays.slice(0, PAGE_SIZE));
+          renderPagination(totalPages);
+        })
+        .catch(function () {
+          grid.innerHTML = '<p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">Error loading track days.</p>';
+        });
+    })();
+  </script>
+
+  <script>
+    (function () {
+      // Connect track day gallery to lightbox
+      var trackDayGrid = document.getElementById('track-day-grid');
       var lightbox = document.getElementById('lightbox');
-      
-      if (trackDayImg && lightbox) {
-        trackDayImg.style.cursor = 'zoom-in';
-        
-        var prevBtn = lightbox.querySelector('.lightbox-prev');
-        var nextBtn = lightbox.querySelector('.lightbox-next');
-        var isTrackDayOpen = false;
-        
-        trackDayImg.addEventListener('click', function (e) {
+
+      if (trackDayGrid && lightbox) {
+        trackDayGrid.addEventListener('click', function (e) {
+          if (e.target.tagName !== 'IMG') return;
           e.stopPropagation();
-          isTrackDayOpen = true;
-          
+
+          var index = Array.prototype.indexOf.call(trackDayGrid.querySelectorAll('img'), e.target);
           var lightboxImg = lightbox.querySelector('.lightbox-img');
           var lightboxCaption = lightbox.querySelector('.lightbox-caption');
-          
-          lightboxImg.src = trackDayImg.src;
-          lightboxImg.alt = trackDayImg.alt;
-          lightboxCaption.textContent = trackDayImg.alt;
-          
-          // Hide nav buttons for track day image
-          prevBtn.style.display = 'none';
-          nextBtn.style.display = 'none';
-          
+
+          lightboxImg.src = e.target.src;
+          lightboxImg.alt = e.target.alt || '';
+          lightboxCaption.textContent = e.target.alt || '';
+
           lightbox.classList.add('open');
           lightbox.setAttribute('aria-hidden', 'false');
           document.body.style.overflow = 'hidden';
-        });
-        
-        // Restore nav buttons when closing
-        var closeBtn = lightbox.querySelector('.lightbox-close');
-        var originalClose = closeBtn.onclick;
-        closeBtn.addEventListener('click', function () {
-          isTrackDayOpen = false;
-          prevBtn.style.display = '';
-          nextBtn.style.display = '';
         });
       }
     })();

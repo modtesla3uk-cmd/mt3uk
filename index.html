@@ -332,6 +332,40 @@
     color: var(--steel);
   }
 
+  .track-day-frame {
+    max-width: 640px;
+    margin: 0 auto;
+    border: 1px solid var(--ink);
+    aspect-ratio: 16/9;
+    position: relative;
+    overflow: hidden;
+    background: var(--paper-2);
+  }
+  .track-day-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    cursor: zoom-in;
+    transition: transform .35s ease;
+  }
+  .track-day-frame:hover img { transform: scale(1.045); }
+  .track-day-frame .g-caption {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    padding: 9px 12px;
+    background: linear-gradient(0deg, rgba(22,35,61,0.82), rgba(22,35,61,0));
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.03em;
+    color: var(--paper);
+  }
+  .track-day-frame .mono {
+    text-align: center;
+    padding: 0 14px;
+    color: var(--steel);
+  }
+
   .gallery-pagination {
     display: flex;
     align-items: center;
@@ -755,8 +789,8 @@
         <p>It's early days — for now, consider this your pit lane. Got track photos, lap times or lessons learned? Share them in the Facebook group and they'll find a home here.</p>
       </div>
     </div>
-    <div class="gallery-grid" id="track-day-grid" style="margin-top: 40px;">
-      <p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">Loading track days…</p>
+    <div class="track-day-frame" id="track-day-grid" style="margin-top: 40px;">
+      <p class="mono">Loading track days…</p>
     </div>
     <div class="gallery-pagination" id="track-day-pagination"></div>
     <p class="gallery-note" style="margin-top: 20px;">Track day photos from the community. Drop a new photo into <code>images/track-days/</code> on GitHub and it'll show up here automatically.</p>
@@ -1012,15 +1046,13 @@
 
       function renderGrid(photos) {
         if (!photos.length) {
-          grid.innerHTML = '<p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">No track days yet — drop some into images/track-days/ on GitHub.</p>';
+          grid.innerHTML = '<p class="mono">No track days yet — drop some into images/track-days/ on GitHub.</p>';
           return;
         }
         grid.innerHTML = photos.map(function (p) {
           var safeCaption = p.caption.replace(/</g, '&lt;');
-          return '<div class="gallery-slot filled">' +
-                   '<img src="images/track-days/' + p.file + '" alt="' + safeCaption + '" loading="lazy">' +
-                   '<span class="g-caption">' + safeCaption + '</span>' +
-                 '</div>';
+          return '<img src="images/track-days/' + p.file + '" alt="' + safeCaption + '" loading="lazy">' +
+                 '<span class="g-caption">' + safeCaption + '</span>';
         }).join('');
       }
 
@@ -1059,23 +1091,25 @@
           renderPagination(totalPages);
         })
         .catch(function () {
-          grid.innerHTML = '<p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">Error loading track days.</p>';
+          grid.innerHTML = '<p class="mono">Error loading track days.</p>';
         });
     })();
   </script>
 
   <script>
     (function () {
-      // Connect track day gallery to lightbox
+      // Connect track day image to lightbox — standalone, no prev/next into other galleries
       var trackDayGrid = document.getElementById('track-day-grid');
       var lightbox = document.getElementById('lightbox');
 
       if (trackDayGrid && lightbox) {
+        var prevBtn = lightbox.querySelector('.lightbox-prev');
+        var nextBtn = lightbox.querySelector('.lightbox-next');
+
         trackDayGrid.addEventListener('click', function (e) {
           if (e.target.tagName !== 'IMG') return;
           e.stopPropagation();
 
-          var index = Array.prototype.indexOf.call(trackDayGrid.querySelectorAll('img'), e.target);
           var lightboxImg = lightbox.querySelector('.lightbox-img');
           var lightboxCaption = lightbox.querySelector('.lightbox-caption');
 
@@ -1083,9 +1117,27 @@
           lightboxImg.alt = e.target.alt || '';
           lightboxCaption.textContent = e.target.alt || '';
 
+          // Hide nav arrows so Prev/Next can't jump into the Member Gallery
+          if (prevBtn) prevBtn.style.display = 'none';
+          if (nextBtn) nextBtn.style.display = 'none';
+
           lightbox.classList.add('open');
           lightbox.setAttribute('aria-hidden', 'false');
           document.body.style.overflow = 'hidden';
+        });
+
+        // Restore nav arrows for the Member Gallery whenever the lightbox closes
+        var closeBtn = lightbox.querySelector('.lightbox-close');
+        function restoreNav() {
+          if (prevBtn) prevBtn.style.display = '';
+          if (nextBtn) nextBtn.style.display = '';
+        }
+        if (closeBtn) closeBtn.addEventListener('click', restoreNav);
+        lightbox.addEventListener('click', function (e) {
+          if (e.target === lightbox) restoreNav();
+        });
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape') restoreNav();
         });
       }
     })();

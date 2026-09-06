@@ -327,6 +327,11 @@
     letter-spacing: 0.03em;
     color: var(--paper);
   }
+  .gallery-filler {
+    aspect-ratio: 1/1;
+    background: var(--paper);
+    margin: -1px;
+  }
 
   .gallery-note {
     margin-top: 20px;
@@ -659,13 +664,23 @@
             grid.innerHTML = '<p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">No photos yet — drop some into images/gallery/ on GitHub.</p>';
             return;
           }
-          grid.innerHTML = photos.map(function (p) {
+          var html = photos.map(function (p) {
             var safeCaption = p.caption.replace(/</g, '&lt;');
             return '<div class="gallery-slot filled">' +
                      '<img src="images/gallery/' + p.file + '" alt="' + safeCaption + '" loading="lazy">' +
                      '<span class="g-caption">' + safeCaption + '</span>' +
                    '</div>';
           }).join('');
+
+          // pad to a multiple of 6 so the last row is never left with a
+          // stray empty cell showing the grid's dark separator background,
+          // at either the 3-column (desktop) or 2-column (mobile) layout
+          var fillerCount = (6 - (photos.length % 6)) % 6;
+          for (var i = 0; i < fillerCount; i++) {
+            html += '<div class="gallery-filler"></div>';
+          }
+
+          grid.innerHTML = html;
         }
 
         function renderPagination(totalPages) {

@@ -754,9 +754,9 @@
         <p>Expect prep checklists for first timers (tyres, brakes, cooling, what to actually pack), recommended upgrades that hold up under real track conditions rather than just Instagram, and unfiltered advice from members who've already made the mistakes so you don't have to.</p>
         <p>It's early days — for now, consider this your pit lane. Got track photos, lap times or lessons learned? Share them in the Facebook group and they'll find a home here.</p>
       </div>
-      <div class="gallery-slot" style="aspect-ratio:auto; min-height:280px;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="5" width="18" height="14" rx="1"/><circle cx="9" cy="12" r="2.4"/><path d="M14 15l2.5-3 2.5 3"/></svg>
-        <span class="mono">TRACK DAY PHOTO — COMING SOON</span>
+      <div class="gallery-slot filled track-day-slot">
+        <img src="images/track-days/thruxton-airfield-2025.jpg" alt="Thruxton Airfield 2025" loading="lazy">
+        <span class="g-caption">Thruxton Airfield 2025</span>
       </div>
     </div>
   </div>
@@ -998,6 +998,32 @@
                           fail('Something went wrong — please try again.');
                     });
         });
+    })();
+  </script>
+
+  <script>
+    (function () {
+      // Connect track day image to existing lightbox
+      var trackDayImg = document.querySelector('.track-day-slot img');
+      var lightbox = document.getElementById('lightbox');
+      
+      if (trackDayImg && lightbox) {
+        trackDayImg.style.cursor = 'zoom-in';
+        
+        trackDayImg.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var lightboxImg = lightbox.querySelector('.lightbox-img');
+          var lightboxCaption = lightbox.querySelector('.lightbox-caption');
+          
+          lightboxImg.src = trackDayImg.src;
+          lightboxImg.alt = trackDayImg.alt;
+          lightboxCaption.textContent = trackDayImg.alt;
+          
+          lightbox.classList.add('open');
+          lightbox.setAttribute('aria-hidden', 'false');
+          document.body.style.overflow = 'hidden';
+        });
+      }
     })();
   </script>
 

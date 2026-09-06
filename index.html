@@ -576,9 +576,6 @@
       <p>Send us a shot of your build and a caption, and we'll get it added to the gallery for you.</p>
       <form id="photo-submit-form" class="submit-form">
         <input type="checkbox" name="botcheck" class="hp-field" tabindex="-1" autocomplete="off">
-        <input type="hidden" name="access_key" value="77fa003b-0602-4cb5-8280-f0d58adef261">
-        <input type="hidden" name="subject" value="New MT3UK gallery photo submission">
-        <input type="hidden" name="from_name" value="MT3UK site">
         <div class="form-row">
           <label class="mono" for="submitter-name">Name (optional)</label>
           <input type="text" id="submitter-name" name="name" placeholder="Your name or MT3UK handle">
@@ -864,8 +861,7 @@
 
   <script>
     (function () {
-        var CLOUDINARY_CLOUD_NAME = 'fwiyn07p';
-        var CLOUDINARY_UPLOAD_PRESET = 'mt3uk_gallery';
+        var SUBMIT_ENDPOINT = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
 
         var form = document.getElementById('photo-submit-form');
         if (!form) return;
@@ -884,45 +880,17 @@
               e.preventDefault();
               status.textContent = '';
 
-              var key = form.querySelector('[name="access_key"]').value;
-              if (!key || key === 'YOUR_WEB3FORMS_ACCESS_KEY') {
-                    return fail('Submissions aren\'t connected yet — check back soon.');
-              }
-              if (!CLOUDINARY_CLOUD_NAME || CLOUDINARY_CLOUD_NAME === 'YOUR_CLOUDINARY_CLOUD_NAME') {
-                    return fail('Photo uploads aren\'t connected yet — check back soon.');
-              }
               var file = fileInput.files[0];
               if (!file) return fail('Please choose a photo.');
               if (file.size > 10 * 1024 * 1024) return fail('That photo is too large — please use one under 10MB.');
 
               btn.disabled = true;
-              btn.textContent = 'Uploading photo…';
+              btn.textContent = 'Sending…';
 
-              var cloudData = new FormData();
-              cloudData.append('file', file);
-              cloudData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-
-              fetch('https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD_NAME + '/image/upload', {
+              fetch(SUBMIT_ENDPOINT, {
                     method: 'POST',
-                    body: cloudData
+                    body: new FormData(form)
               })
-                    .then(function (res) { return res.json(); })
-                    .then(function (cloudRes) {
-                          if (!cloudRes.secure_url) throw new Error('cloudinary upload failed');
-                          btn.textContent = 'Sending…';
-                          var formData = new FormData();
-                          formData.append('access_key', key);
-                          formData.append('subject', form.querySelector('[name="subject"]').value);
-                          formData.append('from_name', form.querySelector('[name="from_name"]').value);
-                          formData.append('name', form.querySelector('[name="name"]').value);
-                          formData.append('caption', form.querySelector('[name="caption"]').value);
-                          formData.append('photo_url', cloudRes.secure_url);
-                          return fetch('https://api.web3forms.com/submit', {
-                                method: 'POST',
-                                body: formData,
-                                headers: { Accept: 'application/json' }
-                          });
-                    })
                     .then(function (res) { return res.json(); })
                     .then(function (json) {
                           if (json.success) {
@@ -932,7 +900,7 @@
                                 btn.disabled = false;
                                 btn.textContent = 'Submit photo';
                           } else {
-                                fail('Something went wrong — please try again.');
+                                fail(json.message || 'Something went wrong — please try again.');
                           }
                     })
                     .catch(function () {

@@ -334,6 +334,26 @@
     color: var(--steel);
   }
 
+  .gallery-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    margin-top: 24px;
+  }
+  .gallery-pagination .page-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    background: transparent;
+    border: 1px solid var(--ink);
+    color: var(--ink);
+    padding: 8px 14px;
+    cursor: pointer;
+  }
+  .gallery-pagination .page-btn:hover:not(:disabled) { background: var(--ink); color: var(--paper); }
+  .gallery-pagination .page-btn:disabled { opacity: 0.35; cursor: default; }
+
   /* ---------- SUBMIT PHOTO ---------- */
   .submit-photo {
     margin-top: 44px;
@@ -593,7 +613,8 @@
     <div class="gallery-grid" id="gallery-grid">
       <p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">Loading builds…</p>
     </div>
-    <p class="gallery-note">A snapshot of what the group's driving — drop a new photo into <code>images/gallery/</code> on GitHub and it'll show up here automatically.</p>
+    <div class="gallery-pagination" id="gallery-pagination"></div>
+    <p class="gallery-note">A snapshot of what the group's driving — most recent first. Drop a new photo into <code>images/gallery/</code> on GitHub and it'll show up here automatically.</p>
 
     <div class="submit-photo">
       <h3>Not on GitHub? Submit a photo instead</h3>
@@ -627,21 +648,61 @@
 
     <script>
       (function () {
+        var PAGE_SIZE = 9;
         var grid = document.getElementById('gallery-grid');
+        var pagination = document.getElementById('gallery-pagination');
+        var allPhotos = [];
+        var currentPage = 1;
+
+        function renderGrid(photos) {
+          if (!photos.length) {
+            grid.innerHTML = '<p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">No photos yet — drop some into images/gallery/ on GitHub.</p>';
+            return;
+          }
+          grid.innerHTML = photos.map(function (p) {
+            var safeCaption = p.caption.replace(/</g, '&lt;');
+            return '<div class="gallery-slot filled">' +
+                     '<img src="images/gallery/' + p.file + '" alt="' + safeCaption + '" loading="lazy">' +
+                     '<span class="g-caption">' + safeCaption + '</span>' +
+                   '</div>';
+          }).join('');
+        }
+
+        function renderPagination(totalPages) {
+          if (totalPages <= 1) {
+            pagination.innerHTML = '';
+            return;
+          }
+          pagination.innerHTML =
+            '<button type="button" class="page-btn" id="gallery-prev"' + (currentPage === 1 ? ' disabled' : '') + '>&lsaquo; Prev</button>' +
+            '<span class="mono">Page ' + currentPage + ' of ' + totalPages + '</span>' +
+            '<button type="button" class="page-btn" id="gallery-next"' + (currentPage === totalPages ? ' disabled' : '') + '>Next &rsaquo;</button>';
+
+          var prevBtn = document.getElementById('gallery-prev');
+          var nextBtn = document.getElementById('gallery-next');
+          if (prevBtn) prevBtn.addEventListener('click', function () { goToPage(currentPage - 1); });
+          if (nextBtn) nextBtn.addEventListener('click', function () { goToPage(currentPage + 1); });
+        }
+
+        function goToPage(page) {
+          currentPage = page;
+          render();
+          grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function render() {
+          var totalPages = Math.max(1, Math.ceil(allPhotos.length / PAGE_SIZE));
+          currentPage = Math.min(Math.max(1, currentPage), totalPages);
+          var start = (currentPage - 1) * PAGE_SIZE;
+          renderGrid(allPhotos.slice(start, start + PAGE_SIZE));
+          renderPagination(totalPages);
+        }
+
         fetch('images/gallery/manifest.json', { cache: 'no-store' })
           .then(function (res) { return res.ok ? res.json() : []; })
           .then(function (photos) {
-            if (!photos || !photos.length) {
-              grid.innerHTML = '<p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">No photos yet — drop some into images/gallery/ on GitHub.</p>';
-              return;
-            }
-            grid.innerHTML = photos.map(function (p) {
-              var safeCaption = p.caption.replace(/</g, '&lt;');
-              return '<div class="gallery-slot filled">' +
-                       '<img src="images/gallery/' + p.file + '" alt="' + safeCaption + '" loading="lazy">' +
-                       '<span class="g-caption">' + safeCaption + '</span>' +
-                     '</div>';
-            }).join('');
+            allPhotos = photos || [];
+            render();
           })
           .catch(function () {
             grid.innerHTML = '<p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">Gallery photos couldn\'t be loaded.</p>';

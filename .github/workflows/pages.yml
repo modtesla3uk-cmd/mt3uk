@@ -28,8 +28,8 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Regenerate gallery manifest from images/gallery/
-        run: python3 scripts/build_gallery_manifest.py
+      - name: Regenerate track days manifest from images/track-days/
+        run: python3 scripts/build_track_days_manifest.py
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

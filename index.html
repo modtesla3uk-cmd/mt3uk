@@ -754,9 +754,9 @@
         <p>Expect prep checklists for first timers (tyres, brakes, cooling, what to actually pack), recommended upgrades that hold up under real track conditions rather than just Instagram, and unfiltered advice from members who've already made the mistakes so you don't have to.</p>
         <p>It's early days — for now, consider this your pit lane. Got track photos, lap times or lessons learned? Share them in the Facebook group and they'll find a home here.</p>
       </div>
-      <div class="gallery-slot filled track-day-slot">
+      <div class="track-day-slot" style="background: var(--white); border: 1px solid var(--line); aspect-ratio: 16/9; position: relative; overflow: hidden;">
         <img src="images/track-days/thruxton-airfield-2025.jpg" alt="Snetterton Track" loading="lazy">
-        <span class="g-caption">Snetterton Track</span>
+        <span class="g-caption" style="display: none;">Snetterton Track</span>
       </div>
     </div>
   </div>
@@ -1003,15 +1003,21 @@
 
   <script>
     (function () {
-      // Connect track day image to existing lightbox
+      // Track day image - standalone lightbox (no gallery nav)
       var trackDayImg = document.querySelector('.track-day-slot img');
       var lightbox = document.getElementById('lightbox');
       
       if (trackDayImg && lightbox) {
         trackDayImg.style.cursor = 'zoom-in';
         
+        var prevBtn = lightbox.querySelector('.lightbox-prev');
+        var nextBtn = lightbox.querySelector('.lightbox-next');
+        var isTrackDayOpen = false;
+        
         trackDayImg.addEventListener('click', function (e) {
           e.stopPropagation();
+          isTrackDayOpen = true;
+          
           var lightboxImg = lightbox.querySelector('.lightbox-img');
           var lightboxCaption = lightbox.querySelector('.lightbox-caption');
           
@@ -1019,9 +1025,22 @@
           lightboxImg.alt = trackDayImg.alt;
           lightboxCaption.textContent = trackDayImg.alt;
           
+          // Hide nav buttons for track day image
+          prevBtn.style.display = 'none';
+          nextBtn.style.display = 'none';
+          
           lightbox.classList.add('open');
           lightbox.setAttribute('aria-hidden', 'false');
           document.body.style.overflow = 'hidden';
+        });
+        
+        // Restore nav buttons when closing
+        var closeBtn = lightbox.querySelector('.lightbox-close');
+        var originalClose = closeBtn.onclick;
+        closeBtn.addEventListener('click', function () {
+          isTrackDayOpen = false;
+          prevBtn.style.display = '';
+          nextBtn.style.display = '';
         });
       }
     })();

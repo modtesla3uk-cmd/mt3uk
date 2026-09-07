@@ -68,10 +68,11 @@
   nav {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 24px;
     padding: 16px 28px;
     max-width: 1120px;
     margin: 0 auto;
+    position: relative;
   }
 
   .logo {
@@ -84,12 +85,19 @@
 
   .navlinks {
     display: flex;
-    gap: 28px;
+    gap: 4px;
+    margin-right: auto;
     font-size: 0.92rem;
     font-weight: 500;
   }
-  .navlinks a { border-bottom: 1px solid transparent; padding-bottom: 3px; transition: border-color .15s; }
-  .navlinks a:hover { border-color: var(--orange); }
+  .navlinks a {
+    padding: 10px 14px;
+    border-radius: 4px;
+    border-bottom: 1px solid transparent;
+    transition: opacity .15s ease, border-color .15s ease;
+  }
+  .navlinks a:hover { opacity: 0.65; }
+  .navlinks a.active { color: var(--orange); border-color: var(--orange); }
 
   .nav-cta {
     background: var(--ink);
@@ -98,14 +106,57 @@
     font-size: 0.85rem;
     font-weight: 600;
     border: 1px solid var(--ink);
+    white-space: nowrap;
   }
   .nav-cta:hover { background: var(--orange); border-color: var(--orange); }
 
-  .navlinks-mobile { display: none; }
+  .nav-cta-mobile { display: none; }
+
+  .hamburger {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--ink);
+    color: var(--ink);
+    width: 38px;
+    height: 34px;
+    font-size: 1.2rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+  }
 
   @media (max-width: 780px) {
-    .navlinks { display: none; }
-    .navlinks-mobile { display: block; }
+    .hamburger { display: flex; }
+    .nav-cta-desktop { display: none; }
+
+    .navlinks {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      flex-direction: column;
+      background: var(--paper);
+      border-bottom: 1px solid var(--ink);
+      margin-right: 0;
+      gap: 0;
+    }
+    .navlinks.active { display: flex; }
+    .navlinks a {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(22,35,61,0.12);
+      border-radius: 0;
+    }
+    .navlinks .nav-cta-mobile {
+      display: block;
+      width: calc(100% - 32px);
+      margin: 10px 16px;
+      text-align: center;
+      border-radius: 4px;
+      border-bottom: none;
+    }
   }
 
   /* ---------- HERO ---------- */
@@ -582,15 +633,16 @@
 <header>
   <nav>
     <div class="logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></div>
-    <div class="navlinks">
-      <a href="#about">About</a>
-      <a href="#gallery">Gallery</a>
-      <a href="#events">Events</a>
-      <a href="#track-days">Track Days</a>
-      <a href="#shop">Shop</a>
-      <a href="https://www.facebook.com/share/g/1EnNkFvxr7/" class="nav-cta" target="_blank" rel="noopener">Join the group</a>
+    <div class="navlinks" id="navlinks">
+      <a href="#about" class="nav-link active">About</a>
+      <a href="#gallery" class="nav-link">Gallery</a>
+      <a href="#events" class="nav-link">Events</a>
+      <a href="#track-days" class="nav-link">Track Days</a>
+      <a href="#shop" class="nav-link">Shop</a>
+      <a href="https://www.facebook.com/share/g/1EnNkFvxr7/" class="nav-cta nav-cta-mobile" target="_blank" rel="noopener">Join the group</a>
     </div>
-    <a href="https://www.facebook.com/share/g/1EnNkFvxr7/" class="nav-cta navlinks-mobile" target="_blank" rel="noopener">Join</a>
+    <a href="https://www.facebook.com/share/g/1EnNkFvxr7/" class="nav-cta nav-cta-desktop" target="_blank" rel="noopener">Join the group</a>
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navlinks">&#9776;</button>
   </nav>
 </header>
 
@@ -1027,50 +1079,33 @@
 
   <script>
     (function () {
-        var style = document.createElement('style');
-        style.textContent = '.mobile-menu-btn { display: none; background: transparent; border: 1px solid var(--ink); color: var(--ink); width: 38px; height: 34px; font-size: 1.2rem; line-height: 1; cursor: pointer; align-items: center; justify-content: center; } .mobile-menu-panel { display: none; flex-direction: column; background: var(--paper); border-top: 1px solid var(--ink); padding: 6px 28px 18px; } .mobile-menu-panel.open { display: flex; } .mobile-menu-panel a { padding: 12px 0; font-size: 1rem; font-weight: 500; color: var(--ink); border-bottom: 1px solid rgba(22,35,61,0.12); } .mobile-menu-panel a:last-child { border-bottom: none; } @media (max-width: 780px) { .mobile-menu-btn { display: flex; } }';
-        document.head.appendChild(style);
-
-        var nav = document.querySelector('header nav');
-        var joinMobile = document.querySelector('.navlinks-mobile');
-        if (!nav || !joinMobile) return;
-
-        var btn = document.createElement('button');
-        btn.className = 'mobile-menu-btn';
-        btn.setAttribute('aria-label', 'Open menu');
-        btn.innerHTML = '&#9776;';
-
-        var wrapper = document.createElement('div');
-        wrapper.style.display = 'flex';
-        wrapper.style.alignItems = 'center';
-        wrapper.style.gap = '10px';
-        joinMobile.parentNode.insertBefore(wrapper, joinMobile);
-        wrapper.appendChild(joinMobile);
-        wrapper.appendChild(btn);
-
-        var panel = document.createElement('div');
-        panel.className = 'mobile-menu-panel';
-        panel.innerHTML = '<a href="#about">About</a><a href="#gallery">Gallery</a><a href="#events">Events</a><a href="#track-days">Track Days</a><a href="#shop">Shop</a>';
-        var header = document.querySelector('header');
-        header.appendChild(panel);
+        var hamburger = document.getElementById('hamburger');
+        var navMenu = document.getElementById('navlinks');
+        if (!hamburger || !navMenu) return;
 
         function closeMenu() {
-              panel.classList.remove('open');
-              btn.innerHTML = '&#9776;';
+              navMenu.classList.remove('active');
+              hamburger.innerHTML = '&#9776;';
+              hamburger.setAttribute('aria-expanded', 'false');
         }
 
-        btn.addEventListener('click', function (e) {
+        hamburger.addEventListener('click', function (e) {
               e.stopPropagation();
-              var open = panel.classList.toggle('open');
-              btn.innerHTML = open ? '&#10005;' : '&#9776;';
+              var open = navMenu.classList.toggle('active');
+              hamburger.innerHTML = open ? '&#10005;' : '&#9776;';
+              hamburger.setAttribute('aria-expanded', open ? 'true' : 'false');
         });
 
-        panel.addEventListener('click', function (e) {
-              if (e.target.tagName === 'A') closeMenu();
+        navMenu.querySelectorAll('.nav-link').forEach(function (link) {
+              link.addEventListener('click', function () {
+                    closeMenu();
+                    navMenu.querySelectorAll('.nav-link').forEach(function (l) { l.classList.remove('active'); });
+                    link.classList.add('active');
+              });
         });
 
         document.addEventListener('click', function (e) {
-              if (!header.contains(e.target)) closeMenu();
+              if (!e.target.closest('header nav')) closeMenu();
         });
     })();
   </script>

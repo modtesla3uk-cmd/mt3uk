@@ -15,3 +15,10 @@ Replace `images/site/mt3uk-wordmark-dark.png` with a new file of the same name.
 
 ## How it works
 A GitHub Actions workflow (`.github/workflows/pages.yml`) runs on every push. It scans `images/gallery/`, regenerates `images/gallery/manifest.json` (the list of photos + captions the page reads), and deploys the whole site to GitHub Pages. Nothing needs to be edited by hand for photo updates.
+
+## robots.txt and llms.txt on a fresh clone
+`main` and `dev` intentionally keep different versions of `robots.txt` and `llms.txt` (crawler permissions differ per branch), and merges between the two branches should never overwrite one branch's copy with the other's. This is enforced by `.gitattributes` (`merge=ours` on both files), but the merge driver itself has to be registered locally since Git won't run merge drivers from `.gitattributes` alone. After cloning this repo, run once:
+
+```
+git config merge.ours.driver true
+```

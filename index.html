@@ -98,6 +98,19 @@
   }
   .navlinks a:hover { opacity: 0.65; }
   .navlinks a.active { color: var(--orange); border-color: var(--orange); }
+  .nav-link-shop { display: inline-flex; align-items: center; gap: 6px; }
+  .nav-link-shop::after {
+    content: 'NEW';
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--paper);
+    background: var(--orange);
+    padding: 2px 5px;
+    border-radius: 3px;
+    line-height: 1;
+  }
 
   .nav-cta {
     background: var(--ink);
@@ -653,10 +666,10 @@
     <div class="logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></div>
     <div class="navlinks" id="navlinks">
       <a href="#about" class="nav-link active">About</a>
+      <a href="#shop" class="nav-link nav-link-shop">Shop</a>
       <a href="#gallery" class="nav-link">Gallery</a>
       <a href="#events" class="nav-link">Events</a>
       <a href="#track-days" class="nav-link">Track Days</a>
-      <a href="#shop" class="nav-link">Shop</a>
     </div>
     <a href="https://www.facebook.com/share/g/1EnNkFvxr7/" class="nav-cta" target="_blank" rel="noopener">Join the group</a>
     <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navlinks">&#9776;</button>
@@ -718,11 +731,95 @@
   </div>
 </section>
 
+<section id="shop" class="shop-band">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="section-num">02 / SHOP</span>
+        <h2>Merch: Grab yourself some</h2>
+      </div>
+      <p>T-shirts and hoodies for the group. Get told the moment they land.</p>
+    </div>
+    <div class="shop-grid">
+      <div class="shop-card">
+        <div class="shop-preview-row">
+          <button type="button" class="shop-preview-trigger" id="tee-trigger" aria-haspopup="dialog" aria-controls="tee-modal">
+            <img src="images/site/mt3uk-tee.jpg" alt="MT3UK black unisex t-shirt with red underline design">
+          </button>
+          <button type="button" class="shop-preview-thumb" id="tee-trigger-2" aria-haspopup="dialog" aria-controls="tee-modal">
+            <img src="images/site/mt3uk-tee-2.jpg" alt="MT3UK t-shirt folded, close-up of the logo print">
+          </button>
+        </div>
+        <h3>MT3UK Tee</h3>
+        <p>Core logo print, heavyweight cotton</p>
+        <span class="tag">AVAILABLE NOW</span>
+      </div>
+      <div class="shop-card">
+        <svg viewBox="0 0 200 140" fill="none" stroke="#e8542a" stroke-width="1.6"><path d="M55 24 L75 12 L100 22 L125 12 L145 24 L156 48 L138 56 L138 122 L62 122 L62 56 L44 48 Z"/><path d="M85 22 Q100 34 115 22" /></svg>
+        <h3>MT3UK Hoodie</h3>
+        <p>Embroidered crest, fleece-lined</p>
+        <span class="tag">COMING SOON</span>
+      </div>
+      <div class="shop-card">
+        <button type="button" class="shop-preview-trigger" id="sticker-trigger" aria-haspopup="dialog" aria-controls="sticker-modal">
+          <img src="images/site/mt3uk-sticker.png" alt="MT3UK bumper sticker pack">
+        </button>
+        <h3>Sticker pack</h3>
+        <p>For the boot lid, laptop, wherever</p>
+        <span class="tag">COMING SOON</span>
+      </div>
+    </div>
+    <div class="notify-row">
+      <input type="email" placeholder="you@email.com" aria-label="Email for merch notification">
+      <button class="btn btn-primary" type="button">Notify me</button>
+    </div>
+  </div>
+</section>
+
+<script>
+(function () {
+      var panTargets = [document.getElementById('tee-trigger'), document.getElementById('tee-trigger-2')];
+      panTargets.forEach(function (btn) {
+            if (!btn) return;
+            var img = btn.querySelector('img');
+            if (!img) return;
+
+            function updateOrigin(e) {
+                  var rect = btn.getBoundingClientRect();
+                  var x = ((e.clientX - rect.left) / rect.width) * 100;
+                  var y = ((e.clientY - rect.top) / rect.height) * 100;
+                  x = Math.max(0, Math.min(100, x));
+                  y = Math.max(0, Math.min(100, y));
+                  img.style.transformOrigin = x + '% ' + y + '%';
+            }
+
+            btn.addEventListener('mouseenter', function (e) {
+                  updateOrigin(e);
+                  img.classList.add('zoom-pan');
+            });
+            btn.addEventListener('mousemove', updateOrigin);
+            btn.addEventListener('mouseleave', function () {
+                  img.classList.remove('zoom-pan');
+                  img.style.transformOrigin = '';
+            });
+            btn.addEventListener('focus', function () {
+                  img.style.transformOrigin = '50% 50%';
+                  img.classList.add('zoom-pan');
+            });
+            btn.addEventListener('blur', function () {
+                  img.classList.remove('zoom-pan');
+                  img.style.transformOrigin = '';
+            });
+      });
+})();
+</script>
+
+
 <section id="gallery">
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">02 / GALLERY</span>
+        <span class="section-num">03 / GALLERY</span>
         <h2>Member builds</h2>
       </div>
       <p>A rotating look at what the group's driving. Photos will swap in from group posts.</p>
@@ -833,7 +930,7 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">03 / EVENTS</span>
+        <span class="section-num">04 / EVENTS</span>
         <h2>Meets & events</h2>
       </div>
       <p>Full details always posted in the Facebook group first.</p>
@@ -862,7 +959,7 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">04 / TRACK DAYS</span>
+        <span class="section-num">05 / TRACK DAYS</span>
         <h2>From sighting laps to setting your PB</h2>
       </div>
       <p>Prep, upgrades and honest advice, for first timers and seasoned track goers alike.</p>
@@ -881,89 +978,6 @@
     <p class="gallery-note" style="margin-top: 20px;">Track day photos from the community. Drop a new photo into <code>images/track-days/</code> on GitHub and it'll show up here automatically.</p>
   </div>
 </section>
-
-<section id="shop" class="shop-band">
-  <div class="wrap">
-    <div class="section-head">
-      <div>
-        <span class="section-num">05 / SHOP</span>
-        <h2>Merch: Grab yourself some</h2>
-      </div>
-      <p>T-shirts and hoodies for the group. Get told the moment they land.</p>
-    </div>
-    <div class="shop-grid">
-      <div class="shop-card">
-        <div class="shop-preview-row">
-          <button type="button" class="shop-preview-trigger" id="tee-trigger" aria-haspopup="dialog" aria-controls="tee-modal">
-            <img src="images/site/mt3uk-tee.jpg" alt="MT3UK black unisex t-shirt with red underline design">
-          </button>
-          <button type="button" class="shop-preview-thumb" id="tee-trigger-2" aria-haspopup="dialog" aria-controls="tee-modal">
-            <img src="images/site/mt3uk-tee-2.jpg" alt="MT3UK t-shirt folded, close-up of the logo print">
-          </button>
-        </div>
-        <h3>MT3UK Tee</h3>
-        <p>Core logo print, heavyweight cotton</p>
-        <span class="tag">AVAILABLE NOW</span>
-      </div>
-      <div class="shop-card">
-        <svg viewBox="0 0 200 140" fill="none" stroke="#e8542a" stroke-width="1.6"><path d="M55 24 L75 12 L100 22 L125 12 L145 24 L156 48 L138 56 L138 122 L62 122 L62 56 L44 48 Z"/><path d="M85 22 Q100 34 115 22" /></svg>
-        <h3>MT3UK Hoodie</h3>
-        <p>Embroidered crest, fleece-lined</p>
-        <span class="tag">COMING SOON</span>
-      </div>
-      <div class="shop-card">
-        <button type="button" class="shop-preview-trigger" id="sticker-trigger" aria-haspopup="dialog" aria-controls="sticker-modal">
-          <img src="images/site/mt3uk-sticker.png" alt="MT3UK bumper sticker pack">
-        </button>
-        <h3>Sticker pack</h3>
-        <p>For the boot lid, laptop, wherever</p>
-        <span class="tag">COMING SOON</span>
-      </div>
-    </div>
-    <div class="notify-row">
-      <input type="email" placeholder="you@email.com" aria-label="Email for merch notification">
-      <button class="btn btn-primary" type="button">Notify me</button>
-    </div>
-  </div>
-</section>
-
-<script>
-(function () {
-      var panTargets = [document.getElementById('tee-trigger'), document.getElementById('tee-trigger-2')];
-      panTargets.forEach(function (btn) {
-            if (!btn) return;
-            var img = btn.querySelector('img');
-            if (!img) return;
-
-            function updateOrigin(e) {
-                  var rect = btn.getBoundingClientRect();
-                  var x = ((e.clientX - rect.left) / rect.width) * 100;
-                  var y = ((e.clientY - rect.top) / rect.height) * 100;
-                  x = Math.max(0, Math.min(100, x));
-                  y = Math.max(0, Math.min(100, y));
-                  img.style.transformOrigin = x + '% ' + y + '%';
-            }
-
-            btn.addEventListener('mouseenter', function (e) {
-                  updateOrigin(e);
-                  img.classList.add('zoom-pan');
-            });
-            btn.addEventListener('mousemove', updateOrigin);
-            btn.addEventListener('mouseleave', function () {
-                  img.classList.remove('zoom-pan');
-                  img.style.transformOrigin = '';
-            });
-            btn.addEventListener('focus', function () {
-                  img.style.transformOrigin = '50% 50%';
-                  img.classList.add('zoom-pan');
-            });
-            btn.addEventListener('blur', function () {
-                  img.classList.remove('zoom-pan');
-                  img.style.transformOrigin = '';
-            });
-      });
-})();
-</script>
 
 <section class="join-cta">
   <div class="wrap">

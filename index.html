@@ -332,6 +332,40 @@
     color: var(--steel);
   }
 
+  .track-day-frame {
+    max-width: 640px;
+    margin: 0 auto;
+    border: 1px solid var(--ink);
+    aspect-ratio: 16/9;
+    position: relative;
+    overflow: hidden;
+    background: var(--paper-2);
+  }
+  .track-day-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    cursor: zoom-in;
+    transition: transform .35s ease;
+  }
+  .track-day-frame:hover img { transform: scale(1.045); }
+  .track-day-frame .g-caption {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    padding: 9px 12px;
+    background: linear-gradient(0deg, rgba(22,35,61,0.82), rgba(22,35,61,0));
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.03em;
+    color: var(--paper);
+  }
+  .track-day-frame .mono {
+    text-align: center;
+    padding: 0 14px;
+    color: var(--steel);
+  }
+
   .gallery-pagination {
     display: flex;
     align-items: center;
@@ -770,11 +804,12 @@
         <p>Expect prep checklists for first timers (tyres, brakes, cooling, what to actually pack), recommended upgrades that hold up under real track conditions rather than just Instagram, and unfiltered advice from members who've already made the mistakes so you don't have to.</p>
         <p>It's early days, for now, consider this your pit lane. Got track photos, lap times or lessons learned? Share them in the Facebook group and they'll find a home here.</p>
       </div>
-      <div class="gallery-slot" style="aspect-ratio:auto; min-height:280px;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="5" width="18" height="14" rx="1"/><circle cx="9" cy="12" r="2.4"/><path d="M14 15l2.5-3 2.5 3"/></svg>
-        <span class="mono">TRACK DAY PHOTO: COMING SOON</span>
-      </div>
     </div>
+    <div class="track-day-frame" id="track-day-grid" style="margin-top: 40px;">
+      <p class="mono">Loading track days…</p>
+    </div>
+    <div class="gallery-pagination" id="track-day-pagination"></div>
+    <p class="gallery-note" style="margin-top: 20px;">Track day photos from the community. Drop a new photo into <code>images/track-days/</code> on GitHub and it'll show up here automatically.</p>
   </div>
 </section>
 
@@ -1088,6 +1123,113 @@
                           fail('Something went wrong, please try again.');
                     });
         });
+    })();
+  </script>
+
+  <script>
+    (function () {
+      var PAGE_SIZE = 1; // One track day per page
+      var grid = document.getElementById('track-day-grid');
+      var pagination = document.getElementById('track-day-pagination');
+      var allTrackDays = [];
+      var currentPage = 1;
+
+      function renderGrid(photos) {
+        if (!photos.length) {
+          grid.innerHTML = '<p class="mono">No track days yet, drop some into images/track-days/ on GitHub.</p>';
+          return;
+        }
+        grid.innerHTML = photos.map(function (p) {
+          var safeCaption = p.caption.replace(/</g, '&lt;');
+          return '<img src="images/track-days/' + p.file + '" alt="' + safeCaption + '" loading="lazy">' +
+                 '<span class="g-caption">' + safeCaption + '</span>';
+        }).join('');
+      }
+
+      function renderPagination(totalPages) {
+        if (totalPages <= 1) {
+          pagination.innerHTML = '';
+          return;
+        }
+        pagination.innerHTML =
+          '<button type="button" class="page-btn" id="track-day-prev"' + (currentPage === 1 ? ' disabled' : '') + '>&lsaquo; Prev</button>' +
+          '<span class="mono">Track Day ' + currentPage + ' of ' + totalPages + '</span>' +
+          '<button type="button" class="page-btn" id="track-day-next"' + (currentPage === totalPages ? ' disabled' : '') + '>Next &rsaquo;</button>';
+
+        var prevBtn = document.getElementById('track-day-prev');
+        var nextBtn = document.getElementById('track-day-next');
+        if (prevBtn) prevBtn.addEventListener('click', function () { goToPage(currentPage - 1); });
+        if (nextBtn) nextBtn.addEventListener('click', function () { goToPage(currentPage + 1); });
+      }
+
+      function goToPage(page) {
+        var totalPages = Math.max(1, Math.ceil(allTrackDays.length / PAGE_SIZE));
+        if (page < 1 || page > totalPages) return;
+        currentPage = page;
+        var start = (page - 1) * PAGE_SIZE;
+        renderGrid(allTrackDays.slice(start, start + PAGE_SIZE));
+        renderPagination(totalPages);
+        window.scrollTo({ top: grid.offsetTop - 100, behavior: 'smooth' });
+      }
+
+      fetch('images/track-days/manifest.json', { cache: 'no-store' })
+        .then(function (response) { return response.json(); })
+        .then(function (photos) {
+          allTrackDays = photos || [];
+          var totalPages = Math.max(1, Math.ceil(allTrackDays.length / PAGE_SIZE));
+          renderGrid(allTrackDays.slice(0, PAGE_SIZE));
+          renderPagination(totalPages);
+        })
+        .catch(function () {
+          grid.innerHTML = '<p class="mono">Error loading track days.</p>';
+        });
+    })();
+  </script>
+
+  <script>
+    (function () {
+      // Connect track day image to lightbox, standalone, no prev/next into other galleries
+      var trackDayGrid = document.getElementById('track-day-grid');
+      var lightbox = document.getElementById('lightbox');
+
+      if (trackDayGrid && lightbox) {
+        var prevBtn = lightbox.querySelector('.lightbox-prev');
+        var nextBtn = lightbox.querySelector('.lightbox-next');
+
+        trackDayGrid.addEventListener('click', function (e) {
+          if (e.target.tagName !== 'IMG') return;
+          e.stopPropagation();
+
+          var lightboxImg = lightbox.querySelector('.lightbox-img');
+          var lightboxCaption = lightbox.querySelector('.lightbox-caption');
+
+          lightboxImg.src = e.target.src;
+          lightboxImg.alt = e.target.alt || '';
+          lightboxCaption.textContent = e.target.alt || '';
+
+          // Hide nav arrows so Prev/Next can't jump into the Member Gallery
+          if (prevBtn) prevBtn.style.display = 'none';
+          if (nextBtn) nextBtn.style.display = 'none';
+
+          lightbox.classList.add('open');
+          lightbox.setAttribute('aria-hidden', 'false');
+          document.body.style.overflow = 'hidden';
+        });
+
+        // Restore nav arrows for the Member Gallery whenever the lightbox closes
+        var closeBtn = lightbox.querySelector('.lightbox-close');
+        function restoreNav() {
+          if (prevBtn) prevBtn.style.display = '';
+          if (nextBtn) nextBtn.style.display = '';
+        }
+        if (closeBtn) closeBtn.addEventListener('click', restoreNav);
+        lightbox.addEventListener('click', function (e) {
+          if (e.target === lightbox) restoreNav();
+        });
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape') restoreNav();
+        });
+      }
     })();
   </script>
 

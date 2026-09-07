@@ -629,6 +629,15 @@
   }
   .notify-row input::placeholder { color: #8a97b3; }
   .notify-row input:focus { outline: none; border-color: var(--orange); }
+  .notify-success {
+    margin-top: 44px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--paper);
+    border: 1px solid var(--orange);
+    padding: 13px 14px;
+    max-width: 440px;
+  }
 
   /* ---------- TEE OFFER ---------- */
   .tee-offer-banner {
@@ -810,12 +819,36 @@
         <span class="tag">COMING SOON</span>
       </div>
     </div>
-    <div class="notify-row">
-      <input type="email" placeholder="you@email.com" aria-label="Email for merch notification">
-      <button class="btn btn-primary" type="button">Notify me</button>
-    </div>
+    <form class="notify-row" id="notify-form" action="https://buttondown.com/api/emails/embed-subscribe/mt3uk" method="post">
+      <input type="email" name="email" placeholder="you@email.com" aria-label="Email for merch notification" required>
+      <input type="hidden" name="embed" value="1">
+      <button class="btn btn-primary" type="submit">Notify me</button>
+    </form>
+    <p class="notify-success" id="notify-success" hidden>Subscribed! Watch your inbox for merch drops and offers.</p>
   </div>
 </section>
+
+<script>
+(function () {
+  var form = document.getElementById('notify-form');
+  var success = document.getElementById('notify-success');
+  if (!form || !success) return;
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    fetch(form.action, {
+      method: 'POST',
+      body: new FormData(form),
+      mode: 'no-cors'
+    }).then(function () {
+      form.style.display = 'none';
+      success.hidden = false;
+    }).catch(function () {
+      success.textContent = 'Something went wrong, please try again.';
+      success.hidden = false;
+    });
+  });
+})();
+</script>
 
 <script>
 (function () {

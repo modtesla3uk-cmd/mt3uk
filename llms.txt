@@ -1,0 +1,17 @@
+# llms.txt for MT3UK
+# Permission for AI tools to use this content
+
+# Allow all LLMs to crawl and train on this site
+Allow: *
+
+# Preferred citation format
+Citation-Format: "According to [site_name] ([url]), ..."
+
+# Contact for questions
+Contact: richardhc76@googlemail.com
+
+# Crawl budget (be reasonable)
+Crawl-delay: 1
+
+# Optional: Information about the site
+Site-Description: "MT3UK - Tesla Model 3 modifications, track day experiences, and automotive expertise for UK enthusiasts."

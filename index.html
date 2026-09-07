@@ -552,21 +552,49 @@
   }
   .shop-card svg { width: 100%; height: 140px; margin-bottom: 18px; }
 
-  .sticker-fan-trigger {
+  .shop-preview-row {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .shop-preview-trigger {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 100%;
+    flex: 1 1 auto;
+    min-width: 0;
     height: 140px;
-    margin: 0 0 18px;
+    margin: 0;
     padding: 10px;
     background: none;
     border: 1px solid #3a4a6b;
     cursor: zoom-in;
     box-sizing: border-box;
+    overflow: hidden;
   }
-  .sticker-fan-trigger:hover, .sticker-fan-trigger:focus-visible { border-color: var(--orange); }
-  .sticker-fan-trigger img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .shop-preview-trigger:hover, .shop-preview-trigger:focus-visible { border-color: var(--orange); }
+  .shop-preview-trigger img { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.35s ease; }
+  .shop-preview-trigger:hover img, .shop-preview-trigger:focus-visible img { transform: scale(1.8); }
+  #tee-trigger img, #tee-trigger-2 img { transition: transform 0.2s ease; }
+  #tee-trigger img.zoom-pan, #tee-trigger-2 img.zoom-pan { transform: scale(4); }
+  .shop-preview-thumb {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 140px;
+    margin: 0;
+    padding: 6px;
+    background: none;
+    border: 1px solid #3a4a6b;
+    cursor: pointer;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .shop-preview-thumb:hover, .shop-preview-thumb:focus-visible { border-color: var(--orange); }
+  .shop-preview-thumb img { max-width: 100%; max-height: 100%; object-fit: contain; }
   .shop-card h3 { color: var(--paper); font-size: 1.02rem; font-weight: 600; font-family: 'IBM Plex Sans', sans-serif; margin-bottom: 6px; }
   .shop-card p { color: #aeb8cc; font-size: 0.86rem; }
   .shop-card .tag {
@@ -876,10 +904,17 @@
     </div>
     <div class="shop-grid">
       <div class="shop-card">
-        <svg viewBox="0 0 200 140" fill="none" stroke="#e8542a" stroke-width="1.6"><path d="M60 20 L80 10 L100 22 L120 10 L140 20 L150 42 L134 50 L134 120 L66 120 L66 50 L50 42 Z"/></svg>
+        <div class="shop-preview-row">
+          <button type="button" class="shop-preview-trigger" id="tee-trigger" aria-haspopup="dialog" aria-controls="tee-modal">
+            <img src="images/site/mt3uk-tee.jpg" alt="MT3UK black unisex t-shirt with red underline design">
+          </button>
+          <button type="button" class="shop-preview-thumb" id="tee-trigger-2" aria-haspopup="dialog" aria-controls="tee-modal">
+            <img src="images/site/mt3uk-tee-2.jpg" alt="MT3UK t-shirt folded, close-up of the logo print">
+          </button>
+        </div>
         <h3>MT3UK Tee</h3>
         <p>Core logo print, heavyweight cotton</p>
-        <span class="tag">COMING SOON</span>
+        <span class="tag">AVAILABLE NOW</span>
       </div>
       <div class="shop-card">
         <svg viewBox="0 0 200 140" fill="none" stroke="#e8542a" stroke-width="1.6"><path d="M55 24 L75 12 L100 22 L125 12 L145 24 L156 48 L138 56 L138 122 L62 122 L62 56 L44 48 Z"/><path d="M85 22 Q100 34 115 22" /></svg>
@@ -888,7 +923,7 @@
         <span class="tag">COMING SOON</span>
       </div>
       <div class="shop-card">
-        <button type="button" class="sticker-fan-trigger" aria-haspopup="dialog" aria-controls="sticker-modal">
+        <button type="button" class="shop-preview-trigger" id="sticker-trigger" aria-haspopup="dialog" aria-controls="sticker-modal">
           <img src="images/site/mt3uk-sticker.png" alt="MT3UK bumper sticker pack">
         </button>
         <h3>Sticker pack</h3>
@@ -902,6 +937,44 @@
     </div>
   </div>
 </section>
+
+<script>
+(function () {
+      var panTargets = [document.getElementById('tee-trigger'), document.getElementById('tee-trigger-2')];
+      panTargets.forEach(function (btn) {
+            if (!btn) return;
+            var img = btn.querySelector('img');
+            if (!img) return;
+
+            function updateOrigin(e) {
+                  var rect = btn.getBoundingClientRect();
+                  var x = ((e.clientX - rect.left) / rect.width) * 100;
+                  var y = ((e.clientY - rect.top) / rect.height) * 100;
+                  x = Math.max(0, Math.min(100, x));
+                  y = Math.max(0, Math.min(100, y));
+                  img.style.transformOrigin = x + '% ' + y + '%';
+            }
+
+            btn.addEventListener('mouseenter', function (e) {
+                  updateOrigin(e);
+                  img.classList.add('zoom-pan');
+            });
+            btn.addEventListener('mousemove', updateOrigin);
+            btn.addEventListener('mouseleave', function () {
+                  img.classList.remove('zoom-pan');
+                  img.style.transformOrigin = '';
+            });
+            btn.addEventListener('focus', function () {
+                  img.style.transformOrigin = '50% 50%';
+                  img.classList.add('zoom-pan');
+            });
+            btn.addEventListener('blur', function () {
+                  img.classList.remove('zoom-pan');
+                  img.style.transformOrigin = '';
+            });
+      });
+})();
+</script>
 
 <section class="join-cta">
   <div class="wrap">
@@ -1052,7 +1125,7 @@
         document.body.appendChild(modal);
 
         var closeBtn = modal.querySelector('.sticker-modal-close');
-        var trigger = document.querySelector('.sticker-fan-trigger');
+        var trigger = document.getElementById('sticker-trigger');
 
         function openModal() {
               modal.classList.add('open');
@@ -1067,6 +1140,94 @@
         }
 
         if (trigger) trigger.addEventListener('click', openModal);
+        closeBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', function (e) {
+              if (e.target === modal) closeModal();
+        });
+        document.addEventListener('keydown', function (e) {
+              if (modal.classList.contains('open') && e.key === 'Escape') closeModal();
+        });
+    })();
+</script>
+
+  <script>
+    (function () {
+        var style = document.createElement('style');
+        style.textContent = '.tee-modal { position: fixed; inset: 0; background: rgba(22,35,61,0.94); display: none; align-items: center; justify-content: center; z-index: 210; padding: 30px 20px; } .tee-modal.open { display: flex; } .tee-modal-panel { background: var(--ink); border: 1px solid #3a4a6b; max-width: 720px; width: 100%; max-height: 88vh; overflow-y: auto; position: relative; padding: 36px; box-sizing: border-box; } .tee-modal-close { position: absolute; top: 16px; right: 16px; background: transparent; border: 1px solid var(--paper); color: var(--paper); width: 36px; height: 36px; font-size: 1.3rem; line-height: 1; cursor: pointer; } .tee-modal-close:hover { background: var(--orange); border-color: var(--orange); } .tee-modal-media { border: 1px solid #3a4a6b; padding: 20px; position: relative; margin-bottom: 24px; display: flex; align-items: center; justify-content: center; } .tee-modal-media img { display: block; max-width: 100%; height: auto; } .tee-modal-tag { position: absolute; top: 14px; left: 14px; display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; color: var(--orange); border: 1px solid var(--orange); padding: 3px 8px; background: #0d1526; } .tee-modal-body h3 { color: var(--paper); font-family: "IBM Plex Sans", sans-serif; font-size: 1.25rem; margin: 0 0 12px; } .tee-modal-body h4 { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--orange); margin: 22px 0 10px; } .tee-modal-lead { color: var(--paper); font-weight: 600; margin-bottom: 10px; } .tee-modal-body p { color: #aeb8cc; font-size: 0.9rem; line-height: 1.55; margin: 0 0 10px; } .tee-modal-features { list-style: none; padding: 0; margin: 0; } .tee-modal-features li { color: #d7dce8; font-size: 0.87rem; padding-left: 22px; position: relative; margin-bottom: 8px; } .tee-modal-features li::before { content: "\\2713"; position: absolute; left: 0; color: var(--orange); font-weight: 700; } .tee-modal-price { color: var(--paper); font-size: 1.4rem; font-weight: 700; margin: 4px 0 14px; } .tee-modal-buy { display: inline-block; margin-top: 18px; padding: 12px 24px; background: var(--orange); color: var(--paper); font-weight: 600; font-size: 0.9rem; border: 1px solid var(--orange); } .tee-modal-buy:hover { background: #cf4620; } .tee-modal-thumbs { display: flex; gap: 10px; margin-top: 14px; } .tee-modal-thumbs button { width: 56px; height: 56px; padding: 4px; background: none; border: 1px solid #3a4a6b; cursor: pointer; box-sizing: border-box; } .tee-modal-thumbs button:hover, .tee-modal-thumbs button.active { border-color: var(--orange); } .tee-modal-thumbs img { display: block; width: 100%; height: 100%; object-fit: contain; } @media (max-width: 600px) { .tee-modal-panel { padding: 24px 18px; } }';
+        document.head.appendChild(style);
+
+        var modal = document.createElement('div');
+        modal.id = 'tee-modal';
+        modal.className = 'tee-modal';
+        modal.setAttribute('role', 'dialog');
+        modal.setAttribute('aria-modal', 'true');
+        modal.setAttribute('aria-hidden', 'true');
+        modal.innerHTML = '<div class="tee-modal-panel">' +
+              '<button type="button" class="tee-modal-close" aria-label="Close">&times;</button>' +
+              '<div class="tee-modal-media">' +
+                    '<span class="tag tee-modal-tag">AVAILABLE NOW</span>' +
+                    '<img class="tee-modal-main-img" src="images/site/mt3uk-tee.jpg" alt="MT3UK black unisex t-shirt with red underline design">' +
+              '</div>' +
+              '<div class="tee-modal-thumbs">' +
+                    '<button type="button" class="active" data-src="images/site/mt3uk-tee.jpg" data-alt="MT3UK black unisex t-shirt with red underline design"><img src="images/site/mt3uk-tee.jpg" alt="Front view"></button>' +
+                    '<button type="button" data-src="images/site/mt3uk-tee-2.jpg" data-alt="MT3UK t-shirt folded, close-up of the logo print"><img src="images/site/mt3uk-tee-2.jpg" alt="Folded close-up"></button>' +
+              '</div>' +
+              '<div class="tee-modal-body">' +
+                    '<h3>MT3UK Black Unisex T-Shirt</h3>' +
+                    '<p class="tee-modal-lead">The official MT3UK tee. Premium comfort-fit black shirt with the iconic MT3UK logo and red underline design printed on the chest.</p>' +
+                    '<p class="tee-modal-price">&pound;24.99</p>' +
+                    '<p>Made for the global garage. Soft ring-spun cotton, built to last through countless track days and weekend builds.</p>' +
+                    '<h4>Details</h4>' +
+                    '<ul class="tee-modal-features">' +
+                          '<li>Fit: Unisex, comfortable classic fit</li>' +
+                          '<li>Material: 100% ring-spun cotton (preshrunk)</li>' +
+                          '<li>Colour: Black with red underline logo print</li>' +
+                          '<li>Sizes: S to 4XL</li>' +
+                    '</ul>' +
+                    '<a class="tee-modal-buy" href="https://mt3uk.myshopify.com/products/black-unisex-t-shirt-mt3uk-red-underline-design" target="_blank" rel="noopener">Shop the tee</a>' +
+              '</div>' +
+        '</div>';
+        document.body.appendChild(modal);
+
+        var closeBtn = modal.querySelector('.tee-modal-close');
+        var trigger = document.getElementById('tee-trigger');
+        var trigger2 = document.getElementById('tee-trigger-2');
+        var mainImg = modal.querySelector('.tee-modal-main-img');
+        var thumbBtns = modal.querySelectorAll('.tee-modal-thumbs button');
+
+        function setActiveThumb(src) {
+              thumbBtns.forEach(function (b) {
+                    b.classList.toggle('active', b.getAttribute('data-src') === src);
+              });
+        }
+
+        function showImage(src, alt) {
+              mainImg.src = src;
+              mainImg.alt = alt;
+              setActiveThumb(src);
+        }
+
+        thumbBtns.forEach(function (b) {
+              b.addEventListener('click', function () {
+                    showImage(b.getAttribute('data-src'), b.getAttribute('data-alt'));
+              });
+        });
+
+        function openModal(src, alt) {
+              if (src) showImage(src, alt);
+              modal.classList.add('open');
+              modal.setAttribute('aria-hidden', 'false');
+              document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+              modal.classList.remove('open');
+              modal.setAttribute('aria-hidden', 'true');
+              document.body.style.overflow = '';
+        }
+
+        if (trigger) trigger.addEventListener('click', function () { openModal('images/site/mt3uk-tee.jpg', 'MT3UK black unisex t-shirt with red underline design'); });
+        if (trigger2) trigger2.addEventListener('click', function () { openModal('images/site/mt3uk-tee-2.jpg', 'MT3UK t-shirt folded, close-up of the logo print'); });
         closeBtn.addEventListener('click', closeModal);
         modal.addEventListener('click', function (e) {
               if (e.target === modal) closeModal();

@@ -630,6 +630,41 @@
   .notify-row input::placeholder { color: #8a97b3; }
   .notify-row input:focus { outline: none; border-color: var(--orange); }
 
+  /* ---------- TEE OFFER ---------- */
+  .tee-offer-banner {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--orange);
+    color: var(--paper);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.03em;
+    padding: 5px 9px;
+    margin-top: 14px;
+    margin-bottom: 10px;
+  }
+  .tee-offer-price {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  .tee-offer-save {
+    background: var(--orange);
+    color: var(--paper);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 4px 8px;
+  }
+  .tee-offer-was { font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; color: var(--steel); text-decoration: line-through; }
+  .tee-offer-now { font-family: 'Archivo Expanded', sans-serif; font-size: 1.15rem; font-weight: 800; color: var(--orange); }
+  .tee-modal-body .tee-offer-now { font-size: 1.5rem; }
+  .tee-modal-body .tee-offer-was { color: #aeb8cc; }
+  .tee-offer-note { margin-top: 10px; font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--steel); }
+
   /* ---------- JOIN CTA ---------- */
   .join-cta {
     text-align: center;
@@ -750,8 +785,14 @@
             <img src="images/site/mt3uk-tee-2.jpg" alt="MT3UK t-shirt folded, close-up of the logo print">
           </button>
         </div>
+        <div class="tee-offer-banner">&#9201; 20% off for Facebook group members</div>
         <h3>MT3UK Tee</h3>
         <p>Core logo print, heavyweight cotton</p>
+        <div class="tee-offer-price">
+          <span class="tee-offer-save">SAVE 20%</span>
+          <span class="tee-offer-was">&pound;24.99</span>
+          <span class="tee-offer-now">&pound;19.99</span>
+        </div>
         <span class="tag">AVAILABLE NOW</span>
       </div>
       <div class="shop-card">
@@ -1177,8 +1218,13 @@
               '</div>' +
               '<div class="tee-modal-body">' +
                     '<h3>MT3UK Black Unisex T-Shirt</h3>' +
+                    '<div class="tee-offer-banner">&#9201; 20% off for Facebook group members</div>' +
                     '<p class="tee-modal-lead">The official MT3UK tee. Premium comfort-fit black shirt with the iconic MT3UK logo and red underline design printed on the chest.</p>' +
-                    '<p class="tee-modal-price">&pound;24.99</p>' +
+                    '<div class="tee-offer-price">' +
+                          '<span class="tee-offer-save">SAVE 20%</span>' +
+                          '<span class="tee-offer-was">&pound;24.99</span>' +
+                          '<span class="tee-offer-now">&pound;19.99</span>' +
+                    '</div>' +
                     '<p>Made for the global garage. Soft ring-spun cotton, built to last through countless track days and weekend builds.</p>' +
                     '<h4>Details</h4>' +
                     '<ul class="tee-modal-features">' +

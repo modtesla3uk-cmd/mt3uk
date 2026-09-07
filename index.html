@@ -466,6 +466,22 @@
     padding: 26px;
   }
   .shop-card svg { width: 100%; height: 140px; margin-bottom: 18px; }
+
+  .sticker-fan-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 140px;
+    margin: 0 0 18px;
+    padding: 10px;
+    background: none;
+    border: 1px solid #3a4a6b;
+    cursor: zoom-in;
+    box-sizing: border-box;
+  }
+  .sticker-fan-trigger:hover, .sticker-fan-trigger:focus-visible { border-color: var(--orange); }
+  .sticker-fan-trigger img { max-width: 100%; max-height: 100%; object-fit: contain; }
   .shop-card h3 { color: var(--paper); font-size: 1.02rem; font-weight: 600; font-family: 'IBM Plex Sans', sans-serif; margin-bottom: 6px; }
   .shop-card p { color: #aeb8cc; font-size: 0.86rem; }
   .shop-card .tag {
@@ -785,7 +801,9 @@
         <span class="tag">COMING SOON</span>
       </div>
       <div class="shop-card">
-        <svg viewBox="0 0 200 140" fill="none" stroke="#e8542a" stroke-width="1.6"><rect x="60" y="35" width="80" height="55" rx="3"/><line x1="60" y1="55" x2="140" y2="55"/><circle cx="100" cy="72" r="10"/></svg>
+        <button type="button" class="sticker-fan-trigger" aria-haspopup="dialog" aria-controls="sticker-modal">
+          <img src="images/site/mt3uk-sticker.png" alt="MT3UK bumper sticker pack">
+        </button>
         <h3>Sticker pack</h3>
         <p>For the boot lid, laptop, wherever</p>
         <span class="tag">COMING SOON</span>
@@ -896,6 +914,78 @@
               if (e.key === 'Escape') closeLightbox();
               if (e.key === 'ArrowRight') showAt(currentIndex + 1);
               if (e.key === 'ArrowLeft') showAt(currentIndex - 1);
+        });
+    })();
+</script>
+
+  <script>
+    (function () {
+        var style = document.createElement('style');
+        style.textContent = '.sticker-modal { position: fixed; inset: 0; background: rgba(22,35,61,0.94); display: none; align-items: center; justify-content: center; z-index: 210; padding: 30px 20px; } .sticker-modal.open { display: flex; } .sticker-modal-panel { background: var(--ink); border: 1px solid #3a4a6b; max-width: 720px; width: 100%; max-height: 88vh; overflow-y: auto; position: relative; padding: 36px; box-sizing: border-box; } .sticker-modal-close { position: absolute; top: 16px; right: 16px; background: transparent; border: 1px solid var(--paper); color: var(--paper); width: 36px; height: 36px; font-size: 1.3rem; line-height: 1; cursor: pointer; } .sticker-modal-close:hover { background: var(--orange); border-color: var(--orange); } .sticker-modal-media { border: 1px solid #3a4a6b; padding: 34px 20px; position: relative; margin-bottom: 24px; display: flex; align-items: center; justify-content: center; } .sticker-modal-media img { display: block; max-width: 82%; height: auto; } .sticker-modal-tag { position: absolute; top: 14px; left: 14px; display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; color: var(--orange); border: 1px solid var(--orange); padding: 3px 8px; background: #0d1526; } .sticker-modal-body h3 { color: var(--paper); font-family: "IBM Plex Sans", sans-serif; font-size: 1.25rem; margin: 0 0 12px; } .sticker-modal-body h4 { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--orange); margin: 22px 0 10px; } .sticker-modal-lead { color: var(--paper); font-weight: 600; margin-bottom: 10px; } .sticker-modal-body p { color: #aeb8cc; font-size: 0.9rem; line-height: 1.55; margin: 0 0 10px; } .sticker-modal-features { list-style: none; padding: 0; margin: 0; } .sticker-modal-features li { color: #d7dce8; font-size: 0.87rem; padding-left: 22px; position: relative; margin-bottom: 8px; } .sticker-modal-features li::before { content: "\\2713"; position: absolute; left: 0; color: var(--orange); font-weight: 700; } .sticker-modal-pricing { width: 100%; border-collapse: collapse; margin-top: 4px; } .sticker-modal-pricing th, .sticker-modal-pricing td { border: 1px solid #3a4a6b; padding: 8px 12px; font-size: 0.83rem; text-align: left; color: var(--paper); } .sticker-modal-pricing th { font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--orange); } .sticker-modal-note { font-style: italic; } .sticker-modal-cta { color: var(--paper); font-weight: 600; margin: 18px 0 0; } @media (max-width: 600px) { .sticker-modal-panel { padding: 24px 18px; } }';
+        document.head.appendChild(style);
+
+        var modal = document.createElement('div');
+        modal.id = 'sticker-modal';
+        modal.className = 'sticker-modal';
+        modal.setAttribute('role', 'dialog');
+        modal.setAttribute('aria-modal', 'true');
+        modal.setAttribute('aria-hidden', 'true');
+        modal.innerHTML = '<div class="sticker-modal-panel">' +
+              '<button type="button" class="sticker-modal-close" aria-label="Close">&times;</button>' +
+              '<div class="sticker-modal-media">' +
+                    '<span class="tag sticker-modal-tag">COMING SOON</span>' +
+                    '<img src="images/site/mt3uk-sticker.png" alt="MT3UK bumper sticker">' +
+              '</div>' +
+              '<div class="sticker-modal-body">' +
+                    '<h3>MT3UK Modified Tesla Bumper Sticker Pack</h3>' +
+                    '<p class="sticker-modal-lead">Elevate your Tesla&rsquo;s look with official MT3UK community stickers.</p>' +
+                    '<p>These premium vinyl bumper stickers feature the iconic MT3UK white text with red accent underline&mdash;designed to make your Tesla stand out on the road. Perfect for rear diffusers, side panels, windows, or anywhere you want to rep the community.</p>' +
+                    '<h4>Features</h4>' +
+                    '<ul class="sticker-modal-features">' +
+                          '<li>Premium quality vinyl &mdash; UV-resistant, weatherproof</li>' +
+                          '<li>Clean white text with bold red accent &mdash; high contrast, professional appearance</li>' +
+                          '<li>Removable adhesive &mdash; peels off cleanly without damaging paint</li>' +
+                          '<li>Made for Teslas &mdash; looks sharp on any Tesla colour (especially dark cars &amp; windows)</li>' +
+                          '<li>Transparent background &mdash; sits flush against your surface</li>' +
+                    '</ul>' +
+                    '<h4>Sizing</h4>' +
+                    '<p>42mm &times; 165mm (approximately 1.65&Prime; &times; 6.5&Prime;) &mdash; perfect bumper/window sticker size</p>' +
+                    '<h4>Pricing options</h4>' +
+                    '<table class="sticker-modal-pricing">' +
+                          '<thead><tr><th>Option</th><th>Price</th><th>Best for</th></tr></thead>' +
+                          '<tbody>' +
+                                '<tr><td>Single sticker</td><td>&pound;3.00</td><td>Personal use or collection</td></tr>' +
+                                '<tr><td>3-pack bundle</td><td>&pound;7.50</td><td>Multiple vehicles / friends (save &pound;1.50)</td></tr>' +
+                          '</tbody>' +
+                    '</table>' +
+                    '<p class="sticker-modal-note">Order with confidence: Fast UK delivery.</p>' +
+                    '<p class="sticker-modal-cta">Join the MT3UK family. Show your colours.</p>' +
+              '</div>' +
+        '</div>';
+        document.body.appendChild(modal);
+
+        var closeBtn = modal.querySelector('.sticker-modal-close');
+        var trigger = document.querySelector('.sticker-fan-trigger');
+
+        function openModal() {
+              modal.classList.add('open');
+              modal.setAttribute('aria-hidden', 'false');
+              document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+              modal.classList.remove('open');
+              modal.setAttribute('aria-hidden', 'true');
+              document.body.style.overflow = '';
+        }
+
+        if (trigger) trigger.addEventListener('click', openModal);
+        closeBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', function (e) {
+              if (e.target === modal) closeModal();
+        });
+        document.addEventListener('keydown', function (e) {
+              if (modal.classList.contains('open') && e.key === 'Escape') closeModal();
         });
     })();
 </script>

@@ -1,0 +1,15 @@
+.git
+.github
+.claude
+.gitignore
+.gitattributes
+.pytest_cache
+__pycache__
+tests
+pytest.ini
+requirements-test.txt
+generate_sitemap.py
+scripts
+wrangler.jsonc
+.assetsignore
+README.md

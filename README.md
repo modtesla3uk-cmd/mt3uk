@@ -10,6 +10,9 @@ That's it — the site rebuilds automatically and the photo appears.
 ## Change the main (hero) photo
 Upload a new photo named exactly `hero.jpg` into the `images/` folder — it will overwrite the old one. Same idea: commit, wait ~30 seconds, refresh.
 
+## Pin a specific build to "Build of the Day"
+By default the homepage picks a random gallery photo each day (same pick for everyone, changes at midnight UTC). To pin a specific photo instead, edit `data/featured.json` and set `file` to the exact filename from `images/gallery/`, e.g. `{ "file": "10-my-new-build.jpg" }`. Set it back to `null` to return to the daily random pick.
+
 ## Change the logo
 Replace `images/site/mt3uk-wordmark-dark.png` with a new file of the same name.
 

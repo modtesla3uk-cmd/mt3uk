@@ -427,6 +427,53 @@
     color: var(--steel);
   }
 
+  .botm-frame {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    border: 1px solid var(--ink);
+    background: var(--paper-2);
+    overflow: hidden;
+  }
+  @media (max-width: 760px) { .botm-frame { grid-template-columns: 1fr; } }
+  .botm-frame .botm-media {
+    position: relative;
+    aspect-ratio: 4/3;
+    overflow: hidden;
+  }
+  .botm-frame .botm-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    cursor: zoom-in;
+    transition: transform .35s ease;
+  }
+  .botm-frame .botm-media:hover img { transform: scale(1.045); }
+  .botm-frame .botm-badge {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.04em;
+    color: var(--paper);
+    background: var(--orange);
+    padding: 5px 9px;
+  }
+  .botm-frame .botm-body {
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .botm-frame .botm-caption {
+    font-family: 'Archivo Expanded', sans-serif;
+    font-size: 1.4rem;
+    color: var(--ink);
+    margin-bottom: 12px;
+  }
+  .botm-frame .botm-body p { color: var(--ink-2); font-size: 0.92rem; margin-bottom: 20px; max-width: 40ch; }
+
   .track-day-frame {
     max-width: 640px;
     margin: 0 auto;
@@ -760,11 +807,13 @@
       <div class="nav-item">
         <a href="#gallery" class="nav-link">Gallery</a>
         <div class="nav-dropdown">
+          <a href="#build-of-the-day" class="nav-sublink nav-sublink-new">Featured Build</a>
           <a href="#gallery-upload" class="nav-sublink nav-sublink-new">Upload Image</a>
         </div>
       </div>
       <a href="#events" class="nav-link">Events</a>
       <a href="#track-days" class="nav-link">Track Days</a>
+      <a href="#faq" class="nav-link">FAQ</a>
     </div>
     <a href="#shop" class="nav-cta nav-cta-shop">Shop</a>
     <a href="https://www.facebook.com/share/g/1EnNkFvxr7/" class="nav-cta" target="_blank" rel="noopener">Join the group</a>
@@ -827,11 +876,26 @@
   </div>
 </section>
 
+<section id="build-of-the-day">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="section-num">02 / BUILD OF THE DAY</span>
+        <h2>Today's featured build</h2>
+      </div>
+      <p>A different build from the gallery gets the spotlight every day. Yours could be next, submit a photo below.</p>
+    </div>
+    <div class="botm-frame" id="botm-frame">
+      <p class="mono" style="padding: 24px; color: var(--steel);">Loading featured build…</p>
+    </div>
+  </div>
+</section>
+
 <section id="shop" class="shop-band">
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">02 / SHOP</span>
+        <span class="section-num">03 / SHOP</span>
         <h2>Merch: Grab yourself some</h2>
       </div>
       <p>T-shirts and hoodies for the group.</p>
@@ -937,7 +1001,7 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">03 / GALLERY</span>
+        <span class="section-num">04 / GALLERY</span>
         <h2>Member builds</h2>
       </div>
       <p>A rotating look at what the group's driving. Photos will swap in from group posts.</p>
@@ -1048,7 +1112,7 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">04 / EVENTS</span>
+        <span class="section-num">05 / EVENTS</span>
         <h2>Meets & events</h2>
       </div>
       <p>Full details always posted in the Facebook group first.</p>
@@ -1077,7 +1141,7 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">05 / TRACK DAYS</span>
+        <span class="section-num">06 / TRACK DAYS</span>
         <h2>From sighting laps to setting your PB</h2>
       </div>
       <p>Prep, upgrades and honest advice, for first timers and seasoned track goers alike.</p>
@@ -1085,8 +1149,16 @@
     <div class="about-grid">
       <div>
         <p>This corner of MT3UK is dedicated to taking your Tesla on track, properly. Whether you're booking your very first track day or you've lost count of how many you've done, we're building this into the go-to spot for everything in between.</p>
-        <p>Expect prep checklists for first timers (tyres, brakes, cooling, what to actually pack), recommended upgrades that hold up under real track conditions rather than just Instagram, and unfiltered advice from members who've already made the mistakes so you don't have to.</p>
-        <p>It's early days, for now, consider this your pit lane. Got track photos, lap times or lessons learned? Share them in the Facebook group and they'll find a home here.</p>
+        <p>Expect recommended upgrades that hold up under real track conditions rather than just Instagram, and unfiltered advice from members who've already made the mistakes so you don't have to.</p>
+        <p>Got track photos, lap times or lessons learned? Share them in the Facebook group and they'll find a home here.</p>
+      </div>
+      <div class="specs">
+        <div class="spec-row"><span>TYRES</span><span>Check tread &amp; pressures cold, budget for wear</span></div>
+        <div class="spec-row"><span>BRAKES</span><span>Fresh pads/fluid, check for warping before you go</span></div>
+        <div class="spec-row"><span>COOLING</span><span>Precondition battery &amp; monitor temps between sessions</span></div>
+        <div class="spec-row"><span>WEIGHT</span><span>Strip the boot, remove anything loose</span></div>
+        <div class="spec-row"><span>CHARGE</span><span>Arrive at 80-90%, plan a charger for the drive home</span></div>
+        <div class="spec-row"><span>PACK</span><span>Tyre gauge, torque wrench, tow strap, first aid kit</span></div>
       </div>
     </div>
     <div class="track-day-frame" id="track-day-grid" style="margin-top: 40px;">
@@ -1097,9 +1169,72 @@
   </div>
 </section>
 
+<section id="faq">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="section-num">07 / FAQ</span>
+        <h2>Common questions</h2>
+      </div>
+      <p>Everything you need to know before you join.</p>
+    </div>
+    <div class="events-list">
+      <div class="event-row" style="grid-template-columns: 1fr;">
+        <div class="event-info"><h3>Is MT3UK free to join?</h3><p>Yes, it's a free Facebook group. No membership fees, no sign-up forms, just an admin-approved request to keep the bots and spam out.</p></div>
+      </div>
+      <div class="event-row" style="grid-template-columns: 1fr;">
+        <div class="event-info"><h3>Which Tesla models can I bring?</h3><p>All of them. Model S, 3, X and Y owners are all welcome, whatever stage your build is at.</p></div>
+      </div>
+      <div class="event-row" style="grid-template-columns: 1fr;">
+        <div class="event-info"><h3>Do I need to already have mods to join?</h3><p>No. Plenty of members join a stock Tesla looking for advice before they fit their first set of wheels or a wrap.</p></div>
+      </div>
+      <div class="event-row" style="grid-template-columns: 1fr;">
+        <div class="event-info"><h3>How do I get my build featured in the gallery?</h3><p>Submit a photo and caption using the form in the gallery section, or post it in the Facebook group and an admin will add it for you.</p></div>
+      </div>
+      <div class="event-row" style="grid-template-columns: 1fr; border-bottom: none;">
+        <div class="event-info"><h3>Is there a track day for first timers?</h3><p>Yes, we're gauging interest for a group track session. Check the events section above or ask in the Facebook group.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Is MT3UK free to join?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes, it's a free Facebook group. No membership fees, no sign-up forms, just an admin-approved request to keep the bots and spam out." }
+    },
+    {
+      "@type": "Question",
+      "name": "Which Tesla models can I bring?",
+      "acceptedAnswer": { "@type": "Answer", "text": "All of them. Model S, 3, X and Y owners are all welcome, whatever stage your build is at." }
+    },
+    {
+      "@type": "Question",
+      "name": "Do I need to already have mods to join?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. Plenty of members join a stock Tesla looking for advice before they fit their first set of wheels or a wrap." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I get my build featured in the gallery?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Submit a photo and caption using the form in the gallery section, or post it in the Facebook group and an admin will add it for you." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is there a track day for first timers?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes, we're gauging interest for a group track session. Check the events section on the site or ask in the Facebook group." }
+    }
+  ]
+}
+</script>
+
 <section class="join-cta">
   <div class="wrap">
-    <span class="section-num" style="text-align:center; display:block;">06 / JOIN</span>
+    <span class="section-num" style="text-align:center; display:block;">08 / JOIN</span>
     <h2><span class="member-count"></span> modified Tesla owners are already in. You're next.</h2>
     <p>Post your build, ask the questions, find the meets. It's free and it takes ten seconds.</p>
     <a href="https://www.facebook.com/share/g/1EnNkFvxr7/" class="btn btn-primary" target="_blank" rel="noopener">Join MT3UK on Facebook</a>
@@ -1578,6 +1713,80 @@
           if (e.key === 'Escape') restoreNav();
         });
       }
+    })();
+  </script>
+
+  <script>
+    (function () {
+      var frame = document.getElementById('botm-frame');
+      if (!frame) return;
+
+      function hashString(str) {
+        var hash = 5381;
+        for (var i = 0; i < str.length; i++) {
+          hash = ((hash << 5) + hash) + str.charCodeAt(i);
+          hash = hash & hash;
+        }
+        return Math.abs(hash);
+      }
+
+      function pickBuild(photos, featuredFile) {
+        if (featuredFile) {
+          var pinned = photos.find(function (p) { return p.file === featuredFile; });
+          if (pinned) return pinned;
+        }
+        var today = new Date();
+        var seed = today.getUTCFullYear() + '-' + (today.getUTCMonth() + 1) + '-' + today.getUTCDate();
+        return photos[hashString(seed) % photos.length];
+      }
+
+      Promise.all([
+        fetch('images/gallery/manifest.json', { cache: 'no-store' }).then(function (res) { return res.ok ? res.json() : []; }),
+        fetch('data/featured.json', { cache: 'no-store' }).then(function (res) { return res.ok ? res.json() : {}; }).catch(function () { return {}; })
+      ])
+        .then(function (results) {
+          var photos = results[0] || [];
+          var featuredFile = (results[1] && results[1].file) || null;
+          if (!photos.length) {
+            frame.innerHTML = '<p class="mono" style="padding: 24px; color: var(--steel);">No builds yet, be the first to submit one.</p>';
+            return;
+          }
+          var featured = pickBuild(photos, featuredFile);
+          var safeCaption = featured.caption.replace(/</g, '&lt;');
+          frame.innerHTML =
+            '<div class="botm-media">' +
+              '<span class="botm-badge">FEATURED TODAY</span>' +
+              '<img src="images/gallery/' + featured.file + '" alt="' + safeCaption + '" loading="lazy">' +
+            '</div>' +
+            '<div class="botm-body">' +
+              '<span class="mono">TODAY\'S PICK</span>' +
+              '<h3 class="botm-caption">' + safeCaption + '</h3>' +
+              '<p>A build from the gallery, picked fresh each day. Get your build added and it could be featured here next.</p>' +
+              '<a href="#gallery-upload" class="btn btn-secondary">Submit your build</a>' +
+            '</div>';
+
+          var img = frame.querySelector('.botm-media img');
+          var lightbox = document.getElementById('lightbox');
+          if (img && lightbox) {
+            img.addEventListener('click', function () {
+              var lightboxImg = lightbox.querySelector('.lightbox-img');
+              var lightboxCaption = lightbox.querySelector('.lightbox-caption');
+              var prevBtn = lightbox.querySelector('.lightbox-prev');
+              var nextBtn = lightbox.querySelector('.lightbox-next');
+              lightboxImg.src = img.src;
+              lightboxImg.alt = img.alt || '';
+              lightboxCaption.textContent = img.alt || '';
+              if (prevBtn) prevBtn.style.display = 'none';
+              if (nextBtn) nextBtn.style.display = 'none';
+              lightbox.classList.add('open');
+              lightbox.setAttribute('aria-hidden', 'false');
+              document.body.style.overflow = 'hidden';
+            });
+          }
+        })
+        .catch(function () {
+          frame.innerHTML = '<p class="mono" style="padding: 24px; color: var(--steel);">Featured build couldn\'t be loaded.</p>';
+        });
     })();
   </script>
 

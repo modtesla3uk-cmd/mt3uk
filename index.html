@@ -120,8 +120,8 @@
     white-space: nowrap;
   }
   .nav-sublink:hover { opacity: 0.65; }
-  .nav-link-shop { display: inline-flex; align-items: center; gap: 6px; }
-  .nav-link-shop::after {
+  .nav-link-shop, .nav-sublink-new { display: inline-flex; align-items: center; gap: 6px; }
+  .nav-link-shop::after, .nav-sublink-new::after {
     content: 'NEW';
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.62rem;
@@ -757,7 +757,7 @@
       <div class="nav-item">
         <a href="#gallery" class="nav-link">Gallery</a>
         <div class="nav-dropdown">
-          <a href="#gallery-upload" class="nav-sublink">Upload Image</a>
+          <a href="#gallery-upload" class="nav-sublink nav-sublink-new">Upload Image</a>
         </div>
       </div>
       <a href="#events" class="nav-link">Events</a>
@@ -943,7 +943,7 @@
     <p class="gallery-note">A snapshot of what the group's driving, most recent first. Upload your build below</p>
 
     <div class="submit-photo" id="gallery-upload">
-      <h3>Not on GitHub? Submit a photo instead</h3>
+      <h3>Submit a photo below</h3>
       <p>Send us a shot of your build and a caption, and we'll get it added to the gallery for you.</p>
       <form id="photo-submit-form" class="submit-form">
         <input type="checkbox" name="botcheck" class="hp-field" tabindex="-1" autocomplete="off">

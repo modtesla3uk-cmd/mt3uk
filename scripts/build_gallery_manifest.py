@@ -45,6 +45,35 @@ def manual_order_key(path: Path):
     return (1, 0, path.name.lower())
 
 
+def assign_missing_prefixes(photos):
+    """Rename any file that lacks a numeric prefix to the next one in
+    sequence, oldest (by git-added date) first, so every photo added
+    through the submission form ends up numbered like the originals."""
+    numbered, unnumbered = [], []
+    max_num = 0
+    for p in photos:
+        m = re.match(r"^(\d+)[-_]", p.stem)
+        if m:
+            max_num = max(max_num, int(m.group(1)))
+            numbered.append(p)
+        else:
+            unnumbered.append(p)
+
+    if not unnumbered:
+        return photos
+
+    unnumbered.sort(key=added_timestamp)
+    renamed = []
+    next_num = max_num + 1
+    for p in unnumbered:
+        new_path = p.with_name(f"{next_num:02d}-{p.name}")
+        p.rename(new_path)
+        renamed.append(new_path)
+        next_num += 1
+
+    return numbered + renamed
+
+
 def added_timestamp(path: Path) -> int:
     rel = path.relative_to(REPO_ROOT).as_posix()
     try:
@@ -66,6 +95,7 @@ def main():
         p for p in GALLERY_DIR.iterdir()
         if p.is_file() and p.suffix.lower() in VALID_EXT
     ]
+    photos = assign_missing_prefixes(photos)
 
     entries = [
         {

@@ -627,6 +627,8 @@
   .shop-preview-trigger:hover, .shop-preview-trigger:focus-visible { border-color: var(--orange); }
   .shop-preview-trigger img { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.35s ease; }
   .shop-preview-trigger:hover img, .shop-preview-trigger:focus-visible img { transform: scale(1.8); }
+  #sticker-trigger { margin-bottom: 18px; }
+  #sticker-trigger img { border: 1.5px dashed var(--steel); padding: 14px 18px; box-sizing: border-box; }
   #tee-trigger img, #tee-trigger-2 img { transition: transform 0.2s ease; }
   #tee-trigger img.zoom-pan, #tee-trigger-2 img.zoom-pan { transform: scale(4); }
   .shop-preview-thumb {
@@ -867,8 +869,8 @@
         <button type="button" class="shop-preview-trigger" id="sticker-trigger" aria-haspopup="dialog" aria-controls="sticker-modal">
           <img src="images/site/mt3uk-sticker.png" alt="MT3UK bumper sticker pack">
         </button>
-        <h3>Sticker pack</h3>
-        <p>For the boot lid, laptop, wherever</p>
+        <h3>Transparent vinyl stickers</h3>
+        <p>For the boot lid, windows, laptop, wherever!</p>
         <span class="tag">COMING SOON</span>
       </div>
     </div>
@@ -1196,7 +1198,7 @@
   <script>
     (function () {
         var style = document.createElement('style');
-        style.textContent = '.sticker-modal { position: fixed; inset: 0; background: rgba(22,35,61,0.94); display: none; align-items: center; justify-content: center; z-index: 210; padding: 30px 20px; } .sticker-modal.open { display: flex; } .sticker-modal-panel { background: var(--ink); border: 1px solid #3a4a6b; max-width: 720px; width: 100%; max-height: 88vh; overflow-y: auto; position: relative; padding: 36px; box-sizing: border-box; } .sticker-modal-close { position: absolute; top: 12px; right: 12px; z-index: 5; background: var(--ink); border: 1px solid var(--paper); color: var(--paper); width: 40px; height: 40px; font-size: 1.3rem; line-height: 1; cursor: pointer; } .sticker-modal-close:hover { background: var(--orange); border-color: var(--orange); } .sticker-modal-media { border: 1px solid #3a4a6b; padding: 34px 20px; position: relative; margin-bottom: 24px; display: flex; align-items: center; justify-content: center; } .sticker-modal-media img { display: block; max-width: 82%; height: auto; } .sticker-modal-tag { position: absolute; top: 14px; left: 14px; display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; color: var(--orange); border: 1px solid var(--orange); padding: 3px 8px; background: #0d1526; } .sticker-modal-body h3 { color: var(--paper); font-family: "IBM Plex Sans", sans-serif; font-size: 1.25rem; margin: 0 0 12px; } .sticker-modal-body h4 { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--orange); margin: 22px 0 10px; } .sticker-modal-lead { color: var(--paper); font-weight: 600; margin-bottom: 10px; } .sticker-modal-body p { color: #aeb8cc; font-size: 0.9rem; line-height: 1.55; margin: 0 0 10px; } .sticker-modal-features { list-style: none; padding: 0; margin: 0; } .sticker-modal-features li { color: #d7dce8; font-size: 0.87rem; padding-left: 22px; position: relative; margin-bottom: 8px; } .sticker-modal-features li::before { content: "\\2713"; position: absolute; left: 0; color: var(--orange); font-weight: 700; } .sticker-modal-pricing { width: 100%; border-collapse: collapse; margin-top: 4px; } .sticker-modal-pricing th, .sticker-modal-pricing td { border: 1px solid #3a4a6b; padding: 8px 12px; font-size: 0.83rem; text-align: left; color: var(--paper); } .sticker-modal-pricing th { font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--orange); } .sticker-modal-note { font-style: italic; } .sticker-modal-cta { color: var(--paper); font-weight: 600; margin: 18px 0 0; } @media (max-width: 600px) { .sticker-modal-panel { padding: 24px 18px; } }';
+        style.textContent = '.sticker-modal { position: fixed; inset: 0; background: rgba(22,35,61,0.94); display: none; align-items: center; justify-content: center; z-index: 210; padding: 30px 20px; } .sticker-modal.open { display: flex; } .sticker-modal-panel { background: var(--ink); border: 1px solid #3a4a6b; max-width: 720px; width: 100%; max-height: 88vh; overflow-y: auto; position: relative; padding: 36px; box-sizing: border-box; } .sticker-modal-close { position: absolute; top: 12px; right: 12px; z-index: 5; background: var(--ink); border: 1px solid var(--paper); color: var(--paper); width: 40px; height: 40px; font-size: 1.3rem; line-height: 1; cursor: pointer; } .sticker-modal-close:hover { background: var(--orange); border-color: var(--orange); } .sticker-modal-media { border: 1px solid #3a4a6b; padding: 34px 20px; position: relative; margin-bottom: 24px; display: flex; align-items: center; justify-content: center; } .sticker-modal-media img { display: block; max-width: 82%; height: auto; border: 1.5px dashed var(--steel); padding: 20px 26px; box-sizing: border-box; } .sticker-modal-tag { position: absolute; top: 14px; left: 14px; display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; color: var(--orange); border: 1px solid var(--orange); padding: 3px 8px; background: #0d1526; } .sticker-modal-body h3 { color: var(--paper); font-family: "IBM Plex Sans", sans-serif; font-size: 1.25rem; margin: 0 0 12px; } .sticker-modal-body h4 { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--orange); margin: 22px 0 10px; } .sticker-modal-lead { color: var(--paper); font-weight: 600; margin-bottom: 10px; } .sticker-modal-body p { color: #aeb8cc; font-size: 0.9rem; line-height: 1.55; margin: 0 0 10px; } .sticker-modal-features { list-style: none; padding: 0; margin: 0; } .sticker-modal-features li { color: #d7dce8; font-size: 0.87rem; padding-left: 22px; position: relative; margin-bottom: 8px; } .sticker-modal-features li::before { content: "\\2713"; position: absolute; left: 0; color: var(--orange); font-weight: 700; } .sticker-modal-pricing { width: 100%; border-collapse: collapse; margin-top: 4px; } .sticker-modal-pricing th, .sticker-modal-pricing td { border: 1px solid #3a4a6b; padding: 8px 12px; font-size: 0.83rem; text-align: left; color: var(--paper); } .sticker-modal-pricing th { font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--orange); } .sticker-modal-note { font-style: italic; } .sticker-modal-cta { color: var(--paper); font-weight: 600; margin: 18px 0 0; } @media (max-width: 600px) { .sticker-modal-panel { padding: 24px 18px; } }';
         document.head.appendChild(style);
 
         var modal = document.createElement('div');
@@ -1268,7 +1270,7 @@
   <script>
     (function () {
         var style = document.createElement('style');
-        style.textContent = '.tee-modal { position: fixed; inset: 0; background: rgba(22,35,61,0.94); display: none; align-items: center; justify-content: center; z-index: 210; padding: 30px 20px; } .tee-modal.open { display: flex; } .tee-modal-panel { background: var(--ink); border: 1px solid #3a4a6b; max-width: 720px; width: 100%; max-height: 88vh; overflow-y: auto; position: relative; padding: 36px; box-sizing: border-box; } .tee-modal-close { position: absolute; top: 12px; right: 12px; z-index: 5; background: var(--ink); border: 1px solid var(--paper); color: var(--paper); width: 40px; height: 40px; font-size: 1.3rem; line-height: 1; cursor: pointer; } .tee-modal-close:hover { background: var(--orange); border-color: var(--orange); } .tee-modal-media { border: 1px solid #3a4a6b; padding: 20px; position: relative; margin-bottom: 24px; display: flex; align-items: center; justify-content: center; } .tee-modal-media img { display: block; max-width: 100%; height: auto; } .tee-modal-tag { position: absolute; top: 14px; left: 14px; display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; color: var(--orange); border: 1px solid var(--orange); padding: 3px 8px; background: #0d1526; } .tee-modal-body h3 { color: var(--paper); font-family: "IBM Plex Sans", sans-serif; font-size: 1.25rem; margin: 0 0 12px; } .tee-modal-body h4 { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--orange); margin: 22px 0 10px; } .tee-modal-lead { color: var(--paper); font-weight: 600; margin-bottom: 10px; } .tee-modal-body p { color: #aeb8cc; font-size: 0.9rem; line-height: 1.55; margin: 0 0 10px; } .tee-modal-features { list-style: none; padding: 0; margin: 0; } .tee-modal-features li { color: #d7dce8; font-size: 0.87rem; padding-left: 22px; position: relative; margin-bottom: 8px; } .tee-modal-features li::before { content: "\\2713"; position: absolute; left: 0; color: var(--orange); font-weight: 700; } .tee-modal-price { color: var(--paper); font-size: 1.4rem; font-weight: 700; margin: 4px 0 14px; } .tee-modal-buy { display: inline-block; margin-top: 18px; padding: 12px 24px; background: var(--orange); color: var(--paper); font-weight: 600; font-size: 0.9rem; border: 1px solid var(--orange); } .tee-modal-buy:hover { background: #cf4620; } .tee-modal-thumbs { display: flex; gap: 10px; margin-top: 14px; } .tee-modal-thumbs button { width: 56px; height: 56px; padding: 4px; background: none; border: 1px solid #3a4a6b; cursor: pointer; box-sizing: border-box; } .tee-modal-thumbs button:hover, .tee-modal-thumbs button.active { border-color: var(--orange); } .tee-modal-thumbs img { display: block; width: 100%; height: 100%; object-fit: contain; } @media (max-width: 600px) { .tee-modal-panel { padding: 24px 18px; } }';
+        style.textContent = '.tee-modal { position: fixed; inset: 0; background: rgba(22,35,61,0.94); display: none; align-items: center; justify-content: center; z-index: 210; padding: 30px 20px; } .tee-modal.open { display: flex; } .tee-modal-panel { background: var(--ink); border: 1px solid #3a4a6b; max-width: 720px; width: 100%; max-height: 88vh; overflow-y: auto; position: relative; padding: 36px; box-sizing: border-box; } .tee-modal-close { position: absolute; top: 12px; right: 12px; z-index: 5; background: var(--ink); border: 1px solid var(--paper); color: var(--paper); width: 40px; height: 40px; font-size: 1.3rem; line-height: 1; cursor: pointer; } .tee-modal-close:hover { background: var(--orange); border-color: var(--orange); } .tee-modal-media { border: 1px solid #3a4a6b; padding: 20px; position: relative; margin-bottom: 24px; display: flex; align-items: center; justify-content: center; } .tee-modal-media img { display: block; max-width: 100%; height: auto; } .tee-modal-arrow { position: absolute; top: 50%; transform: translateY(-50%); z-index: 5; background: var(--ink); border: 1px solid var(--paper); color: var(--paper); width: 36px; height: 36px; font-size: 1.1rem; line-height: 1; cursor: pointer; } .tee-modal-arrow:hover { background: var(--orange); border-color: var(--orange); } .tee-modal-arrow-prev { left: 10px; } .tee-modal-arrow-next { right: 10px; } .tee-modal-tag { position: absolute; top: 14px; left: 14px; display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; color: var(--orange); border: 1px solid var(--orange); padding: 3px 8px; background: #0d1526; } .tee-modal-body h3 { color: var(--paper); font-family: "IBM Plex Sans", sans-serif; font-size: 1.25rem; margin: 0 0 12px; } .tee-modal-body h4 { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--orange); margin: 22px 0 10px; } .tee-modal-lead { color: var(--paper); font-weight: 600; margin-bottom: 10px; } .tee-modal-body p { color: #aeb8cc; font-size: 0.9rem; line-height: 1.55; margin: 0 0 10px; } .tee-modal-features { list-style: none; padding: 0; margin: 0; } .tee-modal-features li { color: #d7dce8; font-size: 0.87rem; padding-left: 22px; position: relative; margin-bottom: 8px; } .tee-modal-features li::before { content: "\\2713"; position: absolute; left: 0; color: var(--orange); font-weight: 700; } .tee-modal-price { color: var(--paper); font-size: 1.4rem; font-weight: 700; margin: 4px 0 14px; } .tee-modal-buy { display: inline-block; margin-top: 18px; padding: 12px 24px; background: var(--orange); color: var(--paper); font-weight: 600; font-size: 0.9rem; border: 1px solid var(--orange); } .tee-modal-buy:hover { background: #cf4620; } .tee-modal-thumbs { display: flex; gap: 10px; margin-top: 14px; } .tee-modal-thumbs button { width: 56px; height: 56px; padding: 4px; background: none; border: 1px solid #3a4a6b; cursor: pointer; box-sizing: border-box; } .tee-modal-thumbs button:hover, .tee-modal-thumbs button.active { border-color: var(--orange); } .tee-modal-thumbs img { display: block; width: 100%; height: 100%; object-fit: contain; } @media (max-width: 600px) { .tee-modal-panel { padding: 24px 18px; } }';
         document.head.appendChild(style);
 
         var modal = document.createElement('div');
@@ -1281,7 +1283,9 @@
               '<button type="button" class="tee-modal-close" aria-label="Close">&times;</button>' +
               '<div class="tee-modal-media">' +
                     '<span class="tag tee-modal-tag">AVAILABLE NOW</span>' +
+                    '<button type="button" class="tee-modal-arrow tee-modal-arrow-prev" aria-label="Previous image">&#8249;</button>' +
                     '<img class="tee-modal-main-img" src="images/site/mt3uk-tee.jpg" alt="MT3UK black unisex t-shirt with red underline design">' +
+                    '<button type="button" class="tee-modal-arrow tee-modal-arrow-next" aria-label="Next image">&#8250;</button>' +
               '</div>' +
               '<div class="tee-modal-thumbs">' +
                     '<button type="button" class="active" data-src="images/site/mt3uk-tee.jpg" data-alt="MT3UK black unisex t-shirt with red underline design"><img src="images/site/mt3uk-tee.jpg" alt="Front view"></button>' +
@@ -1315,6 +1319,12 @@
         var detailBtn = document.getElementById('tee-detail-btn');
         var mainImg = modal.querySelector('.tee-modal-main-img');
         var thumbBtns = modal.querySelectorAll('.tee-modal-thumbs button');
+        var prevArrow = modal.querySelector('.tee-modal-arrow-prev');
+        var nextArrow = modal.querySelector('.tee-modal-arrow-next');
+        var slides = Array.prototype.map.call(thumbBtns, function (b) {
+              return { src: b.getAttribute('data-src'), alt: b.getAttribute('data-alt') };
+        });
+        var currentIndex = 0;
 
         function setActiveThumb(src) {
               thumbBtns.forEach(function (b) {
@@ -1326,6 +1336,13 @@
               mainImg.src = src;
               mainImg.alt = alt;
               setActiveThumb(src);
+              var i = slides.findIndex(function (s) { return s.src === src; });
+              if (i !== -1) currentIndex = i;
+        }
+
+        function showSlide(index) {
+              var i = (index + slides.length) % slides.length;
+              showImage(slides[i].src, slides[i].alt);
         }
 
         thumbBtns.forEach(function (b) {
@@ -1333,6 +1350,9 @@
                     showImage(b.getAttribute('data-src'), b.getAttribute('data-alt'));
               });
         });
+
+        if (prevArrow) prevArrow.addEventListener('click', function () { showSlide(currentIndex - 1); });
+        if (nextArrow) nextArrow.addEventListener('click', function () { showSlide(currentIndex + 1); });
 
         function openModal(src, alt) {
               if (src) showImage(src, alt);

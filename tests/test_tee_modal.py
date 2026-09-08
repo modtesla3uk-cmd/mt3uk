@@ -87,6 +87,12 @@ def test_hovering_tee_image_applies_zoom(page):
     trigger.hover()
     img = trigger.locator("img")
     assert "zoom-pan" in (img.get_attribute("class") or "")
-    page.wait_for_timeout(300)  # let the CSS transition finish
-    transform = img.evaluate("el => getComputedStyle(el).transform")
+    transform = img.evaluate(
+        """el => new Promise(resolve => {
+            const done = () => resolve(getComputedStyle(el).transform);
+            if (getComputedStyle(el).transform === 'matrix(4, 0, 0, 4, 0, 0)') { done(); return; }
+            el.addEventListener('transitionend', done, { once: true });
+            setTimeout(done, 2000);
+        })"""
+    )
     assert transform == "matrix(4, 0, 0, 4, 0, 0)"

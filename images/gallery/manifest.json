@@ -1,5 +1,9 @@
 [
   {
+    "file": "25-candy-blue-model-3.jpeg",
+    "caption": "CANDY BLUE MODEL 3"
+  },
+  {
     "file": "24-voyager-model-3.jpeg",
     "caption": "VOYAGER MODEL 3"
   },
@@ -86,9 +90,5 @@
   {
     "file": "09-model-3-trackday.jpg",
     "caption": "MODEL 3 TRACKDAY"
-  },
-  {
-    "file": "25-candy-blue-model-3.jpeg",
-    "caption": "CANDY BLUE MODEL 3"
   }
 ]

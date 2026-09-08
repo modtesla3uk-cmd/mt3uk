@@ -123,6 +123,13 @@
   }
   .nav-cta:hover { background: var(--orange); border-color: var(--orange); }
 
+  .nav-cta-shop {
+    background: transparent;
+    color: var(--orange) !important;
+    border-color: var(--orange);
+  }
+  .nav-cta-shop:hover { background: var(--orange); color: var(--paper) !important; }
+
   .hamburger {
     display: none;
     align-items: center;
@@ -140,7 +147,8 @@
 
   @media (max-width: 780px) {
     .hamburger { display: flex; }
-    .nav-cta { margin-left: auto; padding: 9px 12px; font-size: 0.8rem; }
+    .nav-cta { padding: 9px 12px; font-size: 0.8rem; }
+    .nav-cta-shop { margin-left: auto; }
 
     .navlinks {
       display: none;
@@ -746,6 +754,7 @@
       <a href="#events" class="nav-link">Events</a>
       <a href="#track-days" class="nav-link">Track Days</a>
     </div>
+    <a href="#shop" class="nav-cta nav-cta-shop">Shop</a>
     <a href="https://www.facebook.com/share/g/1EnNkFvxr7/" class="nav-cta" target="_blank" rel="noopener">Join the group</a>
     <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navlinks">&#9776;</button>
   </nav>
@@ -792,7 +801,7 @@
       <div>
         <p>MT3UK started as a small group of Tesla owners comparing notes on wheels, wraps and suspension setups - the kind of honest, hands-on advice you don't get in a showroom. It's grown into one of the largest communities for modified Tesla owners.</p>
         <p>Whatever you're running (Model S, 3, X or Y) and whatever stage your build is at, from a first set of wheels to a full track setup, you'll find people in the group who've done it, are doing it, or want to help you get there.</p>
-        <p>We keep the group free from bots, spam and probably most importantly "negativity" with a group of trusted admins on hand. Meet-ups across the UK and beyound and a shared respect for doing mods properly.</p>
+        <p>We keep the group free from bots, spam and probably most importantly "negativity" with a group of trusted admins on hand. Meet-ups across the UK and beyond and a shared respect for doing mods properly.</p>
       </div>
       <div class="specs">
         <div class="spec-row"><span>MEMBERS</span><span>3,000+</span></div>

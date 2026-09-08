@@ -45,10 +45,15 @@ def manual_order_key(path: Path):
     return (1, 0, path.name.lower())
 
 
-def assign_missing_prefixes(photos):
+def assign_missing_prefixes(photos, timestamp_overrides):
     """Rename any file that lacks a numeric prefix to the next one in
     sequence, oldest (by git-added date) first, so every photo added
-    through the submission form ends up numbered like the originals."""
+    through the submission form ends up numbered like the originals.
+
+    Timestamps are looked up (via git log) before renaming, since a
+    freshly renamed-but-uncommitted file has no git history under its
+    new name and would otherwise fall back to being treated as the
+    oldest photo, sorting it to the very end instead of the top."""
     numbered, unnumbered = [], []
     max_num = 0
     for p in photos:
@@ -66,8 +71,10 @@ def assign_missing_prefixes(photos):
     renamed = []
     next_num = max_num + 1
     for p in unnumbered:
+        ts = added_timestamp(p)
         new_path = p.with_name(f"{next_num:02d}-{p.name}")
         p.rename(new_path)
+        timestamp_overrides[new_path] = ts
         renamed.append(new_path)
         next_num += 1
 
@@ -95,12 +102,13 @@ def main():
         p for p in GALLERY_DIR.iterdir()
         if p.is_file() and p.suffix.lower() in VALID_EXT
     ]
-    photos = assign_missing_prefixes(photos)
+    timestamp_overrides = {}
+    photos = assign_missing_prefixes(photos, timestamp_overrides)
 
     entries = [
         {
             "path": p,
-            "added_ts": added_timestamp(p),
+            "added_ts": timestamp_overrides.get(p, added_timestamp(p)),
             "manual_key": manual_order_key(p),
         }
         for p in photos

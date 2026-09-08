@@ -555,6 +555,13 @@
   }
   .shop-card svg { width: 100%; height: 140px; margin-bottom: 18px; }
 
+  .shop-preview-hint {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.66rem;
+    font-weight: 300;
+    color: var(--steel);
+    margin: 0 0 8px;
+  }
   .shop-preview-row {
     display: flex;
     align-items: stretch;
@@ -810,6 +817,7 @@
     </div>
     <div class="shop-grid">
       <div class="shop-card">
+        <p class="shop-preview-hint">Hold and pan to zoom</p>
         <div class="shop-preview-row">
           <button type="button" class="shop-preview-trigger" id="tee-trigger" aria-haspopup="dialog" aria-controls="tee-modal">
             <img src="images/site/mt3uk-tee.jpg" alt="MT3UK black unisex t-shirt with red underline design">

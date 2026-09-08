@@ -22,3 +22,19 @@ A GitHub Actions workflow (`.github/workflows/pages.yml`) runs on every push. It
 ```
 git config merge.ours.driver true
 ```
+
+## Running tests
+End-to-end tests use Playwright (Python) against a local copy of the site. Install once:
+
+```
+pip install -r requirements-test.txt
+python -m playwright install --with-deps chromium
+```
+
+Then run the suite (this starts and stops a local static server automatically):
+
+```
+pytest -v
+```
+
+A GitHub Actions workflow (`.github/workflows/tests.yml`) runs the same suite on every push and pull request.

@@ -627,8 +627,9 @@
   .shop-preview-trigger:hover, .shop-preview-trigger:focus-visible { border-color: var(--orange); }
   .shop-preview-trigger img { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.35s ease; }
   .shop-preview-trigger:hover img, .shop-preview-trigger:focus-visible img { transform: scale(1.8); }
-  #sticker-trigger { margin-bottom: 18px; }
+  #sticker-trigger { margin-bottom: 18px; cursor: pointer; }
   #sticker-trigger img { border: 1.5px dashed var(--steel); padding: 14px 18px; box-sizing: border-box; }
+  #sticker-trigger:hover img, #sticker-trigger:focus-visible img { transform: none; }
   #tee-trigger img, #tee-trigger-2 img { transition: transform 0.2s ease; }
   #tee-trigger img.zoom-pan, #tee-trigger-2 img.zoom-pan { transform: scale(4); }
   .shop-preview-thumb {
@@ -871,7 +872,10 @@
         </button>
         <h3>Transparent vinyl stickers</h3>
         <p>For the boot lid, windows, laptop, wherever!</p>
-        <span class="tag">COMING SOON</span>
+        <div class="tee-offer-actions">
+          <span class="tag">COMING SOON</span>
+          <button type="button" class="tee-detail-btn" id="sticker-detail-btn" aria-haspopup="dialog" aria-controls="sticker-modal">More detail</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1243,6 +1247,7 @@
 
         var closeBtn = modal.querySelector('.sticker-modal-close');
         var trigger = document.getElementById('sticker-trigger');
+        var detailBtn = document.getElementById('sticker-detail-btn');
 
         function openModal() {
               modal.classList.add('open');
@@ -1257,6 +1262,7 @@
         }
 
         if (trigger) trigger.addEventListener('click', openModal);
+        if (detailBtn) detailBtn.addEventListener('click', openModal);
         closeBtn.addEventListener('click', closeModal);
         modal.addEventListener('click', function (e) {
               if (e.target === modal) closeModal();

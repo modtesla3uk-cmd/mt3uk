@@ -597,7 +597,8 @@
     overflow: hidden;
   }
   .shop-preview-thumb:hover, .shop-preview-thumb:focus-visible { border-color: var(--orange); }
-  .shop-preview-thumb img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .shop-preview-thumb img { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.2s ease; }
+  .shop-preview-thumb:hover img, .shop-preview-thumb:focus-visible img { transform: scale(4); }
   .shop-card h3 { color: var(--paper); font-size: 1.02rem; font-weight: 600; font-family: 'IBM Plex Sans', sans-serif; margin-bottom: 6px; }
   .shop-card p { color: #aeb8cc; font-size: 0.86rem; }
   .shop-card .tag {

@@ -99,6 +99,27 @@
   }
   .navlinks a:hover { opacity: 0.65; }
   .navlinks a.active { color: var(--orange); border-color: var(--orange); }
+
+  .nav-item { position: relative; display: flex; align-items: center; }
+  .nav-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 160px;
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    z-index: 10;
+  }
+  .nav-item:hover .nav-dropdown,
+  .nav-item:focus-within .nav-dropdown { display: block; }
+  .nav-sublink {
+    display: block;
+    padding: 10px 14px;
+    font-size: 0.88rem;
+    white-space: nowrap;
+  }
+  .nav-sublink:hover { opacity: 0.65; }
   .nav-link-shop { display: inline-flex; align-items: center; gap: 6px; }
   .nav-link-shop::after {
     content: 'NEW';
@@ -168,6 +189,17 @@
       padding: 14px 16px;
       border-bottom: 1px solid rgba(22,35,61,0.12);
       border-radius: 0;
+    }
+    .nav-item { flex-direction: column; align-items: stretch; }
+    .nav-dropdown {
+      display: block;
+      position: static;
+      border: none;
+      background: rgba(22,35,61,0.03);
+    }
+    .nav-sublink {
+      padding: 12px 16px 12px 32px;
+      border-bottom: 1px solid rgba(22,35,61,0.12);
     }
   }
 
@@ -718,11 +750,16 @@
 
 <header>
   <nav>
-    <div class="logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></div>
+    <a href="/" class="logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
     <div class="navlinks" id="navlinks">
       <a href="#about" class="nav-link active">About</a>
       <a href="#shop" class="nav-link nav-link-shop">Shop</a>
-      <a href="#gallery" class="nav-link">Gallery</a>
+      <div class="nav-item">
+        <a href="#gallery" class="nav-link">Gallery</a>
+        <div class="nav-dropdown">
+          <a href="#gallery-upload" class="nav-sublink">Upload Image</a>
+        </div>
+      </div>
       <a href="#events" class="nav-link">Events</a>
       <a href="#track-days" class="nav-link">Track Days</a>
     </div>
@@ -903,9 +940,9 @@
       <p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">Loading builds…</p>
     </div>
     <div class="gallery-pagination" id="gallery-pagination"></div>
-    <p class="gallery-note">A snapshot of what the group's driving, most recent first. Drop a new photo into <code>images/gallery/</code> on GitHub and it'll show up here automatically.</p>
+    <p class="gallery-note">A snapshot of what the group's driving, most recent first. Upload your build below</p>
 
-    <div class="submit-photo">
+    <div class="submit-photo" id="gallery-upload">
       <h3>Not on GitHub? Submit a photo instead</h3>
       <p>Send us a shot of your build and a caption, and we'll get it added to the gallery for you.</p>
       <form id="photo-submit-form" class="submit-form">
@@ -1065,7 +1102,7 @@
 
 <footer>
   <div class="wrap footer-row">
-    <div class="logo footer-logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></div>
+    <a href="/" class="logo footer-logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
     <span class="mono">MODIFIED TESLA COMMUNITY · <span class="member-count"></span> MEMBERS</span>
     <a href="https://www.facebook.com/share/g/1EnNkFvxr7/" target="_blank" rel="noopener" class="mono" style="text-decoration:underline;">FACEBOOK GROUP ↗</a>
   </div>
@@ -1348,6 +1385,10 @@
                     navMenu.querySelectorAll('.nav-link').forEach(function (l) { l.classList.remove('active'); });
                     link.classList.add('active');
               });
+        });
+
+        navMenu.querySelectorAll('.nav-sublink').forEach(function (link) {
+              link.addEventListener('click', closeMenu);
         });
 
         document.addEventListener('click', function (e) {

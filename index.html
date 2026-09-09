@@ -480,6 +480,15 @@
     background: #000;
   }
   #hero-bf-frame { margin: 0 auto; }
+  .hero-media { display: flex; flex-direction: column; gap: 12px; align-items: center; }
+  .hero-media-note {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--steel);
+    text-align: center;
+    max-width: 340px;
+  }
+  .hero-media-note a { color: var(--orange); }
   .bf-progress {
     position: absolute;
     top: 12px; left: 14px; right: 14px;
@@ -1068,12 +1077,15 @@
           <div><strong>DAILY</strong><span>BUILD THREADS</span></div>
         </div>
       </div>
-      <div class="bf-frame" id="hero-bf-frame">
+      <div class="hero-media">
+        <p class="hero-media-note">To view more, go to the <a href="#gallery">Gallery</a> or <a href="#gallery-upload">upload your build</a> to get yours featured.</p>
+        <div class="bf-frame" id="hero-bf-frame">
         <div class="bf-progress" id="bf-progress"></div>
         <div class="bf-feed" id="bf-feed">
           <p class="mono" style="padding: 24px; color: var(--steel);">Loading builds…</p>
         </div>
         <div class="bf-scroll-hint" id="bf-scroll-hint">&#9662; SCROLL</div>
+        </div>
       </div>
     </div>
   </div>
@@ -1203,10 +1215,39 @@
       });
     }
 
-    fetch('images/gallery/manifest.json', { cache: 'no-store' })
-      .then(function (res) { return res.ok ? res.json() : []; })
-      .then(function (photos) {
-        render((photos || []).slice(0, MAX_SLIDES));
+    function hashString(str) {
+      var hash = 5381;
+      for (var i = 0; i < str.length; i++) {
+        hash = ((hash << 5) + hash) + str.charCodeAt(i);
+        hash = hash & hash;
+      }
+      return Math.abs(hash);
+    }
+
+    function pickBuildOfTheDay(photos, featuredFile) {
+      if (featuredFile) {
+        var pinned = photos.find(function (p) { return p.file === featuredFile; });
+        if (pinned) return pinned;
+      }
+      var today = new Date();
+      var seed = today.getUTCFullYear() + '-' + (today.getUTCMonth() + 1) + '-' + today.getUTCDate();
+      return photos[hashString(seed) % photos.length];
+    }
+
+    Promise.all([
+      fetch('images/gallery/manifest.json', { cache: 'no-store' }).then(function (res) { return res.ok ? res.json() : []; }),
+      fetch('data/featured.json', { cache: 'no-store' }).then(function (res) { return res.ok ? res.json() : {}; }).catch(function () { return {}; })
+    ])
+      .then(function (results) {
+        var photos = results[0] || [];
+        var featuredFile = (results[1] && results[1].file) || null;
+        var ordered = photos;
+        if (photos.length) {
+          var featured = pickBuildOfTheDay(photos, featuredFile);
+          var rest = photos.filter(function (p) { return p.file !== featured.file; });
+          ordered = [featured].concat(rest);
+        }
+        render(ordered.slice(0, MAX_SLIDES));
       })
       .catch(function () {
         feedEl.innerHTML = '<p class="mono" style="padding: 24px; color: var(--steel);">Builds couldn\'t be loaded.</p>';

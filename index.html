@@ -404,11 +404,12 @@
   /* ---------- GALLERY ---------- */
   .gallery-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 0;
     border: 1px solid var(--ink);
   }
-  @media (max-width: 760px) { .gallery-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 900px) { .gallery-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 560px) { .gallery-grid { grid-template-columns: repeat(2, 1fr); } }
 
   .gallery-slot {
     background: var(--paper-2);
@@ -1302,7 +1303,7 @@
 
     <script>
       (function () {
-        var PAGE_SIZE = 12;
+        var PAGE_SIZE = 16;
         var grid = document.getElementById('gallery-grid');
         var pagination = document.getElementById('gallery-pagination');
         var allPhotos = [];

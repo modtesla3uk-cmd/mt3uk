@@ -435,6 +435,63 @@
   .spec-row span:first-child { color: var(--steel); font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; }
   .spec-row span:last-child { font-weight: 600; color: var(--ink); text-align: right; }
 
+  .track-prep {
+    margin-top: 56px;
+    padding-top: 48px;
+    border-top: 1px solid var(--ink);
+    max-width: 74ch;
+  }
+  .track-prep h3 {
+    font-size: 1.5rem;
+    margin-bottom: 14px;
+  }
+  .track-prep > p { color: var(--ink-2); margin-bottom: 14px; }
+  .track-prep-eyebrow {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--orange);
+    margin: 34px 0 12px;
+  }
+  .track-prep-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 8px;
+  }
+  .track-prep-list li {
+    color: var(--ink-2);
+    padding-left: 26px;
+    position: relative;
+    margin-bottom: 14px;
+    line-height: 1.55;
+  }
+  .track-prep-list li::before {
+    content: "\2713";
+    position: absolute;
+    left: 0;
+    top: 1px;
+    color: var(--orange);
+    font-weight: 700;
+  }
+  .track-prep-list.numbered { counter-reset: track-step; }
+  .track-prep-list.numbered li { counter-increment: track-step; }
+  .track-prep-list.numbered li::before {
+    content: counter(track-step);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+  .track-prep-list li strong { color: var(--ink); }
+  .track-prep-suppliers a {
+    color: var(--orange);
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 1px solid var(--orange);
+  }
+  .track-prep-suppliers a:hover { color: var(--ink); border-color: var(--ink); }
+
   /* ---------- GALLERY ---------- */
   .gallery-grid {
     display: grid;
@@ -1635,7 +1692,41 @@
         <div class="spec-row"><span>PACK</span><span>Tyre gauge, torque wrench, tow strap, first aid kit</span></div>
       </div>
     </div>
-    <div class="track-day-frame" id="track-day-grid" style="margin-top: 40px;">
+
+    <div class="track-prep">
+      <h3>Track Day Prep: What You Need to Know</h3>
+      <p>Taking a modified Tesla onto track is a different beast to a spirited drive down B roads. Sustained hard braking, high cornering loads, and repeated full-power acceleration expose weaknesses that never show up on the school run. Here's what the MT3UK community has learned.</p>
+
+      <span class="track-prep-eyebrow">Where Stock (OE) Falls Short</span>
+      <ul class="track-prep-list">
+        <li><strong>Brakes.</strong> Factory pads aren't designed for repeated hard stops, so expect fade after 2 to 3 hard sessions on stock pads. Factory DOT 3 fluid boils fast too, which means a soft pedal if you're pushing on, and if you want to go faster, you will be pushing on.</li>
+        <li><strong>Thermal derating.</strong> Sustained high power draw triggers power limiting as battery and motor temps climb, noticeably cutting acceleration late in a session. On a Performance model, expect to lose peak power within a couple of laps.</li>
+        <li><strong>Tyres.</strong> OE tyres are usually your daily road set. Factory rubber wears fast under track loads, and grip drops off once temperatures spike.</li>
+        <li><strong>Suspension geometry.</strong> Stock camber and alignment aren't tuned for sustained cornering loads, so you'll see uneven tyre wear and less predictable handling as a session goes on.</li>
+      </ul>
+
+      <span class="track-prep-eyebrow">Which Models Can Track</span>
+      <ul class="track-prep-list">
+        <li><strong>Model 3 Performance</strong> is the best-suited stock option, and earlier cars support Track Mode for better thermal management.</li>
+        <li><strong>Model Y Performance</strong> is capable, but a higher centre of gravity means more body roll and earlier tyre wear than the 3.</li>
+        <li><strong>Long Range and Standard Range</strong> models can track too, but expect power limiting sooner with no Track Mode to manage it, and the same stock suspension and brake limitations apply.</li>
+      </ul>
+
+      <span class="track-prep-eyebrow">Upgrade Path</span>
+      <p style="margin-bottom: 14px;">Members generally address the above in this order:</p>
+      <ol class="track-prep-list numbered">
+        <li><strong>Brakes.</strong> Track-compound pads, stainless lines, and for serious track use, a big brake kit.</li>
+        <li><strong>Suspension.</strong> Coilovers and sway bars to control body roll and keep the tyre contact patch consistent.</li>
+        <li><strong>Cooling.</strong> Track-focused cooling upgrades to delay power derating on longer sessions. This is one area where we're working against the factory design, since the stock coolant system is built for efficiency over outright power.</li>
+        <li><strong>Tyres and wheels.</strong> Track-day-suitable rubber and wider wheel setups for more contact patch.</li>
+      </ol>
+      <p class="track-prep-suppliers">For members ready to go beyond bolt-ons, we work with suppliers including <a href="#" target="_blank" rel="noopener">MPP</a>, <a href="#" target="_blank" rel="noopener">Tevo</a>, and <a href="#" target="_blank" rel="noopener">Tegiwa</a>.</p>
+
+      <span class="track-prep-eyebrow">Weekend Maintenance Days</span>
+      <p>Ahead of major track events, MT3UK runs informal weekend Maintenance Days, a chance for members to get together, swap pads, check alignment, top up fluids, and give cars a proper once-over before hitting the circuit. Low-key, low-cost, and a good way to meet other members face to face.</p>
+    </div>
+
+    <div class="track-day-frame" id="track-day-grid" style="margin-top: 56px;">
       <p class="mono">Loading track days…</p>
     </div>
     <div class="gallery-pagination" id="track-day-pagination"></div>

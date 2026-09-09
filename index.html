@@ -435,6 +435,23 @@
   .spec-row span:first-child { color: var(--steel); font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; }
   .spec-row span:last-child { font-weight: 600; color: var(--ink); text-align: right; }
 
+  .section-num-link {
+    margin-left: 12px;
+    color: var(--orange);
+    font-weight: 700;
+    text-decoration: none;
+    border-bottom: 1px solid var(--orange);
+  }
+  .section-num-link:hover { color: var(--ink); border-color: var(--ink); }
+
+  .inline-link {
+    color: var(--orange);
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 1px solid var(--orange);
+  }
+  .inline-link:hover { color: var(--ink); border-color: var(--ink); }
+
   /* ---------- GALLERY ---------- */
   .gallery-grid {
     display: grid;
@@ -1621,14 +1638,14 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">06 / TRACK DAYS</span>
+        <span class="section-num">06 / TRACK DAYS <a href="track-day-prep.html" class="section-num-link">Prep Guide →</a></span>
         <h2>From sighting laps to setting your PB</h2>
       </div>
       <p>Prep, upgrades and honest advice, for first timers and seasoned track goers alike.</p>
     </div>
     <div class="about-grid">
       <div>
-        <p>This corner of MT3UK is dedicated to taking your Tesla on track, properly. Whether you're booking your very first track day or you've lost count of how many you've done, we're building this into the go-to spot for everything in between.</p>
+        <p>This corner of MT3UK is dedicated to taking your Tesla on track, properly. Whether you're booking your very first track day or you've lost count of how many you've done, we're building this into the go-to spot for everything in between. Read our <a href="track-day-prep.html" class="inline-link">Track Day Prep guide</a> for OE limitations, model guidance and the upgrade path members follow.</p>
         <p>Expect recommended upgrades that hold up under real track conditions rather than just Instagram, and unfiltered advice from members who've already made the mistakes so you don't have to.</p>
         <p>Got track photos, lap times or lessons learned? Share them in the Facebook group and they'll find a home here.</p>
       </div>

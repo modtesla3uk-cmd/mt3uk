@@ -155,6 +155,21 @@
   }
   .nav-cta-shop:hover { background: var(--orange); color: var(--paper) !important; }
 
+  .nav-cta-special {
+    background: var(--orange);
+    color: var(--paper) !important;
+    border-color: var(--orange);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    animation: nav-cta-blink 1.4s ease-in-out 5;
+  }
+  .nav-cta-special:hover { background: var(--ink); border-color: var(--ink); animation: none; }
+
+  @keyframes nav-cta-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+  }
+
   .nav-cta-kofi {
     background: var(--orange);
     color: var(--paper) !important;
@@ -926,7 +941,36 @@
     justify-self: start;
   }
 
+  /* ---------- SHOP CTA BAND ---------- */
+  .shop-cta {
+    background: var(--paper);
+    border-top: 1px solid rgba(22,35,61,0.12);
+    border-bottom: 1px solid rgba(22,35,61,0.12);
+    padding: 48px 24px;
+    text-align: center;
+  }
+  .shop-cta h2 { margin: 0 0 8px; }
+  .shop-cta p { color: var(--steel); margin: 0 0 20px; }
+  .shop-cta .nav-cta-shop {
+    display: inline-block;
+    padding: 12px 28px;
+    font-size: 0.95rem;
+  }
+
   /* ---------- SHOP TEASER ---------- */
+  .discount-banner {
+    background: var(--orange);
+    color: var(--paper);
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.03em;
+    padding: 12px;
+    margin-bottom: 30px;
+  }
+  .discount-banner p { margin: 0; }
+
   .shop-band {
     background: var(--ink);
     color: var(--paper);
@@ -1093,6 +1137,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
+    .nav-cta-special { animation: none; }
   }
 
   :focus-visible {
@@ -1128,7 +1173,7 @@
       </div>
       <a href="#faq" class="nav-link">FAQs</a>
     </div>
-    <a href="#shop" class="nav-cta nav-cta-shop">Shop</a>
+    <a href="#shop" class="nav-cta nav-cta-shop nav-cta-special" title="Tees: exclusive 20% off for members">🎉 Special Offers</a>
     <a href="https://ko-fi.com/mt3uk" class="nav-cta nav-cta-kofi" target="_blank" rel="noopener" title="Donations Welcome">&#9749;<span class="kofi-label"> Support us</span></a>
     <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navlinks">&#9776;</button>
   </nav>
@@ -1491,6 +1536,12 @@
   </div>
 </section>
 
+<section class="shop-cta">
+  <h2>Love These Builds?</h2>
+  <p>Show your support with MT3UK merch.</p>
+  <a href="#shop" class="nav-cta nav-cta-shop">Shop Now</a>
+</section>
+
 <section id="shop" class="shop-band">
   <div class="wrap">
     <div class="section-head">
@@ -1499,6 +1550,9 @@
         <h2>Merch: Grab yourself some</h2>
       </div>
       <p>T-shirts and hoodies for the group.</p>
+    </div>
+    <div class="discount-banner">
+      <p>&#9200; 20% OFF LAUNCH DISCOUNT ENDS SUNDAY</p>
     </div>
     <div class="shop-grid">
       <div class="shop-card">
@@ -1664,6 +1718,12 @@
     <div class="gallery-pagination" id="track-day-pagination"></div>
     <p class="gallery-note" style="margin-top: 20px;">Track day photos from the community. Drop a new photo into <code>images/track-days/</code> on GitHub and it'll show up here automatically.</p>
   </div>
+</section>
+
+<section class="shop-cta">
+  <h2>Ready for the Track?</h2>
+  <p>Get MT3UK gear before your next event.</p>
+  <a href="#shop" class="nav-cta nav-cta-shop">Shop Now</a>
 </section>
 
 <section id="faq">

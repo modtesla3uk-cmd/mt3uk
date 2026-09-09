@@ -115,8 +115,6 @@
     border: 1px solid var(--ink);
     z-index: 10;
   }
-  .nav-item:hover .nav-dropdown,
-  .nav-item:focus-within .nav-dropdown { display: block; }
   .nav-dropdown-toggle { display: none; }
   .nav-sublink {
     display: block;
@@ -177,6 +175,11 @@
     line-height: 1;
     cursor: pointer;
     padding: 0;
+  }
+
+  @media (min-width: 781px) {
+    .nav-item:hover .nav-dropdown,
+    .nav-item:focus-within .nav-dropdown { display: block; }
   }
 
   @media (max-width: 780px) {

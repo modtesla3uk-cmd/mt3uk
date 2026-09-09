@@ -140,6 +140,7 @@
   }
   .nav-sublink:hover { opacity: 0.65; }
   .nav-link-shop, .nav-sublink-new { display: inline-flex; align-items: center; gap: 6px; }
+
   .nav-link-shop::after, .nav-sublink-new::after {
     content: 'NEW';
     font-family: 'IBM Plex Mono', monospace;
@@ -172,14 +173,22 @@
   .nav-cta-shop:hover { background: var(--orange); color: var(--paper) !important; }
 
   .nav-cta-special {
-    background: var(--orange);
+    background: #1c8a4b;
     color: var(--paper) !important;
-    border-color: var(--orange);
+    border-color: #1c8a4b;
     font-weight: 700;
     letter-spacing: 0.02em;
     animation: nav-cta-blink 1.4s ease-in-out 5;
   }
   .nav-cta-special:hover { background: var(--ink); border-color: var(--ink); animation: none; }
+
+  .nav-cta-special,
+  .nav-cta-kofi {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 152px;
+  }
 
   @keyframes nav-cta-blink {
     0%, 100% { opacity: 1; }
@@ -197,9 +206,9 @@
     display: none;
     align-items: center;
     justify-content: center;
-    background: transparent;
-    border: 1px solid var(--ink);
-    color: var(--ink);
+    background: #1877f2;
+    border: 1px solid #1877f2;
+    color: var(--white);
     width: 38px;
     height: 34px;
     font-size: 1.2rem;
@@ -214,10 +223,14 @@
   }
 
   @media (max-width: 780px) {
+    nav { gap: 8px; }
     .hamburger { display: flex; }
-    .nav-cta { padding: 9px 12px; font-size: 0.8rem; }
-    .nav-cta-shop { margin-left: auto; }
-    .nav-cta-kofi { padding: 9px 10px; }
+    .nav-cta-special, .nav-cta-kofi {
+      min-width: 0;
+      padding: 8px 10px;
+      font-size: 0.72rem;
+    }
+    .kofi-label { display: none; }
 
     .navlinks {
       display: none;
@@ -1002,6 +1015,50 @@
   }
   @media (max-width: 820px) { .shop-grid { grid-template-columns: 1fr; } }
 
+  /* ---------- SPECIAL OFFER: MASTER CYLINDER BRACE ---------- */
+  .special-offer-box {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    align-items: start;
+    background: var(--white);
+    border: 1px solid rgba(22,35,61,0.12);
+    border-radius: 8px;
+    padding: 32px;
+  }
+  @media (max-width: 820px) { .special-offer-box { grid-template-columns: 1fr; } }
+  .special-offer-video {
+    position: relative;
+    width: 100%;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+    border-radius: 4px;
+    background: var(--ink);
+  }
+  .special-offer-video iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+  .special-offer-copy h3 { margin: 0 0 4px; }
+  .special-offer-copy h4 { margin: 0 0 10px; font-size: 0.95rem; }
+  .special-offer-copy .specs { margin-bottom: 20px; }
+  .special-offer-copy .tag-line { color: var(--steel); font-size: 0.88rem; margin-bottom: 14px; }
+  .special-offer-copy p { color: var(--steel); margin-bottom: 14px; }
+  .special-offer-price {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin-bottom: 18px;
+  }
+  .special-offer-price .was { text-decoration: line-through; color: var(--steel); font-weight: 500; margin-right: 8px; }
+  .special-offer-price .now { color: var(--orange); }
+  .special-offer-price .delivery { display: block; font-family: 'IBM Plex Sans', sans-serif; font-weight: 400; font-size: 0.8rem; color: var(--steel); margin-top: 4px; }
+
   .shop-card {
     border: 1px solid #3a4a6b;
     padding: 26px;
@@ -1624,6 +1681,42 @@
           <span class="tag">COMING SOON</span>
           <button type="button" class="tee-detail-btn" id="sticker-detail-btn" aria-haspopup="dialog" aria-controls="sticker-modal">More detail</button>
         </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="special-offer">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="section-num">04a / SPECIAL OFFER</span>
+        <h2>Master Cylinder Brace: Model 3 (all variants)</h2>
+      </div>
+      <p>Reduced-price stock, while it lasts.</p>
+    </div>
+    <div class="special-offer-box">
+      <div class="special-offer-video">
+        <iframe src="https://www.youtube.com/embed/_odeMNjXgSM" title="Master Cylinder Brace overview" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+      </div>
+      <div class="special-offer-copy">
+        <h3>Improve your brake feel</h3>
+        <p class="tag-line">For Model 3 and Model 3 Highland</p>
+        <p>Anyone wanting to improve their brake feel, it's worth watching the video, particularly the amount of flex in the firewall. The Master Cylinder brace basically removes this flex.</p>
+        <p>We have stock of these from Tevo Solutions at a reduced price, so let us know if you're interested.</p>
+        <div class="special-offer-price">
+          <span class="was">&pound;155 RRP</span>
+          <span class="now">&pound;95</span>
+          <span class="delivery">Delivered to UK addresses</span>
+        </div>
+        <h4>Specifications</h4>
+        <div class="specs">
+          <div class="spec-row"><span>BRACKET MATERIAL</span><span>CNC milled 2014T651 aluminium billet</span></div>
+          <div class="spec-row"><span>FINISH</span><span>Machined &amp; anodised</span></div>
+          <div class="spec-row"><span>WEIGHT (EXCL. BOLTS)</span><span>200g</span></div>
+          <div class="spec-row"><span>INCLUDED</span><span>Bracket, extended mounting bolts, adjustable foot, locking grub screw, hex keys</span></div>
+        </div>
+        <a href="https://www.facebook.com/MT3UK/" class="btn btn-join-community special-offer-contact" target="_blank" rel="noopener">Contact MT3UK</a>
       </div>
     </div>
   </div>

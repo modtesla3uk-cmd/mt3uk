@@ -803,7 +803,6 @@
     <a href="/" class="logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
     <div class="navlinks" id="navlinks">
       <a href="#about" class="nav-link active">About</a>
-      <a href="#shop" class="nav-link nav-link-shop">Shop</a>
       <div class="nav-item">
         <a href="#gallery" class="nav-link">Gallery</a>
         <div class="nav-dropdown">
@@ -811,6 +810,7 @@
           <a href="#gallery-upload" class="nav-sublink nav-sublink-new">Upload Image</a>
         </div>
       </div>
+      <a href="#shop" class="nav-link nav-link-shop">Shop</a>
       <a href="#events" class="nav-link">Events</a>
       <a href="#track-days" class="nav-link">Track Days</a>
       <a href="#faq" class="nav-link">FAQ</a>
@@ -829,7 +829,7 @@
         <h1>Modified Tesla's<br>One Global Garage</h1>
         <p class="lead">MT3UK is where Tesla owners bring the wraps, wheels, suspension and stance builds. Share your build, get the honest opinions, find your next meet.</p>
         <div class="hero-ctas">
-          <a href="https://www.facebook.com/share/g/1EnNkFvxr7/" class="btn btn-primary" target="_blank" rel="noopener">Join the Facebook group</a>
+          <a href="#build-of-the-day" class="btn btn-primary">See today's build</a>
           <a href="#gallery" class="btn btn-secondary">See member builds</a>
         </div>
         <div class="hero-stats">
@@ -891,117 +891,11 @@
   </div>
 </section>
 
-<section id="shop" class="shop-band">
-  <div class="wrap">
-    <div class="section-head">
-      <div>
-        <span class="section-num">03 / SHOP</span>
-        <h2>Merch: Grab yourself some</h2>
-      </div>
-      <p>T-shirts and hoodies for the group.</p>
-    </div>
-    <div class="shop-grid">
-      <div class="shop-card">
-        <p class="shop-preview-hint">Hold and pan to zoom</p>
-        <div class="shop-preview-row">
-          <button type="button" class="shop-preview-trigger" id="tee-trigger" aria-haspopup="dialog" aria-controls="tee-modal">
-            <img src="images/site/mt3uk-tee.jpg" alt="MT3UK black unisex t-shirt with red underline design">
-          </button>
-          <button type="button" class="shop-preview-thumb" id="tee-trigger-2" aria-haspopup="dialog" aria-controls="tee-modal">
-            <img src="images/site/mt3uk-tee-2.jpg" alt="MT3UK t-shirt folded, close-up of the logo print">
-          </button>
-        </div>
-        <div class="tee-offer-banner">&#9201; 20% off for Facebook group members</div>
-        <h3>MT3UK Tee</h3>
-        <p>Core logo print, heavyweight cotton</p>
-        <div class="tee-offer-price">
-          <span class="tee-offer-save">SAVE 20%</span>
-          <span class="tee-offer-was">&pound;24.99</span>
-          <span class="tee-offer-now">&pound;19.99</span>
-        </div>
-        <div class="tee-offer-actions">
-          <span class="tag">AVAILABLE NOW</span>
-          <button type="button" class="tee-detail-btn" id="tee-detail-btn" aria-haspopup="dialog" aria-controls="tee-modal">More detail</button>
-        </div>
-      </div>
-      <div class="shop-card">
-        <svg viewBox="0 0 200 140" fill="none" stroke="#e8542a" stroke-width="1.6"><path d="M55 24 L75 12 L100 22 L125 12 L145 24 L156 48 L138 56 L138 122 L62 122 L62 56 L44 48 Z"/><path d="M85 22 Q100 34 115 22" /></svg>
-        <h3>MT3UK Hoodie</h3>
-        <p>Embroidered crest, fleece-lined</p>
-        <span class="tag">COMING SOON</span>
-      </div>
-      <div class="shop-card">
-        <button type="button" class="shop-preview-trigger" id="sticker-trigger" aria-haspopup="dialog" aria-controls="sticker-modal">
-          <img src="images/site/mt3uk-sticker.png" alt="MT3UK bumper sticker pack">
-        </button>
-        <h3>Transparent vinyl stickers</h3>
-        <p>For the boot lid, windows, laptop, wherever!</p>
-        <div class="tee-offer-actions">
-          <span class="tag">COMING SOON</span>
-          <button type="button" class="tee-detail-btn" id="sticker-detail-btn" aria-haspopup="dialog" aria-controls="sticker-modal">More detail</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<script>
-(function () {
-      var panTargets = [document.getElementById('tee-trigger'), document.getElementById('tee-trigger-2')];
-      panTargets.forEach(function (btn) {
-            if (!btn) return;
-            var img = btn.querySelector('img');
-            if (!img) return;
-
-            function updateOrigin(clientX, clientY) {
-                  var rect = btn.getBoundingClientRect();
-                  var x = ((clientX - rect.left) / rect.width) * 100;
-                  var y = ((clientY - rect.top) / rect.height) * 100;
-                  x = Math.max(0, Math.min(100, x));
-                  y = Math.max(0, Math.min(100, y));
-                  img.style.transformOrigin = x + '% ' + y + '%';
-            }
-
-            function resetZoom() {
-                  img.classList.remove('zoom-pan');
-                  img.style.transformOrigin = '';
-            }
-
-            btn.addEventListener('mouseenter', function (e) {
-                  updateOrigin(e.clientX, e.clientY);
-                  img.classList.add('zoom-pan');
-            });
-            btn.addEventListener('mousemove', function (e) {
-                  updateOrigin(e.clientX, e.clientY);
-            });
-            btn.addEventListener('mouseleave', resetZoom);
-            btn.addEventListener('focus', function () {
-                  img.style.transformOrigin = '50% 50%';
-                  img.classList.add('zoom-pan');
-            });
-            btn.addEventListener('blur', resetZoom);
-
-            btn.addEventListener('touchstart', function (e) {
-                  var t = e.touches[0];
-                  updateOrigin(t.clientX, t.clientY);
-                  img.classList.add('zoom-pan');
-            }, { passive: true });
-            btn.addEventListener('touchmove', function (e) {
-                  var t = e.touches[0];
-                  updateOrigin(t.clientX, t.clientY);
-            }, { passive: true });
-            btn.addEventListener('touchend', resetZoom);
-            btn.addEventListener('touchcancel', resetZoom);
-      });
-})();
-</script>
-
-
 <section id="gallery">
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">04 / GALLERY</span>
+        <span class="section-num">03 / GALLERY</span>
         <h2>Member builds</h2>
       </div>
       <p>A rotating look at what the group's driving. Photos will swap in from group posts.</p>
@@ -1107,6 +1001,112 @@
     </script>
   </div>
 </section>
+
+<section id="shop" class="shop-band">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="section-num">04 / SHOP</span>
+        <h2>Merch: Grab yourself some</h2>
+      </div>
+      <p>T-shirts and hoodies for the group.</p>
+    </div>
+    <div class="shop-grid">
+      <div class="shop-card">
+        <p class="shop-preview-hint">Hold and pan to zoom</p>
+        <div class="shop-preview-row">
+          <button type="button" class="shop-preview-trigger" id="tee-trigger" aria-haspopup="dialog" aria-controls="tee-modal">
+            <img src="images/site/mt3uk-tee.jpg" alt="MT3UK black unisex t-shirt with red underline design">
+          </button>
+          <button type="button" class="shop-preview-thumb" id="tee-trigger-2" aria-haspopup="dialog" aria-controls="tee-modal">
+            <img src="images/site/mt3uk-tee-2.jpg" alt="MT3UK t-shirt folded, close-up of the logo print">
+          </button>
+        </div>
+        <div class="tee-offer-banner">&#9201; 20% off for Facebook group members</div>
+        <h3>MT3UK Tee</h3>
+        <p>Core logo print, heavyweight cotton</p>
+        <div class="tee-offer-price">
+          <span class="tee-offer-save">SAVE 20%</span>
+          <span class="tee-offer-was">&pound;24.99</span>
+          <span class="tee-offer-now">&pound;19.99</span>
+        </div>
+        <div class="tee-offer-actions">
+          <span class="tag">AVAILABLE NOW</span>
+          <button type="button" class="tee-detail-btn" id="tee-detail-btn" aria-haspopup="dialog" aria-controls="tee-modal">More detail</button>
+        </div>
+      </div>
+      <div class="shop-card">
+        <svg viewBox="0 0 200 140" fill="none" stroke="#e8542a" stroke-width="1.6"><path d="M55 24 L75 12 L100 22 L125 12 L145 24 L156 48 L138 56 L138 122 L62 122 L62 56 L44 48 Z"/><path d="M85 22 Q100 34 115 22" /></svg>
+        <h3>MT3UK Hoodie</h3>
+        <p>Embroidered crest, fleece-lined</p>
+        <span class="tag">COMING SOON</span>
+      </div>
+      <div class="shop-card">
+        <button type="button" class="shop-preview-trigger" id="sticker-trigger" aria-haspopup="dialog" aria-controls="sticker-modal">
+          <img src="images/site/mt3uk-sticker.png" alt="MT3UK bumper sticker pack">
+        </button>
+        <h3>Transparent vinyl stickers</h3>
+        <p>For the boot lid, windows, laptop, wherever!</p>
+        <div class="tee-offer-actions">
+          <span class="tag">COMING SOON</span>
+          <button type="button" class="tee-detail-btn" id="sticker-detail-btn" aria-haspopup="dialog" aria-controls="sticker-modal">More detail</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+(function () {
+      var panTargets = [document.getElementById('tee-trigger'), document.getElementById('tee-trigger-2')];
+      panTargets.forEach(function (btn) {
+            if (!btn) return;
+            var img = btn.querySelector('img');
+            if (!img) return;
+
+            function updateOrigin(clientX, clientY) {
+                  var rect = btn.getBoundingClientRect();
+                  var x = ((clientX - rect.left) / rect.width) * 100;
+                  var y = ((clientY - rect.top) / rect.height) * 100;
+                  x = Math.max(0, Math.min(100, x));
+                  y = Math.max(0, Math.min(100, y));
+                  img.style.transformOrigin = x + '% ' + y + '%';
+            }
+
+            function resetZoom() {
+                  img.classList.remove('zoom-pan');
+                  img.style.transformOrigin = '';
+            }
+
+            btn.addEventListener('mouseenter', function (e) {
+                  updateOrigin(e.clientX, e.clientY);
+                  img.classList.add('zoom-pan');
+            });
+            btn.addEventListener('mousemove', function (e) {
+                  updateOrigin(e.clientX, e.clientY);
+            });
+            btn.addEventListener('mouseleave', resetZoom);
+            btn.addEventListener('focus', function () {
+                  img.style.transformOrigin = '50% 50%';
+                  img.classList.add('zoom-pan');
+            });
+            btn.addEventListener('blur', resetZoom);
+
+            btn.addEventListener('touchstart', function (e) {
+                  var t = e.touches[0];
+                  updateOrigin(t.clientX, t.clientY);
+                  img.classList.add('zoom-pan');
+            }, { passive: true });
+            btn.addEventListener('touchmove', function (e) {
+                  var t = e.touches[0];
+                  updateOrigin(t.clientX, t.clientY);
+            }, { passive: true });
+            btn.addEventListener('touchend', resetZoom);
+            btn.addEventListener('touchcancel', resetZoom);
+      });
+})();
+</script>
+
 
 <section id="events">
   <div class="wrap">

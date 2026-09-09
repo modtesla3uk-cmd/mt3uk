@@ -8,12 +8,12 @@ def test_shop_nav_link_has_new_badge(page):
     assert "NEW" in badge_content
 
 
-def test_shop_section_comes_before_gallery_and_after_about(page):
+def test_shop_section_comes_after_gallery_and_about(page):
     page.goto("/index.html")
     order = page.evaluate(
         """
         () => {
-            const ids = ['about', 'shop', 'gallery'];
+            const ids = ['about', 'gallery', 'shop'];
             const positions = ids.map(id => {
                 const el = document.getElementById(id);
                 return el ? el.getBoundingClientRect().top + window.scrollY : null;
@@ -22,6 +22,6 @@ def test_shop_section_comes_before_gallery_and_after_about(page):
         }
         """
     )
-    about_top, shop_top, gallery_top = order
-    assert about_top is not None and shop_top is not None and gallery_top is not None
-    assert about_top < shop_top < gallery_top
+    about_top, gallery_top, shop_top = order
+    assert about_top is not None and gallery_top is not None and shop_top is not None
+    assert about_top < gallery_top < shop_top

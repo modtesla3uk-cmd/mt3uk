@@ -173,14 +173,15 @@
   .nav-cta-shop:hover { background: var(--orange); color: var(--paper) !important; }
 
   .nav-cta-special {
-    background: #1c8a4b;
-    color: var(--paper) !important;
-    border-color: #1c8a4b;
+    background: transparent;
+    color: #1c8a4b !important;
+    border-color: transparent;
     font-weight: 700;
     letter-spacing: 0.02em;
+    transform-origin: center;
     animation: nav-cta-blink 1.4s ease-in-out 5;
   }
-  .nav-cta-special:hover { background: var(--ink); border-color: var(--ink); animation: none; }
+  .nav-cta-special:hover { background: #1c8a4b; color: var(--paper) !important; border-color: #1c8a4b; animation: none; }
 
   .nav-cta-special,
   .nav-cta-kofi {
@@ -191,16 +192,16 @@
   }
 
   @keyframes nav-cta-blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.55; }
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.55; transform: scale(1.15); }
   }
 
   .nav-cta-kofi {
-    background: var(--orange);
-    color: var(--paper) !important;
-    border-color: var(--orange);
+    background: transparent;
+    color: var(--ink) !important;
+    border-color: transparent;
   }
-  .nav-cta-kofi:hover { background: var(--ink); border-color: var(--ink); }
+  .nav-cta-kofi:hover { background: var(--ink); color: var(--paper) !important; border-color: var(--ink); }
 
   .hamburger {
     display: none;
@@ -224,13 +225,12 @@
 
   @media (max-width: 780px) {
     nav { gap: 8px; }
-    .hamburger { display: flex; }
+    .hamburger { display: flex; margin-left: auto; }
     .nav-cta-special, .nav-cta-kofi {
       min-width: 0;
       padding: 8px 10px;
       font-size: 0.72rem;
     }
-    .kofi-label { display: none; }
 
     .navlinks {
       display: none;
@@ -1261,7 +1261,7 @@
       <a href="#faq" class="nav-link">FAQs</a>
     </div>
     <a href="#shop" class="nav-cta nav-cta-shop nav-cta-special" title="Tees: exclusive 20% off for members">🎉 Special Offers</a>
-    <a href="https://ko-fi.com/mt3uk" class="nav-cta nav-cta-kofi" target="_blank" rel="noopener" title="Donations Welcome">&#9749;<span class="kofi-label"> Support us</span></a>
+    <a href="https://ko-fi.com/mt3uk" class="nav-cta nav-cta-kofi" target="_blank" rel="noopener" title="Donations Welcome">&#10084;&#65039;<span class="kofi-label"> Support us</span></a>
     <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navlinks">&#9776;</button>
   </nav>
 </header>

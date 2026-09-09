@@ -459,6 +459,13 @@
     font-size: 0.68rem;
     letter-spacing: 0.03em;
     color: var(--paper);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .gallery-slot .g-name {
+    font-size: 0.58rem;
+    color: rgba(255,255,255,0.7);
   }
   .gallery-note {
     margin-top: 20px;
@@ -798,31 +805,23 @@
     max-width: 54ch;
     margin-bottom: 22px;
   }
-  .submit-grid {
-    display: flex;
-    gap: 44px;
-    flex-wrap: wrap;
-    align-items: flex-start;
-  }
   .submit-form {
     display: flex;
     flex-direction: column;
     gap: 16px;
     max-width: 440px;
-    flex: 1 1 340px;
   }
   .submit-guidance {
-    flex: 1 1 260px;
-    max-width: 320px;
     background: var(--paper-2);
     border: 1px solid var(--steel);
-    padding: 16px 18px;
+    padding: 14px 16px;
   }
   .submit-guidance p {
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     color: var(--ink-2);
   }
-  .submit-guidance p + p { margin-top: 10px; }
+  .submit-guidance p strong { color: var(--ink); }
+  .submit-guidance p + p { margin-top: 8px; }
   .form-row { display: flex; flex-direction: column; gap: 6px; }
   .form-row label { color: var(--steel); }
   .form-row input[type="text"],
@@ -1141,6 +1140,7 @@
 
     function buildSlide(photo, idx) {
       var safeCaption = photo.caption.replace(/</g, '&lt;');
+      var subLine = photo.name ? 'By ' + photo.name.replace(/</g, '&lt;') : 'Shared in the MT3UK Facebook group';
       var section = document.createElement('div');
       section.className = 'bf-slide';
       section.dataset.idx = String(idx);
@@ -1161,7 +1161,7 @@
         '</aside>' +
         '<div class="bf-caption">' +
           '<p class="bf-hook">' + safeCaption + '</p>' +
-          '<p class="bf-sub">Shared in the MT3UK Facebook group</p>' +
+          '<p class="bf-sub">' + subLine + '</p>' +
         '</div>';
       return section;
     }
@@ -1349,7 +1349,6 @@
     <div class="submit-photo" id="gallery-upload">
       <h3>Submit a photo below</h3>
       <p>Send us a shot of your build and a caption, and we'll get it added to the gallery for you.</p>
-      <div class="submit-grid">
       <form id="photo-submit-form" class="submit-form">
         <input type="checkbox" name="botcheck" class="hp-field" tabindex="-1" autocomplete="off">
         <div class="form-row">
@@ -1372,14 +1371,13 @@
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5.02 3.66 9.18 8.44 9.94v-7.03H7.9v-2.91h2.54V9.85c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.23.2 2.23.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.88h2.78l-.44 2.91h-2.34V22c4.78-.76 8.44-4.92 8.44-9.94Z"/></svg>
           Not a member? Join the MT3UK Facebook group
         </a>
+        <div class="submit-guidance">
+          <p><strong>PLEASE READ:</strong> Upload a full photo of your build so we can get it featured. Individual mods can be shared in the Facebook group :)</p>
+          <p>Limit uploads to max 3 per day.</p>
+        </div>
         <button type="submit" class="btn btn-primary">Submit photo</button>
         <p id="submit-status" class="mono" style="margin-top:2px;"></p>
       </form>
-      <div class="submit-guidance">
-        <p>Please upload a full photo of your build so we can get it featured. Individual mods can be shared in the Facebook group :)</p>
-        <p>Limit uploads to max 3 per day.</p>
-      </div>
-      </div>
     </div>
 
     <script>
@@ -1397,9 +1395,10 @@
           }
           grid.innerHTML = photos.map(function (p) {
             var safeCaption = p.caption.replace(/</g, '&lt;');
+            var nameHtml = p.name ? '<span class="g-name">By ' + p.name.replace(/</g, '&lt;') + '</span>' : '';
             return '<div class="gallery-slot filled">' +
                      '<img src="images/gallery/' + p.file + '" alt="' + safeCaption + '" loading="lazy">' +
-                     '<span class="g-caption">' + safeCaption + '</span>' +
+                     '<span class="g-caption">' + safeCaption + nameHtml + '</span>' +
                    '</div>';
           }).join('');
         }

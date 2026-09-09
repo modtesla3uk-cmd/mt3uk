@@ -38,6 +38,24 @@ def caption_from_filename(stem: str) -> str:
     return " ".join(w.upper() for w in words if w)
 
 
+NAME_SUFFIX_RE = re.compile(r"--by-([a-z0-9-]+)$")
+
+
+def split_submitter_name(stem: str):
+    """Pulls the '--by-<name-slug>' suffix the submission worker appends
+    when a submitter gives their name, returning (remaining_stem, name)."""
+    m = NAME_SUFFIX_RE.search(stem)
+    if not m:
+        return stem, None
+    name_slug = m.group(1)
+    # a filename collision suffix (e.g. "-2") lands after the name slug;
+    # strip it so it doesn't leak into the displayed name.
+    name_slug = re.sub(r"-\d+$", "", name_slug)
+    words = re.split(r"[-_]+", name_slug)
+    name = " ".join(w.upper() for w in words if w)
+    return stem[: m.start()], name or None
+
+
 def manual_order_key(path: Path):
     m = re.match(r"^(\d+)[-_]", path.stem)
     if m:
@@ -115,13 +133,13 @@ def main():
     ]
     entries.sort(key=lambda e: (-e["added_ts"], e["manual_key"]))
 
-    manifest = [
-        {
-            "file": e["path"].name,
-            "caption": caption_from_filename(e["path"].stem),
-        }
-        for e in entries
-    ]
+    manifest = []
+    for e in entries:
+        stem, name = split_submitter_name(e["path"].stem)
+        entry = {"file": e["path"].name, "caption": caption_from_filename(stem)}
+        if name:
+            entry["name"] = name
+        manifest.append(entry)
 
     MANIFEST_PATH.write_text(json.dumps(manifest, indent=2) + "\n")
     print(f"Wrote {MANIFEST_PATH} with {len(manifest)} photo(s).")

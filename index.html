@@ -1140,7 +1140,7 @@
 
     function buildSlide(photo, idx) {
       var safeCaption = photo.caption.replace(/</g, '&lt;');
-      var subLine = photo.name ? 'By ' + photo.name.replace(/</g, '&lt;') : 'Shared in the MT3UK Facebook group';
+      var subLine = photo.name ? 'By ' + photo.name.replace(/</g, '&lt;') : '';
       var section = document.createElement('div');
       section.className = 'bf-slide';
       section.dataset.idx = String(idx);
@@ -1161,7 +1161,7 @@
         '</aside>' +
         '<div class="bf-caption">' +
           '<p class="bf-hook">' + safeCaption + '</p>' +
-          '<p class="bf-sub">' + subLine + '</p>' +
+          (subLine ? '<p class="bf-sub">' + subLine + '</p>' : '') +
         '</div>';
       return section;
     }

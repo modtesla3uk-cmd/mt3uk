@@ -152,6 +152,13 @@
   }
   .nav-cta-shop:hover { background: var(--orange); color: var(--paper) !important; }
 
+  .nav-cta-kofi {
+    background: var(--orange);
+    color: var(--paper) !important;
+    border-color: var(--orange);
+  }
+  .nav-cta-kofi:hover { background: var(--ink); border-color: var(--ink); }
+
   .hamburger {
     display: none;
     align-items: center;
@@ -171,6 +178,8 @@
     .hamburger { display: flex; }
     .nav-cta { padding: 9px 12px; font-size: 0.8rem; }
     .nav-cta-shop { margin-left: auto; }
+    .nav-cta-kofi { padding: 9px 10px; }
+    .kofi-label { display: none; }
 
     .navlinks {
       display: none;
@@ -816,6 +825,7 @@
       <a href="#faq" class="nav-link">FAQ</a>
     </div>
     <a href="#shop" class="nav-cta nav-cta-shop">Shop</a>
+    <a href="https://ko-fi.com/mt3uk" class="nav-cta nav-cta-kofi" target="_blank" rel="noopener">&#9749;<span class="kofi-label"> Support us</span></a>
     <a href="https://www.facebook.com/share/g/1EnNkFvxr7/" class="nav-cta" target="_blank" rel="noopener">Join the group</a>
     <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navlinks">&#9776;</button>
   </nav>

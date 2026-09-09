@@ -207,6 +207,12 @@
       border-radius: 0;
     }
     .nav-item { flex-direction: column; align-items: stretch; }
+    .nav-item > .nav-link::after {
+      content: '\25BC';
+      margin-left: 8px;
+      font-size: 0.6em;
+      vertical-align: middle;
+    }
     .nav-dropdown {
       display: block;
       position: static;
@@ -220,9 +226,15 @@
 
     .nav-link-mobile {
       display: flex !important;
+      justify-content: center;
       padding: 14px 16px;
-      border-bottom: 1px solid rgba(22,35,61,0.12);
-      border-radius: 0;
+      margin: 10px 16px;
+      border: none;
+      border-top: 2px solid var(--orange);
+      border-radius: 4px;
+      background: var(--orange);
+      color: var(--paper) !important;
+      font-weight: 600;
     }
   }
 

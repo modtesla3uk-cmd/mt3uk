@@ -451,6 +451,210 @@
     color: var(--steel);
   }
 
+  /* ---------- BUILD REEL ---------- */
+  .bf-section {
+    margin-top: 44px;
+    padding-top: 34px;
+    border-top: 1px dashed var(--steel);
+  }
+  .bf-section h3 {
+    font-family: 'Archivo Expanded', sans-serif;
+    font-size: 1.1rem;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  .bf-section > p {
+    color: var(--steel);
+    font-size: 0.88rem;
+    max-width: 54ch;
+    margin-bottom: 22px;
+  }
+  .bf-frame {
+    position: relative;
+    width: min(380px, 100%);
+    aspect-ratio: 9 / 16;
+    margin: 0;
+    border: 1px solid var(--ink);
+    overflow: hidden;
+    background: #000;
+  }
+  #hero-bf-frame { margin: 0 auto; }
+  .bf-progress {
+    position: absolute;
+    top: 12px; left: 14px; right: 14px;
+    display: flex;
+    gap: 4px;
+    z-index: 6;
+  }
+  .bf-dot-seg {
+    flex: 1;
+    height: 3px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.28);
+    overflow: hidden;
+    position: relative;
+  }
+  .bf-dot-seg::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: var(--white);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 240ms ease;
+  }
+  .bf-dot-seg.done::after { transform: scaleX(1); }
+  .bf-dot-seg.active::after { transform: scaleX(1); background: var(--orange); }
+
+  .bf-feed {
+    width: 100%;
+    height: 100%;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    scrollbar-width: none;
+  }
+  .bf-feed::-webkit-scrollbar { display: none; }
+
+  .bf-slide {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    overflow: hidden;
+    display: flex;
+    background: #000;
+  }
+  .bf-slide-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(1.0);
+    transition: transform 6s cubic-bezier(.2,.6,.2,1);
+    user-select: none;
+    pointer-events: none;
+  }
+  .bf-slide.bf-in-view .bf-slide-img { transform: scale(1.07); }
+
+  .bf-scrim { position: absolute; left: 0; right: 0; pointer-events: none; }
+  .bf-scrim-top {
+    top: 0; height: 26%;
+    background: linear-gradient(to bottom, rgba(5,7,12,0.65), rgba(5,7,12,0));
+  }
+  .bf-scrim-bottom {
+    bottom: 0; height: 46%;
+    background: linear-gradient(to top, rgba(5,7,12,0.92), rgba(5,7,12,0));
+  }
+
+  .bf-like-hit {
+    position: absolute; inset: 0;
+    background: transparent;
+    border: 0;
+    z-index: 2;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .bf-heart-burst {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 96px; height: 96px;
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0;
+    color: var(--white);
+    filter: drop-shadow(0 6px 18px rgba(0,0,0,0.35));
+    pointer-events: none;
+    z-index: 3;
+  }
+  .bf-heart-burst svg { width: 100%; height: 100%; fill: currentColor; }
+  .bf-heart-burst.bf-burst { animation: bf-heartpop 900ms cubic-bezier(.2,1.4,.4,1); }
+  @keyframes bf-heartpop {
+    0%   { opacity: 0; transform: translate(-50%,-50%) scale(0.4); }
+    35%  { opacity: 1; transform: translate(-50%,-50%) scale(1.05); }
+    55%  { opacity: 1; transform: translate(-50%,-50%) scale(0.94); }
+    80%  { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%,-50%) scale(1); }
+  }
+
+  .bf-rail {
+    position: absolute;
+    right: 12px; top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 22px;
+    z-index: 4;
+  }
+  .bf-rail-btn {
+    background: none; border: 0; color: var(--white);
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    cursor: pointer; padding: 4px;
+  }
+  .bf-rail-btn svg { width: 26px; height: 26px; fill: currentColor; }
+  .bf-rail-count {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: rgba(255,255,255,0.9);
+    font-variant-numeric: tabular-nums;
+  }
+  .bf-like-btn.bf-liked { color: var(--orange); }
+  .bf-like-btn.bf-liked svg { animation: bf-likepulse 360ms ease; }
+  @keyframes bf-likepulse {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+  }
+  .bf-save-btn .bf-icon-save { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+  .bf-save-btn[data-saved="true"] { color: var(--orange); }
+  .bf-save-btn[data-saved="true"] .bf-icon-save { fill: currentColor; }
+
+  .bf-caption {
+    position: absolute;
+    left: 16px; right: 64px; bottom: 20px;
+    z-index: 4;
+    color: var(--white);
+    display: flex; flex-direction: column; gap: 6px;
+    pointer-events: none;
+  }
+  .bf-hook {
+    font-family: 'Archivo Expanded', sans-serif;
+    font-weight: 800;
+    font-size: 1.1rem;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+  .bf-sub {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.03em;
+    color: rgba(255,255,255,0.75);
+  }
+
+  .bf-scroll-hint {
+    position: absolute;
+    bottom: 8px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 6;
+    color: rgba(255,255,255,0.55);
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.1em;
+    animation: bf-hintbob 1.8s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes bf-hintbob {
+    0%, 100% { transform: translate(-50%, 0); opacity: .85; }
+    50% { transform: translate(-50%, 5px); opacity: .4; }
+  }
+  .bf-feed.bf-scrolled .bf-scroll-hint { display: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bf-slide-img, .bf-heart-burst, .bf-like-btn svg, .bf-scroll-hint { animation: none !important; transition: none !important; }
+  }
+
   .botm-frame {
     display: grid;
     grid-template-columns: 1.1fr 0.9fr;
@@ -863,16 +1067,151 @@
           <div><strong>DAILY</strong><span>BUILD THREADS</span></div>
         </div>
       </div>
-      <div class="diagram">
-        <img src="images/hero.jpg" alt="MT3UK members' modified Teslas lined up at a UK car show">
-        <div class="grid-overlay"></div>
-        <div class="corner tl"></div><div class="corner tr"></div>
-        <div class="corner bl"></div><div class="corner br"></div>
-        <span class="caption">FIG. 01: MT3UK MEMBERS AT A UK CAR SHOW</span>
+      <div class="bf-frame" id="hero-bf-frame">
+        <div class="bf-progress" id="bf-progress"></div>
+        <div class="bf-feed" id="bf-feed">
+          <p class="mono" style="padding: 24px; color: var(--steel);">Loading builds…</p>
+        </div>
+        <div class="bf-scroll-hint" id="bf-scroll-hint">&#9662; SCROLL</div>
       </div>
     </div>
   </div>
 </section>
+
+<script>
+  (function () {
+    var MAX_SLIDES = 20;
+    var feedEl = document.getElementById('bf-feed');
+    var progressEl = document.getElementById('bf-progress');
+    var scrollHint = document.getElementById('bf-scroll-hint');
+    if (!feedEl) return;
+
+    function heartSvg(cls) {
+      return '<svg viewBox="0 0 24 24" class="' + cls + '">' +
+        '<path d="M12 21s-7.5-4.6-10.2-9.3C-0.2 8 1.4 3.9 5.3 3.2 7.7 2.8 10 3.9 12 6.4c2-2.5 4.3-3.6 6.7-3.2 3.9.7 5.5 4.8 3.5 8.5C19.5 16.4 12 21 12 21z"/>' +
+        '</svg>';
+    }
+
+    function buildSlide(photo, idx) {
+      var safeCaption = photo.caption.replace(/</g, '&lt;');
+      var section = document.createElement('div');
+      section.className = 'bf-slide';
+      section.dataset.idx = String(idx);
+      section.innerHTML =
+        '<img class="bf-slide-img" src="images/gallery/' + photo.file + '" alt="' + safeCaption + '" loading="lazy" draggable="false">' +
+        '<div class="bf-scrim bf-scrim-top"></div>' +
+        '<div class="bf-scrim bf-scrim-bottom"></div>' +
+        '<button class="bf-like-hit" aria-label="Like this build" data-idx="' + idx + '"></button>' +
+        '<div class="bf-heart-burst" aria-hidden="true">' + heartSvg('') + '</div>' +
+        '<aside class="bf-rail">' +
+          '<button class="bf-rail-btn bf-like-btn" data-idx="' + idx + '" aria-pressed="false" aria-label="Like">' +
+            heartSvg('bf-icon-heart') +
+            '<span class="bf-rail-count">0</span>' +
+          '</button>' +
+          '<button class="bf-rail-btn bf-save-btn" aria-label="Save" data-saved="false">' +
+            '<svg viewBox="0 0 24 24" class="bf-icon-save"><path d="M6 3.5h12a1 1 0 0 1 1 1V21l-7-4.2L5 21V4.5a1 1 0 0 1 1-1z"/></svg>' +
+          '</button>' +
+        '</aside>' +
+        '<div class="bf-caption">' +
+          '<p class="bf-hook">' + safeCaption + '</p>' +
+          '<p class="bf-sub">Shared in the MT3UK Facebook group</p>' +
+        '</div>';
+      return section;
+    }
+
+    function render(photos) {
+      if (!photos.length) {
+        feedEl.innerHTML = '<p class="mono" style="padding: 24px; color: var(--steel);">No builds yet, be the first to submit one.</p>';
+        return;
+      }
+      feedEl.innerHTML = '';
+      progressEl.innerHTML = '';
+      photos.forEach(function (photo, idx) {
+        feedEl.appendChild(buildSlide(photo, idx));
+        var seg = document.createElement('i');
+        seg.className = 'bf-dot-seg';
+        seg.dataset.idx = String(idx);
+        progressEl.appendChild(seg);
+      });
+      wireInteractions();
+    }
+
+    function wireInteractions() {
+      var slides = Array.prototype.slice.call(feedEl.querySelectorAll('.bf-slide'));
+      var dots = Array.prototype.slice.call(progressEl.querySelectorAll('.bf-dot-seg'));
+
+      function setActive(idx) {
+        slides.forEach(function (s, i) { s.classList.toggle('bf-in-view', i === idx); });
+        dots.forEach(function (d, i) {
+          d.classList.toggle('active', i === idx);
+          d.classList.toggle('done', i < idx);
+        });
+      }
+
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting && e.intersectionRatio > 0.6) {
+            setActive(parseInt(e.target.dataset.idx, 10));
+          }
+        });
+      }, { root: feedEl, threshold: [0, 0.6, 1] });
+      slides.forEach(function (s) { io.observe(s); });
+      setActive(0);
+
+      feedEl.addEventListener('scroll', function () {
+        feedEl.classList.add('bf-scrolled');
+      }, { once: true, passive: true });
+
+      function toggleLike(idx, burst) {
+        var slide = slides[idx];
+        var btn = slide.querySelector('.bf-like-btn');
+        var count = btn.querySelector('.bf-rail-count');
+        var liked = btn.classList.toggle('bf-liked');
+        btn.setAttribute('aria-pressed', liked ? 'true' : 'false');
+        count.textContent = liked ? '1' : '0';
+        if (liked && burst) {
+          var hb = slide.querySelector('.bf-heart-burst');
+          hb.classList.remove('bf-burst');
+          void hb.offsetWidth;
+          hb.classList.add('bf-burst');
+        }
+      }
+
+      feedEl.querySelectorAll('.bf-like-hit').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var idx = parseInt(btn.dataset.idx, 10);
+          var likeBtn = slides[idx].querySelector('.bf-like-btn');
+          if (!likeBtn.classList.contains('bf-liked')) toggleLike(idx, true);
+        });
+      });
+
+      feedEl.querySelectorAll('.bf-like-btn').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var idx = parseInt(btn.dataset.idx, 10);
+          toggleLike(idx, !btn.classList.contains('bf-liked'));
+        });
+      });
+
+      feedEl.querySelectorAll('.bf-save-btn').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var saved = btn.dataset.saved === 'true';
+          btn.dataset.saved = saved ? 'false' : 'true';
+        });
+      });
+    }
+
+    fetch('images/gallery/manifest.json', { cache: 'no-store' })
+      .then(function (res) { return res.ok ? res.json() : []; })
+      .then(function (photos) {
+        render((photos || []).slice(0, MAX_SLIDES));
+      })
+      .catch(function () {
+        feedEl.innerHTML = '<p class="mono" style="padding: 24px; color: var(--steel);">Builds couldn\'t be loaded.</p>';
+      });
+  })();
+</script>
 
 <section id="about">
   <div class="wrap">
@@ -1141,6 +1480,13 @@
         <h2>Meets & events</h2>
       </div>
       <p>Full details always posted in the Facebook group first.</p>
+    </div>
+    <div class="diagram" style="max-width: 640px; margin: 0 auto 40px;">
+      <img src="images/hero.jpg" alt="MT3UK members' modified Teslas lined up at a UK car show">
+      <div class="grid-overlay"></div>
+      <div class="corner tl"></div><div class="corner tr"></div>
+      <div class="corner bl"></div><div class="corner br"></div>
+      <span class="caption">FIG. 01: MT3UK MEMBERS AT A UK CAR SHOW</span>
     </div>
     <div class="events-list">
       <div class="event-row">

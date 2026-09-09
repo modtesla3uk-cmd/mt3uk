@@ -270,8 +270,22 @@
     font-size: 1.08rem;
     color: var(--ink-2);
     max-width: 46ch;
+    margin-bottom: 18px;
+  }
+
+  .btn-join-community {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    background: #1877f2;
+    border-color: #1877f2;
+    color: var(--white);
     margin-bottom: 30px;
   }
+  .btn-join-community:hover { background: #145dbf; border-color: #145dbf; }
 
   .hero-ctas { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 40px; }
 
@@ -784,12 +798,31 @@
     max-width: 54ch;
     margin-bottom: 22px;
   }
+  .submit-grid {
+    display: flex;
+    gap: 44px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
   .submit-form {
     display: flex;
     flex-direction: column;
     gap: 16px;
     max-width: 440px;
+    flex: 1 1 340px;
   }
+  .submit-guidance {
+    flex: 1 1 260px;
+    max-width: 320px;
+    background: var(--paper-2);
+    border: 1px solid var(--steel);
+    padding: 16px 18px;
+  }
+  .submit-guidance p {
+    font-size: 0.85rem;
+    color: var(--ink-2);
+  }
+  .submit-guidance p + p { margin-top: 10px; }
   .form-row { display: flex; flex-direction: column; gap: 6px; }
   .form-row label { color: var(--steel); }
   .form-row input[type="text"],
@@ -1066,7 +1099,8 @@
       <div>
         <div class="hero-tag"><span class="member-count"></span> members</div>
         <h1>Modified Tesla's<br>One Global Garage</h1>
-        <p class="lead">MT3UK is where Tesla owners bring the wraps, wheels, suspension and stance builds. Share your build, get the honest opinions, find your next meet.</p>
+        <p class="lead">MT3UK is the global garage for modified Tesla owners, wraps, wheels, suspension, stance and everything in between. Real builds, honest feedback and meets worth showing up for.</p>
+        <a href="https://www.facebook.com/share/g/1EnNkFvxr7/" class="btn btn-join-community" target="_blank" rel="noopener">Join Community</a>
         <div class="hero-ctas">
           <a href="#build-of-the-day" class="btn btn-primary">See today's build</a>
           <a href="#gallery" class="btn btn-secondary">See member builds</a>
@@ -1315,6 +1349,7 @@
     <div class="submit-photo" id="gallery-upload">
       <h3>Submit a photo below</h3>
       <p>Send us a shot of your build and a caption, and we'll get it added to the gallery for you.</p>
+      <div class="submit-grid">
       <form id="photo-submit-form" class="submit-form">
         <input type="checkbox" name="botcheck" class="hp-field" tabindex="-1" autocomplete="off">
         <div class="form-row">
@@ -1340,6 +1375,11 @@
         <button type="submit" class="btn btn-primary">Submit photo</button>
         <p id="submit-status" class="mono" style="margin-top:2px;"></p>
       </form>
+      <div class="submit-guidance">
+        <p>Please upload a full photo of your build so we can get it featured. Individual mods can be shared in the Facebook group :)</p>
+        <p>Limit uploads to max 3 per day.</p>
+      </div>
+      </div>
     </div>
 
     <script>

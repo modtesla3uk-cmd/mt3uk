@@ -1529,12 +1529,12 @@
       <form id="photo-submit-form" class="submit-form">
         <input type="checkbox" name="botcheck" class="hp-field" tabindex="-1" autocomplete="off">
         <div class="form-row">
-          <label class="mono" for="submitter-name">Name (optional)</label>
-          <input type="text" id="submitter-name" name="name" placeholder="Your name or MT3UK handle">
+          <label class="mono" for="submitter-name">Name (Required)</label>
+          <input type="text" id="submitter-name" name="name" placeholder="Your name or MT3UK handle" required>
         </div>
         <div class="form-row">
-          <label class="mono" for="submitter-caption">Caption (optional)</label>
-          <input type="text" id="submitter-caption" name="caption" placeholder="e.g. Viper Green Model Y">
+          <label class="mono" for="submitter-caption">Caption (Required)</label>
+          <input type="text" id="submitter-caption" name="caption" placeholder="e.g. Viper Green Model Y" required>
         </div>
         <div class="form-row">
           <label class="mono" for="submitter-photo">Photo</label>
@@ -2288,8 +2288,9 @@
                     .then(function (res) { return res.json(); })
                     .then(function (json) {
                           if (json.success) {
-                                status.style.color = 'var(--ink)';
-                                status.textContent = 'Thanks, your photo\'s been sent for review.';
+                                status.style.color = '#1c8a4b';
+                                status.style.fontWeight = '700';
+                                status.textContent = 'Thanks, your photo has been sent for review. 👍';
                                 form.reset();
                                 btn.disabled = false;
                                 btn.textContent = 'Submit photo';

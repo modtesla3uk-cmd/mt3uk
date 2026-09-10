@@ -2,5 +2,76 @@
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
-const config = {appId:process.env.FB_APP_ID||'1346561884222150',appSecret:process.env.FB_APP_SECRET||'1a34a645d1f66ab',pageId:process.env.FB_PAGE_ID||'mt3uk',apiVersion:'v20.0',outputDir:'./events-data',imageDir:path.join('./events-data','images')};
-function ensureDir(d){if(!fs.existsSync(d))fs.mkdirSync(d,{recursive:!0})}function makeRequest(u){return new Promise((r,j)=>{https.get(u,{headers:{'User-Agent':'MT3UK-Events-Sync/1.0'}},(e)=>{let d='';e.on('data',c=>d+=c);e.on('end',()=>{if(e.statusCode>=200&&e.statusCode<300)r(JSON.parse(d));else j(new Error(`HTTP ${e.statusCode}`))})}).on('error',j)})}function downloadImage(u,f){return new Promise((r,j)=>{if(!u){r(null);return}const p=path.join(config.imageDir,f);https.get(u,(e)=>{if(e.statusCode>=200&&e.statusCode<300){const s=fs.createWriteStream(p);e.pipe(s);s.on('finish',()=>{s.close();r(f)});s.on('error',j)}else j(new Error(`HTTP ${e.statusCode}`))}).on('error',j)})}async function fetchPageEvents(){const t=`${config.appId}|${config.appSecret}`,f='id,name,description,start_time,end_time,place,cover,picture,attending_count,interested_count,type',u=`https://graph.facebook.com/${config.apiVersion}/${config.pageId}/events?fields=${f}&access_token=${encodeURIComponent(t)}&limit=100`;console.log('Fetching events from Facebook...');try{const e=await makeRequest(u);return console.log(`✓ Fetched ${e.data.length} events`),e.data||[]}catch(e){throw console.error('✗ Error:',e.message),e}}async function processEvents(e){const t=[];for(const a of e){let s=null;if(a.cover&&a.cover.source)try{const e=a.cover.source.split('.').pop().split('?')[0]||'jpg';s=await downloadImage(a.cover.source,`${a.id}.${e}`)}catch(e){console.warn(`⚠ Warning: Failed to download cover for ${a.id}`)}let o=null;a.place&&(o={name:a.place.name,city:a.place.location?.city}),t.push({id:a.id,name:a.name,description:a.description||'',startTime:a.start_time,endTime:a.end_time,location:o,image:s,type:a.type||'event',attendingCount:a.attending_count||0,interestedCount:a.interested_count||0,facebookUrl:`https://www.facebook.com/events/${a.id}/`})}return t}async function main(){console.log('MT3UK Facebook Events Sync'),ensureDir(config.outputDir),ensureDir(config.imageDir);try{const e=await fetchPageEvents();if(0===e.length)return console.log('No events found.'),process.exit(0);console.log('Processing events...');const t=await processEvents(e),a={generated:(new Date).toISOString(),totalEvents:t.length,events:t.sort((e,t)=>new Date(t.startTime)-new Date(e.startTime))};fs.writeFileSync(path.join(config.outputDir,'events-manifest.json'),JSON.stringify(a,null,2)),console.log(`✓ Saved to events-manifest.json`),console.log(`  - Total events: ${a.totalEvents}`)}catch(e){console.error('✗ Sync failed:',e.message),process.exit(1)}}require.main===module&&main(),module.exports={fetchPageEvents,processEvents};
+
+const config = {
+  appId: process.env.FB_APP_ID || '1346561884222150',
+  appSecret: process.env.FB_APP_SECRET || '1a34a645d1f66ab',
+  pageId: process.env.FB_PAGE_ID || 'mt3uk',
+  apiVersion: 'v20.0',
+  outputDir: './events-data',
+  imageDir: './events-data/images',
+};
+
+function ensureDir(dir) {
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+}
+
+function makeRequest(url) {
+  return new Promise((resolve, reject) => {
+    https.get(url, { headers: { 'User-Agent': 'MT3UK/1.0' } }, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            resolve(JSON.parse(data));
+          } else {
+            reject(new Error(`HTTP ${res.statusCode}: ${data}`));
+          }
+        } catch (e) {
+          reject(e);
+        }
+      });
+    }).on('error', reject);
+  });
+}
+
+async function main() {
+  console.log('MT3UK Facebook Events Sync');
+  ensureDir(config.outputDir);
+  ensureDir(config.imageDir);
+  
+  const accessToken = `${config.appId}|${config.appSecret}`;
+  const fields = 'id,name,description,start_time,end_time,place,cover';
+  const url = `https://graph.facebook.com/${config.apiVersion}/${config.pageId}/events?fields=${fields}&access_token=${encodeURIComponent(accessToken)}&limit=100`;
+  
+  try {
+    console.log('Fetching events from Facebook...');
+    const data = await makeRequest(url);
+    
+    if (data.error) {
+      console.error('Facebook API error:', data.error.message);
+      process.exit(1);
+    }
+    
+    console.log(`✓ Fetched ${data.data.length} events`);
+    
+    const manifest = {
+      generated: new Date().toISOString(),
+      totalEvents: data.data.length,
+      events: data.data,
+    };
+    
+    fs.writeFileSync(
+      path.join(config.outputDir, 'events-manifest.json'),
+      JSON.stringify(manifest, null, 2)
+    );
+    
+    console.log('✓ Saved events-manifest.json');
+  } catch (error) {
+    console.error('✗ Sync failed:', error.message);
+    process.exit(1);
+  }
+}
+
+if (require.main === module) main();

@@ -4,13 +4,18 @@ const fs = require('fs');
 const path = require('path');
 
 const config = {
-  appId: process.env.FB_APP_ID || '1346561884222150',
-  appSecret: process.env.FB_APP_SECRET || '1a34a645d1f66ab',
+  appId: process.env.FB_APP_ID,
+  appSecret: process.env.FB_APP_SECRET,
   pageId: process.env.FB_PAGE_ID || 'mt3uk',
   apiVersion: 'v20.0',
   outputDir: './events-data',
   imageDir: './events-data/images',
 };
+
+if (!config.appId || !config.appSecret) {
+  console.error('✗ FB_APP_ID and FB_APP_SECRET must be set as environment variables.');
+  process.exit(1);
+}
 
 function ensureDir(dir) {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });

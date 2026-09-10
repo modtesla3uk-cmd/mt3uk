@@ -4,16 +4,20 @@ const fs = require('fs');
 const path = require('path');
 
 const config = {
-  appId: process.env.FB_APP_ID,
-  appSecret: process.env.FB_APP_SECRET,
+  pageAccessToken: process.env.FB_PAGE_ACCESS_TOKEN,
   pageId: process.env.FB_PAGE_ID || 'mt3uk',
   apiVersion: 'v20.0',
   outputDir: './events-data',
   imageDir: './events-data/images',
 };
 
-if (!config.appId || !config.appSecret) {
-  console.error('✗ FB_APP_ID and FB_APP_SECRET must be set as environment variables.');
+if (!config.pageAccessToken) {
+  console.error('✗ FB_PAGE_ACCESS_TOKEN must be set as an environment variable.');
+  console.error('  An app access token (app id + secret) cannot read a Page\'s events');
+  console.error('  without pages_read_engagement / Page Public Content Access, which');
+  console.error('  requires Meta App Review. Generate a Page Access Token for the mt3uk');
+  console.error('  Page instead (Graph API Explorer, with pages_read_engagement), and');
+  console.error('  exchange it for a long-lived token before storing it as this secret.');
   process.exit(1);
 }
 
@@ -46,9 +50,8 @@ async function main() {
   ensureDir(config.outputDir);
   ensureDir(config.imageDir);
   
-  const accessToken = `${config.appId}|${config.appSecret}`;
   const fields = 'id,name,description,start_time,end_time,place,cover';
-  const url = `https://graph.facebook.com/${config.apiVersion}/${config.pageId}/events?fields=${fields}&access_token=${encodeURIComponent(accessToken)}&limit=100`;
+  const url = `https://graph.facebook.com/${config.apiVersion}/${config.pageId}/events?fields=${fields}&access_token=${encodeURIComponent(config.pageAccessToken)}&limit=100`;
   
   try {
     console.log('Fetching events from Facebook...');

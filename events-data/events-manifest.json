@@ -1,5 +1,17 @@
 {
   "generated": "2026-09-10T20:00:00.000Z",
-  "totalEvents": 0,
-  "events": []
+  "totalEvents": 1,
+  "events": [
+    {
+      "id": "123456789",
+      "name": "Lancing Motor Show",
+      "description": "Join us for a full day of track driving",
+      "startTime": "2026-09-26T09:00:00+0000",
+      "endTime": "2026-09-26T18:00:00+0000",
+      "location": { "name": "Lancing Beach Green" },
+      "facebookUrl": "https://fb.me/e/6xSNeEibQ/",
+      "attendingCount": 45,
+      "interestedCount": 120
+    }
+  ]
 }

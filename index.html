@@ -986,19 +986,6 @@
     font-size: 0.95rem;
   }
 
-  /* ---------- SHOP TEASER ---------- */
-  .discount-banner {
-    background: var(--orange);
-    color: var(--paper);
-    text-align: center;
-    font-family: 'IBM Plex Mono', monospace;
-    font-weight: 700;
-    font-size: 0.85rem;
-    letter-spacing: 0.03em;
-    padding: 12px;
-    margin-bottom: 30px;
-  }
-  .discount-banner p { margin: 0; }
 
   .shop-band {
     background: var(--ink);
@@ -1060,6 +1047,8 @@
   .special-offer-price .delivery { display: block; font-family: 'IBM Plex Sans', sans-serif; font-weight: 400; font-size: 0.8rem; color: var(--steel); margin-top: 4px; }
 
   .shop-card {
+    display: flex;
+    flex-direction: column;
     border: 1px solid #3a4a6b;
     padding: 26px;
   }
@@ -1131,6 +1120,14 @@
     padding: 3px 8px;
   }
 
+  .sticker-price-list {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem;
+    color: #aeb8cc;
+    margin-top: 10px;
+  }
+  .sticker-price-list strong { color: var(--orange); }
+
   /* ---------- TEE OFFER ---------- */
   .tee-offer-banner {
     display: inline-flex;
@@ -1169,10 +1166,11 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-top: 14px;
+    margin-top: auto;
+    padding-top: 14px;
     flex-wrap: wrap;
   }
-  .tee-offer-actions .tag { margin-top: 0; }
+  .tee-offer-actions .tag { margin-top: 0; font-size: 0.6rem; padding: 3px 6px; }
   .tee-detail-btn {
     display: inline-block;
     background: transparent;
@@ -1187,6 +1185,21 @@
   .tee-detail-btn:hover {
     background: var(--orange);
     color: var(--paper);
+  }
+  .tee-offer-actions .tee-shop-btn {
+    display: inline-block;
+    background: var(--orange);
+    border: 1px solid var(--orange);
+    color: var(--paper);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.02em;
+    padding: 3px 8px;
+    text-decoration: none;
+  }
+  .tee-offer-actions .tee-shop-btn:hover {
+    background: #cf4620;
+    border-color: #cf4620;
   }
 
   /* ---------- JOIN CTA ---------- */
@@ -1638,10 +1651,6 @@
         <span class="section-num">04 / SHOP</span>
         <h2>Merch: Grab yourself some</h2>
       </div>
-      <p>T-shirts and hoodies for the group.</p>
-    </div>
-    <div class="discount-banner">
-      <p>&#9200; 20% OFF FOR FACEBOOK GROUP MEMBERS, WHILE LAUNCH STOCK LASTS</p>
     </div>
     <div class="shop-grid">
       <div class="shop-card">
@@ -1656,7 +1665,7 @@
         </div>
         <div class="tee-offer-banner">&#9201; 20% off for Facebook group members</div>
         <h3>MT3UK Tee</h3>
-        <p>Core logo print, heavyweight cotton</p>
+        <p>The official MT3UK tee. Premium comfort-fit black shirt with the iconic MT3UK logo and red underline design printed on the chest</p>
         <div class="tee-offer-price">
           <span class="tee-offer-save">SAVE 20%</span>
           <span class="tee-offer-was">&pound;24.99</span>
@@ -1664,6 +1673,7 @@
         </div>
         <div class="tee-offer-actions">
           <span class="tag">AVAILABLE NOW</span>
+          <a class="tee-shop-btn" href="https://mt3uk.myshopify.com/products/black-unisex-t-shirt-mt3uk-red-underline-design" target="_blank" rel="noopener">Shop tee</a>
           <button type="button" class="tee-detail-btn" id="tee-detail-btn" aria-haspopup="dialog" aria-controls="tee-modal">More detail</button>
         </div>
       </div>
@@ -1678,9 +1688,12 @@
           <img src="images/site/mt3uk-sticker.png" alt="MT3UK bumper sticker pack">
         </button>
         <h3>Transparent vinyl stickers</h3>
-        <p>For the boot lid, windows, laptop, wherever!</p>
+        <p class="sticker-modal-lead">Elevate your Tesla&rsquo;s look with official MT3UK community stickers.</p>
+        <p>These premium vinyl bumper stickers feature the iconic MT3UK white text with red accent underline, designed to make your Tesla stand out on the road.</p>
+        <p class="sticker-price-list"><strong>&pound;7.50</strong> 3-pack</p>
         <div class="tee-offer-actions">
-          <span class="tag">COMING SOON</span>
+          <span class="tag">AVAILABLE NOW</span>
+          <a class="tee-shop-btn" href="https://ko-fi.com/s/2a75c003e4" target="_blank" rel="noopener">Order Here</a>
           <button type="button" class="tee-detail-btn" id="sticker-detail-btn" aria-haspopup="dialog" aria-controls="sticker-modal">More detail</button>
         </div>
       </div>
@@ -2031,13 +2044,13 @@
         modal.innerHTML = '<div class="sticker-modal-panel">' +
               '<button type="button" class="sticker-modal-close" aria-label="Close">&times;</button>' +
               '<div class="sticker-modal-media">' +
-                    '<span class="tag sticker-modal-tag">COMING SOON</span>' +
+                    '<span class="tag sticker-modal-tag">AVAILABLE NOW</span>' +
                     '<img src="images/site/mt3uk-sticker.png" alt="MT3UK bumper sticker">' +
               '</div>' +
               '<div class="sticker-modal-body">' +
                     '<h3>MT3UK Modified Tesla Bumper Sticker Pack</h3>' +
                     '<p class="sticker-modal-lead">Elevate your Tesla&rsquo;s look with official MT3UK community stickers.</p>' +
-                    '<p>These premium vinyl bumper stickers feature the iconic MT3UK white text with red accent underline, designed to make your Tesla stand out on the road. Perfect for rear diffusers, side panels, windows, or anywhere you want to rep the community.</p>' +
+                    '<p>These premium vinyl bumper stickers feature the iconic MT3UK white text with red accent underline, designed to make your Tesla stand out on the road.</p>' +
                     '<h4>Features</h4>' +
                     '<ul class="sticker-modal-features">' +
                           '<li>Premium quality vinyl: UV-resistant, weatherproof</li>' +
@@ -2052,12 +2065,12 @@
                     '<table class="sticker-modal-pricing">' +
                           '<thead><tr><th>Option</th><th>Price</th><th>Best for</th></tr></thead>' +
                           '<tbody>' +
-                                '<tr><td>Single sticker</td><td>&pound;3.00</td><td>Personal use or collection</td></tr>' +
-                                '<tr><td>3-pack bundle</td><td>&pound;7.50</td><td>Sides, Rear, Front (&amp; you save &pound;1.50)</td></tr>' +
+                                '<tr><td>3-pack bundle</td><td>&pound;7.50</td><td>Sides, Rear, Front</td></tr>' +
                           '</tbody>' +
                     '</table>' +
                     '<p class="sticker-modal-note">Order with confidence: Fast UK delivery.</p>' +
                     '<p class="sticker-modal-cta">Join the MT3UK family. Show your colours.</p>' +
+                    '<a class="tee-modal-buy" href="https://ko-fi.com/s/2a75c003e4" target="_blank" rel="noopener">Order Here</a>' +
               '</div>' +
         '</div>';
         document.body.appendChild(modal);

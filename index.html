@@ -1315,13 +1315,13 @@
     }
 
     function buildSlide(photo, idx) {
-      var safeCaption = photo.caption.replace(/</g, '&lt;');
+      var safeCaption = (photo.caption || '').replace(/</g, '&lt;');
       var subLine = photo.name ? 'By ' + photo.name.replace(/</g, '&lt;') : '';
       var section = document.createElement('div');
       section.className = 'bf-slide';
       section.dataset.idx = String(idx);
       section.innerHTML =
-        '<img class="bf-slide-img" src="images/gallery/' + photo.file + '" alt="' + safeCaption + '" loading="lazy" draggable="false">' +
+        '<img class="bf-slide-img" src="images/gallery/' + photo.file + '" alt="' + (safeCaption || 'MT3UK member build') + '" loading="lazy" draggable="false">' +
         '<div class="bf-scrim bf-scrim-top"></div>' +
         '<div class="bf-scrim bf-scrim-bottom"></div>' +
         '<button class="bf-like-hit" aria-label="Like this build" data-idx="' + idx + '"></button>' +
@@ -1335,10 +1335,11 @@
             '<svg viewBox="0 0 24 24" class="bf-icon-save"><path d="M6 3.5h12a1 1 0 0 1 1 1V21l-7-4.2L5 21V4.5a1 1 0 0 1 1-1z"/></svg>' +
           '</button>' +
         '</aside>' +
-        '<div class="bf-caption">' +
-          '<p class="bf-hook">' + safeCaption + '</p>' +
-          (subLine ? '<p class="bf-sub">' + subLine + '</p>' : '') +
-        '</div>';
+        (safeCaption || subLine ?
+          '<div class="bf-caption">' +
+            (safeCaption ? '<p class="bf-hook">' + safeCaption + '</p>' : '') +
+            (subLine ? '<p class="bf-sub">' + subLine + '</p>' : '') +
+          '</div>' : '');
       return section;
     }
 
@@ -1532,8 +1533,8 @@
           <input type="text" id="submitter-name" name="name" placeholder="Your name or MT3UK handle">
         </div>
         <div class="form-row">
-          <label class="mono" for="submitter-caption">Caption</label>
-          <input type="text" id="submitter-caption" name="caption" placeholder="e.g. Viper Green Model Y" required>
+          <label class="mono" for="submitter-caption">Caption (optional)</label>
+          <input type="text" id="submitter-caption" name="caption" placeholder="e.g. Viper Green Model Y">
         </div>
         <div class="form-row">
           <label class="mono" for="submitter-photo">Photo</label>
@@ -1570,11 +1571,12 @@
             return;
           }
           grid.innerHTML = photos.map(function (p) {
-            var safeCaption = p.caption.replace(/</g, '&lt;');
+            var safeCaption = (p.caption || '').replace(/</g, '&lt;');
             var nameHtml = p.name ? '<span class="g-name">By ' + p.name.replace(/</g, '&lt;') + '</span>' : '';
+            var captionHtml = (safeCaption || nameHtml) ? '<span class="g-caption">' + safeCaption + nameHtml + '</span>' : '';
             return '<div class="gallery-slot filled">' +
-                     '<img src="images/gallery/' + p.file + '" alt="' + safeCaption + '" loading="lazy">' +
-                     '<span class="g-caption">' + safeCaption + nameHtml + '</span>' +
+                     '<img src="images/gallery/' + p.file + '" alt="' + (safeCaption || 'MT3UK member build') + '" loading="lazy">' +
+                     captionHtml +
                    '</div>';
           }).join('');
         }

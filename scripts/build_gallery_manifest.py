@@ -35,6 +35,11 @@ def caption_from_filename(stem: str) -> str:
     # part of a real caption, e.g. "model-3" or "911-killer".
     stem = re.sub(r"[-_]\d{8,}$", "", stem)
     words = re.split(r"[-_]+", stem)
+    # a submitter who left the caption blank ends up with a filename that's
+    # nothing but a long digit run (e.g. a camera/phone timestamp) once the
+    # prefix/suffix above are stripped; that's not a real caption either.
+    if all(not w or (w.isdigit() and len(w) >= 8) for w in words):
+        return ""
     return " ".join(w.upper() for w in words if w)
 
 
@@ -136,7 +141,10 @@ def main():
     manifest = []
     for e in entries:
         stem, name = split_submitter_name(e["path"].stem)
-        entry = {"file": e["path"].name, "caption": caption_from_filename(stem)}
+        entry = {"file": e["path"].name}
+        caption = caption_from_filename(stem)
+        if caption:
+            entry["caption"] = caption
         if name:
             entry["name"] = name
         manifest.append(entry)

@@ -1,17 +1,28 @@
 {
   "generated": "2026-09-10T20:00:00.000Z",
-  "totalEvents": 1,
+  "totalEvents": 2,
   "events": [
     {
-      "id": "123456789",
+      "id": "0001",
       "name": "Lancing Motor Show",
       "description": "Join us for a full day of track driving",
       "startTime": "2026-09-26T09:00:00+0000",
       "endTime": "2026-09-26T18:00:00+0000",
       "location": { "name": "Lancing Beach Green" },
       "facebookUrl": "https://fb.me/e/6xSNeEibQ/",
-      "attendingCount": 45,
-      "interestedCount": 120
+      "attendingCount": 10,
+      "interestedCount": 20
+    },
+    {
+      "id": "0002",
+      "name": "Carcopia Car & Bike Show",
+      "description": "EVs are VERY welcome, so if you would like to join register and click on Join Event",
+      "startTime": "2026-09-10T09:00:00+0000",
+      "endTime": "2026-09-10T17:00:00+0000",
+      "location": { "name": "High St, Tilbrook, Huntingdon PE28 0JP" },
+      "facebookUrl": "https://fb.me/e/8sG5oirzX",
+      "attendingCount": 10,
+      "interestedCount": 10
     }
   ]
 }

@@ -969,6 +969,33 @@
     white-space: nowrap;
     justify-self: start;
   }
+  .event-status-confirmed {
+    color: var(--paper);
+    background: var(--orange);
+    border-color: var(--orange);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .event-status-confirmed:hover { opacity: 0.85; }
+  .past-events-heading {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    color: var(--steel);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  #past-events-list .event-row { opacity: 0.6; }
+  .event-status-past {
+    color: var(--steel);
+    border-color: var(--steel);
+  }
+  .event-meta {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--steel);
+    margin-top: 4px;
+  }
 
   /* ---------- SHOP CTA BAND ---------- */
   .shop-cta {
@@ -1798,13 +1825,14 @@
       </div>
       <p>Full details always posted in the Facebook group first.</p>
     </div>
-    <div class="diagram" style="max-width: 640px; margin: 0 auto 40px;">
+    <div class="diagram" style="max-width: 320px; aspect-ratio: 1/1; margin: 0 auto 40px;">
       <img src="images/hero.jpg" alt="MT3UK members' modified Teslas lined up at a UK car show">
       <div class="grid-overlay"></div>
       <div class="corner tl"></div><div class="corner tr"></div>
       <div class="corner bl"></div><div class="corner br"></div>
       <span class="caption">FIG. 01: MT3UK MEMBERS AT A UK CAR SHOW</span>
     </div>
+    <div class="events-list" id="confirmed-events-list"></div>
     <div class="events-list">
       <div class="event-row">
         <div class="event-date">TBC</div>
@@ -1821,6 +1849,10 @@
         <div class="event-info"><h3>Track day</h3><p>For members interested in a group track session</p></div>
         <div class="event-status">GAUGING INTEREST</div>
       </div>
+    </div>
+    <div id="past-events-section" style="display: none; margin-top: 48px;">
+      <h3 class="past-events-heading">Previous events</h3>
+      <div class="events-list" id="past-events-list"></div>
     </div>
   </div>
 </section>
@@ -2315,6 +2347,79 @@
                           fail('Something went wrong, please try again.');
                     });
         });
+    })();
+  </script>
+
+  <script>
+    (function () {
+      var list = document.getElementById('confirmed-events-list');
+      var pastSection = document.getElementById('past-events-section');
+      var pastList = document.getElementById('past-events-list');
+      if (!list) return;
+
+      function formatTime(date) {
+        var hours = date.getUTCHours();
+        var minutes = date.getUTCMinutes();
+        var suffix = hours >= 12 ? 'pm' : 'am';
+        var hour12 = hours % 12 || 12;
+        return minutes ? hour12 + ':' + (minutes < 10 ? '0' : '') + minutes + suffix : hour12 + suffix;
+      }
+
+      function formatDateRange(startTime, endTime) {
+        var start = new Date(startTime);
+        var end = endTime ? new Date(endTime) : null;
+        var dateOpts = { day: 'numeric', month: 'short', timeZone: 'UTC' };
+        var dateLabel = start.toLocaleDateString('en-GB', dateOpts).toUpperCase();
+        var dayLabel = start.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
+        var timeLabel = formatTime(start);
+        if (end) timeLabel += '–' + formatTime(end);
+        return { dateLabel: dateLabel, metaLabel: dayLabel + ', ' + timeLabel };
+      }
+
+      function eventRowHtml(ev, isPast) {
+        var when = formatDateRange(ev.startTime, ev.endTime);
+        var metaParts = [when.metaLabel];
+        if (ev.location && ev.location.name) metaParts.push(ev.location.name);
+        if (typeof ev.attendingCount === 'number' && typeof ev.interestedCount === 'number') {
+          metaParts.push(ev.attendingCount + ' attending, ' + ev.interestedCount + ' interested');
+        }
+        var status = isPast
+          ? '<div class="event-status event-status-past">PAST</div>'
+          : '<a class="event-status event-status-confirmed" href="' + ev.facebookUrl + '" target="_blank" rel="noopener">JOIN EVENT</a>';
+        return '<div class="event-row">' +
+          '<div class="event-date">' + when.dateLabel + '</div>' +
+          '<div class="event-info">' +
+            '<h3>' + ev.name + '</h3>' +
+            '<p>' + ev.description + '</p>' +
+            '<p class="event-meta">' + metaParts.join(' · ') + '</p>' +
+          '</div>' +
+          status +
+        '</div>';
+      }
+
+      function renderEvents(events) {
+        var now = new Date();
+        var upcoming = [];
+        var past = [];
+        events.forEach(function (ev) {
+          var end = new Date(ev.endTime || ev.startTime);
+          (end < now ? past : upcoming).push(ev);
+        });
+        upcoming.sort(function (a, b) { return new Date(a.startTime) - new Date(b.startTime); });
+        past.sort(function (a, b) { return new Date(b.startTime) - new Date(a.startTime); });
+
+        if (upcoming.length) list.innerHTML = upcoming.map(function (ev) { return eventRowHtml(ev, false); }).join('');
+
+        if (past.length && pastSection && pastList) {
+          pastList.innerHTML = past.map(function (ev) { return eventRowHtml(ev, true); }).join('');
+          pastSection.style.display = '';
+        }
+      }
+
+      fetch('events-data/events-manifest.json', { cache: 'no-store' })
+        .then(function (response) { return response.json(); })
+        .then(function (manifest) { renderEvents((manifest && manifest.events) || []); })
+        .catch(function () {});
     })();
   </script>
 

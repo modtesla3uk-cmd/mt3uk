@@ -1729,8 +1729,8 @@
         </div>
         <div class="tee-offer-price">
           <span class="tee-offer-save">SAVE 20%</span>
-          <span class="tee-offer-was">&pound;25</span>
-          <span class="tee-offer-now">&pound;20</span>
+          <span class="tee-offer-was">&pound;24.99</span>
+          <span class="tee-offer-now">&pound;19.99</span>
         </div>
         <div class="tee-offer-actions">
           <span class="tag">AVAILABLE NOW</span>
@@ -2149,6 +2149,7 @@
 
         var closeBtn = modal.querySelector('.sticker-modal-close');
         var detailBtn = document.getElementById('sticker-detail-btn');
+        var trigger = document.getElementById('sticker-trigger');
 
         function openModal() {
               modal.classList.add('open');
@@ -2163,6 +2164,10 @@
         }
 
         if (detailBtn) detailBtn.addEventListener('click', openModal);
+        if (trigger) trigger.addEventListener('click', function (e) {
+              e.preventDefault();
+              openModal();
+        });
         closeBtn.addEventListener('click', closeModal);
         modal.addEventListener('click', function (e) {
               if (e.target === modal) closeModal();
@@ -2226,8 +2231,8 @@
                     '</ul>' +
                     '<div class="tee-offer-price">' +
                           '<span class="tee-offer-save">SAVE 20%</span>' +
-                          '<span class="tee-offer-was">&pound;25</span>' +
-                          '<span class="tee-offer-now">&pound;20</span>' +
+                          '<span class="tee-offer-was">&pound;24.99</span>' +
+                          '<span class="tee-offer-now">&pound;19.99</span>' +
                     '</div>' +
                     '<p>Premium quality (not fast fashion)</p>' +
                     '<a class="tee-modal-buy" href="https://mt3uk.myshopify.com/products/black-unisex-t-shirt-mt3uk-red-underline-design" target="_blank" rel="noopener">Shop the tee</a>' +
@@ -2288,6 +2293,15 @@
               modal.setAttribute('aria-hidden', 'true');
               document.body.style.overflow = '';
         }
+
+        if (trigger) trigger.addEventListener('click', function (e) {
+              e.preventDefault();
+              openModal('images/site/mt3uk-tee.jpg', 'MT3UK black unisex t-shirt with red underline design');
+        });
+        if (trigger2) trigger2.addEventListener('click', function (e) {
+              e.preventDefault();
+              openModal('images/site/mt3uk-tee-2.jpg', 'MT3UK t-shirt folded, close-up of the logo print');
+        });
 
         closeBtn.addEventListener('click', closeModal);
         modal.addEventListener('click', function (e) {

@@ -322,6 +322,8 @@
   .shop-band .section-head p { color: #aeb8cc; }
   .shop-band .section-num { color: var(--orange); }
   .shop-band h2 { color: var(--paper); }
+  #upgrades { padding-bottom: 32px; border-bottom: none; }
+  #partners { padding-top: 32px; }
 
   .shop-grid {
     display: grid;
@@ -355,6 +357,8 @@
   .tevo-panel p:last-child { margin-bottom: 0; }
   .tevo-panel ul { margin: 0 0 14px 18px; color: #aeb8cc; }
   .tevo-panel li { margin-bottom: 8px; }
+  .tevo-panel-logo { display: inline-block; }
+  .tevo-panel-logo img { height: 36px; width: auto; }
   .shop-preview-hint {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.66rem;
@@ -393,6 +397,8 @@
   #tee-trigger img.zoom-pan, #tee-trigger-2 img.zoom-pan { transform: scale(4); }
   #brace-trigger img, #brace-trigger-2 img { transition: transform 0.2s ease; }
   #brace-trigger img.zoom-pan, #brace-trigger-2 img.zoom-pan { transform: scale(4); }
+  #pads-street-trigger img, #pads-carbotech-trigger img { transition: transform 0.2s ease; }
+  #pads-street-trigger img.zoom-pan, #pads-carbotech-trigger img.zoom-pan { transform: scale(4); }
   .shop-preview-thumb {
     display: flex;
     align-items: center;
@@ -673,9 +679,9 @@
           <a class="shop-preview-trigger" id="brace-trigger" href="https://www.facebook.com/MT3UK/" target="_blank" rel="noopener">
             <img src="images/site/Tevo_Brace.png" alt="Tevo Solutions Master Cylinder Brace for Tesla Model 3">
           </a>
-          <a class="shop-preview-thumb" id="brace-trigger-2" href="https://www.facebook.com/MT3UK/" target="_blank" rel="noopener">
+          <div class="shop-preview-thumb" id="brace-trigger-2" tabindex="0">
             <img src="images/site/Tevo_Brace_Bolt.png" alt="Master Cylinder Brace mounting hardware close-up">
-          </a>
+          </div>
         </div>
         <div class="tee-offer-banner">&#9201; Limited stock at this price</div>
         <p class="tee-modal-lead">For Model 3 and Model 3 Highland</p>
@@ -708,11 +714,46 @@
           <a class="tee-shop-btn" href="https://ko-fi.com/s/1b37c8bb10" target="_blank" rel="noopener">Order Here</a>
         </div>
       </div>
+      <div class="shop-card shop-card-hoodie">
+        <svg viewBox="0 0 200 140" fill="none" stroke="#e8542a" stroke-width="1.6"><circle cx="100" cy="70" r="38"/><path d="M100 32 L100 46 M100 94 L100 108 M62 70 L76 70 M124 70 L138 70"/></svg>
+        <h3>More Parts Coming</h3>
+        <p>Member-sourced parts, restocked regularly</p>
+        <span class="tag">COMING SOON</span>
+      </div>
+      <div class="shop-card shop-card-hoodie">
+        <svg viewBox="0 0 200 140" fill="none" stroke="#e8542a" stroke-width="1.6"><circle cx="100" cy="70" r="38"/><path d="M100 32 L100 46 M100 94 L100 108 M62 70 L76 70 M124 70 L138 70"/></svg>
+        <h3>More Parts Coming</h3>
+        <p>Suggest a part in the Facebook group</p>
+        <span class="tag">COMING SOON</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="partners" class="shop-band">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="section-num">03 / PARTNERS</span>
+        <h2>Our Partners</h2>
+        <p class="section-note">Parts and upgrades supplied through our trusted partners.</p>
+      </div>
+    </div>
+    <div class="tevo-panel">
+      <h3>In partnership with Tevo Solutions</h3>
+      <p>Tevo Solutions delivers premium Tesla performance upgrades and accessories, backed by 35 years of industry expertise. Quality-tested components, from forged wheels to upgrade kits, designed and made in Britain. Performance meets sustainability.</p>
+      <div class="tevo-panel-logo">
+        <img src="images/site/Tevo-logo-white-letters.png" alt="Tevo Solutions">
+      </div>
+      <p class="detail-desc">Orders for these parts are handled directly by Tevo Solutions.</p>
+    </div>
+    <div class="shop-grid">
       <div class="shop-card">
         <h3>PAGID &lsquo;STREET+&rsquo; Brake Pads (Model 3P/Y)</h3>
-        <a class="shop-preview-trigger" id="pads-street-trigger" href="https://www.tevo.solutions/braking/pagid-street-brake-pads-for-model-3y-performance?ref=mt3uk" target="_blank" rel="noopener">
+        <p class="shop-preview-hint">Hold and pan to zoom</p>
+        <div class="shop-preview-trigger" id="pads-street-trigger" tabindex="0">
           <img src="images/site/Pads_Street+.png" alt="Pagid Street+ brake pads for Model 3 Performance/Y">
-        </a>
+        </div>
         <p class="tee-modal-lead">Fast road / occasional track use pads for Model 3 Performance/Y, supplied by Tevo Solutions.</p>
         <div class="tee-offer-actions">
           <span class="tag">AVAILABLE NOW</span>
@@ -721,21 +762,16 @@
       </div>
       <div class="shop-card">
         <h3>Carbotech Brake Pads (Model 3 Performance)</h3>
-        <a class="shop-preview-trigger" id="pads-carbotech-trigger" href="https://www.tevo.solutions/braking/carbotech-brake-pads-for-model-3-performance-front?ref=mt3uk" target="_blank" rel="noopener">
+        <p class="shop-preview-hint">Hold and pan to zoom</p>
+        <div class="shop-preview-trigger" id="pads-carbotech-trigger" tabindex="0">
           <img src="images/site/Pads_Carbotech_XP10.png" alt="Carbotech XP10 brake pads for Model 3 Performance">
-        </a>
+        </div>
         <p class="tee-modal-lead">UK-made Ceramic Kevlar track pads, supplied by Tevo Solutions.</p>
         <div class="tee-offer-actions">
           <span class="tag">AVAILABLE NOW</span>
           <a class="tee-shop-btn" href="https://www.tevo.solutions/braking/carbotech-brake-pads-for-model-3-performance-front?ref=mt3uk" target="_blank" rel="noopener">View on Tevo</a>
         </div>
       </div>
-    </div>
-    <div class="tevo-panel">
-      <h3>In partnership with Tevo Solutions</h3>
-      <p>Tevo Solutions delivers premium Tesla performance upgrades and accessories, backed by 35 years of industry expertise. Quality-tested components, from forged wheels to upgrade kits, designed and made in Britain. Performance meets sustainability.</p>
-      <p><a href="https://www.tevo.solutions/braking?ref=mt3uk" class="inline-link" target="_blank" rel="noopener">Browse Tevo Brake Upgrades &#8599;</a></p>
-      <p class="detail-desc">Orders for these parts are handled directly by Tevo Solutions.</p>
     </div>
   </div>
 </section>
@@ -752,7 +788,8 @@
 (function () {
       var panTargets = [
         document.getElementById('tee-trigger'), document.getElementById('tee-trigger-2'),
-        document.getElementById('brace-trigger'), document.getElementById('brace-trigger-2')
+        document.getElementById('brace-trigger'), document.getElementById('brace-trigger-2'),
+        document.getElementById('pads-street-trigger'), document.getElementById('pads-carbotech-trigger')
       ];
       panTargets.forEach(function (btn) {
             if (!btn) return;

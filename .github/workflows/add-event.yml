@@ -1,4 +1,4 @@
-name: Add or Update Event
+name: Add, Update, or Delete Event
 
 permissions:
   contents: write
@@ -9,6 +9,14 @@ on:
       name:
         description: 'Event name'
         required: true
+      delete:
+        description: 'Check to delete this event instead of adding/updating it'
+        required: false
+        type: boolean
+        default: false
+      event_id:
+        description: 'Only needed to delete an older event not created by this workflow (e.g. a legacy numeric ID)'
+        required: false
       description:
         description: 'Short description'
         required: false
@@ -16,20 +24,20 @@ on:
         description: 'Start date (YYYY-MM-DD)'
         required: true
       start_time:
-        description: 'Start time, 24h (HH:MM)'
-        required: true
+        description: 'Start time, 24h (HH:MM). Not needed when deleting.'
+        required: false
       end_date:
         description: 'End date (YYYY-MM-DD), leave blank to match start date'
         required: false
       end_time:
-        description: 'End time, 24h (HH:MM)'
-        required: true
+        description: 'End time, 24h (HH:MM). Not needed when deleting.'
+        required: false
       location:
-        description: 'Location name'
-        required: true
+        description: 'Location name. Not needed when deleting.'
+        required: false
       facebook_url:
-        description: 'Facebook event URL'
-        required: true
+        description: 'Facebook event URL. Not needed when deleting.'
+        required: false
       attending_count:
         description: 'Attending count'
         required: false
@@ -49,6 +57,8 @@ jobs:
           node-version: '18'
       - run: node scripts/add-event.js
         env:
+          EVENT_DELETE: ${{ inputs.delete }}
+          EVENT_ID: ${{ inputs.event_id }}
           EVENT_NAME: ${{ inputs.name }}
           EVENT_DESCRIPTION: ${{ inputs.description }}
           EVENT_START_DATE: ${{ inputs.start_date }}
@@ -64,7 +74,12 @@ jobs:
           git config --local user.name "GitHub Action"
           if [ -z "$(git status --porcelain)" ]; then exit 0; fi
           git add events-data/events-manifest.json
-          git commit -m "chore: add/update event ${{ inputs.name }} (${{ inputs.start_date }})"
+          if [ "${{ inputs.delete }}" = "true" ]; then
+            MSG="chore: delete event ${{ inputs.name }} (${{ inputs.start_date }})"
+          else
+            MSG="chore: add/update event ${{ inputs.name }} (${{ inputs.start_date }})"
+          fi
+          git commit -m "$MSG"
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

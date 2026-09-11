@@ -14,26 +14,29 @@ def _assert_closed(page):
 
 
 def test_main_image_opens_modal(page):
-    page.goto("/index.html")
+    page.goto("/shop.html")
     page.locator("#tee-trigger").click()
     _assert_open(page)
     assert "20% off" in page.locator(f"{MODAL} .tee-offer-banner").inner_text()
 
 
 def test_secondary_thumbnail_opens_modal(page):
-    page.goto("/index.html")
+    page.goto("/shop.html")
     page.locator("#tee-trigger-2").click()
     _assert_open(page)
 
 
-def test_more_detail_button_opens_modal(page):
-    page.goto("/index.html")
-    page.locator("#tee-detail-btn").click()
-    _assert_open(page)
+def test_more_detail_button_expands_accordion(page):
+    page.goto("/shop.html")
+    toggle = page.locator("#tee-detail-content").locator("xpath=preceding-sibling::button[1]")
+    assert toggle.get_attribute("aria-expanded") == "false"
+    toggle.click()
+    assert toggle.get_attribute("aria-expanded") == "true"
+    assert page.locator("#tee-detail-content").is_visible()
 
 
 def test_close_button_closes_modal(page):
-    page.goto("/index.html")
+    page.goto("/shop.html")
     page.locator("#tee-trigger").click()
     _assert_open(page)
 
@@ -45,7 +48,7 @@ def test_close_button_closes_modal_on_mobile_viewport(page):
     # Regression guard: on mobile the modal panel's reduced padding used to
     # let .tee-modal-media overlap and eat the close button's tap target.
     page.set_viewport_size({"width": 390, "height": 844})
-    page.goto("/index.html")
+    page.goto("/shop.html")
     page.locator("#tee-trigger").click()
     _assert_open(page)
 
@@ -64,7 +67,7 @@ def test_close_button_closes_modal_on_mobile_viewport(page):
 
 
 def test_escape_key_closes_modal(page):
-    page.goto("/index.html")
+    page.goto("/shop.html")
     page.locator("#tee-trigger").click()
     _assert_open(page)
 
@@ -73,7 +76,7 @@ def test_escape_key_closes_modal(page):
 
 
 def test_clicking_backdrop_closes_modal(page):
-    page.goto("/index.html")
+    page.goto("/shop.html")
     page.locator("#tee-trigger").click()
     _assert_open(page)
 
@@ -82,7 +85,7 @@ def test_clicking_backdrop_closes_modal(page):
 
 
 def test_hovering_tee_image_applies_zoom(page):
-    page.goto("/index.html")
+    page.goto("/shop.html")
     trigger = page.locator("#tee-trigger")
     trigger.hover()
     img = trigger.locator("img")

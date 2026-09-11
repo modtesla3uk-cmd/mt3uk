@@ -1,32 +1,13 @@
 # robots.txt for MT3UK
-# Allow all crawlers including AI tools
+# Allow all crawlers
 
 User-agent: *
 Allow: /
 Disallow: /admin
 Disallow: /.git
 
-# Specifically allow AI crawlers
-User-agent: CCBot
-Allow: /
-
-User-agent: GPTBot
-Allow: /
-
-User-agent: Claude-Web
-Allow: /
-
-User-agent: PerplexityBot
-Allow: /
-
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
 # Crawl delay (be polite)
 Crawl-delay: 1
 
-# Sitemap location (you'll create this next)
+# Sitemap location
 Sitemap: https://mt3uk.com/sitemap.xml

@@ -1,6 +1,6 @@
 {
-  "generated": "2026-09-11T01:39:25.221Z",
-  "totalEvents": 3,
+  "generated": "2026-09-11T23:42:18.111Z",
+  "totalEvents": 4,
   "events": [
     {
       "id": "lancing-motor-show-2025-09-26",
@@ -40,6 +40,19 @@
       "facebookUrl": "https://www.facebook.com/share/14ksXBy2W79/",
       "attendingCount": 10,
       "interestedCount": 10
+    },
+    {
+      "id": "race-of-remembrance-track-day-2026-10-02",
+      "name": "Race of remembrance - Track day ",
+      "description": "Looking to enjoy a track day? You can join us too! ",
+      "startTime": "2026-10-02T08:00:00+0000",
+      "endTime": "2026-10-02T08:00:00+0000",
+      "location": {
+        "name": "Thruxton Circuit "
+      },
+      "facebookUrl": "https://ror-launch-trackday26.eventbrite.co.uk",
+      "attendingCount": 0,
+      "interestedCount": 0
     }
   ]
 }

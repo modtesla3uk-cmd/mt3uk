@@ -1080,6 +1080,7 @@
     padding: 26px;
   }
   .shop-card svg { width: 100%; height: 140px; margin-bottom: 18px; }
+  .shop-card-hoodie { justify-content: center; }
 
   .shop-preview-hint {
     font-family: 'IBM Plex Mono', monospace;
@@ -1112,8 +1113,8 @@
   .shop-preview-trigger:hover, .shop-preview-trigger:focus-visible { border-color: var(--orange); }
   .shop-preview-trigger img { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.35s ease; }
   .shop-preview-trigger:hover img, .shop-preview-trigger:focus-visible img { transform: scale(1.8); }
-  #sticker-trigger { margin-bottom: 18px; cursor: pointer; }
-  #sticker-trigger img { border: 1.5px dashed var(--steel); padding: 14px 18px; box-sizing: border-box; }
+  #sticker-trigger { margin-bottom: 18px; cursor: default; }
+  #sticker-trigger img { border: 1.5px dashed var(--steel); padding: 6px 8px; box-sizing: border-box; }
   #sticker-trigger:hover img, #sticker-trigger:focus-visible img { transform: none; }
   #tee-trigger img, #tee-trigger-2 img { transition: transform 0.2s ease; }
   #tee-trigger img.zoom-pan, #tee-trigger-2 img.zoom-pan { transform: scale(4); }
@@ -1213,6 +1214,26 @@
     background: var(--orange);
     color: var(--paper);
   }
+  .detail-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px solid var(--orange);
+    color: var(--orange);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.02em;
+    padding: 3px 6px;
+    cursor: pointer;
+    margin: 4px 0 0;
+  }
+  .detail-toggle:hover { background: var(--orange); color: var(--paper); }
+  .detail-toggle::after { content: '\25BE'; font-size: 0.7rem; transition: transform 0.2s ease; }
+  .detail-toggle[aria-expanded="true"]::after { transform: rotate(180deg); }
+  .detail-content { margin-top: 12px; }
+  .detail-content[hidden] { display: none; }
+  .detail-content .detail-desc { margin-bottom: 14px; }
   .tee-offer-actions .tee-shop-btn {
     display: inline-block;
     background: var(--orange);
@@ -1683,45 +1704,62 @@
       <div class="shop-card">
         <p class="shop-preview-hint">Hold and pan to zoom</p>
         <div class="shop-preview-row">
-          <button type="button" class="shop-preview-trigger" id="tee-trigger" aria-haspopup="dialog" aria-controls="tee-modal">
+          <a class="shop-preview-trigger" id="tee-trigger" href="https://mt3uk.myshopify.com/products/black-unisex-t-shirt-mt3uk-red-underline-design" target="_blank" rel="noopener">
             <img src="images/site/mt3uk-tee.jpg" alt="MT3UK black unisex t-shirt with red underline design">
-          </button>
-          <button type="button" class="shop-preview-thumb" id="tee-trigger-2" aria-haspopup="dialog" aria-controls="tee-modal">
+          </a>
+          <a class="shop-preview-thumb" id="tee-trigger-2" href="https://mt3uk.myshopify.com/products/black-unisex-t-shirt-mt3uk-red-underline-design" target="_blank" rel="noopener">
             <img src="images/site/mt3uk-tee-2.jpg" alt="MT3UK t-shirt folded, close-up of the logo print">
-          </button>
+          </a>
         </div>
-        <div class="tee-offer-banner">&#9201; 20% off for Facebook group members</div>
-        <h3>MT3UK Tee</h3>
-        <p>The official MT3UK tee. Premium comfort-fit black shirt with the iconic MT3UK logo and red underline design printed on the chest</p>
+        <div class="tee-offer-banner">&#9201; Limited launch offer: 20% off for Facebook group members</div>
+        <h3>MT3UK Premium T-Shirt</h3>
+        <p class="tee-modal-lead">Built for community. Designed to last.</p>
+        <button type="button" class="detail-toggle" aria-expanded="false" aria-controls="tee-detail-content">More detail</button>
+        <div class="detail-content" id="tee-detail-content" hidden>
+          <p class="detail-desc">Heavyweight Comfort Colors 1717 &ndash; the same premium blank worn by serious communities worldwide. Preshrunk 100% cotton, tagless label, engineered for durability.</p>
+          <ul class="tee-modal-features">
+            <li>Comfort Colors 1717 heavyweight fabric</li>
+            <li>Preshrunk (keeps shape after washing)</li>
+            <li>Tagless label (premium comfort)</li>
+            <li>Built for track days &amp; everyday wear</li>
+          </ul>
+        </div>
         <div class="tee-offer-price">
           <span class="tee-offer-save">SAVE 20%</span>
-          <span class="tee-offer-was">&pound;24.99</span>
-          <span class="tee-offer-now">&pound;19.99</span>
+          <span class="tee-offer-was">&pound;25</span>
+          <span class="tee-offer-now">&pound;20</span>
         </div>
         <div class="tee-offer-actions">
           <span class="tag">AVAILABLE NOW</span>
           <a class="tee-shop-btn" href="https://mt3uk.myshopify.com/products/black-unisex-t-shirt-mt3uk-red-underline-design" target="_blank" rel="noopener">Shop tee</a>
-          <button type="button" class="tee-detail-btn" id="tee-detail-btn" aria-haspopup="dialog" aria-controls="tee-modal">More detail</button>
         </div>
       </div>
-      <div class="shop-card">
+      <div class="shop-card shop-card-hoodie">
         <svg viewBox="0 0 200 140" fill="none" stroke="#e8542a" stroke-width="1.6"><path d="M55 24 L75 12 L100 22 L125 12 L145 24 L156 48 L138 56 L138 122 L62 122 L62 56 L44 48 Z"/><path d="M85 22 Q100 34 115 22" /></svg>
         <h3>MT3UK Hoodie</h3>
         <p>Embroidered crest, fleece-lined</p>
         <span class="tag">COMING SOON</span>
       </div>
       <div class="shop-card">
-        <button type="button" class="shop-preview-trigger" id="sticker-trigger" aria-haspopup="dialog" aria-controls="sticker-modal">
+        <a class="shop-preview-trigger" id="sticker-trigger" href="https://ko-fi.com/s/2a75c003e4" target="_blank" rel="noopener">
           <img src="images/site/mt3uk-sticker.png" alt="MT3UK bumper sticker pack">
-        </button>
-        <h3>Transparent vinyl stickers</h3>
+        </a>
+        <h3>MT3UK Official vinyl stickers</h3>
         <p class="sticker-modal-lead">Elevate your Tesla&rsquo;s look with official MT3UK community stickers.</p>
-        <p>These premium vinyl bumper stickers feature the iconic MT3UK white text with red accent underline, designed to make your Tesla stand out on the road.</p>
+        <button type="button" class="detail-toggle" aria-expanded="false" aria-controls="sticker-detail-content">More detail</button>
+        <div class="detail-content" id="sticker-detail-content" hidden>
+          <ul class="sticker-modal-features">
+            <li>Premium quality vinyl: UV-resistant, weatherproof</li>
+            <li>Clean white text with bold red accent: high contrast, professional appearance</li>
+            <li>Removable adhesive: peels off cleanly without damaging paint</li>
+            <li>Transparent background: sits flush against your surface</li>
+            <li>Size: 42mm &times; 165mm (approximately 1.65&Prime; &times; 6.5&Prime;)</li>
+          </ul>
+        </div>
         <p class="sticker-price-list"><strong>&pound;7.50</strong> 3-pack</p>
         <div class="tee-offer-actions">
           <span class="tag">AVAILABLE NOW</span>
           <a class="tee-shop-btn" href="https://ko-fi.com/s/2a75c003e4" target="_blank" rel="noopener">Order Here</a>
-          <button type="button" class="tee-detail-btn" id="sticker-detail-btn" aria-haspopup="dialog" aria-controls="sticker-modal">More detail</button>
         </div>
       </div>
     </div>
@@ -2064,7 +2102,7 @@
   <script>
     (function () {
         var style = document.createElement('style');
-        style.textContent = '.sticker-modal { position: fixed; inset: 0; background: rgba(22,35,61,0.94); display: none; align-items: center; justify-content: center; z-index: 210; padding: 30px 20px; } .sticker-modal.open { display: flex; } .sticker-modal-panel { background: var(--ink); border: 1px solid #3a4a6b; max-width: 720px; width: 100%; max-height: 88vh; overflow-y: auto; position: relative; padding: 36px; box-sizing: border-box; } .sticker-modal-close { position: absolute; top: 12px; right: 12px; z-index: 5; background: var(--ink); border: 1px solid var(--paper); color: var(--paper); width: 40px; height: 40px; font-size: 1.3rem; line-height: 1; cursor: pointer; } .sticker-modal-close:hover { background: var(--orange); border-color: var(--orange); } .sticker-modal-media { border: 1px solid #3a4a6b; padding: 34px 20px; position: relative; margin-bottom: 24px; display: flex; align-items: center; justify-content: center; } .sticker-modal-media img { display: block; max-width: 82%; height: auto; border: 1.5px dashed var(--steel); padding: 20px 26px; box-sizing: border-box; } .sticker-modal-tag { position: absolute; top: 14px; left: 14px; display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; color: var(--orange); border: 1px solid var(--orange); padding: 3px 8px; background: #0d1526; } .sticker-modal-body h3 { color: var(--paper); font-family: "IBM Plex Sans", sans-serif; font-size: 1.25rem; margin: 0 0 12px; } .sticker-modal-body h4 { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--orange); margin: 22px 0 10px; } .sticker-modal-lead { color: var(--paper); font-weight: 600; margin-bottom: 10px; } .sticker-modal-body p { color: #aeb8cc; font-size: 0.9rem; line-height: 1.55; margin: 0 0 10px; } .sticker-modal-features { list-style: none; padding: 0; margin: 0; } .sticker-modal-features li { color: #d7dce8; font-size: 0.87rem; padding-left: 22px; position: relative; margin-bottom: 8px; } .sticker-modal-features li::before { content: "\\2713"; position: absolute; left: 0; color: var(--orange); font-weight: 700; } .sticker-modal-pricing { width: 100%; border-collapse: collapse; margin-top: 4px; } .sticker-modal-pricing th, .sticker-modal-pricing td { border: 1px solid #3a4a6b; padding: 8px 12px; font-size: 0.83rem; text-align: left; color: var(--paper); } .sticker-modal-pricing th { font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--orange); } .sticker-modal-note { font-style: italic; } .sticker-modal-cta { color: var(--paper); font-weight: 600; margin: 18px 0 0; } @media (max-width: 600px) { .sticker-modal-panel { padding: 24px 18px; } }';
+        style.textContent = '.sticker-modal { position: fixed; inset: 0; background: rgba(22,35,61,0.94); display: none; align-items: center; justify-content: center; z-index: 210; padding: 30px 20px; } .sticker-modal.open { display: flex; } .sticker-modal-panel { background: var(--ink); border: 1px solid #3a4a6b; max-width: 720px; width: 100%; max-height: 88vh; overflow-y: auto; position: relative; padding: 36px; box-sizing: border-box; } .sticker-modal-close { position: absolute; top: 12px; right: 12px; z-index: 5; background: var(--ink); border: 1px solid var(--paper); color: var(--paper); width: 40px; height: 40px; font-size: 1.3rem; line-height: 1; cursor: pointer; } .sticker-modal-close:hover { background: var(--orange); border-color: var(--orange); } .sticker-modal-media { border: 1px solid #3a4a6b; padding: 20px; position: relative; margin-bottom: 24px; display: flex; align-items: center; justify-content: center; } .sticker-modal-media img { display: block; max-width: 90%; height: auto; border: 1.5px dashed var(--steel); padding: 8px 10px; box-sizing: border-box; } .sticker-modal-tag { position: absolute; top: 14px; left: 14px; display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; color: var(--orange); border: 1px solid var(--orange); padding: 3px 8px; background: #0d1526; } .sticker-modal-body h3 { color: var(--paper); font-family: "IBM Plex Sans", sans-serif; font-size: 1.25rem; margin: 0 0 12px; } .sticker-modal-body h4 { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--orange); margin: 22px 0 10px; } .sticker-modal-lead { color: var(--paper); font-weight: 600; margin-bottom: 10px; } .sticker-modal-body p { color: #aeb8cc; font-size: 0.9rem; line-height: 1.55; margin: 0 0 10px; } .sticker-modal-features { list-style: none; padding: 0; margin: 0; } .sticker-modal-features li { color: #d7dce8; font-size: 0.87rem; padding-left: 22px; position: relative; margin-bottom: 8px; } .sticker-modal-features li::before { content: "\\2713"; position: absolute; left: 0; color: var(--orange); font-weight: 700; } .sticker-modal-pricing { width: 100%; border-collapse: collapse; margin-top: 4px; } .sticker-modal-pricing th, .sticker-modal-pricing td { border: 1px solid #3a4a6b; padding: 8px 12px; font-size: 0.83rem; text-align: left; color: var(--paper); } .sticker-modal-pricing th { font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--orange); } .sticker-modal-note { font-style: italic; } .sticker-modal-cta { color: var(--paper); font-weight: 600; margin: 18px 0 0; } @media (max-width: 600px) { .sticker-modal-panel { padding: 24px 18px; } }';
         document.head.appendChild(style);
 
         var modal = document.createElement('div');
@@ -2082,14 +2120,13 @@
               '<div class="sticker-modal-body">' +
                     '<h3>MT3UK Modified Tesla Bumper Sticker Pack</h3>' +
                     '<p class="sticker-modal-lead">Elevate your Tesla&rsquo;s look with official MT3UK community stickers.</p>' +
-                    '<p>These premium vinyl bumper stickers feature the iconic MT3UK white text with red accent underline, designed to make your Tesla stand out on the road.</p>' +
                     '<h4>Features</h4>' +
                     '<ul class="sticker-modal-features">' +
                           '<li>Premium quality vinyl: UV-resistant, weatherproof</li>' +
                           '<li>Clean white text with bold red accent: high contrast, professional appearance</li>' +
                           '<li>Removable adhesive: peels off cleanly without damaging paint</li>' +
-                          '<li>Made for Teslas: looks sharp on any Tesla colour (especially dark cars &amp; windows)</li>' +
                           '<li>Transparent background: sits flush against your surface</li>' +
+                          '<li>Size: 42mm &times; 165mm (approximately 1.65&Prime; &times; 6.5&Prime;)</li>' +
                     '</ul>' +
                     '<h4>Sizing</h4>' +
                     '<p>42mm &times; 165mm (approximately 1.65&Prime; &times; 6.5&Prime;), perfect bumper/window sticker size</p>' +
@@ -2108,7 +2145,6 @@
         document.body.appendChild(modal);
 
         var closeBtn = modal.querySelector('.sticker-modal-close');
-        var trigger = document.getElementById('sticker-trigger');
         var detailBtn = document.getElementById('sticker-detail-btn');
 
         function openModal() {
@@ -2123,7 +2159,6 @@
               document.body.style.overflow = '';
         }
 
-        if (trigger) trigger.addEventListener('click', openModal);
         if (detailBtn) detailBtn.addEventListener('click', openModal);
         closeBtn.addEventListener('click', closeModal);
         modal.addEventListener('click', function (e) {
@@ -2131,6 +2166,20 @@
         });
         document.addEventListener('keydown', function (e) {
               if (modal.classList.contains('open') && e.key === 'Escape') closeModal();
+        });
+    })();
+</script>
+
+  <script>
+    (function () {
+        document.querySelectorAll('.detail-toggle').forEach(function (btn) {
+              var content = document.getElementById(btn.getAttribute('aria-controls'));
+              if (!content) return;
+              btn.addEventListener('click', function () {
+                    var expanded = btn.getAttribute('aria-expanded') === 'true';
+                    btn.setAttribute('aria-expanded', String(!expanded));
+                    content.hidden = expanded;
+              });
         });
     })();
 </script>
@@ -2160,22 +2209,24 @@
                     '<button type="button" data-src="images/site/mt3uk-tee-2.jpg" data-alt="MT3UK t-shirt folded, close-up of the logo print"><img src="images/site/mt3uk-tee-2.jpg" alt="Folded close-up"></button>' +
               '</div>' +
               '<div class="tee-modal-body">' +
-                    '<h3>MT3UK Black Unisex T-Shirt</h3>' +
-                    '<div class="tee-offer-banner">&#9201; 20% off for Facebook group members</div>' +
-                    '<p class="tee-modal-lead">The official MT3UK tee. Premium comfort-fit black shirt with the iconic MT3UK logo and red underline design printed on the chest.</p>' +
+                    '<h3>MT3UK Premium T-Shirt</h3>' +
+                    '<div class="tee-offer-banner">&#9201; Limited launch offer: 20% off for Facebook group members</div>' +
+                    '<p class="tee-modal-lead">Built for community. Designed to last.</p>' +
+                    '<p>Heavyweight Comfort Colors 1717 &ndash; the same premium blank worn by serious communities worldwide. Preshrunk 100% cotton, tagless label, engineered for durability.</p>' +
+                    '<p>Whether you&rsquo;re wearing it to a track day or out in town, this is quality that shows.</p>' +
+                    '<h4>Quality features</h4>' +
+                    '<ul class="tee-modal-features">' +
+                          '<li>Comfort Colors 1717 heavyweight fabric</li>' +
+                          '<li>Preshrunk (keeps shape after washing)</li>' +
+                          '<li>Tagless label (premium comfort)</li>' +
+                          '<li>Built for track days &amp; everyday wear</li>' +
+                    '</ul>' +
                     '<div class="tee-offer-price">' +
                           '<span class="tee-offer-save">SAVE 20%</span>' +
-                          '<span class="tee-offer-was">&pound;24.99</span>' +
-                          '<span class="tee-offer-now">&pound;19.99</span>' +
+                          '<span class="tee-offer-was">&pound;25</span>' +
+                          '<span class="tee-offer-now">&pound;20</span>' +
                     '</div>' +
-                    '<p>Made for the global garage. Soft ring-spun cotton, built to last through countless track days and weekend builds.</p>' +
-                    '<h4>Details</h4>' +
-                    '<ul class="tee-modal-features">' +
-                          '<li>Fit: Unisex, comfortable classic fit</li>' +
-                          '<li>Material: 100% ring-spun cotton (preshrunk)</li>' +
-                          '<li>Colour: Black with red underline logo print</li>' +
-                          '<li>Sizes: S to 4XL</li>' +
-                    '</ul>' +
+                    '<p>Premium quality (not fast fashion)</p>' +
                     '<a class="tee-modal-buy" href="https://mt3uk.myshopify.com/products/black-unisex-t-shirt-mt3uk-red-underline-design" target="_blank" rel="noopener">Shop the tee</a>' +
               '</div>' +
         '</div>';
@@ -2235,9 +2286,6 @@
               document.body.style.overflow = '';
         }
 
-        if (trigger) trigger.addEventListener('click', function () { openModal('images/site/mt3uk-tee.jpg', 'MT3UK black unisex t-shirt with red underline design'); });
-        if (trigger2) trigger2.addEventListener('click', function () { openModal('images/site/mt3uk-tee-2.jpg', 'MT3UK t-shirt folded, close-up of the logo print'); });
-        if (detailBtn) detailBtn.addEventListener('click', function () { openModal('images/site/mt3uk-tee.jpg', 'MT3UK black unisex t-shirt with red underline design'); });
         closeBtn.addEventListener('click', closeModal);
         modal.addEventListener('click', function (e) {
               if (e.target === modal) closeModal();

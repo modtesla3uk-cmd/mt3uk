@@ -21,7 +21,7 @@ on:
         description: 'Start date (DD-MM-YYYY)'
         required: true
       start_time:
-        description: 'Start time, 24h (HH:MM). Not needed when deleting.'
+        description: 'REQUIRED unless deleting. Start time, 24h (HH:MM)'
         required: false
       end_date:
         description: 'End date (DD-MM-YYYY), leave blank to match start date'
@@ -30,10 +30,10 @@ on:
         description: 'End time, 24h (HH:MM). Leave blank to match start time.'
         required: false
       location:
-        description: 'Location name. Not needed when deleting.'
+        description: 'REQUIRED unless deleting. Location name'
         required: false
       facebook_url:
-        description: 'Facebook event URL. Not needed when deleting.'
+        description: 'REQUIRED unless deleting. Facebook event URL'
         required: false
       attending_count:
         description: 'Attending count'

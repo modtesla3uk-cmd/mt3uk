@@ -10,8 +10,8 @@ def test_tee_card_shows_discount_offer(page):
 
 def test_available_now_and_more_detail_are_visually_symmetrical(page):
     page.goto("/shop.html")
-    tag = page.locator(".shop-card").first.locator(".tag")
-    detail_btn = page.locator(".shop-card").first.locator(".detail-toggle")
+    tag = page.locator("#merch .shop-card").first.locator(".tag")
+    detail_btn = page.locator("#merch .shop-card").first.locator(".detail-toggle")
 
     tag_box = tag.evaluate(
         "el => { const s = getComputedStyle(el); return { padding: s.padding, fontSize: s.fontSize, borderWidth: s.borderWidth }; }"

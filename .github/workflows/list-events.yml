@@ -1,5 +1,8 @@
 name: List Events
 
+permissions:
+  issues: write
+
 on:
   workflow_dispatch: {}
 
@@ -8,4 +11,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: node scripts/list-events.js >> "$GITHUB_STEP_SUMMARY"
+      - run: node scripts/list-events.js | tee events.md >> "$GITHUB_STEP_SUMMARY"
+      - run: |
+          existing=$(gh issue list --search "Current Events in:title" --state open --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            gh issue edit "$existing" --body-file events.md
+          else
+            gh issue create --title "Current Events" --body-file events.md
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

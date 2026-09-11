@@ -6,9 +6,6 @@ permissions:
 on:
   workflow_dispatch:
     inputs:
-      id:
-        description: 'Unique event ID (use a new one for a new event, or an existing one to edit it)'
-        required: true
       name:
         description: 'Event name'
         required: true
@@ -52,7 +49,6 @@ jobs:
           node-version: '18'
       - run: node scripts/add-event.js
         env:
-          EVENT_ID: ${{ inputs.id }}
           EVENT_NAME: ${{ inputs.name }}
           EVENT_DESCRIPTION: ${{ inputs.description }}
           EVENT_START_DATE: ${{ inputs.start_date }}
@@ -68,7 +64,7 @@ jobs:
           git config --local user.name "GitHub Action"
           if [ -z "$(git status --porcelain)" ]; then exit 0; fi
           git add events-data/events-manifest.json
-          git commit -m "chore: add/update event ${{ inputs.id }}"
+          git commit -m "chore: add/update event ${{ inputs.name }} (${{ inputs.start_date }})"
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

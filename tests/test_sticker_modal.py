@@ -14,13 +14,13 @@ def _assert_closed(page):
 
 
 def test_sticker_trigger_opens_modal(page):
-    page.goto("/index.html")
+    page.goto("/shop.html")
     page.locator("#sticker-trigger").click()
     _assert_open(page)
 
 
 def test_close_button_closes_modal(page):
-    page.goto("/index.html")
+    page.goto("/shop.html")
     page.locator("#sticker-trigger").click()
     _assert_open(page)
 
@@ -29,7 +29,7 @@ def test_close_button_closes_modal(page):
 
 
 def test_escape_key_closes_modal(page):
-    page.goto("/index.html")
+    page.goto("/shop.html")
     page.locator("#sticker-trigger").click()
     _assert_open(page)
 

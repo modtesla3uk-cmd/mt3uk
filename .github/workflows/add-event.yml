@@ -1,0 +1,70 @@
+name: Add or Update Event
+on:
+  workflow_dispatch:
+    inputs:
+      id:
+        description: 'Unique event ID (use a new one for a new event, or an existing one to edit it)'
+        required: true
+      name:
+        description: 'Event name'
+        required: true
+      description:
+        description: 'Short description'
+        required: false
+      start_date:
+        description: 'Start date (YYYY-MM-DD)'
+        required: true
+      start_time:
+        description: 'Start time, 24h (HH:MM)'
+        required: true
+      end_date:
+        description: 'End date (YYYY-MM-DD), leave blank to match start date'
+        required: false
+      end_time:
+        description: 'End time, 24h (HH:MM)'
+        required: true
+      location:
+        description: 'Location name'
+        required: true
+      facebook_url:
+        description: 'Facebook event URL'
+        required: true
+      attending_count:
+        description: 'Attending count'
+        required: false
+        default: '0'
+      interested_count:
+        description: 'Interested count'
+        required: false
+        default: '0'
+
+jobs:
+  add-event:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - run: node scripts/add-event.js
+        env:
+          EVENT_ID: ${{ inputs.id }}
+          EVENT_NAME: ${{ inputs.name }}
+          EVENT_DESCRIPTION: ${{ inputs.description }}
+          EVENT_START_DATE: ${{ inputs.start_date }}
+          EVENT_START_TIME: ${{ inputs.start_time }}
+          EVENT_END_DATE: ${{ inputs.end_date }}
+          EVENT_END_TIME: ${{ inputs.end_time }}
+          EVENT_LOCATION: ${{ inputs.location }}
+          EVENT_FACEBOOK_URL: ${{ inputs.facebook_url }}
+          EVENT_ATTENDING_COUNT: ${{ inputs.attending_count }}
+          EVENT_INTERESTED_COUNT: ${{ inputs.interested_count }}
+      - run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          if [ -z "$(git status --porcelain)" ]; then exit 0; fi
+          git add events-data/events-manifest.json
+          git commit -m "chore: add/update event ${{ inputs.id }}"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

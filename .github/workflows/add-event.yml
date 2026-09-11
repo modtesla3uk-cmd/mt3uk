@@ -14,9 +14,6 @@ on:
         required: false
         type: boolean
         default: false
-      event_id:
-        description: 'Only needed to delete an older event not created by this workflow (e.g. a legacy numeric ID)'
-        required: false
       description:
         description: 'Short description'
         required: false
@@ -30,7 +27,7 @@ on:
         description: 'End date (YYYY-MM-DD), leave blank to match start date'
         required: false
       end_time:
-        description: 'End time, 24h (HH:MM). Not needed when deleting.'
+        description: 'End time, 24h (HH:MM). Leave blank to match start time.'
         required: false
       location:
         description: 'Location name. Not needed when deleting.'
@@ -58,7 +55,6 @@ jobs:
       - run: node scripts/add-event.js
         env:
           EVENT_DELETE: ${{ inputs.delete }}
-          EVENT_ID: ${{ inputs.event_id }}
           EVENT_NAME: ${{ inputs.name }}
           EVENT_DESCRIPTION: ${{ inputs.description }}
           EVENT_START_DATE: ${{ inputs.start_date }}

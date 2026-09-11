@@ -32,9 +32,8 @@ function main() {
 
   // id is derived from the name and start date rather than entered by hand, so
   // re-running the workflow with the same name and date updates that event in
-  // place instead of creating a duplicate. EVENT_ID lets an older event that
-  // predates this scheme (e.g. a legacy numeric ID) be deleted by its real ID.
-  const id = process.env.EVENT_ID || `${slugify(name)}-${startDate}`;
+  // place instead of creating a duplicate.
+  const id = `${slugify(name)}-${startDate}`;
 
   const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8'));
   const idx = manifest.events.findIndex((ev) => ev.id === id);
@@ -48,10 +47,13 @@ function main() {
     console.log(`✓ Deleted event "${id}"`);
   } else {
     const description = process.env.EVENT_DESCRIPTION || '';
-    const startTime = toIsoWithOffset(startDate, required('EVENT_START_TIME'));
+    const startTimeStr = required('EVENT_START_TIME');
+    const startTime = toIsoWithOffset(startDate, startTimeStr);
+    // end time defaults to start time (and end date to start date) so a
+    // single-moment event doesn't need them filled in.
     const endTime = toIsoWithOffset(
       process.env.EVENT_END_DATE || startDate,
-      required('EVENT_END_TIME')
+      process.env.EVENT_END_TIME || startTimeStr
     );
     const locationName = required('EVENT_LOCATION');
     const facebookUrl = required('EVENT_FACEBOOK_URL');

@@ -1,4 +1,8 @@
 name: Add or Update Event
+
+permissions:
+  contents: write
+
 on:
   workflow_dispatch:
     inputs:

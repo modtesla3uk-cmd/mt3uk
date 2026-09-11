@@ -1,4 +1,4 @@
-name: Add, Update, or Delete Event
+name: Add or Update Event
 
 permissions:
   contents: write
@@ -9,11 +9,6 @@ on:
       name:
         description: 'Event name'
         required: true
-      delete:
-        description: 'Check to delete this event instead of adding/updating it'
-        required: false
-        type: boolean
-        default: false
       description:
         description: 'Short description'
         required: false
@@ -21,8 +16,8 @@ on:
         description: 'Start date (DD-MM-YYYY)'
         required: true
       start_time:
-        description: 'REQUIRED unless deleting. Start time, 24h (HH:MM)'
-        required: false
+        description: 'Start time, 24h (HH:MM)'
+        required: true
       end_date:
         description: 'End date (DD-MM-YYYY), leave blank to match start date'
         required: false
@@ -30,11 +25,11 @@ on:
         description: 'End time, 24h (HH:MM). Leave blank to match start time.'
         required: false
       location:
-        description: 'REQUIRED unless deleting. Location name'
-        required: false
+        description: 'Location name'
+        required: true
       facebook_url:
-        description: 'REQUIRED unless deleting. Facebook event URL'
-        required: false
+        description: 'Facebook event URL'
+        required: true
       attending_count:
         description: 'Attending count'
         required: false
@@ -54,7 +49,6 @@ jobs:
           node-version: '18'
       - run: node scripts/add-event.js
         env:
-          EVENT_DELETE: ${{ inputs.delete }}
           EVENT_NAME: ${{ inputs.name }}
           EVENT_DESCRIPTION: ${{ inputs.description }}
           EVENT_START_DATE: ${{ inputs.start_date }}
@@ -70,12 +64,7 @@ jobs:
           git config --local user.name "GitHub Action"
           if [ -z "$(git status --porcelain)" ]; then exit 0; fi
           git add events-data/events-manifest.json
-          if [ "${{ inputs.delete }}" = "true" ]; then
-            MSG="chore: delete event ${{ inputs.name }} (${{ inputs.start_date }})"
-          else
-            MSG="chore: add/update event ${{ inputs.name }} (${{ inputs.start_date }})"
-          fi
-          git commit -m "$MSG"
+          git commit -m "chore: add/update event ${{ inputs.name }} (${{ inputs.start_date }})"
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

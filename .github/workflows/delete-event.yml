@@ -1,0 +1,36 @@
+name: Delete Event
+
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'Event name (must match exactly)'
+        required: true
+      start_date:
+        description: 'Start date (DD-MM-YYYY)'
+        required: true
+
+jobs:
+  delete-event:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - run: node scripts/delete-event.js
+        env:
+          EVENT_NAME: ${{ inputs.name }}
+          EVENT_START_DATE: ${{ inputs.start_date }}
+      - run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          if [ -z "$(git status --porcelain)" ]; then exit 0; fi
+          git add events-data/events-manifest.json
+          git commit -m "chore: delete event ${{ inputs.name }} (${{ inputs.start_date }})"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

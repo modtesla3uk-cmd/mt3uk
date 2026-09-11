@@ -19,13 +19,14 @@ function toIsoWithOffset(dateStr, timeStr) {
 }
 
 function ukDateToIso(ukDate) {
-  // ukDate: D-M-YYYY or DD-MM-YYYY, as entered in the workflow form
-  const match = /^(\d{1,2})-(\d{1,2})-(\d{4})$/.exec(ukDate);
+  // ukDate: D-M-YY, DD-MM-YYYY, or any mix of those, as entered in the workflow form
+  const match = /^(\d{1,2})-(\d{1,2})-(\d{2}|\d{4})$/.exec(ukDate);
   if (!match) {
     console.error(`✗ "${ukDate}" is not a valid date, use DD-MM-YYYY`);
     process.exit(1);
   }
-  const [, day, month, year] = match;
+  const [, day, month, yearPart] = match;
+  const year = yearPart.length === 2 ? `20${yearPart}` : yearPart;
   return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
 }
 

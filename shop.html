@@ -270,6 +270,7 @@
   }
   .section-head h2 { font-size: clamp(1.7rem, 3.2vw, 2.3rem); max-width: 20ch; }
   .section-head p { max-width: 40ch; color: var(--steel); font-size: 0.95rem; }
+  .section-head .section-note { max-width: none; width: 100%; margin-top: 12px; }
 
   .specs {
     border: 1px solid var(--ink);
@@ -400,7 +401,7 @@
   .shop-preview-thumb:hover, .shop-preview-thumb:focus-visible { border-color: var(--orange); }
   .shop-preview-thumb img { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.2s ease; }
   .shop-preview-row-lg .shop-preview-trigger,
-  .shop-preview-row-lg .shop-preview-thumb { height: 280px; }
+  .shop-preview-row-lg .shop-preview-thumb { height: auto; aspect-ratio: 8 / 5; }
   .shop-preview-thumb:hover img, .shop-preview-thumb:focus-visible img { transform: scale(4); }
   .shop-card h3 { color: var(--paper); font-size: 1.02rem; font-weight: 600; font-family: 'IBM Plex Sans', sans-serif; margin-bottom: 6px; }
   .shop-card p { color: #aeb8cc; font-size: 0.86rem; }
@@ -527,7 +528,6 @@
   <nav>
     <a href="/" class="logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
     <div class="navlinks" id="navlinks">
-      <a href="index.html#about" class="nav-link">About</a>
       <div class="nav-item">
         <a href="index.html#gallery" class="nav-link">Gallery</a>
         <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Gallery submenu">&#9660;</button>
@@ -536,7 +536,14 @@
           <a href="index.html#gallery-upload" class="nav-sublink nav-sublink-new">Upload Image</a>
         </div>
       </div>
-      <a href="shop.html" class="nav-link nav-link-shop active">Shop</a>
+      <div class="nav-item">
+        <a href="shop.html" class="nav-link nav-link-shop active">Shop</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Shop submenu">&#9660;</button>
+        <div class="nav-dropdown">
+          <a href="shop.html#merch" class="nav-sublink nav-sublink-new">Merch</a>
+          <a href="shop.html#upgrades" class="nav-sublink nav-sublink-new">Upgrade / Parts</a>
+        </div>
+      </div>
       <a href="index.html#events" class="nav-link">Events</a>
       <div class="nav-item">
         <a href="index.html#track-days" class="nav-link">Track Days</a>
@@ -546,6 +553,7 @@
           <a href="track-day-prep.html" class="nav-sublink nav-sublink-new">Prep</a>
         </div>
       </div>
+      <a href="index.html#about" class="nav-link">About</a>
       <a href="index.html#faq" class="nav-link">FAQs</a>
     </div>
     <a href="https://ko-fi.com/mt3uk" class="nav-cta nav-cta-kofi" target="_blank" rel="noopener" title="Donations Welcome">&#10084;&#65039;<span class="kofi-label"> Support us</span></a>
@@ -567,8 +575,10 @@
     <div class="section-head">
       <div>
         <span class="section-num">01 / MERCH</span>
-        <h2>Grab yourself some merch</h2>
+        <h2>Exclusive Merch for MT3UK</h2>
+        <p class="section-note">Grab yourself some merch curated for MT3UK members</p>
       </div>
+      <p>Looking for upgrades? <a href="#upgrades" class="inline-link">Jump to Upgrade / Parts &#8595;</a></p>
     </div>
     <div class="shop-grid">
       <div class="shop-card">
@@ -641,13 +651,13 @@
     <div class="section-head">
       <div>
         <span class="section-num">02 / UPGRADES</span>
-        <h2>Member upgrades</h2>
+        <h2>Upgrade / Parts</h2>
+        <p class="section-note">We aren&rsquo;t a garage in the normal sense, but we have a trusted relationship with suppliers and mechanics who can help improve your Tesla. These upgrades are recommendations from the community, based on real world experience.</p>
       </div>
-      <p>Reduced-price stock, while it lasts.</p>
     </div>
     <div class="shop-grid">
       <div class="shop-card">
-        <h3>Master Cylinder Brace: Model 3 (all variants)</h3>
+        <h3>Model 3 Brake Master Cylinder Bracket (for RHD models only)</h3>
         <p class="shop-preview-hint">Hold and pan to zoom</p>
         <div class="shop-preview-row shop-preview-row-lg">
           <a class="shop-preview-trigger" id="brace-trigger" href="https://www.facebook.com/MT3UK/" target="_blank" rel="noopener">
@@ -658,9 +668,17 @@
           </a>
         </div>
         <p class="tee-modal-lead">For Model 3 and Model 3 Highland</p>
+        <p class="tee-modal-lead">Improve braking with this brace that reduces flex!</p>
         <button type="button" class="detail-toggle" aria-expanded="false" aria-controls="brace-detail-content">More detail</button>
         <div class="detail-content" id="brace-detail-content" hidden>
           <p class="detail-desc">Anyone wanting to improve their brake feel, it's worth watching the video, particularly the amount of flex in the firewall. The Master Cylinder brace basically removes this flex. <a href="https://www.youtube.com/watch?v=_odeMNjXgSM" target="_blank" rel="noopener" class="inline-link">Watch the overview video &#8599;</a></p>
+          <ul class="tee-modal-features">
+            <li>One-piece aerospace-grade alloy bracket, not several pieces welded together, so it's guaranteed to fit exactly with no chance of a weld failing in use</li>
+            <li>Fully articulated stainless steel bracing foot spreads the load evenly across its surface</li>
+            <li>Specifically designed for RHD Model 3s</li>
+            <li>Particularly effective on track, but also improves braking feel on the road</li>
+            <li>Even better paired with a braided brake line kit</li>
+          </ul>
           <p class="detail-desc">We have stock of these from Tevo Solutions at a reduced price, so let us know if you're interested.</p>
           <div class="specs">
             <div class="spec-row"><span>BRACKET MATERIAL</span><span>CNC milled 2014T651 aluminium billet</span></div>
@@ -678,6 +696,18 @@
           <span class="tag">AVAILABLE NOW</span>
           <a class="tee-shop-btn" href="https://www.facebook.com/MT3UK/" target="_blank" rel="noopener">Contact MT3UK</a>
         </div>
+      </div>
+      <div class="shop-card shop-card-hoodie">
+        <svg viewBox="0 0 200 140" fill="none" stroke="#e8542a" stroke-width="1.6"><circle cx="100" cy="70" r="38"/><path d="M100 32 L100 46 M100 94 L100 108 M62 70 L76 70 M124 70 L138 70"/></svg>
+        <h3>More Upgrades Coming</h3>
+        <p>Member-sourced parts, restocked regularly</p>
+        <span class="tag">COMING SOON</span>
+      </div>
+      <div class="shop-card shop-card-hoodie">
+        <svg viewBox="0 0 200 140" fill="none" stroke="#e8542a" stroke-width="1.6"><circle cx="100" cy="70" r="38"/><path d="M100 32 L100 46 M100 94 L100 108 M62 70 L76 70 M124 70 L138 70"/></svg>
+        <h3>More Upgrades Coming</h3>
+        <p>Suggest a part in the Facebook group</p>
+        <span class="tag">COMING SOON</span>
       </div>
     </div>
   </div>
@@ -974,9 +1004,17 @@
                     '<button type="button" data-src="images/site/Tevo_Brace_Bolt.png" data-alt="Master Cylinder Brace mounting hardware close-up"><img src="images/site/Tevo_Brace_Bolt.png" alt="Mounting hardware"></button>' +
               '</div>' +
               '<div class="tee-modal-body">' +
-                    '<h3>Master Cylinder Brace: Model 3 (all variants)</h3>' +
+                    '<h3>Model 3 Brake Master Cylinder Bracket (for RHD models only)</h3>' +
                     '<p class="tee-modal-lead">For Model 3 and Model 3 Highland</p>' +
+                    '<p class="tee-modal-lead">Improve braking with this brace that reduces flex!</p>' +
                     '<p>Anyone wanting to improve their brake feel, it&rsquo;s worth watching the video, particularly the amount of flex in the firewall. The Master Cylinder brace basically removes this flex. <a href="https://www.youtube.com/watch?v=_odeMNjXgSM" target="_blank" rel="noopener" style="color: var(--orange); font-weight: 600;">Watch the overview video &#8599;</a></p>' +
+                    '<ul class="tee-modal-features">' +
+                          '<li>One-piece aerospace-grade alloy bracket, not several pieces welded together, so it&rsquo;s guaranteed to fit exactly with no chance of a weld failing in use</li>' +
+                          '<li>Fully articulated stainless steel bracing foot spreads the load evenly across its surface</li>' +
+                          '<li>Specifically designed for RHD Model 3s</li>' +
+                          '<li>Particularly effective on track, but also improves braking feel on the road</li>' +
+                          '<li>Even better paired with a braided brake line kit</li>' +
+                    '</ul>' +
                     '<p>We have stock of these from Tevo Solutions at a reduced price, so let us know if you&rsquo;re interested.</p>' +
                     '<h4>Specifications</h4>' +
                     '<ul class="tee-modal-features">' +

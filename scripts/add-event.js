@@ -18,6 +18,17 @@ function toIsoWithOffset(dateStr, timeStr) {
   return `${dateStr}T${timeStr}:00+0000`;
 }
 
+function ukDateToIso(ukDate) {
+  // ukDate: DD-MM-YYYY, as entered in the workflow form
+  const match = /^(\d{2})-(\d{2})-(\d{4})$/.exec(ukDate);
+  if (!match) {
+    console.error(`✗ "${ukDate}" is not a valid date, use DD-MM-YYYY`);
+    process.exit(1);
+  }
+  const [, day, month, year] = match;
+  return `${year}-${month}-${day}`;
+}
+
 function slugify(value) {
   return value
     .toLowerCase()
@@ -28,7 +39,7 @@ function slugify(value) {
 function main() {
   const isDelete = (process.env.EVENT_DELETE || '').toLowerCase() === 'true';
   const name = required('EVENT_NAME');
-  const startDate = required('EVENT_START_DATE');
+  const startDate = ukDateToIso(required('EVENT_START_DATE'));
 
   // id is derived from the name and start date rather than entered by hand, so
   // re-running the workflow with the same name and date updates that event in
@@ -51,10 +62,8 @@ function main() {
     const startTime = toIsoWithOffset(startDate, startTimeStr);
     // end time defaults to start time (and end date to start date) so a
     // single-moment event doesn't need them filled in.
-    const endTime = toIsoWithOffset(
-      process.env.EVENT_END_DATE || startDate,
-      process.env.EVENT_END_TIME || startTimeStr
-    );
+    const endDate = process.env.EVENT_END_DATE ? ukDateToIso(process.env.EVENT_END_DATE) : startDate;
+    const endTime = toIsoWithOffset(endDate, process.env.EVENT_END_TIME || startTimeStr);
     const locationName = required('EVENT_LOCATION');
     const facebookUrl = required('EVENT_FACEBOOK_URL');
     const attendingCount = Number(process.env.EVENT_ATTENDING_COUNT || 0);

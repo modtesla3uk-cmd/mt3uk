@@ -18,13 +18,13 @@ on:
         description: 'Short description'
         required: false
       start_date:
-        description: 'Start date (YYYY-MM-DD)'
+        description: 'Start date (DD-MM-YYYY)'
         required: true
       start_time:
         description: 'Start time, 24h (HH:MM). Not needed when deleting.'
         required: false
       end_date:
-        description: 'End date (YYYY-MM-DD), leave blank to match start date'
+        description: 'End date (DD-MM-YYYY), leave blank to match start date'
         required: false
       end_time:
         description: 'End time, 24h (HH:MM). Leave blank to match start time.'

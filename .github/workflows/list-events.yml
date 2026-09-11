@@ -1,0 +1,11 @@
+name: List Events
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  list-events:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: node scripts/list-events.js >> "$GITHUB_STEP_SUMMARY"

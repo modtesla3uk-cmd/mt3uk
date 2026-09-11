@@ -26,44 +26,57 @@ function slugify(value) {
 }
 
 function main() {
+  const isDelete = (process.env.EVENT_DELETE || '').toLowerCase() === 'true';
   const name = required('EVENT_NAME');
-  const description = process.env.EVENT_DESCRIPTION || '';
-  const startTime = toIsoWithOffset(required('EVENT_START_DATE'), required('EVENT_START_TIME'));
-  const endTime = toIsoWithOffset(
-    process.env.EVENT_END_DATE || process.env.EVENT_START_DATE,
-    required('EVENT_END_TIME')
-  );
-  const locationName = required('EVENT_LOCATION');
-  const facebookUrl = required('EVENT_FACEBOOK_URL');
-  const attendingCount = Number(process.env.EVENT_ATTENDING_COUNT || 0);
-  const interestedCount = Number(process.env.EVENT_INTERESTED_COUNT || 0);
+  const startDate = required('EVENT_START_DATE');
 
   // id is derived from the name and start date rather than entered by hand, so
   // re-running the workflow with the same name and date updates that event in
-  // place instead of creating a duplicate.
-  const id = `${slugify(name)}-${process.env.EVENT_START_DATE}`;
+  // place instead of creating a duplicate. EVENT_ID lets an older event that
+  // predates this scheme (e.g. a legacy numeric ID) be deleted by its real ID.
+  const id = process.env.EVENT_ID || `${slugify(name)}-${startDate}`;
 
   const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8'));
-
-  const newEvent = {
-    id,
-    name,
-    description,
-    startTime,
-    endTime,
-    location: { name: locationName },
-    facebookUrl,
-    attendingCount,
-    interestedCount,
-  };
-
   const idx = manifest.events.findIndex((ev) => ev.id === id);
-  if (idx >= 0) {
-    manifest.events[idx] = newEvent;
-    console.log(`✓ Updated existing event "${id}"`);
+
+  if (isDelete) {
+    if (idx < 0) {
+      console.error(`✗ No event found with id "${id}"`);
+      process.exit(1);
+    }
+    manifest.events.splice(idx, 1);
+    console.log(`✓ Deleted event "${id}"`);
   } else {
-    manifest.events.push(newEvent);
-    console.log(`✓ Added new event "${id}"`);
+    const description = process.env.EVENT_DESCRIPTION || '';
+    const startTime = toIsoWithOffset(startDate, required('EVENT_START_TIME'));
+    const endTime = toIsoWithOffset(
+      process.env.EVENT_END_DATE || startDate,
+      required('EVENT_END_TIME')
+    );
+    const locationName = required('EVENT_LOCATION');
+    const facebookUrl = required('EVENT_FACEBOOK_URL');
+    const attendingCount = Number(process.env.EVENT_ATTENDING_COUNT || 0);
+    const interestedCount = Number(process.env.EVENT_INTERESTED_COUNT || 0);
+
+    const newEvent = {
+      id,
+      name,
+      description,
+      startTime,
+      endTime,
+      location: { name: locationName },
+      facebookUrl,
+      attendingCount,
+      interestedCount,
+    };
+
+    if (idx >= 0) {
+      manifest.events[idx] = newEvent;
+      console.log(`✓ Updated existing event "${id}"`);
+    } else {
+      manifest.events.push(newEvent);
+      console.log(`✓ Added new event "${id}"`);
+    }
   }
 
   manifest.totalEvents = manifest.events.length;

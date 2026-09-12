@@ -446,6 +446,7 @@
     gap: 60px;
   }
   @media (max-width: 860px) { .about-grid { grid-template-columns: 1fr; } }
+  #track-days .about-grid { grid-template-columns: 1fr; max-width: 70ch; }
 
   .about-grid p { color: var(--ink-2); margin-bottom: 18px; max-width: 58ch; }
 
@@ -1713,26 +1714,15 @@
       <p>Prep, upgrades and honest advice, for first timers and seasoned track goers alike.</p>
     </div>
     <div class="about-grid">
-      <div>
-        <p>This corner of MT3UK is dedicated to taking your Tesla on track, properly. Whether you're booking your very first track day or you've lost count of how many you've done, we're building this into the go-to spot for everything in between. Read our <a href="track-day-prep.html" class="inline-link">Track Day Prep guide</a> for OE limitations, model guidance and the upgrade path members follow.</p>
-        <p>Expect recommended upgrades that hold up under real track conditions rather than just Instagram, and unfiltered advice from members who've already made the mistakes so you don't have to.</p>
-        <p>Got track photos, lap times or lessons learned? Share them in the Facebook group and they'll find a home here.</p>
-      </div>
-      <div class="specs">
-        <div class="spec-row"><span>TYRES</span><span>Check tread &amp; pressures cold, budget for wear</span></div>
-        <div class="spec-row"><span>BRAKES</span><span>Fresh pads/fluid, check for warping before you go</span></div>
-        <div class="spec-row"><span>COOLING</span><span>Precondition battery &amp; monitor temps between sessions</span></div>
-        <div class="spec-row"><span>WEIGHT</span><span>Strip the boot, remove anything loose</span></div>
-        <div class="spec-row"><span>CHARGE</span><span>Arrive at 80-90%, plan a charger for the drive home</span></div>
-        <div class="spec-row"><span>PACK</span><span>Tyre gauge, torque wrench, tow strap, first aid kit</span></div>
-      </div>
+      <p>This corner of MT3UK is dedicated to taking your Tesla on track, properly. Whether you're booking your very first track day or you've lost count of how many you've done, we're building this into the go-to spot for everything in between. Read our <a href="track-day-prep.html" class="inline-link">Track Day Prep guide</a> for OE limitations, model guidance and the upgrade path members follow.</p>
+      <p>Expect recommended upgrades that hold up under real track conditions rather than just Instagram, and unfiltered advice from members who've already made the mistakes so you don't have to.</p>
+      <p>Got track photos or lessons learned? Share them in the Facebook group and they'll find a home here.</p>
     </div>
     <div id="track-day-photos" style="scroll-margin-top: 90px;"></div>
     <div class="track-day-frame" id="track-day-grid" style="margin-top: 40px;">
       <p class="mono">Loading track days…</p>
     </div>
     <div class="gallery-pagination" id="track-day-pagination"></div>
-    <p class="gallery-note" style="margin-top: 20px;">Track day photos from the community. Drop a new photo into <code>images/track-days/</code> on GitHub and it'll show up here automatically.</p>
   </div>
 </section>
 
@@ -1862,6 +1852,7 @@
         }
 
         function openLightbox(index) {
+              lightbox.dataset.mode = 'gallery';
               showAt(index);
               lightbox.classList.add('open');
               lightbox.setAttribute('aria-hidden', 'false');
@@ -1886,10 +1877,12 @@
 
         closeBtn.addEventListener('click', closeLightbox);
         prevBtn.addEventListener('click', function (e) {
+              if (lightbox.dataset.mode !== 'gallery') return;
               e.stopPropagation();
               showAt(currentIndex - 1);
         });
         nextBtn.addEventListener('click', function (e) {
+              if (lightbox.dataset.mode !== 'gallery') return;
               e.stopPropagation();
               showAt(currentIndex + 1);
         });
@@ -1901,6 +1894,7 @@
         document.addEventListener('keydown', function (e) {
               if (!lightbox.classList.contains('open')) return;
               if (e.key === 'Escape') closeLightbox();
+              if (lightbox.dataset.mode !== 'gallery') return;
               if (e.key === 'ArrowRight') showAt(currentIndex + 1);
               if (e.key === 'ArrowLeft') showAt(currentIndex - 1);
         });
@@ -2085,6 +2079,7 @@
       var PAGE_SIZE = 1; // One track day per page
       var grid = document.getElementById('track-day-grid');
       var pagination = document.getElementById('track-day-pagination');
+      var lightbox = document.getElementById('lightbox');
       var allTrackDays = [];
       var currentPage = 1;
 
@@ -2116,14 +2111,64 @@
         if (nextBtn) nextBtn.addEventListener('click', function () { goToPage(currentPage + 1); });
       }
 
-      function goToPage(page) {
+      function updateLightboxIfOpen() {
+        if (!lightbox || lightbox.dataset.mode !== 'trackday' || !lightbox.classList.contains('open')) return;
+        var img = grid.querySelector('img');
+        if (!img) return;
+        var lightboxImg = lightbox.querySelector('.lightbox-img');
+        var lightboxCaption = lightbox.querySelector('.lightbox-caption');
+        lightboxImg.src = img.src;
+        lightboxImg.alt = img.alt || '';
+        lightboxCaption.textContent = img.alt || '';
+      }
+
+      function goToPage(page, skipScroll) {
         var totalPages = Math.max(1, Math.ceil(allTrackDays.length / PAGE_SIZE));
-        if (page < 1 || page > totalPages) return;
-        currentPage = page;
-        var start = (page - 1) * PAGE_SIZE;
+        if (totalPages <= 1) return;
+        currentPage = ((page - 1 + totalPages) % totalPages) + 1;
+        var start = (currentPage - 1) * PAGE_SIZE;
         renderGrid(allTrackDays.slice(start, start + PAGE_SIZE));
         renderPagination(totalPages);
-        window.scrollTo({ top: grid.offsetTop - 100, behavior: 'smooth' });
+        updateLightboxIfOpen();
+        if (!skipScroll) window.scrollTo({ top: grid.offsetTop - 100, behavior: 'smooth' });
+      }
+
+      if (lightbox) {
+        var prevBtn = lightbox.querySelector('.lightbox-prev');
+        var nextBtn = lightbox.querySelector('.lightbox-next');
+        var closeBtn = lightbox.querySelector('.lightbox-close');
+
+        grid.addEventListener('click', function (e) {
+          if (e.target.tagName !== 'IMG') return;
+          e.stopPropagation();
+
+          lightbox.dataset.mode = 'trackday';
+          var lightboxImg = lightbox.querySelector('.lightbox-img');
+          var lightboxCaption = lightbox.querySelector('.lightbox-caption');
+          lightboxImg.src = e.target.src;
+          lightboxImg.alt = e.target.alt || '';
+          lightboxCaption.textContent = e.target.alt || '';
+
+          lightbox.classList.add('open');
+          lightbox.setAttribute('aria-hidden', 'false');
+          document.body.style.overflow = 'hidden';
+        });
+
+        prevBtn.addEventListener('click', function (e) {
+          if (lightbox.dataset.mode !== 'trackday') return;
+          e.stopPropagation();
+          goToPage(currentPage - 1, true);
+        });
+        nextBtn.addEventListener('click', function (e) {
+          if (lightbox.dataset.mode !== 'trackday') return;
+          e.stopPropagation();
+          goToPage(currentPage + 1, true);
+        });
+        document.addEventListener('keydown', function (e) {
+          if (!lightbox.classList.contains('open') || lightbox.dataset.mode !== 'trackday') return;
+          if (e.key === 'ArrowRight') goToPage(currentPage + 1, true);
+          if (e.key === 'ArrowLeft') goToPage(currentPage - 1, true);
+        });
       }
 
       fetch('images/track-days/manifest.json', { cache: 'no-store' })
@@ -2137,53 +2182,6 @@
         .catch(function () {
           grid.innerHTML = '<p class="mono">Error loading track days.</p>';
         });
-    })();
-  </script>
-
-  <script>
-    (function () {
-      // Connect track day image to lightbox, standalone, no prev/next into other galleries
-      var trackDayGrid = document.getElementById('track-day-grid');
-      var lightbox = document.getElementById('lightbox');
-
-      if (trackDayGrid && lightbox) {
-        var prevBtn = lightbox.querySelector('.lightbox-prev');
-        var nextBtn = lightbox.querySelector('.lightbox-next');
-
-        trackDayGrid.addEventListener('click', function (e) {
-          if (e.target.tagName !== 'IMG') return;
-          e.stopPropagation();
-
-          var lightboxImg = lightbox.querySelector('.lightbox-img');
-          var lightboxCaption = lightbox.querySelector('.lightbox-caption');
-
-          lightboxImg.src = e.target.src;
-          lightboxImg.alt = e.target.alt || '';
-          lightboxCaption.textContent = e.target.alt || '';
-
-          // Hide nav arrows so Prev/Next can't jump into the Member Gallery
-          if (prevBtn) prevBtn.style.display = 'none';
-          if (nextBtn) nextBtn.style.display = 'none';
-
-          lightbox.classList.add('open');
-          lightbox.setAttribute('aria-hidden', 'false');
-          document.body.style.overflow = 'hidden';
-        });
-
-        // Restore nav arrows for the Member Gallery whenever the lightbox closes
-        var closeBtn = lightbox.querySelector('.lightbox-close');
-        function restoreNav() {
-          if (prevBtn) prevBtn.style.display = '';
-          if (nextBtn) nextBtn.style.display = '';
-        }
-        if (closeBtn) closeBtn.addEventListener('click', restoreNav);
-        lightbox.addEventListener('click', function (e) {
-          if (e.target === lightbox) restoreNav();
-        });
-        document.addEventListener('keydown', function (e) {
-          if (e.key === 'Escape') restoreNav();
-        });
-      }
     })();
   </script>
 

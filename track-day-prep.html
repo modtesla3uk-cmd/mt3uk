@@ -81,7 +81,7 @@
     align-items: center;
     gap: 8px;
   }
-  .logo img { height: 22px; width: auto; display: block; }
+  .logo img { height: 25px; width: auto; display: block; }
   .logo.footer-logo img { height: 18px; }
 
   .navlinks {
@@ -109,14 +109,26 @@
     display: none;
     position: absolute;
     top: 100%;
-    left: 0;
+    right: 0;
     min-width: 160px;
     background: var(--paper);
     border: 1px solid var(--ink);
     z-index: 10;
   }
-  .nav-item:hover .nav-dropdown,
-  .nav-item:focus-within .nav-dropdown { display: block; }
+  .nav-dropdown-toggle { display: none; }
+  @media (min-width: 781px) {
+    .nav-item:hover .nav-dropdown,
+    .nav-item:focus-within .nav-dropdown { display: block; }
+    .nav-dropdown-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 4px;
+      font-size: 0.6rem;
+      color: var(--ink);
+      pointer-events: none;
+    }
+  }
   .nav-sublink {
     display: block;
     padding: 10px 14px;
@@ -149,34 +161,31 @@
   }
   .nav-cta:hover { background: var(--orange); border-color: var(--orange); }
 
-  .nav-cta-shop {
-    background: transparent;
-    color: var(--orange) !important;
-    border-color: var(--orange);
-  }
-  .nav-cta-shop:hover { background: var(--orange); color: var(--paper) !important; }
-
-  .nav-cta-kofi {
-    background: var(--orange);
-    color: var(--paper) !important;
-    border-color: var(--orange);
-  }
-  .nav-cta-kofi:hover { background: var(--ink); border-color: var(--ink); }
-
   .hamburger {
     display: none;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 5px;
     background: transparent;
-    border: 1px solid var(--ink);
-    color: var(--ink);
+    border: none;
     width: 38px;
     height: 34px;
-    font-size: 1.2rem;
-    line-height: 1;
     cursor: pointer;
     padding: 0;
   }
+  .hamburger-bar {
+    display: block;
+    width: 22px;
+    height: 2px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--charcoal), var(--ink));
+    transition: transform 0.25s ease, opacity 0.2s ease, background 0.2s ease;
+  }
+  .hamburger[aria-expanded="true"] .hamburger-bar { background: var(--orange); }
+  .hamburger[aria-expanded="true"] .hamburger-bar:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger[aria-expanded="true"] .hamburger-bar:nth-child(2) { opacity: 0; }
+  .hamburger[aria-expanded="true"] .hamburger-bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
   .nav-link-mobile {
     display: none !important;
@@ -185,18 +194,18 @@
   @media (max-width: 780px) {
     .hamburger { display: flex; }
     .nav-cta { padding: 9px 12px; font-size: 0.8rem; }
-    .nav-cta-shop { margin-left: auto; }
-    .nav-cta-kofi { padding: 9px 10px; }
 
     .navlinks {
       display: none;
       position: absolute;
       top: 100%;
-      left: 0;
       right: 0;
+      width: 50%;
       flex-direction: column;
       background: var(--paper);
+      border-left: 1px solid var(--ink);
       border-bottom: 1px solid var(--ink);
+      box-shadow: -4px 4px 12px rgba(0,0,0,0.15);
       margin-right: 0;
       gap: 0;
     }
@@ -1181,11 +1190,18 @@
       </div>
       <a href="index.html#about" class="nav-link">About</a>
       <a href="index.html#faq" class="nav-link">FAQ</a>
+      <div class="nav-item">
+        <a href="contact.html" class="nav-link">Contact</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Contact submenu">&#9660;</button>
+        <div class="nav-dropdown">
+          <a href="https://ko-fi.com/mt3uk" class="nav-sublink" target="_blank" rel="noopener">Support Us</a>
+        </div>
+      </div>
       <a href="https://www.facebook.com/share/g/1EnNkFvxr7/" class="nav-link-mobile" target="_blank" rel="noopener">Join the group</a>
     </div>
-    <a href="shop.html" class="nav-cta nav-cta-shop">Shop</a>
-    <a href="https://ko-fi.com/mt3uk" class="nav-cta nav-cta-kofi" target="_blank" rel="noopener" title="Donations Welcome">&#9749;<span class="kofi-label"> Support us</span></a>
-    <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navlinks">&#9776;</button>
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navlinks">
+      <span class="hamburger-bar"></span><span class="hamburger-bar"></span><span class="hamburger-bar"></span>
+    </button>
   </nav>
 </header>
 
@@ -1252,14 +1268,12 @@
 
         function closeMenu() {
               navMenu.classList.remove('active');
-              hamburger.innerHTML = '&#9776;';
               hamburger.setAttribute('aria-expanded', 'false');
         }
 
         hamburger.addEventListener('click', function (e) {
               e.stopPropagation();
               var open = navMenu.classList.toggle('active');
-              hamburger.innerHTML = open ? '&#10005;' : '&#9776;';
               hamburger.setAttribute('aria-expanded', open ? 'true' : 'false');
         });
 

@@ -1,6 +1,6 @@
 {
-  "generated": "2026-09-11T23:42:18.111Z",
-  "totalEvents": 4,
+  "generated": "2026-09-12T00:20:14.574Z",
+  "totalEvents": 5,
   "events": [
     {
       "id": "lancing-motor-show-2025-09-26",
@@ -51,6 +51,19 @@
         "name": "Thruxton Circuit "
       },
       "facebookUrl": "https://ror-launch-trackday26.eventbrite.co.uk",
+      "attendingCount": 0,
+      "interestedCount": 0
+    },
+    {
+      "id": "test-event-2026-09-10",
+      "name": "Test Event ",
+      "description": "",
+      "startTime": "2026-09-10T10:00:00+0000",
+      "endTime": "2026-09-10T10:00:00+0000",
+      "location": {
+        "name": "UK"
+      },
+      "facebookUrl": "http://",
       "attendingCount": 0,
       "interestedCount": 0
     }

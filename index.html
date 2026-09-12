@@ -97,7 +97,7 @@
     gap: 8px;
     flex-shrink: 0;
   }
-  .logo img { height: 22px; width: auto; max-width: none; display: block; }
+  .logo img { height: 25px; width: auto; max-width: none; display: block; }
   .logo.footer-logo img { height: 18px; }
 
   .navlinks {
@@ -125,7 +125,7 @@
     display: none;
     position: absolute;
     top: 100%;
-    left: 0;
+    right: 0;
     min-width: 160px;
     background: var(--paper);
     border: 1px solid var(--ink);
@@ -172,75 +172,61 @@
   }
   .nav-cta-shop:hover { background: var(--orange); color: var(--paper) !important; }
 
-  .nav-cta-special {
-    background: transparent;
-    color: #1c8a4b !important;
-    border-color: transparent;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    transform-origin: center;
-    animation: nav-cta-blink 1.4s ease-in-out 5;
-  }
-  .nav-cta-special:hover { background: #1c8a4b; color: var(--paper) !important; border-color: #1c8a4b; animation: none; }
-
-  .nav-cta-special,
-  .nav-cta-kofi {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 152px;
-  }
-
-  @keyframes nav-cta-blink {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.55; transform: scale(1.15); }
-  }
-
-  .nav-cta-kofi {
-    background: transparent;
-    color: var(--ink) !important;
-    border-color: transparent;
-  }
-  .nav-cta-kofi:hover { background: var(--ink); color: var(--paper) !important; border-color: var(--ink); }
-
   .hamburger {
     display: none;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: #1877f2;
-    border: 1px solid #1877f2;
-    color: var(--white);
+    gap: 5px;
+    background: transparent;
+    border: none;
     width: 38px;
     height: 34px;
-    font-size: 1.2rem;
-    line-height: 1;
     cursor: pointer;
     padding: 0;
   }
+  .hamburger-bar {
+    display: block;
+    width: 22px;
+    height: 2px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--charcoal), var(--ink));
+    transition: transform 0.25s ease, opacity 0.2s ease, background 0.2s ease;
+  }
+  .hamburger[aria-expanded="true"] .hamburger-bar { background: var(--orange); }
+  .hamburger[aria-expanded="true"] .hamburger-bar:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger[aria-expanded="true"] .hamburger-bar:nth-child(2) { opacity: 0; }
+  .hamburger[aria-expanded="true"] .hamburger-bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
   @media (min-width: 781px) {
     .nav-item:hover .nav-dropdown,
     .nav-item:focus-within .nav-dropdown { display: block; }
+    .nav-dropdown-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 4px;
+      font-size: 0.6rem;
+      color: var(--ink);
+      pointer-events: none;
+    }
   }
 
   @media (max-width: 780px) {
     nav { gap: 8px; }
     .hamburger { display: flex; margin-left: auto; }
-    .nav-cta-special, .nav-cta-kofi {
-      min-width: 0;
-      padding: 8px 10px;
-      font-size: 0.72rem;
-    }
 
     .navlinks {
       display: none;
       position: absolute;
       top: 100%;
-      left: 0;
       right: 0;
+      width: 50%;
       flex-direction: column;
       background: var(--paper);
+      border-left: 1px solid var(--ink);
       border-bottom: 1px solid var(--ink);
+      box-shadow: -4px 4px 12px rgba(0,0,0,0.15);
       margin-right: 0;
       gap: 0;
     }
@@ -1112,7 +1098,6 @@
 
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
-    .nav-cta-special { animation: none; }
   }
 
   :focus-visible {
@@ -1169,10 +1154,17 @@
       </div>
       <a href="#about" class="nav-link active">About</a>
       <a href="#faq" class="nav-link">FAQs</a>
+      <div class="nav-item">
+        <a href="contact.html" class="nav-link">Contact</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Contact submenu">&#9660;</button>
+        <div class="nav-dropdown">
+          <a href="https://ko-fi.com/mt3uk" class="nav-sublink" target="_blank" rel="noopener">Support Us</a>
+        </div>
+      </div>
     </div>
-    <a href="shop.html" class="nav-cta nav-cta-shop nav-cta-special" title="Tees: exclusive 20% off for members">🎉 Special Offers</a>
-    <a href="https://ko-fi.com/mt3uk" class="nav-cta nav-cta-kofi" target="_blank" rel="noopener" title="Donations Welcome">&#10084;&#65039;<span class="kofi-label"> Support us</span></a>
-    <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navlinks">&#9776;</button>
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navlinks">
+      <span class="hamburger-bar"></span><span class="hamburger-bar"></span><span class="hamburger-bar"></span>
+    </button>
   </nav>
 </header>
 
@@ -1925,7 +1917,6 @@
         function closeMenu() {
               navMenu.classList.remove('active');
               if (mobileMenu) mobileMenu.style.display = 'none';
-              hamburger.innerHTML = '&#9776;';
               hamburger.setAttribute('aria-expanded', 'false');
         }
 
@@ -1933,7 +1924,6 @@
               e.stopPropagation();
               var open = navMenu.classList.toggle('active');
               if (mobileMenu) mobileMenu.style.display = open ? 'block' : 'none';
-              hamburger.innerHTML = open ? '&#10005;' : '&#9776;';
               hamburger.setAttribute('aria-expanded', open ? 'true' : 'false');
         });
 

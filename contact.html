@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact MT3UK</title>
+<meta name="description" content="Get in touch with MT3UK, the community for modified Tesla owners. Find us on Facebook, Instagram, or drop us an email.">
+<link rel="canonical" href="https://mt3uk.com/contact.html">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="images/site/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="images/site/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="images/site/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Contact MT3UK">
+<meta property="og:description" content="Get in touch with MT3UK, the community for modified Tesla owners. Find us on Facebook, Instagram, or drop us an email.">
+<meta property="og:image" content="https://mt3uk.com/images/hero.jpg">
+<meta property="og:url" content="https://mt3uk.com/contact.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Contact MT3UK">
+<meta name="twitter:description" content="Get in touch with MT3UK, the community for modified Tesla owners. Find us on Facebook, Instagram, or drop us an email.">
+<meta name="twitter:image" content="https://mt3uk.com/images/hero.jpg">
+<script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap');
+
+  :root {
+    --ink: #16233d;
+    --ink-2: #223257;
+    --paper: #f3f1ea;
+    --paper-2: #e9e5d8;
+    --charcoal: #1c1c1c;
+    --orange: #e8542a;
+    --line: #4a6491;
+    --steel: #7c8798;
+    --white: #ffffff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--charcoal);
+    font-family: 'IBM Plex Sans', sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 {
+    font-family: 'Archivo Expanded', sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+
+  .mono {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    color: var(--steel);
+  }
+
+  a { color: inherit; text-decoration: none; }
+
+  img { max-width: 100%; display: block; }
+
+  .wrap {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 28px;
+  }
+
+  /* ---------- NAV ---------- */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(243,241,234,0.92);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--ink);
+  }
+
+  nav {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 16px 28px;
+    max-width: 1120px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .logo img { height: 25px; width: auto; max-width: none; display: block; }
+  .logo.footer-logo img { height: 18px; }
+
+  .navlinks {
+    display: flex;
+    gap: 4px;
+    margin-right: auto;
+    font-size: 0.92rem;
+    font-weight: 500;
+  }
+  .navlinks a {
+    padding: 10px 14px;
+    border-radius: 4px;
+    border-bottom: 1px solid transparent;
+    transition: opacity .15s ease, border-color .15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1;
+  }
+  .navlinks a:hover { opacity: 0.65; }
+  .navlinks a.active { color: var(--orange); border-color: var(--orange); }
+
+  .nav-item { position: relative; display: flex; align-items: center; }
+  .nav-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    min-width: 160px;
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    z-index: 10;
+  }
+  .nav-dropdown-toggle { display: none; }
+  .nav-sublink {
+    display: block;
+    padding: 10px 14px;
+    font-size: 0.88rem;
+    white-space: nowrap;
+  }
+  .nav-sublink:hover { opacity: 0.65; }
+  .nav-link-shop, .nav-sublink-new { display: inline-flex; align-items: center; gap: 6px; }
+
+  .nav-link-shop::after, .nav-sublink-new::after {
+    content: 'NEW';
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--paper);
+    background: var(--orange);
+    padding: 2px 5px;
+    border-radius: 3px;
+    line-height: 1;
+  }
+
+  .nav-cta {
+    background: var(--ink);
+    color: var(--paper) !important;
+    padding: 9px 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid var(--ink);
+    white-space: nowrap;
+  }
+  .nav-cta:hover { background: var(--orange); border-color: var(--orange); }
+
+  .hamburger {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    background: transparent;
+    border: none;
+    width: 38px;
+    height: 34px;
+    cursor: pointer;
+    padding: 0;
+  }
+  .hamburger-bar {
+    display: block;
+    width: 22px;
+    height: 2px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--charcoal), var(--ink));
+    transition: transform 0.25s ease, opacity 0.2s ease, background 0.2s ease;
+  }
+  .hamburger[aria-expanded="true"] .hamburger-bar { background: var(--orange); }
+  .hamburger[aria-expanded="true"] .hamburger-bar:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger[aria-expanded="true"] .hamburger-bar:nth-child(2) { opacity: 0; }
+  .hamburger[aria-expanded="true"] .hamburger-bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  @media (min-width: 781px) {
+    .nav-item:hover .nav-dropdown,
+    .nav-item:focus-within .nav-dropdown { display: block; }
+    .nav-dropdown-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 4px;
+      font-size: 0.6rem;
+      color: var(--ink);
+      pointer-events: none;
+    }
+  }
+
+  @media (max-width: 780px) {
+    nav { gap: 8px; }
+    .hamburger { display: flex; margin-left: auto; }
+
+    .navlinks {
+      display: none;
+      position: absolute;
+      top: 100%;
+      right: 0;
+      width: 50%;
+      flex-direction: column;
+      background: var(--paper);
+      border-left: 1px solid var(--ink);
+      border-bottom: 1px solid var(--ink);
+      box-shadow: -4px 4px 12px rgba(0,0,0,0.15);
+      margin-right: 0;
+      gap: 0;
+    }
+    .navlinks.active { display: flex; }
+    .navlinks a {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(22,35,61,0.12);
+      border-radius: 0;
+    }
+    .nav-item { flex-direction: row; flex-wrap: wrap; align-items: stretch; }
+    .nav-item > .nav-link { flex: 1; border-bottom: none; }
+    .nav-dropdown-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      background: none;
+      border: none;
+      border-bottom: 1px solid rgba(22,35,61,0.12);
+      font-size: 0.7rem;
+      color: var(--ink);
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    .nav-item.open .nav-dropdown-toggle { transform: rotate(180deg); }
+    .nav-dropdown {
+      display: none;
+      position: static;
+      flex-basis: 100%;
+      border: none;
+      background: rgba(22,35,61,0.03);
+    }
+    .nav-item.open .nav-dropdown { display: block; }
+    .nav-sublink {
+      padding: 12px 16px 12px 44px;
+      border-bottom: 1px solid rgba(22,35,61,0.12);
+    }
+  }
+
+  /* ---------- SECTION SHELL ---------- */
+  section { padding: 60px 0; border-bottom: 1px solid var(--ink); }
+  section:last-of-type { border-bottom: none; }
+
+  /* ---------- PAGE HERO ---------- */
+  .page-hero {
+    padding: 48px 0 36px;
+    border-bottom: 1px solid var(--ink);
+  }
+  .page-hero .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--steel);
+    text-decoration: none;
+    margin-bottom: 18px;
+  }
+  .page-hero .back-link:hover { color: var(--orange); }
+  .page-hero .section-num { display: block; margin-bottom: 10px; }
+  .page-hero h1 { max-width: 20ch; margin-bottom: 14px; }
+  .page-hero p { color: var(--ink-2); max-width: 58ch; font-size: 1.05rem; }
+
+  /* ---------- CONTACT ---------- */
+  .contact-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 22px;
+  }
+  @media (max-width: 700px) { .contact-grid { grid-template-columns: 1fr; } }
+
+  .contact-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    text-align: center;
+    border: 1px solid var(--ink);
+    padding: 36px 24px;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+  }
+  .contact-card:hover, .contact-card:focus-visible {
+    border-color: var(--orange);
+    transform: translateY(-2px);
+  }
+  .contact-card-icon {
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .contact-card-icon svg { width: 26px; height: 26px; }
+  .contact-card-icon.contact-icon-fb { background: #1877f2; }
+  .contact-card-icon.contact-icon-ig {
+    background: radial-gradient(circle at 30% 110%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
+  }
+  .contact-card-icon.contact-icon-email { background: var(--orange); }
+  .contact-card-icon.contact-icon-kofi { background: #13c3ff; }
+  .contact-card h3 { font-size: 1.02rem; }
+  .contact-card p { color: var(--steel); font-size: 0.85rem; word-break: break-word; }
+
+  /* ---------- FOOTER ---------- */
+  footer { padding: 40px 0; }
+  .footer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .footer-row .mono { font-size: 0.72rem; }
+
+  :focus-visible {
+    outline: 2px solid var(--orange);
+    outline-offset: 2px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <nav>
+    <a href="/" class="logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
+    <div class="navlinks" id="navlinks">
+      <div class="nav-item">
+        <a href="index.html#gallery" class="nav-link">Gallery</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Gallery submenu">&#9660;</button>
+        <div class="nav-dropdown">
+          <a href="index.html#build-of-the-day" class="nav-sublink nav-sublink-new">Featured Build</a>
+          <a href="index.html#build-feed" class="nav-sublink nav-sublink-new">Build Feed</a>
+          <a href="index.html#gallery-upload" class="nav-sublink nav-sublink-new">Upload Image</a>
+        </div>
+      </div>
+      <div class="nav-item">
+        <a href="shop.html" class="nav-link nav-link-shop">Shop</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Shop submenu">&#9660;</button>
+        <div class="nav-dropdown">
+          <a href="shop.html#merch" class="nav-sublink nav-sublink-new">Merch</a>
+          <a href="shop.html#upgrades" class="nav-sublink nav-sublink-new">Upgrade / Parts</a>
+        </div>
+      </div>
+      <a href="index.html#events" class="nav-link">Events</a>
+      <div class="nav-item">
+        <a href="index.html#track-days" class="nav-link">Track Days</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Track Days submenu">&#9660;</button>
+        <div class="nav-dropdown">
+          <a href="index.html#track-day-photos" class="nav-sublink">Photos</a>
+          <a href="track-day-prep.html" class="nav-sublink nav-sublink-new">Prep</a>
+        </div>
+      </div>
+      <a href="index.html#about" class="nav-link">About</a>
+      <a href="index.html#faq" class="nav-link">FAQs</a>
+      <div class="nav-item">
+        <a href="contact.html" class="nav-link active">Contact</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Contact submenu">&#9660;</button>
+        <div class="nav-dropdown">
+          <a href="https://ko-fi.com/mt3uk" class="nav-sublink" target="_blank" rel="noopener">Support Us</a>
+        </div>
+      </div>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navlinks">
+      <span class="hamburger-bar"></span><span class="hamburger-bar"></span><span class="hamburger-bar"></span>
+    </button>
+  </nav>
+</header>
+
+<section class="page-hero">
+  <div class="wrap">
+    <a href="index.html" class="back-link">&larr; Back to MT3UK</a>
+    <span class="section-num mono">CONTACT</span>
+    <h1>Get in touch</h1>
+    <p>The quickest way to reach the community is the Facebook group, but you can also find us here.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="contact-grid">
+      <a class="contact-card" href="https://www.facebook.com/MT3UK" target="_blank" rel="noopener">
+        <span class="contact-card-icon contact-icon-fb">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5.02 3.66 9.18 8.44 9.94v-7.03H7.9v-2.91h2.54V9.85c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.23.2 2.23.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.88h2.78l-.44 2.91h-2.34V22c4.78-.76 8.44-4.92 8.44-9.94Z"/></svg>
+        </span>
+        <h3>Facebook</h3>
+        <p>facebook.com/MT3UK</p>
+      </a>
+      <a class="contact-card" href="https://www.instagram.com/mt3uk_com/" target="_blank" rel="noopener">
+        <span class="contact-card-icon contact-icon-ig">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c-2.717 0-3.056.012-4.123.06-1.064.049-1.791.218-2.427.465a4.902 4.902 0 0 0-1.772 1.153A4.902 4.902 0 0 0 2.525 5.45c-.247.636-.416 1.363-.465 2.427C2.012 8.944 2 9.283 2 12s.012 3.056.06 4.123c.049 1.064.218 1.791.465 2.427a4.902 4.902 0 0 0 1.153 1.772 4.902 4.902 0 0 0 1.772 1.153c.636.247 1.363.416 2.427.465C8.944 21.988 9.283 22 12 22s3.056-.012 4.123-.06c1.064-.049 1.791-.218 2.427-.465a4.902 4.902 0 0 0 1.772-1.153 4.902 4.902 0 0 0 1.153-1.772c.247-.636.416-1.363.465-2.427.048-1.067.06-1.406.06-4.123s-.012-3.056-.06-4.123c-.049-1.064-.218-1.791-.465-2.427a4.902 4.902 0 0 0-1.153-1.772A4.902 4.902 0 0 0 18.55 2.525c-.636-.247-1.363-.416-2.427-.465C15.056 2.012 14.717 2 12 2zm0 1.802c2.67 0 2.987.01 4.042.059.976.045 1.505.207 1.858.344.467.182.8.399 1.15.748.35.35.566.683.748 1.15.137.353.3.882.344 1.858.05 1.055.059 1.372.059 4.042s-.01 2.987-.059 4.042c-.045.976-.207 1.505-.344 1.858a3.1 3.1 0 0 1-.748 1.15 3.1 3.1 0 0 1-1.15.748c-.353.137-.882.3-1.858.344-1.054.05-1.371.059-4.042.059s-2.987-.01-4.042-.059c-.976-.045-1.505-.207-1.858-.344a3.1 3.1 0 0 1-1.15-.748 3.1 3.1 0 0 1-.748-1.15c-.137-.353-.3-.882-.344-1.858-.048-1.055-.059-1.372-.059-4.042s.01-2.987.059-4.042c.045-.976.207-1.505.344-1.858.182-.467.399-.8.748-1.15.35-.35.683-.566 1.15-.748.353-.137.882-.3 1.858-.344 1.055-.05 1.372-.059 4.042-.059zm0 3.063a5.135 5.135 0 1 0 0 10.27 5.135 5.135 0 0 0 0-10.27zm0 8.468a3.333 3.333 0 1 1 0-6.666 3.333 3.333 0 0 1 0 6.666zm6.538-8.671a1.2 1.2 0 1 1-2.4 0 1.2 1.2 0 0 1 2.4 0z"/></svg>
+        </span>
+        <h3>Instagram</h3>
+        <p>@mt3uk_com</p>
+      </a>
+      <a class="contact-card" href="https://ko-fi.com/mt3uk" target="_blank" rel="noopener">
+        <span class="contact-card-icon contact-icon-kofi">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h14a2 2 0 0 1 2 2v1h1a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3h-1.28A7 7 0 0 1 12 19H8a7 7 0 0 1-7-7V5a2 2 0 0 1 2-2zm14 4v6a5 5 0 0 1-.08.9H19a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1h-1V7h1a1 1 0 0 0-1-1h-1z"/></svg>
+        </span>
+        <h3>Ko-fi</h3>
+        <p>Support us with a coffee</p>
+      </a>
+      <a class="contact-card" href="mailto:modtesla3uk@gmail.com">
+        <span class="contact-card-icon contact-icon-email">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm1.4 2 7.1 5.6a1 1 0 0 0 1 0L19.6 7H4.4zM20 8.4l-7.4 5.8a2 2 0 0 1-2.4 0L3 8.4V17h17V8.4z"/></svg>
+        </span>
+        <h3>Email</h3>
+        <p>modtesla3uk@gmail.com</p>
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap footer-row">
+    <a href="/" class="logo footer-logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
+    <span class="mono">MODIFIED TESLA COMMUNITY &middot; <span class="member-count"></span> MEMBERS</span>
+    <a href="https://www.facebook.com/share/g/1EnNkFvxr7/" target="_blank" rel="noopener" class="mono" style="text-decoration:underline;">FACEBOOK GROUP &#8599;</a>
+  </div>
+</footer>
+
+<script>
+  (function () {
+      var hamburger = document.getElementById('hamburger');
+      var navMenu = document.getElementById('navlinks');
+      if (!hamburger || !navMenu) return;
+
+      function closeMenu() {
+            navMenu.classList.remove('active');
+            hamburger.setAttribute('aria-expanded', 'false');
+      }
+
+      hamburger.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var open = navMenu.classList.toggle('active');
+            hamburger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+
+      navMenu.querySelectorAll('.nav-link, .nav-sublink').forEach(function (link) {
+            link.addEventListener('click', closeMenu);
+      });
+
+      navMenu.querySelectorAll('.nav-dropdown-toggle').forEach(function (toggle) {
+            toggle.addEventListener('click', function (e) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  var item = toggle.closest('.nav-item');
+                  var open = item.classList.toggle('open');
+                  toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            });
+      });
+
+      document.addEventListener('click', function (e) {
+            if (!e.target.closest('header nav')) closeMenu();
+      });
+  })();
+</script>
+
+<script>
+  (function () {
+    fetch('data/community.json', { cache: 'no-store' })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (data) {
+        if (!data || !data.members) return;
+        document.querySelectorAll('.member-count').forEach(function (el) {
+          el.textContent = data.members;
+        });
+      })
+      .catch(function () {});
+  })();
+</script>
+
+</body>
+</html>

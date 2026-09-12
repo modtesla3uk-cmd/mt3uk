@@ -693,6 +693,13 @@
     pointer-events: none;
   }
   .bf-slide.bf-in-view .bf-slide-img { transform: scale(1.02); }
+  .bf-feed.bf-autoplaying .bf-slide.bf-in-view .bf-slide-img {
+    animation: bf-kenburns 4.5s ease-in-out infinite;
+  }
+  @keyframes bf-kenburns {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+  }
 
   .bf-scrim { position: absolute; left: 0; right: 0; pointer-events: none; }
   .bf-scrim-top {
@@ -1248,172 +1255,14 @@
   })();
 </script>
 
-<section id="build-of-the-day">
-  <div class="wrap">
-    <div class="section-head">
-      <div>
-        <span class="section-num">01 / FEATURED BUILD</span>
-        <h2>Today's featured build</h2>
-      </div>
-      <p>A different build from the gallery gets the spotlight every day. Yours could be next, submit a photo below.</p>
-    </div>
-    <div class="botm-frame" id="botm-frame">
-      <p class="mono" style="padding: 24px; color: var(--steel);">Loading featured build…</p>
-    </div>
-  </div>
-</section>
-
-<section id="about">
-  <div class="wrap">
-    <div class="section-head">
-      <div>
-        <span class="section-num">02 / ABOUT</span>
-        <h2>Built by owners, for owners</h2>
-      </div>
-    </div>
-    <div class="about-grid">
-      <div>
-        <p>MT3UK started as a small group of Tesla owners comparing notes on wheels, wraps and suspension setups - the kind of honest, hands-on advice you don't get in a showroom. It's grown into one of the largest communities for modified Tesla owners.</p>
-        <p>Whatever you're driving (Model S, 3, X or Y) and whatever stage your build is at, from a first set of wheels to a full track setup, you'll find people in the group who've done it, are doing it, or want to help you get there.</p>
-        <p>We keep the group free from bots, spam and probably most importantly "negativity" with a group of trusted admins on hand. Meet-ups across the UK and beyond and a shared respect for doing mods properly.</p>
-      </div>
-      <div class="specs">
-        <div class="spec-row"><span>MEMBERS</span><span class="member-count"></span></div>
-        <div class="spec-row"><span>COVERAGE</span><span>GLOBAL</span></div>
-        <div class="spec-row"><span>MODELS</span><span>S / 3 / X / Y</span></div>
-        <div class="spec-row"><span>PLATFORM</span><span>Facebook Group</span></div>
-        <div class="spec-row"><span>ACTIVITY</span><span>Daily threads</span></div>
-        <div class="spec-row"><span>FOCUS</span><span>Wraps · Wheels · Suspension · Track</span></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section id="gallery">
-  <div class="wrap">
-    <div class="section-head">
-      <div>
-        <span class="section-num">03 / GALLERY</span>
-        <h2>Member builds</h2>
-      </div>
-      <p>A rotating look at what the group's driving. Photos will swap in from group posts.</p>
-    </div>
-    <div class="gallery-grid" id="gallery-grid">
-      <p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">Loading builds…</p>
-    </div>
-    <div class="gallery-pagination" id="gallery-pagination"></div>
-    <p class="gallery-note">A snapshot of what the group's driving, most recent first. Upload your build below</p>
-
-    <div class="submit-photo" id="gallery-upload">
-      <h3>Submit a photo below</h3>
-      <p>Send us a shot of your build and a caption, and we'll get it added to the gallery for you.</p>
-      <form id="photo-submit-form" class="submit-form">
-        <input type="checkbox" name="botcheck" class="hp-field" tabindex="-1" autocomplete="off">
-        <div class="form-row">
-          <label class="mono" for="submitter-name">Name (Required)</label>
-          <input type="text" id="submitter-name" name="name" placeholder="Your name or MT3UK handle" required>
-        </div>
-        <div class="form-row">
-          <label class="mono" for="submitter-caption">Caption (Required)</label>
-          <input type="text" id="submitter-caption" name="caption" placeholder="e.g. Viper Green Model Y" required>
-        </div>
-        <div class="form-row">
-          <label class="mono" for="submitter-photo">Photo</label>
-          <input type="file" id="submitter-photo" name="photo" accept="image/*" required>
-        </div>
-        <label class="form-checkbox-row" for="submitter-member-confirm">
-          <input type="checkbox" id="submitter-member-confirm" required>
-          <span>I confirm I'm a member of the MT3UK Facebook group.</span>
-        </label>
-        <a href="https://www.facebook.com/share/g/1EnNkFvxr7/" class="fb-join-link" target="_blank" rel="noopener">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5.02 3.66 9.18 8.44 9.94v-7.03H7.9v-2.91h2.54V9.85c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.23.2 2.23.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.88h2.78l-.44 2.91h-2.34V22c4.78-.76 8.44-4.92 8.44-9.94Z"/></svg>
-          Not a member? Join the MT3UK Facebook group
-        </a>
-        <div class="submit-guidance">
-          <p><strong>PLEASE READ:</strong> Upload a full photo of your build so we can get it featured. Individual mods can be shared in the Facebook group :)</p>
-          <p>Limit uploads to max 3 per day.</p>
-        </div>
-        <button type="submit" class="btn btn-primary">Submit photo</button>
-        <p id="submit-status" class="mono" style="margin-top:2px;"></p>
-      </form>
-    </div>
-
-    <script>
-      (function () {
-        var PAGE_SIZE = 16;
-        var grid = document.getElementById('gallery-grid');
-        var pagination = document.getElementById('gallery-pagination');
-        var allPhotos = [];
-        var currentPage = 1;
-
-        function renderGrid(photos) {
-          if (!photos.length) {
-            grid.innerHTML = '<p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">No photos yet, drop some into images/gallery/ on GitHub.</p>';
-            return;
-          }
-          grid.innerHTML = photos.map(function (p) {
-            var safeCaption = (p.caption || '').replace(/</g, '&lt;');
-            var nameHtml = p.name ? '<span class="g-name">By ' + p.name.replace(/</g, '&lt;') + '</span>' : '';
-            var captionHtml = (safeCaption || nameHtml) ? '<span class="g-caption">' + safeCaption + nameHtml + '</span>' : '';
-            return '<div class="gallery-slot filled">' +
-                     '<img src="images/gallery/' + p.file + '" alt="' + (safeCaption || 'MT3UK member build') + '" loading="lazy">' +
-                     captionHtml +
-                   '</div>';
-          }).join('');
-        }
-
-        function renderPagination(totalPages) {
-          if (totalPages <= 1) {
-            pagination.innerHTML = '';
-            return;
-          }
-          pagination.innerHTML =
-            '<button type="button" class="page-btn" id="gallery-prev"' + (currentPage === 1 ? ' disabled' : '') + '>&lsaquo; Prev</button>' +
-            '<span class="mono">Page ' + currentPage + ' of ' + totalPages + '</span>' +
-            '<button type="button" class="page-btn" id="gallery-next"' + (currentPage === totalPages ? ' disabled' : '') + '>Next &rsaquo;</button>';
-
-          var prevBtn = document.getElementById('gallery-prev');
-          var nextBtn = document.getElementById('gallery-next');
-          if (prevBtn) prevBtn.addEventListener('click', function () { goToPage(currentPage - 1); });
-          if (nextBtn) nextBtn.addEventListener('click', function () { goToPage(currentPage + 1); });
-        }
-
-        function goToPage(page) {
-          currentPage = page;
-          render();
-          grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-
-        function render() {
-          var totalPages = Math.max(1, Math.ceil(allPhotos.length / PAGE_SIZE));
-          currentPage = Math.min(Math.max(1, currentPage), totalPages);
-          var start = (currentPage - 1) * PAGE_SIZE;
-          renderGrid(allPhotos.slice(start, start + PAGE_SIZE));
-          renderPagination(totalPages);
-        }
-
-        window.mt3ukFetchJSON('images/gallery/manifest.json', null)
-          .then(function (photos) {
-            if (!photos) {
-              grid.innerHTML = '<p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">Gallery photos couldn\'t be loaded.</p>';
-              return;
-            }
-            allPhotos = photos;
-            render();
-          });
-      })();
-    </script>
-  </div>
-</section>
-
 <section id="build-feed">
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">04 / BUILD FEED</span>
+        <span class="section-num">01 / BUILD FEED</span>
         <h2>Swipe through the builds</h2>
       </div>
-      <p>A quick scroll through recent member builds. Like the ones you love, save your favourites, or sit back and let it play.</p>
+      <p>A quick scroll through recent member builds. Like the ones you love, save your favourites, or sit back and let it play. <a href="#gallery" class="inline-link">Click here for full gallery view</a></p>
     </div>
     <div class="bf-frame" id="build-feed-frame">
       <div class="bf-progress" id="bf-progress"></div>
@@ -1575,6 +1424,7 @@
         if (label) label.textContent = 'Auto-scroll: ' + (enabled ? 'On' : 'Off');
         autoscrollBtn.setAttribute('aria-pressed', enabled ? 'true' : 'false');
         autoscrollBtn.classList.toggle('bf-autoscroll-off', !enabled);
+        feedEl.classList.toggle('bf-autoplaying', enabled);
       }
 
       function stop() {
@@ -1655,6 +1505,164 @@
       });
   })();
 </script>
+
+<section id="build-of-the-day">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="section-num">02 / FEATURED BUILD</span>
+        <h2>Today's featured build</h2>
+      </div>
+      <p>A different build from the gallery gets the spotlight every day. Yours could be next, submit a photo below.</p>
+    </div>
+    <div class="botm-frame" id="botm-frame">
+      <p class="mono" style="padding: 24px; color: var(--steel);">Loading featured build…</p>
+    </div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="section-num">03 / ABOUT</span>
+        <h2>Built by owners, for owners</h2>
+      </div>
+    </div>
+    <div class="about-grid">
+      <div>
+        <p>MT3UK started as a small group of Tesla owners comparing notes on wheels, wraps and suspension setups - the kind of honest, hands-on advice you don't get in a showroom. It's grown into one of the largest communities for modified Tesla owners.</p>
+        <p>Whatever you're driving (Model S, 3, X or Y) and whatever stage your build is at, from a first set of wheels to a full track setup, you'll find people in the group who've done it, are doing it, or want to help you get there.</p>
+        <p>We keep the group free from bots, spam and probably most importantly "negativity" with a group of trusted admins on hand. Meet-ups across the UK and beyond and a shared respect for doing mods properly.</p>
+      </div>
+      <div class="specs">
+        <div class="spec-row"><span>MEMBERS</span><span class="member-count"></span></div>
+        <div class="spec-row"><span>COVERAGE</span><span>GLOBAL</span></div>
+        <div class="spec-row"><span>MODELS</span><span>S / 3 / X / Y</span></div>
+        <div class="spec-row"><span>PLATFORM</span><span>Facebook Group</span></div>
+        <div class="spec-row"><span>ACTIVITY</span><span>Daily threads</span></div>
+        <div class="spec-row"><span>FOCUS</span><span>Wraps · Wheels · Suspension · Track</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="gallery">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="section-num">04 / GALLERY</span>
+        <h2>Member builds</h2>
+      </div>
+      <p>A rotating look at what the group's driving. Photos will swap in from group posts.</p>
+    </div>
+    <div class="gallery-grid" id="gallery-grid">
+      <p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">Loading builds…</p>
+    </div>
+    <div class="gallery-pagination" id="gallery-pagination"></div>
+    <p class="gallery-note">A snapshot of what the group's driving, most recent first. Upload your build below</p>
+
+    <div class="submit-photo" id="gallery-upload">
+      <h3>Submit a photo below</h3>
+      <p>Send us a shot of your build and a caption, and we'll get it added to the gallery for you.</p>
+      <form id="photo-submit-form" class="submit-form">
+        <input type="checkbox" name="botcheck" class="hp-field" tabindex="-1" autocomplete="off">
+        <div class="form-row">
+          <label class="mono" for="submitter-name">Name (Required)</label>
+          <input type="text" id="submitter-name" name="name" placeholder="Your name or MT3UK handle" required>
+        </div>
+        <div class="form-row">
+          <label class="mono" for="submitter-caption">Caption (Required)</label>
+          <input type="text" id="submitter-caption" name="caption" placeholder="e.g. Viper Green Model Y" required>
+        </div>
+        <div class="form-row">
+          <label class="mono" for="submitter-photo">Photo</label>
+          <input type="file" id="submitter-photo" name="photo" accept="image/*" required>
+        </div>
+        <label class="form-checkbox-row" for="submitter-member-confirm">
+          <input type="checkbox" id="submitter-member-confirm" required>
+          <span>I confirm I'm a member of the MT3UK Facebook group.</span>
+        </label>
+        <a href="https://www.facebook.com/share/g/1EnNkFvxr7/" class="fb-join-link" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5.02 3.66 9.18 8.44 9.94v-7.03H7.9v-2.91h2.54V9.85c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.23.2 2.23.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.88h2.78l-.44 2.91h-2.34V22c4.78-.76 8.44-4.92 8.44-9.94Z"/></svg>
+          Not a member? Join the MT3UK Facebook group
+        </a>
+        <div class="submit-guidance">
+          <p><strong>PLEASE READ:</strong> Upload a full photo of your build so we can get it featured. Individual mods can be shared in the Facebook group :)</p>
+          <p>Limit uploads to max 3 per day.</p>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit photo</button>
+        <p id="submit-status" class="mono" style="margin-top:2px;"></p>
+      </form>
+    </div>
+
+    <script>
+      (function () {
+        var PAGE_SIZE = 16;
+        var grid = document.getElementById('gallery-grid');
+        var pagination = document.getElementById('gallery-pagination');
+        var allPhotos = [];
+        var currentPage = 1;
+
+        function renderGrid(photos) {
+          if (!photos.length) {
+            grid.innerHTML = '<p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">No photos yet, drop some into images/gallery/ on GitHub.</p>';
+            return;
+          }
+          grid.innerHTML = photos.map(function (p) {
+            var safeCaption = (p.caption || '').replace(/</g, '&lt;');
+            var nameHtml = p.name ? '<span class="g-name">By ' + p.name.replace(/</g, '&lt;') + '</span>' : '';
+            var captionHtml = (safeCaption || nameHtml) ? '<span class="g-caption">' + safeCaption + nameHtml + '</span>' : '';
+            return '<div class="gallery-slot filled">' +
+                     '<img src="images/gallery/' + p.file + '" alt="' + (safeCaption || 'MT3UK member build') + '" loading="lazy">' +
+                     captionHtml +
+                   '</div>';
+          }).join('');
+        }
+
+        function renderPagination(totalPages) {
+          if (totalPages <= 1) {
+            pagination.innerHTML = '';
+            return;
+          }
+          pagination.innerHTML =
+            '<button type="button" class="page-btn" id="gallery-prev"' + (currentPage === 1 ? ' disabled' : '') + '>&lsaquo; Prev</button>' +
+            '<span class="mono">Page ' + currentPage + ' of ' + totalPages + '</span>' +
+            '<button type="button" class="page-btn" id="gallery-next"' + (currentPage === totalPages ? ' disabled' : '') + '>Next &rsaquo;</button>';
+
+          var prevBtn = document.getElementById('gallery-prev');
+          var nextBtn = document.getElementById('gallery-next');
+          if (prevBtn) prevBtn.addEventListener('click', function () { goToPage(currentPage - 1); });
+          if (nextBtn) nextBtn.addEventListener('click', function () { goToPage(currentPage + 1); });
+        }
+
+        function goToPage(page) {
+          currentPage = page;
+          render();
+          grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function render() {
+          var totalPages = Math.max(1, Math.ceil(allPhotos.length / PAGE_SIZE));
+          currentPage = Math.min(Math.max(1, currentPage), totalPages);
+          var start = (currentPage - 1) * PAGE_SIZE;
+          renderGrid(allPhotos.slice(start, start + PAGE_SIZE));
+          renderPagination(totalPages);
+        }
+
+        window.mt3ukFetchJSON('images/gallery/manifest.json', null)
+          .then(function (photos) {
+            if (!photos) {
+              grid.innerHTML = '<p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">Gallery photos couldn\'t be loaded.</p>';
+              return;
+            }
+            allPhotos = photos;
+            render();
+          });
+      })();
+    </script>
+  </div>
+</section>
 
 <section class="shop-cta">
   <h2>Love These Builds?</h2>

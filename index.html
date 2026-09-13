@@ -1293,7 +1293,7 @@
       section.className = 'bf-slide';
       section.dataset.idx = String(idx);
       section.innerHTML =
-        '<img class="bf-slide-img" src="images/gallery/' + photo.file + '" alt="' + (safeCaption || 'MT3UK member build') + '" loading="lazy" draggable="false">' +
+        '<img class="bf-slide-img" src="images/gallery/' + photo.file.replace(/&/g, '&amp;') + '" alt="' + (safeCaption || 'MT3UK member build') + '" loading="lazy" draggable="false">' +
         '<div class="bf-scrim bf-scrim-top"></div>' +
         '<div class="bf-scrim bf-scrim-bottom"></div>' +
         '<button class="bf-like-hit" aria-label="Like this build" data-idx="' + idx + '"></button>' +
@@ -1607,7 +1607,7 @@
             var nameHtml = p.name ? '<span class="g-name">By ' + p.name.replace(/</g, '&lt;') + '</span>' : '';
             var captionHtml = (safeCaption || nameHtml) ? '<span class="g-caption">' + safeCaption + nameHtml + '</span>' : '';
             return '<div class="gallery-slot filled">' +
-                     '<img src="images/gallery/' + p.file + '" alt="' + (safeCaption || 'MT3UK member build') + '" loading="lazy">' +
+                     '<img src="images/gallery/' + p.file.replace(/&/g, '&amp;') + '" alt="' + (safeCaption || 'MT3UK member build') + '" loading="lazy">' +
                      captionHtml +
                    '</div>';
           }).join('');
@@ -2092,7 +2092,7 @@
         }
         grid.innerHTML = photos.map(function (p) {
           var safeCaption = p.caption.replace(/</g, '&lt;');
-          return '<img src="images/track-days/' + p.file + '" alt="' + safeCaption + '" loading="lazy">' +
+          return '<img src="images/track-days/' + p.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy">' +
                  '<span class="g-caption">' + safeCaption + '</span>';
         }).join('');
       }
@@ -2227,7 +2227,7 @@
           frame.innerHTML =
             '<div class="botm-media">' +
               '<span class="botm-badge">FEATURED TODAY</span>' +
-              '<img src="images/gallery/' + featured.file + '" alt="' + safeCaption + '" loading="lazy">' +
+              '<img src="images/gallery/' + featured.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy">' +
             '</div>' +
             '<div class="botm-body">' +
               '<span class="mono">TODAY\'S PICK</span>' +

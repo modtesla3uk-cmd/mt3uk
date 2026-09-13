@@ -91,7 +91,7 @@ def generate_sitemap():
     with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
         f.write('\n'.join(xml_lines))
     
-    print(f"✅ Sitemap generated: {OUTPUT_FILE}")
+    print(f"Sitemap generated: {OUTPUT_FILE}")
     print(f"   Pages: {len(PAGES)} entries")
     print(f"   Images: {len(images)} entries")
     print(f"   Total URLs: {len(images) + len(PAGES)}")

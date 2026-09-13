@@ -6,6 +6,8 @@ on:
     paths:
       - "images/gallery/**"
       - "images/track-days/**"
+      - "images/site/**"
+      - "*.html"
   workflow_dispatch: {}
 
 permissions:
@@ -38,12 +40,15 @@ jobs:
       - name: Regenerate track days manifest from images/track-days/
         run: python3 scripts/build_track_days_manifest.py
 
+      - name: Regenerate sitemap.xml
+        run: python3 generate_sitemap.py
+
       - name: Commit manifest and renamed photo changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add images/gallery/ images/track-days/
+          git add images/gallery/ images/track-days/ sitemap.xml
           if ! git diff --cached --quiet; then
-            git commit -m "Regenerate gallery and track days manifests"
+            git commit -m "Regenerate gallery and track days manifests, and sitemap"
             git push
           fi

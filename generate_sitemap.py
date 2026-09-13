@@ -14,6 +14,7 @@ DOMAIN = "https://mt3uk.com"
 OUTPUT_FILE = "sitemap.xml"
 IMAGE_DIRS = ["images/gallery", "images/track-days", "images/site"]
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
+PAGES = ["index.html", "shop.html", "contact.html", "track-day-prep.html"]
 
 def get_all_images():
     """Scan image directories and return list of image URLs"""
@@ -55,6 +56,19 @@ def generate_sitemap():
         '    <priority>1.0</priority>',
         '  </url>',
     ])
+
+    # Add other pages
+    for page in PAGES:
+        if page == "index.html":
+            continue
+        xml_lines.extend([
+            '  <url>',
+            f'    <loc>{DOMAIN}/{page}</loc>',
+            f'    <lastmod>{current_date}</lastmod>',
+            '    <changefreq>weekly</changefreq>',
+            '    <priority>0.8</priority>',
+            '  </url>',
+        ])
     
     # Add each image
     for img_url in images:
@@ -78,9 +92,9 @@ def generate_sitemap():
         f.write('\n'.join(xml_lines))
     
     print(f"✅ Sitemap generated: {OUTPUT_FILE}")
-    print(f"   Homepage: 1 entry")
+    print(f"   Pages: {len(PAGES)} entries")
     print(f"   Images: {len(images)} entries")
-    print(f"   Total URLs: {len(images) + 1}")
+    print(f"   Total URLs: {len(images) + len(PAGES)}")
 
 if __name__ == "__main__":
     generate_sitemap()

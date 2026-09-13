@@ -8,6 +8,8 @@ Run this before pushing to git: python generate_sitemap.py
 import os
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import quote
+from xml.sax.saxutils import escape
 
 # Configuration
 DOMAIN = "https://mt3uk.com"
@@ -29,7 +31,7 @@ def get_all_images():
                 if Path(file).suffix.lower() in ALLOWED_EXTENSIONS:
                     # Create URL path
                     file_path = os.path.join(root, file)
-                    url_path = file_path.replace("\\", "/")  # Windows compatibility
+                    url_path = quote(file_path.replace("\\", "/"))  # Windows compatibility + URL-encode
                     images.append(f"{DOMAIN}/{url_path}")
     
     return sorted(images)

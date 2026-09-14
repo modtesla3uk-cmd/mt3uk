@@ -107,6 +107,15 @@
     </image:image>
   </url>
   <url>
+    <loc>https://mt3uk.com/images/gallery/12-model-3-trackspec-oleh.jpg</loc>
+    <lastmod>2026-09-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://mt3uk.com/images/gallery/12-model-3-trackspec-oleh.jpg</image:loc>
+    </image:image>
+  </url>
+  <url>
     <loc>https://mt3uk.com/images/gallery/13-model-y-unicorn-pink.jpg</loc>
     <lastmod>2026-09-14</lastmod>
     <changefreq>monthly</changefreq>
@@ -386,60 +395,6 @@
     </image:image>
   </url>
   <url>
-    <loc>https://mt3uk.com/images/gallery/46-viper-model-3.jpeg</loc>
-    <lastmod>2026-09-14</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://mt3uk.com/images/gallery/46-viper-model-3.jpeg</image:loc>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://mt3uk.com/images/gallery/48-model-s-55d--by-oleh.jpeg</loc>
-    <lastmod>2026-09-14</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://mt3uk.com/images/gallery/48-model-s-55d--by-oleh.jpeg</image:loc>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://mt3uk.com/images/gallery/49-m3p--by-baz.jpeg</loc>
-    <lastmod>2026-09-14</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://mt3uk.com/images/gallery/49-m3p--by-baz.jpeg</image:loc>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://mt3uk.com/images/gallery/50-it-s-a-wrap--by-rich.jpg</loc>
-    <lastmod>2026-09-14</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://mt3uk.com/images/gallery/50-it-s-a-wrap--by-rich.jpg</image:loc>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://mt3uk.com/images/gallery/51-wheels-wheels-wheels--by-rich.jpg</loc>
-    <lastmod>2026-09-14</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://mt3uk.com/images/gallery/51-wheels-wheels-wheels--by-rich.jpg</image:loc>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://mt3uk.com/images/gallery/52-green-4-go--by-rich.jpg</loc>
-    <lastmod>2026-09-14</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://mt3uk.com/images/gallery/52-green-4-go--by-rich.jpg</image:loc>
-    </image:image>
-  </url>
-  <url>
     <loc>https://mt3uk.com/images/site/Pads_Carbotech_XP10.png</loc>
     <lastmod>2026-09-14</lastmod>
     <changefreq>monthly</changefreq>
@@ -608,15 +563,6 @@
     <priority>0.7</priority>
     <image:image>
       <image:loc>https://mt3uk.com/images/track-days/02-thruxton.jpg</image:loc>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://mt3uk.com/images/track-days/03-Cadwell%20Park%20with%205N%20%26%20M3.jpg</loc>
-    <lastmod>2026-09-14</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://mt3uk.com/images/track-days/03-Cadwell%20Park%20with%205N%20%26%20M3.jpg</image:loc>
     </image:image>
   </url>
 </urlset>

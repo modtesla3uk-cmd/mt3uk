@@ -20,7 +20,11 @@ date files; falls back to treating undated files as oldest.
 import json
 import re
 import subprocess
+from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
+
+UK_TZ = ZoneInfo("Europe/London")
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 GALLERY_DIR = REPO_ROOT / "images" / "gallery"
@@ -147,6 +151,9 @@ def main():
             entry["caption"] = caption
         if name:
             entry["name"] = name
+        # UK-local date the photo was added, used by the site to feature
+        # the latest upload and only swap it at UK midnight.
+        entry["added"] = datetime.fromtimestamp(e["added_ts"], tz=UK_TZ).date().isoformat() if e["added_ts"] else None
         manifest.append(entry)
 
     MANIFEST_PATH.write_text(json.dumps(manifest, indent=2) + "\n")

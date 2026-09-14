@@ -1121,6 +1121,25 @@
       return cache[url];
     };
   })();
+
+  // Picks the featured build: the latest upload, swapping only at UK
+  // midnight. If no new photo has been added since it was last featured,
+  // rotates through the next few most recent uploads instead of repeating
+  // the same "latest" photo every day.
+  window.mt3ukPickBuild = function (photos, featuredFile) {
+    if (featuredFile) {
+      var pinned = photos.find(function (p) { return p.file === featuredFile; });
+      if (pinned) return pinned;
+    }
+    if (!photos.length) return null;
+    var todayUK = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London' }).format(new Date());
+    var latest = photos[0];
+    if (latest.added === todayUK) return latest;
+    var poolSize = Math.min(6, photos.length - 1);
+    if (poolSize <= 0) return latest;
+    var dayIndex = Math.floor(Date.parse(todayUK + 'T00:00:00Z') / 86400000);
+    return photos[1 + (dayIndex % poolSize)];
+  };
 </script>
 
 <header>
@@ -1210,25 +1229,6 @@
     var caption = document.getElementById('hero-build-caption');
     if (!img || !caption) return;
 
-    function hashString(str) {
-      var hash = 5381;
-      for (var i = 0; i < str.length; i++) {
-        hash = ((hash << 5) + hash) + str.charCodeAt(i);
-        hash = hash & hash;
-      }
-      return Math.abs(hash);
-    }
-
-    function pickBuild(photos, featuredFile) {
-      if (featuredFile) {
-        var pinned = photos.find(function (p) { return p.file === featuredFile; });
-        if (pinned) return pinned;
-      }
-      var today = new Date();
-      var seed = today.getUTCFullYear() + '-' + (today.getUTCMonth() + 1) + '-' + today.getUTCDate();
-      return photos[hashString(seed) % photos.length];
-    }
-
     Promise.all([
       window.mt3ukFetchJSON('images/gallery/manifest.json', []),
       window.mt3ukFetchJSON('data/featured.json', {})
@@ -1237,7 +1237,7 @@
         var photos = results[0] || [];
         var featuredFile = (results[1] && results[1].file) || null;
         if (!photos.length) return;
-        var featured = pickBuild(photos, featuredFile);
+        var featured = window.mt3ukPickBuild(photos, featuredFile);
         img.src = 'images/gallery/' + featured.file;
         img.alt = featured.caption || 'MT3UK featured build';
         caption.textContent = featured.caption || 'Today\'s featured build';
@@ -1459,25 +1459,6 @@
       start();
     }
 
-    function hashString(str) {
-      var hash = 5381;
-      for (var i = 0; i < str.length; i++) {
-        hash = ((hash << 5) + hash) + str.charCodeAt(i);
-        hash = hash & hash;
-      }
-      return Math.abs(hash);
-    }
-
-    function pickBuildOfTheDay(photos, featuredFile) {
-      if (featuredFile) {
-        var pinned = photos.find(function (p) { return p.file === featuredFile; });
-        if (pinned) return pinned;
-      }
-      var today = new Date();
-      var seed = today.getUTCFullYear() + '-' + (today.getUTCMonth() + 1) + '-' + today.getUTCDate();
-      return photos[hashString(seed) % photos.length];
-    }
-
     Promise.all([
       window.mt3ukFetchJSON('images/gallery/manifest.json', []),
       window.mt3ukFetchJSON('data/featured.json', {})
@@ -1487,7 +1468,7 @@
         var featuredFile = (results[1] && results[1].file) || null;
         var ordered = photos;
         if (photos.length) {
-          var featured = pickBuildOfTheDay(photos, featuredFile);
+          var featured = window.mt3ukPickBuild(photos, featuredFile);
           var rest = photos.filter(function (p) { return p.file !== featured.file; });
           ordered = [featured].concat(rest);
         }
@@ -2192,25 +2173,6 @@
       var frame = document.getElementById('botm-frame');
       if (!frame) return;
 
-      function hashString(str) {
-        var hash = 5381;
-        for (var i = 0; i < str.length; i++) {
-          hash = ((hash << 5) + hash) + str.charCodeAt(i);
-          hash = hash & hash;
-        }
-        return Math.abs(hash);
-      }
-
-      function pickBuild(photos, featuredFile) {
-        if (featuredFile) {
-          var pinned = photos.find(function (p) { return p.file === featuredFile; });
-          if (pinned) return pinned;
-        }
-        var today = new Date();
-        var seed = today.getUTCFullYear() + '-' + (today.getUTCMonth() + 1) + '-' + today.getUTCDate();
-        return photos[hashString(seed) % photos.length];
-      }
-
       Promise.all([
         window.mt3ukFetchJSON('images/gallery/manifest.json', []),
         window.mt3ukFetchJSON('data/featured.json', {})
@@ -2222,7 +2184,7 @@
             frame.innerHTML = '<p class="mono" style="padding: 24px; color: var(--steel);">No builds yet, be the first to submit one.</p>';
             return;
           }
-          var featured = pickBuild(photos, featuredFile);
+          var featured = window.mt3ukPickBuild(photos, featuredFile);
           var safeCaption = featured.caption.replace(/</g, '&lt;');
           frame.innerHTML =
             '<div class="botm-media">' +

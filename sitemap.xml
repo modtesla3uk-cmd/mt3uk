@@ -512,6 +512,15 @@
     </image:image>
   </url>
   <url>
+    <loc>https://mt3uk.com/images/site/Tevo_Brace_Full%2BBolts.png</loc>
+    <lastmod>2026-09-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://mt3uk.com/images/site/Tevo_Brace_Full%2BBolts.png</image:loc>
+    </image:image>
+  </url>
+  <url>
     <loc>https://mt3uk.com/images/site/apple-touch-icon.png</loc>
     <lastmod>2026-09-14</lastmod>
     <changefreq>monthly</changefreq>
@@ -590,6 +599,24 @@
     <priority>0.7</priority>
     <image:image>
       <image:loc>https://mt3uk.com/images/site/mt3uk-wordmark-dark_backup.png</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://mt3uk.com/images/site/sticker_single.jpg</loc>
+    <lastmod>2026-09-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://mt3uk.com/images/site/sticker_single.jpg</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://mt3uk.com/images/site/tevo-logo-transparent.png</loc>
+    <lastmod>2026-09-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://mt3uk.com/images/site/tevo-logo-transparent.png</image:loc>
     </image:image>
   </url>
   <url>

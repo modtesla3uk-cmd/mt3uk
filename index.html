@@ -894,6 +894,8 @@
     margin-bottom: 12px;
   }
   .botm-frame .botm-body p { color: var(--ink-2); font-size: 0.92rem; margin-bottom: 20px; max-width: 40ch; }
+  .botm-frame .botm-voted-note { color: var(--orange); font-weight: 600; font-size: 0.92rem; margin-bottom: 16px; }
+  .botm-frame .botm-voted-note a { color: inherit; text-decoration: underline; }
 
   .vote-frame {
     display: grid;
@@ -2307,8 +2309,8 @@
           var featured = window.mt3ukPickBuild(photos, featuredFile);
           var safeCaption = featured.caption.replace(/</g, '&lt;');
           var voteCount = (results[1] && results[1].file === featured.file && typeof results[1].votes === 'number') ? results[1].votes : null;
-          var voteLine = voteCount !== null ? '<span class="mono" style="display: block; margin-bottom: 12px; color: var(--orange);">WON WITH ' + voteCount + (voteCount === 1 ? ' VOTE' : ' VOTES') + '</span>' : '';
-          var votedByBadge = voteCount !== null ? '<span class="botm-voted-by">VOTED BY ' + voteCount + (voteCount === 1 ? ' PERSON' : ' PEOPLE') + '</span>' : '';
+          var voteLine = voteCount !== null ? '<p class="botm-voted-note">Voted No.1 by you. <a href="#vote-frame">Vote for tomorrow below</a></p>' : '';
+          var votedByBadge = voteCount !== null ? '<span class="botm-voted-by">VOTED BY YOU</span>' : '';
           frame.innerHTML =
             '<div class="botm-media">' +
               '<span class="botm-badge">FEATURED TODAY</span>' +
@@ -2608,6 +2610,14 @@
         localStorage.setItem(STORAGE_DISMISSED, '1');
       });
     })();
+  </script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('/sw.js');
+      });
+    }
   </script>
 
 </body>

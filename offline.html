@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>You're offline – MT3UK</title>
+<link rel="icon" type="image/x-icon" href="images/site/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="images/site/apple-touch-icon.png">
+<meta name="theme-color" content="#16233d">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@700;800&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@500&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #f3f1ea;
+    color: #16233d;
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 28px;
+  }
+  .offline-wrap { max-width: 420px; }
+  .mono {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    color: #e8542a;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 12px;
+  }
+  h1 {
+    font-family: 'Archivo Expanded', sans-serif;
+    font-weight: 800;
+    font-size: 1.8rem;
+    margin-bottom: 12px;
+  }
+  p { color: #4a6491; line-height: 1.55; margin-bottom: 24px; }
+  button {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    background: #16233d;
+    color: #f3f1ea;
+    border: 1px solid #16233d;
+    padding: 12px 24px;
+    cursor: pointer;
+  }
+  button:hover { background: #e8542a; border-color: #e8542a; }
+</style>
+</head>
+<body>
+  <div class="offline-wrap">
+    <span class="mono">No connection</span>
+    <h1>You're offline</h1>
+    <p>MT3UK couldn't load this page. Check your connection and try again &mdash; anything you've already visited may still be available.</p>
+    <button type="button" onclick="location.reload()">Try again</button>
+  </div>
+</body>
+</html>

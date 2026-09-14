@@ -10,6 +10,11 @@
 <link rel="icon" type="image/png" sizes="32x32" href="images/site/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="images/site/favicon-16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="images/site/apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#e8542a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MT3UK">
 <meta property="og:type" content="website">
 <meta property="og:title" content="MT3UK: Modified Tesla Owners">
 <meta property="og:description" content="MT3UK is the global community for modified Tesla owners: wraps, wheels, suspension, stance and track builds. Browse the gallery, join the Facebook group and grab MT3UK merch.">
@@ -912,7 +917,7 @@
   .vote-card .vote-caption { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; letter-spacing: 0.03em; color: var(--ink); }
   .vote-card .vote-count { font-size: 1rem; font-weight: 600; color: var(--ink); }
   .vote-card.leading .vote-count { font-weight: 800; color: var(--orange); }
-  .vote-countdown { font-family: 'IBM Plex Mono', monospace; font-size: 0.85em; color: var(--orange); }
+  .vote-countdown { font-family: 'IBM Plex Mono', monospace; font-size: 0.85em; font-weight: 700; color: var(--orange); }
   .vote-card .vote-btn {
     margin-top: auto;
     font-family: 'IBM Plex Mono', monospace;
@@ -1157,6 +1162,43 @@
   :focus-visible {
     outline: 2px solid var(--orange);
     outline-offset: 2px;
+  }
+
+  .a2hs-banner {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: -120px;
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    max-width: 480px;
+    margin: 0 auto;
+    background: var(--ink);
+    color: var(--paper);
+    border: 1px solid var(--orange);
+    padding: 14px 18px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.85rem;
+    transition: bottom .3s ease;
+  }
+  .a2hs-banner.show { bottom: 16px; }
+  .a2hs-banner .a2hs-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .a2hs-banner .a2hs-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--paper);
+  }
+  .a2hs-banner .a2hs-install { background: var(--orange); color: var(--paper); padding: 8px 12px; }
+  .a2hs-banner .a2hs-close { font-size: 1.2rem; line-height: 1; padding: 0 4px; }
+  @media (max-width: 480px) {
+    .a2hs-banner { flex-direction: column; align-items: flex-start; }
   }
 </style>
 </head>
@@ -2490,6 +2532,81 @@
           });
         })
         .catch(function () {});
+    })();
+  </script>
+
+  <script>
+    (function () {
+      var STORAGE_VISITS = 'mt3ukVisitCount';
+      var STORAGE_DISMISSED = 'mt3ukA2HSDismissed';
+      var SESSION_FLAG = 'mt3ukVisitCounted';
+
+      function isStandalone() {
+        return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      }
+
+      if (isStandalone() || localStorage.getItem(STORAGE_DISMISSED) === '1') return;
+
+      if (!sessionStorage.getItem(SESSION_FLAG)) {
+        sessionStorage.setItem(SESSION_FLAG, '1');
+        var visits = parseInt(localStorage.getItem(STORAGE_VISITS) || '0', 10) + 1;
+        localStorage.setItem(STORAGE_VISITS, String(visits));
+      }
+      var visitCount = parseInt(localStorage.getItem(STORAGE_VISITS) || '0', 10);
+      if (visitCount < 2) return;
+
+      var deferredPrompt = null;
+      var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+      var bannerShown = false;
+
+      function dismiss(banner) {
+        banner.classList.remove('show');
+        setTimeout(function () { banner.remove(); }, 300);
+        localStorage.setItem(STORAGE_DISMISSED, '1');
+      }
+
+      function showBanner() {
+        if (bannerShown) return;
+        bannerShown = true;
+        var banner = document.createElement('div');
+        banner.className = 'a2hs-banner';
+        banner.innerHTML =
+          '<span class="a2hs-text">' + (isIOS
+            ? 'Add MT3UK to your Home Screen: tap Share, then \'Add to Home Screen\'.'
+            : 'Install MT3UK for quicker access to builds and voting.') + '</span>' +
+          '<span class="a2hs-actions">' +
+            (isIOS ? '' : '<button type="button" class="a2hs-btn a2hs-install">Install</button>') +
+            '<button type="button" class="a2hs-btn a2hs-close" aria-label="Dismiss">&times;</button>' +
+          '</span>';
+        document.body.appendChild(banner);
+        requestAnimationFrame(function () { banner.classList.add('show'); });
+
+        var closeBtn = banner.querySelector('.a2hs-close');
+        if (closeBtn) closeBtn.addEventListener('click', function () { dismiss(banner); });
+
+        var installBtn = banner.querySelector('.a2hs-install');
+        if (installBtn) {
+          installBtn.addEventListener('click', function () {
+            if (!deferredPrompt) { dismiss(banner); return; }
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.finally(function () { dismiss(banner); });
+          });
+        }
+      }
+
+      if (isIOS) {
+        showBanner();
+      } else {
+        window.addEventListener('beforeinstallprompt', function (e) {
+          e.preventDefault();
+          deferredPrompt = e;
+          showBanner();
+        });
+      }
+
+      window.addEventListener('appinstalled', function () {
+        localStorage.setItem(STORAGE_DISMISSED, '1');
+      });
     })();
   </script>
 

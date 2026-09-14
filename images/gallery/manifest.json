@@ -1,5 +1,11 @@
 [
   {
+    "file": "56-team-red--by-mark-smith.jpg",
+    "caption": "TEAM RED",
+    "name": "MARK SMITH",
+    "added": "2026-09-14"
+  },
+  {
     "file": "57-the-orange-microwave--by-charlotte-downing.jpeg",
     "caption": "THE ORANGE MICROWAVE",
     "name": "CHARLOTTE DOWNING",
@@ -260,11 +266,5 @@
     "file": "09-model-3-trackday.jpg",
     "caption": "MODEL 3 TRACKDAY",
     "added": "2026-09-04"
-  },
-  {
-    "file": "56-team-red--by-mark-smith.jpg",
-    "caption": "TEAM RED",
-    "name": "MARK SMITH",
-    "added": null
   }
 ]

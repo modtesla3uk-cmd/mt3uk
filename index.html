@@ -1133,12 +1133,17 @@
     }
     if (!photos.length) return null;
     var todayUK = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London' }).format(new Date());
-    var latest = photos[0];
-    if (latest.added === todayUK) return latest;
-    var poolSize = Math.min(6, photos.length - 1);
+    // ignore anything uploaded today, so a mid-day upload can't swap the
+    // feature until the following UK midnight
+    var eligible = photos.filter(function (p) { return !p.added || p.added < todayUK; });
+    if (!eligible.length) eligible = photos;
+    var latest = eligible[0];
+    var yesterdayUK = new Date(Date.parse(todayUK + 'T00:00:00Z') - 86400000).toISOString().slice(0, 10);
+    if (latest.added === yesterdayUK) return latest;
+    var poolSize = Math.min(6, eligible.length - 1);
     if (poolSize <= 0) return latest;
     var dayIndex = Math.floor(Date.parse(todayUK + 'T00:00:00Z') / 86400000);
-    return photos[1 + (dayIndex % poolSize)];
+    return eligible[1 + (dayIndex % poolSize)];
   };
 </script>
 

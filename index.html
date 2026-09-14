@@ -624,6 +624,8 @@
     max-width: 340px;
   }
   .hero-media-note a { color: var(--orange); }
+  .hero-vote-countdown { font-size: 0.78rem; color: var(--steel); margin: 0; }
+  .hero-vote-countdown strong { color: var(--orange); font-weight: 700; }
   .bf-progress {
     position: absolute;
     top: 12px; left: 14px; right: 14px;
@@ -1264,6 +1266,7 @@
             <a href="#vote-frame" class="btn btn-secondary">Vote for Build</a>
             <a href="#build-feed" class="btn btn-secondary">Build Feed</a>
           </div>
+          <p class="hero-vote-countdown mono" id="hero-vote-countdown"></p>
         </div>
         <div class="hero-stats">
           <div><strong class="member-count"></strong><span>MEMBERS</span></div>
@@ -2457,7 +2460,8 @@
         });
 
       var countdownEl = document.getElementById('vote-countdown');
-      if (countdownEl) {
+      var heroCountdownEl = document.getElementById('hero-vote-countdown');
+      if (countdownEl || heroCountdownEl) {
         var updateCountdown = function () {
           var now = new Date();
           var nextMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
@@ -2465,7 +2469,9 @@
           var hours = Math.floor(msLeft / 3600000);
           var minutes = Math.floor((msLeft % 3600000) / 60000);
           var seconds = Math.floor((msLeft % 60000) / 1000);
-          countdownEl.textContent = '(' + String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0') + ' remaining)';
+          var timeStr = String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+          if (countdownEl) countdownEl.textContent = '(' + timeStr + ' remaining)';
+          if (heroCountdownEl) heroCountdownEl.innerHTML = 'Voting resets in <strong>' + timeStr + '</strong>';
         };
         updateCountdown();
         setInterval(updateCountdown, 1000);

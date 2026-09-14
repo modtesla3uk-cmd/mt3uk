@@ -876,6 +876,44 @@
   }
   .botm-frame .botm-body p { color: var(--ink-2); font-size: 0.92rem; margin-bottom: 20px; max-width: 40ch; }
 
+  .vote-frame {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border: 1px solid var(--ink);
+    margin-top: 32px;
+  }
+  @media (max-width: 900px) { .vote-frame { grid-template-columns: repeat(2, 1fr); } }
+  .vote-card {
+    background: var(--paper-2);
+    border: 1px dashed var(--steel);
+    margin: -1px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .vote-card.voted { border: 1px solid var(--orange); }
+  .vote-card .vote-media { aspect-ratio: 1/1; overflow: hidden; }
+  .vote-card .vote-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .vote-card .vote-body { padding: 14px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .vote-card .vote-caption { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; letter-spacing: 0.03em; color: var(--ink); }
+  .vote-card .vote-count { font-size: 0.78rem; color: var(--steel); }
+  .vote-card .vote-btn {
+    margin-top: auto;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+    padding: 8px 10px;
+    border: 1px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    transition: background .2s ease, color .2s ease;
+  }
+  .vote-card .vote-btn:hover:not(:disabled) { background: var(--ink); color: var(--paper); }
+  .vote-card .vote-btn:disabled { cursor: default; opacity: 0.7; }
+  .vote-card.voted .vote-btn { background: var(--orange); border-color: var(--orange); color: var(--paper); }
+
   .track-day-frame {
     max-width: 640px;
     margin: 0 auto;
@@ -1496,6 +1534,16 @@
     </div>
     <div class="botm-frame" id="botm-frame">
       <p class="mono" style="padding: 24px; color: var(--steel);">Loading featured build…</p>
+    </div>
+    <div class="section-head" style="margin-top: 48px;">
+      <div>
+        <span class="section-num">02B / VOTE</span>
+        <h2>Vote for tomorrow's featured build</h2>
+      </div>
+      <p>Every build uploaded in the last 48 hours is up for a vote. Most votes by UK midnight gets featured next.</p>
+    </div>
+    <div class="vote-frame" id="vote-frame">
+      <p class="mono" style="padding: 24px; color: var(--steel);">Loading builds open for voting…</p>
     </div>
   </div>
 </section>
@@ -2224,6 +2272,67 @@
         })
         .catch(function () {
           frame.innerHTML = '<p class="mono" style="padding: 24px; color: var(--steel);">Featured build couldn\'t be loaded.</p>';
+        });
+    })();
+  </script>
+
+  <script>
+    (function () {
+      var frame = document.getElementById('vote-frame');
+      if (!frame) return;
+
+      var VOTE_ENDPOINT = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
+      var voterId = localStorage.getItem('mt3ukVoterId');
+      if (!voterId) {
+        voterId = window.crypto && window.crypto.randomUUID ? window.crypto.randomUUID() : ('v-' + Date.now() + '-' + Math.random().toString(16).slice(2));
+        localStorage.setItem('mt3ukVoterId', voterId);
+      }
+
+      function render(data) {
+        if (!data || !data.candidates || !data.candidates.length) {
+          frame.innerHTML = '<p class="mono" style="padding: 24px; color: var(--steel);">No builds open for voting right now, check back soon.</p>';
+          return;
+        }
+        frame.innerHTML = data.candidates.map(function (c) {
+          var safeCaption = (c.caption || 'MT3UK build').replace(/</g, '&lt;');
+          var isVoted = data.voted === c.file;
+          return (
+            '<div class="vote-card' + (isVoted ? ' voted' : '') + '" data-file="' + c.file.replace(/"/g, '&quot;') + '">' +
+              '<div class="vote-media"><img src="images/gallery/' + c.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy"></div>' +
+              '<div class="vote-body">' +
+                '<span class="vote-caption">' + safeCaption + '</span>' +
+                '<span class="vote-count">' + c.votes + (c.votes === 1 ? ' vote' : ' votes') + '</span>' +
+                '<button type="button" class="vote-btn"' + (isVoted ? ' disabled' : '') + '>' + (isVoted ? 'Voted' : 'Vote for this build') + '</button>' +
+              '</div>' +
+            '</div>'
+          );
+        }).join('');
+
+        frame.querySelectorAll('.vote-btn').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            var card = btn.closest('.vote-card');
+            var file = card.getAttribute('data-file');
+            btn.disabled = true;
+            fetch(VOTE_ENDPOINT + '/vote', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'X-Voter-Id': voterId },
+              body: JSON.stringify({ file: file })
+            })
+              .then(function (res) { return res.json(); })
+              .then(function (result) {
+                if (result && result.success) render(result);
+                else btn.disabled = false;
+              })
+              .catch(function () { btn.disabled = false; });
+          });
+        });
+      }
+
+      fetch(VOTE_ENDPOINT + '/votes', { headers: { 'X-Voter-Id': voterId } })
+        .then(function (res) { return res.json(); })
+        .then(render)
+        .catch(function () {
+          frame.innerHTML = '<p class="mono" style="padding: 24px; color: var(--steel);">Voting couldn\'t be loaded.</p>';
         });
     })();
   </script>

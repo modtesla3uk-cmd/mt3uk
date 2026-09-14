@@ -139,9 +139,9 @@
     white-space: nowrap;
   }
   .nav-sublink:hover { opacity: 0.65; }
-  .nav-link-shop, .nav-sublink-new { display: inline-flex; align-items: center; gap: 6px; }
+  .nav-sublink-new { display: inline-flex; align-items: center; gap: 6px; }
 
-  .nav-link-shop::after, .nav-sublink-new::after {
+  .nav-sublink-new::after {
     content: 'NEW';
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.62rem;
@@ -260,7 +260,7 @@
       background: rgba(22,35,61,0.03);
     }
     .nav-item.open .nav-dropdown { display: block; }
-    .nav-sublink {
+    .navlinks a.nav-sublink {
       padding: 12px 16px 12px 44px;
       border-bottom: 1px solid rgba(22,35,61,0.12);
     }
@@ -438,6 +438,7 @@
   }
   .section-head h2 { font-size: clamp(1.7rem, 3.2vw, 2.3rem); max-width: 20ch; }
   .section-head p { max-width: 40ch; color: var(--steel); font-size: 0.95rem; }
+  @media (max-width: 480px) { .vote-heading { max-width: none; white-space: nowrap; font-size: clamp(1.2rem, 6vw, 1.7rem); } }
 
   /* ---------- ABOUT ---------- */
   .about-grid {
@@ -862,6 +863,17 @@
     background: var(--orange);
     padding: 5px 9px;
   }
+  .botm-frame .botm-voted-by {
+    position: absolute;
+    bottom: 14px;
+    left: 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.04em;
+    color: var(--paper);
+    background: rgba(22,35,61,0.7);
+    padding: 5px 9px;
+  }
   .botm-frame .botm-body {
     padding: 32px;
     display: flex;
@@ -878,12 +890,11 @@
 
   .vote-frame {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 0;
     border: 1px solid var(--ink);
     margin-top: 32px;
   }
-  @media (max-width: 900px) { .vote-frame { grid-template-columns: repeat(2, 1fr); } }
   .vote-card {
     background: var(--paper-2);
     border: 1px dashed var(--steel);
@@ -1193,17 +1204,18 @@
         <a href="#gallery" class="nav-link">Gallery</a>
         <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Gallery submenu">&#9660;</button>
         <div class="nav-dropdown">
-          <a href="#build-of-the-day" class="nav-sublink nav-sublink-new">Featured Build</a>
-          <a href="#build-feed" class="nav-sublink nav-sublink-new">Build Feed</a>
-          <a href="#gallery-upload" class="nav-sublink nav-sublink-new">Upload Image</a>
+          <a href="#build-of-the-day" class="nav-sublink">Featured Build</a>
+          <a href="#vote-frame" class="nav-sublink nav-sublink-new">Vote for Build</a>
+          <a href="#build-feed" class="nav-sublink">Build Feed</a>
+          <a href="#gallery-upload" class="nav-sublink">Upload Image</a>
         </div>
       </div>
       <div class="nav-item">
-        <a href="shop.html" class="nav-link nav-link-shop">Shop</a>
+        <a href="shop.html" class="nav-link">Shop</a>
         <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Shop submenu">&#9660;</button>
         <div class="nav-dropdown">
-          <a href="shop.html#merch" class="nav-sublink nav-sublink-new">Merch</a>
-          <a href="shop.html#upgrades" class="nav-sublink nav-sublink-new">Upgrade / Parts</a>
+          <a href="shop.html#merch" class="nav-sublink">Merch</a>
+          <a href="shop.html#upgrades" class="nav-sublink">Upgrade / Parts</a>
         </div>
       </div>
       <a href="#events" class="nav-link">Events</a>
@@ -1212,10 +1224,16 @@
         <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Track Days submenu">&#9660;</button>
         <div class="nav-dropdown">
           <a href="#track-day-photos" class="nav-sublink">Photos</a>
-          <a href="track-day-prep.html" class="nav-sublink nav-sublink-new">Prep</a>
+          <a href="track-day-prep.html" class="nav-sublink">Prep</a>
         </div>
       </div>
-      <a href="#about" class="nav-link active">About</a>
+      <div class="nav-item">
+        <a href="#about" class="nav-link active">About</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle About submenu">&#9660;</button>
+        <div class="nav-dropdown">
+          <a href="https://www.facebook.com/share/g/1EnNkFvxr7/" class="nav-sublink" target="_blank" rel="noopener">Join The Facebook Group</a>
+        </div>
+      </div>
       <a href="#faq" class="nav-link">FAQs</a>
       <div class="nav-item">
         <a href="contact.html" class="nav-link">Contact</a>
@@ -1241,9 +1259,9 @@
         <div class="hero-cta-stack">
           <div class="hero-ctas">
             <a href="#build-of-the-day" class="btn btn-primary">Featured build</a>
+            <a href="#vote-frame" class="btn btn-secondary">Vote for Build</a>
             <a href="#build-feed" class="btn btn-secondary">Build Feed</a>
           </div>
-          <a href="https://www.facebook.com/share/g/1EnNkFvxr7/" class="btn btn-join-community" target="_blank" rel="noopener">Join The Facebook Group</a>
         </div>
         <div class="hero-stats">
           <div><strong class="member-count"></strong><span>MEMBERS</span></div>
@@ -1538,38 +1556,12 @@
     <div class="section-head" style="margin-top: 48px;">
       <div>
         <span class="section-num">02B / VOTE</span>
-        <h2>Vote for tomorrow's featured build</h2>
+        <h2 class="vote-heading">Vote for your favourite build</h2>
       </div>
-      <p>Every build uploaded in the last 48 hours is up for a vote. Most votes by UK midnight gets featured next.</p>
+      <p>A selection of recently uploaded builds can be voted on to be featured as 'Today's featured build'. This resets at midnight UK time so get your votes in!</p>
     </div>
     <div class="vote-frame" id="vote-frame">
       <p class="mono" style="padding: 24px; color: var(--steel);">Loading builds open for voting…</p>
-    </div>
-  </div>
-</section>
-
-<section id="about">
-  <div class="wrap">
-    <div class="section-head">
-      <div>
-        <span class="section-num">03 / ABOUT</span>
-        <h2>Built by owners, for owners</h2>
-      </div>
-    </div>
-    <div class="about-grid">
-      <div>
-        <p>MT3UK started as a small group of Tesla owners comparing notes on wheels, wraps and suspension setups - the kind of honest, hands-on advice you don't get in a showroom. It's grown into one of the largest communities for modified Tesla owners.</p>
-        <p>Whatever you're driving (Model S, 3, X or Y) and whatever stage your build is at, from a first set of wheels to a full track setup, you'll find people in the group who've done it, are doing it, or want to help you get there.</p>
-        <p>We keep the group free from bots, spam and probably most importantly "negativity" with a group of trusted admins on hand. Meet-ups across the UK and beyond and a shared respect for doing mods properly.</p>
-      </div>
-      <div class="specs">
-        <div class="spec-row"><span>MEMBERS</span><span class="member-count"></span></div>
-        <div class="spec-row"><span>COVERAGE</span><span>GLOBAL</span></div>
-        <div class="spec-row"><span>MODELS</span><span>S / 3 / X / Y</span></div>
-        <div class="spec-row"><span>PLATFORM</span><span>Facebook Group</span></div>
-        <div class="spec-row"><span>ACTIVITY</span><span>Daily threads</span></div>
-        <div class="spec-row"><span>FOCUS</span><span>Wraps · Wheels · Suspension · Track</span></div>
-      </div>
     </div>
   </div>
 </section>
@@ -1695,6 +1687,33 @@
   <h2>Love These Builds?</h2>
   <p>Show your support with MT3UK merch.</p>
   <a href="shop.html" class="nav-cta nav-cta-shop">Shop Now</a>
+</section>
+
+<section id="about">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="section-num">03 / ABOUT</span>
+        <h2>Built by owners, for owners</h2>
+      </div>
+    </div>
+    <div class="about-grid">
+      <div>
+        <p>MT3UK started as a small group of Tesla owners comparing notes on wheels, wraps and suspension setups - the kind of honest, hands-on advice you don't get in a showroom. It's grown into one of the largest communities for modified Tesla owners.</p>
+        <p>Whatever you're driving (Model S, 3, X or Y) and whatever stage your build is at, from a first set of wheels to a full track setup, you'll find people in the group who've done it, are doing it, or want to help you get there.</p>
+        <p>We keep the group free from bots, spam and probably most importantly "negativity" with a group of trusted admins on hand. Meet-ups across the UK and beyond and a shared respect for doing mods properly.</p>
+        <a href="https://www.facebook.com/share/g/1EnNkFvxr7/" class="btn btn-join-community" target="_blank" rel="noopener">Join The Facebook Group</a>
+      </div>
+      <div class="specs">
+        <div class="spec-row"><span>MEMBERS</span><span class="member-count"></span></div>
+        <div class="spec-row"><span>COVERAGE</span><span>GLOBAL</span></div>
+        <div class="spec-row"><span>MODELS</span><span>S / 3 / X / Y</span></div>
+        <div class="spec-row"><span>PLATFORM</span><span>Facebook Group</span></div>
+        <div class="spec-row"><span>ACTIVITY</span><span>Daily threads</span></div>
+        <div class="spec-row"><span>FOCUS</span><span>Wraps · Wheels · Suspension · Track</span></div>
+      </div>
+    </div>
+  </div>
 </section>
 
 <section id="events">
@@ -1853,7 +1872,7 @@
   <script>
     (function () {
         var style = document.createElement('style');
-        style.textContent = '.gallery-slot.filled img { cursor: zoom-in; } .lightbox { position: fixed; inset: 0; background: rgba(22,35,61,0.94); display: none; align-items: center; justify-content: center; flex-direction: column; z-index: 200; padding: 40px 20px; } .lightbox.open { display: flex; } .lightbox-img { max-width: min(92vw, 1100px); max-height: 78vh; object-fit: contain; border: 1px solid rgba(243,241,234,0.25); } .lightbox-caption { margin-top: 16px; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; letter-spacing: 0.04em; color: var(--paper); } .lightbox-close { position: absolute; top: 22px; right: 28px; background: transparent; border: 1px solid var(--paper); color: var(--paper); width: 40px; height: 40px; font-size: 1.4rem; line-height: 1; cursor: pointer; } .lightbox-close:hover { background: var(--orange); border-color: var(--orange); } .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(22,35,61,0.6); border: 1px solid var(--paper); color: var(--paper); width: 46px; height: 46px; font-size: 1.6rem; line-height: 1; cursor: pointer; } .lightbox-nav:hover { background: var(--orange); border-color: var(--orange); } .lightbox-prev { left: 20px; } .lightbox-next { right: 20px; } @media (max-width: 700px) { .lightbox-nav { width: 38px; height: 38px; font-size: 1.3rem; } .lightbox-prev { left: 8px; } .lightbox-next { right: 8px; } } @media (max-width: 600px) { .lightbox-close { top: 14px; right: 14px; width: 36px; height: 36px; } }';
+        style.textContent = '.gallery-slot.filled img { cursor: zoom-in; } .lightbox { position: fixed; inset: 0; background: rgba(22,35,61,0.94); display: none; align-items: center; justify-content: center; flex-direction: column; z-index: 200; padding: 40px 20px; } .lightbox.open { display: flex; } .lightbox-img { max-width: min(92vw, 1100px); max-height: 78vh; object-fit: contain; border: 1px solid rgba(243,241,234,0.25); } .lightbox-caption { margin-top: 16px; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; letter-spacing: 0.04em; color: var(--paper); } .lightbox-close { position: absolute; top: 22px; right: 28px; background: transparent; border: 1px solid var(--paper); color: var(--paper); width: 40px; height: 40px; font-size: 1.4rem; line-height: 1; cursor: pointer; } .lightbox-close:hover { background: var(--orange); border-color: var(--orange); } .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(22,35,61,0.6); border: 1px solid var(--paper); color: var(--paper); width: 46px; height: 46px; font-size: 1.6rem; line-height: 1; cursor: pointer; } .lightbox-nav:hover { background: var(--orange); border-color: var(--orange); } .lightbox-prev { left: 20px; } .lightbox-next { right: 20px; } @media (max-width: 700px) { .lightbox-nav { width: 38px; height: 38px; font-size: 1.3rem; } .lightbox-prev { left: 8px; } .lightbox-next { right: 8px; } } @media (max-width: 600px) { .lightbox-close { top: 14px; right: 14px; width: 36px; height: 36px; } } .lightbox-vote { display: none; margin-top: 16px; align-items: center; gap: 14px; } .lightbox.open[data-mode="vote"] .lightbox-vote { display: flex; } .lightbox-vote-count { font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; letter-spacing: 0.04em; color: var(--paper); } .lightbox-vote-btn { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; letter-spacing: 0.04em; padding: 9px 16px; border: 1px solid var(--paper); background: transparent; color: var(--paper); cursor: pointer; transition: background .2s ease, color .2s ease; } .lightbox-vote-btn:hover:not(:disabled) { background: var(--orange); border-color: var(--orange); } .lightbox-vote-btn:disabled { cursor: default; opacity: 0.7; background: var(--orange); border-color: var(--orange); }';
         document.head.appendChild(style);
 
         var lightbox = document.createElement('div');
@@ -1862,7 +1881,7 @@
         lightbox.setAttribute('role', 'dialog');
         lightbox.setAttribute('aria-modal', 'true');
         lightbox.setAttribute('aria-hidden', 'true');
-        lightbox.innerHTML = '<button class="lightbox-close" aria-label="Close">&times;</button><button class="lightbox-nav lightbox-prev" aria-label="Previous photo">&lsaquo;</button><button class="lightbox-nav lightbox-next" aria-label="Next photo">&rsaquo;</button><img class="lightbox-img" src="" alt=""><div class="lightbox-caption"></div>';
+        lightbox.innerHTML = '<button class="lightbox-close" aria-label="Close">&times;</button><button class="lightbox-nav lightbox-prev" aria-label="Previous photo">&lsaquo;</button><button class="lightbox-nav lightbox-next" aria-label="Next photo">&rsaquo;</button><img class="lightbox-img" src="" alt=""><div class="lightbox-caption"></div><div class="lightbox-vote"><span class="lightbox-vote-count"></span><button type="button" class="lightbox-vote-btn">Vote for this build</button></div>';
         document.body.appendChild(lightbox);
 
         var lightboxImg = lightbox.querySelector('.lightbox-img');
@@ -2239,14 +2258,19 @@
           }
           var featured = window.mt3ukPickBuild(photos, featuredFile);
           var safeCaption = featured.caption.replace(/</g, '&lt;');
+          var voteCount = (results[1] && results[1].file === featured.file && typeof results[1].votes === 'number') ? results[1].votes : null;
+          var voteLine = voteCount !== null ? '<span class="mono" style="display: block; margin-bottom: 12px; color: var(--orange);">WON WITH ' + voteCount + (voteCount === 1 ? ' VOTE' : ' VOTES') + '</span>' : '';
+          var votedByBadge = voteCount !== null ? '<span class="botm-voted-by">VOTED BY ' + voteCount + (voteCount === 1 ? ' PERSON' : ' PEOPLE') + '</span>' : '';
           frame.innerHTML =
             '<div class="botm-media">' +
               '<span class="botm-badge">FEATURED TODAY</span>' +
               '<img src="images/gallery/' + featured.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy">' +
+              votedByBadge +
             '</div>' +
             '<div class="botm-body">' +
               '<span class="mono">TODAY\'S PICK</span>' +
               '<h3 class="botm-caption">' + safeCaption + '</h3>' +
+              voteLine +
               '<p>A build from the gallery, picked fresh each day. Get your build added and it could be featured here next.</p>' +
               '<a href="#gallery-upload" class="btn btn-secondary">Submit your build</a>' +
             '</div>';
@@ -2288,7 +2312,99 @@
         localStorage.setItem('mt3ukVoterId', voterId);
       }
 
+      var lightbox = document.getElementById('lightbox');
+      var lightboxImg = lightbox ? lightbox.querySelector('.lightbox-img') : null;
+      var lightboxCaption = lightbox ? lightbox.querySelector('.lightbox-caption') : null;
+      var lightboxPrev = lightbox ? lightbox.querySelector('.lightbox-prev') : null;
+      var lightboxNext = lightbox ? lightbox.querySelector('.lightbox-next') : null;
+      var lightboxVoteCount = lightbox ? lightbox.querySelector('.lightbox-vote-count') : null;
+      var lightboxVoteBtn = lightbox ? lightbox.querySelector('.lightbox-vote-btn') : null;
+      var latestData = null;
+      var currentVoteIndex = -1;
+
+      function castVote(file, onDone) {
+        fetch(VOTE_ENDPOINT + '/vote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Voter-Id': voterId },
+          body: JSON.stringify({ file: file })
+        })
+          .then(function (res) { return res.json(); })
+          .then(function (result) {
+            if (result && result.success) render(result);
+            onDone();
+          })
+          .catch(function () { onDone(); });
+      }
+
+      function updateLightboxVote() {
+        if (!lightbox || !latestData || currentVoteIndex < 0) return;
+        var c = latestData.candidates[currentVoteIndex];
+        if (!c) return;
+        var isVoted = latestData.voted === c.file;
+        if (lightboxVoteCount) lightboxVoteCount.textContent = c.votes + (c.votes === 1 ? ' vote' : ' votes');
+        if (lightboxVoteBtn) {
+          lightboxVoteBtn.disabled = isVoted;
+          lightboxVoteBtn.textContent = isVoted ? 'Voted' : 'Vote for this build';
+        }
+      }
+
+      function showVoteAt(index) {
+        if (!lightbox || !latestData || !latestData.candidates.length) return;
+        var candidates = latestData.candidates;
+        currentVoteIndex = (index + candidates.length) % candidates.length;
+        var c = candidates[currentVoteIndex];
+        var safeCaption = c.caption || 'MT3UK build';
+        if (lightboxImg) { lightboxImg.src = 'images/gallery/' + c.file; lightboxImg.alt = safeCaption; }
+        if (lightboxCaption) lightboxCaption.textContent = safeCaption;
+        updateLightboxVote();
+      }
+
+      function openVoteLightbox(index) {
+        if (!lightbox) return;
+        lightbox.dataset.mode = 'vote';
+        showVoteAt(index);
+        lightbox.classList.add('open');
+        lightbox.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+      }
+
+      if (lightboxPrev) {
+        lightboxPrev.addEventListener('click', function (e) {
+          if (lightbox.dataset.mode !== 'vote') return;
+          e.stopPropagation();
+          showVoteAt(currentVoteIndex - 1);
+        });
+      }
+      if (lightboxNext) {
+        lightboxNext.addEventListener('click', function (e) {
+          if (lightbox.dataset.mode !== 'vote') return;
+          e.stopPropagation();
+          showVoteAt(currentVoteIndex + 1);
+        });
+      }
+      document.addEventListener('keydown', function (e) {
+        if (!lightbox || !lightbox.classList.contains('open') || lightbox.dataset.mode !== 'vote') return;
+        if (e.key === 'ArrowRight') showVoteAt(currentVoteIndex + 1);
+        if (e.key === 'ArrowLeft') showVoteAt(currentVoteIndex - 1);
+      });
+      if (lightboxVoteBtn) {
+        lightboxVoteBtn.addEventListener('click', function () {
+          if (lightbox.dataset.mode !== 'vote' || !latestData || currentVoteIndex < 0) return;
+          var c = latestData.candidates[currentVoteIndex];
+          if (!c) return;
+          lightboxVoteBtn.disabled = true;
+          var voteFile = c.file;
+          castVote(voteFile, function () {
+            if (!latestData) return;
+            var idx = latestData.candidates.findIndex(function (x) { return x.file === voteFile; });
+            if (idx !== -1) currentVoteIndex = idx;
+            updateLightboxVote();
+          });
+        });
+      }
+
       function render(data) {
+        latestData = data;
         if (!data || !data.candidates || !data.candidates.length) {
           frame.innerHTML = '<p class="mono" style="padding: 24px; color: var(--steel);">No builds open for voting right now, check back soon.</p>';
           return;
@@ -2308,24 +2424,24 @@
           );
         }).join('');
 
-        frame.querySelectorAll('.vote-btn').forEach(function (btn) {
+        frame.querySelectorAll('.vote-media').forEach(function (media, i) {
+          media.addEventListener('click', function () {
+            openVoteLightbox(i);
+          });
+        });
+
+        frame.querySelectorAll('.vote-btn').forEach(function (btn, i) {
           btn.addEventListener('click', function () {
             var card = btn.closest('.vote-card');
             var file = card.getAttribute('data-file');
             btn.disabled = true;
-            fetch(VOTE_ENDPOINT + '/vote', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'X-Voter-Id': voterId },
-              body: JSON.stringify({ file: file })
-            })
-              .then(function (res) { return res.json(); })
-              .then(function (result) {
-                if (result && result.success) render(result);
-                else btn.disabled = false;
-              })
-              .catch(function () { btn.disabled = false; });
+            castVote(file, function () { btn.disabled = false; });
           });
         });
+
+        if (lightbox && lightbox.dataset.mode === 'vote' && lightbox.classList.contains('open') && currentVoteIndex >= 0) {
+          updateLightboxVote();
+        }
       }
 
       fetch(VOTE_ENDPOINT + '/votes', { headers: { 'X-Voter-Id': voterId } })

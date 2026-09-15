@@ -269,17 +269,46 @@ async function tallyVotesIfUkMidnight(env) {
   var list = await env.VOTES.list({ prefix: prefix });
   if (!list.keys.length) return;
 
-  var winnerFile = null;
+  var counts = [];
   var winnerVotes = 0;
   for (var i = 0; i < list.keys.length; i++) {
     var key = list.keys[i];
     var count = parseInt((await env.VOTES.get(key.name)) || '0', 10);
-    if (count > winnerVotes) {
-      winnerVotes = count;
-      winnerFile = key.name.slice(prefix.length);
-    }
+    counts.push({ file: key.name.slice(prefix.length), votes: count });
+    if (count > winnerVotes) winnerVotes = count;
   }
-  if (!winnerFile || winnerVotes < 1) return;
+  if (winnerVotes < 1) return;
+
+  var tied = counts.filter(function (c) { return c.votes === winnerVotes; });
+  var winnerFile = tied[0].file;
+
+  if (tied.length > 1) {
+    // Tie-break: the candidate whose most recent counted vote came in
+    // earliest is treated as the first to reach the tied vote count.
+    var metaPrefix = 'voter-meta:' + closedDay + ':';
+    var metaList = await env.VOTES.list({ prefix: metaPrefix });
+    var latestVoteAt = {};
+    await Promise.all(metaList.keys.map(async function (k) {
+      var raw = await env.VOTES.get(k.name);
+      var meta = null;
+      try { meta = JSON.parse(raw); } catch (e) {}
+      if (!meta || !meta.file || !meta.ts) return;
+      if (!latestVoteAt[meta.file] || meta.ts > latestVoteAt[meta.file]) {
+        latestVoteAt[meta.file] = meta.ts;
+      }
+    }));
+
+    var earliest = tied[0];
+    var earliestTs = latestVoteAt[earliest.file] || Infinity;
+    for (var t = 1; t < tied.length; t++) {
+      var ts = latestVoteAt[tied[t].file] || Infinity;
+      if (ts < earliestTs) {
+        earliestTs = ts;
+        earliest = tied[t];
+      }
+    }
+    winnerFile = earliest.file;
+  }
 
   var ghHeaders = {
     'Authorization': 'Bearer ' + env.GITHUB_TOKEN,

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mt3uk-shell-v1';
+const CACHE_NAME = 'mt3uk-shell-v2';
 const PRECACHE_URLS = [
   '/index.html',
   '/shop.html',
@@ -37,6 +37,11 @@ self.addEventListener('activate', function (event) {
 self.addEventListener('fetch', function (event) {
   var request = event.request;
   if (request.method !== 'GET' || new URL(request.url).origin !== self.location.origin) return;
+
+  if (new URL(request.url).pathname.indexOf('/data/') === 0) {
+    event.respondWith(fetch(request));
+    return;
+  }
 
   if (request.mode === 'navigate') {
     event.respondWith(

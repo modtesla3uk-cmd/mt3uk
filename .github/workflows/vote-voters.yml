@@ -17,8 +17,8 @@ jobs:
 
           date=$(echo "$response" | jq -r '.date')
           {
-            echo "ip,file"
-            echo "$response" | jq -r '.voters[] | [.ip, .file] | @csv'
+            echo "ip,file,asn,isp,country,votedAt"
+            echo "$response" | jq -r '.voters[] | [.ip, .file, .asn, .isp, .country, .votedAt] | @csv'
           } > "voters-$date.csv"
           echo "date=$date" >> "$GITHUB_OUTPUT"
 

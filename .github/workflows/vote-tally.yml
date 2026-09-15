@@ -10,6 +10,7 @@ jobs:
   vote-tally:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - run: |
           response=$(curl -s "https://late-darkness-ebc8.modtesla3uk.workers.dev/votes/all?key=$ADMIN_KEY")
 

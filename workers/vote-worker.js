@@ -61,8 +61,24 @@ function getVoterId(request) {
   return crypto.randomUUID();
 }
 
+function ipv6Prefix64(ip) {
+  var halves = ip.split('::');
+  var head = halves[0] ? halves[0].split(':') : [];
+  var tail = halves.length > 1 && halves[1] ? halves[1].split(':') : [];
+  var missing = 8 - head.length - tail.length;
+  var groups = head.concat(new Array(Math.max(missing, 0)).fill('0')).concat(tail);
+  return groups.slice(0, 4).join(':') + '::/64';
+}
+
 function getClientIp(request) {
-  return request.headers.get('CF-Connecting-IP') || 'unknown';
+  var ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  // IPv6 addresses rotate their host portion (privacy extensions) while
+  // keeping the same /64 network prefix, so dedup on the prefix instead of
+  // the full address to treat one household/connection as one voter.
+  if (ip.indexOf(':') !== -1) {
+    return ipv6Prefix64(ip);
+  }
+  return ip;
 }
 
 async function handleVotesAll(request, env) {

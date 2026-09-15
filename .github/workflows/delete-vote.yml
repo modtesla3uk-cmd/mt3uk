@@ -1,25 +1,33 @@
-name: Delete Vote
+name: Edit Vote
 
 on:
   workflow_dispatch:
     inputs:
       file:
-        description: Gallery filename to clear today's votes for
+        description: Gallery filename to edit today's votes for
         required: true
+      count:
+        description: Set votes to this exact number (leave blank to clear votes to zero instead)
+        required: false
 
 jobs:
-  delete-vote:
+  edit-vote:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          response=$(curl -s -X DELETE "https://late-darkness-ebc8.modtesla3uk.workers.dev/votes/all?key=$ADMIN_KEY&file=$FILE")
+          if [ -n "$COUNT" ]; then
+            response=$(curl -s -X PUT "https://late-darkness-ebc8.modtesla3uk.workers.dev/votes/all?key=$ADMIN_KEY&file=$FILE&count=$COUNT")
+          else
+            response=$(curl -s -X DELETE "https://late-darkness-ebc8.modtesla3uk.workers.dev/votes/all?key=$ADMIN_KEY&file=$FILE")
+          fi
 
           if [ "$(echo "$response" | jq -r '.success')" != "true" ]; then
             echo "$response" | jq -r '.message // "Unknown error"' >> "$GITHUB_STEP_SUMMARY"
             exit 1
           fi
 
-          echo "Deleted votes for **$(echo "$response" | jq -r '.deleted')** on $(echo "$response" | jq -r '.date')" >> "$GITHUB_STEP_SUMMARY"
+          echo "$response" | jq -r 'if .votes != null then "Set **\(.file)** to \(.votes) votes on \(.date)" else "Deleted votes for **\(.deleted)** on \(.date)" end' >> "$GITHUB_STEP_SUMMARY"
         env:
           ADMIN_KEY: ${{ secrets.VOTE_ADMIN_KEY }}
           FILE: ${{ inputs.file }}
+          COUNT: ${{ inputs.count }}

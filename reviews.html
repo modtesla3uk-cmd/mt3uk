@@ -315,9 +315,10 @@
 
   /* ---------- REVIEWS LIST ---------- */
   .review-groups { display: flex; flex-direction: column; gap: 34px; }
-  .review-group h3 { font-size: 1.15rem; margin-bottom: 4px; }
+  .review-group-heading { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+  .review-group-heading h3 { font-size: 1.15rem; }
+  .review-group-heading .stars { color: var(--orange); letter-spacing: 1px; font-size: 1.3rem; }
   .review-group-summary { color: var(--steel); font-size: 0.88rem; margin-bottom: 16px; }
-  .review-group-summary .stars { color: var(--orange); letter-spacing: 1px; font-size: 1.1rem; }
   .review-list { display: flex; flex-direction: column; gap: 14px; }
   .review-card {
     border: 1px solid var(--line);
@@ -612,14 +613,16 @@
 
       PRODUCT_ORDER.forEach(function (key) {
         var productReviews = reviews.filter(function (r) { return r.product === key; });
+        var avg = productReviews.length ? productReviews.reduce(function (sum, r) { return sum + (r.rating || 0); }, 0) / productReviews.length : 0;
+
         html += '<div class="review-group" id="' + key + '">';
-        html += '<h3>' + PRODUCT_NAMES[key] + '</h3>';
+        html += '<div class="review-group-heading"><h3>' + PRODUCT_NAMES[key] + '</h3>' +
+          (productReviews.length ? '<span class="stars">' + starString(avg) + '</span>' : '') + '</div>';
 
         if (!productReviews.length) {
           html += '<p class="review-group-summary">No reviews yet, be the first.</p>';
         } else {
-          var avg = productReviews.reduce(function (sum, r) { return sum + (r.rating || 0); }, 0) / productReviews.length;
-          html += '<p class="review-group-summary"><span class="stars">' + starString(avg) + '</span> ' + avg.toFixed(1) + ' out of 5, based on ' + productReviews.length + (productReviews.length === 1 ? ' review' : ' reviews') + '</p>';
+          html += '<p class="review-group-summary">' + avg.toFixed(1) + ' out of 5, based on ' + productReviews.length + (productReviews.length === 1 ? ' review' : ' reviews') + '</p>';
           html += '<div class="review-list">';
           productReviews.forEach(function (r) {
             html += '<div class="review-card">' +

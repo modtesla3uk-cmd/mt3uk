@@ -126,6 +126,24 @@ async function handleVoteSet(request, env) {
   return json({ success: true, date: todayStr, file: file, votes: count });
 }
 
+async function handleVotersList(request, env) {
+  var key = new URL(request.url).searchParams.get('key');
+  if (!env.ADMIN_KEY || key !== env.ADMIN_KEY) {
+    return json({ success: false, message: 'Unauthorized' }, 401);
+  }
+
+  var todayStr = ukDateString(new Date());
+  var prefix = 'voter-ip:' + todayStr + ':';
+  var list = await env.VOTES.list({ prefix: prefix });
+
+  var results = await Promise.all(list.keys.map(async function (k) {
+    var file = await env.VOTES.get(k.name);
+    return { ip: k.name.slice(prefix.length), file: file };
+  }));
+
+  return json({ success: true, date: todayStr, voters: results });
+}
+
 async function handleVotesGet(request, env) {
   var manifest = await fetchGalleryManifest();
   var todayStr = ukDateString(new Date());
@@ -286,6 +304,9 @@ export default {
     }
     if (url.pathname === '/votes/all' && request.method === 'PUT') {
       return handleVoteSet(request, env);
+    }
+    if (url.pathname === '/votes/voters' && request.method === 'GET') {
+      return handleVotersList(request, env);
     }
     if (url.pathname === '/votes' && request.method === 'GET') {
       return handleVotesGet(request, env);

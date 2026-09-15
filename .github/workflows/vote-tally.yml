@@ -1,0 +1,25 @@
+name: Vote Tally
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  vote-tally:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "## Vote Tally" >> "$GITHUB_STEP_SUMMARY"
+          response=$(curl -s "https://late-darkness-ebc8.modtesla3uk.workers.dev/votes/all?key=$ADMIN_KEY")
+
+          if [ "$(echo "$response" | jq -r '.success')" != "true" ]; then
+            echo "$response" | jq -r '.message // "Unknown error"' >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          echo "Date: $(echo "$response" | jq -r '.date')" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Photo | Votes |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          echo "$response" | jq -r '.results[] | "| \(.file) | \(.votes) |"' >> "$GITHUB_STEP_SUMMARY"
+        env:
+          ADMIN_KEY: ${{ secrets.VOTE_ADMIN_KEY }}

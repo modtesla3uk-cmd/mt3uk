@@ -133,13 +133,24 @@ async function handleVotersList(request, env) {
   }
 
   var todayStr = ukDateString(new Date());
-  var prefix = 'voter-ip:' + todayStr + ':';
+  var prefix = 'voter-meta:' + todayStr + ':';
   var list = await env.VOTES.list({ prefix: prefix });
 
   var results = await Promise.all(list.keys.map(async function (k) {
-    var file = await env.VOTES.get(k.name);
-    return { ip: k.name.slice(prefix.length), file: file };
+    var raw = await env.VOTES.get(k.name);
+    var meta = null;
+    try { meta = JSON.parse(raw); } catch (e) {}
+    return {
+      ip: k.name.slice(prefix.length),
+      file: meta && meta.file,
+      asn: meta && meta.asn,
+      isp: meta && meta.isp,
+      country: meta && meta.country,
+      votedAt: meta && meta.ts ? new Date(meta.ts).toISOString() : null
+    };
   }));
+
+  results.sort(function (a, b) { return (a.votedAt || '').localeCompare(b.votedAt || ''); });
 
   return json({ success: true, date: todayStr, voters: results });
 }
@@ -210,6 +221,16 @@ async function handleVotePost(request, env) {
     await env.VOTES.put(countKey, String(count + 1), { expirationTtl: VOTE_TTL_SECONDS });
     await env.VOTES.put(ipKey, file, { expirationTtl: VOTE_TTL_SECONDS });
     await env.VOTES.put('voter:' + todayStr + ':' + voterId, file, { expirationTtl: VOTE_TTL_SECONDS });
+
+    var cf = request.cf || {};
+    var meta = {
+      file: file,
+      asn: cf.asn || null,
+      isp: cf.asOrganization || null,
+      country: cf.country || null,
+      ts: Date.now()
+    };
+    await env.VOTES.put('voter-meta:' + todayStr + ':' + ip, JSON.stringify(meta), { expirationTtl: VOTE_TTL_SECONDS });
   }
 
   var results = await Promise.all(candidates.map(async function (p) {

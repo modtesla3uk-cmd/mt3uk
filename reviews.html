@@ -680,7 +680,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                      botcheck: form.querySelector('[name="botcheck"]').value,
+                      botcheck: form.querySelector('[name="botcheck"]').checked ? 'bot' : '',
                       name: form.querySelector('[name="name"]').value,
                       product: form.querySelector('[name="product"]').value,
                       date: form.querySelector('[name="date"]').value,

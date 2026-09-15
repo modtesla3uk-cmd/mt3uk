@@ -347,6 +347,7 @@
     gap: 22px;
   }
   @media (max-width: 820px) { .shop-grid { grid-template-columns: 1fr; } }
+  .shop-grid-2 { grid-template-columns: repeat(2, 1fr); }
 
   #upgrades .section-head { margin-bottom: 20px; }
   .shop-band .specs { border-color: #3a4a6b; }
@@ -406,9 +407,9 @@
   .shop-preview-trigger:hover, .shop-preview-trigger:focus-visible { border-color: var(--orange); }
   .shop-preview-trigger img { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.35s ease; }
   .shop-preview-trigger:hover img, .shop-preview-trigger:focus-visible img { transform: scale(1.8); }
-  #sticker-trigger { margin-bottom: 18px; cursor: default; }
-  #sticker-trigger img { border: 1.5px dashed var(--steel); padding: 6px 8px; box-sizing: border-box; }
-  #sticker-trigger:hover img, #sticker-trigger:focus-visible img { transform: none; }
+  #sticker-trigger { margin-bottom: 18px; cursor: zoom-in; }
+  #sticker-trigger img { border: 1.5px dashed var(--steel); padding: 6px 8px; box-sizing: border-box; transition: transform 0.2s ease; }
+  #sticker-trigger img.zoom-pan { transform: scale(4); }
   #tee-trigger img, #tee-trigger-2 img { transition: transform 0.2s ease; }
   #tee-trigger img.zoom-pan, #tee-trigger-2 img.zoom-pan { transform: scale(4); }
   #brace-trigger img, #brace-trigger-2 img { transition: transform 0.2s ease; }
@@ -454,6 +455,12 @@
     margin-top: 10px;
   }
   .sticker-price-list strong { color: var(--orange); }
+
+  .merch-sold-line {
+    margin-top: 8px;
+    color: var(--orange) !important;
+  }
+  .merch-sold-line:empty { display: none; }
 
   /* ---------- OFFER / DETAIL ---------- */
   .tee-offer-banner {
@@ -657,7 +664,7 @@
       </div>
       <p>Looking for upgrades? <a href="#upgrades" class="inline-link">Jump to Upgrade / Parts &#8595;</a></p>
     </div>
-    <div class="shop-grid">
+    <div class="shop-grid shop-grid-2">
       <div class="shop-card">
         <h3>MT3UK Premium T-Shirt</h3>
         <p class="shop-preview-hint">Hold and pan to zoom</p>
@@ -686,15 +693,17 @@
           <span class="tee-offer-was">&pound;24.99</span>
           <span class="tee-offer-now">&pound;19.99</span>
         </div>
+        <p class="merch-sold-line mono" data-sold="tee"></p>
         <div class="tee-offer-actions">
           <span class="tag">AVAILABLE NOW</span>
-          <a class="tee-shop-btn" href="https://mt3uk.myshopify.com/products/black-unisex-t-shirt-mt3uk-red-underline-design" target="_blank" rel="noopener">Shop tee</a>
+          <a class="tee-shop-btn" href="https://mt3uk.myshopify.com/products/black-unisex-t-shirt-mt3uk-red-underline-design?utm_source=mt3uk_shop&utm_medium=internal&utm_campaign=tshirt_order" target="_blank" rel="noopener">Shop tee</a>
         </div>
       </div>
       <div class="shop-card">
         <h3>MT3UK Official vinyl stickers</h3>
+        <p class="shop-preview-hint">Hold and pan to zoom</p>
         <a class="shop-preview-trigger" id="sticker-trigger" href="https://ko-fi.com/s/2a75c003e4" target="_blank" rel="noopener">
-          <img src="images/site/mt3uk-sticker.png" alt="MT3UK bumper sticker pack">
+          <img src="images/site/MT3UK-3-pack-stickers.png" alt="MT3UK 3-pack vinyl sticker set">
         </a>
         <p class="sticker-modal-lead">Elevate your Tesla&rsquo;s look with official MT3UK community stickers.</p>
         <button type="button" class="detail-toggle" aria-expanded="false" aria-controls="sticker-detail-content">More detail</button>
@@ -708,16 +717,11 @@
           </ul>
         </div>
         <p class="sticker-price-list"><strong>&pound;7.50</strong> 3-pack</p>
+        <p class="merch-sold-line mono" data-sold="stickers"></p>
         <div class="tee-offer-actions">
           <span class="tag">AVAILABLE NOW</span>
-          <a class="tee-shop-btn" href="https://ko-fi.com/s/2a75c003e4" target="_blank" rel="noopener">Order Here</a>
+          <a class="tee-shop-btn" href="https://ko-fi.com/s/2a75c003e4?utm_source=mt3uk_shop&utm_medium=internal&utm_campaign=stickers_order" target="_blank" rel="noopener">Order Here</a>
         </div>
-      </div>
-      <div class="shop-card shop-card-hoodie">
-        <svg viewBox="0 0 200 140" fill="none" stroke="#e8542a" stroke-width="1.6"><path d="M55 24 L75 12 L100 22 L125 12 L145 24 L156 48 L138 56 L138 122 L62 122 L62 56 L44 48 Z"/><path d="M85 22 Q100 34 115 22" /></svg>
-        <h3>MT3UK Hoodie</h3>
-        <p>Embroidered crest, fleece-lined</p>
-        <span class="tag">COMING SOON</span>
       </div>
     </div>
   </div>
@@ -852,6 +856,7 @@
 (function () {
       var panTargets = [
         document.getElementById('tee-trigger'), document.getElementById('tee-trigger-2'),
+        document.getElementById('sticker-trigger'),
         document.getElementById('brace-trigger'), document.getElementById('brace-trigger-2'),
         document.getElementById('pads-street-trigger'), document.getElementById('pads-carbotech-trigger')
       ];
@@ -933,7 +938,7 @@
               '<button type="button" class="sticker-modal-close" aria-label="Close">&times;</button>' +
               '<div class="sticker-modal-media">' +
                     '<span class="tag sticker-modal-tag">AVAILABLE NOW</span>' +
-                    '<img src="images/site/mt3uk-sticker.png" alt="MT3UK bumper sticker">' +
+                    '<img src="images/site/MT3UK-3-pack-stickers.png" alt="MT3UK 3-pack vinyl sticker set">' +
               '</div>' +
               '<div class="sticker-modal-body">' +
                     '<h3>MT3UK Modified Tesla Bumper Sticker Pack</h3>' +
@@ -957,7 +962,7 @@
                     '</table>' +
                     '<p class="sticker-modal-note">Order with confidence: Fast UK delivery.</p>' +
                     '<p class="sticker-modal-cta">Join the MT3UK family. Show your colours.</p>' +
-                    '<a class="tee-modal-buy" href="https://ko-fi.com/s/2a75c003e4" target="_blank" rel="noopener">Order Here</a>' +
+                    '<a class="tee-modal-buy" href="https://ko-fi.com/s/2a75c003e4?utm_source=mt3uk_shop&utm_medium=internal&utm_campaign=stickers_order" target="_blank" rel="noopener">Order Here</a>' +
               '</div>' +
         '</div>';
         document.body.appendChild(modal);
@@ -1034,7 +1039,7 @@
                           '<span class="tee-offer-now">&pound;19.99</span>' +
                     '</div>' +
                     '<p>Premium quality (not fast fashion)</p>' +
-                    '<a class="tee-modal-buy" href="https://mt3uk.myshopify.com/products/black-unisex-t-shirt-mt3uk-red-underline-design" target="_blank" rel="noopener">Shop the tee</a>' +
+                    '<a class="tee-modal-buy" href="https://mt3uk.myshopify.com/products/black-unisex-t-shirt-mt3uk-red-underline-design?utm_source=mt3uk_shop&utm_medium=internal&utm_campaign=tshirt_order" target="_blank" rel="noopener">Shop the tee</a>' +
               '</div>' +
         '</div>';
         document.body.appendChild(modal);
@@ -1279,6 +1284,19 @@
           if (!data || !data.members) return;
           document.querySelectorAll('.member-count').forEach(function (el) {
             el.textContent = data.members;
+          });
+        })
+        .catch(function () {});
+
+      fetch('data/merch-sales.json', { cache: 'no-store' })
+        .then(function (res) { return res.ok ? res.json() : null; })
+        .then(function (data) {
+          if (!data) return;
+          document.querySelectorAll('[data-sold]').forEach(function (el) {
+            var key = el.getAttribute('data-sold');
+            var count = data[key];
+            if (!count) return;
+            el.textContent = '🔥 ' + count + ' sold since launch';
           });
         })
         .catch(function () {});

@@ -1,5 +1,8 @@
 name: Vote Tally
 
+permissions:
+  issues: write
+
 on:
   workflow_dispatch: {}
 
@@ -8,7 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          echo "## Vote Tally" >> "$GITHUB_STEP_SUMMARY"
           response=$(curl -s "https://late-darkness-ebc8.modtesla3uk.workers.dev/votes/all?key=$ADMIN_KEY")
 
           if [ "$(echo "$response" | jq -r '.success')" != "true" ]; then
@@ -16,10 +18,22 @@ jobs:
             exit 1
           fi
 
-          echo "Date: $(echo "$response" | jq -r '.date')" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Photo | Votes |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
-          echo "$response" | jq -r '.results[] | "| \(.file) | \(.votes) |"' >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "## Vote Tally"
+            echo "Date: $(echo "$response" | jq -r '.date')"
+            echo ""
+            echo "| Photo | Votes |"
+            echo "|---|---|"
+            echo "$response" | jq -r '.results[] | "| \(.file) | \(.votes) |"'
+          } | tee votes.md >> "$GITHUB_STEP_SUMMARY"
         env:
           ADMIN_KEY: ${{ secrets.VOTE_ADMIN_KEY }}
+      - run: |
+          existing=$(gh issue list --search "Vote Tally in:title" --state open --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            gh issue edit "$existing" --body-file votes.md
+          else
+            gh issue create --title "Vote Tally" --body-file votes.md
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

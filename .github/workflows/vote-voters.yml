@@ -1,0 +1,36 @@
+name: Vote Voters
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  vote-voters:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          response=$(curl -s "https://late-darkness-ebc8.modtesla3uk.workers.dev/votes/voters?key=$ADMIN_KEY")
+
+          if [ "$(echo "$response" | jq -r '.success')" != "true" ]; then
+            echo "$response" | jq -r '.message // "Unknown error"' >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          date=$(echo "$response" | jq -r '.date')
+          {
+            echo "ip,file"
+            echo "$response" | jq -r '.voters[] | [.ip, .file] | @csv'
+          } > "voters-$date.csv"
+          echo "date=$date" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "## Vote Voters ($date)"
+            echo "Saved as a workflow artifact below (requires repo access to download, not public)."
+          } >> "$GITHUB_STEP_SUMMARY"
+        id: fetch
+        env:
+          ADMIN_KEY: ${{ secrets.VOTE_ADMIN_KEY }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vote-voters-${{ steps.fetch.outputs.date }}
+          path: voters-${{ steps.fetch.outputs.date }}.csv
+          retention-days: 14

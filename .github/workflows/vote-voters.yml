@@ -1,4 +1,4 @@
-name: Vote Voters
+name: Query Voters Action
 
 on:
   workflow_dispatch: {}

@@ -103,6 +103,29 @@ async function handleVoteDelete(request, env) {
   return json({ success: true, date: todayStr, deleted: file });
 }
 
+async function handleVoteSet(request, env) {
+  var url = new URL(request.url);
+  var key = url.searchParams.get('key');
+  if (!env.ADMIN_KEY || key !== env.ADMIN_KEY) {
+    return json({ success: false, message: 'Unauthorized' }, 401);
+  }
+
+  var file = url.searchParams.get('file');
+  if (!file) {
+    return json({ success: false, message: 'file is required' }, 400);
+  }
+
+  var count = parseInt(url.searchParams.get('count'), 10);
+  if (isNaN(count) || count < 0) {
+    return json({ success: false, message: 'count must be a non-negative integer' }, 400);
+  }
+
+  var todayStr = ukDateString(new Date());
+  await env.VOTES.put('votes:' + todayStr + ':' + file, String(count), { expirationTtl: VOTE_TTL_SECONDS });
+
+  return json({ success: true, date: todayStr, file: file, votes: count });
+}
+
 async function handleVotesGet(request, env) {
   var manifest = await fetchGalleryManifest();
   var todayStr = ukDateString(new Date());
@@ -260,6 +283,9 @@ export default {
     }
     if (url.pathname === '/votes/all' && request.method === 'DELETE') {
       return handleVoteDelete(request, env);
+    }
+    if (url.pathname === '/votes/all' && request.method === 'PUT') {
+      return handleVoteSet(request, env);
     }
     if (url.pathname === '/votes' && request.method === 'GET') {
       return handleVotesGet(request, env);

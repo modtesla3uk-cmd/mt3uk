@@ -85,6 +85,24 @@ async function handleVotesAll(request, env) {
   return json({ success: true, date: todayStr, results: results });
 }
 
+async function handleVoteDelete(request, env) {
+  var url = new URL(request.url);
+  var key = url.searchParams.get('key');
+  if (!env.ADMIN_KEY || key !== env.ADMIN_KEY) {
+    return json({ success: false, message: 'Unauthorized' }, 401);
+  }
+
+  var file = url.searchParams.get('file');
+  if (!file) {
+    return json({ success: false, message: 'file is required' }, 400);
+  }
+
+  var todayStr = ukDateString(new Date());
+  await env.VOTES.delete('votes:' + todayStr + ':' + file);
+
+  return json({ success: true, date: todayStr, deleted: file });
+}
+
 async function handleVotesGet(request, env) {
   var manifest = await fetchGalleryManifest();
   var todayStr = ukDateString(new Date());
@@ -239,6 +257,9 @@ export default {
 
     if (url.pathname === '/votes/all' && request.method === 'GET') {
       return handleVotesAll(request, env);
+    }
+    if (url.pathname === '/votes/all' && request.method === 'DELETE') {
+      return handleVoteDelete(request, env);
     }
     if (url.pathname === '/votes' && request.method === 'GET') {
       return handleVotesGet(request, env);

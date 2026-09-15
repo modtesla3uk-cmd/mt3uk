@@ -114,26 +114,6 @@ async function handleVotesGet(request, env) {
   });
 }
 
-async function handleVotesAll(request, env) {
-  var key = new URL(request.url).searchParams.get('key');
-  if (!env.ADMIN_KEY || key !== env.ADMIN_KEY) {
-    return json({ success: false, message: 'Unauthorized' }, 401);
-  }
-
-  var todayStr = ukDateString(new Date());
-  var prefix = 'votes:' + todayStr + ':';
-  var list = await env.VOTES.list({ prefix: prefix });
-
-  var results = await Promise.all(list.keys.map(async function (k) {
-    var count = parseInt((await env.VOTES.get(k.name)) || '0', 10);
-    return { file: k.name.slice(prefix.length), votes: count };
-  }));
-
-  results.sort(function (a, b) { return b.votes - a.votes; });
-
-  return json({ success: true, date: todayStr, results: results });
-}
-
 async function handleVotePost(request, env) {
   var body;
   try {
@@ -257,9 +237,6 @@ export default {
       }));
     }
 
-    if (url.pathname === '/votes/all' && request.method === 'GET') {
-      return handleVotesAll(request, env);
-    }
     if (url.pathname === '/votes/all' && request.method === 'GET') {
       return handleVotesAll(request, env);
     }

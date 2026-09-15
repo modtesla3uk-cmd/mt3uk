@@ -2,8 +2,10 @@ const OWNER = 'modtesla3uk-cmd';
 const REPO = 'mt3uk';
 const BASE_BRANCH = 'main';
 const FEATURED_PATH = 'data/featured.json';
+const REVIEWS_PATH = 'data/reviews.json';
 const GALLERY_MANIFEST_URL = 'https://raw.githubusercontent.com/' + OWNER + '/' + REPO + '/' + BASE_BRANCH + '/images/gallery/manifest.json';
 const VOTE_TTL_SECONDS = 60 * 60 * 24 * 3;
+const REVIEW_PRODUCTS = ['tee', 'stickers', 'brace', 'pads-street', 'pads-carbotech'];
 
 function json(data, status) {
   return new Response(JSON.stringify(data), {
@@ -257,6 +259,136 @@ async function handleVotePost(request, env) {
   return json({ success: true, voterId: voterId, voted: file, candidates: results });
 }
 
+async function handleReviewPost(request, env) {
+  var body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return json({ success: false, message: 'Invalid request body' }, 400);
+  }
+
+  var botcheck = ((body && body.botcheck) || '').toString();
+  if (botcheck) {
+    return json({ success: false, message: 'Rejected' }, 400);
+  }
+
+  var name = ((body && body.name) || '').toString().trim().slice(0, 100);
+  var product = ((body && body.product) || '').toString().trim();
+  var date = ((body && body.date) || '').toString().trim();
+  var rating = parseInt((body && body.rating), 10);
+  var comment = ((body && body.comment) || '').toString().trim().slice(0, 500);
+
+  if (!name) return json({ success: false, message: 'Name is required' }, 400);
+  if (REVIEW_PRODUCTS.indexOf(product) === -1) return json({ success: false, message: 'Please pick what you purchased' }, 400);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return json({ success: false, message: 'Please pick a valid date' }, 400);
+  if (isNaN(rating) || rating < 1 || rating > 5) return json({ success: false, message: 'Rating must be between 1 and 5' }, 400);
+  if (!comment) return json({ success: false, message: 'Please add a short comment' }, 400);
+
+  var ghHeaders = {
+    'Authorization': 'Bearer ' + env.GITHUB_TOKEN,
+    'Accept': 'application/vnd.github+json',
+    'User-Agent': 'mt3uk-gallery-worker',
+    'X-GitHub-Api-Version': '2022-11-28'
+  };
+
+  try {
+    var getRes = await fetch(
+      'https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/' + REVIEWS_PATH + '?ref=' + BASE_BRANCH,
+      { headers: ghHeaders }
+    );
+
+    var reviews = [];
+    var baseSha = null;
+    if (getRes.ok) {
+      var getData = await getRes.json();
+      baseSha = getData.sha;
+      try { reviews = JSON.parse(atob(getData.content.replace(/\n/g, ''))); } catch (e) {}
+      if (!Array.isArray(reviews)) reviews = [];
+    } else if (getRes.status !== 404) {
+      throw new Error('Could not read reviews.json (' + getRes.status + ')');
+    }
+
+    reviews.push({ product: product, name: name, date: date, rating: rating, comment: comment });
+
+    var newContent = btoa(unescape(encodeURIComponent(JSON.stringify(reviews, null, 2) + '\n')));
+    var timestamp = Date.now();
+    var branchName = 'review/' + timestamp + '-' + product;
+
+    var refRes = await fetch(
+      'https://api.github.com/repos/' + OWNER + '/' + REPO + '/git/ref/heads/' + BASE_BRANCH,
+      { headers: ghHeaders }
+    );
+    if (!refRes.ok) throw new Error('Could not read base branch (' + refRes.status + ')');
+    var refData = await refRes.json();
+    var baseBranchSha = refData.object.sha;
+
+    var createRefRes = await fetch(
+      'https://api.github.com/repos/' + OWNER + '/' + REPO + '/git/refs',
+      {
+        method: 'POST',
+        headers: ghHeaders,
+        body: JSON.stringify({ ref: 'refs/heads/' + branchName, sha: baseBranchSha })
+      }
+    );
+    if (!createRefRes.ok) throw new Error('Could not create branch (' + createRefRes.status + ')');
+
+    var putBody = {
+      message: 'Add review for ' + product + ' from ' + name,
+      content: newContent,
+      branch: branchName
+    };
+    if (baseSha) putBody.sha = baseSha;
+
+    var putRes = await fetch(
+      'https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/' + REVIEWS_PATH,
+      {
+        method: 'PUT',
+        headers: ghHeaders,
+        body: JSON.stringify(putBody)
+      }
+    );
+    if (!putRes.ok) throw new Error('Could not commit review (' + putRes.status + ')');
+
+    var prBody = '**Product:** ' + product + '\n**Rating:** ' + rating + '/5\n**Submitted by:** ' + name +
+      '\n**Comment:** ' + comment + '\n\nMerge this PR to publish the review on the site, or close it to reject the submission.';
+
+    var prRes = await fetch(
+      'https://api.github.com/repos/' + OWNER + '/' + REPO + '/pulls',
+      {
+        method: 'POST',
+        headers: ghHeaders,
+        body: JSON.stringify({
+          title: 'Review submission: ' + product + ' (' + rating + '/5 by ' + name + ')',
+          head: branchName,
+          base: BASE_BRANCH,
+          body: prBody
+        })
+      }
+    );
+    if (!prRes.ok) throw new Error('Could not open pull request (' + prRes.status + ')');
+    var prData = await prRes.json();
+
+    try {
+      await fetch(
+        'https://api.github.com/repos/' + OWNER + '/' + REPO + '/issues/' + prData.number + '/comments',
+        {
+          method: 'POST',
+          headers: ghHeaders,
+          body: JSON.stringify({
+            body: '@' + OWNER + ' New review submission for review!'
+          })
+        }
+      );
+    } catch (commentErr) {
+      console.log('Comment creation failed (non-critical):', commentErr.message);
+    }
+
+    return json({ success: true, pr_url: prData.html_url });
+  } catch (err) {
+    return json({ success: false, message: err.message }, 500);
+  }
+}
+
 async function tallyVotesIfUkMidnight(env) {
   var now = new Date();
   var ukHour = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', hour: '2-digit', hourCycle: 'h23' }).format(now);
@@ -379,6 +511,9 @@ export default {
     }
     if (url.pathname === '/vote' && request.method === 'POST') {
       return handleVotePost(request, env);
+    }
+    if (url.pathname === '/review' && request.method === 'POST') {
+      return handleReviewPost(request, env);
     }
 
     if (request.method !== 'POST') {

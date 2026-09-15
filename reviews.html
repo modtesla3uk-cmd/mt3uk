@@ -315,9 +315,13 @@
 
   /* ---------- REVIEWS LIST ---------- */
   .review-groups { display: flex; flex-direction: column; gap: 34px; }
+  .review-group { border-top: 1px solid var(--line); padding-top: 28px; }
+  .review-group:first-child { border-top: none; padding-top: 0; }
   .review-group-heading { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
   .review-group-heading h3 { font-size: 1.15rem; }
   .review-group-heading .stars { color: #f5b400; letter-spacing: 1px; font-size: 1.3rem; }
+  .review-group-heading .review-product-link { margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--orange); text-decoration: none; }
+  .review-group-heading .review-product-link:hover { text-decoration: underline; }
   .review-group-summary { color: var(--steel); font-size: 0.88rem; margin-bottom: 16px; }
   .review-list { display: flex; flex-direction: column; gap: 10px; }
   .review-card {
@@ -693,7 +697,8 @@
 
         html += '<div class="review-group" id="' + key + '">';
         html += '<div class="review-group-heading"><h3>' + PRODUCT_NAMES[key] + '</h3>' +
-          (productReviews.length ? '<span class="stars">' + starString(avg) + '</span>' : '') + '</div>';
+          (productReviews.length ? '<span class="stars">' + starString(avg) + '</span>' : '') +
+          '<a class="review-product-link" href="shop.html#' + key + '">View product &rarr;</a></div>';
 
         if (!productReviews.length) {
           html += '<p class="review-group-summary">No reviews yet, be the first.</p>';

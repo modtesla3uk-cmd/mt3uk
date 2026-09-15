@@ -338,6 +338,73 @@
   .review-card-meta .mono { font-size: 0.7rem; }
   .review-card p.comment { color: var(--ink-2); font-size: 0.92rem; }
   .review-empty { color: var(--steel); font-size: 0.9rem; }
+  .review-photos { display: flex; gap: 8px; margin-top: 10px; }
+  .review-photo-thumb {
+    width: 64px;
+    height: 64px;
+    padding: 0;
+    border: 1px solid var(--line);
+    background: none;
+    cursor: pointer;
+    overflow: hidden;
+  }
+  .review-photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .review-photo-thumb:hover, .review-photo-thumb:focus-visible { border-color: var(--orange); }
+
+  /* ---------- REVIEW LIGHTBOX ---------- */
+  .review-lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(22,35,61,0.94);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 220;
+    padding: 30px 20px;
+  }
+  .review-lightbox.open { display: flex; }
+  .review-lightbox img { max-width: 100%; max-height: 86vh; }
+  .review-lightbox-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: var(--ink);
+    border: 1px solid var(--white);
+    color: var(--white);
+    width: 40px;
+    height: 40px;
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .review-lightbox-close:hover { background: var(--orange); border-color: var(--orange); }
+
+  /* ---------- REVIEW PHOTO UPLOAD ---------- */
+  .review-photo-field { display: flex; flex-direction: column; gap: 8px; }
+  .review-photo-field .hint { color: var(--steel); font-size: 0.76rem; }
+  .review-photo-previews { display: flex; gap: 8px; }
+  .review-photo-preview {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    border: 1px solid var(--line);
+  }
+  .review-photo-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .review-photo-preview button {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 20px;
+    height: 20px;
+    line-height: 1;
+    border: 1px solid var(--ink);
+    background: var(--white);
+    color: var(--ink);
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 0;
+  }
+  .review-photo-preview button:hover { background: var(--orange); color: var(--white); border-color: var(--orange); }
 
   /* ---------- REVIEW FORM ---------- */
   .submit-review > p { color: var(--steel); font-size: 0.88rem; max-width: 54ch; margin-bottom: 22px; }
@@ -520,11 +587,22 @@
         <label class="mono" for="review-comment">Comments (Required)</label>
         <textarea id="review-comment" name="comment" placeholder="What did you think?" maxlength="500" required></textarea>
       </div>
+      <div class="form-row review-photo-field">
+        <label class="mono" for="review-photos">Photos (Optional, up to 3)</label>
+        <input type="file" id="review-photos" name="photos" accept="image/*" multiple>
+        <span class="hint">JPG or PNG, up to 3 photos.</span>
+        <div class="review-photo-previews" id="review-photo-previews"></div>
+      </div>
       <button type="submit" class="btn btn-primary">Submit review</button>
       <p id="review-status" class="mono" style="margin-top:2px;"></p>
     </form>
   </div>
 </section>
+
+<div class="review-lightbox" id="review-lightbox" role="dialog" aria-modal="true" aria-hidden="true">
+  <button type="button" class="review-lightbox-close" aria-label="Close">&times;</button>
+  <img id="review-lightbox-img" src="" alt="">
+</div>
 
 <footer>
   <div class="wrap footer-row">
@@ -625,10 +703,17 @@
           html += '<p class="review-group-summary">' + avg.toFixed(1) + ' out of 5, based on ' + productReviews.length + (productReviews.length === 1 ? ' review' : ' reviews') + '</p>';
           html += '<div class="review-list">';
           productReviews.forEach(function (r) {
+            var photosHtml = '';
+            if (Array.isArray(r.photos) && r.photos.length) {
+              photosHtml = '<div class="review-photos">' + r.photos.slice(0, 3).map(function (src) {
+                return '<button type="button" class="review-photo-thumb" data-full="' + escapeHtml(src) + '"><img src="' + escapeHtml(src) + '" alt="Review photo" loading="lazy"></button>';
+              }).join('') + '</div>';
+            }
             html += '<div class="review-card">' +
               '<span class="stars">' + starString(r.rating || 0) + '</span>' +
               '<div class="review-card-meta"><span class="mono">' + escapeHtml(r.name) + '</span><span class="mono">' + escapeHtml(r.date) + '</span></div>' +
               '<p class="comment">' + escapeHtml(r.comment) + '</p>' +
+              photosHtml +
               '</div>';
           });
           html += '</div>';
@@ -647,6 +732,34 @@
       .catch(function () {
         renderGroups([]);
       });
+
+    var lightbox = document.getElementById('review-lightbox');
+    var lightboxImg = document.getElementById('review-lightbox-img');
+
+    function openLightbox(src) {
+      lightboxImg.src = src;
+      lightbox.classList.add('open');
+      lightbox.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeLightbox() {
+      lightbox.classList.remove('open');
+      lightbox.setAttribute('aria-hidden', 'true');
+      lightboxImg.src = '';
+    }
+
+    document.getElementById('review-groups').addEventListener('click', function (e) {
+      var thumb = e.target.closest('.review-photo-thumb');
+      if (thumb) openLightbox(thumb.getAttribute('data-full'));
+    });
+
+    lightbox.querySelector('.review-lightbox-close').addEventListener('click', closeLightbox);
+    lightbox.addEventListener('click', function (e) {
+      if (e.target === lightbox) closeLightbox();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && lightbox.classList.contains('open')) closeLightbox();
+    });
   })();
 </script>
 
@@ -658,6 +771,11 @@
     if (!form) return;
     var status = document.getElementById('review-status');
     var btn = form.querySelector('button[type="submit"]');
+    var photoInput = document.getElementById('review-photos');
+    var photoPreviews = document.getElementById('review-photo-previews');
+    var MAX_PHOTOS = 3;
+    var MAX_DIMENSION = 1600;
+    var selectedPhotos = [];
 
     function fail(message) {
           status.style.color = 'var(--orange)';
@@ -665,6 +783,70 @@
           btn.disabled = false;
           btn.textContent = 'Submit review';
     }
+
+    function resizePhoto(file) {
+          return new Promise(function (resolve, reject) {
+                var img = new Image();
+                var url = URL.createObjectURL(file);
+                img.onload = function () {
+                      URL.revokeObjectURL(url);
+                      var scale = Math.min(1, MAX_DIMENSION / Math.max(img.width, img.height));
+                      var canvas = document.createElement('canvas');
+                      canvas.width = Math.round(img.width * scale);
+                      canvas.height = Math.round(img.height * scale);
+                      var ctx = canvas.getContext('2d');
+                      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                      resolve(canvas.toDataURL('image/jpeg', 0.82));
+                };
+                img.onerror = function () {
+                      URL.revokeObjectURL(url);
+                      reject(new Error('Could not read image'));
+                };
+                img.src = url;
+          });
+    }
+
+    function renderPhotoPreviews() {
+          photoPreviews.innerHTML = '';
+          selectedPhotos.forEach(function (dataUrl, index) {
+                var wrap = document.createElement('div');
+                wrap.className = 'review-photo-preview';
+                var img = document.createElement('img');
+                img.src = dataUrl;
+                img.alt = 'Selected photo';
+                var removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.setAttribute('aria-label', 'Remove photo');
+                removeBtn.textContent = '×';
+                removeBtn.addEventListener('click', function () {
+                      selectedPhotos.splice(index, 1);
+                      renderPhotoPreviews();
+                });
+                wrap.appendChild(img);
+                wrap.appendChild(removeBtn);
+                photoPreviews.appendChild(wrap);
+          });
+    }
+
+    photoInput.addEventListener('change', function () {
+          var files = Array.prototype.slice.call(photoInput.files || []);
+          photoInput.value = '';
+          if (!files.length) return;
+
+          if (selectedPhotos.length + files.length > MAX_PHOTOS) {
+                fail('You can add up to ' + MAX_PHOTOS + ' photos.');
+                files = files.slice(0, MAX_PHOTOS - selectedPhotos.length);
+          }
+
+          files.forEach(function (file) {
+                if (!file.type || file.type.indexOf('image/') !== 0) return;
+                resizePhoto(file).then(function (dataUrl) {
+                      if (selectedPhotos.length >= MAX_PHOTOS) return;
+                      selectedPhotos.push(dataUrl);
+                      renderPhotoPreviews();
+                });
+          });
+    });
 
     form.addEventListener('submit', function (e) {
           e.preventDefault();
@@ -685,7 +867,8 @@
                       product: form.querySelector('[name="product"]').value,
                       date: form.querySelector('[name="date"]').value,
                       rating: ratingInput.value,
-                      comment: form.querySelector('[name="comment"]').value
+                      comment: form.querySelector('[name="comment"]').value,
+                      photos: selectedPhotos
                 })
           })
                 .then(function (res) { return res.json(); })
@@ -695,6 +878,8 @@
                             status.style.fontWeight = '700';
                             status.textContent = 'Thanks, your review has been sent for approval. 👍';
                             form.reset();
+                            selectedPhotos = [];
+                            renderPhotoPreviews();
                             btn.disabled = false;
                             btn.textContent = 'Submit review';
                       } else {

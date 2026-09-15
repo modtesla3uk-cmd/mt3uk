@@ -6,6 +6,9 @@ const REVIEWS_PATH = 'data/reviews.json';
 const GALLERY_MANIFEST_URL = 'https://raw.githubusercontent.com/' + OWNER + '/' + REPO + '/' + BASE_BRANCH + '/images/gallery/manifest.json';
 const VOTE_TTL_SECONDS = 60 * 60 * 24 * 3;
 const REVIEW_PRODUCTS = ['tee', 'stickers', 'brace', 'pads-street', 'pads-carbotech'];
+const REVIEW_PHOTOS_PATH = 'images/reviews';
+const MAX_REVIEW_PHOTOS = 3;
+const MAX_REVIEW_PHOTO_BYTES = 5 * 1024 * 1024;
 
 function json(data, status) {
   return new Response(JSON.stringify(data), {
@@ -27,6 +30,18 @@ function arrayBufferToBase64(buffer) {
     binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
   }
   return btoa(binary);
+}
+
+function parseImageDataUrl(dataUrl) {
+  var match = /^data:(image\/(jpeg|png|webp));base64,([a-zA-Z0-9+/=]+)$/.exec(dataUrl || '');
+  if (!match) return null;
+  var ext = match[2] === 'jpeg' ? '.jpg' : '.' + match[2];
+  return { mime: match[1], ext: ext, base64: match[3] };
+}
+
+function base64ByteLength(base64) {
+  var padding = (base64.match(/=+$/) || [''])[0].length;
+  return Math.floor(base64.length * 0.75) - padding;
 }
 
 function slugify(caption) {
@@ -284,6 +299,17 @@ async function handleReviewPost(request, env) {
   if (isNaN(rating) || rating < 1 || rating > 5) return json({ success: false, message: 'Rating must be between 1 and 5' }, 400);
   if (!comment) return json({ success: false, message: 'Please add a short comment' }, 400);
 
+  var rawPhotos = Array.isArray(body && body.photos) ? body.photos.slice(0, MAX_REVIEW_PHOTOS) : [];
+  var photos = [];
+  for (var i = 0; i < rawPhotos.length; i++) {
+    var parsed = parseImageDataUrl(rawPhotos[i]);
+    if (!parsed) return json({ success: false, message: 'One of the photos could not be read' }, 400);
+    if (base64ByteLength(parsed.base64) > MAX_REVIEW_PHOTO_BYTES) {
+      return json({ success: false, message: 'Photos must be under 5MB each' }, 400);
+    }
+    photos.push(parsed);
+  }
+
   var ghHeaders = {
     'Authorization': 'Bearer ' + env.GITHUB_TOKEN,
     'Accept': 'application/vnd.github+json',
@@ -308,9 +334,6 @@ async function handleReviewPost(request, env) {
       throw new Error('Could not read reviews.json (' + getRes.status + ')');
     }
 
-    reviews.push({ product: product, name: name, date: date, rating: rating, comment: comment });
-
-    var newContent = btoa(unescape(encodeURIComponent(JSON.stringify(reviews, null, 2) + '\n')));
     var timestamp = Date.now();
     var branchName = 'review/' + timestamp + '-' + product;
 
@@ -332,6 +355,29 @@ async function handleReviewPost(request, env) {
     );
     if (!createRefRes.ok) throw new Error('Could not create branch (' + createRefRes.status + ')');
 
+    var photoPaths = [];
+    for (var p = 0; p < photos.length; p++) {
+      var photoPath = REVIEW_PHOTOS_PATH + '/' + timestamp + '-' + slugify(product) + '-' + (p + 1) + photos[p].ext;
+      var photoPutRes = await fetch(
+        'https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/' + photoPath,
+        {
+          method: 'PUT',
+          headers: ghHeaders,
+          body: JSON.stringify({
+            message: 'Add review photo for ' + product + ' from ' + name,
+            content: photos[p].base64,
+            branch: branchName
+          })
+        }
+      );
+      if (!photoPutRes.ok) throw new Error('Could not commit review photo (' + photoPutRes.status + ')');
+      photoPaths.push(photoPath);
+    }
+
+    reviews.push({ product: product, name: name, date: date, rating: rating, comment: comment, photos: photoPaths });
+
+    var newContent = btoa(unescape(encodeURIComponent(JSON.stringify(reviews, null, 2) + '\n')));
+
     var putBody = {
       message: 'Add review for ' + product + ' from ' + name,
       content: newContent,
@@ -350,7 +396,8 @@ async function handleReviewPost(request, env) {
     if (!putRes.ok) throw new Error('Could not commit review (' + putRes.status + ')');
 
     var prBody = '**Product:** ' + product + '\n**Rating:** ' + rating + '/5\n**Submitted by:** ' + name +
-      '\n**Comment:** ' + comment + '\n\nMerge this PR to publish the review on the site, or close it to reject the submission.';
+      '\n**Comment:** ' + comment + '\n**Photos:** ' + photoPaths.length +
+      '\n\nMerge this PR to publish the review on the site, or close it to reject the submission.';
 
     var prRes = await fetch(
       'https://api.github.com/repos/' + OWNER + '/' + REPO + '/pulls',

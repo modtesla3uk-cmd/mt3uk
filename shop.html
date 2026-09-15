@@ -347,7 +347,7 @@
     gap: 22px;
   }
   @media (max-width: 820px) { .shop-grid { grid-template-columns: 1fr; } }
-  .shop-grid-2 { grid-template-columns: repeat(2, 1fr); }
+  @media (min-width: 561px) { .shop-grid-2 { grid-template-columns: repeat(2, 1fr); } }
 
   #upgrades .section-head { margin-bottom: 20px; }
   .shop-band .specs { border-color: #3a4a6b; }
@@ -774,9 +774,10 @@
           <span class="tee-offer-now">&pound;95</span>
         </div>
         <p class="tee-offer-note">Delivered to UK addresses</p>
+        <p class="merch-sold-line mono" data-sold="brace"></p>
         <div class="tee-offer-actions">
           <span class="tag">AVAILABLE NOW</span>
-          <a class="tee-shop-btn" href="https://ko-fi.com/s/1b37c8bb10" target="_blank" rel="noopener">Order Here</a>
+          <a class="tee-shop-btn" href="https://ko-fi.com/s/1b37c8bb10?utm_source=mt3uk_shop&utm_medium=internal&utm_campaign=brace_order" target="_blank" rel="noopener">Order Here</a>
         </div>
       </div>
       <div class="shop-card shop-card-hoodie">

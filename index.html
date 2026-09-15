@@ -1569,20 +1569,11 @@
       start();
     }
 
-    Promise.all([
-      window.mt3ukFetchJSON('images/gallery/manifest.json', []),
-      window.mt3ukFetchJSON('data/featured.json', {})
-    ])
-      .then(function (results) {
-        var photos = results[0] || [];
-        var featuredFile = (results[1] && results[1].file) || null;
-        var ordered = photos;
-        if (photos.length) {
-          var featured = window.mt3ukPickBuild(photos, featuredFile);
-          var rest = photos.filter(function (p) { return p.file !== featured.file; });
-          ordered = [featured].concat(rest);
-        }
-        render(ordered.slice(0, MAX_SLIDES));
+    // Build Feed always leads with the newest upload (manifest.json is
+    // newest-first) — independent of the Featured Build pick/rotation logic.
+    window.mt3ukFetchJSON('images/gallery/manifest.json', [])
+      .then(function (photos) {
+        render((photos || []).slice(0, MAX_SLIDES));
       })
       .catch(function () {
         feedEl.innerHTML = '<p class="mono" style="padding: 24px; color: var(--steel);">Builds couldn\'t be loaded.</p>';

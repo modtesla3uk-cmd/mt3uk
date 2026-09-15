@@ -319,11 +319,9 @@
   .review-group-heading h3 { font-size: 1.15rem; }
   .review-group-heading .stars { color: #f5b400; letter-spacing: 1px; font-size: 1.3rem; }
   .review-group-summary { color: var(--steel); font-size: 0.88rem; margin-bottom: 16px; }
-  .review-list { display: flex; flex-direction: column; gap: 14px; }
+  .review-list { display: flex; flex-direction: column; gap: 10px; }
   .review-card {
-    border: 1px solid var(--line);
-    background: var(--white);
-    padding: 18px 20px;
+    padding: 4px 0;
   }
   .review-card .stars { color: #f5b400; letter-spacing: 1px; font-size: 1.25rem; }
   .review-card-meta {
@@ -332,11 +330,11 @@
     align-items: center;
     gap: 10px;
     flex-wrap: wrap;
-    margin-top: 6px;
-    margin-bottom: 8px;
+    margin-top: 4px;
+    margin-bottom: 4px;
   }
   .review-card-meta .mono { font-size: 0.7rem; }
-  .review-card p.comment { color: var(--ink-2); font-size: 0.92rem; }
+  .review-card p.comment { color: var(--ink-2); font-size: 0.92rem; font-style: italic; }
   .review-empty { color: var(--steel); font-size: 0.9rem; }
   .review-photos { display: flex; gap: 8px; margin-top: 10px; }
   .review-photo-thumb {
@@ -562,7 +560,7 @@
         <label class="mono" for="review-product">What did you buy (Required)</label>
         <select id="review-product" name="product" required>
           <option value="" disabled selected>Choose a product&hellip;</option>
-          <option value="tee">MT3UK Premium T-Shirt</option>
+          <option value="tee">MT3UK T-Shirt</option>
           <option value="stickers">MT3UK Vinyl Stickers</option>
           <option value="brace">Master Cylinder Brace</option>
           <option value="pads-street">PAGID Street+ Brake Pads</option>
@@ -666,7 +664,7 @@
 <script>
   (function () {
     var PRODUCT_NAMES = {
-      'tee': 'MT3UK Premium T-Shirt',
+      'tee': 'MT3UK T-Shirt',
       'stickers': 'MT3UK Vinyl Stickers',
       'brace': 'Master Cylinder Brace',
       'pads-street': 'PAGID Street+ Brake Pads',
@@ -712,7 +710,7 @@
             html += '<div class="review-card">' +
               '<span class="stars">' + starString(r.rating || 0) + '</span>' +
               '<div class="review-card-meta"><span class="mono">' + escapeHtml(r.name) + '</span><span class="mono">' + escapeHtml(r.date) + '</span></div>' +
-              '<p class="comment">' + escapeHtml(r.comment) + '</p>' +
+              '<p class="comment">&ldquo;' + escapeHtml(r.comment) + '&rdquo;</p>' +
               photosHtml +
               '</div>';
           });

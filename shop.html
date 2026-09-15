@@ -329,6 +329,13 @@
   .page-hero h1 { max-width: 20ch; margin-bottom: 14px; }
   .page-hero p { color: var(--ink-2); max-width: 58ch; font-size: 1.05rem; }
 
+  @media (max-width: 780px) {
+    .page-hero { padding: 26px 0 22px; }
+    .page-hero .back-link { margin-bottom: 12px; }
+    .page-hero .section-num { margin-bottom: 6px; }
+    .page-hero h1 { margin-bottom: 10px; }
+  }
+
   /* ---------- SHOP BAND / GRID / CARD ---------- */
   .shop-band {
     background: var(--ink);
@@ -356,6 +363,7 @@
   .shop-band .spec-row span:last-child { color: var(--paper); }
 
   .shop-card {
+    position: relative;
     display: flex;
     flex-direction: column;
     border: 1px solid #3a4a6b;
@@ -363,6 +371,22 @@
   }
   .shop-card svg { width: 100%; height: 140px; margin-bottom: 18px; }
   .shop-card-hoodie { justify-content: center; }
+
+  .shop-rating {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    color: #aeb8cc;
+    text-decoration: none;
+  }
+  .shop-rating:hover { color: var(--paper); }
+  .shop-rating .shop-rating-stars { color: var(--orange); letter-spacing: 1px; font-size: 1.15rem; line-height: 1; }
+  .shop-rating .shop-rating-count { text-decoration: underline; font-size: 0.85rem; }
 
   .tevo-panel {
     border: 1px solid #3a4a6b;
@@ -436,7 +460,7 @@
   .shop-preview-row-lg .shop-preview-trigger,
   .shop-preview-row-lg .shop-preview-thumb { height: auto; aspect-ratio: 8 / 5; }
   .shop-preview-thumb:hover img, .shop-preview-thumb:focus-visible img { transform: scale(4); }
-  .shop-card h3 { color: var(--paper); font-size: 1.02rem; font-weight: 600; font-family: 'IBM Plex Sans', sans-serif; margin-bottom: 6px; }
+  .shop-card h3 { color: var(--paper); font-size: 1.02rem; font-weight: 600; font-family: 'IBM Plex Sans', sans-serif; margin-bottom: 6px; padding-right: 76px; }
   .shop-card p { color: #aeb8cc; font-size: 0.86rem; }
   .shop-card .tag {
     display: inline-block;
@@ -618,6 +642,7 @@
         <div class="nav-dropdown">
           <a href="shop.html#merch" class="nav-sublink nav-sublink-new">Merch</a>
           <a href="shop.html#upgrades" class="nav-sublink nav-sublink-new">Upgrade / Parts</a>
+          <a href="reviews.html" class="nav-sublink nav-sublink-new">Customer Reviews</a>
         </div>
       </div>
       <a href="index.html#events" class="nav-link">Events</a>
@@ -666,6 +691,9 @@
     </div>
     <div class="shop-grid shop-grid-2">
       <div class="shop-card">
+        <a class="shop-rating" data-rating-product="tee" href="reviews.html#tee">
+          <span class="shop-rating-stars">☆☆☆☆☆</span><span class="shop-rating-count">Reviews</span>
+        </a>
         <h3>MT3UK Premium T-Shirt</h3>
         <p class="shop-preview-hint">Hold and pan to zoom</p>
         <div class="shop-preview-row">
@@ -700,6 +728,9 @@
         </div>
       </div>
       <div class="shop-card">
+        <a class="shop-rating" data-rating-product="stickers" href="reviews.html#stickers">
+          <span class="shop-rating-stars">☆☆☆☆☆</span><span class="shop-rating-count">Reviews</span>
+        </a>
         <h3>MT3UK Official vinyl stickers</h3>
         <p class="shop-preview-hint">Hold and pan to zoom</p>
         <a class="shop-preview-trigger" id="sticker-trigger" href="https://ko-fi.com/s/2a75c003e4" target="_blank" rel="noopener">
@@ -738,6 +769,9 @@
     </div>
     <div class="shop-grid">
       <div class="shop-card">
+        <a class="shop-rating" data-rating-product="brace" href="reviews.html#brace">
+          <span class="shop-rating-stars">☆☆☆☆☆</span><span class="shop-rating-count">Reviews</span>
+        </a>
         <h3>Model 3 Brake Master Cylinder Bracket (for RHD models only)</h3>
         <p class="shop-preview-hint">Hold and pan to zoom</p>
         <div class="shop-preview-row shop-preview-row-lg">
@@ -816,6 +850,9 @@
     </div>
     <div class="shop-grid">
       <div class="shop-card">
+        <a class="shop-rating" data-rating-product="pads-street" href="reviews.html#pads-street">
+          <span class="shop-rating-stars">☆☆☆☆☆</span><span class="shop-rating-count">Reviews</span>
+        </a>
         <h3>PAGID &lsquo;STREET+&rsquo; Brake Pads (Model 3P/Y)</h3>
         <p class="shop-preview-hint">Hold and pan to zoom</p>
         <div class="shop-preview-trigger" id="pads-street-trigger" tabindex="0">
@@ -829,6 +866,9 @@
         <p class="tee-offer-note">Remember to mention MT3UK</p>
       </div>
       <div class="shop-card">
+        <a class="shop-rating" data-rating-product="pads-carbotech" href="reviews.html#pads-carbotech">
+          <span class="shop-rating-stars">☆☆☆☆☆</span><span class="shop-rating-count">Reviews</span>
+        </a>
         <h3>Carbotech Brake Pads (Model 3 Performance)</h3>
         <p class="shop-preview-hint">Hold and pan to zoom</p>
         <div class="shop-preview-trigger" id="pads-carbotech-trigger" tabindex="0">
@@ -1298,6 +1338,27 @@
             var count = data[key];
             if (!count) return;
             el.textContent = '🔥 ' + count + ' sold since launch';
+          });
+        })
+        .catch(function () {});
+
+      fetch('data/reviews.json', { cache: 'no-store' })
+        .then(function (res) { return res.ok ? res.json() : null; })
+        .then(function (reviews) {
+          if (!Array.isArray(reviews)) return;
+          document.querySelectorAll('[data-rating-product]').forEach(function (el) {
+            var key = el.getAttribute('data-rating-product');
+            var productReviews = reviews.filter(function (r) { return r.product === key; });
+            var starsEl = el.querySelector('.shop-rating-stars');
+            var countEl = el.querySelector('.shop-rating-count');
+            if (!productReviews.length) {
+              countEl.textContent = 'No reviews yet';
+              return;
+            }
+            var avg = productReviews.reduce(function (sum, r) { return sum + (r.rating || 0); }, 0) / productReviews.length;
+            var rounded = Math.round(avg);
+            starsEl.textContent = '★★★★★'.slice(0, rounded) + '☆☆☆☆☆'.slice(0, 5 - rounded);
+            countEl.textContent = avg.toFixed(1) + ' (' + productReviews.length + ')';
           });
         })
         .catch(function () {});

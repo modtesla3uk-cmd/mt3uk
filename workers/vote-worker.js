@@ -10,7 +10,7 @@ const REVIEW_PHOTOS_PATH = 'images/reviews';
 const MAX_REVIEW_PHOTOS = 3;
 const MAX_REVIEW_PHOTO_BYTES = 5 * 1024 * 1024;
 const SHOPIFY_PRODUCTS_URL = 'https://mt3uk.myshopify.com/products.json?limit=250';
-const SHOP_PRODUCTS_CACHE_SECONDS = 60 * 10;
+const SHOP_PRODUCTS_CACHE_SECONDS = 60 * 2;
 
 function json(data, status) {
   return new Response(JSON.stringify(data), {

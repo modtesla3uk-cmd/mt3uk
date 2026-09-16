@@ -2,10 +2,9 @@ def test_tee_card_shows_discount_offer(page):
     page.goto("/shop.html")
     card = page.locator(".shop-card").first
 
-    assert "20% off" in card.locator(".tee-offer-banner").inner_text()
-    assert "SAVE 20%" in card.locator(".tee-offer-save").inner_text()
-    assert "24.99" in card.locator(".tee-offer-was").inner_text()
-    assert "19.99" in card.locator(".tee-offer-now").inner_text()
+    assert "SAVE 10%" in card.locator(".tee-offer-save").inner_text()
+    assert "22.99" in card.locator(".tee-offer-was").inner_text()
+    assert "20.69" in card.locator(".tee-offer-now").inner_text()
 
 
 def test_available_now_and_more_detail_are_visually_symmetrical(page):

@@ -497,6 +497,21 @@
     display: block;
   }
   .section-head h2 { font-size: clamp(1.7rem, 3.2vw, 2.3rem); max-width: 20ch; }
+  .section-title-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .refresh-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.03em;
+    padding: 6px 12px;
+    border: 1px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    transition: background .2s ease, color .2s ease;
+    white-space: nowrap;
+  }
+  .refresh-btn:hover:not(:disabled) { background: var(--ink); color: var(--paper); }
+  .refresh-btn:disabled { opacity: 0.5; cursor: default; }
   .section-head p { max-width: 40ch; color: var(--steel); font-size: 0.95rem; }
   @media (max-width: 480px) { .vote-heading { max-width: none; white-space: nowrap; font-size: clamp(1.2rem, 6vw, 1.7rem); } }
 
@@ -1266,8 +1281,8 @@
 <script>
   window.mt3ukFetchJSON = (function () {
     var cache = {};
-    return function (url, fallback) {
-      if (!cache[url]) {
+    return function (url, fallback, forceRefresh) {
+      if (forceRefresh || !cache[url]) {
         cache[url] = fetch(url, { cache: 'no-store' })
           .then(function (res) { return res.ok ? res.json() : fallback; })
           .catch(function () { return fallback; });
@@ -1676,7 +1691,10 @@
     <div class="section-head" style="margin-top: 48px;">
       <div>
         <span class="section-num">02B / VOTE</span>
-        <h2 class="vote-heading">Vote for your favourite build</h2>
+        <div class="section-title-row">
+          <h2 class="vote-heading">Vote for your favourite build</h2>
+          <button type="button" class="refresh-btn" id="vote-refresh-btn" aria-label="Refresh voting builds">&#8635; Refresh</button>
+        </div>
       </div>
       <p>A selection of recently uploaded builds can be voted on to be featured as 'Today's featured build'. This resets at midnight so get your votes in! <span class="vote-countdown" id="vote-countdown"></span> Please do not vote on your own build. Votes are being checked before tallying up for inconsistencies.</p>
     </div>
@@ -1691,7 +1709,10 @@
     <div class="section-head">
       <div>
         <span class="section-num">03 / GALLERY</span>
-        <h2>Member builds</h2>
+        <div class="section-title-row">
+          <h2>Member builds</h2>
+          <button type="button" class="refresh-btn" id="gallery-refresh-btn" aria-label="Refresh gallery">&#8635; Refresh</button>
+        </div>
       </div>
       <p>A rotating look at what the group's driving. Photos will swap in from group posts.</p>
     </div>
@@ -1795,15 +1816,26 @@
           renderPagination(totalPages);
         }
 
-        window.mt3ukFetchJSON('images/gallery/manifest.json', null)
-          .then(function (photos) {
-            if (!photos) {
-              grid.innerHTML = '<p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">Gallery photos couldn\'t be loaded.</p>';
-              return;
-            }
-            allPhotos = photos;
-            render();
-          });
+        function loadGallery(forceRefresh) {
+          var refreshBtn = document.getElementById('gallery-refresh-btn');
+          if (refreshBtn) refreshBtn.disabled = true;
+          window.mt3ukFetchJSON('images/gallery/manifest.json', null, forceRefresh)
+            .then(function (photos) {
+              if (refreshBtn) refreshBtn.disabled = false;
+              if (!photos) {
+                grid.innerHTML = '<p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">Gallery photos couldn\'t be loaded.</p>';
+                return;
+              }
+              allPhotos = photos;
+              currentPage = 1;
+              render();
+            });
+        }
+
+        loadGallery(false);
+
+        var galleryRefreshBtn = document.getElementById('gallery-refresh-btn');
+        if (galleryRefreshBtn) galleryRefreshBtn.addEventListener('click', function () { loadGallery(true); });
       })();
     </script>
   </div>
@@ -2572,12 +2604,25 @@
         }
       }
 
-      fetch(VOTE_ENDPOINT + '/votes', { headers: { 'X-Voter-Id': voterId } })
-        .then(function (res) { return res.json(); })
-        .then(render)
-        .catch(function () {
-          frame.innerHTML = '<p class="mono" style="padding: 24px; color: var(--steel);">Voting couldn\'t be loaded.</p>';
-        });
+      function loadVotes() {
+        var refreshBtn = document.getElementById('vote-refresh-btn');
+        if (refreshBtn) refreshBtn.disabled = true;
+        return fetch(VOTE_ENDPOINT + '/votes', { headers: { 'X-Voter-Id': voterId }, cache: 'no-store' })
+          .then(function (res) { return res.json(); })
+          .then(function (data) {
+            if (refreshBtn) refreshBtn.disabled = false;
+            render(data);
+          })
+          .catch(function () {
+            if (refreshBtn) refreshBtn.disabled = false;
+            frame.innerHTML = '<p class="mono" style="padding: 24px; color: var(--steel);">Voting couldn\'t be loaded.</p>';
+          });
+      }
+
+      loadVotes();
+
+      var voteRefreshBtn = document.getElementById('vote-refresh-btn');
+      if (voteRefreshBtn) voteRefreshBtn.addEventListener('click', function () { loadVotes(); });
 
       var countdownEl = document.getElementById('vote-countdown');
       var heroCountdownEl = document.getElementById('hero-vote-countdown');

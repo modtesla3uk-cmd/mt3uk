@@ -484,11 +484,6 @@
   .shop-preview-trigger:hover, .shop-preview-trigger:focus-visible { border-color: var(--orange); }
   .shop-preview-trigger img { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.35s ease; }
   .shop-preview-trigger:hover img, .shop-preview-trigger:focus-visible img { transform: scale(1.8); }
-  #sticker-trigger { margin-bottom: 18px; cursor: zoom-in; }
-  #sticker-trigger img { border: 1.5px dashed var(--steel); padding: 6px 8px; box-sizing: border-box; transition: transform 0.2s ease; }
-  #sticker-trigger img.zoom-pan { transform: scale(4); }
-  #tee-trigger img, #tee-trigger-2 img { transition: transform 0.2s ease; }
-  #tee-trigger img.zoom-pan, #tee-trigger-2 img.zoom-pan { transform: scale(4); }
   #brace-trigger img, #brace-trigger-2 img { transition: transform 0.2s ease; }
   #brace-trigger img.zoom-pan, #brace-trigger-2 img.zoom-pan { transform: scale(4); }
   #pads-street-trigger img, #pads-carbotech-trigger img { transition: transform 0.2s ease; }
@@ -525,13 +520,32 @@
     padding: 3px 8px;
   }
 
-  .sticker-price-list {
+  .shop-live-heading {
+    grid-column: 1 / -1;
+    color: var(--paper);
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.8rem;
-    color: #aeb8cc;
-    margin-top: 10px;
+    letter-spacing: 0.04em;
+    margin: 8px 0 2px;
   }
-  .sticker-price-list strong { color: var(--orange); }
+  .shop-live-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #3a4a6b;
+    padding: 26px;
+  }
+  .shop-live-card img {
+    width: 100%;
+    height: 220px;
+    object-fit: contain;
+    background: #0e1626;
+    border: 1px solid #3a4a6b;
+    margin-bottom: 16px;
+  }
+  .shop-live-card h3 { color: var(--paper); font-size: 1.14rem; font-weight: 600; font-family: 'IBM Plex Sans', sans-serif; margin-bottom: 6px; padding-right: 76px; }
+  .shop-live-card .merch-sold-line { margin-bottom: 12px; }
+  .shop-live-card .tag { align-self: flex-start; }
 
   .merch-sold-line {
     margin-top: 8px;
@@ -692,8 +706,8 @@
 <div class="promo-banner" id="promo-banner">
   <div class="promo-banner-inner">
     <div class="promo-banner-track">
-      <a href="shop.html#tee" class="promo-banner-msg">&#9201; New Tee options available!! | Club Stickers | Master Cylinder Braces &mdash; shop now &rarr;</a>
-      <a href="shop.html#tee" class="promo-banner-msg" aria-hidden="true">&#9201; New Tee options available!! | Club Stickers | Master Cylinder Braces &mdash; shop now &rarr;</a>
+      <a href="shop.html#merch" class="promo-banner-msg">&#9201; New Tee options available!! | Club Stickers | Master Cylinder Braces &mdash; shop now &rarr;</a>
+      <a href="shop.html#merch" class="promo-banner-msg" aria-hidden="true">&#9201; New Tee options available!! | Club Stickers | Master Cylinder Braces &mdash; shop now &rarr;</a>
     </div>
     <button type="button" class="promo-banner-close" id="promo-banner-close" aria-label="Dismiss banner">&times;</button>
   </div>
@@ -775,71 +789,7 @@
         <p class="section-note">Grab yourself some merch curated for MT3UK members</p>
       </div>
     </div>
-    <div class="shop-grid shop-grid-2">
-      <div class="shop-card" id="tee">
-        <a class="shop-rating" data-rating-product="tee" href="reviews.html#tee">
-          <span class="shop-rating-stars">☆☆☆☆☆</span><span class="shop-rating-count">Reviews</span>
-        </a>
-        <h3>MT3UK Tee</h3>
-        <p class="shop-preview-hint">Hold and pan to zoom</p>
-        <div class="shop-preview-row">
-          <a class="shop-preview-trigger" id="tee-trigger" href="https://mt3uk.myshopify.com/products/black-unisex-t-shirt-mt3uk-red-underline-design" target="_blank" rel="noopener">
-            <img src="images/site/mt3uk-tee.jpg" alt="MT3UK black unisex t-shirt with red underline design">
-          </a>
-          <a class="shop-preview-thumb" id="tee-trigger-2" href="https://mt3uk.myshopify.com/products/black-unisex-t-shirt-mt3uk-red-underline-design" target="_blank" rel="noopener">
-            <img src="images/site/mt3uk-tee-2.jpg" alt="MT3UK t-shirt folded, close-up of the logo print">
-          </a>
-        </div>
-        <p class="tee-modal-lead">Built for community. Designed to last.</p>
-        <button type="button" class="detail-toggle" aria-expanded="false" aria-controls="tee-detail-content">More detail</button>
-        <div class="detail-content" id="tee-detail-content" hidden>
-          <p class="detail-desc">Heavyweight, preshrunk 100% cotton, engineered for durability. The same premium blank worn by serious communities worldwide.</p>
-          <ul class="tee-modal-features">
-            <li>Yellow Underline or Red Underline design <span class="feature-new-badge">NEW</span></li>
-            <li>Preshrunk (keeps shape after washing)</li>
-            <li>Super soft option available</li>
-            <li>Built for track days &amp; everyday wear</li>
-          </ul>
-        </div>
-        <div class="tee-offer-price">
-          <span class="tee-offer-save">SAVE 10%</span>
-          <span class="tee-offer-was">From &pound;22.99</span>
-          <span class="tee-offer-now">From &pound;20.69</span>
-        </div>
-        <p class="merch-sold-line mono" data-sold="tee"></p>
-        <div class="tee-offer-actions">
-          <span class="tag">AVAILABLE NOW</span>
-          <a class="tee-shop-btn" href="https://mt3uk.myshopify.com/collections/tees?utm_source=mt3uk_shop&utm_medium=internal&utm_campaign=tshirt_order" target="_blank" rel="noopener">Shop tee</a>
-        </div>
-      </div>
-      <div class="shop-card" id="stickers">
-        <a class="shop-rating" data-rating-product="stickers" href="reviews.html#stickers">
-          <span class="shop-rating-stars">☆☆☆☆☆</span><span class="shop-rating-count">Reviews</span>
-        </a>
-        <h3>MT3UK Club Stickers</h3>
-        <p class="shop-preview-hint">Hold and pan to zoom</p>
-        <a class="shop-preview-trigger" id="sticker-trigger" href="https://ko-fi.com/s/2a75c003e4" target="_blank" rel="noopener">
-          <img src="images/site/MT3UK-3-pack-stickers.png" alt="MT3UK 3-pack vinyl sticker set">
-        </a>
-        <p class="sticker-modal-lead">Elevate your Tesla&rsquo;s look with official MT3UK community stickers.</p>
-        <button type="button" class="detail-toggle" aria-expanded="false" aria-controls="sticker-detail-content">More detail</button>
-        <div class="detail-content" id="sticker-detail-content" hidden>
-          <ul class="sticker-modal-features">
-            <li>Premium quality vinyl: UV-resistant, weatherproof</li>
-            <li>Clean white text with bold red accent: high contrast, professional appearance</li>
-            <li>Removable adhesive: peels off cleanly without damaging paint</li>
-            <li>Transparent background: sits flush against your surface</li>
-            <li>Size: 42mm &times; 165mm (approximately 1.65&Prime; &times; 6.5&Prime;)</li>
-          </ul>
-        </div>
-        <p class="sticker-price-list"><strong>&pound;7.50</strong> 3-pack</p>
-        <p class="merch-sold-line mono" data-sold="stickers"></p>
-        <div class="tee-offer-actions">
-          <span class="tag">AVAILABLE NOW</span>
-          <a class="tee-shop-btn" href="https://ko-fi.com/s/2a75c003e4?utm_source=mt3uk_shop&utm_medium=internal&utm_campaign=stickers_order" target="_blank" rel="noopener">Order Here</a>
-        </div>
-      </div>
-    </div>
+    <div class="shop-grid shop-grid-2" id="shop-live-products"></div>
   </div>
 </section>
 
@@ -962,15 +912,13 @@
   <div class="wrap footer-row">
     <a href="/" class="logo footer-logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
     <span class="mono">MODIFIED TESLA COMMUNITY &middot; <span class="member-count"></span> MEMBERS</span>
-    <a href="https://www.facebook.com/share/g/1EnNkFvxr7/" target="_blank" rel="noopener" class="mono" style="text-decoration:underline;">FACEBOOK GROUP &#8599;</a>
+    <a href="https://www.facebook.com/groups/mt3uk/" target="_blank" rel="noopener" class="mono" style="text-decoration:underline;">FACEBOOK GROUP &#8599;</a>
   </div>
 </footer>
 
 <script>
 (function () {
       var panTargets = [
-        document.getElementById('tee-trigger'), document.getElementById('tee-trigger-2'),
-        document.getElementById('sticker-trigger'),
         document.getElementById('brace-trigger'), document.getElementById('brace-trigger-2'),
         document.getElementById('pads-street-trigger'), document.getElementById('pads-carbotech-trigger')
       ];
@@ -1032,199 +980,6 @@
                     btn.setAttribute('aria-expanded', String(!expanded));
                     content.hidden = expanded;
               });
-        });
-    })();
-</script>
-
-  <script>
-    (function () {
-        var style = document.createElement('style');
-        style.textContent = '.sticker-modal { position: fixed; inset: 0; background: rgba(22,35,61,0.94); display: none; align-items: center; justify-content: center; z-index: 210; padding: 30px 20px; } .sticker-modal.open { display: flex; } .sticker-modal-panel { background: var(--ink); border: 1px solid #3a4a6b; max-width: 720px; width: 100%; max-height: 88vh; overflow-y: auto; position: relative; padding: 36px; box-sizing: border-box; } .sticker-modal-close { position: absolute; top: 12px; right: 12px; z-index: 5; background: var(--ink); border: 1px solid var(--paper); color: var(--paper); width: 40px; height: 40px; font-size: 1.3rem; line-height: 1; cursor: pointer; } .sticker-modal-close:hover { background: var(--orange); border-color: var(--orange); } .sticker-modal-media { border: 1px solid #3a4a6b; padding: 20px; position: relative; margin-bottom: 24px; display: flex; align-items: center; justify-content: center; } .sticker-modal-media img { display: block; max-width: 90%; height: auto; border: 1.5px dashed var(--steel); padding: 8px 10px; box-sizing: border-box; } .sticker-modal-tag { position: absolute; top: 14px; left: 14px; display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; color: var(--orange); border: 1px solid var(--orange); padding: 3px 8px; background: #0d1526; } .sticker-modal-body h3 { color: var(--paper); font-family: "IBM Plex Sans", sans-serif; font-size: 1.25rem; margin: 0 0 12px; } .sticker-modal-body h4 { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--orange); margin: 22px 0 10px; } .sticker-modal-lead { color: var(--paper); font-weight: 600; margin-bottom: 10px; } .sticker-modal-body p { color: #aeb8cc; font-size: 0.9rem; line-height: 1.55; margin: 0 0 10px; } .sticker-modal-features { list-style: none; padding: 0; margin: 0; } .sticker-modal-features li { color: #d7dce8; font-size: 0.87rem; padding-left: 22px; position: relative; margin-bottom: 8px; } .sticker-modal-features li::before { content: "\\2713"; position: absolute; left: 0; color: var(--orange); font-weight: 700; } .sticker-modal-pricing { width: 100%; border-collapse: collapse; margin-top: 4px; } .sticker-modal-pricing th, .sticker-modal-pricing td { border: 1px solid #3a4a6b; padding: 8px 12px; font-size: 0.83rem; text-align: left; color: var(--paper); } .sticker-modal-pricing th { font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--orange); } .sticker-modal-note { font-style: italic; } .sticker-modal-cta { color: var(--paper); font-weight: 600; margin: 18px 0 0; } @media (max-width: 600px) { .sticker-modal-panel { padding: 24px 18px; } }';
-        document.head.appendChild(style);
-
-        var modal = document.createElement('div');
-        modal.id = 'sticker-modal';
-        modal.className = 'sticker-modal';
-        modal.setAttribute('role', 'dialog');
-        modal.setAttribute('aria-modal', 'true');
-        modal.setAttribute('aria-hidden', 'true');
-        modal.innerHTML = '<div class="sticker-modal-panel">' +
-              '<button type="button" class="sticker-modal-close" aria-label="Close">&times;</button>' +
-              '<div class="sticker-modal-media">' +
-                    '<span class="tag sticker-modal-tag">AVAILABLE NOW</span>' +
-                    '<img src="images/site/MT3UK-3-pack-stickers.png" alt="MT3UK 3-pack vinyl sticker set">' +
-              '</div>' +
-              '<div class="sticker-modal-body">' +
-                    '<h3>MT3UK Modified Tesla Bumper Sticker Pack</h3>' +
-                    '<p class="sticker-modal-lead">Elevate your Tesla&rsquo;s look with official MT3UK community stickers.</p>' +
-                    '<h4>Features</h4>' +
-                    '<ul class="sticker-modal-features">' +
-                          '<li>Premium quality vinyl: UV-resistant, weatherproof</li>' +
-                          '<li>Clean white text with bold red accent: high contrast, professional appearance</li>' +
-                          '<li>Removable adhesive: peels off cleanly without damaging paint</li>' +
-                          '<li>Transparent background: sits flush against your surface</li>' +
-                          '<li>Size: 42mm &times; 165mm (approximately 1.65&Prime; &times; 6.5&Prime;)</li>' +
-                    '</ul>' +
-                    '<h4>Sizing</h4>' +
-                    '<p>42mm &times; 165mm (approximately 1.65&Prime; &times; 6.5&Prime;), perfect bumper/window sticker size</p>' +
-                    '<h4>Pricing options</h4>' +
-                    '<table class="sticker-modal-pricing">' +
-                          '<thead><tr><th>Option</th><th>Price</th><th>Best for</th></tr></thead>' +
-                          '<tbody>' +
-                                '<tr><td>3-pack bundle</td><td>&pound;7.50</td><td>Sides, Rear, Front</td></tr>' +
-                          '</tbody>' +
-                    '</table>' +
-                    '<p class="sticker-modal-note">Order with confidence: Fast UK delivery.</p>' +
-                    '<p class="sticker-modal-cta">Join the MT3UK family. Show your colours.</p>' +
-                    '<a class="tee-modal-buy" href="https://ko-fi.com/s/2a75c003e4?utm_source=mt3uk_shop&utm_medium=internal&utm_campaign=stickers_order" target="_blank" rel="noopener">Order Here</a>' +
-              '</div>' +
-        '</div>';
-        document.body.appendChild(modal);
-
-        var closeBtn = modal.querySelector('.sticker-modal-close');
-        var trigger = document.getElementById('sticker-trigger');
-
-        function openModal() {
-              modal.classList.add('open');
-              modal.setAttribute('aria-hidden', 'false');
-              document.body.style.overflow = 'hidden';
-        }
-
-        function closeModal() {
-              modal.classList.remove('open');
-              modal.setAttribute('aria-hidden', 'true');
-              document.body.style.overflow = '';
-        }
-
-        if (trigger) trigger.addEventListener('click', function (e) {
-              e.preventDefault();
-              openModal();
-        });
-        closeBtn.addEventListener('click', closeModal);
-        modal.addEventListener('click', function (e) {
-              if (e.target === modal) closeModal();
-        });
-        document.addEventListener('keydown', function (e) {
-              if (modal.classList.contains('open') && e.key === 'Escape') closeModal();
-        });
-    })();
-</script>
-
-  <script>
-    (function () {
-        var style = document.createElement('style');
-        style.textContent = '.tee-modal { position: fixed; inset: 0; background: rgba(22,35,61,0.94); display: none; align-items: center; justify-content: center; z-index: 210; padding: 30px 20px; } .tee-modal.open { display: flex; } .tee-modal-panel { background: var(--ink); border: 1px solid #3a4a6b; max-width: 720px; width: 100%; max-height: 88vh; overflow-y: auto; position: relative; padding: 36px; box-sizing: border-box; } .tee-modal-close { position: absolute; top: 12px; right: 12px; z-index: 5; background: var(--ink); border: 1px solid var(--paper); color: var(--paper); width: 40px; height: 40px; font-size: 1.3rem; line-height: 1; cursor: pointer; } .tee-modal-close:hover { background: var(--orange); border-color: var(--orange); } .tee-modal-media { border: 1px solid #3a4a6b; padding: 20px; position: relative; margin-bottom: 24px; display: flex; align-items: center; justify-content: center; } .tee-modal-media img { display: block; max-width: 100%; height: auto; } .tee-modal-arrow { position: absolute; top: 50%; transform: translateY(-50%); z-index: 5; background: var(--ink); border: 1px solid var(--paper); color: var(--paper); width: 36px; height: 36px; font-size: 1.1rem; line-height: 1; cursor: pointer; } .tee-modal-arrow:hover { background: var(--orange); border-color: var(--orange); } .tee-modal-arrow-prev { left: 10px; } .tee-modal-arrow-next { right: 10px; } .tee-modal-tag { position: absolute; top: 14px; left: 14px; display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; color: var(--orange); border: 1px solid var(--orange); padding: 3px 8px; background: #0d1526; } .tee-modal-body h3 { color: var(--paper); font-family: "IBM Plex Sans", sans-serif; font-size: 1.25rem; margin: 0 0 12px; } .tee-modal-body h4 { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--orange); margin: 22px 0 10px; } .tee-modal-lead { color: var(--paper); font-weight: 600; margin-bottom: 10px; } .tee-modal-body p { color: #aeb8cc; font-size: 0.9rem; line-height: 1.55; margin: 0 0 10px; } .tee-modal-features { list-style: none; padding: 0; margin: 0; } .tee-modal-features li { color: #d7dce8; font-size: 0.87rem; padding-left: 22px; position: relative; margin-bottom: 8px; } .tee-modal-features li::before { content: "\\2713"; position: absolute; left: 0; color: var(--orange); font-weight: 700; } .tee-modal-price { color: var(--paper); font-size: 1.4rem; font-weight: 700; margin: 4px 0 14px; } .tee-modal-buy { display: inline-block; margin-top: 18px; padding: 12px 24px; background: var(--orange); color: var(--paper); font-weight: 600; font-size: 0.9rem; border: 1px solid var(--orange); } .tee-modal-buy:hover { background: #cf4620; } .tee-modal-thumbs { display: flex; gap: 10px; margin-top: 14px; } .tee-modal-thumbs button { width: 56px; height: 56px; padding: 4px; background: none; border: 1px solid #3a4a6b; cursor: pointer; box-sizing: border-box; } .tee-modal-thumbs button:hover, .tee-modal-thumbs button.active { border-color: var(--orange); } .tee-modal-thumbs img { display: block; width: 100%; height: 100%; object-fit: contain; } @media (max-width: 600px) { .tee-modal-panel { padding: 24px 18px; } }';
-        document.head.appendChild(style);
-
-        var modal = document.createElement('div');
-        modal.id = 'tee-modal';
-        modal.className = 'tee-modal';
-        modal.setAttribute('role', 'dialog');
-        modal.setAttribute('aria-modal', 'true');
-        modal.setAttribute('aria-hidden', 'true');
-        modal.innerHTML = '<div class="tee-modal-panel">' +
-              '<button type="button" class="tee-modal-close" aria-label="Close">&times;</button>' +
-              '<div class="tee-modal-media">' +
-                    '<span class="tag tee-modal-tag">AVAILABLE NOW</span>' +
-                    '<button type="button" class="tee-modal-arrow tee-modal-arrow-prev" aria-label="Previous image">&#8249;</button>' +
-                    '<img class="tee-modal-main-img" src="images/site/mt3uk-tee.jpg" alt="MT3UK black unisex t-shirt with red underline design">' +
-                    '<button type="button" class="tee-modal-arrow tee-modal-arrow-next" aria-label="Next image">&#8250;</button>' +
-              '</div>' +
-              '<div class="tee-modal-thumbs">' +
-                    '<button type="button" class="active" data-src="images/site/mt3uk-tee.jpg" data-alt="MT3UK black unisex t-shirt with red underline design"><img src="images/site/mt3uk-tee.jpg" alt="Front view"></button>' +
-                    '<button type="button" data-src="images/site/mt3uk-tee-2.jpg" data-alt="MT3UK t-shirt folded, close-up of the logo print"><img src="images/site/mt3uk-tee-2.jpg" alt="Folded close-up"></button>' +
-              '</div>' +
-              '<div class="tee-modal-body">' +
-                    '<h3>MT3UK Tee</h3>' +
-                    '<p class="tee-modal-lead">Built for community. Designed to last.</p>' +
-                    '<p>Heavyweight, preshrunk 100% cotton, engineered for durability. The same premium blank worn by serious communities worldwide.</p>' +
-                    '<p>Whether you&rsquo;re wearing it to a track day or out in town, this is quality that shows.</p>' +
-                    '<h4>Quality features</h4>' +
-                    '<ul class="tee-modal-features">' +
-                          '<li>Yellow Underline or Red Underline design <span class="feature-new-badge">NEW</span></li>' +
-                          '<li>Preshrunk (keeps shape after washing)</li>' +
-                          '<li>Super soft option available</li>' +
-                          '<li>Built for track days &amp; everyday wear</li>' +
-                    '</ul>' +
-                    '<div class="tee-offer-price">' +
-                          '<span class="tee-offer-save">SAVE 10%</span>' +
-                          '<span class="tee-offer-was">From &pound;22.99</span>' +
-                          '<span class="tee-offer-now">From &pound;20.69</span>' +
-                    '</div>' +
-                    '<p>Premium quality (not fast fashion)</p>' +
-                    '<a class="tee-modal-buy" href="https://mt3uk.myshopify.com/collections/tees?utm_source=mt3uk_shop&utm_medium=internal&utm_campaign=tshirt_order" target="_blank" rel="noopener">Shop the tee</a>' +
-              '</div>' +
-        '</div>';
-        document.body.appendChild(modal);
-
-        var closeBtn = modal.querySelector('.tee-modal-close');
-        var trigger = document.getElementById('tee-trigger');
-        var trigger2 = document.getElementById('tee-trigger-2');
-        var mainImg = modal.querySelector('.tee-modal-main-img');
-        var thumbBtns = modal.querySelectorAll('.tee-modal-thumbs button');
-        var prevArrow = modal.querySelector('.tee-modal-arrow-prev');
-        var nextArrow = modal.querySelector('.tee-modal-arrow-next');
-        var slides = Array.prototype.map.call(thumbBtns, function (b) {
-              return { src: b.getAttribute('data-src'), alt: b.getAttribute('data-alt') };
-        });
-        var currentIndex = 0;
-
-        function setActiveThumb(src) {
-              thumbBtns.forEach(function (b) {
-                    b.classList.toggle('active', b.getAttribute('data-src') === src);
-              });
-        }
-
-        function showImage(src, alt) {
-              mainImg.src = src;
-              mainImg.alt = alt;
-              setActiveThumb(src);
-              var i = slides.findIndex(function (s) { return s.src === src; });
-              if (i !== -1) currentIndex = i;
-        }
-
-        function showSlide(index) {
-              var i = (index + slides.length) % slides.length;
-              showImage(slides[i].src, slides[i].alt);
-        }
-
-        thumbBtns.forEach(function (b) {
-              b.addEventListener('click', function () {
-                    showImage(b.getAttribute('data-src'), b.getAttribute('data-alt'));
-              });
-        });
-
-        if (prevArrow) prevArrow.addEventListener('click', function () { showSlide(currentIndex - 1); });
-        if (nextArrow) nextArrow.addEventListener('click', function () { showSlide(currentIndex + 1); });
-
-        function openModal(src, alt) {
-              if (src) showImage(src, alt);
-              modal.classList.add('open');
-              modal.setAttribute('aria-hidden', 'false');
-              document.body.style.overflow = 'hidden';
-        }
-
-        function closeModal() {
-              modal.classList.remove('open');
-              modal.setAttribute('aria-hidden', 'true');
-              document.body.style.overflow = '';
-        }
-
-        if (trigger) trigger.addEventListener('click', function (e) {
-              e.preventDefault();
-              openModal('images/site/mt3uk-tee.jpg', 'MT3UK black unisex t-shirt with red underline design');
-        });
-        if (trigger2) trigger2.addEventListener('click', function (e) {
-              e.preventDefault();
-              openModal('images/site/mt3uk-tee-2.jpg', 'MT3UK t-shirt folded, close-up of the logo print');
-        });
-
-        closeBtn.addEventListener('click', closeModal);
-        modal.addEventListener('click', function (e) {
-              if (e.target === modal) closeModal();
-        });
-        document.addEventListener('keydown', function (e) {
-              if (modal.classList.contains('open') && e.key === 'Escape') closeModal();
         });
     })();
 </script>
@@ -1518,6 +1273,107 @@
         navigator.serviceWorker.register('/sw.js');
       });
     }
+  </script>
+
+  <script>
+    (function () {
+      var SHOP_ENDPOINT = 'https://late-darkness-ebc8.modtesla3uk.workers.dev/shop-products';
+      var MANUAL_PRODUCT_KEYS = {
+        'black-mt3uk-tee-red-underline-super-soft': 'tee',
+        'black-mt3uk-tee-yellow-underline': 'tee-yellow',
+        'mt3uk-official-stickers-white-red-line-3-pack': 'stickers'
+      };
+      var host = document.getElementById('shop-live-products');
+      if (!host) return;
+
+      function esc(str) {
+        return String(str == null ? '' : str).replace(/</g, '&lt;');
+      }
+
+      function money(n) {
+        return '&pound;' + Number(n).toFixed(2);
+      }
+
+      var SAVE_PERCENT = 10;
+
+      function offerPriceHtml(p) {
+        if (p.minPrice == null) return '';
+        var prefix = p.minPrice === p.maxPrice ? '' : 'From ';
+        var was = money(p.minPrice);
+        var now = money(p.minPrice * (100 - SAVE_PERCENT) / 100);
+        return '<div class="tee-offer-price">' +
+          '<span class="tee-offer-save">SAVE ' + SAVE_PERCENT + '%</span>' +
+          '<span class="tee-offer-was">' + prefix + was + '</span>' +
+          '<span class="tee-offer-now">' + prefix + now + '</span>' +
+        '</div>';
+      }
+
+      function starString(rating) {
+        var rounded = Math.round(rating);
+        return '★★★★★'.slice(0, rounded) + '☆☆☆☆☆'.slice(0, 5 - rounded);
+      }
+
+      function ratingHtml(key, reviews) {
+        var productReviews = reviews.filter(function (r) { return r.product === key; });
+        var stars = '☆☆☆☆☆';
+        var count = 'No reviews yet';
+        if (productReviews.length) {
+          var avg = productReviews.reduce(function (sum, r) { return sum + (r.rating || 0); }, 0) / productReviews.length;
+          stars = starString(avg);
+          count = avg.toFixed(1) + ' (' + productReviews.length + ')';
+        }
+        return '<a class="shop-rating" href="reviews.html#' + esc(key) + '">' +
+          '<span class="shop-rating-stars">' + stars + '</span><span class="shop-rating-count">' + count + '</span>' +
+        '</a>';
+      }
+
+      function soldHtml(key, sales) {
+        var count = sales[key];
+        if (!count) return '';
+        return '<p class="merch-sold-line mono">&#128293; ' + count + ' sold since launch</p>';
+      }
+
+      function renderProducts(products, reviews, sales) {
+        if (!products.length) return;
+
+        var heading = document.createElement('p');
+        heading.className = 'shop-live-heading';
+        heading.textContent = 'More from the shop';
+        host.appendChild(heading);
+
+        products.forEach(function (p) {
+          var img = p.images && p.images[0] ? p.images[0] : '';
+          var url = p.url + '?utm_source=mt3uk_shop&utm_medium=internal&utm_campaign=live_merch';
+          var key = MANUAL_PRODUCT_KEYS[p.handle];
+          var card = document.createElement('div');
+          card.className = 'shop-live-card';
+          card.innerHTML =
+            (key ? ratingHtml(key, reviews) : '') +
+            (img ? '<img src="' + esc(img) + '" alt="' + esc(p.title) + '" loading="lazy">' : '') +
+            '<h3>' + esc(p.title) + '</h3>' +
+            offerPriceHtml(p) +
+            (key ? soldHtml(key, sales) : '') +
+            '<div class="tee-offer-actions">' +
+              '<span class="tag">' + (p.available ? 'AVAILABLE NOW' : 'SOLD OUT') + '</span>' +
+              '<a class="tee-shop-btn" href="' + esc(url) + '" target="_blank" rel="noopener">Shop now</a>' +
+            '</div>';
+          host.appendChild(card);
+        });
+      }
+
+      Promise.all([
+        fetch(SHOP_ENDPOINT, { cache: 'no-store' }).then(function (res) { return res.ok ? res.json() : null; }),
+        fetch('data/reviews.json', { cache: 'no-store' }).then(function (res) { return res.ok ? res.json() : null; }),
+        fetch('data/merch-sales.json', { cache: 'no-store' }).then(function (res) { return res.ok ? res.json() : null; })
+      ]).then(function (results) {
+        var data = results[0];
+        var reviews = Array.isArray(results[1]) ? results[1] : [];
+        var sales = results[2] || {};
+        if (data && data.success && Array.isArray(data.products)) {
+          renderProducts(data.products, reviews, sales);
+        }
+      }).catch(function () {});
+    })();
   </script>
 
 </body>

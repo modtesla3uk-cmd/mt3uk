@@ -5,10 +5,12 @@ const FEATURED_PATH = 'data/featured.json';
 const REVIEWS_PATH = 'data/reviews.json';
 const GALLERY_MANIFEST_URL = 'https://raw.githubusercontent.com/' + OWNER + '/' + REPO + '/' + BASE_BRANCH + '/images/gallery/manifest.json';
 const VOTE_TTL_SECONDS = 60 * 60 * 24 * 3;
-const REVIEW_PRODUCTS = ['tee', 'stickers', 'brace', 'pads-street', 'pads-carbotech'];
+const REVIEW_PRODUCTS = ['tee', 'tee-yellow', 'stickers', 'brace', 'pads-street', 'pads-carbotech'];
 const REVIEW_PHOTOS_PATH = 'images/reviews';
 const MAX_REVIEW_PHOTOS = 3;
 const MAX_REVIEW_PHOTO_BYTES = 5 * 1024 * 1024;
+const SHOPIFY_PRODUCTS_URL = 'https://mt3uk.myshopify.com/products.json?limit=250';
+const SHOP_PRODUCTS_CACHE_SECONDS = 60 * 10;
 
 function json(data, status) {
   return new Response(JSON.stringify(data), {
@@ -96,6 +98,48 @@ function getClientIp(request) {
     return ipv6Prefix64(ip);
   }
   return ip;
+}
+
+async function handleShopProducts(request, ctx) {
+  var cacheKey = new Request('https://mt3uk-shop-products.internal/cache', request);
+  var cache = caches.default;
+  var cached = await cache.match(cacheKey);
+  if (cached) return cached;
+
+  var upstream = await fetch(SHOPIFY_PRODUCTS_URL, {
+    headers: { 'User-Agent': 'mt3uk-shop-sync' }
+  });
+  if (!upstream.ok) {
+    return json({ success: false, message: 'Could not reach Shopify' }, 502);
+  }
+  var data = await upstream.json();
+  var products = (data.products || []).map(function (p) {
+    var images = (p.images || []).map(function (img) { return img.src; });
+    var variants = (p.variants || []).map(function (v) {
+      return {
+        id: v.id,
+        title: v.title,
+        price: v.price,
+        available: v.available
+      };
+    });
+    var prices = variants.map(function (v) { return parseFloat(v.price); }).filter(function (n) { return !isNaN(n); });
+    return {
+      handle: p.handle,
+      title: p.title,
+      images: images,
+      minPrice: prices.length ? Math.min.apply(null, prices) : null,
+      maxPrice: prices.length ? Math.max.apply(null, prices) : null,
+      available: variants.some(function (v) { return v.available; }),
+      variants: variants,
+      url: 'https://mt3uk.myshopify.com/products/' + p.handle
+    };
+  });
+
+  var response = json({ success: true, products: products });
+  response.headers.set('Cache-Control', 'public, max-age=' + SHOP_PRODUCTS_CACHE_SECONDS);
+  ctx.waitUntil(cache.put(cacheKey, response.clone()));
+  return response;
 }
 
 async function handleVotesAll(request, env) {
@@ -562,6 +606,9 @@ export default {
     }
     if (url.pathname === '/review' && request.method === 'POST') {
       return handleReviewPost(request, env);
+    }
+    if (url.pathname === '/shop-products' && request.method === 'GET') {
+      return handleShopProducts(request, ctx);
     }
 
     if (request.method !== 'POST') {

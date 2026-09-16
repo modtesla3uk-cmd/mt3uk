@@ -581,6 +581,10 @@ export default {
 
     var name = (formData.get('name') || '').toString().trim().slice(0, 100);
     var caption = (formData.get('caption') || '').toString().trim().slice(0, 150);
+    var modsRaw = (formData.get('mods') || '').toString().trim().slice(0, 300);
+    var mods = modsRaw
+      ? modsRaw.split(/[,\n]/).map(function (m) { return m.trim(); }).filter(Boolean).slice(0, 8)
+      : [];
     var file = formData.get('photo');
 
     if (!caption) {
@@ -665,7 +669,24 @@ export default {
       );
       if (!putRes.ok) throw new Error('Could not commit photo (' + putRes.status + ')');
 
+      if (mods.length) {
+        var modsPutRes = await fetch(
+          'https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/images/gallery/' + filename + '.json',
+          {
+            method: 'PUT',
+            headers: ghHeaders,
+            body: JSON.stringify({
+              message: 'Add mods list for gallery submission: ' + caption,
+              content: arrayBufferToBase64(new TextEncoder().encode(JSON.stringify({ mods: mods }, null, 2) + '\n')),
+              branch: branchName
+            })
+          }
+        );
+        if (!modsPutRes.ok) throw new Error('Could not commit mods list (' + modsPutRes.status + ')');
+      }
+
       var prBody = '**Caption:** ' + caption + '\n**Submitted by:** ' + (name || 'Anonymous') +
+        (mods.length ? '\n**Mods:** ' + mods.join(', ') : '') +
         '\n\nMerge this PR to publish the photo to the live gallery, or close it to reject the submission.';
 
       var prRes = await fetch(

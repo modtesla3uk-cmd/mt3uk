@@ -101,11 +101,31 @@ def assign_missing_prefixes(photos, timestamp_overrides):
         ts = added_timestamp(p)
         new_path = p.with_name(f"{next_num:02d}-{p.name}")
         p.rename(new_path)
+        mods_sidecar = p.with_name(p.name + ".json")
+        if mods_sidecar.exists():
+            mods_sidecar.rename(new_path.with_name(new_path.name + ".json"))
         timestamp_overrides[new_path] = ts
         renamed.append(new_path)
         next_num += 1
 
     return numbered + renamed
+
+
+def mods_from_sidecar(path: Path):
+    """Reads the optional '<filename>.json' sidecar the submission worker
+    commits alongside a photo when a submitter lists mods, since the
+    manifest itself is rebuilt from scratch from filenames on every run."""
+    sidecar = path.with_name(path.name + ".json")
+    if not sidecar.exists():
+        return []
+    try:
+        data = json.loads(sidecar.read_text())
+    except (json.JSONDecodeError, OSError):
+        return []
+    mods = data.get("mods")
+    if not isinstance(mods, list):
+        return []
+    return [str(m).strip() for m in mods if str(m).strip()][:8]
 
 
 def added_timestamp(path: Path) -> int:
@@ -151,6 +171,9 @@ def main():
             entry["caption"] = caption
         if name:
             entry["name"] = name
+        mods = mods_from_sidecar(e["path"])
+        if mods:
+            entry["mods"] = mods
         # UK-local date the photo was added, used by the site to feature
         # the latest upload and only swap it at UK midnight.
         entry["added"] = datetime.fromtimestamp(e["added_ts"], tz=UK_TZ).date().isoformat() if e["added_ts"] else None

@@ -535,14 +535,22 @@
     border: 1px solid #3a4a6b;
     padding: 26px;
   }
-  .shop-live-card img {
-    width: 100%;
+  .shop-live-card .shop-preview-hint { margin: 0 0 8px; }
+  .shop-live-card .shop-preview-trigger {
     height: 220px;
-    object-fit: contain;
+    padding: 0;
     background: #0e1626;
     border: 1px solid #3a4a6b;
     margin-bottom: 16px;
+    cursor: zoom-in;
   }
+  .shop-live-card .shop-preview-trigger img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: transform 0.2s ease;
+  }
+  .shop-live-card .shop-preview-trigger img.zoom-pan { transform: scale(4); }
   .shop-live-card h3 { color: var(--paper); font-size: 1.14rem; font-weight: 600; font-family: 'IBM Plex Sans', sans-serif; margin-bottom: 6px; padding-right: 76px; }
   .shop-live-card .merch-sold-line { margin-bottom: 12px; }
   .shop-live-card .tag { align-self: flex-start; }
@@ -706,8 +714,8 @@
 <div class="promo-banner" id="promo-banner">
   <div class="promo-banner-inner">
     <div class="promo-banner-track">
-      <a href="shop.html#merch" class="promo-banner-msg">&#9201; New Tee options available!! | Club Stickers | Master Cylinder Braces &mdash; shop now &rarr;</a>
-      <a href="shop.html#merch" class="promo-banner-msg" aria-hidden="true">&#9201; New Tee options available!! | Club Stickers | Master Cylinder Braces &mdash; shop now &rarr;</a>
+      <a href="shop.html#merch" class="promo-banner-msg">&#9201; New Tee options available!! | Hoodies | Club Stickers | Master Cylinder Braces &mdash; shop now &rarr;</a>
+      <a href="shop.html#merch" class="promo-banner-msg" aria-hidden="true">&#9201; New Tee options available!! | Hoodies | Club Stickers | Master Cylinder Braces &mdash; shop now &rarr;</a>
     </div>
     <button type="button" class="promo-banner-close" id="promo-banner-close" aria-label="Dismiss banner">&times;</button>
   </div>
@@ -918,11 +926,7 @@
 
 <script>
 (function () {
-      var panTargets = [
-        document.getElementById('brace-trigger'), document.getElementById('brace-trigger-2'),
-        document.getElementById('pads-street-trigger'), document.getElementById('pads-carbotech-trigger')
-      ];
-      panTargets.forEach(function (btn) {
+      function attachPanZoom(btn) {
             if (!btn) return;
             var img = btn.querySelector('img');
             if (!img) return;
@@ -966,7 +970,14 @@
             }, { passive: true });
             btn.addEventListener('touchend', resetZoom);
             btn.addEventListener('touchcancel', resetZoom);
-      });
+      }
+
+      window.mt3ukAttachPanZoom = attachPanZoom;
+
+      [
+        document.getElementById('brace-trigger'), document.getElementById('brace-trigger-2'),
+        document.getElementById('pads-street-trigger'), document.getElementById('pads-carbotech-trigger')
+      ].forEach(attachPanZoom);
 })();
 </script>
 
@@ -1349,7 +1360,12 @@
           card.className = 'shop-live-card';
           card.innerHTML =
             (key ? ratingHtml(key, reviews) : '') +
-            (img ? '<img src="' + esc(img) + '" alt="' + esc(p.title) + '" loading="lazy">' : '') +
+            (img ?
+              '<p class="shop-preview-hint">Hold and pan to zoom</p>' +
+              '<div class="shop-preview-trigger" tabindex="0">' +
+                '<img src="' + esc(img) + '" alt="' + esc(p.title) + '" loading="lazy">' +
+              '</div>'
+              : '') +
             '<h3>' + esc(p.title) + '</h3>' +
             offerPriceHtml(p) +
             (key ? soldHtml(key, sales) : '') +
@@ -1358,6 +1374,9 @@
               '<a class="tee-shop-btn" href="' + esc(url) + '" target="_blank" rel="noopener">Shop now</a>' +
             '</div>';
           host.appendChild(card);
+          if (img && window.mt3ukAttachPanZoom) {
+            window.mt3ukAttachPanZoom(card.querySelector('.shop-preview-trigger'));
+          }
         });
       }
 

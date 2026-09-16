@@ -86,6 +86,58 @@
     border-bottom: 1px solid var(--ink);
   }
 
+  .promo-banner { background: var(--orange); }
+  .promo-banner-inner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 44px 10px 0;
+    position: relative;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem;
+    overflow: hidden;
+  }
+  .promo-banner-inner::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 48px;
+    background: linear-gradient(to right, rgba(232,84,42,0), var(--orange) 70%);
+    pointer-events: none;
+  }
+  .promo-banner-track {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    animation: promo-marquee 18s linear infinite;
+  }
+  .promo-banner-msg { color: var(--paper); text-decoration: none; font-weight: 600; padding-right: 48px; flex-shrink: 0; }
+  @keyframes promo-marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  .promo-banner-close {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--paper);
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px;
+    z-index: 1;
+  }
+  .promo-banner-close:hover { opacity: 0.7; }
+  @media (max-width: 600px) {
+    .promo-banner-inner { font-size: 0.74rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .promo-banner-track { animation: none; }
+  }
+
   nav {
     display: flex;
     align-items: center;
@@ -355,6 +407,9 @@
   .btn-primary:hover { background: #cf4620; }
   .btn-secondary { background: transparent; color: var(--ink); }
   .btn-secondary:hover { background: var(--ink); color: var(--paper); }
+  .btn-merch { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+  .btn-merch:hover { background: var(--ink-2); border-color: var(--ink-2); }
+  .btn-merch svg { width: 18px; height: 18px; flex-shrink: 0; }
 
   .hero-stats {
     display: grid;
@@ -688,13 +743,6 @@
     pointer-events: none;
   }
   .bf-slide.bf-in-view .bf-slide-img { transform: scale(1.02); }
-  .bf-feed.bf-autoplaying .bf-slide.bf-in-view .bf-slide-img {
-    animation: bf-kenburns 3.2s ease-in-out infinite;
-  }
-  @keyframes bf-kenburns {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.15); }
-  }
 
   .bf-scrim { position: absolute; left: 0; right: 0; pointer-events: none; }
   .bf-scrim-top {
@@ -1245,6 +1293,28 @@
   };
 </script>
 
+<div class="promo-banner" id="promo-banner">
+  <div class="promo-banner-inner">
+    <div class="promo-banner-track">
+      <a href="shop.html#tee" class="promo-banner-msg">&#9201; New Tee options available!! &mdash; shop now &rarr;</a>
+      <a href="shop.html#tee" class="promo-banner-msg" aria-hidden="true">&#9201; New Tee options available!! &mdash; shop now &rarr;</a>
+    </div>
+    <button type="button" class="promo-banner-close" id="promo-banner-close" aria-label="Dismiss banner">&times;</button>
+  </div>
+</div>
+<script>
+  (function () {
+    var KEY = 'mt3uk-promo-tee-dismissed';
+    var banner = document.getElementById('promo-banner');
+    if (!banner) return;
+    if (localStorage.getItem(KEY) === '1') { banner.remove(); return; }
+    document.getElementById('promo-banner-close').addEventListener('click', function () {
+      banner.remove();
+      try { localStorage.setItem(KEY, '1'); } catch (e) {}
+    });
+  })();
+</script>
+
 <header>
   <nav>
     <a href="/" class="logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
@@ -1310,7 +1380,7 @@
           <div class="hero-ctas">
             <a href="#build-of-the-day" class="btn btn-primary">Featured Build</a>
             <a href="#vote-frame" class="btn btn-secondary">Vote for Build</a>
-            <a href="#build-feed" class="btn btn-secondary">Build Feed</a>
+            <a href="shop.html" class="btn btn-merch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>Merch</a>
           </div>
           <p class="hero-vote-countdown mono" id="hero-vote-countdown"></p>
         </div>

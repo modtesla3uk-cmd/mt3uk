@@ -86,6 +86,58 @@
     border-bottom: 1px solid var(--ink);
   }
 
+  .promo-banner { background: var(--orange); }
+  .promo-banner-inner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 44px 10px 0;
+    position: relative;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem;
+    overflow: hidden;
+  }
+  .promo-banner-inner::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 48px;
+    background: linear-gradient(to right, rgba(232,84,42,0), var(--orange) 70%);
+    pointer-events: none;
+  }
+  .promo-banner-track {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    animation: promo-marquee 18s linear infinite;
+  }
+  .promo-banner-msg { color: var(--paper); text-decoration: none; font-weight: 600; padding-right: 48px; flex-shrink: 0; }
+  @keyframes promo-marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  .promo-banner-close {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--paper);
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px;
+    z-index: 1;
+  }
+  .promo-banner-close:hover { opacity: 0.7; }
+  @media (max-width: 600px) {
+    .promo-banner-inner { font-size: 0.74rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .promo-banner-track { animation: none; }
+  }
+
   nav {
     display: flex;
     align-items: center;
@@ -508,6 +560,18 @@
     flex-wrap: wrap;
     margin-top: 8px;
   }
+  .feature-new-badge {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--paper);
+    background: var(--orange);
+    padding: 2px 5px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
   .tee-offer-save {
     background: var(--orange);
     color: var(--paper);
@@ -625,6 +689,28 @@
 </head>
 <body>
 
+<div class="promo-banner" id="promo-banner">
+  <div class="promo-banner-inner">
+    <div class="promo-banner-track">
+      <a href="shop.html#tee" class="promo-banner-msg">&#9201; New Tee options available!! &mdash; shop now &rarr;</a>
+      <a href="shop.html#tee" class="promo-banner-msg" aria-hidden="true">&#9201; New Tee options available!! &mdash; shop now &rarr;</a>
+    </div>
+    <button type="button" class="promo-banner-close" id="promo-banner-close" aria-label="Dismiss banner">&times;</button>
+  </div>
+</div>
+<script>
+  (function () {
+    var KEY = 'mt3uk-promo-tee-dismissed';
+    var banner = document.getElementById('promo-banner');
+    if (!banner) return;
+    if (localStorage.getItem(KEY) === '1') { banner.remove(); return; }
+    document.getElementById('promo-banner-close').addEventListener('click', function () {
+      banner.remove();
+      try { localStorage.setItem(KEY, '1'); } catch (e) {}
+    });
+  })();
+</script>
+
 <header>
   <nav>
     <a href="/" class="logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
@@ -695,7 +781,7 @@
         <a class="shop-rating" data-rating-product="tee" href="reviews.html#tee">
           <span class="shop-rating-stars">☆☆☆☆☆</span><span class="shop-rating-count">Reviews</span>
         </a>
-        <h3>MT3UK T-Shirt</h3>
+        <h3>MT3UK Tee</h3>
         <p class="shop-preview-hint">Hold and pan to zoom</p>
         <div class="shop-preview-row">
           <a class="shop-preview-trigger" id="tee-trigger" href="https://mt3uk.myshopify.com/products/black-unisex-t-shirt-mt3uk-red-underline-design" target="_blank" rel="noopener">
@@ -705,27 +791,26 @@
             <img src="images/site/mt3uk-tee-2.jpg" alt="MT3UK t-shirt folded, close-up of the logo print">
           </a>
         </div>
-        <div class="tee-offer-banner">&#9201; Limited launch offer: 20% off for Facebook group members</div>
         <p class="tee-modal-lead">Built for community. Designed to last.</p>
         <button type="button" class="detail-toggle" aria-expanded="false" aria-controls="tee-detail-content">More detail</button>
         <div class="detail-content" id="tee-detail-content" hidden>
-          <p class="detail-desc">Heavyweight Comfort Colors 1717 &ndash; the same premium blank worn by serious communities worldwide. Preshrunk 100% cotton, tagless label, engineered for durability.</p>
+          <p class="detail-desc">Heavyweight, preshrunk 100% cotton, engineered for durability. The same premium blank worn by serious communities worldwide.</p>
           <ul class="tee-modal-features">
-            <li>Comfort Colors 1717 heavyweight fabric</li>
+            <li>Yellow Underline or Red Underline design <span class="feature-new-badge">NEW</span></li>
             <li>Preshrunk (keeps shape after washing)</li>
-            <li>Tagless label (premium comfort)</li>
+            <li>Super soft option available</li>
             <li>Built for track days &amp; everyday wear</li>
           </ul>
         </div>
         <div class="tee-offer-price">
-          <span class="tee-offer-save">SAVE 20%</span>
-          <span class="tee-offer-was">&pound;24.99</span>
-          <span class="tee-offer-now">&pound;19.99</span>
+          <span class="tee-offer-save">SAVE 10%</span>
+          <span class="tee-offer-was">From &pound;22.99</span>
+          <span class="tee-offer-now">From &pound;20.69</span>
         </div>
         <p class="merch-sold-line mono" data-sold="tee"></p>
         <div class="tee-offer-actions">
           <span class="tag">AVAILABLE NOW</span>
-          <a class="tee-shop-btn" href="https://mt3uk.myshopify.com/products/black-unisex-t-shirt-mt3uk-red-underline-design?utm_source=mt3uk_shop&utm_medium=internal&utm_campaign=tshirt_order" target="_blank" rel="noopener">Shop tee</a>
+          <a class="tee-shop-btn" href="https://mt3uk.myshopify.com/collections/tees?utm_source=mt3uk_shop&utm_medium=internal&utm_campaign=tshirt_order" target="_blank" rel="noopener">Shop tee</a>
         </div>
       </div>
       <div class="shop-card" id="stickers">
@@ -1063,25 +1148,24 @@
                     '<button type="button" data-src="images/site/mt3uk-tee-2.jpg" data-alt="MT3UK t-shirt folded, close-up of the logo print"><img src="images/site/mt3uk-tee-2.jpg" alt="Folded close-up"></button>' +
               '</div>' +
               '<div class="tee-modal-body">' +
-                    '<h3>MT3UK T-Shirt</h3>' +
-                    '<div class="tee-offer-banner">&#9201; Limited launch offer: 20% off for Facebook group members</div>' +
+                    '<h3>MT3UK Tee</h3>' +
                     '<p class="tee-modal-lead">Built for community. Designed to last.</p>' +
-                    '<p>Heavyweight Comfort Colors 1717 &ndash; the same premium blank worn by serious communities worldwide. Preshrunk 100% cotton, tagless label, engineered for durability.</p>' +
+                    '<p>Heavyweight, preshrunk 100% cotton, engineered for durability. The same premium blank worn by serious communities worldwide.</p>' +
                     '<p>Whether you&rsquo;re wearing it to a track day or out in town, this is quality that shows.</p>' +
                     '<h4>Quality features</h4>' +
                     '<ul class="tee-modal-features">' +
-                          '<li>Comfort Colors 1717 heavyweight fabric</li>' +
+                          '<li>Yellow Underline or Red Underline design <span class="feature-new-badge">NEW</span></li>' +
                           '<li>Preshrunk (keeps shape after washing)</li>' +
-                          '<li>Tagless label (premium comfort)</li>' +
+                          '<li>Super soft option available</li>' +
                           '<li>Built for track days &amp; everyday wear</li>' +
                     '</ul>' +
                     '<div class="tee-offer-price">' +
-                          '<span class="tee-offer-save">SAVE 20%</span>' +
-                          '<span class="tee-offer-was">&pound;24.99</span>' +
-                          '<span class="tee-offer-now">&pound;19.99</span>' +
+                          '<span class="tee-offer-save">SAVE 10%</span>' +
+                          '<span class="tee-offer-was">From &pound;22.99</span>' +
+                          '<span class="tee-offer-now">From &pound;20.69</span>' +
                     '</div>' +
                     '<p>Premium quality (not fast fashion)</p>' +
-                    '<a class="tee-modal-buy" href="https://mt3uk.myshopify.com/products/black-unisex-t-shirt-mt3uk-red-underline-design?utm_source=mt3uk_shop&utm_medium=internal&utm_campaign=tshirt_order" target="_blank" rel="noopener">Shop the tee</a>' +
+                    '<a class="tee-modal-buy" href="https://mt3uk.myshopify.com/collections/tees?utm_source=mt3uk_shop&utm_medium=internal&utm_campaign=tshirt_order" target="_blank" rel="noopener">Shop the tee</a>' +
               '</div>' +
         '</div>';
         document.body.appendChild(modal);

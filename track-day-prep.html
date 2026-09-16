@@ -76,6 +76,58 @@
     border-bottom: 1px solid var(--ink);
   }
 
+  .promo-banner { background: var(--orange); }
+  .promo-banner-inner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 44px 10px 0;
+    position: relative;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem;
+    overflow: hidden;
+  }
+  .promo-banner-inner::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 48px;
+    background: linear-gradient(to right, rgba(232,84,42,0), var(--orange) 70%);
+    pointer-events: none;
+  }
+  .promo-banner-track {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    animation: promo-marquee 18s linear infinite;
+  }
+  .promo-banner-msg { color: var(--paper); text-decoration: none; font-weight: 600; padding-right: 48px; flex-shrink: 0; }
+  @keyframes promo-marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  .promo-banner-close {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--paper);
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px;
+    z-index: 1;
+  }
+  .promo-banner-close:hover { opacity: 0.7; }
+  @media (max-width: 600px) {
+    .promo-banner-inner { font-size: 0.74rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .promo-banner-track { animation: none; }
+  }
+
   nav {
     display: flex;
     align-items: center;
@@ -1170,6 +1222,28 @@
 </style>
 </head>
 <body>
+
+<div class="promo-banner" id="promo-banner">
+  <div class="promo-banner-inner">
+    <div class="promo-banner-track">
+      <a href="shop.html#tee" class="promo-banner-msg">&#9201; New Tee options available!! &mdash; shop now &rarr;</a>
+      <a href="shop.html#tee" class="promo-banner-msg" aria-hidden="true">&#9201; New Tee options available!! &mdash; shop now &rarr;</a>
+    </div>
+    <button type="button" class="promo-banner-close" id="promo-banner-close" aria-label="Dismiss banner">&times;</button>
+  </div>
+</div>
+<script>
+  (function () {
+    var KEY = 'mt3uk-promo-tee-dismissed';
+    var banner = document.getElementById('promo-banner');
+    if (!banner) return;
+    if (localStorage.getItem(KEY) === '1') { banner.remove(); return; }
+    document.getElementById('promo-banner-close').addEventListener('click', function () {
+      banner.remove();
+      try { localStorage.setItem(KEY, '1'); } catch (e) {}
+    });
+  })();
+</script>
 
 <header>
   <nav>

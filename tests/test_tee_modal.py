@@ -17,7 +17,7 @@ def test_main_image_opens_modal(page):
     page.goto("/shop.html")
     page.locator("#tee-trigger").click()
     _assert_open(page)
-    assert "20% off" in page.locator(f"{MODAL} .tee-offer-banner").inner_text()
+    assert "SAVE 10%" in page.locator(f"{MODAL} .tee-offer-save").inner_text()
 
 
 def test_secondary_thumbnail_opens_modal(page):

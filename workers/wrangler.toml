@@ -1,0 +1,11 @@
+name = "late-darkness-ebc8"
+main = "vote-worker.js"
+compatibility_date = "2026-09-07"
+
+# ADMIN_KEY and GITHUB_TOKEN are managed directly in the Cloudflare dashboard
+# (not declared here), so deploys must not clear them.
+keep_vars = true
+
+[[kv_namespaces]]
+binding = "VOTES"
+id = "e189cfa5369c48559c76c847b203e386"

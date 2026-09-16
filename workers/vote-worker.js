@@ -581,9 +581,9 @@ export default {
 
     var name = (formData.get('name') || '').toString().trim().slice(0, 100);
     var caption = (formData.get('caption') || '').toString().trim().slice(0, 150);
-    var modsRaw = (formData.get('mods') || '').toString().trim().slice(0, 300);
+    var modsRaw = (formData.get('mods') || '').toString().trim().slice(0, 1000);
     var mods = modsRaw
-      ? modsRaw.split(/[,\n]/).map(function (m) { return m.trim(); }).filter(Boolean).slice(0, 8)
+      ? modsRaw.split(/[,\n]/).map(function (m) { return m.trim(); }).filter(Boolean).slice(0, 20)
       : [];
     var file = formData.get('photo');
 

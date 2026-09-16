@@ -594,6 +594,11 @@
     font-size: 0.58rem;
     color: rgba(255,255,255,0.7);
   }
+  .gallery-slot .g-mods {
+    font-size: 0.56rem;
+    letter-spacing: 0.02em;
+    color: rgba(255,255,255,0.55);
+  }
   .gallery-note {
     margin-top: 20px;
     font-size: 0.85rem;
@@ -1077,7 +1082,8 @@
   .form-row { display: flex; flex-direction: column; gap: 6px; }
   .form-row label { color: var(--steel); }
   .form-row input[type="text"],
-  .form-row input[type="file"] {
+  .form-row input[type="file"],
+  .form-row textarea {
     border: 1px solid var(--ink);
     background: var(--white);
     padding: 11px 12px;
@@ -1085,7 +1091,9 @@
     font-size: 0.92rem;
     color: var(--charcoal);
   }
-  .form-row input[type="text"]:focus { outline: none; border-color: var(--orange); }
+  .form-row textarea { resize: vertical; }
+  .form-row input[type="text"]:focus,
+  .form-row textarea:focus { outline: none; border-color: var(--orange); }
   .submit-form button { align-self: flex-start; }
   .submit-form .hp-field { position: absolute; left: -9999px; }
   .form-checkbox-row {
@@ -1708,6 +1716,10 @@
           <input type="text" id="submitter-caption" name="caption" placeholder="e.g. Viper Green Model Y" required>
         </div>
         <div class="form-row">
+          <label class="mono" for="submitter-mods">Mods (Optional)</label>
+          <textarea id="submitter-mods" name="mods" rows="3" placeholder="e.g. Coilovers, 20&quot; wheels, wrap" maxlength="300"></textarea>
+        </div>
+        <div class="form-row">
           <label class="mono" for="submitter-photo">Photo</label>
           <input type="file" id="submitter-photo" name="photo" accept="image/*" required>
         </div>
@@ -1720,7 +1732,7 @@
           Not a member? Join the MT3UK Facebook group
         </a>
         <div class="submit-guidance">
-          <p><strong>PLEASE READ:</strong> Upload a full photo of your build so we can get it featured. Individual mods can be shared in the Facebook group :)</p>
+          <p><strong>PLEASE READ:</strong> Upload a full photo of your build so we can get it featured. List your mods above, separated by commas, and we'll credit them under the photo.</p>
           <p>Limit uploads to max 3 per day.</p>
         </div>
         <button type="submit" class="btn btn-primary">Submit photo</button>
@@ -1744,7 +1756,8 @@
           grid.innerHTML = photos.map(function (p) {
             var safeCaption = (p.caption || '').replace(/</g, '&lt;');
             var nameHtml = p.name ? '<span class="g-name">By ' + p.name.replace(/</g, '&lt;') + '</span>' : '';
-            var captionHtml = (safeCaption || nameHtml) ? '<span class="g-caption">' + safeCaption + nameHtml + '</span>' : '';
+            var modsHtml = (p.mods && p.mods.length) ? '<span class="g-mods">' + p.mods.map(function (m) { return m.replace(/</g, '&lt;'); }).join(' &middot; ') + '</span>' : '';
+            var captionHtml = (safeCaption || nameHtml || modsHtml) ? '<span class="g-caption">' + safeCaption + nameHtml + modsHtml + '</span>' : '';
             return '<div class="gallery-slot filled">' +
                      '<img src="images/gallery/' + p.file.replace(/&/g, '&amp;') + '" alt="' + (safeCaption || 'MT3UK member build') + '" loading="lazy">' +
                      captionHtml +

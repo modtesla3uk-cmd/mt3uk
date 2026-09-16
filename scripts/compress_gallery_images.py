@@ -72,6 +72,9 @@ def main():
             new_path.write_bytes(data)
             if new_path != path:
                 path.unlink()
+                mods_sidecar = path.with_name(path.name + ".json")
+                if mods_sidecar.exists():
+                    mods_sidecar.rename(new_path.with_name(new_path.name + ".json"))
             print(f"Compressed {path.relative_to(REPO_ROOT)}: {before:,} -> {len(data):,} bytes"
                   + (f" (renamed to {new_path.name})" if new_path != path else ""))
 

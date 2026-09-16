@@ -6,6 +6,7 @@ That's it — the site rebuilds automatically and the photo appears.
 
 - Optional: prefix the filename with a number to control its order, e.g. `10-my-new-build.jpg`. Lower numbers show first.
 - The caption on the site is generated from the filename — hyphens become spaces, e.g. `10-viper-green-model-y.jpg` → "VIPER GREEN MODEL Y".
+- Optional: to list mods under the photo, add a sidecar file named `<exact filename>.json` (e.g. `10-my-new-build.jpg.json`) alongside it, containing `{ "mods": ["Coilovers", "Wrap"] }`. The submission form on the site does this automatically when a submitter fills in the mods field.
 
 ## Change the main (hero) photo
 Upload a new photo named exactly `hero.jpg` into the `images/` folder — it will overwrite the old one. Same idea: commit, wait ~30 seconds, refresh.

@@ -50,5 +50,11 @@ jobs:
           git add images/gallery/ images/track-days/ sitemap.xml
           if ! git diff --cached --quiet; then
             git commit -m "Regenerate gallery and track days manifests, and sitemap"
-            git push
+            for i in 1 2 3 4 5; do
+              git push && break
+              echo "Push rejected, rebasing onto latest main (attempt $i)..."
+              git fetch origin main
+              git rebase origin/main
+              sleep $((RANDOM % 5 + 1))
+            done
           fi

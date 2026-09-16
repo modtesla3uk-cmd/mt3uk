@@ -609,6 +609,22 @@
     font-size: 0.58rem;
     color: rgba(255,255,255,0.7);
   }
+  .g-mods-badge {
+    position: absolute;
+    top: 8px; right: 8px;
+    z-index: 2;
+    display: flex; align-items: center; gap: 4px;
+    background: rgba(22,35,61,0.82);
+    border: 1px solid rgba(243,241,234,0.35);
+    color: var(--paper);
+    padding: 4px 7px;
+    cursor: pointer;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.03em;
+  }
+  .g-mods-badge:hover { background: var(--orange); border-color: var(--orange); }
+  .g-mods-badge svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
   .gallery-note {
     margin-top: 20px;
     font-size: 0.85rem;
@@ -1010,7 +1026,7 @@
     overflow: hidden;
   }
   .vote-card.voted { border: 1px solid var(--orange); }
-  .vote-card .vote-media { aspect-ratio: 1/1; overflow: hidden; }
+  .vote-card .vote-media { aspect-ratio: 1/1; overflow: hidden; position: relative; }
   .vote-card .vote-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .vote-card .vote-body { padding: 14px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
   .vote-card .vote-caption { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; letter-spacing: 0.03em; color: var(--ink); }
@@ -1829,8 +1845,14 @@
             var nameHtml = p.name ? '<span class="g-name">By ' + p.name.replace(/</g, '&lt;') + '</span>' : '';
             var captionHtml = (safeCaption || nameHtml) ? '<span class="g-caption">' + safeCaption + nameHtml + '</span>' : '';
             var modsAttr = (p.mods && p.mods.length) ? ' data-mods="' + JSON.stringify(p.mods).replace(/"/g, '&quot;') + '"' : '';
+            var modsBadge = (p.mods && p.mods.length) ?
+              '<button type="button" class="g-mods-badge" aria-label="View mods list">' +
+                '<svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9 2.6-2.6z"/></svg>' +
+                p.mods.length +
+              '</button>' : '';
             return '<div class="gallery-slot filled">' +
                      '<img src="images/gallery/' + p.file.replace(/&/g, '&amp;') + '" alt="' + (safeCaption || 'MT3UK member build') + '" loading="lazy"' + modsAttr + '>' +
+                     modsBadge +
                      captionHtml +
                    '</div>';
           }).join('');
@@ -2138,7 +2160,8 @@
 
         if (galleryGrid) {
               galleryGrid.addEventListener('click', function (e) {
-                      var img = e.target.closest('img');
+                      var badge = e.target.closest('.g-mods-badge');
+                      var img = badge ? badge.closest('.gallery-slot').querySelector('img') : e.target.closest('img');
                       if (!img) return;
                       var imgs = getGalleryImgs();
                       openLightbox(imgs.indexOf(img));
@@ -2577,6 +2600,12 @@
         var safeCaption = c.caption || 'MT3UK build';
         if (lightboxImg) { lightboxImg.src = 'images/gallery/' + c.file; lightboxImg.alt = safeCaption; }
         if (lightboxCaption) lightboxCaption.textContent = safeCaption;
+        var lightboxMods = lightbox.querySelector('.lightbox-mods');
+        if (lightboxMods) {
+          var mods = c.mods || [];
+          lightboxMods.textContent = mods.length ? 'Mods: ' + mods.join(' · ') : '';
+          lightboxMods.classList.toggle('has-mods', mods.length > 0);
+        }
         updateLightboxVote();
       }
 
@@ -2635,9 +2664,14 @@
           var safeCaption = (c.caption || 'MT3UK build').replace(/</g, '&lt;');
           var isVoted = data.voted === c.file;
           var isLeading = maxVotes > 0 && c.votes === maxVotes;
+          var modsBadge = (c.mods && c.mods.length) ?
+            '<button type="button" class="g-mods-badge" aria-label="View mods list">' +
+              '<svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9 2.6-2.6z"/></svg>' +
+              c.mods.length +
+            '</button>' : '';
           return (
             '<div class="vote-card' + (isVoted ? ' voted' : '') + (isLeading ? ' leading' : '') + '" data-file="' + c.file.replace(/"/g, '&quot;') + '">' +
-              '<div class="vote-media"><img src="images/gallery/' + c.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy"></div>' +
+              '<div class="vote-media"><img src="images/gallery/' + c.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy">' + modsBadge + '</div>' +
               '<div class="vote-body">' +
                 '<span class="vote-caption">' + safeCaption + '</span>' +
                 '<span class="vote-count">' + c.votes + (c.votes === 1 ? ' vote' : ' votes') + '</span>' +

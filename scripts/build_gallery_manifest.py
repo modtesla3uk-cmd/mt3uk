@@ -125,7 +125,7 @@ def mods_from_sidecar(path: Path):
     mods = data.get("mods")
     if not isinstance(mods, list):
         return []
-    return [str(m).strip() for m in mods if str(m).strip()][:8]
+    return [str(m).strip() for m in mods if str(m).strip()][:20]
 
 
 def added_timestamp(path: Path) -> int:

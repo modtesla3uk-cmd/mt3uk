@@ -205,7 +205,8 @@ async function handleVotesGet(request, env) {
     return {
       file: p.file,
       caption: p.caption || '',
-      votes: count ? parseInt(count, 10) : 0
+      votes: count ? parseInt(count, 10) : 0,
+      mods: p.mods || []
     };
   }));
 
@@ -268,7 +269,7 @@ async function handleVotePost(request, env) {
 
   var results = await Promise.all(candidates.map(async function (p) {
     var c = await env.VOTES.get('votes:' + todayStr + ':' + p.file);
-    return { file: p.file, caption: p.caption || '', votes: c ? parseInt(c, 10) : 0 };
+    return { file: p.file, caption: p.caption || '', votes: c ? parseInt(c, 10) : 0, mods: p.mods || [] };
   }));
 
   return json({ success: true, voterId: voterId, voted: file, candidates: results });

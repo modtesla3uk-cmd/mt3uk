@@ -189,9 +189,15 @@ via `tests.yml`.
   clicking the brace "hold and pan to zoom" image opened an invisible modal
 - SEO: fixed `generate_sitemap.py` omitting `reviews.html` from `sitemap.xml`
   (it was never in the pages list), and added a missing canonical tag to
-  `track-day-prep.html`. Also identified, but couldn't fix from the repo, a
-  Cloudflare-level redirect that 307s every `*.html` URL to an extensionless
-  path while the sitemap/canonicals still reference `.html`, likely a major
+  `track-day-prep.html`. Also found and fixed a bigger indexing problem:
+  `mt3uk.com` is actually served live by a Cloudflare Workers-static-assets
+  project (git-connected to this repo, deploying on every push to `main`),
+  not by the GitHub Pages workflow, and its default `html_handling` mode was
+  auto-redirecting every `*.html` request to an extensionless URL (307) while
+  the sitemap/canonical tags still pointed at `.html` — a redirect/canonical
+  conflict likely causing many pages to be dropped from indexing. Set
+  `"html_handling": "none"` in `wrangler.jsonc` to stop the redirect and keep
+  `.html` as the canonical, served URL
   cause of pages not getting indexed
 
 ---

@@ -177,6 +177,16 @@ via `tests.yml`.
   "Build Feed (NEW)" link and updated copy
 - Reduced the Build Feed autoscroll's resume-after-interaction delay from 6s
   to 2s so it doesn't feel sluggish after a user touches the carousel
+- Added `BUILD.md` (this file) to track architecture and revision history
+  going forward
+- Fixed the Playwright suite, which had been failing on every push since the
+  live-Shopify shop rework: replaced the stale tee/sticker modal and card
+  tests (which targeted markup that no longer exists) with tests for the
+  current live-rendered merch cards (network-mocked, no live Shopify
+  dependency) and the remaining brace product modal. Also discovered and
+  fixed a real bug found in the process: the product modal's overlay/
+  positioning CSS had been lost from `shop.html` in an earlier refactor, so
+  clicking the brace "hold and pan to zoom" image opened an invisible modal
 
 ---
 

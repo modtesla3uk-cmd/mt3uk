@@ -198,7 +198,6 @@ via `tests.yml`.
   conflict likely causing many pages to be dropped from indexing. Set
   `"html_handling": "none"` in `wrangler.jsonc` to stop the redirect and keep
   `.html` as the canonical, served URL
-  cause of pages not getting indexed
 - Content depth: expanded the thin Gallery and Track Days section intros on
   `index.html` with more substantive copy, added a "UK Track Day Venues"
   section to `track-day-prep.html` covering Snetterton, Thruxton and Cadwell
@@ -217,6 +216,15 @@ via `tests.yml`.
   Build Feed rail that jumps back to the newest upload, and made the Full
   Gallery paginate 8-per-page (2x4) on mobile instead of 16, with arrow
   icons added to its Prev/Next buttons
+- Fixed the homepage returning a 404 at `mt3uk.com/`: with `html_handling`
+  set to `"none"` (see above), Cloudflare's static-assets serving only
+  resolves exact `.html` matches — a bare `/` request isn't rewritten to
+  `/index.html`, so it fell through to `not_found_handling` and 404'd
+  outright. `/index.html` itself served fine, only the bare domain root was
+  broken. Added a `_redirects` file with a proxy rule (`/ /index.html 200`)
+  so `/` transparently serves `index.html` without a redirect or changing
+  `html_handling` mode (which would have reintroduced the `.html`-stripping
+  redirect problem)
 
 ---
 

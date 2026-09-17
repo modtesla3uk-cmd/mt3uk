@@ -1,6 +1,8 @@
 (function () {
   var SHOP_ENDPOINT = 'https://late-darkness-ebc8.modtesla3uk.workers.dev/shop-products';
   var MAX_RESULTS = 8;
+  // Already indexed via data/search-index.json as the Parts-section card (shop.html#brace).
+  var EXCLUDE_FROM_MERCH = ['model-3-brake-master-cylinder-bracket-for-rhd-models-only'];
 
   var root = document.getElementById('nav-search');
   var toggle = document.getElementById('nav-search-toggle');
@@ -126,10 +128,11 @@
     .then(function (data) {
       if (data && data.success && Array.isArray(data.products)) {
         data.products.forEach(function (p) {
+          if (EXCLUDE_FROM_MERCH.indexOf(p.handle) !== -1) return;
           var price = p.minPrice != null ? '£' + Number(p.minPrice).toFixed(2) : '';
           index.push({
             title: p.title,
-            url: p.url + '?utm_source=mt3uk_shop&utm_medium=internal&utm_campaign=search',
+            url: 'shop.html#shop-item-' + p.handle,
             category: 'Shop',
             description: price ? ('From ' + price) : ''
           });

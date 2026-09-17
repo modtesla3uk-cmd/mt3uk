@@ -1,9 +1,10 @@
-const CACHE_NAME = 'mt3uk-shell-v5';
+const CACHE_NAME = 'mt3uk-shell-v6';
 const PRECACHE_URLS = [
   '/index.html',
   '/shop.html',
   '/contact.html',
   '/track-day-prep.html',
+  '/track-day-on-the-day.html',
   '/track-day-venues.html',
   '/offline.html',
   '/manifest.json',

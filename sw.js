@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mt3uk-shell-v3';
+const CACHE_NAME = 'mt3uk-shell-v4';
 const PRECACHE_URLS = [
   '/index.html',
   '/shop.html',

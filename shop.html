@@ -603,6 +603,8 @@
     box-sizing: border-box;
     overflow: hidden;
   }
+  .shop-preview-trigger.shop-preview-dark,
+  .shop-live-card .shop-preview-trigger.shop-preview-dark { background: var(--ink); }
   .shop-preview-trigger:hover, .shop-preview-trigger:focus-visible { border-color: var(--orange); }
   .shop-preview-trigger img { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.35s ease; }
   .shop-preview-trigger:hover img, .shop-preview-trigger:focus-visible img { transform: scale(1.8); }
@@ -1123,7 +1125,7 @@
       <div class="shop-card" id="redline-2d">
         <h3>2D Printed Plates</h3>
         <p class="shop-preview-hint">Hold and pan to zoom</p>
-        <div class="shop-preview-trigger" id="redline-2d-trigger" tabindex="0">
+        <div class="shop-preview-trigger shop-preview-dark" id="redline-2d-trigger" tabindex="0">
           <img src="images/site/redline-2d-printed.jpg" alt="Redline Plates 2D printed number plate">
         </div>
         <p class="tee-modal-lead">Crisp, high-quality printed characters with a classic factory look, supplied by Redline Plates.</p>
@@ -1135,7 +1137,7 @@
       <div class="shop-card" id="redline-3d">
         <h3>3D Gel Plates</h3>
         <p class="shop-preview-hint">Hold and pan to zoom</p>
-        <div class="shop-preview-trigger" id="redline-3d-trigger" tabindex="0">
+        <div class="shop-preview-trigger shop-preview-dark" id="redline-3d-trigger" tabindex="0">
           <img src="images/site/redline-3d-gel.jpg" alt="Redline Plates 3D gel number plate">
         </div>
         <p class="tee-modal-lead">Domed gel characters for a sleek, high-gloss finish with a subtle raised effect, supplied by Redline Plates.</p>
@@ -1147,7 +1149,7 @@
       <div class="shop-card" id="redline-4d">
         <h3>4D Acrylic Plates</h3>
         <p class="shop-preview-hint">Hold and pan to zoom</p>
-        <div class="shop-preview-trigger" id="redline-4d-trigger" tabindex="0">
+        <div class="shop-preview-trigger shop-preview-dark" id="redline-4d-trigger" tabindex="0">
           <img src="images/site/redline-4d-acrylic.jpg" alt="Redline Plates 4D acrylic number plate">
         </div>
         <p class="tee-modal-lead">Precision-cut gloss black acrylic characters for a bold, modern look with sharp, raised lettering, supplied by Redline Plates.</p>
@@ -1159,7 +1161,7 @@
       <div class="shop-card" id="redline-show">
         <h3>Show Plates</h3>
         <p class="shop-preview-hint">Hold and pan to zoom</p>
-        <div class="shop-preview-trigger" id="redline-show-trigger" tabindex="0">
+        <div class="shop-preview-trigger shop-preview-dark" id="redline-show-trigger" tabindex="0">
           <img src="images/site/redline-show-plate.jpg" alt="Redline Plates show plate">
         </div>
         <p class="tee-modal-lead">Custom display plates designed for meets, events, photoshoots and displays, supplied by Redline Plates. Non-road-legal.</p>
@@ -1606,7 +1608,7 @@
             (key ? ratingHtml(key, reviews) : '') +
             (img ?
               '<p class="shop-preview-hint">Hold and pan to zoom</p>' +
-              '<div class="shop-preview-trigger" tabindex="0">' +
+              '<div class="shop-preview-trigger' + (key === 'stickers' ? ' shop-preview-dark' : '') + '" tabindex="0">' +
                 '<img src="' + esc(img) + '" alt="' + esc(p.title) + '" loading="lazy">' +
               '</div>'
               : '') +

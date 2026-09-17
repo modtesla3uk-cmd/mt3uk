@@ -1,4 +1,4 @@
-MODAL = "#tee-modal"
+MODAL = "#brace-modal"
 
 
 def _assert_open(page):
@@ -15,29 +15,45 @@ def _assert_closed(page):
 
 def test_main_image_opens_modal(page):
     page.goto("/shop.html")
-    page.locator("#tee-trigger").click()
+    page.locator("#brace-trigger").click()
     _assert_open(page)
-    assert "SAVE 10%" in page.locator(f"{MODAL} .tee-offer-save").inner_text()
+    assert "£95" in page.locator(f"{MODAL} .tee-offer-now").inner_text()
 
 
 def test_secondary_thumbnail_opens_modal(page):
     page.goto("/shop.html")
-    page.locator("#tee-trigger-2").click()
+    page.locator("#brace-trigger-2").click()
     _assert_open(page)
 
 
 def test_more_detail_button_expands_accordion(page):
     page.goto("/shop.html")
-    toggle = page.locator("#tee-detail-content").locator("xpath=preceding-sibling::button[1]")
+    toggle = page.locator("#brace .detail-toggle")
+    content = page.locator("#brace-detail-content")
     assert toggle.get_attribute("aria-expanded") == "false"
     toggle.click()
     assert toggle.get_attribute("aria-expanded") == "true"
-    assert page.locator("#tee-detail-content").is_visible()
+    assert content.is_visible()
+
+
+def test_available_now_and_more_detail_are_visually_symmetrical(page):
+    page.goto("/shop.html")
+    tag = page.locator("#brace .tag")
+    detail_btn = page.locator("#brace .detail-toggle")
+
+    tag_box = tag.evaluate(
+        "el => { const s = getComputedStyle(el); return { padding: s.padding, fontSize: s.fontSize, borderWidth: s.borderWidth }; }"
+    )
+    detail_box = detail_btn.evaluate(
+        "el => { const s = getComputedStyle(el); return { padding: s.padding, fontSize: s.fontSize, borderWidth: s.borderWidth }; }"
+    )
+
+    assert tag_box == detail_box
 
 
 def test_close_button_closes_modal(page):
     page.goto("/shop.html")
-    page.locator("#tee-trigger").click()
+    page.locator("#brace-trigger").click()
     _assert_open(page)
 
     page.locator(f"{MODAL} .tee-modal-close").click()
@@ -49,7 +65,7 @@ def test_close_button_closes_modal_on_mobile_viewport(page):
     # let .tee-modal-media overlap and eat the close button's tap target.
     page.set_viewport_size({"width": 390, "height": 844})
     page.goto("/shop.html")
-    page.locator("#tee-trigger").click()
+    page.locator("#brace-trigger").click()
     _assert_open(page)
 
     close_btn = page.locator(f"{MODAL} .tee-modal-close")
@@ -68,7 +84,7 @@ def test_close_button_closes_modal_on_mobile_viewport(page):
 
 def test_escape_key_closes_modal(page):
     page.goto("/shop.html")
-    page.locator("#tee-trigger").click()
+    page.locator("#brace-trigger").click()
     _assert_open(page)
 
     page.keyboard.press("Escape")
@@ -77,16 +93,16 @@ def test_escape_key_closes_modal(page):
 
 def test_clicking_backdrop_closes_modal(page):
     page.goto("/shop.html")
-    page.locator("#tee-trigger").click()
+    page.locator("#brace-trigger").click()
     _assert_open(page)
 
     page.locator(MODAL).click(position={"x": 5, "y": 5})
     _assert_closed(page)
 
 
-def test_hovering_tee_image_applies_zoom(page):
+def test_hovering_brace_image_applies_zoom(page):
     page.goto("/shop.html")
-    trigger = page.locator("#tee-trigger")
+    trigger = page.locator("#brace-trigger")
     trigger.hover()
     img = trigger.locator("img")
     assert "zoom-pan" in (img.get_attribute("class") or "")

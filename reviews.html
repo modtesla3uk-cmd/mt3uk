@@ -374,7 +374,7 @@
   .review-group-heading .stars { color: #f5b400; letter-spacing: 1px; font-size: 1.3rem; }
   .review-group-heading .review-product-link { margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--orange); text-decoration: none; }
   .review-group-heading .review-product-link:hover { text-decoration: underline; }
-  .review-group-summary { color: var(--steel); font-size: 0.88rem; margin-bottom: 16px; }
+  .review-group-summary { color: var(--steel); font-size: 0.88rem; margin-bottom: 8px; }
   .review-list { display: flex; flex-direction: column; gap: 10px; }
   .review-card {
     padding: 4px 0;
@@ -392,6 +392,13 @@
   .review-card-meta .mono { font-size: 0.7rem; }
   .review-card p.comment { color: var(--ink-2); font-size: 0.92rem; font-style: italic; }
   .review-empty { color: var(--steel); font-size: 0.9rem; }
+  .inline-link {
+    color: var(--orange);
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 1px solid var(--orange);
+  }
+  .inline-link:hover { color: var(--ink); border-color: var(--ink); }
   .review-photos { display: flex; gap: 8px; margin-top: 10px; }
   .review-photo-thumb {
     width: 64px;
@@ -568,7 +575,7 @@
         <div class="nav-dropdown">
           <a href="shop.html#merch" class="nav-sublink nav-sublink-new">Merch</a>
           <a href="shop.html#upgrades" class="nav-sublink nav-sublink-new">Upgrade / Parts</a>
-          <a href="reviews.html" class="nav-sublink nav-sublink-new active">Customer Reviews</a>
+          <a href="reviews.html" class="nav-sublink active">Customer Reviews</a>
         </div>
       </div>
       <a href="index.html#events" class="nav-link">Events</a>
@@ -613,6 +620,7 @@
         <h2>Member reviews</h2>
       </div>
     </div>
+    <p>We appreciate honest feedback and reviews.<br>Leave photos and a review <a href="#write-review" class="inline-link">below</a>.</p>
     <div class="review-groups" id="review-groups">
       <p class="review-empty">Loading reviews&hellip;</p>
     </div>
@@ -638,9 +646,6 @@
         <label class="mono" for="review-product">What did you buy (Required)</label>
         <select id="review-product" name="product" required>
           <option value="" disabled selected>Choose a product&hellip;</option>
-          <option value="tee">MT3UK Tee - Red Underline</option>
-          <option value="tee-yellow">MT3UK Tee - Yellow Underline</option>
-          <option value="stickers">MT3UK Club Stickers</option>
           <option value="brace">Master Cylinder Brace</option>
           <option value="pads-street">PAGID Street+ Brake Pads</option>
           <option value="pads-carbotech">Carbotech Brake Pads</option>
@@ -742,15 +747,43 @@
 
 <script>
   (function () {
+    var SHOP_ENDPOINT = 'https://late-darkness-ebc8.modtesla3uk.workers.dev/shop-products';
+    // Legacy handles get their original short keys so past reviews still match;
+    // any product not listed here (e.g. a newly added Shopify item) falls back
+    // to using its handle as the key, so it shows up automatically.
+    var MANUAL_PRODUCT_KEYS = {
+      'black-mt3uk-tee-red-underline-super-soft': 'tee',
+      'black-mt3uk-tee-yellow-underline': 'tee-yellow',
+      'mt3uk-official-stickers-white-red-line-3-pack': 'stickers',
+      'mt3uk-fire-red-hoodie-yellow-line': 'hoodie-red',
+      'mt3uk-grey-hoodie-red-line': 'hoodie-grey'
+    };
+
     var PRODUCT_NAMES = {
-      'tee': 'MT3UK Tee - Red Underline',
-      'tee-yellow': 'MT3UK Tee - Yellow Underline',
-      'stickers': 'MT3UK Club Stickers',
       'brace': 'Master Cylinder Brace',
       'pads-street': 'PAGID Street+ Brake Pads',
       'pads-carbotech': 'Carbotech Brake Pads'
     };
-    var PRODUCT_ORDER = ['tee', 'tee-yellow', 'stickers', 'brace', 'pads-street', 'pads-carbotech'];
+    var PRODUCT_ORDER = ['brace', 'pads-street', 'pads-carbotech'];
+
+    var select = document.getElementById('review-product');
+
+    function populateFromShop(products) {
+      var merchOrder = [];
+      products.forEach(function (p) {
+        var key = MANUAL_PRODUCT_KEYS[p.handle] || p.handle;
+        merchOrder.push(key);
+        PRODUCT_NAMES[key] = p.title;
+
+        if (select) {
+          var option = document.createElement('option');
+          option.value = key;
+          option.textContent = p.title;
+          select.insertBefore(option, select.querySelector('option[value="brace"]'));
+        }
+      });
+      PRODUCT_ORDER = merchOrder.concat(PRODUCT_ORDER);
+    }
 
     function starString(rating) {
       var rounded = Math.round(rating);
@@ -803,14 +836,17 @@
       container.innerHTML = html;
     }
 
-    fetch('data/reviews.json', { cache: 'no-store' })
-      .then(function (res) { return res.ok ? res.json() : []; })
-      .then(function (reviews) {
-        renderGroups(Array.isArray(reviews) ? reviews : []);
-      })
-      .catch(function () {
-        renderGroups([]);
-      });
+    Promise.all([
+      fetch(SHOP_ENDPOINT, { cache: 'no-store' }).then(function (res) { return res.ok ? res.json() : null; }).catch(function () { return null; }),
+      fetch('data/reviews.json', { cache: 'no-store' }).then(function (res) { return res.ok ? res.json() : []; }).catch(function () { return []; })
+    ]).then(function (results) {
+      var shopData = results[0];
+      var reviews = Array.isArray(results[1]) ? results[1] : [];
+      if (shopData && shopData.success && Array.isArray(shopData.products)) {
+        populateFromShop(shopData.products);
+      }
+      renderGroups(reviews);
+    });
 
     var lightbox = document.getElementById('review-lightbox');
     var lightboxImg = document.getElementById('review-lightbox-img');

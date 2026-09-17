@@ -319,6 +319,64 @@ async function handleVotePost(request, env) {
   return json({ success: true, voterId: voterId, voted: file, candidates: results });
 }
 
+async function handleLikesGet(request, env) {
+  var voterId = getVoterId(request);
+
+  var likesList = await env.VOTES.list({ prefix: 'likes:' });
+  var likes = {};
+  await Promise.all(likesList.keys.map(async function (k) {
+    var count = await env.VOTES.get(k.name);
+    likes[k.name.slice('likes:'.length)] = count ? parseInt(count, 10) : 0;
+  }));
+
+  var likedList = await env.VOTES.list({ prefix: 'liker:' + voterId + ':' });
+  var liked = likedList.keys.map(function (k) {
+    return k.name.slice(('liker:' + voterId + ':').length);
+  });
+
+  return json({ success: true, voterId: voterId, likes: likes, liked: liked });
+}
+
+async function handleLikePost(request, env) {
+  var body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return json({ success: false, message: 'Invalid request body' }, 400);
+  }
+
+  var file = ((body && body.file) || '').toString();
+  if (!file) {
+    return json({ success: false, message: 'file is required' }, 400);
+  }
+
+  var manifest = await fetchGalleryManifest();
+  var isKnown = manifest.some(function (p) { return p.file === file; });
+  if (!isKnown) {
+    return json({ success: false, message: 'Unknown photo' }, 400);
+  }
+
+  var voterId = getVoterId(request);
+  var likerKey = 'liker:' + voterId + ':' + file;
+  var countKey = 'likes:' + file;
+  var alreadyLiked = await env.VOTES.get(likerKey);
+  var count = parseInt((await env.VOTES.get(countKey)) || '0', 10);
+
+  var liked;
+  if (alreadyLiked) {
+    await env.VOTES.delete(likerKey);
+    count = Math.max(0, count - 1);
+    liked = false;
+  } else {
+    await env.VOTES.put(likerKey, '1');
+    count = count + 1;
+    liked = true;
+  }
+  await env.VOTES.put(countKey, String(count));
+
+  return json({ success: true, voterId: voterId, file: file, liked: liked, count: count });
+}
+
 async function handleReviewPost(request, env) {
   var body;
   try {
@@ -606,6 +664,12 @@ export default {
     }
     if (url.pathname === '/review' && request.method === 'POST') {
       return handleReviewPost(request, env);
+    }
+    if (url.pathname === '/likes' && request.method === 'GET') {
+      return handleLikesGet(request, env);
+    }
+    if (url.pathname === '/likes' && request.method === 'POST') {
+      return handleLikePost(request, env);
     }
     if (url.pathname === '/shop-products' && request.method === 'GET') {
       return handleShopProducts(request, ctx);

@@ -855,8 +855,29 @@
   .bf-save-btn .bf-icon-save { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
   .bf-save-btn[data-saved="true"] { color: var(--orange); }
   .bf-save-btn[data-saved="true"] .bf-icon-save { fill: currentColor; }
+  .bf-toast { position: fixed; left: 50%; bottom: 32px; transform: translateX(-50%) translateY(12px); background: var(--ink); color: var(--paper); border: 1px solid var(--orange); font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; letter-spacing: 0.04em; padding: 10px 18px; z-index: 300; opacity: 0; pointer-events: none; transition: opacity 0.2s ease, transform 0.2s ease; }
+  .bf-toast.bf-toast-show { opacity: 1; transform: translateX(-50%) translateY(0); }
   .bf-mods-btn .bf-icon-mods { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
   .bf-mods-btn[aria-pressed="true"] { color: var(--orange); }
+
+  #saved-builds .saved-builds-strip {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 4px 2px 6px;
+  }
+  .sb-thumb {
+    flex: 0 0 72px;
+    width: 72px;
+    height: 72px;
+    padding: 0;
+    border: 1px solid var(--ink);
+    background: #000;
+    overflow: hidden;
+    cursor: zoom-in;
+  }
+  .sb-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .saved-builds-empty { color: var(--steel); }
 
   .bf-mods-panel {
     position: absolute;
@@ -1536,14 +1557,90 @@
   </div>
 </section>
 
+<section id="saved-builds">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="section-num">01B / SAVED BUILDS</span>
+        <h2>Your saved builds</h2>
+      </div>
+      <p>Builds you've bookmarked from the feed above. Tap the bookmark icon on any build to save it here.</p>
+    </div>
+    <div class="saved-builds-strip" id="saved-builds-strip"></div>
+    <p class="saved-builds-empty mono" id="saved-builds-empty">No saved builds yet. Tap the bookmark icon on any build above to save it here.</p>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var stripEl = document.getElementById('saved-builds-strip');
+    var emptyEl = document.getElementById('saved-builds-empty');
+    if (!stripEl || !emptyEl) return;
+
+    function getSavedFiles() {
+      try { return JSON.parse(localStorage.getItem('mt3ukSavedBuilds') || '[]'); } catch (e) { return []; }
+    }
+
+    function render() {
+      var savedFiles = getSavedFiles().slice().reverse();
+      if (!savedFiles.length) {
+        stripEl.style.display = 'none';
+        emptyEl.style.display = 'block';
+        return;
+      }
+      window.mt3ukFetchJSON('images/gallery/manifest.json', []).then(function (photos) {
+        var byFile = {};
+        (photos || []).forEach(function (p) { byFile[p.file] = p; });
+        var found = savedFiles.map(function (file) { return byFile[file]; }).filter(Boolean);
+        if (!found.length) {
+          stripEl.style.display = 'none';
+          emptyEl.style.display = 'block';
+          return;
+        }
+        emptyEl.style.display = 'none';
+        stripEl.style.display = 'flex';
+        stripEl.innerHTML = found.map(function (p) {
+          var safeCaption = (p.caption || 'MT3UK member build').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+          var modsAttr = (p.mods && p.mods.length) ? ' data-mods="' + JSON.stringify(p.mods).replace(/"/g, '&quot;') + '"' : '';
+          return '<button type="button" class="sb-thumb"><img src="images/gallery/' + p.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy"' + modsAttr + '></button>';
+        }).join('');
+      }).catch(function () {});
+    }
+
+    render();
+    window.addEventListener('mt3ukSavedBuildsChanged', render);
+  })();
+</script>
+
 <script>
   (function () {
     var MAX_SLIDES = 20;
+    var VOTE_ENDPOINT = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
     var feedEl = document.getElementById('bf-feed');
     var progressEl = document.getElementById('bf-progress');
     var scrollHint = document.getElementById('bf-scroll-hint');
     var autoscrollBtn = document.getElementById('bf-autoscroll-toggle');
     if (!feedEl) return;
+
+    var voterId = localStorage.getItem('mt3ukVoterId');
+    if (!voterId) {
+      voterId = window.crypto && window.crypto.randomUUID ? window.crypto.randomUUID() : ('v-' + Date.now() + '-' + Math.random().toString(16).slice(2));
+      localStorage.setItem('mt3ukVoterId', voterId);
+    }
+
+    var toastEl = null;
+    var toastTimer = null;
+    window.showBfToast = function (message) {
+      if (!toastEl) {
+        toastEl = document.createElement('div');
+        toastEl.className = 'bf-toast';
+        document.body.appendChild(toastEl);
+      }
+      toastEl.textContent = message;
+      clearTimeout(toastTimer);
+      requestAnimationFrame(function () { toastEl.classList.add('bf-toast-show'); });
+      toastTimer = setTimeout(function () { toastEl.classList.remove('bf-toast-show'); }, 1400);
+    };
 
     function heartSvg(cls) {
       return '<svg viewBox="0 0 24 24" class="' + cls + '">' +
@@ -1551,13 +1648,16 @@
         '</svg>';
     }
 
-    function buildSlide(photo, idx) {
+    function buildSlide(photo, idx, likesData) {
       var safeCaption = (photo.caption || '').replace(/</g, '&lt;');
       var subLine = photo.name ? 'By ' + photo.name.replace(/</g, '&lt;') : '';
       var mods = Array.isArray(photo.mods) ? photo.mods : [];
+      var likeCount = (likesData && likesData.likes && likesData.likes[photo.file]) || 0;
+      var isLiked = !!(likesData && likesData.liked && likesData.liked.indexOf(photo.file) !== -1);
       var section = document.createElement('div');
       section.className = 'bf-slide';
       section.dataset.idx = String(idx);
+      section.dataset.file = photo.file;
       section.innerHTML =
         '<img class="bf-slide-img" src="images/gallery/' + photo.file.replace(/&/g, '&amp;') + '" alt="' + (safeCaption || 'MT3UK member build') + '" loading="lazy" draggable="false">' +
         '<div class="bf-scrim bf-scrim-top"></div>' +
@@ -1565,9 +1665,9 @@
         '<button class="bf-like-hit" aria-label="Like this build" data-idx="' + idx + '"></button>' +
         '<div class="bf-heart-burst" aria-hidden="true">' + heartSvg('') + '</div>' +
         '<aside class="bf-rail">' +
-          '<button class="bf-rail-btn bf-like-btn" data-idx="' + idx + '" aria-pressed="false" aria-label="Like">' +
+          '<button class="bf-rail-btn bf-like-btn' + (isLiked ? ' bf-liked' : '') + '" data-idx="' + idx + '" aria-pressed="' + (isLiked ? 'true' : 'false') + '" aria-label="Like">' +
             heartSvg('bf-icon-heart') +
-            '<span class="bf-rail-count">0</span>' +
+            '<span class="bf-rail-count">' + likeCount + '</span>' +
           '</button>' +
           '<button class="bf-rail-btn bf-save-btn" aria-label="Save" data-saved="false">' +
             '<svg viewBox="0 0 24 24" class="bf-icon-save"><path d="M6 3.5h12a1 1 0 0 1 1 1V21l-7-4.2L5 21V4.5a1 1 0 0 1 1-1z"/></svg>' +
@@ -1591,7 +1691,7 @@
       return section;
     }
 
-    function render(photos) {
+    function render(photos, likesData) {
       if (!photos.length) {
         feedEl.innerHTML = '<p class="mono" style="padding: 24px; color: var(--steel);">No builds yet, be the first to submit one.</p>';
         return;
@@ -1599,7 +1699,7 @@
       feedEl.innerHTML = '';
       progressEl.innerHTML = '';
       photos.forEach(function (photo, idx) {
-        feedEl.appendChild(buildSlide(photo, idx));
+        feedEl.appendChild(buildSlide(photo, idx, likesData));
         var seg = document.createElement('i');
         seg.className = 'bf-dot-seg';
         seg.dataset.idx = String(idx);
@@ -1637,16 +1737,38 @@
       function toggleLike(idx, burst) {
         var slide = slides[idx];
         var btn = slide.querySelector('.bf-like-btn');
+        if (btn.dataset.pending === 'true') return;
         var count = btn.querySelector('.bf-rail-count');
-        var liked = btn.classList.toggle('bf-liked');
+        var wasLiked = btn.classList.contains('bf-liked');
+        var liked = !wasLiked;
+        var currentCount = parseInt(count.textContent, 10) || 0;
+
+        btn.classList.toggle('bf-liked', liked);
         btn.setAttribute('aria-pressed', liked ? 'true' : 'false');
-        count.textContent = liked ? '1' : '0';
+        count.textContent = String(liked ? currentCount + 1 : Math.max(0, currentCount - 1));
         if (liked && burst) {
           var hb = slide.querySelector('.bf-heart-burst');
           hb.classList.remove('bf-burst');
           void hb.offsetWidth;
           hb.classList.add('bf-burst');
         }
+
+        btn.dataset.pending = 'true';
+        fetch(VOTE_ENDPOINT + '/likes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Voter-Id': voterId },
+          body: JSON.stringify({ file: slide.dataset.file })
+        })
+          .then(function (res) { return res.ok ? res.json() : null; })
+          .then(function (data) {
+            if (data && data.success) {
+              btn.classList.toggle('bf-liked', data.liked);
+              btn.setAttribute('aria-pressed', data.liked ? 'true' : 'false');
+              count.textContent = String(data.count);
+            }
+          })
+          .catch(function () {})
+          .then(function () { btn.dataset.pending = 'false'; });
       }
 
       feedEl.querySelectorAll('.bf-like-hit').forEach(function (btn) {
@@ -1665,11 +1787,27 @@
         });
       });
 
+      var savedBuilds = [];
+      try { savedBuilds = JSON.parse(localStorage.getItem('mt3ukSavedBuilds') || '[]'); } catch (e) {}
+      slides.forEach(function (slide) {
+        var saveBtn = slide.querySelector('.bf-save-btn');
+        if (saveBtn && savedBuilds.indexOf(slide.dataset.file) !== -1) {
+          saveBtn.dataset.saved = 'true';
+        }
+      });
+
       feedEl.querySelectorAll('.bf-save-btn').forEach(function (btn) {
         btn.addEventListener('click', function (e) {
           e.stopPropagation();
+          var file = btn.closest('.bf-slide').dataset.file;
           var saved = btn.dataset.saved === 'true';
           btn.dataset.saved = saved ? 'false' : 'true';
+          var pos = savedBuilds.indexOf(file);
+          if (saved && pos !== -1) savedBuilds.splice(pos, 1);
+          else if (!saved && pos === -1) savedBuilds.push(file);
+          localStorage.setItem('mt3ukSavedBuilds', JSON.stringify(savedBuilds));
+          window.dispatchEvent(new Event('mt3ukSavedBuildsChanged'));
+          showBfToast(saved ? 'Removed' : 'Saved');
         });
       });
 
@@ -1748,9 +1886,16 @@
 
     // Build Feed always leads with the newest upload (manifest.json is
     // newest-first) — independent of the Featured Build pick/rotation logic.
-    window.mt3ukFetchJSON('images/gallery/manifest.json', [])
-      .then(function (photos) {
-        render((photos || []).slice(0, MAX_SLIDES));
+    Promise.all([
+      window.mt3ukFetchJSON('images/gallery/manifest.json', []),
+      fetch(VOTE_ENDPOINT + '/likes', { headers: { 'X-Voter-Id': voterId }, cache: 'no-store' })
+        .then(function (res) { return res.ok ? res.json() : null; })
+        .catch(function () { return null; })
+    ])
+      .then(function (results) {
+        var photos = results[0];
+        var likesData = results[1] && results[1].success ? results[1] : null;
+        render((photos || []).slice(0, MAX_SLIDES), likesData);
       })
       .catch(function () {
         feedEl.innerHTML = '<p class="mono" style="padding: 24px; color: var(--steel);">Builds couldn\'t be loaded.</p>';
@@ -2137,14 +2282,23 @@
         var prevBtn = lightbox.querySelector('.lightbox-prev');
         var nextBtn = lightbox.querySelector('.lightbox-next');
         var galleryGrid = document.getElementById('gallery-grid');
+        var savedStrip = document.getElementById('saved-builds-strip');
         var currentIndex = -1;
 
         function getGalleryImgs() {
               return galleryGrid ? Array.prototype.slice.call(galleryGrid.querySelectorAll('img')) : [];
         }
 
+        function getSavedImgs() {
+              return savedStrip ? Array.prototype.slice.call(savedStrip.querySelectorAll('img')) : [];
+        }
+
+        function getImgsForMode() {
+              return lightbox.dataset.mode === 'saved' ? getSavedImgs() : getGalleryImgs();
+        }
+
         function showAt(index) {
-              var imgs = getGalleryImgs();
+              var imgs = getImgsForMode();
               if (!imgs.length) return;
               currentIndex = (index + imgs.length) % imgs.length;
               var img = imgs[currentIndex];
@@ -2159,8 +2313,8 @@
               lightboxMods.classList.toggle('has-mods', mods.length > 0);
         }
 
-        function openLightbox(index) {
-              lightbox.dataset.mode = 'gallery';
+        function openLightbox(index, mode) {
+              lightbox.dataset.mode = mode || 'gallery';
               showAt(index);
               lightbox.classList.add('open');
               lightbox.setAttribute('aria-hidden', 'false');
@@ -2184,14 +2338,28 @@
               });
         }
 
+        if (savedStrip) {
+              savedStrip.addEventListener('click', function (e) {
+                      var thumb = e.target.closest('.sb-thumb');
+                      var img = thumb ? thumb.querySelector('img') : null;
+                      if (!img) return;
+                      var imgs = getSavedImgs();
+                      openLightbox(imgs.indexOf(img), 'saved');
+              });
+        }
+
+        function isScrollableMode() {
+              return lightbox.dataset.mode === 'gallery' || lightbox.dataset.mode === 'saved';
+        }
+
         closeBtn.addEventListener('click', closeLightbox);
         prevBtn.addEventListener('click', function (e) {
-              if (lightbox.dataset.mode !== 'gallery') return;
+              if (!isScrollableMode()) return;
               e.stopPropagation();
               showAt(currentIndex - 1);
         });
         nextBtn.addEventListener('click', function (e) {
-              if (lightbox.dataset.mode !== 'gallery') return;
+              if (!isScrollableMode()) return;
               e.stopPropagation();
               showAt(currentIndex + 1);
         });
@@ -2203,7 +2371,7 @@
         document.addEventListener('keydown', function (e) {
               if (!lightbox.classList.contains('open')) return;
               if (e.key === 'Escape') closeLightbox();
-              if (lightbox.dataset.mode !== 'gallery') return;
+              if (!isScrollableMode()) return;
               if (e.key === 'ArrowRight') showAt(currentIndex + 1);
               if (e.key === 'ArrowLeft') showAt(currentIndex - 1);
         });

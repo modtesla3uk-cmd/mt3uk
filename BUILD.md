@@ -199,6 +199,24 @@ via `tests.yml`.
   `"html_handling": "none"` in `wrangler.jsonc` to stop the redirect and keep
   `.html` as the canonical, served URL
   cause of pages not getting indexed
+- Content depth: expanded the thin Gallery and Track Days section intros on
+  `index.html` with more substantive copy, added a "UK Track Day Venues"
+  section to `track-day-prep.html` covering Snetterton, Thruxton and Cadwell
+  Park (location, layout, character and how each one loads brakes/tyres/
+  suspension differently), and linked the two pages together both ways:
+  Track Days copy links out to the relevant venue anchor, and each track day
+  photo now shows a dynamic caption-matched link back to its venue's section
+  in the prep guide
+- Rewrote the About section copy, and gave Build Feed top billing over the
+  Gallery: it's now the primary nav link (with Featured Build, Vote for
+  Build, Full Gallery and Upload Image as its dropdown), and added a
+  "Browse the Full Gallery" card to the bottom of both the Build Feed and
+  Featured Build sections so it's the obvious next step rather than
+  competing for space up top. Renamed "Member builds" to "Full Gallery"
+  throughout. Also added a "Most recent" pill above the Like button in the
+  Build Feed rail that jumps back to the newest upload, and made the Full
+  Gallery paginate 8-per-page (2x4) on mobile instead of 16, with arrow
+  icons added to its Prev/Next buttons
 
 ---
 

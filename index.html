@@ -876,6 +876,22 @@
     color: rgba(255,255,255,0.9);
     font-variant-numeric: tabular-nums;
   }
+  .bf-rail-pill {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.6);
+    border-radius: 999px;
+    color: var(--white);
+    display: flex; flex-direction: row; align-items: center; gap: 5px;
+    padding: 6px 12px 6px 8px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .bf-rail-pill svg { width: 13px; height: 13px; fill: currentColor; }
+  .bf-rail-pill span {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.03em;
+  }
   .bf-like-btn.bf-liked { color: var(--orange); }
   .bf-like-btn.bf-liked svg { animation: bf-likepulse 360ms ease; }
   @keyframes bf-likepulse {
@@ -1150,6 +1166,16 @@
     padding: 0 14px;
     color: var(--steel);
   }
+  .track-day-venue-context {
+    max-width: 640px;
+    margin: 12px auto 0;
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.03em;
+    color: var(--steel);
+  }
+  .track-day-venue-context a { color: var(--orange); }
 
   .gallery-pagination {
     display: flex;
@@ -1167,7 +1193,11 @@
     color: var(--ink);
     padding: 8px 14px;
     cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
   }
+  .gallery-pagination .page-btn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .gallery-pagination .page-btn:hover:not(:disabled) { background: var(--ink); color: var(--paper); }
   .gallery-pagination .page-btn:disabled { opacity: 0.35; cursor: default; }
 
@@ -1304,6 +1334,21 @@
     color: var(--steel);
     margin-top: 4px;
   }
+
+  /* ---------- SECTION GALLERY CTA ---------- */
+  .section-gallery-cta {
+    margin-top: 28px;
+    padding: 20px 24px;
+    border: 1px solid rgba(22,35,61,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .section-gallery-cta p { margin: 0; color: var(--steel); }
+  .section-gallery-cta p strong { color: var(--ink); }
+  .section-gallery-cta .btn { white-space: nowrap; }
 
   /* ---------- SHOP CTA BAND ---------- */
   .shop-cta {
@@ -1455,12 +1500,12 @@
     <a href="/" class="logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
     <div class="navlinks" id="navlinks">
       <div class="nav-item">
-        <a href="#gallery" class="nav-link">Gallery</a>
-        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Gallery submenu">&#9660;</button>
+        <a href="#build-feed" class="nav-link">Build Feed</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Build Feed submenu">&#9660;</button>
         <div class="nav-dropdown">
           <a href="#build-of-the-day" class="nav-sublink">Featured Build</a>
           <a href="#vote-frame" class="nav-sublink nav-sublink-new">Vote for Build</a>
-          <a href="#build-feed" class="nav-sublink">Build Feed</a>
+          <a href="#gallery" class="nav-sublink">Full Gallery</a>
           <a href="#gallery-upload" class="nav-sublink">Upload Image</a>
         </div>
       </div>
@@ -1534,7 +1579,7 @@
             <span class="hero-build-link">See the featured build &rarr;</span>
           </span>
         </a>
-        <p class="hero-media-note">Browse the full <a href="#build-feed">Build Feed</a> or the <a href="#gallery">Gallery</a>, or <a href="#gallery-upload">upload your build</a> to get yours featured.</p>
+        <p class="hero-media-note">Browse the full <a href="#build-feed">Build Feed</a> or the <a href="#gallery">Full Gallery</a>, or <a href="#gallery-upload">upload your build</a> to get yours featured.</p>
       </div>
     </div>
   </div>
@@ -1598,6 +1643,10 @@
       <p class="saved-builds-label mono">Your saved builds</p>
       <div class="saved-builds-strip" id="saved-builds-strip"></div>
       <p class="saved-builds-empty mono" id="saved-builds-empty">No saved builds yet. Tap the bookmark icon on any build above to save it here.</p>
+    </div>
+    <div class="section-gallery-cta">
+      <p>Want to dig deeper? <strong>The Full Gallery</strong> has every build members have shared, with search-friendly captions and mod lists.</p>
+      <a href="#gallery" class="btn btn-secondary">Browse the Full Gallery</a>
     </div>
   </div>
 </section>
@@ -1696,6 +1745,10 @@
         '<button class="bf-like-hit" aria-label="Like this build" data-idx="' + idx + '"></button>' +
         '<div class="bf-heart-burst" aria-hidden="true">' + heartSvg('') + '</div>' +
         '<aside class="bf-rail">' +
+          '<button class="bf-rail-pill bf-recent-btn" aria-label="Jump to most recent build">' +
+            '<svg viewBox="0 0 24 24"><path d="M12 5l-7 7h4v7h6v-7h4z"/></svg>' +
+            '<span>Most recent</span>' +
+          '</button>' +
           '<button class="bf-rail-btn bf-like-btn' + (isLiked ? ' bf-liked' : '') + '" data-idx="' + idx + '" aria-pressed="' + (isLiked ? 'true' : 'false') + '" aria-label="Like">' +
             heartSvg('bf-icon-heart') +
             '<span class="bf-rail-count">' + likeCount + '</span>' +
@@ -1801,6 +1854,15 @@
           .catch(function () {})
           .then(function () { btn.dataset.pending = 'false'; });
       }
+
+      feedEl.querySelectorAll('.bf-recent-btn').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          feedEl.scrollTo({ top: 0, behavior: 'smooth' });
+          setActive(0);
+          showBfToast('Most recent');
+        });
+      });
 
       feedEl.querySelectorAll('.bf-like-hit').forEach(function (btn) {
         btn.addEventListener('click', function () {
@@ -2008,6 +2070,10 @@
     <div class="vote-frame" id="vote-frame">
       <p class="mono" style="padding: 24px; color: var(--steel);">Loading builds open for voting…</p>
     </div>
+    <div class="section-gallery-cta">
+      <p>Liked what you've seen? <strong>The Full Gallery</strong> has every build members have shared, with search-friendly captions and mod lists.</p>
+      <a href="#gallery" class="btn btn-secondary">Browse the Full Gallery</a>
+    </div>
   </div>
 </section>
 
@@ -2015,13 +2081,13 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">03 / GALLERY</span>
+        <span class="section-num">03 / FULL GALLERY</span>
         <div class="section-title-row">
-          <h2>Member builds</h2>
+          <h2>Full Gallery</h2>
           <button type="button" class="refresh-btn" id="gallery-refresh-btn" aria-label="Refresh gallery">&#8635; Refresh</button>
         </div>
       </div>
-      <p>A rotating look at what the group's driving. Photos will swap in from group posts.</p>
+      <p>A rotating look at what the group's driving, from first-mod daily drivers to fully track-prepped builds. Every entry is submitted by its owner with a caption and, where they've listed them, the mods behind it, so you're seeing real setups from members rather than a stock catalogue. Click any photo for the full-size shot and mod list, or scroll down to <a href="#track-days" class="inline-link">Track Days</a> to see some of these same builds out on circuit.</p>
     </div>
     <div class="gallery-grid" id="gallery-grid">
       <p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">Loading builds…</p>
@@ -2070,7 +2136,8 @@
 
     <script>
       (function () {
-        var PAGE_SIZE = 16;
+        var mobileQuery = window.matchMedia('(max-width: 560px)');
+        function getPageSize() { return mobileQuery.matches ? 8 : 16; }
         var grid = document.getElementById('gallery-grid');
         var pagination = document.getElementById('gallery-pagination');
         var allPhotos = [];
@@ -2105,9 +2172,13 @@
             return;
           }
           pagination.innerHTML =
-            '<button type="button" class="page-btn" id="gallery-prev"' + (currentPage === 1 ? ' disabled' : '') + '>&lsaquo; Prev</button>' +
+            '<button type="button" class="page-btn" id="gallery-prev"' + (currentPage === 1 ? ' disabled' : '') + ' aria-label="Previous page">' +
+              '<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>Prev' +
+            '</button>' +
             '<span class="mono">Page ' + currentPage + ' of ' + totalPages + '</span>' +
-            '<button type="button" class="page-btn" id="gallery-next"' + (currentPage === totalPages ? ' disabled' : '') + '>Next &rsaquo;</button>';
+            '<button type="button" class="page-btn" id="gallery-next"' + (currentPage === totalPages ? ' disabled' : '') + ' aria-label="Next page">' +
+              'Next<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>' +
+            '</button>';
 
           var prevBtn = document.getElementById('gallery-prev');
           var nextBtn = document.getElementById('gallery-next');
@@ -2122,11 +2193,18 @@
         }
 
         function render() {
-          var totalPages = Math.max(1, Math.ceil(allPhotos.length / PAGE_SIZE));
+          var pageSize = getPageSize();
+          var totalPages = Math.max(1, Math.ceil(allPhotos.length / pageSize));
           currentPage = Math.min(Math.max(1, currentPage), totalPages);
-          var start = (currentPage - 1) * PAGE_SIZE;
-          renderGrid(allPhotos.slice(start, start + PAGE_SIZE));
+          var start = (currentPage - 1) * pageSize;
+          renderGrid(allPhotos.slice(start, start + pageSize));
           renderPagination(totalPages);
+        }
+
+        if (mobileQuery.addEventListener) {
+          mobileQuery.addEventListener('change', function () { currentPage = 1; render(); });
+        } else if (mobileQuery.addListener) {
+          mobileQuery.addListener(function () { currentPage = 1; render(); });
         }
 
         function loadGallery(forceRefresh) {
@@ -2170,9 +2248,10 @@
     </div>
     <div class="about-grid">
       <div>
-        <p>MT3UK started as a small group of Tesla owners comparing notes on wheels, wraps and suspension setups - the kind of honest, hands-on advice you don't get in a showroom. It's grown into one of the largest communities for modified Tesla owners.</p>
+        <p>MT3UK started as a small group of Tesla owners who wanted to make their cars unique. As aftermarket parts became more widespread, the mods went from a nice-to-have to something that's now almost essential for some. What began small has grown into one of the largest communities for modified Tesla owners.</p>
+        <p>Subtle look, front lip, full body kit, race-prepped track build - we love them all.</p>
         <p>Whatever you're driving (Model S, 3, X or Y) and whatever stage your build is at, from a first set of wheels to a full track setup, you'll find people in the group who've done it, are doing it, or want to help you get there.</p>
-        <p>We keep the group free from bots, spam and probably most importantly "negativity" with a group of trusted admins on hand. Meet-ups across the UK and beyond and a shared respect for doing mods properly.</p>
+        <p>We keep the group free from bots, spam and negativity, with a team of trusted admins on hand. Regular meet-ups across the UK and beyond, and a shared respect for doing mods properly.</p>
         <a href="https://www.facebook.com/groups/mt3uk/" class="btn btn-join-community" target="_blank" rel="noopener">Join The Facebook Group</a>
       </div>
       <div class="specs">
@@ -2241,6 +2320,7 @@
       <div>
         <p>This corner of MT3UK is dedicated to taking your Tesla on track, properly. Whether you're booking your very first track day or you've lost count of how many you've done, we're building this into the go-to spot for everything in between. Read our <a href="track-day-prep.html" class="inline-link">Track Day Prep guide</a> for OE limitations, model guidance and the upgrade path members follow.</p>
         <p>Expect recommended upgrades that hold up under real track conditions rather than just Instagram, and unfiltered advice from members who've already made the mistakes so you don't have to.</p>
+        <p>The photos below are shot at the circuits members actually book: <a href="track-day-prep.html#venue-snetterton" class="inline-link">Snetterton</a>'s long, fast Bentley Straight, <a href="track-day-prep.html#venue-thruxton" class="inline-link">Thruxton</a>'s sustained high-speed corners, and <a href="track-day-prep.html#venue-cadwell-park" class="inline-link">Cadwell Park</a>'s tight, hilly technical layout. Each one loads brakes, tyres and suspension differently, which the prep guide breaks down venue by venue.</p>
         <p>Got track photos or lessons learned? Share them in the Facebook group and they'll find a home here.</p>
       </div>
     </div>
@@ -2248,6 +2328,7 @@
     <div class="track-day-frame" id="track-day-grid" style="margin-top: 40px;">
       <p class="mono">Loading track days…</p>
     </div>
+    <div class="track-day-venue-context" id="track-day-venue-context"></div>
     <div class="gallery-pagination" id="track-day-pagination"></div>
   </div>
 </section>
@@ -2636,13 +2717,29 @@
       var PAGE_SIZE = 1; // One track day per page
       var grid = document.getElementById('track-day-grid');
       var pagination = document.getElementById('track-day-pagination');
+      var venueContext = document.getElementById('track-day-venue-context');
       var lightbox = document.getElementById('lightbox');
       var allTrackDays = [];
       var currentPage = 1;
 
+      var VENUES = [
+        { match: /snetterton/i, name: 'Snetterton', anchor: 'track-day-prep.html#venue-snetterton', blurb: 'a fast, flowing former airfield circuit in Norfolk' },
+        { match: /thruxton/i, name: 'Thruxton', anchor: 'track-day-prep.html#venue-thruxton', blurb: "widely rated the UK's fastest permanent circuit" },
+        { match: /cadwell/i, name: 'Cadwell Park', anchor: 'track-day-prep.html#venue-cadwell-park', blurb: 'the tight, hilly "Mini Nürburgring" in Lincolnshire' }
+      ];
+
+      function renderVenueContext(caption) {
+        if (!venueContext) return;
+        var venue = VENUES.filter(function (v) { return v.match.test(caption || ''); })[0];
+        venueContext.innerHTML = venue ?
+          'Shot at <a href="' + venue.anchor + '">' + venue.name + '</a>, ' + venue.blurb + '. More in the <a href="' + venue.anchor + '">Track Day Prep guide</a>.' :
+          '';
+      }
+
       function renderGrid(photos) {
         if (!photos.length) {
           grid.innerHTML = '<p class="mono">No track days yet, drop some into images/track-days/ on GitHub.</p>';
+          renderVenueContext('');
           return;
         }
         grid.innerHTML = photos.map(function (p) {
@@ -2650,6 +2747,7 @@
           return '<img src="images/track-days/' + p.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy">' +
                  '<span class="g-caption">' + safeCaption + '</span>';
         }).join('');
+        renderVenueContext(photos[0].caption);
       }
 
       function renderPagination(totalPages) {

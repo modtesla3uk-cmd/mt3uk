@@ -1390,6 +1390,10 @@
         var sales = results[2] || {};
         if (data && data.success && Array.isArray(data.products)) {
           renderProducts(data.products, reviews, sales);
+          if (window.location.hash) {
+            var target = document.querySelector(window.location.hash);
+            if (target) target.scrollIntoView();
+          }
         }
       }).catch(function () {});
     })();

@@ -199,6 +199,7 @@
   .nav-link-shop, .nav-sublink-new { display: inline-flex; align-items: center; gap: 6px; }
   .nav-subitem { position: relative; }
   .nav-subitem > .nav-sublink { flex: 1; }
+  a.nav-sublink-offer { display: block; color: var(--orange); font-weight: 600; border-top: 1px solid rgba(22,35,61,0.15); }
 
   .nav-link-shop::after, .nav-sublink-new::after {
     content: 'NEW';
@@ -321,6 +322,8 @@
       pointer-events: none;
     }
     .nav-subitem .nav-dropdown { top: -1px; left: 100%; right: auto; }
+    .nav-search:hover .nav-search-panel,
+    .nav-search:focus-within .nav-search-panel { display: block; }
   }
 
   @media (max-width: 780px) {
@@ -601,8 +604,8 @@
 <div class="promo-banner" id="promo-banner">
   <div class="promo-banner-inner">
     <div class="promo-banner-track">
-      <a href="shop.html#tee" class="promo-banner-msg">&#9201; New Tee options available!! | Hoodies | Club Stickers | Master Cylinder Braces &mdash; shop now &rarr;</a>
-      <a href="shop.html#tee" class="promo-banner-msg" aria-hidden="true">&#9201; New Tee options available!! | Hoodies | Club Stickers | Master Cylinder Braces &mdash; shop now &rarr;</a>
+      <a href="shop.html#tee" class="promo-banner-msg">&#9201; New Tee options available!! | Hoodies | Club Stickers | Master Cylinder Braces | Brake Pads | Number Plates &mdash; shop now &rarr;</a>
+      <a href="shop.html#tee" class="promo-banner-msg" aria-hidden="true">&#9201; New Tee options available!! | Hoodies | Club Stickers | Master Cylinder Braces | Brake Pads | Number Plates &mdash; shop now &rarr;</a>
     </div>
     <button type="button" class="promo-banner-close" id="promo-banner-close" aria-label="Dismiss banner">&times;</button>
   </div>
@@ -643,7 +646,7 @@
             <div class="nav-dropdown">
               <a href="shop.html#tevo" class="nav-sublink">Tevo Solutions</a>
               <a href="shop.html#redline" class="nav-sublink">Redline Plates</a>
-              <a href="shop.html#offers" class="nav-sublink">Offers</a>
+              <a href="shop.html#offers" class="nav-sublink nav-sublink-offer">Offers</a>
             </div>
           </div>
           <a href="reviews.html" class="nav-sublink active">Customer Reviews</a>
@@ -673,7 +676,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
       </button>
       <div class="nav-search-panel" id="nav-search-panel">
-        <input type="text" id="nav-search-input" placeholder="Search MT3UK&hellip;" autocomplete="off">
+        <input type="text" id="nav-search-input" placeholder="Search&hellip; e.g. Gallery, Shop, Hoodies, Number Plates, Pads" autocomplete="off">
         <div class="nav-search-results" id="nav-search-results"></div>
       </div>
     </div>

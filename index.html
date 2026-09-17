@@ -552,7 +552,7 @@
   .corner.br { bottom: 10px; right: 10px; border-left: none; border-top: none; }
 
   /* ---------- SECTION SHELL ---------- */
-  section { padding: 60px 0; border-bottom: 1px solid var(--ink); }
+  section { padding: 60px 0; border-bottom: 1px solid var(--ink); scroll-margin-top: 90px; }
   section:last-of-type { border-bottom: none; }
 
   .section-head {
@@ -3291,6 +3291,33 @@
         navigator.serviceWorker.register('/sw.js');
       });
     }
+  </script>
+
+  <script>
+    (function () {
+      var hash = location.hash;
+      if (!hash || hash.length < 2) return;
+
+      var userInteracted = false;
+      ['wheel', 'touchstart', 'keydown'].forEach(function (evt) {
+        window.addEventListener(evt, function () { userInteracted = true; }, { once: true, passive: true });
+      });
+
+      var scrollToHash = function (behavior) {
+        if (userInteracted) return;
+        var el = document.querySelector(hash);
+        if (!el) return;
+        var top = el.getBoundingClientRect().top + window.pageYOffset - 90;
+        window.scrollTo({ top: top, behavior: behavior });
+      };
+
+      scrollToHash('smooth');
+      var stopAt = Date.now() + 6000;
+      var poll = setInterval(function () {
+        if (userInteracted || Date.now() > stopAt) { clearInterval(poll); return; }
+        scrollToHash('instant');
+      }, 200);
+    })();
   </script>
 
 <script src="js/search.js" defer></script>

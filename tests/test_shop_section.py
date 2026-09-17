@@ -8,12 +8,12 @@ def test_vote_nav_link_has_new_badge(page):
     assert "NEW" in badge_content
 
 
-def test_shop_page_merch_comes_before_upgrades(page):
+def test_shop_page_merch_comes_before_parts(page):
     page.goto("/shop.html")
     order = page.evaluate(
         """
         () => {
-            const ids = ['merch', 'upgrades'];
+            const ids = ['merch', 'parts'];
             const positions = ids.map(id => {
                 const el = document.getElementById(id);
                 return el ? el.getBoundingClientRect().top + window.scrollY : null;
@@ -22,6 +22,6 @@ def test_shop_page_merch_comes_before_upgrades(page):
         }
         """
     )
-    merch_top, upgrades_top = order
-    assert merch_top is not None and upgrades_top is not None
-    assert merch_top < upgrades_top
+    merch_top, parts_top = order
+    assert merch_top is not None and parts_top is not None
+    assert merch_top < parts_top

@@ -175,7 +175,7 @@
     line-height: 1;
   }
   .navlinks a:hover { opacity: 0.65; }
-  .navlinks a.active { color: var(--orange); border-color: var(--orange); }
+  .navlinks a.active { color: var(--orange); }
 
   .nav-item { position: relative; display: flex; align-items: center; }
   .nav-dropdown {
@@ -321,6 +321,12 @@
     nav { gap: 8px; }
     .hamburger { display: flex; }
     .nav-search { margin-left: auto; }
+    .nav-search-panel {
+      width: 200px;
+      padding: 8px;
+    }
+    .nav-search-panel input { padding: 8px 10px; font-size: 0.85rem; }
+    .nav-search-results { max-height: 220px; }
 
     .navlinks {
       display: none;

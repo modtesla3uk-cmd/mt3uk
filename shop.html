@@ -630,7 +630,7 @@
   .shop-preview-row-lg .shop-preview-trigger,
   .shop-preview-row-lg .shop-preview-thumb { height: auto; aspect-ratio: 8 / 5; }
   .shop-preview-thumb:hover img, .shop-preview-thumb:focus-visible img { transform: scale(4); }
-  .shop-card h3 { color: var(--paper); font-size: 1.14rem; font-weight: 600; font-family: 'IBM Plex Sans', sans-serif; margin-bottom: 6px; padding-right: 76px; }
+  .shop-card h3 { color: var(--paper); font-size: 1.14rem; font-weight: 600; font-family: 'IBM Plex Sans', sans-serif; margin-bottom: 6px; padding-right: 150px; }
   .shop-card p { color: #aeb8cc; font-size: 0.86rem; }
   .shop-card .tag {
     display: inline-block;
@@ -1530,7 +1530,7 @@
           '<h3>' + esc(p.title) + '</h3>' +
           (img ?
             '<p class="shop-preview-hint">Hold and pan to zoom</p>' +
-            '<div class="shop-preview-row shop-preview-row-lg">' +
+            '<div class="shop-preview-row">' +
               '<div class="shop-preview-trigger" id="brace-trigger" tabindex="0"><img src="' + esc(img) + '" alt="' + esc(p.title) + '"></div>' +
               (img2 ? '<div class="shop-preview-thumb" id="brace-trigger-2" tabindex="0"><img src="' + esc(img2) + '" alt="' + esc(p.title) + ' mounting hardware"></div>' : '') +
             '</div>'

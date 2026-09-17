@@ -599,6 +599,15 @@
     </image:image>
   </url>
   <url>
+    <loc>https://mt3uk.com/images/site/Reg%2BTesla.jpeg</loc>
+    <lastmod>2026-09-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://mt3uk.com/images/site/Reg%2BTesla.jpeg</image:loc>
+    </image:image>
+  </url>
+  <url>
     <loc>https://mt3uk.com/images/site/Tevo-logo-white-letters.png</loc>
     <lastmod>2026-09-17</lastmod>
     <changefreq>monthly</changefreq>
@@ -722,6 +731,51 @@
     <priority>0.7</priority>
     <image:image>
       <image:loc>https://mt3uk.com/images/site/mt3uk-wordmark-dark_backup.png</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://mt3uk.com/images/site/redline-2d-printed.jpg</loc>
+    <lastmod>2026-09-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://mt3uk.com/images/site/redline-2d-printed.jpg</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://mt3uk.com/images/site/redline-3d-gel.jpg</loc>
+    <lastmod>2026-09-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://mt3uk.com/images/site/redline-3d-gel.jpg</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://mt3uk.com/images/site/redline-4d-acrylic.jpg</loc>
+    <lastmod>2026-09-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://mt3uk.com/images/site/redline-4d-acrylic.jpg</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://mt3uk.com/images/site/redline-logo.png</loc>
+    <lastmod>2026-09-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://mt3uk.com/images/site/redline-logo.png</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://mt3uk.com/images/site/redline-show-plate.jpg</loc>
+    <lastmod>2026-09-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://mt3uk.com/images/site/redline-show-plate.jpg</image:loc>
     </image:image>
   </url>
   <url>

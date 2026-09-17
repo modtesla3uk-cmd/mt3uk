@@ -16,7 +16,7 @@ DOMAIN = "https://mt3uk.com"
 OUTPUT_FILE = "sitemap.xml"
 IMAGE_DIRS = ["images/gallery", "images/track-days", "images/site"]
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
-PAGES = ["index.html", "shop.html", "contact.html", "track-day-prep.html"]
+PAGES = ["index.html", "shop.html", "reviews.html", "contact.html", "track-day-prep.html"]
 
 def get_all_images():
     """Scan image directories and return list of image URLs"""

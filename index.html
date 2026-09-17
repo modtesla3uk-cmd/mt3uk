@@ -690,8 +690,16 @@
     height: 76px;
     overflow: hidden;
     background: #000;
+    position: relative;
   }
   .hero-build-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .hero-build-thumb .g-mods-badge {
+    top: 3px; right: 3px;
+    padding: 2px 4px;
+    font-size: 0.5rem;
+    pointer-events: none;
+  }
+  .hero-build-thumb .g-mods-badge svg { width: 10px; height: 10px; }
   .hero-build-info { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
   .hero-build-caption {
     font-family: 'Archivo Expanded', sans-serif;
@@ -1475,6 +1483,7 @@
 <script>
   (function () {
     var img = document.getElementById('hero-build-img');
+    var thumb = img ? img.closest('.hero-build-thumb') : null;
     var caption = document.getElementById('hero-build-caption');
     if (!img || !caption) return;
 
@@ -1490,6 +1499,13 @@
         img.src = 'images/gallery/' + featured.file;
         img.alt = featured.caption || 'MT3UK featured build';
         caption.textContent = featured.caption || 'Today\'s featured build';
+        var mods = featured.mods || [];
+        if (thumb && mods.length) {
+          var badge = document.createElement('span');
+          badge.className = 'g-mods-badge';
+          badge.innerHTML = '<svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9 2.6-2.6z"/></svg>' + mods.length;
+          thumb.appendChild(badge);
+        }
       })
       .catch(function () {
         caption.textContent = 'Featured build couldn\'t be loaded';
@@ -2499,10 +2515,17 @@
           var voteCount = (results[1] && results[1].file === featured.file && typeof results[1].votes === 'number') ? results[1].votes : null;
           var voteLine = voteCount !== null ? '<p class="botm-voted-note">Voted No.1 by you. <a href="#vote-frame">Vote for tomorrow below</a></p>' : '';
           var votedByBadge = voteCount !== null ? '<span class="botm-voted-by">VOTED BY YOU</span>' : '';
+          var mods = featured.mods || [];
+          var modsBadge = mods.length ?
+            '<button type="button" class="g-mods-badge" aria-label="View mods list">' +
+              '<svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9 2.6-2.6z"/></svg>' +
+              mods.length +
+            '</button>' : '';
           frame.innerHTML =
             '<div class="botm-media">' +
               '<span class="botm-badge">FEATURED TODAY</span>' +
               '<img src="images/gallery/' + featured.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy">' +
+              modsBadge +
               votedByBadge +
             '</div>' +
             '<div class="botm-body">' +
@@ -2514,9 +2537,10 @@
             '</div>';
 
           var img = frame.querySelector('.botm-media img');
+          var badge = frame.querySelector('.botm-media .g-mods-badge');
           var lightbox = document.getElementById('lightbox');
           if (img && lightbox) {
-            img.addEventListener('click', function () {
+            var openBotmLightbox = function () {
               var lightboxImg = lightbox.querySelector('.lightbox-img');
               var lightboxCaption = lightbox.querySelector('.lightbox-caption');
               var lightboxMods = lightbox.querySelector('.lightbox-mods');
@@ -2535,7 +2559,9 @@
               lightbox.classList.add('open');
               lightbox.setAttribute('aria-hidden', 'false');
               document.body.style.overflow = 'hidden';
-            });
+            };
+            img.addEventListener('click', openBotmLightbox);
+            if (badge) badge.addEventListener('click', openBotmLightbox);
           }
         })
         .catch(function () {

@@ -409,6 +409,17 @@
   .btn-secondary:hover { background: var(--ink); color: var(--paper); }
   .btn-merch { background: var(--ink); border-color: var(--ink); color: var(--paper); }
   .btn-merch:hover { background: var(--ink-2); border-color: var(--ink-2); }
+  .btn-badge-new {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--paper);
+    background: var(--ink);
+    padding: 2px 5px;
+    border-radius: 3px;
+    line-height: 1;
+  }
   .btn-merch svg { width: 18px; height: 18px; flex-shrink: 0; }
 
   .hero-stats {
@@ -659,6 +670,26 @@
     background: #000;
   }
   #build-feed-frame { margin: 0 auto; }
+  .bf-new-toast {
+    position: absolute;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-8px);
+    z-index: 8;
+    max-width: calc(100% - 28px);
+    background: var(--orange);
+    color: var(--paper);
+    border: 1px solid var(--ink);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.03em;
+    padding: 9px 16px;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+  .bf-new-toast.bf-new-toast-show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
   .hero-media { display: flex; flex-direction: column; gap: 12px; align-items: center; }
   .hero-build-card {
     display: flex;
@@ -860,6 +891,14 @@
   .bf-mods-btn .bf-icon-mods { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
   .bf-mods-btn[aria-pressed="true"] { color: var(--orange); }
 
+  .saved-builds-inline { margin: 28px auto 0; width: min(420px, 100%); }
+  .saved-builds-label {
+    color: var(--steel);
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
   #saved-builds .saved-builds-strip {
     display: flex;
     gap: 10px;
@@ -1474,7 +1513,7 @@
         <p class="lead">MT3UK is the global community for modified Tesla owners, wraps, wheels, suspension, stance and everything in between. Real builds, honest feedback and meets worth showing up for.</p>
         <div class="hero-cta-stack">
           <div class="hero-ctas">
-            <a href="#build-of-the-day" class="btn btn-primary">Featured Build</a>
+            <a href="#build-feed" class="btn btn-primary">Build Feed <span class="btn-badge-new">NEW</span></a>
             <a href="#vote-frame" class="btn btn-secondary">Vote for Build</a>
             <a href="shop.html" class="btn btn-merch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>Merch</a>
           </div>
@@ -1541,33 +1580,25 @@
         <span class="section-num">01 / BUILD FEED</span>
         <h2>Swipe through the builds</h2>
       </div>
-      <p>A quick scroll through recent member builds. Like the ones you love, save your favourites, or sit back and let it play. <a href="#gallery" class="inline-link">Click here for full gallery view</a></p>
+      <p>A quick scroll through recent member builds. Likes now persist and you can bookmark your favourites, or sit back and let it play.</p>
     </div>
     <div class="bf-frame" id="build-feed-frame">
       <div class="bf-progress" id="bf-progress"></div>
+      <button type="button" class="bf-new-toast" id="bf-new-build-toast">New build added — click to view</button>
       <div class="bf-feed" id="bf-feed">
         <p class="mono" style="padding: 24px; color: var(--steel);">Loading builds…</p>
       </div>
       <div class="bf-scroll-hint" id="bf-scroll-hint">&#9662; SCROLL</div>
-      <button type="button" class="bf-autoscroll-toggle" id="bf-autoscroll-toggle" aria-pressed="true">
+      <button type="button" class="bf-autoscroll-toggle bf-autoscroll-off" id="bf-autoscroll-toggle" aria-pressed="false">
         <span class="bf-autoscroll-icon" aria-hidden="true"></span>
-        <span class="bf-autoscroll-label">Auto-scroll: On</span>
+        <span class="bf-autoscroll-label">Auto-scroll: Off</span>
       </button>
     </div>
-  </div>
-</section>
-
-<section id="saved-builds">
-  <div class="wrap">
-    <div class="section-head">
-      <div>
-        <span class="section-num">01B / SAVED BUILDS</span>
-        <h2>Your saved builds</h2>
-      </div>
-      <p>Builds you've bookmarked from the feed above. Tap the bookmark icon on any build to save it here.</p>
+    <div class="saved-builds-inline" id="saved-builds">
+      <p class="saved-builds-label mono">Your saved builds</p>
+      <div class="saved-builds-strip" id="saved-builds-strip"></div>
+      <p class="saved-builds-empty mono" id="saved-builds-empty">No saved builds yet. Tap the bookmark icon on any build above to save it here.</p>
     </div>
-    <div class="saved-builds-strip" id="saved-builds-strip"></div>
-    <p class="saved-builds-empty mono" id="saved-builds-empty">No saved builds yet. Tap the bookmark icon on any build above to save it here.</p>
   </div>
 </section>
 
@@ -1825,15 +1856,18 @@
       wireAutoscroll(slides.length);
     }
 
+    var autoscrollApi = null;
+
+    // wireAutoscroll can be called again after a feed refresh (new build
+    // toast). Only the first call wires up listeners/timers; later calls
+    // just restart the existing controller against the new slide count.
     function wireAutoscroll(slideCount) {
-      if (!autoscrollBtn || slideCount < 2) {
-        if (autoscrollBtn) autoscrollBtn.hidden = true;
-        return;
-      }
+      if (!autoscrollBtn) return;
+      if (autoscrollApi) { autoscrollApi.update(slideCount); return; }
+
       var AUTOPLAY_INTERVAL = 4500;
       var RESUME_DELAY = 6000;
-      var prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      var enabled = !prefersReducedMotion;
+      var enabled = false;
       var timer = null;
       var resumeTimer = null;
 
@@ -1880,26 +1914,72 @@
         if (enabled) start(); else stop();
       });
 
-      setLabel();
-      start();
+      autoscrollApi = {
+        update: function (count) {
+          if (count < 2) { autoscrollBtn.hidden = true; stop(); return; }
+          autoscrollBtn.hidden = false;
+          setLabel();
+          start();
+        }
+      };
+      autoscrollApi.update(slideCount);
     }
+
+    function fetchLikes() {
+      return fetch(VOTE_ENDPOINT + '/likes', { headers: { 'X-Voter-Id': voterId }, cache: 'no-store' })
+        .then(function (res) { return res.ok ? res.json() : null; })
+        .catch(function () { return null; })
+        .then(function (data) { return data && data.success ? data : null; });
+    }
+
+    var latestFile = null;
+    var pendingPhotos = null;
+    var newBuildToast = document.getElementById('bf-new-build-toast');
 
     // Build Feed always leads with the newest upload (manifest.json is
     // newest-first) — independent of the Featured Build pick/rotation logic.
     Promise.all([
       window.mt3ukFetchJSON('images/gallery/manifest.json', []),
-      fetch(VOTE_ENDPOINT + '/likes', { headers: { 'X-Voter-Id': voterId }, cache: 'no-store' })
-        .then(function (res) { return res.ok ? res.json() : null; })
-        .catch(function () { return null; })
+      fetchLikes()
     ])
       .then(function (results) {
-        var photos = results[0];
-        var likesData = results[1] && results[1].success ? results[1] : null;
-        render((photos || []).slice(0, MAX_SLIDES), likesData);
+        var photos = (results[0] || []).slice(0, MAX_SLIDES);
+        latestFile = photos.length ? photos[0].file : null;
+        render(photos, results[1]);
       })
       .catch(function () {
         feedEl.innerHTML = '<p class="mono" style="padding: 24px; color: var(--steel);">Builds couldn\'t be loaded.</p>';
       });
+
+    // Poll for newly uploaded builds and surface a toast rather than
+    // yanking the feed out from under someone mid-scroll.
+    function checkForNewBuild() {
+      window.mt3ukFetchJSON('images/gallery/manifest.json', [], true)
+        .then(function (photos) {
+          var newestFile = photos && photos.length ? photos[0].file : null;
+          if (newestFile && newestFile !== latestFile) {
+            pendingPhotos = photos.slice(0, MAX_SLIDES);
+            if (newBuildToast) newBuildToast.classList.add('bf-new-toast-show');
+          }
+        })
+        .catch(function () {});
+    }
+
+    if (newBuildToast) {
+      newBuildToast.addEventListener('click', function () {
+        if (!pendingPhotos) return;
+        var photos = pendingPhotos;
+        pendingPhotos = null;
+        newBuildToast.classList.remove('bf-new-toast-show');
+        latestFile = photos.length ? photos[0].file : null;
+        fetchLikes().then(function (likesData) {
+          render(photos, likesData);
+          feedEl.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      });
+    }
+
+    setInterval(checkForNewBuild, 60000);
   })();
 </script>
 

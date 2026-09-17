@@ -232,7 +232,35 @@ async function handleVotersList(request, env) {
   return json({ success: true, date: todayStr, voters: results });
 }
 
-async function handleVotesGet(request, env) {
+var VOTES_CACHE_SECONDS = 20;
+var LIKES_CACHE_SECONDS = 30;
+
+// Vote/like counts are the same for every visitor, so they're cached at the
+// edge (Cache API, not KV) for a short window. This is what actually reads
+// KV; everything else in this file just serves the cached JSON. Keeping the
+// window short (seconds) means counts still feel live while cutting the KV
+// read/list volume roughly in proportion to (window / time-between-requests),
+// which is what was pushing the account toward the Workers KV free tier cap.
+async function getVoteCounts(env, ctx, todayStr, files) {
+  var cacheKey = new Request('https://mt3uk-cache.internal/votes-agg/' + todayStr);
+  var cache = caches.default;
+  var cached = await cache.match(cacheKey);
+  if (cached) return cached.json();
+
+  var counts = {};
+  await Promise.all(files.map(async function (f) {
+    var c = await env.VOTES.get('votes:' + todayStr + ':' + f);
+    counts[f] = c ? parseInt(c, 10) : 0;
+  }));
+
+  var response = new Response(JSON.stringify(counts), {
+    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=' + VOTES_CACHE_SECONDS }
+  });
+  ctx.waitUntil(cache.put(cacheKey, response.clone()));
+  return counts;
+}
+
+async function handleVotesGet(request, env, ctx) {
   var manifest = await fetchGalleryManifest();
   var todayStr = ukDateString(new Date());
   var candidates = votingCandidates(manifest, todayStr);
@@ -244,15 +272,15 @@ async function handleVotesGet(request, env) {
     votedFile = await env.VOTES.get('voter:' + todayStr + ':' + voterId);
   }
 
-  var results = await Promise.all(candidates.map(async function (p) {
-    var count = await env.VOTES.get('votes:' + todayStr + ':' + p.file);
+  var counts = await getVoteCounts(env, ctx, todayStr, candidates.map(function (p) { return p.file; }));
+  var results = candidates.map(function (p) {
     return {
       file: p.file,
       caption: p.caption || '',
-      votes: count ? parseInt(count, 10) : 0,
+      votes: counts[p.file] || 0,
       mods: p.mods || []
     };
-  }));
+  });
 
   return json({
     success: true,
@@ -319,8 +347,11 @@ async function handleVotePost(request, env) {
   return json({ success: true, voterId: voterId, voted: file, candidates: results });
 }
 
-async function handleLikesGet(request, env) {
-  var voterId = getVoterId(request);
+async function getLikesAggregate(env, ctx) {
+  var cacheKey = new Request('https://mt3uk-cache.internal/likes-agg');
+  var cache = caches.default;
+  var cached = await cache.match(cacheKey);
+  if (cached) return cached.json();
 
   var likesList = await env.VOTES.list({ prefix: 'likes:' });
   var likes = {};
@@ -328,6 +359,17 @@ async function handleLikesGet(request, env) {
     var count = await env.VOTES.get(k.name);
     likes[k.name.slice('likes:'.length)] = count ? parseInt(count, 10) : 0;
   }));
+
+  var response = new Response(JSON.stringify(likes), {
+    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=' + LIKES_CACHE_SECONDS }
+  });
+  ctx.waitUntil(cache.put(cacheKey, response.clone()));
+  return likes;
+}
+
+async function handleLikesGet(request, env, ctx) {
+  var voterId = getVoterId(request);
+  var likes = await getLikesAggregate(env, ctx);
 
   var likedList = await env.VOTES.list({ prefix: 'liker:' + voterId + ':' });
   var liked = likedList.keys.map(function (k) {
@@ -657,7 +699,7 @@ export default {
       return handleVotersList(request, env);
     }
     if (url.pathname === '/votes' && request.method === 'GET') {
-      return handleVotesGet(request, env);
+      return handleVotesGet(request, env, ctx);
     }
     if (url.pathname === '/vote' && request.method === 'POST') {
       return handleVotePost(request, env);
@@ -666,7 +708,7 @@ export default {
       return handleReviewPost(request, env);
     }
     if (url.pathname === '/likes' && request.method === 'GET') {
-      return handleLikesGet(request, env);
+      return handleLikesGet(request, env, ctx);
     }
     if (url.pathname === '/likes' && request.method === 'POST') {
       return handleLikePost(request, env);

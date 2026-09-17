@@ -197,6 +197,8 @@
   }
   .nav-sublink:hover { opacity: 0.65; }
   .nav-link-shop, .nav-sublink-new { display: inline-flex; align-items: center; gap: 6px; }
+  .nav-subitem { position: relative; }
+  .nav-subitem > .nav-sublink { flex: 1; }
 
   .nav-link-shop::after, .nav-sublink-new::after {
     content: 'NEW';
@@ -221,6 +223,64 @@
     white-space: nowrap;
   }
   .nav-cta:hover { background: var(--orange); border-color: var(--orange); }
+
+  .nav-search { position: relative; }
+  .nav-search-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 34px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--ink);
+    padding: 0;
+  }
+  .nav-search-toggle:hover { opacity: 0.65; }
+  .nav-search-toggle svg { width: 18px; height: 18px; }
+  .nav-search-panel {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 320px;
+    max-width: calc(100vw - 32px);
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    z-index: 30;
+    padding: 12px;
+  }
+  .nav-search.open .nav-search-panel { display: block; }
+  .nav-search-panel input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    font-family: inherit;
+    font-size: 0.9rem;
+    background: var(--white);
+    color: var(--ink);
+  }
+  .nav-search-results { max-height: 320px; overflow-y: auto; margin-top: 10px; }
+  .nav-search-result {
+    display: block;
+    padding: 8px 10px;
+    border-bottom: 1px solid rgba(22,35,61,0.08);
+    text-decoration: none;
+  }
+  .nav-search-result:last-child { border-bottom: none; }
+  .nav-search-result:hover, .nav-search-result:focus-visible { background: rgba(22,35,61,0.05); }
+  .nav-search-result-cat {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--orange);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .nav-search-result-title { display: block; font-weight: 600; font-size: 0.88rem; color: var(--ink); }
+  .nav-search-result-desc { display: block; font-size: 0.78rem; color: var(--steel); margin-top: 2px; }
+  .nav-search-empty { padding: 8px 4px; color: var(--steel); font-size: 0.85rem; }
 
   .hamburger {
     display: none;
@@ -249,8 +309,8 @@
   .hamburger[aria-expanded="true"] .hamburger-bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
   @media (min-width: 781px) {
-    .nav-item:hover .nav-dropdown,
-    .nav-item:focus-within .nav-dropdown { display: block; }
+    .nav-item:hover > .nav-dropdown,
+    .nav-item:focus-within > .nav-dropdown { display: block; }
     .nav-dropdown-toggle {
       display: inline-flex;
       align-items: center;
@@ -260,11 +320,13 @@
       color: var(--ink);
       pointer-events: none;
     }
+    .nav-subitem .nav-dropdown { top: -1px; left: 100%; right: auto; }
   }
 
   @media (max-width: 780px) {
     nav { gap: 8px; }
-    .hamburger { display: flex; margin-left: auto; }
+    .hamburger { display: flex; }
+    .nav-search { margin-left: auto; }
 
     .navlinks {
       display: none;
@@ -301,7 +363,7 @@
       cursor: pointer;
       transition: transform 0.2s ease;
     }
-    .nav-item.open .nav-dropdown-toggle { transform: rotate(180deg); }
+    .nav-item.open > .nav-dropdown-toggle { transform: rotate(180deg); }
     .nav-dropdown {
       display: none;
       position: static;
@@ -309,11 +371,12 @@
       border: none;
       background: rgba(22,35,61,0.03);
     }
-    .nav-item.open .nav-dropdown { display: block; }
+    .nav-item.open > .nav-dropdown { display: block; }
     .nav-sublink {
       padding: 12px 16px 12px 44px;
       border-bottom: 1px solid rgba(22,35,61,0.12);
     }
+    .nav-subitem .nav-dropdown .nav-sublink { padding-left: 60px; }
   }
 
   /* ---------- SECTION SHELL ---------- */
@@ -451,8 +514,45 @@
   .tevo-panel p:last-child { margin-bottom: 0; }
   .tevo-panel ul { margin: 0 0 14px 18px; color: #aeb8cc; }
   .tevo-panel li { margin-bottom: 8px; }
-  .tevo-panel-logo { display: inline-block; }
+  .tevo-panel-logo { display: inline-flex; align-items: center; gap: 14px; }
   .tevo-panel-logo img { height: 36px; width: auto; }
+  .img-lightbox-trigger {
+    display: inline-flex;
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  .img-lightbox-trigger img { transition: opacity 0.15s ease; }
+  .img-lightbox-trigger:hover img, .img-lightbox-trigger:focus-visible img { opacity: 0.8; }
+
+  /* ---------- IMAGE LIGHTBOX ---------- */
+  .img-lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(22,35,61,0.94);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 220;
+    padding: 30px 20px;
+  }
+  .img-lightbox.open { display: flex; }
+  .img-lightbox img { max-width: 100%; max-height: 86vh; cursor: pointer; }
+  .img-lightbox-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: var(--ink);
+    border: 1px solid var(--white);
+    color: var(--white);
+    width: 40px;
+    height: 40px;
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .img-lightbox-close:hover { background: var(--orange); border-color: var(--orange); }
   .shop-preview-hint {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.66rem;
@@ -846,10 +946,17 @@
         <a href="shop.html" class="nav-link nav-link-shop active">Shop</a>
         <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Shop submenu">&#9660;</button>
         <div class="nav-dropdown">
-          <a href="shop.html#merch" class="nav-sublink nav-sublink-new">Merch</a>
-          <a href="shop.html#upgrades" class="nav-sublink nav-sublink-new">Upgrade / Parts</a>
+          <a href="shop.html#merch" class="nav-sublink">Merch</a>
+          <a href="shop.html#upgrades" class="nav-sublink">Upgrade / Parts</a>
           <a href="reviews.html" class="nav-sublink">Customer Reviews</a>
-          <a href="reviews.html#write-review" class="nav-sublink nav-sublink-new">Leave a Review</a>
+          <div class="nav-item nav-subitem">
+            <a href="shop.html#partners" class="nav-sublink nav-sublink-new">Partners</a>
+            <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Partners submenu">&#9660;</button>
+            <div class="nav-dropdown">
+              <a href="shop.html#tevo" class="nav-sublink">Tevo Solutions</a>
+              <a href="shop.html#redline" class="nav-sublink">Redline Plates</a>
+            </div>
+          </div>
         </div>
       </div>
       <a href="index.html#events" class="nav-link">Events</a>
@@ -869,6 +976,15 @@
         <div class="nav-dropdown">
           <a href="https://ko-fi.com/mt3uk" class="nav-sublink" target="_blank" rel="noopener">Support Us</a>
         </div>
+      </div>
+    </div>
+    <div class="nav-search" id="nav-search">
+      <button type="button" class="nav-search-toggle" id="nav-search-toggle" aria-expanded="false" aria-controls="nav-search-panel" aria-label="Search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      </button>
+      <div class="nav-search-panel" id="nav-search-panel">
+        <input type="text" id="nav-search-input" placeholder="Search MT3UK&hellip;" autocomplete="off">
+        <div class="nav-search-results" id="nav-search-results"></div>
       </div>
     </div>
     <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navlinks">
@@ -968,7 +1084,7 @@
         <p class="section-note">Parts and upgrades supplied through our trusted partners.</p>
       </div>
     </div>
-    <div class="tevo-panel">
+    <div class="tevo-panel" id="tevo">
       <h3>In partnership with Tevo Solutions</h3>
       <p>Tevo Solutions delivers premium Tesla performance upgrades and accessories, backed by 35 years of industry expertise. Quality-tested components, from forged wheels to upgrade kits, designed and made in Britain. Performance meets sustainability.</p>
       <div class="tevo-panel-logo">
@@ -1011,8 +1127,74 @@
         <p class="tee-offer-note">Remember to mention MT3UK</p>
       </div>
     </div>
+    <div class="tevo-panel" id="redline">
+      <h3>In partnership with Redline Plates</h3>
+      <p>Redline Plates is a UK-based number plate supplier specialising in road-legal and show plates. We offer high-quality 2D printed, 3D gel and 4D acrylic plates, alongside custom show plates for meets, events and displays. We&rsquo;re all about quality, style and helping car enthusiasts personalise their cars.</p>
+      <div class="tevo-panel-logo">
+        <img src="images/site/redline-logo.png" alt="Redline Plates">
+        <button type="button" class="img-lightbox-trigger" data-full="images/site/Reg+Tesla.jpeg">
+          <img src="images/site/Reg+Tesla.jpeg" alt="Redline Plates 3D and 4D number plates on a Tesla">
+        </button>
+      </div>
+      <p class="detail-desc">Orders for these plates are handled directly by Redline Plates.</p>
+    </div>
+    <div class="shop-grid">
+      <div class="shop-card" id="redline-2d">
+        <h3>2D Printed Plates</h3>
+        <p class="shop-preview-hint">Hold and pan to zoom</p>
+        <div class="shop-preview-trigger" id="redline-2d-trigger" tabindex="0">
+          <img src="images/site/redline-2d-printed.jpg" alt="Redline Plates 2D printed number plate">
+        </div>
+        <p class="tee-modal-lead">Crisp, high-quality printed characters with a classic factory look, supplied by Redline Plates.</p>
+        <div class="tee-offer-actions">
+          <span class="tag">AVAILABLE NOW</span>
+          <a class="tee-shop-btn" href="https://redlineplates.co.uk/products/printed-2d?sca_ref=12355291.6TjtDWclxi8n0ZD&utm_source=mt3uk_shop&utm_medium=internal&utm_campaign=redline_2d" target="_blank" rel="noopener">View on Redline Plates</a>
+        </div>
+      </div>
+      <div class="shop-card" id="redline-3d">
+        <h3>3D Gel Plates</h3>
+        <p class="shop-preview-hint">Hold and pan to zoom</p>
+        <div class="shop-preview-trigger" id="redline-3d-trigger" tabindex="0">
+          <img src="images/site/redline-3d-gel.jpg" alt="Redline Plates 3D gel number plate">
+        </div>
+        <p class="tee-modal-lead">Domed gel characters for a sleek, high-gloss finish with a subtle raised effect, supplied by Redline Plates.</p>
+        <div class="tee-offer-actions">
+          <span class="tag">AVAILABLE NOW</span>
+          <a class="tee-shop-btn" href="https://redlineplates.co.uk/products/3d-gel?sca_ref=12355291.6TjtDWclxi8n0ZD&utm_source=mt3uk_shop&utm_medium=internal&utm_campaign=redline_3d" target="_blank" rel="noopener">View on Redline Plates</a>
+        </div>
+      </div>
+      <div class="shop-card" id="redline-4d">
+        <h3>4D Acrylic Plates</h3>
+        <p class="shop-preview-hint">Hold and pan to zoom</p>
+        <div class="shop-preview-trigger" id="redline-4d-trigger" tabindex="0">
+          <img src="images/site/redline-4d-acrylic.jpg" alt="Redline Plates 4D acrylic number plate">
+        </div>
+        <p class="tee-modal-lead">Precision-cut gloss black acrylic characters for a bold, modern look with sharp, raised lettering, supplied by Redline Plates.</p>
+        <div class="tee-offer-actions">
+          <span class="tag">AVAILABLE NOW</span>
+          <a class="tee-shop-btn" href="https://redlineplates.co.uk/products/4d-acrylic?sca_ref=12355291.6TjtDWclxi8n0ZD&utm_source=mt3uk_shop&utm_medium=internal&utm_campaign=redline_4d" target="_blank" rel="noopener">View on Redline Plates</a>
+        </div>
+      </div>
+      <div class="shop-card" id="redline-show">
+        <h3>Show Plates</h3>
+        <p class="shop-preview-hint">Hold and pan to zoom</p>
+        <div class="shop-preview-trigger" id="redline-show-trigger" tabindex="0">
+          <img src="images/site/redline-show-plate.jpg" alt="Redline Plates show plate">
+        </div>
+        <p class="tee-modal-lead">Custom display plates designed for meets, events, photoshoots and displays, supplied by Redline Plates. Non-road-legal.</p>
+        <div class="tee-offer-actions">
+          <span class="tag">AVAILABLE NOW</span>
+          <a class="tee-shop-btn" href="https://redlineplates.co.uk/products/show-plate?sca_ref=12355291.6TjtDWclxi8n0ZD&utm_source=mt3uk_shop&utm_medium=internal&utm_campaign=redline_show" target="_blank" rel="noopener">View on Redline Plates</a>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
+
+<div class="img-lightbox" id="img-lightbox" role="dialog" aria-modal="true" aria-hidden="true">
+  <button type="button" class="img-lightbox-close" aria-label="Close">&times;</button>
+  <img id="img-lightbox-img" src="" alt="">
+</div>
 
 <footer>
   <div class="wrap footer-row">
@@ -1074,8 +1256,41 @@
 
       [
         document.getElementById('brace-trigger'), document.getElementById('brace-trigger-2'),
-        document.getElementById('pads-street-trigger'), document.getElementById('pads-carbotech-trigger')
+        document.getElementById('pads-street-trigger'), document.getElementById('pads-carbotech-trigger'),
+        document.getElementById('redline-2d-trigger'), document.getElementById('redline-3d-trigger'),
+        document.getElementById('redline-4d-trigger'), document.getElementById('redline-show-trigger')
       ].forEach(attachPanZoom);
+})();
+</script>
+
+<script>
+(function () {
+      var lightbox = document.getElementById('img-lightbox');
+      var lightboxImg = document.getElementById('img-lightbox-img');
+      if (!lightbox || !lightboxImg) return;
+
+      function openLightbox(src) {
+            lightboxImg.src = src;
+            lightbox.classList.add('open');
+            lightbox.setAttribute('aria-hidden', 'false');
+      }
+
+      function closeLightbox() {
+            lightbox.classList.remove('open');
+            lightbox.setAttribute('aria-hidden', 'true');
+            lightboxImg.src = '';
+      }
+
+      document.querySelectorAll('.img-lightbox-trigger').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                  openLightbox(btn.getAttribute('data-full'));
+            });
+      });
+
+      lightbox.addEventListener('click', closeLightbox);
+      document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && lightbox.classList.contains('open')) closeLightbox();
+      });
 })();
 </script>
 
@@ -1498,6 +1713,8 @@
       }).catch(function () {});
     })();
   </script>
+
+<script src="js/search.js" defer></script>
 
 </body>
 </html>

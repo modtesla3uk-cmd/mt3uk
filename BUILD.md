@@ -187,6 +187,12 @@ via `tests.yml`.
   fixed a real bug found in the process: the product modal's overlay/
   positioning CSS had been lost from `shop.html` in an earlier refactor, so
   clicking the brace "hold and pan to zoom" image opened an invisible modal
+- SEO: fixed `generate_sitemap.py` omitting `reviews.html` from `sitemap.xml`
+  (it was never in the pages list), and added a missing canonical tag to
+  `track-day-prep.html`. Also identified, but couldn't fix from the repo, a
+  Cloudflare-level redirect that 307s every `*.html` URL to an extensionless
+  path while the sitemap/canonicals still reference `.html`, likely a major
+  cause of pages not getting indexed
 
 ---
 

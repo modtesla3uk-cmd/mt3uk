@@ -197,6 +197,8 @@
   }
   .nav-sublink:hover { opacity: 0.65; }
   .nav-sublink-new { display: inline-flex; align-items: center; gap: 6px; }
+  .nav-subitem { position: relative; }
+  .nav-subitem > .nav-sublink { flex: 1; }
 
   .nav-sublink-new::after {
     content: 'NEW';
@@ -229,6 +231,64 @@
   }
   .nav-cta-shop:hover { background: var(--orange); color: var(--paper) !important; }
 
+  .nav-search { position: relative; }
+  .nav-search-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 34px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--ink);
+    padding: 0;
+  }
+  .nav-search-toggle:hover { opacity: 0.65; }
+  .nav-search-toggle svg { width: 18px; height: 18px; }
+  .nav-search-panel {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 320px;
+    max-width: calc(100vw - 32px);
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    z-index: 30;
+    padding: 12px;
+  }
+  .nav-search.open .nav-search-panel { display: block; }
+  .nav-search-panel input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    font-family: inherit;
+    font-size: 0.9rem;
+    background: var(--white);
+    color: var(--ink);
+  }
+  .nav-search-results { max-height: 320px; overflow-y: auto; margin-top: 10px; }
+  .nav-search-result {
+    display: block;
+    padding: 8px 10px;
+    border-bottom: 1px solid rgba(22,35,61,0.08);
+    text-decoration: none;
+  }
+  .nav-search-result:last-child { border-bottom: none; }
+  .nav-search-result:hover, .nav-search-result:focus-visible { background: rgba(22,35,61,0.05); }
+  .nav-search-result-cat {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--orange);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .nav-search-result-title { display: block; font-weight: 600; font-size: 0.88rem; color: var(--ink); }
+  .nav-search-result-desc { display: block; font-size: 0.78rem; color: var(--steel); margin-top: 2px; }
+  .nav-search-empty { padding: 8px 4px; color: var(--steel); font-size: 0.85rem; }
+
   .hamburger {
     display: none;
     flex-direction: column;
@@ -256,8 +316,8 @@
   .hamburger[aria-expanded="true"] .hamburger-bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
   @media (min-width: 781px) {
-    .nav-item:hover .nav-dropdown,
-    .nav-item:focus-within .nav-dropdown { display: block; }
+    .nav-item:hover > .nav-dropdown,
+    .nav-item:focus-within > .nav-dropdown { display: block; }
     .nav-dropdown-toggle {
       display: inline-flex;
       align-items: center;
@@ -267,11 +327,13 @@
       color: var(--ink);
       pointer-events: none;
     }
+    .nav-subitem .nav-dropdown { top: -1px; left: 100%; right: auto; }
   }
 
   @media (max-width: 780px) {
     nav { gap: 8px; }
-    .hamburger { display: flex; margin-left: auto; }
+    .hamburger { display: flex; }
+    .nav-search { margin-left: auto; }
 
     .navlinks {
       display: none;
@@ -308,7 +370,7 @@
       cursor: pointer;
       transition: transform 0.2s ease;
     }
-    .nav-item.open .nav-dropdown-toggle { transform: rotate(180deg); }
+    .nav-item.open > .nav-dropdown-toggle { transform: rotate(180deg); }
     .nav-dropdown {
       display: none;
       position: static;
@@ -316,11 +378,12 @@
       border: none;
       background: rgba(22,35,61,0.03);
     }
-    .nav-item.open .nav-dropdown { display: block; }
+    .nav-item.open > .nav-dropdown { display: block; }
     .navlinks a.nav-sublink {
       padding: 12px 16px 12px 44px;
       border-bottom: 1px solid rgba(22,35,61,0.12);
     }
+    .nav-subitem .nav-dropdown .nav-sublink { padding-left: 60px; }
   }
 
   /* ---------- HERO ---------- */
@@ -1516,7 +1579,14 @@
           <a href="shop.html#merch" class="nav-sublink">Merch</a>
           <a href="shop.html#upgrades" class="nav-sublink">Upgrade / Parts</a>
           <a href="reviews.html" class="nav-sublink">Customer Reviews</a>
-          <a href="reviews.html#write-review" class="nav-sublink nav-sublink-new">Leave a Review</a>
+          <div class="nav-item nav-subitem">
+            <a href="shop.html#partners" class="nav-sublink nav-sublink-new">Partners</a>
+            <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Partners submenu">&#9660;</button>
+            <div class="nav-dropdown">
+              <a href="shop.html#tevo" class="nav-sublink">Tevo Solutions</a>
+              <a href="shop.html#redline" class="nav-sublink">Redline Plates</a>
+            </div>
+          </div>
         </div>
       </div>
       <a href="#events" class="nav-link">Events</a>
@@ -1542,6 +1612,15 @@
         <div class="nav-dropdown">
           <a href="https://ko-fi.com/mt3uk" class="nav-sublink" target="_blank" rel="noopener">Support Us</a>
         </div>
+      </div>
+    </div>
+    <div class="nav-search" id="nav-search">
+      <button type="button" class="nav-search-toggle" id="nav-search-toggle" aria-expanded="false" aria-controls="nav-search-panel" aria-label="Search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      </button>
+      <div class="nav-search-panel" id="nav-search-panel">
+        <input type="text" id="nav-search-input" placeholder="Search MT3UK&hellip;" autocomplete="off">
+        <div class="nav-search-results" id="nav-search-results"></div>
       </div>
     </div>
     <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navlinks">
@@ -3210,6 +3289,8 @@
       });
     }
   </script>
+
+<script src="js/search.js" defer></script>
 
 </body>
 </html>

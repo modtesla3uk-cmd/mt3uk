@@ -460,8 +460,7 @@
   .shop-band .section-num { color: var(--orange); }
   .shop-band h2 { color: var(--paper); }
   #merch { padding-bottom: 32px; }
-  #upgrades { padding-top: 32px; padding-bottom: 32px; border-bottom: none; }
-  #partners { padding-top: 32px; }
+  #parts { padding-top: 32px; }
 
   .shop-grid {
     display: grid;
@@ -471,7 +470,7 @@
   @media (max-width: 820px) { .shop-grid { grid-template-columns: 1fr; } }
   @media (min-width: 561px) { .shop-grid-2 { grid-template-columns: repeat(2, 1fr); } }
 
-  #upgrades .section-head { margin-bottom: 20px; }
+  #parts .section-head { margin-bottom: 20px; }
   .shop-band .specs { border-color: #3a4a6b; }
   .shop-band .spec-row { border-bottom-color: #3a4a6b; }
   .shop-band .spec-row span:first-child { color: #aeb8cc; }
@@ -516,6 +515,29 @@
   .tevo-panel li { margin-bottom: 8px; }
   .tevo-panel-logo { display: inline-flex; align-items: center; gap: 14px; }
   .tevo-panel-logo img { height: 36px; width: auto; }
+
+  .offers-panel { margin-bottom: 28px; }
+  .offers-panel h3 { color: var(--paper); margin-bottom: 16px; }
+  .offers-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; }
+  @media (max-width: 820px) { .offers-grid { grid-template-columns: 1fr; } }
+  .offer-card {
+    display: block;
+    border: 1px solid #3a4a6b;
+    padding: 22px;
+    text-decoration: none;
+    transition: border-color 0.15s ease;
+  }
+  .offer-card:hover { border-color: var(--orange); }
+  .offer-card .tag {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--orange);
+    border: 1px solid var(--orange);
+    padding: 3px 8px;
+  }
+  .offer-card h4 { color: var(--paper); font-size: 1.05rem; margin: 12px 0 6px; }
+  .offer-card p { color: #aeb8cc; font-size: 0.88rem; }
   .img-lightbox-trigger {
     display: inline-flex;
     padding: 0;
@@ -947,16 +969,16 @@
         <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Shop submenu">&#9660;</button>
         <div class="nav-dropdown">
           <a href="shop.html#merch" class="nav-sublink">Merch</a>
-          <a href="shop.html#upgrades" class="nav-sublink">Upgrade / Parts</a>
-          <a href="reviews.html" class="nav-sublink">Customer Reviews</a>
           <div class="nav-item nav-subitem">
-            <a href="shop.html#partners" class="nav-sublink nav-sublink-new">Partners</a>
-            <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Partners submenu">&#9660;</button>
+            <a href="shop.html#parts" class="nav-sublink nav-sublink-new">Parts</a>
+            <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Parts submenu">&#9660;</button>
             <div class="nav-dropdown">
               <a href="shop.html#tevo" class="nav-sublink">Tevo Solutions</a>
               <a href="shop.html#redline" class="nav-sublink">Redline Plates</a>
+              <a href="shop.html#offers" class="nav-sublink">Offers</a>
             </div>
           </div>
+          <a href="reviews.html" class="nav-sublink">Customer Reviews</a>
         </div>
       </div>
       <a href="index.html#events" class="nav-link">Events</a>
@@ -1015,14 +1037,38 @@
   </div>
 </section>
 
-<section id="upgrades" class="shop-band">
+<section id="parts" class="shop-band">
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">02 / UPGRADES</span>
-        <h2>Upgrade / Parts</h2>
+        <span class="section-num">02 / PARTS</span>
+        <h2>Parts</h2>
         <p class="section-note">We work with trusted suppliers and mechanics who know how to get the most out of your Tesla. These upgrades are recommendations from the community, based on real world experience.</p>
       </div>
+    </div>
+    <div class="offers-panel" id="offers">
+      <h3>Current Offers</h3>
+      <div class="offers-grid">
+        <a class="offer-card" href="#merch">
+          <span class="tag">SAVE 10%</span>
+          <h4>10% off Merch</h4>
+          <p>Tees, hoodies and stickers, discounted for members.</p>
+        </a>
+        <a class="offer-card" href="#brace">
+          <span class="tag">LIMITED STOCK</span>
+          <h4>Master Cylinder Brace &ndash; &pound;95</h4>
+          <p>Reduced from &pound;125 RRP while stock lasts.</p>
+        </a>
+      </div>
+    </div>
+    <div class="tevo-panel" id="tevo">
+      <h3>In partnership with Tevo Solutions</h3>
+      <p>Tevo Solutions delivers premium Tesla performance upgrades and accessories, backed by 35 years of industry expertise. Quality-tested components, from forged wheels to upgrade kits, designed and made in Britain. Performance meets sustainability.</p>
+      <div class="tevo-panel-logo">
+        <img src="images/site/Tevo-logo-white-letters.png" alt="Tevo Solutions">
+      </div>
+      <p class="detail-desc">Orders for these parts are handled directly by Tevo Solutions.</p>
+      <p class="detail-desc"><strong>Please note:</strong> when ordering, select &lsquo;Heard about us through MT3UK&rsquo; (or mention MT3UK) so they know to credit the community.</p>
     </div>
     <div class="shop-grid">
       <div class="shop-card" id="brace">
@@ -1071,29 +1117,6 @@
           <a class="tee-shop-btn" href="https://ko-fi.com/s/1b37c8bb10?utm_source=mt3uk_shop&utm_medium=internal&utm_campaign=brace_order" target="_blank" rel="noopener">Order Here</a>
         </div>
       </div>
-    </div>
-  </div>
-</section>
-
-<section id="partners" class="shop-band">
-  <div class="wrap">
-    <div class="section-head">
-      <div>
-        <span class="section-num">03 / PARTNERS</span>
-        <h2>Our Partners</h2>
-        <p class="section-note">Parts and upgrades supplied through our trusted partners.</p>
-      </div>
-    </div>
-    <div class="tevo-panel" id="tevo">
-      <h3>In partnership with Tevo Solutions</h3>
-      <p>Tevo Solutions delivers premium Tesla performance upgrades and accessories, backed by 35 years of industry expertise. Quality-tested components, from forged wheels to upgrade kits, designed and made in Britain. Performance meets sustainability.</p>
-      <div class="tevo-panel-logo">
-        <img src="images/site/Tevo-logo-white-letters.png" alt="Tevo Solutions">
-      </div>
-      <p class="detail-desc">Orders for these parts are handled directly by Tevo Solutions.</p>
-      <p class="detail-desc"><strong>Please note:</strong> when ordering, select &lsquo;Heard about us through MT3UK&rsquo; (or mention MT3UK) so they know to credit the community.</p>
-    </div>
-    <div class="shop-grid">
       <div class="shop-card" id="pads-street">
         <a class="shop-rating" data-rating-product="pads-street" href="reviews.html#pads-street">
           <span class="shop-rating-stars">☆☆☆☆☆</span><span class="shop-rating-count">Reviews</span>

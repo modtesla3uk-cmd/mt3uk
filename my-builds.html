@@ -543,6 +543,22 @@
     white-space: nowrap;
   }
   .mb-mods-add-btn:hover { background: var(--ink); color: var(--paper); }
+  .mb-mods-submit-row { display: flex; align-items: center; gap: 10px; margin-top: 2px; }
+  .mb-mods-submit-btn {
+    background: var(--ink);
+    color: var(--paper);
+    border: 1px solid var(--ink);
+    padding: 7px 14px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 600;
+    font-size: 0.78rem;
+    cursor: pointer;
+  }
+  .mb-mods-submit-btn:hover { background: var(--orange); border-color: var(--orange); }
+  .mb-mods-submit-btn:disabled { opacity: 0.6; cursor: default; }
+  .mb-mods-status { color: var(--steel); }
+  .mb-mods-status-ok { color: #1c8a4b; font-weight: 700; }
+  .mb-mods-status-err { color: var(--orange); }
   .mb-build-actions { display: flex; gap: 10px; margin-top: auto; }
   .mb-delete-btn { background: transparent; border: 1px solid var(--line); color: var(--ink); padding: 7px 12px; font-size: 0.78rem; cursor: pointer; }
   .mb-delete-btn:hover { border-color: var(--orange); color: var(--orange); }
@@ -815,6 +831,10 @@
                 '<input type="text" class="mb-mods-input" placeholder="e.g. Coilovers" autocomplete="off">' +
                 '<button type="button" class="mb-mods-add-btn">Add</button>' +
               '</div>' +
+              '<div class="mb-mods-submit-row">' +
+                '<button type="button" class="mb-mods-submit-btn">Save mods</button>' +
+                '<span class="mb-mods-status mono"></span>' +
+              '</div>' +
             '</div>' +
             '<div class="mb-build-actions">' +
               '<button type="button" class="mb-delete-btn">Delete</button>' +
@@ -840,16 +860,35 @@
       list.innerHTML = modsListHtml(mods);
     }
 
-    function saveMods(card, mods) {
+    function saveMods(card, mods, statusEl, btn) {
       var file = card.getAttribute('data-file');
       var token = getSession();
+      if (btn) btn.disabled = true;
+      if (statusEl) { statusEl.textContent = 'Saving…'; statusEl.className = 'mb-mods-status mono'; }
       fetch(API + '/my-builds', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'X-Session-Token': token },
         body: JSON.stringify({ file: file, mods: mods })
       })
         .then(function (res) { return res.json(); })
-        .catch(function () {});
+        .then(function (data) {
+          if (btn) btn.disabled = false;
+          if (!statusEl) return;
+          if (data.success) {
+            statusEl.textContent = 'Saved';
+            statusEl.className = 'mb-mods-status mono mb-mods-status-ok';
+          } else {
+            statusEl.textContent = data.message || 'Could not save, try again';
+            statusEl.className = 'mb-mods-status mono mb-mods-status-err';
+          }
+        })
+        .catch(function () {
+          if (btn) btn.disabled = false;
+          if (statusEl) {
+            statusEl.textContent = 'Could not save, try again';
+            statusEl.className = 'mb-mods-status mono mb-mods-status-err';
+          }
+        });
     }
 
     function loadBuilds() {
@@ -940,7 +979,7 @@
         setMods(list, mods);
         input.value = '';
         input.focus();
-        saveMods(addBtn.closest('.mb-build-card'), mods);
+        wrap.querySelector('.mb-mods-status').textContent = '';
         return;
       }
       var removeBtn = e.target.closest('.mb-mods-remove');
@@ -949,7 +988,15 @@
         var mods2 = getMods(list2);
         mods2.splice(Number(removeBtn.dataset.idx), 1);
         setMods(list2, mods2);
-        saveMods(removeBtn.closest('.mb-build-card'), mods2);
+        removeBtn.closest('.mb-mods').querySelector('.mb-mods-status').textContent = '';
+        return;
+      }
+      var submitBtn = e.target.closest('.mb-mods-submit-btn');
+      if (submitBtn) {
+        var modsWrap = submitBtn.closest('.mb-mods');
+        var modsList = modsWrap.querySelector('.mb-mods-list');
+        var statusEl = modsWrap.querySelector('.mb-mods-status');
+        saveMods(submitBtn.closest('.mb-build-card'), getMods(modsList), statusEl, submitBtn);
         return;
       }
     });

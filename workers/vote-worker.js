@@ -569,21 +569,39 @@ async function handleMyBuildsGet(request, env) {
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
 
   var files = await getSubscriberFiles(env, email);
-  var manifest = files.length ? await fetchGalleryManifest() : [];
+  // Caption comes from the manifest (it's derived from the filename and
+  // doesn't change here), but mods/gallery/reel/votable are read straight
+  // from each photo's R2 sidecar so edits show up immediately instead of
+  // waiting on the manifest rebuild pipeline to catch up.
+  var manifest = files.length ? await fetchGalleryManifest().catch(function () { return []; }) : [];
   var byFile = {};
   manifest.forEach(function (p) { byFile[p.file] = p; });
 
-  var builds = files.map(function (f) {
+  var builds = await Promise.all(files.map(async function (f) {
     var entry = byFile[f] || { file: f };
+    var mods = entry.mods || [];
+    var gallery = entry.gallery !== false;
+    var reel = entry.reel !== false;
+    var votable = entry.votable !== false;
+    try {
+      var sidecarObj = await env.GALLERY_BUCKET.get('gallery/' + f + '.json');
+      if (sidecarObj) {
+        var sidecar = await sidecarObj.json();
+        if (Array.isArray(sidecar.mods)) mods = sidecar.mods;
+        if (typeof sidecar.gallery === 'boolean') gallery = sidecar.gallery;
+        if (typeof sidecar.reel === 'boolean') reel = sidecar.reel;
+        if (typeof sidecar.votable === 'boolean') votable = sidecar.votable;
+      }
+    } catch (e) {}
     return {
       file: f,
       caption: entry.caption || '',
-      mods: entry.mods || [],
-      gallery: entry.gallery !== false,
-      reel: entry.reel !== false,
-      votable: entry.votable !== false
+      mods: mods,
+      gallery: gallery,
+      reel: reel,
+      votable: votable
     };
-  });
+  }));
 
   return json({ success: true, email: email, builds: builds });
 }

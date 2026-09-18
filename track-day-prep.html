@@ -1372,12 +1372,14 @@
 <script>
   (function () {
     var KEY = 'mt3uk-promo-tee-dismissed';
+    var EXPIRY_MS = 7 * 24 * 60 * 60 * 1000;
     var banner = document.getElementById('promo-banner');
     if (!banner) return;
-    if (localStorage.getItem(KEY) === '1') { banner.remove(); return; }
+    var dismissedAt = parseInt(localStorage.getItem(KEY), 10);
+    if (dismissedAt && (Date.now() - dismissedAt) < EXPIRY_MS) { banner.remove(); return; }
     document.getElementById('promo-banner-close').addEventListener('click', function () {
       banner.remove();
-      try { localStorage.setItem(KEY, '1'); } catch (e) {}
+      try { localStorage.setItem(KEY, String(Date.now())); } catch (e) {}
     });
   })();
 </script>

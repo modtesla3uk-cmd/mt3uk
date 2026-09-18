@@ -38,15 +38,7 @@
     --line: #4a6491;
     --steel: #7c8798;
     --white: #ffffff;
-    --content-max: 1120px;
-  }
-
-  @media (min-width: 1600px) {
-    :root { --content-max: 1320px; }
-  }
-
-  @media (min-width: 2000px) {
-    :root { --content-max: 1520px; }
+    --content-max: 1000px;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -166,10 +158,16 @@
   .logo img { height: 25px; width: auto; max-width: none; display: block; }
   .logo.footer-logo img { height: 18px; }
 
+  .nav-center {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-right: auto;
+  }
+
   .navlinks {
     display: flex;
     gap: 4px;
-    margin-right: auto;
     font-size: 0.92rem;
     font-weight: 500;
   }
@@ -324,6 +322,31 @@
     .nav-subitem .nav-dropdown { top: -1px; left: 100%; right: auto; }
     .nav-search:hover .nav-search-panel,
     .nav-search:focus-within .nav-search-panel { display: block; }
+
+    nav { justify-content: center; }
+    .nav-center { margin-right: 0; }
+    .nav-search-toggle { display: none; }
+    .nav-search-panel {
+      display: block;
+      position: static;
+      width: 220px;
+      max-width: none;
+      padding: 0;
+      border: 1px solid var(--ink);
+    }
+    .nav-search-panel input { border: none; padding: 9px 12px; width: 100%; }
+    .nav-search-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 220px;
+      margin-top: 0;
+      border: 1px solid var(--ink);
+      border-top: none;
+      background: var(--paper);
+      z-index: 30;
+    }
+    .nav-search-results:empty { display: none; }
   }
 
   @media (max-width: 780px) {
@@ -435,6 +458,27 @@
     .page-hero .back-link { margin-bottom: 12px; }
     .page-hero .section-num { margin-bottom: 6px; }
     .page-hero h1 { margin-bottom: 10px; }
+  }
+
+  @media (min-width: 901px) {
+    .page-hero .wrap { text-align: center; }
+    .page-hero h1, .page-hero p { max-width: none; margin-left: auto; margin-right: auto; }
+    .page-hero h1 { max-width: 40ch; }
+    .page-hero p { max-width: 58ch; }
+
+    .section-head {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 12px;
+    }
+    .section-head > div { display: flex; flex-direction: column; align-items: center; }
+    .section-head h2 { max-width: none; }
+    .section-head p { max-width: 88ch; margin: 0 auto; }
+
+    #reviews-list > .wrap > p { text-align: center; max-width: 88ch; margin: 0 auto 24px; }
+    .submit-review > p { text-align: center; margin-left: auto; margin-right: auto; }
+    .submit-form { margin-left: auto; margin-right: auto; text-align: left; }
   }
 
   /* ---------- REVIEWS LIST ---------- */
@@ -631,7 +675,8 @@
 
 <header>
   <nav>
-    <a href="/" class="logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
+    <div class="nav-center">
+      <a href="/" class="logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
     <div class="navlinks" id="navlinks">
       <div class="nav-item">
         <a href="index.html#build-feed" class="nav-link">Build Feed</a>
@@ -685,6 +730,7 @@
         <div class="nav-dropdown">
           <a href="https://ko-fi.com/mt3uk" class="nav-sublink" target="_blank" rel="noopener">Support Us</a>
         </div>
+      </div>
       </div>
     </div>
     <div class="nav-search" id="nav-search">

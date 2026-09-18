@@ -799,6 +799,7 @@
     background: #000;
   }
   #build-feed-frame { margin: 0 auto; }
+  .bf-frame.bf-frame-empty { aspect-ratio: auto; height: auto; }
   .bf-new-toast {
     position: absolute;
     top: 60px;
@@ -1946,11 +1947,15 @@
       return section;
     }
 
+    var feedFrameEl = document.getElementById('build-feed-frame');
+
     function render(photos, likesData) {
       if (!photos.length) {
         feedEl.innerHTML = '<p class="mono" style="padding: 24px; color: var(--steel);">No builds yet, be the first to submit one.</p>';
+        if (feedFrameEl) feedFrameEl.classList.add('bf-frame-empty');
         return;
       }
+      if (feedFrameEl) feedFrameEl.classList.remove('bf-frame-empty');
       feedEl.innerHTML = '';
       progressEl.innerHTML = '';
       photos.forEach(function (photo, idx) {
@@ -2182,6 +2187,7 @@
       })
       .catch(function () {
         feedEl.innerHTML = '<p class="mono" style="padding: 24px; color: var(--steel);">Builds couldn\'t be loaded.</p>';
+        if (feedFrameEl) feedFrameEl.classList.add('bf-frame-empty');
       });
 
     // Poll for newly uploaded builds and surface a toast rather than

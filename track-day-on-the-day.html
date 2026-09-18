@@ -631,8 +631,11 @@
   .charge-row:not(.charge-row-head) span:nth-child(2),
   .charge-row:not(.charge-row-head) span:nth-child(3) { font-weight: 600; color: var(--ink); }
   @media (max-width: 700px) {
-    .charge-row { grid-template-columns: 1fr; gap: 2px; }
+    .charge-row { grid-template-columns: 1fr; gap: 4px; }
     .charge-row-head { display: none; }
+    .charge-row:not(.charge-row-head) span:first-child { font-size: 0.85rem; letter-spacing: 0.02em; }
+    .charge-row:not(.charge-row-head) span:nth-child(2)::before { content: "On-site charging: "; color: var(--steel); font-weight: 400; }
+    .charge-row:not(.charge-row-head) span:nth-child(3)::before { content: "Nearest Fast/Superchargers: "; color: var(--steel); font-weight: 400; }
   }
 
   .page-hero {
@@ -1451,6 +1454,7 @@
       <a href="index.html#events" class="nav-link">Events</a>
       <div class="nav-item">
         <a href="index.html#track-days" class="nav-link active">Track Days</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Track Days submenu">&#9660;</button>
         <div class="nav-dropdown">
           <a href="track-day-prep.html" class="nav-sublink">Prep</a>
           <a href="track-day-on-the-day.html" class="nav-sublink nav-sublink-new">On The Day</a>

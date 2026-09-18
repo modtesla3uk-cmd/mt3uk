@@ -990,10 +990,12 @@ export default {
 
     var submitIp = getClientIp(request);
     var cooldownKey = 'gallery-submit-ip:' + submitIp;
-    var onCooldown = await env.VOTES.get(cooldownKey);
-    if (onCooldown) {
-      return json({ success: false, message: "You've already submitted a build in the last 24 hours. Please try again tomorrow." }, 429);
-    }
+    // Temporarily disabled for testing - re-enable once My Builds/upload
+    // flow testing is done.
+    // var onCooldown = await env.VOTES.get(cooldownKey);
+    // if (onCooldown) {
+    //   return json({ success: false, message: "You've already submitted a build in the last 24 hours. Please try again tomorrow." }, 429);
+    // }
 
     var name = (formData.get('name') || '').toString().trim().slice(0, 100);
     var email = (formData.get('email') || '').toString().trim().toLowerCase().slice(0, 200);

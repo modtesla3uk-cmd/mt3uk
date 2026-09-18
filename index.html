@@ -38,15 +38,7 @@
     --line: #4a6491;
     --steel: #7c8798;
     --white: #ffffff;
-    --content-max: 1120px;
-  }
-
-  @media (min-width: 1600px) {
-    :root { --content-max: 1320px; }
-  }
-
-  @media (min-width: 2000px) {
-    :root { --content-max: 1520px; }
+    --content-max: 1000px;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -166,10 +158,16 @@
   .logo img { height: 25px; width: auto; max-width: none; display: block; }
   .logo.footer-logo img { height: 18px; }
 
+  .nav-center {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-right: auto;
+  }
+
   .navlinks {
     display: flex;
     gap: 4px;
-    margin-right: auto;
     font-size: 0.92rem;
     font-weight: 500;
   }
@@ -331,6 +329,31 @@
     .nav-subitem .nav-dropdown { top: -1px; left: 100%; right: auto; }
     .nav-search:hover .nav-search-panel,
     .nav-search:focus-within .nav-search-panel { display: block; }
+
+    nav { justify-content: center; }
+    .nav-center { margin-right: 0; }
+    .nav-search-toggle { display: none; }
+    .nav-search-panel {
+      display: block;
+      position: static;
+      width: 220px;
+      max-width: none;
+      padding: 0;
+      border: 1px solid var(--ink);
+    }
+    .nav-search-panel input { border: none; padding: 9px 12px; width: 100%; }
+    .nav-search-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 220px;
+      margin-top: 0;
+      border: 1px solid var(--ink);
+      border-top: none;
+      background: var(--paper);
+      z-index: 30;
+    }
+    .nav-search-results:empty { display: none; }
   }
 
   @media (max-width: 780px) {
@@ -405,13 +428,9 @@
 
   .hero-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 40px;
     align-items: center;
-  }
-
-  @media (max-width: 900px) {
-    .hero-grid { grid-template-columns: 1fr; }
   }
 
   .hero-tag {
@@ -458,6 +477,10 @@
   .hero-cta-stack { display: inline-flex; flex-direction: column; align-items: stretch; gap: 14px; margin-bottom: 16px; }
 
   .hero-ctas { display: flex; gap: 14px; flex-wrap: wrap; }
+
+  @media (min-width: 600px) {
+    .hero-ctas .btn { min-width: 168px; justify-content: center; }
+  }
 
   @media (max-width: 480px) {
     .hero-cta-stack { width: 100%; }
@@ -514,6 +537,16 @@
     letter-spacing: 0.04em;
   }
 
+  @media (min-width: 901px) {
+    .hero-grid { justify-items: center; text-align: center; }
+    .hero-tag { margin-left: auto; margin-right: auto; }
+    .hero p.lead { margin-left: auto; margin-right: auto; max-width: 64ch; }
+    .hero-cta-stack { align-items: center; }
+    .hero-ctas { justify-content: center; }
+    .hero-stats { max-width: 480px; margin: 0 auto; }
+    .hero-media { align-items: center; }
+  }
+
   /* --- blueprint diagram --- */
   .diagram {
     position: relative;
@@ -566,9 +599,9 @@
 
   .section-head {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    gap: 20px;
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 60px;
     margin-bottom: 30px;
     flex-wrap: wrap;
   }
@@ -579,7 +612,7 @@
     margin-bottom: 10px;
     display: block;
   }
-  .section-head h2 { font-size: clamp(1.7rem, 3.2vw, 2.3rem); max-width: 20ch; }
+  .section-head h2 { font-size: clamp(1.7rem, 3.2vw, 2.3rem); max-width: 34ch; }
   .section-title-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
   .refresh-btn {
     font-family: 'IBM Plex Mono', monospace;
@@ -598,11 +631,30 @@
   .section-head p { max-width: 40ch; color: var(--steel); font-size: 0.95rem; }
   @media (max-width: 480px) { .vote-heading { max-width: none; white-space: nowrap; font-size: clamp(1.2rem, 6vw, 1.7rem); } }
 
+  @media (min-width: 901px) {
+    .section-head {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 12px;
+    }
+    .section-head > div { display: flex; flex-direction: column; align-items: center; }
+    .section-head .section-title-row { justify-content: center; }
+    .section-head h2 { max-width: none; }
+    .section-head p { max-width: 88ch; margin: 0 auto; }
+  }
+
   /* ---------- ABOUT ---------- */
   .about-grid {
     display: grid;
     grid-template-columns: 1.1fr 0.9fr;
     gap: 60px;
+  }
+
+  .track-days-intro p { color: var(--ink-2); margin-bottom: 18px; max-width: 58ch; }
+  @media (min-width: 900px) {
+    .track-days-intro { column-count: 2; column-gap: 48px; }
+    .track-days-intro p { break-inside: avoid; max-width: none; }
   }
   @media (max-width: 860px) { .about-grid { grid-template-columns: 1fr; } }
   #track-days .about-grid { grid-template-columns: 1fr; max-width: 70ch; }
@@ -712,6 +764,7 @@
     margin-top: 20px;
     font-size: 0.85rem;
     color: var(--steel);
+    text-align: center;
   }
 
   /* ---------- BUILD REEL ---------- */
@@ -762,7 +815,7 @@
     transition: opacity 0.25s ease, transform 0.25s ease;
   }
   .bf-new-toast.bf-new-toast-show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
-  .hero-media { display: flex; flex-direction: column; gap: 12px; align-items: center; }
+  .hero-media { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
   .hero-build-card {
     display: flex;
     align-items: center;
@@ -1297,6 +1350,23 @@
     gap: 16px;
     max-width: 440px;
   }
+
+  @media (min-width: 700px) {
+    .submit-form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px 24px;
+      max-width: 760px;
+    }
+    .submit-form > * { grid-column: 1 / -1; }
+    .submit-form .form-row-half { grid-column: span 1; }
+  }
+
+  @media (min-width: 901px) {
+    .submit-photo { text-align: center; }
+    .submit-photo > p { max-width: none; white-space: nowrap; margin-left: auto; margin-right: auto; }
+    .submit-form { margin-left: auto; margin-right: auto; text-align: left; }
+  }
   .submit-guidance {
     background: var(--paper-2);
     border: 1px solid var(--steel);
@@ -1569,7 +1639,8 @@
 
 <header>
   <nav>
-    <a href="/" class="logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
+    <div class="nav-center">
+      <a href="/" class="logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
     <div class="navlinks" id="navlinks">
       <div class="nav-item">
         <a href="#build-feed" class="nav-link">Build Feed</a>
@@ -1623,6 +1694,7 @@
         <div class="nav-dropdown">
           <a href="https://ko-fi.com/mt3uk" class="nav-sublink" target="_blank" rel="noopener">Support Us</a>
         </div>
+      </div>
       </div>
     </div>
     <div class="nav-search" id="nav-search">
@@ -2192,11 +2264,11 @@
       <p>Send us a shot of your build and a caption, and we'll get it added to the gallery for you.</p>
       <form id="photo-submit-form" class="submit-form">
         <input type="checkbox" name="botcheck" class="hp-field" tabindex="-1" autocomplete="off">
-        <div class="form-row">
+        <div class="form-row form-row-half">
           <label class="mono" for="submitter-name">Name (Required)</label>
           <input type="text" id="submitter-name" name="name" placeholder="Your name or MT3UK handle" required>
         </div>
-        <div class="form-row">
+        <div class="form-row form-row-half">
           <label class="mono" for="submitter-caption">Caption (Required)</label>
           <input type="text" id="submitter-caption" name="caption" placeholder="e.g. Viper Green Model Y" required>
         </div>
@@ -2366,7 +2438,7 @@
       </div>
       <p>Full details always posted in the Facebook group first.</p>
     </div>
-    <div class="diagram" style="max-width: 320px; aspect-ratio: 1/1; margin: 0 auto 40px;">
+    <div class="diagram" style="max-width: 320px; aspect-ratio: 1/1; margin: 0 0 40px;">
       <img src="images/hero.jpg" alt="MT3UK members' modified Teslas lined up at a UK car show">
       <div class="grid-overlay"></div>
       <div class="corner tl"></div><div class="corner tr"></div>
@@ -2407,7 +2479,7 @@
       </div>
       <p>Prep, upgrades and honest advice, for first timers and seasoned track goers alike.</p>
     </div>
-    <div class="about-grid">
+    <div class="track-days-intro">
       <div>
         <p>This corner of MT3UK is dedicated to taking your Tesla on track, properly. Whether you're booking your very first track day or you've lost count of how many you've done, we're building this into the go-to spot for everything in between. Read our <a href="track-day-prep.html" class="inline-link">Track Day Prep guide</a> for OE limitations, model guidance and the upgrade path members follow, then the <a href="track-day-on-the-day.html" class="inline-link">On The Day guide</a> for insurance, breakdowns and charging once you've booked.</p>
         <p>Expect recommended upgrades that hold up under real track conditions rather than just Instagram, and unfiltered advice from members who've already made the mistakes so you don't have to.</p>

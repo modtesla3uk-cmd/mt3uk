@@ -1399,6 +1399,46 @@
   .form-row input[type="text"]:focus,
   .form-row textarea:focus { outline: none; border-color: var(--orange); }
   .submit-form button { align-self: flex-start; }
+  .mods-entry { display: flex; flex-direction: column; gap: 8px; }
+  .mods-entry-input-row { display: flex; gap: 8px; }
+  .mods-entry-input-row input[type="text"] { flex: 1; }
+  .mods-entry-add-btn {
+    border: 1px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+    padding: 0 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .2s ease, color .2s ease;
+  }
+  .mods-entry-add-btn:hover { background: var(--ink); color: var(--paper); }
+  .mods-entry-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  .mods-entry-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    border: 1px solid var(--ink);
+    background: var(--paper-2);
+    padding: 9px 10px 9px 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.82rem;
+    color: var(--charcoal);
+  }
+  .mods-entry-remove {
+    flex-shrink: 0;
+    border: none;
+    background: transparent;
+    color: var(--steel);
+    font-size: 1.1rem;
+    line-height: 1;
+    padding: 0 4px;
+    cursor: pointer;
+  }
+  .mods-entry-remove:hover { color: var(--orange); }
   .submit-form .hp-field { position: absolute; left: -9999px; }
   .form-checkbox-row {
     display: flex;
@@ -2287,8 +2327,15 @@
           <input type="text" id="submitter-caption" name="caption" placeholder="e.g. Viper Green Model Y" required>
         </div>
         <div class="form-row">
-          <label class="mono" for="submitter-mods">Mods (Optional)</label>
-          <textarea id="submitter-mods" name="mods" rows="10" placeholder="e.g. Coilovers, 20&quot; wheels, wrap" maxlength="1000"></textarea>
+          <label class="mono" for="submitter-mod-input">Mods (Optional)</label>
+          <div class="mods-entry" id="mods-entry">
+            <div class="mods-entry-input-row">
+              <input type="text" id="submitter-mod-input" placeholder="e.g. Coilovers" autocomplete="off">
+              <button type="button" class="mods-entry-add-btn" id="mods-entry-add-btn">Add</button>
+            </div>
+            <ul class="mods-entry-list" id="mods-entry-list"></ul>
+            <input type="hidden" id="submitter-mods" name="mods">
+          </div>
         </div>
         <div class="form-row">
           <label class="mono" for="submitter-photo">Photo</label>
@@ -2303,7 +2350,7 @@
           Not a member? Join the MT3UK Facebook group
         </a>
         <div class="submit-guidance">
-          <p><strong>PLEASE READ:</strong> Upload a full photo of your build so we can get it featured. List your mods above, separated by commas, and we'll credit them under the photo.</p>
+          <p><strong>PLEASE READ:</strong> Upload a full photo of your build so we can get it featured. Add your mods above one at a time and we'll credit them under the photo.</p>
           <p>Limit uploads to max 3 per day.</p>
         </div>
         <button type="submit" class="btn btn-primary">Submit photo</button>
@@ -2774,6 +2821,43 @@
         var btn = form.querySelector('button[type="submit"]');
         var fileInput = document.getElementById('submitter-photo');
 
+        var modInput = document.getElementById('submitter-mod-input');
+        var modAddBtn = document.getElementById('mods-entry-add-btn');
+        var modList = document.getElementById('mods-entry-list');
+        var modHidden = document.getElementById('submitter-mods');
+        var modItems = [];
+
+        function renderMods() {
+              modList.innerHTML = modItems.map(function (item, idx) {
+                    var safe = item.replace(/</g, '&lt;');
+                    return '<li><span>' + safe + '</span><button type="button" class="mods-entry-remove" data-idx="' + idx + '" aria-label="Remove ' + safe + '">&times;</button></li>';
+              }).join('');
+              modHidden.value = modItems.join(', ');
+        }
+
+        function addModItem() {
+              var value = modInput.value.trim();
+              if (!value) return;
+              modItems.push(value);
+              modInput.value = '';
+              renderMods();
+              modInput.focus();
+        }
+
+        modAddBtn.addEventListener('click', addModItem);
+        modInput.addEventListener('keydown', function (e) {
+              if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addModItem();
+              }
+        });
+        modList.addEventListener('click', function (e) {
+              var removeBtn = e.target.closest('.mods-entry-remove');
+              if (!removeBtn) return;
+              modItems.splice(Number(removeBtn.dataset.idx), 1);
+              renderMods();
+        });
+
         function fail(message) {
               status.style.color = 'var(--orange)';
               status.textContent = message;
@@ -2784,6 +2868,8 @@
         form.addEventListener('submit', function (e) {
               e.preventDefault();
               status.textContent = '';
+
+              if (modInput.value.trim()) addModItem();
 
               var file = fileInput.files[0];
               if (!file) return fail('Please choose a photo.');
@@ -2803,6 +2889,8 @@
                                 status.style.fontWeight = '700';
                                 status.textContent = 'Thanks, your photo has been sent for review. 👍';
                                 form.reset();
+                                modItems = [];
+                                renderMods();
                                 btn.disabled = false;
                                 btn.textContent = 'Submit photo';
                           } else {

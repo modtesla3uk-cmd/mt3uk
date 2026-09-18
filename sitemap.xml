@@ -3,37 +3,37 @@
          xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://mt3uk.com/</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://mt3uk.com/shop.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://mt3uk.com/reviews.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://mt3uk.com/contact.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://mt3uk.com/track-day-prep.html</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/01-model-s-gt-wing.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -42,7 +42,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/02-model-3-widebody.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -51,7 +51,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/03-model-3-bagged.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -60,7 +60,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/05-model-y-gloss-wrap.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -69,7 +69,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/07-model-3-track-spec.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -78,7 +78,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/08-model-3-black-knight.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -87,7 +87,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/09-model-3-trackday.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -96,7 +96,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/10-model-3-transformer-bagged.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -105,7 +105,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/11-model-3-robot-craftsman-bagged.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -114,7 +114,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/13-model-y-unicorn-pink.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -123,7 +123,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/14-model-3-grey-bagged.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -132,7 +132,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/15-model-3-pin-stripes.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -141,7 +141,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/16-model-3-ubdergrlow-1788655208711.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -150,7 +150,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/17-y33-kdm.jpeg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -159,7 +159,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/18-the-green-knight-tessa-in-london.jpeg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -168,7 +168,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/19-wasabi-green-model-3.jpeg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -177,7 +177,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/20-moss-green-tesla-performance.jpeg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -186,7 +186,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/21-the-bullet-m3-lr-with-acceleration-boost.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -195,7 +195,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/22-blue-model-3.jpeg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -204,7 +204,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/23-foggy-night.jpeg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -213,7 +213,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/24-voyager-model-3.jpeg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -222,7 +222,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/25-candy-blue-model-3.jpeg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -231,7 +231,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/26-voyager-in-tron-ares-mode.jpeg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -240,7 +240,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/27-rustee.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -249,7 +249,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/28-nordschleife-baby.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -258,7 +258,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/29-haloblk.jpeg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -267,7 +267,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/30-black-m3-lr.jpeg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -276,7 +276,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/31-team-red.jpeg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -285,7 +285,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/32-shes-sitting-nice-and-low.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -294,7 +294,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/33-model-3-lr.jpeg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -303,7 +303,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/34-baymaxev.jpeg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -312,7 +312,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/35-model-3.jpeg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -321,7 +321,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/36-RICH-TRACK.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -330,7 +330,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/37-ghost.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -339,7 +339,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/38-the-unicorn-tesla.jpeg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -348,7 +348,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/39-model-y-lr-sleek-edition.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -357,7 +357,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/41-s3xy-model-3-lr-21.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -366,7 +366,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/42-track-action-with-myk--by-richard.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -375,7 +375,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/43-underglow--by-sharad.jpeg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -384,7 +384,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/44-bert--by-richard-dainton.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -393,7 +393,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/46-viper-model-3.jpeg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -402,7 +402,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/48-model-s-55d--by-oleh.jpeg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -411,7 +411,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/49-m3p--by-baz.jpeg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -420,7 +420,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/50-it-s-a-wrap--by-rich.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -429,7 +429,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/51-wheels-wheels-wheels--by-rich.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -438,7 +438,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/52-green-4-go--by-rich.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -447,7 +447,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/53-the-green-knight-tessa--by-sharad.jpeg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -456,7 +456,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/54-the-bullet-m3-lr-ac-boost--by-lee-frost-raclee-frost.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -465,7 +465,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/55-model-3-performance--by-naimesh-patel.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -474,7 +474,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/56-team-red--by-mark-smith.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -483,7 +483,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/57-the-orange-microwave--by-charlotte-downing.jpeg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -492,7 +492,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/58-shark-stance--by-gediminas-gudelis.jpeg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -501,7 +501,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/59-dark-night--by-striker.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -510,7 +510,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/60-lightsong--by-volpe-reuling.jpeg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -519,7 +519,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/61-clubmax-s-m3p--by-nason-manavi.jpeg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -528,7 +528,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/62-red-rocket--by-garth-woods.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -537,7 +537,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/63-red-dual-motor--by-slt.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -546,7 +546,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/64-night-time-sleek--by-ade-lucy.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -555,7 +555,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/65-model-3-build-spec--by-richard.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -564,7 +564,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/gallery/66-moss-green-performance--by-mac.jpeg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -573,7 +573,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/site/MT3UK-3-pack-stickers.png</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -582,7 +582,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/site/Pads_Carbotech_XP10.png</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -591,7 +591,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/site/Pads_Street%2B.png</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -600,7 +600,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/site/Reg%2BTesla.jpeg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -609,7 +609,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/site/Tevo-logo-white-letters.png</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -618,7 +618,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/site/Tevo_Brace.png</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -627,7 +627,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/site/Tevo_Brace_Bolt.png</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -636,7 +636,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/site/Tevo_Brace_Full%2BBolts.png</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -645,7 +645,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/site/apple-touch-icon.png</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -654,7 +654,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/site/favicon-16.png</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -663,7 +663,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/site/favicon-32.png</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -672,7 +672,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/site/hero.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -681,7 +681,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/site/icon-192.png</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -690,7 +690,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/site/mt3uk-sticker.png</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -699,7 +699,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/site/mt3uk-tee-2.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -708,7 +708,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/site/mt3uk-tee.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -717,7 +717,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/site/mt3uk-wordmark-dark.png</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -726,7 +726,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/site/mt3uk-wordmark-dark_backup.png</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -735,7 +735,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/site/redline-2d-printed.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -744,7 +744,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/site/redline-3d-gel.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -753,7 +753,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/site/redline-4d-acrylic.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -762,7 +762,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/site/redline-logo.png</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -771,7 +771,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/site/redline-show-plate.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -780,7 +780,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/site/sticker_single.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -789,7 +789,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/site/tevo-logo-transparent.png</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -798,7 +798,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/track-days/01-snetterton-track.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -807,7 +807,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/track-days/02-thruxton.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>
@@ -816,7 +816,7 @@
   </url>
   <url>
     <loc>https://mt3uk.com/images/track-days/03-cadwell-park-with-5n-and-m3.jpg</loc>
-    <lastmod>2026-09-17</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <image:image>

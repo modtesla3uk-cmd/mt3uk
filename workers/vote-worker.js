@@ -760,6 +760,39 @@ async function handleMyBuildsUpload(request, env) {
   }
 }
 
+async function clearFeaturedIfMatches(env, file) {
+  var ghHeaders = {
+    'Authorization': 'Bearer ' + env.GITHUB_TOKEN,
+    'Accept': 'application/vnd.github+json',
+    'User-Agent': 'mt3uk-gallery-worker',
+    'X-GitHub-Api-Version': '2022-11-28'
+  };
+  var getRes = await fetch(
+    'https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/' + FEATURED_PATH + '?ref=' + BASE_BRANCH,
+    { headers: ghHeaders }
+  );
+  if (!getRes.ok) return;
+  var getData = await getRes.json();
+  var current = null;
+  try { current = JSON.parse(atob(getData.content.replace(/\n/g, ''))); } catch (e) {}
+  if (!current || current.file !== file) return;
+
+  var newContent = btoa(JSON.stringify({ file: '', votes: 0, date: '' }, null, 2) + '\n');
+  await fetch(
+    'https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/' + FEATURED_PATH,
+    {
+      method: 'PUT',
+      headers: ghHeaders,
+      body: JSON.stringify({
+        message: 'Clear featured build (deleted from My Builds: ' + file + ')',
+        content: newContent,
+        sha: getData.sha,
+        branch: BASE_BRANCH
+      })
+    }
+  );
+}
+
 async function handleMyBuildsDelete(request, env) {
   var email = await resolveSession(request, env);
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
@@ -773,6 +806,16 @@ async function handleMyBuildsDelete(request, env) {
   await env.GALLERY_BUCKET.delete('gallery/' + file);
   await env.GALLERY_BUCKET.delete('gallery/' + file + '.json');
   await removeSubscriberFile(env, email, file);
+
+  var todayStr = ukDateString(new Date());
+  await env.VOTES.delete('votes:' + todayStr + ':' + file);
+  await env.VOTES.delete('likes:' + file);
+
+  try {
+    await clearFeaturedIfMatches(env, file);
+  } catch (e) {
+    console.log('Clearing featured build failed (non-critical):', e.message);
+  }
 
   await triggerManifestRebuild(env);
 

@@ -92,7 +92,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 44px 10px 0;
+    padding: 10px 0;
     position: relative;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.8rem;
@@ -117,21 +117,6 @@
     from { transform: translateX(0); }
     to { transform: translateX(-50%); }
   }
-  .promo-banner-close {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: var(--paper);
-    font-size: 1.1rem;
-    line-height: 1;
-    cursor: pointer;
-    padding: 4px;
-    z-index: 1;
-  }
-  .promo-banner-close:hover { opacity: 0.7; }
   @media (max-width: 600px) {
     .promo-banner-inner { font-size: 0.74rem; }
   }
@@ -1621,23 +1606,8 @@
       <a href="shop.html#merch" class="promo-banner-msg">&#9201; New Tee options available!! | Hoodies | Club Stickers | Master Cylinder Braces | Brake Pads | Number Plates, shop now &rarr;</a>
       <a href="shop.html#merch" class="promo-banner-msg" aria-hidden="true">&#9201; New Tee options available!! | Hoodies | Club Stickers | Master Cylinder Braces | Brake Pads | Number Plates, shop now &rarr;</a>
     </div>
-    <button type="button" class="promo-banner-close" id="promo-banner-close" aria-label="Dismiss banner">&times;</button>
   </div>
 </div>
-<script>
-  (function () {
-    var KEY = 'mt3uk-promo-tee-dismissed';
-    var EXPIRY_MS = 7 * 24 * 60 * 60 * 1000;
-    var banner = document.getElementById('promo-banner');
-    if (!banner) return;
-    var dismissedAt = parseInt(localStorage.getItem(KEY), 10);
-    if (dismissedAt && (Date.now() - dismissedAt) < EXPIRY_MS) { banner.remove(); return; }
-    document.getElementById('promo-banner-close').addEventListener('click', function () {
-      banner.remove();
-      try { localStorage.setItem(KEY, String(Date.now())); } catch (e) {}
-    });
-  })();
-</script>
 
 <header>
   <nav>

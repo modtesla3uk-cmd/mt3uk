@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Scans images/gallery/ and writes images/gallery/manifest.json listing every
-photo found there, with a caption auto-generated from the filename.
+Lists the gallery/ prefix in the mt3uk-gallery R2 bucket and writes
+images/gallery/manifest.json listing every photo found there, with a
+caption auto-generated from the filename.
 
-Photos are ordered most-recently-added first, using each file's earliest
-git commit date (the commit that added it) as the "added" timestamp. Files
-added in the same commit (e.g. the original batch upload) are tie-broken
-by an optional numeric filename prefix, then alphabetically:
+Photos are ordered most-recently-uploaded first, using each object's R2
+upload timestamp. Files uploaded in the same batch (e.g. a migration) are
+tie-broken by an optional numeric filename prefix, then alphabetically:
   01-model-3-widebody.jpg
   ^^ optional numeric prefix controls tie-break order (lowest first).
   the rest of the filename becomes the caption, e.g.
@@ -14,21 +14,23 @@ by an optional numeric filename prefix, then alphabetically:
   spaces).
 
 This runs automatically in GitHub Actions on every push — nobody needs to
-run it by hand. Requires full git history (fetch-depth: 0) to correctly
-date files; falls back to treating undated files as oldest.
+run it by hand. Requires R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY env vars.
 """
 import json
 import re
-import subprocess
+import sys
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from r2_client import BUCKET, PUBLIC_BASE_URL, get_client, list_objects
+
 UK_TZ = ZoneInfo("Europe/London")
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-GALLERY_DIR = REPO_ROOT / "images" / "gallery"
-MANIFEST_PATH = GALLERY_DIR / "manifest.json"
+MANIFEST_PATH = REPO_ROOT / "images" / "gallery" / "manifest.json"
+PREFIX = "gallery/"
 VALID_EXT = {".jpg", ".jpeg", ".png", ".webp"}
 
 
@@ -65,62 +67,25 @@ def split_submitter_name(stem: str):
     return stem[: m.start()], name or None
 
 
-def manual_order_key(path: Path):
-    m = re.match(r"^(\d+)[-_]", path.stem)
+def manual_order_key(name: str):
+    m = re.match(r"^(\d+)[-_]", name)
     if m:
-        return (0, int(m.group(1)), path.name.lower())
-    return (1, 0, path.name.lower())
+        return (0, int(m.group(1)), name.lower())
+    return (1, 0, name.lower())
 
 
-def assign_missing_prefixes(photos, timestamp_overrides):
-    """Rename any file that lacks a numeric prefix to the next one in
-    sequence, oldest (by git-added date) first, so every photo added
-    through the submission form ends up numbered like the originals.
-
-    Timestamps are looked up (via git log) before renaming, since a
-    freshly renamed-but-uncommitted file has no git history under its
-    new name and would otherwise fall back to being treated as the
-    oldest photo, sorting it to the very end instead of the top."""
-    numbered, unnumbered = [], []
-    max_num = 0
-    for p in photos:
-        m = re.match(r"^(\d+)[-_]", p.stem)
-        if m:
-            max_num = max(max_num, int(m.group(1)))
-            numbered.append(p)
-        else:
-            unnumbered.append(p)
-
-    if not unnumbered:
-        return photos
-
-    unnumbered.sort(key=added_timestamp)
-    renamed = []
-    next_num = max_num + 1
-    for p in unnumbered:
-        ts = added_timestamp(p)
-        new_path = p.with_name(f"{next_num:02d}-{p.name}")
-        p.rename(new_path)
-        mods_sidecar = p.with_name(p.name + ".json")
-        if mods_sidecar.exists():
-            mods_sidecar.rename(new_path.with_name(new_path.name + ".json"))
-        timestamp_overrides[new_path] = ts
-        renamed.append(new_path)
-        next_num += 1
-
-    return numbered + renamed
-
-
-def mods_from_sidecar(path: Path):
-    """Reads the optional '<filename>.json' sidecar the submission worker
-    commits alongside a photo when a submitter lists mods, since the
-    manifest itself is rebuilt from scratch from filenames on every run."""
-    sidecar = path.with_name(path.name + ".json")
-    if not sidecar.exists():
+def mods_from_sidecar(client, key: str, sidecar_keys: set):
+    """Reads the optional '<key>.json' sidecar the submission worker
+    uploads alongside a photo when a submitter lists mods, since the
+    manifest itself is rebuilt from scratch from the bucket listing on
+    every run."""
+    sidecar_key = key + ".json"
+    if sidecar_key not in sidecar_keys:
         return []
     try:
-        data = json.loads(sidecar.read_text())
-    except (json.JSONDecodeError, OSError):
+        obj = client.get_object(Bucket=BUCKET, Key=sidecar_key)
+        data = json.loads(obj["Body"].read())
+    except Exception:
         return []
     mods = data.get("mods")
     if not isinstance(mods, list):
@@ -128,59 +93,38 @@ def mods_from_sidecar(path: Path):
     return [str(m).strip() for m in mods if str(m).strip()][:50]
 
 
-def added_timestamp(path: Path) -> int:
-    rel = path.relative_to(REPO_ROOT).as_posix()
-    try:
-        result = subprocess.run(
-            ["git", "log", "--diff-filter=A", "--follow", "--format=%ct", "--", rel],
-            cwd=REPO_ROOT, capture_output=True, text=True, check=True,
-        )
-        lines = [line for line in result.stdout.splitlines() if line.strip()]
-        if lines:
-            return int(lines[-1])
-    except (subprocess.CalledProcessError, ValueError):
-        pass
-    return 0
-
-
 def main():
-    GALLERY_DIR.mkdir(parents=True, exist_ok=True)
+    client = get_client()
+    all_objects = list(list_objects(client, PREFIX))
+    sidecar_keys = {obj["Key"] for obj in all_objects if obj["Key"].endswith(".json")}
     photos = [
-        p for p in GALLERY_DIR.iterdir()
-        if p.is_file() and p.suffix.lower() in VALID_EXT
+        obj for obj in all_objects
+        if Path(obj["Key"]).suffix.lower() in VALID_EXT
     ]
-    timestamp_overrides = {}
-    photos = assign_missing_prefixes(photos, timestamp_overrides)
-
-    entries = [
-        {
-            "path": p,
-            "added_ts": timestamp_overrides.get(p, added_timestamp(p)),
-            "manual_key": manual_order_key(p),
-        }
-        for p in photos
-    ]
-    entries.sort(key=lambda e: (-e["added_ts"], e["manual_key"]))
+    photos.sort(key=lambda o: (-o["LastModified"].timestamp(), manual_order_key(Path(o["Key"]).name)))
 
     manifest = []
-    for e in entries:
-        stem, name = split_submitter_name(e["path"].stem)
-        entry = {"file": e["path"].name}
+    for obj in photos:
+        key = obj["Key"]
+        filename = Path(key).name
+        stem, name = split_submitter_name(Path(key).stem)
+        entry = {"file": filename}
         caption = caption_from_filename(stem)
         if caption:
             entry["caption"] = caption
         if name:
             entry["name"] = name
-        mods = mods_from_sidecar(e["path"])
+        mods = mods_from_sidecar(client, key, sidecar_keys)
         if mods:
             entry["mods"] = mods
         # UK-local date the photo was added, used by the site to feature
         # the latest upload and only swap it at UK midnight.
-        entry["added"] = datetime.fromtimestamp(e["added_ts"], tz=UK_TZ).date().isoformat() if e["added_ts"] else None
+        entry["added"] = obj["LastModified"].astimezone(UK_TZ).date().isoformat()
         manifest.append(entry)
 
+    MANIFEST_PATH.parent.mkdir(parents=True, exist_ok=True)
     MANIFEST_PATH.write_text(json.dumps(manifest, indent=2) + "\n")
-    print(f"Wrote {MANIFEST_PATH} with {len(manifest)} photo(s).")
+    print(f"Wrote {MANIFEST_PATH} with {len(manifest)} photo(s), served from {PUBLIC_BASE_URL}/{PREFIX}")
 
 
 if __name__ == "__main__":

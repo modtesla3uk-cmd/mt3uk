@@ -4,10 +4,10 @@ on:
   push:
     branches: [main]
     paths:
-      - "images/gallery/**"
-      - "images/track-days/**"
       - "images/site/**"
       - "*.html"
+  repository_dispatch:
+    types: [gallery-submission]
   workflow_dispatch: {}
 
 permissions:
@@ -17,6 +17,9 @@ jobs:
   sync:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
+    env:
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,26 +31,26 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Install Pillow
-        run: pip install Pillow
+      - name: Install Pillow and boto3
+        run: pip install Pillow boto3
 
-      - name: Compress oversized gallery and track days photos
-        run: python3 scripts/compress_gallery_images.py
+      - name: Compress oversized gallery and track days photos in R2
+        run: python3 scripts/compress_r2_images.py
 
-      - name: Regenerate gallery manifest from images/gallery/
+      - name: Regenerate gallery manifest from R2
         run: python3 scripts/build_gallery_manifest.py
 
-      - name: Regenerate track days manifest from images/track-days/
+      - name: Regenerate track days manifest from R2
         run: python3 scripts/build_track_days_manifest.py
 
       - name: Regenerate sitemap.xml
         run: python3 generate_sitemap.py
 
-      - name: Commit manifest and renamed photo changes
+      - name: Commit manifest changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add images/gallery/ images/track-days/ sitemap.xml
+          git add images/gallery/manifest.json images/track-days/manifest.json sitemap.xml
           if ! git diff --cached --quiet; then
             git commit -m "Regenerate gallery and track days manifests, and sitemap"
             for i in 1 2 3 4 5; do

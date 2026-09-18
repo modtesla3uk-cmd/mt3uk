@@ -6,26 +6,32 @@ Run this before pushing to git: python generate_sitemap.py
 """
 
 import os
+import sys
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import quote
 from xml.sax.saxutils import escape
 
+sys.path.insert(0, str(Path(__file__).resolve().parent / "scripts"))
+from r2_client import PUBLIC_BASE_URL, get_client, list_objects
+
 # Configuration
 DOMAIN = "https://mt3uk.com"
 OUTPUT_FILE = "sitemap.xml"
-IMAGE_DIRS = ["images/gallery", "images/track-days", "images/site"]
+LOCAL_IMAGE_DIRS = ["images/site"]
+R2_PREFIXES = ["gallery/", "track-days/"]
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
 PAGES = ["index.html", "shop.html", "reviews.html", "contact.html", "track-day-prep.html"]
 
 def get_all_images():
-    """Scan image directories and return list of image URLs"""
+    """Scan the local site-image directory and the R2 bucket, returning a
+    list of image URLs."""
     images = []
-    
-    for img_dir in IMAGE_DIRS:
+
+    for img_dir in LOCAL_IMAGE_DIRS:
         if not os.path.exists(img_dir):
             continue
-            
+
         for root, dirs, files in os.walk(img_dir):
             for file in files:
                 if Path(file).suffix.lower() in ALLOWED_EXTENSIONS:
@@ -33,7 +39,14 @@ def get_all_images():
                     file_path = os.path.join(root, file)
                     url_path = quote(file_path.replace("\\", "/"))  # Windows compatibility + URL-encode
                     images.append(f"{DOMAIN}/{url_path}")
-    
+
+    client = get_client()
+    for prefix in R2_PREFIXES:
+        for obj in list_objects(client, prefix):
+            key = obj["Key"]
+            if Path(key).suffix.lower() in ALLOWED_EXTENSIONS:
+                images.append(f"{PUBLIC_BASE_URL}/{quote(key)}")
+
     return sorted(images)
 
 def generate_sitemap():

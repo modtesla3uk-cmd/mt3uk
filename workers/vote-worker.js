@@ -4,6 +4,7 @@ const BASE_BRANCH = 'main';
 const FEATURED_PATH = 'data/featured.json';
 const REVIEWS_PATH = 'data/reviews.json';
 const GALLERY_MANIFEST_URL = 'https://raw.githubusercontent.com/' + OWNER + '/' + REPO + '/' + BASE_BRANCH + '/images/gallery/manifest.json';
+const GALLERY_PUBLIC_BASE_URL = 'https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev';
 const VOTE_TTL_SECONDS = 60 * 60 * 24 * 3;
 const REVIEW_PRODUCTS = ['tee', 'tee-yellow', 'stickers', 'brace', 'pads-street', 'pads-carbotech'];
 const REVIEW_PHOTOS_PATH = 'images/reviews';
@@ -777,20 +778,11 @@ export default {
       var extMatch = (file.name || '').match(/\.[a-zA-Z0-9]+$/);
       var ext = extMatch ? extMatch[0].toLowerCase() : '.jpg';
       var slug = slugify(caption);
-      var timestamp = Date.now();
-      var branchName = 'submission/' + timestamp + '-' + slug;
 
-      var listRes = await fetch(
-        'https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/images/gallery?ref=' + BASE_BRANCH,
-        { headers: ghHeaders }
-      );
       var existingNames = [];
-      if (listRes.ok) {
-        var listData = await listRes.json();
-        if (Array.isArray(listData)) {
-          existingNames = listData.map(function (item) { return item.name; });
-        }
-      }
+      var listed = await env.GALLERY_BUCKET.list({ prefix: 'gallery/' });
+      existingNames = listed.objects.map(function (obj) { return obj.key.slice('gallery/'.length); });
+
       var nameSlug = name ? slugify(name) : '';
       var baseSlug = nameSlug ? slug + '--by-' + nameSlug : slug;
       var filename = baseSlug + ext;
@@ -800,93 +792,60 @@ export default {
         suffix++;
       }
 
-      var refRes = await fetch(
-        'https://api.github.com/repos/' + OWNER + '/' + REPO + '/git/ref/heads/' + BASE_BRANCH,
-        { headers: ghHeaders }
-      );
-      if (!refRes.ok) throw new Error('Could not read base branch (' + refRes.status + ')');
-      var refData = await refRes.json();
-      var baseSha = refData.object.sha;
-
-      var createRefRes = await fetch(
-        'https://api.github.com/repos/' + OWNER + '/' + REPO + '/git/refs',
-        {
-          method: 'POST',
-          headers: ghHeaders,
-          body: JSON.stringify({ ref: 'refs/heads/' + branchName, sha: baseSha })
-        }
-      );
-      if (!createRefRes.ok) throw new Error('Could not create branch (' + createRefRes.status + ')');
-
       var arrayBuffer = await file.arrayBuffer();
-      var base64Content = arrayBufferToBase64(arrayBuffer);
-
-      var putRes = await fetch(
-        'https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/images/gallery/' + filename,
-        {
-          method: 'PUT',
-          headers: ghHeaders,
-          body: JSON.stringify({
-            message: 'Add gallery submission: ' + caption,
-            content: base64Content,
-            branch: branchName
-          })
-        }
-      );
-      if (!putRes.ok) throw new Error('Could not commit photo (' + putRes.status + ')');
+      await env.GALLERY_BUCKET.put('gallery/' + filename, arrayBuffer, {
+        httpMetadata: { contentType: file.type }
+      });
 
       if (mods.length) {
-        var modsPutRes = await fetch(
-          'https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/images/gallery/' + filename + '.json',
-          {
-            method: 'PUT',
-            headers: ghHeaders,
-            body: JSON.stringify({
-              message: 'Add mods list for gallery submission: ' + caption,
-              content: arrayBufferToBase64(new TextEncoder().encode(JSON.stringify({ mods: mods }, null, 2) + '\n')),
-              branch: branchName
-            })
-          }
+        await env.GALLERY_BUCKET.put(
+          'gallery/' + filename + '.json',
+          JSON.stringify({ mods: mods }, null, 2) + '\n',
+          { httpMetadata: { contentType: 'application/json' } }
         );
-        if (!modsPutRes.ok) throw new Error('Could not commit mods list (' + modsPutRes.status + ')');
       }
 
-      var prBody = '**Caption:** ' + caption + '\n**Submitted by:** ' + (name || 'Anonymous') +
-        (mods.length ? '\n**Mods:** ' + mods.join(', ') : '') +
-        '\n\nMerge this PR to publish the photo to the live gallery, or close it to reject the submission.';
+      var photoUrl = GALLERY_PUBLIC_BASE_URL + '/gallery/' + filename;
 
-      var prRes = await fetch(
-        'https://api.github.com/repos/' + OWNER + '/' + REPO + '/pulls',
-        {
-          method: 'POST',
-          headers: ghHeaders,
-          body: JSON.stringify({
-            title: 'Gallery submission: ' + caption,
-            head: branchName,
-            base: BASE_BRANCH,
-            body: prBody
-          })
-        }
-      );
-      if (!prRes.ok) throw new Error('Could not open pull request (' + prRes.status + ')');
-      var prData = await prRes.json();
-
+      // No PR/review gate now the photo lands straight in R2 - open an
+      // issue instead so there's still a notification to act on if a
+      // submission needs pulling.
       try {
-        await fetch(
-          'https://api.github.com/repos/' + OWNER + '/' + REPO + '/issues/' + prData.number + '/comments',
+        var issueRes = await fetch(
+          'https://api.github.com/repos/' + OWNER + '/' + REPO + '/issues',
           {
             method: 'POST',
             headers: ghHeaders,
             body: JSON.stringify({
-              body: '@' + OWNER + ' New photo submission for review!'
+              title: 'Gallery submission: ' + caption,
+              body: '**Caption:** ' + caption + '\n**Submitted by:** ' + (name || 'Anonymous') +
+                (mods.length ? '\n**Mods:** ' + mods.join(', ') : '') +
+                '\n\n![photo](' + photoUrl + ')\n\n' +
+                'This photo is already live in the gallery. Close this issue once reviewed, ' +
+                'or say the word to have it pulled from R2 and the manifest regenerated.'
             })
           }
         );
-      } catch (commentErr) {
-        console.log('Comment creation failed (non-critical):', commentErr.message);
+        if (!issueRes.ok) console.log('Issue creation failed (non-critical):', issueRes.status);
+      } catch (issueErr) {
+        console.log('Issue creation failed (non-critical):', issueErr.message);
       }
 
-      return json({ success: true, pr_url: prData.html_url });
+      // Kick off the manifest/sitemap rebuild now the bucket has a new photo.
+      try {
+        await fetch(
+          'https://api.github.com/repos/' + OWNER + '/' + REPO + '/dispatches',
+          {
+            method: 'POST',
+            headers: ghHeaders,
+            body: JSON.stringify({ event_type: 'gallery-submission' })
+          }
+        );
+      } catch (dispatchErr) {
+        console.log('Manifest rebuild dispatch failed (non-critical):', dispatchErr.message);
+      }
+
+      return json({ success: true, photo_url: photoUrl });
     } catch (err) {
       return json({ success: false, message: err.message }, 500);
     }

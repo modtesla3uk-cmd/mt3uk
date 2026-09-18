@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Scans images/track-days/ and writes images/track-days/manifest.json listing
-every photo found there, with a caption auto-generated from the filename.
+Lists the track-days/ prefix in the mt3uk-gallery R2 bucket and writes
+images/track-days/manifest.json listing every photo found there, with a
+caption auto-generated from the filename.
 
-Photos are ordered most-recently-added first, using each file's earliest
-git commit date (the commit that added it) as the "added" timestamp. Files
-added in the same commit are tie-broken by an optional numeric filename
-prefix, then alphabetically:
+Photos are ordered most-recently-uploaded first, using each object's R2
+upload timestamp. Files uploaded in the same batch are tie-broken by an
+optional numeric filename prefix, then alphabetically:
   01-snetterton-track.jpg
   ^^ optional numeric prefix controls tie-break order (lowest first).
   the rest of the filename becomes the caption, e.g.
@@ -14,17 +14,19 @@ prefix, then alphabetically:
   spaces).
 
 This runs automatically in GitHub Actions on every push — nobody needs to
-run it by hand. Requires full git history (fetch-depth: 0) to correctly
-date files; falls back to treating undated files as oldest.
+run it by hand. Requires R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY env vars.
 """
 import json
 import re
-import subprocess
+import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from r2_client import PUBLIC_BASE_URL, get_client, list_objects
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
-TRACK_DAYS_DIR = REPO_ROOT / "images" / "track-days"
-MANIFEST_PATH = TRACK_DAYS_DIR / "manifest.json"
+MANIFEST_PATH = REPO_ROOT / "images" / "track-days" / "manifest.json"
+PREFIX = "track-days/"
 VALID_EXT = {".jpg", ".jpeg", ".png", ".webp"}
 
 
@@ -37,55 +39,32 @@ def caption_from_filename(stem: str) -> str:
     return " ".join(w.upper() for w in words if w)
 
 
-def manual_order_key(path: Path):
-    m = re.match(r"^(\d+)[-_]", path.stem)
+def manual_order_key(name: str):
+    m = re.match(r"^(\d+)[-_]", name)
     if m:
-        return (0, int(m.group(1)), path.name.lower())
-    return (1, 0, path.name.lower())
-
-
-def added_timestamp(path: Path) -> int:
-    rel = path.relative_to(REPO_ROOT).as_posix()
-    try:
-        result = subprocess.run(
-            ["git", "log", "--diff-filter=A", "--follow", "--format=%ct", "--", rel],
-            cwd=REPO_ROOT, capture_output=True, text=True, check=True,
-        )
-        lines = [line for line in result.stdout.splitlines() if line.strip()]
-        if lines:
-            return int(lines[-1])
-    except (subprocess.CalledProcessError, ValueError):
-        pass
-    return 0
+        return (0, int(m.group(1)), name.lower())
+    return (1, 0, name.lower())
 
 
 def main():
-    TRACK_DAYS_DIR.mkdir(parents=True, exist_ok=True)
-    photos = [
-        p for p in TRACK_DAYS_DIR.iterdir()
-        if p.is_file() and p.suffix.lower() in VALID_EXT
+    client = get_client()
+    objects = [
+        obj for obj in list_objects(client, PREFIX)
+        if Path(obj["Key"]).suffix.lower() in VALID_EXT
     ]
-
-    entries = [
-        {
-            "path": p,
-            "added_ts": added_timestamp(p),
-            "manual_key": manual_order_key(p),
-        }
-        for p in photos
-    ]
-    entries.sort(key=lambda e: (-e["added_ts"], e["manual_key"]))
+    objects.sort(key=lambda o: (-o["LastModified"].timestamp(), manual_order_key(Path(o["Key"]).name)))
 
     manifest = [
         {
-            "file": e["path"].name,
-            "caption": caption_from_filename(e["path"].stem),
+            "file": Path(obj["Key"]).name,
+            "caption": caption_from_filename(Path(obj["Key"]).stem),
         }
-        for e in entries
+        for obj in objects
     ]
 
+    MANIFEST_PATH.parent.mkdir(parents=True, exist_ok=True)
     MANIFEST_PATH.write_text(json.dumps(manifest, indent=2) + "\n")
-    print(f"Wrote {MANIFEST_PATH} with {len(manifest)} photo(s).")
+    print(f"Wrote {MANIFEST_PATH} with {len(manifest)} photo(s), served from {PUBLIC_BASE_URL}/{PREFIX}")
 
 
 if __name__ == "__main__":

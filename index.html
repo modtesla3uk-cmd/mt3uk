@@ -1623,6 +1623,7 @@
 <body>
 
 <script>
+  window.MT3UK_R2_BASE = 'https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev';
   window.mt3ukFetchJSON = (function () {
     var cache = {};
     return function (url, fallback, forceRefresh) {
@@ -1813,7 +1814,7 @@
         var featuredFile = (results[1] && results[1].file) || null;
         if (!photos.length) return;
         var featured = window.mt3ukPickBuild(photos, featuredFile);
-        img.src = 'images/gallery/' + featured.file;
+        img.src = window.MT3UK_R2_BASE + '/gallery/' + featured.file;
         img.alt = featured.caption || 'MT3UK featured build';
         caption.textContent = featured.caption || 'Today\'s featured build';
         var mods = featured.mods || [];
@@ -1894,7 +1895,7 @@
         stripEl.innerHTML = found.map(function (p) {
           var safeCaption = (p.caption || 'MT3UK member build').replace(/</g, '&lt;').replace(/"/g, '&quot;');
           var modsAttr = (p.mods && p.mods.length) ? ' data-mods="' + JSON.stringify(p.mods).replace(/"/g, '&quot;') + '"' : '';
-          return '<button type="button" class="sb-thumb"><img src="images/gallery/' + p.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy"' + modsAttr + '></button>';
+          return '<button type="button" class="sb-thumb"><img src="' + window.MT3UK_R2_BASE + '/gallery/' + p.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy"' + modsAttr + '></button>';
         }).join('');
       }).catch(function () {});
     }
@@ -1951,7 +1952,7 @@
       section.dataset.idx = String(idx);
       section.dataset.file = photo.file;
       section.innerHTML =
-        '<img class="bf-slide-img" src="images/gallery/' + photo.file.replace(/&/g, '&amp;') + '" alt="' + (safeCaption || 'MT3UK member build') + '" loading="lazy" draggable="false">' +
+        '<img class="bf-slide-img" src="' + window.MT3UK_R2_BASE + '/gallery/' + photo.file.replace(/&/g, '&amp;') + '" alt="' + (safeCaption || 'MT3UK member build') + '" loading="lazy" draggable="false">' +
         '<div class="bf-scrim bf-scrim-top"></div>' +
         '<div class="bf-scrim bf-scrim-bottom"></div>' +
         '<button class="bf-like-hit" aria-label="Like this build" data-idx="' + idx + '"></button>' +
@@ -2369,7 +2370,7 @@
 
         function renderGrid(photos) {
           if (!photos.length) {
-            grid.innerHTML = '<p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">No photos yet, drop some into images/gallery/ on GitHub.</p>';
+            grid.innerHTML = '<p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">No photos yet, upload some to the gallery/ prefix in R2.</p>';
             return;
           }
           grid.innerHTML = photos.map(function (p) {
@@ -2383,7 +2384,7 @@
                 p.mods.length +
               '</button>' : '';
             return '<div class="gallery-slot filled">' +
-                     '<img src="images/gallery/' + p.file.replace(/&/g, '&amp;') + '" alt="' + (safeCaption || 'MT3UK member build') + '" loading="lazy"' + modsAttr + '>' +
+                     '<img src="' + window.MT3UK_R2_BASE + '/gallery/' + p.file.replace(/&/g, '&amp;') + '" alt="' + (safeCaption || 'MT3UK member build') + '" loading="lazy"' + modsAttr + '>' +
                      modsBadge +
                      captionHtml +
                    '</div>';
@@ -3004,13 +3005,13 @@
 
       function renderGrid(photos) {
         if (!photos.length) {
-          grid.innerHTML = '<p class="mono">No track days yet, drop some into images/track-days/ on GitHub.</p>';
+          grid.innerHTML = '<p class="mono">No track days yet, upload some to the track-days/ prefix in R2.</p>';
           renderVenueContext('');
           return;
         }
         grid.innerHTML = photos.map(function (p) {
           var safeCaption = p.caption.replace(/</g, '&lt;');
-          return '<img src="images/track-days/' + p.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy">' +
+          return '<img src="' + window.MT3UK_R2_BASE + '/track-days/' + p.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy">' +
                  '<span class="g-caption">' + safeCaption + '</span>';
         }).join('');
         renderVenueContext(photos[0].caption);
@@ -3136,7 +3137,7 @@
           frame.innerHTML =
             '<div class="botm-media">' +
               '<span class="botm-badge">FEATURED TODAY</span>' +
-              '<img src="images/gallery/' + featured.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy">' +
+              '<img src="' + window.MT3UK_R2_BASE + '/gallery/' + featured.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy">' +
               modsBadge +
               votedByBadge +
             '</div>' +
@@ -3236,7 +3237,7 @@
         currentVoteIndex = (index + candidates.length) % candidates.length;
         var c = candidates[currentVoteIndex];
         var safeCaption = c.caption || 'MT3UK build';
-        if (lightboxImg) { lightboxImg.src = 'images/gallery/' + c.file; lightboxImg.alt = safeCaption; }
+        if (lightboxImg) { lightboxImg.src = window.MT3UK_R2_BASE + '/gallery/' + c.file; lightboxImg.alt = safeCaption; }
         if (lightboxCaption) lightboxCaption.textContent = safeCaption;
         var lightboxMods = lightbox.querySelector('.lightbox-mods');
         if (lightboxMods) {
@@ -3309,7 +3310,7 @@
             '</button>' : '';
           return (
             '<div class="vote-card' + (isVoted ? ' voted' : '') + (isLeading ? ' leading' : '') + '" data-file="' + c.file.replace(/"/g, '&quot;') + '">' +
-              '<div class="vote-media"><img src="images/gallery/' + c.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy">' + modsBadge + '</div>' +
+              '<div class="vote-media"><img src="' + window.MT3UK_R2_BASE + '/gallery/' + c.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy">' + modsBadge + '</div>' +
               '<div class="vote-body">' +
                 '<span class="vote-caption">' + safeCaption + '</span>' +
                 '<span class="vote-count">' + c.votes + (c.votes === 1 ? ' vote' : ' votes') + '</span>' +

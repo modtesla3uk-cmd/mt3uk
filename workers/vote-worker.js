@@ -1,3 +1,5 @@
+import { EmailMessage } from 'cloudflare:email';
+
 const OWNER = 'modtesla3uk-cmd';
 const REPO = 'mt3uk';
 const BASE_BRANCH = 'main';
@@ -14,6 +16,10 @@ const MAX_REVIEW_PHOTOS = 3;
 const MAX_REVIEW_PHOTO_BYTES = 5 * 1024 * 1024;
 const SHOPIFY_PRODUCTS_URL = 'https://mt3uk.myshopify.com/products.json?limit=250';
 const SHOP_PRODUCTS_CACHE_SECONDS = 60 * 2;
+const MY_BUILDS_FROM_EMAIL = 'noreply@mt3uk.com';
+const MY_BUILDS_LINK_TTL_SECONDS = 15 * 60;
+const MY_BUILDS_SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
+const MY_BUILDS_SITE_URL = 'https://mt3uk.com';
 
 function json(data, status) {
   return new Response(JSON.stringify(data), {
@@ -22,7 +28,7 @@ function json(data, status) {
       'Content-Type': 'application/json',
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, X-Voter-Id'
+      'Access-Control-Allow-Headers': 'Content-Type, X-Voter-Id, X-Session-Token'
     }
   });
 }
@@ -434,6 +440,216 @@ async function handleLikePost(request, env) {
   return json({ success: true, voterId: voterId, file: file, liked: liked, count: count });
 }
 
+function randomToken() {
+  return crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
+}
+
+function rawEmail(from, to, subject, bodyText) {
+  var lines = [
+    'From: MT3UK <' + from + '>',
+    'To: ' + to,
+    'Subject: ' + subject,
+    'MIME-Version: 1.0',
+    'Content-Type: text/plain; charset=utf-8',
+    '',
+    bodyText
+  ];
+  return lines.join('\r\n');
+}
+
+async function sendMyBuildsLinkEmail(env, toEmail, link) {
+  var subject = 'Your My Builds sign-in link';
+  var body = 'Click the link below to manage your MT3UK build(s):\n\n' + link +
+    '\n\nThis link expires in 15 minutes and can only be used once. ' +
+    'If you did not request this, you can ignore this email.';
+  var message = new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body));
+  await env.SEND_EMAIL.send(message);
+}
+
+async function getSubscriberFiles(env, email) {
+  var raw = await env.VOTES.get('subscriber:' + email);
+  if (!raw) return [];
+  try {
+    var parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+async function addSubscriberFiles(env, email, files) {
+  var existing = await getSubscriberFiles(env, email);
+  files.forEach(function (f) {
+    if (existing.indexOf(f) === -1) existing.push(f);
+  });
+  await env.VOTES.put('subscriber:' + email, JSON.stringify(existing));
+}
+
+async function removeSubscriberFile(env, email, file) {
+  var existing = await getSubscriberFiles(env, email);
+  var idx = existing.indexOf(file);
+  if (idx === -1) return;
+  existing.splice(idx, 1);
+  await env.VOTES.put('subscriber:' + email, JSON.stringify(existing));
+}
+
+async function resolveSession(request, env) {
+  var token = request.headers.get('X-Session-Token');
+  if (!token) return null;
+  return env.VOTES.get('my-builds-session:' + token);
+}
+
+async function triggerManifestRebuild(env) {
+  var ghHeaders = {
+    'Authorization': 'Bearer ' + env.GITHUB_TOKEN,
+    'Accept': 'application/vnd.github+json',
+    'User-Agent': 'mt3uk-gallery-worker',
+    'X-GitHub-Api-Version': '2022-11-28'
+  };
+  try {
+    await fetch(
+      'https://api.github.com/repos/' + OWNER + '/' + REPO + '/dispatches',
+      {
+        method: 'POST',
+        headers: ghHeaders,
+        body: JSON.stringify({ event_type: 'gallery-submission' })
+      }
+    );
+  } catch (dispatchErr) {
+    console.log('Manifest rebuild dispatch failed (non-critical):', dispatchErr.message);
+  }
+}
+
+async function handleMyBuildsRequestLink(request, env) {
+  var body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return json({ success: false, message: 'Invalid request body' }, 400);
+  }
+
+  var email = ((body && body.email) || '').toString().trim().toLowerCase().slice(0, 200);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return json({ success: false, message: 'Please enter a valid email' }, 400);
+  }
+
+  var files = await getSubscriberFiles(env, email);
+  if (files.length) {
+    var token = randomToken();
+    await env.VOTES.put('my-builds-link:' + token, email, { expirationTtl: MY_BUILDS_LINK_TTL_SECONDS });
+    var link = MY_BUILDS_SITE_URL + '/my-builds.html?token=' + token;
+    try {
+      await sendMyBuildsLinkEmail(env, email, link);
+    } catch (err) {
+      console.log('My Builds link email failed:', err.message);
+    }
+  }
+
+  // Always return the same message, whether or not that email has any
+  // builds on file, so this endpoint can't be used to check who's submitted.
+  return json({ success: true, message: "If that email has submitted a build, we've sent a sign-in link." });
+}
+
+async function handleMyBuildsSession(request, env) {
+  var token = new URL(request.url).searchParams.get('token') || '';
+  var email = token ? await env.VOTES.get('my-builds-link:' + token) : null;
+  if (!email) {
+    return json({ success: false, message: 'That link is invalid or has expired.' }, 400);
+  }
+  await env.VOTES.delete('my-builds-link:' + token);
+
+  var session = randomToken();
+  await env.VOTES.put('my-builds-session:' + session, email, { expirationTtl: MY_BUILDS_SESSION_TTL_SECONDS });
+
+  return json({ success: true, session: session, email: email });
+}
+
+async function handleMyBuildsGet(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+
+  var files = await getSubscriberFiles(env, email);
+  var manifest = files.length ? await fetchGalleryManifest() : [];
+  var byFile = {};
+  manifest.forEach(function (p) { byFile[p.file] = p; });
+
+  var builds = files.map(function (f) {
+    var entry = byFile[f] || { file: f };
+    return {
+      file: f,
+      caption: entry.caption || '',
+      mods: entry.mods || [],
+      gallery: entry.gallery !== false,
+      reel: entry.reel !== false,
+      votable: entry.votable !== false
+    };
+  });
+
+  return json({ success: true, email: email, builds: builds });
+}
+
+async function handleMyBuildsUpdate(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+
+  var body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return json({ success: false, message: 'Invalid request body' }, 400);
+  }
+
+  var file = ((body && body.file) || '').toString();
+  var files = await getSubscriberFiles(env, email);
+  if (files.indexOf(file) === -1) {
+    return json({ success: false, message: 'That build is not linked to your account' }, 403);
+  }
+
+  var sidecarKey = 'gallery/' + file + '.json';
+  var sidecar = {};
+  try {
+    var existingObj = await env.GALLERY_BUCKET.get(sidecarKey);
+    if (existingObj) sidecar = await existingObj.json();
+  } catch (e) {}
+
+  ['gallery', 'reel', 'votable'].forEach(function (flag) {
+    if (typeof (body && body[flag]) === 'boolean') {
+      if (body[flag] === false) {
+        sidecar[flag] = false;
+      } else {
+        delete sidecar[flag];
+      }
+    }
+  });
+
+  await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
+    httpMetadata: { contentType: 'application/json' }
+  });
+
+  await triggerManifestRebuild(env);
+
+  return json({ success: true, file: file });
+}
+
+async function handleMyBuildsDelete(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+
+  var file = new URL(request.url).searchParams.get('file') || '';
+  var files = await getSubscriberFiles(env, email);
+  if (files.indexOf(file) === -1) {
+    return json({ success: false, message: 'That build is not linked to your account' }, 403);
+  }
+
+  await env.GALLERY_BUCKET.delete('gallery/' + file);
+  await env.GALLERY_BUCKET.delete('gallery/' + file + '.json');
+  await removeSubscriberFile(env, email, file);
+
+  await triggerManifestRebuild(env);
+
+  return json({ success: true, deleted: file });
+}
+
 async function handleReviewPost(request, env) {
   var body;
   try {
@@ -731,6 +947,21 @@ export default {
     if (url.pathname === '/shop-products' && request.method === 'GET') {
       return handleShopProducts(request, ctx);
     }
+    if (url.pathname === '/my-builds/request-link' && request.method === 'POST') {
+      return handleMyBuildsRequestLink(request, env);
+    }
+    if (url.pathname === '/my-builds/session' && request.method === 'GET') {
+      return handleMyBuildsSession(request, env);
+    }
+    if (url.pathname === '/my-builds' && request.method === 'GET') {
+      return handleMyBuildsGet(request, env);
+    }
+    if (url.pathname === '/my-builds' && request.method === 'PUT') {
+      return handleMyBuildsUpdate(request, env);
+    }
+    if (url.pathname === '/my-builds' && request.method === 'DELETE') {
+      return handleMyBuildsDelete(request, env);
+    }
 
     if (request.method !== 'POST') {
       return json({ success: false, message: 'Method not allowed' }, 405);
@@ -756,6 +987,10 @@ export default {
     }
 
     var name = (formData.get('name') || '').toString().trim().slice(0, 100);
+    var email = (formData.get('email') || '').toString().trim().toLowerCase().slice(0, 200);
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return json({ success: false, message: 'Please enter a valid email' }, 400);
+    }
     var caption = (formData.get('caption') || '').toString().trim().slice(0, 150);
     var modsRaw = (formData.get('mods') || '').toString().trim().slice(0, 1000);
     var mods = modsRaw
@@ -873,6 +1108,11 @@ export default {
       }
 
       await env.VOTES.put(cooldownKey, '1', { expirationTtl: GALLERY_SUBMIT_COOLDOWN_SECONDS });
+
+      if (email) {
+        var submittedFiles = existingNames.slice(existingNames.length - photoUrls.length);
+        await addSubscriberFiles(env, email, submittedFiles);
+      }
 
       return json({ success: true, photo_url: photoUrls[0], photo_urls: photoUrls });
     } catch (err) {

@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Contact MT3UK</title>
-<meta name="description" content="Get in touch with MT3UK, the community for modified Tesla owners. Find us on Facebook, Instagram, or drop us an email.">
-<link rel="canonical" href="https://mt3uk.com/contact.html">
+<title>My Builds (BETA) &mdash; MT3UK</title>
+<meta name="description" content="Manage the builds you've submitted to the MT3UK gallery: control where they appear and edit or remove them.">
+<link rel="canonical" href="https://mt3uk.com/my-builds.html">
 <link rel="icon" type="image/x-icon" href="images/site/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="images/site/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="images/site/favicon-16.png">
@@ -16,14 +16,15 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MT3UK">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Contact MT3UK">
-<meta property="og:description" content="Get in touch with MT3UK, the community for modified Tesla owners. Find us on Facebook, Instagram, or drop us an email.">
+<meta property="og:title" content="My Builds (BETA) &mdash; MT3UK">
+<meta property="og:description" content="Manage the builds you've submitted to the MT3UK gallery: control where they appear and edit or remove them.">
 <meta property="og:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
-<meta property="og:url" content="https://mt3uk.com/contact.html">
+<meta property="og:url" content="https://mt3uk.com/my-builds.html">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Contact MT3UK">
-<meta name="twitter:description" content="Get in touch with MT3UK, the community for modified Tesla owners. Find us on Facebook, Instagram, or drop us an email.">
+<meta name="twitter:title" content="My Builds (BETA) &mdash; MT3UK">
+<meta name="twitter:description" content="Manage the builds you've submitted to the MT3UK gallery: control where they appear and edit or remove them.">
 <meta name="twitter:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
+<meta name="robots" content="noindex">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap');
@@ -85,58 +86,6 @@
     background: rgba(243,241,234,0.92);
     backdrop-filter: blur(6px);
     border-bottom: 1px solid var(--ink);
-  }
-
-  .promo-banner { background: var(--orange); }
-  .promo-banner-inner {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 44px 10px 0;
-    position: relative;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.8rem;
-    overflow: hidden;
-  }
-  .promo-banner-inner::after {
-    content: '';
-    position: absolute;
-    top: 0; right: 0; bottom: 0;
-    width: 48px;
-    background: linear-gradient(to right, rgba(232,84,42,0), var(--orange) 70%);
-    pointer-events: none;
-  }
-  .promo-banner-track {
-    display: flex;
-    align-items: center;
-    white-space: nowrap;
-    animation: promo-marquee 18s linear infinite;
-  }
-  .promo-banner-msg { color: var(--paper); text-decoration: none; font-weight: 600; padding-right: 48px; flex-shrink: 0; }
-  @keyframes promo-marquee {
-    from { transform: translateX(0); }
-    to { transform: translateX(-50%); }
-  }
-  .promo-banner-close {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: var(--paper);
-    font-size: 1.1rem;
-    line-height: 1;
-    cursor: pointer;
-    padding: 4px;
-    z-index: 1;
-  }
-  .promo-banner-close:hover { opacity: 0.7; }
-  @media (max-width: 600px) {
-    .promo-banner-inner { font-size: 0.74rem; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .promo-banner-track { animation: none; }
   }
 
   nav {
@@ -203,12 +152,12 @@
     white-space: nowrap;
   }
   .nav-sublink:hover { opacity: 0.65; }
-  .nav-link-shop, .nav-sublink-new, .nav-link-mybuilds { display: inline-flex; align-items: center; gap: 6px; }
+  .nav-sublink-new, .nav-link-mybuilds { display: inline-flex; align-items: center; gap: 6px; }
   .nav-subitem { position: relative; }
   .nav-subitem > .nav-sublink { flex: 1; }
   a.nav-sublink-offer { display: block; color: var(--orange); font-weight: 600; border-top: 1px solid rgba(22,35,61,0.15); }
 
-  .nav-link-shop::after, .nav-sublink-new::after {
+  .nav-sublink-new::after {
     content: 'NEW';
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.62rem;
@@ -449,8 +398,20 @@
   }
   .page-hero .back-link:hover { color: var(--orange); }
   .page-hero .section-num { display: block; margin-bottom: 10px; }
-  .page-hero h1 { max-width: 20ch; margin-bottom: 14px; }
+  .page-hero h1 { max-width: 20ch; margin-bottom: 14px; display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .page-hero p { color: var(--ink-2); max-width: 58ch; font-size: 1.05rem; }
+  .beta-pill {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--paper);
+    background: var(--orange);
+    padding: 3px 7px;
+    border-radius: 3px;
+    line-height: 1;
+    vertical-align: middle;
+  }
 
   @media (max-width: 780px) {
     .page-hero { padding: 26px 0 22px; }
@@ -462,51 +423,81 @@
   @media (min-width: 901px) {
     .page-hero .wrap { text-align: center; }
     .page-hero h1, .page-hero p { max-width: none; margin-left: auto; margin-right: auto; }
-    .page-hero h1 { max-width: 40ch; }
+    .page-hero h1 { max-width: 40ch; justify-content: center; }
     .page-hero p { max-width: 58ch; }
   }
 
-  /* ---------- CONTACT ---------- */
-  .contact-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 22px;
+  /* ---------- BETA NOTICE ---------- */
+  .beta-notice {
+    max-width: 640px;
+    margin: 0 auto 28px;
+    border: 1px solid var(--orange);
+    background: rgba(232,84,42,0.08);
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    color: var(--ink-2);
   }
-  @media (max-width: 700px) { .contact-grid { grid-template-columns: 1fr; } }
+  .beta-notice strong { color: var(--ink); }
 
-  .contact-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 14px;
-    text-align: center;
+  /* ---------- MY BUILDS ---------- */
+  .mb-card {
+    max-width: 440px;
+    margin: 0 auto;
     border: 1px solid var(--ink);
-    padding: 36px 24px;
-    transition: border-color 0.2s ease, transform 0.2s ease;
+    padding: 32px 28px;
   }
-  .contact-card:hover, .contact-card:focus-visible {
-    border-color: var(--orange);
-    transform: translateY(-2px);
+  .mb-card h2 { font-size: 1.15rem; margin-bottom: 8px; }
+  .mb-card p { color: var(--steel); font-size: 0.9rem; margin-bottom: 18px; }
+  .mb-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+  .mb-field label { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; letter-spacing: 0.06em; color: var(--steel); }
+  .mb-field input[type="email"] {
+    border: 1px solid var(--ink);
+    background: var(--white);
+    padding: 11px 12px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.92rem;
+    color: var(--charcoal);
   }
-  .contact-card-icon {
-    width: 52px;
-    height: 52px;
-    display: flex;
+  .mb-field input[type="email"]:focus { outline: none; border-color: var(--orange); }
+  .mb-btn {
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
+    gap: 8px;
     background: var(--ink);
     color: var(--paper);
+    border: 1px solid var(--ink);
+    padding: 11px 18px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 600;
+    font-size: 0.92rem;
+    cursor: pointer;
+    width: 100%;
   }
-  .contact-card-icon svg { width: 26px; height: 26px; }
-  .contact-card-icon.contact-icon-fb { background: #1877f2; }
-  .contact-card-icon.contact-icon-ig {
-    background: radial-gradient(circle at 30% 110%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
-  }
-  .contact-card-icon.contact-icon-email { background: var(--orange); }
-  .contact-card-icon.contact-icon-kofi { background: #13c3ff; }
-  .contact-card h3 { font-size: 1.02rem; }
-  .contact-card p { color: var(--steel); font-size: 0.85rem; word-break: break-word; }
+  .mb-btn:hover { background: var(--orange); border-color: var(--orange); }
+  .mb-btn:disabled { opacity: 0.6; cursor: default; }
+  .mb-status { margin-top: 12px; font-size: 0.85rem; }
+  .mb-status.mb-status-ok { color: #1c8a4b; font-weight: 700; }
+  .mb-status.mb-status-err { color: var(--orange); }
+
+  .mb-signed-in { display: flex; align-items: center; justify-content: space-between; gap: 12px; max-width: 720px; margin: 0 auto 28px; font-size: 0.85rem; color: var(--steel); }
+  .mb-signout-btn { background: transparent; border: 1px solid var(--line); color: var(--ink); padding: 7px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; cursor: pointer; }
+  .mb-signout-btn:hover { border-color: var(--orange); color: var(--orange); }
+
+  .mb-grid { display: flex; flex-direction: column; gap: 18px; max-width: 720px; margin: 0 auto; }
+  .mb-build-card { display: flex; gap: 16px; border: 1px solid var(--ink); padding: 16px; }
+  .mb-build-thumb { width: 110px; height: 110px; flex-shrink: 0; overflow: hidden; border: 1px solid var(--ink); }
+  .mb-build-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .mb-build-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+  .mb-build-caption { font-weight: 600; color: var(--ink); word-break: break-word; }
+  .mb-toggles { display: flex; flex-wrap: wrap; gap: 14px; }
+  .mb-toggle { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; cursor: pointer; }
+  .mb-toggle input { accent-color: var(--orange); width: 16px; height: 16px; }
+  .mb-build-actions { display: flex; gap: 10px; margin-top: auto; }
+  .mb-delete-btn { background: transparent; border: 1px solid var(--line); color: var(--ink); padding: 7px 12px; font-size: 0.78rem; cursor: pointer; }
+  .mb-delete-btn:hover { border-color: var(--orange); color: var(--orange); }
+  .mb-delete-btn.mb-delete-confirm { border-color: var(--orange); color: var(--paper); background: var(--orange); }
+  .mb-empty { text-align: center; color: var(--steel); font-size: 0.9rem; max-width: 480px; margin: 0 auto; }
 
   /* ---------- FOOTER ---------- */
   footer { padding: 40px 0; }
@@ -523,72 +514,13 @@
     outline: 2px solid var(--orange);
     outline-offset: 2px;
   }
-
-  .a2hs-banner {
-    position: fixed;
-    left: 16px;
-    right: 16px;
-    bottom: -120px;
-    z-index: 300;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    max-width: 480px;
-    margin: 0 auto;
-    background: var(--ink);
-    color: var(--paper);
-    border: 1px solid var(--orange);
-    padding: 14px 18px;
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-size: 0.85rem;
-    transition: bottom .3s ease;
-  }
-  .a2hs-banner.show { bottom: 16px; }
-  .a2hs-banner .a2hs-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-  .a2hs-banner .a2hs-btn {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.04em;
-    cursor: pointer;
-    border: none;
-    background: transparent;
-    color: var(--paper);
-  }
-  .a2hs-banner .a2hs-install { background: var(--orange); color: var(--paper); padding: 8px 12px; }
-  .a2hs-banner .a2hs-close { font-size: 1.2rem; line-height: 1; padding: 0 4px; }
-  @media (max-width: 480px) {
-    .a2hs-banner { flex-direction: column; align-items: flex-start; }
-  }
 </style>
 </head>
 <body>
 
-<!-- Promo banner disabled: no active offer. Re-enable by removing this comment wrapper when a new promo is ready.
-<div class="promo-banner" id="promo-banner">
-  <div class="promo-banner-inner">
-    <div class="promo-banner-track">
-      <a href="shop.html#tee" class="promo-banner-msg">&#9201; New Tee options available!! | Hoodies | Club Stickers | Master Cylinder Braces | Brake Pads | Number Plates, shop now &rarr;</a>
-      <a href="shop.html#tee" class="promo-banner-msg" aria-hidden="true">&#9201; New Tee options available!! | Hoodies | Club Stickers | Master Cylinder Braces | Brake Pads | Number Plates, shop now &rarr;</a>
-    </div>
-    <button type="button" class="promo-banner-close" id="promo-banner-close" aria-label="Dismiss banner">&times;</button>
-  </div>
-</div>
 <script>
-  (function () {
-    var KEY = 'mt3uk-promo-tee-dismissed';
-    var EXPIRY_MS = 7 * 24 * 60 * 60 * 1000;
-    var banner = document.getElementById('promo-banner');
-    if (!banner) return;
-    var dismissedAt = parseInt(localStorage.getItem(KEY), 10);
-    if (dismissedAt && (Date.now() - dismissedAt) < EXPIRY_MS) { banner.remove(); return; }
-    document.getElementById('promo-banner-close').addEventListener('click', function () {
-      banner.remove();
-      try { localStorage.setItem(KEY, String(Date.now())); } catch (e) {}
-    });
-  })();
+  window.MT3UK_R2_BASE = 'https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev';
 </script>
--->
 
 <header>
   <nav>
@@ -642,10 +574,10 @@
       </div>
       <a href="index.html#faq" class="nav-link">FAQs</a>
       <div class="nav-item">
-        <a href="my-builds.html" class="nav-link nav-link-mybuilds">My Builds</a>
+        <a href="my-builds.html" class="nav-link nav-link-mybuilds active">My Builds</a>
       </div>
       <div class="nav-item">
-        <a href="contact.html" class="nav-link active">Contact</a>
+        <a href="contact.html" class="nav-link">Contact</a>
         <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Contact submenu">&#9660;</button>
         <div class="nav-dropdown">
           <a href="https://ko-fi.com/mt3uk" class="nav-sublink" target="_blank" rel="noopener">Support Us</a>
@@ -671,43 +603,39 @@
 <section class="page-hero">
   <div class="wrap">
     <a href="index.html" class="back-link">&larr; Back to MT3UK</a>
-    <span class="section-num mono">CONTACT</span>
-    <h1>Get in touch</h1>
-    <p>The quickest way to reach the community is the Facebook group, but you can also find us here.</p>
+    <span class="section-num mono">MY BUILDS</span>
+    <h1>My Builds <span class="beta-pill">BETA</span></h1>
+    <p>Manage the build(s) you've submitted to the gallery: choose where they appear, or remove them.</p>
   </div>
 </section>
 
 <section>
   <div class="wrap">
-    <div class="contact-grid">
-      <a class="contact-card" href="https://www.facebook.com/MT3UK" target="_blank" rel="noopener">
-        <span class="contact-card-icon contact-icon-fb">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5.02 3.66 9.18 8.44 9.94v-7.03H7.9v-2.91h2.54V9.85c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.23.2 2.23.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.88h2.78l-.44 2.91h-2.34V22c4.78-.76 8.44-4.92 8.44-9.94Z"/></svg>
-        </span>
-        <h3>Facebook</h3>
-        <p>facebook.com/MT3UK</p>
-      </a>
-      <a class="contact-card" href="https://www.instagram.com/mt3uk_com/" target="_blank" rel="noopener">
-        <span class="contact-card-icon contact-icon-ig">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c-2.717 0-3.056.012-4.123.06-1.064.049-1.791.218-2.427.465a4.902 4.902 0 0 0-1.772 1.153A4.902 4.902 0 0 0 2.525 5.45c-.247.636-.416 1.363-.465 2.427C2.012 8.944 2 9.283 2 12s.012 3.056.06 4.123c.049 1.064.218 1.791.465 2.427a4.902 4.902 0 0 0 1.153 1.772 4.902 4.902 0 0 0 1.772 1.153c.636.247 1.363.416 2.427.465C8.944 21.988 9.283 22 12 22s3.056-.012 4.123-.06c1.064-.049 1.791-.218 2.427-.465a4.902 4.902 0 0 0 1.772-1.153 4.902 4.902 0 0 0 1.153-1.772c.247-.636.416-1.363.465-2.427.048-1.067.06-1.406.06-4.123s-.012-3.056-.06-4.123c-.049-1.064-.218-1.791-.465-2.427a4.902 4.902 0 0 0-1.153-1.772A4.902 4.902 0 0 0 18.55 2.525c-.636-.247-1.363-.416-2.427-.465C15.056 2.012 14.717 2 12 2zm0 1.802c2.67 0 2.987.01 4.042.059.976.045 1.505.207 1.858.344.467.182.8.399 1.15.748.35.35.566.683.748 1.15.137.353.3.882.344 1.858.05 1.055.059 1.372.059 4.042s-.01 2.987-.059 4.042c-.045.976-.207 1.505-.344 1.858a3.1 3.1 0 0 1-.748 1.15 3.1 3.1 0 0 1-1.15.748c-.353.137-.882.3-1.858.344-1.054.05-1.371.059-4.042.059s-2.987-.01-4.042-.059c-.976-.045-1.505-.207-1.858-.344a3.1 3.1 0 0 1-1.15-.748 3.1 3.1 0 0 1-.748-1.15c-.137-.353-.3-.882-.344-1.858-.048-1.055-.059-1.372-.059-4.042s.01-2.987.059-4.042c.045-.976.207-1.505.344-1.858.182-.467.399-.8.748-1.15.35-.35.683-.566 1.15-.748.353-.137.882-.3 1.858-.344 1.055-.05 1.372-.059 4.042-.059zm0 3.063a5.135 5.135 0 1 0 0 10.27 5.135 5.135 0 0 0 0-10.27zm0 8.468a3.333 3.333 0 1 1 0-6.666 3.333 3.333 0 0 1 0 6.666zm6.538-8.671a1.2 1.2 0 1 1-2.4 0 1.2 1.2 0 0 1 2.4 0z"/></svg>
-        </span>
-        <h3>Instagram</h3>
-        <p>@mt3uk_com</p>
-      </a>
-      <a class="contact-card" href="https://ko-fi.com/mt3uk" target="_blank" rel="noopener">
-        <span class="contact-card-icon contact-icon-kofi">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h14a2 2 0 0 1 2 2v1h1a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3h-1.28A7 7 0 0 1 12 19H8a7 7 0 0 1-7-7V5a2 2 0 0 1 2-2zm14 4v6a5 5 0 0 1-.08.9H19a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1h-1V7h1a1 1 0 0 0-1-1h-1z"/></svg>
-        </span>
-        <h3>Ko-fi</h3>
-        <p>Support us with a coffee</p>
-      </a>
-      <a class="contact-card" href="mailto:modtesla3uk@gmail.com">
-        <span class="contact-card-icon contact-icon-email">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm1.4 2 7.1 5.6a1 1 0 0 0 1 0L19.6 7H4.4zM20 8.4l-7.4 5.8a2 2 0 0 1-2.4 0L3 8.4V17h17V8.4z"/></svg>
-        </span>
-        <h3>Email</h3>
-        <p>modtesla3uk@gmail.com</p>
-      </a>
+    <div class="beta-notice">
+      <strong>This feature is in beta.</strong> It only covers builds submitted with an email address attached going forward &mdash; older submissions aren't linked to an account. Expect rough edges, and let us know via <a href="contact.html" style="text-decoration:underline;">Contact</a> if something looks wrong.
+    </div>
+
+    <div id="mb-signin-view">
+      <div class="mb-card" id="mb-signin-card">
+        <h2>Sign in</h2>
+        <p>Enter the email you used when submitting a build, and we'll send you a sign-in link.</p>
+        <form id="mb-signin-form">
+          <div class="mb-field">
+            <label class="mono" for="mb-email">Email</label>
+            <input type="email" id="mb-email" name="email" placeholder="you@example.com" required autocomplete="email">
+          </div>
+          <button type="submit" class="mb-btn" id="mb-signin-btn">Send me a sign-in link</button>
+          <p class="mb-status" id="mb-signin-status"></p>
+        </form>
+      </div>
+    </div>
+
+    <div id="mb-app-view" style="display:none;">
+      <div class="mb-signed-in">
+        <span>Signed in as <strong id="mb-account-email"></strong></span>
+        <button type="button" class="mb-signout-btn" id="mb-signout-btn">Sign out</button>
+      </div>
+      <div class="mb-grid" id="mb-grid"></div>
     </div>
   </div>
 </section>
@@ -773,76 +701,204 @@
 
 <script>
   (function () {
-    var STORAGE_VISITS = 'mt3ukVisitCount';
-    var STORAGE_DISMISSED = 'mt3ukA2HSDismissed';
-    var SESSION_FLAG = 'mt3ukVisitCounted';
+    var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
+    var SESSION_KEY = 'mt3ukMyBuildsSession';
+    var EMAIL_KEY = 'mt3ukMyBuildsEmail';
 
-    function isStandalone() {
-      return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    var signinView = document.getElementById('mb-signin-view');
+    var appView = document.getElementById('mb-app-view');
+    var signinForm = document.getElementById('mb-signin-form');
+    var signinBtn = document.getElementById('mb-signin-btn');
+    var signinStatus = document.getElementById('mb-signin-status');
+    var accountEmailEl = document.getElementById('mb-account-email');
+    var signoutBtn = document.getElementById('mb-signout-btn');
+    var grid = document.getElementById('mb-grid');
+
+    function setStatus(el, message, kind) {
+      el.textContent = message;
+      el.className = 'mb-status' + (kind ? ' mb-status-' + kind : '');
     }
 
-    if (isStandalone() || localStorage.getItem(STORAGE_DISMISSED) === '1') return;
-
-    if (!sessionStorage.getItem(SESSION_FLAG)) {
-      sessionStorage.setItem(SESSION_FLAG, '1');
-      var visits = parseInt(localStorage.getItem(STORAGE_VISITS) || '0', 10) + 1;
-      localStorage.setItem(STORAGE_VISITS, String(visits));
+    function getSession() { return localStorage.getItem(SESSION_KEY); }
+    function setSession(token, email) {
+      localStorage.setItem(SESSION_KEY, token);
+      localStorage.setItem(EMAIL_KEY, email);
     }
-    var visitCount = parseInt(localStorage.getItem(STORAGE_VISITS) || '0', 10);
-    if (visitCount < 2) return;
-
-    var deferredPrompt = null;
-    var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
-    var bannerShown = false;
-
-    function dismiss(banner) {
-      banner.classList.remove('show');
-      setTimeout(function () { banner.remove(); }, 300);
-      localStorage.setItem(STORAGE_DISMISSED, '1');
+    function clearSession() {
+      localStorage.removeItem(SESSION_KEY);
+      localStorage.removeItem(EMAIL_KEY);
     }
 
-    function showBanner() {
-      if (bannerShown) return;
-      bannerShown = true;
-      var banner = document.createElement('div');
-      banner.className = 'a2hs-banner';
-      banner.innerHTML =
-        '<span class="a2hs-text">' + (isIOS
-          ? 'Add MT3UK to your Home Screen: tap Share, then \'Add to Home Screen\'.'
-          : 'Install MT3UK for quicker access to builds and voting.') + '</span>' +
-        '<span class="a2hs-actions">' +
-          (isIOS ? '' : '<button type="button" class="a2hs-btn a2hs-install">Install</button>') +
-          '<button type="button" class="a2hs-btn a2hs-close" aria-label="Dismiss">&times;</button>' +
-        '</span>';
-      document.body.appendChild(banner);
-      requestAnimationFrame(function () { banner.classList.add('show'); });
+    function showSignin() {
+      appView.style.display = 'none';
+      signinView.style.display = 'block';
+    }
 
-      var closeBtn = banner.querySelector('.a2hs-close');
-      if (closeBtn) closeBtn.addEventListener('click', function () { dismiss(banner); });
+    function showApp(email) {
+      signinView.style.display = 'none';
+      appView.style.display = 'block';
+      accountEmailEl.textContent = email;
+    }
 
-      var installBtn = banner.querySelector('.a2hs-install');
-      if (installBtn) {
-        installBtn.addEventListener('click', function () {
-          if (!deferredPrompt) { dismiss(banner); return; }
-          deferredPrompt.prompt();
-          deferredPrompt.userChoice.finally(function () { dismiss(banner); });
-        });
+    function renderBuilds(builds) {
+      if (!builds.length) {
+        grid.innerHTML = '<p class="mb-empty">No builds linked to this email yet. Submit one from the <a href="index.html#gallery-upload" style="text-decoration:underline;">Build Feed</a> with this email address to see it here.</p>';
+        return;
       }
+      grid.innerHTML = builds.map(function (b) {
+        var safeCaption = (b.caption || 'MT3UK member build').replace(/</g, '&lt;');
+        return '<div class="mb-build-card" data-file="' + b.file.replace(/"/g, '&quot;') + '">' +
+          '<div class="mb-build-thumb"><img src="' + window.MT3UK_R2_BASE + '/gallery/' + b.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy"></div>' +
+          '<div class="mb-build-body">' +
+            '<span class="mb-build-caption">' + safeCaption + '</span>' +
+            '<div class="mb-toggles">' +
+              '<label class="mb-toggle"><input type="checkbox" data-flag="gallery"' + (b.gallery ? ' checked' : '') + '> Gallery</label>' +
+              '<label class="mb-toggle"><input type="checkbox" data-flag="reel"' + (b.reel ? ' checked' : '') + '> Reel</label>' +
+              '<label class="mb-toggle"><input type="checkbox" data-flag="votable"' + (b.votable ? ' checked' : '') + '> Voting</label>' +
+            '</div>' +
+            '<div class="mb-build-actions">' +
+              '<button type="button" class="mb-delete-btn">Delete</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      }).join('');
     }
 
-    if (isIOS) {
-      showBanner();
-    } else {
-      window.addEventListener('beforeinstallprompt', function (e) {
-        e.preventDefault();
-        deferredPrompt = e;
-        showBanner();
-      });
+    function loadBuilds() {
+      var token = getSession();
+      if (!token) { showSignin(); return; }
+      fetch(API + '/my-builds', { headers: { 'X-Session-Token': token }, cache: 'no-store' })
+        .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+        .then(function (result) {
+          if (!result.ok || !result.data.success) {
+            clearSession();
+            showSignin();
+            return;
+          }
+          showApp(result.data.email);
+          renderBuilds(result.data.builds || []);
+        })
+        .catch(function () {
+          setStatus(signinStatus, 'Could not load your builds, please try again.', 'err');
+        });
     }
 
-    window.addEventListener('appinstalled', function () {
-      localStorage.setItem(STORAGE_DISMISSED, '1');
+    signinForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var email = document.getElementById('mb-email').value.trim();
+      if (!email) return;
+      signinBtn.disabled = true;
+      signinBtn.textContent = 'Sending…';
+      setStatus(signinStatus, '', '');
+      fetch(API + '/my-builds/request-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email })
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          signinBtn.disabled = false;
+          signinBtn.textContent = 'Send me a sign-in link';
+          setStatus(signinStatus, data.message || 'Check your email for a sign-in link.', 'ok');
+        })
+        .catch(function () {
+          signinBtn.disabled = false;
+          signinBtn.textContent = 'Send me a sign-in link';
+          setStatus(signinStatus, 'Something went wrong, please try again.', 'err');
+        });
     });
+
+    signoutBtn.addEventListener('click', function () {
+      clearSession();
+      showSignin();
+    });
+
+    grid.addEventListener('change', function (e) {
+      var checkbox = e.target.closest('input[data-flag]');
+      if (!checkbox) return;
+      var card = checkbox.closest('.mb-build-card');
+      var file = card.getAttribute('data-file');
+      var token = getSession();
+      var body = {};
+      body.file = file;
+      body[checkbox.dataset.flag] = checkbox.checked;
+      checkbox.disabled = true;
+      fetch(API + '/my-builds', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-Session-Token': token },
+        body: JSON.stringify(body)
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          checkbox.disabled = false;
+          if (!data.success) checkbox.checked = !checkbox.checked;
+        })
+        .catch(function () {
+          checkbox.disabled = false;
+          checkbox.checked = !checkbox.checked;
+        });
+    });
+
+    grid.addEventListener('click', function (e) {
+      var btn = e.target.closest('.mb-delete-btn');
+      if (!btn) return;
+      var card = btn.closest('.mb-build-card');
+      var file = card.getAttribute('data-file');
+
+      if (!btn.classList.contains('mb-delete-confirm')) {
+        btn.classList.add('mb-delete-confirm');
+        btn.textContent = 'Confirm delete?';
+        setTimeout(function () {
+          btn.classList.remove('mb-delete-confirm');
+          btn.textContent = 'Delete';
+        }, 4000);
+        return;
+      }
+
+      var token = getSession();
+      btn.disabled = true;
+      btn.textContent = 'Deleting…';
+      fetch(API + '/my-builds?file=' + encodeURIComponent(file), {
+        method: 'DELETE',
+        headers: { 'X-Session-Token': token }
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (data.success) {
+            card.remove();
+            if (!grid.querySelector('.mb-build-card')) renderBuilds([]);
+          } else {
+            btn.disabled = false;
+            btn.textContent = 'Delete';
+          }
+        })
+        .catch(function () {
+          btn.disabled = false;
+          btn.textContent = 'Delete';
+        });
+    });
+
+    var urlToken = new URL(window.location.href).searchParams.get('token');
+    if (urlToken) {
+      setStatus(signinStatus, 'Signing you in…', '');
+      fetch(API + '/my-builds/session?token=' + encodeURIComponent(urlToken))
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          history.replaceState(null, '', window.location.pathname);
+          if (data.success) {
+            setSession(data.session, data.email);
+            loadBuilds();
+          } else {
+            setStatus(signinStatus, data.message || 'That link is invalid or has expired.', 'err');
+          }
+        })
+        .catch(function () {
+          history.replaceState(null, '', window.location.pathname);
+          setStatus(signinStatus, 'Something went wrong, please try again.', 'err');
+        });
+    } else {
+      loadBuilds();
+    }
   })();
 </script>
 

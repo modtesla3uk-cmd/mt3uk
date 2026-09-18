@@ -13,3 +13,8 @@ id = "e189cfa5369c48559c76c847b203e386"
 [[r2_buckets]]
 binding = "GALLERY_BUCKET"
 bucket_name = "mt3uk-gallery"
+
+# Requires Email Routing to be enabled for the mt3uk.com zone in the
+# Cloudflare dashboard, with noreply@mt3uk.com set up as a sender.
+[[send_email]]
+name = "SEND_EMAIL"

@@ -8,6 +8,7 @@
   { "title": "Tevo Solutions", "url": "shop.html#tevo", "category": "Partner", "description": "Premium Tesla performance upgrades and accessories", "keywords": ["wheels", "forged wheels", "performance parts", "supplier"] },
   { "title": "Redline Plates", "url": "shop.html#redline", "category": "Partner", "description": "UK number plate supplier, 2D printed, 3D gel, 4D acrylic and show plates", "keywords": ["number plates", "reg plates", "registration plates", "plates", "supplier"] },
   { "title": "Offers", "url": "shop.html#offers", "category": "Page", "description": "Current MT3UK offers: 10% off merch and limited-stock Master Cylinder Brace pricing", "keywords": ["deals", "discount", "sale", "save"] },
+  { "title": "My Builds (BETA)", "url": "my-builds.html", "category": "Page", "description": "Manage the build(s) you've submitted to the gallery", "keywords": ["manage build", "edit photo", "delete photo", "my account"] },
   { "title": "Customer Reviews", "url": "reviews.html", "category": "Page", "description": "Read reviews from MT3UK members on merch and upgrades", "keywords": ["ratings", "feedback"] },
   { "title": "Leave a Review", "url": "reviews.html#write-review", "category": "Page", "description": "Submit your own review of something you bought", "keywords": ["write a review", "rate"] },
   { "title": "Events", "url": "index.html#events", "category": "Page", "description": "MT3UK meets and events", "keywords": ["meets", "meetups", "summer meet", "regional meet"] },

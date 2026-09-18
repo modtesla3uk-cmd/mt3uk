@@ -203,13 +203,26 @@
     white-space: nowrap;
   }
   .nav-sublink:hover { opacity: 0.65; }
-  .nav-sublink-new { display: inline-flex; align-items: center; gap: 6px; }
+  .nav-sublink-new, .nav-link-mybuilds { display: inline-flex; align-items: center; gap: 6px; }
   .nav-subitem { position: relative; }
   .nav-subitem > .nav-sublink { flex: 1; }
   a.nav-sublink-offer { display: block; color: var(--orange); font-weight: 600; border-top: 1px solid rgba(22,35,61,0.15); }
 
   .nav-sublink-new::after {
     content: 'NEW';
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--paper);
+    background: var(--orange);
+    padding: 2px 5px;
+    border-radius: 3px;
+    line-height: 1;
+  }
+
+  .nav-link-mybuilds::after {
+    content: 'BETA';
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.62rem;
     font-weight: 700;
@@ -1386,6 +1399,7 @@
   .form-row { display: flex; flex-direction: column; gap: 6px; }
   .form-row label { color: var(--steel); }
   .form-row input[type="text"],
+  .form-row input[type="email"],
   .form-row input[type="file"],
   .form-row textarea {
     border: 1px solid var(--ink);
@@ -1397,7 +1411,10 @@
   }
   .form-row textarea { resize: vertical; }
   .form-row input[type="text"]:focus,
+  .form-row input[type="email"]:focus,
   .form-row textarea:focus { outline: none; border-color: var(--orange); }
+  .form-row-note { color: var(--steel); font-size: 0.78rem; }
+  .form-row-note a { color: var(--orange); text-decoration: underline; }
   .submit-form button { align-self: flex-start; }
   .mods-entry { display: flex; flex-direction: column; gap: 8px; }
   .mods-entry-input-row { display: flex; gap: 8px; }
@@ -1738,6 +1755,9 @@
         </div>
       </div>
       <a href="#faq" class="nav-link">FAQs</a>
+      <div class="nav-item">
+        <a href="my-builds.html" class="nav-link nav-link-mybuilds">My Builds</a>
+      </div>
       <div class="nav-item">
         <a href="contact.html" class="nav-link">Contact</a>
         <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Contact submenu">&#9660;</button>
@@ -2222,7 +2242,7 @@
       fetchLikes()
     ])
       .then(function (results) {
-        var photos = (results[0] || []).slice(0, MAX_SLIDES);
+        var photos = (results[0] || []).filter(function (p) { return p.reel !== false; }).slice(0, MAX_SLIDES);
         latestFile = photos.length ? photos[0].file : null;
         render(photos, results[1]);
       })
@@ -2236,7 +2256,8 @@
     function checkForNewBuild() {
       window.mt3ukFetchJSON('images/gallery/manifest.json', [], true)
         .then(function (photos) {
-          var newestFile = photos && photos.length ? photos[0].file : null;
+          photos = (photos || []).filter(function (p) { return p.reel !== false; });
+          var newestFile = photos.length ? photos[0].file : null;
           if (newestFile && newestFile !== latestFile) {
             pendingPhotos = photos.slice(0, MAX_SLIDES);
             if (newBuildToast) newBuildToast.classList.add('bf-new-toast-show');
@@ -2326,6 +2347,11 @@
         <div class="form-row form-row-half">
           <label class="mono" for="submitter-caption">Caption (Required)</label>
           <input type="text" id="submitter-caption" name="caption" placeholder="e.g. Viper Green Model Y" required>
+        </div>
+        <div class="form-row">
+          <label class="mono" for="submitter-email">Email (Optional)</label>
+          <input type="email" id="submitter-email" name="email" placeholder="you@example.com" autocomplete="email">
+          <p class="form-row-note mono">Add your email to manage this build later in <a href="my-builds.html">My Builds (BETA)</a> &mdash; publish flags, edits and deletes.</p>
         </div>
         <div class="form-row">
           <label class="mono" for="submitter-mod-input">Mods (Optional)</label>
@@ -2442,7 +2468,7 @@
                 grid.innerHTML = '<p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">Gallery photos couldn\'t be loaded.</p>';
                 return;
               }
-              allPhotos = photos;
+              allPhotos = photos.filter(function (p) { return p.gallery !== false; });
               currentPage = 1;
               render();
             });

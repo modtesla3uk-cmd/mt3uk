@@ -225,12 +225,25 @@
     white-space: nowrap;
   }
   .nav-sublink:hover { opacity: 0.65; }
-  .nav-link-shop, .nav-sublink-new { display: inline-flex; align-items: center; gap: 6px; }
+  .nav-link-shop, .nav-sublink-new, .nav-link-mybuilds { display: inline-flex; align-items: center; gap: 6px; }
   .nav-subitem { position: relative; }
   .nav-subitem > .nav-sublink { flex: 1; }
   a.nav-sublink-offer { display: block; color: var(--orange); font-weight: 600; border-top: 1px solid rgba(22,35,61,0.15); }
   .nav-link-shop::after, .nav-sublink-new::after {
     content: 'NEW';
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--paper);
+    background: var(--orange);
+    padding: 2px 5px;
+    border-radius: 3px;
+    line-height: 1;
+  }
+
+  .nav-link-mybuilds::after {
+    content: 'BETA';
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.62rem;
     font-weight: 700;
@@ -1448,6 +1461,9 @@
         </div>
       </div>
       <a href="index.html#faq" class="nav-link">FAQs</a>
+      <div class="nav-item">
+        <a href="my-builds.html" class="nav-link nav-link-mybuilds">My Builds</a>
+      </div>
       <div class="nav-item">
         <a href="contact.html" class="nav-link">Contact</a>
         <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Contact submenu">&#9660;</button>

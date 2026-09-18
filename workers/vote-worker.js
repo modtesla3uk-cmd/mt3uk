@@ -1121,6 +1121,15 @@ export default {
       if (email) {
         var submittedFiles = existingNames.slice(existingNames.length - photoUrls.length);
         await addSubscriberFiles(env, email, submittedFiles);
+
+        try {
+          var signinToken = randomToken();
+          await env.VOTES.put('my-builds-link:' + signinToken, email, { expirationTtl: MY_BUILDS_LINK_TTL_SECONDS });
+          var signinLink = MY_BUILDS_SITE_URL + '/my-builds.html?token=' + signinToken;
+          await sendMyBuildsLinkEmail(env, email, signinLink);
+        } catch (linkErr) {
+          console.log('My Builds link email failed:', linkErr.message);
+        }
       }
 
       return json({ success: true, photo_url: photoUrls[0], photo_urls: photoUrls });

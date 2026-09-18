@@ -658,6 +658,108 @@ async function handleMyBuildsUpdate(request, env) {
   return json({ success: true, file: file });
 }
 
+async function handleMyBuildsUpload(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+
+  var formData;
+  try {
+    formData = await request.formData();
+  } catch (e) {
+    return json({ success: false, message: 'Invalid form submission' }, 400);
+  }
+
+  var caption = (formData.get('caption') || '').toString().trim().slice(0, 150);
+  var modsRaw = (formData.get('mods') || '').toString().trim().slice(0, 1000);
+  var mods = modsRaw
+    ? modsRaw.split(/[,\n]/).map(function (m) { return m.trim(); }).filter(Boolean).slice(0, 20)
+    : [];
+  var file = formData.get('photo');
+  var gallery = formData.get('gallery') === '1';
+  var reel = formData.get('reel') === '1';
+  var votable = formData.get('votable') === '1';
+
+  if (!caption) {
+    return json({ success: false, message: 'Caption is required' }, 400);
+  }
+  if (!file || typeof file === 'string') {
+    return json({ success: false, message: 'Photo is required' }, 400);
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    return json({ success: false, message: 'Photo must be under 10MB' }, 400);
+  }
+  if (!file.type || file.type.indexOf('image/') !== 0) {
+    return json({ success: false, message: 'File must be an image' }, 400);
+  }
+
+  try {
+    var slug = slugify(caption);
+    var listed = await env.GALLERY_BUCKET.list({ prefix: 'gallery/' });
+    var existingNames = listed.objects.map(function (obj) { return obj.key.slice('gallery/'.length); });
+
+    var extMatch = (file.name || '').match(/\.[a-zA-Z0-9]+$/);
+    var ext = extMatch ? extMatch[0].toLowerCase() : '.jpg';
+    var filename = slug + ext;
+    var suffix = 2;
+    while (existingNames.indexOf(filename) !== -1 && suffix < 100) {
+      filename = slug + '-' + suffix + ext;
+      suffix++;
+    }
+
+    var arrayBuffer = await file.arrayBuffer();
+    await env.GALLERY_BUCKET.put('gallery/' + filename, arrayBuffer, {
+      httpMetadata: { contentType: file.type }
+    });
+
+    var sidecar = {};
+    if (mods.length) sidecar.mods = mods;
+    if (!gallery) sidecar.gallery = false;
+    if (!reel) sidecar.reel = false;
+    if (!votable) sidecar.votable = false;
+    if (Object.keys(sidecar).length) {
+      await env.GALLERY_BUCKET.put(
+        'gallery/' + filename + '.json',
+        JSON.stringify(sidecar, null, 2) + '\n',
+        { httpMetadata: { contentType: 'application/json' } }
+      );
+    }
+
+    await addSubscriberFiles(env, email, [filename]);
+
+    try {
+      var ghHeaders = {
+        'Authorization': 'Bearer ' + env.GITHUB_TOKEN,
+        'Accept': 'application/vnd.github+json',
+        'User-Agent': 'mt3uk-gallery-worker',
+        'X-GitHub-Api-Version': '2022-11-28'
+      };
+      await fetch(
+        'https://api.github.com/repos/' + OWNER + '/' + REPO + '/issues',
+        {
+          method: 'POST',
+          headers: ghHeaders,
+          body: JSON.stringify({
+            title: 'My Builds upload: ' + caption,
+            body: '**Caption:** ' + caption + '\n**Submitted by (account):** ' + email +
+              (mods.length ? '\n**Mods:** ' + mods.join(', ') : '') +
+              '\n**Flags:** gallery=' + gallery + ', reel=' + reel + ', votable=' + votable +
+              '\n\n![photo](' + GALLERY_PUBLIC_BASE_URL + '/gallery/' + filename + ')' +
+              '\n\nThis photo is already live in the gallery. Close this issue once reviewed.'
+          })
+        }
+      );
+    } catch (issueErr) {
+      console.log('Issue creation failed (non-critical):', issueErr.message);
+    }
+
+    await triggerManifestRebuild(env);
+
+    return json({ success: true, file: filename });
+  } catch (err) {
+    return json({ success: false, message: err.message }, 500);
+  }
+}
+
 async function handleMyBuildsDelete(request, env) {
   var email = await resolveSession(request, env);
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
@@ -982,6 +1084,9 @@ export default {
     }
     if (url.pathname === '/my-builds' && request.method === 'GET') {
       return handleMyBuildsGet(request, env);
+    }
+    if (url.pathname === '/my-builds/upload' && request.method === 'POST') {
+      return handleMyBuildsUpload(request, env);
     }
     if (url.pathname === '/my-builds' && request.method === 'PUT') {
       return handleMyBuildsUpdate(request, env);

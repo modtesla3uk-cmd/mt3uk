@@ -484,6 +484,39 @@
   .mb-signout-btn { background: transparent; border: 1px solid var(--line); color: var(--ink); padding: 7px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; cursor: pointer; }
   .mb-signout-btn:hover { border-color: var(--orange); color: var(--orange); }
 
+  .mb-upload-toggle-row { max-width: 720px; margin: 0 auto 18px; }
+  .mb-upload-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: 1px solid var(--ink);
+    color: var(--ink);
+    padding: 9px 16px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  .mb-upload-toggle-btn:hover { background: var(--ink); color: var(--paper); }
+  .mb-upload-card { max-width: 720px; margin: 0 auto 18px; border: 1px solid var(--ink); padding: 24px; }
+  .mb-upload-card h2 { font-size: 1.05rem; margin-bottom: 4px; }
+  .mb-upload-card > p { color: var(--steel); font-size: 0.85rem; margin-bottom: 18px; }
+  .mb-upload-card .mb-field label { margin-bottom: 0; }
+  .mb-upload-card input[type="text"],
+  .mb-upload-card input[type="file"] {
+    border: 1px solid var(--ink);
+    background: var(--white);
+    padding: 11px 12px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.92rem;
+    color: var(--charcoal);
+    width: 100%;
+  }
+  .mb-upload-card input[type="text"]:focus { outline: none; border-color: var(--orange); }
+  .mb-upload-card .mb-toggles { margin-bottom: 16px; }
+  .mb-upload-card .mb-mods { margin-bottom: 16px; }
+  .mb-upload-card .mb-btn { width: auto; }
   .mb-grid { display: flex; flex-direction: column; gap: 18px; max-width: 720px; margin: 0 auto; }
   .mb-build-card { display: flex; gap: 16px; border: 1px solid var(--ink); padding: 16px; }
   .mb-build-thumb { width: 110px; height: 110px; flex-shrink: 0; overflow: hidden; border: 1px solid var(--ink); }
@@ -701,6 +734,41 @@
         <span>Signed in as <strong id="mb-account-email"></strong></span>
         <button type="button" class="mb-signout-btn" id="mb-signout-btn">Sign out</button>
       </div>
+
+      <div class="mb-upload-toggle-row">
+        <button type="button" class="mb-upload-toggle-btn" id="mb-upload-toggle-btn">+ Upload build</button>
+      </div>
+
+      <div class="mb-upload-card" id="mb-upload-card" style="display:none;">
+        <h2>Upload a build</h2>
+        <p>Add a photo of your build to your account. It'll go live straight away, wherever you choose below.</p>
+        <form id="mb-upload-form">
+          <div class="mb-field">
+            <label class="mono" for="mb-upload-caption">Caption</label>
+            <input type="text" id="mb-upload-caption" name="caption" placeholder="e.g. Viper Green Model Y" required>
+          </div>
+          <div class="mb-toggles">
+            <label class="mb-toggle"><input type="checkbox" id="mb-upload-gallery" checked> Gallery</label>
+            <label class="mb-toggle"><input type="checkbox" id="mb-upload-reel" checked> Reel</label>
+            <label class="mb-toggle"><input type="checkbox" id="mb-upload-votable" checked> Voting</label>
+          </div>
+          <div class="mb-mods">
+            <span class="mono mb-mods-label">Mods (optional)</span>
+            <ul class="mb-mods-list" id="mb-upload-mods-list" data-mods="[]"></ul>
+            <div class="mb-mods-input-row">
+              <input type="text" class="mb-mods-input" id="mb-upload-mod-input" placeholder="e.g. Coilovers" autocomplete="off">
+              <button type="button" class="mb-mods-add-btn" id="mb-upload-mod-add-btn">Add</button>
+            </div>
+          </div>
+          <div class="mb-field">
+            <label class="mono" for="mb-upload-photo">Photo</label>
+            <input type="file" id="mb-upload-photo" name="photo" accept="image/*" required>
+          </div>
+          <button type="submit" class="mb-btn" id="mb-upload-submit-btn">Upload build</button>
+          <p class="mb-status" id="mb-upload-status"></p>
+        </form>
+      </div>
+
       <div class="mb-grid" id="mb-grid"></div>
     </div>
   </div>
@@ -780,6 +848,15 @@
     var signoutBtn = document.getElementById('mb-signout-btn');
     var grid = document.getElementById('mb-grid');
 
+    var uploadToggleBtn = document.getElementById('mb-upload-toggle-btn');
+    var uploadCard = document.getElementById('mb-upload-card');
+    var uploadForm = document.getElementById('mb-upload-form');
+    var uploadStatus = document.getElementById('mb-upload-status');
+    var uploadSubmitBtn = document.getElementById('mb-upload-submit-btn');
+    var uploadModInput = document.getElementById('mb-upload-mod-input');
+    var uploadModAddBtn = document.getElementById('mb-upload-mod-add-btn');
+    var uploadModList = document.getElementById('mb-upload-mods-list');
+
     function setStatus(el, message, kind) {
       el.textContent = message;
       el.className = 'mb-status' + (kind ? ' mb-status-' + kind : '');
@@ -808,7 +885,7 @@
 
     function renderBuilds(builds) {
       if (!builds.length) {
-        grid.innerHTML = '<p class="mb-empty">No builds linked to this email yet. Submit one from the <a href="index.html#gallery-upload" style="text-decoration:underline;">Build Feed</a> with this email address to see it here.</p>';
+        grid.innerHTML = '<p class="mb-empty">No builds linked to this email yet. Use the Upload build button above to add one.</p>';
         return;
       }
       grid.innerHTML = builds.map(function (b) {
@@ -1045,6 +1122,87 @@
         .catch(function () {
           btn.disabled = false;
           btn.textContent = 'Delete';
+        });
+    });
+
+    uploadToggleBtn.addEventListener('click', function () {
+      var opening = uploadCard.style.display === 'none';
+      uploadCard.style.display = opening ? 'block' : 'none';
+      uploadToggleBtn.textContent = opening ? '- Upload build' : '+ Upload build';
+    });
+
+    function addUploadModItem() {
+      var value = uploadModInput.value.trim();
+      if (!value) return;
+      var mods = getMods(uploadModList);
+      mods.push(value);
+      setMods(uploadModList, mods);
+      uploadModInput.value = '';
+      uploadModInput.focus();
+    }
+
+    uploadModAddBtn.addEventListener('click', addUploadModItem);
+    uploadModInput.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      addUploadModItem();
+    });
+    uploadModList.addEventListener('click', function (e) {
+      var removeBtn = e.target.closest('.mb-mods-remove');
+      if (!removeBtn) return;
+      var mods = getMods(uploadModList);
+      mods.splice(Number(removeBtn.dataset.idx), 1);
+      setMods(uploadModList, mods);
+    });
+
+    uploadForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (uploadModInput.value.trim()) addUploadModItem();
+
+      var fileInput = document.getElementById('mb-upload-photo');
+      var file = fileInput.files[0];
+      if (!file) { setStatus(uploadStatus, 'Please choose a photo.', 'err'); return; }
+      if (file.size > 10 * 1024 * 1024) { setStatus(uploadStatus, 'Photo must be under 10MB.', 'err'); return; }
+
+      var formData = new FormData();
+      formData.append('caption', document.getElementById('mb-upload-caption').value.trim());
+      formData.append('mods', getMods(uploadModList).join(', '));
+      formData.append('photo', file);
+      formData.append('gallery', document.getElementById('mb-upload-gallery').checked ? '1' : '0');
+      formData.append('reel', document.getElementById('mb-upload-reel').checked ? '1' : '0');
+      formData.append('votable', document.getElementById('mb-upload-votable').checked ? '1' : '0');
+
+      uploadSubmitBtn.disabled = true;
+      uploadSubmitBtn.textContent = 'Uploading…';
+      setStatus(uploadStatus, '', '');
+
+      fetch(API + '/my-builds/upload', {
+        method: 'POST',
+        headers: { 'X-Session-Token': getSession() },
+        body: formData
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          uploadSubmitBtn.disabled = false;
+          uploadSubmitBtn.textContent = 'Upload build';
+          if (data.success) {
+            setStatus(uploadStatus, 'Uploaded.', 'ok');
+            uploadForm.reset();
+            setMods(uploadModList, []);
+            document.getElementById('mb-upload-gallery').checked = true;
+            document.getElementById('mb-upload-reel').checked = true;
+            document.getElementById('mb-upload-votable').checked = true;
+            uploadCard.style.display = 'none';
+            uploadToggleBtn.textContent = '+ Upload build';
+            loadBuilds();
+          } else {
+            setStatus(uploadStatus, data.message || 'Could not upload, please try again.', 'err');
+          }
+        })
+        .catch(function () {
+          uploadSubmitBtn.disabled = false;
+          uploadSubmitBtn.textContent = 'Upload build';
+          setStatus(uploadStatus, 'Could not upload, please try again.', 'err');
         });
     });
 

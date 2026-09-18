@@ -5,7 +5,6 @@ const REPO = 'mt3uk';
 const BASE_BRANCH = 'main';
 const FEATURED_PATH = 'data/featured.json';
 const REVIEWS_PATH = 'data/reviews.json';
-const GALLERY_MANIFEST_URL = 'https://raw.githubusercontent.com/' + OWNER + '/' + REPO + '/' + BASE_BRANCH + '/images/gallery/manifest.json';
 const GALLERY_PUBLIC_BASE_URL = 'https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev';
 const MAX_GALLERY_PHOTOS = 3;
 const GALLERY_SUBMIT_COOLDOWN_SECONDS = 60 * 60 * 24;
@@ -70,10 +69,96 @@ function addDaysToDateString(dateStr, days) {
   return d.toISOString().slice(0, 10);
 }
 
-async function fetchGalleryManifest() {
-  var res = await fetch(GALLERY_MANIFEST_URL, { cf: { cacheTtl: 60 } });
-  if (!res.ok) throw new Error('Could not read gallery manifest (' + res.status + ')');
-  return res.json();
+// Mirrors the caption/name derivation in scripts/build_gallery_manifest.py,
+// so entries built from a live R2 listing (see listGalleryEntriesFromR2)
+// match what that script would eventually commit to manifest.json.
+function captionFromFilenameStem(stem) {
+  stem = stem.replace(/^\d+[-_]/, '');
+  stem = stem.replace(/[-_]\d{8,}$/, '');
+  var words = stem.split(/[-_]+/).filter(Boolean);
+  var isRealCaption = words.some(function (w) { return !(/^\d{8,}$/.test(w)); });
+  if (!isRealCaption) return '';
+  return words.map(function (w) { return w.toUpperCase(); }).join(' ');
+}
+
+function splitSubmitterName(stem) {
+  var m = /--by-([a-z0-9-]+)$/.exec(stem);
+  if (!m) return { stem: stem, name: null };
+  var nameSlug = m[1].replace(/-\d+$/, '');
+  var words = nameSlug.split(/[-_]+/).filter(Boolean);
+  var name = words.map(function (w) { return w.toUpperCase(); }).join(' ');
+  return { stem: stem.slice(0, m.index), name: name || null };
+}
+
+// Builds the same shape of entry as manifest.json, but straight from the R2
+// bucket instead of the GitHub-committed manifest, so a photo uploaded (or
+// edited) seconds ago is immediately eligible for voting/liking instead of
+// waiting on the sync-manifests Action to run and be published.
+async function listGalleryEntriesFromR2(env) {
+  var objects = [];
+  var cursor;
+  do {
+    var page = await env.GALLERY_BUCKET.list({ prefix: 'gallery/', cursor: cursor });
+    objects = objects.concat(page.objects);
+    cursor = page.truncated ? page.cursor : undefined;
+  } while (cursor);
+
+  var sidecarKeys = {};
+  objects.forEach(function (o) { if (o.key.slice(-5) === '.json') sidecarKeys[o.key] = true; });
+
+  var photoObjects = objects.filter(function (o) { return /\.(jpe?g|png|webp)$/i.test(o.key); });
+
+  return Promise.all(photoObjects.map(async function (o) {
+    var filename = o.key.slice('gallery/'.length);
+    var stem = filename.replace(/\.[a-zA-Z0-9]+$/, '');
+    var split = splitSubmitterName(stem);
+    var caption = captionFromFilenameStem(split.stem);
+
+    var mods = [];
+    var votable = true;
+    var gallery = true;
+    var reel = true;
+    var sidecarKey = o.key + '.json';
+    if (sidecarKeys[sidecarKey]) {
+      try {
+        var sidecarObj = await env.GALLERY_BUCKET.get(sidecarKey);
+        if (sidecarObj) {
+          var sidecar = await sidecarObj.json();
+          if (Array.isArray(sidecar.mods)) {
+            mods = sidecar.mods.map(function (m) { return String(m).trim(); }).filter(Boolean).slice(0, 50);
+          }
+          if (typeof sidecar.votable === 'boolean') votable = sidecar.votable;
+          if (typeof sidecar.gallery === 'boolean') gallery = sidecar.gallery;
+          if (typeof sidecar.reel === 'boolean') reel = sidecar.reel;
+        }
+      } catch (e) {}
+    }
+
+    var entry = { file: filename, mods: mods, votable: votable, gallery: gallery, reel: reel, added: ukDateString(o.uploaded) };
+    if (caption) entry.caption = caption;
+    if (split.name) entry.name = split.name;
+    return entry;
+  }));
+}
+
+var GALLERY_LIVE_CACHE_SECONDS = 15;
+
+// Live R2 listing is heavier than the vote/like count reads, so it's cached
+// at the edge for a short window (same Cache API pattern as getVoteCounts),
+// trading a few seconds of freshness for far fewer R2 list/get calls.
+async function getLiveGalleryEntries(env, ctx) {
+  var cacheKey = new Request('https://mt3uk-cache.internal/gallery-live-entries');
+  var cache = caches.default;
+  var cached = await cache.match(cacheKey);
+  if (cached) return cached.json();
+
+  var entries = await listGalleryEntriesFromR2(env);
+
+  var response = new Response(JSON.stringify(entries), {
+    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=' + GALLERY_LIVE_CACHE_SECONDS }
+  });
+  ctx.waitUntil(cache.put(cacheKey, response.clone()));
+  return entries;
 }
 
 function votingCandidates(manifest, todayStr) {
@@ -270,7 +355,7 @@ async function getVoteCounts(env, ctx, todayStr, files) {
 }
 
 async function handleVotesGet(request, env, ctx) {
-  var manifest = await fetchGalleryManifest();
+  var manifest = await getLiveGalleryEntries(env, ctx);
   var todayStr = ukDateString(new Date());
   var candidates = votingCandidates(manifest, todayStr);
   var voterId = getVoterId(request);
@@ -299,7 +384,7 @@ async function handleVotesGet(request, env, ctx) {
   });
 }
 
-async function handleVotePost(request, env) {
+async function handleVotePost(request, env, ctx) {
   var body;
   try {
     body = await request.json();
@@ -312,7 +397,7 @@ async function handleVotePost(request, env) {
     return json({ success: false, message: 'file is required' }, 400);
   }
 
-  var manifest = await fetchGalleryManifest();
+  var manifest = await getLiveGalleryEntries(env, ctx);
   var todayStr = ukDateString(new Date());
   var candidates = votingCandidates(manifest, todayStr);
   var isCandidate = candidates.some(function (p) { return p.file === file; });
@@ -399,7 +484,7 @@ async function handleLikesGet(request, env, ctx) {
   return json({ success: true, voterId: voterId, likes: likes, liked: liked });
 }
 
-async function handleLikePost(request, env) {
+async function handleLikePost(request, env, ctx) {
   var body;
   try {
     body = await request.json();
@@ -412,7 +497,7 @@ async function handleLikePost(request, env) {
     return json({ success: false, message: 'file is required' }, 400);
   }
 
-  var manifest = await fetchGalleryManifest();
+  var manifest = await getLiveGalleryEntries(env, ctx);
   var isKnown = manifest.some(function (p) { return p.file === file; });
   if (!isKnown) {
     return json({ success: false, message: 'Unknown photo' }, 400);
@@ -569,39 +654,26 @@ async function handleMyBuildsGet(request, env) {
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
 
   var files = await getSubscriberFiles(env, email);
-  // Caption comes from the manifest (it's derived from the filename and
-  // doesn't change here), but mods/gallery/reel/votable are read straight
-  // from each photo's R2 sidecar so edits show up immediately instead of
-  // waiting on the manifest rebuild pipeline to catch up.
-  var manifest = files.length ? await fetchGalleryManifest().catch(function () { return []; }) : [];
+  // Read straight from an uncached live R2 listing (caption/name derived
+  // from the filename, mods/gallery/reel/votable from each photo's
+  // sidecar) so a build the owner just uploaded or edited shows up right
+  // away, not just after the (cached, for /votes and /likes) window or the
+  // manifest rebuild pipeline catches up.
+  var manifest = files.length ? await listGalleryEntriesFromR2(env).catch(function () { return []; }) : [];
   var byFile = {};
   manifest.forEach(function (p) { byFile[p.file] = p; });
 
-  var builds = await Promise.all(files.map(async function (f) {
+  var builds = files.map(function (f) {
     var entry = byFile[f] || { file: f };
-    var mods = entry.mods || [];
-    var gallery = entry.gallery !== false;
-    var reel = entry.reel !== false;
-    var votable = entry.votable !== false;
-    try {
-      var sidecarObj = await env.GALLERY_BUCKET.get('gallery/' + f + '.json');
-      if (sidecarObj) {
-        var sidecar = await sidecarObj.json();
-        if (Array.isArray(sidecar.mods)) mods = sidecar.mods;
-        if (typeof sidecar.gallery === 'boolean') gallery = sidecar.gallery;
-        if (typeof sidecar.reel === 'boolean') reel = sidecar.reel;
-        if (typeof sidecar.votable === 'boolean') votable = sidecar.votable;
-      }
-    } catch (e) {}
     return {
       file: f,
       caption: entry.caption || '',
-      mods: mods,
-      gallery: gallery,
-      reel: reel,
-      votable: votable
+      mods: entry.mods || [],
+      gallery: entry.gallery !== false,
+      reel: entry.reel !== false,
+      votable: entry.votable !== false
     };
-  }));
+  });
 
   return json({ success: true, email: email, builds: builds });
 }
@@ -1105,7 +1177,7 @@ export default {
       return handleVotesGet(request, env, ctx);
     }
     if (url.pathname === '/vote' && request.method === 'POST') {
-      return handleVotePost(request, env);
+      return handleVotePost(request, env, ctx);
     }
     if (url.pathname === '/review' && request.method === 'POST') {
       return handleReviewPost(request, env);
@@ -1114,7 +1186,7 @@ export default {
       return handleLikesGet(request, env, ctx);
     }
     if (url.pathname === '/likes' && request.method === 'POST') {
-      return handleLikePost(request, env);
+      return handleLikePost(request, env, ctx);
     }
     if (url.pathname === '/shop-products' && request.method === 'GET') {
       return handleShopProducts(request, ctx);

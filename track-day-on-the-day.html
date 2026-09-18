@@ -569,6 +569,10 @@
   /* ---------- SECTION SHELL ---------- */
   section { padding: 60px 0; border-bottom: 1px solid var(--ink); }
   section:last-of-type { border-bottom: none; }
+  @media (max-width: 780px) {
+    section { padding: 36px 0; }
+    .section-head { gap: 16px; margin-bottom: 20px; }
+  }
 
   .section-head {
     display: flex;
@@ -649,6 +653,13 @@
   .page-hero .section-num { display: block; margin-bottom: 10px; }
   .page-hero h1 { max-width: 20ch; margin-bottom: 14px; }
   .page-hero p { color: var(--ink-2); max-width: 58ch; font-size: 1.05rem; }
+
+  @media (max-width: 780px) {
+    .page-hero { padding: 26px 0 22px; }
+    .page-hero .back-link { margin-bottom: 12px; }
+    .page-hero .section-num { margin-bottom: 6px; }
+    .page-hero h1 { margin-bottom: 10px; }
+  }
 
   .inline-link {
     color: var(--orange);

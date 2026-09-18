@@ -622,6 +622,15 @@ async function handleMyBuildsUpdate(request, env) {
     }
   });
 
+  if (body && Array.isArray(body.mods)) {
+    var mods = body.mods.map(function (m) { return String(m).trim(); }).filter(Boolean).slice(0, 50);
+    if (mods.length) {
+      sidecar.mods = mods;
+    } else {
+      delete sidecar.mods;
+    }
+  }
+
   await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
     httpMetadata: { contentType: 'application/json' }
   });

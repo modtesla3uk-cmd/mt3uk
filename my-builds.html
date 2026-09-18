@@ -493,6 +493,56 @@
   .mb-toggles { display: flex; flex-wrap: wrap; gap: 14px; }
   .mb-toggle { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; cursor: pointer; }
   .mb-toggle input { accent-color: var(--orange); width: 16px; height: 16px; }
+  .mb-mods { display: flex; flex-direction: column; gap: 6px; }
+  .mb-mods-label { display: block; }
+  .mb-mods-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  .mb-mods-list:empty { display: none; }
+  .mb-mods-list li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--line);
+    background: var(--paper-2);
+    padding: 4px 6px 4px 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.76rem;
+    color: var(--charcoal);
+  }
+  .mb-mods-remove {
+    flex-shrink: 0;
+    border: none;
+    background: transparent;
+    color: var(--steel);
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0 2px;
+    cursor: pointer;
+  }
+  .mb-mods-remove:hover { color: var(--orange); }
+  .mb-mods-input-row { display: flex; gap: 8px; }
+  .mb-mods-input {
+    flex: 1;
+    min-width: 0;
+    border: 1px solid var(--line);
+    background: var(--white);
+    padding: 7px 10px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.82rem;
+    color: var(--charcoal);
+  }
+  .mb-mods-input:focus { outline: none; border-color: var(--orange); }
+  .mb-mods-add-btn {
+    border: 1px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+    padding: 0 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .mb-mods-add-btn:hover { background: var(--ink); color: var(--paper); }
   .mb-build-actions { display: flex; gap: 10px; margin-top: auto; }
   .mb-delete-btn { background: transparent; border: 1px solid var(--line); color: var(--ink); padding: 7px 12px; font-size: 0.78rem; cursor: pointer; }
   .mb-delete-btn:hover { border-color: var(--orange); color: var(--orange); }
@@ -747,6 +797,8 @@
       }
       grid.innerHTML = builds.map(function (b) {
         var safeCaption = (b.caption || 'MT3UK member build').replace(/</g, '&lt;');
+        var mods = Array.isArray(b.mods) ? b.mods : [];
+        var modsJson = JSON.stringify(mods).replace(/'/g, '&#39;');
         return '<div class="mb-build-card" data-file="' + b.file.replace(/"/g, '&quot;') + '">' +
           '<div class="mb-build-thumb"><img src="' + window.MT3UK_R2_BASE + '/gallery/' + b.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy"></div>' +
           '<div class="mb-build-body">' +
@@ -756,12 +808,48 @@
               '<label class="mb-toggle"><input type="checkbox" data-flag="reel"' + (b.reel ? ' checked' : '') + '> Reel</label>' +
               '<label class="mb-toggle"><input type="checkbox" data-flag="votable"' + (b.votable ? ' checked' : '') + '> Voting</label>' +
             '</div>' +
+            '<div class="mb-mods">' +
+              '<span class="mono mb-mods-label">Mods</span>' +
+              '<ul class="mb-mods-list" data-mods=\'' + modsJson + '\'>' + modsListHtml(mods) + '</ul>' +
+              '<div class="mb-mods-input-row">' +
+                '<input type="text" class="mb-mods-input" placeholder="e.g. Coilovers" autocomplete="off">' +
+                '<button type="button" class="mb-mods-add-btn">Add</button>' +
+              '</div>' +
+            '</div>' +
             '<div class="mb-build-actions">' +
               '<button type="button" class="mb-delete-btn">Delete</button>' +
             '</div>' +
           '</div>' +
         '</div>';
       }).join('');
+    }
+
+    function modsListHtml(mods) {
+      return mods.map(function (m, idx) {
+        var safe = m.replace(/</g, '&lt;');
+        return '<li><span>' + safe + '</span><button type="button" class="mb-mods-remove" data-idx="' + idx + '" aria-label="Remove ' + safe + '">&times;</button></li>';
+      }).join('');
+    }
+
+    function getMods(list) {
+      try { return JSON.parse(list.getAttribute('data-mods') || '[]'); } catch (e) { return []; }
+    }
+
+    function setMods(list, mods) {
+      list.setAttribute('data-mods', JSON.stringify(mods).replace(/'/g, '&#39;'));
+      list.innerHTML = modsListHtml(mods);
+    }
+
+    function saveMods(card, mods) {
+      var file = card.getAttribute('data-file');
+      var token = getSession();
+      fetch(API + '/my-builds', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-Session-Token': token },
+        body: JSON.stringify({ file: file, mods: mods })
+      })
+        .then(function (res) { return res.json(); })
+        .catch(function () {});
     }
 
     function loadBuilds() {
@@ -837,6 +925,41 @@
           checkbox.disabled = false;
           checkbox.checked = !checkbox.checked;
         });
+    });
+
+    grid.addEventListener('click', function (e) {
+      var addBtn = e.target.closest('.mb-mods-add-btn');
+      if (addBtn) {
+        var wrap = addBtn.closest('.mb-mods');
+        var input = wrap.querySelector('.mb-mods-input');
+        var list = wrap.querySelector('.mb-mods-list');
+        var value = input.value.trim();
+        if (!value) return;
+        var mods = getMods(list);
+        mods.push(value);
+        setMods(list, mods);
+        input.value = '';
+        input.focus();
+        saveMods(addBtn.closest('.mb-build-card'), mods);
+        return;
+      }
+      var removeBtn = e.target.closest('.mb-mods-remove');
+      if (removeBtn) {
+        var list2 = removeBtn.closest('.mb-mods-list');
+        var mods2 = getMods(list2);
+        mods2.splice(Number(removeBtn.dataset.idx), 1);
+        setMods(list2, mods2);
+        saveMods(removeBtn.closest('.mb-build-card'), mods2);
+        return;
+      }
+    });
+
+    grid.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter') return;
+      var input = e.target.closest('.mb-mods-input');
+      if (!input) return;
+      e.preventDefault();
+      input.closest('.mb-mods').querySelector('.mb-mods-add-btn').click();
     });
 
     grid.addEventListener('click', function (e) {

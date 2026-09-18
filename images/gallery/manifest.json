@@ -1,5 +1,27 @@
 [
   {
+    "file": "model-3-build-spec--by-richard.jpg",
+    "caption": "MODEL 3 BUILD SPEC",
+    "name": "RICHARD",
+    "mods": [
+      "\"KW v3 Coilovers\"",
+      "\"MPP Front Upper and Rear Control arms\"",
+      "\"MPP Rear Traction and Trailing arms\"",
+      "\"Highland Performance style seats\"",
+      "\"Robot Cryton Front bumper\"",
+      "\"Carbon Factory Rear Diffuser\"",
+      "\"CMST Carbon rear spoiler\"",
+      "\"Tevo T4 Forged 20x9 wheels\"",
+      "\"AP Racing Radical CP9660 Front Calipers\"",
+      "\"AP Racing 372x32 Front Slotted discs\"",
+      "\"AP Racing rear 355x24 Rear discs\"",
+      "\"Teslogic v2 transmitter\"",
+      "\"Carbon steering wheel\"",
+      "\"Avery Gloss Hidden Forest Vinyl wrap\""
+    ],
+    "added": "2026-09-18"
+  },
+  {
     "file": "ap-racing-bbk.jpg",
     "caption": "AP RACING BBK",
     "mods": [

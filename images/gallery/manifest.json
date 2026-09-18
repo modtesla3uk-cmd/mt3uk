@@ -17,13 +17,15 @@
       "BC racing fully adjustable coilover suspension",
       "uprated front & rear anti-roll bars",
       "Full carbon fibre front diffuser (bolted to the chassis in 8 places)",
-      "400KG removed (trims",
-      "linings",
-      "dashboard",
-      "airbags",
-      "seats)",
+      "400KG removed (trims, linings, dashboard, airbags, seats)",
       "6 point harnesses",
-      "bucket seats"
+      "bucket seats",
+      "Full MSUK/FIA roll cage",
+      "Quaife LSD",
+      "Custom Instrument cluster",
+      "Custom rear motor power controller",
+      "Origin Labo 170cm rear wing with 300mm uprights",
+      "Tinted windows"
     ],
     "added": "2026-09-18"
   },
@@ -376,6 +378,11 @@
     "added": "2026-09-04"
   },
   {
+    "file": "03-model-3-green-blk-forged-wheels.jpg",
+    "caption": "MODEL 3 GREEN BLK FORGED WHEELS",
+    "added": "2026-09-04"
+  },
+  {
     "file": "05-model-y-gloss-wrap.jpg",
     "caption": "MODEL Y GLOSS WRAP",
     "added": "2026-09-04"
@@ -389,10 +396,5 @@
     "file": "09-model-3-trackday.jpg",
     "caption": "MODEL 3 TRACKDAY",
     "added": "2026-09-04"
-  },
-  {
-    "file": "03-model-3-green-blk-forged-wheels.jpg",
-    "caption": "MODEL 3 GREEN BLK FORGED WHEELS",
-    "added": null
   }
 ]

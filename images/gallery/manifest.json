@@ -1,28 +1,5 @@
 [
   {
-    "file": "model-3-build--by-rich.jpg",
-    "caption": "MODEL 3 BUILD",
-    "name": "RICH",
-    "mods": [
-      "KW v3 coilovers"
-    ],
-    "added": "2026-09-18"
-  },
-  {
-    "file": "model-3-build--by-rich-3.jpg",
-    "caption": "MODEL 3 BUILD",
-    "name": "RICH",
-    "votable": false,
-    "added": "2026-09-18"
-  },
-  {
-    "file": "model-3-build--by-rich-2.jpg",
-    "caption": "MODEL 3 BUILD",
-    "name": "RICH",
-    "votable": false,
-    "added": "2026-09-18"
-  },
-  {
     "file": "r2-upload-pipeline-test--by-richard-r2-test.jpg",
     "caption": "R2 UPLOAD PIPELINE TEST",
     "name": "RICHARD R2 TEST",

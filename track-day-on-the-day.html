@@ -29,6 +29,15 @@
     --line: #4a6491;
     --steel: #7c8798;
     --white: #ffffff;
+    --content-max: 1120px;
+  }
+
+  @media (min-width: 1600px) {
+    :root { --content-max: 1320px; }
+  }
+
+  @media (min-width: 2000px) {
+    :root { --content-max: 1520px; }
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -62,7 +71,7 @@
   img { max-width: 100%; display: block; }
 
   .wrap {
-    max-width: 1120px;
+    max-width: var(--content-max);
     margin: 0 auto;
     padding: 0 28px;
   }
@@ -134,7 +143,7 @@
     align-items: center;
     gap: 24px;
     padding: 16px 28px;
-    max-width: 1120px;
+    max-width: var(--content-max);
     margin: 0 auto;
     position: relative;
   }

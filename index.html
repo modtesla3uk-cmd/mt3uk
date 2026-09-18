@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MT3UK: Modified Tesla Owners</title>
+<title>MT3UK:The Modified Tesla Owners Community Page</title>
 <meta name="description" content="MT3UK is the global community for modified Tesla owners: wraps, wheels, suspension, stance and track builds. Browse the gallery, join the Facebook group and grab MT3UK merch.">
 <link rel="canonical" href="https://mt3uk.com/">
 <link rel="icon" type="image/x-icon" href="images/site/favicon.ico">
@@ -16,12 +16,12 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MT3UK">
 <meta property="og:type" content="website">
-<meta property="og:title" content="MT3UK: Modified Tesla Owners">
+<meta property="og:title" content="MT3UK:The Modified Tesla Owners Community Page">
 <meta property="og:description" content="MT3UK is the global community for modified Tesla owners: wraps, wheels, suspension, stance and track builds. Browse the gallery, join the Facebook group and grab MT3UK merch.">
 <meta property="og:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
 <meta property="og:url" content="https://mt3uk.com/">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="MT3UK: Modified Tesla Owners">
+<meta name="twitter:title" content="MT3UK:The Modified Tesla Owners Community Page">
 <meta name="twitter:description" content="MT3UK is the global community for modified Tesla owners: wraps, wheels, suspension, stance and track builds. Browse the gallery, join the Facebook group and grab MT3UK merch.">
 <meta name="twitter:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
@@ -38,6 +38,15 @@
     --line: #4a6491;
     --steel: #7c8798;
     --white: #ffffff;
+    --content-max: 1120px;
+  }
+
+  @media (min-width: 1600px) {
+    :root { --content-max: 1320px; }
+  }
+
+  @media (min-width: 2000px) {
+    :root { --content-max: 1520px; }
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -71,7 +80,7 @@
   img { max-width: 100%; display: block; }
 
   .wrap {
-    max-width: 1120px;
+    max-width: var(--content-max);
     margin: 0 auto;
     padding: 0 28px;
   }
@@ -143,7 +152,7 @@
     align-items: center;
     gap: 24px;
     padding: 16px 28px;
-    max-width: 1120px;
+    max-width: var(--content-max);
     margin: 0 auto;
     position: relative;
   }

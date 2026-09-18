@@ -74,23 +74,23 @@ def manual_order_key(name: str):
     return (1, 0, name.lower())
 
 
-def mods_from_sidecar(client, key: str, sidecar_keys: set):
+def sidecar_data(client, key: str, sidecar_keys: set):
     """Reads the optional '<key>.json' sidecar the submission worker
-    uploads alongside a photo when a submitter lists mods, since the
-    manifest itself is rebuilt from scratch from the bucket listing on
-    every run."""
+    uploads alongside a photo (mods list and/or a 'votable: false' flag
+    for extra photos in a multi-photo submission), since the manifest
+    itself is rebuilt from scratch from the bucket listing on every run."""
     sidecar_key = key + ".json"
     if sidecar_key not in sidecar_keys:
-        return []
+        return [], True
     try:
         obj = client.get_object(Bucket=BUCKET, Key=sidecar_key)
         data = json.loads(obj["Body"].read())
     except Exception:
-        return []
+        return [], True
     mods = data.get("mods")
-    if not isinstance(mods, list):
-        return []
-    return [str(m).strip() for m in mods if str(m).strip()][:50]
+    mods = [str(m).strip() for m in mods if str(m).strip()][:50] if isinstance(mods, list) else []
+    votable = data.get("votable") is not False
+    return mods, votable
 
 
 def main():
@@ -114,9 +114,11 @@ def main():
             entry["caption"] = caption
         if name:
             entry["name"] = name
-        mods = mods_from_sidecar(client, key, sidecar_keys)
+        mods, votable = sidecar_data(client, key, sidecar_keys)
         if mods:
             entry["mods"] = mods
+        if not votable:
+            entry["votable"] = False
         # UK-local date the photo was added, used by the site to feature
         # the latest upload and only swap it at UK midnight.
         entry["added"] = obj["LastModified"].astimezone(UK_TZ).date().isoformat()

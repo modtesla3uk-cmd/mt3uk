@@ -5,6 +5,8 @@ const FEATURED_PATH = 'data/featured.json';
 const REVIEWS_PATH = 'data/reviews.json';
 const GALLERY_MANIFEST_URL = 'https://raw.githubusercontent.com/' + OWNER + '/' + REPO + '/' + BASE_BRANCH + '/images/gallery/manifest.json';
 const GALLERY_PUBLIC_BASE_URL = 'https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev';
+const MAX_GALLERY_PHOTOS = 3;
+const GALLERY_SUBMIT_COOLDOWN_SECONDS = 60 * 60 * 24;
 const VOTE_TTL_SECONDS = 60 * 60 * 24 * 3;
 const REVIEW_PRODUCTS = ['tee', 'tee-yellow', 'stickers', 'brace', 'pads-street', 'pads-carbotech'];
 const REVIEW_PHOTOS_PATH = 'images/reviews';
@@ -71,7 +73,7 @@ async function fetchGalleryManifest() {
 function votingCandidates(manifest, todayStr) {
   var yesterdayStr = addDaysToDateString(todayStr, -1);
   return manifest.filter(function (p) {
-    return p.added === todayStr || p.added === yesterdayStr;
+    return (p.added === todayStr || p.added === yesterdayStr) && p.votable !== false;
   }).slice(0, 9);
 }
 
@@ -746,25 +748,37 @@ export default {
       return json({ success: false, message: 'Rejected' }, 400);
     }
 
+    var submitIp = getClientIp(request);
+    var cooldownKey = 'gallery-submit-ip:' + submitIp;
+    var onCooldown = await env.VOTES.get(cooldownKey);
+    if (onCooldown) {
+      return json({ success: false, message: "You've already submitted a build in the last 24 hours. Please try again tomorrow." }, 429);
+    }
+
     var name = (formData.get('name') || '').toString().trim().slice(0, 100);
     var caption = (formData.get('caption') || '').toString().trim().slice(0, 150);
     var modsRaw = (formData.get('mods') || '').toString().trim().slice(0, 1000);
     var mods = modsRaw
       ? modsRaw.split(/[,\n]/).map(function (m) { return m.trim(); }).filter(Boolean).slice(0, 20)
       : [];
-    var file = formData.get('photo');
+    var files = formData.getAll('photo').filter(function (f) { return f && typeof f !== 'string'; });
 
     if (!caption) {
       return json({ success: false, message: 'Caption is required' }, 400);
     }
-    if (!file || typeof file === 'string') {
+    if (!files.length) {
       return json({ success: false, message: 'Photo is required' }, 400);
     }
-    if (file.size > 10 * 1024 * 1024) {
-      return json({ success: false, message: 'Photo must be under 10MB' }, 400);
+    if (files.length > MAX_GALLERY_PHOTOS) {
+      return json({ success: false, message: 'You can upload up to ' + MAX_GALLERY_PHOTOS + ' photos at once' }, 400);
     }
-    if (!file.type || file.type.indexOf('image/') !== 0) {
-      return json({ success: false, message: 'File must be an image' }, 400);
+    for (var fi = 0; fi < files.length; fi++) {
+      if (files[fi].size > 10 * 1024 * 1024) {
+        return json({ success: false, message: 'Each photo must be under 10MB' }, 400);
+      }
+      if (!files[fi].type || files[fi].type.indexOf('image/') !== 0) {
+        return json({ success: false, message: 'Files must be images' }, 400);
+      }
     }
 
     var ghHeaders = {
@@ -775,39 +789,52 @@ export default {
     };
 
     try {
-      var extMatch = (file.name || '').match(/\.[a-zA-Z0-9]+$/);
-      var ext = extMatch ? extMatch[0].toLowerCase() : '.jpg';
       var slug = slugify(caption);
-
-      var existingNames = [];
-      var listed = await env.GALLERY_BUCKET.list({ prefix: 'gallery/' });
-      existingNames = listed.objects.map(function (obj) { return obj.key.slice('gallery/'.length); });
-
       var nameSlug = name ? slugify(name) : '';
       var baseSlug = nameSlug ? slug + '--by-' + nameSlug : slug;
-      var filename = baseSlug + ext;
-      var suffix = 2;
-      while (existingNames.indexOf(filename) !== -1 && suffix < 100) {
-        filename = baseSlug + '-' + suffix + ext;
-        suffix++;
+
+      var listed = await env.GALLERY_BUCKET.list({ prefix: 'gallery/' });
+      var existingNames = listed.objects.map(function (obj) { return obj.key.slice('gallery/'.length); });
+
+      var photoUrls = [];
+      for (var i = 0; i < files.length; i++) {
+        var file = files[i];
+        var extMatch = (file.name || '').match(/\.[a-zA-Z0-9]+$/);
+        var ext = extMatch ? extMatch[0].toLowerCase() : '.jpg';
+
+        var filename = baseSlug + ext;
+        var suffix = 2;
+        while (existingNames.indexOf(filename) !== -1 && suffix < 100) {
+          filename = baseSlug + '-' + suffix + ext;
+          suffix++;
+        }
+        existingNames.push(filename);
+
+        var arrayBuffer = await file.arrayBuffer();
+        await env.GALLERY_BUCKET.put('gallery/' + filename, arrayBuffer, {
+          httpMetadata: { contentType: file.type }
+        });
+
+        // The first photo is the primary: it carries the mods list and is
+        // the one eligible to appear in the voting gallery. Extra photos
+        // in the same submission are marked non-votable so only the
+        // primary shot shows up for votes.
+        var isPrimary = i === 0;
+        var sidecar = {};
+        if (isPrimary && mods.length) sidecar.mods = mods;
+        if (!isPrimary) sidecar.votable = false;
+        if (Object.keys(sidecar).length) {
+          await env.GALLERY_BUCKET.put(
+            'gallery/' + filename + '.json',
+            JSON.stringify(sidecar, null, 2) + '\n',
+            { httpMetadata: { contentType: 'application/json' } }
+          );
+        }
+
+        photoUrls.push(GALLERY_PUBLIC_BASE_URL + '/gallery/' + filename);
       }
 
-      var arrayBuffer = await file.arrayBuffer();
-      await env.GALLERY_BUCKET.put('gallery/' + filename, arrayBuffer, {
-        httpMetadata: { contentType: file.type }
-      });
-
-      if (mods.length) {
-        await env.GALLERY_BUCKET.put(
-          'gallery/' + filename + '.json',
-          JSON.stringify({ mods: mods }, null, 2) + '\n',
-          { httpMetadata: { contentType: 'application/json' } }
-        );
-      }
-
-      var photoUrl = GALLERY_PUBLIC_BASE_URL + '/gallery/' + filename;
-
-      // No PR/review gate now the photo lands straight in R2 - open an
+      // No PR/review gate now the photos land straight in R2 - open an
       // issue instead so there's still a notification to act on if a
       // submission needs pulling.
       try {
@@ -819,10 +846,10 @@ export default {
             body: JSON.stringify({
               title: 'Gallery submission: ' + caption,
               body: '**Caption:** ' + caption + '\n**Submitted by:** ' + (name || 'Anonymous') +
-                (mods.length ? '\n**Mods:** ' + mods.join(', ') : '') +
-                '\n\n![photo](' + photoUrl + ')\n\n' +
-                'This photo is already live in the gallery. Close this issue once reviewed, ' +
-                'or say the word to have it pulled from R2 and the manifest regenerated.'
+                (mods.length ? '\n**Mods (on primary photo):** ' + mods.join(', ') : '') +
+                '\n\n' + photoUrls.map(function (u, idx) { return '![photo ' + (idx + 1) + '](' + u + ')'; }).join('\n\n') +
+                '\n\nThese photos are already live in the gallery' + (photoUrls.length > 1 ? ' (first one is the primary/voting entry)' : '') + '. Close this issue once reviewed, ' +
+                'or say the word to have any of them pulled from R2 and the manifest regenerated.'
             })
           }
         );
@@ -831,7 +858,7 @@ export default {
         console.log('Issue creation failed (non-critical):', issueErr.message);
       }
 
-      // Kick off the manifest/sitemap rebuild now the bucket has a new photo.
+      // Kick off the manifest/sitemap rebuild now the bucket has new photos.
       try {
         await fetch(
           'https://api.github.com/repos/' + OWNER + '/' + REPO + '/dispatches',
@@ -845,7 +872,9 @@ export default {
         console.log('Manifest rebuild dispatch failed (non-critical):', dispatchErr.message);
       }
 
-      return json({ success: true, photo_url: photoUrl });
+      await env.VOTES.put(cooldownKey, '1', { expirationTtl: GALLERY_SUBMIT_COOLDOWN_SECONDS });
+
+      return json({ success: true, photo_url: photoUrls[0], photo_urls: photoUrls });
     } catch (err) {
       return json({ success: false, message: err.message }, 500);
     }

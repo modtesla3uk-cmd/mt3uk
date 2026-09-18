@@ -2339,8 +2339,8 @@
           </div>
         </div>
         <div class="form-row">
-          <label class="mono" for="submitter-photo">Photo</label>
-          <input type="file" id="submitter-photo" name="photo" accept="image/*" required>
+          <label class="mono" for="submitter-photo">Photos (up to 3)</label>
+          <input type="file" id="submitter-photo" name="photo" accept="image/*" multiple required>
         </div>
         <label class="form-checkbox-row" for="submitter-member-confirm">
           <input type="checkbox" id="submitter-member-confirm" required>
@@ -2351,10 +2351,10 @@
           Not a member? Join the MT3UK Facebook group
         </a>
         <div class="submit-guidance">
-          <p><strong>PLEASE READ:</strong> Upload a full photo of your build so we can get it featured. Add your mods above one at a time and we'll credit them under the photo.</p>
-          <p>Limit uploads to max 3 per day.</p>
+          <p><strong>PLEASE READ:</strong> Upload up to 3 full photos of your build. The first photo you pick is the primary shot used for the daily vote, and any mods you add above are credited against that one.</p>
+          <p>Photos go live in the gallery shortly after you submit, no approval wait. You can submit again 24 hours after your last upload.</p>
         </div>
-        <button type="submit" class="btn btn-primary">Submit photo</button>
+        <button type="submit" class="btn btn-primary">Submit photos</button>
         <p id="submit-status" class="mono" style="margin-top:2px;"></p>
       </form>
     </div>
@@ -2863,7 +2863,7 @@
               status.style.color = 'var(--orange)';
               status.textContent = message;
               btn.disabled = false;
-              btn.textContent = 'Submit photo';
+              btn.textContent = 'Submit photos';
         }
 
         form.addEventListener('submit', function (e) {
@@ -2872,9 +2872,12 @@
 
               if (modInput.value.trim()) addModItem();
 
-              var file = fileInput.files[0];
-              if (!file) return fail('Please choose a photo.');
-              if (file.size > 10 * 1024 * 1024) return fail('That photo is too large, please use one under 10MB.');
+              var files = fileInput.files;
+              if (!files.length) return fail('Please choose at least one photo.');
+              if (files.length > 3) return fail('Please choose up to 3 photos.');
+              for (var i = 0; i < files.length; i++) {
+                    if (files[i].size > 10 * 1024 * 1024) return fail('Each photo must be under 10MB.');
+              }
 
               btn.disabled = true;
               btn.textContent = 'Sending…';
@@ -2888,12 +2891,12 @@
                           if (json.success) {
                                 status.style.color = '#1c8a4b';
                                 status.style.fontWeight = '700';
-                                status.textContent = 'Thanks, your photo has been sent for review. 👍';
+                                status.textContent = 'Thanks, your photo' + (files.length > 1 ? 's are' : ' is') + ' live in the gallery now. 👍';
                                 form.reset();
                                 modItems = [];
                                 renderMods();
                                 btn.disabled = false;
-                                btn.textContent = 'Submit photo';
+                                btn.textContent = 'Submit photos';
                           } else {
                                 fail(json.message || 'Something went wrong, please try again.');
                           }

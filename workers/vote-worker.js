@@ -367,14 +367,25 @@ async function getLikesAggregate(env, ctx) {
   return likes;
 }
 
+async function getLikerFiles(env, voterId) {
+  var raw = await env.VOTES.get('liker-files:' + voterId);
+  if (!raw) return [];
+  try {
+    var parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    return [];
+  }
+}
+
 async function handleLikesGet(request, env, ctx) {
   var voterId = getVoterId(request);
   var likes = await getLikesAggregate(env, ctx);
 
-  var likedList = await env.VOTES.list({ prefix: 'liker:' + voterId + ':' });
-  var liked = likedList.keys.map(function (k) {
-    return k.name.slice(('liker:' + voterId + ':').length);
-  });
+  // A single JSON-array key per voter (one KV get) rather than a list() call,
+  // since this runs on every homepage visit and Workers KV's free tier caps
+  // list operations far lower than reads.
+  var liked = await getLikerFiles(env, voterId);
 
   return json({ success: true, voterId: voterId, likes: likes, liked: liked });
 }
@@ -399,21 +410,22 @@ async function handleLikePost(request, env) {
   }
 
   var voterId = getVoterId(request);
-  var likerKey = 'liker:' + voterId + ':' + file;
   var countKey = 'likes:' + file;
-  var alreadyLiked = await env.VOTES.get(likerKey);
+  var likerFiles = await getLikerFiles(env, voterId);
+  var idx = likerFiles.indexOf(file);
   var count = parseInt((await env.VOTES.get(countKey)) || '0', 10);
 
   var liked;
-  if (alreadyLiked) {
-    await env.VOTES.delete(likerKey);
+  if (idx !== -1) {
+    likerFiles.splice(idx, 1);
     count = Math.max(0, count - 1);
     liked = false;
   } else {
-    await env.VOTES.put(likerKey, '1');
+    likerFiles.push(file);
     count = count + 1;
     liked = true;
   }
+  await env.VOTES.put('liker-files:' + voterId, JSON.stringify(likerFiles));
   await env.VOTES.put(countKey, String(count));
 
   return json({ success: true, voterId: voterId, file: file, liked: liked, count: count });

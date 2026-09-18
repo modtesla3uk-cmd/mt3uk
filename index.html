@@ -761,6 +761,45 @@
     font-size: 0.58rem;
     color: rgba(255,255,255,0.7);
   }
+  .mt3uk-edit-badge {
+    position: absolute;
+    top: 8px; left: 8px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    background: var(--orange);
+    color: var(--paper) !important;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    padding: 4px 8px;
+    border-radius: 3px;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .mt3uk-edit-badge:hover { opacity: 0.85; }
+  .bf-rail-edit-btn {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.6);
+    border-radius: 999px;
+    color: var(--white) !important;
+    display: flex; flex-direction: row; align-items: center; gap: 5px;
+    padding: 6px 12px 6px 8px;
+    white-space: nowrap;
+    text-decoration: none;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .bf-rail-edit-btn svg { width: 18px; height: 18px; fill: currentColor; }
+  .vote-edit-link {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.03em;
+    color: var(--orange);
+    text-decoration: underline;
+  }
   .g-mods-badge {
     position: absolute;
     top: 8px; right: 8px;
@@ -1416,46 +1455,6 @@
   .form-row-note { color: var(--steel); font-size: 0.78rem; }
   .form-row-note a { color: var(--orange); text-decoration: underline; }
   .submit-form button { align-self: flex-start; }
-  .mods-entry { display: flex; flex-direction: column; gap: 8px; }
-  .mods-entry-input-row { display: flex; gap: 8px; }
-  .mods-entry-input-row input[type="text"] { flex: 1; }
-  .mods-entry-add-btn {
-    border: 1px solid var(--ink);
-    background: transparent;
-    color: var(--ink);
-    padding: 0 16px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.78rem;
-    letter-spacing: 0.03em;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: background .2s ease, color .2s ease;
-  }
-  .mods-entry-add-btn:hover { background: var(--ink); color: var(--paper); }
-  .mods-entry-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
-  .mods-entry-list li {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    border: 1px solid var(--ink);
-    background: var(--paper-2);
-    padding: 9px 10px 9px 12px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.82rem;
-    color: var(--charcoal);
-  }
-  .mods-entry-remove {
-    flex-shrink: 0;
-    border: none;
-    background: transparent;
-    color: var(--steel);
-    font-size: 1.1rem;
-    line-height: 1;
-    padding: 0 4px;
-    cursor: pointer;
-  }
-  .mods-entry-remove:hover { color: var(--orange); }
   .submit-form .hp-field { position: absolute; left: -9999px; }
   .form-checkbox-row {
     display: flex;
@@ -1652,6 +1651,48 @@
       return cache[url];
     };
   })();
+
+  // If this browser is signed in to My Builds, work out which gallery files
+  // belong to that account so an "Edit my build" link can be shown on them
+  // wherever they appear on the site.
+  window.mt3ukMyBuildFiles = null;
+  (function () {
+    var token = localStorage.getItem('mt3ukMyBuildsSession');
+    if (!token) return;
+    fetch('https://late-darkness-ebc8.modtesla3uk.workers.dev/my-builds', {
+      headers: { 'X-Session-Token': token },
+      cache: 'no-store'
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (!data || !data.success || !Array.isArray(data.builds)) return;
+        window.mt3ukMyBuildFiles = data.builds.map(function (b) { return b.file; });
+        document.dispatchEvent(new Event('mt3ukMyBuildsReady'));
+      })
+      .catch(function () {});
+  })();
+
+  // Adds an "Edit my build" link to any rendered [data-file] element whose
+  // file belongs to the signed-in account. Safe to call before the account's
+  // build list has loaded (a no-op) and again once mt3ukMyBuildsReady fires.
+  window.mt3ukApplyEditBadges = function (root) {
+    if (!window.mt3ukMyBuildFiles) return;
+    (root || document).querySelectorAll('[data-file]').forEach(function (el) {
+      var target = el.querySelector('[data-edit-target]') || el;
+      if (target.querySelector('.mt3uk-edit-badge, .bf-rail-edit-btn, .vote-edit-link')) return;
+      var file = el.getAttribute('data-file');
+      if (!file || window.mt3ukMyBuildFiles.indexOf(file) === -1) return;
+      var cls = target.dataset.editClass || 'mt3uk-edit-badge';
+      var badge = document.createElement('a');
+      badge.href = 'my-builds.html';
+      badge.className = cls;
+      badge.textContent = cls === 'bf-rail-edit-btn' ? 'Edit' : 'Edit my build';
+      target.appendChild(badge);
+    });
+  };
+  document.addEventListener('mt3ukMyBuildsReady', function () {
+    window.mt3ukApplyEditBadges(document);
+  });
 
   // Picks the featured build: the latest upload, swapping only at UK
   // midnight. If no new photo has been added since it was last featured,
@@ -1979,7 +2020,7 @@
         '<div class="bf-scrim bf-scrim-bottom"></div>' +
         '<button class="bf-like-hit" aria-label="Like this build" data-idx="' + idx + '"></button>' +
         '<div class="bf-heart-burst" aria-hidden="true">' + heartSvg('') + '</div>' +
-        '<aside class="bf-rail">' +
+        '<aside class="bf-rail" data-edit-target data-edit-class="bf-rail-edit-btn">' +
           '<button class="bf-rail-pill bf-recent-btn" aria-label="Jump to most recent build">' +
             '<svg viewBox="0 0 24 24"><path d="M12 5l-7 7h4v7h6v-7h4z"/></svg>' +
             '<span>Most recent</span>' +
@@ -2029,6 +2070,7 @@
         progressEl.appendChild(seg);
       });
       wireInteractions();
+      window.mt3ukApplyEditBadges(feedEl);
     }
 
     function wireInteractions() {
@@ -2351,20 +2393,13 @@
           <input type="text" id="submitter-caption" name="caption" placeholder="e.g. Viper Green Model Y" required>
         </div>
         <div class="form-row">
-          <label class="mono" for="submitter-email">Email (Optional)</label>
-          <input type="email" id="submitter-email" name="email" placeholder="you@example.com" autocomplete="email">
-          <p class="form-row-note mono">Add your email to manage this build later in <a href="my-builds.html">My Builds (BETA)</a> &mdash; publish flags, edits and deletes.</p>
+          <label class="mono" for="submitter-email">Email (Required)</label>
+          <input type="email" id="submitter-email" name="email" placeholder="you@example.com" autocomplete="email" required>
+          <p class="form-row-note mono">Needed so you can manage this build later in <a href="my-builds.html">My Builds (BETA)</a> &mdash; publish flags, edits and deletes.</p>
         </div>
         <div class="form-row">
-          <label class="mono" for="submitter-mod-input">Mods (Optional)</label>
-          <div class="mods-entry" id="mods-entry">
-            <div class="mods-entry-input-row">
-              <input type="text" id="submitter-mod-input" placeholder="e.g. Coilovers" autocomplete="off">
-              <button type="button" class="mods-entry-add-btn" id="mods-entry-add-btn">Add</button>
-            </div>
-            <ul class="mods-entry-list" id="mods-entry-list"></ul>
-            <input type="hidden" id="submitter-mods" name="mods">
-          </div>
+          <label class="mono" for="submitter-mods">Mods (Optional)</label>
+          <textarea id="submitter-mods" name="mods" rows="10" placeholder="e.g. Coilovers, 20&quot; wheels, wrap" maxlength="1000"></textarea>
         </div>
         <div class="form-row">
           <label class="mono" for="submitter-photo">Photos (up to 3)</label>
@@ -2411,12 +2446,13 @@
                 '<svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9 2.6-2.6z"/></svg>' +
                 p.mods.length +
               '</button>' : '';
-            return '<div class="gallery-slot filled">' +
+            return '<div class="gallery-slot filled" data-file="' + p.file.replace(/"/g, '&quot;') + '">' +
                      '<img src="' + window.MT3UK_R2_BASE + '/gallery/' + p.file.replace(/&/g, '&amp;') + '" alt="' + (safeCaption || 'MT3UK member build') + '" loading="lazy"' + modsAttr + '>' +
                      modsBadge +
                      captionHtml +
                    '</div>';
           }).join('');
+          window.mt3ukApplyEditBadges(grid);
         }
 
         function renderPagination(totalPages) {
@@ -2462,10 +2498,21 @@
 
         function loadGallery(forceRefresh) {
           var refreshBtn = document.getElementById('gallery-refresh-btn');
-          if (refreshBtn) refreshBtn.disabled = true;
+          if (refreshBtn) {
+            refreshBtn.disabled = true;
+            if (forceRefresh) refreshBtn.innerHTML = '&#8635; Refreshing&hellip;';
+          }
           window.mt3ukFetchJSON('images/gallery/manifest.json', null, forceRefresh)
             .then(function (photos) {
-              if (refreshBtn) refreshBtn.disabled = false;
+              if (refreshBtn) {
+                refreshBtn.disabled = false;
+                if (forceRefresh) {
+                  refreshBtn.innerHTML = photos ? '&#10003; Refreshed' : '&#8635; Refresh';
+                  if (photos) {
+                    setTimeout(function () { refreshBtn.innerHTML = '&#8635; Refresh'; }, 1800);
+                  }
+                }
+              }
               if (!photos) {
                 grid.innerHTML = '<p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">Gallery photos couldn\'t be loaded.</p>';
                 return;
@@ -2850,43 +2897,6 @@
         var btn = form.querySelector('button[type="submit"]');
         var fileInput = document.getElementById('submitter-photo');
 
-        var modInput = document.getElementById('submitter-mod-input');
-        var modAddBtn = document.getElementById('mods-entry-add-btn');
-        var modList = document.getElementById('mods-entry-list');
-        var modHidden = document.getElementById('submitter-mods');
-        var modItems = [];
-
-        function renderMods() {
-              modList.innerHTML = modItems.map(function (item, idx) {
-                    var safe = item.replace(/</g, '&lt;');
-                    return '<li><span>' + safe + '</span><button type="button" class="mods-entry-remove" data-idx="' + idx + '" aria-label="Remove ' + safe + '">&times;</button></li>';
-              }).join('');
-              modHidden.value = modItems.join(', ');
-        }
-
-        function addModItem() {
-              var value = modInput.value.trim();
-              if (!value) return;
-              modItems.push(value);
-              modInput.value = '';
-              renderMods();
-              modInput.focus();
-        }
-
-        modAddBtn.addEventListener('click', addModItem);
-        modInput.addEventListener('keydown', function (e) {
-              if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addModItem();
-              }
-        });
-        modList.addEventListener('click', function (e) {
-              var removeBtn = e.target.closest('.mods-entry-remove');
-              if (!removeBtn) return;
-              modItems.splice(Number(removeBtn.dataset.idx), 1);
-              renderMods();
-        });
-
         function fail(message) {
               status.style.color = 'var(--orange)';
               status.textContent = message;
@@ -2897,8 +2907,6 @@
         form.addEventListener('submit', function (e) {
               e.preventDefault();
               status.textContent = '';
-
-              if (modInput.value.trim()) addModItem();
 
               var files = fileInput.files;
               if (!files.length) return fail('Please choose at least one photo.');
@@ -2921,8 +2929,6 @@
                                 status.style.fontWeight = '700';
                                 status.textContent = 'Thanks, your photo' + (files.length > 1 ? 's are' : ' is') + ' live in the gallery now. 👍';
                                 form.reset();
-                                modItems = [];
-                                renderMods();
                                 btn.disabled = false;
                                 btn.textContent = 'Submit photos';
                           } else {
@@ -3342,7 +3348,7 @@
           return (
             '<div class="vote-card' + (isVoted ? ' voted' : '') + (isLeading ? ' leading' : '') + '" data-file="' + c.file.replace(/"/g, '&quot;') + '">' +
               '<div class="vote-media"><img src="' + window.MT3UK_R2_BASE + '/gallery/' + c.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy">' + modsBadge + '</div>' +
-              '<div class="vote-body">' +
+              '<div class="vote-body" data-edit-target data-edit-class="vote-edit-link">' +
                 '<span class="vote-caption">' + safeCaption + '</span>' +
                 '<span class="vote-count">' + c.votes + (c.votes === 1 ? ' vote' : ' votes') + '</span>' +
                 '<button type="button" class="vote-btn"' + (isVoted ? ' disabled' : '') + '>' + (isVoted ? 'Voted' : 'Vote for this build') + '</button>' +
@@ -3350,6 +3356,7 @@
             '</div>'
           );
         }).join('');
+        window.mt3ukApplyEditBadges(frame);
 
         frame.querySelectorAll('.vote-media').forEach(function (media, i) {
           media.addEventListener('click', function () {
@@ -3371,17 +3378,29 @@
         }
       }
 
-      function loadVotes() {
+      function loadVotes(isManualRefresh) {
         var refreshBtn = document.getElementById('vote-refresh-btn');
-        if (refreshBtn) refreshBtn.disabled = true;
+        if (refreshBtn) {
+          refreshBtn.disabled = true;
+          if (isManualRefresh) refreshBtn.innerHTML = '&#8635; Refreshing&hellip;';
+        }
         return fetch(VOTE_ENDPOINT + '/votes', { headers: { 'X-Voter-Id': voterId }, cache: 'no-store' })
           .then(function (res) { return res.json(); })
           .then(function (data) {
-            if (refreshBtn) refreshBtn.disabled = false;
+            if (refreshBtn) {
+              refreshBtn.disabled = false;
+              if (isManualRefresh) {
+                refreshBtn.innerHTML = '&#10003; Refreshed';
+                setTimeout(function () { refreshBtn.innerHTML = '&#8635; Refresh'; }, 1800);
+              }
+            }
             render(data);
           })
           .catch(function () {
-            if (refreshBtn) refreshBtn.disabled = false;
+            if (refreshBtn) {
+              refreshBtn.disabled = false;
+              if (isManualRefresh) refreshBtn.innerHTML = '&#8635; Refresh';
+            }
             frame.innerHTML = '<p class="mono" style="padding: 24px; color: var(--steel);">Voting couldn\'t be loaded.</p>';
           });
       }
@@ -3389,7 +3408,7 @@
       loadVotes();
 
       var voteRefreshBtn = document.getElementById('vote-refresh-btn');
-      if (voteRefreshBtn) voteRefreshBtn.addEventListener('click', function () { loadVotes(); });
+      if (voteRefreshBtn) voteRefreshBtn.addEventListener('click', function () { loadVotes(true); });
 
       var countdownEl = document.getElementById('vote-countdown');
       var heroCountdownEl = document.getElementById('hero-vote-countdown');

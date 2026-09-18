@@ -1165,7 +1165,7 @@ export default {
 
     var name = (formData.get('name') || '').toString().trim().slice(0, 100);
     var email = (formData.get('email') || '').toString().trim().toLowerCase().slice(0, 200);
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return json({ success: false, message: 'Please enter a valid email' }, 400);
     }
     var caption = (formData.get('caption') || '').toString().trim().slice(0, 150);

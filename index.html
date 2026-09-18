@@ -761,25 +761,8 @@
     font-size: 0.58rem;
     color: rgba(255,255,255,0.7);
   }
-  .mt3uk-edit-badge {
-    position: absolute;
-    top: 8px; left: 8px;
-    z-index: 2;
-    display: inline-flex;
-    align-items: center;
-    background: var(--orange);
-    color: var(--paper) !important;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.62rem;
-    font-weight: 700;
-    letter-spacing: 0.03em;
-    padding: 4px 8px;
-    border-radius: 3px;
-    text-decoration: none;
-    white-space: nowrap;
-  }
-  .mt3uk-edit-badge:hover { opacity: 0.85; }
-  .bf-rail-edit-btn {
+  .bf-rail-edit-btn,
+  .mt3uk-edit-pill {
     background: rgba(0,0,0,0.4);
     border: 1px solid rgba(255,255,255,0.6);
     border-radius: 999px;
@@ -791,15 +774,13 @@
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 12px;
     font-weight: 600;
+    cursor: pointer;
   }
-  .bf-rail-edit-btn svg { width: 18px; height: 18px; fill: currentColor; }
-  .vote-edit-link {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.68rem;
-    letter-spacing: 0.03em;
-    color: var(--orange);
-    text-decoration: underline;
-  }
+  .bf-rail-edit-btn svg,
+  .mt3uk-edit-pill svg { width: 18px; height: 18px; fill: currentColor; }
+  .bf-rail-edit-btn:hover,
+  .mt3uk-edit-pill:hover { background: rgba(0,0,0,0.6); }
+  .mt3uk-edit-pill { position: absolute; top: 8px; left: 8px; z-index: 3; }
   .g-mods-badge {
     position: absolute;
     top: 8px; right: 8px;
@@ -1653,13 +1634,16 @@
   })();
 
   // If this browser is signed in to My Builds, work out which gallery files
-  // belong to that account so an "Edit my build" link can be shown on them
-  // wherever they appear on the site.
+  // belong to that account so an "Edit Build" button can be shown on them
+  // wherever they appear on the site, and cache the full build record
+  // (caption/mods/flags) so the edit modal can open instantly.
   window.mt3ukMyBuildFiles = null;
+  window.mt3ukMyBuildData = {};
+  var MT3UK_API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
   (function () {
     var token = localStorage.getItem('mt3ukMyBuildsSession');
     if (!token) return;
-    fetch('https://late-darkness-ebc8.modtesla3uk.workers.dev/my-builds', {
+    fetch(MT3UK_API + '/my-builds', {
       headers: { 'X-Session-Token': token },
       cache: 'no-store'
     })
@@ -1667,32 +1651,263 @@
       .then(function (data) {
         if (!data || !data.success || !Array.isArray(data.builds)) return;
         window.mt3ukMyBuildFiles = data.builds.map(function (b) { return b.file; });
+        data.builds.forEach(function (b) { window.mt3ukMyBuildData[b.file] = b; });
         document.dispatchEvent(new Event('mt3ukMyBuildsReady'));
       })
       .catch(function () {});
   })();
 
-  // Adds an "Edit my build" link to any rendered [data-file] element whose
+  // Adds an "Edit Build" button to any rendered [data-file] element whose
   // file belongs to the signed-in account. Safe to call before the account's
   // build list has loaded (a no-op) and again once mt3ukMyBuildsReady fires.
   window.mt3ukApplyEditBadges = function (root) {
     if (!window.mt3ukMyBuildFiles) return;
     (root || document).querySelectorAll('[data-file]').forEach(function (el) {
       var target = el.querySelector('[data-edit-target]') || el;
-      if (target.querySelector('.mt3uk-edit-badge, .bf-rail-edit-btn, .vote-edit-link')) return;
+      if (target.querySelector('.mt3uk-edit-pill, .bf-rail-edit-btn')) return;
       var file = el.getAttribute('data-file');
       if (!file || window.mt3ukMyBuildFiles.indexOf(file) === -1) return;
-      var cls = target.dataset.editClass || 'mt3uk-edit-badge';
-      var badge = document.createElement('a');
-      badge.href = 'my-builds.html';
+      var cls = target.dataset.editClass || 'mt3uk-edit-pill';
+      var badge = document.createElement('button');
+      badge.type = 'button';
       badge.className = cls;
-      badge.textContent = cls === 'bf-rail-edit-btn' ? 'Edit' : 'Edit my build';
+      badge.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M16.5 3.5a1.9 1.9 0 0 1 2.7 2.7L7 18.4l-3.5.8.8-3.5L16.5 3.5z"/></svg><span>Edit Build</span>';
+      badge.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        window.mt3ukOpenEditModal(file, el);
+      });
       target.appendChild(badge);
     });
   };
   document.addEventListener('mt3ukMyBuildsReady', function () {
     window.mt3ukApplyEditBadges(document);
   });
+
+  // In-page "Edit Build" modal: lets a signed-in owner change mods and
+  // gallery/reel/voting flags, or delete the build, without leaving the
+  // page they were browsing.
+  window.mt3ukOpenEditModal = (function () {
+    var modal, modsList, modsInput, statusEl, deleteBtn, captionEl, imgEl;
+    var currentFile = null;
+    var currentOriginEl = null;
+    var currentMods = [];
+
+    function ensureModal() {
+      if (modal) return modal;
+      var style = document.createElement('style');
+      style.textContent = '.ebm-overlay { position: fixed; inset: 0; background: rgba(22,35,61,0.85); display: none; align-items: center; justify-content: center; z-index: 300; padding: 20px; } .ebm-overlay.open { display: flex; } .ebm-panel { background: var(--paper, #f3f1ea); max-width: 420px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; border: 1px solid var(--ink, #16233d); } .ebm-close { position: absolute; top: 10px; right: 10px; width: 34px; height: 34px; border: 1px solid var(--ink, #16233d); background: transparent; font-size: 1.3rem; line-height: 1; cursor: pointer; } .ebm-close:hover { background: var(--orange, #e8542a); color: #fff; border-color: var(--orange, #e8542a); } .ebm-media { aspect-ratio: 4/3; overflow: hidden; } .ebm-media img { width: 100%; height: 100%; object-fit: cover; display: block; } .ebm-body { padding: 18px; display: flex; flex-direction: column; gap: 14px; } .ebm-caption { font-family: "IBM Plex Mono", monospace; font-size: 0.8rem; letter-spacing: 0.03em; } .ebm-toggles { display: flex; flex-wrap: wrap; gap: 12px; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; } .ebm-toggle { display: flex; align-items: center; gap: 6px; cursor: pointer; } .ebm-mods { display: flex; flex-direction: column; gap: 8px; } .ebm-mods-label { display: block; font-size: 0.78rem; } .ebm-mods-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; } .ebm-mods-list:empty { display: none; } .ebm-mods-list li { display: flex; align-items: center; gap: 6px; border: 1px solid var(--ink, #16233d); padding: 5px 6px 5px 10px; font-family: "IBM Plex Mono", monospace; font-size: 0.76rem; } .ebm-mods-remove { border: none; background: transparent; cursor: pointer; font-size: 1rem; line-height: 1; color: var(--steel, #7c8798); } .ebm-mods-remove:hover { color: var(--orange, #e8542a); } .ebm-mods-input-row { display: flex; gap: 8px; } .ebm-mods-input-row input { flex: 1; border: 1px solid var(--ink, #16233d); background: #fff; padding: 8px 10px; font-family: "IBM Plex Sans", sans-serif; font-size: 0.85rem; } .ebm-mods-add-btn { border: 1px solid var(--ink, #16233d); background: transparent; padding: 0 14px; font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; cursor: pointer; } .ebm-mods-add-btn:hover { background: var(--ink, #16233d); color: #fff; } .ebm-actions { display: flex; align-items: center; gap: 10px; } .ebm-save-btn { border: 1px solid var(--orange, #e8542a); background: var(--orange, #e8542a); color: #fff; padding: 9px 16px; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; cursor: pointer; } .ebm-save-btn:disabled { opacity: 0.6; cursor: default; } .ebm-status { font-size: 0.76rem; color: var(--steel, #7c8798); } .ebm-status-ok { color: #1c8a4b; font-weight: 700; } .ebm-status-err { color: var(--orange, #e8542a); } .ebm-danger { border-top: 1px solid rgba(0,0,0,0.12); padding-top: 12px; } .ebm-delete-btn { border: 1px solid var(--line, #4a6491); background: transparent; padding: 7px 12px; font-family: "IBM Plex Mono", monospace; font-size: 0.76rem; cursor: pointer; } .ebm-delete-btn:hover { border-color: var(--orange, #e8542a); color: var(--orange, #e8542a); } .ebm-delete-btn.ebm-delete-confirm { border-color: var(--orange, #e8542a); background: var(--orange, #e8542a); color: #fff; } .ebm-manage-link { font-size: 0.72rem; color: var(--steel, #7c8798); } .ebm-manage-link a { color: var(--orange, #e8542a); text-decoration: underline; }';
+      document.head.appendChild(style);
+
+      modal = document.createElement('div');
+      modal.className = 'ebm-overlay';
+      modal.setAttribute('role', 'dialog');
+      modal.setAttribute('aria-modal', 'true');
+      modal.setAttribute('aria-hidden', 'true');
+      modal.innerHTML =
+        '<div class="ebm-panel">' +
+          '<button type="button" class="ebm-close" aria-label="Close">&times;</button>' +
+          '<div class="ebm-media"><img alt=""></div>' +
+          '<div class="ebm-body">' +
+            '<span class="ebm-caption"></span>' +
+            '<div class="ebm-toggles">' +
+              '<label class="ebm-toggle"><input type="checkbox" data-flag="gallery"> Gallery</label>' +
+              '<label class="ebm-toggle"><input type="checkbox" data-flag="reel"> Reel</label>' +
+              '<label class="ebm-toggle"><input type="checkbox" data-flag="votable"> Voting</label>' +
+            '</div>' +
+            '<div class="ebm-mods">' +
+              '<span class="mono ebm-mods-label">Mods</span>' +
+              '<ul class="ebm-mods-list"></ul>' +
+              '<div class="ebm-mods-input-row">' +
+                '<input type="text" placeholder="e.g. Coilovers" autocomplete="off">' +
+                '<button type="button" class="ebm-mods-add-btn">Add</button>' +
+              '</div>' +
+            '</div>' +
+            '<div class="ebm-actions">' +
+              '<button type="button" class="ebm-save-btn">Save changes</button>' +
+              '<span class="ebm-status mono"></span>' +
+            '</div>' +
+            '<div class="ebm-danger"><button type="button" class="ebm-delete-btn">Delete this build</button></div>' +
+            '<p class="ebm-manage-link mono">Manage all your builds in <a href="my-builds.html">My Builds</a>.</p>' +
+          '</div>' +
+        '</div>';
+      document.body.appendChild(modal);
+
+      imgEl = modal.querySelector('.ebm-media img');
+      captionEl = modal.querySelector('.ebm-caption');
+      modsList = modal.querySelector('.ebm-mods-list');
+      modsInput = modal.querySelector('.ebm-mods-input-row input');
+      statusEl = modal.querySelector('.ebm-status');
+      deleteBtn = modal.querySelector('.ebm-delete-btn');
+      var saveBtn = modal.querySelector('.ebm-save-btn');
+      var addBtn = modal.querySelector('.ebm-mods-add-btn');
+      var closeBtn = modal.querySelector('.ebm-close');
+
+      function renderMods() {
+        modsList.innerHTML = currentMods.map(function (m, idx) {
+          var safe = String(m).replace(/</g, '&lt;');
+          return '<li><span>' + safe + '</span><button type="button" class="ebm-mods-remove" data-idx="' + idx + '" aria-label="Remove ' + safe + '">&times;</button></li>';
+        }).join('');
+      }
+
+      function addMod() {
+        var value = modsInput.value.trim();
+        if (!value) return;
+        currentMods.push(value);
+        modsInput.value = '';
+        renderMods();
+      }
+
+      addBtn.addEventListener('click', addMod);
+      modsInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); addMod(); }
+      });
+      modsList.addEventListener('click', function (e) {
+        var removeBtn = e.target.closest('.ebm-mods-remove');
+        if (!removeBtn) return;
+        currentMods.splice(Number(removeBtn.dataset.idx), 1);
+        renderMods();
+      });
+
+      function closeModal() {
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+        currentFile = null;
+        currentOriginEl = null;
+      }
+
+      closeBtn.addEventListener('click', closeModal);
+      modal.addEventListener('click', function (e) {
+        if (e.target === modal) closeModal();
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+      });
+
+      saveBtn.addEventListener('click', function () {
+        if (!currentFile) return;
+        if (modsInput.value.trim()) addMod();
+        var token = localStorage.getItem('mt3ukMyBuildsSession');
+        var flags = {};
+        modal.querySelectorAll('input[data-flag]').forEach(function (cb) {
+          flags[cb.dataset.flag] = cb.checked;
+        });
+        saveBtn.disabled = true;
+        statusEl.textContent = 'Saving…';
+        statusEl.className = 'ebm-status mono';
+        var body = { file: currentFile, mods: currentMods, gallery: flags.gallery, reel: flags.reel, votable: flags.votable };
+        fetch(MT3UK_API + '/my-builds', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'X-Session-Token': token },
+          body: JSON.stringify(body)
+        })
+          .then(function (res) { return res.json(); })
+          .then(function (data) {
+            saveBtn.disabled = false;
+            if (!data.success) {
+              statusEl.textContent = data.message || 'Could not save, try again';
+              statusEl.className = 'ebm-status mono ebm-status-err';
+              return;
+            }
+            statusEl.textContent = 'Saved';
+            statusEl.className = 'ebm-status mono ebm-status-ok';
+            var cached = window.mt3ukMyBuildData[currentFile];
+            if (cached) {
+              cached.mods = currentMods.slice();
+              cached.gallery = flags.gallery;
+              cached.reel = flags.reel;
+              cached.votable = flags.votable;
+            }
+            // If the flag governing where this build was clicked from just
+            // turned off, drop it from that view immediately.
+            if (currentOriginEl) {
+              var surfaceFlag = currentOriginEl.classList.contains('bf-slide') ? 'reel' :
+                currentOriginEl.classList.contains('vote-card') ? 'votable' :
+                currentOriginEl.classList.contains('gallery-slot') ? 'gallery' : null;
+              if (surfaceFlag && flags[surfaceFlag] === false) {
+                currentOriginEl.remove();
+              }
+            }
+          })
+          .catch(function () {
+            saveBtn.disabled = false;
+            statusEl.textContent = 'Could not save, try again';
+            statusEl.className = 'ebm-status mono ebm-status-err';
+          });
+      });
+
+      deleteBtn.addEventListener('click', function () {
+        if (!currentFile) return;
+        if (!deleteBtn.classList.contains('ebm-delete-confirm')) {
+          deleteBtn.classList.add('ebm-delete-confirm');
+          deleteBtn.textContent = 'Confirm delete?';
+          setTimeout(function () {
+            deleteBtn.classList.remove('ebm-delete-confirm');
+            deleteBtn.textContent = 'Delete this build';
+          }, 4000);
+          return;
+        }
+        var token = localStorage.getItem('mt3ukMyBuildsSession');
+        var file = currentFile;
+        deleteBtn.disabled = true;
+        deleteBtn.textContent = 'Deleting…';
+        fetch(MT3UK_API + '/my-builds?file=' + encodeURIComponent(file), {
+          method: 'DELETE',
+          headers: { 'X-Session-Token': token }
+        })
+          .then(function (res) { return res.json(); })
+          .then(function (data) {
+            deleteBtn.disabled = false;
+            if (!data.success) {
+              deleteBtn.textContent = 'Delete this build';
+              return;
+            }
+            delete window.mt3ukMyBuildData[file];
+            if (window.mt3ukMyBuildFiles) {
+              var idx = window.mt3ukMyBuildFiles.indexOf(file);
+              if (idx !== -1) window.mt3ukMyBuildFiles.splice(idx, 1);
+            }
+            document.querySelectorAll('[data-file="' + CSS.escape(file) + '"]').forEach(function (el) { el.remove(); });
+            closeModal();
+          })
+          .catch(function () {
+            deleteBtn.disabled = false;
+            deleteBtn.textContent = 'Delete this build';
+          });
+      });
+
+      modal.dataset.ready = '1';
+      return modal;
+    }
+
+    return function open(file, originEl) {
+      ensureModal();
+      currentFile = file;
+      currentOriginEl = originEl || null;
+      var data = window.mt3ukMyBuildData[file] || { file: file, mods: [], gallery: true, reel: true, votable: true, caption: '' };
+      currentMods = Array.isArray(data.mods) ? data.mods.slice() : [];
+      imgEl.src = window.MT3UK_R2_BASE + '/gallery/' + file;
+      imgEl.alt = data.caption || 'MT3UK member build';
+      captionEl.textContent = data.caption || '';
+      modal.querySelector('input[data-flag="gallery"]').checked = data.gallery !== false;
+      modal.querySelector('input[data-flag="reel"]').checked = data.reel !== false;
+      modal.querySelector('input[data-flag="votable"]').checked = data.votable !== false;
+      modsList.innerHTML = currentMods.map(function (m, idx) {
+        var safe = String(m).replace(/</g, '&lt;');
+        return '<li><span>' + safe + '</span><button type="button" class="ebm-mods-remove" data-idx="' + idx + '" aria-label="Remove ' + safe + '">&times;</button></li>';
+      }).join('');
+      modsInput.value = '';
+      statusEl.textContent = '';
+      statusEl.className = 'ebm-status mono';
+      deleteBtn.classList.remove('ebm-delete-confirm');
+      deleteBtn.disabled = false;
+      deleteBtn.textContent = 'Delete this build';
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    };
+  })();
 
   // Picks the featured build: the latest upload, swapping only at UK
   // midnight. If no new photo has been added since it was last featured,
@@ -3347,8 +3562,8 @@
             '</button>' : '';
           return (
             '<div class="vote-card' + (isVoted ? ' voted' : '') + (isLeading ? ' leading' : '') + '" data-file="' + c.file.replace(/"/g, '&quot;') + '">' +
-              '<div class="vote-media"><img src="' + window.MT3UK_R2_BASE + '/gallery/' + c.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy">' + modsBadge + '</div>' +
-              '<div class="vote-body" data-edit-target data-edit-class="vote-edit-link">' +
+              '<div class="vote-media" data-edit-target data-edit-class="mt3uk-edit-pill"><img src="' + window.MT3UK_R2_BASE + '/gallery/' + c.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy">' + modsBadge + '</div>' +
+              '<div class="vote-body">' +
                 '<span class="vote-caption">' + safeCaption + '</span>' +
                 '<span class="vote-count">' + c.votes + (c.votes === 1 ? ' vote' : ' votes') + '</span>' +
                 '<button type="button" class="vote-btn"' + (isVoted ? ' disabled' : '') + '>' + (isVoted ? 'Voted' : 'Vote for this build') + '</button>' +

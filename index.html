@@ -744,6 +744,8 @@
     transition: transform .35s ease;
   }
   .gallery-slot.filled:hover img { transform: scale(1.045); }
+  .gallery-slot.filled.is-landscape { background: var(--ink); }
+  .gallery-slot img.is-landscape { object-fit: contain; }
   .gallery-slot .g-caption {
     position: absolute;
     left: 0; right: 0; bottom: 0;
@@ -976,6 +978,7 @@
     pointer-events: none;
   }
   .bf-slide.bf-in-view .bf-slide-img { transform: scale(1.02); }
+  .bf-slide-img.is-landscape { object-fit: contain; }
 
   .bf-scrim { position: absolute; left: 0; right: 0; pointer-events: none; }
   .bf-scrim-top {
@@ -1275,6 +1278,8 @@
   .vote-card.voted { border: 1px solid var(--orange); }
   .vote-card .vote-media { aspect-ratio: 1/1; overflow: hidden; position: relative; }
   .vote-card .vote-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .vote-card .vote-media.is-landscape { background: var(--ink); }
+  .vote-card .vote-media img.is-landscape { object-fit: contain; }
   .vote-card .vote-body { padding: 14px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
   .vote-card .vote-caption { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; letter-spacing: 0.03em; color: var(--ink); }
   .vote-card .vote-count { font-size: 1rem; font-weight: 600; color: var(--ink); }
@@ -1633,6 +1638,21 @@
     };
   })();
 
+  // Grid/reel tiles crop to a square-ish box with object-fit: cover, which
+  // over-crops wide landscape photos (cuts the sides off the car). Tag
+  // landscape images once loaded so CSS can switch just those to
+  // object-fit: contain (full photo visible, letterboxed) instead of
+  // cropping. Uses the capture phase since the "load" event doesn't bubble.
+  document.addEventListener('load', function (e) {
+    var img = e.target;
+    if (!(img instanceof HTMLImageElement)) return;
+    if (!img.matches('.gallery-slot img, .vote-card .vote-media img, .bf-slide-img')) return;
+    if (!img.naturalWidth || img.naturalWidth <= img.naturalHeight * 1.15) return;
+    img.classList.add('is-landscape');
+    var container = img.closest('.gallery-slot, .vote-media, .bf-slide');
+    if (container) container.classList.add('is-landscape');
+  }, true);
+
   // If this browser is signed in to My Builds, work out which gallery files
   // belong to that account so an "Edit Build" button can be shown on them
   // wherever they appear on the site, and cache the full build record
@@ -1696,7 +1716,7 @@
     function ensureModal() {
       if (modal) return modal;
       var style = document.createElement('style');
-      style.textContent = '.ebm-overlay { position: fixed; inset: 0; background: rgba(22,35,61,0.85); display: none; align-items: center; justify-content: center; z-index: 300; padding: 20px; } .ebm-overlay.open { display: flex; } .ebm-panel { background: var(--paper, #f3f1ea); max-width: 420px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; border: 1px solid var(--ink, #16233d); } .ebm-close { position: absolute; top: 10px; right: 10px; width: 34px; height: 34px; border: 1px solid var(--ink, #16233d); background: transparent; font-size: 1.3rem; line-height: 1; cursor: pointer; } .ebm-close:hover { background: var(--orange, #e8542a); color: #fff; border-color: var(--orange, #e8542a); } .ebm-media { aspect-ratio: 4/3; overflow: hidden; } .ebm-media img { width: 100%; height: 100%; object-fit: cover; display: block; } .ebm-body { padding: 18px; display: flex; flex-direction: column; gap: 14px; } .ebm-caption { font-family: "IBM Plex Mono", monospace; font-size: 0.8rem; letter-spacing: 0.03em; } .ebm-toggles { display: flex; flex-wrap: wrap; gap: 12px; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; } .ebm-toggle { display: flex; align-items: center; gap: 6px; cursor: pointer; } .ebm-mods { display: flex; flex-direction: column; gap: 8px; } .ebm-mods-label { display: block; font-size: 0.78rem; } .ebm-mods-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; } .ebm-mods-list:empty { display: none; } .ebm-mods-list li { display: flex; align-items: center; gap: 6px; border: 1px solid var(--ink, #16233d); padding: 5px 6px 5px 10px; font-family: "IBM Plex Mono", monospace; font-size: 0.76rem; } .ebm-mods-remove { border: none; background: transparent; cursor: pointer; font-size: 1rem; line-height: 1; color: var(--steel, #7c8798); } .ebm-mods-remove:hover { color: var(--orange, #e8542a); } .ebm-mods-input-row { display: flex; gap: 8px; } .ebm-mods-input-row input { flex: 1; border: 1px solid var(--ink, #16233d); background: #fff; padding: 8px 10px; font-family: "IBM Plex Sans", sans-serif; font-size: 0.85rem; } .ebm-mods-add-btn { border: 1px solid var(--ink, #16233d); background: transparent; padding: 0 14px; font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; cursor: pointer; } .ebm-mods-add-btn:hover { background: var(--ink, #16233d); color: #fff; } .ebm-actions { display: flex; align-items: center; gap: 10px; } .ebm-save-btn { border: 1px solid var(--orange, #e8542a); background: var(--orange, #e8542a); color: #fff; padding: 9px 16px; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; cursor: pointer; } .ebm-save-btn:disabled { opacity: 0.6; cursor: default; } .ebm-status { font-size: 0.76rem; color: var(--steel, #7c8798); } .ebm-status-ok { color: #1c8a4b; font-weight: 700; } .ebm-status-err { color: var(--orange, #e8542a); } .ebm-danger { border-top: 1px solid rgba(0,0,0,0.12); padding-top: 12px; } .ebm-delete-btn { border: 1px solid var(--line, #4a6491); background: transparent; padding: 7px 12px; font-family: "IBM Plex Mono", monospace; font-size: 0.76rem; cursor: pointer; } .ebm-delete-btn:hover { border-color: var(--orange, #e8542a); color: var(--orange, #e8542a); } .ebm-delete-btn.ebm-delete-confirm { border-color: var(--orange, #e8542a); background: var(--orange, #e8542a); color: #fff; } .ebm-manage-link { font-size: 0.72rem; color: var(--steel, #7c8798); } .ebm-manage-link a { color: var(--orange, #e8542a); text-decoration: underline; }';
+      style.textContent = '.ebm-overlay { position: fixed; inset: 0; background: rgba(22,35,61,0.85); display: none; align-items: center; justify-content: center; z-index: 300; padding: 20px; } .ebm-overlay.open { display: flex; } .ebm-panel { background: var(--paper, #f3f1ea); max-width: 420px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; border: 1px solid var(--ink, #16233d); } .ebm-close { position: absolute; top: 10px; right: 10px; z-index: 2; width: 34px; height: 34px; border: 1px solid rgba(255,255,255,0.8); background: rgba(22,35,61,0.6); color: #fff; font-size: 1.3rem; line-height: 1; cursor: pointer; } .ebm-close:hover { background: var(--orange, #e8542a); color: #fff; border-color: var(--orange, #e8542a); } .ebm-media { aspect-ratio: 4/3; overflow: hidden; background: var(--ink, #16233d); position: relative; } .ebm-media img { width: 100%; height: 100%; object-fit: contain; display: block; } .ebm-body { padding: 18px; display: flex; flex-direction: column; gap: 14px; } .ebm-caption { font-family: "IBM Plex Mono", monospace; font-size: 0.8rem; letter-spacing: 0.03em; } .ebm-toggles { display: flex; flex-wrap: wrap; gap: 12px; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; } .ebm-toggle { display: flex; align-items: center; gap: 6px; cursor: pointer; } .ebm-mods { display: flex; flex-direction: column; gap: 8px; } .ebm-mods-label { display: block; font-size: 0.78rem; } .ebm-mods-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; } .ebm-mods-list:empty { display: none; } .ebm-mods-list li { display: flex; align-items: center; gap: 6px; border: 1px solid var(--ink, #16233d); padding: 5px 6px 5px 10px; font-family: "IBM Plex Mono", monospace; font-size: 0.76rem; } .ebm-mods-remove { border: none; background: transparent; cursor: pointer; font-size: 1rem; line-height: 1; color: var(--steel, #7c8798); } .ebm-mods-remove:hover { color: var(--orange, #e8542a); } .ebm-mods-input-row { display: flex; gap: 8px; } .ebm-mods-input-row input { flex: 1; border: 1px solid var(--ink, #16233d); background: #fff; padding: 8px 10px; font-family: "IBM Plex Sans", sans-serif; font-size: 0.85rem; } .ebm-mods-add-btn { border: 1px solid var(--ink, #16233d); background: transparent; padding: 0 14px; font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; cursor: pointer; } .ebm-mods-add-btn:hover { background: var(--ink, #16233d); color: #fff; } .ebm-actions { display: flex; align-items: center; gap: 10px; } .ebm-save-btn { border: 1px solid var(--orange, #e8542a); background: var(--orange, #e8542a); color: #fff; padding: 9px 16px; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; cursor: pointer; } .ebm-save-btn:disabled { opacity: 0.6; cursor: default; } .ebm-status { font-size: 0.76rem; color: var(--steel, #7c8798); } .ebm-status-ok { color: #1c8a4b; font-weight: 700; } .ebm-status-err { color: var(--orange, #e8542a); } .ebm-danger { border-top: 1px solid rgba(0,0,0,0.12); padding-top: 12px; } .ebm-delete-btn { border: 1px solid var(--line, #4a6491); background: transparent; padding: 7px 12px; font-family: "IBM Plex Mono", monospace; font-size: 0.76rem; cursor: pointer; } .ebm-delete-btn:hover { border-color: var(--orange, #e8542a); color: var(--orange, #e8542a); } .ebm-delete-btn.ebm-delete-confirm { border-color: var(--orange, #e8542a); background: var(--orange, #e8542a); color: #fff; } .ebm-manage-link { font-size: 0.72rem; color: var(--steel, #7c8798); } .ebm-manage-link a { color: var(--orange, #e8542a); text-decoration: underline; }';
       document.head.appendChild(style);
 
       modal = document.createElement('div');

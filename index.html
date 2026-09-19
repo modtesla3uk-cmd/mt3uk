@@ -856,51 +856,6 @@
   }
   .bf-new-toast.bf-new-toast-show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
   .hero-media { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
-  .hero-build-card {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    width: min(380px, 100%);
-    border: 1px solid var(--ink);
-    background: var(--paper);
-    padding: 12px;
-    text-decoration: none;
-    color: inherit;
-    position: relative;
-    transition: border-color 0.2s ease;
-  }
-  .hero-build-card:hover, .hero-build-card:focus-visible { border-color: var(--orange); }
-  .hero-build-thumb {
-    flex: 0 0 76px;
-    width: 76px;
-    height: 76px;
-    overflow: hidden;
-    background: #000;
-    position: relative;
-  }
-  .hero-build-thumb img { width: 100%; height: 100%; object-fit: cover; }
-  .hero-build-thumb .g-mods-badge {
-    top: 3px; right: 3px;
-    padding: 2px 4px;
-    font-size: 0.5rem;
-    pointer-events: none;
-  }
-  .hero-build-thumb .g-mods-badge svg { width: 10px; height: 10px; }
-  .hero-build-info { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-  .hero-build-caption {
-    font-family: 'Archivo Expanded', sans-serif;
-    font-weight: 700;
-    font-size: 0.92rem;
-    color: var(--ink);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .hero-build-link {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    color: var(--orange);
-  }
   .hero-media-note {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.78rem;
@@ -945,7 +900,6 @@
     scrollbar-width: none;
   }
   .bf-feed::-webkit-scrollbar { display: none; }
-  .bf-feed.bf-no-snap { scroll-snap-type: none; }
 
   .bf-slide {
     position: relative;
@@ -1106,13 +1060,29 @@
     overflow-y: auto;
   }
   .bf-mods-panel.bf-mods-open { display: block; }
+  .bf-mods-panel-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin: 0 0 8px;
+  }
   .bf-mods-panel-title {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.7rem;
     letter-spacing: 0.04em;
     color: var(--orange);
-    margin: 0 0 8px;
+    margin: 0;
   }
+  .bf-mods-close {
+    background: none; border: 1px solid rgba(255,255,255,0.3); border-radius: 50%;
+    color: rgba(255,255,255,0.7);
+    width: 22px; height: 22px;
+    line-height: 1;
+    font-size: 0.95rem;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+  }
+  .bf-mods-close:hover { color: var(--white); border-color: rgba(255,255,255,0.6); }
   .bf-mods-panel ul {
     margin: 0; padding: 0; list-style: none;
     display: flex; flex-direction: column; gap: 4px;
@@ -1125,17 +1095,24 @@
   }
 
   .bf-comments-block {
-    background: rgba(22,35,61,0.95);
-    border-top: 1px solid rgba(243,241,234,0.25);
-    color: var(--white);
-    padding: 14px 16px 24px;
+    position: absolute;
+    left: 16px; right: 64px;
+    bottom: 96px;
+    z-index: 7;
+    background: var(--white);
+    color: var(--ink);
+    border-radius: 16px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+    padding: 12px 14px;
+    max-height: 55%;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
   }
   .bf-comments-block[hidden] { display: none; }
   .bf-comments-header {
     display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
   }
   .bf-comments-panel-title {
     font-family: 'IBM Plex Mono', monospace;
@@ -1145,8 +1122,8 @@
     margin: 0;
   }
   .bf-comments-close {
-    background: none; border: 1px solid rgba(255,255,255,0.3); border-radius: 50%;
-    color: rgba(255,255,255,0.7);
+    background: none; border: 1px solid rgba(22,35,61,0.25); border-radius: 50%;
+    color: var(--ink);
     width: 22px; height: 22px;
     line-height: 1;
     font-size: 0.95rem;
@@ -1155,7 +1132,7 @@
     padding: 0;
     flex-shrink: 0;
   }
-  .bf-comments-close:hover { color: var(--white); border-color: rgba(255,255,255,0.6); }
+  .bf-comments-close:hover { border-color: rgba(22,35,61,0.5); }
   .bf-comments-expand {
     align-self: flex-start;
     background: none; border: 0; color: var(--orange);
@@ -1165,10 +1142,13 @@
     text-decoration: underline;
     cursor: pointer;
     padding: 0;
+    flex-shrink: 0;
   }
-  .bf-comments-expand:hover { color: var(--white); }
+  .bf-comments-expand:hover { opacity: 0.75; }
   .bf-comments-content {
-    display: flex; flex-direction: column; gap: 10px;
+    display: flex; flex-direction: column; gap: 8px;
+    min-height: 0;
+    overflow-y: auto;
   }
   .bf-comments-content[hidden] { display: none; }
   .bf-comments-list {
@@ -1184,7 +1164,7 @@
     color: var(--orange);
   }
   .bf-comment-report {
-    background: none; border: 0; color: rgba(255,255,255,0.5);
+    background: none; border: 0; color: var(--steel);
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.62rem;
     letter-spacing: 0.02em;
@@ -1192,18 +1172,18 @@
     text-decoration: underline;
     padding: 0;
   }
-  .bf-comment-report:hover { color: var(--white); }
+  .bf-comment-report:hover { color: var(--ink); }
   .bf-comment-report[disabled] { text-decoration: none; cursor: default; }
   .bf-comment-text {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.75rem;
     line-height: 1.4;
-    color: rgba(255,255,255,0.9);
+    color: var(--ink);
     word-break: break-word;
   }
   .bf-comment-actions { display: flex; align-items: center; gap: 14px; margin-top: 2px; }
   .bf-comment-like {
-    background: none; border: 0; color: rgba(255,255,255,0.6);
+    background: none; border: 0; color: var(--steel);
     display: flex; align-items: center; gap: 4px;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.68rem;
@@ -1214,7 +1194,7 @@
   .bf-comment-like[aria-pressed="true"] { color: var(--orange); }
   .bf-comment-like[aria-pressed="true"] svg { fill: currentColor; }
   .bf-comment-reply-toggle {
-    background: none; border: 0; color: rgba(255,255,255,0.6);
+    background: none; border: 0; color: var(--steel);
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.68rem;
     letter-spacing: 0.02em;
@@ -1222,57 +1202,59 @@
     padding: 0;
     text-decoration: underline;
   }
-  .bf-comment-reply-toggle:hover { color: var(--white); }
+  .bf-comment-reply-toggle:hover { color: var(--ink); }
   .bf-comment-replies {
     margin: 8px 0 0; padding: 0 0 0 16px; list-style: none;
-    border-left: 1px solid rgba(243,241,234,0.15);
+    border-left: 1px solid rgba(22,35,61,0.15);
     display: flex; flex-direction: column; gap: 10px;
   }
   .bf-comment-reply-slot:not([hidden]) { margin-top: 8px; }
   .bf-comments-empty {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.72rem;
-    color: rgba(255,255,255,0.6);
+    color: var(--steel);
   }
-  .bf-comments-form { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid rgba(243,241,234,0.2); padding-top: 10px; }
+  .bf-comments-form { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid rgba(22,35,61,0.15); padding-top: 8px; flex-shrink: 0; }
   .bf-comments-as {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.68rem;
     letter-spacing: 0.02em;
-    color: rgba(255,255,255,0.5);
+    color: var(--steel);
     margin: 0;
   }
   .bf-comments-form textarea {
-    background: rgba(0,0,0,0.35);
-    border: 1px solid rgba(243,241,234,0.3);
-    color: var(--white);
+    background: rgba(22,35,61,0.05);
+    border: 1px solid rgba(22,35,61,0.2);
+    color: var(--ink);
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.72rem;
     padding: 8px 10px;
     resize: none;
   }
-  .bf-comments-form textarea { min-height: 50px; }
+  .bf-comments-form textarea { min-height: 44px; }
   .bf-comments-submit {
     align-self: flex-end;
     background: var(--orange);
-    color: var(--ink);
+    color: var(--white);
     border: 0;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.72rem;
     letter-spacing: 0.03em;
     padding: 8px 16px;
     cursor: pointer;
+    border-radius: 8px;
   }
   .bf-comments-submit[disabled] { opacity: 0.5; cursor: default; }
-  .bf-comments-error { color: #ff6b6b; font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; }
+  .bf-comments-error { color: #c0392b; font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; }
   .bf-comments-signin-prompt {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.72rem;
     line-height: 1.5;
-    color: rgba(255,255,255,0.75);
-    border-top: 1px solid rgba(243,241,234,0.2);
-    padding-top: 10px;
+    color: var(--steel);
+    border-top: 1px solid rgba(22,35,61,0.15);
+    padding-top: 8px;
     margin: 0;
+    flex-shrink: 0;
   }
   .bf-comments-signin-prompt a { color: var(--orange); text-decoration: underline; }
 
@@ -2228,51 +2210,11 @@
         </div>
       </div>
       <div class="hero-media">
-        <a href="#build-of-the-day" class="hero-build-card" id="hero-build-card">
-          <span class="hero-build-thumb"><img id="hero-build-img" src="" alt="" loading="lazy"></span>
-          <span class="hero-build-info">
-            <span class="hero-build-caption" id="hero-build-caption">Loading today's build&hellip;</span>
-            <span class="hero-build-link">See the featured build &rarr;</span>
-          </span>
-        </a>
         <p class="hero-media-note">Browse the full <a href="#build-feed">Gallery Feed</a> or the <a href="gallery.html">Full Gallery</a>, or <a href="my-builds.html#build-upload">upload your build</a> to get yours featured.</p>
       </div>
     </div>
   </div>
 </section>
-
-<script>
-  (function () {
-    var img = document.getElementById('hero-build-img');
-    var thumb = img ? img.closest('.hero-build-thumb') : null;
-    var caption = document.getElementById('hero-build-caption');
-    if (!img || !caption) return;
-
-    Promise.all([
-      window.mt3ukFetchJSON('images/gallery/manifest.json', []),
-      window.mt3ukFetchJSON('data/featured.json', {})
-    ])
-      .then(function (results) {
-        var photos = results[0] || [];
-        var featuredFile = (results[1] && results[1].file) || null;
-        if (!photos.length) return;
-        var featured = window.mt3ukPickBuild(photos, featuredFile);
-        img.src = window.MT3UK_R2_BASE + '/gallery/' + featured.file;
-        img.alt = featured.caption || 'MT3UK featured build';
-        caption.textContent = featured.caption || 'Today\'s featured build';
-        var mods = featured.mods || [];
-        if (thumb && mods.length) {
-          var badge = document.createElement('span');
-          badge.className = 'g-mods-badge';
-          badge.innerHTML = '<svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9 2.6-2.6z"/></svg>' + mods.length;
-          thumb.appendChild(badge);
-        }
-      })
-      .catch(function () {
-        caption.textContent = 'Featured build couldn\'t be loaded';
-      });
-  })();
-</script>
 
 <section id="build-feed">
   <div class="wrap">
@@ -2281,7 +2223,7 @@
         <span class="section-num">01 / GALLERY FEED</span>
         <h2>Swipe through the builds</h2>
       </div>
-      <p>A quick scroll through recent member builds. Likes now persist and you can bookmark your favourites, or sit back and let it play.</p>
+      <p>Scroll through recent member builds. Likes, comment and you can bookmark your favourites, or sit back and let it play.</p>
     </div>
     <div class="bf-frame" id="build-feed-frame">
       <div class="bf-progress" id="bf-progress"></div>
@@ -2384,23 +2326,18 @@
         '</svg>';
     }
 
-    function buildCommentsBlock(photo, idx) {
-      var block = document.createElement('div');
-      block.className = 'bf-comments-block';
-      block.dataset.idx = String(idx);
-      block.dataset.file = photo.file;
-      block.hidden = true;
-      block.innerHTML =
-        '<div class="bf-comments-header">' +
-          '<p class="bf-comments-panel-title">COMMENTS</p>' +
-          '<button type="button" class="bf-comments-close" aria-label="Close comments">&times;</button>' +
-        '</div>' +
-        '<button type="button" class="bf-comments-expand" aria-expanded="false">Show comments</button>' +
-        '<div class="bf-comments-content" hidden>' +
-          '<ul class="bf-comments-list"></ul>' +
-          '<div class="bf-comments-form-slot"></div>' +
+    function commentsBlockHtml() {
+      return '<div class="bf-comments-block" hidden>' +
+          '<div class="bf-comments-header">' +
+            '<p class="bf-comments-panel-title">COMMENTS</p>' +
+            '<button type="button" class="bf-comments-close" aria-label="Close comments">&times;</button>' +
+          '</div>' +
+          '<button type="button" class="bf-comments-expand" aria-expanded="false">Show comments</button>' +
+          '<div class="bf-comments-content" hidden>' +
+            '<ul class="bf-comments-list"></ul>' +
+            '<div class="bf-comments-form-slot"></div>' +
+          '</div>' +
         '</div>';
-      return block;
     }
 
     function buildSlide(photo, idx, likesData) {
@@ -2447,9 +2384,13 @@
           '</div>' : '') +
         (mods.length ?
           '<div class="bf-mods-panel">' +
-            '<p class="bf-mods-panel-title">MODS</p>' +
+            '<div class="bf-mods-panel-head">' +
+              '<p class="bf-mods-panel-title">MODS</p>' +
+              '<button type="button" class="bf-mods-close" aria-label="Close mods list">&times;</button>' +
+            '</div>' +
             '<ul>' + mods.map(function (m) { return '<li>' + String(m).replace(/</g, '&lt;') + '</li>'; }).join('') + '</ul>' +
-          '</div>' : '');
+          '</div>' : '') +
+        commentsBlockHtml();
       return section;
     }
 
@@ -2526,8 +2467,8 @@
     function wireComments(slides) {
       slides.forEach(function (slide) {
         var btn = slide.querySelector('.bf-comments-btn');
-        var block = slide.nextElementSibling;
-        if (!block || !block.classList.contains('bf-comments-block')) return;
+        var block = slide.querySelector('.bf-comments-block');
+        if (!block) return;
         var content = block.querySelector('.bf-comments-content');
         var expandBtn = block.querySelector('.bf-comments-expand');
         var list = block.querySelector('.bf-comments-list');
@@ -2567,18 +2508,12 @@
         function openBlock() {
           block.hidden = false;
           btn.setAttribute('aria-pressed', 'true');
-          feedEl.classList.add('bf-no-snap');
-          var targetTop = block.getBoundingClientRect().top - feedEl.getBoundingClientRect().top + feedEl.scrollTop;
-          feedEl.scrollTo({ top: targetTop, behavior: 'smooth' });
         }
 
         function closeBlock() {
           block.hidden = true;
           btn.setAttribute('aria-pressed', 'false');
           collapse();
-          if (!feedEl.querySelector('.bf-comments-block:not([hidden])')) {
-            feedEl.classList.remove('bf-no-snap');
-          }
         }
 
         if (expandBtn) {
@@ -2713,7 +2648,6 @@
       progressEl.innerHTML = '';
       photos.forEach(function (photo, idx) {
         feedEl.appendChild(buildSlide(photo, idx, likesData));
-        feedEl.appendChild(buildCommentsBlock(photo, idx));
         var seg = document.createElement('i');
         seg.className = 'bf-dot-seg';
         seg.dataset.idx = String(idx);
@@ -2843,6 +2777,18 @@
           if (!panel) return;
           var open = panel.classList.toggle('bf-mods-open');
           btn.setAttribute('aria-pressed', open ? 'true' : 'false');
+        });
+      });
+
+      slides.forEach(function (slide, idx) {
+        var closeBtn = slide.querySelector('.bf-mods-close');
+        if (!closeBtn) return;
+        closeBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var panel = slide.querySelector('.bf-mods-panel');
+          if (panel) panel.classList.remove('bf-mods-open');
+          var modsBtn = slide.querySelector('.bf-mods-btn');
+          if (modsBtn) modsBtn.setAttribute('aria-pressed', 'false');
         });
       });
 

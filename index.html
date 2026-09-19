@@ -2483,7 +2483,7 @@
 
         function updatePreviewLabel() {
           if (!commentsData.length) {
-            expandBtn.textContent = 'No comments';
+            expandBtn.textContent = 'Click to add comments';
             return;
           }
           var first = commentsData[0];
@@ -2501,7 +2501,7 @@
             })
             .catch(function () {
               list.innerHTML = '<li class="bf-comments-empty">Could not load comments.</li>';
-              if (content.hidden) expandBtn.textContent = 'No comments';
+              if (content.hidden) expandBtn.textContent = 'Click to add comments';
             });
         }
 

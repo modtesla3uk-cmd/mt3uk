@@ -20,6 +20,8 @@ const MY_BUILDS_LINK_TTL_SECONDS = 15 * 60;
 const MY_BUILDS_SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
 const MY_BUILDS_SITE_URL = 'https://mt3uk.com';
 const SUBSCRIBERS_DIGEST_EMAIL = 'modtesla3uk@gmail.com';
+// Kill switch: flip to true once the duplicate-send issue is confirmed fixed.
+const SUBSCRIBERS_DIGEST_ENABLED = false;
 
 function json(data, status) {
   return new Response(JSON.stringify(data), {
@@ -239,11 +241,24 @@ async function handleShopProducts(request, ctx) {
   return response;
 }
 
+var DIGEST_MANUAL_COOLDOWN_SECONDS = 120;
+
 async function handleAdminSendDigest(request, env) {
   var key = new URL(request.url).searchParams.get('key');
   if (!env.ADMIN_KEY || key !== env.ADMIN_KEY) {
     return json({ success: false, message: 'Unauthorized' }, 401);
   }
+  if (!SUBSCRIBERS_DIGEST_ENABLED) {
+    return json({ success: false, message: 'Digest is currently disabled (kill switch).' }, 503);
+  }
+
+  // Guards against repeated/duplicate calls (e.g. a client retrying or a
+  // double-tap) firing more than one email in quick succession.
+  var cooldownKey = 'subscribers-digest-manual-cooldown';
+  if (await env.VOTES.get(cooldownKey)) {
+    return json({ success: false, message: 'Already sent in the last ' + DIGEST_MANUAL_COOLDOWN_SECONDS + 's, skipped to avoid a duplicate.' }, 429);
+  }
+  await env.VOTES.put(cooldownKey, '1', { expirationTtl: DIGEST_MANUAL_COOLDOWN_SECONDS });
 
   await sendSubscribersDigest(env);
   return json({ success: true });
@@ -566,10 +581,28 @@ async function sendMyBuildsLinkEmail(env, toEmail, link) {
 
 async function sendSubscribersDigestIfUk8pm(env) {
   var now = new Date();
-  var ukHour = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', hour: '2-digit', hourCycle: 'h23' }).format(now);
-  if (ukHour !== '20') return;
+  var parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/London', hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+  }).formatToParts(now);
+  var ukHour = parts.find(function (p) { return p.type === 'hour'; }).value;
+  var ukMinute = parts.find(function (p) { return p.type === 'minute'; }).value;
+  // Narrowed to the 20:00 minute (not the whole hour) so that on a busy site,
+  // far fewer concurrent requests are racing to claim the send below - KV
+  // writes take up to ~60s to propagate globally, so a wide window let a
+  // burst of simultaneous requests from different edge locations all read
+  // "not sent yet" and each send a duplicate email.
+  if (ukHour !== '20' || ukMinute !== '00') return;
 
   var todayStr = ukDateString(now);
+
+  // Cache API is colo-local and consistent within a colo immediately, so it
+  // catches most of the burst (same region) before falling through to the
+  // slower, eventually-consistent KV check below as a cross-region backstop.
+  var cache = caches.default;
+  var cacheKey = new Request('https://mt3uk-cache.internal/subscribers-digest-lock/' + todayStr);
+  if (await cache.match(cacheKey)) return;
+  await cache.put(cacheKey, new Response('1', { headers: { 'Cache-Control': 'max-age=120' } }));
+
   var dedupKey = 'subscribers-digest-sent:' + todayStr;
   if (await env.VOTES.get(dedupKey)) return;
   // Claim the slot immediately so concurrent requests in the same minute don't double-send.
@@ -579,6 +612,7 @@ async function sendSubscribersDigestIfUk8pm(env) {
 }
 
 async function sendSubscribersDigest(env) {
+  if (!SUBSCRIBERS_DIGEST_ENABLED) return;
   var todayStr = ukDateString(new Date());
   var list = await env.VOTES.list({ prefix: 'subscriber:' });
   var subscribers = await Promise.all(list.keys.map(async function (k) {

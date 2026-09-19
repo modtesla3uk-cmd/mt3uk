@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Full Gallery &mdash; MT3UK</title>
+<meta name="description" content="Browse every modified Tesla build shared by MT3UK members, with captions and mod lists for each one.">
+<link rel="canonical" href="https://mt3uk.com/gallery.html">
+<link rel="icon" type="image/x-icon" href="images/site/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="images/site/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="images/site/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="images/site/apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#16233d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MT3UK">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Full Gallery &mdash; MT3UK">
+<meta property="og:description" content="Browse every modified Tesla build shared by MT3UK members, with captions and mod lists for each one.">
+<meta property="og:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
+<meta property="og:url" content="https://mt3uk.com/gallery.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Full Gallery &mdash; MT3UK">
+<meta name="twitter:description" content="Browse every modified Tesla build shared by MT3UK members, with captions and mod lists for each one.">
+<meta name="twitter:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
+<script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap');
+
+  :root {
+    --ink: #16233d;
+    --ink-2: #223257;
+    --paper: #f3f1ea;
+    --paper-2: #e9e5d8;
+    --charcoal: #1c1c1c;
+    --orange: #e8542a;
+    --line: #4a6491;
+    --steel: #7c8798;
+    --white: #ffffff;
+    --content-max: 1000px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--charcoal);
+    font-family: 'IBM Plex Sans', sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 {
+    font-family: 'Archivo Expanded', sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+
+  .mono {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    color: var(--steel);
+  }
+
+  a { color: inherit; text-decoration: none; }
+
+  img { max-width: 100%; display: block; }
+
+  .wrap {
+    max-width: var(--content-max);
+    margin: 0 auto;
+    padding: 0 28px;
+  }
+
+  /* ---------- NAV ---------- */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(243,241,234,0.92);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--ink);
+  }
+
+  .promo-banner { background: var(--orange); }
+  .promo-banner-inner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 44px 10px 0;
+    position: relative;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem;
+    overflow: hidden;
+  }
+  .promo-banner-inner::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 48px;
+    background: linear-gradient(to right, rgba(232,84,42,0), var(--orange) 70%);
+    pointer-events: none;
+  }
+  .promo-banner-track {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    animation: promo-marquee 18s linear infinite;
+  }
+  .promo-banner-msg { color: var(--paper); text-decoration: none; font-weight: 600; padding-right: 48px; flex-shrink: 0; }
+  @keyframes promo-marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  .promo-banner-close {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--paper);
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px;
+    z-index: 1;
+  }
+  .promo-banner-close:hover { opacity: 0.7; }
+  @media (max-width: 600px) {
+    .promo-banner-inner { font-size: 0.74rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .promo-banner-track { animation: none; }
+  }
+
+  nav {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 16px 28px;
+    max-width: var(--content-max);
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .logo img { height: 25px; width: auto; max-width: none; display: block; }
+  .logo.footer-logo img { height: 18px; }
+
+  .nav-center {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-right: auto;
+  }
+
+  .navlinks {
+    display: flex;
+    gap: 4px;
+    font-size: 0.92rem;
+    font-weight: 500;
+  }
+  .navlinks a {
+    padding: 10px 14px;
+    border-radius: 4px;
+    border-bottom: 1px solid transparent;
+    transition: opacity .15s ease, border-color .15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1;
+  }
+  .navlinks a:hover { opacity: 0.65; }
+  .navlinks a.active { color: var(--orange); }
+
+  .nav-item { position: relative; display: flex; align-items: center; }
+  .nav-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    min-width: 160px;
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    z-index: 10;
+  }
+  .nav-dropdown-toggle { display: none; }
+  .nav-sublink {
+    display: block;
+    padding: 10px 14px 10px 26px;
+    font-size: 0.88rem;
+    white-space: nowrap;
+  }
+  .nav-sublink:hover { opacity: 0.65; }
+  .nav-link-shop, .nav-sublink-new, .nav-link-mybuilds { display: inline-flex; align-items: center; gap: 6px; }
+  .nav-subitem { position: relative; }
+  .nav-subitem > .nav-sublink { flex: 1; }
+  a.nav-sublink-offer { display: block; color: var(--orange); font-weight: 600; border-top: 1px solid rgba(22,35,61,0.15); }
+
+  .nav-link-shop::after, .nav-sublink-new::after {
+    content: 'NEW';
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--paper);
+    background: var(--orange);
+    padding: 2px 5px;
+    border-radius: 3px;
+    line-height: 1;
+  }
+
+  .nav-link-mybuilds::after {
+    content: 'NEW';
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--paper);
+    background: var(--orange);
+    padding: 2px 5px;
+    border-radius: 3px;
+    line-height: 1;
+  }
+
+  .nav-cta {
+    background: var(--ink);
+    color: var(--paper) !important;
+    padding: 9px 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid var(--ink);
+    white-space: nowrap;
+  }
+  .nav-cta:hover { background: var(--orange); border-color: var(--orange); }
+
+  .nav-search { position: relative; }
+  .nav-search-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 34px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--ink);
+    padding: 0;
+  }
+  .nav-search-toggle:hover { opacity: 0.65; }
+  .nav-search-toggle svg { width: 18px; height: 18px; }
+  .nav-search-panel {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 320px;
+    max-width: calc(100vw - 32px);
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    z-index: 30;
+    padding: 12px;
+  }
+  .nav-search.open .nav-search-panel { display: block; }
+  .nav-search-panel input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    font-family: inherit;
+    font-size: 0.9rem;
+    background: var(--white);
+    color: var(--ink);
+  }
+  .nav-search-results { max-height: 320px; overflow-y: auto; margin-top: 10px; }
+  .nav-search-result {
+    display: block;
+    padding: 8px 10px;
+    border-bottom: 1px solid rgba(22,35,61,0.08);
+    text-decoration: none;
+  }
+  .nav-search-result:last-child { border-bottom: none; }
+  .nav-search-result:hover, .nav-search-result:focus-visible { background: rgba(22,35,61,0.05); }
+  .nav-search-result-cat {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--orange);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .nav-search-result-title { display: block; font-weight: 600; font-size: 0.88rem; color: var(--ink); }
+  .nav-search-result-desc { display: block; font-size: 0.78rem; color: var(--steel); margin-top: 2px; }
+  .nav-search-empty { padding: 8px 4px; color: var(--steel); font-size: 0.85rem; }
+
+  .hamburger {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    background: transparent;
+    border: none;
+    width: 38px;
+    height: 34px;
+    cursor: pointer;
+    padding: 0;
+  }
+  .hamburger-bar {
+    display: block;
+    width: 22px;
+    height: 2px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--charcoal), var(--ink));
+    transition: transform 0.25s ease, opacity 0.2s ease, background 0.2s ease;
+  }
+  .hamburger[aria-expanded="true"] .hamburger-bar { background: var(--orange); }
+  .hamburger[aria-expanded="true"] .hamburger-bar:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger[aria-expanded="true"] .hamburger-bar:nth-child(2) { opacity: 0; }
+  .hamburger[aria-expanded="true"] .hamburger-bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  @media (min-width: 781px) {
+    .nav-item:hover > .nav-dropdown,
+    .nav-item:focus-within > .nav-dropdown { display: block; }
+    .nav-subitem .nav-dropdown { top: -1px; left: 100%; right: auto; }
+    .nav-search:hover .nav-search-panel,
+    .nav-search:focus-within .nav-search-panel { display: block; }
+
+    nav { justify-content: center; }
+    .nav-center { margin-right: 0; }
+    .nav-search-toggle { display: none; }
+    .nav-search-panel {
+      display: block;
+      position: static;
+      width: 220px;
+      max-width: none;
+      padding: 0;
+      border: 1px solid var(--ink);
+    }
+    .nav-search-panel input { border: none; padding: 9px 12px; width: 100%; }
+    .nav-search-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 220px;
+      margin-top: 0;
+      border: 1px solid var(--ink);
+      border-top: none;
+      background: var(--paper);
+      z-index: 30;
+    }
+    .nav-search-results:empty { display: none; }
+  }
+
+  @media (max-width: 780px) {
+    nav { gap: 8px; }
+    .hamburger { display: flex; }
+    .nav-search { margin-left: auto; }
+    .nav-search-panel {
+      width: 200px;
+      padding: 8px;
+    }
+    .nav-search-panel input { padding: 8px 10px; font-size: 0.85rem; }
+    .nav-search-results { max-height: 220px; }
+
+    .navlinks {
+      display: none;
+      position: absolute;
+      top: 100%;
+      right: 0;
+      width: 50%;
+      flex-direction: column;
+      background: var(--paper);
+      border-left: 1px solid var(--ink);
+      border-bottom: 1px solid var(--ink);
+      box-shadow: -4px 4px 12px rgba(0,0,0,0.15);
+      margin-right: 0;
+      gap: 0;
+    }
+    .navlinks.active { display: flex; }
+    .navlinks a {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(22,35,61,0.12);
+      border-radius: 0;
+    }
+    .nav-item { flex-direction: row; flex-wrap: wrap; align-items: stretch; }
+    .nav-item > .nav-link { flex: 1; border-bottom: none; }
+    .nav-dropdown-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      background: none;
+      border: none;
+      border-bottom: 1px solid rgba(22,35,61,0.12);
+      font-size: 0.7rem;
+      color: var(--ink);
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    .nav-item.open > .nav-dropdown-toggle { transform: rotate(180deg); }
+    .nav-dropdown {
+      display: none;
+      position: static;
+      flex-basis: 100%;
+      border: none;
+      background: rgba(22,35,61,0.03);
+    }
+    .nav-item.open > .nav-dropdown { display: block; }
+    .nav-sublink {
+      padding: 12px 16px 12px 44px;
+      border-bottom: 1px solid rgba(22,35,61,0.12);
+    }
+    .nav-subitem .nav-dropdown .nav-sublink { padding-left: 60px; }
+  }
+
+  /* ---------- SECTION SHELL ---------- */
+  section { padding: 60px 0; border-bottom: 1px solid var(--ink); }
+  section:last-of-type { border-bottom: none; }
+  @media (max-width: 780px) {
+    section { padding: 36px 0; }
+    .section-head { gap: 16px; margin-bottom: 20px; }
+  }
+
+  .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 20px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+  }
+  .section-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--orange);
+    margin-bottom: 10px;
+    display: block;
+  }
+  .section-title-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .refresh-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.03em;
+    padding: 6px 12px;
+    border: 1px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    transition: background .2s ease, color .2s ease;
+    white-space: nowrap;
+  }
+  .refresh-btn:hover:not(:disabled) { background: var(--ink); color: var(--paper); }
+  .refresh-btn:disabled { opacity: 0.5; cursor: default; }
+  .section-head h2 { font-size: clamp(1.7rem, 3.2vw, 2.3rem); max-width: 20ch; }
+  .section-head p { max-width: 40ch; color: var(--steel); font-size: 0.95rem; }
+
+  .inline-link {
+    color: var(--orange);
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 1px solid var(--orange);
+  }
+  .inline-link:hover { color: var(--ink); border-color: var(--ink); }
+
+  /* ---------- PAGE HERO ---------- */
+  .page-hero {
+    padding: 48px 0 36px;
+    border-bottom: 1px solid var(--ink);
+  }
+  .page-hero .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--steel);
+    text-decoration: none;
+    margin-bottom: 18px;
+  }
+  .page-hero .back-link:hover { color: var(--orange); }
+  .page-hero .section-num { display: block; margin-bottom: 10px; }
+  .page-hero h1 { max-width: 20ch; margin-bottom: 14px; }
+  .page-hero p { color: var(--ink-2); max-width: 58ch; font-size: 1.05rem; }
+
+  @media (max-width: 780px) {
+    .page-hero { padding: 26px 0 22px; }
+    .page-hero .back-link { margin-bottom: 12px; }
+    .page-hero .section-num { margin-bottom: 6px; }
+    .page-hero h1 { margin-bottom: 10px; }
+  }
+
+  @media (min-width: 901px) {
+    .page-hero .wrap { text-align: center; }
+    .page-hero h1, .page-hero p { max-width: none; margin-left: auto; margin-right: auto; }
+    .page-hero h1 { max-width: 40ch; }
+    .page-hero p { max-width: 58ch; }
+
+    .section-head {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 12px;
+    }
+    .section-head > div { display: flex; flex-direction: column; align-items: center; }
+    .section-head .section-title-row { justify-content: center; }
+    .section-head h2 { max-width: none; }
+    .section-head p { max-width: 88ch; margin: 0 auto; }
+  }
+
+  /* ---------- GALLERY ---------- */
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border: 1px solid var(--ink);
+  }
+  @media (max-width: 900px) { .gallery-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 560px) { .gallery-grid { grid-template-columns: repeat(2, 1fr); } }
+
+  .gallery-slot {
+    background: var(--paper-2);
+    aspect-ratio: 1/1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--steel);
+    position: relative;
+    border: 1px dashed var(--steel);
+    margin: -1px;
+    overflow: hidden;
+  }
+  .gallery-slot .mono { text-align: center; padding: 0 14px; }
+  .gallery-slot svg { width: 34px; height: 34px; opacity: 0.5; }
+  .gallery-slot.filled { border: 1px solid var(--ink); }
+  .gallery-slot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform .35s ease;
+  }
+  .gallery-slot.filled:hover img { transform: scale(1.045); }
+  .gallery-slot.filled.is-landscape { background: var(--ink); }
+  .gallery-slot img.is-landscape { object-fit: contain; }
+  .gallery-slot .g-caption {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    padding: 9px 12px;
+    background: linear-gradient(0deg, rgba(22,35,61,0.82), rgba(22,35,61,0));
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.03em;
+    color: var(--paper);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .gallery-slot .g-name {
+    font-size: 0.58rem;
+    color: rgba(255,255,255,0.7);
+  }
+  .bf-rail-edit-btn,
+  .mt3uk-edit-pill {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.6);
+    border-radius: 999px;
+    color: var(--white) !important;
+    display: flex; flex-direction: row; align-items: center; gap: 5px;
+    padding: 6px 12px 6px 8px;
+    white-space: nowrap;
+    text-decoration: none;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .bf-rail-edit-btn svg,
+  .mt3uk-edit-pill svg { width: 18px; height: 18px; fill: currentColor; }
+  .bf-rail-edit-btn:hover,
+  .mt3uk-edit-pill:hover { background: rgba(0,0,0,0.6); }
+  .mt3uk-edit-pill { position: absolute; top: 8px; left: 8px; z-index: 3; }
+  .g-mods-badge {
+    position: absolute;
+    top: 8px; right: 8px;
+    z-index: 2;
+    display: flex; align-items: center; gap: 4px;
+    background: rgba(22,35,61,0.82);
+    border: 1px solid rgba(243,241,234,0.35);
+    color: var(--paper);
+    padding: 4px 7px;
+    cursor: pointer;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.03em;
+  }
+  .g-mods-badge:hover { background: var(--orange); border-color: var(--orange); }
+  .g-mods-badge svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
+  .gallery-note {
+    margin-top: 20px;
+    font-size: 0.85rem;
+    color: var(--steel);
+    text-align: center;
+  }
+
+  .gallery-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    margin-top: 24px;
+  }
+  .gallery-pagination .page-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    background: transparent;
+    border: 1px solid var(--ink);
+    color: var(--ink);
+    padding: 8px 14px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .gallery-pagination .page-btn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .gallery-pagination .page-btn:hover:not(:disabled) { background: var(--ink); color: var(--paper); }
+  .gallery-pagination .page-btn:disabled { opacity: 0.35; cursor: default; }
+
+  /* ---------- FOOTER ---------- */
+  footer { padding: 40px 0; }
+  .footer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .footer-row .mono { font-size: 0.72rem; }
+
+  :focus-visible {
+    outline: 2px solid var(--orange);
+    outline-offset: 2px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Promo banner disabled: no active offer. Re-enable by removing this comment wrapper when a new promo is ready.
+<div class="promo-banner" id="promo-banner">
+  <div class="promo-banner-inner">
+    <div class="promo-banner-track">
+      <a href="shop.html#tee" class="promo-banner-msg">&#9201; New Tee options available!! | Hoodies | Club Stickers | Master Cylinder Braces | Brake Pads | Number Plates, shop now &rarr;</a>
+      <a href="shop.html#tee" class="promo-banner-msg" aria-hidden="true">&#9201; New Tee options available!! | Hoodies | Club Stickers | Master Cylinder Braces | Brake Pads | Number Plates, shop now &rarr;</a>
+    </div>
+    <button type="button" class="promo-banner-close" id="promo-banner-close" aria-label="Dismiss banner">&times;</button>
+  </div>
+</div>
+<script>
+  (function () {
+    var KEY = 'mt3uk-promo-tee-dismissed';
+    var EXPIRY_MS = 7 * 24 * 60 * 60 * 1000;
+    var banner = document.getElementById('promo-banner');
+    if (!banner) return;
+    var dismissedAt = parseInt(localStorage.getItem(KEY), 10);
+    if (dismissedAt && (Date.now() - dismissedAt) < EXPIRY_MS) { banner.remove(); return; }
+    document.getElementById('promo-banner-close').addEventListener('click', function () {
+      banner.remove();
+      try { localStorage.setItem(KEY, String(Date.now())); } catch (e) {}
+    });
+  })();
+</script>
+-->
+
+<header>
+  <nav>
+    <div class="nav-center">
+      <a href="/" class="logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
+    <div class="navlinks" id="navlinks">
+      <div class="nav-item">
+        <a href="index.html#build-feed" class="nav-link">Gallery Feed</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Gallery Feed submenu">&#9660;</button>
+        <div class="nav-dropdown">
+          <a href="index.html#build-of-the-day" class="nav-sublink">Featured Build</a>
+          <a href="index.html#vote-frame" class="nav-sublink">Vote for Build</a>
+          <a href="gallery.html" class="nav-sublink active">Full Gallery</a>
+        </div>
+      </div>
+      <div class="nav-item">
+        <a href="my-builds.html" class="nav-link nav-link-mybuilds">My Garage</a>
+      </div>
+      <div class="nav-item">
+        <a href="shop.html" class="nav-link">Shop</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Shop submenu">&#9660;</button>
+        <div class="nav-dropdown">
+          <a href="shop.html#merch" class="nav-sublink">Merch</a>
+          <div class="nav-item nav-subitem">
+            <a href="shop.html#parts" class="nav-sublink nav-sublink-new">Parts</a>
+            <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Parts submenu">&#9660;</button>
+            <div class="nav-dropdown">
+              <a href="shop.html#tevo" class="nav-sublink">Tevo Solutions</a>
+              <a href="shop.html#redline" class="nav-sublink">Redline Plates</a>
+              <a href="shop.html#offers" class="nav-sublink nav-sublink-offer">Offers</a>
+            </div>
+          </div>
+          <a href="reviews.html" class="nav-sublink">Customer Reviews</a>
+        </div>
+      </div>
+      <a href="index.html#events" class="nav-link">Events</a>
+      <div class="nav-item">
+        <a href="index.html#track-days" class="nav-link">Track Days</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Track Days submenu">&#9660;</button>
+        <div class="nav-dropdown">
+          <a href="track-day-prep.html" class="nav-sublink">Prep</a>
+          <a href="track-day-on-the-day.html" class="nav-sublink nav-sublink-new">On The Day</a>
+          <a href="track-day-venues.html" class="nav-sublink">Venues</a>
+          <a href="track-day-prep.html#track-day-finder" class="nav-sublink">Track Day Finder</a>
+        </div>
+      </div>
+      <div class="nav-item">
+        <a href="index.html#about" class="nav-link">About</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle About submenu">&#9660;</button>
+        <div class="nav-dropdown">
+          <a href="https://www.facebook.com/groups/mt3uk/" class="nav-sublink" target="_blank" rel="noopener">Join The Facebook Group</a>
+        </div>
+      </div>
+      <a href="index.html#faq" class="nav-link">FAQs</a>
+      <div class="nav-item">
+        <a href="contact.html" class="nav-link">Contact</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Contact submenu">&#9660;</button>
+        <div class="nav-dropdown">
+          <a href="https://ko-fi.com/mt3uk" class="nav-sublink" target="_blank" rel="noopener">Support Us</a>
+        </div>
+      </div>
+      </div>
+    </div>
+    <div class="nav-search" id="nav-search">
+      <button type="button" class="nav-search-toggle" id="nav-search-toggle" aria-expanded="false" aria-controls="nav-search-panel" aria-label="Search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      </button>
+      <div class="nav-search-panel" id="nav-search-panel">
+        <input type="text" id="nav-search-input" placeholder="Search&hellip; e.g. Gallery, Shop, Hoodies, Number Plates, Pads" autocomplete="off">
+        <div class="nav-search-results" id="nav-search-results"></div>
+      </div>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navlinks">
+      <span class="hamburger-bar"></span><span class="hamburger-bar"></span><span class="hamburger-bar"></span>
+    </button>
+  </nav>
+</header>
+
+<section class="page-hero">
+  <div class="wrap">
+    <a href="index.html" class="back-link">&larr; Back to Home</a>
+    <span class="section-num mono">FULL GALLERY</span>
+    <h1>Every build the group has shared</h1>
+    <p>From first-mod daily drivers to fully track-prepped builds. Every entry is submitted by its owner with a caption and, where they've listed them, the mods behind it. Want yours in here? <a href="my-builds.html#build-upload" class="inline-link">Upload it in My Garage</a>.</p>
+  </div>
+</section>
+
+<section id="gallery">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="section-num">01 / FULL GALLERY</span>
+        <div class="section-title-row">
+          <h2>Full Gallery</h2>
+          <button type="button" class="refresh-btn" id="gallery-refresh-btn" aria-label="Refresh gallery">&#8635; Refresh</button>
+        </div>
+      </div>
+    </div>
+    <div class="gallery-grid" id="gallery-grid">
+      <p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">Loading builds&hellip;</p>
+    </div>
+    <div class="gallery-pagination" id="gallery-pagination"></div>
+    <p class="gallery-note">A snapshot of what the group's driving, most recent first.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap footer-row">
+    <a href="/" class="logo footer-logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
+    <span class="mono">MODIFIED TESLA COMMUNITY &middot; <span class="member-count"></span> MEMBERS</span>
+    <a href="https://www.facebook.com/groups/mt3uk/" target="_blank" rel="noopener" class="mono" style="text-decoration:underline;">FACEBOOK GROUP &#8599;</a>
+  </div>
+</footer>
+
+<script>
+  window.MT3UK_R2_BASE = 'https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev';
+  window.mt3ukFetchJSON = (function () {
+    var cache = {};
+    return function (url, fallback, forceRefresh) {
+      if (forceRefresh || !cache[url]) {
+        cache[url] = fetch(url, { cache: 'no-store' })
+          .then(function (res) { return res.ok ? res.json() : fallback; })
+          .catch(function () { return fallback; });
+      }
+      return cache[url];
+    };
+  })();
+
+  // Grid/reel tiles crop to a square-ish box with object-fit: cover, which
+  // over-crops wide landscape photos (cuts the sides off the car). Tag
+  // landscape images once loaded so CSS can switch just those to
+  // object-fit: contain (full photo visible, letterboxed) instead of
+  // cropping. Uses the capture phase since the "load" event doesn't bubble.
+  document.addEventListener('load', function (e) {
+    var img = e.target;
+    if (!(img instanceof HTMLImageElement)) return;
+    if (!img.matches('.gallery-slot img, .vote-card .vote-media img, .bf-slide-img')) return;
+    if (!img.naturalWidth || img.naturalWidth <= img.naturalHeight * 1.15) return;
+    img.classList.add('is-landscape');
+    var container = img.closest('.gallery-slot, .vote-media, .bf-slide');
+    if (container) container.classList.add('is-landscape');
+  }, true);
+
+  // If this browser is signed in to My Builds, work out which gallery files
+  // belong to that account so an "Edit Build" button can be shown on them
+  // wherever they appear on the site, and cache the full build record
+  // (caption/mods/flags) so the edit modal can open instantly.
+  window.mt3ukMyBuildFiles = null;
+  window.mt3ukMyBuildData = {};
+  var MT3UK_API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
+  (function () {
+    var token = localStorage.getItem('mt3ukMyBuildsSession');
+    if (!token) return;
+    fetch(MT3UK_API + '/my-builds', {
+      headers: { 'X-Session-Token': token },
+      cache: 'no-store'
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (!data || !data.success || !Array.isArray(data.builds)) return;
+        window.mt3ukMyBuildFiles = data.builds.map(function (b) { return b.file; });
+        data.builds.forEach(function (b) { window.mt3ukMyBuildData[b.file] = b; });
+        document.dispatchEvent(new Event('mt3ukMyBuildsReady'));
+      })
+      .catch(function () {});
+  })();
+
+  // Adds an "Edit Build" button to any rendered [data-file] element whose
+  // file belongs to the signed-in account. Safe to call before the account's
+  // build list has loaded (a no-op) and again once mt3ukMyBuildsReady fires.
+  window.mt3ukApplyEditBadges = function (root) {
+    if (!window.mt3ukMyBuildFiles) return;
+    (root || document).querySelectorAll('[data-file]').forEach(function (el) {
+      var target = el.querySelector('[data-edit-target]') || el;
+      if (target.querySelector('.mt3uk-edit-pill, .bf-rail-edit-btn')) return;
+      var file = el.getAttribute('data-file');
+      if (!file || window.mt3ukMyBuildFiles.indexOf(file) === -1) return;
+      var cls = target.dataset.editClass || 'mt3uk-edit-pill';
+      var badge = document.createElement('button');
+      badge.type = 'button';
+      badge.className = cls;
+      badge.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M16.5 3.5a1.9 1.9 0 0 1 2.7 2.7L7 18.4l-3.5.8.8-3.5L16.5 3.5z"/></svg><span>Edit Build</span>';
+      badge.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        window.mt3ukOpenEditModal(file, el);
+      });
+      target.appendChild(badge);
+    });
+  };
+  document.addEventListener('mt3ukMyBuildsReady', function () {
+    window.mt3ukApplyEditBadges(document);
+  });
+
+  // In-page "Edit Build" modal: lets a signed-in owner change mods and
+  // gallery/reel/voting flags, or delete the build, without leaving the
+  // page they were browsing.
+  window.mt3ukOpenEditModal = (function () {
+    var modal, modsList, modsInput, statusEl, deleteBtn, captionEl, imgEl;
+    var currentFile = null;
+    var currentOriginEl = null;
+    var currentMods = [];
+
+    function ensureModal() {
+      if (modal) return modal;
+      var style = document.createElement('style');
+      style.textContent = '.ebm-overlay { position: fixed; inset: 0; background: rgba(22,35,61,0.85); display: none; align-items: center; justify-content: center; z-index: 300; padding: 20px; } .ebm-overlay.open { display: flex; } .ebm-panel { background: var(--paper, #f3f1ea); max-width: 420px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; border: 1px solid var(--ink, #16233d); } .ebm-close { position: absolute; top: 10px; right: 10px; z-index: 2; width: 34px; height: 34px; border: 1px solid rgba(255,255,255,0.8); background: rgba(22,35,61,0.6); color: #fff; font-size: 1.3rem; line-height: 1; cursor: pointer; } .ebm-close:hover { background: var(--orange, #e8542a); color: #fff; border-color: var(--orange, #e8542a); } .ebm-media { aspect-ratio: 4/3; overflow: hidden; background: var(--ink, #16233d); position: relative; } .ebm-media img { width: 100%; height: 100%; object-fit: contain; display: block; } .ebm-body { padding: 18px; display: flex; flex-direction: column; gap: 14px; } .ebm-caption { font-family: "IBM Plex Mono", monospace; font-size: 0.8rem; letter-spacing: 0.03em; } .ebm-toggles { display: flex; flex-wrap: wrap; gap: 12px; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; } .ebm-toggle { display: flex; align-items: center; gap: 6px; cursor: pointer; } .ebm-mods { display: flex; flex-direction: column; gap: 8px; } .ebm-mods-label { display: block; font-size: 0.78rem; } .ebm-mods-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; } .ebm-mods-list:empty { display: none; } .ebm-mods-list li { display: flex; align-items: center; gap: 6px; border: 1px solid var(--ink, #16233d); padding: 5px 6px 5px 10px; font-family: "IBM Plex Mono", monospace; font-size: 0.76rem; } .ebm-mods-remove { border: none; background: transparent; cursor: pointer; font-size: 1rem; line-height: 1; color: var(--steel, #7c8798); } .ebm-mods-remove:hover { color: var(--orange, #e8542a); } .ebm-mods-input-row { display: flex; gap: 8px; } .ebm-mods-input-row input { flex: 1; border: 1px solid var(--ink, #16233d); background: #fff; padding: 8px 10px; font-family: "IBM Plex Sans", sans-serif; font-size: 0.85rem; } .ebm-mods-add-btn { border: 1px solid var(--ink, #16233d); background: transparent; padding: 0 14px; font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; cursor: pointer; } .ebm-mods-add-btn:hover { background: var(--ink, #16233d); color: #fff; } .ebm-actions { display: flex; align-items: center; gap: 10px; } .ebm-save-btn { border: 1px solid var(--orange, #e8542a); background: var(--orange, #e8542a); color: #fff; padding: 9px 16px; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; cursor: pointer; } .ebm-save-btn:disabled { opacity: 0.6; cursor: default; } .ebm-status { font-size: 0.76rem; color: var(--steel, #7c8798); } .ebm-status-ok { color: #1c8a4b; font-weight: 700; } .ebm-status-err { color: var(--orange, #e8542a); } .ebm-danger { border-top: 1px solid rgba(0,0,0,0.12); padding-top: 12px; } .ebm-delete-btn { border: 1px solid var(--line, #4a6491); background: transparent; padding: 7px 12px; font-family: "IBM Plex Mono", monospace; font-size: 0.76rem; cursor: pointer; } .ebm-delete-btn:hover { border-color: var(--orange, #e8542a); color: var(--orange, #e8542a); } .ebm-delete-btn.ebm-delete-confirm { border-color: var(--orange, #e8542a); background: var(--orange, #e8542a); color: #fff; } .ebm-manage-link { font-size: 0.72rem; color: var(--steel, #7c8798); } .ebm-manage-link a { color: var(--orange, #e8542a); text-decoration: underline; }';
+      document.head.appendChild(style);
+
+      modal = document.createElement('div');
+      modal.className = 'ebm-overlay';
+      modal.setAttribute('role', 'dialog');
+      modal.setAttribute('aria-modal', 'true');
+      modal.setAttribute('aria-hidden', 'true');
+      modal.innerHTML =
+        '<div class="ebm-panel">' +
+          '<button type="button" class="ebm-close" aria-label="Close">&times;</button>' +
+          '<div class="ebm-media"><img alt=""></div>' +
+          '<div class="ebm-body">' +
+            '<span class="ebm-caption"></span>' +
+            '<div class="ebm-toggles">' +
+              '<label class="ebm-toggle"><input type="checkbox" data-flag="gallery"> Gallery</label>' +
+              '<label class="ebm-toggle"><input type="checkbox" data-flag="reel"> Reel</label>' +
+              '<label class="ebm-toggle"><input type="checkbox" data-flag="votable"> Voting</label>' +
+            '</div>' +
+            '<div class="ebm-mods">' +
+              '<span class="mono ebm-mods-label">Mods</span>' +
+              '<ul class="ebm-mods-list"></ul>' +
+              '<div class="ebm-mods-input-row">' +
+                '<input type="text" placeholder="e.g. Coilovers" autocomplete="off">' +
+                '<button type="button" class="ebm-mods-add-btn">Add</button>' +
+              '</div>' +
+            '</div>' +
+            '<div class="ebm-actions">' +
+              '<button type="button" class="ebm-save-btn">Save changes</button>' +
+              '<span class="ebm-status mono"></span>' +
+            '</div>' +
+            '<div class="ebm-danger"><button type="button" class="ebm-delete-btn">Delete this build</button></div>' +
+            '<p class="ebm-manage-link mono">Manage all your builds in <a href="my-builds.html">My Garage</a>.</p>' +
+          '</div>' +
+        '</div>';
+      document.body.appendChild(modal);
+
+      imgEl = modal.querySelector('.ebm-media img');
+      captionEl = modal.querySelector('.ebm-caption');
+      modsList = modal.querySelector('.ebm-mods-list');
+      modsInput = modal.querySelector('.ebm-mods-input-row input');
+      statusEl = modal.querySelector('.ebm-status');
+      deleteBtn = modal.querySelector('.ebm-delete-btn');
+      var saveBtn = modal.querySelector('.ebm-save-btn');
+      var addBtn = modal.querySelector('.ebm-mods-add-btn');
+      var closeBtn = modal.querySelector('.ebm-close');
+
+      function renderMods() {
+        modsList.innerHTML = currentMods.map(function (m, idx) {
+          var safe = String(m).replace(/</g, '&lt;');
+          return '<li><span>' + safe + '</span><button type="button" class="ebm-mods-remove" data-idx="' + idx + '" aria-label="Remove ' + safe + '">&times;</button></li>';
+        }).join('');
+      }
+
+      function addMod() {
+        var value = modsInput.value.trim();
+        if (!value) return;
+        currentMods.push(value);
+        modsInput.value = '';
+        renderMods();
+      }
+
+      addBtn.addEventListener('click', addMod);
+      modsInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); addMod(); }
+      });
+      modsList.addEventListener('click', function (e) {
+        var removeBtn = e.target.closest('.ebm-mods-remove');
+        if (!removeBtn) return;
+        currentMods.splice(Number(removeBtn.dataset.idx), 1);
+        renderMods();
+      });
+
+      function closeModal() {
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+        currentFile = null;
+        currentOriginEl = null;
+      }
+
+      closeBtn.addEventListener('click', closeModal);
+      modal.addEventListener('click', function (e) {
+        if (e.target === modal) closeModal();
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+      });
+
+      saveBtn.addEventListener('click', function () {
+        if (!currentFile) return;
+        if (modsInput.value.trim()) addMod();
+        var token = localStorage.getItem('mt3ukMyBuildsSession');
+        var flags = {};
+        modal.querySelectorAll('input[data-flag]').forEach(function (cb) {
+          flags[cb.dataset.flag] = cb.checked;
+        });
+        saveBtn.disabled = true;
+        statusEl.textContent = 'Saving…';
+        statusEl.className = 'ebm-status mono';
+        var body = { file: currentFile, mods: currentMods, gallery: flags.gallery, reel: flags.reel, votable: flags.votable };
+        fetch(MT3UK_API + '/my-builds', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'X-Session-Token': token },
+          body: JSON.stringify(body)
+        })
+          .then(function (res) { return res.json(); })
+          .then(function (data) {
+            saveBtn.disabled = false;
+            if (!data.success) {
+              statusEl.textContent = data.message || 'Could not save, try again';
+              statusEl.className = 'ebm-status mono ebm-status-err';
+              return;
+            }
+            statusEl.textContent = 'Saved';
+            statusEl.className = 'ebm-status mono ebm-status-ok';
+            var cached = window.mt3ukMyBuildData[currentFile];
+            if (cached) {
+              cached.mods = currentMods.slice();
+              cached.gallery = flags.gallery;
+              cached.reel = flags.reel;
+              cached.votable = flags.votable;
+            }
+            // If the flag governing where this build was clicked from just
+            // turned off, drop it from that view immediately.
+            if (currentOriginEl) {
+              var surfaceFlag = currentOriginEl.classList.contains('bf-slide') ? 'reel' :
+                currentOriginEl.classList.contains('vote-card') ? 'votable' :
+                currentOriginEl.classList.contains('gallery-slot') ? 'gallery' : null;
+              if (surfaceFlag && flags[surfaceFlag] === false) {
+                currentOriginEl.remove();
+              }
+            }
+          })
+          .catch(function () {
+            saveBtn.disabled = false;
+            statusEl.textContent = 'Could not save, try again';
+            statusEl.className = 'ebm-status mono ebm-status-err';
+          });
+      });
+
+      deleteBtn.addEventListener('click', function () {
+        if (!currentFile) return;
+        if (!deleteBtn.classList.contains('ebm-delete-confirm')) {
+          deleteBtn.classList.add('ebm-delete-confirm');
+          deleteBtn.textContent = 'Confirm delete?';
+          setTimeout(function () {
+            deleteBtn.classList.remove('ebm-delete-confirm');
+            deleteBtn.textContent = 'Delete this build';
+          }, 4000);
+          return;
+        }
+        var token = localStorage.getItem('mt3ukMyBuildsSession');
+        var file = currentFile;
+        deleteBtn.disabled = true;
+        deleteBtn.textContent = 'Deleting…';
+        fetch(MT3UK_API + '/my-builds?file=' + encodeURIComponent(file), {
+          method: 'DELETE',
+          headers: { 'X-Session-Token': token }
+        })
+          .then(function (res) { return res.json(); })
+          .then(function (data) {
+            deleteBtn.disabled = false;
+            if (!data.success) {
+              deleteBtn.textContent = 'Delete this build';
+              return;
+            }
+            delete window.mt3ukMyBuildData[file];
+            if (window.mt3ukMyBuildFiles) {
+              var idx = window.mt3ukMyBuildFiles.indexOf(file);
+              if (idx !== -1) window.mt3ukMyBuildFiles.splice(idx, 1);
+            }
+            document.querySelectorAll('[data-file="' + CSS.escape(file) + '"]').forEach(function (el) { el.remove(); });
+            closeModal();
+          })
+          .catch(function () {
+            deleteBtn.disabled = false;
+            deleteBtn.textContent = 'Delete this build';
+          });
+      });
+
+      modal.dataset.ready = '1';
+      return modal;
+    }
+
+    return function open(file, originEl) {
+      ensureModal();
+      currentFile = file;
+      currentOriginEl = originEl || null;
+      var data = window.mt3ukMyBuildData[file] || { file: file, mods: [], gallery: true, reel: true, votable: true, caption: '' };
+      currentMods = Array.isArray(data.mods) ? data.mods.slice() : [];
+      imgEl.src = window.MT3UK_R2_BASE + '/gallery/' + file;
+      imgEl.alt = data.caption || 'MT3UK member build';
+      captionEl.textContent = data.caption || '';
+      modal.querySelector('input[data-flag="gallery"]').checked = data.gallery !== false;
+      modal.querySelector('input[data-flag="reel"]').checked = data.reel !== false;
+      modal.querySelector('input[data-flag="votable"]').checked = data.votable !== false;
+      modsList.innerHTML = currentMods.map(function (m, idx) {
+        var safe = String(m).replace(/</g, '&lt;');
+        return '<li><span>' + safe + '</span><button type="button" class="ebm-mods-remove" data-idx="' + idx + '" aria-label="Remove ' + safe + '">&times;</button></li>';
+      }).join('');
+      modsInput.value = '';
+      statusEl.textContent = '';
+      statusEl.className = 'ebm-status mono';
+      deleteBtn.classList.remove('ebm-delete-confirm');
+      deleteBtn.disabled = false;
+      deleteBtn.textContent = 'Delete this build';
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    };
+  })();
+</script>
+
+<script>
+  (function () {
+    var mobileQuery = window.matchMedia('(max-width: 560px)');
+    function getPageSize() { return mobileQuery.matches ? 8 : 16; }
+    var grid = document.getElementById('gallery-grid');
+    var pagination = document.getElementById('gallery-pagination');
+    var allPhotos = [];
+    var currentPage = 1;
+
+    function renderGrid(photos) {
+      if (!photos.length) {
+        grid.innerHTML = '<p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">No photos yet, upload some to the gallery/ prefix in R2.</p>';
+        return;
+      }
+      grid.innerHTML = photos.map(function (p) {
+        var safeCaption = (p.caption || '').replace(/</g, '&lt;');
+        var nameHtml = p.name ? '<span class="g-name">By ' + p.name.replace(/</g, '&lt;') + '</span>' : '';
+        var captionHtml = (safeCaption || nameHtml) ? '<span class="g-caption">' + safeCaption + nameHtml + '</span>' : '';
+        var modsAttr = (p.mods && p.mods.length) ? ' data-mods="' + JSON.stringify(p.mods).replace(/"/g, '&quot;') + '"' : '';
+        var modsBadge = (p.mods && p.mods.length) ?
+          '<button type="button" class="g-mods-badge" aria-label="View mods list">' +
+            '<svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9 2.6-2.6z"/></svg>' +
+            p.mods.length +
+          '</button>' : '';
+        return '<div class="gallery-slot filled" data-file="' + p.file.replace(/"/g, '&quot;') + '">' +
+                 '<img src="' + window.MT3UK_R2_BASE + '/gallery/' + p.file.replace(/&/g, '&amp;') + '" alt="' + (safeCaption || 'MT3UK member build') + '" loading="lazy"' + modsAttr + '>' +
+                 modsBadge +
+                 captionHtml +
+               '</div>';
+      }).join('');
+      window.mt3ukApplyEditBadges(grid);
+    }
+
+    function renderPagination(totalPages) {
+      if (totalPages <= 1) {
+        pagination.innerHTML = '';
+        return;
+      }
+      pagination.innerHTML =
+        '<button type="button" class="page-btn" id="gallery-prev"' + (currentPage === 1 ? ' disabled' : '') + ' aria-label="Previous page">' +
+          '<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>Prev' +
+        '</button>' +
+        '<span class="mono">Page ' + currentPage + ' of ' + totalPages + '</span>' +
+        '<button type="button" class="page-btn" id="gallery-next"' + (currentPage === totalPages ? ' disabled' : '') + ' aria-label="Next page">' +
+          'Next<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>' +
+        '</button>';
+
+      var prevBtn = document.getElementById('gallery-prev');
+      var nextBtn = document.getElementById('gallery-next');
+      if (prevBtn) prevBtn.addEventListener('click', function () { goToPage(currentPage - 1); });
+      if (nextBtn) nextBtn.addEventListener('click', function () { goToPage(currentPage + 1); });
+    }
+
+    function goToPage(page) {
+      currentPage = page;
+      render();
+      grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function render() {
+      var pageSize = getPageSize();
+      var totalPages = Math.max(1, Math.ceil(allPhotos.length / pageSize));
+      currentPage = Math.min(Math.max(1, currentPage), totalPages);
+      var start = (currentPage - 1) * pageSize;
+      renderGrid(allPhotos.slice(start, start + pageSize));
+      renderPagination(totalPages);
+    }
+
+    if (mobileQuery.addEventListener) {
+      mobileQuery.addEventListener('change', function () { currentPage = 1; render(); });
+    } else if (mobileQuery.addListener) {
+      mobileQuery.addListener(function () { currentPage = 1; render(); });
+    }
+
+    function loadGallery(forceRefresh) {
+      var refreshBtn = document.getElementById('gallery-refresh-btn');
+      if (refreshBtn) {
+        refreshBtn.disabled = true;
+        if (forceRefresh) refreshBtn.innerHTML = '&#8635; Refreshing&hellip;';
+      }
+      window.mt3ukFetchJSON('images/gallery/manifest.json', null, forceRefresh)
+        .then(function (photos) {
+          if (refreshBtn) {
+            refreshBtn.disabled = false;
+            if (forceRefresh) {
+              refreshBtn.innerHTML = photos ? '&#10003; Refreshed' : '&#8635; Refresh';
+              if (photos) {
+                setTimeout(function () { refreshBtn.innerHTML = '&#8635; Refresh'; }, 1800);
+              }
+            }
+          }
+          if (!photos) {
+            grid.innerHTML = '<p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">Gallery photos couldn\'t be loaded.</p>';
+            return;
+          }
+          allPhotos = photos.filter(function (p) { return p.gallery !== false; });
+          currentPage = 1;
+          render();
+        });
+    }
+
+    loadGallery(false);
+
+    var galleryRefreshBtn = document.getElementById('gallery-refresh-btn');
+    if (galleryRefreshBtn) galleryRefreshBtn.addEventListener('click', function () { loadGallery(true); });
+  })();
+</script>
+
+<script>
+  (function () {
+    var style = document.createElement('style');
+    style.textContent = '.gallery-slot.filled img { cursor: zoom-in; } .lightbox { position: fixed; inset: 0; background: rgba(22,35,61,0.94); display: none; align-items: center; justify-content: center; flex-direction: column; z-index: 200; padding: 40px 20px; } .lightbox.open { display: flex; } .lightbox-img { max-width: min(92vw, 1100px); max-height: 78vh; object-fit: contain; border: 1px solid rgba(243,241,234,0.25); } .lightbox-caption { margin-top: 16px; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; letter-spacing: 0.04em; color: var(--paper); } .lightbox-mods { display: none; margin-top: 10px; max-width: min(92vw, 1100px); font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; letter-spacing: 0.03em; color: rgba(243,241,234,0.7); text-align: center; } .lightbox-mods.has-mods { display: block; } .lightbox-close { position: absolute; top: 22px; right: 28px; background: transparent; border: 1px solid var(--paper); color: var(--paper); width: 40px; height: 40px; font-size: 1.4rem; line-height: 1; cursor: pointer; } .lightbox-close:hover { background: var(--orange); border-color: var(--orange); } .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(22,35,61,0.6); border: 1px solid var(--paper); color: var(--paper); width: 46px; height: 46px; font-size: 1.6rem; line-height: 1; cursor: pointer; } .lightbox-nav:hover { background: var(--orange); border-color: var(--orange); } .lightbox-prev { left: 20px; } .lightbox-next { right: 20px; } @media (max-width: 700px) { .lightbox-nav { width: 38px; height: 38px; font-size: 1.3rem; } .lightbox-prev { left: 8px; } .lightbox-next { right: 8px; } } @media (max-width: 600px) { .lightbox-close { top: 14px; right: 14px; width: 36px; height: 36px; } } .lightbox-vote { display: none; margin-top: 16px; align-items: center; gap: 14px; } .lightbox.open[data-mode="vote"] .lightbox-vote { display: flex; } .lightbox-vote-count { font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; letter-spacing: 0.04em; color: var(--paper); } .lightbox-vote-btn { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; letter-spacing: 0.04em; padding: 9px 16px; border: 1px solid var(--paper); background: transparent; color: var(--paper); cursor: pointer; transition: background .2s ease, color .2s ease; } .lightbox-vote-btn:hover:not(:disabled) { background: var(--orange); border-color: var(--orange); } .lightbox-vote-btn:disabled { cursor: default; opacity: 0.7; background: var(--orange); border-color: var(--orange); }';
+    document.head.appendChild(style);
+
+    var lightbox = document.createElement('div');
+    lightbox.id = 'lightbox';
+    lightbox.className = 'lightbox';
+    lightbox.setAttribute('role', 'dialog');
+    lightbox.setAttribute('aria-modal', 'true');
+    lightbox.setAttribute('aria-hidden', 'true');
+    lightbox.innerHTML = '<button class="lightbox-close" aria-label="Close">&times;</button><button class="lightbox-nav lightbox-prev" aria-label="Previous photo">&lsaquo;</button><button class="lightbox-nav lightbox-next" aria-label="Next photo">&rsaquo;</button><img class="lightbox-img" src="" alt=""><div class="lightbox-caption"></div><div class="lightbox-mods"></div>';
+    document.body.appendChild(lightbox);
+
+    var lightboxImg = lightbox.querySelector('.lightbox-img');
+    var lightboxCaption = lightbox.querySelector('.lightbox-caption');
+    var lightboxMods = lightbox.querySelector('.lightbox-mods');
+    var closeBtn = lightbox.querySelector('.lightbox-close');
+    var prevBtn = lightbox.querySelector('.lightbox-prev');
+    var nextBtn = lightbox.querySelector('.lightbox-next');
+    var galleryGrid = document.getElementById('gallery-grid');
+    var currentIndex = -1;
+
+    function getGalleryImgs() {
+      return galleryGrid ? Array.prototype.slice.call(galleryGrid.querySelectorAll('img')) : [];
+    }
+
+    function showAt(index) {
+      var imgs = getGalleryImgs();
+      if (!imgs.length) return;
+      currentIndex = (index + imgs.length) % imgs.length;
+      var img = imgs[currentIndex];
+      lightboxImg.src = img.src;
+      lightboxImg.alt = img.alt || '';
+      lightboxCaption.textContent = img.alt || '';
+      var mods = [];
+      if (img.dataset.mods) {
+        try { mods = JSON.parse(img.dataset.mods); } catch (e) { mods = []; }
+      }
+      lightboxMods.textContent = mods.length ? 'Mods: ' + mods.join(' · ') : '';
+      lightboxMods.classList.toggle('has-mods', mods.length > 0);
+    }
+
+    function openLightbox(index) {
+      showAt(index);
+      lightbox.classList.add('open');
+      lightbox.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+      lightbox.classList.remove('open');
+      lightbox.setAttribute('aria-hidden', 'true');
+      lightboxImg.src = '';
+      document.body.style.overflow = '';
+    }
+
+    if (galleryGrid) {
+      galleryGrid.addEventListener('click', function (e) {
+        var badge = e.target.closest('.g-mods-badge');
+        var img = badge ? badge.closest('.gallery-slot').querySelector('img') : e.target.closest('img');
+        if (!img) return;
+        var imgs = getGalleryImgs();
+        openLightbox(imgs.indexOf(img));
+      });
+    }
+
+    closeBtn.addEventListener('click', closeLightbox);
+    prevBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      showAt(currentIndex - 1);
+    });
+    nextBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      showAt(currentIndex + 1);
+    });
+
+    lightbox.addEventListener('click', function (e) {
+      if (e.target === lightbox) closeLightbox();
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (!lightbox.classList.contains('open')) return;
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowRight') showAt(currentIndex + 1);
+      if (e.key === 'ArrowLeft') showAt(currentIndex - 1);
+    });
+  })();
+</script>
+
+<script>
+  (function () {
+      var hamburger = document.getElementById('hamburger');
+      var navMenu = document.getElementById('navlinks');
+      if (!hamburger || !navMenu) return;
+
+      function closeMenu() {
+            navMenu.classList.remove('active');
+            hamburger.setAttribute('aria-expanded', 'false');
+      }
+
+      hamburger.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var open = navMenu.classList.toggle('active');
+            hamburger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+
+      navMenu.querySelectorAll('.nav-link, .nav-sublink').forEach(function (link) {
+            link.addEventListener('click', closeMenu);
+      });
+
+      navMenu.querySelectorAll('.nav-dropdown-toggle').forEach(function (toggle) {
+            toggle.addEventListener('click', function (e) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  var item = toggle.closest('.nav-item');
+                  var open = item.classList.toggle('open');
+                  toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            });
+      });
+
+      document.addEventListener('click', function (e) {
+            if (!e.target.closest('header nav')) closeMenu();
+      });
+  })();
+</script>
+
+<script>
+  (function () {
+    fetch('data/community.json', { cache: 'no-store' })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (data) {
+        if (!data || !data.members) return;
+        document.querySelectorAll('.member-count').forEach(function (el) {
+          el.textContent = data.members;
+        });
+      })
+      .catch(function () {});
+  })();
+</script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('/sw.js');
+    });
+  }
+</script>
+
+<script src="js/search.js" defer></script>
+
+</body>
+</html>

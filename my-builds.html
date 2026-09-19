@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My Builds (BETA) &mdash; MT3UK</title>
+<title>My Garage (BETA) &mdash; MT3UK</title>
 <meta name="description" content="Manage the builds you've submitted to the MT3UK gallery: control where they appear and edit or remove them.">
 <link rel="canonical" href="https://mt3uk.com/my-builds.html">
 <link rel="icon" type="image/x-icon" href="images/site/favicon.ico">
@@ -16,12 +16,12 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MT3UK">
 <meta property="og:type" content="website">
-<meta property="og:title" content="My Builds (BETA) &mdash; MT3UK">
+<meta property="og:title" content="My Garage (BETA) &mdash; MT3UK">
 <meta property="og:description" content="Manage the builds you've submitted to the MT3UK gallery: control where they appear and edit or remove them.">
 <meta property="og:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
 <meta property="og:url" content="https://mt3uk.com/my-builds.html">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="My Builds (BETA) &mdash; MT3UK">
+<meta name="twitter:title" content="My Garage (BETA) &mdash; MT3UK">
 <meta name="twitter:description" content="Manage the builds you've submitted to the MT3UK gallery: control where they appear and edit or remove them.">
 <meta name="twitter:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
 <meta name="robots" content="noindex">
@@ -171,7 +171,7 @@
   }
 
   .nav-link-mybuilds::after {
-    content: 'BETA';
+    content: 'NEW';
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.62rem;
     font-weight: 700;
@@ -685,14 +685,16 @@
       <a href="/" class="logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
     <div class="navlinks" id="navlinks">
       <div class="nav-item">
-        <a href="index.html#build-feed" class="nav-link">Build Feed</a>
-        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Build Feed submenu">&#9660;</button>
+        <a href="index.html#build-feed" class="nav-link">Gallery Feed</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Gallery Feed submenu">&#9660;</button>
         <div class="nav-dropdown">
           <a href="index.html#build-of-the-day" class="nav-sublink">Featured Build</a>
-          <a href="index.html#vote-frame" class="nav-sublink nav-sublink-new">Vote for Build</a>
-          <a href="index.html#gallery" class="nav-sublink">Full Gallery</a>
-          <a href="index.html#gallery-upload" class="nav-sublink">Upload Image</a>
+          <a href="index.html#vote-frame" class="nav-sublink">Vote for Build</a>
+          <a href="gallery.html" class="nav-sublink">Full Gallery</a>
         </div>
+      </div>
+      <div class="nav-item">
+        <a href="my-builds.html" class="nav-link nav-link-mybuilds active">My Garage</a>
       </div>
       <div class="nav-item">
         <a href="shop.html" class="nav-link">Shop</a>
@@ -731,9 +733,6 @@
       </div>
       <a href="index.html#faq" class="nav-link">FAQs</a>
       <div class="nav-item">
-        <a href="my-builds.html" class="nav-link nav-link-mybuilds active">My Builds</a>
-      </div>
-      <div class="nav-item">
         <a href="contact.html" class="nav-link">Contact</a>
         <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Contact submenu">&#9660;</button>
         <div class="nav-dropdown">
@@ -761,7 +760,7 @@
   <div class="wrap">
     <a href="index.html" class="back-link">&larr; Back to MT3UK</a>
     <span class="section-num mono">MY BUILDS</span>
-    <h1>My Builds <span class="beta-pill">BETA</span></h1>
+    <h1>My Garage <span class="beta-pill">BETA</span></h1>
     <p>Manage the build(s) you've submitted to the gallery: choose where they appear, or remove them.</p>
   </div>
 </section>
@@ -836,7 +835,7 @@
         <button type="button" class="mb-signout-btn" id="mb-signout-btn">Sign out</button>
       </div>
 
-      <div class="mb-upload-toggle-row">
+      <div class="mb-upload-toggle-row" id="build-upload">
         <button type="button" class="mb-upload-toggle-btn" id="mb-upload-toggle-btn">+ Upload build</button>
       </div>
 
@@ -986,6 +985,10 @@
       signinView.style.display = 'none';
       appView.style.display = 'block';
       accountEmailEl.textContent = email;
+      if (window.location.hash === '#build-upload' && uploadCard.style.display === 'none') {
+        uploadToggleBtn.click();
+        document.getElementById('build-upload').scrollIntoView({ block: 'start' });
+      }
     }
 
     function renderBuilds(builds) {

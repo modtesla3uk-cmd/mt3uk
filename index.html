@@ -222,7 +222,7 @@
   }
 
   .nav-link-mybuilds::after {
-    content: 'BETA';
+    content: 'NEW';
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.62rem;
     font-weight: 700;
@@ -870,16 +870,6 @@
     transition: border-color 0.2s ease;
   }
   .hero-build-card:hover, .hero-build-card:focus-visible { border-color: var(--orange); }
-  .hero-build-badge {
-    position: absolute;
-    top: -9px; left: 12px;
-    background: var(--orange);
-    color: var(--white);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.62rem;
-    letter-spacing: 0.05em;
-    padding: 3px 8px;
-  }
   .hero-build-thumb {
     flex: 0 0 76px;
     width: 76px;
@@ -1072,6 +1062,8 @@
   .bf-toast.bf-toast-show { opacity: 1; transform: translateX(-50%) translateY(0); }
   .bf-mods-btn .bf-icon-mods { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
   .bf-mods-btn[aria-pressed="true"] { color: var(--orange); }
+  .bf-comments-btn .bf-icon-comments { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
+  .bf-comments-btn[aria-pressed="true"] { color: var(--orange); }
 
   .saved-builds-inline { margin: 28px auto 0; width: min(420px, 100%); }
   .saved-builds-label {
@@ -1130,6 +1122,88 @@
     letter-spacing: 0.02em;
     color: rgba(255,255,255,0.85);
   }
+
+  .bf-comments-panel {
+    position: absolute;
+    left: 16px; right: 64px; bottom: 20px;
+    z-index: 6;
+    background: rgba(22,35,61,0.95);
+    border: 1px solid rgba(243,241,234,0.25);
+    color: var(--white);
+    padding: 14px 16px;
+    max-height: 70%;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .bf-comments-panel.bf-comments-open { display: flex; }
+  .bf-comments-panel-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+    color: var(--orange);
+    margin: 0;
+  }
+  .bf-comments-list {
+    margin: 0; padding: 0; list-style: none;
+    display: flex; flex-direction: column; gap: 10px;
+    overflow-y: auto;
+  }
+  .bf-comment { display: flex; flex-direction: column; gap: 2px; }
+  .bf-comment-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .bf-comment-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.02em;
+    color: var(--orange);
+  }
+  .bf-comment-report {
+    background: none; border: 0; color: rgba(255,255,255,0.5);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+  }
+  .bf-comment-report:hover { color: var(--white); }
+  .bf-comment-report[disabled] { text-decoration: none; cursor: default; }
+  .bf-comment-text {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: rgba(255,255,255,0.9);
+    word-break: break-word;
+  }
+  .bf-comments-empty {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.6);
+  }
+  .bf-comments-form { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid rgba(243,241,234,0.2); padding-top: 10px; }
+  .bf-comments-form input, .bf-comments-form textarea {
+    background: rgba(0,0,0,0.35);
+    border: 1px solid rgba(243,241,234,0.3);
+    color: var(--white);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    padding: 8px 10px;
+    resize: none;
+  }
+  .bf-comments-form textarea { min-height: 50px; }
+  .bf-comments-submit {
+    align-self: flex-end;
+    background: var(--orange);
+    color: var(--ink);
+    border: 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.03em;
+    padding: 8px 16px;
+    cursor: pointer;
+  }
+  .bf-comments-submit[disabled] { opacity: 0.5; cursor: default; }
+  .bf-comments-error { color: #ff6b6b; font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; }
 
   .bf-caption {
     position: absolute;
@@ -1986,14 +2060,16 @@
       <a href="/" class="logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
     <div class="navlinks" id="navlinks">
       <div class="nav-item">
-        <a href="#build-feed" class="nav-link">Build Feed</a>
-        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Build Feed submenu">&#9660;</button>
+        <a href="#build-feed" class="nav-link">Gallery Feed</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Gallery Feed submenu">&#9660;</button>
         <div class="nav-dropdown">
           <a href="#build-of-the-day" class="nav-sublink">Featured Build</a>
-          <a href="#vote-frame" class="nav-sublink nav-sublink-new">Vote for Build</a>
-          <a href="#gallery" class="nav-sublink">Full Gallery</a>
-          <a href="#gallery-upload" class="nav-sublink">Upload Image</a>
+          <a href="#vote-frame" class="nav-sublink">Vote for Build</a>
+          <a href="gallery.html" class="nav-sublink">Full Gallery</a>
         </div>
+      </div>
+      <div class="nav-item">
+        <a href="my-builds.html" class="nav-link nav-link-mybuilds">My Garage</a>
       </div>
       <div class="nav-item">
         <a href="shop.html" class="nav-link">Shop</a>
@@ -2032,9 +2108,6 @@
       </div>
       <a href="#faq" class="nav-link">FAQs</a>
       <div class="nav-item">
-        <a href="my-builds.html" class="nav-link nav-link-mybuilds">My Builds</a>
-      </div>
-      <div class="nav-item">
         <a href="contact.html" class="nav-link">Contact</a>
         <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Contact submenu">&#9660;</button>
         <div class="nav-dropdown">
@@ -2067,10 +2140,10 @@
         <p class="lead">MT3UK is the global community for modified Tesla owners, wraps, wheels, suspension, stance and everything in between. Real builds, honest feedback and meets worth showing up for.</p>
         <div class="hero-cta-stack">
           <div class="hero-ctas">
-            <a href="#build-feed" class="btn btn-primary">Build Feed</a>
-            <a href="#gallery-upload" class="btn btn-secondary">Upload Build <span class="btn-badge-new">NEW</span></a>
+            <a href="#build-feed" class="btn btn-secondary">Gallery Feed</a>
+            <a href="my-builds.html#build-upload" class="btn btn-secondary">Upload Build</a>
             <a href="#vote-frame" class="btn btn-secondary">Vote for Build</a>
-            <a href="my-builds.html" class="btn btn-secondary">My Builds <span class="btn-badge-new">NEW</span></a>
+            <a href="my-builds.html" class="btn btn-primary">My Garage <span class="btn-badge-new">NEW</span></a>
             <a href="shop.html" class="btn btn-merch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>Merch</a>
           </div>
           <p class="hero-vote-countdown mono" id="hero-vote-countdown"></p>
@@ -2083,14 +2156,13 @@
       </div>
       <div class="hero-media">
         <a href="#build-of-the-day" class="hero-build-card" id="hero-build-card">
-          <span class="hero-build-badge">FEATURED TODAY</span>
           <span class="hero-build-thumb"><img id="hero-build-img" src="" alt="" loading="lazy"></span>
           <span class="hero-build-info">
             <span class="hero-build-caption" id="hero-build-caption">Loading today's build&hellip;</span>
             <span class="hero-build-link">See the featured build &rarr;</span>
           </span>
         </a>
-        <p class="hero-media-note">Browse the full <a href="#build-feed">Build Feed</a> or the <a href="#gallery">Full Gallery</a>, or <a href="#gallery-upload">upload your build</a> to get yours featured.</p>
+        <p class="hero-media-note">Browse the full <a href="#build-feed">Gallery Feed</a> or the <a href="gallery.html">Full Gallery</a>, or <a href="my-builds.html#build-upload">upload your build</a> to get yours featured.</p>
       </div>
     </div>
   </div>
@@ -2133,7 +2205,7 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">01 / BUILD FEED</span>
+        <span class="section-num">01 / GALLERY FEED</span>
         <h2>Swipe through the builds</h2>
       </div>
       <p>A quick scroll through recent member builds. Likes now persist and you can bookmark your favourites, or sit back and let it play.</p>
@@ -2157,7 +2229,7 @@
     </div>
     <div class="section-gallery-cta">
       <p>Want to dig deeper? <strong>The Full Gallery</strong> has every build members have shared, with search-friendly captions and mod lists.</p>
-      <a href="#gallery" class="btn btn-secondary">Browse the Full Gallery</a>
+      <a href="gallery.html" class="btn btn-secondary">Browse the Full Gallery</a>
     </div>
   </div>
 </section>
@@ -2272,6 +2344,9 @@
               '<svg viewBox="0 0 24 24" class="bf-icon-mods"><path d="M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9 2.6-2.6z"/></svg>' +
               '<span class="bf-rail-count">' + mods.length + '</span>' +
             '</button>' : '') +
+          '<button class="bf-rail-btn bf-comments-btn" data-idx="' + idx + '" aria-pressed="false" aria-label="View comments">' +
+            '<svg viewBox="0 0 24 24" class="bf-icon-comments"><path d="M4 4h16v12H7l-3 3z"/></svg>' +
+          '</button>' +
         '</aside>' +
         (safeCaption || subLine ?
           '<div class="bf-caption">' +
@@ -2282,8 +2357,134 @@
           '<div class="bf-mods-panel">' +
             '<p class="bf-mods-panel-title">MODS</p>' +
             '<ul>' + mods.map(function (m) { return '<li>' + String(m).replace(/</g, '&lt;') + '</li>'; }).join('') + '</ul>' +
-          '</div>' : '');
+          '</div>' : '') +
+        '<div class="bf-comments-panel">' +
+          '<p class="bf-comments-panel-title">COMMENTS</p>' +
+          '<ul class="bf-comments-list"></ul>' +
+          '<form class="bf-comments-form">' +
+            '<input type="email" class="bf-comments-email" placeholder="Your email" required maxlength="120">' +
+            '<textarea class="bf-comments-text" placeholder="Add a comment&hellip;" required maxlength="500"></textarea>' +
+            '<p class="bf-comments-error" hidden></p>' +
+            '<button type="submit" class="bf-comments-submit">Post comment</button>' +
+          '</form>' +
+        '</div>';
       return section;
+    }
+
+    var reportedCommentIds = [];
+    try { reportedCommentIds = JSON.parse(localStorage.getItem('mt3ukReportedComments') || '[]'); } catch (e) {}
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+
+    function renderComments(listEl, comments) {
+      if (!comments.length) {
+        listEl.innerHTML = '<li class="bf-comments-empty">No comments yet, be the first.</li>';
+        return;
+      }
+      listEl.innerHTML = comments.map(function (c) {
+        var reported = reportedCommentIds.indexOf(c.id) !== -1;
+        return '<li class="bf-comment" data-id="' + c.id + '">' +
+          '<div class="bf-comment-head">' +
+            '<span class="bf-comment-name">' + escapeHtml(c.name) + '</span>' +
+            '<button type="button" class="bf-comment-report"' + (reported ? ' disabled' : '') + '>' + (reported ? 'Reported' : 'Report') + '</button>' +
+          '</div>' +
+          '<p class="bf-comment-text">' + escapeHtml(c.text) + '</p>' +
+        '</li>';
+      }).join('');
+    }
+
+    function wireComments(slides) {
+      slides.forEach(function (slide) {
+        var btn = slide.querySelector('.bf-comments-btn');
+        var panel = slide.querySelector('.bf-comments-panel');
+        var list = slide.querySelector('.bf-comments-list');
+        var form = slide.querySelector('.bf-comments-form');
+        var errorEl = slide.querySelector('.bf-comments-error');
+        var loaded = false;
+
+        function loadComments() {
+          list.innerHTML = '<li class="bf-comments-empty">Loading&hellip;</li>';
+          fetch(VOTE_ENDPOINT + '/comments?file=' + encodeURIComponent(slide.dataset.file), { cache: 'no-store' })
+            .then(function (res) { return res.ok ? res.json() : null; })
+            .then(function (data) {
+              renderComments(list, (data && data.success && data.comments) || []);
+            })
+            .catch(function () {
+              list.innerHTML = '<li class="bf-comments-empty">Could not load comments.</li>';
+            });
+        }
+
+        if (btn) {
+          btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var open = panel.classList.toggle('bf-comments-open');
+            btn.setAttribute('aria-pressed', open ? 'true' : 'false');
+            if (open && !loaded) {
+              loaded = true;
+              loadComments();
+            }
+          });
+        }
+
+        if (list) {
+          list.addEventListener('click', function (e) {
+            var reportBtn = e.target.closest('.bf-comment-report');
+            if (!reportBtn || reportBtn.disabled) return;
+            var li = reportBtn.closest('.bf-comment');
+            var id = li && li.dataset.id;
+            if (!id) return;
+            reportBtn.disabled = true;
+            reportBtn.textContent = 'Reported';
+            fetch(VOTE_ENDPOINT + '/comments/report', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'X-Voter-Id': voterId },
+              body: JSON.stringify({ file: slide.dataset.file, id: id })
+            }).catch(function () {});
+            reportedCommentIds.push(id);
+            localStorage.setItem('mt3ukReportedComments', JSON.stringify(reportedCommentIds));
+          });
+        }
+
+        if (form) {
+          form.addEventListener('click', function (e) { e.stopPropagation(); });
+          form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            errorEl.hidden = true;
+            var emailInput = form.querySelector('.bf-comments-email');
+            var textInput = form.querySelector('.bf-comments-text');
+            var submitBtn = form.querySelector('.bf-comments-submit');
+            var email = emailInput.value.trim();
+            var text = textInput.value.trim();
+            if (!email || !text) return;
+
+            submitBtn.disabled = true;
+            fetch(VOTE_ENDPOINT + '/comments', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'X-Voter-Id': voterId },
+              body: JSON.stringify({ file: slide.dataset.file, email: email, text: text })
+            })
+              .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+              .then(function (result) {
+                if (result.ok && result.data && result.data.success) {
+                  textInput.value = '';
+                  loadComments();
+                } else {
+                  errorEl.textContent = (result.data && result.data.message) || 'Could not post comment.';
+                  errorEl.hidden = false;
+                }
+              })
+              .catch(function () {
+                errorEl.textContent = 'Could not post comment.';
+                errorEl.hidden = false;
+              })
+              .then(function () { submitBtn.disabled = false; });
+          });
+        }
+      });
     }
 
     var feedFrameEl = document.getElementById('build-feed-frame');
@@ -2431,6 +2632,8 @@
         });
       });
 
+      wireComments(slides);
+
       wireAutoscroll(slides.length);
     }
 
@@ -2570,7 +2773,7 @@
         <span class="section-num">02 / FEATURED BUILD</span>
         <h2>Today's featured build</h2>
       </div>
-      <p>A different build from the gallery gets the spotlight every day. Yours could be next, <a href="#gallery-upload" class="inline-link">submit a photo below</a>.</p>
+      <p>A different build from the gallery gets the spotlight every day. Yours could be next, <a href="my-builds.html#build-upload" class="inline-link">submit a photo below</a>.</p>
     </div>
     <div class="botm-frame" id="botm-frame">
       <p class="mono" style="padding: 24px; color: var(--steel);">Loading featured build…</p>
@@ -2589,181 +2792,9 @@
       <p class="mono" style="padding: 24px; color: var(--steel);">Loading builds open for voting…</p>
     </div>
     <div class="section-gallery-cta">
-      <p>Liked what you've seen? <strong>The Full Gallery</strong> has every build members have shared, with search-friendly captions and mod lists.</p>
-      <a href="#gallery" class="btn btn-secondary">Browse the Full Gallery</a>
+      <p>Liked what you've seen? <strong>The Gallery Feed</strong> has every build members have shared, with search-friendly captions and mod lists.</p>
+      <a href="gallery.html" class="btn btn-secondary">Browse the Full Gallery</a>
     </div>
-  </div>
-</section>
-
-<section id="gallery">
-  <div class="wrap">
-    <div class="section-head">
-      <div>
-        <span class="section-num">03 / FULL GALLERY</span>
-        <div class="section-title-row">
-          <h2>Full Gallery</h2>
-          <button type="button" class="refresh-btn" id="gallery-refresh-btn" aria-label="Refresh gallery">&#8635; Refresh</button>
-        </div>
-      </div>
-      <p>A rotating look at what the group's driving, from first-mod daily drivers to fully track-prepped builds. Every entry is submitted by its owner with a caption and, where they've listed them, the mods behind it, so you're seeing real setups from members rather than a stock catalogue. Click any photo for the full-size shot and mod list, or scroll down to <a href="#track-days" class="inline-link">Track Days</a> to see some of these same builds out on circuit.</p>
-    </div>
-    <div class="gallery-grid" id="gallery-grid">
-      <p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">Loading builds…</p>
-    </div>
-    <div class="gallery-pagination" id="gallery-pagination"></div>
-    <p class="gallery-note">A snapshot of what the group's driving, most recent first. Upload your build below</p>
-
-    <div class="submit-photo" id="gallery-upload">
-      <span class="section-num">03A / SUBMIT BUILD</span>
-      <h3>Submit build</h3>
-      <p>Send us a shot of your build and a caption, and we'll get it added to the gallery for you.</p>
-      <form id="photo-submit-form" class="submit-form">
-        <input type="checkbox" name="botcheck" class="hp-field" tabindex="-1" autocomplete="off">
-        <div class="form-row form-row-half">
-          <label class="mono" for="submitter-name">Name (Required)</label>
-          <input type="text" id="submitter-name" name="name" placeholder="Your name or MT3UK handle" required>
-        </div>
-        <div class="form-row form-row-half">
-          <label class="mono" for="submitter-caption">Caption (Required)</label>
-          <input type="text" id="submitter-caption" name="caption" placeholder="e.g. Viper Green Model Y" required>
-        </div>
-        <div class="form-row">
-          <label class="mono" for="submitter-email">Email (Required)</label>
-          <input type="email" id="submitter-email" name="email" placeholder="you@example.com" autocomplete="email" required>
-          <p class="form-row-note mono">Needed so you can manage this build later in <a href="my-builds.html">My Builds (BETA)</a> &mdash; publish flags, edits and deletes.</p>
-        </div>
-        <div class="form-row">
-          <label class="mono" for="submitter-mods">Mods (Optional)</label>
-          <textarea id="submitter-mods" name="mods" rows="10" placeholder="e.g. Coilovers, 20&quot; wheels, wrap" maxlength="1000"></textarea>
-        </div>
-        <div class="form-row">
-          <label class="mono" for="submitter-photo">Photos (up to 3)</label>
-          <input type="file" id="submitter-photo" name="photo" accept="image/*" multiple required>
-        </div>
-        <label class="form-checkbox-row" for="submitter-member-confirm">
-          <input type="checkbox" id="submitter-member-confirm" required>
-          <span>I confirm I'm a member of the MT3UK Facebook group.</span>
-        </label>
-        <a href="https://www.facebook.com/groups/mt3uk/" class="fb-join-link" target="_blank" rel="noopener">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5.02 3.66 9.18 8.44 9.94v-7.03H7.9v-2.91h2.54V9.85c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.23.2 2.23.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.88h2.78l-.44 2.91h-2.34V22c4.78-.76 8.44-4.92 8.44-9.94Z"/></svg>
-          Not a member? Join the MT3UK Facebook group
-        </a>
-        <div class="submit-guidance">
-          <p><strong>PLEASE READ:</strong> Upload up to 3 full photos of your build. The first photo you pick is the primary shot used for the daily vote, and any mods you add above are credited against that one.</p>
-          <p>Photos go live in the gallery shortly after you submit, no approval wait. You can submit again 24 hours after your last upload.</p>
-        </div>
-        <button type="submit" class="btn btn-primary">Submit photos</button>
-        <p id="submit-status" class="mono" style="margin-top:2px;"></p>
-      </form>
-    </div>
-
-    <script>
-      (function () {
-        var mobileQuery = window.matchMedia('(max-width: 560px)');
-        function getPageSize() { return mobileQuery.matches ? 8 : 16; }
-        var grid = document.getElementById('gallery-grid');
-        var pagination = document.getElementById('gallery-pagination');
-        var allPhotos = [];
-        var currentPage = 1;
-
-        function renderGrid(photos) {
-          if (!photos.length) {
-            grid.innerHTML = '<p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">No photos yet, upload some to the gallery/ prefix in R2.</p>';
-            return;
-          }
-          grid.innerHTML = photos.map(function (p) {
-            var safeCaption = (p.caption || '').replace(/</g, '&lt;');
-            var nameHtml = p.name ? '<span class="g-name">By ' + p.name.replace(/</g, '&lt;') + '</span>' : '';
-            var captionHtml = (safeCaption || nameHtml) ? '<span class="g-caption">' + safeCaption + nameHtml + '</span>' : '';
-            var modsAttr = (p.mods && p.mods.length) ? ' data-mods="' + JSON.stringify(p.mods).replace(/"/g, '&quot;') + '"' : '';
-            var modsBadge = (p.mods && p.mods.length) ?
-              '<button type="button" class="g-mods-badge" aria-label="View mods list">' +
-                '<svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9 2.6-2.6z"/></svg>' +
-                p.mods.length +
-              '</button>' : '';
-            return '<div class="gallery-slot filled" data-file="' + p.file.replace(/"/g, '&quot;') + '">' +
-                     '<img src="' + window.MT3UK_R2_BASE + '/gallery/' + p.file.replace(/&/g, '&amp;') + '" alt="' + (safeCaption || 'MT3UK member build') + '" loading="lazy"' + modsAttr + '>' +
-                     modsBadge +
-                     captionHtml +
-                   '</div>';
-          }).join('');
-          window.mt3ukApplyEditBadges(grid);
-        }
-
-        function renderPagination(totalPages) {
-          if (totalPages <= 1) {
-            pagination.innerHTML = '';
-            return;
-          }
-          pagination.innerHTML =
-            '<button type="button" class="page-btn" id="gallery-prev"' + (currentPage === 1 ? ' disabled' : '') + ' aria-label="Previous page">' +
-              '<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>Prev' +
-            '</button>' +
-            '<span class="mono">Page ' + currentPage + ' of ' + totalPages + '</span>' +
-            '<button type="button" class="page-btn" id="gallery-next"' + (currentPage === totalPages ? ' disabled' : '') + ' aria-label="Next page">' +
-              'Next<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>' +
-            '</button>';
-
-          var prevBtn = document.getElementById('gallery-prev');
-          var nextBtn = document.getElementById('gallery-next');
-          if (prevBtn) prevBtn.addEventListener('click', function () { goToPage(currentPage - 1); });
-          if (nextBtn) nextBtn.addEventListener('click', function () { goToPage(currentPage + 1); });
-        }
-
-        function goToPage(page) {
-          currentPage = page;
-          render();
-          grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-
-        function render() {
-          var pageSize = getPageSize();
-          var totalPages = Math.max(1, Math.ceil(allPhotos.length / pageSize));
-          currentPage = Math.min(Math.max(1, currentPage), totalPages);
-          var start = (currentPage - 1) * pageSize;
-          renderGrid(allPhotos.slice(start, start + pageSize));
-          renderPagination(totalPages);
-        }
-
-        if (mobileQuery.addEventListener) {
-          mobileQuery.addEventListener('change', function () { currentPage = 1; render(); });
-        } else if (mobileQuery.addListener) {
-          mobileQuery.addListener(function () { currentPage = 1; render(); });
-        }
-
-        function loadGallery(forceRefresh) {
-          var refreshBtn = document.getElementById('gallery-refresh-btn');
-          if (refreshBtn) {
-            refreshBtn.disabled = true;
-            if (forceRefresh) refreshBtn.innerHTML = '&#8635; Refreshing&hellip;';
-          }
-          window.mt3ukFetchJSON('images/gallery/manifest.json', null, forceRefresh)
-            .then(function (photos) {
-              if (refreshBtn) {
-                refreshBtn.disabled = false;
-                if (forceRefresh) {
-                  refreshBtn.innerHTML = photos ? '&#10003; Refreshed' : '&#8635; Refresh';
-                  if (photos) {
-                    setTimeout(function () { refreshBtn.innerHTML = '&#8635; Refresh'; }, 1800);
-                  }
-                }
-              }
-              if (!photos) {
-                grid.innerHTML = '<p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">Gallery photos couldn\'t be loaded.</p>';
-                return;
-              }
-              allPhotos = photos.filter(function (p) { return p.gallery !== false; });
-              currentPage = 1;
-              render();
-            });
-        }
-
-        loadGallery(false);
-
-        var galleryRefreshBtn = document.getElementById('gallery-refresh-btn');
-        if (galleryRefreshBtn) galleryRefreshBtn.addEventListener('click', function () { loadGallery(true); });
-      })();
-    </script>
   </div>
 </section>
 
@@ -2777,7 +2808,7 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">04 / ABOUT</span>
+        <span class="section-num">03 / ABOUT</span>
         <h2>Built by owners, for owners</h2>
       </div>
     </div>
@@ -2805,7 +2836,7 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">05 / EVENTS</span>
+        <span class="section-num">04 / EVENTS</span>
         <h2>Meets & events</h2>
       </div>
       <p>Full details always posted in the Facebook group first.</p>
@@ -2846,7 +2877,7 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">06 / TRACK DAYS <a href="track-day-prep.html" class="section-num-link">Prep Guide →</a></span>
+        <span class="section-num">05 / TRACK DAYS <a href="track-day-prep.html" class="section-num-link">Prep Guide →</a></span>
         <h2>From sighting laps to setting your PB</h2>
       </div>
       <p>Prep, upgrades and honest advice, for first timers and seasoned track goers alike.</p>
@@ -2878,7 +2909,7 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">07 / FAQ</span>
+        <span class="section-num">06 / FAQ</span>
         <h2>Common questions</h2>
       </div>
       <p>Everything you need to know before you join.</p>
@@ -2939,7 +2970,7 @@
 
 <section class="join-cta">
   <div class="wrap">
-    <span class="section-num" style="text-align:center; display:block;">08 / JOIN</span>
+    <span class="section-num" style="text-align:center; display:block;">07 / JOIN</span>
     <h2><span class="member-count"></span> modified Tesla owners are already in. You're next.</h2>
     <p>Post your build, ask the questions, find the meets. It's free and it takes ten seconds.</p>
     <a href="https://www.facebook.com/groups/mt3uk/" class="btn btn-primary" target="_blank" rel="noopener">Join MT3UK on Facebook</a>
@@ -3118,61 +3149,6 @@
 
         document.addEventListener('click', function (e) {
               if (!e.target.closest('header nav')) closeMenu();
-        });
-    })();
-  </script>
-
-  <script>
-    (function () {
-        var SUBMIT_ENDPOINT = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
-
-        var form = document.getElementById('photo-submit-form');
-        if (!form) return;
-        var status = document.getElementById('submit-status');
-        var btn = form.querySelector('button[type="submit"]');
-        var fileInput = document.getElementById('submitter-photo');
-
-        function fail(message) {
-              status.style.color = 'var(--orange)';
-              status.textContent = message;
-              btn.disabled = false;
-              btn.textContent = 'Submit photos';
-        }
-
-        form.addEventListener('submit', function (e) {
-              e.preventDefault();
-              status.textContent = '';
-
-              var files = fileInput.files;
-              if (!files.length) return fail('Please choose at least one photo.');
-              if (files.length > 3) return fail('Please choose up to 3 photos.');
-              for (var i = 0; i < files.length; i++) {
-                    if (files[i].size > 10 * 1024 * 1024) return fail('Each photo must be under 10MB.');
-              }
-
-              btn.disabled = true;
-              btn.textContent = 'Sending…';
-
-              fetch(SUBMIT_ENDPOINT, {
-                    method: 'POST',
-                    body: new FormData(form)
-              })
-                    .then(function (res) { return res.json(); })
-                    .then(function (json) {
-                          if (json.success) {
-                                status.style.color = '#1c8a4b';
-                                status.style.fontWeight = '700';
-                                status.textContent = 'Thanks, your photo' + (files.length > 1 ? 's are' : ' is') + ' live in the gallery now. 👍';
-                                form.reset();
-                                btn.disabled = false;
-                                btn.textContent = 'Submit photos';
-                          } else {
-                                fail(json.message || 'Something went wrong, please try again.');
-                          }
-                    })
-                    .catch(function () {
-                          fail('Something went wrong, please try again.');
-                    });
         });
     })();
   </script>
@@ -3418,7 +3394,7 @@
               '<h3 class="botm-caption">' + safeCaption + '</h3>' +
               voteLine +
               '<p>A build from the gallery, picked fresh each day. Get your build added and it could be featured here next.</p>' +
-              '<a href="#gallery-upload" class="btn btn-secondary">Submit your build</a>' +
+              '<a href="my-builds.html#build-upload" class="btn btn-secondary">Submit your build</a>' +
             '</div>';
 
           var img = frame.querySelector('.botm-media img');

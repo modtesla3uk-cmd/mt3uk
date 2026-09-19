@@ -1,8 +1,8 @@
-def test_vote_nav_link_has_new_badge(page):
+def test_my_garage_nav_link_has_new_badge(page):
     page.goto("/index.html")
-    vote_link = page.locator("a.nav-sublink-new[href='#vote-frame']")
-    assert vote_link.count() == 1
-    badge_content = vote_link.evaluate(
+    my_garage_link = page.locator("a.nav-link-mybuilds")
+    assert my_garage_link.count() == 1
+    badge_content = my_garage_link.evaluate(
         "el => getComputedStyle(el, '::after').content"
     )
     assert "NEW" in badge_content

@@ -20,6 +20,13 @@ const MY_BUILDS_LINK_TTL_SECONDS = 15 * 60;
 const MY_BUILDS_SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
 const MY_BUILDS_SITE_URL = 'https://mt3uk.com';
 const SUBSCRIBERS_DIGEST_EMAIL = 'modtesla3uk@gmail.com';
+const MAX_COMMENT_LENGTH = 500;
+const MAX_COMMENTS_PER_FILE = 500;
+const COMMENT_REPORT_HIDE_THRESHOLD = 3;
+const COMMENT_PROFANITY_WORDS = [
+  'fuck', 'shit', 'bitch', 'cunt', 'bastard', 'asshole', 'dick', 'wanker',
+  'twat', 'nigger', 'nigga', 'faggot', 'retard', 'whore', 'slut'
+];
 // Kill switch: flip to true once the duplicate-send issue is confirmed fixed.
 const SUBSCRIBERS_DIGEST_ENABLED = true;
 
@@ -551,6 +558,207 @@ async function handleLikePost(request, env, ctx) {
   await env.VOTES.put(countKey, String(count));
 
   return json({ success: true, voterId: voterId, file: file, liked: liked, count: count });
+}
+
+function displayNameFromEmail(email) {
+  var local = email.split('@')[0] || 'guest';
+  local = local.replace(/[._+-]+/g, ' ').replace(/[^a-zA-Z0-9 ]/g, '').trim();
+  if (!local) return 'Guest';
+  return local.split(' ').filter(Boolean).map(function (part) {
+    return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+  }).join(' ').slice(0, 40);
+}
+
+function moderateCommentText(text) {
+  var lower = text.toLowerCase();
+  for (var i = 0; i < COMMENT_PROFANITY_WORDS.length; i++) {
+    var word = COMMENT_PROFANITY_WORDS[i];
+    if (new RegExp('\\b' + word + '\\b', 'i').test(lower)) {
+      return { ok: false, message: 'Please keep comments free of inappropriate language.' };
+    }
+  }
+
+  var urlCount = (text.match(/https?:\/\//gi) || []).length;
+  if (urlCount > 1) {
+    return { ok: false, message: 'Comment looks like spam (too many links).' };
+  }
+  if (/(.)\1{6,}/.test(text)) {
+    return { ok: false, message: 'Comment looks like spam.' };
+  }
+  var letters = text.replace(/[^a-zA-Z]/g, '');
+  if (letters.length > 15) {
+    var upper = letters.replace(/[^A-Z]/g, '');
+    if (upper.length / letters.length > 0.8) {
+      return { ok: false, message: 'Please avoid writing in all caps.' };
+    }
+  }
+
+  return { ok: true };
+}
+
+async function getComments(env, file) {
+  var raw = await env.VOTES.get('comments:' + file);
+  if (!raw) return [];
+  try {
+    var parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+async function saveComments(env, file, comments) {
+  await env.VOTES.put('comments:' + file, JSON.stringify(comments));
+}
+
+function publicComment(c) {
+  return { id: c.id, name: c.name, text: c.text, createdAt: c.createdAt };
+}
+
+async function handleCommentsGet(request, env, ctx) {
+  var url = new URL(request.url);
+  var file = (url.searchParams.get('file') || '').toString();
+  if (!file) {
+    return json({ success: false, message: 'file is required' }, 400);
+  }
+
+  var comments = await getComments(env, file);
+  var visible = comments.filter(function (c) { return !c.hidden; }).map(publicComment);
+
+  return json({ success: true, file: file, comments: visible });
+}
+
+async function handleCommentsPost(request, env, ctx) {
+  var body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return json({ success: false, message: 'Invalid request body' }, 400);
+  }
+
+  var file = ((body && body.file) || '').toString();
+  var email = ((body && body.email) || '').toString().trim().toLowerCase();
+  var text = ((body && body.text) || '').toString().trim().slice(0, MAX_COMMENT_LENGTH);
+
+  if (!file) return json({ success: false, message: 'file is required' }, 400);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return json({ success: false, message: 'Please enter a valid email' }, 400);
+  }
+  if (!text) return json({ success: false, message: 'Comment cannot be empty' }, 400);
+
+  var manifest = await getLiveGalleryEntries(env, ctx);
+  var isKnown = manifest.some(function (p) { return p.file === file; });
+  if (!isKnown) {
+    return json({ success: false, message: 'Unknown photo' }, 400);
+  }
+
+  var moderation = moderateCommentText(text);
+  if (!moderation.ok) {
+    return json({ success: false, message: moderation.message }, 400);
+  }
+
+  var comments = await getComments(env, file);
+  var comment = {
+    id: crypto.randomUUID(),
+    name: displayNameFromEmail(email),
+    email: email,
+    text: text,
+    createdAt: new Date().toISOString(),
+    reports: [],
+    hidden: false
+  };
+  comments.push(comment);
+  if (comments.length > MAX_COMMENTS_PER_FILE) {
+    comments = comments.slice(comments.length - MAX_COMMENTS_PER_FILE);
+  }
+  await saveComments(env, file, comments);
+
+  return json({ success: true, comment: publicComment(comment) });
+}
+
+async function handleCommentReport(request, env, ctx) {
+  var body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return json({ success: false, message: 'Invalid request body' }, 400);
+  }
+
+  var file = ((body && body.file) || '').toString();
+  var id = ((body && body.id) || '').toString();
+  if (!file || !id) {
+    return json({ success: false, message: 'file and id are required' }, 400);
+  }
+
+  var voterId = getVoterId(request);
+  var comments = await getComments(env, file);
+  var comment = comments.find(function (c) { return c.id === id; });
+  if (!comment) {
+    return json({ success: false, message: 'Comment not found' }, 404);
+  }
+
+  if (!Array.isArray(comment.reports)) comment.reports = [];
+  if (comment.reports.indexOf(voterId) === -1) {
+    comment.reports.push(voterId);
+    if (comment.reports.length >= COMMENT_REPORT_HIDE_THRESHOLD) {
+      comment.hidden = true;
+    }
+    await saveComments(env, file, comments);
+  }
+
+  return json({ success: true, reported: true });
+}
+
+async function handleCommentsAdminList(request, env) {
+  var url = new URL(request.url);
+  var key = url.searchParams.get('key');
+  if (!env.ADMIN_KEY || key !== env.ADMIN_KEY) {
+    return json({ success: false, message: 'Unauthorized' }, 401);
+  }
+
+  var file = (url.searchParams.get('file') || '').toString();
+  if (file) {
+    var comments = await getComments(env, file);
+    return json({ success: true, file: file, comments: comments });
+  }
+
+  // Admin-only aggregate scan across all files, not a per-visitor path, so a
+  // one-time list() call here is fine per the KV list-vs-get rule.
+  var list = await env.VOTES.list({ prefix: 'comments:' });
+  var reported = [];
+  await Promise.all(list.keys.map(async function (k) {
+    var fileComments = await getComments(env, k.name.slice('comments:'.length));
+    fileComments.forEach(function (c) {
+      if (c.reports && c.reports.length > 0) {
+        reported.push(Object.assign({ file: k.name.slice('comments:'.length) }, c));
+      }
+    });
+  }));
+
+  return json({ success: true, reported: reported });
+}
+
+async function handleCommentsAdminDelete(request, env) {
+  var url = new URL(request.url);
+  var key = url.searchParams.get('key');
+  if (!env.ADMIN_KEY || key !== env.ADMIN_KEY) {
+    return json({ success: false, message: 'Unauthorized' }, 401);
+  }
+
+  var file = (url.searchParams.get('file') || '').toString();
+  var id = (url.searchParams.get('id') || '').toString();
+  if (!file || !id) {
+    return json({ success: false, message: 'file and id are required' }, 400);
+  }
+
+  var comments = await getComments(env, file);
+  var next = comments.filter(function (c) { return c.id !== id; });
+  if (next.length === comments.length) {
+    return json({ success: false, message: 'Comment not found' }, 404);
+  }
+  await saveComments(env, file, next);
+
+  return json({ success: true, deleted: id });
 }
 
 function randomToken() {
@@ -1297,6 +1505,21 @@ export default {
     }
     if (url.pathname === '/likes' && request.method === 'POST') {
       return handleLikePost(request, env, ctx);
+    }
+    if (url.pathname === '/comments/admin' && request.method === 'GET') {
+      return handleCommentsAdminList(request, env);
+    }
+    if (url.pathname === '/comments/admin' && request.method === 'DELETE') {
+      return handleCommentsAdminDelete(request, env);
+    }
+    if (url.pathname === '/comments/report' && request.method === 'POST') {
+      return handleCommentReport(request, env, ctx);
+    }
+    if (url.pathname === '/comments' && request.method === 'GET') {
+      return handleCommentsGet(request, env, ctx);
+    }
+    if (url.pathname === '/comments' && request.method === 'POST') {
+      return handleCommentsPost(request, env, ctx);
     }
     if (url.pathname === '/shop-products' && request.method === 'GET') {
       return handleShopProducts(request, ctx);

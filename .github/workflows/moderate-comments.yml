@@ -1,0 +1,61 @@
+name: Moderate Comments
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'What to do'
+        required: true
+        default: list-reported
+        type: choice
+        options:
+          - list-reported
+          - delete
+      file:
+        description: 'Gallery filename the comment is on (required for delete)'
+        required: false
+      id:
+        description: 'Comment id to delete (required for delete)'
+        required: false
+
+jobs:
+  moderate-comments:
+    runs-on: ubuntu-latest
+    steps:
+      - name: List reported comments
+        if: inputs.action == 'list-reported'
+        run: |
+          response=$(curl -s "https://late-darkness-ebc8.modtesla3uk.workers.dev/comments/admin?key=$ADMIN_KEY")
+
+          if [ "$(echo "$response" | jq -r '.success')" != "true" ]; then
+            echo "$response" | jq -r '.message // "Unknown error"' >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          {
+            echo "## Reported comments"
+            echo "$response" | jq -r '.reported[] | "- **\(.file)** id=`\(.id)` reports=\(.reports | length) hidden=\(.hidden) — \(.name): \(.text)"'
+          } >> "$GITHUB_STEP_SUMMARY"
+        env:
+          ADMIN_KEY: ${{ secrets.VOTE_ADMIN_KEY }}
+
+      - name: Delete comment
+        if: inputs.action == 'delete'
+        run: |
+          if [ -z "$FILE" ] || [ -z "$ID" ]; then
+            echo "file and id are both required for delete" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          response=$(curl -s -X DELETE "https://late-darkness-ebc8.modtesla3uk.workers.dev/comments/admin?key=$ADMIN_KEY&file=$FILE&id=$ID")
+
+          if [ "$(echo "$response" | jq -r '.success')" != "true" ]; then
+            echo "$response" | jq -r '.message // "Unknown error"' >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          echo "Deleted comment \`$ID\` from **$FILE**" >> "$GITHUB_STEP_SUMMARY"
+        env:
+          ADMIN_KEY: ${{ secrets.VOTE_ADMIN_KEY }}
+          FILE: ${{ inputs.file }}
+          ID: ${{ inputs.id }}

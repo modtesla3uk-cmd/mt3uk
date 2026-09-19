@@ -239,6 +239,16 @@ async function handleShopProducts(request, ctx) {
   return response;
 }
 
+async function handleAdminSendDigest(request, env) {
+  var key = new URL(request.url).searchParams.get('key');
+  if (!env.ADMIN_KEY || key !== env.ADMIN_KEY) {
+    return json({ success: false, message: 'Unauthorized' }, 401);
+  }
+
+  await sendSubscribersDigest(env);
+  return json({ success: true });
+}
+
 async function handleVotesAll(request, env) {
   var key = new URL(request.url).searchParams.get('key');
   if (!env.ADMIN_KEY || key !== env.ADMIN_KEY) {
@@ -565,6 +575,11 @@ async function sendSubscribersDigestIfUkMidnight(env) {
   // Claim the slot immediately so concurrent requests in the same minute don't double-send.
   await env.VOTES.put(dedupKey, '1', { expirationTtl: 60 * 60 * 24 * 3 });
 
+  await sendSubscribersDigest(env);
+}
+
+async function sendSubscribersDigest(env) {
+  var todayStr = ukDateString(new Date());
   var list = await env.VOTES.list({ prefix: 'subscriber:' });
   var subscribers = await Promise.all(list.keys.map(async function (k) {
     var raw = await env.VOTES.get(k.name);
@@ -1206,6 +1221,10 @@ export default {
       ctx.waitUntil(tallyVotesIfUkMidnight(env).catch(function (e) {
         console.log('Tally failed:', e.message);
       }));
+    }
+
+    if (url.pathname === '/admin/send-digest' && request.method === 'POST') {
+      return handleAdminSendDigest(request, env);
     }
 
     if (url.pathname === '/votes/all' && request.method === 'GET') {

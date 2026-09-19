@@ -564,10 +564,10 @@ async function sendMyBuildsLinkEmail(env, toEmail, link) {
   await env.SEND_EMAIL.send(message);
 }
 
-async function sendSubscribersDigestIfUkMidnight(env) {
+async function sendSubscribersDigestIfUk8pm(env) {
   var now = new Date();
   var ukHour = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', hour: '2-digit', hourCycle: 'h23' }).format(now);
-  if (ukHour !== '00') return;
+  if (ukHour !== '20') return;
 
   var todayStr = ukDateString(now);
   var dedupKey = 'subscribers-digest-sent:' + todayStr;
@@ -1209,9 +1209,9 @@ export default {
       return json({ ok: true });
     }
 
-    // Piggyback the midnight subscribers digest on any request, same reasoning
+    // Piggyback the 8pm subscribers digest on any request, same reasoning
     // as the vote tally below: cron triggers aren't reliably firing on this account.
-    ctx.waitUntil(sendSubscribersDigestIfUkMidnight(env).catch(function (e) {
+    ctx.waitUntil(sendSubscribersDigestIfUk8pm(env).catch(function (e) {
       console.log('Subscribers digest failed:', e.message);
     }));
 

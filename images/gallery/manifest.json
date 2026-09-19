@@ -1,5 +1,28 @@
 [
   {
+    "file": "model-3-full-mods--by-rich.jpg",
+    "caption": "MODEL 3 FULL MODS",
+    "name": "RICH",
+    "mods": [
+      "KW v3 Coilovers",
+      "MPP Front Upper and Rear Control arms",
+      "MPP Rear Traction and Trailing arms",
+      "Highland Performance style seats",
+      "Robot Crypton Front bumper",
+      "Carbon Factory Rear Diffuser",
+      "CMST Carbon rear spoiler",
+      "Tevo T4 Forged 20x9 wheels",
+      "AP Racing Radical CP9660 Front Calipers",
+      "AP Racing 372x32 Front Slotted discs",
+      "AP Racing rear 355x24 Rear discs",
+      "Teslogic v2 transmitter",
+      "Carbon steering wheel",
+      "LED interior dash",
+      "Avery Gloss Hidden Forest Vinyl wrap"
+    ],
+    "added": "2026-09-19"
+  },
+  {
     "file": "deviant-tesla-model-s.jpg",
     "caption": "DEVIANT TESLA MODEL S",
     "mods": [
@@ -442,11 +465,6 @@
   {
     "file": "01-model-s-gt-wing.jpg",
     "caption": "MODEL S GT WING",
-    "added": "2026-09-18"
-  },
-  {
-    "file": "02-model-3-widebody.jpg",
-    "caption": "MODEL 3 WIDEBODY",
     "added": "2026-09-18"
   },
   {

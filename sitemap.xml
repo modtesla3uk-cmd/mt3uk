@@ -266,15 +266,6 @@
     </image:image>
   </url>
   <url>
-    <loc>https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/gallery/02-model-3-widebody.jpg</loc>
-    <lastmod>2026-09-19</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/gallery/02-model-3-widebody.jpg</image:loc>
-    </image:image>
-  </url>
-  <url>
     <loc>https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/gallery/03-model-3-green-blk-forged-wheels.jpg</loc>
     <lastmod>2026-09-19</lastmod>
     <changefreq>monthly</changefreq>
@@ -815,15 +806,6 @@
     </image:image>
   </url>
   <url>
-    <loc>https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/gallery/69-deviant-model-s--by-myk-debbage.jpg</loc>
-    <lastmod>2026-09-19</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-    <image:image>
-      <image:loc>https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/gallery/69-deviant-model-s--by-myk-debbage.jpg</image:loc>
-    </image:image>
-  </url>
-  <url>
     <loc>https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/gallery/70-track-focused-oem--by-david-baddeley.jpg</loc>
     <lastmod>2026-09-19</lastmod>
     <changefreq>monthly</changefreq>
@@ -866,6 +848,15 @@
     <priority>0.7</priority>
     <image:image>
       <image:loc>https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/gallery/green-purple-goblin--by-rich.jpg</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/gallery/model-3-full-mods--by-rich.jpg</loc>
+    <lastmod>2026-09-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/gallery/model-3-full-mods--by-rich.jpg</image:loc>
     </image:image>
   </url>
   <url>

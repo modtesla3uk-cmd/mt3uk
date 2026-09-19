@@ -1134,12 +1134,16 @@
   }
   .bf-comments-close:hover { border-color: rgba(22,35,61,0.5); }
   .bf-comments-expand {
-    align-self: flex-start;
+    width: 100%;
+    text-align: left;
     background: none; border: 0; color: var(--orange);
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.7rem;
     letter-spacing: 0.02em;
-    text-decoration: underline;
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     cursor: pointer;
     padding: 0;
     flex-shrink: 0;
@@ -2332,7 +2336,7 @@
             '<p class="bf-comments-panel-title">COMMENTS</p>' +
             '<button type="button" class="bf-comments-close" aria-label="Close comments">&times;</button>' +
           '</div>' +
-          '<button type="button" class="bf-comments-expand" aria-expanded="false">Show comments</button>' +
+          '<button type="button" class="bf-comments-expand" aria-expanded="false">Loading&hellip;</button>' +
           '<div class="bf-comments-content" hidden>' +
             '<ul class="bf-comments-list"></ul>' +
             '<div class="bf-comments-form-slot"></div>' +
@@ -2475,16 +2479,29 @@
         var formSlot = block.querySelector('.bf-comments-form-slot');
         var closeBtn = block.querySelector('.bf-comments-close');
         var loaded = false;
+        var commentsData = [];
+
+        function updatePreviewLabel() {
+          if (!commentsData.length) {
+            expandBtn.textContent = 'No comments';
+            return;
+          }
+          var first = commentsData[0];
+          expandBtn.textContent = (first.name || '') + ': ' + (first.text || '');
+        }
 
         function loadComments() {
           list.innerHTML = '<li class="bf-comments-empty">Loading&hellip;</li>';
           fetch(VOTE_ENDPOINT + '/comments?file=' + encodeURIComponent(slide.dataset.file), { cache: 'no-store', headers: { 'X-Voter-Id': voterId } })
             .then(function (res) { return res.ok ? res.json() : null; })
             .then(function (data) {
-              renderComments(list, (data && data.success && data.comments) || []);
+              commentsData = (data && data.success && data.comments) || [];
+              renderComments(list, commentsData);
+              if (content.hidden) updatePreviewLabel();
             })
             .catch(function () {
               list.innerHTML = '<li class="bf-comments-empty">Could not load comments.</li>';
+              if (content.hidden) expandBtn.textContent = 'No comments';
             });
         }
 
@@ -2492,22 +2509,22 @@
           content.hidden = false;
           expandBtn.textContent = 'Hide comments';
           expandBtn.setAttribute('aria-expanded', 'true');
-          if (!loaded) {
-            loaded = true;
-            renderCommentFormSlot(formSlot, null);
-            loadComments();
-          }
         }
 
         function collapse() {
           content.hidden = true;
-          expandBtn.textContent = 'Show comments';
           expandBtn.setAttribute('aria-expanded', 'false');
+          updatePreviewLabel();
         }
 
         function openBlock() {
           block.hidden = false;
           btn.setAttribute('aria-pressed', 'true');
+          if (!loaded) {
+            loaded = true;
+            renderCommentFormSlot(formSlot, null);
+            loadComments();
+          }
         }
 
         function closeBlock() {

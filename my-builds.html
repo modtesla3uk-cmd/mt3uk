@@ -574,9 +574,14 @@
   .mb-grid { display: flex; flex-direction: column; gap: 18px; max-width: 720px; margin: 0 auto; }
   .mb-build-card { display: flex; gap: 16px; border: 1px solid var(--ink); padding: 16px; }
   .mb-build-thumb { width: 110px; height: 110px; flex-shrink: 0; overflow: hidden; border: 1px solid var(--ink); }
-  .mb-build-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .mb-build-thumb img { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; }
   .mb-build-thumb.is-landscape { background: var(--ink); }
   .mb-build-thumb img.is-landscape { object-fit: contain; }
+  .mb-img-lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.88); display: none; align-items: center; justify-content: center; z-index: 500; padding: 40px 20px; }
+  .mb-img-lightbox.open { display: flex; }
+  .mb-img-lightbox img { max-width: min(92vw, 1000px); max-height: 86vh; width: auto; height: auto; object-fit: contain; cursor: default; }
+  .mb-img-lightbox-close { position: absolute; top: 22px; right: 28px; background: transparent; border: 1px solid var(--paper); color: var(--paper); width: 40px; height: 40px; font-size: 1.4rem; line-height: 1; cursor: pointer; }
+  .mb-img-lightbox-close:hover { background: var(--orange); border-color: var(--orange); }
   .mb-build-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
   .mb-build-caption { font-weight: 600; color: var(--ink); word-break: break-word; }
   .mb-toggles { display: flex; flex-wrap: wrap; gap: 14px; }
@@ -651,6 +656,26 @@
     var container = img.closest('.mb-build-thumb');
     if (container) container.classList.add('is-landscape');
   }, true);
+</script>
+
+<script>
+(function () {
+      var lightbox = document.getElementById('mb-img-lightbox');
+      var lightboxImg = document.getElementById('mb-img-lightbox-img');
+      if (!lightbox || !lightboxImg) return;
+
+      function closeLightbox() {
+            lightbox.classList.remove('open');
+            lightbox.setAttribute('aria-hidden', 'true');
+            lightboxImg.src = '';
+      }
+
+      lightbox.addEventListener('click', closeLightbox);
+      lightboxImg.addEventListener('click', function (e) { e.stopPropagation(); });
+      document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && lightbox.classList.contains('open')) closeLightbox();
+      });
+})();
 </script>
 
 <header>
@@ -847,6 +872,11 @@
     </div>
   </div>
 </section>
+
+<div class="mb-img-lightbox" id="mb-img-lightbox" role="dialog" aria-modal="true" aria-hidden="true">
+  <button type="button" class="mb-img-lightbox-close" aria-label="Close">&times;</button>
+  <img id="mb-img-lightbox-img" src="" alt="">
+</div>
 
 <footer>
   <div class="wrap footer-row">
@@ -1158,7 +1188,17 @@
       textarea.closest('.mb-mods').querySelector('.mb-mods-status').textContent = '';
     });
 
+    var imgLightbox = document.getElementById('mb-img-lightbox');
+    var imgLightboxImg = document.getElementById('mb-img-lightbox-img');
     grid.addEventListener('click', function (e) {
+      var thumb = e.target.closest('.mb-build-thumb img');
+      if (thumb) {
+        imgLightboxImg.src = thumb.src;
+        imgLightboxImg.alt = thumb.alt || '';
+        imgLightbox.classList.add('open');
+        imgLightbox.setAttribute('aria-hidden', 'false');
+        return;
+      }
       var submitBtn = e.target.closest('.mb-mods-submit-btn');
       if (submitBtn) {
         var modsWrap = submitBtn.closest('.mb-mods');

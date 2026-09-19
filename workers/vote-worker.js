@@ -19,6 +19,7 @@ const MY_BUILDS_FROM_EMAIL = 'noreply@mt3uk.com';
 const MY_BUILDS_LINK_TTL_SECONDS = 15 * 60;
 const MY_BUILDS_SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
 const MY_BUILDS_SITE_URL = 'https://mt3uk.com';
+const SUBSCRIBERS_DIGEST_EMAIL = 'modtesla3uk@gmail.com';
 
 function json(data, status) {
   return new Response(JSON.stringify(data), {
@@ -134,7 +135,7 @@ async function listGalleryEntriesFromR2(env) {
       } catch (e) {}
     }
 
-    var entry = { file: filename, mods: mods, votable: votable, gallery: gallery, reel: reel, added: ukDateString(o.uploaded) };
+    var entry = { file: filename, mods: mods, votable: votable, gallery: gallery, reel: reel, added: ukDateString(o.uploaded), uploadedAt: o.uploaded.getTime() };
     if (caption) entry.caption = caption;
     if (split.name) entry.name = split.name;
     return entry;
@@ -165,6 +166,8 @@ function votingCandidates(manifest, todayStr) {
   var yesterdayStr = addDaysToDateString(todayStr, -1);
   return manifest.filter(function (p) {
     return (p.added === todayStr || p.added === yesterdayStr) && p.votable !== false;
+  }).sort(function (a, b) {
+    return (b.uploadedAt || 0) - (a.uploadedAt || 0);
   }).slice(0, 9);
 }
 
@@ -548,6 +551,44 @@ async function sendMyBuildsLinkEmail(env, toEmail, link) {
     '\n\nThis link expires in 15 minutes and can only be used once. ' +
     'If you did not request this, you can ignore this email.';
   var message = new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body));
+  await env.SEND_EMAIL.send(message);
+}
+
+async function sendSubscribersDigestIfUkMidnight(env) {
+  var now = new Date();
+  var ukHour = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', hour: '2-digit', hourCycle: 'h23' }).format(now);
+  if (ukHour !== '00') return;
+
+  var todayStr = ukDateString(now);
+  var dedupKey = 'subscribers-digest-sent:' + todayStr;
+  if (await env.VOTES.get(dedupKey)) return;
+  // Claim the slot immediately so concurrent requests in the same minute don't double-send.
+  await env.VOTES.put(dedupKey, '1', { expirationTtl: 60 * 60 * 24 * 3 });
+
+  var list = await env.VOTES.list({ prefix: 'subscriber:' });
+  var subscribers = await Promise.all(list.keys.map(async function (k) {
+    var raw = await env.VOTES.get(k.name);
+    var files = [];
+    try { files = JSON.parse(raw) || []; } catch (e) {}
+    return { email: k.name.slice('subscriber:'.length), buildCount: files.length };
+  }));
+  subscribers.sort(function (a, b) { return a.email.localeCompare(b.email); });
+
+  var lines = subscribers.length
+    ? subscribers.map(function (s) {
+        return s.email + ' — ' + s.buildCount + ' build' + (s.buildCount === 1 ? '' : 's');
+      }).join('\n')
+    : 'No subscribers yet.';
+
+  var subject = 'My Builds subscribers, ' + todayStr + ' (' + subscribers.length + ' total)';
+  var body = 'Daily My Builds subscriber list for ' + todayStr + '.\n\n' +
+    'Total subscribers: ' + subscribers.length + '\n\n' + lines;
+
+  var message = new EmailMessage(
+    MY_BUILDS_FROM_EMAIL,
+    SUBSCRIBERS_DIGEST_EMAIL,
+    rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, body)
+  );
   await env.SEND_EMAIL.send(message);
 }
 
@@ -1152,6 +1193,12 @@ export default {
     if (request.method === 'OPTIONS') {
       return json({ ok: true });
     }
+
+    // Piggyback the midnight subscribers digest on any request, same reasoning
+    // as the vote tally below: cron triggers aren't reliably firing on this account.
+    ctx.waitUntil(sendSubscribersDigestIfUkMidnight(env).catch(function (e) {
+      console.log('Subscribers digest failed:', e.message);
+    }));
 
     if (url.pathname === '/votes' || url.pathname === '/vote') {
       // Cron triggers aren't reliably invoking `scheduled` on this account, so

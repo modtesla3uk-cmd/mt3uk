@@ -21,7 +21,7 @@ const MY_BUILDS_SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
 const MY_BUILDS_SITE_URL = 'https://mt3uk.com';
 const SUBSCRIBERS_DIGEST_EMAIL = 'modtesla3uk@gmail.com';
 // Kill switch: flip to true once the duplicate-send issue is confirmed fixed.
-const SUBSCRIBERS_DIGEST_ENABLED = false;
+const SUBSCRIBERS_DIGEST_ENABLED = true;
 
 function json(data, status) {
   return new Response(JSON.stringify(data), {

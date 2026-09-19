@@ -753,8 +753,18 @@ async function handleMyBuildsGet(request, env) {
   var byFile = {};
   manifest.forEach(function (p) { byFile[p.file] = p; });
 
-  var builds = files.map(function (f) {
-    var entry = byFile[f] || { file: f };
+  // A file can be missing from the live listing if it was deleted straight
+  // from R2 (e.g. via the Delete Photo GitHub Action) rather than through
+  // this API, which wouldn't have had a chance to prune it from the
+  // subscriber's saved file list. Drop it here, and persist the cleanup so
+  // it doesn't keep resurfacing as an empty placeholder on every load.
+  var liveFiles = files.filter(function (f) { return byFile[f]; });
+  if (liveFiles.length !== files.length) {
+    await env.VOTES.put('subscriber:' + email, JSON.stringify(liveFiles));
+  }
+
+  var builds = liveFiles.map(function (f) {
+    var entry = byFile[f];
     return {
       file: f,
       caption: entry.caption || '',

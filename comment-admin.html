@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow">
+<title>Comment Moderation — MT3UK</title>
+<style>
+  :root {
+    --ink: #16233d;
+    --orange: #e8542a;
+    --steel: #7c8798;
+    --white: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--white);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+  }
+  header {
+    padding: 20px 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+  }
+  h1 { font-size: 1rem; letter-spacing: 0.04em; margin: 0 0 4px; color: var(--orange); }
+  main { max-width: 900px; margin: 0 auto; padding: 24px; }
+  .key-row { display: flex; gap: 8px; margin-bottom: 20px; }
+  .key-row input {
+    flex: 1;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: var(--white);
+    padding: 10px 12px;
+    font-family: inherit;
+    font-size: inherit;
+  }
+  button {
+    background: var(--orange);
+    color: var(--ink);
+    border: 0;
+    padding: 10px 16px;
+    font-family: inherit;
+    font-size: inherit;
+    cursor: pointer;
+  }
+  button:hover { opacity: 0.9; }
+  button.secondary { background: none; border: 1px solid rgba(255,255,255,0.35); color: var(--white); }
+  #status { color: var(--steel); margin-bottom: 16px; }
+  .thread {
+    border: 1px solid rgba(255,255,255,0.2);
+    margin-bottom: 24px;
+  }
+  .thread-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: rgba(255,255,255,0.05);
+  }
+  .thread-head img { width: 56px; height: 56px; object-fit: cover; flex-shrink: 0; }
+  .thread-head .file { word-break: break-all; color: var(--steel); font-size: 0.72rem; }
+  .thread-body { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+  .comment { border-left: 2px solid rgba(255,255,255,0.15); padding-left: 10px; }
+  .comment.is-reported { border-left-color: var(--orange); }
+  .comment.is-reply { margin-left: 24px; }
+  .comment-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .comment-name { color: var(--orange); }
+  .comment-meta { color: var(--steel); font-size: 0.68rem; }
+  .comment-text { margin: 4px 0; word-break: break-word; }
+  .comment-actions { display: flex; gap: 10px; align-items: center; }
+  .reports-badge { color: #ff6b6b; font-size: 0.68rem; }
+  .hidden-badge { color: var(--steel); font-size: 0.68rem; }
+  .delete-btn { background: none; border: 1px solid #ff6b6b; color: #ff6b6b; padding: 4px 10px; font-size: 0.68rem; }
+  .delete-btn:hover { background: #ff6b6b; color: var(--ink); }
+  .empty { color: var(--steel); }
+</style>
+</head>
+<body>
+<header>
+  <h1>COMMENT MODERATION</h1>
+  <div class="key-row">
+    <input type="password" id="admin-key" placeholder="Admin key" autocomplete="off">
+    <button id="load-btn" type="button">Load reported threads</button>
+  </div>
+</header>
+<main>
+  <p id="status"></p>
+  <div id="threads"></div>
+</main>
+<script>
+(function () {
+  var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
+  var R2 = 'https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev';
+  var keyInput = document.getElementById('admin-key');
+  var loadBtn = document.getElementById('load-btn');
+  var statusEl = document.getElementById('status');
+  var threadsEl = document.getElementById('threads');
+
+  var savedKey = sessionStorage.getItem('mt3ukCommentAdminKey');
+  if (savedKey) keyInput.value = savedKey;
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function buildTree(comments) {
+    var byId = {};
+    comments.forEach(function (c) { byId[c.id] = Object.assign({}, c, { children: [] }); });
+    var roots = [];
+    comments.forEach(function (c) {
+      var node = byId[c.id];
+      if (c.parentId && byId[c.parentId]) byId[c.parentId].children.push(node);
+      else roots.push(node);
+    });
+    return roots;
+  }
+
+  function renderComment(c, file, isReply) {
+    var reported = c.reports && c.reports.length > 0;
+    var div = document.createElement('div');
+    div.className = 'comment' + (reported ? ' is-reported' : '') + (isReply ? ' is-reply' : '');
+    div.innerHTML =
+      '<div class="comment-head">' +
+        '<span class="comment-name">' + escapeHtml(c.name || '') + '</span>' +
+        '<span class="comment-meta">' + (c.createdAt || '') + '</span>' +
+      '</div>' +
+      '<p class="comment-text">' + escapeHtml(c.text || '') + '</p>' +
+      '<div class="comment-actions">' +
+        (reported ? '<span class="reports-badge">' + c.reports.length + ' report' + (c.reports.length === 1 ? '' : 's') + '</span>' : '') +
+        (c.hidden ? '<span class="hidden-badge">hidden</span>' : '') +
+        '<button type="button" class="delete-btn" data-file="' + escapeHtml(file) + '" data-id="' + escapeHtml(c.id) + '">Delete</button>' +
+      '</div>';
+    var wrap = document.createElement('div');
+    wrap.appendChild(div);
+    c.children.forEach(function (child) {
+      wrap.appendChild(renderComment(child, file, true));
+    });
+    return wrap;
+  }
+
+  function renderThread(file, comments) {
+    var section = document.createElement('div');
+    section.className = 'thread';
+    var head = document.createElement('div');
+    head.className = 'thread-head';
+    head.innerHTML =
+      '<img src="' + R2 + '/gallery/' + encodeURIComponent(file) + '" alt="">' +
+      '<span class="file">' + escapeHtml(file) + '</span>';
+    var body = document.createElement('div');
+    body.className = 'thread-body';
+    buildTree(comments).forEach(function (root) {
+      body.appendChild(renderComment(root, file, false));
+    });
+    section.appendChild(head);
+    section.appendChild(body);
+    return section;
+  }
+
+  function loadThreads() {
+    var key = keyInput.value.trim();
+    if (!key) {
+      statusEl.textContent = 'Enter the admin key first.';
+      return;
+    }
+    sessionStorage.setItem('mt3ukCommentAdminKey', key);
+    statusEl.textContent = 'Loading reported comments…';
+    threadsEl.innerHTML = '';
+
+    fetch(API + '/comments/admin?key=' + encodeURIComponent(key))
+      .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+      .then(function (result) {
+        if (!result.ok || !result.data || !result.data.success) {
+          statusEl.textContent = (result.data && result.data.message) || 'Could not load reported comments.';
+          return;
+        }
+        var reported = result.data.reported || [];
+        var files = [];
+        reported.forEach(function (c) { if (files.indexOf(c.file) === -1) files.push(c.file); });
+
+        if (!files.length) {
+          statusEl.textContent = 'No reported comments right now.';
+          return;
+        }
+
+        statusEl.textContent = 'Loading ' + files.length + ' thread' + (files.length === 1 ? '' : 's') + '…';
+
+        Promise.all(files.map(function (file) {
+          return fetch(API + '/comments/admin?key=' + encodeURIComponent(key) + '&file=' + encodeURIComponent(file))
+            .then(function (res) { return res.json(); })
+            .then(function (data) { return { file: file, comments: (data && data.success && data.comments) || [] }; });
+        })).then(function (results) {
+          statusEl.textContent = files.length + ' thread' + (files.length === 1 ? '' : 's') + ' with reported comments.';
+          results.forEach(function (r) {
+            threadsEl.appendChild(renderThread(r.file, r.comments));
+          });
+        });
+      })
+      .catch(function () {
+        statusEl.textContent = 'Network error loading reported comments.';
+      });
+  }
+
+  threadsEl.addEventListener('click', function (e) {
+    var btn = e.target.closest('.delete-btn');
+    if (!btn) return;
+    var file = btn.dataset.file;
+    var id = btn.dataset.id;
+    var key = keyInput.value.trim();
+    if (!key || !file || !id) return;
+    if (!confirm('Delete this comment permanently?')) return;
+
+    btn.disabled = true;
+    btn.textContent = 'Deleting…';
+    fetch(API + '/comments/admin?key=' + encodeURIComponent(key) + '&file=' + encodeURIComponent(file) + '&id=' + encodeURIComponent(id), {
+      method: 'DELETE'
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data && data.success) {
+          var commentEl = btn.closest('.comment');
+          if (commentEl) commentEl.remove();
+        } else {
+          btn.disabled = false;
+          btn.textContent = 'Delete';
+          alert((data && data.message) || 'Could not delete comment.');
+        }
+      })
+      .catch(function () {
+        btn.disabled = false;
+        btn.textContent = 'Delete';
+        alert('Network error deleting comment.');
+      });
+  });
+
+  loadBtn.addEventListener('click', loadThreads);
+  keyInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') loadThreads();
+  });
+
+  if (savedKey) loadThreads();
+})();
+</script>
+</body>
+</html>

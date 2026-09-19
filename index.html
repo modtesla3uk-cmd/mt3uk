@@ -945,6 +945,7 @@
     scrollbar-width: none;
   }
   .bf-feed::-webkit-scrollbar { display: none; }
+  .bf-feed.bf-no-snap { scroll-snap-type: none; }
 
   .bf-slide {
     position: relative;
@@ -1123,20 +1124,19 @@
     color: rgba(255,255,255,0.85);
   }
 
-  .bf-comments-panel {
-    position: absolute;
-    left: 16px; right: 64px; bottom: 20px;
-    z-index: 6;
+  .bf-comments-block {
     background: rgba(22,35,61,0.95);
-    border: 1px solid rgba(243,241,234,0.25);
+    border-top: 1px solid rgba(243,241,234,0.25);
     color: var(--white);
-    padding: 14px 16px;
-    max-height: 70%;
-    display: none;
+    padding: 14px 16px 24px;
+    display: flex;
     flex-direction: column;
     gap: 10px;
   }
-  .bf-comments-panel.bf-comments-open { display: flex; }
+  .bf-comments-block[hidden] { display: none; }
+  .bf-comments-header {
+    display: flex; align-items: center; justify-content: space-between;
+  }
   .bf-comments-panel-title {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.7rem;
@@ -1144,10 +1144,36 @@
     color: var(--orange);
     margin: 0;
   }
+  .bf-comments-close {
+    background: none; border: 1px solid rgba(255,255,255,0.3); border-radius: 50%;
+    color: rgba(255,255,255,0.7);
+    width: 22px; height: 22px;
+    line-height: 1;
+    font-size: 0.95rem;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+  }
+  .bf-comments-close:hover { color: var(--white); border-color: rgba(255,255,255,0.6); }
+  .bf-comments-expand {
+    align-self: flex-start;
+    background: none; border: 0; color: var(--orange);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.02em;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+  }
+  .bf-comments-expand:hover { color: var(--white); }
+  .bf-comments-content {
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .bf-comments-content[hidden] { display: none; }
   .bf-comments-list {
     margin: 0; padding: 0; list-style: none;
     display: flex; flex-direction: column; gap: 10px;
-    overflow-y: auto;
   }
   .bf-comment { display: flex; flex-direction: column; gap: 2px; }
   .bf-comment-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
@@ -1175,13 +1201,48 @@
     color: rgba(255,255,255,0.9);
     word-break: break-word;
   }
+  .bf-comment-actions { display: flex; align-items: center; gap: 14px; margin-top: 2px; }
+  .bf-comment-like {
+    background: none; border: 0; color: rgba(255,255,255,0.6);
+    display: flex; align-items: center; gap: 4px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    cursor: pointer;
+    padding: 0;
+  }
+  .bf-comment-like svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+  .bf-comment-like[aria-pressed="true"] { color: var(--orange); }
+  .bf-comment-like[aria-pressed="true"] svg { fill: currentColor; }
+  .bf-comment-reply-toggle {
+    background: none; border: 0; color: rgba(255,255,255,0.6);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+  }
+  .bf-comment-reply-toggle:hover { color: var(--white); }
+  .bf-comment-replies {
+    margin: 8px 0 0; padding: 0 0 0 16px; list-style: none;
+    border-left: 1px solid rgba(243,241,234,0.15);
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .bf-comment-reply-slot:not([hidden]) { margin-top: 8px; }
   .bf-comments-empty {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.72rem;
     color: rgba(255,255,255,0.6);
   }
   .bf-comments-form { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid rgba(243,241,234,0.2); padding-top: 10px; }
-  .bf-comments-form input, .bf-comments-form textarea {
+  .bf-comments-as {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.02em;
+    color: rgba(255,255,255,0.5);
+    margin: 0;
+  }
+  .bf-comments-form textarea {
     background: rgba(0,0,0,0.35);
     border: 1px solid rgba(243,241,234,0.3);
     color: var(--white);
@@ -1204,6 +1265,16 @@
   }
   .bf-comments-submit[disabled] { opacity: 0.5; cursor: default; }
   .bf-comments-error { color: #ff6b6b; font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; }
+  .bf-comments-signin-prompt {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    line-height: 1.5;
+    color: rgba(255,255,255,0.75);
+    border-top: 1px solid rgba(243,241,234,0.2);
+    padding-top: 10px;
+    margin: 0;
+  }
+  .bf-comments-signin-prompt a { color: var(--orange); text-decoration: underline; }
 
   .bf-caption {
     position: absolute;
@@ -1733,6 +1804,7 @@
   // (caption/mods/flags) so the edit modal can open instantly.
   window.mt3ukMyBuildFiles = null;
   window.mt3ukMyBuildData = {};
+  window.mt3ukMyBuildsEmail = null;
   var MT3UK_API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
   (function () {
     var token = localStorage.getItem('mt3ukMyBuildsSession');
@@ -1746,6 +1818,7 @@
         if (!data || !data.success || !Array.isArray(data.builds)) return;
         window.mt3ukMyBuildFiles = data.builds.map(function (b) { return b.file; });
         data.builds.forEach(function (b) { window.mt3ukMyBuildData[b.file] = b; });
+        window.mt3ukMyBuildsEmail = data.email || null;
         document.dispatchEvent(new Event('mt3ukMyBuildsReady'));
       })
       .catch(function () {});
@@ -2311,6 +2384,25 @@
         '</svg>';
     }
 
+    function buildCommentsBlock(photo, idx) {
+      var block = document.createElement('div');
+      block.className = 'bf-comments-block';
+      block.dataset.idx = String(idx);
+      block.dataset.file = photo.file;
+      block.hidden = true;
+      block.innerHTML =
+        '<div class="bf-comments-header">' +
+          '<p class="bf-comments-panel-title">COMMENTS</p>' +
+          '<button type="button" class="bf-comments-close" aria-label="Close comments">&times;</button>' +
+        '</div>' +
+        '<button type="button" class="bf-comments-expand" aria-expanded="false">Show comments</button>' +
+        '<div class="bf-comments-content" hidden>' +
+          '<ul class="bf-comments-list"></ul>' +
+          '<div class="bf-comments-form-slot"></div>' +
+        '</div>';
+      return block;
+    }
+
     function buildSlide(photo, idx, likesData) {
       var safeCaption = (photo.caption || '').replace(/</g, '&lt;');
       var subLine = photo.name ? 'By ' + photo.name.replace(/</g, '&lt;') : '';
@@ -2357,17 +2449,7 @@
           '<div class="bf-mods-panel">' +
             '<p class="bf-mods-panel-title">MODS</p>' +
             '<ul>' + mods.map(function (m) { return '<li>' + String(m).replace(/</g, '&lt;') + '</li>'; }).join('') + '</ul>' +
-          '</div>' : '') +
-        '<div class="bf-comments-panel">' +
-          '<p class="bf-comments-panel-title">COMMENTS</p>' +
-          '<ul class="bf-comments-list"></ul>' +
-          '<form class="bf-comments-form">' +
-            '<input type="email" class="bf-comments-email" placeholder="Your email" required maxlength="120">' +
-            '<textarea class="bf-comments-text" placeholder="Add a comment&hellip;" required maxlength="500"></textarea>' +
-            '<p class="bf-comments-error" hidden></p>' +
-            '<button type="submit" class="bf-comments-submit">Post comment</button>' +
-          '</form>' +
-        '</div>';
+          '</div>' : '');
       return section;
     }
 
@@ -2380,35 +2462,82 @@
       });
     }
 
+    function buildCommentTree(comments) {
+      var byId = {};
+      comments.forEach(function (c) { byId[c.id] = Object.assign({}, c, { children: [] }); });
+      var roots = [];
+      comments.forEach(function (c) {
+        var node = byId[c.id];
+        if (c.parentId && byId[c.parentId]) byId[c.parentId].children.push(node);
+        else roots.push(node);
+      });
+      return roots;
+    }
+
+    function renderCommentNode(c) {
+      var reported = reportedCommentIds.indexOf(c.id) !== -1;
+      var childrenHtml = c.children.length
+        ? '<ul class="bf-comment-replies">' + c.children.map(renderCommentNode).join('') + '</ul>'
+        : '';
+      return '<li class="bf-comment" data-id="' + c.id + '">' +
+        '<div class="bf-comment-head">' +
+          '<span class="bf-comment-name">' + escapeHtml(c.name) + '</span>' +
+          '<button type="button" class="bf-comment-report"' + (reported ? ' disabled' : '') + '>' + (reported ? 'Reported' : 'Report') + '</button>' +
+        '</div>' +
+        '<p class="bf-comment-text">' + escapeHtml(c.text) + '</p>' +
+        '<div class="bf-comment-actions">' +
+          '<button type="button" class="bf-comment-like" aria-pressed="' + (c.liked ? 'true' : 'false') + '">' +
+            '<svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-10.2-9.3C-0.2 8 1.4 3.9 5.3 3.2 7.7 2.8 10 3.9 12 6.4c2-2.5 4.3-3.6 6.7-3.2 3.9.7 5.5 4.8 3.5 8.5C19.5 16.4 12 21 12 21z"/></svg>' +
+            '<span class="bf-comment-like-count">' + (c.likes || 0) + '</span>' +
+          '</button>' +
+          '<button type="button" class="bf-comment-reply-toggle">Reply</button>' +
+        '</div>' +
+        '<div class="bf-comment-reply-slot" hidden data-parent-id="' + c.id + '"></div>' +
+        childrenHtml +
+      '</li>';
+    }
+
     function renderComments(listEl, comments) {
       if (!comments.length) {
         listEl.innerHTML = '<li class="bf-comments-empty">No comments yet, be the first.</li>';
         return;
       }
-      listEl.innerHTML = comments.map(function (c) {
-        var reported = reportedCommentIds.indexOf(c.id) !== -1;
-        return '<li class="bf-comment" data-id="' + c.id + '">' +
-          '<div class="bf-comment-head">' +
-            '<span class="bf-comment-name">' + escapeHtml(c.name) + '</span>' +
-            '<button type="button" class="bf-comment-report"' + (reported ? ' disabled' : '') + '>' + (reported ? 'Reported' : 'Report') + '</button>' +
-          '</div>' +
-          '<p class="bf-comment-text">' + escapeHtml(c.text) + '</p>' +
-        '</li>';
-      }).join('');
+      listEl.innerHTML = buildCommentTree(comments).map(renderCommentNode).join('');
+    }
+
+    function renderCommentFormSlot(slotEl, parentId) {
+      var email = window.mt3ukMyBuildsEmail;
+      if (!email) {
+        slotEl.innerHTML = '<p class="bf-comments-signin-prompt">' +
+          '<a href="my-builds.html#build-upload">Sign in by uploading a build</a> to leave a comment.' +
+          '</p>';
+        return;
+      }
+      var name = email.split('@')[0];
+      slotEl.innerHTML =
+        '<form class="bf-comments-form" data-parent-id="' + (parentId || '') + '" data-email="' + escapeHtml(email) + '">' +
+          '<p class="bf-comments-as">Commenting as ' + escapeHtml(name) + '</p>' +
+          '<textarea class="bf-comments-text" placeholder="' + (parentId ? 'Write a reply&hellip;' : 'Write a comment&hellip;') + '" required maxlength="500"></textarea>' +
+          '<p class="bf-comments-error" hidden></p>' +
+          '<button type="submit" class="bf-comments-submit">' + (parentId ? 'Post reply' : 'Post comment') + '</button>' +
+        '</form>';
     }
 
     function wireComments(slides) {
       slides.forEach(function (slide) {
         var btn = slide.querySelector('.bf-comments-btn');
-        var panel = slide.querySelector('.bf-comments-panel');
-        var list = slide.querySelector('.bf-comments-list');
-        var form = slide.querySelector('.bf-comments-form');
-        var errorEl = slide.querySelector('.bf-comments-error');
+        var block = slide.nextElementSibling;
+        if (!block || !block.classList.contains('bf-comments-block')) return;
+        var content = block.querySelector('.bf-comments-content');
+        var expandBtn = block.querySelector('.bf-comments-expand');
+        var list = block.querySelector('.bf-comments-list');
+        var formSlot = block.querySelector('.bf-comments-form-slot');
+        var closeBtn = block.querySelector('.bf-comments-close');
         var loaded = false;
 
         function loadComments() {
           list.innerHTML = '<li class="bf-comments-empty">Loading&hellip;</li>';
-          fetch(VOTE_ENDPOINT + '/comments?file=' + encodeURIComponent(slide.dataset.file), { cache: 'no-store' })
+          fetch(VOTE_ENDPOINT + '/comments?file=' + encodeURIComponent(slide.dataset.file), { cache: 'no-store', headers: { 'X-Voter-Id': voterId } })
             .then(function (res) { return res.ok ? res.json() : null; })
             .then(function (data) {
               renderComments(list, (data && data.success && data.comments) || []);
@@ -2418,72 +2547,156 @@
             });
         }
 
-        if (btn) {
-          btn.addEventListener('click', function (e) {
+        function expand() {
+          content.hidden = false;
+          expandBtn.textContent = 'Hide comments';
+          expandBtn.setAttribute('aria-expanded', 'true');
+          if (!loaded) {
+            loaded = true;
+            renderCommentFormSlot(formSlot, null);
+            loadComments();
+          }
+        }
+
+        function collapse() {
+          content.hidden = true;
+          expandBtn.textContent = 'Show comments';
+          expandBtn.setAttribute('aria-expanded', 'false');
+        }
+
+        function openBlock() {
+          block.hidden = false;
+          btn.setAttribute('aria-pressed', 'true');
+          feedEl.classList.add('bf-no-snap');
+          var targetTop = block.getBoundingClientRect().top - feedEl.getBoundingClientRect().top + feedEl.scrollTop;
+          feedEl.scrollTo({ top: targetTop, behavior: 'smooth' });
+        }
+
+        function closeBlock() {
+          block.hidden = true;
+          btn.setAttribute('aria-pressed', 'false');
+          collapse();
+          if (!feedEl.querySelector('.bf-comments-block:not([hidden])')) {
+            feedEl.classList.remove('bf-no-snap');
+          }
+        }
+
+        if (expandBtn) {
+          expandBtn.addEventListener('click', function (e) {
             e.stopPropagation();
-            var open = panel.classList.toggle('bf-comments-open');
-            btn.setAttribute('aria-pressed', open ? 'true' : 'false');
-            if (open && !loaded) {
-              loaded = true;
-              loadComments();
-            }
+            if (content.hidden) expand();
+            else collapse();
           });
         }
 
-        if (list) {
-          list.addEventListener('click', function (e) {
-            var reportBtn = e.target.closest('.bf-comment-report');
-            if (!reportBtn || reportBtn.disabled) return;
-            var li = reportBtn.closest('.bf-comment');
-            var id = li && li.dataset.id;
-            if (!id) return;
+        if (btn) {
+          btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            if (block.hidden) openBlock();
+            else closeBlock();
+          });
+        }
+
+        if (closeBtn) {
+          closeBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            closeBlock();
+          });
+        }
+
+        block.addEventListener('click', function (e) {
+          var reportBtn = e.target.closest('.bf-comment-report');
+          if (reportBtn && !reportBtn.disabled) {
+            var reportLi = reportBtn.closest('.bf-comment');
+            var reportId = reportLi && reportLi.dataset.id;
+            if (!reportId) return;
             reportBtn.disabled = true;
             reportBtn.textContent = 'Reported';
             fetch(VOTE_ENDPOINT + '/comments/report', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', 'X-Voter-Id': voterId },
-              body: JSON.stringify({ file: slide.dataset.file, id: id })
+              body: JSON.stringify({ file: slide.dataset.file, id: reportId })
             }).catch(function () {});
-            reportedCommentIds.push(id);
+            reportedCommentIds.push(reportId);
             localStorage.setItem('mt3ukReportedComments', JSON.stringify(reportedCommentIds));
-          });
-        }
+            return;
+          }
 
-        if (form) {
-          form.addEventListener('click', function (e) { e.stopPropagation(); });
-          form.addEventListener('submit', function (e) {
-            e.preventDefault();
-            errorEl.hidden = true;
-            var emailInput = form.querySelector('.bf-comments-email');
-            var textInput = form.querySelector('.bf-comments-text');
-            var submitBtn = form.querySelector('.bf-comments-submit');
-            var email = emailInput.value.trim();
-            var text = textInput.value.trim();
-            if (!email || !text) return;
-
-            submitBtn.disabled = true;
-            fetch(VOTE_ENDPOINT + '/comments', {
+          var likeBtn = e.target.closest('.bf-comment-like');
+          if (likeBtn) {
+            var likeLi = likeBtn.closest('.bf-comment');
+            var likeId = likeLi && likeLi.dataset.id;
+            if (!likeId) return;
+            var countEl = likeBtn.querySelector('.bf-comment-like-count');
+            var liked = likeBtn.getAttribute('aria-pressed') !== 'true';
+            var count = parseInt(countEl.textContent, 10) || 0;
+            likeBtn.setAttribute('aria-pressed', liked ? 'true' : 'false');
+            countEl.textContent = String(liked ? count + 1 : Math.max(0, count - 1));
+            fetch(VOTE_ENDPOINT + '/comments/like', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', 'X-Voter-Id': voterId },
-              body: JSON.stringify({ file: slide.dataset.file, email: email, text: text })
+              body: JSON.stringify({ file: slide.dataset.file, id: likeId })
             })
-              .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
-              .then(function (result) {
-                if (result.ok && result.data && result.data.success) {
-                  textInput.value = '';
-                  loadComments();
-                } else {
-                  errorEl.textContent = (result.data && result.data.message) || 'Could not post comment.';
-                  errorEl.hidden = false;
+              .then(function (res) { return res.ok ? res.json() : null; })
+              .then(function (data) {
+                if (data && data.success) {
+                  likeBtn.setAttribute('aria-pressed', data.liked ? 'true' : 'false');
+                  countEl.textContent = String(data.likes);
                 }
               })
-              .catch(function () {
-                errorEl.textContent = 'Could not post comment.';
+              .catch(function () {});
+            return;
+          }
+
+          var replyToggle = e.target.closest('.bf-comment-reply-toggle');
+          if (replyToggle) {
+            var replyLi = replyToggle.closest('.bf-comment');
+            var replySlot = replyLi && replyLi.querySelector(':scope > .bf-comment-reply-slot');
+            if (!replySlot) return;
+            if (!replySlot.dataset.rendered) {
+              replySlot.dataset.rendered = 'true';
+              renderCommentFormSlot(replySlot, replySlot.dataset.parentId);
+            }
+            replySlot.hidden = !replySlot.hidden;
+          }
+        });
+
+        block.addEventListener('submit', function (e) {
+          var form = e.target.closest('form');
+          if (!form) return;
+          e.preventDefault();
+          var errorEl = form.querySelector('.bf-comments-error');
+          errorEl.hidden = true;
+          var textInput = form.querySelector('.bf-comments-text');
+          var submitBtn = form.querySelector('.bf-comments-submit');
+          var email = form.dataset.email || '';
+          var text = textInput.value.trim();
+          if (!email || !text) return;
+
+          submitBtn.disabled = true;
+          fetch(VOTE_ENDPOINT + '/comments', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Voter-Id': voterId },
+            body: JSON.stringify({ file: slide.dataset.file, email: email, text: text, parentId: form.dataset.parentId || null })
+          })
+            .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+            .then(function (result) {
+              if (result.ok && result.data && result.data.success) {
+                textInput.value = '';
+                var replyParent = form.closest('.bf-comment-reply-slot');
+                if (replyParent) replyParent.hidden = true;
+                loadComments();
+              } else {
+                errorEl.textContent = (result.data && result.data.message) || 'Could not post comment.';
                 errorEl.hidden = false;
-              })
-              .then(function () { submitBtn.disabled = false; });
-          });
-        }
+              }
+            })
+            .catch(function () {
+              errorEl.textContent = 'Could not post comment.';
+              errorEl.hidden = false;
+            })
+            .then(function () { submitBtn.disabled = false; });
+        });
       });
     }
 
@@ -2500,6 +2713,7 @@
       progressEl.innerHTML = '';
       photos.forEach(function (photo, idx) {
         feedEl.appendChild(buildSlide(photo, idx, likesData));
+        feedEl.appendChild(buildCommentsBlock(photo, idx));
         var seg = document.createElement('i');
         seg.className = 'bf-dot-seg';
         seg.dataset.idx = String(idx);

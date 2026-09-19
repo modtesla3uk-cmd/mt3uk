@@ -611,8 +611,27 @@ async function saveComments(env, file, comments) {
   await env.VOTES.put('comments:' + file, JSON.stringify(comments));
 }
 
-function publicComment(c) {
-  return { id: c.id, name: c.name, text: c.text, createdAt: c.createdAt };
+function publicComment(c, likedIds) {
+  return {
+    id: c.id,
+    parentId: c.parentId || null,
+    name: c.name,
+    text: c.text,
+    createdAt: c.createdAt,
+    likes: c.likes || 0,
+    liked: likedIds.indexOf(c.id) !== -1
+  };
+}
+
+async function getCommentLikerIds(env, voterId) {
+  var raw = await env.VOTES.get('comment-likes:' + voterId);
+  if (!raw) return [];
+  try {
+    var parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    return [];
+  }
 }
 
 async function handleCommentsGet(request, env, ctx) {
@@ -622,10 +641,14 @@ async function handleCommentsGet(request, env, ctx) {
     return json({ success: false, message: 'file is required' }, 400);
   }
 
+  var voterId = getVoterId(request);
   var comments = await getComments(env, file);
-  var visible = comments.filter(function (c) { return !c.hidden; }).map(publicComment);
+  var likedIds = await getCommentLikerIds(env, voterId);
+  var visible = comments.filter(function (c) { return !c.hidden; }).map(function (c) {
+    return publicComment(c, likedIds);
+  });
 
-  return json({ success: true, file: file, comments: visible });
+  return json({ success: true, file: file, voterId: voterId, comments: visible });
 }
 
 async function handleCommentsPost(request, env, ctx) {
@@ -639,6 +662,7 @@ async function handleCommentsPost(request, env, ctx) {
   var file = ((body && body.file) || '').toString();
   var email = ((body && body.email) || '').toString().trim().toLowerCase();
   var text = ((body && body.text) || '').toString().trim().slice(0, MAX_COMMENT_LENGTH);
+  var parentId = ((body && body.parentId) || '').toString() || null;
 
   if (!file) return json({ success: false, message: 'file is required' }, 400);
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -658,14 +682,20 @@ async function handleCommentsPost(request, env, ctx) {
   }
 
   var comments = await getComments(env, file);
+  if (parentId && !comments.some(function (c) { return c.id === parentId; })) {
+    return json({ success: false, message: 'Comment being replied to no longer exists' }, 400);
+  }
+
   var comment = {
     id: crypto.randomUUID(),
+    parentId: parentId,
     name: displayNameFromEmail(email),
     email: email,
     text: text,
     createdAt: new Date().toISOString(),
     reports: [],
-    hidden: false
+    hidden: false,
+    likes: 0
   };
   comments.push(comment);
   if (comments.length > MAX_COMMENTS_PER_FILE) {
@@ -673,7 +703,7 @@ async function handleCommentsPost(request, env, ctx) {
   }
   await saveComments(env, file, comments);
 
-  return json({ success: true, comment: publicComment(comment) });
+  return json({ success: true, comment: publicComment(comment, []) });
 }
 
 async function handleCommentReport(request, env, ctx) {
@@ -707,6 +737,46 @@ async function handleCommentReport(request, env, ctx) {
   }
 
   return json({ success: true, reported: true });
+}
+
+async function handleCommentLike(request, env, ctx) {
+  var body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return json({ success: false, message: 'Invalid request body' }, 400);
+  }
+
+  var file = ((body && body.file) || '').toString();
+  var id = ((body && body.id) || '').toString();
+  if (!file || !id) {
+    return json({ success: false, message: 'file and id are required' }, 400);
+  }
+
+  var comments = await getComments(env, file);
+  var comment = comments.find(function (c) { return c.id === id; });
+  if (!comment) {
+    return json({ success: false, message: 'Comment not found' }, 404);
+  }
+
+  var voterId = getVoterId(request);
+  var likerIds = await getCommentLikerIds(env, voterId);
+  var idx = likerIds.indexOf(id);
+  var liked;
+  if (idx !== -1) {
+    likerIds.splice(idx, 1);
+    comment.likes = Math.max(0, (comment.likes || 0) - 1);
+    liked = false;
+  } else {
+    likerIds.push(id);
+    comment.likes = (comment.likes || 0) + 1;
+    liked = true;
+  }
+
+  await env.VOTES.put('comment-likes:' + voterId, JSON.stringify(likerIds));
+  await saveComments(env, file, comments);
+
+  return json({ success: true, voterId: voterId, id: id, liked: liked, likes: comment.likes });
 }
 
 async function handleCommentsAdminList(request, env) {
@@ -1514,6 +1584,9 @@ export default {
     }
     if (url.pathname === '/comments/report' && request.method === 'POST') {
       return handleCommentReport(request, env, ctx);
+    }
+    if (url.pathname === '/comments/like' && request.method === 'POST') {
+      return handleCommentLike(request, env, ctx);
     }
     if (url.pathname === '/comments' && request.method === 'GET') {
       return handleCommentsGet(request, env, ctx);

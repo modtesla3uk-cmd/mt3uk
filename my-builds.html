@@ -483,7 +483,8 @@
   .mb-status.mb-status-ok { color: #1c8a4b; font-weight: 700; }
   .mb-status.mb-status-err { color: var(--orange); }
 
-  .mb-new-toggle-row { max-width: 440px; margin: 16px auto 0; text-align: center; }
+  .mb-signin-newbuild-btn { background: var(--orange); border-color: var(--orange); margin-top: 12px; }
+  .mb-signin-newbuild-btn:hover { background: var(--ink); border-color: var(--ink); }
   .mb-submit-card { margin-top: 18px; text-align: left; }
   .mb-submit-card textarea {
     border: 1px solid var(--ink);
@@ -783,10 +784,7 @@
           <button type="submit" class="mb-btn" id="mb-signin-btn">Send me a sign-in link</button>
           <p class="mb-status" id="mb-signin-status"></p>
         </form>
-      </div>
-
-      <div class="mb-new-toggle-row">
-        <button type="button" class="mb-upload-toggle-btn" id="mb-new-toggle-btn">+ New here? Submit your first build</button>
+        <button type="button" class="mb-btn mb-signin-newbuild-btn" id="mb-new-toggle-btn">+ New here? Submit your first build</button>
       </div>
 
       <div class="mb-card mb-submit-card" id="mb-submit-card" style="display:none;">

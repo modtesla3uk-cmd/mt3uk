@@ -981,7 +981,25 @@ async function setBuildOwner(env, file, email) {
 }
 
 async function getBuildOwner(env, file) {
-  return env.VOTES.get('build-owner:' + file);
+  var owner = await env.VOTES.get('build-owner:' + file);
+  if (owner) return owner;
+
+  // Builds submitted before per-file owner tracking existed have no
+  // build-owner:<file> entry yet. This reverse lookup only runs on that
+  // one-time miss (not a per-visitor path) and writes the result back so
+  // every subsequent comment on that file hits the fast .get() above.
+  var list = await env.VOTES.list({ prefix: 'subscriber:' });
+  for (var i = 0; i < list.keys.length; i++) {
+    var raw = await env.VOTES.get(list.keys[i].name);
+    var files = [];
+    try { files = JSON.parse(raw) || []; } catch (e) {}
+    if (Array.isArray(files) && files.indexOf(file) !== -1) {
+      var email = list.keys[i].name.slice('subscriber:'.length);
+      await setBuildOwner(env, file, email);
+      return email;
+    }
+  }
+  return null;
 }
 
 async function removeSubscriberFile(env, email, file) {

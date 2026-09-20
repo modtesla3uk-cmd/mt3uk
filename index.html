@@ -1846,7 +1846,12 @@
   }
 
   mt3ukPollMyBuilds();
-  setInterval(mt3ukPollMyBuilds, 10000);
+  setInterval(function () {
+    if (!document.hidden) mt3ukPollMyBuilds();
+  }, 30000);
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) mt3ukPollMyBuilds();
+  });
 
   // Adds an "Edit Build" button to any rendered [data-file] element whose
   // file belongs to the signed-in account. Safe to call before the account's

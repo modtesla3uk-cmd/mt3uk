@@ -1664,7 +1664,12 @@ document.addEventListener('DOMContentLoaded', function () {
       loadBuilds();
     }
 
-    setInterval(pollGarageComments, 10000);
+    setInterval(function () {
+      if (!document.hidden) pollGarageComments();
+    }, 30000);
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden) pollGarageComments();
+    });
   })();
 </script>
 

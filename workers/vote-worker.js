@@ -1041,17 +1041,20 @@ async function handleMyBuildsGet(request, env) {
     await env.VOTES.put('subscriber:' + email, JSON.stringify(liveFiles));
   }
 
-  var builds = liveFiles.map(function (f) {
+  var builds = await Promise.all(liveFiles.map(async function (f) {
     var entry = byFile[f];
+    var comments = await getComments(env, f);
+    var visibleComments = comments.filter(function (c) { return !c.hidden; });
     return {
       file: f,
       caption: entry.caption || '',
       mods: entry.mods || [],
       gallery: entry.gallery !== false,
       reel: entry.reel !== false,
-      votable: entry.votable !== false
+      votable: entry.votable !== false,
+      commentCount: visibleComments.length
     };
-  });
+  }));
 
   return json({ success: true, email: email, builds: builds });
 }

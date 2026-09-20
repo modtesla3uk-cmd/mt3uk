@@ -234,6 +234,18 @@
     line-height: 1;
   }
 
+  .nav-comment-alert {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 15px; height: 15px;
+    color: var(--orange);
+    animation: navCommentPulse 1.1s ease-in-out infinite;
+  }
+  .nav-comment-alert svg { width: 100%; height: 100%; fill: currentColor; }
+  @keyframes navCommentPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(0.8); }
+  }
+
   .nav-cta {
     background: var(--ink);
     color: var(--paper) !important;
@@ -1792,6 +1804,38 @@
   window.mt3ukMyBuildData = {};
   window.mt3ukMyBuildsEmail = null;
   var MT3UK_API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
+
+  // Flags the "My Garage" nav link with a small flashing comment icon when
+  // any of the signed-in visitor's builds have comments they haven't seen
+  // yet (tracked per-file in localStorage, cleared when they open that
+  // build's comments in My Garage).
+  function mt3ukCheckNewComments(builds) {
+    var seenRaw = localStorage.getItem('mt3ukSeenComments');
+    var seen = {};
+    try { seen = JSON.parse(seenRaw || '{}'); } catch (e) { seen = {}; }
+    var isFirstRun = seenRaw === null;
+    var hasNew = false;
+    builds.forEach(function (b) {
+      var count = b.commentCount || 0;
+      if (isFirstRun) {
+        seen[b.file] = count;
+      } else if (count > (seen[b.file] || 0)) {
+        hasNew = true;
+      }
+    });
+    if (isFirstRun) localStorage.setItem('mt3ukSeenComments', JSON.stringify(seen));
+    if (hasNew) {
+      var link = document.querySelector('.nav-link-mybuilds');
+      if (link && !link.querySelector('.nav-comment-alert')) {
+        var span = document.createElement('span');
+        span.className = 'nav-comment-alert';
+        span.setAttribute('aria-label', 'New comments on your builds');
+        span.innerHTML = '<svg viewBox="0 0 24 24"><path d="M4 4h16v12H7l-3 3z"/></svg>';
+        link.appendChild(span);
+      }
+    }
+  }
+
   (function () {
     var token = localStorage.getItem('mt3ukMyBuildsSession');
     if (!token) return;
@@ -1805,6 +1849,7 @@
         window.mt3ukMyBuildFiles = data.builds.map(function (b) { return b.file; });
         data.builds.forEach(function (b) { window.mt3ukMyBuildData[b.file] = b; });
         window.mt3ukMyBuildsEmail = data.email || null;
+        mt3ukCheckNewComments(data.builds);
         document.dispatchEvent(new Event('mt3ukMyBuildsReady'));
       })
       .catch(function () {});

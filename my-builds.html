@@ -183,6 +183,18 @@
     line-height: 1;
   }
 
+  .nav-comment-alert {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 15px; height: 15px;
+    color: var(--orange);
+    animation: navCommentPulse 1.1s ease-in-out infinite;
+  }
+  .nav-comment-alert svg { width: 100%; height: 100%; fill: currentColor; }
+  @keyframes navCommentPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(0.8); }
+  }
+
   .nav-cta {
     background: var(--ink);
     color: var(--paper) !important;
@@ -623,6 +635,52 @@
   .mb-delete-btn.mb-delete-confirm { border-color: var(--orange); color: var(--paper); background: var(--orange); }
   .mb-empty { text-align: center; color: var(--steel); font-size: 0.9rem; max-width: 480px; margin: 0 auto; }
 
+  .mb-build-wrap { display: flex; flex-direction: column; }
+  .mb-build-wrap .mb-build-card { border-bottom: none; }
+  .mb-comments { border: 1px solid var(--ink); border-top: none; padding: 14px 16px; background: var(--paper-2); }
+  .mb-comments-toggle {
+    width: 100%; display: flex; align-items: center; gap: 6px;
+    text-align: left; background: none; border: 0; color: var(--ink);
+    font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; letter-spacing: 0.02em;
+    cursor: pointer; padding: 0;
+  }
+  .mb-comments-toggle:hover { color: var(--orange); }
+  .mb-comments-toggle-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mb-comment-alert {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 14px; height: 14px; flex-shrink: 0;
+    color: var(--orange);
+    animation: navCommentPulse 1.1s ease-in-out infinite;
+  }
+  .mb-comment-alert[hidden] { display: none; }
+  .mb-comment-alert svg { width: 100%; height: 100%; fill: currentColor; }
+  .mb-comments-content { margin-top: 10px; display: flex; flex-direction: column; gap: 10px; }
+  .mb-comments-content[hidden] { display: none; }
+  .mb-comments-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .mb-comment { display: flex; flex-direction: column; gap: 2px; }
+  .mb-comment-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .mb-comment-name { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--orange); }
+  .mb-comment-date { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--steel); }
+  .mb-comment-text { font-size: 0.85rem; color: var(--charcoal); word-break: break-word; }
+  .mb-comment-reply-toggle {
+    align-self: flex-start; background: none; border: 0; color: var(--steel);
+    font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; text-decoration: underline;
+    cursor: pointer; padding: 0; margin-top: 2px;
+  }
+  .mb-comment-reply-toggle:hover { color: var(--orange); }
+  .mb-comment-replies { list-style: none; margin: 8px 0 0; padding: 0 0 0 16px; border-left: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; }
+  .mb-comment-reply-slot { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+  .mb-comment-reply-slot[hidden] { display: none; }
+  .mb-comment-reply-slot textarea {
+    border: 1px solid var(--line); padding: 8px 10px; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; resize: none; min-height: 50px; background: var(--white);
+  }
+  .mb-comment-reply-submit {
+    align-self: flex-end; background: var(--orange); color: var(--paper); border: 0; padding: 7px 14px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; cursor: pointer;
+  }
+  .mb-comment-reply-submit:disabled { opacity: 0.6; cursor: default; }
+  .mb-comments-empty { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--steel); }
+
   /* ---------- FOOTER ---------- */
   footer { padding: 40px 0; }
   .footer-row {
@@ -660,7 +718,7 @@
 </script>
 
 <script>
-(function () {
+document.addEventListener('DOMContentLoaded', function () {
       var lightbox = document.getElementById('mb-img-lightbox');
       var lightboxImg = document.getElementById('mb-img-lightbox-img');
       if (!lightbox || !lightboxImg) return;
@@ -671,12 +729,14 @@
             lightboxImg.src = '';
       }
 
+      var lightboxCloseBtn = document.querySelector('.mb-img-lightbox-close');
+      if (lightboxCloseBtn) lightboxCloseBtn.addEventListener('click', closeLightbox);
       lightbox.addEventListener('click', closeLightbox);
       lightboxImg.addEventListener('click', function (e) { e.stopPropagation(); });
       document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && lightbox.classList.contains('open')) closeLightbox();
       });
-})();
+});
 </script>
 
 <header>
@@ -939,6 +999,7 @@
     var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
     var SESSION_KEY = 'mt3ukMyBuildsSession';
     var EMAIL_KEY = 'mt3ukMyBuildsEmail';
+    var myGarageEmail = '';
 
     var signinView = document.getElementById('mb-signin-view');
     var appView = document.getElementById('mb-app-view');
@@ -985,13 +1046,15 @@
       signinView.style.display = 'none';
       appView.style.display = 'block';
       accountEmailEl.textContent = email;
+      myGarageEmail = email;
       if (window.location.hash === '#build-upload' && uploadCard.style.display === 'none') {
         uploadToggleBtn.click();
         document.getElementById('build-upload').scrollIntoView({ block: 'start' });
       }
     }
 
-    function renderBuilds(builds) {
+    function renderBuilds(builds, alerts) {
+      alerts = alerts || {};
       if (!builds.length) {
         grid.innerHTML = '<p class="mb-empty">No builds linked to this email yet. Use the Upload build button above to add one.</p>';
         return;
@@ -1000,25 +1063,37 @@
         var safeCaption = (b.caption || 'MT3UK member build').replace(/</g, '&lt;');
         var mods = Array.isArray(b.mods) ? b.mods : [];
         var modsText = mods.join(', ').replace(/</g, '&lt;');
-        return '<div class="mb-build-card" data-file="' + b.file.replace(/"/g, '&quot;') + '">' +
-          '<div class="mb-build-thumb"><img src="' + window.MT3UK_R2_BASE + '/gallery/' + b.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy"></div>' +
-          '<div class="mb-build-body">' +
-            '<span class="mb-build-caption">' + safeCaption + '</span>' +
-            '<div class="mb-toggles">' +
-              '<label class="mb-toggle"><input type="checkbox" data-flag="gallery"' + (b.gallery ? ' checked' : '') + '> Gallery</label>' +
-              '<label class="mb-toggle"><input type="checkbox" data-flag="reel"' + (b.reel ? ' checked' : '') + '> Reel</label>' +
-              '<label class="mb-toggle"><input type="checkbox" data-flag="votable"' + (b.votable ? ' checked' : '') + '> Voting</label>' +
-            '</div>' +
-            '<div class="mb-mods">' +
-              '<span class="mono mb-mods-label">Mods</span>' +
-              '<textarea class="mb-mods-textarea" rows="3" placeholder="e.g. Coilovers, 20&quot; wheels, wrap">' + modsText + '</textarea>' +
-              '<div class="mb-mods-submit-row">' +
-                '<button type="button" class="mb-mods-submit-btn">Save mods</button>' +
-                '<span class="mb-mods-status mono"></span>' +
+        var safeFile = b.file.replace(/"/g, '&quot;');
+        return '<div class="mb-build-wrap">' +
+          '<div class="mb-build-card" data-file="' + safeFile + '">' +
+            '<div class="mb-build-thumb"><img src="' + window.MT3UK_R2_BASE + '/gallery/' + b.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy"></div>' +
+            '<div class="mb-build-body">' +
+              '<span class="mb-build-caption">' + safeCaption + '</span>' +
+              '<div class="mb-toggles">' +
+                '<label class="mb-toggle"><input type="checkbox" data-flag="gallery"' + (b.gallery ? ' checked' : '') + '> Gallery</label>' +
+                '<label class="mb-toggle"><input type="checkbox" data-flag="reel"' + (b.reel ? ' checked' : '') + '> Reel</label>' +
+                '<label class="mb-toggle"><input type="checkbox" data-flag="votable"' + (b.votable ? ' checked' : '') + '> Voting</label>' +
+              '</div>' +
+              '<div class="mb-mods">' +
+                '<span class="mono mb-mods-label">Mods</span>' +
+                '<textarea class="mb-mods-textarea" rows="3" placeholder="e.g. Coilovers, 20&quot; wheels, wrap">' + modsText + '</textarea>' +
+                '<div class="mb-mods-submit-row">' +
+                  '<button type="button" class="mb-mods-submit-btn">Save mods</button>' +
+                  '<span class="mb-mods-status mono"></span>' +
+                '</div>' +
+              '</div>' +
+              '<div class="mb-build-actions">' +
+                '<button type="button" class="mb-delete-btn">Delete</button>' +
               '</div>' +
             '</div>' +
-            '<div class="mb-build-actions">' +
-              '<button type="button" class="mb-delete-btn">Delete</button>' +
+          '</div>' +
+          '<div class="mb-comments" data-file="' + safeFile + '" data-comment-count="' + (b.commentCount || 0) + '">' +
+            '<button type="button" class="mb-comments-toggle" aria-expanded="false">' +
+              '<span class="mb-comment-alert"' + (alerts[b.file] ? '' : ' hidden') + '><svg viewBox="0 0 24 24"><path d="M4 4h16v12H7l-3 3z"/></svg></span>' +
+              '<span class="mb-comments-toggle-text">Loading&hellip;</span>' +
+            '</button>' +
+            '<div class="mb-comments-content" hidden>' +
+              '<ul class="mb-comments-list"></ul>' +
             '</div>' +
           '</div>' +
         '</div>';
@@ -1074,7 +1149,11 @@
             return;
           }
           showApp(result.data.email);
-          renderBuilds(result.data.builds || []);
+          var builds = result.data.builds || [];
+          var alerts = computeCommentAlerts(builds);
+          renderBuilds(builds, alerts);
+          loadAllGarageComments();
+          if (Object.keys(alerts).length) showNavCommentAlert();
         })
         .catch(function () {
           setStatus(signinStatus, 'Could not load your builds, please try again.', 'err');
@@ -1214,6 +1293,7 @@
       var btn = e.target.closest('.mb-delete-btn');
       if (!btn) return;
       var card = btn.closest('.mb-build-card');
+      var wrap = btn.closest('.mb-build-wrap');
       var file = card.getAttribute('data-file');
 
       if (!btn.classList.contains('mb-delete-confirm')) {
@@ -1236,7 +1316,7 @@
         .then(function (res) { return res.json(); })
         .then(function (data) {
           if (data.success) {
-            card.remove();
+            (wrap || card).remove();
             if (!grid.querySelector('.mb-build-card')) renderBuilds([]);
           } else {
             btn.disabled = false;
@@ -1247,6 +1327,186 @@
           btn.disabled = false;
           btn.textContent = 'Delete';
         });
+    });
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+
+    function buildCommentTree(comments) {
+      var byId = {};
+      comments.forEach(function (c) { byId[c.id] = Object.assign({}, c, { children: [] }); });
+      var roots = [];
+      comments.forEach(function (c) {
+        var node = byId[c.id];
+        if (c.parentId && byId[c.parentId]) byId[c.parentId].children.push(node);
+        else roots.push(node);
+      });
+      return roots;
+    }
+
+    function renderCommentNode(c) {
+      var childrenHtml = c.children.length
+        ? '<ul class="mb-comment-replies">' + c.children.map(renderCommentNode).join('') + '</ul>'
+        : '';
+      return '<li class="mb-comment" data-id="' + c.id + '">' +
+        '<div class="mb-comment-head">' +
+          '<span class="mb-comment-name">' + escapeHtml(c.name || '') + '</span>' +
+          '<span class="mb-comment-date">' + escapeHtml(c.createdAt || '') + '</span>' +
+        '</div>' +
+        '<p class="mb-comment-text">' + escapeHtml(c.text || '') + '</p>' +
+        '<button type="button" class="mb-comment-reply-toggle">Reply</button>' +
+        '<div class="mb-comment-reply-slot" hidden data-parent-id="' + c.id + '">' +
+          '<textarea rows="2" placeholder="Write a reply&hellip;" maxlength="500"></textarea>' +
+          '<button type="button" class="mb-comment-reply-submit">Post reply</button>' +
+        '</div>' +
+        childrenHtml +
+      '</li>';
+    }
+
+    function updateCommentsToggleLabel(panel) {
+      var textEl = panel.querySelector('.mb-comments-toggle-text');
+      var content = panel.querySelector('.mb-comments-content');
+      if (!content.hidden) { textEl.textContent = 'Hide comments'; return; }
+      var comments = panel.commentsData || [];
+      if (!comments.length) { textEl.textContent = 'No comments yet'; return; }
+      var first = comments[0];
+      textEl.textContent = (first.name || '') + ': ' + (first.text || '');
+    }
+
+    function mbGetSeenComments() {
+      try { return JSON.parse(localStorage.getItem('mt3ukSeenComments') || '{}'); } catch (e) { return {}; }
+    }
+    function mbSetSeenComments(obj) {
+      localStorage.setItem('mt3ukSeenComments', JSON.stringify(obj));
+    }
+
+    function computeCommentAlerts(builds) {
+      var seenRaw = localStorage.getItem('mt3ukSeenComments');
+      var seen = {};
+      try { seen = JSON.parse(seenRaw || '{}'); } catch (e) { seen = {}; }
+      var isFirstRun = seenRaw === null;
+      var alerts = {};
+      builds.forEach(function (b) {
+        var count = b.commentCount || 0;
+        if (isFirstRun) {
+          seen[b.file] = count;
+        } else if (count > (seen[b.file] || 0)) {
+          alerts[b.file] = true;
+        }
+      });
+      if (isFirstRun) mbSetSeenComments(seen);
+      return alerts;
+    }
+
+    function showNavCommentAlert() {
+      var link = document.querySelector('.nav-link-mybuilds');
+      if (!link || link.querySelector('.nav-comment-alert')) return;
+      var span = document.createElement('span');
+      span.className = 'nav-comment-alert';
+      span.setAttribute('aria-label', 'New comments on your builds');
+      span.innerHTML = '<svg viewBox="0 0 24 24"><path d="M4 4h16v12H7l-3 3z"/></svg>';
+      link.appendChild(span);
+    }
+
+    function refreshNavCommentAlert() {
+      var seen = mbGetSeenComments();
+      var stillUnseen = false;
+      grid.querySelectorAll('.mb-comments').forEach(function (panel) {
+        var file = panel.getAttribute('data-file');
+        var count = parseInt(panel.dataset.commentCount, 10) || 0;
+        if (count > (seen[file] || 0)) stillUnseen = true;
+      });
+      var navAlert = document.querySelector('.nav-link-mybuilds .nav-comment-alert');
+      if (!stillUnseen && navAlert) navAlert.remove();
+    }
+
+    function loadGarageComments(panel) {
+      var file = panel.getAttribute('data-file');
+      var list = panel.querySelector('.mb-comments-list');
+      fetch(API + '/comments?file=' + encodeURIComponent(file), { cache: 'no-store' })
+        .then(function (res) { return res.ok ? res.json() : null; })
+        .then(function (data) {
+          var comments = (data && data.success && data.comments) || [];
+          panel.commentsData = comments;
+          list.innerHTML = comments.length
+            ? buildCommentTree(comments).map(renderCommentNode).join('')
+            : '<li class="mb-comments-empty">No comments yet.</li>';
+          updateCommentsToggleLabel(panel);
+        })
+        .catch(function () {
+          panel.commentsData = [];
+          list.innerHTML = '<li class="mb-comments-empty">Could not load comments.</li>';
+          updateCommentsToggleLabel(panel);
+        });
+    }
+
+    function loadAllGarageComments() {
+      grid.querySelectorAll('.mb-comments').forEach(function (panel) {
+        loadGarageComments(panel);
+      });
+    }
+
+    grid.addEventListener('click', function (e) {
+      var commentsToggle = e.target.closest('.mb-comments-toggle');
+      if (commentsToggle) {
+        var panel = commentsToggle.closest('.mb-comments');
+        var content = panel.querySelector('.mb-comments-content');
+        var opening = content.hidden;
+        content.hidden = !content.hidden;
+        updateCommentsToggleLabel(panel);
+        if (opening) {
+          var alertSpan = commentsToggle.querySelector('.mb-comment-alert');
+          if (alertSpan) alertSpan.hidden = true;
+          var file = panel.getAttribute('data-file');
+          var seen = mbGetSeenComments();
+          seen[file] = parseInt(panel.dataset.commentCount, 10) || 0;
+          mbSetSeenComments(seen);
+          refreshNavCommentAlert();
+        }
+        return;
+      }
+
+      var replyToggle = e.target.closest('.mb-comment-reply-toggle');
+      if (replyToggle) {
+        var replyLi = replyToggle.closest('.mb-comment');
+        var replySlot = replyLi.querySelector(':scope > .mb-comment-reply-slot');
+        if (replySlot) replySlot.hidden = !replySlot.hidden;
+        return;
+      }
+
+      var replySubmit = e.target.closest('.mb-comment-reply-submit');
+      if (replySubmit) {
+        var slot = replySubmit.closest('.mb-comment-reply-slot');
+        var textarea = slot.querySelector('textarea');
+        var text = textarea.value.trim();
+        if (!text) return;
+        var commentsPanel = replySubmit.closest('.mb-comments');
+        var file = commentsPanel.getAttribute('data-file');
+        var parentId = slot.getAttribute('data-parent-id');
+        var email = myGarageEmail;
+        if (!email) return;
+        replySubmit.disabled = true;
+        fetch(API + '/comments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ file: file, email: email, text: text, parentId: parentId })
+        })
+          .then(function (res) { return res.json(); })
+          .then(function (data) {
+            replySubmit.disabled = false;
+            if (data && data.success) {
+              textarea.value = '';
+              slot.hidden = true;
+              loadGarageComments(commentsPanel);
+            }
+          })
+          .catch(function () {
+            replySubmit.disabled = false;
+          });
+      }
     });
 
     uploadToggleBtn.addEventListener('click', function () {

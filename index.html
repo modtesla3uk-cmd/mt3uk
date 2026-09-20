@@ -825,7 +825,7 @@
   }
   .bf-frame {
     position: relative;
-    width: min(620px, 100%, calc(82vh * 3 / 4));
+    width: min(420px, 100%);
     aspect-ratio: 3 / 4;
     margin: 0;
     border: 1px solid var(--ink);
@@ -834,6 +834,23 @@
   }
   #build-feed-frame { margin: 0 auto; }
   .bf-frame.bf-frame-empty { aspect-ratio: auto; height: auto; }
+
+  @media (max-width: 600px) {
+    /* The .wrap side padding was eating into how tall a 3:4 box could get
+       on a narrow phone, so this breaks the frame out to the full viewport
+       width and switches to a taller ratio to make better use of the
+       screen, matching the desktop fill-more-of-the-viewport treatment. */
+    .bf-frame {
+      width: min(100vw, calc(92vh * 3 / 5));
+      aspect-ratio: 3 / 5;
+      border-left: none;
+      border-right: none;
+    }
+    #build-feed-frame {
+      margin-left: calc(50% - 50vw);
+      margin-right: calc(50% - 50vw);
+    }
+  }
   .bf-new-toast {
     position: absolute;
     top: 60px;

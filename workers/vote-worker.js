@@ -705,12 +705,25 @@ async function handleCommentsPost(request, env, ctx) {
 
   ctx.waitUntil((async function () {
     try {
-      var ownerEmail = await getBuildOwner(env, file);
-      if (!ownerEmail || ownerEmail === email) return;
+      var recipientEmail = null;
+      var isReply = false;
+      if (parentId) {
+        var parentComment = comments.find(function (c) { return c.id === parentId; });
+        if (parentComment && parentComment.email && parentComment.email !== email) {
+          recipientEmail = parentComment.email;
+          isReply = true;
+        }
+      }
+      if (!recipientEmail) {
+        var ownerEmail = await getBuildOwner(env, file);
+        if (ownerEmail && ownerEmail !== email) recipientEmail = ownerEmail;
+      }
+      if (!recipientEmail) return;
+
       var token = randomToken();
-      await env.VOTES.put('my-builds-link:' + token, ownerEmail, { expirationTtl: MY_BUILDS_LINK_TTL_SECONDS });
-      var link = MY_BUILDS_SITE_URL + '/my-builds.html?token=' + token;
-      await sendNewCommentEmail(env, ownerEmail, comment.name, link);
+      await env.VOTES.put('my-builds-link:' + token, recipientEmail, { expirationTtl: MY_BUILDS_LINK_TTL_SECONDS });
+      var link = MY_BUILDS_SITE_URL + '/my-builds.html?token=' + token + '&file=' + encodeURIComponent(file);
+      await sendNewCommentEmail(env, recipientEmail, comment.name, link, isReply);
     } catch (err) {
       console.log('New comment notification email failed:', err.message);
     }
@@ -870,9 +883,10 @@ async function sendMyBuildsLinkEmail(env, toEmail, link) {
   await env.SEND_EMAIL.send(message);
 }
 
-async function sendNewCommentEmail(env, toEmail, commenterName, link) {
-  var subject = 'New comment on your MT3UK build';
-  var body = (commenterName || 'Someone') + ' left a new comment on one of your builds.\n\n' +
+async function sendNewCommentEmail(env, toEmail, commenterName, link, isReply) {
+  var subject = isReply ? 'New reply to your comment on MT3UK' : 'New comment on your MT3UK build';
+  var action = isReply ? 'replied to your comment on a build' : 'left a new comment on one of your builds';
+  var body = (commenterName || 'Someone') + ' ' + action + '.\n\n' +
     'View and reply here:\n\n' + link +
     '\n\nThis link signs you in automatically, expires in 15 minutes, and can only be used once ' +
     '(handy if you\'re opening it on a different device). If it expires, just request a new sign-in ' +

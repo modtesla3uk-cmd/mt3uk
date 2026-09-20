@@ -1003,6 +1003,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var SESSION_KEY = 'mt3ukMyBuildsSession';
     var EMAIL_KEY = 'mt3ukMyBuildsEmail';
     var myGarageEmail = '';
+    var pendingCommentsFile = new URL(window.location.href).searchParams.get('file');
 
     var signinView = document.getElementById('mb-signin-view');
     var appView = document.getElementById('mb-app-view');
@@ -1158,6 +1159,7 @@ document.addEventListener('DOMContentLoaded', function () {
           loadAllGarageComments();
           var alertsTotal = Object.keys(alerts).reduce(function (sum, k) { return sum + alerts[k]; }, 0);
           if (alertsTotal > 0) showNavCommentAlert(alertsTotal);
+          maybeOpenLinkedComments();
         })
         .catch(function () {
           setStatus(signinStatus, 'Could not load your builds, please try again.', 'err');
@@ -1461,22 +1463,86 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     }
 
+    function pollGarageComments() {
+      var token = getSession();
+      if (!token) return;
+      fetch(API + '/my-builds', { headers: { 'X-Session-Token': token }, cache: 'no-store' })
+        .then(function (res) { return res.ok ? res.json() : null; })
+        .then(function (data) {
+          if (!data || !data.success || !Array.isArray(data.builds)) return;
+          var countsByFile = {};
+          data.builds.forEach(function (b) { countsByFile[b.file] = b.commentCount || 0; });
+          var seen = mbGetSeenComments();
+          grid.querySelectorAll('.mb-comments').forEach(function (panel) {
+            var file = panel.getAttribute('data-file');
+            if (!(file in countsByFile)) return;
+            var newCount = countsByFile[file];
+            var oldCount = parseInt(panel.dataset.commentCount, 10) || 0;
+            if (newCount === oldCount) return;
+            panel.dataset.commentCount = newCount;
+
+            var content = panel.querySelector('.mb-comments-content');
+            var isOpen = content && !content.hidden;
+            loadGarageComments(panel);
+            if (isOpen) {
+              seen[file] = newCount;
+              mbSetSeenComments(seen);
+            }
+
+            var alertSpan = panel.querySelector('.mb-comment-alert');
+            if (alertSpan) {
+              var unseenForBuild = newCount - (seen[file] || 0);
+              if (!isOpen && unseenForBuild > 0) {
+                alertSpan.hidden = false;
+                var countEl = alertSpan.querySelector('.mb-comment-alert-count');
+                if (countEl) countEl.textContent = unseenForBuild;
+              } else {
+                alertSpan.hidden = true;
+              }
+            }
+          });
+          refreshNavCommentAlert();
+        })
+        .catch(function () {});
+    }
+
+    function openCommentsPanel(panel) {
+      var content = panel.querySelector('.mb-comments-content');
+      if (!content.hidden) return;
+      content.hidden = false;
+      updateCommentsToggleLabel(panel);
+      var alertSpan = panel.querySelector('.mb-comment-alert');
+      if (alertSpan) alertSpan.hidden = true;
+      var file = panel.getAttribute('data-file');
+      var seen = mbGetSeenComments();
+      seen[file] = parseInt(panel.dataset.commentCount, 10) || 0;
+      mbSetSeenComments(seen);
+      refreshNavCommentAlert();
+    }
+
+    function maybeOpenLinkedComments() {
+      if (!pendingCommentsFile) return;
+      var file = pendingCommentsFile;
+      pendingCommentsFile = null;
+      var url = new URL(window.location.href);
+      url.searchParams.delete('file');
+      history.replaceState(null, '', url.pathname + url.search);
+      var panel = grid.querySelector('.mb-comments[data-file="' + CSS.escape(file) + '"]');
+      if (!panel) return;
+      openCommentsPanel(panel);
+      panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
     grid.addEventListener('click', function (e) {
       var commentsToggle = e.target.closest('.mb-comments-toggle');
       if (commentsToggle) {
         var panel = commentsToggle.closest('.mb-comments');
         var content = panel.querySelector('.mb-comments-content');
-        var opening = content.hidden;
-        content.hidden = !content.hidden;
-        updateCommentsToggleLabel(panel);
-        if (opening) {
-          var alertSpan = commentsToggle.querySelector('.mb-comment-alert');
-          if (alertSpan) alertSpan.hidden = true;
-          var file = panel.getAttribute('data-file');
-          var seen = mbGetSeenComments();
-          seen[file] = parseInt(panel.dataset.commentCount, 10) || 0;
-          mbSetSeenComments(seen);
-          refreshNavCommentAlert();
+        if (content.hidden) {
+          openCommentsPanel(panel);
+        } else {
+          content.hidden = true;
+          updateCommentsToggleLabel(panel);
         }
         return;
       }
@@ -1597,6 +1663,8 @@ document.addEventListener('DOMContentLoaded', function () {
     } else {
       loadBuilds();
     }
+
+    setInterval(pollGarageComments, 10000);
   })();
 </script>
 

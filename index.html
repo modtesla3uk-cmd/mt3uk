@@ -1808,20 +1808,25 @@
       }
     });
     if (isFirstRun) localStorage.setItem('mt3ukSeenComments', JSON.stringify(seen));
-    if (unseenTotal > 0) {
-      document.querySelectorAll('.nav-link-mybuilds, .nav-link-mybuilds-hero').forEach(function (link) {
-        if (link.querySelector('.nav-comment-alert')) return;
-        var span = document.createElement('span');
-        span.className = 'nav-comment-alert';
+    document.querySelectorAll('.nav-link-mybuilds, .nav-link-mybuilds-hero').forEach(function (link) {
+      var span = link.querySelector('.nav-comment-alert');
+      if (unseenTotal > 0) {
+        if (!span) {
+          span = document.createElement('span');
+          span.className = 'nav-comment-alert';
+          span.innerHTML = '<span class="nav-comment-alert-icon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 7l9 6 9-6"></path></svg></span>' +
+            '<span class="nav-comment-alert-count"></span>';
+          link.appendChild(span);
+        }
         span.setAttribute('aria-label', unseenTotal + ' new comment' + (unseenTotal === 1 ? '' : 's') + ' on your builds');
-        span.innerHTML = '<span class="nav-comment-alert-icon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 7l9 6 9-6"></path></svg></span>' +
-          '<span class="nav-comment-alert-count">' + unseenTotal + '</span>';
-        link.appendChild(span);
-      });
-    }
+        span.querySelector('.nav-comment-alert-count').textContent = unseenTotal;
+      } else if (span) {
+        span.remove();
+      }
+    });
   }
 
-  (function () {
+  function mt3ukPollMyBuilds() {
     var token = localStorage.getItem('mt3ukMyBuildsSession');
     if (!token) return;
     fetch(MT3UK_API + '/my-builds', {
@@ -1838,7 +1843,10 @@
         document.dispatchEvent(new Event('mt3ukMyBuildsReady'));
       })
       .catch(function () {});
-  })();
+  }
+
+  mt3ukPollMyBuilds();
+  setInterval(mt3ukPollMyBuilds, 10000);
 
   // Adds an "Edit Build" button to any rendered [data-file] element whose
   // file belongs to the signed-in account. Safe to call before the account's

@@ -703,32 +703,6 @@ async function handleCommentsPost(request, env, ctx) {
   }
   await saveComments(env, file, comments);
 
-  ctx.waitUntil((async function () {
-    try {
-      var recipientEmail = null;
-      var isReply = false;
-      if (parentId) {
-        var parentComment = comments.find(function (c) { return c.id === parentId; });
-        if (parentComment && parentComment.email && parentComment.email !== email) {
-          recipientEmail = parentComment.email;
-          isReply = true;
-        }
-      }
-      if (!recipientEmail) {
-        var ownerEmail = await getBuildOwner(env, file);
-        if (ownerEmail && ownerEmail !== email) recipientEmail = ownerEmail;
-      }
-      if (!recipientEmail) return;
-
-      var token = randomToken();
-      await env.VOTES.put('my-builds-link:' + token, recipientEmail, { expirationTtl: MY_BUILDS_LINK_TTL_SECONDS });
-      var link = MY_BUILDS_SITE_URL + '/my-builds.html?token=' + token + '&file=' + encodeURIComponent(file);
-      await sendNewCommentEmail(env, recipientEmail, comment.name, link, isReply);
-    } catch (err) {
-      console.log('New comment notification email failed:', err.message);
-    }
-  })());
-
   return json({ success: true, comment: publicComment(comment, []) });
 }
 
@@ -883,18 +857,6 @@ async function sendMyBuildsLinkEmail(env, toEmail, link) {
   await env.SEND_EMAIL.send(message);
 }
 
-async function sendNewCommentEmail(env, toEmail, commenterName, link, isReply) {
-  var subject = isReply ? 'New reply to your comment on MT3UK' : 'New comment on your MT3UK build';
-  var action = isReply ? 'replied to your comment on a build' : 'left a new comment on one of your builds';
-  var body = (commenterName || 'Someone') + ' ' + action + '.\n\n' +
-    'View and reply here:\n\n' + link +
-    '\n\nThis link signs you in automatically, expires in 15 minutes, and can only be used once ' +
-    '(handy if you\'re opening it on a different device). If it expires, just request a new sign-in ' +
-    'link from the My Garage page.';
-  var message = new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body));
-  await env.SEND_EMAIL.send(message);
-}
-
 async function sendSubscribersDigestIfUk8pm(env) {
   var now = new Date();
   var parts = new Intl.DateTimeFormat('en-GB', {
@@ -974,32 +936,6 @@ async function addSubscriberFiles(env, email, files) {
     if (existing.indexOf(f) === -1) existing.push(f);
   });
   await env.VOTES.put('subscriber:' + email, JSON.stringify(existing));
-}
-
-async function setBuildOwner(env, file, email) {
-  await env.VOTES.put('build-owner:' + file, email);
-}
-
-async function getBuildOwner(env, file) {
-  var owner = await env.VOTES.get('build-owner:' + file);
-  if (owner) return owner;
-
-  // Builds submitted before per-file owner tracking existed have no
-  // build-owner:<file> entry yet. This reverse lookup only runs on that
-  // one-time miss (not a per-visitor path) and writes the result back so
-  // every subsequent comment on that file hits the fast .get() above.
-  var list = await env.VOTES.list({ prefix: 'subscriber:' });
-  for (var i = 0; i < list.keys.length; i++) {
-    var raw = await env.VOTES.get(list.keys[i].name);
-    var files = [];
-    try { files = JSON.parse(raw) || []; } catch (e) {}
-    if (Array.isArray(files) && files.indexOf(file) !== -1) {
-      var email = list.keys[i].name.slice('subscriber:'.length);
-      await setBuildOwner(env, file, email);
-      return email;
-    }
-  }
-  return null;
 }
 
 async function removeSubscriberFile(env, email, file) {
@@ -1242,7 +1178,6 @@ async function handleMyBuildsUpload(request, env) {
     }
 
     await addSubscriberFiles(env, email, [filename]);
-    await setBuildOwner(env, filename, email);
 
     try {
       var ghHeaders = {
@@ -1835,7 +1770,6 @@ export default {
       if (email) {
         var submittedFiles = existingNames.slice(existingNames.length - photoUrls.length);
         await addSubscriberFiles(env, email, submittedFiles);
-        await Promise.all(submittedFiles.map(function (f) { return setBuildOwner(env, f, email); }));
 
         try {
           var signinToken = randomToken();

@@ -496,7 +496,8 @@
 
   .hero-cta-stack { display: inline-flex; flex-direction: column; align-items: stretch; gap: 14px; margin-bottom: 16px; }
 
-  .hero-ctas { display: flex; gap: 14px; flex-wrap: wrap; }
+  .hero-ctas { display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap; }
+  .hero-cta-group { display: flex; flex-direction: column; gap: 14px; }
 
   @media (min-width: 600px) {
     .hero-ctas .btn { min-width: 168px; justify-content: center; }
@@ -505,6 +506,7 @@
   @media (max-width: 480px) {
     .hero-cta-stack { width: 100%; }
     .hero-ctas { flex-direction: column; }
+    .hero-cta-group { width: 100%; }
     .hero-ctas .btn { width: 100%; justify-content: center; }
   }
 
@@ -522,9 +524,7 @@
   .btn-primary:hover { background: #cf4620; }
   .btn-secondary { background: transparent; color: var(--ink); }
   .btn-secondary:hover { background: var(--ink); color: var(--paper); }
-  .btn-merch { background: var(--ink); border-color: var(--ink); color: var(--paper); }
-  .btn-merch:hover { background: var(--ink-2); border-color: var(--ink-2); }
-  .btn-merch svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .btn-shop svg { width: 18px; height: 18px; flex-shrink: 0; }
 
   .hero-stats {
     display: grid;
@@ -2243,11 +2243,13 @@
         <p class="lead">MT3UK is the global community for modified Tesla owners, wraps, wheels, suspension, stance and everything in between. Real builds, honest feedback and meets worth showing up for.</p>
         <div class="hero-cta-stack">
           <div class="hero-ctas">
-            <a href="#build-feed" class="btn btn-secondary">Gallery Feed</a>
-            <a href="my-builds.html#build-upload" class="btn btn-secondary">Upload Build</a>
-            <a href="#vote-frame" class="btn btn-secondary">Vote for Build</a>
-            <a href="my-builds.html" class="btn btn-secondary nav-link-mybuilds-hero">My Garage</a>
-            <a href="shop.html" class="btn btn-merch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>Merch</a>
+            <div class="hero-cta-group">
+              <a href="#build-feed" class="btn btn-primary">Gallery Feed</a>
+              <a href="my-builds.html" class="btn btn-primary nav-link-mybuilds-hero">My Garage</a>
+            </div>
+            <a href="shop.html" class="btn btn-primary btn-shop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>Shop</a>
+            <a href="#events" class="btn btn-secondary">Events</a>
+            <a href="#track-days" class="btn btn-secondary">Track Days</a>
           </div>
           <p class="hero-vote-countdown mono" id="hero-vote-countdown"></p>
         </div>

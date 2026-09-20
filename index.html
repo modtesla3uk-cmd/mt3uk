@@ -524,7 +524,9 @@
   .btn-primary:hover { background: #cf4620; }
   .btn-secondary { background: transparent; color: var(--ink); }
   .btn-secondary:hover { background: var(--ink); color: var(--paper); }
-  .btn-shop svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .btn-shop { background: var(--ink-2); border-color: var(--ink-2); color: var(--paper); }
+  .btn-shop:hover { background: var(--ink); border-color: var(--ink); }
+  .hero-ctas .btn svg { width: 18px; height: 18px; flex-shrink: 0; }
 
   .hero-stats {
     display: grid;
@@ -2244,12 +2246,12 @@
         <div class="hero-cta-stack">
           <div class="hero-ctas">
             <div class="hero-cta-group">
-              <a href="#build-feed" class="btn btn-primary">Gallery Feed</a>
-              <a href="my-builds.html" class="btn btn-primary nav-link-mybuilds-hero">My Garage</a>
+              <a href="#build-feed" class="btn btn-secondary">Gallery Feed</a>
+              <a href="my-builds.html" class="btn btn-primary nav-link-mybuilds-hero"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V10l9-6 9 6v11"/><path d="M9 21v-8h6v8"/></svg>My Garage</a>
             </div>
-            <a href="shop.html" class="btn btn-primary btn-shop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>Shop</a>
-            <a href="#events" class="btn btn-secondary">Events</a>
-            <a href="#track-days" class="btn btn-secondary">Track Days</a>
+            <a href="shop.html" class="btn btn-shop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>Shop</a>
+            <a href="#events" class="btn btn-secondary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Events</a>
+            <a href="#track-days" class="btn btn-secondary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22V15"/></svg>Track Day Guide</a>
           </div>
           <p class="hero-vote-countdown mono" id="hero-vote-countdown"></p>
         </div>

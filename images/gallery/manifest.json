@@ -17,6 +17,7 @@
     "file": "scarlett--by-jeremy.jpg",
     "caption": "SCARLETT",
     "name": "JEREMY",
+    "votable": false,
     "added": "2026-09-20"
   },
   {
@@ -33,6 +34,7 @@
     "name": "RICHARD",
     "votable": false,
     "gallery": false,
+    "reel": false,
     "added": "2026-09-20"
   },
   {

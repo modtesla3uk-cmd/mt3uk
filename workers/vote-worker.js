@@ -703,6 +703,19 @@ async function handleCommentsPost(request, env, ctx) {
   }
   await saveComments(env, file, comments);
 
+  ctx.waitUntil((async function () {
+    try {
+      var ownerEmail = await getBuildOwner(env, file);
+      if (!ownerEmail || ownerEmail === email) return;
+      var token = randomToken();
+      await env.VOTES.put('my-builds-link:' + token, ownerEmail, { expirationTtl: MY_BUILDS_LINK_TTL_SECONDS });
+      var link = MY_BUILDS_SITE_URL + '/my-builds.html?token=' + token;
+      await sendNewCommentEmail(env, ownerEmail, comment.name, link);
+    } catch (err) {
+      console.log('New comment notification email failed:', err.message);
+    }
+  })());
+
   return json({ success: true, comment: publicComment(comment, []) });
 }
 
@@ -857,6 +870,17 @@ async function sendMyBuildsLinkEmail(env, toEmail, link) {
   await env.SEND_EMAIL.send(message);
 }
 
+async function sendNewCommentEmail(env, toEmail, commenterName, link) {
+  var subject = 'New comment on your MT3UK build';
+  var body = (commenterName || 'Someone') + ' left a new comment on one of your builds.\n\n' +
+    'View and reply here:\n\n' + link +
+    '\n\nThis link signs you in automatically, expires in 15 minutes, and can only be used once ' +
+    '(handy if you\'re opening it on a different device). If it expires, just request a new sign-in ' +
+    'link from the My Garage page.';
+  var message = new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body));
+  await env.SEND_EMAIL.send(message);
+}
+
 async function sendSubscribersDigestIfUk8pm(env) {
   var now = new Date();
   var parts = new Intl.DateTimeFormat('en-GB', {
@@ -936,6 +960,14 @@ async function addSubscriberFiles(env, email, files) {
     if (existing.indexOf(f) === -1) existing.push(f);
   });
   await env.VOTES.put('subscriber:' + email, JSON.stringify(existing));
+}
+
+async function setBuildOwner(env, file, email) {
+  await env.VOTES.put('build-owner:' + file, email);
+}
+
+async function getBuildOwner(env, file) {
+  return env.VOTES.get('build-owner:' + file);
 }
 
 async function removeSubscriberFile(env, email, file) {
@@ -1178,6 +1210,7 @@ async function handleMyBuildsUpload(request, env) {
     }
 
     await addSubscriberFiles(env, email, [filename]);
+    await setBuildOwner(env, filename, email);
 
     try {
       var ghHeaders = {
@@ -1770,6 +1803,7 @@ export default {
       if (email) {
         var submittedFiles = existingNames.slice(existingNames.length - photoUrls.length);
         await addSubscriberFiles(env, email, submittedFiles);
+        await Promise.all(submittedFiles.map(function (f) { return setBuildOwner(env, f, email); }));
 
         try {
           var signinToken = randomToken();

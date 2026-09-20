@@ -1,11 +1,11 @@
-def test_my_garage_nav_link_has_new_badge(page):
+def test_my_garage_nav_link_has_no_new_badge(page):
     page.goto("/index.html")
     my_garage_link = page.locator("a.nav-link-mybuilds")
     assert my_garage_link.count() == 1
     badge_content = my_garage_link.evaluate(
         "el => getComputedStyle(el, '::after').content"
     )
-    assert "NEW" in badge_content
+    assert "NEW" not in badge_content
 
 
 def test_shop_page_merch_comes_before_parts(page):

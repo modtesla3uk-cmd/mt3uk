@@ -221,26 +221,21 @@
     line-height: 1;
   }
 
-  .nav-link-mybuilds::after {
-    content: 'NEW';
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.62rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    color: var(--paper);
-    background: var(--orange);
-    padding: 2px 5px;
-    border-radius: 3px;
-    line-height: 1;
-  }
-
   .nav-comment-alert {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 15px; height: 15px;
+    display: inline-flex; align-items: center; gap: 4px;
     color: var(--orange);
+  }
+  .nav-comment-alert-icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 16px; height: 16px;
     animation: navCommentPulse 1.1s ease-in-out infinite;
   }
-  .nav-comment-alert svg { width: 100%; height: 100%; fill: currentColor; }
+  .nav-comment-alert-icon svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .nav-comment-alert-count {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
   @keyframes navCommentPulse {
     0%, 100% { opacity: 1; transform: scale(1); }
     50% { opacity: 0.3; transform: scale(0.8); }
@@ -1814,23 +1809,24 @@
     var seen = {};
     try { seen = JSON.parse(seenRaw || '{}'); } catch (e) { seen = {}; }
     var isFirstRun = seenRaw === null;
-    var hasNew = false;
+    var unseenTotal = 0;
     builds.forEach(function (b) {
       var count = b.commentCount || 0;
       if (isFirstRun) {
         seen[b.file] = count;
       } else if (count > (seen[b.file] || 0)) {
-        hasNew = true;
+        unseenTotal += count - (seen[b.file] || 0);
       }
     });
     if (isFirstRun) localStorage.setItem('mt3ukSeenComments', JSON.stringify(seen));
-    if (hasNew) {
+    if (unseenTotal > 0) {
       var link = document.querySelector('.nav-link-mybuilds');
       if (link && !link.querySelector('.nav-comment-alert')) {
         var span = document.createElement('span');
         span.className = 'nav-comment-alert';
-        span.setAttribute('aria-label', 'New comments on your builds');
-        span.innerHTML = '<svg viewBox="0 0 24 24"><path d="M4 4h16v12H7l-3 3z"/></svg>';
+        span.setAttribute('aria-label', unseenTotal + ' new comment' + (unseenTotal === 1 ? '' : 's') + ' on your builds');
+        span.innerHTML = '<span class="nav-comment-alert-icon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 7l9 6 9-6"></path></svg></span>' +
+          '<span class="nav-comment-alert-count">' + unseenTotal + '</span>';
         link.appendChild(span);
       }
     }

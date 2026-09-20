@@ -496,6 +496,33 @@ async function getLikesAggregate(env, ctx) {
   return likes;
 }
 
+async function getCommentCountsAggregate(env, ctx) {
+  var cacheKey = new Request('https://mt3uk-cache.internal/comment-counts-agg');
+  var cache = caches.default;
+  var cached = await cache.match(cacheKey);
+  if (cached) return cached.json();
+
+  var commentsList = await env.VOTES.list({ prefix: 'comments:' });
+  var counts = {};
+  await Promise.all(commentsList.keys.map(async function (k) {
+    var file = k.name.slice('comments:'.length);
+    var comments = await getComments(env, file);
+    var visible = comments.filter(function (c) { return !c.hidden; });
+    if (visible.length) counts[file] = visible.length;
+  }));
+
+  var response = new Response(JSON.stringify(counts), {
+    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=' + LIKES_CACHE_SECONDS }
+  });
+  ctx.waitUntil(cache.put(cacheKey, response.clone()));
+  return counts;
+}
+
+async function handleCommentCountsGet(request, env, ctx) {
+  var counts = await getCommentCountsAggregate(env, ctx);
+  return json({ success: true, counts: counts });
+}
+
 async function getLikerFiles(env, voterId) {
   var raw = await env.VOTES.get('liker-files:' + voterId);
   if (!raw) return [];
@@ -1593,6 +1620,9 @@ export default {
     }
     if (url.pathname === '/comments' && request.method === 'GET') {
       return handleCommentsGet(request, env, ctx);
+    }
+    if (url.pathname === '/comment-counts' && request.method === 'GET') {
+      return handleCommentCountsGet(request, env, ctx);
     }
     if (url.pathname === '/comments' && request.method === 'POST') {
       return handleCommentsPost(request, env, ctx);

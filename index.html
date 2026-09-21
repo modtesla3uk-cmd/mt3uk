@@ -445,6 +445,11 @@
     padding: 40px 0 0;
     overflow: hidden;
     border-bottom: 1px solid var(--ink);
+    background-image: linear-gradient(rgba(244, 243, 238), rgba(244, 243, 238, 0.72)),
+      url('images/site/65-model-3-build-spec--by-richard.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
   }
 
   .hero-grid {
@@ -557,6 +562,19 @@
     .hero-ctas { justify-content: center; }
     .hero-stats { max-width: 480px; margin: 0 auto; }
     .hero-media { align-items: center; }
+  }
+
+  @media (max-width: 600px) {
+    /* The hero image is a wide landscape shot, so `cover` on a tall
+       portrait phone crops most of the car out of frame. Switch to
+       `contain` so the whole car is visible, and lighten the overlay
+       further since a smaller image needs more contrast to still read. */
+    .hero {
+      background-size: contain;
+      background-position: center 95px;
+      background-image: linear-gradient(rgba(244, 243, 238), rgba(244, 243, 238, 0.5)),
+        url('images/site/65-model-3-build-spec--by-richard.jpg');
+    }
   }
 
   /* --- blueprint diagram --- */

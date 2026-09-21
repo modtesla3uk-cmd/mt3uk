@@ -891,12 +891,15 @@ async function sendSubscribersDigestIfUk8pm(env) {
   }).formatToParts(now);
   var ukHour = parts.find(function (p) { return p.type === 'hour'; }).value;
   var ukMinute = parts.find(function (p) { return p.type === 'minute'; }).value;
-  // Narrowed to the 20:00 minute (not the whole hour) so that on a busy site,
-  // far fewer concurrent requests are racing to claim the send below - KV
-  // writes take up to ~60s to propagate globally, so a wide window let a
-  // burst of simultaneous requests from different edge locations all read
-  // "not sent yet" and each send a duplicate email.
-  if (ukHour !== '20' || ukMinute !== '00') return;
+  // Narrowed to the top of the 20:00 hour (not the whole hour) so that on a
+  // busy site, far fewer concurrent requests are racing to claim the send
+  // below - KV writes take up to ~60s to propagate globally, so a wide
+  // window let a burst of simultaneous requests from different edge
+  // locations all read "not sent yet" and each send a duplicate email. The
+  // window is a few minutes wide (rather than exactly :00) so the */5 cron
+  // trigger below - which can land a little after the scheduled tick - still
+  // has a chance to catch it even without any site traffic to piggyback on.
+  if (ukHour !== '20' || Number(ukMinute) >= 5) return;
 
   var todayStr = ukDateString(now);
 
@@ -1819,5 +1822,8 @@ export default {
 
   async scheduled(event, env, ctx) {
     ctx.waitUntil(tallyVotesIfUkMidnight(env));
+    ctx.waitUntil(sendSubscribersDigestIfUk8pm(env).catch(function (e) {
+      console.log('Subscribers digest failed:', e.message);
+    }));
   }
 };

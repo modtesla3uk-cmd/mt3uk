@@ -1,0 +1,20 @@
+{
+  "env": {
+    "ENABLE_TOOL_SEARCH": "true",
+    "ANTHROPIC_BASE_URL": "http://127.0.0.1:8787"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "C:/Users/rich/AppData/Local/Programs/Python/Python312/Scripts/headroom.EXE wrap selfheal --marker headroom-wrap-selfheal",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

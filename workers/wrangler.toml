@@ -21,3 +21,9 @@ name = "SEND_EMAIL"
 
 [observability]
 enabled = true
+
+[triggers]
+# Every 5 minutes, so the UK-midnight vote tally and UK-8pm subscribers
+# digest checks in `scheduled()` get a tick close enough to their target
+# time even if Cloudflare cron triggers fire a little late on this account.
+crons = ["*/5 * * * *"]

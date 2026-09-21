@@ -31,7 +31,7 @@
   :root {
     --ink: #16233d;
     --ink-2: #223257;
-        --paper: #f3f1ea;
+    --paper: #f3f1ea;
     --paper-2: #e9e5d8;
     --charcoal: #1c1c1c;
     --orange: #e8542a;
@@ -442,10 +442,10 @@
   /* ---------- HERO ---------- */
   .hero {
     position: relative;
-    padding: 40px 0 0;
+    padding: 40px 0 20px;
     overflow: hidden;
     border-bottom: 1px solid var(--ink);
-    background-image: linear-gradient(rgba(244, 243, 238), rgba(244, 243, 238, 0.72)),
+    background-image: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.65)),
       url('images/site/65-model-3-build-spec--by-richard.jpg');
     background-size: cover;
     background-position: center;
@@ -500,20 +500,22 @@
   }
   .btn-join-community:hover { background: #145dbf; border-color: #145dbf; }
 
-  .hero-cta-stack { display: inline-flex; flex-direction: column; align-items: stretch; gap: 14px; margin-bottom: 16px; }
-
-  .hero-ctas { display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap; }
-  .hero-cta-group { display: flex; flex-direction: column; gap: 14px; }
-
-  @media (min-width: 600px) {
-    .hero-ctas .btn { min-width: 168px; justify-content: center; }
+  /* Grid layout for the CTA buttons */
+  .hero-cta-stack { 
+    display: flex; 
+    flex-direction: column; 
+    align-items: stretch; 
+    gap: 14px; 
+    margin-bottom: 16px; 
+    width: 100%; 
+    max-width: 700px; 
   }
 
-  @media (max-width: 480px) {
-    .hero-cta-stack { width: 100%; }
-    .hero-ctas { flex-direction: column; }
-    .hero-cta-group { width: 100%; }
-    .hero-ctas .btn { width: 100%; justify-content: center; }
+  .hero-ctas { 
+    display: grid; 
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 12px; 
+    width: 100%; 
   }
 
   .btn {
@@ -532,6 +534,19 @@
   .btn-secondary:hover { background: var(--ink); color: var(--paper); }
   .btn-shop { background: var(--ink-2); border-color: var(--ink-2); color: var(--paper); }
   .btn-shop:hover { background: var(--ink); border-color: var(--ink); }
+
+  /* Transparent, borderless button style for Hero */
+  .btn-outline-light {
+    background: transparent;
+    border-color: transparent;
+    color: var(--white);
+  }
+  .btn-outline-light:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: transparent;
+    color: var(--white);
+  }
+
   .hero-ctas .btn svg { width: 18px; height: 18px; flex-shrink: 0; }
 
   .hero-stats {
@@ -539,19 +554,54 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
     padding-top: 12px;
-    border-top: 1px solid var(--ink);
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
   }
   .hero-stats div strong {
     display: block;
     font-family: 'Archivo Expanded', sans-serif;
     font-size: 1.5rem;
-    color: var(--ink);
+    color: var(--white);
   }
   .hero-stats div span {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.7rem;
-    color: var(--steel);
+    color: rgba(255, 255, 255, 0.75);
     letter-spacing: 0.04em;
+  }
+
+  .hero-media { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+  .hero-media-note {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.85);
+    text-align: center;
+    max-width: 340px;
+  }
+  .hero-media-note a { color: var(--orange); }
+  .hero-vote-countdown { font-size: 0.78rem; color: rgba(255, 255, 255, 0.75); margin: 28px 0 0 0; }
+  .hero-vote-countdown strong { color: var(--orange); font-weight: 700; }
+
+  @media (min-width: 600px) {
+    .hero-ctas .btn { justify-content: center; }
+  }
+
+  /* Specific Mobile Overrides for the Hero text, padding, and buttons */
+  @media (max-width: 599px) {
+    .hero {
+      padding-bottom: 150px; 
+    }
+    .hero h1 { font-size: 1.8rem; margin-bottom: 12px; line-height: 1.1; }
+    .hero p.lead { font-size: 0.9rem; margin-bottom: 24px; line-height: 1.4; }
+    .hero-cta-stack { width: 100%; }
+    .hero-ctas { gap: 18px 12px; } /* Increased vertical gap */
+    .hero-ctas .btn { 
+      justify-content: flex-start; 
+      padding: 10px 0; 
+      font-size: 0.92rem; 
+      text-align: left; 
+    }
+    .hero-ctas .btn svg { width: 20px; height: 20px; margin-right: 4px; }
+    .hero-vote-countdown { margin-top: 48px; } 
   }
 
   @media (min-width: 901px) {
@@ -565,14 +615,10 @@
   }
 
   @media (max-width: 600px) {
-    /* The hero image is a wide landscape shot, so `cover` on a tall
-       portrait phone crops most of the car out of frame. Switch to
-       `contain` so the whole car is visible, and lighten the overlay
-       further since a smaller image needs more contrast to still read. */
     .hero {
-      background-size: contain;
-      background-position: center 95px;
-      background-image: linear-gradient(rgba(244, 243, 238), rgba(244, 243, 238, 0.5)),
+      background-size: cover;
+      background-position: center center;
+      background-image: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.65)),
         url('images/site/65-model-3-build-spec--by-richard.jpg');
     }
   }
@@ -854,10 +900,6 @@
   .bf-frame.bf-frame-empty { aspect-ratio: auto; height: auto; }
 
   @media (max-width: 600px) {
-    /* The .wrap side padding was eating into how tall a 3:4 box could get
-       on a narrow phone, so this breaks the frame out to the full viewport
-       width and switches to a taller ratio to make better use of the
-       screen, matching the desktop fill-more-of-the-viewport treatment. */
     .bf-frame {
       width: min(84vw, calc(72vh * 3 / 5));
       aspect-ratio: 3 / 5;
@@ -883,17 +925,6 @@
     transition: opacity 0.25s ease, transform 0.25s ease;
   }
   .bf-new-toast.bf-new-toast-show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
-  .hero-media { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
-  .hero-media-note {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.78rem;
-    color: var(--steel);
-    text-align: center;
-    max-width: 340px;
-  }
-  .hero-media-note a { color: var(--orange); }
-  .hero-vote-countdown { font-size: 0.78rem; color: var(--steel); margin: 0; }
-  .hero-vote-countdown strong { color: var(--orange); font-weight: 700; }
   .bf-progress {
     position: absolute;
     top: 12px; left: 14px; right: 14px;
@@ -2163,32 +2194,6 @@
   };
 </script>
 
-<!-- Promo banner disabled: no active offer. Re-enable by removing this comment wrapper when a new promo is ready.
-<div class="promo-banner" id="promo-banner">
-  <div class="promo-banner-inner">
-    <div class="promo-banner-track">
-      <a href="shop.html#merch" class="promo-banner-msg">&#9201; New Tee options available!! | Hoodies | Club Stickers | Master Cylinder Braces | Brake Pads | Number Plates, shop now &rarr;</a>
-      <a href="shop.html#merch" class="promo-banner-msg" aria-hidden="true">&#9201; New Tee options available!! | Hoodies | Club Stickers | Master Cylinder Braces | Brake Pads | Number Plates, shop now &rarr;</a>
-    </div>
-    <button type="button" class="promo-banner-close" id="promo-banner-close" aria-label="Dismiss banner">&times;</button>
-  </div>
-</div>
-<script>
-  (function () {
-    var KEY = 'mt3uk-promo-tee-dismissed';
-    var EXPIRY_MS = 7 * 24 * 60 * 60 * 1000;
-    var banner = document.getElementById('promo-banner');
-    if (!banner) return;
-    var dismissedAt = parseInt(localStorage.getItem(KEY), 10);
-    if (dismissedAt && (Date.now() - dismissedAt) < EXPIRY_MS) { banner.remove(); return; }
-    document.getElementById('promo-banner-close').addEventListener('click', function () {
-      banner.remove();
-      try { localStorage.setItem(KEY, String(Date.now())); } catch (e) {}
-    });
-  })();
-</script>
--->
-
 <header>
   <nav>
     <div class="nav-center">
@@ -2271,17 +2276,15 @@
     <div class="hero-grid">
       <div>
         <div class="hero-tag"><span class="member-count"></span> members</div>
-        <h1>The Modified Tesla Community</h1>
-        <p class="lead">MT3UK is the global community for modified Tesla owners, wraps, wheels, suspension, stance and everything in between. Real builds, honest feedback and meets worth showing up for.</p>
+        <h1 style="color: #ffffff;">The Modified Tesla Community</h1>
+        <p class="lead" style="color: #ffffff;">MT3UK is the global community for modified Tesla owners, wraps, wheels, suspension, stance and everything in between. Real builds, honest feedback and meets worth showing up for.</p>
         <div class="hero-cta-stack">
           <div class="hero-ctas">
-            <div class="hero-cta-group">
-              <a href="#build-feed" class="btn btn-secondary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 3v18M17 3v18M3 7h4M3 17h4M17 7h4M17 17h4M3 12h18"/></svg>Gallery Feed</a>
-              <a href="my-builds.html" class="btn btn-primary nav-link-mybuilds-hero"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V10l9-6 9 6v11"/><path d="M9 21v-8h6v8"/></svg>My Garage</a>
-            </div>
-            <a href="shop.html" class="btn btn-shop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>Shop</a>
-            <a href="#events" class="btn btn-secondary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Events</a>
-            <a href="#track-days" class="btn btn-secondary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22V15"/></svg>Track Day Guide</a>
+            <a href="#build-feed" class="btn btn-outline-light"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 3v18M17 3v18M3 7h4M3 17h4M17 7h4M17 17h4M3 12h18"/></svg>Gallery Feed</a>
+            <a href="my-builds.html" class="btn btn-outline-light nav-link-mybuilds-hero"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V10l9-6 9 6v11"/><path d="M9 21v-8h6v8"/></svg>My Garage</a>
+            <a href="#events" class="btn btn-outline-light"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Events</a>
+            <a href="#track-days" class="btn btn-outline-light"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22V15"/></svg>Track Day Guide</a>
+            <a href="shop.html" class="btn btn-outline-light"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>Shop</a>
           </div>
           <p class="hero-vote-countdown mono" id="hero-vote-countdown"></p>
         </div>
@@ -3268,785 +3271,783 @@
   </div>
 </footer>
 
+<script>
+  (function () {
+    var style = document.createElement('style');
+    style.textContent = '.gallery-slot.filled img { cursor: zoom-in; } .lightbox { position: fixed; inset: 0; background: rgba(22,35,61,0.94); display: none; align-items: center; justify-content: center; flex-direction: column; z-index: 200; padding: 40px 20px; } .lightbox.open { display: flex; } .lightbox-img { max-width: min(92vw, 1100px); max-height: 78vh; object-fit: contain; border: 1px solid rgba(243,241,234,0.25); } .lightbox-caption { margin-top: 16px; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; letter-spacing: 0.04em; color: var(--paper); } .lightbox-mods { display: none; margin-top: 10px; max-width: min(92vw, 1100px); font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; letter-spacing: 0.03em; color: rgba(243,241,234,0.7); text-align: center; } .lightbox-mods.has-mods { display: block; } .lightbox-close { position: absolute; top: 22px; right: 28px; background: transparent; border: 1px solid var(--paper); color: var(--paper); width: 40px; height: 40px; font-size: 1.4rem; line-height: 1; cursor: pointer; } .lightbox-close:hover { background: var(--orange); border-color: var(--orange); } .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(22,35,61,0.6); border: 1px solid var(--paper); color: var(--paper); width: 46px; height: 46px; font-size: 1.6rem; line-height: 1; cursor: pointer; } .lightbox-nav:hover { background: var(--orange); border-color: var(--orange); } .lightbox-prev { left: 20px; } .lightbox-next { right: 20px; } @media (max-width: 700px) { .lightbox-nav { width: 38px; height: 38px; font-size: 1.3rem; } .lightbox-prev { left: 8px; } .lightbox-next { right: 8px; } } @media (max-width: 600px) { .lightbox-close { top: 14px; right: 14px; width: 36px; height: 36px; } } .lightbox-vote { display: none; margin-top: 16px; align-items: center; gap: 14px; } .lightbox.open[data-mode="vote"] .lightbox-vote { display: flex; } .lightbox-vote-count { font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; letter-spacing: 0.04em; color: var(--paper); } .lightbox-vote-btn { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; letter-spacing: 0.04em; padding: 9px 16px; border: 1px solid var(--paper); background: transparent; color: var(--paper); cursor: pointer; transition: background .2s ease, color .2s ease; } .lightbox-vote-btn:hover:not(:disabled) { background: var(--orange); border-color: var(--orange); } .lightbox-vote-btn:disabled { cursor: default; opacity: 0.7; background: var(--orange); border-color: var(--orange); }';
+    document.head.appendChild(style);
 
+    var lightbox = document.createElement('div');
+    lightbox.id = 'lightbox';
+    lightbox.className = 'lightbox';
+    lightbox.setAttribute('role', 'dialog');
+    lightbox.setAttribute('aria-modal', 'true');
+    lightbox.setAttribute('aria-hidden', 'true');
+    lightbox.innerHTML = '<button class="lightbox-close" aria-label="Close">&times;</button><button class="lightbox-nav lightbox-prev" aria-label="Previous photo">&lsaquo;</button><button class="lightbox-nav lightbox-next" aria-label="Next photo">&rsaquo;</button><img class="lightbox-img" src="" alt=""><div class="lightbox-caption"></div><div class="lightbox-mods"></div><div class="lightbox-vote"><span class="lightbox-vote-count"></span><button type="button" class="lightbox-vote-btn">Vote for this build</button></div>';
+    document.body.appendChild(lightbox);
 
-  <script>
-    (function () {
-        var style = document.createElement('style');
-        style.textContent = '.gallery-slot.filled img { cursor: zoom-in; } .lightbox { position: fixed; inset: 0; background: rgba(22,35,61,0.94); display: none; align-items: center; justify-content: center; flex-direction: column; z-index: 200; padding: 40px 20px; } .lightbox.open { display: flex; } .lightbox-img { max-width: min(92vw, 1100px); max-height: 78vh; object-fit: contain; border: 1px solid rgba(243,241,234,0.25); } .lightbox-caption { margin-top: 16px; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; letter-spacing: 0.04em; color: var(--paper); } .lightbox-mods { display: none; margin-top: 10px; max-width: min(92vw, 1100px); font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; letter-spacing: 0.03em; color: rgba(243,241,234,0.7); text-align: center; } .lightbox-mods.has-mods { display: block; } .lightbox-close { position: absolute; top: 22px; right: 28px; background: transparent; border: 1px solid var(--paper); color: var(--paper); width: 40px; height: 40px; font-size: 1.4rem; line-height: 1; cursor: pointer; } .lightbox-close:hover { background: var(--orange); border-color: var(--orange); } .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(22,35,61,0.6); border: 1px solid var(--paper); color: var(--paper); width: 46px; height: 46px; font-size: 1.6rem; line-height: 1; cursor: pointer; } .lightbox-nav:hover { background: var(--orange); border-color: var(--orange); } .lightbox-prev { left: 20px; } .lightbox-next { right: 20px; } @media (max-width: 700px) { .lightbox-nav { width: 38px; height: 38px; font-size: 1.3rem; } .lightbox-prev { left: 8px; } .lightbox-next { right: 8px; } } @media (max-width: 600px) { .lightbox-close { top: 14px; right: 14px; width: 36px; height: 36px; } } .lightbox-vote { display: none; margin-top: 16px; align-items: center; gap: 14px; } .lightbox.open[data-mode="vote"] .lightbox-vote { display: flex; } .lightbox-vote-count { font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; letter-spacing: 0.04em; color: var(--paper); } .lightbox-vote-btn { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; letter-spacing: 0.04em; padding: 9px 16px; border: 1px solid var(--paper); background: transparent; color: var(--paper); cursor: pointer; transition: background .2s ease, color .2s ease; } .lightbox-vote-btn:hover:not(:disabled) { background: var(--orange); border-color: var(--orange); } .lightbox-vote-btn:disabled { cursor: default; opacity: 0.7; background: var(--orange); border-color: var(--orange); }';
-        document.head.appendChild(style);
+    var lightboxImg = lightbox.querySelector('.lightbox-img');
+    var lightboxCaption = lightbox.querySelector('.lightbox-caption');
+    var lightboxMods = lightbox.querySelector('.lightbox-mods');
+    var closeBtn = lightbox.querySelector('.lightbox-close');
+    var prevBtn = lightbox.querySelector('.lightbox-prev');
+    var nextBtn = lightbox.querySelector('.lightbox-next');
+    var galleryGrid = document.getElementById('gallery-grid');
+    var savedStrip = document.getElementById('saved-builds-strip');
+    var currentIndex = -1;
 
-        var lightbox = document.createElement('div');
-        lightbox.id = 'lightbox';
-        lightbox.className = 'lightbox';
-        lightbox.setAttribute('role', 'dialog');
-        lightbox.setAttribute('aria-modal', 'true');
-        lightbox.setAttribute('aria-hidden', 'true');
-        lightbox.innerHTML = '<button class="lightbox-close" aria-label="Close">&times;</button><button class="lightbox-nav lightbox-prev" aria-label="Previous photo">&lsaquo;</button><button class="lightbox-nav lightbox-next" aria-label="Next photo">&rsaquo;</button><img class="lightbox-img" src="" alt=""><div class="lightbox-caption"></div><div class="lightbox-mods"></div><div class="lightbox-vote"><span class="lightbox-vote-count"></span><button type="button" class="lightbox-vote-btn">Vote for this build</button></div>';
-        document.body.appendChild(lightbox);
+    function getGalleryImgs() {
+      return galleryGrid ? Array.prototype.slice.call(galleryGrid.querySelectorAll('img')) : [];
+    }
 
-        var lightboxImg = lightbox.querySelector('.lightbox-img');
-        var lightboxCaption = lightbox.querySelector('.lightbox-caption');
-        var lightboxMods = lightbox.querySelector('.lightbox-mods');
-        var closeBtn = lightbox.querySelector('.lightbox-close');
-        var prevBtn = lightbox.querySelector('.lightbox-prev');
-        var nextBtn = lightbox.querySelector('.lightbox-next');
-        var galleryGrid = document.getElementById('gallery-grid');
-        var savedStrip = document.getElementById('saved-builds-strip');
-        var currentIndex = -1;
+    function getSavedImgs() {
+      return savedStrip ? Array.prototype.slice.call(savedStrip.querySelectorAll('img')) : [];
+    }
 
-        function getGalleryImgs() {
-              return galleryGrid ? Array.prototype.slice.call(galleryGrid.querySelectorAll('img')) : [];
-        }
+    function getImgsForMode() {
+      return lightbox.dataset.mode === 'saved' ? getSavedImgs() : getGalleryImgs();
+    }
 
-        function getSavedImgs() {
-              return savedStrip ? Array.prototype.slice.call(savedStrip.querySelectorAll('img')) : [];
-        }
+    function showAt(index) {
+      var imgs = getImgsForMode();
+      if (!imgs.length) return;
+      currentIndex = (index + imgs.length) % imgs.length;
+      var img = imgs[currentIndex];
+      lightboxImg.src = img.src;
+      lightboxImg.alt = img.alt || '';
+      lightboxCaption.textContent = img.alt || '';
+      var mods = [];
+      if (img.dataset.mods) {
+        try { mods = JSON.parse(img.dataset.mods); } catch (e) { mods = []; }
+      }
+      lightboxMods.textContent = mods.length ? 'Mods: ' + mods.join(' · ') : '';
+      lightboxMods.classList.toggle('has-mods', mods.length > 0);
+    }
 
-        function getImgsForMode() {
-              return lightbox.dataset.mode === 'saved' ? getSavedImgs() : getGalleryImgs();
-        }
+    function openLightbox(index, mode) {
+      lightbox.dataset.mode = mode || 'gallery';
+      showAt(index);
+      lightbox.classList.add('open');
+      lightbox.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    }
 
-        function showAt(index) {
-              var imgs = getImgsForMode();
-              if (!imgs.length) return;
-              currentIndex = (index + imgs.length) % imgs.length;
-              var img = imgs[currentIndex];
-              lightboxImg.src = img.src;
-              lightboxImg.alt = img.alt || '';
-              lightboxCaption.textContent = img.alt || '';
-              var mods = [];
-              if (img.dataset.mods) {
-                try { mods = JSON.parse(img.dataset.mods); } catch (e) { mods = []; }
-              }
-              lightboxMods.textContent = mods.length ? 'Mods: ' + mods.join(' · ') : '';
-              lightboxMods.classList.toggle('has-mods', mods.length > 0);
-        }
+    function closeLightbox() {
+      lightbox.classList.remove('open');
+      lightbox.setAttribute('aria-hidden', 'true');
+      lightboxImg.src = '';
+      document.body.style.overflow = '';
+    }
 
-        function openLightbox(index, mode) {
-              lightbox.dataset.mode = mode || 'gallery';
-              showAt(index);
-              lightbox.classList.add('open');
-              lightbox.setAttribute('aria-hidden', 'false');
-              document.body.style.overflow = 'hidden';
-        }
+    if (galleryGrid) {
+      galleryGrid.addEventListener('click', function (e) {
+        var badge = e.target.closest('.g-mods-badge');
+        var img = badge ? badge.closest('.gallery-slot').querySelector('img') : e.target.closest('img');
+        if (!img) return;
+        var imgs = getGalleryImgs();
+        openLightbox(imgs.indexOf(img));
+      });
+    }
 
-        function closeLightbox() {
-              lightbox.classList.remove('open');
-              lightbox.setAttribute('aria-hidden', 'true');
-              lightboxImg.src = '';
-              document.body.style.overflow = '';
-        }
+    if (savedStrip) {
+      savedStrip.addEventListener('click', function (e) {
+        var thumb = e.target.closest('.sb-thumb');
+        var img = thumb ? thumb.querySelector('img') : null;
+        if (!img) return;
+        var imgs = getSavedImgs();
+        openLightbox(imgs.indexOf(img), 'saved');
+      });
+    }
 
-        if (galleryGrid) {
-              galleryGrid.addEventListener('click', function (e) {
-                      var badge = e.target.closest('.g-mods-badge');
-                      var img = badge ? badge.closest('.gallery-slot').querySelector('img') : e.target.closest('img');
-                      if (!img) return;
-                      var imgs = getGalleryImgs();
-                      openLightbox(imgs.indexOf(img));
-              });
-        }
+    function isScrollableMode() {
+      return lightbox.dataset.mode === 'gallery' || lightbox.dataset.mode === 'saved';
+    }
 
-        if (savedStrip) {
-              savedStrip.addEventListener('click', function (e) {
-                      var thumb = e.target.closest('.sb-thumb');
-                      var img = thumb ? thumb.querySelector('img') : null;
-                      if (!img) return;
-                      var imgs = getSavedImgs();
-                      openLightbox(imgs.indexOf(img), 'saved');
-              });
-        }
+    closeBtn.addEventListener('click', closeLightbox);
+    prevBtn.addEventListener('click', function (e) {
+      if (!isScrollableMode()) return;
+      e.stopPropagation();
+      showAt(currentIndex - 1);
+    });
+    nextBtn.addEventListener('click', function (e) {
+      if (!isScrollableMode()) return;
+      e.stopPropagation();
+      showAt(currentIndex + 1);
+    });
 
-        function isScrollableMode() {
-              return lightbox.dataset.mode === 'gallery' || lightbox.dataset.mode === 'saved';
-        }
+    lightbox.addEventListener('click', function (e) {
+      if (e.target === lightbox) closeLightbox();
+    });
 
-        closeBtn.addEventListener('click', closeLightbox);
-        prevBtn.addEventListener('click', function (e) {
-              if (!isScrollableMode()) return;
-              e.stopPropagation();
-              showAt(currentIndex - 1);
-        });
-        nextBtn.addEventListener('click', function (e) {
-              if (!isScrollableMode()) return;
-              e.stopPropagation();
-              showAt(currentIndex + 1);
-        });
-
-        lightbox.addEventListener('click', function (e) {
-              if (e.target === lightbox) closeLightbox();
-        });
-
-        document.addEventListener('keydown', function (e) {
-              if (!lightbox.classList.contains('open')) return;
-              if (e.key === 'Escape') closeLightbox();
-              if (!isScrollableMode()) return;
-              if (e.key === 'ArrowRight') showAt(currentIndex + 1);
-              if (e.key === 'ArrowLeft') showAt(currentIndex - 1);
-        });
-    })();
+    document.addEventListener('keydown', function (e) {
+      if (!lightbox.classList.contains('open')) return;
+      if (e.key === 'Escape') closeLightbox();
+      if (!isScrollableMode()) return;
+      if (e.key === 'ArrowRight') showAt(currentIndex + 1);
+      if (e.key === 'ArrowLeft') showAt(currentIndex - 1);
+    });
+  })();
 </script>
 
-  <script>
-    (function () {
-        var hamburger = document.getElementById('hamburger');
-        var navMenu = document.getElementById('navlinks');
-        var mobileMenu = document.getElementById('mobile-menu');
-        if (!hamburger || !navMenu) return;
+<script>
+  (function () {
+    var hamburger = document.getElementById('hamburger');
+    var navMenu = document.getElementById('navlinks');
+    var mobileMenu = document.getElementById('mobile-menu');
+    if (!hamburger || !navMenu) return;
 
-        function closeMenu() {
-              navMenu.classList.remove('active');
-              if (mobileMenu) mobileMenu.style.display = 'none';
-              hamburger.setAttribute('aria-expanded', 'false');
-        }
+    function closeMenu() {
+      navMenu.classList.remove('active');
+      if (mobileMenu) mobileMenu.style.display = 'none';
+      hamburger.setAttribute('aria-expanded', 'false');
+    }
 
-        hamburger.addEventListener('click', function (e) {
-              e.stopPropagation();
-              var open = navMenu.classList.toggle('active');
-              if (mobileMenu) mobileMenu.style.display = open ? 'block' : 'none';
-              hamburger.setAttribute('aria-expanded', open ? 'true' : 'false');
-        });
+    hamburger.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var open = navMenu.classList.toggle('active');
+      if (mobileMenu) mobileMenu.style.display = open ? 'block' : 'none';
+      hamburger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
 
-        navMenu.querySelectorAll('.nav-link').forEach(function (link) {
-              link.addEventListener('click', function () {
-                    closeMenu();
-                    navMenu.querySelectorAll('.nav-link').forEach(function (l) { l.classList.remove('active'); });
-                    link.classList.add('active');
-              });
-        });
+    navMenu.querySelectorAll('.nav-link').forEach(function (link) {
+      link.addEventListener('click', function () {
+        closeMenu();
+        navMenu.querySelectorAll('.nav-link').forEach(function (l) { l.classList.remove('active'); });
+        link.classList.add('active');
+      });
+    });
 
-        navMenu.querySelectorAll('.nav-sublink').forEach(function (link) {
-              link.addEventListener('click', closeMenu);
-        });
+    navMenu.querySelectorAll('.nav-sublink').forEach(function (link) {
+      link.addEventListener('click', closeMenu);
+    });
 
-        navMenu.querySelectorAll('.nav-dropdown-toggle').forEach(function (toggle) {
-              toggle.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    var item = toggle.closest('.nav-item');
-                    var open = item.classList.toggle('open');
-                    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-              });
-        });
+    navMenu.querySelectorAll('.nav-dropdown-toggle').forEach(function (toggle) {
+      toggle.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var item = toggle.closest('.nav-item');
+        var open = item.classList.toggle('open');
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+    });
 
-        document.addEventListener('click', function (e) {
-              if (!e.target.closest('header nav')) closeMenu();
-        });
-    })();
-  </script>
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('header nav')) closeMenu();
+    });
+  })();
+</script>
 
-  <script>
-    (function () {
-      var list = document.getElementById('confirmed-events-list');
-      var pastSection = document.getElementById('past-events-section');
-      var pastList = document.getElementById('past-events-list');
-      if (!list) return;
+<script>
+  (function () {
+    var list = document.getElementById('confirmed-events-list');
+    var pastSection = document.getElementById('past-events-section');
+    var pastList = document.getElementById('past-events-list');
+    if (!list) return;
 
-      function formatTime(date) {
-        var hours = date.getUTCHours();
-        var minutes = date.getUTCMinutes();
-        var suffix = hours >= 12 ? 'pm' : 'am';
-        var hour12 = hours % 12 || 12;
-        return minutes ? hour12 + ':' + (minutes < 10 ? '0' : '') + minutes + suffix : hour12 + suffix;
+    function formatTime(date) {
+      var hours = date.getUTCHours();
+      var minutes = date.getUTCMinutes();
+      var suffix = hours >= 12 ? 'pm' : 'am';
+      var hour12 = hours % 12 || 12;
+      return minutes ? hour12 + ':' + (minutes < 10 ? '0' : '') + minutes + suffix : hour12 + suffix;
+    }
+
+    function formatDateRange(startTime, endTime) {
+      var start = new Date(startTime);
+      var end = endTime ? new Date(endTime) : null;
+      var dateOpts = { day: 'numeric', month: 'short', timeZone: 'UTC' };
+      var dateLabel = start.toLocaleDateString('en-GB', dateOpts).toUpperCase();
+      var dayLabel = start.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
+      var timeLabel = formatTime(start);
+      if (end) timeLabel += '–' + formatTime(end);
+      return { dateLabel: dateLabel, metaLabel: dayLabel + ', ' + timeLabel };
+    }
+
+    function eventRowHtml(ev, isPast) {
+      var when = formatDateRange(ev.startTime, ev.endTime);
+      var metaParts = [when.metaLabel];
+      if (ev.location && ev.location.name) metaParts.push(ev.location.name);
+      if (typeof ev.attendingCount === 'number' && typeof ev.interestedCount === 'number') {
+        metaParts.push(ev.attendingCount + ' attending, ' + ev.interestedCount + ' interested');
       }
+      var status = isPast
+        ? '<div class="event-status event-status-past">PAST</div>'
+        : '<a class="event-status event-status-confirmed" href="' + ev.facebookUrl + '" target="_blank" rel="noopener">JOIN EVENT</a>';
+      return '<div class="event-row">' +
+        '<div class="event-date">' + when.dateLabel + '</div>' +
+        '<div class="event-info">' +
+          '<h3>' + ev.name + '</h3>' +
+          '<p>' + ev.description + '</p>' +
+          '<p class="event-meta">' + metaParts.join(' · ') + '</p>' +
+        '</div>' +
+        status +
+      '</div>';
+    }
 
-      function formatDateRange(startTime, endTime) {
-        var start = new Date(startTime);
-        var end = endTime ? new Date(endTime) : null;
-        var dateOpts = { day: 'numeric', month: 'short', timeZone: 'UTC' };
-        var dateLabel = start.toLocaleDateString('en-GB', dateOpts).toUpperCase();
-        var dayLabel = start.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
-        var timeLabel = formatTime(start);
-        if (end) timeLabel += '–' + formatTime(end);
-        return { dateLabel: dateLabel, metaLabel: dayLabel + ', ' + timeLabel };
+    function renderEvents(events) {
+      var now = new Date();
+      var upcoming = [];
+      var past = [];
+      events.forEach(function (ev) {
+        var end = new Date(ev.endTime || ev.startTime);
+        (end < now ? past : upcoming).push(ev);
+      });
+      upcoming.sort(function (a, b) { return new Date(a.startTime) - new Date(b.startTime); });
+      past.sort(function (a, b) { return new Date(b.startTime) - new Date(a.startTime); });
+
+      if (upcoming.length) list.innerHTML = upcoming.map(function (ev) { return eventRowHtml(ev, false); }).join('');
+
+      if (past.length && pastSection && pastList) {
+        pastList.innerHTML = past.map(function (ev) { return eventRowHtml(ev, true); }).join('');
+        pastSection.style.display = '';
       }
+    }
 
-      function eventRowHtml(ev, isPast) {
-        var when = formatDateRange(ev.startTime, ev.endTime);
-        var metaParts = [when.metaLabel];
-        if (ev.location && ev.location.name) metaParts.push(ev.location.name);
-        if (typeof ev.attendingCount === 'number' && typeof ev.interestedCount === 'number') {
-          metaParts.push(ev.attendingCount + ' attending, ' + ev.interestedCount + ' interested');
-        }
-        var status = isPast
-          ? '<div class="event-status event-status-past">PAST</div>'
-          : '<a class="event-status event-status-confirmed" href="' + ev.facebookUrl + '" target="_blank" rel="noopener">JOIN EVENT</a>';
-        return '<div class="event-row">' +
-          '<div class="event-date">' + when.dateLabel + '</div>' +
-          '<div class="event-info">' +
-            '<h3>' + ev.name + '</h3>' +
-            '<p>' + ev.description + '</p>' +
-            '<p class="event-meta">' + metaParts.join(' · ') + '</p>' +
-          '</div>' +
-          status +
-        '</div>';
+    fetch('events-data/events-manifest.json', { cache: 'no-store' })
+      .then(function (response) { return response.json(); })
+      .then(function (manifest) { renderEvents((manifest && manifest.events) || []); })
+      .catch(function () {});
+  })();
+</script>
+
+<script>
+  (function () {
+    var PAGE_SIZE = 1; // One track day per page
+    var grid = document.getElementById('track-day-grid');
+    var pagination = document.getElementById('track-day-pagination');
+    var venueContext = document.getElementById('track-day-venue-context');
+    var lightbox = document.getElementById('lightbox');
+    var allTrackDays = [];
+    var currentPage = 1;
+
+    var VENUES = [
+      { match: /snetterton/i, name: 'Snetterton', anchor: 'track-day-venues.html#venue-snetterton', blurb: 'a fast, flowing former airfield circuit in Norfolk' },
+      { match: /thruxton/i, name: 'Thruxton', anchor: 'track-day-venues.html#venue-thruxton', blurb: "widely rated the UK's fastest permanent circuit" },
+      { match: /cadwell/i, name: 'Cadwell Park', anchor: 'track-day-venues.html#venue-cadwell-park', blurb: 'the tight, hilly "Mini Nürburgring" in Lincolnshire' },
+      { match: /castle combe/i, name: 'Castle Combe', anchor: 'track-day-venues.html#venue-castle-combe', blurb: 'a short, flat, deceptively fast circuit in Wiltshire' }
+    ];
+
+    function renderVenueContext(caption) {
+      if (!venueContext) return;
+      var venue = VENUES.filter(function (v) { return v.match.test(caption || ''); })[0];
+      venueContext.innerHTML = venue ?
+        'Shot at <a href="' + venue.anchor + '">' + venue.name + '</a>, ' + venue.blurb + '. More in the <a href="' + venue.anchor + '">Track Day Venues guide</a>.' :
+        '';
+    }
+
+    function renderGrid(photos) {
+      if (!photos.length) {
+        grid.innerHTML = '<p class="mono">No track days yet, upload some to the track-days/ prefix in R2.</p>';
+        renderVenueContext('');
+        return;
       }
+      grid.innerHTML = photos.map(function (p) {
+        var safeCaption = p.caption.replace(/</g, '&lt;');
+        return '<img src="' + window.MT3UK_R2_BASE + '/track-days/' + p.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy">' +
+               '<span class="g-caption">' + safeCaption + '</span>';
+      }).join('');
+      renderVenueContext(photos[0].caption);
+    }
 
-      function renderEvents(events) {
-        var now = new Date();
-        var upcoming = [];
-        var past = [];
-        events.forEach(function (ev) {
-          var end = new Date(ev.endTime || ev.startTime);
-          (end < now ? past : upcoming).push(ev);
-        });
-        upcoming.sort(function (a, b) { return new Date(a.startTime) - new Date(b.startTime); });
-        past.sort(function (a, b) { return new Date(b.startTime) - new Date(a.startTime); });
-
-        if (upcoming.length) list.innerHTML = upcoming.map(function (ev) { return eventRowHtml(ev, false); }).join('');
-
-        if (past.length && pastSection && pastList) {
-          pastList.innerHTML = past.map(function (ev) { return eventRowHtml(ev, true); }).join('');
-          pastSection.style.display = '';
-        }
+    function renderPagination(totalPages) {
+      if (totalPages <= 1) {
+        pagination.innerHTML = '';
+        return;
       }
+      pagination.innerHTML =
+        '<button type="button" class="page-btn" id="track-day-prev"' + (currentPage === 1 ? ' disabled' : '') + '>&lsaquo; Prev</button>' +
+        '<span class="mono">Track Day ' + currentPage + ' of ' + totalPages + '</span>' +
+        '<button type="button" class="page-btn" id="track-day-next"' + (currentPage === totalPages ? ' disabled' : '') + '>Next &rsaquo;</button>';
 
-      fetch('events-data/events-manifest.json', { cache: 'no-store' })
-        .then(function (response) { return response.json(); })
-        .then(function (manifest) { renderEvents((manifest && manifest.events) || []); })
-        .catch(function () {});
-    })();
-  </script>
+      var prevBtn = document.getElementById('track-day-prev');
+      var nextBtn = document.getElementById('track-day-next');
+      if (prevBtn) prevBtn.addEventListener('click', function () { goToPage(currentPage - 1); });
+      if (nextBtn) nextBtn.addEventListener('click', function () { goToPage(currentPage + 1); });
+    }
 
-  <script>
-    (function () {
-      var PAGE_SIZE = 1; // One track day per page
-      var grid = document.getElementById('track-day-grid');
-      var pagination = document.getElementById('track-day-pagination');
-      var venueContext = document.getElementById('track-day-venue-context');
-      var lightbox = document.getElementById('lightbox');
-      var allTrackDays = [];
-      var currentPage = 1;
+    function updateLightboxIfOpen() {
+      if (!lightbox || lightbox.dataset.mode !== 'trackday' || !lightbox.classList.contains('open')) return;
+      var img = grid.querySelector('img');
+      if (!img) return;
+      var lightboxImg = lightbox.querySelector('.lightbox-img');
+      var lightboxCaption = lightbox.querySelector('.lightbox-caption');
+      lightboxImg.src = img.src;
+      lightboxImg.alt = img.alt || '';
+      lightboxCaption.textContent = img.alt || '';
+    }
 
-      var VENUES = [
-        { match: /snetterton/i, name: 'Snetterton', anchor: 'track-day-venues.html#venue-snetterton', blurb: 'a fast, flowing former airfield circuit in Norfolk' },
-        { match: /thruxton/i, name: 'Thruxton', anchor: 'track-day-venues.html#venue-thruxton', blurb: "widely rated the UK's fastest permanent circuit" },
-        { match: /cadwell/i, name: 'Cadwell Park', anchor: 'track-day-venues.html#venue-cadwell-park', blurb: 'the tight, hilly "Mini Nürburgring" in Lincolnshire' },
-        { match: /castle combe/i, name: 'Castle Combe', anchor: 'track-day-venues.html#venue-castle-combe', blurb: 'a short, flat, deceptively fast circuit in Wiltshire' }
-      ];
+    function goToPage(page, skipScroll) {
+      var totalPages = Math.max(1, Math.ceil(allTrackDays.length / PAGE_SIZE));
+      if (totalPages <= 1) return;
+      currentPage = ((page - 1 + totalPages) % totalPages) + 1;
+      var start = (currentPage - 1) * PAGE_SIZE;
+      renderGrid(allTrackDays.slice(start, start + PAGE_SIZE));
+      renderPagination(totalPages);
+      updateLightboxIfOpen();
+      if (!skipScroll) window.scrollTo({ top: grid.offsetTop - 100, behavior: 'smooth' });
+    }
 
-      function renderVenueContext(caption) {
-        if (!venueContext) return;
-        var venue = VENUES.filter(function (v) { return v.match.test(caption || ''); })[0];
-        venueContext.innerHTML = venue ?
-          'Shot at <a href="' + venue.anchor + '">' + venue.name + '</a>, ' + venue.blurb + '. More in the <a href="' + venue.anchor + '">Track Day Venues guide</a>.' :
-          '';
-      }
+    if (lightbox) {
+      var prevBtn = lightbox.querySelector('.lightbox-prev');
+      var nextBtn = lightbox.querySelector('.lightbox-next');
+      var closeBtn = lightbox.querySelector('.lightbox-close');
 
-      function renderGrid(photos) {
-        if (!photos.length) {
-          grid.innerHTML = '<p class="mono">No track days yet, upload some to the track-days/ prefix in R2.</p>';
-          renderVenueContext('');
-          return;
-        }
-        grid.innerHTML = photos.map(function (p) {
-          var safeCaption = p.caption.replace(/</g, '&lt;');
-          return '<img src="' + window.MT3UK_R2_BASE + '/track-days/' + p.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy">' +
-                 '<span class="g-caption">' + safeCaption + '</span>';
-        }).join('');
-        renderVenueContext(photos[0].caption);
-      }
+      grid.addEventListener('click', function (e) {
+        if (e.target.tagName !== 'IMG') return;
+        e.stopPropagation();
 
-      function renderPagination(totalPages) {
-        if (totalPages <= 1) {
-          pagination.innerHTML = '';
-          return;
-        }
-        pagination.innerHTML =
-          '<button type="button" class="page-btn" id="track-day-prev"' + (currentPage === 1 ? ' disabled' : '') + '>&lsaquo; Prev</button>' +
-          '<span class="mono">Track Day ' + currentPage + ' of ' + totalPages + '</span>' +
-          '<button type="button" class="page-btn" id="track-day-next"' + (currentPage === totalPages ? ' disabled' : '') + '>Next &rsaquo;</button>';
-
-        var prevBtn = document.getElementById('track-day-prev');
-        var nextBtn = document.getElementById('track-day-next');
-        if (prevBtn) prevBtn.addEventListener('click', function () { goToPage(currentPage - 1); });
-        if (nextBtn) nextBtn.addEventListener('click', function () { goToPage(currentPage + 1); });
-      }
-
-      function updateLightboxIfOpen() {
-        if (!lightbox || lightbox.dataset.mode !== 'trackday' || !lightbox.classList.contains('open')) return;
-        var img = grid.querySelector('img');
-        if (!img) return;
+        lightbox.dataset.mode = 'trackday';
         var lightboxImg = lightbox.querySelector('.lightbox-img');
         var lightboxCaption = lightbox.querySelector('.lightbox-caption');
-        lightboxImg.src = img.src;
-        lightboxImg.alt = img.alt || '';
-        lightboxCaption.textContent = img.alt || '';
-      }
+        lightboxImg.src = e.target.src;
+        lightboxImg.alt = e.target.alt || '';
+        lightboxCaption.textContent = e.target.alt || '';
 
-      function goToPage(page, skipScroll) {
-        var totalPages = Math.max(1, Math.ceil(allTrackDays.length / PAGE_SIZE));
-        if (totalPages <= 1) return;
-        currentPage = ((page - 1 + totalPages) % totalPages) + 1;
-        var start = (currentPage - 1) * PAGE_SIZE;
-        renderGrid(allTrackDays.slice(start, start + PAGE_SIZE));
-        renderPagination(totalPages);
-        updateLightboxIfOpen();
-        if (!skipScroll) window.scrollTo({ top: grid.offsetTop - 100, behavior: 'smooth' });
-      }
-
-      if (lightbox) {
-        var prevBtn = lightbox.querySelector('.lightbox-prev');
-        var nextBtn = lightbox.querySelector('.lightbox-next');
-        var closeBtn = lightbox.querySelector('.lightbox-close');
-
-        grid.addEventListener('click', function (e) {
-          if (e.target.tagName !== 'IMG') return;
-          e.stopPropagation();
-
-          lightbox.dataset.mode = 'trackday';
-          var lightboxImg = lightbox.querySelector('.lightbox-img');
-          var lightboxCaption = lightbox.querySelector('.lightbox-caption');
-          lightboxImg.src = e.target.src;
-          lightboxImg.alt = e.target.alt || '';
-          lightboxCaption.textContent = e.target.alt || '';
-
-          lightbox.classList.add('open');
-          lightbox.setAttribute('aria-hidden', 'false');
-          document.body.style.overflow = 'hidden';
-        });
-
-        prevBtn.addEventListener('click', function (e) {
-          if (lightbox.dataset.mode !== 'trackday') return;
-          e.stopPropagation();
-          goToPage(currentPage - 1, true);
-        });
-        nextBtn.addEventListener('click', function (e) {
-          if (lightbox.dataset.mode !== 'trackday') return;
-          e.stopPropagation();
-          goToPage(currentPage + 1, true);
-        });
-        document.addEventListener('keydown', function (e) {
-          if (!lightbox.classList.contains('open') || lightbox.dataset.mode !== 'trackday') return;
-          if (e.key === 'ArrowRight') goToPage(currentPage + 1, true);
-          if (e.key === 'ArrowLeft') goToPage(currentPage - 1, true);
-        });
-      }
-
-      fetch('images/track-days/manifest.json', { cache: 'no-store' })
-        .then(function (response) { return response.json(); })
-        .then(function (photos) {
-          allTrackDays = photos || [];
-          var totalPages = Math.max(1, Math.ceil(allTrackDays.length / PAGE_SIZE));
-          renderGrid(allTrackDays.slice(0, PAGE_SIZE));
-          renderPagination(totalPages);
-        })
-        .catch(function () {
-          grid.innerHTML = '<p class="mono">Error loading track days.</p>';
-        });
-    })();
-  </script>
-
-  <script>
-    (function () {
-      var frame = document.getElementById('botm-frame');
-      if (!frame) return;
-
-      Promise.all([
-        window.mt3ukFetchJSON('images/gallery/manifest.json', []),
-        window.mt3ukFetchJSON('data/featured.json', {})
-      ])
-        .then(function (results) {
-          var photos = results[0] || [];
-          var featuredFile = (results[1] && results[1].file) || null;
-          if (!photos.length) {
-            frame.innerHTML = '<p class="mono" style="padding: 24px; color: var(--steel);">No builds yet, be the first to submit one.</p>';
-            return;
-          }
-          var featured = window.mt3ukPickBuild(photos, featuredFile);
-          var safeCaption = featured.caption.replace(/</g, '&lt;');
-          var voteCount = (results[1] && results[1].file === featured.file && typeof results[1].votes === 'number') ? results[1].votes : null;
-          var voteLine = voteCount !== null ? '<p class="botm-voted-note">Voted No.1 by you. <a href="#vote-frame">Vote for tomorrow below</a></p>' : '';
-          var votedByBadge = voteCount !== null ? '<span class="botm-voted-by">VOTED BY YOU</span>' : '';
-          var mods = featured.mods || [];
-          var modsBadge = mods.length ?
-            '<button type="button" class="g-mods-badge" aria-label="View mods list">' +
-              '<svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9 2.6-2.6z"/></svg>' +
-              mods.length +
-            '</button>' : '';
-          frame.innerHTML =
-            '<div class="botm-media">' +
-              '<span class="botm-badge">FEATURED TODAY</span>' +
-              '<img src="' + window.MT3UK_R2_BASE + '/gallery/' + featured.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy">' +
-              modsBadge +
-              votedByBadge +
-            '</div>' +
-            '<div class="botm-body">' +
-              '<span class="mono">TODAY\'S PICK</span>' +
-              '<h3 class="botm-caption">' + safeCaption + '</h3>' +
-              voteLine +
-              '<p>A build from the gallery, picked fresh each day. Get your build added and it could be featured here next.</p>' +
-              '<a href="my-builds.html#build-upload" class="btn btn-secondary">Submit your build</a>' +
-            '</div>';
-
-          var img = frame.querySelector('.botm-media img');
-          var badge = frame.querySelector('.botm-media .g-mods-badge');
-          var lightbox = document.getElementById('lightbox');
-          if (img && lightbox) {
-            var openBotmLightbox = function () {
-              var lightboxImg = lightbox.querySelector('.lightbox-img');
-              var lightboxCaption = lightbox.querySelector('.lightbox-caption');
-              var lightboxMods = lightbox.querySelector('.lightbox-mods');
-              var prevBtn = lightbox.querySelector('.lightbox-prev');
-              var nextBtn = lightbox.querySelector('.lightbox-next');
-              lightboxImg.src = img.src;
-              lightboxImg.alt = img.alt || '';
-              lightboxCaption.textContent = img.alt || '';
-              if (lightboxMods) {
-                var mods = featured.mods || [];
-                lightboxMods.textContent = mods.length ? 'Mods: ' + mods.join(' · ') : '';
-                lightboxMods.classList.toggle('has-mods', mods.length > 0);
-              }
-              if (prevBtn) prevBtn.style.display = 'none';
-              if (nextBtn) nextBtn.style.display = 'none';
-              lightbox.classList.add('open');
-              lightbox.setAttribute('aria-hidden', 'false');
-              document.body.style.overflow = 'hidden';
-            };
-            img.addEventListener('click', openBotmLightbox);
-            if (badge) badge.addEventListener('click', openBotmLightbox);
-          }
-        })
-        .catch(function () {
-          frame.innerHTML = '<p class="mono" style="padding: 24px; color: var(--steel);">Featured build couldn\'t be loaded.</p>';
-        });
-    })();
-  </script>
-
-  <script>
-    (function () {
-      var frame = document.getElementById('vote-frame');
-      if (!frame) return;
-
-      var VOTE_ENDPOINT = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
-      var voterId = localStorage.getItem('mt3ukVoterId');
-      if (!voterId) {
-        voterId = window.crypto && window.crypto.randomUUID ? window.crypto.randomUUID() : ('v-' + Date.now() + '-' + Math.random().toString(16).slice(2));
-        localStorage.setItem('mt3ukVoterId', voterId);
-      }
-
-      var lightbox = document.getElementById('lightbox');
-      var lightboxImg = lightbox ? lightbox.querySelector('.lightbox-img') : null;
-      var lightboxCaption = lightbox ? lightbox.querySelector('.lightbox-caption') : null;
-      var lightboxPrev = lightbox ? lightbox.querySelector('.lightbox-prev') : null;
-      var lightboxNext = lightbox ? lightbox.querySelector('.lightbox-next') : null;
-      var lightboxVoteCount = lightbox ? lightbox.querySelector('.lightbox-vote-count') : null;
-      var lightboxVoteBtn = lightbox ? lightbox.querySelector('.lightbox-vote-btn') : null;
-      var latestData = null;
-      var currentVoteIndex = -1;
-
-      function castVote(file, onDone) {
-        fetch(VOTE_ENDPOINT + '/vote', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-Voter-Id': voterId },
-          body: JSON.stringify({ file: file })
-        })
-          .then(function (res) { return res.json(); })
-          .then(function (result) {
-            if (result && result.success) render(result);
-            onDone();
-          })
-          .catch(function () { onDone(); });
-      }
-
-      function updateLightboxVote() {
-        if (!lightbox || !latestData || currentVoteIndex < 0) return;
-        var c = latestData.candidates[currentVoteIndex];
-        if (!c) return;
-        var isVoted = latestData.voted === c.file;
-        if (lightboxVoteCount) lightboxVoteCount.textContent = c.votes + (c.votes === 1 ? ' vote' : ' votes');
-        if (lightboxVoteBtn) {
-          lightboxVoteBtn.disabled = isVoted;
-          lightboxVoteBtn.textContent = isVoted ? 'Voted' : 'Vote for this build';
-        }
-      }
-
-      function showVoteAt(index) {
-        if (!lightbox || !latestData || !latestData.candidates.length) return;
-        var candidates = latestData.candidates;
-        currentVoteIndex = (index + candidates.length) % candidates.length;
-        var c = candidates[currentVoteIndex];
-        var safeCaption = c.caption || 'MT3UK build';
-        if (lightboxImg) { lightboxImg.src = window.MT3UK_R2_BASE + '/gallery/' + c.file; lightboxImg.alt = safeCaption; }
-        if (lightboxCaption) lightboxCaption.textContent = safeCaption;
-        var lightboxMods = lightbox.querySelector('.lightbox-mods');
-        if (lightboxMods) {
-          var mods = c.mods || [];
-          lightboxMods.textContent = mods.length ? 'Mods: ' + mods.join(' · ') : '';
-          lightboxMods.classList.toggle('has-mods', mods.length > 0);
-        }
-        updateLightboxVote();
-      }
-
-      function openVoteLightbox(index) {
-        if (!lightbox) return;
-        lightbox.dataset.mode = 'vote';
-        showVoteAt(index);
         lightbox.classList.add('open');
         lightbox.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
-      }
+      });
 
-      if (lightboxPrev) {
-        lightboxPrev.addEventListener('click', function (e) {
-          if (lightbox.dataset.mode !== 'vote') return;
-          e.stopPropagation();
-          showVoteAt(currentVoteIndex - 1);
-        });
-      }
-      if (lightboxNext) {
-        lightboxNext.addEventListener('click', function (e) {
-          if (lightbox.dataset.mode !== 'vote') return;
-          e.stopPropagation();
-          showVoteAt(currentVoteIndex + 1);
-        });
-      }
+      prevBtn.addEventListener('click', function (e) {
+        if (lightbox.dataset.mode !== 'trackday') return;
+        e.stopPropagation();
+        goToPage(currentPage - 1, true);
+      });
+      nextBtn.addEventListener('click', function (e) {
+        if (lightbox.dataset.mode !== 'trackday') return;
+        e.stopPropagation();
+        goToPage(currentPage + 1, true);
+      });
       document.addEventListener('keydown', function (e) {
-        if (!lightbox || !lightbox.classList.contains('open') || lightbox.dataset.mode !== 'vote') return;
-        if (e.key === 'ArrowRight') showVoteAt(currentVoteIndex + 1);
-        if (e.key === 'ArrowLeft') showVoteAt(currentVoteIndex - 1);
-      });
-      if (lightboxVoteBtn) {
-        lightboxVoteBtn.addEventListener('click', function () {
-          if (lightbox.dataset.mode !== 'vote' || !latestData || currentVoteIndex < 0) return;
-          var c = latestData.candidates[currentVoteIndex];
-          if (!c) return;
-          lightboxVoteBtn.disabled = true;
-          var voteFile = c.file;
-          castVote(voteFile, function () {
-            if (!latestData) return;
-            var idx = latestData.candidates.findIndex(function (x) { return x.file === voteFile; });
-            if (idx !== -1) currentVoteIndex = idx;
-            updateLightboxVote();
-          });
-        });
-      }
-
-      function render(data) {
-        latestData = data;
-        if (!data || !data.candidates || !data.candidates.length) {
-          frame.innerHTML = '<p class="mono" style="padding: 24px; color: var(--steel);">No builds open for voting right now, check back soon.</p>';
-          return;
-        }
-        var maxVotes = Math.max.apply(null, data.candidates.map(function (c) { return c.votes; }));
-        frame.innerHTML = data.candidates.map(function (c) {
-          var safeCaption = (c.caption || 'MT3UK build').replace(/</g, '&lt;');
-          var isVoted = data.voted === c.file;
-          var isLeading = maxVotes > 0 && c.votes === maxVotes;
-          var modsBadge = (c.mods && c.mods.length) ?
-            '<button type="button" class="g-mods-badge" aria-label="View mods list">' +
-              '<svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9 2.6-2.6z"/></svg>' +
-              c.mods.length +
-            '</button>' : '';
-          return (
-            '<div class="vote-card' + (isVoted ? ' voted' : '') + (isLeading ? ' leading' : '') + '" data-file="' + c.file.replace(/"/g, '&quot;') + '">' +
-              '<div class="vote-media" data-edit-target data-edit-class="mt3uk-edit-pill"><img src="' + window.MT3UK_R2_BASE + '/gallery/' + c.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy">' + modsBadge + '</div>' +
-              '<div class="vote-body">' +
-                '<span class="vote-caption">' + safeCaption + '</span>' +
-                '<span class="vote-count">' + c.votes + (c.votes === 1 ? ' vote' : ' votes') + '</span>' +
-                '<button type="button" class="vote-btn"' + (isVoted ? ' disabled' : '') + '>' + (isVoted ? 'Voted' : 'Vote for this build') + '</button>' +
-              '</div>' +
-            '</div>'
-          );
-        }).join('');
-        window.mt3ukApplyEditBadges(frame);
-
-        frame.querySelectorAll('.vote-media').forEach(function (media, i) {
-          media.addEventListener('click', function () {
-            openVoteLightbox(i);
-          });
-        });
-
-        frame.querySelectorAll('.vote-btn').forEach(function (btn, i) {
-          btn.addEventListener('click', function () {
-            var card = btn.closest('.vote-card');
-            var file = card.getAttribute('data-file');
-            btn.disabled = true;
-            castVote(file, function () { btn.disabled = false; });
-          });
-        });
-
-        if (lightbox && lightbox.dataset.mode === 'vote' && lightbox.classList.contains('open') && currentVoteIndex >= 0) {
-          updateLightboxVote();
-        }
-      }
-
-      function loadVotes(isManualRefresh) {
-        var refreshBtn = document.getElementById('vote-refresh-btn');
-        if (refreshBtn) {
-          refreshBtn.disabled = true;
-          if (isManualRefresh) refreshBtn.innerHTML = '&#8635; Refreshing&hellip;';
-        }
-        return fetch(VOTE_ENDPOINT + '/votes', { headers: { 'X-Voter-Id': voterId }, cache: 'no-store' })
-          .then(function (res) { return res.json(); })
-          .then(function (data) {
-            if (refreshBtn) {
-              refreshBtn.disabled = false;
-              if (isManualRefresh) {
-                refreshBtn.innerHTML = '&#10003; Refreshed';
-                setTimeout(function () { refreshBtn.innerHTML = '&#8635; Refresh'; }, 1800);
-              }
-            }
-            render(data);
-          })
-          .catch(function () {
-            if (refreshBtn) {
-              refreshBtn.disabled = false;
-              if (isManualRefresh) refreshBtn.innerHTML = '&#8635; Refresh';
-            }
-            frame.innerHTML = '<p class="mono" style="padding: 24px; color: var(--steel);">Voting couldn\'t be loaded.</p>';
-          });
-      }
-
-      loadVotes();
-
-      var voteRefreshBtn = document.getElementById('vote-refresh-btn');
-      if (voteRefreshBtn) voteRefreshBtn.addEventListener('click', function () { loadVotes(true); });
-
-      var countdownEl = document.getElementById('vote-countdown');
-      var heroCountdownEl = document.getElementById('hero-vote-countdown');
-      if (countdownEl || heroCountdownEl) {
-        var updateCountdown = function () {
-          var now = new Date();
-          var nextMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
-          var msLeft = nextMidnight - now;
-          var hours = Math.floor(msLeft / 3600000);
-          var minutes = Math.floor((msLeft % 3600000) / 60000);
-          var seconds = Math.floor((msLeft % 60000) / 1000);
-          var timeStr = String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
-          if (countdownEl) countdownEl.textContent = '(' + timeStr + ' remaining)';
-          if (heroCountdownEl) heroCountdownEl.innerHTML = 'Voting resets in <strong>' + timeStr + '</strong>';
-        };
-        updateCountdown();
-        setInterval(updateCountdown, 1000);
-      }
-    })();
-  </script>
-
-  <script>
-    (function () {
-      fetch('data/community.json', { cache: 'no-store' })
-        .then(function (res) { return res.ok ? res.json() : null; })
-        .then(function (data) {
-          if (!data || !data.members) return;
-          document.querySelectorAll('.member-count').forEach(function (el) {
-            el.textContent = data.members;
-          });
-        })
-        .catch(function () {});
-    })();
-  </script>
-
-  <script>
-    (function () {
-      var STORAGE_VISITS = 'mt3ukVisitCount';
-      var STORAGE_DISMISSED = 'mt3ukA2HSDismissed';
-      var SESSION_FLAG = 'mt3ukVisitCounted';
-
-      function isStandalone() {
-        return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-      }
-
-      if (isStandalone() || localStorage.getItem(STORAGE_DISMISSED) === '1') return;
-
-      if (!sessionStorage.getItem(SESSION_FLAG)) {
-        sessionStorage.setItem(SESSION_FLAG, '1');
-        var visits = parseInt(localStorage.getItem(STORAGE_VISITS) || '0', 10) + 1;
-        localStorage.setItem(STORAGE_VISITS, String(visits));
-      }
-      var visitCount = parseInt(localStorage.getItem(STORAGE_VISITS) || '0', 10);
-      if (visitCount < 2) return;
-
-      var deferredPrompt = null;
-      var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
-      var bannerShown = false;
-
-      function dismiss(banner) {
-        banner.classList.remove('show');
-        setTimeout(function () { banner.remove(); }, 300);
-        localStorage.setItem(STORAGE_DISMISSED, '1');
-      }
-
-      function showBanner() {
-        if (bannerShown) return;
-        bannerShown = true;
-        var banner = document.createElement('div');
-        banner.className = 'a2hs-banner';
-        banner.innerHTML =
-          '<span class="a2hs-text">' + (isIOS
-            ? 'Add MT3UK to your Home Screen: tap Share, then \'Add to Home Screen\'.'
-            : 'Install MT3UK for quicker access to builds and voting.') + '</span>' +
-          '<span class="a2hs-actions">' +
-            (isIOS ? '' : '<button type="button" class="a2hs-btn a2hs-install">Install</button>') +
-            '<button type="button" class="a2hs-btn a2hs-close" aria-label="Dismiss">&times;</button>' +
-          '</span>';
-        document.body.appendChild(banner);
-        requestAnimationFrame(function () { banner.classList.add('show'); });
-
-        var closeBtn = banner.querySelector('.a2hs-close');
-        if (closeBtn) closeBtn.addEventListener('click', function () { dismiss(banner); });
-
-        var installBtn = banner.querySelector('.a2hs-install');
-        if (installBtn) {
-          installBtn.addEventListener('click', function () {
-            if (!deferredPrompt) { dismiss(banner); return; }
-            deferredPrompt.prompt();
-            deferredPrompt.userChoice.finally(function () { dismiss(banner); });
-          });
-        }
-      }
-
-      if (isIOS) {
-        showBanner();
-      } else {
-        window.addEventListener('beforeinstallprompt', function (e) {
-          e.preventDefault();
-          deferredPrompt = e;
-          showBanner();
-        });
-      }
-
-      window.addEventListener('appinstalled', function () {
-        localStorage.setItem(STORAGE_DISMISSED, '1');
-      });
-    })();
-  </script>
-
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function () {
-        navigator.serviceWorker.register('/sw.js');
+        if (!lightbox.classList.contains('open') || lightbox.dataset.mode !== 'trackday') return;
+        if (e.key === 'ArrowRight') goToPage(currentPage + 1, true);
+        if (e.key === 'ArrowLeft') goToPage(currentPage - 1, true);
       });
     }
-  </script>
 
-  <script>
-    (function () {
-      var hash = location.hash;
-      if (!hash || hash.length < 2) return;
+    fetch('images/track-days/manifest.json', { cache: 'no-store' })
+      .then(function (response) { return response.json(); })
+      .then(function (photos) {
+        allTrackDays = photos || [];
+        var totalPages = Math.max(1, Math.ceil(allTrackDays.length / PAGE_SIZE));
+        renderGrid(allTrackDays.slice(0, PAGE_SIZE));
+        renderPagination(totalPages);
+      })
+      .catch(function () {
+        grid.innerHTML = '<p class="mono">Error loading track days.</p>';
+      });
+  })();
+</script>
 
-      var userInteracted = false;
-      ['wheel', 'touchstart', 'keydown'].forEach(function (evt) {
-        window.addEventListener(evt, function () { userInteracted = true; }, { once: true, passive: true });
+<script>
+  (function () {
+    var frame = document.getElementById('botm-frame');
+    if (!frame) return;
+
+    Promise.all([
+      window.mt3ukFetchJSON('images/gallery/manifest.json', []),
+      window.mt3ukFetchJSON('data/featured.json', {})
+    ])
+      .then(function (results) {
+        var photos = results[0] || [];
+        var featuredFile = (results[1] && results[1].file) || null;
+        if (!photos.length) {
+          frame.innerHTML = '<p class="mono" style="padding: 24px; color: var(--steel);">No builds yet, be the first to submit one.</p>';
+          return;
+        }
+        var featured = window.mt3ukPickBuild(photos, featuredFile);
+        var safeCaption = featured.caption.replace(/</g, '&lt;');
+        var voteCount = (results[1] && results[1].file === featured.file && typeof results[1].votes === 'number') ? results[1].votes : null;
+        var voteLine = voteCount !== null ? '<p class="botm-voted-note">Voted No.1 by you. <a href="#vote-frame">Vote for tomorrow below</a></p>' : '';
+        var votedByBadge = voteCount !== null ? '<span class="botm-voted-by">VOTED BY YOU</span>' : '';
+        var mods = featured.mods || [];
+        var modsBadge = mods.length ?
+          '<button type="button" class="g-mods-badge" aria-label="View mods list">' +
+            '<svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9 2.6-2.6z"/></svg>' +
+            mods.length +
+          '</button>' : '';
+        frame.innerHTML =
+          '<div class="botm-media">' +
+            '<span class="botm-badge">FEATURED TODAY</span>' +
+            '<img src="' + window.MT3UK_R2_BASE + '/gallery/' + featured.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy">' +
+            modsBadge +
+            votedByBadge +
+          '</div>' +
+          '<div class="botm-body">' +
+            '<span class="mono">TODAY\'S PICK</span>' +
+            '<h3 class="botm-caption">' + safeCaption + '</h3>' +
+            voteLine +
+            '<p>A build from the gallery, picked fresh each day. Get your build added and it could be featured here next.</p>' +
+            '<a href="my-builds.html#build-upload" class="btn btn-secondary">Submit your build</a>' +
+          '</div>';
+
+        var img = frame.querySelector('.botm-media img');
+        var badge = frame.querySelector('.botm-media .g-mods-badge');
+        var lightbox = document.getElementById('lightbox');
+        if (img && lightbox) {
+          var openBotmLightbox = function () {
+            var lightboxImg = lightbox.querySelector('.lightbox-img');
+            var lightboxCaption = lightbox.querySelector('.lightbox-caption');
+            var lightboxMods = lightbox.querySelector('.lightbox-mods');
+            var prevBtn = lightbox.querySelector('.lightbox-prev');
+            var nextBtn = lightbox.querySelector('.lightbox-next');
+            lightboxImg.src = img.src;
+            lightboxImg.alt = img.alt || '';
+            lightboxCaption.textContent = img.alt || '';
+            if (lightboxMods) {
+              var mods = featured.mods || [];
+              lightboxMods.textContent = mods.length ? 'Mods: ' + mods.join(' · ') : '';
+              lightboxMods.classList.toggle('has-mods', mods.length > 0);
+            }
+            if (prevBtn) prevBtn.style.display = 'none';
+            if (nextBtn) nextBtn.style.display = 'none';
+            lightbox.classList.add('open');
+            lightbox.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+          };
+          img.addEventListener('click', openBotmLightbox);
+          if (badge) badge.addEventListener('click', openBotmLightbox);
+        }
+      })
+      .catch(function () {
+        frame.innerHTML = '<p class="mono" style="padding: 24px; color: var(--steel);">Featured build couldn\'t be loaded.</p>';
+      });
+  })();
+</script>
+
+<script>
+  (function () {
+    var frame = document.getElementById('vote-frame');
+    if (!frame) return;
+
+    var VOTE_ENDPOINT = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
+    var voterId = localStorage.getItem('mt3ukVoterId');
+    if (!voterId) {
+      voterId = window.crypto && window.crypto.randomUUID ? window.crypto.randomUUID() : ('v-' + Date.now() + '-' + Math.random().toString(16).slice(2));
+      localStorage.setItem('mt3ukVoterId', voterId);
+    }
+
+    var lightbox = document.getElementById('lightbox');
+    var lightboxImg = lightbox ? lightbox.querySelector('.lightbox-img') : null;
+    var lightboxCaption = lightbox ? lightbox.querySelector('.lightbox-caption') : null;
+    var lightboxPrev = lightbox ? lightbox.querySelector('.lightbox-prev') : null;
+    var lightboxNext = lightbox ? lightbox.querySelector('.lightbox-next') : null;
+    var lightboxVoteCount = lightbox ? lightbox.querySelector('.lightbox-vote-count') : null;
+    var lightboxVoteBtn = lightbox ? lightbox.querySelector('.lightbox-vote-btn') : null;
+    var latestData = null;
+    var currentVoteIndex = -1;
+
+    function castVote(file, onDone) {
+      fetch(VOTE_ENDPOINT + '/vote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Voter-Id': voterId },
+        body: JSON.stringify({ file: file })
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (result) {
+          if (result && result.success) render(result);
+          onDone();
+        })
+        .catch(function () { onDone(); });
+    }
+
+    function updateLightboxVote() {
+      if (!lightbox || !latestData || currentVoteIndex < 0) return;
+      var c = latestData.candidates[currentVoteIndex];
+      if (!c) return;
+      var isVoted = latestData.voted === c.file;
+      if (lightboxVoteCount) lightboxVoteCount.textContent = c.votes + (c.votes === 1 ? ' vote' : ' votes');
+      if (lightboxVoteBtn) {
+        lightboxVoteBtn.disabled = isVoted;
+        lightboxVoteBtn.textContent = isVoted ? 'Voted' : 'Vote for this build';
+      }
+    }
+
+    function showVoteAt(index) {
+      if (!lightbox || !latestData || !latestData.candidates.length) return;
+      var candidates = latestData.candidates;
+      currentVoteIndex = (index + candidates.length) % candidates.length;
+      var c = candidates[currentVoteIndex];
+      var safeCaption = c.caption || 'MT3UK build';
+      if (lightboxImg) { lightboxImg.src = window.MT3UK_R2_BASE + '/gallery/' + c.file; lightboxImg.alt = safeCaption; }
+      if (lightboxCaption) lightboxCaption.textContent = safeCaption;
+      var lightboxMods = lightbox.querySelector('.lightbox-mods');
+      if (lightboxMods) {
+        var mods = c.mods || [];
+        lightboxMods.textContent = mods.length ? 'Mods: ' + mods.join(' · ') : '';
+        lightboxMods.classList.toggle('has-mods', mods.length > 0);
+      }
+      updateLightboxVote();
+    }
+
+    function openVoteLightbox(index) {
+      if (!lightbox) return;
+      lightbox.dataset.mode = 'vote';
+      showVoteAt(index);
+      lightbox.classList.add('open');
+      lightbox.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    }
+
+    if (lightboxPrev) {
+      lightboxPrev.addEventListener('click', function (e) {
+        if (lightbox.dataset.mode !== 'vote') return;
+        e.stopPropagation();
+        showVoteAt(currentVoteIndex - 1);
+      });
+    }
+    if (lightboxNext) {
+      lightboxNext.addEventListener('click', function (e) {
+        if (lightbox.dataset.mode !== 'vote') return;
+        e.stopPropagation();
+        showVoteAt(currentVoteIndex + 1);
+      });
+    }
+    document.addEventListener('keydown', function (e) {
+      if (!lightbox || !lightbox.classList.contains('open') || lightbox.dataset.mode !== 'vote') return;
+      if (e.key === 'ArrowRight') showVoteAt(currentVoteIndex + 1);
+      if (e.key === 'ArrowLeft') showVoteAt(currentVoteIndex - 1);
+    });
+    if (lightboxVoteBtn) {
+      lightboxVoteBtn.addEventListener('click', function () {
+        if (lightbox.dataset.mode !== 'vote' || !latestData || currentVoteIndex < 0) return;
+        var c = latestData.candidates[currentVoteIndex];
+        if (!c) return;
+        lightboxVoteBtn.disabled = true;
+        var voteFile = c.file;
+        castVote(voteFile, function () {
+          if (!latestData) return;
+          var idx = latestData.candidates.findIndex(function (x) { return x.file === voteFile; });
+          if (idx !== -1) currentVoteIndex = idx;
+          updateLightboxVote();
+        });
+      });
+    }
+
+    function render(data) {
+      latestData = data;
+      if (!data || !data.candidates || !data.candidates.length) {
+        frame.innerHTML = '<p class="mono" style="padding: 24px; color: var(--steel);">No builds open for voting right now, check back soon.</p>';
+        return;
+      }
+      var maxVotes = Math.max.apply(null, data.candidates.map(function (c) { return c.votes; }));
+      frame.innerHTML = data.candidates.map(function (c) {
+        var safeCaption = (c.caption || 'MT3UK build').replace(/</g, '&lt;');
+        var isVoted = data.voted === c.file;
+        var isLeading = maxVotes > 0 && c.votes === maxVotes;
+        var modsBadge = (c.mods && c.mods.length) ?
+          '<button type="button" class="g-mods-badge" aria-label="View mods list">' +
+            '<svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9 2.6-2.6z"/></svg>' +
+            c.mods.length +
+          '</button>' : '';
+        return (
+          '<div class="vote-card' + (isVoted ? ' voted' : '') + (isLeading ? ' leading' : '') + '" data-file="' + c.file.replace(/"/g, '&quot;') + '">' +
+            '<div class="vote-media" data-edit-target data-edit-class="mt3uk-edit-pill"><img src="' + window.MT3UK_R2_BASE + '/gallery/' + c.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy">' + modsBadge + '</div>' +
+            '<div class="vote-body">' +
+              '<span class="vote-caption">' + safeCaption + '</span>' +
+              '<span class="vote-count">' + c.votes + (c.votes === 1 ? ' vote' : ' votes') + '</span>' +
+              '<button type="button" class="vote-btn"' + (isVoted ? ' disabled' : '') + '>' + (isVoted ? 'Voted' : 'Vote for this build') + '</button>' +
+            '</div>' +
+          '</div>'
+        );
+      }).join('');
+      window.mt3ukApplyEditBadges(frame);
+
+      frame.querySelectorAll('.vote-media').forEach(function (media, i) {
+        media.addEventListener('click', function () {
+          openVoteLightbox(i);
+        });
       });
 
-      var scrollToHash = function (behavior) {
-        if (userInteracted) return;
-        var el = document.querySelector(hash);
-        if (!el) return;
-        var top = el.getBoundingClientRect().top + window.pageYOffset - 90;
-        window.scrollTo({ top: top, behavior: behavior });
-      };
+      frame.querySelectorAll('.vote-btn').forEach(function (btn, i) {
+        btn.addEventListener('click', function () {
+          var card = btn.closest('.vote-card');
+          var file = card.getAttribute('data-file');
+          btn.disabled = true;
+          castVote(file, function () { btn.disabled = false; });
+        });
+      });
 
-      scrollToHash('smooth');
-      var stopAt = Date.now() + 6000;
-      var poll = setInterval(function () {
-        if (userInteracted || Date.now() > stopAt) { clearInterval(poll); return; }
-        scrollToHash('instant');
-      }, 200);
-    })();
-  </script>
+      if (lightbox && lightbox.dataset.mode === 'vote' && lightbox.classList.contains('open') && currentVoteIndex >= 0) {
+        updateLightboxVote();
+      }
+    }
+
+    function loadVotes(isManualRefresh) {
+      var refreshBtn = document.getElementById('vote-refresh-btn');
+      if (refreshBtn) {
+        refreshBtn.disabled = true;
+        if (isManualRefresh) refreshBtn.innerHTML = '&#8635; Refreshing&hellip;';
+      }
+      return fetch(VOTE_ENDPOINT + '/votes', { headers: { 'X-Voter-Id': voterId }, cache: 'no-store' })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (refreshBtn) {
+            refreshBtn.disabled = false;
+            if (isManualRefresh) {
+              refreshBtn.innerHTML = '&#10003; Refreshed';
+              setTimeout(function () { refreshBtn.innerHTML = '&#8635; Refresh'; }, 1800);
+            }
+          }
+          render(data);
+        })
+        .catch(function () {
+          if (refreshBtn) {
+            refreshBtn.disabled = false;
+            if (isManualRefresh) refreshBtn.innerHTML = '&#8635; Refresh';
+          }
+          frame.innerHTML = '<p class="mono" style="padding: 24px; color: var(--steel);">Voting couldn\'t be loaded.</p>';
+        });
+    }
+
+    loadVotes();
+
+    var voteRefreshBtn = document.getElementById('vote-refresh-btn');
+    if (voteRefreshBtn) voteRefreshBtn.addEventListener('click', function () { loadVotes(true); });
+
+    var countdownEl = document.getElementById('vote-countdown');
+    var heroCountdownEl = document.getElementById('hero-vote-countdown');
+    if (countdownEl || heroCountdownEl) {
+      var updateCountdown = function () {
+        var now = new Date();
+        var nextMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
+        var msLeft = nextMidnight - now;
+        var hours = Math.floor(msLeft / 3600000);
+        var minutes = Math.floor((msLeft % 3600000) / 60000);
+        var seconds = Math.floor((msLeft % 60000) / 1000);
+        var timeStr = String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+        if (countdownEl) countdownEl.textContent = '(' + timeStr + ' remaining)';
+        if (heroCountdownEl) heroCountdownEl.innerHTML = 'Voting resets in <strong>' + timeStr + '</strong>';
+      };
+      updateCountdown();
+      setInterval(updateCountdown, 1000);
+    }
+  })();
+</script>
+
+<script>
+  (function () {
+    fetch('data/community.json', { cache: 'no-store' })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (data) {
+        if (!data || !data.members) return;
+        document.querySelectorAll('.member-count').forEach(function (el) {
+          el.textContent = data.members;
+        });
+      })
+      .catch(function () {});
+  })();
+</script>
+
+<script>
+  (function () {
+    var STORAGE_VISITS = 'mt3ukVisitCount';
+    var STORAGE_DISMISSED = 'mt3ukA2HSDismissed';
+    var SESSION_FLAG = 'mt3ukVisitCounted';
+
+    function isStandalone() {
+      return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    }
+
+    if (isStandalone() || localStorage.getItem(STORAGE_DISMISSED) === '1') return;
+
+    if (!sessionStorage.getItem(SESSION_FLAG)) {
+      sessionStorage.setItem(SESSION_FLAG, '1');
+      var visits = parseInt(localStorage.getItem(STORAGE_VISITS) || '0', 10) + 1;
+      localStorage.setItem(STORAGE_VISITS, String(visits));
+    }
+    var visitCount = parseInt(localStorage.getItem(STORAGE_VISITS) || '0', 10);
+    if (visitCount < 2) return;
+
+    var deferredPrompt = null;
+    var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+    var bannerShown = false;
+
+    function dismiss(banner) {
+      banner.classList.remove('show');
+      setTimeout(function () { banner.remove(); }, 300);
+      localStorage.setItem(STORAGE_DISMISSED, '1');
+    }
+
+    function showBanner() {
+      if (bannerShown) return;
+      bannerShown = true;
+      var banner = document.createElement('div');
+      banner.className = 'a2hs-banner';
+      banner.innerHTML =
+        '<span class="a2hs-text">' + (isIOS
+          ? 'Add MT3UK to your Home Screen: tap Share, then \'Add to Home Screen\'.'
+          : 'Install MT3UK for quicker access to builds and voting.') + '</span>' +
+        '<span class="a2hs-actions">' +
+          (isIOS ? '' : '<button type="button" class="a2hs-btn a2hs-install">Install</button>') +
+          '<button type="button" class="a2hs-btn a2hs-close" aria-label="Dismiss">&times;</button>' +
+        '</span>';
+      document.body.appendChild(banner);
+      requestAnimationFrame(function () { banner.classList.add('show'); });
+
+      var closeBtn = banner.querySelector('.a2hs-close');
+      if (closeBtn) closeBtn.addEventListener('click', function () { dismiss(banner); });
+
+      var installBtn = banner.querySelector('.a2hs-install');
+      if (installBtn) {
+        installBtn.addEventListener('click', function () {
+          if (!deferredPrompt) { dismiss(banner); return; }
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.finally(function () { dismiss(banner); });
+        });
+      }
+    }
+
+    if (isIOS) {
+      showBanner();
+    } else {
+      window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault();
+        deferredPrompt = e;
+        showBanner();
+      });
+    }
+
+    window.addEventListener('appinstalled', function () {
+      localStorage.setItem(STORAGE_DISMISSED, '1');
+    });
+  })();
+</script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('/sw.js');
+    });
+  }
+</script>
+
+<script>
+  (function () {
+    var hash = location.hash;
+    if (!hash || hash.length < 2) return;
+
+    var userInteracted = false;
+    ['wheel', 'touchstart', 'keydown'].forEach(function (evt) {
+      window.addEventListener(evt, function () { userInteracted = true; }, { once: true, passive: true });
+    });
+
+    var scrollToHash = function (behavior) {
+      if (userInteracted) return;
+      var el = document.querySelector(hash);
+      if (!el) return;
+      var top = el.getBoundingClientRect().top + window.pageYOffset - 90;
+      window.scrollTo({ top: top, behavior: behavior });
+    };
+
+    scrollToHash('smooth');
+    var stopAt = Date.now() + 6000;
+    var poll = setInterval(function () {
+      if (userInteracted || Date.now() > stopAt) { clearInterval(poll); return; }
+      scrollToHash('instant');
+    }, 200);
+  })();
+</script>
 
 <script src="js/search.js" defer></script>
 

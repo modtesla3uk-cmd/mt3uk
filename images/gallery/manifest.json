@@ -1,5 +1,45 @@
 [
   {
+    "file": "team-red--by-mark-smith.jpg",
+    "caption": "TEAM RED",
+    "name": "MARK SMITH",
+    "votable": false,
+    "added": "2026-09-21"
+  },
+  {
+    "file": "team-red--by-mark-smith.jpeg",
+    "caption": "TEAM RED",
+    "name": "MARK SMITH",
+    "mods": [
+      "Tesory steering wheel",
+      "Carbon factory front and rear spoiler",
+      "ProTuning rear diffuser",
+      "Unplugged performance springs",
+      "BILSTEIN B8 shock absorber",
+      "MPP rear camber arms",
+      "Hard race adjustable front links",
+      "Halo performance c hook discs all round",
+      "Swivel kit fitted to on board screen"
+    ],
+    "added": "2026-09-21"
+  },
+  {
+    "file": "team-red--by-mark-smith-2.jpeg",
+    "caption": "TEAM RED",
+    "name": "MARK SMITH",
+    "votable": false,
+    "added": "2026-09-21"
+  },
+  {
+    "file": "model-3-front-end.jpg",
+    "caption": "MODEL 3 FRONT END",
+    "mods": [
+      "Tevo T4 Forged wheels",
+      "AP racing Big Brakes"
+    ],
+    "added": "2026-09-21"
+  },
+  {
     "file": "scarlett--by-jeremy-3.jpg",
     "caption": "SCARLETT",
     "name": "JEREMY",
@@ -25,7 +65,6 @@
     "caption": "YEAR ANNIVERSARY MODEL 3",
     "votable": false,
     "gallery": false,
-    "reel": false,
     "added": "2026-09-20"
   },
   {
@@ -34,7 +73,6 @@
     "name": "RICHARD",
     "votable": false,
     "gallery": false,
-    "reel": false,
     "added": "2026-09-20"
   },
   {

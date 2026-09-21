@@ -473,10 +473,11 @@
   }
   .hero-tag::before { content: ''; width: 6px; height: 6px; background: var(--orange); border-radius: 50%; }
 
+  
   .hero h1 {
     font-size: clamp(2.4rem, 5vw, 3.6rem);
     line-height: 1.03;
-    margin-bottom: 22px;
+    margin-bottom: 1em; /* Adds roughly 1 lines of space below the heading */
   }
 
   .hero p.lead {
@@ -569,12 +570,18 @@
     letter-spacing: 0.04em;
   }
 
-  .hero-media { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+  .hero-media { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 12px; 
+    align-items: flex-start; 
+    margin-top: 36px; /* Adjust this number to add more or less space above */
+  }
   .hero-media-note {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.78rem;
     color: rgba(255, 255, 255, 0.85);
-    text-align: center;
+    text-align: left; /* Aligns the text to the left */
     max-width: 340px;
   }
   .hero-media-note a { color: var(--orange); }
@@ -604,15 +611,7 @@
     .hero-vote-countdown { margin-top: 48px; } 
   }
 
-  @media (min-width: 901px) {
-    .hero-grid { justify-items: center; text-align: center; }
-    .hero-tag { margin-left: auto; margin-right: auto; }
-    .hero p.lead { margin-left: auto; margin-right: auto; max-width: 64ch; }
-    .hero-cta-stack { align-items: center; }
-    .hero-ctas { justify-content: center; }
-    .hero-stats { max-width: 480px; margin: 0 auto; }
-    .hero-media { align-items: center; }
-  }
+  .hero-media { align-items: flex-start; }
 
   @media (max-width: 600px) {
     .hero {

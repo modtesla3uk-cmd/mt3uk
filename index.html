@@ -495,7 +495,7 @@
   }
   .hero-main-cta:hover { background: var(--paper-2); }
 
-  /* ---------- CATEGORIES SECTION ---------- */
+    /* ---------- CATEGORIES SECTION ---------- */
   .categories-section {
     background: var(--paper);
     padding: 24px 0 28px;
@@ -554,31 +554,36 @@
     font-weight: 700;
     letter-spacing: 0.03em;
   }
-  .category-card svg.card-chevron {
-    width: 14px;
-    height: 14px;
-    stroke: var(--charcoal);
+
+  /* ---------- BOLD FADING CHEVRON ARROW ---------- */
+  .category-card .card-chevron {
+    width: 22px;
+    height: 16px;
+    flex-shrink: 0;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .category-card .card-chevron path {
     fill: none;
-    stroke-width: 2.2;
+    stroke: var(--orange);
+    stroke-width: 2.5;
     stroke-linecap: round;
     stroke-linejoin: round;
-    opacity: 0.4;
-    flex-shrink: 0;
-    transition: transform 0.2s ease, opacity 0.2s ease, stroke 0.2s ease;
+    transition: stroke 0.2s ease, opacity 0.2s ease;
   }
-  .category-card:hover {
-    background: var(--ink);
-    color: var(--paper);
-    border-color: var(--ink);
+
+  /* Fading trail effect from back to front */
+  .category-card .card-chevron path:nth-child(1) { opacity: 0.25; }
+  .category-card .card-chevron path:nth-child(2) { opacity: 0.60; }
+  .category-card .card-chevron path:nth-child(3) { opacity: 1.00; }
+
+  /* Hover state: pulse the trail forward */
+  .category-card:hover .card-chevron {
+    transform: translateX(4px);
   }
-  .category-card:hover svg.card-icon,
-  .category-card:hover svg.card-chevron {
-    stroke: var(--paper);
-  }
-  .category-card:hover svg.card-chevron {
-    opacity: 1;
-    transform: translateX(3px);
-  }
+  .category-card:hover .card-chevron path:nth-child(1) { opacity: 0.50; }
+  .category-card:hover .card-chevron path:nth-child(2) { opacity: 0.85; }
+  .category-card:hover .card-chevron path:nth-child(3) { opacity: 1.00; stroke: #ff6a3d; }
 
   /* ---------- VOTING & STATS SECTION ---------- */
   .voting-stats-section {
@@ -1854,6 +1859,109 @@
     outline-offset: 2px;
   }
 
+  /* ---------- ENHANCED APPEALING BUTTONS ---------- */
+  .hero-main-cta,
+  .btn,
+  .vote-btn,
+  .page-btn,
+  .refresh-btn,
+  .nav-cta,
+  .nav-cta-shop,
+  .event-status-confirmed,
+  .submit-form button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: 'Archivo Expanded', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: var(--ink);
+    color: var(--paper);
+    border: 1px solid var(--ink);
+    padding: 12px 22px;
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(22, 35, 61, 0.15);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Specific variants for visual flair */
+  .hero-main-cta {
+    background: var(--white);
+    color: var(--charcoal);
+    border-color: var(--white);
+  }
+  .hero-main-cta:hover {
+    background: var(--orange);
+    color: var(--white);
+    border-color: var(--orange);
+  }
+
+  .btn-primary, 
+  .event-status-confirmed, 
+  .submit-form button,
+  .vote-card.voted .vote-btn {
+    background: var(--orange);
+    border-color: var(--orange);
+    color: var(--white);
+  }
+  .btn-primary:hover, 
+  .event-status-confirmed:hover, 
+  .submit-form button:hover {
+    background: #cf4620;
+    border-color: #cf4620;
+    box-shadow: 0 6px 16px rgba(232, 84, 42, 0.3);
+  }
+
+  .nav-cta-shop,
+  .refresh-btn,
+  .page-btn,
+  .vote-btn {
+    background: transparent;
+    color: var(--ink);
+    border-color: var(--ink);
+  }
+  .nav-cta-shop:hover,
+  .refresh-btn:hover:not(:disabled),
+  .page-btn:hover:not(:disabled),
+  .vote-btn:hover:not(:disabled) {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  /* Tactile click press effect */
+  .hero-main-cta:active,
+  .btn:active,
+  .vote-btn:active,
+  .page-btn:active,
+  .refresh-btn:active,
+  .nav-cta:active,
+  .submit-form button:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 6px rgba(22, 35, 61, 0.2);
+  }
+
+  /* Mobile Consistency Overrides */
+  @media (max-width: 780px) {
+    .hero-main-cta,
+    .btn,
+    .vote-btn,
+    .page-btn,
+    .refresh-btn,
+    .nav-cta,
+    .nav-cta-shop,
+    .event-status-confirmed,
+    .submit-form button {
+      width: 100%;
+      min-height: 50px;
+      padding: 14px 20px;
+      font-size: 0.9rem;
+    }
+  }
+
   .a2hs-banner {
     position: fixed;
     left: 16px;
@@ -2338,75 +2446,94 @@
   </div>
 </section>
 
-<!-- CATEGORIES SECTION (Squared with crisp borders & chevrons) -->
-<section class="categories-section">
-  <div class="wrap">
-    <span class="categories-prefix">01 /</span>
-    <h3 class="categories-title">CATEGORIES</h3>
-    <div class="categories-grid">
-      <a href="my-builds.html" class="category-card nav-link-mybuilds">
-        <div class="category-card-content">
-          <svg class="card-icon" viewBox="0 0 24 24"><path d="M3 21V10l9-6 9 6v11"/><path d="M9 21v-8h6v8"/></svg>
-          <span>MY GARAGE</span>
-        </div>
-        <svg class="card-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
-      </a>
-      <a href="#events" class="category-card">
-        <div class="category-card-content">
-          <svg class="card-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-          <span>EVENTS</span>
-        </div>
-        <svg class="card-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
-      </a>
-      <a href="track-day-prep.html" class="category-card">
-        <div class="category-card-content">
-          <svg class="card-icon" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22V15"/></svg>
-          <span>TRACK DAY GUIDE</span>
-        </div>
-        <svg class="card-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
-      </a>
-      <a href="shop.html" class="category-card">
-        <div class="category-card-content">
-          <svg class="card-icon" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-          <span>SHOP</span>
-        </div>
-        <svg class="card-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
-      </a>
+<!-- CARBON FIBER PATTERN WRAPPER ENCLOSING CATEGORIES & VOTING -->
+<div class="tesla-watermark-wrapper">
+  <!-- CATEGORIES SECTION -->
+  <section class="categories-section">
+    <div class="wrap">
+      <span class="categories-prefix">01 /</span>
+      <h3 class="categories-title">CATEGORIES</h3>
+      <div class="categories-grid">
+        <a href="my-builds.html" class="category-card nav-link-mybuilds">
+          <div class="category-card-content">
+            <svg class="card-icon" viewBox="0 0 24 24"><path d="M3 21V10l9-6 9 6v11"/><path d="M9 21v-8h6v8"/></svg>
+            <span>MY GARAGE</span>
+          </div>
+          <svg class="card-chevron" viewBox="0 0 24 16" aria-hidden="true">
+            <path d="M2 2l6 6-6 6" />
+            <path d="M8 2l6 6-6 6" />
+            <path d="M14 2l6 6-6 6" />
+          </svg>
+        </a>
+        <a href="#events" class="category-card">
+          <div class="category-card-content">
+            <svg class="card-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            <span>EVENTS</span>
+          </div>
+          <svg class="card-chevron" viewBox="0 0 24 16" aria-hidden="true">
+            <path d="M2 2l6 6-6 6" />
+            <path d="M8 2l6 6-6 6" />
+            <path d="M14 2l6 6-6 6" />
+          </svg>
+        </a>
+        <a href="track-day-prep.html" class="category-card">
+          <div class="category-card-content">
+            <svg class="card-icon" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22V15"/></svg>
+            <span>TRACK DAY GUIDE</span>
+          </div>
+          <svg class="card-chevron" viewBox="0 0 24 16" aria-hidden="true">
+            <path d="M2 2l6 6-6 6" />
+            <path d="M8 2l6 6-6 6" />
+            <path d="M14 2l6 6-6 6" />
+          </svg>
+        </a>
+        <a href="shop.html" class="category-card">
+          <div class="category-card-content">
+            <svg class="card-icon" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            <span>SHOP</span>
+          </div>
+          <svg class="card-chevron" viewBox="0 0 24 16" aria-hidden="true">
+            <path d="M2 2l6 6-6 6" />
+            <path d="M8 2l6 6-6 6" />
+            <path d="M14 2l6 6-6 6" />
+          </svg>
+        </a>
+      </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- CAR OF THE DAY VOTING & STATS -->
-<section class="voting-stats-section">
-  <div class="wrap">
-    <div class="voting-header" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 14px;">
-      <div>
-        <span class="voting-prefix">01a /</span>
-        <h3>CAR OF THE DAY VOTING</h3>
-        <p id="hero-vote-countdown">Voting resets in <strong>--:--:--</strong></p>
+  <!-- CAR OF THE DAY VOTING & STATS -->
+  <section class="voting-stats-section">
+    <div class="wrap">
+      <div class="voting-header" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 14px;">
+        <div>
+          <span class="voting-prefix">01a /</span>
+          <h3>CAR OF THE DAY VOTING</h3>
+          <p id="hero-vote-countdown">Voting resets in <strong>--:--:--</strong></p>
+        </div>
+        <a href="#vote-frame" class="btn" style="padding: 8px 16px; border: 1px solid var(--ink); font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; text-decoration: none; color: var(--ink); background: transparent; display: inline-flex; align-items: center; gap: 6px;">
+          <span>Cast Your Vote</span>
+          <span style="color: var(--orange);">&rarr;</span>
+        </a>
       </div>
-      <a href="#vote-frame" class="btn" style="padding: 8px 16px; border: 1px solid var(--ink); font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; text-decoration: none; color: var(--ink); background: transparent; display: inline-flex; align-items: center; gap: 6px;">
-        <span>Cast Your Vote</span>
-        <span style="color: var(--orange);">&rarr;</span>
-      </a>
+      
+      <div class="stats-row">
+        <div class="stat-col">
+          <strong class="member-count"></strong>
+          <span>MEMBERS</span>
+        </div>
+        <div class="stat-col">
+          <strong>GLOBAL</strong>
+          <span>COVERAGE</span>
+        </div>
+        <div class="stat-col">
+          <strong>DAILY</strong>
+          <span>BUILDS</span>
+        </div>
+      </div>
     </div>
-    
-    <div class="stats-row">
-      <div class="stat-col">
-        <strong class="member-count"></strong>
-        <span>MEMBERS</span>
-      </div>
-      <div class="stat-col">
-        <strong>GLOBAL</strong>
-        <span>COVERAGE</span>
-      </div>
-      <div class="stat-col">
-        <strong>DAILY</strong>
-        <span>BUILDS</span>
-      </div>
-    </div>
-  </div>
-</section>
+  </section>
+</div>
 
 <section id="build-feed">
   <div class="wrap">

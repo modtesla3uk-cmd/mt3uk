@@ -499,32 +499,38 @@
   }
 
   /* ---------- REVIEWS LIST ---------- */
-  .review-groups { display: flex; flex-direction: column; gap: 34px; }
-  .review-group { border-top: 1px solid var(--line); padding-top: 28px; }
-  .review-group:first-child { border-top: none; padding-top: 0; }
-  .review-group-heading { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
-  .review-group-heading h3 { font-size: 1.15rem; }
-  .review-group-heading .stars { color: #f5b400; letter-spacing: 1px; font-size: 1.3rem; }
-  .review-group-heading .review-product-link { margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--orange); text-decoration: none; }
-  .review-group-heading .review-product-link:hover { text-decoration: underline; }
-  .review-group-summary { color: var(--steel); font-size: 0.88rem; margin-bottom: 8px; }
-  .review-list { display: flex; flex-direction: column; gap: 10px; }
-  .review-card {
-    padding: 4px 0;
+  .review-groups { display: flex; flex-direction: column; gap: 24px; }
+  .review-group {
+    background: var(--white);
+    border: 1px solid var(--ink);
+    padding: 24px;
+    box-shadow: 2px 2px 0px rgba(22,35,61,0.15);
   }
-  .review-card .stars { color: #f5b400; letter-spacing: 1px; font-size: 1.25rem; }
+  .review-group-heading { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; border-bottom: 1px solid var(--paper-2); padding-bottom: 12px; }
+  .review-group-heading h3 { font-size: 1.15rem; color: var(--ink); }
+  .review-group-heading .stars { color: #f5b400; letter-spacing: 1px; font-size: 1.2rem; }
+  .review-group-heading .review-product-link { margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--orange); text-decoration: none; font-weight: 600; }
+  .review-group-heading .review-product-link:hover { text-decoration: underline; }
+  .review-group-summary { color: var(--steel); font-size: 0.85rem; margin-bottom: 16px; font-family: 'IBM Plex Mono', monospace; }
+  .review-list { display: flex; flex-direction: column; gap: 16px; }
+  .review-card {
+    background: var(--paper);
+    border: 1px solid var(--paper-2);
+    padding: 16px;
+  }
+  .review-card .stars { color: #f5b400; letter-spacing: 1px; font-size: 1.1rem; }
   .review-card-meta {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 10px;
     flex-wrap: wrap;
-    margin-top: 4px;
-    margin-bottom: 4px;
+    margin-top: 6px;
+    margin-bottom: 8px;
   }
-  .review-card-meta .mono { font-size: 0.7rem; }
-  .review-card p.comment { color: var(--ink-2); font-size: 0.92rem; font-style: italic; }
-  .review-empty { color: var(--steel); font-size: 0.9rem; }
+  .review-card-meta .mono { font-size: 0.7rem; color: var(--ink-2); font-weight: 600; }
+  .review-card p.comment { color: var(--charcoal); font-size: 0.92rem; font-style: italic; line-height: 1.45; }
+  .review-empty { color: var(--steel); font-size: 0.9rem; padding: 10px 0; }
   .inline-link {
     color: var(--orange);
     font-weight: 600;
@@ -532,7 +538,7 @@
     border-bottom: 1px solid var(--orange);
   }
   .inline-link:hover { color: var(--ink); border-color: var(--ink); }
-  .review-photos { display: flex; gap: 8px; margin-top: 10px; }
+  .review-photos { display: flex; gap: 8px; margin-top: 12px; }
   .review-photo-thumb {
     width: 64px;
     height: 64px;
@@ -668,32 +674,6 @@
 </head>
 <body>
 
-<!-- Promo banner disabled: no active offer. Re-enable by removing this comment wrapper when a new promo is ready.
-<div class="promo-banner" id="promo-banner">
-  <div class="promo-banner-inner">
-    <div class="promo-banner-track">
-      <a href="shop.html#tee" class="promo-banner-msg">&#9201; New Tee options available!! | Hoodies | Club Stickers | Master Cylinder Braces | Brake Pads | Number Plates, shop now &rarr;</a>
-      <a href="shop.html#tee" class="promo-banner-msg" aria-hidden="true">&#9201; New Tee options available!! | Hoodies | Club Stickers | Master Cylinder Braces | Brake Pads | Number Plates, shop now &rarr;</a>
-    </div>
-    <button type="button" class="promo-banner-close" id="promo-banner-close" aria-label="Dismiss banner">&times;</button>
-  </div>
-</div>
-<script>
-  (function () {
-    var KEY = 'mt3uk-promo-tee-dismissed';
-    var EXPIRY_MS = 7 * 24 * 60 * 60 * 1000;
-    var banner = document.getElementById('promo-banner');
-    if (!banner) return;
-    var dismissedAt = parseInt(localStorage.getItem(KEY), 10);
-    if (dismissedAt && (Date.now() - dismissedAt) < EXPIRY_MS) { banner.remove(); return; }
-    document.getElementById('promo-banner-close').addEventListener('click', function () {
-      banner.remove();
-      try { localStorage.setItem(KEY, String(Date.now())); } catch (e) {}
-    });
-  })();
-</script>
--->
-
 <header>
   <nav>
     <div class="nav-center">
@@ -722,6 +702,7 @@
             <div class="nav-dropdown">
               <a href="shop.html#tevo" class="nav-sublink">Tevo Solutions</a>
               <a href="shop.html#redline" class="nav-sublink">Redline Plates</a>
+              <a href="shop.html#evoffer" class="nav-sublink">EVOffer Sport Seats</a>
               <a href="shop.html#offers" class="nav-sublink nav-sublink-offer">Offers</a>
             </div>
           </div>
@@ -761,7 +742,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
       </button>
       <div class="nav-search-panel" id="nav-search-panel">
-        <input type="text" id="nav-search-input" placeholder="Search&hellip; e.g. Gallery, Shop, Hoodies, Number Plates, Pads" autocomplete="off">
+        <input type="text" id="nav-search-input" placeholder="Search&hellip; e.g. Gallery, Shop, Hoodies, Number Plates, Seats" autocomplete="off">
         <div class="nav-search-results" id="nav-search-results"></div>
       </div>
     </div>
@@ -817,6 +798,10 @@
           <option value="brace">Master Cylinder Brace</option>
           <option value="pads-street">PAGID Street+ Brake Pads</option>
           <option value="pads-carbotech">Carbotech Brake Pads</option>
+          <option value="evoffer-ludicrous">Model 3/Y Ludicrous Style Sport Seats</option>
+          <option value="evoffer-ludicrous-essential">Model 3/Y Ludicrous Essential Pack</option>
+          <option value="evoffer-zerogravity">Model 3/Y Zero Gravity Sport Seats</option>
+          <option value="evoffer-plaid">Model S/X Plaid Style Performance Seats</option>
         </select>
       </div>
       <div class="form-row">
@@ -885,11 +870,11 @@
 
       navMenu.querySelectorAll('.nav-dropdown-toggle').forEach(function (toggle) {
             toggle.addEventListener('click', function (e) {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  var item = toggle.closest('.nav-item');
-                  var open = item.classList.toggle('open');
-                  toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+                e.preventDefault();
+                e.stopPropagation();
+                var item = toggle.closest('.nav-item');
+                var open = item.classList.toggle('open');
+                toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
             });
       });
 
@@ -916,9 +901,6 @@
 <script>
   (function () {
     var SHOP_ENDPOINT = 'https://late-darkness-ebc8.modtesla3uk.workers.dev/shop-products';
-    // Legacy handles get their original short keys so past reviews still match;
-    // any product not listed here (e.g. a newly added Shopify item) falls back
-    // to using its handle as the key, so it shows up automatically.
     var MANUAL_PRODUCT_KEYS = {
       'black-mt3uk-tee-red-underline-super-soft': 'tee',
       'black-mt3uk-tee-yellow-underline': 'tee-yellow',
@@ -930,9 +912,21 @@
     var PRODUCT_NAMES = {
       'brace': 'Master Cylinder Brace',
       'pads-street': 'PAGID Street+ Brake Pads',
-      'pads-carbotech': 'Carbotech Brake Pads'
+      'pads-carbotech': 'Carbotech Brake Pads',
+      'evoffer-ludicrous': 'Model 3/Y Ludicrous Style Sport Seats',
+      'evoffer-ludicrous-essential': 'Model 3/Y Ludicrous Essential Pack',
+      'evoffer-zerogravity': 'Model 3/Y Zero Gravity Sport Seats',
+      'evoffer-plaid': 'Model S/X Plaid Style Performance Seats'
     };
-    var PRODUCT_ORDER = ['brace', 'pads-street', 'pads-carbotech'];
+    var PRODUCT_ORDER = [
+      'brace', 
+      'pads-street', 
+      'pads-carbotech',
+      'evoffer-ludicrous',
+      'evoffer-ludicrous-essential',
+      'evoffer-zerogravity',
+      'evoffer-plaid'
+    ];
 
     var select = document.getElementById('review-product');
 
@@ -973,7 +967,7 @@
         var avg = productReviews.length ? productReviews.reduce(function (sum, r) { return sum + (r.rating || 0); }, 0) / productReviews.length : 0;
 
         html += '<div class="review-group" id="' + key + '">';
-        html += '<div class="review-group-heading"><h3>' + PRODUCT_NAMES[key] + '</h3>' +
+        html += '<div class="review-group-heading"><h3>' + (PRODUCT_NAMES[key] || key) + '</h3>' +
           (productReviews.length ? '<span class="stars">' + starString(avg) + '</span>' : '') +
           '<a class="review-product-link" href="shop.html#' + key + '">View product &rarr;</a></div>';
 

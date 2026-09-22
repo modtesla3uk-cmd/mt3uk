@@ -442,7 +442,7 @@
   /* ---------- HERO ---------- */
   .hero {
     position: relative;
-    padding: 30px 0 30px;
+    padding: 30px 0;
     overflow: hidden;
     border-bottom: 1px solid var(--ink);
     background-image: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.65)),
@@ -473,7 +473,6 @@
     margin-bottom: 24px;
   }
 
-  /* Big Main CTA Button */
   .hero-main-cta {
     display: inline-flex;
     align-items: center;
@@ -496,17 +495,17 @@
   }
   .hero-main-cta:hover { background: var(--paper-2); }
 
-  /* ---------- CATEGORIES SECTION (Squared with crisp borders) ---------- */
+  /* ---------- CATEGORIES SECTION ---------- */
   .categories-section {
     background: var(--paper);
-    padding: 30px 0 30px;
+    padding: 24px 0 28px;
     border-bottom: 1px solid var(--ink);
   }
   .categories-prefix {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.78rem;
     color: var(--orange);
-    margin-bottom: 8px;
+    margin-bottom: 4px;
     display: block;
   }
   .categories-title {
@@ -514,32 +513,7 @@
     font-size: 1.1rem;
     letter-spacing: 0.04em;
     color: var(--charcoal);
-    margin-bottom: 16px;
-  }
-  .categories-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-  /* ---------- CATEGORIES SECTION (Squared with crisp borders & chevrons) ---------- */
-  .categories-section {
-    background: var(--paper);
-    padding: 30px 0 30px;
-    border-bottom: 1px solid var(--ink);
-  }
-  .categories-prefix {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.78rem;
-    color: var(--orange);
-    margin-bottom: 8px;
-    display: block;
-  }
-  .categories-title {
-    font-family: 'Archivo Expanded', sans-serif;
-    font-size: 1.1rem;
-    letter-spacing: 0.04em;
-    color: var(--charcoal);
-    margin-bottom: 16px;
+    margin-bottom: 14px;
   }
   .categories-grid {
     display: grid;
@@ -553,7 +527,7 @@
     padding: 16px 18px;
     display: flex;
     align-items: center;
-    justify-content: space-between; /* Pushes left icon/label apart from the chevron */
+    justify-content: space-between;
     text-decoration: none;
     color: var(--charcoal);
     transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
@@ -603,23 +577,23 @@
   }
   .category-card:hover svg.card-chevron {
     opacity: 1;
-    transform: translateX(3px); /* Subtle directional tap cue */
+    transform: translateX(3px);
   }
 
   /* ---------- VOTING & STATS SECTION ---------- */
   .voting-stats-section {
     background: var(--paper);
-    padding: 30px 0 40px;
+    padding: 24px 0 32px;
     border-bottom: 1px solid var(--ink);
   }
   .voting-header {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
   }
   .voting-prefix {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.78rem;
     color: var(--orange);
-    margin-bottom: 8px;
+    margin-bottom: 4px;
     display: block;
   }
   .voting-header h3 {
@@ -722,31 +696,40 @@
   .corner.bl { bottom: 10px; left: 10px; border-right: none; border-top: none; }
   .corner.br { bottom: 10px; right: 10px; border-left: none; border-top: none; }
 
-  /* ---------- SECTION SHELL ---------- */
-  section { padding: 60px 0; border-bottom: 1px solid var(--ink); scroll-margin-top: 90px; }
+  /* ---------- SECTION SHELL (Centered & balanced desktop styling) ---------- */
+  section { padding: 48px 0; border-bottom: 1px solid var(--ink); scroll-margin-top: 90px; }
   section:last-of-type { border-bottom: none; }
-  @media (max-width: 780px) {
-    section { padding: 36px 0; }
-    .section-head { gap: 16px; margin-bottom: 20px; }
-  }
 
   .section-head {
     display: flex;
-    justify-content: flex-start;
+    flex-direction: column;
     align-items: flex-start;
-    gap: 60px;
-    margin-bottom: 30px;
-    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 22px;
   }
+
   .section-num {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.78rem;
     color: var(--orange);
-    margin-bottom: 10px;
+    margin-bottom: 2px;
     display: block;
   }
-  .section-head h2 { font-size: clamp(1.7rem, 3.2vw, 2.3rem); max-width: 34ch; }
-  .section-title-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+
+  .section-head h2 {
+    font-size: clamp(1.7rem, 3.2vw, 2.3rem);
+    line-height: 1.15;
+    max-width: 32ch;
+    margin: 0;
+  }
+
+  .section-title-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
   .refresh-btn {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.7rem;
@@ -761,24 +744,82 @@
   }
   .refresh-btn:hover:not(:disabled) { background: var(--ink); color: var(--paper); }
   .refresh-btn:disabled { opacity: 0.5; cursor: default; }
-  .section-head p { max-width: 40ch; color: var(--steel); font-size: 0.95rem; }
+
+  .section-head p {
+    max-width: 58ch;
+    color: var(--steel);
+    font-size: 0.95rem;
+    line-height: 1.45;
+    margin: 0;
+  }
+
+  /* Desktop layout: cleanly center content sections that have central feeds */
+  @media (min-width: 861px) {
+    #build-feed .section-head,
+    #build-of-the-day .section-head,
+    #events .section-head,
+    #track-days .section-head,
+    #faq .section-head {
+      align-items: center;
+      text-align: center;
+    }
+
+    #build-feed .section-head p,
+    #build-of-the-day .section-head p,
+    #events .section-head p,
+    #track-days .section-head p,
+    #faq .section-head p {
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .section-title-row {
+      justify-content: center;
+    }
+
+    .events-list {
+      max-width: 840px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .track-days-intro {
+      max-width: 840px;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: left;
+    }
+
+    #events .diagram {
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+
+  @media (max-width: 780px) {
+    section { padding: 32px 0; }
+    .section-head {
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+  }
 
   /* ---------- ABOUT ---------- */
   .about-grid {
     display: grid;
     grid-template-columns: 1.1fr 0.9fr;
-    gap: 60px;
+    gap: 32px;
   }
 
-  .track-days-intro p { color: var(--ink-2); margin-bottom: 18px; max-width: 58ch; }
+  .track-days-intro p { color: var(--ink-2); margin-bottom: 12px; max-width: 58ch; }
   @media (min-width: 900px) {
-    .track-days-intro { column-count: 2; column-gap: 48px; }
+    .track-days-intro { column-count: 2; column-gap: 32px; }
     .track-days-intro p { break-inside: avoid; max-width: none; }
   }
   @media (max-width: 860px) { .about-grid { grid-template-columns: 1fr; } }
   #track-days .about-grid { grid-template-columns: 1fr; max-width: 70ch; }
 
-  .about-grid p { color: var(--ink-2); margin-bottom: 18px; max-width: 58ch; }
+  .about-grid p { color: var(--ink-2); margin-bottom: 12px; max-width: 58ch; }
 
   .specs {
     border: 1px solid var(--ink);
@@ -910,27 +951,27 @@
 
   /* ---------- BUILD REEL ---------- */
   .bf-section {
-    margin-top: 44px;
-    padding-top: 34px;
+    margin-top: 36px;
+    padding-top: 28px;
     border-top: 1px dashed var(--steel);
   }
   .bf-section h3 {
     font-family: 'Archivo Expanded', sans-serif;
     font-size: 1.1rem;
     color: var(--ink);
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
   .bf-section > p {
     color: var(--steel);
     font-size: 0.88rem;
     max-width: 54ch;
-    margin-bottom: 22px;
+    margin-bottom: 18px;
   }
   .bf-frame {
     position: relative;
     width: min(420px, 100%);
     aspect-ratio: 3 / 4;
-    margin: 0;
+    margin: 0 auto;
     border: 1px solid var(--ink);
     overflow: hidden;
     background: #000;
@@ -1119,13 +1160,13 @@
   .bf-comments-btn[aria-pressed="true"] { color: var(--orange); }
   .bf-comments-btn.bf-has-comments { color: var(--orange); }
 
-  .saved-builds-inline { margin: 28px auto 0; width: min(420px, 100%); }
+  .saved-builds-inline { margin: 24px auto 0; width: min(420px, 100%); }
   .saved-builds-label {
     color: var(--steel);
     font-size: 0.75rem;
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
   #saved-builds .saved-builds-strip {
     display: flex;
@@ -1484,10 +1525,10 @@
     font-family: 'Archivo Expanded', sans-serif;
     font-size: 1.4rem;
     color: var(--ink);
-    margin-bottom: 12px;
+    margin-bottom: 10px;
   }
-  .botm-frame .botm-body p { color: var(--ink-2); font-size: 0.92rem; margin-bottom: 20px; max-width: 40ch; }
-  .botm-frame .botm-voted-note { color: var(--orange); font-weight: 600; font-size: 0.92rem; margin-bottom: 16px; }
+  .botm-frame .botm-body p { color: var(--ink-2); font-size: 0.92rem; margin-bottom: 16px; max-width: 40ch; }
+  .botm-frame .botm-voted-note { color: var(--orange); font-weight: 600; font-size: 0.92rem; margin-bottom: 14px; }
   .botm-frame .botm-voted-note a { color: inherit; text-decoration: underline; }
 
   .vote-frame {
@@ -1495,7 +1536,7 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 0;
     border: 1px solid var(--ink);
-    margin-top: 32px;
+    margin-top: 24px;
   }
   .vote-card {
     background: var(--paper-2);
@@ -1566,7 +1607,7 @@
   }
   .track-day-venue-context {
     max-width: 640px;
-    margin: 12px auto 0;
+    margin: 10px auto 0;
     text-align: center;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.72rem;
@@ -1580,7 +1621,7 @@
     align-items: center;
     justify-content: center;
     gap: 18px;
-    margin-top: 24px;
+    margin-top: 20px;
   }
   .gallery-pagination .page-btn {
     font-family: 'IBM Plex Mono', monospace;
@@ -1601,21 +1642,21 @@
 
   /* ---------- SUBMIT PHOTO ---------- */
   .submit-photo {
-    margin-top: 44px;
-    padding-top: 34px;
+    margin-top: 36px;
+    padding-top: 28px;
     border-top: 1px dashed var(--steel);
   }
   .submit-photo h3 {
     font-family: 'Archivo Expanded', sans-serif;
     font-size: 1.1rem;
     color: var(--ink);
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
   .submit-photo > p {
     color: var(--steel);
     font-size: 0.88rem;
     max-width: 54ch;
-    margin-bottom: 22px;
+    margin-bottom: 18px;
   }
   .submit-form {
     display: flex;
@@ -1704,7 +1745,7 @@
     grid-template-columns: 110px 1fr auto;
     gap: 24px;
     align-items: center;
-    padding: 22px 0;
+    padding: 18px 0;
     border-bottom: 1px solid var(--ink);
   }
   @media (max-width: 640px) {
@@ -1715,7 +1756,7 @@
     font-size: 0.85rem;
     color: var(--orange);
   }
-  .event-info h3 { font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; font-size: 1.05rem; color: var(--ink); margin-bottom: 4px; }
+  .event-info h3 { font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; font-size: 1.05rem; color: var(--ink); margin-bottom: 2px; }
   .event-info p { color: var(--steel); font-size: 0.88rem; }
   .event-status {
     font-family: 'IBM Plex Mono', monospace;
@@ -1756,8 +1797,8 @@
 
   /* ---------- SECTION GALLERY CTA ---------- */
   .section-gallery-cta {
-    margin-top: 28px;
-    padding: 20px 24px;
+    margin-top: 24px;
+    padding: 18px 20px;
     border: 1px solid rgba(22,35,61,0.15);
     display: flex;
     align-items: center;
@@ -1774,28 +1815,27 @@
     background: var(--paper);
     border-top: 1px solid rgba(22,35,61,0.12);
     border-bottom: 1px solid rgba(22,35,61,0.12);
-    padding: 48px 24px;
+    padding: 40px 24px;
     text-align: center;
   }
-  .shop-cta h2 { margin: 0 0 8px; }
-  .shop-cta p { color: var(--steel); margin: 0 0 20px; }
+  .shop-cta h2 { margin: 0 0 6px; }
+  .shop-cta p { color: var(--steel); margin: 0 0 18px; }
   .shop-cta .nav-cta-shop {
     display: inline-block;
     padding: 12px 28px;
     font-size: 0.95rem;
   }
 
-
   /* ---------- JOIN CTA ---------- */
   .join-cta {
     text-align: center;
-    padding: 100px 0;
+    padding: 72px 0;
   }
-  .join-cta h2 { font-size: clamp(2rem, 5vw, 3rem); max-width: 18ch; margin: 0 auto 20px; }
-  .join-cta p { color: var(--steel); max-width: 46ch; margin: 0 auto 36px; }
+  .join-cta h2 { font-size: clamp(2rem, 5vw, 3rem); max-width: 18ch; margin: 0 auto 14px; }
+  .join-cta p { color: var(--steel); max-width: 46ch; margin: 0 auto 28px; }
 
   /* ---------- FOOTER ---------- */
-  footer { padding: 40px 0; }
+  footer { padding: 36px 0; }
   .footer-row {
     display: flex;
     justify-content: space-between;
@@ -1868,11 +1908,6 @@
     };
   })();
 
-  // Grid/reel tiles crop to a square-ish box with object-fit: cover, which
-  // over-crops wide landscape photos (cuts the sides off the car). Tag
-  // landscape images once loaded so CSS can switch just those to
-  // object-fit: contain (full photo visible, letterboxed) instead of
-  // cropping. Uses the capture phase since the "load" event doesn't bubble.
   document.addEventListener('load', function (e) {
     var img = e.target;
     if (!(img instanceof HTMLImageElement)) return;
@@ -1883,19 +1918,11 @@
     if (container) container.classList.add('is-landscape');
   }, true);
 
-  // If this browser is signed in to My Builds, work out which gallery files
-  // belong to that account so an "Edit Build" button can be shown on them
-  // wherever they appear on the site, and cache the full build record
-  // (caption/mods/flags) so the edit modal can open instantly.
   window.mt3ukMyBuildFiles = null;
   window.mt3ukMyBuildData = {};
   window.mt3ukMyBuildsEmail = null;
   var MT3UK_API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
 
-  // Flags the "My Garage" nav link with a small flashing comment icon when
-  // any of the signed-in visitor's builds have comments they haven't seen
-  // yet (tracked per-file in localStorage, cleared when they open that
-  // build's comments in My Garage).
   function mt3ukCheckNewComments(builds) {
     var seenRaw = localStorage.getItem('mt3ukSeenComments');
     var seen = {};
@@ -1956,9 +1983,6 @@
     if (!document.hidden) mt3ukPollMyBuilds();
   });
 
-  // Adds an "Edit Build" button to any rendered [data-file] element whose
-  // file belongs to the signed-in account. Safe to call before the account's
-  // build list has loaded (a no-op) and again once mt3ukMyBuildsReady fires.
   window.mt3ukApplyEditBadges = function (root) {
     if (!window.mt3ukMyBuildFiles) return;
     (root || document).querySelectorAll('[data-file]').forEach(function (el) {
@@ -1983,9 +2007,6 @@
     window.mt3ukApplyEditBadges(document);
   });
 
-  // In-page "Edit Build" modal: lets a signed-in owner change mods and
-  // gallery/reel/voting flags, or delete the build, without leaving the
-  // page they were browsing.
   window.mt3ukOpenEditModal = (function () {
     var modal, modsList, modsInput, statusEl, deleteBtn, captionEl, imgEl;
     var currentFile = null;
@@ -2118,8 +2139,6 @@
               cached.reel = flags.reel;
               cached.votable = flags.votable;
             }
-            // If the flag governing where this build was clicked from just
-            // turned off, drop it from that view immediately.
             if (currentOriginEl) {
               var surfaceFlag = currentOriginEl.classList.contains('bf-slide') ? 'reel' :
                 currentOriginEl.classList.contains('vote-card') ? 'votable' :
@@ -2208,10 +2227,6 @@
     };
   })();
 
-  // Picks the featured build: the latest upload, swapping only at UK
-  // midnight. If no new photo has been added since it was last featured,
-  // rotates through the next few most recent uploads instead of repeating
-  // the same "latest" photo every day.
   window.mt3ukPickBuild = function (photos, featuredFile) {
     if (featuredFile) {
       var pinned = photos.find(function (p) { return p.file === featuredFile; });
@@ -2219,8 +2234,6 @@
     }
     if (!photos.length) return null;
     var todayUK = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London' }).format(new Date());
-    // ignore anything uploaded today, so a mid-day upload can't swap the
-    // feature until the following UK midnight
     var eligible = photos.filter(function (p) { return !p.added || p.added < todayUK; });
     if (!eligible.length) eligible = photos;
     var latest = eligible[0];
@@ -2237,62 +2250,62 @@
   <nav>
     <div class="nav-center">
       <a href="/" class="logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
-    <div class="navlinks" id="navlinks">
-      <div class="nav-item">
-        <a href="#build-feed" class="nav-link">Gallery Feed</a>
-        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Gallery Feed submenu">&#9660;</button>
-        <div class="nav-dropdown">
-          <a href="#build-of-the-day" class="nav-sublink">Featured Build</a>
-          <a href="#vote-frame" class="nav-sublink">Vote for Build</a>
-          <a href="gallery.html" class="nav-sublink">Full Gallery</a>
-        </div>
-      </div>
-      <div class="nav-item">
-        <a href="my-builds.html" class="nav-link nav-link-mybuilds">My Garage</a>
-      </div>
-      <div class="nav-item">
-        <a href="shop.html" class="nav-link">Shop</a>
-        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Shop submenu">&#9660;</button>
-        <div class="nav-dropdown">
-          <a href="shop.html#merch" class="nav-sublink">Merch</a>
-          <div class="nav-item nav-subitem">
-            <a href="shop.html#parts" class="nav-sublink nav-sublink-new">Parts</a>
-            <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Parts submenu">&#9660;</button>
-            <div class="nav-dropdown">
-              <a href="shop.html#tevo" class="nav-sublink">Tevo Solutions</a>
-              <a href="shop.html#redline" class="nav-sublink">Redline Plates</a>
-              <a href="shop.html#offers" class="nav-sublink nav-sublink-offer">Offers</a>
-            </div>
+      <div class="navlinks" id="navlinks">
+        <div class="nav-item">
+          <a href="#build-feed" class="nav-link">Gallery Feed</a>
+          <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Gallery Feed submenu">&#9660;</button>
+          <div class="nav-dropdown">
+            <a href="#build-of-the-day" class="nav-sublink">Featured Build</a>
+            <a href="#vote-frame" class="nav-sublink">Vote for Build</a>
+            <a href="gallery.html" class="nav-sublink">Full Gallery</a>
           </div>
-          <a href="reviews.html" class="nav-sublink">Customer Reviews</a>
         </div>
-      </div>
-      <a href="#events" class="nav-link">Events</a>
-      <div class="nav-item">
-        <a href="#track-days" class="nav-link">Track Days</a>
-        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Track Days submenu">&#9660;</button>
-        <div class="nav-dropdown">
-          <a href="track-day-prep.html" class="nav-sublink">Prep</a>
-          <a href="track-day-on-the-day.html" class="nav-sublink nav-sublink-new">On The Day</a>
-          <a href="track-day-venues.html" class="nav-sublink">Venues</a>
-          <a href="track-day-prep.html#track-day-finder" class="nav-sublink">Track Day Finder</a>
+        <div class="nav-item">
+          <a href="my-builds.html" class="nav-link nav-link-mybuilds">My Garage</a>
         </div>
-      </div>
-      <div class="nav-item">
-        <a href="#about" class="nav-link active">About</a>
-        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle About submenu">&#9660;</button>
-        <div class="nav-dropdown">
-          <a href="https://www.facebook.com/groups/mt3uk/" class="nav-sublink" target="_blank" rel="noopener">Join The Facebook Group</a>
+        <div class="nav-item">
+          <a href="shop.html" class="nav-link">Shop</a>
+          <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Shop submenu">&#9660;</button>
+          <div class="nav-dropdown">
+            <a href="shop.html#merch" class="nav-sublink">Merch</a>
+            <div class="nav-item nav-subitem">
+              <a href="shop.html#parts" class="nav-sublink nav-sublink-new">Parts</a>
+              <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Parts submenu">&#9660;</button>
+              <div class="nav-dropdown">
+                <a href="shop.html#tevo" class="nav-sublink">Tevo Solutions</a>
+                <a href="shop.html#redline" class="nav-sublink">Redline Plates</a>
+                <a href="shop.html#offers" class="nav-sublink nav-sublink-offer">Offers</a>
+              </div>
+            </div>
+            <a href="reviews.html" class="nav-sublink">Customer Reviews</a>
+          </div>
         </div>
-      </div>
-      <a href="#faq" class="nav-link">FAQs</a>
-      <div class="nav-item">
-        <a href="contact.html" class="nav-link">Contact</a>
-        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Contact submenu">&#9660;</button>
-        <div class="nav-dropdown">
-          <a href="https://ko-fi.com/mt3uk" class="nav-sublink" target="_blank" rel="noopener">Support Us</a>
+        <a href="#events" class="nav-link">Events</a>
+        <div class="nav-item">
+          <a href="#track-days" class="nav-link">Track Days</a>
+          <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Track Days submenu">&#9660;</button>
+          <div class="nav-dropdown">
+            <a href="track-day-prep.html" class="nav-sublink">Prep</a>
+            <a href="track-day-on-the-day.html" class="nav-sublink nav-sublink-new">On The Day</a>
+            <a href="track-day-venues.html" class="nav-sublink">Venues</a>
+            <a href="track-day-prep.html#track-day-finder" class="nav-sublink">Track Day Finder</a>
+          </div>
         </div>
-      </div>
+        <div class="nav-item">
+          <a href="#about" class="nav-link active">About</a>
+          <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle About submenu">&#9660;</button>
+          <div class="nav-dropdown">
+            <a href="https://www.facebook.com/groups/mt3uk/" class="nav-sublink" target="_blank" rel="noopener">Join The Facebook Group</a>
+          </div>
+        </div>
+        <a href="#faq" class="nav-link">FAQs</a>
+        <div class="nav-item">
+          <a href="contact.html" class="nav-link">Contact</a>
+          <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Contact submenu">&#9660;</button>
+          <div class="nav-dropdown">
+            <a href="https://ko-fi.com/mt3uk" class="nav-sublink" target="_blank" rel="noopener">Support Us</a>
+          </div>
+        </div>
       </div>
     </div>
     <div class="nav-search" id="nav-search">
@@ -2316,7 +2329,6 @@
       <div>
         <h1 style="color: #ffffff;">JOIN THE MODIFIED TESLA COMMUNITY</h1>
         <p class="lead" style="color: #ffffff;">MT3UK is the global hub for modified Tesla owners: wraps, wheels, stance, and events. Real builds, honest feedback.</p>
-        
         <div class="hero-cta-stack">
           <a href="#build-feed" class="hero-main-cta">EXPLORE THE GALLERY FEED</a>
         </div>
@@ -2363,6 +2375,7 @@
     </div>
   </div>
 </section>
+
 <!-- CAR OF THE DAY VOTING & STATS -->
 <section class="voting-stats-section">
   <div class="wrap">
@@ -3005,15 +3018,11 @@
       });
 
       wireComments(slides);
-
       wireAutoscroll(slides.length);
     }
 
     var autoscrollApi = null;
 
-    // wireAutoscroll can be called again after a feed refresh (new build
-    // toast). Only the first call wires up listeners/timers; later calls
-    // just restart the existing controller against the new slide count.
     function wireAutoscroll(slideCount) {
       if (!autoscrollBtn) return;
       if (autoscrollApi) { autoscrollApi.update(slideCount); return; }
@@ -3096,8 +3105,6 @@
     var pendingPhotos = null;
     var newBuildToast = document.getElementById('bf-new-build-toast');
 
-    // Build Feed always leads with the newest upload (manifest.json is
-    // newest-first), independent of the Featured Build pick/rotation logic.
     Promise.all([
       window.mt3ukFetchJSON('images/gallery/manifest.json', []),
       fetchLikes(),
@@ -3113,8 +3120,6 @@
         if (feedFrameEl) feedFrameEl.classList.add('bf-frame-empty');
       });
 
-    // Poll for newly uploaded builds and surface a toast rather than
-    // yanking the feed out from under someone mid-scroll.
     function checkForNewBuild() {
       window.mt3ukFetchJSON('images/gallery/manifest.json', [], true)
         .then(function (photos) {
@@ -3158,7 +3163,7 @@
     <div class="botm-frame" id="botm-frame">
       <p class="mono" style="padding: 24px; color: var(--steel);">Loading featured build…</p>
     </div>
-    <div class="section-head" style="margin-top: 48px;">
+    <div class="section-head" style="margin-top: 36px;">
       <div>
         <span class="section-num">03B / VOTE</span>
         <div class="section-title-row">
@@ -3221,7 +3226,7 @@
       </div>
       <p>Full details always posted in the Facebook group first.</p>
     </div>
-    <div class="diagram" style="max-width: 320px; aspect-ratio: 1/1; margin: 0 0 40px;">
+    <div class="diagram" style="max-width: 320px; aspect-ratio: 1/1; margin: 0 0 32px;">
       <img src="images/hero.jpg" alt="MT3UK members' modified Teslas lined up at a UK car show">
       <div class="grid-overlay"></div>
       <div class="corner tl"></div><div class="corner tr"></div>
@@ -3246,7 +3251,7 @@
         <div class="event-status">GAUGING INTEREST</div>
       </div>
     </div>
-    <div id="past-events-section" style="display: none; margin-top: 48px;">
+    <div id="past-events-section" style="display: none; margin-top: 36px;">
       <h3 class="past-events-heading">Previous events</h3>
       <div class="events-list" id="past-events-list"></div>
     </div>
@@ -3271,7 +3276,7 @@
       </div>
     </div>
     <div id="track-day-photos" style="scroll-margin-top: 90px;"></div>
-    <div class="track-day-frame" id="track-day-grid" style="margin-top: 40px;">
+    <div class="track-day-frame" id="track-day-grid" style="margin-top: 32px;">
       <p class="mono">Loading track days…</p>
     </div>
     <div class="track-day-venue-context" id="track-day-venue-context"></div>
@@ -3606,7 +3611,7 @@
 
 <script>
   (function () {
-    var PAGE_SIZE = 1; // One track day per page
+    var PAGE_SIZE = 1;
     var grid = document.getElementById('track-day-grid');
     var pagination = document.getElementById('track-day-pagination');
     var venueContext = document.getElementById('track-day-venue-context');

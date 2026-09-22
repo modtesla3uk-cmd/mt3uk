@@ -6,14 +6,22 @@
     "rating": 5,
     "comment": "Very happy with these, fast delivery and nice note to say I'm \"Awesome\" in the parcel :)"
   },
-   {
+  {
     "product": "tee",
     "name": "Matt O'Leary",
     "date": "2026-09-12",
     "rating": 5,
-    "comment": "Very happy with the t-shirt and look forward to meets wearing it 😎",
+    "comment": "Very happy with the t-shirt and look forward to meets wearing it ð",
     "photos": [
       "images/reviews/1789503337288-tee-1.jpg"
     ]
+  },
+  {
+    "product": "tee-yellow",
+    "name": "Yusuf K",
+    "date": "2026-09-16",
+    "rating": 5,
+    "comment": "Great fit and comfy. Very happy with the purchase.",
+    "photos": []
   }
 ]

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MT3UK Shop: Merch & Upgrades</title>
-<meta name="description" content="Shop official MT3UK merch, tees and stickers, plus member upgrades like the Tevo Solutions Master Cylinder Brace for Tesla Model 3.">
+<meta name="description" content="Shop official MT3UK merch, tees and stickers, plus member upgrades like the Tevo Solutions Master Cylinder Brace and EVOffer sport seats for Tesla.">
 <link rel="canonical" href="https://mt3uk.com/shop.html">
 <link rel="icon" type="image/x-icon" href="images/site/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="images/site/favicon-32.png">
@@ -17,12 +17,12 @@
 <meta name="apple-mobile-web-app-title" content="MT3UK">
 <meta property="og:type" content="website">
 <meta property="og:title" content="MT3UK Shop: Merch & Upgrades">
-<meta property="og:description" content="Shop official MT3UK merch, tees and stickers, plus member upgrades like the Tevo Solutions Master Cylinder Brace for Tesla Model 3.">
+<meta property="og:description" content="Shop official MT3UK merch, tees and stickers, plus member upgrades like the Tevo Solutions Master Cylinder Brace and EVOffer sport seats for Tesla.">
 <meta property="og:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
 <meta property="og:url" content="https://mt3uk.com/shop.html">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="MT3UK Shop: Merch & Upgrades">
-<meta name="twitter:description" content="Shop official MT3UK merch, tees and stickers, plus member upgrades like the Tevo Solutions Master Cylinder Brace for Tesla Model 3.">
+<meta name="twitter:description" content="Shop official MT3UK merch, tees and stickers, plus member upgrades like the Tevo Solutions Master Cylinder Brace and EVOffer sport seats for Tesla.">
 <meta name="twitter:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
 <style>
@@ -552,18 +552,13 @@
   .shop-card svg { width: 100%; height: 140px; margin-bottom: 18px; }
   .shop-card-hoodie { justify-content: center; }
 
-  .shop-rating {
-    position: absolute;
-    top: 14px;
-    right: 14px;
+.shop-live-card {
+    position: relative;
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    color: #aeb8cc;
-    text-decoration: none;
+    border: 1px solid #3a4a6b;
+    padding: 26px;
+    padding-top: 38px; /* Adds breathing room for the absolute rating */
   }
   .shop-rating:hover { color: var(--paper); }
   .shop-rating .shop-rating-stars { color: #f5b400; letter-spacing: 1px; font-size: 1.15rem; line-height: 1; }
@@ -845,7 +840,7 @@
     border-color: #cf4620;
   }
 
-  /* ---------- PRODUCT MODAL (brace / pads zoom-in gallery) ---------- */
+  /* ---------- PRODUCT MODAL ---------- */
   .tee-modal {
     position: fixed;
     inset: 0;
@@ -999,32 +994,6 @@
 </head>
 <body>
 
-<!-- Promo banner disabled: no active offer. Re-enable by removing this comment wrapper when a new promo is ready.
-<div class="promo-banner" id="promo-banner">
-  <div class="promo-banner-inner">
-    <div class="promo-banner-track">
-      <a href="shop.html#merch" class="promo-banner-msg">&#9201; New Tee options available!! | Hoodies | Club Stickers | Master Cylinder Braces | Brake Pads | Number Plates, shop now &rarr;</a>
-      <a href="shop.html#merch" class="promo-banner-msg" aria-hidden="true">&#9201; New Tee options available!! | Hoodies | Club Stickers | Master Cylinder Braces | Brake Pads | Number Plates, shop now &rarr;</a>
-    </div>
-    <button type="button" class="promo-banner-close" id="promo-banner-close" aria-label="Dismiss banner">&times;</button>
-  </div>
-</div>
-<script>
-  (function () {
-    var KEY = 'mt3uk-promo-tee-dismissed';
-    var EXPIRY_MS = 7 * 24 * 60 * 60 * 1000;
-    var banner = document.getElementById('promo-banner');
-    if (!banner) return;
-    var dismissedAt = parseInt(localStorage.getItem(KEY), 10);
-    if (dismissedAt && (Date.now() - dismissedAt) < EXPIRY_MS) { banner.remove(); return; }
-    document.getElementById('promo-banner-close').addEventListener('click', function () {
-      banner.remove();
-      try { localStorage.setItem(KEY, String(Date.now())); } catch (e) {}
-    });
-  })();
-</script>
--->
-
 <header>
   <nav>
     <div class="nav-center">
@@ -1053,6 +1022,7 @@
             <div class="nav-dropdown">
               <a href="shop.html#tevo" class="nav-sublink">Tevo Solutions</a>
               <a href="shop.html#redline" class="nav-sublink">Redline Plates</a>
+              <a href="shop.html#evoffer" class="nav-sublink">EVOffer Sport Seats</a>
               <a href="shop.html#offers" class="nav-sublink nav-sublink-offer">Offers</a>
             </div>
           </div>
@@ -1092,7 +1062,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
       </button>
       <div class="nav-search-panel" id="nav-search-panel">
-        <input type="text" id="nav-search-input" placeholder="Search&hellip; e.g. Gallery, Shop, Hoodies, Number Plates, Pads" autocomplete="off">
+        <input type="text" id="nav-search-input" placeholder="Search&hellip; e.g. Gallery, Shop, Hoodies, Number Plates, Seats" autocomplete="off">
         <div class="nav-search-results" id="nav-search-results"></div>
       </div>
     </div>
@@ -1145,6 +1115,11 @@
           <span class="tag">LIMITED STOCK</span>
           <h4>Master Cylinder Brace &ndash; &pound;95</h4>
           <p>Reduced from &pound;125 RRP while stock lasts.</p>
+        </a>
+        <a class="offer-card" href="#evoffer">
+          <span class="tag">SAVE 20%</span>
+          <h4>20% off EVOffer Sport Seats</h4>
+          <p>Use code MT3UKEVO20 across premium interior upgrades.</p>
         </a>
       </div>
     </div>
@@ -1253,6 +1228,94 @@
         </div>
       </div>
     </div>
+
+    <!-- EVOFFER PARTNER SECTION -->
+    <div class="tevo-panel" id="evoffer" style="margin-top: 40px;">
+      <h3>In partnership with EVOffer</h3>
+      <p>EVOffer specializes in high-end Tesla performance upgrades and cabin retrofits, bringing factory-inspired styling and next-level ergonomics to your interior. Premium materials and custom configurations designed specifically for enthusiasts.</p>
+      <div class="tevo-panel-logo">
+        <span class="tag" style="background:var(--orange); color:var(--paper); font-weight:700;">20% OFF WITH CODE: MT3UKEVO20</span>
+      </div>
+      <p class="detail-desc" style="margin-top:10px;">Orders for these upgrade seats are handled directly via EVOffer. Remember to apply coupon code <strong>MT3UKEVO20</strong> at checkout to claim your 20% member discount.</p>
+    </div>
+
+    <div class="shop-grid shop-grid-2">
+      <div class="shop-card" id="evoffer-ludicrous">
+        <h3>Model 3/Y Ludicrous Style Sport Seats</h3>
+        <p class="shop-preview-hint">Hold and pan to zoom</p>
+        <div class="shop-preview-trigger shop-preview-dark" id="evoffer-ludicrous-trigger" tabindex="0">
+          <img src="https://evoffer.com/wp-content/uploads/2024/09/Model-3-Y-Ludicrous-Style-Sport-Seats.jpg" alt="Model 3 and Model Y Ludicrous Style Sport Seats">
+        </div>
+        <p class="tee-modal-lead">High-support bucket seats molded after the modern Tesla performance design, offering enhanced ergonomics and aggressive styling.</p>
+        <div class="tee-offer-price">
+          <span class="tee-offer-save">SAVE 20%</span>
+          <span class="tee-offer-was">Use code MT3UKEVO20</span>
+          <span class="tee-offer-now">Exclusive Offer</span>
+        </div>
+        <p class="tee-offer-note">Compatible with Model 3 &amp; Model Y</p>
+        <div class="tee-offer-actions">
+          <span class="tag">AVAILABLE NOW</span>
+          <a class="tee-shop-btn" href="https://evoffer.com/product/model-3-y-ludicrous-style-sport-seats/?coupon=MT3UKEVO20" target="_blank" rel="noopener">View on EVOffer</a>
+        </div>
+      </div>
+
+      <div class="shop-card" id="evoffer-ludicrous-essential">
+        <h3>Model 3/Y Ludicrous Essential Pack</h3>
+        <p class="shop-preview-hint">Hold and pan to zoom</p>
+        <div class="shop-preview-trigger shop-preview-dark" id="evoffer-ludicrous-essential-trigger" tabindex="0">
+          <img src="https://evoffer.com/wp-content/uploads/2024/09/Model-3-Y-Ludicrous-Style-Performance-Sport-Seats-Essential-Pack.jpg" alt="Model 3 and Model Y Ludicrous Style Essential Pack">
+        </div>
+        <p class="tee-modal-lead">Complete front and rear cabin upgrade bundle featuring the signature Ludicrous styling layout for maximum visual impact.</p>
+        <div class="tee-offer-price">
+          <span class="tee-offer-save">SAVE 20%</span>
+          <span class="tee-offer-was">Use code MT3UKEVO20</span>
+          <span class="tee-offer-now">Exclusive Offer</span>
+        </div>
+        <p class="tee-offer-note">Full front &amp; rear seat pack</p>
+        <div class="tee-offer-actions">
+          <span class="tag">AVAILABLE NOW</span>
+          <a class="tee-shop-btn" href="https://evoffer.com/product/model-3-y-ludicrous-style-performance-sport-seats-essential-pack/?coupon=MT3UKEVO20" target="_blank" rel="noopener">View on EVOffer</a>
+        </div>
+      </div>
+
+      <div class="shop-card" id="evoffer-zerogravity">
+        <h3>Model 3/Y Zero Gravity Sport Seats</h3>
+        <p class="shop-preview-hint">Hold and pan to zoom</p>
+        <div class="shop-preview-trigger shop-preview-dark" id="evoffer-zerogravity-trigger" tabindex="0">
+          <img src="https://evoffer.com/wp-content/uploads/2024/09/Model-3-Y-Zero-Gravity-Sport-Seats.jpg" alt="Model 3 and Model Y Zero Gravity Sport Seats">
+        </div>
+        <p class="tee-modal-lead">Designed for ultimate long-distance driving comfort and track support, redistributing pressure points with premium contouring.</p>
+        <div class="tee-offer-price">
+          <span class="tee-offer-save">SAVE 20%</span>
+          <span class="tee-offer-was">Use code MT3UKEVO20</span>
+          <span class="tee-offer-now">Exclusive Offer</span>
+        </div>
+        <p class="tee-offer-note">Ergonomic long-distance upgrade</p>
+        <div class="tee-offer-actions">
+          <span class="tag">AVAILABLE NOW</span>
+          <a class="tee-shop-btn" href="https://evoffer.com/product/model-3-y-zero-gravity-sport-seats/?coupon=MT3UKEVO20" target="_blank" rel="noopener">View on EVOffer</a>
+        </div>
+      </div>
+
+      <div class="shop-card" id="evoffer-plaid">
+        <h3>Model S/X Plaid Style Performance Seats</h3>
+        <p class="shop-preview-hint">Hold and pan to zoom</p>
+        <div class="shop-preview-trigger shop-preview-dark" id="evoffer-plaid-trigger" tabindex="0">
+          <img src="https://evoffer.com/wp-content/uploads/2024/05/Model-S-X-Plaid-Style-Performance-Sport-Seats.jpg" alt="Model S and Model X Plaid Style Performance Sport Seats">
+        </div>
+        <p class="tee-modal-lead">Bring the iconic high-bolster, track-ready aesthetic of the flagship Plaid models directly into your cockpit.</p>
+        <div class="tee-offer-price">
+          <span class="tee-offer-save">SAVE 20%</span>
+          <span class="tee-offer-was">Use code MT3UKEVO20</span>
+          <span class="tee-offer-now">Exclusive Offer</span>
+        </div>
+        <p class="tee-offer-note">Flagship Plaid inspired aesthetic</p>
+        <div class="tee-offer-actions">
+          <span class="tag">AVAILABLE NOW</span>
+          <a class="tee-shop-btn" href="https://evoffer.com/product/model-s-x-plaid-style-performance-sport-seats/?coupon=MT3UKEVO20" target="_blank" rel="noopener">View on EVOffer</a>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -1277,41 +1340,41 @@
             if (!img) return;
 
             function updateOrigin(clientX, clientY) {
-                  var rect = btn.getBoundingClientRect();
-                  var x = ((clientX - rect.left) / rect.width) * 100;
-                  var y = ((clientY - rect.top) / rect.height) * 100;
-                  x = Math.max(0, Math.min(100, x));
-                  y = Math.max(0, Math.min(100, y));
-                  img.style.transformOrigin = x + '% ' + y + '%';
+                var rect = btn.getBoundingClientRect();
+                var x = ((clientX - rect.left) / rect.width) * 100;
+                var y = ((clientY - rect.top) / rect.height) * 100;
+                x = Math.max(0, Math.min(100, x));
+                y = Math.max(0, Math.min(100, y));
+                img.style.transformOrigin = x + '% ' + y + '%';
             }
 
             function resetZoom() {
-                  img.classList.remove('zoom-pan');
-                  img.style.transformOrigin = '';
+                img.classList.remove('zoom-pan');
+                img.style.transformOrigin = '';
             }
 
             btn.addEventListener('mouseenter', function (e) {
-                  updateOrigin(e.clientX, e.clientY);
-                  img.classList.add('zoom-pan');
+                updateOrigin(e.clientX, e.clientY);
+                img.classList.add('zoom-pan');
             });
             btn.addEventListener('mousemove', function (e) {
-                  updateOrigin(e.clientX, e.clientY);
+                updateOrigin(e.clientX, e.clientY);
             });
             btn.addEventListener('mouseleave', resetZoom);
             btn.addEventListener('focus', function () {
-                  img.style.transformOrigin = '50% 50%';
-                  img.classList.add('zoom-pan');
+                img.style.transformOrigin = '50% 50%';
+                img.classList.add('zoom-pan');
             });
             btn.addEventListener('blur', resetZoom);
 
             btn.addEventListener('touchstart', function (e) {
-                  var t = e.touches[0];
-                  updateOrigin(t.clientX, t.clientY);
-                  img.classList.add('zoom-pan');
+                var t = e.touches[0];
+                updateOrigin(t.clientX, t.clientY);
+                img.classList.add('zoom-pan');
             }, { passive: true });
             btn.addEventListener('touchmove', function (e) {
-                  var t = e.touches[0];
-                  updateOrigin(t.clientX, t.clientY);
+                var t = e.touches[0];
+                updateOrigin(t.clientX, t.clientY);
             }, { passive: true });
             btn.addEventListener('touchend', resetZoom);
             btn.addEventListener('touchcancel', resetZoom);
@@ -1323,7 +1386,11 @@
         document.getElementById('brace-trigger'), document.getElementById('brace-trigger-2'),
         document.getElementById('pads-street-trigger'), document.getElementById('pads-carbotech-trigger'),
         document.getElementById('redline-2d-trigger'), document.getElementById('redline-3d-trigger'),
-        document.getElementById('redline-4d-trigger'), document.getElementById('redline-show-trigger')
+        document.getElementById('redline-4d-trigger'), document.getElementById('redline-show-trigger'),
+        document.getElementById('evoffer-ludicrous-trigger'),
+        document.getElementById('evoffer-ludicrous-essential-trigger'),
+        document.getElementById('evoffer-zerogravity-trigger'),
+        document.getElementById('evoffer-plaid-trigger')
       ].forEach(attachPanZoom);
 })();
 </script>
@@ -1348,7 +1415,7 @@
 
       document.querySelectorAll('.img-lightbox-trigger').forEach(function (btn) {
             btn.addEventListener('click', function () {
-                  openLightbox(btn.getAttribute('data-full'));
+                openLightbox(btn.getAttribute('data-full'));
             });
       });
 
@@ -1362,13 +1429,13 @@
   <script>
     (function () {
         document.querySelectorAll('.detail-toggle').forEach(function (btn) {
-              var content = document.getElementById(btn.getAttribute('aria-controls'));
-              if (!content) return;
-              btn.addEventListener('click', function () {
-                    var expanded = btn.getAttribute('aria-expanded') === 'true';
-                    btn.setAttribute('aria-expanded', String(!expanded));
-                    content.hidden = expanded;
-              });
+            var content = document.getElementById(btn.getAttribute('aria-controls'));
+            if (!content) return;
+            btn.addEventListener('click', function () {
+                var expanded = btn.getAttribute('aria-expanded') === 'true';
+                btn.setAttribute('aria-expanded', String(!expanded));
+                content.hidden = expanded;
+            });
         });
     })();
 </script>
@@ -1380,32 +1447,32 @@
         if (!hamburger || !navMenu) return;
 
         function closeMenu() {
-              navMenu.classList.remove('active');
-              hamburger.setAttribute('aria-expanded', 'false');
+            navMenu.classList.remove('active');
+            hamburger.setAttribute('aria-expanded', 'false');
         }
 
         hamburger.addEventListener('click', function (e) {
-              e.stopPropagation();
-              var open = navMenu.classList.toggle('active');
-              hamburger.setAttribute('aria-expanded', open ? 'true' : 'false');
+            e.stopPropagation();
+            var open = navMenu.classList.toggle('active');
+            hamburger.setAttribute('aria-expanded', open ? 'true' : 'false');
         });
 
         navMenu.querySelectorAll('.nav-link, .nav-sublink').forEach(function (link) {
-              link.addEventListener('click', closeMenu);
+            link.addEventListener('click', closeMenu);
         });
 
         navMenu.querySelectorAll('.nav-dropdown-toggle').forEach(function (toggle) {
-              toggle.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    var item = toggle.closest('.nav-item');
-                    var open = item.classList.toggle('open');
-                    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-              });
+            toggle.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var item = toggle.closest('.nav-item');
+                var open = item.classList.toggle('open');
+                toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            });
         });
 
         document.addEventListener('click', function (e) {
-              if (!e.target.closest('header nav')) closeMenu();
+            if (!e.target.closest('header nav')) closeMenu();
         });
     })();
   </script>

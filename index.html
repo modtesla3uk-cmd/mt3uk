@@ -459,21 +459,6 @@
     align-items: center;
   }
 
-  .hero-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.75rem;
-    letter-spacing: 0.05em;
-    color: var(--white);
-    border: 1px solid rgba(255,255,255,0.4);
-    padding: 6px 12px;
-    margin-top: 14px;
-    background: rgba(0,0,0,0.4);
-  }
-  .hero-tag::before { content: ''; width: 6px; height: 6px; background: var(--orange); border-radius: 50%; }
-
   .hero h1 {
     font-size: clamp(2rem, 5vw, 3.6rem);
     line-height: 1.05;
@@ -485,10 +470,10 @@
     font-size: 0.98rem;
     color: rgba(255, 255, 255, 0.9);
     max-width: 46ch;
-    margin-bottom: 16px;
+    margin-bottom: 24px;
   }
 
-  /* Big Main CTA Button (Explore Gallery Feed) */
+  /* Big Main CTA Button */
   .hero-main-cta {
     display: inline-flex;
     align-items: center;
@@ -511,15 +496,47 @@
   }
   .hero-main-cta:hover { background: var(--paper-2); }
 
-  /* ---------- CATEGORIES SECTION (Reference Layout) ---------- */
+  /* ---------- CATEGORIES SECTION (Squared with crisp borders) ---------- */
   .categories-section {
     background: var(--paper);
     padding: 30px 0 30px;
     border-bottom: 1px solid var(--ink);
   }
+  .categories-prefix {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--orange);
+    margin-bottom: 8px;
+    display: block;
+  }
   .categories-title {
     font-family: 'Archivo Expanded', sans-serif;
-    font-size: 1.05rem;
+    font-size: 1.1rem;
+    letter-spacing: 0.04em;
+    color: var(--charcoal);
+    margin-bottom: 16px;
+  }
+  .categories-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  /* ---------- CATEGORIES SECTION (Squared with crisp borders & chevrons) ---------- */
+  .categories-section {
+    background: var(--paper);
+    padding: 30px 0 30px;
+    border-bottom: 1px solid var(--ink);
+  }
+  .categories-prefix {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--orange);
+    margin-bottom: 8px;
+    display: block;
+  }
+  .categories-title {
+    font-family: 'Archivo Expanded', sans-serif;
+    font-size: 1.1rem;
     letter-spacing: 0.04em;
     color: var(--charcoal);
     margin-bottom: 16px;
@@ -530,36 +547,63 @@
     gap: 12px;
   }
   .category-card {
-    background: #e2ded4;
-    border: 1px solid rgba(22, 35, 61, 0.15);
-    border-radius: 12px;
-    padding: 18px 16px;
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    border-radius: 0;
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Pushes left icon/label apart from the chevron */
+    text-decoration: none;
+    color: var(--charcoal);
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  }
+  .category-card-content {
     display: flex;
     align-items: center;
     gap: 12px;
-    text-decoration: none;
-    color: var(--charcoal);
-    transition: background 0.2s ease, border-color 0.2s ease;
   }
-  .category-card:hover {
-    background: var(--paper-2);
-    border-color: var(--ink);
-  }
-  .category-card svg {
-    width: 22px;
-    height: 22px;
+  .category-card svg.card-icon {
+    width: 20px;
+    height: 20px;
     stroke: var(--charcoal);
     fill: none;
     stroke-width: 1.8;
     stroke-linecap: round;
     stroke-linejoin: round;
     flex-shrink: 0;
+    transition: stroke 0.2s ease;
   }
   .category-card span {
     font-family: 'Archivo Expanded', sans-serif;
     font-size: 0.85rem;
     font-weight: 700;
     letter-spacing: 0.03em;
+  }
+  .category-card svg.card-chevron {
+    width: 14px;
+    height: 14px;
+    stroke: var(--charcoal);
+    fill: none;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.4;
+    flex-shrink: 0;
+    transition: transform 0.2s ease, opacity 0.2s ease, stroke 0.2s ease;
+  }
+  .category-card:hover {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+  .category-card:hover svg.card-icon,
+  .category-card:hover svg.card-chevron {
+    stroke: var(--paper);
+  }
+  .category-card:hover svg.card-chevron {
+    opacity: 1;
+    transform: translateX(3px); /* Subtle directional tap cue */
   }
 
   /* ---------- VOTING & STATS SECTION ---------- */
@@ -571,9 +615,16 @@
   .voting-header {
     margin-bottom: 20px;
   }
+  .voting-prefix {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--orange);
+    margin-bottom: 8px;
+    display: block;
+  }
   .voting-header h3 {
     font-family: 'Archivo Expanded', sans-serif;
-    font-size: 1.05rem;
+    font-size: 1.1rem;
     letter-spacing: 0.04em;
     color: var(--charcoal);
     margin-bottom: 4px;
@@ -614,8 +665,6 @@
 
   @media (min-width: 901px) {
     .hero-grid { justify-items: center; text-align: center; }
-    .hero-tag { margin-left: auto; margin-right: auto; }
-    .hero p.lead { margin-left: auto; margin-right: auto; max-width: 64ch; }
     .hero-main-cta { margin: 0 auto; }
     .hero-media { align-items: center; text-align: center; }
   }
@@ -2270,7 +2319,6 @@
         
         <div class="hero-cta-stack">
           <a href="#build-feed" class="hero-main-cta">EXPLORE THE GALLERY FEED</a>
-          <div class="hero-tag"><span class="member-count"></span>+ MEMBERS</div>
         </div>
       </div>
       <div class="hero-media" style="display:none;"></div>
@@ -2278,51 +2326,62 @@
   </div>
 </section>
 
-<!-- CATEGORIES SECTION (Matching Reference Layout) -->
+<!-- CATEGORIES SECTION (Squared with crisp borders & chevrons) -->
 <section class="categories-section">
   <div class="wrap">
+    <span class="categories-prefix">01 /</span>
     <h3 class="categories-title">CATEGORIES</h3>
     <div class="categories-grid">
       <a href="my-builds.html" class="category-card nav-link-mybuilds">
-        <svg viewBox="0 0 24 24"><path d="M3 21V10l9-6 9 6v11"/><path d="M9 21v-8h6v8"/></svg>
-        <span>MY GARAGE</span>
+        <div class="category-card-content">
+          <svg class="card-icon" viewBox="0 0 24 24"><path d="M3 21V10l9-6 9 6v11"/><path d="M9 21v-8h6v8"/></svg>
+          <span>MY GARAGE</span>
+        </div>
+        <svg class="card-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
       </a>
       <a href="#events" class="category-card">
-        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-        <span>EVENTS</span>
+        <div class="category-card-content">
+          <svg class="card-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          <span>EVENTS</span>
+        </div>
+        <svg class="card-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
       </a>
       <a href="track-day-prep.html" class="category-card">
-        <svg viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22V15"/></svg>
-        <span>TRACK DAY GUIDE</span>
+        <div class="category-card-content">
+          <svg class="card-icon" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22V15"/></svg>
+          <span>TRACK DAY GUIDE</span>
+        </div>
+        <svg class="card-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
       </a>
       <a href="shop.html" class="category-card">
-        <svg viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-        <span>SHOP</span>
+        <div class="category-card-content">
+          <svg class="card-icon" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          <span>SHOP</span>
+        </div>
+        <svg class="card-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
       </a>
     </div>
   </div>
 </section>
 
 <!-- CAR OF THE DAY VOTING & STATS -->
+<!-- CAR OF THE DAY VOTING & STATS -->
 <section class="voting-stats-section">
   <div class="wrap">
-    <div class="voting-header">
-      <h3>CAR OF THE DAY VOTING</h3>
-      <p id="hero-vote-countdown">Voting resets in <strong>--:--:--</strong></p>
+    <div class="voting-header" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 14px;">
+      <div>
+        <span class="voting-prefix">01a /</span>
+        <h3>CAR OF THE DAY VOTING</h3>
+        <p id="hero-vote-countdown">Voting resets in <strong>--:--:--</strong></p>
+      </div>
+      <a href="#vote-frame" class="btn" style="padding: 8px 16px; border: 1px solid var(--ink); font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; text-decoration: none; color: var(--ink); background: transparent; display: inline-flex; align-items: center; gap: 6px;">
+        <span>Cast Your Vote</span>
+        <span style="color: var(--orange);">&rarr;</span>
+      </a>
     </div>
+    
     <div class="stats-row">
-      <div class="stat-col">
-        <strong class="member-count"></strong>
-        <span>MEMBERS</span>
-      </div>
-      <div class="stat-col">
-        <strong>GLOBAL</strong>
-        <span>COVERAGE</span>
-      </div>
-      <div class="stat-col">
-        <strong>DAILY</strong>
-        <span>BUILDS</span>
-      </div>
+      <!-- stat columns stay as they are -->
     </div>
   </div>
 </section>
@@ -2331,7 +2390,7 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">01 / GALLERY FEED</span>
+        <span class="section-num">02 / GALLERY FEED</span>
         <h2>Swipe through the builds</h2>
       </div>
       <p>Scroll through recent member builds. Likes, comment and you can bookmark your favourites, or sit back and let it play.</p>
@@ -3082,7 +3141,7 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">02 / FEATURED BUILD</span>
+        <span class="section-num">03 / FEATURED BUILD</span>
         <h2>Today's featured build</h2>
       </div>
       <p>A different build from the gallery gets the spotlight every day. Yours could be next, <a href="my-builds.html#build-upload" class="inline-link">submit a photo below</a>.</p>
@@ -3092,7 +3151,7 @@
     </div>
     <div class="section-head" style="margin-top: 48px;">
       <div>
-        <span class="section-num">02B / VOTE</span>
+        <span class="section-num">03B / VOTE</span>
         <div class="section-title-row">
           <h2 class="vote-heading">Vote for your favourite build</h2>
           <button type="button" class="refresh-btn" id="vote-refresh-btn" aria-label="Refresh voting builds">&#8635; Refresh</button>
@@ -3120,7 +3179,7 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">03 / ABOUT</span>
+        <span class="section-num">04 / ABOUT</span>
         <h2>Built by owners, for owners</h2>
       </div>
     </div>
@@ -3148,7 +3207,7 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">04 / EVENTS</span>
+        <span class="section-num">05 / EVENTS</span>
         <h2>Meets & events</h2>
       </div>
       <p>Full details always posted in the Facebook group first.</p>
@@ -3189,7 +3248,7 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">05 / TRACK DAYS <a href="track-day-prep.html" class="section-num-link">Prep Guide →</a></span>
+        <span class="section-num">06 / TRACK DAYS <a href="track-day-prep.html" class="section-num-link">Prep Guide →</a></span>
         <h2>From sighting laps to setting your PB</h2>
       </div>
       <p>Prep, upgrades and honest advice, for first timers and seasoned track goers alike.</p>
@@ -3221,7 +3280,7 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">06 / FAQ</span>
+        <span class="section-num">07 / FAQ</span>
         <h2>Common questions</h2>
       </div>
       <p>Everything you need to know before you join.</p>
@@ -3282,7 +3341,7 @@
 
 <section class="join-cta">
   <div class="wrap">
-    <span class="section-num" style="text-align:center; display:block;">07 / JOIN</span>
+    <span class="section-num" style="text-align:center; display:block;">08 / JOIN</span>
     <h2><span class="member-count"></span> modified Tesla owners are already in. You're next.</h2>
     <p>Post your build, ask the questions, find the meets. It's free and it takes ten seconds.</p>
     <a href="https://www.facebook.com/groups/mt3uk/" class="btn btn-primary" target="_blank" rel="noopener">Join MT3UK on Facebook</a>

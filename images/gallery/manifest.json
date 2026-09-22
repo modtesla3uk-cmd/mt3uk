@@ -3,7 +3,7 @@
     "file": "team-red.jpeg",
     "caption": "TEAM RED",
     "mods": [
-      "Unplugged springs and BILSTEIN shocks"
+      "Unplugged springs and BILSTEIN shocks with MPP camber arms"
     ],
     "added": "2026-09-22"
   },
@@ -35,6 +35,9 @@
     "file": "team-red--by-mark-smith-2.jpeg",
     "caption": "TEAM RED",
     "name": "MARK SMITH",
+    "mods": [
+      "New front bearings"
+    ],
     "votable": false,
     "added": "2026-09-21"
   },

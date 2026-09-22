@@ -260,7 +260,7 @@
   .nav-search-empty { padding: 8px 4px; color: var(--steel); font-size: 0.85rem; }
 
   .hamburger {
-    display: none;
+    display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -286,14 +286,9 @@
   .hamburger[aria-expanded="true"] .hamburger-bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
   @media (min-width: 781px) {
-    .nav-item:hover > .nav-dropdown,
-    .nav-item:focus-within > .nav-dropdown { display: block; }
-    .nav-subitem .nav-dropdown { top: -1px; left: 100%; right: auto; }
     .nav-search:hover .nav-search-panel,
     .nav-search:focus-within .nav-search-panel { display: block; }
 
-    nav { justify-content: center; }
-    .nav-center { margin-right: 0; }
     .nav-search-toggle { display: none; }
     .nav-search-panel {
       display: block;
@@ -318,9 +313,67 @@
     .nav-search-results:empty { display: none; }
   }
 
+  .navlinks {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 300px;
+    max-width: calc(100vw - 32px);
+    flex-direction: column;
+    background: var(--paper);
+    border-left: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    box-shadow: -4px 4px 12px rgba(0,0,0,0.15);
+    margin-right: 0;
+    gap: 8px;
+    padding: 10px;
+  }
+  .navlinks.active { display: flex; }
+  .navlinks a {
+    padding: 14px 16px;
+    border-radius: 4px;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .navlinks a:hover, .navlinks a:focus-visible {
+    background: var(--orange);
+    color: var(--paper) !important;
+  }
+  .nav-item { flex-direction: row; flex-wrap: wrap; align-items: stretch; }
+  .nav-item > .nav-link { flex: 1; }
+  .nav-dropdown-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    background: none;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    color: var(--ink);
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.15s ease, color 0.15s ease;
+  }
+  .nav-dropdown-toggle:hover, .nav-dropdown-toggle:focus-visible {
+    background: var(--orange);
+    color: var(--paper);
+  }
+  .nav-item.open > .nav-dropdown-toggle { transform: rotate(180deg); }
+  .nav-dropdown {
+    display: none;
+    position: static;
+    flex-basis: 100%;
+    border: none;
+    background: rgba(22,35,61,0.03);
+  }
+  .nav-item.open > .nav-dropdown { display: block; }
+  .nav-sublink {
+    padding: 12px 16px 12px 28px;
+  }
+  .nav-subitem .nav-dropdown .nav-sublink { padding-left: 44px; }
+
   @media (max-width: 780px) {
     nav { gap: 8px; }
-    .hamburger { display: flex; }
     .nav-search { margin-left: auto; }
     .nav-search-panel {
       width: 200px;
@@ -328,56 +381,6 @@
     }
     .nav-search-panel input { padding: 8px 10px; font-size: 0.85rem; }
     .nav-search-results { max-height: 220px; }
-
-    .navlinks {
-      display: none;
-      position: absolute;
-      top: 100%;
-      right: 0;
-      width: 50%;
-      flex-direction: column;
-      background: var(--paper);
-      border-left: 1px solid var(--ink);
-      border-bottom: 1px solid var(--ink);
-      box-shadow: -4px 4px 12px rgba(0,0,0,0.15);
-      margin-right: 0;
-      gap: 0;
-    }
-    .navlinks.active { display: flex; }
-    .navlinks a {
-      padding: 14px 16px;
-      border-bottom: 1px solid rgba(22,35,61,0.12);
-      border-radius: 0;
-    }
-    .nav-item { flex-direction: row; flex-wrap: wrap; align-items: stretch; }
-    .nav-item > .nav-link { flex: 1; border-bottom: none; }
-    .nav-dropdown-toggle {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 48px;
-      background: none;
-      border: none;
-      border-bottom: 1px solid rgba(22,35,61,0.12);
-      font-size: 0.7rem;
-      color: var(--ink);
-      cursor: pointer;
-      transition: transform 0.2s ease;
-    }
-    .nav-item.open > .nav-dropdown-toggle { transform: rotate(180deg); }
-    .nav-dropdown {
-      display: none;
-      position: static;
-      flex-basis: 100%;
-      border: none;
-      background: rgba(22,35,61,0.03);
-    }
-    .nav-item.open > .nav-dropdown { display: block; }
-    .nav-sublink {
-      padding: 12px 16px 12px 44px;
-      border-bottom: 1px solid rgba(22,35,61,0.12);
-    }
-    .nav-subitem .nav-dropdown .nav-sublink { padding-left: 60px; }
   }
 
   /* ---------- SECTION SHELL ---------- */

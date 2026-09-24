@@ -639,7 +639,6 @@
   .mb-lightbox-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; min-height: 0; }
   .mb-lightbox-body .mb-photo-mods { border-top: 0; padding-top: 0; }
   .mb-lightbox-body .mb-photo-mods-label, .mb-lightbox-comments-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--steel); display: block; margin-bottom: 6px; }
-  .mb-lightbox-body .mb-photo-mods-list li { font-size: 0.82rem; }
   .mb-lightbox-comments { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
   .mb-build-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
   .mb-build-caption { font-weight: 600; color: var(--ink); word-break: break-word; }
@@ -682,6 +681,8 @@
   .mb-car-name-input:hover, .mb-car-name-input:focus { border-color: var(--line); outline: none; background: var(--white); }
   .mb-car-name-status { flex-shrink: 0; }
   .mb-car-photo-count { font-size: 0.72rem; color: var(--steel); flex-shrink: 0; }
+  .mb-car-view-link { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: var(--orange); text-decoration: underline; flex-shrink: 0; }
+  .mb-car-view-link:hover { color: var(--ink); }
   @media (max-width: 780px) {
     .mb-car-name-input { flex-basis: 100%; font-size: 1.1rem; }
   }
@@ -689,6 +690,9 @@
   .mb-car-mods { display: flex; flex-direction: column; gap: 6px; border: 1px solid var(--line); background: var(--paper-2); padding: 12px 14px; }
   .mb-car-mods-label { font-size: 0.68rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--steel); }
   .mb-car-mods-note { font-size: 0.72rem; color: var(--steel); margin: 0; }
+  .mb-car-mods-text { font-size: 0.85rem; color: var(--ink); margin: 0; }
+  .mb-car-mods-textarea { font-family: 'IBM Plex Sans', sans-serif; font-size: 0.85rem; border: 1px solid var(--line); background: var(--white); padding: 8px 10px; resize: vertical; }
+  .mb-car-mods-actions { display: flex; gap: 8px; }
 
   .mb-photo-strip { display: flex; flex-wrap: wrap; gap: 16px; }
   .mb-photo-thumb-wrap { width: 190px; display: flex; flex-direction: column; gap: 6px; border: 1px solid var(--ink); padding: 8px; background: var(--white); }
@@ -729,13 +733,6 @@
   .mb-photo-mods-body { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
   .mb-photo-mods-body[hidden] { display: none; }
   .mb-photo-mods-label { font-size: 0.6rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--steel); }
-  .mb-photo-mods-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
-  .mb-photo-mods-list li { display: flex; align-items: center; justify-content: space-between; gap: 4px; font-size: 0.68rem; color: var(--charcoal); word-break: break-word; }
-  .mb-photo-mods-remove { background: transparent; border: none; color: var(--steel); font-size: 0.8rem; line-height: 1; cursor: pointer; padding: 0 2px; flex-shrink: 0; }
-  .mb-photo-mods-remove:hover { color: var(--orange); }
-  .mb-photo-mods-add-row { display: flex; gap: 4px; }
-  .mb-photo-mods-input { flex: 1; min-width: 0; border: 1px solid var(--line); background: var(--white); font-size: 0.66rem; padding: 3px 5px; font-family: 'IBM Plex Sans', sans-serif; }
-  .mb-photo-mods-input:focus { outline: none; border-color: var(--orange); }
   .mb-photo-mods-add-btn { background: transparent; border: 1px solid var(--line); color: var(--ink); font-size: 0.66rem; padding: 3px 6px; cursor: pointer; flex-shrink: 0; }
   .mb-photo-mods-add-btn:hover { border-color: var(--orange); color: var(--orange); }
   .mb-photo-default-badge { align-self: flex-start; font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; letter-spacing: 0.04em; text-transform: uppercase; background: var(--orange); color: var(--white); padding: 2px 6px; }
@@ -1157,15 +1154,19 @@ document.addEventListener('DOMContentLoaded', function () {
           <input type="text" class="mb-car-name-input" id="mb-car-name-input" maxlength="150">
           <span class="mb-car-photo-count mono" id="mb-car-photo-count"></span>
           <span class="mb-status mb-car-name-status" id="mb-car-name-status"></span>
+          <a class="mb-car-view-link" id="mb-car-view-link" href="#" target="_blank" rel="noopener">View My Car &#8599;</a>
         </div>
 
         <div class="mb-car-mods" id="mb-car-mods">
           <div class="mb-car-mods-label mono">Mods</div>
           <p class="mb-car-mods-note">Mods apply to all images for this car.</p>
-          <ul class="mb-photo-mods-list" id="mb-car-mods-list"></ul>
-          <div class="mb-photo-mods-add-row">
-            <input type="text" class="mb-photo-mods-input" id="mb-car-mods-input" placeholder="Add a mod" maxlength="80">
-            <button type="button" class="mb-photo-mods-add-btn" id="mb-car-mods-add-btn">Add</button>
+          <p class="mb-car-mods-text" id="mb-car-mods-text"></p>
+          <textarea class="mb-car-mods-textarea" id="mb-car-mods-textarea" rows="2" placeholder="e.g. Coilovers, 20in wheels, Tint" hidden></textarea>
+          <span class="mb-field-hint" id="mb-car-mods-hint" hidden>Separate mods with a comma</span>
+          <div class="mb-car-mods-actions">
+            <button type="button" class="mb-photo-mods-add-btn" id="mb-car-mods-edit-btn">Edit</button>
+            <button type="button" class="mb-photo-mods-add-btn" id="mb-car-mods-save-btn" hidden>Save</button>
+            <button type="button" class="mb-photo-mods-add-btn" id="mb-car-mods-cancel-btn" hidden>Cancel</button>
           </div>
         </div>
 
@@ -1218,11 +1219,7 @@ document.addEventListener('DOMContentLoaded', function () {
         <button type="button" class="mb-photo-mods-toggle mono" id="mb-lightbox-mods-toggle" aria-expanded="false">Mods<span class="mb-photo-mods-caret">&#9662;</span></button>
         <div class="mb-photo-mods-body" id="mb-lightbox-mods-body" hidden>
           <p class="mb-car-mods-note">Mods apply to all images for this car.</p>
-          <ul class="mb-photo-mods-list"></ul>
-          <div class="mb-photo-mods-add-row">
-            <input type="text" class="mb-photo-mods-input" placeholder="Add a mod" maxlength="80">
-            <button type="button" class="mb-photo-mods-add-btn">Add</button>
-          </div>
+          <p class="mb-car-mods-text"></p>
         </div>
       </div>
       <div class="mb-lightbox-comments">
@@ -1331,6 +1328,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var carNameInput = document.getElementById('mb-car-name-input');
     var carPhotoCount = document.getElementById('mb-car-photo-count');
     var carNameStatus = document.getElementById('mb-car-name-status');
+    var carViewLink = document.getElementById('mb-car-view-link');
     var photoStrip = document.getElementById('mb-photo-strip');
     var carCommentsPanel = document.getElementById('mb-car-comments');
 
@@ -1413,7 +1411,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function addCarLabel(cars) {
-      return cars.length ? 'Add Another Car No.' + (cars.length + 1) : 'Add Car No.1';
+      return cars.length ? 'Add Another Car?' : 'Add Car No.1';
     }
 
     function updateAddCarToggleLabel(cars) {
@@ -1488,6 +1486,13 @@ document.addEventListener('DOMContentLoaded', function () {
       carPhotoCount.textContent = photoCount + (photoCount === 1 ? ' photo' : ' photos');
       addPhotoCard.style.display = 'none';
       addPhotoToggleBtn.textContent = '+ Add photo to this car';
+      var primaryPhoto = (car.photos || [])[0];
+      if (primaryPhoto) {
+        carViewLink.href = window.MT3UK_R2_BASE + '/gallery/' + encodeURIComponent(primaryPhoto.file);
+        carViewLink.style.display = '';
+      } else {
+        carViewLink.style.display = 'none';
+      }
       renderCarMods(car.mods);
       renderPhotoStrip(car);
     }
@@ -1861,57 +1866,49 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     }
 
-    var carModsList = document.getElementById('mb-car-mods-list');
-    var carModsInput = document.getElementById('mb-car-mods-input');
-    var carModsAddBtn = document.getElementById('mb-car-mods-add-btn');
+    var carModsText = document.getElementById('mb-car-mods-text');
+    var carModsTextarea = document.getElementById('mb-car-mods-textarea');
+    var carModsHint = document.getElementById('mb-car-mods-hint');
+    var carModsEditBtn = document.getElementById('mb-car-mods-edit-btn');
+    var carModsSaveBtn = document.getElementById('mb-car-mods-save-btn');
+    var carModsCancelBtn = document.getElementById('mb-car-mods-cancel-btn');
+
+    function setCarModsEditing(editing) {
+      carModsText.hidden = editing;
+      carModsTextarea.hidden = !editing;
+      carModsHint.hidden = !editing;
+      carModsEditBtn.hidden = editing;
+      carModsSaveBtn.hidden = !editing;
+      carModsCancelBtn.hidden = !editing;
+    }
 
     function renderCarMods(mods) {
       var modsArr = Array.isArray(mods) ? mods : [];
-      carModsList.innerHTML = modsArr.map(function (m, i) {
-        return '<li>' + escapeHtml(m) + '<button type="button" class="mb-photo-mods-remove" data-idx="' + i + '" aria-label="Remove ' + escapeHtml(m) + '">&times;</button></li>';
-      }).join('');
+      carModsText.textContent = modsArr.length ? modsArr.join(', ') : 'No mods listed yet.';
+      carModsTextarea.value = modsArr.join(', ');
+      setCarModsEditing(false);
     }
 
-    carModsList.addEventListener('click', function (e) {
-      var removeBtn = e.target.closest('.mb-photo-mods-remove');
-      if (!removeBtn) return;
+    carModsEditBtn.addEventListener('click', function () {
+      setCarModsEditing(true);
+      carModsTextarea.focus();
+    });
+
+    carModsCancelBtn.addEventListener('click', function () {
       var car = findCar(currentCarId);
-      if (!car) return;
-      var idx = parseInt(removeBtn.dataset.idx, 10);
-      var newMods = (car.mods || []).slice();
-      newMods.splice(idx, 1);
-      removeBtn.disabled = true;
+      renderCarMods(car ? car.mods : []);
+    });
+
+    carModsSaveBtn.addEventListener('click', function () {
+      var newMods = carModsTextarea.value.split(',').map(function (m) { return m.trim(); }).filter(Boolean).slice(0, 50);
+      carModsSaveBtn.disabled = true;
       saveCarMods(newMods).then(function (data) {
+        carModsSaveBtn.disabled = false;
         if (data.success) {
           renderCarMods(newMods);
           renderLightboxMods(newMods);
-        } else {
-          removeBtn.disabled = false;
         }
-      }).catch(function () { removeBtn.disabled = false; });
-    });
-
-    function addCarMod() {
-      var value = carModsInput.value.trim();
-      if (!value) return;
-      var car = findCar(currentCarId);
-      if (!car) return;
-      var addedMods = (car.mods || []).concat([value]);
-      carModsAddBtn.disabled = true;
-      saveCarMods(addedMods).then(function (data) {
-        carModsAddBtn.disabled = false;
-        if (data.success) {
-          carModsInput.value = '';
-          renderCarMods(addedMods);
-          renderLightboxMods(addedMods);
-        }
-      }).catch(function () { carModsAddBtn.disabled = false; });
-    }
-    carModsAddBtn.addEventListener('click', addCarMod);
-    carModsInput.addEventListener('keydown', function (e) {
-      if (e.key !== 'Enter') return;
-      e.preventDefault();
-      addCarMod();
+      }).catch(function () { carModsSaveBtn.disabled = false; });
     });
 
     var imgLightbox = document.getElementById('mb-img-lightbox');
@@ -1929,10 +1926,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function renderLightboxMods(mods) {
       var modsArr = Array.isArray(mods) ? mods : [];
-      var list = lightboxMods.querySelector('.mb-photo-mods-list');
-      list.innerHTML = modsArr.map(function (m, i) {
-        return '<li>' + escapeHtml(m) + '<button type="button" class="mb-photo-mods-remove" data-idx="' + i + '" aria-label="Remove ' + escapeHtml(m) + '">&times;</button></li>';
-      }).join('');
+      var text = lightboxMods.querySelector('.mb-car-mods-text');
+      text.textContent = modsArr.length ? modsArr.join(', ') : 'No mods listed yet.';
       lightboxModsToggle.innerHTML = 'Mods (' + modsArr.length + ')<span class="mb-photo-mods-caret">&#9662;</span>';
       lightboxModsBody.hidden = true;
       lightboxModsToggle.setAttribute('aria-expanded', 'false');
@@ -1997,55 +1992,10 @@ document.addEventListener('DOMContentLoaded', function () {
         modsToggleBtn.setAttribute('aria-expanded', expanded ? 'false' : 'true');
         return;
       }
-
-      var removeBtn = e.target.closest('.mb-photo-mods-remove');
-      if (removeBtn) {
-        var car = findCar(currentCarId);
-        if (!car) return;
-        var idx = parseInt(removeBtn.dataset.idx, 10);
-        var newMods = (car.mods || []).slice();
-        newMods.splice(idx, 1);
-        removeBtn.disabled = true;
-        saveCarMods(newMods).then(function (data) {
-          if (data.success) {
-            renderLightboxMods(newMods);
-            renderCarMods(newMods);
-          } else {
-            removeBtn.disabled = false;
-          }
-        }).catch(function () { removeBtn.disabled = false; });
-        return;
-      }
-
-      var addBtn = e.target.closest('.mb-photo-mods-add-btn');
-      if (addBtn) {
-        var input = lightboxMods.querySelector('.mb-photo-mods-input');
-        var value = input.value.trim();
-        if (!value) return;
-        var addCar = findCar(currentCarId);
-        if (!addCar) return;
-        var addedMods = (addCar.mods || []).concat([value]);
-        addBtn.disabled = true;
-        saveCarMods(addedMods).then(function (data) {
-          addBtn.disabled = false;
-          if (data.success) {
-            input.value = '';
-            renderLightboxMods(addedMods);
-            renderCarMods(addedMods);
-          }
-        }).catch(function () { addBtn.disabled = false; });
-      }
     });
 
     imgLightbox.addEventListener('keydown', function (e) {
       if (e.key !== 'Enter') return;
-      var input = e.target.closest('.mb-photo-mods-input');
-      if (input) {
-        e.preventDefault();
-        var addBtn = lightboxMods.querySelector('.mb-photo-mods-add-btn');
-        if (addBtn) addBtn.click();
-        return;
-      }
       if (e.target === lightboxComposerInput && !e.shiftKey) {
         e.preventDefault();
         if (!lightboxComposerSend.disabled) lightboxComposerSend.click();

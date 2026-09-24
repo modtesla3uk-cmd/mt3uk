@@ -618,11 +618,29 @@
   .mb-build-thumb img { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; }
   .mb-build-thumb.is-landscape { background: var(--ink); }
   .mb-build-thumb img.is-landscape { object-fit: contain; }
-  .mb-img-lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.88); display: none; align-items: center; justify-content: center; z-index: 500; padding: 40px 20px; }
+  .mb-img-lightbox { position: fixed; inset: 0; background: rgba(15,20,30,0.72); backdrop-filter: blur(3px); display: none; align-items: center; justify-content: center; z-index: 500; padding: 24px; }
   .mb-img-lightbox.open { display: flex; }
-  .mb-img-lightbox img { max-width: min(92vw, 1000px); max-height: 86vh; width: auto; height: auto; object-fit: contain; cursor: default; }
-  .mb-img-lightbox-close { position: absolute; top: 22px; right: 28px; background: transparent; border: 1px solid var(--paper); color: var(--paper); width: 40px; height: 40px; font-size: 1.4rem; line-height: 1; cursor: pointer; }
-  .mb-img-lightbox-close:hover { background: var(--orange); border-color: var(--orange); }
+  .mb-lightbox-panel {
+    width: 100%; max-width: 460px; max-height: 90vh; margin: 0; background: var(--paper);
+    border: none; border-radius: 18px; overflow: hidden; position: relative;
+    box-shadow: 0 30px 70px rgba(0,0,0,0.5), 0 4px 16px rgba(0,0,0,0.3);
+    display: flex; flex-direction: column;
+  }
+  .mb-lightbox-media { background: #000; display: flex; align-items: center; justify-content: center; max-height: 40vh; flex-shrink: 0; overflow: hidden; }
+  .mb-lightbox-media img { max-width: 100%; max-height: 40vh; width: auto; height: auto; object-fit: contain; cursor: zoom-in; display: block; transition: transform 0.2s ease; }
+  .mb-lightbox-media img.zoom-pan { transform: scale(2.5); transition: none; }
+  .mb-img-lightbox-close {
+    position: absolute; top: 12px; right: 12px; background: rgba(15,20,30,0.55); backdrop-filter: blur(2px);
+    border: none; border-radius: 50%; color: var(--paper); width: 34px; height: 34px; font-size: 1.25rem;
+    line-height: 1; cursor: pointer; z-index: 2; display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s ease;
+  }
+  .mb-img-lightbox-close:hover { background: var(--orange); }
+  .mb-lightbox-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; min-height: 0; }
+  .mb-lightbox-body .mb-photo-mods { border-top: 0; padding-top: 0; }
+  .mb-lightbox-body .mb-photo-mods-label, .mb-lightbox-comments-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--steel); display: block; margin-bottom: 6px; }
+  .mb-lightbox-body .mb-photo-mods-list li { font-size: 0.82rem; }
+  .mb-lightbox-comments { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
   .mb-build-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
   .mb-build-caption { font-weight: 600; color: var(--ink); word-break: break-word; }
   .mb-toggles { display: flex; flex-wrap: wrap; gap: 14px; }
@@ -663,13 +681,33 @@
   }
   .mb-car-name-input:hover, .mb-car-name-input:focus { border-color: var(--line); outline: none; background: var(--white); }
   .mb-car-name-status { flex-shrink: 0; }
+  .mb-car-photo-count { font-size: 0.72rem; color: var(--steel); flex-shrink: 0; }
+  @media (max-width: 780px) {
+    .mb-car-name-input { flex-basis: 100%; font-size: 1.1rem; }
+  }
 
-  .mb-photo-strip { display: flex; flex-wrap: wrap; gap: 14px; }
-  .mb-photo-thumb-wrap { width: 130px; display: flex; flex-direction: column; gap: 6px; border: 1px solid var(--ink); padding: 8px; background: var(--white); cursor: grab; touch-action: none; }
+  .mb-photo-strip { display: flex; flex-wrap: wrap; gap: 16px; }
+  .mb-photo-thumb-wrap { width: 190px; display: flex; flex-direction: column; gap: 6px; border: 1px solid var(--ink); padding: 8px; background: var(--white); cursor: grab; touch-action: none; }
+  @media (max-width: 560px) {
+    .mb-photo-strip { flex-wrap: nowrap; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .mb-photo-thumb-wrap { width: auto; }
+  }
   .mb-photo-thumb-wrap.mb-dragging { opacity: 0.4; }
   .mb-photo-thumb-wrap.mb-drag-over { border-color: var(--orange); }
-  .mb-photo-thumb { width: 100%; aspect-ratio: 1; overflow: hidden; border: 1px solid var(--line); }
+  .mb-photo-thumb { width: 100%; aspect-ratio: 1; overflow: hidden; border: 1px solid var(--line); position: relative; }
   .mb-photo-thumb img { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; }
+  .mb-photo-comment-badge {
+    position: absolute; top: 6px; right: 6px; display: inline-flex; align-items: center; gap: 3px;
+    background: rgba(22,35,61,0.82); color: var(--paper); border: 1px solid rgba(255,255,255,0.4);
+    font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; font-weight: 700; padding: 3px 6px;
+    pointer-events: none;
+  }
+  .mb-photo-comment-badge svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .mb-photo-comments-hint {
+    background: transparent; border: 0; color: var(--steel); font-size: 0.68rem; text-align: left;
+    cursor: pointer; padding: 0; text-decoration: underline; text-underline-offset: 2px;
+  }
+  .mb-photo-comments-hint:hover { color: var(--orange); }
   .mb-photo-toggles { display: flex; flex-direction: column; gap: 3px; }
   .mb-photo-toggle { display: flex; align-items: center; gap: 5px; font-size: 0.68rem; cursor: pointer; }
   .mb-photo-toggle input { accent-color: var(--orange); width: 13px; height: 13px; }
@@ -678,6 +716,16 @@
   .mb-photo-default-btn { background: transparent; border: 1px solid var(--line); color: var(--ink); font-size: 0.68rem; padding: 4px 6px; cursor: pointer; }
   .mb-photo-default-btn:hover { border-color: var(--orange); color: var(--orange); }
   .mb-photo-mods { display: flex; flex-direction: column; gap: 4px; border-top: 1px solid var(--line); padding-top: 6px; }
+  .mb-photo-mods-toggle {
+    background: transparent; border: 0; padding: 0; margin: 0; cursor: pointer;
+    display: flex; align-items: center; gap: 4px; color: var(--steel);
+    font-size: 0.6rem; letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .mb-photo-mods-toggle:hover { color: var(--orange); }
+  .mb-photo-mods-caret { display: inline-block; transition: transform 0.15s ease; font-size: 0.95rem; line-height: 0.6; }
+  .mb-photo-mods.is-expanded .mb-photo-mods-caret { transform: rotate(180deg); }
+  .mb-photo-mods-body { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+  .mb-photo-mods-body[hidden] { display: none; }
   .mb-photo-mods-label { font-size: 0.6rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--steel); }
   .mb-photo-mods-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
   .mb-photo-mods-list li { display: flex; align-items: center; justify-content: space-between; gap: 4px; font-size: 0.68rem; color: var(--charcoal); word-break: break-word; }
@@ -721,11 +769,10 @@
   }
   .mb-comments-content { margin-top: 10px; display: flex; flex-direction: column; gap: 10px; }
   .mb-comments-content[hidden] { display: none; }
-  .mb-comments-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
-  .mb-comment { display: flex; flex-direction: column; gap: 2px; }
+  .mb-comments-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
   .mb-comment-group { display: flex; flex-direction: column; gap: 6px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
   .mb-comment-group:last-child { border-bottom: 0; padding-bottom: 0; }
-  .mb-comment-group-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .mb-comment-group-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
   .mb-comment-photo-tag {
     display: inline-flex; align-items: center; gap: 6px; margin-bottom: 4px;
     text-decoration: none; align-self: flex-start;
@@ -737,34 +784,68 @@
     font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--steel);
   }
   .mb-comment-photo-tag:hover .mb-comment-photo-caption { color: var(--orange); }
-  .mb-comment-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
-  .mb-comment-name { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--orange); }
-  .mb-comment-date { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--steel); }
-  .mb-comment-text { font-size: 0.85rem; color: var(--charcoal); word-break: break-word; }
+
+  /* Facebook-style comment bubbles: avatar left, rounded bubble + meta row right */
+  .mb-comment { display: flex; align-items: flex-start; gap: 8px; }
+  .mb-comment-avatar {
+    flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; background: var(--ink); color: var(--paper);
+    display: flex; align-items: center; justify-content: center; font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+  }
+  .mb-comment-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .mb-comment-bubble { background: var(--paper-2); border-radius: 16px; padding: 8px 13px; display: inline-block; max-width: 100%; }
+  .mb-comment-head { display: flex; align-items: baseline; gap: 8px; }
+  .mb-comment-name { font-family: 'IBM Plex Sans', sans-serif; font-weight: 700; font-size: 0.78rem; color: var(--ink); }
+  .mb-comment-date { display: none; }
+  .mb-comment-text { font-size: 0.84rem; color: var(--charcoal); word-break: break-word; margin-top: 1px; }
+  .mb-comment-meta-row { display: flex; align-items: center; gap: 12px; padding-left: 13px; }
+  .mb-comment-meta-time { font-family: 'IBM Plex Mono', monospace; font-size: 0.63rem; color: var(--steel); }
   .mb-comment-reply-toggle {
-    align-self: flex-start; background: none; border: 0; color: var(--steel);
-    font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; text-decoration: underline;
-    cursor: pointer; padding: 0; margin-top: 2px;
+    background: none; border: 0; color: var(--steel);
+    font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; font-size: 0.68rem;
+    cursor: pointer; padding: 0;
   }
   .mb-comment-reply-toggle:hover { color: var(--orange); }
   .mb-comment-delete {
-    align-self: flex-start; background: none; border: 0; color: var(--steel);
-    font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; text-decoration: underline;
-    cursor: pointer; padding: 0; margin-top: 2px; margin-left: 10px;
+    background: none; border: 0; color: var(--steel);
+    font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; font-size: 0.68rem;
+    cursor: pointer; padding: 0;
   }
   .mb-comment-delete:hover, .mb-comment-delete.mb-delete-confirm { color: var(--orange); }
-  .mb-comment-replies { list-style: none; margin: 8px 0 0; padding: 0 0 0 16px; border-left: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; }
-  .mb-comment-reply-slot { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+  .mb-comment-replies { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .mb-comment-reply-slot { margin-top: 8px; display: flex; align-items: flex-end; gap: 8px; }
   .mb-comment-reply-slot[hidden] { display: none; }
+  .mb-comment-reply-slot .mb-comment-composer-input-wrap { flex: 1; }
   .mb-comment-reply-slot textarea {
-    border: 1px solid var(--line); padding: 8px 10px; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; resize: none; min-height: 50px; background: var(--white);
+    border: 0; padding: 0; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.82rem; resize: none;
+    min-height: 20px; max-height: 80px; background: transparent; width: 100%;
   }
   .mb-comment-reply-submit {
-    align-self: flex-end; background: var(--orange); color: var(--paper); border: 0; padding: 7px 14px;
-    font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; cursor: pointer;
+    flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; background: var(--orange); color: var(--paper);
+    border: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0;
   }
-  .mb-comment-reply-submit:disabled { opacity: 0.6; cursor: default; }
+  .mb-comment-reply-submit::after { content: '\27A4'; font-size: 0.8rem; }
+  .mb-comment-reply-submit:disabled { opacity: 0.4; cursor: default; }
   .mb-comments-empty { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--steel); }
+
+  /* Floating composer for posting a new top-level comment */
+  .mb-comment-composer { display: flex; align-items: flex-end; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line); flex-shrink: 0; }
+  .mb-comment-composer-input-wrap {
+    flex: 1; display: flex; align-items: flex-end; gap: 6px; background: var(--paper-2);
+    border-radius: 20px; padding: 8px 8px 8px 14px; border: 1px solid transparent; transition: border-color 0.15s ease;
+  }
+  .mb-comment-composer-input-wrap:focus-within { border-color: var(--orange); }
+  .mb-comment-composer-input {
+    flex: 1; border: 0; background: transparent; resize: none; font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.85rem; color: var(--charcoal); min-height: 20px; max-height: 80px;
+  }
+  .mb-comment-composer-input:focus { outline: none; }
+  .mb-comment-composer-send {
+    flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; background: var(--orange); color: var(--paper);
+    border: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: opacity 0.15s ease;
+  }
+  .mb-comment-composer-send svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .mb-comment-composer-send:disabled { opacity: 0.35; cursor: default; }
 
   /* ---------- FOOTER ---------- */
   footer { padding: 40px 0; }
@@ -814,13 +895,49 @@ document.addEventListener('DOMContentLoaded', function () {
             lightboxImg.src = '';
       }
 
+      var lightboxPanel = document.querySelector('.mb-lightbox-panel');
       var lightboxCloseBtn = document.querySelector('.mb-img-lightbox-close');
       if (lightboxCloseBtn) lightboxCloseBtn.addEventListener('click', closeLightbox);
       lightbox.addEventListener('click', closeLightbox);
-      lightboxImg.addEventListener('click', function (e) { e.stopPropagation(); });
+      if (lightboxPanel) lightboxPanel.addEventListener('click', function (e) { e.stopPropagation(); });
       document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && lightbox.classList.contains('open')) closeLightbox();
       });
+
+      var lightboxMedia = document.querySelector('.mb-lightbox-media');
+      if (lightboxMedia) {
+            function updateOrigin(clientX, clientY) {
+                  var rect = lightboxMedia.getBoundingClientRect();
+                  var x = ((clientX - rect.left) / rect.width) * 100;
+                  var y = ((clientY - rect.top) / rect.height) * 100;
+                  x = Math.max(0, Math.min(100, x));
+                  y = Math.max(0, Math.min(100, y));
+                  lightboxImg.style.transformOrigin = x + '% ' + y + '%';
+            }
+            function resetZoom() {
+                  lightboxImg.classList.remove('zoom-pan');
+                  lightboxImg.style.transformOrigin = '';
+            }
+            lightboxMedia.addEventListener('mouseenter', function (e) {
+                  updateOrigin(e.clientX, e.clientY);
+                  lightboxImg.classList.add('zoom-pan');
+            });
+            lightboxMedia.addEventListener('mousemove', function (e) {
+                  updateOrigin(e.clientX, e.clientY);
+            });
+            lightboxMedia.addEventListener('mouseleave', resetZoom);
+            lightboxMedia.addEventListener('touchstart', function (e) {
+                  var t = e.touches[0];
+                  updateOrigin(t.clientX, t.clientY);
+                  lightboxImg.classList.add('zoom-pan');
+            }, { passive: true });
+            lightboxMedia.addEventListener('touchmove', function (e) {
+                  var t = e.touches[0];
+                  updateOrigin(t.clientX, t.clientY);
+            }, { passive: true });
+            lightboxMedia.addEventListener('touchend', resetZoom);
+            lightboxMedia.addEventListener('touchcancel', resetZoom);
+      }
 });
 </script>
 
@@ -913,7 +1030,7 @@ document.addEventListener('DOMContentLoaded', function () {
 <section>
   <div class="wrap">
     <div class="beta-notice">
-      <strong>This feature is in beta.</strong> It covers builds submitted with an email address attached going forward &mdash; older submissions aren't linked to an account &mdash; plus anyone who's had a reply to a comment they left. Expect rough edges, and let us know via <a href="contact.html" style="text-decoration:underline;">Contact</a> if something looks wrong.
+      <strong>This feature is in beta.</strong> Add your own build photos, view comments, reply and if you have multiple cars they can be added too, with mods listed for each image. Email address is required.
     </div>
 
     <div id="mb-signin-view">
@@ -1035,10 +1152,9 @@ document.addEventListener('DOMContentLoaded', function () {
         <div class="mb-car-detail-header">
           <button type="button" class="mb-back-btn" id="mb-car-back-btn">&larr; Back to garage</button>
           <input type="text" class="mb-car-name-input" id="mb-car-name-input" maxlength="150">
+          <span class="mb-car-photo-count mono" id="mb-car-photo-count"></span>
           <span class="mb-status mb-car-name-status" id="mb-car-name-status"></span>
         </div>
-
-        <div class="mb-photo-strip" id="mb-photo-strip"></div>
 
         <button type="button" class="mb-btn mb-add-photo-btn" id="mb-addphoto-toggle-btn">+ Add photo to this car</button>
         <div class="mb-upload-card" id="mb-addphoto-card" style="display:none;">
@@ -1064,7 +1180,9 @@ document.addEventListener('DOMContentLoaded', function () {
           </form>
         </div>
 
-        <div class="mb-comments" id="mb-car-comments" data-comment-count="0">
+        <div class="mb-photo-strip" id="mb-photo-strip"></div>
+
+        <div class="mb-comments" id="mb-car-comments" data-comment-count="0" style="display:none;">
           <button type="button" class="mb-comments-toggle" aria-expanded="false">
             <span class="mb-comment-alert" hidden><span class="mb-comment-alert-icon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 7l9 6 9-6"></path></svg></span><span class="mb-comment-alert-count">0</span></span>
             <span class="mb-comments-toggle-text">Loading&hellip;</span>
@@ -1079,8 +1197,35 @@ document.addEventListener('DOMContentLoaded', function () {
 </section>
 
 <div class="mb-img-lightbox" id="mb-img-lightbox" role="dialog" aria-modal="true" aria-hidden="true">
-  <button type="button" class="mb-img-lightbox-close" aria-label="Close">&times;</button>
-  <img id="mb-img-lightbox-img" src="" alt="">
+  <div class="mb-lightbox-panel">
+    <button type="button" class="mb-img-lightbox-close" aria-label="Close">&times;</button>
+    <div class="mb-lightbox-media"><img id="mb-img-lightbox-img" src="" alt=""></div>
+    <div class="mb-lightbox-body">
+      <div class="mb-photo-mods" id="mb-lightbox-mods">
+        <button type="button" class="mb-photo-mods-toggle mono" id="mb-lightbox-mods-toggle" aria-expanded="false">Mods<span class="mb-photo-mods-caret">&#9662;</span></button>
+        <div class="mb-photo-mods-body" id="mb-lightbox-mods-body" hidden>
+          <ul class="mb-photo-mods-list"></ul>
+          <div class="mb-photo-mods-add-row">
+            <input type="text" class="mb-photo-mods-input" placeholder="Add a mod" maxlength="80">
+            <button type="button" class="mb-photo-mods-add-btn">Add</button>
+          </div>
+        </div>
+      </div>
+      <div class="mb-lightbox-comments">
+        <span class="mb-lightbox-comments-label mono">Comments</span>
+        <ul class="mb-comments-list" id="mb-lightbox-comments-list"></ul>
+        <div class="mb-comment-composer">
+          <span class="mb-comment-avatar" id="mb-lightbox-composer-avatar"></span>
+          <div class="mb-comment-composer-input-wrap">
+            <textarea class="mb-comment-composer-input" id="mb-lightbox-composer-input" rows="1" placeholder="Write a comment&hellip;" maxlength="500"></textarea>
+          </div>
+          <button type="button" class="mb-comment-composer-send" id="mb-lightbox-composer-send" disabled aria-label="Post comment">
+            <svg viewBox="0 0 24 24"><path d="M22 2 11 13"></path><path d="M22 2 15 22l-4-9-9-4 20-7z"></path></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <footer>
@@ -1170,6 +1315,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var carGrid = document.getElementById('mb-car-grid');
     var backBtn = document.getElementById('mb-car-back-btn');
     var carNameInput = document.getElementById('mb-car-name-input');
+    var carPhotoCount = document.getElementById('mb-car-photo-count');
     var carNameStatus = document.getElementById('mb-car-name-status');
     var photoStrip = document.getElementById('mb-photo-strip');
     var carCommentsPanel = document.getElementById('mb-car-comments');
@@ -1286,6 +1432,8 @@ document.addEventListener('DOMContentLoaded', function () {
         .map(function (x) { return x.p; });
     }
 
+    var expandedModsFiles = {};
+
     function renderPhotoStrip(car) {
       var ordered = orderPhotosByActivity(car);
       var defaultFile = car.photos[0] && car.photos[0].file;
@@ -1293,24 +1441,31 @@ document.addEventListener('DOMContentLoaded', function () {
         var safeFile = p.file.replace(/"/g, '&quot;');
         var safeCaption = escapeHtml(p.caption || car.name || '');
         var isDefault = p.file === defaultFile;
+        var modsCount = Array.isArray(p.mods) ? p.mods.length : 0;
+        var commentCount = p.commentCount || 0;
         return '<div class="mb-photo-thumb-wrap" data-file="' + safeFile + '">' +
-          '<div class="mb-photo-thumb"><img src="' + window.MT3UK_R2_BASE + '/gallery/' + p.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy"></div>' +
+          '<div class="mb-photo-thumb"><img src="' + window.MT3UK_R2_BASE + '/gallery/' + p.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy">' +
+            (commentCount ? '<span class="mb-photo-comment-badge" title="' + commentCount + ' comment' + (commentCount === 1 ? '' : 's') + '"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 7l9 6 9-6"></path></svg><span>' + commentCount + '</span></span>' : '') +
+          '</div>' +
           (isDefault ? '<span class="mb-photo-default-badge">Default</span>' : '') +
+          '<button type="button" class="mb-photo-comments-hint">Click to view/reply to comments</button>' +
           '<div class="mb-photo-toggles">' +
             '<label class="mb-photo-toggle"><input type="checkbox" data-flag="gallery"' + (p.gallery ? ' checked' : '') + '> Gallery</label>' +
             '<label class="mb-photo-toggle"><input type="checkbox" data-flag="reel"' + (p.reel ? ' checked' : '') + '> Reel</label>' +
             '<label class="mb-photo-toggle"><input type="checkbox" data-flag="votable"' + (p.votable ? ' checked' : '') + '> Voting</label>' +
           '</div>' +
-          '<div class="mb-photo-mods">' +
-            '<span class="mb-photo-mods-label mono">Mods</span>' +
-            '<ul class="mb-photo-mods-list">' +
-              (Array.isArray(p.mods) ? p.mods : []).map(function (m, i) {
-                return '<li>' + escapeHtml(m) + '<button type="button" class="mb-photo-mods-remove" data-idx="' + i + '" aria-label="Remove ' + escapeHtml(m) + '">&times;</button></li>';
-              }).join('') +
-            '</ul>' +
-            '<div class="mb-photo-mods-add-row">' +
-              '<input type="text" class="mb-photo-mods-input" placeholder="Add a mod" maxlength="80">' +
-              '<button type="button" class="mb-photo-mods-add-btn">Add</button>' +
+          '<div class="mb-photo-mods' + (expandedModsFiles[p.file] ? ' is-expanded' : '') + '">' +
+            '<button type="button" class="mb-photo-mods-toggle mono" aria-expanded="' + (expandedModsFiles[p.file] ? 'true' : 'false') + '">Mods (' + modsCount + ')<span class="mb-photo-mods-caret">&#9662;</span></button>' +
+            '<div class="mb-photo-mods-body"' + (expandedModsFiles[p.file] ? '' : ' hidden') + '>' +
+              '<ul class="mb-photo-mods-list">' +
+                (Array.isArray(p.mods) ? p.mods : []).map(function (m, i) {
+                  return '<li>' + escapeHtml(m) + '<button type="button" class="mb-photo-mods-remove" data-idx="' + i + '" aria-label="Remove ' + escapeHtml(m) + '">&times;</button></li>';
+                }).join('') +
+              '</ul>' +
+              '<div class="mb-photo-mods-add-row">' +
+                '<input type="text" class="mb-photo-mods-input" placeholder="Add a mod" maxlength="80">' +
+                '<button type="button" class="mb-photo-mods-add-btn">Add</button>' +
+              '</div>' +
             '</div>' +
           '</div>' +
           (isDefault ? '' : '<button type="button" class="mb-photo-default-btn">Make Default</button>') +
@@ -1322,6 +1477,8 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderCarDetail(car) {
       if (!car) return;
       carNameInput.value = car.name || '';
+      var photoCount = (car.photos || []).length;
+      carPhotoCount.textContent = photoCount + (photoCount === 1 ? ' photo' : ' photos');
       addPhotoCard.style.display = 'none';
       addPhotoToggleBtn.textContent = '+ Add photo to this car';
       renderPhotoStrip(car);
@@ -1694,6 +1851,21 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     photoStrip.addEventListener('click', function (e) {
+      var modsToggle = e.target.closest('.mb-photo-mods-toggle');
+      if (modsToggle) {
+        var modsWrap = modsToggle.closest('.mb-photo-thumb-wrap');
+        var modsFile = modsWrap.getAttribute('data-file');
+        var modsSection = modsToggle.closest('.mb-photo-mods');
+        var modsBody = modsSection.querySelector('.mb-photo-mods-body');
+        var expanded = !modsBody.hidden;
+        modsBody.hidden = expanded;
+        modsSection.classList.toggle('is-expanded', !expanded);
+        modsToggle.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+        if (expanded) delete expandedModsFiles[modsFile];
+        else expandedModsFiles[modsFile] = true;
+        return;
+      }
+
       var removeBtn = e.target.closest('.mb-photo-mods-remove');
       if (removeBtn) {
         var removeWrap = removeBtn.closest('.mb-photo-thumb-wrap');
@@ -1750,15 +1922,181 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var imgLightbox = document.getElementById('mb-img-lightbox');
     var imgLightboxImg = document.getElementById('mb-img-lightbox-img');
+    var lightboxPanelEl = document.querySelector('.mb-lightbox-panel');
+    var lightboxMods = document.getElementById('mb-lightbox-mods');
+    var lightboxCommentsList = document.getElementById('mb-lightbox-comments-list');
+    var lightboxComposerAvatar = document.getElementById('mb-lightbox-composer-avatar');
+    var lightboxComposerInput = document.getElementById('mb-lightbox-composer-input');
+    var lightboxComposerSend = document.getElementById('mb-lightbox-composer-send');
+    var lightboxFile = null;
+
+    var lightboxModsToggle = document.getElementById('mb-lightbox-mods-toggle');
+    var lightboxModsBody = document.getElementById('mb-lightbox-mods-body');
+
+    function renderLightboxMods(mods) {
+      var modsArr = Array.isArray(mods) ? mods : [];
+      var list = lightboxMods.querySelector('.mb-photo-mods-list');
+      list.innerHTML = modsArr.map(function (m, i) {
+        return '<li>' + escapeHtml(m) + '<button type="button" class="mb-photo-mods-remove" data-idx="' + i + '" aria-label="Remove ' + escapeHtml(m) + '">&times;</button></li>';
+      }).join('');
+      lightboxModsToggle.innerHTML = 'Mods (' + modsArr.length + ')<span class="mb-photo-mods-caret">&#9662;</span>';
+      lightboxModsBody.hidden = true;
+      lightboxModsToggle.setAttribute('aria-expanded', 'false');
+      lightboxMods.classList.remove('is-expanded');
+    }
+
+    function loadLightboxComments(file) {
+      lightboxCommentsList.innerHTML = '<li class="mb-comments-empty">Loading&hellip;</li>';
+      var sessionToken = getSession();
+      fetch(API + '/comments?file=' + encodeURIComponent(file), { cache: 'no-store', headers: sessionToken ? { 'X-Session-Token': sessionToken } : {} })
+        .then(function (res) { return res.ok ? res.json() : null; })
+        .then(function (data) {
+          if (lightboxFile !== file) return;
+          var comments = (data && data.success && data.comments) || [];
+          var roots = buildCommentTree(comments).sort(function (a, b) { return new Date(b.createdAt) - new Date(a.createdAt); });
+          lightboxCommentsList.innerHTML = roots.length
+            ? roots.map(function (root) { return renderCommentNode(root, file); }).join('')
+            : '<li class="mb-comments-empty">No comments yet.</li>';
+        })
+        .catch(function () {
+          if (lightboxFile !== file) return;
+          lightboxCommentsList.innerHTML = '<li class="mb-comments-empty">Could not load comments.</li>';
+        });
+    }
+
+    function openPhotoLightbox(file) {
+      var car = findCar(currentCarId);
+      var photo = car && car.photos.find(function (p) { return p.file === file; });
+      if (!car || !photo) return;
+      lightboxFile = file;
+      imgLightboxImg.src = window.MT3UK_R2_BASE + '/gallery/' + file;
+      imgLightboxImg.alt = photo.caption || car.name || '';
+      renderLightboxMods(photo.mods);
+      loadLightboxComments(file);
+      lightboxComposerAvatar.textContent = commentInitials(myGarageEmail);
+      lightboxComposerInput.value = '';
+      lightboxComposerSend.disabled = true;
+      imgLightbox.classList.add('open');
+      imgLightbox.setAttribute('aria-hidden', 'false');
+      var seen = mbGetSeenComments();
+      seen[file] = photo.commentCount || 0;
+      mbSetSeenComments(seen);
+      refreshNavCommentAlert();
+    }
+
     photoStrip.addEventListener('click', function (e) {
       var thumb = e.target.closest('.mb-photo-thumb img');
-      if (thumb) {
-        imgLightboxImg.src = thumb.src;
-        imgLightboxImg.alt = thumb.alt || '';
-        imgLightbox.classList.add('open');
-        imgLightbox.setAttribute('aria-hidden', 'false');
+      var hint = e.target.closest('.mb-photo-comments-hint');
+      if (thumb || hint) {
+        var thumbWrap = (thumb || hint).closest('.mb-photo-thumb-wrap');
+        openPhotoLightbox(thumbWrap.getAttribute('data-file'));
         return;
       }
+    });
+
+    lightboxPanelEl.addEventListener('click', function (e) {
+      var modsToggleBtn = e.target.closest('#mb-lightbox-mods-toggle');
+      if (modsToggleBtn) {
+        var expanded = !lightboxModsBody.hidden;
+        lightboxModsBody.hidden = expanded;
+        lightboxMods.classList.toggle('is-expanded', !expanded);
+        modsToggleBtn.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+        return;
+      }
+
+      var removeBtn = e.target.closest('.mb-photo-mods-remove');
+      if (removeBtn) {
+        var car = findCar(currentCarId);
+        var photo = car && car.photos.find(function (p) { return p.file === lightboxFile; });
+        if (!photo) return;
+        var idx = parseInt(removeBtn.dataset.idx, 10);
+        var newMods = (photo.mods || []).slice();
+        newMods.splice(idx, 1);
+        removeBtn.disabled = true;
+        savePhotoMods(lightboxFile, newMods).then(function (data) {
+          if (data.success) {
+            photo.mods = newMods;
+            renderLightboxMods(newMods);
+            renderPhotoStrip(car);
+          } else {
+            removeBtn.disabled = false;
+          }
+        }).catch(function () { removeBtn.disabled = false; });
+        return;
+      }
+
+      var addBtn = e.target.closest('.mb-photo-mods-add-btn');
+      if (addBtn) {
+        var input = lightboxMods.querySelector('.mb-photo-mods-input');
+        var value = input.value.trim();
+        if (!value) return;
+        var addCar = findCar(currentCarId);
+        var addPhoto = addCar && addCar.photos.find(function (p) { return p.file === lightboxFile; });
+        if (!addPhoto) return;
+        var addedMods = (addPhoto.mods || []).concat([value]);
+        addBtn.disabled = true;
+        savePhotoMods(lightboxFile, addedMods).then(function (data) {
+          addBtn.disabled = false;
+          if (data.success) {
+            addPhoto.mods = addedMods;
+            input.value = '';
+            renderLightboxMods(addedMods);
+            renderPhotoStrip(addCar);
+          }
+        }).catch(function () { addBtn.disabled = false; });
+      }
+    });
+
+    imgLightbox.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter') return;
+      var input = e.target.closest('.mb-photo-mods-input');
+      if (input) {
+        e.preventDefault();
+        var addBtn = lightboxMods.querySelector('.mb-photo-mods-add-btn');
+        if (addBtn) addBtn.click();
+        return;
+      }
+      if (e.target === lightboxComposerInput && !e.shiftKey) {
+        e.preventDefault();
+        if (!lightboxComposerSend.disabled) lightboxComposerSend.click();
+      }
+    });
+
+    lightboxComposerInput.addEventListener('input', function () {
+      lightboxComposerSend.disabled = !lightboxComposerInput.value.trim();
+    });
+
+    lightboxComposerSend.addEventListener('click', function () {
+      var text = lightboxComposerInput.value.trim();
+      if (!text || !lightboxFile || !myGarageEmail) return;
+      var file = lightboxFile;
+      lightboxComposerSend.disabled = true;
+      fetch(API + '/comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file: file, email: myGarageEmail, text: text, parentId: null })
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (data && data.success) {
+            lightboxComposerInput.value = '';
+            if (lightboxFile === file) loadLightboxComments(file);
+            var car = findCar(currentCarId);
+            var photo = car && car.photos.find(function (p) { return p.file === file; });
+            if (photo) {
+              photo.commentCount = (photo.commentCount || 0) + 1;
+              renderPhotoStrip(car);
+              var seen = mbGetSeenComments();
+              seen[file] = photo.commentCount;
+              mbSetSeenComments(seen);
+            }
+          } else {
+            lightboxComposerSend.disabled = !lightboxComposerInput.value.trim();
+          }
+        })
+        .catch(function () {
+          lightboxComposerSend.disabled = !lightboxComposerInput.value.trim();
+        });
     });
 
     photoStrip.addEventListener('click', function (e) {
@@ -1829,6 +2167,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // (rather than HTML5 drag-and-drop, which is unreliable on touch) so it
     // works with both mouse and touch input.
     var dragState = null;
+    var DRAG_THRESHOLD = 6;
 
     photoStrip.addEventListener('pointerdown', function (e) {
       if (e.target.closest('input,button')) return;
@@ -1838,13 +2177,23 @@ document.addEventListener('DOMContentLoaded', function () {
         photoStrip.querySelectorAll('.mb-photo-thumb-wrap'),
         function (w) { return w.getAttribute('data-file'); }
       );
-      dragState = { wrap: wrap, pointerId: e.pointerId, startOrder: startOrder };
-      wrap.classList.add('mb-dragging');
-      try { wrap.setPointerCapture(e.pointerId); } catch (err) {}
+      dragState = { wrap: wrap, pointerId: e.pointerId, startOrder: startOrder, startX: e.clientX, startY: e.clientY, dragging: false };
     });
 
+    // Pointer capture is only claimed once the pointer has actually moved
+    // past a small threshold - claiming it immediately on pointerdown would
+    // retarget the eventual click at the wrapper instead of the <img>,
+    // which silently broke tapping a thumbnail to open the lightbox.
     photoStrip.addEventListener('pointermove', function (e) {
       if (!dragState || dragState.pointerId !== e.pointerId) return;
+      if (!dragState.dragging) {
+        var dx = e.clientX - dragState.startX;
+        var dy = e.clientY - dragState.startY;
+        if (Math.sqrt(dx * dx + dy * dy) < DRAG_THRESHOLD) return;
+        dragState.dragging = true;
+        dragState.wrap.classList.add('mb-dragging');
+        try { dragState.wrap.setPointerCapture(e.pointerId); } catch (err) {}
+      }
       var target = document.elementFromPoint(e.clientX, e.clientY);
       var overWrap = target && target.closest('.mb-photo-thumb-wrap');
       if (overWrap && overWrap !== dragState.wrap && overWrap.parentNode === photoStrip) {
@@ -1856,11 +2205,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function endDrag(e) {
       if (!dragState || dragState.pointerId !== e.pointerId) return;
+      var wasDragging = dragState.dragging;
       var startOrder = dragState.startOrder;
-      dragState.wrap.classList.remove('mb-dragging');
-      try { dragState.wrap.releasePointerCapture(e.pointerId); } catch (err) {}
+      if (wasDragging) {
+        dragState.wrap.classList.remove('mb-dragging');
+        try { dragState.wrap.releasePointerCapture(e.pointerId); } catch (err) {}
+      }
       dragState = null;
-      saveCarPhotoOrder(startOrder);
+      if (wasDragging) saveCarPhotoOrder(startOrder);
     }
     photoStrip.addEventListener('pointerup', endDrag);
     photoStrip.addEventListener('pointercancel', endDrag);
@@ -1900,23 +2252,56 @@ document.addEventListener('DOMContentLoaded', function () {
       return roots;
     }
 
+    function commentInitials(name) {
+      var parts = (name || '').trim().split(/\s+/).filter(Boolean);
+      if (!parts.length) return '?';
+      return (parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
+    }
+
+    function commentTimeAgo(dateStr) {
+      var then = new Date(dateStr).getTime();
+      if (!then) return '';
+      var diff = Math.max(0, Date.now() - then);
+      var mins = Math.floor(diff / 60000);
+      if (mins < 1) return 'now';
+      if (mins < 60) return mins + 'm';
+      var hours = Math.floor(mins / 60);
+      if (hours < 24) return hours + 'h';
+      var days = Math.floor(hours / 24);
+      if (days < 7) return days + 'd';
+      var weeks = Math.floor(days / 7);
+      if (weeks < 5) return weeks + 'w';
+      var months = Math.floor(days / 30);
+      if (months < 12) return months + 'mo';
+      return Math.floor(days / 365) + 'y';
+    }
+
     function renderCommentNode(c, file) {
       var childrenHtml = c.children.length
         ? '<ul class="mb-comment-replies">' + c.children.map(function (child) { return renderCommentNode(child, file); }).join('') + '</ul>'
         : '';
       return '<li class="mb-comment" data-id="' + c.id + '" data-file="' + file.replace(/"/g, '&quot;') + '">' +
-        '<div class="mb-comment-head">' +
-          '<span class="mb-comment-name">' + escapeHtml(c.name || '') + '</span>' +
-          '<span class="mb-comment-date">' + escapeHtml(c.createdAt || '') + '</span>' +
+        '<span class="mb-comment-avatar">' + escapeHtml(commentInitials(c.name)) + '</span>' +
+        '<div class="mb-comment-main">' +
+          '<div class="mb-comment-bubble">' +
+            '<div class="mb-comment-head">' +
+              '<span class="mb-comment-name">' + escapeHtml(c.name || '') + '</span>' +
+            '</div>' +
+            '<p class="mb-comment-text">' + escapeHtml(c.text || '') + '</p>' +
+          '</div>' +
+          '<div class="mb-comment-meta-row">' +
+            '<span class="mb-comment-meta-time">' + escapeHtml(commentTimeAgo(c.createdAt)) + '</span>' +
+            '<button type="button" class="mb-comment-reply-toggle">Reply</button>' +
+            (c.mine ? '<button type="button" class="mb-comment-delete">Delete</button>' : '') +
+          '</div>' +
+          '<div class="mb-comment-reply-slot" hidden data-parent-id="' + c.id + '">' +
+            '<div class="mb-comment-composer-input-wrap">' +
+              '<textarea rows="1" placeholder="Write a reply&hellip;" maxlength="500"></textarea>' +
+            '</div>' +
+            '<button type="button" class="mb-comment-reply-submit" disabled aria-label="Post reply"></button>' +
+          '</div>' +
+          childrenHtml +
         '</div>' +
-        '<p class="mb-comment-text">' + escapeHtml(c.text || '') + '</p>' +
-        '<button type="button" class="mb-comment-reply-toggle">Reply</button>' +
-        (c.mine ? '<button type="button" class="mb-comment-delete">Delete</button>' : '') +
-        '<div class="mb-comment-reply-slot" hidden data-parent-id="' + c.id + '">' +
-          '<textarea rows="2" placeholder="Write a reply&hellip;" maxlength="500"></textarea>' +
-          '<button type="button" class="mb-comment-reply-submit">Post reply</button>' +
-        '</div>' +
-        childrenHtml +
       '</li>';
     }
 
@@ -2115,8 +2500,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var car = carsData.filter(function (c) { return c.photos.some(function (p) { return p.file === file; }); })[0];
       if (!car) return;
       showDetail(car.id);
-      openCommentsPanel(carCommentsPanel);
-      carCommentsPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      openPhotoLightbox(file);
     }
 
     carCommentsPanel.addEventListener('click', function (e) {
@@ -2130,87 +2514,118 @@ document.addEventListener('DOMContentLoaded', function () {
           content.hidden = true;
           updateCommentsToggleLabel(panel);
         }
-        return;
       }
+    });
 
-      var replyToggle = e.target.closest('.mb-comment-reply-toggle');
-      if (replyToggle) {
-        var replyLi = replyToggle.closest('.mb-comment');
-        var replySlot = replyLi.querySelector(':scope > .mb-comment-reply-slot');
-        if (replySlot) replySlot.hidden = !replySlot.hidden;
-        return;
-      }
-
-      var deleteBtn = e.target.closest('.mb-comment-delete');
-      if (deleteBtn) {
-        var deleteLi = deleteBtn.closest('.mb-comment');
-        var deleteId = deleteLi.getAttribute('data-id');
-        var deleteFile = deleteLi.getAttribute('data-file');
-        if (!deleteId || !deleteFile) return;
-        if (!deleteBtn.classList.contains('mb-delete-confirm')) {
-          deleteBtn.classList.add('mb-delete-confirm');
-          deleteBtn.textContent = 'Confirm delete?';
-          setTimeout(function () {
-            deleteBtn.classList.remove('mb-delete-confirm');
-            deleteBtn.textContent = 'Delete';
-          }, 4000);
+    function bindCommentActions(container, onChanged) {
+      container.addEventListener('click', function (e) {
+        var replyToggle = e.target.closest('.mb-comment-reply-toggle');
+        if (replyToggle) {
+          var replyLi = replyToggle.closest('.mb-comment');
+          var replySlot = replyLi.querySelector(':scope > .mb-comment-main > .mb-comment-reply-slot');
+          if (replySlot) {
+            replySlot.hidden = !replySlot.hidden;
+            if (!replySlot.hidden) {
+              var replyTextarea = replySlot.querySelector('textarea');
+              if (replyTextarea) replyTextarea.focus();
+            }
+          }
           return;
         }
-        var token = getSession();
-        deleteBtn.disabled = true;
-        deleteBtn.textContent = 'Deleting…';
-        fetch(API + '/comments/mine?file=' + encodeURIComponent(deleteFile) + '&id=' + encodeURIComponent(deleteId), {
-          method: 'DELETE',
-          headers: { 'X-Session-Token': token || '' }
-        })
-          .then(function (res) { return res.json(); })
-          .then(function (data) {
-            if (data.success) {
-              loadCarComments(findCar(currentCarId));
-            } else {
+
+        var deleteBtn = e.target.closest('.mb-comment-delete');
+        if (deleteBtn) {
+          var deleteLi = deleteBtn.closest('.mb-comment');
+          var deleteId = deleteLi.getAttribute('data-id');
+          var deleteFile = deleteLi.getAttribute('data-file');
+          if (!deleteId || !deleteFile) return;
+          if (!deleteBtn.classList.contains('mb-delete-confirm')) {
+            deleteBtn.classList.add('mb-delete-confirm');
+            deleteBtn.textContent = 'Confirm delete?';
+            setTimeout(function () {
+              deleteBtn.classList.remove('mb-delete-confirm');
+              deleteBtn.textContent = 'Delete';
+            }, 4000);
+            return;
+          }
+          var token = getSession();
+          deleteBtn.disabled = true;
+          deleteBtn.textContent = 'Deleting…';
+          fetch(API + '/comments/mine?file=' + encodeURIComponent(deleteFile) + '&id=' + encodeURIComponent(deleteId), {
+            method: 'DELETE',
+            headers: { 'X-Session-Token': token || '' }
+          })
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+              if (data.success) {
+                onChanged();
+              } else {
+                deleteBtn.disabled = false;
+                deleteBtn.classList.remove('mb-delete-confirm');
+                deleteBtn.textContent = 'Delete';
+              }
+            })
+            .catch(function () {
               deleteBtn.disabled = false;
               deleteBtn.classList.remove('mb-delete-confirm');
               deleteBtn.textContent = 'Delete';
-            }
-          })
-          .catch(function () {
-            deleteBtn.disabled = false;
-            deleteBtn.classList.remove('mb-delete-confirm');
-            deleteBtn.textContent = 'Delete';
-          });
-        return;
-      }
+            });
+          return;
+        }
 
-      var replySubmit = e.target.closest('.mb-comment-reply-submit');
-      if (replySubmit) {
-        var slot = replySubmit.closest('.mb-comment-reply-slot');
-        var textarea = slot.querySelector('textarea');
-        var text = textarea.value.trim();
-        if (!text) return;
-        var commentLi = replySubmit.closest('.mb-comment');
-        var file = commentLi.getAttribute('data-file');
-        var parentId = slot.getAttribute('data-parent-id');
-        var email = myGarageEmail;
-        if (!email) return;
-        replySubmit.disabled = true;
-        fetch(API + '/comments', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ file: file, email: email, text: text, parentId: parentId })
-        })
-          .then(function (res) { return res.json(); })
-          .then(function (data) {
-            replySubmit.disabled = false;
-            if (data && data.success) {
-              textarea.value = '';
-              slot.hidden = true;
-              loadCarComments(findCar(currentCarId));
-            }
+        var replySubmit = e.target.closest('.mb-comment-reply-submit');
+        if (replySubmit) {
+          var slot = replySubmit.closest('.mb-comment-reply-slot');
+          var textarea = slot.querySelector('textarea');
+          var text = textarea.value.trim();
+          if (!text) return;
+          var commentLi = replySubmit.closest('.mb-comment');
+          var file = commentLi.getAttribute('data-file');
+          var parentId = slot.getAttribute('data-parent-id');
+          var email = myGarageEmail;
+          if (!email) return;
+          replySubmit.disabled = true;
+          fetch(API + '/comments', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ file: file, email: email, text: text, parentId: parentId })
           })
-          .catch(function () {
-            replySubmit.disabled = false;
-          });
-      }
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+              replySubmit.disabled = false;
+              if (data && data.success) {
+                textarea.value = '';
+                slot.hidden = true;
+                onChanged();
+              }
+            })
+            .catch(function () {
+              replySubmit.disabled = false;
+            });
+        }
+      });
+
+      container.addEventListener('input', function (e) {
+        var textarea = e.target.closest('.mb-comment-reply-slot textarea');
+        if (!textarea) return;
+        var btn = textarea.closest('.mb-comment-reply-slot').querySelector('.mb-comment-reply-submit');
+        if (btn) btn.disabled = !textarea.value.trim();
+      });
+
+      container.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter' || e.shiftKey) return;
+        var textarea = e.target.closest('.mb-comment-reply-slot textarea');
+        if (!textarea) return;
+        e.preventDefault();
+        var btn = textarea.closest('.mb-comment-reply-slot').querySelector('.mb-comment-reply-submit');
+        if (btn && !btn.disabled) btn.click();
+      });
+    }
+
+    bindCommentActions(carCommentsPanel, function () { loadCarComments(findCar(currentCarId)); });
+    bindCommentActions(lightboxPanelEl, function () {
+      if (lightboxFile) loadLightboxComments(lightboxFile);
+      loadCarComments(findCar(currentCarId));
     });
 
     var urlToken = new URL(window.location.href).searchParams.get('token');

@@ -2846,7 +2846,8 @@
 
         function loadComments() {
           list.innerHTML = '<li class="bf-comments-empty">Loading&hellip;</li>';
-          fetch(VOTE_ENDPOINT + '/comments?file=' + encodeURIComponent(slide.dataset.file), { cache: 'no-store', headers: { 'X-Voter-Id': voterId } })
+          var sessionToken = localStorage.getItem('mt3ukMyBuildsSession');
+          fetch(VOTE_ENDPOINT + '/comments?file=' + encodeURIComponent(slide.dataset.file), { cache: 'no-store', headers: sessionToken ? { 'X-Voter-Id': voterId, 'X-Session-Token': sessionToken } : { 'X-Voter-Id': voterId } })
             .then(function (res) { return res.ok ? res.json() : null; })
             .then(function (data) {
               commentsData = (data && data.success && data.comments) || [];

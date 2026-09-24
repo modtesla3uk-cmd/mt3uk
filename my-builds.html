@@ -543,8 +543,37 @@
   .mb-submit-guidance p + p { margin-top: 8px; }
 
   .mb-signed-in { display: flex; align-items: center; justify-content: space-between; gap: 12px; max-width: 720px; margin: 0 auto 28px; font-size: 0.85rem; color: var(--steel); }
+  .mb-signed-in-actions { display: flex; align-items: center; gap: 10px; }
   .mb-signout-btn { background: transparent; border: 1px solid var(--line); color: var(--ink); padding: 7px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; cursor: pointer; }
   .mb-signout-btn:hover { border-color: var(--orange); color: var(--orange); }
+
+  .mb-notif { position: relative; }
+  .mb-notif-bell {
+    position: relative; background: transparent; border: 1px solid var(--line); color: var(--ink);
+    padding: 6px 8px; cursor: pointer; display: flex; align-items: center;
+  }
+  .mb-notif-bell:hover { border-color: var(--orange); color: var(--orange); }
+  .mb-notif-bell svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .mb-notif-count {
+    position: absolute; top: -6px; right: -6px; min-width: 16px; height: 16px; padding: 0 3px;
+    border-radius: 8px; background: var(--orange); color: #fff; font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem; font-weight: 700; display: flex; align-items: center; justify-content: center;
+  }
+  .mb-notif-count[hidden] { display: none; }
+  .mb-notif-panel {
+    position: absolute; top: calc(100% + 8px); right: 0; width: 300px; max-height: 360px; overflow-y: auto;
+    background: #fff; border: 1px solid var(--line); box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 20;
+  }
+  .mb-notif-panel-title { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--steel); padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  .mb-notif-list { list-style: none; margin: 0; padding: 0; }
+  .mb-notif-item { display: block; padding: 10px 12px; border-bottom: 1px solid var(--line); text-decoration: none; color: var(--ink); }
+  .mb-notif-item:last-child { border-bottom: 0; }
+  .mb-notif-item:hover { background: var(--paper-2, #f7f5f0); }
+  .mb-notif-item.is-unread { background: #fdf3ec; }
+  .mb-notif-item-name { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: var(--orange); }
+  .mb-notif-item-text { font-size: 0.8rem; margin-top: 2px; word-break: break-word; }
+  .mb-notif-item-date { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; color: var(--steel); margin-top: 4px; }
+  .mb-notif-empty { padding: 16px 12px; font-size: 0.8rem; color: var(--steel); }
 
   .mb-upload-toggle-row { max-width: 720px; margin: 0 auto 18px; }
   .mb-upload-toggle-btn {
@@ -710,6 +739,9 @@
   .mb-comments-content[hidden] { display: none; }
   .mb-comments-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
   .mb-comment { display: flex; flex-direction: column; gap: 2px; }
+  .mb-comment-group { display: flex; flex-direction: column; gap: 6px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+  .mb-comment-group:last-child { border-bottom: 0; padding-bottom: 0; }
+  .mb-comment-group-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
   .mb-comment-photo-tag {
     display: inline-flex; align-items: center; gap: 6px; margin-bottom: 4px;
     text-decoration: none; align-self: flex-start;
@@ -891,13 +923,13 @@ document.addEventListener('DOMContentLoaded', function () {
 <section>
   <div class="wrap">
     <div class="beta-notice">
-      <strong>This feature is in beta.</strong> It only covers builds submitted with an email address attached going forward &mdash; older submissions aren't linked to an account. Expect rough edges, and let us know via <a href="contact.html" style="text-decoration:underline;">Contact</a> if something looks wrong.
+      <strong>This feature is in beta.</strong> It covers builds submitted with an email address attached going forward &mdash; older submissions aren't linked to an account &mdash; plus anyone who's had a reply to a comment they left. Expect rough edges, and let us know via <a href="contact.html" style="text-decoration:underline;">Contact</a> if something looks wrong.
     </div>
 
     <div id="mb-signin-view">
       <div class="mb-card" id="mb-signin-card">
         <h2>Sign in</h2>
-        <p>Enter the email you used when submitting a build, and we'll send you a sign-in link.</p>
+        <p>Enter the email you used when submitting a build, or that you commented with, and we'll send you a sign-in link. You don't need to have a build of your own &mdash; if someone's replied to a comment you left, you can sign in to see it.</p>
         <form id="mb-signin-form">
           <div class="mb-field">
             <label class="mono" for="mb-email">Email</label>
@@ -959,7 +991,19 @@ document.addEventListener('DOMContentLoaded', function () {
     <div id="mb-app-view" style="display:none;">
       <div class="mb-signed-in">
         <span>Signed in as <strong id="mb-account-email"></strong></span>
-        <button type="button" class="mb-signout-btn" id="mb-signout-btn">Sign out</button>
+        <div class="mb-signed-in-actions">
+          <div class="mb-notif" id="mb-notif">
+            <button type="button" class="mb-notif-bell" id="mb-notif-bell" aria-expanded="false" aria-label="Notifications">
+              <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+              <span class="mb-notif-count" id="mb-notif-count" hidden>0</span>
+            </button>
+            <div class="mb-notif-panel" id="mb-notif-panel" hidden>
+              <div class="mb-notif-panel-title">Notifications</div>
+              <ul class="mb-notif-list" id="mb-notif-list"></ul>
+            </div>
+          </div>
+          <button type="button" class="mb-signout-btn" id="mb-signout-btn">Sign out</button>
+        </div>
       </div>
 
       <div id="mb-car-selector-view">
@@ -1132,6 +1176,11 @@ document.addEventListener('DOMContentLoaded', function () {
     var accountEmailEl = document.getElementById('mb-account-email');
     var signoutBtn = document.getElementById('mb-signout-btn');
 
+    var notifBell = document.getElementById('mb-notif-bell');
+    var notifCount = document.getElementById('mb-notif-count');
+    var notifPanel = document.getElementById('mb-notif-panel');
+    var notifList = document.getElementById('mb-notif-list');
+
     var selectorView = document.getElementById('mb-car-selector-view');
     var detailView = document.getElementById('mb-car-detail-view');
     var carGrid = document.getElementById('mb-car-grid');
@@ -1225,7 +1274,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderCarGrid(cars, alerts) {
       alerts = alerts || {};
       if (!cars.length) {
-        carGrid.innerHTML = '<p class="mb-empty">No cars linked to this email yet. Use the "+ Add a car" button above to add one.</p>';
+        carGrid.innerHTML = '<p class="mb-empty">No cars linked to this email yet. Use the "+ Add a car" button above to add one, or check the bell above for any notifications.</p>';
         return;
       }
       carGrid.innerHTML = cars.map(function (car) {
@@ -1243,15 +1292,22 @@ document.addEventListener('DOMContentLoaded', function () {
       }).join('');
     }
 
-    function renderCarDetail(car) {
-      if (!car) return;
-      carNameInput.value = car.name || '';
-      carModsTextarea.value = (Array.isArray(car.mods) ? car.mods : []).join(', ');
-      setStatus(carModsStatus, '', '');
-      addPhotoCard.style.display = 'none';
-      addPhotoToggleBtn.textContent = '+ Add photo to this car';
+    // Photos with recent comment activity are shown first so the owner
+    // sees what got commented on without hunting for it; photos with no
+    // activity yet keep their saved/drag order after the active ones.
+    function orderPhotosByActivity(car) {
+      var activity = car._commentActivity || {};
+      return car.photos.map(function (p, idx) { return { p: p, idx: idx, at: activity[p.file] || 0 }; })
+        .sort(function (a, b) {
+          if (a.at !== b.at) return b.at - a.at;
+          return a.idx - b.idx;
+        })
+        .map(function (x) { return x.p; });
+    }
 
-      photoStrip.innerHTML = car.photos.map(function (p) {
+    function renderPhotoStrip(car) {
+      var ordered = orderPhotosByActivity(car);
+      photoStrip.innerHTML = ordered.map(function (p) {
         var safeFile = p.file.replace(/"/g, '&quot;');
         var safeCaption = escapeHtml(p.caption || car.name || '');
         return '<div class="mb-photo-thumb-wrap" data-file="' + safeFile + '">' +
@@ -1264,6 +1320,16 @@ document.addEventListener('DOMContentLoaded', function () {
           '<button type="button" class="mb-photo-delete-btn">Delete</button>' +
         '</div>';
       }).join('');
+    }
+
+    function renderCarDetail(car) {
+      if (!car) return;
+      carNameInput.value = car.name || '';
+      carModsTextarea.value = (Array.isArray(car.mods) ? car.mods : []).join(', ');
+      setStatus(carModsStatus, '', '');
+      addPhotoCard.style.display = 'none';
+      addPhotoToggleBtn.textContent = '+ Add photo to this car';
+      renderPhotoStrip(car);
     }
 
     function parseModsText(text) {
@@ -1293,6 +1359,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
           }
           showApp(result.data.email);
+          loadNotifications();
           carsData = result.data.cars || [];
           var alerts = computeCommentAlerts(carsData);
           if (currentCarId && findCar(currentCarId)) {
@@ -1309,6 +1376,69 @@ document.addEventListener('DOMContentLoaded', function () {
           setStatus(signinStatus, 'Could not load your builds, please try again.', 'err');
         });
     }
+
+    function timeAgo(iso) {
+      var diffMs = Date.now() - new Date(iso).getTime();
+      var mins = Math.floor(diffMs / 60000);
+      if (mins < 1) return 'just now';
+      if (mins < 60) return mins + 'm ago';
+      var hours = Math.floor(mins / 60);
+      if (hours < 24) return hours + 'h ago';
+      return Math.floor(hours / 24) + 'd ago';
+    }
+
+    function renderNotifPanel(notifications) {
+      notifList.innerHTML = notifications.length
+        ? notifications.map(function (n) {
+            return '<li><a class="mb-notif-item' + (n.read ? '' : ' is-unread') + '" href="?file=' + encodeURIComponent(n.file) + '">' +
+              '<div class="mb-notif-item-name">' + escapeHtml(n.fromName || '') + '</div>' +
+              '<div class="mb-notif-item-text">' + escapeHtml(n.text || '') + '</div>' +
+              '<div class="mb-notif-item-date">' + timeAgo(n.createdAt) + '</div>' +
+            '</a></li>';
+          }).join('')
+        : '<li class="mb-notif-empty">No notifications yet.</li>';
+    }
+
+    function loadNotifications() {
+      var token = getSession();
+      if (!token) return;
+      fetch(API + '/my-builds/notifications', { headers: { 'X-Session-Token': token }, cache: 'no-store' })
+        .then(function (res) { return res.ok ? res.json() : null; })
+        .then(function (data) {
+          if (!data || !data.success) return;
+          notifCount.textContent = data.unread;
+          notifCount.hidden = !data.unread;
+          renderNotifPanel(data.notifications || []);
+        })
+        .catch(function () {});
+    }
+
+    notifBell.addEventListener('click', function () {
+      var willOpen = notifPanel.hidden;
+      notifPanel.hidden = !willOpen;
+      notifBell.setAttribute('aria-expanded', String(willOpen));
+      if (willOpen) {
+        var token = getSession();
+        if (token && !notifCount.hidden) {
+          fetch(API + '/my-builds/notifications/read', {
+            method: 'POST',
+            headers: { 'X-Session-Token': token }
+          }).then(function () {
+            notifCount.hidden = true;
+            Array.prototype.forEach.call(notifList.querySelectorAll('.mb-notif-item.is-unread'), function (el) {
+              el.classList.remove('is-unread');
+            });
+          }).catch(function () {});
+        }
+      }
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!notifPanel.hidden && !e.target.closest('.mb-notif')) {
+        notifPanel.hidden = true;
+        notifBell.setAttribute('aria-expanded', 'false');
+      }
+    });
 
     signinForm.addEventListener('submit', function (e) {
       e.preventDefault();
@@ -1639,7 +1769,11 @@ document.addEventListener('DOMContentLoaded', function () {
       if (e.target.closest('input,button')) return;
       var wrap = e.target.closest('.mb-photo-thumb-wrap');
       if (!wrap) return;
-      dragState = { wrap: wrap, pointerId: e.pointerId };
+      var startOrder = Array.prototype.map.call(
+        photoStrip.querySelectorAll('.mb-photo-thumb-wrap'),
+        function (w) { return w.getAttribute('data-file'); }
+      );
+      dragState = { wrap: wrap, pointerId: e.pointerId, startOrder: startOrder };
       wrap.classList.add('mb-dragging');
       try { wrap.setPointerCapture(e.pointerId); } catch (err) {}
     });
@@ -1657,15 +1791,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function endDrag(e) {
       if (!dragState || dragState.pointerId !== e.pointerId) return;
+      var startOrder = dragState.startOrder;
       dragState.wrap.classList.remove('mb-dragging');
       try { dragState.wrap.releasePointerCapture(e.pointerId); } catch (err) {}
       dragState = null;
-      saveCarPhotoOrder();
+      saveCarPhotoOrder(startOrder);
     }
     photoStrip.addEventListener('pointerup', endDrag);
     photoStrip.addEventListener('pointercancel', endDrag);
 
-    function saveCarPhotoOrder() {
+    // Only persists when the drag actually moved something relative to the
+    // order shown when the drag started - comparing against startOrder
+    // (not car.photos) means a plain click that didn't move anything never
+    // overwrites the saved order with whatever comment-activity sort is
+    // currently on screen.
+    function saveCarPhotoOrder(startOrder) {
       if (!currentCarId) return;
       var car = findCar(currentCarId);
       if (!car) return;
@@ -1673,7 +1813,7 @@ document.addEventListener('DOMContentLoaded', function () {
         photoStrip.querySelectorAll('.mb-photo-thumb-wrap'),
         function (w) { return w.getAttribute('data-file'); }
       );
-      var unchanged = order.length === car.photos.length && order.every(function (f, i) { return f === car.photos[i].file; });
+      var unchanged = order.length === startOrder.length && order.every(function (f, i) { return f === startOrder[i]; });
       if (unchanged) return;
       saveCarField(currentCarId, { photos: order }).then(function (data) {
         if (data.success && data.car) {
@@ -1695,21 +1835,11 @@ document.addEventListener('DOMContentLoaded', function () {
       return roots;
     }
 
-    function renderCommentNode(c, file, photoMeta, isRoot) {
+    function renderCommentNode(c, file) {
       var childrenHtml = c.children.length
-        ? '<ul class="mb-comment-replies">' + c.children.map(function (child) { return renderCommentNode(child, file, photoMeta, false); }).join('') + '</ul>'
+        ? '<ul class="mb-comment-replies">' + c.children.map(function (child) { return renderCommentNode(child, file); }).join('') + '</ul>'
         : '';
-      var imageTag = '';
-      if (isRoot && photoMeta) {
-        var safeFile = file.replace(/"/g, '&quot;').replace(/&/g, '&amp;');
-        var safeCaption = escapeHtml(photoMeta.caption || '');
-        imageTag = '<a class="mb-comment-photo-tag" href="?file=' + encodeURIComponent(file) + '">' +
-          '<img src="' + window.MT3UK_R2_BASE + '/gallery/' + safeFile + '" alt="' + safeCaption + '" loading="lazy">' +
-          (safeCaption ? '<span class="mb-comment-photo-caption">' + safeCaption + '</span>' : '') +
-        '</a>';
-      }
       return '<li class="mb-comment" data-id="' + c.id + '" data-file="' + file.replace(/"/g, '&quot;') + '">' +
-        imageTag +
         '<div class="mb-comment-head">' +
           '<span class="mb-comment-name">' + escapeHtml(c.name || '') + '</span>' +
           '<span class="mb-comment-date">' + escapeHtml(c.createdAt || '') + '</span>' +
@@ -1791,6 +1921,11 @@ document.addEventListener('DOMContentLoaded', function () {
       if (selectorView.style.display !== 'none') renderCarGrid(carsData, alerts);
     }
 
+    // Comments are grouped by the photo they belong to, each group headed by
+    // a thumbnail/caption linking back to that photo. Groups (and the roots
+    // within them) are ordered newest-first so a fresh comment brings both
+    // its photo and its thread to the top; the same activity timestamps
+    // drive the photo strip order via car._commentActivity.
     function loadCarComments(car) {
       if (!car) return;
       var list = carCommentsPanel.querySelector('.mb-comments-list');
@@ -1803,16 +1938,45 @@ document.addEventListener('DOMContentLoaded', function () {
             return { file: p.file, comments: (data && data.success && data.comments) || [] };
           });
       })).then(function (results) {
-        var merged = [];
-        results.forEach(function (r) {
-          buildCommentTree(r.comments).forEach(function (node) { merged.push({ node: node, file: r.file }); });
-        });
-        merged.sort(function (a, b) { return new Date(a.node.createdAt) - new Date(b.node.createdAt); });
-        carCommentsPanel.commentsData = merged.map(function (m) { return m.node; });
+        var activity = {};
+        var groups = results.map(function (r) {
+          var roots = buildCommentTree(r.comments).sort(function (a, b) {
+            return new Date(b.createdAt) - new Date(a.createdAt);
+          });
+          var latest = r.comments.reduce(function (max, c) {
+            var t = new Date(c.createdAt).getTime();
+            return t > max ? t : max;
+          }, 0);
+          if (latest > 0) activity[r.file] = latest;
+          return { file: r.file, roots: roots, latest: latest };
+        }).filter(function (g) { return g.roots.length > 0; });
+        groups.sort(function (a, b) { return b.latest - a.latest; });
+
+        car._commentActivity = activity;
+        renderPhotoStrip(car);
+
         var totalCount = results.reduce(function (sum, r) { return sum + r.comments.length; }, 0);
         carCommentsPanel.dataset.commentCount = totalCount;
-        list.innerHTML = merged.length
-          ? merged.map(function (m) { return renderCommentNode(m.node, m.file, photoMetaByFile[m.file], true); }).join('')
+
+        var mostRecent = null;
+        groups.forEach(function (g) {
+          if (!mostRecent || g.roots[0].createdAt > mostRecent.createdAt) mostRecent = g.roots[0];
+        });
+        carCommentsPanel.commentsData = mostRecent ? [mostRecent] : [];
+
+        list.innerHTML = groups.length
+          ? groups.map(function (g) {
+              var meta = photoMetaByFile[g.file] || { caption: '' };
+              var safeFile = g.file.replace(/&/g, '&amp;');
+              var safeCaption = escapeHtml(meta.caption || car.name || '');
+              return '<li class="mb-comment-group">' +
+                '<a class="mb-comment-photo-tag" href="?file=' + encodeURIComponent(g.file) + '">' +
+                  '<img src="' + window.MT3UK_R2_BASE + '/gallery/' + safeFile + '" alt="' + safeCaption + '">' +
+                  '<span class="mb-comment-photo-caption">' + safeCaption + '</span>' +
+                '</a>' +
+                '<ul class="mb-comment-group-list">' + g.roots.map(function (root) { return renderCommentNode(root, g.file); }).join('') + '</ul>' +
+              '</li>';
+            }).join('')
           : '<li class="mb-comments-empty">No comments yet.</li>';
         updateCommentsToggleLabel(carCommentsPanel);
       }).catch(function () {
@@ -1825,6 +1989,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function pollGarageComments() {
       var token = getSession();
       if (!token) return;
+      loadNotifications();
       fetch(API + '/my-builds', { headers: { 'X-Session-Token': token }, cache: 'no-store' })
         .then(function (res) { return res.ok ? res.json() : null; })
         .then(function (data) {

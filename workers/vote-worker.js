@@ -712,7 +712,8 @@ async function handleCommentsPost(request, env, ctx) {
   }
 
   var comments = await getComments(env, file);
-  if (parentId && !comments.some(function (c) { return c.id === parentId; })) {
+  var parentComment = parentId ? comments.find(function (c) { return c.id === parentId; }) : null;
+  if (parentId && !parentComment) {
     return json({ success: false, message: 'Comment being replied to no longer exists' }, 400);
   }
 
@@ -732,6 +733,8 @@ async function handleCommentsPost(request, env, ctx) {
     comments = comments.slice(comments.length - MAX_COMMENTS_PER_FILE);
   }
   await saveComments(env, file, comments);
+
+  await notifyCommentRecipients(env, ctx, file, email, comment.name, text, parentComment && parentComment.email);
 
   return json({ success: true, comment: publicComment(comment, []) });
 }
@@ -880,11 +883,96 @@ function rawEmail(from, to, subject, bodyText) {
 
 async function sendMyBuildsLinkEmail(env, toEmail, link) {
   var subject = 'Your My Builds sign-in link';
-  var body = 'Click the link below to manage your MT3UK build(s):\n\n' + link +
+  var body = 'Click the link below to sign in to My Garage, manage your build(s) and view your notifications:\n\n' + link +
     '\n\nThis link expires in 15 minutes and can only be used once. ' +
     'If you did not request this, you can ignore this email.';
   var message = new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body));
   await env.SEND_EMAIL.send(message);
+}
+
+var MAX_NOTIFICATIONS_PER_USER = 40;
+
+function notificationsKey(email) {
+  return 'notifications:' + email;
+}
+
+async function getNotifications(env, email) {
+  var raw = await env.VOTES.get(notificationsKey(email));
+  if (!raw) return [];
+  try {
+    var parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+async function addNotification(env, toEmail, notif) {
+  var list = await getNotifications(env, toEmail);
+  list.unshift(Object.assign({ id: crypto.randomUUID(), read: false }, notif));
+  if (list.length > MAX_NOTIFICATIONS_PER_USER) {
+    list = list.slice(0, MAX_NOTIFICATIONS_PER_USER);
+  }
+  await env.VOTES.put(notificationsKey(toEmail), JSON.stringify(list));
+}
+
+async function sendCommentNotificationEmail(env, toEmail, fromName, text, file) {
+  var link = MY_BUILDS_SITE_URL + '/my-builds.html?file=' + encodeURIComponent(file);
+  var subject = fromName + ' commented on your build';
+  var body = fromName + ' left a comment on one of your MT3UK build photos:\n\n"' + text + '"' +
+    '\n\nView and reply: ' + link;
+  var message = new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body));
+  await env.SEND_EMAIL.send(message);
+}
+
+// Notifies the photo's owner (read from the sidecar's stamped `email`
+// field - set at upload time) about a new comment/reply, both as an
+// in-Garage notification and an email. Commenting on your own photo, or on
+// a photo whose owner hasn't been stamped yet (e.g. an un-migrated legacy
+// photo with no sidecar email), is a silent no-op.
+// Notifies the photo's owner (read from the sidecar's stamped `email`
+// field - set at upload time) and, on a reply, the author of the comment
+// being replied to - both as an in-Garage notification and an email.
+// Commenting on your own photo/reply, or a photo whose owner hasn't been
+// stamped yet (e.g. an un-migrated legacy photo with no sidecar email), is
+// a silent no-op for that recipient.
+async function notifyCommentRecipients(env, ctx, file, commenterEmail, commenterName, text, parentAuthorEmail) {
+  var sidecarKey = 'gallery/' + file + '.json';
+  var sidecar = null;
+  try {
+    var obj = await env.GALLERY_BUCKET.get(sidecarKey);
+    if (obj) sidecar = await obj.json();
+  } catch (e) {}
+  var ownerEmail = sidecar && sidecar.email;
+
+  var recipients = {};
+  if (ownerEmail && ownerEmail !== commenterEmail) recipients[ownerEmail] = true;
+  if (parentAuthorEmail && parentAuthorEmail !== commenterEmail) recipients[parentAuthorEmail] = true;
+  var toEmails = Object.keys(recipients);
+  if (!toEmails.length) return;
+
+  var notify = async function () {
+    await Promise.all(toEmails.map(async function (toEmail) {
+      await addNotification(env, toEmail, {
+        type: 'comment',
+        file: file,
+        fromName: commenterName,
+        text: text,
+        createdAt: new Date().toISOString()
+      });
+      try {
+        await sendCommentNotificationEmail(env, toEmail, commenterName, text, file);
+      } catch (err) {
+        console.log('Comment notification email failed:', err.message);
+      }
+    }));
+  };
+
+  if (ctx && ctx.waitUntil) {
+    ctx.waitUntil(notify());
+  } else {
+    await notify();
+  }
 }
 
 async function sendSubscribersDigestIfUk8pm(env) {
@@ -1009,7 +1097,7 @@ async function deleteCarRecord(env, carId) {
   await env.GALLERY_BUCKET.delete(carRecordKey(carId));
 }
 
-async function setSidecarCarId(env, file, carId) {
+async function setSidecarCarId(env, file, carId, ownerEmail) {
   var sidecarKey = 'gallery/' + file + '.json';
   var sidecar = {};
   try {
@@ -1017,6 +1105,9 @@ async function setSidecarCarId(env, file, carId) {
     if (existingObj) sidecar = await existingObj.json();
   } catch (e) {}
   sidecar.carId = carId;
+  // Backfills the owner email onto legacy sidecars that predate comment
+  // notifications, so this photo starts receiving them from here on.
+  if (!sidecar.email && ownerEmail) sidecar.email = ownerEmail;
   await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
     httpMetadata: { contentType: 'application/json' }
   });
@@ -1107,7 +1198,16 @@ async function handleMyBuildsRequestLink(request, env) {
   }
 
   var files = await getSubscriberFiles(env, email);
-  if (files.length) {
+  // Anyone who has commented and had someone reply also gets an account -
+  // not just car owners - so they have somewhere to read/manage that
+  // notification. getNotifications is skipped once files.length already
+  // grants access, to avoid the extra KV read on the common (owner) path.
+  var hasAccess = files.length > 0;
+  if (!hasAccess) {
+    var notifications = await getNotifications(env, email);
+    hasAccess = notifications.length > 0;
+  }
+  if (hasAccess) {
     var token = randomToken();
     await env.VOTES.put('my-builds-link:' + token, email, { expirationTtl: MY_BUILDS_LINK_TTL_SECONDS });
     var link = MY_BUILDS_SITE_URL + '/my-builds.html?token=' + token;
@@ -1227,6 +1327,9 @@ async function handleMyBuildsUpdate(request, env) {
     var existingObj = await env.GALLERY_BUCKET.get(sidecarKey);
     if (existingObj) sidecar = await existingObj.json();
   } catch (e) {}
+  // Backfills the owner email onto legacy sidecars that predate comment
+  // notifications, so this photo starts receiving them from here on.
+  if (!sidecar.email) sidecar.email = email;
 
   ['gallery', 'reel', 'votable'].forEach(function (flag) {
     if (typeof (body && body[flag]) === 'boolean') {
@@ -1317,7 +1420,7 @@ async function handleMyBuildsCarUpdate(request, env) {
     };
     // Stamp every photo in this car with the (possibly newly-generated) carId
     // so it stops being grouped by the filename heuristic from now on.
-    await Promise.all(photos.map(function (f) { return setSidecarCarId(env, f, realCarId); }));
+    await Promise.all(photos.map(function (f) { return setSidecarCarId(env, f, realCarId, email); }));
   }
 
   if (body && typeof body.name === 'string' && body.name.trim()) {
@@ -1391,18 +1494,16 @@ async function handleMyBuildsUpload(request, env) {
       httpMetadata: { contentType: file.type }
     });
 
-    var sidecar = {};
+    var sidecar = { email: email };
     if (mods.length) sidecar.mods = mods;
     if (!gallery) sidecar.gallery = false;
     if (!reel) sidecar.reel = false;
     if (!votable) sidecar.votable = false;
-    if (Object.keys(sidecar).length) {
-      await env.GALLERY_BUCKET.put(
-        'gallery/' + filename + '.json',
-        JSON.stringify(sidecar, null, 2) + '\n',
-        { httpMetadata: { contentType: 'application/json' } }
-      );
-    }
+    await env.GALLERY_BUCKET.put(
+      'gallery/' + filename + '.json',
+      JSON.stringify(sidecar, null, 2) + '\n',
+      { httpMetadata: { contentType: 'application/json' } }
+    );
 
     await addSubscriberFiles(env, email, [filename]);
 
@@ -1435,11 +1536,11 @@ async function handleMyBuildsUpload(request, env) {
             mods: mods.length ? mods : (siblingPhotos.length ? (byFileForCar[siblingPhotos[0]].mods || []) : []),
             createdAt: new Date().toISOString()
           };
-          await Promise.all(siblingPhotos.map(function (f) { return setSidecarCarId(env, f, realCarIdForUpload); }));
+          await Promise.all(siblingPhotos.map(function (f) { return setSidecarCarId(env, f, realCarIdForUpload, email); }));
         } else {
           carRecordForUpload.photos = (carRecordForUpload.photos || []).concat([filename]);
         }
-        await setSidecarCarId(env, filename, realCarIdForUpload);
+        await setSidecarCarId(env, filename, realCarIdForUpload, email);
         await saveCarRecord(env, carRecordForUpload);
       }
     }
@@ -1560,6 +1661,26 @@ async function handleMyBuildsDelete(request, env) {
   await triggerManifestRebuild(env);
 
   return json({ success: true, deleted: file });
+}
+
+async function handleMyBuildsNotificationsGet(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+
+  var list = await getNotifications(env, email);
+  var unread = list.reduce(function (n, item) { return item.read ? n : n + 1; }, 0);
+  return json({ success: true, notifications: list, unread: unread });
+}
+
+async function handleMyBuildsNotificationsRead(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+
+  var list = await getNotifications(env, email);
+  list.forEach(function (item) { item.read = true; });
+  await env.VOTES.put(notificationsKey(email), JSON.stringify(list));
+
+  return json({ success: true });
 }
 
 async function handleReviewPost(request, env) {
@@ -1911,6 +2032,12 @@ export default {
     if (url.pathname === '/my-builds' && request.method === 'DELETE') {
       return handleMyBuildsDelete(request, env);
     }
+    if (url.pathname === '/my-builds/notifications' && request.method === 'GET') {
+      return handleMyBuildsNotificationsGet(request, env);
+    }
+    if (url.pathname === '/my-builds/notifications/read' && request.method === 'POST') {
+      return handleMyBuildsNotificationsRead(request, env);
+    }
 
     if (request.method !== 'POST') {
       return json({ success: false, message: 'Method not allowed' }, 405);
@@ -2007,16 +2134,14 @@ export default {
         // in the same submission are marked non-votable so only the
         // primary shot shows up for votes.
         var isPrimary = i === 0;
-        var sidecar = {};
+        var sidecar = { email: email };
         if (isPrimary && mods.length) sidecar.mods = mods;
         if (!isPrimary) sidecar.votable = false;
-        if (Object.keys(sidecar).length) {
-          await env.GALLERY_BUCKET.put(
-            'gallery/' + filename + '.json',
-            JSON.stringify(sidecar, null, 2) + '\n',
-            { httpMetadata: { contentType: 'application/json' } }
-          );
-        }
+        await env.GALLERY_BUCKET.put(
+          'gallery/' + filename + '.json',
+          JSON.stringify(sidecar, null, 2) + '\n',
+          { httpMetadata: { contentType: 'application/json' } }
+        );
 
         photoUrls.push(GALLERY_PUBLIC_BASE_URL + '/gallery/' + filename);
       }
@@ -2028,7 +2153,7 @@ export default {
       if (carName) {
         var submittedFilenames = existingNames.slice(existingNames.length - photoUrls.length);
         var newCarId = randomToken();
-        await Promise.all(submittedFilenames.map(function (f) { return setSidecarCarId(env, f, newCarId); }));
+        await Promise.all(submittedFilenames.map(function (f) { return setSidecarCarId(env, f, newCarId, email); }));
         await saveCarRecord(env, {
           id: newCarId,
           email: email,

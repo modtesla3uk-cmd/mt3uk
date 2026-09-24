@@ -1357,6 +1357,16 @@
     text-decoration: underline;
   }
   .bf-comment-reply-toggle:hover { color: var(--ink); }
+  .bf-comment-delete {
+    background: none; border: 0; color: var(--steel);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+  }
+  .bf-comment-delete:hover, .bf-comment-delete.bf-delete-confirm { color: var(--orange); }
   .bf-comment-replies {
     margin: 8px 0 0; padding: 0 0 0 16px; list-style: none;
     border-left: 1px solid rgba(22,35,61,0.15);
@@ -2762,6 +2772,7 @@
             '<span class="bf-comment-like-count">' + (c.likes || 0) + '</span>' +
           '</button>' +
           '<button type="button" class="bf-comment-reply-toggle">Reply</button>' +
+          (c.mine ? '<button type="button" class="bf-comment-delete">Delete</button>' : '') +
         '</div>' +
         '<div class="bf-comment-reply-slot" hidden data-parent-id="' + c.id + '"></div>' +
         childrenHtml +
@@ -2915,6 +2926,45 @@
             }).catch(function () {});
             reportedCommentIds.push(reportId);
             localStorage.setItem('mt3ukReportedComments', JSON.stringify(reportedCommentIds));
+            return;
+          }
+
+          var deleteBtn = e.target.closest('.bf-comment-delete');
+          if (deleteBtn) {
+            var deleteLi = deleteBtn.closest('.bf-comment');
+            var deleteId = deleteLi && deleteLi.dataset.id;
+            if (!deleteId) return;
+            if (!deleteBtn.classList.contains('bf-delete-confirm')) {
+              deleteBtn.classList.add('bf-delete-confirm');
+              deleteBtn.textContent = 'Confirm delete?';
+              setTimeout(function () {
+                deleteBtn.classList.remove('bf-delete-confirm');
+                deleteBtn.textContent = 'Delete';
+              }, 4000);
+              return;
+            }
+            var token = localStorage.getItem('mt3ukMyBuildsSession');
+            deleteBtn.disabled = true;
+            deleteBtn.textContent = 'Deleting…';
+            fetch(VOTE_ENDPOINT + '/comments/mine?file=' + encodeURIComponent(slide.dataset.file) + '&id=' + encodeURIComponent(deleteId), {
+              method: 'DELETE',
+              headers: { 'X-Session-Token': token || '' }
+            })
+              .then(function (res) { return res.json(); })
+              .then(function (data) {
+                if (data.success) {
+                  loadComments();
+                } else {
+                  deleteBtn.disabled = false;
+                  deleteBtn.classList.remove('bf-delete-confirm');
+                  deleteBtn.textContent = 'Delete';
+                }
+              })
+              .catch(function () {
+                deleteBtn.disabled = false;
+                deleteBtn.classList.remove('bf-delete-confirm');
+                deleteBtn.textContent = 'Delete';
+              });
             return;
           }
 

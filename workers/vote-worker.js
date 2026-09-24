@@ -641,7 +641,7 @@ async function saveComments(env, file, comments) {
   await env.VOTES.put('comments:' + file, JSON.stringify(comments));
 }
 
-function publicComment(c, likedIds) {
+function publicComment(c, likedIds, viewerEmail) {
   return {
     id: c.id,
     parentId: c.parentId || null,
@@ -649,7 +649,8 @@ function publicComment(c, likedIds) {
     text: c.text,
     createdAt: c.createdAt,
     likes: c.likes || 0,
-    liked: likedIds.indexOf(c.id) !== -1
+    liked: likedIds.indexOf(c.id) !== -1,
+    mine: !!viewerEmail && c.email === viewerEmail
   };
 }
 
@@ -674,8 +675,9 @@ async function handleCommentsGet(request, env, ctx) {
   var voterId = getVoterId(request);
   var comments = await getComments(env, file);
   var likedIds = await getCommentLikerIds(env, voterId);
+  var viewerEmail = await resolveSession(request, env);
   var visible = comments.filter(function (c) { return !c.hidden; }).map(function (c) {
-    return publicComment(c, likedIds);
+    return publicComment(c, likedIds, viewerEmail);
   });
 
   return json({ success: true, file: file, voterId: voterId, comments: visible });
@@ -736,7 +738,7 @@ async function handleCommentsPost(request, env, ctx) {
 
   await notifyCommentRecipients(env, ctx, file, email, comment.name, text, parentComment && parentComment.email);
 
-  return json({ success: true, comment: publicComment(comment, []) });
+  return json({ success: true, comment: publicComment(comment, [], email) });
 }
 
 async function handleCommentReport(request, env, ctx) {
@@ -839,6 +841,32 @@ async function handleCommentsAdminList(request, env) {
   }));
 
   return json({ success: true, reported: reported });
+}
+
+async function handleCommentsSelfDelete(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+
+  var url = new URL(request.url);
+  var file = (url.searchParams.get('file') || '').toString();
+  var id = (url.searchParams.get('id') || '').toString();
+  if (!file || !id) {
+    return json({ success: false, message: 'file and id are required' }, 400);
+  }
+
+  var comments = await getComments(env, file);
+  var comment = comments.find(function (c) { return c.id === id; });
+  if (!comment) {
+    return json({ success: false, message: 'Comment not found' }, 404);
+  }
+  if (comment.email !== email) {
+    return json({ success: false, message: 'You can only delete your own comments' }, 403);
+  }
+
+  var next = comments.filter(function (c) { return c.id !== id; });
+  await saveComments(env, file, next);
+
+  return json({ success: true, deleted: id });
 }
 
 async function handleCommentsAdminDelete(request, env) {
@@ -1263,17 +1291,35 @@ async function handleMyBuildsGet(request, env) {
 
   var entries = liveFiles.map(function (f) { return byFile[f]; });
   var groups = groupEntriesIntoCars(entries);
-  // Oldest photo first within a car, and oldest car first overall, so new
-  // cars/photos append to the end rather than reshuffling the garage.
+  var records = {};
+  await Promise.all(groups.map(async function (g) {
+    if (!g.virtual) records[g.id] = await getCarRecord(env, g.id);
+  }));
   groups.forEach(function (g) {
-    g.entries.sort(function (a, b) { return (a.uploadedAt || 0) - (b.uploadedAt || 0); });
+    var record = records[g.id];
+    if (record && Array.isArray(record.photos) && record.photos.length) {
+      // Respect the owner's saved/drag-reordered order; any photo not yet
+      // in the saved order (e.g. just uploaded) is appended, oldest first.
+      var byFileMap = {};
+      g.entries.forEach(function (entry) { byFileMap[entry.file] = entry; });
+      var seen = {};
+      var ordered = record.photos.map(function (f) { return byFileMap[f]; }).filter(Boolean);
+      ordered.forEach(function (entry) { seen[entry.file] = true; });
+      var rest = g.entries.filter(function (entry) { return !seen[entry.file]; })
+        .sort(function (a, b) { return (a.uploadedAt || 0) - (b.uploadedAt || 0); });
+      g.entries = ordered.concat(rest);
+    } else {
+      // Oldest photo first within a car so new photos append to the end
+      // rather than reshuffling the garage.
+      g.entries.sort(function (a, b) { return (a.uploadedAt || 0) - (b.uploadedAt || 0); });
+    }
   });
   groups.sort(function (a, b) {
     return (a.entries[0].uploadedAt || 0) - (b.entries[0].uploadedAt || 0);
   });
 
   var cars = await Promise.all(groups.map(async function (g) {
-    var record = g.virtual ? null : await getCarRecord(env, g.id);
+    var record = records[g.id];
     var photos = await Promise.all(g.entries.map(async function (entry) {
       var comments = await getComments(env, entry.file);
       var visibleComments = comments.filter(function (c) { return !c.hidden; });
@@ -2007,6 +2053,9 @@ export default {
     }
     if (url.pathname === '/comments' && request.method === 'POST') {
       return handleCommentsPost(request, env, ctx);
+    }
+    if (url.pathname === '/comments/mine' && request.method === 'DELETE') {
+      return handleCommentsSelfDelete(request, env);
     }
     if (url.pathname === '/shop-products' && request.method === 'GET') {
       return handleShopProducts(request, ctx);

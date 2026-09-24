@@ -128,6 +128,7 @@ async function listGalleryEntriesFromR2(env) {
     var votable = true;
     var gallery = true;
     var reel = true;
+    var carId = null;
     var sidecarKey = o.key + '.json';
     if (sidecarKeys[sidecarKey]) {
       try {
@@ -140,6 +141,7 @@ async function listGalleryEntriesFromR2(env) {
           if (typeof sidecar.votable === 'boolean') votable = sidecar.votable;
           if (typeof sidecar.gallery === 'boolean') gallery = sidecar.gallery;
           if (typeof sidecar.reel === 'boolean') reel = sidecar.reel;
+          if (typeof sidecar.carId === 'string' && sidecar.carId) carId = sidecar.carId;
         }
       } catch (e) {}
     }
@@ -147,6 +149,7 @@ async function listGalleryEntriesFromR2(env) {
     var entry = { file: filename, mods: mods, votable: votable, gallery: gallery, reel: reel, added: ukDateString(o.uploaded), uploadedAt: o.uploaded.getTime() };
     if (caption) entry.caption = caption;
     if (split.name) entry.name = split.name;
+    if (carId) entry.carId = carId;
     return entry;
   }));
 }
@@ -982,6 +985,97 @@ async function resolveSession(request, env) {
   return env.VOTES.get('my-builds-session:' + token);
 }
 
+function carRecordKey(carId) {
+  return 'gallery/cars/' + carId + '.json';
+}
+
+async function getCarRecord(env, carId) {
+  try {
+    var obj = await env.GALLERY_BUCKET.get(carRecordKey(carId));
+    if (!obj) return null;
+    return await obj.json();
+  } catch (e) {
+    return null;
+  }
+}
+
+async function saveCarRecord(env, car) {
+  await env.GALLERY_BUCKET.put(carRecordKey(car.id), JSON.stringify(car, null, 2) + '\n', {
+    httpMetadata: { contentType: 'application/json' }
+  });
+}
+
+async function deleteCarRecord(env, carId) {
+  await env.GALLERY_BUCKET.delete(carRecordKey(carId));
+}
+
+async function setSidecarCarId(env, file, carId) {
+  var sidecarKey = 'gallery/' + file + '.json';
+  var sidecar = {};
+  try {
+    var existingObj = await env.GALLERY_BUCKET.get(sidecarKey);
+    if (existingObj) sidecar = await existingObj.json();
+  } catch (e) {}
+  sidecar.carId = carId;
+  await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
+    httpMetadata: { contentType: 'application/json' }
+  });
+}
+
+async function setSidecarMods(env, file, mods) {
+  var sidecarKey = 'gallery/' + file + '.json';
+  var sidecar = {};
+  try {
+    var existingObj = await env.GALLERY_BUCKET.get(sidecarKey);
+    if (existingObj) sidecar = await existingObj.json();
+  } catch (e) {}
+  if (mods.length) {
+    sidecar.mods = mods;
+  } else {
+    delete sidecar.mods;
+  }
+  await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
+    httpMetadata: { contentType: 'application/json' }
+  });
+}
+
+// Strips the numeric "-2", "-3" suffix the multi-photo submit handler adds
+// to keep filenames unique within one submission, so legacy photos that
+// predate the carId field can still be grouped into a virtual car.
+function carGroupBaseKey(file) {
+  var stem = file.replace(/\.[a-zA-Z0-9]+$/, '');
+  return stem.replace(/-\d+$/, '');
+}
+
+// Groups a subscriber's live gallery entries into cars. Entries with an
+// explicit carId are grouped by it (real cars); the rest are grouped by
+// filename heuristic into "virtual" cars that don't exist in R2 yet - the
+// first PUT /my-builds/car against one of them persists a real record.
+function groupEntriesIntoCars(entries) {
+  var byRealCarId = {};
+  var byVirtualKey = {};
+  var order = [];
+
+  entries.forEach(function (entry) {
+    if (entry.carId) {
+      if (!byRealCarId[entry.carId]) {
+        byRealCarId[entry.carId] = { id: entry.carId, virtual: false, entries: [] };
+        order.push(byRealCarId[entry.carId]);
+      }
+      byRealCarId[entry.carId].entries.push(entry);
+    } else {
+      var key = carGroupBaseKey(entry.file);
+      if (!byVirtualKey[key]) {
+        byVirtualKey[key] = { id: 'virtual:' + key, virtual: true, entries: [] };
+        order.push(byVirtualKey[key]);
+      }
+      byVirtualKey[key].entries.push(entry);
+    }
+  });
+
+  return order;
+}
+
 async function triggerManifestRebuild(env) {
   var ghHeaders = {
     'Authorization': 'Bearer ' + env.GITHUB_TOKEN,
@@ -1071,22 +1165,46 @@ async function handleMyBuildsGet(request, env) {
     await env.VOTES.put('subscriber:' + email, JSON.stringify(liveFiles));
   }
 
-  var builds = await Promise.all(liveFiles.map(async function (f) {
-    var entry = byFile[f];
-    var comments = await getComments(env, f);
-    var visibleComments = comments.filter(function (c) { return !c.hidden; });
+  var entries = liveFiles.map(function (f) { return byFile[f]; });
+  var groups = groupEntriesIntoCars(entries);
+  // Oldest photo first within a car, and oldest car first overall, so new
+  // cars/photos append to the end rather than reshuffling the garage.
+  groups.forEach(function (g) {
+    g.entries.sort(function (a, b) { return (a.uploadedAt || 0) - (b.uploadedAt || 0); });
+  });
+  groups.sort(function (a, b) {
+    return (a.entries[0].uploadedAt || 0) - (b.entries[0].uploadedAt || 0);
+  });
+
+  var cars = await Promise.all(groups.map(async function (g) {
+    var record = g.virtual ? null : await getCarRecord(env, g.id);
+    var photos = await Promise.all(g.entries.map(async function (entry) {
+      var comments = await getComments(env, entry.file);
+      var visibleComments = comments.filter(function (c) { return !c.hidden; });
+      return {
+        file: entry.file,
+        caption: entry.caption || '',
+        gallery: entry.gallery !== false,
+        reel: entry.reel !== false,
+        votable: entry.votable !== false,
+        commentCount: visibleComments.length
+      };
+    }));
+    var mods = record && Array.isArray(record.mods) ? record.mods : (g.entries[0].mods || []);
+    var name = record ? record.name : (g.entries[0].caption || 'MT3UK member build');
+    var createdAt = record ? record.createdAt : new Date(g.entries[0].uploadedAt || Date.now()).toISOString();
     return {
-      file: f,
-      caption: entry.caption || '',
-      mods: entry.mods || [],
-      gallery: entry.gallery !== false,
-      reel: entry.reel !== false,
-      votable: entry.votable !== false,
-      commentCount: visibleComments.length
+      id: g.id,
+      virtual: !!g.virtual,
+      name: name,
+      mods: mods,
+      createdAt: createdAt,
+      commentCount: photos.reduce(function (sum, p) { return sum + p.commentCount; }, 0),
+      photos: photos
     };
   }));
 
-  return json({ success: true, email: email, builds: builds });
+  return json({ success: true, email: email, cars: cars });
 }
 
 async function handleMyBuildsUpdate(request, env) {
@@ -1141,6 +1259,88 @@ async function handleMyBuildsUpdate(request, env) {
   return json({ success: true, file: file });
 }
 
+async function handleMyBuildsCarUpdate(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+
+  var body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return json({ success: false, message: 'Invalid request body' }, 400);
+  }
+
+  var carId = ((body && body.carId) || '').toString();
+  if (!carId) return json({ success: false, message: 'carId is required' }, 400);
+
+  var files = await getSubscriberFiles(env, email);
+  var manifest = await listGalleryEntriesFromR2(env).catch(function () { return []; });
+  var byFile = {};
+  manifest.forEach(function (p) { byFile[p.file] = p; });
+
+  var isVirtual = carId.indexOf('virtual:') === 0;
+  var currentPhotos;
+  if (isVirtual) {
+    var key = carId.slice('virtual:'.length);
+    currentPhotos = files.filter(function (f) {
+      return byFile[f] && !byFile[f].carId && carGroupBaseKey(f) === key;
+    });
+  } else {
+    currentPhotos = files.filter(function (f) { return byFile[f] && byFile[f].carId === carId; });
+  }
+
+  if (!currentPhotos.length) {
+    return json({ success: false, message: 'That car is not linked to your account' }, 403);
+  }
+
+  // Reordering also doubles as the definitive photo set for this car.
+  var photos = currentPhotos;
+  if (body && Array.isArray(body.photos)) {
+    var requested = body.photos.map(function (f) { return String(f); });
+    var sameSet = requested.length === currentPhotos.length &&
+      requested.every(function (f) { return currentPhotos.indexOf(f) !== -1; });
+    if (!sameSet) {
+      return json({ success: false, message: 'Photo list does not match this car' }, 400);
+    }
+    photos = requested;
+  }
+
+  var realCarId = carId;
+  var record = isVirtual ? null : await getCarRecord(env, carId);
+  var isNewRecord = isVirtual || !record;
+
+  if (isNewRecord) {
+    realCarId = isVirtual ? randomToken() : carId;
+    record = {
+      id: realCarId,
+      email: email,
+      name: (body && body.name) || byFile[photos[0]].caption || 'MT3UK member build',
+      photos: photos,
+      mods: byFile[photos[0]].mods || [],
+      createdAt: new Date().toISOString()
+    };
+    // Stamp every photo in this car with the (possibly newly-generated) carId
+    // so it stops being grouped by the filename heuristic from now on.
+    await Promise.all(photos.map(function (f) { return setSidecarCarId(env, f, realCarId); }));
+  }
+
+  if (body && typeof body.name === 'string' && body.name.trim()) {
+    record.name = body.name.trim().slice(0, 150);
+  }
+  record.photos = photos;
+
+  if (body && Array.isArray(body.mods)) {
+    var mods = body.mods.map(function (m) { return String(m).trim(); }).filter(Boolean).slice(0, 50);
+    record.mods = mods;
+    await Promise.all(photos.map(function (f) { return setSidecarMods(env, f, mods); }));
+  }
+
+  await saveCarRecord(env, record);
+  await triggerManifestRebuild(env);
+
+  return json({ success: true, car: record });
+}
+
 async function handleMyBuildsUpload(request, env) {
   var email = await resolveSession(request, env);
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
@@ -1161,6 +1361,7 @@ async function handleMyBuildsUpload(request, env) {
   var gallery = formData.get('gallery') === '1';
   var reel = formData.get('reel') === '1';
   var votable = formData.get('votable') === '1';
+  var carId = (formData.get('carId') || '').toString();
 
   if (!caption) {
     return json({ success: false, message: 'Caption is required' }, 400);
@@ -1208,6 +1409,45 @@ async function handleMyBuildsUpload(request, env) {
     }
 
     await addSubscriberFiles(env, email, [filename]);
+
+    if (carId) {
+      var subscriberFiles = await getSubscriberFiles(env, email);
+      var carManifest = await listGalleryEntriesFromR2(env).catch(function () { return []; });
+      var byFileForCar = {};
+      carManifest.forEach(function (p) { byFileForCar[p.file] = p; });
+
+      var isVirtualCar = carId.indexOf('virtual:') === 0;
+      var groupKey = isVirtualCar ? carId.slice('virtual:'.length) : null;
+      var siblingPhotos = subscriberFiles.filter(function (f) {
+        if (f === filename) return false;
+        var entry = byFileForCar[f];
+        if (!entry) return false;
+        return isVirtualCar
+          ? (!entry.carId && carGroupBaseKey(f) === groupKey)
+          : entry.carId === carId;
+      });
+
+      if (isVirtualCar ? siblingPhotos.length > 0 : true) {
+        var carRecordForUpload = isVirtualCar ? null : await getCarRecord(env, carId);
+        var realCarIdForUpload = carId;
+        if (isVirtualCar || !carRecordForUpload) {
+          realCarIdForUpload = isVirtualCar ? randomToken() : carId;
+          carRecordForUpload = {
+            id: realCarIdForUpload,
+            email: email,
+            name: caption || 'MT3UK member build',
+            photos: siblingPhotos.concat([filename]),
+            mods: mods.length ? mods : (siblingPhotos.length ? (byFileForCar[siblingPhotos[0]].mods || []) : []),
+            createdAt: new Date().toISOString()
+          };
+          await Promise.all(siblingPhotos.map(function (f) { return setSidecarCarId(env, f, realCarIdForUpload); }));
+        } else {
+          carRecordForUpload.photos = (carRecordForUpload.photos || []).concat([filename]);
+        }
+        await setSidecarCarId(env, filename, realCarIdForUpload);
+        await saveCarRecord(env, carRecordForUpload);
+      }
+    }
 
     try {
       var ghHeaders = {
@@ -1286,9 +1526,31 @@ async function handleMyBuildsDelete(request, env) {
     return json({ success: false, message: 'That build is not linked to your account' }, 403);
   }
 
+  var carId = null;
+  try {
+    var sidecarObjForDelete = await env.GALLERY_BUCKET.get('gallery/' + file + '.json');
+    if (sidecarObjForDelete) {
+      var sidecarForDelete = await sidecarObjForDelete.json();
+      if (sidecarForDelete && sidecarForDelete.carId) carId = sidecarForDelete.carId;
+    }
+  } catch (e) {}
+
   await env.GALLERY_BUCKET.delete('gallery/' + file);
   await env.GALLERY_BUCKET.delete('gallery/' + file + '.json');
   await removeSubscriberFile(env, email, file);
+
+  if (carId) {
+    var carRecordForDelete = await getCarRecord(env, carId);
+    if (carRecordForDelete) {
+      var remainingPhotos = (carRecordForDelete.photos || []).filter(function (f) { return f !== file; });
+      if (remainingPhotos.length) {
+        carRecordForDelete.photos = remainingPhotos;
+        await saveCarRecord(env, carRecordForDelete);
+      } else {
+        await deleteCarRecord(env, carId);
+      }
+    }
+  }
 
   var todayStr = ukDateString(new Date());
   await env.VOTES.delete('votes:' + todayStr + ':' + file);
@@ -1648,6 +1910,9 @@ export default {
     if (url.pathname === '/my-builds' && request.method === 'PUT') {
       return handleMyBuildsUpdate(request, env);
     }
+    if (url.pathname === '/my-builds/car' && request.method === 'PUT') {
+      return handleMyBuildsCarUpdate(request, env);
+    }
     if (url.pathname === '/my-builds' && request.method === 'DELETE') {
       return handleMyBuildsDelete(request, env);
     }
@@ -1683,6 +1948,7 @@ export default {
       return json({ success: false, message: 'Please enter a valid email' }, 400);
     }
     var caption = (formData.get('caption') || '').toString().trim().slice(0, 150);
+    var carName = (formData.get('carName') || '').toString().trim().slice(0, 150);
     var modsRaw = (formData.get('mods') || '').toString().trim().slice(0, 1000);
     var mods = modsRaw
       ? modsRaw.split(/[,\n]/).map(function (m) { return m.trim(); }).filter(Boolean).slice(0, 20)
@@ -1758,6 +2024,24 @@ export default {
         }
 
         photoUrls.push(GALLERY_PUBLIC_BASE_URL + '/gallery/' + filename);
+      }
+
+      // A car name means this submission came from My Garage's "add a car"
+      // flow - create a real car record right away instead of relying on
+      // the filename-based heuristic grouping used for legacy/public
+      // submissions.
+      if (carName) {
+        var submittedFilenames = existingNames.slice(existingNames.length - photoUrls.length);
+        var newCarId = randomToken();
+        await Promise.all(submittedFilenames.map(function (f) { return setSidecarCarId(env, f, newCarId); }));
+        await saveCarRecord(env, {
+          id: newCarId,
+          email: email,
+          name: carName,
+          photos: submittedFilenames,
+          mods: mods,
+          createdAt: new Date().toISOString()
+        });
       }
 
       // No PR/review gate now the photos land straight in R2 - open an

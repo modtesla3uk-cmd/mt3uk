@@ -633,6 +633,52 @@
   .mb-delete-btn.mb-delete-confirm { border-color: var(--orange); color: var(--paper); background: var(--orange); }
   .mb-empty { text-align: center; color: var(--steel); font-size: 0.9rem; max-width: 480px; margin: 0 auto; }
 
+  /* ---------- CAR SELECTOR ---------- */
+  .mb-car-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 16px; max-width: 720px; margin: 0 auto; }
+  .mb-car-tile { border: 1px solid var(--ink); background: var(--white); cursor: pointer; display: flex; flex-direction: column; text-align: left; padding: 0; overflow: hidden; position: relative; font-family: inherit; color: inherit; }
+  .mb-car-tile:hover { border-color: var(--orange); }
+  .mb-car-tile-thumb { width: 100%; aspect-ratio: 4 / 3; overflow: hidden; background: var(--ink); }
+  .mb-car-tile-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .mb-car-tile-body { padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
+  .mb-car-tile-name { font-weight: 600; color: var(--ink); word-break: break-word; }
+  .mb-car-tile-count { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--steel); }
+  .mb-car-tile-alert { position: absolute; top: 8px; right: 8px; background: var(--paper); border-radius: 3px; padding: 2px 4px; }
+
+  /* ---------- CAR DETAIL ---------- */
+  .mb-car-detail { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+  .mb-car-detail-header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .mb-back-btn { background: none; border: 0; color: var(--steel); font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; cursor: pointer; text-decoration: underline; padding: 0; }
+  .mb-back-btn:hover { color: var(--orange); }
+  .mb-car-name-input {
+    font-family: 'Archivo Expanded', sans-serif;
+    font-weight: 800;
+    font-size: 1.25rem;
+    color: var(--ink);
+    border: 1px solid transparent;
+    background: transparent;
+    padding: 4px 6px;
+    flex: 1;
+    min-width: 120px;
+  }
+  .mb-car-name-input:hover, .mb-car-name-input:focus { border-color: var(--line); outline: none; background: var(--white); }
+  .mb-car-name-status { flex-shrink: 0; }
+
+  .mb-photo-strip { display: flex; flex-wrap: wrap; gap: 14px; }
+  .mb-photo-thumb-wrap { width: 130px; display: flex; flex-direction: column; gap: 6px; border: 1px solid var(--ink); padding: 8px; background: var(--white); cursor: grab; touch-action: none; }
+  .mb-photo-thumb-wrap.mb-dragging { opacity: 0.4; }
+  .mb-photo-thumb-wrap.mb-drag-over { border-color: var(--orange); }
+  .mb-photo-thumb { width: 100%; aspect-ratio: 1; overflow: hidden; border: 1px solid var(--line); }
+  .mb-photo-thumb img { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; }
+  .mb-photo-toggles { display: flex; flex-direction: column; gap: 3px; }
+  .mb-photo-toggle { display: flex; align-items: center; gap: 5px; font-size: 0.68rem; cursor: pointer; }
+  .mb-photo-toggle input { accent-color: var(--orange); width: 13px; height: 13px; }
+  .mb-photo-delete-btn { background: transparent; border: 1px solid var(--line); color: var(--ink); font-size: 0.68rem; padding: 4px 6px; cursor: pointer; }
+  .mb-photo-delete-btn:hover { border-color: var(--orange); color: var(--orange); }
+  .mb-photo-delete-btn.mb-delete-confirm { border-color: var(--orange); background: var(--orange); color: var(--paper); }
+  .mb-add-photo-btn { align-self: flex-start; }
+
+  .mb-shared-mods { border: 1px solid var(--ink); padding: 14px 16px; background: var(--white); display: flex; flex-direction: column; gap: 8px; }
+
   .mb-build-wrap { display: flex; flex-direction: column; }
   .mb-build-wrap .mb-build-card { border-bottom: none; }
   .mb-comments { border: 1px solid var(--ink); border-top: none; padding: 14px 16px; background: var(--paper-2); }
@@ -862,6 +908,10 @@ document.addEventListener('DOMContentLoaded', function () {
             <input type="text" id="mb-submit-name" name="name" placeholder="Your name or MT3UK handle" required>
           </div>
           <div class="mb-field">
+            <label class="mono" for="mb-submit-carname">Car name</label>
+            <input type="text" id="mb-submit-carname" name="carName" placeholder="e.g. Scarlett" required>
+          </div>
+          <div class="mb-field">
             <label class="mono" for="mb-submit-caption">Caption</label>
             <input type="text" id="mb-submit-caption" name="caption" placeholder="e.g. Viper Green Model Y" required>
           </div>
@@ -901,37 +951,90 @@ document.addEventListener('DOMContentLoaded', function () {
         <button type="button" class="mb-signout-btn" id="mb-signout-btn">Sign out</button>
       </div>
 
-      <div class="mb-upload-toggle-row" id="build-upload">
-        <button type="button" class="mb-upload-toggle-btn" id="mb-upload-toggle-btn">+ Upload build</button>
+      <div id="mb-car-selector-view">
+        <div class="mb-upload-toggle-row" id="build-upload">
+          <button type="button" class="mb-upload-toggle-btn" id="mb-addcar-toggle-btn">+ Add a car</button>
+        </div>
+
+        <div class="mb-upload-card" id="mb-addcar-card" style="display:none;">
+          <h2>Add a car</h2>
+          <p>Give your car a name and add up to 3 photos. They'll go live in the gallery straight away.</p>
+          <form id="mb-addcar-form">
+            <div class="mb-field">
+              <label class="mono" for="mb-addcar-carname">Car name</label>
+              <input type="text" id="mb-addcar-carname" name="carName" placeholder="e.g. Scarlett" required>
+            </div>
+            <div class="mb-field">
+              <label class="mono" for="mb-addcar-caption">Caption</label>
+              <input type="text" id="mb-addcar-caption" name="caption" placeholder="e.g. Viper Green Model Y" required>
+            </div>
+            <div class="mb-field">
+              <label class="mono" for="mb-addcar-mods">Mods (optional)</label>
+              <textarea id="mb-addcar-mods" name="mods" rows="3" placeholder="e.g. Coilovers, 20&quot; wheels, wrap" maxlength="1000"></textarea>
+            </div>
+            <div class="mb-field">
+              <label class="mono" for="mb-addcar-photo">Photos (up to 3)</label>
+              <input type="file" id="mb-addcar-photo" name="photo" accept="image/*" multiple required>
+            </div>
+            <button type="submit" class="mb-btn" id="mb-addcar-submit-btn">Add car</button>
+            <p class="mb-status" id="mb-addcar-status"></p>
+          </form>
+        </div>
+
+        <div class="mb-car-grid" id="mb-car-grid"></div>
       </div>
 
-      <div class="mb-upload-card" id="mb-upload-card" style="display:none;">
-        <h2>Upload a build</h2>
-        <p>Add a photo of your build to your account. It'll go live straight away, wherever you choose below.</p>
-        <form id="mb-upload-form">
-          <div class="mb-field">
-            <label class="mono" for="mb-upload-caption">Caption</label>
-            <input type="text" id="mb-upload-caption" name="caption" placeholder="e.g. Viper Green Model Y" required>
-          </div>
-          <div class="mb-toggles">
-            <label class="mb-toggle"><input type="checkbox" id="mb-upload-gallery" checked> Gallery</label>
-            <label class="mb-toggle"><input type="checkbox" id="mb-upload-reel" checked> Reel</label>
-            <label class="mb-toggle"><input type="checkbox" id="mb-upload-votable" checked> Voting</label>
-          </div>
-          <div class="mb-field">
-            <label class="mono" for="mb-upload-mods">Mods (optional)</label>
-            <textarea id="mb-upload-mods" name="mods" rows="3" placeholder="e.g. Coilovers, 20&quot; wheels, wrap" maxlength="1000"></textarea>
-          </div>
-          <div class="mb-field">
-            <label class="mono" for="mb-upload-photo">Photo</label>
-            <input type="file" id="mb-upload-photo" name="photo" accept="image/*" required>
-          </div>
-          <button type="submit" class="mb-btn" id="mb-upload-submit-btn">Upload build</button>
-          <p class="mb-status" id="mb-upload-status"></p>
-        </form>
-      </div>
+      <div id="mb-car-detail-view" class="mb-car-detail" style="display:none;">
+        <div class="mb-car-detail-header">
+          <button type="button" class="mb-back-btn" id="mb-car-back-btn">&larr; Back to garage</button>
+          <input type="text" class="mb-car-name-input" id="mb-car-name-input" maxlength="150">
+          <span class="mb-status mb-car-name-status" id="mb-car-name-status"></span>
+        </div>
 
-      <div class="mb-grid" id="mb-grid"></div>
+        <div class="mb-photo-strip" id="mb-photo-strip"></div>
+
+        <button type="button" class="mb-btn mb-add-photo-btn" id="mb-addphoto-toggle-btn">+ Add photo to this car</button>
+        <div class="mb-upload-card" id="mb-addphoto-card" style="display:none;">
+          <h2>Add a photo</h2>
+          <p>Add another photo to this car. It'll go live straight away, wherever you choose below.</p>
+          <form id="mb-upload-form">
+            <div class="mb-field">
+              <label class="mono" for="mb-upload-caption">Caption</label>
+              <input type="text" id="mb-upload-caption" name="caption" placeholder="e.g. Viper Green Model Y" required>
+            </div>
+            <div class="mb-toggles">
+              <label class="mb-toggle"><input type="checkbox" id="mb-upload-gallery" checked> Gallery</label>
+              <label class="mb-toggle"><input type="checkbox" id="mb-upload-reel" checked> Reel</label>
+              <label class="mb-toggle"><input type="checkbox" id="mb-upload-votable" checked> Voting</label>
+            </div>
+            <div class="mb-field">
+              <label class="mono" for="mb-upload-photo">Photo</label>
+              <input type="file" id="mb-upload-photo" name="photo" accept="image/*" required>
+            </div>
+            <button type="submit" class="mb-btn" id="mb-upload-submit-btn">Upload photo</button>
+            <p class="mb-status" id="mb-upload-status"></p>
+          </form>
+        </div>
+
+        <div class="mb-shared-mods">
+          <span class="mono mb-mods-label">Mods (shared across this car)</span>
+          <textarea class="mb-mods-textarea" id="mb-car-mods-textarea" rows="3" placeholder="e.g. Coilovers, 20&quot; wheels, wrap"></textarea>
+          <div class="mb-mods-submit-row">
+            <button type="button" class="mb-mods-submit-btn" id="mb-car-mods-submit-btn">Save mods</button>
+            <span class="mb-mods-status mono" id="mb-car-mods-status"></span>
+          </div>
+        </div>
+
+        <div class="mb-comments" id="mb-car-comments" data-comment-count="0">
+          <button type="button" class="mb-comments-toggle" aria-expanded="false">
+            <span class="mb-comment-alert" hidden><span class="mb-comment-alert-icon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 7l9 6 9-6"></path></svg></span><span class="mb-comment-alert-count">0</span></span>
+            <span class="mb-comments-toggle-text">Loading&hellip;</span>
+          </button>
+          <div class="mb-comments-content" hidden>
+            <ul class="mb-comments-list"></ul>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -1007,6 +1110,8 @@ document.addEventListener('DOMContentLoaded', function () {
     var EMAIL_KEY = 'mt3ukMyBuildsEmail';
     var myGarageEmail = '';
     var pendingCommentsFile = new URL(window.location.href).searchParams.get('file');
+    var carsData = [];
+    var currentCarId = null;
 
     var signinView = document.getElementById('mb-signin-view');
     var appView = document.getElementById('mb-app-view');
@@ -1015,13 +1120,32 @@ document.addEventListener('DOMContentLoaded', function () {
     var signinStatus = document.getElementById('mb-signin-status');
     var accountEmailEl = document.getElementById('mb-account-email');
     var signoutBtn = document.getElementById('mb-signout-btn');
-    var grid = document.getElementById('mb-grid');
 
-    var uploadToggleBtn = document.getElementById('mb-upload-toggle-btn');
-    var uploadCard = document.getElementById('mb-upload-card');
+    var selectorView = document.getElementById('mb-car-selector-view');
+    var detailView = document.getElementById('mb-car-detail-view');
+    var carGrid = document.getElementById('mb-car-grid');
+    var backBtn = document.getElementById('mb-car-back-btn');
+    var carNameInput = document.getElementById('mb-car-name-input');
+    var carNameStatus = document.getElementById('mb-car-name-status');
+    var photoStrip = document.getElementById('mb-photo-strip');
+    var carModsTextarea = document.getElementById('mb-car-mods-textarea');
+    var carModsSaveBtn = document.getElementById('mb-car-mods-submit-btn');
+    var carModsStatus = document.getElementById('mb-car-mods-status');
+    var carCommentsPanel = document.getElementById('mb-car-comments');
+
+    var addCarToggleBtn = document.getElementById('mb-addcar-toggle-btn');
+    var addCarCard = document.getElementById('mb-addcar-card');
+    var addCarForm = document.getElementById('mb-addcar-form');
+    var addCarStatus = document.getElementById('mb-addcar-status');
+    var addCarSubmitBtn = document.getElementById('mb-addcar-submit-btn');
+    var addCarPhotoInput = document.getElementById('mb-addcar-photo');
+
+    var addPhotoToggleBtn = document.getElementById('mb-addphoto-toggle-btn');
+    var addPhotoCard = document.getElementById('mb-addphoto-card');
     var uploadForm = document.getElementById('mb-upload-form');
     var uploadStatus = document.getElementById('mb-upload-status');
     var uploadSubmitBtn = document.getElementById('mb-upload-submit-btn');
+
     var newToggleBtn = document.getElementById('mb-new-toggle-btn');
     var submitCard = document.getElementById('mb-submit-card');
     var submitForm = document.getElementById('mb-submit-form');
@@ -1044,6 +1168,12 @@ document.addEventListener('DOMContentLoaded', function () {
       localStorage.removeItem(EMAIL_KEY);
     }
 
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+
     function showSignin() {
       appView.style.display = 'none';
       signinView.style.display = 'block';
@@ -1054,55 +1184,73 @@ document.addEventListener('DOMContentLoaded', function () {
       appView.style.display = 'block';
       accountEmailEl.textContent = email;
       myGarageEmail = email;
-      if (window.location.hash === '#build-upload' && uploadCard.style.display === 'none') {
-        uploadToggleBtn.click();
+      if (window.location.hash === '#build-upload' && addCarCard.style.display === 'none') {
+        addCarToggleBtn.click();
         document.getElementById('build-upload').scrollIntoView({ block: 'start' });
       }
     }
 
-    function renderBuilds(builds, alerts) {
+    function findCar(carId) {
+      for (var i = 0; i < carsData.length; i++) {
+        if (carsData[i].id === carId) return carsData[i];
+      }
+      return null;
+    }
+
+    function showSelector() {
+      currentCarId = null;
+      detailView.style.display = 'none';
+      selectorView.style.display = 'block';
+    }
+
+    function showDetail(carId) {
+      currentCarId = carId;
+      selectorView.style.display = 'none';
+      detailView.style.display = 'flex';
+      renderCarDetail(findCar(carId));
+      loadCarComments(findCar(carId));
+    }
+
+    function renderCarGrid(cars, alerts) {
       alerts = alerts || {};
-      if (!builds.length) {
-        grid.innerHTML = '<p class="mb-empty">No builds linked to this email yet. Use the Upload build button above to add one.</p>';
+      if (!cars.length) {
+        carGrid.innerHTML = '<p class="mb-empty">No cars linked to this email yet. Use the "+ Add a car" button above to add one.</p>';
         return;
       }
-      grid.innerHTML = builds.map(function (b) {
-        var safeCaption = (b.caption || 'MT3UK member build').replace(/</g, '&lt;');
-        var mods = Array.isArray(b.mods) ? b.mods : [];
-        var modsText = mods.join(', ').replace(/</g, '&lt;');
-        var safeFile = b.file.replace(/"/g, '&quot;');
-        return '<div class="mb-build-wrap">' +
-          '<div class="mb-build-card" data-file="' + safeFile + '">' +
-            '<div class="mb-build-thumb"><img src="' + window.MT3UK_R2_BASE + '/gallery/' + b.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy"></div>' +
-            '<div class="mb-build-body">' +
-              '<span class="mb-build-caption">' + safeCaption + '</span>' +
-              '<div class="mb-toggles">' +
-                '<label class="mb-toggle"><input type="checkbox" data-flag="gallery"' + (b.gallery ? ' checked' : '') + '> Gallery</label>' +
-                '<label class="mb-toggle"><input type="checkbox" data-flag="reel"' + (b.reel ? ' checked' : '') + '> Reel</label>' +
-                '<label class="mb-toggle"><input type="checkbox" data-flag="votable"' + (b.votable ? ' checked' : '') + '> Voting</label>' +
-              '</div>' +
-              '<div class="mb-mods">' +
-                '<span class="mono mb-mods-label">Mods</span>' +
-                '<textarea class="mb-mods-textarea" rows="3" placeholder="e.g. Coilovers, 20&quot; wheels, wrap">' + modsText + '</textarea>' +
-                '<div class="mb-mods-submit-row">' +
-                  '<button type="button" class="mb-mods-submit-btn">Save mods</button>' +
-                  '<span class="mb-mods-status mono"></span>' +
-                '</div>' +
-              '</div>' +
-              '<div class="mb-build-actions">' +
-                '<button type="button" class="mb-delete-btn">Delete</button>' +
-              '</div>' +
-            '</div>' +
+      carGrid.innerHTML = cars.map(function (car) {
+        var primary = car.photos[0];
+        var safeName = escapeHtml(car.name || 'MT3UK member build');
+        var alertCount = alerts[car.id] || 0;
+        return '<button type="button" class="mb-car-tile" data-car-id="' + car.id.replace(/"/g, '&quot;') + '">' +
+          '<div class="mb-car-tile-thumb"><img src="' + window.MT3UK_R2_BASE + '/gallery/' + primary.file.replace(/&/g, '&amp;') + '" alt="' + safeName + '" loading="lazy"></div>' +
+          '<div class="mb-car-tile-body">' +
+            '<span class="mb-car-tile-name">' + safeName + '</span>' +
+            '<span class="mb-car-tile-count mono">' + car.photos.length + ' photo' + (car.photos.length === 1 ? '' : 's') + '</span>' +
           '</div>' +
-          '<div class="mb-comments" data-file="' + safeFile + '" data-comment-count="' + (b.commentCount || 0) + '">' +
-            '<button type="button" class="mb-comments-toggle" aria-expanded="false">' +
-              '<span class="mb-comment-alert"' + (alerts[b.file] ? '' : ' hidden') + '><span class="mb-comment-alert-icon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 7l9 6 9-6"></path></svg></span><span class="mb-comment-alert-count">' + (alerts[b.file] || 0) + '</span></span>' +
-              '<span class="mb-comments-toggle-text">Loading&hellip;</span>' +
-            '</button>' +
-            '<div class="mb-comments-content" hidden>' +
-              '<ul class="mb-comments-list"></ul>' +
-            '</div>' +
+          (alertCount ? '<span class="mb-car-tile-alert"><span class="mb-comment-alert"><span class="mb-comment-alert-icon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 7l9 6 9-6"></path></svg></span><span class="mb-comment-alert-count">' + alertCount + '</span></span></span>' : '') +
+        '</button>';
+      }).join('');
+    }
+
+    function renderCarDetail(car) {
+      if (!car) return;
+      carNameInput.value = car.name || '';
+      carModsTextarea.value = (Array.isArray(car.mods) ? car.mods : []).join(', ');
+      setStatus(carModsStatus, '', '');
+      addPhotoCard.style.display = 'none';
+      addPhotoToggleBtn.textContent = '+ Add photo to this car';
+
+      photoStrip.innerHTML = car.photos.map(function (p) {
+        var safeFile = p.file.replace(/"/g, '&quot;');
+        var safeCaption = escapeHtml(p.caption || car.name || '');
+        return '<div class="mb-photo-thumb-wrap" data-file="' + safeFile + '">' +
+          '<div class="mb-photo-thumb"><img src="' + window.MT3UK_R2_BASE + '/gallery/' + p.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy"></div>' +
+          '<div class="mb-photo-toggles">' +
+            '<label class="mb-photo-toggle"><input type="checkbox" data-flag="gallery"' + (p.gallery ? ' checked' : '') + '> Gallery</label>' +
+            '<label class="mb-photo-toggle"><input type="checkbox" data-flag="reel"' + (p.reel ? ' checked' : '') + '> Reel</label>' +
+            '<label class="mb-photo-toggle"><input type="checkbox" data-flag="votable"' + (p.votable ? ' checked' : '') + '> Voting</label>' +
           '</div>' +
+          '<button type="button" class="mb-photo-delete-btn">Delete</button>' +
         '</div>';
       }).join('');
     }
@@ -1113,38 +1261,16 @@ document.addEventListener('DOMContentLoaded', function () {
         : [];
     }
 
-    function saveMods(card, mods, statusEl, btn) {
-      var file = card.getAttribute('data-file');
+    function saveCarField(carId, fields) {
       var token = getSession();
-      if (btn) btn.disabled = true;
-      if (statusEl) { statusEl.textContent = 'Saving…'; statusEl.className = 'mb-mods-status mono'; }
-      fetch(API + '/my-builds', {
+      return fetch(API + '/my-builds/car', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'X-Session-Token': token },
-        body: JSON.stringify({ file: file, mods: mods })
-      })
-        .then(function (res) { return res.json(); })
-        .then(function (data) {
-          if (btn) btn.disabled = false;
-          if (!statusEl) return;
-          if (data.success) {
-            statusEl.textContent = 'Saved';
-            statusEl.className = 'mb-mods-status mono mb-mods-status-ok';
-          } else {
-            statusEl.textContent = data.message || 'Could not save, try again';
-            statusEl.className = 'mb-mods-status mono mb-mods-status-err';
-          }
-        })
-        .catch(function () {
-          if (btn) btn.disabled = false;
-          if (statusEl) {
-            statusEl.textContent = 'Could not save, try again';
-            statusEl.className = 'mb-mods-status mono mb-mods-status-err';
-          }
-        });
+        body: JSON.stringify(Object.assign({ carId: carId }, fields))
+      }).then(function (res) { return res.json(); });
     }
 
-    function loadBuilds() {
+    function loadCars() {
       var token = getSession();
       if (!token) { showSignin(); return; }
       fetch(API + '/my-builds', { headers: { 'X-Session-Token': token }, cache: 'no-store' })
@@ -1156,10 +1282,14 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
           }
           showApp(result.data.email);
-          var builds = result.data.builds || [];
-          var alerts = computeCommentAlerts(builds);
-          renderBuilds(builds, alerts);
-          loadAllGarageComments();
+          carsData = result.data.cars || [];
+          var alerts = computeCommentAlerts(carsData);
+          if (currentCarId && findCar(currentCarId)) {
+            renderCarDetail(findCar(currentCarId));
+          } else {
+            showSelector();
+          }
+          renderCarGrid(carsData, alerts);
           var alertsTotal = Object.keys(alerts).reduce(function (sum, k) { return sum + alerts[k]; }, 0);
           if (alertsTotal > 0) showNavCommentAlert(alertsTotal);
           maybeOpenLinkedComments();
@@ -1245,11 +1375,176 @@ document.addEventListener('DOMContentLoaded', function () {
       showSignin();
     });
 
-    grid.addEventListener('change', function (e) {
+    backBtn.addEventListener('click', function () {
+      showSelector();
+      renderCarGrid(carsData, computeCommentAlerts(carsData));
+    });
+
+    carGrid.addEventListener('click', function (e) {
+      var tile = e.target.closest('.mb-car-tile');
+      if (!tile) return;
+      showDetail(tile.getAttribute('data-car-id'));
+    });
+
+    if (addCarToggleBtn) {
+      addCarToggleBtn.addEventListener('click', function () {
+        var opening = addCarCard.style.display === 'none';
+        addCarCard.style.display = opening ? 'block' : 'none';
+        addCarToggleBtn.textContent = opening ? '- Add a car' : '+ Add a car';
+      });
+    }
+
+    if (addCarForm) {
+      addCarForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        setStatus(addCarStatus, '', '');
+
+        var files = addCarPhotoInput.files;
+        if (!files.length) return setStatus(addCarStatus, 'Please choose at least one photo.', 'err');
+        if (files.length > 3) return setStatus(addCarStatus, 'Please choose up to 3 photos.', 'err');
+        for (var i = 0; i < files.length; i++) {
+          if (files[i].size > 10 * 1024 * 1024) return setStatus(addCarStatus, 'Each photo must be under 10MB.', 'err');
+        }
+
+        var formData = new FormData(addCarForm);
+        formData.append('email', myGarageEmail);
+
+        addCarSubmitBtn.disabled = true;
+        addCarSubmitBtn.textContent = 'Adding…';
+
+        fetch(API, { method: 'POST', body: formData })
+          .then(function (res) { return res.json(); })
+          .then(function (json) {
+            addCarSubmitBtn.disabled = false;
+            addCarSubmitBtn.textContent = 'Add car';
+            if (json.success) {
+              setStatus(addCarStatus, 'Car added.', 'ok');
+              addCarForm.reset();
+              addCarCard.style.display = 'none';
+              addCarToggleBtn.textContent = '+ Add a car';
+              loadCars();
+            } else {
+              setStatus(addCarStatus, json.message || 'Something went wrong, please try again.', 'err');
+            }
+          })
+          .catch(function () {
+            addCarSubmitBtn.disabled = false;
+            addCarSubmitBtn.textContent = 'Add car';
+            setStatus(addCarStatus, 'Something went wrong, please try again.', 'err');
+          });
+      });
+    }
+
+    if (addPhotoToggleBtn) {
+      addPhotoToggleBtn.addEventListener('click', function () {
+        var opening = addPhotoCard.style.display === 'none';
+        addPhotoCard.style.display = opening ? 'block' : 'none';
+        addPhotoToggleBtn.textContent = opening ? '- Add photo to this car' : '+ Add photo to this car';
+      });
+    }
+
+    uploadForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      var fileInput = document.getElementById('mb-upload-photo');
+      var file = fileInput.files[0];
+      if (!file) { setStatus(uploadStatus, 'Please choose a photo.', 'err'); return; }
+      if (file.size > 10 * 1024 * 1024) { setStatus(uploadStatus, 'Photo must be under 10MB.', 'err'); return; }
+
+      var formData = new FormData();
+      formData.append('caption', document.getElementById('mb-upload-caption').value.trim());
+      formData.append('photo', file);
+      formData.append('gallery', document.getElementById('mb-upload-gallery').checked ? '1' : '0');
+      formData.append('reel', document.getElementById('mb-upload-reel').checked ? '1' : '0');
+      formData.append('votable', document.getElementById('mb-upload-votable').checked ? '1' : '0');
+      if (currentCarId) formData.append('carId', currentCarId);
+
+      uploadSubmitBtn.disabled = true;
+      uploadSubmitBtn.textContent = 'Uploading…';
+      setStatus(uploadStatus, '', '');
+
+      fetch(API + '/my-builds/upload', {
+        method: 'POST',
+        headers: { 'X-Session-Token': getSession() },
+        body: formData
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          uploadSubmitBtn.disabled = false;
+          uploadSubmitBtn.textContent = 'Upload photo';
+          if (data.success) {
+            setStatus(uploadStatus, 'Uploaded.', 'ok');
+            uploadForm.reset();
+            document.getElementById('mb-upload-gallery').checked = true;
+            document.getElementById('mb-upload-reel').checked = true;
+            document.getElementById('mb-upload-votable').checked = true;
+            addPhotoCard.style.display = 'none';
+            addPhotoToggleBtn.textContent = '+ Add photo to this car';
+            loadCars();
+          } else {
+            setStatus(uploadStatus, data.message || 'Could not upload, please try again.', 'err');
+          }
+        })
+        .catch(function () {
+          uploadSubmitBtn.disabled = false;
+          uploadSubmitBtn.textContent = 'Upload photo';
+          setStatus(uploadStatus, 'Could not upload, please try again.', 'err');
+        });
+    });
+
+    carNameInput.addEventListener('change', function () {
+      var name = carNameInput.value.trim();
+      if (!name || !currentCarId) return;
+      setStatus(carNameStatus, 'Saving…', '');
+      saveCarField(currentCarId, { name: name })
+        .then(function (data) {
+          if (data.success) {
+            setStatus(carNameStatus, 'Saved', 'ok');
+            if (data.car && data.car.id !== currentCarId) {
+              currentCarId = data.car.id;
+            }
+            var car = findCar(currentCarId) || findCar(data.car && data.car.id);
+            if (car) car.name = name;
+            if (data.car) {
+              var idx = carsData.findIndex(function (c) { return c.id === (data.car.id === currentCarId ? currentCarId : c.id); });
+            }
+            loadCars();
+          } else {
+            setStatus(carNameStatus, data.message || 'Could not save, try again', 'err');
+          }
+        })
+        .catch(function () {
+          setStatus(carNameStatus, 'Could not save, try again', 'err');
+        });
+    });
+
+    carModsSaveBtn.addEventListener('click', function () {
+      if (!currentCarId) return;
+      var mods = parseModsText(carModsTextarea.value.trim());
+      carModsSaveBtn.disabled = true;
+      setStatus(carModsStatus, 'Saving…', '');
+      saveCarField(currentCarId, { mods: mods })
+        .then(function (data) {
+          carModsSaveBtn.disabled = false;
+          if (data.success) {
+            setStatus(carModsStatus, 'Saved', 'ok');
+            if (data.car && data.car.id !== currentCarId) currentCarId = data.car.id;
+            loadCars();
+          } else {
+            setStatus(carModsStatus, data.message || 'Could not save, try again', 'err');
+          }
+        })
+        .catch(function () {
+          carModsSaveBtn.disabled = false;
+          setStatus(carModsStatus, 'Could not save, try again', 'err');
+        });
+    });
+
+    photoStrip.addEventListener('change', function (e) {
       var checkbox = e.target.closest('input[data-flag]');
       if (!checkbox) return;
-      var card = checkbox.closest('.mb-build-card');
-      var file = card.getAttribute('data-file');
+      var wrap = checkbox.closest('.mb-photo-thumb-wrap');
+      var file = wrap.getAttribute('data-file');
       var token = getSession();
       var body = {};
       body.file = file;
@@ -1271,16 +1566,10 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    grid.addEventListener('input', function (e) {
-      var textarea = e.target.closest('.mb-mods-textarea');
-      if (!textarea) return;
-      textarea.closest('.mb-mods').querySelector('.mb-mods-status').textContent = '';
-    });
-
     var imgLightbox = document.getElementById('mb-img-lightbox');
     var imgLightboxImg = document.getElementById('mb-img-lightbox-img');
-    grid.addEventListener('click', function (e) {
-      var thumb = e.target.closest('.mb-build-thumb img');
+    photoStrip.addEventListener('click', function (e) {
+      var thumb = e.target.closest('.mb-photo-thumb img');
       if (thumb) {
         imgLightboxImg.src = thumb.src;
         imgLightboxImg.alt = thumb.alt || '';
@@ -1288,22 +1577,13 @@ document.addEventListener('DOMContentLoaded', function () {
         imgLightbox.setAttribute('aria-hidden', 'false');
         return;
       }
-      var submitBtn = e.target.closest('.mb-mods-submit-btn');
-      if (submitBtn) {
-        var modsWrap = submitBtn.closest('.mb-mods');
-        var modsTextarea = modsWrap.querySelector('.mb-mods-textarea');
-        var statusEl = modsWrap.querySelector('.mb-mods-status');
-        saveMods(submitBtn.closest('.mb-build-card'), parseModsText(modsTextarea.value.trim()), statusEl, submitBtn);
-        return;
-      }
     });
 
-    grid.addEventListener('click', function (e) {
-      var btn = e.target.closest('.mb-delete-btn');
+    photoStrip.addEventListener('click', function (e) {
+      var btn = e.target.closest('.mb-photo-delete-btn');
       if (!btn) return;
-      var card = btn.closest('.mb-build-card');
-      var wrap = btn.closest('.mb-build-wrap');
-      var file = card.getAttribute('data-file');
+      var wrap = btn.closest('.mb-photo-thumb-wrap');
+      var file = wrap.getAttribute('data-file');
 
       if (!btn.classList.contains('mb-delete-confirm')) {
         btn.classList.add('mb-delete-confirm');
@@ -1325,8 +1605,9 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(function (res) { return res.json(); })
         .then(function (data) {
           if (data.success) {
-            (wrap || card).remove();
-            if (!grid.querySelector('.mb-build-card')) renderBuilds([]);
+            wrap.remove();
+            if (!photoStrip.querySelector('.mb-photo-thumb-wrap')) showSelector();
+            loadCars();
           } else {
             btn.disabled = false;
             btn.textContent = 'Delete';
@@ -1338,9 +1619,56 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    function escapeHtml(str) {
-      return String(str).replace(/[&<>"']/g, function (c) {
-        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    // Drag-to-reorder photos within a car, implemented with Pointer Events
+    // (rather than HTML5 drag-and-drop, which is unreliable on touch) so it
+    // works with both mouse and touch input.
+    var dragState = null;
+
+    photoStrip.addEventListener('pointerdown', function (e) {
+      if (e.target.closest('input,button')) return;
+      var wrap = e.target.closest('.mb-photo-thumb-wrap');
+      if (!wrap) return;
+      dragState = { wrap: wrap, pointerId: e.pointerId };
+      wrap.classList.add('mb-dragging');
+      try { wrap.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+
+    photoStrip.addEventListener('pointermove', function (e) {
+      if (!dragState || dragState.pointerId !== e.pointerId) return;
+      var target = document.elementFromPoint(e.clientX, e.clientY);
+      var overWrap = target && target.closest('.mb-photo-thumb-wrap');
+      if (overWrap && overWrap !== dragState.wrap && overWrap.parentNode === photoStrip) {
+        var rect = overWrap.getBoundingClientRect();
+        var before = e.clientX < rect.left + rect.width / 2;
+        photoStrip.insertBefore(dragState.wrap, before ? overWrap : overWrap.nextSibling);
+      }
+    });
+
+    function endDrag(e) {
+      if (!dragState || dragState.pointerId !== e.pointerId) return;
+      dragState.wrap.classList.remove('mb-dragging');
+      try { dragState.wrap.releasePointerCapture(e.pointerId); } catch (err) {}
+      dragState = null;
+      saveCarPhotoOrder();
+    }
+    photoStrip.addEventListener('pointerup', endDrag);
+    photoStrip.addEventListener('pointercancel', endDrag);
+
+    function saveCarPhotoOrder() {
+      if (!currentCarId) return;
+      var car = findCar(currentCarId);
+      if (!car) return;
+      var order = Array.prototype.map.call(
+        photoStrip.querySelectorAll('.mb-photo-thumb-wrap'),
+        function (w) { return w.getAttribute('data-file'); }
+      );
+      var unchanged = order.length === car.photos.length && order.every(function (f, i) { return f === car.photos[i].file; });
+      if (unchanged) return;
+      saveCarField(currentCarId, { photos: order }).then(function (data) {
+        if (data.success && data.car) {
+          if (data.car.id !== currentCarId) currentCarId = data.car.id;
+          loadCars();
+        }
       });
     }
 
@@ -1356,11 +1684,11 @@ document.addEventListener('DOMContentLoaded', function () {
       return roots;
     }
 
-    function renderCommentNode(c) {
+    function renderCommentNode(c, file) {
       var childrenHtml = c.children.length
-        ? '<ul class="mb-comment-replies">' + c.children.map(renderCommentNode).join('') + '</ul>'
+        ? '<ul class="mb-comment-replies">' + c.children.map(function (child) { return renderCommentNode(child, file); }).join('') + '</ul>'
         : '';
-      return '<li class="mb-comment" data-id="' + c.id + '">' +
+      return '<li class="mb-comment" data-id="' + c.id + '" data-file="' + file.replace(/"/g, '&quot;') + '">' +
         '<div class="mb-comment-head">' +
           '<span class="mb-comment-name">' + escapeHtml(c.name || '') + '</span>' +
           '<span class="mb-comment-date">' + escapeHtml(c.createdAt || '') + '</span>' +
@@ -1392,19 +1720,25 @@ document.addEventListener('DOMContentLoaded', function () {
       localStorage.setItem('mt3ukSeenComments', JSON.stringify(obj));
     }
 
-    function computeCommentAlerts(builds) {
+    // Unseen-comment state is still tracked per photo file in localStorage
+    // (unchanged shape), but alerts are aggregated and shown per car.
+    function computeCommentAlerts(cars) {
       var seenRaw = localStorage.getItem('mt3ukSeenComments');
       var seen = {};
       try { seen = JSON.parse(seenRaw || '{}'); } catch (e) { seen = {}; }
       var isFirstRun = seenRaw === null;
       var alerts = {};
-      builds.forEach(function (b) {
-        var count = b.commentCount || 0;
-        if (isFirstRun) {
-          seen[b.file] = count;
-        } else if (count > (seen[b.file] || 0)) {
-          alerts[b.file] = count - (seen[b.file] || 0);
-        }
+      cars.forEach(function (car) {
+        var carUnseen = 0;
+        car.photos.forEach(function (p) {
+          var count = p.commentCount || 0;
+          if (isFirstRun) {
+            seen[p.file] = count;
+          } else if (count > (seen[p.file] || 0)) {
+            carUnseen += count - (seen[p.file] || 0);
+          }
+        });
+        if (carUnseen > 0) alerts[car.id] = carUnseen;
       });
       if (isFirstRun) mbSetSeenComments(seen);
       return alerts;
@@ -1425,44 +1759,43 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function refreshNavCommentAlert() {
-      var seen = mbGetSeenComments();
-      var totalUnseen = 0;
-      grid.querySelectorAll('.mb-comments').forEach(function (panel) {
-        var file = panel.getAttribute('data-file');
-        var count = parseInt(panel.dataset.commentCount, 10) || 0;
-        if (count > (seen[file] || 0)) totalUnseen += count - (seen[file] || 0);
-      });
+      var alerts = computeCommentAlerts(carsData);
+      var total = Object.keys(alerts).reduce(function (sum, k) { return sum + alerts[k]; }, 0);
       var navAlert = document.querySelector('.nav-link-mybuilds .nav-comment-alert');
-      if (totalUnseen > 0) {
-        showNavCommentAlert(totalUnseen);
+      if (total > 0) {
+        showNavCommentAlert(total);
       } else if (navAlert) {
         navAlert.remove();
       }
+      if (selectorView.style.display !== 'none') renderCarGrid(carsData, alerts);
     }
 
-    function loadGarageComments(panel) {
-      var file = panel.getAttribute('data-file');
-      var list = panel.querySelector('.mb-comments-list');
-      fetch(API + '/comments?file=' + encodeURIComponent(file), { cache: 'no-store' })
-        .then(function (res) { return res.ok ? res.json() : null; })
-        .then(function (data) {
-          var comments = (data && data.success && data.comments) || [];
-          panel.commentsData = comments;
-          list.innerHTML = comments.length
-            ? buildCommentTree(comments).map(renderCommentNode).join('')
-            : '<li class="mb-comments-empty">No comments yet.</li>';
-          updateCommentsToggleLabel(panel);
-        })
-        .catch(function () {
-          panel.commentsData = [];
-          list.innerHTML = '<li class="mb-comments-empty">Could not load comments.</li>';
-          updateCommentsToggleLabel(panel);
+    function loadCarComments(car) {
+      if (!car) return;
+      var list = carCommentsPanel.querySelector('.mb-comments-list');
+      Promise.all(car.photos.map(function (p) {
+        return fetch(API + '/comments?file=' + encodeURIComponent(p.file), { cache: 'no-store' })
+          .then(function (res) { return res.ok ? res.json() : null; })
+          .then(function (data) {
+            return { file: p.file, comments: (data && data.success && data.comments) || [] };
+          });
+      })).then(function (results) {
+        var merged = [];
+        results.forEach(function (r) {
+          buildCommentTree(r.comments).forEach(function (node) { merged.push({ node: node, file: r.file }); });
         });
-    }
-
-    function loadAllGarageComments() {
-      grid.querySelectorAll('.mb-comments').forEach(function (panel) {
-        loadGarageComments(panel);
+        merged.sort(function (a, b) { return new Date(a.node.createdAt) - new Date(b.node.createdAt); });
+        carCommentsPanel.commentsData = merged.map(function (m) { return m.node; });
+        var totalCount = results.reduce(function (sum, r) { return sum + r.comments.length; }, 0);
+        carCommentsPanel.dataset.commentCount = totalCount;
+        list.innerHTML = merged.length
+          ? merged.map(function (m) { return renderCommentNode(m.node, m.file); }).join('')
+          : '<li class="mb-comments-empty">No comments yet.</li>';
+        updateCommentsToggleLabel(carCommentsPanel);
+      }).catch(function () {
+        carCommentsPanel.commentsData = [];
+        list.innerHTML = '<li class="mb-comments-empty">Could not load comments.</li>';
+        updateCommentsToggleLabel(carCommentsPanel);
       });
     }
 
@@ -1472,38 +1805,30 @@ document.addEventListener('DOMContentLoaded', function () {
       fetch(API + '/my-builds', { headers: { 'X-Session-Token': token }, cache: 'no-store' })
         .then(function (res) { return res.ok ? res.json() : null; })
         .then(function (data) {
-          if (!data || !data.success || !Array.isArray(data.builds)) return;
-          var countsByFile = {};
-          data.builds.forEach(function (b) { countsByFile[b.file] = b.commentCount || 0; });
-          var seen = mbGetSeenComments();
-          grid.querySelectorAll('.mb-comments').forEach(function (panel) {
-            var file = panel.getAttribute('data-file');
-            if (!(file in countsByFile)) return;
-            var newCount = countsByFile[file];
-            var oldCount = parseInt(panel.dataset.commentCount, 10) || 0;
-            if (newCount === oldCount) return;
-            panel.dataset.commentCount = newCount;
+          if (!data || !data.success || !Array.isArray(data.cars)) return;
+          var previousCounts = {};
+          carsData.forEach(function (car) {
+            car.photos.forEach(function (p) { previousCounts[p.file] = p.commentCount || 0; });
+          });
+          carsData = data.cars;
 
-            var content = panel.querySelector('.mb-comments-content');
-            var isOpen = content && !content.hidden;
-            loadGarageComments(panel);
-            if (isOpen) {
-              seen[file] = newCount;
-              mbSetSeenComments(seen);
-            }
-
-            var alertSpan = panel.querySelector('.mb-comment-alert');
-            if (alertSpan) {
-              var unseenForBuild = newCount - (seen[file] || 0);
-              if (!isOpen && unseenForBuild > 0) {
-                alertSpan.hidden = false;
-                var countEl = alertSpan.querySelector('.mb-comment-alert-count');
-                if (countEl) countEl.textContent = unseenForBuild;
-              } else {
-                alertSpan.hidden = true;
+          if (currentCarId) {
+            var car = findCar(currentCarId);
+            if (car) {
+              var changed = car.photos.some(function (p) { return (p.commentCount || 0) !== (previousCounts[p.file] || 0); });
+              var content = carCommentsPanel.querySelector('.mb-comments-content');
+              var isOpen = content && !content.hidden;
+              if (changed) {
+                loadCarComments(car);
+                if (isOpen) {
+                  var seen = mbGetSeenComments();
+                  car.photos.forEach(function (p) { seen[p.file] = p.commentCount || 0; });
+                  mbSetSeenComments(seen);
+                }
               }
             }
-          });
+          }
+
           refreshNavCommentAlert();
         })
         .catch(function () {});
@@ -1516,10 +1841,12 @@ document.addEventListener('DOMContentLoaded', function () {
       updateCommentsToggleLabel(panel);
       var alertSpan = panel.querySelector('.mb-comment-alert');
       if (alertSpan) alertSpan.hidden = true;
-      var file = panel.getAttribute('data-file');
-      var seen = mbGetSeenComments();
-      seen[file] = parseInt(panel.dataset.commentCount, 10) || 0;
-      mbSetSeenComments(seen);
+      var car = findCar(currentCarId);
+      if (car) {
+        var seen = mbGetSeenComments();
+        car.photos.forEach(function (p) { seen[p.file] = p.commentCount || 0; });
+        mbSetSeenComments(seen);
+      }
       refreshNavCommentAlert();
     }
 
@@ -1530,13 +1857,14 @@ document.addEventListener('DOMContentLoaded', function () {
       var url = new URL(window.location.href);
       url.searchParams.delete('file');
       history.replaceState(null, '', url.pathname + url.search);
-      var panel = grid.querySelector('.mb-comments[data-file="' + CSS.escape(file) + '"]');
-      if (!panel) return;
-      openCommentsPanel(panel);
-      panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      var car = carsData.filter(function (c) { return c.photos.some(function (p) { return p.file === file; }); })[0];
+      if (!car) return;
+      showDetail(car.id);
+      openCommentsPanel(carCommentsPanel);
+      carCommentsPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
-    grid.addEventListener('click', function (e) {
+    carCommentsPanel.addEventListener('click', function (e) {
       var commentsToggle = e.target.closest('.mb-comments-toggle');
       if (commentsToggle) {
         var panel = commentsToggle.closest('.mb-comments');
@@ -1564,8 +1892,8 @@ document.addEventListener('DOMContentLoaded', function () {
         var textarea = slot.querySelector('textarea');
         var text = textarea.value.trim();
         if (!text) return;
-        var commentsPanel = replySubmit.closest('.mb-comments');
-        var file = commentsPanel.getAttribute('data-file');
+        var commentLi = replySubmit.closest('.mb-comment');
+        var file = commentLi.getAttribute('data-file');
         var parentId = slot.getAttribute('data-parent-id');
         var email = myGarageEmail;
         if (!email) return;
@@ -1581,68 +1909,13 @@ document.addEventListener('DOMContentLoaded', function () {
             if (data && data.success) {
               textarea.value = '';
               slot.hidden = true;
-              loadGarageComments(commentsPanel);
+              loadCarComments(findCar(currentCarId));
             }
           })
           .catch(function () {
             replySubmit.disabled = false;
           });
       }
-    });
-
-    uploadToggleBtn.addEventListener('click', function () {
-      var opening = uploadCard.style.display === 'none';
-      uploadCard.style.display = opening ? 'block' : 'none';
-      uploadToggleBtn.textContent = opening ? '- Upload build' : '+ Upload build';
-    });
-
-    uploadForm.addEventListener('submit', function (e) {
-      e.preventDefault();
-
-      var fileInput = document.getElementById('mb-upload-photo');
-      var file = fileInput.files[0];
-      if (!file) { setStatus(uploadStatus, 'Please choose a photo.', 'err'); return; }
-      if (file.size > 10 * 1024 * 1024) { setStatus(uploadStatus, 'Photo must be under 10MB.', 'err'); return; }
-
-      var formData = new FormData();
-      formData.append('caption', document.getElementById('mb-upload-caption').value.trim());
-      formData.append('mods', document.getElementById('mb-upload-mods').value.trim());
-      formData.append('photo', file);
-      formData.append('gallery', document.getElementById('mb-upload-gallery').checked ? '1' : '0');
-      formData.append('reel', document.getElementById('mb-upload-reel').checked ? '1' : '0');
-      formData.append('votable', document.getElementById('mb-upload-votable').checked ? '1' : '0');
-
-      uploadSubmitBtn.disabled = true;
-      uploadSubmitBtn.textContent = 'Uploading…';
-      setStatus(uploadStatus, '', '');
-
-      fetch(API + '/my-builds/upload', {
-        method: 'POST',
-        headers: { 'X-Session-Token': getSession() },
-        body: formData
-      })
-        .then(function (res) { return res.json(); })
-        .then(function (data) {
-          uploadSubmitBtn.disabled = false;
-          uploadSubmitBtn.textContent = 'Upload build';
-          if (data.success) {
-            setStatus(uploadStatus, 'Uploaded.', 'ok');
-            uploadForm.reset();
-            document.getElementById('mb-upload-gallery').checked = true;
-            document.getElementById('mb-upload-reel').checked = true;
-            document.getElementById('mb-upload-votable').checked = true;
-            uploadCard.style.display = 'none';
-            uploadToggleBtn.textContent = '+ Upload build';
-            loadBuilds();
-          } else {
-            setStatus(uploadStatus, data.message || 'Could not upload, please try again.', 'err');
-          }
-        })
-        .catch(function () {
-          uploadSubmitBtn.disabled = false;
-          uploadSubmitBtn.textContent = 'Upload build';
-          setStatus(uploadStatus, 'Could not upload, please try again.', 'err');
-        });
     });
 
     var urlToken = new URL(window.location.href).searchParams.get('token');
@@ -1654,7 +1927,7 @@ document.addEventListener('DOMContentLoaded', function () {
           history.replaceState(null, '', window.location.pathname);
           if (data.success) {
             setSession(data.session, data.email);
-            loadBuilds();
+            loadCars();
           } else {
             setStatus(signinStatus, data.message || 'That link is invalid or has expired.', 'err');
           }
@@ -1664,7 +1937,7 @@ document.addEventListener('DOMContentLoaded', function () {
           setStatus(signinStatus, 'Something went wrong, please try again.', 'err');
         });
     } else {
-      loadBuilds();
+      loadCars();
     }
 
     setInterval(function () {

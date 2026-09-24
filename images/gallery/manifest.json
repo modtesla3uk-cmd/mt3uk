@@ -1,5 +1,15 @@
 [
   {
+    "file": "almost-stock.jpg",
+    "caption": "ALMOST STOCK",
+    "mods": [
+      "Eibach Lowering kit",
+      "Maxton v3 Front lip/Side Skirts/Rear diffuser"
+    ],
+    "color": "White",
+    "added": "2026-09-25"
+  },
+  {
     "file": "rear-shot-of-the-green-knight-tessa.jpeg",
     "caption": "REAR SHOT OF THE GREEN KNIGHT TESSA",
     "votable": false,

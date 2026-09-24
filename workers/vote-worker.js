@@ -1039,21 +1039,18 @@ async function setSidecarMods(env, file, mods) {
   });
 }
 
-// Strips the numeric "-2", "-3" suffix the multi-photo submit handler adds
-// to keep filenames unique within one submission, so legacy photos that
-// predate the carId field can still be grouped into a virtual car.
-function carGroupBaseKey(file) {
-  var stem = file.replace(/\.[a-zA-Z0-9]+$/, '');
-  return stem.replace(/-\d+$/, '');
-}
+// Virtual car id used to group all of a subscriber's legacy (pre-carId)
+// photos into a single car, since they predate the carId field entirely.
+var LEGACY_VIRTUAL_CAR_ID = 'virtual:legacy';
 
 // Groups a subscriber's live gallery entries into cars. Entries with an
-// explicit carId are grouped by it (real cars); the rest are grouped by
-// filename heuristic into "virtual" cars that don't exist in R2 yet - the
-// first PUT /my-builds/car against one of them persists a real record.
+// explicit carId are grouped by it (real cars); every other entry belongs
+// to one shared "virtual" car that doesn't exist in R2 yet - the first
+// PUT /my-builds/car against it persists a real record and stamps carId
+// onto each of its photos.
 function groupEntriesIntoCars(entries) {
   var byRealCarId = {};
-  var byVirtualKey = {};
+  var virtualGroup = null;
   var order = [];
 
   entries.forEach(function (entry) {
@@ -1064,12 +1061,11 @@ function groupEntriesIntoCars(entries) {
       }
       byRealCarId[entry.carId].entries.push(entry);
     } else {
-      var key = carGroupBaseKey(entry.file);
-      if (!byVirtualKey[key]) {
-        byVirtualKey[key] = { id: 'virtual:' + key, virtual: true, entries: [] };
-        order.push(byVirtualKey[key]);
+      if (!virtualGroup) {
+        virtualGroup = { id: LEGACY_VIRTUAL_CAR_ID, virtual: true, entries: [] };
+        order.push(virtualGroup);
       }
-      byVirtualKey[key].entries.push(entry);
+      virtualGroup.entries.push(entry);
     }
   });
 
@@ -1184,6 +1180,7 @@ async function handleMyBuildsGet(request, env) {
       return {
         file: entry.file,
         caption: entry.caption || '',
+        mods: entry.mods || [],
         gallery: entry.gallery !== false,
         reel: entry.reel !== false,
         votable: entry.votable !== false,
@@ -1281,9 +1278,8 @@ async function handleMyBuildsCarUpdate(request, env) {
   var isVirtual = carId.indexOf('virtual:') === 0;
   var currentPhotos;
   if (isVirtual) {
-    var key = carId.slice('virtual:'.length);
     currentPhotos = files.filter(function (f) {
-      return byFile[f] && !byFile[f].carId && carGroupBaseKey(f) === key;
+      return byFile[f] && !byFile[f].carId;
     });
   } else {
     currentPhotos = files.filter(function (f) { return byFile[f] && byFile[f].carId === carId; });
@@ -1417,13 +1413,12 @@ async function handleMyBuildsUpload(request, env) {
       carManifest.forEach(function (p) { byFileForCar[p.file] = p; });
 
       var isVirtualCar = carId.indexOf('virtual:') === 0;
-      var groupKey = isVirtualCar ? carId.slice('virtual:'.length) : null;
       var siblingPhotos = subscriberFiles.filter(function (f) {
         if (f === filename) return false;
         var entry = byFileForCar[f];
         if (!entry) return false;
         return isVirtualCar
-          ? (!entry.carId && carGroupBaseKey(f) === groupKey)
+          ? !entry.carId
           : entry.carId === carId;
       });
 

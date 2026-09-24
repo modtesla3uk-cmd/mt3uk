@@ -2078,11 +2078,15 @@
     })
       .then(function (res) { return res.json(); })
       .then(function (data) {
-        if (!data || !data.success || !Array.isArray(data.builds)) return;
-        window.mt3ukMyBuildFiles = data.builds.map(function (b) { return b.file; });
-        data.builds.forEach(function (b) { window.mt3ukMyBuildData[b.file] = b; });
+        if (!data || !data.success || !Array.isArray(data.cars)) return;
+        var builds = [];
+        data.cars.forEach(function (car) {
+          (car.photos || []).forEach(function (p) { builds.push(p); });
+        });
+        window.mt3ukMyBuildFiles = builds.map(function (b) { return b.file; });
+        builds.forEach(function (b) { window.mt3ukMyBuildData[b.file] = b; });
         window.mt3ukMyBuildsEmail = data.email || null;
-        mt3ukCheckNewComments(data.builds);
+        mt3ukCheckNewComments(builds);
         document.dispatchEvent(new Event('mt3ukMyBuildsReady'));
       })
       .catch(function () {});

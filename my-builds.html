@@ -710,6 +710,17 @@
   .mb-comments-content[hidden] { display: none; }
   .mb-comments-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
   .mb-comment { display: flex; flex-direction: column; gap: 2px; }
+  .mb-comment-photo-tag {
+    display: inline-flex; align-items: center; gap: 6px; margin-bottom: 4px;
+    text-decoration: none; align-self: flex-start;
+  }
+  .mb-comment-photo-tag img {
+    width: 28px; height: 28px; object-fit: cover; border-radius: 3px; border: 1px solid var(--line);
+  }
+  .mb-comment-photo-caption {
+    font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--steel);
+  }
+  .mb-comment-photo-tag:hover .mb-comment-photo-caption { color: var(--orange); }
   .mb-comment-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
   .mb-comment-name { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--orange); }
   .mb-comment-date { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--steel); }
@@ -1684,11 +1695,21 @@ document.addEventListener('DOMContentLoaded', function () {
       return roots;
     }
 
-    function renderCommentNode(c, file) {
+    function renderCommentNode(c, file, photoMeta, isRoot) {
       var childrenHtml = c.children.length
-        ? '<ul class="mb-comment-replies">' + c.children.map(function (child) { return renderCommentNode(child, file); }).join('') + '</ul>'
+        ? '<ul class="mb-comment-replies">' + c.children.map(function (child) { return renderCommentNode(child, file, photoMeta, false); }).join('') + '</ul>'
         : '';
+      var imageTag = '';
+      if (isRoot && photoMeta) {
+        var safeFile = file.replace(/"/g, '&quot;').replace(/&/g, '&amp;');
+        var safeCaption = escapeHtml(photoMeta.caption || '');
+        imageTag = '<a class="mb-comment-photo-tag" href="?file=' + encodeURIComponent(file) + '">' +
+          '<img src="' + window.MT3UK_R2_BASE + '/gallery/' + safeFile + '" alt="' + safeCaption + '" loading="lazy">' +
+          (safeCaption ? '<span class="mb-comment-photo-caption">' + safeCaption + '</span>' : '') +
+        '</a>';
+      }
       return '<li class="mb-comment" data-id="' + c.id + '" data-file="' + file.replace(/"/g, '&quot;') + '">' +
+        imageTag +
         '<div class="mb-comment-head">' +
           '<span class="mb-comment-name">' + escapeHtml(c.name || '') + '</span>' +
           '<span class="mb-comment-date">' + escapeHtml(c.createdAt || '') + '</span>' +
@@ -1773,6 +1794,8 @@ document.addEventListener('DOMContentLoaded', function () {
     function loadCarComments(car) {
       if (!car) return;
       var list = carCommentsPanel.querySelector('.mb-comments-list');
+      var photoMetaByFile = {};
+      car.photos.forEach(function (p) { photoMetaByFile[p.file] = { caption: p.caption || '' }; });
       Promise.all(car.photos.map(function (p) {
         return fetch(API + '/comments?file=' + encodeURIComponent(p.file), { cache: 'no-store' })
           .then(function (res) { return res.ok ? res.json() : null; })
@@ -1789,7 +1812,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var totalCount = results.reduce(function (sum, r) { return sum + r.comments.length; }, 0);
         carCommentsPanel.dataset.commentCount = totalCount;
         list.innerHTML = merged.length
-          ? merged.map(function (m) { return renderCommentNode(m.node, m.file); }).join('')
+          ? merged.map(function (m) { return renderCommentNode(m.node, m.file, photoMetaByFile[m.file], true); }).join('')
           : '<li class="mb-comments-empty">No comments yet.</li>';
         updateCommentsToggleLabel(carCommentsPanel);
       }).catch(function () {

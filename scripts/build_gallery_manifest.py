@@ -81,18 +81,20 @@ def sidecar_data(client, key: str, sidecar_keys: set):
     rebuilt from scratch from the bucket listing on every run."""
     sidecar_key = key + ".json"
     if sidecar_key not in sidecar_keys:
-        return [], True, True, True
+        return [], True, True, True, ""
     try:
         obj = client.get_object(Bucket=BUCKET, Key=sidecar_key)
         data = json.loads(obj["Body"].read())
     except Exception:
-        return [], True, True, True
+        return [], True, True, True, ""
     mods = data.get("mods")
     mods = [str(m).strip() for m in mods if str(m).strip()][:50] if isinstance(mods, list) else []
     votable = data.get("votable") is not False
     gallery = data.get("gallery") is not False
     reel = data.get("reel") is not False
-    return mods, votable, gallery, reel
+    color = data.get("color")
+    color = str(color).strip() if isinstance(color, str) and color.strip() else ""
+    return mods, votable, gallery, reel, color
 
 
 def main():
@@ -116,7 +118,7 @@ def main():
             entry["caption"] = caption
         if name:
             entry["name"] = name
-        mods, votable, gallery, reel = sidecar_data(client, key, sidecar_keys)
+        mods, votable, gallery, reel, color = sidecar_data(client, key, sidecar_keys)
         if mods:
             entry["mods"] = mods
         if not votable:
@@ -125,6 +127,8 @@ def main():
             entry["gallery"] = False
         if not reel:
             entry["reel"] = False
+        if color:
+            entry["color"] = color
         # UK-local date the photo was added, used by the site to feature
         # the latest upload and only swap it at UK midnight.
         entry["added"] = obj["LastModified"].astimezone(UK_TZ).date().isoformat()

@@ -618,6 +618,37 @@
     text-align: center;
   }
 
+  .gallery-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .gallery-filters .filter-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    background: transparent;
+    border: 1px solid var(--ink);
+    color: var(--ink);
+    padding: 7px 14px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .gallery-filters .filter-btn .swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.25);
+    display: inline-block;
+  }
+  .gallery-filters .filter-btn:hover { background: var(--ink); color: var(--paper); }
+  .gallery-filters .filter-btn.active { background: var(--ink); color: var(--paper); }
+
   .gallery-pagination {
     display: flex;
     align-items: center;
@@ -784,6 +815,7 @@
         </div>
       </div>
     </div>
+    <div class="gallery-filters" id="gallery-filters"></div>
     <div class="gallery-grid" id="gallery-grid">
       <p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">Loading builds&hellip;</p>
     </div>
@@ -1112,8 +1144,36 @@
     function getPageSize() { return mobileQuery.matches ? 8 : 16; }
     var grid = document.getElementById('gallery-grid');
     var pagination = document.getElementById('gallery-pagination');
+    var filtersEl = document.getElementById('gallery-filters');
+    var COLORS = ['Red', 'White', 'Black', 'Pink', 'Green'];
     var allPhotos = [];
+    var filteredPhotos = [];
+    var currentColor = '';
     var currentPage = 1;
+
+    function renderFilters() {
+      var swatches = { Red: '#c0392b', White: '#f3f1ea', Black: '#1a1a1a', Pink: '#e5789c', Green: '#3f7d4f' };
+      filtersEl.innerHTML = '<button type="button" class="filter-btn' + (currentColor === '' ? ' active' : '') + '" data-color="">All</button>' +
+        COLORS.map(function (c) {
+          return '<button type="button" class="filter-btn' + (currentColor === c ? ' active' : '') + '" data-color="' + c + '">' +
+            '<span class="swatch" style="background:' + swatches[c] + '"></span>' + c +
+          '</button>';
+        }).join('');
+      Array.prototype.slice.call(filtersEl.querySelectorAll('.filter-btn')).forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          currentColor = btn.dataset.color || '';
+          applyFilter();
+          renderFilters();
+        });
+      });
+    }
+
+    function applyFilter() {
+      filteredPhotos = currentColor ? allPhotos.filter(function (p) { return p.color === currentColor; }) : allPhotos;
+      window.mt3ukGalleryPhotos = filteredPhotos;
+      currentPage = 1;
+      render();
+    }
 
     function renderGrid(photos) {
       if (!photos.length) {
@@ -1167,10 +1227,10 @@
 
     function render() {
       var pageSize = getPageSize();
-      var totalPages = Math.max(1, Math.ceil(allPhotos.length / pageSize));
+      var totalPages = Math.max(1, Math.ceil(filteredPhotos.length / pageSize));
       currentPage = Math.min(Math.max(1, currentPage), totalPages);
       var start = (currentPage - 1) * pageSize;
-      renderGrid(allPhotos.slice(start, start + pageSize));
+      renderGrid(filteredPhotos.slice(start, start + pageSize));
       renderPagination(totalPages);
     }
 
@@ -1202,8 +1262,8 @@
             return;
           }
           allPhotos = photos.filter(function (p) { return p.gallery !== false; });
-          currentPage = 1;
-          render();
+          renderFilters();
+          applyFilter();
         });
     }
 
@@ -1238,25 +1298,38 @@
     var galleryGrid = document.getElementById('gallery-grid');
     var currentIndex = -1;
 
-    function getGalleryImgs() {
-      return galleryGrid ? Array.prototype.slice.call(galleryGrid.querySelectorAll('img')) : [];
+    function getPhotos() {
+      return window.mt3ukGalleryPhotos || [];
+    }
+
+    function findSameMemberIndex(fromIndex, direction) {
+      var photos = getPhotos();
+      if (!photos.length) return fromIndex;
+      var name = photos[fromIndex] ? (photos[fromIndex].name || '') : '';
+      var i = fromIndex;
+      for (var step = 0; step < photos.length; step++) {
+        i = (i + direction + photos.length) % photos.length;
+        if (i === fromIndex) break;
+        if ((photos[i].name || '') === name) return i;
+      }
+      return fromIndex;
     }
 
     function showAt(index) {
-      var imgs = getGalleryImgs();
-      if (!imgs.length) return;
-      currentIndex = (index + imgs.length) % imgs.length;
-      var img = imgs[currentIndex];
-      lightboxImg.src = img.src;
-      lightboxImg.alt = img.alt || '';
-      lightboxCaption.textContent = img.alt || '';
-      var mods = [];
-      if (img.dataset.mods) {
-        try { mods = JSON.parse(img.dataset.mods); } catch (e) { mods = []; }
-      }
+      var photos = getPhotos();
+      if (!photos.length) return;
+      currentIndex = (index + photos.length) % photos.length;
+      var p = photos[currentIndex];
+      lightboxImg.src = window.MT3UK_R2_BASE + '/gallery/' + p.file;
+      lightboxImg.alt = p.caption || 'MT3UK member build';
+      lightboxCaption.textContent = p.caption || '';
+      var mods = p.mods || [];
       lightboxMods.textContent = mods.length ? 'Mods: ' + mods.join(' · ') : '';
       lightboxMods.classList.toggle('has-mods', mods.length > 0);
     }
+
+    function goNext() { showAt(findSameMemberIndex(currentIndex, 1)); }
+    function goPrev() { showAt(findSameMemberIndex(currentIndex, -1)); }
 
     function openLightbox(index) {
       showAt(index);
@@ -1274,22 +1347,24 @@
 
     if (galleryGrid) {
       galleryGrid.addEventListener('click', function (e) {
-        var badge = e.target.closest('.g-mods-badge');
-        var img = badge ? badge.closest('.gallery-slot').querySelector('img') : e.target.closest('img');
-        if (!img) return;
-        var imgs = getGalleryImgs();
-        openLightbox(imgs.indexOf(img));
+        var slot = e.target.closest('.gallery-slot');
+        if (!slot) return;
+        var file = slot.getAttribute('data-file');
+        var photos = getPhotos();
+        var idx = photos.findIndex(function (p) { return p.file === file; });
+        if (idx === -1) return;
+        openLightbox(idx);
       });
     }
 
     closeBtn.addEventListener('click', closeLightbox);
     prevBtn.addEventListener('click', function (e) {
       e.stopPropagation();
-      showAt(currentIndex - 1);
+      goPrev();
     });
     nextBtn.addEventListener('click', function (e) {
       e.stopPropagation();
-      showAt(currentIndex + 1);
+      goNext();
     });
 
     lightbox.addEventListener('click', function (e) {
@@ -1299,8 +1374,8 @@
     document.addEventListener('keydown', function (e) {
       if (!lightbox.classList.contains('open')) return;
       if (e.key === 'Escape') closeLightbox();
-      if (e.key === 'ArrowRight') showAt(currentIndex + 1);
-      if (e.key === 'ArrowLeft') showAt(currentIndex - 1);
+      if (e.key === 'ArrowRight') goNext();
+      if (e.key === 'ArrowLeft') goPrev();
     });
   })();
 </script>

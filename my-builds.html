@@ -463,7 +463,8 @@
   .mb-field-hint { font-size: 0.78rem; color: var(--steel); }
   .mb-field input[type="email"],
   .mb-field input[type="text"],
-  .mb-field input[type="file"] {
+  .mb-field input[type="file"],
+  .mb-field select {
     border: 1px solid var(--ink);
     background: var(--white);
     padding: 11px 12px;
@@ -472,7 +473,8 @@
     color: var(--charcoal);
   }
   .mb-field input[type="email"]:focus,
-  .mb-field input[type="text"]:focus { outline: none; border-color: var(--orange); }
+  .mb-field input[type="text"]:focus,
+  .mb-field select:focus { outline: none; border-color: var(--orange); }
   .mb-btn {
     display: inline-flex;
     align-items: center;
@@ -680,6 +682,7 @@
   }
   .mb-car-name-input:hover, .mb-car-name-input:focus { border-color: var(--line); outline: none; background: var(--white); }
   .mb-car-name-status { flex-shrink: 0; }
+  .mb-car-color-select { font-size: 0.72rem; color: var(--ink); border: 1px solid var(--line); background: var(--white); padding: 6px 8px; flex-shrink: 0; }
   .mb-car-photo-count { font-size: 0.72rem; color: var(--steel); flex-shrink: 0; }
   .mb-car-view-link { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: var(--orange); text-decoration: underline; flex-shrink: 0; }
   .mb-car-view-link:hover { color: var(--ink); }
@@ -1029,7 +1032,7 @@ document.addEventListener('DOMContentLoaded', function () {
 <section>
   <div class="wrap">
     <div class="beta-notice">
-      <strong>This feature is in beta.</strong> Add your own build photos, view comments, reply and if you have multiple cars they can be added too, with mods listed for each image. Email address is required.
+      <strong>This feature is in beta.</strong> Add your own build photos, view comments, reply and if you have multiple cars they can be added too, with mods listed for each car. Email address is required.
     </div>
 
     <div id="mb-signin-view">
@@ -1059,6 +1062,18 @@ document.addEventListener('DOMContentLoaded', function () {
           <div class="mb-field">
             <label class="mono" for="mb-submit-carname">Car name</label>
             <input type="text" id="mb-submit-carname" name="carName" placeholder="e.g. Scarlett" required>
+          </div>
+          <div class="mb-field">
+            <label class="mono" for="mb-submit-color">Car colour</label>
+            <select id="mb-submit-color" name="color" required>
+              <option value="" disabled selected>Select a colour</option>
+              <option value="Red">Red</option>
+              <option value="White">White</option>
+              <option value="Black">Black</option>
+              <option value="Pink">Pink</option>
+              <option value="Green">Green</option>
+              <option value="Other">Other</option>
+            </select>
           </div>
           <div class="mb-field">
             <label class="mono" for="mb-submit-caption">Caption</label>
@@ -1127,6 +1142,18 @@ document.addEventListener('DOMContentLoaded', function () {
               <input type="text" id="mb-addcar-carname" name="carName" placeholder="e.g. Scarlett" required>
             </div>
             <div class="mb-field">
+              <label class="mono" for="mb-addcar-color">Car colour</label>
+              <select id="mb-addcar-color" name="color" required>
+                <option value="" disabled selected>Select a colour</option>
+                <option value="Red">Red</option>
+                <option value="White">White</option>
+                <option value="Black">Black</option>
+                <option value="Pink">Pink</option>
+                <option value="Green">Green</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="mb-field">
               <label class="mono" for="mb-addcar-caption">Caption</label>
               <input type="text" id="mb-addcar-caption" name="caption" placeholder="e.g. Viper Green Model Y" required>
             </div>
@@ -1152,6 +1179,15 @@ document.addEventListener('DOMContentLoaded', function () {
         <div class="mb-car-detail-header">
           <button type="button" class="mb-back-btn" id="mb-car-back-btn">&larr; Back to garage</button>
           <input type="text" class="mb-car-name-input" id="mb-car-name-input" maxlength="150">
+          <select class="mb-car-color-select mono" id="mb-car-color-select">
+            <option value="">Colour</option>
+            <option value="Red">Red</option>
+            <option value="White">White</option>
+            <option value="Black">Black</option>
+            <option value="Pink">Pink</option>
+            <option value="Green">Green</option>
+            <option value="Other">Other</option>
+          </select>
           <span class="mb-car-photo-count mono" id="mb-car-photo-count"></span>
           <span class="mb-status mb-car-name-status" id="mb-car-name-status"></span>
           <a class="mb-car-view-link" id="mb-car-view-link" href="#" target="_blank" rel="noopener">View My Car &#8599;</a>
@@ -1326,6 +1362,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var carGrid = document.getElementById('mb-car-grid');
     var backBtn = document.getElementById('mb-car-back-btn');
     var carNameInput = document.getElementById('mb-car-name-input');
+    var carColorSelect = document.getElementById('mb-car-color-select');
     var carPhotoCount = document.getElementById('mb-car-photo-count');
     var carNameStatus = document.getElementById('mb-car-name-status');
     var carViewLink = document.getElementById('mb-car-view-link');
@@ -1482,6 +1519,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderCarDetail(car) {
       if (!car) return;
       carNameInput.value = car.name || '';
+      carColorSelect.value = car.color || '';
       var photoCount = (car.photos || []).length;
       carPhotoCount.textContent = photoCount + (photoCount === 1 ? ' photo' : ' photos');
       addPhotoCard.style.display = 'none';
@@ -1825,6 +1863,26 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .catch(function () {
           setStatus(carNameStatus, 'Could not save, try again', 'err');
+        });
+    });
+
+    carColorSelect.addEventListener('change', function () {
+      var color = carColorSelect.value;
+      if (!currentCarId) return;
+      var car = findCar(currentCarId);
+      carColorSelect.disabled = true;
+      saveCarField(currentCarId, { color: color })
+        .then(function (data) {
+          carColorSelect.disabled = false;
+          if (data.success) {
+            if (car) car.color = color;
+          } else {
+            carColorSelect.value = car ? (car.color || '') : '';
+          }
+        })
+        .catch(function () {
+          carColorSelect.disabled = false;
+          carColorSelect.value = car ? (car.color || '') : '';
         });
     });
 

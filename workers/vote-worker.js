@@ -130,6 +130,7 @@ async function listGalleryEntriesFromR2(env) {
     var reel = true;
     var carId = null;
     var votableSince = null;
+    var color = null;
     var sidecarKey = o.key + '.json';
     if (sidecarKeys[sidecarKey]) {
       try {
@@ -144,6 +145,7 @@ async function listGalleryEntriesFromR2(env) {
           if (typeof sidecar.reel === 'boolean') reel = sidecar.reel;
           if (typeof sidecar.carId === 'string' && sidecar.carId) carId = sidecar.carId;
           if (typeof sidecar.votableSince === 'string' && sidecar.votableSince) votableSince = sidecar.votableSince;
+          if (typeof sidecar.color === 'string' && sidecar.color) color = sidecar.color;
         }
       } catch (e) {}
     }
@@ -152,6 +154,7 @@ async function listGalleryEntriesFromR2(env) {
     if (caption) entry.caption = caption;
     if (split.name) entry.name = split.name;
     if (carId) entry.carId = carId;
+    if (color) entry.color = color;
     // votableSince lets a photo that's re-enabled for voting after being opted
     // out become eligible again immediately, instead of being stuck outside the
     // today/yesterday eligibility window keyed off its original upload date.
@@ -1165,6 +1168,25 @@ async function setSidecarMods(env, file, mods) {
   });
 }
 
+var CAR_COLORS = ['Red', 'White', 'Black', 'Pink', 'Green', 'Other'];
+
+async function setSidecarColor(env, file, color) {
+  var sidecarKey = 'gallery/' + file + '.json';
+  var sidecar = {};
+  try {
+    var existingObj = await env.GALLERY_BUCKET.get(sidecarKey);
+    if (existingObj) sidecar = await existingObj.json();
+  } catch (e) {}
+  if (color) {
+    sidecar.color = color;
+  } else {
+    delete sidecar.color;
+  }
+  await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
+    httpMetadata: { contentType: 'application/json' }
+  });
+}
+
 // Virtual car id used to group all of a subscriber's legacy (pre-carId)
 // photos into a single car, since they predate the carId field entirely.
 var LEGACY_VIRTUAL_CAR_ID = 'virtual:legacy';
@@ -1341,6 +1363,7 @@ async function handleMyBuildsGet(request, env) {
       };
     }));
     var mods = record && Array.isArray(record.mods) ? record.mods : (g.entries[0].mods || []);
+    var color = record && record.color ? record.color : (g.entries[0].color || '');
     var name = record ? record.name : (g.entries[0].caption || 'MT3UK member build');
     var createdAt = record ? record.createdAt : new Date(g.entries[0].uploadedAt || Date.now()).toISOString();
     return {
@@ -1348,6 +1371,7 @@ async function handleMyBuildsGet(request, env) {
       virtual: !!g.virtual,
       name: name,
       mods: mods,
+      color: color,
       createdAt: createdAt,
       commentCount: photos.reduce(function (sum, p) { return sum + p.commentCount; }, 0),
       photos: photos
@@ -1476,6 +1500,7 @@ async function handleMyBuildsCarUpdate(request, env) {
       name: (body && body.name) || byFile[photos[0]].caption || 'MT3UK member build',
       photos: photos,
       mods: byFile[photos[0]].mods || [],
+      color: byFile[photos[0]].color || '',
       createdAt: new Date().toISOString()
     };
     // Stamp every photo in this car with the (possibly newly-generated) carId
@@ -1492,6 +1517,11 @@ async function handleMyBuildsCarUpdate(request, env) {
     var mods = body.mods.map(function (m) { return String(m).trim(); }).filter(Boolean).slice(0, 50);
     record.mods = mods;
     await Promise.all(photos.map(function (f) { return setSidecarMods(env, f, mods); }));
+  }
+
+  if (body && typeof body.color === 'string' && CAR_COLORS.indexOf(body.color) !== -1) {
+    record.color = body.color;
+    await Promise.all(photos.map(function (f) { return setSidecarColor(env, f, body.color); }));
   }
 
   await saveCarRecord(env, record);
@@ -2138,6 +2168,8 @@ export default {
     var mods = modsRaw
       ? modsRaw.split(/[,\n]/).map(function (m) { return m.trim(); }).filter(Boolean).slice(0, 20)
       : [];
+    var color = (formData.get('color') || '').toString().trim().slice(0, 20);
+    if (color && CAR_COLORS.indexOf(color) === -1) color = '';
     var files = formData.getAll('photo').filter(function (f) { return f && typeof f !== 'string'; });
 
     if (!caption) {
@@ -2199,6 +2231,7 @@ export default {
         var isPrimary = i === 0;
         var sidecar = { email: email };
         if (isPrimary && mods.length) sidecar.mods = mods;
+        if (isPrimary && color) sidecar.color = color;
         if (!isPrimary) sidecar.votable = false;
         await env.GALLERY_BUCKET.put(
           'gallery/' + filename + '.json',
@@ -2223,6 +2256,7 @@ export default {
           name: carName,
           photos: submittedFilenames,
           mods: mods,
+          color: color,
           createdAt: new Date().toISOString()
         });
       }

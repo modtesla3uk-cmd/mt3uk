@@ -129,6 +129,7 @@ async function listGalleryEntriesFromR2(env) {
     var gallery = true;
     var reel = true;
     var carId = null;
+    var votableSince = null;
     var sidecarKey = o.key + '.json';
     if (sidecarKeys[sidecarKey]) {
       try {
@@ -142,6 +143,7 @@ async function listGalleryEntriesFromR2(env) {
           if (typeof sidecar.gallery === 'boolean') gallery = sidecar.gallery;
           if (typeof sidecar.reel === 'boolean') reel = sidecar.reel;
           if (typeof sidecar.carId === 'string' && sidecar.carId) carId = sidecar.carId;
+          if (typeof sidecar.votableSince === 'string' && sidecar.votableSince) votableSince = sidecar.votableSince;
         }
       } catch (e) {}
     }
@@ -150,6 +152,10 @@ async function listGalleryEntriesFromR2(env) {
     if (caption) entry.caption = caption;
     if (split.name) entry.name = split.name;
     if (carId) entry.carId = carId;
+    // votableSince lets a photo that's re-enabled for voting after being opted
+    // out become eligible again immediately, instead of being stuck outside the
+    // today/yesterday eligibility window keyed off its original upload date.
+    if (votableSince) entry.votableSince = votableSince;
     return entry;
   }));
 }
@@ -177,7 +183,8 @@ async function getLiveGalleryEntries(env, ctx) {
 function votingCandidates(manifest, todayStr) {
   var yesterdayStr = addDaysToDateString(todayStr, -1);
   return manifest.filter(function (p) {
-    return (p.added === todayStr || p.added === yesterdayStr) && p.votable !== false;
+    var refDate = p.votableSince || p.added;
+    return (refDate === todayStr || refDate === yesterdayStr) && p.votable !== false;
   }).sort(function (a, b) {
     return (b.uploadedAt || 0) - (a.uploadedAt || 0);
   }).slice(0, 9);
@@ -1377,6 +1384,10 @@ async function handleMyBuildsUpdate(request, env) {
   // notifications, so this photo starts receiving them from here on.
   if (!sidecar.email) sidecar.email = email;
 
+  // A photo re-enabled for voting after being opted out is stamped with
+  // today's date so it becomes eligible immediately, rather than staying
+  // outside the today/yesterday window keyed off its original upload date.
+  var wasVotable = sidecar.votable !== false;
   ['gallery', 'reel', 'votable'].forEach(function (flag) {
     if (typeof (body && body[flag]) === 'boolean') {
       if (body[flag] === false) {
@@ -1386,6 +1397,9 @@ async function handleMyBuildsUpdate(request, env) {
       }
     }
   });
+  if (body && body.votable === true && !wasVotable) {
+    sidecar.votableSince = ukDateString(new Date());
+  }
 
   if (body && Array.isArray(body.mods)) {
     var mods = body.mods.map(function (m) { return String(m).trim(); }).filter(Boolean).slice(0, 50);

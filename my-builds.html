@@ -686,14 +686,16 @@
     .mb-car-name-input { flex-basis: 100%; font-size: 1.1rem; }
   }
 
+  .mb-car-mods { display: flex; flex-direction: column; gap: 6px; border: 1px solid var(--line); background: var(--paper-2); padding: 12px 14px; }
+  .mb-car-mods-label { font-size: 0.68rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--steel); }
+  .mb-car-mods-note { font-size: 0.72rem; color: var(--steel); margin: 0; }
+
   .mb-photo-strip { display: flex; flex-wrap: wrap; gap: 16px; }
-  .mb-photo-thumb-wrap { width: 190px; display: flex; flex-direction: column; gap: 6px; border: 1px solid var(--ink); padding: 8px; background: var(--white); cursor: grab; touch-action: none; }
+  .mb-photo-thumb-wrap { width: 190px; display: flex; flex-direction: column; gap: 6px; border: 1px solid var(--ink); padding: 8px; background: var(--white); }
   @media (max-width: 560px) {
     .mb-photo-strip { flex-wrap: nowrap; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
     .mb-photo-thumb-wrap { width: auto; }
   }
-  .mb-photo-thumb-wrap.mb-dragging { opacity: 0.4; }
-  .mb-photo-thumb-wrap.mb-drag-over { border-color: var(--orange); }
   .mb-photo-thumb { width: 100%; aspect-ratio: 1; overflow: hidden; border: 1px solid var(--line); position: relative; }
   .mb-photo-thumb img { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; }
   .mb-photo-comment-badge {
@@ -1116,7 +1118,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
       <div id="mb-car-selector-view">
         <div class="mb-upload-toggle-row" id="build-upload">
-          <button type="button" class="mb-upload-toggle-btn" id="mb-addcar-toggle-btn">+ Add a car</button>
+          <button type="button" class="mb-upload-toggle-btn" id="mb-addcar-toggle-btn">+ Add Car No.1</button>
         </div>
 
         <div class="mb-upload-card" id="mb-addcar-card" style="display:none;">
@@ -1149,11 +1151,22 @@ document.addEventListener('DOMContentLoaded', function () {
       </div>
 
       <div id="mb-car-detail-view" class="mb-car-detail" style="display:none;">
+        <span class="section-num mono">MANAGE CAR</span>
         <div class="mb-car-detail-header">
           <button type="button" class="mb-back-btn" id="mb-car-back-btn">&larr; Back to garage</button>
           <input type="text" class="mb-car-name-input" id="mb-car-name-input" maxlength="150">
           <span class="mb-car-photo-count mono" id="mb-car-photo-count"></span>
           <span class="mb-status mb-car-name-status" id="mb-car-name-status"></span>
+        </div>
+
+        <div class="mb-car-mods" id="mb-car-mods">
+          <div class="mb-car-mods-label mono">Mods</div>
+          <p class="mb-car-mods-note">Mods apply to all images for this car.</p>
+          <ul class="mb-photo-mods-list" id="mb-car-mods-list"></ul>
+          <div class="mb-photo-mods-add-row">
+            <input type="text" class="mb-photo-mods-input" id="mb-car-mods-input" placeholder="Add a mod" maxlength="80">
+            <button type="button" class="mb-photo-mods-add-btn" id="mb-car-mods-add-btn">Add</button>
+          </div>
         </div>
 
         <button type="button" class="mb-btn mb-add-photo-btn" id="mb-addphoto-toggle-btn">+ Add photo to this car</button>
@@ -1204,6 +1217,7 @@ document.addEventListener('DOMContentLoaded', function () {
       <div class="mb-photo-mods" id="mb-lightbox-mods">
         <button type="button" class="mb-photo-mods-toggle mono" id="mb-lightbox-mods-toggle" aria-expanded="false">Mods<span class="mb-photo-mods-caret">&#9662;</span></button>
         <div class="mb-photo-mods-body" id="mb-lightbox-mods-body" hidden>
+          <p class="mb-car-mods-note">Mods apply to all images for this car.</p>
           <ul class="mb-photo-mods-list"></ul>
           <div class="mb-photo-mods-add-row">
             <input type="text" class="mb-photo-mods-input" placeholder="Add a mod" maxlength="80">
@@ -1398,10 +1412,20 @@ document.addEventListener('DOMContentLoaded', function () {
       loadCarComments(findCar(carId));
     }
 
+    function addCarLabel(cars) {
+      return cars.length ? 'Add Another Car No.' + (cars.length + 1) : 'Add Car No.1';
+    }
+
+    function updateAddCarToggleLabel(cars) {
+      var opening = addCarCard.style.display !== 'none';
+      addCarToggleBtn.textContent = (opening ? '- ' : '+ ') + addCarLabel(cars);
+    }
+
     function renderCarGrid(cars, alerts) {
       alerts = alerts || {};
+      updateAddCarToggleLabel(cars);
       if (!cars.length) {
-        carGrid.innerHTML = '<p class="mb-empty">No cars linked to this email yet. Use the "+ Add a car" button above to add one, or check the bell above for any notifications.</p>';
+        carGrid.innerHTML = '<p class="mb-empty">No cars linked to this email yet. Use the "+ Add Car No.1" button above to add one, or check the bell above for any notifications.</p>';
         return;
       }
       carGrid.innerHTML = cars.map(function (car) {
@@ -1432,8 +1456,6 @@ document.addEventListener('DOMContentLoaded', function () {
         .map(function (x) { return x.p; });
     }
 
-    var expandedModsFiles = {};
-
     function renderPhotoStrip(car) {
       var ordered = orderPhotosByActivity(car);
       var defaultFile = car.photos[0] && car.photos[0].file;
@@ -1441,7 +1463,6 @@ document.addEventListener('DOMContentLoaded', function () {
         var safeFile = p.file.replace(/"/g, '&quot;');
         var safeCaption = escapeHtml(p.caption || car.name || '');
         var isDefault = p.file === defaultFile;
-        var modsCount = Array.isArray(p.mods) ? p.mods.length : 0;
         var commentCount = p.commentCount || 0;
         return '<div class="mb-photo-thumb-wrap" data-file="' + safeFile + '">' +
           '<div class="mb-photo-thumb"><img src="' + window.MT3UK_R2_BASE + '/gallery/' + p.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy">' +
@@ -1453,20 +1474,6 @@ document.addEventListener('DOMContentLoaded', function () {
             '<label class="mb-photo-toggle"><input type="checkbox" data-flag="gallery"' + (p.gallery ? ' checked' : '') + '> Gallery</label>' +
             '<label class="mb-photo-toggle"><input type="checkbox" data-flag="reel"' + (p.reel ? ' checked' : '') + '> Reel</label>' +
             '<label class="mb-photo-toggle"><input type="checkbox" data-flag="votable"' + (p.votable ? ' checked' : '') + '> Voting</label>' +
-          '</div>' +
-          '<div class="mb-photo-mods' + (expandedModsFiles[p.file] ? ' is-expanded' : '') + '">' +
-            '<button type="button" class="mb-photo-mods-toggle mono" aria-expanded="' + (expandedModsFiles[p.file] ? 'true' : 'false') + '">Mods (' + modsCount + ')<span class="mb-photo-mods-caret">&#9662;</span></button>' +
-            '<div class="mb-photo-mods-body"' + (expandedModsFiles[p.file] ? '' : ' hidden') + '>' +
-              '<ul class="mb-photo-mods-list">' +
-                (Array.isArray(p.mods) ? p.mods : []).map(function (m, i) {
-                  return '<li>' + escapeHtml(m) + '<button type="button" class="mb-photo-mods-remove" data-idx="' + i + '" aria-label="Remove ' + escapeHtml(m) + '">&times;</button></li>';
-                }).join('') +
-              '</ul>' +
-              '<div class="mb-photo-mods-add-row">' +
-                '<input type="text" class="mb-photo-mods-input" placeholder="Add a mod" maxlength="80">' +
-                '<button type="button" class="mb-photo-mods-add-btn">Add</button>' +
-              '</div>' +
-            '</div>' +
           '</div>' +
           (isDefault ? '' : '<button type="button" class="mb-photo-default-btn">Make Default</button>') +
           '<button type="button" class="mb-photo-delete-btn">Delete</button>' +
@@ -1481,6 +1488,7 @@ document.addEventListener('DOMContentLoaded', function () {
       carPhotoCount.textContent = photoCount + (photoCount === 1 ? ' photo' : ' photos');
       addPhotoCard.style.display = 'none';
       addPhotoToggleBtn.textContent = '+ Add photo to this car';
+      renderCarMods(car.mods);
       renderPhotoStrip(car);
     }
 
@@ -1681,11 +1689,11 @@ document.addEventListener('DOMContentLoaded', function () {
       addCarToggleBtn.addEventListener('click', function () {
         var opening = addCarCard.style.display === 'none';
         addCarCard.style.display = opening ? 'block' : 'none';
-        addCarToggleBtn.textContent = opening ? '- Add a car' : '+ Add a car';
+        addCarToggleBtn.textContent = (opening ? '- ' : '+ ') + addCarLabel(carsData);
         if (opening) {
           var carNameField = document.getElementById('mb-addcar-carname');
           if (carNameField && !carNameField.value.trim()) {
-            carNameField.value = 'Car' + (carsData.length + 1);
+            carNameField.value = 'Car ' + (carsData.length + 1);
           }
         }
       });
@@ -1718,7 +1726,7 @@ document.addEventListener('DOMContentLoaded', function () {
               setStatus(addCarStatus, 'Car added.', 'ok');
               addCarForm.reset();
               addCarCard.style.display = 'none';
-              addCarToggleBtn.textContent = '+ Add a car';
+              addCarToggleBtn.textContent = '+ ' + addCarLabel(carsData);
               loadCars();
             } else {
               setStatus(addCarStatus, json.message || 'Something went wrong, please try again.', 'err');
@@ -1841,83 +1849,69 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    function savePhotoMods(file, mods) {
-      var token = getSession();
-      return fetch(API + '/my-builds', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'X-Session-Token': token },
-        body: JSON.stringify({ file: file, mods: mods })
-      }).then(function (res) { return res.json(); });
+    function saveCarMods(mods) {
+      var car = findCar(currentCarId);
+      if (!car) return Promise.resolve({ success: false });
+      return saveCarField(currentCarId, { mods: mods, name: car.name }).then(function (data) {
+        if (data.success && data.car) {
+          if (data.car.id !== currentCarId) currentCarId = data.car.id;
+          car.mods = mods;
+        }
+        return data;
+      });
     }
 
-    photoStrip.addEventListener('click', function (e) {
-      var modsToggle = e.target.closest('.mb-photo-mods-toggle');
-      if (modsToggle) {
-        var modsWrap = modsToggle.closest('.mb-photo-thumb-wrap');
-        var modsFile = modsWrap.getAttribute('data-file');
-        var modsSection = modsToggle.closest('.mb-photo-mods');
-        var modsBody = modsSection.querySelector('.mb-photo-mods-body');
-        var expanded = !modsBody.hidden;
-        modsBody.hidden = expanded;
-        modsSection.classList.toggle('is-expanded', !expanded);
-        modsToggle.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-        if (expanded) delete expandedModsFiles[modsFile];
-        else expandedModsFiles[modsFile] = true;
-        return;
-      }
+    var carModsList = document.getElementById('mb-car-mods-list');
+    var carModsInput = document.getElementById('mb-car-mods-input');
+    var carModsAddBtn = document.getElementById('mb-car-mods-add-btn');
 
+    function renderCarMods(mods) {
+      var modsArr = Array.isArray(mods) ? mods : [];
+      carModsList.innerHTML = modsArr.map(function (m, i) {
+        return '<li>' + escapeHtml(m) + '<button type="button" class="mb-photo-mods-remove" data-idx="' + i + '" aria-label="Remove ' + escapeHtml(m) + '">&times;</button></li>';
+      }).join('');
+    }
+
+    carModsList.addEventListener('click', function (e) {
       var removeBtn = e.target.closest('.mb-photo-mods-remove');
-      if (removeBtn) {
-        var removeWrap = removeBtn.closest('.mb-photo-thumb-wrap');
-        var removeFile = removeWrap.getAttribute('data-file');
-        var car = findCar(currentCarId);
-        var photo = car && car.photos.find(function (p) { return p.file === removeFile; });
-        if (!photo) return;
-        var idx = parseInt(removeBtn.dataset.idx, 10);
-        var newMods = (photo.mods || []).slice();
-        newMods.splice(idx, 1);
-        removeBtn.disabled = true;
-        savePhotoMods(removeFile, newMods).then(function (data) {
-          if (data.success) {
-            photo.mods = newMods;
-            renderPhotoStrip(car);
-          } else {
-            removeBtn.disabled = false;
-          }
-        }).catch(function () { removeBtn.disabled = false; });
-        return;
-      }
-
-      var addBtn = e.target.closest('.mb-photo-mods-add-btn');
-      if (addBtn) {
-        var addWrap = addBtn.closest('.mb-photo-thumb-wrap');
-        var addInput = addWrap.querySelector('.mb-photo-mods-input');
-        var value = addInput.value.trim();
-        if (!value) return;
-        var addFile = addWrap.getAttribute('data-file');
-        var addCar = findCar(currentCarId);
-        var addPhoto = addCar && addCar.photos.find(function (p) { return p.file === addFile; });
-        if (!addPhoto) return;
-        var addedMods = (addPhoto.mods || []).concat([value]);
-        addBtn.disabled = true;
-        savePhotoMods(addFile, addedMods).then(function (data) {
-          addBtn.disabled = false;
-          if (data.success) {
-            addPhoto.mods = addedMods;
-            renderPhotoStrip(addCar);
-          }
-        }).catch(function () { addBtn.disabled = false; });
-      }
+      if (!removeBtn) return;
+      var car = findCar(currentCarId);
+      if (!car) return;
+      var idx = parseInt(removeBtn.dataset.idx, 10);
+      var newMods = (car.mods || []).slice();
+      newMods.splice(idx, 1);
+      removeBtn.disabled = true;
+      saveCarMods(newMods).then(function (data) {
+        if (data.success) {
+          renderCarMods(newMods);
+          renderLightboxMods(newMods);
+        } else {
+          removeBtn.disabled = false;
+        }
+      }).catch(function () { removeBtn.disabled = false; });
     });
 
-    photoStrip.addEventListener('keydown', function (e) {
+    function addCarMod() {
+      var value = carModsInput.value.trim();
+      if (!value) return;
+      var car = findCar(currentCarId);
+      if (!car) return;
+      var addedMods = (car.mods || []).concat([value]);
+      carModsAddBtn.disabled = true;
+      saveCarMods(addedMods).then(function (data) {
+        carModsAddBtn.disabled = false;
+        if (data.success) {
+          carModsInput.value = '';
+          renderCarMods(addedMods);
+          renderLightboxMods(addedMods);
+        }
+      }).catch(function () { carModsAddBtn.disabled = false; });
+    }
+    carModsAddBtn.addEventListener('click', addCarMod);
+    carModsInput.addEventListener('keydown', function (e) {
       if (e.key !== 'Enter') return;
-      var input = e.target.closest('.mb-photo-mods-input');
-      if (!input) return;
       e.preventDefault();
-      var wrap = input.closest('.mb-photo-thumb-wrap');
-      var addBtn = wrap.querySelector('.mb-photo-mods-add-btn');
-      if (addBtn) addBtn.click();
+      addCarMod();
     });
 
     var imgLightbox = document.getElementById('mb-img-lightbox');
@@ -1971,7 +1965,7 @@ document.addEventListener('DOMContentLoaded', function () {
       lightboxFile = file;
       imgLightboxImg.src = window.MT3UK_R2_BASE + '/gallery/' + file;
       imgLightboxImg.alt = photo.caption || car.name || '';
-      renderLightboxMods(photo.mods);
+      renderLightboxMods(car.mods);
       loadLightboxComments(file);
       lightboxComposerAvatar.textContent = commentInitials(myGarageEmail);
       lightboxComposerInput.value = '';
@@ -2007,17 +2001,15 @@ document.addEventListener('DOMContentLoaded', function () {
       var removeBtn = e.target.closest('.mb-photo-mods-remove');
       if (removeBtn) {
         var car = findCar(currentCarId);
-        var photo = car && car.photos.find(function (p) { return p.file === lightboxFile; });
-        if (!photo) return;
+        if (!car) return;
         var idx = parseInt(removeBtn.dataset.idx, 10);
-        var newMods = (photo.mods || []).slice();
+        var newMods = (car.mods || []).slice();
         newMods.splice(idx, 1);
         removeBtn.disabled = true;
-        savePhotoMods(lightboxFile, newMods).then(function (data) {
+        saveCarMods(newMods).then(function (data) {
           if (data.success) {
-            photo.mods = newMods;
             renderLightboxMods(newMods);
-            renderPhotoStrip(car);
+            renderCarMods(newMods);
           } else {
             removeBtn.disabled = false;
           }
@@ -2031,17 +2023,15 @@ document.addEventListener('DOMContentLoaded', function () {
         var value = input.value.trim();
         if (!value) return;
         var addCar = findCar(currentCarId);
-        var addPhoto = addCar && addCar.photos.find(function (p) { return p.file === lightboxFile; });
-        if (!addPhoto) return;
-        var addedMods = (addPhoto.mods || []).concat([value]);
+        if (!addCar) return;
+        var addedMods = (addCar.mods || []).concat([value]);
         addBtn.disabled = true;
-        savePhotoMods(lightboxFile, addedMods).then(function (data) {
+        saveCarMods(addedMods).then(function (data) {
           addBtn.disabled = false;
           if (data.success) {
-            addPhoto.mods = addedMods;
             input.value = '';
             renderLightboxMods(addedMods);
-            renderPhotoStrip(addCar);
+            renderCarMods(addedMods);
           }
         }).catch(function () { addBtn.disabled = false; });
       }
@@ -2162,83 +2152,6 @@ document.addEventListener('DOMContentLoaded', function () {
           btn.textContent = 'Delete';
         });
     });
-
-    // Drag-to-reorder photos within a car, implemented with Pointer Events
-    // (rather than HTML5 drag-and-drop, which is unreliable on touch) so it
-    // works with both mouse and touch input.
-    var dragState = null;
-    var DRAG_THRESHOLD = 6;
-
-    photoStrip.addEventListener('pointerdown', function (e) {
-      if (e.target.closest('input,button')) return;
-      var wrap = e.target.closest('.mb-photo-thumb-wrap');
-      if (!wrap) return;
-      var startOrder = Array.prototype.map.call(
-        photoStrip.querySelectorAll('.mb-photo-thumb-wrap'),
-        function (w) { return w.getAttribute('data-file'); }
-      );
-      dragState = { wrap: wrap, pointerId: e.pointerId, startOrder: startOrder, startX: e.clientX, startY: e.clientY, dragging: false };
-    });
-
-    // Pointer capture is only claimed once the pointer has actually moved
-    // past a small threshold - claiming it immediately on pointerdown would
-    // retarget the eventual click at the wrapper instead of the <img>,
-    // which silently broke tapping a thumbnail to open the lightbox.
-    photoStrip.addEventListener('pointermove', function (e) {
-      if (!dragState || dragState.pointerId !== e.pointerId) return;
-      if (!dragState.dragging) {
-        var dx = e.clientX - dragState.startX;
-        var dy = e.clientY - dragState.startY;
-        if (Math.sqrt(dx * dx + dy * dy) < DRAG_THRESHOLD) return;
-        dragState.dragging = true;
-        dragState.wrap.classList.add('mb-dragging');
-        try { dragState.wrap.setPointerCapture(e.pointerId); } catch (err) {}
-      }
-      var target = document.elementFromPoint(e.clientX, e.clientY);
-      var overWrap = target && target.closest('.mb-photo-thumb-wrap');
-      if (overWrap && overWrap !== dragState.wrap && overWrap.parentNode === photoStrip) {
-        var rect = overWrap.getBoundingClientRect();
-        var before = e.clientX < rect.left + rect.width / 2;
-        photoStrip.insertBefore(dragState.wrap, before ? overWrap : overWrap.nextSibling);
-      }
-    });
-
-    function endDrag(e) {
-      if (!dragState || dragState.pointerId !== e.pointerId) return;
-      var wasDragging = dragState.dragging;
-      var startOrder = dragState.startOrder;
-      if (wasDragging) {
-        dragState.wrap.classList.remove('mb-dragging');
-        try { dragState.wrap.releasePointerCapture(e.pointerId); } catch (err) {}
-      }
-      dragState = null;
-      if (wasDragging) saveCarPhotoOrder(startOrder);
-    }
-    photoStrip.addEventListener('pointerup', endDrag);
-    photoStrip.addEventListener('pointercancel', endDrag);
-
-    // Only persists when the drag actually moved something relative to the
-    // order shown when the drag started - comparing against startOrder
-    // (not car.photos) means a plain click that didn't move anything never
-    // overwrites the saved order with whatever comment-activity sort is
-    // currently on screen.
-    function saveCarPhotoOrder(startOrder) {
-      if (!currentCarId) return;
-      var car = findCar(currentCarId);
-      if (!car) return;
-      var order = Array.prototype.map.call(
-        photoStrip.querySelectorAll('.mb-photo-thumb-wrap'),
-        function (w) { return w.getAttribute('data-file'); }
-      );
-      var unchanged = order.length === startOrder.length && order.every(function (f, i) { return f === startOrder[i]; });
-      if (unchanged) return;
-      saveCarField(currentCarId, { photos: order, name: car.name }).then(function (data) {
-        if (data.success && data.car) {
-          if (data.car.id !== currentCarId) currentCarId = data.car.id;
-          loadCars();
-        }
-      });
-    }
 
     function buildCommentTree(comments) {
       var byId = {};

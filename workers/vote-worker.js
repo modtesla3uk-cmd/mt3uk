@@ -1624,6 +1624,7 @@ async function handleMyBuildsUpload(request, env) {
             name: caption || 'MT3UK member build',
             photos: siblingPhotos.concat([filename]),
             mods: mods.length ? mods : (siblingPhotos.length ? (byFileForCar[siblingPhotos[0]].mods || []) : []),
+            color: siblingPhotos.length ? (byFileForCar[siblingPhotos[0]].color || '') : '',
             createdAt: new Date().toISOString()
           };
           await Promise.all(siblingPhotos.map(function (f) { return setSidecarCarId(env, f, realCarIdForUpload, email); }));
@@ -1632,6 +1633,9 @@ async function handleMyBuildsUpload(request, env) {
         }
         await setSidecarCarId(env, filename, realCarIdForUpload, email);
         await saveCarRecord(env, carRecordForUpload);
+        if (carRecordForUpload.color) {
+          await setSidecarColor(env, filename, carRecordForUpload.color);
+        }
       }
     }
 
@@ -2231,7 +2235,10 @@ export default {
         var isPrimary = i === 0;
         var sidecar = { email: email };
         if (isPrimary && mods.length) sidecar.mods = mods;
-        if (isPrimary && color) sidecar.color = color;
+        // Colour is a whole-car attribute (used for gallery filtering), so
+        // every photo in the submission carries it, unlike mods which are
+        // only credited against the primary/voting shot.
+        if (color) sidecar.color = color;
         if (!isPrimary) sidecar.votable = false;
         await env.GALLERY_BUCKET.put(
           'gallery/' + filename + '.json',

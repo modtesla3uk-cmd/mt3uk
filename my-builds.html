@@ -623,14 +623,13 @@
   .mb-img-lightbox { position: fixed; inset: 0; background: rgba(15,20,30,0.72); backdrop-filter: blur(3px); display: none; align-items: center; justify-content: center; z-index: 500; padding: 24px; }
   .mb-img-lightbox.open { display: flex; }
   .mb-lightbox-panel {
-    width: 100%; max-width: 460px; max-height: 90vh; margin: 0; background: var(--paper);
+    width: 100%; max-width: 720px; max-height: 90vh; margin: 0; background: var(--paper);
     border: none; border-radius: 18px; overflow: hidden; position: relative;
     box-shadow: 0 30px 70px rgba(0,0,0,0.5), 0 4px 16px rgba(0,0,0,0.3);
     display: flex; flex-direction: column;
   }
-  .mb-lightbox-media { background: #000; display: flex; align-items: center; justify-content: center; max-height: 40vh; flex-shrink: 0; overflow: hidden; }
-  .mb-lightbox-media img { max-width: 100%; max-height: 40vh; width: auto; height: auto; object-fit: contain; cursor: zoom-in; display: block; transition: transform 0.2s ease; }
-  .mb-lightbox-media img.zoom-pan { transform: scale(2.5); transition: none; }
+  .mb-lightbox-media { background: #000; display: flex; align-items: center; justify-content: center; max-height: 62vh; flex-shrink: 0; overflow: hidden; }
+  .mb-lightbox-media img { max-width: 100%; max-height: 62vh; width: auto; height: auto; object-fit: contain; display: block; }
   .mb-img-lightbox-close {
     position: absolute; top: 12px; right: 12px; background: rgba(15,20,30,0.55); backdrop-filter: blur(2px);
     border: none; border-radius: 50%; color: var(--paper); width: 34px; height: 34px; font-size: 1.25rem;
@@ -638,6 +637,16 @@
     transition: background 0.15s ease;
   }
   .mb-img-lightbox-close:hover { background: var(--orange); }
+  .mb-lightbox-nav {
+    position: absolute; top: 31vh; transform: translateY(-50%); background: rgba(15,20,30,0.55); backdrop-filter: blur(2px);
+    border: none; color: var(--paper); width: 36px; height: 36px; font-size: 1.4rem;
+    line-height: 1; cursor: pointer; z-index: 2; display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s ease;
+  }
+  .mb-lightbox-nav:hover { background: var(--orange); }
+  .mb-lightbox-nav[hidden] { display: none; }
+  .mb-lightbox-prev { left: 10px; }
+  .mb-lightbox-next { right: 10px; }
   .mb-lightbox-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; min-height: 0; }
   .mb-lightbox-body .mb-photo-mods { border-top: 0; padding-top: 0; }
   .mb-lightbox-body .mb-photo-mods-label, .mb-lightbox-comments-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--steel); display: block; margin-bottom: 6px; }
@@ -905,41 +914,6 @@ document.addEventListener('DOMContentLoaded', function () {
       document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && lightbox.classList.contains('open')) closeLightbox();
       });
-
-      var lightboxMedia = document.querySelector('.mb-lightbox-media');
-      if (lightboxMedia) {
-            function updateOrigin(clientX, clientY) {
-                  var rect = lightboxMedia.getBoundingClientRect();
-                  var x = ((clientX - rect.left) / rect.width) * 100;
-                  var y = ((clientY - rect.top) / rect.height) * 100;
-                  x = Math.max(0, Math.min(100, x));
-                  y = Math.max(0, Math.min(100, y));
-                  lightboxImg.style.transformOrigin = x + '% ' + y + '%';
-            }
-            function resetZoom() {
-                  lightboxImg.classList.remove('zoom-pan');
-                  lightboxImg.style.transformOrigin = '';
-            }
-            lightboxMedia.addEventListener('mouseenter', function (e) {
-                  updateOrigin(e.clientX, e.clientY);
-                  lightboxImg.classList.add('zoom-pan');
-            });
-            lightboxMedia.addEventListener('mousemove', function (e) {
-                  updateOrigin(e.clientX, e.clientY);
-            });
-            lightboxMedia.addEventListener('mouseleave', resetZoom);
-            lightboxMedia.addEventListener('touchstart', function (e) {
-                  var t = e.touches[0];
-                  updateOrigin(t.clientX, t.clientY);
-                  lightboxImg.classList.add('zoom-pan');
-            }, { passive: true });
-            lightboxMedia.addEventListener('touchmove', function (e) {
-                  var t = e.touches[0];
-                  updateOrigin(t.clientX, t.clientY);
-            }, { passive: true });
-            lightboxMedia.addEventListener('touchend', resetZoom);
-            lightboxMedia.addEventListener('touchcancel', resetZoom);
-      }
 });
 </script>
 
@@ -1249,6 +1223,8 @@ document.addEventListener('DOMContentLoaded', function () {
 <div class="mb-img-lightbox" id="mb-img-lightbox" role="dialog" aria-modal="true" aria-hidden="true">
   <div class="mb-lightbox-panel">
     <button type="button" class="mb-img-lightbox-close" aria-label="Close">&times;</button>
+    <button type="button" class="mb-lightbox-nav mb-lightbox-prev" id="mb-lightbox-prev-btn" aria-label="Previous photo">&lsaquo;</button>
+    <button type="button" class="mb-lightbox-nav mb-lightbox-next" id="mb-lightbox-next-btn" aria-label="Next photo">&rsaquo;</button>
     <div class="mb-lightbox-media"><img id="mb-img-lightbox-img" src="" alt=""></div>
     <div class="mb-lightbox-body">
       <div class="mb-photo-mods" id="mb-lightbox-mods">
@@ -2011,6 +1987,12 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    function lightboxPhotoOrder() {
+      return Array.prototype.slice.call(photoStrip.querySelectorAll('.mb-photo-thumb-wrap')).map(function (el) {
+        return el.getAttribute('data-file');
+      });
+    }
+
     function openPhotoLightbox(file) {
       var car = findCar(currentCarId);
       var photo = car && car.photos.find(function (p) { return p.file === file; });
@@ -2025,11 +2007,33 @@ document.addEventListener('DOMContentLoaded', function () {
       lightboxComposerSend.disabled = true;
       imgLightbox.classList.add('open');
       imgLightbox.setAttribute('aria-hidden', 'false');
+      var order = lightboxPhotoOrder();
+      lightboxPrevBtn.hidden = order.length < 2;
+      lightboxNextBtn.hidden = order.length < 2;
       var seen = mbGetSeenComments();
       seen[file] = photo.commentCount || 0;
       mbSetSeenComments(seen);
       refreshNavCommentAlert();
     }
+
+    function stepLightboxPhoto(direction) {
+      var order = lightboxPhotoOrder();
+      if (order.length < 2 || !lightboxFile) return;
+      var idx = order.indexOf(lightboxFile);
+      if (idx === -1) return;
+      var nextIdx = (idx + direction + order.length) % order.length;
+      openPhotoLightbox(order[nextIdx]);
+    }
+
+    var lightboxPrevBtn = document.getElementById('mb-lightbox-prev-btn');
+    var lightboxNextBtn = document.getElementById('mb-lightbox-next-btn');
+    lightboxPrevBtn.addEventListener('click', function (e) { e.stopPropagation(); stepLightboxPhoto(-1); });
+    lightboxNextBtn.addEventListener('click', function (e) { e.stopPropagation(); stepLightboxPhoto(1); });
+    imgLightbox.addEventListener('keydown', function (e) {
+      if (!imgLightbox.classList.contains('open') || e.target === lightboxComposerInput) return;
+      if (e.key === 'ArrowRight') stepLightboxPhoto(1);
+      if (e.key === 'ArrowLeft') stepLightboxPhoto(-1);
+    });
 
     photoStrip.addEventListener('click', function (e) {
       var thumb = e.target.closest('.mb-photo-thumb img');

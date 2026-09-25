@@ -1154,13 +1154,17 @@ async function handleGalleryClaimsAdminUndo(request, env) {
 // Lets the admin directly assign ownership of an unclaimed legacy photo to a
 // subscriber's email, bypassing the request/approve flow — for cases where
 // the admin already knows who the build belongs to.
+// Reuses the same one-time sign-in link as the My Garage sign-in flow
+// (rather than a plain "go sign in" message) since that email template is
+// the one that reliably lands in the inbox instead of junk.
 async function sendBuildAssignedEmail(env, toEmail, file) {
-  var link = MY_BUILDS_SITE_URL + '/my-builds.html';
+  var token = randomToken();
+  await env.VOTES.put('my-builds-link:' + token, toEmail, { expirationTtl: MY_BUILDS_LINK_TTL_SECONDS });
+  var link = MY_BUILDS_SITE_URL + '/my-builds.html?token=' + token;
   var subject = 'A build was linked to your account';
-  var body = 'An MT3UK admin has linked the build photo "' + file + '" to your email address.\n\n' +
-    'Photo: ' + GALLERY_PUBLIC_BASE_URL + '/gallery/' + file + '\n\n' +
-    'Sign in to My Garage to view and manage it: ' + link + '\n\n' +
-    'If you don\'t recognise this, reply to let us know.';
+  var body = 'An image was assigned to you. Use this one-time link to sign in to My Garage and view it:\n\n' + link +
+    '\n\nThis link expires in 15 minutes and can only be used once. ' +
+    'If you did not expect this, you can ignore this email.';
   var message = new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body));
   await env.SEND_EMAIL.send(message);
 }

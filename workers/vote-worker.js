@@ -1158,16 +1158,23 @@ async function handleGalleryClaimsAdminUndo(request, env) {
 // Reuses the same one-time sign-in link as the My Garage sign-in flow
 // (rather than a plain "go sign in" message) since that email template is
 // the one that reliably lands in the inbox instead of junk.
-async function sendBuildAssignedEmail(env, toEmail, file) {
+async function sendMyGarageAccessEmail(env, toEmail, subject, introText) {
   var token = randomToken();
   await env.VOTES.put('my-builds-link:' + token, toEmail, { expirationTtl: BUILD_ASSIGNED_LINK_TTL_SECONDS });
   var link = MY_BUILDS_SITE_URL + '/my-builds.html?token=' + token;
-  var subject = 'A build was linked to your account';
-  var body = 'An image was assigned to you. Use this one-time link to sign in to My Garage and view it:\n\n' + link +
+  var body = introText + ' Use this one-time link to sign in to My Garage:\n\n' + link +
     '\n\nThis link expires in 7 days and can only be used once. ' +
     'If you did not expect this, you can ignore this email.';
   var message = new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body));
   await env.SEND_EMAIL.send(message);
+}
+
+async function sendBuildAssignedEmail(env, toEmail, file) {
+  await sendMyGarageAccessEmail(env, toEmail, 'A build was linked to your account', 'An image was assigned to you.');
+}
+
+async function sendSubscriberAddedEmail(env, toEmail) {
+  await sendMyGarageAccessEmail(env, toEmail, "You've been added to MT3UK My Garage", "An MT3UK admin has set up My Garage access for your account.");
 }
 
 async function handleGalleryClaimsAdminAssign(request, env) {
@@ -1292,6 +1299,13 @@ async function handleGalleryAdminSubscriberCreate(request, env) {
   }
 
   await env.VOTES.put('subscriber:' + email, JSON.stringify([]));
+
+  try {
+    await sendSubscriberAddedEmail(env, email);
+  } catch (err) {
+    console.log('Subscriber added email failed:', err.message);
+  }
+
   return json({ success: true });
 }
 

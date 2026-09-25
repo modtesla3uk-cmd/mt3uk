@@ -83,6 +83,23 @@
   .assign-row { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
   .assign-row input { flex: 1; min-width: 160px; }
   .empty { color: var(--steel); }
+  .add-subscriber-row { display: flex; gap: 8px; margin-bottom: 18px; }
+  .add-subscriber-row input { flex: 1; }
+  .subscriber-card { border: 1px solid rgba(255,255,255,0.2); margin-bottom: 14px; padding: 14px; }
+  .subscriber-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .subscriber-email { color: var(--orange); flex: 1; min-width: 160px; word-break: break-all; }
+  .subscriber-count { color: var(--steel); font-size: 0.68rem; }
+  .subscriber-files { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .subscriber-file-row { display: flex; align-items: center; gap: 8px; font-size: 0.72rem; }
+  .subscriber-file-row .file-name { flex: 1; word-break: break-all; color: var(--white); }
+  .subscriber-file-row button { padding: 4px 10px; font-size: 0.68rem; }
+  .subscriber-rename-row { display: none; gap: 8px; margin-top: 10px; }
+  .subscriber-rename-row.open { display: flex; }
+  .subscriber-rename-row input { flex: 1; }
+  .local-reported-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 0.72rem; }
+  .local-reported-row .file-name { flex: 1; word-break: break-all; }
+  .local-reported-row button { padding: 4px 10px; font-size: 0.68rem; }
+  .clear-all-row { margin-bottom: 12px; }
 </style>
 </head>
 <body>
@@ -116,6 +133,21 @@
     <h2>Reported photos</h2>
     <div id="reported-photos"></div>
   </section>
+
+  <section>
+    <h2>Reported in this browser</h2>
+    <p class="card-meta">These photos show as "Reported" (disabled) on the public site in this browser, from a local flag stored here — separate from server-side reports above. Clearing them here only affects this browser.</p>
+    <div id="local-reported-list"></div>
+  </section>
+
+  <section>
+    <h2>Subscribers</h2>
+    <div class="add-subscriber-row">
+      <input type="email" id="new-subscriber-email" placeholder="new-subscriber@email.com" autocomplete="off">
+      <button type="button" id="add-subscriber-btn">Add subscriber</button>
+    </div>
+    <div id="subscribers-list"></div>
+  </section>
 </main>
 <script>
 (function () {
@@ -128,6 +160,9 @@
   var decidedEl = document.getElementById('decided-claims');
   var unclaimedEl = document.getElementById('unclaimed-photos');
   var reportedEl = document.getElementById('reported-photos');
+  var subscribersEl = document.getElementById('subscribers-list');
+  var newSubscriberInput = document.getElementById('new-subscriber-email');
+  var addSubscriberBtn = document.getElementById('add-subscriber-btn');
 
   var savedKey = sessionStorage.getItem('mt3ukClaimsAdminKey');
   if (savedKey) keyInput.value = savedKey;
@@ -296,6 +331,33 @@
       });
   }
 
+  function renderSubscriber(s) {
+    var div = document.createElement('div');
+    div.className = 'subscriber-card';
+    div.dataset.email = s.email;
+    var filesHtml = s.files.length
+      ? s.files.map(function (f) {
+          return '<div class="subscriber-file-row">' +
+            '<span class="file-name">' + escapeHtml(f) + '</span>' +
+            '<button type="button" class="secondary unassign-file-btn" data-file="' + escapeHtml(f) + '">Remove</button>' +
+          '</div>';
+        }).join('')
+      : '<p class="empty">No photos.</p>';
+    div.innerHTML =
+      '<div class="subscriber-head">' +
+        '<span class="subscriber-email">' + escapeHtml(s.email) + '</span>' +
+        '<span class="subscriber-count">' + s.files.length + ' photo' + (s.files.length === 1 ? '' : 's') + '</span>' +
+        '<button type="button" class="secondary rename-toggle-btn">Edit</button>' +
+        '<button type="button" class="danger delete-subscriber-btn">Delete</button>' +
+      '</div>' +
+      '<div class="subscriber-rename-row">' +
+        '<input type="email" class="rename-email-input" placeholder="new-email@example.com" autocomplete="off">' +
+        '<button type="button" class="rename-confirm-btn">Save</button>' +
+      '</div>' +
+      '<div class="subscriber-files">' + filesHtml + '</div>';
+    return div;
+  }
+
   function loadSubscribers(key) {
     var datalist = document.getElementById('subscriber-emails');
     return fetch(API + '/gallery/admin/subscribers?key=' + encodeURIComponent(key))
@@ -305,9 +367,127 @@
         datalist.innerHTML = (data.subscribers || []).map(function (email) {
           return '<option value="' + escapeHtml(email) + '"></option>';
         }).join('');
+        var details = data.details || [];
+        subscribersEl.innerHTML = details.length ? '' : '<p class="empty">No subscribers yet.</p>';
+        details.forEach(function (s) { subscribersEl.appendChild(renderSubscriber(s)); });
       })
       .catch(function () {});
   }
+
+  addSubscriberBtn.addEventListener('click', function () {
+    var key = keyInput.value.trim();
+    var email = newSubscriberInput.value.trim();
+    if (!key) { alert('Enter the admin key first.'); return; }
+    if (!email) return;
+
+    addSubscriberBtn.disabled = true;
+    fetch(API + '/gallery/admin/subscribers?key=' + encodeURIComponent(key), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email })
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        addSubscriberBtn.disabled = false;
+        if (data && data.success) {
+          newSubscriberInput.value = '';
+          loadSubscribers(key);
+        } else {
+          alert((data && data.message) || 'Could not add subscriber.');
+        }
+      })
+      .catch(function () {
+        addSubscriberBtn.disabled = false;
+        alert('Network error adding subscriber.');
+      });
+  });
+
+  subscribersEl.addEventListener('click', function (e) {
+    var key = keyInput.value.trim();
+    var card = e.target.closest('.subscriber-card');
+    if (!card) return;
+    var email = card.dataset.email;
+
+    var renameToggleBtn = e.target.closest('.rename-toggle-btn');
+    if (renameToggleBtn) {
+      card.querySelector('.subscriber-rename-row').classList.toggle('open');
+      return;
+    }
+
+    var deleteBtn = e.target.closest('.delete-subscriber-btn');
+    if (deleteBtn) {
+      if (!confirm('Delete subscriber "' + email + '"? Their photos will go back to unclaimed.')) return;
+      deleteBtn.disabled = true;
+      fetch(API + '/gallery/admin/subscribers?key=' + encodeURIComponent(key) + '&email=' + encodeURIComponent(email), {
+        method: 'DELETE'
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (data && data.success) {
+            loadAll();
+          } else {
+            deleteBtn.disabled = false;
+            alert((data && data.message) || 'Could not delete subscriber.');
+          }
+        })
+        .catch(function () {
+          deleteBtn.disabled = false;
+          alert('Network error deleting subscriber.');
+        });
+      return;
+    }
+
+    var renameConfirmBtn = e.target.closest('.rename-confirm-btn');
+    if (renameConfirmBtn) {
+      var newEmail = card.querySelector('.rename-email-input').value.trim();
+      if (!newEmail) return;
+      renameConfirmBtn.disabled = true;
+      fetch(API + '/gallery/admin/subscribers/rename?key=' + encodeURIComponent(key), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ oldEmail: email, newEmail: newEmail })
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          renameConfirmBtn.disabled = false;
+          if (data && data.success) {
+            loadSubscribers(key);
+          } else {
+            alert((data && data.message) || 'Could not rename subscriber.');
+          }
+        })
+        .catch(function () {
+          renameConfirmBtn.disabled = false;
+          alert('Network error renaming subscriber.');
+        });
+      return;
+    }
+
+    var unassignBtn = e.target.closest('.unassign-file-btn');
+    if (unassignBtn) {
+      var file = unassignBtn.dataset.file;
+      if (!confirm('Remove "' + file + '" from ' + email + '? It will go back to unclaimed.')) return;
+      unassignBtn.disabled = true;
+      fetch(API + '/gallery/admin/subscribers/unassign?key=' + encodeURIComponent(key), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, file: file })
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (data && data.success) {
+            loadAll();
+          } else {
+            unassignBtn.disabled = false;
+            alert((data && data.message) || 'Could not remove photo.');
+          }
+        })
+        .catch(function () {
+          unassignBtn.disabled = false;
+          alert('Network error removing photo.');
+        });
+    }
+  });
 
   unclaimedEl.addEventListener('click', function (e) {
     var btn = e.target.closest('.assign-btn');
@@ -464,6 +644,51 @@
   });
 
   if (savedKey) loadAll();
+
+  // ---------- Reported in this browser (local flag, no admin key needed) ----------
+
+  var localReportedEl = document.getElementById('local-reported-list');
+
+  function getLocalReported() {
+    try { return JSON.parse(localStorage.getItem('mt3ukReportedPhotos') || '[]'); } catch (e) { return []; }
+  }
+
+  function saveLocalReported(files) {
+    localStorage.setItem('mt3ukReportedPhotos', JSON.stringify(files));
+  }
+
+  function renderLocalReported() {
+    var files = getLocalReported();
+    if (!files.length) {
+      localReportedEl.innerHTML = '<p class="empty">No locally-flagged photos in this browser.</p>';
+      return;
+    }
+    var html = '<div class="clear-all-row"><button type="button" class="secondary" id="clear-all-local-btn">Clear all</button></div>';
+    html += files.map(function (f) {
+      return '<div class="local-reported-row">' +
+        '<span class="file-name">' + escapeHtml(f) + '</span>' +
+        '<button type="button" class="secondary clear-local-btn" data-file="' + escapeHtml(f) + '">Clear</button>' +
+      '</div>';
+    }).join('');
+    localReportedEl.innerHTML = html;
+  }
+
+  localReportedEl.addEventListener('click', function (e) {
+    var clearAllBtn = e.target.closest('#clear-all-local-btn');
+    if (clearAllBtn) {
+      saveLocalReported([]);
+      renderLocalReported();
+      return;
+    }
+    var clearBtn = e.target.closest('.clear-local-btn');
+    if (clearBtn) {
+      var files = getLocalReported().filter(function (f) { return f !== clearBtn.dataset.file; });
+      saveLocalReported(files);
+      renderLocalReported();
+    }
+  });
+
+  renderLocalReported();
 })();
 </script>
 </body>

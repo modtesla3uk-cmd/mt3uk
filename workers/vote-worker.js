@@ -1234,10 +1234,174 @@ async function handleGalleryAdminSubscribersList(request, env) {
   }
 
   var list = await env.VOTES.list({ prefix: 'subscriber:' });
-  var subscribers = list.keys.map(function (k) { return k.name.slice('subscriber:'.length); });
-  subscribers.sort();
+  var emails = list.keys.map(function (k) { return k.name.slice('subscriber:'.length); });
+  emails.sort();
 
-  return json({ success: true, subscribers: subscribers });
+  var details = await Promise.all(emails.map(async function (email) {
+    return { email: email, files: await getSubscriberFiles(env, email) };
+  }));
+
+  return json({ success: true, subscribers: emails, details: details });
+}
+
+// Pre-registers a subscriber with no photos yet, e.g. so an admin can
+// assign builds to someone before their first upload exists.
+async function handleGalleryAdminSubscriberCreate(request, env) {
+  var url = new URL(request.url);
+  var key = url.searchParams.get('key');
+  if (!env.ADMIN_KEY || key !== env.ADMIN_KEY) {
+    return json({ success: false, message: 'Unauthorized' }, 401);
+  }
+
+  var body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return json({ success: false, message: 'Invalid request body' }, 400);
+  }
+  var email = ((body && body.email) || '').toString().trim().toLowerCase();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return json({ success: false, message: 'A valid email is required' }, 400);
+  }
+
+  var existing = await env.VOTES.get('subscriber:' + email);
+  if (existing !== null) {
+    return json({ success: false, message: 'That subscriber already exists' }, 409);
+  }
+
+  await env.VOTES.put('subscriber:' + email, JSON.stringify([]));
+  return json({ success: true });
+}
+
+// Renames a subscriber's email, moving their KV record and restamping
+// every one of their photos' sidecars so the site stays consistent.
+async function handleGalleryAdminSubscriberRename(request, env) {
+  var url = new URL(request.url);
+  var key = url.searchParams.get('key');
+  if (!env.ADMIN_KEY || key !== env.ADMIN_KEY) {
+    return json({ success: false, message: 'Unauthorized' }, 401);
+  }
+
+  var body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return json({ success: false, message: 'Invalid request body' }, 400);
+  }
+  var oldEmail = ((body && body.oldEmail) || '').toString().trim().toLowerCase();
+  var newEmail = ((body && body.newEmail) || '').toString().trim().toLowerCase();
+  if (!oldEmail || !newEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
+    return json({ success: false, message: 'oldEmail and a valid newEmail are required' }, 400);
+  }
+  if (oldEmail === newEmail) return json({ success: true });
+
+  var oldRaw = await env.VOTES.get('subscriber:' + oldEmail);
+  if (oldRaw === null) return json({ success: false, message: 'Subscriber not found' }, 404);
+  var oldFiles = [];
+  try {
+    var parsed = JSON.parse(oldRaw);
+    oldFiles = Array.isArray(parsed) ? parsed : [];
+  } catch (e) {}
+
+  var newFiles = await getSubscriberFiles(env, newEmail);
+  oldFiles.forEach(function (f) {
+    if (newFiles.indexOf(f) === -1) newFiles.push(f);
+  });
+  await env.VOTES.put('subscriber:' + newEmail, JSON.stringify(newFiles));
+  await env.VOTES.delete('subscriber:' + oldEmail);
+
+  for (var i = 0; i < oldFiles.length; i++) {
+    var file = oldFiles[i];
+    var sidecarKey = 'gallery/' + file + '.json';
+    var sidecar = {};
+    try {
+      var existingObj = await env.GALLERY_BUCKET.get(sidecarKey);
+      if (existingObj) sidecar = await existingObj.json();
+    } catch (e) {}
+    if (sidecar.email === oldEmail) {
+      sidecar.email = newEmail;
+      await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
+        httpMetadata: { contentType: 'application/json' }
+      });
+    }
+  }
+  if (oldFiles.length) await triggerManifestRebuild(env);
+
+  return json({ success: true });
+}
+
+// Unassigns a single photo from a subscriber, clearing its sidecar email so
+// it goes back to being unclaimed, without touching the subscriber's other
+// photos.
+async function handleGalleryAdminSubscriberUnassign(request, env) {
+  var url = new URL(request.url);
+  var key = url.searchParams.get('key');
+  if (!env.ADMIN_KEY || key !== env.ADMIN_KEY) {
+    return json({ success: false, message: 'Unauthorized' }, 401);
+  }
+
+  var body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return json({ success: false, message: 'Invalid request body' }, 400);
+  }
+  var email = ((body && body.email) || '').toString().trim().toLowerCase();
+  var file = ((body && body.file) || '').toString();
+  if (!email || !file) return json({ success: false, message: 'email and file are required' }, 400);
+
+  var sidecarKey = 'gallery/' + file + '.json';
+  var sidecar = {};
+  try {
+    var existingObj = await env.GALLERY_BUCKET.get(sidecarKey);
+    if (existingObj) sidecar = await existingObj.json();
+  } catch (e) {}
+  if (sidecar.email === email) {
+    delete sidecar.email;
+    await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
+      httpMetadata: { contentType: 'application/json' }
+    });
+    if (sidecar.carId) await clearSidecarCarId(env, file);
+  }
+  await removeSubscriberFile(env, email, file);
+  await triggerManifestRebuild(env);
+
+  return json({ success: true });
+}
+
+// Fully removes a subscriber: clears every one of their photos back to
+// unclaimed and deletes their KV record.
+async function handleGalleryAdminSubscriberDelete(request, env) {
+  var url = new URL(request.url);
+  var key = url.searchParams.get('key');
+  if (!env.ADMIN_KEY || key !== env.ADMIN_KEY) {
+    return json({ success: false, message: 'Unauthorized' }, 401);
+  }
+
+  var email = (url.searchParams.get('email') || '').toString().trim().toLowerCase();
+  if (!email) return json({ success: false, message: 'email is required' }, 400);
+
+  var files = await getSubscriberFiles(env, email);
+  for (var i = 0; i < files.length; i++) {
+    var file = files[i];
+    var sidecarKey = 'gallery/' + file + '.json';
+    var sidecar = {};
+    try {
+      var existingObj = await env.GALLERY_BUCKET.get(sidecarKey);
+      if (existingObj) sidecar = await existingObj.json();
+    } catch (e) {}
+    if (sidecar.email === email) {
+      delete sidecar.email;
+      await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
+        httpMetadata: { contentType: 'application/json' }
+      });
+      if (sidecar.carId) await clearSidecarCarId(env, file);
+    }
+  }
+  await env.VOTES.delete('subscriber:' + email);
+  if (files.length) await triggerManifestRebuild(env);
+
+  return json({ success: true });
 }
 
 async function handleCommentLike(request, env, ctx) {
@@ -2740,6 +2904,18 @@ export default {
     }
     if (url.pathname === '/gallery/admin/subscribers' && request.method === 'GET') {
       return handleGalleryAdminSubscribersList(request, env);
+    }
+    if (url.pathname === '/gallery/admin/subscribers' && request.method === 'POST') {
+      return handleGalleryAdminSubscriberCreate(request, env);
+    }
+    if (url.pathname === '/gallery/admin/subscribers/rename' && request.method === 'POST') {
+      return handleGalleryAdminSubscriberRename(request, env);
+    }
+    if (url.pathname === '/gallery/admin/subscribers/unassign' && request.method === 'POST') {
+      return handleGalleryAdminSubscriberUnassign(request, env);
+    }
+    if (url.pathname === '/gallery/admin/subscribers' && request.method === 'DELETE') {
+      return handleGalleryAdminSubscriberDelete(request, env);
     }
     if (url.pathname === '/comments/like' && request.method === 'POST') {
       return handleCommentLike(request, env, ctx);

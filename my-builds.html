@@ -2273,7 +2273,6 @@ document.addEventListener('DOMContentLoaded', function () {
           .then(function (res) { return res.json(); })
           .then(function (data) {
             if (data && data.success) {
-              currentCarId = data.carId;
               loadCars();
             } else {
               confirmBtn.disabled = false;

@@ -38,6 +38,18 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://mt3uk.com/blog.html</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://mt3uk.com/blog-richard.html</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://mt3uk.com/images/site/65-model-3-build-spec--by-richard.jpg</loc>
     <lastmod>2026-09-25</lastmod>
     <changefreq>monthly</changefreq>
@@ -197,6 +209,15 @@
     <priority>0.7</priority>
     <image:image>
       <image:loc>https://mt3uk.com/images/site/ms_mx_plaid_performance_seat_premium_01-768x768.jpg</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://mt3uk.com/images/site/mt3uk-intro-logo.png</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://mt3uk.com/images/site/mt3uk-intro-logo.png</image:loc>
     </image:image>
   </url>
   <url>

@@ -255,20 +255,6 @@
     "added": "2026-09-19"
   },
   {
-    "file": "model-3-race-spec-build--by-maverick.jpg",
-    "caption": "MODEL 3 RACE SPEC BUILD",
-    "name": "MAVERICK",
-    "mods": [
-      "MPP COMFORT COILOVERS",
-      "MPP FRONT UPPER CONTROL ARMS",
-      "CMST REAR SPOILER"
-    ],
-    "votable": false,
-    "gallery": false,
-    "reel": false,
-    "added": "2026-09-18"
-  },
-  {
     "file": "green-purple-goblin--by-rich.jpg",
     "caption": "GREEN PURPLE GOBLIN",
     "name": "RICH",
@@ -469,6 +455,24 @@
     "file": "52-green-4-go--by-rich.jpg",
     "caption": "GREEN 4 GO",
     "name": "RICH",
+    "mods": [
+      "KW v3 Coilovers",
+      "MPP Front Upper and Rear Control arms",
+      "MPP Rear Traction and Trailing arms",
+      "Highland Performance style seats",
+      "Robot Crypton Front bumper",
+      "Carbon Factory Rear Diffuser",
+      "CMST Carbon rear spoiler",
+      "Tevo T4 Forged 20x9 wheels",
+      "AP Racing Radical CP9660 Front Calipers",
+      "AP Racing 372x32 Front Slotted discs",
+      "AP Racing rear 355x24 Rear discs",
+      "Teslogic v2 transmitter",
+      "Carbon steering wheel",
+      "LED interior dash",
+      "Avery Gloss Hidden Forest Vinyl wrap"
+    ],
+    "color": "Green",
     "added": "2026-09-18"
   },
   {

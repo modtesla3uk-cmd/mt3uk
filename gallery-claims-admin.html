@@ -108,6 +108,7 @@
 
   <section>
     <h2>Unclaimed photos</h2>
+    <datalist id="subscriber-emails"></datalist>
     <div id="unclaimed-photos"></div>
   </section>
 
@@ -273,7 +274,7 @@
         (p.caption ? '<div class="card-meta">' + escapeHtml(p.caption) + '</div>' : '') +
         statusHtml +
         '<div class="assign-row">' +
-          '<input type="email" class="assign-email" placeholder="owner@email.com">' +
+          '<input type="email" class="assign-email" list="subscriber-emails" autocomplete="off" name="assign-email-' + escapeHtml(p.file) + '" placeholder="owner@email.com">' +
           '<button type="button" class="assign-btn" data-file="' + escapeHtml(p.file) + '">Assign</button>' +
         '</div>' +
       '</div>';
@@ -293,6 +294,19 @@
         unclaimedEl.innerHTML = unclaimed.length ? '' : '<p class="empty">No unclaimed photos.</p>';
         unclaimed.forEach(function (p) { unclaimedEl.appendChild(renderUnclaimed(p)); });
       });
+  }
+
+  function loadSubscribers(key) {
+    var datalist = document.getElementById('subscriber-emails');
+    return fetch(API + '/gallery/admin/subscribers?key=' + encodeURIComponent(key))
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (!data || !data.success) return;
+        datalist.innerHTML = (data.subscribers || []).map(function (email) {
+          return '<option value="' + escapeHtml(email) + '"></option>';
+        }).join('');
+      })
+      .catch(function () {});
   }
 
   unclaimedEl.addEventListener('click', function (e) {
@@ -435,7 +449,7 @@
     sessionStorage.setItem('mt3ukClaimsAdminKey', key);
     statusEl.textContent = 'Loading…';
 
-    Promise.all([loadClaims(key), loadUnclaimed(key), loadReported(key)])
+    Promise.all([loadClaims(key), loadUnclaimed(key), loadReported(key), loadSubscribers(key)])
       .then(function () {
         statusEl.textContent = '';
       })

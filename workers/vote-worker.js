@@ -1224,6 +1224,22 @@ async function handleGalleryAdminUnclaimedList(request, env) {
   return json({ success: true, unclaimed: unclaimed });
 }
 
+// Lets the admin pick an existing subscriber from a list rather than typing
+// their email from memory when assigning an unclaimed photo.
+async function handleGalleryAdminSubscribersList(request, env) {
+  var url = new URL(request.url);
+  var key = url.searchParams.get('key');
+  if (!env.ADMIN_KEY || key !== env.ADMIN_KEY) {
+    return json({ success: false, message: 'Unauthorized' }, 401);
+  }
+
+  var list = await env.VOTES.list({ prefix: 'subscriber:' });
+  var subscribers = list.keys.map(function (k) { return k.name.slice('subscriber:'.length); });
+  subscribers.sort();
+
+  return json({ success: true, subscribers: subscribers });
+}
+
 async function handleCommentLike(request, env, ctx) {
   var body;
   try {
@@ -2721,6 +2737,9 @@ export default {
     }
     if (url.pathname === '/gallery/admin/unclaimed' && request.method === 'GET') {
       return handleGalleryAdminUnclaimedList(request, env);
+    }
+    if (url.pathname === '/gallery/admin/subscribers' && request.method === 'GET') {
+      return handleGalleryAdminSubscribersList(request, env);
     }
     if (url.pathname === '/comments/like' && request.method === 'POST') {
       return handleCommentLike(request, env, ctx);

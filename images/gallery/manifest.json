@@ -20,7 +20,6 @@
   {
     "file": "rear-shot-of-the-green-knight-tessa.jpeg",
     "caption": "REAR SHOT OF THE GREEN KNIGHT TESSA",
-    "votable": false,
     "added": "2026-09-24"
   },
   {
@@ -81,7 +80,6 @@
     "mods": [
       "New front bearings"
     ],
-    "votable": false,
     "added": "2026-09-21"
   },
   {
@@ -291,7 +289,6 @@
       "LED interior dash",
       "Avery Gloss Hidden Forest Vinyl wrap"
     ],
-    "votable": false,
     "color": "Green",
     "added": "2026-09-18"
   },
@@ -669,7 +666,6 @@
   {
     "file": "16-model-3-ubdergrlow-1788655208711.jpg",
     "caption": "MODEL 3 UBDERGRLOW",
-    "unclaimed": true,
     "added": "2026-09-18"
   },
   {
@@ -711,13 +707,11 @@
   {
     "file": "01-model-s-gt-wing.jpg",
     "caption": "MODEL S GT WING",
-    "unclaimed": true,
     "added": "2026-09-18"
   },
   {
     "file": "03-model-3-green-blk-forged-wheels.jpg",
     "caption": "MODEL 3 GREEN BLK FORGED WHEELS",
-    "unclaimed": true,
     "added": "2026-09-18"
   },
   {
@@ -735,7 +729,6 @@
   {
     "file": "09-model-3-trackday.jpg",
     "caption": "MODEL 3 TRACKDAY",
-    "unclaimed": true,
     "added": "2026-09-18"
   }
 ]

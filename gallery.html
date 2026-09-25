@@ -1145,14 +1145,18 @@
     var grid = document.getElementById('gallery-grid');
     var pagination = document.getElementById('gallery-pagination');
     var filtersEl = document.getElementById('gallery-filters');
-    var COLORS = ['Red', 'White', 'Black', 'Pink', 'Green'];
+    var COLORS = ['Red', 'White', 'Black', 'Grey', 'Silver', 'Pink', 'Green', 'Other'];
     var allPhotos = [];
     var filteredPhotos = [];
     var currentColor = '';
     var currentPage = 1;
 
     function renderFilters() {
-      var swatches = { Red: '#c0392b', White: '#f3f1ea', Black: '#1a1a1a', Pink: '#e5789c', Green: '#3f7d4f' };
+      var swatches = {
+        Red: '#c0392b', White: '#f3f1ea', Black: '#1a1a1a', Grey: '#8a8f96', Silver: '#c7cdd3',
+        Pink: '#e5789c', Green: '#3f7d4f',
+        Other: 'repeating-linear-gradient(45deg, #b5aa94, #b5aa94 3px, #8a7f68 3px, #8a7f68 6px)'
+      };
       filtersEl.innerHTML = '<button type="button" class="filter-btn' + (currentColor === '' ? ' active' : '') + '" data-color="">All</button>' +
         COLORS.map(function (c) {
           return '<button type="button" class="filter-btn' + (currentColor === c ? ' active' : '') + '" data-color="' + c + '">' +
@@ -1302,19 +1306,6 @@
       return window.mt3ukGalleryPhotos || [];
     }
 
-    function findSameMemberIndex(fromIndex, direction) {
-      var photos = getPhotos();
-      if (!photos.length) return fromIndex;
-      var name = photos[fromIndex] ? (photos[fromIndex].name || '') : '';
-      var i = fromIndex;
-      for (var step = 0; step < photos.length; step++) {
-        i = (i + direction + photos.length) % photos.length;
-        if (i === fromIndex) break;
-        if ((photos[i].name || '') === name) return i;
-      }
-      return fromIndex;
-    }
-
     function showAt(index) {
       var photos = getPhotos();
       if (!photos.length) return;
@@ -1328,8 +1319,8 @@
       lightboxMods.classList.toggle('has-mods', mods.length > 0);
     }
 
-    function goNext() { showAt(findSameMemberIndex(currentIndex, 1)); }
-    function goPrev() { showAt(findSameMemberIndex(currentIndex, -1)); }
+    function goNext() { showAt(currentIndex + 1); }
+    function goPrev() { showAt(currentIndex - 1); }
 
     function openLightbox(index) {
       showAt(index);

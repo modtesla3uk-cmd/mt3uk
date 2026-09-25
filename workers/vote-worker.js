@@ -1168,7 +1168,7 @@ async function setSidecarMods(env, file, mods) {
   });
 }
 
-var CAR_COLORS = ['Red', 'White', 'Black', 'Pink', 'Green', 'Other'];
+var CAR_COLORS = ['Red', 'White', 'Black', 'Grey', 'Silver', 'Pink', 'Green', 'Other'];
 
 async function setSidecarColor(env, file, color) {
   var sidecarKey = 'gallery/' + file + '.json';
@@ -1304,17 +1304,44 @@ async function handleMyBuildsGet(request, env) {
   // sidecar) so a build the owner just uploaded or edited shows up right
   // away, not just after the (cached, for /votes and /likes) window or the
   // manifest rebuild pipeline catches up.
-  var manifest = files.length ? await listGalleryEntriesFromR2(env).catch(function () { return []; }) : [];
+  var manifestOk = true;
+  var manifest = [];
+  if (files.length) {
+    try {
+      manifest = await listGalleryEntriesFromR2(env);
+    } catch (e) {
+      manifestOk = false;
+    }
+  }
   var byFile = {};
   manifest.forEach(function (p) { byFile[p.file] = p; });
+
+  // If the live listing failed, fall back to a bare-bones entry built from
+  // each filename (no mods/colour/carId - those only live in sidecars) so
+  // a transient R2 error degrades to a temporarily ungrouped view instead
+  // of making the subscriber's builds vanish or signing them out.
+  if (!manifestOk) {
+    files.forEach(function (f) {
+      var stem = f.replace(/\.[a-zA-Z0-9]+$/, '');
+      var split = splitSubmitterName(stem);
+      var caption = captionFromFilenameStem(split.stem);
+      var entry = { file: f, mods: [], votable: true, gallery: true, reel: true, uploadedAt: 0 };
+      if (caption) entry.caption = caption;
+      if (split.name) entry.name = split.name;
+      byFile[f] = entry;
+    });
+  }
 
   // A file can be missing from the live listing if it was deleted straight
   // from R2 (e.g. via the Delete Photo GitHub Action) rather than through
   // this API, which wouldn't have had a chance to prune it from the
   // subscriber's saved file list. Drop it here, and persist the cleanup so
   // it doesn't keep resurfacing as an empty placeholder on every load.
+  // Only trust this when the listing actually succeeded - a transient R2
+  // error must never be allowed to look like "every photo was deleted" and
+  // wipe out the subscriber's saved file list.
   var liveFiles = files.filter(function (f) { return byFile[f]; });
-  if (liveFiles.length !== files.length) {
+  if (manifestOk && liveFiles.length !== files.length) {
     await env.VOTES.put('subscriber:' + email, JSON.stringify(liveFiles));
   }
 

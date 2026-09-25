@@ -1,5 +1,23 @@
 [
   {
+    "file": "m3p-almost-stock.jpg",
+    "caption": "M3P ALMOST STOCK",
+    "mods": [
+      "Eibach lowering kit",
+      "Bonoss 20mm Wheel spacers",
+      "Maxton v2 body kit"
+    ],
+    "color": "White",
+    "added": "2026-09-25"
+  },
+  {
+    "file": "m3p-almost-stock-2.jpg",
+    "caption": "M3P ALMOST STOCK 2",
+    "votable": false,
+    "color": "White",
+    "added": "2026-09-25"
+  },
+  {
     "file": "rear-shot-of-the-green-knight-tessa.jpeg",
     "caption": "REAR SHOT OF THE GREEN KNIGHT TESSA",
     "votable": false,

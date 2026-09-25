@@ -3237,7 +3237,9 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ file: file })
           }).catch(function () {});
-          reportedFiles.push(file);
+          // Re-read first so a report made in another tab or section isn't overwritten
+          try { reportedFiles = JSON.parse(localStorage.getItem('mt3ukReportedPhotos') || '[]'); } catch (e) {}
+          if (reportedFiles.indexOf(file) === -1) reportedFiles.push(file);
           localStorage.setItem('mt3ukReportedPhotos', JSON.stringify(reportedFiles));
           showBfToast('Reported');
         });
@@ -4224,7 +4226,9 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ file: file })
           }).catch(function () {});
-          reportedVotePhotos.push(file);
+          // Re-read first so a report made in another tab or section isn't overwritten
+          try { reportedVotePhotos = JSON.parse(localStorage.getItem('mt3ukReportedPhotos') || '[]'); } catch (e) {}
+          if (reportedVotePhotos.indexOf(file) === -1) reportedVotePhotos.push(file);
           localStorage.setItem('mt3ukReportedPhotos', JSON.stringify(reportedVotePhotos));
         });
       });

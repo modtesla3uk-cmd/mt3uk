@@ -1412,7 +1412,9 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ file: p.file })
       }).catch(function () {});
-      reportedFiles.push(p.file);
+      // Re-read first so a report made in another tab or section isn't overwritten
+      try { reportedFiles = JSON.parse(localStorage.getItem('mt3ukReportedPhotos') || '[]'); } catch (e) {}
+      if (reportedFiles.indexOf(p.file) === -1) reportedFiles.push(p.file);
       localStorage.setItem('mt3ukReportedPhotos', JSON.stringify(reportedFiles));
     });
 

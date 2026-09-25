@@ -141,6 +141,9 @@
     "file": "scarlett--by-jeremy-3.jpg",
     "caption": "SCARLETT",
     "name": "JEREMY",
+    "mods": [
+      "test mod"
+    ],
     "votable": false,
     "color": "Red",
     "added": "2026-09-20"
@@ -149,6 +152,9 @@
     "file": "scarlett--by-jeremy-2.jpg",
     "caption": "SCARLETT",
     "name": "JEREMY",
+    "mods": [
+      "test mod"
+    ],
     "votable": false,
     "color": "Red",
     "added": "2026-09-20"
@@ -157,6 +163,9 @@
     "file": "scarlett--by-jeremy.jpg",
     "caption": "SCARLETT",
     "name": "JEREMY",
+    "mods": [
+      "test mod"
+    ],
     "votable": false,
     "color": "Red",
     "added": "2026-09-20"

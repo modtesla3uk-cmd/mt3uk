@@ -104,7 +104,8 @@ function splitSubmitterName(stem) {
 // bucket instead of the GitHub-committed manifest, so a photo uploaded (or
 // edited) seconds ago is immediately eligible for voting/liking instead of
 // waiting on the sync-manifests Action to run and be published.
-async function listGalleryEntriesFromR2(env) {
+async function listGalleryEntriesFromR2(env, opts) {
+  var includeEmail = opts && opts.includeEmail;
   var objects = [];
   var cursor;
   do {
@@ -131,6 +132,7 @@ async function listGalleryEntriesFromR2(env) {
     var carId = null;
     var votableSince = null;
     var color = null;
+    var sidecarEmail = null;
     var sidecarKey = o.key + '.json';
     if (sidecarKeys[sidecarKey]) {
       try {
@@ -146,6 +148,7 @@ async function listGalleryEntriesFromR2(env) {
           if (typeof sidecar.carId === 'string' && sidecar.carId) carId = sidecar.carId;
           if (typeof sidecar.votableSince === 'string' && sidecar.votableSince) votableSince = sidecar.votableSince;
           if (typeof sidecar.color === 'string' && sidecar.color) color = sidecar.color;
+          if (includeEmail && typeof sidecar.email === 'string' && sidecar.email) sidecarEmail = sidecar.email;
         }
       } catch (e) {}
     }
@@ -155,6 +158,7 @@ async function listGalleryEntriesFromR2(env) {
     if (split.name) entry.name = split.name;
     if (carId) entry.carId = carId;
     if (color) entry.color = color;
+    if (includeEmail && sidecarEmail) entry.email = sidecarEmail;
     // votableSince lets a photo that's re-enabled for voting after being opted
     // out become eligible again immediately, instead of being stuck outside the
     // today/yesterday eligibility window keyed off its original upload date.
@@ -1308,13 +1312,33 @@ async function handleMyBuildsGet(request, env) {
   var manifest = [];
   if (files.length) {
     try {
-      manifest = await listGalleryEntriesFromR2(env);
+      manifest = await listGalleryEntriesFromR2(env, { includeEmail: true });
     } catch (e) {
       manifestOk = false;
     }
   }
   var byFile = {};
   manifest.forEach(function (p) { byFile[p.file] = p; });
+
+  // R2's list() (used by listGalleryEntriesFromR2) is only eventually
+  // consistent, unlike get/put by key - a photo just uploaded (e.g. via
+  // "Add Another Car", which reloads this page immediately after) can
+  // briefly be missing from it. Self-heal by re-adding any live photo
+  // whose sidecar names this subscriber as the owner but that dropped out
+  // of their saved file list, so a lagging listing can never look like a
+  // deleted build and get pruned away below.
+  var filesChanged = false;
+  if (manifestOk) {
+    var fileSet = {};
+    files.forEach(function (f) { fileSet[f] = true; });
+    manifest.forEach(function (p) {
+      if (p.email === email && !fileSet[p.file]) {
+        files.push(p.file);
+        fileSet[p.file] = true;
+        filesChanged = true;
+      }
+    });
+  }
 
   // If the live listing failed, fall back to a bare-bones entry built from
   // each filename (no mods/colour/carId - those only live in sidecars) so
@@ -1341,7 +1365,7 @@ async function handleMyBuildsGet(request, env) {
   // error must never be allowed to look like "every photo was deleted" and
   // wipe out the subscriber's saved file list.
   var liveFiles = files.filter(function (f) { return byFile[f]; });
-  if (manifestOk && liveFiles.length !== files.length) {
+  if (manifestOk && (filesChanged || liveFiles.length !== files.length)) {
     await env.VOTES.put('subscriber:' + email, JSON.stringify(liveFiles));
   }
 

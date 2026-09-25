@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="robots" content="noindex, nofollow">
-<title>Build Claims — MT3UK</title>
+<title>Build Claims & Reports — MT3UK</title>
 <style>
   :root {
     --ink: #16233d;
@@ -24,7 +24,9 @@
     border-bottom: 1px solid rgba(255,255,255,0.15);
   }
   h1 { font-size: 1rem; letter-spacing: 0.04em; margin: 0 0 4px; color: var(--orange); }
-  main { max-width: 700px; margin: 0 auto; padding: 24px; }
+  h2 { font-size: 0.85rem; letter-spacing: 0.04em; margin: 0 0 14px; color: var(--white); text-transform: uppercase; }
+  main { max-width: 760px; margin: 0 auto; padding: 24px; }
+  section { margin-bottom: 40px; }
   .key-row { display: flex; gap: 8px; margin-bottom: 20px; }
   .key-row input {
     flex: 1;
@@ -32,6 +34,14 @@
     border: 1px solid rgba(255,255,255,0.3);
     color: var(--white);
     padding: 10px 12px;
+    font-family: inherit;
+    font-size: inherit;
+  }
+  input[type="email"], input[type="text"] {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: var(--white);
+    padding: 8px 10px;
     font-family: inherit;
     font-size: inherit;
   }
@@ -45,41 +55,66 @@
     cursor: pointer;
   }
   button:hover { opacity: 0.9; }
-  #status { color: var(--steel); margin-bottom: 16px; }
-  .claim {
+  button:disabled { opacity: 0.5; cursor: default; }
+  button.secondary { background: none; border: 1px solid rgba(255,255,255,0.35); color: var(--white); }
+  button.danger { background: none; border: 1px solid #ff6b6b; color: #ff6b6b; }
+  button.danger:hover { background: #ff6b6b; color: var(--ink); }
+  .status { color: var(--steel); margin-bottom: 16px; }
+  .card {
     border: 1px solid rgba(255,255,255,0.2);
     margin-bottom: 18px;
     display: flex;
     gap: 14px;
     padding: 14px;
   }
-  .claim img { width: 96px; height: 96px; object-fit: cover; flex-shrink: 0; }
-  .claim-body { flex: 1; min-width: 0; }
-  .claim-file { color: var(--steel); font-size: 0.72rem; word-break: break-all; }
-  .claim-email { color: var(--orange); margin: 4px 0; }
-  .claim-note { margin: 6px 0; word-break: break-word; }
-  .claim-meta { color: var(--steel); font-size: 0.68rem; margin-bottom: 10px; }
-  .claim-status { font-size: 0.68rem; margin-top: 6px; }
-  .claim-status.approved { color: #4caf7d; }
-  .claim-status.rejected { color: #ff6b6b; }
-  .claim-actions { display: flex; gap: 10px; }
+  .card img { width: 96px; height: 96px; object-fit: cover; flex-shrink: 0; }
+  .card-body { flex: 1; min-width: 0; }
+  .card-file { color: var(--steel); font-size: 0.72rem; word-break: break-all; }
+  .card-email { color: var(--orange); margin: 4px 0; }
+  .card-note { margin: 6px 0; word-break: break-word; }
+  .card-meta { color: var(--steel); font-size: 0.68rem; margin-bottom: 10px; }
+  .card-status { font-size: 0.68rem; margin-top: 6px; }
+  .card-status.approved { color: #4caf7d; }
+  .card-status.rejected { color: #ff6b6b; }
+  .card-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
   .approve-btn { background: #4caf7d; }
   .reject-btn { background: none; border: 1px solid #ff6b6b; color: #ff6b6b; }
   .reject-btn:hover { background: #ff6b6b; color: var(--ink); }
+  .assign-row { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  .assign-row input { flex: 1; min-width: 160px; }
   .empty { color: var(--steel); }
 </style>
 </head>
 <body>
 <header>
-  <h1>BUILD CLAIMS</h1>
+  <h1>BUILD CLAIMS &amp; REPORTS</h1>
   <div class="key-row">
     <input type="password" id="admin-key" placeholder="Admin key" autocomplete="off">
-    <button id="load-btn" type="button">Load claims</button>
+    <button id="load-btn" type="button">Load</button>
   </div>
 </header>
 <main>
-  <p id="status"></p>
-  <div id="claims"></div>
+  <p class="status" id="status"></p>
+
+  <section>
+    <h2>Pending claims</h2>
+    <div id="pending-claims"></div>
+  </section>
+
+  <section>
+    <h2>Decided claims</h2>
+    <div id="decided-claims"></div>
+  </section>
+
+  <section>
+    <h2>Unclaimed photos</h2>
+    <div id="unclaimed-photos"></div>
+  </section>
+
+  <section>
+    <h2>Reported photos</h2>
+    <div id="reported-photos"></div>
+  </section>
 </main>
 <script>
 (function () {
@@ -88,7 +123,10 @@
   var keyInput = document.getElementById('admin-key');
   var loadBtn = document.getElementById('load-btn');
   var statusEl = document.getElementById('status');
-  var claimsEl = document.getElementById('claims');
+  var pendingEl = document.getElementById('pending-claims');
+  var decidedEl = document.getElementById('decided-claims');
+  var unclaimedEl = document.getElementById('unclaimed-photos');
+  var reportedEl = document.getElementById('reported-photos');
 
   var savedKey = sessionStorage.getItem('mt3ukClaimsAdminKey');
   if (savedKey) keyInput.value = savedKey;
@@ -99,58 +137,67 @@
     });
   }
 
-  function renderClaim(c) {
+  function imgUrl(file) {
+    return R2 + '/gallery/' + encodeURIComponent(file);
+  }
+
+  // ---------- Claims (pending + decided) ----------
+
+  function renderPendingClaim(c) {
     var div = document.createElement('div');
-    div.className = 'claim';
-    var statusHtml = c.status === 'pending'
-      ? '<div class="claim-actions">' +
+    div.className = 'card';
+    div.innerHTML =
+      '<img src="' + imgUrl(c.file) + '" alt="">' +
+      '<div class="card-body">' +
+        '<div class="card-file">' + escapeHtml(c.file) + '</div>' +
+        '<div class="card-email">' + escapeHtml(c.email) + '</div>' +
+        (c.note ? '<p class="card-note">' + escapeHtml(c.note) + '</p>' : '') +
+        '<div class="card-meta">Requested ' + escapeHtml(c.requestedAt || '') + '</div>' +
+        '<div class="card-actions">' +
           '<button type="button" class="approve-btn" data-file="' + escapeHtml(c.file) + '" data-decision="approve">Approve</button>' +
           '<button type="button" class="reject-btn" data-file="' + escapeHtml(c.file) + '" data-decision="reject">Reject</button>' +
-        '</div>'
-      : '<p class="claim-status ' + escapeHtml(c.status) + '">' + escapeHtml(c.status) + '</p>';
-    div.innerHTML =
-      '<img src="' + R2 + '/gallery/' + encodeURIComponent(c.file) + '" alt="">' +
-      '<div class="claim-body">' +
-        '<div class="claim-file">' + escapeHtml(c.file) + '</div>' +
-        '<div class="claim-email">' + escapeHtml(c.email) + '</div>' +
-        (c.note ? '<p class="claim-note">' + escapeHtml(c.note) + '</p>' : '') +
-        '<div class="claim-meta">Requested ' + escapeHtml(c.requestedAt || '') + '</div>' +
-        statusHtml +
+        '</div>' +
       '</div>';
     return div;
   }
 
-  function loadClaims() {
-    var key = keyInput.value.trim();
-    if (!key) {
-      statusEl.textContent = 'Enter the admin key first.';
-      return;
-    }
-    sessionStorage.setItem('mt3ukClaimsAdminKey', key);
-    statusEl.textContent = 'Loading claims…';
-    claimsEl.innerHTML = '';
+  function renderDecidedClaim(c) {
+    var div = document.createElement('div');
+    div.className = 'card';
+    div.innerHTML =
+      '<img src="' + imgUrl(c.file) + '" alt="">' +
+      '<div class="card-body">' +
+        '<div class="card-file">' + escapeHtml(c.file) + '</div>' +
+        '<div class="card-email">' + escapeHtml(c.email) + '</div>' +
+        '<p class="card-status ' + escapeHtml(c.status) + '">' + escapeHtml(c.status) + '</p>' +
+        '<div class="card-actions">' +
+          '<button type="button" class="secondary undo-btn" data-file="' + escapeHtml(c.file) + '">Undo</button>' +
+        '</div>' +
+      '</div>';
+    return div;
+  }
 
-    fetch(API + '/gallery/admin/claims?key=' + encodeURIComponent(key))
+  function loadClaims(key) {
+    return fetch(API + '/gallery/admin/claims?key=' + encodeURIComponent(key))
       .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
       .then(function (result) {
+        pendingEl.innerHTML = '';
+        decidedEl.innerHTML = '';
         if (!result.ok || !result.data || !result.data.success) {
-          statusEl.textContent = (result.data && result.data.message) || 'Could not load claims.';
+          pendingEl.innerHTML = '<p class="empty">' + escapeHtml((result.data && result.data.message) || 'Could not load claims.') + '</p>';
           return;
         }
         var claims = result.data.claims || [];
-        if (!claims.length) {
-          statusEl.textContent = 'No build claims yet.';
-          return;
-        }
-        statusEl.textContent = claims.length + ' claim' + (claims.length === 1 ? '' : 's') + '.';
-        claims.forEach(function (c) { claimsEl.appendChild(renderClaim(c)); });
-      })
-      .catch(function () {
-        statusEl.textContent = 'Network error loading claims.';
+        var pending = claims.filter(function (c) { return c.status === 'pending'; });
+        var decided = claims.filter(function (c) { return c.status !== 'pending'; });
+        pendingEl.innerHTML = pending.length ? '' : '<p class="empty">No pending claims.</p>';
+        pending.forEach(function (c) { pendingEl.appendChild(renderPendingClaim(c)); });
+        decidedEl.innerHTML = decided.length ? '' : '<p class="empty">No decided claims yet.</p>';
+        decided.forEach(function (c) { decidedEl.appendChild(renderDecidedClaim(c)); });
       });
   }
 
-  claimsEl.addEventListener('click', function (e) {
+  pendingEl.addEventListener('click', function (e) {
     var btn = e.target.closest('.approve-btn, .reject-btn');
     if (!btn) return;
     var file = btn.dataset.file;
@@ -159,8 +206,8 @@
     if (!key || !file || !decision) return;
     if (!confirm((decision === 'approve' ? 'Approve' : 'Reject') + ' this claim for "' + file + '"?')) return;
 
-    var actionsWrap = btn.closest('.claim-actions');
-    Array.prototype.forEach.call(actionsWrap.querySelectorAll('button'), function (b) { b.disabled = true; });
+    var card = btn.closest('.card');
+    Array.prototype.forEach.call(card.querySelectorAll('button'), function (b) { b.disabled = true; });
 
     fetch(API + '/gallery/admin/claims/decide?key=' + encodeURIComponent(key), {
       method: 'POST',
@@ -170,27 +217,239 @@
       .then(function (res) { return res.json(); })
       .then(function (data) {
         if (data && data.success) {
-          var statusP = document.createElement('p');
-          statusP.className = 'claim-status ' + data.status;
-          statusP.textContent = data.status;
-          actionsWrap.replaceWith(statusP);
+          card.remove();
+          if (!pendingEl.querySelector('.card')) pendingEl.innerHTML = '<p class="empty">No pending claims.</p>';
+          loadClaims(key);
         } else {
-          Array.prototype.forEach.call(actionsWrap.querySelectorAll('button'), function (b) { b.disabled = false; });
+          Array.prototype.forEach.call(card.querySelectorAll('button'), function (b) { b.disabled = false; });
           alert((data && data.message) || 'Could not update claim.');
         }
       })
       .catch(function () {
-        Array.prototype.forEach.call(actionsWrap.querySelectorAll('button'), function (b) { b.disabled = false; });
+        Array.prototype.forEach.call(card.querySelectorAll('button'), function (b) { b.disabled = false; });
         alert('Network error updating claim.');
       });
   });
 
-  loadBtn.addEventListener('click', loadClaims);
-  keyInput.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') loadClaims();
+  decidedEl.addEventListener('click', function (e) {
+    var btn = e.target.closest('.undo-btn');
+    if (!btn) return;
+    var file = btn.dataset.file;
+    var key = keyInput.value.trim();
+    if (!key || !file) return;
+    if (!confirm('Undo this decision for "' + file + '" and move it back to pending?')) return;
+
+    btn.disabled = true;
+    fetch(API + '/gallery/admin/claims/undo?key=' + encodeURIComponent(key), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ file: file })
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data && data.success) {
+          loadClaims(key);
+        } else {
+          btn.disabled = false;
+          alert((data && data.message) || 'Could not undo claim.');
+        }
+      })
+      .catch(function () {
+        btn.disabled = false;
+        alert('Network error undoing claim.');
+      });
   });
 
-  if (savedKey) loadClaims();
+  // ---------- Unclaimed photos ----------
+
+  function renderUnclaimed(p) {
+    var div = document.createElement('div');
+    div.className = 'card';
+    var statusHtml = p.claimStatus === 'pending' ? '<div class="card-meta">Has a pending claim request</div>' : '';
+    div.innerHTML =
+      '<img src="' + imgUrl(p.file) + '" alt="">' +
+      '<div class="card-body">' +
+        '<div class="card-file">' + escapeHtml(p.file) + '</div>' +
+        (p.caption ? '<div class="card-meta">' + escapeHtml(p.caption) + '</div>' : '') +
+        statusHtml +
+        '<div class="assign-row">' +
+          '<input type="email" class="assign-email" placeholder="owner@email.com">' +
+          '<button type="button" class="assign-btn" data-file="' + escapeHtml(p.file) + '">Assign</button>' +
+        '</div>' +
+      '</div>';
+    return div;
+  }
+
+  function loadUnclaimed(key) {
+    return fetch(API + '/gallery/admin/unclaimed?key=' + encodeURIComponent(key))
+      .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+      .then(function (result) {
+        unclaimedEl.innerHTML = '';
+        if (!result.ok || !result.data || !result.data.success) {
+          unclaimedEl.innerHTML = '<p class="empty">' + escapeHtml((result.data && result.data.message) || 'Could not load unclaimed photos.') + '</p>';
+          return;
+        }
+        var unclaimed = result.data.unclaimed || [];
+        unclaimedEl.innerHTML = unclaimed.length ? '' : '<p class="empty">No unclaimed photos.</p>';
+        unclaimed.forEach(function (p) { unclaimedEl.appendChild(renderUnclaimed(p)); });
+      });
+  }
+
+  unclaimedEl.addEventListener('click', function (e) {
+    var btn = e.target.closest('.assign-btn');
+    if (!btn) return;
+    var card = btn.closest('.card');
+    var emailInput = card.querySelector('.assign-email');
+    var file = btn.dataset.file;
+    var email = emailInput.value.trim();
+    var key = keyInput.value.trim();
+    if (!key || !file) return;
+    if (!email) { alert('Enter the email address to assign this build to.'); return; }
+    if (!confirm('Assign "' + file + '" to ' + email + '?')) return;
+
+    btn.disabled = true;
+    emailInput.disabled = true;
+    fetch(API + '/gallery/admin/claims/assign?key=' + encodeURIComponent(key), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ file: file, email: email })
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data && data.success) {
+          card.remove();
+          if (!unclaimedEl.querySelector('.card')) unclaimedEl.innerHTML = '<p class="empty">No unclaimed photos.</p>';
+          loadClaims(key);
+        } else {
+          btn.disabled = false;
+          emailInput.disabled = false;
+          alert((data && data.message) || 'Could not assign this build.');
+        }
+      })
+      .catch(function () {
+        btn.disabled = false;
+        emailInput.disabled = false;
+        alert('Network error assigning this build.');
+      });
+  });
+
+  // ---------- Reported photos ----------
+
+  function renderReported(r) {
+    var div = document.createElement('div');
+    div.className = 'card';
+    div.innerHTML =
+      '<img src="' + imgUrl(r.file) + '" alt="">' +
+      '<div class="card-body">' +
+        '<div class="card-file">' + escapeHtml(r.file) + '</div>' +
+        '<div class="card-meta">' + r.reports + ' report' + (r.reports === 1 ? '' : 's') + '</div>' +
+        '<div class="card-actions">' +
+          '<button type="button" class="secondary dismiss-btn" data-file="' + escapeHtml(r.file) + '">Dismiss</button>' +
+          '<button type="button" class="danger delete-photo-btn" data-file="' + escapeHtml(r.file) + '">Delete photo</button>' +
+        '</div>' +
+      '</div>';
+    return div;
+  }
+
+  function loadReported(key) {
+    return fetch(API + '/gallery/admin/reports?key=' + encodeURIComponent(key))
+      .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+      .then(function (result) {
+        reportedEl.innerHTML = '';
+        if (!result.ok || !result.data || !result.data.success) {
+          reportedEl.innerHTML = '<p class="empty">' + escapeHtml((result.data && result.data.message) || 'Could not load reported photos.') + '</p>';
+          return;
+        }
+        var reported = result.data.reported || [];
+        reportedEl.innerHTML = reported.length ? '' : '<p class="empty">No reported photos right now.</p>';
+        reported.forEach(function (r) { reportedEl.appendChild(renderReported(r)); });
+      });
+  }
+
+  reportedEl.addEventListener('click', function (e) {
+    var dismissBtn = e.target.closest('.dismiss-btn');
+    var deleteBtn = e.target.closest('.delete-photo-btn');
+    var key = keyInput.value.trim();
+    if (!key) return;
+
+    if (dismissBtn) {
+      var file = dismissBtn.dataset.file;
+      if (!confirm('Dismiss the report(s) on "' + file + '" and keep the photo live?')) return;
+      var card = dismissBtn.closest('.card');
+      Array.prototype.forEach.call(card.querySelectorAll('button'), function (b) { b.disabled = true; });
+      fetch(API + '/gallery/admin/reports/dismiss?key=' + encodeURIComponent(key), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file: file })
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (data && data.success) {
+            card.remove();
+            if (!reportedEl.querySelector('.card')) reportedEl.innerHTML = '<p class="empty">No reported photos right now.</p>';
+          } else {
+            Array.prototype.forEach.call(card.querySelectorAll('button'), function (b) { b.disabled = false; });
+            alert((data && data.message) || 'Could not dismiss report.');
+          }
+        })
+        .catch(function () {
+          Array.prototype.forEach.call(card.querySelectorAll('button'), function (b) { b.disabled = false; });
+          alert('Network error dismissing report.');
+        });
+      return;
+    }
+
+    if (deleteBtn) {
+      var delFile = deleteBtn.dataset.file;
+      if (!confirm('Permanently delete "' + delFile + '"? This cannot be undone.')) return;
+      var delCard = deleteBtn.closest('.card');
+      Array.prototype.forEach.call(delCard.querySelectorAll('button'), function (b) { b.disabled = true; });
+      fetch(API + '/gallery/admin/photo?key=' + encodeURIComponent(key) + '&file=' + encodeURIComponent(delFile), {
+        method: 'DELETE'
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (data && data.success) {
+            delCard.remove();
+            if (!reportedEl.querySelector('.card')) reportedEl.innerHTML = '<p class="empty">No reported photos right now.</p>';
+          } else {
+            Array.prototype.forEach.call(delCard.querySelectorAll('button'), function (b) { b.disabled = false; });
+            alert((data && data.message) || 'Could not delete photo.');
+          }
+        })
+        .catch(function () {
+          Array.prototype.forEach.call(delCard.querySelectorAll('button'), function (b) { b.disabled = false; });
+          alert('Network error deleting photo.');
+        });
+    }
+  });
+
+  // ---------- Load all ----------
+
+  function loadAll() {
+    var key = keyInput.value.trim();
+    if (!key) {
+      statusEl.textContent = 'Enter the admin key first.';
+      return;
+    }
+    sessionStorage.setItem('mt3ukClaimsAdminKey', key);
+    statusEl.textContent = 'Loading…';
+
+    Promise.all([loadClaims(key), loadUnclaimed(key), loadReported(key)])
+      .then(function () {
+        statusEl.textContent = '';
+      })
+      .catch(function () {
+        statusEl.textContent = 'Network error loading data.';
+      });
+  }
+
+  loadBtn.addEventListener('click', loadAll);
+  keyInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') loadAll();
+  });
+
+  if (savedKey) loadAll();
 })();
 </script>
 </body>

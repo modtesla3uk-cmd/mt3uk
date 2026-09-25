@@ -3228,6 +3228,7 @@
         btn.addEventListener('click', function (e) {
           e.stopPropagation();
           if (btn.dataset.reported === 'true') return;
+          if (!window.confirm('Report this photo as inappropriate or not a Tesla?')) return;
           var file = btn.closest('.bf-slide').dataset.file;
           btn.dataset.reported = 'true';
           btn.setAttribute('aria-label', 'Reported');
@@ -4213,6 +4214,7 @@
         btn.addEventListener('click', function (e) {
           e.stopPropagation();
           if (btn.disabled) return;
+          if (!window.confirm('Report this photo as inappropriate or not a Tesla?')) return;
           var card = btn.closest('.vote-card');
           var file = card.getAttribute('data-file');
           btn.disabled = true;

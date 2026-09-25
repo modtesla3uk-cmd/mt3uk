@@ -868,6 +868,90 @@ async function handlePhotoReportsAdminList(request, env) {
   return json({ success: true, reported: reported });
 }
 
+async function handlePhotoReportsAdminDismiss(request, env) {
+  var url = new URL(request.url);
+  var key = url.searchParams.get('key');
+  if (!env.ADMIN_KEY || key !== env.ADMIN_KEY) {
+    return json({ success: false, message: 'Unauthorized' }, 401);
+  }
+
+  var body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return json({ success: false, message: 'Invalid request body' }, 400);
+  }
+  var file = ((body && body.file) || '').toString();
+  if (!file) return json({ success: false, message: 'file is required' }, 400);
+
+  await env.VOTES.delete('photo-reports:' + file);
+
+  // Dismissing means the report was unfounded, so undo the auto-hide (if
+  // the report threshold had been hit) rather than leaving the photo
+  // suppressed with no report record left to explain why.
+  var sidecarKey = 'gallery/' + file + '.json';
+  var sidecar = null;
+  try {
+    var existingObj = await env.GALLERY_BUCKET.get(sidecarKey);
+    if (existingObj) sidecar = await existingObj.json();
+  } catch (e) {}
+  if (sidecar && (sidecar.gallery === false || sidecar.reel === false || sidecar.votable === false)) {
+    sidecar.gallery = true;
+    sidecar.reel = true;
+    sidecar.votable = true;
+    await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
+      httpMetadata: { contentType: 'application/json' }
+    });
+    await triggerManifestRebuild(env);
+  }
+
+  return json({ success: true });
+}
+
+async function handleGalleryAdminPhotoDelete(request, env) {
+  var url = new URL(request.url);
+  var key = url.searchParams.get('key');
+  if (!env.ADMIN_KEY || key !== env.ADMIN_KEY) {
+    return json({ success: false, message: 'Unauthorized' }, 401);
+  }
+
+  var file = url.searchParams.get('file') || '';
+  if (!file) return json({ success: false, message: 'file is required' }, 400);
+
+  var sidecarKey = 'gallery/' + file + '.json';
+  var sidecar = null;
+  try {
+    var existingObj = await env.GALLERY_BUCKET.get(sidecarKey);
+    if (existingObj) sidecar = await existingObj.json();
+  } catch (e) {}
+
+  await env.GALLERY_BUCKET.delete('gallery/' + file);
+  await env.GALLERY_BUCKET.delete(sidecarKey);
+  await env.VOTES.delete('photo-reports:' + file);
+  await env.VOTES.delete('likes:' + file);
+  await env.VOTES.delete(claimKey(file));
+
+  if (sidecar && sidecar.email) {
+    await removeSubscriberFile(env, sidecar.email, file);
+  }
+  if (sidecar && sidecar.carId) {
+    var carRecordForDelete = await getCarRecord(env, sidecar.carId);
+    if (carRecordForDelete) {
+      var remainingPhotos = (carRecordForDelete.photos || []).filter(function (f) { return f !== file; });
+      if (remainingPhotos.length) {
+        carRecordForDelete.photos = remainingPhotos;
+        await saveCarRecord(env, carRecordForDelete);
+      } else {
+        await deleteCarRecord(env, sidecar.carId);
+      }
+    }
+  }
+
+  await triggerManifestRebuild(env);
+
+  return json({ success: true, deleted: file });
+}
+
 function claimKey(file) {
   return 'claim:' + file;
 }
@@ -1018,6 +1102,126 @@ async function handleGalleryClaimsAdminDecide(request, env) {
   await saveClaim(env, file, claim);
 
   return json({ success: true, status: claim.status });
+}
+
+// Reverts a decided (approved/rejected) claim back to pending so the admin
+// can re-decide it — e.g. an approval was a mistake, or a rejection should
+// be reconsidered after more evidence came in.
+async function handleGalleryClaimsAdminUndo(request, env) {
+  var url = new URL(request.url);
+  var key = url.searchParams.get('key');
+  if (!env.ADMIN_KEY || key !== env.ADMIN_KEY) {
+    return json({ success: false, message: 'Unauthorized' }, 401);
+  }
+
+  var body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return json({ success: false, message: 'Invalid request body' }, 400);
+  }
+  var file = ((body && body.file) || '').toString();
+  if (!file) return json({ success: false, message: 'file is required' }, 400);
+
+  var claim = await getClaim(env, file);
+  if (!claim || claim.status === 'pending') {
+    return json({ success: false, message: 'No decided claim for that file' }, 404);
+  }
+
+  if (claim.status === 'approved') {
+    var sidecarKey = 'gallery/' + file + '.json';
+    var sidecar = {};
+    try {
+      var existingObj = await env.GALLERY_BUCKET.get(sidecarKey);
+      if (existingObj) sidecar = await existingObj.json();
+    } catch (e) {}
+    delete sidecar.email;
+    await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
+      httpMetadata: { contentType: 'application/json' }
+    });
+    await removeSubscriberFile(env, claim.email, file);
+    if (sidecar.carId) await clearSidecarCarId(env, file);
+    await triggerManifestRebuild(env);
+  }
+
+  claim.status = 'pending';
+  delete claim.decidedAt;
+  await saveClaim(env, file, claim);
+
+  return json({ success: true, status: 'pending' });
+}
+
+// Lets the admin directly assign ownership of an unclaimed legacy photo to a
+// subscriber's email, bypassing the request/approve flow — for cases where
+// the admin already knows who the build belongs to.
+async function handleGalleryClaimsAdminAssign(request, env) {
+  var url = new URL(request.url);
+  var key = url.searchParams.get('key');
+  if (!env.ADMIN_KEY || key !== env.ADMIN_KEY) {
+    return json({ success: false, message: 'Unauthorized' }, 401);
+  }
+
+  var body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return json({ success: false, message: 'Invalid request body' }, 400);
+  }
+  var file = ((body && body.file) || '').toString();
+  var email = ((body && body.email) || '').toString().trim().toLowerCase();
+  if (!file || !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return json({ success: false, message: 'file and a valid email are required' }, 400);
+  }
+
+  var sidecarKey = 'gallery/' + file + '.json';
+  var sidecar = {};
+  try {
+    var existingObj = await env.GALLERY_BUCKET.get(sidecarKey);
+    if (existingObj) sidecar = await existingObj.json();
+  } catch (e) {}
+  sidecar.email = email;
+  await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
+    httpMetadata: { contentType: 'application/json' }
+  });
+  await addSubscriberFiles(env, email, [file]);
+  await triggerManifestRebuild(env);
+
+  var existingClaim = await getClaim(env, file);
+  if (existingClaim && existingClaim.status === 'pending') {
+    existingClaim.status = 'approved';
+    existingClaim.decidedAt = new Date().toISOString();
+    await saveClaim(env, file, existingClaim);
+  }
+
+  return json({ success: true });
+}
+
+async function handleGalleryAdminUnclaimedList(request, env) {
+  var url = new URL(request.url);
+  var key = url.searchParams.get('key');
+  if (!env.ADMIN_KEY || key !== env.ADMIN_KEY) {
+    return json({ success: false, message: 'Unauthorized' }, 401);
+  }
+
+  var entries = await listGalleryEntriesFromR2(env);
+  var unclaimed = entries.filter(function (e) { return e.unclaimed; });
+
+  var list = await env.VOTES.list({ prefix: 'claim:' });
+  var claims = await Promise.all(list.keys.map(function (k) { return env.VOTES.get(k.name); }));
+  var claimStatusByFile = {};
+  claims.forEach(function (raw) {
+    try {
+      var parsed = JSON.parse(raw);
+      if (parsed && parsed.file) claimStatusByFile[parsed.file] = parsed.status;
+    } catch (e) {}
+  });
+
+  unclaimed.forEach(function (e) {
+    e.claimStatus = claimStatusByFile[e.file] || null;
+  });
+  unclaimed.sort(function (a, b) { return (b.uploadedAt || 0) - (a.uploadedAt || 0); });
+
+  return json({ success: true, unclaimed: unclaimed });
 }
 
 async function handleCommentLike(request, env, ctx) {
@@ -1382,6 +1586,21 @@ async function setSidecarCarId(env, file, carId, ownerEmail) {
   // Backfills the owner email onto legacy sidecars that predate comment
   // notifications, so this photo starts receiving them from here on.
   if (!sidecar.email && ownerEmail) sidecar.email = ownerEmail;
+  await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
+    httpMetadata: { contentType: 'application/json' }
+  });
+}
+
+// Un-stamps a photo's carId so it drops back into the shared "legacy"
+// virtual grouping instead of belonging to any real car record.
+async function clearSidecarCarId(env, file) {
+  var sidecarKey = 'gallery/' + file + '.json';
+  var sidecar = {};
+  try {
+    var existingObj = await env.GALLERY_BUCKET.get(sidecarKey);
+    if (existingObj) sidecar = await existingObj.json();
+  } catch (e) {}
+  delete sidecar.carId;
   await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
     httpMetadata: { contentType: 'application/json' }
   });
@@ -1815,6 +2034,99 @@ async function handleMyBuildsCarUpdate(request, env) {
   await triggerManifestRebuild(env);
 
   return json({ success: true, car: record });
+}
+
+// Moves a single photo from whichever car (real or the shared virtual/
+// legacy grouping) it currently belongs to into another one - used both as
+// a general "tidy up my garage" tool and to fix a freshly-claimed legacy
+// photo (which has no carId, so it defaults into its own virtual group)
+// landing as a separate car instead of joining an existing one.
+async function handleMyBuildsPhotoMove(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+
+  var body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return json({ success: false, message: 'Invalid request body' }, 400);
+  }
+
+  var file = ((body && body.file) || '').toString();
+  var targetCarId = ((body && body.targetCarId) || '').toString();
+  var newCarName = ((body && body.newCarName) || '').toString().trim().slice(0, 150);
+  if (!file || !targetCarId) {
+    return json({ success: false, message: 'file and targetCarId are required' }, 400);
+  }
+
+  var files = await getSubscriberFiles(env, email);
+  if (files.indexOf(file) === -1) {
+    return json({ success: false, message: 'That build is not linked to your account' }, 403);
+  }
+
+  var sidecarKey = 'gallery/' + file + '.json';
+  var sidecar = {};
+  try {
+    var existingObj = await env.GALLERY_BUCKET.get(sidecarKey);
+    if (existingObj) sidecar = await existingObj.json();
+  } catch (e) {}
+  var currentCarId = sidecar.carId || null;
+
+  if (targetCarId === (currentCarId || LEGACY_VIRTUAL_CAR_ID)) {
+    return json({ success: false, message: 'That photo is already in that build' }, 400);
+  }
+
+  // Detach from its current real car (if any) before attaching elsewhere.
+  if (currentCarId) {
+    var currentRecord = await getCarRecord(env, currentCarId);
+    if (currentRecord) {
+      var remaining = (currentRecord.photos || []).filter(function (f) { return f !== file; });
+      if (remaining.length) {
+        currentRecord.photos = remaining;
+        await saveCarRecord(env, currentRecord);
+      } else {
+        await deleteCarRecord(env, currentCarId);
+      }
+    }
+  }
+
+  var resultCarId;
+  if (targetCarId === 'new') {
+    resultCarId = randomToken();
+    var newRecord = {
+      id: resultCarId,
+      email: email,
+      name: newCarName || 'New build',
+      photos: [file],
+      mods: [],
+      color: '',
+      createdAt: new Date().toISOString()
+    };
+    await saveCarRecord(env, newRecord);
+    await setSidecarCarId(env, file, resultCarId, email);
+  } else if (targetCarId === LEGACY_VIRTUAL_CAR_ID) {
+    resultCarId = LEGACY_VIRTUAL_CAR_ID;
+    await clearSidecarCarId(env, file);
+  } else {
+    var targetRecord = await getCarRecord(env, targetCarId);
+    if (!targetRecord || targetRecord.email !== email) {
+      return json({ success: false, message: 'That build is not linked to your account' }, 403);
+    }
+    resultCarId = targetCarId;
+    if ((targetRecord.photos || []).indexOf(file) === -1) {
+      targetRecord.photos = (targetRecord.photos || []).concat([file]);
+    }
+    await saveCarRecord(env, targetRecord);
+    await setSidecarCarId(env, file, targetCarId, email);
+    // Shared mods/colour apply to every photo in a car, so a moved-in photo
+    // should pick up its new car's, the same as one added via upload.
+    await setSidecarMods(env, file, targetRecord.mods || []);
+    if (targetRecord.color) await setSidecarColor(env, file, targetRecord.color);
+  }
+
+  await triggerManifestRebuild(env);
+
+  return json({ success: true, carId: resultCarId });
 }
 
 async function handleMyBuildsUpload(request, env) {
@@ -2386,6 +2698,12 @@ export default {
     if (url.pathname === '/gallery/admin/reports' && request.method === 'GET') {
       return handlePhotoReportsAdminList(request, env);
     }
+    if (url.pathname === '/gallery/admin/reports/dismiss' && request.method === 'POST') {
+      return handlePhotoReportsAdminDismiss(request, env);
+    }
+    if (url.pathname === '/gallery/admin/photo' && request.method === 'DELETE') {
+      return handleGalleryAdminPhotoDelete(request, env);
+    }
     if (url.pathname === '/gallery/claim' && request.method === 'POST') {
       return handleGalleryClaim(request, env);
     }
@@ -2394,6 +2712,15 @@ export default {
     }
     if (url.pathname === '/gallery/admin/claims/decide' && request.method === 'POST') {
       return handleGalleryClaimsAdminDecide(request, env);
+    }
+    if (url.pathname === '/gallery/admin/claims/undo' && request.method === 'POST') {
+      return handleGalleryClaimsAdminUndo(request, env);
+    }
+    if (url.pathname === '/gallery/admin/claims/assign' && request.method === 'POST') {
+      return handleGalleryClaimsAdminAssign(request, env);
+    }
+    if (url.pathname === '/gallery/admin/unclaimed' && request.method === 'GET') {
+      return handleGalleryAdminUnclaimedList(request, env);
     }
     if (url.pathname === '/comments/like' && request.method === 'POST') {
       return handleCommentLike(request, env, ctx);
@@ -2430,6 +2757,9 @@ export default {
     }
     if (url.pathname === '/my-builds/car' && request.method === 'PUT') {
       return handleMyBuildsCarUpdate(request, env);
+    }
+    if (url.pathname === '/my-builds/photo/move' && request.method === 'PUT') {
+      return handleMyBuildsPhotoMove(request, env);
     }
     if (url.pathname === '/my-builds' && request.method === 'DELETE') {
       return handleMyBuildsDelete(request, env);

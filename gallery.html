@@ -611,6 +611,8 @@
   }
   .g-mods-badge:hover { background: var(--orange); border-color: var(--orange); }
   .g-mods-badge svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
+  .g-claim-badge { position: absolute; top: 8px; left: 8px; z-index: 2; background: rgba(232,84,42,0.9); border: 1px solid var(--orange); color: var(--paper); padding: 4px 8px; cursor: pointer; font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; letter-spacing: 0.03em; }
+  .g-claim-badge:hover { background: var(--orange); }
   .gallery-note {
     margin-top: 20px;
     font-size: 0.85rem;
@@ -1194,9 +1196,11 @@
             '<svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9 2.6-2.6z"/></svg>' +
             p.mods.length +
           '</button>' : '';
+        var claimBadge = p.unclaimed ? '<button type="button" class="g-claim-badge">Claim this build</button>' : '';
         return '<div class="gallery-slot filled" data-file="' + p.file.replace(/"/g, '&quot;') + '">' +
                  '<img src="' + window.MT3UK_R2_BASE + '/gallery/' + p.file.replace(/&/g, '&amp;') + '" alt="' + (safeCaption || 'MT3UK member build') + '" loading="lazy"' + modsAttr + '>' +
                  modsBadge +
+                 claimBadge +
                  captionHtml +
                '</div>';
       }).join('');
@@ -1399,6 +1403,7 @@
       var photos = getPhotos();
       var p = photos[currentIndex];
       if (!p || reportBtn.disabled) return;
+      if (!window.confirm('Report this photo as inappropriate or not a Tesla?')) return;
       reportBtn.disabled = true;
       reportBtn.textContent = 'Reported';
       fetch(MT3UK_API + '/gallery/report', {
@@ -1435,7 +1440,12 @@
         var photos = getPhotos();
         var idx = photos.findIndex(function (p) { return p.file === file; });
         if (idx === -1) return;
+        var claimBadgeEl = e.target.closest('.g-claim-badge');
         openLightbox(idx);
+        if (claimBadgeEl) {
+          e.stopPropagation();
+          claimBtn.click();
+        }
       });
     }
 

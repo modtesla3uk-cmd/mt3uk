@@ -525,8 +525,10 @@
   .gallery-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 0;
+    gap: 4px;
+    background: var(--paper);
     border: 1px solid var(--ink);
+    padding: 4px;
   }
   @media (max-width: 900px) { .gallery-grid { grid-template-columns: repeat(3, 1fr); } }
   @media (max-width: 560px) { .gallery-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -542,7 +544,6 @@
     color: var(--steel);
     position: relative;
     border: 1px dashed var(--steel);
-    margin: -1px;
     overflow: hidden;
   }
   .gallery-slot .mono { text-align: center; padding: 0 14px; }

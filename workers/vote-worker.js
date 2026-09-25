@@ -17,6 +17,7 @@ const SHOPIFY_PRODUCTS_URL = 'https://mt3uk.myshopify.com/products.json?limit=25
 const SHOP_PRODUCTS_CACHE_SECONDS = 60 * 2;
 const MY_BUILDS_FROM_EMAIL = 'noreply@mt3uk.com';
 const MY_BUILDS_LINK_TTL_SECONDS = 15 * 60;
+const BUILD_ASSIGNED_LINK_TTL_SECONDS = 7 * 24 * 60 * 60;
 const MY_BUILDS_SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
 const MY_BUILDS_SITE_URL = 'https://mt3uk.com';
 const SUBSCRIBERS_DIGEST_EMAIL = 'modtesla3uk@gmail.com';
@@ -1159,11 +1160,11 @@ async function handleGalleryClaimsAdminUndo(request, env) {
 // the one that reliably lands in the inbox instead of junk.
 async function sendBuildAssignedEmail(env, toEmail, file) {
   var token = randomToken();
-  await env.VOTES.put('my-builds-link:' + token, toEmail, { expirationTtl: MY_BUILDS_LINK_TTL_SECONDS });
+  await env.VOTES.put('my-builds-link:' + token, toEmail, { expirationTtl: BUILD_ASSIGNED_LINK_TTL_SECONDS });
   var link = MY_BUILDS_SITE_URL + '/my-builds.html?token=' + token;
   var subject = 'A build was linked to your account';
   var body = 'An image was assigned to you. Use this one-time link to sign in to My Garage and view it:\n\n' + link +
-    '\n\nThis link expires in 15 minutes and can only be used once. ' +
+    '\n\nThis link expires in 7 days and can only be used once. ' +
     'If you did not expect this, you can ignore this email.';
   var message = new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body));
   await env.SEND_EMAIL.send(message);

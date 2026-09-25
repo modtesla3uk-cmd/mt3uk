@@ -1,0 +1,45 @@
+{
+  "_note": "Owner Interviews shown on the homepage. Each one appears on its publish date (UK time). The next unpublished one is teased as 'Next interview'. Optional heroPosition (CSS background-position) frames the car in the homepage hero, e.g. for portrait photos.",
+  "interviews": [
+    {
+      "name": "Richard",
+      "car": "Model 3 Performance",
+      "year": "2019",
+      "title": "Founding the MT3UK Community",
+      "excerpt": "From a white Model 3 lost in the crowd to a Hidden Forest wrap, KW coilovers and track days. Richard on why he started MT3UK.",
+      "url": "blog-richard.html",
+      "image": "images/blog/owner-interviews/richard/hidden-forest-wrap.jpg",
+      "publish": "2026-10-01"
+    },
+    {
+      "name": "Mark",
+      "car": "Model Y",
+      "title": "Terry the Tesla: Mark’s Deep Blue Model Y",
+      "excerpt": "Red accents, louvres, a boot spoiler and the advice Mark would give other modders.",
+      "url": "blog-mark.html",
+      "image": "images/blog/owner-interviews/mark/arch-rear.jpg",
+      "heroPosition": "center 78%",
+      "publish": "2026-10-15"
+    },
+    {
+      "name": "Aaron",
+      "car": "Model 3 Performance",
+      "title": "Firebolt: Aaron’s Red Model 3 Performance",
+      "excerpt": "Swapping a tuned BMW M3 for a Model 3 Performance, Matrix LEDs, a splitter and diffuser, and a 10-country road trip.",
+      "url": "blog-aaron.html",
+      "image": "images/blog/owner-interviews/aaron/swiss-alps.jpg",
+      "heroPosition": "center 80%",
+      "publish": "2026-10-29"
+    },
+    {
+      "name": "Richie",
+      "car": "Model 3 Long Range",
+      "year": "2021",
+      "title": "Meet Bert: Richie’s Deep Blue Model 3",
+      "excerpt": "Budget-friendly mods, ambient lighting and why you should drive what makes you happy.",
+      "url": "blog-richie.html",
+      "image": "images/blog/owner-interviews/richie/front-three-quarter.jpg",
+      "publish": "2026-11-26"
+    }
+  ]
+}

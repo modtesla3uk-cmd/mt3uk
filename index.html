@@ -344,6 +344,24 @@
   .hamburger[aria-expanded="true"] .hamburger-bar:nth-child(2) { opacity: 0; }
   .hamburger[aria-expanded="true"] .hamburger-bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
+  .nav-link-mobile {
+    display: none !important;
+  }
+  @media (max-width: 780px) {
+    .nav-link-mobile {
+      display: flex !important;
+      justify-content: center;
+      padding: 14px 16px;
+      margin: 10px 16px;
+      border: none;
+      border-top: 2px solid var(--orange);
+      border-radius: 4px;
+      background: var(--orange);
+      color: var(--paper) !important;
+      font-weight: 600;
+    }
+  }
+
   @media (min-width: 781px) {
     .nav-search:hover .nav-search-panel,
     .nav-search:focus-within .nav-search-panel { display: block; }
@@ -589,57 +607,6 @@
   .category-card:hover .card-chevron path:nth-child(2) { opacity: 0.85; }
   .category-card:hover .card-chevron path:nth-child(3) { opacity: 1.00; stroke: #ff6a3d; }
 
-  /* ---------- VOTING & STATS SECTION ---------- */
-  .voting-stats-section {
-    background: var(--paper);
-    padding: 24px 0 32px;
-    border-bottom: 1px solid var(--ink);
-  }
-  .voting-header {
-    margin-bottom: 16px;
-  }
-  .voting-prefix {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.78rem;
-    color: var(--orange);
-    margin-bottom: 4px;
-    display: block;
-  }
-  .voting-header h3 {
-    font-family: 'Archivo Expanded', sans-serif;
-    font-size: 1.1rem;
-    letter-spacing: 0.04em;
-    color: var(--charcoal);
-    margin-bottom: 4px;
-  }
-  .voting-header p {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.8rem;
-    color: var(--steel);
-  }
-  .voting-header p strong {
-    color: var(--orange);
-  }
-  .stats-row {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-    padding-top: 16px;
-    border-top: 1px solid rgba(22, 35, 61, 0.15);
-  }
-  .stat-col strong {
-    display: block;
-    font-family: 'Archivo Expanded', sans-serif;
-    font-size: 1.4rem;
-    color: var(--charcoal);
-  }
-  .stat-col span {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.68rem;
-    color: var(--steel);
-    letter-spacing: 0.04em;
-  }
-
   @media (max-width: 600px) {
     .categories-grid {
       grid-template-columns: repeat(2, 1fr);
@@ -767,6 +734,7 @@
   @media (min-width: 861px) {
     #build-feed .section-head,
     #build-of-the-day .section-head,
+    #owner-interviews .section-head,
     #events .section-head,
     #track-days .section-head,
     #faq .section-head {
@@ -776,6 +744,7 @@
 
     #build-feed .section-head p,
     #build-of-the-day .section-head p,
+    #owner-interviews .section-head p,
     #events .section-head p,
     #track-days .section-head p,
     #faq .section-head p {
@@ -2027,9 +1996,222 @@
   @media (max-width: 480px) {
     .a2hs-banner { flex-direction: column; align-items: flex-start; }
   }
+
+  /* ---------- HOMEPAGE REFRESH: announcement bar, interview hero, categories, owner interviews, car of the day ---------- */
+  .hp-announce { display: block; background: #c8431d; color: #ffffff; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 0.74rem; font-weight: 500; letter-spacing: 0.08em; line-height: 1.4; padding: 10px 16px; text-decoration: none; text-transform: uppercase; }
+  .hp-announce:hover { background: #a93814; color: #ffffff; }
+  .hp-announce[hidden] { display: none; }
+
+  .hero.hp-hero { display: flex; align-items: flex-end; min-height: 560px; padding: 72px 0 0; background-position: center; background-image: linear-gradient(rgba(14, 22, 40, 0.45), rgba(14, 22, 40, 0.94) 72%), url('images/blog/owner-interviews/richard/hidden-forest-wrap.jpg'); }
+  .hp-hero > .wrap { width: 100%; }
+  .hp-hero .hero-grid { justify-items: start; text-align: left; }
+  .hp-hero h1 { max-width: 20ch; font-size: clamp(1.9rem, 5vw, 3.4rem); margin-bottom: 10px; }
+  .hp-eyebrow { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 0.74rem; letter-spacing: 0.14em; line-height: 1.5; color: #f58a68; margin-bottom: 12px; text-transform: uppercase; }
+  .hp-hero-meta { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; letter-spacing: 0.06em; color: #d3d8e2; text-transform: uppercase; margin: 0 0 24px; }
+  .hp-hero-ctas { display: flex; flex-wrap: wrap; gap: 12px; }
+  .hp-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 12px 22px; font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none; border: 1px solid transparent; transition: background 0.2s ease, color 0.2s ease; }
+  .hp-btn-primary { background: #c8431d; color: #ffffff; }
+  .hp-btn-primary:hover { background: #a93814; color: #ffffff; }
+  .hp-btn-ghost { border-color: rgba(255, 255, 255, 0.6); color: #ffffff; background: transparent; }
+  .hp-btn-ghost:hover { background: rgba(255, 255, 255, 0.12); color: #ffffff; }
+  .hp-hero-next { display: flex; align-items: center; gap: 12px; max-width: 460px; margin-top: 18px; padding: 10px 14px 10px 10px; background: rgba(14, 22, 40, 0.55); border: 1px dashed rgba(245, 138, 104, 0.7); color: #ffffff; text-decoration: none; transition: background 0.2s ease, border-color 0.2s ease; }
+  .hp-hero-next:hover { background: rgba(14, 22, 40, 0.8); border-color: #f58a68; color: #ffffff; }
+  .hp-hero-next[hidden] { display: none; }
+  .hp-next-thumb { width: 72px; height: 54px; flex-shrink: 0; overflow: hidden; background: var(--ink); }
+  .hp-next-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; filter: blur(4px) saturate(0.8); transform: scale(1.15); }
+  .hp-next-text { min-width: 0; }
+  .hp-next-label { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 0.66rem; letter-spacing: 0.08em; color: #f58a68; text-transform: uppercase; margin-bottom: 2px; }
+  .hp-next-title { display: block; font-weight: 600; font-size: 0.92rem; line-height: 1.3; color: #ffffff; }
+  .hp-next-sub { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 0.78rem; line-height: 1.4; color: #d3d8e2; margin-top: 2px; }
+  .hp-next-arrow { margin-left: auto; padding-left: 4px; font-family: 'IBM Plex Mono', monospace; color: #f58a68; }
+  .hp-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 28px; padding: 18px 0 26px; border-top: 1px solid rgba(255, 255, 255, 0.2); width: 100%; max-width: 560px; }
+  .hp-stats strong { display: block; min-height: 1.2em; font-family: 'Archivo Expanded', sans-serif; font-size: 1.4rem; color: #ffffff; line-height: 1.2; }
+  .hp-stats span { font-family: 'IBM Plex Mono', monospace; font-size: 0.66rem; letter-spacing: 0.06em; color: #b9c0cf; }
+  @media (max-width: 600px) { .hero.hp-hero { min-height: 520px; } .hp-hero-ctas .hp-btn { flex: 1 1 140px; } }
+
+  .category-card.hp-cat { flex-direction: column; align-items: stretch; justify-content: space-between; gap: 10px; min-height: 96px; }
+  .category-card.hp-cat-wide { grid-column: 1 / -1; min-height: 76px; }
+  .hp-cat-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .hp-cat-meta { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; line-height: 1.45; color: #56606f; }
+  @media (min-width: 900px) { .categories-grid.hp-cats { grid-template-columns: repeat(4, 1fr); } }
+  .hp-new { font-style: normal; font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; font-weight: 500; letter-spacing: 0.08em; background: #c8431d; color: #ffffff; padding: 2px 6px; }
+
+  .hp-int-grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
+  @media (min-width: 900px) { .hp-int-grid { grid-template-columns: 1.3fr 1fr; align-items: start; } }
+  .hp-int-list { display: flex; flex-direction: column; gap: 12px; }
+  .hp-int-item { display: flex; gap: 14px; align-items: center; padding: 12px; border: 1px solid var(--ink); background: #ffffff; text-decoration: none; color: var(--charcoal); }
+  a.hp-int-item:hover { background: var(--paper-2); }
+  .hp-int-item.is-next { border-style: dashed; background: transparent; }
+  .hp-int-thumb { width: 104px; height: 76px; flex-shrink: 0; overflow: hidden; background: var(--paper-2); }
+  .hp-int-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .is-next .hp-int-thumb img { filter: blur(5px) saturate(0.8); transform: scale(1.15); }
+  .hp-int-label { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; letter-spacing: 0.08em; color: #b83c19; margin-bottom: 4px; text-transform: uppercase; }
+  .hp-int-title { display: block; font-weight: 600; font-size: 0.95rem; line-height: 1.3; }
+  .hp-int-sub { display: block; font-size: 0.82rem; color: #56606f; margin-top: 2px; }
+  .hp-int-all { display: inline-block; margin-top: 14px; font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; font-weight: 500; color: #b83c19; text-decoration: none; }
+  .hp-int-all:hover { text-decoration: underline; }
+  .hp-int-cta { background: var(--ink); color: var(--paper); padding: 24px 20px; display: flex; flex-direction: column; gap: 10px; }
+  .hp-int-cta .hp-int-cta-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; letter-spacing: 0.1em; color: #b9c0cf; }
+  .hp-int-cta h3 { font-family: 'Archivo Expanded', sans-serif; font-size: 1.15rem; color: #ffffff; margin: 0; }
+  .hp-int-cta p { color: #d3d8e2; font-size: 0.92rem; margin: 0 0 6px; }
+
+  .hp-countdown { font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem; color: #56606f; margin-top: 4px; }
+  .hp-countdown strong { color: #b83c19; }
 </style>
 </head>
 <body>
+<!-- MT3UK intro splash: plays once per browser session on the homepage, then holds on the logo until the visitor clicks, taps or presses a key. -->
+<script>
+(function () {
+  var KEY = 'mt3ukIntroSeen';
+  var force = /[?&]intro=1\b/.test(location.search);
+  try { if (!force && sessionStorage.getItem(KEY)) return; } catch (e) {}
+  try { sessionStorage.setItem(KEY, '1'); } catch (e) {}
+
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var doc = document.documentElement;
+
+  var css = [
+    '#mt3uk-intro{position:fixed;inset:0;z-index:2147483000;background:#0e1628;overflow:hidden;cursor:pointer;',
+    'display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;',
+    'clip-path:polygon(0 0,100% 0,100% 100%,0 100%);}',
+    '#mt3uk-intro .ix-grid{position:absolute;inset:-50%;opacity:.14;',
+    'background-image:linear-gradient(90deg,#4a6491 1px,transparent 1px),linear-gradient(#4a6491 1px,transparent 1px);',
+    'background-size:64px 64px;transform:perspective(600px) rotateX(62deg) translateY(0);transform-origin:50% 100%;}',
+    '#mt3uk-intro .ix-glow{position:absolute;left:50%;top:50%;width:120vmax;height:60vmax;transform:translate(-50%,-50%);',
+    'background:radial-gradient(closest-side,rgba(232,84,42,.18),transparent 70%);opacity:0;}',
+    '#mt3uk-intro .ix-streak{position:absolute;left:0;height:2px;width:40vw;border-radius:2px;',
+    'background:linear-gradient(90deg,transparent,#f3f1ea);opacity:0;transform:translateX(-50vw);}',
+    '#mt3uk-intro .ix-stage{position:relative;width:min(90vw,706px);}',
+    '#mt3uk-intro .ix-logo{position:relative;width:100%;aspect-ratio:706/105;}',
+    '#mt3uk-intro .ix-mark,#mt3uk-intro .ix-line{position:absolute;inset:0;',
+    'background:url(images/site/mt3uk-intro-logo.png) no-repeat 0 0/100% 100%;}',
+    '#mt3uk-intro .ix-mark{clip-path:inset(0 0 11% 0);opacity:0;transform:translateX(-60vw) skewX(-18deg);}',
+    '#mt3uk-intro .ix-line{clip-path:inset(89% 100% 0 0);}',
+    '#mt3uk-intro .ix-tag{margin-top:clamp(14px,2.4vw,22px);font:500 clamp(.62rem,1.6vw,.82rem)/1.4 "IBM Plex Mono",ui-monospace,monospace;',
+    'letter-spacing:.32em;color:#f3f1ea;text-align:center;white-space:nowrap;opacity:0;}',
+    '#mt3uk-intro .ix-skip{position:absolute;right:16px;bottom:14px;font:500 .64rem "IBM Plex Mono",ui-monospace,monospace;',
+    'letter-spacing:.2em;color:#7c8798;opacity:0;}',
+    '#mt3uk-intro .ix-enter{margin-top:clamp(22px,4vw,36px);font:600 clamp(.66rem,1.7vw,.8rem)/1.4 "IBM Plex Mono",ui-monospace,monospace;',
+    'letter-spacing:.28em;color:#e8542a;text-align:center;white-space:nowrap;opacity:0;}',
+    '#mt3uk-intro:focus{outline:none}',
+    'html.mt3uk-intro-lock,html.mt3uk-intro-lock body{overflow:hidden!important;}',
+    '@keyframes ixStreak{0%{opacity:0;transform:translateX(-50vw)}15%{opacity:.9}100%{opacity:0;transform:translateX(160vw)}}',
+    '@keyframes ixMark{0%{opacity:0;transform:translateX(-60vw) skewX(-18deg);filter:blur(6px)}',
+    '55%{opacity:1;transform:translateX(3%) skewX(-6deg);filter:blur(0)}',
+    '75%{transform:translateX(-1%) skewX(2deg)}100%{opacity:1;transform:none;filter:none}}',
+    '@keyframes ixLine{to{clip-path:inset(89% 0 0 0)}}',
+    '@keyframes ixPulse{0%,100%{opacity:.45}50%{opacity:1}}',
+    '@keyframes ixHide{to{opacity:0}}',
+    '@keyframes ixFade{to{opacity:1}}',
+    '@keyframes ixGlow{0%{opacity:0}40%{opacity:1}100%{opacity:.6}}',
+    '@keyframes ixGrid{to{transform:perspective(600px) rotateX(62deg) translateY(64px)}}',
+    '@keyframes ixTag{0%{opacity:0;letter-spacing:.7em}100%{opacity:.85;letter-spacing:.32em}}',
+    '@keyframes ixOut{0%{clip-path:polygon(0 0,100% 0,100% 100%,0 100%)}100%{clip-path:polygon(115% 0,100% 0,100% 100%,100% 100%)}}',
+    '#mt3uk-intro.ix-go .ix-grid{animation:ixGrid .5s linear infinite}',
+    '#mt3uk-intro.ix-go .ix-glow{animation:ixGlow 2.4s ease-out .75s forwards}',
+    '#mt3uk-intro.ix-go .ix-streak{animation:ixStreak 1.05s cubic-bezier(.3,.1,.2,1) forwards}',
+    '#mt3uk-intro.ix-go .ix-mark{animation:ixMark 1.35s cubic-bezier(.2,.8,.2,1) .35s forwards}',
+    '#mt3uk-intro.ix-go .ix-line{animation:ixLine .7s cubic-bezier(.7,0,.2,1) 1.5s forwards}',
+    '#mt3uk-intro.ix-go .ix-tag{animation:ixTag 1s ease-out 1.95s forwards}',
+    '#mt3uk-intro.ix-go .ix-skip{animation:ixFade .4s ease 1s forwards,ixHide .3s ease 2.9s forwards}',
+    '#mt3uk-intro.ix-go .ix-enter{animation:ixFade .5s ease 3s forwards,ixPulse 1.8s ease-in-out 3.5s infinite}',
+    '#mt3uk-intro.ix-out{animation:ixOut .8s cubic-bezier(.7,0,.25,1) forwards;pointer-events:none}',
+    '#mt3uk-intro.ix-reduced{transition:opacity .4s ease}',
+    '#mt3uk-intro.ix-reduced *{animation:none!important}',
+    '#mt3uk-intro.ix-reduced .ix-mark,#mt3uk-intro.ix-reduced .ix-tag{opacity:1;transform:none}',
+    '#mt3uk-intro.ix-reduced .ix-line{clip-path:inset(89% 0 0 0)}',
+    '#mt3uk-intro.ix-reduced .ix-enter{opacity:1}',
+    '#mt3uk-intro.ix-reduced .ix-skip{display:none}',
+    '#mt3uk-intro.ix-reduced.ix-out{opacity:0}'
+  ].join('');
+
+  var style = document.createElement('style');
+  style.textContent = css;
+  document.head.appendChild(style);
+
+  var el = document.createElement('div');
+  el.id = 'mt3uk-intro';
+  el.setAttribute('role', 'button');
+  el.setAttribute('tabindex', '0');
+  el.setAttribute('aria-label', 'Enter MT3UK');
+  var touch = window.matchMedia && window.matchMedia('(hover: none)').matches;
+  var streaks = '';
+  var tops = [22, 38, 61, 74, 86];
+  for (var i = 0; i < tops.length; i++) {
+    streaks += '<span class="ix-streak" style="top:' + tops[i] + '%;animation-delay:' + (i * 0.1).toFixed(2) + 's;width:' + (25 + i * 9) + 'vw"></span>';
+  }
+  el.innerHTML = '<div class="ix-grid"></div><div class="ix-glow"></div>' + streaks +
+    '<div class="ix-stage"><div class="ix-logo"><span class="ix-mark"></span><span class="ix-line"></span></div>' +
+    '<div class="ix-tag">MODIFIED TESLA OWNERS COMMUNITY</div>' +
+    '<div class="ix-enter">' + (touch ? 'TAP' : 'CLICK') + ' TO ENTER</div></div>' +
+    '<div class="ix-skip">' + (touch ? 'TAP' : 'CLICK') + ' TO SKIP</div>';
+  if (reduced) el.className = 'ix-reduced';
+  doc.classList.add('mt3uk-intro-lock');
+  doc.appendChild(el);
+  try { el.focus({ preventScroll: true }); } catch (e) {}
+
+  // Whoosh sound, synthesised with Web Audio (no audio file). Browsers only allow it
+  // once the visitor has interacted with the site, so it stays silent otherwise.
+  var AC = window.AudioContext || window.webkitAudioContext, ac = null;
+  function whoosh(delay, dur, f0, f1, vol) {
+    if (!ac || ac.state !== 'running') return;
+    try {
+      var t = ac.currentTime + delay, n = Math.floor(ac.sampleRate * dur);
+      var buf = ac.createBuffer(1, n, ac.sampleRate), d = buf.getChannelData(0);
+      for (var j = 0; j < n; j++) d[j] = Math.random() * 2 - 1;
+      var src = ac.createBufferSource(); src.buffer = buf;
+      var bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 1.4;
+      bp.frequency.setValueAtTime(f0, t); bp.frequency.exponentialRampToValueAtTime(f1, t + dur);
+      var g = ac.createGain(); g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(vol, t + dur * 0.35);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      src.connect(bp); bp.connect(g); g.connect(ac.destination);
+      src.start(t); src.stop(t + dur + 0.05);
+    } catch (e) {}
+  }
+  if (!reduced && AC) { try { ac = new AC(); } catch (e) {} }
+
+  var done = false;
+  function finish(ev) {
+    if (done) return;
+    done = true;
+    if (ac) {
+      if (ev && ac.state !== 'running' && ac.resume) {
+        try { ac.resume().then(function () { whoosh(0, 0.7, 2400, 350, 0.22); }, function () {}); } catch (e) {}
+      } else {
+        whoosh(0, 0.7, 2400, 350, 0.22);
+      }
+      setTimeout(function () { try { ac.close(); } catch (e) {} }, 1500);
+    }
+    el.classList.add('ix-out');
+    doc.classList.remove('mt3uk-intro-lock');
+    setTimeout(function () {
+      if (el.parentNode) el.parentNode.removeChild(el);
+      if (style.parentNode) style.parentNode.removeChild(style);
+    }, 900);
+    window.removeEventListener('keydown', finish);
+  }
+  el.addEventListener('click', finish);
+  window.addEventListener('keydown', finish);
+
+  if (reduced) return;
+
+  // Start once the wordmark is ready, max 500ms wait.
+  var started = false;
+  function start() {
+    if (started) return;
+    started = true;
+    el.classList.add('ix-go');
+    whoosh(0.35, 1.2, 250, 3200, 0.25);
+  }
+  var img = new Image();
+  img.onload = img.onerror = start;
+  img.src = 'images/site/mt3uk-intro-logo.png';
+  if (img.complete) start();
+  setTimeout(start, 500);
+})();
+</script>
 
 <script>
   window.MT3UK_R2_BASE = 'https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev';
@@ -2392,6 +2574,8 @@
   };
 </script>
 
+<a href="#owner-interviews" class="hp-announce" id="hp-announce" hidden></a>
+
 <header>
   <nav>
     <div class="nav-center">
@@ -2401,7 +2585,7 @@
           <a href="#build-feed" class="nav-link">Gallery Feed</a>
           <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Gallery Feed submenu">&#9660;</button>
           <div class="nav-dropdown">
-            <a href="#build-of-the-day" class="nav-sublink">Featured Build</a>
+            <a href="#build-of-the-day" class="nav-sublink">Car of the Day</a>
             <a href="#vote-frame" class="nav-sublink">Vote for Build</a>
             <a href="gallery.html" class="nav-sublink">Full Gallery</a>
           </div>
@@ -2420,6 +2604,7 @@
               <div class="nav-dropdown">
                 <a href="shop.html#tevo" class="nav-sublink">Tevo Solutions</a>
                 <a href="shop.html#redline" class="nav-sublink">Redline Plates</a>
+                <a href="shop.html#evoffer" class="nav-sublink">EVOffer Sport Seats</a>
                 <a href="shop.html#offers" class="nav-sublink nav-sublink-offer">Offers</a>
               </div>
             </div>
@@ -2438,6 +2623,13 @@
           </div>
         </div>
         <div class="nav-item">
+          <a href="blog.html" class="nav-link">Blog</a>
+          <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Blog submenu">&#9660;</button>
+          <div class="nav-dropdown">
+            <a href="blog.html" class="nav-sublink nav-sublink-new">Owner Interviews</a>
+          </div>
+        </div>
+        <div class="nav-item">
           <a href="#about" class="nav-link active">About</a>
           <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle About submenu">&#9660;</button>
           <div class="nav-dropdown">
@@ -2452,6 +2644,7 @@
             <a href="https://ko-fi.com/mt3uk" class="nav-sublink" target="_blank" rel="noopener">Support Us</a>
           </div>
         </div>
+        <a href="https://www.facebook.com/groups/mt3uk/" class="nav-link-mobile" target="_blank" rel="noopener">Join the group</a>
       </div>
     </div>
     <div class="nav-search" id="nav-search">
@@ -2469,14 +2662,22 @@
   </nav>
 </header>
 
-<section class="hero">
+<section class="hero hp-hero" id="hp-hero">
   <div class="wrap">
     <div class="hero-grid">
       <div>
-        <h1 style="color: #ffffff;">JOIN THE MODIFIED TESLA COMMUNITY</h1>
-        <p class="lead" style="color: #ffffff;">MT3UK is the global hub for modified Tesla owners: wraps, wheels, stance, and events. Real builds, honest feedback.</p>
-        <div class="hero-cta-stack">
-          <a href="#build-feed" class="hero-main-cta">EXPLORE THE GALLERY FEED</a>
+        <span class="hp-eyebrow" id="hp-hero-eyebrow">Latest owner interview</span>
+        <h1 style="color: #ffffff;" id="hp-hero-title">Founding the MT3UK Community</h1>
+        <p class="hp-hero-meta" id="hp-hero-meta">Richard &middot; Model 3 Performance &middot; 2019</p>
+        <div class="hp-hero-ctas">
+          <a href="blog-richard.html" class="hp-btn hp-btn-primary" id="hp-hero-cta">Read Richard&rsquo;s story &rarr;</a>
+          <a href="my-builds.html#build-upload" class="hp-btn hp-btn-ghost">Add your car</a>
+        </div>
+        <a href="#owner-interviews" class="hp-hero-next" id="hp-hero-next" hidden></a>
+        <div class="hp-stats">
+          <div><strong class="member-count"></strong><span>MEMBERS</span></div>
+          <div><strong id="hp-stat-builds"></strong><span>BUILDS IN THE GALLERY</span></div>
+          <div><strong id="hp-stat-events"></strong><span>UPCOMING EVENTS</span></div>
         </div>
       </div>
       <div class="hero-media" style="display:none;"></div>
@@ -2484,90 +2685,65 @@
   </div>
 </section>
 
-<!-- CARBON FIBER PATTERN WRAPPER ENCLOSING CATEGORIES & VOTING -->
+<!-- CARBON FIBER PATTERN WRAPPER ENCLOSING CATEGORIES -->
 <div class="tesla-watermark-wrapper">
   <!-- CATEGORIES SECTION -->
   <section class="categories-section">
     <div class="wrap">
       <span class="categories-prefix">01 /</span>
       <h3 class="categories-title">CATEGORIES</h3>
-      <div class="categories-grid">
-        <a href="my-builds.html" class="category-card nav-link-mybuilds-hero">
-          <div class="category-card-content">
-            <svg class="card-icon" viewBox="0 0 24 24"><path d="M3 21V10l9-6 9 6v11"/><path d="M9 21v-8h6v8"/></svg>
-            <span>MY GARAGE</span>
+      <div class="categories-grid hp-cats">
+        <a href="my-builds.html" class="category-card hp-cat nav-link-mybuilds-hero">
+          <div class="hp-cat-top">
+            <div class="category-card-content">
+              <svg class="card-icon" viewBox="0 0 24 24"><path d="M3 21V10l9-6 9 6v11"/><path d="M9 21v-8h6v8"/></svg>
+              <span>MY GARAGE</span>
+            </div>
+            <svg class="card-chevron" viewBox="0 0 24 16" aria-hidden="true"><path d="M2 2l6 6-6 6" /><path d="M8 2l6 6-6 6" /><path d="M14 2l6 6-6 6" /></svg>
           </div>
-          <svg class="card-chevron" viewBox="0 0 24 16" aria-hidden="true">
-            <path d="M2 2l6 6-6 6" />
-            <path d="M8 2l6 6-6 6" />
-            <path d="M14 2l6 6-6 6" />
-          </svg>
+          <div class="hp-cat-meta" id="hp-meta-garage">Add your build to the gallery</div>
         </a>
-        <a href="#events" class="category-card">
-          <div class="category-card-content">
-            <svg class="card-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-            <span>EVENTS</span>
+        <a href="#events" class="category-card hp-cat">
+          <div class="hp-cat-top">
+            <div class="category-card-content">
+              <svg class="card-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+              <span>EVENTS</span>
+            </div>
+            <svg class="card-chevron" viewBox="0 0 24 16" aria-hidden="true"><path d="M2 2l6 6-6 6" /><path d="M8 2l6 6-6 6" /><path d="M14 2l6 6-6 6" /></svg>
           </div>
-          <svg class="card-chevron" viewBox="0 0 24 16" aria-hidden="true">
-            <path d="M2 2l6 6-6 6" />
-            <path d="M8 2l6 6-6 6" />
-            <path d="M14 2l6 6-6 6" />
-          </svg>
+          <div class="hp-cat-meta" id="hp-meta-events">Meets across the UK</div>
         </a>
-        <a href="track-day-prep.html" class="category-card">
-          <div class="category-card-content">
-            <svg class="card-icon" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22V15"/></svg>
-            <span>TRACK DAYS</span>
+        <a href="track-day-prep.html" class="category-card hp-cat">
+          <div class="hp-cat-top">
+            <div class="category-card-content">
+              <svg class="card-icon" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22V15"/></svg>
+              <span>TRACK DAYS</span>
+            </div>
+            <svg class="card-chevron" viewBox="0 0 24 16" aria-hidden="true"><path d="M2 2l6 6-6 6" /><path d="M8 2l6 6-6 6" /><path d="M14 2l6 6-6 6" /></svg>
           </div>
-          <svg class="card-chevron" viewBox="0 0 24 16" aria-hidden="true">
-            <path d="M2 2l6 6-6 6" />
-            <path d="M8 2l6 6-6 6" />
-            <path d="M14 2l6 6-6 6" />
-          </svg>
+          <div class="hp-cat-meta" id="hp-meta-track">Prep guides, venues and on the day</div>
         </a>
-        <a href="shop.html" class="category-card">
-          <div class="category-card-content">
-            <svg class="card-icon" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-            <span>SHOP</span>
+        <a href="shop.html" class="category-card hp-cat">
+          <div class="hp-cat-top">
+            <div class="category-card-content">
+              <svg class="card-icon" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+              <span>SHOP</span>
+            </div>
+            <svg class="card-chevron" viewBox="0 0 24 16" aria-hidden="true"><path d="M2 2l6 6-6 6" /><path d="M8 2l6 6-6 6" /><path d="M14 2l6 6-6 6" /></svg>
           </div>
-          <svg class="card-chevron" viewBox="0 0 24 16" aria-hidden="true">
-            <path d="M2 2l6 6-6 6" />
-            <path d="M8 2l6 6-6 6" />
-            <path d="M14 2l6 6-6 6" />
-          </svg>
+          <div class="hp-cat-meta">Tees, stickers and parts</div>
         </a>
-      </div>
-    </div>
-  </section>
-
-  <!-- CAR OF THE DAY VOTING & STATS -->
-  <section class="voting-stats-section">
-    <div class="wrap">
-      <div class="voting-header" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 14px;">
-        <div>
-          <span class="voting-prefix">01a /</span>
-          <h3>CAR OF THE DAY VOTING</h3>
-          <p id="hero-vote-countdown">Voting resets in <strong>--:--:--</strong></p>
-        </div>
-        <a href="#vote-frame" class="btn" style="padding: 8px 16px; border: 1px solid var(--ink); font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; text-decoration: none; color: var(--ink); background: transparent; display: inline-flex; align-items: center; gap: 6px;">
-          <span>Cast Your Vote</span>
-          <span style="color: var(--orange);">&rarr;</span>
+        <a href="#owner-interviews" class="category-card hp-cat hp-cat-wide" id="hp-cat-interviews">
+          <div class="hp-cat-top">
+            <div class="category-card-content">
+              <svg class="card-icon" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4V5z"/><path d="M8 9h8M8 12h5"/></svg>
+              <span>OWNER INTERVIEWS</span>
+              <em class="hp-new">NEW</em>
+            </div>
+            <svg class="card-chevron" viewBox="0 0 24 16" aria-hidden="true"><path d="M2 2l6 6-6 6" /><path d="M8 2l6 6-6 6" /><path d="M14 2l6 6-6 6" /></svg>
+          </div>
+          <div class="hp-cat-meta" id="hp-meta-interviews">Real members, real builds</div>
         </a>
-      </div>
-      
-      <div class="stats-row">
-        <div class="stat-col">
-          <strong class="member-count"></strong>
-          <span>MEMBERS</span>
-        </div>
-        <div class="stat-col">
-          <strong>GLOBAL</strong>
-          <span>COVERAGE</span>
-        </div>
-        <div class="stat-col">
-          <strong>DAILY</strong>
-          <span>BUILDS</span>
-        </div>
       </div>
     </div>
   </section>
@@ -2602,6 +2778,68 @@
     <div class="section-gallery-cta">
       <p>Want to dig deeper? <strong>The Full Gallery</strong> has every build members have shared, with search-friendly captions and mod lists.</p>
       <a href="gallery.html" class="btn btn-secondary">Browse the Full Gallery</a>
+    </div>
+  </div>
+</section>
+
+<section id="build-of-the-day">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="section-num">03 / CAR OF THE DAY</span>
+        <h2>Today's Car of the Day</h2>
+        <p id="hero-vote-countdown" class="hp-countdown">Voting resets in <strong>--:--:--</strong></p>
+      </div>
+      <p>Picked by your votes. Vote below for tomorrow's winner, and <a href="my-builds.html#build-upload" class="inline-link">add your build</a> to be in the running.</p>
+    </div>
+    <div class="botm-frame" id="botm-frame">
+      <p class="mono" style="padding: 24px; color: var(--steel);">Loading featured build…</p>
+    </div>
+    <div class="section-head" style="margin-top: 36px;">
+      <div>
+        <span class="section-num">VOTE FOR TOMORROW</span>
+        <div class="section-title-row">
+          <h2 class="vote-heading">Vote for tomorrow's Car of the Day</h2>
+          <button type="button" class="refresh-btn" id="vote-refresh-btn" aria-label="Refresh voting builds">&#8635; Refresh</button>
+        </div>
+      </div>
+      <p>Pick your favourite from the recently uploaded builds. The winner becomes tomorrow's Car of the Day. Voting resets at midnight so get your votes in! <span class="vote-countdown" id="vote-countdown"></span> Please do not vote on your own build. Votes are being checked before tallying up for inconsistencies.</p>
+    </div>
+    <div class="vote-frame" id="vote-frame">
+      <p class="mono" style="padding: 24px; color: var(--steel);">Loading builds open for voting…</p>
+    </div>
+    <div class="section-gallery-cta">
+      <p>Liked what you've seen? <strong>The Gallery Feed</strong> has every build members have shared, with search-friendly captions and mod lists.</p>
+      <a href="gallery.html" class="btn btn-secondary">Browse the Full Gallery</a>
+    </div>
+  </div>
+</section>
+
+<section id="owner-interviews">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="section-num">04 / OWNER INTERVIEWS</span>
+        <h2>Meet the owners</h2>
+      </div>
+      <p>Real members, real builds. The stories behind the cars in the group.</p>
+    </div>
+    <div class="hp-int-grid">
+      <div class="hp-int-col">
+      <div class="hp-int-list" id="hp-int-list">
+        <a class="hp-int-item" href="blog-richard.html">
+          <span class="hp-int-thumb"><img src="images/blog/owner-interviews/richard/hidden-forest-wrap.jpg" alt="" loading="lazy"></span>
+          <span><span class="hp-int-label">Owner interview</span><span class="hp-int-title">Founding the MT3UK Community</span><span class="hp-int-sub">Richard &middot; Model 3 Performance</span></span>
+        </a>
+      </div>
+        <a class="hp-int-all" href="blog.html">See all interviews &rarr;</a>
+      </div>
+      <div class="hp-int-cta">
+        <span class="hp-int-cta-label">YOUR TURN</span>
+        <h3>Could this be your build?</h3>
+        <p>We&rsquo;re looking for members to feature. Answer a few questions, send some photos, and we&rsquo;ll do the rest.</p>
+        <a href="contact.html" class="hp-btn hp-btn-primary">Get featured &rarr;</a>
+      </div>
     </div>
   </div>
 </section>
@@ -3391,38 +3629,6 @@
   })();
 </script>
 
-<section id="build-of-the-day">
-  <div class="wrap">
-    <div class="section-head">
-      <div>
-        <span class="section-num">03 / FEATURED BUILD</span>
-        <h2>Today's featured build</h2>
-      </div>
-      <p>A different build from the gallery gets the spotlight every day. Yours could be next, <a href="my-builds.html#build-upload" class="inline-link">submit a photo below</a>.</p>
-    </div>
-    <div class="botm-frame" id="botm-frame">
-      <p class="mono" style="padding: 24px; color: var(--steel);">Loading featured build…</p>
-    </div>
-    <div class="section-head" style="margin-top: 36px;">
-      <div>
-        <span class="section-num">03B / VOTE</span>
-        <div class="section-title-row">
-          <h2 class="vote-heading">Vote for your favourite build</h2>
-          <button type="button" class="refresh-btn" id="vote-refresh-btn" aria-label="Refresh voting builds">&#8635; Refresh</button>
-        </div>
-      </div>
-      <p>A selection of recently uploaded builds can be voted on to be featured as 'Today's featured build'. This resets at midnight so get your votes in! <span class="vote-countdown" id="vote-countdown"></span> Please do not vote on your own build. Votes are being checked before tallying up for inconsistencies.</p>
-    </div>
-    <div class="vote-frame" id="vote-frame">
-      <p class="mono" style="padding: 24px; color: var(--steel);">Loading builds open for voting…</p>
-    </div>
-    <div class="section-gallery-cta">
-      <p>Liked what you've seen? <strong>The Gallery Feed</strong> has every build members have shared, with search-friendly captions and mod lists.</p>
-      <a href="gallery.html" class="btn btn-secondary">Browse the Full Gallery</a>
-    </div>
-  </div>
-</section>
-
 <section class="shop-cta">
   <h2>Love These Builds?</h2>
   <p>Show your support with MT3UK merch.</p>
@@ -3433,7 +3639,7 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">04 / ABOUT</span>
+        <span class="section-num">05 / ABOUT</span>
         <h2>Built by owners, for owners</h2>
       </div>
     </div>
@@ -3461,7 +3667,7 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">05 / EVENTS</span>
+        <span class="section-num">06 / EVENTS</span>
         <h2>Meets & events</h2>
       </div>
       <p>Full details always posted in the Facebook group first.</p>
@@ -3502,7 +3708,7 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">06 / TRACK DAYS <a href="track-day-prep.html" class="section-num-link">Prep Guide →</a></span>
+        <span class="section-num">07 / TRACK DAYS <a href="track-day-prep.html" class="section-num-link">Prep Guide →</a></span>
         <h2>From sighting laps to setting your PB</h2>
       </div>
       <p>Prep, upgrades and honest advice, for first timers and seasoned track goers alike.</p>
@@ -3534,7 +3740,7 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">07 / FAQ</span>
+        <span class="section-num">08 / FAQ</span>
         <h2>Common questions</h2>
       </div>
       <p>Everything you need to know before you join.</p>
@@ -3595,7 +3801,7 @@
 
 <section class="join-cta">
   <div class="wrap">
-    <span class="section-num" style="text-align:center; display:block;">08 / JOIN</span>
+    <span class="section-num" style="text-align:center; display:block;">09 / JOIN</span>
     <h2><span class="member-count"></span> modified Tesla owners are already in. You're next.</h2>
     <p>Post your build, ask the questions, find the meets. It's free and it takes ten seconds.</p>
     <a href="https://www.facebook.com/groups/mt3uk/" class="btn btn-primary" target="_blank" rel="noopener">Join MT3UK on Facebook</a>
@@ -4007,16 +4213,16 @@
           '</button>' : '';
         frame.innerHTML =
           '<div class="botm-media">' +
-            '<span class="botm-badge">FEATURED TODAY</span>' +
+            '<span class="botm-badge">CAR OF THE DAY</span>' +
             '<img src="' + window.MT3UK_R2_BASE + '/gallery/' + featured.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy">' +
             modsBadge +
             votedByBadge +
           '</div>' +
           '<div class="botm-body">' +
-            '<span class="mono">TODAY\'S PICK</span>' +
+            '<span class="mono">TODAY\'S CAR OF THE DAY</span>' +
             '<h3 class="botm-caption">' + safeCaption + '</h3>' +
             voteLine +
-            '<p>A build from the gallery, picked fresh each day. Get your build added and it could be featured here next.</p>' +
+            '<p>Chosen by member votes. Get your build in the gallery and it could be next.</p>' +
             '<a href="my-builds.html#build-upload" class="btn btn-secondary">Submit your build</a>' +
           '</div>';
 
@@ -4416,5 +4622,160 @@
 
 <script src="js/search.js" defer></script>
 
+<script>
+  /* Homepage refresh: interview hero (scheduled by publish date in data/interviews.json), live category info and hero stats.
+     Preview another day locally with ?date=YYYY-MM-DD, e.g. index.html?date=2026-10-02 */
+  (function () {
+    var fetchJSON = window.mt3ukFetchJSON || function (url, fb) {
+      return fetch(url, { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : fb; }).catch(function () { return fb; });
+    };
+    var DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+    function dateOverride() { var m = /[?&]date=(\d{4}-\d{2}-\d{2})/.exec(location.search); return m ? m[1] : null; }
+    function ukToday() {
+      if (dateOverride()) return dateOverride();
+      try { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
+      catch (e) { return new Date().toISOString().slice(0, 10); }
+    }
+    function nowMs() { return dateOverride() ? Date.parse(dateOverride() + 'T12:00:00Z') : Date.now(); }
+    function prettyDay(iso) { var d = new Date(iso.slice(0, 10) + 'T12:00:00Z'); return DAYS[d.getUTCDay()] + ' ' + d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()]; }
+    function setText(id, text) { var el = document.getElementById(id); if (el) el.textContent = text; }
+    /* Comment counts on the interview list (same comments system as the Gallery Feed).
+       On localhost this reads the local preview comments saved by js/interview-comments.js. */
+    function showCommentCounts(box) {
+      var items = box.querySelectorAll('.hp-int-item[data-thread]');
+      if (!items.length) return;
+      var local = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+      var getCounts = local
+        ? Promise.resolve([].reduce.call(items, function (acc, el) {
+            var t = el.getAttribute('data-thread');
+            try { acc[t] = JSON.parse(localStorage.getItem('mt3ukDemoComments:' + t) || '[]').length; } catch (e) {}
+            return acc;
+          }, {}))
+        : fetch('https://late-darkness-ebc8.modtesla3uk.workers.dev/comment-counts', { cache: 'no-store' })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (d) { return (d && d.counts) || {}; })
+            .catch(function () { return {}; });
+      getCounts.then(function (counts) {
+        [].forEach.call(items, function (el) {
+          var n = counts[el.getAttribute('data-thread')] || 0;
+          var sub = el.querySelector('.hp-int-sub');
+          if (n && sub) sub.textContent += ' · ' + n + (n === 1 ? ' comment' : ' comments');
+        });
+      });
+    }
+    function metaLine(i) { return [i.name, i.car, i.year].filter(Boolean).join(' · '); }
+
+    /* ---------- Owner interviews: hero, list, category tile, announcement bar ---------- */
+    fetchJSON('data/interviews.json', null).then(function (data) {
+      var list = (data && data.interviews) || [];
+      if (!list.length) return;
+      var today = ukToday();
+      var published = list.filter(function (i) { return i.publish <= today; }).sort(function (a, b) { return a.publish < b.publish ? 1 : -1; });
+      var upcoming = list.filter(function (i) { return i.publish > today; }).sort(function (a, b) { return a.publish > b.publish ? 1 : -1; });
+      var live = published[0] || null;
+      var feature = live || upcoming[0];
+      var next = live ? upcoming[0] : upcoming[1];
+      if (!feature) return;
+
+      // Hero
+      var hero = document.getElementById('hp-hero');
+      if (hero && feature.image) {
+        hero.style.backgroundImage = 'linear-gradient(rgba(14, 22, 40, 0.45), rgba(14, 22, 40, 0.94) 72%), url("' + feature.image + '")';
+        // Portrait photos crop hard in the wide hero, so each interview can say where the car sits
+        hero.style.backgroundPosition = feature.heroPosition || 'center';
+      }
+      setText('hp-hero-eyebrow', live ? 'Latest owner interview' : 'Owner interviews · launching ' + prettyDay(feature.publish));
+      setText('hp-hero-title', feature.title);
+      setText('hp-hero-meta', metaLine(feature));
+      var cta = document.getElementById('hp-hero-cta');
+      if (cta) {
+        if (live) { cta.href = feature.url; cta.textContent = 'Read ' + feature.name + '’s story →'; }
+        else { cta.href = '#build-feed'; cta.textContent = 'Explore the builds ↓'; }
+      }
+      var nextLink = document.getElementById('hp-hero-next');
+      if (nextLink && next) {
+        // Preview card: blurred photo like the list teaser, plus title and excerpt
+        nextLink.innerHTML =
+          (next.image ? '<span class="hp-next-thumb"><img src="' + esc(next.image) + '" alt="" loading="lazy" style="object-position: ' + esc(next.heroPosition || 'center') + '"></span>' : '') +
+          '<span class="hp-next-text"><span class="hp-next-label">Next interview · ' + esc(prettyDay(next.publish)) + '</span>' +
+          '<span class="hp-next-title">' + esc(next.name) + '’s ' + esc(next.car) + '</span>' +
+          (next.excerpt ? '<span class="hp-next-sub">' + esc(next.excerpt) + '</span>' : '') + '</span>' +
+          '<span class="hp-next-arrow" aria-hidden="true">→</span>';
+        nextLink.setAttribute('aria-label', 'Next interview: ' + next.name + ', ' + prettyDay(next.publish));
+        nextLink.hidden = false;
+      }
+
+      // Interview list in the Meet the owners section
+      var box = document.getElementById('hp-int-list');
+      if (box) {
+        var html = published.slice(0, 3).map(function (i, n) {
+          var slug = String(i.url || '').replace(/^blog-|\.html$/g, '');
+          return '<a class="hp-int-item" href="' + esc(i.url) + '" data-thread="interview:' + esc(slug) + '">' +
+            '<span class="hp-int-thumb"><img src="' + esc(i.image) + '" alt="" loading="lazy"></span>' +
+            '<span><span class="hp-int-label">' + (n === 0 ? 'Latest interview' : prettyDay(i.publish)) + '</span>' +
+            '<span class="hp-int-title">' + esc(i.title) + '</span>' +
+            '<span class="hp-int-sub">' + esc(metaLine(i)) + '</span></span></a>';
+        }).join('');
+        var teaser = live ? next : feature;
+        if (teaser) {
+          html += '<div class="hp-int-item is-next">' +
+            '<span class="hp-int-thumb"><img src="' + esc(teaser.image) + '" alt="" loading="lazy" style="object-position: ' + esc(teaser.heroPosition || 'center') + '"></span>' +
+            '<span><span class="hp-int-label">' + (live ? 'Next interview' : 'First interview') + ' · ' + esc(prettyDay(teaser.publish)) + '</span>' +
+            '<span class="hp-int-title">' + esc(teaser.name) + '’s ' + esc(teaser.car) + '</span>' +
+            '<span class="hp-int-sub">' + esc(teaser.excerpt) + '</span></span></div>';
+        }
+        box.innerHTML = html;
+        showCommentCounts(box);
+      }
+
+      // Category tile
+      var tile = document.getElementById('hp-cat-interviews');
+      if (tile) tile.href = live ? feature.url : '#owner-interviews';
+      setText('hp-meta-interviews', live ? 'Latest: ' + feature.name + ' · ' + feature.car : 'Launching ' + prettyDay(feature.publish));
+
+      // Announcement bar: for 14 days after each new interview, or before launch
+      var bar = document.getElementById('hp-announce');
+      if (bar) {
+        var ageDays = live ? (Date.parse(today) - Date.parse(live.publish)) / 86400000 : null;
+        if (live && ageDays <= 14) {
+          bar.textContent = 'New owner interview: ' + live.title + ' →';
+          bar.href = live.url;
+          bar.hidden = false;
+        } else if (!live) {
+          bar.textContent = 'Owner Interviews launch ' + prettyDay(feature.publish) + ' →';
+          bar.href = '#owner-interviews';
+          bar.hidden = false;
+        }
+      }
+    });
+
+    /* ---------- Gallery: builds count + newest build ---------- */
+    fetchJSON('images/gallery/manifest.json', []).then(function (photos) {
+      if (!photos || !photos.length) return;
+      setText('hp-stat-builds', String(photos.length));
+      var newest = photos.slice().sort(function (a, b) { return (b.added || '') > (a.added || '') ? 1 : -1; })[0];
+      setText('hp-meta-garage', photos.length + ' builds' + (newest && newest.caption ? ' · newest: ' + newest.caption : ''));
+    });
+
+    /* ---------- Events + track days ---------- */
+    fetchJSON('events-data/events-manifest.json', null).then(function (data) {
+      var events = ((data && data.events) || []).filter(function (e) {
+        return e && e.startTime && !/test event/i.test(e.name || '') && Date.parse(e.endTime || e.startTime) >= nowMs();
+      }).sort(function (a, b) { return Date.parse(a.startTime) - Date.parse(b.startTime); });
+      setText('hp-stat-events', String(events.length));
+      var isTrack = function (e) { return /track/i.test(e.name || ''); };
+      var meet = events.filter(function (e) { return !isTrack(e); })[0];
+      var track = events.filter(isTrack)[0];
+      if (meet) setText('hp-meta-events', 'Next: ' + meet.name.trim() + ' · ' + prettyDay(meet.startTime));
+      if (track) {
+        var where = ((track.location && track.location.name) || track.name).trim().split(/\s+-\s+/)[0];
+        setText('hp-meta-track', 'Next: ' + where + ' · ' + prettyDay(track.startTime));
+      }
+    });
+  })();
+</script>
 </body>
 </html>

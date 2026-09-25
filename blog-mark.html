@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="MT3UK Track Day Prep Guide: OE limitations, model guidance, recommended upgrades, and the upgrade path members follow. Tyre, brake, cooling, and battery prep for Tesla track days.">
-<title>Track Day Prep Guide – MT3UK</title>
-<link rel="canonical" href="https://mt3uk.com/track-day-prep.html">
+<meta name="description" content="MT3UK Owner Interviews: Mark Littledale on his Deep Blue Tesla Model Y, red accents, louvres and a boot spoiler, and the advice he&#39;d give other modders.">
+<title>Terry the Tesla: Mark&#39;s Deep Blue Model Y - Owner Interviews - MT3UK</title>
+<link rel="canonical" href="https://mt3uk.com/blog-mark.html">
 <link rel="icon" type="image/x-icon" href="images/site/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="images/site/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="images/site/favicon-16.png">
@@ -16,6 +16,14 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MT3UK">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
+<meta property="og:type" content="article">
+<meta property="og:title" content="Terry the Tesla: Mark&#39;s Deep Blue Model Y">
+<meta property="og:description" content="MT3UK Owner Interviews: Mark Littledale on his Deep Blue Tesla Model Y, red accents, louvres and a boot spoiler, and the advice he&#39;d give other modders.">
+<meta property="og:url" content="https://mt3uk.com/blog-mark.html">
+<meta property="og:image" content="https://mt3uk.com/images/blog/owner-interviews/mark/arch-rear.jpg">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Article","headline":"Terry the Tesla: Mark's Deep Blue Model Y","author":{"@type":"Person","name":"Mark Littledale"},"publisher":{"@type":"Organization","name":"MT3UK"},"datePublished":"2026-10-15","image":"https://mt3uk.com/images/blog/owner-interviews/mark/arch-rear.jpg","mainEntityOfPage":"https://mt3uk.com/blog-mark.html"}
+</script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap');
 
@@ -1383,35 +1391,92 @@
     outline: 2px solid var(--orange);
     outline-offset: 2px;
   }
+
+  /* ---------- BLOG / OWNER INTERVIEWS ---------- */
+  .interview { max-width: 68ch; margin: 0 auto; }
+  .interview > p { color: var(--ink-2); margin-bottom: 16px; line-height: 1.7; text-align: left; font-size: 1.02rem; }
+  .interview-q {
+    font-size: 1.15rem;
+    line-height: 1.3;
+    margin: 40px 0 14px;
+    padding-left: 14px;
+    border-left: 3px solid var(--orange);
+  }
+  .interview > .interview-q:first-child { margin-top: 0; }
+  .interview .track-prep-eyebrow { margin-top: 36px; }
+  .interview-figure { margin: 28px 0 30px; }
+  .interview-figure img { width: 100%; height: auto; border: 1px solid var(--ink); }
+  .interview-figure-narrow img { width: auto; max-width: min(100%, 360px); margin: 0 auto; }
+  .interview-figure figcaption {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    color: var(--steel);
+    margin-top: 8px;
+    text-align: center;
+  }
+  .interview-outro {
+    margin-top: 40px;
+    padding: 20px 22px;
+    background: var(--paper-2);
+    border-left: 3px solid var(--orange);
+  }
+  .interview-outro p { color: var(--ink-2); margin: 0; }
+  @media (max-width: 780px) {
+    .interview-q { font-size: 1.02rem; margin-top: 32px; }
+    .interview-figure { margin: 22px 0 24px; }
+  }
+
+  .interview-zoom { display: block; cursor: zoom-in; }
+  .interview-zoom img { transition: opacity .2s ease; }
+  .interview-zoom:hover img { opacity: 0.9; }
+  .interview-zoom:focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; }
+  .lightbox { position: fixed; inset: 0; background: rgba(22,35,61,0.97); display: none; align-items: center; justify-content: center; flex-direction: column; z-index: 200; padding: 40px 20px; }
+  .lightbox.open { display: flex; }
+  .lightbox-img { max-width: min(92vw, 1400px); max-height: 80vh; object-fit: contain; border: 1px solid rgba(243,241,234,0.25); }
+  .lightbox-caption { margin-top: 16px; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; letter-spacing: 0.04em; color: var(--paper); text-align: center; max-width: 92vw; }
+  .lightbox-close { position: absolute; top: 22px; right: 28px; background: transparent; border: 1px solid var(--paper); color: var(--paper); width: 40px; height: 40px; font-size: 1.4rem; line-height: 1; cursor: pointer; }
+  .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(22,35,61,0.6); border: 1px solid var(--paper); color: var(--paper); width: 46px; height: 46px; font-size: 1.6rem; line-height: 1; cursor: pointer; }
+  .lightbox-close:hover, .lightbox-nav:hover { background: var(--orange); border-color: var(--orange); }
+  .lightbox-prev { left: 20px; }
+  .lightbox-next { right: 20px; }
+  @media (max-width: 700px) { .lightbox-nav { width: 38px; height: 38px; font-size: 1.3rem; } .lightbox-prev { left: 8px; } .lightbox-next { right: 8px; } .lightbox-close { top: 14px; right: 14px; width: 36px; height: 36px; } }
+
+  /* Desktop: photos sit beside the text, alternating left and right.
+     Below 960px they stack full width between paragraphs. */
+  @media (min-width: 960px) {
+    .interview { display: flow-root; }
+    .interview-q, .interview .track-prep-eyebrow { clear: both; }
+    .interview-figure { width: 42%; margin-top: 6px; margin-bottom: 26px; clear: both; }
+    .interview-figure.fig-right { float: right; margin-left: 28px; }
+    .interview-figure.fig-left { float: left; margin-right: 28px; }
+    .interview-figure-narrow { width: 240px; }
+    .interview-figure-narrow img { max-width: 100%; }
+    .interview-figure figcaption { text-align: left; }
+    .interview-outro { clear: both; }
+    .interview-figure.fig-full { float: none; width: 100%; margin: 28px 0 30px; }
+  }
+  @media (min-width: 1024px) {
+    .interview { max-width: 900px; }
+    .interview > p { font-size: 1.06rem; }
+    .interview-q { font-size: 1.25rem; }
+    .interview-figure:not(.fig-full) { width: 40%; }
+    .interview-figure-narrow { width: 230px; }
+  }
+
+  /* Photo rows: 2 or 3 portrait photos side by side, one caption */
+  .interview-gallery { display: grid; gap: 10px; margin: 28px 0 30px; clear: both; }
+  .interview-gallery.g2 { grid-template-columns: repeat(2, 1fr); }
+  .interview-gallery.g3 { grid-template-columns: repeat(3, 1fr); }
+  .interview-gallery img { width: 100%; height: auto; aspect-ratio: 3 / 4; object-fit: cover; border: 1px solid var(--ink); }
+  .interview-gallery figcaption { grid-column: 1 / -1; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; letter-spacing: 0.04em; color: var(--steel); text-align: center; margin-top: -2px; }
+  @media (min-width: 960px) { .interview-gallery.g2 { max-width: 640px; margin-left: auto; margin-right: auto; } }
+  .interview-quickfire { margin: 6px 0 8px; }
+  .interview-quickfire .spec-row span:last-child { max-width: 65%; }
+  @media (max-width: 600px) { .interview-quickfire .spec-row { flex-direction: column; gap: 4px; } .interview-quickfire .spec-row span:last-child { text-align: left; max-width: none; } }
 </style>
 </head>
 <body>
-
-<!-- Promo banner disabled: no active offer. Re-enable by removing this comment wrapper when a new promo is ready.
-<div class="promo-banner" id="promo-banner">
-  <div class="promo-banner-inner">
-    <div class="promo-banner-track">
-      <a href="shop.html#tee" class="promo-banner-msg">&#9201; New Tee options available!! | Hoodies | Club Stickers | Master Cylinder Braces | Brake Pads | Number Plates, shop now &rarr;</a>
-      <a href="shop.html#tee" class="promo-banner-msg" aria-hidden="true">&#9201; New Tee options available!! | Hoodies | Club Stickers | Master Cylinder Braces | Brake Pads | Number Plates, shop now &rarr;</a>
-    </div>
-    <button type="button" class="promo-banner-close" id="promo-banner-close" aria-label="Dismiss banner">&times;</button>
-  </div>
-</div>
-<script>
-  (function () {
-    var KEY = 'mt3uk-promo-tee-dismissed';
-    var EXPIRY_MS = 7 * 24 * 60 * 60 * 1000;
-    var banner = document.getElementById('promo-banner');
-    if (!banner) return;
-    var dismissedAt = parseInt(localStorage.getItem(KEY), 10);
-    if (dismissedAt && (Date.now() - dismissedAt) < EXPIRY_MS) { banner.remove(); return; }
-    document.getElementById('promo-banner-close').addEventListener('click', function () {
-      banner.remove();
-      try { localStorage.setItem(KEY, String(Date.now())); } catch (e) {}
-    });
-  })();
-</script>
--->
 
 <header>
   <nav>
@@ -1450,17 +1515,17 @@
       </div>
       <a href="index.html#events" class="nav-link">Events</a>
       <div class="nav-item">
-        <a href="index.html#track-days" class="nav-link active">Track Days</a>
+        <a href="index.html#track-days" class="nav-link">Track Days</a>
         <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Track Days submenu">&#9660;</button>
         <div class="nav-dropdown">
           <a href="track-day-prep.html" class="nav-sublink">Prep</a>
           <a href="track-day-on-the-day.html" class="nav-sublink nav-sublink-new">On The Day</a>
           <a href="track-day-venues.html" class="nav-sublink">Venues</a>
-          <a href="#track-day-finder" class="nav-sublink">Track Day Finder</a>
+          <a href="track-day-prep.html#track-day-finder" class="nav-sublink">Track Day Finder</a>
         </div>
       </div>
       <div class="nav-item">
-        <a href="blog.html" class="nav-link">Blog</a>
+        <a href="blog.html" class="nav-link active">Blog</a>
         <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Blog submenu">&#9660;</button>
         <div class="nav-dropdown">
           <a href="blog.html" class="nav-sublink nav-sublink-new">Owner Interviews</a>
@@ -1501,80 +1566,119 @@
 
 <section class="page-hero">
   <div class="wrap">
-    <a href="index.html#track-days" class="back-link">&larr; Back to Track Days</a>
-    <span class="section-num mono">TRACK DAYS / PREP</span>
-    <h1>Track Day Prep: What You Need to Know</h1>
-    <p>Taking a modified Tesla onto track is a different beast to a spirited drive down B roads. Sustained hard braking, high cornering loads, and repeated full-power acceleration expose weaknesses that never show up on the school run. Here's what the MT3UK community has learned.</p>
+    <a href="blog.html" class="back-link">&larr; All Owner Interviews</a>
+    <span class="section-num mono">BLOG / OWNER INTERVIEWS</span>
+    <h1>Terry the Tesla: Mark&rsquo;s Deep Blue Model Y</h1>
+    <p>Mark, from near Guildford, gave his Deep Blue Model Y more attitude with red accents, louvres and a boot spoiler. He&rsquo;s since moved on to an Audi Q8 e-tron, but Terry the Tesla left its Mark.</p>
   </div>
 </section>
 
 <section style="padding: 44px 0 64px;">
-  <div class="wrap">
-    <div class="track-prep">
+  <div class="wrap interview-wrap">
+    <article class="interview">
 
-      <span class="track-prep-eyebrow" style="margin-top: 0;">Is a Track Day For You?</span>
-      <p>It's for fun, not racing, and there's no pressure to be quick. If you're not sure yet, test the idea before spending any money: book a track experience day, go out as a passenger (from around &pound;10), or spend time with a wheel and pedals in a sim like Assetto Corsa first. If you can't get comfortable and consistent there, it's worth holding off on the real thing until you are.</p>
+      <h2 class="interview-q">Who are you?</h2>
+      <p>My name is Mark. I live near Guildford in Surrey, and I joined the group in July 2025.</p>
 
-      <span class="track-prep-eyebrow">Where Stock (OE) Falls Short</span>
+      <h2 class="interview-q">What did you drive?</h2>
+      <p>I had a Tesla Model Y Long Range in Deep Blue. I now drive an Audi Q8 e-tron in Plasma Blue.</p>
+
+      <figure class="interview-gallery g2">
+          <a href="images/blog/owner-interviews/mark/front-trees.jpg" class="interview-zoom" aria-label="View full size photo"><img src="images/blog/owner-interviews/mark/front-trees.jpg" alt="Mark&rsquo;s Deep Blue Tesla Model Y parked on a tree-lined track" width="1048" height="1600" loading="lazy"></a>
+          <a href="images/blog/owner-interviews/mark/night-front.jpg" class="interview-zoom" aria-label="View full size photo"><img src="images/blog/owner-interviews/mark/night-front.jpg" alt="Front of Mark&rsquo;s Model Y at dusk, lit by the lights of a modern building" width="739" height="1600" loading="lazy"></a>
+        <figcaption>Terry the Tesla: a Model Y Long Range in Deep Blue.</figcaption>
+      </figure>
+
+      <h2 class="interview-q">Was this your first EV? What made you choose a Tesla?</h2>
+      <p>The Model Y was my first EV, but not the first EV in our household. We also have a Citro&euml;n &euml;-SpaceTourer, an eight-seater minibus.</p>
+
+      <h2 class="interview-q">What was buying it like?</h2>
+      <p>I took the opportunity to take a Model Y on an extended test drive, and it was fantastic. I absolutely loved it! In the end, I actually bought my Model Y through a third party.</p>
+
+      <h2 class="interview-q">Why did you start modifying?</h2>
+      <p>I wanted to completely change the look of the Model Y. I found the basic shape boring, with no expression. It needed more depth to it, and more styling.</p>
+
+      <h2 class="interview-q">What was your first mod?</h2>
+      <p>My first mods were the rear boot spoiler, side camera trims and rear quarter window louvres.</p>
+
+      <h2 class="interview-q">Talk us through your mods.</h2>
+      <p>Here&rsquo;s everything I did to the Model Y:</p>
+      <span class="track-prep-eyebrow">Exterior</span>
       <ul class="track-prep-list">
-        <li><strong>Brakes.</strong> Factory pads aren't designed for repeated hard stops, so expect fade after 2 to 3 hard sessions on stock pads. Factory DOT 3 fluid boils fast too, which means a soft pedal if you're pushing on, and if you want to go faster, you will be pushing on.</li>
-        <li><strong>Thermal derating.</strong> Sustained high power draw triggers power limiting as battery and motor temps climb, noticeably cutting acceleration late in a session. On a Performance model, expect to lose peak power within a couple of laps.</li>
-        <li><strong>Tyres.</strong> OE tyres are usually your daily road set. Factory rubber wears fast under track loads, and grip drops off once temperatures spike.</li>
-        <li><strong>Suspension geometry.</strong> Stock camber and alignment aren't tuned for sustained cornering loads, so you'll see uneven tyre wear and less predictable handling as a session goes on.</li>
+        <li>Rear boot spoiler</li>
+        <li>Side camera trims</li>
+        <li>Rear quarter window louvres</li>
+        <li>Red Tesla badges and red Tesla lettering</li>
+        <li>Red door handle trim covers</li>
+      </ul>
+      <span class="track-prep-eyebrow">Interior</span>
+      <ul class="track-prep-list">
+        <li>Carbon fibre look dash trim and stalk covers</li>
+        <li>Under-screen storage and interior storage trays</li>
+        <li>Red aluminium pedal covers</li>
       </ul>
 
-      <span class="track-prep-eyebrow">Which Models Can Track</span>
-      <ul class="track-prep-list">
-        <li><strong>Model 3 Performance</strong> is the best-suited stock option, and earlier cars support Track Mode for better thermal management.</li>
-        <li><strong>Model Y Performance</strong> is capable, but a higher centre of gravity means more body roll and earlier tyre wear than the 3.</li>
-        <li><strong>Long Range and Standard Range</strong> models can track too, but expect earlier power limiting with no Track Mode to manage it, and the same stock suspension and brake limitations apply.</li>
-        <li><strong>Model S</strong> is a great cruiser but not naturally designed for the track, with a much longer wheelbase and a softer ride. That doesn't have to be the end of the story though, and a few owners have changed out a number of stock items, including adding roll cages and custom designed carbon spoilers, along with some serious cooling mods. The <strong>Plaid</strong> variant is a beast on the track, just not as nimble as a Model 3 around some tighter circuits.</li>
-      </ul>
+      <h2 class="interview-q">What&rsquo;s your favourite mod, and why?</h2>
+      <p>The side camera trims and the rear quarter window louvres. They just made the car look more sporty.</p>
 
-      <span class="track-prep-eyebrow">Upgrade Path</span>
-      <p style="margin-bottom: 14px;">Members generally address the above in this order:</p>
-      <ol class="track-prep-list numbered">
-        <li><strong>Brakes.</strong> DOT 3 fluid is not designed for repeated track abuse. Upgrade to DOT 4 or DOT 5.1 before any other brake upgrade. Track-compound pads, braided lines, and for serious track use, a big brake kit.</li>
-        <li><strong>Suspension.</strong> Coilovers and sway bars to control body roll and keep the tyre contact patch consistent.</li>
-        <li><strong>Cooling.</strong> Track-focused cooling upgrades to delay power derating on longer sessions. This is one area where we're working against the factory design, since the stock coolant system is built for efficiency over outright power.</li>
-        <li><strong>Tyres and wheels.</strong> Track-day-suitable rubber and wider wheel setups for more contact patch. Ideally a separate set of wheels and tyres so you can run endurance or semi slicks in dry weather.</li>
-      </ol>
+      <h2 class="interview-q">Which mod gave you the best value for money?</h2>
+      <p>Probably the red badges, red lettering and red door handles. They were simple and cheap, but really set the car apart.</p>
 
-      <span class="track-prep-eyebrow">Preparing Your Car: The Specifics</span>
-      <ul class="track-prep-list">
-        <li><strong>Choosing a pad compound.</strong> A Model 3 is heavy and switches fast between regenerative and mechanical braking, so track pads need to cope with more heat and load than on a comparable petrol car. Look for a semi-metallic or ceramic-metallic racing compound rated well past 500&deg;C, ideally into the 600 to 800&deg;C range: stock street pads overheat quickly and lead to total fade. You also want strong initial bite to scrub speed fast, but a pad that still lets you modulate the pedal smoothly rather than locking up the ABS under heavy braking. Decide whether you want a dedicated competition compound (squeals and dusts heavily on the road) or a dual-purpose fast-road/track pad if you're driving to the circuit, such as Carbotech, Endless or Unplugged Performance's Fast Road Track pad set.</li>
-        <li><strong>Front brakes.</strong> We work with Tevo Solutions, who supply proven pads for both road and track use. For Performance models, <a href="shop.html#pads-street" class="inline-link">Pagid Street+</a> covers fast road and occasional track use, or <a href="shop.html#pads-carbotech" class="inline-link">Carbotech</a> if you want a dedicated track compound. Tevo also has options for standard (non-Performance) pads, just ask. As a rule of thumb, look for pads with a working temperature of at least 450&deg;C, ideally 550&deg;C or higher for a full track day.</li>
-        <li><strong>Rear brakes.</strong> Less choice here, and Standard and Performance use different pads. Tevo Solutions can advise on current rear pad options for both. Same temperature rule applies, and let the pads cool before using the handbrake after a fast run.</li>
-        <li><strong>Brake fluid.</strong> Use fresh DOT 5.1 fluid rated for EV ABS systems, such as Pagid DOT 5.1 EHV. DOT 3 boils fast under repeated hard stops.</li>
-        <li><strong>Master cylinder brace.</strong> Optional, but improves pedal feel under hard, repeated braking. We stock <a href="shop.html#brace" class="inline-link">one in the shop</a>.</li>
-        <li><strong>Tyres.</strong> OE-equipped tyres on the Performance model will fare well for your first sessions, but be prepared for them to wear through quickly once you gain confidence and pace. A second set of wheels and tyres will save your road tyres. You don't need to jump straight to a full slick or semi-slick either, in the colder winter months you'll actually want a tyre that gets up to temperature faster. Endurance tyres are a good middle ground: you sacrifice some outright speed but they last longer than a dedicated track tyre. Bigger wheels roll less onto their sidewalls at lower pressures, so 20" fares better than 18" here. Start at a true 36psi cold, measured with a gauge rather than the TPMS reading, then check pressure and temperature again with a gauge and a heat gun after your first warm-up session.</li>
-        <li><strong>Towing eye and Tow Mode.</strong> Carry a towing eye, and know where Tow Mode is in the menu before you need it, not after.</li>
-        <li><strong>General.</strong> Good consumables all round, nothing loose in the cabin or boot, wheel nuts torqued and checked.</li>
-      </ul>
+      <figure class="interview-gallery g3">
+          <a href="images/blog/owner-interviews/mark/sunset-spoiler.jpg" class="interview-zoom" aria-label="View full size photo"><img src="images/blog/owner-interviews/mark/sunset-spoiler.jpg" alt="Rear of the Model Y at sunset, showing the boot spoiler" width="739" height="1600" loading="lazy"></a>
+          <a href="images/blog/owner-interviews/mark/red-badge.jpg" class="interview-zoom" aria-label="View full size photo"><img src="images/blog/owner-interviews/mark/red-badge.jpg" alt="Close-up of the red Tesla badge on the blue bonnet" width="1200" height="1600" loading="lazy"></a>
+          <a href="images/blog/owner-interviews/mark/red-lettering.jpg" class="interview-zoom" aria-label="View full size photo"><img src="images/blog/owner-interviews/mark/red-lettering.jpg" alt="Red Model Y lettering on the blue tailgate" width="896" height="1100" loading="lazy"></a>
+        <figcaption>The rear boot spoiler, red Tesla badge and red lettering.</figcaption>
+      </figure>
 
-      <span class="track-prep-eyebrow">More Detail, You Ask?</span>
-      <p>Insurance cover, breakdowns, your arrival-day checklist and where to charge live on the <a href="track-day-on-the-day.html" class="inline-link">On The Day guide</a>. Alignment specifics (camber and toe), track mods with real-world results, and member track guides are still being built out with the community, check in with the Facebook group for some great tips in the meantime!</p>
-      
-      <span class="track-prep-eyebrow">Weekend Maintenance Days</span>
-      <p>Ahead of a track day, some of us run informal weekend Maintenance Days, a chance for members to get together, swap ideas, and help each other get ready. Low-key, low-cost, and a good way to meet other members face to face.</p>
+      <h2 class="interview-q">Is there anything you&rsquo;d do differently, or a mod you&rsquo;d skip?</h2>
+      <p>I&rsquo;d do it all again, plus more! I&rsquo;d have the full aero body kit, a digital dash, ambient lighting and underglow. But the thing I wanted most was the S3XY Commander, so I could drift the car at car meets.</p>
 
-      <span class="track-prep-eyebrow">Pre-Track Checklist</span>
-      <div class="specs" style="margin-top: 14px;">
-        <div class="spec-row"><span>TYRES</span><span>Check tread &amp; pressures cold, budget for wear</span></div>
-        <div class="spec-row"><span>BRAKES</span><span>Fresh pads/fluid, check for warping before you go</span></div>
-        <div class="spec-row"><span>COOLING</span><span>Precondition battery &amp; monitor temps between sessions</span></div>
-        <div class="spec-row"><span>WEIGHT</span><span>Strip the boot, remove anything loose</span></div>
-        <div class="spec-row"><span>CHARGE</span><span>Arrive at 80-90%, plan a charger for the drive home</span></div>
-        <div class="spec-row"><span>PACK</span><span>Tyre gauge, torque wrench, tow strap, first aid kit</span></div>
+      <h2 class="interview-q">Any suppliers, fitters or wrap shops you&rsquo;d recommend?</h2>
+      <p>I&rsquo;d highly recommend Wrap Capital in Southampton, Onyx Performance in Slough, and Gravity Performance.</p>
+
+      <h2 class="interview-q">How did you use the car?</h2>
+      <p>It was my daily driver and my weekend toy.</p>
+
+      <h2 class="interview-q">What reactions did you get from other people?</h2>
+      <p>Most of the reactions were negative, because it was a Tesla and also because it was an EV.</p>
+
+      <figure class="interview-gallery g3">
+          <a href="images/blog/owner-interviews/mark/arch-rear.jpg" class="interview-zoom" aria-label="View full size photo"><img src="images/blog/owner-interviews/mark/arch-rear.jpg" alt="Rear of the Model Y framed by a brick railway arch" width="1093" height="1600" loading="lazy"></a>
+          <a href="images/blog/owner-interviews/mark/arch-angle.jpg" class="interview-zoom" aria-label="View full size photo"><img src="images/blog/owner-interviews/mark/arch-angle.jpg" alt="Model Y parked under a brick arch with a leafy lane beyond" width="986" height="1600" loading="lazy"></a>
+          <a href="images/blog/owner-interviews/mark/arch-quarter.jpg" class="interview-zoom" aria-label="View full size photo"><img src="images/blog/owner-interviews/mark/arch-quarter.jpg" alt="Rear three-quarter view of the Model Y beneath a brick arch" width="960" height="1600" loading="lazy"></a>
+        <figcaption>Terry under the arches.</figcaption>
+      </figure>
+
+      <h2 class="interview-q">How did you find MT3UK?</h2>
+      <p>I was searching on Facebook for Tesla owner groups in the UK.</p>
+
+      <h2 class="interview-q">What&rsquo;s your favourite MT3UK moment so far?</h2>
+      <p>Just the general banter in the group. Everyone loves their Tesla and loves modifying it.</p>
+
+      <h2 class="interview-q">What advice would you give someone about to modify their Tesla?</h2>
+      <p>Just do what you want to do. Don&rsquo;t be a sheep and follow the crowd.</p>
+
+      <span class="track-prep-eyebrow">Quickfire</span>
+      <div class="specs interview-quickfire">
+        <div class="spec-row"><span>IN THREE WORDS</span><span>Different, simple and tasteful</span></div>
+        <div class="spec-row"><span>NAME</span><span>Terry the Tesla (my wife and eldest daughter named it Terry the Testicle!)</span></div>
+        <div class="spec-row"><span>DRIVING SONG</span><span>Livin&rsquo; on a Prayer, Bon Jovi</span></div>
       </div>
 
-      <span class="track-prep-eyebrow">UK Track Day Venues</span>
-      <p>Want to know what you're driving into before you book? Read the <a href="track-day-venues.html" class="inline-link">Track Day Venues guide</a> for a breakdown of Snetterton, Thruxton, Cadwell Park and Castle Combe, and how each one loads brakes, tyres and suspension differently.</p>
+      <figure class="interview-gallery g2">
+          <a href="images/blog/owner-interviews/mark/snow-foam.jpg" class="interview-zoom" aria-label="View full size photo"><img src="images/blog/owner-interviews/mark/snow-foam.jpg" alt="Model Y covered in snow foam in a wash bay" width="924" height="1297" loading="lazy"></a>
+          <a href="images/blog/owner-interviews/mark/night-side.jpg" class="interview-zoom" aria-label="View full size photo"><img src="images/blog/owner-interviews/mark/night-side.jpg" alt="Model Y at night beside a building with glowing light strips" width="739" height="1600" loading="lazy"></a>
+        <figcaption>Wash day, and a night out.</figcaption>
+      </figure>
 
-      <span class="track-prep-eyebrow">Finding a Track Day</span>
-      <p id="track-day-finder">Looking for a track day? <a href="https://trackdayfinder.co.uk/calendar?vehicle=car&amp;utm_source=mt3uk&amp;utm_medium=track_day_page&amp;utm_campaign=track_day_finder" target="_blank" rel="noopener" class="inline-link">Track Day Finder</a> lists UK and European track days searchable by month, location, day of the week and an EV-friendly filter, a really handy source of almost all track day events.</p>
+      <div class="interview-outro">
+        <p>Thanks to Mark for sharing his build. If you&rsquo;d like to be featured in this series, <a href="contact.html" class="inline-link">get in touch</a> or message us in the <a href="https://www.facebook.com/groups/mt3uk/" target="_blank" rel="noopener" class="inline-link">Facebook group</a>.</p>
+      </div>
 
-    </div>
+    </article>
+
+    <div class="ic" id="comments" data-thread="mark"></div>
   </div>
 </section>
 
@@ -1645,6 +1749,73 @@
     }
   </script>
 
+
+  <script>
+    (function () {
+      var links = Array.prototype.slice.call(document.querySelectorAll('.interview-zoom'));
+      if (!links.length) return;
+      var box = document.createElement('div');
+      box.className = 'lightbox';
+      box.setAttribute('role', 'dialog');
+      box.setAttribute('aria-modal', 'true');
+      box.setAttribute('aria-hidden', 'true');
+      box.innerHTML = '<button class="lightbox-close" aria-label="Close">&times;</button><button class="lightbox-nav lightbox-prev" aria-label="Previous photo">&lsaquo;</button><button class="lightbox-nav lightbox-next" aria-label="Next photo">&rsaquo;</button><img class="lightbox-img" src="" alt=""><div class="lightbox-caption"></div>';
+      document.body.appendChild(box);
+      var img = box.querySelector('.lightbox-img');
+      var cap = box.querySelector('.lightbox-caption');
+      var current = 0, lastFocus = null;
+
+      function show(i) {
+        current = (i + links.length) % links.length;
+        var a = links[current];
+        var thumb = a.querySelector('img');
+        var fig = a.closest('figure');
+        var fc = fig ? fig.querySelector('figcaption') : null;
+        img.src = a.getAttribute('href');
+        img.alt = thumb ? thumb.alt : '';
+        cap.textContent = fc ? fc.textContent : '';
+      }
+      function open(i) {
+        lastFocus = document.activeElement;
+        show(i);
+        box.classList.add('open');
+        box.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        box.querySelector('.lightbox-close').focus();
+      }
+      function close() {
+        box.classList.remove('open');
+        box.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+        img.src = '';
+        if (lastFocus) lastFocus.focus();
+      }
+
+      links.forEach(function (a, i) {
+        a.addEventListener('click', function (e) { e.preventDefault(); open(i); });
+      });
+      box.querySelector('.lightbox-close').addEventListener('click', close);
+      box.querySelector('.lightbox-prev').addEventListener('click', function (e) { e.stopPropagation(); show(current - 1); });
+      box.querySelector('.lightbox-next').addEventListener('click', function (e) { e.stopPropagation(); show(current + 1); });
+      box.addEventListener('click', function (e) { if (e.target === box) close(); });
+      document.addEventListener('keydown', function (e) {
+        if (!box.classList.contains('open')) return;
+        if (e.key === 'Escape') close();
+        else if (e.key === 'ArrowLeft') show(current - 1);
+        else if (e.key === 'ArrowRight') show(current + 1);
+      });
+      var startX = null;
+      box.addEventListener('touchstart', function (e) { startX = e.touches[0].clientX; }, { passive: true });
+      box.addEventListener('touchend', function (e) {
+        if (startX === null) return;
+        var dx = e.changedTouches[0].clientX - startX;
+        if (Math.abs(dx) > 50) show(current + (dx < 0 ? 1 : -1));
+        startX = null;
+      });
+    })();
+  </script>
+
+<script src="js/interview-comments.js" defer></script>
 <script src="js/search.js" defer></script>
 
 </body>

@@ -663,9 +663,10 @@
     section.className = 'thread';
     var head = document.createElement('div');
     head.className = 'thread-head';
-    head.innerHTML =
-      '<img src="' + R2 + '/gallery/' + encodeURIComponent(file) + '" alt="">' +
-      '<span class="file">' + escapeHtml(file) + '</span>';
+    head.innerHTML = /^interview:/.test(file)
+      ? '<span class="file">Owner interview: <a href="blog-' + escapeHtml(file.slice(10)) + '.html#comments" target="_blank" rel="noopener">' + escapeHtml(file.slice(10)) + '</a></span>'
+      : '<img src="' + R2 + '/gallery/' + encodeURIComponent(file) + '" alt="">' +
+        '<span class="file">' + escapeHtml(file) + '</span>';
     var body = document.createElement('div');
     body.className = 'thread-body';
     buildTree(comments).forEach(function (root) {

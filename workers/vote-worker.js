@@ -661,6 +661,32 @@ async function saveComments(env, file, comments) {
   await env.VOTES.put('comments:' + file, JSON.stringify(comments));
 }
 
+// Owner Interviews: comment threads are keyed "interview:<slug>" (e.g.
+// interview:richard for blog-richard.html). A thread only accepts comments
+// once that interview is listed in the site's data/interviews.json and its
+// publish date (UK) has arrived, so nobody can open arbitrary threads.
+var INTERVIEWS_URL = MY_BUILDS_SITE_URL + '/data/interviews.json';
+
+function isInterviewThread(file) {
+  return /^interview:[a-z0-9-]{1,40}$/.test(file);
+}
+
+async function getPublishedInterview(file) {
+  var slug = file.slice('interview:'.length);
+  try {
+    var res = await fetch(INTERVIEWS_URL, { cf: { cacheTtl: 300, cacheEverything: true } });
+    if (!res.ok) return null;
+    var data = await res.json();
+    var list = (data && data.interviews) || [];
+    var today = ukDateString(new Date());
+    return list.find(function (i) {
+      return i && i.url === 'blog-' + slug + '.html' && i.publish && i.publish <= today;
+    }) || null;
+  } catch (e) {
+    return null;
+  }
+}
+
 function publicComment(c, likedIds, viewerEmail) {
   return {
     id: c.id,
@@ -722,10 +748,24 @@ async function handleCommentsPost(request, env, ctx) {
   }
   if (!text) return json({ success: false, message: 'Comment cannot be empty' }, 400);
 
-  var manifest = await getLiveGalleryEntries(env, ctx);
-  var isKnown = manifest.some(function (p) { return p.file === file; });
-  if (!isKnown) {
-    return json({ success: false, message: 'Unknown photo' }, 400);
+  if (isInterviewThread(file)) {
+    // Interview comments are members-only: the commenter's email comes from
+    // their signed-in My Garage session, not from the request body.
+    var sessionEmail = await resolveSession(request, env);
+    if (!sessionEmail) {
+      return json({ success: false, message: 'Please sign in to My Garage to comment' }, 401);
+    }
+    email = sessionEmail;
+    var interview = await getPublishedInterview(file);
+    if (!interview) {
+      return json({ success: false, message: 'Comments are not open on this interview yet' }, 400);
+    }
+  } else {
+    var manifest = await getLiveGalleryEntries(env, ctx);
+    var isKnown = manifest.some(function (p) { return p.file === file; });
+    if (!isKnown) {
+      return json({ success: false, message: 'Unknown photo' }, 400);
+    }
   }
 
   var moderation = moderateCommentText(text);
@@ -1615,6 +1655,12 @@ async function sendCommentNotificationEmail(env, toEmail, fromName, text, file) 
   var subject = fromName + ' commented on your build';
   var body = fromName + ' left a comment on one of your MT3UK build photos:\n\n"' + text + '"' +
     '\n\nView and reply: ' + link;
+  if (isInterviewThread(file)) {
+    link = MY_BUILDS_SITE_URL + '/blog-' + file.slice('interview:'.length) + '.html#comments';
+    subject = fromName + ' commented on an Owner Interview';
+    body = fromName + ' left a comment on an MT3UK Owner Interview:\n\n"' + text + '"' +
+      '\n\nView and reply: ' + link;
+  }
   var message = new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body));
   await env.SEND_EMAIL.send(message);
 }
@@ -1631,13 +1677,19 @@ async function sendCommentNotificationEmail(env, toEmail, fromName, text, file) 
 // stamped yet (e.g. an un-migrated legacy photo with no sidecar email), is
 // a silent no-op for that recipient.
 async function notifyCommentRecipients(env, ctx, file, commenterEmail, commenterName, text, parentAuthorEmail) {
-  var sidecarKey = 'gallery/' + file + '.json';
-  var sidecar = null;
-  try {
-    var obj = await env.GALLERY_BUCKET.get(sidecarKey);
-    if (obj) sidecar = await obj.json();
-  } catch (e) {}
-  var ownerEmail = sidecar && sidecar.email;
+  var ownerEmail = null;
+  if (isInterviewThread(file)) {
+    // Interviews have no photo owner: new comments go to the site owner.
+    ownerEmail = SUBSCRIBERS_DIGEST_EMAIL;
+  } else {
+    var sidecarKey = 'gallery/' + file + '.json';
+    var sidecar = null;
+    try {
+      var obj = await env.GALLERY_BUCKET.get(sidecarKey);
+      if (obj) sidecar = await obj.json();
+    } catch (e) {}
+    ownerEmail = sidecar && sidecar.email;
+  }
 
   var recipients = {};
   if (ownerEmail && ownerEmail !== commenterEmail) recipients[ownerEmail] = true;

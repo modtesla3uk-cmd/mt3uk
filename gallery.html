@@ -329,6 +329,24 @@
   .hamburger[aria-expanded="true"] .hamburger-bar:nth-child(2) { opacity: 0; }
   .hamburger[aria-expanded="true"] .hamburger-bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
+  .nav-link-mobile {
+    display: none !important;
+  }
+  @media (max-width: 780px) {
+    .nav-link-mobile {
+      display: flex !important;
+      justify-content: center;
+      padding: 14px 16px;
+      margin: 10px 16px;
+      border: none;
+      border-top: 2px solid var(--orange);
+      border-radius: 4px;
+      background: var(--orange);
+      color: var(--paper) !important;
+      font-weight: 600;
+    }
+  }
+
   @media (min-width: 781px) {
     .nav-search:hover .nav-search-panel,
     .nav-search:focus-within .nav-search-panel { display: block; }
@@ -730,7 +748,7 @@
         <a href="index.html#build-feed" class="nav-link">Gallery Feed</a>
         <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Gallery Feed submenu">&#9660;</button>
         <div class="nav-dropdown">
-          <a href="index.html#build-of-the-day" class="nav-sublink">Featured Build</a>
+          <a href="index.html#build-of-the-day" class="nav-sublink">Car of the Day</a>
           <a href="index.html#vote-frame" class="nav-sublink">Vote for Build</a>
           <a href="gallery.html" class="nav-sublink active">Full Gallery</a>
         </div>
@@ -749,6 +767,7 @@
             <div class="nav-dropdown">
               <a href="shop.html#tevo" class="nav-sublink">Tevo Solutions</a>
               <a href="shop.html#redline" class="nav-sublink">Redline Plates</a>
+              <a href="shop.html#evoffer" class="nav-sublink">EVOffer Sport Seats</a>
               <a href="shop.html#offers" class="nav-sublink nav-sublink-offer">Offers</a>
             </div>
           </div>
@@ -767,6 +786,13 @@
         </div>
       </div>
       <div class="nav-item">
+        <a href="blog.html" class="nav-link">Blog</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Blog submenu">&#9660;</button>
+        <div class="nav-dropdown">
+          <a href="blog.html" class="nav-sublink nav-sublink-new">Owner Interviews</a>
+        </div>
+      </div>
+      <div class="nav-item">
         <a href="index.html#about" class="nav-link">About</a>
         <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle About submenu">&#9660;</button>
         <div class="nav-dropdown">
@@ -781,6 +807,7 @@
           <a href="https://ko-fi.com/mt3uk" class="nav-sublink" target="_blank" rel="noopener">Support Us</a>
         </div>
       </div>
+      <a href="https://www.facebook.com/groups/mt3uk/" class="nav-link-mobile" target="_blank" rel="noopener">Join the group</a>
       </div>
     </div>
     <div class="nav-search" id="nav-search">

@@ -3,11 +3,11 @@
   "totalEvents": 6,
   "events": [
     {
-      "id": "lancing-motor-show-2025-09-26",
+      "id": "lancing-motor-show-2025-09-25",
       "name": "Lancing Motor Show",
       "description": "Join us for a collective meet at Lancing Beach!",
-      "startTime": "2025-09-26T09:00:00+0000",
-      "endTime": "2025-09-26T18:00:00+0000",
+      "startTime": "2025-09-25T09:00:00+0000",
+      "endTime": "2025-09-25T18:00:00+0000",
       "location": {
         "name": "Lancing Beach Green"
       },
@@ -16,11 +16,11 @@
       "interestedCount": 20
     },
     {
-      "id": "lancing-motor-show-2026-09-26",
+      "id": "lancing-motor-show-2026-09-27",
       "name": "Lancing Motor Show",
       "description": "Join us for a collective meet at Lancing Beach!",
-      "startTime": "2026-09-26T09:00:00+0000",
-      "endTime": "2026-09-26T18:00:00+0000",
+      "startTime": "2026-09-27T09:00:00+0000",
+      "endTime": "2026-09-27T18:00:00+0000",
       "location": {
         "name": "Lancing Beach Green"
       },

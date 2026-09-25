@@ -1281,7 +1281,7 @@
 <script>
   (function () {
     var style = document.createElement('style');
-    style.textContent = '.gallery-slot.filled img { cursor: zoom-in; } .lightbox { position: fixed; inset: 0; background: rgba(22,35,61,0.94); display: none; align-items: center; justify-content: center; flex-direction: column; z-index: 200; padding: 40px 20px; } .lightbox.open { display: flex; } .lightbox-img { max-width: min(92vw, 1100px); max-height: 78vh; object-fit: contain; border: 1px solid rgba(243,241,234,0.25); } .lightbox-caption { margin-top: 16px; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; letter-spacing: 0.04em; color: var(--paper); } .lightbox-mods { display: none; margin-top: 10px; max-width: min(92vw, 1100px); font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; letter-spacing: 0.03em; color: rgba(243,241,234,0.7); text-align: center; } .lightbox-mods.has-mods { display: block; } .lightbox-close { position: absolute; top: 22px; right: 28px; background: transparent; border: 1px solid var(--paper); color: var(--paper); width: 40px; height: 40px; font-size: 1.4rem; line-height: 1; cursor: pointer; } .lightbox-close:hover { background: var(--orange); border-color: var(--orange); } .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(22,35,61,0.6); border: 1px solid var(--paper); color: var(--paper); width: 46px; height: 46px; font-size: 1.6rem; line-height: 1; cursor: pointer; } .lightbox-nav:hover { background: var(--orange); border-color: var(--orange); } .lightbox-prev { left: 20px; } .lightbox-next { right: 20px; } @media (max-width: 700px) { .lightbox-nav { width: 38px; height: 38px; font-size: 1.3rem; } .lightbox-prev { left: 8px; } .lightbox-next { right: 8px; } } @media (max-width: 600px) { .lightbox-close { top: 14px; right: 14px; width: 36px; height: 36px; } } .lightbox-vote { display: none; margin-top: 16px; align-items: center; gap: 14px; } .lightbox.open[data-mode="vote"] .lightbox-vote { display: flex; } .lightbox-vote-count { font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; letter-spacing: 0.04em; color: var(--paper); } .lightbox-vote-btn { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; letter-spacing: 0.04em; padding: 9px 16px; border: 1px solid var(--paper); background: transparent; color: var(--paper); cursor: pointer; transition: background .2s ease, color .2s ease; } .lightbox-vote-btn:hover:not(:disabled) { background: var(--orange); border-color: var(--orange); } .lightbox-vote-btn:disabled { cursor: default; opacity: 0.7; background: var(--orange); border-color: var(--orange); }';
+    style.textContent = '.gallery-slot.filled img { cursor: zoom-in; } .lightbox { position: fixed; inset: 0; background: rgba(22,35,61,0.94); display: none; align-items: center; justify-content: center; flex-direction: column; z-index: 200; padding: 40px 20px; } .lightbox.open { display: flex; } .lightbox-img { max-width: min(92vw, 1100px); max-height: 78vh; object-fit: contain; border: 1px solid rgba(243,241,234,0.25); } .lightbox-caption { margin-top: 16px; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; letter-spacing: 0.04em; color: var(--paper); } .lightbox-mods { display: none; margin-top: 10px; max-width: min(92vw, 1100px); font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; letter-spacing: 0.03em; color: rgba(243,241,234,0.7); text-align: center; } .lightbox-mods.has-mods { display: block; } .lightbox-close { position: absolute; top: 22px; right: 28px; background: transparent; border: 1px solid var(--paper); color: var(--paper); width: 40px; height: 40px; font-size: 1.4rem; line-height: 1; cursor: pointer; } .lightbox-close:hover { background: var(--orange); border-color: var(--orange); } .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(22,35,61,0.6); border: 1px solid var(--paper); color: var(--paper); width: 46px; height: 46px; font-size: 1.6rem; line-height: 1; cursor: pointer; } .lightbox-nav:hover { background: var(--orange); border-color: var(--orange); } .lightbox-prev { left: 20px; } .lightbox-next { right: 20px; } @media (max-width: 700px) { .lightbox-nav { width: 38px; height: 38px; font-size: 1.3rem; } .lightbox-prev { left: 8px; } .lightbox-next { right: 8px; } } @media (max-width: 600px) { .lightbox-close { top: 14px; right: 14px; width: 36px; height: 36px; } } .lightbox-vote { display: none; margin-top: 16px; align-items: center; gap: 14px; } .lightbox.open[data-mode="vote"] .lightbox-vote { display: flex; } .lightbox-vote-count { font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; letter-spacing: 0.04em; color: var(--paper); } .lightbox-vote-btn { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; letter-spacing: 0.04em; padding: 9px 16px; border: 1px solid var(--paper); background: transparent; color: var(--paper); cursor: pointer; transition: background .2s ease, color .2s ease; } .lightbox-vote-btn:hover:not(:disabled) { background: var(--orange); border-color: var(--orange); } .lightbox-vote-btn:disabled { cursor: default; opacity: 0.7; background: var(--orange); border-color: var(--orange); } .lightbox-report { margin-top: 14px; background: transparent; border: none; color: rgba(243,241,234,0.5); font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; letter-spacing: 0.03em; text-decoration: underline; cursor: pointer; } .lightbox-report:hover { color: var(--paper); } .lightbox-report:disabled { text-decoration: none; cursor: default; } .lightbox-claim-wrap { display: none; margin-top: 10px; max-width: min(92vw, 360px); text-align: center; } .lightbox-claim-wrap.show { display: block; } .lightbox-claim { background: transparent; border: 1px solid var(--orange); color: var(--orange); font-family: "IBM Plex Mono", monospace; font-size: 0.7rem; letter-spacing: 0.03em; padding: 8px 14px; cursor: pointer; } .lightbox-claim:hover:not(:disabled) { background: var(--orange); color: var(--ink); } .lightbox-claim:disabled { opacity: 0.7; cursor: default; } .lightbox-claim-form { display: none; margin-top: 10px; } .lightbox-claim-form.show { display: block; } .lightbox-claim-note { width: 100%; box-sizing: border-box; background: rgba(243,241,234,0.08); border: 1px solid rgba(243,241,234,0.35); color: var(--paper); font-family: "IBM Plex Sans", sans-serif; font-size: 0.78rem; padding: 8px; resize: vertical; } .lightbox-claim-actions { display: flex; gap: 8px; justify-content: center; margin-top: 8px; } .lightbox-claim-submit, .lightbox-claim-cancel { font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; letter-spacing: 0.03em; padding: 7px 12px; cursor: pointer; } .lightbox-claim-submit { background: var(--orange); border: 1px solid var(--orange); color: var(--ink); } .lightbox-claim-submit:disabled { opacity: 0.7; cursor: default; } .lightbox-claim-cancel { background: transparent; border: 1px solid rgba(243,241,234,0.4); color: var(--paper); } .lightbox-claim-status { margin-top: 8px; font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; letter-spacing: 0.02em; color: rgba(243,241,234,0.75); } .lightbox-claim-status a { color: var(--orange); text-decoration: underline; }';
     document.head.appendChild(style);
 
     var lightbox = document.createElement('div');
@@ -1290,7 +1290,7 @@
     lightbox.setAttribute('role', 'dialog');
     lightbox.setAttribute('aria-modal', 'true');
     lightbox.setAttribute('aria-hidden', 'true');
-    lightbox.innerHTML = '<button class="lightbox-close" aria-label="Close">&times;</button><button class="lightbox-nav lightbox-prev" aria-label="Previous photo">&lsaquo;</button><button class="lightbox-nav lightbox-next" aria-label="Next photo">&rsaquo;</button><img class="lightbox-img" src="" alt=""><div class="lightbox-caption"></div><div class="lightbox-mods"></div>';
+    lightbox.innerHTML = '<button class="lightbox-close" aria-label="Close">&times;</button><button class="lightbox-nav lightbox-prev" aria-label="Previous photo">&lsaquo;</button><button class="lightbox-nav lightbox-next" aria-label="Next photo">&rsaquo;</button><img class="lightbox-img" src="" alt=""><div class="lightbox-caption"></div><div class="lightbox-mods"></div><button type="button" class="lightbox-report" id="lightbox-report-btn">Report this image</button><div class="lightbox-claim-wrap" id="lightbox-claim-wrap"><button type="button" class="lightbox-claim" id="lightbox-claim-btn">Claim this build</button><div class="lightbox-claim-form" id="lightbox-claim-form"><textarea class="lightbox-claim-note" id="lightbox-claim-note" rows="2" maxlength="500" placeholder="Optional: tell us how we can verify this is your car"></textarea><div class="lightbox-claim-actions"><button type="button" class="lightbox-claim-submit" id="lightbox-claim-submit">Submit claim</button><button type="button" class="lightbox-claim-cancel" id="lightbox-claim-cancel">Cancel</button></div></div><p class="lightbox-claim-status" id="lightbox-claim-status"></p></div>';
     document.body.appendChild(lightbox);
 
     var lightboxImg = lightbox.querySelector('.lightbox-img');
@@ -1299,8 +1299,22 @@
     var closeBtn = lightbox.querySelector('.lightbox-close');
     var prevBtn = lightbox.querySelector('.lightbox-prev');
     var nextBtn = lightbox.querySelector('.lightbox-next');
+    var reportBtn = lightbox.querySelector('.lightbox-report');
+    var claimWrap = lightbox.querySelector('#lightbox-claim-wrap');
+    var claimBtn = lightbox.querySelector('#lightbox-claim-btn');
+    var claimForm = lightbox.querySelector('#lightbox-claim-form');
+    var claimNote = lightbox.querySelector('#lightbox-claim-note');
+    var claimSubmit = lightbox.querySelector('#lightbox-claim-submit');
+    var claimCancel = lightbox.querySelector('#lightbox-claim-cancel');
+    var claimStatus = lightbox.querySelector('#lightbox-claim-status');
     var galleryGrid = document.getElementById('gallery-grid');
     var currentIndex = -1;
+
+    var reportedFiles = [];
+    try { reportedFiles = JSON.parse(localStorage.getItem('mt3ukReportedPhotos') || '[]'); } catch (e) {}
+
+    var claimedRequests = [];
+    try { claimedRequests = JSON.parse(localStorage.getItem('mt3ukClaimRequests') || '[]'); } catch (e) {}
 
     function getPhotos() {
       return window.mt3ukGalleryPhotos || [];
@@ -1317,7 +1331,84 @@
       var mods = p.mods || [];
       lightboxMods.textContent = mods.length ? 'Mods: ' + mods.join(' · ') : '';
       lightboxMods.classList.toggle('has-mods', mods.length > 0);
+      var alreadyReported = reportedFiles.indexOf(p.file) !== -1;
+      reportBtn.disabled = alreadyReported;
+      reportBtn.textContent = alreadyReported ? 'Reported' : 'Report this image';
+
+      claimWrap.classList.toggle('show', !!p.unclaimed);
+      claimForm.classList.remove('show');
+      claimNote.value = '';
+      claimStatus.textContent = '';
+      var alreadyRequested = claimedRequests.indexOf(p.file) !== -1;
+      claimBtn.disabled = alreadyRequested;
+      claimBtn.textContent = alreadyRequested ? 'Claim requested' : 'Claim this build';
     }
+
+    claimBtn.addEventListener('click', function () {
+      if (claimBtn.disabled) return;
+      var token = localStorage.getItem('mt3ukMyBuildsSession');
+      if (!token) {
+        claimStatus.innerHTML = 'Sign in to <a href="my-builds.html">My Garage</a> first, then come back to claim this build.';
+        return;
+      }
+      claimStatus.textContent = '';
+      claimForm.classList.add('show');
+    });
+
+    claimCancel.addEventListener('click', function () {
+      claimForm.classList.remove('show');
+    });
+
+    claimSubmit.addEventListener('click', function () {
+      var photos = getPhotos();
+      var p = photos[currentIndex];
+      if (!p) return;
+      var token = localStorage.getItem('mt3ukMyBuildsSession');
+      if (!token) {
+        claimStatus.innerHTML = 'Sign in to <a href="my-builds.html">My Garage</a> first, then come back to claim this build.';
+        return;
+      }
+      claimSubmit.disabled = true;
+      claimStatus.textContent = 'Submitting…';
+      fetch(MT3UK_API + '/gallery/claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Session-Token': token },
+        body: JSON.stringify({ file: p.file, note: claimNote.value.trim() })
+      })
+        .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+        .then(function (result) {
+          claimSubmit.disabled = false;
+          if (result.ok && result.data && result.data.success) {
+            claimedRequests.push(p.file);
+            localStorage.setItem('mt3ukClaimRequests', JSON.stringify(claimedRequests));
+            claimBtn.disabled = true;
+            claimBtn.textContent = 'Claim requested';
+            claimForm.classList.remove('show');
+            claimStatus.textContent = 'Claim submitted — we’ll email you once it’s reviewed.';
+          } else {
+            claimStatus.textContent = (result.data && result.data.message) || 'Could not submit claim.';
+          }
+        })
+        .catch(function () {
+          claimSubmit.disabled = false;
+          claimStatus.textContent = 'Network error submitting claim.';
+        });
+    });
+
+    reportBtn.addEventListener('click', function () {
+      var photos = getPhotos();
+      var p = photos[currentIndex];
+      if (!p || reportBtn.disabled) return;
+      reportBtn.disabled = true;
+      reportBtn.textContent = 'Reported';
+      fetch(MT3UK_API + '/gallery/report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file: p.file })
+      }).catch(function () {});
+      reportedFiles.push(p.file);
+      localStorage.setItem('mt3ukReportedPhotos', JSON.stringify(reportedFiles));
+    });
 
     function goNext() { showAt(currentIndex + 1); }
     function goPrev() { showAt(currentIndex - 1); }

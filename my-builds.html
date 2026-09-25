@@ -1027,6 +1027,7 @@ document.addEventListener('DOMContentLoaded', function () {
       <div class="mb-card mb-submit-card" id="mb-submit-card" style="display:none;">
         <h2>Submit your first build</h2>
         <p>Send us a shot of your build and a caption, and we'll get it added to the gallery and set you up with an account so you can manage it here.</p>
+        <p class="mb-field-hint">Your car must be a Tesla.</p>
         <form id="mb-submit-form">
           <input type="checkbox" name="botcheck" class="mb-hp-field" tabindex="-1" autocomplete="off">
           <div class="mb-field">
@@ -1112,6 +1113,7 @@ document.addEventListener('DOMContentLoaded', function () {
         <div class="mb-upload-card" id="mb-addcar-card" style="display:none;">
           <h2>Add a car</h2>
           <p>Give your car a name and add up to 3 photos. They'll go live in the gallery straight away.</p>
+          <p class="mb-field-hint">Your car must be a Tesla.</p>
           <form id="mb-addcar-form">
             <div class="mb-field">
               <label class="mono" for="mb-addcar-carname">Car name</label>
@@ -1780,6 +1782,13 @@ document.addEventListener('DOMContentLoaded', function () {
       var file = fileInput.files[0];
       if (!file) { setStatus(uploadStatus, 'Please choose a photo.', 'err'); return; }
       if (file.size > 10 * 1024 * 1024) { setStatus(uploadStatus, 'Photo must be under 10MB.', 'err'); return; }
+      var galleryChecked = document.getElementById('mb-upload-gallery').checked;
+      var reelChecked = document.getElementById('mb-upload-reel').checked;
+      var votableChecked = document.getElementById('mb-upload-votable').checked;
+      if (!galleryChecked && !reelChecked && !votableChecked) {
+        setStatus(uploadStatus, 'Pick at least one of Gallery, Reel or Voting so the photo is visible somewhere.', 'err');
+        return;
+      }
 
       var formData = new FormData();
       formData.append('caption', document.getElementById('mb-upload-caption').value.trim());
@@ -1886,7 +1895,13 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(function (res) { return res.json(); })
         .then(function (data) {
           checkbox.disabled = false;
-          if (!data.success) checkbox.checked = !checkbox.checked;
+          if (!data.success) {
+            checkbox.checked = !checkbox.checked;
+            if (data.message) {
+              setStatus(carNameStatus, data.message, 'err');
+              setTimeout(function () { setStatus(carNameStatus, '', ''); }, 4000);
+            }
+          }
         })
         .catch(function () {
           checkbox.disabled = false;

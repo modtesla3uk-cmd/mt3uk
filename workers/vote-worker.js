@@ -23,6 +23,7 @@ const SUBSCRIBERS_DIGEST_EMAIL = 'modtesla3uk@gmail.com';
 const MAX_COMMENT_LENGTH = 500;
 const MAX_COMMENTS_PER_FILE = 500;
 const COMMENT_REPORT_HIDE_THRESHOLD = 3;
+const PHOTO_REPORT_HIDE_THRESHOLD = 3;
 const COMMENT_PROFANITY_WORDS = [
   'fuck', 'shit', 'bitch', 'cunt', 'bastard', 'asshole', 'dick', 'wanker',
   'twat', 'nigger', 'nigga', 'faggot', 'retard', 'whore', 'slut'
@@ -148,7 +149,7 @@ async function listGalleryEntriesFromR2(env, opts) {
           if (typeof sidecar.carId === 'string' && sidecar.carId) carId = sidecar.carId;
           if (typeof sidecar.votableSince === 'string' && sidecar.votableSince) votableSince = sidecar.votableSince;
           if (typeof sidecar.color === 'string' && sidecar.color) color = sidecar.color;
-          if (includeEmail && typeof sidecar.email === 'string' && sidecar.email) sidecarEmail = sidecar.email;
+          if (typeof sidecar.email === 'string' && sidecar.email) sidecarEmail = sidecar.email;
         }
       } catch (e) {}
     }
@@ -158,6 +159,10 @@ async function listGalleryEntriesFromR2(env, opts) {
     if (split.name) entry.name = split.name;
     if (carId) entry.carId = carId;
     if (color) entry.color = color;
+    // Non-sensitive: lets the site show a "Claim this build" control on
+    // legacy photos uploaded before My Garage accounts existed, without
+    // exposing the actual owner email to public callers.
+    if (!sidecarEmail) entry.unclaimed = true;
     if (includeEmail && sidecarEmail) entry.email = sidecarEmail;
     // votableSince lets a photo that's re-enabled for voting after being opted
     // out become eligible again immediately, instead of being stuck outside the
@@ -786,6 +791,233 @@ async function handleCommentReport(request, env, ctx) {
   }
 
   return json({ success: true, reported: true });
+}
+
+async function getPhotoReports(env, file) {
+  var raw = await env.VOTES.get('photo-reports:' + file);
+  if (!raw) return [];
+  try {
+    var parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+async function savePhotoReports(env, file, reports) {
+  await env.VOTES.put('photo-reports:' + file, JSON.stringify(reports));
+}
+
+async function handlePhotoReport(request, env) {
+  var body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return json({ success: false, message: 'Invalid request body' }, 400);
+  }
+
+  var file = ((body && body.file) || '').toString();
+  if (!file) {
+    return json({ success: false, message: 'file is required' }, 400);
+  }
+
+  var voterId = getVoterId(request);
+  var reports = await getPhotoReports(env, file);
+  if (reports.indexOf(voterId) === -1) {
+    reports.push(voterId);
+    await savePhotoReports(env, file, reports);
+
+    if (reports.length >= PHOTO_REPORT_HIDE_THRESHOLD) {
+      var sidecarKey = 'gallery/' + file + '.json';
+      var sidecar = {};
+      try {
+        var existingObj = await env.GALLERY_BUCKET.get(sidecarKey);
+        if (existingObj) sidecar = await existingObj.json();
+      } catch (e) {}
+      sidecar.gallery = false;
+      sidecar.reel = false;
+      sidecar.votable = false;
+      await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
+        httpMetadata: { contentType: 'application/json' }
+      });
+      await triggerManifestRebuild(env);
+    }
+  }
+
+  return json({ success: true, reported: true });
+}
+
+async function handlePhotoReportsAdminList(request, env) {
+  var url = new URL(request.url);
+  var key = url.searchParams.get('key');
+  if (!env.ADMIN_KEY || key !== env.ADMIN_KEY) {
+    return json({ success: false, message: 'Unauthorized' }, 401);
+  }
+
+  // Admin-only aggregate scan across all files, not a per-visitor path, so a
+  // one-time list() call here is fine per the KV list-vs-get rule.
+  var list = await env.VOTES.list({ prefix: 'photo-reports:' });
+  var reported = [];
+  await Promise.all(list.keys.map(async function (k) {
+    var reports = await getPhotoReports(env, k.name.slice('photo-reports:'.length));
+    if (reports.length > 0) {
+      reported.push({ file: k.name.slice('photo-reports:'.length), reports: reports.length });
+    }
+  }));
+
+  return json({ success: true, reported: reported });
+}
+
+function claimKey(file) {
+  return 'claim:' + file;
+}
+
+async function getClaim(env, file) {
+  var raw = await env.VOTES.get(claimKey(file));
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch (e) {
+    return null;
+  }
+}
+
+async function saveClaim(env, file, claim) {
+  await env.VOTES.put(claimKey(file), JSON.stringify(claim));
+}
+
+async function sendClaimRequestEmail(env, file, email, note) {
+  var subject = 'Build claim request: ' + file;
+  var body = email + ' has requested to claim the unclaimed build photo "' + file + '".\n\n' +
+    (note ? 'Their note:\n' + note + '\n\n' : '') +
+    'Photo: ' + GALLERY_PUBLIC_BASE_URL + '/gallery/' + file + '\n\n' +
+    'Review and approve/reject: ' + MY_BUILDS_SITE_URL + '/gallery-claims-admin.html';
+  var message = new EmailMessage(
+    MY_BUILDS_FROM_EMAIL,
+    SUBSCRIBERS_DIGEST_EMAIL,
+    rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, body)
+  );
+  await env.SEND_EMAIL.send(message);
+}
+
+// A photo can only be claimed by a signed-in My Garage account (never by an
+// anonymous voterId, unlike likes/reports) so the resulting ownership
+// transfer is always tied to a verified email, and the admin decision below
+// has a real account to attach the build to.
+async function handleGalleryClaim(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in to My Garage first' }, 401);
+
+  var body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return json({ success: false, message: 'Invalid request body' }, 400);
+  }
+
+  var file = ((body && body.file) || '').toString();
+  if (!file) return json({ success: false, message: 'file is required' }, 400);
+  var note = ((body && body.note) || '').toString().trim().slice(0, 500);
+
+  var sidecarKey = 'gallery/' + file + '.json';
+  var sidecar = {};
+  try {
+    var existingObj = await env.GALLERY_BUCKET.get(sidecarKey);
+    if (existingObj) sidecar = await existingObj.json();
+  } catch (e) {}
+  if (sidecar.email) {
+    return json({ success: false, message: 'This build has already been claimed.' }, 400);
+  }
+
+  var existingClaim = await getClaim(env, file);
+  if (existingClaim && existingClaim.status === 'pending') {
+    if (existingClaim.email === email) {
+      return json({ success: true, status: 'pending' });
+    }
+    return json({ success: false, message: 'This build already has a claim under review.' }, 409);
+  }
+
+  var claim = { file: file, email: email, note: note, requestedAt: new Date().toISOString(), status: 'pending' };
+  await saveClaim(env, file, claim);
+
+  try {
+    await sendClaimRequestEmail(env, file, email, note);
+  } catch (err) {
+    console.log('Claim request email failed:', err.message);
+  }
+
+  return json({ success: true, status: 'pending' });
+}
+
+async function handleGalleryClaimsAdminList(request, env) {
+  var url = new URL(request.url);
+  var key = url.searchParams.get('key');
+  if (!env.ADMIN_KEY || key !== env.ADMIN_KEY) {
+    return json({ success: false, message: 'Unauthorized' }, 401);
+  }
+
+  // Admin-only aggregate scan across all files, not a per-visitor path, so a
+  // one-time list() call here is fine per the KV list-vs-get rule.
+  var list = await env.VOTES.list({ prefix: 'claim:' });
+  var claims = await Promise.all(list.keys.map(function (k) { return env.VOTES.get(k.name); }));
+  var parsed = claims.map(function (raw) {
+    try {
+      return JSON.parse(raw);
+    } catch (e) {
+      return null;
+    }
+  }).filter(Boolean);
+  parsed.sort(function (a, b) { return (b.requestedAt || '').localeCompare(a.requestedAt || ''); });
+
+  return json({ success: true, claims: parsed });
+}
+
+async function handleGalleryClaimsAdminDecide(request, env) {
+  var url = new URL(request.url);
+  var key = url.searchParams.get('key');
+  if (!env.ADMIN_KEY || key !== env.ADMIN_KEY) {
+    return json({ success: false, message: 'Unauthorized' }, 401);
+  }
+
+  var body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return json({ success: false, message: 'Invalid request body' }, 400);
+  }
+
+  var file = ((body && body.file) || '').toString();
+  var decision = ((body && body.decision) || '').toString();
+  if (!file || (decision !== 'approve' && decision !== 'reject')) {
+    return json({ success: false, message: 'file and a valid decision are required' }, 400);
+  }
+
+  var claim = await getClaim(env, file);
+  if (!claim || claim.status !== 'pending') {
+    return json({ success: false, message: 'No pending claim for that file' }, 404);
+  }
+
+  if (decision === 'approve') {
+    var sidecarKey = 'gallery/' + file + '.json';
+    var sidecar = {};
+    try {
+      var existingObj = await env.GALLERY_BUCKET.get(sidecarKey);
+      if (existingObj) sidecar = await existingObj.json();
+    } catch (e) {}
+    sidecar.email = claim.email;
+    await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
+      httpMetadata: { contentType: 'application/json' }
+    });
+    await addSubscriberFiles(env, claim.email, [file]);
+    claim.status = 'approved';
+    await triggerManifestRebuild(env);
+  } else {
+    claim.status = 'rejected';
+  }
+  claim.decidedAt = new Date().toISOString();
+  await saveClaim(env, file, claim);
+
+  return json({ success: true, status: claim.status });
 }
 
 async function handleCommentLike(request, env, ctx) {
@@ -1476,6 +1708,10 @@ async function handleMyBuildsUpdate(request, env) {
     sidecar.votableSince = ukDateString(new Date());
   }
 
+  if (sidecar.gallery === false && sidecar.reel === false && sidecar.votable === false) {
+    return json({ success: false, message: 'At least one of Gallery, Reel or Voting must stay on, otherwise the photo won’t be visible anywhere.' }, 400);
+  }
+
   if (body && Array.isArray(body.mods)) {
     var mods = body.mods.map(function (m) { return String(m).trim(); }).filter(Boolean).slice(0, 50);
     if (mods.length) {
@@ -1614,6 +1850,9 @@ async function handleMyBuildsUpload(request, env) {
   }
   if (!file.type || file.type.indexOf('image/') !== 0) {
     return json({ success: false, message: 'File must be an image' }, 400);
+  }
+  if (!gallery && !reel && !votable) {
+    return json({ success: false, message: 'At least one of Gallery, Reel or Voting must stay on, otherwise the photo won’t be visible anywhere.' }, 400);
   }
 
   try {
@@ -2140,6 +2379,21 @@ export default {
     }
     if (url.pathname === '/comments/report' && request.method === 'POST') {
       return handleCommentReport(request, env, ctx);
+    }
+    if (url.pathname === '/gallery/report' && request.method === 'POST') {
+      return handlePhotoReport(request, env);
+    }
+    if (url.pathname === '/gallery/admin/reports' && request.method === 'GET') {
+      return handlePhotoReportsAdminList(request, env);
+    }
+    if (url.pathname === '/gallery/claim' && request.method === 'POST') {
+      return handleGalleryClaim(request, env);
+    }
+    if (url.pathname === '/gallery/admin/claims' && request.method === 'GET') {
+      return handleGalleryClaimsAdminList(request, env);
+    }
+    if (url.pathname === '/gallery/admin/claims/decide' && request.method === 'POST') {
+      return handleGalleryClaimsAdminDecide(request, env);
     }
     if (url.pathname === '/comments/like' && request.method === 'POST') {
       return handleCommentLike(request, env, ctx);

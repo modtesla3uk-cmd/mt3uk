@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow">
+<title>Build Claims — MT3UK</title>
+<style>
+  :root {
+    --ink: #16233d;
+    --orange: #e8542a;
+    --steel: #7c8798;
+    --white: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--white);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+  }
+  header {
+    padding: 20px 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+  }
+  h1 { font-size: 1rem; letter-spacing: 0.04em; margin: 0 0 4px; color: var(--orange); }
+  main { max-width: 700px; margin: 0 auto; padding: 24px; }
+  .key-row { display: flex; gap: 8px; margin-bottom: 20px; }
+  .key-row input {
+    flex: 1;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: var(--white);
+    padding: 10px 12px;
+    font-family: inherit;
+    font-size: inherit;
+  }
+  button {
+    background: var(--orange);
+    color: var(--ink);
+    border: 0;
+    padding: 10px 16px;
+    font-family: inherit;
+    font-size: inherit;
+    cursor: pointer;
+  }
+  button:hover { opacity: 0.9; }
+  #status { color: var(--steel); margin-bottom: 16px; }
+  .claim {
+    border: 1px solid rgba(255,255,255,0.2);
+    margin-bottom: 18px;
+    display: flex;
+    gap: 14px;
+    padding: 14px;
+  }
+  .claim img { width: 96px; height: 96px; object-fit: cover; flex-shrink: 0; }
+  .claim-body { flex: 1; min-width: 0; }
+  .claim-file { color: var(--steel); font-size: 0.72rem; word-break: break-all; }
+  .claim-email { color: var(--orange); margin: 4px 0; }
+  .claim-note { margin: 6px 0; word-break: break-word; }
+  .claim-meta { color: var(--steel); font-size: 0.68rem; margin-bottom: 10px; }
+  .claim-status { font-size: 0.68rem; margin-top: 6px; }
+  .claim-status.approved { color: #4caf7d; }
+  .claim-status.rejected { color: #ff6b6b; }
+  .claim-actions { display: flex; gap: 10px; }
+  .approve-btn { background: #4caf7d; }
+  .reject-btn { background: none; border: 1px solid #ff6b6b; color: #ff6b6b; }
+  .reject-btn:hover { background: #ff6b6b; color: var(--ink); }
+  .empty { color: var(--steel); }
+</style>
+</head>
+<body>
+<header>
+  <h1>BUILD CLAIMS</h1>
+  <div class="key-row">
+    <input type="password" id="admin-key" placeholder="Admin key" autocomplete="off">
+    <button id="load-btn" type="button">Load claims</button>
+  </div>
+</header>
+<main>
+  <p id="status"></p>
+  <div id="claims"></div>
+</main>
+<script>
+(function () {
+  var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
+  var R2 = 'https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev';
+  var keyInput = document.getElementById('admin-key');
+  var loadBtn = document.getElementById('load-btn');
+  var statusEl = document.getElementById('status');
+  var claimsEl = document.getElementById('claims');
+
+  var savedKey = sessionStorage.getItem('mt3ukClaimsAdminKey');
+  if (savedKey) keyInput.value = savedKey;
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function renderClaim(c) {
+    var div = document.createElement('div');
+    div.className = 'claim';
+    var statusHtml = c.status === 'pending'
+      ? '<div class="claim-actions">' +
+          '<button type="button" class="approve-btn" data-file="' + escapeHtml(c.file) + '" data-decision="approve">Approve</button>' +
+          '<button type="button" class="reject-btn" data-file="' + escapeHtml(c.file) + '" data-decision="reject">Reject</button>' +
+        '</div>'
+      : '<p class="claim-status ' + escapeHtml(c.status) + '">' + escapeHtml(c.status) + '</p>';
+    div.innerHTML =
+      '<img src="' + R2 + '/gallery/' + encodeURIComponent(c.file) + '" alt="">' +
+      '<div class="claim-body">' +
+        '<div class="claim-file">' + escapeHtml(c.file) + '</div>' +
+        '<div class="claim-email">' + escapeHtml(c.email) + '</div>' +
+        (c.note ? '<p class="claim-note">' + escapeHtml(c.note) + '</p>' : '') +
+        '<div class="claim-meta">Requested ' + escapeHtml(c.requestedAt || '') + '</div>' +
+        statusHtml +
+      '</div>';
+    return div;
+  }
+
+  function loadClaims() {
+    var key = keyInput.value.trim();
+    if (!key) {
+      statusEl.textContent = 'Enter the admin key first.';
+      return;
+    }
+    sessionStorage.setItem('mt3ukClaimsAdminKey', key);
+    statusEl.textContent = 'Loading claims…';
+    claimsEl.innerHTML = '';
+
+    fetch(API + '/gallery/admin/claims?key=' + encodeURIComponent(key))
+      .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+      .then(function (result) {
+        if (!result.ok || !result.data || !result.data.success) {
+          statusEl.textContent = (result.data && result.data.message) || 'Could not load claims.';
+          return;
+        }
+        var claims = result.data.claims || [];
+        if (!claims.length) {
+          statusEl.textContent = 'No build claims yet.';
+          return;
+        }
+        statusEl.textContent = claims.length + ' claim' + (claims.length === 1 ? '' : 's') + '.';
+        claims.forEach(function (c) { claimsEl.appendChild(renderClaim(c)); });
+      })
+      .catch(function () {
+        statusEl.textContent = 'Network error loading claims.';
+      });
+  }
+
+  claimsEl.addEventListener('click', function (e) {
+    var btn = e.target.closest('.approve-btn, .reject-btn');
+    if (!btn) return;
+    var file = btn.dataset.file;
+    var decision = btn.dataset.decision;
+    var key = keyInput.value.trim();
+    if (!key || !file || !decision) return;
+    if (!confirm((decision === 'approve' ? 'Approve' : 'Reject') + ' this claim for "' + file + '"?')) return;
+
+    var actionsWrap = btn.closest('.claim-actions');
+    Array.prototype.forEach.call(actionsWrap.querySelectorAll('button'), function (b) { b.disabled = true; });
+
+    fetch(API + '/gallery/admin/claims/decide?key=' + encodeURIComponent(key), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ file: file, decision: decision })
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data && data.success) {
+          var statusP = document.createElement('p');
+          statusP.className = 'claim-status ' + data.status;
+          statusP.textContent = data.status;
+          actionsWrap.replaceWith(statusP);
+        } else {
+          Array.prototype.forEach.call(actionsWrap.querySelectorAll('button'), function (b) { b.disabled = false; });
+          alert((data && data.message) || 'Could not update claim.');
+        }
+      })
+      .catch(function () {
+        Array.prototype.forEach.call(actionsWrap.querySelectorAll('button'), function (b) { b.disabled = false; });
+        alert('Network error updating claim.');
+      });
+  });
+
+  loadBtn.addEventListener('click', loadClaims);
+  keyInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') loadClaims();
+  });
+
+  if (savedKey) loadClaims();
+})();
+</script>
+</body>
+</html>

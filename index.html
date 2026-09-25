@@ -1280,7 +1280,9 @@
     margin: 0; padding: 0; list-style: none;
     display: flex; flex-direction: column; gap: 10px;
   }
-  .bf-comment { display: flex; flex-direction: column; gap: 2px; }
+  .bf-comment { display: flex; flex-direction: column; gap: 2px; border-radius: 6px; transition: box-shadow 0.6s ease, background 0.6s ease; }
+  .bf-comment.was-linked { padding: 4px 8px; }
+  .bf-comment.is-linked { background: rgba(232, 84, 42, 0.18); box-shadow: inset 0 0 0 2px var(--orange); }
   .bf-comment-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
   .bf-comment-name {
     font-family: 'IBM Plex Mono', monospace;
@@ -3077,6 +3079,7 @@
         var closeBtn = block.querySelector('.bf-comments-close');
         var loaded = false;
         var commentsData = [];
+        var linkedCommentId = null;
 
         function updatePreviewLabel() {
           if (!commentsData.length) {
@@ -3112,6 +3115,15 @@
             .then(function (data) {
               commentsData = (data && data.success && data.comments) || [];
               renderComments(list, commentsData);
+              if (linkedCommentId) {
+                var linked = list.querySelector('.bf-comment[data-id="' + CSS.escape(linkedCommentId) + '"]');
+                linkedCommentId = null;
+                if (linked) {
+                  linked.classList.add('is-linked', 'was-linked');
+                  linked.scrollIntoView({ block: 'nearest' });
+                  setTimeout(function () { linked.classList.remove('is-linked'); }, 4000);
+                }
+              }
               if (content.hidden) updatePreviewLabel();
               updateBtnBadge();
             })
@@ -3148,6 +3160,13 @@
           btn.setAttribute('aria-pressed', 'false');
           collapse();
         }
+
+        slide.openLinkedComments = function (commentId) {
+          linkedCommentId = commentId;
+          if (loaded) loadComments();
+          openBlock();
+          expand();
+        };
 
         if (expandBtn) {
           expandBtn.addEventListener('click', function (e) {
@@ -3581,6 +3600,20 @@
 
     var latestFile = null;
     var pendingPhotos = null;
+    // My Garage notifications link here as ?photo=<file>&comment=<id>#build-feed
+    var linkParams = new URL(window.location.href).searchParams;
+
+    function openLinkedPhoto(file, commentId) {
+      if (!file) return;
+      var url = new URL(window.location.href);
+      url.searchParams.delete('photo');
+      url.searchParams.delete('comment');
+      history.replaceState(null, '', url.pathname + url.search + url.hash);
+      var slide = Array.prototype.filter.call(feedEl.querySelectorAll('.bf-slide'), function (el) { return el.dataset.file === file; })[0];
+      if (!slide) return;
+      feedEl.scrollTop += slide.getBoundingClientRect().top - feedEl.getBoundingClientRect().top;
+      if (slide.openLinkedComments) slide.openLinkedComments(commentId);
+    }
     var newBuildToast = document.getElementById('bf-new-build-toast');
 
     Promise.all([
@@ -3589,9 +3622,15 @@
       fetchCommentCounts()
     ])
       .then(function (results) {
-        var photos = (results[0] || []).filter(function (p) { return p.reel !== false; }).slice(0, MAX_SLIDES);
+        var reel = (results[0] || []).filter(function (p) { return p.reel !== false; });
+        var photos = reel.slice(0, MAX_SLIDES);
+        var linkedPhoto = linkParams.get('photo');
+        if (linkedPhoto && !photos.some(function (p) { return p.file === linkedPhoto; })) {
+          photos = photos.concat(reel.filter(function (p) { return p.file === linkedPhoto; }));
+        }
         latestFile = photos.length ? photos[0].file : null;
         render(photos, results[1], results[2]);
+        openLinkedPhoto(linkedPhoto, linkParams.get('comment'));
       })
       .catch(function () {
         feedEl.innerHTML = '<p class="mono" style="padding: 24px; color: var(--steel);">Builds couldn\'t be loaded.</p>';
@@ -4677,7 +4716,7 @@
       var upcoming = list.filter(function (i) { return i.publish > today; }).sort(function (a, b) { return a.publish > b.publish ? 1 : -1; });
       var live = published[0] || null;
       var feature = live || upcoming[0];
-      var next = live ? upcoming[0] : upcoming[1];
+      var next = upcoming[0];
       if (!feature) return;
 
       // Hero
@@ -4700,7 +4739,7 @@
         // Preview card: blurred photo like the list teaser, plus title and excerpt
         nextLink.innerHTML =
           (next.image ? '<span class="hp-next-thumb"><img src="' + esc(next.image) + '" alt="" loading="lazy" style="object-position: ' + esc(next.heroPosition || 'center') + '"></span>' : '') +
-          '<span class="hp-next-text"><span class="hp-next-label">Next interview · ' + esc(prettyDay(next.publish)) + '</span>' +
+          '<span class="hp-next-text"><span class="hp-next-label">' + (live ? 'Next interview' : 'First interview') + ' · ' + esc(prettyDay(next.publish)) + '</span>' +
           '<span class="hp-next-title">' + esc(next.name) + '’s ' + esc(next.car) + '</span>' +
           (next.excerpt ? '<span class="hp-next-sub">' + esc(next.excerpt) + '</span>' : '') + '</span>' +
           '<span class="hp-next-arrow" aria-hidden="true">→</span>';
@@ -4719,7 +4758,7 @@
             '<span class="hp-int-title">' + esc(i.title) + '</span>' +
             '<span class="hp-int-sub">' + esc(metaLine(i)) + '</span></span></a>';
         }).join('');
-        var teaser = live ? next : feature;
+        var teaser = next;
         if (teaser) {
           html += '<div class="hp-int-item is-next">' +
             '<span class="hp-int-thumb"><img src="' + esc(teaser.image) + '" alt="" loading="lazy" style="object-position: ' + esc(teaser.heroPosition || 'center') + '"></span>' +

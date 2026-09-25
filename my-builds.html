@@ -834,7 +834,8 @@
     font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
   }
   .mb-comment-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-  .mb-comment-bubble { background: var(--paper-2); border-radius: 16px; padding: 8px 13px; display: inline-block; max-width: 100%; }
+  .mb-comment-bubble { background: var(--paper-2); border-radius: 16px; padding: 8px 13px; display: inline-block; max-width: 100%; transition: box-shadow 0.6s ease, background 0.6s ease; }
+  .mb-comment.is-linked > .mb-comment-main > .mb-comment-bubble { background: #fdf3ec; box-shadow: 0 0 0 2px var(--orange); }
   .mb-comment-head { display: flex; align-items: baseline; gap: 8px; }
   .mb-comment-name { font-family: 'IBM Plex Sans', sans-serif; font-weight: 700; font-size: 0.78rem; color: var(--ink); }
   .mb-comment-date { display: none; }
@@ -1363,7 +1364,23 @@ document.addEventListener('DOMContentLoaded', function () {
     var SESSION_KEY = 'mt3ukMyBuildsSession';
     var EMAIL_KEY = 'mt3ukMyBuildsEmail';
     var myGarageEmail = '';
-    var pendingCommentsFile = new URL(window.location.href).searchParams.get('file');
+    var linkParams = new URL(window.location.href).searchParams;
+    var pendingCommentsFile = linkParams.get('file');
+    var pendingCommentId = linkParams.get('comment');
+    // Signing in from the email opens a fresh tab without these, so remember them for an hour
+    var PENDING_LINK_KEY = 'mt3ukPendingCommentLink';
+    if (pendingCommentsFile) {
+      localStorage.setItem(PENDING_LINK_KEY, JSON.stringify({ file: pendingCommentsFile, comment: pendingCommentId, at: Date.now() }));
+    } else {
+      try {
+        var savedLink = JSON.parse(localStorage.getItem(PENDING_LINK_KEY) || 'null');
+        if (savedLink && Date.now() - savedLink.at < 3600000) {
+          pendingCommentsFile = savedLink.file;
+          pendingCommentId = savedLink.comment;
+        }
+      } catch (e) {}
+    }
+    var lightboxLinkedComment = null;
     var carsData = [];
     var currentCarId = null;
 
@@ -1637,7 +1654,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderNotifPanel(notifications) {
       notifList.innerHTML = notifications.length
         ? notifications.map(function (n) {
-            return '<li><a class="mb-notif-item' + (n.read ? '' : ' is-unread') + '" href="' + (/^interview:/.test(n.file || '') ? 'blog-' + n.file.slice(10) + '.html#comments' : '?file=' + encodeURIComponent(n.file)) + '">' +
+            return '<li><a class="mb-notif-item' + (n.read ? '' : ' is-unread') + '" href="' + (/^interview:/.test(n.file || '') ? 'blog-' + n.file.slice(10) + '.html#comments' : '?file=' + encodeURIComponent(n.file) + (n.commentId ? '&comment=' + encodeURIComponent(n.commentId) : '')) + '">' +
               '<div class="mb-notif-item-name">' + escapeHtml(n.fromName || '') + '</div>' +
               '<div class="mb-notif-item-text">' + escapeHtml(n.text || '') + '</div>' +
               '<div class="mb-notif-item-date">' + timeAgo(n.createdAt) + '</div>' +
@@ -2067,6 +2084,10 @@ document.addEventListener('DOMContentLoaded', function () {
           lightboxCommentsList.innerHTML = roots.length
             ? roots.map(function (root) { return renderCommentNode(root, file); }).join('')
             : '<li class="mb-comments-empty">No comments yet.</li>';
+          if (lightboxLinkedComment) {
+            highlightLinkedComment(lightboxCommentsList, lightboxLinkedComment);
+            lightboxLinkedComment = null;
+          }
         })
         .catch(function () {
           if (lightboxFile !== file) return;
@@ -2586,16 +2607,34 @@ document.addEventListener('DOMContentLoaded', function () {
       refreshNavCommentAlert();
     }
 
+    function highlightLinkedComment(list, id) {
+      var el = list.querySelector('.mb-comment[data-id="' + CSS.escape(id) + '"]');
+      if (!el) return;
+      el.classList.add('is-linked');
+      el.scrollIntoView({ block: 'center' });
+      setTimeout(function () { el.classList.remove('is-linked'); }, 4000);
+    }
+
     function maybeOpenLinkedComments() {
       if (!pendingCommentsFile) return;
       var file = pendingCommentsFile;
+      var commentId = pendingCommentId;
       pendingCommentsFile = null;
+      pendingCommentId = null;
+      localStorage.removeItem(PENDING_LINK_KEY);
       var url = new URL(window.location.href);
       url.searchParams.delete('file');
+      url.searchParams.delete('comment');
       history.replaceState(null, '', url.pathname + url.search);
       var car = carsData.filter(function (c) { return c.photos.some(function (p) { return p.file === file; }); })[0];
-      if (!car) return;
+      if (!car) {
+        // Someone else's photo (e.g. a reply to your comment): open it in the homepage build feed
+        window.location.href = 'index.html?photo=' + encodeURIComponent(file) +
+          (commentId ? '&comment=' + encodeURIComponent(commentId) : '') + '#build-feed';
+        return;
+      }
       showDetail(car.id);
+      lightboxLinkedComment = commentId;
       openPhotoLightbox(file);
     }
 

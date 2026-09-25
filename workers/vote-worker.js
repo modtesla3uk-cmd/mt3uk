@@ -796,7 +796,7 @@ async function handleCommentsPost(request, env, ctx) {
   }
   await saveComments(env, file, comments);
 
-  await notifyCommentRecipients(env, ctx, file, email, comment.name, text, parentComment && parentComment.email);
+  await notifyCommentRecipients(env, ctx, file, email, comment.name, text, parentComment && parentComment.email, comment.id);
 
   return json({ success: true, comment: publicComment(comment, [], email) });
 }
@@ -1650,10 +1650,13 @@ async function addNotification(env, toEmail, notif) {
   await env.VOTES.put(notificationsKey(toEmail), JSON.stringify(list));
 }
 
-async function sendCommentNotificationEmail(env, toEmail, fromName, text, file) {
-  var link = MY_BUILDS_SITE_URL + '/my-builds.html?file=' + encodeURIComponent(file);
-  var subject = fromName + ' commented on your build';
-  var body = fromName + ' left a comment on one of your MT3UK build photos:\n\n"' + text + '"' +
+async function sendCommentNotificationEmail(env, toEmail, fromName, text, file, commentId, isReply) {
+  // The link opens the photo with this comment highlighted (see my-builds.html)
+  var link = MY_BUILDS_SITE_URL + '/my-builds.html?file=' + encodeURIComponent(file) +
+    (commentId ? '&comment=' + encodeURIComponent(commentId) : '');
+  var subject = fromName + (isReply ? ' replied to your comment' : ' commented on your build');
+  var body = fromName + (isReply ? ' replied to your comment on an MT3UK build photo:' : ' left a comment on one of your MT3UK build photos:') +
+    '\n\n"' + text + '"' +
     '\n\nView and reply: ' + link;
   if (isInterviewThread(file)) {
     link = MY_BUILDS_SITE_URL + '/blog-' + file.slice('interview:'.length) + '.html#comments';
@@ -1666,17 +1669,12 @@ async function sendCommentNotificationEmail(env, toEmail, fromName, text, file) 
 }
 
 // Notifies the photo's owner (read from the sidecar's stamped `email`
-// field - set at upload time) about a new comment/reply, both as an
-// in-Garage notification and an email. Commenting on your own photo, or on
-// a photo whose owner hasn't been stamped yet (e.g. an un-migrated legacy
-// photo with no sidecar email), is a silent no-op.
-// Notifies the photo's owner (read from the sidecar's stamped `email`
 // field - set at upload time) and, on a reply, the author of the comment
 // being replied to - both as an in-Garage notification and an email.
 // Commenting on your own photo/reply, or a photo whose owner hasn't been
 // stamped yet (e.g. an un-migrated legacy photo with no sidecar email), is
 // a silent no-op for that recipient.
-async function notifyCommentRecipients(env, ctx, file, commenterEmail, commenterName, text, parentAuthorEmail) {
+async function notifyCommentRecipients(env, ctx, file, commenterEmail, commenterName, text, parentAuthorEmail, commentId) {
   var ownerEmail = null;
   if (isInterviewThread(file)) {
     // Interviews have no photo owner: new comments go to the site owner.
@@ -1702,12 +1700,13 @@ async function notifyCommentRecipients(env, ctx, file, commenterEmail, commenter
       await addNotification(env, toEmail, {
         type: 'comment',
         file: file,
+        commentId: commentId,
         fromName: commenterName,
         text: text,
         createdAt: new Date().toISOString()
       });
       try {
-        await sendCommentNotificationEmail(env, toEmail, commenterName, text, file);
+        await sendCommentNotificationEmail(env, toEmail, commenterName, text, file, commentId, toEmail !== ownerEmail);
       } catch (err) {
         console.log('Comment notification email failed:', err.message);
       }

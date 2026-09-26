@@ -24,6 +24,8 @@
     border-bottom: 1px solid rgba(255,255,255,0.15);
   }
   h1 { font-size: 1rem; letter-spacing: 0.04em; margin: 0 0 4px; color: var(--orange); }
+  .admin-links { margin: 0 0 12px; }
+  .admin-links a { color: var(--orange); }
   h2 { font-size: 0.85rem; letter-spacing: 0.04em; margin: 0 0 14px; color: var(--white); text-transform: uppercase; }
   main { max-width: 1400px; margin: 0 auto; padding: 24px; }
   .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
@@ -160,6 +162,7 @@
 <body>
 <header>
   <h1>MT3UK ADMIN</h1>
+  <p class="admin-links"><a href="events-admin.html">Events admin</a></p>
   <div class="key-row">
     <input type="password" id="admin-key" placeholder="Admin key" autocomplete="off">
     <button id="load-btn" type="button">Load</button>

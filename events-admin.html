@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Events Admin | MT3UK</title>
+<style>
+  :root {
+    --ink: #16233d;
+    --orange: #e8542a;
+    --steel: #7c8798;
+    --white: #ffffff;
+    --green: #4caf7d;
+    --red: #ff6b6b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--white);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+  }
+  header {
+    padding: 20px 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+  }
+  .header-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 12px; }
+  h1 { font-size: 1rem; letter-spacing: 0.04em; margin: 0; color: var(--orange); }
+  h2 { font-size: 0.85rem; letter-spacing: 0.04em; margin: 0 0 14px; color: var(--white); text-transform: uppercase; }
+  a { color: var(--orange); }
+  main { max-width: 1000px; margin: 0 auto; padding: 24px; }
+  section { margin-bottom: 36px; }
+  input, textarea {
+    width: 100%;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: var(--white);
+    padding: 9px 10px;
+    font-family: inherit;
+    font-size: inherit;
+    color-scheme: dark;
+  }
+  textarea { resize: vertical; min-height: 64px; }
+  input:focus, textarea:focus { outline: 1px solid var(--orange); border-color: var(--orange); }
+  button {
+    background: var(--orange);
+    color: var(--ink);
+    border: 0;
+    padding: 10px 16px;
+    font-family: inherit;
+    font-size: inherit;
+    cursor: pointer;
+  }
+  button:hover { opacity: 0.9; }
+  button:disabled { opacity: 0.5; cursor: default; }
+  button.secondary { background: none; border: 1px solid rgba(255,255,255,0.35); color: var(--white); }
+  button.danger { background: none; border: 1px solid var(--red); color: var(--red); }
+  button.danger:hover { background: var(--red); color: var(--ink); }
+  .key-row { display: flex; gap: 8px; }
+  .key-row input { flex: 1; }
+  .status { color: var(--steel); margin: 0 0 20px; min-height: 1.2em; }
+  .status.ok { color: var(--green); }
+  .status.error { color: var(--red); }
+  .hidden { display: none !important; }
+
+  .form-card { border: 1px solid rgba(255,255,255,0.2); padding: 18px; }
+  .form-card.editing { border-color: var(--orange); }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
+  .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .field.full { grid-column: 1 / -1; }
+  .field label { color: var(--steel); font-size: 0.72rem; letter-spacing: 0.04em; text-transform: uppercase; }
+  .field .hint { color: var(--steel); font-size: 0.68rem; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .form-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+
+  .list-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .list-head h2 { margin: 0; }
+  .count { color: var(--steel); }
+  .event-card {
+    border: 1px solid rgba(255,255,255,0.2);
+    margin-bottom: 12px;
+    padding: 14px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .event-id {
+    flex-shrink: 0;
+    color: var(--orange);
+    border: 1px solid var(--orange);
+    padding: 4px 8px;
+    font-size: 0.8rem;
+  }
+  .event-body { flex: 1; min-width: 0; }
+  .event-name { font-size: 0.95rem; margin: 0 0 4px; word-break: break-word; }
+  .event-meta { color: var(--steel); font-size: 0.72rem; margin: 2px 0; word-break: break-word; }
+  .event-desc { margin: 6px 0 0; word-break: break-word; }
+  .event-actions { display: flex; gap: 8px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+  .event-actions button { padding: 6px 12px; font-size: 0.72rem; }
+  .empty { color: var(--steel); }
+  details > summary { cursor: pointer; list-style: none; }
+  details > summary::-webkit-details-marker { display: none; }
+  details > summary h2 { display: inline-block; margin: 0 0 14px; }
+  details > summary h2::before { content: "\25B8\00a0"; color: var(--orange); }
+  details[open] > summary h2::before { content: "\25BE\00a0"; }
+  .past .event-card { opacity: 0.7; }
+
+  @media (max-width: 780px) {
+    header, main { padding-left: 16px; padding-right: 16px; }
+    .form-grid { grid-template-columns: 1fr; }
+    .event-card { flex-wrap: wrap; }
+    .event-body { flex-basis: calc(100% - 70px); }
+    .event-actions { width: 100%; justify-content: flex-start; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="header-top">
+    <h1>MT3UK EVENTS ADMIN</h1>
+    <a href="admin.html">Main admin</a>
+  </div>
+  <div class="key-row">
+    <input type="password" id="admin-key" placeholder="Admin key" autocomplete="off">
+    <button id="load-btn" type="button">Load</button>
+  </div>
+</header>
+<main>
+  <p class="status" id="status" role="status"></p>
+
+  <div id="admin-body" class="hidden">
+    <section>
+      <form class="form-card" id="event-form" novalidate>
+        <h2 id="form-title">Add an event</h2>
+        <div class="form-grid">
+          <div class="field full">
+            <label for="f-name">Event name</label>
+            <input type="text" id="f-name" required maxlength="120">
+          </div>
+          <div class="field full">
+            <label for="f-description">Short description</label>
+            <textarea id="f-description" maxlength="500"></textarea>
+          </div>
+          <div class="field">
+            <label for="f-start-date">Starts</label>
+            <div class="pair">
+              <input type="date" id="f-start-date" required aria-label="Start date">
+              <input type="time" id="f-start-time" required aria-label="Start time">
+            </div>
+          </div>
+          <div class="field">
+            <label for="f-end-date">Ends</label>
+            <div class="pair">
+              <input type="date" id="f-end-date" aria-label="End date">
+              <input type="time" id="f-end-time" aria-label="End time">
+            </div>
+            <span class="hint">Leave blank to use the start date or time.</span>
+          </div>
+          <div class="field full">
+            <label for="f-location">Location</label>
+            <input type="text" id="f-location" required maxlength="200">
+          </div>
+          <div class="field full">
+            <label for="f-url">Event link (Facebook, Eventbrite etc.)</label>
+            <input type="url" id="f-url" required placeholder="https://">
+          </div>
+          <div class="field">
+            <label for="f-attending">Attending</label>
+            <input type="number" id="f-attending" min="0" step="1" inputmode="numeric" placeholder="0">
+          </div>
+          <div class="field">
+            <label for="f-interested">Interested</label>
+            <input type="number" id="f-interested" min="0" step="1" inputmode="numeric" placeholder="0">
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" id="save-btn">Add event</button>
+          <button type="button" class="secondary hidden" id="cancel-btn">Cancel edit</button>
+        </div>
+      </form>
+    </section>
+
+    <section>
+      <div class="list-head">
+        <h2>Upcoming events <span class="count" id="upcoming-count"></span></h2>
+      </div>
+      <div id="upcoming-list"></div>
+    </section>
+
+    <section class="past">
+      <details id="past-wrap">
+        <summary><h2>Past events <span class="count" id="past-count"></span></h2></summary>
+        <div id="past-list"></div>
+      </details>
+    </section>
+  </div>
+</main>
+<script>
+(function () {
+  var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
+  var keyInput = document.getElementById('admin-key');
+  var loadBtn = document.getElementById('load-btn');
+  var statusEl = document.getElementById('status');
+  var bodyEl = document.getElementById('admin-body');
+  var form = document.getElementById('event-form');
+  var formTitle = document.getElementById('form-title');
+  var saveBtn = document.getElementById('save-btn');
+  var cancelBtn = document.getElementById('cancel-btn');
+  var upcomingEl = document.getElementById('upcoming-list');
+  var pastEl = document.getElementById('past-list');
+  var fields = {
+    name: document.getElementById('f-name'),
+    description: document.getElementById('f-description'),
+    startDate: document.getElementById('f-start-date'),
+    startTime: document.getElementById('f-start-time'),
+    endDate: document.getElementById('f-end-date'),
+    endTime: document.getElementById('f-end-time'),
+    location: document.getElementById('f-location'),
+    facebookUrl: document.getElementById('f-url'),
+    attendingCount: document.getElementById('f-attending'),
+    interestedCount: document.getElementById('f-interested')
+  };
+
+  var events = [];
+  var editingId = '';
+
+  var savedKey = sessionStorage.getItem('mt3ukAdminKey');
+  if (savedKey) keyInput.value = savedKey;
+
+  function escapeHtml(str) {
+    return String(str == null ? '' : str).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function setStatus(text, kind) {
+    statusEl.textContent = text || '';
+    statusEl.className = 'status' + (kind ? ' ' + kind : '');
+  }
+
+  function key() { return keyInput.value.trim(); }
+
+  function request(method, query, body) {
+    var url = API + '/events/admin?key=' + encodeURIComponent(key()) + (query || '');
+    var opts = { method: method };
+    if (body) {
+      opts.headers = { 'Content-Type': 'application/json' };
+      opts.body = JSON.stringify(body);
+    }
+    return fetch(url, opts).then(function (res) {
+      return res.json().catch(function () { return {}; }).then(function (data) {
+        if (!res.ok || !data.success) throw new Error(data.message || ('Request failed (' + res.status + ')'));
+        return data;
+      });
+    });
+  }
+
+  // Times are stored as UK clock time with a +0000 suffix, so they are read
+  // back as UTC to show exactly what was entered.
+  function formatWhen(ev) {
+    var start = new Date(ev.startTime);
+    var end = new Date(ev.endTime || ev.startTime);
+    var day = { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' };
+    var time = { hour: 'numeric', minute: '2-digit', timeZone: 'UTC' };
+    var text = start.toLocaleDateString('en-GB', day) + ', ' + start.toLocaleTimeString('en-GB', time);
+    if (ev.endTime && ev.endTime !== ev.startTime) {
+      text += ' to ';
+      if (ev.endTime.slice(0, 10) !== ev.startTime.slice(0, 10)) text += end.toLocaleDateString('en-GB', day) + ', ';
+      text += end.toLocaleTimeString('en-GB', time);
+    }
+    return text;
+  }
+
+  function renderEvent(ev) {
+    return '<div class="event-card">' +
+      '<div class="event-id">' + escapeHtml(ev.id) + '</div>' +
+      '<div class="event-body">' +
+        '<p class="event-name">' + escapeHtml(ev.name) + '</p>' +
+        '<p class="event-meta">' + escapeHtml(formatWhen(ev)) + '</p>' +
+        '<p class="event-meta">' + escapeHtml(ev.location && ev.location.name) +
+          ' · ' + escapeHtml(ev.attendingCount || 0) + ' attending, ' + escapeHtml(ev.interestedCount || 0) + ' interested</p>' +
+        '<p class="event-meta"><a href="' + escapeHtml(ev.facebookUrl) + '" target="_blank" rel="noopener">' + escapeHtml(ev.facebookUrl) + '</a></p>' +
+        (ev.description ? '<p class="event-desc">' + escapeHtml(ev.description) + '</p>' : '') +
+      '</div>' +
+      '<div class="event-actions">' +
+        '<button type="button" data-action="edit" data-id="' + escapeHtml(ev.id) + '">Edit</button>' +
+        '<button type="button" class="secondary" data-action="copy" data-id="' + escapeHtml(ev.id) + '">Copy as new</button>' +
+        '<button type="button" class="danger" data-action="delete" data-id="' + escapeHtml(ev.id) + '">Delete</button>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function renderList() {
+    var now = new Date();
+    var upcoming = [];
+    var past = [];
+    events.forEach(function (ev) {
+      (new Date(ev.endTime || ev.startTime) < now ? past : upcoming).push(ev);
+    });
+    upcoming.sort(function (a, b) { return new Date(a.startTime) - new Date(b.startTime); });
+    past.sort(function (a, b) { return new Date(b.startTime) - new Date(a.startTime); });
+    upcomingEl.innerHTML = upcoming.length ? upcoming.map(renderEvent).join('') : '<p class="empty">No upcoming events.</p>';
+    pastEl.innerHTML = past.length ? past.map(renderEvent).join('') : '<p class="empty">No past events.</p>';
+    document.getElementById('upcoming-count').textContent = '(' + upcoming.length + ')';
+    document.getElementById('past-count').textContent = '(' + past.length + ')';
+  }
+
+  function fillForm(ev) {
+    fields.name.value = ev.name || '';
+    fields.description.value = ev.description || '';
+    fields.startDate.value = (ev.startTime || '').slice(0, 10);
+    fields.startTime.value = (ev.startTime || '').slice(11, 16);
+    // An end the same as the start is left blank, which means "same as the
+    // start", so changing the start time moves the end with it.
+    var sameEnd = !ev.endTime || ev.endTime === ev.startTime;
+    var sameDay = sameEnd || ev.endTime.slice(0, 10) === ev.startTime.slice(0, 10);
+    fields.endDate.value = sameDay ? '' : ev.endTime.slice(0, 10);
+    fields.endTime.value = sameEnd ? '' : ev.endTime.slice(11, 16);
+    fields.location.value = (ev.location && ev.location.name) || '';
+    fields.facebookUrl.value = ev.facebookUrl || '';
+    fields.attendingCount.value = ev.attendingCount || '';
+    fields.interestedCount.value = ev.interestedCount || '';
+  }
+
+  function resetForm() {
+    editingId = '';
+    form.reset();
+    form.classList.remove('editing');
+    formTitle.textContent = 'Add an event';
+    saveBtn.textContent = 'Add event';
+    cancelBtn.classList.add('hidden');
+  }
+
+  function startEdit(ev) {
+    setStatus('');
+    editingId = ev.id;
+    fillForm(ev);
+    form.classList.add('editing');
+    formTitle.textContent = 'Edit event ' + ev.id;
+    saveBtn.textContent = 'Save changes';
+    cancelBtn.classList.remove('hidden');
+    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    fields.name.focus({ preventScroll: true });
+  }
+
+  function startCopy(ev) {
+    resetForm();
+    fillForm(ev);
+    // A copy is usually next year's run of the same event, so the dates are
+    // cleared to make sure they get changed.
+    fields.startDate.value = '';
+    fields.endDate.value = '';
+    fields.attendingCount.value = '';
+    fields.interestedCount.value = '';
+    formTitle.textContent = 'Add an event (copied from ' + ev.id + ')';
+    setStatus('Set the new dates, then press Add event.');
+    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    fields.startDate.focus({ preventScroll: true });
+  }
+
+  function load() {
+    if (!key()) { setStatus('Enter the admin key first.', 'error'); return; }
+    loadBtn.disabled = true;
+    setStatus('Loading events...');
+    request('GET').then(function (data) {
+      sessionStorage.setItem('mt3ukAdminKey', key());
+      events = data.events || [];
+      bodyEl.classList.remove('hidden');
+      renderList();
+      setStatus('');
+    }).catch(function (err) {
+      setStatus(err.message, 'error');
+    }).then(function () { loadBtn.disabled = false; });
+  }
+
+  function savedMessage(verb, ev) {
+    return verb + ' event ' + ev.id + ' "' + ev.name + '". The live site updates in a minute or two.';
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var missing = ['name', 'startDate', 'startTime', 'location', 'facebookUrl'].filter(function (f) {
+      return !fields[f].value.trim();
+    });
+    if (missing.length) {
+      setStatus('Please fill in the event name, start date and time, location and event link.', 'error');
+      fields[missing[0]].focus();
+      return;
+    }
+    var payload = { id: editingId };
+    Object.keys(fields).forEach(function (f) { payload[f] = fields[f].value; });
+
+    saveBtn.disabled = true;
+    setStatus('Saving...');
+    var wasEditing = !!editingId;
+    request('POST', '', payload).then(function (data) {
+      events = data.events || events;
+      renderList();
+      resetForm();
+      setStatus(savedMessage(wasEditing ? 'Saved' : 'Added', data.event), 'ok');
+    }).catch(function (err) {
+      setStatus(err.message, 'error');
+    }).then(function () { saveBtn.disabled = false; });
+  });
+
+  cancelBtn.addEventListener('click', function () { resetForm(); setStatus(''); });
+
+  document.getElementById('admin-body').addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-action]');
+    if (!btn) return;
+    var ev = events.filter(function (x) { return x.id === btn.dataset.id; })[0];
+    if (!ev) return;
+    if (btn.dataset.action === 'edit') { startEdit(ev); return; }
+    if (btn.dataset.action === 'copy') { startCopy(ev); return; }
+    if (!confirm('Delete event ' + ev.id + ' "' + ev.name + '"? This removes it from the website.')) return;
+    btn.disabled = true;
+    setStatus('Deleting...');
+    request('DELETE', '&id=' + encodeURIComponent(ev.id)).then(function (data) {
+      events = data.events || [];
+      if (editingId === ev.id) resetForm();
+      renderList();
+      setStatus('Deleted event ' + ev.id + ' "' + ev.name + '". The live site updates in a minute or two.', 'ok');
+    }).catch(function (err) {
+      btn.disabled = false;
+      setStatus(err.message, 'error');
+    });
+  });
+
+  loadBtn.addEventListener('click', load);
+  keyInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') load(); });
+  if (savedKey) load();
+})();
+</script>
+</body>
+</html>

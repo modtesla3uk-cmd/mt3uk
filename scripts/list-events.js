@@ -22,7 +22,7 @@ function main() {
     .sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
     .forEach((ev) => {
       const startDate = toUkDate(ev.startTime.slice(0, 10));
-      console.log(`| \`${ev.id}\` | ${ev.name} | ${startDate} | ${ev.location.name} | ${ev.facebookUrl} |`);
+      console.log(`| ${ev.id} | ${ev.name} | ${startDate} | ${ev.location.name} | ${ev.facebookUrl} |`);
     });
 }
 

@@ -5,6 +5,7 @@ const REPO = 'mt3uk';
 const BASE_BRANCH = 'main';
 const FEATURED_PATH = 'data/featured.json';
 const REVIEWS_PATH = 'data/reviews.json';
+const EVENTS_PATH = 'events-data/events-manifest.json';
 const GALLERY_PUBLIC_BASE_URL = 'https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev';
 const MAX_GALLERY_PHOTOS = 3;
 const GALLERY_SUBMIT_COOLDOWN_SECONDS = 60 * 60 * 24;
@@ -269,6 +270,198 @@ async function handleShopProducts(request, ctx) {
   response.headers.set('Cache-Control', 'public, max-age=' + SHOP_PRODUCTS_CACHE_SECONDS);
   ctx.waitUntil(cache.put(cacheKey, response.clone()));
   return response;
+}
+
+// ---------- Events admin ----------
+// events-admin.html edits events-data/events-manifest.json in the repo, the
+// same file the homepage reads and the Add or Update Event workflow writes.
+// Ids are sequential and padded to 3 digits (001, 002, ...), never reused, to
+// match scripts/event-utils.js.
+
+function eventsGithubHeaders(env) {
+  return {
+    'Authorization': 'Bearer ' + env.GITHUB_TOKEN,
+    'Accept': 'application/vnd.github+json',
+    'User-Agent': 'mt3uk-gallery-worker',
+    'X-GitHub-Api-Version': '2022-11-28'
+  };
+}
+
+async function readEventsManifest(env) {
+  var res = await fetch(
+    'https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/' + EVENTS_PATH + '?ref=' + BASE_BRANCH,
+    { headers: eventsGithubHeaders(env), cf: { cacheTtl: 0 } }
+  );
+  if (!res.ok) throw new Error('Could not read the events file (' + res.status + ')');
+  var data = await res.json();
+  var text = decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
+  var manifest = JSON.parse(text);
+  if (!Array.isArray(manifest.events)) manifest.events = [];
+  return { manifest: manifest, sha: data.sha };
+}
+
+function formatEventId(n) {
+  return String(n).padStart(3, '0');
+}
+
+// lastId remembers the highest id ever given out, so deleting the newest
+// event does not free its number for reuse.
+function highestEventId(manifest) {
+  var max = manifest.lastId || 0;
+  manifest.events.forEach(function (ev) {
+    var n = parseInt(ev.id, 10);
+    if (n > max) max = n;
+  });
+  return max;
+}
+
+function nextEventId(manifest) {
+  manifest.lastId = highestEventId(manifest) + 1;
+  return formatEventId(manifest.lastId);
+}
+
+// Reads the latest file, applies `change` to it and commits the result. If
+// something else committed the file in between (a 409), it tries once more
+// on the newer copy so that change is not lost.
+async function updateEventsManifest(env, message, change) {
+  for (var attempt = 0; attempt < 2; attempt++) {
+    var current = await readEventsManifest(env);
+    var manifest = current.manifest;
+    var result = change(manifest);
+    manifest.totalEvents = manifest.events.length;
+    manifest.generated = new Date().toISOString();
+    var content = btoa(unescape(encodeURIComponent(JSON.stringify(manifest, null, 2) + '\n')));
+    var putRes = await fetch(
+      'https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/' + EVENTS_PATH,
+      {
+        method: 'PUT',
+        headers: eventsGithubHeaders(env),
+        body: JSON.stringify({ message: message(result), content: content, sha: current.sha, branch: BASE_BRANCH })
+      }
+    );
+    if (putRes.ok) return { manifest: manifest, result: result };
+    if (putRes.status !== 409 && putRes.status !== 422) {
+      throw new Error('Could not save the events file (' + putRes.status + ')');
+    }
+  }
+  throw new Error('The events file was changed by something else at the same time, please try again');
+}
+
+function eventsAdminAuthorised(request, env) {
+  var key = new URL(request.url).searchParams.get('key');
+  return !!env.ADMIN_KEY && key === env.ADMIN_KEY;
+}
+
+function eventSlug(name) {
+  return String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
+// Checks the form fields and turns them into the stored event shape, or
+// returns { error } explaining what is wrong.
+function buildEventFromInput(input) {
+  var str = function (v) { return typeof v === 'string' ? v.trim() : ''; };
+  var name = str(input.name);
+  var startDate = str(input.startDate);
+  var startTime = str(input.startTime);
+  var endDate = str(input.endDate) || startDate;
+  var endTime = str(input.endTime) || startTime;
+  var location = str(input.location);
+  var facebookUrl = str(input.facebookUrl);
+  var dateRe = /^\d{4}-\d{2}-\d{2}$/;
+  var timeRe = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+  if (!name) return { error: 'Event name is required' };
+  if (!dateRe.test(startDate)) return { error: 'Start date is required' };
+  if (!timeRe.test(startTime)) return { error: 'Start time is required' };
+  if (!dateRe.test(endDate) || !timeRe.test(endTime)) return { error: 'End date or time is not valid' };
+  if (endDate + endTime < startDate + startTime) return { error: 'The end is before the start, check the end date and time' };
+  if (!location) return { error: 'Location is required' };
+  if (!/^https?:\/\/\S+\.\S+/.test(facebookUrl)) return { error: 'Event link must be a full web address starting with https://' };
+
+  var count = function (v) {
+    var n = parseInt(v, 10);
+    return Number.isInteger(n) && n >= 0 ? n : 0;
+  };
+
+  return {
+    event: {
+      name: name,
+      description: str(input.description),
+      startTime: startDate + 'T' + startTime + ':00+0000',
+      endTime: endDate + 'T' + endTime + ':00+0000',
+      location: { name: location },
+      facebookUrl: facebookUrl,
+      attendingCount: count(input.attendingCount),
+      interestedCount: count(input.interestedCount)
+    }
+  };
+}
+
+async function handleEventsAdminList(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorized' }, 401);
+  try {
+    var current = await readEventsManifest(env);
+    return json({ success: true, events: current.manifest.events });
+  } catch (err) {
+    return json({ success: false, message: err.message }, 500);
+  }
+}
+
+async function handleEventsAdminSave(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorized' }, 401);
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
+  var built = buildEventFromInput(body || {});
+  if (built.error) return json({ success: false, message: built.error }, 400);
+  var id = typeof body.id === 'string' ? body.id.trim() : '';
+
+  try {
+    var saved = await updateEventsManifest(env,
+      function (r) { return (id ? 'Edit event ' : 'Add event ') + r.id + ': ' + built.event.name + ' (events admin)'; },
+      function (manifest) {
+        var idx = -1;
+        if (id) {
+          idx = manifest.events.findIndex(function (ev) { return ev.id === id; });
+          if (idx < 0) throw new Error('Event ' + id + ' no longer exists, reload the page');
+        }
+        // Two events with the same name and start date would confuse the
+        // Add or Update Event workflow, which matches on those.
+        var slug = eventSlug(built.event.name);
+        var day = built.event.startTime.slice(0, 10);
+        var clash = manifest.events.find(function (ev, i) {
+          return i !== idx && eventSlug(ev.name) === slug && ev.startTime.slice(0, 10) === day;
+        });
+        if (clash) throw new Error('Event ' + clash.id + ' already has that name and start date');
+
+        var record = Object.assign({ id: id || nextEventId(manifest) }, built.event);
+        if (idx >= 0) manifest.events[idx] = record;
+        else manifest.events.push(record);
+        return record;
+      });
+    return json({ success: true, event: saved.result, events: saved.manifest.events });
+  } catch (err) {
+    return json({ success: false, message: err.message }, 400);
+  }
+}
+
+async function handleEventsAdminDelete(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorized' }, 401);
+  var id = (new URL(request.url).searchParams.get('id') || '').trim();
+  if (!id) return json({ success: false, message: 'Missing event id' }, 400);
+
+  try {
+    var saved = await updateEventsManifest(env,
+      function (r) { return 'Delete event ' + r.id + ': ' + r.name + ' (events admin)'; },
+      function (manifest) {
+        var idx = manifest.events.findIndex(function (ev) { return ev.id === id; });
+        if (idx < 0) throw new Error('Event ' + id + ' no longer exists, reload the page');
+        manifest.lastId = highestEventId(manifest);
+        return manifest.events.splice(idx, 1)[0];
+      });
+    return json({ success: true, events: saved.manifest.events });
+  } catch (err) {
+    return json({ success: false, message: err.message }, 400);
+  }
 }
 
 var DIGEST_MANUAL_COOLDOWN_SECONDS = 120;
@@ -2949,6 +3142,15 @@ export default {
     }
     if (url.pathname === '/likes' && request.method === 'POST') {
       return handleLikePost(request, env, ctx);
+    }
+    if (url.pathname === '/events/admin' && request.method === 'GET') {
+      return handleEventsAdminList(request, env);
+    }
+    if (url.pathname === '/events/admin' && request.method === 'POST') {
+      return handleEventsAdminSave(request, env);
+    }
+    if (url.pathname === '/events/admin' && request.method === 'DELETE') {
+      return handleEventsAdminDelete(request, env);
     }
     if (url.pathname === '/comments/admin' && request.method === 'GET') {
       return handleCommentsAdminList(request, env);

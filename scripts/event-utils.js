@@ -36,8 +36,28 @@ function slugify(value) {
     .replace(/^-+|-+$/g, '');
 }
 
-function eventId(name, isoStartDate) {
-  return `${slugify(name)}-${isoStartDate}`;
+// Events are matched by name and start date when adding or deleting, so
+// re-running Add or Update with the same name and date updates that event.
+function findByNameAndDate(manifest, name, isoStartDate, exceptIndex = -1) {
+  return manifest.events.findIndex((ev, i) => i !== exceptIndex
+    && slugify(ev.name) === slugify(name)
+    && ev.startTime.slice(0, 10) === isoStartDate);
+}
+
+// Ids are sequential numbers padded to 3 digits (001, 002, ...). They never
+// change and are never reused, even after the highest one is deleted.
+function formatId(value) {
+  const n = parseInt(String(value).trim(), 10);
+  return Number.isInteger(n) && n > 0 ? String(n).padStart(3, '0') : String(value).trim();
+}
+
+function nextId(manifest) {
+  const max = Math.max(
+    manifest.lastId || 0,
+    ...manifest.events.map((ev) => parseInt(ev.id, 10) || 0),
+  );
+  manifest.lastId = max + 1;
+  return formatId(max + 1);
 }
 
 function loadManifest() {
@@ -56,7 +76,9 @@ module.exports = {
   toIsoWithOffset,
   ukDateToIso,
   slugify,
-  eventId,
+  findByNameAndDate,
+  formatId,
+  nextId,
   loadManifest,
   saveManifest,
 };

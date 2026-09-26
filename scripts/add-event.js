@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-const { required, toIsoWithOffset, ukDateToIso, eventId, loadManifest, saveManifest } = require('./event-utils');
+const { required, toIsoWithOffset, ukDateToIso, findByNameAndDate, formatId, nextId, loadManifest, saveManifest } = require('./event-utils');
 
 function input(name) {
   return (process.env[name] || '').trim();
@@ -8,7 +8,7 @@ function input(name) {
 // Edit mode: every field except the id is optional, and a blank field keeps
 // the event's current value, so an edit only needs the fields that change.
 function editById() {
-  const id = process.env.EVENT_ID.trim();
+  const id = formatId(process.env.EVENT_ID);
 
   const manifest = loadManifest();
   const idx = manifest.events.findIndex((ev) => ev.id === id);
@@ -30,16 +30,16 @@ function editById() {
   const endDate = input('EVENT_END_DATE') ? ukDateToIso(input('EVENT_END_DATE')) : curEndDate;
   const endTime = input('EVENT_END_TIME') || curEndTime;
 
-  // The id follows the name and start date (as when adding), so a later
-  // run without an id with the new name and date still finds this event.
-  const newId = eventId(name, startDate);
-  if (newId !== id && manifest.events.some((ev) => ev.id === newId)) {
-    console.error(`✗ Another event already has id "${newId}"`);
+  // The id stays the same, but no two events may share a name and start date
+  // or a later add by name and date would not know which one to update.
+  const clash = findByNameAndDate(manifest, name, startDate, idx);
+  if (clash >= 0) {
+    console.error(`✗ Event ${manifest.events[clash].id} already has that name and start date`);
     process.exit(1);
   }
 
   const updated = {
-    id: newId,
+    id,
     name,
     description: input('EVENT_DESCRIPTION') || current.description,
     startTime: toIsoWithOffset(startDate, startTime),
@@ -51,11 +51,7 @@ function editById() {
   };
 
   manifest.events[idx] = updated;
-  if (newId !== id) {
-    console.log(`✓ Updated event "${id}", its id is now "${newId}"`);
-  } else {
-    console.log(`✓ Updated event "${id}"`);
-  }
+  console.log(`✓ Updated event ${id} "${name}"`);
 
   saveManifest(manifest);
 }
@@ -71,11 +67,6 @@ function main() {
   const name = required('EVENT_NAME');
   const startDate = ukDateToIso(required('EVENT_START_DATE'));
 
-  // id is derived from the name and start date rather than entered by hand, so
-  // re-running the workflow with the same name and date updates that event in
-  // place instead of creating a duplicate.
-  const id = eventId(name, startDate);
-
   const description = process.env.EVENT_DESCRIPTION || '';
   const startTimeStr = required('EVENT_START_TIME');
   const startTime = toIsoWithOffset(startDate, startTimeStr);
@@ -89,6 +80,10 @@ function main() {
   const interestedCount = Number(process.env.EVENT_INTERESTED_COUNT || 0);
 
   const manifest = loadManifest();
+  // Re-running the workflow with the same name and date updates that event in
+  // place, keeping its id, instead of creating a duplicate.
+  const idx = findByNameAndDate(manifest, name, startDate);
+  const id = idx >= 0 ? manifest.events[idx].id : nextId(manifest);
   const newEvent = {
     id,
     name,
@@ -101,13 +96,12 @@ function main() {
     interestedCount,
   };
 
-  const idx = manifest.events.findIndex((ev) => ev.id === id);
   if (idx >= 0) {
     manifest.events[idx] = newEvent;
-    console.log(`✓ Updated existing event "${id}"`);
+    console.log(`✓ Updated existing event ${id} "${name}"`);
   } else {
     manifest.events.push(newEvent);
-    console.log(`✓ Added new event "${id}"`);
+    console.log(`✓ Added new event ${id} "${name}"`);
   }
 
   saveManifest(manifest);

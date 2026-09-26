@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       event_id:
-        description: 'Event ID, only to edit an existing event (see List Events). Leave blank to add. When set, blank fields below keep their current value.'
+        description: 'Event ID, e.g. 003, only to edit an existing event (see List Events). Leave blank to add. When set, blank fields below keep their current value.'
         required: false
       name:
         description: 'Event name (needed when adding)'

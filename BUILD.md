@@ -51,6 +51,9 @@ JSON file per event.
   triggered workflows so events can be added/updated/removed without editing
   JSON by hand. `list-events.yml` shows each event's ID. Giving that ID to
   `add-event.yml` edits the event, and only the fields filled in change
+- `events-admin.html`: the easier day to day way to add, edit, copy and
+  delete events. It uses the admin key and saves through the worker, which
+  commits `events-data/events-manifest.json` to `main`
 - `vote-tally.yml` / `vote-voters.yml` / `delete-vote.yml` — manual admin
   workflows for the voting system
 - `sync-facebook-events.yml` — pulls events from the group's Facebook page

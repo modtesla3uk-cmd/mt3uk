@@ -984,16 +984,22 @@
     transition: opacity 0.25s ease, transform 0.25s ease;
   }
   .bf-new-toast.bf-new-toast-show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+  /* Position in the reel: a vertical strip down the right-hand edge, with
+     an arrow under it that goes to the next post, or back to the top from
+     the last one. */
   .bf-progress {
     position: absolute;
-    top: 12px; left: 14px; right: 14px;
+    top: 64px; bottom: 88px; right: 8px;
+    width: 3px;
     display: flex;
-    gap: 4px;
+    flex-direction: column;
+    gap: 3px;
     z-index: 6;
+    pointer-events: none;
   }
   .bf-dot-seg {
     flex: 1;
-    height: 3px;
+    width: 3px;
     border-radius: 2px;
     background: rgba(255,255,255,0.28);
     overflow: hidden;
@@ -1003,12 +1009,29 @@
     content: '';
     position: absolute; inset: 0;
     background: var(--white);
-    transform: scaleX(0);
-    transform-origin: left;
+    transform: scaleY(0);
+    transform-origin: top;
     transition: transform 240ms ease;
   }
-  .bf-dot-seg.done::after { transform: scaleX(1); }
-  .bf-dot-seg.active::after { transform: scaleX(1); background: var(--orange); }
+  .bf-dot-seg.done::after { transform: scaleY(1); }
+  .bf-dot-seg.active::after { transform: scaleY(1); background: var(--orange); }
+  .bf-progress-arrow {
+    position: absolute;
+    right: 0; bottom: 58px;
+    z-index: 6;
+    width: 20px; height: 24px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--white);
+    font-size: 11px;
+    line-height: 24px;
+    text-align: center;
+    cursor: pointer;
+    text-shadow: 0 0 4px rgba(0,0,0,0.8);
+  }
+  .bf-progress-arrow[hidden] { display: none; }
+  .bf-progress-arrow:hover { color: var(--orange); }
 
   .bf-feed {
     width: 100%;
@@ -1087,7 +1110,37 @@
     z-index: 2;
     cursor: pointer;
     padding: 0;
+    touch-action: manipulation;
   }
+  .bf-share-btn .bf-icon-share { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
+  .bf-share-panel {
+    position: absolute;
+    left: 12px; right: 12px; bottom: 12px;
+    z-index: 8;
+    background: rgba(22,35,61,0.96);
+    border: 1px solid rgba(243,241,234,0.25);
+    color: var(--white);
+    padding: 14px 16px 16px;
+  }
+  .bf-share-panel[hidden] { display: none; }
+  .bf-share-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .bf-share-title { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; letter-spacing: 0.04em; color: var(--orange); margin: 0; }
+  .bf-share-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .bf-share-option {
+    display: flex; align-items: center; justify-content: center;
+    background: transparent;
+    border: 1px solid rgba(243,241,234,0.35);
+    color: var(--white);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.03em;
+    padding: 10px 8px;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .bf-share-option:hover { background: var(--orange); border-color: var(--orange); color: var(--ink); }
+  .bf-share-option.bf-share-wide { grid-column: 1 / -1; }
+  .bf-share-option[hidden] { display: none; }
 
   .bf-heart-burst {
     position: absolute;
@@ -1117,7 +1170,7 @@
     padding: 0 6px;
     background: #000;
     display: grid;
-    grid-template-columns: 1fr auto 1fr;
+    grid-template-columns: 1fr auto;
     align-items: center;
     gap: 8px;
   }
@@ -1130,14 +1183,29 @@
   }
   .bf-rail-btn[hidden] { display: none; }
   .bf-rail-btn svg { width: 24px; height: 24px; fill: currentColor; }
-  .bf-dots { display: flex; align-items: center; gap: 5px; }
+  .bf-dots {
+    position: absolute;
+    top: 12px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+    display: flex; align-items: center; gap: 5px;
+    pointer-events: none;
+  }
   .bf-dot {
     width: 6px; height: 6px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.35);
+    background: rgba(255,255,255,0.55);
+    box-shadow: 0 0 3px rgba(0,0,0,0.6);
     transition: background 0.2s ease, transform 0.2s ease;
   }
   .bf-dot.active { background: var(--orange); transform: scale(1.2); }
+  @media (max-width: 600px) {
+    .bf-bar { padding: 0 2px; gap: 4px; }
+    .bf-bar-left { gap: 0; }
+    .bf-rail-btn { padding: 7px 5px; gap: 3px; }
+    .bf-rail-btn svg { width: 22px; height: 22px; }
+    .bf-dots { gap: 4px; }
+  }
   .bf-car-nav {
     position: absolute;
     top: 50%;
@@ -1156,20 +1224,8 @@
   }
   .bf-car-nav[hidden] { display: none; }
   .bf-car-prev { left: 10px; }
-  .bf-car-next { right: 10px; }
+  .bf-car-next { right: 22px; }
   @media (hover: none) { .bf-car-nav { display: none; } }
-  .bf-car-count {
-    position: absolute;
-    top: 58px; left: 14px;
-    z-index: 4;
-    background: rgba(5,7,12,0.6);
-    color: var(--white);
-    border-radius: 999px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    padding: 3px 8px;
-    pointer-events: none;
-  }
   .bf-recent-btn {
     position: absolute;
     top: 26px; left: 14px;
@@ -1487,24 +1543,6 @@
     color: rgba(255,255,255,0.75);
   }
 
-  .bf-scroll-hint {
-    position: absolute;
-    bottom: 56px; left: 50%;
-    transform: translateX(-50%);
-    z-index: 6;
-    color: rgba(255,255,255,0.55);
-    display: flex; flex-direction: column; align-items: center; gap: 2px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 9.5px;
-    letter-spacing: 0.1em;
-    animation: bf-hintbob 1.8s ease-in-out infinite;
-    pointer-events: none;
-  }
-  @keyframes bf-hintbob {
-    0%, 100% { transform: translate(-50%, 0); opacity: .85; }
-    50% { transform: translate(-50%, 5px); opacity: .4; }
-  }
-  .bf-feed.bf-scrolled .bf-scroll-hint { display: none; }
 
   .bf-autoscroll-toggle {
     position: absolute;
@@ -1530,7 +1568,7 @@
   .bf-autoscroll-toggle.bf-autoscroll-off .bf-autoscroll-icon { background: rgba(255,255,255,0.4); }
 
   @media (prefers-reduced-motion: reduce) {
-    .bf-slide-img, .bf-heart-burst, .bf-like-btn svg, .bf-scroll-hint { animation: none !important; transition: none !important; }
+    .bf-slide-img, .bf-heart-burst, .bf-like-btn svg { animation: none !important; transition: none !important; }
   }
 
   .botm-frame {
@@ -2836,7 +2874,7 @@
       <div class="bf-feed" id="bf-feed">
         <p class="mono" style="padding: 24px; color: var(--steel);">Loading builds…</p>
       </div>
-      <div class="bf-scroll-hint" id="bf-scroll-hint">&#9662; SCROLL</div>
+      <button type="button" class="bf-progress-arrow" id="bf-progress-arrow" aria-label="Next build" hidden>&#9660;</button>
       <button type="button" class="bf-autoscroll-toggle bf-autoscroll-off" id="bf-autoscroll-toggle" aria-pressed="false">
         <span class="bf-autoscroll-icon" aria-hidden="true"></span>
         <span class="bf-autoscroll-label">Auto-scroll: Off</span>
@@ -2961,10 +2999,11 @@
   (function () {
     var MAX_SLIDES = 20;
     var MAX_PER_POST = 10;
+    var DOUBLE_TAP_MS = 350;
     var VOTE_ENDPOINT = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
     var feedEl = document.getElementById('bf-feed');
     var progressEl = document.getElementById('bf-progress');
-    var scrollHint = document.getElementById('bf-scroll-hint');
+    var progressArrow = document.getElementById('bf-progress-arrow');
     var autoscrollBtn = document.getElementById('bf-autoscroll-toggle');
     if (!feedEl) return;
 
@@ -3018,7 +3057,7 @@
       return '<div class="bf-cell" data-file="' + photo.file.replace(/&/g, '&amp;').replace(/"/g, '&quot;') + '">' +
           '<img class="bf-slide-img" src="' + window.MT3UK_R2_BASE + '/gallery/' + photo.file.replace(/&/g, '&amp;') + '" alt="' + (safeCaption || 'MT3UK member build') + '" loading="lazy" draggable="false">' +
           '<div class="bf-scrim bf-scrim-bottom"></div>' +
-          '<button class="bf-like-hit" aria-label="Like this build"></button>' +
+          '<button class="bf-like-hit" aria-label="Double tap to like this build"></button>' +
           (safeCaption || subLine ?
             '<div class="bf-caption">' +
               (safeCaption ? '<p class="bf-hook">' + safeCaption + '</p>' : '') +
@@ -3046,7 +3085,9 @@
           (post.length > 1 ?
             '<button type="button" class="bf-car-nav bf-car-prev" aria-label="Previous photo" hidden>&lsaquo;</button>' +
             '<button type="button" class="bf-car-nav bf-car-next" aria-label="Next photo">&rsaquo;</button>' +
-            '<span class="bf-car-count" aria-hidden="true">1/' + post.length + '</span>' : '') +
+            '<div class="bf-dots" aria-hidden="true">' +
+              post.map(function (p, i) { return '<i class="bf-dot' + (i === 0 ? ' active' : '') + '"></i>'; }).join('') +
+            '</div>' : '') +
           '<div class="bf-heart-burst" aria-hidden="true">' + heartSvg('') + '</div>' +
           '<div class="bf-mods-panel">' +
             '<div class="bf-mods-panel-head">' +
@@ -3056,6 +3097,20 @@
             '<ul></ul>' +
           '</div>' +
           commentsBlockHtml() +
+          '<div class="bf-share-panel" hidden>' +
+            '<div class="bf-share-head">' +
+              '<p class="bf-share-title">SHARE THIS BUILD</p>' +
+              '<button type="button" class="bf-mods-close bf-share-close" aria-label="Close share options">&times;</button>' +
+            '</div>' +
+            '<div class="bf-share-options">' +
+              '<a class="bf-share-option" data-channel="whatsapp" target="_blank" rel="noopener">WhatsApp</a>' +
+              '<a class="bf-share-option" data-channel="facebook" target="_blank" rel="noopener">Facebook</a>' +
+              '<a class="bf-share-option" data-channel="x" target="_blank" rel="noopener">X</a>' +
+              '<a class="bf-share-option" data-channel="email">Email</a>' +
+              '<button type="button" class="bf-share-option bf-share-wide" data-channel="copy_link">Copy link</button>' +
+              '<button type="button" class="bf-share-option bf-share-wide" data-channel="share_sheet" hidden>More options</button>' +
+            '</div>' +
+          '</div>' +
         '</div>' +
         '<div class="bf-bar">' +
           '<div class="bf-bar-left">' +
@@ -3065,6 +3120,9 @@
             '<button class="bf-rail-btn bf-comments-btn" aria-pressed="false" aria-label="View comments">' +
               iconSvg('bf-icon-comments', 'M4 4h16v12H7l-3 3z') +
             '</button>' +
+            '<button class="bf-rail-btn bf-share-btn" aria-label="Share this build">' +
+              iconSvg('bf-icon-share', 'M21 3L10 14M21 3l-7 18-4-7-7-4z') +
+            '</button>' +
             '<button class="bf-rail-btn bf-mods-btn" aria-pressed="false" aria-label="View mods list" hidden>' +
               iconSvg('bf-icon-mods', 'M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9 2.6-2.6z') +
               '<span class="bf-rail-count"></span>' +
@@ -3072,9 +3130,6 @@
             '<button class="bf-rail-btn bf-report-btn" aria-label="Report this image">' +
               iconSvg('bf-icon-report', 'M12 9v4M12 17h.01M10.29 3.86l-8.18 14.17A1.5 1.5 0 0 0 3.4 20.4h17.2a1.5 1.5 0 0 0 1.3-2.37L13.71 3.86a1.5 1.5 0 0 0-2.42 0z') +
             '</button>' +
-          '</div>' +
-          '<div class="bf-dots" aria-hidden="true">' +
-            (post.length > 1 ? post.map(function (p, i) { return '<i class="bf-dot' + (i === 0 ? ' active' : '') + '"></i>'; }).join('') : '') +
           '</div>' +
           '<div class="bf-bar-right">' +
             '<button class="bf-rail-btn bf-save-btn" aria-label="Save" data-saved="false">' +
@@ -3572,6 +3627,7 @@
       modsPanel.querySelector('ul').innerHTML = mods.map(function (m) { return '<li>' + String(m).replace(/</g, '&lt;') + '</li>'; }).join('');
 
       slide.querySelector('.bf-save-btn').dataset.saved = savedBuilds.indexOf(file) !== -1 ? 'true' : 'false';
+      slide.querySelector('.bf-share-panel').hidden = true;
 
       // Members never need to report their own photos.
       var reportBtn = slide.querySelector('.bf-report-btn');
@@ -3586,7 +3642,6 @@
       var cells = function () { return Array.prototype.slice.call(slide.querySelectorAll('.bf-cell')); };
       var prev = slide.querySelector('.bf-car-prev');
       var next = slide.querySelector('.bf-car-next');
-      var countEl = slide.querySelector('.bf-car-count');
 
       function current() {
         return Math.round(carousel.scrollLeft / (carousel.clientWidth || 1));
@@ -3600,7 +3655,6 @@
         slide.querySelectorAll('.bf-dot').forEach(function (d, n) { d.classList.toggle('active', n === i); });
         if (prev) prev.hidden = i === 0;
         if (next) next.hidden = i === list.length - 1;
-        if (countEl) countEl.textContent = (i + 1) + '/' + list.length;
         if (file === slide.dataset.current) return;
         slide.dataset.current = file;
         if (slide.resetComments) slide.resetComments();
@@ -3628,6 +3682,110 @@
       };
     }
 
+    function titleCase(str) {
+      return String(str || '').toLowerCase().replace(/(^|[\s-])([a-z])/g, function (m, sep, c) { return sep + c.toUpperCase(); });
+    }
+
+    // Shared links open the reel at that photo, tagged so shares show up in
+    // analytics by channel: utm_source is the app or "share_sheet" when the
+    // phone's own share menu was used.
+    function shareLink(file, channel) {
+      return 'https://mt3uk.com/?photo=' + encodeURIComponent(file) +
+        '&utm_source=' + channel + '&utm_medium=share&utm_campaign=reel_share#build-feed';
+    }
+
+    function shareText(photo) {
+      var caption = titleCase(photo.caption);
+      var name = titleCase(photo.name);
+      var what = caption ? caption + (name ? ' by ' + name : '') : (name ? name + '\u2019s build' : 'this build');
+      return 'Check out ' + what + ' on MT3UK, the UK\u2019s modified Tesla community';
+    }
+
+    function channelHref(channel, text, url) {
+      if (channel === 'whatsapp') return 'https://wa.me/?text=' + encodeURIComponent(text + ' ' + url);
+      if (channel === 'facebook') return 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url);
+      if (channel === 'x') return 'https://x.com/intent/post?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(url);
+      if (channel === 'email') return 'mailto:?subject=' + encodeURIComponent('A build on MT3UK') + '&body=' + encodeURIComponent(text + '\n\n' + url);
+      return url;
+    }
+
+    function copyText(text) {
+      if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
+      return new Promise(function (resolve, reject) {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        var ok = false;
+        try { ok = document.execCommand('copy'); } catch (e) {}
+        ta.remove();
+        if (ok) resolve(); else reject();
+      });
+    }
+
+    function wireShare() {
+      var canNativeShare = typeof navigator.share === 'function';
+      // Phones go straight to their own share menu, which lists whatever
+      // apps are installed. Desktops get the pop-out instead.
+      var preferNative = canNativeShare && window.matchMedia && window.matchMedia('(hover: none)').matches;
+
+      function nativeShare(slide) {
+        var photo = photoFor(slide, slide.dataset.current);
+        return navigator.share({ title: 'MT3UK', text: shareText(photo), url: shareLink(photo.file, 'share_sheet') });
+      }
+
+      function openPanel(slide) {
+        var photo = photoFor(slide, slide.dataset.current);
+        var text = shareText(photo);
+        var panel = slide.querySelector('.bf-share-panel');
+        panel.querySelectorAll('a[data-channel]').forEach(function (a) {
+          a.href = channelHref(a.dataset.channel, text, shareLink(photo.file, a.dataset.channel));
+        });
+        panel.querySelector('[data-channel="share_sheet"]').hidden = !canNativeShare;
+        panel.hidden = false;
+      }
+
+      feedEl.querySelectorAll('.bf-share-btn').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var slide = btn.closest('.bf-slide');
+          var panel = slide.querySelector('.bf-share-panel');
+          if (!panel.hidden) { panel.hidden = true; return; }
+          if (!preferNative) { openPanel(slide); return; }
+          nativeShare(slide).catch(function (err) {
+            // Cancelling the share menu is not an error; anything else
+            // falls back to the pop-out.
+            if (!err || err.name !== 'AbortError') openPanel(slide);
+          });
+        });
+      });
+
+      feedEl.querySelectorAll('.bf-share-panel').forEach(function (panel) {
+        panel.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var slide = panel.closest('.bf-slide');
+          if (e.target.closest('.bf-share-close')) { panel.hidden = true; return; }
+          var option = e.target.closest('[data-channel]');
+          if (!option) return;
+          var channel = option.dataset.channel;
+          if (channel === 'copy_link') {
+            copyText(shareLink(slide.dataset.current, 'copy_link'))
+              .then(function () { showBfToast('Link copied'); })
+              .catch(function () { showBfToast('Could not copy the link'); });
+            panel.hidden = true;
+          } else if (channel === 'share_sheet') {
+            nativeShare(slide).catch(function () {});
+            panel.hidden = true;
+          } else {
+            panel.hidden = true;
+          }
+        });
+      });
+    }
+
     function wireInteractions() {
       var slides = Array.prototype.slice.call(feedEl.querySelectorAll('.bf-slide'));
       var dots = Array.prototype.slice.call(progressEl.querySelectorAll('.bf-dot-seg'));
@@ -3639,6 +3797,13 @@
           d.classList.toggle('active', i === idx);
           d.classList.toggle('done', i < idx);
         });
+        if (progressArrow) {
+          var atEnd = idx >= slides.length - 1;
+          progressArrow.hidden = slides.length < 2;
+          progressArrow.innerHTML = atEnd ? '&#9650;' : '&#9660;';
+          progressArrow.setAttribute('aria-label', atEnd ? 'Back to the most recent build' : 'Next build');
+          progressArrow.dataset.target = String(atEnd ? 0 : idx + 1);
+        }
       }
 
       var io = new IntersectionObserver(function (entries) {
@@ -3701,13 +3866,31 @@
         });
       });
 
+      // A single tap is left for scrolling and swiping; it takes a double
+      // tap (or double click) on the photo, or the heart button, to like.
+      var lastTap = { el: null, time: 0 };
       feedEl.querySelectorAll('.bf-like-hit').forEach(function (btn) {
         btn.addEventListener('click', function () {
+          var now = Date.now();
+          if (lastTap.el !== btn || now - lastTap.time > DOUBLE_TAP_MS) {
+            lastTap = { el: btn, time: now };
+            return;
+          }
+          lastTap = { el: null, time: 0 };
           var slide = btn.closest('.bf-slide');
           var state = likeMap[slide.dataset.current];
-          if (!state || !state.liked) toggleLike(slide, true);
+          if (!state || !state.liked) {
+            toggleLike(slide, true);
+          } else {
+            var hb = slide.querySelector('.bf-heart-burst');
+            hb.classList.remove('bf-burst');
+            void hb.offsetWidth;
+            hb.classList.add('bf-burst');
+          }
         });
       });
+
+      wireShare();
 
       feedEl.querySelectorAll('.bf-like-btn').forEach(function (btn) {
         btn.addEventListener('click', function (e) {
@@ -3775,6 +3958,13 @@
 
       wireComments(slides);
       wireAutoscroll(slides.length);
+    }
+
+    if (progressArrow) {
+      progressArrow.addEventListener('click', function () {
+        var target = feedEl.querySelectorAll('.bf-slide')[parseInt(progressArrow.dataset.target, 10) || 0];
+        if (target) feedEl.scrollTo({ top: target.offsetTop, behavior: 'smooth' });
+      });
     }
 
     // My Garage sign-in finishes after the reel has rendered, so hide the
@@ -3878,7 +4068,7 @@
       if (!slide) return;
       if (slide.showPhoto) slide.showPhoto(file, false);
       feedEl.scrollTop += slide.getBoundingClientRect().top - feedEl.getBoundingClientRect().top;
-      if (slide.openLinkedComments) slide.openLinkedComments(commentId);
+      if (commentId && slide.openLinkedComments) slide.openLinkedComments(commentId);
     }
     var newBuildToast = document.getElementById('bf-new-build-toast');
 

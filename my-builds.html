@@ -565,6 +565,11 @@
 
   .mb-signed-in { display: flex; align-items: center; justify-content: space-between; gap: 12px; max-width: 720px; margin: 0 auto 28px; font-size: 0.85rem; color: var(--steel); }
   .mb-signed-in-actions { display: flex; align-items: center; gap: 10px; }
+  .mb-name-row { max-width: 720px; margin: -16px auto 24px; font-size: 0.85rem; color: var(--steel); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .mb-name-row strong { color: var(--ink); }
+  .mb-name-row[hidden], .mb-name-card[hidden] { display: none; }
+  .mb-name-card { margin-bottom: 28px; }
+  .mb-name-card.mb-name-needed { border-color: var(--orange); }
   .mb-signout-btn { background: transparent; border: 1px solid var(--line); color: var(--ink); padding: 7px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; cursor: pointer; }
   .mb-signout-btn:hover { border-color: var(--orange); color: var(--orange); }
 
@@ -1071,8 +1076,12 @@ document.addEventListener('DOMContentLoaded', function () {
         <form id="mb-submit-form">
           <input type="checkbox" name="botcheck" class="mb-hp-field" tabindex="-1" autocomplete="off">
           <div class="mb-field">
-            <label class="mono" for="mb-submit-name">Name</label>
-            <input type="text" id="mb-submit-name" name="name" placeholder="Your name or MT3UK handle" required>
+            <label class="mono" for="mb-submit-firstname">First name</label>
+            <input type="text" id="mb-submit-firstname" name="firstName" placeholder="e.g. Richard" autocomplete="given-name" maxlength="50" required>
+          </div>
+          <div class="mb-field">
+            <label class="mono" for="mb-submit-lastname">Last name</label>
+            <input type="text" id="mb-submit-lastname" name="lastName" placeholder="e.g. Smith" autocomplete="family-name" maxlength="50" required>
           </div>
           <div class="mb-field">
             <label class="mono" for="mb-submit-carname">Car name</label>
@@ -1143,6 +1152,28 @@ document.addEventListener('DOMContentLoaded', function () {
           </div>
           <button type="button" class="mb-signout-btn" id="mb-signout-btn">Sign out</button>
         </div>
+      </div>
+
+      <div class="mb-name-row" id="mb-name-row" hidden>
+        <span>Name: <strong id="mb-name-display"></strong></span>
+        <button type="button" class="mb-signout-btn" id="mb-name-edit-btn">Edit name</button>
+      </div>
+
+      <div class="mb-card mb-name-card" id="mb-name-card" hidden>
+        <h2 id="mb-name-title">Your name</h2>
+        <p id="mb-name-intro">Your first and last name are shown on your builds and comments.</p>
+        <form id="mb-name-form">
+          <div class="mb-field">
+            <label class="mono" for="mb-name-first">First name</label>
+            <input type="text" id="mb-name-first" name="firstName" autocomplete="given-name" maxlength="50" required>
+          </div>
+          <div class="mb-field">
+            <label class="mono" for="mb-name-last">Last name</label>
+            <input type="text" id="mb-name-last" name="lastName" autocomplete="family-name" maxlength="50" required>
+          </div>
+          <button type="submit" class="mb-btn" id="mb-name-save-btn">Save name</button>
+          <p class="mb-status" id="mb-name-status"></p>
+        </form>
       </div>
 
       <div id="mb-car-selector-view">
@@ -1458,6 +1489,59 @@ document.addEventListener('DOMContentLoaded', function () {
       signinView.style.display = 'block';
     }
 
+    // The member's first and last name, shown on their builds and comments.
+    // Members from before names were collected are asked to add theirs.
+    var nameRow = document.getElementById('mb-name-row');
+    var nameCard = document.getElementById('mb-name-card');
+    var nameForm = document.getElementById('mb-name-form');
+    var nameStatus = document.getElementById('mb-name-status');
+
+    function renderName(firstName, lastName) {
+      var hasName = !!(firstName && lastName);
+      document.getElementById('mb-name-display').textContent = hasName ? firstName + ' ' + lastName : '';
+      nameRow.hidden = !hasName;
+      nameCard.hidden = hasName;
+      nameCard.classList.toggle('mb-name-needed', !hasName);
+      document.getElementById('mb-name-title').textContent = hasName ? 'Your name' : 'Add your name';
+      document.getElementById('mb-name-intro').textContent = hasName
+        ? 'Your first and last name are shown on your builds and comments.'
+        : 'Please add your first and last name. They are shown on your builds and comments.';
+      nameForm.elements.firstName.value = firstName || '';
+      nameForm.elements.lastName.value = lastName || '';
+    }
+
+    document.getElementById('mb-name-edit-btn').addEventListener('click', function () {
+      nameCard.hidden = !nameCard.hidden;
+      if (!nameCard.hidden) nameForm.elements.firstName.focus();
+    });
+
+    nameForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var firstName = nameForm.elements.firstName.value.trim();
+      var lastName = nameForm.elements.lastName.value.trim();
+      if (!firstName || !lastName) return setStatus(nameStatus, 'Please enter your first and last name.', 'err');
+      var saveBtn = document.getElementById('mb-name-save-btn');
+      saveBtn.disabled = true;
+      setStatus(nameStatus, 'Saving…', '');
+      fetch(API + '/my-builds/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Session-Token': getSession() },
+        body: JSON.stringify({ firstName: firstName, lastName: lastName })
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          saveBtn.disabled = false;
+          if (!data.success) return setStatus(nameStatus, data.message || 'Could not save your name.', 'err');
+          renderName(data.firstName, data.lastName);
+          setStatus(nameStatus, '', '');
+          window.mt3ukMyBuildsName = data.firstName + ' ' + data.lastName;
+        })
+        .catch(function () {
+          saveBtn.disabled = false;
+          setStatus(nameStatus, 'Could not save your name, please try again.', 'err');
+        });
+    });
+
     function showApp(email) {
       signinView.style.display = 'none';
       appView.style.display = 'block';
@@ -1623,6 +1707,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
           }
           showApp(result.data.email);
+          renderName(result.data.firstName, result.data.lastName);
           loadNotifications();
           carsData = result.data.cars || [];
           var alerts = computeCommentAlerts(carsData);
@@ -1753,12 +1838,23 @@ document.addEventListener('DOMContentLoaded', function () {
           if (files[i].size > 10 * 1024 * 1024) return setStatus(submitStatus, 'Each photo must be under 10MB.', 'err');
         }
 
+        var firstName = submitForm.elements.firstName.value.trim();
+        var lastName = submitForm.elements.lastName.value.trim();
+        if (!firstName || !lastName) return setStatus(submitStatus, 'Please enter your first and last name.', 'err');
+
+        // firstName and lastName become the member's saved name; name is the
+        // single "First Last" shown on the build.
+        var submitData = new FormData(submitForm);
+        submitData.set('firstName', firstName);
+        submitData.set('lastName', lastName);
+        submitData.set('name', firstName + ' ' + lastName);
+
         submitBtn.disabled = true;
         submitBtn.textContent = 'Sending…';
 
         fetch(API, {
           method: 'POST',
-          body: new FormData(submitForm)
+          body: submitData
         })
           .then(function (res) { return res.json(); })
           .then(function (json) {

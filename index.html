@@ -2494,6 +2494,7 @@
         window.mt3ukMyBuildFiles = builds.map(function (b) { return b.file; });
         builds.forEach(function (b) { window.mt3ukMyBuildData[b.file] = b; });
         window.mt3ukMyBuildsEmail = data.email || null;
+        window.mt3ukMyBuildsName = data.firstName && data.lastName ? data.firstName + ' ' + data.lastName : '';
         mt3ukCheckNewComments(builds);
         document.dispatchEvent(new Event('mt3ukMyBuildsReady'));
       })
@@ -3301,7 +3302,7 @@
           '</p>';
         return;
       }
-      var name = email.split('@')[0];
+      var name = window.mt3ukMyBuildsName || email.split('@')[0];
       slotEl.innerHTML =
         '<form class="bf-comments-form" data-parent-id="' + (parentId || '') + '" data-email="' + escapeHtml(email) + '">' +
           '<p class="bf-comments-as">Commenting as ' + escapeHtml(name) + '</p>' +

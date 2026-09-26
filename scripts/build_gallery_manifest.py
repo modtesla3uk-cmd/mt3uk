@@ -89,12 +89,12 @@ def sidecar_data(client, key: str, sidecar_keys: set):
     rebuilt from scratch from the bucket listing on every run."""
     sidecar_key = key + ".json"
     if sidecar_key not in sidecar_keys:
-        return [], True, True, True, "", True, ""
+        return [], True, True, True, "", True, "", ""
     try:
         obj = client.get_object(Bucket=BUCKET, Key=sidecar_key)
         data = json.loads(obj["Body"].read())
     except Exception:
-        return [], True, True, True, "", True, ""
+        return [], True, True, True, "", True, "", ""
     mods = data.get("mods")
     mods = [str(m).strip() for m in mods if str(m).strip()][:50] if isinstance(mods, list) else []
     votable = data.get("votable") is not False
@@ -107,7 +107,11 @@ def sidecar_data(client, key: str, sidecar_keys: set):
     # exposing the actual owner email in the public manifest.
     email = data.get("email").strip().lower() if isinstance(data.get("email"), str) else ""
     unclaimed = not email
-    return mods, votable, gallery, reel, color, unclaimed, email
+    # The member's first and last name, stamped by the worker on uploads and
+    # when they set their name in My Garage. Wins over the "--by-" name in
+    # the filename, which older uploads (and My Garage uploads) lack.
+    owner_name = data.get("name").strip() if isinstance(data.get("name"), str) else ""
+    return mods, votable, gallery, reel, color, unclaimed, email, owner_name
 
 
 def main():
@@ -133,7 +137,10 @@ def main():
             entry["caption"] = caption
         if name:
             entry["name"] = name
-        mods, votable, gallery, reel, color, unclaimed, email = sidecar_data(client, key, sidecar_keys)
+        mods, votable, gallery, reel, color, unclaimed, email, owner_name = sidecar_data(client, key, sidecar_keys)
+        if owner_name:
+            name = owner_name.upper()
+            entry["name"] = name
         if mods:
             entry["mods"] = mods
         if not votable:

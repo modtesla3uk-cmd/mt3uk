@@ -107,9 +107,29 @@
   .subscriber-file-row img { width: 48px; height: 48px; object-fit: cover; flex-shrink: 0; cursor: zoom-in; }
   .subscriber-file-row .file-name { flex: 1; word-break: break-all; color: var(--white); }
   .subscriber-file-row button { padding: 4px 10px; font-size: 0.68rem; }
-  .subscriber-rename-row { display: none; gap: 8px; margin-top: 10px; }
-  .subscriber-rename-row.open { display: flex; }
-  .subscriber-rename-row input { flex: 1; }
+  .subscriber-edit { display: none; margin-top: 10px; flex-direction: column; gap: 8px; }
+  .subscriber-edit.open { display: flex; }
+  .subscriber-rename-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .subscriber-rename-row input { flex: 1; min-width: 120px; }
+  .subscriber-who { flex: 1; min-width: 160px; }
+  .subscriber-name { color: var(--white); font-size: 0.9rem; }
+  .subscriber-name.no-name { color: var(--steel); font-size: 0.72rem; }
+  .card-name { color: var(--white); margin: 4px 0 0; }
+  .add-subscriber-row { flex-wrap: wrap; }
+  .subscriber-search { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .subscriber-search input[type="search"] { flex: 1; min-width: 140px; }
+  .subscriber-search label { color: var(--steel); font-size: 0.72rem; display: flex; align-items: center; gap: 6px; }
+  .subscriber-search input[type="date"] {
+    background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3); color: var(--white);
+    padding: 7px 8px; font-family: inherit; font-size: inherit; color-scheme: dark;
+  }
+  .subscriber-search input[type="search"] {
+    background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3); color: var(--white);
+    padding: 8px 10px; font-family: inherit; font-size: inherit;
+  }
+  .subscriber-search-count { color: var(--steel); font-size: 0.72rem; margin: 0 0 14px; }
+  .subscriber-added { color: var(--steel); font-size: 0.68rem; margin-top: 2px; }
+  .add-subscriber-row input { min-width: 120px; }
   .thread {
     border: 1px solid rgba(255,255,255,0.2);
     margin-bottom: 24px;
@@ -274,9 +294,19 @@
       <details class="collapsible" id="subscribers-wrap" open>
         <summary><h2>Subscribers <span class="summary-count" id="subscribers-count"></span></h2></summary>
         <div class="add-subscriber-row">
+          <input type="text" id="new-subscriber-first" placeholder="First name" autocomplete="off">
+          <input type="text" id="new-subscriber-last" placeholder="Last name" autocomplete="off">
           <input type="email" id="new-subscriber-email" placeholder="new-subscriber@email.com" autocomplete="off">
           <button type="button" id="add-subscriber-btn">Add subscriber</button>
         </div>
+        <div class="subscriber-search">
+          <input type="search" id="sub-search-name" placeholder="Search first or last name" autocomplete="off">
+          <input type="search" id="sub-search-email" placeholder="Search email" autocomplete="off">
+          <label>Added from <input type="date" id="sub-search-from"></label>
+          <label>to <input type="date" id="sub-search-to"></label>
+          <button type="button" class="secondary" id="sub-search-clear">Clear</button>
+        </div>
+        <p class="subscriber-search-count" id="sub-search-count"></p>
         <div id="subscribers-list"></div>
       </details>
     </section>
@@ -348,6 +378,7 @@
       '<img src="' + imgUrl(c.file) + '" alt="">' +
       '<div class="card-body">' +
         '<div class="card-file">' + escapeHtml(c.file) + '</div>' +
+        (c.name ? '<div class="card-name">' + escapeHtml(c.name) + '</div>' : '') +
         '<div class="card-email">' + escapeHtml(c.email) + '</div>' +
         (c.note ? '<p class="card-note">' + escapeHtml(c.note) + '</p>' : '') +
         '<div class="card-meta">Requested ' + escapeHtml(c.requestedAt || '') + '</div>' +
@@ -367,6 +398,7 @@
       '<img src="' + imgUrl(c.file) + '" alt="">' +
       '<div class="card-body">' +
         '<div class="card-file">' + escapeHtml(c.file) + '</div>' +
+        (c.name ? '<div class="card-name">' + escapeHtml(c.name) + '</div>' : '') +
         '<div class="card-email">' + escapeHtml(c.email) + '</div>' +
         '<p class="card-status ' + escapeHtml(c.status) + '">' + escapeHtml(c.status) + '</p>' +
         '<div class="card-actions">' +
@@ -510,15 +542,27 @@
           '</div>';
         }).join('')
       : '<p class="empty">No photos.</p>';
+    var hasName = !!(s.firstName && s.lastName);
     div.innerHTML =
       '<div class="subscriber-head">' +
-        '<span class="subscriber-email">' + escapeHtml(s.email) + '</span>' +
+        '<div class="subscriber-who">' +
+          '<div class="subscriber-name' + (hasName ? '' : ' no-name') + '">' + (hasName ? escapeHtml(s.firstName + ' ' + s.lastName) : 'No name yet') + '</div>' +
+          '<span class="subscriber-email">' + escapeHtml(s.email) + '</span>' +
+          '<div class="subscriber-added">Added ' + (s.added ? escapeHtml(formatAdded(s.added)) : 'date unknown') + '</div>' +
+        '</div>' +
         '<button type="button" class="secondary rename-toggle-btn">Edit</button>' +
         '<button type="button" class="danger delete-subscriber-btn">Delete</button>' +
       '</div>' +
-      '<div class="subscriber-rename-row">' +
-        '<input type="email" class="rename-email-input" placeholder="new-email@example.com" autocomplete="off">' +
-        '<button type="button" class="rename-confirm-btn">Save</button>' +
+      '<div class="subscriber-edit">' +
+        '<div class="subscriber-rename-row">' +
+          '<input type="text" class="name-first-input" placeholder="First name" autocomplete="off" value="' + escapeHtml(s.firstName || '') + '">' +
+          '<input type="text" class="name-last-input" placeholder="Last name" autocomplete="off" value="' + escapeHtml(s.lastName || '') + '">' +
+          '<button type="button" class="name-confirm-btn">Save name</button>' +
+        '</div>' +
+        '<div class="subscriber-rename-row">' +
+          '<input type="email" class="rename-email-input" placeholder="new-email@example.com" autocomplete="off">' +
+          '<button type="button" class="rename-confirm-btn">Save email</button>' +
+        '</div>' +
       '</div>' +
       (s.files.length
         ? '<details class="subscriber-files-wrap"' + (filesOpen ? ' open' : '') + '>' +
@@ -529,22 +573,78 @@
     return div;
   }
 
+  // ---------- Subscriber search ----------
+  // Filters the loaded list in the page by name, email and date added.
+
+  var allSubscribers = [];
+  var searchName = document.getElementById('sub-search-name');
+  var searchEmail = document.getElementById('sub-search-email');
+  var searchFrom = document.getElementById('sub-search-from');
+  var searchTo = document.getElementById('sub-search-to');
+  var searchCount = document.getElementById('sub-search-count');
+
+  // YYYY-MM-DD in UK time, to compare with the date inputs.
+  function ukDay(iso) {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(iso));
+  }
+
+  function formatAdded(iso) {
+    return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/London' });
+  }
+
+  function subscriberMatches(s) {
+    var name = searchName.value.trim().toLowerCase();
+    var email = searchEmail.value.trim().toLowerCase();
+    var from = searchFrom.value;
+    var to = searchTo.value;
+    if (name && ((s.firstName || '') + ' ' + (s.lastName || '')).toLowerCase().indexOf(name) === -1) return false;
+    if (email && s.email.toLowerCase().indexOf(email) === -1) return false;
+    if (from || to) {
+      if (!s.added) return false;
+      var day = ukDay(s.added);
+      if (from && day < from) return false;
+      if (to && day > to) return false;
+    }
+    return true;
+  }
+
+  function renderSubscriberList(openEmails) {
+    if (!openEmails) {
+      openEmails = Array.prototype.map.call(subscribersEl.querySelectorAll('.subscriber-files-wrap[open]'), function (d) {
+        return d.closest('.subscriber-card').dataset.email;
+      });
+    }
+    var shown = allSubscribers.filter(subscriberMatches);
+    var filtering = !!(searchName.value.trim() || searchEmail.value.trim() || searchFrom.value || searchTo.value);
+    searchCount.textContent = filtering ? 'Showing ' + shown.length + ' of ' + allSubscribers.length : '';
+    subscribersEl.innerHTML = shown.length ? '' : '<p class="empty">' + (allSubscribers.length ? 'No subscribers match.' : 'No subscribers yet.') + '</p>';
+    shown.forEach(function (s) { subscribersEl.appendChild(renderSubscriber(s, openEmails.indexOf(s.email) !== -1)); });
+  }
+
+  [searchName, searchEmail, searchFrom, searchTo].forEach(function (input) {
+    input.addEventListener('input', function () { renderSubscriberList(); });
+  });
+  document.getElementById('sub-search-clear').addEventListener('click', function () {
+    searchName.value = searchEmail.value = searchFrom.value = searchTo.value = '';
+    renderSubscriberList();
+  });
+
   function loadSubscribers(key) {
     var datalist = document.getElementById('subscriber-emails');
     return fetch(API + '/gallery/admin/subscribers?key=' + encodeURIComponent(key))
       .then(function (res) { return res.json(); })
       .then(function (data) {
         if (!data || !data.success) return;
-        datalist.innerHTML = (data.subscribers || []).map(function (email) {
-          return '<option value="' + escapeHtml(email) + '"></option>';
+        datalist.innerHTML = (data.details || []).map(function (s) {
+          var label = s.firstName && s.lastName ? s.firstName + ' ' + s.lastName : '';
+          return '<option value="' + escapeHtml(s.email) + '"' + (label ? ' label="' + escapeHtml(label) + '"' : '') + '></option>';
         }).join('');
         // Keep any photo lists the admin had expanded open across a reload
         var openEmails = Array.prototype.map.call(subscribersEl.querySelectorAll('.subscriber-files-wrap[open]'), function (d) {
           return d.closest('.subscriber-card').dataset.email;
         });
-        var details = data.details || [];
-        subscribersEl.innerHTML = details.length ? '' : '<p class="empty">No subscribers yet.</p>';
-        details.forEach(function (s) { subscribersEl.appendChild(renderSubscriber(s, openEmails.indexOf(s.email) !== -1)); });
+        allSubscribers = data.details || [];
+        renderSubscriberList(openEmails);
       })
       .catch(function () {});
   }
@@ -559,13 +659,19 @@
     fetch(API + '/gallery/admin/subscribers?key=' + encodeURIComponent(key), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email })
+      body: JSON.stringify({
+        email: email,
+        firstName: document.getElementById('new-subscriber-first').value.trim(),
+        lastName: document.getElementById('new-subscriber-last').value.trim()
+      })
     })
       .then(function (res) { return res.json(); })
       .then(function (data) {
         addSubscriberBtn.disabled = false;
         if (data && data.success) {
           newSubscriberInput.value = '';
+          document.getElementById('new-subscriber-first').value = '';
+          document.getElementById('new-subscriber-last').value = '';
           loadSubscribers(key);
         } else {
           alert((data && data.message) || 'Could not add subscriber.');
@@ -585,7 +691,34 @@
 
     var renameToggleBtn = e.target.closest('.rename-toggle-btn');
     if (renameToggleBtn) {
-      card.querySelector('.subscriber-rename-row').classList.toggle('open');
+      card.querySelector('.subscriber-edit').classList.toggle('open');
+      return;
+    }
+
+    var nameConfirmBtn = e.target.closest('.name-confirm-btn');
+    if (nameConfirmBtn) {
+      var firstName = card.querySelector('.name-first-input').value.trim();
+      var lastName = card.querySelector('.name-last-input').value.trim();
+      if (!firstName || !lastName) { alert('Enter a first and last name.'); return; }
+      nameConfirmBtn.disabled = true;
+      fetch(API + '/gallery/admin/subscribers/name?key=' + encodeURIComponent(key), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, firstName: firstName, lastName: lastName })
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          nameConfirmBtn.disabled = false;
+          if (data && data.success) {
+            loadSubscribers(key);
+          } else {
+            alert((data && data.message) || 'Could not save the name.');
+          }
+        })
+        .catch(function () {
+          nameConfirmBtn.disabled = false;
+          alert('Network error saving the name.');
+        });
       return;
     }
 

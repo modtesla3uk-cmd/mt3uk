@@ -117,7 +117,12 @@
       if (!token) return Promise.resolve(null);
       return fetch(API + '/my-builds', { headers: { 'X-Session-Token': token }, cache: 'no-store' })
         .then(function (r) { return r.json(); })
-        .then(function (d) { return (d && d.success && d.email) || null; })
+        .then(function (d) {
+          if (!d || !d.success || !d.email) return null;
+          // Members with a saved first and last name comment under it.
+          myName = d.firstName && d.lastName ? d.firstName + ' ' + d.lastName : '';
+          return d.email;
+        })
         .catch(function () { return null; });
     },
     list: function () {
@@ -154,6 +159,7 @@
 
   /* ---------- rendering ---------- */
   var myEmail = null;
+  var myName = '';
   var comments = [];
   var HEART = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-10.2-9.3C-0.2 8 1.4 3.9 5.3 3.2 7.7 2.8 10 3.9 12 6.4c2-2.5 4.3-3.6 6.7-3.2 3.9.7 5.5 4.8 3.5 8.5C19.5 16.4 12 21 12 21z"/></svg>';
 
@@ -168,7 +174,7 @@
 
   function formHtml(parentId) {
     return '<form class="ic-form" data-parent="' + esc(parentId || '') + '">' +
-      (parentId ? '' : '<p class="ic-as">Commenting as ' + esc(DEMO ? 'You (preview)' : nameFromEmail(myEmail)) + '</p>') +
+      (parentId ? '' : '<p class="ic-as">Commenting as ' + esc(DEMO ? 'You (preview)' : (myName || nameFromEmail(myEmail))) + '</p>') +
       '<label class="ic-sr" style="position:absolute;left:-9999px" for="ic-t-' + esc(parentId || 'root') + '">' + (parentId ? 'Reply' : 'Comment') + '</label>' +
       '<textarea id="ic-t-' + esc(parentId || 'root') + '" maxlength="500" required placeholder="' + (parentId ? 'Write a reply…' : 'What did you think? Ask the owner a question…') + '"></textarea>' +
       '<p class="ic-error" hidden></p>' +

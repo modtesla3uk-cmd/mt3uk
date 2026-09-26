@@ -137,6 +137,7 @@ async function listGalleryEntriesFromR2(env, opts) {
     var votableSince = null;
     var color = null;
     var sidecarEmail = null;
+    var sidecarName = null;
     var sidecarKey = o.key + '.json';
     if (sidecarKeys[sidecarKey]) {
       try {
@@ -153,13 +154,14 @@ async function listGalleryEntriesFromR2(env, opts) {
           if (typeof sidecar.votableSince === 'string' && sidecar.votableSince) votableSince = sidecar.votableSince;
           if (typeof sidecar.color === 'string' && sidecar.color) color = sidecar.color;
           if (typeof sidecar.email === 'string' && sidecar.email) sidecarEmail = sidecar.email;
+          if (typeof sidecar.name === 'string' && sidecar.name.trim()) sidecarName = sidecar.name.trim().toUpperCase();
         }
       } catch (e) {}
     }
 
     var entry = { file: filename, mods: mods, votable: votable, gallery: gallery, reel: reel, added: ukDateString(o.uploaded), uploadedAt: o.uploaded.getTime() };
     if (caption) entry.caption = caption;
-    if (split.name) entry.name = split.name;
+    if (sidecarName || split.name) entry.name = sidecarName || split.name;
     if (carId) entry.carId = carId;
     if (color) entry.color = color;
     // Non-sensitive: lets the site show a "Claim this build" control on
@@ -1080,10 +1082,11 @@ async function handleCommentsPost(request, env, ctx) {
     return json({ success: false, message: 'Comment being replied to no longer exists' }, 400);
   }
 
+  var commenterProfile = await getProfile(env, email);
   var comment = {
     id: crypto.randomUUID(),
     parentId: parentId,
-    name: displayNameFromEmail(email),
+    name: profileFullName(commenterProfile) || displayNameFromEmail(email),
     email: email,
     text: text,
     createdAt: new Date().toISOString(),
@@ -1394,6 +1397,9 @@ async function handleGalleryClaimsAdminList(request, env) {
     }
   }).filter(Boolean);
   parsed.sort(function (a, b) { return (b.requestedAt || '').localeCompare(a.requestedAt || ''); });
+  await Promise.all(parsed.map(async function (c) {
+    c.name = profileFullName(await getProfile(env, c.email));
+  }));
 
   return json({ success: true, claims: parsed });
 }
@@ -1431,6 +1437,8 @@ async function handleGalleryClaimsAdminDecide(request, env) {
       if (existingObj) sidecar = await existingObj.json();
     } catch (e) {}
     sidecar.email = claim.email;
+    var claimName = profileFullName(await getProfile(env, claim.email));
+    if (claimName) sidecar.name = claimName;
     await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
       httpMetadata: { contentType: 'application/json' }
     });
@@ -1544,6 +1552,9 @@ async function handleGalleryClaimsAdminAssign(request, env) {
     if (existingObj) sidecar = await existingObj.json();
   } catch (e) {}
   sidecar.email = email;
+  var assignName = profileFullName(await getProfile(env, email));
+  if (assignName) sidecar.name = assignName;
+  else delete sidecar.name;
   await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
     httpMetadata: { contentType: 'application/json' }
   });
@@ -1607,8 +1618,28 @@ async function handleGalleryAdminSubscribersList(request, env) {
   var emails = list.keys.map(function (k) { return k.name.slice('subscriber:'.length); });
   emails.sort();
 
+  // Upload times from R2, for members added before their join date was
+  // recorded.
+  var uploadedAt = {};
+  try {
+    (await listGalleryEntriesFromR2(env)).forEach(function (p) { uploadedAt[p.file] = p.uploadedAt; });
+  } catch (e) {}
+
   var details = await Promise.all(emails.map(async function (email) {
-    return { email: email, files: await getSubscriberFiles(env, email) };
+    var profile = await getProfile(env, email);
+    var files = await getSubscriberFiles(env, email);
+    var added = await env.VOTES.get('subscriber-since:' + email);
+    if (!added) {
+      var times = files.map(function (f) { return uploadedAt[f]; }).filter(Boolean);
+      added = times.length ? new Date(Math.min.apply(null, times)).toISOString() : '';
+    }
+    return {
+      email: email,
+      firstName: profile ? profile.firstName : '',
+      lastName: profile ? profile.lastName : '',
+      added: added,
+      files: files
+    };
   }));
 
   return json({ success: true, subscribers: emails, details: details });
@@ -1640,6 +1671,10 @@ async function handleGalleryAdminSubscriberCreate(request, env) {
   }
 
   await env.VOTES.put('subscriber:' + email, JSON.stringify([]));
+  await markSubscriberSince(env, email);
+  var newFirst = cleanNamePart(body && body.firstName);
+  var newLast = cleanNamePart(body && body.lastName);
+  if (newFirst && newLast) await saveProfile(env, email, newFirst, newLast);
 
   try {
     await sendSubscriberAddedEmail(env, email);
@@ -1686,6 +1721,16 @@ async function handleGalleryAdminSubscriberRename(request, env) {
   });
   await env.VOTES.put('subscriber:' + newEmail, JSON.stringify(newFiles));
   await env.VOTES.delete('subscriber:' + oldEmail);
+  var movedProfile = await getProfile(env, oldEmail);
+  if (movedProfile && !(await getProfile(env, newEmail))) {
+    await saveProfile(env, newEmail, movedProfile.firstName, movedProfile.lastName);
+  }
+  await env.VOTES.delete('profile:' + oldEmail);
+  var movedSince = await env.VOTES.get('subscriber-since:' + oldEmail);
+  if (movedSince && !(await env.VOTES.get('subscriber-since:' + newEmail))) {
+    await env.VOTES.put('subscriber-since:' + newEmail, movedSince);
+  }
+  await env.VOTES.delete('subscriber-since:' + oldEmail);
 
   for (var i = 0; i < oldFiles.length; i++) {
     var file = oldFiles[i];
@@ -1735,6 +1780,7 @@ async function handleGalleryAdminSubscriberUnassign(request, env) {
   } catch (e) {}
   if (sidecar.email === email) {
     delete sidecar.email;
+    delete sidecar.name;
     await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
       httpMetadata: { contentType: 'application/json' }
     });
@@ -1769,6 +1815,7 @@ async function handleGalleryAdminSubscriberDelete(request, env) {
     } catch (e) {}
     if (sidecar.email === email) {
       delete sidecar.email;
+      delete sidecar.name;
       await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
         httpMetadata: { contentType: 'application/json' }
       });
@@ -1776,6 +1823,8 @@ async function handleGalleryAdminSubscriberDelete(request, env) {
     }
   }
   await env.VOTES.delete('subscriber:' + email);
+  await env.VOTES.delete('profile:' + email);
+  await env.VOTES.delete('subscriber-since:' + email);
   if (files.length) await triggerManifestRebuild(env);
 
   return json({ success: true });
@@ -2098,11 +2147,20 @@ async function getSubscriberFiles(env, email) {
 }
 
 async function addSubscriberFiles(env, email, files) {
+  var isNew = (await env.VOTES.get('subscriber:' + email)) === null;
   var existing = await getSubscriberFiles(env, email);
   files.forEach(function (f) {
     if (existing.indexOf(f) === -1) existing.push(f);
   });
   await env.VOTES.put('subscriber:' + email, JSON.stringify(existing));
+  if (isNew) await markSubscriberSince(env, email);
+}
+
+// When a member was added, for the admin page. Recorded when a member's
+// record is first created; members from before this existed fall back to
+// their earliest photo's upload date there.
+async function markSubscriberSince(env, email) {
+  await env.VOTES.put('subscriber-since:' + email, new Date().toISOString());
 }
 
 async function removeSubscriberFile(env, email, file) {
@@ -2189,6 +2247,103 @@ async function setSidecarMods(env, file, mods) {
   await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
     httpMetadata: { contentType: 'application/json' }
   });
+}
+
+// Members' first and last names, one KV key per member (read with a single
+// get, never list()). Set from the first-build form when the member has no
+// name yet, and changed only from a signed-in My Garage session, so a
+// public form can't rename someone else.
+function cleanNamePart(value) {
+  return String(value || '').replace(/\s+/g, ' ').trim().slice(0, 50);
+}
+
+async function getProfile(env, email) {
+  if (!email) return null;
+  try {
+    var raw = await env.VOTES.get('profile:' + email);
+    var parsed = raw ? JSON.parse(raw) : null;
+    return parsed && parsed.firstName && parsed.lastName ? parsed : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function profileFullName(profile) {
+  return profile ? profile.firstName + ' ' + profile.lastName : '';
+}
+
+async function saveProfile(env, email, firstName, lastName) {
+  var profile = { firstName: firstName, lastName: lastName, updatedAt: new Date().toISOString() };
+  await env.VOTES.put('profile:' + email, JSON.stringify(profile));
+  return profile;
+}
+
+// "First Last (email)" for GitHub issues and other admin-facing records.
+function subscriberLabel(name, email) {
+  if (name && email) return name + ' (' + email + ')';
+  return name || email || 'Anonymous';
+}
+
+async function setSidecarName(env, file, name) {
+  var sidecarKey = 'gallery/' + file + '.json';
+  var sidecar = {};
+  try {
+    var existingObj = await env.GALLERY_BUCKET.get(sidecarKey);
+    if (existingObj) sidecar = await existingObj.json();
+  } catch (e) {}
+  if (sidecar.name === name) return;
+  sidecar.name = name;
+  await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
+    httpMetadata: { contentType: 'application/json' }
+  });
+}
+
+// Saves the signed-in member's name and puts it on all their photos, so
+// the gallery, reel and share pages show "By First Last".
+async function handleMyBuildsProfileUpdate(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var firstName = cleanNamePart(body && body.firstName);
+  var lastName = cleanNamePart(body && body.lastName);
+  if (!firstName || !lastName) {
+    return json({ success: false, message: 'Please enter your first and last name' }, 400);
+  }
+  await saveProfileEverywhere(env, email, firstName, lastName);
+  return json({ success: true, firstName: firstName, lastName: lastName });
+}
+
+// Saves a member's name and puts it on all their photos, then rebuilds the
+// gallery manifest so the site shows it.
+async function saveProfileEverywhere(env, email, firstName, lastName) {
+  var profile = await saveProfile(env, email, firstName, lastName);
+  var files = await getSubscriberFiles(env, email);
+  var fullName = profileFullName(profile);
+  await Promise.all(files.map(function (f) { return setSidecarName(env, f, fullName); }));
+  if (files.length) await triggerManifestRebuild(env);
+  return profile;
+}
+
+// Admin: set or change a member's name, e.g. for members from before names
+// were collected.
+async function handleGalleryAdminSubscriberName(request, env) {
+  var key = new URL(request.url).searchParams.get('key');
+  if (!env.ADMIN_KEY || key !== env.ADMIN_KEY) {
+    return json({ success: false, message: 'Unauthorized' }, 401);
+  }
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var email = ((body && body.email) || '').toString().trim().toLowerCase();
+  var firstName = cleanNamePart(body && body.firstName);
+  var lastName = cleanNamePart(body && body.lastName);
+  if (!email) return json({ success: false, message: 'email is required' }, 400);
+  if (!firstName || !lastName) return json({ success: false, message: 'Please enter a first and last name' }, 400);
+  if ((await env.VOTES.get('subscriber:' + email)) === null) {
+    return json({ success: false, message: 'Subscriber not found' }, 404);
+  }
+  await saveProfileEverywhere(env, email, firstName, lastName);
+  return json({ success: true, firstName: firstName, lastName: lastName });
 }
 
 var CAR_COLORS = ['Red', 'White', 'Black', 'Grey', 'Silver', 'Pink', 'Green', 'Other'];
@@ -2448,7 +2603,14 @@ async function handleMyBuildsGet(request, env) {
     };
   }));
 
-  return json({ success: true, email: email, cars: cars });
+  var profile = await getProfile(env, email);
+  return json({
+    success: true,
+    email: email,
+    firstName: profile ? profile.firstName : '',
+    lastName: profile ? profile.lastName : '',
+    cars: cars
+  });
 }
 
 async function handleMyBuildsUpdate(request, env) {
@@ -2754,7 +2916,9 @@ async function handleMyBuildsUpload(request, env) {
       httpMetadata: { contentType: file.type }
     });
 
+    var uploaderName = profileFullName(await getProfile(env, email));
     var sidecar = { email: email };
+    if (uploaderName) sidecar.name = uploaderName;
     if (mods.length) sidecar.mods = mods;
     if (!gallery) sidecar.gallery = false;
     if (!reel) sidecar.reel = false;
@@ -2823,7 +2987,7 @@ async function handleMyBuildsUpload(request, env) {
           headers: ghHeaders,
           body: JSON.stringify({
             title: 'My Builds upload: ' + caption,
-            body: '**Caption:** ' + caption + '\n**Submitted by (account):** ' + email +
+            body: '**Caption:** ' + caption + '\n**Submitted by (account):** ' + subscriberLabel(uploaderName, email) +
               (mods.length ? '\n**Mods:** ' + mods.join(', ') : '') +
               '\n**Flags:** gallery=' + gallery + ', reel=' + reel + ', votable=' + votable +
               '\n\n![photo](' + GALLERY_PUBLIC_BASE_URL + '/gallery/' + filename + ')' +
@@ -3311,6 +3475,9 @@ export default {
     if (url.pathname === '/gallery/admin/subscribers' && request.method === 'POST') {
       return handleGalleryAdminSubscriberCreate(request, env);
     }
+    if (url.pathname === '/gallery/admin/subscribers/name' && request.method === 'POST') {
+      return handleGalleryAdminSubscriberName(request, env);
+    }
     if (url.pathname === '/gallery/admin/subscribers/rename' && request.method === 'POST') {
       return handleGalleryAdminSubscriberRename(request, env);
     }
@@ -3362,6 +3529,9 @@ export default {
     if (url.pathname === '/my-builds' && request.method === 'DELETE') {
       return handleMyBuildsDelete(request, env);
     }
+    if (url.pathname === '/my-builds/profile' && request.method === 'POST') {
+      return handleMyBuildsProfileUpdate(request, env);
+    }
     if (url.pathname === '/my-builds/notifications' && request.method === 'GET') {
       return handleMyBuildsNotificationsGet(request, env);
     }
@@ -3399,6 +3569,16 @@ export default {
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return json({ success: false, message: 'Please enter a valid email' }, 400);
     }
+    // A member's saved name wins; otherwise the first and last name from the
+    // form become their saved name. Only an email with no name yet can be
+    // named here, as this form doesn't need a sign-in.
+    var submitProfile = await getProfile(env, email);
+    var submitFirst = cleanNamePart(formData.get('firstName'));
+    var submitLast = cleanNamePart(formData.get('lastName'));
+    if (!submitProfile && submitFirst && submitLast) {
+      submitProfile = await saveProfile(env, email, submitFirst, submitLast);
+    }
+    if (submitProfile) name = profileFullName(submitProfile);
     var caption = (formData.get('caption') || '').toString().trim().slice(0, 150);
     var carName = (formData.get('carName') || '').toString().trim().slice(0, 150);
     var modsRaw = (formData.get('mods') || '').toString().trim().slice(0, 1000);
@@ -3467,6 +3647,7 @@ export default {
         // primary shot shows up for votes.
         var isPrimary = i === 0;
         var sidecar = { email: email };
+        if (name) sidecar.name = name;
         if (isPrimary && mods.length) sidecar.mods = mods;
         // Colour is a whole-car attribute (used for gallery filtering), so
         // every photo in the submission carries it, unlike mods which are
@@ -3512,7 +3693,7 @@ export default {
             headers: ghHeaders,
             body: JSON.stringify({
               title: 'Gallery submission: ' + caption,
-              body: '**Caption:** ' + caption + '\n**Submitted by:** ' + (name || 'Anonymous') +
+              body: '**Caption:** ' + caption + '\n**Submitted by:** ' + subscriberLabel(name, email) +
                 (mods.length ? '\n**Mods (on primary photo):** ' + mods.join(', ') : '') +
                 '\n\n' + photoUrls.map(function (u, idx) { return '![photo ' + (idx + 1) + '](' + u + ')'; }).join('\n\n') +
                 '\n\nThese photos are already live in the gallery' + (photoUrls.length > 1 ? ' (first one is the primary/voting entry)' : '') + '. Close this issue once reviewed, ' +

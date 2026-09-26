@@ -28,7 +28,6 @@ import io
 import json
 import os
 import re
-import shutil
 import sys
 from pathlib import Path
 
@@ -37,9 +36,10 @@ MANIFEST_PATH = REPO_ROOT / "images" / "gallery" / "manifest.json"
 SHARE_DIR = REPO_ROOT / "share"
 PREVIEW_DIR = SHARE_DIR / "preview"
 PREVIEW_SIZE = (1200, 1200)
-# Wide 1200x630 previews used before the switch to square; removed on the
-# next run.
-OLD_PREVIEW_DIR = SHARE_DIR / "img"
+# Wide 1200x630 previews used before the switch to square live on in
+# share/img/. They are never removed, because Facebook posts made before the
+# switch keep loading their preview from that address, and desktop Facebook
+# shows a blank card if it has gone.
 SITE_URL = "https://mt3uk.com"
 # Same public bucket URL as scripts/r2_client.py, repeated here so this
 # script doesn't need boto3.
@@ -70,8 +70,6 @@ def make_preview(data: bytes) -> bytes:
 def build_previews(files: list) -> None:
     """Makes a preview for every photo that doesn't have one yet, and removes
     previews for photos that have gone."""
-    if OLD_PREVIEW_DIR.exists():
-        shutil.rmtree(OLD_PREVIEW_DIR)
     PREVIEW_DIR.mkdir(parents=True, exist_ok=True)
     wanted = {f + ".jpg" for f in files}
     for old in PREVIEW_DIR.glob("*.jpg"):

@@ -1,5 +1,50 @@
 [
   {
+    "file": "robot-hacker-m3p--by-martyn.jpg",
+    "caption": "ROBOT HACKER M3P",
+    "name": "MARTYN",
+    "mods": [
+      "JR gloss black wheels",
+      "Michelin ps tyres",
+      "Robot hacker front bumper",
+      "Robot hacker V2 carbon bonnet",
+      "Vorstiener side skirts",
+      "rear diffuser & duck tail",
+      "De-chrome",
+      "M style mirrors",
+      "Lowered",
+      "Carbon/perforated leather steering wheel",
+      "Carbon dash inlay",
+      "Carbon centre console",
+      "Highland performance ventilated seats",
+      "Android auto/apple car play module",
+      "Tinted sun strip",
+      "Master cylinder brace",
+      "Tinted lights all-around"
+    ],
+    "color": "White",
+    "added": "2026-09-26",
+    "group": "robot-hacker-m3p--by-martyn.jpg"
+  },
+  {
+    "file": "robot-hacker-m3p--by-martyn-3.jpg",
+    "caption": "ROBOT HACKER M3P",
+    "name": "MARTYN",
+    "votable": false,
+    "color": "White",
+    "added": "2026-09-26",
+    "group": "robot-hacker-m3p--by-martyn.jpg"
+  },
+  {
+    "file": "robot-hacker-m3p--by-martyn-2.jpg",
+    "caption": "ROBOT HACKER M3P",
+    "name": "MARTYN",
+    "votable": false,
+    "color": "White",
+    "added": "2026-09-26",
+    "group": "robot-hacker-m3p--by-martyn.jpg"
+  },
+  {
     "file": "midnight-silver-m3--by-scott.jpg",
     "caption": "MIDNIGHT SILVER M3",
     "name": "SCOTT",

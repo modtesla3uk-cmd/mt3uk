@@ -157,6 +157,29 @@
   .lightbox img { max-width: 100%; max-height: calc(100vh - 80px); object-fit: contain; }
   .lightbox-caption { color: var(--steel); font-size: 0.72rem; word-break: break-all; text-align: center; }
   .lightbox-close { position: absolute; top: 12px; right: 12px; padding: 6px 12px; }
+  .iv-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
+  .iv-stat { border: 1px solid rgba(255,255,255,0.2); padding: 12px; }
+  .iv-stat-label { color: var(--steel); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .iv-stat-value { font-size: 1.1rem; margin-top: 4px; }
+  .iv-stat-note { color: var(--steel); font-size: 0.68rem; margin-top: 4px; }
+  .iv-stat.urgent { border-color: var(--orange); }
+  .iv-stat.urgent .iv-stat-value { color: var(--orange); }
+  .iv-settings { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; color: var(--steel); font-size: 0.72rem; }
+  .iv-settings select { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3); color: var(--white); font-family: inherit; font-size: inherit; padding: 4px 6px; }
+  .iv-gap { color: var(--orange); font-size: 0.72rem; margin: 0 0 12px; }
+  .iv-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+  .iv-table th { text-align: left; color: var(--steel); font-weight: normal; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em; padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.2); }
+  .iv-table td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); vertical-align: top; }
+  .iv-table a { color: var(--white); }
+  .iv-table .iv-sub { color: var(--steel); font-size: 0.68rem; }
+  .iv-table .num { text-align: right; }
+  .iv-status { font-size: 0.68rem; }
+  .iv-status.published { color: #4caf7d; }
+  .iv-status.scheduled { color: var(--orange); }
+  @media (max-width: 780px) {
+    .iv-stats { grid-template-columns: 1fr 1fr; }
+    .iv-table .iv-hide-sm { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -170,6 +193,33 @@
 </header>
 <main>
   <p class="status" id="status"></p>
+
+  <section>
+    <details class="collapsible" id="interviews-wrap" open>
+      <summary><h2>Owner interviews <span class="summary-count" id="interviews-count"></span></h2></summary>
+      <div class="iv-settings">
+        <label>Release every
+          <select id="iv-cadence">
+            <option value="7">1 week</option>
+            <option value="14" selected>2 weeks</option>
+            <option value="21">3 weeks</option>
+            <option value="28">4 weeks</option>
+          </select>
+        </label>
+        <label>Time to build one
+          <select id="iv-lead">
+            <option value="7">1 week</option>
+            <option value="14" selected>2 weeks</option>
+            <option value="21">3 weeks</option>
+            <option value="28">4 weeks</option>
+          </select>
+        </label>
+      </div>
+      <div class="iv-stats" id="iv-stats"></div>
+      <div id="iv-gaps"></div>
+      <div id="iv-list"></div>
+    </details>
+  </section>
 
   <div class="admin-grid">
   <div class="admin-col">
@@ -971,6 +1021,140 @@
   lightbox.addEventListener('click', closeLightbox);
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && lightbox.classList.contains('open')) closeLightbox();
+  });
+})();
+</script>
+<script>
+// Owner interviews pipeline: reads data/interviews.json (the same file the
+// homepage and blog.html use) and the public comment counts, where
+// interview threads are stored as "interview:<slug>".
+(function () {
+  var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
+  var DAY = 24 * 60 * 60 * 1000;
+  var statsEl = document.getElementById('iv-stats');
+  var gapsEl = document.getElementById('iv-gaps');
+  var listEl = document.getElementById('iv-list');
+  var countEl = document.getElementById('interviews-count');
+  var cadenceEl = document.getElementById('iv-cadence');
+  var leadEl = document.getElementById('iv-lead');
+  var interviews = [];
+  var counts = {};
+
+  try {
+    var saved = JSON.parse(localStorage.getItem('mt3ukInterviewPlan') || '{}');
+    if (saved.cadence) cadenceEl.value = String(saved.cadence);
+    if (saved.lead) leadEl.value = String(saved.lead);
+  } catch (e) {}
+
+  function escapeHtml(str) {
+    return String(str == null ? '' : str).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  // Dates are handled as UK calendar days (YYYY-MM-DD), matching how the
+  // homepage decides what is published.
+  function ukToday() {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  }
+  function toTime(iso) { return Date.parse(iso + 'T00:00:00Z'); }
+  function addDays(iso, n) { return new Date(toTime(iso) + n * DAY).toISOString().slice(0, 10); }
+  function daysBetween(a, b) { return Math.round((toTime(b) - toTime(a)) / DAY); }
+  function nice(iso) {
+    return new Date(toTime(iso)).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+  }
+  function inDays(n) {
+    if (n === 0) return 'today';
+    if (n === 1) return 'tomorrow';
+    if (n > 0) return 'in ' + n + ' days';
+    return (-n) + ' day' + (n === -1 ? '' : 's') + ' ago';
+  }
+  function slugOf(iv) { return String(iv.url || '').replace(/^blog-/, '').replace(/\.html$/, ''); }
+
+  function stat(label, value, note, urgent) {
+    return '<div class="iv-stat' + (urgent ? ' urgent' : '') + '">' +
+      '<div class="iv-stat-label">' + escapeHtml(label) + '</div>' +
+      '<div class="iv-stat-value">' + escapeHtml(value) + '</div>' +
+      (note ? '<div class="iv-stat-note">' + escapeHtml(note) + '</div>' : '') +
+    '</div>';
+  }
+
+  function render() {
+    var cadence = parseInt(cadenceEl.value, 10);
+    var lead = parseInt(leadEl.value, 10);
+    var today = ukToday();
+    var sorted = interviews.slice().sort(function (a, b) { return a.publish < b.publish ? -1 : 1; });
+    var published = sorted.filter(function (iv) { return iv.publish <= today; });
+    var scheduled = sorted.filter(function (iv) { return iv.publish > today; });
+
+    // The next slot needing an interview: the first gap in the schedule of
+    // two release periods or more, otherwise one period after the last one.
+    var slot = null;
+    var gaps = [];
+    for (var i = 1; i < sorted.length; i++) {
+      var prev = sorted[i - 1].publish;
+      var gap = daysBetween(prev, sorted[i].publish);
+      if (sorted[i].publish > today && gap >= cadence * 2) {
+        var free = addDays(prev, cadence);
+        if (free < today) free = today;
+        gaps.push({ after: sorted[i - 1], before: sorted[i], days: gap, free: free });
+        if (!slot) slot = free;
+      }
+    }
+    if (!slot) {
+      var last = sorted.length ? sorted[sorted.length - 1].publish : today;
+      slot = addDays(last, cadence);
+      if (slot < today) slot = today;
+    }
+    var startBy = addDays(slot, -lead);
+    var startIn = daysBetween(today, startBy);
+    var coveredUntil = scheduled.length ? scheduled[scheduled.length - 1].publish : null;
+
+    countEl.textContent = '(' + scheduled.length + ' in the pipeline)';
+    statsEl.innerHTML =
+      stat('Published', String(published.length), published.length ? 'Latest ' + nice(published[published.length - 1].publish) : '') +
+      stat('In the pipeline', String(scheduled.length), coveredUntil ? 'Scheduled up to ' + nice(coveredUntil) : 'Nothing scheduled', scheduled.length === 0) +
+      stat('Next free slot', nice(slot), inDays(daysBetween(today, slot))) +
+      stat('Start building the next', startIn <= 0 ? 'Now' : nice(startBy), startIn <= 0 ? 'The next slot is ' + inDays(daysBetween(today, slot)) : inDays(startIn), startIn <= 7);
+
+    gapsEl.innerHTML = gaps.map(function (g) {
+      return '<p class="iv-gap">Gap of ' + g.days + ' days between ' + escapeHtml(g.after.name) + ' (' + nice(g.after.publish) + ') and ' +
+        escapeHtml(g.before.name) + ' (' + nice(g.before.publish) + '). An interview could go out on ' + nice(g.free) + '.</p>';
+    }).join('');
+
+    listEl.innerHTML = '<table class="iv-table"><thead><tr>' +
+        '<th>Interview</th><th>Publish date</th><th class="iv-hide-sm">Status</th><th class="num">Comments</th>' +
+      '</tr></thead><tbody>' +
+      sorted.slice().reverse().map(function (iv) {
+        var live = iv.publish <= today;
+        var n = counts['interview:' + slugOf(iv)] || 0;
+        return '<tr>' +
+          '<td><a href="' + escapeHtml(iv.url) + (live ? '' : '?date=' + escapeHtml(iv.publish)) + '" target="_blank" rel="noopener">' + escapeHtml(iv.name) + '</a>' +
+            '<div class="iv-sub">' + escapeHtml(iv.title || iv.car || '') + '</div></td>' +
+          '<td>' + nice(iv.publish) + '<div class="iv-sub">' + inDays(daysBetween(today, iv.publish)) + '</div></td>' +
+          '<td class="iv-hide-sm"><span class="iv-status ' + (live ? 'published' : 'scheduled') + '">' + (live ? 'Published' : 'Scheduled') + '</span></td>' +
+          '<td class="num">' + (live ? n : '<span class="iv-sub">-</span>') + '</td>' +
+        '</tr>';
+      }).join('') +
+      '</tbody></table>';
+  }
+
+  function saveSettings() {
+    try { localStorage.setItem('mt3ukInterviewPlan', JSON.stringify({ cadence: cadenceEl.value, lead: leadEl.value })); } catch (e) {}
+    render();
+  }
+  cadenceEl.addEventListener('change', saveSettings);
+  leadEl.addEventListener('change', saveSettings);
+
+  Promise.all([
+    fetch('data/interviews.json', { cache: 'no-store' }).then(function (res) { return res.json(); }),
+    fetch(API + '/comment-counts', { cache: 'no-store' }).then(function (res) { return res.ok ? res.json() : {}; }).catch(function () { return {}; })
+  ]).then(function (results) {
+    interviews = ((results[0] && results[0].interviews) || []).filter(function (iv) { return iv.publish; });
+    counts = (results[1] && results[1].counts) || {};
+    render();
+  }).catch(function () {
+    listEl.innerHTML = '<p class="empty">Could not load data/interviews.json.</p>';
   });
 })();
 </script>

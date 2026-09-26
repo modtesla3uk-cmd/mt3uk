@@ -2,7 +2,7 @@
   "_note": "Owner Interviews shown on the homepage. Each one appears on its publish date (UK time). The next unpublished one is teased as 'Next interview'. Optional heroPosition (CSS background-position) frames the car in the homepage hero, e.g. for portrait photos.",
   "interviews": [
     {
-      "name": "Richard",
+      "name": "Richard HC",
       "car": "Model 3 Performance",
       "year": "2019",
       "title": "Founding the MT3UK Community",
@@ -12,7 +12,7 @@
       "publish": "2026-10-01"
     },
     {
-      "name": "Mark",
+      "name": "Mark LittleDale",
       "car": "Model Y",
       "title": "Terry the Tesla: Mark’s Deep Blue Model Y",
       "excerpt": "Red accents, louvres, a boot spoiler and the advice Mark would give other modders.",
@@ -22,7 +22,7 @@
       "publish": "2026-10-15"
     },
     {
-      "name": "Myk",
+      "name": "Myk Debbadge - Track",
       "car": "Model S P85",
       "year": "2014",
       "title": "Deviant: Myk’s Track-Built Model S",
@@ -32,7 +32,7 @@
       "publish": "2026-10-29"
     },
     {
-      "name": "Aaron",
+      "name": "Aaron Phyo",
       "car": "Model 3 Performance",
       "title": "Firebolt: Aaron’s Red Model 3 Performance",
       "excerpt": "Swapping a tuned BMW M3 for a Model 3 Performance, Matrix LEDs, a splitter and diffuser, and a 10-country road trip.",
@@ -42,7 +42,7 @@
       "publish": "2026-11-12"
     },
     {
-      "name": "Myk",
+      "name": "Myk Debbadge",
       "car": "Model S P85 on track",
       "title": "Deviant on Track: Myk’s Model S Track Day Setup",
       "excerpt": "Our first Track Day Interview: beating power limiting, the brake, suspension and tyre setup that works, charging on the day and what it really costs.",
@@ -51,7 +51,7 @@
       "publish": "2026-11-19"
     },
     {
-      "name": "Richie",
+      "name": "Richie P Dainton",
       "car": "Model 3 Long Range",
       "year": "2021",
       "title": "Meet Bert: Richie’s Deep Blue Model 3",

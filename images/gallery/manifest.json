@@ -11,28 +11,32 @@
       "Purple Chameleon tint"
     ],
     "color": "Black",
-    "added": "2026-09-26"
+    "added": "2026-09-26",
+    "group": "robot-hacker-model-3.jpg"
   },
   {
     "file": "robot-hacker-model-3-3.jpg",
     "caption": "ROBOT HACKER MODEL 3 3",
     "votable": false,
     "color": "Black",
-    "added": "2026-09-26"
+    "added": "2026-09-26",
+    "group": "robot-hacker-model-3.jpg"
   },
   {
     "file": "robot-hacker-model-3-2.jpg",
     "caption": "ROBOT HACKER MODEL 3 2",
     "votable": false,
     "color": "Black",
-    "added": "2026-09-26"
+    "added": "2026-09-26",
+    "group": "robot-hacker-model-3.jpg"
   },
   {
     "file": "night-lights.jpg",
     "caption": "NIGHT LIGHTS",
     "votable": false,
     "color": "Red",
-    "added": "2026-09-25"
+    "added": "2026-09-25",
+    "group": "night-lights.jpg"
   },
   {
     "file": "2021-model-3-performance--by-martyn-heath.jpeg",
@@ -48,7 +52,8 @@
       "9002 Alcantara Headliner"
     ],
     "color": "Red",
-    "added": "2026-09-25"
+    "added": "2026-09-25",
+    "group": "2021-model-3-performance--by-martyn-heath.jpeg"
   },
   {
     "file": "2021-model-3-performance--by-martyn-heath-3.jpeg",
@@ -56,7 +61,8 @@
     "name": "MARTYN HEATH",
     "votable": false,
     "color": "Red",
-    "added": "2026-09-25"
+    "added": "2026-09-25",
+    "group": "2021-model-3-performance--by-martyn-heath.jpeg"
   },
   {
     "file": "2021-model-3-performance--by-martyn-heath-2.jpeg",
@@ -64,7 +70,8 @@
     "name": "MARTYN HEATH",
     "votable": false,
     "color": "Red",
-    "added": "2026-09-25"
+    "added": "2026-09-25",
+    "group": "2021-model-3-performance--by-martyn-heath.jpeg"
   },
   {
     "file": "m3p-almost-stock.jpg",
@@ -75,36 +82,42 @@
       "Maxton v2 body kit"
     ],
     "color": "White",
-    "added": "2026-09-25"
+    "added": "2026-09-25",
+    "group": "m3p-almost-stock.jpg"
   },
   {
     "file": "m3p-almost-stock-2.jpg",
     "caption": "M3P ALMOST STOCK 2",
     "color": "White",
-    "added": "2026-09-25"
+    "added": "2026-09-25",
+    "group": "m3p-almost-stock.jpg"
   },
   {
     "file": "rear-shot-of-the-green-knight-tessa.jpeg",
     "caption": "REAR SHOT OF THE GREEN KNIGHT TESSA",
-    "added": "2026-09-24"
+    "added": "2026-09-24",
+    "group": "rear-shot-of-the-green-knight-tessa.jpeg"
   },
   {
     "file": "underglow-for-the-green-knight-tessa.jpeg",
     "caption": "UNDERGLOW FOR THE GREEN KNIGHT TESSA",
     "votable": false,
-    "added": "2026-09-24"
+    "added": "2026-09-24",
+    "group": "rear-shot-of-the-green-knight-tessa.jpeg"
   },
   {
     "file": "the-green-knight-tessa.jpeg",
     "caption": "THE GREEN KNIGHT TESSA",
     "votable": false,
-    "added": "2026-09-24"
+    "added": "2026-09-24",
+    "group": "rear-shot-of-the-green-knight-tessa.jpeg"
   },
   {
     "file": "tesla-longbridge--by-sharad-buddhdev.jpeg",
     "caption": "TESLA LONGBRIDGE",
     "name": "SHARAD BUDDHDEV",
-    "added": "2026-09-24"
+    "added": "2026-09-24",
+    "group": "rear-shot-of-the-green-knight-tessa.jpeg"
   },
   {
     "file": "team-red.jpeg",
@@ -112,14 +125,16 @@
     "mods": [
       "Unplugged springs and BILSTEIN shocks with MPP camber arms"
     ],
-    "added": "2026-09-22"
+    "added": "2026-09-22",
+    "group": "team-red.jpeg"
   },
   {
     "file": "team-red--by-mark-smith.jpg",
     "caption": "TEAM RED",
     "name": "MARK SMITH",
     "votable": false,
-    "added": "2026-09-21"
+    "added": "2026-09-21",
+    "group": "team-red--by-mark-smith.jpg"
   },
   {
     "file": "team-red--by-mark-smith.jpeg",
@@ -137,7 +152,8 @@
       "Swivel kit fitted to on board screen",
       "Tesory carbon wing mirror covers"
     ],
-    "added": "2026-09-21"
+    "added": "2026-09-21",
+    "group": "team-red--by-mark-smith.jpg"
   },
   {
     "file": "team-red--by-mark-smith-2.jpeg",
@@ -146,7 +162,8 @@
     "mods": [
       "New front bearings"
     ],
-    "added": "2026-09-21"
+    "added": "2026-09-21",
+    "group": "team-red--by-mark-smith.jpg"
   },
   {
     "file": "model-3-front-end.jpg",
@@ -170,7 +187,8 @@
     ],
     "votable": false,
     "color": "Green",
-    "added": "2026-09-21"
+    "added": "2026-09-21",
+    "group": "model-3-front-end.jpg"
   },
   {
     "file": "scarlett--by-jeremy-3.jpg",
@@ -181,7 +199,8 @@
     ],
     "votable": false,
     "color": "Red",
-    "added": "2026-09-20"
+    "added": "2026-09-20",
+    "group": "scarlett--by-jeremy-3.jpg"
   },
   {
     "file": "scarlett--by-jeremy-2.jpg",
@@ -192,7 +211,8 @@
     ],
     "votable": false,
     "color": "Red",
-    "added": "2026-09-20"
+    "added": "2026-09-20",
+    "group": "scarlett--by-jeremy-3.jpg"
   },
   {
     "file": "scarlett--by-jeremy.jpg",
@@ -203,7 +223,8 @@
     ],
     "votable": false,
     "color": "Red",
-    "added": "2026-09-20"
+    "added": "2026-09-20",
+    "group": "scarlett--by-jeremy-3.jpg"
   },
   {
     "file": "og-model-3-turbine-and-chrome--by-richard.jpg",
@@ -229,7 +250,8 @@
     "votable": false,
     "gallery": false,
     "color": "Green",
-    "added": "2026-09-20"
+    "added": "2026-09-20",
+    "group": "og-model-3-turbine-and-chrome--by-richard.jpg"
   },
   {
     "file": "baron-von-marlon--by-matt-o-leary.jpg",
@@ -255,21 +277,24 @@
       "Road/Track pads.",
       "Thor twin exhausts.  Carbon wing mirror caps"
     ],
-    "added": "2026-09-19"
+    "added": "2026-09-19",
+    "group": "baron-von-marlon--by-matt-o-leary.jpg"
   },
   {
     "file": "baron-von-marlon--by-matt-o-leary-3.jpg",
     "caption": "BARON VON MARLON",
     "name": "MATT O LEARY",
     "votable": false,
-    "added": "2026-09-19"
+    "added": "2026-09-19",
+    "group": "baron-von-marlon--by-matt-o-leary.jpg"
   },
   {
     "file": "baron-von-marlon--by-matt-o-leary-2.jpg",
     "caption": "BARON VON MARLON",
     "name": "MATT O LEARY",
     "votable": false,
-    "added": "2026-09-19"
+    "added": "2026-09-19",
+    "group": "baron-von-marlon--by-matt-o-leary.jpg"
   },
   {
     "file": "judd--by-richard.jpg",
@@ -294,7 +319,8 @@
     ],
     "votable": false,
     "color": "Green",
-    "added": "2026-09-19"
+    "added": "2026-09-19",
+    "group": "judd--by-richard.jpg"
   },
   {
     "file": "model-3-full-mods--by-rich.jpg",
@@ -318,7 +344,8 @@
       "Avery Gloss Hidden Forest Vinyl wrap"
     ],
     "color": "Green",
-    "added": "2026-09-19"
+    "added": "2026-09-19",
+    "group": "judd--by-richard.jpg"
   },
   {
     "file": "deviant-tesla-model-s.jpg",
@@ -345,7 +372,8 @@
       "\"6 point harnesses\"",
       "\"bucket seats\""
     ],
-    "added": "2026-09-19"
+    "added": "2026-09-19",
+    "group": "deviant-tesla-model-s.jpg"
   },
   {
     "file": "green-purple-goblin--by-rich.jpg",
@@ -369,7 +397,8 @@
       "Avery Gloss Hidden Forest Vinyl wrap"
     ],
     "color": "Green",
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "green-purple-goblin--by-rich.jpg"
   },
   {
     "file": "deviant-model-s--by-myk-debbage.jpg",
@@ -379,7 +408,8 @@
       "Race door release"
     ],
     "votable": false,
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "deviant-model-s--by-myk-debbage.jpg"
   },
   {
     "file": "r2-upload-pipeline-test--by-richard-r2-test.jpg",
@@ -387,7 +417,8 @@
     "name": "RICHARD R2 TEST",
     "color": "Pink",
     "unclaimed": true,
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "r2-upload-pipeline-test--by-richard-r2-test.jpg"
   },
   {
     "file": "70-track-focused-oem--by-david-baddeley.jpg",
@@ -411,7 +442,8 @@
       "noise reduction kit",
       "+ more"
     ],
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "70-track-focused-oem--by-david-baddeley.jpg"
   },
   {
     "file": "68-team-red--by-mark-smith.jpeg",
@@ -428,7 +460,8 @@
       "Protuning rear diffuser",
       "Tesory wing mirror covers"
     ],
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "68-team-red--by-mark-smith.jpeg"
   },
   {
     "file": "67-m3-green-side-shot--by-rich.jpg",
@@ -452,7 +485,8 @@
       "Avery Gloss Hidden Forest Vinyl wrap"
     ],
     "color": "Green",
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "green-purple-goblin--by-rich.jpg"
   },
   {
     "file": "66-moss-green-performance--by-mac.jpeg",
@@ -462,87 +496,100 @@
       "- Moss Green Matt metallic wrap",
       "- SEXY strip and commander"
     ],
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "66-moss-green-performance--by-mac.jpeg"
   },
   {
     "file": "64-night-time-sleek--by-ade-lucy.jpg",
     "caption": "NIGHT TIME SLEEK",
     "name": "ADE LUCY",
     "unclaimed": true,
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "64-night-time-sleek--by-ade-lucy.jpg"
   },
   {
     "file": "63-red-dual-motor--by-slt.jpg",
     "caption": "RED DUAL MOTOR",
     "name": "SLT",
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "63-red-dual-motor--by-slt.jpg"
   },
   {
     "file": "62-red-rocket--by-garth-woods.jpg",
     "caption": "RED ROCKET",
     "name": "GARTH WOODS",
     "unclaimed": true,
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "62-red-rocket--by-garth-woods.jpg"
   },
   {
     "file": "61-clubmax-s-m3p--by-nason-manavi.jpeg",
     "caption": "CLUBMAX S M3P",
     "name": "NASON MANAVI",
     "unclaimed": true,
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "61-clubmax-s-m3p--by-nason-manavi.jpeg"
   },
   {
     "file": "60-lightsong--by-volpe-reuling.jpeg",
     "caption": "LIGHTSONG",
     "name": "VOLPE REULING",
     "unclaimed": true,
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "60-lightsong--by-volpe-reuling.jpeg"
   },
   {
     "file": "59-dark-night--by-striker.jpg",
     "caption": "DARK NIGHT",
     "name": "STRIKER",
     "unclaimed": true,
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "59-dark-night--by-striker.jpg"
   },
   {
     "file": "58-shark-stance--by-gediminas-gudelis.jpeg",
     "caption": "SHARK STANCE",
     "name": "GEDIMINAS GUDELIS",
     "unclaimed": true,
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "58-shark-stance--by-gediminas-gudelis.jpeg"
   },
   {
     "file": "56-team-red--by-mark-smith.jpg",
     "caption": "TEAM RED",
     "name": "MARK SMITH",
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "68-team-red--by-mark-smith.jpeg"
   },
   {
     "file": "57-the-orange-microwave--by-charlotte-downing.jpeg",
     "caption": "THE ORANGE MICROWAVE",
     "name": "CHARLOTTE DOWNING",
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "57-the-orange-microwave--by-charlotte-downing.jpeg"
   },
   {
     "file": "55-model-3-performance--by-naimesh-patel.jpg",
     "caption": "MODEL 3 PERFORMANCE",
     "name": "NAIMESH PATEL",
     "unclaimed": true,
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "55-model-3-performance--by-naimesh-patel.jpg"
   },
   {
     "file": "54-the-bullet-m3-lr-ac-boost--by-lee-frost-raclee-frost.jpg",
     "caption": "THE BULLET M3 LR AC BOOST",
     "name": "LEE FROST RACLEE FROST",
     "unclaimed": true,
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "54-the-bullet-m3-lr-ac-boost--by-lee-frost-raclee-frost.jpg"
   },
   {
     "file": "53-the-green-knight-tessa--by-sharad.jpeg",
     "caption": "THE GREEN KNIGHT TESSA",
     "name": "SHARAD",
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "53-the-green-knight-tessa--by-sharad.jpeg"
   },
   {
     "file": "52-green-4-go--by-rich.jpg",
@@ -566,7 +613,8 @@
       "Avery Gloss Hidden Forest Vinyl wrap"
     ],
     "color": "Green",
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "green-purple-goblin--by-rich.jpg"
   },
   {
     "file": "51-wheels-wheels-wheels--by-rich.jpg",
@@ -590,7 +638,8 @@
       "Avery Gloss Hidden Forest Vinyl wrap"
     ],
     "color": "Green",
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "green-purple-goblin--by-rich.jpg"
   },
   {
     "file": "50-it-s-a-wrap--by-rich.jpg",
@@ -614,210 +663,246 @@
       "Avery Gloss Hidden Forest Vinyl wrap"
     ],
     "color": "Green",
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "green-purple-goblin--by-rich.jpg"
   },
   {
     "file": "49-m3p--by-baz.jpeg",
     "caption": "M3P",
     "name": "BAZ",
     "unclaimed": true,
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "49-m3p--by-baz.jpeg"
   },
   {
     "file": "48-model-s-55d--by-oleh.jpeg",
     "caption": "MODEL S 55D",
     "name": "OLEH",
     "unclaimed": true,
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "48-model-s-55d--by-oleh.jpeg"
   },
   {
     "file": "46-viper-model-3.jpeg",
     "caption": "VIPER MODEL 3",
     "unclaimed": true,
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "46-viper-model-3.jpeg"
   },
   {
     "file": "44-bert--by-richard-dainton.jpg",
     "caption": "BERT",
     "name": "RICHARD DAINTON",
     "unclaimed": true,
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "44-bert--by-richard-dainton.jpg"
   },
   {
     "file": "43-underglow--by-sharad.jpeg",
     "caption": "UNDERGLOW",
     "name": "SHARAD",
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "53-the-green-knight-tessa--by-sharad.jpeg"
   },
   {
     "file": "42-track-action-with-myk--by-richard.jpg",
     "caption": "TRACK ACTION WITH MYK",
     "name": "RICHARD",
     "color": "Green",
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "green-purple-goblin--by-rich.jpg"
   },
   {
     "file": "41-s3xy-model-3-lr-21.jpg",
     "caption": "S3XY MODEL 3 LR 21",
     "unclaimed": true,
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "41-s3xy-model-3-lr-21.jpg"
   },
   {
     "file": "39-model-y-lr-sleek-edition.jpg",
     "caption": "MODEL Y LR SLEEK EDITION",
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "63-red-dual-motor--by-slt.jpg"
   },
   {
     "file": "38-the-unicorn-tesla.jpeg",
     "caption": "THE UNICORN TESLA",
     "unclaimed": true,
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "38-the-unicorn-tesla.jpeg"
   },
   {
     "file": "37-ghost.jpg",
     "caption": "GHOST",
     "unclaimed": true,
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "37-ghost.jpg"
   },
   {
     "file": "36-RICH-TRACK.jpg",
     "caption": "RICH TRACK",
     "color": "Green",
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "green-purple-goblin--by-rich.jpg"
   },
   {
     "file": "35-model-3.jpeg",
     "caption": "MODEL 3",
     "unclaimed": true,
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "35-model-3.jpeg"
   },
   {
     "file": "34-baymaxev.jpeg",
     "caption": "BAYMAXEV",
     "unclaimed": true,
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "34-baymaxev.jpeg"
   },
   {
     "file": "28-nordschleife-baby.jpg",
     "caption": "NORDSCHLEIFE BABY",
     "unclaimed": true,
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "28-nordschleife-baby.jpg"
   },
   {
     "file": "33-model-3-lr.jpeg",
     "caption": "MODEL 3 LR",
     "unclaimed": true,
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "33-model-3-lr.jpeg"
   },
   {
     "file": "32-shes-sitting-nice-and-low.jpg",
     "caption": "SHES SITTING NICE AND LOW",
     "unclaimed": true,
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "32-shes-sitting-nice-and-low.jpg"
   },
   {
     "file": "31-team-red.jpeg",
     "caption": "TEAM RED",
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "68-team-red--by-mark-smith.jpeg"
   },
   {
     "file": "30-black-m3-lr.jpeg",
     "caption": "BLACK M3 LR",
     "unclaimed": true,
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "30-black-m3-lr.jpeg"
   },
   {
     "file": "29-haloblk.jpeg",
     "caption": "HALOBLK",
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "29-haloblk.jpeg"
   },
   {
     "file": "27-rustee.jpg",
     "caption": "RUSTEE",
     "unclaimed": true,
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "27-rustee.jpg"
   },
   {
     "file": "26-voyager-in-tron-ares-mode.jpeg",
     "caption": "VOYAGER IN TRON ARES MODE",
     "unclaimed": true,
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "26-voyager-in-tron-ares-mode.jpeg"
   },
   {
     "file": "25-candy-blue-model-3.jpeg",
     "caption": "CANDY BLUE MODEL 3",
     "unclaimed": true,
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "25-candy-blue-model-3.jpeg"
   },
   {
     "file": "24-voyager-model-3.jpeg",
     "caption": "VOYAGER MODEL 3",
     "unclaimed": true,
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "24-voyager-model-3.jpeg"
   },
   {
     "file": "23-foggy-night.jpeg",
     "caption": "FOGGY NIGHT",
     "unclaimed": true,
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "23-foggy-night.jpeg"
   },
   {
     "file": "22-blue-model-3.jpeg",
     "caption": "BLUE MODEL 3",
     "unclaimed": true,
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "22-blue-model-3.jpeg"
   },
   {
     "file": "21-the-bullet-m3-lr-with-acceleration-boost.jpg",
     "caption": "THE BULLET M3 LR WITH ACCELERATION BOOST",
     "unclaimed": true,
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "21-the-bullet-m3-lr-with-acceleration-boost.jpg"
   },
   {
     "file": "20-moss-green-tesla-performance.jpeg",
     "caption": "MOSS GREEN TESLA PERFORMANCE",
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "66-moss-green-performance--by-mac.jpeg"
   },
   {
     "file": "19-wasabi-green-model-3.jpeg",
     "caption": "WASABI GREEN MODEL 3",
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "53-the-green-knight-tessa--by-sharad.jpeg"
   },
   {
     "file": "18-the-green-knight-tessa-in-london.jpeg",
     "caption": "THE GREEN KNIGHT TESSA IN LONDON",
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "53-the-green-knight-tessa--by-sharad.jpeg"
   },
   {
     "file": "17-y33-kdm.jpeg",
     "caption": "Y33 KDM",
     "unclaimed": true,
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "17-y33-kdm.jpeg"
   },
   {
     "file": "16-model-3-ubdergrlow-1788655208711.jpg",
     "caption": "MODEL 3 UBDERGRLOW",
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "53-the-green-knight-tessa--by-sharad.jpeg"
   },
   {
     "file": "14-model-3-grey-bagged.jpg",
     "caption": "MODEL 3 GREY BAGGED",
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "14-model-3-grey-bagged.jpg"
   },
   {
     "file": "15-model-3-pin-stripes.jpg",
     "caption": "MODEL 3 PIN STRIPES",
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "15-model-3-pin-stripes.jpg"
   },
   {
     "file": "10-model-3-transformer-bagged.jpg",
     "caption": "MODEL 3 TRANSFORMER BAGGED",
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "29-haloblk.jpeg"
   },
   {
     "file": "01-model-s-gt-wing.jpg",
     "caption": "MODEL S GT WING",
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "deviant-model-s--by-myk-debbage.jpg"
   },
   {
     "file": "03-model-3-green-blk-forged-wheels.jpg",
@@ -840,12 +925,14 @@
       "Avery Gloss Hidden Forest Vinyl wrap"
     ],
     "color": "Green",
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "green-purple-goblin--by-rich.jpg"
   },
   {
     "file": "09-model-3-trackday.jpg",
     "caption": "MODEL 3 TRACKDAY",
     "color": "Green",
-    "added": "2026-09-18"
+    "added": "2026-09-18",
+    "group": "green-purple-goblin--by-rich.jpg"
   }
 ]

@@ -1,5 +1,33 @@
 [
   {
+    "file": "robot-hacker-model-3.jpg",
+    "caption": "ROBOT HACKER MODEL 3",
+    "mods": [
+      "Full carbon Robot narrow body kit",
+      "Lightweight pre preg carbon bonnet",
+      "Light pre preg carbon arches",
+      "HaloBlk wheel covers",
+      "Carbon steering wheel",
+      "Purple Chameleon tint"
+    ],
+    "color": "Black",
+    "added": "2026-09-26"
+  },
+  {
+    "file": "robot-hacker-model-3-3.jpg",
+    "caption": "ROBOT HACKER MODEL 3 3",
+    "votable": false,
+    "color": "Black",
+    "added": "2026-09-26"
+  },
+  {
+    "file": "robot-hacker-model-3-2.jpg",
+    "caption": "ROBOT HACKER MODEL 3 2",
+    "votable": false,
+    "color": "Black",
+    "added": "2026-09-26"
+  },
+  {
     "file": "night-lights.jpg",
     "caption": "NIGHT LIGHTS",
     "votable": false,

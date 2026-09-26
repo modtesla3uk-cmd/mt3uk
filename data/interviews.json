@@ -22,6 +22,16 @@
       "publish": "2026-10-15"
     },
     {
+      "name": "Myk",
+      "car": "Model S P85",
+      "year": "2014",
+      "title": "Deviant: Myk’s Track-Built Model S",
+      "excerpt": "A re-engineered cooling system, a home-built power controller, a full cage and 400kg removed. Myk on building a track-focused Model S.",
+      "url": "blog-myk.html",
+      "image": "images/blog/owner-interviews/myk/front-three-quarter.jpg",
+      "publish": "2026-10-29"
+    },
+    {
       "name": "Aaron",
       "car": "Model 3 Performance",
       "title": "Firebolt: Aaron’s Red Model 3 Performance",
@@ -29,7 +39,7 @@
       "url": "blog-aaron.html",
       "image": "images/blog/owner-interviews/aaron/swiss-alps.jpg",
       "heroPosition": "center 80%",
-      "publish": "2026-10-29"
+      "publish": "2026-11-12"
     },
     {
       "name": "Richie",

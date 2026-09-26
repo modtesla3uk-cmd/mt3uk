@@ -239,6 +239,7 @@
       <div id="iv-gaps"></div>
       <div class="iv-toolbar" id="iv-toolbar">
         <button type="button" class="secondary" id="iv-edit-btn">Edit dates and titles</button>
+        <button type="button" class="secondary" id="iv-space-btn" hidden>Space out every 2 weeks</button>
         <button type="button" id="iv-review-btn" hidden>Review changes</button>
         <button type="button" class="secondary" id="iv-cancel-btn" hidden>Cancel</button>
         <span class="iv-note" id="iv-note"></span>
@@ -1067,6 +1068,7 @@
   var editBtn = document.getElementById('iv-edit-btn');
   var reviewBtn = document.getElementById('iv-review-btn');
   var cancelBtn = document.getElementById('iv-cancel-btn');
+  var spaceBtn = document.getElementById('iv-space-btn');
   var noteEl = document.getElementById('iv-note');
   var reviewEl = document.getElementById('iv-review');
   var interviews = [];
@@ -1210,6 +1212,7 @@
   function setEditing(on) {
     editing = on;
     editBtn.hidden = on;
+    spaceBtn.hidden = !on;
     reviewBtn.hidden = !on;
     cancelBtn.hidden = !on;
     reviewEl.hidden = true;
@@ -1227,7 +1230,10 @@
       EDIT_FIELDS.forEach(function (f) {
         if (d[f].trim() !== (o[f] || '')) { from[f] = o[f] || ''; to[f] = d[f].trim(); }
       });
-      if (Object.keys(to).length) changes.push({ url: o.url, name: o.name, from: from, to: to });
+      // Two interviews with the same person are told apart by their title.
+      var twin = original.some(function (x) { return x !== o && x.name === o.name; });
+      var label = twin ? o.name + ' (' + (o.title || o.url) + ')' : o.name;
+      if (Object.keys(to).length) changes.push({ url: o.url, name: label, from: from, to: to });
     });
     return changes;
   }
@@ -1253,6 +1259,34 @@
       })
       .catch(function () { editBtn.disabled = false; setNote('Network error loading the schedule.', 'error'); });
   });
+
+  // Re-spaces every interview that is still to be published, keeping their
+  // order: the first one stays on its date and the rest follow at the
+  // "Release every" interval. Published interviews are never moved.
+  function cadenceLabel() {
+    return cadenceEl.options[cadenceEl.selectedIndex].text;
+  }
+  function updateSpaceLabel() {
+    spaceBtn.textContent = 'Space out every ' + cadenceLabel();
+  }
+  function respace() {
+    var cadence = parseInt(cadenceEl.value, 10);
+    var today = ukToday();
+    var upcoming = original.filter(function (o) { return o.publish > today; }).map(function (o) { return o.url; });
+    if (!upcoming.length) { setNote('There are no scheduled interviews to space out.', 'error'); return; }
+    upcoming.sort(function (a, b) {
+      var da = drafts[a].publish || '9999', db = drafts[b].publish || '9999';
+      return da < db ? -1 : da > db ? 1 : 0;
+    });
+    var start = drafts[upcoming[0]].publish;
+    if (!start || start <= today) start = original.find(function (o) { return o.url === upcoming[0]; }).publish;
+    upcoming.forEach(function (url, i) { drafts[url].publish = addDays(start, i * cadence); });
+    reviewEl.hidden = true;
+    render();
+    setNote('Spaced ' + upcoming.length + ' scheduled interview' + (upcoming.length === 1 ? '' : 's') + ' every ' + cadenceLabel() +
+      ' from ' + nice(start) + '. You can still change any date by hand, then review before submitting.');
+  }
+  spaceBtn.addEventListener('click', respace);
 
   cancelBtn.addEventListener('click', function () {
     interviews = original;
@@ -1352,7 +1386,12 @@
     try { localStorage.setItem('mt3ukInterviewPlan', JSON.stringify({ cadence: cadenceEl.value, lead: leadEl.value })); } catch (e) {}
     render();
   }
-  cadenceEl.addEventListener('change', saveSettings);
+  cadenceEl.addEventListener('change', function () {
+    saveSettings();
+    updateSpaceLabel();
+    if (editing) respace();
+  });
+  updateSpaceLabel();
   leadEl.addEventListener('change', saveSettings);
 
   Promise.all([

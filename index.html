@@ -3793,12 +3793,14 @@
       return String(str || '').toLowerCase().replace(/(^|[\s-])([a-z])/g, function (m, sep, c) { return sep + c.toUpperCase(); });
     }
 
-    // Shared links open the reel at that photo, tagged so shares show up in
+    // Shared links go to the photo's page in share/ (made by
+    // scripts/build_share_pages.py), whose preview shows that photo and which
+    // forwards to the reel at it. They are tagged so shares show up in
     // analytics by channel: utm_source is the app or "share_sheet" when the
     // phone's own share menu was used.
     function shareLink(file, channel) {
-      return 'https://mt3uk.com/?photo=' + encodeURIComponent(file) +
-        '&utm_source=' + channel + '&utm_medium=share&utm_campaign=reel_share#build-feed';
+      return 'https://mt3uk.com/share/' + encodeURIComponent(file) + '.html' +
+        '?utm_source=' + channel + '&utm_medium=share&utm_campaign=reel_share';
     }
 
     function shareText(photo) {

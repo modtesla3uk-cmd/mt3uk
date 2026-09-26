@@ -40,6 +40,9 @@ jobs:
       - name: Regenerate gallery manifest from R2
         run: python3 scripts/build_gallery_manifest.py
 
+      - name: Regenerate reel share pages
+        run: python3 scripts/build_share_pages.py
+
       - name: Regenerate track days manifest from R2
         run: python3 scripts/build_track_days_manifest.py
 
@@ -51,7 +54,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add images/gallery/manifest.json images/track-days/manifest.json sitemap.xml
+          git add images/gallery/manifest.json images/track-days/manifest.json sitemap.xml share
           if ! git diff --cached --quiet; then
             git commit -m "Regenerate gallery and track days manifests, and sitemap"
             for i in 1 2 3 4 5; do

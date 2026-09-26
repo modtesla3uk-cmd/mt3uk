@@ -9,8 +9,9 @@ while a person opening the link is sent straight on to the reel at that
 photo, keeping any UTM parameters. Pages for photos that have left the
 gallery are removed.
 
-Each page's preview image is a 1200x630 JPEG in share/img/, served from
-mt3uk.com with its size in the page. Facebook needs the size to show the
+Each page's preview image is a 1200x1200 JPEG in share/preview/, served
+from mt3uk.com with its size in the page. Square suits the mostly portrait
+car photos better than a wide card. Facebook needs the size to show the
 image on the first share of a link, and the photos' own r2.dev address is
 rate limited and not meant for link previews. The whole photo is fitted over
 a blurred copy of itself, so portrait shots are not cropped. Previews are
@@ -27,14 +28,18 @@ import io
 import json
 import os
 import re
+import shutil
 import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 MANIFEST_PATH = REPO_ROOT / "images" / "gallery" / "manifest.json"
 SHARE_DIR = REPO_ROOT / "share"
-PREVIEW_DIR = SHARE_DIR / "img"
-PREVIEW_SIZE = (1200, 630)
+PREVIEW_DIR = SHARE_DIR / "preview"
+PREVIEW_SIZE = (1200, 1200)
+# Wide 1200x630 previews used before the switch to square; removed on the
+# next run.
+OLD_PREVIEW_DIR = SHARE_DIR / "img"
 SITE_URL = "https://mt3uk.com"
 # Same public bucket URL as scripts/r2_client.py, repeated here so this
 # script doesn't need boto3.
@@ -65,6 +70,8 @@ def make_preview(data: bytes) -> bytes:
 def build_previews(files: list) -> None:
     """Makes a preview for every photo that doesn't have one yet, and removes
     previews for photos that have gone."""
+    if OLD_PREVIEW_DIR.exists():
+        shutil.rmtree(OLD_PREVIEW_DIR)
     PREVIEW_DIR.mkdir(parents=True, exist_ok=True)
     wanted = {f + ".jpg" for f in files}
     for old in PREVIEW_DIR.glob("*.jpg"):
@@ -100,7 +107,7 @@ def page_html(photo: dict) -> str:
     mods = [str(m) for m in photo.get("mods") or []]
     description = ("Mods: " + ", ".join(mods[:8]) + ("..." if len(mods) > 8 else "")) if mods else DEFAULT_DESCRIPTION
     has_preview = (PREVIEW_DIR / (file + ".jpg")).exists()
-    image = SITE_URL + "/share/img/" + file + ".jpg" if has_preview else R2_BASE_URL + "/gallery/" + file
+    image = SITE_URL + "/share/preview/" + file + ".jpg" if has_preview else R2_BASE_URL + "/gallery/" + file
     image_size = (
         f"""<meta property="og:image:width" content="{PREVIEW_SIZE[0]}">
 <meta property="og:image:height" content="{PREVIEW_SIZE[1]}">

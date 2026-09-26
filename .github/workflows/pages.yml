@@ -40,6 +40,9 @@ jobs:
       - name: Regenerate track days manifest from R2
         run: python3 scripts/build_track_days_manifest.py
 
+      - name: Strip markdown docs (CLAUDE.md, README.md, etc.) so they aren't published
+        run: find . -name '*.md' -not -path './.git/*' -delete
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

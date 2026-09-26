@@ -1005,19 +1005,19 @@
     max-height: 16px;
     width: 16px;
     position: relative;
-    color: rgba(232,84,42,0.35);
+    color: rgba(232,84,42,0.5);
     transition: color 240ms ease;
   }
   .bf-dot-seg::after {
     content: '';
     position: absolute;
     left: 50%; top: 50%;
-    width: 6px; height: 6px;
-    border-right: 1.5px solid currentColor;
-    border-bottom: 1.5px solid currentColor;
+    width: 7px; height: 7px;
+    border-right: 2.5px solid currentColor;
+    border-bottom: 2.5px solid currentColor;
     transform: translate(-50%, -70%) rotate(45deg);
   }
-  .bf-dot-seg.done { color: rgba(232,84,42,0.6); }
+  .bf-dot-seg.done { color: rgba(232,84,42,0.75); }
   .bf-dot-seg.active { color: var(--orange); }
   .bf-post-nav {
     position: absolute;
@@ -1118,32 +1118,48 @@
     touch-action: manipulation;
   }
   .bf-share-btn .bf-icon-share { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
-  .bf-share-panel {
+  /* Mods and share pop-outs: frosted see-through bubbles. */
+  .bf-bubble {
     position: absolute;
     left: 12px; right: 12px; bottom: 12px;
-    z-index: 8;
-    background: rgba(22,35,61,0.96);
-    border: 1px solid rgba(243,241,234,0.25);
     color: var(--white);
+    background: rgba(12,14,20,0.55);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    backdrop-filter: blur(16px) saturate(140%);
+    border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 20px;
+    box-shadow: 0 14px 34px rgba(0,0,0,0.35);
     padding: 14px 16px 16px;
+    font-family: 'IBM Plex Sans', sans-serif;
   }
+  .bf-bubble-head { display: flex; align-items: center; justify-content: space-between; margin: 0 0 10px; }
+  .bf-bubble-title {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.75);
+    margin: 0;
+  }
+  .bf-share-panel { z-index: 8; }
   .bf-share-panel[hidden] { display: none; }
-  .bf-share-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-  .bf-share-title { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; letter-spacing: 0.04em; color: var(--orange); margin: 0; }
   .bf-share-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .bf-share-option {
     display: flex; align-items: center; justify-content: center;
-    background: transparent;
-    border: 1px solid rgba(243,241,234,0.35);
+    background: rgba(255,255,255,0.12);
+    border: 0;
+    border-radius: 999px;
     color: var(--white);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.03em;
-    padding: 10px 8px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 10px 12px;
     text-decoration: none;
     cursor: pointer;
+    transition: background 0.2s ease;
   }
-  .bf-share-option:hover { background: var(--orange); border-color: var(--orange); color: var(--ink); }
+  .bf-share-option:hover { background: var(--orange); color: var(--white); }
   .bf-share-option.bf-share-wide { grid-column: 1 / -1; }
   .bf-share-option[hidden] { display: none; }
 
@@ -1281,7 +1297,7 @@
   .bf-viewer-cell img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
   .bf-viewer-foot {
     flex: 0 0 auto;
-    display: flex; align-items: center; justify-content: center; gap: 12px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
     padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
     color: var(--white);
     font-family: 'IBM Plex Mono', monospace;
@@ -1289,6 +1305,15 @@
     letter-spacing: 0.03em;
     text-align: center;
   }
+  .bf-viewer-line { display: flex; align-items: center; justify-content: center; gap: 12px; }
+  .bf-viewer-mods {
+    margin: 0;
+    max-width: min(92vw, 1100px);
+    font-size: 0.68rem;
+    letter-spacing: 0.03em;
+    color: rgba(243,241,234,0.7);
+  }
+  .bf-viewer-mods[hidden] { display: none; }
   .bf-viewer-dots { display: flex; gap: 5px; }
   .bf-viewer-dots .bf-dot { box-shadow: none; }
   .bf-viewer-close {
@@ -1377,50 +1402,35 @@
   .saved-builds-empty { color: var(--steel); }
 
   .bf-mods-panel {
-    position: absolute;
-    left: 12px; right: 12px; bottom: 12px;
     z-index: 5;
-    background: rgba(22,35,61,0.92);
-    border: 1px solid rgba(243,241,234,0.25);
-    color: var(--white);
-    padding: 14px 16px;
     display: none;
     max-height: 60%;
     overflow-y: auto;
   }
   .bf-mods-panel.bf-mods-open { display: block; }
-  .bf-mods-panel-head {
-    display: flex; align-items: center; justify-content: space-between;
-    margin: 0 0 8px;
-  }
-  .bf-mods-panel-title {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.04em;
-    color: var(--orange);
-    margin: 0;
-  }
   .bf-mods-close {
-    background: none; border: 1px solid rgba(255,255,255,0.3); border-radius: 50%;
-    color: rgba(255,255,255,0.7);
-    width: 22px; height: 22px;
+    background: rgba(255,255,255,0.14); border: 0; border-radius: 50%;
+    color: var(--white);
+    width: 26px; height: 26px;
     line-height: 1;
-    font-size: 0.95rem;
+    font-size: 1rem;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer;
-    padding: 0;
+    padding: 0 0 2px;
     flex-shrink: 0;
   }
-  .bf-mods-close:hover { color: var(--white); border-color: rgba(255,255,255,0.6); }
+  .bf-mods-close:hover { background: rgba(255,255,255,0.28); }
   .bf-mods-panel ul {
     margin: 0; padding: 0; list-style: none;
-    display: flex; flex-direction: column; gap: 4px;
+    display: flex; flex-wrap: wrap; gap: 6px;
   }
   .bf-mods-panel li {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.02em;
-    color: rgba(255,255,255,0.85);
+    background: rgba(255,255,255,0.12);
+    border-radius: 999px;
+    padding: 5px 11px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.76rem;
+    color: var(--white);
   }
 
   .bf-comments-block {
@@ -3178,17 +3188,17 @@
               post.map(function (p, i) { return '<i class="bf-dot' + (i === 0 ? ' active' : '') + '"></i>'; }).join('') +
             '</div>' : '') +
           '<div class="bf-heart-burst" aria-hidden="true">' + heartSvg('') + '</div>' +
-          '<div class="bf-mods-panel">' +
-            '<div class="bf-mods-panel-head">' +
-              '<p class="bf-mods-panel-title">MODS</p>' +
+          '<div class="bf-mods-panel bf-bubble">' +
+            '<div class="bf-bubble-head">' +
+              '<p class="bf-bubble-title">Mods</p>' +
               '<button type="button" class="bf-mods-close" aria-label="Close mods list">&times;</button>' +
             '</div>' +
             '<ul></ul>' +
           '</div>' +
           commentsBlockHtml() +
-          '<div class="bf-share-panel" hidden>' +
-            '<div class="bf-share-head">' +
-              '<p class="bf-share-title">SHARE THIS BUILD</p>' +
+          '<div class="bf-share-panel bf-bubble" hidden>' +
+            '<div class="bf-bubble-head">' +
+              '<p class="bf-bubble-title">Share this build</p>' +
               '<button type="button" class="bf-mods-close bf-share-close" aria-label="Close share options">&times;</button>' +
             '</div>' +
             '<div class="bf-share-options">' +
@@ -3681,6 +3691,15 @@
       return (slide.photos || []).filter(function (p) { return p.file === file; })[0] || {};
     }
 
+    // Mods are usually saved on the first photo of a submission only, so
+    // the other photos in the post borrow them.
+    function modsFor(slide, file) {
+      var mods = photoFor(slide, file).mods;
+      if (Array.isArray(mods) && mods.length) return mods;
+      var withMods = (slide.photos || []).filter(function (p) { return Array.isArray(p.mods) && p.mods.length; })[0];
+      return withMods ? withMods.mods : [];
+    }
+
     // Points every button in the bar at the photo now showing.
     function syncBar(slide) {
       var file = slide.dataset.current;
@@ -3705,13 +3724,7 @@
         countEl.remove();
       }
 
-      // Mods are usually saved on the first photo of a submission only, so
-      // the other photos in the post borrow them.
-      var mods = photoFor(slide, file).mods;
-      if (!Array.isArray(mods) || !mods.length) {
-        var withMods = (slide.photos || []).filter(function (p) { return Array.isArray(p.mods) && p.mods.length; })[0];
-        mods = withMods ? withMods.mods : [];
-      }
+      var mods = modsFor(slide, file);
       var modsBtn = slide.querySelector('.bf-mods-btn');
       var modsPanel = slide.querySelector('.bf-mods-panel');
       modsBtn.hidden = !mods.length;
@@ -4084,6 +4097,10 @@
       var i = Math.max(0, Math.min(photos.length - 1, viewerIndex()));
       var photo = photos[i] || {};
       viewer.querySelector('.bf-viewer-caption').textContent = [photo.caption, photo.name ? 'by ' + photo.name : ''].filter(Boolean).join(' ');
+      var mods = photo.file ? modsFor(viewerSlide, photo.file) : [];
+      var modsEl = viewer.querySelector('.bf-viewer-mods');
+      modsEl.textContent = mods.length ? 'Mods: ' + mods.join(' \u00b7 ') : '';
+      modsEl.hidden = !mods.length;
       viewer.querySelectorAll('.bf-viewer-dots .bf-dot').forEach(function (d, n) { d.classList.toggle('active', n === i); });
       viewer.querySelector('.bf-viewer-prev').hidden = i === 0;
       viewer.querySelector('.bf-viewer-next').hidden = i >= photos.length - 1;
@@ -4117,7 +4134,10 @@
           '<button type="button" class="bf-viewer-nav bf-viewer-prev" aria-label="Previous photo">&lsaquo;</button>' +
           '<button type="button" class="bf-viewer-nav bf-viewer-next" aria-label="Next photo">&rsaquo;</button>' +
           '<div class="bf-viewer-track"></div>' +
-          '<div class="bf-viewer-foot"><span class="bf-viewer-caption"></span><span class="bf-viewer-dots"></span></div>';
+          '<div class="bf-viewer-foot">' +
+            '<div class="bf-viewer-line"><span class="bf-viewer-caption"></span><span class="bf-viewer-dots"></span></div>' +
+            '<p class="bf-viewer-mods" hidden></p>' +
+          '</div>';
         document.body.appendChild(viewer);
         viewer.querySelector('.bf-viewer-close').addEventListener('click', closeViewer);
         viewer.querySelector('.bf-viewer-prev').addEventListener('click', function () { viewerGo(-1); });

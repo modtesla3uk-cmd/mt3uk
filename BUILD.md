@@ -47,9 +47,10 @@ JSON file per event.
 - `sync-manifests.yml` — regenerates `images/gallery/manifest.json` and
   `sitemap.xml` periodically and on image changes
 - `deploy-worker.yml` — deploys `workers/vote-worker.js` on push to main
-- `add-event.yml` / `delete-event.yml` / `list-events.yml` — manually
+- `add-event.yml` / `delete-event.yml` / `list-events.yml`: manually
   triggered workflows so events can be added/updated/removed without editing
-  JSON by hand
+  JSON by hand. `list-events.yml` shows each event's ID. Giving that ID to
+  `add-event.yml` edits the event, and only the fields filled in change
 - `vote-tally.yml` / `vote-voters.yml` / `delete-vote.yml` — manual admin
   workflows for the voting system
 - `sync-facebook-events.yml` — pulls events from the group's Facebook page

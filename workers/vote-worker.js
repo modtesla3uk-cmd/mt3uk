@@ -6,6 +6,7 @@ const BASE_BRANCH = 'main';
 const FEATURED_PATH = 'data/featured.json';
 const REVIEWS_PATH = 'data/reviews.json';
 const EVENTS_PATH = 'events-data/events-manifest.json';
+const INTERVIEWS_PATH = 'data/interviews.json';
 const GALLERY_PUBLIC_BASE_URL = 'https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev';
 const MAX_GALLERY_PHOTOS = 3;
 const GALLERY_SUBMIT_COOLDOWN_SECONDS = 60 * 60 * 24;
@@ -459,6 +460,111 @@ async function handleEventsAdminDelete(request, env) {
         return manifest.events.splice(idx, 1)[0];
       });
     return json({ success: true, events: saved.manifest.events });
+  } catch (err) {
+    return json({ success: false, message: err.message }, 400);
+  }
+}
+
+// ---------- Interviews admin ----------
+// admin.html edits each Owner Interview's publish date, title and excerpt in
+// data/interviews.json, the file the homepage, blog.html and the interview
+// comment threads read. Each save is one commit to main, which redeploys the
+// site. Every change carries the value the admin saw ("from"), so a save is
+// refused if the file changed in the meantime rather than overwriting it.
+
+var INTERVIEW_TEXT_LIMITS = { title: 200, excerpt: 400 };
+
+async function readInterviewsFile(env) {
+  var res = await fetch(
+    'https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/' + INTERVIEWS_PATH + '?ref=' + BASE_BRANCH,
+    { headers: eventsGithubHeaders(env), cf: { cacheTtl: 0 } }
+  );
+  if (!res.ok) throw new Error('Could not read the interviews file (' + res.status + ')');
+  var data = await res.json();
+  var text = decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
+  var file = JSON.parse(text);
+  if (!Array.isArray(file.interviews)) file.interviews = [];
+  return { file: file, sha: data.sha };
+}
+
+function isValidIsoDay(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  var d = new Date(value + 'T00:00:00Z');
+  return !isNaN(d) && d.toISOString().slice(0, 10) === value;
+}
+
+// Applies the changes to the file and returns one line per changed field,
+// or throws with a message the admin page can show.
+function applyInterviewChanges(file, changes) {
+  var lines = [];
+  changes.forEach(function (change) {
+    var iv = file.interviews.find(function (i) { return i.url === change.url; });
+    if (!iv) throw new Error('No interview with the page ' + change.url + ', reload the page');
+    var from = change.from || {};
+    var to = change.to || {};
+    Object.keys(to).forEach(function (field) {
+      if (field !== 'publish' && !INTERVIEW_TEXT_LIMITS[field]) throw new Error('The ' + field + ' field cannot be edited here');
+      var value = typeof to[field] === 'string' ? to[field].trim() : '';
+      if (field === 'publish') {
+        if (!isValidIsoDay(value)) throw new Error(iv.name + ': the publish date is not a valid date');
+      } else {
+        if (!value) throw new Error(iv.name + ': the ' + field + ' cannot be empty');
+        if (value.length > INTERVIEW_TEXT_LIMITS[field]) throw new Error(iv.name + ': the ' + field + ' is too long');
+      }
+      if ((iv[field] || '') !== (from[field] || '')) {
+        throw new Error(iv.name + ': the ' + (field === 'publish' ? 'publish date' : field) + ' was changed somewhere else since you loaded the page, reload and try again');
+      }
+      if (iv[field] === value) return;
+      lines.push(iv.name + ' ' + field + (field === 'publish' ? ' ' + (iv[field] || 'none') + ' to ' + value : ' edited'));
+      iv[field] = value;
+    });
+  });
+  if (!lines.length) throw new Error('Nothing has changed');
+  file.interviews.sort(function (a, b) { return (a.publish || '') < (b.publish || '') ? -1 : (a.publish || '') > (b.publish || '') ? 1 : 0; });
+  return lines;
+}
+
+async function handleInterviewsAdminList(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorized' }, 401);
+  try {
+    var current = await readInterviewsFile(env);
+    return json({ success: true, interviews: current.file.interviews });
+  } catch (err) {
+    return json({ success: false, message: err.message }, 500);
+  }
+}
+
+async function handleInterviewsAdminSave(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorized' }, 401);
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
+  var changes = body && body.changes;
+  if (!Array.isArray(changes) || !changes.length || changes.length > 50) {
+    return json({ success: false, message: 'No changes to save' }, 400);
+  }
+
+  try {
+    // One retry on a 409, in case something else committed the file in between.
+    for (var attempt = 0; attempt < 2; attempt++) {
+      var current = await readInterviewsFile(env);
+      var lines = applyInterviewChanges(current.file, changes);
+      var content = btoa(unescape(encodeURIComponent(JSON.stringify(current.file, null, 2) + '\n')));
+      var message = 'Update Owner Interviews (admin): ' + lines.join(', ');
+      if (message.length > 200) message = 'Update Owner Interviews (admin): ' + lines.length + ' changes\n\n' + lines.join('\n');
+      var putRes = await fetch(
+        'https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/' + INTERVIEWS_PATH,
+        {
+          method: 'PUT',
+          headers: eventsGithubHeaders(env),
+          body: JSON.stringify({ message: message, content: content, sha: current.sha, branch: BASE_BRANCH })
+        }
+      );
+      if (putRes.ok) return json({ success: true, interviews: current.file.interviews, changes: lines });
+      if (putRes.status !== 409 && putRes.status !== 422) {
+        throw new Error('Could not save the interviews file (' + putRes.status + ')');
+      }
+    }
+    throw new Error('The interviews file was changed by something else at the same time, please try again');
   } catch (err) {
     return json({ success: false, message: err.message }, 400);
   }
@@ -3151,6 +3257,12 @@ export default {
     }
     if (url.pathname === '/events/admin' && request.method === 'DELETE') {
       return handleEventsAdminDelete(request, env);
+    }
+    if (url.pathname === '/interviews/admin' && request.method === 'GET') {
+      return handleInterviewsAdminList(request, env);
+    }
+    if (url.pathname === '/interviews/admin' && request.method === 'POST') {
+      return handleInterviewsAdminSave(request, env);
     }
     if (url.pathname === '/comments/admin' && request.method === 'GET') {
       return handleCommentsAdminList(request, env);

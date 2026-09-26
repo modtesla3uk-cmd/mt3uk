@@ -176,6 +176,26 @@
   .iv-status { font-size: 0.68rem; }
   .iv-status.published { color: #4caf7d; }
   .iv-status.scheduled { color: var(--orange); }
+  .iv-toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+  .iv-toolbar button { padding: 6px 12px; font-size: 0.72rem; }
+  .iv-note { color: var(--steel); font-size: 0.72rem; }
+  .iv-note.error { color: #ff6b6b; }
+  .iv-note.ok { color: #4caf7d; }
+  .iv-table input[type="date"], .iv-table input[type="text"], .iv-table textarea {
+    width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3);
+    color: var(--white); font-family: inherit; font-size: 0.72rem; padding: 5px 6px; margin-top: 4px;
+  }
+  .iv-table input[type="date"] { color-scheme: dark; max-width: 170px; }
+  .iv-table textarea { min-height: 52px; resize: vertical; }
+  .iv-table input.changed, .iv-table textarea.changed { border-color: var(--orange); }
+  .iv-review { border: 1px solid var(--orange); padding: 14px; margin-bottom: 14px; font-size: 0.78rem; }
+  .iv-review h3 { margin: 0 0 10px; font-size: 0.85rem; }
+  .iv-review ul { margin: 0 0 12px; padding-left: 18px; }
+  .iv-review li { margin-bottom: 6px; }
+  .iv-review .iv-old { color: var(--steel); text-decoration: line-through; }
+  .iv-review .iv-warn { color: var(--orange); }
+  .iv-review-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .iv-review-actions button { padding: 6px 12px; font-size: 0.72rem; }
   @media (max-width: 780px) {
     .iv-stats { grid-template-columns: 1fr 1fr; }
     .iv-table .iv-hide-sm { display: none; }
@@ -217,6 +237,13 @@
       </div>
       <div class="iv-stats" id="iv-stats"></div>
       <div id="iv-gaps"></div>
+      <div class="iv-toolbar" id="iv-toolbar">
+        <button type="button" class="secondary" id="iv-edit-btn">Edit dates and titles</button>
+        <button type="button" id="iv-review-btn" hidden>Review changes</button>
+        <button type="button" class="secondary" id="iv-cancel-btn" hidden>Cancel</button>
+        <span class="iv-note" id="iv-note"></span>
+      </div>
+      <div class="iv-review" id="iv-review" hidden></div>
       <div id="iv-list"></div>
     </details>
   </section>
@@ -1037,8 +1064,20 @@
   var countEl = document.getElementById('interviews-count');
   var cadenceEl = document.getElementById('iv-cadence');
   var leadEl = document.getElementById('iv-lead');
+  var editBtn = document.getElementById('iv-edit-btn');
+  var reviewBtn = document.getElementById('iv-review-btn');
+  var cancelBtn = document.getElementById('iv-cancel-btn');
+  var noteEl = document.getElementById('iv-note');
+  var reviewEl = document.getElementById('iv-review');
   var interviews = [];
   var counts = {};
+  // Edit mode: `original` is the list as loaded from the repo, `drafts` holds
+  // the edited values keyed by page url.
+  var editing = false;
+  var original = [];
+  var drafts = {};
+  var EDIT_FIELDS = ['publish', 'title', 'excerpt'];
+  var FIELD_LABELS = { publish: 'Publish date', title: 'Title', excerpt: 'Excerpt' };
 
   try {
     var saved = JSON.parse(localStorage.getItem('mt3ukInterviewPlan') || '{}');
@@ -1083,7 +1122,8 @@
     var cadence = parseInt(cadenceEl.value, 10);
     var lead = parseInt(leadEl.value, 10);
     var today = ukToday();
-    var sorted = interviews.slice().sort(function (a, b) { return a.publish < b.publish ? -1 : 1; });
+    var list = editing ? interviews.map(function (iv) { return Object.assign({}, iv, { publish: drafts[iv.url].publish || iv.publish }); }) : interviews;
+    var sorted = list.slice().sort(function (a, b) { return a.publish < b.publish ? -1 : 1; });
     var published = sorted.filter(function (iv) { return iv.publish <= today; });
     var scheduled = sorted.filter(function (iv) { return iv.publish > today; });
 
@@ -1128,6 +1168,20 @@
       sorted.slice().reverse().map(function (iv) {
         var live = iv.publish <= today;
         var n = counts['interview:' + slugOf(iv)] || 0;
+        if (editing) {
+          var d = drafts[iv.url];
+          var o = original.find(function (x) { return x.url === iv.url; }) || {};
+          var cls = function (f) { return d[f] !== (o[f] || '') ? ' class="changed"' : ''; };
+          return '<tr>' +
+            '<td><a href="' + escapeHtml(iv.url) + '?date=' + escapeHtml(d.publish) + '" target="_blank" rel="noopener">' + escapeHtml(iv.name) + '</a>' +
+              '<input type="text" data-url="' + escapeHtml(iv.url) + '" data-field="title" value="' + escapeHtml(d.title) + '" aria-label="Title for ' + escapeHtml(iv.name) + '"' + cls('title') + '>' +
+              '<textarea data-url="' + escapeHtml(iv.url) + '" data-field="excerpt" aria-label="Excerpt for ' + escapeHtml(iv.name) + '"' + cls('excerpt') + '>' + escapeHtml(d.excerpt) + '</textarea></td>' +
+            '<td><input type="date" data-url="' + escapeHtml(iv.url) + '" data-field="publish" value="' + escapeHtml(d.publish) + '" aria-label="Publish date for ' + escapeHtml(iv.name) + '"' + cls('publish') + '>' +
+              '<div class="iv-sub">' + inDays(daysBetween(today, d.publish)) + '</div></td>' +
+            '<td class="iv-hide-sm"><span class="iv-status ' + (live ? 'published' : 'scheduled') + '">' + (live ? 'Published' : 'Scheduled') + '</span></td>' +
+            '<td class="num">' + (live ? n : '<span class="iv-sub">-</span>') + '</td>' +
+          '</tr>';
+        }
         return '<tr>' +
           '<td><a href="' + escapeHtml(iv.url) + (live ? '' : '?date=' + escapeHtml(iv.publish)) + '" target="_blank" rel="noopener">' + escapeHtml(iv.name) + '</a>' +
             '<div class="iv-sub">' + escapeHtml(iv.title || iv.car || '') + '</div></td>' +
@@ -1137,6 +1191,161 @@
         '</tr>';
       }).join('') +
       '</tbody></table>';
+  }
+
+  // ---------- Editing dates and titles ----------
+  // Changes are saved by the worker as one commit to data/interviews.json,
+  // which redeploys the site. Nothing is saved until "Confirm and submit".
+
+  function adminKey() {
+    var input = document.getElementById('admin-key');
+    return (input && input.value.trim()) || sessionStorage.getItem('mt3ukAdminKey') || '';
+  }
+
+  function setNote(text, kind) {
+    noteEl.textContent = text || '';
+    noteEl.className = 'iv-note' + (kind ? ' ' + kind : '');
+  }
+
+  function setEditing(on) {
+    editing = on;
+    editBtn.hidden = on;
+    reviewBtn.hidden = !on;
+    cancelBtn.hidden = !on;
+    reviewEl.hidden = true;
+    reviewEl.innerHTML = '';
+    render();
+  }
+
+  function pendingChanges() {
+    var changes = [];
+    original.forEach(function (o) {
+      var d = drafts[o.url];
+      if (!d) return;
+      var from = {};
+      var to = {};
+      EDIT_FIELDS.forEach(function (f) {
+        if (d[f].trim() !== (o[f] || '')) { from[f] = o[f] || ''; to[f] = d[f].trim(); }
+      });
+      if (Object.keys(to).length) changes.push({ url: o.url, name: o.name, from: from, to: to });
+    });
+    return changes;
+  }
+
+  editBtn.addEventListener('click', function () {
+    var key = adminKey();
+    if (!key) { setNote('Enter the admin key at the top of the page first.', 'error'); return; }
+    setNote('Loading the latest schedule…');
+    editBtn.disabled = true;
+    // Read straight from the repo, so edits start from the newest copy even
+    // if the site has not redeployed since the last save.
+    fetch(API + '/interviews/admin?key=' + encodeURIComponent(key), { cache: 'no-store' })
+      .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+      .then(function (r) {
+        editBtn.disabled = false;
+        if (!r.ok || !r.data.success) { setNote(r.data.message === 'Unauthorized' ? 'The admin key is not right.' : (r.data.message || 'Could not load the schedule.'), 'error'); return; }
+        interviews = r.data.interviews.filter(function (iv) { return iv.publish; });
+        original = interviews.map(function (iv) { return Object.assign({}, iv); });
+        drafts = {};
+        original.forEach(function (o) { drafts[o.url] = { publish: o.publish, title: o.title || '', excerpt: o.excerpt || '' }; });
+        setNote('Edit the dates, titles or excerpts, then review your changes. Nothing is saved until you confirm.');
+        setEditing(true);
+      })
+      .catch(function () { editBtn.disabled = false; setNote('Network error loading the schedule.', 'error'); });
+  });
+
+  cancelBtn.addEventListener('click', function () {
+    interviews = original;
+    setNote('');
+    setEditing(false);
+  });
+
+  listEl.addEventListener('input', function (e) {
+    var el = e.target;
+    if (!editing || !el.dataset || !el.dataset.field) return;
+    drafts[el.dataset.url][el.dataset.field] = el.value;
+    var o = original.find(function (x) { return x.url === el.dataset.url; }) || {};
+    el.classList.toggle('changed', el.value.trim() !== (o[el.dataset.field] || ''));
+    reviewEl.hidden = true;
+  });
+  // Dates re-sort the table, so only redraw once a date has been picked.
+  listEl.addEventListener('change', function (e) {
+    if (editing && e.target.dataset && e.target.dataset.field === 'publish' && e.target.value) render();
+  });
+
+  function reviewWarnings(changes) {
+    var today = ukToday();
+    var warnings = [];
+    changes.forEach(function (c) {
+      if (c.to.publish !== undefined) {
+        if (!c.to.publish) warnings.push(c.name + ' has no publish date.');
+        else if (c.to.publish <= today && c.from.publish > today) warnings.push(c.name + ' will go live straight away, as ' + nice(c.to.publish) + ' is not in the future.');
+        else if (c.to.publish > today && c.from.publish <= today) warnings.push(c.name + ' is already published and will disappear from the site until ' + nice(c.to.publish) + '.');
+      }
+      if (c.to.title !== undefined && !c.to.title) warnings.push(c.name + ' has an empty title.');
+      if (c.to.excerpt !== undefined && !c.to.excerpt) warnings.push(c.name + ' has an empty excerpt.');
+    });
+    var byDay = {};
+    original.forEach(function (o) {
+      var day = drafts[o.url].publish;
+      (byDay[day] = byDay[day] || []).push(o.name);
+    });
+    Object.keys(byDay).forEach(function (day) {
+      if (byDay[day].length > 1) warnings.push(byDay[day].join(' and ') + ' are both on ' + nice(day) + '. Only one shows as the latest interview.');
+    });
+    return warnings;
+  }
+
+  reviewBtn.addEventListener('click', function () {
+    var changes = pendingChanges();
+    if (!changes.length) { setNote('Nothing has changed yet.', 'error'); return; }
+    var warnings = reviewWarnings(changes);
+    var blocking = changes.some(function (c) {
+      return (c.to.publish !== undefined && !c.to.publish) || (c.to.title !== undefined && !c.to.title) || (c.to.excerpt !== undefined && !c.to.excerpt);
+    });
+    reviewEl.innerHTML = '<h3>Review ' + changes.length + ' change' + (changes.length === 1 ? '' : 's') + '</h3><ul>' +
+      changes.map(function (c) {
+        return Object.keys(c.to).map(function (f) {
+          var from = f === 'publish' ? (c.from[f] ? nice(c.from[f]) : 'none') : c.from[f];
+          var to = f === 'publish' ? (c.to[f] ? nice(c.to[f]) : 'none') : c.to[f];
+          return '<li><strong>' + escapeHtml(c.name) + '</strong>, ' + FIELD_LABELS[f].toLowerCase() + ': <span class="iv-old">' + escapeHtml(from) + '</span> to ' + escapeHtml(to) + '</li>';
+        }).join('');
+      }).join('') + '</ul>' +
+      (warnings.length ? '<ul>' + warnings.map(function (w) { return '<li class="iv-warn">' + escapeHtml(w) + '</li>'; }).join('') + '</ul>' : '') +
+      '<p class="iv-sub">Submitting saves these changes to the live site. It updates in about a minute.</p>' +
+      '<div class="iv-review-actions">' +
+        '<button type="button" id="iv-submit-btn"' + (blocking ? ' disabled' : '') + '>Confirm and submit</button>' +
+        '<button type="button" class="secondary" id="iv-back-btn">Back to editing</button>' +
+      '</div>';
+    reviewEl.hidden = false;
+    setNote(blocking ? 'Fill in the empty fields before submitting.' : '', blocking ? 'error' : '');
+    document.getElementById('iv-back-btn').addEventListener('click', function () { reviewEl.hidden = true; });
+    document.getElementById('iv-submit-btn').addEventListener('click', function () { submitChanges(changes, this); });
+  });
+
+  function submitChanges(changes, btn) {
+    var key = adminKey();
+    if (!key) { setNote('Enter the admin key at the top of the page first.', 'error'); return; }
+    btn.disabled = true;
+    setNote('Saving…');
+    fetch(API + '/interviews/admin?key=' + encodeURIComponent(key), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ changes: changes.map(function (c) { return { url: c.url, from: c.from, to: c.to }; }) })
+    })
+      .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+      .then(function (r) {
+        if (!r.ok || !r.data.success) {
+          btn.disabled = false;
+          setNote(r.data.message === 'Unauthorized' ? 'The admin key is not right.' : (r.data.message || 'Could not save.'), 'error');
+          return;
+        }
+        interviews = r.data.interviews.filter(function (iv) { return iv.publish; });
+        original = interviews;
+        setEditing(false);
+        setNote('Saved. The live site updates in about a minute.', 'ok');
+      })
+      .catch(function () { btn.disabled = false; setNote('Network error, nothing was saved. Please try again.', 'error'); });
   }
 
   function saveSettings() {

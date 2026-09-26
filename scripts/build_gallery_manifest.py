@@ -67,6 +67,14 @@ def split_submitter_name(stem: str):
     return stem[: m.start()], name or None
 
 
+def base_stem(stem: str, stems: set) -> str:
+    """Strips a filename collision suffix ("-2", "-3") when the photo it
+    collided with exists, so extra photos from one submission share a stem,
+    without touching numbers that are part of the caption like "model-3"."""
+    m = re.match(r"^(.*)-\d+$", stem)
+    return m.group(1) if m and m.group(1) in stems else stem
+
+
 def manual_order_key(name: str):
     m = re.match(r"^(\d+)[-_]", name)
     if m:
@@ -81,12 +89,12 @@ def sidecar_data(client, key: str, sidecar_keys: set):
     rebuilt from scratch from the bucket listing on every run."""
     sidecar_key = key + ".json"
     if sidecar_key not in sidecar_keys:
-        return [], True, True, True, "", True
+        return [], True, True, True, "", True, ""
     try:
         obj = client.get_object(Bucket=BUCKET, Key=sidecar_key)
         data = json.loads(obj["Body"].read())
     except Exception:
-        return [], True, True, True, "", True
+        return [], True, True, True, "", True, ""
     mods = data.get("mods")
     mods = [str(m).strip() for m in mods if str(m).strip()][:50] if isinstance(mods, list) else []
     votable = data.get("votable") is not False
@@ -97,8 +105,9 @@ def sidecar_data(client, key: str, sidecar_keys: set):
     # Non-sensitive: lets the site show a "Claim this build" control on
     # legacy photos uploaded before My Garage accounts existed, without
     # exposing the actual owner email in the public manifest.
-    unclaimed = not (isinstance(data.get("email"), str) and data.get("email").strip())
-    return mods, votable, gallery, reel, color, unclaimed
+    email = data.get("email").strip().lower() if isinstance(data.get("email"), str) else ""
+    unclaimed = not email
+    return mods, votable, gallery, reel, color, unclaimed, email
 
 
 def main():
@@ -111,7 +120,9 @@ def main():
     ]
     photos.sort(key=lambda o: (-o["LastModified"].timestamp(), manual_order_key(Path(o["Key"]).name)))
 
+    stems = {split_submitter_name(Path(o["Key"]).stem)[0] for o in photos}
     manifest = []
+    groups = {}
     for obj in photos:
         key = obj["Key"]
         filename = Path(key).name
@@ -122,7 +133,7 @@ def main():
             entry["caption"] = caption
         if name:
             entry["name"] = name
-        mods, votable, gallery, reel, color, unclaimed = sidecar_data(client, key, sidecar_keys)
+        mods, votable, gallery, reel, color, unclaimed, email = sidecar_data(client, key, sidecar_keys)
         if mods:
             entry["mods"] = mods
         if not votable:
@@ -138,6 +149,12 @@ def main():
         # UK-local date the photo was added, used by the site to feature
         # the latest upload and only swap it at UK midnight.
         entry["added"] = obj["LastModified"].astimezone(UK_TZ).date().isoformat()
+        # Photos from the same owner on the same UK day share a group, which
+        # the homepage reel shows as one post that swipes sideways. The group
+        # is named after its newest photo so the owner's email stays private.
+        owner = "e:" + email if email else ("n:" + name if name else "s:" + base_stem(stem, stems))
+        group_key = (owner, entry["added"])
+        entry["group"] = groups.setdefault(group_key, filename)
         manifest.append(entry)
 
     MANIFEST_PATH.parent.mkdir(parents=True, exist_ok=True)

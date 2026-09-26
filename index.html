@@ -1027,8 +1027,35 @@
     scroll-snap-stop: always;
     overflow: hidden;
     display: flex;
+    flex-direction: column;
     background: #000;
   }
+  .bf-media {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .bf-carousel {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  .bf-carousel::-webkit-scrollbar { display: none; }
+  .bf-cell {
+    position: relative;
+    flex: 0 0 100%;
+    height: 100%;
+    overflow: hidden;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+  .bf-cell .mt3uk-edit-pill { top: 58px; left: auto; right: 14px; }
   .bf-slide-img {
     position: absolute;
     inset: 0;
@@ -1049,7 +1076,7 @@
     background: linear-gradient(to bottom, rgba(5,7,12,0.65), rgba(5,7,12,0));
   }
   .bf-scrim-bottom {
-    bottom: 0; height: 46%;
+    bottom: 0; height: 40%;
     background: linear-gradient(to top, rgba(5,7,12,0.92), rgba(5,7,12,0));
   }
 
@@ -1083,43 +1110,86 @@
     100% { opacity: 0; transform: translate(-50%,-50%) scale(1); }
   }
 
-  .bf-rail {
-    position: absolute;
-    right: 12px; top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    flex-direction: column;
+  /* Action bar under the image, on the black strip between reel photos. */
+  .bf-bar {
+    flex: 0 0 auto;
+    height: 50px;
+    padding: 0 6px;
+    background: #000;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    gap: 22px;
-    z-index: 4;
+    gap: 8px;
   }
+  .bf-bar-left { display: flex; align-items: center; gap: 2px; }
+  .bf-bar-right { display: flex; align-items: center; justify-content: flex-end; }
   .bf-rail-btn {
     background: none; border: 0; color: var(--white);
-    display: flex; flex-direction: column; align-items: center; gap: 4px;
-    cursor: pointer; padding: 4px;
+    display: flex; flex-direction: row; align-items: center; gap: 5px;
+    cursor: pointer; padding: 8px;
   }
-  .bf-rail-btn svg { width: 26px; height: 26px; fill: currentColor; }
+  .bf-rail-btn[hidden] { display: none; }
+  .bf-rail-btn svg { width: 24px; height: 24px; fill: currentColor; }
+  .bf-dots { display: flex; align-items: center; gap: 5px; }
+  .bf-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.35);
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+  .bf-dot.active { background: var(--orange); transform: scale(1.2); }
+  .bf-car-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 4;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    border: 0;
+    background: rgba(255,255,255,0.85);
+    color: var(--ink);
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 0 3px;
+  }
+  .bf-car-nav[hidden] { display: none; }
+  .bf-car-prev { left: 10px; }
+  .bf-car-next { right: 10px; }
+  @media (hover: none) { .bf-car-nav { display: none; } }
+  .bf-car-count {
+    position: absolute;
+    top: 58px; left: 14px;
+    z-index: 4;
+    background: rgba(5,7,12,0.6);
+    color: var(--white);
+    border-radius: 999px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    pointer-events: none;
+  }
+  .bf-recent-btn {
+    position: absolute;
+    top: 26px; left: 14px;
+    z-index: 4;
+    display: flex; align-items: center; gap: 5px;
+    background: rgba(5,7,12,0.55);
+    border: 1px solid rgba(255,255,255,0.35);
+    color: var(--white);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.05em;
+    padding: 4px 8px;
+    cursor: pointer;
+  }
+  .bf-recent-btn svg { width: 11px; height: 11px; fill: currentColor; }
   .bf-rail-count {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 11px;
     color: rgba(255,255,255,0.9);
     font-variant-numeric: tabular-nums;
-  }
-  .bf-rail-pill {
-    background: rgba(0,0,0,0.4);
-    border: 1px solid rgba(255,255,255,0.6);
-    border-radius: 999px;
-    color: var(--white);
-    display: flex; flex-direction: row; align-items: center; gap: 5px;
-    padding: 6px 12px 6px 8px;
-    cursor: pointer;
-    white-space: nowrap;
-  }
-  .bf-rail-pill svg { width: 13px; height: 13px; fill: currentColor; }
-  .bf-rail-pill span {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.03em;
   }
   .bf-like-btn.bf-liked { color: var(--orange); }
   .bf-like-btn.bf-liked svg { animation: bf-likepulse 360ms ease; }
@@ -1170,7 +1240,7 @@
 
   .bf-mods-panel {
     position: absolute;
-    left: 16px; right: 64px; bottom: 20px;
+    left: 12px; right: 12px; bottom: 12px;
     z-index: 5;
     background: rgba(22,35,61,0.92);
     border: 1px solid rgba(243,241,234,0.25);
@@ -1217,8 +1287,8 @@
 
   .bf-comments-block {
     position: absolute;
-    left: 16px; right: 64px;
-    bottom: 96px;
+    left: 12px; right: 12px;
+    bottom: 12px;
     z-index: 7;
     background: var(--white);
     color: var(--ink);
@@ -1397,7 +1467,7 @@
 
   .bf-caption {
     position: absolute;
-    left: 16px; right: 64px; bottom: 20px;
+    left: 16px; right: 16px; bottom: 30px;
     z-index: 4;
     color: var(--white);
     display: flex; flex-direction: column; gap: 6px;
@@ -1419,7 +1489,7 @@
 
   .bf-scroll-hint {
     position: absolute;
-    bottom: 8px; left: 50%;
+    bottom: 56px; left: 50%;
     transform: translateX(-50%);
     z-index: 6;
     color: rgba(255,255,255,0.55);
@@ -2235,7 +2305,7 @@
     if (!img.matches('.gallery-slot img, .vote-card .vote-media img, .bf-slide-img')) return;
     if (!img.naturalWidth || img.naturalWidth <= img.naturalHeight * 1.15) return;
     img.classList.add('is-landscape');
-    var container = img.closest('.gallery-slot, .vote-media, .bf-slide');
+    var container = img.closest('.gallery-slot, .vote-media, .bf-cell');
     if (container) container.classList.add('is-landscape');
   }, true);
 
@@ -2470,7 +2540,7 @@
               cached.votable = flags.votable;
             }
             if (currentOriginEl) {
-              var surfaceFlag = currentOriginEl.classList.contains('bf-slide') ? 'reel' :
+              var surfaceFlag = currentOriginEl.classList.contains('bf-cell') ? 'reel' :
                 currentOriginEl.classList.contains('vote-card') ? 'votable' :
                 currentOriginEl.classList.contains('gallery-slot') ? 'gallery' : null;
               if (surfaceFlag && flags[surfaceFlag] === false) {
@@ -2890,6 +2960,7 @@
 <script>
   (function () {
     var MAX_SLIDES = 20;
+    var MAX_PER_POST = 10;
     var VOTE_ENDPOINT = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
     var feedEl = document.getElementById('bf-feed');
     var progressEl = document.getElementById('bf-progress');
@@ -2937,62 +3008,81 @@
         '</div>';
     }
 
-    function buildSlide(photo, idx, likesData, commentCounts) {
+    function iconSvg(cls, path) {
+      return '<svg viewBox="0 0 24 24" class="' + cls + '"><path d="' + path + '"/></svg>';
+    }
+
+    function cellHtml(photo) {
       var safeCaption = (photo.caption || '').replace(/</g, '&lt;');
       var subLine = photo.name ? 'By ' + photo.name.replace(/</g, '&lt;') : '';
-      var mods = Array.isArray(photo.mods) ? photo.mods : [];
-      var likeCount = (likesData && likesData.likes && likesData.likes[photo.file]) || 0;
-      var isLiked = !!(likesData && likesData.liked && likesData.liked.indexOf(photo.file) !== -1);
-      var commentCount = (commentCounts && commentCounts[photo.file]) || 0;
+      return '<div class="bf-cell" data-file="' + photo.file.replace(/&/g, '&amp;').replace(/"/g, '&quot;') + '">' +
+          '<img class="bf-slide-img" src="' + window.MT3UK_R2_BASE + '/gallery/' + photo.file.replace(/&/g, '&amp;') + '" alt="' + (safeCaption || 'MT3UK member build') + '" loading="lazy" draggable="false">' +
+          '<div class="bf-scrim bf-scrim-bottom"></div>' +
+          '<button class="bf-like-hit" aria-label="Like this build"></button>' +
+          (safeCaption || subLine ?
+            '<div class="bf-caption">' +
+              (safeCaption ? '<p class="bf-hook">' + safeCaption + '</p>' : '') +
+              (subLine ? '<p class="bf-sub">' + subLine + '</p>' : '') +
+            '</div>' : '') +
+        '</div>';
+    }
+
+    // One slide per post. A post is every photo one member added on the same
+    // day, shown as a sideways carousel; the action bar under the image
+    // always acts on whichever photo is showing.
+    function buildSlide(post, idx) {
       var section = document.createElement('div');
-      section.className = 'bf-slide';
+      section.className = 'bf-slide' + (post.length > 1 ? ' bf-multi' : '');
       section.dataset.idx = String(idx);
-      section.dataset.file = photo.file;
+      section.dataset.current = post[0].file;
       section.innerHTML =
-        '<img class="bf-slide-img" src="' + window.MT3UK_R2_BASE + '/gallery/' + photo.file.replace(/&/g, '&amp;') + '" alt="' + (safeCaption || 'MT3UK member build') + '" loading="lazy" draggable="false">' +
-        '<div class="bf-scrim bf-scrim-top"></div>' +
-        '<div class="bf-scrim bf-scrim-bottom"></div>' +
-        '<button class="bf-like-hit" aria-label="Like this build" data-idx="' + idx + '"></button>' +
-        '<div class="bf-heart-burst" aria-hidden="true">' + heartSvg('') + '</div>' +
-        '<aside class="bf-rail" data-edit-target data-edit-class="bf-rail-edit-btn">' +
-          '<button class="bf-rail-pill bf-recent-btn" aria-label="Jump to most recent build">' +
-            '<svg viewBox="0 0 24 24"><path d="M12 5l-7 7h4v7h6v-7h4z"/></svg>' +
-            '<span>Most recent</span>' +
-          '</button>' +
-          '<button class="bf-rail-btn bf-like-btn' + (isLiked ? ' bf-liked' : '') + '" data-idx="' + idx + '" aria-pressed="' + (isLiked ? 'true' : 'false') + '" aria-label="Like">' +
-            heartSvg('bf-icon-heart') +
-            '<span class="bf-rail-count">' + likeCount + '</span>' +
-          '</button>' +
-          '<button class="bf-rail-btn bf-save-btn" aria-label="Save" data-saved="false">' +
-            '<svg viewBox="0 0 24 24" class="bf-icon-save"><path d="M6 3.5h12a1 1 0 0 1 1 1V21l-7-4.2L5 21V4.5a1 1 0 0 1 1-1z"/></svg>' +
-          '</button>' +
-          (mods.length ?
-            '<button class="bf-rail-btn bf-mods-btn" data-idx="' + idx + '" aria-pressed="false" aria-label="View mods list">' +
-              '<svg viewBox="0 0 24 24" class="bf-icon-mods"><path d="M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9 2.6-2.6z"/></svg>' +
-              '<span class="bf-rail-count">' + mods.length + '</span>' +
+        '<div class="bf-media">' +
+          '<div class="bf-carousel">' + post.map(cellHtml).join('') + '</div>' +
+          '<div class="bf-scrim bf-scrim-top"></div>' +
+          (idx > 0 ?
+            '<button type="button" class="bf-recent-btn" aria-label="Jump to most recent build">' +
+              '<svg viewBox="0 0 24 24"><path d="M12 5l-7 7h4v7h6v-7h4z"/></svg><span>Most recent</span>' +
             '</button>' : '') +
-          '<button class="bf-rail-btn bf-comments-btn' + (commentCount ? ' bf-has-comments' : '') + '" data-idx="' + idx + '" aria-pressed="false" aria-label="View comments">' +
-            '<svg viewBox="0 0 24 24" class="bf-icon-comments"><path d="M4 4h16v12H7l-3 3z"/></svg>' +
-            (commentCount ? '<span class="bf-rail-count">' + commentCount + '</span>' : '') +
-          '</button>' +
-          '<button class="bf-rail-btn bf-report-btn" data-idx="' + idx + '" aria-label="Report this image">' +
-            '<svg viewBox="0 0 24 24" class="bf-icon-report"><path d="M12 9v4M12 17h.01M10.29 3.86l-8.18 14.17A1.5 1.5 0 0 0 3.4 20.4h17.2a1.5 1.5 0 0 0 1.3-2.37L13.71 3.86a1.5 1.5 0 0 0-2.42 0z"></path></svg>' +
-          '</button>' +
-        '</aside>' +
-        (safeCaption || subLine ?
-          '<div class="bf-caption">' +
-            (safeCaption ? '<p class="bf-hook">' + safeCaption + '</p>' : '') +
-            (subLine ? '<p class="bf-sub">' + subLine + '</p>' : '') +
-          '</div>' : '') +
-        (mods.length ?
+          (post.length > 1 ?
+            '<button type="button" class="bf-car-nav bf-car-prev" aria-label="Previous photo" hidden>&lsaquo;</button>' +
+            '<button type="button" class="bf-car-nav bf-car-next" aria-label="Next photo">&rsaquo;</button>' +
+            '<span class="bf-car-count" aria-hidden="true">1/' + post.length + '</span>' : '') +
+          '<div class="bf-heart-burst" aria-hidden="true">' + heartSvg('') + '</div>' +
           '<div class="bf-mods-panel">' +
             '<div class="bf-mods-panel-head">' +
               '<p class="bf-mods-panel-title">MODS</p>' +
               '<button type="button" class="bf-mods-close" aria-label="Close mods list">&times;</button>' +
             '</div>' +
-            '<ul>' + mods.map(function (m) { return '<li>' + String(m).replace(/</g, '&lt;') + '</li>'; }).join('') + '</ul>' +
-          '</div>' : '') +
-        commentsBlockHtml();
+            '<ul></ul>' +
+          '</div>' +
+          commentsBlockHtml() +
+        '</div>' +
+        '<div class="bf-bar">' +
+          '<div class="bf-bar-left">' +
+            '<button class="bf-rail-btn bf-like-btn" aria-pressed="false" aria-label="Like">' +
+              heartSvg('bf-icon-heart') + '<span class="bf-rail-count">0</span>' +
+            '</button>' +
+            '<button class="bf-rail-btn bf-comments-btn" aria-pressed="false" aria-label="View comments">' +
+              iconSvg('bf-icon-comments', 'M4 4h16v12H7l-3 3z') +
+            '</button>' +
+            '<button class="bf-rail-btn bf-mods-btn" aria-pressed="false" aria-label="View mods list" hidden>' +
+              iconSvg('bf-icon-mods', 'M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9 2.6-2.6z') +
+              '<span class="bf-rail-count"></span>' +
+            '</button>' +
+            '<button class="bf-rail-btn bf-report-btn" aria-label="Report this image">' +
+              iconSvg('bf-icon-report', 'M12 9v4M12 17h.01M10.29 3.86l-8.18 14.17A1.5 1.5 0 0 0 3.4 20.4h17.2a1.5 1.5 0 0 0 1.3-2.37L13.71 3.86a1.5 1.5 0 0 0-2.42 0z') +
+            '</button>' +
+          '</div>' +
+          '<div class="bf-dots" aria-hidden="true">' +
+            (post.length > 1 ? post.map(function (p, i) { return '<i class="bf-dot' + (i === 0 ? ' active' : '') + '"></i>'; }).join('') : '') +
+          '</div>' +
+          '<div class="bf-bar-right">' +
+            '<button class="bf-rail-btn bf-save-btn" aria-label="Save" data-saved="false">' +
+              iconSvg('bf-icon-save', 'M6 3.5h12a1 1 0 0 1 1 1V21l-7-4.2L5 21V4.5a1 1 0 0 1 1-1z') +
+            '</button>' +
+          '</div>' +
+        '</div>';
+      section.photos = post;
       return section;
     }
 
@@ -3110,10 +3200,14 @@
         function loadComments() {
           list.innerHTML = '<li class="bf-comments-empty">Loading&hellip;</li>';
           var sessionToken = localStorage.getItem('mt3ukMyBuildsSession');
-          fetch(VOTE_ENDPOINT + '/comments?file=' + encodeURIComponent(slide.dataset.file), { cache: 'no-store', headers: sessionToken ? { 'X-Voter-Id': voterId, 'X-Session-Token': sessionToken } : { 'X-Voter-Id': voterId } })
+          var file = slide.dataset.current;
+          fetch(VOTE_ENDPOINT + '/comments?file=' + encodeURIComponent(file), { cache: 'no-store', headers: sessionToken ? { 'X-Voter-Id': voterId, 'X-Session-Token': sessionToken } : { 'X-Voter-Id': voterId } })
             .then(function (res) { return res.ok ? res.json() : null; })
             .then(function (data) {
+              // Ignore a reply for a photo that has since been swiped away.
+              if (file !== slide.dataset.current) return;
               commentsData = (data && data.success && data.comments) || [];
+              commentCountMap[file] = commentsData.length;
               renderComments(list, commentsData);
               if (linkedCommentId) {
                 var linked = list.querySelector('.bf-comment[data-id="' + CSS.escape(linkedCommentId) + '"]');
@@ -3161,6 +3255,16 @@
           collapse();
         }
 
+        // Called when the carousel moves to another photo, whose comments
+        // are loaded fresh the next time the panel is opened.
+        slide.resetComments = function () {
+          closeBlock();
+          loaded = false;
+          commentsData = [];
+          list.innerHTML = '';
+          expandBtn.textContent = 'Loading\u2026';
+        };
+
         slide.openLinkedComments = function (commentId) {
           linkedCommentId = commentId;
           if (loaded) loadComments();
@@ -3202,7 +3306,7 @@
             fetch(VOTE_ENDPOINT + '/comments/report', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', 'X-Voter-Id': voterId },
-              body: JSON.stringify({ file: slide.dataset.file, id: reportId })
+              body: JSON.stringify({ file: slide.dataset.current, id: reportId })
             }).catch(function () {});
             reportedCommentIds.push(reportId);
             localStorage.setItem('mt3ukReportedComments', JSON.stringify(reportedCommentIds));
@@ -3226,7 +3330,7 @@
             var token = localStorage.getItem('mt3ukMyBuildsSession');
             deleteBtn.disabled = true;
             deleteBtn.textContent = 'Deleting…';
-            fetch(VOTE_ENDPOINT + '/comments/mine?file=' + encodeURIComponent(slide.dataset.file) + '&id=' + encodeURIComponent(deleteId), {
+            fetch(VOTE_ENDPOINT + '/comments/mine?file=' + encodeURIComponent(slide.dataset.current) + '&id=' + encodeURIComponent(deleteId), {
               method: 'DELETE',
               headers: { 'X-Session-Token': token || '' }
             })
@@ -3261,7 +3365,7 @@
             fetch(VOTE_ENDPOINT + '/comments/like', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', 'X-Voter-Id': voterId },
-              body: JSON.stringify({ file: slide.dataset.file, id: likeId })
+              body: JSON.stringify({ file: slide.dataset.current, id: likeId })
             })
               .then(function (res) { return res.ok ? res.json() : null; })
               .then(function (data) {
@@ -3303,7 +3407,7 @@
           fetch(VOTE_ENDPOINT + '/comments', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-Voter-Id': voterId },
-            body: JSON.stringify({ file: slide.dataset.file, email: email, text: text, parentId: form.dataset.parentId || null })
+            body: JSON.stringify({ file: slide.dataset.current, email: email, text: text, parentId: form.dataset.parentId || null })
           })
             .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
             .then(function (result) {
@@ -3328,17 +3432,86 @@
 
     var feedFrameEl = document.getElementById('build-feed-frame');
 
-    function render(photos, likesData, commentCounts) {
+    // Per-photo state for the action bar, keyed by file name.
+    var likeMap = {};
+    var commentCountMap = {};
+
+    function isOwnPhoto(file) {
+      return !!(window.mt3ukMyBuildFiles && window.mt3ukMyBuildFiles.indexOf(file) !== -1);
+    }
+
+    // Photos that share a group (one member, one UK day) become one post, in
+    // the position of the group's newest photo. Older manifests without a
+    // group field fall back to matching the submitter name, or the file name
+    // stem that extra photos from one submission share.
+    function groupPosts(photos) {
+      var stems = {};
+      photos.forEach(function (p) { stems[fileStem(p.file)] = true; });
+      function fallbackKey(p) {
+        var stem = fileStem(p.file);
+        var m = /^(.*)-\d+$/.exec(stem);
+        if (m && stems[m[1]]) stem = m[1];
+        return (p.added || '') + '|' + (p.name ? 'n:' + p.name : 's:' + stem);
+      }
+      var posts = [];
+      var byKey = {};
+      photos.forEach(function (p) {
+        var key = p.group || fallbackKey(p);
+        if (byKey[key] && byKey[key].length < MAX_PER_POST) { byKey[key].push(p); return; }
+        byKey[key] = [p];
+        posts.push(byKey[key]);
+      });
+      return posts.map(sortPost);
+    }
+
+    function fileStem(file) {
+      return file.replace(/\.[a-z0-9]+$/i, '');
+    }
+
+    // Puts a submission's photos in the order they were numbered: "x", then
+    // "x-2", "x-3". The manifest can list them the other way round because
+    // they share an upload time. A "-N" only counts as numbering when the
+    // photo it follows is in the same post, so "model-3" is left alone.
+    function sortPost(post) {
+      var stems = post.map(function (p) { return fileStem(p.file); });
+      function place(p) {
+        var stem = fileStem(p.file);
+        var m = /^(.*)-(\d+)$/.exec(stem);
+        if (m && stems.indexOf(m[1]) !== -1) return [stems.indexOf(m[1]), parseInt(m[2], 10)];
+        return [stems.indexOf(stem), 1];
+      }
+      return post.slice().sort(function (a, b) {
+        var pa = place(a);
+        var pb = place(b);
+        return pa[0] - pb[0] || pa[1] - pb[1];
+      });
+    }
+
+    // keepFile is a photo linked from My Garage, whose post is added after
+    // the most recent MAX_SLIDES posts when it is older than them.
+    function render(photos, likesData, commentCounts, keepFile) {
       if (!photos.length) {
         feedEl.innerHTML = '<p class="mono" style="padding: 24px; color: var(--steel);">No builds yet, be the first to submit one.</p>';
         if (feedFrameEl) feedFrameEl.classList.add('bf-frame-empty');
         return;
       }
       if (feedFrameEl) feedFrameEl.classList.remove('bf-frame-empty');
+      likeMap = {};
+      commentCountMap = commentCounts || {};
+      photos.forEach(function (p) {
+        likeMap[p.file] = {
+          count: (likesData && likesData.likes && likesData.likes[p.file]) || 0,
+          liked: !!(likesData && likesData.liked && likesData.liked.indexOf(p.file) !== -1)
+        };
+      });
       feedEl.innerHTML = '';
       progressEl.innerHTML = '';
-      photos.forEach(function (photo, idx) {
-        feedEl.appendChild(buildSlide(photo, idx, likesData, commentCounts));
+      var allPosts = groupPosts(photos);
+      var posts = allPosts.slice(0, MAX_SLIDES);
+      var hasFile = function (post) { return post.some(function (p) { return p.file === keepFile; }); };
+      if (keepFile && !posts.some(hasFile)) posts = posts.concat(allPosts.filter(hasFile));
+      posts.forEach(function (post, idx) {
+        feedEl.appendChild(buildSlide(post, idx));
         var seg = document.createElement('i');
         seg.className = 'bf-dot-seg';
         seg.dataset.idx = String(idx);
@@ -3348,9 +3521,117 @@
       window.mt3ukApplyEditBadges(feedEl);
     }
 
+    var savedBuilds = [];
+    var reportedFiles = [];
+
+    function readLocalLists() {
+      try { savedBuilds = JSON.parse(localStorage.getItem('mt3ukSavedBuilds') || '[]'); } catch (e) { savedBuilds = []; }
+      try { reportedFiles = JSON.parse(localStorage.getItem('mt3ukReportedPhotos') || '[]'); } catch (e) { reportedFiles = []; }
+    }
+
+    function cellFor(slide, file) {
+      return Array.prototype.filter.call(slide.querySelectorAll('.bf-cell'), function (c) { return c.dataset.file === file; })[0];
+    }
+
+    function photoFor(slide, file) {
+      return (slide.photos || []).filter(function (p) { return p.file === file; })[0] || {};
+    }
+
+    // Points every button in the bar at the photo now showing.
+    function syncBar(slide) {
+      var file = slide.dataset.current;
+      var like = likeMap[file] || { count: 0, liked: false };
+      var likeBtn = slide.querySelector('.bf-like-btn');
+      likeBtn.classList.toggle('bf-liked', like.liked);
+      likeBtn.setAttribute('aria-pressed', like.liked ? 'true' : 'false');
+      likeBtn.querySelector('.bf-rail-count').textContent = String(like.count);
+
+      var commentsBtn = slide.querySelector('.bf-comments-btn');
+      var commentCount = commentCountMap[file] || 0;
+      var countEl = commentsBtn.querySelector('.bf-rail-count');
+      commentsBtn.classList.toggle('bf-has-comments', commentCount > 0);
+      if (commentCount) {
+        if (!countEl) {
+          countEl = document.createElement('span');
+          countEl.className = 'bf-rail-count';
+          commentsBtn.appendChild(countEl);
+        }
+        countEl.textContent = String(commentCount);
+      } else if (countEl) {
+        countEl.remove();
+      }
+
+      var mods = photoFor(slide, file).mods;
+      mods = Array.isArray(mods) ? mods : [];
+      var modsBtn = slide.querySelector('.bf-mods-btn');
+      var modsPanel = slide.querySelector('.bf-mods-panel');
+      modsBtn.hidden = !mods.length;
+      modsBtn.querySelector('.bf-rail-count').textContent = String(mods.length);
+      modsBtn.setAttribute('aria-pressed', 'false');
+      modsPanel.classList.remove('bf-mods-open');
+      modsPanel.querySelector('ul').innerHTML = mods.map(function (m) { return '<li>' + String(m).replace(/</g, '&lt;') + '</li>'; }).join('');
+
+      slide.querySelector('.bf-save-btn').dataset.saved = savedBuilds.indexOf(file) !== -1 ? 'true' : 'false';
+
+      // Members never need to report their own photos.
+      var reportBtn = slide.querySelector('.bf-report-btn');
+      var reported = reportedFiles.indexOf(file) !== -1;
+      reportBtn.hidden = isOwnPhoto(file);
+      reportBtn.dataset.reported = reported ? 'true' : 'false';
+      reportBtn.setAttribute('aria-label', reported ? 'Reported' : 'Report this image');
+    }
+
+    function wireCarousel(slide) {
+      var carousel = slide.querySelector('.bf-carousel');
+      var cells = function () { return Array.prototype.slice.call(slide.querySelectorAll('.bf-cell')); };
+      var prev = slide.querySelector('.bf-car-prev');
+      var next = slide.querySelector('.bf-car-next');
+      var countEl = slide.querySelector('.bf-car-count');
+
+      function current() {
+        return Math.round(carousel.scrollLeft / (carousel.clientWidth || 1));
+      }
+
+      function show(i) {
+        var list = cells();
+        if (!list.length) return;
+        i = Math.max(0, Math.min(list.length - 1, i));
+        var file = list[i].dataset.file;
+        slide.querySelectorAll('.bf-dot').forEach(function (d, n) { d.classList.toggle('active', n === i); });
+        if (prev) prev.hidden = i === 0;
+        if (next) next.hidden = i === list.length - 1;
+        if (countEl) countEl.textContent = (i + 1) + '/' + list.length;
+        if (file === slide.dataset.current) return;
+        slide.dataset.current = file;
+        if (slide.resetComments) slide.resetComments();
+        syncBar(slide);
+      }
+
+      function go(i) {
+        carousel.scrollTo({ left: i * carousel.clientWidth, behavior: 'smooth' });
+      }
+
+      var ticking = false;
+      carousel.addEventListener('scroll', function () {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(function () { ticking = false; show(current()); });
+      }, { passive: true });
+      if (prev) prev.addEventListener('click', function (e) { e.stopPropagation(); go(current() - 1); });
+      if (next) next.addEventListener('click', function (e) { e.stopPropagation(); go(current() + 1); });
+
+      slide.showPhoto = function (file, smooth) {
+        var i = cells().map(function (c) { return c.dataset.file; }).indexOf(file);
+        if (i < 0) return;
+        carousel.scrollTo({ left: i * carousel.clientWidth, behavior: smooth ? 'smooth' : 'auto' });
+        show(i);
+      };
+    }
+
     function wireInteractions() {
       var slides = Array.prototype.slice.call(feedEl.querySelectorAll('.bf-slide'));
       var dots = Array.prototype.slice.call(progressEl.querySelectorAll('.bf-dot-seg'));
+      readLocalLists();
 
       function setActive(idx) {
         slides.forEach(function (s, i) { s.classList.toggle('bf-in-view', i === idx); });
@@ -3367,25 +3648,26 @@
           }
         });
       }, { root: feedEl, threshold: [0, 0.6, 1] });
-      slides.forEach(function (s) { io.observe(s); });
+      slides.forEach(function (s) {
+        io.observe(s);
+        wireCarousel(s);
+        syncBar(s);
+      });
       setActive(0);
 
       feedEl.addEventListener('scroll', function () {
         feedEl.classList.add('bf-scrolled');
       }, { once: true, passive: true });
 
-      function toggleLike(idx, burst) {
-        var slide = slides[idx];
+      function toggleLike(slide, burst) {
         var btn = slide.querySelector('.bf-like-btn');
+        var file = slide.dataset.current;
         if (btn.dataset.pending === 'true') return;
-        var count = btn.querySelector('.bf-rail-count');
-        var wasLiked = btn.classList.contains('bf-liked');
-        var liked = !wasLiked;
-        var currentCount = parseInt(count.textContent, 10) || 0;
-
-        btn.classList.toggle('bf-liked', liked);
-        btn.setAttribute('aria-pressed', liked ? 'true' : 'false');
-        count.textContent = String(liked ? currentCount + 1 : Math.max(0, currentCount - 1));
+        var state = likeMap[file] || (likeMap[file] = { count: 0, liked: false });
+        var liked = !state.liked;
+        state.liked = liked;
+        state.count = liked ? state.count + 1 : Math.max(0, state.count - 1);
+        syncBar(slide);
         if (liked && burst) {
           var hb = slide.querySelector('.bf-heart-burst');
           hb.classList.remove('bf-burst');
@@ -3397,14 +3679,13 @@
         fetch(VOTE_ENDPOINT + '/likes', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'X-Voter-Id': voterId },
-          body: JSON.stringify({ file: slide.dataset.file })
+          body: JSON.stringify({ file: file })
         })
           .then(function (res) { return res.ok ? res.json() : null; })
           .then(function (data) {
             if (data && data.success) {
-              btn.classList.toggle('bf-liked', data.liked);
-              btn.setAttribute('aria-pressed', data.liked ? 'true' : 'false');
-              count.textContent = String(data.count);
+              likeMap[file] = { count: data.count, liked: data.liked };
+              if (slide.dataset.current === file) syncBar(slide);
             }
           })
           .catch(function () {})
@@ -3422,38 +3703,30 @@
 
       feedEl.querySelectorAll('.bf-like-hit').forEach(function (btn) {
         btn.addEventListener('click', function () {
-          var idx = parseInt(btn.dataset.idx, 10);
-          var likeBtn = slides[idx].querySelector('.bf-like-btn');
-          if (!likeBtn.classList.contains('bf-liked')) toggleLike(idx, true);
+          var slide = btn.closest('.bf-slide');
+          var state = likeMap[slide.dataset.current];
+          if (!state || !state.liked) toggleLike(slide, true);
         });
       });
 
       feedEl.querySelectorAll('.bf-like-btn').forEach(function (btn) {
         btn.addEventListener('click', function (e) {
           e.stopPropagation();
-          var idx = parseInt(btn.dataset.idx, 10);
-          toggleLike(idx, !btn.classList.contains('bf-liked'));
+          toggleLike(btn.closest('.bf-slide'), !btn.classList.contains('bf-liked'));
         });
-      });
-
-      var savedBuilds = [];
-      try { savedBuilds = JSON.parse(localStorage.getItem('mt3ukSavedBuilds') || '[]'); } catch (e) {}
-      slides.forEach(function (slide) {
-        var saveBtn = slide.querySelector('.bf-save-btn');
-        if (saveBtn && savedBuilds.indexOf(slide.dataset.file) !== -1) {
-          saveBtn.dataset.saved = 'true';
-        }
       });
 
       feedEl.querySelectorAll('.bf-save-btn').forEach(function (btn) {
         btn.addEventListener('click', function (e) {
           e.stopPropagation();
-          var file = btn.closest('.bf-slide').dataset.file;
-          var saved = btn.dataset.saved === 'true';
-          btn.dataset.saved = saved ? 'false' : 'true';
+          var file = btn.closest('.bf-slide').dataset.current;
+          // Re-read first so a change made in another tab isn't overwritten
+          readLocalLists();
           var pos = savedBuilds.indexOf(file);
-          if (saved && pos !== -1) savedBuilds.splice(pos, 1);
-          else if (!saved && pos === -1) savedBuilds.push(file);
+          var saved = pos !== -1;
+          if (saved) savedBuilds.splice(pos, 1);
+          else savedBuilds.push(file);
+          btn.dataset.saved = saved ? 'false' : 'true';
           localStorage.setItem('mt3ukSavedBuilds', JSON.stringify(savedBuilds));
           window.dispatchEvent(new Event('mt3ukSavedBuildsChanged'));
           showBfToast(saved ? 'Removed' : 'Saved');
@@ -3463,30 +3736,28 @@
       feedEl.querySelectorAll('.bf-mods-btn').forEach(function (btn) {
         btn.addEventListener('click', function (e) {
           e.stopPropagation();
-          var idx = parseInt(btn.dataset.idx, 10);
-          var panel = slides[idx].querySelector('.bf-mods-panel');
-          if (!panel) return;
+          var panel = btn.closest('.bf-slide').querySelector('.bf-mods-panel');
           var open = panel.classList.toggle('bf-mods-open');
           btn.setAttribute('aria-pressed', open ? 'true' : 'false');
         });
       });
 
-      var reportedFiles = [];
-      try { reportedFiles = JSON.parse(localStorage.getItem('mt3ukReportedPhotos') || '[]'); } catch (e) {}
-      slides.forEach(function (slide) {
-        var reportBtn = slide.querySelector('.bf-report-btn');
-        if (reportBtn && reportedFiles.indexOf(slide.dataset.file) !== -1) {
-          reportBtn.dataset.reported = 'true';
-          reportBtn.setAttribute('aria-label', 'Reported');
-        }
+      feedEl.querySelectorAll('.bf-mods-close').forEach(function (closeBtn) {
+        closeBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var slide = closeBtn.closest('.bf-slide');
+          slide.querySelector('.bf-mods-panel').classList.remove('bf-mods-open');
+          slide.querySelector('.bf-mods-btn').setAttribute('aria-pressed', 'false');
+        });
       });
 
       feedEl.querySelectorAll('.bf-report-btn').forEach(function (btn) {
         btn.addEventListener('click', function (e) {
           e.stopPropagation();
           if (btn.dataset.reported === 'true') return;
+          var file = btn.closest('.bf-slide').dataset.current;
+          if (isOwnPhoto(file)) return;
           if (!window.confirm('Report this photo as inappropriate or not a Tesla?')) return;
-          var file = btn.closest('.bf-slide').dataset.file;
           btn.dataset.reported = 'true';
           btn.setAttribute('aria-label', 'Reported');
           fetch(MT3UK_API + '/gallery/report', {
@@ -3495,28 +3766,22 @@
             body: JSON.stringify({ file: file })
           }).catch(function () {});
           // Re-read first so a report made in another tab or section isn't overwritten
-          try { reportedFiles = JSON.parse(localStorage.getItem('mt3ukReportedPhotos') || '[]'); } catch (e) {}
+          readLocalLists();
           if (reportedFiles.indexOf(file) === -1) reportedFiles.push(file);
           localStorage.setItem('mt3ukReportedPhotos', JSON.stringify(reportedFiles));
           showBfToast('Reported');
         });
       });
 
-      slides.forEach(function (slide, idx) {
-        var closeBtn = slide.querySelector('.bf-mods-close');
-        if (!closeBtn) return;
-        closeBtn.addEventListener('click', function (e) {
-          e.stopPropagation();
-          var panel = slide.querySelector('.bf-mods-panel');
-          if (panel) panel.classList.remove('bf-mods-open');
-          var modsBtn = slide.querySelector('.bf-mods-btn');
-          if (modsBtn) modsBtn.setAttribute('aria-pressed', 'false');
-        });
-      });
-
       wireComments(slides);
       wireAutoscroll(slides.length);
     }
+
+    // My Garage sign-in finishes after the reel has rendered, so hide the
+    // Report button on the member's own photos once it does.
+    document.addEventListener('mt3ukMyBuildsReady', function () {
+      feedEl.querySelectorAll('.bf-slide').forEach(syncBar);
+    });
 
     var autoscrollApi = null;
 
@@ -3609,8 +3874,9 @@
       url.searchParams.delete('photo');
       url.searchParams.delete('comment');
       history.replaceState(null, '', url.pathname + url.search + url.hash);
-      var slide = Array.prototype.filter.call(feedEl.querySelectorAll('.bf-slide'), function (el) { return el.dataset.file === file; })[0];
+      var slide = Array.prototype.filter.call(feedEl.querySelectorAll('.bf-slide'), function (el) { return !!cellFor(el, file); })[0];
       if (!slide) return;
+      if (slide.showPhoto) slide.showPhoto(file, false);
       feedEl.scrollTop += slide.getBoundingClientRect().top - feedEl.getBoundingClientRect().top;
       if (slide.openLinkedComments) slide.openLinkedComments(commentId);
     }
@@ -3622,14 +3888,10 @@
       fetchCommentCounts()
     ])
       .then(function (results) {
-        var reel = (results[0] || []).filter(function (p) { return p.reel !== false; });
-        var photos = reel.slice(0, MAX_SLIDES);
+        var photos = (results[0] || []).filter(function (p) { return p.reel !== false; });
         var linkedPhoto = linkParams.get('photo');
-        if (linkedPhoto && !photos.some(function (p) { return p.file === linkedPhoto; })) {
-          photos = photos.concat(reel.filter(function (p) { return p.file === linkedPhoto; }));
-        }
         latestFile = photos.length ? photos[0].file : null;
-        render(photos, results[1], results[2]);
+        render(photos, results[1], results[2], linkedPhoto);
         openLinkedPhoto(linkedPhoto, linkParams.get('comment'));
       })
       .catch(function () {
@@ -3643,7 +3905,7 @@
           photos = (photos || []).filter(function (p) { return p.reel !== false; });
           var newestFile = photos.length ? photos[0].file : null;
           if (newestFile && newestFile !== latestFile) {
-            pendingPhotos = photos.slice(0, MAX_SLIDES);
+            pendingPhotos = photos;
             if (newBuildToast) newBuildToast.classList.add('bf-new-toast-show');
           }
         })
@@ -4314,6 +4576,17 @@
     var reportedVotePhotos = [];
     try { reportedVotePhotos = JSON.parse(localStorage.getItem('mt3ukReportedPhotos') || '[]'); } catch (e) {}
 
+    // Members never need to report their own photos. My Garage sign-in can
+    // finish after the cards render, so this runs again when it does.
+    function hideOwnVoteReports() {
+      document.querySelectorAll('.vote-card').forEach(function (card) {
+        var btn = card.querySelector('.vote-report');
+        var own = !!(window.mt3ukMyBuildFiles && window.mt3ukMyBuildFiles.indexOf(card.getAttribute('data-file')) !== -1);
+        if (btn) btn.hidden = own;
+      });
+    }
+    document.addEventListener('mt3ukMyBuildsReady', hideOwnVoteReports);
+
     var lightbox = document.getElementById('lightbox');
     var lightboxImg = lightbox ? lightbox.querySelector('.lightbox-img') : null;
     var lightboxCaption = lightbox ? lightbox.querySelector('.lightbox-caption') : null;
@@ -4441,6 +4714,7 @@
         );
       }).join('');
       window.mt3ukApplyEditBadges(frame);
+      hideOwnVoteReports();
 
       frame.querySelectorAll('.vote-media').forEach(function (media, i) {
         media.addEventListener('click', function () {

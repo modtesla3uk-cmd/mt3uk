@@ -1366,6 +1366,8 @@
       var alreadyReported = reportedFiles.indexOf(p.file) !== -1;
       reportBtn.disabled = alreadyReported;
       reportBtn.textContent = alreadyReported ? 'Reported' : 'Report this image';
+      // Members never need to report their own photos.
+      reportBtn.hidden = !!(window.mt3ukMyBuildFiles && window.mt3ukMyBuildFiles.indexOf(p.file) !== -1);
 
       claimWrap.classList.toggle('show', !!p.unclaimed);
       claimForm.classList.remove('show');

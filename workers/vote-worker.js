@@ -466,13 +466,13 @@ async function handleEventsAdminDelete(request, env) {
 }
 
 // ---------- Interviews admin ----------
-// admin.html edits each Owner Interview's publish date, title and excerpt in
+// admin.html edits each Owner Interview's publish date, name, title and excerpt in
 // data/interviews.json, the file the homepage, blog.html and the interview
 // comment threads read. Each save is one commit to main, which redeploys the
 // site. Every change carries the value the admin saw ("from"), so a save is
 // refused if the file changed in the meantime rather than overwriting it.
 
-var INTERVIEW_TEXT_LIMITS = { title: 200, excerpt: 400 };
+var INTERVIEW_TEXT_LIMITS = { name: 60, title: 200, excerpt: 400 };
 
 async function readInterviewsFile(env) {
   var res = await fetch(
@@ -515,7 +515,9 @@ function applyInterviewChanges(file, changes) {
         throw new Error(iv.name + ': the ' + (field === 'publish' ? 'publish date' : field) + ' was changed somewhere else since you loaded the page, reload and try again');
       }
       if (iv[field] === value) return;
-      lines.push(iv.name + ' ' + field + (field === 'publish' ? ' ' + (iv[field] || 'none') + ' to ' + value : ' edited'));
+      if (field === 'publish') lines.push(iv.name + ' publish ' + (iv.publish || 'none') + ' to ' + value);
+      else if (field === 'name') lines.push(iv.name + ' renamed to ' + value);
+      else lines.push(iv.name + ' ' + field + ' edited');
       iv[field] = value;
     });
   });

@@ -172,6 +172,7 @@
   .iv-table td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); vertical-align: top; }
   .iv-table a { color: var(--white); }
   .iv-table .iv-sub { color: var(--steel); font-size: 0.68rem; }
+  .iv-table a.iv-sub { display: block; margin-top: 3px; }
   .iv-table .num { text-align: right; }
   .iv-status { font-size: 0.68rem; }
   .iv-status.published { color: #4caf7d; }
@@ -238,8 +239,7 @@
       <div class="iv-stats" id="iv-stats"></div>
       <div id="iv-gaps"></div>
       <div class="iv-toolbar" id="iv-toolbar">
-        <button type="button" class="secondary" id="iv-edit-btn">Edit dates and titles</button>
-        <button type="button" class="secondary" id="iv-space-btn" hidden>Space out every 2 weeks</button>
+        <button type="button" class="secondary" id="iv-edit-btn">Edit interviews</button>
         <button type="button" id="iv-review-btn" hidden>Review changes</button>
         <button type="button" class="secondary" id="iv-cancel-btn" hidden>Cancel</button>
         <span class="iv-note" id="iv-note"></span>
@@ -1068,7 +1068,6 @@
   var editBtn = document.getElementById('iv-edit-btn');
   var reviewBtn = document.getElementById('iv-review-btn');
   var cancelBtn = document.getElementById('iv-cancel-btn');
-  var spaceBtn = document.getElementById('iv-space-btn');
   var noteEl = document.getElementById('iv-note');
   var reviewEl = document.getElementById('iv-review');
   var interviews = [];
@@ -1078,8 +1077,8 @@
   var editing = false;
   var original = [];
   var drafts = {};
-  var EDIT_FIELDS = ['publish', 'title', 'excerpt'];
-  var FIELD_LABELS = { publish: 'Publish date', title: 'Title', excerpt: 'Excerpt' };
+  var EDIT_FIELDS = ['publish', 'name', 'title', 'excerpt'];
+  var FIELD_LABELS = { publish: 'Publish date', name: 'Name', title: 'Title', excerpt: 'Excerpt' };
 
   try {
     var saved = JSON.parse(localStorage.getItem('mt3ukInterviewPlan') || '{}');
@@ -1175,7 +1174,8 @@
           var o = original.find(function (x) { return x.url === iv.url; }) || {};
           var cls = function (f) { return d[f] !== (o[f] || '') ? ' class="changed"' : ''; };
           return '<tr>' +
-            '<td><a href="' + escapeHtml(iv.url) + '?date=' + escapeHtml(d.publish) + '" target="_blank" rel="noopener">' + escapeHtml(iv.name) + '</a>' +
+            '<td><input type="text" data-url="' + escapeHtml(iv.url) + '" data-field="name" value="' + escapeHtml(d.name) + '" aria-label="Name for ' + escapeHtml(iv.name) + '"' + cls('name') + '>' +
+              '<a class="iv-sub" href="' + escapeHtml(iv.url) + '?date=' + escapeHtml(d.publish) + '" target="_blank" rel="noopener">Open ' + escapeHtml(iv.url) + '</a>' +
               '<input type="text" data-url="' + escapeHtml(iv.url) + '" data-field="title" value="' + escapeHtml(d.title) + '" aria-label="Title for ' + escapeHtml(iv.name) + '"' + cls('title') + '>' +
               '<textarea data-url="' + escapeHtml(iv.url) + '" data-field="excerpt" aria-label="Excerpt for ' + escapeHtml(iv.name) + '"' + cls('excerpt') + '>' + escapeHtml(d.excerpt) + '</textarea></td>' +
             '<td><input type="date" data-url="' + escapeHtml(iv.url) + '" data-field="publish" value="' + escapeHtml(d.publish) + '" aria-label="Publish date for ' + escapeHtml(iv.name) + '"' + cls('publish') + '>' +
@@ -1212,7 +1212,6 @@
   function setEditing(on) {
     editing = on;
     editBtn.hidden = on;
-    spaceBtn.hidden = !on;
     reviewBtn.hidden = !on;
     cancelBtn.hidden = !on;
     reviewEl.hidden = true;
@@ -1238,7 +1237,7 @@
     return changes;
   }
 
-  editBtn.addEventListener('click', function () {
+  function startEditing(then) {
     var key = adminKey();
     if (!key) { setNote('Enter the admin key at the top of the page first.', 'error'); return; }
     setNote('Loading the latest schedule…');
@@ -1253,12 +1252,14 @@
         interviews = r.data.interviews.filter(function (iv) { return iv.publish; });
         original = interviews.map(function (iv) { return Object.assign({}, iv); });
         drafts = {};
-        original.forEach(function (o) { drafts[o.url] = { publish: o.publish, title: o.title || '', excerpt: o.excerpt || '' }; });
-        setNote('Edit the dates, titles or excerpts, then review your changes. Nothing is saved until you confirm.');
+        original.forEach(function (o) { drafts[o.url] = { publish: o.publish, name: o.name || '', title: o.title || '', excerpt: o.excerpt || '' }; });
+        setNote('Edit names, dates, titles or excerpts. Release every re-spaces the upcoming dates, and moving the first upcoming date moves the rest with it. Nothing is saved until you confirm.');
         setEditing(true);
+        if (then) then();
       })
       .catch(function () { editBtn.disabled = false; setNote('Network error loading the schedule.', 'error'); });
-  });
+  }
+  editBtn.addEventListener('click', function () { startEditing(); });
 
   // Re-spaces every interview that is still to be published, keeping their
   // order: the first one stays on its date and the rest follow at the
@@ -1266,10 +1267,7 @@
   function cadenceLabel() {
     return cadenceEl.options[cadenceEl.selectedIndex].text;
   }
-  function updateSpaceLabel() {
-    spaceBtn.textContent = 'Space out every ' + cadenceLabel();
-  }
-  function respace() {
+  function respace(anchorUrl) {
     var cadence = parseInt(cadenceEl.value, 10);
     var today = ukToday();
     var upcoming = original.filter(function (o) { return o.publish > today; }).map(function (o) { return o.url; });
@@ -1278,20 +1276,32 @@
       var da = drafts[a].publish || '9999', db = drafts[b].publish || '9999';
       return da < db ? -1 : da > db ? 1 : 0;
     });
+    if (anchorUrl && upcoming.indexOf(anchorUrl) > 0) {
+      upcoming.splice(upcoming.indexOf(anchorUrl), 1);
+      upcoming.unshift(anchorUrl);
+    }
     var start = drafts[upcoming[0]].publish;
     if (!start || start <= today) start = original.find(function (o) { return o.url === upcoming[0]; }).publish;
     upcoming.forEach(function (url, i) { drafts[url].publish = addDays(start, i * cadence); });
     reviewEl.hidden = true;
     render();
     setNote('Spaced ' + upcoming.length + ' scheduled interview' + (upcoming.length === 1 ? '' : 's') + ' every ' + cadenceLabel() +
-      ' from ' + nice(start) + '. You can still change any date by hand, then review before submitting.');
+      ' from ' + nice(start) + '. You can still change any later date by hand, then review before submitting.');
   }
-  spaceBtn.addEventListener('click', respace);
 
   cancelBtn.addEventListener('click', function () {
     interviews = original;
     setNote('');
     setEditing(false);
+  });
+
+  var firstUpcoming = null;
+  listEl.addEventListener('focusin', function (e) {
+    if (!editing || !e.target.dataset || e.target.dataset.field !== 'publish') return;
+    var today = ukToday();
+    var upcoming = original.filter(function (o) { return o.publish > today; })
+      .sort(function (a, b) { return drafts[a.url].publish < drafts[b.url].publish ? -1 : 1; });
+    firstUpcoming = upcoming.length ? upcoming[0].url : null;
   });
 
   listEl.addEventListener('input', function (e) {
@@ -1303,8 +1313,13 @@
     reviewEl.hidden = true;
   });
   // Dates re-sort the table, so only redraw once a date has been picked.
+  // Moving the first upcoming interview's date moves the rest with it at the
+  // "Release every" interval; any other date only changes that interview.
   listEl.addEventListener('change', function (e) {
-    if (editing && e.target.dataset && e.target.dataset.field === 'publish' && e.target.value) render();
+    var el = e.target;
+    if (!editing || !el.dataset || el.dataset.field !== 'publish' || !el.value) return;
+    if (el.dataset.url === firstUpcoming) respace(el.dataset.url);
+    else render();
   });
 
   function reviewWarnings(changes) {
@@ -1316,6 +1331,7 @@
         else if (c.to.publish <= today && c.from.publish > today) warnings.push(c.name + ' will go live straight away, as ' + nice(c.to.publish) + ' is not in the future.');
         else if (c.to.publish > today && c.from.publish <= today) warnings.push(c.name + ' is already published and will disappear from the site until ' + nice(c.to.publish) + '.');
       }
+      if (c.to.name !== undefined && !c.to.name) warnings.push(c.name + ' has an empty name.');
       if (c.to.title !== undefined && !c.to.title) warnings.push(c.name + ' has an empty title.');
       if (c.to.excerpt !== undefined && !c.to.excerpt) warnings.push(c.name + ' has an empty excerpt.');
     });
@@ -1335,7 +1351,7 @@
     if (!changes.length) { setNote('Nothing has changed yet.', 'error'); return; }
     var warnings = reviewWarnings(changes);
     var blocking = changes.some(function (c) {
-      return (c.to.publish !== undefined && !c.to.publish) || (c.to.title !== undefined && !c.to.title) || (c.to.excerpt !== undefined && !c.to.excerpt);
+      return Object.keys(c.to).some(function (f) { return !c.to[f]; });
     });
     reviewEl.innerHTML = '<h3>Review ' + changes.length + ' change' + (changes.length === 1 ? '' : 's') + '</h3><ul>' +
       changes.map(function (c) {
@@ -1388,10 +1404,11 @@
   }
   cadenceEl.addEventListener('change', function () {
     saveSettings();
-    updateSpaceLabel();
+    // "Release every" controls the spacing: while editing it re-spaces the
+    // schedule, and otherwise it opens the editor and re-spaces there.
     if (editing) respace();
+    else startEditing(respace);
   });
-  updateSpaceLabel();
   leadEl.addEventListener('change', saveSettings);
 
   Promise.all([

@@ -12,4 +12,4 @@ generate_sitemap.py
 scripts
 wrangler.jsonc
 .assetsignore
-README.md
+*.md

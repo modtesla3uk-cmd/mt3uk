@@ -20,7 +20,7 @@ const SHOP_PRODUCTS_CACHE_SECONDS = 60 * 2;
 const MY_BUILDS_FROM_EMAIL = 'noreply@mt3uk.com';
 const MY_BUILDS_LINK_TTL_SECONDS = 15 * 60;
 const BUILD_ASSIGNED_LINK_TTL_SECONDS = 7 * 24 * 60 * 60;
-const MY_BUILDS_SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
+const MY_BUILDS_SESSION_TTL_SECONDS = 60 * 60 * 24 * 180;
 const MY_BUILDS_SITE_URL = 'https://mt3uk.com';
 const SUBSCRIBERS_DIGEST_EMAIL = 'modtesla3uk@gmail.com';
 const MAX_COMMENT_LENGTH = 500;
@@ -2498,9 +2498,59 @@ async function removeSubscriberFile(env, email, file) {
   await env.VOTES.put('subscriber:' + email, JSON.stringify(existing));
 }
 
+// My Garage sessions are signed tokens (email and expiry, with an HMAC), so
+// checking one needs no KV read. A session saved to KV could be missing for
+// up to a minute at other Cloudflare locations, which signed members straight
+// back out when they reopened the iPhone Home Screen app. Changing ADMIN_KEY
+// signs everyone out. Older random tokens in KV still work until they expire.
+var sessionHmacKeyPromise = null;
+
+function sessionHmacKey(env) {
+  if (!sessionHmacKeyPromise) {
+    sessionHmacKeyPromise = crypto.subtle.digest('SHA-256', new TextEncoder().encode('mt3uk-session-v1:' + (env.ADMIN_KEY || '')))
+      .then(function (raw) {
+        return crypto.subtle.importKey('raw', raw, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify']);
+      });
+  }
+  return sessionHmacKeyPromise;
+}
+
+function base64UrlFromBytes(bytes) {
+  var bin = '';
+  for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function bytesFromBase64Url(str) {
+  var s = str.replace(/-/g, '+').replace(/_/g, '/');
+  while (s.length % 4) s += '=';
+  var bin = atob(s);
+  var out = new Uint8Array(bin.length);
+  for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+async function createSession(env, email) {
+  var expires = Math.floor(Date.now() / 1000) + MY_BUILDS_SESSION_TTL_SECONDS;
+  var payload = 's1.' + base64UrlFromBytes(new TextEncoder().encode(email)) + '.' + expires;
+  var sig = await crypto.subtle.sign('HMAC', await sessionHmacKey(env), new TextEncoder().encode(payload));
+  return payload + '.' + base64UrlFromBytes(new Uint8Array(sig));
+}
+
 async function resolveSession(request, env) {
   var token = request.headers.get('X-Session-Token');
   if (!token) return null;
+  var parts = token.split('.');
+  if (parts.length === 4 && parts[0] === 's1') {
+    if (!env.ADMIN_KEY || !(Number(parts[2]) > Date.now() / 1000)) return null;
+    try {
+      var ok = await crypto.subtle.verify('HMAC', await sessionHmacKey(env), bytesFromBase64Url(parts[3]),
+        new TextEncoder().encode(parts.slice(0, 3).join('.')));
+      return ok ? new TextDecoder().decode(bytesFromBase64Url(parts[1])) : null;
+    } catch (e) {
+      return null;
+    }
+  }
   return env.VOTES.get('my-builds-session:' + token);
 }
 
@@ -2845,8 +2895,7 @@ async function handleMyBuildsVerifyCode(request, env) {
 
   await env.VOTES.delete(key);
   if (record.token) await env.VOTES.delete('my-builds-link:' + record.token);
-  var session = randomToken();
-  await env.VOTES.put('my-builds-session:' + session, email, { expirationTtl: MY_BUILDS_SESSION_TTL_SECONDS });
+  var session = await createSession(env, email);
   return json({ success: true, session: session, email: email });
 }
 
@@ -2860,8 +2909,7 @@ async function handleMyBuildsSession(request, env) {
   // The link has been used, so its matching code can't be.
   await env.VOTES.delete(signInCodeKey(email));
 
-  var session = randomToken();
-  await env.VOTES.put('my-builds-session:' + session, email, { expirationTtl: MY_BUILDS_SESSION_TTL_SECONDS });
+  var session = await createSession(env, email);
 
   return json({ success: true, session: session, email: email });
 }

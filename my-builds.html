@@ -1843,10 +1843,13 @@ document.addEventListener('DOMContentLoaded', function () {
       var token = getSession();
       if (!token) { showSignin(); return; }
       fetch(API + '/my-builds', { headers: { 'X-Session-Token': token }, cache: 'no-store' })
-        .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+        .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, status: res.status, data: data }; }); })
         .then(function (result) {
           if (!result.ok || !result.data.success) {
-            clearSession();
+            // Only a 401 means the sign-in has expired. Anything else is a
+            // passing problem, so keep the sign-in for next time.
+            if (result.status === 401) clearSession();
+            else setStatus(signinStatus, 'Could not load your builds, please try again.', 'err');
             showSignin();
             return;
           }
@@ -1934,10 +1937,19 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
 
+    // Fill in the email used last time on this device, so it only has to be
+    // typed once.
+    var LAST_EMAIL_KEY = 'mt3ukLastSignInEmail';
+    try {
+      var lastEmail = localStorage.getItem(LAST_EMAIL_KEY) || localStorage.getItem(EMAIL_KEY);
+      if (lastEmail && !document.getElementById('mb-email').value) document.getElementById('mb-email').value = lastEmail;
+    } catch (e) {}
+
     signinForm.addEventListener('submit', function (e) {
       e.preventDefault();
       var email = document.getElementById('mb-email').value.trim();
       if (!email) return;
+      try { localStorage.setItem(LAST_EMAIL_KEY, email); } catch (err) {}
       signinBtn.disabled = true;
       signinBtn.textContent = 'Sending…';
       setStatus(signinStatus, '', '');

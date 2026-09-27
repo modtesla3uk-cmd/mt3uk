@@ -68,6 +68,7 @@
   {
     "file": "robot-hacker-model-3.jpg",
     "caption": "ROBOT HACKER MODEL 3",
+    "name": "ROBOT BODYKITS",
     "mods": [
       "Full carbon Robot narrow body kit",
       "Lightweight pre preg carbon bonnet",
@@ -83,6 +84,7 @@
   {
     "file": "robot-hacker-model-3-3.jpg",
     "caption": "ROBOT HACKER MODEL 3 3",
+    "name": "ROBOT BODYKITS",
     "votable": false,
     "color": "Black",
     "added": "2026-09-26",
@@ -91,6 +93,7 @@
   {
     "file": "robot-hacker-model-3-2.jpg",
     "caption": "ROBOT HACKER MODEL 3 2",
+    "name": "ROBOT BODYKITS",
     "votable": false,
     "color": "Black",
     "added": "2026-09-26",
@@ -493,7 +496,7 @@
   {
     "file": "70-track-focused-oem--by-david-baddeley.jpg",
     "caption": "TRACK FOCUSED OEM",
-    "name": "DAVID BADDELEY",
+    "name": "DAVE BADDELEY",
     "mods": [
       "Tevo Tractive active dampners",
       "MPP FUCA",
@@ -868,6 +871,7 @@
   {
     "file": "29-haloblk.jpeg",
     "caption": "HALOBLK",
+    "name": "GUY DUNN",
     "added": "2026-09-18",
     "group": "29-haloblk.jpeg"
   },
@@ -967,6 +971,7 @@
   {
     "file": "10-model-3-transformer-bagged.jpg",
     "caption": "MODEL 3 TRANSFORMER BAGGED",
+    "name": "GUY DUNN",
     "added": "2026-09-18",
     "group": "29-haloblk.jpeg"
   },

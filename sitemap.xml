@@ -1103,6 +1103,15 @@
     </image:image>
   </url>
   <url>
+    <loc>https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/gallery/side-shot.jpeg</loc>
+    <lastmod>2026-09-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/gallery/side-shot.jpeg</image:loc>
+    </image:image>
+  </url>
+  <url>
     <loc>https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/gallery/team-red--by-mark-smith-2.jpeg</loc>
     <lastmod>2026-09-27</lastmod>
     <changefreq>monthly</changefreq>
@@ -1154,6 +1163,15 @@
     <priority>0.7</priority>
     <image:image>
       <image:loc>https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/gallery/the-green-knight-tessa.jpeg</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/gallery/top-shot.jpeg</loc>
+    <lastmod>2026-09-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/gallery/top-shot.jpeg</image:loc>
     </image:image>
   </url>
   <url>

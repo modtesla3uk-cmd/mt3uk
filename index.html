@@ -4357,7 +4357,11 @@
       url.searchParams.delete('comment');
       history.replaceState(null, '', url.pathname + url.search + url.hash);
       var slide = Array.prototype.filter.call(feedEl.querySelectorAll('.bf-slide'), function (el) { return !!cellFor(el, file); })[0];
-      if (!slide) return;
+      if (!slide) {
+        // Not in the reel (hidden from it by its owner): open it in My Garage instead.
+        window.location.replace('my-builds.html?file=' + encodeURIComponent(file) + (commentId ? '&comment=' + encodeURIComponent(commentId) : ''));
+        return;
+      }
       if (slide.showPhoto) slide.showPhoto(file, false);
       feedEl.scrollTop += slide.getBoundingClientRect().top - feedEl.getBoundingClientRect().top;
       if (commentId && slide.openLinkedComments) slide.openLinkedComments(commentId);

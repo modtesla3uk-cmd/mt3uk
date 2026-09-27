@@ -96,10 +96,20 @@ self.addEventListener('push', function (event) {
 self.addEventListener('notificationclick', function (event) {
   event.notification.close();
   var url = new URL((event.notification.data && event.notification.data.url) || '/', self.location.origin).href;
+  // Go to the photo or comment the alert is about. If MT3UK is already open
+  // (the installed app or a browser tab), bring it forward and move it
+  // there, rather than opening a second window at the old page.
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (windows) {
-      for (var i = 0; i < windows.length; i++) {
-        if (windows[i].url === url && 'focus' in windows[i]) return windows[i].focus();
+      var sameOrigin = windows.filter(function (w) { return w.url.indexOf(self.location.origin) === 0; });
+      for (var i = 0; i < sameOrigin.length; i++) {
+        if (sameOrigin[i].url === url && 'focus' in sameOrigin[i]) return sameOrigin[i].focus();
+      }
+      var existing = sameOrigin[0];
+      if (existing && 'navigate' in existing) {
+        return existing.focus()
+          .then(function (w) { return (w || existing).navigate(url); })
+          .catch(function () { return self.clients.openWindow(url); });
       }
       return self.clients.openWindow(url);
     })

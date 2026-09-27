@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Admin | MT3UK</title>
 <style>
@@ -226,6 +227,45 @@
   @media (max-width: 780px) {
     .iv-stats { grid-template-columns: 1fr 1fr; }
     .iv-table .iv-hide-sm { display: none; }
+  }
+  /* Phones: larger text and tap targets, single-column rows. Desktop is
+     unchanged. Inputs use 16px so iOS doesn't zoom in on focus. */
+  @media (max-width: 780px) {
+    body { font-size: 15px; }
+    header, main { padding: 16px; }
+    h1 { font-size: 1.1rem; }
+    h2 { font-size: 0.95rem; }
+    input, select, textarea,
+    .subscriber-search input[type="search"],
+    .subscriber-search input[type="date"],
+    .subscriber-link-result input { font-size: 16px; }
+    button { min-height: 42px; font-size: 0.85rem; }
+    .card-file, .card-meta, .card-status, .comment-meta, .reports-badge, .hidden-badge,
+    .subscriber-added, .subscriber-name.no-name, .subscriber-files-wrap > summary, .subscriber-file-row,
+    .subscriber-search label, .subscriber-search-count, .subscriber-link-result,
+    .thread-head .file, .local-reported-row, .lightbox-caption,
+    .iv-stat-label, .iv-stat-note, .iv-settings, .iv-gap, .iv-table th, .iv-table .iv-sub, .iv-status { font-size: 0.8rem; }
+    .subscriber-file-row button, .delete-btn, .local-reported-row button,
+    .subscriber-link-result button, .iv-review-actions button { min-height: 38px; font-size: 0.8rem; }
+    .card { padding: 12px; gap: 12px; }
+    .card img { width: 72px; height: 72px; }
+    .card-actions button { flex: 1 1 auto; }
+    .assign-row input { flex-basis: 100%; }
+    .assign-row button { flex: 1 1 auto; }
+    .key-row input { min-width: 0; }
+    .add-subscriber-row input { flex: 1 1 40%; }
+    .add-subscriber-row input[type="email"], .add-subscriber-row button { flex-basis: 100%; }
+    .subscriber-search input[type="search"] { flex-basis: 100%; }
+    .subscriber-search label { flex: 1 1 40%; }
+    .subscriber-search label input { flex: 1; min-width: 0; }
+    .subscriber-search #sub-search-clear { flex-basis: 100%; }
+    .subscriber-who { flex-basis: 100%; }
+    .subscriber-head button { flex: 1 1 auto; }
+    .subscriber-rename-row input { flex-basis: 100%; }
+    .subscriber-rename-row button { flex: 1 1 auto; }
+    .comment.is-reply { margin-left: 12px; }
+    .iv-table { font-size: 0.85rem; }
+    .iv-settings select { font-size: 16px; }
   }
 </style>
 </head>

@@ -107,12 +107,25 @@
   details[open] > summary h2::before { content: "\25BE\00a0"; }
   .past .event-card { opacity: 0.7; }
 
+  /* Phones: larger text and tap targets. Desktop is unchanged. Inputs use
+     16px so iOS doesn't zoom in on focus. */
   @media (max-width: 780px) {
+    body { font-size: 15px; }
     header, main { padding-left: 16px; padding-right: 16px; }
+    h1 { font-size: 0.95rem; }
+    h2 { font-size: 0.95rem; }
+    input, textarea { font-size: 16px; }
+    button { min-height: 44px; }
     .form-grid { grid-template-columns: 1fr; }
+    .field label, .field .hint, .status { font-size: 0.82rem; }
     .event-card { flex-wrap: wrap; }
     .event-body { flex-basis: calc(100% - 70px); }
+    .event-name { font-size: 1.05rem; }
+    .event-meta { font-size: 0.85rem; }
+    .event-desc { font-size: 0.9rem; }
     .event-actions { width: 100%; justify-content: flex-start; }
+    .event-actions button { flex: 1 1 auto; min-height: 42px; padding: 8px 12px; font-size: 0.85rem; }
+    .form-actions button { flex: 1 1 auto; }
   }
 </style>
 </head>

@@ -2286,12 +2286,17 @@
 </style>
 </head>
 <body>
-<!-- MT3UK intro splash: plays once per browser session on the homepage, then holds on the logo until the visitor clicks, taps or presses a key. -->
+<!-- MT3UK intro splash: plays once per browser session on the homepage (not in the installed app), then holds on the logo until the visitor clicks, taps or presses a key. -->
 <script>
 (function () {
   var KEY = 'mt3ukIntroSeen';
   var force = /[?&]intro=1\b/.test(location.search);
   try { if (!force && sessionStorage.getItem(KEY)) return; } catch (e) {}
+  // Skip it in the installed app (Home Screen or Google Play), which already
+  // shows its own launch screen.
+  var installed = (window.matchMedia && window.matchMedia('(display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui)').matches) ||
+    navigator.standalone === true || document.referrer.indexOf('android-app://') === 0;
+  if (!force && installed) return;
   try { sessionStorage.setItem(KEY, '1'); } catch (e) {}
 
   var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;

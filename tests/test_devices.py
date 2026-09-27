@@ -74,6 +74,7 @@ def api_reply(url, method, post_data, state):
         state["code_tries"] = state.get("code_tries", 0) + 1
         code = body.get("code") or ("000000" if state["code_tries"] == 1 else "123456")
         if code == "123456":
+            state["signed_in"] = True
             return {"success": True, "session": "s1.test", "email": body.get("email", "member@example.com")}
         return {"success": False, "message": "That code is not right or has expired."}
     if path == "/my-builds" and method == "GET":
@@ -90,7 +91,11 @@ def attach_mocks(context):
         if url.startswith(BASE_URL):
             return route.continue_()
         if API_HOST in url:
-            status = 401 if url.split("?")[0].endswith("/my-builds") and not request.headers.get("x-session-token") else 200
+            # My Garage answers "signed out" until the test signs in with a
+            # code. This goes by the test's own record rather than the
+            # request header, which WebKit doesn't always show to the mock.
+            is_garage = url.split("?")[0].endswith("/my-builds") and request.method == "GET"
+            status = 401 if is_garage and not state.get("signed_in") else 200
             try:
                 post_data = request.post_data
             except Exception:
@@ -168,18 +173,16 @@ def test_page_loads_fits_and_menu_opens(device_page, page_name):
 
     out_dir = SCREENSHOT_DIR / page.device_name
     out_dir.mkdir(parents=True, exist_ok=True)
-    # Browsers can't capture more than 32767px in one image, and the
-    # homepage is taller than that on a phone, so long pages are cut at the
-    # first 12000px. JPEG keeps the download small.
-    height = min(page.evaluate("document.documentElement.scrollHeight"), 12000)
+    # Browsers can't capture more than 32767px in one image, so long pages
+    # are cut at the first 12000px. WebKit checks the whole page height
+    # before cutting, so a page taller than 30000px (the homepage on a
+    # phone) only gets its first screen. JPEG keeps the download small.
+    full_height = page.evaluate("document.documentElement.scrollHeight")
     width = page.evaluate("document.documentElement.clientWidth")
-    page.screenshot(
-        path=str(out_dir / f"{page_name}.jpg"),
-        full_page=True,
-        clip={"x": 0, "y": 0, "width": width, "height": height},
-        type="jpeg",
-        quality=70,
-    )
+    shot = {"path": str(out_dir / f"{page_name}.jpg"), "type": "jpeg", "quality": 70}
+    if full_height < 30000:
+        shot.update(full_page=True, clip={"x": 0, "y": 0, "width": width, "height": min(full_height, 12000)})
+    page.screenshot(**shot)
 
     assert page.errors == [], f"Script errors on {page_name}: {page.errors}"
     assert overflow_width(page) <= 1, f"{page_name} is wider than the screen by {overflow_width(page)}px"
@@ -196,7 +199,7 @@ def test_page_loads_fits_and_menu_opens(device_page, page_name):
 
 
 @all_devices
-def test_reel_shows_posts_and_like_works(device_page):
+def test_reel_like_asks_to_sign_in_then_works(device_page):
     page = device_page
     page.goto("/index.html#build-feed")
     slide = page.locator(".bf-slide").first
@@ -204,6 +207,21 @@ def test_reel_shows_posts_and_like_works(device_page):
     slide.scroll_into_view_if_needed()
     like = slide.locator(".bf-like-btn")
     assert like.is_visible()
+
+    # Signed out: likes are for members, so the sign-in dialog shows.
+    like.click()
+    page.locator(".mt3uk-signin-box").wait_for(state="visible", timeout=5000)
+    assert "bf-liked" not in (like.get_attribute("class") or "")
+    assert overflow_width(page) <= 1
+    page.click(".mt3uk-signin-close")
+
+    # Signed in: the like goes through.
+    page.evaluate("localStorage.setItem('mt3ukMyBuildsSession', 's1.test')")
+    page.reload()
+    slide = page.locator(".bf-slide").first
+    slide.wait_for(timeout=10000)
+    slide.scroll_into_view_if_needed()
+    like = slide.locator(".bf-like-btn")
     like.click()
     page.wait_for_timeout(500)
     assert "bf-liked" in (like.get_attribute("class") or "")

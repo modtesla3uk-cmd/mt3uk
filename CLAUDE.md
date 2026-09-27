@@ -7,7 +7,10 @@ Static site for the MT3UK modified Tesla community, live at https://mt3uk.com. I
 - **Ask before any commit or push.** Wait for an explicit yes each time. An earlier yes does not cover later changes, and an ambiguous instruction ("leave for now") is not permission.
 - **Commit to `main`**, as there is no `dev` branch. If a push is rejected because the bots have added commits, rebase onto `origin/main` and push again. Never force-push.
 - **The site is live.** A push to `main` deploys straight away, so verify changes locally first.
-- **Run the tests** with `python -m pytest -q` (pytest-playwright, tests in `tests/`) before pushing. Afterwards, check the "Run Playwright tests" workflow with `gh run list`. If you change copy, prices or markup, search `tests/*.py` for the old text or selectors and update them in the same commit.
+- **Run the tests** with `python -m pytest -q` (pytest-playwright, tests in `tests/`, about 3 minutes). Afterwards, check the "Run Playwright tests" workflow with `gh run list`. If you change copy, prices or markup, search `tests/*.py` for the old text or selectors and update them in the same commit.
+  - **Ask before running the full suite**, in case more changes are coming. One run covers everything waiting to be pushed.
+  - **Bigger changes** (the worker, sign-in, likes, comments, uploads, anything members use to do things): run the full suite before pushing.
+  - **Small changes** (wording, colours, fonts, layout tweaks): a browser check on phone and desktop is enough before pushing. The GitHub test run covers the rest.
 - **Check mobile as well as desktop** for any layout change. The main mobile breakpoint is `max-width: 780px`.
 - **Never use em dashes** in site copy, commit messages or anything else. Use commas, colons, brackets or full stops.
 - **Proofread new copy** for spelling before adding it.

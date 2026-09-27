@@ -1069,6 +1069,15 @@ document.addEventListener('DOMContentLoaded', function () {
           <button type="submit" class="mb-btn" id="mb-signin-btn">Send me a sign-in link</button>
           <p class="mb-status" id="mb-signin-status"></p>
         </form>
+        <form id="mb-code-form" hidden>
+          <div class="mb-field">
+            <label class="mono" for="mb-code">Or enter the 6-digit code from the email</label>
+            <input type="text" id="mb-code" name="code" inputmode="numeric" pattern="[0-9 ]*" maxlength="7" placeholder="123456" autocomplete="one-time-code">
+            <span class="mb-field-hint">Using the MT3UK app from your iPhone Home Screen? Use the code here, as the link opens in Safari instead of the app.</span>
+          </div>
+          <button type="submit" class="mb-btn" id="mb-code-btn">Sign in with code</button>
+          <p class="mb-status" id="mb-code-status"></p>
+        </form>
         <button type="button" class="mb-btn mb-signin-newbuild-btn" id="mb-new-toggle-btn">+ New here? Submit your first build</button>
       </div>
 
@@ -1590,10 +1599,17 @@ document.addEventListener('DOMContentLoaded', function () {
       var supported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
       var isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
       var installed = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+      var inAppBrowser = /FBAN|FBAV|FB_IAB|Instagram|Messenger|Line\/|WhatsApp/i.test(navigator.userAgent);
       if (!supported) {
-        pushIntro.textContent = isIos && !installed
-          ? 'On iPhone, add MT3UK to your Home Screen first: tap the Share button, then Add to Home Screen. Open MT3UK from your Home Screen and come back here to enable push notifications.'
-          : 'This browser does not support notifications. Try Chrome on Android, or add MT3UK to your Home Screen on iPhone.';
+        if (isIos && inAppBrowser) {
+          pushIntro.textContent = 'You are viewing MT3UK inside another app. Open mt3uk.com in Safari, tap the Share button, then Add to Home Screen. Open MT3UK from your Home Screen, sign in to My Garage with the 6-digit code from your sign-in email, then enable push notifications here.';
+        } else if (isIos && !installed) {
+          pushIntro.textContent = 'On iPhone, push notifications only work in the MT3UK app on your Home Screen. In Safari, tap the Share button, then Add to Home Screen (keep Open as Web App on). Open MT3UK from your Home Screen, sign in to My Garage with the 6-digit code from your sign-in email, then enable push notifications there.';
+        } else if (isIos) {
+          pushIntro.textContent = 'Push notifications need iOS 16.4 or later. Update your iPhone in Settings, General, Software Update, then come back here.';
+        } else {
+          pushIntro.textContent = 'This browser does not support notifications. Try Chrome on Android, or add MT3UK to your Home Screen on iPhone.';
+        }
         return;
       }
       if (Notification.permission === 'denied') {
@@ -1935,11 +1951,57 @@ document.addEventListener('DOMContentLoaded', function () {
           signinBtn.disabled = false;
           signinBtn.textContent = 'Send me a sign-in link';
           setStatus(signinStatus, data.message || 'Check your email for a sign-in link.', 'ok');
+          codeForm.hidden = false;
         })
         .catch(function () {
           signinBtn.disabled = false;
           signinBtn.textContent = 'Send me a sign-in link';
           setStatus(signinStatus, 'Something went wrong, please try again.', 'err');
+        });
+    });
+
+    var codeForm = document.getElementById('mb-code-form');
+    var codeBtn = document.getElementById('mb-code-btn');
+    var codeStatus = document.getElementById('mb-code-status');
+    // The Home Screen app always offers the code, as it can't be signed in
+    // by the email link.
+    if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true) {
+      codeForm.hidden = false;
+    }
+    codeForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var email = document.getElementById('mb-email').value.trim();
+      var code = document.getElementById('mb-code').value.replace(/\D/g, '');
+      if (!email) {
+        setStatus(codeStatus, 'Enter your email above first.', 'err');
+        return;
+      }
+      if (code.length !== 6) {
+        setStatus(codeStatus, 'The code is 6 digits.', 'err');
+        return;
+      }
+      codeBtn.disabled = true;
+      setStatus(codeStatus, 'Signing you in…', '');
+      fetch(API + '/my-builds/verify-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, code: code })
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          codeBtn.disabled = false;
+          if (data.success) {
+            setStatus(codeStatus, '', '');
+            document.getElementById('mb-code').value = '';
+            setSession(data.session, data.email);
+            loadCars();
+          } else {
+            setStatus(codeStatus, data.message || 'That code did not work.', 'err');
+          }
+        })
+        .catch(function () {
+          codeBtn.disabled = false;
+          setStatus(codeStatus, 'Something went wrong, please try again.', 'err');
         });
     });
 

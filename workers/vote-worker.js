@@ -2079,10 +2079,13 @@ function rawEmail(from, to, subject, bodyText) {
   return lines.join('\r\n');
 }
 
-async function sendMyBuildsLinkEmail(env, toEmail, link, expiresIn) {
-  var subject = 'Your My Builds sign-in link';
+async function sendMyBuildsLinkEmail(env, toEmail, link, expiresIn, code) {
+  var subject = code ? 'Your My Builds sign-in code: ' + code : 'Your My Builds sign-in link';
   var body = 'Click the link below to sign in to My Garage, manage your build(s) and view your notifications:\n\n' + link +
-    '\n\nThis link expires in ' + (expiresIn || '15 minutes') + ' and can only be used once. ' +
+    (code
+      ? '\n\nUsing the MT3UK app from your Home Screen? Enter this code in My Garage in the app instead:\n\n' + code
+      : '') +
+    '\n\nThis ' + (code ? 'link and code expire' : 'link expires') + ' in ' + (expiresIn || '15 minutes') + ' and can only be used once. ' +
     'If you did not request this, you can ignore this email.';
   var message = new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body));
   await env.SEND_EMAIL.send(message);
@@ -2770,8 +2773,17 @@ async function handleMyBuildsRequestLink(request, env) {
     var token = randomToken();
     await env.VOTES.put('my-builds-link:' + token, email, { expirationTtl: MY_BUILDS_LINK_TTL_SECONDS });
     var link = MY_BUILDS_SITE_URL + '/my-builds.html?token=' + token;
+    // A 6-digit code alongside the link, for the Home Screen app on iPhone:
+    // it keeps its own sign-in, separate from Safari, and links in emails
+    // always open in Safari, so the code is typed into the app instead.
+    var code = signInCode();
+    var codeExpires = Math.floor(Date.now() / 1000) + MY_BUILDS_LINK_TTL_SECONDS;
+    await env.VOTES.put(signInCodeKey(email), JSON.stringify({ code: code, token: token, tries: 0 }), {
+      expiration: codeExpires,
+      metadata: { expires: codeExpires }
+    });
     try {
-      await sendMyBuildsLinkEmail(env, email, link);
+      await sendMyBuildsLinkEmail(env, email, link, null, code);
     } catch (err) {
       console.log('My Builds link email failed:', err.message);
     }
@@ -2782,6 +2794,62 @@ async function handleMyBuildsRequestLink(request, env) {
   return json({ success: true, message: "If that email has submitted a build, we've sent a sign-in link." });
 }
 
+var MAX_SIGN_IN_CODE_TRIES = 5;
+
+function signInCodeKey(email) {
+  return 'my-builds-code:' + email;
+}
+
+function signInCode() {
+  var n = crypto.getRandomValues(new Uint32Array(1))[0] % 1000000;
+  return ('00000' + n).slice(-6);
+}
+
+// Signs in with the 6-digit code from the sign-in email. Each code allows a
+// few wrong guesses before it is thrown away, and using it also uses up the
+// matching link.
+async function handleMyBuildsVerifyCode(request, env) {
+  var body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return json({ success: false, message: 'Invalid request body' }, 400);
+  }
+  var email = ((body && body.email) || '').toString().trim().toLowerCase().slice(0, 200);
+  var code = ((body && body.code) || '').toString().replace(/\D/g, '');
+  var failed = json({ success: false, message: 'That code is not right or has expired. Check the latest email, or send a new code.' }, 400);
+  if (!email || code.length !== 6) return failed;
+
+  var key = signInCodeKey(email);
+  var meta = await env.VOTES.getWithMetadata(key);
+  var record = null;
+  try { record = meta.value ? JSON.parse(meta.value) : null; } catch (e) { record = null; }
+  if (!record) return failed;
+
+  if (record.code !== code) {
+    record.tries = (record.tries || 0) + 1;
+    if (record.tries >= MAX_SIGN_IN_CODE_TRIES) {
+      await env.VOTES.delete(key);
+    } else {
+      // Keep the code's original expiry, rather than restarting it.
+      var expires = (meta.metadata && meta.metadata.expires) || 0;
+      var now = Math.floor(Date.now() / 1000);
+      if (expires < now + 60) {
+        await env.VOTES.delete(key);
+      } else {
+        await env.VOTES.put(key, JSON.stringify(record), { expiration: expires, metadata: { expires: expires } });
+      }
+    }
+    return failed;
+  }
+
+  await env.VOTES.delete(key);
+  if (record.token) await env.VOTES.delete('my-builds-link:' + record.token);
+  var session = randomToken();
+  await env.VOTES.put('my-builds-session:' + session, email, { expirationTtl: MY_BUILDS_SESSION_TTL_SECONDS });
+  return json({ success: true, session: session, email: email });
+}
+
 async function handleMyBuildsSession(request, env) {
   var token = new URL(request.url).searchParams.get('token') || '';
   var email = token ? await env.VOTES.get('my-builds-link:' + token) : null;
@@ -2789,6 +2857,8 @@ async function handleMyBuildsSession(request, env) {
     return json({ success: false, message: 'That link is invalid or has expired.' }, 400);
   }
   await env.VOTES.delete('my-builds-link:' + token);
+  // The link has been used, so its matching code can't be.
+  await env.VOTES.delete(signInCodeKey(email));
 
   var session = randomToken();
   await env.VOTES.put('my-builds-session:' + session, email, { expirationTtl: MY_BUILDS_SESSION_TTL_SECONDS });
@@ -3837,6 +3907,9 @@ export default {
     }
     if (url.pathname === '/my-builds/request-link' && request.method === 'POST') {
       return handleMyBuildsRequestLink(request, env);
+    }
+    if (url.pathname === '/my-builds/verify-code' && request.method === 'POST') {
+      return handleMyBuildsVerifyCode(request, env);
     }
     if (url.pathname === '/my-builds/session' && request.method === 'GET') {
       return handleMyBuildsSession(request, env);

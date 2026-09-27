@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mt3uk-shell-v7';
+const CACHE_NAME = 'mt3uk-shell-v8';
 const PRECACHE_URLS = [
   '/index.html',
   '/shop.html',
@@ -64,6 +64,25 @@ self.addEventListener('fetch', function (event) {
     return;
   }
 
+  // Scripts, styles and data change with each site update, so they come from
+  // the network first and the saved copy is only used offline. (Serving them
+  // cache-first kept members on old versions of the site's scripts.)
+  if (/\.(js|css|json)$/i.test(pathname)) {
+    event.respondWith(
+      fetch(request)
+        .then(function (response) {
+          if (response.ok) {
+            var copy = response.clone();
+            caches.open(CACHE_NAME).then(function (cache) { cache.put(request, copy); });
+          }
+          return response;
+        })
+        .catch(function () { return caches.match(request); })
+    );
+    return;
+  }
+
+  // Images and fonts rarely change: saved copy first, network if missing.
   event.respondWith(
     caches.match(request).then(function (cached) {
       if (cached) return cached;

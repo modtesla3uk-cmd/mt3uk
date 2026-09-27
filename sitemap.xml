@@ -176,6 +176,33 @@
     </image:image>
   </url>
   <url>
+    <loc>https://mt3uk.com/images/site/icon-512.png</loc>
+    <lastmod>2026-09-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://mt3uk.com/images/site/icon-512.png</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://mt3uk.com/images/site/icon-maskable-192.png</loc>
+    <lastmod>2026-09-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://mt3uk.com/images/site/icon-maskable-192.png</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://mt3uk.com/images/site/icon-maskable-512.png</loc>
+    <lastmod>2026-09-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://mt3uk.com/images/site/icon-maskable-512.png</image:loc>
+    </image:image>
+  </url>
+  <url>
     <loc>https://mt3uk.com/images/site/m3_my_ludicrous_style_performance_sport_seat_01-768x768.jpg</loc>
     <lastmod>2026-09-27</lastmod>
     <changefreq>monthly</changefreq>
@@ -263,6 +290,24 @@
     <priority>0.7</priority>
     <image:image>
       <image:loc>https://mt3uk.com/images/site/mt3uk-wordmark-dark_backup.png</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://mt3uk.com/images/site/notification-badge.png</loc>
+    <lastmod>2026-09-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://mt3uk.com/images/site/notification-badge.png</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://mt3uk.com/images/site/play-store-icon-512.png</loc>
+    <lastmod>2026-09-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://mt3uk.com/images/site/play-store-icon-512.png</image:loc>
     </image:image>
   </url>
   <url>

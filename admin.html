@@ -80,6 +80,7 @@
   .card-note { margin: 6px 0; word-break: break-word; }
   .card-meta { color: var(--steel); font-size: 0.68rem; margin-bottom: 10px; }
   .card-status { font-size: 0.68rem; margin-top: 6px; }
+  .card-guest { color: var(--orange); }
   .card-status.approved { color: #4caf7d; }
   .card-status.rejected { color: #ff6b6b; }
   .card-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
@@ -426,6 +427,7 @@
         '<div class="card-file">' + escapeHtml(c.file) + '</div>' +
         (c.name ? '<div class="card-name">' + escapeHtml(c.name) + '</div>' : '') +
         '<div class="card-email">' + escapeHtml(c.email) + '</div>' +
+        (c.guest ? '<div class="card-meta card-guest">Not signed in: email not yet confirmed. They get a sign-in link if approved.</div>' : '') +
         (c.note ? '<p class="card-note">' + escapeHtml(c.note) + '</p>' : '') +
         '<div class="card-meta">Requested ' + escapeHtml(c.requestedAt || '') + '</div>' +
         '<div class="card-actions">' +

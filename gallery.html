@@ -1313,7 +1313,7 @@
 <script>
   (function () {
     var style = document.createElement('style');
-    style.textContent = '.gallery-slot.filled img { cursor: zoom-in; } .lightbox { position: fixed; inset: 0; background: rgba(22,35,61,0.94); display: none; align-items: center; justify-content: center; flex-direction: column; z-index: 200; padding: 40px 20px; } .lightbox.open { display: flex; } .lightbox-img { max-width: min(92vw, 1100px); max-height: 78vh; object-fit: contain; border: 1px solid rgba(243,241,234,0.25); } .lightbox-caption { margin-top: 16px; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; letter-spacing: 0.04em; color: var(--paper); } .lightbox-mods { display: none; margin-top: 10px; max-width: min(92vw, 1100px); font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; letter-spacing: 0.03em; color: rgba(243,241,234,0.7); text-align: center; } .lightbox-mods.has-mods { display: block; } .lightbox-close { position: absolute; top: 22px; right: 28px; background: transparent; border: 1px solid var(--paper); color: var(--paper); width: 40px; height: 40px; font-size: 1.4rem; line-height: 1; cursor: pointer; } .lightbox-close:hover { background: var(--orange); border-color: var(--orange); } .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(22,35,61,0.6); border: 1px solid var(--paper); color: var(--paper); width: 46px; height: 46px; font-size: 1.6rem; line-height: 1; cursor: pointer; } .lightbox-nav:hover { background: var(--orange); border-color: var(--orange); } .lightbox-prev { left: 20px; } .lightbox-next { right: 20px; } @media (max-width: 700px) { .lightbox-nav { width: 38px; height: 38px; font-size: 1.3rem; } .lightbox-prev { left: 8px; } .lightbox-next { right: 8px; } } @media (max-width: 600px) { .lightbox-close { top: 14px; right: 14px; width: 36px; height: 36px; } } .lightbox-vote { display: none; margin-top: 16px; align-items: center; gap: 14px; } .lightbox.open[data-mode="vote"] .lightbox-vote { display: flex; } .lightbox-vote-count { font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; letter-spacing: 0.04em; color: var(--paper); } .lightbox-vote-btn { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; letter-spacing: 0.04em; padding: 9px 16px; border: 1px solid var(--paper); background: transparent; color: var(--paper); cursor: pointer; transition: background .2s ease, color .2s ease; } .lightbox-vote-btn:hover:not(:disabled) { background: var(--orange); border-color: var(--orange); } .lightbox-vote-btn:disabled { cursor: default; opacity: 0.7; background: var(--orange); border-color: var(--orange); } .lightbox-report { margin-top: 14px; background: transparent; border: none; color: rgba(243,241,234,0.5); font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; letter-spacing: 0.03em; text-decoration: underline; cursor: pointer; } .lightbox-report:hover { color: var(--paper); } .lightbox-report:disabled { text-decoration: none; cursor: default; } .lightbox-claim-wrap { display: none; margin-top: 10px; max-width: min(92vw, 360px); text-align: center; } .lightbox-claim-wrap.show { display: block; } .lightbox-claim { background: transparent; border: 1px solid var(--orange); color: var(--orange); font-family: "IBM Plex Mono", monospace; font-size: 0.7rem; letter-spacing: 0.03em; padding: 8px 14px; cursor: pointer; } .lightbox-claim:hover:not(:disabled) { background: var(--orange); color: var(--ink); } .lightbox-claim:disabled { opacity: 0.7; cursor: default; } .lightbox-claim-form { display: none; margin-top: 10px; } .lightbox-claim-form.show { display: block; } .lightbox-claim-note { width: 100%; box-sizing: border-box; background: rgba(243,241,234,0.08); border: 1px solid rgba(243,241,234,0.35); color: var(--paper); font-family: "IBM Plex Sans", sans-serif; font-size: 0.78rem; padding: 8px; resize: vertical; } .lightbox-claim-actions { display: flex; gap: 8px; justify-content: center; margin-top: 8px; } .lightbox-claim-submit, .lightbox-claim-cancel { font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; letter-spacing: 0.03em; padding: 7px 12px; cursor: pointer; } .lightbox-claim-submit { background: var(--orange); border: 1px solid var(--orange); color: var(--ink); } .lightbox-claim-submit:disabled { opacity: 0.7; cursor: default; } .lightbox-claim-cancel { background: transparent; border: 1px solid rgba(243,241,234,0.4); color: var(--paper); } .lightbox-claim-status { margin-top: 8px; font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; letter-spacing: 0.02em; color: rgba(243,241,234,0.75); } .lightbox-claim-status a { color: var(--orange); text-decoration: underline; }';
+    style.textContent = '.gallery-slot.filled img { cursor: zoom-in; } .lightbox { position: fixed; inset: 0; background: rgba(22,35,61,0.94); display: none; align-items: center; justify-content: center; flex-direction: column; z-index: 200; padding: 40px 20px; } .lightbox.open { display: flex; } .lightbox-img { max-width: min(92vw, 1100px); max-height: 78vh; object-fit: contain; border: 1px solid rgba(243,241,234,0.25); } .lightbox-caption { margin-top: 16px; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; letter-spacing: 0.04em; color: var(--paper); } .lightbox-mods { display: none; margin-top: 10px; max-width: min(92vw, 1100px); font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; letter-spacing: 0.03em; color: rgba(243,241,234,0.7); text-align: center; } .lightbox-mods.has-mods { display: block; } .lightbox-close { position: absolute; top: 22px; right: 28px; background: transparent; border: 1px solid var(--paper); color: var(--paper); width: 40px; height: 40px; font-size: 1.4rem; line-height: 1; cursor: pointer; } .lightbox-close:hover { background: var(--orange); border-color: var(--orange); } .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(22,35,61,0.6); border: 1px solid var(--paper); color: var(--paper); width: 46px; height: 46px; font-size: 1.6rem; line-height: 1; cursor: pointer; } .lightbox-nav:hover { background: var(--orange); border-color: var(--orange); } .lightbox-prev { left: 20px; } .lightbox-next { right: 20px; } @media (max-width: 700px) { .lightbox-nav { width: 38px; height: 38px; font-size: 1.3rem; } .lightbox-prev { left: 8px; } .lightbox-next { right: 8px; } } @media (max-width: 600px) { .lightbox-close { top: 14px; right: 14px; width: 36px; height: 36px; } } .lightbox-vote { display: none; margin-top: 16px; align-items: center; gap: 14px; } .lightbox.open[data-mode="vote"] .lightbox-vote { display: flex; } .lightbox-vote-count { font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; letter-spacing: 0.04em; color: var(--paper); } .lightbox-vote-btn { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; letter-spacing: 0.04em; padding: 9px 16px; border: 1px solid var(--paper); background: transparent; color: var(--paper); cursor: pointer; transition: background .2s ease, color .2s ease; } .lightbox-vote-btn:hover:not(:disabled) { background: var(--orange); border-color: var(--orange); } .lightbox-vote-btn:disabled { cursor: default; opacity: 0.7; background: var(--orange); border-color: var(--orange); } .lightbox-report { margin-top: 14px; background: transparent; border: none; color: rgba(243,241,234,0.5); font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; letter-spacing: 0.03em; text-decoration: underline; cursor: pointer; } .lightbox-report:hover { color: var(--paper); } .lightbox-report:disabled { text-decoration: none; cursor: default; } .lightbox-claim-wrap { display: none; margin-top: 10px; max-width: min(92vw, 360px); text-align: center; } .lightbox-claim-wrap.show { display: block; } .lightbox-claim { background: transparent; border: 1px solid var(--orange); color: var(--orange); font-family: "IBM Plex Mono", monospace; font-size: 0.7rem; letter-spacing: 0.03em; padding: 8px 14px; cursor: pointer; } .lightbox-claim:hover:not(:disabled) { background: var(--orange); color: var(--ink); } .lightbox-claim:disabled { opacity: 0.7; cursor: default; } .lightbox-claim-form { display: none; margin-top: 10px; } .lightbox-claim-form.show { display: block; } .lightbox.claiming .lightbox-nav { display: none; } .lightbox-claim-guest { display: none; } .lightbox-claim-guest.show { display: block; } .lightbox-claim-guest-intro { font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; line-height: 1.5; color: rgba(243,241,234,0.75); margin: 0 0 8px; } .lightbox-claim-guest-intro a { color: var(--orange); text-decoration: underline; } .lightbox-claim-input { display: block; width: 100%; box-sizing: border-box; margin: 0 0 8px; background: rgba(243,241,234,0.08); border: 1px solid rgba(243,241,234,0.35); color: var(--paper); font-family: "IBM Plex Sans", sans-serif; font-size: 16px; padding: 8px; } .lightbox-claim-note { width: 100%; box-sizing: border-box; background: rgba(243,241,234,0.08); border: 1px solid rgba(243,241,234,0.35); color: var(--paper); font-family: "IBM Plex Sans", sans-serif; font-size: 0.78rem; padding: 8px; resize: vertical; } .lightbox-claim-actions { display: flex; gap: 8px; justify-content: center; margin-top: 8px; } .lightbox-claim-submit, .lightbox-claim-cancel { font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; letter-spacing: 0.03em; padding: 7px 12px; cursor: pointer; } .lightbox-claim-submit { background: var(--orange); border: 1px solid var(--orange); color: var(--ink); } .lightbox-claim-submit:disabled { opacity: 0.7; cursor: default; } .lightbox-claim-cancel { background: transparent; border: 1px solid rgba(243,241,234,0.4); color: var(--paper); } .lightbox-claim-status { margin-top: 8px; font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; letter-spacing: 0.02em; color: rgba(243,241,234,0.75); } .lightbox-claim-status a { color: var(--orange); text-decoration: underline; }';
     document.head.appendChild(style);
 
     var lightbox = document.createElement('div');
@@ -1322,7 +1322,7 @@
     lightbox.setAttribute('role', 'dialog');
     lightbox.setAttribute('aria-modal', 'true');
     lightbox.setAttribute('aria-hidden', 'true');
-    lightbox.innerHTML = '<button class="lightbox-close" aria-label="Close">&times;</button><button class="lightbox-nav lightbox-prev" aria-label="Previous photo">&lsaquo;</button><button class="lightbox-nav lightbox-next" aria-label="Next photo">&rsaquo;</button><img class="lightbox-img" src="" alt=""><div class="lightbox-caption"></div><div class="lightbox-mods"></div><button type="button" class="lightbox-report" id="lightbox-report-btn">Report this image</button><div class="lightbox-claim-wrap" id="lightbox-claim-wrap"><button type="button" class="lightbox-claim" id="lightbox-claim-btn">Claim this build</button><div class="lightbox-claim-form" id="lightbox-claim-form"><textarea class="lightbox-claim-note" id="lightbox-claim-note" rows="2" maxlength="500" placeholder="Optional: tell us how we can verify this is your car"></textarea><div class="lightbox-claim-actions"><button type="button" class="lightbox-claim-submit" id="lightbox-claim-submit">Submit claim</button><button type="button" class="lightbox-claim-cancel" id="lightbox-claim-cancel">Cancel</button></div></div><p class="lightbox-claim-status" id="lightbox-claim-status"></p></div>';
+    lightbox.innerHTML = '<button class="lightbox-close" aria-label="Close">&times;</button><button class="lightbox-nav lightbox-prev" aria-label="Previous photo">&lsaquo;</button><button class="lightbox-nav lightbox-next" aria-label="Next photo">&rsaquo;</button><img class="lightbox-img" src="" alt=""><div class="lightbox-caption"></div><div class="lightbox-mods"></div><button type="button" class="lightbox-report" id="lightbox-report-btn">Report this image</button><div class="lightbox-claim-wrap" id="lightbox-claim-wrap"><button type="button" class="lightbox-claim" id="lightbox-claim-btn">Claim this build</button><div class="lightbox-claim-form" id="lightbox-claim-form"><div class="lightbox-claim-guest" id="lightbox-claim-guest"><p class="lightbox-claim-guest-intro">Not a member yet? Add your details and we\u2019ll set up your My Garage once your claim is approved.</p><input type="text" class="lightbox-claim-input" id="lightbox-claim-first" placeholder="First name" autocomplete="given-name" maxlength="50"><input type="text" class="lightbox-claim-input" id="lightbox-claim-last" placeholder="Last name" autocomplete="family-name" maxlength="50"><input type="email" class="lightbox-claim-input" id="lightbox-claim-email" placeholder="Email" autocomplete="email" maxlength="200"><p class="lightbox-claim-guest-intro">Already a member? <a href="my-builds.html">Sign in to My Garage</a> first instead.</p></div><textarea class="lightbox-claim-note" id="lightbox-claim-note" rows="2" maxlength="500" placeholder="Optional: tell us how we can verify this is your car"></textarea><div class="lightbox-claim-actions"><button type="button" class="lightbox-claim-submit" id="lightbox-claim-submit">Submit claim</button><button type="button" class="lightbox-claim-cancel" id="lightbox-claim-cancel">Cancel</button></div></div><p class="lightbox-claim-status" id="lightbox-claim-status"></p></div>';
     document.body.appendChild(lightbox);
 
     var lightboxImg = lightbox.querySelector('.lightbox-img');
@@ -1339,6 +1339,10 @@
     var claimSubmit = lightbox.querySelector('#lightbox-claim-submit');
     var claimCancel = lightbox.querySelector('#lightbox-claim-cancel');
     var claimStatus = lightbox.querySelector('#lightbox-claim-status');
+    var claimGuest = lightbox.querySelector('#lightbox-claim-guest');
+    var claimFirst = lightbox.querySelector('#lightbox-claim-first');
+    var claimLast = lightbox.querySelector('#lightbox-claim-last');
+    var claimEmail = lightbox.querySelector('#lightbox-claim-email');
     var galleryGrid = document.getElementById('gallery-grid');
     var currentIndex = -1;
 
@@ -1371,26 +1375,33 @@
 
       claimWrap.classList.toggle('show', !!p.unclaimed);
       claimForm.classList.remove('show');
+      lightbox.classList.remove('claiming');
       claimNote.value = '';
+      claimFirst.value = '';
+      claimLast.value = '';
+      claimEmail.value = '';
       claimStatus.textContent = '';
       var alreadyRequested = claimedRequests.indexOf(p.file) !== -1;
       claimBtn.disabled = alreadyRequested;
       claimBtn.textContent = alreadyRequested ? 'Claim requested' : 'Claim this build';
     }
 
+    // Members claim from their signed-in My Garage account. Anyone else
+    // gives their first name, last name and email with the claim.
     claimBtn.addEventListener('click', function () {
       if (claimBtn.disabled) return;
       var token = localStorage.getItem('mt3ukMyBuildsSession');
-      if (!token) {
-        claimStatus.innerHTML = 'Sign in to <a href="my-builds.html">My Garage</a> first, then come back to claim this build.';
-        return;
-      }
+      claimGuest.classList.toggle('show', !token);
       claimStatus.textContent = '';
       claimForm.classList.add('show');
+      // The prev/next arrows would sit over the form fields on phones.
+      lightbox.classList.add('claiming');
+      if (!token) claimFirst.focus();
     });
 
     claimCancel.addEventListener('click', function () {
       claimForm.classList.remove('show');
+      lightbox.classList.remove('claiming');
     });
 
     claimSubmit.addEventListener('click', function () {
@@ -1398,16 +1409,29 @@
       var p = photos[currentIndex];
       if (!p) return;
       var token = localStorage.getItem('mt3ukMyBuildsSession');
-      if (!token) {
-        claimStatus.innerHTML = 'Sign in to <a href="my-builds.html">My Garage</a> first, then come back to claim this build.';
-        return;
+      var claimBody = { file: p.file, note: claimNote.value.trim() };
+      var headers = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers['X-Session-Token'] = token;
+      } else {
+        claimBody.firstName = claimFirst.value.trim();
+        claimBody.lastName = claimLast.value.trim();
+        claimBody.email = claimEmail.value.trim();
+        if (!claimBody.firstName || !claimBody.lastName) {
+          claimStatus.textContent = 'Please enter your first and last name.';
+          return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(claimBody.email)) {
+          claimStatus.textContent = 'Please enter a valid email.';
+          return;
+        }
       }
       claimSubmit.disabled = true;
       claimStatus.textContent = 'Submitting…';
       fetch(MT3UK_API + '/gallery/claim', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Session-Token': token },
-        body: JSON.stringify({ file: p.file, note: claimNote.value.trim() })
+        headers: headers,
+        body: JSON.stringify(claimBody)
       })
         .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
         .then(function (result) {
@@ -1418,7 +1442,8 @@
             claimBtn.disabled = true;
             claimBtn.textContent = 'Claim requested';
             claimForm.classList.remove('show');
-            claimStatus.textContent = 'Claim submitted — we’ll email you once it’s reviewed.';
+            lightbox.classList.remove('claiming');
+            claimStatus.textContent = 'Claim submitted, we’ll email you once it’s reviewed.';
           } else {
             claimStatus.textContent = (result.data && result.data.message) || 'Could not submit claim.';
           }

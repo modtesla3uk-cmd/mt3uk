@@ -1315,9 +1315,10 @@ async function saveClaim(env, file, claim) {
   await env.VOTES.put(claimKey(file), JSON.stringify(claim));
 }
 
-async function sendClaimRequestEmail(env, file, email, note) {
+async function sendClaimRequestEmail(env, file, email, note, name, guest) {
   var subject = 'Build claim request: ' + file;
-  var body = email + ' has requested to claim the unclaimed build photo "' + file + '".\n\n' +
+  var body = subscriberLabel(name, email) + (guest ? ' (not signed in, email not yet confirmed)' : '') +
+    ' has requested to claim the unclaimed build photo "' + file + '".\n\n' +
     (note ? 'Their note:\n' + note + '\n\n' : '') +
     'Photo: ' + GALLERY_PUBLIC_BASE_URL + '/gallery/' + file + '\n\n' +
     'Review and approve/reject: ' + MY_BUILDS_SITE_URL + '/gallery-claims-admin.html';
@@ -1329,19 +1330,33 @@ async function sendClaimRequestEmail(env, file, email, note) {
   await env.SEND_EMAIL.send(message);
 }
 
-// A photo can only be claimed by a signed-in My Garage account (never by an
-// anonymous voterId, unlike likes/reports) so the resulting ownership
-// transfer is always tied to a verified email, and the admin decision below
-// has a real account to attach the build to.
+// A photo is claimed either from a signed-in My Garage account, or by
+// someone who isn't a member yet giving their first name, last name and
+// email. Either way an admin approves it, and a guest's email is only
+// proven when they use the sign-in link sent to it on approval, so the
+// build can't be taken over by typing someone else's address.
 async function handleGalleryClaim(request, env) {
-  var email = await resolveSession(request, env);
-  if (!email) return json({ success: false, message: 'Please sign in to My Garage first' }, 401);
-
   var body;
   try {
     body = await request.json();
   } catch (e) {
     return json({ success: false, message: 'Invalid request body' }, 400);
+  }
+
+  var email = await resolveSession(request, env);
+  var guest = !email;
+  var firstName = '';
+  var lastName = '';
+  if (guest) {
+    email = ((body && body.email) || '').toString().trim().toLowerCase().slice(0, 200);
+    firstName = cleanNamePart(body && body.firstName);
+    lastName = cleanNamePart(body && body.lastName);
+    if (!firstName || !lastName) {
+      return json({ success: false, message: 'Please enter your first and last name' }, 400);
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return json({ success: false, message: 'Please enter a valid email' }, 400);
+    }
   }
 
   var file = ((body && body.file) || '').toString();
@@ -1367,10 +1382,16 @@ async function handleGalleryClaim(request, env) {
   }
 
   var claim = { file: file, email: email, note: note, requestedAt: new Date().toISOString(), status: 'pending' };
+  if (guest) {
+    claim.guest = true;
+    claim.firstName = firstName;
+    claim.lastName = lastName;
+  }
   await saveClaim(env, file, claim);
 
+  var claimantName = guest ? firstName + ' ' + lastName : profileFullName(await getProfile(env, email));
   try {
-    await sendClaimRequestEmail(env, file, email, note);
+    await sendClaimRequestEmail(env, file, email, note, claimantName, guest);
   } catch (err) {
     console.log('Claim request email failed:', err.message);
   }
@@ -1441,7 +1462,8 @@ async function handleGalleryClaimsAdminList(request, env) {
   }).filter(Boolean);
   parsed.sort(function (a, b) { return (b.requestedAt || '').localeCompare(a.requestedAt || ''); });
   await Promise.all(parsed.map(async function (c) {
-    c.name = profileFullName(await getProfile(env, c.email));
+    c.name = profileFullName(await getProfile(env, c.email)) ||
+      (c.firstName && c.lastName ? c.firstName + ' ' + c.lastName : '');
   }));
 
   return json({ success: true, claims: parsed });
@@ -1480,6 +1502,9 @@ async function handleGalleryClaimsAdminDecide(request, env) {
       if (existingObj) sidecar = await existingObj.json();
     } catch (e) {}
     sidecar.email = claim.email;
+    if (claim.guest && claim.firstName && claim.lastName && !(await getProfile(env, claim.email))) {
+      await saveProfile(env, claim.email, claim.firstName, claim.lastName);
+    }
     var claimName = profileFullName(await getProfile(env, claim.email));
     if (claimName) sidecar.name = claimName;
     await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
@@ -1488,6 +1513,15 @@ async function handleGalleryClaimsAdminDecide(request, env) {
     await addSubscriberFiles(env, claim.email, [file]);
     claim.status = 'approved';
     await triggerManifestRebuild(env);
+    // Someone who claimed without signing in needs a way into My Garage.
+    if (claim.guest) {
+      try {
+        await sendMyGarageAccessEmail(env, claim.email, 'Your MT3UK build claim was approved',
+          'Your claim for a build on MT3UK has been approved, and it is now in your My Garage.');
+      } catch (err) {
+        console.log('Claim approved email failed:', err.message);
+      }
+    }
   } else {
     claim.status = 'rejected';
   }

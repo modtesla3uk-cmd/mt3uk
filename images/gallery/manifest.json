@@ -1,5 +1,31 @@
 [
   {
+    "file": "o-leary--by-rhc-tech-3.jpg",
+    "caption": "O LEARY",
+    "name": "RHC TECH",
+    "votable": false,
+    "color": "Grey",
+    "added": "2026-09-27",
+    "group": "o-leary--by-rhc-tech-3.jpg"
+  },
+  {
+    "file": "o-leary--by-rhc-tech-2.jpg",
+    "caption": "O LEARY",
+    "name": "RHC TECH",
+    "votable": false,
+    "color": "Grey",
+    "added": "2026-09-27",
+    "group": "o-leary--by-rhc-tech-3.jpg"
+  },
+  {
+    "file": "o-leary--by-rhc-tech.jpg",
+    "caption": "O LEARY",
+    "name": "RHC TECH",
+    "color": "Grey",
+    "added": "2026-09-27",
+    "group": "o-leary--by-rhc-tech-3.jpg"
+  },
+  {
     "file": "diagonal-parking.jpeg",
     "caption": "DIAGONAL PARKING",
     "name": "GEDIMINAS GUDELIS",

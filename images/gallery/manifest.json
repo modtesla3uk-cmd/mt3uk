@@ -166,12 +166,14 @@
   {
     "file": "rear-shot-of-the-green-knight-tessa.jpeg",
     "caption": "REAR SHOT OF THE GREEN KNIGHT TESSA",
+    "name": "SHARAD BUDDHDEV",
     "added": "2026-09-24",
     "group": "rear-shot-of-the-green-knight-tessa.jpeg"
   },
   {
     "file": "underglow-for-the-green-knight-tessa.jpeg",
     "caption": "UNDERGLOW FOR THE GREEN KNIGHT TESSA",
+    "name": "SHARAD BUDDHDEV",
     "votable": false,
     "added": "2026-09-24",
     "group": "rear-shot-of-the-green-knight-tessa.jpeg"
@@ -179,6 +181,7 @@
   {
     "file": "the-green-knight-tessa.jpeg",
     "caption": "THE GREEN KNIGHT TESSA",
+    "name": "SHARAD BUDDHDEV",
     "votable": false,
     "added": "2026-09-24",
     "group": "rear-shot-of-the-green-knight-tessa.jpeg"
@@ -193,6 +196,7 @@
   {
     "file": "team-red.jpeg",
     "caption": "TEAM RED",
+    "name": "MATT SMITH",
     "mods": [
       "Unplugged springs and BILSTEIN shocks with MPP camber arms"
     ],
@@ -202,7 +206,7 @@
   {
     "file": "team-red--by-mark-smith.jpg",
     "caption": "TEAM RED",
-    "name": "MARK SMITH",
+    "name": "MATT SMITH",
     "votable": false,
     "added": "2026-09-21",
     "group": "team-red--by-mark-smith.jpg"
@@ -210,7 +214,7 @@
   {
     "file": "team-red--by-mark-smith.jpeg",
     "caption": "TEAM RED",
-    "name": "MARK SMITH",
+    "name": "MATT SMITH",
     "mods": [
       "Tesory steering wheel",
       "Carbon factory front and rear spoiler",
@@ -229,7 +233,7 @@
   {
     "file": "team-red--by-mark-smith-2.jpeg",
     "caption": "TEAM RED",
-    "name": "MARK SMITH",
+    "name": "MATT SMITH",
     "mods": [
       "New front bearings"
     ],
@@ -521,7 +525,7 @@
   {
     "file": "68-team-red--by-mark-smith.jpeg",
     "caption": "TEAM RED",
-    "name": "MARK SMITH",
+    "name": "MATT SMITH",
     "mods": [
       "New Tesory steering wheel",
       "Unplugged performance springs",
@@ -629,7 +633,7 @@
   {
     "file": "56-team-red--by-mark-smith.jpg",
     "caption": "TEAM RED",
-    "name": "MARK SMITH",
+    "name": "MATT SMITH",
     "added": "2026-09-18",
     "group": "68-team-red--by-mark-smith.jpeg"
   },
@@ -858,6 +862,7 @@
   {
     "file": "31-team-red.jpeg",
     "caption": "TEAM RED",
+    "name": "MATT SMITH",
     "added": "2026-09-18",
     "group": "68-team-red--by-mark-smith.jpeg"
   },

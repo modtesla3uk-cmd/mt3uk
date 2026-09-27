@@ -1,5 +1,17 @@
-def test_my_garage_nav_link_has_no_new_badge(page):
-    page.goto("/index.html")
+import pytest
+
+
+NAV_PAGES = [
+    "index", "gallery", "my-builds", "shop", "reviews", "contact",
+    "track-day-on-the-day", "track-day-prep", "track-day-venues",
+    "blog", "blog-aaron", "blog-mark", "blog-myk-track-day", "blog-myk",
+    "blog-richard", "blog-richie",
+]
+
+
+@pytest.mark.parametrize("page_name", NAV_PAGES)
+def test_my_garage_nav_link_has_no_new_badge(page, page_name):
+    page.goto(f"/{page_name}.html")
     my_garage_link = page.locator("a.nav-link-mybuilds")
     assert my_garage_link.count() == 1
     badge_content = my_garage_link.evaluate(

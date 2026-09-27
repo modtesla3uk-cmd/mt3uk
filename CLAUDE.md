@@ -22,7 +22,8 @@ Static site for the MT3UK modified Tesla community, live at https://mt3uk.com. I
 
 ## Site structure
 
-- **No shared includes.** The nav, header and footer are copied into every page, so a menu change must be made in all of them and kept identical. The pages are `index`, `gallery`, `my-builds`, `shop`, `reviews`, `contact`, the three `track-day-*` pages, `blog` and the `blog-*` interview pages.
+- **Shared header and footer.** The menu, search and footer live in `partials/header.html` and `partials/footer.html`, with their styles in `css/site-header.css`. Edit those, never the copies in each page, then run `python scripts/build_layout.py` to copy them into every page. It also marks each page's active menu link (the `PAGES` map in the script) and turns links to a page's own sections into `#` links. `tests/test_layout.py` fails if a page has drifted. A new public page needs adding to `PAGES` there and in `tests/test_shop_section.py`.
+- **Pages:** `index`, `gallery`, `my-builds`, `shop`, `reviews`, `contact`, the three `track-day-*` pages, `blog` and the `blog-*` interview pages. Each keeps its own `<style>` for everything below the header.
 - **Line endings:** most HTML files use CRLF. Keep the existing line endings when editing.
 - **Width:** content width comes from `--content-max: 1000px` through `.wrap`. Don't add new fixed page widths or scale it for wide screens.
 - **Desktop layout:** centre short blocks inside a desktop-only `min-width` media query. Long-form text uses 2 columns with a dividing line. Never leave narrow text flush left on desktop.
@@ -35,6 +36,7 @@ Static site for the MT3UK modified Tesla community, live at https://mt3uk.com. I
 - For a new interview:
   - add its entry to `interviews.json`
   - add the page to `PAGES` in `generate_sitemap.py`
+  - add the page to `PAGES` in `scripts/build_layout.py` (active link `blog.html`), then run the script to give it the shared header and footer
   - add the comments block: `<div class="ic" id="comments" data-thread="<slug>">` with `js/interview-comments.js`
 - Comments run in demo mode on localhost, stored in localStorage. Add `?comments=live` to use the real worker.
 

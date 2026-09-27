@@ -13,3 +13,4 @@ scripts
 wrangler.jsonc
 .assetsignore
 *.md
+partials

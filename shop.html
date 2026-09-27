@@ -25,6 +25,7 @@
 <meta name="twitter:description" content="Shop official MT3UK merch, tees and stickers, plus member upgrades like the Tevo Solutions Master Cylinder Brace and EVOffer sport seats for Tesla.">
 <meta name="twitter:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
+<link rel="stylesheet" href="css/site-header.css">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap');
 
@@ -77,15 +78,7 @@
     padding: 0 28px;
   }
 
-  /* ---------- NAV ---------- */
-  header {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    background: rgba(243,241,234,0.92);
-    backdrop-filter: blur(6px);
-    border-bottom: 1px solid var(--ink);
-  }
+  /* ---------- NAV: shared, see css/site-header.css ---------- */
 
   .promo-banner { background: var(--orange); }
   .promo-banner-inner {
@@ -138,101 +131,8 @@
   @media (prefers-reduced-motion: reduce) {
     .promo-banner-track { animation: none; }
   }
-
-  nav {
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    padding: 16px 28px;
-    max-width: var(--content-max);
-    margin: 0 auto;
-    position: relative;
-  }
-
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
-  }
-  .logo img { height: 25px; width: auto; max-width: none; display: block; }
-  .logo.footer-logo img { height: 18px; }
-
-  .nav-center {
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    margin-right: auto;
-  }
-
-  .navlinks {
-    display: flex;
-    gap: 4px;
-    font-size: 0.92rem;
-    font-weight: 500;
-  }
-  .navlinks a {
-    padding: 10px 14px;
-    border-radius: 4px;
-    border-bottom: 1px solid transparent;
-    transition: opacity .15s ease, border-color .15s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    line-height: 1;
-  }
-  .navlinks a:hover { opacity: 0.65; }
-  .navlinks a.active { color: var(--orange); }
-
-  .nav-item { position: relative; display: flex; align-items: center; }
-  .nav-dropdown {
-    display: none;
-    position: absolute;
-    top: 100%;
-    right: 0;
-    min-width: 160px;
-    background: var(--paper);
-    border: 1px solid var(--ink);
-    z-index: 10;
-  }
-  .nav-dropdown-toggle { display: none; }
-  .nav-sublink {
-    display: block;
-    padding: 10px 14px 10px 26px;
-    font-size: 0.88rem;
-    white-space: nowrap;
-  }
-  .nav-sublink:hover { opacity: 0.65; }
-  .nav-link-shop, .nav-sublink-new, .nav-link-mybuilds { display: inline-flex; align-items: center; gap: 6px; }
-  .nav-subitem { position: relative; }
-  .nav-subitem > .nav-sublink { flex: 1; }
   a.nav-sublink-offer { display: block; color: var(--orange); font-weight: 600; border-top: 1px solid rgba(22,35,61,0.15); }
 
-  .nav-link-shop::after, .nav-sublink-new::after {
-    content: 'NEW';
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.62rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    color: var(--paper);
-    background: var(--orange);
-    padding: 2px 5px;
-    border-radius: 3px;
-    line-height: 1;
-  }
-
-  .nav-link-mybuilds::after {
-    content: 'NEW';
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.62rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    color: var(--paper);
-    background: var(--orange);
-    padding: 2px 5px;
-    border-radius: 3px;
-    line-height: 1;
-  }
 
   .nav-cta {
     background: var(--ink);
@@ -244,206 +144,6 @@
     white-space: nowrap;
   }
   .nav-cta:hover { background: var(--orange); border-color: var(--orange); }
-
-  .nav-search { position: relative; }
-  .nav-search-toggle {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 38px;
-    height: 34px;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    color: var(--ink);
-    padding: 0;
-  }
-  .nav-search-toggle:hover { opacity: 0.65; }
-  .nav-search-toggle svg { width: 18px; height: 18px; }
-  .nav-search-panel {
-    display: none;
-    position: absolute;
-    top: 100%;
-    right: 0;
-    width: 320px;
-    max-width: calc(100vw - 32px);
-    background: var(--paper);
-    border: 1px solid var(--ink);
-    z-index: 30;
-    padding: 12px;
-  }
-  .nav-search.open .nav-search-panel { display: block; }
-  .nav-search-panel input {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid var(--line);
-    font-family: inherit;
-    font-size: 0.9rem;
-    background: var(--white);
-    color: var(--ink);
-  }
-  .nav-search-results { max-height: 320px; overflow-y: auto; margin-top: 10px; }
-  .nav-search-result {
-    display: block;
-    padding: 8px 10px;
-    border-bottom: 1px solid rgba(22,35,61,0.08);
-    text-decoration: none;
-  }
-  .nav-search-result:last-child { border-bottom: none; }
-  .nav-search-result:hover, .nav-search-result:focus-visible { background: rgba(22,35,61,0.05); }
-  .nav-search-result-cat {
-    display: block;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.62rem;
-    color: var(--orange);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-  .nav-search-result-title { display: block; font-weight: 600; font-size: 0.88rem; color: var(--ink); }
-  .nav-search-result-desc { display: block; font-size: 0.78rem; color: var(--steel); margin-top: 2px; }
-  .nav-search-empty { padding: 8px 4px; color: var(--steel); font-size: 0.85rem; }
-
-  .hamburger {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    background: transparent;
-    border: none;
-    width: 38px;
-    height: 34px;
-    cursor: pointer;
-    padding: 0;
-  }
-  .hamburger-bar {
-    display: block;
-    width: 22px;
-    height: 2px;
-    border-radius: 2px;
-    background: linear-gradient(90deg, var(--charcoal), var(--ink));
-    transition: transform 0.25s ease, opacity 0.2s ease, background 0.2s ease;
-  }
-  .hamburger[aria-expanded="true"] .hamburger-bar { background: var(--orange); }
-  .hamburger[aria-expanded="true"] .hamburger-bar:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-  .hamburger[aria-expanded="true"] .hamburger-bar:nth-child(2) { opacity: 0; }
-  .hamburger[aria-expanded="true"] .hamburger-bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
-
-  .nav-link-mobile {
-    display: none !important;
-  }
-  @media (max-width: 780px) {
-    .nav-link-mobile {
-      display: flex !important;
-      justify-content: center;
-      padding: 14px 16px;
-      margin: 10px 16px;
-      border: none;
-      border-top: 2px solid var(--orange);
-      border-radius: 4px;
-      background: var(--orange);
-      color: var(--paper) !important;
-      font-weight: 600;
-    }
-  }
-
-  @media (min-width: 781px) {
-    .nav-search:hover .nav-search-panel,
-    .nav-search:focus-within .nav-search-panel { display: block; }
-
-    .nav-search-toggle { display: none; }
-    .nav-search-panel {
-      display: block;
-      position: static;
-      width: 220px;
-      max-width: none;
-      padding: 0;
-      border: 1px solid var(--ink);
-    }
-    .nav-search-panel input { border: none; padding: 9px 12px; width: 100%; }
-    .nav-search-results {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      width: 220px;
-      margin-top: 0;
-      border: 1px solid var(--ink);
-      border-top: none;
-      background: var(--paper);
-      z-index: 30;
-    }
-    .nav-search-results:empty { display: none; }
-  }
-
-  .navlinks {
-    display: none;
-    position: absolute;
-    top: 100%;
-    right: 0;
-    width: 300px;
-    max-width: calc(100vw - 32px);
-    flex-direction: column;
-    background: var(--paper);
-    border-left: 1px solid var(--ink);
-    border-bottom: 1px solid var(--ink);
-    box-shadow: -4px 4px 12px rgba(0,0,0,0.15);
-    margin-right: 0;
-    gap: 8px;
-    padding: 10px;
-  }
-  .navlinks.active { display: flex; }
-  .navlinks a {
-    padding: 14px 16px;
-    border-radius: 4px;
-    transition: background 0.15s ease, color 0.15s ease;
-  }
-  .navlinks a:hover, .navlinks a:focus-visible {
-    background: var(--orange);
-    color: var(--paper) !important;
-  }
-  .nav-item { flex-direction: row; flex-wrap: wrap; align-items: stretch; }
-  .nav-item > .nav-link { flex: 1; }
-  .nav-dropdown-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 48px;
-    background: none;
-    border: none;
-    border-radius: 4px;
-    font-size: 0.7rem;
-    color: var(--ink);
-    cursor: pointer;
-    transition: transform 0.2s ease, background 0.15s ease, color 0.15s ease;
-  }
-  .nav-dropdown-toggle:hover, .nav-dropdown-toggle:focus-visible {
-    background: var(--orange);
-    color: var(--paper);
-  }
-  .nav-item.open > .nav-dropdown-toggle { transform: rotate(180deg); }
-  .nav-dropdown {
-    display: none;
-    position: static;
-    flex-basis: 100%;
-    border: none;
-    background: rgba(22,35,61,0.03);
-  }
-  .nav-item.open > .nav-dropdown { display: block; }
-  .nav-sublink {
-    padding: 12px 16px 12px 28px;
-  }
-  .nav-subitem .nav-dropdown .nav-sublink { padding-left: 44px; }
-
-  @media (max-width: 780px) {
-    nav { gap: 8px; }
-    .nav-search { margin-left: auto; }
-    .nav-search-panel {
-      width: 200px;
-      padding: 8px;
-    }
-    .nav-search-panel input { padding: 8px 10px; font-size: 0.85rem; }
-    .nav-search-results { max-height: 220px; }
-  }
 
   /* ---------- SECTION SHELL ---------- */
   section { padding: 60px 0; border-bottom: 1px solid var(--ink); }
@@ -1043,15 +743,15 @@
         <a href="shop.html" class="nav-link active">Shop</a>
         <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Shop submenu">&#9660;</button>
         <div class="nav-dropdown">
-          <a href="shop.html#merch" class="nav-sublink">Merch</a>
+          <a href="#merch" class="nav-sublink">Merch</a>
           <div class="nav-item nav-subitem">
-            <a href="shop.html#parts" class="nav-sublink nav-sublink-new">Parts</a>
+            <a href="#parts" class="nav-sublink nav-sublink-new">Parts</a>
             <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Parts submenu">&#9660;</button>
             <div class="nav-dropdown">
-              <a href="shop.html#tevo" class="nav-sublink">Tevo Solutions</a>
-              <a href="shop.html#redline" class="nav-sublink">Redline Plates</a>
-              <a href="shop.html#evoffer" class="nav-sublink">EVOffer Sport Seats</a>
-              <a href="shop.html#offers" class="nav-sublink nav-sublink-offer">Offers</a>
+              <a href="#tevo" class="nav-sublink">Tevo Solutions</a>
+              <a href="#redline" class="nav-sublink">Redline Plates</a>
+              <a href="#evoffer" class="nav-sublink">EVOffer Sport Seats</a>
+              <a href="#offers" class="nav-sublink nav-sublink-offer">Offers</a>
             </div>
           </div>
           <a href="reviews.html" class="nav-sublink">Customer Reviews</a>
@@ -1098,7 +798,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
       </button>
       <div class="nav-search-panel" id="nav-search-panel">
-        <input type="text" id="nav-search-input" placeholder="Search&hellip; e.g. Gallery, Shop, Hoodies, Number Plates, Seats" autocomplete="off">
+        <input type="text" id="nav-search-input" placeholder="Search&hellip; e.g. Gallery, Shop, Hoodies, Number Plates, Pads" autocomplete="off">
         <div class="nav-search-results" id="nav-search-results"></div>
       </div>
     </div>

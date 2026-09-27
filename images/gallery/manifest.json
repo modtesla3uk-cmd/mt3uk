@@ -102,6 +102,7 @@
   {
     "file": "night-lights.jpg",
     "caption": "NIGHT LIGHTS",
+    "name": "JEREMY HING",
     "votable": false,
     "color": "Red",
     "added": "2026-09-25",
@@ -269,7 +270,7 @@
   {
     "file": "scarlett--by-jeremy-3.jpg",
     "caption": "SCARLETT",
-    "name": "JEREMY",
+    "name": "JEREMY HING",
     "mods": [
       "test mod"
     ],
@@ -281,7 +282,7 @@
   {
     "file": "scarlett--by-jeremy-2.jpg",
     "caption": "SCARLETT",
-    "name": "JEREMY",
+    "name": "JEREMY HING",
     "mods": [
       "test mod"
     ],
@@ -293,7 +294,7 @@
   {
     "file": "scarlett--by-jeremy.jpg",
     "caption": "SCARLETT",
-    "name": "JEREMY",
+    "name": "JEREMY HING",
     "mods": [
       "test mod"
     ],

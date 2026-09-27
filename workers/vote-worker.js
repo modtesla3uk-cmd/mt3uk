@@ -849,6 +849,17 @@ async function handleCommentCountsGet(request, env, ctx) {
   return json({ success: true, counts: counts });
 }
 
+// Photo likes, comment likes and comment reports need a signed-in member.
+// They are recorded against "m:<email>" in the same keys anonymous voter
+// ids used before, so older anonymous likes still count.
+function memberActorId(email) {
+  return 'm:' + email;
+}
+
+function signInRequired(message) {
+  return json({ success: false, signIn: true, message: message }, 401);
+}
+
 async function getLikerFiles(env, voterId) {
   var raw = await env.VOTES.get('liker-files:' + voterId);
   if (!raw) return [];
@@ -864,10 +875,12 @@ async function handleLikesGet(request, env, ctx) {
   var voterId = getVoterId(request);
   var likes = await getLikesAggregate(env, ctx);
 
-  // A single JSON-array key per voter (one KV get) rather than a list() call,
-  // since this runs on every homepage visit and Workers KV's free tier caps
-  // list operations far lower than reads.
-  var liked = await getLikerFiles(env, voterId);
+  // A single JSON-array key per member (one KV get) rather than a list()
+  // call, since this runs on every homepage visit and Workers KV's free tier
+  // caps list operations far lower than reads. Signed-out visitors have
+  // liked nothing.
+  var memberEmail = await resolveSession(request, env);
+  var liked = memberEmail ? await getLikerFiles(env, memberActorId(memberEmail)) : [];
 
   return json({ success: true, voterId: voterId, likes: likes, liked: liked });
 }
@@ -885,13 +898,16 @@ async function handleLikePost(request, env, ctx) {
     return json({ success: false, message: 'file is required' }, 400);
   }
 
+  var likerEmail = await resolveSession(request, env);
+  if (!likerEmail) return signInRequired('Sign in to like photos.');
+
   var manifest = await getLiveGalleryEntries(env, ctx);
   var isKnown = manifest.some(function (p) { return p.file === file; });
   if (!isKnown) {
     return json({ success: false, message: 'Unknown photo' }, 400);
   }
 
-  var voterId = getVoterId(request);
+  var voterId = memberActorId(likerEmail);
   var countKey = 'likes:' + file;
   var likerFiles = await getLikerFiles(env, voterId);
   var idx = likerFiles.indexOf(file);
@@ -912,34 +928,43 @@ async function handleLikePost(request, env, ctx) {
 
   if (liked && ctx && ctx.waitUntil) {
     var likedEntry = manifest.filter(function (p) { return p.file === file; })[0];
-    ctx.waitUntil(sendLikeAlert(env, file, voterId, likedEntry && likedEntry.caption).catch(function (err) {
+    ctx.waitUntil(sendLikeAlert(env, file, voterId, likedEntry && likedEntry.caption, likerEmail).catch(function (err) {
       console.log('Like alert failed:', err.message);
     }));
   }
 
-  return json({ success: true, voterId: voterId, file: file, liked: liked, count: count });
+  return json({ success: true, file: file, liked: liked, count: count });
 }
 
-// Tells a photo's owner their build was liked, if they have notifications
-// on. Likes are anonymous, and each visitor triggers at most one alert per
-// photo in LIKE_ALERT_TTL_SECONDS, so liking and unliking can't spam it.
+// Tells a photo's owner their build was liked: an entry in their My Garage
+// notifications, and a push alert if they have push notifications on. A
+// signed-in liker is named, anyone else shows as "Someone". Each visitor
+// triggers at most one alert per photo in LIKE_ALERT_TTL_SECONDS, so liking
+// and unliking can't spam it, and liking your own photo sends nothing.
 var LIKE_ALERT_TTL_SECONDS = 30 * 24 * 60 * 60;
 
-async function sendLikeAlert(env, file, voterId, caption) {
+async function sendLikeAlert(env, file, voterId, caption, likerEmail) {
   var sidecar = null;
   try {
     var obj = await env.GALLERY_BUCKET.get('gallery/' + file + '.json');
     if (obj) sidecar = await obj.json();
   } catch (e) {}
   var ownerEmail = sidecar && sidecar.email;
-  if (!ownerEmail) return;
-  if (!(await getPushSubscriptions(env, ownerEmail)).length) return;
+  if (!ownerEmail || ownerEmail === likerEmail) return;
   var onceKey = 'like-alert:' + file + ':' + voterId;
   if (await env.VOTES.get(onceKey)) return;
   await env.VOTES.put(onceKey, '1', { expirationTtl: LIKE_ALERT_TTL_SECONDS });
+  var likerName = likerEmail ? profileFullName(await getProfile(env, likerEmail)) : '';
   var name = String(caption || '').toLowerCase().replace(/(^|\s)([a-z])/g, function (m, sp, c) { return sp + c.toUpperCase(); });
+  await addNotification(env, ownerEmail, {
+    type: 'like',
+    file: file,
+    fromName: likerName || 'Someone',
+    text: 'Liked your photo' + (name ? ' of ' + name : '') + '.',
+    createdAt: new Date().toISOString()
+  });
   await sendPushToMember(env, ownerEmail, {
-    title: 'Someone liked your build',
+    title: (likerName || 'Someone') + ' liked your build',
     body: name ? name + ' got a new like.' : 'Your build got a new like.',
     url: commentAlertUrl(file, null)
   });
@@ -1055,8 +1080,8 @@ async function handleCommentsGet(request, env, ctx) {
 
   var voterId = getVoterId(request);
   var comments = await getComments(env, file);
-  var likedIds = await getCommentLikerIds(env, voterId);
   var viewerEmail = await resolveSession(request, env);
+  var likedIds = viewerEmail ? await getCommentLikerIds(env, memberActorId(viewerEmail)) : [];
   var visible = comments.filter(function (c) { return !c.hidden; }).map(function (c) {
     return publicComment(c, likedIds, viewerEmail);
   });
@@ -1151,7 +1176,9 @@ async function handleCommentReport(request, env, ctx) {
     return json({ success: false, message: 'file and id are required' }, 400);
   }
 
-  var voterId = getVoterId(request);
+  var reporterEmail = await resolveSession(request, env);
+  if (!reporterEmail) return signInRequired('Sign in to report comments.');
+  var voterId = memberActorId(reporterEmail);
   var comments = await getComments(env, file);
   var comment = comments.find(function (c) { return c.id === id; });
   if (!comment) {
@@ -1964,7 +1991,9 @@ async function handleCommentLike(request, env, ctx) {
     return json({ success: false, message: 'Comment not found' }, 404);
   }
 
-  var voterId = getVoterId(request);
+  var likerEmail = await resolveSession(request, env);
+  if (!likerEmail) return signInRequired('Sign in to like comments.');
+  var voterId = memberActorId(likerEmail);
   var likerIds = await getCommentLikerIds(env, voterId);
   var idx = likerIds.indexOf(id);
   var liked;
@@ -1981,7 +2010,7 @@ async function handleCommentLike(request, env, ctx) {
   await env.VOTES.put('comment-likes:' + voterId, JSON.stringify(likerIds));
   await saveComments(env, file, comments);
 
-  return json({ success: true, voterId: voterId, id: id, liked: liked, likes: comment.likes });
+  return json({ success: true, id: id, liked: liked, likes: comment.likes });
 }
 
 async function handleCommentsAdminList(request, env) {
@@ -3019,6 +3048,7 @@ async function handleMyBuildsGet(request, env) {
     var photos = await Promise.all(g.entries.map(async function (entry) {
       var comments = await getComments(env, entry.file);
       var visibleComments = comments.filter(function (c) { return !c.hidden; });
+      var likeCount = parseInt((await env.VOTES.get('likes:' + entry.file)) || '0', 10) || 0;
       return {
         file: entry.file,
         caption: entry.caption || '',
@@ -3026,7 +3056,8 @@ async function handleMyBuildsGet(request, env) {
         gallery: entry.gallery !== false,
         reel: entry.reel !== false,
         votable: entry.votable !== false,
-        commentCount: visibleComments.length
+        commentCount: visibleComments.length,
+        likeCount: likeCount
       };
     }));
     var mods = record && Array.isArray(record.mods) ? record.mods : (g.entries[0].mods || []);
@@ -3041,6 +3072,7 @@ async function handleMyBuildsGet(request, env) {
       color: color,
       createdAt: createdAt,
       commentCount: photos.reduce(function (sum, p) { return sum + p.commentCount; }, 0),
+      likeCount: photos.reduce(function (sum, p) { return sum + p.likeCount; }, 0),
       photos: photos
     };
   }));

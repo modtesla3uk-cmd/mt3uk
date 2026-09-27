@@ -3,7 +3,7 @@
      <div class="ic" id="comments" data-thread="richard"></div>
      <script src="js/interview-comments.js" defer></script>
    Uses the same comments system as the Gallery Feed (vote worker), stored under "interview:<thread>".
-   Only signed-in members (My Garage) can post. Anyone can read, like and report.
+   Only signed-in members (My Garage) can post, like and report. Anyone can read.
    On localhost (or with ?comments=demo) it runs in local preview mode: nothing is sent to the
    live site, comments are kept in this browser only. Add ?comments=live to use the real system locally. */
 (function () {
@@ -140,13 +140,13 @@
     },
     like: function (id) {
       return fetch(API + '/comments/like', {
-        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Voter-Id': voterId },
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Voter-Id': voterId, 'X-Session-Token': session() || '' },
         body: JSON.stringify({ file: thread, id: id })
       }).then(function (r) { return r.json(); });
     },
     report: function (id) {
       return fetch(API + '/comments/report', {
-        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Voter-Id': voterId },
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Voter-Id': voterId, 'X-Session-Token': session() || '' },
         body: JSON.stringify({ file: thread, id: id })
       }).then(function (r) { return r.json(); });
     },
@@ -242,14 +242,31 @@
       .then(function () { btn.disabled = false; });
   });
 
+  // Likes and reports are for signed-in members: others get the sign-in
+  // dialog from js/signin-prompt.js.
+  function needSignIn(action) {
+    if (myEmail) return false;
+    if (window.mt3ukShowSignIn) window.mt3ukShowSignIn(action);
+    else window.location.href = 'my-builds.html';
+    return true;
+  }
+
   root.addEventListener('click', function (e) {
     var li = e.target.closest('.ic-item'); var id = li && li.getAttribute('data-id');
     var b;
     if ((b = e.target.closest('.ic-like')) && id) {
+      if (needSignIn('like comments')) return;
       var liked = b.getAttribute('aria-pressed') !== 'true'; var span = b.querySelector('span');
+      var before = span.textContent;
       b.setAttribute('aria-pressed', liked ? 'true' : 'false');
       span.textContent = String(Math.max(0, parseInt(span.textContent, 10) + (liked ? 1 : -1)));
-      store.like(id).then(function (r) { if (r && typeof r.likes === 'number') span.textContent = String(r.likes); }).catch(function () {});
+      store.like(id).then(function (r) {
+        if (r && typeof r.likes === 'number') span.textContent = String(r.likes);
+        else if (r && r.signIn) {
+          b.setAttribute('aria-pressed', liked ? 'false' : 'true'); span.textContent = before;
+          myEmail = null; if (window.mt3ukShowSignIn) window.mt3ukShowSignIn('like comments');
+        }
+      }).catch(function () {});
       return;
     }
     if ((b = e.target.closest('.ic-reply')) && id) {
@@ -262,6 +279,7 @@
       var s = b.closest('.ic-reply-slot'); s.hidden = true; s.innerHTML = ''; return;
     }
     if ((b = e.target.closest('.ic-report')) && id && !b.disabled) {
+      if (needSignIn('report comments')) return;
       b.disabled = true; b.textContent = 'Reported';
       reported.push(id); try { localStorage.setItem('mt3ukReportedComments', JSON.stringify(reported)); } catch (x) {}
       store.report(id).catch(function () {});

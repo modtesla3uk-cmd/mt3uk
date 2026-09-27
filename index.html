@@ -3138,6 +3138,27 @@
     var autoscrollBtn = document.getElementById('bf-autoscroll-toggle');
     if (!feedEl) return;
 
+    // Likes, comment likes and comment reports are for signed-in members
+    // (js/signin-prompt.js shows the sign-in dialog).
+    function mt3ukSessionToken() {
+      try { return localStorage.getItem('mt3ukMyBuildsSession'); } catch (e) { return null; }
+    }
+    function mt3ukSignedIn(action) {
+      if (mt3ukSessionToken()) return true;
+      if (window.mt3ukShowSignIn) window.mt3ukShowSignIn(action);
+      else window.location.href = 'my-builds.html';
+      return false;
+    }
+    function mt3ukSignInExpired(action) {
+      try { localStorage.removeItem('mt3ukMyBuildsSession'); } catch (e) {}
+      if (window.mt3ukShowSignIn) window.mt3ukShowSignIn(action);
+    }
+    function mt3ukMemberHeaders(headers) {
+      var token = mt3ukSessionToken();
+      if (token) headers['X-Session-Token'] = token;
+      return headers;
+    }
+
     var voterId = localStorage.getItem('mt3ukVoterId');
     if (!voterId) {
       voterId = window.crypto && window.crypto.randomUUID ? window.crypto.randomUUID() : ('v-' + Date.now() + '-' + Math.random().toString(16).slice(2));
@@ -3334,7 +3355,7 @@
       var email = window.mt3ukMyBuildsEmail;
       if (!email) {
         slotEl.innerHTML = '<p class="bf-comments-signin-prompt">' +
-          '<a href="my-builds.html#build-upload">Sign in by uploading a build</a> to leave a comment.' +
+          '<a href="my-builds.html?next=' + encodeURIComponent('/#build-feed') + '">Sign in</a> or <a href="my-builds.html?next=' + encodeURIComponent('/#build-feed') + '#build-upload">add your car</a> to leave a comment.' +
           '</p>';
         return;
       }
@@ -3492,12 +3513,19 @@
             var reportLi = reportBtn.closest('.bf-comment');
             var reportId = reportLi && reportLi.dataset.id;
             if (!reportId) return;
+            if (!mt3ukSignedIn('report comments')) return;
             reportBtn.disabled = true;
             reportBtn.textContent = 'Reported';
             fetch(VOTE_ENDPOINT + '/comments/report', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'X-Voter-Id': voterId },
+              headers: mt3ukMemberHeaders({ 'Content-Type': 'application/json', 'X-Voter-Id': voterId }),
               body: JSON.stringify({ file: slide.dataset.current, id: reportId })
+            }).then(function (res) {
+              if (res.status === 401) {
+                reportBtn.disabled = false;
+                reportBtn.textContent = 'Report';
+                mt3ukSignInExpired('report comments');
+              }
             }).catch(function () {});
             reportedCommentIds.push(reportId);
             localStorage.setItem('mt3ukReportedComments', JSON.stringify(reportedCommentIds));
@@ -3548,6 +3576,7 @@
             var likeLi = likeBtn.closest('.bf-comment');
             var likeId = likeLi && likeLi.dataset.id;
             if (!likeId) return;
+            if (!mt3ukSignedIn('like comments')) return;
             var countEl = likeBtn.querySelector('.bf-comment-like-count');
             var liked = likeBtn.getAttribute('aria-pressed') !== 'true';
             var count = parseInt(countEl.textContent, 10) || 0;
@@ -3555,10 +3584,18 @@
             countEl.textContent = String(liked ? count + 1 : Math.max(0, count - 1));
             fetch(VOTE_ENDPOINT + '/comments/like', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'X-Voter-Id': voterId },
+              headers: mt3ukMemberHeaders({ 'Content-Type': 'application/json', 'X-Voter-Id': voterId }),
               body: JSON.stringify({ file: slide.dataset.current, id: likeId })
             })
-              .then(function (res) { return res.ok ? res.json() : null; })
+              .then(function (res) {
+                if (res.status === 401) {
+                  likeBtn.setAttribute('aria-pressed', liked ? 'false' : 'true');
+                  countEl.textContent = String(count);
+                  mt3ukSignInExpired('like comments');
+                  return null;
+                }
+                return res.ok ? res.json() : null;
+              })
               .then(function (data) {
                 if (data && data.success) {
                   likeBtn.setAttribute('aria-pressed', data.liked ? 'true' : 'false');
@@ -3974,6 +4011,8 @@
         var btn = slide.querySelector('.bf-like-btn');
         var file = slide.dataset.current;
         if (btn.dataset.pending === 'true') return;
+        // Likes are for signed-in members only.
+        if (!mt3ukSignedIn('like photos')) return;
         var state = likeMap[file] || (likeMap[file] = { count: 0, liked: false });
         var liked = !state.liked;
         state.liked = liked;
@@ -3989,10 +4028,20 @@
         btn.dataset.pending = 'true';
         fetch(VOTE_ENDPOINT + '/likes', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-Voter-Id': voterId },
+          headers: mt3ukMemberHeaders({ 'Content-Type': 'application/json', 'X-Voter-Id': voterId }),
           body: JSON.stringify({ file: file })
         })
-          .then(function (res) { return res.ok ? res.json() : null; })
+          .then(function (res) {
+            if (res.status === 401) {
+              // The sign-in has expired: undo the like and ask again.
+              state.liked = !liked;
+              state.count = liked ? Math.max(0, state.count - 1) : state.count + 1;
+              if (slide.dataset.current === file) syncBar(slide);
+              mt3ukSignInExpired('like photos');
+              return null;
+            }
+            return res.ok ? res.json() : null;
+          })
           .then(function (data) {
             if (data && data.success) {
               likeMap[file] = { count: data.count, liked: data.liked };
@@ -4283,7 +4332,7 @@
     }
 
     function fetchLikes() {
-      return fetch(VOTE_ENDPOINT + '/likes', { headers: { 'X-Voter-Id': voterId }, cache: 'no-store' })
+      return fetch(VOTE_ENDPOINT + '/likes', { headers: mt3ukMemberHeaders({ 'X-Voter-Id': voterId }), cache: 'no-store' })
         .then(function (res) { return res.ok ? res.json() : null; })
         .catch(function () { return null; })
         .then(function (data) { return data && data.success ? data : null; });
@@ -5421,6 +5470,7 @@
   })();
 </script>
 
+<script src="js/signin-prompt.js" defer></script>
 <script src="js/search.js" defer></script>
 
 <script>

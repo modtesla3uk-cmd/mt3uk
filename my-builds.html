@@ -1163,10 +1163,10 @@ document.addEventListener('DOMContentLoaded', function () {
       </div>
 
       <div class="mb-card mb-push-card" id="mb-push-card">
-        <h2>Phone notifications</h2>
-        <p id="mb-push-intro">Get an alert on this device when someone likes or comments on your build, replies to you, or a build claim is approved.</p>
+        <h2>Push notifications</h2>
+        <p id="mb-push-intro">Get an alert on this device when someone likes or comments on your build, or replies to your comments. While push notifications are on, comment emails stop.</p>
         <div class="mb-push-actions">
-          <button type="button" class="mb-btn" id="mb-push-toggle" hidden>Turn on notifications</button>
+          <button type="button" class="mb-btn" id="mb-push-toggle" hidden>Enable Push Notifications</button>
           <button type="button" class="mb-signout-btn" id="mb-push-test" hidden>Send a test</button>
         </div>
         <p class="mb-status" id="mb-push-status"></p>
@@ -1579,7 +1579,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function showPushState(subscribed) {
       pushToggle.hidden = false;
-      pushToggle.textContent = subscribed ? 'Turn off notifications' : 'Turn on notifications';
+      pushToggle.textContent = subscribed ? 'Disable Push Notifications' : 'Enable Push Notifications';
       pushToggle.dataset.on = subscribed ? '1' : '';
       pushTest.hidden = !subscribed;
     }
@@ -1592,7 +1592,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var installed = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
       if (!supported) {
         pushIntro.textContent = isIos && !installed
-          ? 'On iPhone, add MT3UK to your Home Screen first: tap the Share button, then Add to Home Screen. Open MT3UK from your Home Screen and come back here to turn notifications on.'
+          ? 'On iPhone, add MT3UK to your Home Screen first: tap the Share button, then Add to Home Screen. Open MT3UK from your Home Screen and come back here to enable push notifications.'
           : 'This browser does not support notifications. Try Chrome on Android, or add MT3UK to your Home Screen on iPhone.';
         return;
       }
@@ -1625,7 +1625,7 @@ document.addEventListener('DOMContentLoaded', function () {
       }).then(function (data) {
         if (!data || !data.success) throw new Error((data && data.message) || 'Could not turn notifications on.');
         showPushState(true);
-        setStatus(pushStatus, 'Notifications are on for this device.', 'ok');
+        setStatus(pushStatus, 'Push notifications are on for this device. Comment emails are now off.', 'ok');
       });
     }
 
@@ -1646,7 +1646,7 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .then(function () {
           showPushState(false);
-          setStatus(pushStatus, 'Notifications are off for this device.', '');
+          setStatus(pushStatus, 'Push notifications are off for this device.', '');
         });
     }
 
@@ -1664,7 +1664,7 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(function (res) { return res.json(); })
         .then(function (data) {
           if (data && data.success && data.sent) setStatus(pushStatus, 'Test sent, it should arrive in a few seconds.', 'ok');
-          else setStatus(pushStatus, 'Could not reach this device. Try turning notifications off and on again.', 'err');
+          else setStatus(pushStatus, 'Could not reach this device. Try disabling and enabling push notifications again.', 'err');
         })
         .catch(function () { setStatus(pushStatus, 'Could not send a test, please try again.', 'err'); })
         .then(function () { pushTest.disabled = false; });

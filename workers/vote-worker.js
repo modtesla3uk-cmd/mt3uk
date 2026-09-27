@@ -2326,7 +2326,7 @@ async function handlePushTest(request, env) {
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
   var sent = await sendPushToMember(env, email, {
     title: 'MT3UK notifications are on',
-    body: 'You will get alerts here for likes and comments on your builds, replies and claim updates.',
+    body: 'You will get alerts here for likes and comments on your builds, and replies to your comments.',
     url: '/my-builds.html'
   });
   return json({ success: true, sent: sent });
@@ -2370,16 +2370,20 @@ async function notifyCommentRecipients(env, ctx, file, commenterEmail, commenter
         text: text,
         createdAt: new Date().toISOString()
       });
-      try {
-        await sendCommentNotificationEmail(env, toEmail, commenterName, text, file, commentId, toEmail !== ownerEmail);
-      } catch (err) {
-        console.log('Comment notification email failed:', err.message);
-      }
-      await sendPushToMember(env, toEmail, {
+      // Members with push notifications on get those instead of emails.
+      // The email still goes if no device could be reached.
+      var pushed = await sendPushToMember(env, toEmail, {
         title: toEmail === ownerEmail ? 'New comment on your build' : 'New reply to your comment',
         body: commenterName + ': ' + text.slice(0, 140),
         url: commentAlertUrl(file, commentId)
       });
+      if (!pushed) {
+        try {
+          await sendCommentNotificationEmail(env, toEmail, commenterName, text, file, commentId, toEmail !== ownerEmail);
+        } catch (err) {
+          console.log('Comment notification email failed:', err.message);
+        }
+      }
     }));
   };
 

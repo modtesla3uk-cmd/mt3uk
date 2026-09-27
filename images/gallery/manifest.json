@@ -1,5 +1,13 @@
 [
   {
+    "file": "diagonal-parking.jpeg",
+    "caption": "DIAGONAL PARKING",
+    "name": "GEDIMINAS GUDELIS",
+    "color": "White",
+    "added": "2026-09-27",
+    "group": "diagonal-parking.jpeg"
+  },
+  {
     "file": "rear-shot.jpeg",
     "caption": "REAR SHOT",
     "name": "GEDIMINAS GUDELIS",
@@ -20,7 +28,7 @@
     ],
     "color": "White",
     "added": "2026-09-27",
-    "group": "rear-shot.jpeg"
+    "group": "diagonal-parking.jpeg"
   },
   {
     "file": "top-shot.jpeg",
@@ -43,7 +51,7 @@
     ],
     "color": "White",
     "added": "2026-09-27",
-    "group": "rear-shot.jpeg"
+    "group": "diagonal-parking.jpeg"
   },
   {
     "file": "side-shot.jpeg",
@@ -66,7 +74,7 @@
     ],
     "color": "White",
     "added": "2026-09-27",
-    "group": "rear-shot.jpeg"
+    "group": "diagonal-parking.jpeg"
   },
   {
     "file": "viper-green-model-y.jpeg",

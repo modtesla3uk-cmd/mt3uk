@@ -925,6 +925,7 @@ async function handleLikePost(request, env, ctx) {
   }
   await env.VOTES.put('liker-files:' + voterId, JSON.stringify(likerFiles));
   await env.VOTES.put(countKey, String(count));
+  await updatePhotoLikers(env, file, likerEmail, liked);
 
   if (liked && ctx && ctx.waitUntil) {
     var likedEntry = manifest.filter(function (p) { return p.file === file; })[0];
@@ -934,6 +935,47 @@ async function handleLikePost(request, env, ctx) {
   }
 
   return json({ success: true, file: file, liked: liked, count: count });
+}
+
+// Who liked each photo, newest first, for the "Liked by" sheet on the reel:
+// one JSON key per photo (likers:<file>) holding each member's email, the
+// name they had when they liked it, and when. Emails never leave the
+// worker. Likes from before sign-in was needed aren't in it, so the sheet
+// shows those as a count.
+var MAX_LIKERS_PER_PHOTO = 500;
+
+async function getPhotoLikers(env, file) {
+  var raw = await env.VOTES.get('likers:' + file);
+  if (!raw) return [];
+  try {
+    var parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+async function updatePhotoLikers(env, file, email, liked) {
+  var likers = (await getPhotoLikers(env, file)).filter(function (l) { return l.email !== email; });
+  if (liked) {
+    var profile = await getProfile(env, email);
+    likers.unshift({ email: email, name: profileFullName(profile) || displayNameFromEmail(email), at: new Date().toISOString() });
+    likers = likers.slice(0, MAX_LIKERS_PER_PHOTO);
+  }
+  await env.VOTES.put('likers:' + file, JSON.stringify(likers));
+}
+
+async function handleLikersGet(request, env) {
+  var file = (new URL(request.url).searchParams.get('file') || '').toString();
+  if (!file) return json({ success: false, message: 'file is required' }, 400);
+  var likers = await getPhotoLikers(env, file);
+  var count = parseInt((await env.VOTES.get('likes:' + file)) || '0', 10) || 0;
+  return json({
+    success: true,
+    count: Math.max(count, likers.length),
+    likers: likers.map(function (l) { return { name: l.name, at: l.at }; }),
+    earlier: Math.max(0, count - likers.length)
+  });
 }
 
 // Tells a photo's owner their build was liked: an entry in their My Garage
@@ -3885,6 +3927,9 @@ export default {
     }
     if (url.pathname === '/likes' && request.method === 'GET') {
       return handleLikesGet(request, env, ctx);
+    }
+    if (url.pathname === '/likes/who' && request.method === 'GET') {
+      return handleLikersGet(request, env);
     }
     if (url.pathname === '/likes' && request.method === 'POST') {
       return handleLikePost(request, env, ctx);

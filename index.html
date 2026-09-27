@@ -1449,6 +1449,58 @@
     gap: 8px;
   }
   .bf-comments-block[hidden] { display: none; }
+
+  /* Bottom sheets (likes and comments) slide up over the page, like
+     Instagram's. Swipe down, tap outside or tap x to close. */
+  .bf-sheet-backdrop {
+    position: fixed; inset: 0; z-index: 2147481000;
+    background: rgba(8,14,28,0.5);
+    opacity: 0; transition: opacity 200ms ease;
+  }
+  .bf-sheet-backdrop.bf-sheet-shown { opacity: 1; }
+  .bf-sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 2147481001;
+    width: 100%; max-width: 640px; margin: 0 auto;
+    max-height: 78vh; max-height: 78dvh;
+    background: var(--white); color: var(--ink);
+    border-radius: 18px 18px 0 0;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.35);
+    padding: 8px 16px calc(14px + env(safe-area-inset-bottom));
+    display: flex; flex-direction: column; gap: 10px;
+    transform: translateY(100%); transition: transform 240ms cubic-bezier(.2,.8,.2,1);
+  }
+  .bf-sheet[hidden], .bf-sheet-backdrop[hidden] { display: none; }
+  .bf-sheet.bf-sheet-shown { transform: translateY(0); }
+  .bf-sheet.bf-sheet-dragging { transition: none; }
+  .bf-sheet-handle {
+    width: 40px; height: 4px; border-radius: 2px; background: rgba(22,35,61,0.25);
+    margin: 2px auto 0; flex-shrink: 0;
+  }
+  .bf-comments-block.bf-sheet { left: 0; right: 0; bottom: 0; border-radius: 18px 18px 0 0; }
+  .bf-comments-block.bf-sheet .bf-comments-expand { display: none; }
+  .bf-comments-block.bf-sheet .bf-comments-content { flex: 1; }
+  .bf-comments-block:not(.bf-sheet) .bf-sheet-handle { display: none; }
+  .bf-likes-summary {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem;
+    padding-bottom: 10px; border-bottom: 1px solid rgba(22,35,61,0.12);
+  }
+  .bf-likes-summary svg { width: 18px; height: 18px; fill: var(--orange); }
+  .bf-likes-list { list-style: none; margin: 0; padding: 0; overflow-y: auto; min-height: 0; }
+  .bf-likes-list li {
+    display: flex; align-items: center; gap: 12px; padding: 10px 2px;
+    border-bottom: 1px solid rgba(22,35,61,0.08);
+  }
+  .bf-likes-avatar {
+    width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+    background: var(--ink); color: var(--white);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; font-weight: 700;
+  }
+  .bf-likes-name { font-weight: 600; font-size: 0.95rem; }
+  .bf-likes-when { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--steel); }
+  .bf-likes-note { color: var(--steel); font-size: 0.85rem; text-align: center; padding: 14px 4px; }
+  .bf-like-btn .bf-rail-count { padding: 8px 6px; margin: -8px -6px; }
   .bf-comments-header {
     display: flex; align-items: center; justify-content: space-between;
     flex-shrink: 0;
@@ -1503,26 +1555,25 @@
   .bf-comment.is-linked { background: rgba(232, 84, 42, 0.18); box-shadow: inset 0 0 0 2px var(--orange); }
   .bf-comment-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
   .bf-comment-name {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.02em;
-    color: var(--orange);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: var(--ink);
   }
   .bf-comment-report {
     background: none; border: 0; color: var(--steel);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.62rem;
-    letter-spacing: 0.02em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.74rem;
+    font-weight: 500;
     cursor: pointer;
-    text-decoration: underline;
     padding: 0;
   }
   .bf-comment-report:hover { color: var(--ink); }
   .bf-comment-report[disabled] { text-decoration: none; cursor: default; }
   .bf-comment-text {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.75rem;
-    line-height: 1.4;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.92rem;
+    line-height: 1.45;
     color: var(--ink);
     word-break: break-word;
   }
@@ -1530,32 +1581,31 @@
   .bf-comment-like {
     background: none; border: 0; color: var(--steel);
     display: flex; align-items: center; gap: 4px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.68rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
     cursor: pointer;
     padding: 0;
   }
-  .bf-comment-like svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+  .bf-comment-like svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; }
   .bf-comment-like[aria-pressed="true"] { color: var(--orange); }
   .bf-comment-like[aria-pressed="true"] svg { fill: currentColor; }
   .bf-comment-reply-toggle {
     background: none; border: 0; color: var(--steel);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.68rem;
-    letter-spacing: 0.02em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
     cursor: pointer;
     padding: 0;
-    text-decoration: underline;
   }
   .bf-comment-reply-toggle:hover { color: var(--ink); }
   .bf-comment-delete {
     background: none; border: 0; color: var(--steel);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.68rem;
-    letter-spacing: 0.02em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
     cursor: pointer;
     padding: 0;
-    text-decoration: underline;
   }
   .bf-comment-delete:hover, .bf-comment-delete.bf-delete-confirm { color: var(--orange); }
   .bf-comment-replies {
@@ -1565,15 +1615,14 @@
   }
   .bf-comment-reply-slot:not([hidden]) { margin-top: 8px; }
   .bf-comments-empty {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.88rem;
     color: var(--steel);
   }
   .bf-comments-form { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid rgba(22,35,61,0.15); padding-top: 8px; flex-shrink: 0; }
   .bf-comments-as {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.68rem;
-    letter-spacing: 0.02em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.78rem;
     color: var(--steel);
     margin: 0;
   }
@@ -1581,9 +1630,10 @@
     background: rgba(22,35,61,0.05);
     border: 1px solid rgba(22,35,61,0.2);
     color: var(--ink);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    padding: 8px 10px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 16px; /* 16px stops iPhones zooming in while typing */
+    padding: 8px 12px;
+    border-radius: 12px;
     resize: none;
   }
   .bf-comments-form textarea { min-height: 44px; }
@@ -1592,18 +1642,18 @@
     background: var(--orange);
     color: var(--white);
     border: 0;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.03em;
-    padding: 8px 16px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 8px 18px;
     cursor: pointer;
     border-radius: 8px;
   }
   .bf-comments-submit[disabled] { opacity: 0.5; cursor: default; }
-  .bf-comments-error { color: #c0392b; font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; }
+  .bf-comments-error { color: #c0392b; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.8rem; }
   .bf-comments-signin-prompt {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.88rem;
     line-height: 1.5;
     color: var(--steel);
     border-top: 1px solid rgba(22,35,61,0.15);
@@ -3187,10 +3237,11 @@
 
     function commentsBlockHtml() {
       return '<div class="bf-comments-block" hidden>' +
+          '<div class="bf-sheet-top"><div class="bf-sheet-handle"></div>' +
           '<div class="bf-comments-header">' +
             '<p class="bf-comments-panel-title">COMMENTS</p>' +
             '<button type="button" class="bf-comments-close" aria-label="Close comments">&times;</button>' +
-          '</div>' +
+          '</div></div>' +
           '<button type="button" class="bf-comments-expand" aria-expanded="false">Loading&hellip;</button>' +
           '<div class="bf-comments-content" hidden>' +
             '<ul class="bf-comments-list"></ul>' +
@@ -3369,6 +3420,136 @@
         '</form>';
     }
 
+    // One bottom sheet open at a time, over a shared backdrop.
+    var sheetBackdrop = null;
+    var openSheetEl = null;
+    var openSheetClose = null;
+
+    function showSheet(el, onClose) {
+      if (openSheetEl && openSheetEl !== el) hideSheet();
+      if (!sheetBackdrop) {
+        sheetBackdrop = document.createElement('div');
+        sheetBackdrop.className = 'bf-sheet-backdrop';
+        sheetBackdrop.addEventListener('click', function () { hideSheet(); });
+        document.body.appendChild(sheetBackdrop);
+      }
+      sheetBackdrop.hidden = false;
+      el.classList.add('bf-sheet');
+      if (el.parentNode !== document.body) document.body.appendChild(el);
+      el.hidden = false;
+      openSheetEl = el;
+      openSheetClose = onClose || null;
+      document.body.style.overflow = 'hidden';
+      requestAnimationFrame(function () {
+        sheetBackdrop.classList.add('bf-sheet-shown');
+        el.classList.add('bf-sheet-shown');
+      });
+    }
+
+    function hideSheet() {
+      var el = openSheetEl;
+      var onClose = openSheetClose;
+      if (!el) return;
+      openSheetEl = null;
+      openSheetClose = null;
+      el.classList.remove('bf-sheet-shown');
+      el.style.transform = '';
+      if (sheetBackdrop) sheetBackdrop.classList.remove('bf-sheet-shown');
+      document.body.style.overflow = '';
+      setTimeout(function () {
+        if (openSheetEl === el) return;
+        if (sheetBackdrop && !openSheetEl) sheetBackdrop.hidden = true;
+        if (onClose) onClose(el);
+        else el.hidden = true;
+      }, 240);
+    }
+
+    // Drag the sheet down by its top edge to close it.
+    function makeSheetDraggable(el, dragArea) {
+      var startY = null;
+      var dy = 0;
+      dragArea.addEventListener('touchstart', function (e) {
+        startY = e.touches[0].clientY;
+        dy = 0;
+        el.classList.add('bf-sheet-dragging');
+      }, { passive: true });
+      dragArea.addEventListener('touchmove', function (e) {
+        if (startY === null) return;
+        dy = Math.max(0, e.touches[0].clientY - startY);
+        el.style.transform = 'translateY(' + dy + 'px)';
+      }, { passive: true });
+      dragArea.addEventListener('touchend', function () {
+        if (startY === null) return;
+        startY = null;
+        el.classList.remove('bf-sheet-dragging');
+        if (dy > 80) hideSheet();
+        else el.style.transform = '';
+      });
+    }
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && openSheetEl) hideSheet();
+    });
+
+    // "Liked by" sheet: opened by tapping the like count.
+    var likesSheet = null;
+
+    function likesTimeAgo(iso) {
+      var secs = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
+      if (secs < 60) return 'just now';
+      if (secs < 3600) return Math.floor(secs / 60) + 'm ago';
+      if (secs < 86400) return Math.floor(secs / 3600) + 'h ago';
+      if (secs < 86400 * 7) return Math.floor(secs / 86400) + 'd ago';
+      return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    }
+
+    function initials(name) {
+      return String(name || '?').split(/\s+/).filter(Boolean).slice(0, 2).map(function (w) { return w.charAt(0).toUpperCase(); }).join('') || '?';
+    }
+
+    function openLikesSheet(file) {
+      if (!likesSheet) {
+        likesSheet = document.createElement('div');
+        likesSheet.className = 'bf-likes-sheet';
+        likesSheet.setAttribute('role', 'dialog');
+        likesSheet.setAttribute('aria-label', 'Liked by');
+        likesSheet.hidden = true;
+        likesSheet.innerHTML =
+          '<div class="bf-sheet-top"><div class="bf-sheet-handle"></div>' +
+          '<div class="bf-comments-header"><p class="bf-comments-panel-title">LIKED BY</p>' +
+          '<button type="button" class="bf-comments-close" aria-label="Close">&times;</button></div></div>' +
+          '<div class="bf-likes-summary"></div>' +
+          '<ul class="bf-likes-list"></ul>';
+        likesSheet.querySelector('.bf-comments-close').addEventListener('click', function () { hideSheet(); });
+        makeSheetDraggable(likesSheet, likesSheet.querySelector('.bf-sheet-top'));
+        document.body.appendChild(likesSheet);
+      }
+      var summary = likesSheet.querySelector('.bf-likes-summary');
+      var listEl = likesSheet.querySelector('.bf-likes-list');
+      var count = (likeMap[file] && likeMap[file].count) || 0;
+      summary.innerHTML = heartSvg('') + '<span>' + count + '</span>';
+      listEl.innerHTML = '<li class="bf-likes-note">Loading&hellip;</li>';
+      showSheet(likesSheet);
+      fetch(VOTE_ENDPOINT + '/likes/who?file=' + encodeURIComponent(file), { cache: 'no-store' })
+        .then(function (res) { return res.ok ? res.json() : null; })
+        .then(function (data) {
+          if (!data || !data.success) throw new Error('load');
+          summary.innerHTML = heartSvg('') + '<span>' + data.count + '</span>';
+          var rows = (data.likers || []).map(function (l) {
+            return '<li><span class="bf-likes-avatar" aria-hidden="true">' + escapeHtml(initials(l.name)) + '</span>' +
+              '<span><span class="bf-likes-name">' + escapeHtml(l.name) + '</span><br>' +
+              '<span class="bf-likes-when">' + likesTimeAgo(l.at) + '</span></span></li>';
+          });
+          if (data.earlier) {
+            rows.push('<li class="bf-likes-note">' + (rows.length ? '+ ' : '') + data.earlier + ' earlier like' + (data.earlier === 1 ? '' : 's') + ' from before likes needed a sign-in</li>');
+          }
+          listEl.innerHTML = rows.length ? rows.join('') : '<li class="bf-likes-note">No likes yet. Be the first!</li>';
+        })
+        .catch(function () {
+          listEl.innerHTML = '<li class="bf-likes-note">Could not load likes, please try again.</li>';
+        });
+    }
+
     function wireComments(slides) {
       slides.forEach(function (slide) {
         var btn = slide.querySelector('.bf-comments-btn');
@@ -3451,17 +3632,33 @@
           updatePreviewLabel();
         }
 
+        // Comments open in a bottom sheet over the page. The block is
+        // moved to <body> while open and put back in its slide on close.
+        var blockHome = block.parentNode;
+        makeSheetDraggable(block, block.querySelector('.bf-sheet-top'));
+
         function openBlock() {
-          block.hidden = false;
           btn.setAttribute('aria-pressed', 'true');
           if (!loaded) {
             loaded = true;
             renderCommentFormSlot(formSlot, null);
             loadComments();
           }
+          expand();
+          showSheet(block, function () {
+            block.hidden = true;
+            block.classList.remove('bf-sheet');
+            blockHome.appendChild(block);
+            btn.setAttribute('aria-pressed', 'false');
+            collapse();
+          });
         }
 
         function closeBlock() {
+          if (openSheetEl === block) {
+            hideSheet();
+            return;
+          }
           block.hidden = true;
           btn.setAttribute('aria-pressed', 'false');
           collapse();
@@ -3616,6 +3813,21 @@
               renderCommentFormSlot(replySlot, replySlot.dataset.parentId);
             }
             replySlot.hidden = !replySlot.hidden;
+          }
+        });
+
+        // On a computer, Return posts the comment and Shift+Return starts a
+        // new line. Phones keep Return for new lines.
+        block.addEventListener('keydown', function (e) {
+          if (e.key !== 'Enter' || e.shiftKey || e.isComposing) return;
+          if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+          var textarea = e.target.closest('.bf-comments-form textarea');
+          if (!textarea) return;
+          e.preventDefault();
+          var form = textarea.closest('form');
+          var submit = form.querySelector('.bf-comments-submit');
+          if (textarea.value.trim() && !(submit && submit.disabled)) {
+            if (form.requestSubmit) form.requestSubmit(); else submit.click();
           }
         });
 
@@ -4097,7 +4309,14 @@
       feedEl.querySelectorAll('.bf-like-btn').forEach(function (btn) {
         btn.addEventListener('click', function (e) {
           e.stopPropagation();
-          toggleLike(btn.closest('.bf-slide'), !btn.classList.contains('bf-liked'));
+          var slide = btn.closest('.bf-slide');
+          // Tapping the number shows who liked it; tapping the heart likes.
+          var like = likeMap[slide.dataset.current];
+          if (e.target.closest('.bf-rail-count') && like && like.count > 0) {
+            openLikesSheet(slide.dataset.current);
+            return;
+          }
+          toggleLike(slide, !btn.classList.contains('bf-liked'));
         });
       });
 

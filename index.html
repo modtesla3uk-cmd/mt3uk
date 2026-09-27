@@ -2031,6 +2031,30 @@
     font-size: 0.95rem;
   }
 
+  /* ---------- GET THE APP ---------- */
+  .app-cta {
+    background: var(--paper);
+    border-top: 1px solid rgba(22,35,61,0.12);
+    border-bottom: 1px solid rgba(22,35,61,0.12);
+    padding: 40px 24px;
+    text-align: center;
+  }
+  .app-cta[hidden] { display: none; }
+  .app-cta h2 { margin: 0 0 6px; }
+  .app-cta > p { color: var(--steel); margin: 0 auto 18px; max-width: 52ch; }
+  .app-cta .nav-cta { display: inline-block; padding: 12px 28px; font-size: 0.95rem; cursor: pointer; }
+  .app-cta-steps {
+    max-width: 420px;
+    margin: 18px auto 0;
+    padding: 16px 18px;
+    border: 1px solid rgba(22,35,61,0.2);
+    text-align: left;
+    font-size: 0.9rem;
+  }
+  .app-cta-steps[hidden] { display: none; }
+  .app-cta-steps ol { margin: 8px 0 0; padding-left: 20px; }
+  .app-cta-steps li { margin: 4px 0; }
+
   /* ---------- JOIN CTA ---------- */
   .join-cta {
     text-align: center;
@@ -2984,6 +3008,13 @@
       <a href="gallery.html" class="btn btn-secondary">Browse the Full Gallery</a>
     </div>
   </div>
+</section>
+
+<section class="app-cta" id="get-the-app">
+  <h2><span class="nav-sublink-new">Get the MT3UK app</span></h2>
+  <p>Install MT3UK on your phone for one-tap access to the build reel and your garage, plus alerts when someone likes or comments on your build.</p>
+  <button type="button" class="nav-cta" id="app-install-btn">Install the app</button>
+  <div class="app-cta-steps" id="app-install-steps" hidden></div>
 </section>
 
 <section id="build-of-the-day">
@@ -5291,6 +5322,60 @@
 
     window.addEventListener('appinstalled', function () {
       localStorage.setItem(STORAGE_DISMISSED, '1');
+    });
+  })();
+</script>
+
+<script>
+  // "Get the app" section: installs straight away where the browser offers
+  // it (Android, desktop Chrome and Edge), otherwise shows the steps.
+  // Hidden once MT3UK is running as an installed app.
+  (function () {
+    var section = document.getElementById('get-the-app');
+    var btn = document.getElementById('app-install-btn');
+    var steps = document.getElementById('app-install-steps');
+    if (!section || !btn) return;
+    var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+    if (standalone) { section.hidden = true; return; }
+
+    var installPrompt = null;
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault();
+      installPrompt = e;
+    });
+    window.addEventListener('appinstalled', function () { section.hidden = true; });
+
+    var isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    function showSteps(html) {
+      steps.innerHTML = html;
+      steps.hidden = false;
+    }
+
+    btn.addEventListener('click', function () {
+      if (installPrompt) {
+        var prompt = installPrompt;
+        installPrompt = null;
+        prompt.prompt();
+        prompt.userChoice.then(function (choice) {
+          if (choice && choice.outcome === 'accepted') section.hidden = true;
+        }).catch(function () {});
+        return;
+      }
+      if (isIos) {
+        showSteps('<strong>On iPhone or iPad:</strong><ol>' +
+          '<li>Open this page in Safari.</li>' +
+          '<li>Tap the Share button (the square with an arrow).</li>' +
+          '<li>Choose <strong>Add to Home Screen</strong>, then <strong>Add</strong>.</li>' +
+          '<li>Open MT3UK from your Home Screen. To get alerts, turn notifications on in My Garage.</li>' +
+          '</ol>');
+        return;
+      }
+      showSteps('<strong>To install:</strong><ol>' +
+        '<li>Open your browser menu (the three dots or lines).</li>' +
+        '<li>Choose <strong>Install app</strong> or <strong>Add to Home screen</strong>.</li>' +
+        '<li>Open MT3UK from your apps. To get alerts, turn notifications on in My Garage.</li>' +
+        '</ol>');
     });
   })();
 </script>

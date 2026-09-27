@@ -41,6 +41,26 @@ DEVICES = {
 MOBILE = {"iphone", "android"}
 
 API_HOST = "late-darkness-ebc8.modtesla3uk.workers.dev"
+# Pages call the worker with fetch(). WebKit lets cross-site POSTs skip
+# Playwright's request mocking and go to the real worker, so every page
+# gets a fetch() that sends worker calls to this same-site path instead,
+# where the mock answers them. Nothing reaches the live worker.
+MOCK_API_PATH = "/__mock-api"
+FETCH_REDIRECT = """
+(function () {
+  var live = 'https://%s';
+  var local = location.origin + '%s';
+  var realFetch = window.fetch;
+  window.fetch = function (input, init) {
+    if (typeof input === 'string' && input.indexOf(live) === 0) {
+      input = local + input.slice(live.length);
+    } else if (input && input.url && input.url.indexOf(live) === 0) {
+      input = new Request(local + input.url.slice(live.length), input);
+    }
+    return realFetch.call(this, input, init);
+  };
+})();
+""" % (API_HOST, MOCK_API_PATH)
 R2_HOST = "r2.dev"
 
 # A 1x1 grey JPEG for gallery photos, so layouts have a real image to size.
@@ -49,9 +69,15 @@ TINY_JPEG = bytes.fromhex(
 )
 
 
+def api_path(url):
+    """The worker path of a call, whether it went to the worker or the mock."""
+    marker = API_HOST if API_HOST in url else MOCK_API_PATH
+    return url.split(marker, 1)[1].split("?", 1)[0]
+
+
 def api_reply(url, method, post_data, state):
     """Stand-in answers for the worker, enough for every page to render."""
-    path = url.split(API_HOST, 1)[1].split("?", 1)[0]
+    path = api_path(url)
     if method == "OPTIONS":
         return {}
     if path == "/likes" and method == "GET":
@@ -97,9 +123,10 @@ def attach_mocks(context):
     def handle(route):
         request = route.request
         url = request.url
-        if url.startswith(BASE_URL):
+        is_mock_api = url.startswith(BASE_URL + MOCK_API_PATH)
+        if url.startswith(BASE_URL) and not is_mock_api:
             return route.continue_()
-        if API_HOST in url:
+        if is_mock_api or API_HOST in url:
             # My Garage answers "signed out" until the test signs in with a
             # code. This goes by the test's own record rather than the
             # request header, which WebKit doesn't always show to the mock.
@@ -112,7 +139,7 @@ def attach_mocks(context):
             body = api_reply(url, request.method, post_data, state)
             if status == 401:
                 body = {"success": False, "message": "Please sign in again"}
-            path = url.split(API_HOST, 1)[1].split("?", 1)[0]
+            path = api_path(url)
             state["log"].append(f"{request.method} {path} -> {status}")
             return route.fulfill(status=status, body=json.dumps(body), headers=API_HEADERS)
         if R2_HOST in url and request.resource_type == "image":
@@ -148,9 +175,12 @@ def device_page(request, playwright, browsers):
     options.pop("default_browser_type", None)
     if engine == "firefox":
         options.pop("is_mobile", None)
-    context = browser.new_context(base_url=BASE_URL, **options)
+    # The site's service worker would fetch the mock worker path itself,
+    # out of reach of the mocks, so it is switched off for these checks.
+    context = browser.new_context(base_url=BASE_URL, service_workers="block", **options)
     # Skip the homepage intro animation, which waits for a tap.
     context.add_init_script("try { sessionStorage.setItem('mt3ukIntroSeen', '1'); } catch (e) {}")
+    context.add_init_script(FETCH_REDIRECT)
     mock_state = attach_mocks(context)
     page = context.new_page()
     page.errors = []
@@ -278,6 +308,6 @@ def test_my_garage_sign_in_with_code(device_page):
     page.click("#mb-code-btn")
     page.wait_for_timeout(1500)
     assert page.evaluate("localStorage.getItem('mt3ukMyBuildsSession')") == "s1.test", "Code sign-in not saved" + diagnostics(page)
-    assert page.locator("#mb-signin-view").is_hidden()
+    assert page.locator("#mb-signin-view").is_hidden(), "My Garage did not open after sign-in" + diagnostics(page)
     assert overflow_width(page) <= 1
     assert page.errors == []

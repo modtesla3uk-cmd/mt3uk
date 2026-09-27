@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My Garage (BETA) &mdash; MT3UK</title>
+<title>My Garage &mdash; MT3UK</title>
 <meta name="description" content="Manage the builds you've submitted to the MT3UK gallery: control where they appear and edit or remove them.">
 <link rel="canonical" href="https://mt3uk.com/my-builds.html">
 <link rel="icon" type="image/x-icon" href="images/site/favicon.ico">
@@ -16,12 +16,12 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MT3UK">
 <meta property="og:type" content="website">
-<meta property="og:title" content="My Garage (BETA) &mdash; MT3UK">
+<meta property="og:title" content="My Garage &mdash; MT3UK">
 <meta property="og:description" content="Manage the builds you've submitted to the MT3UK gallery: control where they appear and edit or remove them.">
 <meta property="og:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
 <meta property="og:url" content="https://mt3uk.com/my-builds.html">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="My Garage (BETA) &mdash; MT3UK">
+<meta name="twitter:title" content="My Garage &mdash; MT3UK">
 <meta name="twitter:description" content="Manage the builds you've submitted to the MT3UK gallery: control where they appear and edit or remove them.">
 <meta name="twitter:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
 <meta name="robots" content="noindex">
@@ -428,18 +428,6 @@
   .page-hero .section-num { display: block; margin-bottom: 10px; }
   .page-hero h1 { max-width: 20ch; margin-bottom: 14px; display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .page-hero p { color: var(--ink-2); max-width: 58ch; font-size: 1.05rem; }
-  .beta-pill {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.62rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    color: var(--paper);
-    background: var(--orange);
-    padding: 3px 7px;
-    border-radius: 3px;
-    line-height: 1;
-    vertical-align: middle;
-  }
 
   @media (max-width: 780px) {
     .page-hero { padding: 26px 0 22px; }
@@ -455,7 +443,7 @@
     .page-hero p { max-width: 58ch; }
   }
 
-  /* ---------- BETA NOTICE ---------- */
+  /* ---------- INTRO NOTICE ---------- */
   .beta-notice {
     max-width: 640px;
     margin: 0 auto 28px;
@@ -1060,7 +1048,7 @@ document.addEventListener('DOMContentLoaded', function () {
   <div class="wrap">
     <a href="index.html" class="back-link">&larr; Back to MT3UK</a>
     <span class="section-num mono">MY BUILDS</span>
-    <h1>My Garage <span class="beta-pill">BETA</span></h1>
+    <h1>My Garage</h1>
     <p>Manage the build(s) you've submitted to the gallery: choose where they appear, or remove them.</p>
   </div>
 </section>
@@ -1068,13 +1056,13 @@ document.addEventListener('DOMContentLoaded', function () {
 <section>
   <div class="wrap">
     <div class="beta-notice">
-      <strong>This feature is in beta.</strong> Add your own build photos, view comments, reply and if you have multiple cars they can be added too, with mods listed for each car. Email address is required.
+      Add your own build photos, view comments, reply and if you have multiple cars they can be added too, with mods listed for each car. Email address is required.
     </div>
 
     <div id="mb-signin-view">
       <div class="mb-card" id="mb-signin-card">
         <h2>Sign in</h2>
-        <p>Enter the email you used when submitting a build, or that you commented with, and we'll send you a sign-in link. You don't need to have a build of your own &mdash; if someone's replied to a comment you left, you can sign in to see it.</p>
+        <p>Enter the email you used when submitting a build, or that you commented with, and we'll send you a sign-in link. You don't need to have a build of your own. If someone's replied to a comment you left, you can sign in to see it.</p>
         <form id="mb-signin-form">
           <div class="mb-field">
             <label class="mono" for="mb-email">Email</label>

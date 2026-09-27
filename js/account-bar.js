@@ -1,8 +1,8 @@
 /*
   Account links shared by every public page.
 
-  - The orange menu button reads "Sign Up / In" for visitors and switches to
-    "My Garage" for signed-in members.
+  - The orange "Sign Up / In" menu button is for visitors only, so it's
+    hidden for signed-in members (My Garage is already in the menu).
   - Signed-in members get a slim "Signed in as <first name> · ri•••@example.com"
     bar under the header, with My Garage and Sign out. The homepage shows this
     in its hero box instead, and My Garage has its own, so neither gets the bar.
@@ -47,12 +47,10 @@
   var signedIn = !!read(SESSION_KEY);
 
   function run() {
-    document.querySelectorAll('.nav-link-mobile').forEach(function (link) {
-      if (signedIn) {
-        link.textContent = 'My Garage';
-        link.setAttribute('href', 'my-builds.html');
-      }
-    });
+    if (signedIn) {
+      // The button's own CSS uses !important, so it's removed rather than hidden.
+      document.querySelectorAll('.nav-link-mobile').forEach(function (link) { link.remove(); });
+    }
 
     var page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
     if (!signedIn || page === '' || page === 'index.html' || page === 'my-builds.html') return;

@@ -49,7 +49,7 @@ TINY_JPEG = bytes.fromhex(
 )
 
 
-def api_reply(url, method, post_data):
+def api_reply(url, method, post_data, state):
     """Stand-in answers for the worker, enough for every page to render."""
     path = url.split(API_HOST, 1)[1].split("?", 1)[0]
     if method == "OPTIONS":
@@ -65,9 +65,16 @@ def api_reply(url, method, post_data):
     if path == "/my-builds/request-link":
         return {"success": True, "message": "If that email has submitted a build, we've sent a sign-in link."}
     if path == "/my-builds/verify-code":
-        body = json.loads(post_data or "{}")
-        if body.get("code") == "123456":
-            return {"success": True, "session": "s1.test", "email": body.get("email", "")}
+        try:
+            body = json.loads(post_data or "{}")
+        except ValueError:
+            body = {}
+        # WebKit doesn't always pass the request body to the mock, so without
+        # it the first try is treated as wrong and the next as right.
+        state["code_tries"] = state.get("code_tries", 0) + 1
+        code = body.get("code") or ("000000" if state["code_tries"] == 1 else "123456")
+        if code == "123456":
+            return {"success": True, "session": "s1.test", "email": body.get("email", "member@example.com")}
         return {"success": False, "message": "That code is not right or has expired."}
     if path == "/my-builds" and method == "GET":
         return {"success": True, "email": "member@example.com", "firstName": "Test", "lastName": "Member", "cars": []}
@@ -75,6 +82,8 @@ def api_reply(url, method, post_data):
 
 
 def attach_mocks(context):
+    state = {}
+
     def handle(route):
         request = route.request
         url = request.url
@@ -82,7 +91,11 @@ def attach_mocks(context):
             return route.continue_()
         if API_HOST in url:
             status = 401 if url.split("?")[0].endswith("/my-builds") and not request.headers.get("x-session-token") else 200
-            body = api_reply(url, request.method, request.post_data)
+            try:
+                post_data = request.post_data
+            except Exception:
+                post_data = None
+            body = api_reply(url, request.method, post_data, state)
             if status == 401:
                 body = {"success": False, "message": "Please sign in again"}
             return route.fulfill(
@@ -155,7 +168,18 @@ def test_page_loads_fits_and_menu_opens(device_page, page_name):
 
     out_dir = SCREENSHOT_DIR / page.device_name
     out_dir.mkdir(parents=True, exist_ok=True)
-    page.screenshot(path=str(out_dir / f"{page_name}.png"), full_page=True)
+    # Browsers can't capture more than 32767px in one image, and the
+    # homepage is taller than that on a phone, so long pages are cut at the
+    # first 12000px. JPEG keeps the download small.
+    height = min(page.evaluate("document.documentElement.scrollHeight"), 12000)
+    width = page.evaluate("document.documentElement.clientWidth")
+    page.screenshot(
+        path=str(out_dir / f"{page_name}.jpg"),
+        full_page=True,
+        clip={"x": 0, "y": 0, "width": width, "height": height},
+        type="jpeg",
+        quality=70,
+    )
 
     assert page.errors == [], f"Script errors on {page_name}: {page.errors}"
     assert overflow_width(page) <= 1, f"{page_name} is wider than the screen by {overflow_width(page)}px"

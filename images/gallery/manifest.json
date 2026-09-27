@@ -55,7 +55,7 @@
   {
     "file": "midnight-silver-m3--by-scott.jpg",
     "caption": "MIDNIGHT SILVER M3",
-    "name": "SCOTT",
+    "name": "SCOTT DUNCAN",
     "mods": [
       "20\" wheels",
       "lowered on 40mm H&R springs.",
@@ -659,7 +659,7 @@
   {
     "file": "53-the-green-knight-tessa--by-sharad.jpeg",
     "caption": "THE GREEN KNIGHT TESSA",
-    "name": "SHARAD",
+    "name": "SHARAD BUDDHDEV",
     "added": "2026-09-18",
     "group": "53-the-green-knight-tessa--by-sharad.jpeg"
   },
@@ -772,7 +772,7 @@
   {
     "file": "43-underglow--by-sharad.jpeg",
     "caption": "UNDERGLOW",
-    "name": "SHARAD",
+    "name": "SHARAD BUDDHDEV",
     "added": "2026-09-18",
     "group": "53-the-green-knight-tessa--by-sharad.jpeg"
   },
@@ -934,12 +934,14 @@
   {
     "file": "19-wasabi-green-model-3.jpeg",
     "caption": "WASABI GREEN MODEL 3",
+    "name": "SHARAD BUDDHDEV",
     "added": "2026-09-18",
     "group": "53-the-green-knight-tessa--by-sharad.jpeg"
   },
   {
     "file": "18-the-green-knight-tessa-in-london.jpeg",
     "caption": "THE GREEN KNIGHT TESSA IN LONDON",
+    "name": "SHARAD BUDDHDEV",
     "added": "2026-09-18",
     "group": "53-the-green-knight-tessa--by-sharad.jpeg"
   },
@@ -953,6 +955,7 @@
   {
     "file": "16-model-3-ubdergrlow-1788655208711.jpg",
     "caption": "MODEL 3 UBDERGRLOW",
+    "name": "SHARAD BUDDHDEV",
     "added": "2026-09-18",
     "group": "53-the-green-knight-tessa--by-sharad.jpeg"
   },

@@ -570,6 +570,9 @@
   .mb-name-row[hidden], .mb-name-card[hidden] { display: none; }
   .mb-name-card { margin-bottom: 28px; }
   .mb-name-card.mb-name-needed { border-color: var(--orange); }
+  .mb-push-card { margin-bottom: 28px; }
+  .mb-push-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .mb-push-actions [hidden] { display: none; }
   .mb-signout-btn { background: transparent; border: 1px solid var(--line); color: var(--ink); padding: 7px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; cursor: pointer; }
   .mb-signout-btn:hover { border-color: var(--orange); color: var(--orange); }
 
@@ -1159,6 +1162,16 @@ document.addEventListener('DOMContentLoaded', function () {
         <button type="button" class="mb-signout-btn" id="mb-name-edit-btn">Edit name</button>
       </div>
 
+      <div class="mb-card mb-push-card" id="mb-push-card">
+        <h2>Phone notifications</h2>
+        <p id="mb-push-intro">Get an alert on this device when someone likes or comments on your build, replies to you, or a build claim is approved.</p>
+        <div class="mb-push-actions">
+          <button type="button" class="mb-btn" id="mb-push-toggle" hidden>Turn on notifications</button>
+          <button type="button" class="mb-signout-btn" id="mb-push-test" hidden>Send a test</button>
+        </div>
+        <p class="mb-status" id="mb-push-status"></p>
+      </div>
+
       <div class="mb-card mb-name-card" id="mb-name-card" hidden>
         <h2 id="mb-name-title">Your name</h2>
         <p id="mb-name-intro">Your first and last name are shown on your builds and comments.</p>
@@ -1542,6 +1555,121 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // Phone notifications (Web Push). Each device is turned on separately.
+    // iPhones only allow them once the site is added to the Home Screen and
+    // opened from there.
+    var pushIntro = document.getElementById('mb-push-intro');
+    var pushToggle = document.getElementById('mb-push-toggle');
+    var pushTest = document.getElementById('mb-push-test');
+    var pushStatus = document.getElementById('mb-push-status');
+    var pushReady = false;
+
+    function pushKeyBytes(b64url) {
+      var s = b64url.replace(/-/g, '+').replace(/_/g, '/');
+      while (s.length % 4) s += '=';
+      var bin = atob(s);
+      var out = new Uint8Array(bin.length);
+      for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+      return out;
+    }
+
+    function swRegistration() {
+      return navigator.serviceWorker.register('/sw.js').then(function () { return navigator.serviceWorker.ready; });
+    }
+
+    function showPushState(subscribed) {
+      pushToggle.hidden = false;
+      pushToggle.textContent = subscribed ? 'Turn off notifications' : 'Turn on notifications';
+      pushToggle.dataset.on = subscribed ? '1' : '';
+      pushTest.hidden = !subscribed;
+    }
+
+    function initPush() {
+      if (pushReady) return;
+      pushReady = true;
+      var supported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+      var isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      var installed = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+      if (!supported) {
+        pushIntro.textContent = isIos && !installed
+          ? 'On iPhone, add MT3UK to your Home Screen first: tap the Share button, then Add to Home Screen. Open MT3UK from your Home Screen and come back here to turn notifications on.'
+          : 'This browser does not support notifications. Try Chrome on Android, or add MT3UK to your Home Screen on iPhone.';
+        return;
+      }
+      if (Notification.permission === 'denied') {
+        pushIntro.textContent = 'Notifications are blocked for MT3UK on this device. Allow them in your phone or browser settings, then reload this page.';
+        return;
+      }
+      swRegistration()
+        .then(function (reg) { return reg.pushManager.getSubscription(); })
+        .then(function (sub) { showPushState(!!sub); })
+        .catch(function () { showPushState(false); });
+    }
+
+    function turnPushOn() {
+      setStatus(pushStatus, 'Turning on…', '');
+      return Notification.requestPermission().then(function (permission) {
+        if (permission !== 'granted') throw new Error('Notifications were not allowed.');
+        return Promise.all([
+          swRegistration(),
+          fetch(API + '/push/key').then(function (res) { return res.json(); })
+        ]);
+      }).then(function (results) {
+        return results[0].pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: pushKeyBytes(results[1].publicKey) });
+      }).then(function (sub) {
+        return fetch(API + '/push/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Session-Token': getSession() },
+          body: JSON.stringify({ subscription: sub.toJSON() })
+        }).then(function (res) { return res.json(); });
+      }).then(function (data) {
+        if (!data || !data.success) throw new Error((data && data.message) || 'Could not turn notifications on.');
+        showPushState(true);
+        setStatus(pushStatus, 'Notifications are on for this device.', 'ok');
+      });
+    }
+
+    function turnPushOff() {
+      setStatus(pushStatus, 'Turning off…', '');
+      return swRegistration()
+        .then(function (reg) { return reg.pushManager.getSubscription(); })
+        .then(function (sub) {
+          if (!sub) return null;
+          var endpoint = sub.endpoint;
+          return sub.unsubscribe().then(function () {
+            return fetch(API + '/push/unsubscribe', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'X-Session-Token': getSession() },
+              body: JSON.stringify({ endpoint: endpoint })
+            });
+          });
+        })
+        .then(function () {
+          showPushState(false);
+          setStatus(pushStatus, 'Notifications are off for this device.', '');
+        });
+    }
+
+    pushToggle.addEventListener('click', function () {
+      pushToggle.disabled = true;
+      (pushToggle.dataset.on ? turnPushOff() : turnPushOn())
+        .catch(function (err) { setStatus(pushStatus, err.message || 'Something went wrong, please try again.', 'err'); })
+        .then(function () { pushToggle.disabled = false; });
+    });
+
+    pushTest.addEventListener('click', function () {
+      pushTest.disabled = true;
+      setStatus(pushStatus, 'Sending…', '');
+      fetch(API + '/push/test', { method: 'POST', headers: { 'X-Session-Token': getSession() } })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (data && data.success && data.sent) setStatus(pushStatus, 'Test sent, it should arrive in a few seconds.', 'ok');
+          else setStatus(pushStatus, 'Could not reach this device. Try turning notifications off and on again.', 'err');
+        })
+        .catch(function () { setStatus(pushStatus, 'Could not send a test, please try again.', 'err'); })
+        .then(function () { pushTest.disabled = false; });
+    });
+
     function showApp(email) {
       signinView.style.display = 'none';
       appView.style.display = 'block';
@@ -1708,6 +1836,7 @@ document.addEventListener('DOMContentLoaded', function () {
           }
           showApp(result.data.email);
           renderName(result.data.firstName, result.data.lastName);
+          initPush();
           loadNotifications();
           carsData = result.data.cars || [];
           var alerts = computeCommentAlerts(carsData);

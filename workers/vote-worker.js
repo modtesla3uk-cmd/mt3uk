@@ -910,7 +910,39 @@ async function handleLikePost(request, env, ctx) {
   await env.VOTES.put('liker-files:' + voterId, JSON.stringify(likerFiles));
   await env.VOTES.put(countKey, String(count));
 
+  if (liked && ctx && ctx.waitUntil) {
+    var likedEntry = manifest.filter(function (p) { return p.file === file; })[0];
+    ctx.waitUntil(sendLikeAlert(env, file, voterId, likedEntry && likedEntry.caption).catch(function (err) {
+      console.log('Like alert failed:', err.message);
+    }));
+  }
+
   return json({ success: true, voterId: voterId, file: file, liked: liked, count: count });
+}
+
+// Tells a photo's owner their build was liked, if they have notifications
+// on. Likes are anonymous, and each visitor triggers at most one alert per
+// photo in LIKE_ALERT_TTL_SECONDS, so liking and unliking can't spam it.
+var LIKE_ALERT_TTL_SECONDS = 30 * 24 * 60 * 60;
+
+async function sendLikeAlert(env, file, voterId, caption) {
+  var sidecar = null;
+  try {
+    var obj = await env.GALLERY_BUCKET.get('gallery/' + file + '.json');
+    if (obj) sidecar = await obj.json();
+  } catch (e) {}
+  var ownerEmail = sidecar && sidecar.email;
+  if (!ownerEmail) return;
+  if (!(await getPushSubscriptions(env, ownerEmail)).length) return;
+  var onceKey = 'like-alert:' + file + ':' + voterId;
+  if (await env.VOTES.get(onceKey)) return;
+  await env.VOTES.put(onceKey, '1', { expirationTtl: LIKE_ALERT_TTL_SECONDS });
+  var name = String(caption || '').toLowerCase().replace(/(^|\s)([a-z])/g, function (m, sp, c) { return sp + c.toUpperCase(); });
+  await sendPushToMember(env, ownerEmail, {
+    title: 'Someone liked your build',
+    body: name ? name + ' got a new like.' : 'Your build got a new like.',
+    url: commentAlertUrl(file, null)
+  });
 }
 
 function displayNameFromEmail(email) {
@@ -1513,6 +1545,11 @@ async function handleGalleryClaimsAdminDecide(request, env) {
     await addSubscriberFiles(env, claim.email, [file]);
     claim.status = 'approved';
     await triggerManifestRebuild(env);
+    await sendPushToMember(env, claim.email, {
+      title: 'Your build claim was approved',
+      body: 'The build is now in your My Garage.',
+      url: '/my-builds.html'
+    });
     // Someone who claimed without signing in needs a way into My Garage.
     if (claim.guest) {
       try {
@@ -2101,6 +2138,207 @@ async function sendCommentNotificationEmail(env, toEmail, fromName, text, file, 
 // Commenting on your own photo/reply, or a photo whose owner hasn't been
 // stamped yet (e.g. an un-migrated legacy photo with no sidecar email), is
 // a silent no-op for that recipient.
+// ---------- Web Push (phone and desktop notifications) ----------
+// Members turn notifications on in My Garage; each browser's push
+// subscription is kept under push:<email> (one key per member, read with a
+// single get). Messages are encrypted to the browser (RFC 8291, aes128gcm)
+// and signed with this worker's VAPID key (RFC 8292). The VAPID key pair is
+// made on first use and kept in KV, so there is no secret to set up.
+
+var PUSH_KEYS_KV = 'push-vapid-keys';
+var MAX_PUSH_SUBSCRIPTIONS = 10;
+var PUSH_CONTACT = 'mailto:' + SUBSCRIBERS_DIGEST_EMAIL;
+
+function b64urlEncode(bytes) {
+  var bin = '';
+  var arr = new Uint8Array(bytes);
+  for (var i = 0; i < arr.length; i++) bin += String.fromCharCode(arr[i]);
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function b64urlDecode(str) {
+  var s = String(str).replace(/-/g, '+').replace(/_/g, '/');
+  while (s.length % 4) s += '=';
+  var bin = atob(s);
+  var out = new Uint8Array(bin.length);
+  for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+function concatBytes() {
+  var total = 0;
+  for (var i = 0; i < arguments.length; i++) total += arguments[i].length;
+  var out = new Uint8Array(total);
+  var offset = 0;
+  for (var j = 0; j < arguments.length; j++) {
+    out.set(arguments[j], offset);
+    offset += arguments[j].length;
+  }
+  return out;
+}
+
+// Returns { publicKey: base64url raw P-256 point, privateJwk }.
+async function getVapidKeys(env) {
+  var raw = await env.VOTES.get(PUSH_KEYS_KV);
+  if (raw) {
+    try { return JSON.parse(raw); } catch (e) {}
+  }
+  var pair = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);
+  var keys = {
+    publicKey: b64urlEncode(await crypto.subtle.exportKey('raw', pair.publicKey)),
+    privateJwk: await crypto.subtle.exportKey('jwk', pair.privateKey)
+  };
+  await env.VOTES.put(PUSH_KEYS_KV, JSON.stringify(keys));
+  return keys;
+}
+
+async function vapidAuthHeader(keys, endpoint) {
+  var enc = new TextEncoder();
+  var header = b64urlEncode(enc.encode(JSON.stringify({ typ: 'JWT', alg: 'ES256' })));
+  var claims = b64urlEncode(enc.encode(JSON.stringify({
+    aud: new URL(endpoint).origin,
+    exp: Math.floor(Date.now() / 1000) + 12 * 60 * 60,
+    sub: PUSH_CONTACT
+  })));
+  var signingKey = await crypto.subtle.importKey('jwk', keys.privateJwk, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
+  // WebCrypto returns the raw r||s signature ES256 expects.
+  var signature = await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, signingKey, enc.encode(header + '.' + claims));
+  return 'vapid t=' + header + '.' + claims + '.' + b64urlEncode(signature) + ', k=' + keys.publicKey;
+}
+
+async function hkdf(salt, ikm, info, length) {
+  var key = await crypto.subtle.importKey('raw', ikm, 'HKDF', false, ['deriveBits']);
+  var bits = await crypto.subtle.deriveBits({ name: 'HKDF', hash: 'SHA-256', salt: salt, info: info }, key, length * 8);
+  return new Uint8Array(bits);
+}
+
+// RFC 8291 message encryption, as a single aes128gcm record.
+async function encryptPushPayload(subscription, payloadText) {
+  var enc = new TextEncoder();
+  var uaPublic = b64urlDecode(subscription.keys.p256dh);
+  var authSecret = b64urlDecode(subscription.keys.auth);
+
+  var local = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveBits']);
+  var asPublic = new Uint8Array(await crypto.subtle.exportKey('raw', local.publicKey));
+  var uaKey = await crypto.subtle.importKey('raw', uaPublic, { name: 'ECDH', namedCurve: 'P-256' }, false, []);
+  var ecdhSecret = new Uint8Array(await crypto.subtle.deriveBits({ name: 'ECDH', public: uaKey }, local.privateKey, 256));
+
+  var ikm = await hkdf(authSecret, ecdhSecret, concatBytes(enc.encode('WebPush: info\0'), uaPublic, asPublic), 32);
+  var salt = crypto.getRandomValues(new Uint8Array(16));
+  var cek = await hkdf(salt, ikm, enc.encode('Content-Encoding: aes128gcm\0'), 16);
+  var nonce = await hkdf(salt, ikm, enc.encode('Content-Encoding: nonce\0'), 12);
+
+  var plaintext = concatBytes(enc.encode(payloadText), new Uint8Array([2]));
+  var aesKey = await crypto.subtle.importKey('raw', cek, 'AES-GCM', false, ['encrypt']);
+  var ciphertext = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv: nonce }, aesKey, plaintext));
+
+  var recordSize = new Uint8Array([0, 0, 16, 0]); // 4096
+  return concatBytes(salt, recordSize, new Uint8Array([asPublic.length]), asPublic, ciphertext);
+}
+
+async function getPushSubscriptions(env, email) {
+  try {
+    var parsed = JSON.parse((await env.VOTES.get('push:' + email)) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+// Sends { title, body, url } to every browser the member turned
+// notifications on in. Subscriptions the push service says have gone
+// (404/410) are dropped. Never throws, so a failed push can't break the
+// action that triggered it.
+async function sendPushToMember(env, email, message) {
+  try {
+    var subs = await getPushSubscriptions(env, email);
+    if (!subs.length) return 0;
+    var keys = await getVapidKeys(env);
+    var payload = JSON.stringify(message);
+    var gone = [];
+    var sent = 0;
+    await Promise.all(subs.map(async function (sub) {
+      try {
+        var res = await fetch(sub.endpoint, {
+          method: 'POST',
+          headers: {
+            'Authorization': await vapidAuthHeader(keys, sub.endpoint),
+            'Content-Encoding': 'aes128gcm',
+            'Content-Type': 'application/octet-stream',
+            'TTL': '86400',
+            'Urgency': 'normal'
+          },
+          body: await encryptPushPayload(sub, payload)
+        });
+        if (res.status === 404 || res.status === 410) gone.push(sub.endpoint);
+        else if (res.ok) sent++;
+        else console.log('Push failed:', res.status, await res.text());
+      } catch (err) {
+        console.log('Push failed:', err.message);
+      }
+    }));
+    if (gone.length) {
+      await env.VOTES.put('push:' + email, JSON.stringify(subs.filter(function (s) { return gone.indexOf(s.endpoint) === -1; })));
+    }
+    return sent;
+  } catch (err) {
+    console.log('Push failed:', err.message);
+    return 0;
+  }
+}
+
+function validPushSubscription(sub) {
+  return sub && typeof sub.endpoint === 'string' && /^https:\/\//.test(sub.endpoint) &&
+    sub.keys && typeof sub.keys.p256dh === 'string' && typeof sub.keys.auth === 'string';
+}
+
+async function handlePushKey(request, env) {
+  var keys = await getVapidKeys(env);
+  return json({ success: true, publicKey: keys.publicKey });
+}
+
+async function handlePushSubscribe(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var sub = body && body.subscription;
+  if (!validPushSubscription(sub)) return json({ success: false, message: 'Invalid subscription' }, 400);
+  var subs = (await getPushSubscriptions(env, email)).filter(function (s) { return s.endpoint !== sub.endpoint; });
+  subs.push({ endpoint: sub.endpoint, keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth }, addedAt: new Date().toISOString() });
+  await env.VOTES.put('push:' + email, JSON.stringify(subs.slice(-MAX_PUSH_SUBSCRIPTIONS)));
+  return json({ success: true });
+}
+
+async function handlePushUnsubscribe(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var endpoint = ((body && body.endpoint) || '').toString();
+  var subs = await getPushSubscriptions(env, email);
+  await env.VOTES.put('push:' + email, JSON.stringify(subs.filter(function (s) { return s.endpoint !== endpoint; })));
+  return json({ success: true });
+}
+
+async function handlePushTest(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var sent = await sendPushToMember(env, email, {
+    title: 'MT3UK notifications are on',
+    body: 'You will get alerts here for likes and comments on your builds, replies and claim updates.',
+    url: '/my-builds.html'
+  });
+  return json({ success: true, sent: sent });
+}
+
+// Where a comment alert should open: the reel at the photo and comment, or
+// an interview's comments.
+function commentAlertUrl(file, commentId) {
+  if (isInterviewThread(file)) return '/blog-' + file.slice('interview:'.length) + '.html#comments';
+  return '/?photo=' + encodeURIComponent(file) + (commentId ? '&comment=' + encodeURIComponent(commentId) : '') + '#build-feed';
+}
+
 async function notifyCommentRecipients(env, ctx, file, commenterEmail, commenterName, text, parentAuthorEmail, commentId) {
   var ownerEmail = null;
   if (isInterviewThread(file)) {
@@ -2137,6 +2375,11 @@ async function notifyCommentRecipients(env, ctx, file, commenterEmail, commenter
       } catch (err) {
         console.log('Comment notification email failed:', err.message);
       }
+      await sendPushToMember(env, toEmail, {
+        title: toEmail === ownerEmail ? 'New comment on your build' : 'New reply to your comment',
+        body: commenterName + ': ' + text.slice(0, 140),
+        url: commentAlertUrl(file, commentId)
+      });
     }));
   };
 
@@ -3611,6 +3854,18 @@ export default {
     }
     if (url.pathname === '/my-builds' && request.method === 'DELETE') {
       return handleMyBuildsDelete(request, env);
+    }
+    if (url.pathname === '/push/key' && request.method === 'GET') {
+      return handlePushKey(request, env);
+    }
+    if (url.pathname === '/push/subscribe' && request.method === 'POST') {
+      return handlePushSubscribe(request, env);
+    }
+    if (url.pathname === '/push/unsubscribe' && request.method === 'POST') {
+      return handlePushUnsubscribe(request, env);
+    }
+    if (url.pathname === '/push/test' && request.method === 'POST') {
+      return handlePushTest(request, env);
     }
     if (url.pathname === '/my-builds/profile' && request.method === 'POST') {
       return handleMyBuildsProfileUpdate(request, env);

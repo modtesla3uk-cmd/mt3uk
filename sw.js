@@ -77,3 +77,31 @@ self.addEventListener('fetch', function (event) {
     })
   );
 });
+
+// Push notifications, turned on per device in My Garage. The worker sends
+// { title, body, url }; tapping the alert opens (or focuses) that page.
+self.addEventListener('push', function (event) {
+  var data = {};
+  try { data = event.data ? event.data.json() : {}; } catch (e) {
+    data = { body: event.data ? event.data.text() : '' };
+  }
+  event.waitUntil(self.registration.showNotification(data.title || 'MT3UK', {
+    body: data.body || '',
+    icon: '/images/site/icon-192.png',
+    badge: '/images/site/favicon-32.png',
+    data: { url: data.url || '/' }
+  }));
+});
+
+self.addEventListener('notificationclick', function (event) {
+  event.notification.close();
+  var url = new URL((event.notification.data && event.notification.data.url) || '/', self.location.origin).href;
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (windows) {
+      for (var i = 0; i < windows.length; i++) {
+        if (windows[i].url === url && 'focus' in windows[i]) return windows[i].focus();
+      }
+      return self.clients.openWindow(url);
+    })
+  );
+});

@@ -649,7 +649,7 @@
     box-shadow: 0 30px 70px rgba(0,0,0,0.5), 0 4px 16px rgba(0,0,0,0.3);
     display: flex; flex-direction: column;
   }
-  .mb-lightbox-media { background: #000; display: flex; align-items: center; justify-content: center; max-height: 62vh; flex-shrink: 0; overflow: hidden; }
+  .mb-lightbox-media { position: relative; background: #000; display: flex; align-items: center; justify-content: center; max-height: 62vh; flex-shrink: 0; overflow: hidden; }
   .mb-lightbox-media img { max-width: 100%; max-height: 62vh; width: auto; height: auto; object-fit: contain; display: block; }
   .mb-img-lightbox-close {
     position: absolute; top: 12px; right: 12px; background: rgba(15,20,30,0.55); backdrop-filter: blur(2px);
@@ -659,7 +659,7 @@
   }
   .mb-img-lightbox-close:hover { background: var(--orange); }
   .mb-lightbox-nav {
-    position: absolute; top: 31vh; transform: translateY(-50%); background: rgba(15,20,30,0.55); backdrop-filter: blur(2px);
+    position: absolute; top: 50%; transform: translateY(-50%); background: rgba(15,20,30,0.55); backdrop-filter: blur(2px);
     border: none; color: var(--paper); width: 36px; height: 36px; font-size: 1.4rem;
     line-height: 1; cursor: pointer; z-index: 2; display: flex; align-items: center; justify-content: center;
     transition: background 0.15s ease;
@@ -672,6 +672,25 @@
   .mb-lightbox-body .mb-photo-mods { border-top: 0; padding-top: 0; }
   .mb-lightbox-body .mb-photo-mods-label, .mb-lightbox-comments-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--steel); display: block; margin-bottom: 6px; }
   .mb-lightbox-comments { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+  /* Likes on the open photo: heart, count and "Liked by", tap for the list. */
+  .mb-lightbox-likes[hidden] { display: none; }
+  .mb-likes-toggle {
+    display: flex; align-items: center; gap: 8px; width: 100%;
+    background: none; border: 0; padding: 4px 0; cursor: pointer; text-align: left;
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 0.9rem; color: var(--ink);
+  }
+  .mb-likes-toggle svg { width: 20px; height: 20px; fill: var(--orange); flex-shrink: 0; }
+  .mb-likes-count { font-weight: 700; }
+  .mb-likes-summary { color: var(--steel); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mb-likes-summary strong { color: var(--ink); font-weight: 600; }
+  .mb-likes-toggle[aria-expanded="true"] .mb-photo-mods-caret { transform: rotate(180deg); }
+  .mb-likes-list { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; }
+  .mb-likes-list[hidden] { display: none; }
+  .mb-likes-list li { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); font-family: 'IBM Plex Sans', sans-serif; }
+  .mb-likes-list .mb-comment-avatar { font-family: 'IBM Plex Sans', sans-serif; }
+  .mb-likes-name { font-weight: 600; font-size: 0.9rem; color: var(--ink); }
+  .mb-likes-when { font-size: 0.76rem; color: var(--steel); }
+  .mb-likes-note { color: var(--steel); font-size: 0.82rem; justify-content: center; }
   .mb-build-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
   .mb-build-caption { font-weight: 600; color: var(--ink); word-break: break-word; }
   .mb-toggles { display: flex; flex-wrap: wrap; gap: 14px; }
@@ -1026,7 +1045,7 @@ document.addEventListener('DOMContentLoaded', function () {
           <a href="https://ko-fi.com/mt3uk" class="nav-sublink" target="_blank" rel="noopener">Support Us</a>
         </div>
       </div>
-      <a href="https://www.facebook.com/groups/mt3uk/" class="nav-link-mobile" target="_blank" rel="noopener">Join the group</a>
+      <a href="my-builds.html" class="nav-link-mobile">Sign Up / In</a>
       </div>
     </div>
     <div class="nav-search" id="nav-search">
@@ -1326,10 +1345,21 @@ document.addEventListener('DOMContentLoaded', function () {
 <div class="mb-img-lightbox" id="mb-img-lightbox" role="dialog" aria-modal="true" aria-hidden="true">
   <div class="mb-lightbox-panel">
     <button type="button" class="mb-img-lightbox-close" aria-label="Close">&times;</button>
-    <button type="button" class="mb-lightbox-nav mb-lightbox-prev" id="mb-lightbox-prev-btn" aria-label="Previous photo">&lsaquo;</button>
-    <button type="button" class="mb-lightbox-nav mb-lightbox-next" id="mb-lightbox-next-btn" aria-label="Next photo">&rsaquo;</button>
-    <div class="mb-lightbox-media"><img id="mb-img-lightbox-img" src="" alt=""></div>
+    <div class="mb-lightbox-media">
+      <img id="mb-img-lightbox-img" src="" alt="">
+      <button type="button" class="mb-lightbox-nav mb-lightbox-prev" id="mb-lightbox-prev-btn" aria-label="Previous photo">&lsaquo;</button>
+      <button type="button" class="mb-lightbox-nav mb-lightbox-next" id="mb-lightbox-next-btn" aria-label="Next photo">&rsaquo;</button>
+    </div>
     <div class="mb-lightbox-body">
+      <div class="mb-lightbox-likes" id="mb-lightbox-likes" hidden>
+        <button type="button" class="mb-likes-toggle" id="mb-lightbox-likes-toggle" aria-expanded="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-10.2-9.3C-0.2 8 1.4 3.9 5.3 3.2 7.7 2.8 10 3.9 12 6.4c2-2.5 4.3-3.6 6.7-3.2 3.9.7 5.5 4.8 3.5 8.5C19.5 16.4 12 21 12 21z"/></svg>
+          <span class="mb-likes-count" id="mb-lightbox-likes-count">0</span>
+          <span class="mb-likes-summary" id="mb-lightbox-likes-summary"></span>
+          <span class="mb-photo-mods-caret">&#9662;</span>
+        </button>
+        <ul class="mb-likes-list" id="mb-lightbox-likes-list" hidden></ul>
+      </div>
       <div class="mb-photo-mods" id="mb-lightbox-mods">
         <button type="button" class="mb-photo-mods-toggle mono" id="mb-lightbox-mods-toggle" aria-expanded="false">Mods<span class="mb-photo-mods-caret">&#9662;</span></button>
         <div class="mb-photo-mods-body" id="mb-lightbox-mods-body" hidden>
@@ -1520,6 +1550,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function clearSession() {
       localStorage.removeItem(SESSION_KEY);
       localStorage.removeItem(EMAIL_KEY);
+      localStorage.removeItem('mt3ukMyBuildsFirstName');
     }
 
     function escapeHtml(str) {
@@ -1542,6 +1573,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function renderName(firstName, lastName) {
       var hasName = !!(firstName && lastName);
+      // Remembered for the "Signed in as" bar on other pages (js/account-bar.js).
+      try {
+        if (firstName) localStorage.setItem('mt3ukMyBuildsFirstName', firstName);
+      } catch (e) {}
       document.getElementById('mb-name-display').textContent = hasName ? firstName + ' ' + lastName : '';
       nameRow.hidden = !hasName;
       nameCard.hidden = hasName;
@@ -2420,6 +2455,58 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // Who liked the open photo. Names come from the worker's /likes/who,
+    // loaded when the photo opens (only if it has likes).
+    var lightboxLikes = document.getElementById('mb-lightbox-likes');
+    var lightboxLikesToggle = document.getElementById('mb-lightbox-likes-toggle');
+    var lightboxLikesCount = document.getElementById('mb-lightbox-likes-count');
+    var lightboxLikesSummary = document.getElementById('mb-lightbox-likes-summary');
+    var lightboxLikesList = document.getElementById('mb-lightbox-likes-list');
+
+    function loadLightboxLikes(file, count) {
+      lightboxLikesList.hidden = true;
+      lightboxLikesToggle.setAttribute('aria-expanded', 'false');
+      lightboxLikes.hidden = !count;
+      if (!count) return;
+      lightboxLikesCount.textContent = String(count);
+      lightboxLikesSummary.textContent = count === 1 ? 'like' : 'likes';
+      lightboxLikesList.innerHTML = '<li class="mb-likes-note">Loading&hellip;</li>';
+      fetch(API + '/likes/who?file=' + encodeURIComponent(file), { cache: 'no-store' })
+        .then(function (res) { return res.ok ? res.json() : null; })
+        .then(function (data) {
+          if (lightboxFile !== file) return;
+          if (!data || !data.success) throw new Error('load');
+          var likers = data.likers || [];
+          var total = Math.max(count, data.count || 0);
+          lightboxLikesCount.textContent = String(total);
+          if (likers.length) {
+            var others = total - 1;
+            lightboxLikesSummary.innerHTML = 'Liked by <strong>' + escapeHtml(likers[0].name) + '</strong>' +
+              (others > 0 ? ' and ' + others + ' other' + (others === 1 ? '' : 's') : '');
+          }
+          var rows = likers.map(function (l) {
+            return '<li><span class="mb-comment-avatar" aria-hidden="true">' + escapeHtml(commentInitials(l.name)) + '</span>' +
+              '<span><span class="mb-likes-name">' + escapeHtml(l.name) + '</span><br>' +
+              '<span class="mb-likes-when">' + timeAgo(l.at) + '</span></span></li>';
+          });
+          if (data.earlier) {
+            rows.push('<li class="mb-likes-note">' + (rows.length ? '+ ' : '') + data.earlier + ' earlier like' + (data.earlier === 1 ? '' : 's') + ' from before likes showed names</li>');
+          }
+          lightboxLikesList.innerHTML = rows.join('');
+        })
+        .catch(function () {
+          if (lightboxFile !== file) return;
+          lightboxLikesList.innerHTML = '<li class="mb-likes-note">Could not load likes, please try again.</li>';
+        });
+    }
+
+    lightboxLikesToggle.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var open = lightboxLikesList.hidden;
+      lightboxLikesList.hidden = !open;
+      lightboxLikesToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+
     function lightboxPhotoOrder() {
       return Array.prototype.slice.call(photoStrip.querySelectorAll('.mb-photo-thumb-wrap')).map(function (el) {
         return el.getAttribute('data-file');
@@ -2434,6 +2521,7 @@ document.addEventListener('DOMContentLoaded', function () {
       imgLightboxImg.src = window.MT3UK_R2_BASE + '/gallery/' + file;
       imgLightboxImg.alt = photo.caption || car.name || '';
       renderLightboxMods(car.mods);
+      loadLightboxLikes(file, photo.likeCount || 0);
       loadLightboxComments(file);
       lightboxComposerAvatar.textContent = commentInitials(myGarageEmail);
       lightboxComposerInput.value = '';
@@ -3128,6 +3216,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 </script>
 
+<script src="js/account-bar.js" defer></script>
 <script src="js/search.js" defer></script>
 
 </body>

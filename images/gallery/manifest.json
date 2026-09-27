@@ -1,11 +1,19 @@
 [
   {
+    "file": "top-shot.jpeg",
+    "caption": "TOP SHOT",
+    "name": "GEDIMINAS GUDELIS",
+    "color": "White",
+    "added": "2026-09-27",
+    "group": "top-shot.jpeg"
+  },
+  {
     "file": "side-shot.jpeg",
     "caption": "SIDE SHOT",
     "name": "GEDIMINAS GUDELIS",
     "color": "White",
     "added": "2026-09-27",
-    "group": "side-shot.jpeg"
+    "group": "top-shot.jpeg"
   },
   {
     "file": "viper-green-model-y.jpeg",

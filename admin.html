@@ -129,6 +129,12 @@
   }
   .subscriber-search-count { color: var(--steel); font-size: 0.72rem; margin: 0 0 14px; }
   .subscriber-added { color: var(--steel); font-size: 0.68rem; margin-top: 2px; }
+  .subscriber-link-result { margin-top: 10px; font-size: 0.72rem; color: var(--steel); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .subscriber-link-result[hidden] { display: none; }
+  .subscriber-link-result input { flex: 1; min-width: 160px; font-size: 0.68rem; padding: 6px 8px; }
+  .subscriber-link-result button { padding: 6px 10px; font-size: 0.68rem; }
+  .subscriber-link-result .ok { color: #4caf7d; }
+  .subscriber-link-result .warn { color: #ff6b6b; }
   .add-subscriber-row input { min-width: 120px; }
   .thread {
     border: 1px solid rgba(255,255,255,0.2);
@@ -403,6 +409,7 @@
         '<p class="card-status ' + escapeHtml(c.status) + '">' + escapeHtml(c.status) + '</p>' +
         '<div class="card-actions">' +
           '<button type="button" class="secondary undo-btn" data-file="' + escapeHtml(c.file) + '">Undo</button>' +
+          '<button type="button" class="danger remove-claim-btn" data-file="' + escapeHtml(c.file) + '">Remove claim</button>' +
           '<button type="button" class="danger delete-photo-btn" data-file="' + escapeHtml(c.file) + '">Delete photo</button>' +
         '</div>' +
       '</div>';
@@ -464,6 +471,30 @@
   });
 
   decidedEl.addEventListener('click', function (e) {
+    var removeBtn = e.target.closest('.remove-claim-btn');
+    if (removeBtn) {
+      var removeFile = removeBtn.dataset.file;
+      var removeKey = keyInput.value.trim();
+      if (!removeKey || !removeFile) return;
+      if (!confirm('Remove the claim for "' + removeFile + '"? The photo stays with its current owner.')) return;
+      removeBtn.disabled = true;
+      fetch(API + '/gallery/admin/claims?key=' + encodeURIComponent(removeKey) + '&file=' + encodeURIComponent(removeFile), { method: 'DELETE' })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (data && data.success) {
+            loadClaims(removeKey);
+          } else {
+            removeBtn.disabled = false;
+            alert((data && data.message) || 'Could not remove the claim.');
+          }
+        })
+        .catch(function () {
+          removeBtn.disabled = false;
+          alert('Network error removing the claim.');
+        });
+      return;
+    }
+
     var btn = e.target.closest('.undo-btn');
     if (!btn) return;
     var file = btn.dataset.file;
@@ -551,8 +582,10 @@
           '<div class="subscriber-added">Added ' + (s.added ? escapeHtml(formatAdded(s.added)) : 'date unknown') + '</div>' +
         '</div>' +
         '<button type="button" class="secondary rename-toggle-btn">Edit</button>' +
+        '<button type="button" class="secondary send-link-btn">Send sign-in link</button>' +
         '<button type="button" class="danger delete-subscriber-btn">Delete</button>' +
       '</div>' +
+      '<div class="subscriber-link-result" hidden></div>' +
       '<div class="subscriber-edit">' +
         '<div class="subscriber-rename-row">' +
           '<input type="text" class="name-first-input" placeholder="First name" autocomplete="off" value="' + escapeHtml(s.firstName || '') + '">' +
@@ -692,6 +725,46 @@
     var renameToggleBtn = e.target.closest('.rename-toggle-btn');
     if (renameToggleBtn) {
       card.querySelector('.subscriber-edit').classList.toggle('open');
+      return;
+    }
+
+    var sendLinkBtn = e.target.closest('.send-link-btn');
+    if (sendLinkBtn) {
+      if (!confirm('Email ' + email + ' a new one-time sign-in link for My Garage?')) return;
+      sendLinkBtn.disabled = true;
+      var result = card.querySelector('.subscriber-link-result');
+      fetch(API + '/gallery/admin/subscribers/link?key=' + encodeURIComponent(key), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email })
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          sendLinkBtn.disabled = false;
+          if (!data || !data.success) { alert((data && data.message) || 'Could not create a sign-in link.'); return; }
+          // The link is shown as well, to pass on another way if the email
+          // doesn't arrive. It works once and lasts 7 days.
+          result.innerHTML =
+            '<span class="' + (data.emailed ? 'ok' : 'warn') + '">' + (data.emailed ? 'Emailed. Link (one use, 7 days):' : 'Email failed. Link (one use, 7 days):') + '</span>' +
+            '<input type="text" readonly value="' + escapeHtml(data.link) + '">' +
+            '<button type="button" class="secondary copy-link-btn">Copy</button>';
+          result.hidden = false;
+        })
+        .catch(function () {
+          sendLinkBtn.disabled = false;
+          alert('Network error creating a sign-in link.');
+        });
+      return;
+    }
+
+    var copyLinkBtn = e.target.closest('.copy-link-btn');
+    if (copyLinkBtn) {
+      var linkInput = card.querySelector('.subscriber-link-result input');
+      linkInput.select();
+      var copied = navigator.clipboard ? navigator.clipboard.writeText(linkInput.value) : Promise.reject();
+      copied.then(function () { copyLinkBtn.textContent = 'Copied'; }, function () {
+        try { document.execCommand('copy'); copyLinkBtn.textContent = 'Copied'; } catch (err) {}
+      });
       return;
     }
 

@@ -1378,6 +1378,49 @@ async function handleGalleryClaim(request, env) {
   return json({ success: true, status: 'pending' });
 }
 
+// Admin: removes a claim record, e.g. to tidy up decided claims. The
+// photo's owner is not changed.
+async function handleGalleryClaimsAdminRemove(request, env) {
+  var url = new URL(request.url);
+  var key = url.searchParams.get('key');
+  if (!env.ADMIN_KEY || key !== env.ADMIN_KEY) {
+    return json({ success: false, message: 'Unauthorized' }, 401);
+  }
+  var file = (url.searchParams.get('file') || '').toString();
+  if (!file) return json({ success: false, message: 'file is required' }, 400);
+  if (!(await getClaim(env, file))) return json({ success: false, message: 'No claim for that file' }, 404);
+  await env.VOTES.delete(claimKey(file));
+  return json({ success: true });
+}
+
+// Admin: emails a member a fresh one-time My Garage sign-in link, valid for
+// as long as the links sent when an admin assigns them a build. The link is
+// returned too, so it can be passed on another way if the email goes astray.
+async function handleGalleryAdminSubscriberLink(request, env) {
+  var key = new URL(request.url).searchParams.get('key');
+  if (!env.ADMIN_KEY || key !== env.ADMIN_KEY) {
+    return json({ success: false, message: 'Unauthorized' }, 401);
+  }
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var email = ((body && body.email) || '').toString().trim().toLowerCase();
+  if (!email) return json({ success: false, message: 'email is required' }, 400);
+  if ((await env.VOTES.get('subscriber:' + email)) === null) {
+    return json({ success: false, message: 'Subscriber not found' }, 404);
+  }
+  var token = randomToken();
+  await env.VOTES.put('my-builds-link:' + token, email, { expirationTtl: BUILD_ASSIGNED_LINK_TTL_SECONDS });
+  var link = MY_BUILDS_SITE_URL + '/my-builds.html?token=' + token;
+  var emailed = true;
+  try {
+    await sendMyBuildsLinkEmail(env, email, link, '7 days');
+  } catch (err) {
+    emailed = false;
+    console.log('Admin sign-in link email failed:', err.message);
+  }
+  return json({ success: true, emailed: emailed, link: link });
+}
+
 async function handleGalleryClaimsAdminList(request, env) {
   var url = new URL(request.url);
   var key = url.searchParams.get('key');
@@ -1965,10 +2008,10 @@ function rawEmail(from, to, subject, bodyText) {
   return lines.join('\r\n');
 }
 
-async function sendMyBuildsLinkEmail(env, toEmail, link) {
+async function sendMyBuildsLinkEmail(env, toEmail, link, expiresIn) {
   var subject = 'Your My Builds sign-in link';
   var body = 'Click the link below to sign in to My Garage, manage your build(s) and view your notifications:\n\n' + link +
-    '\n\nThis link expires in 15 minutes and can only be used once. ' +
+    '\n\nThis link expires in ' + (expiresIn || '15 minutes') + ' and can only be used once. ' +
     'If you did not request this, you can ignore this email.';
   var message = new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body));
   await env.SEND_EMAIL.send(message);
@@ -3457,6 +3500,9 @@ export default {
     if (url.pathname === '/gallery/admin/claims' && request.method === 'GET') {
       return handleGalleryClaimsAdminList(request, env);
     }
+    if (url.pathname === '/gallery/admin/claims' && request.method === 'DELETE') {
+      return handleGalleryClaimsAdminRemove(request, env);
+    }
     if (url.pathname === '/gallery/admin/claims/decide' && request.method === 'POST') {
       return handleGalleryClaimsAdminDecide(request, env);
     }
@@ -3474,6 +3520,9 @@ export default {
     }
     if (url.pathname === '/gallery/admin/subscribers' && request.method === 'POST') {
       return handleGalleryAdminSubscriberCreate(request, env);
+    }
+    if (url.pathname === '/gallery/admin/subscribers/link' && request.method === 'POST') {
+      return handleGalleryAdminSubscriberLink(request, env);
     }
     if (url.pathname === '/gallery/admin/subscribers/name' && request.method === 'POST') {
       return handleGalleryAdminSubscriberName(request, env);

@@ -1,6 +1,6 @@
 {
-  "generated": "2026-09-26T10:41:44.947Z",
-  "totalEvents": 6,
+  "generated": "2026-09-27T23:58:04.509Z",
+  "totalEvents": 7,
   "events": [
     {
       "id": "001",
@@ -79,7 +79,20 @@
       "facebookUrl": "https://facebook.com/groups/mt3uk",
       "attendingCount": 3,
       "interestedCount": 0
+    },
+    {
+      "id": "007",
+      "name": "Gasoline Juice Autumn Meet",
+      "description": "Let's get together at Gasoline Juice, a popular location for all types of cars and bikes with Automobile Artwork, SIM racing, coffee, cake and breakfast baps",
+      "startTime": "2026-10-18T10:00:00+0000",
+      "endTime": "2026-10-18T15:00:00+0000",
+      "location": {
+        "name": "The Royal Ordnance Depot, Harmans Way, Northampton NN7 4PS"
+      },
+      "facebookUrl": "https://Facebook.com/groups/mt3uk/",
+      "attendingCount": 0,
+      "interestedCount": 0
     }
   ],
-  "lastId": 6
+  "lastId": 7
 }

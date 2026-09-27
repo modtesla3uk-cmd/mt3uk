@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mt3uk-shell-v6';
+const CACHE_NAME = 'mt3uk-shell-v7';
 const PRECACHE_URLS = [
   '/index.html',
   '/shop.html',
@@ -88,7 +88,7 @@ self.addEventListener('push', function (event) {
   event.waitUntil(self.registration.showNotification(data.title || 'MT3UK', {
     body: data.body || '',
     icon: '/images/site/icon-192.png',
-    badge: '/images/site/favicon-32.png',
+    badge: '/images/site/notification-badge.png',
     data: { url: data.url || '/' }
   }));
 });

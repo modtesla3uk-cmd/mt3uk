@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Device Test Checklist | MT3UK</title>
+<link rel="icon" type="image/x-icon" href="images/site/favicon.ico">
+<style>
+  :root {
+    --ink: #16233d;
+    --ink-2: #1e2d4a;
+    --orange: #e8542a;
+    --steel: #9aa4b5;
+    --white: #ffffff;
+    --green: #4caf7d;
+    --line: rgba(255, 255, 255, 0.12);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--white);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 24px 16px 60px; }
+  h1 { font-size: 1.4rem; margin: 0 0 4px; color: var(--orange); }
+  .intro { color: var(--steel); margin: 0 0 18px; }
+  .bar {
+    position: sticky; top: 0; z-index: 5;
+    background: var(--ink); border-bottom: 1px solid var(--line);
+    padding: 12px 0; margin-bottom: 18px;
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+  }
+  .bar label { font-size: 0.8rem; color: var(--steel); }
+  .bar select, .bar input {
+    background: var(--ink-2); color: var(--white); border: 1px solid var(--line);
+    padding: 8px 10px; font-size: 0.95rem; border-radius: 4px;
+  }
+  .bar input { min-width: 0; flex: 1 1 160px; }
+  .progress { font-weight: 600; margin-left: auto; white-space: nowrap; }
+  .progress .done { color: var(--green); }
+  button {
+    background: var(--ink-2); color: var(--white); border: 1px solid var(--line);
+    padding: 8px 12px; font-size: 0.9rem; border-radius: 4px; cursor: pointer;
+  }
+  button.primary { background: var(--orange); border-color: var(--orange); }
+  .buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+  .grid { columns: 2; column-gap: 28px; column-rule: 1px solid var(--line); }
+  section { break-inside: avoid; margin: 0 0 22px; }
+  h2 { font-size: 1rem; margin: 0 0 8px; color: var(--orange); letter-spacing: 0.02em; }
+  .only { font-size: 0.72rem; color: var(--steel); font-weight: normal; margin-left: 6px; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li { border-bottom: 1px solid var(--line); }
+  li label { display: flex; gap: 10px; padding: 9px 2px; cursor: pointer; align-items: flex-start; }
+  li input { width: 20px; height: 20px; margin: 2px 0 0; flex: 0 0 auto; accent-color: var(--green); }
+  li.checked span { color: var(--steel); text-decoration: line-through; }
+  li.na { display: none; }
+  .tip { color: var(--steel); font-size: 0.85rem; margin: 6px 0 0; }
+  #copy-status { color: var(--green); font-size: 0.85rem; }
+  @media (max-width: 780px) {
+    .grid { columns: 1; }
+    .progress { margin-left: 0; width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Device Test Checklist</h1>
+  <p class="intro">Run through this on a real phone after bigger changes. Ticks are saved on this device only. Choose the device type to hide steps that don't apply, then use Copy results to paste a summary into a message.</p>
+
+  <div class="bar">
+    <label for="device-type">Device</label>
+    <select id="device-type">
+      <option value="iphone">iPhone</option>
+      <option value="android">Android</option>
+      <option value="desktop">Desktop</option>
+    </select>
+    <input id="device-name" type="text" placeholder="Model, e.g. iPhone 15, iOS 18" aria-label="Device model">
+    <span class="progress" id="progress"></span>
+    <div class="buttons">
+      <button type="button" class="primary" id="copy-btn">Copy results</button>
+      <button type="button" id="reset-btn">Clear ticks</button>
+      <span id="copy-status"></span>
+    </div>
+  </div>
+
+  <div class="grid" id="checklist">
+    <section>
+      <h2>Look and feel</h2>
+      <ul>
+        <li><label><input type="checkbox"><span>Every page fits the screen, with no sideways scrolling</span></label></li>
+        <li><label><input type="checkbox"><span>Text is easy to read and nothing overlaps</span></label></li>
+        <li><label><input type="checkbox"><span>Menu opens, closes and every link goes to the right page</span></label></li>
+        <li><label><input type="checkbox"><span>Photos load and look sharp</span></label></li>
+        <li data-only="iphone android"><label><input type="checkbox"><span>Turning the phone sideways still looks right</span></label></li>
+        <li data-only="desktop"><label><input type="checkbox"><span>Content is centred, short blocks are not left flush on a wide screen</span></label></li>
+        <li><label><input type="checkbox"><span>Browser tab shows the navy M favicon</span></label></li>
+      </ul>
+    </section>
+
+    <section data-only="iphone android desktop">
+      <h2>Install the app</h2>
+      <ul>
+        <li data-only="iphone"><label><input type="checkbox"><span>In Safari: Share, then Add to Home Screen, with Open as Web App on</span></label></li>
+        <li data-only="android"><label><input type="checkbox"><span>In Chrome: menu, then Install app (or the homepage Get the app button)</span></label></li>
+        <li data-only="desktop"><label><input type="checkbox"><span>In Chrome or Edge: install icon in the address bar</span></label></li>
+        <li><label><input type="checkbox"><span>App icon is the navy MT3UK icon</span></label></li>
+        <li><label><input type="checkbox"><span>App opens without the tap-to-enter intro animation</span></label></li>
+        <li><label><input type="checkbox"><span>App has no browser address bar</span></label></li>
+        <li data-only="android"><label><input type="checkbox"><span>Long-pressing the icon shows My Garage and Full Gallery shortcuts</span></label></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>My Garage sign-in</h2>
+      <ul>
+        <li><label><input type="checkbox"><span>Send me a sign-in link: email arrives with a link and a 6-digit code</span></label></li>
+        <li data-only="iphone"><label><input type="checkbox"><span>In the Home Screen app, the code signs in (the keyboard suggests it)</span></label></li>
+        <li><label><input type="checkbox"><span>The email link signs in (in a browser)</span></label></li>
+        <li><label><input type="checkbox"><span>A wrong code shows a clear message</span></label></li>
+        <li><label><input type="checkbox"><span>Close the app or browser fully, reopen: still signed in</span></label></li>
+        <li><label><input type="checkbox"><span>After signing out and reopening My Garage, the email box is already filled in</span></label></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Push notifications</h2>
+      <ul>
+        <li><label><input type="checkbox"><span>Enable Push Notifications in My Garage and allow them</span></label></li>
+        <li><label><input type="checkbox"><span>Send a test: it arrives within a few seconds</span></label></li>
+        <li><label><input type="checkbox"><span>With the app closed, a like on your photo (from another device) arrives</span></label></li>
+        <li><label><input type="checkbox"><span>A comment on your photo arrives, and no comment email is sent</span></label></li>
+        <li><label><input type="checkbox"><span>Tapping a notification opens the right photo</span></label></li>
+        <li><label><input type="checkbox"><span>Disable Push Notifications stops them</span></label></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Homepage reel</h2>
+      <ul>
+        <li><label><input type="checkbox"><span>Scroll through posts with the up and down arrows or swipe</span></label></li>
+        <li><label><input type="checkbox"><span>Swipe sideways through a member's same-day photos, dots follow</span></label></li>
+        <li><label><input type="checkbox"><span>Double-tap a photo to like it, and the heart button works too</span></label></li>
+        <li><label><input type="checkbox"><span>Comments open, and posting a comment works when signed in</span></label></li>
+        <li><label><input type="checkbox"><span>Mods and Share bubbles open and close</span></label></li>
+        <li><label><input type="checkbox"><span>Sharing to WhatsApp or Facebook shows the photo in the preview</span></label></li>
+        <li><label><input type="checkbox"><span>Full screen viewer opens, with mods below the photo</span></label></li>
+        <li><label><input type="checkbox"><span>Report is hidden on your own photos</span></label></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Gallery and voting</h2>
+      <ul>
+        <li><label><input type="checkbox"><span>Full Gallery: tapping a photo opens the viewer, arrows and swipe work</span></label></li>
+        <li><label><input type="checkbox"><span>Claim this build: the form and Submit button are fully on screen</span></label></li>
+        <li><label><input type="checkbox"><span>Vote for Build: voting works and the cards look right</span></label></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>My Garage</h2>
+      <ul>
+        <li><label><input type="checkbox"><span>Upload a build with first and last name, photos appear</span></label></li>
+        <li><label><input type="checkbox"><span>Edit mods and where a photo appears</span></label></li>
+        <li><label><input type="checkbox"><span>Notifications bell shows new comments and replies</span></label></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Blog, shop and contact</h2>
+      <ul>
+        <li><label><input type="checkbox"><span>Owner Interviews: page reads well, comments load and post</span></label></li>
+        <li><label><input type="checkbox"><span>Shop: product details open, hold-to-zoom works on photos</span></label></li>
+        <li><label><input type="checkbox"><span>Shop: order buttons open the right product page</span></label></li>
+        <li><label><input type="checkbox"><span>Contact and Reviews pages look right and links work</span></label></li>
+      </ul>
+    </section>
+  </div>
+  <p class="tip">Automated checks also run on every push to GitHub (iPhone and iPad using Safari's engine, Android, and desktop Chrome and Firefox). Their screenshots are in the "Run Playwright tests" run, under device-screenshots.</p>
+</div>
+
+<script>
+  (function () {
+    var KEY = 'mt3ukDeviceChecklist';
+    var state = {};
+    try { state = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { state = {}; }
+    state.ticks = state.ticks || {};
+
+    var typeEl = document.getElementById('device-type');
+    var nameEl = document.getElementById('device-name');
+    var progressEl = document.getElementById('progress');
+    var items = Array.prototype.slice.call(document.querySelectorAll('#checklist li'));
+    var sections = Array.prototype.slice.call(document.querySelectorAll('#checklist section'));
+
+    function guessType() {
+      var ua = navigator.userAgent;
+      if (/iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) return 'iphone';
+      if (/Android/.test(ua)) return 'android';
+      return 'desktop';
+    }
+
+    function save() {
+      try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+    }
+
+    function applies(el, type) {
+      var only = el.getAttribute('data-only');
+      return !only || only.split(' ').indexOf(type) !== -1;
+    }
+
+    function itemId(li) {
+      return li.closest('section').querySelector('h2').firstChild.textContent.trim() + ': ' + li.textContent.trim();
+    }
+
+    function render() {
+      var type = typeEl.value;
+      var total = 0, done = 0;
+      sections.forEach(function (sec) { sec.hidden = !applies(sec, type); });
+      items.forEach(function (li) {
+        var visible = applies(li, type) && applies(li.closest('section'), type);
+        li.classList.toggle('na', !visible);
+        var box = li.querySelector('input');
+        box.checked = !!state.ticks[type + '|' + itemId(li)];
+        li.classList.toggle('checked', box.checked);
+        if (visible) {
+          total++;
+          if (box.checked) done++;
+        }
+      });
+      progressEl.innerHTML = '<span class="' + (done === total ? 'done' : '') + '">' + done + ' of ' + total + ' done</span>';
+    }
+
+    items.forEach(function (li) {
+      li.querySelector('input').addEventListener('change', function (e) {
+        var key = typeEl.value + '|' + itemId(li);
+        if (e.target.checked) state.ticks[key] = true;
+        else delete state.ticks[key];
+        save();
+        render();
+      });
+    });
+
+    typeEl.value = state.type || guessType();
+    nameEl.value = state.name || '';
+    typeEl.addEventListener('change', function () { state.type = typeEl.value; save(); render(); });
+    nameEl.addEventListener('input', function () { state.name = nameEl.value; save(); });
+
+    document.getElementById('reset-btn').addEventListener('click', function () {
+      if (!confirm('Clear all ticks for ' + typeEl.options[typeEl.selectedIndex].text + '?')) return;
+      Object.keys(state.ticks).forEach(function (k) {
+        if (k.indexOf(typeEl.value + '|') === 0) delete state.ticks[k];
+      });
+      save();
+      render();
+    });
+
+    document.getElementById('copy-btn').addEventListener('click', function () {
+      var type = typeEl.value;
+      var lines = ['MT3UK device test: ' + typeEl.options[typeEl.selectedIndex].text + (nameEl.value ? ' (' + nameEl.value + ')' : ''), progressEl.textContent, ''];
+      var failed = [];
+      items.forEach(function (li) {
+        if (li.classList.contains('na')) return;
+        if (!li.querySelector('input').checked) failed.push('Not ticked: ' + itemId(li));
+      });
+      lines = lines.concat(failed.length ? failed : ['Everything ticked.']);
+      var text = lines.join('\n');
+      var status = document.getElementById('copy-status');
+      (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject())
+        .then(function () { status.textContent = 'Copied'; })
+        .catch(function () { window.prompt('Copy the results:', text); })
+        .then(function () { setTimeout(function () { status.textContent = ''; }, 2000); });
+    });
+
+    render();
+  })();
+</script>
+</body>
+</html>

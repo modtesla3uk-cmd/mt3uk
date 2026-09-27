@@ -451,8 +451,8 @@
         '<p class="card-status ' + escapeHtml(c.status) + '">' + escapeHtml(c.status) + '</p>' +
         '<div class="card-actions">' +
           '<button type="button" class="secondary undo-btn" data-file="' + escapeHtml(c.file) + '">Undo</button>' +
-          '<button type="button" class="danger remove-claim-btn" data-file="' + escapeHtml(c.file) + '">Remove claim</button>' +
           '<button type="button" class="danger delete-photo-btn" data-file="' + escapeHtml(c.file) + '">Delete photo</button>' +
+          '<button type="button" class="approve-btn remove-claim-btn" data-file="' + escapeHtml(c.file) + '">Completed</button>' +
         '</div>' +
       '</div>';
     return div;
@@ -518,7 +518,7 @@
       var removeFile = removeBtn.dataset.file;
       var removeKey = keyInput.value.trim();
       if (!removeKey || !removeFile) return;
-      if (!confirm('Remove the claim for "' + removeFile + '"? The photo stays with its current owner.')) return;
+      if (!confirm('Mark the claim for "' + removeFile + '" as completed and remove it from this list? The photo stays with its current owner.')) return;
       removeBtn.disabled = true;
       fetch(API + '/gallery/admin/claims?key=' + encodeURIComponent(removeKey) + '&file=' + encodeURIComponent(removeFile), { method: 'DELETE' })
         .then(function (res) { return res.json(); })

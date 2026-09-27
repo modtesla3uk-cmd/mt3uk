@@ -1,19 +1,72 @@
 [
   {
+    "file": "rear-shot.jpeg",
+    "caption": "REAR SHOT",
+    "name": "GEDIMINAS GUDELIS",
+    "mods": [
+      "Tinted rear windows",
+      "Red pedal padding",
+      "All weather floor mats",
+      "GT spoiler",
+      "Front grill",
+      "Sticker reg plates",
+      "Rear side louvre",
+      "Side camera louvre",
+      "Custom painted wheels",
+      "Extra brake lights",
+      "Power Frunk",
+      "S3XY commander",
+      "TITA commander (Dashla)."
+    ],
+    "color": "White",
+    "added": "2026-09-27",
+    "group": "rear-shot.jpeg"
+  },
+  {
     "file": "top-shot.jpeg",
     "caption": "TOP SHOT",
     "name": "GEDIMINAS GUDELIS",
+    "mods": [
+      "Tinted rear windows",
+      "Red pedal padding",
+      "All weather floor mats",
+      "GT spoiler",
+      "Front grill",
+      "Sticker reg plates",
+      "Rear side louvre",
+      "Side camera louvre",
+      "Custom painted wheels",
+      "Extra brake lights",
+      "Power Frunk",
+      "S3XY commander",
+      "TITA commander (Dashla)."
+    ],
     "color": "White",
     "added": "2026-09-27",
-    "group": "top-shot.jpeg"
+    "group": "rear-shot.jpeg"
   },
   {
     "file": "side-shot.jpeg",
     "caption": "SIDE SHOT",
     "name": "GEDIMINAS GUDELIS",
+    "mods": [
+      "Tinted rear windows",
+      "Red pedal padding",
+      "All weather floor mats",
+      "GT spoiler",
+      "Front grill",
+      "Sticker reg plates",
+      "Rear side louvre",
+      "Side camera louvre",
+      "Custom painted wheels",
+      "Extra brake lights",
+      "Power Frunk",
+      "S3XY commander",
+      "TITA commander (Dashla)."
+    ],
     "color": "White",
     "added": "2026-09-27",
-    "group": "top-shot.jpeg"
+    "group": "rear-shot.jpeg"
   },
   {
     "file": "viper-green-model-y.jpeg",
@@ -669,13 +722,15 @@
       "Red pedal padding",
       "All weather floor mats",
       "GT spoiler",
+      "Front grill",
+      "Sticker reg plates",
       "Rear side louvre",
       "Side camera louvre",
       "Custom painted wheels",
       "Extra brake lights",
       "Power Frunk",
       "S3XY commander",
-      "TITA commander (Dashla)"
+      "TITA commander (Dashla)."
     ],
     "color": "White",
     "added": "2026-09-18",

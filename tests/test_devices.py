@@ -82,8 +82,17 @@ def api_reply(url, method, post_data, state):
     return {"success": True}
 
 
+# The same cross-site headers the real worker sends (workers/vote-worker.js).
+API_HEADERS = {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, X-Voter-Id, X-Session-Token",
+}
+
+
 def attach_mocks(context):
-    state = {}
+    state = {"log": []}
 
     def handle(route):
         request = route.request
@@ -103,20 +112,15 @@ def attach_mocks(context):
             body = api_reply(url, request.method, post_data, state)
             if status == 401:
                 body = {"success": False, "message": "Please sign in again"}
-            return route.fulfill(
-                status=status,
-                body=json.dumps(body),
-                headers={
-                    "Content-Type": "application/json",
-                    "Access-Control-Allow-Origin": "*",
-                    "Access-Control-Allow-Headers": "*",
-                },
-            )
+            path = url.split(API_HOST, 1)[1].split("?", 1)[0]
+            state["log"].append(f"{request.method} {path} -> {status}")
+            return route.fulfill(status=status, body=json.dumps(body), headers=API_HEADERS)
         if R2_HOST in url and request.resource_type == "image":
             return route.fulfill(status=200, body=TINY_JPEG, headers={"Content-Type": "image/jpeg"})
         return route.abort()
 
     context.route(re.compile(r".*"), handle)
+    return state
 
 
 @pytest.fixture(scope="module")
@@ -147,10 +151,13 @@ def device_page(request, playwright, browsers):
     context = browser.new_context(base_url=BASE_URL, **options)
     # Skip the homepage intro animation, which waits for a tap.
     context.add_init_script("try { sessionStorage.setItem('mt3ukIntroSeen', '1'); } catch (e) {}")
-    attach_mocks(context)
+    mock_state = attach_mocks(context)
     page = context.new_page()
     page.errors = []
     page.on("pageerror", lambda err: page.errors.append(str(err)))
+    page.console_log = []
+    page.on("console", lambda msg: page.console_log.append(f"{msg.type}: {msg.text}"[:200]))
+    page.api_log = mock_state["log"]
     page.device_name = name
     yield page
     context.close()
@@ -158,6 +165,18 @@ def device_page(request, playwright, browsers):
 
 def all_devices(fn):
     return pytest.mark.parametrize("device_page", list(DEVICES), indirect=True)(fn)
+
+
+def diagnostics(page):
+    """What happened on the page, shown when a flow check fails."""
+    try:
+        stored = page.evaluate("Object.keys(localStorage).join(', ')")
+    except Exception as err:
+        stored = f"could not read ({err})"
+    return (
+        f"\nworker calls: {page.api_log}\nsaved keys: {stored}"
+        f"\nconsole: {page.console_log[-10:]}\nerrors: {page.errors}"
+    )
 
 
 def overflow_width(page):
@@ -173,15 +192,18 @@ def test_page_loads_fits_and_menu_opens(device_page, page_name):
 
     out_dir = SCREENSHOT_DIR / page.device_name
     out_dir.mkdir(parents=True, exist_ok=True)
-    # Browsers can't capture more than 32767px in one image, so long pages
-    # are cut at the first 12000px. WebKit checks the whole page height
-    # before cutting, so a page taller than 30000px (the homepage on a
+    # Browsers can't capture more than 32767 screen pixels in one image, so
+    # long pages are cut at the first 12000px. WebKit checks the whole page
+    # height before cutting, so a page over the limit (the homepage on a
     # phone) only gets its first screen. JPEG keeps the download small.
     full_height = page.evaluate("document.documentElement.scrollHeight")
     width = page.evaluate("document.documentElement.clientWidth")
+    # The limit counts screen pixels, and phones have 2x or 3x screens.
+    ratio = page.evaluate("window.devicePixelRatio") or 1
+    max_css = int(30000 / ratio)
     shot = {"path": str(out_dir / f"{page_name}.jpg"), "type": "jpeg", "quality": 70}
-    if full_height < 30000:
-        shot.update(full_page=True, clip={"x": 0, "y": 0, "width": width, "height": min(full_height, 12000)})
+    if full_height < max_css:
+        shot.update(full_page=True, clip={"x": 0, "y": 0, "width": width, "height": min(full_height, 12000, max_css)})
     page.screenshot(**shot)
 
     assert page.errors == [], f"Script errors on {page_name}: {page.errors}"
@@ -224,7 +246,7 @@ def test_reel_like_asks_to_sign_in_then_works(device_page):
     like = slide.locator(".bf-like-btn")
     like.click()
     page.wait_for_timeout(500)
-    assert "bf-liked" in (like.get_attribute("class") or "")
+    assert "bf-liked" in (like.get_attribute("class") or ""), "Signed-in like did not register" + diagnostics(page)
     assert page.errors == []
 
 
@@ -255,7 +277,7 @@ def test_my_garage_sign_in_with_code(device_page):
     page.fill("#mb-code", "123456")
     page.click("#mb-code-btn")
     page.wait_for_timeout(1500)
-    assert page.evaluate("localStorage.getItem('mt3ukMyBuildsSession')") == "s1.test"
+    assert page.evaluate("localStorage.getItem('mt3ukMyBuildsSession')") == "s1.test", "Code sign-in not saved" + diagnostics(page)
     assert page.locator("#mb-signin-view").is_hidden()
     assert overflow_width(page) <= 1
     assert page.errors == []

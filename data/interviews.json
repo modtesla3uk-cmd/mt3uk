@@ -2,7 +2,7 @@
   "_note": "Owner Interviews shown on the homepage. Each one appears on its publish date (UK time). The next unpublished one is teased as 'Next interview'. Optional heroPosition (CSS background-position) frames the car in the homepage hero, e.g. for portrait photos. Each entry has a type (standard or track) and the date it was created, used by the admin page's search, filters and sort.",
   "interviews": [
     {
-      "name": "Founder",
+      "name": "Richard",
       "type": "standard",
       "car": "Model 3 Performance",
       "year": "2019",

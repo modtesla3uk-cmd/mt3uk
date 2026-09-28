@@ -2,7 +2,7 @@
   Sign-in prompt for member-only buttons (photo likes, comment likes and
   comment reports). Call window.mt3ukRequireSignIn('like photos') before the
   action: it returns true when a My Garage session is saved on this device,
-  otherwise it shows a small dialog offering Sign in or Add your car and
+  otherwise it shows a small dialog offering Join free / Sign in and
   returns false. After signing in, My Garage sends the member back to the
   page they were on (see the ?next= handling in my-builds.html).
 
@@ -58,14 +58,13 @@
     backdrop.className = 'mt3uk-signin-backdrop';
     backdrop.innerHTML =
       '<div class="mt3uk-signin-box" role="dialog" aria-modal="true" aria-labelledby="mt3uk-signin-title">' +
-        '<h2 id="mt3uk-signin-title">Sign in to ' + String(action || 'do that').replace(/[<>&"]/g, '') + '</h2>' +
+        '<h2 id="mt3uk-signin-title">Join free or sign in to ' + String(action || 'do that').replace(/[<>&"]/g, '') + '</h2>' +
         '<p>' + (/report/.test(action || '')
           ? 'Reporting is for MT3UK members, so reports come from real people.'
           : 'Likes are for MT3UK members, so owners can see who liked their build.') +
-          ' It&rsquo;s free: sign in to My Garage, or add your car to join.</p>' +
+          ' Joining is free and just needs your name and email. Adding your car is optional.</p>' +
         '<div class="mt3uk-signin-actions">' +
-          '<a class="mt3uk-signin-primary" href="/my-builds.html?next=' + next + '">Sign in</a>' +
-          '<a href="/my-builds.html?next=' + next + '#build-upload">Add your car</a>' +
+          '<a class="mt3uk-signin-primary" href="/signin.html?next=' + next + '">Sign Up / Sign In</a>' +
           '<button type="button" class="mt3uk-signin-close">Not now</button>' +
         '</div>' +
       '</div>';

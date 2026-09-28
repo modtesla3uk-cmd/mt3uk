@@ -5,7 +5,8 @@
     hidden for signed-in members (My Garage is already in the menu).
   - Signed-in members get a slim "Signed in as <first name> · ri•••@example.com"
     bar under the header, with My Garage and Sign out. The homepage shows this
-    in its hero box instead, and My Garage has its own, so neither gets the bar.
+    in its hero box instead, and My Garage and Sign Up / Sign In have their
+    own, so none of them get the bar.
   - window.mt3ukSignOut() signs out on this device and reloads the page.
 
   Uses only what's saved on the device (no worker call): the session, the
@@ -53,7 +54,7 @@
     }
 
     var page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
-    if (!signedIn || page === '' || page === 'index.html' || page === 'my-builds.html') return;
+    if (!signedIn || page === '' || page === 'index.html' || page === 'my-builds.html' || page === 'signin.html') return;
     var header = document.querySelector('header');
     if (!header || document.getElementById('mt3uk-account-bar')) return;
 

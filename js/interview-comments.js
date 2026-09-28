@@ -187,9 +187,8 @@
   function renderCompose() {
     if (myEmail) { composeEl.innerHTML = formHtml(null); return; }
     composeEl.innerHTML =
-      '<div class="ic-signin"><p><strong>Comments are for MT3UK members.</strong> Add your car to My Garage (it&rsquo;s free) and you can join the conversation.</p>' +
-      '<div class="ic-links"><a class="ic-primary" href="my-builds.html#build-upload">Add your car</a>' +
-      '<a class="ic-secondary" href="my-builds.html">Sign in</a></div></div>';
+      '<div class="ic-signin"><p><strong>Comments are for MT3UK members.</strong> Joining is free and just needs your name and email. No car photos needed.</p>' +
+      '<div class="ic-links"><a class="ic-primary" href="signin.html?next=' + encodeURIComponent(location.pathname + '#comments') + '">Sign Up / Sign In</a></div></div>';
   }
 
   function tree(list) {

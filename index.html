@@ -2635,7 +2635,7 @@
     <div class="nav-center">
       <a href="/" class="logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
     <div class="navlinks" id="navlinks">
-      <a href="my-builds.html" class="nav-link-mobile">Sign Up / Sign In</a>
+      <a href="signin.html" class="nav-link-mobile">Sign Up / Sign In</a>
       <div class="nav-item">
         <a href="#build-feed" class="nav-link">Gallery Feed</a>
         <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Gallery Feed submenu">&#9660;</button>
@@ -2731,7 +2731,7 @@
         <div class="hp-join" id="hp-join" hidden>
           <p id="hp-join-text"><strong>Join MT3UK to like, comment and get alerts</strong> when members like or comment on your build. It&rsquo;s free.</p>
           <div class="hp-join-actions" id="hp-join-actions">
-            <a href="my-builds.html?next=%2F" class="hp-join-primary">Sign Up / Sign In</a>
+            <a href="signin.html?next=%2F" class="hp-join-primary">Sign Up / Sign In</a>
           </div>
         </div>
         <script>
@@ -3257,7 +3257,7 @@
       var email = window.mt3ukMyBuildsEmail;
       if (!email) {
         slotEl.innerHTML = '<p class="bf-comments-signin-prompt">' +
-          '<a href="my-builds.html?next=' + encodeURIComponent('/#build-feed') + '">Sign in</a> or <a href="my-builds.html?next=' + encodeURIComponent('/#build-feed') + '#build-upload">add your car</a> to leave a comment.' +
+          '<a href="signin.html?next=' + encodeURIComponent('/#build-feed') + '">Join free or sign in</a> to leave a comment.' +
           '</p>';
         return;
       }

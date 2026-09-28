@@ -2299,10 +2299,10 @@ function rawEmail(from, to, subject, bodyText) {
 }
 
 async function sendMyBuildsLinkEmail(env, toEmail, link, expiresIn, code) {
-  var subject = code ? 'Your My Builds sign-in code: ' + code : 'Your My Builds sign-in link';
-  var body = 'Click the link below to sign in to My Garage, manage your build(s) and view your notifications:\n\n' + link +
+  var subject = code ? 'Your MT3UK sign-in code: ' + code : 'Your MT3UK sign-in link';
+  var body = 'Click the link below to sign in to MT3UK, where you can like and comment, manage your builds in My Garage and see your notifications:\n\n' + link +
     (code
-      ? '\n\nUsing the MT3UK app from your Home Screen? Enter this code in My Garage in the app instead:\n\n' + code
+      ? '\n\nOr enter this code on the Sign Up / Sign In page (in the MT3UK app from your Home Screen, use the code):\n\n' + code
       : '') +
     '\n\nThis ' + (code ? 'link and code expire' : 'link expires') + ' in ' + (expiresIn || '15 minutes') + ' and can only be used once. ' +
     'If you did not request this, you can ignore this email.';
@@ -3074,39 +3074,111 @@ async function handleMyBuildsRequestLink(request, env) {
     return json({ success: false, message: 'Please enter a valid email' }, 400);
   }
 
-  var files = await getSubscriberFiles(env, email);
-  // Anyone who has commented and had someone reply also gets an account -
-  // not just car owners - so they have somewhere to read/manage that
-  // notification. getNotifications is skipped once files.length already
-  // grants access, to avoid the extra KV read on the common (owner) path.
-  var hasAccess = files.length > 0;
-  if (!hasAccess) {
-    var notifications = await getNotifications(env, email);
-    hasAccess = notifications.length > 0;
-  }
-  if (hasAccess) {
-    var token = randomToken();
-    await env.VOTES.put('my-builds-link:' + token, email, { expirationTtl: MY_BUILDS_LINK_TTL_SECONDS });
-    var link = MY_BUILDS_SITE_URL + '/my-builds.html?token=' + token;
-    // A 6-digit code alongside the link, for the Home Screen app on iPhone:
-    // it keeps its own sign-in, separate from Safari, and links in emails
-    // always open in Safari, so the code is typed into the app instead.
-    var code = signInCode();
-    var codeExpires = Math.floor(Date.now() / 1000) + MY_BUILDS_LINK_TTL_SECONDS;
-    await env.VOTES.put(signInCodeKey(email), JSON.stringify({ code: code, token: token, tries: 0 }), {
-      expiration: codeExpires,
-      metadata: { expires: codeExpires }
-    });
-    try {
-      await sendMyBuildsLinkEmail(env, email, link, null, code);
-    } catch (err) {
-      console.log('My Builds link email failed:', err.message);
-    }
+  if (await hasMemberAccess(env, email)) {
+    await issueSignInLink(env, email, 'my-builds.html', false);
   }
 
-  // Always return the same message, whether or not that email has any
-  // builds on file, so this endpoint can't be used to check who's submitted.
-  return json({ success: true, message: "If that email has submitted a build, we've sent a sign-in link." });
+  // Always return the same message, whether or not that email is a member,
+  // so this endpoint can't be used to check who has joined.
+  return json({ success: true, message: "If that email belongs to an MT3UK member, we've sent a sign-in link and code. New here? Join free instead." });
+}
+
+// Members are anyone with a subscriber record (with or without builds, as
+// people can join just to like and comment), plus anyone who has commented
+// and had a reply, so they have somewhere to read that notification.
+async function hasMemberAccess(env, email) {
+  if ((await env.VOTES.get('subscriber:' + email)) !== null) return true;
+  var notifications = await getNotifications(env, email);
+  return notifications.length > 0;
+}
+
+// Emails a one-time sign-in link to `page`, plus a 6-digit code for the
+// Home Screen app on iPhone: it keeps its own sign-in, separate from
+// Safari, and links in emails always open in Safari, so the code is typed
+// into the app instead.
+async function issueSignInLink(env, email, page, joining) {
+  var token = randomToken();
+  await env.VOTES.put('my-builds-link:' + token, email, { expirationTtl: MY_BUILDS_LINK_TTL_SECONDS });
+  var link = MY_BUILDS_SITE_URL + '/' + page + '?token=' + token;
+  var code = signInCode();
+  var codeExpires = Math.floor(Date.now() / 1000) + MY_BUILDS_LINK_TTL_SECONDS;
+  await env.VOTES.put(signInCodeKey(email), JSON.stringify({ code: code, token: token, tries: 0 }), {
+    expiration: codeExpires,
+    metadata: { expires: codeExpires }
+  });
+  try {
+    if (joining) await sendJoinEmail(env, email, link, code);
+    else await sendMyBuildsLinkEmail(env, email, link, null, code);
+  } catch (err) {
+    console.log('Sign-in link email failed:', err.message);
+  }
+}
+
+// ---------- Join (no photos needed) ----------
+// signin.html lets anyone join free with their name and email, so they can
+// like and comment without adding a car. The account is only created once
+// they use the emailed link or code (completePendingJoin), so nothing is
+// kept for addresses nobody confirms. A hidden bot field, a one-minute wait
+// per email and a per-connection hourly limit stop it being used to send
+// lots of emails.
+
+var PENDING_JOIN_TTL_SECONDS = 24 * 60 * 60;
+var JOIN_LIMIT_PER_IP_PER_HOUR = 10;
+
+async function handleMyBuildsJoin(request, env) {
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var reply = json({ success: true, message: "Check your email for a link and a 6-digit code to finish joining. If you're already a member, we've sent a sign-in link instead." });
+  if (body && body.botcheck) return reply;
+
+  var email = ((body && body.email) || '').toString().trim().toLowerCase().slice(0, 200);
+  var firstName = cleanNamePart(body && body.firstName);
+  var lastName = cleanNamePart(body && body.lastName);
+  if (!firstName || !lastName) return json({ success: false, message: 'Please enter your first and last name' }, 400);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ success: false, message: 'Please enter a valid email' }, 400);
+
+  var ipKey = 'join-ip:' + getClientIp(request);
+  var ipCount = parseInt(await env.VOTES.get(ipKey), 10) || 0;
+  if (ipCount >= JOIN_LIMIT_PER_IP_PER_HOUR) {
+    return json({ success: false, message: 'Too many attempts, please try again in an hour.' }, 429);
+  }
+  var cooldownKey = 'join-cooldown:' + email;
+  if ((await env.VOTES.get(cooldownKey)) !== null) return reply;
+  await env.VOTES.put(ipKey, String(ipCount + 1), { expirationTtl: 3600 });
+  await env.VOTES.put(cooldownKey, '1', { expirationTtl: 60 });
+
+  if (await hasMemberAccess(env, email)) {
+    await issueSignInLink(env, email, 'my-builds.html', false);
+    return reply;
+  }
+  await env.VOTES.put('pending-join:' + email, JSON.stringify({ firstName: firstName, lastName: lastName }), { expirationTtl: PENDING_JOIN_TTL_SECONDS });
+  await issueSignInLink(env, email, 'signin.html', true);
+  return reply;
+}
+
+// Turns a confirmed join into a member (no builds yet) with their name.
+async function completePendingJoin(env, email) {
+  var raw = await env.VOTES.get('pending-join:' + email);
+  if (!raw) return;
+  await env.VOTES.delete('pending-join:' + email);
+  if ((await env.VOTES.get('subscriber:' + email)) !== null) return;
+  var pending = {};
+  try { pending = JSON.parse(raw) || {}; } catch (e) {}
+  await env.VOTES.put('subscriber:' + email, JSON.stringify([]));
+  await markSubscriberSince(env, email);
+  var first = cleanNamePart(pending.firstName);
+  var last = cleanNamePart(pending.lastName);
+  if (first && last && !(await getProfile(env, email))) await saveProfile(env, email, first, last);
+}
+
+async function sendJoinEmail(env, toEmail, link, code) {
+  var subject = 'Welcome to MT3UK: your code is ' + code;
+  var body = 'Thanks for joining MT3UK. Click the link below to finish joining, and you can like and comment on member builds and owner interviews:\n\n' + link +
+    '\n\nOr enter this code on the Sign Up / Sign In page:\n\n' + code +
+    '\n\nWant to show off your car too? Add it any time in My Garage, it\'s optional.' +
+    '\n\nThis link and code expire in 15 minutes and can only be used once. If you did not ask to join, you can ignore this email.';
+  var message = new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body));
+  await env.SEND_EMAIL.send(message);
 }
 
 var MAX_SIGN_IN_CODE_TRIES = 5;
@@ -3160,6 +3232,7 @@ async function handleMyBuildsVerifyCode(request, env) {
 
   await env.VOTES.delete(key);
   if (record.token) await env.VOTES.delete('my-builds-link:' + record.token);
+  await completePendingJoin(env, email);
   var session = await createSession(env, email);
   return json({ success: true, session: session, email: email });
 }
@@ -3173,6 +3246,7 @@ async function handleMyBuildsSession(request, env) {
   await env.VOTES.delete('my-builds-link:' + token);
   // The link has been used, so its matching code can't be.
   await env.VOTES.delete(signInCodeKey(email));
+  await completePendingJoin(env, email);
 
   var session = await createSession(env, email);
 
@@ -4318,6 +4392,9 @@ export default {
     }
     if (url.pathname === '/my-builds/request-link' && request.method === 'POST') {
       return handleMyBuildsRequestLink(request, env);
+    }
+    if (url.pathname === '/my-builds/join' && request.method === 'POST') {
+      return handleMyBuildsJoin(request, env);
     }
     if (url.pathname === '/my-builds/verify-code' && request.method === 'POST') {
       return handleMyBuildsVerifyCode(request, env);

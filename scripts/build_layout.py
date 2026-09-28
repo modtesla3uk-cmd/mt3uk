@@ -33,6 +33,7 @@ PAGES = {
     "index": "index.html#about",
     "gallery": "gallery.html",
     "my-builds": "my-builds.html",
+    "signin": "signin.html",
     "shop": "shop.html",
     "reviews": "reviews.html",
     "contact": "contact.html",

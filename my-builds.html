@@ -200,6 +200,8 @@
 
   .mb-signin-newbuild-btn { background: var(--orange); border-color: var(--orange); margin-top: 12px; }
   .mb-signin-newbuild-btn:hover { background: var(--ink); border-color: var(--ink); }
+  .mb-join-note { margin: 18px 0 0; font-size: 0.88rem; color: var(--steel); }
+  .mb-join-note a { color: var(--orange); font-weight: 600; }
   .mb-submit-card { margin-top: 18px; text-align: left; }
   .mb-submit-card textarea {
     border: 1px solid var(--ink);
@@ -706,7 +708,7 @@ document.addEventListener('DOMContentLoaded', function () {
     <div class="nav-center">
       <a href="/" class="logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
     <div class="navlinks" id="navlinks">
-      <a href="my-builds.html" class="nav-link-mobile active">Sign Up / Sign In</a>
+      <a href="signin.html" class="nav-link-mobile">Sign Up / Sign In</a>
       <div class="nav-item">
         <a href="index.html#build-feed" class="nav-link">Gallery Feed</a>
         <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Gallery Feed submenu">&#9660;</button>
@@ -823,6 +825,7 @@ document.addEventListener('DOMContentLoaded', function () {
           <button type="submit" class="mb-btn" id="mb-code-btn">Sign in with code</button>
           <p class="mb-status" id="mb-code-status"></p>
         </form>
+        <p class="mb-join-note">Just want to like and comment? <a href="signin.html">Join free without adding a car</a>.</p>
         <button type="button" class="mb-btn mb-signin-newbuild-btn" id="mb-new-toggle-btn">+ New here? Submit your first build</button>
       </div>
 

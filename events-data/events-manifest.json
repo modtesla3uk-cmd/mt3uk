@@ -1,6 +1,6 @@
 {
-  "generated": "2026-09-28T00:00:41.257Z",
-  "totalEvents": 6,
+  "generated": "2026-09-28T00:00:44.667Z",
+  "totalEvents": 7,
   "events": [
     {
       "id": "001",
@@ -79,7 +79,20 @@
       "facebookUrl": "https://Facebook.com/groups/mt3uk/",
       "attendingCount": 0,
       "interestedCount": 0
+    },
+    {
+      "id": "008",
+      "name": "Race of remembrance - Track day",
+      "description": "Looking to enjoy a track day? You can join us too!",
+      "startTime": "2026-10-02T08:00:00+0000",
+      "endTime": "2026-10-02T17:00:00+0000",
+      "location": {
+        "name": "Thruxton Circuit"
+      },
+      "facebookUrl": "https://ror-launch-trackday26.eventbrite.co.uk",
+      "attendingCount": 0,
+      "interestedCount": 0
     }
   ],
-  "lastId": 7
+  "lastId": 8
 }

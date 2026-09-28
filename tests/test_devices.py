@@ -81,6 +81,15 @@ TINY_JPEG = bytes.fromhex(
 )
 
 
+# One car with one photo, showing in the gallery and reel, for My Garage.
+GARAGE_CAR = {
+    "id": "car-1",
+    "name": "Test Model 3",
+    "mods": ["Wheels"],
+    "photos": [{"file": "test-build.jpg", "caption": "Test Model 3", "gallery": True, "reel": True, "votable": True}],
+}
+
+
 def api_path(url):
     """The worker path of a call, whether it went to the worker or the mock."""
     marker = API_HOST if API_HOST in url else MOCK_API_PATH
@@ -116,7 +125,7 @@ def api_reply(url, method, post_data, state):
             return {"success": True, "session": "s1.test", "email": body.get("email", "member@example.com")}
         return {"success": False, "message": "That code is not right or has expired."}
     if path == "/my-builds" and method == "GET":
-        return {"success": True, "email": "member@example.com", "firstName": "Test", "lastName": "Member", "cars": []}
+        return {"success": True, "email": "member@example.com", "firstName": "Test", "lastName": "Member", "cars": [GARAGE_CAR]}
     return {"success": True}
 
 
@@ -200,6 +209,7 @@ def device_page(request, playwright, browsers):
     page.console_log = []
     page.on("console", lambda msg: page.console_log.append(f"{msg.type}: {msg.text}"[:200]))
     page.api_log = mock_state["log"]
+    page.mock_state = mock_state
     page.device_name = name
     yield page
     context.close()
@@ -322,4 +332,59 @@ def test_my_garage_sign_in_with_code(device_page):
     assert page.evaluate("localStorage.getItem('mt3ukMyBuildsSession')") == "s1.test", "Code sign-in not saved" + diagnostics(page)
     assert page.locator("#mb-signin-view").is_hidden(), "My Garage did not open after sign-in" + diagnostics(page)
     assert overflow_width(page) <= 1
+    assert page.errors == []
+
+
+# Stands in for the phone's share menu, so the test can see what was shared.
+SHARE_STUB = "window.__shared = []; navigator.share = function (d) { window.__shared.push(d); return Promise.resolve(); };"
+
+
+def shared_url(page):
+    """The link a share button offered: from the phone share menu, or the
+    Facebook option in the desktop pop-out (which is then closed)."""
+    page.wait_for_timeout(300)
+    return page.evaluate("""() => {
+      if (window.__shared.length) return window.__shared.pop().url;
+      var pop = document.querySelector('.mt3uk-share-pop');
+      if (!pop || pop.hidden) return null;
+      var url = new URL(pop.querySelector('[data-channel=facebook]').href).searchParams.get('u');
+      pop.querySelector('.mt3uk-share-close').click();
+      return url;
+    }""")
+
+
+@all_devices
+def test_share_buttons(device_page):
+    page = device_page
+    page.add_init_script(SHARE_STUB)
+
+    # Under the reel: shares the build on screen.
+    page.goto("/index.html#build-feed")
+    page.locator(".bf-slide").first.wait_for(timeout=10000)
+    button = page.locator("#bf-share-current")
+    button.scroll_into_view_if_needed()
+    button.click()
+    url = shared_url(page)
+    assert url and "/share/" in url and "utm_campaign=reel_share" in url, "Reel share: " + str(url) + diagnostics(page)
+
+    # Car of the Day.
+    button = page.locator(".botm-share")
+    button.wait_for(timeout=10000)
+    button.scroll_into_view_if_needed()
+    button.click()
+    url = shared_url(page)
+    assert url and "/share/" in url and "utm_campaign=cotd_share" in url, "Car of the Day share: " + str(url) + diagnostics(page)
+    assert overflow_width(page) <= 1
+
+    # My Garage photo viewer.
+    page.mock_state["signed_in"] = True
+    page.evaluate("localStorage.setItem('mt3ukMyBuildsSession', 's1.test')")
+    page.goto("/my-builds.html")
+    page.locator(".mb-car-tile").first.click(timeout=10000)
+    page.locator(".mb-photo-thumb img").first.click(timeout=5000)
+    button = page.locator("#mb-lightbox-share")
+    button.wait_for(state="visible", timeout=5000)
+    button.click()
+    url = shared_url(page)
+    assert url == "https://mt3uk.com/share/test-build.jpg.html?utm_source=" + url.split("utm_source=")[1].split("&")[0] + "&utm_medium=share&utm_campaign=garage_share", "My Garage share: " + str(url)
     assert page.errors == []

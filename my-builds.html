@@ -370,6 +370,21 @@
   .mb-lightbox-comments { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
   /* Likes on the open photo: heart, count and "Liked by", tap for the list. */
   .mb-lightbox-likes[hidden] { display: none; }
+  /* Likes and Share share a row at the top of the open photo. */
+  .mb-lightbox-top { display: flex; align-items: flex-start; gap: 12px; }
+  .mb-lightbox-top .mb-lightbox-likes { flex: 1; min-width: 0; }
+  .mb-lightbox-share { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .mb-share-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    min-height: 40px; padding: 8px 14px;
+    background: var(--white); color: var(--ink);
+    border: 1px solid var(--ink); border-radius: 999px;
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 0.86rem; font-weight: 600; cursor: pointer;
+  }
+  .mb-share-btn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
+  .mb-share-btn:hover { background: var(--orange); border-color: var(--orange); color: var(--white); }
+  .mb-share-btn[hidden], .mb-share-note[hidden] { display: none; }
+  .mb-share-note { font-family: 'IBM Plex Sans', sans-serif; font-size: 0.78rem; color: var(--steel); max-width: 22ch; text-align: right; }
   .mb-likes-toggle {
     display: flex; align-items: center; gap: 8px; width: 100%;
     background: none; border: 0; padding: 4px 0; cursor: pointer; text-align: left;
@@ -1047,6 +1062,7 @@ document.addEventListener('DOMContentLoaded', function () {
       <button type="button" class="mb-lightbox-nav mb-lightbox-next" id="mb-lightbox-next-btn" aria-label="Next photo">&rsaquo;</button>
     </div>
     <div class="mb-lightbox-body">
+      <div class="mb-lightbox-top">
       <div class="mb-lightbox-likes" id="mb-lightbox-likes" hidden>
         <button type="button" class="mb-likes-toggle" id="mb-lightbox-likes-toggle" aria-expanded="false">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-10.2-9.3C-0.2 8 1.4 3.9 5.3 3.2 7.7 2.8 10 3.9 12 6.4c2-2.5 4.3-3.6 6.7-3.2 3.9.7 5.5 4.8 3.5 8.5C19.5 16.4 12 21 12 21z"/></svg>
@@ -1055,6 +1071,11 @@ document.addEventListener('DOMContentLoaded', function () {
           <span class="mb-photo-mods-caret">&#9662;</span>
         </button>
         <ul class="mb-likes-list" id="mb-lightbox-likes-list" hidden></ul>
+      </div>
+      <div class="mb-lightbox-share">
+        <span class="mb-share-note" id="mb-lightbox-share-note" hidden>Tick Gallery and Reel to share this photo</span>
+        <button type="button" class="mb-share-btn" id="mb-lightbox-share" aria-label="Share this photo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 3L10 14M21 3l-7 18-4-7-7-4z"/></svg><span>Share</span></button>
+      </div>
       </div>
       <div class="mb-photo-mods" id="mb-lightbox-mods">
         <button type="button" class="mb-photo-mods-toggle mono" id="mb-lightbox-mods-toggle" aria-expanded="false">Mods<span class="mb-photo-mods-caret">&#9662;</span></button>
@@ -2196,6 +2217,17 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    var lightboxShareBtn = document.getElementById('mb-lightbox-share');
+    var lightboxShareNote = document.getElementById('mb-lightbox-share-note');
+    lightboxShareBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (!lightboxFile || !window.mt3ukShare) return;
+      var car = findCar(currentCarId);
+      var photo = car && car.photos.find(function (p) { return p.file === lightboxFile; });
+      var owner = document.getElementById('mb-name-display').textContent || localStorage.getItem('mt3ukMyBuildsFirstName') || '';
+      window.mt3ukShare({ file: lightboxFile, caption: (photo && photo.caption) || (car && car.name) || '', name: (photo && photo.name) || owner, campaign: 'garage_share' }, lightboxShareBtn);
+    });
+
     lightboxLikesToggle.addEventListener('click', function (e) {
       e.stopPropagation();
       var open = lightboxLikesList.hidden;
@@ -2218,6 +2250,11 @@ document.addEventListener('DOMContentLoaded', function () {
       imgLightboxImg.alt = photo.caption || car.name || '';
       renderLightboxMods(car.mods);
       loadLightboxLikes(file, photo.likeCount || 0);
+      // Share links open the photo in the reel, so only photos showing in
+      // the gallery and reel can be shared.
+      var shareable = !!(photo.gallery && photo.reel);
+      lightboxShareBtn.hidden = !shareable;
+      lightboxShareNote.hidden = shareable;
       loadLightboxComments(file);
       lightboxComposerAvatar.textContent = commentInitials(myGarageEmail);
       lightboxComposerInput.value = '';
@@ -2912,6 +2949,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 </script>
 
+<script src="js/share.js" defer></script>
 <script src="js/account-bar.js" defer></script>
 <script src="js/search.js" defer></script>
 

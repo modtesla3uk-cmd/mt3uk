@@ -123,6 +123,34 @@
     })
     .catch(function () {});
 
+  // Owner Interviews join the search on their publish date (UK time), from
+  // the same data/interviews.json that drives the homepage and blog.html.
+  // ?date=YYYY-MM-DD previews a future date, as on those pages.
+  function ukToday() {
+    var m = /[?&]date=(\d{4}-\d{2}-\d{2})/.exec(location.search);
+    if (m) return m[1];
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London' }).format(new Date());
+  }
+
+  fetch('data/interviews.json', { cache: 'no-store' })
+    .then(function (res) { return res.ok ? res.json() : null; })
+    .then(function (data) {
+      var today = ukToday();
+      ((data && data.interviews) || []).forEach(function (iv) {
+        if (!iv || !iv.url || !iv.title || !iv.publish || iv.publish > today) return;
+        var nickname = String(iv.title).split(':')[0];
+        index.push({
+          title: iv.title,
+          url: iv.url,
+          category: iv.type === 'track' ? 'Track Day Interview' : 'Owner Interview',
+          description: [iv.name, iv.car, iv.year].filter(Boolean).join(' \u00b7 '),
+          keywords: [iv.name, iv.car, iv.year, nickname, iv.excerpt, 'owner interview', 'interview', 'blog']
+            .concat(iv.keywords || []).filter(Boolean).map(String)
+        });
+      });
+    })
+    .catch(function () {});
+
   fetch(SHOP_ENDPOINT, { cache: 'no-store' })
     .then(function (res) { return res.ok ? res.json() : null; })
     .then(function (data) {

@@ -1,7 +1,13 @@
 [
-  { "title": "Gallery", "url": "index.html#gallery", "category": "Page", "description": "Member build photos from the MT3UK community", "keywords": ["photos", "builds", "images"] },
-  { "title": "Featured Build", "url": "index.html#build-of-the-day", "category": "Page", "description": "Build of the Week, voted for by members", "keywords": ["build feed", "build of the week", "build of the day", "car of the day"] },
-  { "title": "Upload Image", "url": "index.html#gallery-upload", "category": "Page", "description": "Submit your build to the gallery", "keywords": ["submit build", "add photo"] },
+  { "title": "Full Gallery", "url": "gallery.html", "category": "Page", "description": "Every build members have shared, with captions and mod lists", "keywords": ["photos", "builds", "images", "gallery"] },
+  { "title": "Build of the Week", "url": "index.html#build-of-the-day", "category": "Page", "description": "This week's Build of the Week, picked by member votes", "keywords": ["featured build", "build of the day", "car of the day", "winner"] },
+  { "title": "Build Reel", "url": "index.html#build-feed", "category": "Page", "description": "Swipe through recent member builds, like, comment and save", "keywords": ["reel", "gallery feed", "feed", "builds", "likes", "comments"] },
+  { "title": "Vote for Build of the Week", "url": "index.html#vote-frame", "category": "Page", "description": "Vote for next week's Build of the Week from this week's entries", "keywords": ["vote", "voting", "build of the week", "poll"] },
+  { "title": "How voting works", "url": "index.html#vote-how", "category": "Page", "description": "Weekly voting, one entry per member, and how long a photo stays in the vote", "keywords": ["voting rules", "vote", "entry", "build of the week"] },
+  { "title": "Owner Interviews", "url": "blog.html", "category": "Page", "description": "Members talk about their cars, their mods and the MT3UK community", "keywords": ["blog", "interviews", "owners", "stories", "articles"] },
+  { "title": "Latest Owner Interviews", "url": "index.html#owner-interviews", "category": "Page", "description": "The newest Owner Interviews on the homepage", "keywords": ["blog", "interviews", "owners"] },
+  { "title": "Get the MT3UK app", "url": "index.html#get-the-app", "category": "Page", "description": "Install MT3UK on your phone for alerts when members like or comment on your build", "keywords": ["app", "install", "notifications", "android", "iphone", "home screen"] },
+  { "title": "Upload Image", "url": "my-builds.html#build-upload", "category": "Page", "description": "Add your build to the gallery from My Garage", "keywords": ["submit build", "add photo", "upload", "add your car"] },
   { "title": "Shop", "url": "shop.html", "category": "Page", "description": "Merch, upgrades and partner products", "keywords": ["store", "buy"] },
   { "title": "Merch", "url": "shop.html#merch", "category": "Page", "description": "MT3UK branded tees, hoodies and stickers", "keywords": ["tee", "t-shirt", "hoodie", "hoodies", "stickers", "clothing", "apparel"] },
   { "title": "Parts", "url": "shop.html#parts", "category": "Page", "description": "Brake pads, Master Cylinder Brace and partner parts from Tevo Solutions and Redline Plates", "keywords": ["parts", "upgrades", "brakes", "brace", "bracket", "plates", "tevo"] },
@@ -32,7 +38,6 @@
   { "title": "Instagram", "url": "contact.html", "category": "Contact", "description": "@mt3uk_com", "keywords": ["social", "ig"] },
   { "title": "Email", "url": "contact.html", "category": "Contact", "description": "modtesla3uk@gmail.com", "keywords": ["mail", "get in touch"] },
   { "title": "Support Us", "url": "https://ko-fi.com/mt3uk", "category": "Page", "description": "Support MT3UK on Ko-fi", "keywords": ["donate", "kofi", "coffee"] },
-
   { "title": "Model 3 Brake Master Cylinder Bracket", "url": "shop.html#brace", "category": "Shop", "description": "RHD brace that reduces brake pedal flex, for Model 3 and Model 3 Highland", "keywords": ["brace", "bracket", "master cylinder brace", "brake brace", "firewall flex", "brakes"] },
   { "title": "PAGID 'STREET+' Brake Pads (Model 3P/Y)", "url": "shop.html#pads-street", "category": "Shop", "description": "Fast road / occasional track use pads, supplied by Tevo Solutions", "keywords": ["brakes", "brake pads", "pads", "pagid"] },
   { "title": "Carbotech Brake Pads (Model 3 Performance)", "url": "shop.html#pads-carbotech", "category": "Shop", "description": "UK-made Ceramic Kevlar track pads, supplied by Tevo Solutions", "keywords": ["brakes", "brake pads", "pads", "carbotech", "track pads"] },
@@ -41,7 +46,6 @@
   { "title": "3D Gel Plates", "url": "shop.html#redline-3d", "category": "Shop", "description": "Domed gel number plates, supplied by Redline Plates", "keywords": ["plates", "number plate", "reg plate"] },
   { "title": "4D Acrylic Plates", "url": "shop.html#redline-4d", "category": "Shop", "description": "Gloss black acrylic number plates, supplied by Redline Plates", "keywords": ["plates", "number plate", "reg plate"] },
   { "title": "Show Plates", "url": "shop.html#redline-show", "category": "Shop", "description": "Custom display plates for meets, events and displays, non-road-legal", "keywords": ["plates", "display plate", "number plate"] },
-
   { "title": "Is MT3UK free to join?", "url": "index.html#faq", "category": "FAQ", "description": "Yes, it's a free Facebook group. No membership fees, no sign-up forms, just an admin-approved request to keep the bots and spam out." },
   { "title": "Which Tesla models can I bring?", "url": "index.html#faq", "category": "FAQ", "description": "All of them. Model S, 3, X and Y owners are all welcome, whatever stage your build is at." },
   { "title": "Do I need to already have mods to join?", "url": "index.html#faq", "category": "FAQ", "description": "No. Plenty of members join a stock Tesla looking for advice before they fit their first set of wheels or a wrap." },

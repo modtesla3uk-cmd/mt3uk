@@ -90,6 +90,9 @@
   .assign-row { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
   .assign-row input { flex: 1; min-width: 160px; }
   .empty { color: var(--steel); }
+  .sub-head { font-size: 0.72rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--steel); margin: 18px 0 10px; font-weight: 500; }
+  .card-owner { font-size: 0.78rem; margin: 2px 0 4px; word-break: break-word; }
+  .card-votes { color: var(--orange); font-weight: 700; }
   .collapsible > summary, .subscriber-files-wrap > summary { cursor: pointer; list-style: none; }
   .collapsible > summary::-webkit-details-marker, .subscriber-files-wrap > summary::-webkit-details-marker { display: none; }
   .collapsible > summary h2 { display: inline-block; margin: 0; }
@@ -360,6 +363,15 @@
   </div>
   <div class="admin-col">
     <section>
+      <details class="collapsible" id="votes-wrap" open>
+        <summary><h2>Build of the Week entries <span class="summary-count" id="votes-count"></span></h2></summary>
+        <p class="card-meta">This week's vote, newest first. Remove from voting takes a photo out of the vote and deletes its votes this week. The photo stays in the gallery and reel, and the owner can't put it back in, but they can enter a different photo.</p>
+        <div id="vote-entries"></div>
+        <h3 class="sub-head">Taken out of voting</h3>
+        <div id="vote-removed"></div>
+      </details>
+    </section>
+    <section>
       <details class="collapsible" id="comments-wrap" open>
         <summary><h2>Reported comments <span class="summary-count" id="comments-count"></span></h2></summary>
         <div id="threads"></div>
@@ -399,6 +411,8 @@
   var subscribersEl = document.getElementById('subscribers-list');
   var threadsEl = document.getElementById('threads');
   var reportedEl = document.getElementById('reported-photos');
+  var voteEntriesEl = document.getElementById('vote-entries');
+  var voteRemovedEl = document.getElementById('vote-removed');
   var localReportedEl = document.getElementById('local-reported-list');
   var newSubscriberInput = document.getElementById('new-subscriber-email');
   var addSubscriberBtn = document.getElementById('add-subscriber-btn');
@@ -1132,6 +1146,80 @@
     }
   });
 
+  // ---------- Build of the Week entries ----------
+
+  function renderVoteEntry(v, removed) {
+    var div = document.createElement('div');
+    div.className = 'card';
+    var owner = v.name || v.email ? escapeHtml(v.name || 'No name') + (v.email ? ' &middot; ' + escapeHtml(v.email) : '') : 'Unclaimed build';
+    div.innerHTML =
+      '<img src="' + imgUrl(v.file) + '" alt="">' +
+      '<div class="card-body">' +
+        '<div><strong>' + escapeHtml(v.caption || v.file) + '</strong></div>' +
+        '<div class="card-owner">by ' + owner + '</div>' +
+        '<div class="card-file">' + escapeHtml(v.file) + '</div>' +
+        '<div class="card-meta">' + (removed ? 'Out of voting' : '<span class="card-votes">' + v.votes + ' vote' + (v.votes === 1 ? '' : 's') + '</span> this week') +
+          (v.added ? ' &middot; entered ' + escapeHtml(v.added) : '') + '</div>' +
+        '<div class="card-actions">' +
+          (removed
+            ? '<button type="button" class="secondary vote-restore-btn" data-file="' + escapeHtml(v.file) + '">Put back in voting</button>'
+            : '<button type="button" class="danger vote-remove-btn" data-file="' + escapeHtml(v.file) + '" data-votes="' + v.votes + '">Remove from voting</button>') +
+        '</div>' +
+      '</div>';
+    return div;
+  }
+
+  function loadVoteEntries(key) {
+    return fetch(API + '/admin/vote-entries?key=' + encodeURIComponent(key), { cache: 'no-store' })
+      .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+      .then(function (result) {
+        voteEntriesEl.innerHTML = '';
+        voteRemovedEl.innerHTML = '';
+        if (!result.ok || !result.data || !result.data.success) {
+          voteEntriesEl.innerHTML = '<p class="empty">' + escapeHtml((result.data && result.data.message) || 'Could not load vote entries.') + '</p>';
+          return;
+        }
+        var entries = result.data.entries || [];
+        var removed = result.data.removed || [];
+        if (!entries.length) voteEntriesEl.innerHTML = '<p class="empty">No builds in this week\'s vote yet.</p>';
+        entries.forEach(function (v) { voteEntriesEl.appendChild(renderVoteEntry(v, false)); });
+        if (!removed.length) voteRemovedEl.innerHTML = '<p class="empty">None.</p>';
+        removed.forEach(function (v) { voteRemovedEl.appendChild(renderVoteEntry(v, true)); });
+      });
+  }
+
+  document.getElementById('votes-wrap').addEventListener('click', function (e) {
+    var btn = e.target.closest('.vote-remove-btn, .vote-restore-btn');
+    var key = keyInput.value.trim();
+    if (!btn || !key) return;
+    var remove = btn.classList.contains('vote-remove-btn');
+    var votes = parseInt(btn.dataset.votes || '0', 10);
+    var question = remove
+      ? 'Take this photo out of this week\'s vote?' + (votes ? ' Its ' + votes + ' vote' + (votes === 1 ? '' : 's') + ' will be deleted.' : '') + ' The photo stays in the gallery.'
+      : 'Put this photo back in voting?';
+    if (!confirm(question)) return;
+    btn.disabled = true;
+    fetch(API + '/admin/vote-entries?key=' + encodeURIComponent(key), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ file: btn.dataset.file, action: remove ? 'remove' : 'restore' })
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (!data || !data.success) {
+          btn.disabled = false;
+          alert((data && data.message) || 'Could not update voting.');
+          return;
+        }
+        if (!remove && data.message) statusEl.textContent = data.message;
+        loadVoteEntries(key);
+      })
+      .catch(function () {
+        btn.disabled = false;
+        alert('Network error updating voting.');
+      });
+  });
+
   // ---------- Reported in this browser (local flag, no admin key needed) ----------
 
   function getLocalReported() {
@@ -1214,6 +1302,7 @@
     { name: 'subscribers', el: subscribersEl, sel: '.subscriber-card' },
     { name: 'comments', el: threadsEl, sel: '.comment.is-reported' },
     { name: 'rphotos', el: reportedEl, sel: '.card' },
+    { name: 'votes', el: voteEntriesEl, sel: '.card' },
     { name: 'local', el: localReportedEl, sel: '.local-reported-row' }
   ];
 
@@ -1252,7 +1341,7 @@
     sessionStorage.setItem('mt3ukAdminKey', key);
     statusEl.textContent = 'Loading…';
 
-    Promise.all([loadClaims(key), loadUnclaimed(key), loadSubscribers(key), loadThreads(key), loadReported(key)])
+    Promise.all([loadClaims(key), loadUnclaimed(key), loadSubscribers(key), loadThreads(key), loadReported(key), loadVoteEntries(key)])
       .then(function () {
         statusEl.textContent = '';
         if (applyRules === true) applyOpenRules();

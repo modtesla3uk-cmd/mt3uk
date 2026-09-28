@@ -1576,7 +1576,9 @@ document.addEventListener('DOMContentLoaded', function () {
           '<div class="mb-photo-toggles">' +
             '<label class="mb-photo-toggle"><input type="checkbox" data-flag="gallery"' + (p.gallery ? ' checked' : '') + '> Gallery</label>' +
             '<label class="mb-photo-toggle"><input type="checkbox" data-flag="reel"' + (p.reel ? ' checked' : '') + '> Reel</label>' +
-            '<label class="mb-photo-toggle" title="Your one entry in this week\'s Build of the Week vote"><input type="checkbox" data-flag="votable"' + (p.inVote ? ' checked' : '') + '> Voting</label>' +
+            (p.voteBlocked
+              ? '<label class="mb-photo-toggle" title="Taken out of voting by MT3UK. You can enter a different photo."><input type="checkbox" data-flag="votable" disabled> Voting (removed)</label>'
+              : '<label class="mb-photo-toggle" title="Your one entry in this week\'s Build of the Week vote"><input type="checkbox" data-flag="votable"' + (p.inVote ? ' checked' : '') + '> Voting</label>') +
           '</div>' +
           (isDefault ? '' : '<button type="button" class="mb-photo-default-btn">Make Default</button>') +
           '<button type="button" class="mb-photo-delete-btn">Delete</button>' +

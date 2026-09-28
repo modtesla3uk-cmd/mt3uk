@@ -1535,6 +1535,10 @@
     overflow: hidden;
   }
   .vote-card.voted { border: 1px solid var(--orange); }
+  .vote-card[hidden] { display: none; }
+  @media (max-width: 600px) { .vote-frame { grid-template-columns: repeat(2, 1fr); } }
+  .vote-more-wrap { display: flex; justify-content: center; margin-top: 16px; }
+  .vote-more-wrap[hidden] { display: none; }
   .vote-card .vote-media { aspect-ratio: 1/1; overflow: hidden; position: relative; }
   .vote-card .vote-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .vote-card .vote-media.is-landscape { background: var(--ink); }
@@ -2897,10 +2901,13 @@
           <button type="button" class="refresh-btn" id="vote-refresh-btn" aria-label="Refresh voting builds">&#8635; Refresh</button>
         </div>
       </div>
-      <p>Pick your favourite from the recently uploaded builds. The winner becomes next week's Build of the Week. Voting closes at midnight on Sunday so get your votes in! <span class="vote-countdown" id="vote-countdown"></span> You can only vote for other members' builds. Votes are being checked before tallying up for inconsistencies.</p>
+      <p>Pick your favourite from the builds added this week and last week, newest first. The winner becomes next week's Build of the Week. Voting closes at midnight on Sunday so get your votes in! <span class="vote-countdown" id="vote-countdown"></span> You can only vote for other members' builds. Votes are being checked before tallying up for inconsistencies.</p>
     </div>
     <div class="vote-frame" id="vote-frame">
       <p class="mono" style="padding: 24px; color: var(--steel);">Loading builds open for voting…</p>
+    </div>
+    <div class="vote-more-wrap" id="vote-more-wrap" hidden>
+      <button type="button" class="btn btn-secondary" id="vote-more-btn">Show more builds</button>
     </div>
     <div class="section-gallery-cta">
       <p>Liked what you've seen? <strong>The Gallery Feed</strong> has every build members have shared, with search-friendly captions and mod lists.</p>
@@ -5213,14 +5220,30 @@
       });
     }
 
+    var voteMoreWrap = document.getElementById('vote-more-wrap');
+    var voteShown = 0;
+    function votePageSize() {
+      return window.matchMedia && window.matchMedia('(max-width: 600px)').matches ? 8 : 9;
+    }
+    if (voteMoreWrap) {
+      document.getElementById('vote-more-btn').addEventListener('click', function () {
+        voteShown += votePageSize();
+        frame.querySelectorAll('.vote-card').forEach(function (card, i) { card.hidden = i >= voteShown; });
+        voteMoreWrap.hidden = frame.querySelectorAll('.vote-card[hidden]').length === 0;
+      });
+    }
+
     function render(data) {
       latestData = data;
       if (!data || !data.candidates || !data.candidates.length) {
         frame.innerHTML = '<p class="mono" style="padding: 24px; color: var(--steel);">No builds open for voting right now, check back soon.</p>';
+        if (voteMoreWrap) voteMoreWrap.hidden = true;
         return;
       }
       var maxVotes = Math.max.apply(null, data.candidates.map(function (c) { return c.votes; }));
-      frame.innerHTML = data.candidates.map(function (c) {
+      // Every build in the week's vote, newest first, a few rows at a time.
+      if (!voteShown) voteShown = votePageSize();
+      frame.innerHTML = data.candidates.map(function (c, index) {
         var safeCaption = (c.caption || 'MT3UK build').replace(/</g, '&lt;');
         var isVoted = data.voted === c.file;
         var isLeading = maxVotes > 0 && c.votes === maxVotes;
@@ -5231,7 +5254,7 @@
           '</button>' : '';
         var reported = reportedVotePhotos.indexOf(c.file) !== -1;
         return (
-          '<div class="vote-card' + (isVoted ? ' voted' : '') + (isLeading ? ' leading' : '') + '" data-file="' + c.file.replace(/"/g, '&quot;') + '">' +
+          '<div class="vote-card' + (isVoted ? ' voted' : '') + (isLeading ? ' leading' : '') + '" data-file="' + c.file.replace(/"/g, '&quot;') + '"' + (index >= voteShown ? ' hidden' : '') + '>' +
             '<div class="vote-media" data-edit-target data-edit-class="mt3uk-edit-pill"><img src="' + window.MT3UK_R2_BASE + '/gallery/' + c.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy">' + modsBadge + '</div>' +
             '<div class="vote-body">' +
               '<span class="vote-caption">' + safeCaption + '</span>' +
@@ -5246,6 +5269,7 @@
       }).join('');
       window.mt3ukApplyEditBadges(frame);
       hideOwnVoteReports();
+      if (voteMoreWrap) voteMoreWrap.hidden = data.candidates.length <= voteShown;
 
       frame.querySelectorAll('.vote-media').forEach(function (media, i) {
         media.addEventListener('click', function () {

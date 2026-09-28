@@ -148,6 +148,7 @@ async function listGalleryEntriesFromR2(env, opts) {
     var color = null;
     var sidecarEmail = null;
     var sidecarName = null;
+    var voteBlocked = false;
     var sidecarKey = o.key + '.json';
     if (sidecarKeys[sidecarKey]) {
       try {
@@ -164,6 +165,7 @@ async function listGalleryEntriesFromR2(env, opts) {
           if (typeof sidecar.votableSince === 'string' && sidecar.votableSince) votableSince = sidecar.votableSince;
           if (typeof sidecar.color === 'string' && sidecar.color) color = sidecar.color;
           if (typeof sidecar.email === 'string' && sidecar.email) sidecarEmail = sidecar.email;
+          if (sidecar.voteBlocked === true) voteBlocked = true;
           if (typeof sidecar.name === 'string' && sidecar.name.trim()) sidecarName = sidecar.name.trim().toUpperCase();
         }
       } catch (e) {}
@@ -187,6 +189,8 @@ async function listGalleryEntriesFromR2(env, opts) {
     // out become eligible again immediately, instead of being stuck outside the
     // today/yesterday eligibility window keyed off its original upload date.
     if (votableSince) entry.votableSince = votableSince;
+    // Taken out of voting from the Admin page; the owner can't re-enter it.
+    if (voteBlocked) entry.voteBlocked = true;
     return entry;
   }));
 }
@@ -226,7 +230,7 @@ async function ownerKey(email) {
 // vote) this week or last week and voting is on for it.
 function isOpenForVote(p, weekStr) {
   var refDate = p.votableSince || p.added;
-  return !!refDate && refDate >= addDaysToDateString(weekStr, -7) && p.votable !== false;
+  return !!refDate && refDate >= addDaysToDateString(weekStr, -7) && p.votable !== false && !p.voteBlocked;
 }
 
 // Every entry in a week's vote, one per member. My Garage switches voting
@@ -249,11 +253,12 @@ function voteEntries(manifest, weekStr) {
     });
 }
 
-// Builds shown for this week's vote, newest first.
+// Builds shown for this week's vote, newest first. Every entry is shown:
+// the homepage lays them out as a grid with Load more.
 function votingCandidates(manifest, weekStr) {
   return voteEntries(manifest, weekStr).sort(function (a, b) {
     return (b.uploadedAt || 0) - (a.uploadedAt || 0);
-  }).slice(0, 9);
+  });
 }
 
 // A member's entry in this week's vote, if they have one.
@@ -1825,6 +1830,84 @@ async function handleGalleryClaimsAdminAssign(request, env) {
   return json({ success: true });
 }
 
+// Admin: this week's Build of the Week entries, and photos taken out of
+// voting, with who they belong to.
+async function handleAdminVoteEntries(request, env) {
+  var key = new URL(request.url).searchParams.get('key');
+  if (!env.ADMIN_KEY || key !== env.ADMIN_KEY) {
+    return json({ success: false, message: 'Unauthorized' }, 401);
+  }
+  var week = voteWeekString(new Date());
+  var manifest = await listGalleryEntriesFromR2(env, { includeEmail: true });
+  function row(p) {
+    return { file: p.file, caption: p.caption || '', name: p.name || '', email: p.email || '', added: p.votableSince || p.added || '' };
+  }
+  var entries = await Promise.all(votingCandidates(manifest, week).map(async function (p) {
+    var r = row(p);
+    r.votes = parseInt((await env.VOTES.get('votes:' + week + ':' + p.file)) || '0', 10) || 0;
+    return r;
+  }));
+  var removed = manifest.filter(function (p) { return p.voteBlocked; })
+    .sort(function (a, b) { return (b.uploadedAt || 0) - (a.uploadedAt || 0); })
+    .map(row);
+  return json({ success: true, week: week, entries: entries, removed: removed });
+}
+
+// Admin: take a photo out of voting (the photo itself stays in the gallery
+// and reel), or put it back.
+async function handleAdminVoteEntryUpdate(request, env) {
+  var key = new URL(request.url).searchParams.get('key');
+  if (!env.ADMIN_KEY || key !== env.ADMIN_KEY) {
+    return json({ success: false, message: 'Unauthorized' }, 401);
+  }
+  var body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return json({ success: false, message: 'Invalid request body' }, 400);
+  }
+  var file = ((body && body.file) || '').toString();
+  var action = body && body.action;
+  if (!file || (action !== 'remove' && action !== 'restore')) {
+    return json({ success: false, message: 'file and action (remove or restore) are required' }, 400);
+  }
+  var sidecarKey = 'gallery/' + file + '.json';
+  var sidecar = {};
+  try {
+    var obj = await env.GALLERY_BUCKET.get(sidecarKey);
+    if (obj) sidecar = await obj.json();
+  } catch (e) {}
+  var week = voteWeekString(new Date());
+  var message;
+  if (action === 'remove') {
+    sidecar.votable = false;
+    sidecar.voteBlocked = true;
+    await env.VOTES.delete('votes:' + week + ':' + file);
+    message = 'Removed from voting.';
+  } else {
+    delete sidecar.voteBlocked;
+    // Back into this week's vote, unless the owner has entered another
+    // photo since, in which case they can now re-enter this one themselves.
+    var manifest = await listGalleryEntriesFromR2(env);
+    var owner = sidecar.email ? await ownerKey(sidecar.email) : null;
+    var otherEntry = owner ? memberVoteEntry(manifest, week, owner) : null;
+    if (otherEntry && otherEntry.file !== file) {
+      message = 'Unblocked. The owner has entered another photo this week, so this one stays out until they switch.';
+    } else {
+      delete sidecar.votable;
+      var photo = manifest.filter(function (p) { return p.file === file; })[0];
+      if (!photo || !isOpenForVote(Object.assign({}, photo, { votable: true, voteBlocked: false }), week)) {
+        sidecar.votableSince = ukDateString(new Date());
+      }
+      message = 'Back in this week\u2019s vote.';
+    }
+  }
+  await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
+    httpMetadata: { contentType: 'application/json' }
+  });
+  return json({ success: true, file: file, message: message });
+}
+
 async function handleGalleryAdminUnclaimedList(request, env) {
   var url = new URL(request.url);
   var key = url.searchParams.get('key');
@@ -3223,6 +3306,7 @@ async function handleMyBuildsGet(request, env) {
         reel: entry.reel !== false,
         votable: entry.votable !== false,
         inVote: !!(voteEntry && voteEntry.file === entry.file),
+        voteBlocked: !!entry.voteBlocked,
         commentCount: visibleComments.length,
         likeCount: likeCount
       };
@@ -3307,6 +3391,9 @@ async function handleMyBuildsUpdate(request, env) {
   var wasVotable = sidecar.votable !== false;
   var withdraw = [];
   var clearVotes = false;
+  if (body && body.votable === true && sidecar.voteBlocked === true) {
+    return json({ success: false, message: 'This photo was taken out of voting by MT3UK. You can enter a different photo instead.' }, 403);
+  }
   if (body && typeof body.votable === 'boolean') {
     var voteManifest = await listGalleryEntriesFromR2(env);
     var owner = await ownerKey(email);
@@ -4155,6 +4242,12 @@ export default {
     }
     if (url.pathname === '/gallery/admin/reports/dismiss' && request.method === 'POST') {
       return handlePhotoReportsAdminDismiss(request, env);
+    }
+    if (url.pathname === '/admin/vote-entries' && request.method === 'GET') {
+      return handleAdminVoteEntries(request, env);
+    }
+    if (url.pathname === '/admin/vote-entries' && request.method === 'POST') {
+      return handleAdminVoteEntryUpdate(request, env);
     }
     if (url.pathname === '/gallery/admin/photo' && request.method === 'DELETE') {
       return handleGalleryAdminPhotoDelete(request, env);

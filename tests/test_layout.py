@@ -21,3 +21,18 @@ def test_page_uses_shared_header_and_footer(page):
         f"{page}.html has drifted from partials/header.html, partials/footer.html "
         "or the css/site-header.css link. Run: python scripts/build_layout.py"
     )
+
+
+def test_every_share_button_has_a_share_page():
+    """The round share buttons (js/share.js) link to share/section/ pages,
+    so every page and section needs one. If this fails, run:
+
+        python scripts/build_section_share_pages.py
+    """
+    import build_section_share_pages
+
+    missing = [
+        name for name in build_section_share_pages.pages_to_write()
+        if not (build_section_share_pages.OUT_DIR / name).exists()
+    ]
+    assert not missing, "Missing share pages: " + ", ".join(missing) + ". Run: python scripts/build_section_share_pages.py"

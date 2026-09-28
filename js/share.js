@@ -9,7 +9,11 @@
 //
 // Every page also gets small round share buttons: one by the page's main
 // heading (campaign page_<page>) and one by each section heading, which
-// links straight to that section (campaign section_<section id>). Sections
+// links straight to that section (campaign section_<section id>). Their
+// links go to share/section/<page>--<section>.html (written by
+// scripts/build_section_share_pages.py), so link previews show the
+// section's title, intro text and a photo, and the message includes the
+// intro text too. Sections
 // are <section id="..."> with an <h2>; other headings can opt in with
 // data-share-anchor="<id to link to>". Add data-no-share to a heading or
 // section to leave it out.
@@ -52,9 +56,11 @@
       anchor: anchor,
       heading: opts.heading || 'Share this page',
       subject: opts.title + ' | MT3UK',
-      text: opts.text || opts.title + ' on MT3UK, the UK’s modified Tesla community',
+      text: opts.text || (opts.intro
+        ? opts.title + (/MT3UK/.test(opts.title) ? ': ' : ' on MT3UK: ') + opts.intro
+        : opts.title + ' on MT3UK, the UK’s modified Tesla community'),
       link: function (channel) {
-        return SITE + opts.path + '?' + utm(channel, opts.campaign) + (opts.hash ? '#' + opts.hash : '');
+        return SITE + '/share/section/' + opts.stem + (opts.hash ? '--' + opts.hash : '') + '.html?' + utm(channel, opts.campaign);
       }
     };
   }
@@ -246,18 +252,35 @@
     heading.appendChild(btn);
   }
 
+  // The first paragraph after a heading with some substance, skipping
+  // countdowns. Matches scripts/build_section_share_pages.py.
+  function introAfter(scope, heading) {
+    var paras = (scope || document).querySelectorAll('p');
+    for (var i = 0; i < paras.length; i++) {
+      var p = paras[i];
+      if (!(heading.compareDocumentPosition(p) & Node.DOCUMENT_POSITION_FOLLOWING)) continue;
+      if (p.classList.contains('hp-countdown')) continue;
+      var text = p.textContent.replace(/\s+/g, ' ').trim();
+      if (text.length < 30) continue;
+      if (text.length > 200) text = text.slice(0, 200).replace(/\s+\S*$/, '').replace(/[,;:]$/, '') + '...';
+      return text;
+    }
+    return '';
+  }
+
   function addDots() {
     if (document.body.hasAttribute('data-no-share')) return;
     addStyles();
     var path = location.pathname.replace(/\/index\.html$/, '/');
     if (!/^\/[\w\-\/]*(\.html)?$/.test(path)) path = '/';
     var page = (path.replace(/^\//, '').replace(/\.html$/, '') || 'home').replace(/[^\w-]/g, '');
-    var pageTitle = (document.title || 'MT3UK').replace(/\s*[|\u2013\u2014-]\s*MT3UK.*$/i, '').trim() || 'MT3UK';
+    var stem = page === 'home' ? 'index' : page;
 
     var main = document.querySelector('h1:not(header h1)');
     if (main) {
       addDot(main, {
-        path: path, title: pageTitle, campaign: 'page_' + page, heading: 'Share this page',
+        path: path, stem: stem, title: headingText(main) || 'MT3UK', intro: introAfter(document, main),
+        campaign: 'page_' + page, heading: 'Share this page',
         text: page === 'home' ? 'Check out MT3UK, the UK’s modified Tesla community' : null
       });
     }
@@ -273,7 +296,11 @@
     });
     targets.forEach(function (t) {
       var title = headingText(t.heading);
-      addDot(t.heading, { path: path, hash: t.id, title: title, campaign: 'section_' + t.id.replace(/[^\w-]/g, ''), heading: 'Share this section' });
+      var scope = t.heading.closest('section') || document;
+      addDot(t.heading, {
+        path: path, stem: stem, hash: t.id, title: title, intro: introAfter(scope, t.heading),
+        campaign: 'section_' + t.id.replace(/[^\w-]/g, ''), heading: 'Share this section'
+      });
     });
   }
 

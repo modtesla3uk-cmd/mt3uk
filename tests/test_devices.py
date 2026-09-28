@@ -97,7 +97,14 @@ GARAGE_VOTE_ENTRY = {"file": "test-build.jpg", "caption": "TEST MODEL 3", "votes
 VOTE_CANDIDATES = [
     {"file": "other-build.jpg", "caption": "OTHER BUILD", "votes": 2, "mods": []},
     {"file": "test-build.jpg", "caption": "TEST MODEL 3", "votes": 3, "mods": [], "mine": True},
-]
+] + [{"file": "more-%d.jpg" % n, "caption": "MORE BUILD %d" % n, "votes": 0, "mods": []} for n in range(10)]
+# The Admin page's list of this week's entries, and one taken out of voting.
+ADMIN_VOTE_ENTRIES = {
+    "success": True,
+    "week": "2026-09-28",
+    "entries": [{"file": "brake-discs.jpg", "caption": "BRAKE DISCS", "name": "TEST MEMBER", "email": "member@example.com", "added": "2026-09-28", "votes": 2}],
+    "removed": [{"file": "old-entry.jpg", "caption": "OLD ENTRY", "name": "OTHER MEMBER", "email": "other@example.com", "added": "2026-09-21"}],
+}
 
 
 def api_path(url):
@@ -115,6 +122,8 @@ def api_reply(url, method, post_data, state):
         return {"success": True, "likes": {}, "liked": []}
     if path == "/likes":
         return {"success": True, "liked": True, "count": 1}
+    if path == "/admin/vote-entries" and method == "GET":
+        return ADMIN_VOTE_ENTRIES
     if path == "/votes":
         return {"success": True, "voted": None, "candidates": VOTE_CANDIDATES}
     if path == "/comment-counts":
@@ -390,14 +399,14 @@ def test_share_buttons(device_page):
     dot.scroll_into_view_if_needed()
     dot.click()
     url = shared_url(page)
-    assert url and "utm_campaign=section_build-of-the-day" in url and url.endswith("#build-of-the-day"), "Section share: " + str(url)
+    assert url and url.startswith("https://mt3uk.com/share/section/index--build-of-the-day.html?") and "utm_campaign=section_build-of-the-day" in url, "Section share: " + str(url)
     assert overflow_width(page) <= 1
 
     # Round share button by a page's main heading.
     page.goto("/shop.html")
     page.locator("h1 .mt3uk-share-dot").click()
     url = shared_url(page)
-    assert url and url.startswith("https://mt3uk.com/shop.html?") and "utm_campaign=page_shop" in url, "Page share: " + str(url)
+    assert url and url.startswith("https://mt3uk.com/share/section/shop.html?") and "utm_campaign=page_shop" in url, "Page share: " + str(url)
 
     # My Garage photo viewer.
     page.mock_state["signed_in"] = True
@@ -429,6 +438,15 @@ def test_vote_one_entry_and_not_your_own(device_page):
     assert other.locator(".vote-btn").count() == 1
     assert "You can only vote for other members' builds." in page.inner_text("#build-of-the-day")
 
+    # Every entry is in the list, a few rows at a time.
+    visible = page.locator(".vote-card:not([hidden])").count()
+    assert visible in (8, 9), "Unexpected first page of vote cards: %d" % visible
+    more = page.locator("#vote-more-btn")
+    more.scroll_into_view_if_needed()
+    more.click()
+    assert page.locator(".vote-card:not([hidden])").count() == 12
+    assert page.locator("#vote-more-wrap").is_hidden()
+
     # My Garage: switching entry warns that its votes will be lost.
     page.goto("/my-builds.html")
     page.locator(".mb-car-tile").first.click(timeout=10000)
@@ -447,4 +465,24 @@ def test_vote_one_entry_and_not_your_own(device_page):
     page.wait_for_timeout(800)
     assert messages and "Test Model 3" in messages[0] and "3 votes" in messages[0], "No switch warning: " + str(messages)
     assert second.is_checked() and not first.is_checked(), "Entry did not switch" + diagnostics(page)
+    assert page.errors == []
+
+
+@all_devices
+def test_admin_can_take_a_photo_out_of_voting(device_page):
+    page = device_page
+    page.add_init_script("sessionStorage.setItem('mt3ukAdminKey', 'test-key')")
+    page.goto("/admin.html")
+    card = page.locator("#vote-entries .card")
+    card.first.wait_for(timeout=10000)
+    text = card.first.inner_text()
+    assert "BRAKE DISCS" in text and "TEST MEMBER" in text and "member@example.com" in text and "2 votes" in text
+    assert card.first.locator("img").get_attribute("src").endswith("/gallery/brake-discs.jpg")
+    assert "OLD ENTRY" in page.inner_text("#vote-removed")
+
+    page.on("dialog", lambda d: d.accept())
+    before = len(page.api_log)
+    page.click("#vote-entries .vote-remove-btn")
+    page.wait_for_timeout(600)
+    assert any(line.startswith("POST /admin/vote-entries") for line in page.api_log[before:]), page.api_log[before:]
     assert page.errors == []

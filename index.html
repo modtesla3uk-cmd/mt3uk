@@ -1570,6 +1570,12 @@
     align-self: flex-start;
   }
   .vote-card .vote-report:hover { color: var(--ink); }
+  .vote-card .vote-own {
+    margin-top: auto;
+    font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; letter-spacing: 0.04em;
+    padding: 8px 10px; text-align: center;
+    border: 1px dashed var(--steel); color: var(--steel);
+  }
   .vote-card .vote-report[disabled] { text-decoration: none; cursor: default; }
 
   .track-day-frame {
@@ -2891,7 +2897,7 @@
           <button type="button" class="refresh-btn" id="vote-refresh-btn" aria-label="Refresh voting builds">&#8635; Refresh</button>
         </div>
       </div>
-      <p>Pick your favourite from the recently uploaded builds. The winner becomes next week's Build of the Week. Voting closes at midnight on Sunday so get your votes in! <span class="vote-countdown" id="vote-countdown"></span> Please do not vote on your own build. Votes are being checked before tallying up for inconsistencies.</p>
+      <p>Pick your favourite from the recently uploaded builds. The winner becomes next week's Build of the Week. Voting closes at midnight on Sunday so get your votes in! <span class="vote-countdown" id="vote-countdown"></span> You can only vote for other members' builds. Votes are being checked before tallying up for inconsistencies.</p>
     </div>
     <div class="vote-frame" id="vote-frame">
       <p class="mono" style="padding: 24px; color: var(--steel);">Loading builds open for voting…</p>
@@ -5080,6 +5086,21 @@
     var reportedVotePhotos = [];
     try { reportedVotePhotos = JSON.parse(localStorage.getItem('mt3ukReportedPhotos') || '[]'); } catch (e) {}
 
+    // Signed-in members are sent with their session, so the worker can mark
+    // their own build (members can only vote for other members' builds).
+    function voteHeaders(extra) {
+      var headers = { 'X-Voter-Id': voterId };
+      var session = null;
+      try { session = localStorage.getItem('mt3ukMyBuildsSession'); } catch (e) {}
+      if (session) headers['X-Session-Token'] = session;
+      Object.keys(extra || {}).forEach(function (k) { headers[k] = extra[k]; });
+      return headers;
+    }
+
+    function isOwnBuild(c) {
+      return !!(c && (c.mine || (window.mt3ukMyBuildFiles && window.mt3ukMyBuildFiles.indexOf(c.file) !== -1)));
+    }
+
     // Members never need to report their own photos. My Garage sign-in can
     // finish after the cards render, so this runs again when it does.
     function hideOwnVoteReports() {
@@ -5089,7 +5110,9 @@
         if (btn) btn.hidden = own;
       });
     }
-    document.addEventListener('mt3ukMyBuildsReady', hideOwnVoteReports);
+    document.addEventListener('mt3ukMyBuildsReady', function () {
+      if (latestData) render(latestData); else hideOwnVoteReports();
+    });
 
     var lightbox = document.getElementById('lightbox');
     var lightboxImg = lightbox ? lightbox.querySelector('.lightbox-img') : null;
@@ -5104,12 +5127,13 @@
     function castVote(file, onDone) {
       fetch(VOTE_ENDPOINT + '/vote', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Voter-Id': voterId },
+        headers: voteHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ file: file })
       })
         .then(function (res) { return res.json(); })
         .then(function (result) {
           if (result && result.success) render(result);
+          else if (result && result.message) window.alert(result.message);
           onDone();
         })
         .catch(function () { onDone(); });
@@ -5120,8 +5144,9 @@
       var c = latestData.candidates[currentVoteIndex];
       if (!c) return;
       var isVoted = latestData.voted === c.file;
-      if (lightboxVoteCount) lightboxVoteCount.textContent = c.votes + (c.votes === 1 ? ' vote' : ' votes');
+      if (lightboxVoteCount) lightboxVoteCount.textContent = c.votes + (c.votes === 1 ? ' vote' : ' votes') + (isOwnBuild(c) ? ' \u00b7 Your build' : '');
       if (lightboxVoteBtn) {
+        lightboxVoteBtn.hidden = isOwnBuild(c);
         lightboxVoteBtn.disabled = isVoted;
         lightboxVoteBtn.textContent = isVoted ? 'Voted' : 'Vote for this build';
       }
@@ -5211,7 +5236,9 @@
             '<div class="vote-body">' +
               '<span class="vote-caption">' + safeCaption + '</span>' +
               '<span class="vote-count">' + c.votes + (c.votes === 1 ? ' vote' : ' votes') + '</span>' +
-              '<button type="button" class="vote-btn"' + (isVoted ? ' disabled' : '') + '>' + (isVoted ? 'Voted' : 'Vote for this build') + '</button>' +
+              (isOwnBuild(c)
+                ? '<span class="vote-own">Your build</span>'
+                : '<button type="button" class="vote-btn"' + (isVoted ? ' disabled' : '') + '>' + (isVoted ? 'Voted' : 'Vote for this build') + '</button>') +
               '<button type="button" class="vote-report"' + (reported ? ' disabled' : '') + '>' + (reported ? 'Reported' : 'Report this image') + '</button>' +
             '</div>' +
           '</div>'
@@ -5267,7 +5294,7 @@
         refreshBtn.disabled = true;
         if (isManualRefresh) refreshBtn.innerHTML = '&#8635; Refreshing&hellip;';
       }
-      return fetch(VOTE_ENDPOINT + '/votes', { headers: { 'X-Voter-Id': voterId }, cache: 'no-store' })
+      return fetch(VOTE_ENDPOINT + '/votes', { headers: voteHeaders(), cache: 'no-store' })
         .then(function (res) { return res.json(); })
         .then(function (data) {
           if (refreshBtn) {

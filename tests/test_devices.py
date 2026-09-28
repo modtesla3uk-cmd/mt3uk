@@ -86,8 +86,18 @@ GARAGE_CAR = {
     "id": "car-1",
     "name": "Test Model 3",
     "mods": ["Wheels"],
-    "photos": [{"file": "test-build.jpg", "caption": "Test Model 3", "gallery": True, "reel": True, "votable": True}],
+    "photos": [
+        {"file": "test-build.jpg", "caption": "Test Model 3", "gallery": True, "reel": True, "votable": True, "inVote": True},
+        {"file": "test-build-2.jpg", "caption": "Test Model 3 Rear", "gallery": True, "reel": True, "votable": True},
+    ],
 }
+# The member's entry in this week's vote, with 3 votes so far.
+GARAGE_VOTE_ENTRY = {"file": "test-build.jpg", "caption": "TEST MODEL 3", "votes": 3}
+# This week's vote: someone else's build, and the signed-in member's own.
+VOTE_CANDIDATES = [
+    {"file": "other-build.jpg", "caption": "OTHER BUILD", "votes": 2, "mods": []},
+    {"file": "test-build.jpg", "caption": "TEST MODEL 3", "votes": 3, "mods": [], "mine": True},
+]
 
 
 def api_path(url):
@@ -105,6 +115,8 @@ def api_reply(url, method, post_data, state):
         return {"success": True, "likes": {}, "liked": []}
     if path == "/likes":
         return {"success": True, "liked": True, "count": 1}
+    if path == "/votes":
+        return {"success": True, "voted": None, "candidates": VOTE_CANDIDATES}
     if path == "/comment-counts":
         return {"success": True, "counts": {}}
     if path == "/comments" and method == "GET":
@@ -125,7 +137,7 @@ def api_reply(url, method, post_data, state):
             return {"success": True, "session": "s1.test", "email": body.get("email", "member@example.com")}
         return {"success": False, "message": "That code is not right or has expired."}
     if path == "/my-builds" and method == "GET":
-        return {"success": True, "email": "member@example.com", "firstName": "Test", "lastName": "Member", "cars": [GARAGE_CAR]}
+        return {"success": True, "email": "member@example.com", "firstName": "Test", "lastName": "Member", "cars": [GARAGE_CAR], "voteEntry": GARAGE_VOTE_ENTRY}
     return {"success": True}
 
 
@@ -398,4 +410,41 @@ def test_share_buttons(device_page):
     button.click()
     url = shared_url(page)
     assert url == "https://mt3uk.com/share/test-build.jpg.html?utm_source=" + url.split("utm_source=")[1].split("&")[0] + "&utm_medium=share&utm_campaign=garage_share", "My Garage share: " + str(url)
+    assert page.errors == []
+
+
+@all_devices
+def test_vote_one_entry_and_not_your_own(device_page):
+    page = device_page
+    page.mock_state["signed_in"] = True
+    page.add_init_script("localStorage.setItem('mt3ukMyBuildsSession', 's1.test')")
+
+    # Your own build shows its votes but has no vote button.
+    page.goto("/index.html#vote-frame")
+    own = page.locator('.vote-card[data-file="test-build.jpg"]')
+    own.wait_for(timeout=10000)
+    assert own.locator(".vote-btn").count() == 0, "Own build still has a vote button"
+    assert "3 votes" in own.inner_text() and "Your build" in own.inner_text()
+    other = page.locator('.vote-card[data-file="other-build.jpg"]')
+    assert other.locator(".vote-btn").count() == 1
+    assert "You can only vote for other members' builds." in page.inner_text("#build-of-the-day")
+
+    # My Garage: switching entry warns that its votes will be lost.
+    page.goto("/my-builds.html")
+    page.locator(".mb-car-tile").first.click(timeout=10000)
+    first = page.locator('.mb-photo-thumb-wrap[data-file="test-build.jpg"] input[data-flag="votable"]')
+    second = page.locator('.mb-photo-thumb-wrap[data-file="test-build-2.jpg"] input[data-flag="votable"]')
+    first.wait_for(timeout=5000)
+    assert first.is_checked() and not second.is_checked()
+    messages = []
+
+    def answer(dialog):
+        messages.append(dialog.message)
+        dialog.accept()
+
+    page.on("dialog", answer)
+    second.click()
+    page.wait_for_timeout(800)
+    assert messages and "Test Model 3" in messages[0] and "3 votes" in messages[0], "No switch warning: " + str(messages)
+    assert second.is_checked() and not first.is_checked(), "Entry did not switch" + diagnostics(page)
     assert page.errors == []

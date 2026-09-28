@@ -487,6 +487,13 @@
   .mb-photo-toggles { display: flex; flex-direction: column; gap: 3px; }
   .mb-photo-toggle { display: flex; align-items: center; gap: 5px; font-size: 0.68rem; cursor: pointer; }
   .mb-photo-toggle input { accent-color: var(--orange); width: 13px; height: 13px; }
+  .mb-toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 900;
+    width: max-content; max-width: calc(100vw - 32px);
+    background: var(--ink); color: var(--white); padding: 12px 16px; border-radius: 12px;
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 0.88rem; line-height: 1.4;
+    box-shadow: 0 8px 24px rgba(5,7,12,0.3);
+  }
   .mb-photo-delete-btn { background: transparent; border: 1px solid var(--line); color: var(--ink); font-size: 0.68rem; padding: 4px 6px; cursor: pointer; }
   .mb-photo-delete-btn:hover { border-color: var(--orange); color: var(--orange); }
   .mb-photo-default-btn { background: transparent; border: 1px solid var(--line); color: var(--ink); font-size: 0.68rem; padding: 4px 6px; cursor: pointer; }
@@ -1184,6 +1191,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     var lightboxLinkedComment = null;
     var carsData = [];
+    // This member's one entry in this week's Build of the Week vote
+    // ({ file, caption, votes }), or null.
+    var voteEntry = null;
     var currentCarId = null;
 
     var signinView = document.getElementById('mb-signin-view');
@@ -1566,7 +1576,7 @@ document.addEventListener('DOMContentLoaded', function () {
           '<div class="mb-photo-toggles">' +
             '<label class="mb-photo-toggle"><input type="checkbox" data-flag="gallery"' + (p.gallery ? ' checked' : '') + '> Gallery</label>' +
             '<label class="mb-photo-toggle"><input type="checkbox" data-flag="reel"' + (p.reel ? ' checked' : '') + '> Reel</label>' +
-            '<label class="mb-photo-toggle"><input type="checkbox" data-flag="votable"' + (p.votable ? ' checked' : '') + '> Voting</label>' +
+            '<label class="mb-photo-toggle" title="Your one entry in this week\'s Build of the Week vote"><input type="checkbox" data-flag="votable"' + (p.inVote ? ' checked' : '') + '> Voting</label>' +
           '</div>' +
           (isDefault ? '' : '<button type="button" class="mb-photo-default-btn">Make Default</button>') +
           '<button type="button" class="mb-photo-delete-btn">Delete</button>' +
@@ -1635,6 +1645,7 @@ document.addEventListener('DOMContentLoaded', function () {
           initPush();
           loadNotifications();
           carsData = result.data.cars || [];
+          voteEntry = result.data.voteEntry || null;
           var alerts = computeCommentAlerts(carsData);
           if (currentCarId && findCar(currentCarId)) {
             renderCarDetail(findCar(currentCarId));
@@ -1911,6 +1922,7 @@ document.addEventListener('DOMContentLoaded', function () {
             addCarSubmitBtn.textContent = 'Add car';
             if (json.success) {
               setStatus(addCarStatus, 'Car added.', 'ok');
+              if (json.voteNote) mbToast(json.voteNote);
               addCarForm.reset();
               addCarCard.style.display = 'none';
               addCarToggleBtn.textContent = '+ ' + addCarLabel(carsData);
@@ -1973,6 +1985,7 @@ document.addEventListener('DOMContentLoaded', function () {
           uploadSubmitBtn.textContent = 'Upload photo';
           if (data.success) {
             setStatus(uploadStatus, 'Uploaded.', 'ok');
+            if (data.voteNote) mbToast(data.voteNote);
             uploadForm.reset();
             document.getElementById('mb-upload-gallery').checked = true;
             document.getElementById('mb-upload-reel').checked = true;
@@ -2042,6 +2055,20 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!checkbox) return;
       var wrap = checkbox.closest('.mb-photo-thumb-wrap');
       var file = wrap.getAttribute('data-file');
+      var isVoteFlag = checkbox.dataset.flag === 'votable';
+      // One entry per member in the weekly vote. Switching entry or taking
+      // it out loses its votes this week, so check first.
+      if (isVoteFlag && voteEntry && (checkbox.checked ? voteEntry.file !== file : voteEntry.file === file)) {
+        var entryName = voteTitle(voteEntry.caption) || 'Your current entry';
+        var votesText = voteEntry.votes + ' vote' + (voteEntry.votes === 1 ? '' : 's');
+        var question = checkbox.checked
+          ? 'You can only have one build in the Build of the Week vote. Your current entry, ' + entryName + ', has ' + votesText + ' this week. Switching will lose ' + (voteEntry.votes === 1 ? 'it' : 'them') + '.\n\nSwitch to this photo?'
+          : 'Taking ' + entryName + ' out of this week\'s vote will lose its ' + votesText + '.\n\nTake it out?';
+        if (!window.confirm(question)) {
+          checkbox.checked = !checkbox.checked;
+          return;
+        }
+      }
       var token = getSession();
       var body = {};
       body.file = file;
@@ -2055,6 +2082,7 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(function (res) { return res.json(); })
         .then(function (data) {
           checkbox.disabled = false;
+          if (data.success && isVoteFlag) setVoteEntry(checkbox.checked ? file : null);
           if (!data.success) {
             checkbox.checked = !checkbox.checked;
             if (data.message) {
@@ -2068,6 +2096,38 @@ document.addEventListener('DOMContentLoaded', function () {
           checkbox.checked = !checkbox.checked;
         });
     });
+
+    function voteTitle(value) {
+      return String(value || '').toLowerCase().replace(/(^|[\s-])([a-z])/g, function (m, sep, c) { return sep + c.toUpperCase(); });
+    }
+
+    // After entering a photo (or taking it out), only that photo shows as
+    // the member's entry, across all their cars.
+    function setVoteEntry(file) {
+      var entryPhoto = null;
+      carsData.forEach(function (car) {
+        car.photos.forEach(function (p) {
+          p.inVote = p.file === file;
+          if (p.inVote) entryPhoto = p;
+        });
+      });
+      voteEntry = entryPhoto ? { file: file, caption: entryPhoto.caption || '', votes: 0 } : null;
+      photoStrip.querySelectorAll('.mb-photo-thumb-wrap').forEach(function (wrap) {
+        var box = wrap.querySelector('input[data-flag="votable"]');
+        if (box) box.checked = wrap.getAttribute('data-file') === file;
+      });
+    }
+
+    // A short message at the bottom of the screen, for notes that outlast
+    // the form they came from.
+    function mbToast(message) {
+      var el = document.createElement('div');
+      el.className = 'mb-toast';
+      el.setAttribute('role', 'status');
+      el.textContent = message;
+      document.body.appendChild(el);
+      setTimeout(function () { el.remove(); }, 7000);
+    }
 
     function saveCarMods(mods) {
       var car = findCar(currentCarId);
@@ -2714,6 +2774,7 @@ document.addEventListener('DOMContentLoaded', function () {
             car.photos.forEach(function (p) { previousCounts[p.file] = p.commentCount || 0; });
           });
           carsData = data.cars;
+          voteEntry = data.voteEntry || null;
 
           if (currentCarId) {
             var car = findCar(currentCarId);

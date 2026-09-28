@@ -179,6 +179,10 @@ async function listGalleryEntriesFromR2(env, opts) {
     // exposing the actual owner email to public callers.
     if (!sidecarEmail) entry.unclaimed = true;
     if (includeEmail && sidecarEmail) entry.email = sidecarEmail;
+    // Who the photo belongs to, as a one-way key rather than the email, so
+    // the vote can allow one entry per member and stop members voting for
+    // their own build.
+    if (sidecarEmail) entry.owner = await ownerKey(sidecarEmail);
     // votableSince lets a photo that's re-enabled for voting after being opted
     // out become eligible again immediately, instead of being stuck outside the
     // today/yesterday eligibility window keyed off its original upload date.
@@ -207,16 +211,54 @@ async function getLiveGalleryEntries(env, ctx) {
   return entries;
 }
 
-// Builds open for this week's vote: those added (or opened to voting) this
-// week or last week, newest first.
+function titleCaseWords(value) {
+  return String(value || '').toLowerCase().replace(/(^|[\s-])([a-z])/g, function (m, sep, c) { return sep + c.toUpperCase(); });
+}
+
+async function ownerKey(email) {
+  var digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('mt3uk-owner:' + String(email).toLowerCase()));
+  return Array.prototype.map.call(new Uint8Array(digest).slice(0, 8), function (b) {
+    return b.toString(16).padStart(2, '0');
+  }).join('');
+}
+
+// A photo is open for a week's vote if it was added (or entered into the
+// vote) this week or last week and voting is on for it.
+function isOpenForVote(p, weekStr) {
+  var refDate = p.votableSince || p.added;
+  return !!refDate && refDate >= addDaysToDateString(weekStr, -7) && p.votable !== false;
+}
+
+// Every entry in a week's vote, one per member. My Garage switches voting
+// off on a member's other photos when they enter one, so normally there is
+// only one; if there are more, the one entered first stays in.
+function voteEntries(manifest, weekStr) {
+  var seen = {};
+  return manifest.filter(function (p) { return isOpenForVote(p, weekStr); })
+    .sort(function (a, b) {
+      var ra = a.votableSince || a.added;
+      var rb = b.votableSince || b.added;
+      if (ra !== rb) return ra < rb ? -1 : 1;
+      return (a.uploadedAt || 0) - (b.uploadedAt || 0);
+    })
+    .filter(function (p) {
+      if (!p.owner) return true;
+      if (seen[p.owner]) return false;
+      seen[p.owner] = true;
+      return true;
+    });
+}
+
+// Builds shown for this week's vote, newest first.
 function votingCandidates(manifest, weekStr) {
-  var fromStr = addDaysToDateString(weekStr, -7);
-  return manifest.filter(function (p) {
-    var refDate = p.votableSince || p.added;
-    return refDate && refDate >= fromStr && p.votable !== false;
-  }).sort(function (a, b) {
+  return voteEntries(manifest, weekStr).sort(function (a, b) {
     return (b.uploadedAt || 0) - (a.uploadedAt || 0);
   }).slice(0, 9);
+}
+
+// A member's entry in this week's vote, if they have one.
+function memberVoteEntry(manifest, weekStr, owner) {
+  return voteEntries(manifest, weekStr).filter(function (p) { return p.owner === owner; })[0] || null;
 }
 
 function getVoterId(request) {
@@ -740,13 +782,17 @@ async function handleVotesGet(request, env, ctx) {
   }
 
   var counts = await getVoteCounts(env, ctx, todayStr, candidates.map(function (p) { return p.file; }));
+  var sessionEmail = await resolveSession(request, env);
+  var viewer = sessionEmail ? await ownerKey(sessionEmail) : null;
   var results = candidates.map(function (p) {
-    return {
+    var result = {
       file: p.file,
       caption: p.caption || '',
       votes: counts[p.file] || 0,
       mods: p.mods || []
     };
+    if (viewer && p.owner === viewer) result.mine = true;
+    return result;
   });
 
   return json({
@@ -773,9 +819,14 @@ async function handleVotePost(request, env, ctx) {
   var manifest = await getLiveGalleryEntries(env, ctx);
   var todayStr = voteWeekString(new Date());
   var candidates = votingCandidates(manifest, todayStr);
-  var isCandidate = candidates.some(function (p) { return p.file === file; });
-  if (!isCandidate) {
+  var candidate = candidates.filter(function (p) { return p.file === file; })[0];
+  if (!candidate) {
     return json({ success: false, message: 'That photo is not open for voting' }, 400);
+  }
+  var sessionEmail = await resolveSession(request, env);
+  var viewer = sessionEmail ? await ownerKey(sessionEmail) : null;
+  if (viewer && candidate.owner === viewer) {
+    return json({ success: false, message: 'You can only vote for other members\u2019 builds.' }, 403);
   }
 
   var voterId = getVoterId(request);
@@ -808,7 +859,9 @@ async function handleVotePost(request, env, ctx) {
 
   var results = await Promise.all(candidates.map(async function (p) {
     var c = await env.VOTES.get('votes:' + todayStr + ':' + p.file);
-    return { file: p.file, caption: p.caption || '', votes: c ? parseInt(c, 10) : 0, mods: p.mods || [] };
+    var result = { file: p.file, caption: p.caption || '', votes: c ? parseInt(c, 10) : 0, mods: p.mods || [] };
+    if (viewer && p.owner === viewer) result.mine = true;
+    return result;
   }));
 
   return json({ success: true, voterId: voterId, voted: file, candidates: results });
@@ -3116,6 +3169,19 @@ async function handleMyBuildsGet(request, env) {
 
   var entries = liveFiles.map(function (f) { return byFile[f]; });
   var groups = groupEntriesIntoCars(entries);
+
+  // The member's one entry in this week's Build of the Week vote, and its
+  // votes so far, for the warning shown before they switch entry.
+  var voteWeek = voteWeekString(new Date());
+  var entryPhoto = manifestOk ? memberVoteEntry(manifest, voteWeek, await ownerKey(email)) : null;
+  var voteEntry = null;
+  if (entryPhoto) {
+    voteEntry = {
+      file: entryPhoto.file,
+      caption: entryPhoto.caption || '',
+      votes: parseInt((await env.VOTES.get('votes:' + voteWeek + ':' + entryPhoto.file)) || '0', 10) || 0
+    };
+  }
   var records = {};
   await Promise.all(groups.map(async function (g) {
     if (!g.virtual) records[g.id] = await getCarRecord(env, g.id);
@@ -3156,6 +3222,7 @@ async function handleMyBuildsGet(request, env) {
         gallery: entry.gallery !== false,
         reel: entry.reel !== false,
         votable: entry.votable !== false,
+        inVote: !!(voteEntry && voteEntry.file === entry.file),
         commentCount: visibleComments.length,
         likeCount: likeCount
       };
@@ -3183,8 +3250,25 @@ async function handleMyBuildsGet(request, env) {
     email: email,
     firstName: profile ? profile.firstName : '',
     lastName: profile ? profile.lastName : '',
-    cars: cars
+    cars: cars,
+    voteEntry: voteEntry
   });
+}
+
+// Takes a member's photo out of this week's vote: voting off, and its votes
+// this week removed so it can't still win the tally.
+async function withdrawVoteEntry(env, file, weekStr) {
+  var key = 'gallery/' + file + '.json';
+  var sidecar = {};
+  try {
+    var obj = await env.GALLERY_BUCKET.get(key);
+    if (obj) sidecar = await obj.json();
+  } catch (e) {}
+  sidecar.votable = false;
+  await env.GALLERY_BUCKET.put(key, JSON.stringify(sidecar, null, 2) + '\n', {
+    httpMetadata: { contentType: 'application/json' }
+  });
+  await env.VOTES.delete('votes:' + weekStr + ':' + file);
 }
 
 async function handleMyBuildsUpdate(request, env) {
@@ -3214,10 +3298,28 @@ async function handleMyBuildsUpdate(request, env) {
   // notifications, so this photo starts receiving them from here on.
   if (!sidecar.email) sidecar.email = email;
 
-  // A photo re-enabled for voting after being opted out is stamped with
-  // today's date so it becomes eligible immediately, rather than staying
-  // outside the today/yesterday window keyed off its original upload date.
+  // Voting on means "this is my entry in this week's Build of the Week
+  // vote". Each member has one entry: entering a photo takes their other
+  // entry out (losing its votes this week, which My Garage warns about
+  // first). A photo entered from outside this week's window is stamped
+  // with today's date so it counts as entered this week.
+  var voteWeek = voteWeekString(new Date());
   var wasVotable = sidecar.votable !== false;
+  var withdraw = [];
+  var clearVotes = false;
+  if (body && typeof body.votable === 'boolean') {
+    var voteManifest = await listGalleryEntriesFromR2(env);
+    var owner = await ownerKey(email);
+    var thisPhoto = voteManifest.filter(function (p) { return p.file === file; })[0];
+    if (body.votable) {
+      withdraw = voteManifest.filter(function (p) {
+        return p.owner === owner && p.file !== file && isOpenForVote(p, voteWeek);
+      }).map(function (p) { return p.file; });
+      if (!thisPhoto || !isOpenForVote(thisPhoto, voteWeek)) sidecar.votableSince = ukDateString(new Date());
+    } else {
+      clearVotes = true;
+    }
+  }
   ['gallery', 'reel', 'votable'].forEach(function (flag) {
     if (typeof (body && body[flag]) === 'boolean') {
       if (body[flag] === false) {
@@ -3227,7 +3329,7 @@ async function handleMyBuildsUpdate(request, env) {
       }
     }
   });
-  if (body && body.votable === true && !wasVotable) {
+  if (body && body.votable === true && !wasVotable && !sidecar.votableSince) {
     sidecar.votableSince = ukDateString(new Date());
   }
 
@@ -3247,10 +3349,12 @@ async function handleMyBuildsUpdate(request, env) {
   await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
     httpMetadata: { contentType: 'application/json' }
   });
+  await Promise.all(withdraw.map(function (f) { return withdrawVoteEntry(env, f, voteWeek); }));
+  if (clearVotes) await env.VOTES.delete('votes:' + voteWeek + ':' + file);
 
   await triggerManifestRebuild(env);
 
-  return json({ success: true, file: file });
+  return json({ success: true, file: file, withdrawn: withdraw });
 }
 
 async function handleMyBuildsCarUpdate(request, env) {
@@ -3467,6 +3571,19 @@ async function handleMyBuildsUpload(request, env) {
   if (!file.type || file.type.indexOf('image/') !== 0) {
     return json({ success: false, message: 'File must be an image' }, 400);
   }
+  // One entry per member in the weekly vote: if they already have one, it
+  // stays and the new photo isn't entered (they can switch in My Garage).
+  var keptEntry = null;
+  if (votable) {
+    var entryManifest = await listGalleryEntriesFromR2(env).catch(function () { return []; });
+    keptEntry = memberVoteEntry(entryManifest, voteWeekString(new Date()), await ownerKey(email));
+    if (keptEntry) {
+      if (!gallery && !reel) {
+        return json({ success: false, message: 'You already have a build in this week’s vote. Turn on Gallery or Reel for this photo, or switch your vote entry in My Garage.' }, 400);
+      }
+      votable = false;
+    }
+  }
   if (!gallery && !reel && !votable) {
     return json({ success: false, message: 'At least one of Gallery, Reel or Voting must stay on, otherwise the photo won’t be visible anywhere.' }, 400);
   }
@@ -3575,7 +3692,12 @@ async function handleMyBuildsUpload(request, env) {
 
     await triggerManifestRebuild(env);
 
-    return json({ success: true, file: filename });
+    var result = { success: true, file: filename };
+    if (keptEntry) {
+      result.voteNote = (keptEntry.caption ? titleCaseWords(keptEntry.caption) : 'Your other build') +
+        ' stays as your entry in this week’s vote. You can switch to this photo in My Garage.';
+    }
+    return json(result);
   } catch (err) {
     return json({ success: false, message: err.message }, 500);
   }
@@ -3867,8 +3989,15 @@ async function tallyVotesIfUkMidnight(env) {
     var key = list.keys[i];
     var count = parseInt((await env.VOTES.get(key.name)) || '0', 10);
     counts.push({ file: key.name.slice(prefix.length), votes: count });
-    if (count > winnerVotes) winnerVotes = count;
   }
+  // Only members' current entries count (one per member), in case a
+  // member had more than one photo open for the vote.
+  try {
+    var entryFiles = {};
+    voteEntries(await listGalleryEntriesFromR2(env), closedDay).forEach(function (p) { entryFiles[p.file] = true; });
+    counts = counts.filter(function (c) { return entryFiles[c.file]; });
+  } catch (e) {}
+  counts.forEach(function (c) { if (c.votes > winnerVotes) winnerVotes = c.votes; });
   if (winnerVotes < 1) return;
 
   var tied = counts.filter(function (c) { return c.votes === winnerVotes; });
@@ -4225,6 +4354,11 @@ export default {
       var listed = await env.GALLERY_BUCKET.list({ prefix: 'gallery/' });
       var existingNames = listed.objects.map(function (obj) { return obj.key.slice('gallery/'.length); });
 
+      // One entry per member in the weekly vote: a member who already has
+      // one keeps it, and this submission isn't entered.
+      var entryManifest = await listGalleryEntriesFromR2(env).catch(function () { return []; });
+      var hasVoteEntry = !!memberVoteEntry(entryManifest, voteWeekString(new Date()), await ownerKey(email));
+
       var photoUrls = [];
       for (var i = 0; i < files.length; i++) {
         var file = files[i];
@@ -4256,7 +4390,7 @@ export default {
         // every photo in the submission carries it, unlike mods which are
         // only credited against the primary/voting shot.
         if (color) sidecar.color = color;
-        if (!isPrimary) sidecar.votable = false;
+        if (!isPrimary || hasVoteEntry) sidecar.votable = false;
         await env.GALLERY_BUCKET.put(
           'gallery/' + filename + '.json',
           JSON.stringify(sidecar, null, 2) + '\n',
@@ -4339,7 +4473,9 @@ export default {
         }
       }
 
-      return json({ success: true, photo_url: photoUrls[0], photo_urls: photoUrls });
+      var submitResult = { success: true, photo_url: photoUrls[0], photo_urls: photoUrls };
+      if (hasVoteEntry) submitResult.voteNote = 'You already have a build in this week’s vote, so this one isn’t entered. You can switch your entry in My Garage.';
+      return json(submitResult);
     } catch (err) {
       return json({ success: false, message: err.message }, 500);
     }

@@ -1155,7 +1155,10 @@
      Below 960px they stack full width between paragraphs. */
   @media (min-width: 960px) {
     .interview { display: flow-root; }
-    .interview-q, .interview .track-prep-eyebrow { clear: both; }
+    /* Photos float with the text wrapping round them, so headings and
+       answers carry on beside a photo instead of leaving a gap. */
+    .interview-quickfire, .interview .track-prep-eyebrow:has(+ .interview-quickfire), .interview-outro { clear: both; }
+    .interview .track-prep-list { display: flow-root; }
     .interview-figure { width: 42%; margin-top: 6px; margin-bottom: 26px; clear: both; }
     .interview-figure.fig-right { float: right; margin-left: 28px; }
     .interview-figure.fig-left { float: left; margin-right: 28px; }
@@ -1163,7 +1166,7 @@
     .interview-figure-narrow img { max-width: 100%; }
     .interview-figure figcaption { text-align: left; }
     .interview-outro { clear: both; }
-    .interview-figure.fig-full { float: none; width: 100%; margin: 28px 0 30px; }
+    .interview-figure.fig-full { float: right; width: 48%; margin: 6px 0 22px 28px; }
   }
   @media (min-width: 1024px) {
     .interview { max-width: 900px; }
@@ -1393,13 +1396,13 @@
       <p>The Performance is mainly used on track now, but it still gets driven on the road from time to time. The Long Range is our daily driver.</p>
 
       <h2 class="interview-q">Has the car taken you anywhere memorable?</h2>
-      <p>The most memorable trip in recent years was the Watergate Bay Sprint in 2023. It&rsquo;s a two-day closed-road competition along the Cornish coast, where all kinds of cars race against the clock to set the fastest time.</p>
-      <p>A few of us turned up in EVs that year, and I managed to set Fastest Time of Day on the Sunday, beating all the petrol cars, including some potent, highly modified race and rally cars.</p>
-
       <figure class="interview-figure fig-full">
         <a href="images/blog/owner-interviews/john/watergate-sprint.jpg" class="interview-zoom" aria-label="View full size photo"><img src="images/blog/owner-interviews/john/watergate-sprint.jpg" alt="John&rsquo;s Model 3 Performance coming through a bend between hay bales and cones at the Watergate Bay Sprint, with the sea behind" width="1600" height="1067" loading="lazy"></a>
         <figcaption>Watergate Bay Sprint 2023. Photo: Doom Media.</figcaption>
       </figure>
+      <p>The most memorable trip in recent years was the Watergate Bay Sprint in 2023. It&rsquo;s a two-day closed-road competition along the Cornish coast, where all kinds of cars race against the clock to set the fastest time.</p>
+      <p>A few of us turned up in EVs that year, and I managed to set Fastest Time of Day on the Sunday, beating all the petrol cars, including some potent, highly modified race and rally cars.</p>
+
 
       <figure class="interview-gallery g2 landscape">
           <a href="images/blog/owner-interviews/john/watergate-interview.jpg" class="interview-zoom" aria-label="View full size photo"><img src="images/blog/owner-interviews/john/watergate-interview.jpg" alt="John in a Tevo race suit being filmed by two media crew in pink vests, beside the Model 3 in the paddock" width="1600" height="1067" loading="lazy"></a>

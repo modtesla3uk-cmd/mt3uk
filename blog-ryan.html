@@ -1155,7 +1155,10 @@
      Below 960px they stack full width between paragraphs. */
   @media (min-width: 960px) {
     .interview { display: flow-root; }
-    .interview-q, .interview .track-prep-eyebrow { clear: both; }
+    /* Photos float with the text wrapping round them, so headings and
+       answers carry on beside a photo instead of leaving a gap. */
+    .interview-quickfire, .interview .track-prep-eyebrow:has(+ .interview-quickfire), .interview-outro { clear: both; }
+    .interview .track-prep-list { display: flow-root; }
     .interview-figure { width: 42%; margin-top: 6px; margin-bottom: 26px; clear: both; }
     .interview-figure.fig-right { float: right; margin-left: 28px; }
     .interview-figure.fig-left { float: left; margin-right: 28px; }
@@ -1163,7 +1166,7 @@
     .interview-figure-narrow img { max-width: 100%; }
     .interview-figure figcaption { text-align: left; }
     .interview-outro { clear: both; }
-    .interview-figure.fig-full { float: none; width: 100%; margin: 28px 0 30px; }
+    .interview-figure.fig-full { float: right; width: 48%; margin: 6px 0 22px 28px; }
   }
   @media (min-width: 1024px) {
     .interview { max-width: 900px; }
@@ -1313,13 +1316,13 @@
       <p>It wasn&rsquo;t the best experience. The car was supposed to be delivered, but I was told the night before that I&rsquo;d have to collect it instead. I had to get a train to Southampton and queue for hours.</p>
       <p>Then they couldn&rsquo;t find my key, so the car was driven to me with the keys. There was also a scratch on the rear bumper at collection, which Tesla Gatwick repaired free of charge.</p>
 
-      <h2 class="interview-q">Why did you start modifying?</h2>
-      <p>I didn&rsquo;t want it to look like every other Tesla out there. I wanted it to stand out.</p>
-
       <figure class="interview-figure fig-full">
         <a href="images/blog/owner-interviews/ryan/standard.jpg" class="interview-zoom" aria-label="View full size photo"><img src="images/blog/owner-interviews/ryan/standard.jpg" alt="Ryan&rsquo;s grey Model 3 Performance in standard form on a block-paved driveway, with factory wheels" width="1436" height="1080" loading="lazy"></a>
         <figcaption>Where it started: the standard car, before the mods.</figcaption>
       </figure>
+      <h2 class="interview-q">Why did you start modifying?</h2>
+      <p>I didn&rsquo;t want it to look like every other Tesla out there. I wanted it to stand out.</p>
+
 
       <h2 class="interview-q">What was your first mod?</h2>
       <p>Changing the silver badges to black. I did that on day one.</p>

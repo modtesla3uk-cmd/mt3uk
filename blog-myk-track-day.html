@@ -1155,7 +1155,10 @@
      Below 960px they stack full width between paragraphs. */
   @media (min-width: 960px) {
     .interview { display: flow-root; }
-    .interview-q, .interview .track-prep-eyebrow { clear: both; }
+    /* Photos float with the text wrapping round them, so headings and
+       answers carry on beside a photo instead of leaving a gap. */
+    .interview-quickfire, .interview .track-prep-eyebrow:has(+ .interview-quickfire), .interview-outro { clear: both; }
+    .interview .track-prep-list { display: flow-root; }
     .interview-figure { width: 42%; margin-top: 6px; margin-bottom: 26px; clear: both; }
     .interview-figure.fig-right { float: right; margin-left: 28px; }
     .interview-figure.fig-left { float: left; margin-right: 28px; }
@@ -1163,7 +1166,7 @@
     .interview-figure-narrow img { max-width: 100%; }
     .interview-figure figcaption { text-align: left; }
     .interview-outro { clear: both; }
-    .interview-figure.fig-full { float: none; width: 100%; margin: 28px 0 30px; }
+    .interview-figure.fig-full { float: right; width: 48%; margin: 6px 0 22px 28px; }
   }
   @media (min-width: 1024px) {
     .interview { max-width: 900px; }
@@ -1299,13 +1302,13 @@
 
       <span class="track-prep-eyebrow">Getting started</span>
 
-      <h2 class="interview-q">What car do you take on track?</h2>
-      <p>A 2014 Tesla Model S P85. I&rsquo;ve done 10 track days in it so far.</p>
-
       <figure class="interview-figure fig-full">
         <a href="images/blog/owner-interviews/myk-track-day/snetterton-rain.jpg" class="interview-zoom" aria-label="View full size photo"><img src="images/blog/owner-interviews/myk-track-day/snetterton-rain.jpg" alt="Myk&rsquo;s black Model S with its rear wing, kicking up spray on a wet track under the Snetterton bridge" width="1600" height="1067" loading="lazy"></a>
         <figcaption>Deviant in the wet at Snetterton. Photo: Javelin Trackdays.</figcaption>
       </figure>
+      <h2 class="interview-q">What car do you take on track?</h2>
+      <p>A 2014 Tesla Model S P85. I&rsquo;ve done 10 track days in it so far.</p>
+
 
       <h2 class="interview-q">What made you want to try a track day?</h2>
       <p>I&rsquo;d already done a few in other cars, so it made sense to try one in a Tesla.</p>

@@ -1155,7 +1155,10 @@
      Below 960px they stack full width between paragraphs. */
   @media (min-width: 960px) {
     .interview { display: flow-root; }
-    .interview-q, .interview .track-prep-eyebrow { clear: both; }
+    /* Photos float with the text wrapping round them, so headings and
+       answers carry on beside a photo instead of leaving a gap. */
+    .interview-quickfire, .interview .track-prep-eyebrow:has(+ .interview-quickfire), .interview-outro { clear: both; }
+    .interview .track-prep-list { display: flow-root; }
     .interview-figure { width: 42%; margin-top: 6px; margin-bottom: 26px; clear: both; }
     .interview-figure.fig-right { float: right; margin-left: 28px; }
     .interview-figure.fig-left { float: left; margin-right: 28px; }
@@ -1163,7 +1166,7 @@
     .interview-figure-narrow img { max-width: 100%; }
     .interview-figure figcaption { text-align: left; }
     .interview-outro { clear: both; }
-    .interview-figure.fig-full { float: none; width: 100%; margin: 28px 0 30px; }
+    .interview-figure.fig-full { float: right; width: 48%; margin: 6px 0 22px 28px; }
   }
   @media (min-width: 1024px) {
     .interview { max-width: 900px; }
@@ -1323,12 +1326,12 @@
       </figure>
       <p>In 2022, just over three years in, I was considering changing the car. Then I went on track with Tevo Solutions at Llandow Circuit, and it sparked something in me. I started taking the car on track and changed a few things, mostly around the brakes and suspension. I&rsquo;ll go into the track-specific upgrades another time.</p>
 
-      <span class="track-prep-eyebrow">The Wrap</span>
-      <p>Roll on to 2024, and I felt the car either needed to go or needed some significant changes. So I decided to look into getting it wrapped instead of selling it. I&rsquo;d never had a car wrapped before and had no idea what was possible. All I knew was that I wanted it to stand out without being too shouty, and I finally settled on a colour-shifting wrap, specifically Avery Dennison Gloss Hidden Forest. It is probably the number one thing that sets my car apart from all the other Model 3s out there today.</p>
-      <figure class="interview-figure fig-full">
+      <figure class="interview-figure fig-left">
         <a href="images/blog/owner-interviews/richard/hidden-forest-wrap.jpg" class="interview-zoom" aria-label="View full size photo"><img src="images/blog/owner-interviews/richard/hidden-forest-wrap.jpg" alt="Side profile of Richard's lowered Model 3 in Avery Dennison Gloss Hidden Forest colour-shift wrap, with dark alloy wheels and red brake calipers" width="1600" height="723" loading="lazy"></a>
         <figcaption>Avery Dennison Gloss Hidden Forest in the sun.</figcaption>
       </figure>
+      <span class="track-prep-eyebrow">The Wrap</span>
+      <p>Roll on to 2024, and I felt the car either needed to go or needed some significant changes. So I decided to look into getting it wrapped instead of selling it. I&rsquo;d never had a car wrapped before and had no idea what was possible. All I knew was that I wanted it to stand out without being too shouty, and I finally settled on a colour-shifting wrap, specifically Avery Dennison Gloss Hidden Forest. It is probably the number one thing that sets my car apart from all the other Model 3s out there today.</p>
       
       <span class="track-prep-eyebrow">Quickfire</span>
       <div class="specs interview-quickfire">

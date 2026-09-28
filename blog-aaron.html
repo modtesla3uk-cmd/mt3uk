@@ -1155,7 +1155,10 @@
      Below 960px they stack full width between paragraphs. */
   @media (min-width: 960px) {
     .interview { display: flow-root; }
-    .interview-q, .interview .track-prep-eyebrow { clear: both; }
+    /* Photos float with the text wrapping round them, so headings and
+       answers carry on beside a photo instead of leaving a gap. */
+    .interview-quickfire, .interview .track-prep-eyebrow:has(+ .interview-quickfire), .interview-outro { clear: both; }
+    .interview .track-prep-list { display: flow-root; }
     .interview-figure { width: 42%; margin-top: 6px; margin-bottom: 26px; clear: both; }
     .interview-figure.fig-right { float: right; margin-left: 28px; }
     .interview-figure.fig-left { float: left; margin-right: 28px; }
@@ -1163,7 +1166,7 @@
     .interview-figure-narrow img { max-width: 100%; }
     .interview-figure figcaption { text-align: left; }
     .interview-outro { clear: both; }
-    .interview-figure.fig-full { float: none; width: 100%; margin: 28px 0 30px; }
+    .interview-figure.fig-full { float: right; width: 48%; margin: 6px 0 22px 28px; }
   }
   @media (min-width: 1024px) {
     .interview { max-width: 900px; }
@@ -1185,6 +1188,7 @@
   @media (max-width: 600px) { .interview-quickfire .spec-row { flex-direction: column; gap: 4px; } .interview-quickfire .spec-row span:last-child { text-align: left; max-width: none; } }
 
   .interview-gallery.g1 { grid-template-columns: 1fr; max-width: 315px; margin-left: auto; margin-right: auto; }
+  @media (min-width: 960px) { .interview-gallery.g1 { float: right; width: 315px; margin: 6px 0 22px 28px; } }
 </style>
 </head>
 <body>

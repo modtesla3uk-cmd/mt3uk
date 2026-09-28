@@ -1,23 +1,5 @@
 [
   {
-    "file": "bagged-midnight-silver-model-3-performance--by-ryan-kerr-3.jpg",
-    "caption": "BAGGED MIDNIGHT SILVER MODEL 3 PERFORMANCE",
-    "name": "RYAN KERR",
-    "votable": false,
-    "color": "Grey",
-    "added": "2026-09-28",
-    "group": "bagged-midnight-silver-model-3-performance--by-ryan-kerr-3.jpg"
-  },
-  {
-    "file": "bagged-midnight-silver-model-3-performance--by-ryan-kerr-2.jpg",
-    "caption": "BAGGED MIDNIGHT SILVER MODEL 3 PERFORMANCE",
-    "name": "RYAN KERR",
-    "votable": false,
-    "color": "Grey",
-    "added": "2026-09-28",
-    "group": "bagged-midnight-silver-model-3-performance--by-ryan-kerr-3.jpg"
-  },
-  {
     "file": "bagged-midnight-silver-model-3-performance--by-ryan-kerr.jpg",
     "caption": "BAGGED MIDNIGHT SILVER MODEL 3 PERFORMANCE",
     "name": "RYAN KERR",
@@ -26,7 +8,25 @@
     ],
     "color": "Grey",
     "added": "2026-09-28",
-    "group": "bagged-midnight-silver-model-3-performance--by-ryan-kerr-3.jpg"
+    "group": "bagged-midnight-silver-model-3-performance--by-ryan-kerr.jpg"
+  },
+  {
+    "file": "bagged-midnight-silver-model-3-performance--by-ryan-kerr-3.jpg",
+    "caption": "BAGGED MIDNIGHT SILVER MODEL 3 PERFORMANCE",
+    "name": "RYAN KERR",
+    "votable": false,
+    "color": "Grey",
+    "added": "2026-09-28",
+    "group": "bagged-midnight-silver-model-3-performance--by-ryan-kerr.jpg"
+  },
+  {
+    "file": "bagged-midnight-silver-model-3-performance--by-ryan-kerr-2.jpg",
+    "caption": "BAGGED MIDNIGHT SILVER MODEL 3 PERFORMANCE",
+    "name": "RYAN KERR",
+    "votable": false,
+    "color": "Grey",
+    "added": "2026-09-28",
+    "group": "bagged-midnight-silver-model-3-performance--by-ryan-kerr.jpg"
   },
   {
     "file": "o-leary--by-rhc-tech-2.jpg",

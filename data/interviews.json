@@ -79,6 +79,16 @@
       "url": "blog-kam.html",
       "image": "images/blog/owner-interviews/kam/rear-three-quarter.jpg",
       "publish": "2027-01-07"
+    },
+    {
+      "name": "Yusuf",
+      "car": "Model 3 Long Range",
+      "year": "2021",
+      "title": "Flik: Yusuf’s Blue Model 3 Long Range",
+      "excerpt": "A rare-spec blue Model 3 bought without a test drive, a first MT3UK meet, and some advice about insurers and mods.",
+      "url": "blog-yusuf.html",
+      "image": "images/blog/owner-interviews/yusuf/side-profile.jpg",
+      "publish": "2027-01-21"
     }
   ]
 }

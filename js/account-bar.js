@@ -1,7 +1,7 @@
 /*
   Account links shared by every public page.
 
-  - The orange "Sign Up / In" menu button is for visitors only, so it's
+  - The orange "Sign Up / Sign In" menu button is for visitors only, so it's
     hidden for signed-in members (My Garage is already in the menu).
   - Signed-in members get a slim "Signed in as <first name> · ri•••@example.com"
     bar under the header, with My Garage and Sign out. The homepage shows this

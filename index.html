@@ -654,7 +654,7 @@
   #build-feed-frame { margin: 0 auto; }
 
   /* Sign-in box in the homepage hero, above the stats. Signed-out visitors
-     get Sign in / Join free; members see who they're signed in as. */
+     get the Sign Up / Sign In button; members see who they're signed in as. */
   .hp-join {
     width: 100%; max-width: 560px;
     margin-top: 24px;
@@ -676,7 +676,13 @@
     text-transform: uppercase; text-decoration: none; white-space: nowrap;
     padding: 8px 10px; border: 1px solid rgba(255,255,255,0.6); color: #ffffff;
   }
-  .hp-join-actions a.hp-join-primary { background: #c8431d; border-color: #c8431d; }
+  /* Matches the orange Sign Up / Sign In button in the menu. */
+  .hp-join-actions a.hp-join-primary {
+    background: var(--orange); border-color: var(--orange); border-radius: 4px;
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 0.95rem; font-weight: 600;
+    letter-spacing: 0; text-transform: none; padding: 12px 20px;
+  }
+  .hp-join-actions a.hp-join-primary:hover { opacity: 0.9; }
   .hp-join ~ .hp-stats { margin-top: 18px; }
   @media (max-width: 600px) {
     .hp-join { flex-direction: column; align-items: stretch; gap: 8px; }
@@ -2629,6 +2635,7 @@
     <div class="nav-center">
       <a href="/" class="logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
     <div class="navlinks" id="navlinks">
+      <a href="my-builds.html" class="nav-link-mobile">Sign Up / Sign In</a>
       <div class="nav-item">
         <a href="#build-feed" class="nav-link">Gallery Feed</a>
         <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Gallery Feed submenu">&#9660;</button>
@@ -2692,7 +2699,6 @@
           <a href="https://ko-fi.com/mt3uk" class="nav-sublink" target="_blank" rel="noopener">Support Us</a>
         </div>
       </div>
-      <a href="my-builds.html" class="nav-link-mobile">Sign Up / In</a>
       </div>
     </div>
     <div class="nav-search" id="nav-search">
@@ -2725,12 +2731,11 @@
         <div class="hp-join" id="hp-join" hidden>
           <p id="hp-join-text"><strong>Join MT3UK to like, comment and get alerts</strong> when members like or comment on your build. It&rsquo;s free.</p>
           <div class="hp-join-actions" id="hp-join-actions">
-            <a href="my-builds.html?next=%2F" class="hp-join-primary">Sign in</a>
-            <a href="my-builds.html?next=%2F#build-upload">Join free</a>
+            <a href="my-builds.html?next=%2F" class="hp-join-primary">Sign Up / Sign In</a>
           </div>
         </div>
         <script>
-          // Signed out: Sign in / Join free. Signed in: "Signed in as <first
+          // Signed out: Sign Up / Sign In. Signed in: "Signed in as <first
           // name>" with the email partly hidden, e.g. ri•••@example.com.
           (function () {
             var box = document.getElementById('hp-join');

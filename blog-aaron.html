@@ -1158,7 +1158,7 @@
     /* Photos float with the text wrapping round them, so headings and
        answers carry on beside a photo instead of leaving a gap. */
     .interview-quickfire, .interview .track-prep-eyebrow:has(+ .interview-quickfire), .interview-outro { clear: both; }
-    .interview .track-prep-list { display: flow-root; }
+    .interview .track-prep-list li { display: flow-root; }
     .interview-figure { width: 42%; margin-top: 6px; margin-bottom: 26px; clear: both; }
     .interview-figure.fig-right { float: right; margin-left: 28px; }
     .interview-figure.fig-left { float: left; margin-right: 28px; }
@@ -1166,7 +1166,7 @@
     .interview-figure-narrow img { max-width: 100%; }
     .interview-figure figcaption { text-align: left; }
     .interview-outro { clear: both; }
-    .interview-figure.fig-full { float: right; width: 48%; margin: 6px 0 22px 28px; }
+    .interview-figure.fig-full { width: 48%; }
   }
   @media (min-width: 1024px) {
     .interview { max-width: 900px; }
@@ -1188,7 +1188,7 @@
   @media (max-width: 600px) { .interview-quickfire .spec-row { flex-direction: column; gap: 4px; } .interview-quickfire .spec-row span:last-child { text-align: left; max-width: none; } }
 
   .interview-gallery.g1 { grid-template-columns: 1fr; max-width: 315px; margin-left: auto; margin-right: auto; }
-  @media (min-width: 960px) { .interview-gallery.g1 { float: right; width: 315px; margin: 6px 0 22px 28px; } }
+  @media (min-width: 960px) { .interview-gallery.g1 { float: right; width: 315px; margin: 6px 0 22px 28px; } .interview-gallery.g1.g1-left { float: left; margin: 6px 28px 22px 0; } }
 </style>
 </head>
 <body>
@@ -1314,7 +1314,7 @@
       <h2 class="interview-q">What was your first mod?</h2>
       <p>A rear diffuser and a front splitter.</p>
 
-      <figure class="interview-gallery g1">
+      <figure class="interview-gallery g1 g1-left">
           <a href="images/blog/owner-interviews/aaron/rear-diffuser.jpg" class="interview-zoom" aria-label="View full size photo"><img src="images/blog/owner-interviews/aaron/rear-diffuser.jpg" alt="Rear view of Aaron&rsquo;s red Model 3 Performance showing the carbon fibre rear diffuser and spoiler, parked below limestone cliffs" width="900" height="1600" loading="lazy" style="object-position: center 85%;"></a>
         <figcaption>The carbon fibre rear diffuser, at Cheddar Gorge.</figcaption>
       </figure>

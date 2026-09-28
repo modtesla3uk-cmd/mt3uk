@@ -87,7 +87,7 @@ GARAGE_CAR = {
     "name": "Test Model 3",
     "mods": ["Wheels"],
     "photos": [
-        {"file": "test-build.jpg", "caption": "Test Model 3", "gallery": True, "reel": True, "votable": True, "inVote": True},
+        {"file": "test-build.jpg", "caption": "Test Model 3", "gallery": True, "reel": True, "votable": True, "inVote": True, "added": "2026-09-14"},
         {"file": "test-build-2.jpg", "caption": "Test Model 3 Rear", "gallery": True, "reel": True, "votable": True},
     ],
 }
@@ -437,6 +437,10 @@ def test_vote_one_entry_and_not_your_own(device_page):
     other = page.locator('.vote-card[data-file="other-build.jpg"]')
     assert other.locator(".vote-btn").count() == 1
     assert "You can only vote for other members' builds." in page.inner_text("#build-of-the-day")
+    page.goto("/index.html#vote-how")
+    assert page.locator("#vote-how").get_attribute("open") is not None, "How voting works did not open"
+    page.goto("/index.html#vote-frame")
+    page.locator(".vote-card").first.wait_for(timeout=10000)
 
     # Every entry is in the list, a few rows at a time.
     visible = page.locator(".vote-card:not([hidden])").count()
@@ -454,6 +458,8 @@ def test_vote_one_entry_and_not_your_own(device_page):
     second = page.locator('.mb-photo-thumb-wrap[data-file="test-build-2.jpg"] input[data-flag="votable"]')
     first.wait_for(timeout=5000)
     assert first.is_checked() and not second.is_checked()
+    assert "your entry this week is Test Model 3 (3 votes)" in page.inner_text("#mb-vote-hint")
+    assert page.locator(".mb-photo-added").first.inner_text().startswith("Added ")
     messages = []
 
     def answer(dialog):

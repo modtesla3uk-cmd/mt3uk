@@ -1537,6 +1537,12 @@
   .vote-card.voted { border: 1px solid var(--orange); }
   .vote-card[hidden] { display: none; }
   @media (max-width: 600px) { .vote-frame { grid-template-columns: repeat(2, 1fr); } }
+  .vote-how { margin-top: 18px; border: 1px solid var(--line, rgba(22,35,61,0.2)); background: var(--paper-2); padding: 0 16px; font-family: 'IBM Plex Sans', sans-serif; }
+  .vote-how summary { cursor: pointer; padding: 12px 0; font-weight: 600; color: var(--ink); }
+  .vote-how ul { margin: 0 0 14px; padding-left: 20px; color: var(--ink-2, var(--ink)); font-size: 0.9rem; line-height: 1.55; }
+  .vote-how li + li { margin-top: 4px; }
+  .vote-how a { color: var(--orange); }
+  @media (min-width: 781px) { .vote-how { max-width: 760px; margin-left: auto; margin-right: auto; } }
   .vote-more-wrap { display: flex; justify-content: center; margin-top: 16px; }
   .vote-more-wrap[hidden] { display: none; }
   .vote-card .vote-media { aspect-ratio: 1/1; overflow: hidden; position: relative; }
@@ -2903,6 +2909,17 @@
       </div>
       <p>Pick your favourite from the builds added this week and last week, newest first. The winner becomes next week's Build of the Week. Voting closes at midnight on Sunday so get your votes in! <span class="vote-countdown" id="vote-countdown"></span> You can only vote for other members' builds. Votes are being checked before tallying up for inconsistencies.</p>
     </div>
+    <details class="vote-how" id="vote-how">
+      <summary>How voting works</summary>
+      <ul>
+        <li>Voting runs Monday to Sunday, UK time. The build with the most votes becomes next week's Build of the Week.</li>
+        <li>Builds are in the vote the week they're added and the week after.</li>
+        <li>Members have one build in the vote at a time. To enter an older photo, tick Voting on it in <a href="my-builds.html">My Garage</a>. It's then in the vote for the rest of that week and the next.</li>
+        <li>Switching your entry to a different photo loses the votes your current entry has.</li>
+        <li>You have one vote a week, and you can move it to a different build until voting closes.</li>
+        <li>You can only vote for other members' builds.</li>
+      </ul>
+    </details>
     <div class="vote-frame" id="vote-frame">
       <p class="mono" style="padding: 24px; color: var(--steel);">Loading builds open for voting…</p>
     </div>
@@ -5219,6 +5236,14 @@
         });
       });
     }
+
+    // My Garage links to #vote-how, so open the explainer when it's the target.
+    var voteHow = document.getElementById('vote-how');
+    function openVoteHow() {
+      if (voteHow && location.hash === '#vote-how') voteHow.open = true;
+    }
+    openVoteHow();
+    window.addEventListener('hashchange', openVoteHow);
 
     var voteMoreWrap = document.getElementById('vote-more-wrap');
     var voteShown = 0;

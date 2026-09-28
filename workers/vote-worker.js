@@ -3306,6 +3306,7 @@ async function handleMyBuildsGet(request, env) {
         reel: entry.reel !== false,
         votable: entry.votable !== false,
         inVote: !!(voteEntry && voteEntry.file === entry.file),
+        added: entry.added || '',
         voteBlocked: !!entry.voteBlocked,
         commentCount: visibleComments.length,
         likeCount: likeCount

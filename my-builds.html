@@ -450,6 +450,12 @@
     .mb-car-name-input { flex-basis: 100%; font-size: 1.1rem; }
   }
 
+  /* Build of the Week hint: the member's entry and how to enter a photo. */
+  .mb-vote-hint { border: 1px solid var(--line); border-left: 3px solid var(--orange); background: var(--paper-2); padding: 12px 14px; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.86rem; line-height: 1.5; color: var(--ink); }
+  .mb-vote-hint p { margin: 0; }
+  .mb-vote-hint p + p { margin-top: 6px; color: var(--steel); }
+  .mb-vote-hint a { color: var(--orange); }
+  .mb-photo-added { font-size: 0.68rem; color: var(--steel); }
   .mb-car-mods { display: flex; flex-direction: column; gap: 6px; border: 1px solid var(--line); background: var(--paper-2); padding: 12px 14px; }
   .mb-car-mods-label { font-size: 0.68rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--steel); }
   .mb-car-mods-note { font-size: 0.72rem; color: var(--steel); margin: 0; }
@@ -1020,6 +1026,8 @@ document.addEventListener('DOMContentLoaded', function () {
           </div>
         </div>
 
+        <div class="mb-vote-hint" id="mb-vote-hint"></div>
+
         <button type="button" class="mb-btn mb-add-photo-btn" id="mb-addphoto-toggle-btn">+ Add photo to this car</button>
         <div class="mb-upload-card" id="mb-addphoto-card" style="display:none;">
           <h2>Add a photo</h2>
@@ -1571,6 +1579,7 @@ document.addEventListener('DOMContentLoaded', function () {
             (commentCount ? '<span class="mb-photo-comment-badge" title="' + commentCount + ' comment' + (commentCount === 1 ? '' : 's') + '"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 7l9 6 9-6"></path></svg><span>' + commentCount + '</span></span>' : '') +
             (likeCount ? '<span class="mb-photo-like-badge" title="' + likeCount + ' like' + (likeCount === 1 ? '' : 's') + '"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg><span>' + likeCount + '</span></span>' : '') +
           '</div>' +
+          (p.added ? '<span class="mb-photo-added">Added ' + addedAgo(p.added) + '</span>' : '') +
           (isDefault ? '<span class="mb-photo-default-badge">Default</span>' : '') +
           '<button type="button" class="mb-photo-comments-hint">Click to view/reply to comments</button>' +
           '<div class="mb-photo-toggles">' +
@@ -1617,6 +1626,34 @@ document.addEventListener('DOMContentLoaded', function () {
       }
       renderCarMods(car.mods);
       renderPhotoStrip(car);
+      renderVoteHint();
+    }
+
+    // When a photo was added, e.g. "2 weeks ago", from its UK date.
+    function addedAgo(isoDate) {
+      var today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London' }).format(new Date());
+      var days = Math.round((Date.parse(today + 'T00:00:00Z') - Date.parse(isoDate + 'T00:00:00Z')) / 86400000);
+      if (isNaN(days)) return '';
+      if (days <= 0) return 'today';
+      if (days === 1) return 'yesterday';
+      if (days < 7) return days + ' days ago';
+      if (days < 14) return '1 week ago';
+      if (days < 60) return Math.floor(days / 7) + ' weeks ago';
+      if (days < 365) return Math.floor(days / 30) + ' months ago';
+      var years = Math.floor(days / 365);
+      return years + (years === 1 ? ' year ago' : ' years ago');
+    }
+
+    var voteHint = document.getElementById('mb-vote-hint');
+    function renderVoteHint() {
+      if (!voteHint) return;
+      var how = 'Photos are in the vote the week they\'re added and the week after. To enter an older photo, tick <strong>Voting</strong> on it. You can have one photo in the vote at a time. <a href="index.html#vote-how">How voting works</a>';
+      if (voteEntry) {
+        voteHint.innerHTML = '<p><strong>Build of the Week:</strong> your entry this week is ' + escapeHtml(voteTitle(voteEntry.caption) || 'your ticked photo') +
+          ' (' + voteEntry.votes + ' vote' + (voteEntry.votes === 1 ? '' : 's') + ').</p><p>' + how + '</p>';
+      } else {
+        voteHint.innerHTML = '<p><strong>Build of the Week:</strong> you don\'t have a build in this week\'s vote.</p><p>' + how + '</p>';
+      }
     }
 
     function saveCarField(carId, fields) {
@@ -2114,6 +2151,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
       });
       voteEntry = entryPhoto ? { file: file, caption: entryPhoto.caption || '', votes: 0 } : null;
+      renderVoteHint();
       photoStrip.querySelectorAll('.mb-photo-thumb-wrap').forEach(function (wrap) {
         var box = wrap.querySelector('input[data-flag="votable"]');
         if (box) box.checked = wrap.getAttribute('data-file') === file;
@@ -2777,6 +2815,7 @@ document.addEventListener('DOMContentLoaded', function () {
           });
           carsData = data.cars;
           voteEntry = data.voteEntry || null;
+          renderVoteHint();
 
           if (currentCarId) {
             var car = findCar(currentCarId);

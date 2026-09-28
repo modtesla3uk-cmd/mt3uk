@@ -2,10 +2,13 @@
   {
     "file": "voyager-model-3.jpg",
     "caption": "VOYAGER MODEL 3",
+    "name": "FRED FAST",
     "mods": [
       "lowering spring",
       "wider tyres",
-      "more..."
+      "diffuser",
+      "spoiler",
+      "add what ever mods you have here!"
     ],
     "color": "White",
     "added": "2026-09-28",

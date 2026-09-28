@@ -13,36 +13,6 @@
     "group": "voyager-model-3--by-fred-speed.jpg"
   },
   {
-    "file": "voyager-model-3--by-fred-fast.jpg",
-    "caption": "VOYAGER MODEL 3",
-    "name": "FRED FAST",
-    "mods": [
-      "Lowering springs"
-    ],
-    "votable": false,
-    "color": "White",
-    "unclaimed": true,
-    "added": "2026-09-28",
-    "group": "voyager-model-3--by-fred-fast.jpg"
-  },
-  {
-    "file": "voyager-model-3.jpg",
-    "caption": "VOYAGER MODEL 3",
-    "mods": [
-      "lowering spring",
-      "wider tyres",
-      "diffuser",
-      "spoiler",
-      "add what ever mods you have here!",
-      "Vinyl striped bonnet"
-    ],
-    "votable": false,
-    "color": "White",
-    "unclaimed": true,
-    "added": "2026-09-28",
-    "group": "voyager-model-3.jpg"
-  },
-  {
     "file": "bagged-midnight-silver-model-3-performance--by-ryan-kerr.jpg",
     "caption": "BAGGED MIDNIGHT SILVER MODEL 3 PERFORMANCE",
     "name": "RYAN KERR",
@@ -794,7 +764,6 @@
     "file": "61-clubmax-s-m3p--by-nason-manavi.jpeg",
     "caption": "CLUBMAX S M3P",
     "name": "NASON MANAVI",
-    "unclaimed": true,
     "added": "2026-09-18",
     "group": "61-clubmax-s-m3p--by-nason-manavi.jpeg"
   },

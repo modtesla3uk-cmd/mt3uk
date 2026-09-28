@@ -4,7 +4,7 @@ import pytest
 NAV_PAGES = [
     "index", "gallery", "my-builds", "signin", "shop", "reviews", "contact",
     "track-day-on-the-day", "track-day-prep", "track-day-venues",
-    "blog", "blog-aaron", "blog-john", "blog-mark", "blog-myk-track-day", "blog-myk",
+    "blog", "blog-aaron", "blog-john", "blog-kam", "blog-mark", "blog-myk-track-day", "blog-myk",
     "blog-richard", "blog-richie",
 ]
 

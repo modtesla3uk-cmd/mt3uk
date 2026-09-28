@@ -69,6 +69,16 @@
       "url": "blog-john.html",
       "image": "images/blog/owner-interviews/john/front-three-quarter.jpg",
       "publish": "2026-12-24"
+    },
+    {
+      "name": "Kam",
+      "car": "Model 3 Standard Range Plus",
+      "year": "2021",
+      "title": "Silent Assassin: Kam’s White Model 3",
+      "excerpt": "A first EV, DIY mods on a budget, a rear diffuser with an LED brake light, and why AliExpress is the new best friend.",
+      "url": "blog-kam.html",
+      "image": "images/blog/owner-interviews/kam/rear-three-quarter.jpg",
+      "publish": "2027-01-07"
     }
   ]
 }

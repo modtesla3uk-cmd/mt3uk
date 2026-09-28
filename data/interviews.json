@@ -59,6 +59,16 @@
       "url": "blog-richie.html",
       "image": "images/blog/owner-interviews/richie/front-three-quarter.jpg",
       "publish": "2026-12-10"
+    },
+    {
+      "name": "John",
+      "car": "Model 3 Performance",
+      "year": "2019",
+      "title": "Zaphod Beeblebrox: John’s Fastest Time of Day Model 3",
+      "excerpt": "A 2016 reservation, an LA test drive, Öhlins dampers, a Tevo big brake kit and Fastest Time of Day at the Watergate Bay Sprint.",
+      "url": "blog-john.html",
+      "image": "images/blog/owner-interviews/john/front-three-quarter.jpg",
+      "publish": "2026-12-24"
     }
   ]
 }

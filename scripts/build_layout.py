@@ -41,6 +41,7 @@ PAGES = {
     "track-day-venues": "index.html#track-days",
     "blog": "blog.html",
     "blog-aaron": "blog.html",
+    "blog-john": "blog.html",
     "blog-mark": "blog.html",
     "blog-myk-track-day": "blog.html",
     "blog-myk": "blog.html",

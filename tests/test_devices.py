@@ -491,4 +491,11 @@ def test_admin_can_take_a_photo_out_of_voting(device_page):
     page.click("#vote-entries .vote-remove-btn")
     page.wait_for_timeout(600)
     assert any(line.startswith("POST /admin/vote-entries") for line in page.api_log[before:]), page.api_log[before:]
+
+    # Send subscribers email now.
+    before = len(page.api_log)
+    page.click("#send-digest-btn")
+    page.wait_for_timeout(600)
+    assert any(line.startswith("POST /admin/send-digest") for line in page.api_log[before:]), page.api_log[before:]
+    assert "Sent." in page.inner_text("#send-digest-status")
     assert page.errors == []

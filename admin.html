@@ -101,6 +101,8 @@
   .collapsible[open] > summary { margin-bottom: 14px; }
   .summary-count { color: var(--steel); }
   .add-subscriber-row { display: flex; gap: 8px; margin-bottom: 18px; }
+  .digest-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+  .digest-row .card-meta { margin: 0; flex: 1; min-width: 200px; }
   .add-subscriber-row input { flex: 1; }
   .subscriber-card { border: 1px solid rgba(255,255,255,0.2); margin-bottom: 14px; padding: 14px; }
   .subscriber-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -377,6 +379,10 @@
     <section>
       <details class="collapsible" id="subscribers-wrap" open>
         <summary><h2>Subscribers <span class="summary-count" id="subscribers-count"></span></h2></summary>
+        <div class="digest-row">
+          <button type="button" class="secondary" id="send-digest-btn">Send subscribers email now</button>
+          <span class="card-meta" id="send-digest-status">Emails the list of members to modtesla3uk@gmail.com. It also goes out every day at 8pm.</span>
+        </div>
         <div class="add-subscriber-row">
           <input type="text" id="new-subscriber-first" placeholder="First name" autocomplete="off">
           <input type="text" id="new-subscriber-last" placeholder="Last name" autocomplete="off">
@@ -1178,6 +1184,30 @@
         });
       return;
     }
+  });
+
+  // ---------- Subscribers email (the same list sent daily at 8pm) ----------
+
+  var sendDigestBtn = document.getElementById('send-digest-btn');
+  var sendDigestStatus = document.getElementById('send-digest-status');
+  sendDigestBtn.addEventListener('click', function () {
+    var key = keyInput.value.trim();
+    if (!key) { statusEl.textContent = 'Enter the admin key first.'; return; }
+    if (!confirm('Send the subscribers email to modtesla3uk@gmail.com now?')) return;
+    sendDigestBtn.disabled = true;
+    sendDigestStatus.textContent = 'Sending…';
+    fetch(API + '/admin/send-digest?key=' + encodeURIComponent(key), { method: 'POST' })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        sendDigestBtn.disabled = false;
+        sendDigestStatus.textContent = data && data.success
+          ? 'Sent. Check modtesla3uk@gmail.com in a minute or two.'
+          : (data && data.message) || 'Could not send the email.';
+      })
+      .catch(function () {
+        sendDigestBtn.disabled = false;
+        sendDigestStatus.textContent = 'Network error, the email was not sent.';
+      });
   });
 
   // ---------- Build of the Week entries ----------

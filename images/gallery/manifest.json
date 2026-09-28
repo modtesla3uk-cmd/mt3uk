@@ -1,5 +1,17 @@
 [
   {
+    "file": "voyager-model-3--by-fred-fast.jpg",
+    "caption": "VOYAGER MODEL 3",
+    "name": "FRED FAST",
+    "mods": [
+      "Lowering springs"
+    ],
+    "votable": false,
+    "color": "White",
+    "added": "2026-09-28",
+    "group": "voyager-model-3--by-fred-fast.jpg"
+  },
+  {
     "file": "voyager-model-3.jpg",
     "caption": "VOYAGER MODEL 3",
     "name": "FRED FAST",
@@ -13,7 +25,7 @@
     ],
     "color": "White",
     "added": "2026-09-28",
-    "group": "voyager-model-3.jpg"
+    "group": "voyager-model-3--by-fred-fast.jpg"
   },
   {
     "file": "bagged-midnight-silver-model-3-performance--by-ryan-kerr.jpg",

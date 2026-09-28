@@ -205,6 +205,10 @@
   .iv-table .iv-sub { color: var(--steel); font-size: 0.68rem; }
   .iv-table a.iv-sub { display: block; margin-top: 3px; }
   .iv-table .num { text-align: right; }
+  .iv-filters select { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3); color: var(--white); font-family: inherit; font-size: inherit; padding: 7px 8px; }
+  .iv-filters button { padding: 7px 12px; font-size: 0.72rem; }
+  .iv-type { display: inline-block; font-size: 0.62rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 6px; border: 1px solid rgba(255,255,255,0.35); color: var(--steel); }
+  .iv-type.track { border-color: var(--orange); color: var(--orange); }
   .iv-status { font-size: 0.68rem; }
   .iv-status.published { color: #4caf7d; }
   .iv-status.scheduled { color: var(--orange); }
@@ -262,7 +266,8 @@
     .subscriber-search input[type="search"] { flex-basis: 100%; }
     .subscriber-search label { flex: 1 1 40%; }
     .subscriber-search label input { flex: 1; min-width: 0; }
-    .subscriber-search #sub-search-clear { flex-basis: 100%; }
+    .subscriber-search #sub-search-clear, .iv-filters #iv-filter-clear { flex-basis: 100%; }
+    .iv-filters select { flex: 1; min-width: 0; font-size: 16px; }
     .subscriber-who { flex-basis: 100%; }
     .subscriber-head button { flex: 1 1 auto; }
     .subscriber-rename-row input { flex-basis: 100%; }
@@ -315,6 +320,35 @@
         <span class="iv-note" id="iv-note"></span>
       </div>
       <div class="iv-review" id="iv-review" hidden></div>
+      <div class="subscriber-search iv-filters" id="iv-filters">
+        <input type="search" id="iv-search" placeholder="Search name, title, car or page" autocomplete="off" aria-label="Search interviews">
+        <label>Type
+          <select id="iv-filter-type">
+            <option value="">All</option>
+            <option value="standard">Standard</option>
+            <option value="track">Track</option>
+          </select>
+        </label>
+        <label>Status
+          <select id="iv-filter-status">
+            <option value="">All</option>
+            <option value="scheduled">Scheduled</option>
+            <option value="published">Published</option>
+          </select>
+        </label>
+        <label>Sort by
+          <select id="iv-sort">
+            <option value="publish-desc">Publish date, latest first</option>
+            <option value="publish-asc">Publish date, soonest first</option>
+            <option value="created-desc">Date created, newest first</option>
+            <option value="created-asc">Date created, oldest first</option>
+            <option value="name-asc">Name, A to Z</option>
+            <option value="name-desc">Name, Z to A</option>
+          </select>
+        </label>
+        <button type="button" class="secondary" id="iv-filter-clear">Clear</button>
+      </div>
+      <p class="subscriber-search-count" id="iv-filter-count"></p>
       <div id="iv-list"></div>
     </details>
   </section>
@@ -1456,6 +1490,60 @@
     '</div>';
   }
 
+  // ---------- Search, filters and sort ----------
+  // Only change which rows show and their order. The schedule stats, gaps
+  // and "Release every" re-spacing always use every interview.
+  var searchEl = document.getElementById('iv-search');
+  var typeFilterEl = document.getElementById('iv-filter-type');
+  var statusFilterEl = document.getElementById('iv-filter-status');
+  var sortEl = document.getElementById('iv-sort');
+  var countFilterEl = document.getElementById('iv-filter-count');
+  var VIEW_KEY = 'mt3ukInterviewView';
+
+  function typeOf(iv) { return iv.type || (/track/i.test(iv.url || '') ? 'track' : 'standard'); }
+
+  function viewRows(list, today) {
+    var q = searchEl.value.trim().toLowerCase();
+    var type = typeFilterEl.value;
+    var status = statusFilterEl.value;
+    var rows = list.filter(function (iv) {
+      if (type && typeOf(iv) !== type) return false;
+      if (status === 'published' && iv.publish > today) return false;
+      if (status === 'scheduled' && iv.publish <= today) return false;
+      if (!q) return true;
+      var d = editing && drafts[iv.url] ? drafts[iv.url] : {};
+      return [iv.name, iv.title, iv.car, iv.year, iv.url, iv.excerpt, d.name, d.title].join(' ').toLowerCase().indexOf(q) !== -1;
+    });
+    var parts = sortEl.value.split('-');
+    var field = parts[0], dir = parts[1] === 'asc' ? 1 : -1;
+    rows.sort(function (a, b) {
+      var x = field === 'name' ? String(a.name || '').toLowerCase() : (a[field] || '');
+      var y = field === 'name' ? String(b.name || '').toLowerCase() : (b[field] || '');
+      if (x !== y) return x < y ? -dir : dir;
+      return a.publish < b.publish ? -1 : a.publish > b.publish ? 1 : 0;
+    });
+    return rows;
+  }
+
+  function saveView() {
+    try { localStorage.setItem(VIEW_KEY, JSON.stringify({ type: typeFilterEl.value, status: statusFilterEl.value, sort: sortEl.value })); } catch (e) {}
+  }
+  function clearFilters() {
+    searchEl.value = ''; typeFilterEl.value = ''; statusFilterEl.value = ''; sortEl.value = 'publish-desc';
+    saveView(); render();
+  }
+  try {
+    var view = JSON.parse(localStorage.getItem(VIEW_KEY) || '{}');
+    if (view.type) typeFilterEl.value = view.type;
+    if (view.status) statusFilterEl.value = view.status;
+    if (view.sort) sortEl.value = view.sort;
+  } catch (e) {}
+  searchEl.addEventListener('input', function () { render(); });
+  [typeFilterEl, statusFilterEl, sortEl].forEach(function (el) {
+    el.addEventListener('change', function () { saveView(); render(); });
+  });
+  document.getElementById('iv-filter-clear').addEventListener('click', clearFilters);
+
   function render() {
     var cadence = parseInt(cadenceEl.value, 10);
     var lead = parseInt(leadEl.value, 10);
@@ -1500,10 +1588,19 @@
         escapeHtml(g.before.name) + ' (' + nice(g.before.publish) + '). An interview could go out on ' + nice(g.free) + '.</p>';
     }).join('');
 
+    var rows = viewRows(sorted, today);
+    countFilterEl.textContent = rows.length === sorted.length ? sorted.length + ' interviews' : 'Showing ' + rows.length + ' of ' + sorted.length + ' interviews';
+    if (!rows.length) {
+      listEl.innerHTML = '<p class="empty">No interviews match. <button type="button" class="secondary" id="iv-empty-clear">Clear filters</button></p>';
+      document.getElementById('iv-empty-clear').addEventListener('click', clearFilters);
+      return;
+    }
     listEl.innerHTML = '<table class="iv-table"><thead><tr>' +
-        '<th>Interview</th><th>Publish date</th><th class="iv-hide-sm">Status</th><th class="num">Comments</th>' +
+        '<th>Interview</th><th>Type</th><th>Publish date</th><th class="iv-hide-sm">Created</th><th class="iv-hide-sm">Status</th><th class="num">Comments</th>' +
       '</tr></thead><tbody>' +
-      sorted.slice().reverse().map(function (iv) {
+      rows.map(function (iv) {
+        var typeCell = '<td><span class="iv-type ' + typeOf(iv) + '">' + (typeOf(iv) === 'track' ? 'Track' : 'Standard') + '</span></td>';
+        var createdCell = '<td class="iv-hide-sm">' + (iv.created ? nice(iv.created) : '<span class="iv-sub">-</span>') + '</td>';
         var live = iv.publish <= today;
         var n = counts['interview:' + slugOf(iv)] || 0;
         if (editing) {
@@ -1515,8 +1612,10 @@
               '<a class="iv-sub" href="' + escapeHtml(iv.url) + '?date=' + escapeHtml(d.publish) + '" target="_blank" rel="noopener">Open ' + escapeHtml(iv.url) + '</a>' +
               '<input type="text" data-url="' + escapeHtml(iv.url) + '" data-field="title" value="' + escapeHtml(d.title) + '" aria-label="Title for ' + escapeHtml(iv.name) + '"' + cls('title') + '>' +
               '<textarea data-url="' + escapeHtml(iv.url) + '" data-field="excerpt" aria-label="Excerpt for ' + escapeHtml(iv.name) + '"' + cls('excerpt') + '>' + escapeHtml(d.excerpt) + '</textarea></td>' +
+            typeCell +
             '<td><input type="date" data-url="' + escapeHtml(iv.url) + '" data-field="publish" value="' + escapeHtml(d.publish) + '" aria-label="Publish date for ' + escapeHtml(iv.name) + '"' + cls('publish') + '>' +
               '<div class="iv-sub">' + inDays(daysBetween(today, d.publish)) + '</div></td>' +
+            createdCell +
             '<td class="iv-hide-sm"><span class="iv-status ' + (live ? 'published' : 'scheduled') + '">' + (live ? 'Published' : 'Scheduled') + '</span></td>' +
             '<td class="num">' + (live ? n : '<span class="iv-sub">-</span>') + '</td>' +
           '</tr>';
@@ -1524,7 +1623,9 @@
         return '<tr>' +
           '<td><a href="' + escapeHtml(iv.url) + (live ? '' : '?date=' + escapeHtml(iv.publish)) + '" target="_blank" rel="noopener">' + escapeHtml(iv.name) + '</a>' +
             '<div class="iv-sub">' + escapeHtml(iv.title || iv.car || '') + '</div></td>' +
+          typeCell +
           '<td>' + nice(iv.publish) + '<div class="iv-sub">' + inDays(daysBetween(today, iv.publish)) + '</div></td>' +
+          createdCell +
           '<td class="iv-hide-sm"><span class="iv-status ' + (live ? 'published' : 'scheduled') + '">' + (live ? 'Published' : 'Scheduled') + '</span></td>' +
           '<td class="num">' + (live ? n : '<span class="iv-sub">-</span>') + '</td>' +
         '</tr>';

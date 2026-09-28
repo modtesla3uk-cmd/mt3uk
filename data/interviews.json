@@ -1,94 +1,112 @@
 {
-  "_note": "Owner Interviews shown on the homepage. Each one appears on its publish date (UK time). The next unpublished one is teased as 'Next interview'. Optional heroPosition (CSS background-position) frames the car in the homepage hero, e.g. for portrait photos.",
+  "_note": "Owner Interviews shown on the homepage. Each one appears on its publish date (UK time). The next unpublished one is teased as 'Next interview'. Optional heroPosition (CSS background-position) frames the car in the homepage hero, e.g. for portrait photos. Each entry has a type (standard or track) and the date it was created, used by the admin page's search, filters and sort.",
   "interviews": [
     {
       "name": "Richard HC",
+      "type": "standard",
       "car": "Model 3 Performance",
       "year": "2019",
       "title": "Founding the MT3UK Community",
       "excerpt": "From a white Model 3 lost in the crowd to a Hidden Forest wrap, KW coilovers and track days. Richard on why he started MT3UK.",
       "url": "blog-richard.html",
       "image": "images/blog/owner-interviews/richard/hidden-forest-wrap.jpg",
-      "publish": "2026-10-01"
+      "publish": "2026-10-01",
+      "created": "2026-09-25"
     },
     {
       "name": "Mark LittleDale",
+      "type": "standard",
       "car": "Model Y",
       "title": "Terry the Tesla: Mark’s Deep Blue Model Y",
       "excerpt": "Red accents, louvres, a boot spoiler and the advice Mark would give other modders.",
       "url": "blog-mark.html",
       "image": "images/blog/owner-interviews/mark/arch-rear.jpg",
       "heroPosition": "center 78%",
-      "publish": "2026-10-15"
+      "publish": "2026-10-15",
+      "created": "2026-09-25"
     },
     {
       "name": "Myk Debbadge",
+      "type": "standard",
       "car": "Model S P85",
       "year": "2014",
       "title": "Deviant: Myk’s Track-Built Model S",
       "excerpt": "A re-engineered cooling system, a home-built power controller, a full cage and 400kg removed. Myk on building a track-focused Model S.",
       "url": "blog-myk.html",
       "image": "images/blog/owner-interviews/myk/front-three-quarter.jpg",
-      "publish": "2026-10-29"
+      "publish": "2026-10-29",
+      "created": "2026-09-26"
     },
     {
       "name": "Aaron Phyo",
+      "type": "standard",
       "car": "Model 3 Performance",
       "title": "Firebolt: Aaron’s Red Model 3 Performance",
       "excerpt": "Swapping a tuned BMW M3 for a Model 3 Performance, Matrix LEDs, a splitter and diffuser, and a 10-country road trip.",
       "url": "blog-aaron.html",
       "image": "images/blog/owner-interviews/aaron/swiss-alps.jpg",
       "heroPosition": "center 80%",
-      "publish": "2026-11-12"
+      "publish": "2026-11-12",
+      "created": "2026-09-25"
     },
     {
       "name": "Myk Debbadge - Track",
+      "type": "track",
       "car": "Model S P85 on track",
       "title": "Deviant on Track: Myk’s Model S Track Day Setup",
       "excerpt": "Our first Track Day Interview: beating power limiting, the brake, suspension and tyre setup that works, charging on the day and what it really costs.",
       "url": "blog-myk-track-day.html",
       "image": "images/blog/owner-interviews/myk-track-day/snetterton-rain.jpg",
-      "publish": "2026-11-26"
+      "publish": "2026-11-26",
+      "created": "2026-09-26"
     },
     {
       "name": "Richie P Dainton",
+      "type": "standard",
       "car": "Model 3 Long Range",
       "year": "2021",
       "title": "Meet Bert: Richie’s Deep Blue Model 3",
       "excerpt": "Budget-friendly mods, ambient lighting and why you should drive what makes you happy.",
       "url": "blog-richie.html",
       "image": "images/blog/owner-interviews/richie/front-three-quarter.jpg",
-      "publish": "2026-12-10"
+      "publish": "2026-12-10",
+      "created": "2026-09-25"
     },
     {
       "name": "John Chambers",
+      "type": "standard",
       "car": "Model 3 Performance",
       "year": "2019",
       "title": "Zaphod Beeblebrox: John’s Fastest Time of Day Model 3",
       "excerpt": "A 2016 reservation, an LA test drive, Öhlins dampers, a Tevo big brake kit and Fastest Time of Day at the Watergate Bay Sprint.",
       "url": "blog-john.html",
       "image": "images/blog/owner-interviews/john/front-three-quarter.jpg",
-      "publish": "2026-12-24"
+      "publish": "2026-12-24",
+      "created": "2026-09-28"
     },
     {
       "name": "Kam",
+      "type": "standard",
       "car": "Model 3 Standard Range Plus",
       "year": "2021",
       "title": "Silent Assassin: Kam’s White Model 3",
       "excerpt": "A first EV, DIY mods on a budget, a rear diffuser with an LED brake light, and why AliExpress is the new best friend.",
       "url": "blog-kam.html",
       "image": "images/blog/owner-interviews/kam/rear-three-quarter.jpg",
-      "publish": "2027-01-07"
+      "publish": "2027-01-07",
+      "created": "2026-09-28"
     },
     {
       "name": "Yusuf",
+      "type": "standard",
       "car": "Model 3 Long Range",
       "year": "2021",
       "title": "Flik: Yusuf’s Blue Model 3 Long Range",
       "excerpt": "A rare-spec blue Model 3 bought without a test drive, a first MT3UK meet, and some advice about insurers and mods.",
       "url": "blog-yusuf.html",
       "image": "images/blog/owner-interviews/yusuf/side-profile.jpg",
-      "publish": "2027-01-21"
+      "publish": "2027-01-21",
+      "created": "2026-09-28"
     }
   ]
 }

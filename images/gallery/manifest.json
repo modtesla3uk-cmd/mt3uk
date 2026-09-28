@@ -8,13 +8,13 @@
     ],
     "votable": false,
     "color": "White",
+    "unclaimed": true,
     "added": "2026-09-28",
     "group": "voyager-model-3--by-fred-fast.jpg"
   },
   {
     "file": "voyager-model-3.jpg",
     "caption": "VOYAGER MODEL 3",
-    "name": "FRED FAST",
     "mods": [
       "lowering spring",
       "wider tyres",
@@ -23,9 +23,11 @@
       "add what ever mods you have here!",
       "Vinyl striped bonnet"
     ],
+    "votable": false,
     "color": "White",
+    "unclaimed": true,
     "added": "2026-09-28",
-    "group": "voyager-model-3--by-fred-fast.jpg"
+    "group": "voyager-model-3.jpg"
   },
   {
     "file": "bagged-midnight-silver-model-3-performance--by-ryan-kerr.jpg",

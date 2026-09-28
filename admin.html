@@ -23,6 +23,47 @@
   header {
     padding: 20px 24px;
     border-bottom: 1px solid rgba(255,255,255,0.15);
+    position: relative;
+  }
+  /* Notification bell: what needs attention, with a preview of each item. */
+  .bell-wrap { position: absolute; top: 14px; right: 20px; z-index: 50; }
+  .bell-btn {
+    position: relative; width: 42px; height: 42px; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: none; border: 1px solid rgba(255,255,255,0.35); border-radius: 50%; color: var(--white);
+  }
+  .bell-btn:hover { border-color: var(--orange); color: var(--orange); }
+  .bell-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .bell-badge {
+    position: absolute; top: -4px; right: -4px; min-width: 20px; height: 20px; padding: 0 5px;
+    border-radius: 10px; background: var(--orange); color: var(--white);
+    font-size: 0.7rem; font-weight: 700; line-height: 20px; text-align: center;
+  }
+  .bell-badge[hidden] { display: none; }
+  .bell-panel {
+    position: absolute; top: 50px; right: 0; width: min(380px, calc(100vw - 32px)); max-height: 70vh; overflow-y: auto;
+    background: #0f1a2e; border: 1px solid rgba(255,255,255,0.25); border-radius: 12px;
+    box-shadow: 0 14px 40px rgba(0,0,0,0.45); padding: 8px 0;
+  }
+  .bell-panel[hidden] { display: none; }
+  .bell-group { padding: 10px 14px 4px; font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--steel); }
+  .bell-item {
+    display: flex; gap: 10px; align-items: center; width: 100%; padding: 8px 14px; text-align: left;
+    background: none; border: 0; color: var(--white); font-size: 0.78rem; cursor: pointer;
+  }
+  .bell-item:hover, .bell-item:focus-visible { background: rgba(255,255,255,0.07); }
+  .bell-thumb { width: 40px; height: 40px; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.2); }
+  .bell-thumb-blank { display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--steel); }
+  .bell-text { min-width: 0; flex: 1; }
+  .bell-title { display: block; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bell-sub { display: block; color: var(--steel); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bell-new { flex-shrink: 0; font-size: 0.6rem; font-weight: 700; color: var(--orange); letter-spacing: 0.05em; }
+  .bell-empty { padding: 14px; color: var(--steel); font-size: 0.8rem; }
+  .bell-flash { outline: 2px solid var(--orange); outline-offset: 3px; transition: outline-color 1.5s ease; }
+  @media (max-width: 600px) {
+    header h1 { padding-right: 56px; }
+    .bell-wrap { right: 16px; }
+    .bell-panel { position: fixed; top: 64px; left: 16px; right: 16px; width: auto; }
   }
   h1 { font-size: 1rem; letter-spacing: 0.04em; margin: 0 0 4px; color: var(--orange); }
   .admin-links { margin: 0 0 12px; }
@@ -282,6 +323,13 @@
 </head>
 <body>
 <header>
+  <div class="bell-wrap">
+    <button type="button" class="bell-btn" id="bell-btn" aria-label="Notifications" aria-expanded="false" aria-controls="bell-panel">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+      <span class="bell-badge" id="bell-badge" hidden></span>
+    </button>
+    <div class="bell-panel" id="bell-panel" role="dialog" aria-label="Notifications" hidden></div>
+  </div>
   <h1>MT3UK ADMIN</h1>
   <p class="admin-links"><a href="events-admin.html">Events admin</a> &middot; <a href="device-checklist.html">Device test checklist</a></p>
   <div class="key-row">
@@ -1419,6 +1467,148 @@
   keyInput.addEventListener('keydown', function (e) {
     if (e.key === 'Enter') loadAll(true);
   });
+
+  // ---------- Notification bell ----------
+  // Built from what the page has loaded: pending claims, reported comments
+  // and reported photos. Items not opened before are counted on the bell
+  // and tagged NEW; opening the bell marks them as seen (in this browser).
+
+  var bellBtn = document.getElementById('bell-btn');
+  var bellBadge = document.getElementById('bell-badge');
+  var bellPanel = document.getElementById('bell-panel');
+  var BELL_SEEN_KEY = 'mt3ukAdminSeen';
+  var bellItems = [];
+
+  function bellSeen() {
+    try { return JSON.parse(localStorage.getItem(BELL_SEEN_KEY) || '[]'); } catch (e) { return []; }
+  }
+
+  function textOf(el, sel) {
+    var found = el.querySelector(sel);
+    return found ? found.textContent.trim() : '';
+  }
+
+  function collectBellItems() {
+    var items = [];
+    pendingEl.querySelectorAll('.card').forEach(function (card) {
+      var file = textOf(card, '.card-file');
+      items.push({
+        id: 'claim:' + file, group: 'Pending claims', section: 'pending', el: card,
+        img: (card.querySelector('img') || {}).src || '',
+        title: textOf(card, '.card-name') || textOf(card, '.card-email') || 'Claim',
+        sub: 'Wants to claim ' + file
+      });
+    });
+    threadsEl.querySelectorAll('.comment.is-reported').forEach(function (comment) {
+      var btn = comment.querySelector('.delete-btn');
+      var thread = comment.closest('.thread');
+      var threadImg = thread && thread.querySelector('.thread-head img');
+      items.push({
+        id: 'comment:' + (btn ? btn.dataset.id : textOf(comment, '.comment-text')), group: 'Reported comments', section: 'comments', el: comment,
+        img: threadImg ? threadImg.src : '',
+        title: (textOf(comment, '.comment-name') || 'Comment') + ' (' + (textOf(comment, '.reports-badge') || 'reported') + ')',
+        sub: textOf(comment, '.comment-text')
+      });
+    });
+    reportedEl.querySelectorAll('.card').forEach(function (card) {
+      var file = textOf(card, '.card-file');
+      items.push({
+        id: 'photo:' + file, group: 'Reported photos', section: 'rphotos', el: card,
+        img: (card.querySelector('img') || {}).src || '',
+        title: file, sub: textOf(card, '.card-meta')
+      });
+    });
+    return items;
+  }
+
+  function renderBell() {
+    bellItems = collectBellItems();
+    var seen = bellSeen();
+    var unseen = bellItems.filter(function (it) { return seen.indexOf(it.id) === -1; }).length;
+    bellBadge.hidden = unseen === 0;
+    bellBadge.textContent = unseen > 99 ? '99+' : String(unseen);
+    bellBtn.setAttribute('aria-label', unseen ? 'Notifications, ' + unseen + ' new' : 'Notifications');
+    document.title = (unseen ? '(' + unseen + ') ' : '') + 'Admin | MT3UK';
+    if (!bellPanel.hidden) drawBellPanel(seen);
+  }
+
+  function drawBellPanel(seen) {
+    if (!bellItems.length) {
+      bellPanel.innerHTML = '<p class="bell-empty">Nothing needs your attention right now.</p>';
+      return;
+    }
+    var html = '';
+    var lastGroup = '';
+    bellItems.forEach(function (it, i) {
+      if (it.group !== lastGroup) {
+        var count = bellItems.filter(function (x) { return x.group === it.group; }).length;
+        html += '<div class="bell-group">' + escapeHtml(it.group) + ' (' + count + ')</div>';
+        lastGroup = it.group;
+      }
+      html += '<button type="button" class="bell-item" data-index="' + i + '">' +
+        (it.img ? '<img class="bell-thumb" src="' + escapeHtml(it.img) + '" alt="">' : '<span class="bell-thumb bell-thumb-blank">&#9993;</span>') +
+        '<span class="bell-text"><span class="bell-title">' + escapeHtml(it.title) + '</span><span class="bell-sub">' + escapeHtml(it.sub) + '</span></span>' +
+        (seen.indexOf(it.id) === -1 ? '<span class="bell-new">NEW</span>' : '') +
+      '</button>';
+    });
+    bellPanel.innerHTML = html;
+  }
+
+  function closeBell() {
+    bellPanel.hidden = true;
+    bellBtn.setAttribute('aria-expanded', 'false');
+  }
+
+  bellBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    if (!bellPanel.hidden) { closeBell(); return; }
+    var seen = bellSeen();
+    drawBellPanel(seen);
+    bellPanel.hidden = false;
+    bellBtn.setAttribute('aria-expanded', 'true');
+    // Everything listed now counts as seen; NEW tags stay until it closes.
+    try { localStorage.setItem(BELL_SEEN_KEY, JSON.stringify(bellItems.map(function (it) { return it.id; }))); } catch (err) {}
+    bellBadge.hidden = true;
+    document.title = 'Admin | MT3UK';
+  });
+
+  bellPanel.addEventListener('click', function (e) {
+    e.stopPropagation();
+    var row = e.target.closest('.bell-item');
+    if (!row) return;
+    var it = bellItems[parseInt(row.dataset.index, 10)];
+    closeBell();
+    if (!it || !it.el || !document.body.contains(it.el)) return;
+    var wrap = document.getElementById(it.section + '-wrap');
+    if (wrap) wrap.open = true;
+    it.el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    it.el.classList.add('bell-flash');
+    setTimeout(function () { it.el.classList.remove('bell-flash'); }, 2200);
+  });
+
+  document.addEventListener('click', function (e) {
+    if (!bellPanel.hidden && !e.target.closest('.bell-wrap')) closeBell();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !bellPanel.hidden) { closeBell(); bellBtn.focus(); }
+  });
+
+  var bellTimer = null;
+  [pendingEl, threadsEl, reportedEl].forEach(function (el) {
+    new MutationObserver(function () {
+      clearTimeout(bellTimer);
+      bellTimer = setTimeout(renderBell, 100);
+    }).observe(el, { childList: true, subtree: true });
+  });
+
+  // Check for new items every few minutes while the page is open.
+  setInterval(function () {
+    var key = keyInput.value.trim();
+    if (!key || document.hidden) return;
+    loadClaims(key);
+    loadThreads(key);
+    loadReported(key);
+  }, 3 * 60 * 1000);
 
   if (savedKey) loadAll(true);
 

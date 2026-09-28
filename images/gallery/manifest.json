@@ -12,6 +12,7 @@
     "file": "o-leary--by-rhc-tech.jpg",
     "caption": "O LEARY",
     "name": "MATT O'MALLEY",
+    "votable": false,
     "color": "Grey",
     "added": "2026-09-27",
     "group": "o-leary--by-rhc-tech-2.jpg"
@@ -357,6 +358,7 @@
     "mods": [
       "New front bearings"
     ],
+    "votable": false,
     "added": "2026-09-21",
     "group": "team-red--by-mark-smith.jpg"
   },

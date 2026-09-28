@@ -339,6 +339,9 @@
     text-align: center;
   }
 
+  .gallery-only-note { margin: 0 0 14px; padding: 10px 14px; border: 1px solid var(--ink); border-left: 3px solid var(--orange); background: var(--paper-2); font-family: 'IBM Plex Sans', sans-serif; font-size: 0.88rem; color: var(--ink); }
+  .gallery-only-note[hidden] { display: none; }
+  .gallery-only-note a { color: var(--orange); font-weight: 600; }
   .gallery-filters {
     display: flex;
     flex-wrap: wrap;
@@ -545,6 +548,7 @@
         </div>
       </div>
     </div>
+    <p class="gallery-only-note" id="gallery-only-note" hidden>Showing your builds only. <a href="gallery.html">Show all builds</a></p>
     <div class="gallery-filters" id="gallery-filters"></div>
     <div class="gallery-grid" id="gallery-grid">
       <p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">Loading builds&hellip;</p>
@@ -607,9 +611,13 @@
     })
       .then(function (res) { return res.json(); })
       .then(function (data) {
-        if (!data || !data.success || !Array.isArray(data.builds)) return;
-        window.mt3ukMyBuildFiles = data.builds.map(function (b) { return b.file; });
-        data.builds.forEach(function (b) { window.mt3ukMyBuildData[b.file] = b; });
+        if (!data || !data.success || !Array.isArray(data.cars)) return;
+        var builds = [];
+        data.cars.forEach(function (car) {
+          (car.photos || []).forEach(function (p) { builds.push(p); });
+        });
+        window.mt3ukMyBuildFiles = builds.map(function (b) { return b.file; });
+        builds.forEach(function (b) { window.mt3ukMyBuildData[b.file] = b; });
         document.dispatchEvent(new Event('mt3ukMyBuildsReady'));
       })
       .catch(function () {});
@@ -654,7 +662,7 @@
     function ensureModal() {
       if (modal) return modal;
       var style = document.createElement('style');
-      style.textContent = '.ebm-overlay { position: fixed; inset: 0; background: rgba(22,35,61,0.85); display: none; align-items: center; justify-content: center; z-index: 300; padding: 20px; } .ebm-overlay.open { display: flex; } .ebm-panel { background: var(--paper, #f3f1ea); max-width: 420px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; border: 1px solid var(--ink, #16233d); } .ebm-close { position: absolute; top: 10px; right: 10px; z-index: 2; width: 34px; height: 34px; border: 1px solid rgba(255,255,255,0.8); background: rgba(22,35,61,0.6); color: #fff; font-size: 1.3rem; line-height: 1; cursor: pointer; } .ebm-close:hover { background: var(--orange, #e8542a); color: #fff; border-color: var(--orange, #e8542a); } .ebm-media { aspect-ratio: 4/3; overflow: hidden; background: var(--ink, #16233d); position: relative; } .ebm-media img { width: 100%; height: 100%; object-fit: contain; display: block; } .ebm-body { padding: 18px; display: flex; flex-direction: column; gap: 14px; } .ebm-caption { font-family: "IBM Plex Mono", monospace; font-size: 0.8rem; letter-spacing: 0.03em; } .ebm-toggles { display: flex; flex-wrap: wrap; gap: 12px; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; } .ebm-toggle { display: flex; align-items: center; gap: 6px; cursor: pointer; } .ebm-mods { display: flex; flex-direction: column; gap: 8px; } .ebm-mods-label { display: block; font-size: 0.78rem; } .ebm-mods-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; } .ebm-mods-list:empty { display: none; } .ebm-mods-list li { display: flex; align-items: center; gap: 6px; border: 1px solid var(--ink, #16233d); padding: 5px 6px 5px 10px; font-family: "IBM Plex Mono", monospace; font-size: 0.76rem; } .ebm-mods-remove { border: none; background: transparent; cursor: pointer; font-size: 1rem; line-height: 1; color: var(--steel, #7c8798); } .ebm-mods-remove:hover { color: var(--orange, #e8542a); } .ebm-mods-input-row { display: flex; gap: 8px; } .ebm-mods-input-row input { flex: 1; border: 1px solid var(--ink, #16233d); background: #fff; padding: 8px 10px; font-family: "IBM Plex Sans", sans-serif; font-size: 0.85rem; } .ebm-mods-add-btn { border: 1px solid var(--ink, #16233d); background: transparent; padding: 0 14px; font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; cursor: pointer; } .ebm-mods-add-btn:hover { background: var(--ink, #16233d); color: #fff; } .ebm-actions { display: flex; align-items: center; gap: 10px; } .ebm-save-btn { border: 1px solid var(--orange, #e8542a); background: var(--orange, #e8542a); color: #fff; padding: 9px 16px; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; cursor: pointer; } .ebm-save-btn:disabled { opacity: 0.6; cursor: default; } .ebm-status { font-size: 0.76rem; color: var(--steel, #7c8798); } .ebm-status-ok { color: #1c8a4b; font-weight: 700; } .ebm-status-err { color: var(--orange, #e8542a); } .ebm-danger { border-top: 1px solid rgba(0,0,0,0.12); padding-top: 12px; } .ebm-delete-btn { border: 1px solid var(--line, #4a6491); background: transparent; padding: 7px 12px; font-family: "IBM Plex Mono", monospace; font-size: 0.76rem; cursor: pointer; } .ebm-delete-btn:hover { border-color: var(--orange, #e8542a); color: var(--orange, #e8542a); } .ebm-delete-btn.ebm-delete-confirm { border-color: var(--orange, #e8542a); background: var(--orange, #e8542a); color: #fff; } .ebm-manage-link { font-size: 0.72rem; color: var(--steel, #7c8798); } .ebm-manage-link a { color: var(--orange, #e8542a); text-decoration: underline; }';
+      style.textContent = '.ebm-overlay { position: fixed; inset: 0; background: rgba(22,35,61,0.85); display: none; align-items: center; justify-content: center; z-index: 300; padding: 20px; } .ebm-overlay.open { display: flex; } .ebm-panel { background: var(--paper, #f3f1ea); max-width: 420px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; border: 1px solid var(--ink, #16233d); } .ebm-close { position: absolute; top: 10px; right: 10px; z-index: 2; width: 34px; height: 34px; border: 1px solid rgba(255,255,255,0.8); background: rgba(22,35,61,0.6); color: #fff; font-size: 1.3rem; line-height: 1; cursor: pointer; } .ebm-close:hover { background: var(--orange, #e8542a); color: #fff; border-color: var(--orange, #e8542a); } .ebm-media { aspect-ratio: 4/3; overflow: hidden; background: var(--ink, #16233d); position: relative; } .ebm-media img { width: 100%; height: 100%; object-fit: contain; display: block; } .ebm-body { padding: 18px; display: flex; flex-direction: column; gap: 14px; } .ebm-caption { font-family: "IBM Plex Mono", monospace; font-size: 0.8rem; letter-spacing: 0.03em; } .ebm-toggles { display: flex; flex-wrap: wrap; gap: 12px; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; } .ebm-toggle { display: flex; align-items: center; gap: 6px; cursor: pointer; } .ebm-vote-link { color: var(--orange, #e8542a); text-decoration: underline; } .ebm-mods { display: flex; flex-direction: column; gap: 8px; } .ebm-mods-label { display: block; font-size: 0.78rem; } .ebm-mods-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; } .ebm-mods-list:empty { display: none; } .ebm-mods-list li { display: flex; align-items: center; gap: 6px; border: 1px solid var(--ink, #16233d); padding: 5px 6px 5px 10px; font-family: "IBM Plex Mono", monospace; font-size: 0.76rem; } .ebm-mods-remove { border: none; background: transparent; cursor: pointer; font-size: 1rem; line-height: 1; color: var(--steel, #7c8798); } .ebm-mods-remove:hover { color: var(--orange, #e8542a); } .ebm-mods-input-row { display: flex; gap: 8px; } .ebm-mods-input-row input { flex: 1; border: 1px solid var(--ink, #16233d); background: #fff; padding: 8px 10px; font-family: "IBM Plex Sans", sans-serif; font-size: 0.85rem; } .ebm-mods-add-btn { border: 1px solid var(--ink, #16233d); background: transparent; padding: 0 14px; font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; cursor: pointer; } .ebm-mods-add-btn:hover { background: var(--ink, #16233d); color: #fff; } .ebm-actions { display: flex; align-items: center; gap: 10px; } .ebm-save-btn { border: 1px solid var(--orange, #e8542a); background: var(--orange, #e8542a); color: #fff; padding: 9px 16px; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; cursor: pointer; } .ebm-save-btn:disabled { opacity: 0.6; cursor: default; } .ebm-status { font-size: 0.76rem; color: var(--steel, #7c8798); } .ebm-status-ok { color: #1c8a4b; font-weight: 700; } .ebm-status-err { color: var(--orange, #e8542a); } .ebm-danger { border-top: 1px solid rgba(0,0,0,0.12); padding-top: 12px; } .ebm-delete-btn { border: 1px solid var(--line, #4a6491); background: transparent; padding: 7px 12px; font-family: "IBM Plex Mono", monospace; font-size: 0.76rem; cursor: pointer; } .ebm-delete-btn:hover { border-color: var(--orange, #e8542a); color: var(--orange, #e8542a); } .ebm-delete-btn.ebm-delete-confirm { border-color: var(--orange, #e8542a); background: var(--orange, #e8542a); color: #fff; } .ebm-manage-link { font-size: 0.72rem; color: var(--steel, #7c8798); } .ebm-manage-link a { color: var(--orange, #e8542a); text-decoration: underline; }';
       document.head.appendChild(style);
 
       modal = document.createElement('div');
@@ -671,7 +679,7 @@
             '<div class="ebm-toggles">' +
               '<label class="ebm-toggle"><input type="checkbox" data-flag="gallery"> Gallery</label>' +
               '<label class="ebm-toggle"><input type="checkbox" data-flag="reel"> Reel</label>' +
-              '<label class="ebm-toggle"><input type="checkbox" data-flag="votable"> Voting</label>' +
+              '<a class="ebm-vote-link" href="my-builds.html">Voting: enter it in My Garage</a>' +
             '</div>' +
             '<div class="ebm-mods">' +
               '<span class="mono ebm-mods-label">Mods</span>' +
@@ -751,10 +759,17 @@
         modal.querySelectorAll('input[data-flag]').forEach(function (cb) {
           flags[cb.dataset.flag] = cb.checked;
         });
+        if (!flags.gallery && !flags.reel) {
+          statusEl.textContent = 'Pick Gallery or Reel so the photo is visible somewhere.';
+          statusEl.className = 'ebm-status mono ebm-status-err';
+          return;
+        }
         saveBtn.disabled = true;
         statusEl.textContent = 'Saving…';
         statusEl.className = 'ebm-status mono';
-        var body = { file: currentFile, mods: currentMods, gallery: flags.gallery, reel: flags.reel, votable: flags.votable };
+        // Voting isn't changed here: a member's one vote entry is managed in
+        // My Garage, which warns before switching it.
+        var body = { file: currentFile, mods: currentMods, gallery: flags.gallery, reel: flags.reel };
         fetch(MT3UK_API + '/my-builds', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'X-Session-Token': token },
@@ -775,7 +790,6 @@
               cached.mods = currentMods.slice();
               cached.gallery = flags.gallery;
               cached.reel = flags.reel;
-              cached.votable = flags.votable;
             }
             // If the flag governing where this build was clicked from just
             // turned off, drop it from that view immediately.
@@ -850,7 +864,6 @@
       captionEl.textContent = data.caption || '';
       modal.querySelector('input[data-flag="gallery"]').checked = data.gallery !== false;
       modal.querySelector('input[data-flag="reel"]').checked = data.reel !== false;
-      modal.querySelector('input[data-flag="votable"]').checked = data.votable !== false;
       modsList.innerHTML = currentMods.map(function (m, idx) {
         var safe = String(m).replace(/</g, '&lt;');
         return '<li><span>' + safe + '</span><button type="button" class="ebm-mods-remove" data-idx="' + idx + '" aria-label="Remove ' + safe + '">&times;</button></li>';
@@ -998,6 +1011,16 @@
             return;
           }
           allPhotos = photos.filter(function (p) { return p.gallery !== false; });
+          // My Garage links here as ?only=<file,file,...> to show just the
+          // member's own builds.
+          var onlyFiles = (new URL(window.location.href).searchParams.get('only') || '').split(',').filter(Boolean);
+          if (onlyFiles.length) {
+            var own = allPhotos.filter(function (p) { return onlyFiles.indexOf(p.file) !== -1; });
+            if (own.length) {
+              allPhotos = own;
+              document.getElementById('gallery-only-note').hidden = false;
+            }
+          }
           renderFilters();
           applyFilter();
         });

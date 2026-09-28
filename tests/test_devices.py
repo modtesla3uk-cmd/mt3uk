@@ -122,6 +122,15 @@ def api_reply(url, method, post_data, state):
         return {"success": True, "likes": {}, "liked": []}
     if path == "/likes":
         return {"success": True, "liked": True, "count": 1}
+    # Admin page: one of each thing the notification bell lists.
+    if path == "/gallery/admin/claims":
+        return {"success": True, "claims": [{"file": "claim-car.jpg", "name": "CLAIM PERSON", "email": "claimer@example.com", "status": "pending", "requestedAt": "2026-09-28"}]}
+    if path == "/comments/admin" and method == "GET":
+        if "file=" in url:
+            return {"success": True, "comments": [{"id": "c1", "name": "Rude Person", "text": "Not a nice comment", "reports": ["r1"], "createdAt": "2026-09-28"}]}
+        return {"success": True, "reported": [{"file": "reported-car.jpg"}]}
+    if path == "/gallery/admin/reports" and method == "GET":
+        return {"success": True, "reported": [{"file": "reported-photo.jpg", "reports": 2}]}
     if path == "/admin/vote-entries" and method == "GET":
         return ADMIN_VOTE_ENTRIES
     if path == "/votes":
@@ -146,7 +155,17 @@ def api_reply(url, method, post_data, state):
             return {"success": True, "session": "s1.test", "email": body.get("email", "member@example.com")}
         return {"success": False, "message": "That code is not right or has expired."}
     if path == "/my-builds" and method == "GET":
-        return {"success": True, "email": "member@example.com", "firstName": "Test", "lastName": "Member", "cars": [GARAGE_CAR], "voteEntry": GARAGE_VOTE_ENTRY}
+        car = dict(GARAGE_CAR, name=state.get("car_name", GARAGE_CAR["name"]))
+        return {"success": True, "email": "member@example.com", "firstName": "Test", "lastName": "Member", "cars": [car], "voteEntry": GARAGE_VOTE_ENTRY}
+    if path == "/my-builds/car" and method == "PUT":
+        try:
+            name = json.loads(post_data or "{}").get("name")
+        except ValueError:
+            name = None
+        # WebKit doesn't always pass the request body to the mock, so the
+        # rename test's new name stands in when it's missing.
+        state["car_name"] = name or "The Colonel"
+        return {"success": True, "car": {"id": GARAGE_CAR["id"], "name": name or GARAGE_CAR["name"]}}
     return {"success": True}
 
 
@@ -498,4 +517,102 @@ def test_admin_can_take_a_photo_out_of_voting(device_page):
     page.wait_for_timeout(600)
     assert any(line.startswith("POST /admin/send-digest") for line in page.api_log[before:]), page.api_log[before:]
     assert "Sent." in page.inner_text("#send-digest-status")
+    assert page.errors == []
+
+
+@all_devices
+def test_admin_notification_bell(device_page):
+    page = device_page
+    page.add_init_script("sessionStorage.setItem('mt3ukAdminKey', 'test-key')")
+    page.goto("/admin.html")
+    badge = page.locator("#bell-badge")
+    badge.wait_for(state="visible", timeout=10000)
+    assert badge.inner_text() == "3"
+
+    # The bell lists a preview of each, and opening it marks them as seen.
+    page.click("#bell-btn")
+    panel = page.locator("#bell-panel")
+    text = panel.inner_text()
+    for words in ("PENDING CLAIMS (1)", "CLAIM PERSON", "REPORTED COMMENTS (1)", "Not a nice comment", "REPORTED PHOTOS (1)", "reported-photo.jpg"):
+        assert words.lower() in text.lower(), words + " missing from: " + text
+    assert panel.locator(".bell-thumb").count() == 3
+    assert badge.is_hidden()
+    assert overflow_width(page) <= 1
+
+    # Tapping an item jumps to it.
+    panel.locator(".bell-item", has_text="reported-photo.jpg").click()
+    page.wait_for_timeout(600)
+    assert panel.is_hidden()
+    assert page.locator("#reported-photos .card").first.is_visible()
+
+    # Seen items don't count again after a reload.
+    page.reload()
+    page.locator("#reported-photos .card").first.wait_for(timeout=10000)
+    page.wait_for_timeout(300)
+    assert badge.is_hidden()
+    assert page.errors == []
+
+
+def _manifest_files(flag, count):
+    photos = json.loads((REPO_ROOT / "images" / "gallery" / "manifest.json").read_text())
+    return [p["file"] for p in photos if p.get(flag) is not False][:count]
+
+
+@all_devices
+def test_my_garage_car_name_and_site_links(device_page):
+    page = device_page
+    page.mock_state["signed_in"] = True
+    page.add_init_script("localStorage.setItem('mt3ukMyBuildsSession', 's1.test')")
+    page.goto("/my-builds.html")
+
+    # The car's name sits above its photo on the garage tile.
+    tile = page.locator(".mb-car-tile").first
+    tile.wait_for(timeout=10000)
+    name_box = tile.locator(".mb-car-tile-name").bounding_box()
+    photo_box = tile.locator(".mb-car-tile-thumb").bounding_box()
+    assert name_box["y"] < photo_box["y"], "Car name should be above the photo"
+
+    # Garage links go to the member's own photos.
+    links = page.locator("#mb-garage-site-links")
+    assert "only=test-build.jpg%2Ctest-build-2.jpg" in links.locator('[data-link="reel"]').get_attribute("href")
+    assert links.locator('[data-link="vote"]').get_attribute("href") == "index.html?entry=test-build.jpg#vote-frame"
+
+    # The car name shows as text with Edit; Edit gives an input and Save.
+    tile.click()
+    assert page.locator("#mb-car-name-text").inner_text() == "Test Model 3"
+    assert page.locator("#mb-car-name-input").is_hidden()
+    page.click("#mb-car-name-edit")
+    page.fill("#mb-car-name-input", "The Colonel")
+    page.click("#mb-car-name-save")
+    page.wait_for_timeout(600)
+    assert page.locator("#mb-car-name-input").is_hidden()
+    assert page.locator("#mb-car-name-text").inner_text() == "The Colonel"
+    assert any(line.startswith("PUT /my-builds/car") for line in page.api_log), page.api_log
+    assert "gallery.html?only=" in page.locator('#mb-car-site-links [data-link="gallery"]').get_attribute("href")
+    assert overflow_width(page) <= 1
+    assert page.errors == []
+
+
+@all_devices
+def test_only_links_show_just_those_builds(device_page):
+    page = device_page
+    files = _manifest_files("reel", 2)
+    page.goto("/index.html?only=" + ",".join(files) + "#build-feed")
+    page.locator(".bf-slide").first.wait_for(timeout=10000)
+    assert page.locator("#bf-only-note").is_visible()
+    shown = page.eval_on_selector_all(".bf-cell[data-file]", "els => els.map(e => e.dataset.file)")
+    assert shown and set(shown) <= set(files), shown
+
+    files = _manifest_files("gallery", 2)
+    page.goto("/gallery.html?only=" + ",".join(files))
+    page.locator("#gallery-grid .gallery-slot").first.wait_for(timeout=10000)
+    assert page.locator("#gallery-only-note").is_visible()
+    shown = page.eval_on_selector_all("#gallery-grid .gallery-slot", "els => els.map(e => e.dataset.file)")
+    assert sorted(shown) == sorted(files), shown
+
+    # ?entry= highlights the member's entry in the vote, even past the first rows.
+    page.goto("/index.html?entry=more-9.jpg#vote-frame")
+    card = page.locator('.vote-card[data-file="more-9.jpg"]')
+    card.wait_for(timeout=10000)
+    assert card.is_visible() and "vote-card-focus" in card.get_attribute("class")
     assert page.errors == []

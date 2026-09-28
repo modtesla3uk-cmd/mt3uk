@@ -3466,23 +3466,29 @@ async function handleMyBuildsUpdate(request, env) {
   var wasVotable = sidecar.votable !== false;
   var withdraw = [];
   var clearVotes = false;
-  if (body && body.votable === true && sidecar.voteBlocked === true) {
+  // My Garage's Voting tick sends vote: 'enter' or 'leave' (after warning
+  // the member about lost votes). A plain votable true/false, as the Edit
+  // Build pop-up used to send, only sets the flag and never switches the
+  // member's entry, so saving other changes can't cost them their votes.
+  var voteAction = body && (body.vote === 'enter' || body.vote === 'leave') ? body.vote : null;
+  if (!voteAction && body && body.votable === false && wasVotable) voteAction = 'leave';
+  if (voteAction === 'enter' && sidecar.voteBlocked === true) {
     return json({ success: false, message: 'This photo was taken out of voting by MT3UK. You can enter a different photo instead.' }, 403);
   }
-  if (body && typeof body.votable === 'boolean') {
+  if (voteAction === 'enter') {
     var voteManifest = await listGalleryEntriesFromR2(env);
     var owner = await ownerKey(email);
     var thisPhoto = voteManifest.filter(function (p) { return p.file === file; })[0];
-    if (body.votable) {
-      withdraw = voteManifest.filter(function (p) {
-        return p.owner === owner && p.file !== file && isOpenForVote(p, voteWeek);
-      }).map(function (p) { return p.file; });
-      if (!thisPhoto || !isOpenForVote(thisPhoto, voteWeek)) sidecar.votableSince = ukDateString(new Date());
-    } else {
-      clearVotes = true;
-    }
+    withdraw = voteManifest.filter(function (p) {
+      return p.owner === owner && p.file !== file && isOpenForVote(p, voteWeek);
+    }).map(function (p) { return p.file; });
+    if (!thisPhoto || !isOpenForVote(thisPhoto, voteWeek)) sidecar.votableSince = ukDateString(new Date());
+    delete sidecar.votable;
+  } else if (voteAction === 'leave') {
+    sidecar.votable = false;
+    clearVotes = true;
   }
-  ['gallery', 'reel', 'votable'].forEach(function (flag) {
+  ['gallery', 'reel'].forEach(function (flag) {
     if (typeof (body && body[flag]) === 'boolean') {
       if (body[flag] === false) {
         sidecar[flag] = false;
@@ -3491,8 +3497,9 @@ async function handleMyBuildsUpdate(request, env) {
       }
     }
   });
-  if (body && body.votable === true && !wasVotable && !sidecar.votableSince) {
-    sidecar.votableSince = ukDateString(new Date());
+  // A plain votable: true only turns the flag back on (no entry switching).
+  if (!voteAction && body && body.votable === true && !wasVotable && sidecar.voteBlocked !== true) {
+    delete sidecar.votable;
   }
 
   if (sidecar.gallery === false && sidecar.reel === false && sidecar.votable === false) {

@@ -422,6 +422,7 @@
   .mb-car-tile-thumb { width: 100%; aspect-ratio: 4 / 3; overflow: hidden; background: var(--ink); }
   .mb-car-tile-thumb img { width: 100%; height: 100%; object-fit: cover; }
   .mb-car-tile-body { padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
+  .mb-car-tile-head { padding: 10px 12px 8px; }
   .mb-car-tile-name { font-weight: 600; color: var(--ink); word-break: break-word; }
   .mb-car-tile-count { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--steel); }
   .mb-car-tile-alert { position: absolute; top: 8px; right: 8px; background: var(--paper); border-radius: 3px; padding: 2px 4px; }
@@ -431,25 +432,38 @@
   .mb-car-detail-header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .mb-back-btn { background: none; border: 0; color: var(--steel); font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; cursor: pointer; text-decoration: underline; padding: 0; }
   .mb-back-btn:hover { color: var(--orange); }
+  /* Car name: shown as text with Edit; Edit swaps in the input and Save. */
+  .mb-car-name-row { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 160px; }
+  .mb-car-name-text { font-family: 'Archivo Expanded', sans-serif; font-weight: 700; font-size: 1rem; color: var(--ink); word-break: break-word; }
   .mb-car-name-input {
     font-family: 'Archivo Expanded', sans-serif;
-    font-weight: 800;
-    font-size: 1.25rem;
+    font-weight: 700;
+    font-size: 1rem;
     color: var(--ink);
-    border: 1px solid transparent;
-    background: transparent;
-    padding: 4px 6px;
+    border: 1px solid var(--line);
+    background: var(--white);
+    padding: 6px 8px;
     flex: 1;
     min-width: 120px;
   }
-  .mb-car-name-input:hover, .mb-car-name-input:focus { border-color: var(--line); outline: none; background: var(--white); }
+  .mb-car-name-input:focus { outline: 2px solid var(--orange); outline-offset: 1px; }
+  .mb-car-name-row [hidden] { display: none; }
+  .mb-car-name-btn { flex-shrink: 0; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; padding: 6px 10px; border: 1px solid var(--ink); background: var(--white); color: var(--ink); cursor: pointer; }
+  .mb-car-name-btn:hover { background: var(--ink); color: var(--white); }
+  .mb-car-name-btn.mb-car-name-save { background: var(--orange); border-color: var(--orange); color: var(--white); }
+  /* Links to the member's own photos on the reel, the vote and the gallery. */
+  .mb-site-links { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.84rem; color: var(--steel); }
+  .mb-site-links a { display: inline-flex; align-items: center; min-height: 36px; padding: 6px 14px; border: 1px solid var(--ink); border-radius: 999px; color: var(--ink); text-decoration: none; font-weight: 600; background: var(--white); }
+  .mb-site-links a:hover { background: var(--orange); border-color: var(--orange); color: var(--white); }
+  .mb-site-links a[hidden] { display: none; }
+  #mb-car-selector-view .mb-site-links { margin: 0 0 16px; }
   .mb-car-name-status { flex-shrink: 0; }
   .mb-car-color-select { font-size: 0.72rem; color: var(--ink); border: 1px solid var(--line); background: var(--white); padding: 6px 8px; flex-shrink: 0; }
   .mb-car-photo-count { font-size: 0.72rem; color: var(--steel); flex-shrink: 0; }
   .mb-car-view-link { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: var(--orange); text-decoration: underline; flex-shrink: 0; background: none; border: 0; padding: 0; cursor: pointer; }
   .mb-car-view-link:hover { color: var(--ink); }
   @media (max-width: 780px) {
-    .mb-car-name-input { flex-basis: 100%; font-size: 1.1rem; }
+    .mb-car-name-row { flex-basis: 100%; }
   }
 
   /* Build of the Week hint: the member's entry and how to enter a photo. */
@@ -459,7 +473,7 @@
   .mb-vote-hint a { color: var(--orange); }
   .mb-photo-added { font-size: 0.68rem; color: var(--steel); }
   .mb-car-mods { display: flex; flex-direction: column; gap: 6px; border: 1px solid var(--line); background: var(--paper-2); padding: 12px 14px; }
-  .mb-car-mods-label { font-size: 0.68rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--steel); }
+  .mb-car-mods-label { font-size: 0.72rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--orange); font-weight: 700; }
   .mb-car-mods-note { font-size: 0.72rem; color: var(--steel); margin: 0; }
   .mb-car-mods-text { font-size: 0.85rem; color: var(--ink); margin: 0; }
   .mb-car-mods-textarea { font-family: 'IBM Plex Sans', sans-serif; font-size: 0.85rem; border: 1px solid var(--line); background: var(--white); padding: 8px 10px; resize: vertical; }
@@ -992,6 +1006,13 @@ document.addEventListener('DOMContentLoaded', function () {
           </form>
         </div>
 
+        <div class="mb-site-links" id="mb-garage-site-links">
+          <span>See your builds on:</span>
+          <a href="index.html#build-feed" data-link="reel">Reel</a>
+          <a href="index.html#vote-frame" data-link="vote">Voting</a>
+          <a href="gallery.html" data-link="gallery">Gallery</a>
+        </div>
+
         <div class="mb-car-grid" id="mb-car-grid"></div>
       </div>
 
@@ -999,7 +1020,13 @@ document.addEventListener('DOMContentLoaded', function () {
         <span class="section-num mono">MANAGE CAR</span>
         <div class="mb-car-detail-header">
           <button type="button" class="mb-back-btn" id="mb-car-back-btn">&larr; Back to garage</button>
-          <input type="text" class="mb-car-name-input" id="mb-car-name-input" maxlength="150">
+          <div class="mb-car-name-row">
+            <span class="mb-car-name-text" id="mb-car-name-text"></span>
+            <button type="button" class="mb-car-name-btn" id="mb-car-name-edit">Edit</button>
+            <input type="text" class="mb-car-name-input" id="mb-car-name-input" maxlength="150" aria-label="Car name" hidden>
+            <button type="button" class="mb-car-name-btn mb-car-name-save" id="mb-car-name-save" hidden>Save</button>
+            <button type="button" class="mb-car-name-btn" id="mb-car-name-cancel" hidden>Cancel</button>
+          </div>
           <select class="mb-car-color-select mono" id="mb-car-color-select">
             <option value="">Colour</option>
             <option value="Red">Red</option>
@@ -1014,6 +1041,13 @@ document.addEventListener('DOMContentLoaded', function () {
           <span class="mb-car-photo-count mono" id="mb-car-photo-count"></span>
           <span class="mb-status mb-car-name-status" id="mb-car-name-status"></span>
           <button type="button" class="mb-car-view-link" id="mb-car-view-link">View My Car</button>
+        </div>
+
+        <div class="mb-site-links" id="mb-car-site-links">
+          <span>See this car on:</span>
+          <a href="index.html#build-feed" data-link="reel">Reel</a>
+          <a href="index.html#vote-frame" data-link="vote">Voting</a>
+          <a href="gallery.html" data-link="gallery">Gallery</a>
         </div>
 
         <div class="mb-car-mods" id="mb-car-mods">
@@ -1225,6 +1259,10 @@ document.addEventListener('DOMContentLoaded', function () {
     var carGrid = document.getElementById('mb-car-grid');
     var backBtn = document.getElementById('mb-car-back-btn');
     var carNameInput = document.getElementById('mb-car-name-input');
+    var carNameText = document.getElementById('mb-car-name-text');
+    var carNameEditBtn = document.getElementById('mb-car-name-edit');
+    var carNameSaveBtn = document.getElementById('mb-car-name-save');
+    var carNameCancelBtn = document.getElementById('mb-car-name-cancel');
     var carColorSelect = document.getElementById('mb-car-color-select');
     var carPhotoCount = document.getElementById('mb-car-photo-count');
     var carNameStatus = document.getElementById('mb-car-name-status');
@@ -1534,15 +1572,47 @@ document.addEventListener('DOMContentLoaded', function () {
         var safeName = escapeHtml(car.name || 'MT3UK member build');
         var alertCount = alerts[car.id] || 0;
         return '<button type="button" class="mb-car-tile" data-car-id="' + car.id.replace(/"/g, '&quot;') + '">' +
+          '<div class="mb-car-tile-head"><span class="mb-car-tile-name">' + safeName + '</span></div>' +
           '<div class="mb-car-tile-thumb"><img src="' + window.MT3UK_R2_BASE + '/gallery/' + primary.file.replace(/&/g, '&amp;') + '" alt="' + safeName + '" loading="lazy"></div>' +
           '<div class="mb-car-tile-body">' +
-            '<span class="mb-car-tile-name">' + safeName + '</span>' +
             '<span class="mb-car-tile-count mono">' + car.photos.length + ' photo' + (car.photos.length === 1 ? '' : 's') +
               (car.likeCount ? ' &middot; ' + car.likeCount + ' like' + (car.likeCount === 1 ? '' : 's') : '') + '</span>' +
           '</div>' +
           (alertCount ? '<span class="mb-car-tile-alert"><span class="mb-comment-alert"><span class="mb-comment-alert-icon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 7l9 6 9-6"></path></svg></span><span class="mb-comment-alert-count">' + alertCount + '</span></span></span>' : '') +
         '</button>';
       }).join('');
+      updateSiteLinks();
+    }
+
+    // Links to the member's own photos elsewhere on the site: the reel and
+    // gallery show just these photos (?only=), and the vote scrolls to their
+    // entry (?entry=). For a car, only that car's photos; otherwise all of them.
+    function siteLinkPhotos(car) {
+      var photos = [];
+      (car ? [car] : carsData).forEach(function (c) { (c.photos || []).forEach(function (p) { photos.push(p); }); });
+      return photos;
+    }
+
+    function fillSiteLinks(box, car) {
+      if (!box) return;
+      var photos = siteLinkPhotos(car);
+      var reelFiles = photos.filter(function (p) { return p.reel; }).map(function (p) { return p.file; });
+      var galleryFiles = photos.filter(function (p) { return p.gallery; }).map(function (p) { return p.file; });
+      var reel = box.querySelector('[data-link="reel"]');
+      var gallery = box.querySelector('[data-link="gallery"]');
+      var vote = box.querySelector('[data-link="vote"]');
+      reel.hidden = !reelFiles.length;
+      reel.href = 'index.html?only=' + encodeURIComponent(reelFiles.join(',')) + '#build-feed';
+      gallery.hidden = !galleryFiles.length;
+      gallery.href = 'gallery.html?only=' + encodeURIComponent(galleryFiles.join(','));
+      var entryHere = voteEntry && photos.some(function (p) { return p.file === voteEntry.file; });
+      vote.href = entryHere ? 'index.html?entry=' + encodeURIComponent(voteEntry.file) + '#vote-frame' : 'index.html#vote-how';
+      box.hidden = !photos.length;
+    }
+
+    function updateSiteLinks() {
+      fillSiteLinks(document.getElementById('mb-garage-site-links'), null);
+      fillSiteLinks(document.getElementById('mb-car-site-links'), currentCarId ? findCar(currentCarId) : null);
     }
 
     // Photos with recent comment activity are shown first so the owner
@@ -1615,6 +1685,8 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderCarDetail(car) {
       if (!car) return;
       carNameInput.value = car.name || '';
+      carNameText.textContent = car.name || 'MT3UK member build';
+      showCarNameEdit(false);
       carColorSelect.value = car.color || '';
       var photoCount = (car.photos || []).length;
       carPhotoCount.textContent = photoCount + (photoCount === 1 ? ' photo' : ' photos');
@@ -1630,6 +1702,7 @@ document.addEventListener('DOMContentLoaded', function () {
       renderCarMods(car.mods);
       renderPhotoStrip(car);
       renderVoteHint();
+      updateSiteLinks();
     }
 
     // When a photo was added, e.g. "2 weeks ago", from its UK date.
@@ -2046,14 +2119,45 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    carNameInput.addEventListener('change', function () {
+    function showCarNameEdit(editing) {
+      carNameText.hidden = editing;
+      carNameEditBtn.hidden = editing;
+      carNameInput.hidden = !editing;
+      carNameSaveBtn.hidden = !editing;
+      carNameCancelBtn.hidden = !editing;
+      if (editing) {
+        carNameInput.focus();
+        carNameInput.select();
+      }
+    }
+
+    carNameEditBtn.addEventListener('click', function () {
+      var car = findCar(currentCarId);
+      carNameInput.value = (car && car.name) || '';
+      showCarNameEdit(true);
+    });
+    carNameCancelBtn.addEventListener('click', function () { showCarNameEdit(false); });
+    carNameInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); saveCarName(); }
+      if (e.key === 'Escape') { e.preventDefault(); showCarNameEdit(false); }
+    });
+    carNameSaveBtn.addEventListener('click', saveCarName);
+
+    function saveCarName() {
       var name = carNameInput.value.trim();
-      if (!name || !currentCarId) return;
+      if (!currentCarId) return;
+      if (!name) { setStatus(carNameStatus, 'Please enter a name', 'err'); return; }
+      var current = findCar(currentCarId);
+      if (current && current.name === name) { showCarNameEdit(false); return; }
+      carNameSaveBtn.disabled = true;
       setStatus(carNameStatus, 'Saving…', '');
       saveCarField(currentCarId, { name: name })
         .then(function (data) {
+          carNameSaveBtn.disabled = false;
           if (data.success) {
             setStatus(carNameStatus, 'Saved', 'ok');
+            carNameText.textContent = name;
+            showCarNameEdit(false);
             if (data.car && data.car.id !== currentCarId) {
               currentCarId = data.car.id;
             }
@@ -2068,9 +2172,10 @@ document.addEventListener('DOMContentLoaded', function () {
           }
         })
         .catch(function () {
+          carNameSaveBtn.disabled = false;
           setStatus(carNameStatus, 'Could not save, try again', 'err');
         });
-    });
+    }
 
     carColorSelect.addEventListener('change', function () {
       var color = carColorSelect.value;
@@ -2114,7 +2219,8 @@ document.addEventListener('DOMContentLoaded', function () {
       var token = getSession();
       var body = {};
       body.file = file;
-      body[checkbox.dataset.flag] = checkbox.checked;
+      if (isVoteFlag) body.vote = checkbox.checked ? 'enter' : 'leave';
+      else body[checkbox.dataset.flag] = checkbox.checked;
       checkbox.disabled = true;
       fetch(API + '/my-builds', {
         method: 'PUT',
@@ -2155,6 +2261,7 @@ document.addEventListener('DOMContentLoaded', function () {
       });
       voteEntry = entryPhoto ? { file: file, caption: entryPhoto.caption || '', votes: 0 } : null;
       renderVoteHint();
+      updateSiteLinks();
       photoStrip.querySelectorAll('.mb-photo-thumb-wrap').forEach(function (wrap) {
         var box = wrap.querySelector('input[data-flag="votable"]');
         if (box) box.checked = wrap.getAttribute('data-file') === file;
@@ -2819,6 +2926,7 @@ document.addEventListener('DOMContentLoaded', function () {
           carsData = data.cars;
           voteEntry = data.voteEntry || null;
           renderVoteHint();
+          updateSiteLinks();
 
           if (currentCarId) {
             var car = findCar(currentCarId);

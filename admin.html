@@ -59,6 +59,10 @@
   .bell-sub { display: block; color: var(--steel); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .bell-new { flex-shrink: 0; font-size: 0.6rem; font-weight: 700; color: var(--orange); letter-spacing: 0.05em; }
   .bell-empty { padding: 14px; color: var(--steel); font-size: 0.8rem; }
+  .bell-key { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+  .bell-key-label { font-size: 0.8rem; color: var(--white); }
+  .bell-key-row { display: flex; gap: 8px; }
+  .bell-key-row input { flex: 1; min-width: 0; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3); color: var(--white); padding: 9px 10px; font-family: inherit; font-size: 16px; }
   .bell-flash { outline: 2px solid var(--orange); outline-offset: 3px; transition: outline-color 1.5s ease; }
   @media (max-width: 600px) {
     header h1 { padding-right: 56px; }
@@ -566,6 +570,8 @@
       .then(function (result) {
         pendingEl.innerHTML = '';
         decidedEl.innerHTML = '';
+        // The bell asks for the key again if this one didn't work.
+        adminKeyState = result.ok && result.data && result.data.success ? 'ok' : 'bad';
         if (!result.ok || !result.data || !result.data.success) {
           pendingEl.innerHTML = '<p class="empty">' + escapeHtml((result.data && result.data.message) || 'Could not load claims.') + '</p>';
           return;
@@ -1444,16 +1450,19 @@
 
   // ---------- Load all ----------
 
+  // 'none' until a key is tried, then 'ok' or 'bad' (see loadClaims).
+  var adminKeyState = 'none';
+
   function loadAll(applyRules) {
     var key = keyInput.value.trim();
     if (!key) {
       statusEl.textContent = 'Enter the admin key first.';
-      return;
+      return Promise.resolve();
     }
     sessionStorage.setItem('mt3ukAdminKey', key);
     statusEl.textContent = 'Loading…';
 
-    Promise.all([loadClaims(key), loadUnclaimed(key), loadSubscribers(key), loadThreads(key), loadReported(key), loadVoteEntries(key)])
+    return Promise.all([loadClaims(key), loadUnclaimed(key), loadSubscribers(key), loadThreads(key), loadReported(key), loadVoteEntries(key)])
       .then(function () {
         statusEl.textContent = '';
         if (applyRules === true) applyOpenRules();
@@ -1529,7 +1538,44 @@
     bellBadge.textContent = unseen > 99 ? '99+' : String(unseen);
     bellBtn.setAttribute('aria-label', unseen ? 'Notifications, ' + unseen + ' new' : 'Notifications');
     document.title = (unseen ? '(' + unseen + ') ' : '') + 'Admin | MT3UK';
-    if (!bellPanel.hidden) drawBellPanel(seen);
+    if (!bellPanel.hidden && adminKeyState === 'ok' && !document.getElementById('bell-key-form')) drawBellPanel(seen);
+  }
+
+  // No key yet, or it didn't work: ask for it in the bell's panel.
+  function drawBellKeyPrompt(message) {
+    bellPanel.innerHTML =
+      '<form class="bell-key" id="bell-key-form">' +
+        '<label class="bell-key-label" for="bell-key-input">' + escapeHtml(message) + '</label>' +
+        '<div class="bell-key-row">' +
+          '<input type="password" id="bell-key-input" placeholder="Admin key" autocomplete="off" required>' +
+          '<button type="submit">Check</button>' +
+        '</div>' +
+      '</form>';
+    var input = document.getElementById('bell-key-input');
+    input.value = keyInput.value;
+    setTimeout(function () { input.focus(); }, 0);
+    document.getElementById('bell-key-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var key = input.value.trim();
+      if (!key) return;
+      keyInput.value = key;
+      bellPanel.innerHTML = '<p class="bell-empty">Checking&hellip;</p>';
+      loadAll(true).then(function () {
+        if (bellPanel.hidden) return;
+        if (adminKeyState !== 'ok') { drawBellKeyPrompt('That key didn\'t work. Try again:'); return; }
+        openBellList();
+      });
+    });
+  }
+
+  function openBellList() {
+    renderBell();
+    var seen = bellSeen();
+    drawBellPanel(seen);
+    // Everything listed now counts as seen; NEW tags stay until it closes.
+    try { localStorage.setItem(BELL_SEEN_KEY, JSON.stringify(bellItems.map(function (it) { return it.id; }))); } catch (err) {}
+    bellBadge.hidden = true;
+    document.title = 'Admin | MT3UK';
   }
 
   function drawBellPanel(seen) {
@@ -1562,14 +1608,10 @@
   bellBtn.addEventListener('click', function (e) {
     e.stopPropagation();
     if (!bellPanel.hidden) { closeBell(); return; }
-    var seen = bellSeen();
-    drawBellPanel(seen);
     bellPanel.hidden = false;
     bellBtn.setAttribute('aria-expanded', 'true');
-    // Everything listed now counts as seen; NEW tags stay until it closes.
-    try { localStorage.setItem(BELL_SEEN_KEY, JSON.stringify(bellItems.map(function (it) { return it.id; }))); } catch (err) {}
-    bellBadge.hidden = true;
-    document.title = 'Admin | MT3UK';
+    if (adminKeyState === 'ok') openBellList();
+    else drawBellKeyPrompt(adminKeyState === 'bad' ? 'That key didn\'t work. Enter the admin key:' : 'Enter the admin key to see notifications:');
   });
 
   bellPanel.addEventListener('click', function (e) {

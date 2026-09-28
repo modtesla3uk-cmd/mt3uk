@@ -616,3 +616,19 @@ def test_only_links_show_just_those_builds(device_page):
     card.wait_for(timeout=10000)
     assert card.is_visible() and "vote-card-focus" in card.get_attribute("class")
     assert page.errors == []
+
+
+@all_devices
+def test_admin_bell_asks_for_key(device_page):
+    page = device_page
+    page.goto("/admin.html")
+    page.click("#bell-btn")
+    prompt = page.locator("#bell-key-input")
+    prompt.wait_for(state="visible", timeout=5000)
+    assert "Enter the admin key" in page.inner_text("#bell-panel")
+    prompt.fill("test-key")
+    page.locator("#bell-key-form button").click()
+    page.locator("#bell-panel .bell-item").first.wait_for(timeout=10000)
+    assert "PENDING CLAIMS (1)" in page.inner_text("#bell-panel").upper()
+    assert page.input_value("#admin-key") == "test-key"
+    assert page.errors == []

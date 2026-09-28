@@ -14,6 +14,7 @@ data. A device whose browser isn't installed is skipped, so this still runs
 locally with Chromium only; CI installs all three engines.
 """
 import json
+import os
 import re
 from pathlib import Path
 
@@ -29,6 +30,11 @@ PAGES = sorted(
     for p in REPO_ROOT.glob("*.html")
     if 'id="hamburger"' in p.read_text(encoding="utf-8", errors="ignore")
 )
+# MT3UK_PAGES=shop,gallery limits the page checks to those pages (used by the
+# on-demand runs from the Device Checks page). Unset checks every page.
+_only_pages = [p.strip() for p in os.environ.get("MT3UK_PAGES", "").split(",") if p.strip()]
+if _only_pages:
+    PAGES = [p for p in PAGES if p in _only_pages] or PAGES
 
 # name: (browser engine, Playwright device, or None for a desktop window)
 DEVICES = {
@@ -39,6 +45,12 @@ DEVICES = {
     "desktop-firefox": ("firefox", None),
 }
 MOBILE = {"iphone", "android"}
+
+# GitHub runs one job per device: MT3UK_DEVICES=iphone (or a comma list)
+# limits the run to those devices. Unset runs them all.
+_only = [d.strip() for d in os.environ.get("MT3UK_DEVICES", "").split(",") if d.strip()]
+if _only:
+    DEVICES = {name: spec for name, spec in DEVICES.items() if name in _only}
 
 API_HOST = "late-darkness-ebc8.modtesla3uk.workers.dev"
 # Pages call the worker with fetch(). WebKit lets cross-site POSTs skip

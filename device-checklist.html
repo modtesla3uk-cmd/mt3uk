@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Device Test Checklist | MT3UK</title>
+<title>Device Checks | MT3UK</title>
 <link rel="icon" type="image/x-icon" href="images/site/favicon.ico">
 <style>
   :root {
@@ -14,6 +14,7 @@
     --steel: #9aa4b5;
     --white: #ffffff;
     --green: #4caf7d;
+    --red: #ff6b6b;
     --line: rgba(255, 255, 255, 0.12);
   }
   * { box-sizing: border-box; }
@@ -25,167 +26,388 @@
     font-size: 15px;
     line-height: 1.5;
   }
+  a { color: var(--white); }
   .wrap { max-width: 1000px; margin: 0 auto; padding: 24px 16px 60px; }
   h1 { font-size: 1.4rem; margin: 0 0 4px; color: var(--orange); }
-  .intro { color: var(--steel); margin: 0 0 18px; }
-  .bar {
-    position: sticky; top: 0; z-index: 5;
-    background: var(--ink); border-bottom: 1px solid var(--line);
-    padding: 12px 0; margin-bottom: 18px;
-    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+  h2 { font-size: 1.05rem; margin: 0 0 6px; color: var(--orange); }
+  .intro { color: var(--steel); margin: 0 0 14px; }
+  .card { border: 1px solid var(--line); background: var(--ink-2); padding: 16px; margin: 0 0 26px; }
+  button {
+    background: var(--ink); color: var(--white); border: 1px solid var(--line);
+    padding: 8px 12px; font-size: 0.9rem; border-radius: 4px; cursor: pointer;
   }
+  button.primary { background: var(--orange); border-color: var(--orange); }
+
+  /* Automated checks */
+  .run-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-bottom: 12px; }
+  .run-status { font-weight: 700; font-size: 1.05rem; }
+  .run-status.ok { color: var(--green); }
+  .run-status.bad { color: var(--red); }
+  .run-status.busy { color: var(--steel); }
+  .run-meta { color: var(--steel); font-size: 0.88rem; flex: 1; min-width: 200px; }
+  .devices { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .devices li { border: 1px solid var(--line); padding: 10px 12px; background: var(--ink); }
+  .devices .dev-name { font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .devices .dev-state { font-size: 0.85rem; color: var(--steel); margin-top: 2px; }
+  .icon { width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; flex-shrink: 0; }
+  .icon.ok { background: var(--green); color: var(--ink); }
+  .icon.bad { background: var(--red); color: var(--ink); }
+  .icon.busy { background: var(--line); color: var(--white); }
+  .fails { margin: 8px 0 0; padding: 0; list-style: none; font-size: 0.84rem; }
+  .fails li { border: 0; padding: 4px 0 0; background: none; color: #ffd2d2; overflow-wrap: anywhere; }
+  .fails code { color: var(--white); font-size: 0.8rem; }
+  .run-links { margin-top: 12px; font-size: 0.88rem; display: flex; flex-wrap: wrap; gap: 6px 18px; }
+  .covers { color: var(--steel); font-size: 0.85rem; margin: 12px 0 0; }
+
+  /* Run checks now */
+  .run-form fieldset { border: 0; padding: 0; margin: 0 0 12px; }
+  .run-form legend { font-size: 0.8rem; color: var(--steel); margin-bottom: 6px; padding: 0; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips label {
+    display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--ink); padding: 6px 10px; border-radius: 999px; font-size: 0.88rem;
+  }
+  .chips input { accent-color: var(--orange); }
+  .run-form details { margin-bottom: 12px; }
+  .run-form summary { cursor: pointer; color: var(--steel); font-size: 0.88rem; }
+  .run-form details .chips { margin-top: 8px; }
+  .run-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .run-actions input {
+    background: var(--ink); color: var(--white); border: 1px solid var(--line);
+    padding: 8px 10px; font-size: 0.95rem; border-radius: 4px; flex: 1 1 180px; min-width: 0;
+  }
+  #run-msg { font-size: 0.88rem; color: var(--steel); width: 100%; }
+  #run-msg.err { color: var(--red); }
+  #run-msg.ok { color: var(--green); }
+
+  /* Hands-on checks */
+  .bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 12px; }
   .bar label { font-size: 0.8rem; color: var(--steel); }
   .bar select, .bar input {
-    background: var(--ink-2); color: var(--white); border: 1px solid var(--line);
+    background: var(--ink); color: var(--white); border: 1px solid var(--line);
     padding: 8px 10px; font-size: 0.95rem; border-radius: 4px;
   }
   .bar input { min-width: 0; flex: 1 1 160px; }
   .progress { font-weight: 600; margin-left: auto; white-space: nowrap; }
   .progress .done { color: var(--green); }
-  button {
-    background: var(--ink-2); color: var(--white); border: 1px solid var(--line);
-    padding: 8px 12px; font-size: 0.9rem; border-radius: 4px; cursor: pointer;
-  }
-  button.primary { background: var(--orange); border-color: var(--orange); }
-  .buttons { display: flex; gap: 8px; flex-wrap: wrap; }
-  .grid { columns: 2; column-gap: 28px; column-rule: 1px solid var(--line); }
-  section { break-inside: avoid; margin: 0 0 22px; }
-  h2 { font-size: 1rem; margin: 0 0 8px; color: var(--orange); letter-spacing: 0.02em; }
-  .only { font-size: 0.72rem; color: var(--steel); font-weight: normal; margin-left: 6px; }
-  ul { list-style: none; margin: 0; padding: 0; }
-  li { border-bottom: 1px solid var(--line); }
-  li label { display: flex; gap: 10px; padding: 9px 2px; cursor: pointer; align-items: flex-start; }
-  li input { width: 20px; height: 20px; margin: 2px 0 0; flex: 0 0 auto; accent-color: var(--green); }
-  li.checked span { color: var(--steel); text-decoration: line-through; }
-  li.na { display: none; }
-  .tip { color: var(--steel); font-size: 0.85rem; margin: 6px 0 0; }
+  .buttons { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
   #copy-status { color: var(--green); font-size: 0.85rem; }
+  .grid { columns: 2; column-gap: 28px; column-rule: 1px solid var(--line); }
+  section { break-inside: avoid; margin: 0 0 18px; }
+  section h3 { font-size: 0.95rem; margin: 0 0 6px; }
+  ul.checks { list-style: none; margin: 0; padding: 0; }
+  ul.checks li { border-bottom: 1px solid var(--line); }
+  ul.checks label { display: flex; gap: 10px; padding: 9px 2px; cursor: pointer; align-items: flex-start; }
+  ul.checks input { width: 20px; height: 20px; margin: 2px 0 0; flex: 0 0 auto; accent-color: var(--green); }
+  ul.checks li.checked span { color: var(--steel); text-decoration: line-through; }
+  ul.checks li.na { display: none; }
   @media (max-width: 780px) {
+    .devices { grid-template-columns: 1fr 1fr; }
     .grid { columns: 1; }
     .progress { margin-left: 0; width: 100%; }
+  }
+  @media (max-width: 420px) {
+    .devices { grid-template-columns: 1fr; }
   }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>Device Test Checklist</h1>
-  <p class="intro">Run through this on a real phone after bigger changes. Ticks are saved on this device only. Choose the device type to hide steps that don't apply, then use Copy results to paste a summary into a message.</p>
+  <h1>Device Checks</h1>
+  <p class="intro">The site tests itself automatically after every change. You only need to look here if something is red, or if you've been asked to try the hands-on checks on your own phone.</p>
 
-  <div class="bar">
-    <label for="device-type">Device</label>
-    <select id="device-type">
-      <option value="iphone">iPhone</option>
-      <option value="android">Android</option>
-      <option value="desktop">Desktop</option>
-    </select>
-    <input id="device-name" type="text" placeholder="Model, e.g. iPhone 15, iOS 18" aria-label="Device model">
-    <span class="progress" id="progress"></span>
-    <div class="buttons">
-      <button type="button" class="primary" id="copy-btn">Copy results</button>
-      <button type="button" id="reset-btn">Clear ticks</button>
-      <span id="copy-status"></span>
+  <div class="card" id="auto">
+    <h2>Automated checks</h2>
+    <div class="run-head">
+      <span class="run-status busy" id="run-status">Loading the latest results&hellip;</span>
+      <span class="run-meta" id="run-meta"></span>
+      <button type="button" id="refresh-btn">Refresh</button>
+    </div>
+    <ul class="devices" id="devices"></ul>
+    <div class="run-links" id="run-links"></div>
+    <p class="covers">On every device: each page loads without errors, fits the screen and the menu opens; liking a photo asks you to sign in and then works; a gallery photo opens in the viewer; My Garage signs in with a 6-digit code. Site checks cover the shop, the menu on every page and the shared header. Screenshots of every page on every device are saved with each run.</p>
+  </div>
+
+  <div class="card">
+    <h2>Run checks now</h2>
+    <p class="intro">Pick devices and checks, then Run. GitHub runs them (usually 2 to 4 minutes) and the results appear in Automated checks above.</p>
+    <form class="run-form" id="run-form">
+      <fieldset>
+        <legend>Devices</legend>
+        <div class="chips">
+          <label><input type="checkbox" name="devices" value="iphone" checked> iPhone</label>
+          <label><input type="checkbox" name="devices" value="ipad" checked> iPad</label>
+          <label><input type="checkbox" name="devices" value="android" checked> Android</label>
+          <label><input type="checkbox" name="devices" value="desktop-chrome" checked> Desktop Chrome</label>
+          <label><input type="checkbox" name="devices" value="desktop-firefox" checked> Desktop Firefox</label>
+          <label><input type="checkbox" name="devices" value="site" checked> Site checks</label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Checks (on each device)</legend>
+        <div class="chips">
+          <label><input type="checkbox" name="checks" value="pages" checked> Pages load, fit and menu</label>
+          <label><input type="checkbox" name="checks" value="likes" checked> Reel likes and sign-in</label>
+          <label><input type="checkbox" name="checks" value="gallery" checked> Gallery photo viewer</label>
+          <label><input type="checkbox" name="checks" value="garage" checked> My Garage sign-in</label>
+        </div>
+      </fieldset>
+      <details>
+        <summary>Pages: all (tap to choose specific pages)</summary>
+        <div class="chips" id="page-chips"></div>
+      </details>
+      <div class="run-actions">
+        <input type="password" id="run-key" placeholder="Admin key" autocomplete="off" aria-label="Admin key">
+        <button type="submit" class="primary" id="run-btn">Run checks</button>
+        <span id="run-msg"></span>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Hands-on checks</h2>
+    <p class="intro">Only needed now and then, on a real phone, for things a robot can't try: installing the app, notifications, emails and sharing. Tick what works, then Copy results to send a summary of anything that didn't.</p>
+    <div class="bar">
+      <label for="device-type">Device</label>
+      <select id="device-type">
+        <option value="iphone">iPhone</option>
+        <option value="android">Android</option>
+        <option value="desktop">Desktop</option>
+      </select>
+      <input id="device-name" type="text" placeholder="Model, e.g. iPhone 15, iOS 18" aria-label="Device model">
+      <span class="progress" id="progress"></span>
+      <div class="buttons">
+        <button type="button" class="primary" id="copy-btn">Copy results</button>
+        <button type="button" id="reset-btn">Clear ticks</button>
+        <span id="copy-status"></span>
+      </div>
+    </div>
+
+    <div class="grid" id="checklist">
+      <section>
+        <h3>Install the app</h3>
+        <ul class="checks">
+          <li data-only="iphone"><label><input type="checkbox"><span>In Safari: Share, then Add to Home Screen, with Open as Web App on</span></label></li>
+          <li data-only="android"><label><input type="checkbox"><span>In Chrome: menu, then Install app (or the homepage Get the app button)</span></label></li>
+          <li data-only="desktop"><label><input type="checkbox"><span>In Chrome or Edge: install icon in the address bar</span></label></li>
+          <li><label><input type="checkbox"><span>App icon is the navy MT3UK icon, and the app opens with no address bar</span></label></li>
+        </ul>
+      </section>
+
+      <section>
+        <h3>Sign-in email</h3>
+        <ul class="checks">
+          <li><label><input type="checkbox"><span>Send me a sign-in link: the email arrives with a link and a 6-digit code</span></label></li>
+          <li><label><input type="checkbox"><span>Close the app fully and reopen it: still signed in</span></label></li>
+        </ul>
+      </section>
+
+      <section>
+        <h3>Push notifications</h3>
+        <ul class="checks">
+          <li><label><input type="checkbox"><span>Enable Push Notifications in My Garage, then Send a test: it arrives</span></label></li>
+          <li><label><input type="checkbox"><span>With the app closed, a like or comment on your photo arrives</span></label></li>
+          <li><label><input type="checkbox"><span>Tapping a notification opens the right photo</span></label></li>
+        </ul>
+      </section>
+
+      <section>
+        <h3>Sharing and feel</h3>
+        <ul class="checks">
+          <li><label><input type="checkbox"><span>Sharing a reel photo to WhatsApp or Facebook shows the photo in the preview</span></label></li>
+          <li data-only="iphone android"><label><input type="checkbox"><span>Swiping the reel and photos feels smooth</span></label></li>
+        </ul>
+      </section>
     </div>
   </div>
-
-  <div class="grid" id="checklist">
-    <section>
-      <h2>Look and feel</h2>
-      <ul>
-        <li><label><input type="checkbox"><span>Every page fits the screen, with no sideways scrolling</span></label></li>
-        <li><label><input type="checkbox"><span>Text is easy to read and nothing overlaps</span></label></li>
-        <li><label><input type="checkbox"><span>Menu opens, closes and every link goes to the right page</span></label></li>
-        <li><label><input type="checkbox"><span>Photos load and look sharp</span></label></li>
-        <li data-only="iphone android"><label><input type="checkbox"><span>Turning the phone sideways still looks right</span></label></li>
-        <li data-only="desktop"><label><input type="checkbox"><span>Content is centred, short blocks are not left flush on a wide screen</span></label></li>
-        <li><label><input type="checkbox"><span>Browser tab shows the navy M favicon</span></label></li>
-      </ul>
-    </section>
-
-    <section data-only="iphone android desktop">
-      <h2>Install the app</h2>
-      <ul>
-        <li data-only="iphone"><label><input type="checkbox"><span>In Safari: Share, then Add to Home Screen, with Open as Web App on</span></label></li>
-        <li data-only="android"><label><input type="checkbox"><span>In Chrome: menu, then Install app (or the homepage Get the app button)</span></label></li>
-        <li data-only="desktop"><label><input type="checkbox"><span>In Chrome or Edge: install icon in the address bar</span></label></li>
-        <li><label><input type="checkbox"><span>App icon is the navy MT3UK icon</span></label></li>
-        <li><label><input type="checkbox"><span>App opens without the tap-to-enter intro animation</span></label></li>
-        <li><label><input type="checkbox"><span>App has no browser address bar</span></label></li>
-        <li data-only="android"><label><input type="checkbox"><span>Long-pressing the icon shows My Garage and Full Gallery shortcuts</span></label></li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>My Garage sign-in</h2>
-      <ul>
-        <li><label><input type="checkbox"><span>Send me a sign-in link: email arrives with a link and a 6-digit code</span></label></li>
-        <li data-only="iphone"><label><input type="checkbox"><span>In the Home Screen app, the code signs in (the keyboard suggests it)</span></label></li>
-        <li><label><input type="checkbox"><span>The email link signs in (in a browser)</span></label></li>
-        <li><label><input type="checkbox"><span>A wrong code shows a clear message</span></label></li>
-        <li><label><input type="checkbox"><span>Close the app or browser fully, reopen: still signed in</span></label></li>
-        <li><label><input type="checkbox"><span>After signing out and reopening My Garage, the email box is already filled in</span></label></li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>Push notifications</h2>
-      <ul>
-        <li><label><input type="checkbox"><span>Enable Push Notifications in My Garage and allow them</span></label></li>
-        <li><label><input type="checkbox"><span>Send a test: it arrives within a few seconds</span></label></li>
-        <li><label><input type="checkbox"><span>With the app closed, a like on your photo (from another device) arrives</span></label></li>
-        <li><label><input type="checkbox"><span>A comment on your photo arrives, and no comment email is sent</span></label></li>
-        <li><label><input type="checkbox"><span>Tapping a notification opens the right photo</span></label></li>
-        <li><label><input type="checkbox"><span>Disable Push Notifications stops them</span></label></li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>Homepage reel</h2>
-      <ul>
-        <li><label><input type="checkbox"><span>Scroll through posts with the up and down arrows or swipe</span></label></li>
-        <li><label><input type="checkbox"><span>Swipe sideways through a member's same-day photos, dots follow</span></label></li>
-        <li><label><input type="checkbox"><span>Signed out: liking a photo or a comment asks you to sign in, and signing in brings you back</span></label></li>
-        <li><label><input type="checkbox"><span>Signed in: double-tap a photo to like it, and the heart button works too</span></label></li>
-        <li><label><input type="checkbox"><span>My Garage shows like counts on your photos, and likes appear in the bell with the time</span></label></li>
-        <li><label><input type="checkbox"><span>Comments open, and posting a comment works when signed in</span></label></li>
-        <li><label><input type="checkbox"><span>Mods and Share bubbles open and close</span></label></li>
-        <li><label><input type="checkbox"><span>Sharing to WhatsApp or Facebook shows the photo in the preview</span></label></li>
-        <li><label><input type="checkbox"><span>Full screen viewer opens, with mods below the photo</span></label></li>
-        <li><label><input type="checkbox"><span>Report is hidden on your own photos</span></label></li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>Gallery and voting</h2>
-      <ul>
-        <li><label><input type="checkbox"><span>Full Gallery: tapping a photo opens the viewer, arrows and swipe work</span></label></li>
-        <li><label><input type="checkbox"><span>Claim this build: the form and Submit button are fully on screen</span></label></li>
-        <li><label><input type="checkbox"><span>Vote for Build: voting works and the cards look right</span></label></li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>My Garage</h2>
-      <ul>
-        <li><label><input type="checkbox"><span>Upload a build with first and last name, photos appear</span></label></li>
-        <li><label><input type="checkbox"><span>Edit mods and where a photo appears</span></label></li>
-        <li><label><input type="checkbox"><span>Notifications bell shows new comments and replies</span></label></li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>Blog, shop and contact</h2>
-      <ul>
-        <li><label><input type="checkbox"><span>Owner Interviews: page reads well, comments load and post</span></label></li>
-        <li><label><input type="checkbox"><span>Shop: product details open, hold-to-zoom works on photos</span></label></li>
-        <li><label><input type="checkbox"><span>Shop: order buttons open the right product page</span></label></li>
-        <li><label><input type="checkbox"><span>Contact and Reviews pages look right and links work</span></label></li>
-      </ul>
-    </section>
-  </div>
-  <p class="tip">Automated checks also run on every push to GitHub (iPhone and iPad using Safari's engine, Android, and desktop Chrome and Firefox). Their screenshots are in the "Run Playwright tests" run, under device-screenshots.</p>
 </div>
 
 <script>
+  // Automated checks: the latest "Run Playwright tests" run on main, read
+  // from GitHub's public API (one job per device, failures as annotations).
+  (function () {
+    var REPO = 'modtesla3uk-cmd/mt3uk';
+    var API = 'https://api.github.com/repos/' + REPO;
+    var statusEl = document.getElementById('run-status');
+    var metaEl = document.getElementById('run-meta');
+    var devicesEl = document.getElementById('devices');
+    var linksEl = document.getElementById('run-links');
+    var ORDER = ['iPhone', 'iPad', 'Android', 'Desktop Chrome', 'Desktop Firefox', 'Site checks'];
+
+    function esc(v) {
+      return String(v).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    function ago(iso) {
+      var mins = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+      if (mins < 1) return 'just now';
+      if (mins < 60) return mins + ' min ago';
+      var hours = Math.round(mins / 60);
+      if (hours < 48) return hours + ' hour' + (hours === 1 ? '' : 's') + ' ago';
+      return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    }
+    function getJSON(url) {
+      return fetch(url, { headers: { Accept: 'application/vnd.github+json' } }).then(function (res) {
+        if (res.status === 403 || res.status === 429) throw new Error('limit');
+        if (!res.ok) throw new Error('http');
+        return res.json();
+      });
+    }
+    function state(job) {
+      if (job.status !== 'completed') return { cls: 'busy', icon: '&hellip;', text: 'Running' };
+      if (job.conclusion === 'success') return { cls: 'ok', icon: '&#10003;', text: 'All passed' };
+      if (job.conclusion === 'skipped' || job.conclusion === 'cancelled') return { cls: 'busy', icon: '&ndash;', text: 'Did not run' };
+      return { cls: 'bad', icon: '&#10007;', text: 'Something failed' };
+    }
+
+    function load() {
+      statusEl.className = 'run-status busy';
+      statusEl.textContent = 'Loading the latest results…';
+      getJSON(API + '/actions/workflows/tests.yml/runs?branch=main&per_page=1')
+        .then(function (data) {
+          var run = data.workflow_runs && data.workflow_runs[0];
+          if (!run) throw new Error('none');
+          window.mt3ukLastRun = run;
+          var title = (run.display_title || (run.head_commit && run.head_commit.message) || '').split('\n')[0];
+          metaEl.innerHTML = (run.event === 'repository_dispatch' ? 'Requested ' : 'Last run ') + ago(run.created_at) +
+            (run.event === 'repository_dispatch' ? ': ' + esc(title.replace(/^On-demand checks: /, '')) : ' after &ldquo;' + esc(title) + '&rdquo;');
+          linksEl.innerHTML = '<a href="' + esc(run.html_url) + '" target="_blank" rel="noopener">Open the run on GitHub</a>' +
+            '<a href="' + esc(run.html_url) + '#artifacts" target="_blank" rel="noopener">Screenshots (download)</a>';
+          return getJSON(run.jobs_url + '?per_page=50').then(function (jobsData) { return { run: run, jobs: jobsData.jobs || [] }; });
+        })
+        .then(function (r) {
+          var jobs = r.jobs.slice().sort(function (a, b) {
+            var ia = ORDER.indexOf(a.name), ib = ORDER.indexOf(b.name);
+            return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+          });
+          var failed = jobs.filter(function (j) { return state(j).cls === 'bad'; });
+          var running = jobs.filter(function (j) { return j.status !== 'completed'; });
+          if (running.length) {
+            statusEl.className = 'run-status busy';
+            statusEl.textContent = 'Checks are running now';
+          } else if (failed.length) {
+            statusEl.className = 'run-status bad';
+            statusEl.textContent = failed.length + ' of ' + jobs.length + ' failed';
+          } else {
+            statusEl.className = 'run-status ok';
+            statusEl.textContent = 'Everything passed';
+          }
+          devicesEl.innerHTML = jobs.map(function (job) {
+            var s = state(job);
+            var name = job.name === 'test' ? 'All devices' : job.name;
+            return '<li data-job="' + job.id + '"><div class="dev-name"><span class="icon ' + s.cls + '">' + s.icon + '</span>' +
+              '<a href="' + esc(job.html_url) + '" target="_blank" rel="noopener">' + esc(name) + '</a></div>' +
+              '<div class="dev-state">' + s.text + '</div><ul class="fails"></ul></li>';
+          }).join('');
+          // Why each failed job failed, from its annotations.
+          failed.forEach(function (job) {
+            getJSON(API + '/check-runs/' + job.id + '/annotations').then(function (notes) {
+              var list = devicesEl.querySelector('li[data-job="' + job.id + '"] .fails');
+              var errors = (notes || []).filter(function (n) { return n.annotation_level === 'failure'; });
+              list.innerHTML = errors.slice(0, 6).map(function (n) {
+                return '<li><code>' + esc(n.title || '') + '</code><br>' + esc(n.message || '') + '</li>';
+              }).join('') || '<li>Open the job for details.</li>';
+            }).catch(function () {});
+          });
+        })
+        .catch(function (err) {
+          statusEl.className = 'run-status busy';
+          statusEl.textContent = err.message === 'limit'
+            ? 'GitHub is limiting requests right now, try again in a few minutes.'
+            : 'Could not load the results.';
+          linksEl.innerHTML = '<a href="https://github.com/' + REPO + '/actions/workflows/tests.yml" target="_blank" rel="noopener">Open the test runs on GitHub</a>';
+        });
+    }
+
+    document.getElementById('refresh-btn').addEventListener('click', load);
+    window.mt3ukLoadRuns = load;
+    load();
+  })();
+
+  // Run checks now: asks the worker (admin key) to start the chosen checks on
+  // GitHub, then refreshes Automated checks until the run finishes.
+  (function () {
+    var WORKER = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
+    var PAGES = ['index', 'gallery', 'my-builds', 'shop', 'reviews', 'contact', 'track-day-on-the-day',
+      'track-day-prep', 'track-day-venues', 'blog', 'blog-aaron', 'blog-mark', 'blog-myk-track-day', 'blog-myk',
+      'blog-richard', 'blog-richie'];
+    var form = document.getElementById('run-form');
+    var keyEl = document.getElementById('run-key');
+    var msg = document.getElementById('run-msg');
+    var btn = document.getElementById('run-btn');
+    var pageChips = document.getElementById('page-chips');
+    var summary = form.querySelector('summary');
+    var timer = null;
+
+    pageChips.innerHTML = PAGES.map(function (p) {
+      return '<label><input type="checkbox" name="pages" value="' + p + '"> ' + (p === 'index' ? 'home' : p) + '</label>';
+    }).join('');
+    pageChips.addEventListener('change', function () {
+      var n = form.querySelectorAll('input[name="pages"]:checked').length;
+      summary.textContent = n ? 'Pages: ' + n + ' chosen' : 'Pages: all (tap to choose specific pages)';
+    });
+
+    try { keyEl.value = sessionStorage.getItem('mt3ukAdminKey') || ''; } catch (e) {}
+
+    function values(name) {
+      return Array.prototype.map.call(form.querySelectorAll('input[name="' + name + '"]:checked'), function (i) { return i.value; });
+    }
+    function say(text, cls) { msg.textContent = text; msg.className = cls || ''; }
+
+    function followRun(startedAt) {
+      clearInterval(timer);
+      var tries = 0;
+      timer = setInterval(function () {
+        tries++;
+        window.mt3ukLoadRuns();
+        // Only the run started after pressing Run counts (allowing for clock
+        // differences), not the one that was showing before.
+        var run = window.mt3ukLastRun;
+        var isNew = run && new Date(run.created_at).getTime() >= startedAt - 60000;
+        if (isNew && run.status === 'completed') {
+          clearInterval(timer);
+          var ok = run.conclusion === 'success';
+          say(ok ? 'Finished: everything passed.' : 'Finished: something failed, see Automated checks above.', ok ? 'ok' : 'err');
+        } else if (tries > 48) {
+          clearInterval(timer);
+          say('Still going after 12 minutes. Tap Refresh above to check again.');
+        }
+      }, 15000);
+      say('Started. GitHub takes about half a minute to pick it up, then 2 to 4 minutes to run. Results update above.', 'ok');
+      document.getElementById('auto').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var key = keyEl.value.trim();
+      var devices = values('devices');
+      var checks = values('checks');
+      var pages = values('pages');
+      if (!key) { say('Enter the admin key.', 'err'); return; }
+      if (!devices.length) { say('Choose at least one device.', 'err'); return; }
+      if (!checks.length) { say('Choose at least one check.', 'err'); return; }
+      if (checks.length === 4) checks = [];
+      btn.disabled = true;
+      say('Asking GitHub to start…');
+      fetch(WORKER + '/admin/run-tests?key=' + encodeURIComponent(key), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ devices: devices, checks: checks, pages: pages })
+      })
+        .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, status: res.status, data: d }; }); })
+        .then(function (r) {
+          if (r.status === 401) { say('That admin key was not accepted.', 'err'); return; }
+          if (!r.ok || !r.data.success) { say(r.data.message || 'Could not start the checks.', 'err'); return; }
+          try { sessionStorage.setItem('mt3ukAdminKey', key); } catch (err) {}
+          followRun(Date.now());
+        })
+        .catch(function () { say('Could not reach the worker, please try again.', 'err'); })
+        .then(function () { btn.disabled = false; });
+    });
+  })();
+
+  // Hands-on checks: ticks saved on this device only.
   (function () {
     var KEY = 'mt3ukDeviceChecklist';
     var state = {};
@@ -196,7 +418,6 @@
     var nameEl = document.getElementById('device-name');
     var progressEl = document.getElementById('progress');
     var items = Array.prototype.slice.call(document.querySelectorAll('#checklist li'));
-    var sections = Array.prototype.slice.call(document.querySelectorAll('#checklist section'));
 
     function guessType() {
       var ua = navigator.userAgent;
@@ -204,26 +425,19 @@
       if (/Android/.test(ua)) return 'android';
       return 'desktop';
     }
-
-    function save() {
-      try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
-    }
-
+    function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
     function applies(el, type) {
       var only = el.getAttribute('data-only');
       return !only || only.split(' ').indexOf(type) !== -1;
     }
-
     function itemId(li) {
-      return li.closest('section').querySelector('h2').firstChild.textContent.trim() + ': ' + li.textContent.trim();
+      return li.closest('section').querySelector('h3').textContent.trim() + ': ' + li.textContent.trim();
     }
-
     function render() {
       var type = typeEl.value;
       var total = 0, done = 0;
-      sections.forEach(function (sec) { sec.hidden = !applies(sec, type); });
       items.forEach(function (li) {
-        var visible = applies(li, type) && applies(li.closest('section'), type);
+        var visible = applies(li, type);
         li.classList.toggle('na', !visible);
         var box = li.querySelector('input');
         box.checked = !!state.ticks[type + '|' + itemId(li)];
@@ -261,14 +475,13 @@
     });
 
     document.getElementById('copy-btn').addEventListener('click', function () {
-      var type = typeEl.value;
-      var lines = ['MT3UK device test: ' + typeEl.options[typeEl.selectedIndex].text + (nameEl.value ? ' (' + nameEl.value + ')' : ''), progressEl.textContent, ''];
+      var lines = ['MT3UK hands-on check: ' + typeEl.options[typeEl.selectedIndex].text + (nameEl.value ? ' (' + nameEl.value + ')' : ''), progressEl.textContent, ''];
       var failed = [];
       items.forEach(function (li) {
         if (li.classList.contains('na')) return;
-        if (!li.querySelector('input').checked) failed.push('Not ticked: ' + itemId(li));
+        if (!li.querySelector('input').checked) failed.push('Not working: ' + itemId(li));
       });
-      lines = lines.concat(failed.length ? failed : ['Everything ticked.']);
+      lines = lines.concat(failed.length ? failed : ['Everything worked.']);
       var text = lines.join('\n');
       var status = document.getElementById('copy-status');
       (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject())

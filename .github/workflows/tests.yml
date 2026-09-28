@@ -1,12 +1,66 @@
 name: Run Playwright tests
+run-name: "${{ github.event_name == 'repository_dispatch' && format('On-demand checks: {0}', github.event.client_payload.label) || github.event.head_commit.message || github.event.pull_request.title }}"
 
 on:
   push:
   pull_request:
+  # Started from the Device Checks page (device-checklist.html) through the
+  # worker's /admin/run-tests, with a choice of devices, checks and pages.
+  repository_dispatch:
+    types: [device-tests]
 
+# One job per device, so each shows its own pass or fail. The Device Checks
+# page reads these job results and their failure notes from the GitHub API.
 jobs:
-  test:
+  plan:
     runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      checks: ${{ steps.plan.outputs.checks }}
+      pages: ${{ steps.plan.outputs.pages }}
+    steps:
+      - name: Choose devices and checks
+        id: plan
+        env:
+          PAYLOAD: ${{ toJSON(github.event.client_payload) }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+          all_jobs = [
+              {"name": "Site checks", "device": "", "browser": "chromium", "key": "site"},
+              {"name": "iPhone", "device": "iphone", "browser": "webkit", "key": "iphone"},
+              {"name": "iPad", "device": "ipad", "browser": "webkit", "key": "ipad"},
+              {"name": "Android", "device": "android", "browser": "chromium", "key": "android"},
+              {"name": "Desktop Chrome", "device": "desktop-chrome", "browser": "chromium", "key": "desktop-chrome"},
+              {"name": "Desktop Firefox", "device": "desktop-firefox", "browser": "firefox", "key": "desktop-firefox"},
+          ]
+          tests = {
+              "pages": "test_page_loads_fits_and_menu_opens",
+              "likes": "test_reel_like_asks_to_sign_in_then_works",
+              "gallery": "test_gallery_photo_opens_in_viewer",
+              "garage": "test_my_garage_sign_in_with_code",
+          }
+          try:
+              payload = json.loads(os.environ.get("PAYLOAD") or "null") or {}
+          except ValueError:
+              payload = {}
+          devices = [d for d in payload.get("devices") or [] if isinstance(d, str)]
+          checks = [c for c in payload.get("checks") or [] if c in tests]
+          pages = [p for p in payload.get("pages") or [] if isinstance(p, str) and p.replace("-", "").isalnum()]
+          jobs = [j for j in all_jobs if not devices or j["key"] in devices] or all_jobs
+          with open(os.environ["GITHUB_OUTPUT"], "a") as out:
+              out.write("matrix=" + json.dumps({"include": jobs}) + "\n")
+              out.write("checks=" + " or ".join(tests[c] for c in checks) + "\n")
+              out.write("pages=" + ",".join(pages) + "\n")
+          PY
+
+  test:
+    needs: plan
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,17 +75,34 @@ jobs:
 
       # Chromium for Android and desktop Chrome, WebKit for iPhone and iPad
       # (Safari's engine), Firefox for desktop Firefox. See tests/test_devices.py.
-      - name: Install Playwright browsers
-        run: python -m playwright install --with-deps chromium webkit firefox
+      - name: Install Playwright browser
+        run: python -m playwright install --with-deps ${{ matrix.browser }}
 
       - name: Run tests
-        run: pytest -v
+        env:
+          MT3UK_DEVICES: ${{ matrix.device }}
+          MT3UK_PAGES: ${{ needs.plan.outputs.pages }}
+          CHECKS: ${{ needs.plan.outputs.checks }}
+        run: |
+          if [ -n "$MT3UK_DEVICES" ]; then
+            if [ -n "$CHECKS" ]; then
+              pytest -v tests/test_devices.py -k "$CHECKS" --junitxml=results.xml
+            else
+              pytest -v tests/test_devices.py --junitxml=results.xml
+            fi
+          else
+            pytest -v --ignore=tests/test_devices.py --junitxml=results.xml
+          fi
+
+      - name: Report failures
+        if: always()
+        run: python scripts/ci/report_tests.py results.xml "${{ matrix.name }}"
 
       - name: Save device screenshots
-        if: always()
+        if: always() && matrix.device != ''
         uses: actions/upload-artifact@v4
         with:
-          name: device-screenshots
+          name: device-screenshots-${{ matrix.device }}
           path: test-results/devices/
           retention-days: 14
           if-no-files-found: ignore

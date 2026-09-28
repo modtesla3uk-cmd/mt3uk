@@ -2846,6 +2846,52 @@ function groupEntriesIntoCars(entries) {
   return order;
 }
 
+// Starts the device checks on GitHub from the Device Checks page
+// (device-checklist.html). Admin only. Only known devices, checks and pages
+// are passed on, and the "Run Playwright tests" workflow does the rest.
+var RUN_TEST_DEVICES = ['site', 'iphone', 'ipad', 'android', 'desktop-chrome', 'desktop-firefox'];
+var RUN_TEST_CHECKS = ['pages', 'likes', 'gallery', 'garage'];
+var RUN_TEST_PAGES = ['index', 'gallery', 'my-builds', 'shop', 'reviews', 'contact', 'track-day-on-the-day',
+  'track-day-prep', 'track-day-venues', 'blog', 'blog-aaron', 'blog-mark', 'blog-myk-track-day', 'blog-myk',
+  'blog-richard', 'blog-richie'];
+var RUN_TEST_NAMES = { site: 'Site checks', iphone: 'iPhone', ipad: 'iPad', android: 'Android',
+  'desktop-chrome': 'Desktop Chrome', 'desktop-firefox': 'Desktop Firefox' };
+
+async function handleRunTests(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorized' }, 401);
+  var body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return json({ success: false, message: 'Invalid request body' }, 400);
+  }
+  function pick(list, allowed) {
+    return (Array.isArray(list) ? list : []).filter(function (v, i, arr) {
+      return allowed.indexOf(v) !== -1 && arr.indexOf(v) === i;
+    });
+  }
+  var devices = pick(body && body.devices, RUN_TEST_DEVICES);
+  var checks = pick(body && body.checks, RUN_TEST_CHECKS);
+  var pages = pick(body && body.pages, RUN_TEST_PAGES);
+  if (!devices.length) return json({ success: false, message: 'Choose at least one device.' }, 400);
+  var label = devices.map(function (d) { return RUN_TEST_NAMES[d]; }).join(', ') +
+    (checks.length ? ' | ' + checks.join(', ') : '') + (pages.length ? ' | ' + pages.join(', ') : '');
+  var res = await fetch('https://api.github.com/repos/' + OWNER + '/' + REPO + '/dispatches', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + env.GITHUB_TOKEN,
+      'Accept': 'application/vnd.github+json',
+      'User-Agent': 'mt3uk-gallery-worker',
+      'X-GitHub-Api-Version': '2022-11-28'
+    },
+    body: JSON.stringify({ event_type: 'device-tests', client_payload: { devices: devices, checks: checks, pages: pages, label: label } })
+  });
+  if (!res.ok) {
+    return json({ success: false, message: 'GitHub did not accept the request (' + res.status + ').' }, 502);
+  }
+  return json({ success: true, label: label, requestedAt: new Date().toISOString() });
+}
+
 async function triggerManifestRebuild(env) {
   var ghHeaders = {
     'Authorization': 'Bearer ' + env.GITHUB_TOKEN,
@@ -3972,6 +4018,9 @@ export default {
     }
     if (url.pathname === '/gallery/claim' && request.method === 'POST') {
       return handleGalleryClaim(request, env);
+    }
+    if (url.pathname === '/admin/run-tests' && request.method === 'POST') {
+      return handleRunTests(request, env);
     }
     if (url.pathname === '/gallery/admin/claims' && request.method === 'GET') {
       return handleGalleryClaimsAdminList(request, env);

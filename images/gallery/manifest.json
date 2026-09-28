@@ -111,6 +111,7 @@
     "file": "og-meet-up--by-richard-hughes-chen.jpg",
     "caption": "OG MEET UP",
     "name": "RICHARD HUGHES-CHEN",
+    "votable": false,
     "color": "Grey",
     "added": "2026-09-27",
     "group": "og-meet-up--by-richard-hughes-chen.jpg"
@@ -268,6 +269,7 @@
       "Bonoss 20mm Wheel spacers",
       "Maxton v2 body kit"
     ],
+    "votable": false,
     "color": "White",
     "added": "2026-09-25",
     "group": "m3p-almost-stock.jpg"
@@ -276,6 +278,7 @@
     "file": "m3p-almost-stock-2.jpg",
     "caption": "M3P ALMOST STOCK 2",
     "name": "RICHARD HUGHES-CHEN",
+    "votable": false,
     "color": "White",
     "added": "2026-09-25",
     "group": "m3p-almost-stock.jpg"
@@ -378,7 +381,6 @@
       "LED interior dash",
       "Avery Gloss Hidden Forest Vinyl wrap"
     ],
-    "votable": false,
     "color": "Green",
     "added": "2026-09-21",
     "group": "model-3-front-end.jpg"
@@ -536,6 +538,7 @@
       "LED interior dash",
       "Avery Gloss Hidden Forest Vinyl wrap"
     ],
+    "votable": false,
     "color": "Green",
     "added": "2026-09-19",
     "group": "judd--by-richard.jpg"
@@ -1156,6 +1159,7 @@
       "LED interior dash",
       "Avery Gloss Hidden Forest Vinyl wrap"
     ],
+    "votable": false,
     "color": "Green",
     "added": "2026-09-18",
     "group": "green-purple-goblin--by-rich.jpg"

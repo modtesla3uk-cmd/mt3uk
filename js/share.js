@@ -1,11 +1,18 @@
-// Share a gallery photo from anywhere on the site.
+// Sharing, for photos and for pages and sections of the site.
 //
 //   window.mt3ukShare({ file, caption, name, campaign }, buttonEl)
 //
-// Links go to the photo's share page (share/<file>.html, written by
+// Photo links go to the photo's share page (share/<file>.html, written by
 // scripts/build_share_pages.py), which shows the photo in link previews and
 // sends people on to the reel. Each link carries UTM parameters: the channel
-// as utm_source and the campaign (reel_share, garage_share, cotd_share...).
+// as utm_source and the campaign (reel_share, garage_share, botw_share...).
+//
+// Every page also gets small round share buttons: one by the page's main
+// heading (campaign page_<page>) and one by each section heading, which
+// links straight to that section (campaign section_<section id>). Sections
+// are <section id="..."> with an <h2>; other headings can opt in with
+// data-share-anchor="<id to link to>". Add data-no-share to a heading or
+// section to leave it out.
 //
 // Phones open their own share menu. Desktops get a small pop-out beside the
 // button with WhatsApp, Facebook, X, Email and Copy link.
@@ -18,23 +25,45 @@
     return String(value || '').toLowerCase().replace(/(^|[\s-])([a-z])/g, function (m, a, b) { return a + b.toUpperCase(); });
   }
 
-  function link(photo, channel) {
-    return SITE + '/share/' + encodeURIComponent(photo.file) + '.html' +
-      '?utm_source=' + channel + '&utm_medium=share&utm_campaign=' + (photo.campaign || 'photo_share');
+  function utm(channel, campaign) {
+    return 'utm_source=' + channel + '&utm_medium=share&utm_campaign=' + campaign;
   }
 
-  function text(photo) {
+  // What gets shared: the message, and the link for each channel.
+  function photoItem(photo, anchor) {
     var caption = titleCase(photo.caption);
     var name = titleCase(photo.name);
     var what = caption ? caption + (name ? ' by ' + name : '') : (name ? name + '’s build' : 'this build');
-    return 'Check out ' + what + ' on MT3UK, the UK’s modified Tesla community';
+    return {
+      key: 'photo:' + photo.file,
+      anchor: anchor,
+      heading: 'Share this build',
+      subject: 'A build on MT3UK',
+      text: 'Check out ' + what + ' on MT3UK, the UK’s modified Tesla community',
+      link: function (channel) {
+        return SITE + '/share/' + encodeURIComponent(photo.file) + '.html?' + utm(channel, photo.campaign || 'photo_share');
+      }
+    };
   }
 
-  function channelHref(channel, message, url) {
+  function pageItem(opts, anchor) {
+    return {
+      key: 'page:' + opts.path + '#' + (opts.hash || ''),
+      anchor: anchor,
+      heading: opts.heading || 'Share this page',
+      subject: opts.title + ' | MT3UK',
+      text: opts.text || opts.title + ' on MT3UK, the UK’s modified Tesla community',
+      link: function (channel) {
+        return SITE + opts.path + '?' + utm(channel, opts.campaign) + (opts.hash ? '#' + opts.hash : '');
+      }
+    };
+  }
+
+  function channelHref(channel, message, url, subject) {
     if (channel === 'whatsapp') return 'https://wa.me/?text=' + encodeURIComponent(message + ' ' + url);
     if (channel === 'facebook') return 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url);
     if (channel === 'x') return 'https://x.com/intent/post?text=' + encodeURIComponent(message) + '&url=' + encodeURIComponent(url);
-    if (channel === 'email') return 'mailto:?subject=' + encodeURIComponent('A build on MT3UK') + '&body=' + encodeURIComponent(message + '\n\n' + url);
+    if (channel === 'email') return 'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(message + '\n\n' + url);
     return url;
   }
 
@@ -79,7 +108,13 @@
       '.mt3uk-share-wide{grid-column:1/-1}' +
       '.mt3uk-share-opt[hidden]{display:none}' +
       '.mt3uk-share-toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:1300;background:#16233d;color:#fff;' +
-        'padding:10px 16px;border-radius:999px;font:500 .88rem "IBM Plex Sans",sans-serif;box-shadow:0 6px 18px rgba(5,7,12,.3)}';
+        'padding:10px 16px;border-radius:999px;font:500 .88rem "IBM Plex Sans",sans-serif;box-shadow:0 6px 18px rgba(5,7,12,.3)}' +
+      '.mt3uk-share-dot{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;margin-left:10px;' +
+        'vertical-align:middle;border-radius:50%;border:1px solid currentColor;background:transparent;color:inherit;opacity:.7;cursor:pointer;' +
+        'position:relative;top:-2px;flex-shrink:0}' +
+      '.mt3uk-share-dot svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round}' +
+      '.mt3uk-share-dot:hover,.mt3uk-share-dot:focus-visible{opacity:1;background:#e8542a;border-color:#e8542a;color:#fff}' +
+      '.mt3uk-share-dot::before{content:"";position:absolute;inset:-8px}';
     var style = document.createElement('style');
     style.id = 'mt3uk-share-styles';
     style.textContent = css;
@@ -91,8 +126,8 @@
     current = null;
   }
 
-  function nativeShare(photo) {
-    return navigator.share({ title: 'MT3UK', text: text(photo), url: link(photo, 'share_sheet') });
+  function nativeShare(item) {
+    return navigator.share({ title: 'MT3UK', text: item.text, url: item.link('share_sheet') });
   }
 
   function buildPanel() {
@@ -100,10 +135,10 @@
     panel = document.createElement('div');
     panel.className = 'mt3uk-share-pop';
     panel.setAttribute('role', 'dialog');
-    panel.setAttribute('aria-label', 'Share this build');
+    panel.setAttribute('aria-label', 'Share');
     panel.hidden = true;
     panel.innerHTML =
-      '<div class="mt3uk-share-head"><span>Share this build</span>' +
+      '<div class="mt3uk-share-head"><span class="mt3uk-share-title">Share</span>' +
         '<button type="button" class="mt3uk-share-close" aria-label="Close share options">&times;</button></div>' +
       '<div class="mt3uk-share-grid">' +
         '<a class="mt3uk-share-opt" data-channel="whatsapp" target="_blank" rel="noopener">WhatsApp</a>' +
@@ -120,13 +155,13 @@
       if (e.target.closest('.mt3uk-share-close')) { closePanel(); return; }
       var option = e.target.closest('[data-channel]');
       if (!option || !current) return;
-      var photo = current;
+      var item = current;
       if (option.dataset.channel === 'copy_link') {
-        copyText(link(photo, 'copy_link'))
+        copyText(item.link('copy_link'))
           .then(function () { toast('Link copied'); })
           .catch(function () { toast('Could not copy the link'); });
       } else if (option.dataset.channel === 'share_sheet') {
-        nativeShare(photo).catch(function () {});
+        nativeShare(item).catch(function () {});
       }
       closePanel();
     });
@@ -155,30 +190,93 @@
     panel.style.top = top + 'px';
   }
 
-  function openPanel(photo, anchor) {
+  function openPanel(item) {
     if (!panel) buildPanel();
-    current = photo;
-    var message = text(photo);
+    current = item;
+    panel.querySelector('.mt3uk-share-title').textContent = item.heading;
+    panel.setAttribute('aria-label', item.heading);
     panel.querySelectorAll('a[data-channel]').forEach(function (a) {
-      a.href = channelHref(a.dataset.channel, message, link(photo, a.dataset.channel));
+      a.href = channelHref(a.dataset.channel, item.text, item.link(a.dataset.channel), item.subject);
     });
     panel.querySelector('[data-channel="share_sheet"]').hidden = typeof navigator.share !== 'function';
     panel.hidden = false;
-    place(anchor);
+    place(item.anchor);
     var first = panel.querySelector('.mt3uk-share-opt');
     if (first) first.focus({ preventScroll: true });
   }
 
-  window.mt3ukShare = function (photo, anchor) {
-    if (!photo || !photo.file) return;
-    if (panel && !panel.hidden && current && current.file === photo.file && current.anchor === anchor) { closePanel(); return; }
-    photo = { file: photo.file, caption: photo.caption, name: photo.name, campaign: photo.campaign, anchor: anchor };
+  function share(item) {
+    // A second tap on the same button closes the pop-out.
+    if (panel && !panel.hidden && current && current.key === item.key && current.anchor === item.anchor) { closePanel(); return; }
     var preferNative = typeof navigator.share === 'function' && window.matchMedia && window.matchMedia('(hover: none)').matches;
-    if (!preferNative) { openPanel(photo, anchor); return; }
-    nativeShare(photo).catch(function (err) {
+    if (!preferNative) { openPanel(item); return; }
+    nativeShare(item).catch(function (err) {
       // Cancelling the share menu is not an error; anything else falls
       // back to the pop-out.
-      if (!err || err.name !== 'AbortError') openPanel(photo, anchor);
+      if (!err || err.name !== 'AbortError') openPanel(item);
     });
+  }
+
+  window.mt3ukShare = function (photo, anchor) {
+    if (!photo || !photo.file) return;
+    share(photoItem(photo, anchor));
   };
+
+  // Small round share buttons by the page heading and each section heading.
+  var ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 3L10 14M21 3l-7 18-4-7-7-4z"/></svg>';
+
+  function headingText(el) {
+    var clone = el.cloneNode(true);
+    clone.querySelectorAll('.mt3uk-share-dot, button, .nav-sublink-new').forEach(function (n) { n.remove(); });
+    return clone.textContent.replace(/\s+/g, ' ').trim();
+  }
+
+  function addDot(heading, opts) {
+    if (!heading || heading.closest('[data-no-share]') || heading.querySelector('.mt3uk-share-dot')) return;
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'mt3uk-share-dot';
+    btn.setAttribute('aria-label', opts.heading);
+    btn.innerHTML = ICON;
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      share(pageItem(opts, btn));
+    });
+    heading.appendChild(btn);
+  }
+
+  function addDots() {
+    if (document.body.hasAttribute('data-no-share')) return;
+    addStyles();
+    var path = location.pathname.replace(/\/index\.html$/, '/');
+    if (!/^\/[\w\-\/]*(\.html)?$/.test(path)) path = '/';
+    var page = (path.replace(/^\//, '').replace(/\.html$/, '') || 'home').replace(/[^\w-]/g, '');
+    var pageTitle = (document.title || 'MT3UK').replace(/\s*[|\u2013\u2014-]\s*MT3UK.*$/i, '').trim() || 'MT3UK';
+
+    var main = document.querySelector('h1:not(header h1)');
+    if (main) {
+      addDot(main, {
+        path: path, title: pageTitle, campaign: 'page_' + page, heading: 'Share this page',
+        text: page === 'home' ? 'Check out MT3UK, the UK’s modified Tesla community' : null
+      });
+    }
+
+    var targets = [];
+    document.querySelectorAll('section[id]').forEach(function (section) {
+      if (section.querySelector('h1')) return;
+      var h2 = section.querySelector('h2');
+      if (h2) targets.push({ heading: h2, id: section.id });
+    });
+    document.querySelectorAll('[data-share-anchor]').forEach(function (h) {
+      targets.push({ heading: h, id: h.getAttribute('data-share-anchor') });
+    });
+    targets.forEach(function (t) {
+      var title = headingText(t.heading);
+      addDot(t.heading, { path: path, hash: t.id, title: title, campaign: 'section_' + t.id.replace(/[^\w-]/g, ''), heading: 'Share this section' });
+    });
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', addDots);
+  else addDots();
 })();

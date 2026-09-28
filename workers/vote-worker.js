@@ -10,7 +10,8 @@ const INTERVIEWS_PATH = 'data/interviews.json';
 const GALLERY_PUBLIC_BASE_URL = 'https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev';
 const MAX_GALLERY_PHOTOS = 3;
 const GALLERY_SUBMIT_COOLDOWN_SECONDS = 60 * 60 * 24;
-const VOTE_TTL_SECONDS = 60 * 60 * 24 * 3;
+// Votes run for a week (Build of the Week), so they are kept a little longer.
+const VOTE_TTL_SECONDS = 60 * 60 * 24 * 10;
 const REVIEW_PRODUCTS = ['tee', 'tee-yellow', 'stickers', 'brace', 'pads-street', 'pads-carbotech'];
 const REVIEW_PHOTOS_PATH = 'images/reviews';
 const MAX_REVIEW_PHOTOS = 3;
@@ -81,6 +82,15 @@ function addDaysToDateString(dateStr, days) {
   var d = new Date(dateStr + 'T00:00:00Z');
   d.setUTCDate(d.getUTCDate() + days);
   return d.toISOString().slice(0, 10);
+}
+
+// Build of the Week voting runs Monday to Sunday, UK time. Vote keys are
+// named after the Monday the week starts on (e.g. votes:2026-09-28:<file>),
+// and the winner is picked just after midnight on the next Monday.
+function voteWeekString(date) {
+  var todayStr = ukDateString(date);
+  var weekday = new Date(todayStr + 'T00:00:00Z').getUTCDay(); // 0 = Sunday
+  return addDaysToDateString(todayStr, -((weekday + 6) % 7));
 }
 
 // Mirrors the caption/name derivation in scripts/build_gallery_manifest.py,
@@ -197,11 +207,13 @@ async function getLiveGalleryEntries(env, ctx) {
   return entries;
 }
 
-function votingCandidates(manifest, todayStr) {
-  var yesterdayStr = addDaysToDateString(todayStr, -1);
+// Builds open for this week's vote: those added (or opened to voting) this
+// week or last week, newest first.
+function votingCandidates(manifest, weekStr) {
+  var fromStr = addDaysToDateString(weekStr, -7);
   return manifest.filter(function (p) {
     var refDate = p.votableSince || p.added;
-    return (refDate === todayStr || refDate === yesterdayStr) && p.votable !== false;
+    return refDate && refDate >= fromStr && p.votable !== false;
   }).sort(function (a, b) {
     return (b.uploadedAt || 0) - (a.uploadedAt || 0);
   }).slice(0, 9);
@@ -603,7 +615,7 @@ async function handleVotesAll(request, env) {
     return json({ success: false, message: 'Unauthorized' }, 401);
   }
 
-  var todayStr = ukDateString(new Date());
+  var todayStr = voteWeekString(new Date());
   var prefix = 'votes:' + todayStr + ':';
   var list = await env.VOTES.list({ prefix: prefix });
 
@@ -629,7 +641,7 @@ async function handleVoteDelete(request, env) {
     return json({ success: false, message: 'file is required' }, 400);
   }
 
-  var todayStr = ukDateString(new Date());
+  var todayStr = voteWeekString(new Date());
   await env.VOTES.delete('votes:' + todayStr + ':' + file);
 
   return json({ success: true, date: todayStr, deleted: file });
@@ -652,7 +664,7 @@ async function handleVoteSet(request, env) {
     return json({ success: false, message: 'count must be a non-negative integer' }, 400);
   }
 
-  var todayStr = ukDateString(new Date());
+  var todayStr = voteWeekString(new Date());
   await env.VOTES.put('votes:' + todayStr + ':' + file, String(count), { expirationTtl: VOTE_TTL_SECONDS });
 
   return json({ success: true, date: todayStr, file: file, votes: count });
@@ -664,7 +676,7 @@ async function handleVotersList(request, env) {
     return json({ success: false, message: 'Unauthorized' }, 401);
   }
 
-  var todayStr = ukDateString(new Date());
+  var todayStr = voteWeekString(new Date());
   var prefix = 'voter-meta:' + todayStr + ':';
   var list = await env.VOTES.list({ prefix: prefix });
 
@@ -717,7 +729,7 @@ async function getVoteCounts(env, ctx, todayStr, files) {
 
 async function handleVotesGet(request, env, ctx) {
   var manifest = await getLiveGalleryEntries(env, ctx);
-  var todayStr = ukDateString(new Date());
+  var todayStr = voteWeekString(new Date());
   var candidates = votingCandidates(manifest, todayStr);
   var voterId = getVoterId(request);
   var ip = getClientIp(request);
@@ -759,7 +771,7 @@ async function handleVotePost(request, env, ctx) {
   }
 
   var manifest = await getLiveGalleryEntries(env, ctx);
-  var todayStr = ukDateString(new Date());
+  var todayStr = voteWeekString(new Date());
   var candidates = votingCandidates(manifest, todayStr);
   var isCandidate = candidates.some(function (p) { return p.file === file; });
   if (!isCandidate) {
@@ -3638,7 +3650,7 @@ async function handleMyBuildsDelete(request, env) {
     }
   }
 
-  var todayStr = ukDateString(new Date());
+  var todayStr = voteWeekString(new Date());
   await env.VOTES.delete('votes:' + todayStr + ':' + file);
   await env.VOTES.delete('likes:' + file);
 
@@ -3840,8 +3852,10 @@ async function tallyVotesIfUkMidnight(env) {
   var ukHour = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', hour: '2-digit', hourCycle: 'h23' }).format(now);
   if (ukHour !== '00') return;
 
+  // Build of the Week: the week's vote closes at midnight going into Monday.
   var todayStr = ukDateString(now);
-  var closedDay = addDaysToDateString(todayStr, -1);
+  if (voteWeekString(now) !== todayStr) return;
+  var closedDay = addDaysToDateString(todayStr, -7);
   var prefix = 'votes:' + closedDay + ':';
 
   var list = await env.VOTES.list({ prefix: prefix });
@@ -3914,7 +3928,7 @@ async function tallyVotesIfUkMidnight(env) {
       method: 'PUT',
       headers: ghHeaders,
       body: JSON.stringify({
-        message: 'Feature ' + winnerFile + ' as Build of the Day (daily vote, ' + closedDay + ')',
+        message: 'Feature ' + winnerFile + ' as Build of the Week (week of ' + closedDay + ')',
         content: newContent,
         sha: getData.sha,
         branch: BASE_BRANCH

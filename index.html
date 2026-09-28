@@ -1055,6 +1055,19 @@
     cursor: pointer;
   }
   .bf-viewer-close:hover { background: var(--orange); border-color: var(--orange); }
+  .bf-viewer-share {
+    position: absolute;
+    top: calc(12px + env(safe-area-inset-top)); right: 60px;
+    z-index: 2;
+    width: 40px; height: 40px;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid rgba(255,255,255,0.6);
+    background: rgba(0,0,0,0.5);
+    color: var(--white);
+    cursor: pointer;
+  }
+  .bf-viewer-share svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
+  .bf-viewer-share:hover { background: var(--orange); border-color: var(--orange); }
   .bf-viewer-nav {
     position: absolute;
     top: 50%;
@@ -2575,16 +2588,21 @@
       if (pinned) return pinned;
     }
     if (!photos.length) return null;
+    // No vote winner: pick a build for the week (Monday to Sunday, UK),
+    // from those added before the week started.
     var todayUK = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London' }).format(new Date());
-    var eligible = photos.filter(function (p) { return !p.added || p.added < todayUK; });
+    var todayMs = Date.parse(todayUK + 'T00:00:00Z');
+    var weekStartMs = todayMs - ((new Date(todayMs).getUTCDay() + 6) % 7) * 86400000;
+    var weekStartUK = new Date(weekStartMs).toISOString().slice(0, 10);
+    var lastWeekUK = new Date(weekStartMs - 7 * 86400000).toISOString().slice(0, 10);
+    var eligible = photos.filter(function (p) { return !p.added || p.added < weekStartUK; });
     if (!eligible.length) eligible = photos;
     var latest = eligible[0];
-    var yesterdayUK = new Date(Date.parse(todayUK + 'T00:00:00Z') - 86400000).toISOString().slice(0, 10);
-    if (latest.added === yesterdayUK) return latest;
+    if (latest.added && latest.added >= lastWeekUK) return latest;
     var poolSize = Math.min(6, eligible.length - 1);
     if (poolSize <= 0) return latest;
-    var dayIndex = Math.floor(Date.parse(todayUK + 'T00:00:00Z') / 86400000);
-    return eligible[1 + (dayIndex % poolSize)];
+    var weekIndex = Math.floor(weekStartMs / (7 * 86400000));
+    return eligible[1 + (weekIndex % poolSize)];
   };
 </script>
 
@@ -2599,7 +2617,7 @@
         <a href="#build-feed" class="nav-link">Gallery Feed</a>
         <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Gallery Feed submenu">&#9660;</button>
         <div class="nav-dropdown">
-          <a href="#build-of-the-day" class="nav-sublink">Car of the Day</a>
+          <a href="#build-of-the-day" class="nav-sublink nav-sublink-new">Build of the Week</a>
           <a href="#vote-frame" class="nav-sublink">Vote for Build</a>
           <a href="gallery.html" class="nav-sublink">Full Gallery</a>
         </div>
@@ -2676,7 +2694,7 @@
   </nav>
 </header>
 
-<section class="hero hp-hero" id="hp-hero">
+<section class="hero hp-hero" id="hp-hero" data-no-share>
   <div class="wrap">
     <div class="hero-grid">
       <div>
@@ -2856,24 +2874,24 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">03 / CAR OF THE DAY</span>
-        <h2>Today's Car of the Day</h2>
-        <p id="hero-vote-countdown" class="hp-countdown">Voting resets in <strong>--:--:--</strong></p>
+        <span class="section-num">03 / BUILD OF THE WEEK</span>
+        <h2>Build of the Week</h2>
+        <p id="hero-vote-countdown" class="hp-countdown">Voting closes in <strong>-- days -- hrs -- mins</strong></p>
       </div>
-      <p>Picked by your votes. Vote below for tomorrow's winner, and <a href="my-builds.html#build-upload" class="inline-link">add your build</a> to be in the running.</p>
+      <p>Picked by your votes. Vote below for next week's winner, and <a href="my-builds.html#build-upload" class="inline-link">add your build</a> to be in the running.</p>
     </div>
     <div class="botm-frame" id="botm-frame">
       <p class="mono" style="padding: 24px; color: var(--steel);">Loading featured build…</p>
     </div>
     <div class="section-head" style="margin-top: 36px;">
       <div>
-        <span class="section-num">VOTE FOR TOMORROW</span>
+        <span class="section-num">VOTE FOR NEXT WEEK</span>
         <div class="section-title-row">
-          <h2 class="vote-heading">Vote for tomorrow's Car of the Day</h2>
+          <h2 class="vote-heading" data-share-anchor="vote-frame">Vote for next week's Build of the Week</h2>
           <button type="button" class="refresh-btn" id="vote-refresh-btn" aria-label="Refresh voting builds">&#8635; Refresh</button>
         </div>
       </div>
-      <p>Pick your favourite from the recently uploaded builds. The winner becomes tomorrow's Car of the Day. Voting resets at midnight so get your votes in! <span class="vote-countdown" id="vote-countdown"></span> Please do not vote on your own build. Votes are being checked before tallying up for inconsistencies.</p>
+      <p>Pick your favourite from the recently uploaded builds. The winner becomes next week's Build of the Week. Voting closes at midnight on Sunday so get your votes in! <span class="vote-countdown" id="vote-countdown"></span> Please do not vote on your own build. Votes are being checked before tallying up for inconsistencies.</p>
     </div>
     <div class="vote-frame" id="vote-frame">
       <p class="mono" style="padding: 24px; color: var(--steel);">Loading builds open for voting…</p>
@@ -4198,6 +4216,7 @@
         viewer.setAttribute('aria-label', 'Full image');
         viewer.innerHTML =
           '<button type="button" class="bf-viewer-close" aria-label="Close full image">&times;</button>' +
+          '<button type="button" class="bf-viewer-share" aria-label="Share this photo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 3L10 14M21 3l-7 18-4-7-7-4z"/></svg></button>' +
           '<button type="button" class="bf-viewer-nav bf-viewer-prev" aria-label="Previous photo">&lsaquo;</button>' +
           '<button type="button" class="bf-viewer-nav bf-viewer-next" aria-label="Next photo">&rsaquo;</button>' +
           '<div class="bf-viewer-track"></div>' +
@@ -4207,6 +4226,13 @@
           '</div>';
         document.body.appendChild(viewer);
         viewer.querySelector('.bf-viewer-close').addEventListener('click', closeViewer);
+        var viewerShareBtn = viewer.querySelector('.bf-viewer-share');
+        viewerShareBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var photo = (viewerSlide.photos || [])[viewerIndex()];
+          if (!photo || !window.mt3ukShare) return;
+          window.mt3ukShare({ file: photo.file, caption: photo.caption, name: photo.name, campaign: viewerSlide.campaign || 'reel_share' }, viewerShareBtn);
+        });
         viewer.querySelector('.bf-viewer-prev').addEventListener('click', function () { viewerGo(-1); });
         viewer.querySelector('.bf-viewer-next').addEventListener('click', function () { viewerGo(1); });
         viewer.querySelector('.bf-viewer-track').addEventListener('scroll', function () {
@@ -4237,6 +4263,12 @@
       viewerSync();
       viewer.querySelector('.bf-viewer-close').focus();
     }
+
+    // The same full image viewer for photos outside the reel (Build of the
+    // Week). campaign tags the viewer's share links.
+    window.mt3ukOpenPhotoViewer = function (photos, startFile, campaign) {
+      openViewer({ photos: photos, dataset: { current: startFile }, campaign: campaign });
+    };
 
     // My Garage sign-in finishes after the reel has rendered, so hide the
     // Report button on the member's own photos once it does.
@@ -4969,7 +5001,7 @@
         var featured = window.mt3ukPickBuild(photos, featuredFile);
         var safeCaption = featured.caption.replace(/</g, '&lt;');
         var voteCount = (results[1] && results[1].file === featured.file && typeof results[1].votes === 'number') ? results[1].votes : null;
-        var voteLine = voteCount !== null ? '<p class="botm-voted-note">Voted No.1 by you. <a href="#vote-frame">Vote for tomorrow below</a></p>' : '';
+        var voteLine = voteCount !== null ? '<p class="botm-voted-note">Voted No.1 by you. <a href="#vote-frame">Vote for next week below</a></p>' : '';
         var votedByBadge = voteCount !== null ? '<span class="botm-voted-by">VOTED BY YOU</span>' : '';
         var mods = featured.mods || [];
         var modsBadge = mods.length ?
@@ -4979,29 +5011,18 @@
           '</button>' : '';
         frame.innerHTML =
           '<div class="botm-media">' +
-            '<span class="botm-badge">CAR OF THE DAY</span>' +
+            '<span class="botm-badge">BUILD OF THE WEEK</span>' +
             '<img src="' + window.MT3UK_R2_BASE + '/gallery/' + featured.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy">' +
             modsBadge +
             votedByBadge +
           '</div>' +
           '<div class="botm-body">' +
-            '<span class="mono">TODAY\'S CAR OF THE DAY</span>' +
+            '<span class="mono">BUILD OF THE WEEK</span>' +
             '<h3 class="botm-caption">' + safeCaption + '</h3>' +
             voteLine +
             '<p>Chosen by member votes. Get your build in the gallery and it could be next.</p>' +
-            '<div class="botm-actions">' +
-              '<a href="my-builds.html#build-upload" class="btn btn-secondary">Submit your build</a>' +
-              (featured.reel === false ? '' : '<button type="button" class="mt3uk-share-btn botm-share" aria-label="Share today\'s Car of the Day"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 3L10 14M21 3l-7 18-4-7-7-4z"/></svg><span>Share</span></button>') +
-            '</div>' +
+            '<a href="my-builds.html#build-upload" class="btn btn-secondary">Submit your build</a>' +
           '</div>';
-
-        var botmShare = frame.querySelector('.botm-share');
-        if (botmShare) {
-          botmShare.addEventListener('click', function (e) {
-            e.stopPropagation();
-            if (window.mt3ukShare) window.mt3ukShare({ file: featured.file, caption: featured.caption, name: featured.name, campaign: 'cotd_share' }, botmShare);
-          });
-        }
 
         var img = frame.querySelector('.botm-media img');
         var badge = frame.querySelector('.botm-media .g-mods-badge');
@@ -5027,8 +5048,15 @@
             lightbox.setAttribute('aria-hidden', 'false');
             document.body.style.overflow = 'hidden';
           };
-          img.addEventListener('click', openBotmLightbox);
-          if (badge) badge.addEventListener('click', openBotmLightbox);
+          // Opens in the reel's full image viewer, with the mods and a
+          // share button; the gallery lightbox is only a fallback.
+          var openBotm = function (e) {
+            if (e) e.stopPropagation();
+            if (window.mt3ukOpenPhotoViewer) window.mt3ukOpenPhotoViewer([featured], featured.file, 'botw_share');
+            else openBotmLightbox();
+          };
+          img.addEventListener('click', openBotm);
+          if (badge) badge.addEventListener('click', openBotm);
         }
       })
       .catch(function () {
@@ -5269,18 +5297,24 @@
     var heroCountdownEl = document.getElementById('hero-vote-countdown');
     if (countdownEl || heroCountdownEl) {
       var updateCountdown = function () {
-        var now = new Date();
-        var nextMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
-        var msLeft = nextMidnight - now;
-        var hours = Math.floor(msLeft / 3600000);
-        var minutes = Math.floor((msLeft % 3600000) / 60000);
-        var seconds = Math.floor((msLeft % 60000) / 1000);
-        var timeStr = String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
-        if (countdownEl) countdownEl.textContent = '(' + timeStr + ' remaining)';
-        if (heroCountdownEl) heroCountdownEl.innerHTML = 'Voting resets in <strong>' + timeStr + '</strong>';
+        // Time left until midnight going into Monday, UK time, when the
+        // week's vote closes.
+        var parts = {};
+        new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', weekday: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' })
+          .formatToParts(new Date()).forEach(function (p) { parts[p.type] = p.value; });
+        var dayIdx = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].indexOf(parts.weekday);
+        var secsLeft = (7 - dayIdx) * 86400 - ((+parts.hour) * 3600 + (+parts.minute) * 60 + (+parts.second));
+        var minsLeft = Math.ceil(secsLeft / 60);
+        var days = Math.floor(minsLeft / 1440);
+        var hours = Math.floor((minsLeft % 1440) / 60);
+        var minutes = minsLeft % 60;
+        var plural = function (n, word) { return n + ' ' + word + (n === 1 ? '' : 's'); };
+        var timeStr = plural(days, 'day') + ' ' + plural(hours, 'hr') + ' ' + plural(minutes, 'min');
+        if (countdownEl) countdownEl.textContent = '(' + timeStr + ' left)';
+        if (heroCountdownEl) heroCountdownEl.innerHTML = 'Voting closes in <strong>' + timeStr + '</strong>';
       };
       updateCountdown();
-      setInterval(updateCountdown, 1000);
+      setInterval(updateCountdown, 15000);
     }
   })();
 </script>

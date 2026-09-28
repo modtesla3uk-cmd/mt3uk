@@ -360,14 +360,32 @@ def test_share_buttons(device_page):
 
     page.goto("/index.html#build-of-the-day")
 
-    # Car of the Day.
-    button = page.locator(".botm-share")
-    button.wait_for(timeout=10000)
-    button.scroll_into_view_if_needed()
+    # Build of the Week: the photo opens the full image viewer, which has
+    # its own share button.
+    photo = page.locator("#botm-frame img")
+    photo.wait_for(timeout=10000)
+    photo.scroll_into_view_if_needed()
+    photo.click()
+    button = page.locator(".bf-viewer-share")
+    button.wait_for(state="visible", timeout=5000)
     button.click()
     url = shared_url(page)
-    assert url and "/share/" in url and "utm_campaign=cotd_share" in url, "Car of the Day share: " + str(url) + diagnostics(page)
+    assert url and "/share/" in url and "utm_campaign=botw_share" in url, "Build of the Week share: " + str(url) + diagnostics(page)
+    page.click(".bf-viewer-close")
+
+    # Round share button on a section heading links to that section.
+    dot = page.locator("#build-of-the-day h2 .mt3uk-share-dot").first
+    dot.scroll_into_view_if_needed()
+    dot.click()
+    url = shared_url(page)
+    assert url and "utm_campaign=section_build-of-the-day" in url and url.endswith("#build-of-the-day"), "Section share: " + str(url)
     assert overflow_width(page) <= 1
+
+    # Round share button by a page's main heading.
+    page.goto("/shop.html")
+    page.locator("h1 .mt3uk-share-dot").click()
+    url = shared_url(page)
+    assert url and url.startswith("https://mt3uk.com/shop.html?") and "utm_campaign=page_shop" in url, "Page share: " + str(url)
 
     # My Garage photo viewer.
     page.mock_state["signed_in"] = True

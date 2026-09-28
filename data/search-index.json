@@ -1,6 +1,6 @@
 [
   { "title": "Gallery", "url": "index.html#gallery", "category": "Page", "description": "Member build photos from the MT3UK community", "keywords": ["photos", "builds", "images"] },
-  { "title": "Featured Build", "url": "index.html#build-of-the-day", "category": "Page", "description": "Featured community build of the day", "keywords": ["build feed", "build of the day"] },
+  { "title": "Featured Build", "url": "index.html#build-of-the-day", "category": "Page", "description": "Build of the Week, voted for by members", "keywords": ["build feed", "build of the week", "build of the day", "car of the day"] },
   { "title": "Upload Image", "url": "index.html#gallery-upload", "category": "Page", "description": "Submit your build to the gallery", "keywords": ["submit build", "add photo"] },
   { "title": "Shop", "url": "shop.html", "category": "Page", "description": "Merch, upgrades and partner products", "keywords": ["store", "buy"] },
   { "title": "Merch", "url": "shop.html#merch", "category": "Page", "description": "MT3UK branded tees, hoodies and stickers", "keywords": ["tee", "t-shirt", "hoodie", "hoodies", "stickers", "clothing", "apparel"] },

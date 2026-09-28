@@ -120,6 +120,19 @@
       "heroPosition": "62% 60%",
       "publish": "2027-02-04",
       "created": "2026-09-28"
+    },
+    {
+      "name": "Sharad Buddhdev",
+      "type": "standard",
+      "car": "Model 3 Long Range AWD",
+      "year": "2019",
+      "title": "The Green Knight Tessa: Sharad’s Wasabi Green Model 3",
+      "excerpt": "A white Model 3 bought from Auto Trader, a Gloss Wasabi Green wrap, an aero body kit and a yoke. Sharad on the car that people stop to film.",
+      "url": "blog-sharad.html",
+      "image": "images/blog/owner-interviews/sharad/country-road.jpg",
+      "heroPosition": "50% 62%",
+      "publish": "2027-02-18",
+      "created": "2026-09-28"
     }
   ]
 }

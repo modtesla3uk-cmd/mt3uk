@@ -107,6 +107,19 @@
       "image": "images/blog/owner-interviews/yusuf/side-profile.jpg",
       "publish": "2027-01-21",
       "created": "2026-09-28"
+    },
+    {
+      "name": "Ryan Kerr",
+      "type": "standard",
+      "car": "Model 3 Performance",
+      "year": "2022",
+      "title": "The Colonel: Ryan’s Narrow Body Model 3 Performance",
+      "excerpt": "Black badges on day one, bronze Judd wheels, air suspension and a Robot Hacker narrow body kit. Ryan on building a Tesla that turns heads.",
+      "url": "blog-ryan.html",
+      "image": "images/blog/owner-interviews/ryan/front-three-quarter.jpg",
+      "heroPosition": "62% 60%",
+      "publish": "2027-02-04",
+      "created": "2026-09-28"
     }
   ]
 }

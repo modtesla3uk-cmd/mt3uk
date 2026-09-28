@@ -1101,9 +1101,6 @@
   .bf-report-btn .bf-icon-report { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
   .bf-report-btn[data-reported="true"] { color: var(--orange); cursor: default; }
 
-  /* Share button under the reel, for the build on screen. */
-  .bf-under { display: flex; justify-content: center; margin: 14px auto 0; }
-  .bf-under[hidden] { display: none; }
   .mt3uk-share-btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
     min-height: 44px; padding: 10px 18px;
@@ -2836,9 +2833,6 @@
         <span class="bf-autoscroll-label">Auto-scroll: Off</span>
       </button>
     </div>
-    <div class="bf-under" id="bf-under" hidden>
-      <button type="button" class="mt3uk-share-btn" id="bf-share-current" aria-label="Share the build on screen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 3L10 14M21 3l-7 18-4-7-7-4z"/></svg><span>Share this build</span></button>
-    </div>
     <div class="saved-builds-inline" id="saved-builds">
       <p class="saved-builds-label mono">Your saved builds</p>
       <div class="saved-builds-strip" id="saved-builds-strip"></div>
@@ -4058,20 +4052,6 @@
       });
 
       wireShare();
-
-      // Share button under the reel shares whichever build is on screen.
-      var shareCurrent = document.getElementById('bf-share-current');
-      if (shareCurrent) {
-        shareCurrent.parentNode.hidden = false;
-        shareCurrent.onclick = function (e) {
-          e.stopPropagation();
-          if (!window.mt3ukShare) return;
-          var slide = feedEl.querySelector('.bf-slide.bf-in-view') || feedEl.querySelector('.bf-slide');
-          if (!slide) return;
-          var photo = photoFor(slide, slide.dataset.current);
-          window.mt3ukShare({ file: photo.file || slide.dataset.current, caption: photo.caption, name: photo.name, campaign: 'reel_share' }, shareCurrent);
-        };
-      }
 
       feedEl.querySelectorAll('.bf-liked-by').forEach(function (line) {
         line.addEventListener('click', function (e) {

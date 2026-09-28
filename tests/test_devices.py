@@ -358,14 +358,7 @@ def test_share_buttons(device_page):
     page = device_page
     page.add_init_script(SHARE_STUB)
 
-    # Under the reel: shares the build on screen.
-    page.goto("/index.html#build-feed")
-    page.locator(".bf-slide").first.wait_for(timeout=10000)
-    button = page.locator("#bf-share-current")
-    button.scroll_into_view_if_needed()
-    button.click()
-    url = shared_url(page)
-    assert url and "/share/" in url and "utm_campaign=reel_share" in url, "Reel share: " + str(url) + diagnostics(page)
+    page.goto("/index.html#build-of-the-day")
 
     # Car of the Day.
     button = page.locator(".botm-share")

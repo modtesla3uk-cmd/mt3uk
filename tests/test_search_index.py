@@ -65,3 +65,14 @@ def test_every_interview_has_what_search_needs():
         for field in ("title", "url", "publish", "name"):
             assert iv.get(field), f"{iv.get('url')} has no {field}, so it can't be searched"
         assert (ROOT / iv["url"]).exists(), iv["url"]
+
+
+def test_interview_mods_are_searchable():
+    """data/interview-search.json holds each interview's mods words. If this
+    fails, run: python scripts/build_interview_search.py"""
+    import build_interview_search
+
+    current = (ROOT / "data" / "interview-search.json").read_text(encoding="utf-8")
+    assert current == build_interview_search.build(), (
+        "data/interview-search.json is out of date. Run: python scripts/build_interview_search.py"
+    )

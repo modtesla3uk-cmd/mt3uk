@@ -132,9 +132,19 @@
     return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London' }).format(new Date());
   }
 
-  fetch('data/interviews.json', { cache: 'no-store' })
-    .then(function (res) { return res.ok ? res.json() : null; })
-    .then(function (data) {
+  // data/interview-search.json adds the words from each interview's mods
+  // answers (scripts/build_interview_search.py), so a search for a mod
+  // such as "Robot Hacker" finds the interview.
+  function getJSON(url) {
+    return fetch(url, { cache: 'no-store' })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .catch(function () { return null; });
+  }
+
+  Promise.all([getJSON('data/interviews.json'), getJSON('data/interview-search.json')])
+    .then(function (results) {
+      var data = results[0];
+      var modWords = results[1] || {};
       var today = ukToday();
       ((data && data.interviews) || []).forEach(function (iv) {
         if (!iv || !iv.url || !iv.title || !iv.publish || iv.publish > today) return;
@@ -145,7 +155,7 @@
           category: iv.type === 'track' ? 'Track Day Interview' : 'Owner Interview',
           description: [iv.name, iv.car, iv.year].filter(Boolean).join(' \u00b7 '),
           keywords: [iv.name, iv.car, iv.year, nickname, iv.excerpt, 'owner interview', 'interview', 'blog']
-            .concat(iv.keywords || []).filter(Boolean).map(String)
+            .concat(iv.keywords || [], modWords[iv.url] ? [modWords[iv.url]] : []).filter(Boolean).map(String)
         });
       });
     })

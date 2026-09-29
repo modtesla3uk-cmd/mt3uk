@@ -63,7 +63,8 @@ def test_messages_from_mt3uk_and_friends(device_page):
     page.locator("#pf-threads .pf-thread-row").first.click()
     page.locator("#pf-thread").wait_for(state="visible", timeout=5000)
     page.wait_for_function("document.getElementById('pf-thread-name').textContent.indexOf('Sharad') !== -1", timeout=5000)
-    assert "Hi, love the wheels" in page.locator("#pf-bubbles").inner_text()
+    # The name shows straight away; the messages follow once loaded.
+    page.wait_for_function("document.getElementById('pf-bubbles').textContent.indexOf('Hi, love the wheels') !== -1", timeout=5000)
 
     page.fill("#pf-compose-text", "See you at Thruxton")
     page.click("#pf-compose button[type=submit]")

@@ -1,5 +1,7 @@
 import json
 
+from playwright.sync_api import expect
+
 import pytest
 
 SHOP_ENDPOINT_PATTERN = "**/shop-products"
@@ -44,7 +46,8 @@ def mock_shop_endpoint(page):
 def test_live_products_render_with_discount_pricing(page):
     page.goto("/shop.html")
     cards = page.locator("#shop-live-products .shop-live-card")
-    assert cards.count() == 2
+    # The cards arrive after the products load, so wait for them.
+    expect(cards).to_have_count(2)
 
     tee_card = cards.first
     assert "SAVE 10%" in tee_card.locator(".tee-offer-save").inner_text()

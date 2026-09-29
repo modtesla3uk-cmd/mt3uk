@@ -96,3 +96,19 @@ def test_votes_and_comments_need_a_sign_in():
     comments = worker[worker.index("async function handleCommentsPost"):worker.index("async function handleCommentReport")]
     assert "var email = await resolveSession(request, env);" in comments
     assert "body.email" not in comments
+
+
+def test_message_photos_stay_private():
+    """Photos in messages live under dm/ (never gallery/), are only served
+    through the worker to the two people in the conversation, and stop
+    being shown after 90 days."""
+    worker = (ROOT / "workers" / "vote-worker.js").read_text(encoding="utf-8")
+    assert "return 'dm/' + ids[0] + '-' + ids[1] + '/';" in worker
+    photo = worker[worker.index("async function handleProfileMessagePhoto"):worker.index("async function servePrivatePhoto")]
+    assert "var email = await resolveSession(request, env);" in photo
+    assert "dmThreadKey(email, other)" in photo, "Only from the member's own conversation"
+    assert "dmPhotoExpired(msg)" in photo
+    assert "var DM_PHOTO_DAYS = 90;" in worker
+    thread = worker[worker.index("async function handleProfileThread"):worker.index("async function handleProfileMessagePhoto")]
+    assert "out.photo = true" in thread and "m.photo;" not in thread, "The R2 key is never sent to the page"
+    assert "await deleteDmPhotos(env, email, index[k].email);" in worker, "Leaving deletes the photos"

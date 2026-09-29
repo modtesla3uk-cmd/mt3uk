@@ -369,8 +369,12 @@ def test_admin_shows_how_long_each_interview_was_current(device_page):
     import json as _json
     from pathlib import Path as _Path
     data = _json.loads((_Path(__file__).resolve().parent.parent / "data" / "interviews.json").read_text(encoding="utf-8"))
-    data["interviews"][0]["publish"] = "2026-09-01"
-    data["interviews"][1]["publish"] = "2026-09-15"
+    # Counted back from today in the UK, so the test works on any date.
+    import datetime as _dt
+    from zoneinfo import ZoneInfo as _Zone
+    today = _dt.datetime.now(_Zone("Europe/London")).date()
+    data["interviews"][0]["publish"] = (today - _dt.timedelta(days=28)).isoformat()
+    data["interviews"][1]["publish"] = (today - _dt.timedelta(days=14)).isoformat()
     page.route(re.compile(r".*/data/interviews\.json.*"), lambda route: route.fulfill(
         status=200, body=_json.dumps(data), headers={"Content-Type": "application/json"}))
     page.goto("/admin.html")
@@ -783,4 +787,104 @@ def test_iphone_app_asks_on_first_launch_before_signing_in(device_page):
             break
         page.wait_for_timeout(100)
     assert "/push/subscribe" in page.mock_state.get("push_calls", [])
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_chat_window_is_smaller_than_the_screen(device_page):
+    page = device_page
+    signed_in(page)
+    page.goto("/shop.html")
+    page.locator("#nav-chat").click()
+    box = page.locator("#mt3uk-chat")
+    box.wait_for(state="visible", timeout=5000)
+    page.wait_for_timeout(300)
+    rect = box.bounding_box()
+    view = page.viewport_size
+    assert rect["height"] < view["height"] * 0.8, "The page stays in view behind the window"
+    assert rect["y"] > 40
+    assert page.evaluate("getComputedStyle(document.documentElement).overflow") != "hidden", "The page can still scroll"
+    assert overflow_width(page) <= 0
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_minimise_keeps_the_conversation_across_pages(device_page):
+    page = device_page
+    signed_in(page)
+    page.goto("/shop.html")
+    page.locator("#nav-chat").click()
+    page.locator("#mc-threads .mc-thread-row").first.click()
+    page.wait_for_function("document.getElementById('mc-bubbles').textContent.indexOf('Hi, love the wheels') !== -1", timeout=5000)
+    page.click("#mc-min")
+    assert page.locator("#mt3uk-chat").is_hidden()
+    page.locator("#mt3uk-chat-min").wait_for(state="visible", timeout=5000)
+
+    # Still minimised on the next page, and opens to the same conversation.
+    page.goto("/gallery.html")
+    page.locator("#mt3uk-chat-min").wait_for(state="visible", timeout=5000)
+    assert page.locator("#mt3uk-chat").is_hidden()
+    page.click("#mt3uk-chat-min")
+    page.locator("#mc-view-thread").wait_for(state="visible", timeout=5000)
+    page.wait_for_function("document.getElementById('mc-title').textContent.indexOf('Sharad') !== -1", timeout=5000)
+
+    # Closing forgets it.
+    page.click("#mc-close")
+    page.goto("/shop.html")
+    page.locator("#nav-chat").wait_for(state="visible", timeout=5000)
+    page.wait_for_timeout(300)
+    assert page.locator("#mt3uk-chat-min").is_hidden()
+    assert page.locator("#mt3uk-chat").is_hidden()
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_links_in_messages_open_in_a_new_tab(device_page):
+    page = device_page
+    signed_in(page)
+    page.goto("/shop.html")
+    page.evaluate("window.mt3ukChat.open('chats', 'f1')")
+    page.locator("#mc-view-thread").wait_for(state="visible", timeout=5000)
+    page.wait_for_function("document.getElementById('mc-bubbles').textContent.indexOf('Hi, love the wheels') !== -1", timeout=5000)
+    page.once("dialog", lambda d: d.accept("tevosolutions.co.uk"))
+    page.click("#mc-link-btn")
+    assert page.locator("#mc-compose-text").input_value() == "https://tevosolutions.co.uk"
+    page.fill("#mc-compose-text", "Try www.mt3uk.com/shop.html, it's good")
+    page.click("#mc-compose .mc-send")
+    link = page.locator("#mc-bubbles .mc-msg.mine a").last
+    link.wait_for(timeout=5000)
+    assert link.get_attribute("href") == "https://www.mt3uk.com/shop.html"
+    assert link.get_attribute("target") == "_blank"
+    assert "noopener" in link.get_attribute("rel")
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_attach_and_send_a_photo(device_page):
+    page = device_page
+    signed_in(page)
+    page.goto("/shop.html")
+    page.evaluate("window.mt3ukChat.open('chats', 'f1')")
+    page.locator("#mc-view-thread").wait_for(state="visible", timeout=5000)
+    page.wait_for_function("document.getElementById('mc-bubbles').textContent.indexOf('Hi, love the wheels') !== -1", timeout=5000)
+    # A real (tiny) JPEG, so the browser can shrink it.
+    from test_devices import TINY_JPEG
+    page.set_input_files("#mc-photo-input", files=[{"name": "car.jpg", "mimeType": "image/jpeg", "buffer": TINY_JPEG}])
+    page.locator("#mc-attach").wait_for(state="visible", timeout=5000)
+    page.mock_state["sending_photo"] = True
+    page.click("#mc-compose .mc-send")
+    page.locator("#mc-bubbles .mc-msg.mine img.mc-photo").wait_for(timeout=5000)
+    assert page.mock_state.get("photo_sent")
+    assert page.locator("#mc-attach").is_hidden()
+
+    # On another page, the photo loads through the worker with the sign-in.
+    page.goto("/gallery.html")
+    page.locator("#mc-view-thread").wait_for(state="visible", timeout=5000)
+    page.wait_for_function("[...document.querySelectorAll('#mc-bubbles img.mc-photo')].some(i => i.src.indexOf('blob:') === 0 && i.complete)", timeout=5000)
+    assert [c for c in page.api_log if c.startswith("GET /profile/messages/photo")], page.api_log
+    page.locator("#mc-bubbles .mc-photo-btn").last.click()
+    page.locator("#mc-viewer").wait_for(state="visible", timeout=5000)
+    page.keyboard.press("Escape")
+    assert page.locator("#mc-viewer").count() == 0
+    assert not page.locator("#mt3uk-chat").is_hidden(), "Escape closes the photo, not the chat"
     assert page.errors == [], diagnostics(page)

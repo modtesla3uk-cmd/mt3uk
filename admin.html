@@ -2508,7 +2508,9 @@
   function drawReports(reports) {
     document.getElementById('dm-count').textContent = reports.length ? '(' + reports.length + ')' : '';
     dmEl.innerHTML = reports.length ? '<table class="iv-table"><thead><tr><th>Message</th><th>From / to</th><th></th></tr></thead><tbody>' + reports.map(function (r) {
-      return '<tr><td><div class="bc-text">' + esc(r.text) + '</div>' + (r.reason ? '<div class="iv-sub">Reason: ' + esc(r.reason) + '</div>' : '') + '<div class="iv-sub">Sent ' + esc(when(r.at)) + ', reported ' + esc(when(r.reportedAt)) + '</div></td>' +
+      // A photo in the message opens from the worker with the admin key.
+      var photo = r.photo ? '<div><a class="iv-sub" target="_blank" rel="noopener" href="' + esc(API + '/admin/dm-photo?key=' + encodeURIComponent(key()) + '&id=' + encodeURIComponent(r.id)) + '">View photo</a></div>' : '';
+      return '<tr><td><div class="bc-text">' + esc(r.text || (r.photo ? '(Photo)' : '')) + '</div>' + photo + (r.reason ? '<div class="iv-sub">Reason: ' + esc(r.reason) + '</div>' : '') + '<div class="iv-sub">Sent ' + esc(when(r.at)) + ', reported ' + esc(when(r.reportedAt)) + '</div></td>' +
         '<td>' + esc(r.fromName) + '<div class="iv-sub">' + esc(r.fromEmail) + '</div>to ' + esc(r.toName) + '<div class="iv-sub">' + esc(r.toEmail) + '</div></td>' +
         '<td class="num"><button type="button" class="secondary dm-act" data-action="dismiss" data-id="' + esc(r.id) + '">Dismiss</button> ' +
         '<button type="button" class="danger dm-act" data-action="remove" data-id="' + esc(r.id) + '">Remove</button> ' +

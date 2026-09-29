@@ -651,6 +651,11 @@ var MAX_FRIEND_REQUESTS = 50;
 var MAX_DM_PER_THREAD = 200;
 var MAX_DM_LENGTH = 1000;
 var DM_SEND_LIMIT_PER_HOUR = 60;
+// Photos in messages: shrunk on the phone first, kept for 90 days (an R2
+// lifecycle rule on dm/ deletes them; the worker stops serving them too).
+var MAX_DM_PHOTO_BYTES = 2 * 1024 * 1024;
+var DM_PHOTO_DAYS = 90;
+var MAX_DM_LINKS = 5;
 var MAX_BROADCASTS = 50;
 var BROADCAST_EMAIL_BATCH = 40;
 var PROFILE_URL = MY_BUILDS_SITE_URL + '/profile.html';
@@ -851,6 +856,39 @@ async function dmThreadKey(a, b) {
   return 'dm:' + ids[0] + ':' + ids[1];
 }
 
+// Where a conversation's photos live in R2. Never under gallery/, so they
+// stay out of the gallery, and only ever served through the worker.
+async function dmPhotoPrefix(a, b) {
+  var ids = [await ownerKey(a), await ownerKey(b)].sort();
+  return 'dm/' + ids[0] + '-' + ids[1] + '/';
+}
+
+function dmPhotoExpired(msg) {
+  return Date.now() - new Date(msg.at).getTime() > DM_PHOTO_DAYS * 86400000;
+}
+
+async function deleteDmPhotos(env, a, b) {
+  if (!env.GALLERY_BUCKET) return;
+  var prefix = await dmPhotoPrefix(a, b);
+  var cursor;
+  do {
+    // R2 (not KV), and only when a member leaves.
+    var page = await env.GALLERY_BUCKET.list({ prefix: prefix, cursor: cursor });
+    var keys = page.objects.map(function (o) { return o.key; });
+    if (keys.length) await env.GALLERY_BUCKET.delete(keys);
+    cursor = page.truncated ? page.cursor : undefined;
+  } while (cursor);
+}
+
+// Messages between friends: the comment rules, but links are welcome.
+function moderateDmText(text) {
+  var links = (text.match(/https?:\/\/|www\./gi) || []).length;
+  if (links > MAX_DM_LINKS) return { ok: false, message: 'That\u2019s a lot of links for one message. Please send ' + MAX_DM_LINKS + ' or fewer.' };
+  var check = moderateCommentText(text.replace(/https?:\/\/\S+|www\.\S+/gi, 'link'));
+  if (!check.ok) return { ok: false, message: check.message.replace(/comments/i, 'messages').replace(/Comment/, 'Message') };
+  return { ok: true };
+}
+
 async function getBroadcasts(env) {
   var list = await getJsonKey(env, BROADCASTS_KEY, []);
   return Array.isArray(list) ? list : [];
@@ -1010,6 +1048,7 @@ async function deleteMemberAccount(env, email) {
       await env.VOTES.put(dmIndexKey(index[k].email), JSON.stringify(otherIndex));
     }
     await env.VOTES.delete(await dmThreadKey(email, index[k].email));
+    await deleteDmPhotos(env, email, index[k].email);
   }
   var passkeys = await getPasskeys(env, email);
   for (var pk = 0; pk < passkeys.length; pk++) await env.VOTES.delete(passkeyCredKey(passkeys[pk].id));
@@ -1203,25 +1242,77 @@ async function handleProfileThread(request, env) {
     with: await memberCard(env, other, false),
     friend: fr.friends.indexOf(other) !== -1,
     messages: (Array.isArray(messages) ? messages : []).filter(function (m) { return !m.removed; }).map(function (m) {
-      return { id: m.id, text: m.text, at: m.at, mine: m.from === myId };
+      var out = { id: m.id, text: m.text, at: m.at, mine: m.from === myId };
+      if (m.photo) {
+        if (dmPhotoExpired(m)) out.photoGone = true;
+        else out.photo = true;
+      }
+      return out;
     })
+  });
+}
+
+// A photo from a conversation, only for the two people in it.
+async function handleProfileMessagePhoto(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var params = new URL(request.url).searchParams;
+  var id = String(params.get('with') || '');
+  var index = await getDmIndex(env, email);
+  var fr = await getFriends(env, email);
+  var other = index[id] ? index[id].email : await emailForId(fr.friends, id);
+  if (!other) return json({ success: false, message: 'Conversation not found' }, 404);
+  var messages = await getJsonKey(env, await dmThreadKey(email, other), []);
+  var msg = (Array.isArray(messages) ? messages : []).filter(function (m) { return m.id === params.get('m'); })[0];
+  if (!msg || !msg.photo || msg.removed) return json({ success: false, message: 'Photo not found' }, 404);
+  if (dmPhotoExpired(msg)) return json({ success: false, message: 'Photo no longer available' }, 410);
+  return servePrivatePhoto(env, msg.photo);
+}
+
+async function servePrivatePhoto(env, key) {
+  var obj = await env.GALLERY_BUCKET.get(key);
+  if (!obj) return json({ success: false, message: 'Photo no longer available' }, 410);
+  return new Response(obj.body, {
+    headers: {
+      'Content-Type': (obj.httpMetadata && obj.httpMetadata.contentType) || 'image/jpeg',
+      'Cache-Control': 'private, max-age=3600',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': 'Content-Type, X-Voter-Id, X-Session-Token'
+    }
   });
 }
 
 async function handleProfileMessageSend(request, env) {
   var email = await resolveSession(request, env);
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  // JSON for text, or form data when a photo is attached.
   var body;
-  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
+  var photo = null;
+  if ((request.headers.get('Content-Type') || '').indexOf('multipart/form-data') === 0) {
+    var form;
+    try { form = await request.formData(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
+    body = { with: form.get('with'), text: form.get('text') };
+    photo = form.get('photo');
+    if (photo && typeof photo !== 'string') {
+      if (!photo.type || !/^image\/(jpeg|png|webp|gif)$/.test(photo.type)) return json({ success: false, message: 'Photos need to be JPEG, PNG, WebP or GIF.' }, 400);
+      if (photo.size > MAX_DM_PHOTO_BYTES) return json({ success: false, message: 'That photo is too big. Please choose a smaller one.' }, 400);
+    } else {
+      photo = null;
+    }
+  } else {
+    try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
+  }
   var profile = await getProfileRecord(env, email);
   if (profile.dmBlocked) return json({ success: false, message: 'Messaging is turned off for your account. Please get in touch through the Contact page.' }, 403);
   var fr = await getFriends(env, email);
   var other = await emailForId(fr.friends, String((body && body.with) || ''));
   if (!other) return json({ success: false, message: 'You can only message your friends.' }, 403);
   var text = String((body && body.text) || '').replace(/\r\n?/g, '\n').trim().slice(0, MAX_DM_LENGTH);
-  if (!text) return json({ success: false, message: 'Write a message first.' }, 400);
-  var check = moderateCommentText(text);
-  if (!check.ok) return json({ success: false, message: check.message.replace(/comments/i, 'messages') }, 400);
+  if (!text && !photo) return json({ success: false, message: 'Write a message first.' }, 400);
+  if (text) {
+    var check = moderateDmText(text);
+    if (!check.ok) return json({ success: false, message: check.message }, 400);
+  }
 
   var rateKey = 'dm-rate:' + email;
   var sent = parseInt(await env.VOTES.get(rateKey), 10) || 0;
@@ -1234,24 +1325,39 @@ async function handleProfileMessageSend(request, env) {
   var messages = await getJsonKey(env, threadKey, []);
   if (!Array.isArray(messages)) messages = [];
   var msg = { id: crypto.randomUUID(), from: myId, text: text, at: new Date().toISOString() };
+  if (photo) {
+    var ext = { 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif' }[photo.type] || '.jpg';
+    msg.photo = (await dmPhotoPrefix(email, other)) + msg.id + ext;
+    await env.GALLERY_BUCKET.put(msg.photo, await photo.arrayBuffer(), { httpMetadata: { contentType: photo.type } });
+  }
   messages.push(msg);
-  await env.VOTES.put(threadKey, JSON.stringify(messages.slice(-MAX_DM_PER_THREAD)));
+  // Photos of messages that drop off the end of a long conversation go too.
+  var kept = messages.slice(-MAX_DM_PER_THREAD);
+  var dropped = messages.slice(0, messages.length - kept.length).filter(function (m) { return m.photo; });
+  if (dropped.length) await env.GALLERY_BUCKET.delete(dropped.map(function (m) { return m.photo; }));
+  await env.VOTES.put(threadKey, JSON.stringify(kept));
+  var preview = text ? text.slice(0, 120) : 'Photo';
 
   var mine = await getDmIndex(env, email);
-  mine[otherId] = { email: other, lastText: text.slice(0, 120), lastAt: msg.at, lastFromMe: true, unread: 0 };
+  mine[otherId] = { email: other, lastText: preview, lastAt: msg.at, lastFromMe: true, unread: 0 };
   await env.VOTES.put(dmIndexKey(email), JSON.stringify(mine));
   var theirs = await getDmIndex(env, other);
   var was = theirs[myId] || {};
-  theirs[myId] = { email: email, lastText: text.slice(0, 120), lastAt: msg.at, lastFromMe: false, unread: (was.unread || 0) + 1 };
+  theirs[myId] = { email: email, lastText: preview, lastAt: msg.at, lastFromMe: false, unread: (was.unread || 0) + 1 };
   await env.VOTES.put(dmIndexKey(other), JSON.stringify(theirs));
 
   // One alert per quiet spell, not one per message.
   if (!was.unread) {
     var name = publicName(profile) || 'A friend';
-    var pushed = await sendPushToMember(env, other, { title: 'Message from ' + name, body: text.slice(0, 140), url: '/profile.html?with=' + myId + '#messages' });
-    if (!pushed) await sendMemberEmail(env, other, name + ' sent you a message on MT3UK', name + ' sent you a message on MT3UK:\n\n"' + text.slice(0, 500) + '"\n\nRead and reply in your Profile:\n\n' + PROFILE_URL + '#messages');
+    var pushed = await sendPushToMember(env, other, { title: 'Message from ' + name, body: text ? text.slice(0, 140) : 'Sent you a photo', url: '/profile.html?with=' + myId + '#messages' });
+    if (!pushed) {
+      var said = text ? ':\n\n"' + text.slice(0, 500) + '"' + (photo ? '\n\n(and a photo)' : '') : ' a photo.';
+      await sendMemberEmail(env, other, name + ' sent you a ' + (text ? 'message' : 'photo') + ' on MT3UK', name + ' sent you' + (text ? ' a message on MT3UK' : '') + said + '\n\nRead and reply in your Profile:\n\n' + PROFILE_URL + '#messages');
+    }
   }
-  return json({ success: true, message: { id: msg.id, text: msg.text, at: msg.at, mine: true } });
+  var sentMsg = { id: msg.id, text: msg.text, at: msg.at, mine: true };
+  if (msg.photo) sentMsg.photo = true;
+  return json({ success: true, message: sentMsg });
 }
 
 async function handleProfileMessageReport(request, env) {
@@ -1270,7 +1376,7 @@ async function handleProfileMessageReport(request, env) {
   if (!Array.isArray(reports)) reports = [];
   if (!reports.some(function (r) { return r.messageId === msg.id; })) {
     reports.unshift({
-      id: crypto.randomUUID(), messageId: msg.id, text: msg.text, at: msg.at,
+      id: crypto.randomUUID(), messageId: msg.id, text: msg.text, at: msg.at, photo: !!msg.photo,
       fromEmail: other, fromName: await publicNameFor(env, other),
       toEmail: email, toName: await publicNameFor(env, email),
       reason: String((body && body.reason) || '').trim().slice(0, 300),
@@ -1407,6 +1513,18 @@ async function handleAdminBroadcastEmail(request, env) {
   return json({ success: true, sent: sent, skipped: skipped, already: already, emailedTotal: emailed.length, cursor: page.list_complete ? null : page.cursor });
 }
 
+// The photo in a reported message, for the admin page.
+async function handleAdminDmPhoto(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorized' }, 401);
+  var reports = await getJsonKey(env, DM_REPORTS_KEY, []);
+  var report = (Array.isArray(reports) ? reports : []).filter(function (r) { return r.id === new URL(request.url).searchParams.get('id'); })[0];
+  if (!report) return json({ success: false, message: 'Report not found' }, 404);
+  var messages = await getJsonKey(env, await dmThreadKey(report.fromEmail, report.toEmail), []);
+  var msg = (Array.isArray(messages) ? messages : []).filter(function (m) { return m.id === report.messageId; })[0];
+  if (!msg || !msg.photo) return json({ success: false, message: 'Photo no longer available' }, 410);
+  return servePrivatePhoto(env, msg.photo);
+}
+
 async function handleAdminDmReports(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorized' }, 401);
   var body;
@@ -1420,8 +1538,15 @@ async function handleAdminDmReports(request, env) {
     var threadKey = await dmThreadKey(report.fromEmail, report.toEmail);
     var messages = await getJsonKey(env, threadKey, []);
     if (Array.isArray(messages)) {
-      messages.forEach(function (m) { if (m.id === report.messageId) { m.removed = true; m.text = ''; } });
+      var removedPhotos = [];
+      messages.forEach(function (m) {
+        if (m.id !== report.messageId) return;
+        m.removed = true;
+        m.text = '';
+        if (m.photo) { removedPhotos.push(m.photo); delete m.photo; }
+      });
       await env.VOTES.put(threadKey, JSON.stringify(messages));
+      if (removedPhotos.length) await env.GALLERY_BUCKET.delete(removedPhotos);
     }
   }
   if (action === 'block') {
@@ -5917,6 +6042,12 @@ export default {
     }
     if (url.pathname === '/profile/messages/send' && request.method === 'POST') {
       return handleProfileMessageSend(request, env);
+    }
+    if (url.pathname === '/profile/messages/photo' && request.method === 'GET') {
+      return handleProfileMessagePhoto(request, env);
+    }
+    if (url.pathname === '/admin/dm-photo' && request.method === 'GET') {
+      return handleAdminDmPhoto(request, env);
     }
     if (url.pathname === '/profile/messages/report' && request.method === 'POST') {
       return handleProfileMessageReport(request, env);

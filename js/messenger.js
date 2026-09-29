@@ -3,7 +3,7 @@
 
   A speech-bubble icon in the header (beside the bell) opens it, with a
   count of unread messages. On a computer it floats in the bottom right
-  corner; on a phone it fills the screen. Three tabs:
+  corner; on a phone it floats above the bottom of the page. Three tabs:
   - Chats: conversations with friends, opening into message bubbles
   - Friends: find members, friend requests, your friends
   - MT3UK: messages from MT3UK to members
@@ -11,6 +11,12 @@
   Links to profile.html#messages, profile.html#friends and
   profile.html?with=<id>#messages (menu, bell, emails and phone
   notifications) open it too, on whatever page they're on.
+
+  The window can be minimised to a small round bubble, and stays open or
+  minimised from page to page (sessionStorage). Web addresses in messages
+  become links, and photos can be attached: they're shrunk on the device
+  first and only ever shown through the worker, to the two people in the
+  conversation, for 90 days.
 
   window.mt3ukChat.open('chats' | 'friends' | 'mt3uk', friendId?) and
   window.mt3ukChat.close(). Uses the worker's /profile endpoints.
@@ -40,6 +46,9 @@
 
   var CHAT_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.6A8 8 0 1 1 21 12z"/></svg>';
   var SEND_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l16-8-6 16-2.5-6.5z"/></svg>';
+  var PHOTO_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="12" cy="12" r="3.5"/><path d="M8 5l1.5-2h5L16 5"/></svg>';
+  var LINK_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg>';
+  var STATE_KEY = 'mt3ukChatState';
 
   // ---------- Styles ----------
   var style = document.createElement('style');
@@ -49,11 +58,17 @@
     '.nav-chat svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round}',
     '.nav-chat-count{position:absolute;top:0;right:2px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:#e8542a;color:#fff;font:700 .66rem/17px "IBM Plex Sans",sans-serif;text-align:center}',
     '.nav-chat-count[hidden]{display:none}',
-    '#mt3uk-chat{position:fixed;right:20px;bottom:20px;z-index:420;width:380px;height:min(620px,calc(100dvh - 110px));display:flex;flex-direction:column;background:#fff;color:#16233d;border-radius:18px;box-shadow:0 18px 50px rgba(10,16,30,.35);overflow:hidden;font-family:"IBM Plex Sans",sans-serif;opacity:0;transform:translateY(16px) scale(.98);transition:opacity .18s ease,transform .18s ease}',
+    '#mt3uk-chat{position:fixed;right:16px;bottom:16px;z-index:420;width:340px;height:min(500px,calc(100dvh - 120px));display:flex;flex-direction:column;background:#fff;color:#16233d;border-radius:18px;box-shadow:0 18px 50px rgba(10,16,30,.35);overflow:hidden;font-family:"IBM Plex Sans",sans-serif;opacity:0;transform:translateY(16px) scale(.98);transition:opacity .18s ease,transform .18s ease}',
     '#mt3uk-chat.is-open{opacity:1;transform:none}',
     '#mt3uk-chat[hidden]{display:none}',
-    '@media (max-width:780px){#mt3uk-chat{inset:0;width:auto;height:100dvh;border-radius:0;padding-top:env(safe-area-inset-top,0px)}}',
+    // On phones a floating card, so the page stays in view above it.
+    '@media (max-width:780px){#mt3uk-chat{left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));width:auto;height:min(62dvh,520px)}}',
+    '#mt3uk-chat-min{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:420;width:54px;height:54px;border-radius:50%;border:2px solid #fff;background:#e8542a;color:#fff;box-shadow:0 10px 28px rgba(10,16,30,.35);display:flex;align-items:center;justify-content:center;cursor:pointer}',
+    '#mt3uk-chat-min[hidden]{display:none}',
+    '#mt3uk-chat-min svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round}',
+    '#mt3uk-chat-min .mc-badge{position:absolute;top:-4px;right:-4px;background:#16233d;border:2px solid #fff}',
     '.mc-head{display:flex;align-items:center;gap:8px;padding:12px 12px 10px 16px;background:#16233d;color:#fff}',
+    '.mc-head{gap:6px}',
     '.mc-head h2{flex:1;margin:0;font-size:1.05rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff}',
     '.mc-icon-btn{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;border:0;background:rgba(255,255,255,.12);color:#fff;font-size:1.3rem;line-height:1;cursor:pointer}',
     '.mc-icon-btn:hover{background:rgba(255,255,255,.22)}',
@@ -118,6 +133,24 @@
     '.mc-send{width:42px;height:42px;flex-shrink:0;border-radius:50%;border:0;background:#e8542a;color:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}',
     '.mc-send:disabled{opacity:.5;cursor:default}',
     '.mc-send svg{width:20px;height:20px;fill:currentColor}',
+    '.mc-tool{width:38px;height:42px;flex-shrink:0;border:0;border-radius:50%;background:none;color:#5b6678;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0}',
+    '.mc-tool:hover{color:#e8542a}',
+    '.mc-tool svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}',
+    '.mc-attach{display:flex;align-items:center;gap:10px;padding:8px 12px 0;background:#fff;border-top:1px solid rgba(22,35,61,.1);font-size:.8rem;color:#5b6678}',
+    '.mc-attach[hidden]{display:none}',
+    '.mc-attach img{width:54px;height:54px;object-fit:cover;border-radius:10px}',
+    '.mc-attach + .mc-compose{border-top:0}',
+    '.mc-bubble a{color:#e8542a;text-decoration:underline;word-break:break-all}',
+    '.mc-msg.mine .mc-bubble a{color:#fff}',
+    '.mc-bubble.has-photo{padding:4px}',
+    '.mc-bubble.has-photo .mc-text{padding:6px 9px 5px}',
+    '.mc-photo-btn{display:block;border:0;padding:0;background:none;cursor:zoom-in;border-radius:14px;overflow:hidden}',
+    '.mc-photo{display:block;width:200px;max-width:100%;height:auto;min-height:90px;max-height:260px;object-fit:cover;background:#e7e9ee}',
+    '.mc-gone{font-style:italic;color:#7c8798;font-size:.84rem;padding:6px 9px}',
+    '.mc-msg.mine .mc-gone{color:#fff}',
+    '#mc-viewer{position:fixed;inset:0;z-index:440;background:rgba(10,16,30,.92);display:flex;align-items:center;justify-content:center;padding:16px}',
+    '#mc-viewer img{max-width:94vw;max-height:88vh;border-radius:8px}',
+    '#mc-viewer button{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));right:14px}',
     '.mc-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}',
     '.mc-signin{padding:28px 12px;text-align:center}',
     '.mc-signin p{margin:0 0 14px;color:#5b6678;line-height:1.5}',
@@ -167,6 +200,7 @@
     '<div class="mc-head">' +
       '<button type="button" class="mc-icon-btn" id="mc-back" aria-label="Back" hidden>&lsaquo;</button>' +
       '<h2 id="mc-title">Messages</h2>' +
+      '<button type="button" class="mc-icon-btn" id="mc-min" aria-label="Minimise messages">&minus;</button>' +
       '<button type="button" class="mc-icon-btn" id="mc-close" aria-label="Close messages">&times;</button>' +
     '</div>' +
     '<div class="mc-tabs" id="mc-tabs" role="tablist">' +
@@ -199,14 +233,32 @@
         '<p class="mc-status" id="mc-thread-status" role="status"></p>' +
       '</div>' +
     '</div>' +
+    '<div class="mc-attach" id="mc-attach" hidden>' +
+      '<img id="mc-attach-img" alt="Photo to send"><span>Photo ready to send</span>' +
+      '<button type="button" class="mc-btn" id="mc-attach-remove">Remove</button>' +
+    '</div>' +
     '<form class="mc-compose" id="mc-compose" hidden novalidate>' +
+      '<button type="button" class="mc-tool" id="mc-photo-btn" aria-label="Attach a photo">' + PHOTO_ICON + '</button>' +
+      '<input type="file" id="mc-photo-input" accept="image/*" hidden>' +
+      '<button type="button" class="mc-tool" id="mc-link-btn" aria-label="Add a link to a website">' + LINK_ICON + '</button>' +
       '<label for="mc-compose-text" class="mc-sr">Message</label>' +
       '<textarea id="mc-compose-text" rows="1" maxlength="1000" placeholder="Message"></textarea>' +
       '<button type="submit" class="mc-send" aria-label="Send">' + SEND_ICON + '</button>' +
     '</form>';
 
+  // The minimised window: a round bubble in the corner.
+  var mini = document.createElement('button');
+  mini.type = 'button';
+  mini.id = 'mt3uk-chat-min';
+  mini.hidden = true;
+  mini.setAttribute('aria-label', 'Open messages');
+  mini.innerHTML = CHAT_ICON + '<span class="mc-badge" id="mc-badge-min" hidden></span>';
+
   function $(id) { return document.getElementById(id); }
-  function mount() { if (!box.parentNode) document.body.appendChild(box); }
+  function mount() {
+    if (!box.parentNode) document.body.appendChild(box);
+    if (!mini.parentNode) document.body.appendChild(mini);
+  }
   if (document.body) mount(); else document.addEventListener('DOMContentLoaded', mount);
 
   var profile = null;
@@ -219,6 +271,35 @@
 
   function status(el, msg, kind) { el.textContent = msg || ''; el.className = 'mc-status' + (kind ? ' is-' + kind : ''); }
   function badge(el, n) { el.hidden = !n; el.textContent = n > 99 ? '99+' : String(n || ''); }
+
+  // Open or minimised, and where, kept while moving between pages.
+  function readState() {
+    try { return JSON.parse(sessionStorage.getItem(STATE_KEY) || 'null'); } catch (e) { return null; }
+  }
+  function saveState(mode) {
+    try {
+      if (!mode) sessionStorage.removeItem(STATE_KEY);
+      else sessionStorage.setItem(STATE_KEY, JSON.stringify({ mode: mode, view: view === 'thread' ? 'chats' : view, withId: view === 'thread' ? openThreadId : null }));
+    } catch (e) {}
+  }
+
+  // Web addresses become links. The text is escaped piece by piece.
+  function linkify(text) {
+    var out = '';
+    var last = 0;
+    String(text || '').replace(/(https?:\/\/[^\s<]+|www\.[^\s<]+)/gi, function (m, _u, idx) {
+      var trail = (m.match(/[.,!?;:)\]'"]+$/) || [''])[0];
+      var url = trail ? m.slice(0, -trail.length) : m;
+      var href = /^www\./i.test(url) ? 'https://' + url : url;
+      var ok = false;
+      try { var u = new URL(href); ok = /^https?:$/.test(u.protocol) && u.hostname.indexOf('.') !== -1; } catch (e) {}
+      out += esc(text.slice(last, idx));
+      out += ok ? '<a href="' + esc(href) + '" target="_blank" rel="noopener noreferrer nofollow ugc">' + esc(url) + '</a>' + esc(trail) : esc(m);
+      last = idx + m.length;
+      return m;
+    });
+    return out + esc(String(text || '').slice(last));
+  }
 
   function api(method, path, body) {
     var opts = { method: method, headers: { 'X-Session-Token': session() }, cache: 'no-store' };
@@ -256,9 +337,11 @@
     }
     if (name === 'mt3uk') markBroadcastsRead();
     $('mc-body').scrollTop = 0;
+    if (!box.hidden) saveState('open');
   }
 
   function updateBadges() {
+    badge($('mc-badge-min'), directUnread + broadcastsUnread);
     badge($('mc-badge-chats'), directUnread);
     badge($('mc-badge-mt3uk'), broadcastsUnread);
     badge($('mc-badge-friends'), profile ? profile.incoming.length : 0);
@@ -305,6 +388,8 @@
     show('thread');
     openThreadId = id;
     $('mc-title').textContent = knownNames[id] || '';
+    clearPhoto();
+    if (!box.hidden) saveState('open');
     $('mc-bubbles').innerHTML = '<li class="mc-empty">Loading&hellip;</li>';
     status($('mc-thread-status'), '');
     return api('GET', '/profile/messages/thread?with=' + encodeURIComponent(id)).then(function (data) {
@@ -322,9 +407,12 @@
 
   function bubbleHtml(m) {
     var name = knownNames[openThreadId] || '';
+    var photo = m.photo || m.localUrl
+      ? '<button type="button" class="mc-photo-btn" aria-label="View photo"><img class="mc-photo" alt="Photo" data-mid="' + esc(m.id || '') + '"' + (m.localUrl ? ' src="' + esc(m.localUrl) + '"' : '') + '></button>'
+      : m.photoGone ? '<div class="mc-gone">Photo no longer available</div>' : '';
     return '<li class="mc-msg' + (m.mine ? ' mine' : '') + '" data-id="' + esc(m.id || '') + '">' +
       (m.mine ? '' : '<span class="mc-avatar" aria-hidden="true">' + esc(initials(name)) + '</span>') +
-      '<div><div class="mc-bubble">' + esc(m.text) + '</div>' +
+      '<div><div class="mc-bubble' + (photo ? ' has-photo' : '') + '">' + photo + (m.text ? (photo ? '<div class="mc-text">' + linkify(m.text) + '</div>' : linkify(m.text)) : '') + '</div>' +
       '<div class="mc-msg-meta"><time datetime="' + esc(m.at) + '">' + esc(when(m.at)) + '</time>' +
       (m.mine ? '' : '<button type="button" class="mc-report">Report</button>') + '</div></div></li>';
   }
@@ -333,6 +421,49 @@
     $('mc-bubbles').innerHTML = messages.length ? messages.map(bubbleHtml).join('') : '<li class="mc-empty">No messages yet. Say hello.</li>';
     var body = $('mc-body');
     body.scrollTop = body.scrollHeight;
+    loadPhotos();
+  }
+
+  // Photos come from the worker with the sign-in, so only the two people in
+  // the conversation can see them. Kept for this page once loaded.
+  var photoUrls = {};
+  function loadPhotos() {
+    var id = openThreadId;
+    $('mc-bubbles').querySelectorAll('img.mc-photo:not([src])').forEach(function (img) {
+      var mid = img.getAttribute('data-mid');
+      if (photoUrls[mid]) { img.src = photoUrls[mid]; return; }
+      fetch(API + '/profile/messages/photo?with=' + encodeURIComponent(id) + '&m=' + encodeURIComponent(mid), { headers: { 'X-Session-Token': session() } })
+        .then(function (res) {
+          if (!res.ok) throw new Error(String(res.status));
+          return res.blob();
+        })
+        .then(function (blob) {
+          photoUrls[mid] = URL.createObjectURL(blob);
+          img.src = photoUrls[mid];
+          img.addEventListener('load', function () {
+            var body = $('mc-body');
+            if (body.scrollHeight - body.scrollTop - body.clientHeight < 400) body.scrollTop = body.scrollHeight;
+          }, { once: true });
+        })
+        .catch(function () {
+          var btn = img.closest('.mc-photo-btn');
+          if (btn) btn.outerHTML = '<div class="mc-gone">Photo no longer available</div>';
+        });
+    });
+  }
+
+  function viewPhoto(src) {
+    var v = document.createElement('div');
+    v.id = 'mc-viewer';
+    v.setAttribute('role', 'dialog');
+    v.setAttribute('aria-label', 'Photo');
+    v.innerHTML = '<img alt="Photo" src="' + esc(src) + '"><button type="button" class="mc-icon-btn" aria-label="Close photo">&times;</button>';
+    function shut() { v.remove(); document.removeEventListener('keydown', onKey, true); }
+    function onKey(e) { if (e.key === 'Escape') { e.stopPropagation(); shut(); } }
+    v.addEventListener('click', shut);
+    document.addEventListener('keydown', onKey, true);
+    document.body.appendChild(v);
+    v.querySelector('button').focus();
   }
 
   // ---------- Friends ----------
@@ -399,6 +530,7 @@
   // ---------- Events ----------
   box.addEventListener('click', function (e) {
     var t;
+    if ((t = e.target.closest('.mc-photo-btn'))) { var img = t.querySelector('img'); if (img && img.src) viewPhoto(img.src); return; }
     if ((t = e.target.closest('.mc-tab'))) { show(t.dataset.view); return; }
     if ((t = e.target.closest('[data-mc-view]'))) { e.preventDefault(); show(t.getAttribute('data-mc-view')); return; }
     if ((t = e.target.closest('.mc-thread-row'))) { openThread(t.getAttribute('data-id')); return; }
@@ -450,41 +582,153 @@
     var form = $('mc-compose');
     if (form.requestSubmit) form.requestSubmit(); else form.querySelector('button').click();
   });
+  // ----- Photos: shrunk on the device (longest side 1280px) before sending.
+  var pendingPhoto = null;
+  var pendingUrl = null;
+  function clearPhoto() {
+    pendingPhoto = null;
+    if (pendingUrl) { URL.revokeObjectURL(pendingUrl); pendingUrl = null; }
+    $('mc-attach').hidden = true;
+    $('mc-photo-input').value = '';
+  }
+  function shrink(file) {
+    var MAX = 1280;
+    function draw(src, w, h) {
+      var scale = Math.min(1, MAX / Math.max(w, h));
+      var canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(w * scale));
+      canvas.height = Math.max(1, Math.round(h * scale));
+      canvas.getContext('2d').drawImage(src, 0, 0, canvas.width, canvas.height);
+      return new Promise(function (resolve, reject) {
+        canvas.toBlob(function (blob) { if (blob) resolve(blob); else reject(new Error('blob')); }, 'image/jpeg', 0.8);
+      });
+    }
+    function viaImg() {
+      return new Promise(function (resolve, reject) {
+        var url = URL.createObjectURL(file);
+        var img = new Image();
+        img.onload = function () { URL.revokeObjectURL(url); draw(img, img.naturalWidth, img.naturalHeight).then(resolve, reject); };
+        img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('img')); };
+        img.src = url;
+      });
+    }
+    // An animated GIF would lose its movement, so small ones go as they are.
+    if (file.type === 'image/gif' && file.size < 2 * 1024 * 1024) return Promise.resolve(file);
+    if (window.createImageBitmap) {
+      return createImageBitmap(file, { imageOrientation: 'from-image' })
+        .then(function (bmp) { return draw(bmp, bmp.width, bmp.height); })
+        .catch(viaImg);
+    }
+    return viaImg();
+  }
+  $('mc-photo-btn').addEventListener('click', function () { $('mc-photo-input').click(); });
+  $('mc-photo-input').addEventListener('change', function () {
+    var file = this.files && this.files[0];
+    if (!file) return;
+    if (!/^image\//.test(file.type)) { status($('mc-thread-status'), 'Please choose a photo.', 'err'); return; }
+    status($('mc-thread-status'), 'Getting your photo ready\u2026');
+    shrink(file).then(function (blob) {
+      clearPhoto();
+      pendingPhoto = blob;
+      pendingUrl = URL.createObjectURL(blob);
+      $('mc-attach-img').src = pendingUrl;
+      $('mc-attach').hidden = false;
+      status($('mc-thread-status'), '');
+      compose.focus({ preventScroll: true });
+    }).catch(function () { status($('mc-thread-status'), 'That photo couldn\u2019t be used. Try another, or a screenshot of it.', 'err'); });
+  });
+  $('mc-attach-remove').addEventListener('click', clearPhoto);
+
+  // ----- Links: asks for a web address and adds it to the message.
+  $('mc-link-btn').addEventListener('click', function () {
+    var input = window.prompt('Add a link to a website', 'https://');
+    if (input === null) return;
+    var url = input.trim();
+    if (!url || url === 'https://') return;
+    if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+    var ok = false;
+    try { var u = new URL(url); ok = /^https?:$/.test(u.protocol) && u.hostname.indexOf('.') !== -1; } catch (e) {}
+    if (!ok) { status($('mc-thread-status'), 'That doesn\u2019t look like a web address. Try something like mt3uk.com.', 'err'); return; }
+    status($('mc-thread-status'), '');
+    var at = typeof compose.selectionStart === 'number' ? compose.selectionStart : compose.value.length;
+    var before = compose.value.slice(0, at);
+    var after = compose.value.slice(at);
+    var add = (before && !/\s$/.test(before) ? ' ' : '') + url + (after && !/^\s/.test(after) ? ' ' : '');
+    compose.value = before + add + after;
+    compose.dispatchEvent(new Event('input'));
+    compose.focus();
+    try { compose.setSelectionRange(at + add.length, at + add.length); } catch (e) {}
+  });
+
   $('mc-compose').addEventListener('submit', function (e) {
     e.preventDefault();
     var text = compose.value.trim();
     var id = openThreadId;
-    if (!text || !id) return;
-    var btn = e.target.querySelector('button');
+    var photo = pendingPhoto;
+    var localUrl = pendingUrl;
+    if ((!text && !photo) || !id) return;
+    var btn = e.target.querySelector('.mc-send');
     btn.disabled = true;
-    api('POST', '/profile/messages/send', { with: id, text: text }).then(function (data) {
+    var sending;
+    if (photo) {
+      var form = new FormData();
+      form.append('with', id);
+      form.append('text', text);
+      form.append('photo', photo, photo.type === 'image/gif' ? 'photo.gif' : 'photo.jpg');
+      status($('mc-thread-status'), 'Sending photo\u2026');
+      sending = fetch(API + '/profile/messages/send', { method: 'POST', headers: { 'X-Session-Token': session() }, body: form, cache: 'no-store' })
+        .then(function (res) {
+          return res.json().catch(function () { return {}; }).then(function (data) {
+            if (res.status === 401) { showSignIn(); throw new Error('signed out'); }
+            return data;
+          });
+        });
+    } else {
+      sending = api('POST', '/profile/messages/send', { with: id, text: text });
+    }
+    sending.then(function (data) {
       btn.disabled = false;
       if (!data.success) { status($('mc-thread-status'), data.message || 'Could not send, please try again.', 'err'); return; }
       compose.value = '';
       compose.style.height = '';
       status($('mc-thread-status'), '');
+      if (photo) {
+        // The photo on screen stays; the preview is just hidden.
+        pendingPhoto = null;
+        pendingUrl = null;
+        $('mc-attach').hidden = true;
+        $('mc-photo-input').value = '';
+        if (data.message && data.message.id) photoUrls[data.message.id] = localUrl;
+      }
       if (openThreadId !== id) return;
       var list = $('mc-bubbles');
       if (list.querySelector('.mc-empty')) list.innerHTML = '';
-      list.insertAdjacentHTML('beforeend', bubbleHtml({ id: data.message.id, text: data.message.text, at: data.message.at, mine: true }));
+      list.insertAdjacentHTML('beforeend', bubbleHtml({ id: data.message.id, text: data.message.text, at: data.message.at, mine: true, localUrl: photo ? localUrl : null }));
       $('mc-body').scrollTop = $('mc-body').scrollHeight;
       loadMessages().catch(function () {});
     }).catch(function (err) { btn.disabled = false; if (err.message !== 'signed out') status($('mc-thread-status'), 'Network error, please try again.', 'err'); });
   });
 
   // ---------- Open and close ----------
-  var phone = window.matchMedia('(max-width: 780px)');
   var lastFocus = null;
 
-  function open(which, withId) {
+  var loadedHere = false;
+
+  function reveal() {
     mount();
-    lastFocus = document.activeElement;
+    mini.hidden = true;
     box.hidden = false;
     requestAnimationFrame(function () { box.classList.add('is-open'); });
     icon.setAttribute('aria-expanded', 'true');
-    if (phone.matches) document.documentElement.style.overflow = 'hidden';
+  }
+
+  function open(which, withId) {
+    lastFocus = document.activeElement;
+    reveal();
     if (!session()) { showSignIn(); $('mc-close').focus(); return; }
+    loadedHere = true;
     show(which === 'friends' || which === 'mt3uk' ? which : 'chats');
+    saveState('open');
     if (withId) openThread(withId);
     $('mc-close').focus({ preventScroll: true });
     Promise.all([loadProfile(), loadMessages()]).then(function () {
@@ -492,11 +736,35 @@
     }).catch(function () {});
   }
 
+  // Minimise: the window shrinks to the round bubble, just as it was.
+  function minimise() {
+    box.classList.remove('is-open');
+    box.hidden = true;
+    mini.hidden = false;
+    icon.setAttribute('aria-expanded', 'false');
+    saveState('min');
+    try { mini.focus({ preventScroll: true }); } catch (e) {}
+  }
+
+  function restore() {
+    var st = readState() || {};
+    if (loadedHere) {
+      reveal();
+      saveState('open');
+      if (view === 'thread') loadPhotos();
+      $('mc-min').focus({ preventScroll: true });
+    } else {
+      open(st.view, st.withId);
+    }
+  }
+
   function close() {
     box.classList.remove('is-open');
     box.hidden = true;
+    mini.hidden = true;
     icon.setAttribute('aria-expanded', 'false');
-    document.documentElement.style.overflow = '';
+    saveState(null);
+    clearPhoto();
     openThreadId = null;
     if (/#(messages|friends)$/.test(location.hash)) {
       try { history.replaceState(null, '', location.pathname + location.search.replace(/[?&]with=[^&]*/, '').replace(/^&/, '?')); } catch (e) {}
@@ -504,8 +772,12 @@
     if (lastFocus && lastFocus.focus) { try { lastFocus.focus({ preventScroll: true }); } catch (e) {} }
   }
 
+  $('mc-min').addEventListener('click', minimise);
+  mini.addEventListener('click', restore);
+
   icon.addEventListener('click', function () {
     if (!box.hidden) { close(); return; }
+    if (!mini.hidden) { restore(); return; }
     // Open where there's something new.
     open(!directUnread && broadcastsUnread ? 'mt3uk' : 'chats');
   });
@@ -534,10 +806,15 @@
     open(t.view, t.withId);
   });
 
-  // Arriving at a Messages or Friends link opens the window.
+  // Arriving at a Messages or Friends link opens the window; otherwise it
+  // comes back open or minimised as it was on the last page.
   function openFromUrl() {
+    if (!session()) { saveState(null); return; }
     var t = target(location.href);
-    if (t && session()) open(t.view, t.withId);
+    if (t) { open(t.view, t.withId); return; }
+    var st = readState();
+    if (st && st.mode === 'open') open(st.view, st.withId);
+    else if (st && st.mode === 'min') { mount(); mini.hidden = false; }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', openFromUrl);
   else openFromUrl();

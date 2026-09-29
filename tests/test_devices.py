@@ -402,7 +402,17 @@ def profile_reply(path, method, post_data, state):
         state["thread_read"] = True
         return {"success": True, "with": {"id": "f1", "nickname": "Sharad", "name": "Sharad"}, "friend": True, "messages": p["thread"]}
     if path == "/profile/messages/send":
-        msg = {"id": "m%d" % (len(p["thread"]) + 1), "text": body.get("text") or "See you at Thruxton", "at": "2026-09-29T10:00:00Z", "mine": True}
+        # A photo comes as form data (WebKit may not pass the body on, so
+        # the test can say a photo is on its way).
+        with_photo = 'name="photo"' in (post_data or "") or state.pop("sending_photo", False)
+        text = body.get("text")
+        if with_photo:
+            m = re.search(r'name="text"\r?\n\r?\n([^\r\n]*)', post_data or "")
+            text = m.group(1) if m else ""
+        msg = {"id": "m%d" % (len(p["thread"]) + 1), "text": text if with_photo else (text or "See you at Thruxton"), "at": "2026-09-29T10:00:00Z", "mine": True}
+        if with_photo:
+            msg["photo"] = True
+            state["photo_sent"] = True
         p["thread"].append(msg)
         return {"success": True, "message": msg}
     if path == "/profile/messages/report":
@@ -484,6 +494,9 @@ def attach_mocks(context):
                 body = {"success": False, "message": "Please sign in again"}
             path = api_path(url)
             state["log"].append(f"{request.method} {path} -> {status}")
+            # Photos in messages come back as an image.
+            if path == "/profile/messages/photo" and status == 200:
+                return route.fulfill(status=200, body=TINY_JPEG, headers=dict(API_HEADERS, **{"Content-Type": "image/jpeg"}))
             return route.fulfill(status=status, body=json.dumps(body), headers=API_HEADERS)
         if R2_HOST in url and request.resource_type == "image":
             return route.fulfill(status=200, body=TINY_JPEG, headers={"Content-Type": "image/jpeg"})

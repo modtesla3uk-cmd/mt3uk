@@ -3361,12 +3361,13 @@ function encodeHeaderText(value) {
 }
 
 // The full set of headers mail providers expect, so emails don't land in
-// Junk: Date, Message-ID, Reply-To (noreply@ has no inbox), the text
-// encoding and, for member emails, List-Unsubscribe (extraHeaders).
+// Junk: Date, Message-ID, the text encoding and, for member emails,
+// List-Unsubscribe (extraHeaders). No Reply-To: a reply address on another
+// domain (gmail.com) than the sender is flagged by Outlook as a phishing
+// sign, and no MT3UK email asks people to reply.
 function rawEmail(from, to, subject, bodyText, extraHeaders) {
   var lines = [
     'From: MT3UK <' + from + '>',
-    'Reply-To: MT3UK <' + SUBSCRIBERS_DIGEST_EMAIL + '>',
     'To: ' + to,
     'Subject: ' + encodeHeaderText(subject),
     'Date: ' + new Date().toUTCString(),

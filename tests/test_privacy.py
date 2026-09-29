@@ -54,3 +54,11 @@ def test_member_emails_have_one_click_unsubscribe():
     handler = worker.split("async function handleEmailUnsubscribe", 1)[1].split("\nasync function ", 1)[0]
     assert "request.method === 'POST'" in handler and "emailsOff = true" in handler
     assert "await listUnsubscribeHeaders(env, toEmail)" in worker
+
+
+def test_emails_have_no_reply_to_on_another_domain():
+    """Outlook flags a Reply-To on a different domain from the sender (the
+    MT3UK Gmail) as a phishing sign, so emails don't set one."""
+    worker = (ROOT / "workers" / "vote-worker.js").read_text(encoding="utf-8")
+    raw_email = worker.split("function rawEmail(", 1)[1].split("\n}\n", 1)[0]
+    assert "Reply-To" not in raw_email

@@ -492,7 +492,9 @@ def test_reel_like_asks_to_sign_in_then_works(device_page):
 def test_gallery_photo_opens_in_viewer(device_page):
     page = device_page
     page.goto("/gallery.html")
-    first = page.locator("#gallery-grid img").first
+    # Tap the tile, as a visitor does: a long caption can cover the middle of
+    # the photo on a phone-width tile, and the whole tile opens the viewer.
+    first = page.locator("#gallery-grid .gallery-slot.filled").first
     first.wait_for(timeout=10000)
     first.scroll_into_view_if_needed()
     first.click()

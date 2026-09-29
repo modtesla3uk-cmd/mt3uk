@@ -297,6 +297,10 @@ nav {
   padding: 0;
 }
 .nav-bell-btn:hover { opacity: 0.65; }
+/* Person icon next to the bell: goes to My Profile. */
+.nav-profile { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 34px; color: var(--ink); text-decoration: none; }
+.nav-profile:hover { opacity: 0.65; }
+.nav-profile svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .nav-bell-btn svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .nav-bell-count {
   position: absolute;
@@ -352,7 +356,7 @@ nav {
 @media (max-width: 780px) {
   /* The bell takes the push to the right, with search beside it. */
   .nav-bell { margin-left: auto; }
-  .nav-bell + .nav-search { margin-left: 0; }
+  .nav-bell + .nav-search, .nav-profile + .nav-search { margin-left: 0; }
   .nav-bell-panel { position: fixed; top: 64px; left: 16px; right: 16px; width: auto; max-width: none; }
 }
 .nav-bell-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }

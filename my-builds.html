@@ -249,8 +249,9 @@
   .mb-submit-guidance p strong { color: var(--ink); }
   .mb-submit-guidance p + p { margin-top: 8px; }
 
-  .mb-signed-in { display: flex; align-items: center; justify-content: space-between; gap: 12px; max-width: 720px; margin: 0 auto 28px; font-size: 0.85rem; color: var(--steel); }
-  .mb-signed-in-actions { display: flex; align-items: center; gap: 10px; }
+  .mb-signed-in { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 12px; max-width: 720px; margin: 0 auto 28px; font-size: 0.85rem; color: var(--steel); }
+  .mb-signed-in > span { min-width: 0; overflow-wrap: anywhere; }
+  .mb-signed-in-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
   .mb-name-row { max-width: 720px; margin: -16px auto 24px; font-size: 0.85rem; color: var(--steel); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .mb-name-row strong { color: var(--ink); }
   .mb-name-row[hidden], .mb-name-card[hidden] { display: none; }
@@ -262,6 +263,14 @@
   .mb-signout-btn { background: transparent; border: 1px solid var(--line); color: var(--ink); padding: 7px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; cursor: pointer; }
   .mb-signout-btn:hover { border-color: var(--orange); color: var(--orange); }
   a.mb-profile-link { display: inline-flex; align-items: center; text-decoration: none; }
+  .mb-field input::placeholder, .mb-field textarea::placeholder { color: #9aa3b2; opacity: 1; }
+  .mb-loading { text-align: center; padding: 56px 16px; color: var(--steel); }
+  .mb-loading p { margin: 14px 0; font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; letter-spacing: 0.04em; }
+  .mb-spinner { display: inline-block; width: 34px; height: 34px; border: 3px solid rgba(22, 35, 61, 0.15); border-top-color: var(--orange); border-radius: 50%; animation: mbSpin 0.8s linear infinite; }
+  @keyframes mbSpin { to { transform: rotate(360deg); } }
+  .mb-spinner[hidden], .mb-loading[hidden] { display: none; }
+  @media (prefers-reduced-motion: reduce) { .mb-spinner { animation-duration: 2.4s; } }
+  html.mb-is-loading #mb-signin-view { display: none !important; }
   .mb-legal a { text-decoration: underline; }
 
   .mb-notif { position: relative; }
@@ -831,6 +840,23 @@ document.addEventListener('DOMContentLoaded', function () {
       Add your own build photos, view comments, reply and if you have multiple cars they can be added too, with mods listed for each car. Email address is required.
     </div>
 
+    <div class="mb-loading" id="mb-loading-view" role="status" hidden>
+      <span class="mb-spinner" aria-hidden="true"></span>
+      <p id="mb-loading-text">Loading your garage&hellip;</p>
+      <button type="button" class="mb-signout-btn" id="mb-loading-retry" hidden>Try again</button>
+    </div>
+    <script>
+      // Signed in on this device (or arriving from a sign-in link): show
+      // "Loading your garage" straight away, not the sign-in form.
+      (function () {
+        var saved = '';
+        try { saved = localStorage.getItem('mt3ukMyBuildsSession') || ''; } catch (e) {}
+        if (!saved && !/[?&]token=/.test(location.search)) return;
+        document.getElementById('mb-loading-view').hidden = false;
+        document.documentElement.classList.add('mb-is-loading');
+      })();
+    </script>
+
     <div id="mb-signin-view">
       <div class="mb-card" id="mb-signin-card">
         <h2>Sign in</h2>
@@ -872,7 +898,7 @@ document.addEventListener('DOMContentLoaded', function () {
           </div>
           <div class="mb-field">
             <label class="mono" for="mb-submit-carname">Car name</label>
-            <input type="text" id="mb-submit-carname" name="carName" placeholder="e.g. Scarlett" required>
+            <input type="text" id="mb-submit-carname" name="carName" placeholder="Enter a name for this build" required>
           </div>
           <div class="mb-field">
             <label class="mono" for="mb-submit-color">Car colour</label>
@@ -987,7 +1013,7 @@ document.addEventListener('DOMContentLoaded', function () {
           <form id="mb-addcar-form">
             <div class="mb-field">
               <label class="mono" for="mb-addcar-carname">Car name</label>
-              <input type="text" id="mb-addcar-carname" name="carName" placeholder="e.g. Scarlett" required>
+              <input type="text" id="mb-addcar-carname" name="carName" placeholder="Enter a name for this build" required>
             </div>
             <div class="mb-field">
               <label class="mono" for="mb-addcar-color">Car colour</label>
@@ -1350,7 +1376,14 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     }
 
+    var loadingView = document.getElementById('mb-loading-view');
+    function doneLoading() {
+      loadingView.hidden = true;
+      document.documentElement.classList.remove('mb-is-loading');
+    }
+
     function showSignin() {
+      doneLoading();
       appView.style.display = 'none';
       signinView.style.display = 'block';
     }
@@ -1535,6 +1568,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     function showApp(email) {
+      doneLoading();
       signinView.style.display = 'none';
       appView.style.display = 'block';
       accountEmailEl.textContent = email;
@@ -1789,8 +1823,22 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .catch(function () {
           setStatus(signinStatus, 'Could not load your builds, please try again.', 'err');
+          // Still signed in, just offline or the site is busy: offer a retry
+          // rather than the sign-in form.
+          if (!loadingView.hidden) {
+            document.getElementById('mb-loading-text').textContent = 'Couldn\u2019t load your garage. Check your connection and try again.';
+            document.getElementById('mb-loading-retry').hidden = false;
+            loadingView.querySelector('.mb-spinner').hidden = true;
+          }
         });
     }
+
+    document.getElementById('mb-loading-retry').addEventListener('click', function () {
+      document.getElementById('mb-loading-text').textContent = 'Loading your garage\u2026';
+      this.hidden = true;
+      loadingView.querySelector('.mb-spinner').hidden = false;
+      loadCars();
+    });
 
     function timeAgo(iso) {
       var diffMs = Date.now() - new Date(iso).getTime();
@@ -1996,10 +2044,6 @@ document.addEventListener('DOMContentLoaded', function () {
         var opening = submitCard.style.display === 'none';
         submitCard.style.display = opening ? 'block' : 'none';
         newToggleBtn.textContent = opening ? '- New here? Submit your first build' : '+ New here? Submit your first build';
-        if (opening) {
-          var carNameField = document.getElementById('mb-submit-carname');
-          if (carNameField && !carNameField.value.trim()) carNameField.value = 'Car1';
-        }
       });
     }
 
@@ -2073,12 +2117,6 @@ document.addEventListener('DOMContentLoaded', function () {
         var opening = addCarCard.style.display === 'none';
         addCarCard.style.display = opening ? 'block' : 'none';
         addCarToggleBtn.textContent = (opening ? '- ' : '+ ') + addCarLabel(carsData);
-        if (opening) {
-          var carNameField = document.getElementById('mb-addcar-carname');
-          if (carNameField && !carNameField.value.trim()) {
-            carNameField.value = 'Car ' + (carsData.length + 1);
-          }
-        }
       });
     }
 
@@ -3204,11 +3242,14 @@ document.addEventListener('DOMContentLoaded', function () {
             if (goToPendingNext()) return;
             loadCars();
           } else {
+            if (getSession()) { loadCars(); return; }
+            showSignin();
             setStatus(signinStatus, data.message || 'That link is invalid or has expired.', 'err');
           }
         })
         .catch(function () {
           history.replaceState(null, '', window.location.pathname);
+          showSignin();
           setStatus(signinStatus, 'Something went wrong, please try again.', 'err');
         });
     } else {

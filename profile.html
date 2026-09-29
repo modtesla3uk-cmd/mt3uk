@@ -229,6 +229,11 @@
   .pf-signed-out h2 { font-size: 1.15rem; margin-bottom: 8px; }
   .pf-signed-out p { color: var(--steel); margin-bottom: 18px; }
   .pf-loading { text-align: center; color: var(--steel); }
+  .pf-nick-gate { max-width: 480px; margin: 0 auto; border: 1px solid var(--ink); border-top: 4px solid var(--orange); padding: 28px 24px; }
+  .pf-nick-gate h2 { font-size: 1.2rem; margin-bottom: 10px; }
+  .pf-nick-gate > p { color: var(--steel); font-size: 0.95rem; margin-bottom: 16px; }
+  .pf-nick-gate .si-field input { font-size: 1.05rem; }
+  .pf-nick-gate p.si-status-err { color: var(--orange); font-weight: 600; }
   .pf-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
   .pf-tabs a { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; letter-spacing: 0.04em; text-transform: uppercase; border: 1px solid var(--ink); padding: 8px 12px; display: inline-flex; align-items: center; gap: 6px; }
   .pf-tabs a:hover { border-color: var(--orange); color: var(--orange); }
@@ -497,6 +502,15 @@
     <p class="pf-loading" id="pf-loading">Loading your profile&hellip;</p>
     <p class="pf-left" id="pf-left" hidden>You&rsquo;ve left MT3UK and your account has been deleted. Thanks for being part of it. You&rsquo;re welcome back any time.</p>
 
+    <form class="pf-nick-gate" id="pf-nick-gate" hidden novalidate>
+      <h2>Choose your nickname</h2>
+      <p>Your nickname (or handle) is how friends find you, and it shows on your builds, comments and likes instead of your full name. Pick one to use your profile. You can change it later.</p>
+      <div class="si-field"><label for="pf-gate-nick">Nickname</label><input type="text" id="pf-gate-nick" maxlength="20" autocomplete="nickname" placeholder="e.g. GreenKnight"></div>
+      <p class="pf-hint">3 to 20 letters or numbers, and _ . - if you like, starting with a letter or number.</p>
+      <button type="submit" class="si-btn si-btn-primary si-btn-block">Save and open my profile</button>
+      <p class="si-status" id="pf-gate-status" role="status"></p>
+    </form>
+
     <div class="pf-app" id="pf-app" hidden>
       <div class="pf-tabs" role="navigation" aria-label="Profile sections">
         <a href="#details">Details</a>
@@ -520,8 +534,8 @@
           <form class="pf-form" id="pf-form" hidden novalidate>
             <div class="si-field"><label for="pf-first">First name</label><input type="text" id="pf-first" autocomplete="given-name" maxlength="50"></div>
             <div class="si-field"><label for="pf-last">Last name</label><input type="text" id="pf-last" autocomplete="family-name" maxlength="50"></div>
-            <div class="si-field"><label for="pf-nickname">Nickname (optional)</label><input type="text" id="pf-nickname" autocomplete="nickname" maxlength="20" placeholder="e.g. GreenKnight"></div>
-            <p class="pf-hint">3 to 20 letters or numbers, and _ . - if you like. Leave it empty to show your full name.</p>
+            <div class="si-field"><label for="pf-nickname">Nickname</label><input type="text" id="pf-nickname" autocomplete="nickname" maxlength="20" placeholder="e.g. GreenKnight"></div>
+            <p class="pf-hint">3 to 20 letters or numbers, and _ . - if you like. Friends find you by it.</p>
             <div class="pf-row">
               <button type="submit" class="si-btn si-btn-primary">Save</button>
               <button type="button" class="si-btn" id="pf-cancel">Cancel</button>
@@ -755,6 +769,9 @@
     var FIRST_NAME_KEY = 'mt3ukMyBuildsFirstName';
     var profile = null;
     var openThreadId = null;
+    // Names already on the page (friends and conversations), so a
+    // conversation opens with its heading straight away.
+    var knownNames = {};
 
     function $(id) { return document.getElementById(id); }
     function session() { try { return localStorage.getItem(SESSION_KEY) || ''; } catch (e) { return ''; } }
@@ -828,6 +845,10 @@
     $('pf-form').addEventListener('submit', function (e) {
       e.preventDefault();
       var body = { nickname: $('pf-nickname').value.trim() };
+      if (!/^[A-Za-z0-9][A-Za-z0-9_.-]{2,19}$/.test(body.nickname)) {
+        status($('pf-details-status'), 'Please enter a nickname: 3 to 20 letters or numbers (you can use _ . -).', 'err');
+        return;
+      }
       var first = $('pf-first').value.trim();
       var last = $('pf-last').value.trim();
       if (first || last || profile.firstName) {
@@ -882,6 +903,7 @@
           return '<li class="pf-bc"><h3>' + (b.unread ? '<span class="pf-dot" aria-label="New"></span>' : '') + esc(b.title) + '</h3>' +
             '<time datetime="' + esc(b.at) + '">' + esc(when(b.at)) + '</time><p>' + esc(b.text) + '</p></li>';
         }).join('') : '<li><span class="pf-empty">No messages from MT3UK yet. News for members will appear here.</span></li>';
+        data.threads.forEach(function (t) { knownNames[t.id] = t.name; });
         $('pf-threads').innerHTML = data.threads.length ? data.threads.map(function (t) {
           return '<li class="pf-thread-row' + (t.unread ? ' is-unread' : '') + '" data-id="' + esc(t.id) + '" tabindex="0" role="button">' +
             '<div class="pf-who"><strong>' + esc(t.name) + '</strong><span>' + (t.lastFromMe ? 'You: ' : '') + esc(t.lastText) + '</span></div>' +
@@ -907,6 +929,7 @@
       $('pf-threads').hidden = true;
       $('pf-thread').hidden = false;
       $('pf-bubbles').innerHTML = '<li class="pf-empty">Loading…</li>';
+      $('pf-thread-name').textContent = knownNames[id] || '';
       status($('pf-thread-status'), '');
       return api('GET', '/profile/messages/thread?with=' + encodeURIComponent(id)).then(function (data) {
         if (!data.success) { status($('pf-thread-status'), data.message || 'Could not open this conversation.', 'err'); return; }
@@ -1001,6 +1024,7 @@
         }).join('') + '</ul>';
       }
       $('pf-requests').innerHTML = req;
+      profile.friends.forEach(function (c) { knownNames[c.id] = c.name; });
       $('pf-friend-count').textContent = profile.friends.length ? '(' + profile.friends.length + ')' : '';
       $('pf-friends').innerHTML = profile.friends.length ? profile.friends.map(function (c) {
         var builds = c.builds && c.builds.length;
@@ -1092,8 +1116,41 @@
       });
     }
 
+    // A nickname is needed to use Profile (friends find you by it).
+    function needNickname() {
+      $('pf-loading').hidden = true;
+      $('pf-app').hidden = true;
+      $('pf-nick-gate').hidden = false;
+      try { $('pf-gate-nick').focus({ preventScroll: true }); } catch (e) {}
+      return new Promise(function (resolve) {
+        $('pf-nick-gate').addEventListener('submit', function (e) {
+          e.preventDefault();
+          var nick = $('pf-gate-nick').value.trim();
+          if (!/^[A-Za-z0-9][A-Za-z0-9_.-]{2,19}$/.test(nick)) {
+            status($('pf-gate-status'), 'Nicknames are 3 to 20 letters or numbers (you can use _ . -), starting with a letter or number.', 'err');
+            return;
+          }
+          var btn = e.target.querySelector('button[type=submit]');
+          btn.disabled = true;
+          status($('pf-gate-status'), 'Saving…');
+          api('POST', '/profile', { nickname: nick }).then(function (data) {
+            btn.disabled = false;
+            if (!data.success) { status($('pf-gate-status'), data.message || 'Could not save, please try again.', 'err'); return; }
+            profile.nickname = data.nickname;
+            try { localStorage.removeItem('mt3ukAskNickname'); } catch (err) {}
+            $('pf-nick-gate').hidden = true;
+            drawDetails();
+            resolve();
+          }).catch(function (err) { btn.disabled = false; if (err.message !== 'signed out') status($('pf-gate-status'), 'Network error, please try again.', 'err'); });
+        });
+      });
+    }
+
     if (!session()) { signedOut(); return; }
     refresh().then(function () {
+      if (!profile) return;
+      return profile.nickname ? null : needNickname();
+    }).then(function () {
       if (!profile) return;
       $('pf-loading').hidden = true;
       $('pf-app').hidden = false;

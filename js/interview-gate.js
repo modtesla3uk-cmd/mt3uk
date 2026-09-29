@@ -217,6 +217,8 @@
                 localStorage.setItem('mt3ukMyBuildsSession', data.session);
                 localStorage.setItem('mt3ukMyBuildsEmail', data.email || email);
               }
+              // New members are asked for a nickname (js/account-bar.js).
+              if (data.joined) localStorage.setItem('mt3ukAskNickname', '1');
             } catch (e) {}
             location.reload();
           })

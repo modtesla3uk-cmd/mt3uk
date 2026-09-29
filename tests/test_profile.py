@@ -41,7 +41,6 @@ def test_profile_details_and_nickname(device_page):
     page.wait_for_function("document.getElementById('pf-nick').textContent === 'GreenKnight'", timeout=5000)
     assert page.locator("#pf-form").is_hidden()
     assert "Saved" in page.locator("#pf-details-status").inner_text()
-    assert page.locator("#pf-friends-need-nick").is_hidden(), "No nickname prompt once one is set"
     assert page.errors == [], diagnostics(page)
 
 
@@ -54,13 +53,16 @@ def test_messages_from_mt3uk_and_friends(device_page):
     page.locator("#pf-broadcasts .pf-bc").first.wait_for(timeout=5000)
     assert "Track day at Thruxton" in page.locator("#pf-broadcasts").inner_text()
     # Opening the page at #messages marks the MT3UK messages read.
-    page.wait_for_timeout(500)
+    for _ in range(50):
+        if calls(page, "/profile/messages/read"):
+            break
+        page.wait_for_timeout(100)
     assert calls(page, "/profile/messages/read"), diagnostics(page)
 
     page.locator(".pf-subtab[data-pane=pf-pane-friends]").click()
     page.locator("#pf-threads .pf-thread-row").first.click()
     page.locator("#pf-thread").wait_for(state="visible", timeout=5000)
-    assert "Sharad" in page.locator("#pf-thread-name").inner_text()
+    page.wait_for_function("document.getElementById('pf-thread-name').textContent.indexOf('Sharad') !== -1", timeout=5000)
     assert "Hi, love the wheels" in page.locator("#pf-bubbles").inner_text()
 
     page.fill("#pf-compose-text", "See you at Thruxton")
@@ -165,3 +167,136 @@ def test_admin_sends_messages_and_handles_reports(device_page):
     page.locator("#dm-list button", has_text="Remove and block").click()
     page.wait_for_function("document.getElementById('dm-list').textContent.indexOf('No reported messages') !== -1", timeout=5000)
     assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_person_icon_next_to_bell_goes_to_profile(device_page):
+    page = device_page
+    page.goto("/index.html")
+    icon = page.locator("#nav-profile")
+    icon.wait_for(state="visible", timeout=5000)
+    assert "signin.html?next=" in icon.get_attribute("href"), "Signed out: sign in first"
+    # It sits next to the bell, before search.
+    order = page.evaluate("[...document.querySelector('#nav-search').parentNode.children].map(e => e.id).filter(Boolean)")
+    assert order.index("nav-bell") < order.index("nav-profile") < order.index("nav-search"), order
+    assert overflow_width(page) <= 0
+
+    signed_in(page)
+    page.goto("/index.html")
+    page.locator("#nav-profile").wait_for(state="visible", timeout=5000)
+    assert page.locator("#nav-profile").get_attribute("href") == "profile.html"
+    assert page.errors == []
+
+
+@all_devices
+def test_new_members_are_asked_for_a_nickname(device_page):
+    page = device_page
+    signed_in(page)
+    page.add_init_script("if (!sessionStorage.getItem('asked')) { localStorage.setItem('mt3ukAskNickname', '1'); sessionStorage.setItem('asked', '1'); }")
+    page.goto("/gallery.html")
+    prompt = page.locator("#mt3uk-nick-prompt")
+    prompt.wait_for(state="visible", timeout=5000)
+    page.fill("#mt3uk-nick-input", "x")
+    page.click("#mt3uk-nick-prompt button[type=submit]")
+    assert "3 to 20" in page.locator("#mt3uk-nick-prompt .mt3uk-nick-msg").inner_text()
+    page.fill("#mt3uk-nick-input", "GreenKnight")
+    page.click("#mt3uk-nick-prompt button[type=submit]")
+    prompt.wait_for(state="detached", timeout=5000)
+    assert page.mock_state["profile"]["nickname"] == "GreenKnight"
+    assert page.evaluate("localStorage.getItem('mt3ukAskNickname')") is None
+    page.reload()
+    page.wait_for_timeout(500)
+    assert page.locator("#mt3uk-nick-prompt").count() == 0, "Only asked once"
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_nickname_prompt_can_wait_until_later(device_page):
+    page = device_page
+    signed_in(page)
+    page.add_init_script("if (!sessionStorage.getItem('asked')) { localStorage.setItem('mt3ukAskNickname', '1'); sessionStorage.setItem('asked', '1'); }")
+    page.goto("/index.html")
+    page.locator("#mt3uk-nick-prompt").wait_for(state="visible", timeout=5000)
+    page.click(".mt3uk-nick-later")
+    assert page.locator("#mt3uk-nick-prompt").count() == 0
+    assert page.evaluate("localStorage.getItem('mt3ukAskNickname')") is None
+    assert page.errors == []
+
+
+@all_devices
+def test_joining_with_a_code_asks_for_a_nickname(device_page):
+    page = device_page
+    page.goto("/signin.html")
+    page.fill("#si-join-first", "Test")
+    page.fill("#si-join-last", "Member")
+    page.fill("#si-join-email", "member@example.com")
+    page.click("#si-join-btn")
+    page.locator("#si-code-form").wait_for(state="visible", timeout=5000)
+    # The mock accepts the second code, whatever the browser sends.
+    for code in ("000000", "123456"):
+        page.fill("#si-code", code)
+        page.click("#si-code-btn")
+        page.wait_for_timeout(400)
+    page.locator("#si-signed-in").wait_for(state="visible", timeout=5000)
+    page.locator("#mt3uk-nick-prompt").wait_for(state="visible", timeout=5000)
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_my_garage_shows_loading_not_the_sign_in_form(device_page):
+    page = device_page
+    signed_in(page)
+    # First load fails (offline): still no email box, just Try again.
+    page.mock_state["garage_offline"] = True
+    page.goto("/my-builds.html")
+    page.locator("#mb-loading-retry").wait_for(state="visible", timeout=5000)
+    assert page.locator("#mb-loading-view").is_visible()
+    assert page.locator("#mb-signin-view").is_hidden(), "Signed in: never the email box"
+    page.mock_state["garage_offline"] = False
+    page.click("#mb-loading-retry")
+    page.locator("#mb-app-view").wait_for(state="visible", timeout=5000)
+    assert page.locator("#mb-loading-view").is_hidden()
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_my_garage_signed_out_goes_straight_to_sign_in(device_page):
+    page = device_page
+    page.goto("/my-builds.html")
+    page.locator("#mb-signin-view").wait_for(state="visible", timeout=5000)
+    assert page.locator("#mb-loading-view").is_hidden()
+
+
+@all_devices
+def test_profile_asks_for_a_nickname_first(device_page):
+    """Friends find each other by nickname, so Profile needs one."""
+    page = device_page
+    signed_in(page)
+    page.mock_state["start_nickname"] = ""
+    page.goto("/profile.html")
+    gate = page.locator("#pf-nick-gate")
+    gate.wait_for(state="visible", timeout=5000)
+    assert page.locator("#pf-app").is_hidden(), "The rest of Profile waits for a nickname"
+    page.fill("#pf-gate-nick", "a")
+    page.click("#pf-nick-gate button[type=submit]")
+    assert "3 to 20" in page.locator("#pf-gate-status").inner_text()
+    page.fill("#pf-gate-nick", "GreenKnight")
+    page.click("#pf-nick-gate button[type=submit]")
+    page.locator("#pf-app").wait_for(state="visible", timeout=5000)
+    assert gate.is_hidden()
+    assert page.locator("#pf-nick").inner_text() == "GreenKnight"
+    assert overflow_width(page) <= 0
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_nickname_cannot_be_cleared(device_page):
+    page = device_page
+    signed_in(page)
+    page.goto("/profile.html")
+    page.locator("#pf-app").wait_for(state="visible", timeout=5000)
+    page.click("#pf-edit")
+    page.fill("#pf-nickname", "")
+    page.click("#pf-form button[type=submit]")
+    assert "nickname" in page.locator("#pf-details-status").inner_text().lower()
+    assert page.locator("#pf-form").is_visible()

@@ -839,11 +839,9 @@ async function handleProfileUpdate(request, env) {
   var nameChanged = false;
 
   if ('nickname' in body) {
-    var nickname = '';
-    if (String(body.nickname || '').trim()) {
-      nickname = cleanNickname(body.nickname);
-      if (!nickname) return json({ success: false, message: 'Nicknames are 3 to 20 letters or numbers (you can use _ . -), starting with a letter or number.' }, 400);
-    }
+    // A nickname is required: friends find members by it.
+    var nickname = cleanNickname(body.nickname);
+    if (!nickname) return json({ success: false, message: 'Please choose a nickname: 3 to 20 letters or numbers (you can use _ . -), starting with a letter or number.' }, 400);
     var current = (await getProfileRecord(env, email)).nickname || '';
     if (nickname !== current) {
       var err = await setNickname(env, email, nickname);

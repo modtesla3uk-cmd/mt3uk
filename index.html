@@ -5880,9 +5880,12 @@
       if (nav && nav.type === 'reload') return;
     } catch (e) {}
 
+    // Once the visitor clicks, taps, scrolls or types, the page is theirs:
+    // stop keeping the section in view (mouse clicks count too, or the
+    // jump fights them, e.g. on the up chevron).
     var userInteracted = false;
-    ['wheel', 'touchstart', 'keydown'].forEach(function (evt) {
-      window.addEventListener(evt, function () { userInteracted = true; }, { once: true, passive: true });
+    ['wheel', 'touchstart', 'touchmove', 'keydown', 'pointerdown', 'mousedown'].forEach(function (evt) {
+      window.addEventListener(evt, function () { userInteracted = true; }, { once: true, passive: true, capture: true });
     });
 
     var scrollToHash = function (behavior) {
@@ -5893,7 +5896,9 @@
       window.scrollTo({ top: top, behavior: behavior });
     };
 
-    scrollToHash('smooth');
+    // An instant jump, like a normal link, so no animation is still moving
+    // the page when the visitor starts scrolling.
+    scrollToHash('instant');
     var stopAt = Date.now() + 6000;
     var poll = setInterval(function () {
       if (userInteracted || Date.now() > stopAt) { clearInterval(poll); return; }

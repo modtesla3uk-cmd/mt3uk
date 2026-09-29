@@ -19,6 +19,19 @@
     '<div class="nav-bell-panel" id="nav-bell-panel" role="dialog" aria-label="Notifications" hidden></div>';
   search.parentNode.insertBefore(wrap, search);
 
+  // A person icon next to the bell goes to My Profile (or Sign In first).
+  var profileLink = document.createElement('a');
+  profileLink.className = 'nav-profile';
+  profileLink.id = 'nav-profile';
+  profileLink.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>';
+  function setProfileLink() {
+    var signedIn = !!session();
+    profileLink.href = signedIn ? 'profile.html' : 'signin.html?next=' + encodeURIComponent('/profile.html');
+    profileLink.setAttribute('aria-label', signedIn ? 'My Profile' : 'Sign in to your profile');
+    profileLink.title = signedIn ? 'My Profile' : 'Sign in';
+  }
+  search.parentNode.insertBefore(profileLink, search);
+
   var btn = wrap.querySelector('#nav-bell-btn');
   var count = wrap.querySelector('#nav-bell-count');
   var panel = wrap.querySelector('#nav-bell-panel');
@@ -28,6 +41,8 @@
   function session() {
     try { return localStorage.getItem(SESSION_KEY); } catch (e) { return null; }
   }
+
+  setProfileLink();
 
   function esc(v) {
     return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {

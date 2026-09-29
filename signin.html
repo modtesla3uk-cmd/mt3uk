@@ -660,14 +660,17 @@
       return false;
     }
 
-    function signedIn(session, email) {
+    function signedIn(session, email, joined) {
       write(SESSION_KEY, session);
       write(EMAIL_KEY, email);
       var joinName = read(JOIN_NAME_KEY);
+      // New members are asked for a nickname (js/account-bar.js).
+      if (joined || joinName) write('mt3ukAskNickname', '1');
       if (joinName && !read(FIRST_NAME_KEY)) write(FIRST_NAME_KEY, joinName);
       try { localStorage.removeItem(JOIN_NAME_KEY); } catch (e) {}
       if (goToPendingNext()) return;
       showSignedIn();
+      if (window.mt3ukAskNickname) window.mt3ukAskNickname();
     }
 
     function showSignedIn() {
@@ -776,7 +779,7 @@
         .then(function (data) {
           if (data.success) {
             $('si-welcome').textContent = 'Welcome to MT3UK! You’re in.';
-            signedIn(data.session, data.email);
+            signedIn(data.session, data.email, true);
           } else {
             $('si-welcome').textContent = (data.message || 'That link is invalid or has expired.') + ' Sign in below to get a new one.';
             $('si-welcome').classList.add('si-welcome-err');

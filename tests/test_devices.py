@@ -234,7 +234,7 @@ def profile_reply(path, method, post_data, state):
     except ValueError:
         body = {}
     p = state.setdefault("profile", {
-        "firstName": "Test", "lastName": "Member", "nickname": "", "emailsOff": False,
+        "firstName": "Test", "lastName": "Member", "nickname": state.get("start_nickname", "TestMember"), "emailsOff": False,
         "friends": [{"id": "f1", "nickname": "Sharad", "name": "Sharad", "builds": ["test-build.jpg"]}],
         "incoming": [{"id": "r1", "nickname": "RyanK", "name": "RyanK"}],
         "outgoing": [],
@@ -337,6 +337,8 @@ def attach_mocks(context):
             # code. This goes by the test's own record rather than the
             # request header, which WebKit doesn't always show to the mock.
             is_garage = url.split("?")[0].endswith("/my-builds") and request.method == "GET"
+            if is_garage and state.get("garage_offline"):
+                return route.abort()
             is_profile = api_path(url).startswith("/profile")
             status = 401 if (is_garage or is_profile) and not state.get("signed_in") else 200
             try:
@@ -873,14 +875,17 @@ def test_refresh_at_the_top_stays_at_the_top(device_page):
     page = device_page
     page.goto("/index.html#build-feed")
     page.wait_for_timeout(800)
-    # Scroll back up by hand, then refresh.
-    page.mouse.move(100, 300)
-    page.mouse.wheel(0, -20000)
-    page.wait_for_timeout(500)
-    assert page.evaluate("window.scrollY") < 5
+    # Scroll back up to the top as a visitor would (the touch/press counts
+    # as them taking over; mobile WebKit has no mouse wheel), then refresh.
+    page.locator("body").dispatch_event("pointerdown")
+    page.evaluate("window.scrollTo({ top: 0, behavior: 'instant' })")
+    page.wait_for_function("window.scrollY < 5", timeout=5000)
+    page.wait_for_timeout(600)
+    assert page.evaluate("window.scrollY") < 5, "The page stays where the visitor put it"
     page.reload()
     page.wait_for_timeout(2000)
     assert page.evaluate("window.scrollY") < 5
+    assert page.evaluate("location.hash") == ""
     assert page.errors == []
 
 
@@ -891,6 +896,6 @@ def test_up_chevron_clears_the_section_from_the_address(device_page):
     page.goto("/index.html#build-feed")
     page.wait_for_timeout(500)
     page.locator("#hp-scroll-top").click()
-    page.wait_for_timeout(300)
-    assert page.evaluate("location.hash") == ""
+    page.wait_for_function("location.hash === ''", timeout=5000)
+    page.wait_for_function("window.scrollY < 5", timeout=5000)
     assert page.errors == []

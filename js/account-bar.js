@@ -46,8 +46,82 @@
   };
 
   var signedIn = !!read(SESSION_KEY);
+  var ASK_NICKNAME_KEY = 'mt3ukAskNickname';
+  var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
+
+  // New members (set by Sign Up and the interview preview gate) are asked
+  // once to choose a nickname. "Later" leaves it for their Profile.
+  function askNickname() {
+    var page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+    if (!read(SESSION_KEY) || read(ASK_NICKNAME_KEY) !== '1' || page === 'profile.html' || document.getElementById('mt3uk-nick-prompt')) return;
+    function done() {
+      try { localStorage.removeItem(ASK_NICKNAME_KEY); } catch (e) {}
+      box.remove();
+    }
+    var style = document.createElement('style');
+    style.textContent =
+      '#mt3uk-nick-prompt{position:fixed;inset:0;z-index:400;background:rgba(14,22,40,.55);display:flex;align-items:center;justify-content:center;padding:16px;font-family:"IBM Plex Sans",sans-serif}' +
+      '#mt3uk-nick-prompt form{background:#f3f1ea;color:#1c1c1c;border-top:4px solid #e8542a;max-width:420px;width:100%;padding:24px 22px;box-shadow:0 20px 50px rgba(0,0,0,.35)}' +
+      '#mt3uk-nick-prompt h2{font-family:"Archivo Expanded",sans-serif;font-size:1.15rem;color:#16233d;margin:0 0 8px}' +
+      '#mt3uk-nick-prompt p{margin:0 0 14px;color:#4a5568;font-size:.92rem;line-height:1.45}' +
+      '#mt3uk-nick-prompt label{display:block;font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:#7c8798;margin-bottom:6px}' +
+      '#mt3uk-nick-prompt input{width:100%;box-sizing:border-box;border:1px solid #16233d;background:#fff;padding:11px 12px;font:inherit;font-size:16px;margin-bottom:12px}' +
+      '#mt3uk-nick-prompt .mt3uk-nick-row{display:flex;gap:10px;flex-wrap:wrap}' +
+      '#mt3uk-nick-prompt button{min-height:44px;padding:10px 16px;border:1px solid #16233d;background:transparent;color:#16233d;font:inherit;font-weight:600;cursor:pointer;border-radius:4px}' +
+      '#mt3uk-nick-prompt button[type=submit]{background:#e8542a;border-color:#e8542a;color:#fff;flex:1}' +
+      '#mt3uk-nick-prompt .mt3uk-nick-msg{min-height:1.2em;margin:10px 0 0;color:#e8542a;font-weight:600;font-size:.88rem}';
+    document.head.appendChild(style);
+    var box = document.createElement('div');
+    box.id = 'mt3uk-nick-prompt';
+    box.setAttribute('role', 'dialog');
+    box.setAttribute('aria-modal', 'true');
+    box.setAttribute('aria-labelledby', 'mt3uk-nick-title');
+    box.innerHTML =
+      '<form novalidate>' +
+        '<h2 id="mt3uk-nick-title">Welcome! Pick a nickname</h2>' +
+        '<p>Your nickname shows on your builds, comments and likes instead of your full name, and friends find you by it. You can change it any time in your Profile.</p>' +
+        '<label for="mt3uk-nick-input">Nickname</label>' +
+        '<input type="text" id="mt3uk-nick-input" maxlength="20" autocomplete="nickname" placeholder="e.g. GreenKnight">' +
+        '<div class="mt3uk-nick-row"><button type="submit">Save nickname</button><button type="button" class="mt3uk-nick-later">Later</button></div>' +
+        '<p class="mt3uk-nick-msg" role="status"></p>' +
+      '</form>';
+    document.body.appendChild(box);
+    var form = box.querySelector('form');
+    var input = box.querySelector('input');
+    var msg = box.querySelector('.mt3uk-nick-msg');
+    try { input.focus({ preventScroll: true }); } catch (e) {}
+    box.querySelector('.mt3uk-nick-later').addEventListener('click', done);
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var nick = input.value.trim();
+      if (!/^[A-Za-z0-9][A-Za-z0-9_.-]{2,19}$/.test(nick)) {
+        msg.textContent = '3 to 20 letters or numbers (you can use _ . -), starting with a letter or number.';
+        return;
+      }
+      var btn = form.querySelector('button[type=submit]');
+      btn.disabled = true;
+      msg.textContent = '';
+      fetch(API + '/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Session-Token': read(SESSION_KEY) },
+        body: JSON.stringify({ nickname: nick })
+      })
+        .then(function (res) { return res.json().then(function (data) { return { status: res.status, data: data }; }); })
+        .then(function (r) {
+          btn.disabled = false;
+          if (r.status === 401) { done(); return; }
+          if (!r.data.success) { msg.textContent = r.data.message || 'Could not save, please try again.'; return; }
+          done();
+        })
+        .catch(function () { btn.disabled = false; msg.textContent = 'Network error, please try again.'; });
+    });
+  }
+
+  // Sign Up calls this once a new member is signed in on the same page.
+  window.mt3ukAskNickname = askNickname;
 
   function run() {
+    askNickname();
     if (signedIn) {
       // The button's own CSS uses !important, so it's removed rather than hidden.
       document.querySelectorAll('.nav-link-mobile').forEach(function (link) { link.remove(); });

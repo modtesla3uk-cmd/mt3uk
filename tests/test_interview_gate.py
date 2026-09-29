@@ -63,6 +63,9 @@ def test_unpublished_interview_asks_for_a_code_then_opens_for_an_hour(device_pag
     # Using the code signs them in (and joins them if new), and a message
     # says how long the preview is open.
     assert page.evaluate("localStorage.getItem('mt3ukMyBuildsSession')") == "s1.preview"
+    # New members are asked for a nickname first.
+    page.locator("#mt3uk-nick-prompt").wait_for(state="visible", timeout=5000)
+    page.click(".mt3uk-nick-later")
     message = page.locator(".ivg-notice")
     message.wait_for(state="visible", timeout=5000)
     assert "Preview open until" in message.inner_text()

@@ -42,7 +42,7 @@ def test_install_shows_steps_and_can_be_hidden(device_page):
     assert page.locator("#app-install-btn").is_hidden()
     page.reload()
     page.locator("#get-the-app").wait_for(state="visible", timeout=5000)
-    assert "icon" in page.locator("#app-install-text").inner_text()
+    assert "Open MT3UK" in page.locator("#app-install-text").inner_text()
     page.click("#app-open-hide")
     assert page.locator("#get-the-app").is_hidden()
     page.reload()
@@ -103,3 +103,54 @@ def test_install_row_mentions_already_installed(device_page):
     page.goto("/index.html")
     page.locator("#get-the-app").wait_for(state="visible", timeout=5000)
     assert "Already installed?" in page.locator("#app-install-already").inner_text()
+
+
+@all_devices
+def test_installed_members_get_an_open_the_app_popup(device_page):
+    page = device_page
+    page.add_init_script("localStorage.setItem('mt3ukAppInstalled', '1')")
+    page.goto("/index.html")
+    popup = page.locator("#mt3uk-open-app")
+    popup.wait_for(state="visible", timeout=5000)
+    assert "Open the MT3UK app" in popup.inner_text()
+    assert overflow_width(page) <= 1
+    popup.locator(".hp-open-app-ok").click()
+    assert page.locator("#mt3uk-open-app").count() == 0
+    # Once per browser session.
+    page.reload()
+    page.wait_for_timeout(500)
+    assert page.locator("#mt3uk-open-app").count() == 0
+    assert page.errors == []
+
+
+@all_devices
+def test_open_the_app_popup_can_be_turned_off(device_page):
+    page = device_page
+    page.add_init_script("localStorage.setItem('mt3ukAppInstalled', '1')")
+    page.goto("/index.html")
+    page.locator("#mt3uk-open-app .hp-open-app-off").click()
+    page.reload()
+    page.wait_for_timeout(500)
+    assert page.locator("#mt3uk-open-app").count() == 0, "Don't show again is remembered"
+
+
+@all_devices
+def test_no_open_the_app_popup_when_not_installed(device_page):
+    page = device_page
+    page.goto("/index.html")
+    page.locator("#get-the-app").wait_for(state="visible", timeout=5000)
+    page.wait_for_timeout(300)
+    assert page.locator("#mt3uk-open-app").count() == 0
+
+
+@all_devices
+def test_open_the_app_popup_waits_for_the_intro(device_page):
+    page = device_page
+    page.add_init_script("localStorage.setItem('mt3ukAppInstalled', '1'); sessionStorage.removeItem('mt3ukIntroSeen')")
+    page.goto("/index.html")
+    intro = page.locator("#mt3uk-intro")
+    intro.wait_for(state="visible", timeout=5000)
+    page.wait_for_timeout(600)
+    assert page.locator("#mt3uk-open-app").count() == 0, "Not hidden under the intro"
+    intro.click()
+    page.locator("#mt3uk-open-app").wait_for(state="visible", timeout=8000)

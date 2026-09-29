@@ -1891,6 +1891,13 @@
   .hp-app-hide { background: none; border: 1px solid var(--ink); min-height: 40px; padding: 8px 16px; font: inherit; font-size: 0.85rem; cursor: pointer; }
   .hp-app-hide[hidden], .hp-app-btn[hidden] { display: none; }
   .hp-app.hp-app-open { border-left-color: #1c8a4b; }
+  .hp-open-app { position: fixed; left: 16px; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 350; max-width: 480px; margin: 0 auto; display: flex; gap: 12px; align-items: flex-start; background: var(--ink); color: #ffffff; border-left: 4px solid #1c8a4b; padding: 16px 16px 14px; box-shadow: 0 14px 34px rgba(0,0,0,0.35); font-size: 0.92rem; line-height: 1.45; }
+  .hp-open-app > svg { width: 28px; height: 28px; flex-shrink: 0; fill: none; stroke: #7fd49b; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .hp-open-app p { margin: 0 0 10px; color: rgba(255,255,255,0.88); }
+  .hp-open-app .hp-open-app-title { font-weight: 700; color: #ffffff; margin-bottom: 4px; font-size: 1rem; }
+  .hp-open-app-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .hp-open-app-row button { min-height: 40px; padding: 8px 16px; font: inherit; font-size: 0.88rem; cursor: pointer; border: 1px solid rgba(255,255,255,0.5); background: transparent; color: #ffffff; }
+  .hp-open-app-row .hp-open-app-ok { background: #1c8a4b; border-color: #1c8a4b; font-weight: 600; }
   .hp-app.hp-app-open .hp-app-icon { stroke: #1c8a4b; }
   .hp-app-btn { background: var(--orange); color: #ffffff; border: 0; min-height: 44px; padding: 10px 20px; font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; white-space: nowrap; }
   .hp-app-btn:hover { opacity: 0.9; }
@@ -5838,12 +5845,41 @@
       document.getElementById('app-install-title').textContent = 'You have the MT3UK app';
       document.getElementById('app-install-text').textContent = uaIsIos
         ? 'Open MT3UK from its icon on your Home Screen: it opens full screen, keeps you signed in and can send you alerts.'
-        : 'Open MT3UK from its icon on your home screen (or in Chrome, tap \u22EE then Open in app): it opens full screen and can send you alerts.';
+        : 'Open MT3UK from your apps (swipe up for the app list if it isn\u2019t on your home screen), or in Chrome tap \u22EE then Open in app. It opens full screen and can send you alerts.';
       document.getElementById('app-install-already').hidden = true;
       btn.hidden = true;
       steps.hidden = true;
       document.getElementById('app-open-hide').hidden = false;
       box.hidden = false;
+      openAppPrompt();
+    }
+
+    // A pop-up when the browser version opens: "Open the MT3UK app". Once
+    // per browser session, unless they choose Don't show again.
+    var PROMPT_KEY = 'mt3ukOpenAppPromptOff';
+    function openAppPrompt() {
+      if (read(PROMPT_KEY) === '1' || document.getElementById('mt3uk-open-app')) return;
+      // Wait until the intro splash has been tapped away.
+      if (document.getElementById('mt3uk-intro')) { setTimeout(openAppPrompt, 400); return; }
+      try { if (sessionStorage.getItem('mt3ukOpenAppPromptShown')) return; sessionStorage.setItem('mt3ukOpenAppPromptShown', '1'); } catch (e) {}
+      var sheet = document.createElement('div');
+      sheet.id = 'mt3uk-open-app';
+      sheet.className = 'hp-open-app';
+      sheet.setAttribute('role', 'dialog');
+      sheet.setAttribute('aria-labelledby', 'mt3uk-open-app-title');
+      sheet.innerHTML =
+        '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/></svg>' +
+        '<div><p class="hp-open-app-title" id="mt3uk-open-app-title">Open the MT3UK app</p>' +
+        '<p>' + (uaIsIos
+          ? 'You have the app: tap the MT3UK icon on your Home Screen for full screen, alerts and staying signed in.'
+          : 'You have the app: find MT3UK in your apps (swipe up for the app list), or tap \u22EE then <strong>Open in app</strong> in Chrome.') + '</p>' +
+        '<div class="hp-open-app-row"><button type="button" class="hp-open-app-ok">OK</button><button type="button" class="hp-open-app-off">Don\u2019t show again</button></div></div>';
+      document.body.appendChild(sheet);
+      sheet.querySelector('.hp-open-app-ok').addEventListener('click', function () { sheet.remove(); });
+      sheet.querySelector('.hp-open-app-off').addEventListener('click', function () {
+        try { localStorage.setItem(PROMPT_KEY, '1'); } catch (e) {}
+        sheet.remove();
+      });
     }
     document.getElementById('app-open-hide').addEventListener('click', function () {
       try { localStorage.setItem(HIDE_KEY, '1'); } catch (e) {}

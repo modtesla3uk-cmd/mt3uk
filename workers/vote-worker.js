@@ -633,6 +633,166 @@ async function handleInterviewsAdminSave(request, env) {
   }
 }
 
+// ---------- Interview previews ----------
+// Until an interview's publish date, its page asks for a one-time code
+// (js/interview-gate.js). Codes are only emailed to addresses on the
+// approved list, which the admin page manages: each entry is an email plus
+// an interview slug ("richard" for blog-richard.html) or "*" for all of
+// them. A correct code opens that interview in that browser for 4 hours,
+// signs them in, and makes them an MT3UK member if they weren't already
+// (the code email says so). The list is one JSON key, read with get() only.
+
+var PREVIEW_ALLOW_KEY = 'interview-preview-allow';
+var PREVIEW_CODE_TTL_SECONDS = 15 * 60;
+var PREVIEW_ACCESS_TTL_SECONDS = 4 * 60 * 60;
+var PREVIEW_REQUESTS_PER_IP_PER_HOUR = 10;
+
+function previewSlug(value, allowAll) {
+  var slug = String(value || '').trim().toLowerCase();
+  if (allowAll && slug === '*') return slug;
+  return /^[a-z0-9][a-z0-9-]{0,59}$/.test(slug) ? slug : '';
+}
+
+function previewEmail(value) {
+  var email = String(value || '').trim().toLowerCase().slice(0, 200);
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : '';
+}
+
+async function getPreviewAllow(env) {
+  var raw = await env.VOTES.get(PREVIEW_ALLOW_KEY);
+  var list = [];
+  try { list = raw ? JSON.parse(raw) : []; } catch (e) { list = []; }
+  return Array.isArray(list) ? list : [];
+}
+
+function previewAllowed(list, email, slug) {
+  return list.some(function (entry) { return entry.email === email && (entry.slug === '*' || entry.slug === slug); });
+}
+
+function previewCodeKey(email, slug) {
+  return 'interview-preview-code:' + slug + ':' + email;
+}
+
+async function handleInterviewPreviewRequest(request, env) {
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
+  var email = previewEmail(body && body.email);
+  var slug = previewSlug(body && body.slug, false);
+  if (!email) return json({ success: false, message: 'Please enter a valid email' }, 400);
+  if (!slug) return json({ success: false, message: 'Invalid interview' }, 400);
+  // The same reply either way, so this can't be used to find out who is on the list.
+  var reply = json({ success: true, message: "If that email has been given a preview of this interview, we've sent a 6-digit code. It lasts 15 minutes." });
+
+  var ipKey = 'interview-preview-ip:' + getClientIp(request);
+  var ipCount = parseInt(await env.VOTES.get(ipKey), 10) || 0;
+  if (ipCount >= PREVIEW_REQUESTS_PER_IP_PER_HOUR) {
+    return json({ success: false, message: 'Too many attempts, please try again in an hour.' }, 429);
+  }
+  await env.VOTES.put(ipKey, String(ipCount + 1), { expirationTtl: 3600 });
+
+  if (!previewAllowed(await getPreviewAllow(env), email, slug)) return reply;
+  var cooldownKey = 'interview-preview-cooldown:' + slug + ':' + email;
+  if ((await env.VOTES.get(cooldownKey)) !== null) return reply;
+  await env.VOTES.put(cooldownKey, '1', { expirationTtl: 60 });
+
+  var code = signInCode();
+  var expires = Math.floor(Date.now() / 1000) + PREVIEW_CODE_TTL_SECONDS;
+  await env.VOTES.put(previewCodeKey(email, slug), JSON.stringify({ code: code, tries: 0 }), { expiration: expires, metadata: { expires: expires } });
+  try {
+    var isMember = (await env.VOTES.get('subscriber:' + email)) !== null;
+    var subject = 'MT3UK interview preview: your code is ' + code;
+    var text = 'Here is your code to preview the MT3UK Owner Interview before it is published:\n\n' + code +
+      '\n\nEnter it on the interview page:\n\n' + MY_BUILDS_SITE_URL + '/blog-' + slug + '.html' +
+      '\n\nThe code expires in 15 minutes and can only be used once. Once entered, the interview stays open in that browser for 4 hours.' +
+      (isMember ? '' :
+        '\n\nUsing this code also joins you to MT3UK, free, with this email address. You\'ll be signed in, so you can like and comment on member builds and Owner Interviews, and add your own car in My Garage whenever you like. If you\'d rather not be a member, let us know through the Contact page and we\'ll remove you.') +
+      '\n\nPlease don\'t share the interview until it is published. If you did not ask for this code, you can ignore this email.';
+    await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, email, rawEmail(MY_BUILDS_FROM_EMAIL, email, subject, text)));
+  } catch (err) {
+    console.log('Interview preview email failed:', err.message);
+  }
+  return reply;
+}
+
+async function handleInterviewPreviewVerify(request, env) {
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
+  var email = previewEmail(body && body.email);
+  var slug = previewSlug(body && body.slug, false);
+  var code = String((body && body.code) || '').replace(/\D/g, '');
+  var failed = json({ success: false, message: 'That code is not right or has expired. Check the latest email, or send a new code.' }, 400);
+  if (!email || !slug || code.length !== 6) return failed;
+
+  var key = previewCodeKey(email, slug);
+  var meta = await env.VOTES.getWithMetadata(key);
+  var record = null;
+  try { record = meta.value ? JSON.parse(meta.value) : null; } catch (e) { record = null; }
+  if (!record) return failed;
+  if (record.code !== code) {
+    record.tries = (record.tries || 0) + 1;
+    var expires = (meta.metadata && meta.metadata.expires) || 0;
+    if (record.tries >= MAX_SIGN_IN_CODE_TRIES || expires < Math.floor(Date.now() / 1000) + 60) {
+      await env.VOTES.delete(key);
+    } else {
+      await env.VOTES.put(key, JSON.stringify(record), { expiration: expires, metadata: { expires: expires } });
+    }
+    return failed;
+  }
+  await env.VOTES.delete(key);
+  // Taken off the list since the code was sent: no access.
+  if (!previewAllowed(await getPreviewAllow(env), email, slug)) return failed;
+
+  var token = randomToken();
+  var accessExpires = Date.now() + PREVIEW_ACCESS_TTL_SECONDS * 1000;
+  await env.VOTES.put('interview-preview-access:' + token, JSON.stringify({ email: email, slug: slug, expires: accessExpires }), { expirationTtl: PREVIEW_ACCESS_TTL_SECONDS });
+  // The code proves the email is theirs, so they join (if new) and are signed in.
+  var joined = false;
+  if ((await env.VOTES.get('subscriber:' + email)) === null) {
+    await env.VOTES.put('subscriber:' + email, JSON.stringify([]));
+    await markSubscriberSince(env, email);
+    joined = true;
+  }
+  var session = await createSession(env, email);
+  return json({ success: true, token: token, expires: accessExpires, joined: joined, session: session, email: email });
+}
+
+async function handleInterviewPreviewCheck(request, env) {
+  var params = new URL(request.url).searchParams;
+  var token = String(params.get('token') || '');
+  var slug = previewSlug(params.get('slug'), false);
+  if (!/^[A-Za-z0-9_-]{16,128}$/.test(token) || !slug) return json({ success: false }, 401);
+  var raw = await env.VOTES.get('interview-preview-access:' + token);
+  var record = null;
+  try { record = raw ? JSON.parse(raw) : null; } catch (e) { record = null; }
+  if (!record || record.slug !== slug || !(record.expires > Date.now())) return json({ success: false }, 401);
+  return json({ success: true, expires: record.expires });
+}
+
+async function handleInterviewPreviewAdminList(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorized' }, 401);
+  return json({ success: true, entries: await getPreviewAllow(env) });
+}
+
+async function handleInterviewPreviewAdminSave(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorized' }, 401);
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
+  var email = previewEmail(body && body.email);
+  var slug = previewSlug(body && body.slug, true);
+  if (!email) return json({ success: false, message: 'Please enter a valid email' }, 400);
+  if (!slug) return json({ success: false, message: 'Choose an interview' }, 400);
+  var list = await getPreviewAllow(env);
+  var rest = list.filter(function (entry) { return !(entry.email === email && entry.slug === slug); });
+  if (body.action === 'add') {
+    if (rest.length >= 500) return json({ success: false, message: 'The list is full' }, 400);
+    rest.push({ email: email, slug: slug, added: new Date().toISOString() });
+  } else if (body.action !== 'remove') {
+    return json({ success: false, message: 'Unknown action' }, 400);
+  }
+  await env.VOTES.put(PREVIEW_ALLOW_KEY, JSON.stringify(rest));
+  return json({ success: true, entries: rest });
+}
+
 var DIGEST_MANUAL_COOLDOWN_SECONDS = 120;
 
 async function handleAdminSendDigest(request, env) {
@@ -4327,6 +4487,21 @@ export default {
     }
     if (url.pathname === '/interviews/admin' && request.method === 'POST') {
       return handleInterviewsAdminSave(request, env);
+    }
+    if (url.pathname === '/interviews/preview/request' && request.method === 'POST') {
+      return handleInterviewPreviewRequest(request, env);
+    }
+    if (url.pathname === '/interviews/preview/verify' && request.method === 'POST') {
+      return handleInterviewPreviewVerify(request, env);
+    }
+    if (url.pathname === '/interviews/preview/check' && request.method === 'GET') {
+      return handleInterviewPreviewCheck(request, env);
+    }
+    if (url.pathname === '/interviews/admin/preview' && request.method === 'GET') {
+      return handleInterviewPreviewAdminList(request, env);
+    }
+    if (url.pathname === '/interviews/admin/preview' && request.method === 'POST') {
+      return handleInterviewPreviewAdminSave(request, env);
     }
     if (url.pathname === '/comments/admin' && request.method === 'GET') {
       return handleCommentsAdminList(request, env);

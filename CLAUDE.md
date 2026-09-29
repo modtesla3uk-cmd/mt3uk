@@ -41,6 +41,7 @@ Static site for the MT3UK modified Tesla community, live at https://mt3uk.com. I
   - add the page to `PAGES` in `scripts/build_layout.py` (active link `blog.html`), then run the script to give it the shared header and footer
   - run `python scripts/build_interview_search.py` so its mods are searchable
   - add the comments block: `<div class="ic" id="comments" data-thread="<slug>">` with `js/interview-comments.js`
+  - add `<script src="js/interview-gate.js"></script>` in the `<head>`, after the viewport meta. Until the publish date the page asks for a one-time code, which is only emailed to addresses approved on the admin page (Interview preview access), and a code opens it for 4 hours (and makes that email a member if it is not one already). The gate is off on localhost; add `?gate=on` to try it.
 - Comments run in demo mode on localhost, stored in localStorage. Add `?comments=live` to use the real worker.
 
 ## Shop

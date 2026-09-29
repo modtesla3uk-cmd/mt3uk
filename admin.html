@@ -262,6 +262,10 @@
   .iv-toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
   .iv-toolbar button { padding: 6px 12px; font-size: 0.72rem; }
   .iv-note { color: var(--steel); font-size: 0.72rem; }
+  .pv-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; }
+  .pv-form input[type="email"] { flex: 1 1 220px; min-width: 0; }
+  .pv-form select { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3); color: var(--white); padding: 8px 10px; font: inherit; }
+  .pv-form select option { color: #16233d; }
   .iv-note.error { color: #ff6b6b; }
   .iv-note.ok { color: #4caf7d; }
   .iv-table input[type="date"], .iv-table input[type="text"], .iv-table textarea {
@@ -404,6 +408,22 @@
       </div>
       <p class="subscriber-search-count" id="iv-filter-count"></p>
       <div id="iv-list"></div>
+    </details>
+  </section>
+
+  <section>
+    <details class="collapsible" id="preview-wrap">
+      <summary><h2>Interview preview access <span class="summary-count" id="preview-count"></span></h2></summary>
+      <p class="iv-note">Until an interview is published, its page asks for a one-time code. Only the emails below are sent one, and a code opens that interview for 4 hours. Anyone who uses a code and isn&rsquo;t a member yet joins MT3UK with that email (the code email tells them). Add yourself with All interviews to check any of them.</p>
+      <form class="pv-form" id="pv-form" novalidate>
+        <input type="email" id="pv-email" placeholder="Email" autocomplete="off" aria-label="Email to give preview access">
+        <select id="pv-slug" aria-label="Interview">
+          <option value="*">All interviews</option>
+        </select>
+        <button type="submit">Add</button>
+        <span class="iv-note" id="pv-note"></span>
+      </form>
+      <div id="pv-list"></div>
     </details>
   </section>
 
@@ -2121,6 +2141,109 @@
   }).catch(function () {
     listEl.innerHTML = '<p class="empty">Could not load data/interviews.json.</p>';
   });
+})();
+</script>
+<script>
+// Interview preview access: the approved emails that can get a one-time
+// code for an interview before it is published (js/interview-gate.js).
+(function () {
+  var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
+  var wrap = document.getElementById('preview-wrap');
+  var form = document.getElementById('pv-form');
+  var emailEl = document.getElementById('pv-email');
+  var slugEl = document.getElementById('pv-slug');
+  var noteEl = document.getElementById('pv-note');
+  var listEl = document.getElementById('pv-list');
+  var countEl = document.getElementById('preview-count');
+  var names = { '*': 'All interviews' };
+  var loaded = false;
+
+  function key() {
+    var input = document.getElementById('admin-key');
+    return (input && input.value.trim()) || sessionStorage.getItem('mt3ukAdminKey') || '';
+  }
+  function esc(v) {
+    return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function note(text, kind) {
+    noteEl.textContent = text || '';
+    noteEl.className = 'iv-note' + (kind ? ' ' + kind : '');
+  }
+
+  // The interviews to choose from, soonest first.
+  fetch('data/interviews.json', { cache: 'no-store' })
+    .then(function (res) { return res.json(); })
+    .then(function (data) {
+      ((data && data.interviews) || []).slice().sort(function (a, b) { return (a.publish || '') < (b.publish || '') ? -1 : 1; }).forEach(function (iv) {
+        var m = /^blog-([a-z0-9-]+)\.html$/.exec(iv.url || '');
+        if (!m) return;
+        var label = iv.name + (iv.type === 'track' ? ' (track day)' : '') + (iv.publish ? ', ' + iv.publish : '');
+        names[m[1]] = label;
+        var opt = document.createElement('option');
+        opt.value = m[1];
+        opt.textContent = label;
+        slugEl.appendChild(opt);
+      });
+      if (loaded) load();
+    })
+    .catch(function () {});
+
+  function draw(entries) {
+    countEl.textContent = entries.length ? '(' + entries.length + ')' : '';
+    if (!entries.length) { listEl.innerHTML = '<p class="iv-note">No one has preview access yet.</p>'; return; }
+    listEl.innerHTML = '<table class="iv-table"><thead><tr><th>Email</th><th>Interview</th><th></th></tr></thead><tbody>' +
+      entries.map(function (e) {
+        return '<tr><td>' + esc(e.email) + (e.added ? '<div class="iv-sub">Added ' + esc(e.added.slice(0, 10)) + '</div>' : '') + '</td>' +
+          '<td>' + esc(names[e.slug] || e.slug) + '</td>' +
+          '<td class="num"><button type="button" class="danger pv-remove" data-email="' + esc(e.email) + '" data-slug="' + esc(e.slug) + '">Remove</button></td></tr>';
+      }).join('') + '</tbody></table>';
+  }
+
+  function load() {
+    var k = key();
+    if (!k) { listEl.innerHTML = '<p class="iv-note">Enter the admin key at the top of the page to see who has access.</p>'; return; }
+    loaded = true;
+    fetch(API + '/interviews/admin/preview?key=' + encodeURIComponent(k), { cache: 'no-store' })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (!data.success) { listEl.innerHTML = '<p class="iv-note error">' + esc(data.message === 'Unauthorized' ? 'The admin key is not right.' : (data.message || 'Could not load the list.')) + '</p>'; return; }
+        draw(data.entries || []);
+      })
+      .catch(function () { listEl.innerHTML = '<p class="iv-note error">Network error loading the list.</p>'; });
+  }
+
+  function save(action, email, slug) {
+    var k = key();
+    if (!k) { note('Enter the admin key at the top of the page first.', 'error'); return Promise.resolve(); }
+    return fetch(API + '/interviews/admin/preview?key=' + encodeURIComponent(k), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: action, email: email, slug: slug })
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (!data.success) { note(data.message === 'Unauthorized' ? 'The admin key is not right.' : (data.message || 'Could not save.'), 'error'); return; }
+        note(action === 'add' ? 'Added. They can now ask for a code on the interview page.' : 'Removed.', 'ok');
+        draw(data.entries || []);
+      })
+      .catch(function () { note('Network error, please try again.', 'error'); });
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var email = emailEl.value.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { note('Enter a valid email.', 'error'); return; }
+    save('add', email, slugEl.value).then(function () { if (noteEl.className.indexOf('ok') !== -1) emailEl.value = ''; });
+  });
+  listEl.addEventListener('click', function (e) {
+    var btn = e.target.closest('.pv-remove');
+    if (!btn) return;
+    btn.disabled = true;
+    save('remove', btn.getAttribute('data-email'), btn.getAttribute('data-slug'));
+  });
+  wrap.addEventListener('toggle', function () { if (wrap.open) load(); });
 })();
 </script>
 </body>

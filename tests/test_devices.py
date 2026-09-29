@@ -173,6 +173,41 @@ def api_reply(url, method, post_data, state):
             state["signed_in"] = True
             return {"success": True, "session": "s1.test", "email": body.get("email", "member@example.com")}
         return {"success": False, "message": "That code is not right or has expired."}
+    # Interview preview gate (js/interview-gate.js) and its admin list.
+    if path == "/interviews/preview/request":
+        return {"success": True, "message": "If that email has been given a preview of this interview, we've sent a 6-digit code. It lasts 15 minutes."}
+    if path == "/interviews/preview/verify":
+        try:
+            body = json.loads(post_data or "{}")
+        except ValueError:
+            body = {}
+        state["preview_tries"] = state.get("preview_tries", 0) + 1
+        code = body.get("code") or ("000000" if state["preview_tries"] == 1 else "123456")
+        if code == "123456":
+            state["preview_ok"] = True
+            return {"success": True, "token": "p" * 64, "expires": state.get("preview_expires", 4102444800000),
+                    "joined": True, "session": "s1.preview", "email": body.get("email", "sharad@example.com")}
+        return {"success": False, "message": "That code is not right or has expired."}
+    if path == "/interviews/preview/check":
+        if state.get("preview_ok"):
+            return {"success": True, "expires": state.get("preview_expires", 4102444800000)}
+        return {"success": False}
+    if path == "/interviews/admin/preview":
+        entries = state.setdefault("preview_entries", [{"email": "sharad@example.com", "slug": "sharad", "added": "2026-09-29T10:00:00Z"}])
+        if method == "POST":
+            try:
+                body = json.loads(post_data or "{}")
+            except ValueError:
+                body = {}
+            # WebKit may not pass the body: add the test's email, or remove the first entry.
+            action = body.get("action") or ("remove" if state.get("preview_added") else "add")
+            email = body.get("email") or ("new@example.com" if action == "add" else entries[0]["email"])
+            slug = body.get("slug") or ("*" if action == "add" else entries[0]["slug"])
+            entries[:] = [e for e in entries if not (e["email"] == email and e["slug"] == slug)]
+            if action == "add":
+                entries.append({"email": email, "slug": slug, "added": "2026-09-29T11:00:00Z"})
+                state["preview_added"] = True
+        return {"success": True, "entries": entries}
     if path == "/my-builds" and method == "GET":
         car = dict(GARAGE_CAR, name=state.get("car_name", GARAGE_CAR["name"]))
         return {"success": True, "email": "member@example.com", "firstName": "Test", "lastName": "Member", "cars": [car], "voteEntry": GARAGE_VOTE_ENTRY}

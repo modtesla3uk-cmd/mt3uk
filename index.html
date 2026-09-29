@@ -1886,6 +1886,12 @@
   .hp-app-icon { width: 30px; height: 30px; fill: none; stroke: var(--orange); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   .hp-app-text h3 { font-size: 1rem; margin: 0 0 4px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .hp-app-text p { margin: 0; color: var(--steel); font-size: 0.9rem; }
+  .hp-app-text p.hp-app-already { margin-top: 6px; font-size: 0.82rem; color: var(--ink); }
+  .hp-app-text p[hidden] { display: none; }
+  .hp-app-hide { background: none; border: 1px solid var(--ink); min-height: 40px; padding: 8px 16px; font: inherit; font-size: 0.85rem; cursor: pointer; }
+  .hp-app-hide[hidden], .hp-app-btn[hidden] { display: none; }
+  .hp-app.hp-app-open { border-left-color: #1c8a4b; }
+  .hp-app.hp-app-open .hp-app-icon { stroke: #1c8a4b; }
   .hp-app-btn { background: var(--orange); color: #ffffff; border: 0; min-height: 44px; padding: 10px 20px; font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; white-space: nowrap; }
   .hp-app-btn:hover { opacity: 0.9; }
   .hp-app-steps { grid-column: 1 / -1; padding: 14px 16px; border: 1px solid rgba(22,35,61,0.2); font-size: 0.9rem; }
@@ -1895,7 +1901,7 @@
   .hp-app-steps .hp-app-done { margin-top: 10px; background: none; border: 0; padding: 0; font: inherit; font-size: 0.85rem; color: var(--steel); text-decoration: underline; cursor: pointer; }
   @media (max-width: 780px) {
     .hp-app { grid-template-columns: auto minmax(0, 1fr); }
-    .hp-app-btn { grid-column: 1 / -1; width: 100%; }
+    .hp-app-btn, .hp-app-hide { grid-column: 1 / -1; width: 100%; }
   }
 
   /* ---------- JOIN CTA ---------- */
@@ -3132,10 +3138,12 @@
       <div class="hp-app" id="get-the-app" hidden>
         <svg class="hp-app-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/></svg>
         <div class="hp-app-text">
-          <h3>Get the MT3UK app <em class="hp-new">NEW</em></h3>
-          <p>One tap to the build reel and your garage, plus alerts when someone likes or comments on your build.</p>
+          <h3 id="app-install-title">Get the MT3UK app <em class="hp-new">NEW</em></h3>
+          <p id="app-install-text">One tap to the build reel and your garage, plus alerts when someone likes or comments on your build.</p>
+          <p class="hp-app-already" id="app-install-already">Already installed? Open MT3UK from its icon on your Home Screen.</p>
         </div>
         <button type="button" class="hp-app-btn" id="app-install-btn">Install the app</button>
+        <button type="button" class="hp-app-hide" id="app-open-hide" hidden>Hide</button>
         <div class="hp-app-steps" id="app-install-steps" hidden></div>
       </div>
     </div>
@@ -5809,25 +5817,47 @@
   // away where the browser offers it (Chrome and Edge on Android and
   // desktop), otherwise shows the steps for that browser, including the
   // Facebook and Instagram in-app browsers, which can't install apps.
-  // Hidden once MT3UK is installed: when running as the app, after the
-  // install, when Chrome reports it's installed, or "I've installed it".
+  // Once MT3UK is installed (after installing, when Chrome reports it's
+  // installed, or "I've installed it"), the row asks them to open the app
+  // from its icon instead, as a web page can't open the app itself. Hidden
+  // in the app itself, and when they tap Hide.
   (function () {
     var box = document.getElementById('get-the-app');
     var btn = document.getElementById('app-install-btn');
     var steps = document.getElementById('app-install-steps');
     if (!box || !btn) return;
     var KEY = 'mt3ukAppInstalled';
+    var HIDE_KEY = 'mt3ukAppOpenHintHidden';
+    function read(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
     function remember() { try { localStorage.setItem(KEY, '1'); } catch (e) {} }
-    function hide() { remember(); box.hidden = true; }
+    var uaIsIos = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    function markInstalled() { remember(); showOpenHint(); }
+    function showOpenHint() {
+      if (read(HIDE_KEY) === '1') { box.hidden = true; return; }
+      box.classList.add('hp-app-open');
+      document.getElementById('app-install-title').textContent = 'You have the MT3UK app';
+      document.getElementById('app-install-text').textContent = uaIsIos
+        ? 'Open MT3UK from its icon on your Home Screen: it opens full screen, keeps you signed in and can send you alerts.'
+        : 'Open MT3UK from its icon on your home screen (or in Chrome, tap \u22EE then Open in app): it opens full screen and can send you alerts.';
+      document.getElementById('app-install-already').hidden = true;
+      btn.hidden = true;
+      steps.hidden = true;
+      document.getElementById('app-open-hide').hidden = false;
+      box.hidden = false;
+    }
+    document.getElementById('app-open-hide').addEventListener('click', function () {
+      try { localStorage.setItem(HIDE_KEY, '1'); } catch (e) {}
+      box.hidden = true;
+    });
     var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui)').matches) ||
       window.navigator.standalone === true || document.referrer.indexOf('android-app://') === 0;
     if (standalone) { remember(); return; }
-    try { if (localStorage.getItem(KEY) === '1') return; } catch (e) {}
+    if (read(KEY) === '1') { showOpenHint(); return; }
     box.hidden = false;
 
     // Chrome on Android can tell us the app is already installed.
     if (navigator.getInstalledRelatedApps) {
-      navigator.getInstalledRelatedApps().then(function (apps) { if (apps && apps.length) hide(); }).catch(function () {});
+      navigator.getInstalledRelatedApps().then(function (apps) { if (apps && apps.length) markInstalled(); }).catch(function () {});
     }
 
     var installPrompt = null;
@@ -5835,7 +5865,7 @@
       e.preventDefault();
       installPrompt = e;
     });
-    window.addEventListener('appinstalled', hide);
+    window.addEventListener('appinstalled', markInstalled);
 
     var ua = navigator.userAgent;
     var isIos = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -5847,7 +5877,7 @@
     function showSteps(html) {
       steps.innerHTML = html + '<button type="button" class="hp-app-done">I’ve installed it, hide this</button>';
       steps.hidden = false;
-      steps.querySelector('.hp-app-done').addEventListener('click', hide);
+      steps.querySelector('.hp-app-done').addEventListener('click', markInstalled);
     }
 
     btn.addEventListener('click', function () {
@@ -5857,7 +5887,7 @@
         try {
           prompt.prompt();
           prompt.userChoice.then(function (choice) {
-            if (choice && choice.outcome === 'accepted') hide();
+            if (choice && choice.outcome === 'accepted') markInstalled();
           }).catch(function () {});
           return;
         } catch (e) {}

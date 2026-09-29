@@ -3976,6 +3976,27 @@ async function handleMyBuildsNotificationsRead(request, env) {
   return json({ success: true });
 }
 
+// Clears notifications from the member's list: one ({ id }) or all
+// ({ all: true }). A single key get/put, like the rest of notifications.
+async function handleMyBuildsNotificationsClear(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+
+  var body = {};
+  try { body = await request.json(); } catch (e) {}
+  var list = await getNotifications(env, email);
+  if (body && body.all === true) {
+    list = [];
+  } else if (body && typeof body.id === 'string' && body.id) {
+    list = list.filter(function (item) { return item.id !== body.id; });
+  } else {
+    return json({ success: false, message: 'id or all is required' }, 400);
+  }
+  await env.VOTES.put(notificationsKey(email), JSON.stringify(list));
+  var unread = list.reduce(function (n, item) { return item.read ? n : n + 1; }, 0);
+  return json({ success: true, unread: unread, remaining: list.length });
+}
+
 async function handleReviewPost(request, env) {
   var body;
   try {
@@ -4447,6 +4468,9 @@ export default {
     }
     if (url.pathname === '/my-builds/notifications/read' && request.method === 'POST') {
       return handleMyBuildsNotificationsRead(request, env);
+    }
+    if (url.pathname === '/my-builds/notifications/clear' && request.method === 'POST') {
+      return handleMyBuildsNotificationsClear(request, env);
     }
 
     if (request.method !== 'POST') {

@@ -290,6 +290,13 @@
   .mb-notif-list { list-style: none; margin: 0; padding: 0; }
   .mb-notif-item { display: block; padding: 10px 12px; border-bottom: 1px solid var(--line); text-decoration: none; color: var(--ink); }
   .mb-notif-item:last-child { border-bottom: 0; }
+  .mb-notif-panel-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .mb-notif-clear-all { background: none; border: 0; padding: 0; font: inherit; color: var(--orange); text-decoration: underline; cursor: pointer; text-transform: none; letter-spacing: 0; }
+  .mb-notif-clear-all[hidden] { display: none; }
+  .mb-notif-row { position: relative; }
+  .mb-notif-row .mb-notif-item { padding-right: 40px; }
+  .mb-notif-dismiss { position: absolute; top: 6px; right: 6px; width: 30px; height: 30px; padding: 0; display: flex; align-items: center; justify-content: center; background: none; border: 0; border-radius: 50%; color: var(--steel); font-size: 1.2rem; line-height: 1; cursor: pointer; }
+  .mb-notif-dismiss:hover, .mb-notif-dismiss:focus-visible { background: rgba(22,35,61,0.08); color: var(--ink); }
   .mb-notif-item:hover { background: var(--paper-2, #f7f5f0); }
   .mb-notif-item.is-unread { background: #fdf3ec; }
   .mb-notif-item-name { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: var(--orange); }
@@ -920,7 +927,7 @@ document.addEventListener('DOMContentLoaded', function () {
               <span class="mb-notif-count" id="mb-notif-count" hidden>0</span>
             </button>
             <div class="mb-notif-panel" id="mb-notif-panel" hidden>
-              <div class="mb-notif-panel-title">Notifications</div>
+              <div class="mb-notif-panel-title"><span>Notifications</span><button type="button" class="mb-notif-clear-all" id="mb-notif-clear-all" hidden>Clear all</button></div>
               <ul class="mb-notif-list" id="mb-notif-list"></ul>
             </div>
           </div>
@@ -1790,14 +1797,56 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderNotifPanel(notifications) {
       notifList.innerHTML = notifications.length
         ? notifications.map(function (n) {
-            return '<li><a class="mb-notif-item' + (n.read ? '' : ' is-unread') + '" href="' + (/^interview:/.test(n.file || '') ? 'blog-' + n.file.slice(10) + '.html#comments' : '?file=' + encodeURIComponent(n.file) + (n.commentId ? '&comment=' + encodeURIComponent(n.commentId) : '')) + '">' +
+            return '<li class="mb-notif-row" data-id="' + escapeHtml(n.id || '') + '"><a class="mb-notif-item' + (n.read ? '' : ' is-unread') + '" href="' + (/^interview:/.test(n.file || '') ? 'blog-' + n.file.slice(10) + '.html#comments' : '?file=' + encodeURIComponent(n.file) + (n.commentId ? '&comment=' + encodeURIComponent(n.commentId) : '')) + '">' +
               '<div class="mb-notif-item-name">' + escapeHtml(n.fromName || '') + '</div>' +
               '<div class="mb-notif-item-text">' + escapeHtml(n.text || '') + '</div>' +
               '<div class="mb-notif-item-date">' + timeAgo(n.createdAt) + '</div>' +
-            '</a></li>';
+            '</a><button type="button" class="mb-notif-dismiss" aria-label="Clear this notification">&times;</button></li>';
           }).join('')
         : '<li class="mb-notif-empty">No notifications yet.</li>';
+      document.getElementById('mb-notif-clear-all').hidden = !notifications.length;
     }
+
+    // Clears one notification (id) or all of them; the x and Clear all
+    // stay on the page, and opening a notification clears it too.
+    function clearNotification(id) {
+      var token = getSession();
+      if (!token) return;
+      try {
+        fetch(API + '/my-builds/notifications/clear', {
+          method: 'POST',
+          keepalive: true,
+          headers: { 'Content-Type': 'application/json', 'X-Session-Token': token },
+          body: JSON.stringify(id ? { id: id } : { all: true })
+        }).catch(function () {});
+      } catch (e) {}
+    }
+
+    notifPanel.addEventListener('click', function (e) {
+      if (e.target.closest('#mb-notif-clear-all')) {
+        e.stopPropagation();
+        clearNotification(null);
+        renderNotifPanel([]);
+        notifCount.hidden = true;
+        return;
+      }
+      var row = e.target.closest('.mb-notif-row');
+      if (!row) return;
+      var id = row.getAttribute('data-id');
+      if (e.target.closest('.mb-notif-dismiss')) {
+        e.preventDefault();
+        e.stopPropagation();
+        clearNotification(id);
+        row.remove();
+        if (!notifList.querySelector('.mb-notif-row')) renderNotifPanel([]);
+        return;
+      }
+      if (id && e.target.closest('.mb-notif-item')) {
+        clearNotification(id);
+        row.remove();
+        if (!notifList.querySelector('.mb-notif-row')) renderNotifPanel([]);
+      }
+    });
 
     function loadNotifications() {
       var token = getSession();

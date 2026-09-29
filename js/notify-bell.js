@@ -70,14 +70,15 @@
       return;
     }
     panel.innerHTML =
-      '<p class="nav-bell-head">Notifications</p>' +
+      '<div class="nav-bell-head"><span>Notifications</span>' +
+        (items.length ? '<button type="button" class="nav-bell-clear-all">Clear all</button>' : '') + '</div>' +
       (items.length
         ? '<ul class="nav-bell-list">' + items.slice(0, 20).map(function (n) {
-            return '<li><a class="nav-bell-item' + (n.read ? '' : ' is-unread') + '" href="' + esc(linkFor(n)) + '">' +
+            return '<li class="nav-bell-row" data-id="' + esc(n.id || '') + '"><a class="nav-bell-item' + (n.read ? '' : ' is-unread') + '" href="' + esc(linkFor(n)) + '">' +
               '<span class="nav-bell-item-name">' + esc(n.fromName || '') + '</span>' +
               '<span class="nav-bell-item-text">' + esc(n.text || (n.type === 'like' ? 'liked your build' : '')) + '</span>' +
               '<span class="nav-bell-item-date">' + esc(timeAgo(n.createdAt)) + '</span>' +
-            '</a></li>';
+            '</a><button type="button" class="nav-bell-dismiss" aria-label="Clear this notification">&times;</button></li>';
           }).join('') + '</ul>'
         : '<p class="nav-bell-empty">No notifications yet. You&rsquo;ll see likes and comments on your builds here.</p>') +
       '<a class="nav-bell-all" href="my-builds.html">Open My Garage &rarr;</a>';
@@ -112,6 +113,45 @@
       })
       .catch(function () {});
   }
+
+  // Clears one notification (id) or all of them, here and on the server.
+  function clear(id) {
+    var token = session();
+    items = id ? (items || []).filter(function (n) { return n.id !== id; }) : [];
+    setCount((items || []).filter(function (n) { return !n.read; }).length);
+    if (!token) return;
+    try {
+      fetch(API + '/my-builds/notifications/clear', {
+        method: 'POST',
+        keepalive: true,
+        headers: { 'Content-Type': 'application/json', 'X-Session-Token': token },
+        body: JSON.stringify(id ? { id: id } : { all: true })
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
+  panel.addEventListener('click', function (e) {
+    if (e.target.closest('.nav-bell-clear-all')) {
+      e.preventDefault();
+      e.stopPropagation();
+      clear(null);
+      drawList();
+      return;
+    }
+    var row = e.target.closest('.nav-bell-row');
+    if (!row) return;
+    var id = row.getAttribute('data-id');
+    if (e.target.closest('.nav-bell-dismiss')) {
+      // The x clears it without opening it.
+      e.preventDefault();
+      e.stopPropagation();
+      clear(id);
+      drawList();
+      return;
+    }
+    // Opening a notification clears it too, then follows the link.
+    if (id && e.target.closest('.nav-bell-item')) clear(id);
+  });
 
   function close() {
     panel.hidden = true;

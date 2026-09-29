@@ -355,3 +355,15 @@ nav {
   .nav-bell + .nav-search { margin-left: 0; }
   .nav-bell-panel { position: fixed; top: 64px; left: 16px; right: 16px; width: auto; max-width: none; }
 }
+.nav-bell-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.nav-bell-clear-all { background: none; border: 0; padding: 0; font: inherit; color: var(--orange); cursor: pointer; text-decoration: underline; text-transform: none; letter-spacing: 0; }
+.nav-bell-row { position: relative; }
+.nav-bell-row .nav-bell-item { padding-right: 40px; }
+.nav-bell-dismiss {
+  position: absolute; top: 6px; right: 6px;
+  width: 30px; height: 30px; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: 0; border-radius: 50%;
+  color: var(--steel); font-size: 1.2rem; line-height: 1; cursor: pointer;
+}
+.nav-bell-dismiss:hover, .nav-bell-dismiss:focus-visible { background: rgba(22,35,61,0.08); color: var(--ink); }

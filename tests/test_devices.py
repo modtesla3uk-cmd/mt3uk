@@ -133,10 +133,20 @@ def api_reply(url, method, post_data, state):
         return {"success": True, "reported": [{"file": "reported-photo.jpg", "reports": 2}]}
     if path == "/my-builds/notifications" and method == "GET":
         read = state.get("notifs_read", False)
-        return {"success": True, "unread": 0 if read else 2, "notifications": [
+        cleared = state.setdefault("notifs_cleared", [])
+        items = [
             {"id": "n1", "type": "like", "fromName": "Sharad", "text": "liked your build", "file": "test-build.jpg", "createdAt": "2026-09-29T10:00:00Z", "read": read},
             {"id": "n2", "type": "comment", "fromName": "Ryan", "text": "Love the wheels!", "file": "test-build.jpg", "commentId": "c9", "createdAt": "2026-09-29T09:00:00Z", "read": read},
-        ]}
+        ]
+        items = [n for n in items if "all" not in cleared and n["id"] not in cleared]
+        return {"success": True, "unread": 0 if read else len(items), "notifications": items}
+    if path == "/my-builds/notifications/clear":
+        try:
+            body = json.loads(post_data or "{}")
+        except ValueError:
+            body = {}
+        state.setdefault("notifs_cleared", []).append("all" if body.get("all") else body.get("id", "?"))
+        return {"success": True}
     if path == "/my-builds/notifications/read":
         state["notifs_read"] = True
         return {"success": True}
@@ -678,4 +688,47 @@ def test_homepage_bell_shows_members_their_notifications(device_page):
     page.wait_for_timeout(500)
     assert count.is_hidden(), "Opening the bell should mark notifications as read"
     assert overflow_width(page) <= 1
+    assert page.errors == []
+
+
+@all_devices
+def test_notifications_can_be_cleared(device_page):
+    page = device_page
+    page.mock_state["signed_in"] = True
+    page.add_init_script("localStorage.setItem('mt3ukMyBuildsSession', 's1.test')")
+    page.goto("/index.html")
+    page.locator("#nav-bell-count").wait_for(state="visible", timeout=5000)
+    page.click("#nav-bell-btn")
+    panel = page.locator("#nav-bell-panel")
+    panel.locator(".nav-bell-row").first.wait_for(timeout=5000)
+    assert panel.locator(".nav-bell-row").count() == 2
+
+    # The x clears one without opening it.
+    before = len(page.api_log)
+    panel.locator('.nav-bell-row[data-id="n1"] .nav-bell-dismiss').click()
+    assert panel.locator(".nav-bell-row").count() == 1
+    assert page.url.endswith("/index.html")
+    page.wait_for_timeout(300)
+    assert any(line.startswith("POST /my-builds/notifications/clear") for line in page.api_log[before:])
+
+    # Clear all empties the list.
+    panel.locator(".nav-bell-clear-all").click()
+    assert panel.locator(".nav-bell-row").count() == 0
+    assert "No notifications yet" in panel.inner_text()
+    assert page.errors == []
+
+
+@all_devices
+def test_up_chevron_returns_to_the_top(device_page):
+    page = device_page
+    page.emulate_media(reduced_motion="reduce")
+    page.goto("/index.html")
+    up = page.locator("#hp-scroll-top")
+    assert up.is_hidden(), "The up chevron only shows once the hero is out of view"
+    page.evaluate("window.scrollTo(0, document.querySelector('#build-feed').offsetTop)")
+    up.wait_for(state="visible", timeout=3000)
+    up.click()
+    page.wait_for_timeout(500)
+    assert page.evaluate("window.scrollY") < 5
+    assert up.is_hidden()
     assert page.errors == []

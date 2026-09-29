@@ -2,7 +2,7 @@
   {
     "file": "model-y-lr--by-adrian-thomas.jpg",
     "caption": "MODEL Y LR",
-    "name": "ADRIAN THOMAS",
+    "name": "SLEEK",
     "mods": [
       "Quite a few"
     ],
@@ -13,7 +13,7 @@
   {
     "file": "model-y-lr--by-adrian-thomas-3.jpg",
     "caption": "MODEL Y LR",
-    "name": "ADRIAN THOMAS",
+    "name": "SLEEK",
     "votable": false,
     "color": "Red",
     "added": "2026-09-29",
@@ -22,7 +22,7 @@
   {
     "file": "model-y-lr--by-adrian-thomas-2.jpg",
     "caption": "MODEL Y LR",
-    "name": "ADRIAN THOMAS",
+    "name": "SLEEK",
     "votable": false,
     "color": "Red",
     "added": "2026-09-29",
@@ -759,14 +759,14 @@
   {
     "file": "64-night-time-sleek--by-ade-lucy.jpg",
     "caption": "NIGHT TIME SLEEK",
-    "name": "ADRIAN THOMAS",
+    "name": "SLEEK",
     "added": "2026-09-18",
     "group": "64-night-time-sleek--by-ade-lucy.jpg"
   },
   {
     "file": "63-red-dual-motor--by-slt.jpg",
     "caption": "RED DUAL MOTOR",
-    "name": "ADRIAN THOMAS",
+    "name": "SLEEK",
     "added": "2026-09-18",
     "group": "64-night-time-sleek--by-ade-lucy.jpg"
   },
@@ -988,7 +988,7 @@
   {
     "file": "39-model-y-lr-sleek-edition.jpg",
     "caption": "MODEL Y LR SLEEK EDITION",
-    "name": "ADRIAN THOMAS",
+    "name": "SLEEK",
     "added": "2026-09-18",
     "group": "64-night-time-sleek--by-ade-lucy.jpg"
   },

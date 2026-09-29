@@ -535,7 +535,13 @@ FAKE_PUSH = """
   } };
   Object.defineProperty(navigator, 'serviceWorker', { configurable: true, value: { register: () => Promise.resolve(reg), ready: Promise.resolve(reg) } });
   window.PushManager = window.PushManager || function () {};
-  window.Notification = { permission: perm, requestPermission: () => { window.Notification.permission = 'granted'; return Promise.resolve('granted'); } };
+  window.Notification = { permission: perm, requestPermission: () => {
+    window.__permAsked = (window.__permAsked || 0) + 1;
+    const r = localStorage.getItem('testPermResult') || 'granted';
+    window.Notification.permission = r; return Promise.resolve(r); } };
+  // Android shows the phone's own prompt on first launch; most tests start
+  // after that (testFirstLaunch starts before it).
+  if (!localStorage.getItem('testFirstLaunch')) localStorage.setItem('mt3ukPushSystemAsked', '1');
   const mm = window.matchMedia.bind(window);
   window.matchMedia = (q) => /standalone/.test(q) && localStorage.getItem('testApp') ? { matches: true, media: q, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} } : mm(q);
 })();
@@ -636,4 +642,105 @@ def test_admin_can_send_a_test_email_to_one_address(device_page):
     assert page.locator("#bc-list .bc-item").count() == before, "Nothing saved as a message"
     assert not [c for c in page.mock_state.get("profile_calls", []) if c[1] == "/admin/broadcasts" and c[0] == "POST"]
     assert overflow_width(page) <= 0
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_app_asks_about_notifications_straight_after_signing_in(device_page):
+    """Signed out when the app opened: the question comes as soon as they
+    sign in, not on a later page."""
+    from test_passkeys import FAKE_AUTHENTICATOR
+    page = device_page
+    page.add_init_script("localStorage.setItem('testApp', '1');")
+    page.add_init_script(FAKE_PUSH)
+    page.add_init_script(FAKE_AUTHENTICATOR)
+    page.goto("/signin.html")
+    page.locator("#si-passkey-btn").click()
+    page.locator("#si-signed-in").wait_for(state="visible", timeout=5000)
+    page.locator("#mt3uk-push-ask").wait_for(state="visible", timeout=8000)
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_not_now_asks_once_more_after_two_weeks(device_page):
+    page = device_page
+    signed_in(page)
+    page.add_init_script("localStorage.setItem('testApp', '1');")
+    page.add_init_script(FAKE_PUSH)
+    # Not now, 15 days ago: asked once more.
+    page.add_init_script("if (!sessionStorage.getItem('set')) { sessionStorage.setItem('set', '1'); localStorage.setItem('mt3ukPushAsked', JSON.stringify({ n: 1, at: Date.now() - 15 * 864e5 })); }")
+    page.goto("/gallery.html")
+    ask = page.locator("#mt3uk-push-ask")
+    ask.wait_for(state="visible", timeout=8000)
+    ask.locator(".mt3uk-push-later").click()
+    page.reload()
+    page.wait_for_timeout(2500)
+    assert page.locator("#mt3uk-push-ask").count() == 0, "A second Not now is final"
+    assert page.errors == [], diagnostics(page)
+
+
+
+ANDROID_UA = "Object.defineProperty(navigator, 'userAgent', { get: () => 'Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36' });"
+IPHONE_UA = "Object.defineProperty(navigator, 'userAgent', { get: () => 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1' });"
+
+
+@all_devices
+def test_android_app_shows_the_phone_prompt_on_first_launch(device_page):
+    """Like a normal app: the phone's own Allow prompt when the app is first
+    opened, before signing in; notifications switch on once signed in."""
+    from test_passkeys import FAKE_AUTHENTICATOR
+    page = device_page
+    page.add_init_script(ANDROID_UA + " localStorage.setItem('testApp', '1'); localStorage.setItem('testFirstLaunch', '1');")
+    page.add_init_script(FAKE_PUSH)
+    page.add_init_script(FAKE_AUTHENTICATOR)
+    page.goto("/signin.html")
+    page.wait_for_function("window.__permAsked === 1", timeout=8000)
+    assert page.locator("#mt3uk-push-ask").count() == 0, "The phone asks, not our message"
+    assert "/push/subscribe" not in page.mock_state.get("push_calls", []), "Not signed in yet"
+    page.click("#si-passkey-btn")
+    page.locator("#si-signed-in").wait_for(state="visible", timeout=5000)
+    for _ in range(80):
+        if "/push/subscribe" in page.mock_state.get("push_calls", []):
+            break
+        page.wait_for_timeout(100)
+    assert "/push/subscribe" in page.mock_state.get("push_calls", []), "Switched on after signing in"
+    page.reload()
+    page.wait_for_timeout(2500)
+    assert page.evaluate("window.__permAsked || 0") == 0, "Only asked once"
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_android_dismissed_prompt_falls_back_to_turn_on_message(device_page):
+    page = device_page
+    page.add_init_script(ANDROID_UA + " localStorage.setItem('testApp', '1'); localStorage.setItem('testFirstLaunch', '1'); localStorage.setItem('testPermResult', 'default');")
+    page.add_init_script(FAKE_PUSH)
+    page.goto("/gallery.html")
+    page.locator("#mt3uk-push-ask").wait_for(state="visible", timeout=8000)
+
+
+@all_devices
+def test_iphone_app_asks_on_first_launch_before_signing_in(device_page):
+    """iPhones need a tap first, so the app's Turn on message comes up on
+    launch; Turn on brings up Apple's prompt, and alerts start on sign-in."""
+    from test_passkeys import FAKE_AUTHENTICATOR
+    page = device_page
+    page.add_init_script(IPHONE_UA + " localStorage.setItem('testApp', '1'); localStorage.setItem('testFirstLaunch', '1');")
+    page.add_init_script(FAKE_PUSH)
+    page.add_init_script(FAKE_AUTHENTICATOR)
+    page.goto("/signin.html")
+    ask = page.locator("#mt3uk-push-ask")
+    ask.wait_for(state="visible", timeout=8000)
+    assert page.evaluate("window.__permAsked || 0") == 0, "No prompt without a tap"
+    ask.locator(".mt3uk-push-on").click()
+    page.wait_for_function("document.querySelector('#mt3uk-push-ask .mt3uk-push-msg') && document.querySelector('#mt3uk-push-ask .mt3uk-push-msg').textContent.indexOf('Sign in') !== -1", timeout=5000)
+    assert page.evaluate("window.__permAsked") == 1
+    ask.wait_for(state="detached", timeout=5000)
+    page.click("#si-passkey-btn")
+    page.locator("#si-signed-in").wait_for(state="visible", timeout=5000)
+    for _ in range(80):
+        if "/push/subscribe" in page.mock_state.get("push_calls", []):
+            break
+        page.wait_for_timeout(100)
+    assert "/push/subscribe" in page.mock_state.get("push_calls", [])
     assert page.errors == [], diagnostics(page)

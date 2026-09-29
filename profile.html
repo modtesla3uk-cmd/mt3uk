@@ -287,9 +287,14 @@
   .pf-app-steps li { margin: 4px 0; }
   .pf-app-steps .app-done { margin-top: 10px; background: none; border: 0; padding: 0; font: inherit; font-size: 0.85rem; color: var(--steel); text-decoration: underline; cursor: pointer; }
   .pf-side { display: grid; gap: 22px; min-width: 0; }
+  .pf-sec + .pf-sec { margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(22, 35, 61, 0.2); }
+  .pf-sec h3 { margin-top: 0; scroll-margin-top: 90px; }
+  #passkeys, #signed-in-devices { scroll-margin-top: 90px; }
   .pf-push { margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(22, 35, 61, 0.2); scroll-margin-top: 90px; }
   .pf-push h3 { margin-top: 0; }
   .pf-push .push-intro { color: var(--steel); font-size: 0.92rem; margin-bottom: 14px; }
+  .pf-push.is-off { border-left: 4px solid var(--orange); background: rgba(232, 84, 42, 0.07); padding: 16px 14px 12px; }
+  .pf-push.is-off h3::after { content: ' (off)'; color: var(--orange); font-size: 0.85rem; }
   .pf-warning { border-left: 4px solid #b3261e; background: rgba(179, 38, 30, 0.07); padding: 10px 12px; color: var(--ink) !important; }
   .pf-list { list-style: none; }
   .pf-list > li { border-bottom: 1px solid rgba(22, 35, 61, 0.15); padding: 12px 0; display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
@@ -526,7 +531,7 @@
   <div class="wrap">
     <div class="pf-signed-out" id="pf-signed-out" hidden>
       <h2>Sign in to see your profile</h2>
-      <p>Your profile has your name and nickname, messages, friends and email choices.</p>
+      <p id="pf-signed-out-text">Your profile has your name and nickname, messages, friends and email choices.</p>
       <a href="signin.html?next=/profile.html" class="si-btn si-btn-primary">Sign Up / Sign In</a>
     </div>
     <p class="pf-loading" id="pf-loading">Loading your profile&hellip;</p>
@@ -535,7 +540,7 @@
     <form class="pf-nick-gate" id="pf-nick-gate" hidden novalidate>
       <h2>Choose your nickname</h2>
       <p>Your nickname (or handle) is how friends find you, and it shows on your builds, comments and likes instead of your full name. Pick one to use your profile. You can change it later.</p>
-      <div class="si-field"><label for="pf-gate-nick">Nickname</label><input type="text" id="pf-gate-nick" maxlength="20" autocomplete="nickname" placeholder="e.g. GreenKnight"></div>
+      <div class="si-field"><label for="pf-gate-nick">Nickname</label><input type="text" id="pf-gate-nick" name="mt3uk-handle" maxlength="20" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="e.g. GreenKnight"></div>
       <p class="pf-hint pf-nick-check" id="pf-gate-check" role="status"></p>
       <p class="pf-hint">3 to 20 letters or numbers, and _ . - if you like, starting with a letter or number.</p>
       <button type="submit" class="si-btn si-btn-primary si-btn-block">Save and open my profile</button>
@@ -548,6 +553,7 @@
         <a href="#messages">Messages <span class="pf-badge" id="pf-badge-messages" hidden></span></a>
         <a href="#friends">Friends <span class="pf-badge" id="pf-badge-friends" hidden></span></a>
         <a href="#visibility">Visibility</a>
+        <a href="#security">Security</a>
         <a href="#email-alerts">Emails</a>
         <a href="my-builds.html" class="pf-tab-garage">My Garage &rarr;</a>
       </div>
@@ -566,7 +572,7 @@
           <form class="pf-form" id="pf-form" hidden novalidate>
             <div class="si-field"><label for="pf-first">First name</label><input type="text" id="pf-first" autocomplete="given-name" maxlength="50"></div>
             <div class="si-field"><label for="pf-last">Last name</label><input type="text" id="pf-last" autocomplete="family-name" maxlength="50"></div>
-            <div class="si-field"><label for="pf-nickname">Nickname</label><input type="text" id="pf-nickname" autocomplete="nickname" maxlength="20" placeholder="e.g. GreenKnight"></div>
+            <div class="si-field"><label for="pf-nickname">Nickname</label><input type="text" id="pf-nickname" name="mt3uk-handle" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="20" placeholder="e.g. GreenKnight"></div>
             <p class="pf-hint pf-nick-check" id="pf-nick-check" role="status"></p>
             <p class="pf-hint">3 to 20 letters or numbers, and _ . - if you like. Friends find you by it.</p>
             <div class="pf-row">
@@ -612,6 +618,24 @@
             <button type="button" class="si-btn push-test" id="pf-push-test" hidden>Send a test</button>
           </div>
           <p class="si-status push-status" id="pf-push-status" role="status"></p>
+        </div>
+      </div>
+
+      <div class="pf-card" id="security">
+        <h2>Security</h2>
+        <div class="pf-sec" id="passkeys">
+        <h3>Passkeys</h3>
+        <p class="pf-hint">Sign in with Face ID, your fingerprint or your device&rsquo;s screen lock instead of an email code. Add one on each phone or computer you use. Only a public key is stored, never your fingerprint or face.</p>
+        <ul class="pf-list" id="pf-passkeys"></ul>
+        <button type="button" class="si-btn si-btn-primary" id="pf-passkey-add">Add a passkey on this device</button>
+        <p class="pf-hint" id="pf-passkey-unsupported" hidden>This browser can&rsquo;t use passkeys. Try Safari on iPhone or iPad, or Chrome or Edge on Android and computers.</p>
+        <p class="si-status" id="pf-passkey-status" role="status"></p>
+        </div>
+        <div class="pf-sec" id="signed-in-devices">
+          <h3>Signed-in devices</h3>
+          <p class="pf-hint">You stay signed in on each phone or computer until you haven&rsquo;t used MT3UK on it for 30 days. Lost a phone, or used someone else&rsquo;s? Sign out everywhere at once.</p>
+          <button type="button" class="si-btn pf-danger" id="pf-signout-all">Sign out of all devices</button>
+          <p class="si-status" id="pf-signout-all-status" role="status"></p>
         </div>
       </div>
 
@@ -825,6 +849,7 @@
   }
 </script>
 
+<script src="js/passkeys.js"></script>
 <script src="js/push-toggle.js"></script>
 <script src="js/ios-install-steps.js"></script>
 <script src="js/app-install.js"></script>
@@ -989,6 +1014,62 @@
     });
     $('pf-findable').addEventListener('change', function () {
       saveVisibility({ hideRealName: !$('pf-findable').checked }, drawVisibility);
+    });
+
+    // ---------- Passkeys ----------
+    var PK = window.mt3ukPasskeys;
+    function drawPasskeys(list) {
+      $('pf-passkeys').innerHTML = list.length ? list.map(function (k) {
+        var used = k.lastUsed ? 'Last used ' + when(k.lastUsed) : 'Added ' + when(k.created);
+        return '<li><div class="pf-who"><strong>' + esc(k.name) + '</strong><span>' + esc(used) + '</span></div>' +
+          '<div class="pf-actions"><button type="button" class="si-btn pf-passkey-remove" data-id="' + esc(k.id) + '">Remove</button></div></li>';
+      }).join('') : '<li><span class="pf-empty">No passkeys yet. Add one to sign in without waiting for an email.</span></li>';
+    }
+    function loadPasskeys() {
+      if (!PK) return;
+      PK.list(session()).then(function (data) { if (data && data.success) drawPasskeys(data.passkeys); }).catch(function () {});
+    }
+    if (!PK || !PK.supported()) {
+      $('pf-passkey-add').hidden = true;
+      $('pf-passkey-unsupported').hidden = false;
+    }
+    $('pf-passkey-add').addEventListener('click', function () {
+      var btn = this;
+      btn.disabled = true;
+      status($('pf-passkey-status'), 'Follow the prompt on your device…');
+      PK.register(session()).then(function (data) {
+        btn.disabled = false;
+        drawPasskeys(data.passkeys || []);
+        status($('pf-passkey-status'), 'Passkey added. Next time choose Sign in with a passkey.', 'ok');
+      }).catch(function (err) {
+        btn.disabled = false;
+        status($('pf-passkey-status'), err.message, 'err');
+      });
+    });
+    $('pf-passkeys').addEventListener('click', function (e) {
+      var btn = e.target.closest('.pf-passkey-remove');
+      if (!btn || !window.confirm('Remove this passkey? You can still sign in with an email code, and add it again later.')) return;
+      btn.disabled = true;
+      PK.remove(session(), btn.getAttribute('data-id')).then(function (data) {
+        drawPasskeys((data && data.passkeys) || []);
+        if (PK.hasOnThisDevice()) PK.markThisDevice(false);
+        status($('pf-passkey-status'), 'Passkey removed.', 'ok');
+      }).catch(function () { btn.disabled = false; });
+    });
+
+    // ---------- Signed-in devices ----------
+    $('pf-signout-all').addEventListener('click', function () {
+      if (!window.confirm('Sign out of all devices?\n\nThis signs you out everywhere you use MT3UK, including here. You can sign straight back in with a passkey or an email code.')) return;
+      var btn = this;
+      btn.disabled = true;
+      status($('pf-signout-all-status'), 'Signing out everywhere…');
+      api('POST', '/session/sign-out-all', {}).then(function (data) {
+        btn.disabled = false;
+        if (!data.success) { status($('pf-signout-all-status'), data.message || 'Could not sign out, please try again.', 'err'); return; }
+        signedOut();
+        $('pf-signed-out-text').textContent = 'You\u2019ve been signed out on all your devices. Sign in again here whenever you like.';
+        window.scrollTo(0, 0);
+      }).catch(function (err) { btn.disabled = false; if (err.message !== 'signed out') status($('pf-signout-all-status'), 'Network error, please try again.', 'err'); });
     });
 
     // ---------- Messages ----------
@@ -1268,6 +1349,7 @@
       if (!profile) return;
       $('pf-loading').hidden = true;
       $('pf-app').hidden = false;
+      loadPasskeys();
       if (window.mt3ukPushCard) window.mt3ukPushCard($('notifications'), { api: API, session: session, setStatus: status });
       if (window.mt3ukAppCard) window.mt3ukAppCard($('app'), { apps: profile.apps, forget: function (p) { api('POST', '/profile', { appRemoved: p }).catch(function () {}); } });
       return loadMessages().then(function () {

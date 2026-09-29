@@ -111,7 +111,7 @@
         '<h2 id="mt3uk-nick-title">Welcome! Pick a nickname</h2>' +
         '<p>Your nickname shows on your builds, comments and likes instead of your full name, and friends find you by it. You can change it any time in your Profile.</p>' +
         '<label for="mt3uk-nick-input">Nickname</label>' +
-        '<input type="text" id="mt3uk-nick-input" maxlength="20" autocomplete="nickname" placeholder="e.g. GreenKnight">' +
+        '<input type="text" id="mt3uk-nick-input" name="mt3uk-handle" maxlength="20" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="e.g. GreenKnight">' +
         '<div class="mt3uk-nick-row"><button type="submit">Save nickname</button><button type="button" class="mt3uk-nick-later">Later</button></div>' +
         '<p class="mt3uk-nick-msg" role="status"></p>' +
       '</form>';
@@ -152,13 +152,14 @@
   // Sign Up calls this once a new member is signed in on the same page.
   window.mt3ukAskNickname = askNickname;
 
-  // In the installed app, notifications switch on by themselves for signed-in
-  // members (js/push-toggle.js). Waits for the homepage intro and the
-  // nickname prompt. Profile has its own on/off control, so not there.
+  // In the installed app, ask about notifications when it's opened, signed
+  // in or not, like a normal app; they switch on once signed in
+  // (js/push-toggle.js). Waits for the homepage intro and the nickname
+  // prompt. Profile has its own on/off control, so not there.
   function autoPush() {
     var page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
     var app = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
-    if (!read(SESSION_KEY) || !app || page === 'profile.html' || !('PushManager' in window)) return;
+    if (!app || page === 'profile.html' || !('PushManager' in window)) return;
     if (document.getElementById('mt3uk-intro') || document.getElementById('mt3uk-nick-prompt')) { setTimeout(autoPush, 1000); return; }
     var go = function () { window.mt3ukPushAuto({ api: API, session: function () { return read(SESSION_KEY); } }); };
     if (window.mt3ukPushAuto) { go(); return; }
@@ -191,7 +192,36 @@
     return /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ? 'ios' : /Android/i.test(ua) ? 'android' : 'desktop';
   };
 
+  // Sign-in pages call this straight after signing in, so the app asks
+  // about notifications then rather than on the next page.
+  window.mt3ukAutoPush = function () { setTimeout(autoPush, 800); };
+
+  // Sign-ins last 30 days from last use: once a day, swap this one for a
+  // renewed one. If it has run out, or "Sign out of all devices" was used,
+  // forget it here too.
+  function refreshSession() {
+    var today = new Date().toISOString().slice(0, 10);
+    if (!read(SESSION_KEY) || read('mt3ukSessionChecked') === today) return;
+    fetch(API + '/session/refresh', { headers: { 'X-Session-Token': read(SESSION_KEY) }, cache: 'no-store' })
+      .then(function (res) {
+        if (res.status === 401) {
+          try { [SESSION_KEY, EMAIL_KEY, FIRST_NAME_KEY].forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {}
+          return null;
+        }
+        return res.json();
+      })
+      .then(function (data) {
+        if (!data || !data.success) return;
+        try {
+          localStorage.setItem('mt3ukSessionChecked', today);
+          if (data.session) localStorage.setItem(SESSION_KEY, data.session);
+        } catch (e) {}
+      })
+      .catch(function () {});
+  }
+
   function run() {
+    refreshSession();
     askNickname();
     reportApp();
     setTimeout(autoPush, 1500);

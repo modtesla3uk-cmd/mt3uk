@@ -37,6 +37,7 @@
     '#iv-gate .ivg-eyebrow{font-family:"IBM Plex Mono",monospace;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:#e8542a;margin:0 0 10px}' +
     '#iv-gate .ivg-title{font-size:1.5rem;font-weight:700;line-height:1.25;margin:0 0 12px;color:#fff}' +
     '#iv-gate p{color:rgba(255,255,255,.8);line-height:1.5;margin:0 0 16px;font-size:.98rem}' +
+    '#iv-gate p.ivg-junk{font-size:.86rem;border-left:3px solid #e8542a;padding:8px 10px;background:rgba(255,255,255,.06)}' +
     '#iv-gate label{display:block;font-size:.85rem;color:rgba(255,255,255,.75);margin:0 0 6px}' +
     '#iv-gate input{width:100%;box-sizing:border-box;padding:12px 14px;font-size:16px;border:1px solid rgba(255,255,255,.35);background:#fff;color:#16233d;border-radius:0;margin:0 0 12px}' +
     '#iv-gate input.ivg-code{letter-spacing:.4em;font-family:"IBM Plex Mono",monospace;text-align:center}' +
@@ -155,6 +156,8 @@
       // New members are asked for a nickname (js/account-bar.js).
       if (data.joined) localStorage.setItem('mt3ukAskNickname', '1');
     } catch (e) {}
+    // In the app, ask about notifications now (js/account-bar.js).
+    if (window.mt3ukAutoPush) window.mt3ukAutoPush();
     location.reload();
   }
 
@@ -230,6 +233,7 @@
             '<button type="submit">Open interview</button>' +
           '</form>' +
           '<p class="ivg-msg" role="status"></p>' +
+          '<p class="ivg-junk">Can\u2019t see the email? Check your <strong>Junk</strong> or <strong>Spam</strong> folder, and mark it <strong>Not junk</strong> so the next one reaches your inbox.</p>' +
           '<button type="button" class="ivg-link">Use a different email or send a new code</button>' +
         '</div>';
       var form = gate.querySelector('form');

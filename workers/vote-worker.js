@@ -24,7 +24,6 @@ const SHOP_PRODUCTS_CACHE_SECONDS = 60 * 2;
 const MY_BUILDS_FROM_EMAIL = 'hello@mt3uk.com';
 const MY_BUILDS_LINK_TTL_SECONDS = 15 * 60;
 const BUILD_ASSIGNED_LINK_TTL_SECONDS = 7 * 24 * 60 * 60;
-const MY_BUILDS_SESSION_TTL_SECONDS = 60 * 60 * 24 * 180;
 const MY_BUILDS_SITE_URL = 'https://mt3uk.com';
 const SUBSCRIBERS_DIGEST_EMAIL = 'modtesla3uk@gmail.com';
 const MAX_COMMENT_LENGTH = 500;
@@ -1012,7 +1011,11 @@ async function deleteMemberAccount(env, email) {
     }
     await env.VOTES.delete(await dmThreadKey(email, index[k].email));
   }
-  await Promise.all(['subscriber:', 'profile:', 'subscriber-since:', 'friends:', 'dm-index:', 'notifications:', 'push:'].map(function (prefix) {
+  var passkeys = await getPasskeys(env, email);
+  for (var pk = 0; pk < passkeys.length; pk++) await env.VOTES.delete(passkeyCredKey(passkeys[pk].id));
+  // End every sign-in. Kept only as long as an old sign-in could last.
+  await env.VOTES.put(sessionVersionKey(email), String((await getSessionVersion(env, email)) + 1), { expirationTtl: 181 * 24 * 60 * 60 });
+  await Promise.all(['subscriber:', 'profile:', 'subscriber-since:', 'friends:', 'dm-index:', 'notifications:', 'push:', 'passkeys:'].map(function (prefix) {
     return env.VOTES.delete(prefix + email);
   }));
   if (files.length) await triggerManifestRebuild(env);
@@ -3929,28 +3932,346 @@ function bytesFromBase64Url(str) {
   return out;
 }
 
+// ---------- Passkeys (WebAuthn) ----------
+// Members can sign in with Face ID, a fingerprint or their device's screen
+// lock instead of an emailed code. Only the public key is stored:
+// passkeys:<email> (a list), and passkey-cred:<credential id> -> email to
+// find the member at sign-in. Challenges are one-use keys that expire in
+// 5 minutes. Signatures are checked here with WebCrypto (ES256 or RS256).
+var PASSKEY_RP_ID = 'mt3uk.com';
+var PASSKEY_ORIGINS = ['https://mt3uk.com', 'https://www.mt3uk.com'];
+var PASSKEY_CHALLENGE_TTL = 300;
+var MAX_PASSKEYS = 10;
+
+function passkeysKey(email) { return 'passkeys:' + email; }
+function passkeyCredKey(id) { return 'passkey-cred:' + id; }
+
+async function getPasskeys(env, email) {
+  var list = await getJsonKey(env, passkeysKey(email), []);
+  return Array.isArray(list) ? list : [];
+}
+
+function randomBase64Url(bytes) {
+  var b = new Uint8Array(bytes);
+  crypto.getRandomValues(b);
+  return base64UrlFromBytes(b);
+}
+
+// A small CBOR reader: enough for WebAuthn attestation objects and COSE keys.
+function cborDecode(bytes, start) {
+  var pos = start || 0;
+  function read() {
+    var first = bytes[pos++];
+    var major = first >> 5;
+    var info = first & 31;
+    var len = info;
+    if (info === 24) { len = bytes[pos]; pos += 1; }
+    else if (info === 25) { len = (bytes[pos] << 8) | bytes[pos + 1]; pos += 2; }
+    else if (info === 26) { len = ((bytes[pos] << 24) >>> 0) + (bytes[pos + 1] << 16) + (bytes[pos + 2] << 8) + bytes[pos + 3]; pos += 4; }
+    else if (info === 27) {
+      len = 0;
+      for (var k = 0; k < 8; k++) len = len * 256 + bytes[pos + k];
+      pos += 8;
+    } else if (info > 27) throw new Error('Unsupported CBOR');
+    if (major === 0) return len;
+    if (major === 1) return -1 - len;
+    if (major === 2) { var b = bytes.slice(pos, pos + len); pos += len; return b; }
+    if (major === 3) { var t = new TextDecoder().decode(bytes.slice(pos, pos + len)); pos += len; return t; }
+    if (major === 4) { var arr = []; for (var i = 0; i < len; i++) arr.push(read()); return arr; }
+    if (major === 5) { var map = new Map(); for (var j = 0; j < len; j++) { var key = read(); map.set(key, read()); } return map; }
+    if (major === 7) { if (info === 20) return false; if (info === 21) return true; if (info === 22) return null; }
+    throw new Error('Unsupported CBOR');
+  }
+  var value = read();
+  return { value: value, end: pos };
+}
+
+function parseAuthData(authData) {
+  if (!authData || authData.length < 37) throw new Error('Bad authenticator data');
+  var out = {
+    rpIdHash: authData.slice(0, 32),
+    flags: authData[32],
+    signCount: ((authData[33] << 24) >>> 0) + (authData[34] << 16) + (authData[35] << 8) + authData[36]
+  };
+  if (out.flags & 0x40) {
+    var idLen = (authData[53] << 8) | authData[54];
+    out.credentialId = authData.slice(55, 55 + idLen);
+    out.coseKey = cborDecode(authData, 55 + idLen).value;
+  }
+  return out;
+}
+
+// COSE public key -> { alg, jwk } for crypto.subtle.importKey('jwk', ...).
+function coseToJwk(cose) {
+  if (!(cose instanceof Map)) throw new Error('Bad key');
+  var kty = cose.get(1);
+  var alg = cose.get(3);
+  if (kty === 2 && alg === -7 && cose.get(-1) === 1) {
+    return { alg: -7, jwk: { kty: 'EC', crv: 'P-256', x: base64UrlFromBytes(cose.get(-2)), y: base64UrlFromBytes(cose.get(-3)), ext: true } };
+  }
+  if (kty === 3 && alg === -257) {
+    return { alg: -257, jwk: { kty: 'RSA', n: base64UrlFromBytes(cose.get(-1)), e: base64UrlFromBytes(cose.get(-2)), alg: 'RS256', ext: true } };
+  }
+  throw new Error('Unsupported passkey type');
+}
+
+// WebAuthn ECDSA signatures are DER; WebCrypto wants r and s side by side.
+function derToRawEcdsa(der) {
+  var pos = 2;
+  if (der[1] & 0x80) pos = 2 + (der[1] & 0x7f);
+  function int() {
+    if (der[pos] !== 0x02) throw new Error('Bad signature');
+    var len = der[pos + 1];
+    var v = der.slice(pos + 2, pos + 2 + len);
+    pos += 2 + len;
+    while (v.length > 32 && v[0] === 0) v = v.slice(1);
+    var out = new Uint8Array(32);
+    out.set(v, 32 - v.length);
+    return out;
+  }
+  var r = int();
+  var sBytes = int();
+  var raw = new Uint8Array(64);
+  raw.set(r, 0);
+  raw.set(sBytes, 32);
+  return raw;
+}
+
+async function verifyPasskeySignature(stored, data, signature) {
+  if (stored.alg === -7) {
+    var ecKey = await crypto.subtle.importKey('jwk', stored.jwk, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify']);
+    return crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, ecKey, derToRawEcdsa(signature), data);
+  }
+  if (stored.alg === -257) {
+    var rsaKey = await crypto.subtle.importKey('jwk', stored.jwk, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['verify']);
+    return crypto.subtle.verify('RSASSA-PKCS1-v1_5', rsaKey, signature, data);
+  }
+  return false;
+}
+
+function sameBytes(a, b) {
+  if (!a || !b || a.length !== b.length) return false;
+  for (var i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+  return true;
+}
+
+// Checks clientDataJSON and uses up its challenge. Returns the challenge
+// record, or null.
+async function checkClientData(env, clientDataBytes, type) {
+  var clientData;
+  try { clientData = JSON.parse(new TextDecoder().decode(clientDataBytes)); } catch (e) { return null; }
+  if (!clientData || clientData.type !== type || clientData.crossOrigin === true) return null;
+  if (PASSKEY_ORIGINS.indexOf(clientData.origin) === -1) return null;
+  var challenge = String(clientData.challenge || '');
+  if (!/^[A-Za-z0-9_-]{20,100}$/.test(challenge)) return null;
+  var key = 'passkey-challenge:' + challenge;
+  var record = await getJsonKey(env, key, null);
+  if (!record) return null;
+  await env.VOTES.delete(key);
+  return record;
+}
+
+async function rpIdHash() {
+  return new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(PASSKEY_RP_ID)));
+}
+
+function passkeySummary(list) {
+  return list.map(function (k) { return { id: k.id, name: k.name || 'Passkey', created: k.created || '', lastUsed: k.lastUsed || '' }; });
+}
+
+async function handlePasskeyRegisterOptions(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var list = await getPasskeys(env, email);
+  if (list.length >= MAX_PASSKEYS) return json({ success: false, message: 'You have the most passkeys allowed. Remove one in Profile first.' }, 400);
+  var challenge = randomBase64Url(32);
+  await env.VOTES.put('passkey-challenge:' + challenge, JSON.stringify({ type: 'register', email: email }), { expirationTtl: PASSKEY_CHALLENGE_TTL });
+  var profile = await getProfileRecord(env, email);
+  return json({
+    success: true,
+    publicKey: {
+      challenge: challenge,
+      rp: { id: PASSKEY_RP_ID, name: 'MT3UK' },
+      user: { id: base64UrlFromBytes(new TextEncoder().encode(await ownerKey(email))), name: email, displayName: publicName(profile) || email },
+      pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+      authenticatorSelection: { residentKey: 'required', requireResidentKey: true, userVerification: 'preferred' },
+      excludeCredentials: list.map(function (k) { return { type: 'public-key', id: k.id }; }),
+      attestation: 'none',
+      timeout: 120000
+    }
+  });
+}
+
+async function handlePasskeyRegisterVerify(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
+  var failed = json({ success: false, message: 'The passkey could not be set up. Please try again.' }, 400);
+  try {
+    var response = (body && body.response) || {};
+    var record = await checkClientData(env, bytesFromBase64Url(response.clientDataJSON || ''), 'webauthn.create');
+    if (!record || record.type !== 'register' || record.email !== email) return failed;
+    var attestation = cborDecode(bytesFromBase64Url(response.attestationObject || '')).value;
+    var auth = parseAuthData(attestation.get('authData'));
+    if (!sameBytes(auth.rpIdHash, await rpIdHash()) || !(auth.flags & 0x01) || !auth.credentialId) return failed;
+    var id = base64UrlFromBytes(auth.credentialId);
+    if (body.id && body.id !== id) return failed;
+    var key = coseToJwk(auth.coseKey);
+    var owner = await env.VOTES.get(passkeyCredKey(id));
+    if (owner && owner !== email) return failed;
+    var list = (await getPasskeys(env, email)).filter(function (k) { return k.id !== id; });
+    list.push({
+      id: id, alg: key.alg, jwk: key.jwk, counter: auth.signCount,
+      name: String((body && body.name) || 'Passkey').replace(/[^\w .()'-]/g, '').slice(0, 40) || 'Passkey',
+      created: new Date().toISOString()
+    });
+    await env.VOTES.put(passkeysKey(email), JSON.stringify(list.slice(-MAX_PASSKEYS)));
+    await env.VOTES.put(passkeyCredKey(id), email);
+    return json({ success: true, passkeys: passkeySummary(list) });
+  } catch (err) {
+    console.log('Passkey register failed:', err.message);
+    return failed;
+  }
+}
+
+async function handlePasskeyLoginOptions(request, env) {
+  var challenge = randomBase64Url(32);
+  await env.VOTES.put('passkey-challenge:' + challenge, JSON.stringify({ type: 'login' }), { expirationTtl: PASSKEY_CHALLENGE_TTL });
+  return json({ success: true, publicKey: { challenge: challenge, rpId: PASSKEY_RP_ID, userVerification: 'preferred', allowCredentials: [], timeout: 120000 } });
+}
+
+async function handlePasskeyLoginVerify(request, env) {
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
+  var failed = json({ success: false, message: 'That passkey didn’t work. Sign in with an email code instead, then set up the passkey again in Profile.' }, 400);
+  try {
+    var response = (body && body.response) || {};
+    var clientDataBytes = bytesFromBase64Url(response.clientDataJSON || '');
+    var record = await checkClientData(env, clientDataBytes, 'webauthn.get');
+    if (!record || record.type !== 'login') return failed;
+    var id = String((body && body.id) || '');
+    var email = id ? await env.VOTES.get(passkeyCredKey(id)) : null;
+    if (!email) return failed;
+    var list = await getPasskeys(env, email);
+    var stored = list.filter(function (k) { return k.id === id; })[0];
+    if (!stored) return failed;
+    var authData = bytesFromBase64Url(response.authenticatorData || '');
+    var auth = parseAuthData(authData);
+    if (!sameBytes(auth.rpIdHash, await rpIdHash()) || !(auth.flags & 0x01)) return failed;
+    var clientHash = new Uint8Array(await crypto.subtle.digest('SHA-256', clientDataBytes));
+    var signed = new Uint8Array(authData.length + clientHash.length);
+    signed.set(authData, 0);
+    signed.set(clientHash, authData.length);
+    if (!(await verifyPasskeySignature(stored, signed, bytesFromBase64Url(response.signature || '')))) return failed;
+    // A counter that goes backwards means a copied key.
+    if (stored.counter && auth.signCount && auth.signCount <= stored.counter) return failed;
+    stored.counter = auth.signCount;
+    stored.lastUsed = new Date().toISOString();
+    await env.VOTES.put(passkeysKey(email), JSON.stringify(list));
+    var session = await createSession(env, email);
+    return json({ success: true, session: session, email: email });
+  } catch (err) {
+    console.log('Passkey sign-in failed:', err.message);
+    return failed;
+  }
+}
+
+async function handlePasskeyList(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  return json({ success: true, passkeys: passkeySummary(await getPasskeys(env, email)) });
+}
+
+async function handlePasskeyDelete(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var body;
+  try { body = await request.json(); } catch (e) { body = {}; }
+  var id = String((body && body.id) || '');
+  var list = await getPasskeys(env, email);
+  var kept = list.filter(function (k) { return k.id !== id; });
+  if (kept.length !== list.length) {
+    await env.VOTES.put(passkeysKey(email), JSON.stringify(kept));
+    if ((await env.VOTES.get(passkeyCredKey(id))) === email) await env.VOTES.delete(passkeyCredKey(id));
+  }
+  return json({ success: true, passkeys: passkeySummary(kept) });
+}
+
+// Sign-ins (sessions). A sign-in lasts 30 days from when it was last used:
+// js/account-bar.js asks /session/refresh once a day for a renewed one, so
+// active members stay signed in and an unused device is signed out.
+// s2.<email>.<expires>.<version>.<signature>. The version is the member's
+// session-version: "Sign out of all devices" in Profile raises it, which
+// ends every existing sign-in. Older s1 sign-ins (no version) and the old
+// stored ones count as version 0.
+var SESSION_IDLE_SECONDS = 30 * 24 * 60 * 60;
+var SESSION_RENEW_AFTER_SECONDS = 24 * 60 * 60;
+
+function sessionVersionKey(email) { return 'session-version:' + email; }
+
+async function getSessionVersion(env, email) {
+  return Number(await env.VOTES.get(sessionVersionKey(email))) || 0;
+}
+
 async function createSession(env, email) {
-  var expires = Math.floor(Date.now() / 1000) + MY_BUILDS_SESSION_TTL_SECONDS;
-  var payload = 's1.' + base64UrlFromBytes(new TextEncoder().encode(email)) + '.' + expires;
+  var expires = Math.floor(Date.now() / 1000) + SESSION_IDLE_SECONDS;
+  var version = await getSessionVersion(env, email);
+  var payload = 's2.' + base64UrlFromBytes(new TextEncoder().encode(email)) + '.' + expires + '.' + version;
   var sig = await crypto.subtle.sign('HMAC', await sessionHmacKey(env), new TextEncoder().encode(payload));
   return payload + '.' + base64UrlFromBytes(new Uint8Array(sig));
 }
 
-async function resolveSession(request, env) {
-  var token = request.headers.get('X-Session-Token');
+// Details of a valid sign-in token, or null: { email, expires, version }.
+async function readSession(env, token) {
   if (!token) return null;
   var parts = token.split('.');
-  if (parts.length === 4 && parts[0] === 's1') {
-    if (!env.ADMIN_KEY || !(Number(parts[2]) > Date.now() / 1000)) return null;
+  var signed = null;
+  if (parts.length === 5 && parts[0] === 's2') signed = { email: parts[1], expires: Number(parts[2]), version: Number(parts[3]) || 0, sig: parts[4], payload: parts.slice(0, 4).join('.') };
+  else if (parts.length === 4 && parts[0] === 's1') signed = { email: parts[1], expires: Number(parts[2]), version: 0, sig: parts[3], payload: parts.slice(0, 3).join('.') };
+  var email;
+  var info;
+  if (signed) {
+    if (!env.ADMIN_KEY || !(signed.expires > Date.now() / 1000)) return null;
     try {
-      var ok = await crypto.subtle.verify('HMAC', await sessionHmacKey(env), bytesFromBase64Url(parts[3]),
-        new TextEncoder().encode(parts.slice(0, 3).join('.')));
-      return ok ? new TextDecoder().decode(bytesFromBase64Url(parts[1])) : null;
+      var ok = await crypto.subtle.verify('HMAC', await sessionHmacKey(env), bytesFromBase64Url(signed.sig), new TextEncoder().encode(signed.payload));
+      if (!ok) return null;
+      email = new TextDecoder().decode(bytesFromBase64Url(signed.email));
     } catch (e) {
       return null;
     }
+    info = { email: email, expires: signed.expires, version: signed.version };
+  } else {
+    email = await env.VOTES.get('my-builds-session:' + token);
+    if (!email) return null;
+    info = { email: email, expires: 0, version: 0 };
   }
-  return env.VOTES.get('my-builds-session:' + token);
+  if (info.version !== (await getSessionVersion(env, info.email))) return null;
+  return info;
+}
+
+async function resolveSession(request, env) {
+  var info = await readSession(env, request.headers.get('X-Session-Token'));
+  return info ? info.email : null;
+}
+
+// GET /session/refresh: a renewed sign-in (30 more days) once the current
+// one is a day old; 401 when it has run out or been signed out.
+async function handleSessionRefresh(request, env) {
+  var info = await readSession(env, request.headers.get('X-Session-Token'));
+  if (!info) return json({ success: false, message: 'Please sign in again' }, 401);
+  var now = Math.floor(Date.now() / 1000);
+  var renew = !info.expires || info.expires - now < SESSION_IDLE_SECONDS - SESSION_RENEW_AFTER_SECONDS;
+  return json({ success: true, session: renew ? await createSession(env, info.email) : null });
+}
+
+// POST /session/sign-out-all: ends every sign-in for this member, on every
+// device, including this one.
+async function handleSessionSignOutAll(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  await env.VOTES.put(sessionVersionKey(email), String((await getSessionVersion(env, email)) + 1));
+  return json({ success: true });
 }
 
 function carRecordKey(carId) {
@@ -5720,6 +6041,30 @@ export default {
     }
     if (url.pathname === '/my-builds/join' && request.method === 'POST') {
       return handleMyBuildsJoin(request, env);
+    }
+    if (url.pathname === '/session/refresh' && request.method === 'GET') {
+      return handleSessionRefresh(request, env);
+    }
+    if (url.pathname === '/session/sign-out-all' && request.method === 'POST') {
+      return handleSessionSignOutAll(request, env);
+    }
+    if (url.pathname === '/passkey/register/options' && request.method === 'POST') {
+      return handlePasskeyRegisterOptions(request, env);
+    }
+    if (url.pathname === '/passkey/register/verify' && request.method === 'POST') {
+      return handlePasskeyRegisterVerify(request, env);
+    }
+    if (url.pathname === '/passkey/login/options' && request.method === 'POST') {
+      return handlePasskeyLoginOptions(request, env);
+    }
+    if (url.pathname === '/passkey/login/verify' && request.method === 'POST') {
+      return handlePasskeyLoginVerify(request, env);
+    }
+    if (url.pathname === '/passkey/list' && request.method === 'GET') {
+      return handlePasskeyList(request, env);
+    }
+    if (url.pathname === '/passkey/delete' && request.method === 'POST') {
+      return handlePasskeyDelete(request, env);
     }
     if (url.pathname === '/my-builds/verify-code' && request.method === 'POST') {
       return handleMyBuildsVerifyCode(request, env);

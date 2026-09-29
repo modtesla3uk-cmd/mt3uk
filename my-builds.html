@@ -163,6 +163,9 @@
   .mb-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
   .mb-field label { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; letter-spacing: 0.06em; color: var(--steel); }
   .mb-field-hint { font-size: 0.78rem; color: var(--steel); }
+  .mb-passkey { margin-top: 16px; display: grid; gap: 6px; justify-items: start; }
+  .mb-passkey-btn { background: #1c8a4b; border-color: #1c8a4b; }
+  .mb-junk { display: block; font-size: 0.8rem; border-left: 3px solid var(--orange); background: rgba(232, 84, 42, 0.07); padding: 6px 10px; margin-top: 6px; }
   .mb-field input[type="email"],
   .mb-field input[type="text"],
   .mb-field input[type="file"],
@@ -863,7 +866,7 @@ document.addEventListener('DOMContentLoaded', function () {
         <form id="mb-signin-form">
           <div class="mb-field">
             <label class="mono" for="mb-email">Email</label>
-            <input type="email" id="mb-email" name="email" placeholder="you@example.com" required autocomplete="email">
+            <input type="email" id="mb-email" name="email" placeholder="you@example.com" required autocomplete="username webauthn">
           </div>
           <button type="submit" class="mb-btn" id="mb-signin-btn">Send me a sign-in link</button>
           <p class="mb-status" id="mb-signin-status"></p>
@@ -873,10 +876,16 @@ document.addEventListener('DOMContentLoaded', function () {
             <label class="mono" for="mb-code">Or enter the 6-digit code from the email</label>
             <input type="text" id="mb-code" name="code" inputmode="numeric" pattern="[0-9 ]*" maxlength="7" placeholder="123456" autocomplete="one-time-code">
             <span class="mb-field-hint">Using the MT3UK app from your iPhone Home Screen? Use the code here, as the link opens in Safari instead of the app.</span>
+            <span class="mb-junk" id="mb-junk">Can&rsquo;t see the email? Check your <strong>Junk</strong> or <strong>Spam</strong> folder, and mark it <strong>Not junk</strong> so the next one reaches your inbox. It comes from hello@mt3uk.com.</span>
           </div>
           <button type="submit" class="mb-btn" id="mb-code-btn">Sign in with code</button>
           <p class="mb-status" id="mb-code-status"></p>
         </form>
+        <div class="mb-passkey" id="mb-passkey" hidden>
+          <button type="button" class="mb-btn mb-passkey-btn" id="mb-passkey-btn">Sign in with a passkey</button>
+          <span class="mb-field-hint">Face ID, fingerprint or your screen lock, if you&rsquo;ve set up a passkey in your Profile.</span>
+          <p class="mb-status" id="mb-passkey-status"></p>
+        </div>
         <p class="mb-join-note">Just want to like and comment? <a href="signin.html">Join free without adding a car</a>.</p>
         <button type="button" class="mb-btn mb-signin-newbuild-btn" id="mb-new-toggle-btn">+ New here? Submit your first build</button>
       </div>
@@ -1244,6 +1253,7 @@ document.addEventListener('DOMContentLoaded', function () {
   })();
 </script>
 
+<script src="js/passkeys.js"></script>
 <script>
   (function () {
     var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
@@ -1354,6 +1364,8 @@ document.addEventListener('DOMContentLoaded', function () {
     function setSession(token, email) {
       localStorage.setItem(SESSION_KEY, token);
       localStorage.setItem(EMAIL_KEY, email);
+      // In the app, ask about notifications now (js/account-bar.js).
+      if (window.mt3ukAutoPush) window.mt3ukAutoPush();
     }
     function clearSession() {
       localStorage.removeItem(SESSION_KEY);
@@ -1905,6 +1917,34 @@ document.addEventListener('DOMContentLoaded', function () {
           codeBtn.disabled = false;
           setStatus(codeStatus, 'Something went wrong, please try again.', 'err');
         });
+    });
+
+    // Passkey sign-in (js/passkeys.js).
+    var passkeys = window.mt3ukPasskeys;
+    if (passkeys && passkeys.supported()) document.getElementById('mb-passkey').hidden = false;
+    // Offer the passkey when the email box is tapped, when signed out.
+    if (passkeys && passkeys.supported() && !localStorage.getItem(SESSION_KEY)) {
+      passkeys.autofill(function (data) {
+        setSession(data.session, data.email);
+        if (goToPendingNext()) return;
+        loadCars();
+      });
+    }
+    document.getElementById('mb-passkey-btn').addEventListener('click', function () {
+      var btn = this;
+      var status = document.getElementById('mb-passkey-status');
+      btn.disabled = true;
+      setStatus(status, 'Waiting for your passkey…', '');
+      passkeys.signIn().then(function (data) {
+        btn.disabled = false;
+        setStatus(status, '', '');
+        setSession(data.session, data.email);
+        if (goToPendingNext()) return;
+        loadCars();
+      }).catch(function (err) {
+        btn.disabled = false;
+        setStatus(status, err.message + ' You can sign in with an email code instead.', 'err');
+      });
     });
 
     if (newToggleBtn) {

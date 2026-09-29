@@ -251,6 +251,16 @@ def api_reply(url, method, post_data, state):
             if action == "revoke":
                 revoked.append({"email": email, "slug": slug, "revoked": "2026-09-29T13:00:00Z"})
         return {"success": True, "opened": opened, "revoked": revoked}
+    if path == "/session/refresh":
+        state["session_refreshes"] = state.get("session_refreshes", 0) + 1
+        if state.get("session_expired"):
+            return {"success": False, "message": "Please sign in again"}
+        return {"success": True, "session": state.get("renewed_session")}
+    if path == "/session/sign-out-all":
+        state["signed_out_all"] = True
+        return {"success": True}
+    if path.startswith("/passkey/"):
+        return passkey_reply(path, post_data, state)
     if path.startswith("/push/"):
         state.setdefault("push_calls", []).append(path)
         if path == "/push/key":
@@ -289,6 +299,40 @@ def api_reply(url, method, post_data, state):
         # rename test's new name stands in when it's missing.
         state["car_name"] = name or "The Colonel"
         return {"success": True, "car": {"id": GARAGE_CAR["id"], "name": name or GARAGE_CAR["name"]}}
+    return {"success": True}
+
+
+def passkey_reply(path, post_data, state):
+    """Stand-in answers for passkeys (js/passkeys.js). The test browsers use
+    a stand-in authenticator, so these only check the pages' side."""
+    try:
+        body = json.loads(post_data or "{}")
+    except ValueError:
+        body = {}
+    keys = state.setdefault("passkeys", [])
+    state.setdefault("passkey_calls", []).append(path)
+    challenge = "Y2hhbGxlbmdlLWNoYWxsZW5nZS0xMjM0NTY3OA"
+    if path == "/passkey/login/options":
+        return {"success": True, "publicKey": {"challenge": challenge, "rpId": "localhost", "userVerification": "preferred", "allowCredentials": [], "timeout": 60000}}
+    if path == "/passkey/login/verify":
+        if state.get("passkey_fail"):
+            return {"success": False, "message": "That passkey didn\u2019t work."}
+        state["signed_in"] = True
+        return {"success": True, "session": "s1.passkey", "email": "member@example.com"}
+    if path == "/passkey/register/options":
+        return {"success": True, "publicKey": {
+            "challenge": challenge, "rp": {"id": "localhost", "name": "MT3UK"},
+            "user": {"id": "bWVtYmVy", "name": "member@example.com", "displayName": "TestMember"},
+            "pubKeyCredParams": [{"type": "public-key", "alg": -7}], "authenticatorSelection": {"residentKey": "required", "userVerification": "preferred"},
+            "excludeCredentials": [{"type": "public-key", "id": k["id"]} for k in keys], "attestation": "none", "timeout": 60000}}
+    if path == "/passkey/register/verify":
+        keys.append({"id": "cred%d" % (len(keys) + 1), "name": body.get("name") or "iPhone", "created": "2026-09-29T20:00:00Z", "lastUsed": ""})
+        return {"success": True, "passkeys": keys}
+    if path == "/passkey/list":
+        return {"success": True, "passkeys": keys}
+    if path == "/passkey/delete":
+        state["passkeys"] = keys = [k for k in keys if k["id"] != (body.get("id") or (keys[0]["id"] if keys else ""))]
+        return {"success": True, "passkeys": keys}
     return {"success": True}
 
 
@@ -429,6 +473,8 @@ def attach_mocks(context):
                 return route.abort()
             is_profile = api_path(url).startswith("/profile")
             status = 401 if (is_garage or is_profile) and not state.get("signed_in") else 200
+            if api_path(url) == "/session/refresh" and state.get("session_expired"):
+                status = 401
             try:
                 post_data = request.post_data
             except Exception:

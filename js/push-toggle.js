@@ -16,7 +16,21 @@
 (function () {
   var OFF_KEY = 'mt3ukPushOff';
   var ASKED_KEY = 'mt3ukPushAsked';
+  var ASK_AGAIN_AFTER = 14 * 24 * 60 * 60 * 1000;
   function read(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+
+  // How many times "Not now" was chosen, and when. Asked again once, two
+  // weeks after the first Not now. (An old '1' counts as one Not now.)
+  function asked() {
+    var v = read(ASKED_KEY);
+    if (!v) return { n: 0, at: 0 };
+    if (v === '1') return { n: 1, at: 0 };
+    try { var r = JSON.parse(v); return { n: r.n || 0, at: r.at || 0 }; } catch (e) { return { n: 1, at: 0 }; }
+  }
+  function shouldAsk() {
+    var r = asked();
+    return r.n === 0 || (r.n === 1 && Date.now() - r.at > ASK_AGAIN_AFTER);
+  }
   function write(k, v) { try { if (v) localStorage.setItem(k, v); else localStorage.removeItem(k); } catch (e) {} }
 
   function keyBytes(b64url) {
@@ -86,6 +100,8 @@
     function status(msg, kind) { opts.setStatus(statusEl, msg, kind); }
 
     function showState(subscribed) {
+      // In the app, make it plain when they're off on this device.
+      card.classList.toggle('is-off', !subscribed && installed);
       toggle.hidden = false;
       toggle.textContent = subscribed ? 'Turn off notifications' : 'Turn on notifications';
       toggle.dataset.on = subscribed ? '1' : '';
@@ -169,16 +185,24 @@
     document.body.appendChild(box);
     var msg = box.querySelector('.mt3uk-push-msg');
     box.querySelector('.mt3uk-push-later').addEventListener('click', function () {
-      write(ASKED_KEY, '1');
+      write(ASKED_KEY, JSON.stringify({ n: asked().n + 1, at: Date.now() }));
       box.remove();
     });
     box.querySelector('.mt3uk-push-on').addEventListener('click', function () {
       var btn = this;
       btn.disabled = true;
-      write(ASKED_KEY, '1');
-      subscribe(opts).then(function () {
-        msg.textContent = 'Notifications are on.';
-        setTimeout(function () { box.remove(); }, 1500);
+      write(ASKED_KEY, JSON.stringify({ n: 2, at: Date.now() }));
+      // Not signed in yet: just ask the phone now; they switch on as soon
+      // as the member signs in.
+      var done = opts.session()
+        ? subscribe(opts).then(function () { return 'Notifications are on.'; })
+        : Notification.requestPermission().then(function (p) {
+          if (p !== 'granted') throw new Error('Notifications were not allowed.');
+          return 'Allowed. Sign in and your alerts start straight away.';
+        });
+      done.then(function (text) {
+        msg.textContent = text;
+        setTimeout(function () { box.remove(); }, 1800);
       }).catch(function (err) {
         btn.disabled = false;
         msg.textContent = (err && err.message) || 'Could not turn notifications on.';
@@ -186,12 +210,28 @@
     });
   }
 
+  // In the app, like a normal app: asks when it's first opened, signed in
+  // or not. Android shows the phone's own Allow prompt straight away;
+  // iPhones only allow that after a tap, so they get the Turn on message,
+  // which brings up Apple's prompt. Once allowed, notifications switch on
+  // as soon as the member is signed in.
+  var SYSTEM_ASKED_KEY = 'mt3ukPushSystemAsked';
   window.mt3ukPushAuto = function (opts) {
     if (!supported() || read(OFF_KEY) === '1' || Notification.permission === 'denied') return;
+    var signedIn = !!opts.session();
     currentSubscription().then(function (sub) {
       if (sub) return;
-      if (Notification.permission === 'granted') return subscribe(opts);
-      if (read(ASKED_KEY) !== '1') ask(opts);
+      if (Notification.permission === 'granted') { if (signedIn) return subscribe(opts); return; }
+      var android = /Android/i.test(navigator.userAgent) && !/Firefox/i.test(navigator.userAgent);
+      if (android && read(SYSTEM_ASKED_KEY) !== '1') {
+        write(SYSTEM_ASKED_KEY, '1');
+        return Notification.requestPermission().then(function (p) {
+          if (p === 'granted' && signedIn) return subscribe(opts);
+          // Dismissed without an answer: offer the Turn on message instead.
+          if (p === 'default' && shouldAsk()) ask(opts);
+        });
+      }
+      if (shouldAsk()) ask(opts);
     }).catch(function () {});
   };
 })();

@@ -215,6 +215,7 @@
   .si-btn-block { width: 100%; }
   .si-btn:disabled { opacity: 0.6; cursor: default; }
   .si-status { margin-top: 12px; font-size: 0.88rem; }
+  .si-junk { font-size: 0.88rem; border-left: 3px solid var(--orange); background: rgba(232, 84, 42, 0.07); padding: 8px 12px; margin: 0 0 14px; }
   .si-status:empty { display: none; }
   .si-card p.si-status-ok { color: #1c8a4b; font-weight: 600; }
   .si-card p.si-status-err { color: var(--orange); font-weight: 600; }
@@ -223,6 +224,12 @@
   .si-welcome-err { color: var(--orange); }
   .si-signed-in { max-width: 560px; margin: 0 auto; text-align: center; border: 1px solid var(--ink); border-top: 4px solid var(--orange); padding: 28px 24px; }
   .si-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; }
+  .si-or { display: flex; align-items: center; gap: 10px; color: var(--steel); font-size: 0.82rem; margin: 18px 0 12px; }
+  .si-or::before, .si-or::after { content: ''; flex: 1; border-top: 1px solid rgba(22, 35, 61, 0.2); }
+  .si-passkey-note { font-size: 0.82rem; color: var(--steel); margin-top: 8px; }
+  .si-passkey-offer { margin-top: 22px; padding: 18px 20px; border: 1px solid rgba(22, 35, 61, 0.25); border-left: 4px solid #1c8a4b; background: #fff; }
+  .si-passkey-offer h3 { font-size: 1.05rem; margin: 0 0 6px; }
+  .si-passkey-offer p { margin: 0 0 12px; }
   .si-link { background: none; border: 0; color: var(--steel); text-decoration: underline; cursor: pointer; font: inherit; padding: 8px; }
   .si-garage { max-width: 560px; margin: 44px auto 0; text-align: center; padding-top: 32px; border-top: 1px solid var(--ink); }
   [hidden] { display: none !important; }
@@ -421,6 +428,15 @@
         <a href="my-builds.html" class="si-btn">My Garage</a>
         <button type="button" class="si-link" id="si-signout">Sign out</button>
       </div>
+      <div class="si-passkey-offer" id="si-passkey-offer" hidden>
+        <h3>Sign in faster next time</h3>
+        <p>Set up a passkey and next time just use Face ID, your fingerprint or screen lock. No email code to wait for.</p>
+        <div class="si-actions">
+          <button type="button" class="si-btn si-btn-primary" id="si-passkey-add">Set up a passkey</button>
+          <button type="button" class="si-link" id="si-passkey-later">Not now</button>
+        </div>
+        <p class="si-status" id="si-passkey-add-status" role="status"></p>
+      </div>
     </div>
 
     <div class="si-grid" id="si-forms">
@@ -453,20 +469,27 @@
         <form id="si-signin-form">
           <div class="si-field">
             <label for="si-signin-email">Email</label>
-            <input type="email" id="si-signin-email" name="email" placeholder="you@example.com" autocomplete="email" required>
+            <input type="email" id="si-signin-email" name="email" placeholder="you@example.com" autocomplete="username webauthn" required>
           </div>
           <button type="submit" class="si-btn si-btn-block" id="si-signin-btn">Send me a sign-in link</button>
           <p class="si-status" id="si-signin-status" role="status"></p>
         </form>
+        <div class="si-passkey" id="si-passkey" hidden>
+          <p class="si-or"><span>or</span></p>
+          <button type="button" class="si-btn si-btn-primary si-btn-block" id="si-passkey-btn">Sign in with a passkey</button>
+          <p class="si-passkey-note">Face ID, fingerprint or your screen lock, if you&rsquo;ve set up a passkey. No email needed.</p>
+          <p class="si-status" id="si-passkey-status" role="status"></p>
+        </div>
       </div>
     </div>
 
     <form class="si-card si-code" id="si-code-form" hidden>
       <h2>Enter your code</h2>
       <p>Open the email we&rsquo;ve just sent and tap the link, or type the 6-digit code here. Using the MT3UK app from your iPhone Home Screen? Use the code, as the link opens in Safari.</p>
+      <p class="si-junk" id="si-junk">Can&rsquo;t see the email? Check your <strong>Junk</strong> or <strong>Spam</strong> folder, and mark it <strong>Not junk</strong> so the next one reaches your inbox. It comes from hello@mt3uk.com.</p>
       <div class="si-field">
         <label for="si-code-email">Email</label>
-        <input type="email" id="si-code-email" autocomplete="email" required>
+        <input type="email" id="si-code-email" autocomplete="username webauthn" required>
       </div>
       <div class="si-field">
         <label for="si-code">6-digit code</label>
@@ -626,6 +649,7 @@
   }
 </script>
 
+<script src="js/passkeys.js"></script>
 <script>
   // Sign Up / Sign In: join free with a name and email (no photos needed),
   // or sign in to an existing account. Both send a link and a 6-digit code.
@@ -671,9 +695,57 @@
       if (goToPendingNext()) return;
       showSignedIn();
       if (window.mt3ukAskNickname) window.mt3ukAskNickname();
+      // In the app, ask about notifications now (js/account-bar.js).
+      if (window.mt3ukAutoPush) window.mt3ukAutoPush();
     }
 
+    // Offer a passkey after signing in with a code, on this device, once.
+    var PK = window.mt3ukPasskeys;
+    function offerPasskey() {
+      var off = false;
+      try { off = localStorage.getItem('mt3ukPasskeyOfferOff') === '1'; } catch (e) {}
+      $('si-passkey-offer').hidden = !(PK && PK.supported() && !PK.hasOnThisDevice() && !off);
+    }
+    if (PK && PK.supported()) $('si-passkey').hidden = false;
+    // Offer the passkey when the email box is tapped (keyboard bar or the
+    // box's suggestions), for visitors who aren't signed in.
+    if (PK && PK.supported() && !read(SESSION_KEY)) {
+      PK.autofill(function (data) { signedIn(data.session, data.email); });
+    }
+    $('si-passkey-btn').addEventListener('click', function () {
+      var btn = this;
+      btn.disabled = true;
+      setStatus($('si-passkey-status'), 'Waiting for your passkey…', '');
+      PK.signIn().then(function (data) {
+        btn.disabled = false;
+        setStatus($('si-passkey-status'), '', '');
+        signedIn(data.session, data.email);
+      }).catch(function (err) {
+        btn.disabled = false;
+        setStatus($('si-passkey-status'), err.message + ' You can sign in with an email code instead.', 'err');
+      });
+    });
+    $('si-passkey-add').addEventListener('click', function () {
+      var btn = this;
+      btn.disabled = true;
+      setStatus($('si-passkey-add-status'), 'Follow the prompt on your device…', '');
+      PK.register(read(SESSION_KEY)).then(function () {
+        btn.disabled = false;
+        setStatus($('si-passkey-add-status'), 'Done. Next time tap Sign in with a passkey. You can manage passkeys in your Profile.', 'ok');
+        btn.hidden = true;
+        $('si-passkey-later').hidden = true;
+      }).catch(function (err) {
+        btn.disabled = false;
+        setStatus($('si-passkey-add-status'), err.message, 'err');
+      });
+    });
+    $('si-passkey-later').addEventListener('click', function () {
+      try { localStorage.setItem('mt3ukPasskeyOfferOff', '1'); } catch (e) {}
+      $('si-passkey-offer').hidden = true;
+    });
+
     function showSignedIn() {
+      offerPasskey();
       $('si-forms').hidden = true;
       $('si-code-form').hidden = true;
       $('si-signed-in').hidden = false;

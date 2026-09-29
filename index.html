@@ -2087,16 +2087,15 @@
     0%, 100% { transform: translateY(0); opacity: 0.75; }
     50% { transform: translateY(7px); opacity: 1; }
   }
+  /* Up chevron at the top middle of section 01: back to the first screen. */
   .hp-scroll-top {
-    position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 45;
-    width: 48px; height: 48px; padding: 0; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center; cursor: pointer;
-    background: rgba(22, 35, 61, 0.88); border: 1px solid rgba(255, 255, 255, 0.25); color: #e8542a;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+    display: flex; align-items: center; justify-content: center;
+    width: 44px; height: 36px; margin: -26px auto 2px; padding: 0;
+    background: transparent; border: 0; border-radius: 50%; cursor: pointer; color: #e8542a;
     animation: hp-cue-pulse-up 1.8s ease-in-out infinite;
   }
-  .hp-scroll-top[hidden] { display: none; }
-  .hp-scroll-top svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+  .hp-scroll-top svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+  .hp-scroll-top:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
   .hp-scroll-top .hp-scroll-cue-back { opacity: 0.45; }
   .hp-scroll-top:hover, .hp-scroll-top:focus-visible { color: #ff7a4f; }
   @keyframes hp-cue-pulse-up {
@@ -2893,29 +2892,6 @@
   <button type="button" class="hp-scroll-cue" id="hp-scroll-cue" aria-label="Scroll down to Explore MT3UK">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8l7 7 7-7"/><path d="M5 2l7 7 7-7" class="hp-scroll-cue-back"/></svg>
   </button>
-  <button type="button" class="hp-scroll-top" id="hp-scroll-top" aria-label="Back to the top" hidden>
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 16l7-7 7 7"/><path d="M5 22l7-7 7 7" class="hp-scroll-cue-back"/></svg>
-  </button>
-  <script>
-    // Once the hero has scrolled away, an up chevron in the corner takes
-    // you back to the top.
-    (function () {
-      var up = document.getElementById('hp-scroll-top');
-      var hero = document.getElementById('hp-hero');
-      if (!up || !hero) return;
-      function update() {
-        var show = hero.getBoundingClientRect().bottom < 0;
-        up.hidden = !show;
-      }
-      window.addEventListener('scroll', update, { passive: true });
-      window.addEventListener('resize', update);
-      update();
-      up.addEventListener('click', function () {
-        var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
-      });
-    })();
-  </script>
   <script>
     // The chevron at the bottom of the hero jumps to section 01, lined up
     // with the top of the screen under the header.
@@ -2956,6 +2932,16 @@
   <!-- CATEGORIES SECTION -->
   <section class="categories-section">
     <div class="wrap">
+      <button type="button" class="hp-scroll-top" id="hp-scroll-top" aria-label="Back to the top">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 16l7-7 7 7"/><path d="M5 22l7-7 7 7" class="hp-scroll-cue-back"/></svg>
+      </button>
+      <script>
+        // The up chevron at the top of section 01 goes back to the first screen.
+        document.getElementById('hp-scroll-top').addEventListener('click', function () {
+          var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+        });
+      </script>
       <span class="categories-prefix">01 /</span>
       <h2 class="categories-title">Explore MT3UK</h2>
       <div class="categories-grid hp-cats">

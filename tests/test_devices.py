@@ -723,12 +723,15 @@ def test_up_chevron_returns_to_the_top(device_page):
     page = device_page
     page.emulate_media(reduced_motion="reduce")
     page.goto("/index.html")
-    up = page.locator("#hp-scroll-top")
-    assert up.is_hidden(), "The up chevron only shows once the hero is out of view"
-    page.evaluate("window.scrollTo(0, document.querySelector('#build-feed').offsetTop)")
-    up.wait_for(state="visible", timeout=3000)
+    up = page.locator(".categories-section #hp-scroll-top")
+    # It sits centred at the top of section 01.
+    box = up.bounding_box()
+    section = page.locator(".categories-section").bounding_box()
+    assert abs((box["x"] + box["width"] / 2) - (section["x"] + section["width"] / 2)) < 4
+    assert 0 <= box["y"] - section["y"] < 30
+    page.evaluate("window.scrollTo(0, document.querySelector('.categories-section').offsetTop)")
+    assert page.evaluate("window.scrollY") > 50
     up.click()
     page.wait_for_timeout(500)
     assert page.evaluate("window.scrollY") < 5
-    assert up.is_hidden()
     assert page.errors == []

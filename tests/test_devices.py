@@ -139,7 +139,8 @@ def api_reply(url, method, post_data, state):
             {"id": "n2", "type": "comment", "fromName": "Ryan", "text": "Love the wheels!", "file": "test-build.jpg", "commentId": "c9", "createdAt": "2026-09-29T09:00:00Z", "read": read},
         ]
         items = [n for n in items if "all" not in cleared and n["id"] not in cleared]
-        return {"success": True, "unread": 0 if read else len(items), "notifications": items}
+        return {"success": True, "unread": 0 if read else len(items), "notifications": items,
+                "messagesUnread": state.get("messages_unread", 0)}
     if path == "/my-builds/notifications/clear":
         try:
             body = json.loads(post_data or "{}")
@@ -209,6 +210,8 @@ def api_reply(url, method, post_data, state):
             if action == "revoke":
                 revoked.append({"email": email, "slug": slug, "revoked": "2026-09-29T13:00:00Z"})
         return {"success": True, "opened": opened, "revoked": revoked}
+    if path.startswith("/profile") or path.startswith("/admin/broadcasts") or path == "/admin/dm-reports":
+        return profile_reply(path, method, post_data, state)
     if path == "/my-builds" and method == "GET":
         car = dict(GARAGE_CAR, name=state.get("car_name", GARAGE_CAR["name"]))
         return {"success": True, "email": "member@example.com", "firstName": "Test", "lastName": "Member", "cars": [car], "voteEntry": GARAGE_VOTE_ENTRY}
@@ -221,6 +224,93 @@ def api_reply(url, method, post_data, state):
         # rename test's new name stands in when it's missing.
         state["car_name"] = name or "The Colonel"
         return {"success": True, "car": {"id": GARAGE_CAR["id"], "name": name or GARAGE_CAR["name"]}}
+    return {"success": True}
+
+
+def profile_reply(path, method, post_data, state):
+    """Stand-in answers for My Profile (profile.html) and its admin panel."""
+    try:
+        body = json.loads(post_data or "{}")
+    except ValueError:
+        body = {}
+    p = state.setdefault("profile", {
+        "firstName": "Test", "lastName": "Member", "nickname": "", "emailsOff": False,
+        "friends": [{"id": "f1", "nickname": "Sharad", "name": "Sharad", "builds": ["test-build.jpg"]}],
+        "incoming": [{"id": "r1", "nickname": "RyanK", "name": "RyanK"}],
+        "outgoing": [],
+        "thread": [{"id": "m1", "text": "Hi, love the wheels", "at": "2026-09-29T09:00:00Z", "mine": False}],
+        "broadcasts": [{"id": "b1", "title": "Track day at Thruxton", "text": "Book now for Friday.", "at": "2026-09-29T08:00:00Z"}],
+        "reports": [{"id": "rep1", "messageId": "m9", "text": "Rude message", "at": "2026-09-29T08:00:00Z", "fromEmail": "rude@example.com",
+                     "fromName": "Rude", "toEmail": "member@example.com", "toName": "Test Member", "reason": "rude", "reportedAt": "2026-09-29T09:00:00Z"}],
+    })
+    state.setdefault("profile_calls", []).append((method, path, body))
+    if path == "/profile" and method == "GET":
+        return {"success": True, "email": "member@example.com", "id": "me", "firstName": p["firstName"], "lastName": p["lastName"],
+                "nickname": p["nickname"], "emailsOff": p["emailsOff"], "member": True, "since": "2026-01-10T10:00:00Z",
+                "builds": ["test-build.jpg"], "friends": p["friends"], "incoming": p["incoming"], "outgoing": p["outgoing"],
+                "unread": {"broadcasts": 1, "direct": 1, "requests": len(p["incoming"])}}
+    if path == "/profile" and method == "POST":
+        # WebKit may not pass the body: the tests' values stand in.
+        if not body:
+            body = {"firstName": "Test", "lastName": "Member", "nickname": "GreenKnight"} if not state.get("saved_once") else {"emailsOff": True}
+        state["saved_once"] = True
+        if body.get("nickname") == "taken":
+            return {"success": False, "message": "That nickname is taken. Try another."}
+        for k in ("firstName", "lastName", "nickname", "emailsOff"):
+            if k in body:
+                p[k] = body[k]
+        return {"success": True, "firstName": p["firstName"], "lastName": p["lastName"], "nickname": p["nickname"], "emailsOff": p["emailsOff"]}
+    if path == "/profile/search":
+        return {"success": True, "results": [{"id": "s2", "nickname": "Shaz", "name": "Shaz", "status": ""}]}
+    if path == "/profile/friends":
+        action = body.get("action") or ("accept" if p["incoming"] else "request")
+        if action == "accept":
+            p["friends"] += p["incoming"]
+            p["incoming"] = []
+        elif action == "request":
+            p["outgoing"].append({"id": "s2", "nickname": "Shaz", "name": "Shaz"})
+            return {"success": True, "status": "requested"}
+        elif action == "remove":
+            p["friends"] = [f for f in p["friends"] if f["id"] != body.get("id")]
+        return {"success": True}
+    if path == "/profile/messages":
+        seen = state.get("broadcasts_seen")
+        return {"success": True, "since": "2026-01-10T10:00:00Z", "dmBlocked": False,
+                "broadcasts": [dict(b, unread=not seen) for b in p["broadcasts"]],
+                "threads": [{"id": "f1", "nickname": "Sharad", "name": "Sharad", "lastText": p["thread"][-1]["text"],
+                             "lastAt": p["thread"][-1]["at"], "lastFromMe": p["thread"][-1]["mine"],
+                             "unread": 0 if state.get("thread_read") else 1, "friend": True}]}
+    if path == "/profile/messages/read":
+        state["broadcasts_seen"] = True
+        return {"success": True}
+    if path == "/profile/messages/thread":
+        state["thread_read"] = True
+        return {"success": True, "with": {"id": "f1", "nickname": "Sharad", "name": "Sharad"}, "friend": True, "messages": p["thread"]}
+    if path == "/profile/messages/send":
+        msg = {"id": "m%d" % (len(p["thread"]) + 1), "text": body.get("text") or "See you at Thruxton", "at": "2026-09-29T10:00:00Z", "mine": True}
+        p["thread"].append(msg)
+        return {"success": True, "message": msg}
+    if path == "/profile/messages/report":
+        state["reported"] = True
+        return {"success": True}
+    if path == "/profile/leave":
+        state["left"] = True
+        return {"success": True}
+    if path == "/admin/broadcasts" and method == "GET":
+        return {"success": True, "broadcasts": p["broadcasts"], "reports": p["reports"]}
+    if path == "/admin/broadcasts":
+        if body.get("action") == "delete":
+            p["broadcasts"] = [b for b in p["broadcasts"] if b["id"] != body.get("id")]
+        else:
+            p["broadcasts"].insert(0, {"id": "b%d" % (len(p["broadcasts"]) + 2), "title": body.get("title") or "New message",
+                                       "text": body.get("text") or "Hello members", "at": "2026-09-29T11:00:00Z"})
+        return {"success": True, "broadcasts": p["broadcasts"]}
+    if path == "/admin/broadcasts/email":
+        state["emailed"] = state.get("emailed", 0) + 1
+        return {"success": True, "sent": 3, "skipped": 1, "cursor": None}
+    if path == "/admin/dm-reports":
+        p["reports"] = [r for r in p["reports"] if r["id"] != (body.get("id") or "rep1")]
+        return {"success": True, "reports": p["reports"]}
     return {"success": True}
 
 
@@ -247,7 +337,8 @@ def attach_mocks(context):
             # code. This goes by the test's own record rather than the
             # request header, which WebKit doesn't always show to the mock.
             is_garage = url.split("?")[0].endswith("/my-builds") and request.method == "GET"
-            status = 401 if is_garage and not state.get("signed_in") else 200
+            is_profile = api_path(url).startswith("/profile")
+            status = 401 if (is_garage or is_profile) and not state.get("signed_in") else 200
             try:
                 post_data = request.post_data
             except Exception:

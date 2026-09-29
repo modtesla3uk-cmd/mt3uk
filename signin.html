@@ -202,6 +202,8 @@
   }
   .si-field input:focus { outline: none; border-color: var(--orange); }
   .si-hp-field { position: absolute; left: -9999px; }
+  .si-card p.si-legal { margin: 12px 0 0; font-size: 0.8rem; }
+  .si-legal a { text-decoration: underline; }
   .si-btn {
     display: inline-flex; align-items: center; justify-content: center; min-height: 46px;
     padding: 11px 18px; border: 1px solid var(--ink); border-radius: 4px; background: transparent; color: var(--ink);
@@ -324,6 +326,10 @@
       </div>
       <div class="nav-item">
         <a href="my-builds.html" class="nav-link nav-link-mybuilds">My Garage</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle My Garage submenu">&#9660;</button>
+        <div class="nav-dropdown">
+          <a href="profile.html" class="nav-sublink nav-sublink-new">My Profile</a>
+        </div>
       </div>
       <div class="nav-item">
         <a href="shop.html" class="nav-link">Shop</a>
@@ -436,6 +442,7 @@
             <input type="email" id="si-join-email" name="email" placeholder="you@example.com" autocomplete="email" required>
           </div>
           <button type="submit" class="si-btn si-btn-primary si-btn-block" id="si-join-btn">Join free</button>
+          <p class="si-legal">By joining you confirm you&rsquo;re 18 or over. See how we use your data in our <a href="privacy.html">Privacy notice</a>.</p>
           <p class="si-status" id="si-join-status" role="status"></p>
         </form>
       </div>
@@ -481,7 +488,7 @@
   <div class="wrap footer-row">
     <a href="/" class="logo footer-logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
     <span class="mono">MODIFIED TESLA COMMUNITY &middot; <span class="member-count"></span> MEMBERS</span>
-    <a href="https://www.facebook.com/groups/mt3uk/" target="_blank" rel="noopener" class="mono" style="text-decoration:underline;">FACEBOOK GROUP &#8599;</a>
+    <span class="footer-links"><a href="privacy.html" class="mono" style="text-decoration:underline;">PRIVACY</a> <a href="https://www.facebook.com/groups/mt3uk/" target="_blank" rel="noopener" class="mono" style="text-decoration:underline;">FACEBOOK GROUP &#8599;</a></span>
   </div>
 </footer>
 

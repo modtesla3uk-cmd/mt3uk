@@ -34,6 +34,8 @@ PAGES = {
     "gallery": "gallery.html",
     "my-builds": "my-builds.html",
     "signin": "signin.html",
+    "profile": "profile.html",
+    "privacy": "privacy.html",
     "shop": "shop.html",
     "reviews": "reviews.html",
     "contact": "contact.html",

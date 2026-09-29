@@ -2163,6 +2163,13 @@
      tiles in any order (hold one to move it) without leaving gaps. */
   .categories-grid.hp-cats > .hp-cat:last-child { grid-column: 1 / -1; min-height: 76px; }
   .hp-cat { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+  .hp-cat-hint-mouse { display: none; }
+  @media (hover: hover) and (pointer: fine) {
+    .hp-cat-hint-touch { display: none; }
+    .hp-cat-hint-mouse { display: inline; }
+    .hp-cat { cursor: grab; }
+    .hp-cat.hp-cat-dragging { cursor: grabbing; }
+  }
   .hp-cat.hp-cat-holding { transform: scale(0.97); }
   .hp-cat.hp-cat-dragging { position: fixed; z-index: 60; margin: 0; pointer-events: none; transform: scale(1.04) rotate(-1deg); box-shadow: 0 16px 34px rgba(22, 35, 61, 0.3); background: #ffffff; transition: none; }
   .hp-cat-placeholder { border: 2px dashed var(--orange); background: rgba(232, 84, 42, 0.06); }
@@ -2749,6 +2756,10 @@
       </div>
       <div class="nav-item">
         <a href="my-builds.html" class="nav-link nav-link-mybuilds">My Garage</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle My Garage submenu">&#9660;</button>
+        <div class="nav-dropdown">
+          <a href="profile.html" class="nav-sublink nav-sublink-new">My Profile</a>
+        </div>
       </div>
       <div class="nav-item">
         <a href="shop.html" class="nav-link">Shop</a>
@@ -2996,7 +3007,7 @@
           <div class="hp-cat-meta" id="hp-meta-interviews">Real members, real builds</div>
         </a>
       </div>
-      <p class="hp-cat-hint" id="hp-cat-hint">Tip: hold a tile to move it.<button type="button" id="hp-cat-reset" hidden>Reset order</button></p>
+      <p class="hp-cat-hint" id="hp-cat-hint"><span class="hp-cat-hint-touch">Tip: hold a tile to move it.</span><span class="hp-cat-hint-mouse">Tip: drag a tile to move it.</span><button type="button" id="hp-cat-reset" hidden>Reset order</button></p>
       <script>
         // Hold a category tile, then drag it to rearrange the grid. The order
         // is kept in this browser (localStorage mt3ukCategoryOrder).
@@ -3029,7 +3040,7 @@
           } catch (e) {}
           resetBtn.addEventListener('click', function () { apply(defaultOrder); save(); });
 
-          var holdTimer = null, start = null, tile = null, dragging = false, placeholder = null, offset = null, suppressClick = false;
+          var holdTimer = null, start = null, tile = null, dragging = false, placeholder = null, offset = null, suppressClick = false, withMouse = false;
 
           function clearHold() {
             clearTimeout(holdTimer);
@@ -3090,6 +3101,7 @@
             if (!t) return;
             tile = t;
             start = { x: e.clientX, y: e.clientY };
+            withMouse = e.pointerType === 'mouse';
             tile.classList.add('hp-cat-holding');
             holdTimer = setTimeout(beginDrag, HOLD_MS);
           });
@@ -3097,7 +3109,12 @@
           document.addEventListener('pointermove', function (e) {
             if (!tile) return;
             if (dragging) { e.preventDefault(); moveTo(e.clientX, e.clientY); return; }
-            if (Math.abs(e.clientX - start.x) > MOVE_TOLERANCE || Math.abs(e.clientY - start.y) > MOVE_TOLERANCE) { clearHold(); tile = null; }
+            if (Math.abs(e.clientX - start.x) > MOVE_TOLERANCE || Math.abs(e.clientY - start.y) > MOVE_TOLERANCE) {
+              // With a mouse, pressing and moving drags straight away (no
+              // hold needed); on a touch screen moving first means scrolling.
+              if (withMouse) { clearTimeout(holdTimer); holdTimer = null; beginDrag(); moveTo(e.clientX, e.clientY); return; }
+              clearHold(); tile = null;
+            }
           });
           // On phones the finger is followed with touch events once a drag has
           // begun, and the page is stopped from scrolling under it.
@@ -4931,7 +4948,7 @@
   <div class="wrap footer-row">
     <a href="/" class="logo footer-logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
     <span class="mono">MODIFIED TESLA COMMUNITY &middot; <span class="member-count"></span> MEMBERS</span>
-    <a href="https://www.facebook.com/groups/mt3uk/" target="_blank" rel="noopener" class="mono" style="text-decoration:underline;">FACEBOOK GROUP &#8599;</a>
+    <span class="footer-links"><a href="privacy.html" class="mono" style="text-decoration:underline;">PRIVACY</a> <a href="https://www.facebook.com/groups/mt3uk/" target="_blank" rel="noopener" class="mono" style="text-decoration:underline;">FACEBOOK GROUP &#8599;</a></span>
   </div>
 </footer>
 

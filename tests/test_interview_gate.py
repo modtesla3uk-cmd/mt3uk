@@ -40,6 +40,8 @@ def test_unpublished_interview_asks_for_a_code_then_opens_for_an_hour(device_pag
     assert page.locator("article.interview").is_hidden()
     assert page.locator("body > header").is_visible(), "The site header stays so people can go elsewhere"
     assert "2099" in gate.inner_text()
+    assert "Getting a code subscribes you to MT3UK" in gate.inner_text(), "Clear that asking for a code subscribes them"
+    assert page.locator("#iv-gate button[type=submit]").inner_text().lower() == "send code and subscribe"
     assert overflow_width(page) <= 0
 
     page.fill("#ivg-email", "sharad@example.com")
@@ -64,7 +66,7 @@ def test_unpublished_interview_asks_for_a_code_then_opens_for_an_hour(device_pag
     message = page.locator(".ivg-notice")
     message.wait_for(state="visible", timeout=5000)
     assert "Preview open until" in message.inner_text()
-    assert "now a member" in message.inner_text()
+    assert "now subscribed" in message.inner_text()
     assert overflow_width(page) <= 0
     message.locator(".ivg-notice-close").click()
     assert page.locator(".ivg-notice").count() == 0
@@ -75,7 +77,7 @@ def test_unpublished_interview_asks_for_a_code_then_opens_for_an_hour(device_pag
     page.locator("article.interview").wait_for(state="visible", timeout=5000)
     assert page.locator("#iv-gate").count() == 0
     page.locator(".ivg-notice").wait_for(state="visible", timeout=5000)
-    assert "now a member" not in page.locator(".ivg-notice").inner_text()
+    assert "now subscribed" not in page.locator(".ivg-notice").inner_text()
     assert page.errors == [], diagnostics(page)
 
 

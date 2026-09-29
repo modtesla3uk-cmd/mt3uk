@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Profile - MT3UK</title>
+<meta name="description" content="Your MT3UK profile: name and nickname, messages, friends and email choices.">
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://mt3uk.com/profile.html">
+<link rel="icon" type="image/x-icon" href="images/site/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="images/site/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="images/site/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="images/site/apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#16233d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MT3UK">
+<meta property="og:type" content="website">
+<meta property="og:title" content="My Profile - MT3UK">
+<meta property="og:description" content="Your MT3UK profile: name and nickname, messages, friends and email choices.">
+<meta property="og:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
+<meta property="og:url" content="https://mt3uk.com/profile.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="My Profile - MT3UK">
+<meta name="twitter:description" content="Your MT3UK profile: name and nickname, messages, friends and email choices.">
+<meta name="twitter:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
+<script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
+<link rel="stylesheet" href="css/site-header.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap');
+
+  :root {
+    --ink: #16233d;
+    --ink-2: #223257;
+    --paper: #f3f1ea;
+    --paper-2: #e9e5d8;
+    --charcoal: #1c1c1c;
+    --orange: #e8542a;
+    --line: #4a6491;
+    --steel: #7c8798;
+    --white: #ffffff;
+    --content-max: 1000px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--charcoal);
+    font-family: 'IBM Plex Sans', sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 {
+    font-family: 'Archivo Expanded', sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+
+  .mono {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    color: var(--steel);
+  }
+
+  a { color: inherit; text-decoration: none; }
+
+  img { max-width: 100%; display: block; }
+
+  .wrap {
+    max-width: var(--content-max);
+    margin: 0 auto;
+    padding: 0 28px;
+  }
+
+  /* ---------- NAV: shared, see css/site-header.css ---------- */
+
+  .promo-banner { background: var(--orange); }
+  .promo-banner-inner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 44px 10px 0;
+    position: relative;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem;
+    overflow: hidden;
+  }
+  .promo-banner-inner::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 48px;
+    background: linear-gradient(to right, rgba(232,84,42,0), var(--orange) 70%);
+    pointer-events: none;
+  }
+  .promo-banner-track {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    animation: promo-marquee 18s linear infinite;
+  }
+  .promo-banner-msg { color: var(--paper); text-decoration: none; font-weight: 600; padding-right: 48px; flex-shrink: 0; }
+  @keyframes promo-marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  .promo-banner-close {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--paper);
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px;
+    z-index: 1;
+  }
+  .promo-banner-close:hover { opacity: 0.7; }
+  @media (max-width: 600px) {
+    .promo-banner-inner { font-size: 0.74rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .promo-banner-track { animation: none; }
+  }
+  a.nav-sublink-offer { display: block; color: var(--orange); font-weight: 600; border-top: 1px solid rgba(22,35,61,0.15); }
+
+
+  .nav-cta {
+    background: var(--ink);
+    color: var(--paper) !important;
+    padding: 9px 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid var(--ink);
+    white-space: nowrap;
+  }
+  .nav-cta:hover { background: var(--orange); border-color: var(--orange); }
+
+  /* ---------- SECTION SHELL ---------- */
+  section { padding: 60px 0; border-bottom: 1px solid var(--ink); }
+  section:last-of-type { border-bottom: none; }
+  @media (max-width: 780px) {
+    section { padding: 36px 0; }
+    .section-head { gap: 16px; margin-bottom: 20px; }
+  }
+
+  /* ---------- PAGE HERO ---------- */
+  .page-hero {
+    padding: 48px 0 36px;
+    border-bottom: 1px solid var(--ink);
+  }
+  .page-hero .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--steel);
+    text-decoration: none;
+    margin-bottom: 18px;
+  }
+  .page-hero .back-link:hover { color: var(--orange); }
+  .page-hero .section-num { display: block; margin-bottom: 10px; }
+  .page-hero h1 { max-width: 20ch; margin-bottom: 14px; }
+  .page-hero p { color: var(--ink-2); max-width: 58ch; font-size: 1.05rem; }
+
+  @media (max-width: 780px) {
+    .page-hero { padding: 26px 0 22px; }
+    .page-hero .back-link { margin-bottom: 12px; }
+    .page-hero .section-num { margin-bottom: 6px; }
+    .page-hero h1 { margin-bottom: 10px; }
+  }
+
+  @media (min-width: 901px) {
+    .page-hero .wrap { text-align: center; }
+    .page-hero h1, .page-hero p { max-width: none; margin-left: auto; margin-right: auto; }
+    .page-hero h1 { max-width: 40ch; }
+    .page-hero p { max-width: 58ch; }
+  }
+
+  /* ---------- SIGN UP / SIGN IN ---------- */
+  .si-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
+  @media (max-width: 780px) { .si-grid { grid-template-columns: 1fr; } }
+  .si-card { border: 1px solid var(--ink); padding: 28px 24px; background: var(--paper); }
+  .si-card-join { border-top: 4px solid var(--orange); }
+  .si-card h2, .si-garage h2, .si-signed-in h2 { font-size: 1.15rem; margin-bottom: 8px; }
+  .si-card p, .si-garage p, .si-signed-in p { color: var(--steel); font-size: 0.92rem; margin-bottom: 18px; }
+  .si-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+  .si-field label { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; letter-spacing: 0.06em; color: var(--steel); text-transform: uppercase; }
+  .si-field input {
+    border: 1px solid var(--ink); background: #ffffff; padding: 11px 12px;
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 1rem; color: var(--charcoal);
+  }
+  .si-field input:focus { outline: none; border-color: var(--orange); }
+  .si-hp-field { position: absolute; left: -9999px; }
+  .si-btn {
+    display: inline-flex; align-items: center; justify-content: center; min-height: 46px;
+    padding: 11px 18px; border: 1px solid var(--ink); border-radius: 4px; background: transparent; color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; font-size: 0.95rem; text-decoration: none; cursor: pointer;
+  }
+  .si-btn:hover { border-color: var(--orange); color: var(--orange); }
+  .si-btn-primary { background: var(--orange); border-color: var(--orange); color: #ffffff; }
+  .si-btn-primary:hover { opacity: 0.9; color: #ffffff; }
+  .si-btn-block { width: 100%; }
+  .si-btn:disabled { opacity: 0.6; cursor: default; }
+  .si-status { margin-top: 12px; font-size: 0.88rem; }
+  .si-status:empty { display: none; }
+  .si-card p.si-status-ok { color: #1c8a4b; font-weight: 600; }
+  .si-card p.si-status-err { color: var(--orange); font-weight: 600; }
+  .si-code { max-width: 460px; margin: 26px auto 0; }
+  .si-welcome { text-align: center; font-weight: 600; margin-bottom: 20px; color: #1c8a4b; }
+  .si-welcome-err { color: var(--orange); }
+  .si-signed-in { max-width: 560px; margin: 0 auto; text-align: center; border: 1px solid var(--ink); border-top: 4px solid var(--orange); padding: 28px 24px; }
+  .si-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; }
+  .si-link { background: none; border: 0; color: var(--steel); text-decoration: underline; cursor: pointer; font: inherit; padding: 8px; }
+  .si-garage { max-width: 560px; margin: 44px auto 0; text-align: center; padding-top: 32px; border-top: 1px solid var(--ink); }
+  /* ---------- PROFILE ---------- */
+  .pf-signed-out, .pf-left { max-width: 560px; margin: 0 auto; text-align: center; border: 1px solid var(--ink); border-top: 4px solid var(--orange); padding: 28px 24px; }
+  .pf-signed-out h2 { font-size: 1.15rem; margin-bottom: 8px; }
+  .pf-signed-out p { color: var(--steel); margin-bottom: 18px; }
+  .pf-loading { text-align: center; color: var(--steel); }
+  .pf-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+  .pf-tabs a { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; letter-spacing: 0.04em; text-transform: uppercase; border: 1px solid var(--ink); padding: 8px 12px; display: inline-flex; align-items: center; gap: 6px; }
+  .pf-tabs a:hover { border-color: var(--orange); color: var(--orange); }
+  .pf-tabs .pf-tab-garage { margin-left: auto; background: var(--orange); border-color: var(--orange); color: #fff; }
+  .pf-tabs .pf-tab-garage:hover { color: #fff; opacity: 0.9; }
+  .pf-badge { background: var(--orange); color: #fff; border-radius: 999px; font-size: 0.68rem; min-width: 18px; height: 18px; padding: 0 5px; display: inline-flex; align-items: center; justify-content: center; font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; letter-spacing: 0; }
+  .pf-grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 22px; align-items: start; }
+  .pf-card { border: 1px solid var(--ink); padding: 26px 24px; background: var(--paper); margin-bottom: 22px; scroll-margin-top: 90px; min-width: 0; }
+  .pf-grid .pf-card { margin-bottom: 0; }
+  .pf-grid { margin-bottom: 22px; }
+  #details { border-top: 4px solid var(--orange); }
+  .pf-card h2 { font-size: 1.15rem; margin-bottom: 14px; }
+  .pf-card h3, .pf-h3 { font-size: 0.98rem; margin: 20px 0 10px; }
+  .pf-view { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 8px 18px; margin-bottom: 14px; }
+  .pf-view dt { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--steel); padding-top: 3px; }
+  .pf-view dd { overflow-wrap: anywhere; font-weight: 500; }
+  .pf-hint { color: var(--steel); font-size: 0.88rem; margin-bottom: 14px; }
+  .pf-hint a { color: var(--orange); text-decoration: underline; }
+  .pf-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .pf-field-err input { border-color: var(--orange); }
+  .pf-garage p { color: var(--steel); margin-bottom: 16px; }
+  .pf-garage .si-btn { width: 100%; }
+  .pf-link { display: inline-block; margin-top: 12px; background: none; border: 0; padding: 0; font: inherit; font-size: 0.9rem; color: var(--ink); text-decoration: underline; cursor: pointer; }
+  .pf-link:hover { color: var(--orange); }
+  .pf-subtabs { display: flex; gap: 0; border-bottom: 1px solid var(--ink); margin-bottom: 14px; }
+  .pf-subtab { background: none; border: 0; border-bottom: 3px solid transparent; padding: 10px 14px; font: inherit; font-weight: 600; color: var(--steel); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; margin-bottom: -1px; }
+  .pf-subtab.is-on { color: var(--ink); border-bottom-color: var(--orange); }
+  .pf-list { list-style: none; }
+  .pf-list > li { border-bottom: 1px solid rgba(22, 35, 61, 0.15); padding: 12px 0; display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+  .pf-list > li:last-child { border-bottom: 0; }
+  .pf-list .pf-empty { color: var(--steel); display: block; }
+  .pf-who { min-width: 0; flex: 1 1 200px; }
+  .pf-who strong { display: block; overflow-wrap: anywhere; }
+  .pf-who span { color: var(--steel); font-size: 0.86rem; overflow-wrap: anywhere; }
+  .pf-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pf-actions .si-btn { min-height: 38px; padding: 6px 12px; font-size: 0.86rem; }
+  .pf-bc { display: block !important; }
+  .pf-bc h3 { margin: 0 0 4px; font-size: 1rem; display: flex; align-items: center; gap: 8px; }
+  .pf-bc .pf-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--orange); flex-shrink: 0; }
+  .pf-bc time, .pf-thread-row time { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: var(--steel); }
+  .pf-bc p { margin-top: 8px; white-space: pre-line; overflow-wrap: anywhere; }
+  .pf-thread-row { cursor: pointer; }
+  .pf-thread-row:hover strong { color: var(--orange); }
+  .pf-thread-row.is-unread strong::after { content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--orange); margin-left: 8px; vertical-align: middle; }
+  .pf-thread h3 { margin: 8px 0 12px; }
+  .pf-bubbles { list-style: none; display: flex; flex-direction: column; gap: 10px; max-height: 420px; overflow-y: auto; padding: 4px 2px 12px; }
+  .pf-bubble { max-width: 80%; padding: 10px 12px; background: #ffffff; border: 1px solid rgba(22, 35, 61, 0.2); align-self: flex-start; }
+  .pf-bubble.mine { align-self: flex-end; background: var(--ink); color: #ffffff; border-color: var(--ink); }
+  .pf-bubble p { white-space: pre-line; overflow-wrap: anywhere; }
+  .pf-bubble footer { padding: 0; margin-top: 4px; display: flex; gap: 10px; align-items: center; font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; opacity: 0.75; }
+  .pf-bubble .pf-report { background: none; border: 0; padding: 0; font: inherit; color: inherit; text-decoration: underline; cursor: pointer; }
+  .pf-compose { display: flex; gap: 10px; align-items: flex-end; border-top: 1px solid rgba(22, 35, 61, 0.15); padding-top: 12px; }
+  .pf-compose textarea, .pf-search input { flex: 1; min-width: 0; border: 1px solid var(--ink); background: #ffffff; padding: 10px 12px; font: inherit; font-size: 1rem; resize: vertical; }
+  .pf-compose textarea:focus, .pf-search input:focus { outline: none; border-color: var(--orange); }
+  .pf-search { display: flex; gap: 10px; margin-bottom: 8px; }
+  .pf-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .pf-check { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+  .pf-check input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--orange); flex-shrink: 0; }
+  .pf-leave { margin-top: 26px; padding-top: 20px; border-top: 1px solid rgba(22, 35, 61, 0.2); }
+  .pf-leave p { color: var(--steel); font-size: 0.92rem; margin-bottom: 14px; }
+  .pf-leave p a { color: var(--orange); text-decoration: underline; }
+  .pf-leave-form { margin-top: 14px; max-width: 360px; }
+  .pf-danger { border-color: #b3261e; color: #b3261e; }
+  .pf-danger:hover { background: #b3261e; color: #ffffff; border-color: #b3261e; }
+  .pf-danger-solid { background: #b3261e; border-color: #b3261e; color: #ffffff; }
+  .pf-danger-solid:hover { color: #ffffff; opacity: 0.9; border-color: #b3261e; }
+  .pf-card p.si-status-ok { color: #1c8a4b; font-weight: 600; }
+  .pf-card p.si-status-err { color: var(--orange); font-weight: 600; }
+  @media (max-width: 780px) {
+    .pf-grid { grid-template-columns: minmax(0, 1fr); }
+    .pf-card { padding: 22px 16px; }
+    .pf-tabs .pf-tab-garage { margin-left: 0; }
+    .pf-bubble { max-width: 90%; }
+    .pf-compose { flex-direction: column; align-items: stretch; }
+  }
+  [hidden] { display: none !important; }
+
+  /* ---------- FOOTER ---------- */
+  footer { padding: 40px 0; }
+  .footer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .footer-row .mono { font-size: 0.72rem; }
+
+  :focus-visible {
+    outline: 2px solid var(--orange);
+    outline-offset: 2px;
+  }
+
+  .a2hs-banner {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: -120px;
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    max-width: 480px;
+    margin: 0 auto;
+    background: var(--ink);
+    color: var(--paper);
+    border: 1px solid var(--orange);
+    padding: 14px 18px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.85rem;
+    transition: bottom .3s ease;
+  }
+  .a2hs-banner.show { bottom: 16px; }
+  .a2hs-banner .a2hs-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .a2hs-banner .a2hs-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--paper);
+  }
+  .a2hs-banner .a2hs-install { background: var(--orange); color: var(--paper); padding: 8px 12px; }
+  .a2hs-banner .a2hs-close { font-size: 1.2rem; line-height: 1; padding: 0 4px; }
+  @media (max-width: 480px) {
+    .a2hs-banner { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Promo banner disabled: no active offer. Re-enable by removing this comment wrapper when a new promo is ready.
+<div class="promo-banner" id="promo-banner">
+  <div class="promo-banner-inner">
+    <div class="promo-banner-track">
+      <a href="shop.html#tee" class="promo-banner-msg">&#9201; New Tee options available!! | Hoodies | Club Stickers | Master Cylinder Braces | Brake Pads | Number Plates, shop now &rarr;</a>
+      <a href="shop.html#tee" class="promo-banner-msg" aria-hidden="true">&#9201; New Tee options available!! | Hoodies | Club Stickers | Master Cylinder Braces | Brake Pads | Number Plates, shop now &rarr;</a>
+    </div>
+    <button type="button" class="promo-banner-close" id="promo-banner-close" aria-label="Dismiss banner">&times;</button>
+  </div>
+</div>
+<script>
+  (function () {
+    var KEY = 'mt3uk-promo-tee-dismissed';
+    var EXPIRY_MS = 7 * 24 * 60 * 60 * 1000;
+    var banner = document.getElementById('promo-banner');
+    if (!banner) return;
+    var dismissedAt = parseInt(localStorage.getItem(KEY), 10);
+    if (dismissedAt && (Date.now() - dismissedAt) < EXPIRY_MS) { banner.remove(); return; }
+    document.getElementById('promo-banner-close').addEventListener('click', function () {
+      banner.remove();
+      try { localStorage.setItem(KEY, String(Date.now())); } catch (e) {}
+    });
+  })();
+</script>
+-->
+
+<header>
+  <nav>
+    <div class="nav-center">
+      <a href="/" class="logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
+    <div class="navlinks" id="navlinks">
+      <a href="signin.html" class="nav-link-mobile">Sign Up / Sign In</a>
+      <div class="nav-item">
+        <a href="index.html#build-feed" class="nav-link">Gallery Feed</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Gallery Feed submenu">&#9660;</button>
+        <div class="nav-dropdown">
+          <a href="index.html#build-of-the-day" class="nav-sublink nav-sublink-new">Build of the Week</a>
+          <a href="index.html#vote-frame" class="nav-sublink">Vote for Build</a>
+          <a href="gallery.html" class="nav-sublink">Full Gallery</a>
+        </div>
+      </div>
+      <div class="nav-item">
+        <a href="my-builds.html" class="nav-link nav-link-mybuilds">My Garage</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle My Garage submenu">&#9660;</button>
+        <div class="nav-dropdown">
+          <a href="profile.html" class="nav-sublink nav-sublink-new active">My Profile</a>
+        </div>
+      </div>
+      <div class="nav-item">
+        <a href="shop.html" class="nav-link">Shop</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Shop submenu">&#9660;</button>
+        <div class="nav-dropdown">
+          <a href="shop.html#merch" class="nav-sublink">Merch</a>
+          <div class="nav-item nav-subitem">
+            <a href="shop.html#parts" class="nav-sublink nav-sublink-new">Parts</a>
+            <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Parts submenu">&#9660;</button>
+            <div class="nav-dropdown">
+              <a href="shop.html#tevo" class="nav-sublink">Tevo Solutions</a>
+              <a href="shop.html#redline" class="nav-sublink">Redline Plates</a>
+              <a href="shop.html#evoffer" class="nav-sublink">EVOffer Sport Seats</a>
+              <a href="shop.html#offers" class="nav-sublink nav-sublink-offer">Offers</a>
+            </div>
+          </div>
+          <a href="reviews.html" class="nav-sublink">Customer Reviews</a>
+        </div>
+      </div>
+      <a href="index.html#events" class="nav-link">Events</a>
+      <div class="nav-item">
+        <a href="index.html#track-days" class="nav-link">Track Days</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Track Days submenu">&#9660;</button>
+        <div class="nav-dropdown">
+          <a href="track-day-prep.html" class="nav-sublink">Prep</a>
+          <a href="track-day-on-the-day.html" class="nav-sublink nav-sublink-new">On The Day</a>
+          <a href="track-day-venues.html" class="nav-sublink">Venues</a>
+          <a href="track-day-prep.html#track-day-finder" class="nav-sublink">Track Day Finder</a>
+        </div>
+      </div>
+      <div class="nav-item">
+        <a href="blog.html" class="nav-link">Blog</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Blog submenu">&#9660;</button>
+        <div class="nav-dropdown">
+          <a href="blog.html" class="nav-sublink nav-sublink-new">Owner Interviews</a>
+        </div>
+      </div>
+      <div class="nav-item">
+        <a href="index.html#about" class="nav-link">About</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle About submenu">&#9660;</button>
+        <div class="nav-dropdown">
+          <a href="https://www.facebook.com/groups/mt3uk/" class="nav-sublink" target="_blank" rel="noopener">Join The Facebook Group</a>
+        </div>
+      </div>
+      <a href="index.html#faq" class="nav-link">FAQs</a>
+      <div class="nav-item">
+        <a href="contact.html" class="nav-link">Contact</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Contact submenu">&#9660;</button>
+        <div class="nav-dropdown">
+          <a href="https://ko-fi.com/mt3uk" class="nav-sublink" target="_blank" rel="noopener">Support Us</a>
+        </div>
+      </div>
+      </div>
+    </div>
+    <div class="nav-search" id="nav-search">
+      <button type="button" class="nav-search-toggle" id="nav-search-toggle" aria-expanded="false" aria-controls="nav-search-panel" aria-label="Search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      </button>
+      <div class="nav-search-panel" id="nav-search-panel">
+        <input type="text" id="nav-search-input" placeholder="Search&hellip; e.g. Gallery, Shop, Hoodies, Number Plates, Pads" autocomplete="off">
+        <div class="nav-search-results" id="nav-search-results"></div>
+      </div>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navlinks">
+      <span class="hamburger-bar"></span><span class="hamburger-bar"></span><span class="hamburger-bar"></span>
+    </button>
+  </nav>
+</header>
+
+<section class="page-hero" data-no-share>
+  <div class="wrap">
+    <a href="index.html" class="back-link">&larr; Back to MT3UK</a>
+    <span class="section-num mono">MY PROFILE</span>
+    <h1>Your profile</h1>
+    <p>Your details, messages and friends, and your email choices. Only you can see this page.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="pf-signed-out" id="pf-signed-out" hidden>
+      <h2>Sign in to see your profile</h2>
+      <p>Your profile has your name and nickname, messages, friends and email choices.</p>
+      <a href="signin.html?next=/profile.html" class="si-btn si-btn-primary">Sign Up / Sign In</a>
+    </div>
+    <p class="pf-loading" id="pf-loading">Loading your profile&hellip;</p>
+    <p class="pf-left" id="pf-left" hidden>You&rsquo;ve left MT3UK and your account has been deleted. Thanks for being part of it. You&rsquo;re welcome back any time.</p>
+
+    <div class="pf-app" id="pf-app" hidden>
+      <div class="pf-tabs" role="navigation" aria-label="Profile sections">
+        <a href="#details">Details</a>
+        <a href="#messages">Messages <span class="pf-badge" id="pf-badge-messages" hidden></span></a>
+        <a href="#friends">Friends <span class="pf-badge" id="pf-badge-friends" hidden></span></a>
+        <a href="#unsubscribe">Emails</a>
+        <a href="my-builds.html" class="pf-tab-garage">My Garage &rarr;</a>
+      </div>
+
+      <div class="pf-grid">
+        <div class="pf-card" id="details">
+          <h2>Your details</h2>
+          <dl class="pf-view" id="pf-view">
+            <dt>Name</dt><dd id="pf-name">-</dd>
+            <dt>Nickname</dt><dd id="pf-nick">-</dd>
+            <dt>Email</dt><dd id="pf-email">-</dd>
+            <dt>Member since</dt><dd id="pf-since">-</dd>
+          </dl>
+          <p class="pf-hint" id="pf-nick-hint">Your nickname is shown on your builds, comments and likes instead of your full name, and friends find you by it.</p>
+          <button type="button" class="si-btn" id="pf-edit">Edit</button>
+          <form class="pf-form" id="pf-form" hidden novalidate>
+            <div class="si-field"><label for="pf-first">First name</label><input type="text" id="pf-first" autocomplete="given-name" maxlength="50"></div>
+            <div class="si-field"><label for="pf-last">Last name</label><input type="text" id="pf-last" autocomplete="family-name" maxlength="50"></div>
+            <div class="si-field"><label for="pf-nickname">Nickname (optional)</label><input type="text" id="pf-nickname" autocomplete="nickname" maxlength="20" placeholder="e.g. GreenKnight"></div>
+            <p class="pf-hint">3 to 20 letters or numbers, and _ . - if you like. Leave it empty to show your full name.</p>
+            <div class="pf-row">
+              <button type="submit" class="si-btn si-btn-primary">Save</button>
+              <button type="button" class="si-btn" id="pf-cancel">Cancel</button>
+            </div>
+          </form>
+          <p class="si-status" id="pf-details-status" role="status"></p>
+        </div>
+
+        <div class="pf-card pf-garage">
+          <h2>My Garage</h2>
+          <p id="pf-builds">Add photos and mods of your car and it joins the gallery, the reel and the weekly vote.</p>
+          <a href="my-builds.html" class="si-btn si-btn-primary">Go to My Garage &rarr;</a>
+          <a href="#" class="pf-link" id="pf-builds-link" hidden>See your builds in the gallery</a>
+        </div>
+      </div>
+
+      <div class="pf-card" id="messages">
+        <h2>Messages</h2>
+        <div class="pf-subtabs" role="tablist">
+          <button type="button" class="pf-subtab is-on" data-pane="pf-pane-mt3uk" role="tab" aria-selected="true">From MT3UK <span class="pf-badge" id="pf-badge-mt3uk" hidden></span></button>
+          <button type="button" class="pf-subtab" data-pane="pf-pane-friends" role="tab" aria-selected="false">Friends <span class="pf-badge" id="pf-badge-direct" hidden></span></button>
+        </div>
+        <div class="pf-pane" id="pf-pane-mt3uk">
+          <ul class="pf-list" id="pf-broadcasts"></ul>
+        </div>
+        <div class="pf-pane" id="pf-pane-friends" hidden>
+          <ul class="pf-list" id="pf-threads"></ul>
+          <div class="pf-thread" id="pf-thread" hidden>
+            <button type="button" class="pf-link pf-back" id="pf-thread-back">&larr; All messages</button>
+            <h3 id="pf-thread-name"></h3>
+            <ol class="pf-bubbles" id="pf-bubbles"></ol>
+            <form class="pf-compose" id="pf-compose" novalidate>
+              <label for="pf-compose-text" class="pf-sr">Message</label>
+              <textarea id="pf-compose-text" rows="2" maxlength="1000" placeholder="Write a message"></textarea>
+              <button type="submit" class="si-btn si-btn-primary">Send</button>
+            </form>
+            <p class="si-status" id="pf-thread-status" role="status"></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="pf-card" id="friends">
+        <h2>Friends</h2>
+        <p class="pf-hint" id="pf-friends-need-nick" hidden>Set a nickname in <a href="#details" id="pf-nick-link">Your details</a> first, so friends can find you and see who you are.</p>
+        <form class="pf-search" id="pf-search" novalidate>
+          <label for="pf-search-q" class="pf-sr">Find members by nickname</label>
+          <input type="search" id="pf-search-q" placeholder="Find members by nickname" autocomplete="off">
+          <button type="submit" class="si-btn">Search</button>
+        </form>
+        <ul class="pf-list" id="pf-results"></ul>
+        <div id="pf-requests"></div>
+        <h3 class="pf-h3">Your friends <span class="mono" id="pf-friend-count"></span></h3>
+        <ul class="pf-list" id="pf-friends"></ul>
+        <p class="si-status" id="pf-friends-status" role="status"></p>
+      </div>
+
+      <div class="pf-card" id="unsubscribe">
+        <h2>Emails and unsubscribe</h2>
+        <label class="pf-check"><input type="checkbox" id="pf-emails"> <span>Send me emails: comment, like and friend alerts, and messages from MT3UK and friends. Sign-in codes always send.</span></label>
+        <p class="si-status" id="pf-emails-status" role="status"></p>
+        <div class="pf-leave">
+          <h3>Leave MT3UK</h3>
+          <p>This deletes your account, your builds in My Garage (from the gallery, reel and vote), your friends and messages. Your comments stay, under your name. It can&rsquo;t be undone. To have your comments removed too, or for a copy of your data, see our <a href="privacy.html#rights">Privacy notice</a>.</p>
+          <button type="button" class="si-btn pf-danger" id="pf-leave-open">Leave MT3UK&hellip;</button>
+          <form class="pf-leave-form" id="pf-leave-form" hidden novalidate>
+            <div class="si-field"><label for="pf-leave-confirm">Type LEAVE to confirm</label><input type="text" id="pf-leave-confirm" autocomplete="off" autocapitalize="characters"></div>
+            <div class="pf-row">
+              <button type="submit" class="si-btn pf-danger-solid">Delete my account</button>
+              <button type="button" class="si-btn" id="pf-leave-cancel">Cancel</button>
+            </div>
+          </form>
+          <p class="si-status" id="pf-leave-status" role="status"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap footer-row">
+    <a href="/" class="logo footer-logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
+    <span class="mono">MODIFIED TESLA COMMUNITY &middot; <span class="member-count"></span> MEMBERS</span>
+    <span class="footer-links"><a href="privacy.html" class="mono" style="text-decoration:underline;">PRIVACY</a> <a href="https://www.facebook.com/groups/mt3uk/" target="_blank" rel="noopener" class="mono" style="text-decoration:underline;">FACEBOOK GROUP &#8599;</a></span>
+  </div>
+</footer>
+
+<script>
+  (function () {
+      var hamburger = document.getElementById('hamburger');
+      var navMenu = document.getElementById('navlinks');
+      if (!hamburger || !navMenu) return;
+
+      function closeMenu() {
+            navMenu.classList.remove('active');
+            hamburger.setAttribute('aria-expanded', 'false');
+      }
+
+      hamburger.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var open = navMenu.classList.toggle('active');
+            hamburger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+
+      navMenu.querySelectorAll('.nav-link, .nav-sublink').forEach(function (link) {
+            link.addEventListener('click', closeMenu);
+      });
+
+      navMenu.querySelectorAll('.nav-dropdown-toggle').forEach(function (toggle) {
+            toggle.addEventListener('click', function (e) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  var item = toggle.closest('.nav-item');
+                  var open = item.classList.toggle('open');
+                  toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            });
+      });
+
+      document.addEventListener('click', function (e) {
+            if (!e.target.closest('header nav')) closeMenu();
+      });
+  })();
+</script>
+
+<script>
+  (function () {
+    fetch('data/community.json', { cache: 'no-store' })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (data) {
+        if (!data || !data.members) return;
+        document.querySelectorAll('.member-count').forEach(function (el) {
+          el.textContent = data.members;
+        });
+      })
+      .catch(function () {});
+  })();
+</script>
+
+<script>
+  (function () {
+    var STORAGE_VISITS = 'mt3ukVisitCount';
+    var STORAGE_DISMISSED = 'mt3ukA2HSDismissed';
+    var SESSION_FLAG = 'mt3ukVisitCounted';
+
+    function isStandalone() {
+      return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    }
+
+    if (isStandalone() || localStorage.getItem(STORAGE_DISMISSED) === '1') return;
+
+    if (!sessionStorage.getItem(SESSION_FLAG)) {
+      sessionStorage.setItem(SESSION_FLAG, '1');
+      var visits = parseInt(localStorage.getItem(STORAGE_VISITS) || '0', 10) + 1;
+      localStorage.setItem(STORAGE_VISITS, String(visits));
+    }
+    var visitCount = parseInt(localStorage.getItem(STORAGE_VISITS) || '0', 10);
+    if (visitCount < 2) return;
+
+    var deferredPrompt = null;
+    var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+    var bannerShown = false;
+
+    function dismiss(banner) {
+      banner.classList.remove('show');
+      setTimeout(function () { banner.remove(); }, 300);
+      localStorage.setItem(STORAGE_DISMISSED, '1');
+    }
+
+    function showBanner() {
+      if (bannerShown) return;
+      bannerShown = true;
+      var banner = document.createElement('div');
+      banner.className = 'a2hs-banner';
+      banner.innerHTML =
+        '<span class="a2hs-text">' + (isIOS
+          ? 'Add MT3UK to your Home Screen: tap Share, then \'Add to Home Screen\'.'
+          : 'Install MT3UK for quicker access to builds and voting.') + '</span>' +
+        '<span class="a2hs-actions">' +
+          (isIOS ? '' : '<button type="button" class="a2hs-btn a2hs-install">Install</button>') +
+          '<button type="button" class="a2hs-btn a2hs-close" aria-label="Dismiss">&times;</button>' +
+        '</span>';
+      document.body.appendChild(banner);
+      requestAnimationFrame(function () { banner.classList.add('show'); });
+
+      var closeBtn = banner.querySelector('.a2hs-close');
+      if (closeBtn) closeBtn.addEventListener('click', function () { dismiss(banner); });
+
+      var installBtn = banner.querySelector('.a2hs-install');
+      if (installBtn) {
+        installBtn.addEventListener('click', function () {
+          if (!deferredPrompt) { dismiss(banner); return; }
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.finally(function () { dismiss(banner); });
+        });
+      }
+    }
+
+    if (isIOS) {
+      showBanner();
+    } else {
+      window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault();
+        deferredPrompt = e;
+        showBanner();
+      });
+    }
+
+    window.addEventListener('appinstalled', function () {
+      localStorage.setItem(STORAGE_DISMISSED, '1');
+    });
+  })();
+</script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('/sw.js');
+    });
+  }
+</script>
+
+<script>
+  // My Profile: name and nickname, a link to My Garage, messages (from
+  // MT3UK and between friends), friends, and email choices / leaving.
+  // Everything comes from the worker's /profile endpoints with the member's
+  // session. Other members are shown by nickname or name and an id, never
+  // by email.
+  (function () {
+    var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
+    var SESSION_KEY = 'mt3ukMyBuildsSession';
+    var EMAIL_KEY = 'mt3ukMyBuildsEmail';
+    var FIRST_NAME_KEY = 'mt3ukMyBuildsFirstName';
+    var profile = null;
+    var openThreadId = null;
+
+    function $(id) { return document.getElementById(id); }
+    function session() { try { return localStorage.getItem(SESSION_KEY) || ''; } catch (e) { return ''; } }
+    function esc(v) {
+      return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    function status(el, msg, kind) { el.textContent = msg || ''; el.className = 'si-status' + (kind ? ' si-status-' + kind : ''); }
+    function when(iso) {
+      if (!iso) return '';
+      var d = new Date(iso);
+      return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/London' }) + ', ' +
+        d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/London' });
+    }
+
+    function signedOut() {
+      [SESSION_KEY, EMAIL_KEY, FIRST_NAME_KEY].forEach(function (k) { try { localStorage.removeItem(k); } catch (e) {} });
+      $('pf-loading').hidden = true;
+      $('pf-app').hidden = true;
+      $('pf-signed-out').hidden = false;
+    }
+
+    function api(method, path, body) {
+      var opts = { method: method, headers: { 'X-Session-Token': session() }, cache: 'no-store' };
+      if (body) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
+      return fetch(API + path, opts).then(function (res) {
+        return res.json().catch(function () { return {}; }).then(function (data) {
+          if (res.status === 401) { signedOut(); throw new Error('signed out'); }
+          data.ok = res.ok;
+          return data;
+        });
+      });
+    }
+
+    function badge(el, n) { el.hidden = !n; el.textContent = n > 99 ? '99+' : String(n || ''); }
+
+    // ---------- Details ----------
+    function drawDetails() {
+      var full = [profile.firstName, profile.lastName].filter(Boolean).join(' ');
+      $('pf-name').textContent = full || 'Not set yet';
+      $('pf-nick').textContent = profile.nickname || 'Not set (your full name is shown)';
+      $('pf-email').textContent = profile.email;
+      $('pf-since').textContent = profile.since ? new Date(profile.since).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
+      $('pf-first').value = profile.firstName;
+      $('pf-last').value = profile.lastName;
+      $('pf-nickname').value = profile.nickname;
+      var n = profile.builds.length;
+      $('pf-builds').textContent = n
+        ? 'You have ' + n + ' photo' + (n === 1 ? '' : 's') + ' in My Garage. Add more, edit mods or enter the weekly vote.'
+        : 'Add photos and mods of your car and it joins the gallery, the reel and the weekly vote.';
+      var link = $('pf-builds-link');
+      link.hidden = !n;
+      if (n) link.href = 'gallery.html?only=' + encodeURIComponent(profile.builds.join(','));
+      $('pf-friends-need-nick').hidden = !!profile.nickname;
+      $('pf-emails').checked = !profile.emailsOff;
+      if (profile.firstName) { try { localStorage.setItem(FIRST_NAME_KEY, profile.firstName); } catch (e) {} }
+    }
+
+    function editing(on) {
+      $('pf-form').hidden = !on;
+      $('pf-view').hidden = on;
+      $('pf-edit').hidden = on;
+      $('pf-nick-hint').hidden = on;
+      status($('pf-details-status'), '');
+      if (on) $('pf-first').focus();
+    }
+    $('pf-edit').addEventListener('click', function () { editing(true); });
+    $('pf-cancel').addEventListener('click', function () { drawDetails(); editing(false); });
+    $('pf-nick-link').addEventListener('click', function () { editing(true); setTimeout(function () { $('pf-nickname').focus(); }, 50); });
+    $('pf-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var body = { nickname: $('pf-nickname').value.trim() };
+      var first = $('pf-first').value.trim();
+      var last = $('pf-last').value.trim();
+      if (first || last || profile.firstName) {
+        if (!first || !last) { status($('pf-details-status'), 'Please enter your first and last name.', 'err'); return; }
+        body.firstName = first;
+        body.lastName = last;
+      }
+      var btn = e.target.querySelector('button[type=submit]');
+      btn.disabled = true;
+      status($('pf-details-status'), 'Saving…');
+      api('POST', '/profile', body).then(function (data) {
+        btn.disabled = false;
+        if (!data.success) { status($('pf-details-status'), data.message || 'Could not save, please try again.', 'err'); return; }
+        profile.firstName = data.firstName;
+        profile.lastName = data.lastName;
+        profile.nickname = data.nickname;
+        drawDetails();
+        editing(false);
+        status($('pf-details-status'), 'Saved. Your builds will show your new name shortly.', 'ok');
+      }).catch(function (err) { btn.disabled = false; if (err.message !== 'signed out') status($('pf-details-status'), 'Network error, please try again.', 'err'); });
+    });
+
+    // ---------- Messages ----------
+    function showPane(id) {
+      document.querySelectorAll('.pf-subtab').forEach(function (b) {
+        var on = b.getAttribute('data-pane') === id;
+        b.classList.toggle('is-on', on);
+        b.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      $('pf-pane-mt3uk').hidden = id !== 'pf-pane-mt3uk';
+      $('pf-pane-friends').hidden = id !== 'pf-pane-friends';
+    }
+    document.querySelectorAll('.pf-subtab').forEach(function (b) {
+      b.addEventListener('click', function () {
+        showPane(b.getAttribute('data-pane'));
+        if (b.getAttribute('data-pane') === 'pf-pane-mt3uk') markBroadcastsRead();
+      });
+    });
+
+    var broadcastsUnread = 0;
+    function markBroadcastsRead() {
+      if (!broadcastsUnread) return;
+      broadcastsUnread = 0;
+      api('POST', '/profile/messages/read', {}).then(updateBadges).catch(function () {});
+    }
+
+    function loadMessages() {
+      return api('GET', '/profile/messages').then(function (data) {
+        if (!data.success) return;
+        broadcastsUnread = data.broadcasts.filter(function (b) { return b.unread; }).length;
+        $('pf-broadcasts').innerHTML = data.broadcasts.length ? data.broadcasts.map(function (b) {
+          return '<li class="pf-bc"><h3>' + (b.unread ? '<span class="pf-dot" aria-label="New"></span>' : '') + esc(b.title) + '</h3>' +
+            '<time datetime="' + esc(b.at) + '">' + esc(when(b.at)) + '</time><p>' + esc(b.text) + '</p></li>';
+        }).join('') : '<li><span class="pf-empty">No messages from MT3UK yet. News for members will appear here.</span></li>';
+        $('pf-threads').innerHTML = data.threads.length ? data.threads.map(function (t) {
+          return '<li class="pf-thread-row' + (t.unread ? ' is-unread' : '') + '" data-id="' + esc(t.id) + '" tabindex="0" role="button">' +
+            '<div class="pf-who"><strong>' + esc(t.name) + '</strong><span>' + (t.lastFromMe ? 'You: ' : '') + esc(t.lastText) + '</span></div>' +
+            '<time datetime="' + esc(t.lastAt) + '">' + esc(when(t.lastAt)) + '</time></li>';
+        }).join('') : '<li><span class="pf-empty">No messages yet. Message a friend from your Friends list below.</span></li>';
+        badge($('pf-badge-mt3uk'), broadcastsUnread);
+        var direct = data.threads.reduce(function (n, t) { return n + (t.unread || 0); }, 0);
+        badge($('pf-badge-direct'), direct);
+        badge($('pf-badge-messages'), broadcastsUnread + direct);
+        if (!$('pf-pane-mt3uk').hidden && location.hash === '#messages') markBroadcastsRead();
+      });
+    }
+
+    function updateBadges() {
+      badge($('pf-badge-mt3uk'), broadcastsUnread);
+      var direct = parseInt($('pf-badge-direct').textContent, 10) || 0;
+      badge($('pf-badge-messages'), broadcastsUnread + (($('pf-badge-direct').hidden) ? 0 : direct));
+    }
+
+    function openThread(id) {
+      openThreadId = id;
+      showPane('pf-pane-friends');
+      $('pf-threads').hidden = true;
+      $('pf-thread').hidden = false;
+      $('pf-bubbles').innerHTML = '<li class="pf-empty">Loading…</li>';
+      status($('pf-thread-status'), '');
+      return api('GET', '/profile/messages/thread?with=' + encodeURIComponent(id)).then(function (data) {
+        if (!data.success) { status($('pf-thread-status'), data.message || 'Could not open this conversation.', 'err'); return; }
+        $('pf-thread-name').textContent = data.with.name + (data.with.nickname && data.with.nickname !== data.with.name ? ' (' + data.with.nickname + ')' : '');
+        $('pf-compose').hidden = !data.friend;
+        if (!data.friend) status($('pf-thread-status'), 'You are no longer friends, so you can read these messages but not reply.');
+        drawBubbles(data.messages);
+        loadMessages();
+      });
+    }
+
+    function drawBubbles(messages) {
+      var list = $('pf-bubbles');
+      list.innerHTML = messages.length ? messages.map(function (m) {
+        return '<li class="pf-bubble' + (m.mine ? ' mine' : '') + '" data-id="' + esc(m.id) + '"><p>' + esc(m.text) + '</p>' +
+          '<footer><time datetime="' + esc(m.at) + '">' + esc(when(m.at)) + '</time>' +
+          (m.mine ? '' : '<button type="button" class="pf-report">Report</button>') + '</footer></li>';
+      }).join('') : '<li class="pf-empty">No messages yet. Say hello.</li>';
+      list.scrollTop = list.scrollHeight;
+    }
+
+    function closeThread() {
+      openThreadId = null;
+      $('pf-thread').hidden = true;
+      $('pf-threads').hidden = false;
+      try { history.replaceState(null, '', location.pathname + '#messages'); } catch (e) {}
+    }
+
+    $('pf-threads').addEventListener('click', function (e) {
+      var row = e.target.closest('.pf-thread-row');
+      if (row) openThread(row.getAttribute('data-id'));
+    });
+    $('pf-threads').addEventListener('keydown', function (e) {
+      var row = e.target.closest('.pf-thread-row');
+      if (row && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openThread(row.getAttribute('data-id')); }
+    });
+    $('pf-thread-back').addEventListener('click', closeThread);
+
+    $('pf-compose').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var box = $('pf-compose-text');
+      var text = box.value.trim();
+      if (!text || !openThreadId) return;
+      var btn = e.target.querySelector('button');
+      btn.disabled = true;
+      api('POST', '/profile/messages/send', { with: openThreadId, text: text }).then(function (data) {
+        btn.disabled = false;
+        if (!data.success) { status($('pf-thread-status'), data.message || 'Could not send, please try again.', 'err'); return; }
+        box.value = '';
+        status($('pf-thread-status'), '');
+        var list = $('pf-bubbles');
+        if (list.querySelector('.pf-empty')) list.innerHTML = '';
+        list.insertAdjacentHTML('beforeend', '<li class="pf-bubble mine"><p>' + esc(data.message.text) + '</p><footer><time>' + esc(when(data.message.at)) + '</time></footer></li>');
+        list.scrollTop = list.scrollHeight;
+        loadMessages();
+      }).catch(function (err) { btn.disabled = false; if (err.message !== 'signed out') status($('pf-thread-status'), 'Network error, please try again.', 'err'); });
+    });
+
+    $('pf-bubbles').addEventListener('click', function (e) {
+      var btn = e.target.closest('.pf-report');
+      if (!btn || !openThreadId) return;
+      var bubble = btn.closest('.pf-bubble');
+      var reason = window.prompt('Report this message to MT3UK? Add a reason if you like:', '');
+      if (reason === null) return;
+      btn.disabled = true;
+      api('POST', '/profile/messages/report', { with: openThreadId, messageId: bubble.getAttribute('data-id'), reason: reason }).then(function (data) {
+        if (!data.success) { btn.disabled = false; status($('pf-thread-status'), data.message || 'Could not report, please try again.', 'err'); return; }
+        btn.textContent = 'Reported';
+        status($('pf-thread-status'), 'Thanks, MT3UK will take a look. You can also remove this friend in Friends.', 'ok');
+      }).catch(function () { btn.disabled = false; });
+    });
+
+    // ---------- Friends ----------
+    function who(card, extra) {
+      var nick = card.nickname && card.nickname !== card.name ? '<span>' + esc(card.nickname) + '</span>' : '';
+      return '<div class="pf-who"><strong>' + esc(card.name) + '</strong>' + nick + (extra || '') + '</div>';
+    }
+
+    function drawFriends() {
+      var req = '';
+      if (profile.incoming.length) {
+        req += '<h3 class="pf-h3">Friend requests</h3><ul class="pf-list">' + profile.incoming.map(function (c) {
+          return '<li>' + who(c, '<span> wants to be friends</span>') + '<div class="pf-actions">' +
+            '<button type="button" class="si-btn si-btn-primary pf-fr" data-action="accept" data-id="' + esc(c.id) + '">Accept</button>' +
+            '<button type="button" class="si-btn pf-fr" data-action="decline" data-id="' + esc(c.id) + '">Decline</button></div></li>';
+        }).join('') + '</ul>';
+      }
+      if (profile.outgoing.length) {
+        req += '<h3 class="pf-h3">Requests you&rsquo;ve sent</h3><ul class="pf-list">' + profile.outgoing.map(function (c) {
+          return '<li>' + who(c, '<span> waiting for them to accept</span>') + '<div class="pf-actions">' +
+            '<button type="button" class="si-btn pf-fr" data-action="cancel" data-id="' + esc(c.id) + '">Cancel</button></div></li>';
+        }).join('') + '</ul>';
+      }
+      $('pf-requests').innerHTML = req;
+      $('pf-friend-count').textContent = profile.friends.length ? '(' + profile.friends.length + ')' : '';
+      $('pf-friends').innerHTML = profile.friends.length ? profile.friends.map(function (c) {
+        var builds = c.builds && c.builds.length;
+        return '<li>' + who(c) + '<div class="pf-actions">' +
+          '<button type="button" class="si-btn si-btn-primary pf-msg" data-id="' + esc(c.id) + '">Message</button>' +
+          (builds ? '<a class="si-btn" href="gallery.html?only=' + encodeURIComponent(c.builds.join(',')) + '">Builds (' + builds + ')</a>' : '') +
+          '<button type="button" class="si-btn pf-fr" data-action="remove" data-id="' + esc(c.id) + '">Remove</button></div></li>';
+      }).join('') : '<li><span class="pf-empty">No friends yet. Find members by their nickname above.</span></li>';
+      badge($('pf-badge-friends'), profile.incoming.length);
+    }
+
+    function friendAction(action, idOrNick, btn) {
+      if (action === 'remove' && !window.confirm('Remove this friend? You can add them again later.')) return;
+      var body = { action: action };
+      if (action === 'request') body.nickname = idOrNick; else body.id = idOrNick;
+      if (btn) btn.disabled = true;
+      api('POST', '/profile/friends', body).then(function (data) {
+        if (!data.success) { if (btn) btn.disabled = false; status($('pf-friends-status'), data.message || 'Something went wrong, please try again.', 'err'); return; }
+        status($('pf-friends-status'), {
+          request: data.status === 'requested' ? 'Friend request sent.' : 'You are now friends.',
+          accept: 'You are now friends.', decline: 'Request declined.', cancel: 'Request cancelled.', remove: 'Friend removed.'
+        }[action], 'ok');
+        if (action === 'request' && btn) btn.textContent = 'Requested';
+        refresh();
+      }).catch(function () { if (btn) btn.disabled = false; });
+    }
+
+    $('friends').addEventListener('click', function (e) {
+      var fr = e.target.closest('.pf-fr');
+      if (fr) { friendAction(fr.getAttribute('data-action'), fr.getAttribute('data-id') || fr.getAttribute('data-nick'), fr); return; }
+      var msg = e.target.closest('.pf-msg');
+      if (msg) {
+        openThread(msg.getAttribute('data-id'));
+        $('messages').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+
+    $('pf-search').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var q = $('pf-search-q').value.trim();
+      if (q.length < 2) { $('pf-results').innerHTML = '<li><span class="pf-empty">Type at least 2 letters of a nickname.</span></li>'; return; }
+      api('GET', '/profile/search?q=' + encodeURIComponent(q)).then(function (data) {
+        var results = (data && data.results) || [];
+        $('pf-results').innerHTML = results.length ? results.map(function (c) {
+          var action = c.status === 'friend' ? '<span class="mono">FRIENDS</span>'
+            : c.status === 'requested' ? '<span class="mono">REQUESTED</span>'
+            : c.status === 'incoming' ? '<button type="button" class="si-btn si-btn-primary pf-fr" data-action="accept" data-id="' + esc(c.id) + '">Accept request</button>'
+            : '<button type="button" class="si-btn si-btn-primary pf-fr" data-action="request" data-nick="' + esc(c.nickname) + '"' + (profile.nickname ? '' : ' disabled title="Set a nickname first"') + '>Add friend</button>';
+          return '<li>' + who(c) + '<div class="pf-actions">' + action + '</div></li>';
+        }).join('') : '<li><span class="pf-empty">No members with a nickname like that.</span></li>';
+      }).catch(function () {});
+    });
+
+    // ---------- Emails and leaving ----------
+    $('pf-emails').addEventListener('change', function () {
+      var on = $('pf-emails').checked;
+      status($('pf-emails-status'), 'Saving…');
+      api('POST', '/profile', { emailsOff: !on }).then(function (data) {
+        if (!data.success) { $('pf-emails').checked = !on; status($('pf-emails-status'), data.message || 'Could not save.', 'err'); return; }
+        profile.emailsOff = data.emailsOff;
+        status($('pf-emails-status'), on ? 'Emails are on.' : 'Emails are off. You can still see everything here and in the bell.', 'ok');
+      }).catch(function () { $('pf-emails').checked = !on; });
+    });
+    $('pf-leave-open').addEventListener('click', function () { $('pf-leave-form').hidden = false; $('pf-leave-open').hidden = true; $('pf-leave-confirm').focus(); });
+    $('pf-leave-cancel').addEventListener('click', function () { $('pf-leave-form').hidden = true; $('pf-leave-open').hidden = false; status($('pf-leave-status'), ''); });
+    $('pf-leave-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var typed = $('pf-leave-confirm').value.trim().toUpperCase();
+      if (typed !== 'LEAVE') { status($('pf-leave-status'), 'Type LEAVE to confirm.', 'err'); return; }
+      var btn = e.target.querySelector('button[type=submit]');
+      btn.disabled = true;
+      status($('pf-leave-status'), 'Deleting your account…');
+      api('POST', '/profile/leave', { confirm: 'LEAVE' }).then(function (data) {
+        if (!data.success) { btn.disabled = false; status($('pf-leave-status'), data.message || 'Could not delete, please try again.', 'err'); return; }
+        [SESSION_KEY, EMAIL_KEY, FIRST_NAME_KEY].forEach(function (k) { try { localStorage.removeItem(k); } catch (err) {} });
+        $('pf-app').hidden = true;
+        $('pf-left').hidden = false;
+        window.scrollTo(0, 0);
+      }).catch(function () { btn.disabled = false; });
+    });
+
+    // ---------- Load ----------
+    function refresh() {
+      return api('GET', '/profile').then(function (data) {
+        if (!data.success) { status($('pf-details-status'), data.message || 'Could not load your profile.', 'err'); return; }
+        profile = data;
+        drawDetails();
+        drawFriends();
+      });
+    }
+
+    if (!session()) { signedOut(); return; }
+    refresh().then(function () {
+      if (!profile) return;
+      $('pf-loading').hidden = true;
+      $('pf-app').hidden = false;
+      return loadMessages().then(function () {
+        var withId = new URL(location.href).searchParams.get('with');
+        if (withId) { openThread(withId); $('messages').scrollIntoView({ block: 'start' }); }
+        else if (location.hash && document.querySelector(location.hash)) document.querySelector(location.hash).scrollIntoView({ block: 'start' });
+      });
+    }).catch(function (err) {
+      if (err.message === 'signed out') return;
+      $('pf-loading').textContent = 'Could not load your profile. Check your connection and refresh.';
+    });
+  })();
+</script>
+
+<script src="js/share.js" defer></script>
+<script src="js/account-bar.js" defer></script>
+<script src="js/search.js" defer></script>
+
+</body>
+</html>

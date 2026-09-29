@@ -262,6 +262,12 @@
   .iv-toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
   .iv-toolbar button { padding: 6px 12px; font-size: 0.72rem; }
   .iv-note { color: var(--steel); font-size: 0.72rem; }
+  .bc-form { display: flex; flex-direction: column; gap: 8px; margin: 12px 0 18px; }
+  .bc-form textarea { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3); color: var(--white); padding: 8px 10px; font: inherit; resize: vertical; }
+  .bc-email { display: flex; gap: 8px; align-items: center; font-size: 0.8rem; }
+  .bc-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .bc-h3 { margin: 22px 0 6px; font-size: 0.9rem; }
+  .bc-text { white-space: pre-line; overflow-wrap: anywhere; }
   .pv-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; }
   .pv-form input[type="email"] { flex: 1 1 220px; min-width: 0; }
   .pv-form select { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3); color: var(--white); padding: 8px 10px; font: inherit; }
@@ -408,6 +414,23 @@
       </div>
       <p class="subscriber-search-count" id="iv-filter-count"></p>
       <div id="iv-list"></div>
+    </details>
+  </section>
+
+  <section>
+    <details class="collapsible" id="members-msg-wrap">
+      <summary><h2>Messages to subscribers <span class="summary-count" id="msg-count"></span></h2></summary>
+      <p class="iv-note">A message goes to every member&rsquo;s Profile inbox, and the bell shows it as unread. Tick Also email to send it by email too, except to members who have turned emails off.</p>
+      <form class="bc-form" id="bc-form" novalidate>
+        <input type="text" id="bc-title" placeholder="Title, e.g. Track day at Thruxton" maxlength="120" aria-label="Message title">
+        <textarea id="bc-text" rows="5" maxlength="5000" placeholder="Message" aria-label="Message"></textarea>
+        <label class="bc-email"><input type="checkbox" id="bc-email"> Also email it to members</label>
+        <div class="bc-row"><button type="submit">Send message</button><span class="iv-note" id="bc-note"></span></div>
+      </form>
+      <div id="bc-list"></div>
+      <h3 class="bc-h3">Reported friend messages <span class="summary-count" id="dm-count"></span></h3>
+      <p class="iv-note">Members can report a message a friend sent them. Remove deletes that message; Block also stops the sender messaging anyone until you unblock them.</p>
+      <div id="dm-list"></div>
     </details>
   </section>
 
@@ -2271,6 +2294,125 @@
     btn.disabled = true;
     save(btn.getAttribute('data-action'), btn.getAttribute('data-email'), btn.getAttribute('data-slug'));
   });
+  wrap.addEventListener('toggle', function () { if (wrap.open) load(); });
+})();
+</script>
+<script>
+// Messages to subscribers (every member's Profile inbox, optionally
+// emailed) and friend messages members have reported.
+(function () {
+  var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
+  var wrap = document.getElementById('members-msg-wrap');
+  var form = document.getElementById('bc-form');
+  var noteEl = document.getElementById('bc-note');
+  var listEl = document.getElementById('bc-list');
+  var dmEl = document.getElementById('dm-list');
+
+  function key() {
+    var input = document.getElementById('admin-key');
+    return (input && input.value.trim()) || sessionStorage.getItem('mt3ukAdminKey') || '';
+  }
+  function esc(v) {
+    return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function note(text, kind) { noteEl.textContent = text || ''; noteEl.className = 'iv-note' + (kind ? ' ' + kind : ''); }
+  function when(iso) {
+    var d = new Date(iso);
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'Europe/London' }) + ' ' +
+      d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/London' });
+  }
+  function call(method, path, body) {
+    var opts = { method: method, cache: 'no-store' };
+    if (body) { opts.headers = { 'Content-Type': 'application/json' }; opts.body = JSON.stringify(body); }
+    return fetch(API + path + (path.indexOf('?') === -1 ? '?' : '&') + 'key=' + encodeURIComponent(key()), opts).then(function (res) { return res.json(); });
+  }
+
+  function drawBroadcasts(list) {
+    document.getElementById('msg-count').textContent = list.length ? '(' + list.length + ')' : '';
+    listEl.innerHTML = list.length ? '<table class="iv-table"><thead><tr><th>Message</th><th>Sent</th><th></th></tr></thead><tbody>' + list.map(function (b) {
+      return '<tr><td><strong>' + esc(b.title) + '</strong><div class="iv-sub bc-text">' + esc(b.text) + '</div></td><td>' + esc(when(b.at)) + '</td>' +
+        '<td class="num"><button type="button" class="secondary bc-mail" data-id="' + esc(b.id) + '">Email it</button> <button type="button" class="danger bc-del" data-id="' + esc(b.id) + '">Delete</button></td></tr>';
+    }).join('') + '</tbody></table>' : '<p class="iv-note">No messages sent yet.</p>';
+  }
+
+  function drawReports(reports) {
+    document.getElementById('dm-count').textContent = reports.length ? '(' + reports.length + ')' : '';
+    dmEl.innerHTML = reports.length ? '<table class="iv-table"><thead><tr><th>Message</th><th>From / to</th><th></th></tr></thead><tbody>' + reports.map(function (r) {
+      return '<tr><td><div class="bc-text">' + esc(r.text) + '</div>' + (r.reason ? '<div class="iv-sub">Reason: ' + esc(r.reason) + '</div>' : '') + '<div class="iv-sub">Sent ' + esc(when(r.at)) + ', reported ' + esc(when(r.reportedAt)) + '</div></td>' +
+        '<td>' + esc(r.fromName) + '<div class="iv-sub">' + esc(r.fromEmail) + '</div>to ' + esc(r.toName) + '<div class="iv-sub">' + esc(r.toEmail) + '</div></td>' +
+        '<td class="num"><button type="button" class="secondary dm-act" data-action="dismiss" data-id="' + esc(r.id) + '">Dismiss</button> ' +
+        '<button type="button" class="danger dm-act" data-action="remove" data-id="' + esc(r.id) + '">Remove</button> ' +
+        '<button type="button" class="danger dm-act" data-action="block" data-id="' + esc(r.id) + '">Remove and block</button></td></tr>';
+    }).join('') + '</tbody></table>' : '<p class="iv-note">No reported messages.</p>';
+  }
+
+  function load() {
+    if (!key()) { listEl.innerHTML = '<p class="iv-note">Enter the admin key at the top of the page first.</p>'; return; }
+    call('GET', '/admin/broadcasts').then(function (data) {
+      if (!data.success) { listEl.innerHTML = '<p class="iv-note error">' + esc(data.message === 'Unauthorized' ? 'The admin key is not right.' : (data.message || 'Could not load.')) + '</p>'; return; }
+      drawBroadcasts(data.broadcasts || []);
+      drawReports(data.reports || []);
+    }).catch(function () { listEl.innerHTML = '<p class="iv-note error">Network error loading messages.</p>'; });
+  }
+
+  // Emails a message in batches until every member has been reached.
+  function emailAll(id, cursor, totals) {
+    totals = totals || { sent: 0, skipped: 0 };
+    note('Emailing members… ' + totals.sent + ' sent so far');
+    return call('POST', '/admin/broadcasts/email', { id: id, cursor: cursor || null }).then(function (data) {
+      if (!data.success) { note(data.message || 'Emailing stopped.', 'error'); return; }
+      totals.sent += data.sent; totals.skipped += data.skipped;
+      if (data.cursor) return emailAll(id, data.cursor, totals);
+      note('Emailed ' + totals.sent + ' member' + (totals.sent === 1 ? '' : 's') + (totals.skipped ? ' (' + totals.skipped + ' have emails off)' : '') + '.', 'ok');
+    });
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var title = document.getElementById('bc-title').value.trim();
+    var text = document.getElementById('bc-text').value.trim();
+    var email = document.getElementById('bc-email').checked;
+    if (!key()) { note('Enter the admin key at the top of the page first.', 'error'); return; }
+    if (!title || !text) { note('Add a title and a message.', 'error'); return; }
+    if (!window.confirm('Send "' + title + '" to every member' + (email ? ' and email it' : '') + '?')) return;
+    var btn = form.querySelector('button[type=submit]');
+    btn.disabled = true;
+    call('POST', '/admin/broadcasts', { title: title, text: text }).then(function (data) {
+      btn.disabled = false;
+      if (!data.success) { note(data.message || 'Could not send.', 'error'); return; }
+      form.reset();
+      drawBroadcasts(data.broadcasts);
+      note('Sent to every member&rsquo;s inbox.'.replace('&rsquo;', '’'), 'ok');
+      if (email) return emailAll(data.broadcasts[0].id);
+    }).catch(function () { btn.disabled = false; note('Network error, please try again.', 'error'); });
+  });
+
+  listEl.addEventListener('click', function (e) {
+    var del = e.target.closest('.bc-del');
+    var mail = e.target.closest('.bc-mail');
+    if (del && window.confirm('Delete this message from everyone’s inbox?')) {
+      call('POST', '/admin/broadcasts', { action: 'delete', id: del.getAttribute('data-id') }).then(function (data) { if (data.success) drawBroadcasts(data.broadcasts); });
+    }
+    if (mail && window.confirm('Email this message to every member (except those with emails off)?')) {
+      mail.disabled = true;
+      emailAll(mail.getAttribute('data-id')).then(function () { mail.disabled = false; });
+    }
+  });
+
+  dmEl.addEventListener('click', function (e) {
+    var btn = e.target.closest('.dm-act');
+    if (!btn) return;
+    var action = btn.getAttribute('data-action');
+    if (action === 'block' && !window.confirm('Remove this message and stop the sender messaging anyone?')) return;
+    btn.disabled = true;
+    call('POST', '/admin/dm-reports', { id: btn.getAttribute('data-id'), action: action }).then(function (data) {
+      if (!data.success) { btn.disabled = false; return; }
+      drawReports(data.reports || []);
+    }).catch(function () { btn.disabled = false; });
+  });
+
   wrap.addEventListener('toggle', function () { if (wrap.open) load(); });
 })();
 </script>

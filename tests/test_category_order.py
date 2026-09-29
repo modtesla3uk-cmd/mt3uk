@@ -88,3 +88,40 @@ def test_scroll_cue_jumps_to_section_01(device_page):
     section_top = page.evaluate("document.querySelector('.categories-section').getBoundingClientRect().top")
     assert abs(section_top - header_bottom) <= 3, (section_top, header_bottom)
     assert page.errors == []
+
+
+@all_devices
+def test_mouse_can_drag_a_tile_without_holding(device_page):
+    """On desktop people press and drag straight away, without holding first."""
+    page = device_page
+    if page.device_name != "desktop-chrome":
+        return
+    page.goto("/index.html")
+    grid = page.locator(".categories-grid.hp-cats")
+    grid.scroll_into_view_if_needed()
+    page.wait_for_timeout(300)
+    assert order(page)[0] == "garage"
+    first = page.locator('.hp-cat[data-cat="garage"]').bounding_box()
+    last = page.locator('.hp-cat[data-cat="interviews"]').bounding_box()
+    page.mouse.move(first["x"] + 20, first["y"] + 20)
+    page.mouse.down()
+    for step in range(1, 11):
+        page.mouse.move(first["x"] + 20 + (last["x"] + last["width"] - 30 - first["x"] - 20) * step / 10,
+                        first["y"] + 20 + (last["y"] + last["height"] / 2 - first["y"] - 20) * step / 10)
+        page.wait_for_timeout(20)
+    page.mouse.up()
+    page.wait_for_timeout(200)
+    assert order(page)[-1] == "garage", order(page)
+    assert page.url.endswith("/index.html"), "Dragging doesn't open the tile's link"
+    assert page.locator(".hp-cat-hint-mouse").is_visible()
+    assert page.errors == []
+
+
+@all_devices
+def test_clicking_a_tile_still_opens_it(device_page):
+    page = device_page
+    if page.device_name != "desktop-chrome":
+        return
+    page.goto("/index.html")
+    page.locator('.hp-cat[data-cat="garage"]').click()
+    page.wait_for_url("**/my-builds.html", timeout=5000)

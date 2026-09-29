@@ -367,3 +367,6 @@ nav {
   color: var(--steel); font-size: 1.2rem; line-height: 1; cursor: pointer;
 }
 .nav-bell-dismiss:hover, .nav-bell-dismiss:focus-visible { background: rgba(22,35,61,0.08); color: var(--ink); }
+
+/* Footer: Privacy and Facebook links side by side. */
+.footer-links { display: inline-flex; gap: 18px; flex-wrap: wrap; }

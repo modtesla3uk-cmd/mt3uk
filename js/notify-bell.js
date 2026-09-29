@@ -23,6 +23,7 @@
   var count = wrap.querySelector('#nav-bell-count');
   var panel = wrap.querySelector('#nav-bell-panel');
   var items = null;
+  var messagesUnread = 0;
 
   function session() {
     try { return localStorage.getItem(SESSION_KEY); } catch (e) { return null; }
@@ -45,11 +46,13 @@
   }
 
   function linkFor(n) {
+    if (n.link) return n.link;
     if (/^interview:/.test(n.file || '')) return 'blog-' + n.file.slice(10) + '.html#comments';
     return 'my-builds.html?file=' + encodeURIComponent(n.file || '') + (n.commentId ? '&comment=' + encodeURIComponent(n.commentId) : '');
   }
 
   function setCount(unread) {
+    unread += messagesUnread;
     count.hidden = !unread;
     count.textContent = unread > 99 ? '99+' : String(unread);
     btn.setAttribute('aria-label', unread ? 'Notifications, ' + unread + ' new' : 'Notifications');
@@ -72,6 +75,11 @@
     panel.innerHTML =
       '<div class="nav-bell-head"><span>Notifications</span>' +
         (items.length ? '<button type="button" class="nav-bell-clear-all">Clear all</button>' : '') + '</div>' +
+      // Unread messages (from MT3UK and friends) live in Profile.
+      (messagesUnread
+        ? '<a class="nav-bell-item nav-bell-messages is-unread" href="profile.html#messages"><span class="nav-bell-item-name">Messages</span>' +
+          '<span class="nav-bell-item-text">You have ' + messagesUnread + ' unread message' + (messagesUnread === 1 ? '' : 's') + '</span></a>'
+        : '') +
       (items.length
         ? '<ul class="nav-bell-list">' + items.slice(0, 20).map(function (n) {
             return '<li class="nav-bell-row" data-id="' + esc(n.id || '') + '"><a class="nav-bell-item' + (n.read ? '' : ' is-unread') + '" href="' + esc(linkFor(n)) + '">' +
@@ -81,21 +89,22 @@
             '</a><button type="button" class="nav-bell-dismiss" aria-label="Clear this notification">&times;</button></li>';
           }).join('') + '</ul>'
         : '<p class="nav-bell-empty">No notifications yet. You&rsquo;ll see likes and comments on your builds here.</p>') +
-      '<a class="nav-bell-all" href="my-builds.html">Open My Garage &rarr;</a>';
+      '<a class="nav-bell-all" href="profile.html">My Profile &rarr;</a>';
   }
 
   function load() {
     var token = session();
-    if (!token) { setCount(0); items = null; return Promise.resolve(false); }
+    if (!token) { messagesUnread = 0; setCount(0); items = null; return Promise.resolve(false); }
     return fetch(API + '/my-builds/notifications', { headers: { 'X-Session-Token': token }, cache: 'no-store' })
       .then(function (res) {
         if (res.status === 401) return { expired: true };
         return res.ok ? res.json() : null;
       })
       .then(function (data) {
-        if (data && data.expired) { items = null; setCount(0); return 'expired'; }
+        if (data && data.expired) { items = null; messagesUnread = 0; setCount(0); return 'expired'; }
         if (!data || !data.success) return false;
         items = data.notifications || [];
+        messagesUnread = data.messagesUnread || 0;
         setCount(data.unread || 0);
         if (!panel.hidden) drawList();
         return true;

@@ -79,7 +79,7 @@
         '<p>Signed in as ' + (first
           ? '<strong>' + esc(first) + '</strong>' + (masked ? ' <span class="mt3uk-account-email">&middot; ' + esc(masked) + '</span>' : '')
           : '<strong>' + esc(masked || 'a member') + '</strong>') + '</p>' +
-        '<span class="mt3uk-account-actions"><a href="my-builds.html">My Garage</a>' +
+        '<span class="mt3uk-account-actions">' + (page === 'profile.html' ? '' : '<a href="profile.html">Profile</a>') + '<a href="my-builds.html">My Garage</a>' +
         '<button type="button" class="mt3uk-account-signout">Sign out</button></span>' +
       '</div>';
     bar.querySelector('.mt3uk-account-signout').addEventListener('click', window.mt3ukSignOut);

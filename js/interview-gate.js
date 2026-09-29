@@ -35,6 +35,9 @@
     '#iv-gate button{width:100%;min-height:48px;border:0;background:#e8542a;color:#fff;font-family:"IBM Plex Mono",monospace;font-size:.9rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}' +
     '#iv-gate button:disabled{opacity:.6;cursor:default}' +
     '#iv-gate .ivg-link{background:none;border:0;min-height:0;width:auto;padding:0;margin-top:14px;color:rgba(255,255,255,.7);text-decoration:underline;text-transform:none;letter-spacing:0;font-family:inherit;font-size:.88rem}' +
+    '#iv-gate .ivg-join{font-size:.88rem;border-left:3px solid #e8542a;padding:8px 0 8px 12px;background:rgba(232,84,42,.08)}' +
+    '#iv-gate .ivg-join strong{color:#fff}' +
+    '#iv-gate .ivg-join a{color:#fff}' +
     '#iv-gate .ivg-msg{min-height:1.4em;margin:12px 0 0;font-size:.9rem;color:#ffb199}' +
     '#iv-gate .ivg-msg.ok{color:#9fe0b0}' +
     '#iv-gate .ivg-back{display:inline-block;margin-top:18px;color:#fff;font-size:.9rem}' +
@@ -103,7 +106,7 @@
     box.setAttribute('role', 'status');
     box.innerHTML =
       '<strong>Preview open until ' + esc(clock(expires)) + ' (' + esc(timeLeft(expires - Date.now())) + ')</strong>' +
-      (joined ? '<p>Welcome to MT3UK: you&rsquo;re now a member and signed in, so you can like and comment.</p>' : '') +
+      (joined ? '<p>Welcome to MT3UK: you&rsquo;re now subscribed and signed in, so you can like and comment. Set a nickname or unsubscribe in your <a href="profile.html" style="color:#fff">Profile</a>.</p>' : '') +
       '<p>This interview is published on ' + esc(niceDate(entry.publish)) + '. Please don&rsquo;t share it until then.</p>' +
       '<button type="button" class="ivg-notice-close" aria-label="Close">&times;</button>';
     document.body.appendChild(box);
@@ -145,10 +148,11 @@
           '<p class="ivg-eyebrow">Owner Interview &middot; Coming ' + esc(niceDate(entry.publish)) + '</p>' +
           '<p class="ivg-title" role="heading" aria-level="1">' + esc(entry.title || 'Owner Interview') + '</p>' +
           '<p>This interview isn&rsquo;t published yet. For an early look, enter your email and we&rsquo;ll send you a one-time code. It opens the interview for 4 hours.</p>' +
+          '<p class="ivg-join"><strong>Getting a code subscribes you to MT3UK</strong> (it&rsquo;s free) with this email, so you can like and comment on builds and interviews. You can stop emails or unsubscribe any time from your <a href="profile.html#unsubscribe">Profile</a>. You must be 18 or over; see our <a href="privacy.html">Privacy notice</a>.</p>' +
           '<form class="ivg-form" novalidate>' +
             '<label for="ivg-email">Email</label>' +
             '<input type="email" id="ivg-email" autocomplete="email" required value="' + esc(email) + '">' +
-            '<button type="submit">Send code</button>' +
+            '<button type="submit">Send code and subscribe</button>' +
           '</form>' +
           '<p class="ivg-msg" role="status">' + esc(msg || '') + '</p>' +
           '<a class="ivg-back" href="blog.html">&larr; See published interviews</a>' +

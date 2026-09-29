@@ -201,7 +201,7 @@ def live_images():
 
         today = datetime.now(ZoneInfo("Europe/London")).date().isoformat()
         interviews = json.loads((ROOT / "data" / "interviews.json").read_text()).get("interviews") or []
-        published = sorted((i for i in interviews if i.get("image") and i.get("publish", "") <= today), key=lambda i: i["publish"])
+        published = sorted((i for i in interviews if i.get("image") and i.get("publish") and not i.get("draft") and i["publish"] <= today), key=lambda i: i["publish"])
         chosen = published[-1] if published else next((i for i in interviews if i.get("image")), None)
         if chosen:
             images["interview"] = (SITE_URL + "/" + chosen["image"], False)

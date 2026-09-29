@@ -583,7 +583,7 @@ function applyInterviewChanges(file, changes) {
     });
   });
   if (!lines.length) throw new Error('Nothing has changed');
-  file.interviews.sort(function (a, b) { return (a.publish || '') < (b.publish || '') ? -1 : (a.publish || '') > (b.publish || '') ? 1 : 0; });
+  file.interviews.sort(function (a, b) { return (a.publish || '9999') < (b.publish || '9999') ? -1 : (a.publish || '9999') > (b.publish || '9999') ? 1 : 0; });
   return lines;
 }
 
@@ -672,11 +672,13 @@ async function putProfileRecord(env, email, profile) {
 }
 
 // The name other members see: the nickname if there is one, otherwise
-// first and last name.
+// first and last name. A member can choose to show their full name instead
+// (Visibility in Profile, showName 'name').
 function publicName(profile) {
   if (!profile) return '';
-  if (profile.nickname) return profile.nickname;
-  return profile.firstName && profile.lastName ? profile.firstName + ' ' + profile.lastName : '';
+  var full = profile.firstName && profile.lastName ? profile.firstName + ' ' + profile.lastName : '';
+  if (profile.showName === 'name' && full) return full;
+  return profile.nickname || full;
 }
 
 async function publicNameFor(env, email) {
@@ -715,6 +717,39 @@ async function getJsonKey(env, key, fallback) {
   }
 }
 
+// Friend search by real name: one key, nickname (lower case) -> the
+// member's "first last" in lower case, or '' when they've chosen not to be
+// found by it. Kept up to date on profile saves and filled in by the search
+// for anyone missing.
+var MEMBER_NAMES_KEY = 'member-names';
+
+async function getMemberNames(env) {
+  var map = await getJsonKey(env, MEMBER_NAMES_KEY, {});
+  return map && typeof map === 'object' && !Array.isArray(map) ? map : {};
+}
+
+function searchableName(profile) {
+  if (!profile || profile.hideRealName || !profile.firstName || !profile.lastName) return '';
+  return (profile.firstName + ' ' + profile.lastName).toLowerCase();
+}
+
+// Updates the member's entry, and drops the one for an old nickname.
+async function syncMemberName(env, email, oldNickname) {
+  var profile = await getProfileRecord(env, email);
+  var map = await getMemberNames(env);
+  var changed = false;
+  if (oldNickname && oldNickname.toLowerCase() !== (profile.nickname || '').toLowerCase() && oldNickname.toLowerCase() in map) {
+    delete map[oldNickname.toLowerCase()];
+    changed = true;
+  }
+  if (profile.nickname) {
+    var nick = profile.nickname.toLowerCase();
+    var name = searchableName(profile);
+    if (map[nick] !== name) { map[nick] = name; changed = true; }
+  }
+  if (changed) await env.VOTES.put(MEMBER_NAMES_KEY, JSON.stringify(map));
+}
+
 async function getNicknames(env) {
   var map = await getJsonKey(env, NICKNAMES_KEY, {});
   return map && typeof map === 'object' && !Array.isArray(map) ? map : {};
@@ -732,10 +767,24 @@ async function setNickname(env, email, nickname) {
   if (profile.nickname && map[profile.nickname.toLowerCase()] === email) delete map[profile.nickname.toLowerCase()];
   if (nickname) map[nickname.toLowerCase()] = email;
   await env.VOTES.put(NICKNAMES_KEY, JSON.stringify(map));
+  var oldNickname = profile.nickname || '';
   if (nickname) profile.nickname = nickname;
   else delete profile.nickname;
   await putProfileRecord(env, email, profile);
+  await syncMemberName(env, email, oldNickname);
   return '';
+}
+
+// Profile's nickname box checks as you type: GET /profile/nickname?nick=
+async function handleNicknameCheck(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var raw = String(new URL(request.url).searchParams.get('nick') || '').trim();
+  var nick = cleanNickname(raw);
+  if (!nick) return json({ success: true, available: false, message: '3 to 20 letters or numbers (you can use _ . -), starting with a letter or number.' });
+  var owner = (await getNicknames(env))[nick.toLowerCase()];
+  if (owner && owner !== email) return json({ success: true, available: false, message: nick + ' is taken. Try another.' });
+  return json({ success: true, available: true, message: owner === email ? 'That\u2019s your nickname.' : nick + ' is available.' });
 }
 
 function friendsKey(email) {
@@ -819,6 +868,8 @@ async function handleProfileGet(request, env) {
     firstName: profile.firstName || '',
     lastName: profile.lastName || '',
     nickname: profile.nickname || '',
+    showName: profile.showName === 'name' ? 'name' : 'nickname',
+    hideRealName: !!profile.hideRealName,
     emailsOff: !!profile.emailsOff,
     member: (await env.VOTES.get('subscriber:' + email)) !== null,
     since: (await env.VOTES.get('subscriber-since:' + email)) || '',
@@ -861,9 +912,27 @@ async function handleProfileUpdate(request, env) {
     profile.emailsOff = !!body.emailsOff;
     await putProfileRecord(env, email, profile);
   }
+  // Visibility: show the nickname or the full name, and whether members can
+  // find them by their real name.
+  if ('showName' in body || 'hideRealName' in body) {
+    var vis = await getProfileRecord(env, email);
+    var before = publicName(vis);
+    if ('showName' in body) {
+      if (body.showName === 'name') vis.showName = 'name';
+      else delete vis.showName;
+    }
+    if ('hideRealName' in body) {
+      if (body.hideRealName) vis.hideRealName = true;
+      else delete vis.hideRealName;
+    }
+    await putProfileRecord(env, email, vis);
+    if (publicName(vis) !== before) nameChanged = true;
+  }
   if (nameChanged) await refreshPublicNameEverywhere(env, email);
+  await syncMemberName(env, email);
   var saved = await getProfileRecord(env, email);
-  return json({ success: true, firstName: saved.firstName || '', lastName: saved.lastName || '', nickname: saved.nickname || '', emailsOff: !!saved.emailsOff });
+  return json({ success: true, firstName: saved.firstName || '', lastName: saved.lastName || '', nickname: saved.nickname || '',
+    showName: saved.showName === 'name' ? 'name' : 'nickname', hideRealName: !!saved.hideRealName, emailsOff: !!saved.emailsOff });
 }
 
 // Leave MT3UK: deletes the member's builds and everything kept about them.
@@ -888,6 +957,11 @@ async function deleteMemberAccount(env, email) {
     if (map[profile.nickname.toLowerCase()] === email) {
       delete map[profile.nickname.toLowerCase()];
       await env.VOTES.put(NICKNAMES_KEY, JSON.stringify(map));
+    }
+    var names = await getMemberNames(env);
+    if (profile.nickname.toLowerCase() in names) {
+      delete names[profile.nickname.toLowerCase()];
+      await env.VOTES.put(MEMBER_NAMES_KEY, JSON.stringify(names));
     }
   }
   var index = await getDmIndex(env, email);
@@ -922,8 +996,26 @@ async function handleProfileSearch(request, env) {
   var q = String(new URL(request.url).searchParams.get('q') || '').trim().toLowerCase();
   if (q.length < 2) return json({ success: true, results: [] });
   var map = await getNicknames(env);
-  var matches = Object.keys(map).filter(function (n) { return n.indexOf(q) !== -1 && map[n] !== email; })
-    .sort(function (a, b) { return (a.indexOf(q) - b.indexOf(q)) || a.localeCompare(b); })
+  // Fill in real names for members not in the search list yet (a few per
+  // search, so the list catches up without a slow first search).
+  var names = await getMemberNames(env);
+  var missing = Object.keys(map).filter(function (n) { return !(n in names); }).slice(0, 50);
+  if (missing.length) {
+    await Promise.all(missing.map(async function (n) { names[n] = searchableName(await getProfileRecord(env, map[n])); }));
+    await env.VOTES.put(MEMBER_NAMES_KEY, JSON.stringify(names));
+  }
+  // Nickname, or first, last or full name. Best match first: a nickname or
+  // name that starts with what they typed.
+  var rank = function (n) {
+    var name = names[n] || '';
+    if (n.indexOf(q) === 0) return 0;
+    if (name && (name.indexOf(q) === 0 || name.indexOf(' ' + q) !== -1)) return 1;
+    if (n.indexOf(q) !== -1) return 2;
+    if (name && name.indexOf(q) !== -1) return 3;
+    return -1;
+  };
+  var matches = Object.keys(map).filter(function (n) { return map[n] !== email && rank(n) !== -1; })
+    .sort(function (a, b) { return (rank(a) - rank(b)) || a.localeCompare(b); })
     .slice(0, 10);
   var fr = await getFriends(env, email);
   var results = await Promise.all(matches.map(async function (n) {
@@ -1150,10 +1242,52 @@ async function handleProfileMessageReport(request, env) {
 
 // ---------- Admin: messages to subscribers and reported messages ----------
 
+// Who each message has been emailed to: one key per message (a list of
+// emails), so repeat sends skip them and the admin page can show them.
+function broadcastEmailedKey(id) {
+  return 'broadcast-emailed:' + id;
+}
+
+async function getBroadcastEmailed(env, id) {
+  var list = await getJsonKey(env, broadcastEmailedKey(id), []);
+  return Array.isArray(list) ? list : [];
+}
+
 async function handleAdminBroadcastsGet(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorized' }, 401);
   var reports = await getJsonKey(env, DM_REPORTS_KEY, []);
-  return json({ success: true, broadcasts: await getBroadcasts(env), reports: Array.isArray(reports) ? reports : [] });
+  var broadcasts = await getBroadcasts(env);
+  var withCounts = await Promise.all(broadcasts.map(async function (b) {
+    return Object.assign({}, b, { emailed: await getBroadcastEmailed(env, b.id) });
+  }));
+  return json({ success: true, broadcasts: withCounts, reports: Array.isArray(reports) ? reports : [] });
+}
+
+function broadcastEmailText(msg) {
+  return msg.text + '\n\nSee all messages in your Profile: ' + PROFILE_URL + '#messages';
+}
+
+// Emails one message to one member (1c), unless they've had it already
+// (force sends it again).
+async function handleAdminBroadcastEmailOne(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorized' }, 401);
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
+  var msg = (await getBroadcasts(env)).filter(function (b) { return b.id === (body && body.id); })[0];
+  if (!msg) return json({ success: false, message: 'Message not found' }, 404);
+  var email = previewEmail(body && body.email);
+  if (!email) return json({ success: false, message: 'Enter a valid email' }, 400);
+  if ((await env.VOTES.get('subscriber:' + email)) === null) return json({ success: false, message: 'No member with that email' }, 404);
+  var emailed = await getBroadcastEmailed(env, msg.id);
+  if (emailed.indexOf(email) !== -1 && !body.force) {
+    return json({ success: false, already: true, message: email + ' has already been emailed this message. Send again?' }, 409);
+  }
+  if (!(await wantsEmails(env, email))) return json({ success: false, message: email + ' has turned emails off, so it is only in their Profile inbox.' }, 400);
+  var ok = await sendMemberEmail(env, email, 'MT3UK: ' + msg.title, broadcastEmailText(msg));
+  if (!ok) return json({ success: false, message: 'The email could not be sent, please try again.' }, 500);
+  if (emailed.indexOf(email) === -1) emailed.push(email);
+  await env.VOTES.put(broadcastEmailedKey(msg.id), JSON.stringify(emailed));
+  return json({ success: true, emailed: emailed });
 }
 
 async function handleAdminBroadcastSave(request, env) {
@@ -1163,6 +1297,7 @@ async function handleAdminBroadcastSave(request, env) {
   var list = await getBroadcasts(env);
   if (body && body.action === 'delete') {
     list = list.filter(function (b) { return b.id !== body.id; });
+    await env.VOTES.delete(broadcastEmailedKey(body.id));
   } else {
     var title = String((body && body.title) || '').trim().slice(0, 120);
     var text = String((body && body.text) || '').replace(/\r\n?/g, '\n').trim().slice(0, 5000);
@@ -1184,14 +1319,19 @@ async function handleAdminBroadcastEmail(request, env) {
   var msg = (await getBroadcasts(env)).filter(function (b) { return b.id === (body && body.id); })[0];
   if (!msg) return json({ success: false, message: 'Message not found' }, 404);
   var page = await env.VOTES.list({ prefix: 'subscriber:', cursor: (body && body.cursor) || undefined, limit: BROADCAST_EMAIL_BATCH });
+  var emailed = await getBroadcastEmailed(env, msg.id);
   var sent = 0;
   var skipped = 0;
+  var already = 0;
   for (var i = 0; i < page.keys.length; i++) {
     var to = page.keys[i].name.slice('subscriber:'.length);
-    var ok = await sendMemberEmail(env, to, 'MT3UK: ' + msg.title, msg.text + '\n\nSee all messages in your Profile: ' + PROFILE_URL + '#messages');
-    if (ok) sent++; else skipped++;
+    // Anyone who has had this message already is skipped.
+    if (emailed.indexOf(to) !== -1) { already++; continue; }
+    var ok = await sendMemberEmail(env, to, 'MT3UK: ' + msg.title, broadcastEmailText(msg));
+    if (ok) { sent++; emailed.push(to); } else skipped++;
   }
-  return json({ success: true, sent: sent, skipped: skipped, cursor: page.list_complete ? null : page.cursor });
+  if (sent) await env.VOTES.put(broadcastEmailedKey(msg.id), JSON.stringify(emailed));
+  return json({ success: true, sent: sent, skipped: skipped, already: already, emailedTotal: emailed.length, cursor: page.list_complete ? null : page.cursor });
 }
 
 async function handleAdminDmReports(request, env) {
@@ -1291,11 +1431,16 @@ function previewCodeKey(email, slug) {
 async function handleInterviewPreviewRequest(request, env) {
   var body;
   try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
-  var email = previewEmail(body && body.email);
+  // Admin override: the link and code go to the MT3UK admin inbox only,
+  // so anyone can press it without it reaching anyone else.
+  var forAdmin = !!(body && body.admin === true);
+  var email = forAdmin ? SUBSCRIBERS_DIGEST_EMAIL : previewEmail(body && body.email);
   var slug = previewSlug(body && body.slug, false);
   if (!email) return json({ success: false, message: 'Please enter a valid email' }, 400);
   if (!slug) return json({ success: false, message: 'Invalid interview' }, 400);
-  var reply = json({ success: true, message: "We've sent a 6-digit code to " + email + ". It lasts 15 minutes. Check your junk folder if it hasn't arrived." });
+  var reply = json({ success: true, admin: forAdmin, message: forAdmin
+    ? "We've emailed a one-time link and code to the MT3UK admin inbox. They last 15 minutes."
+    : "We've sent a 6-digit code to " + email + ". It lasts 15 minutes. Check your junk folder if it hasn't arrived." });
 
   var ipKey = 'interview-preview-ip:' + getClientIp(request);
   var ipCount = parseInt(await env.VOTES.get(ipKey), 10) || 0;
@@ -1441,6 +1586,57 @@ async function handleInterviewPreviewAdminSave(request, env) {
   }
   await env.VOTES.put(PREVIEW_REVOKED_KEY, JSON.stringify(rest));
   return json({ success: true, opened: await getPreviewList(env, PREVIEW_LOG_KEY), revoked: rest });
+}
+
+// Draft, Publish now, or schedule a draft: one commit to data/interviews.json.
+// A draft has no publish date ("draft": true), which frees its slot and
+// keeps its page behind the preview code (js/interview-gate.js).
+async function handleInterviewsAdminAction(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorized' }, 401);
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
+  var action = body && body.action;
+  if (['draft', 'publish-now', 'schedule'].indexOf(action) === -1) return json({ success: false, message: 'Unknown action' }, 400);
+  if (action === 'schedule' && !isValidIsoDay(body.date)) return json({ success: false, message: 'Choose a valid date' }, 400);
+  var today = ukDateString(new Date());
+  try {
+    for (var attempt = 0; attempt < 2; attempt++) {
+      var current = await readInterviewsFile(env);
+      var iv = current.file.interviews.find(function (i) { return i.url === body.url; });
+      if (!iv) throw new Error('No interview with the page ' + body.url + ', reload the page');
+      if ((iv.publish || '') !== ((body.from && body.from.publish) || '')) {
+        throw new Error(iv.name + ' was changed somewhere else since you loaded the page, reload and try again');
+      }
+      var line;
+      if (action === 'draft') {
+        if (!iv.publish) throw new Error(iv.name + ' is already a draft');
+        if (iv.publish <= today) throw new Error(iv.name + ' is already published');
+        line = iv.name + ' set to draft (was ' + iv.publish + ')';
+        delete iv.publish;
+        iv.draft = true;
+      } else {
+        var date = action === 'publish-now' ? today : body.date;
+        line = iv.name + (action === 'publish-now' ? ' published now (' + date + ')' : ' scheduled for ' + date);
+        iv.publish = date;
+        delete iv.draft;
+      }
+      current.file.interviews.sort(function (a, b) { return (a.publish || '9999') < (b.publish || '9999') ? -1 : (a.publish || '9999') > (b.publish || '9999') ? 1 : 0; });
+      var content = btoa(unescape(encodeURIComponent(JSON.stringify(current.file, null, 2) + '\n')));
+      var putRes = await fetch(
+        'https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/' + INTERVIEWS_PATH,
+        {
+          method: 'PUT',
+          headers: eventsGithubHeaders(env),
+          body: JSON.stringify({ message: 'Owner Interviews (admin): ' + line, content: content, sha: current.sha, branch: BASE_BRANCH })
+        }
+      );
+      if (putRes.ok) return json({ success: true, interviews: current.file.interviews, change: line });
+      if (putRes.status !== 409 && putRes.status !== 422) throw new Error('Could not save the interviews file (' + putRes.status + ')');
+    }
+    throw new Error('The interviews file was changed by something else at the same time, please try again');
+  } catch (err) {
+    return json({ success: false, message: err.message }, 400);
+  }
 }
 
 var DIGEST_MANUAL_COOLDOWN_SECONDS = 120;
@@ -2776,6 +2972,7 @@ async function handleGalleryAdminSubscribersList(request, env) {
       email: email,
       firstName: profile ? profile.firstName : '',
       lastName: profile ? profile.lastName : '',
+      nickname: (await getProfileRecord(env, email)).nickname || '',
       added: added,
       files: files
     };
@@ -3700,6 +3897,7 @@ async function saveProfile(env, email, firstName, lastName) {
   profile.firstName = firstName;
   profile.lastName = lastName;
   await putProfileRecord(env, email, profile);
+  if (profile.nickname) await syncMemberName(env, email);
   return profile;
 }
 
@@ -5189,6 +5387,9 @@ export default {
     if (url.pathname === '/interviews/admin' && request.method === 'GET') {
       return handleInterviewsAdminList(request, env);
     }
+    if (url.pathname === '/interviews/admin/action' && request.method === 'POST') {
+      return handleInterviewsAdminAction(request, env);
+    }
     if (url.pathname === '/interviews/admin' && request.method === 'POST') {
       return handleInterviewsAdminSave(request, env);
     }
@@ -5200,6 +5401,9 @@ export default {
     }
     if (url.pathname === '/profile/leave' && request.method === 'POST') {
       return handleProfileLeave(request, env);
+    }
+    if (url.pathname === '/profile/nickname' && request.method === 'GET') {
+      return handleNicknameCheck(request, env);
     }
     if (url.pathname === '/profile/search' && request.method === 'GET') {
       return handleProfileSearch(request, env);
@@ -5227,6 +5431,9 @@ export default {
     }
     if (url.pathname === '/admin/broadcasts' && request.method === 'POST') {
       return handleAdminBroadcastSave(request, env);
+    }
+    if (url.pathname === '/admin/broadcasts/email-one' && request.method === 'POST') {
+      return handleAdminBroadcastEmailOne(request, env);
     }
     if (url.pathname === '/admin/broadcasts/email' && request.method === 'POST') {
       return handleAdminBroadcastEmail(request, env);

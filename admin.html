@@ -166,6 +166,8 @@
   .subscriber-who { flex: 1; min-width: 160px; }
   .subscriber-name { color: var(--white); font-size: 0.9rem; }
   .subscriber-name.no-name { color: var(--steel); font-size: 0.72rem; }
+  .subscriber-nick { color: var(--orange, #e8542a); font-size: 0.75rem; }
+  .subscriber-nick.no-name { color: var(--steel); font-size: 0.68rem; }
   .card-name { color: var(--white); margin: 4px 0 0; }
   .add-subscriber-row { flex-wrap: wrap; }
   .subscriber-search { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
@@ -259,6 +261,10 @@
   .iv-status { font-size: 0.68rem; }
   .iv-status.published { color: #4caf7d; }
   .iv-status.scheduled { color: var(--orange); }
+  .iv-actions { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px; }
+  .iv-actions .iv-act { padding: 4px 8px; font-size: 0.68rem; }
+  .iv-drafts-title { margin: 22px 0 4px; font-size: 0.9rem; }
+  .iv-draft-date { color-scheme: dark; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3); color: var(--white); padding: 6px 8px; font: inherit; }
   .iv-toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
   .iv-toolbar button { padding: 6px 12px; font-size: 0.72rem; }
   .iv-note { color: var(--steel); font-size: 0.72rem; }
@@ -268,6 +274,15 @@
   .bc-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
   .bc-h3 { margin: 22px 0 6px; font-size: 0.9rem; }
   .bc-text { white-space: pre-line; overflow-wrap: anywhere; }
+  .bc-item { border: 1px solid rgba(255,255,255,0.2); margin-bottom: 8px; }
+  .bc-item > summary { cursor: pointer; padding: 10px 12px; list-style: revert; }
+  .bc-body { padding: 0 12px 12px; }
+  .bc-body .bc-row { margin: 8px 0; }
+  .bc-body .bc-row button { padding: 6px 10px; font-size: 0.72rem; }
+  .bc-one { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .bc-one input { flex: 1 1 200px; min-width: 0; }
+  .bc-one button { padding: 6px 10px; font-size: 0.72rem; }
+  .bc-emailed summary { cursor: pointer; margin-top: 6px; }
   .pv-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; }
   .pv-form input[type="email"] { flex: 1 1 220px; min-width: 0; }
   .pv-form select { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3); color: var(--white); padding: 8px 10px; font: inherit; }
@@ -414,17 +429,18 @@
       </div>
       <p class="subscriber-search-count" id="iv-filter-count"></p>
       <div id="iv-list"></div>
+      <div id="iv-drafts"></div>
     </details>
   </section>
 
   <section>
     <details class="collapsible" id="members-msg-wrap">
       <summary><h2>Messages to subscribers <span class="summary-count" id="msg-count"></span></h2></summary>
-      <p class="iv-note">A message goes to every member&rsquo;s Profile inbox, and the bell shows it as unread. Tick Also email to send it by email too, except to members who have turned emails off.</p>
+      <p class="iv-note">Members and subscribers are the same people: everyone with an MT3UK account. A message always goes to their Profile inbox, and the bell shows it as unread. Tick <strong>Also send it by email</strong> to email it too (members who have turned emails off are skipped).</p>
       <form class="bc-form" id="bc-form" novalidate>
         <input type="text" id="bc-title" placeholder="Title, e.g. Track day at Thruxton" maxlength="120" aria-label="Message title">
         <textarea id="bc-text" rows="5" maxlength="5000" placeholder="Message" aria-label="Message"></textarea>
-        <label class="bc-email"><input type="checkbox" id="bc-email"> Also email it to members</label>
+        <label class="bc-email"><input type="checkbox" id="bc-email"> Also send it by email</label>
         <div class="bc-row"><button type="submit">Send message</button><span class="iv-note" id="bc-note"></span></div>
       </form>
       <div id="bc-list"></div>
@@ -485,7 +501,7 @@
           <button type="button" id="add-subscriber-btn">Add subscriber</button>
         </div>
         <div class="subscriber-search">
-          <input type="search" id="sub-search-name" placeholder="Search first or last name" autocomplete="off">
+          <input type="search" id="sub-search-name" placeholder="Search name or nickname" autocomplete="off">
           <input type="search" id="sub-search-email" placeholder="Search email" autocomplete="off">
           <label>Added from <input type="date" id="sub-search-from"></label>
           <label>to <input type="date" id="sub-search-to"></label>
@@ -771,6 +787,7 @@
       '<div class="subscriber-head">' +
         '<div class="subscriber-who">' +
           '<div class="subscriber-name' + (hasName ? '' : ' no-name') + '">' + (hasName ? escapeHtml(s.firstName + ' ' + s.lastName) : 'No name yet') + '</div>' +
+          '<div class="subscriber-nick' + (s.nickname ? '' : ' no-name') + '">' + (s.nickname ? '@' + escapeHtml(s.nickname) : 'No nickname') + '</div>' +
           '<span class="subscriber-email">' + escapeHtml(s.email) + '</span>' +
           '<div class="subscriber-added">Added ' + (s.added ? escapeHtml(formatAdded(s.added)) : 'date unknown') + '</div>' +
         '</div>' +
@@ -823,7 +840,7 @@
     var email = searchEmail.value.trim().toLowerCase();
     var from = searchFrom.value;
     var to = searchTo.value;
-    if (name && ((s.firstName || '') + ' ' + (s.lastName || '')).toLowerCase().indexOf(name) === -1) return false;
+    if (name && ((s.firstName || '') + ' ' + (s.lastName || '') + ' ' + (s.nickname || '')).toLowerCase().indexOf(name) === -1) return false;
     if (email && s.email.toLowerCase().indexOf(email) === -1) return false;
     if (from || to) {
       if (!s.added) return false;
@@ -1747,6 +1764,8 @@
   var noteEl = document.getElementById('iv-note');
   var reviewEl = document.getElementById('iv-review');
   var interviews = [];
+  // Drafts have no publish date: kept aside from the schedule.
+  var draftList = [];
   var counts = {};
   // Edit mode: `original` is the list as loaded from the repo, `drafts` holds
   // the edited values keyed by page url.
@@ -1893,6 +1912,20 @@
         escapeHtml(g.before.name) + ' (' + nice(g.before.publish) + '). An interview could go out on ' + nice(g.free) + '.</p>';
     }).join('');
 
+    // How long each published interview was (or has been) the latest one.
+    var currentFor = {};
+    published.forEach(function (iv, i) {
+      var next = published[i + 1];
+      currentFor[iv.url] = { days: daysBetween(iv.publish, next ? next.publish : today), current: !next };
+    });
+    function statusCell(iv, live) {
+      return '<td class="iv-hide-sm"><span class="iv-status ' + (live ? 'published' : 'scheduled') + '">' + (live ? 'Published' : 'Scheduled') + '</span></td>';
+    }
+    function currentNote(iv) {
+      var c = currentFor[iv.url];
+      return c ? '<div class="iv-sub iv-current">' + (c.current ? 'Current for ' : 'Was current for ') + c.days + ' day' + (c.days === 1 ? '' : 's') + '</div>' : '';
+    }
+
     var rows = viewRows(sorted, today);
     countFilterEl.textContent = rows.length === sorted.length ? sorted.length + ' interviews' : 'Showing ' + rows.length + ' of ' + sorted.length + ' interviews';
     if (!rows.length) {
@@ -1927,16 +1960,81 @@
         }
         return '<tr>' +
           '<td><a href="' + escapeHtml(iv.url) + (live ? '' : '?date=' + escapeHtml(iv.publish)) + '" target="_blank" rel="noopener">' + escapeHtml(iv.name) + '</a>' +
-            '<div class="iv-sub">' + escapeHtml(iv.title || iv.car || '') + '</div></td>' +
+            '<div class="iv-sub">' + escapeHtml(iv.title || iv.car || '') + '</div>' +
+            (live ? '' : '<div class="iv-actions">' +
+              '<button type="button" class="secondary iv-act" data-action="publish-now" data-url="' + escapeHtml(iv.url) + '">Publish now</button>' +
+              '<button type="button" class="secondary iv-act" data-action="draft" data-url="' + escapeHtml(iv.url) + '">Draft</button></div>') + '</td>' +
           typeCell +
-          '<td>' + nice(iv.publish) + '<div class="iv-sub">' + inDays(daysBetween(today, iv.publish)) + '</div></td>' +
+          '<td>' + nice(iv.publish) + '<div class="iv-sub">' + inDays(daysBetween(today, iv.publish)) + '</div>' + currentNote(iv) + '</td>' +
           createdCell +
-          '<td class="iv-hide-sm"><span class="iv-status ' + (live ? 'published' : 'scheduled') + '">' + (live ? 'Published' : 'Scheduled') + '</span></td>' +
+          statusCell(iv, live) +
           '<td class="num">' + (live ? n : '<span class="iv-sub">-</span>') + '</td>' +
         '</tr>';
       }).join('') +
       '</tbody></table>';
+    renderDrafts();
   }
+
+  function renderDrafts() {
+    var el = document.getElementById('iv-drafts');
+    if (!draftList.length) { el.innerHTML = ''; return; }
+    el.innerHTML = '<h3 class="iv-drafts-title">Drafts (' + draftList.length + ')</h3>' +
+      '<p class="iv-note">Not on the schedule and not published. Their pages stay behind the preview code. Give one a date, or publish it now.</p>' +
+      '<table class="iv-table"><tbody>' + draftList.map(function (iv) {
+        return '<tr><td><a href="' + escapeHtml(iv.url) + '" target="_blank" rel="noopener">' + escapeHtml(iv.name) + '</a><div class="iv-sub">' + escapeHtml(iv.title || '') + '</div></td>' +
+          '<td><input type="date" class="iv-draft-date" data-url="' + escapeHtml(iv.url) + '" aria-label="Date for ' + escapeHtml(iv.name) + '"></td>' +
+          '<td class="iv-actions"><button type="button" class="secondary iv-act" data-action="schedule" data-url="' + escapeHtml(iv.url) + '">Schedule</button>' +
+          '<button type="button" class="secondary iv-act" data-action="publish-now" data-url="' + escapeHtml(iv.url) + '">Publish now</button></td></tr>';
+      }).join('') + '</tbody></table>';
+  }
+
+  function takeInterviews(all) {
+    interviews = all.filter(function (iv) { return iv.publish; });
+    draftList = all.filter(function (iv) { return !iv.publish; });
+  }
+
+  // Draft, Publish now and Schedule (for drafts), each with a confirm.
+  function runAction(action, url, btn) {
+    var key = adminKey();
+    if (!key) { setNote('Enter the admin key at the top of the page first.', 'error'); return; }
+    var iv = interviews.concat(draftList).find(function (x) { return x.url === url; });
+    if (!iv) return;
+    var today = ukToday();
+    var latest = interviews.filter(function (x) { return x.publish <= today; }).sort(function (a, b) { return a.publish < b.publish ? 1 : -1; })[0];
+    var date = '';
+    var question;
+    if (action === 'draft') {
+      question = 'Move ' + iv.name + ' to drafts?\n\nIts date (' + nice(iv.publish) + ') is freed up for another interview, and its page stays behind the preview code until you give it a new date.';
+    } else if (action === 'publish-now') {
+      question = 'Publish ' + iv.name + ' now?\n\nIt goes live today' + (latest ? ' and replaces ' + latest.name + ' as the latest interview on the homepage' : '') + '. This can\u2019t be undone from here.';
+    } else {
+      var input = document.querySelector('.iv-draft-date[data-url="' + url + '"]');
+      date = input && input.value;
+      if (!date) { setNote('Choose a date for ' + iv.name + ' first.', 'error'); return; }
+      question = 'Schedule ' + iv.name + ' for ' + nice(date) + '?';
+    }
+    if (!window.confirm(question)) return;
+    btn.disabled = true;
+    setNote('Saving…');
+    fetch(API + '/interviews/admin/action?key=' + encodeURIComponent(key), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: action, url: url, date: date, from: { publish: iv.publish || '' } })
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        btn.disabled = false;
+        if (!data.success) { setNote(data.message === 'Unauthorized' ? 'The admin key is not right.' : (data.message || 'Could not save.'), 'error'); return; }
+        takeInterviews(data.interviews);
+        render();
+        setNote('Saved: ' + data.change + '. The live site updates in about a minute.', 'ok');
+      })
+      .catch(function () { btn.disabled = false; setNote('Network error, nothing was saved. Please try again.', 'error'); });
+  }
+  document.getElementById('interviews-wrap').addEventListener('click', function (e) {
+    var btn = e.target.closest('.iv-act');
+    if (btn) runAction(btn.getAttribute('data-action'), btn.getAttribute('data-url'), btn);
+  });
 
   // ---------- Editing dates and titles ----------
   // Changes are saved by the worker as one commit to data/interviews.json,
@@ -1992,7 +2090,7 @@
       .then(function (r) {
         editBtn.disabled = false;
         if (!r.ok || !r.data.success) { setNote(r.data.message === 'Unauthorized' ? 'The admin key is not right.' : (r.data.message || 'Could not load the schedule.'), 'error'); return; }
-        interviews = r.data.interviews.filter(function (iv) { return iv.publish; });
+        takeInterviews(r.data.interviews);
         original = interviews.map(function (iv) { return Object.assign({}, iv); });
         drafts = {};
         original.forEach(function (o) { drafts[o.url] = { publish: o.publish, name: o.name || '', title: o.title || '', excerpt: o.excerpt || '' }; });
@@ -2133,7 +2231,7 @@
           setNote(r.data.message === 'Unauthorized' ? 'The admin key is not right.' : (r.data.message || 'Could not save.'), 'error');
           return;
         }
-        interviews = r.data.interviews.filter(function (iv) { return iv.publish; });
+        takeInterviews(r.data.interviews);
         original = interviews;
         setEditing(false);
         setNote('Saved. The live site updates in about a minute.', 'ok');
@@ -2158,7 +2256,7 @@
     fetch('data/interviews.json', { cache: 'no-store' }).then(function (res) { return res.json(); }),
     fetch(API + '/comment-counts', { cache: 'no-store' }).then(function (res) { return res.ok ? res.json() : {}; }).catch(function () { return {}; })
   ]).then(function (results) {
-    interviews = ((results[0] && results[0].interviews) || []).filter(function (iv) { return iv.publish; });
+    takeInterviews((results[0] && results[0].interviews) || []);
     counts = (results[1] && results[1].counts) || {};
     render();
   }).catch(function () {
@@ -2329,13 +2427,36 @@
     return fetch(API + path + (path.indexOf('?') === -1 ? '?' : '&') + 'key=' + encodeURIComponent(key()), opts).then(function (res) { return res.json(); });
   }
 
+  // Each sent message is collapsed to its title, date and how many members
+  // it has been emailed to; open it for the text and actions.
+  var openIds = {}, oneNotes = {};
   function drawBroadcasts(list) {
     document.getElementById('msg-count').textContent = list.length ? '(' + list.length + ')' : '';
-    listEl.innerHTML = list.length ? '<table class="iv-table"><thead><tr><th>Message</th><th>Sent</th><th></th></tr></thead><tbody>' + list.map(function (b) {
-      return '<tr><td><strong>' + esc(b.title) + '</strong><div class="iv-sub bc-text">' + esc(b.text) + '</div></td><td>' + esc(when(b.at)) + '</td>' +
-        '<td class="num"><button type="button" class="secondary bc-mail" data-id="' + esc(b.id) + '">Email it</button> <button type="button" class="danger bc-del" data-id="' + esc(b.id) + '">Delete</button></td></tr>';
-    }).join('') + '</tbody></table>' : '<p class="iv-note">No messages sent yet.</p>';
+    listEl.innerHTML = list.length ? list.map(function (b) {
+      var emailed = b.emailed || [];
+      return '<details class="bc-item" data-id="' + esc(b.id) + '"' + (openIds[b.id] ? ' open' : '') + '>' +
+        '<summary><strong>' + esc(b.title) + '</strong> <span class="iv-sub">' + esc(when(b.at)) + ' &middot; ' +
+          (emailed.length ? 'emailed to ' + emailed.length : 'Profile inboxes only, not emailed') + '</span></summary>' +
+        '<div class="bc-body">' +
+          '<p class="bc-text">' + esc(b.text) + '</p>' +
+          '<div class="bc-row">' +
+            '<button type="button" class="secondary bc-mail" data-id="' + esc(b.id) + '">Email to everyone not emailed yet</button>' +
+            '<button type="button" class="danger bc-del" data-id="' + esc(b.id) + '">Remove from inboxes</button>' +
+          '</div>' +
+          '<form class="bc-one" data-id="' + esc(b.id) + '" novalidate>' +
+            '<input type="email" placeholder="Member&rsquo;s email" aria-label="Email this message to one member">' +
+            '<button type="submit" class="secondary">Email to this member</button>' +
+          '</form>' +
+          '<p class="iv-note bc-one-note' + (oneNotes[b.id] ? ' ' + oneNotes[b.id].kind : '') + '" role="status">' + esc(oneNotes[b.id] ? oneNotes[b.id].text : '') + '</p>' +
+          (emailed.length ? '<details class="bc-emailed"><summary class="iv-sub">Who&rsquo;s been emailed (' + emailed.length + ')</summary><p class="iv-sub">' + emailed.map(esc).join(', ') + '</p></details>' : '') +
+        '</div>' +
+      '</details>';
+    }).join('') : '<p class="iv-note">No messages sent yet.</p>';
   }
+  listEl.addEventListener('toggle', function (e) {
+    var item = e.target.closest && e.target.closest('.bc-item');
+    if (item && e.target === item) openIds[item.getAttribute('data-id')] = item.open;
+  }, true);
 
   function drawReports(reports) {
     document.getElementById('dm-count').textContent = reports.length ? '(' + reports.length + ')' : '';
@@ -2363,9 +2484,12 @@
     note('Emailing members… ' + totals.sent + ' sent so far');
     return call('POST', '/admin/broadcasts/email', { id: id, cursor: cursor || null }).then(function (data) {
       if (!data.success) { note(data.message || 'Emailing stopped.', 'error'); return; }
-      totals.sent += data.sent; totals.skipped += data.skipped;
+      totals.sent += data.sent; totals.skipped += data.skipped; totals.already = (totals.already || 0) + (data.already || 0);
       if (data.cursor) return emailAll(id, data.cursor, totals);
-      note('Emailed ' + totals.sent + ' member' + (totals.sent === 1 ? '' : 's') + (totals.skipped ? ' (' + totals.skipped + ' have emails off)' : '') + '.', 'ok');
+      note('Emailed ' + totals.sent + ' member' + (totals.sent === 1 ? '' : 's') +
+        (totals.already ? ', ' + totals.already + ' already had it' : '') +
+        (totals.skipped ? ', ' + totals.skipped + ' have emails off' : '') + '.', 'ok');
+      return load();
     });
   }
 
@@ -2392,13 +2516,40 @@
   listEl.addEventListener('click', function (e) {
     var del = e.target.closest('.bc-del');
     var mail = e.target.closest('.bc-mail');
-    if (del && window.confirm('Delete this message from everyone’s inbox?')) {
+    if (del && window.confirm('Remove this message from everyone’s Profile inbox?\n\nEmails that have already gone out can’t be unsent.')) {
       call('POST', '/admin/broadcasts', { action: 'delete', id: del.getAttribute('data-id') }).then(function (data) { if (data.success) drawBroadcasts(data.broadcasts); });
     }
-    if (mail && window.confirm('Email this message to every member (except those with emails off)?')) {
+    if (mail && window.confirm('Email this message to every member who hasn’t had it yet (members with emails off are skipped)?')) {
       mail.disabled = true;
       emailAll(mail.getAttribute('data-id')).then(function () { mail.disabled = false; });
     }
+  });
+
+  // Email one message to one member; asks before sending it again.
+  listEl.addEventListener('submit', function (e) {
+    var one = e.target.closest('.bc-one');
+    if (!one) return;
+    e.preventDefault();
+    var input = one.querySelector('input');
+    var status = one.parentNode.querySelector('.bc-one-note');
+    var email = input.value.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { status.textContent = 'Enter a valid email.'; status.className = 'iv-note bc-one-note error'; return; }
+    var id = one.getAttribute('data-id');
+    var send = function (force) {
+      status.textContent = 'Sending…'; status.className = 'iv-note bc-one-note';
+      call('POST', '/admin/broadcasts/email-one', { id: id, email: email, force: !!force }).then(function (data) {
+        if (data.already && !force) {
+          if (window.confirm(data.message)) send(true); else { status.textContent = 'Not sent.'; }
+          return;
+        }
+        if (!data.success) { status.textContent = data.message || 'Could not send.'; status.className = 'iv-note bc-one-note error'; return; }
+        oneNotes[id] = { text: 'Emailed to ' + email + '.', kind: 'ok' };
+        status.textContent = oneNotes[id].text; status.className = 'iv-note bc-one-note ok';
+        input.value = '';
+        load();
+      }).catch(function () { status.textContent = 'Network error, please try again.'; status.className = 'iv-note bc-one-note error'; });
+    };
+    send(false);
   });
 
   dmEl.addEventListener('click', function (e) {

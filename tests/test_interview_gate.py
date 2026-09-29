@@ -158,3 +158,32 @@ def test_used_email_link_asks_for_a_new_code(device_page):
     assert "already been used" in page.locator("#iv-gate .ivg-msg").inner_text()
     assert page.locator("#ivg-email").is_visible()
     assert page.errors == []
+
+
+@all_devices
+def test_admin_link_goes_to_the_admin_inbox(device_page):
+    page = device_page
+    schedule(page, "2099-01-01")
+    page.goto(PAGE + "?gate=on")
+    page.locator("#iv-gate .ivg-admin").click()
+    page.wait_for_function("document.querySelector('#iv-gate .ivg-msg').textContent.indexOf('admin inbox') !== -1", timeout=5000)
+    assert page.mock_state.get("admin_link")
+    assert page.errors == []
+
+
+@all_devices
+def test_draft_interview_stays_behind_the_gate(device_page):
+    page = device_page
+    data = json.loads(json.dumps({"interviews": INTERVIEWS}))
+    for iv in data["interviews"]:
+        if iv["url"] == "blog-sharad.html":
+            iv.pop("publish", None)
+            iv["draft"] = True
+    page.route(re.compile(r".*/data/interviews\.json.*"), lambda route: route.fulfill(
+        status=200, body=json.dumps(data), headers={"Content-Type": "application/json"}))
+    page.goto(PAGE + "?gate=on")
+    gate = page.locator("#iv-gate")
+    gate.wait_for(state="visible", timeout=5000)
+    assert "coming soon" in gate.inner_text().lower()
+    assert page.locator("article.interview").is_hidden()
+    assert page.errors == []

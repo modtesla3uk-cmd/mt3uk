@@ -258,9 +258,38 @@
   .pf-garage .si-btn { width: 100%; }
   .pf-link { display: inline-block; margin-top: 12px; background: none; border: 0; padding: 0; font: inherit; font-size: 0.9rem; color: var(--ink); text-decoration: underline; cursor: pointer; }
   .pf-link:hover { color: var(--orange); }
-  .pf-subtabs { display: flex; gap: 0; border-bottom: 1px solid var(--ink); margin-bottom: 14px; }
-  .pf-subtab { background: none; border: 0; border-bottom: 3px solid transparent; padding: 10px 14px; font: inherit; font-weight: 600; color: var(--steel); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; margin-bottom: -1px; }
-  .pf-subtab.is-on { color: var(--ink); border-bottom-color: var(--orange); }
+  /* Collapsible sections (Messages from MT3UK and friends, Your friends),
+     each with an "N new" pill while something is unread. */
+  .pf-fold { border-top: 1px solid rgba(22, 35, 61, 0.2); }
+  .pf-fold:last-of-type { border-bottom: 1px solid rgba(22, 35, 61, 0.2); }
+  .pf-fold + .pf-fold { border-top: 0; }
+  #friends .pf-fold { margin-top: 18px; }
+  .pf-fold > summary { cursor: pointer; padding: 14px 0; font-weight: 600; display: flex; align-items: center; gap: 8px; list-style: none; }
+  .pf-fold > summary::-webkit-details-marker { display: none; }
+  .pf-fold > summary::before { content: ''; width: 8px; height: 8px; border-right: 2px solid var(--ink); border-bottom: 2px solid var(--ink); transform: rotate(-45deg); transition: transform 0.15s; margin-right: 4px; flex-shrink: 0; }
+  .pf-fold[open] > summary::before { transform: rotate(45deg); }
+  .pf-fold > summary:hover { color: var(--orange); }
+  .pf-fold[open] { padding-bottom: 12px; }
+  .pf-new { background: var(--orange); color: #fff; border-radius: 999px; font-size: 0.7rem; padding: 2px 8px; font-weight: 600; white-space: nowrap; }
+  .pf-list .pf-new { margin-left: 6px; vertical-align: middle; }
+  .pf-who span.pf-new { color: #fff; font-size: 0.7rem; display: inline-block; margin: 4px 0 0; }
+  #email-alerts .pf-check { margin-bottom: 10px; }
+  .pf-fieldset { border: 0; margin: 0 0 16px; padding: 0; display: grid; gap: 10px; }
+  .pf-fieldset legend { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--steel); margin-bottom: 10px; }
+  .pf-muted { color: var(--steel); font-size: 0.88rem; overflow-wrap: anywhere; }
+  .pf-nick-check { min-height: 1.2em; margin-bottom: 6px; font-weight: 600; }
+  .pf-nick-check:empty { display: none; }
+  .pf-app-card p { color: var(--steel); margin-bottom: 16px; }
+  .pf-app-card .si-btn { width: 100%; }
+  .pf-app-steps { margin-top: 14px; padding: 14px 16px; border: 1px solid rgba(22, 35, 61, 0.2); font-size: 0.9rem; }
+  .pf-app-steps ol { margin: 8px 0 0; padding-left: 20px; }
+  .pf-app-steps li { margin: 4px 0; }
+  .pf-app-steps .app-done { margin-top: 10px; background: none; border: 0; padding: 0; font: inherit; font-size: 0.85rem; color: var(--steel); text-decoration: underline; cursor: pointer; }
+  .pf-side { display: grid; gap: 22px; min-width: 0; }
+  .pf-push { margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(22, 35, 61, 0.2); scroll-margin-top: 90px; }
+  .pf-push h3 { margin-top: 0; }
+  .pf-push .push-intro { color: var(--steel); font-size: 0.92rem; margin-bottom: 14px; }
+  .pf-warning { border-left: 4px solid #b3261e; background: rgba(179, 38, 30, 0.07); padding: 10px 12px; color: var(--ink) !important; }
   .pf-list { list-style: none; }
   .pf-list > li { border-bottom: 1px solid rgba(22, 35, 61, 0.15); padding: 12px 0; display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
   .pf-list > li:last-child { border-bottom: 0; }
@@ -292,7 +321,7 @@
   .pf-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .pf-check { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
   .pf-check input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--orange); flex-shrink: 0; }
-  .pf-leave { margin-top: 26px; padding-top: 20px; border-top: 1px solid rgba(22, 35, 61, 0.2); }
+  .pf-leave h3 { margin-top: 0; }
   .pf-leave p { color: var(--steel); font-size: 0.92rem; margin-bottom: 14px; }
   .pf-leave p a { color: var(--orange); text-decoration: underline; }
   .pf-leave-form { margin-top: 14px; max-width: 360px; }
@@ -506,6 +535,7 @@
       <h2>Choose your nickname</h2>
       <p>Your nickname (or handle) is how friends find you, and it shows on your builds, comments and likes instead of your full name. Pick one to use your profile. You can change it later.</p>
       <div class="si-field"><label for="pf-gate-nick">Nickname</label><input type="text" id="pf-gate-nick" maxlength="20" autocomplete="nickname" placeholder="e.g. GreenKnight"></div>
+      <p class="pf-hint pf-nick-check" id="pf-gate-check" role="status"></p>
       <p class="pf-hint">3 to 20 letters or numbers, and _ . - if you like, starting with a letter or number.</p>
       <button type="submit" class="si-btn si-btn-primary si-btn-block">Save and open my profile</button>
       <p class="si-status" id="pf-gate-status" role="status"></p>
@@ -516,7 +546,8 @@
         <a href="#details">Details</a>
         <a href="#messages">Messages <span class="pf-badge" id="pf-badge-messages" hidden></span></a>
         <a href="#friends">Friends <span class="pf-badge" id="pf-badge-friends" hidden></span></a>
-        <a href="#unsubscribe">Emails</a>
+        <a href="#visibility">Visibility</a>
+        <a href="#email-alerts">Emails</a>
         <a href="my-builds.html" class="pf-tab-garage">My Garage &rarr;</a>
       </div>
 
@@ -529,12 +560,13 @@
             <dt>Email</dt><dd id="pf-email">-</dd>
             <dt>Member since</dt><dd id="pf-since">-</dd>
           </dl>
-          <p class="pf-hint" id="pf-nick-hint">Your nickname is shown on your builds, comments and likes instead of your full name, and friends find you by it.</p>
+          <p class="pf-hint" id="pf-nick-hint">Your nickname is shown on your builds, comments and likes instead of your full name (unless you choose your full name under <a href="#visibility">Visibility</a>), and friends find you by it.</p>
           <button type="button" class="si-btn" id="pf-edit">Edit</button>
           <form class="pf-form" id="pf-form" hidden novalidate>
             <div class="si-field"><label for="pf-first">First name</label><input type="text" id="pf-first" autocomplete="given-name" maxlength="50"></div>
             <div class="si-field"><label for="pf-last">Last name</label><input type="text" id="pf-last" autocomplete="family-name" maxlength="50"></div>
             <div class="si-field"><label for="pf-nickname">Nickname</label><input type="text" id="pf-nickname" autocomplete="nickname" maxlength="20" placeholder="e.g. GreenKnight"></div>
+            <p class="pf-hint pf-nick-check" id="pf-nick-check" role="status"></p>
             <p class="pf-hint">3 to 20 letters or numbers, and _ . - if you like. Friends find you by it.</p>
             <div class="pf-row">
               <button type="submit" class="si-btn si-btn-primary">Save</button>
@@ -544,24 +576,52 @@
           <p class="si-status" id="pf-details-status" role="status"></p>
         </div>
 
-        <div class="pf-card pf-garage">
-          <h2>My Garage</h2>
-          <p id="pf-builds">Add photos and mods of your car and it joins the gallery, the reel and the weekly vote.</p>
-          <a href="my-builds.html" class="si-btn si-btn-primary">Go to My Garage &rarr;</a>
-          <a href="#" class="pf-link" id="pf-builds-link" hidden>See your builds in the gallery</a>
+        <div class="pf-side">
+          <div class="pf-card pf-garage">
+            <h2>My Garage</h2>
+            <p id="pf-builds">Add photos and mods of your car and it joins the gallery, the reel and the weekly vote.</p>
+            <a href="my-builds.html" class="si-btn si-btn-primary">Go to My Garage &rarr;</a>
+            <a href="#" class="pf-link" id="pf-builds-link" hidden>See your builds in the gallery</a>
+          </div>
+
+          <div class="pf-card pf-app-card" id="app" hidden>
+            <h2>The MT3UK app</h2>
+            <p class="app-text">One tap to the build reel and your garage, full screen, and notifications switch on when you sign in there.</p>
+            <button type="button" class="si-btn si-btn-primary app-btn" id="pf-app-btn">Install the app</button>
+            <div class="app-steps pf-app-steps" hidden></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pf-card" id="visibility">
+        <h2>Visibility</h2>
+        <fieldset class="pf-fieldset">
+          <legend>Show on my builds, comments and likes</legend>
+          <label class="pf-check"><input type="radio" name="pf-show" value="nickname" id="pf-show-nick"> <span>My nickname <span class="pf-muted" id="pf-show-nick-eg"></span></span></label>
+          <label class="pf-check"><input type="radio" name="pf-show" value="name" id="pf-show-name"> <span>My full name <span class="pf-muted" id="pf-show-name-eg"></span></span></label>
+        </fieldset>
+        <label class="pf-check"><input type="checkbox" id="pf-findable"> <span>Let members find me by my real name when they search for friends. Your nickname can always be searched.</span></label>
+        <p class="si-status" id="pf-vis-status" role="status"></p>
+
+        <div class="pf-push" id="notifications" data-push-card>
+          <h3>Phone notifications</h3>
+          <p class="push-intro">Alerts on this device when someone likes or comments on your build, replies to your comments, or messages you. They switch on by themselves in the MT3UK app. While they&rsquo;re on, comment emails stop.</p>
+          <div class="pf-row">
+            <button type="button" class="si-btn si-btn-primary push-toggle" id="pf-push-toggle" hidden>Turn on notifications</button>
+            <button type="button" class="si-btn push-test" id="pf-push-test" hidden>Send a test</button>
+          </div>
+          <p class="si-status push-status" id="pf-push-status" role="status"></p>
         </div>
       </div>
 
       <div class="pf-card" id="messages">
         <h2>Messages</h2>
-        <div class="pf-subtabs" role="tablist">
-          <button type="button" class="pf-subtab is-on" data-pane="pf-pane-mt3uk" role="tab" aria-selected="true">From MT3UK <span class="pf-badge" id="pf-badge-mt3uk" hidden></span></button>
-          <button type="button" class="pf-subtab" data-pane="pf-pane-friends" role="tab" aria-selected="false">Friends <span class="pf-badge" id="pf-badge-direct" hidden></span></button>
-        </div>
-        <div class="pf-pane" id="pf-pane-mt3uk">
+        <details class="pf-fold" id="pf-fold-mt3uk">
+          <summary>From MT3UK <span class="pf-new" id="pf-badge-mt3uk" hidden></span></summary>
           <ul class="pf-list" id="pf-broadcasts"></ul>
-        </div>
-        <div class="pf-pane" id="pf-pane-friends" hidden>
+        </details>
+        <details class="pf-fold" id="pf-fold-friends">
+          <summary>From friends <span class="pf-new" id="pf-badge-direct" hidden></span></summary>
           <ul class="pf-list" id="pf-threads"></ul>
           <div class="pf-thread" id="pf-thread" hidden>
             <button type="button" class="pf-link pf-back" id="pf-thread-back">&larr; All messages</button>
@@ -574,31 +634,39 @@
             </form>
             <p class="si-status" id="pf-thread-status" role="status"></p>
           </div>
-        </div>
+        </details>
       </div>
 
       <div class="pf-card" id="friends">
         <h2>Friends</h2>
         <p class="pf-hint" id="pf-friends-need-nick" hidden>Set a nickname in <a href="#details" id="pf-nick-link">Your details</a> first, so friends can find you and see who you are.</p>
         <form class="pf-search" id="pf-search" novalidate>
-          <label for="pf-search-q" class="pf-sr">Find members by nickname</label>
-          <input type="search" id="pf-search-q" placeholder="Find members by nickname" autocomplete="off">
+          <label for="pf-search-q" class="pf-sr">Find members by nickname or name</label>
+          <input type="search" id="pf-search-q" placeholder="Find members by nickname or name" autocomplete="off">
           <button type="submit" class="si-btn">Search</button>
         </form>
         <ul class="pf-list" id="pf-results"></ul>
         <div id="pf-requests"></div>
-        <h3 class="pf-h3">Your friends <span class="mono" id="pf-friend-count"></span></h3>
-        <ul class="pf-list" id="pf-friends"></ul>
+        <details class="pf-fold" id="pf-fold-friendlist">
+          <summary>Your friends <span class="mono" id="pf-friend-count"></span> <span class="pf-new" id="pf-badge-friendmsgs" hidden></span></summary>
+          <ul class="pf-list" id="pf-friends"></ul>
+        </details>
         <p class="si-status" id="pf-friends-status" role="status"></p>
       </div>
 
-      <div class="pf-card" id="unsubscribe">
-        <h2>Emails and unsubscribe</h2>
-        <label class="pf-check"><input type="checkbox" id="pf-emails"> <span>Send me emails: comment, like and friend alerts, and messages from MT3UK and friends. Sign-in codes always send.</span></label>
+      <div class="pf-card" id="email-alerts">
+        <h2>Email alerts</h2>
+        <label class="pf-check"><input type="checkbox" id="pf-emails"> <span>Email me alerts: comments and likes on my builds, friend requests, and messages from MT3UK and friends.</span></label>
+        <p class="pf-hint">One-time sign-in and access codes are always emailed. With alerts off, you&rsquo;ll still see everything in the bell and here once you&rsquo;re signed in.</p>
         <p class="si-status" id="pf-emails-status" role="status"></p>
+      </div>
+
+      <div class="pf-card" id="unsubscribe">
+        <h2>Unsubscribe</h2>
         <div class="pf-leave">
           <h3>Leave MT3UK</h3>
-          <p>This deletes your account, your builds in My Garage (from the gallery, reel and vote), your friends and messages. Your comments stay, under your name. It can&rsquo;t be undone. To have your comments removed too, or for a copy of your data, see our <a href="privacy.html#rights">Privacy notice</a>.</p>
+          <p class="pf-warning"><strong>Warning:</strong> this deletes your account, your builds in My Garage (from the gallery, reel and vote), your friends and messages. It can&rsquo;t be undone.</p>
+          <p>Your comments stay, under your name. To have your comments removed too, or for a copy of your data, see our <a href="privacy.html#rights">Privacy notice</a>. To just stop emails, turn off <a href="#email-alerts">Email alerts</a> instead.</p>
           <button type="button" class="si-btn pf-danger" id="pf-leave-open">Leave MT3UK&hellip;</button>
           <form class="pf-leave-form" id="pf-leave-form" hidden novalidate>
             <div class="si-field"><label for="pf-leave-confirm">Type LEAVE to confirm</label><input type="text" id="pf-leave-confirm" autocomplete="off" autocapitalize="characters"></div>
@@ -756,9 +824,12 @@
   }
 </script>
 
+<script src="js/push-toggle.js"></script>
+<script src="js/app-install.js"></script>
 <script>
-  // My Profile: name and nickname, a link to My Garage, messages (from
-  // MT3UK and between friends), friends, and email choices / leaving.
+  // My Profile: name and nickname, visibility, a link to My Garage,
+  // messages (from MT3UK and between friends), friends, phone
+  // notifications, the app, email alerts and leaving.
   // Everything comes from the worker's /profile endpoints with the member's
   // session. Other members are shown by nickname or name and an id, never
   // by email.
@@ -808,6 +879,19 @@
     }
 
     function badge(el, n) { el.hidden = !n; el.textContent = n > 99 ? '99+' : String(n || ''); }
+    // "3 new" pills on the collapsible sections.
+    function newBadge(el, n) { el.hidden = !n; el.textContent = n ? (n > 99 ? '99+' : n) + ' new' : ''; }
+    // Unread friend messages by friend id, for the Your friends list.
+    var unreadById = {};
+
+    // Nickname boxes say as you type whether a nickname is free
+    // (js/account-bar.js, which loads after this script).
+    function watchNick(input, out) {
+      if (window.mt3ukWatchNickname) window.mt3ukWatchNickname(input, out);
+      else document.addEventListener('DOMContentLoaded', function () { if (window.mt3ukWatchNickname) window.mt3ukWatchNickname(input, out); });
+    }
+    watchNick($('pf-nickname'), $('pf-nick-check'));
+    watchNick($('pf-gate-nick'), $('pf-gate-check'));
 
     // ---------- Details ----------
     function drawDetails() {
@@ -828,6 +912,7 @@
       if (n) link.href = 'gallery.html?only=' + encodeURIComponent(profile.builds.join(','));
       $('pf-friends-need-nick').hidden = !!profile.nickname;
       $('pf-emails').checked = !profile.emailsOff;
+      drawVisibility();
       if (profile.firstName) { try { localStorage.setItem(FIRST_NAME_KEY, profile.firstName); } catch (e) {} }
     }
 
@@ -837,6 +922,7 @@
       $('pf-edit').hidden = on;
       $('pf-nick-hint').hidden = on;
       status($('pf-details-status'), '');
+      $('pf-nick-check').textContent = '';
       if (on) $('pf-first').focus();
     }
     $('pf-edit').addEventListener('click', function () { editing(true); });
@@ -867,25 +953,47 @@
         profile.nickname = data.nickname;
         drawDetails();
         editing(false);
+        drawFriends();
         status($('pf-details-status'), 'Saved. Your builds will show your new name shortly.', 'ok');
       }).catch(function (err) { btn.disabled = false; if (err.message !== 'signed out') status($('pf-details-status'), 'Network error, please try again.', 'err'); });
     });
 
-    // ---------- Messages ----------
-    function showPane(id) {
-      document.querySelectorAll('.pf-subtab').forEach(function (b) {
-        var on = b.getAttribute('data-pane') === id;
-        b.classList.toggle('is-on', on);
-        b.setAttribute('aria-selected', on ? 'true' : 'false');
-      });
-      $('pf-pane-mt3uk').hidden = id !== 'pf-pane-mt3uk';
-      $('pf-pane-friends').hidden = id !== 'pf-pane-friends';
+    // ---------- Visibility ----------
+    function drawVisibility() {
+      var full = [profile.firstName, profile.lastName].filter(Boolean).join(' ');
+      var showName = profile.showName === 'name' && full;
+      $('pf-show-nick').checked = !showName;
+      $('pf-show-name').checked = !!showName;
+      $('pf-show-name').disabled = !full;
+      $('pf-show-nick-eg').textContent = profile.nickname ? '(' + profile.nickname + ')' : '';
+      $('pf-show-name-eg').textContent = full ? '(' + full + ')' : '(add your name in Your details first)';
+      $('pf-findable').checked = !profile.hideRealName;
     }
-    document.querySelectorAll('.pf-subtab').forEach(function (b) {
-      b.addEventListener('click', function () {
-        showPane(b.getAttribute('data-pane'));
-        if (b.getAttribute('data-pane') === 'pf-pane-mt3uk') markBroadcastsRead();
+    function saveVisibility(body, undo) {
+      status($('pf-vis-status'), 'Saving…');
+      api('POST', '/profile', body).then(function (data) {
+        if (!data.success) { undo(); status($('pf-vis-status'), data.message || 'Could not save.', 'err'); return; }
+        profile.showName = data.showName;
+        profile.hideRealName = data.hideRealName;
+        drawVisibility();
+        status($('pf-vis-status'), 'Saved.' + ('showName' in body ? ' Your builds, comments and likes will show ' + (data.showName === 'name' ? 'your full name' : 'your nickname') + ' shortly.' : ''), 'ok');
+      }).catch(function (err) { undo(); if (err.message !== 'signed out') status($('pf-vis-status'), 'Network error, please try again.', 'err'); });
+    }
+    ['pf-show-nick', 'pf-show-name'].forEach(function (id) {
+      $(id).addEventListener('change', function () {
+        if (!$(id).checked) return;
+        saveVisibility({ showName: $(id).value }, drawVisibility);
       });
+    });
+    $('pf-findable').addEventListener('change', function () {
+      saveVisibility({ hideRealName: !$('pf-findable').checked }, drawVisibility);
+    });
+
+    // ---------- Messages ----------
+    // From MT3UK and From friends are collapsed, each with an "N new" pill.
+    // Opening From MT3UK marks its messages read.
+    $('pf-fold-mt3uk').addEventListener('toggle', function () {
+      if ($('pf-fold-mt3uk').open) markBroadcastsRead();
     });
 
     var broadcastsUnread = 0;
@@ -909,23 +1017,25 @@
             '<div class="pf-who"><strong>' + esc(t.name) + '</strong><span>' + (t.lastFromMe ? 'You: ' : '') + esc(t.lastText) + '</span></div>' +
             '<time datetime="' + esc(t.lastAt) + '">' + esc(when(t.lastAt)) + '</time></li>';
         }).join('') : '<li><span class="pf-empty">No messages yet. Message a friend from your Friends list below.</span></li>';
-        badge($('pf-badge-mt3uk'), broadcastsUnread);
-        var direct = data.threads.reduce(function (n, t) { return n + (t.unread || 0); }, 0);
-        badge($('pf-badge-direct'), direct);
-        badge($('pf-badge-messages'), broadcastsUnread + direct);
-        if (!$('pf-pane-mt3uk').hidden && location.hash === '#messages') markBroadcastsRead();
+        unreadById = {};
+        data.threads.forEach(function (t) { if (t.unread) unreadById[t.id] = t.unread; });
+        directUnread = data.threads.reduce(function (n, t) { return n + (t.unread || 0); }, 0);
+        updateBadges();
+        if (profile) drawFriends();
+        if ($('pf-fold-mt3uk').open) markBroadcastsRead();
       });
     }
 
+    var directUnread = 0;
     function updateBadges() {
-      badge($('pf-badge-mt3uk'), broadcastsUnread);
-      var direct = parseInt($('pf-badge-direct').textContent, 10) || 0;
-      badge($('pf-badge-messages'), broadcastsUnread + (($('pf-badge-direct').hidden) ? 0 : direct));
+      newBadge($('pf-badge-mt3uk'), broadcastsUnread);
+      newBadge($('pf-badge-direct'), directUnread);
+      badge($('pf-badge-messages'), broadcastsUnread + directUnread);
     }
 
     function openThread(id) {
       openThreadId = id;
-      showPane('pf-pane-friends');
+      $('pf-fold-friends').open = true;
       $('pf-threads').hidden = true;
       $('pf-thread').hidden = false;
       $('pf-bubbles').innerHTML = '<li class="pf-empty">Loading…</li>';
@@ -1028,12 +1138,14 @@
       $('pf-friend-count').textContent = profile.friends.length ? '(' + profile.friends.length + ')' : '';
       $('pf-friends').innerHTML = profile.friends.length ? profile.friends.map(function (c) {
         var builds = c.builds && c.builds.length;
-        return '<li>' + who(c) + '<div class="pf-actions">' +
+        var unread = unreadById[c.id] || 0;
+        return '<li>' + who(c, unread ? '<span class="pf-new">' + unread + ' new</span>' : '') + '<div class="pf-actions">' +
           '<button type="button" class="si-btn si-btn-primary pf-msg" data-id="' + esc(c.id) + '">Message</button>' +
           (builds ? '<a class="si-btn" href="gallery.html?only=' + encodeURIComponent(c.builds.join(',')) + '">Builds (' + builds + ')</a>' : '') +
           '<button type="button" class="si-btn pf-fr" data-action="remove" data-id="' + esc(c.id) + '">Remove</button></div></li>';
       }).join('') : '<li><span class="pf-empty">No friends yet. Find members by their nickname above.</span></li>';
       badge($('pf-badge-friends'), profile.incoming.length);
+      newBadge($('pf-badge-friendmsgs'), profile.friends.filter(function (c) { return unreadById[c.id]; }).length);
     }
 
     function friendAction(action, idOrNick, btn) {
@@ -1065,7 +1177,7 @@
     $('pf-search').addEventListener('submit', function (e) {
       e.preventDefault();
       var q = $('pf-search-q').value.trim();
-      if (q.length < 2) { $('pf-results').innerHTML = '<li><span class="pf-empty">Type at least 2 letters of a nickname.</span></li>'; return; }
+      if (q.length < 2) { $('pf-results').innerHTML = '<li><span class="pf-empty">Type at least 2 letters of a nickname or name.</span></li>'; return; }
       api('GET', '/profile/search?q=' + encodeURIComponent(q)).then(function (data) {
         var results = (data && data.results) || [];
         $('pf-results').innerHTML = results.length ? results.map(function (c) {
@@ -1074,7 +1186,7 @@
             : c.status === 'incoming' ? '<button type="button" class="si-btn si-btn-primary pf-fr" data-action="accept" data-id="' + esc(c.id) + '">Accept request</button>'
             : '<button type="button" class="si-btn si-btn-primary pf-fr" data-action="request" data-nick="' + esc(c.nickname) + '"' + (profile.nickname ? '' : ' disabled title="Set a nickname first"') + '>Add friend</button>';
           return '<li>' + who(c) + '<div class="pf-actions">' + action + '</div></li>';
-        }).join('') : '<li><span class="pf-empty">No members with a nickname like that.</span></li>';
+        }).join('') : '<li><span class="pf-empty">No members with a nickname or name like that.</span></li>';
       }).catch(function () {});
     });
 
@@ -1085,7 +1197,7 @@
       api('POST', '/profile', { emailsOff: !on }).then(function (data) {
         if (!data.success) { $('pf-emails').checked = !on; status($('pf-emails-status'), data.message || 'Could not save.', 'err'); return; }
         profile.emailsOff = data.emailsOff;
-        status($('pf-emails-status'), on ? 'Emails are on.' : 'Emails are off. You can still see everything here and in the bell.', 'ok');
+        status($('pf-emails-status'), on ? 'Email alerts are on.' : 'Email alerts are off. One-time codes still email, and you can see everything here and in the bell.', 'ok');
       }).catch(function () { $('pf-emails').checked = !on; });
     });
     $('pf-leave-open').addEventListener('click', function () { $('pf-leave-form').hidden = false; $('pf-leave-open').hidden = true; $('pf-leave-confirm').focus(); });
@@ -1154,7 +1266,16 @@
       if (!profile) return;
       $('pf-loading').hidden = true;
       $('pf-app').hidden = false;
+      if (window.mt3ukPushCard) window.mt3ukPushCard($('notifications'), { api: API, session: session, setStatus: status });
+      if (window.mt3ukAppCard) window.mt3ukAppCard($('app'));
       return loadMessages().then(function () {
+        // Arriving at Messages (e.g. from the bell) opens whatever has
+        // something new, or From MT3UK; at Friends, the friends list.
+        if (location.hash === '#messages') {
+          if (directUnread) $('pf-fold-friends').open = true;
+          if (broadcastsUnread || !directUnread) $('pf-fold-mt3uk').open = true;
+        }
+        if (location.hash === '#friends') $('pf-fold-friendlist').open = true;
         var withId = new URL(location.href).searchParams.get('with');
         if (withId) { openThread(withId); $('messages').scrollIntoView({ block: 'start' }); }
         else if (location.hash && document.querySelector(location.hash)) document.querySelector(location.hash).scrollIntoView({ block: 'start' });

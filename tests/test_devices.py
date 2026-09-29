@@ -17,6 +17,7 @@ import json
 import os
 import re
 from pathlib import Path
+from urllib.parse import parse_qs
 
 import pytest
 
@@ -176,6 +177,13 @@ def api_reply(url, method, post_data, state):
         return {"success": False, "message": "That code is not right or has expired."}
     # Interview preview gate (js/interview-gate.js) and its admin list.
     if path == "/interviews/preview/request":
+        try:
+            body = json.loads(post_data or "{}")
+        except ValueError:
+            body = {}
+        if body.get("admin"):
+            state["admin_link"] = True
+            return {"success": True, "admin": True, "message": "We've emailed a one-time link and code to the MT3UK admin inbox. They last 15 minutes."}
         return {"success": True, "message": "We've sent a 6-digit code to sharad@example.com. It lasts 15 minutes."}
     if path == "/interviews/preview/verify":
         try:
@@ -189,6 +197,26 @@ def api_reply(url, method, post_data, state):
             return {"success": True, "token": "p" * 64, "expires": state.get("preview_expires", 4102444800000),
                     "joined": True, "session": "s1.preview", "email": body.get("email", "sharad@example.com")}
         return {"success": False, "message": "That code is not right or has expired."}
+    if path == "/interviews/admin/action":
+        # Draft / Publish now / Schedule on the real schedule file.
+        try:
+            body = json.loads(post_data or "{}")
+        except ValueError:
+            body = {}
+        file = state.setdefault("interviews_file", json.loads((REPO_ROOT / "data" / "interviews.json").read_text(encoding="utf-8")))
+        action = body.get("action") or "draft"
+        url = body.get("url") or next(i["url"] for i in file["interviews"] if i.get("publish", "") > "2026-10-01")
+        iv = next(i for i in file["interviews"] if i["url"] == url)
+        if action == "draft":
+            iv.pop("publish", None)
+            iv["draft"] = True
+            line = iv["name"] + " set to draft"
+        else:
+            iv["publish"] = body.get("date") or "2026-09-29"
+            iv.pop("draft", None)
+            line = iv["name"] + " published now"
+        state.setdefault("interview_actions", []).append((action, url))
+        return {"success": True, "interviews": file["interviews"], "change": line}
     if path == "/interviews/preview/link":
         # The email link: works once, and only with the test's token.
         try:
@@ -223,8 +251,28 @@ def api_reply(url, method, post_data, state):
             if action == "revoke":
                 revoked.append({"email": email, "slug": slug, "revoked": "2026-09-29T13:00:00Z"})
         return {"success": True, "opened": opened, "revoked": revoked}
+    if path.startswith("/push/"):
+        state.setdefault("push_calls", []).append(path)
+        if path == "/push/key":
+            return {"success": True, "publicKey": "BAEC"}
+        return {"success": True}
+    if path == "/profile/nickname":
+        # Live nickname check: "Sparky" is taken, the member's own is theirs.
+        nick = parse_qs(url.split("?", 1)[1] if "?" in url else "").get("nick", [""])[0]
+        state.setdefault("nick_checks", []).append(nick)
+        if not re.match(r"^[A-Za-z0-9][A-Za-z0-9_.-]{2,19}$", nick):
+            return {"success": True, "available": False, "message": "3 to 20 letters or numbers (you can use _ . -), starting with a letter or number."}
+        if nick.lower() == "sparky":
+            return {"success": True, "available": False, "message": nick + " is taken. Try another."}
+        return {"success": True, "available": True, "message": nick + " is available."}
     if path.startswith("/profile") or path.startswith("/admin/broadcasts") or path == "/admin/dm-reports":
         return profile_reply(path, method, post_data, state)
+    if path == "/gallery/admin/subscribers" and method == "GET":
+        details = [
+            {"email": "dave@example.com", "firstName": "Dave", "lastName": "Jones", "nickname": "Sparky", "added": "2026-09-01T10:00:00Z", "files": []},
+            {"email": "new@example.com", "firstName": "", "lastName": "", "nickname": "", "added": "2026-09-20T10:00:00Z", "files": []},
+        ]
+        return {"success": True, "subscribers": [d["email"] for d in details], "details": details}
     if path == "/my-builds" and method == "GET":
         car = dict(GARAGE_CAR, name=state.get("car_name", GARAGE_CAR["name"]))
         return {"success": True, "email": "member@example.com", "firstName": "Test", "lastName": "Member", "cars": [car], "voteEntry": GARAGE_VOTE_ENTRY}
@@ -248,31 +296,34 @@ def profile_reply(path, method, post_data, state):
         body = {}
     p = state.setdefault("profile", {
         "firstName": "Test", "lastName": "Member", "nickname": state.get("start_nickname", "TestMember"), "emailsOff": False,
+        "showName": "nickname", "hideRealName": False,
         "friends": [{"id": "f1", "nickname": "Sharad", "name": "Sharad", "builds": ["test-build.jpg"]}],
         "incoming": [{"id": "r1", "nickname": "RyanK", "name": "RyanK"}],
         "outgoing": [],
         "thread": [{"id": "m1", "text": "Hi, love the wheels", "at": "2026-09-29T09:00:00Z", "mine": False}],
-        "broadcasts": [{"id": "b1", "title": "Track day at Thruxton", "text": "Book now for Friday.", "at": "2026-09-29T08:00:00Z"}],
+        "broadcasts": [{"id": "b1", "title": "Track day at Thruxton", "text": "Book now for Friday.", "at": "2026-09-29T08:00:00Z", "emailed": ["dave@example.com"]}],
         "reports": [{"id": "rep1", "messageId": "m9", "text": "Rude message", "at": "2026-09-29T08:00:00Z", "fromEmail": "rude@example.com",
                      "fromName": "Rude", "toEmail": "member@example.com", "toName": "Test Member", "reason": "rude", "reportedAt": "2026-09-29T09:00:00Z"}],
     })
     state.setdefault("profile_calls", []).append((method, path, body))
     if path == "/profile" and method == "GET":
         return {"success": True, "email": "member@example.com", "id": "me", "firstName": p["firstName"], "lastName": p["lastName"],
-                "nickname": p["nickname"], "emailsOff": p["emailsOff"], "member": True, "since": "2026-01-10T10:00:00Z",
+                "nickname": p["nickname"], "showName": p["showName"], "hideRealName": p["hideRealName"], "emailsOff": p["emailsOff"], "member": True, "since": "2026-01-10T10:00:00Z",
                 "builds": ["test-build.jpg"], "friends": p["friends"], "incoming": p["incoming"], "outgoing": p["outgoing"],
                 "unread": {"broadcasts": 1, "direct": 1, "requests": len(p["incoming"])}}
     if path == "/profile" and method == "POST":
         # WebKit may not pass the body: the tests' values stand in.
         if not body:
-            body = {"firstName": "Test", "lastName": "Member", "nickname": "GreenKnight"} if not state.get("saved_once") else {"emailsOff": True}
+            body = state.pop("fallback_body", None) or (
+                {"firstName": "Test", "lastName": "Member", "nickname": "GreenKnight"} if not state.get("saved_once") else {"emailsOff": True})
         state["saved_once"] = True
         if body.get("nickname") == "taken":
             return {"success": False, "message": "That nickname is taken. Try another."}
-        for k in ("firstName", "lastName", "nickname", "emailsOff"):
+        for k in ("firstName", "lastName", "nickname", "emailsOff", "showName", "hideRealName"):
             if k in body:
                 p[k] = body[k]
-        return {"success": True, "firstName": p["firstName"], "lastName": p["lastName"], "nickname": p["nickname"], "emailsOff": p["emailsOff"]}
+        return {"success": True, "firstName": p["firstName"], "lastName": p["lastName"], "nickname": p["nickname"],
+                "showName": p["showName"], "hideRealName": p["hideRealName"], "emailsOff": p["emailsOff"]}
     if path == "/profile/search":
         return {"success": True, "results": [{"id": "s2", "nickname": "Shaz", "name": "Shaz", "status": ""}]}
     if path == "/profile/friends":
@@ -320,7 +371,19 @@ def profile_reply(path, method, post_data, state):
         return {"success": True, "broadcasts": p["broadcasts"]}
     if path == "/admin/broadcasts/email":
         state["emailed"] = state.get("emailed", 0) + 1
-        return {"success": True, "sent": 3, "skipped": 1, "cursor": None}
+        return {"success": True, "sent": 3, "skipped": 1, "already": 0, "cursor": None}
+    if path == "/admin/broadcasts/email-one":
+        for bc in p["broadcasts"]:
+            if bc["id"] == body.get("id"):
+                emailed = bc.setdefault("emailed", [])
+                email = (body.get("email") or "").lower()
+                if email in emailed and not body.get("force"):
+                    return {"success": False, "already": True, "message": email + " has already been emailed this. Send it again?"}
+                if email not in emailed:
+                    emailed.append(email)
+                state.setdefault("emailed_one", []).append((bc["id"], email, bool(body.get("force"))))
+                return {"success": True, "emailed": len(emailed)}
+        return {"success": False, "message": "Message not found."}
     if path == "/admin/dm-reports":
         p["reports"] = [r for r in p["reports"] if r["id"] != (body.get("id") or "rep1")]
         return {"success": True, "reports": p["reports"]}

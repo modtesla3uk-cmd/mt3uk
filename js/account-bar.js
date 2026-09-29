@@ -49,6 +49,36 @@
   var ASK_NICKNAME_KEY = 'mt3ukAskNickname';
   var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
 
+  // Checks a nickname box as the member types and says under it whether the
+  // nickname is free. Saving still checks on the server.
+  window.mt3ukWatchNickname = function (input, msg) {
+    var timer = null, seq = 0;
+    function show(text, ok) {
+      msg.textContent = text;
+      msg.style.color = ok === true ? '#1c8a4b' : ok === false ? '#c0392b' : '';
+      msg.setAttribute('data-available', ok === true ? 'yes' : ok === false ? 'no' : '');
+    }
+    input.addEventListener('input', function () {
+      clearTimeout(timer);
+      var nick = input.value.trim();
+      var mine = ++seq;
+      if (!nick) { show('', null); return; }
+      if (!/^[A-Za-z0-9][A-Za-z0-9_.-]{2,19}$/.test(nick)) {
+        show('3 to 20 letters or numbers (you can use _ . -), starting with a letter or number.', false);
+        return;
+      }
+      timer = setTimeout(function () {
+        fetch(API + '/profile/nickname?nick=' + encodeURIComponent(nick), { headers: { 'X-Session-Token': read(SESSION_KEY) }, cache: 'no-store' })
+          .then(function (res) { return res.json(); })
+          .then(function (data) {
+            if (mine !== seq || !data || !data.success) return;
+            show(data.message || '', !!data.available);
+          })
+          .catch(function () {});
+      }, 400);
+    });
+  };
+
   // New members (set by Sign Up and the interview preview gate) are asked
   // once to choose a nickname. "Later" leaves it for their Profile.
   function askNickname() {
@@ -89,10 +119,12 @@
     var form = box.querySelector('form');
     var input = box.querySelector('input');
     var msg = box.querySelector('.mt3uk-nick-msg');
+    window.mt3ukWatchNickname(input, msg);
     try { input.focus({ preventScroll: true }); } catch (e) {}
     box.querySelector('.mt3uk-nick-later').addEventListener('click', done);
     form.addEventListener('submit', function (e) {
       e.preventDefault();
+      msg.style.color = '';
       var nick = input.value.trim();
       if (!/^[A-Za-z0-9][A-Za-z0-9_.-]{2,19}$/.test(nick)) {
         msg.textContent = '3 to 20 letters or numbers (you can use _ . -), starting with a letter or number.';
@@ -120,8 +152,25 @@
   // Sign Up calls this once a new member is signed in on the same page.
   window.mt3ukAskNickname = askNickname;
 
+  // In the installed app, notifications switch on by themselves for signed-in
+  // members (js/push-toggle.js). Waits for the homepage intro and the
+  // nickname prompt. Profile has its own on/off control, so not there.
+  function autoPush() {
+    var page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+    var app = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+    if (!read(SESSION_KEY) || !app || page === 'profile.html' || !('PushManager' in window)) return;
+    if (document.getElementById('mt3uk-intro') || document.getElementById('mt3uk-nick-prompt')) { setTimeout(autoPush, 1000); return; }
+    var go = function () { window.mt3ukPushAuto({ api: API, session: function () { return read(SESSION_KEY); } }); };
+    if (window.mt3ukPushAuto) { go(); return; }
+    var s = document.createElement('script');
+    s.src = '/js/push-toggle.js';
+    s.onload = go;
+    document.head.appendChild(s);
+  }
+
   function run() {
     askNickname();
+    setTimeout(autoPush, 1500);
     if (signedIn) {
       // The button's own CSS uses !important, so it's removed rather than hidden.
       document.querySelectorAll('.nav-link-mobile').forEach(function (link) { link.remove(); });

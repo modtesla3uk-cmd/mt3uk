@@ -1880,28 +1880,23 @@
   }
 
   /* ---------- GET THE APP ---------- */
-  .app-cta {
-    background: var(--paper);
-    border-top: 1px solid rgba(22,35,61,0.12);
-    border-bottom: 1px solid rgba(22,35,61,0.12);
-    padding: 40px 24px;
-    text-align: center;
+  /* Get the app: a row under the Explore MT3UK tiles (hidden once installed). */
+  .hp-app { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px 16px; align-items: center; margin-top: 18px; padding: 16px 18px; border: 1px solid var(--ink); border-left: 4px solid var(--orange); background: #ffffff; }
+  .hp-app[hidden] { display: none; }
+  .hp-app-icon { width: 30px; height: 30px; fill: none; stroke: var(--orange); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .hp-app-text h3 { font-size: 1rem; margin: 0 0 4px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .hp-app-text p { margin: 0; color: var(--steel); font-size: 0.9rem; }
+  .hp-app-btn { background: var(--orange); color: #ffffff; border: 0; min-height: 44px; padding: 10px 20px; font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; white-space: nowrap; }
+  .hp-app-btn:hover { opacity: 0.9; }
+  .hp-app-steps { grid-column: 1 / -1; padding: 14px 16px; border: 1px solid rgba(22,35,61,0.2); font-size: 0.9rem; }
+  .hp-app-steps[hidden] { display: none; }
+  .hp-app-steps ol { margin: 8px 0 0; padding-left: 20px; }
+  .hp-app-steps li { margin: 4px 0; }
+  .hp-app-steps .hp-app-done { margin-top: 10px; background: none; border: 0; padding: 0; font: inherit; font-size: 0.85rem; color: var(--steel); text-decoration: underline; cursor: pointer; }
+  @media (max-width: 780px) {
+    .hp-app { grid-template-columns: auto minmax(0, 1fr); }
+    .hp-app-btn { grid-column: 1 / -1; width: 100%; }
   }
-  .app-cta[hidden] { display: none; }
-  .app-cta h2 { margin: 0 0 6px; }
-  .app-cta > p { color: var(--steel); margin: 0 auto 18px; max-width: 52ch; }
-  .app-cta .nav-cta { display: inline-block; padding: 12px 28px; font-size: 0.95rem; cursor: pointer; }
-  .app-cta-steps {
-    max-width: 420px;
-    margin: 18px auto 0;
-    padding: 16px 18px;
-    border: 1px solid rgba(22,35,61,0.2);
-    text-align: left;
-    font-size: 0.9rem;
-  }
-  .app-cta-steps[hidden] { display: none; }
-  .app-cta-steps ol { margin: 8px 0 0; padding-left: 20px; }
-  .app-cta-steps li { margin: 4px 0; }
 
   /* ---------- JOIN CTA ---------- */
   .join-cta {
@@ -3134,6 +3129,15 @@
           grid.addEventListener('dragstart', function (e) { e.preventDefault(); });
         })();
       </script>
+      <div class="hp-app" id="get-the-app" hidden>
+        <svg class="hp-app-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/></svg>
+        <div class="hp-app-text">
+          <h3>Get the MT3UK app <em class="hp-new">NEW</em></h3>
+          <p>One tap to the build reel and your garage, plus alerts when someone likes or comments on your build.</p>
+        </div>
+        <button type="button" class="hp-app-btn" id="app-install-btn">Install the app</button>
+        <div class="hp-app-steps" id="app-install-steps" hidden></div>
+      </div>
     </div>
   </section>
 </div>
@@ -3171,13 +3175,6 @@
       <a href="gallery.html" class="btn btn-secondary">Browse the Full Gallery</a>
     </div>
   </div>
-</section>
-
-<section class="app-cta" id="get-the-app">
-  <h2><span class="nav-sublink-new">Get the MT3UK app</span></h2>
-  <p>Install MT3UK on your phone for one-tap access to the build reel and your garage, plus alerts when someone likes or comments on your build.</p>
-  <button type="button" class="nav-cta" id="app-install-btn">Install the app</button>
-  <div class="app-cta-steps" id="app-install-steps" hidden></div>
 </section>
 
 <section id="build-of-the-day">
@@ -5741,7 +5738,7 @@
       return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
     }
 
-    if (isStandalone() || localStorage.getItem(STORAGE_DISMISSED) === '1') return;
+    if (isStandalone() || localStorage.getItem(STORAGE_DISMISSED) === '1' || localStorage.getItem('mt3ukAppInstalled') === '1') return;
 
     if (!sessionStorage.getItem(SESSION_FLAG)) {
       sessionStorage.setItem(SESSION_FLAG, '1');
@@ -5802,60 +5799,104 @@
 
     window.addEventListener('appinstalled', function () {
       localStorage.setItem(STORAGE_DISMISSED, '1');
+      localStorage.setItem('mt3ukAppInstalled', '1');
     });
   })();
 </script>
 
 <script>
-  // "Get the app" section: installs straight away where the browser offers
-  // it (Android, desktop Chrome and Edge), otherwise shows the steps.
-  // Hidden once MT3UK is running as an installed app.
+  // "Get the MT3UK app" under the Explore MT3UK tiles. Installs straight
+  // away where the browser offers it (Chrome and Edge on Android and
+  // desktop), otherwise shows the steps for that browser, including the
+  // Facebook and Instagram in-app browsers, which can't install apps.
+  // Hidden once MT3UK is installed: when running as the app, after the
+  // install, when Chrome reports it's installed, or "I've installed it".
   (function () {
-    var section = document.getElementById('get-the-app');
+    var box = document.getElementById('get-the-app');
     var btn = document.getElementById('app-install-btn');
     var steps = document.getElementById('app-install-steps');
-    if (!section || !btn) return;
-    var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
-    if (standalone) { section.hidden = true; return; }
+    if (!box || !btn) return;
+    var KEY = 'mt3ukAppInstalled';
+    function remember() { try { localStorage.setItem(KEY, '1'); } catch (e) {} }
+    function hide() { remember(); box.hidden = true; }
+    var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui)').matches) ||
+      window.navigator.standalone === true || document.referrer.indexOf('android-app://') === 0;
+    if (standalone) { remember(); return; }
+    try { if (localStorage.getItem(KEY) === '1') return; } catch (e) {}
+    box.hidden = false;
+
+    // Chrome on Android can tell us the app is already installed.
+    if (navigator.getInstalledRelatedApps) {
+      navigator.getInstalledRelatedApps().then(function (apps) { if (apps && apps.length) hide(); }).catch(function () {});
+    }
 
     var installPrompt = null;
     window.addEventListener('beforeinstallprompt', function (e) {
       e.preventDefault();
       installPrompt = e;
     });
-    window.addEventListener('appinstalled', function () { section.hidden = true; });
+    window.addEventListener('appinstalled', hide);
 
-    var isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    var ua = navigator.userAgent;
+    var isIos = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    var inApp = /FBAN|FBAV|FB_IAB|Instagram|LinkedInApp|Twitter|Snapchat|TikTok/i.test(ua);
+    var isMac = /Macintosh/.test(ua) && !isIos;
+    var isSamsung = /SamsungBrowser/.test(ua);
+    var isFirefox = /Firefox\//.test(ua);
 
     function showSteps(html) {
-      steps.innerHTML = html;
+      steps.innerHTML = html + '<button type="button" class="hp-app-done">I’ve installed it, hide this</button>';
       steps.hidden = false;
+      steps.querySelector('.hp-app-done').addEventListener('click', hide);
     }
 
     btn.addEventListener('click', function () {
       if (installPrompt) {
         var prompt = installPrompt;
         installPrompt = null;
-        prompt.prompt();
-        prompt.userChoice.then(function (choice) {
-          if (choice && choice.outcome === 'accepted') section.hidden = true;
-        }).catch(function () {});
+        try {
+          prompt.prompt();
+          prompt.userChoice.then(function (choice) {
+            if (choice && choice.outcome === 'accepted') hide();
+          }).catch(function () {});
+          return;
+        } catch (e) {}
+      }
+      if (inApp) {
+        showSteps('<strong>Open MT3UK in your browser first.</strong> Apps like Facebook and Instagram open links in their own browser, which can’t install apps.<ol>' +
+          '<li>Tap the <strong>•••</strong> menu (top or bottom corner).</li>' +
+          '<li>Choose <strong>Open in browser</strong> (or <strong>Open in Safari</strong> on iPhone).</li>' +
+          '<li>Tap <strong>Install the app</strong> again there.</li>' +
+          '</ol>');
         return;
       }
       if (isIos) {
         showSteps('<strong>On iPhone or iPad:</strong><ol>' +
-          '<li>Open this page in Safari.</li>' +
-          '<li>Tap the Share button (the square with an arrow).</li>' +
-          '<li>Choose <strong>Add to Home Screen</strong>, then <strong>Add</strong>.</li>' +
-          '<li>Open MT3UK from your Home Screen and sign in to My Garage. The app keeps its own sign-in, so use the 6-digit code from the sign-in email rather than the link.</li>' +
-          '<li>To get alerts, enable push notifications in My Garage.</li>' +
+          '<li>Tap the <strong>Share</strong> button (the square with an arrow), in Safari’s toolbar or Chrome’s address bar.</li>' +
+          '<li>Scroll down and choose <strong>Add to Home Screen</strong>, then <strong>Add</strong>.</li>' +
+          '<li>Open MT3UK from your Home Screen and sign in with the 6-digit code from the sign-in email (the app keeps its own sign-in).</li>' +
+          '<li>For alerts, turn on notifications in My Garage.</li>' +
+          '</ol>');
+        return;
+      }
+      if (isSamsung) {
+        showSteps('<strong>In Samsung Internet:</strong><ol>' +
+          '<li>Tap the menu (the three lines at the bottom).</li>' +
+          '<li>Choose <strong>Add page to</strong>, then <strong>Home screen</strong>.</li>' +
+          '<li>Open MT3UK from your home screen. For alerts, turn on notifications in My Garage.</li>' +
+          '</ol>');
+        return;
+      }
+      if (isMac && /Safari\//.test(ua) && !/Chrome|Edg\//.test(ua)) {
+        showSteps('<strong>In Safari on a Mac:</strong><ol>' +
+          '<li>Choose <strong>File</strong>, then <strong>Add to Dock</strong>.</li>' +
           '</ol>');
         return;
       }
       showSteps('<strong>To install:</strong><ol>' +
-        '<li>Open your browser menu (the three dots or lines).</li>' +
-        '<li>Choose <strong>Install app</strong> or <strong>Add to Home screen</strong>.</li>' +
-        '<li>Open MT3UK from your apps. To get alerts, enable push notifications in My Garage.</li>' +
+        '<li>Open your browser menu (the three dots' + (isFirefox ? ' at the top' : '') + ').</li>' +
+        '<li>Choose <strong>Install app</strong>' + (isFirefox ? '' : ' or <strong>Add to Home screen</strong>') + '. On a computer, look for the install icon at the end of the address bar.</li>' +
+        '<li>Open MT3UK from your apps. For alerts, turn on notifications in My Garage.</li>' +
         '</ol>');
     });
   })();

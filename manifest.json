@@ -70,5 +70,11 @@
         }
       ]
     }
+  ],
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://mt3uk.com/manifest.json"
+    }
   ]
 }

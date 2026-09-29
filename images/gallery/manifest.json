@@ -642,8 +642,9 @@
   {
     "file": "r2-upload-pipeline-test--by-richard-r2-test.jpg",
     "caption": "R2 UPLOAD PIPELINE TEST",
-    "name": "RHC TECH",
+    "name": "RICHARD R2 TEST",
     "color": "Pink",
+    "unclaimed": true,
     "added": "2026-09-18",
     "group": "r2-upload-pipeline-test--by-richard-r2-test.jpg"
   },

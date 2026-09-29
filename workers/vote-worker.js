@@ -694,7 +694,7 @@ async function wantsEmails(env, email) {
 async function sendMemberEmail(env, toEmail, subject, body) {
   if (!(await wantsEmails(env, toEmail))) return false;
   try {
-    await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body + EMAIL_FOOTER, listUnsubscribeHeaders())));
+    await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body + EMAIL_FOOTER, await listUnsubscribeHeaders(env, toEmail))));
     return true;
   } catch (err) {
     console.log('Member email failed:', err.message);
@@ -1321,6 +1321,29 @@ async function handleAdminBroadcastEmailOne(request, env) {
   if (emailed.indexOf(email) === -1) emailed.push(email);
   await env.VOTES.put(broadcastEmailedKey(msg.id), JSON.stringify(emailed));
   return json({ success: true, emailed: emailed });
+}
+
+// Admin: send the message being written to one address as a test, exactly
+// as members would get it (footer and one-click unsubscribe included).
+// Not saved, not put in inboxes and not recorded as emailed; sent even to
+// non-members and whatever their email setting.
+async function handleAdminBroadcastTest(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorized' }, 401);
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
+  var title = String((body && body.title) || '').trim().slice(0, 120);
+  var text = String((body && body.text) || '').trim().slice(0, 4000);
+  if (!title || !text) return json({ success: false, message: 'Write a title and message first' }, 400);
+  var email = previewEmail(body && body.email);
+  if (!email) return json({ success: false, message: 'Enter a valid email' }, 400);
+  try {
+    await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, email, rawEmail(MY_BUILDS_FROM_EMAIL, email,
+      '[Test] MT3UK: ' + title, broadcastEmailText({ title: title, text: text }) + EMAIL_FOOTER, await listUnsubscribeHeaders(env, email))));
+  } catch (err) {
+    console.log('Test email failed:', err.message);
+    return json({ success: false, message: 'The email could not be sent: ' + err.message }, 500);
+  }
+  return json({ success: true, email: email });
 }
 
 async function handleAdminBroadcastSave(request, env) {
@@ -3350,8 +3373,83 @@ function rawEmail(from, to, subject, bodyText, extraHeaders) {
 }
 
 // For emails members can turn off (alerts and messages from MT3UK).
-function listUnsubscribeHeaders() {
-  return ['List-Unsubscribe: <' + MY_BUILDS_SITE_URL + '/profile.html#unsubscribe>, <mailto:' + SUBSCRIBERS_DIGEST_EMAIL + '?subject=Unsubscribe%20from%20MT3UK%20emails>'];
+// One-click unsubscribe (RFC 8058): Gmail and Outlook show their own
+// Unsubscribe button and POST to the signed link, which turns off that
+// member's email alerts. Opening the link in a browser asks first, so link
+// scanners can't unsubscribe anyone.
+var WORKER_PUBLIC_URL = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
+var unsubscribeKeyPromise = null;
+
+function unsubscribeKey(env) {
+  if (!unsubscribeKeyPromise) {
+    unsubscribeKeyPromise = crypto.subtle.digest('SHA-256', new TextEncoder().encode('mt3uk-unsubscribe-v1:' + (env.ADMIN_KEY || '')))
+      .then(function (raw) {
+        return crypto.subtle.importKey('raw', raw, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+      });
+  }
+  return unsubscribeKeyPromise;
+}
+
+async function unsubscribeToken(env, email) {
+  var sig = await crypto.subtle.sign('HMAC', await unsubscribeKey(env), new TextEncoder().encode(String(email).toLowerCase()));
+  return base64UrlFromBytes(new Uint8Array(sig)).slice(0, 32);
+}
+
+async function unsubscribeUrl(env, email) {
+  return WORKER_PUBLIC_URL + '/email/unsubscribe?e=' + base64UrlFromBytes(new TextEncoder().encode(String(email).toLowerCase())) +
+    '&t=' + (await unsubscribeToken(env, email));
+}
+
+async function listUnsubscribeHeaders(env, email) {
+  return [
+    'List-Unsubscribe: <' + (await unsubscribeUrl(env, email)) + '>, <mailto:' + SUBSCRIBERS_DIGEST_EMAIL + '?subject=Unsubscribe%20from%20MT3UK%20emails>',
+    'List-Unsubscribe-Post: List-Unsubscribe=One-Click'
+  ];
+}
+
+function escapeHtmlText(v) {
+  return String(v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; });
+}
+
+function unsubscribePage(title, bodyHtml, status) {
+  var html = '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">' +
+    '<title>' + title + ' | MT3UK</title><style>' +
+    'body{margin:0;background:#f3f1ea;color:#16233d;font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}' +
+    'main{max-width:460px;margin:12vh 16px 0;padding:28px 24px;background:#fff;border-top:4px solid #e8542a;box-shadow:0 10px 30px rgba(0,0,0,.08)}' +
+    '@media (min-width:500px){main{margin:12vh auto 0}}' +
+    'h1{font-size:1.3rem;margin:0 0 12px}p{margin:0 0 16px;color:#4a5568}a{color:#e8542a}' +
+    'button{min-height:46px;padding:10px 20px;border:0;background:#e8542a;color:#fff;font:inherit;font-weight:600;cursor:pointer;width:100%}' +
+    '.logo{font-weight:800;letter-spacing:.02em;margin-bottom:18px}' +
+    '</style></head><body><main><div class="logo">MT3UK</div><h1>' + title + '</h1>' + bodyHtml + '</main></body></html>';
+  return new Response(html, { status: status || 200, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } });
+}
+
+// GET /email/unsubscribe?e=&t= asks first; POST turns off email alerts (the
+// one-click POST from Gmail and Outlook, or the button on the page).
+async function handleEmailUnsubscribe(request, env) {
+  var url = new URL(request.url);
+  var email = '';
+  try { email = new TextDecoder().decode(bytesFromBase64Url(url.searchParams.get('e') || '')).toLowerCase(); } catch (e) {}
+  var token = url.searchParams.get('t') || '';
+  var valid = email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && token && token === (await unsubscribeToken(env, email));
+  if (!valid) {
+    return unsubscribePage('This link doesn’t work',
+      '<p>The unsubscribe link isn’t complete. You can turn off MT3UK emails in your <a href="' + PROFILE_URL + '#email-alerts">Profile</a>.</p>', 400);
+  }
+  if (request.method === 'POST') {
+    var profile = await getProfileRecord(env, email);
+    if (!profile.emailsOff) {
+      profile.emailsOff = true;
+      await putProfileRecord(env, email, profile);
+    }
+    return unsubscribePage('You’re unsubscribed',
+      '<p>MT3UK won’t email you alerts or messages any more. One-time sign-in codes are still emailed when you ask for one, and you’ll still see everything in the bell when you’re signed in.</p>' +
+      '<p>Changed your mind? Turn emails back on in your <a href="' + PROFILE_URL + '#email-alerts">Profile</a>.</p>');
+  }
+  return unsubscribePage('Unsubscribe from MT3UK emails?',
+    '<p>This stops MT3UK emailing <strong>' + escapeHtmlText(email) + '</strong> alerts and messages. Sign-in codes are still emailed when you ask for one.</p>' +
+    '<form method="post"><button type="submit">Unsubscribe</button></form>' +
+    '<p style="margin-top:16px">Or manage your emails in your <a href="' + PROFILE_URL + '#email-alerts">Profile</a>.</p>');
 }
 
 async function sendMyBuildsLinkEmail(env, toEmail, link, expiresIn, code) {
@@ -3406,7 +3504,7 @@ async function sendCommentNotificationEmail(env, toEmail, fromName, text, file, 
     body = fromName + ' left a comment on an MT3UK Owner Interview:\n\n"' + text + '"' +
       '\n\nView and reply: ' + link;
   }
-  var message = new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body + EMAIL_FOOTER, listUnsubscribeHeaders()));
+  var message = new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body + EMAIL_FOOTER, await listUnsubscribeHeaders(env, toEmail)));
   await env.SEND_EMAIL.send(message);
 }
 
@@ -5435,6 +5533,9 @@ export default {
     if (url.pathname === '/profile/leave' && request.method === 'POST') {
       return handleProfileLeave(request, env);
     }
+    if (url.pathname === '/email/unsubscribe' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleEmailUnsubscribe(request, env);
+    }
     if (url.pathname === '/profile/apps' && request.method === 'GET') {
       return handleProfileApps(request, env);
     }
@@ -5467,6 +5568,9 @@ export default {
     }
     if (url.pathname === '/admin/broadcasts' && request.method === 'POST') {
       return handleAdminBroadcastSave(request, env);
+    }
+    if (url.pathname === '/admin/broadcasts/test' && request.method === 'POST') {
+      return handleAdminBroadcastTest(request, env);
     }
     if (url.pathname === '/admin/broadcasts/email-one' && request.method === 'POST') {
       return handleAdminBroadcastEmailOne(request, env);

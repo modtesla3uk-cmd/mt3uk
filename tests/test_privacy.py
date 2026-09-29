@@ -42,3 +42,15 @@ def test_github_issues_never_carry_a_full_email():
     assert len(bodies) >= 2
     for body in bodies:
         assert "subscriberLabel(" not in body and "publicLabel(" in body, "GitHub issues are public: use publicLabel (masked email)"
+
+
+def test_member_emails_have_one_click_unsubscribe():
+    """Gmail and Outlook expect RFC 8058 one-click unsubscribe on emails
+    members can turn off, and trust mail more when it's there."""
+    worker = (ROOT / "workers" / "vote-worker.js").read_text(encoding="utf-8")
+    assert "List-Unsubscribe-Post: List-Unsubscribe=One-Click" in worker
+    assert "url.pathname === '/email/unsubscribe'" in worker
+    # Opening the link only asks; the POST unsubscribes (link scanners).
+    handler = worker.split("async function handleEmailUnsubscribe", 1)[1].split("\nasync function ", 1)[0]
+    assert "request.method === 'POST'" in handler and "emailsOff = true" in handler
+    assert "await listUnsubscribeHeaders(env, toEmail)" in worker

@@ -605,3 +605,29 @@ def test_not_now_and_turned_off_in_profile_are_remembered(device_page):
     assert page.evaluate("localStorage.getItem('testSubscribed')") is None, "Stays off"
     assert page.locator("#mt3uk-push-ask").count() == 0
     assert page.errors == [], diagnostics(page)
+
+
+
+@all_devices
+def test_admin_can_send_a_test_email_to_one_address(device_page):
+    page = device_page
+    page.add_init_script("sessionStorage.setItem('mt3ukAdminKey', 'test-key')")
+    page.goto("/admin.html")
+    page.locator("#members-msg-wrap > summary").click()
+    page.locator("#bc-list .bc-item").first.wait_for(timeout=5000)
+    before = page.locator("#bc-list .bc-item").count()
+    page.click("#bc-test-btn")
+    assert "title and message" in page.locator("#bc-test-note").inner_text()
+    page.fill("#bc-title", "Owner Interviews start Thursday")
+    page.fill("#bc-text", "The first one is Richard's Model 3.")
+    page.fill("#bc-test-email", "me@example.com")
+    page.mock_state["test_fallback"] = {"title": "Owner Interviews start Thursday", "text": "x", "email": "me@example.com"}
+    # Enter in the test box sends the test, not the message to everyone.
+    page.press("#bc-test-email", "Enter")
+    page.wait_for_function("document.getElementById('bc-test-note').textContent.indexOf('Test sent to me@example.com') !== -1", timeout=5000)
+    sent = page.mock_state["test_emails"][-1]
+    assert sent["email"] == "me@example.com" and sent["title"] == "Owner Interviews start Thursday"
+    assert page.locator("#bc-list .bc-item").count() == before, "Nothing saved as a message"
+    assert not [c for c in page.mock_state.get("profile_calls", []) if c[1] == "/admin/broadcasts" and c[0] == "POST"]
+    assert overflow_width(page) <= 0
+    assert page.errors == [], diagnostics(page)

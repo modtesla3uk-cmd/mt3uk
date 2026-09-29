@@ -379,6 +379,11 @@ def profile_reply(path, method, post_data, state):
     if path == "/admin/broadcasts/email":
         state["emailed"] = state.get("emailed", 0) + 1
         return {"success": True, "sent": 3, "skipped": 1, "already": 0, "cursor": None}
+    if path == "/admin/broadcasts/test":
+        if not body:
+            body = state.get("test_fallback", {})
+        state.setdefault("test_emails", []).append(body)
+        return {"success": True, "email": body.get("email", "")}
     if path == "/admin/broadcasts/email-one":
         for bc in p["broadcasts"]:
             if bc["id"] == body.get("id"):

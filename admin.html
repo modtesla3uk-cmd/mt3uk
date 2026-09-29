@@ -282,6 +282,11 @@
   .bc-one { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
   .bc-one input { flex: 1 1 200px; min-width: 0; }
   .bc-one button { padding: 6px 10px; font-size: 0.72rem; }
+  .bc-test { margin-top: 14px; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.25); }
+  .bc-test label { display: block; font-size: 0.72rem; margin-bottom: 6px; }
+  .bc-test-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .bc-test-row input { flex: 1 1 200px; min-width: 0; }
+  .bc-test-row button { padding: 6px 12px; font-size: 0.72rem; }
   .bc-emailed summary { cursor: pointer; margin-top: 6px; }
   .pv-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; }
   .pv-form input[type="email"] { flex: 1 1 220px; min-width: 0; }
@@ -442,6 +447,14 @@
         <textarea id="bc-text" rows="5" maxlength="5000" placeholder="Message" aria-label="Message"></textarea>
         <label class="bc-email"><input type="checkbox" id="bc-email"> Also send it by email</label>
         <div class="bc-row"><button type="submit">Send message</button><span class="iv-note" id="bc-note"></span></div>
+        <div class="bc-test">
+          <label for="bc-test-email">Send a test to</label>
+          <div class="bc-test-row">
+            <input type="email" id="bc-test-email" placeholder="you@example.com" autocomplete="email">
+            <button type="button" class="secondary" id="bc-test-btn">Send test</button>
+          </div>
+          <p class="iv-note" id="bc-test-note" role="status">Emails this title and message to one address, exactly as members would get it, with [Test] in the subject. Nothing is saved or sent to anyone else.</p>
+        </div>
       </form>
       <div id="bc-list"></div>
       <h3 class="bc-h3">Reported friend messages <span class="summary-count" id="dm-count"></span></h3>
@@ -2405,6 +2418,32 @@
   var noteEl = document.getElementById('bc-note');
   var listEl = document.getElementById('bc-list');
   var dmEl = document.getElementById('dm-list');
+
+  // Send a test of the message being written to one address.
+  var testInput = document.getElementById('bc-test-email');
+  var testNote = document.getElementById('bc-test-note');
+  try { testInput.value = sessionStorage.getItem('mt3ukAdminTestEmail') || ''; } catch (e) {}
+  // Enter here sends the test, never the real message.
+  testInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); document.getElementById('bc-test-btn').click(); }
+  });
+  document.getElementById('bc-test-btn').addEventListener('click', function () {
+    var btn = this;
+    var title = document.getElementById('bc-title').value.trim();
+    var text = document.getElementById('bc-text').value.trim();
+    var email = testInput.value.trim().toLowerCase();
+    function show(msg, kind) { testNote.textContent = msg; testNote.className = 'iv-note' + (kind ? ' ' + kind : ''); }
+    if (!title || !text) { show('Write a title and message first.', 'error'); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { show('Enter a valid email to send the test to.', 'error'); return; }
+    try { sessionStorage.setItem('mt3ukAdminTestEmail', email); } catch (e) {}
+    btn.disabled = true;
+    show('Sending test…');
+    call('POST', '/admin/broadcasts/test', { title: title, text: text, email: email }).then(function (data) {
+      btn.disabled = false;
+      if (!data.success) { show(data.message === 'Unauthorized' ? 'The admin key is not right.' : (data.message || 'Could not send the test.'), 'error'); return; }
+      show('Test sent to ' + email + '. Check the inbox and the Junk folder.', 'ok');
+    }).catch(function () { btn.disabled = false; show('Network error, please try again.', 'error'); });
+  });
 
   function key() {
     var input = document.getElementById('admin-key');

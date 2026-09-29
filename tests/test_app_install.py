@@ -154,3 +154,23 @@ def test_open_the_app_popup_waits_for_the_intro(device_page):
     assert page.locator("#mt3uk-open-app").count() == 0, "Not hidden under the intro"
     intro.click()
     page.locator("#mt3uk-open-app").wait_for(state="visible", timeout=8000)
+
+
+@all_devices
+def test_hiding_the_row_keeps_the_open_app_popup(device_page):
+    page = device_page
+    page.add_init_script("localStorage.setItem('mt3ukAppInstalled', '1'); localStorage.setItem('mt3ukAppOpenHintHidden', '1')")
+    page.goto("/index.html")
+    page.locator("#mt3uk-open-app").wait_for(state="visible", timeout=5000)
+    assert page.locator("#get-the-app").is_hidden()
+
+
+@all_devices
+def test_appcheck_shows_what_the_browser_reports(device_page):
+    page = device_page
+    page.goto("/index.html?appcheck=1")
+    report = page.locator("#mt3uk-appcheck")
+    report.wait_for(state="visible", timeout=5000)
+    text = report.inner_text()
+    assert "Running as the app: no" in text and "Marked installed here: no" in text
+    assert page.errors == []

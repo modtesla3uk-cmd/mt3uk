@@ -5840,7 +5840,9 @@
     var uaIsIos = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     function markInstalled() { remember(); showOpenHint(); }
     function showOpenHint() {
-      if (read(HIDE_KEY) === '1') { box.hidden = true; return; }
+      // Hide on the row only hides the row; the pop-up has its own
+      // Don't show again.
+      if (read(HIDE_KEY) === '1') { box.hidden = true; openAppPrompt(); return; }
       box.classList.add('hp-app-open');
       document.getElementById('app-install-title').textContent = 'You have the MT3UK app';
       document.getElementById('app-install-text').textContent = uaIsIos
@@ -5887,6 +5889,29 @@
     });
     var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui)').matches) ||
       window.navigator.standalone === true || document.referrer.indexOf('android-app://') === 0;
+    // mt3uk.com/?appcheck=1 shows what this browser reports, to see why the
+    // app prompt does or doesn't appear on a given phone.
+    if (/[?&]appcheck=1\b/.test(location.search)) {
+      var report = function (related) {
+        var box2 = document.createElement('pre');
+        box2.id = 'mt3uk-appcheck';
+        box2.style.cssText = 'position:fixed;left:8px;right:8px;top:8px;z-index:2147483646;background:#fff;color:#16233d;border:2px solid #e8542a;padding:10px;font:12px/1.5 monospace;white-space:pre-wrap;margin:0';
+        box2.textContent = 'MT3UK app check\n' +
+          'Running as the app: ' + (standalone ? 'yes' : 'no') + '\n' +
+          'Marked installed here: ' + (read(KEY) === '1' ? 'yes' : 'no') + '\n' +
+          'Browser can report installed apps: ' + (navigator.getInstalledRelatedApps ? 'yes' : 'no') + '\n' +
+          'Browser reports MT3UK installed: ' + related + '\n' +
+          'Row hidden (Hide): ' + (read(HIDE_KEY) === '1' ? 'yes' : 'no') + '\n' +
+          'Pop-up off (Don\u2019t show again): ' + (read(PROMPT_KEY) === '1' ? 'yes' : 'no') + '\n' +
+          'Pop-up already shown this visit: ' + (function () { try { return sessionStorage.getItem('mt3ukOpenAppPromptShown') ? 'yes' : 'no'; } catch (e) { return '?'; } })() + '\n' +
+          'Browser: ' + navigator.userAgent + '\n(tap to close)';
+        box2.addEventListener('click', function () { box2.remove(); });
+        document.body.appendChild(box2);
+      };
+      if (navigator.getInstalledRelatedApps) {
+        navigator.getInstalledRelatedApps().then(function (apps) { report(apps && apps.length ? 'yes' : 'no'); }).catch(function (e) { report('error: ' + e.message); });
+      } else report('n/a');
+    }
     if (standalone) { remember(); return; }
     if (read(KEY) === '1') { showOpenHint(); return; }
     box.hidden = false;

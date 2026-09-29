@@ -53,7 +53,10 @@ def test_member_emails_have_one_click_unsubscribe():
     # Opening the link only asks; the POST unsubscribes (link scanners).
     handler = worker.split("async function handleEmailUnsubscribe", 1)[1].split("\nasync function ", 1)[0]
     assert "request.method === 'POST'" in handler and "emailsOff = true" in handler
-    assert "await listUnsubscribeHeaders(env, toEmail)" in worker
+    # Member emails go without the headers for now: Outlook junked the
+    # same text with them and delivered it without them.
+    assert "var UNSUBSCRIBE_HEADERS = false;" in worker
+    assert "await memberEmailHeaders(env, toEmail)" in worker
 
 
 def test_emails_have_no_reply_to_on_another_domain():

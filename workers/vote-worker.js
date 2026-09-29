@@ -696,7 +696,7 @@ async function wantsEmails(env, email) {
 async function sendMemberEmail(env, toEmail, subject, body) {
   if (!(await wantsEmails(env, toEmail))) return false;
   try {
-    await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body + EMAIL_FOOTER, await listUnsubscribeHeaders(env, toEmail))));
+    await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body + EMAIL_FOOTER, await memberEmailHeaders(env, toEmail))));
     return true;
   } catch (err) {
     console.log('Member email failed:', err.message);
@@ -1340,12 +1340,13 @@ async function handleAdminBroadcastTest(request, env) {
   var email = previewEmail(body && body.email);
   if (!email) return json({ success: false, message: 'Enter a valid email' }, 400);
   // Send as (to find what a mail filter objects to):
-  //   full      - as members get it: footer and unsubscribe headers
-  //   noheader  - the same, without the unsubscribe headers
-  //   plain     - just the title and message, like a sign-in email
-  var variant = body && (body.variant === 'noheader' || body.variant === 'plain') ? body.variant : 'full';
+  //   full        - as members get it (memberEmailHeaders)
+  //   withheader  - with the one-click unsubscribe headers
+  //   plain       - just the title and message, like a sign-in email
+  var variant = body && (body.variant === 'withheader' || body.variant === 'plain') ? body.variant : 'full';
   var emailText = variant === 'plain' ? text : broadcastEmailText({ title: title, text: text }) + EMAIL_FOOTER;
-  var headers = variant === 'full' ? await listUnsubscribeHeaders(env, email) : [];
+  var headers = variant === 'withheader' ? await listUnsubscribeHeaders(env, email)
+    : variant === 'full' ? await memberEmailHeaders(env, email) : [];
   try {
     await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, email, rawEmail(MY_BUILDS_FROM_EMAIL, email,
       '[Test] ' + title, emailText, headers)));
@@ -3411,6 +3412,17 @@ async function unsubscribeUrl(env, email) {
     '&t=' + (await unsubscribeToken(env, email));
 }
 
+// Member emails go without the unsubscribe headers: admin tests to
+// Outlook with the same text reached the inbox without them and went to
+// Junk with them. Members turn emails off in Profile (the footer says
+// where), and the one-click link still works if the headers come back
+// (UNSUBSCRIBE_HEADERS, or Send as "With unsubscribe header" in Admin).
+var UNSUBSCRIBE_HEADERS = false;
+
+async function memberEmailHeaders(env, email) {
+  return UNSUBSCRIBE_HEADERS ? listUnsubscribeHeaders(env, email) : [];
+}
+
 async function listUnsubscribeHeaders(env, email) {
   return [
     'List-Unsubscribe: <' + (await unsubscribeUrl(env, email)) + '>, <mailto:' + SUBSCRIBERS_DIGEST_EMAIL + '?subject=Unsubscribe%20from%20MT3UK%20emails>',
@@ -3515,7 +3527,7 @@ async function sendCommentNotificationEmail(env, toEmail, fromName, text, file, 
     body = fromName + ' left a comment on an MT3UK Owner Interview:\n\n"' + text + '"' +
       '\n\nView and reply: ' + link;
   }
-  var message = new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body + EMAIL_FOOTER, await listUnsubscribeHeaders(env, toEmail)));
+  var message = new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body + EMAIL_FOOTER, await memberEmailHeaders(env, toEmail)));
   await env.SEND_EMAIL.send(message);
 }
 

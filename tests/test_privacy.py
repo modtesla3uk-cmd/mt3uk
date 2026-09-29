@@ -62,3 +62,14 @@ def test_emails_have_no_reply_to_on_another_domain():
     worker = (ROOT / "workers" / "vote-worker.js").read_text(encoding="utf-8")
     raw_email = worker.split("function rawEmail(", 1)[1].split("\n}\n", 1)[0]
     assert "Reply-To" not in raw_email
+
+
+def test_member_emails_look_like_the_ones_outlook_lets_through():
+    """Outlook put member emails in Junk while the same text sent plain (no
+    footer links, no "MT3UK:" subject prefix) reached the inbox."""
+    worker = (ROOT / "workers" / "vote-worker.js").read_text(encoding="utf-8")
+    footer = worker.split("var EMAIL_FOOTER = ", 1)[1].split(";\n", 1)[0]
+    assert "http" not in footer and "_URL" not in footer, "No links in the footer"
+    broadcast = worker.split("function broadcastEmailText(msg) {", 1)[1].split("\n}", 1)[0]
+    assert "_URL" not in broadcast, "No extra link under messages"
+    assert "'MT3UK: ' + msg.title" not in worker, "Subjects are just the title"

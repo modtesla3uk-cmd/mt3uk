@@ -652,8 +652,10 @@ var DM_SEND_LIMIT_PER_HOUR = 60;
 var MAX_BROADCASTS = 50;
 var BROADCAST_EMAIL_BATCH = 40;
 var PROFILE_URL = MY_BUILDS_SITE_URL + '/profile.html';
-var EMAIL_FOOTER = '\n\n--\nManage your MT3UK emails or unsubscribe: ' + PROFILE_URL + '#unsubscribe' +
-  '\nPrivacy: ' + MY_BUILDS_SITE_URL + '/privacy.html';
+// Kept short with no links: Outlook put member emails with a two-link
+// footer in Junk, while the same text with no footer reached the inbox.
+// The one-click Unsubscribe header (listUnsubscribeHeaders) stays.
+var EMAIL_FOOTER = '\n\n--\nYou can turn these emails off in your MT3UK Profile, under Email alerts.';
 
 async function getProfileRecord(env, email) {
   if (!email) return {};
@@ -1296,8 +1298,9 @@ async function handleAdminBroadcastsGet(request, env) {
   return json({ success: true, broadcasts: withCounts, reports: Array.isArray(reports) ? reports : [] });
 }
 
+// Just the message: no extra link (see EMAIL_FOOTER).
 function broadcastEmailText(msg) {
-  return msg.text + '\n\nSee all messages in your Profile: ' + PROFILE_URL + '#messages';
+  return msg.text;
 }
 
 // Emails one message to one member (1c), unless they've had it already
@@ -1316,7 +1319,7 @@ async function handleAdminBroadcastEmailOne(request, env) {
     return json({ success: false, already: true, message: email + ' has already been emailed this message. Send again?' }, 409);
   }
   if (!(await wantsEmails(env, email))) return json({ success: false, message: email + ' has turned emails off, so it is only in their Profile inbox.' }, 400);
-  var ok = await sendMemberEmail(env, email, 'MT3UK: ' + msg.title, broadcastEmailText(msg));
+  var ok = await sendMemberEmail(env, email, msg.title, broadcastEmailText(msg));
   if (!ok) return json({ success: false, message: 'The email could not be sent, please try again.' }, 500);
   if (emailed.indexOf(email) === -1) emailed.push(email);
   await env.VOTES.put(broadcastEmailedKey(msg.id), JSON.stringify(emailed));
@@ -1345,7 +1348,7 @@ async function handleAdminBroadcastTest(request, env) {
   var headers = variant === 'full' ? await listUnsubscribeHeaders(env, email) : [];
   try {
     await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, email, rawEmail(MY_BUILDS_FROM_EMAIL, email,
-      '[Test] ' + (variant === 'plain' ? '' : 'MT3UK: ') + title, emailText, headers)));
+      '[Test] ' + title, emailText, headers)));
   } catch (err) {
     console.log('Test email failed:', err.message);
     return json({ success: false, message: 'The email could not be sent: ' + err.message }, 500);
@@ -1390,7 +1393,7 @@ async function handleAdminBroadcastEmail(request, env) {
     var to = page.keys[i].name.slice('subscriber:'.length);
     // Anyone who has had this message already is skipped.
     if (emailed.indexOf(to) !== -1) { already++; continue; }
-    var ok = await sendMemberEmail(env, to, 'MT3UK: ' + msg.title, broadcastEmailText(msg));
+    var ok = await sendMemberEmail(env, to, msg.title, broadcastEmailText(msg));
     if (ok) { sent++; emailed.push(to); } else skipped++;
   }
   if (sent) await env.VOTES.put(broadcastEmailedKey(msg.id), JSON.stringify(emailed));

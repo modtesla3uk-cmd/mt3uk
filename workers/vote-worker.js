@@ -692,7 +692,7 @@ async function wantsEmails(env, email) {
 async function sendMemberEmail(env, toEmail, subject, body) {
   if (!(await wantsEmails(env, toEmail))) return false;
   try {
-    await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body + EMAIL_FOOTER)));
+    await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body + EMAIL_FOOTER, listUnsubscribeHeaders())));
     return true;
   } catch (err) {
     console.log('Member email failed:', err.message);
@@ -3093,17 +3093,35 @@ function randomToken() {
   return crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
 }
 
-function rawEmail(from, to, subject, bodyText) {
+// Non-ASCII header text (names, quotes, the • in masked emails) is
+// encoded, as unencoded 8-bit headers count against an email in spam checks.
+function encodeHeaderText(value) {
+  value = String(value == null ? '' : value).replace(/[\r\n]+/g, ' ');
+  return /[^\x20-\x7e]/.test(value) ? '=?UTF-8?B?' + btoa(unescape(encodeURIComponent(value))) + '?=' : value;
+}
+
+// The full set of headers mail providers expect, so emails don't land in
+// Junk: Date, Message-ID, Reply-To (noreply@ has no inbox), the text
+// encoding and, for member emails, List-Unsubscribe (extraHeaders).
+function rawEmail(from, to, subject, bodyText, extraHeaders) {
   var lines = [
     'From: MT3UK <' + from + '>',
+    'Reply-To: MT3UK <' + SUBSCRIBERS_DIGEST_EMAIL + '>',
     'To: ' + to,
-    'Subject: ' + subject,
+    'Subject: ' + encodeHeaderText(subject),
+    'Date: ' + new Date().toUTCString(),
+    'Message-ID: <' + crypto.randomUUID() + '@mt3uk.com>',
     'MIME-Version: 1.0',
     'Content-Type: text/plain; charset=utf-8',
-    '',
-    bodyText
-  ];
+    'Content-Transfer-Encoding: 8bit'
+  ].concat(extraHeaders || []);
+  lines.push('', String(bodyText).replace(/\r?\n/g, '\r\n'));
   return lines.join('\r\n');
+}
+
+// For emails members can turn off (alerts and messages from MT3UK).
+function listUnsubscribeHeaders() {
+  return ['List-Unsubscribe: <' + MY_BUILDS_SITE_URL + '/profile.html#unsubscribe>, <mailto:' + SUBSCRIBERS_DIGEST_EMAIL + '?subject=Unsubscribe%20from%20MT3UK%20emails>'];
 }
 
 async function sendMyBuildsLinkEmail(env, toEmail, link, expiresIn, code) {
@@ -3158,7 +3176,7 @@ async function sendCommentNotificationEmail(env, toEmail, fromName, text, file, 
     body = fromName + ' left a comment on an MT3UK Owner Interview:\n\n"' + text + '"' +
       '\n\nView and reply: ' + link;
   }
-  var message = new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body + EMAIL_FOOTER));
+  var message = new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail(MY_BUILDS_FROM_EMAIL, toEmail, subject, body + EMAIL_FOOTER, listUnsubscribeHeaders()));
   await env.SEND_EMAIL.send(message);
 }
 

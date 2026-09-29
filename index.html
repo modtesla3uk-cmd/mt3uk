@@ -1897,7 +1897,7 @@
   .hp-open-app .hp-open-app-title { font-weight: 700; color: #ffffff; margin-bottom: 4px; font-size: 1rem; }
   .hp-open-app-row { display: flex; gap: 10px; flex-wrap: wrap; }
   .hp-open-app-row button { min-height: 40px; padding: 8px 16px; font: inherit; font-size: 0.88rem; cursor: pointer; border: 1px solid rgba(255,255,255,0.5); background: transparent; color: #ffffff; }
-  .hp-open-app-row .hp-open-app-ok { background: #1c8a4b; border-color: #1c8a4b; font-weight: 600; }
+  .hp-open-app-row .hp-open-app-ok:first-child, .hp-open-app-row .hp-open-app-go { background: #1c8a4b; border-color: #1c8a4b; font-weight: 600; }
   .hp-app.hp-app-open .hp-app-icon { stroke: #1c8a4b; }
   .hp-app-btn { background: var(--orange); color: #ffffff; border: 0; min-height: 44px; padding: 10px 20px; font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; white-space: nowrap; }
   .hp-app-btn:hover { opacity: 0.9; }
@@ -5859,6 +5859,7 @@
     // A pop-up when the browser version opens: "Open the MT3UK app". Once
     // per browser session, unless they choose Don't show again.
     var PROMPT_KEY = 'mt3ukOpenAppPromptOff';
+    var isAndroid = /Android/i.test(navigator.userAgent);
     function openAppPrompt() {
       if (read(PROMPT_KEY) === '1' || document.getElementById('mt3uk-open-app')) return;
       // Wait until the intro splash has been tapped away.
@@ -5875,9 +5876,28 @@
         '<p>' + (uaIsIos
           ? 'You have the app: tap the MT3UK icon on your Home Screen for full screen, alerts and staying signed in.'
           : 'You have the app: find MT3UK in your apps (swipe up for the app list), or tap \u22EE then <strong>Open in app</strong> in Chrome.') + '</p>' +
-        '<div class="hp-open-app-row"><button type="button" class="hp-open-app-ok">OK</button><button type="button" class="hp-open-app-off">Don\u2019t show again</button></div></div>';
+        '<div class="hp-open-app-row">' + (isAndroid ? '<button type="button" class="hp-open-app-go">Open the app</button>' : '') +
+        '<button type="button" class="hp-open-app-ok">' + (isAndroid ? 'Not now' : 'OK') + '</button><button type="button" class="hp-open-app-off">Don\u2019t show again</button></div></div>';
       document.body.appendChild(sheet);
       sheet.querySelector('.hp-open-app-ok').addEventListener('click', function () { sheet.remove(); });
+      var go = sheet.querySelector('.hp-open-app-go');
+      if (go) {
+        // Android: an intent link asks the phone to open this page in the
+        // app that handles mt3uk.com, which is the installed MT3UK app.
+        // If nothing happens, point them to their app list instead.
+        go.addEventListener('click', function () {
+          // No #section: the intent link uses # for its own parts.
+          var path = location.pathname || '/';
+          var fallback = location.origin + '/index.html';
+          location.href = 'intent://' + location.host + path + '#Intent;scheme=https;action=android.intent.action.VIEW;' +
+            'S.browser_fallback_url=' + encodeURIComponent(fallback) + ';end';
+          setTimeout(function () {
+            if (document.hidden) return;
+            go.textContent = 'Find MT3UK in your apps';
+            go.disabled = true;
+          }, 2000);
+        });
+      }
       sheet.querySelector('.hp-open-app-off').addEventListener('click', function () {
         try { localStorage.setItem(PROMPT_KEY, '1'); } catch (e) {}
         sheet.remove();

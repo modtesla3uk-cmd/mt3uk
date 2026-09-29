@@ -174,3 +174,15 @@ def test_appcheck_shows_what_the_browser_reports(device_page):
     text = report.inner_text()
     assert "Running as the app: no" in text and "Marked installed here: no" in text
     assert page.errors == []
+
+
+@all_devices
+def test_android_popup_has_open_the_app_button(device_page):
+    page = device_page
+    page.add_init_script("localStorage.setItem('mt3ukAppInstalled', '1')")
+    page.goto("/index.html")
+    popup = page.locator("#mt3uk-open-app")
+    popup.wait_for(state="visible", timeout=5000)
+    is_android = page.evaluate("/Android/i.test(navigator.userAgent)")
+    assert (popup.locator(".hp-open-app-go").count() == 1) == is_android
+    assert page.errors == []

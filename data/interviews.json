@@ -133,6 +133,18 @@
       "heroPosition": "50% 62%",
       "publish": "2027-02-18",
       "created": "2026-09-28"
+    },
+    {
+      "name": "Romil Somaiya",
+      "type": "standard",
+      "car": "Model 3 Standard Range Plus",
+      "year": "2020",
+      "title": "Blacked Out: Romil’s Heavily Modded Model 3",
+      "excerpt": "A yoke steering wheel, an aero body kit, matt black 20s and full underglow on a blacked-out Model 3.",
+      "url": "blog-romil.html",
+      "image": "images/blog/owner-interviews/romil/front-three-quarter.jpg",
+      "publish": "2027-03-04",
+      "created": "2026-09-29"
     }
   ]
 }

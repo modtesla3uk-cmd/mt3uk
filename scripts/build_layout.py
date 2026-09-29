@@ -47,6 +47,7 @@ PAGES = {
     "blog-john": "blog.html",
     "blog-kam": "blog.html",
     "blog-yusuf": "blog.html",
+    "blog-romil": "blog.html",
     "blog-ryan": "blog.html",
     "blog-sharad": "blog.html",
     "blog-mark": "blog.html",

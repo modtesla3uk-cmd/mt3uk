@@ -21,7 +21,7 @@ OUTPUT_FILE = "sitemap.xml"
 LOCAL_IMAGE_DIRS = ["images/site"]
 R2_PREFIXES = ["gallery/", "track-days/"]
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
-PAGES = ["index.html", "shop.html", "reviews.html", "contact.html", "signin.html", "privacy.html", "track-day-prep.html", "gallery.html", "blog.html", "blog-richard.html", "blog-john.html", "blog-kam.html", "blog-yusuf.html", "blog-ryan.html", "blog-sharad.html"]
+PAGES = ["index.html", "shop.html", "reviews.html", "contact.html", "signin.html", "privacy.html", "track-day-prep.html", "gallery.html", "blog.html", "blog-richard.html", "blog-john.html", "blog-kam.html", "blog-yusuf.html", "blog-ryan.html", "blog-sharad.html", "blog-romil.html"]
 
 def get_all_images():
     """Scan the local site-image directory and the R2 bucket, returning a

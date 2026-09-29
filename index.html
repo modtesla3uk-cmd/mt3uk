@@ -215,7 +215,7 @@
     /* ---------- CATEGORIES SECTION ---------- */
   .categories-section {
     background: var(--paper);
-    padding: 24px 0 28px;
+    padding: 34px 0 38px;
     border-bottom: 1px solid var(--ink);
   }
   .categories-prefix {
@@ -227,10 +227,10 @@
   }
   .categories-title {
     font-family: 'Archivo Expanded', sans-serif;
-    font-size: 1.1rem;
-    letter-spacing: 0.04em;
-    color: var(--charcoal);
-    margin-bottom: 14px;
+    font-size: clamp(1.35rem, 3vw, 1.75rem);
+    letter-spacing: 0.02em;
+    color: var(--ink);
+    margin-bottom: 18px;
   }
   .categories-grid {
     display: grid;
@@ -240,25 +240,28 @@
   .category-card {
     background: var(--paper);
     border: 1px solid var(--ink);
+    border-left: 4px solid var(--orange);
     border-radius: 0;
     padding: 16px 18px;
     min-height: 76px;
+    box-shadow: 0 2px 0 rgba(22, 35, 61, 0.12);
     display: flex;
     align-items: center;
     justify-content: space-between;
     text-decoration: none;
     color: var(--charcoal);
-    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
   }
+  .category-card:hover { background: #ffffff; transform: translateY(-2px); box-shadow: 0 8px 18px rgba(22, 35, 61, 0.14); }
   .category-card-content {
     display: flex;
     align-items: center;
     gap: 12px;
   }
   .category-card svg.card-icon {
-    width: 20px;
-    height: 20px;
-    stroke: var(--charcoal);
+    width: 24px;
+    height: 24px;
+    stroke: var(--orange);
     fill: none;
     stroke-width: 1.8;
     stroke-linecap: round;
@@ -268,7 +271,7 @@
   }
   .category-card span {
     font-family: 'Archivo Expanded', sans-serif;
-    font-size: 0.85rem;
+    font-size: 0.95rem;
     font-weight: 700;
     letter-spacing: 0.03em;
   }
@@ -2049,10 +2052,11 @@
   .hp-announce:hover { background: #a93814; color: #ffffff; }
   .hp-announce[hidden] { display: none; }
 
-  .hero.hp-hero { display: flex; align-items: flex-end; min-height: 560px; padding: 72px 0 0; background-position: center; background-image: linear-gradient(rgba(14, 22, 40, 0.45), rgba(14, 22, 40, 0.94) 72%), url('images/blog/owner-interviews/richard/hidden-forest-wrap.jpg'); }
+  .hero.hp-hero { display: flex; align-items: flex-end; min-height: 440px; padding: 56px 0 0; background-position: center; background-image: linear-gradient(rgba(14, 22, 40, 0.45), rgba(14, 22, 40, 0.94) 72%), url('images/blog/owner-interviews/richard/hidden-forest-wrap.jpg'); }
   .hp-hero > .wrap { width: 100%; }
   .hp-hero .hero-grid { justify-items: start; text-align: left; }
-  .hp-hero h1 { max-width: 20ch; font-size: clamp(1.9rem, 5vw, 3.4rem); margin-bottom: 10px; }
+  /* The interview heading is kept modest so the categories below get a look in. */
+  .hp-hero h1 { max-width: 26ch; font-size: clamp(1.35rem, 3.2vw, 2.1rem); line-height: 1.2; margin-bottom: 8px; }
   .hp-eyebrow { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 0.74rem; letter-spacing: 0.14em; line-height: 1.5; color: #f58a68; margin-bottom: 12px; text-transform: uppercase; }
   /* The hero eyebrow sits over the interview photo, so it's white and
      larger, with a shadow to stand out against brick and bright skies. */
@@ -2078,7 +2082,7 @@
   .hp-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 28px; padding: 18px 0 26px; border-top: 1px solid rgba(255, 255, 255, 0.2); width: 100%; max-width: 560px; }
   .hp-stats strong { display: block; min-height: 1.2em; font-family: 'Archivo Expanded', sans-serif; font-size: 1.4rem; color: #ffffff; line-height: 1.2; }
   .hp-stats span { font-family: 'IBM Plex Mono', monospace; font-size: 0.66rem; letter-spacing: 0.06em; color: #b9c0cf; }
-  @media (max-width: 600px) { .hero.hp-hero { min-height: 520px; } .hp-hero-ctas .hp-btn { flex: 1 1 140px; } }
+  @media (max-width: 600px) { .hero.hp-hero { min-height: 0; } .hp-hero-ctas .hp-btn { flex: 1 1 140px; } }
 
   .category-card.hp-cat { flex-direction: column; align-items: stretch; justify-content: space-between; gap: 10px; min-height: 96px; }
   .category-card.hp-cat-wide { grid-column: 1 / -1; min-height: 76px; }
@@ -2729,7 +2733,7 @@
     <div class="hero-grid">
       <div>
         <span class="hp-eyebrow" id="hp-hero-eyebrow">Latest owner interview</span>
-        <h1 style="color: #ffffff;" id="hp-hero-title">Founding the MT3UK Community</h1>
+        <h1 style="color: #ffffff;" id="hp-hero-title">Interview with the founder of the MT3UK Community</h1>
         <p class="hp-hero-meta" id="hp-hero-meta">Richard &middot; Model 3 Performance &middot; 2019</p>
         <div class="hp-hero-ctas">
           <a href="blog-richard.html" class="hp-btn hp-btn-primary" id="hp-hero-cta">Read Richard&rsquo;s story &rarr;</a>
@@ -2800,7 +2804,7 @@
   <section class="categories-section">
     <div class="wrap">
       <span class="categories-prefix">01 /</span>
-      <h3 class="categories-title">CATEGORIES</h3>
+      <h2 class="categories-title">Explore MT3UK</h2>
       <div class="categories-grid hp-cats">
         <a href="my-builds.html" class="category-card hp-cat nav-link-mybuilds-hero">
           <div class="hp-cat-top">

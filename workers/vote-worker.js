@@ -635,14 +635,17 @@ async function handleInterviewsAdminSave(request, env) {
 
 // ---------- Interview previews ----------
 // Until an interview's publish date, its page asks for a one-time code
-// (js/interview-gate.js). Codes are only emailed to addresses on the
-// approved list, which the admin page manages: each entry is an email plus
-// an interview slug ("richard" for blog-richard.html) or "*" for all of
-// them. A correct code opens that interview in that browser for 4 hours,
-// signs them in, and makes them an MT3UK member if they weren't already
-// (the code email says so). The list is one JSON key, read with get() only.
+// (js/interview-gate.js). Anyone can have a code emailed, like Sign In. A
+// correct code opens that interview in that browser for 4 hours, signs them
+// in, and makes them an MT3UK member if they weren't already (the code email
+// says so). Each opening is logged for the admin page, which can revoke an
+// email's access to an interview ("*" for all of them): that ends any open
+// preview and stops new codes. The log and the revoked list are one JSON key
+// each, read with get() only.
 
-var PREVIEW_ALLOW_KEY = 'interview-preview-allow';
+var PREVIEW_LOG_KEY = 'interview-preview-log';
+var PREVIEW_REVOKED_KEY = 'interview-preview-revoked';
+var PREVIEW_LOG_MAX = 500;
 var PREVIEW_CODE_TTL_SECONDS = 15 * 60;
 var PREVIEW_ACCESS_TTL_SECONDS = 4 * 60 * 60;
 var PREVIEW_REQUESTS_PER_IP_PER_HOUR = 10;
@@ -658,15 +661,32 @@ function previewEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : '';
 }
 
-async function getPreviewAllow(env) {
-  var raw = await env.VOTES.get(PREVIEW_ALLOW_KEY);
+async function getPreviewList(env, key) {
+  var raw = await env.VOTES.get(key);
   var list = [];
   try { list = raw ? JSON.parse(raw) : []; } catch (e) { list = []; }
   return Array.isArray(list) ? list : [];
 }
 
-function previewAllowed(list, email, slug) {
-  return list.some(function (entry) { return entry.email === email && (entry.slug === '*' || entry.slug === slug); });
+async function previewRevoked(env, email, slug) {
+  var revoked = await getPreviewList(env, PREVIEW_REVOKED_KEY);
+  return revoked.some(function (entry) { return entry.email === email && (entry.slug === '*' || entry.slug === slug); });
+}
+
+// One row per email and interview: when first and last opened, how often.
+async function logPreviewOpen(env, email, slug, joined) {
+  var log = await getPreviewList(env, PREVIEW_LOG_KEY);
+  var now = new Date().toISOString();
+  var row = null;
+  log.forEach(function (entry) { if (entry.email === email && entry.slug === slug) row = entry; });
+  if (row) {
+    row.lastOpened = now;
+    row.opens = (row.opens || 1) + 1;
+  } else {
+    log.push({ email: email, slug: slug, firstOpened: now, lastOpened: now, opens: 1, joined: !!joined });
+  }
+  log.sort(function (a, b) { return a.lastOpened < b.lastOpened ? 1 : -1; });
+  await env.VOTES.put(PREVIEW_LOG_KEY, JSON.stringify(log.slice(0, PREVIEW_LOG_MAX)));
 }
 
 function previewCodeKey(email, slug) {
@@ -680,8 +700,7 @@ async function handleInterviewPreviewRequest(request, env) {
   var slug = previewSlug(body && body.slug, false);
   if (!email) return json({ success: false, message: 'Please enter a valid email' }, 400);
   if (!slug) return json({ success: false, message: 'Invalid interview' }, 400);
-  // The same reply either way, so this can't be used to find out who is on the list.
-  var reply = json({ success: true, message: "If that email has been given a preview of this interview, we've sent a 6-digit code. It lasts 15 minutes." });
+  var reply = json({ success: true, message: "We've sent a 6-digit code to " + email + ". It lasts 15 minutes. Check your junk folder if it hasn't arrived." });
 
   var ipKey = 'interview-preview-ip:' + getClientIp(request);
   var ipCount = parseInt(await env.VOTES.get(ipKey), 10) || 0;
@@ -690,7 +709,9 @@ async function handleInterviewPreviewRequest(request, env) {
   }
   await env.VOTES.put(ipKey, String(ipCount + 1), { expirationTtl: 3600 });
 
-  if (!previewAllowed(await getPreviewAllow(env), email, slug)) return reply;
+  if (await previewRevoked(env, email, slug)) {
+    return json({ success: false, message: "This email can't preview this interview. It will be here on its publish date." }, 403);
+  }
   var cooldownKey = 'interview-preview-cooldown:' + slug + ':' + email;
   if ((await env.VOTES.get(cooldownKey)) !== null) return reply;
   await env.VOTES.put(cooldownKey, '1', { expirationTtl: 60 });
@@ -739,8 +760,8 @@ async function handleInterviewPreviewVerify(request, env) {
     return failed;
   }
   await env.VOTES.delete(key);
-  // Taken off the list since the code was sent: no access.
-  if (!previewAllowed(await getPreviewAllow(env), email, slug)) return failed;
+  // Revoked since the code was sent: no access.
+  if (await previewRevoked(env, email, slug)) return failed;
 
   var token = randomToken();
   var accessExpires = Date.now() + PREVIEW_ACCESS_TTL_SECONDS * 1000;
@@ -752,6 +773,7 @@ async function handleInterviewPreviewVerify(request, env) {
     await markSubscriberSince(env, email);
     joined = true;
   }
+  await logPreviewOpen(env, email, slug, joined);
   var session = await createSession(env, email);
   return json({ success: true, token: token, expires: accessExpires, joined: joined, session: session, email: email });
 }
@@ -765,14 +787,19 @@ async function handleInterviewPreviewCheck(request, env) {
   var record = null;
   try { record = raw ? JSON.parse(raw) : null; } catch (e) { record = null; }
   if (!record || record.slug !== slug || !(record.expires > Date.now())) return json({ success: false }, 401);
+  if (await previewRevoked(env, record.email, slug)) {
+    await env.VOTES.delete('interview-preview-access:' + token);
+    return json({ success: false }, 401);
+  }
   return json({ success: true, expires: record.expires });
 }
 
 async function handleInterviewPreviewAdminList(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorized' }, 401);
-  return json({ success: true, entries: await getPreviewAllow(env) });
+  return json({ success: true, opened: await getPreviewList(env, PREVIEW_LOG_KEY), revoked: await getPreviewList(env, PREVIEW_REVOKED_KEY) });
 }
 
+// Revokes an email's access to an interview ("*" for all), or restores it.
 async function handleInterviewPreviewAdminSave(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorized' }, 401);
   var body;
@@ -781,16 +808,16 @@ async function handleInterviewPreviewAdminSave(request, env) {
   var slug = previewSlug(body && body.slug, true);
   if (!email) return json({ success: false, message: 'Please enter a valid email' }, 400);
   if (!slug) return json({ success: false, message: 'Choose an interview' }, 400);
-  var list = await getPreviewAllow(env);
-  var rest = list.filter(function (entry) { return !(entry.email === email && entry.slug === slug); });
-  if (body.action === 'add') {
+  var revoked = await getPreviewList(env, PREVIEW_REVOKED_KEY);
+  var rest = revoked.filter(function (entry) { return !(entry.email === email && entry.slug === slug); });
+  if (body.action === 'revoke') {
     if (rest.length >= 500) return json({ success: false, message: 'The list is full' }, 400);
-    rest.push({ email: email, slug: slug, added: new Date().toISOString() });
-  } else if (body.action !== 'remove') {
+    rest.push({ email: email, slug: slug, revoked: new Date().toISOString() });
+  } else if (body.action !== 'restore') {
     return json({ success: false, message: 'Unknown action' }, 400);
   }
-  await env.VOTES.put(PREVIEW_ALLOW_KEY, JSON.stringify(rest));
-  return json({ success: true, entries: rest });
+  await env.VOTES.put(PREVIEW_REVOKED_KEY, JSON.stringify(rest));
+  return json({ success: true, opened: await getPreviewList(env, PREVIEW_LOG_KEY), revoked: rest });
 }
 
 var DIGEST_MANUAL_COOLDOWN_SECONDS = 120;

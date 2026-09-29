@@ -1,10 +1,10 @@
 /* Owner Interview preview gate. Until an interview's publish date (UK time,
    from data/interviews.json), its page asks for a one-time code instead of
-   showing the interview. Codes are only emailed to addresses on the approved
-   list in the admin page (Interview preview access). A correct code opens
-   the interview in this browser for 4 hours, and signs them in (the worker
-   makes them an MT3UK member if they weren't already). A message says how
-   long it's open for each time it opens.
+   showing the interview. Anyone can have a code emailed, like Sign In. A
+   correct code opens the interview in this browser for 4 hours, and signs
+   them in (the worker makes them an MT3UK member if they weren't already).
+   A message says how long it's open for each time it opens. The admin page
+   lists who has opened each interview and can revoke access.
 
    Loaded in each blog-<slug>.html <head> (not deferred), so the page is
    hidden before anything shows. On localhost the gate is off, so pages can
@@ -144,7 +144,7 @@
         '<div class="ivg-card">' +
           '<p class="ivg-eyebrow">Owner Interview &middot; Coming ' + esc(niceDate(entry.publish)) + '</p>' +
           '<p class="ivg-title" role="heading" aria-level="1">' + esc(entry.title || 'Owner Interview') + '</p>' +
-          '<p>This interview isn&rsquo;t published yet. If you&rsquo;ve been given a preview, enter your email and we&rsquo;ll send you a one-time code. It opens the interview for 4 hours.</p>' +
+          '<p>This interview isn&rsquo;t published yet. For an early look, enter your email and we&rsquo;ll send you a one-time code. It opens the interview for 4 hours.</p>' +
           '<form class="ivg-form" novalidate>' +
             '<label for="ivg-email">Email</label>' +
             '<input type="email" id="ivg-email" autocomplete="email" required value="' + esc(email) + '">' +

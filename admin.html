@@ -413,14 +413,14 @@
 
   <section>
     <details class="collapsible" id="preview-wrap">
-      <summary><h2>Interview preview access <span class="summary-count" id="preview-count"></span></h2></summary>
-      <p class="iv-note">Until an interview is published, its page asks for a one-time code. Only the emails below are sent one, and a code opens that interview for 4 hours. Anyone who uses a code and isn&rsquo;t a member yet joins MT3UK with that email (the code email tells them). Add yourself with All interviews to check any of them.</p>
+      <summary><h2>Interview previews <span class="summary-count" id="preview-count"></span></h2></summary>
+      <p class="iv-note">Until an interview is published, anyone can ask for a one-time code on its page. A code opens that interview for 4 hours, signs them in, and makes them a member if they weren&rsquo;t already. Below is everyone who has opened one. Revoke ends their preview straight away and stops new codes; Restore undoes it.</p>
       <form class="pv-form" id="pv-form" novalidate>
-        <input type="email" id="pv-email" placeholder="Email" autocomplete="off" aria-label="Email to give preview access">
+        <input type="email" id="pv-email" placeholder="Email" autocomplete="off" aria-label="Email to revoke">
         <select id="pv-slug" aria-label="Interview">
           <option value="*">All interviews</option>
         </select>
-        <button type="submit">Add</button>
+        <button type="submit" class="danger">Revoke</button>
         <span class="iv-note" id="pv-note"></span>
       </form>
       <div id="pv-list"></div>
@@ -2144,8 +2144,8 @@
 })();
 </script>
 <script>
-// Interview preview access: the approved emails that can get a one-time
-// code for an interview before it is published (js/interview-gate.js).
+// Interview previews: who has opened an unpublished interview with a
+// one-time code (js/interview-gate.js), with Revoke and Restore.
 (function () {
   var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
   var wrap = document.getElementById('preview-wrap');
@@ -2156,7 +2156,7 @@
   var listEl = document.getElementById('pv-list');
   var countEl = document.getElementById('preview-count');
   var names = { '*': 'All interviews' };
-  var loaded = false;
+  var last = null;
 
   function key() {
     var input = document.getElementById('admin-key');
@@ -2170,6 +2170,12 @@
   function note(text, kind) {
     noteEl.textContent = text || '';
     noteEl.className = 'iv-note' + (kind ? ' ' + kind : '');
+  }
+  function when(iso) {
+    if (!iso) return '';
+    var d = new Date(iso);
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'Europe/London' }) + ' ' +
+      d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/London' });
   }
 
   // The interviews to choose from, soonest first.
@@ -2186,37 +2192,58 @@
         opt.textContent = label;
         slugEl.appendChild(opt);
       });
-      if (loaded) load();
+      if (last) draw(last);
     })
     .catch(function () {});
 
-  function draw(entries) {
-    countEl.textContent = entries.length ? '(' + entries.length + ')' : '';
-    if (!entries.length) { listEl.innerHTML = '<p class="iv-note">No one has preview access yet.</p>'; return; }
-    listEl.innerHTML = '<table class="iv-table"><thead><tr><th>Email</th><th>Interview</th><th></th></tr></thead><tbody>' +
-      entries.map(function (e) {
-        return '<tr><td>' + esc(e.email) + (e.added ? '<div class="iv-sub">Added ' + esc(e.added.slice(0, 10)) + '</div>' : '') + '</td>' +
-          '<td>' + esc(names[e.slug] || e.slug) + '</td>' +
-          '<td class="num"><button type="button" class="danger pv-remove" data-email="' + esc(e.email) + '" data-slug="' + esc(e.slug) + '">Remove</button></td></tr>';
-      }).join('') + '</tbody></table>';
+  function revokedFor(revoked, email, slug) {
+    var hit = null;
+    revoked.forEach(function (r) { if (r.email === email && (r.slug === slug || r.slug === '*')) hit = hit || r; });
+    return hit;
+  }
+
+  function draw(data) {
+    last = data;
+    var opened = data.opened || [];
+    var revoked = data.revoked || [];
+    countEl.textContent = opened.length ? '(' + opened.length + ')' : '';
+    var rows = opened.map(function (o) {
+      var r = revokedFor(revoked, o.email, o.slug);
+      return '<tr>' +
+        '<td>' + esc(o.email) + (o.joined ? '<div class="iv-sub">Joined MT3UK with this preview</div>' : '') + '</td>' +
+        '<td>' + esc(names[o.slug] || o.slug) + '</td>' +
+        '<td>' + esc(when(o.firstOpened)) + (o.opens > 1 ? '<div class="iv-sub">Opened ' + esc(o.opens) + ' times, last ' + esc(when(o.lastOpened)) + '</div>' : '') + '</td>' +
+        '<td class="num">' + (r
+          ? '<span class="iv-sub">Revoked' + (r.slug === '*' ? ' (all)' : '') + '</span> <button type="button" class="secondary pv-act" data-action="restore" data-email="' + esc(r.email) + '" data-slug="' + esc(r.slug) + '">Restore</button>'
+          : '<button type="button" class="danger pv-act" data-action="revoke" data-email="' + esc(o.email) + '" data-slug="' + esc(o.slug) + '">Revoke</button>') + '</td>' +
+      '</tr>';
+    });
+    // Revoked ahead of opening, so not in the list above.
+    revoked.forEach(function (r) {
+      var shown = opened.some(function (o) { return o.email === r.email && (r.slug === '*' || o.slug === r.slug); });
+      if (shown) return;
+      rows.push('<tr><td>' + esc(r.email) + '</td><td>' + esc(names[r.slug] || r.slug) + '</td><td><span class="iv-sub">Not opened</span></td>' +
+        '<td class="num"><span class="iv-sub">Revoked</span> <button type="button" class="secondary pv-act" data-action="restore" data-email="' + esc(r.email) + '" data-slug="' + esc(r.slug) + '">Restore</button></td></tr>');
+    });
+    if (!rows.length) { listEl.innerHTML = '<p class="iv-note">No one has opened an unpublished interview yet.</p>'; return; }
+    listEl.innerHTML = '<table class="iv-table"><thead><tr><th>Email</th><th>Interview</th><th>First opened</th><th></th></tr></thead><tbody>' + rows.join('') + '</tbody></table>';
   }
 
   function load() {
     var k = key();
-    if (!k) { listEl.innerHTML = '<p class="iv-note">Enter the admin key at the top of the page to see who has access.</p>'; return; }
-    loaded = true;
+    if (!k) { listEl.innerHTML = '<p class="iv-note">Enter the admin key at the top of the page to see who has opened a preview.</p>'; return; }
     fetch(API + '/interviews/admin/preview?key=' + encodeURIComponent(k), { cache: 'no-store' })
       .then(function (res) { return res.json(); })
       .then(function (data) {
         if (!data.success) { listEl.innerHTML = '<p class="iv-note error">' + esc(data.message === 'Unauthorized' ? 'The admin key is not right.' : (data.message || 'Could not load the list.')) + '</p>'; return; }
-        draw(data.entries || []);
+        draw(data);
       })
       .catch(function () { listEl.innerHTML = '<p class="iv-note error">Network error loading the list.</p>'; });
   }
 
   function save(action, email, slug) {
     var k = key();
-    if (!k) { note('Enter the admin key at the top of the page first.', 'error'); return Promise.resolve(); }
+    if (!k) { note('Enter the admin key at the top of the page first.', 'error'); return Promise.resolve(false); }
     return fetch(API + '/interviews/admin/preview?key=' + encodeURIComponent(k), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -2224,24 +2251,25 @@
     })
       .then(function (res) { return res.json(); })
       .then(function (data) {
-        if (!data.success) { note(data.message === 'Unauthorized' ? 'The admin key is not right.' : (data.message || 'Could not save.'), 'error'); return; }
-        note(action === 'add' ? 'Added. They can now ask for a code on the interview page.' : 'Removed.', 'ok');
-        draw(data.entries || []);
+        if (!data.success) { note(data.message === 'Unauthorized' ? 'The admin key is not right.' : (data.message || 'Could not save.'), 'error'); return false; }
+        note(action === 'revoke' ? 'Revoked ' + email + ' (' + (names[slug] || slug) + ').' : 'Restored ' + email + '.', 'ok');
+        draw(data);
+        return true;
       })
-      .catch(function () { note('Network error, please try again.', 'error'); });
+      .catch(function () { note('Network error, please try again.', 'error'); return false; });
   }
 
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     var email = emailEl.value.trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { note('Enter a valid email.', 'error'); return; }
-    save('add', email, slugEl.value).then(function () { if (noteEl.className.indexOf('ok') !== -1) emailEl.value = ''; });
+    save('revoke', email, slugEl.value).then(function (ok) { if (ok) emailEl.value = ''; });
   });
   listEl.addEventListener('click', function (e) {
-    var btn = e.target.closest('.pv-remove');
+    var btn = e.target.closest('.pv-act');
     if (!btn) return;
     btn.disabled = true;
-    save('remove', btn.getAttribute('data-email'), btn.getAttribute('data-slug'));
+    save(btn.getAttribute('data-action'), btn.getAttribute('data-email'), btn.getAttribute('data-slug'));
   });
   wrap.addEventListener('toggle', function () { if (wrap.open) load(); });
 })();

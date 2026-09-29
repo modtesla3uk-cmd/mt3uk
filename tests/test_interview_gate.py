@@ -1,7 +1,7 @@
 """Until an Owner Interview is published, its page asks for a one-time code
-(js/interview-gate.js). Codes only go to approved emails, managed on the
-admin page, and a code opens the interview for 4 hours. On localhost the gate
-is off unless the page has ?gate=on."""
+(js/interview-gate.js). Anyone can have a code emailed, and a code opens the
+interview for 4 hours. The admin page lists who has opened one and can revoke
+access. On localhost the gate is off unless the page has ?gate=on."""
 import json
 import re
 from pathlib import Path
@@ -111,22 +111,19 @@ def test_gate_is_off_on_localhost_without_gate_on(device_page):
 
 
 @all_devices
-def test_admin_can_add_and_remove_preview_emails(device_page):
+def test_admin_sees_who_opened_a_preview_and_can_revoke(device_page):
     page = device_page
     page.add_init_script("sessionStorage.setItem('mt3ukAdminKey', 'test-key')")
     page.goto("/admin.html")
     page.locator("#preview-wrap > summary").click()
     rows = page.locator("#pv-list tbody tr")
     rows.first.wait_for(state="visible", timeout=5000)
-    assert "sharad@example.com" in rows.first.inner_text()
-    assert "Sharad" in page.locator("#pv-list").inner_text(), "Shows the interview's name, not just its slug"
+    text = rows.first.inner_text()
+    assert "sharad@example.com" in text and "Sharad" in text, "Shows the email and the interview's name"
+    assert "Joined MT3UK" in text and "2 times" in text
 
-    page.fill("#pv-email", "new@example.com")
-    page.select_option("#pv-slug", "*")
-    page.click("#pv-form button[type=submit]")
-    page.wait_for_function("document.querySelectorAll('#pv-list tbody tr').length === 2", timeout=5000)
-    assert "All interviews" in page.locator("#pv-list").inner_text()
-
-    page.locator("#pv-list .pv-remove").first.click()
-    page.wait_for_function("document.querySelectorAll('#pv-list tbody tr').length === 1", timeout=5000)
+    rows.first.locator("button", has_text="Revoke").click()
+    page.wait_for_function("document.querySelector('#pv-list tbody tr').textContent.indexOf('Revoked') !== -1", timeout=5000)
+    rows.first.locator("button", has_text="Restore").click()
+    page.wait_for_function("document.querySelector('#pv-list tbody tr button').textContent === 'Revoke'", timeout=5000)
     assert page.errors == [], diagnostics(page)

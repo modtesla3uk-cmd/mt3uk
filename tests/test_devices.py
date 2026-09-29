@@ -735,3 +735,33 @@ def test_up_chevron_returns_to_the_top(device_page):
     page.wait_for_timeout(500)
     assert page.evaluate("window.scrollY") < 5
     assert page.errors == []
+
+
+@all_devices
+def test_refresh_at_the_top_stays_at_the_top(device_page):
+    # Pull down to refresh after tapping a #section link shouldn't jump back
+    # down to that section.
+    page = device_page
+    page.goto("/index.html#build-feed")
+    page.wait_for_timeout(800)
+    # Scroll back up by hand, then refresh.
+    page.mouse.move(100, 300)
+    page.mouse.wheel(0, -20000)
+    page.wait_for_timeout(500)
+    assert page.evaluate("window.scrollY") < 5
+    page.reload()
+    page.wait_for_timeout(2000)
+    assert page.evaluate("window.scrollY") < 5
+    assert page.errors == []
+
+
+@all_devices
+def test_up_chevron_clears_the_section_from_the_address(device_page):
+    page = device_page
+    page.emulate_media(reduced_motion="reduce")
+    page.goto("/index.html#build-feed")
+    page.wait_for_timeout(500)
+    page.locator("#hp-scroll-top").click()
+    page.wait_for_timeout(300)
+    assert page.evaluate("location.hash") == ""
+    assert page.errors == []

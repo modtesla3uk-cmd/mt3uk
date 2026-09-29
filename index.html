@@ -3,6 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+  // A refresh (including pull down to refresh) keeps you where you were:
+  // drop any #section from the address so the browser doesn't jump to it.
+  try {
+    var mt3ukNav = performance.getEntriesByType('navigation')[0];
+    if (mt3ukNav && mt3ukNav.type === 'reload' && location.hash) history.replaceState(null, '', location.pathname + location.search);
+  } catch (e) {}
+</script>
 <title>MT3UK:The Modified Tesla Owners Community Page</title>
 <meta name="description" content="MT3UK is the global community for modified Tesla owners: wraps, wheels, suspension, stance and track builds. Browse the gallery, join the Facebook group and grab MT3UK merch.">
 <link rel="canonical" href="https://mt3uk.com/">
@@ -2070,39 +2078,28 @@
 
   .hero.hp-hero { display: flex; align-items: flex-end; min-height: 440px; padding: 56px 0 0; background-position: center; background-image: linear-gradient(rgba(14, 22, 40, 0.45), rgba(14, 22, 40, 0.94) 72%), url('images/blog/owner-interviews/richard/hidden-forest-wrap.jpg'); }
   .hp-hero > .wrap { width: 100%; }
-  /* Pulsing chevron at the bottom of the hero: more below, tap to jump to 01. */
+  /* Chevron at the bottom of the hero: more below, tap to jump to 01. */
   .hero.hp-hero { padding-bottom: 64px; }
   .hp-scroll-cue {
     position: absolute; left: 50%; bottom: 10px; z-index: 3;
     width: 48px; height: 48px; margin-left: -24px; padding: 0;
     display: flex; align-items: center; justify-content: center;
     background: transparent; border: 0; border-radius: 50%; cursor: pointer; color: #e8542a;
-    animation: hp-cue-pulse 1.8s ease-in-out infinite;
   }
   .hp-scroll-cue svg { width: 32px; height: 32px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.6)); }
   .hp-scroll-cue .hp-scroll-cue-back { opacity: 0.45; }
   .hp-scroll-cue:hover, .hp-scroll-cue:focus-visible { color: #ff7a4f; }
   .hp-scroll-cue:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; }
-  @keyframes hp-cue-pulse {
-    0%, 100% { transform: translateY(0); opacity: 0.75; }
-    50% { transform: translateY(7px); opacity: 1; }
-  }
   /* Up chevron at the top middle of section 01: back to the first screen. */
   .hp-scroll-top {
     display: flex; align-items: center; justify-content: center;
     width: 44px; height: 36px; margin: -26px auto 2px; padding: 0;
     background: transparent; border: 0; border-radius: 50%; cursor: pointer; color: #e8542a;
-    animation: hp-cue-pulse-up 1.8s ease-in-out infinite;
   }
   .hp-scroll-top svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
   .hp-scroll-top:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
   .hp-scroll-top .hp-scroll-cue-back { opacity: 0.45; }
   .hp-scroll-top:hover, .hp-scroll-top:focus-visible { color: #ff7a4f; }
-  @keyframes hp-cue-pulse-up {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
-  }
-  @media (prefers-reduced-motion: reduce) { .hp-scroll-cue, .hp-scroll-top { animation: none; } }
   /* Phones: the first screen fills the phone below the header, with the
      content spread out and the chevron at the bottom. --hp-hero-top is the
      space above the hero (announcement bar and header), set by script. */
@@ -2940,6 +2937,8 @@
         document.getElementById('hp-scroll-top').addEventListener('click', function () {
           var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
           window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+          // Back at the top, so drop any #section left in the address.
+          if (location.hash) try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
         });
       </script>
       <span class="categories-prefix">01 /</span>
@@ -5857,6 +5856,12 @@
   (function () {
     var hash = location.hash;
     if (!hash || hash.length < 2) return;
+    // A refresh (including pull down to refresh) keeps you where you were,
+    // rather than jumping back to the section in the address.
+    try {
+      var nav = performance.getEntriesByType('navigation')[0];
+      if (nav && nav.type === 'reload') return;
+    } catch (e) {}
 
     var userInteracted = false;
     ['wheel', 'touchstart', 'keydown'].forEach(function (evt) {

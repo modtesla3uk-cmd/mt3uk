@@ -132,3 +132,29 @@ def test_admin_sees_who_opened_a_preview_and_can_revoke(device_page):
     rows.first.locator("button", has_text="Restore").click()
     page.wait_for_function("document.querySelector('#pv-list tbody tr button').textContent === 'Revoke'", timeout=5000)
     assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_link_in_the_code_email_opens_the_interview(device_page):
+    page = device_page
+    schedule(page, "2099-01-01")
+    page.goto(PAGE + "?gate=on&preview=" + "g" * 32)
+    page.locator("article.interview").wait_for(state="visible", timeout=5000)
+    assert page.locator("#iv-gate").count() == 0
+    assert "preview=" not in page.url, "The one-time token is taken out of the address"
+    assert "gate=on" in page.url, "Other parts of the address stay"
+    assert page.mock_state.get("link_used"), "Opened by the link, not because the gate was off"
+    assert page.evaluate("localStorage.getItem('mt3ukMyBuildsSession')") == "s1.preview"
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_used_email_link_asks_for_a_new_code(device_page):
+    page = device_page
+    schedule(page, "2099-01-01")
+    page.mock_state["link_used"] = True
+    page.goto(PAGE + "?gate=on&preview=" + "g" * 32)
+    page.locator("#iv-gate").wait_for(state="visible", timeout=5000)
+    assert "already been used" in page.locator("#iv-gate .ivg-msg").inner_text()
+    assert page.locator("#ivg-email").is_visible()
+    assert page.errors == []

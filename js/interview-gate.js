@@ -18,6 +18,14 @@
   if (local && !/[?&]gate=on\b/.test(location.search)) return;
 
   var STORE = 'mt3ukInterviewPreview:' + slug;
+  // The link in the code email: ?preview=<one-time token>.
+  var linkToken = (location.search.match(/[?&]preview=([A-Za-z0-9_-]{16,128})/) || [])[1] || '';
+  if (linkToken) {
+    try {
+      var cleaned = location.search.replace(/([?&])preview=[^&]*&?/, '$1').replace(/[?&]$/, '');
+      history.replaceState(null, '', location.pathname + cleaned + location.hash);
+    } catch (e) {}
+  }
   var root = document.documentElement;
   root.classList.add('iv-gate-wait');
   var style = document.createElement('style');
@@ -133,7 +141,23 @@
     });
   }
 
-  function drawGate(entry) {
+  // A code or the email link worked: keep the access, sign in (unless
+  // already signed in here), then reload so comments and likes pick up
+  // the sign-in.
+  function granted(data, email) {
+    save({ token: data.token, expires: data.expires, joined: !!data.joined });
+    try {
+      if (data.session && !localStorage.getItem('mt3ukMyBuildsSession')) {
+        localStorage.setItem('mt3ukMyBuildsSession', data.session);
+        localStorage.setItem('mt3ukMyBuildsEmail', data.email || email);
+      }
+      // New members are asked for a nickname (js/account-bar.js).
+      if (data.joined) localStorage.setItem('mt3ukAskNickname', '1');
+    } catch (e) {}
+    location.reload();
+  }
+
+  function drawGate(entry, firstMessage) {
     root.classList.add('iv-gated');
     var gate = document.createElement('div');
     gate.id = 'iv-gate';
@@ -209,28 +233,28 @@
           .then(function (data) {
             btn.disabled = false;
             if (!data.success || !data.token) { msgEl.textContent = data.message || 'That code is not right or has expired.'; return; }
-            save({ token: data.token, expires: data.expires, joined: !!data.joined });
-            // Signed in too, unless already signed in here. Reloading lets
-            // comments and likes pick up the sign-in.
-            try {
-              if (data.session && !localStorage.getItem('mt3ukMyBuildsSession')) {
-                localStorage.setItem('mt3ukMyBuildsSession', data.session);
-                localStorage.setItem('mt3ukMyBuildsEmail', data.email || email);
-              }
-              // New members are asked for a nickname (js/account-bar.js).
-              if (data.joined) localStorage.setItem('mt3ukAskNickname', '1');
-            } catch (e) {}
-            location.reload();
+            granted(data, email);
           })
           .catch(function () { btn.disabled = false; msgEl.textContent = 'Network error, please try again.'; });
       });
     }
 
-    step1();
+    step1(firstMessage);
     show();
   }
 
   function gateFor(entry) {
+    var current = saved();
+    // Already open in this browser: the link isn't needed again.
+    if (linkToken && !(current && current.token && current.expires > Date.now())) {
+      post('/interviews/preview/link', { slug: slug, token: linkToken })
+        .then(function (data) {
+          if (data.success && data.token) { granted(data, ''); return; }
+          whenReady(function () { drawGate(entry, data.message || 'That link has expired or has already been used. Enter your email for a new code.'); });
+        })
+        .catch(function () { whenReady(function () { drawGate(entry, 'Network error, please try again.'); }); });
+      return;
+    }
     var access = saved();
     if (!access || !access.token || !(access.expires > Date.now())) {
       save(null);

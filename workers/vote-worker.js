@@ -1313,13 +1313,17 @@ async function handleInterviewPreviewRequest(request, env) {
 
   var code = signInCode();
   var expires = Math.floor(Date.now() / 1000) + PREVIEW_CODE_TTL_SECONDS;
-  await env.VOTES.put(previewCodeKey(email, slug), JSON.stringify({ code: code, tries: 0 }), { expiration: expires, metadata: { expires: expires } });
+  // The email's link carries a one-time token instead of the code, so
+  // tapping it opens the interview straight away.
+  var linkToken = randomToken();
+  await env.VOTES.put(previewCodeKey(email, slug), JSON.stringify({ code: code, tries: 0, link: linkToken }), { expiration: expires, metadata: { expires: expires } });
+  await env.VOTES.put('interview-preview-link:' + linkToken, JSON.stringify({ email: email, slug: slug }), { expiration: expires });
   try {
     var isMember = (await env.VOTES.get('subscriber:' + email)) !== null;
     var subject = 'MT3UK interview preview: your code is ' + code;
     var text = 'Here is your code to preview the MT3UK Owner Interview before it is published:\n\n' + code +
-      '\n\nEnter it on the interview page:\n\n' + MY_BUILDS_SITE_URL + '/blog-' + slug + '.html' +
-      '\n\nThe code expires in 15 minutes and can only be used once. Once entered, the interview stays open in that browser for 4 hours.' +
+      '\n\nOr tap this link to open the interview straight away:\n\n' + MY_BUILDS_SITE_URL + '/blog-' + slug + '.html?preview=' + linkToken +
+      '\n\nThe code and link expire in 15 minutes and work once. The interview then stays open in that browser for 4 hours.' +
       (isMember ? '' :
         '\n\nUsing this code also subscribes you to MT3UK (it\'s free) with this email address. You\'ll be signed in, so you can like and comment on member builds and Owner Interviews, and add your own car in My Garage whenever you like. You can stop emails or unsubscribe any time from your Profile: ' + PROFILE_URL + '#unsubscribe') +
       '\n\nPlease don\'t share the interview until it is published. If you did not ask for this code, you can ignore this email.';
@@ -1355,6 +1359,30 @@ async function handleInterviewPreviewVerify(request, env) {
     return failed;
   }
   await env.VOTES.delete(key);
+  if (record.link) await env.VOTES.delete('interview-preview-link:' + record.link);
+  return grantPreview(env, email, slug, failed);
+}
+
+// The link in the code email: a one-time token for that email and interview.
+async function handleInterviewPreviewLink(request, env) {
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
+  var slug = previewSlug(body && body.slug, false);
+  var linkToken = String((body && body.token) || '');
+  var failed = json({ success: false, message: 'That link has expired or has already been used. Enter your email for a new code.' }, 400);
+  if (!slug || !/^[A-Za-z0-9_-]{16,128}$/.test(linkToken)) return failed;
+  var raw = await env.VOTES.get('interview-preview-link:' + linkToken);
+  var link = null;
+  try { link = raw ? JSON.parse(raw) : null; } catch (e) { link = null; }
+  if (!link || link.slug !== slug) return failed;
+  // One use: the link and its matching code are both used up.
+  await env.VOTES.delete('interview-preview-link:' + linkToken);
+  await env.VOTES.delete(previewCodeKey(link.email, slug));
+  return grantPreview(env, link.email, slug, failed);
+}
+
+// Opens the interview for 4 hours, joins and signs in the email.
+async function grantPreview(env, email, slug, failed) {
   // Revoked since the code was sent: no access.
   if (await previewRevoked(env, email, slug)) return failed;
 
@@ -5193,6 +5221,9 @@ export default {
     }
     if (url.pathname === '/interviews/preview/verify' && request.method === 'POST') {
       return handleInterviewPreviewVerify(request, env);
+    }
+    if (url.pathname === '/interviews/preview/link' && request.method === 'POST') {
+      return handleInterviewPreviewLink(request, env);
     }
     if (url.pathname === '/interviews/preview/check' && request.method === 'GET') {
       return handleInterviewPreviewCheck(request, env);

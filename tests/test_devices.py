@@ -189,6 +189,19 @@ def api_reply(url, method, post_data, state):
             return {"success": True, "token": "p" * 64, "expires": state.get("preview_expires", 4102444800000),
                     "joined": True, "session": "s1.preview", "email": body.get("email", "sharad@example.com")}
         return {"success": False, "message": "That code is not right or has expired."}
+    if path == "/interviews/preview/link":
+        # The email link: works once, and only with the test's token.
+        try:
+            body = json.loads(post_data or "{}")
+        except ValueError:
+            body = {}
+        token = body.get("token") or ("g" * 32 if not state.get("link_used") else "")
+        if token == "g" * 32 and not state.get("link_used"):
+            state["link_used"] = True
+            state["preview_ok"] = True
+            return {"success": True, "token": "p" * 64, "expires": 4102444800000, "joined": False,
+                    "session": "s1.preview", "email": "sharad@example.com"}
+        return {"success": False, "message": "That link has expired or has already been used. Enter your email for a new code."}
     if path == "/interviews/preview/check":
         if state.get("preview_ok"):
             return {"success": True, "expires": state.get("preview_expires", 4102444800000)}

@@ -457,11 +457,14 @@
           <a href="gallery.html" class="nav-sublink active">Full Gallery</a>
         </div>
       </div>
+      <a href="my-builds.html" class="nav-link nav-link-mybuilds">My Garage</a>
       <div class="nav-item">
-        <a href="my-builds.html" class="nav-link nav-link-mybuilds">My Garage</a>
-        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle My Garage submenu">&#9660;</button>
+        <a href="profile.html" class="nav-link nav-link-profile">My Profile</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle My Profile submenu">&#9660;</button>
         <div class="nav-dropdown">
-          <a href="profile.html" class="nav-sublink nav-sublink-new">My Profile</a>
+          <a href="profile.html#messages" class="nav-sublink nav-sublink-new">Messages</a>
+          <a href="profile.html#friends" class="nav-sublink nav-sublink-new">Friends</a>
+          <a href="profile.html" class="nav-sublink">Settings</a>
         </div>
       </div>
       <div class="nav-item">
@@ -570,6 +573,7 @@
   </div>
 </footer>
 
+<script src="js/gallery-social.js"></script>
 <script>
   window.MT3UK_R2_BASE = 'https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev';
   window.mt3ukFetchJSON = (function () {
@@ -622,6 +626,9 @@
         });
         window.mt3ukMyBuildFiles = builds.map(function (b) { return b.file; });
         builds.forEach(function (b) { window.mt3ukMyBuildData[b.file] = b; });
+        // Comments are posted as this member (js/gallery-social.js).
+        window.mt3ukMyBuildsEmail = data.email || null;
+        window.mt3ukMyBuildsName = data.firstName && data.lastName ? data.firstName + ' ' + data.lastName : '';
         document.dispatchEvent(new Event('mt3ukMyBuildsReady'));
       })
       .catch(function () {});
@@ -950,6 +957,7 @@
                '</div>';
       }).join('');
       window.mt3ukApplyEditBadges(grid);
+      if (window.mt3ukGallerySocial) window.mt3ukGallerySocial.decorate(grid);
     }
 
     function renderPagination(totalPages) {
@@ -1071,6 +1079,8 @@
     var claimLast = lightbox.querySelector('#lightbox-claim-last');
     var claimEmail = lightbox.querySelector('#lightbox-claim-email');
     var galleryGrid = document.getElementById('gallery-grid');
+    // Like and comment bar under the photo, as in the reel.
+    var social = window.mt3ukGallerySocial ? window.mt3ukGallerySocial.mount(lightbox, lightboxImg) : null;
     var currentIndex = -1;
 
     var reportedFiles = [];
@@ -1094,6 +1104,7 @@
       var mods = p.mods || [];
       lightboxMods.textContent = mods.length ? 'Mods: ' + mods.join(' · ') : '';
       lightboxMods.classList.toggle('has-mods', mods.length > 0);
+      if (social) social.show(p.file);
       var alreadyReported = reportedFiles.indexOf(p.file) !== -1;
       reportBtn.disabled = alreadyReported;
       reportBtn.textContent = alreadyReported ? 'Reported' : 'Report this image';
@@ -1214,6 +1225,7 @@
       lightbox.setAttribute('aria-hidden', 'true');
       lightboxImg.src = '';
       document.body.style.overflow = '';
+      if (social) social.reset();
     }
 
     if (galleryGrid) {
@@ -1315,8 +1327,11 @@
   }
 </script>
 
+<script src="js/signin-prompt.js" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js" defer></script>
+<script src="js/notify-bell.js" defer></script>
+<script src="js/messenger.js" defer></script>
 <script src="js/search.js" defer></script>
 
 </body>

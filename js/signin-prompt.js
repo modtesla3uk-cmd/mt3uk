@@ -61,6 +61,10 @@
         '<h2 id="mt3uk-signin-title">Join free or sign in to ' + String(action || 'do that').replace(/[<>&"]/g, '') + '</h2>' +
         '<p>' + (/report/.test(action || '')
           ? 'Reporting is for MT3UK members, so reports come from real people.'
+          : /vote/.test(action || '')
+          ? 'Voting is for MT3UK members, one vote each a week, so every vote is a real person.'
+          : /comment|message/.test(action || '')
+          ? 'Comments are for MT3UK members, so everyone knows who they&rsquo;re talking to.'
           : 'Likes are for MT3UK members, so owners can see who liked their build.') +
           ' Joining is free and just needs your name and email. Adding your car is optional.</p>' +
         '<div class="mt3uk-signin-actions">' +

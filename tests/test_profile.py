@@ -1,6 +1,6 @@
-"""My Profile (profile.html): name and nickname, a link to My Garage,
-messages from MT3UK and between friends (with Report), friends, email
-choices and leaving MT3UK. Also the admin page's Messages to subscribers
+"""My Profile (profile.html): name and nickname, a link to My Garage, email
+choices and leaving MT3UK. Messages from MT3UK and between friends (with
+Report) and friends, in the chat window (js/messenger.js). Also the admin page's Messages to subscribers
 panel, and the Profile links in the menu and the bell."""
 import re
 
@@ -50,39 +50,47 @@ def test_profile_details_and_nickname(device_page):
 def test_messages_from_mt3uk_and_friends(device_page):
     page = device_page
     signed_in(page)
+    # Old links to Messages (emails, notifications) open the chat window.
     page.goto("/profile.html#messages")
-    page.locator("#pf-app").wait_for(state="visible", timeout=5000)
-    page.locator("#pf-broadcasts .pf-bc").first.wait_for(timeout=5000)
-    assert "Track day at Thruxton" in page.locator("#pf-broadcasts").inner_text()
-    # Opening the page at #messages marks the MT3UK messages read.
+    chat = page.locator("#mt3uk-chat")
+    chat.wait_for(state="visible", timeout=5000)
+    page.locator("#mc-threads .mc-thread-row").first.wait_for(timeout=5000)
+    assert page.locator("#mc-badge-chats").inner_text() == "1"
+    assert page.locator("#mc-badge-mt3uk").inner_text() == "1"
+
+    # MT3UK tab: messages to members, marked read when opened.
+    page.click('.mc-tab[data-view="mt3uk"]')
+    assert "Track day at Thruxton" in page.locator("#mc-broadcasts").inner_text()
     for _ in range(50):
         if calls(page, "/profile/messages/read"):
             break
         page.wait_for_timeout(100)
     assert calls(page, "/profile/messages/read"), diagnostics(page)
+    assert page.locator("#mc-badge-mt3uk").is_hidden()
 
-    # Arriving at #messages opens the sections with something new, each
-    # marked "1 new".
-    assert page.locator("#pf-fold-mt3uk").get_attribute("open") is not None
-    page.wait_for_function("document.getElementById('pf-fold-friends').open", timeout=5000)
-    assert page.locator("#pf-badge-direct").inner_text() == "1 new"
-    page.locator("#pf-threads .pf-thread-row").first.click()
-    page.locator("#pf-thread").wait_for(state="visible", timeout=5000)
-    page.wait_for_function("document.getElementById('pf-thread-name').textContent.indexOf('Sharad') !== -1", timeout=5000)
-    # The name shows straight away; the messages follow once loaded.
-    page.wait_for_function("document.getElementById('pf-bubbles').textContent.indexOf('Hi, love the wheels') !== -1", timeout=5000)
+    page.click('.mc-tab[data-view="chats"]')
+    page.locator("#mc-threads .mc-thread-row").first.click()
+    page.locator("#mc-view-thread").wait_for(state="visible", timeout=5000)
+    page.wait_for_function("document.getElementById('mc-title').textContent.indexOf('Sharad') !== -1", timeout=5000)
+    page.wait_for_function("document.getElementById('mc-bubbles').textContent.indexOf('Hi, love the wheels') !== -1", timeout=5000)
 
-    page.fill("#pf-compose-text", "See you at Thruxton")
-    page.click("#pf-compose button[type=submit]")
-    page.locator("#pf-bubbles .pf-bubble.mine").wait_for(timeout=5000)
-    assert "See you at Thruxton" in page.locator("#pf-bubbles .pf-bubble.mine").last.inner_text()
+    page.fill("#mc-compose-text", "See you at Thruxton")
+    page.click("#mc-compose button[type=submit]")
+    page.locator("#mc-bubbles .mc-msg.mine").wait_for(timeout=5000)
+    assert "See you at Thruxton" in page.locator("#mc-bubbles .mc-msg.mine").last.inner_text()
 
     # Their messages can be reported.
     page.once("dialog", lambda d: d.accept("rude"))
-    page.locator("#pf-bubbles .pf-report").first.click()
-    page.wait_for_function("document.querySelector('#pf-bubbles .pf-report').textContent === 'Reported'", timeout=5000)
+    page.locator("#mc-bubbles .mc-report").first.click()
+    page.wait_for_function("document.querySelector('#mc-bubbles .mc-report').textContent === 'Reported'", timeout=5000)
     assert page.mock_state.get("reported")
     assert overflow_width(page) <= 0
+
+    # Back to the list, and closed with the X.
+    page.click("#mc-back")
+    page.locator("#mc-view-chats").wait_for(state="visible", timeout=5000)
+    page.click("#mc-close")
+    assert chat.is_hidden()
     assert page.errors == [], diagnostics(page)
 
 
@@ -90,23 +98,26 @@ def test_messages_from_mt3uk_and_friends(device_page):
 def test_friends_requests_search_and_message(device_page):
     page = device_page
     signed_in(page)
-    page.goto("/profile.html#friends")
-    page.locator("#pf-app").wait_for(state="visible", timeout=5000)
-    requests = page.locator("#pf-requests")
+    page.goto("/gallery.html#friends")
+    page.locator("#nav-chat").wait_for(state="visible", timeout=5000)
+    page.evaluate("window.mt3ukChat.open('friends')")
+    requests = page.locator("#mc-requests")
     requests.locator("text=RyanK").wait_for(timeout=5000)
+    assert page.locator("#mc-badge-friends").inner_text() == "1"
     requests.locator("button", has_text="Accept").click()
-    page.wait_for_function("document.getElementById('pf-friends').textContent.indexOf('RyanK') !== -1", timeout=5000)
-    assert "Sharad" in page.locator("#pf-friends").inner_text()
-    assert "gallery.html?only=" in page.locator("#pf-friends a.si-btn").first.get_attribute("href")
+    page.wait_for_function("document.getElementById('mc-friends').textContent.indexOf('RyanK') !== -1", timeout=5000)
+    assert "Sharad" in page.locator("#mc-friends").inner_text()
+    assert "gallery.html?only=" in page.locator("#mc-friends a.mc-btn").first.get_attribute("href")
 
-    page.fill("#pf-search-q", "sha")
-    page.click("#pf-search button[type=submit]")
-    page.locator("#pf-results li").first.wait_for(timeout=5000)
-    assert "Shaz" in page.locator("#pf-results").inner_text()
+    page.fill("#mc-search-q", "sha")
+    page.click("#mc-search button[type=submit]")
+    page.locator("#mc-results li").first.wait_for(timeout=5000)
+    assert "Shaz" in page.locator("#mc-results").inner_text()
 
-    # Message opens the conversation in Messages.
-    page.locator("#pf-friends .pf-msg").first.click()
-    page.locator("#pf-thread").wait_for(state="visible", timeout=5000)
+    # Message opens the conversation.
+    page.locator("#mc-friends .mc-msg-btn").first.click()
+    page.locator("#mc-view-thread").wait_for(state="visible", timeout=5000)
+    assert not page.locator("#mc-compose").is_hidden()
     assert overflow_width(page) <= 0
     assert page.errors == [], diagnostics(page)
 
@@ -140,7 +151,7 @@ def test_menu_account_bar_and_bell_link_to_profile(device_page):
     signed_in(page)
     page.mock_state["messages_unread"] = 2
     page.goto("/gallery.html")
-    assert page.locator('header a[href="profile.html"]').count() == 1, "My Profile is in the menu"
+    assert page.locator("header a.nav-link-profile").get_attribute("href") == "profile.html", "My Profile has its own menu item"
     page.locator('#mt3uk-account-bar a[href="profile.html"]').wait_for(state="attached", timeout=5000)
 
     page.goto("/index.html")
@@ -150,6 +161,10 @@ def test_menu_account_bar_and_bell_link_to_profile(device_page):
     link.wait_for(timeout=5000)
     assert "2 unread messages" in link.inner_text()
     assert link.get_attribute("href") == "profile.html#messages"
+    # It opens the chat window rather than leaving the page.
+    link.click()
+    page.locator("#mt3uk-chat").wait_for(state="visible", timeout=5000)
+    assert "index.html" in page.url
     assert page.errors == [], diagnostics(page)
 
 
@@ -366,26 +381,51 @@ def test_admin_shows_how_long_each_interview_was_current(device_page):
 
 
 @all_devices
-def test_messages_and_friends_are_collapsed_with_new_badges(device_page):
+def test_chat_icon_opens_messages_on_any_page(device_page):
+    page = device_page
+    signed_in(page)
+    page.mock_state["messages_unread"] = 2
+    page.goto("/shop.html")
+    icon = page.locator("#nav-chat")
+    icon.wait_for(state="visible", timeout=5000)
+    # The chat icon sits between the bell and the profile icon.
+    order = page.evaluate("[...document.querySelector('#nav-search').parentNode.children].map(e => e.id).filter(Boolean)")
+    assert order.index("nav-bell") < order.index("nav-chat") < order.index("nav-profile"), order
+    page.wait_for_function("document.getElementById('nav-chat-count').textContent === '2'", timeout=5000)
+    icon.click()
+    page.locator("#mt3uk-chat").wait_for(state="visible", timeout=5000)
+    page.locator("#mc-threads .mc-thread-row").first.wait_for(timeout=5000)
+    assert "shop.html" in page.url, "Stays on the same page"
+    assert overflow_width(page) <= 0
+    page.keyboard.press("Escape")
+    assert page.locator("#mt3uk-chat").is_hidden()
+
+    # Menu: My Profile > Messages opens the window too.
+    page.evaluate("document.querySelector('header a.nav-sublink[href=\"profile.html#friends\"]').click()")
+    page.locator("#mc-view-friends").wait_for(state="visible", timeout=5000)
+    assert "shop.html" in page.url
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_chat_icon_asks_visitors_to_sign_in(device_page):
+    page = device_page
+    page.goto("/index.html")
+    page.locator("#nav-chat").click()
+    page.locator("#mc-signin").wait_for(state="visible", timeout=5000)
+    assert "signin.html?next=" in page.locator("#mc-signin-link").get_attribute("href")
+    assert page.errors == []
+
+
+@all_devices
+def test_profile_page_is_settings_only(device_page):
     page = device_page
     signed_in(page)
     page.goto("/profile.html")
     page.locator("#pf-app").wait_for(state="visible", timeout=5000)
-    page.wait_for_function("!document.getElementById('pf-badge-direct').hidden", timeout=5000)
-    for fold in ("#pf-fold-mt3uk", "#pf-fold-friends", "#pf-fold-friendlist"):
-        assert page.locator(fold).get_attribute("open") is None, fold + " starts collapsed"
-    assert page.locator("#pf-badge-mt3uk").inner_text() == "1 new"
-    assert page.locator("#pf-badge-direct").inner_text() == "1 new"
-    # The friend with an unread message is flagged, in the list and on it.
-    assert page.locator("#pf-badge-friendmsgs").inner_text() == "1 new"
-    page.locator("#pf-fold-friendlist > summary").click()
-    assert "1 new" in page.locator("#pf-friends li", has_text="Sharad").inner_text()
-    # Opening From MT3UK marks those messages read.
-    assert not calls(page, "/profile/messages/read")
-    page.locator("#pf-fold-mt3uk > summary").click()
-    page.wait_for_function("document.getElementById('pf-badge-mt3uk').hidden", timeout=5000)
-    assert calls(page, "/profile/messages/read")
-    assert overflow_width(page) <= 0
+    for gone in ("#messages", "#friends", "#pf-threads", "#pf-search"):
+        assert page.locator(gone).count() == 0, gone + " moved to the chat window"
+    assert page.locator("#mt3uk-chat").is_hidden()
     assert page.errors == [], diagnostics(page)
 
 
@@ -449,11 +489,11 @@ def test_friend_search_mentions_names(device_page):
     page = device_page
     signed_in(page)
     page.goto("/profile.html#friends")
-    page.locator("#pf-app").wait_for(state="visible", timeout=5000)
-    assert page.locator("#pf-search-q").get_attribute("placeholder") == "Find members by nickname or name"
-    page.fill("#pf-search-q", "d")
-    page.click("#pf-search button[type=submit]")
-    assert "nickname or name" in page.locator("#pf-results").inner_text()
+    page.locator("#mc-view-friends").wait_for(state="visible", timeout=5000)
+    assert page.locator("#mc-search-q").get_attribute("placeholder") == "Find members by nickname or name"
+    page.fill("#mc-search-q", "d")
+    page.click("#mc-search button[type=submit]")
+    assert "nickname or name" in page.locator("#mc-results").inner_text()
 
 
 @all_devices

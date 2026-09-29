@@ -44,11 +44,12 @@ def signed_in(page):
 @all_devices
 def test_sign_in_with_a_passkey(device_page):
     page = device_page
-    page.add_init_script(FAKE_AUTHENTICATOR)
+    page.add_init_script(FAKE_AUTHENTICATOR + " localStorage.setItem('mt3ukPasskeyHere', '1');")
     page.goto("/signin.html")
     btn = page.locator("#si-passkey-btn")
     btn.wait_for(state="visible", timeout=5000)
     assert "No email needed" in page.locator("#si-passkey").inner_text()
+    assert page.evaluate("document.getElementById('si-passkey-how').open") is False, "Passkey used here before: help stays closed"
     assert overflow_width(page) <= 0
     btn.click()
     page.locator("#si-signed-in").wait_for(state="visible", timeout=5000)
@@ -67,6 +68,46 @@ def test_cancelled_passkey_points_to_the_email_code(device_page):
     page.wait_for_function("document.getElementById('si-passkey-status').textContent.indexOf('email code') !== -1", timeout=5000)
     assert page.locator("#si-signed-in").is_hidden()
     assert page.errors == []
+
+
+@all_devices
+def test_passkey_help_when_none_on_this_device(device_page):
+    page = device_page
+    page.add_init_script(FAKE_AUTHENTICATOR + " localStorage.setItem('pkCancel', '1');")
+    page.goto("/signin.html")
+    page.locator("#si-passkey-btn").wait_for(state="visible", timeout=5000)
+    assert page.evaluate("document.getElementById('si-passkey-how').open") is True
+    assert "Sign in with an email code first" in page.locator("#si-passkey-note").inner_text()
+    assert "Add a passkey on this device" in page.locator("#si-passkey-how").inner_text()
+    assert overflow_width(page) <= 0
+    page.click("#si-passkey-btn")
+    page.wait_for_function("document.getElementById('si-passkey-status').textContent.indexOf('No MT3UK passkey on this device yet') !== -1", timeout=5000)
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_sign_in_comes_first_with_a_link_to_join(device_page):
+    page = device_page
+    page.goto("/signin.html")
+    page.locator("#si-signin").wait_for(timeout=5000)
+    first = page.evaluate("document.querySelector('#si-forms > .si-card').id")
+    assert first == "si-signin", "Already a member? Sign in comes before New here?"
+    link = page.locator("#si-to-join")
+    assert link.inner_text() == "Sign up free"
+    link.click()
+    page.wait_for_function("document.activeElement && document.activeElement.id === 'si-join-first'", timeout=5000)
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_my_garage_passkey_help_when_none_on_this_device(device_page):
+    page = device_page
+    page.add_init_script(FAKE_AUTHENTICATOR + " localStorage.setItem('pkCancel', '1');")
+    page.goto("/my-builds.html")
+    page.locator("#mb-passkey-btn").wait_for(state="visible", timeout=5000)
+    assert page.evaluate("document.getElementById('mb-passkey-how').open") is True
+    page.click("#mb-passkey-btn")
+    page.wait_for_function("document.getElementById('mb-passkey-status').textContent.indexOf('No MT3UK passkey on this device yet') !== -1", timeout=5000)
 
 
 @all_devices

@@ -1811,7 +1811,7 @@ async function handleVotersList(request, env) {
     var meta = null;
     try { meta = JSON.parse(raw); } catch (e) {}
     return {
-      ip: k.name.slice(prefix.length),
+      ip: k.name.slice(prefix.length).split('#')[0],
       file: meta && meta.file,
       asn: meta && meta.asn,
       isp: meta && meta.isp,
@@ -1853,20 +1853,22 @@ async function getVoteCounts(env, ctx, todayStr, files) {
   return counts;
 }
 
+// Which build a member has voted for this week.
+function memberVoteKey(weekStr, email) {
+  return 'voter-member:' + weekStr + ':' + String(email).toLowerCase();
+}
+
 async function handleVotesGet(request, env, ctx) {
   var manifest = await getLiveGalleryEntries(env, ctx);
   var todayStr = voteWeekString(new Date());
   var candidates = votingCandidates(manifest, todayStr);
   var voterId = getVoterId(request);
-  var ip = getClientIp(request);
 
-  var votedFile = await env.VOTES.get('voter-ip:' + todayStr + ':' + ip);
-  if (!votedFile) {
-    votedFile = await env.VOTES.get('voter:' + todayStr + ':' + voterId);
-  }
+  // Voting is for signed-in members, one vote each a week.
+  var sessionEmail = await resolveSession(request, env);
+  var votedFile = sessionEmail ? await env.VOTES.get(memberVoteKey(todayStr, sessionEmail)) : null;
 
   var counts = await getVoteCounts(env, ctx, todayStr, candidates.map(function (p) { return p.file; }));
-  var sessionEmail = await resolveSession(request, env);
   var viewer = sessionEmail ? await ownerKey(sessionEmail) : null;
   var results = candidates.map(function (p) {
     var result = {
@@ -1907,16 +1909,25 @@ async function handleVotePost(request, env, ctx) {
   if (!candidate) {
     return json({ success: false, message: 'That photo is not open for voting' }, 400);
   }
+  // Voting is for signed-in members, one vote each a week (like likes and
+  // comments).
   var sessionEmail = await resolveSession(request, env);
-  var viewer = sessionEmail ? await ownerKey(sessionEmail) : null;
-  if (viewer && candidate.owner === viewer) {
+  if (!sessionEmail) return signInRequired('Sign in to vote.');
+  var viewer = await ownerKey(sessionEmail);
+  if (candidate.owner === viewer) {
     return json({ success: false, message: 'You can only vote for other members\u2019 builds.' }, 403);
   }
 
   var voterId = getVoterId(request);
   var ip = getClientIp(request);
-  var ipKey = 'voter-ip:' + todayStr + ':' + ip;
-  var previousVote = await env.VOTES.get(ipKey);
+  var memberKey = memberVoteKey(todayStr, sessionEmail);
+  var previousVote = await env.VOTES.get(memberKey);
+  // A vote this device made before voting needed a sign-in moves rather
+  // than counting twice. It's used once, then forgotten, so a second member
+  // on the same phone doesn't move it again.
+  var deviceKey = 'voter:' + todayStr + ':' + voterId;
+  var anonymousVote = previousVote ? null : await env.VOTES.get(deviceKey);
+  if (anonymousVote) previousVote = anonymousVote;
 
   if (previousVote !== file) {
     if (previousVote) {
@@ -1927,8 +1938,7 @@ async function handleVotePost(request, env, ctx) {
     var countKey = 'votes:' + todayStr + ':' + file;
     var count = parseInt((await env.VOTES.get(countKey)) || '0', 10);
     await env.VOTES.put(countKey, String(count + 1), { expirationTtl: VOTE_TTL_SECONDS });
-    await env.VOTES.put(ipKey, file, { expirationTtl: VOTE_TTL_SECONDS });
-    await env.VOTES.put('voter:' + todayStr + ':' + voterId, file, { expirationTtl: VOTE_TTL_SECONDS });
+    await env.VOTES.put(memberKey, file, { expirationTtl: VOTE_TTL_SECONDS });
 
     var cf = request.cf || {};
     var meta = {
@@ -1938,7 +1948,14 @@ async function handleVotePost(request, env, ctx) {
       country: cf.country || null,
       ts: Date.now()
     };
-    await env.VOTES.put('voter-meta:' + todayStr + ':' + ip, JSON.stringify(meta), { expirationTtl: VOTE_TTL_SECONDS });
+    // One record per member (a household can share an IP address).
+    await env.VOTES.put('voter-meta:' + todayStr + ':' + ip + '#' + viewer, JSON.stringify(meta), { expirationTtl: VOTE_TTL_SECONDS });
+  }
+
+  if (anonymousVote) {
+    // Now kept as this member's vote.
+    if (anonymousVote === file) await env.VOTES.put(memberKey, file, { expirationTtl: VOTE_TTL_SECONDS });
+    await env.VOTES.delete(deviceKey);
   }
 
   var results = await Promise.all(candidates.map(async function (p) {
@@ -2288,24 +2305,18 @@ async function handleCommentsPost(request, env, ctx) {
   }
 
   var file = ((body && body.file) || '').toString();
-  var email = ((body && body.email) || '').toString().trim().toLowerCase();
   var text = ((body && body.text) || '').toString().trim().slice(0, MAX_COMMENT_LENGTH);
   var parentId = ((body && body.parentId) || '').toString() || null;
 
   if (!file) return json({ success: false, message: 'file is required' }, 400);
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return json({ success: false, message: 'Please enter a valid email' }, 400);
-  }
   if (!text) return json({ success: false, message: 'Comment cannot be empty' }, 400);
 
+  // Comments are members-only: the commenter's email comes from their
+  // signed-in session, never from the request body.
+  var email = await resolveSession(request, env);
+  if (!email) return signInRequired('Please sign in to comment.');
+
   if (isInterviewThread(file)) {
-    // Interview comments are members-only: the commenter's email comes from
-    // their signed-in My Garage session, not from the request body.
-    var sessionEmail = await resolveSession(request, env);
-    if (!sessionEmail) {
-      return json({ success: false, message: 'Please sign in to My Garage to comment' }, 401);
-    }
-    email = sessionEmail;
     var interview = await getPublishedInterview(file);
     if (!interview) {
       return json({ success: false, message: 'Comments are not open on this interview yet' }, 400);

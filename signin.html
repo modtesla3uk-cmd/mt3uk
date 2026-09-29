@@ -227,6 +227,13 @@
   .si-or { display: flex; align-items: center; gap: 10px; color: var(--steel); font-size: 0.82rem; margin: 18px 0 12px; }
   .si-or::before, .si-or::after { content: ''; flex: 1; border-top: 1px solid rgba(22, 35, 61, 0.2); }
   .si-passkey-note { font-size: 0.82rem; color: var(--steel); margin-top: 8px; }
+  .si-passkey-how { margin-top: 12px; font-size: 0.86rem; color: var(--steel); }
+  .si-passkey-how summary { cursor: pointer; font-weight: 600; color: var(--ink); padding: 6px 0; }
+  .si-passkey-how ol { margin: 6px 0 8px 20px; padding: 0; }
+  .si-passkey-how li { margin-bottom: 4px; }
+  .si-card .si-passkey-how p { font-size: 0.84rem; margin: 0; }
+  .si-card p.si-switch { text-align: center; margin: 22px 0 0; padding-top: 16px; border-top: 1px solid rgba(22, 35, 61, 0.2); color: var(--charcoal); font-size: 0.95rem; }
+  .si-switch a { color: var(--orange); font-weight: 600; text-decoration: underline; }
   .si-passkey-offer { margin-top: 22px; padding: 18px 20px; border: 1px solid rgba(22, 35, 61, 0.25); border-left: 4px solid #1c8a4b; background: #fff; }
   .si-passkey-offer h3 { font-size: 1.05rem; margin: 0 0 6px; }
   .si-passkey-offer p { margin: 0 0 12px; }
@@ -331,11 +338,14 @@
           <a href="gallery.html" class="nav-sublink">Full Gallery</a>
         </div>
       </div>
+      <a href="my-builds.html" class="nav-link nav-link-mybuilds">My Garage</a>
       <div class="nav-item">
-        <a href="my-builds.html" class="nav-link nav-link-mybuilds">My Garage</a>
-        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle My Garage submenu">&#9660;</button>
+        <a href="profile.html" class="nav-link nav-link-profile">My Profile</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle My Profile submenu">&#9660;</button>
         <div class="nav-dropdown">
-          <a href="profile.html" class="nav-sublink nav-sublink-new">My Profile</a>
+          <a href="profile.html#messages" class="nav-sublink nav-sublink-new">Messages</a>
+          <a href="profile.html#friends" class="nav-sublink nav-sublink-new">Friends</a>
+          <a href="profile.html" class="nav-sublink">Settings</a>
         </div>
       </div>
       <div class="nav-item">
@@ -440,6 +450,35 @@
     </div>
 
     <div class="si-grid" id="si-forms">
+      <div class="si-card" id="si-signin">
+        <h2>Already a member? Sign in</h2>
+        <p>Enter your email and we&rsquo;ll send you a sign-in link and a 6-digit code.</p>
+        <form id="si-signin-form">
+          <div class="si-field">
+            <label for="si-signin-email">Email</label>
+            <input type="email" id="si-signin-email" name="email" placeholder="you@example.com" autocomplete="username webauthn" required>
+          </div>
+          <button type="submit" class="si-btn si-btn-block" id="si-signin-btn">Send me a sign-in link</button>
+          <p class="si-status" id="si-signin-status" role="status"></p>
+        </form>
+        <div class="si-passkey" id="si-passkey" hidden>
+          <p class="si-or"><span>or</span></p>
+          <button type="button" class="si-btn si-btn-primary si-btn-block" id="si-passkey-btn">Sign in with a passkey</button>
+          <p class="si-passkey-note" id="si-passkey-note">Face ID, fingerprint or your screen lock, if you&rsquo;ve set up a passkey. No email needed.</p>
+          <p class="si-status" id="si-passkey-status" role="status"></p>
+          <details class="si-passkey-how" id="si-passkey-how">
+            <summary>How do I set up a passkey?</summary>
+            <ol>
+              <li>Sign in once with an email code, above.</li>
+              <li>Tap <strong>Set up a passkey</strong> when it&rsquo;s offered, or go to Profile, Security, <strong>Add a passkey on this device</strong>.</li>
+              <li>Next time, tap <strong>Sign in with a passkey</strong> and use Face ID, your fingerprint or screen lock.</li>
+            </ol>
+            <p>Each phone or computer needs its own passkey, unless it&rsquo;s saved to your iCloud Keychain or Google Password Manager.</p>
+          </details>
+        </div>
+        <p class="si-switch">Not a member yet? <a href="#si-join" id="si-to-join">Sign up free</a></p>
+      </div>
+
       <div class="si-card si-card-join" id="si-join">
         <h2>New here? Join free</h2>
         <p>Just your name and email. We&rsquo;ll send a link and a 6-digit code to finish joining. No photos needed.</p>
@@ -461,25 +500,6 @@
           <p class="si-legal">By joining you confirm you&rsquo;re 18 or over. See how we use your data in our <a href="privacy.html">Privacy notice</a>.</p>
           <p class="si-status" id="si-join-status" role="status"></p>
         </form>
-      </div>
-
-      <div class="si-card" id="si-signin">
-        <h2>Already a member? Sign in</h2>
-        <p>Enter your email and we&rsquo;ll send you a sign-in link and a 6-digit code.</p>
-        <form id="si-signin-form">
-          <div class="si-field">
-            <label for="si-signin-email">Email</label>
-            <input type="email" id="si-signin-email" name="email" placeholder="you@example.com" autocomplete="username webauthn" required>
-          </div>
-          <button type="submit" class="si-btn si-btn-block" id="si-signin-btn">Send me a sign-in link</button>
-          <p class="si-status" id="si-signin-status" role="status"></p>
-        </form>
-        <div class="si-passkey" id="si-passkey" hidden>
-          <p class="si-or"><span>or</span></p>
-          <button type="button" class="si-btn si-btn-primary si-btn-block" id="si-passkey-btn">Sign in with a passkey</button>
-          <p class="si-passkey-note">Face ID, fingerprint or your screen lock, if you&rsquo;ve set up a passkey. No email needed.</p>
-          <p class="si-status" id="si-passkey-status" role="status"></p>
-        </div>
       </div>
     </div>
 
@@ -706,7 +726,21 @@
       try { off = localStorage.getItem('mt3ukPasskeyOfferOff') === '1'; } catch (e) {}
       $('si-passkey-offer').hidden = !(PK && PK.supported() && !PK.hasOnThisDevice() && !off);
     }
-    if (PK && PK.supported()) $('si-passkey').hidden = false;
+    // Not used a passkey in this browser yet: show how to set one up, as
+    // the button alone brings up the phone's "No passkeys" message.
+    function explainPasskey() {
+      $('si-passkey-how').open = true;
+      $('si-passkey-note').textContent = 'Not set up a passkey yet? Sign in with an email code first, then you\u2019ll be offered one.';
+    }
+    if (PK && PK.supported()) {
+      $('si-passkey').hidden = false;
+      if (!PK.hasOnThisDevice()) explainPasskey();
+    }
+    $('si-to-join').addEventListener('click', function (e) {
+      e.preventDefault();
+      $('si-join').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      $('si-join-first').focus({ preventScroll: true });
+    });
     // Offer the passkey when the email box is tapped (keyboard bar or the
     // box's suggestions), for visitors who aren't signed in.
     if (PK && PK.supported() && !read(SESSION_KEY)) {
@@ -722,7 +756,12 @@
         signedIn(data.session, data.email);
       }).catch(function (err) {
         btn.disabled = false;
-        setStatus($('si-passkey-status'), err.message + ' You can sign in with an email code instead.', 'err');
+        if (!PK.hasOnThisDevice()) {
+          explainPasskey();
+          setStatus($('si-passkey-status'), 'No MT3UK passkey on this device yet. Sign in with an email code first, then tap Set up a passkey.', 'err');
+        } else {
+          setStatus($('si-passkey-status'), err.message + ' You can sign in with an email code instead.', 'err');
+        }
       });
     });
     $('si-passkey-add').addEventListener('click', function () {
@@ -869,6 +908,9 @@
 
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js" defer></script>
+<script src="js/signin-prompt.js" defer></script>
+<script src="js/notify-bell.js" defer></script>
+<script src="js/messenger.js" defer></script>
 <script src="js/search.js" defer></script>
 
 </body>

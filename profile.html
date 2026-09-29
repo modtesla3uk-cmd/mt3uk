@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>My Profile - MT3UK</title>
-<meta name="description" content="Your MT3UK profile: name and nickname, messages, friends and email choices.">
+<meta name="description" content="Your MT3UK profile settings: name and nickname, visibility, security and email choices.">
 <meta name="robots" content="noindex">
 <link rel="canonical" href="https://mt3uk.com/profile.html">
 <link rel="icon" type="image/x-icon" href="images/site/favicon.ico">
@@ -18,12 +18,12 @@
 <meta name="apple-mobile-web-app-title" content="MT3UK">
 <meta property="og:type" content="website">
 <meta property="og:title" content="My Profile - MT3UK">
-<meta property="og:description" content="Your MT3UK profile: name and nickname, messages, friends and email choices.">
+<meta property="og:description" content="Your MT3UK profile settings: name and nickname, visibility, security and email choices.">
 <meta property="og:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
 <meta property="og:url" content="https://mt3uk.com/profile.html">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="My Profile - MT3UK">
-<meta name="twitter:description" content="Your MT3UK profile: name and nickname, messages, friends and email choices.">
+<meta name="twitter:description" content="Your MT3UK profile settings: name and nickname, visibility, security and email choices.">
 <meta name="twitter:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
 <link rel="stylesheet" href="css/site-header.css">
@@ -443,11 +443,14 @@
           <a href="gallery.html" class="nav-sublink">Full Gallery</a>
         </div>
       </div>
+      <a href="my-builds.html" class="nav-link nav-link-mybuilds">My Garage</a>
       <div class="nav-item">
-        <a href="my-builds.html" class="nav-link nav-link-mybuilds">My Garage</a>
-        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle My Garage submenu">&#9660;</button>
+        <a href="profile.html" class="nav-link nav-link-profile active">My Profile</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle My Profile submenu">&#9660;</button>
         <div class="nav-dropdown">
-          <a href="profile.html" class="nav-sublink nav-sublink-new active">My Profile</a>
+          <a href="#messages" class="nav-sublink nav-sublink-new">Messages</a>
+          <a href="#friends" class="nav-sublink nav-sublink-new">Friends</a>
+          <a href="profile.html" class="nav-sublink active">Settings</a>
         </div>
       </div>
       <div class="nav-item">
@@ -523,7 +526,7 @@
     <a href="index.html" class="back-link">&larr; Back to MT3UK</a>
     <span class="section-num mono">MY PROFILE</span>
     <h1>Your profile</h1>
-    <p>Your details, messages and friends, and your email choices. Only you can see this page.</p>
+    <p>Your details, visibility, security and email choices. Only you can see this page. Messages and friends are in the chat window: tap the speech bubble at the top of any page.</p>
   </div>
 </section>
 
@@ -531,7 +534,7 @@
   <div class="wrap">
     <div class="pf-signed-out" id="pf-signed-out" hidden>
       <h2>Sign in to see your profile</h2>
-      <p id="pf-signed-out-text">Your profile has your name and nickname, messages, friends and email choices.</p>
+      <p id="pf-signed-out-text">Your profile has your name and nickname, visibility, security and email choices.</p>
       <a href="signin.html?next=/profile.html" class="si-btn si-btn-primary">Sign Up / Sign In</a>
     </div>
     <p class="pf-loading" id="pf-loading">Loading your profile&hellip;</p>
@@ -550,8 +553,6 @@
     <div class="pf-app" id="pf-app" hidden>
       <div class="pf-tabs" role="navigation" aria-label="Profile sections">
         <a href="#details">Details</a>
-        <a href="#messages">Messages <span class="pf-badge" id="pf-badge-messages" hidden></span></a>
-        <a href="#friends">Friends <span class="pf-badge" id="pf-badge-friends" hidden></span></a>
         <a href="#visibility">Visibility</a>
         <a href="#security">Security</a>
         <a href="#email-alerts">Emails</a>
@@ -637,46 +638,6 @@
           <button type="button" class="si-btn pf-danger" id="pf-signout-all">Sign out of all devices</button>
           <p class="si-status" id="pf-signout-all-status" role="status"></p>
         </div>
-      </div>
-
-      <div class="pf-card" id="messages">
-        <h2>Messages</h2>
-        <details class="pf-fold" id="pf-fold-mt3uk">
-          <summary>From MT3UK <span class="pf-new" id="pf-badge-mt3uk" hidden></span></summary>
-          <ul class="pf-list" id="pf-broadcasts"></ul>
-        </details>
-        <details class="pf-fold" id="pf-fold-friends">
-          <summary>From friends <span class="pf-new" id="pf-badge-direct" hidden></span></summary>
-          <ul class="pf-list" id="pf-threads"></ul>
-          <div class="pf-thread" id="pf-thread" hidden>
-            <button type="button" class="pf-link pf-back" id="pf-thread-back">&larr; All messages</button>
-            <h3 id="pf-thread-name"></h3>
-            <ol class="pf-bubbles" id="pf-bubbles"></ol>
-            <form class="pf-compose" id="pf-compose" novalidate>
-              <label for="pf-compose-text" class="pf-sr">Message</label>
-              <textarea id="pf-compose-text" rows="2" maxlength="1000" placeholder="Write a message"></textarea>
-              <button type="submit" class="si-btn si-btn-primary">Send</button>
-            </form>
-            <p class="si-status" id="pf-thread-status" role="status"></p>
-          </div>
-        </details>
-      </div>
-
-      <div class="pf-card" id="friends">
-        <h2>Friends</h2>
-        <p class="pf-hint" id="pf-friends-need-nick" hidden>Set a nickname in <a href="#details" id="pf-nick-link">Your details</a> first, so friends can find you and see who you are.</p>
-        <form class="pf-search" id="pf-search" novalidate>
-          <label for="pf-search-q" class="pf-sr">Find members by nickname or name</label>
-          <input type="search" id="pf-search-q" placeholder="Find members by nickname or name" autocomplete="off">
-          <button type="submit" class="si-btn">Search</button>
-        </form>
-        <ul class="pf-list" id="pf-results"></ul>
-        <div id="pf-requests"></div>
-        <details class="pf-fold" id="pf-fold-friendlist">
-          <summary>Your friends <span class="mono" id="pf-friend-count"></span> <span class="pf-new" id="pf-badge-friendmsgs" hidden></span></summary>
-          <ul class="pf-list" id="pf-friends"></ul>
-        </details>
-        <p class="si-status" id="pf-friends-status" role="status"></p>
       </div>
 
       <div class="pf-card" id="email-alerts">
@@ -854,9 +815,9 @@
 <script src="js/ios-install-steps.js"></script>
 <script src="js/app-install.js"></script>
 <script>
-  // My Profile: name and nickname, visibility, a link to My Garage,
-  // messages (from MT3UK and between friends), friends, phone
-  // notifications, the app, email alerts and leaving.
+  // My Profile settings: name and nickname, visibility, a link to My
+  // Garage, security, phone notifications, the app, email alerts and
+  // leaving. Messages and Friends are in the chat window (js/messenger.js).
   // Everything comes from the worker's /profile endpoints with the member's
   // session. Other members are shown by nickname or name and an id, never
   // by email.
@@ -866,10 +827,6 @@
     var EMAIL_KEY = 'mt3ukMyBuildsEmail';
     var FIRST_NAME_KEY = 'mt3ukMyBuildsFirstName';
     var profile = null;
-    var openThreadId = null;
-    // Names already on the page (friends and conversations), so a
-    // conversation opens with its heading straight away.
-    var knownNames = {};
 
     function $(id) { return document.getElementById(id); }
     function session() { try { return localStorage.getItem(SESSION_KEY) || ''; } catch (e) { return ''; } }
@@ -905,11 +862,6 @@
       });
     }
 
-    function badge(el, n) { el.hidden = !n; el.textContent = n > 99 ? '99+' : String(n || ''); }
-    // "3 new" pills on the collapsible sections.
-    function newBadge(el, n) { el.hidden = !n; el.textContent = n ? (n > 99 ? '99+' : n) + ' new' : ''; }
-    // Unread friend messages by friend id, for the Your friends list.
-    var unreadById = {};
 
     // Nickname boxes say as you type whether a nickname is free
     // (js/account-bar.js, which loads after this script).
@@ -937,7 +889,6 @@
       var link = $('pf-builds-link');
       link.hidden = !n;
       if (n) link.href = 'gallery.html?only=' + encodeURIComponent(profile.builds.join(','));
-      $('pf-friends-need-nick').hidden = !!profile.nickname;
       $('pf-emails').checked = !profile.emailsOff;
       drawVisibility();
       if (profile.firstName) { try { localStorage.setItem(FIRST_NAME_KEY, profile.firstName); } catch (e) {} }
@@ -954,7 +905,6 @@
     }
     $('pf-edit').addEventListener('click', function () { editing(true); });
     $('pf-cancel').addEventListener('click', function () { drawDetails(); editing(false); });
-    $('pf-nick-link').addEventListener('click', function () { editing(true); setTimeout(function () { $('pf-nickname').focus(); }, 50); });
     $('pf-form').addEventListener('submit', function (e) {
       e.preventDefault();
       var body = { nickname: $('pf-nickname').value.trim() };
@@ -980,7 +930,6 @@
         profile.nickname = data.nickname;
         drawDetails();
         editing(false);
-        drawFriends();
         status($('pf-details-status'), 'Saved. Your builds will show your new name shortly.', 'ok');
       }).catch(function (err) { btn.disabled = false; if (err.message !== 'signed out') status($('pf-details-status'), 'Network error, please try again.', 'err'); });
     });
@@ -1072,207 +1021,6 @@
       }).catch(function (err) { btn.disabled = false; if (err.message !== 'signed out') status($('pf-signout-all-status'), 'Network error, please try again.', 'err'); });
     });
 
-    // ---------- Messages ----------
-    // From MT3UK and From friends are collapsed, each with an "N new" pill.
-    // Opening From MT3UK marks its messages read.
-    $('pf-fold-mt3uk').addEventListener('toggle', function () {
-      if ($('pf-fold-mt3uk').open) markBroadcastsRead();
-    });
-
-    var broadcastsUnread = 0;
-    function markBroadcastsRead() {
-      if (!broadcastsUnread) return;
-      broadcastsUnread = 0;
-      api('POST', '/profile/messages/read', {}).then(updateBadges).catch(function () {});
-    }
-
-    function loadMessages() {
-      return api('GET', '/profile/messages').then(function (data) {
-        if (!data.success) return;
-        broadcastsUnread = data.broadcasts.filter(function (b) { return b.unread; }).length;
-        $('pf-broadcasts').innerHTML = data.broadcasts.length ? data.broadcasts.map(function (b) {
-          return '<li class="pf-bc"><h3>' + (b.unread ? '<span class="pf-dot" aria-label="New"></span>' : '') + esc(b.title) + '</h3>' +
-            '<time datetime="' + esc(b.at) + '">' + esc(when(b.at)) + '</time><p>' + esc(b.text) + '</p></li>';
-        }).join('') : '<li><span class="pf-empty">No messages from MT3UK yet. News for members will appear here.</span></li>';
-        data.threads.forEach(function (t) { knownNames[t.id] = t.name; });
-        $('pf-threads').innerHTML = data.threads.length ? data.threads.map(function (t) {
-          return '<li class="pf-thread-row' + (t.unread ? ' is-unread' : '') + '" data-id="' + esc(t.id) + '" tabindex="0" role="button">' +
-            '<div class="pf-who"><strong>' + esc(t.name) + '</strong><span>' + (t.lastFromMe ? 'You: ' : '') + esc(t.lastText) + '</span></div>' +
-            '<time datetime="' + esc(t.lastAt) + '">' + esc(when(t.lastAt)) + '</time></li>';
-        }).join('') : '<li><span class="pf-empty">No messages yet. Message a friend from your Friends list below.</span></li>';
-        unreadById = {};
-        data.threads.forEach(function (t) { if (t.unread) unreadById[t.id] = t.unread; });
-        directUnread = data.threads.reduce(function (n, t) { return n + (t.unread || 0); }, 0);
-        updateBadges();
-        if (profile) drawFriends();
-        if ($('pf-fold-mt3uk').open) markBroadcastsRead();
-      });
-    }
-
-    var directUnread = 0;
-    function updateBadges() {
-      newBadge($('pf-badge-mt3uk'), broadcastsUnread);
-      newBadge($('pf-badge-direct'), directUnread);
-      badge($('pf-badge-messages'), broadcastsUnread + directUnread);
-    }
-
-    function openThread(id) {
-      openThreadId = id;
-      $('pf-fold-friends').open = true;
-      $('pf-threads').hidden = true;
-      $('pf-thread').hidden = false;
-      $('pf-bubbles').innerHTML = '<li class="pf-empty">Loading…</li>';
-      $('pf-thread-name').textContent = knownNames[id] || '';
-      status($('pf-thread-status'), '');
-      return api('GET', '/profile/messages/thread?with=' + encodeURIComponent(id)).then(function (data) {
-        if (!data.success) { status($('pf-thread-status'), data.message || 'Could not open this conversation.', 'err'); return; }
-        $('pf-thread-name').textContent = data.with.name + (data.with.nickname && data.with.nickname !== data.with.name ? ' (' + data.with.nickname + ')' : '');
-        $('pf-compose').hidden = !data.friend;
-        if (!data.friend) status($('pf-thread-status'), 'You are no longer friends, so you can read these messages but not reply.');
-        drawBubbles(data.messages);
-        loadMessages();
-      });
-    }
-
-    function drawBubbles(messages) {
-      var list = $('pf-bubbles');
-      list.innerHTML = messages.length ? messages.map(function (m) {
-        return '<li class="pf-bubble' + (m.mine ? ' mine' : '') + '" data-id="' + esc(m.id) + '"><p>' + esc(m.text) + '</p>' +
-          '<footer><time datetime="' + esc(m.at) + '">' + esc(when(m.at)) + '</time>' +
-          (m.mine ? '' : '<button type="button" class="pf-report">Report</button>') + '</footer></li>';
-      }).join('') : '<li class="pf-empty">No messages yet. Say hello.</li>';
-      list.scrollTop = list.scrollHeight;
-    }
-
-    function closeThread() {
-      openThreadId = null;
-      $('pf-thread').hidden = true;
-      $('pf-threads').hidden = false;
-      try { history.replaceState(null, '', location.pathname + '#messages'); } catch (e) {}
-    }
-
-    $('pf-threads').addEventListener('click', function (e) {
-      var row = e.target.closest('.pf-thread-row');
-      if (row) openThread(row.getAttribute('data-id'));
-    });
-    $('pf-threads').addEventListener('keydown', function (e) {
-      var row = e.target.closest('.pf-thread-row');
-      if (row && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openThread(row.getAttribute('data-id')); }
-    });
-    $('pf-thread-back').addEventListener('click', closeThread);
-
-    $('pf-compose').addEventListener('submit', function (e) {
-      e.preventDefault();
-      var box = $('pf-compose-text');
-      var text = box.value.trim();
-      if (!text || !openThreadId) return;
-      var btn = e.target.querySelector('button');
-      btn.disabled = true;
-      api('POST', '/profile/messages/send', { with: openThreadId, text: text }).then(function (data) {
-        btn.disabled = false;
-        if (!data.success) { status($('pf-thread-status'), data.message || 'Could not send, please try again.', 'err'); return; }
-        box.value = '';
-        status($('pf-thread-status'), '');
-        var list = $('pf-bubbles');
-        if (list.querySelector('.pf-empty')) list.innerHTML = '';
-        list.insertAdjacentHTML('beforeend', '<li class="pf-bubble mine"><p>' + esc(data.message.text) + '</p><footer><time>' + esc(when(data.message.at)) + '</time></footer></li>');
-        list.scrollTop = list.scrollHeight;
-        loadMessages();
-      }).catch(function (err) { btn.disabled = false; if (err.message !== 'signed out') status($('pf-thread-status'), 'Network error, please try again.', 'err'); });
-    });
-
-    $('pf-bubbles').addEventListener('click', function (e) {
-      var btn = e.target.closest('.pf-report');
-      if (!btn || !openThreadId) return;
-      var bubble = btn.closest('.pf-bubble');
-      var reason = window.prompt('Report this message to MT3UK? Add a reason if you like:', '');
-      if (reason === null) return;
-      btn.disabled = true;
-      api('POST', '/profile/messages/report', { with: openThreadId, messageId: bubble.getAttribute('data-id'), reason: reason }).then(function (data) {
-        if (!data.success) { btn.disabled = false; status($('pf-thread-status'), data.message || 'Could not report, please try again.', 'err'); return; }
-        btn.textContent = 'Reported';
-        status($('pf-thread-status'), 'Thanks, MT3UK will take a look. You can also remove this friend in Friends.', 'ok');
-      }).catch(function () { btn.disabled = false; });
-    });
-
-    // ---------- Friends ----------
-    function who(card, extra) {
-      var nick = card.nickname && card.nickname !== card.name ? '<span>' + esc(card.nickname) + '</span>' : '';
-      return '<div class="pf-who"><strong>' + esc(card.name) + '</strong>' + nick + (extra || '') + '</div>';
-    }
-
-    function drawFriends() {
-      var req = '';
-      if (profile.incoming.length) {
-        req += '<h3 class="pf-h3">Friend requests</h3><ul class="pf-list">' + profile.incoming.map(function (c) {
-          return '<li>' + who(c, '<span> wants to be friends</span>') + '<div class="pf-actions">' +
-            '<button type="button" class="si-btn si-btn-primary pf-fr" data-action="accept" data-id="' + esc(c.id) + '">Accept</button>' +
-            '<button type="button" class="si-btn pf-fr" data-action="decline" data-id="' + esc(c.id) + '">Decline</button></div></li>';
-        }).join('') + '</ul>';
-      }
-      if (profile.outgoing.length) {
-        req += '<h3 class="pf-h3">Requests you&rsquo;ve sent</h3><ul class="pf-list">' + profile.outgoing.map(function (c) {
-          return '<li>' + who(c, '<span> waiting for them to accept</span>') + '<div class="pf-actions">' +
-            '<button type="button" class="si-btn pf-fr" data-action="cancel" data-id="' + esc(c.id) + '">Cancel</button></div></li>';
-        }).join('') + '</ul>';
-      }
-      $('pf-requests').innerHTML = req;
-      profile.friends.forEach(function (c) { knownNames[c.id] = c.name; });
-      $('pf-friend-count').textContent = profile.friends.length ? '(' + profile.friends.length + ')' : '';
-      $('pf-friends').innerHTML = profile.friends.length ? profile.friends.map(function (c) {
-        var builds = c.builds && c.builds.length;
-        var unread = unreadById[c.id] || 0;
-        return '<li>' + who(c, unread ? '<span class="pf-new">' + unread + ' new</span>' : '') + '<div class="pf-actions">' +
-          '<button type="button" class="si-btn si-btn-primary pf-msg" data-id="' + esc(c.id) + '">Message</button>' +
-          (builds ? '<a class="si-btn" href="gallery.html?only=' + encodeURIComponent(c.builds.join(',')) + '">Builds (' + builds + ')</a>' : '') +
-          '<button type="button" class="si-btn pf-fr" data-action="remove" data-id="' + esc(c.id) + '">Remove</button></div></li>';
-      }).join('') : '<li><span class="pf-empty">No friends yet. Find members by their nickname above.</span></li>';
-      badge($('pf-badge-friends'), profile.incoming.length);
-      newBadge($('pf-badge-friendmsgs'), profile.friends.filter(function (c) { return unreadById[c.id]; }).length);
-    }
-
-    function friendAction(action, idOrNick, btn) {
-      if (action === 'remove' && !window.confirm('Remove this friend? You can add them again later.')) return;
-      var body = { action: action };
-      if (action === 'request') body.nickname = idOrNick; else body.id = idOrNick;
-      if (btn) btn.disabled = true;
-      api('POST', '/profile/friends', body).then(function (data) {
-        if (!data.success) { if (btn) btn.disabled = false; status($('pf-friends-status'), data.message || 'Something went wrong, please try again.', 'err'); return; }
-        status($('pf-friends-status'), {
-          request: data.status === 'requested' ? 'Friend request sent.' : 'You are now friends.',
-          accept: 'You are now friends.', decline: 'Request declined.', cancel: 'Request cancelled.', remove: 'Friend removed.'
-        }[action], 'ok');
-        if (action === 'request' && btn) btn.textContent = 'Requested';
-        refresh();
-      }).catch(function () { if (btn) btn.disabled = false; });
-    }
-
-    $('friends').addEventListener('click', function (e) {
-      var fr = e.target.closest('.pf-fr');
-      if (fr) { friendAction(fr.getAttribute('data-action'), fr.getAttribute('data-id') || fr.getAttribute('data-nick'), fr); return; }
-      var msg = e.target.closest('.pf-msg');
-      if (msg) {
-        openThread(msg.getAttribute('data-id'));
-        $('messages').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    });
-
-    $('pf-search').addEventListener('submit', function (e) {
-      e.preventDefault();
-      var q = $('pf-search-q').value.trim();
-      if (q.length < 2) { $('pf-results').innerHTML = '<li><span class="pf-empty">Type at least 2 letters of a nickname or name.</span></li>'; return; }
-      api('GET', '/profile/search?q=' + encodeURIComponent(q)).then(function (data) {
-        var results = (data && data.results) || [];
-        $('pf-results').innerHTML = results.length ? results.map(function (c) {
-          var action = c.status === 'friend' ? '<span class="mono">FRIENDS</span>'
-            : c.status === 'requested' ? '<span class="mono">REQUESTED</span>'
-            : c.status === 'incoming' ? '<button type="button" class="si-btn si-btn-primary pf-fr" data-action="accept" data-id="' + esc(c.id) + '">Accept request</button>'
-            : '<button type="button" class="si-btn si-btn-primary pf-fr" data-action="request" data-nick="' + esc(c.nickname) + '"' + (profile.nickname ? '' : ' disabled title="Set a nickname first"') + '>Add friend</button>';
-          return '<li>' + who(c) + '<div class="pf-actions">' + action + '</div></li>';
-        }).join('') : '<li><span class="pf-empty">No members with a nickname or name like that.</span></li>';
-      }).catch(function () {});
-    });
-
     // ---------- Emails and leaving ----------
     $('pf-emails').addEventListener('change', function () {
       var on = $('pf-emails').checked;
@@ -1307,7 +1055,6 @@
         if (!data.success) { status($('pf-details-status'), data.message || 'Could not load your profile.', 'err'); return; }
         profile = data;
         drawDetails();
-        drawFriends();
       });
     }
 
@@ -1352,18 +1099,10 @@
       loadPasskeys();
       if (window.mt3ukPushCard) window.mt3ukPushCard($('notifications'), { api: API, session: session, setStatus: status });
       if (window.mt3ukAppCard) window.mt3ukAppCard($('app'), { apps: profile.apps, forget: function (p) { api('POST', '/profile', { appRemoved: p }).catch(function () {}); } });
-      return loadMessages().then(function () {
-        // Arriving at Messages (e.g. from the bell) opens whatever has
-        // something new, or From MT3UK; at Friends, the friends list.
-        if (location.hash === '#messages') {
-          if (directUnread) $('pf-fold-friends').open = true;
-          if (broadcastsUnread || !directUnread) $('pf-fold-mt3uk').open = true;
-        }
-        if (location.hash === '#friends') $('pf-fold-friendlist').open = true;
-        var withId = new URL(location.href).searchParams.get('with');
-        if (withId) { openThread(withId); $('messages').scrollIntoView({ block: 'start' }); }
-        else if (location.hash && document.querySelector(location.hash)) document.querySelector(location.hash).scrollIntoView({ block: 'start' });
-      });
+      // Messages and Friends open in the chat window (js/messenger.js).
+      if (location.hash && !/^#(messages|friends)$/.test(location.hash) && document.querySelector(location.hash)) {
+        document.querySelector(location.hash).scrollIntoView({ block: 'start' });
+      }
     }).catch(function (err) {
       if (err.message === 'signed out') return;
       $('pf-loading').textContent = 'Could not load your profile. Check your connection and refresh.';
@@ -1373,6 +1112,9 @@
 
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js" defer></script>
+<script src="js/signin-prompt.js" defer></script>
+<script src="js/notify-bell.js" defer></script>
+<script src="js/messenger.js" defer></script>
 <script src="js/search.js" defer></script>
 
 </body>

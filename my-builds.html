@@ -165,6 +165,11 @@
   .mb-field-hint { font-size: 0.78rem; color: var(--steel); }
   .mb-passkey { margin-top: 16px; display: grid; gap: 6px; justify-items: start; }
   .mb-passkey-btn { background: #1c8a4b; border-color: #1c8a4b; }
+  .mb-passkey .mb-status:empty { display: none; }
+  .mb-passkey-how { font-size: 0.84rem; color: var(--steel); }
+  .mb-passkey-how summary { cursor: pointer; font-weight: 600; color: var(--ink); padding: 4px 0; }
+  .mb-passkey-how ol { margin: 4px 0 0 20px; padding: 0; }
+  .mb-passkey-how li { margin-bottom: 4px; }
   .mb-junk { display: block; font-size: 0.8rem; border-left: 3px solid var(--orange); background: rgba(232, 84, 42, 0.07); padding: 6px 10px; margin-top: 6px; }
   .mb-field input[type="email"],
   .mb-field input[type="text"],
@@ -752,11 +757,14 @@ document.addEventListener('DOMContentLoaded', function () {
           <a href="gallery.html" class="nav-sublink">Full Gallery</a>
         </div>
       </div>
+      <a href="my-builds.html" class="nav-link nav-link-mybuilds active">My Garage</a>
       <div class="nav-item">
-        <a href="my-builds.html" class="nav-link nav-link-mybuilds active">My Garage</a>
-        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle My Garage submenu">&#9660;</button>
+        <a href="profile.html" class="nav-link nav-link-profile">My Profile</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle My Profile submenu">&#9660;</button>
         <div class="nav-dropdown">
-          <a href="profile.html" class="nav-sublink nav-sublink-new">My Profile</a>
+          <a href="profile.html#messages" class="nav-sublink nav-sublink-new">Messages</a>
+          <a href="profile.html#friends" class="nav-sublink nav-sublink-new">Friends</a>
+          <a href="profile.html" class="nav-sublink">Settings</a>
         </div>
       </div>
       <div class="nav-item">
@@ -883,8 +891,16 @@ document.addEventListener('DOMContentLoaded', function () {
         </form>
         <div class="mb-passkey" id="mb-passkey" hidden>
           <button type="button" class="mb-btn mb-passkey-btn" id="mb-passkey-btn">Sign in with a passkey</button>
-          <span class="mb-field-hint">Face ID, fingerprint or your screen lock, if you&rsquo;ve set up a passkey in your Profile.</span>
+          <span class="mb-field-hint" id="mb-passkey-hint">Face ID, fingerprint or your screen lock, if you&rsquo;ve set up a passkey in your Profile.</span>
           <p class="mb-status" id="mb-passkey-status"></p>
+          <details class="mb-passkey-how" id="mb-passkey-how">
+            <summary>How do I set up a passkey?</summary>
+            <ol>
+              <li>Sign in once with an email code, above.</li>
+              <li>Go to Profile, Security, <strong>Add a passkey on this device</strong>.</li>
+              <li>Next time, tap <strong>Sign in with a passkey</strong> and use Face ID, your fingerprint or screen lock.</li>
+            </ol>
+          </details>
         </div>
         <p class="mb-join-note">Just want to like and comment? <a href="signin.html">Join free without adding a car</a>.</p>
         <button type="button" class="mb-btn mb-signin-newbuild-btn" id="mb-new-toggle-btn">+ New here? Submit your first build</button>
@@ -1921,7 +1937,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Passkey sign-in (js/passkeys.js).
     var passkeys = window.mt3ukPasskeys;
-    if (passkeys && passkeys.supported()) document.getElementById('mb-passkey').hidden = false;
+    // Not used a passkey in this browser yet: show how to set one up, as
+    // the button alone brings up the phone's "No passkeys" message.
+    function explainPasskey() {
+      document.getElementById('mb-passkey-how').open = true;
+      document.getElementById('mb-passkey-hint').textContent = 'Not set up a passkey yet? Sign in with an email code first, then add one in your Profile.';
+    }
+    if (passkeys && passkeys.supported()) {
+      document.getElementById('mb-passkey').hidden = false;
+      if (!passkeys.hasOnThisDevice()) explainPasskey();
+    }
     // Offer the passkey when the email box is tapped, when signed out.
     if (passkeys && passkeys.supported() && !localStorage.getItem(SESSION_KEY)) {
       passkeys.autofill(function (data) {
@@ -1943,7 +1968,12 @@ document.addEventListener('DOMContentLoaded', function () {
         loadCars();
       }).catch(function (err) {
         btn.disabled = false;
-        setStatus(status, err.message + ' You can sign in with an email code instead.', 'err');
+        if (!passkeys.hasOnThisDevice()) {
+          explainPasskey();
+          setStatus(status, 'No MT3UK passkey on this device yet. Sign in with an email code first, then add one in your Profile.', 'err');
+        } else {
+          setStatus(status, err.message + ' You can sign in with an email code instead.', 'err');
+        }
       });
     });
 
@@ -3183,6 +3213,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js" defer></script>
+<script src="js/signin-prompt.js" defer></script>
+<script src="js/notify-bell.js" defer></script>
+<script src="js/messenger.js" defer></script>
 <script src="js/search.js" defer></script>
 
 </body>

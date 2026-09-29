@@ -66,8 +66,13 @@
     return 'my-builds.html?file=' + encodeURIComponent(n.file || '') + (n.commentId ? '&comment=' + encodeURIComponent(n.commentId) : '');
   }
 
+  // Unread messages have their own count on the chat icon (js/messenger.js).
+  function tellMessenger() {
+    try { document.dispatchEvent(new CustomEvent('mt3ukMessagesUnread', { detail: { count: messagesUnread } })); } catch (e) {}
+  }
+
   function setCount(unread) {
-    unread += messagesUnread;
+    tellMessenger();
     count.hidden = !unread;
     count.textContent = unread > 99 ? '99+' : String(unread);
     btn.setAttribute('aria-label', unread ? 'Notifications, ' + unread + ' new' : 'Notifications');
@@ -90,7 +95,7 @@
     panel.innerHTML =
       '<div class="nav-bell-head"><span>Notifications</span>' +
         (items.length ? '<button type="button" class="nav-bell-clear-all">Clear all</button>' : '') + '</div>' +
-      // Unread messages (from MT3UK and friends) live in Profile.
+      // Unread messages (from MT3UK and friends) open the chat window.
       (messagesUnread
         ? '<a class="nav-bell-item nav-bell-messages is-unread" href="profile.html#messages"><span class="nav-bell-item-name">Messages</span>' +
           '<span class="nav-bell-item-text">You have ' + messagesUnread + ' unread message' + (messagesUnread === 1 ? '' : 's') + '</span></a>'

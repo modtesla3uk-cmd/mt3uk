@@ -84,3 +84,15 @@ def test_emails_come_from_an_address_that_receives_mail():
     worker = (ROOT / "workers" / "vote-worker.js").read_text(encoding="utf-8")
     assert "const MY_BUILDS_FROM_EMAIL = 'hello@mt3uk.com';" in worker
     assert "noreply@" not in worker
+
+
+def test_votes_and_comments_need_a_sign_in():
+    """Votes and comments come from the member's sign-in, never from an
+    email the page sends, the same as likes."""
+    worker = (ROOT / "workers" / "vote-worker.js").read_text(encoding="utf-8")
+    vote = worker[worker.index("async function handleVotePost"):worker.index("async function getLikesAggregate")]
+    assert "if (!sessionEmail) return signInRequired('Sign in to vote.');" in vote
+    assert "voter-ip:" not in vote, "One vote per member, not per IP address"
+    comments = worker[worker.index("async function handleCommentsPost"):worker.index("async function handleCommentReport")]
+    assert "var email = await resolveSession(request, env);" in comments
+    assert "body.email" not in comments

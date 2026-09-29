@@ -23,6 +23,16 @@ def test_page_uses_shared_header_and_footer(page):
     )
 
 
+@pytest.mark.parametrize("page", list(build_layout.PAGES))
+def test_page_has_the_notification_bell_and_profile_icon(page):
+    """js/notify-bell.js adds the bell and the profile icon beside search,
+    js/messenger.js the chat icon and the Messages and Friends window, and
+    js/signin-prompt.js asks visitors who aren't signed in to sign in."""
+    html = (Path(__file__).resolve().parent.parent / f"{page}.html").read_text(encoding="utf-8")
+    for script in ("js/notify-bell.js", "js/messenger.js", "js/signin-prompt.js"):
+        assert f'<script src="{script}"' in html, f"{page}.html is missing {script}"
+
+
 def test_every_share_button_has_a_share_page():
     """The round share buttons (js/share.js) link to share/section/ pages,
     so every page and section needs one. If this fails, run:

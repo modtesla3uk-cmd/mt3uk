@@ -2765,11 +2765,14 @@
           <a href="gallery.html" class="nav-sublink">Full Gallery</a>
         </div>
       </div>
+      <a href="my-builds.html" class="nav-link nav-link-mybuilds">My Garage</a>
       <div class="nav-item">
-        <a href="my-builds.html" class="nav-link nav-link-mybuilds">My Garage</a>
-        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle My Garage submenu">&#9660;</button>
+        <a href="profile.html" class="nav-link nav-link-profile">My Profile</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle My Profile submenu">&#9660;</button>
         <div class="nav-dropdown">
-          <a href="profile.html" class="nav-sublink nav-sublink-new">My Profile</a>
+          <a href="profile.html#messages" class="nav-sublink nav-sublink-new">Messages</a>
+          <a href="profile.html#friends" class="nav-sublink nav-sublink-new">Friends</a>
+          <a href="profile.html" class="nav-sublink">Settings</a>
         </div>
       </div>
       <div class="nav-item">
@@ -3226,7 +3229,7 @@
         <li>Builds are in the vote the week they're added and the week after.</li>
         <li>Members have one build in the vote at a time. To enter an older photo, tick Voting on it in <a href="my-builds.html">My Garage</a>. It's then in the vote for the rest of that week and the next.</li>
         <li>Switching your entry to a different photo loses the votes your current entry has.</li>
-        <li>You have one vote a week, and you can move it to a different build until voting closes.</li>
+        <li>Voting is for members: <a href="signin.html">join free or sign in</a> to vote. You have one vote a week, and you can move it to a different build until voting closes.</li>
         <li>You can only vote for other members' builds.</li>
       </ul>
     </details>
@@ -3948,12 +3951,17 @@
           submitBtn.disabled = true;
           fetch(VOTE_ENDPOINT + '/comments', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-Voter-Id': voterId },
+            headers: mt3ukMemberHeaders({ 'Content-Type': 'application/json', 'X-Voter-Id': voterId }),
             body: JSON.stringify({ file: slide.dataset.current, email: email, text: text, parentId: form.dataset.parentId || null })
           })
-            .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+            .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, status: res.status, data: data }; }); })
             .then(function (result) {
-              if (result.ok && result.data && result.data.success) {
+              // Comments are posted as the signed-in member.
+              if (result.status === 401) {
+                mt3ukSignInExpired('comment');
+                errorEl.textContent = 'Please sign in again to comment.';
+                errorEl.hidden = false;
+              } else if (result.ok && result.data && result.data.success) {
                 textInput.value = '';
                 var replyParent = form.closest('.bf-comment-reply-slot');
                 if (replyParent) replyParent.hidden = true;
@@ -5479,14 +5487,32 @@
     var latestData = null;
     var currentVoteIndex = -1;
 
+    // Voting is for signed-in members, one vote each a week, like likes
+    // and comments (js/signin-prompt.js shows the sign-in dialog).
     function castVote(file, onDone) {
+      var session = null;
+      try { session = localStorage.getItem('mt3ukMyBuildsSession'); } catch (e) {}
+      if (!session) {
+        if (window.mt3ukShowSignIn) window.mt3ukShowSignIn('vote');
+        else window.location.href = 'signin.html?next=' + encodeURIComponent('/#vote-frame');
+        onDone();
+        return;
+      }
       fetch(VOTE_ENDPOINT + '/vote', {
         method: 'POST',
         headers: voteHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ file: file })
       })
-        .then(function (res) { return res.json(); })
+        .then(function (res) {
+          if (res.status === 401) {
+            try { localStorage.removeItem('mt3ukMyBuildsSession'); } catch (e) {}
+            if (window.mt3ukShowSignIn) window.mt3ukShowSignIn('vote');
+            return null;
+          }
+          return res.json();
+        })
         .then(function (result) {
+          if (!result) { onDone(); return; }
           if (result && result.success) render(result);
           else if (result && result.message) window.alert(result.message);
           onDone();
@@ -6172,6 +6198,7 @@
 <script src="js/account-bar.js" defer></script>
 <script src="js/search.js" defer></script>
 <script src="js/notify-bell.js" defer></script>
+<script src="js/messenger.js" defer></script>
 
 <script>
   /* Homepage refresh: interview hero (scheduled by publish date in data/interviews.json), live category info and hero stats.

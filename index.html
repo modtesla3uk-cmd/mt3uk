@@ -2054,6 +2054,10 @@
   .hp-hero .hero-grid { justify-items: start; text-align: left; }
   .hp-hero h1 { max-width: 20ch; font-size: clamp(1.9rem, 5vw, 3.4rem); margin-bottom: 10px; }
   .hp-eyebrow { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 0.74rem; letter-spacing: 0.14em; line-height: 1.5; color: #f58a68; margin-bottom: 12px; text-transform: uppercase; }
+  /* The hero eyebrow sits over the interview photo, so it's white and
+     larger, with a shadow to stand out against brick and bright skies. */
+  #hp-hero-eyebrow { font-size: 0.9rem; font-weight: 600; color: #ffffff; text-shadow: 0 1px 3px rgba(0,0,0,0.75), 0 0 12px rgba(0,0,0,0.45); }
+  @media (max-width: 780px) { #hp-hero-eyebrow { font-size: 0.8rem; letter-spacing: 0.08em; } }
   .hp-hero-meta { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; letter-spacing: 0.06em; color: #d3d8e2; text-transform: uppercase; margin: 0 0 24px; }
   .hp-hero-ctas { display: flex; flex-wrap: wrap; gap: 12px; }
   .hp-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 12px 22px; font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none; border: 1px solid transparent; transition: background 0.2s ease, color 0.2s ease; }

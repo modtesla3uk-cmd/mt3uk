@@ -287,6 +287,7 @@
   .bc-test-row { display: flex; gap: 8px; flex-wrap: wrap; }
   .bc-test-row input { flex: 1 1 200px; min-width: 0; }
   .bc-test-row button { padding: 6px 12px; font-size: 0.72rem; }
+  .bc-test-row select { flex: 0 1 auto; min-width: 0; max-width: 100%; background: #0f172a; color: var(--white); border: 1px solid rgba(255,255,255,0.35); padding: 6px 8px; font: inherit; font-size: 0.78rem; }
   .bc-emailed summary { cursor: pointer; margin-top: 6px; }
   .pv-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; }
   .pv-form input[type="email"] { flex: 1 1 220px; min-width: 0; }
@@ -451,9 +452,14 @@
           <label for="bc-test-email">Send a test to</label>
           <div class="bc-test-row">
             <input type="email" id="bc-test-email" placeholder="you@example.com" autocomplete="email">
+            <select id="bc-test-variant" aria-label="Send as">
+              <option value="full">As members get it</option>
+              <option value="noheader">Without unsubscribe header</option>
+              <option value="plain">Plain, like a sign-in email</option>
+            </select>
             <button type="button" class="secondary" id="bc-test-btn">Send test</button>
           </div>
-          <p class="iv-note" id="bc-test-note" role="status">Emails this title and message to one address, exactly as members would get it, with [Test] in the subject. Nothing is saved or sent to anyone else.</p>
+          <p class="iv-note" id="bc-test-note" role="status">Emails this title and message to one address, with [Test] in the subject. Nothing is saved or sent to anyone else. To find what sends it to Junk, send it each way and see which arrive in the inbox.</p>
         </div>
       </form>
       <div id="bc-list"></div>
@@ -2438,10 +2444,12 @@
     try { sessionStorage.setItem('mt3ukAdminTestEmail', email); } catch (e) {}
     btn.disabled = true;
     show('Sending test…');
-    call('POST', '/admin/broadcasts/test', { title: title, text: text, email: email }).then(function (data) {
+    var variantEl = document.getElementById('bc-test-variant');
+    var variantName = variantEl.options[variantEl.selectedIndex].text;
+    call('POST', '/admin/broadcasts/test', { title: title, text: text, email: email, variant: variantEl.value }).then(function (data) {
       btn.disabled = false;
       if (!data.success) { show(data.message === 'Unauthorized' ? 'The admin key is not right.' : (data.message || 'Could not send the test.'), 'error'); return; }
-      show('Test sent to ' + email + '. Check the inbox and the Junk folder.', 'ok');
+      show('Test sent to ' + email + ' (' + variantName.toLowerCase() + '). Check the inbox and the Junk folder.', 'ok');
     }).catch(function () { btn.disabled = false; show('Network error, please try again.', 'error'); });
   });
 

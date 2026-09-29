@@ -627,6 +627,12 @@ def test_admin_can_send_a_test_email_to_one_address(device_page):
     page.wait_for_function("document.getElementById('bc-test-note').textContent.indexOf('Test sent to me@example.com') !== -1", timeout=5000)
     sent = page.mock_state["test_emails"][-1]
     assert sent["email"] == "me@example.com" and sent["title"] == "Owner Interviews start Thursday"
+    # Send as: the plain version, like a sign-in email.
+    page.mock_state["test_fallback"] = {"title": "Owner Interviews start Thursday", "text": "x", "email": "me@example.com", "variant": "plain"}
+    page.select_option("#bc-test-variant", "plain")
+    page.click("#bc-test-btn")
+    page.wait_for_function("document.getElementById('bc-test-note').textContent.indexOf('plain, like a sign-in email') !== -1", timeout=5000)
+    assert page.mock_state["test_emails"][-1].get("variant") == "plain"
     assert page.locator("#bc-list .bc-item").count() == before, "Nothing saved as a message"
     assert not [c for c in page.mock_state.get("profile_calls", []) if c[1] == "/admin/broadcasts" and c[0] == "POST"]
     assert overflow_width(page) <= 0

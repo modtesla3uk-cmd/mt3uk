@@ -1336,14 +1336,21 @@ async function handleAdminBroadcastTest(request, env) {
   if (!title || !text) return json({ success: false, message: 'Write a title and message first' }, 400);
   var email = previewEmail(body && body.email);
   if (!email) return json({ success: false, message: 'Enter a valid email' }, 400);
+  // Send as (to find what a mail filter objects to):
+  //   full      - as members get it: footer and unsubscribe headers
+  //   noheader  - the same, without the unsubscribe headers
+  //   plain     - just the title and message, like a sign-in email
+  var variant = body && (body.variant === 'noheader' || body.variant === 'plain') ? body.variant : 'full';
+  var emailText = variant === 'plain' ? text : broadcastEmailText({ title: title, text: text }) + EMAIL_FOOTER;
+  var headers = variant === 'full' ? await listUnsubscribeHeaders(env, email) : [];
   try {
     await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, email, rawEmail(MY_BUILDS_FROM_EMAIL, email,
-      '[Test] MT3UK: ' + title, broadcastEmailText({ title: title, text: text }) + EMAIL_FOOTER, await listUnsubscribeHeaders(env, email))));
+      '[Test] ' + (variant === 'plain' ? '' : 'MT3UK: ') + title, emailText, headers)));
   } catch (err) {
     console.log('Test email failed:', err.message);
     return json({ success: false, message: 'The email could not be sent: ' + err.message }, 500);
   }
-  return json({ success: true, email: email });
+  return json({ success: true, email: email, variant: variant });
 }
 
 async function handleAdminBroadcastSave(request, env) {

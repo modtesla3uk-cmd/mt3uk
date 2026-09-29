@@ -76,3 +76,11 @@ def test_member_emails_look_like_the_ones_outlook_lets_through():
     broadcast = worker.split("function broadcastEmailText(msg) {", 1)[1].split("\n}", 1)[0]
     assert "_URL" not in broadcast, "No extra link under messages"
     assert "'MT3UK: ' + msg.title" not in worker, "Subjects are just the title"
+
+
+def test_emails_come_from_an_address_that_receives_mail():
+    """hello@mt3uk.com forwards to the MT3UK Gmail (Cloudflare Email
+    Routing), so replies arrive and mail filters see a real sender."""
+    worker = (ROOT / "workers" / "vote-worker.js").read_text(encoding="utf-8")
+    assert "const MY_BUILDS_FROM_EMAIL = 'hello@mt3uk.com';" in worker
+    assert "noreply@" not in worker

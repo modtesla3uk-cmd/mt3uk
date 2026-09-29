@@ -18,7 +18,10 @@ const MAX_REVIEW_PHOTOS = 3;
 const MAX_REVIEW_PHOTO_BYTES = 5 * 1024 * 1024;
 const SHOPIFY_PRODUCTS_URL = 'https://mt3uk.myshopify.com/products.json?limit=250';
 const SHOP_PRODUCTS_CACHE_SECONDS = 60 * 2;
-const MY_BUILDS_FROM_EMAIL = 'noreply@mt3uk.com';
+// A real address on a domain that receives mail (Cloudflare Email Routing
+// forwards hello@mt3uk.com to the MT3UK Gmail), so replies arrive and
+// Outlook doesn't see a no-reply sender on a domain with no inbox.
+const MY_BUILDS_FROM_EMAIL = 'hello@mt3uk.com';
 const MY_BUILDS_LINK_TTL_SECONDS = 15 * 60;
 const BUILD_ASSIGNED_LINK_TTL_SECONDS = 7 * 24 * 60 * 60;
 const MY_BUILDS_SESSION_TTL_SECONDS = 60 * 60 * 24 * 180;

@@ -2054,6 +2054,37 @@
 
   .hero.hp-hero { display: flex; align-items: flex-end; min-height: 440px; padding: 56px 0 0; background-position: center; background-image: linear-gradient(rgba(14, 22, 40, 0.45), rgba(14, 22, 40, 0.94) 72%), url('images/blog/owner-interviews/richard/hidden-forest-wrap.jpg'); }
   .hp-hero > .wrap { width: 100%; }
+  /* Pulsing chevron at the bottom of the hero: more below, tap to jump to 01. */
+  .hero.hp-hero { padding-bottom: 64px; }
+  .hp-scroll-cue {
+    position: absolute; left: 50%; bottom: 10px; z-index: 3;
+    width: 48px; height: 48px; margin-left: -24px; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: transparent; border: 0; border-radius: 50%; cursor: pointer; color: #e8542a;
+    animation: hp-cue-pulse 1.8s ease-in-out infinite;
+  }
+  .hp-scroll-cue svg { width: 32px; height: 32px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.6)); }
+  .hp-scroll-cue .hp-scroll-cue-back { opacity: 0.45; }
+  .hp-scroll-cue:hover, .hp-scroll-cue:focus-visible { color: #ff7a4f; }
+  .hp-scroll-cue:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; }
+  @keyframes hp-cue-pulse {
+    0%, 100% { transform: translateY(0); opacity: 0.75; }
+    50% { transform: translateY(7px); opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) { .hp-scroll-cue { animation: none; } }
+  /* Phones: the first screen fills the phone below the header, with the
+     content spread out and the chevron at the bottom. --hp-hero-top is the
+     space above the hero (announcement bar and header), set by script. */
+  @media (max-width: 780px) {
+    .hero.hp-hero { min-height: calc(100vh - var(--hp-hero-top, 120px)); min-height: calc(100svh - var(--hp-hero-top, 120px)); align-items: center; padding-top: 2.5svh; }
+    .hp-hero .hp-eyebrow { margin-bottom: 2svh; }
+    .hp-hero h1 { margin-bottom: 1.5svh; }
+    .hp-hero-meta { margin-bottom: 3svh; }
+    .hp-hero .hp-hero-next { margin-top: 2.5svh; }
+    .hp-hero .hp-join { margin-top: 2.5svh; }
+    .hp-hero .hp-join ~ .hp-stats { margin-top: 2.5svh; }
+    .hp-hero .hp-stats { padding-bottom: 12px; }
+  }
   .hp-hero .hero-grid { justify-items: start; text-align: left; }
   /* The interview heading is kept modest so the categories below get a look in. */
   .hp-hero h1 { max-width: 26ch; font-size: clamp(1.35rem, 3.2vw, 2.1rem); line-height: 1.2; margin-bottom: 8px; }
@@ -2082,13 +2113,29 @@
   .hp-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 28px; padding: 18px 0 26px; border-top: 1px solid rgba(255, 255, 255, 0.2); width: 100%; max-width: 560px; }
   .hp-stats strong { display: block; min-height: 1.2em; font-family: 'Archivo Expanded', sans-serif; font-size: 1.4rem; color: #ffffff; line-height: 1.2; }
   .hp-stats span { font-family: 'IBM Plex Mono', monospace; font-size: 0.66rem; letter-spacing: 0.06em; color: #b9c0cf; }
-  @media (max-width: 600px) { .hero.hp-hero { min-height: 0; } .hp-hero-ctas .hp-btn { flex: 1 1 140px; } }
+  @media (max-width: 600px) { .hp-hero-ctas .hp-btn { flex: 1 1 140px; } }
 
   .category-card.hp-cat { flex-direction: column; align-items: stretch; justify-content: space-between; gap: 10px; min-height: 96px; }
-  .category-card.hp-cat-wide { grid-column: 1 / -1; min-height: 76px; }
+  /* Whichever tile comes last runs the full width, so members can put the
+     tiles in any order (hold one to move it) without leaving gaps. */
+  .categories-grid.hp-cats > .hp-cat:last-child { grid-column: 1 / -1; min-height: 76px; }
+  .hp-cat { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+  .hp-cat.hp-cat-holding { transform: scale(0.97); }
+  .hp-cat.hp-cat-dragging { position: fixed; z-index: 60; margin: 0; pointer-events: none; transform: scale(1.04) rotate(-1deg); box-shadow: 0 16px 34px rgba(22, 35, 61, 0.3); background: #ffffff; transition: none; }
+  .hp-cat-placeholder { border: 2px dashed var(--orange); background: rgba(232, 84, 42, 0.06); }
+  .categories-grid.hp-cats > .hp-cat-placeholder:last-child { grid-column: 1 / -1; }
+  .hp-cat-hint { margin: 12px 0 0; font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: #56606f; }
+  .hp-cat-hint button { background: none; border: 0; padding: 0; margin-left: 6px; font: inherit; color: var(--orange); text-decoration: underline; cursor: pointer; }
+  .hp-cat-hint button[hidden] { display: none; }
   .hp-cat-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
   .hp-cat-meta { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; line-height: 1.45; color: #56606f; }
-  @media (min-width: 900px) { .categories-grid.hp-cats { grid-template-columns: repeat(4, 1fr); } }
+  /* minmax(0, 1fr) and wrapping keep any tile, badge and all, inside its
+     column wherever it's moved to. */
+  .categories-grid.hp-cats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .categories-grid.hp-cats .hp-cat { min-width: 0; }
+  .categories-grid.hp-cats .category-card-content { flex-wrap: wrap; min-width: 0; row-gap: 6px; }
+  .categories-grid.hp-cats .hp-cat-meta { overflow-wrap: anywhere; }
+  @media (min-width: 900px) { .categories-grid.hp-cats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
   .hp-new { font-style: normal; font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; font-weight: 500; letter-spacing: 0.08em; background: #c8431d; color: #ffffff; padding: 2px 6px; }
 
   .hp-int-grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
@@ -2796,6 +2843,42 @@
       <div class="hero-media" style="display:none;"></div>
     </div>
   </div>
+  <button type="button" class="hp-scroll-cue" id="hp-scroll-cue" aria-label="Scroll down to Explore MT3UK">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8l7 7 7-7"/><path d="M5 2l7 7 7-7" class="hp-scroll-cue-back"/></svg>
+  </button>
+  <script>
+    // The chevron at the bottom of the hero jumps to section 01, lined up
+    // with the top of the screen under the header.
+    (function () {
+      var cue = document.getElementById('hp-scroll-cue');
+      if (!cue) return;
+      var hero = document.getElementById('hp-hero');
+      function sizeHero() {
+        var top = hero.getBoundingClientRect().top + window.pageYOffset;
+        hero.style.setProperty('--hp-hero-top', Math.round(top) + 'px');
+      }
+      sizeHero();
+      window.addEventListener('load', sizeHero);
+      window.addEventListener('resize', sizeHero);
+      // The announcement bar appears once the interviews have loaded, so
+      // measure again whenever it or the header changes size.
+      if (window.ResizeObserver) {
+        var ro = new ResizeObserver(sizeHero);
+        ['hp-announce'].forEach(function (id) { var el = document.getElementById(id); if (el) ro.observe(el); });
+        var head = document.querySelector('header');
+        if (head) ro.observe(head);
+      }
+      cue.addEventListener('click', function () {
+        // Section 01 comes later in the page, so it's found on tap.
+        var target = document.querySelector('.categories-section');
+        if (!target) return;
+        var header = document.querySelector('header');
+        var top = target.getBoundingClientRect().top + window.pageYOffset - (header ? header.offsetHeight : 0);
+        var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        window.scrollTo({ top: Math.max(0, top), behavior: reduce ? 'auto' : 'smooth' });
+      });
+    })();
+  </script>
 </section>
 
 <!-- CARBON FIBER PATTERN WRAPPER ENCLOSING CATEGORIES -->
@@ -2806,7 +2889,7 @@
       <span class="categories-prefix">01 /</span>
       <h2 class="categories-title">Explore MT3UK</h2>
       <div class="categories-grid hp-cats">
-        <a href="my-builds.html" class="category-card hp-cat nav-link-mybuilds-hero">
+        <a href="my-builds.html" class="category-card hp-cat nav-link-mybuilds-hero" data-cat="garage">
           <div class="hp-cat-top">
             <div class="category-card-content">
               <svg class="card-icon" viewBox="0 0 24 24"><path d="M3 21V10l9-6 9 6v11"/><path d="M9 21v-8h6v8"/></svg>
@@ -2816,7 +2899,7 @@
           </div>
           <div class="hp-cat-meta" id="hp-meta-garage">Add your build to the gallery</div>
         </a>
-        <a href="#events" class="category-card hp-cat">
+        <a href="#events" class="category-card hp-cat" data-cat="events">
           <div class="hp-cat-top">
             <div class="category-card-content">
               <svg class="card-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
@@ -2826,7 +2909,7 @@
           </div>
           <div class="hp-cat-meta" id="hp-meta-events">Meets across the UK</div>
         </a>
-        <a href="track-day-prep.html" class="category-card hp-cat">
+        <a href="track-day-prep.html" class="category-card hp-cat" data-cat="track">
           <div class="hp-cat-top">
             <div class="category-card-content">
               <svg class="card-icon" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22V15"/></svg>
@@ -2836,7 +2919,7 @@
           </div>
           <div class="hp-cat-meta" id="hp-meta-track">Prep guides, venues and on the day</div>
         </a>
-        <a href="shop.html" class="category-card hp-cat">
+        <a href="shop.html" class="category-card hp-cat" data-cat="shop">
           <div class="hp-cat-top">
             <div class="category-card-content">
               <svg class="card-icon" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
@@ -2846,7 +2929,7 @@
           </div>
           <div class="hp-cat-meta">Tees, stickers and parts</div>
         </a>
-        <a href="#owner-interviews" class="category-card hp-cat hp-cat-wide" id="hp-cat-interviews">
+        <a href="#owner-interviews" class="category-card hp-cat" id="hp-cat-interviews" data-cat="interviews">
           <div class="hp-cat-top">
             <div class="category-card-content">
               <svg class="card-icon" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4V5z"/><path d="M8 9h8M8 12h5"/></svg>
@@ -2858,6 +2941,127 @@
           <div class="hp-cat-meta" id="hp-meta-interviews">Real members, real builds</div>
         </a>
       </div>
+      <p class="hp-cat-hint" id="hp-cat-hint">Tip: hold a tile to move it.<button type="button" id="hp-cat-reset" hidden>Reset order</button></p>
+      <script>
+        // Hold a category tile, then drag it to rearrange the grid. The order
+        // is kept in this browser (localStorage mt3ukCategoryOrder).
+        (function () {
+          var grid = document.querySelector('.categories-grid.hp-cats');
+          if (!grid) return;
+          var KEY = 'mt3ukCategoryOrder';
+          var HOLD_MS = 350;
+          var MOVE_TOLERANCE = 8;
+          var resetBtn = document.getElementById('hp-cat-reset');
+          var defaultOrder = tiles().map(function (t) { return t.dataset.cat; });
+
+          function tiles() { return Array.prototype.slice.call(grid.querySelectorAll('.hp-cat[data-cat]')); }
+          function currentOrder() { return tiles().map(function (t) { return t.dataset.cat; }); }
+          function save() {
+            var order = currentOrder();
+            var custom = order.join() !== defaultOrder.join();
+            try { if (custom) localStorage.setItem(KEY, JSON.stringify(order)); else localStorage.removeItem(KEY); } catch (e) {}
+            resetBtn.hidden = !custom;
+          }
+          function apply(order) {
+            var byKey = {};
+            tiles().forEach(function (t) { byKey[t.dataset.cat] = t; });
+            order.forEach(function (k) { if (byKey[k]) { grid.appendChild(byKey[k]); delete byKey[k]; } });
+            Object.keys(byKey).forEach(function (k) { grid.appendChild(byKey[k]); });
+          }
+          try {
+            var saved = JSON.parse(localStorage.getItem(KEY) || 'null');
+            if (Array.isArray(saved)) { apply(saved); resetBtn.hidden = currentOrder().join() === defaultOrder.join(); }
+          } catch (e) {}
+          resetBtn.addEventListener('click', function () { apply(defaultOrder); save(); });
+
+          var holdTimer = null, start = null, tile = null, dragging = false, placeholder = null, offset = null, suppressClick = false;
+
+          function clearHold() {
+            clearTimeout(holdTimer);
+            holdTimer = null;
+            if (tile && !dragging) tile.classList.remove('hp-cat-holding');
+          }
+
+          function beginDrag() {
+            dragging = true;
+            var r = tile.getBoundingClientRect();
+            offset = { x: start.x - r.left, y: start.y - r.top };
+            placeholder = document.createElement('div');
+            placeholder.className = 'hp-cat-placeholder';
+            placeholder.style.minHeight = r.height + 'px';
+            grid.insertBefore(placeholder, tile);
+            tile.classList.remove('hp-cat-holding');
+            tile.classList.add('hp-cat-dragging');
+            tile.style.width = r.width + 'px';
+            tile.style.height = r.height + 'px';
+            tile.style.left = r.left + 'px';
+            tile.style.top = r.top + 'px';
+            document.body.appendChild(tile);
+            if (navigator.vibrate) { try { navigator.vibrate(15); } catch (e) {} }
+          }
+
+          function moveTo(x, y) {
+            tile.style.left = (x - offset.x) + 'px';
+            tile.style.top = (y - offset.y) + 'px';
+            var under = document.elementFromPoint(x, y);
+            var target = under && under.closest('.hp-cat[data-cat]');
+            if (!target || target === tile || !grid.contains(target)) return;
+            // Over the right half of a tile drops after it, the left half before.
+            var r = target.getBoundingClientRect();
+            var after = x > r.left + r.width / 2;
+            grid.insertBefore(placeholder, after ? target.nextSibling : target);
+            // Keep the page moving when dragging near the top or bottom.
+            if (y < 60) window.scrollBy(0, -12);
+            else if (y > window.innerHeight - 60) window.scrollBy(0, 12);
+          }
+
+          function endDrag() {
+            if (dragging) {
+              grid.insertBefore(tile, placeholder);
+              placeholder.remove();
+              tile.classList.remove('hp-cat-dragging');
+              tile.style.width = tile.style.height = tile.style.left = tile.style.top = '';
+              suppressClick = true;
+              setTimeout(function () { suppressClick = false; }, 400);
+              save();
+            }
+            clearHold();
+            tile = null; start = null; dragging = false; placeholder = null;
+          }
+
+          grid.addEventListener('pointerdown', function (e) {
+            if (e.button !== 0) return;
+            var t = e.target.closest('.hp-cat[data-cat]');
+            if (!t) return;
+            tile = t;
+            start = { x: e.clientX, y: e.clientY };
+            tile.classList.add('hp-cat-holding');
+            holdTimer = setTimeout(beginDrag, HOLD_MS);
+          });
+
+          document.addEventListener('pointermove', function (e) {
+            if (!tile) return;
+            if (dragging) { e.preventDefault(); moveTo(e.clientX, e.clientY); return; }
+            if (Math.abs(e.clientX - start.x) > MOVE_TOLERANCE || Math.abs(e.clientY - start.y) > MOVE_TOLERANCE) { clearHold(); tile = null; }
+          });
+          // On phones the finger is followed with touch events once a drag has
+          // begun, and the page is stopped from scrolling under it.
+          document.addEventListener('touchmove', function (e) {
+            if (!dragging) return;
+            e.preventDefault();
+            var t = e.touches[0];
+            if (t) moveTo(t.clientX, t.clientY);
+          }, { passive: false });
+          document.addEventListener('touchend', function () { if (dragging) endDrag(); });
+          document.addEventListener('pointerup', endDrag);
+          document.addEventListener('pointercancel', function () { if (!dragging) { clearHold(); tile = null; } });
+          grid.addEventListener('contextmenu', function (e) { if (e.target.closest('.hp-cat')) e.preventDefault(); });
+          document.addEventListener('click', function (e) {
+            if (suppressClick && e.target.closest('.hp-cat')) { e.preventDefault(); e.stopPropagation(); suppressClick = false; }
+          }, true);
+          grid.addEventListener('dragstart', function (e) { e.preventDefault(); });
+        })();
+      </script>
     </div>
   </section>
 </div>
@@ -5624,6 +5828,7 @@
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js" defer></script>
 <script src="js/search.js" defer></script>
+<script src="js/notify-bell.js" defer></script>
 
 <script>
   /* Homepage refresh: interview hero (scheduled by publish date in data/interviews.json), live category info and hero stats.

@@ -131,6 +131,15 @@ def api_reply(url, method, post_data, state):
         return {"success": True, "reported": [{"file": "reported-car.jpg"}]}
     if path == "/gallery/admin/reports" and method == "GET":
         return {"success": True, "reported": [{"file": "reported-photo.jpg", "reports": 2}]}
+    if path == "/my-builds/notifications" and method == "GET":
+        read = state.get("notifs_read", False)
+        return {"success": True, "unread": 0 if read else 2, "notifications": [
+            {"id": "n1", "type": "like", "fromName": "Sharad", "text": "liked your build", "file": "test-build.jpg", "createdAt": "2026-09-29T10:00:00Z", "read": read},
+            {"id": "n2", "type": "comment", "fromName": "Ryan", "text": "Love the wheels!", "file": "test-build.jpg", "commentId": "c9", "createdAt": "2026-09-29T09:00:00Z", "read": read},
+        ]}
+    if path == "/my-builds/notifications/read":
+        state["notifs_read"] = True
+        return {"success": True}
     if path == "/admin/vote-entries" and method == "GET":
         return ADMIN_VOTE_ENTRIES
     if path == "/votes":
@@ -631,4 +640,42 @@ def test_admin_bell_asks_for_key(device_page):
     page.locator("#bell-panel .bell-item").first.wait_for(timeout=10000)
     assert "PENDING CLAIMS (1)" in page.inner_text("#bell-panel").upper()
     assert page.input_value("#admin-key") == "test-key"
+    assert page.errors == []
+
+
+@all_devices
+def test_homepage_bell_asks_visitors_to_sign_in(device_page):
+    page = device_page
+    page.goto("/index.html")
+    bell = page.locator("#nav-bell-btn")
+    bell.wait_for(timeout=5000)
+    search = page.locator("#nav-search").bounding_box()
+    assert bell.bounding_box()["x"] < search["x"], "The bell should sit left of search"
+    assert page.locator("#nav-bell-count").is_hidden()
+    bell.click()
+    panel = page.locator("#nav-bell-panel")
+    assert "Sign in for notifications" in panel.inner_text()
+    assert "signin.html?next=" in panel.locator(".nav-bell-cta").get_attribute("href")
+    assert overflow_width(page) <= 1
+    assert page.errors == []
+
+
+@all_devices
+def test_homepage_bell_shows_members_their_notifications(device_page):
+    page = device_page
+    page.mock_state["signed_in"] = True
+    page.add_init_script("localStorage.setItem('mt3ukMyBuildsSession', 's1.test')")
+    page.goto("/index.html")
+    count = page.locator("#nav-bell-count")
+    count.wait_for(state="visible", timeout=5000)
+    assert count.inner_text() == "2"
+    page.click("#nav-bell-btn")
+    panel = page.locator("#nav-bell-panel")
+    panel.locator(".nav-bell-item").first.wait_for(timeout=5000)
+    text = panel.inner_text()
+    assert "Sharad" in text and "Love the wheels!" in text
+    assert "comment=c9" in panel.locator(".nav-bell-item").nth(1).get_attribute("href")
+    page.wait_for_timeout(500)
+    assert count.is_hidden(), "Opening the bell should mark notifications as read"
+    assert overflow_width(page) <= 1
     assert page.errors == []

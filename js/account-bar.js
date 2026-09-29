@@ -168,12 +168,14 @@
     document.head.appendChild(s);
   }
 
-  // The installed app tells the worker once that this member has it on this
-  // kind of device, so the website in Safari or Chrome stops offering to
-  // install it (Safari can't see apps on the phone).
+  // The installed app tells the worker (once a day) that this member has it
+  // on this kind of device, so the website in Safari or Chrome stops
+  // offering to install it (Safari can't see apps on the phone, or when
+  // one is deleted, so it only counts the app if it's been used lately).
   function reportApp() {
     var app = (window.matchMedia && window.matchMedia('(display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui)').matches) || navigator.standalone === true;
-    if (!app || !read(SESSION_KEY) || read('mt3ukAppReported') === '1') return;
+    var today = new Date().toISOString().slice(0, 10);
+    if (!app || !read(SESSION_KEY) || read('mt3ukAppReported') === today) return;
     var ua = navigator.userAgent;
     var platform = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ? 'ios' : /Android/i.test(ua) ? 'android' : 'desktop';
     fetch(API + '/profile', {
@@ -181,7 +183,7 @@
       headers: { 'Content-Type': 'application/json', 'X-Session-Token': read(SESSION_KEY) },
       body: JSON.stringify({ appInstalled: platform })
     }).then(function (res) { return res.json(); }).then(function (data) {
-      if (data && data.success) { try { localStorage.setItem('mt3ukAppReported', '1'); } catch (e) {} }
+      if (data && data.success) { try { localStorage.setItem('mt3ukAppReported', today); } catch (e) {} }
     }).catch(function () {});
   }
   window.mt3ukAppPlatform = function () {

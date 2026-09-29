@@ -10,16 +10,29 @@
 (function () {
   var KEY = 'mt3ukAppInstalled';
   function read(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
-  function remember() { try { localStorage.setItem(KEY, '1'); } catch (e) {} }
+  var MONTH = 30 * 24 * 60 * 60 * 1000;
+  var isIosUa = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  // Remembered with the time it was last known; on iPhone it only counts
+  // for 30 days, as deleting an app can't be seen (same as the homepage).
+  function remember(when) { try { localStorage.setItem(KEY, String(when || Date.now())); } catch (e) {} }
+  function installedHere() {
+    var v = read(KEY);
+    if (!v) return false;
+    if (v === '1') return !isIosUa;
+    return Date.now() - Number(v) < MONTH;
+  }
 
   var installPrompt = null;
+  var onPrompt = null;
   window.addEventListener('beforeinstallprompt', function (e) {
     e.preventDefault();
     installPrompt = e;
+    if (onPrompt) onPrompt();
   });
 
   // opts.apps: which kinds of device the member has the app on, as the app
-  // reported to the worker ({ ios, android, desktop }).
+  // reported to the worker ({ ios, android, desktop }: when last opened).
+  // opts.forget(platform): tell the worker it isn't installed any more.
   window.mt3ukAppCard = function (card, opts) {
     var text = card.querySelector('.app-text');
     var btn = card.querySelector('.app-btn');
@@ -38,9 +51,36 @@
     card.hidden = false;
 
     var mode = 'install';
-    function installed() {
-      remember();
+    // iPhone: Install the app opens and closes the steps, like a drop-down.
+    var iosDropDown = isIos && !inApp;
+    var INSTALL_LABEL = iosDropDown ? 'Install the app <span aria-hidden="true">\u25BE</span>' : 'Install the app';
+    btn.innerHTML = INSTALL_LABEL;
+    if (iosDropDown) btn.setAttribute('aria-expanded', 'false');
+    var original = text.textContent;
+    var gone = document.createElement('button');
+    gone.type = 'button';
+    gone.className = 'app-gone';
+    gone.textContent = 'Deleted the app? Install it again';
+    gone.hidden = true;
+    btn.insertAdjacentElement('afterend', gone);
+    function notInstalled() {
+      var was = !!read(KEY);
+      try { localStorage.removeItem(KEY); } catch (e) {}
+      if (was && opts && opts.forget) opts.forget(platform);
+      mode = 'install';
+      card.classList.remove('is-installed');
+      text.textContent = original;
+      btn.innerHTML = INSTALL_LABEL;
+      steps.hidden = true;
+      btn.hidden = false;
+      btn.disabled = false;
+      gone.hidden = true;
+    }
+    gone.addEventListener('click', notInstalled);
+    function installed(when) {
+      remember(when);
       mode = 'open';
+      gone.hidden = false;
       card.classList.add('is-installed');
       steps.hidden = true;
       text.textContent = isIos
@@ -54,19 +94,41 @@
     }
     var platform = isIos ? 'ios' : isAndroid ? 'android' : 'desktop';
     var apps = (opts && opts.apps) || {};
-    if (read(KEY) === '1' || apps[platform]) installed();
-    else if (navigator.getInstalledRelatedApps) {
-      navigator.getInstalledRelatedApps().then(function (apps) { if (apps && apps.length) installed(); }).catch(function () {});
+    var reported = Date.parse(apps[platform] || '') || 0;
+    function known() {
+      if (installedHere()) installed();
+      else if (reported && Date.now() - reported < MONTH) installed(reported);
     }
-    window.addEventListener('appinstalled', installed);
+    // Android browsers can say for sure, including when it's been deleted.
+    if (isAndroid && navigator.getInstalledRelatedApps) {
+      navigator.getInstalledRelatedApps()
+        .then(function (list) { if (list && list.length) installed(); else notInstalled(); })
+        .catch(known);
+    } else {
+      known();
+      if (navigator.getInstalledRelatedApps) {
+        navigator.getInstalledRelatedApps().then(function (list) { if (list && list.length) installed(); }).catch(function () {});
+      }
+    }
+    // The browser only offers to install when the app isn't installed.
+    onPrompt = function () { if (mode === 'open') notInstalled(); };
+    if (installPrompt) onPrompt();
+    window.addEventListener('appinstalled', function () { installed(); });
 
     function showSteps(html) {
       steps.innerHTML = html + '<button type="button" class="app-done">I’ve installed it</button>';
       steps.hidden = false;
-      steps.querySelector('.app-done').addEventListener('click', installed);
+      if (iosDropDown) { btn.innerHTML = INSTALL_LABEL.replace('\u25BE', '\u25B4'); btn.setAttribute('aria-expanded', 'true'); }
+      steps.querySelector('.app-done').addEventListener('click', function () { installed(); });
     }
 
     btn.addEventListener('click', function () {
+      if (mode === 'install' && iosDropDown && !steps.hidden) {
+        steps.hidden = true;
+        btn.innerHTML = INSTALL_LABEL;
+        btn.setAttribute('aria-expanded', 'false');
+        return;
+      }
       if (mode === 'open') {
         // Android opens this page in the app that handles mt3uk.com.
         location.href = 'intent://' + location.host + location.pathname + '#Intent;scheme=https;action=android.intent.action.VIEW;' +
@@ -97,11 +159,7 @@
         return;
       }
       if (isIos) {
-        showSteps('<strong>On iPhone or iPad:</strong><ol>' +
-          '<li>Tap the <strong>Share</strong> button (the square with an arrow), in Safari’s toolbar or Chrome’s address bar.</li>' +
-          '<li>Scroll down and choose <strong>Add to Home Screen</strong>, then <strong>Add</strong>.</li>' +
-          '<li>Open MT3UK from your Home Screen and sign in with the 6-digit code from the sign-in email (the app keeps its own sign-in).</li>' +
-          '<li>For alerts, turn on notifications here in Profile.</li></ol>');
+        showSteps(window.mt3ukIosInstallSteps());
         return;
       }
       if (isSamsung) {

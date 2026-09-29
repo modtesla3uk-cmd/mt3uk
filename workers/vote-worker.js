@@ -944,10 +944,21 @@ async function handleProfileUpdate(request, env) {
   if (body.appInstalled === 'ios' || body.appInstalled === 'android' || body.appInstalled === 'desktop') {
     var withApp = await getProfileRecord(env, email);
     var apps = withApp.apps && typeof withApp.apps === 'object' ? withApp.apps : {};
-    if (!apps[body.appInstalled]) {
+    // Refreshed at most daily: Safari counts the app as installed only if
+    // it has been opened in the last 30 days (deleting an app can't be seen).
+    var last = Date.parse(apps[body.appInstalled] || '') || 0;
+    if (Date.now() - last > 20 * 60 * 60 * 1000) {
       apps[body.appInstalled] = new Date().toISOString();
       withApp.apps = apps;
       await putProfileRecord(env, email, withApp);
+    }
+  }
+  // The browser says the app isn't installed any more (or they deleted it).
+  if (body.appRemoved === 'ios' || body.appRemoved === 'android' || body.appRemoved === 'desktop') {
+    var noApp = await getProfileRecord(env, email);
+    if (noApp.apps && noApp.apps[body.appRemoved]) {
+      delete noApp.apps[body.appRemoved];
+      await putProfileRecord(env, email, noApp);
     }
   }
   if (nameChanged) await refreshPublicNameEverywhere(env, email);

@@ -487,7 +487,7 @@ def test_profile_has_notifications_app_email_alerts_and_unsubscribe(device_page)
 def test_app_card_says_installed_and_is_hidden_in_the_app(device_page):
     page = device_page
     signed_in(page)
-    page.add_init_script("localStorage.setItem('mt3ukAppInstalled', '1')")
+    page.add_init_script("localStorage.setItem('mt3ukAppInstalled', '1'); if (navigator.getInstalledRelatedApps) navigator.getInstalledRelatedApps = () => Promise.resolve([{ platform: 'webapp' }])")
     page.goto("/profile.html")
     page.locator("#app").wait_for(state="visible", timeout=5000)
     assert "You have the MT3UK app" in page.locator("#app .app-text").inner_text()

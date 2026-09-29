@@ -1888,6 +1888,8 @@
   .hp-app-text p { margin: 0; color: var(--steel); font-size: 0.9rem; }
   .hp-app-text p.hp-app-already { margin-top: 6px; font-size: 0.82rem; color: var(--ink); }
   .hp-app-text p[hidden] { display: none; }
+  .hp-app-reinstall { display: block; margin-top: 6px; background: none; border: 0; padding: 0; font: inherit; font-size: 0.82rem; color: var(--steel); text-decoration: underline; cursor: pointer; }
+  .hp-app-reinstall[hidden] { display: none; }
   .hp-app-hide { background: none; border: 1px solid var(--ink); min-height: 40px; padding: 8px 16px; font: inherit; font-size: 0.85rem; cursor: pointer; }
   .hp-app-hide[hidden], .hp-app-btn[hidden] { display: none; }
   .hp-app.hp-app-open { border-left-color: #1c8a4b; }
@@ -1896,6 +1898,7 @@
   .hp-open-app p { margin: 0 0 10px; color: rgba(255,255,255,0.88); }
   .hp-open-app .hp-open-app-title { font-weight: 700; color: #ffffff; margin-bottom: 4px; font-size: 1rem; }
   .hp-open-app-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .hp-open-app-gone { margin-top: 10px; background: none; border: 0; padding: 0; font: inherit; font-size: 0.82rem; color: rgba(255,255,255,0.75); text-decoration: underline; cursor: pointer; }
   .hp-open-app-row button { min-height: 40px; padding: 8px 16px; font: inherit; font-size: 0.88rem; cursor: pointer; border: 1px solid rgba(255,255,255,0.5); background: transparent; color: #ffffff; }
   .hp-open-app-row .hp-open-app-ok:first-child, .hp-open-app-row .hp-open-app-go { background: #1c8a4b; border-color: #1c8a4b; font-weight: 600; }
   .hp-app.hp-app-open .hp-app-icon { stroke: #1c8a4b; }
@@ -3148,6 +3151,7 @@
           <h3 id="app-install-title">Get the MT3UK app <em class="hp-new">NEW</em></h3>
           <p id="app-install-text">One tap to the build reel and your garage, plus alerts when someone likes or comments on your build.</p>
           <p class="hp-app-already" id="app-install-already">Already installed? Open MT3UK from its icon on your Home Screen.</p>
+          <button type="button" class="hp-app-reinstall" id="app-reinstall" hidden>Deleted the app? Install it again</button>
         </div>
         <button type="button" class="hp-app-btn" id="app-install-btn">Install the app</button>
         <button type="button" class="hp-app-hide" id="app-open-hide" hidden>Hide</button>
@@ -5819,6 +5823,7 @@
   })();
 </script>
 
+<script src="js/ios-install-steps.js"></script>
 <script>
   // "Get the MT3UK app" under the Explore MT3UK tiles. Installs straight
   // away where the browser offers it (Chrome and Edge on Android and
@@ -5836,12 +5841,49 @@
     var KEY = 'mt3ukAppInstalled';
     var HIDE_KEY = 'mt3ukAppOpenHintHidden';
     function read(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
-    function remember() { try { localStorage.setItem(KEY, '1'); } catch (e) {} }
     var uaIsIos = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    var isAndroid = /Android/i.test(navigator.userAgent);
+    var platform = uaIsIos ? 'ios' : isAndroid ? 'android' : 'desktop';
+    var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
+    var session = read('mt3ukMyBuildsSession');
+    var MONTH = 30 * 24 * 60 * 60 * 1000;
+    // "Has the app" is remembered with the time it was last known. Browsers
+    // can't tell when an app is deleted, so on iPhone it only counts if the
+    // app has been opened in the last 30 days (Android asks the browser).
+    function remember(when) { try { localStorage.setItem(KEY, String(when || Date.now())); } catch (e) {} }
+    function installedHere() {
+      var v = read(KEY);
+      if (!v) return false;
+      if (v === '1') return !uaIsIos;
+      return Date.now() - Number(v) < MONTH;
+    }
+    // The app isn't installed (the browser says so, or they deleted it).
+    function forget() {
+      var was = !!read(KEY);
+      try { localStorage.removeItem(KEY); } catch (e) {}
+      if (session && was) {
+        fetch(API + '/profile', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Session-Token': session }, body: JSON.stringify({ appRemoved: platform }) }).catch(function () {});
+      }
+    }
+    var titleEl = document.getElementById('app-install-title');
+    var textEl = document.getElementById('app-install-text');
+    var original = { title: titleEl.innerHTML, text: textEl.textContent };
+    function showInstallRow() {
+      box.classList.remove('hp-app-open');
+      titleEl.innerHTML = original.title;
+      textEl.textContent = original.text;
+      document.getElementById('app-install-already').hidden = false;
+      document.getElementById('app-reinstall').hidden = true;
+      document.getElementById('app-open-hide').hidden = true;
+      btn.hidden = false;
+      var pop = document.getElementById('mt3uk-open-app');
+      if (pop) pop.remove();
+      box.hidden = false;
+    }
     // Only Chrome itself has "Open in app" in its menu; Edge, Samsung
     // Internet and the rest aren't told to use Chrome's.
     var isChrome = /Chrome\//.test(navigator.userAgent) && !/EdgA?\/|SamsungBrowser|OPR\/|Firefox|FxiOS|CriOS/.test(navigator.userAgent);
-    function markInstalled() { remember(); showOpenHint(); }
+    function markInstalled(when) { remember(when); showOpenHint(); }
     function showOpenHint() {
       // Hide on the row only hides the row; the pop-up has its own
       // Don't show again.
@@ -5850,8 +5892,11 @@
       document.getElementById('app-install-title').textContent = 'You have the MT3UK app';
       document.getElementById('app-install-text').textContent = uaIsIos
         ? 'Open MT3UK from its icon on your Home Screen: it opens full screen, keeps you signed in and can send you alerts.'
-        : 'Open MT3UK from your apps (swipe up for the app list if it isn\u2019t on your home screen)' + (isChrome ? ', or in Chrome tap \u22EE then Open in app' : '') + '. It opens full screen and can send you alerts.';
+        : isAndroid
+          ? 'Open MT3UK from your apps (swipe up for the app list if it isn\u2019t on your home screen)' + (isChrome ? ', or in Chrome tap \u22EE then Open in app' : '') + '. It opens full screen and can send you alerts.'
+          : 'Open MT3UK from your computer\u2019s apps (the Start menu, Dock or Launchpad)' + (isChrome ? ', or in Chrome tap \u22EE then Open in app' : '') + '. It opens in its own window and can send you alerts.';
       document.getElementById('app-install-already').hidden = true;
+      document.getElementById('app-reinstall').hidden = false;
       btn.hidden = true;
       steps.hidden = true;
       document.getElementById('app-open-hide').hidden = false;
@@ -5862,7 +5907,6 @@
     // A pop-up when the browser version opens: "Open the MT3UK app". Once
     // per browser session, unless they choose Don't show again.
     var PROMPT_KEY = 'mt3ukOpenAppPromptOff';
-    var isAndroid = /Android/i.test(navigator.userAgent);
     function openAppPrompt() {
       if (read(PROMPT_KEY) === '1' || document.getElementById('mt3uk-open-app')) return;
       // Wait until the intro splash has been tapped away.
@@ -5882,9 +5926,11 @@
             ? 'You have the app: tap <strong>Open the app</strong>, or find MT3UK in your apps (swipe up for the app list).'
             : 'You have the app: find MT3UK in your apps' + (isChrome ? ', or tap \u22EE then <strong>Open in app</strong> in Chrome' : '') + '.') + '</p>' +
         '<div class="hp-open-app-row">' + (isAndroid ? '<button type="button" class="hp-open-app-go">Open the app</button>' : '') +
-        '<button type="button" class="hp-open-app-ok">' + (isAndroid ? 'Not now' : 'OK') + '</button><button type="button" class="hp-open-app-off">Don\u2019t show again</button></div></div>';
+        '<button type="button" class="hp-open-app-ok">' + (isAndroid ? 'Not now' : 'OK') + '</button><button type="button" class="hp-open-app-off">Don\u2019t show again</button></div>' +
+        '<button type="button" class="hp-open-app-gone">Deleted the app? Install it again</button></div>';
       document.body.appendChild(sheet);
       sheet.querySelector('.hp-open-app-ok').addEventListener('click', function () { sheet.remove(); });
+      sheet.querySelector('.hp-open-app-gone').addEventListener('click', reinstall);
       var go = sheet.querySelector('.hp-open-app-go');
       if (go) {
         // Android: an intent link asks the phone to open this page in the
@@ -5908,6 +5954,13 @@
         sheet.remove();
       });
     }
+    function reinstall() {
+      forget();
+      try { localStorage.removeItem(HIDE_KEY); } catch (e) {}
+      showInstallRow();
+      box.scrollIntoView({ block: 'center' });
+    }
+    document.getElementById('app-reinstall').addEventListener('click', reinstall);
     document.getElementById('app-open-hide').addEventListener('click', function () {
       try { localStorage.setItem(HIDE_KEY, '1'); } catch (e) {}
       box.hidden = true;
@@ -5938,41 +5991,51 @@
       } else report('n/a');
     }
     if (standalone) { remember(); return; }
-    if (read(KEY) === '1') { showOpenHint(); return; }
-    // Signed-in members: the app reports itself to the worker, so ask
-    // whether they have it on this kind of device (Safari can't tell).
-    // The install row waits briefly for the answer.
-    var session = read('mt3ukMyBuildsSession');
-    var askedThisVisit = false;
-    try { askedThisVisit = sessionStorage.getItem('mt3ukAppsChecked') === '1'; } catch (e) {}
-    if (session && !askedThisVisit) {
+
+    // Whether they have the app. Android browsers can say for sure (and say
+    // when it's been deleted); elsewhere it's what was last known, and for
+    // signed-in members what the app itself reported to the worker.
+    function knownOrAsk() {
+      if (installedHere()) { showOpenHint(); return; }
+      var askedThisVisit = false;
+      try { askedThisVisit = sessionStorage.getItem('mt3ukAppsChecked') === '1'; } catch (e) {}
+      if (!session || askedThisVisit) { box.hidden = false; return; }
       var shown = false;
-      var showInstall = function () { if (!shown && read(KEY) !== '1') { shown = true; box.hidden = false; } };
+      var showInstall = function () { if (!shown && !installedHere()) { shown = true; box.hidden = false; } };
       setTimeout(showInstall, 2500);
-      var platform = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ? 'ios' : /Android/i.test(navigator.userAgent) ? 'android' : 'desktop';
-      fetch('https://late-darkness-ebc8.modtesla3uk.workers.dev/profile/apps', { headers: { 'X-Session-Token': session }, cache: 'no-store' })
+      fetch(API + '/profile/apps', { headers: { 'X-Session-Token': session }, cache: 'no-store' })
         .then(function (res) { return res.json(); })
         .then(function (data) {
           try { sessionStorage.setItem('mt3ukAppsChecked', '1'); } catch (e) {}
-          if (data && data.success && data.apps && data.apps[platform]) { shown = true; markInstalled(); }
+          var when = data && data.success && data.apps && Date.parse(data.apps[platform]);
+          if (when && Date.now() - when < MONTH) { shown = true; markInstalled(when); }
           else showInstall();
         })
         .catch(showInstall);
-    } else {
-      box.hidden = false;
     }
-
-    // Chrome on Android can tell us the app is already installed.
-    if (navigator.getInstalledRelatedApps) {
-      navigator.getInstalledRelatedApps().then(function (apps) { if (apps && apps.length) markInstalled(); }).catch(function () {});
+    if (isAndroid && navigator.getInstalledRelatedApps) {
+      navigator.getInstalledRelatedApps()
+        .then(function (apps) {
+          if (apps && apps.length) markInstalled();
+          else { forget(); box.hidden = false; }
+        })
+        .catch(knownOrAsk);
+    } else {
+      knownOrAsk();
+      // Desktop Chrome can say it's installed too.
+      if (navigator.getInstalledRelatedApps) {
+        navigator.getInstalledRelatedApps().then(function (apps) { if (apps && apps.length) markInstalled(); }).catch(function () {});
+      }
     }
 
     var installPrompt = null;
     window.addEventListener('beforeinstallprompt', function (e) {
       e.preventDefault();
       installPrompt = e;
+      // The browser only offers to install when the app isn't installed.
+      if (read(KEY)) { forget(); showInstallRow(); }
     });
-    window.addEventListener('appinstalled', markInstalled);
+    window.addEventListener('appinstalled', function () { markInstalled(); });
 
     var ua = navigator.userAgent;
     var isIos = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -5984,10 +6047,27 @@
     function showSteps(html) {
       steps.innerHTML = html + '<button type="button" class="hp-app-done">I’ve installed it, hide this</button>';
       steps.hidden = false;
-      steps.querySelector('.hp-app-done').addEventListener('click', markInstalled);
+      btn.setAttribute('aria-expanded', 'true');
+      if (isIos && !inApp) btn.innerHTML = 'Install the app <span aria-hidden="true">\u25B4</span>';
+      steps.querySelector('.hp-app-done').addEventListener('click', function () { markInstalled(); });
+    }
+
+    // iPhone: the button opens and closes the install steps, like a
+    // drop-down.
+    var iosDropDown = isIos && !inApp;
+    if (iosDropDown) {
+      btn.innerHTML = 'Install the app <span aria-hidden="true">\u25BE</span>';
+      btn.setAttribute('aria-expanded', 'false');
+      btn.setAttribute('aria-controls', 'app-install-steps');
     }
 
     btn.addEventListener('click', function () {
+      if (iosDropDown && !steps.hidden) {
+        steps.hidden = true;
+        btn.setAttribute('aria-expanded', 'false');
+        btn.innerHTML = 'Install the app <span aria-hidden="true">\u25BE</span>';
+        return;
+      }
       if (installPrompt) {
         var prompt = installPrompt;
         installPrompt = null;
@@ -6008,12 +6088,7 @@
         return;
       }
       if (isIos) {
-        showSteps('<strong>On iPhone or iPad:</strong><ol>' +
-          '<li>Tap the <strong>Share</strong> button (the square with an arrow), in Safari’s toolbar or Chrome’s address bar.</li>' +
-          '<li>Scroll down and choose <strong>Add to Home Screen</strong>, then <strong>Add</strong>.</li>' +
-          '<li>Open MT3UK from your Home Screen and sign in with the 6-digit code from the sign-in email (the app keeps its own sign-in).</li>' +
-          '<li>For alerts, turn on notifications in your Profile.</li>' +
-          '</ol>');
+        showSteps(window.mt3ukIosInstallSteps());
         return;
       }
       if (isSamsung) {

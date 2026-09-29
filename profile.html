@@ -281,6 +281,7 @@
   .pf-nick-check:empty { display: none; }
   .pf-app-card p { color: var(--steel); margin-bottom: 16px; }
   .pf-app-card .si-btn { width: 100%; }
+  .pf-app-card .app-gone { display: block; margin-top: 12px; background: none; border: 0; padding: 0; font: inherit; font-size: 0.85rem; color: var(--steel); text-decoration: underline; cursor: pointer; }
   .pf-app-steps { margin-top: 14px; padding: 14px 16px; border: 1px solid rgba(22, 35, 61, 0.2); font-size: 0.9rem; }
   .pf-app-steps ol { margin: 8px 0 0; padding-left: 20px; }
   .pf-app-steps li { margin: 4px 0; }
@@ -825,6 +826,7 @@
 </script>
 
 <script src="js/push-toggle.js"></script>
+<script src="js/ios-install-steps.js"></script>
 <script src="js/app-install.js"></script>
 <script>
   // My Profile: name and nickname, visibility, a link to My Garage,
@@ -1267,7 +1269,7 @@
       $('pf-loading').hidden = true;
       $('pf-app').hidden = false;
       if (window.mt3ukPushCard) window.mt3ukPushCard($('notifications'), { api: API, session: session, setStatus: status });
-      if (window.mt3ukAppCard) window.mt3ukAppCard($('app'), { apps: profile.apps });
+      if (window.mt3ukAppCard) window.mt3ukAppCard($('app'), { apps: profile.apps, forget: function (p) { api('POST', '/profile', { appRemoved: p }).catch(function () {}); } });
       return loadMessages().then(function () {
         // Arriving at Messages (e.g. from the bell) opens whatever has
         // something new, or From MT3UK; at Friends, the friends list.

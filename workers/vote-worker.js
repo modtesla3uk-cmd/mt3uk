@@ -775,6 +775,15 @@ async function setNickname(env, email, nickname) {
   return '';
 }
 
+// Which kinds of device the member has the app on (reported by the app),
+// so the homepage in Safari stops offering to install it. One read.
+async function handleProfileApps(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var profile = await getProfileRecord(env, email);
+  return json({ success: true, apps: profile.apps && typeof profile.apps === 'object' ? profile.apps : {} });
+}
+
 // Profile's nickname box checks as you type: GET /profile/nickname?nick=
 async function handleNicknameCheck(request, env) {
   var email = await resolveSession(request, env);
@@ -870,6 +879,7 @@ async function handleProfileGet(request, env) {
     nickname: profile.nickname || '',
     showName: profile.showName === 'name' ? 'name' : 'nickname',
     hideRealName: !!profile.hideRealName,
+    apps: profile.apps && typeof profile.apps === 'object' ? profile.apps : {},
     emailsOff: !!profile.emailsOff,
     member: (await env.VOTES.get('subscriber:' + email)) !== null,
     since: (await env.VOTES.get('subscriber-since:' + email)) || '',
@@ -927,6 +937,18 @@ async function handleProfileUpdate(request, env) {
     }
     await putProfileRecord(env, email, vis);
     if (publicName(vis) !== before) nameChanged = true;
+  }
+  // The installed app reports itself once per device, so the website can
+  // stop offering to install it on that kind of device (Safari can't see
+  // apps on the phone).
+  if (body.appInstalled === 'ios' || body.appInstalled === 'android' || body.appInstalled === 'desktop') {
+    var withApp = await getProfileRecord(env, email);
+    var apps = withApp.apps && typeof withApp.apps === 'object' ? withApp.apps : {};
+    if (!apps[body.appInstalled]) {
+      apps[body.appInstalled] = new Date().toISOString();
+      withApp.apps = apps;
+      await putProfileRecord(env, email, withApp);
+    }
   }
   if (nameChanged) await refreshPublicNameEverywhere(env, email);
   await syncMemberName(env, email);
@@ -5401,6 +5423,9 @@ export default {
     }
     if (url.pathname === '/profile/leave' && request.method === 'POST') {
       return handleProfileLeave(request, env);
+    }
+    if (url.pathname === '/profile/apps' && request.method === 'GET') {
+      return handleProfileApps(request, env);
     }
     if (url.pathname === '/profile/nickname' && request.method === 'GET') {
       return handleNicknameCheck(request, env);

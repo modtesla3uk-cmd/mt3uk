@@ -18,7 +18,9 @@
     installPrompt = e;
   });
 
-  window.mt3ukAppCard = function (card) {
+  // opts.apps: which kinds of device the member has the app on, as the app
+  // reported to the worker ({ ios, android, desktop }).
+  window.mt3ukAppCard = function (card, opts) {
     var text = card.querySelector('.app-text');
     var btn = card.querySelector('.app-btn');
     var steps = card.querySelector('.app-steps');
@@ -29,6 +31,7 @@
     var isMac = /Macintosh/.test(ua) && !isIos;
     var isSamsung = /SamsungBrowser/.test(ua);
     var isFirefox = /Firefox\//.test(ua);
+    var isChrome = /Chrome\//.test(ua) && !/EdgA?\/|SamsungBrowser|OPR\/|Firefox|FxiOS|CriOS/.test(ua);
     var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui)').matches) ||
       navigator.standalone === true || document.referrer.indexOf('android-app://') === 0;
     if (standalone) { remember(); card.hidden = true; return; }
@@ -42,12 +45,16 @@
       steps.hidden = true;
       text.textContent = isIos
         ? 'You have the MT3UK app. Open it from its icon on your Home Screen: it opens full screen, keeps you signed in and can send you alerts.'
-        : 'You have the MT3UK app. Open it from your apps (swipe up for the app list if it isn’t on your home screen), or in Chrome tap ⋮ then Open in app.';
+        : isAndroid
+          ? 'You have the MT3UK app. Tap Open the app, or find it in your apps (swipe up for the app list if it isn\u2019t on your home screen).'
+          : 'You have the MT3UK app. Open it from your apps' + (isChrome ? ', or in Chrome tap \u22EE then Open in app' : '') + '.';
       btn.textContent = 'Open the app';
       btn.hidden = !isAndroid;
       btn.disabled = false;
     }
-    if (read(KEY) === '1') installed();
+    var platform = isIos ? 'ios' : isAndroid ? 'android' : 'desktop';
+    var apps = (opts && opts.apps) || {};
+    if (read(KEY) === '1' || apps[platform]) installed();
     else if (navigator.getInstalledRelatedApps) {
       navigator.getInstalledRelatedApps().then(function (apps) { if (apps && apps.length) installed(); }).catch(function () {});
     }

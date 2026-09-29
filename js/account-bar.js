@@ -168,8 +168,30 @@
     document.head.appendChild(s);
   }
 
+  // The installed app tells the worker once that this member has it on this
+  // kind of device, so the website in Safari or Chrome stops offering to
+  // install it (Safari can't see apps on the phone).
+  function reportApp() {
+    var app = (window.matchMedia && window.matchMedia('(display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui)').matches) || navigator.standalone === true;
+    if (!app || !read(SESSION_KEY) || read('mt3ukAppReported') === '1') return;
+    var ua = navigator.userAgent;
+    var platform = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ? 'ios' : /Android/i.test(ua) ? 'android' : 'desktop';
+    fetch(API + '/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Session-Token': read(SESSION_KEY) },
+      body: JSON.stringify({ appInstalled: platform })
+    }).then(function (res) { return res.json(); }).then(function (data) {
+      if (data && data.success) { try { localStorage.setItem('mt3ukAppReported', '1'); } catch (e) {} }
+    }).catch(function () {});
+  }
+  window.mt3ukAppPlatform = function () {
+    var ua = navigator.userAgent;
+    return /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ? 'ios' : /Android/i.test(ua) ? 'android' : 'desktop';
+  };
+
   function run() {
     askNickname();
+    reportApp();
     setTimeout(autoPush, 1500);
     if (signedIn) {
       // The button's own CSS uses !important, so it's removed rather than hidden.

@@ -186,3 +186,84 @@ def test_android_popup_has_open_the_app_button(device_page):
     is_android = page.evaluate("/Android/i.test(navigator.userAgent)")
     assert (popup.locator(".hp-open-app-go").count() == 1) == is_android
     assert page.errors == []
+
+
+PLATFORM = "/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ? 'ios' : /Android/i.test(navigator.userAgent) ? 'android' : 'desktop'"
+
+
+def sign_in(page):
+    page.mock_state["signed_in"] = True
+    page.add_init_script("localStorage.setItem('mt3ukMyBuildsSession', 's1.test')")
+
+
+@all_devices
+def test_app_reports_itself_so_the_browser_stops_offering_it(device_page):
+    """Safari can't see apps on the phone, so the installed app tells the
+    worker, and the website in the browser then says they have it."""
+    page = device_page
+    sign_in(page)
+    page.add_init_script("Object.defineProperty(navigator, 'standalone', { get: function () { return true; } });")
+    page.goto("/gallery.html")
+    page.wait_for_function("localStorage.getItem('mt3ukAppReported') === '1'", timeout=5000)
+    platform = page.evaluate(PLATFORM)
+    assert platform in page.mock_state.get("apps", {})
+    # Only once per device.
+    page.reload()
+    page.wait_for_timeout(800)
+    assert len([c for c in page.mock_state.get("profile_calls", []) if c[1] == "/profile" and c[0] == "POST"]) <= 1
+    assert page.errors == []
+
+
+@all_devices
+def test_browser_says_you_have_the_app_when_the_app_reported_it(device_page):
+    page = device_page
+    sign_in(page)
+    page.goto("/privacy.html")
+    page.mock_state["apps"] = {page.evaluate(PLATFORM): "2026-09-29T12:00:00Z"}
+    page.goto("/index.html")
+    box = page.locator("#get-the-app")
+    page.wait_for_function("document.getElementById('get-the-app').textContent.indexOf('You have the MT3UK app') !== -1 && !document.getElementById('get-the-app').hidden", timeout=5000)
+    assert page.locator("#app-install-btn").is_hidden(), "No install button"
+    assert page.mock_state.get("apps_checks") == 1
+    # Asked once per visit.
+    page.reload()
+    box.wait_for(state="visible", timeout=5000)
+    assert page.mock_state.get("apps_checks") == 1
+    assert page.errors == []
+
+
+@all_devices
+def test_browser_still_offers_install_when_not_reported(device_page):
+    page = device_page
+    sign_in(page)
+    page.goto("/index.html")
+    page.locator("#app-install-btn").wait_for(state="visible", timeout=5000)
+    assert "Get the MT3UK app" in page.locator("#get-the-app").inner_text()
+    assert page.mock_state.get("apps_checks") == 1
+
+
+@all_devices
+def test_edge_is_not_told_to_use_chrome(device_page):
+    page = device_page
+    page.add_init_script("""
+      Object.defineProperty(navigator, 'userAgent', { get: function () { return 'Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36 EdgA/129.0.0.0'; } });
+      localStorage.setItem('mt3ukAppInstalled', '1');
+    """)
+    page.goto("/index.html")
+    popup = page.locator("#mt3uk-open-app")
+    popup.wait_for(state="visible", timeout=5000)
+    assert "Chrome" not in popup.inner_text()
+    assert "Chrome" not in page.locator("#get-the-app").inner_text()
+    assert popup.locator(".hp-open-app-go").count() == 1
+
+
+@all_devices
+def test_chrome_on_android_gets_the_chrome_tip(device_page):
+    page = device_page
+    page.add_init_script("""
+      Object.defineProperty(navigator, 'userAgent', { get: function () { return 'Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36'; } });
+      localStorage.setItem('mt3ukAppInstalled', '1');
+    """)
+    page.goto("/index.html")
+    page.locator("#get-the-app").wait_for(state="visible", timeout=5000)
+    assert "in Chrome" in page.locator("#get-the-app").inner_text()

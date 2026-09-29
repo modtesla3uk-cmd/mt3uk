@@ -265,6 +265,10 @@ def api_reply(url, method, post_data, state):
         if nick.lower() == "sparky":
             return {"success": True, "available": False, "message": nick + " is taken. Try another."}
         return {"success": True, "available": True, "message": nick + " is available."}
+    if path == "/profile/apps":
+        state.setdefault("apps_checks", 0)
+        state["apps_checks"] += 1
+        return {"success": True, "apps": state.get("apps", {})}
     if path.startswith("/profile") or path.startswith("/admin/broadcasts") or path == "/admin/dm-reports":
         return profile_reply(path, method, post_data, state)
     if path == "/gallery/admin/subscribers" and method == "GET":
@@ -308,7 +312,7 @@ def profile_reply(path, method, post_data, state):
     state.setdefault("profile_calls", []).append((method, path, body))
     if path == "/profile" and method == "GET":
         return {"success": True, "email": "member@example.com", "id": "me", "firstName": p["firstName"], "lastName": p["lastName"],
-                "nickname": p["nickname"], "showName": p["showName"], "hideRealName": p["hideRealName"], "emailsOff": p["emailsOff"], "member": True, "since": "2026-01-10T10:00:00Z",
+                "nickname": p["nickname"], "showName": p["showName"], "hideRealName": p["hideRealName"], "apps": state.get("apps", {}), "emailsOff": p["emailsOff"], "member": True, "since": "2026-01-10T10:00:00Z",
                 "builds": ["test-build.jpg"], "friends": p["friends"], "incoming": p["incoming"], "outgoing": p["outgoing"],
                 "unread": {"broadcasts": 1, "direct": 1, "requests": len(p["incoming"])}}
     if path == "/profile" and method == "POST":
@@ -316,6 +320,9 @@ def profile_reply(path, method, post_data, state):
         if not body:
             body = state.pop("fallback_body", None) or (
                 {"firstName": "Test", "lastName": "Member", "nickname": "GreenKnight"} if not state.get("saved_once") else {"emailsOff": True})
+        if body.get("appInstalled"):
+            state.setdefault("apps", {})[body["appInstalled"]] = "2026-09-29T12:00:00Z"
+            return {"success": True}
         state["saved_once"] = True
         if body.get("nickname") == "taken":
             return {"success": False, "message": "That nickname is taken. Try another."}

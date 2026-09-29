@@ -1267,7 +1267,7 @@
       $('pf-loading').hidden = true;
       $('pf-app').hidden = false;
       if (window.mt3ukPushCard) window.mt3ukPushCard($('notifications'), { api: API, session: session, setStatus: status });
-      if (window.mt3ukAppCard) window.mt3ukAppCard($('app'));
+      if (window.mt3ukAppCard) window.mt3ukAppCard($('app'), { apps: profile.apps });
       return loadMessages().then(function () {
         // Arriving at Messages (e.g. from the bell) opens whatever has
         // something new, or From MT3UK; at Friends, the friends list.

@@ -550,7 +550,12 @@ def test_app_turns_notifications_on_by_itself_when_allowed(device_page):
     page.add_init_script(FAKE_PUSH)
     page.goto("/gallery.html")
     page.wait_for_function("localStorage.getItem('testSubscribed') === '1'", timeout=8000)
-    assert "/push/subscribe" in page.mock_state.get("push_calls", [])
+    # The device subscribes first, then tells the worker.
+    for _ in range(50):
+        if "/push/subscribe" in page.mock_state.get("push_calls", []):
+            break
+        page.wait_for_timeout(100)
+    assert "/push/subscribe" in page.mock_state.get("push_calls", []), diagnostics(page)
     assert page.locator("#mt3uk-push-ask").count() == 0, "Already allowed: no need to ask"
     assert page.errors == [], diagnostics(page)
 

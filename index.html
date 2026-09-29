@@ -5838,6 +5838,9 @@
     function read(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
     function remember() { try { localStorage.setItem(KEY, '1'); } catch (e) {} }
     var uaIsIos = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    // Only Chrome itself has "Open in app" in its menu; Edge, Samsung
+    // Internet and the rest aren't told to use Chrome's.
+    var isChrome = /Chrome\//.test(navigator.userAgent) && !/EdgA?\/|SamsungBrowser|OPR\/|Firefox|FxiOS|CriOS/.test(navigator.userAgent);
     function markInstalled() { remember(); showOpenHint(); }
     function showOpenHint() {
       // Hide on the row only hides the row; the pop-up has its own
@@ -5847,7 +5850,7 @@
       document.getElementById('app-install-title').textContent = 'You have the MT3UK app';
       document.getElementById('app-install-text').textContent = uaIsIos
         ? 'Open MT3UK from its icon on your Home Screen: it opens full screen, keeps you signed in and can send you alerts.'
-        : 'Open MT3UK from your apps (swipe up for the app list if it isn\u2019t on your home screen), or in Chrome tap \u22EE then Open in app. It opens full screen and can send you alerts.';
+        : 'Open MT3UK from your apps (swipe up for the app list if it isn\u2019t on your home screen)' + (isChrome ? ', or in Chrome tap \u22EE then Open in app' : '') + '. It opens full screen and can send you alerts.';
       document.getElementById('app-install-already').hidden = true;
       btn.hidden = true;
       steps.hidden = true;
@@ -5875,7 +5878,9 @@
         '<div><p class="hp-open-app-title" id="mt3uk-open-app-title">Open the MT3UK app</p>' +
         '<p>' + (uaIsIos
           ? 'You have the app: tap the MT3UK icon on your Home Screen for full screen, alerts and staying signed in.'
-          : 'You have the app: find MT3UK in your apps (swipe up for the app list), or tap \u22EE then <strong>Open in app</strong> in Chrome.') + '</p>' +
+          : isAndroid
+            ? 'You have the app: tap <strong>Open the app</strong>, or find MT3UK in your apps (swipe up for the app list).'
+            : 'You have the app: find MT3UK in your apps' + (isChrome ? ', or tap \u22EE then <strong>Open in app</strong> in Chrome' : '') + '.') + '</p>' +
         '<div class="hp-open-app-row">' + (isAndroid ? '<button type="button" class="hp-open-app-go">Open the app</button>' : '') +
         '<button type="button" class="hp-open-app-ok">' + (isAndroid ? 'Not now' : 'OK') + '</button><button type="button" class="hp-open-app-off">Don\u2019t show again</button></div></div>';
       document.body.appendChild(sheet);
@@ -5934,7 +5939,28 @@
     }
     if (standalone) { remember(); return; }
     if (read(KEY) === '1') { showOpenHint(); return; }
-    box.hidden = false;
+    // Signed-in members: the app reports itself to the worker, so ask
+    // whether they have it on this kind of device (Safari can't tell).
+    // The install row waits briefly for the answer.
+    var session = read('mt3ukMyBuildsSession');
+    var askedThisVisit = false;
+    try { askedThisVisit = sessionStorage.getItem('mt3ukAppsChecked') === '1'; } catch (e) {}
+    if (session && !askedThisVisit) {
+      var shown = false;
+      var showInstall = function () { if (!shown && read(KEY) !== '1') { shown = true; box.hidden = false; } };
+      setTimeout(showInstall, 2500);
+      var platform = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ? 'ios' : /Android/i.test(navigator.userAgent) ? 'android' : 'desktop';
+      fetch('https://late-darkness-ebc8.modtesla3uk.workers.dev/profile/apps', { headers: { 'X-Session-Token': session }, cache: 'no-store' })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          try { sessionStorage.setItem('mt3ukAppsChecked', '1'); } catch (e) {}
+          if (data && data.success && data.apps && data.apps[platform]) { shown = true; markInstalled(); }
+          else showInstall();
+        })
+        .catch(showInstall);
+    } else {
+      box.hidden = false;
+    }
 
     // Chrome on Android can tell us the app is already installed.
     if (navigator.getInstalledRelatedApps) {

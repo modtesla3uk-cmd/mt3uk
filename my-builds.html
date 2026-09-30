@@ -843,6 +843,21 @@
   .mb-loading p { font-size: 0.95rem; }
   .mb-comment-alert-count { font-size: 0.74rem; }
 
+  /* Tighter top of the page: the signed-in details sit close together, with
+     "Change in Profile" as a link beside the name rather than a button. */
+  .beta-notice { margin-bottom: 18px; padding: 10px 14px; font-size: 0.84rem; }
+  .mb-signed-in { margin-bottom: 8px; }
+  .mb-name-row { margin: 0 auto 12px; gap: 4px 8px; }
+  .mb-name-row .mb-signout-btn { min-height: 0; padding: 0; border: 0; background: none; color: var(--orange); font-size: 0.85rem; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+  .mb-name-row .mb-signout-btn:hover { background: none; color: var(--ink); }
+  .mb-push-moved { max-width: 720px; margin: 0 auto 16px; font-size: 0.84rem; }
+  .mb-upload-toggle-row { margin-bottom: 12px; }
+  #mb-car-selector-view .mb-site-links { max-width: 720px; margin: 0 auto 12px; }
+  @media (max-width: 780px) {
+    .page-hero + section { padding-top: 20px; }
+    .mb-signed-in { gap: 8px; }
+  }
+
   :focus-visible {
     outline: 2px solid var(--orange);
     outline-offset: 2px;

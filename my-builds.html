@@ -28,7 +28,7 @@
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
 <link rel="stylesheet" href="css/site-header.css">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 
   :root {
     --ink: #16233d;
@@ -63,9 +63,8 @@
   }
 
   .mono {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-body);
     font-size: 0.72rem;
-    letter-spacing: 0.06em;
     color: var(--steel);
   }
 
@@ -114,7 +113,7 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-body);
     font-size: 0.78rem;
     color: var(--steel);
     text-decoration: none;
@@ -161,7 +160,7 @@
   .mb-card h2 { font-size: 1.15rem; margin-bottom: 8px; }
   .mb-card p { color: var(--steel); font-size: 0.9rem; margin-bottom: 18px; }
   .mb-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
-  .mb-field label { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; letter-spacing: 0.06em; color: var(--steel); }
+  .mb-field label { font-family: var(--font-body); font-size: 0.72rem; color: var(--steel); }
   .mb-field-hint { font-size: 0.78rem; color: var(--steel); }
   .mb-passkey { margin-top: 16px; display: grid; gap: 6px; justify-items: start; }
   .mb-passkey-btn { background: #1c8a4b; border-color: #1c8a4b; }
@@ -267,12 +266,12 @@
   .mb-name-card.mb-name-needed { border-color: var(--orange); }
   .mb-push-moved { margin: 0 0 22px; font-size: 0.92rem; color: var(--steel); }
   .mb-push-moved a { color: var(--orange); text-decoration: underline; }
-  .mb-signout-btn { background: transparent; border: 1px solid var(--line); color: var(--ink); padding: 7px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; cursor: pointer; }
+  .mb-signout-btn { background: transparent; border: 1px solid var(--line); color: var(--ink); padding: 7px 12px; font-family: var(--font-body); font-size: 0.72rem; cursor: pointer; }
   .mb-signout-btn:hover { border-color: var(--orange); color: var(--orange); }
   a.mb-profile-link { display: inline-flex; align-items: center; text-decoration: none; }
   .mb-field input::placeholder, .mb-field textarea::placeholder { color: #9aa3b2; opacity: 1; }
   .mb-loading { text-align: center; padding: 56px 16px; color: var(--steel); }
-  .mb-loading p { margin: 14px 0; font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; letter-spacing: 0.04em; }
+  .mb-loading p { margin: 14px 0; font-family: var(--font-body); font-size: 0.85rem; }
   .mb-spinner { display: inline-block; width: 34px; height: 34px; border: 3px solid rgba(22, 35, 61, 0.15); border-top-color: var(--orange); border-radius: 50%; animation: mbSpin 0.8s linear infinite; }
   @keyframes mbSpin { to { transform: rotate(360deg); } }
   .mb-spinner[hidden], .mb-loading[hidden] { display: none; }
@@ -289,7 +288,7 @@
   .mb-notif-bell svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   .mb-notif-count {
     position: absolute; top: -6px; right: -6px; min-width: 16px; height: 16px; padding: 0 3px;
-    border-radius: 8px; background: var(--orange); color: #fff; font-family: 'IBM Plex Mono', monospace;
+    border-radius: 8px; background: var(--orange); color: #fff; font-family: var(--font-body);
     font-size: 0.62rem; font-weight: 700; display: flex; align-items: center; justify-content: center;
   }
   .mb-notif-count[hidden] { display: none; }
@@ -304,7 +303,7 @@
     .mb-notif { position: static; }
     .mb-notif-panel { left: 0; right: 0; width: auto; top: calc(100% + 8px); }
   }
-  .mb-notif-panel-title { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--steel); padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  .mb-notif-panel-title { font-family: var(--font-body); font-size: 0.7rem; color: var(--steel); padding: 10px 12px; border-bottom: 1px solid var(--line); }
   .mb-notif-list { list-style: none; margin: 0; padding: 0; }
   .mb-notif-item { display: block; padding: 10px 12px; border-bottom: 1px solid var(--line); text-decoration: none; color: var(--ink); }
   .mb-notif-item:last-child { border-bottom: 0; }
@@ -317,9 +316,9 @@
   .mb-notif-dismiss:hover, .mb-notif-dismiss:focus-visible { background: rgba(22,35,61,0.08); color: var(--ink); }
   .mb-notif-item:hover { background: var(--paper-2, #f7f5f0); }
   .mb-notif-item.is-unread { background: #fdf3ec; }
-  .mb-notif-item-name { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: var(--orange); }
+  .mb-notif-item-name { font-family: var(--font-body); font-size: 0.72rem; color: var(--orange); }
   .mb-notif-item-text { font-size: 0.8rem; margin-top: 2px; word-break: break-word; }
-  .mb-notif-item-date { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; color: var(--steel); margin-top: 4px; }
+  .mb-notif-item-date { font-family: var(--font-body); font-size: 0.62rem; color: var(--steel); margin-top: 4px; }
   .mb-notif-empty { padding: 16px 12px; font-size: 0.8rem; color: var(--steel); }
 
   .mb-upload-toggle-row { max-width: 720px; margin: 0 auto 18px; }
@@ -393,7 +392,7 @@
   .mb-lightbox-next { right: 10px; }
   .mb-lightbox-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; min-height: 0; }
   .mb-lightbox-body .mb-photo-mods { border-top: 0; padding-top: 0; }
-  .mb-lightbox-body .mb-photo-mods-label, .mb-lightbox-comments-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--steel); display: block; margin-bottom: 6px; }
+  .mb-lightbox-body .mb-photo-mods-label, .mb-lightbox-comments-label { font-family: var(--font-body); font-size: 0.68rem; color: var(--steel); display: block; margin-bottom: 6px; }
   .mb-lightbox-comments { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
   /* Likes on the open photo: heart, count and "Liked by", tap for the list. */
   .mb-lightbox-likes[hidden] { display: none; }
@@ -449,13 +448,13 @@
   .mb-car-tile-body { padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
   .mb-car-tile-head { padding: 10px 12px 8px; }
   .mb-car-tile-name { font-weight: 600; color: var(--ink); word-break: break-word; }
-  .mb-car-tile-count { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--steel); }
+  .mb-car-tile-count { font-family: var(--font-body); font-size: 0.7rem; color: var(--steel); }
   .mb-car-tile-alert { position: absolute; top: 8px; right: 8px; background: var(--paper); border-radius: 3px; padding: 2px 4px; }
 
   /* ---------- CAR DETAIL ---------- */
   .mb-car-detail { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
   .mb-car-detail-header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  .mb-back-btn { background: none; border: 0; color: var(--steel); font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; cursor: pointer; text-decoration: underline; padding: 0; }
+  .mb-back-btn { background: none; border: 0; color: var(--steel); font-family: var(--font-body); font-size: 0.78rem; cursor: pointer; text-decoration: underline; padding: 0; }
   .mb-back-btn:hover { color: var(--orange); }
   /* Car name: shown as text with Edit; Edit swaps in the input and Save. */
   .mb-car-name-row { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 160px; }
@@ -473,7 +472,7 @@
   }
   .mb-car-name-input:focus { outline: 2px solid var(--orange); outline-offset: 1px; }
   .mb-car-name-row [hidden] { display: none; }
-  .mb-car-name-btn { flex-shrink: 0; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; padding: 6px 10px; border: 1px solid var(--ink); background: var(--white); color: var(--ink); cursor: pointer; }
+  .mb-car-name-btn { flex-shrink: 0; font-family: var(--font-body); font-size: 0.72rem; padding: 6px 10px; border: 1px solid var(--ink); background: var(--white); color: var(--ink); cursor: pointer; }
   .mb-car-name-btn:hover { background: var(--ink); color: var(--white); }
   .mb-car-name-btn.mb-car-name-save { background: var(--orange); border-color: var(--orange); color: var(--white); }
   /* Links to the member's own photos on the reel, the vote and the gallery. */
@@ -485,7 +484,7 @@
   .mb-car-name-status { flex-shrink: 0; }
   .mb-car-color-select { font-size: 0.72rem; color: var(--ink); border: 1px solid var(--line); background: var(--white); padding: 6px 8px; flex-shrink: 0; }
   .mb-car-photo-count { font-size: 0.72rem; color: var(--steel); flex-shrink: 0; }
-  .mb-car-view-link { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: var(--orange); text-decoration: underline; flex-shrink: 0; background: none; border: 0; padding: 0; cursor: pointer; }
+  .mb-car-view-link { font-family: var(--font-body); font-size: 0.72rem; color: var(--orange); text-decoration: underline; flex-shrink: 0; background: none; border: 0; padding: 0; cursor: pointer; }
   .mb-car-view-link:hover { color: var(--ink); }
   @media (max-width: 780px) {
     .mb-car-name-row { flex-basis: 100%; }
@@ -498,19 +497,19 @@
   .mb-vote-hint a { color: var(--orange); }
   .mb-photo-added { font-size: 0.68rem; color: var(--steel); }
   .mb-car-mods { display: flex; flex-direction: column; gap: 6px; border: 1px solid var(--line); background: var(--paper-2); padding: 12px 14px; }
-  .mb-car-mods-label { font-size: 0.72rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--orange); font-weight: 700; }
-  button.mb-car-mods-label { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 32px; padding: 0; border: 0; background: none; cursor: pointer; text-align: left; font-family: 'IBM Plex Mono', monospace; }
+  .mb-car-mods-label { font-size: 0.72rem; color: var(--orange); font-weight: 700; }
+  button.mb-car-mods-label { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 32px; padding: 0; border: 0; background: none; cursor: pointer; text-align: left; font-family: var(--font-body); }
   button.mb-car-mods-label .mb-photo-mods-caret { transition: transform 0.15s; }
   button.mb-car-mods-label[aria-expanded="true"] .mb-photo-mods-caret { transform: rotate(180deg); }
   .mb-car-mods-body { display: flex; flex-direction: column; gap: 6px; }
   .mb-car-mods-body[hidden] { display: none; }
   .mb-lightbox-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
   .mb-lightbox-actions[hidden] { display: none; }
-  .mb-lightbox-go { display: inline-flex; align-items: center; min-height: 34px; padding: 6px 12px; border: 1px solid var(--ink); color: var(--ink); background: transparent; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; letter-spacing: 0.04em; text-decoration: none; cursor: pointer; }
+  .mb-lightbox-go { display: inline-flex; align-items: center; min-height: 34px; padding: 6px 12px; border: 1px solid var(--ink); color: var(--ink); background: transparent; font-family: var(--font-body); font-size: 0.72rem; text-decoration: none; cursor: pointer; }
   .mb-lightbox-go:hover { background: var(--ink); color: var(--paper); }
   .mb-lightbox-go[hidden], .mb-lightbox-votes[hidden] { display: none; }
-  .mb-lightbox-votes { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 6px 12px; background: var(--orange); color: #fff; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; letter-spacing: 0.04em; font-weight: 600; }
-  .mb-lightbox-delete { margin-left: auto; min-height: 34px; padding: 6px 12px; border: 1px solid var(--line); background: transparent; color: var(--ink); font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; cursor: pointer; }
+  .mb-lightbox-votes { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 6px 12px; background: var(--orange); color: #fff; font-family: var(--font-body); font-size: 0.72rem; font-weight: 600; }
+  .mb-lightbox-delete { margin-left: auto; min-height: 34px; padding: 6px 12px; border: 1px solid var(--line); background: transparent; color: var(--ink); font-family: var(--font-body); font-size: 0.72rem; cursor: pointer; }
   .mb-lightbox-delete:hover, .mb-lightbox-delete.mb-delete-confirm { border-color: var(--orange); color: var(--orange); }
   .mb-lightbox-delete.mb-delete-confirm { background: var(--orange); color: var(--paper); }
   .mb-car-mods-note { font-size: 0.72rem; color: var(--steel); margin: 0; }
@@ -529,13 +528,13 @@
   .mb-photo-comment-badge {
     position: absolute; top: 6px; right: 6px; display: inline-flex; align-items: center; gap: 3px;
     background: rgba(22,35,61,0.82); color: var(--paper); border: 1px solid rgba(255,255,255,0.4);
-    font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; font-weight: 700; padding: 3px 6px;
+    font-family: var(--font-body); font-size: 0.68rem; font-weight: 700; padding: 3px 6px;
     pointer-events: none;
   }
   .mb-photo-like-badge {
     position: absolute; top: 6px; left: 6px; display: inline-flex; align-items: center; gap: 3px;
     background: rgba(22,35,61,0.82); color: var(--paper); border: 1px solid rgba(255,255,255,0.4);
-    font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; font-weight: 700; padding: 3px 6px;
+    font-family: var(--font-body); font-size: 0.68rem; font-weight: 700; padding: 3px 6px;
     pointer-events: none;
   }
   .mb-photo-like-badge svg { width: 13px; height: 13px; fill: var(--orange); stroke: var(--orange); stroke-width: 1.5; stroke-linejoin: round; }
@@ -563,17 +562,17 @@
   .mb-photo-mods-toggle {
     background: transparent; border: 0; padding: 0; margin: 0; cursor: pointer;
     display: flex; align-items: center; gap: 4px; color: var(--steel);
-    font-size: 0.6rem; letter-spacing: 0.04em; text-transform: uppercase;
+    font-size: 0.6rem;
   }
   .mb-photo-mods-toggle:hover { color: var(--orange); }
   .mb-photo-mods-caret { display: inline-block; transition: transform 0.15s ease; font-size: 0.95rem; line-height: 0.6; }
   .mb-photo-mods.is-expanded .mb-photo-mods-caret { transform: rotate(180deg); }
   .mb-photo-mods-body { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
   .mb-photo-mods-body[hidden] { display: none; }
-  .mb-photo-mods-label { font-size: 0.6rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--steel); }
+  .mb-photo-mods-label { font-size: 0.6rem; color: var(--steel); }
   .mb-photo-mods-add-btn { background: transparent; border: 1px solid var(--line); color: var(--ink); font-size: 0.66rem; padding: 3px 6px; cursor: pointer; flex-shrink: 0; }
   .mb-photo-mods-add-btn:hover { border-color: var(--orange); color: var(--orange); }
-  .mb-photo-default-badge { align-self: flex-start; font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; letter-spacing: 0.04em; text-transform: uppercase; background: var(--orange); color: var(--white); padding: 2px 6px; }
+  .mb-photo-default-badge { align-self: flex-start; font-family: var(--font-body); font-size: 0.62rem; background: var(--orange); color: var(--white); padding: 2px 6px; }
   .mb-photo-delete-btn.mb-delete-confirm { border-color: var(--orange); background: var(--orange); color: var(--paper); }
   .mb-add-photo-btn { align-self: flex-start; }
   .mb-photo-move-btn { background: transparent; border: 1px solid var(--line); color: var(--ink); font-size: 0.68rem; padding: 4px 6px; cursor: pointer; }
@@ -583,7 +582,7 @@
   .mb-photo-move-select { font-family: 'IBM Plex Sans', sans-serif; font-size: 0.72rem; padding: 5px; border: 1px solid var(--line); background: var(--white); color: var(--ink); }
   .mb-photo-move-name { font-family: 'IBM Plex Sans', sans-serif; font-size: 0.72rem; padding: 5px; border: 1px solid var(--line); background: var(--white); color: var(--ink); }
   .mb-photo-move-actions { display: flex; gap: 6px; }
-  .mb-photo-move-confirm, .mb-photo-move-cancel { font-family: 'IBM Plex Mono', monospace; font-size: 0.66rem; padding: 4px 8px; cursor: pointer; }
+  .mb-photo-move-confirm, .mb-photo-move-cancel { font-family: var(--font-body); font-size: 0.66rem; padding: 4px 8px; cursor: pointer; }
   .mb-photo-move-confirm { background: var(--orange); border: 1px solid var(--orange); color: var(--white); }
   .mb-photo-move-confirm:disabled { opacity: 0.6; cursor: default; }
   .mb-photo-move-cancel { background: transparent; border: 1px solid var(--line); color: var(--ink); }
@@ -595,7 +594,7 @@
   .mb-comments-toggle {
     width: 100%; display: flex; align-items: center; gap: 6px;
     text-align: left; background: none; border: 0; color: var(--ink);
-    font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; letter-spacing: 0.02em;
+    font-family: var(--font-body); font-size: 0.78rem;
     cursor: pointer; padding: 0;
   }
   .mb-comments-toggle:hover { color: var(--orange); }
@@ -612,7 +611,7 @@
   }
   .mb-comment-alert-icon svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   .mb-comment-alert-count {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-body);
     font-size: 0.65rem;
     font-weight: 700;
   }
@@ -630,7 +629,7 @@
     width: 28px; height: 28px; object-fit: cover; border-radius: 3px; border: 1px solid var(--line);
   }
   .mb-comment-photo-caption {
-    font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--steel);
+    font-family: var(--font-body); font-size: 0.65rem; color: var(--steel);
   }
   .mb-comment-photo-tag:hover .mb-comment-photo-caption { color: var(--orange); }
 
@@ -638,8 +637,8 @@
   .mb-comment { display: flex; align-items: flex-start; gap: 8px; }
   .mb-comment-avatar {
     flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; background: var(--ink); color: var(--paper);
-    display: flex; align-items: center; justify-content: center; font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+    display: flex; align-items: center; justify-content: center; font-family: var(--font-body);
+    font-size: 0.68rem; font-weight: 700;
   }
   .mb-comment-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
   .mb-comment-bubble { background: var(--paper-2); border-radius: 16px; padding: 8px 13px; display: inline-block; max-width: 100%; transition: box-shadow 0.6s ease, background 0.6s ease; }
@@ -649,7 +648,7 @@
   .mb-comment-date { display: none; }
   .mb-comment-text { font-size: 0.84rem; color: var(--charcoal); word-break: break-word; margin-top: 1px; }
   .mb-comment-meta-row { display: flex; align-items: center; gap: 12px; padding-left: 13px; }
-  .mb-comment-meta-time { font-family: 'IBM Plex Mono', monospace; font-size: 0.63rem; color: var(--steel); }
+  .mb-comment-meta-time { font-family: var(--font-body); font-size: 0.63rem; color: var(--steel); }
   .mb-comment-reply-toggle {
     background: none; border: 0; color: var(--steel);
     font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; font-size: 0.68rem;
@@ -676,7 +675,7 @@
   }
   .mb-comment-reply-submit::after { content: '\27A4'; font-size: 0.8rem; }
   .mb-comment-reply-submit:disabled { opacity: 0.4; cursor: default; }
-  .mb-comments-empty { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--steel); }
+  .mb-comments-empty { font-family: var(--font-body); font-size: 0.75rem; color: var(--steel); }
 
   /* Floating composer for posting a new top-level comment */
   .mb-comment-composer { display: flex; align-items: flex-end; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line); flex-shrink: 0; }
@@ -707,6 +706,142 @@
     gap: 16px;
   }
   .footer-row .mono { font-size: 0.72rem; }
+
+  /* ---------- STYLE REFRESH: soft corners, one font, clearer buttons ----------
+     Uses the shared tokens in css/site-header.css (--radius, --hairline...). */
+  .section-num.mono { font-size: 0.82rem; font-weight: 600; color: var(--orange); }
+  .page-hero .back-link, .mb-back-btn, .mb-car-view-link {
+    display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 6px 10px;
+    border-radius: var(--radius-sm); background: none; border: 0; color: var(--ink);
+    font-size: 0.88rem; font-weight: 600; text-decoration: none; cursor: pointer;
+  }
+  .page-hero .back-link { margin-left: -10px; }
+  .mb-back-btn { margin-left: -10px; }
+  .page-hero .back-link:hover, .mb-back-btn:hover, .mb-car-view-link:hover { background: rgba(22,35,61,0.06); color: var(--ink); }
+  .beta-notice, .mb-vote-hint { border: 1px solid rgba(232,84,42,0.25); border-radius: var(--radius); background: #fdf3ef; }
+  .mb-vote-hint { padding: 14px 16px; }
+  .mb-card, .mb-upload-card, .mb-build-card, .mb-comments, .mb-car-mods {
+    border: 1px solid var(--hairline); border-radius: var(--radius); background: var(--white);
+  }
+  .mb-submit-guidance { border: 1px solid var(--hairline); border-radius: var(--radius); }
+  .mb-build-wrap .mb-build-card { border-radius: var(--radius) var(--radius) 0 0; }
+  .mb-build-wrap .mb-comments { border-radius: 0 0 var(--radius) var(--radius); border-top: 1px solid var(--hairline); background: var(--paper-2); }
+  #mb-car-comments { border-radius: var(--radius); }
+  .mb-build-thumb, .mb-photo-thumb { border: 0; border-radius: var(--radius-sm); }
+  .mb-field label, .mb-field label.mono { font-size: 0.86rem; font-weight: 600; color: var(--ink); }
+  .mb-field input[type="email"], .mb-field input[type="text"], .mb-field input[type="file"], .mb-field select,
+  .mb-submit-card textarea, .mb-upload-card input[type="text"], .mb-upload-card input[type="file"], .mb-upload-card textarea,
+  .mb-car-mods-textarea, .mb-car-name-input, .mb-photo-move-select, .mb-photo-move-name, .mb-car-color-select {
+    border: 1px solid var(--hairline-strong); border-radius: var(--radius-sm); background: var(--white); color: var(--ink);
+    font-family: var(--font-body);
+  }
+  .mb-field input[type="email"], .mb-field input[type="text"], .mb-field select, .mb-upload-card input[type="text"] { min-height: 44px; font-size: 1rem; }
+  .mb-field input:focus, .mb-field select:focus, .mb-field textarea:focus, .mb-car-mods-textarea:focus, .mb-car-name-input:focus,
+  .mb-photo-move-select:focus, .mb-photo-move-name:focus, .mb-car-color-select:focus {
+    outline: none; border-color: var(--orange); box-shadow: var(--focus-ring);
+  }
+  .mb-car-color-select, .mb-photo-move-select {
+    appearance: none; -webkit-appearance: none; min-height: 36px; padding: 6px 34px 6px 12px; font-size: 0.88rem;
+    background: var(--white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2316233d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center / 16px;
+  }
+  .mb-photo-move-name { min-height: 36px; padding: 6px 10px; font-size: 0.88rem; }
+  .mb-car-photo-count { font-size: 0.86rem; }
+
+  /* Buttons: main (ink), accent (orange), secondary (white), danger (red text) */
+  .mb-btn { min-height: 44px; border-radius: var(--radius); padding: 10px 18px; color: var(--white); }
+  .mb-btn:hover { background: #22345a; border-color: #22345a; }
+  .mb-signin-newbuild-btn:hover { background: #d4481f; border-color: #d4481f; }
+  .mb-passkey-btn:hover { background: #16713d; border-color: #16713d; }
+  .mb-signout-btn, .mb-upload-toggle-btn, .mb-car-name-btn, .mb-lightbox-go, .mb-photo-mods-add-btn,
+  .mb-photo-default-btn, .mb-photo-move-btn, .mb-photo-move-cancel, .mb-notif-bell,
+  .mb-delete-btn, .mb-photo-delete-btn, .mb-lightbox-delete, .mb-photo-move-confirm {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    min-height: 36px; padding: 7px 12px; border-radius: var(--radius-sm);
+    border: 1px solid var(--hairline-strong); background: var(--white); color: var(--ink);
+    font-family: var(--font-body); font-size: 0.86rem; font-weight: 600; line-height: 1.2; text-decoration: none; cursor: pointer;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .mb-signout-btn[hidden], .mb-upload-toggle-btn[hidden], .mb-car-name-btn[hidden], .mb-lightbox-go[hidden], .mb-photo-mods-add-btn[hidden],
+  .mb-photo-default-btn[hidden], .mb-photo-move-btn[hidden], .mb-photo-move-cancel[hidden], .mb-notif-bell[hidden],
+  .mb-delete-btn[hidden], .mb-photo-delete-btn[hidden], .mb-lightbox-delete[hidden], .mb-photo-move-confirm[hidden],
+  .mb-back-btn[hidden], .mb-car-view-link[hidden] { display: none; }
+  .mb-upload-toggle-btn { min-height: 44px; padding: 10px 16px; font-size: 0.93rem; border-radius: var(--radius); }
+  .mb-signout-btn:hover, .mb-upload-toggle-btn:hover, .mb-car-name-btn:hover, .mb-lightbox-go:hover, .mb-photo-mods-add-btn:hover,
+  .mb-photo-default-btn:hover, .mb-photo-move-btn:hover, .mb-photo-move-cancel:hover, .mb-notif-bell:hover {
+    background: var(--white); border-color: var(--ink); color: var(--ink);
+  }
+  .mb-delete-btn, .mb-photo-delete-btn, .mb-lightbox-delete { color: #b8361a; border-color: rgba(184,54,26,0.35); }
+  .mb-delete-btn:hover, .mb-photo-delete-btn:hover, .mb-lightbox-delete:hover { background: #fdf0ec; border-color: rgba(184,54,26,0.6); color: #b8361a; }
+  .mb-delete-btn.mb-delete-confirm, .mb-photo-delete-btn.mb-delete-confirm, .mb-lightbox-delete.mb-delete-confirm { background: #b8361a; border-color: #b8361a; color: var(--white); }
+  .mb-photo-move-confirm, .mb-car-name-btn.mb-car-name-save { background: var(--orange); border-color: var(--orange); color: var(--white); }
+  .mb-photo-move-confirm:hover:not(:disabled), .mb-car-name-btn.mb-car-name-save:hover { background: #d4481f; border-color: #d4481f; color: var(--white); }
+  .mb-share-btn { border-color: var(--hairline-strong); }
+  .mb-share-btn:hover { background: var(--white); border-color: var(--ink); color: var(--ink); }
+  .mb-lightbox-votes { min-height: 36px; padding: 7px 12px; border-radius: var(--radius-pill); font-size: 0.86rem; }
+  .mb-notif-bell { padding: 7px 9px; }
+  .mb-notif-panel { border: 1px solid var(--hairline); border-radius: var(--radius); }
+  .mb-notif-panel-title { font-size: 0.84rem; font-weight: 600; color: var(--ink); }
+  .mb-notif-item-name { font-size: 0.8rem; font-weight: 600; }
+  .mb-notif-item-date { font-size: 0.74rem; }
+  .mb-notif-dismiss .icon { width: 16px; height: 16px; }
+
+  /* Chips linking to the reel, vote and gallery */
+  .mb-site-links a { border: 1px solid var(--hairline-strong); }
+  .mb-site-links a:hover { background: var(--white); border-color: var(--ink); color: var(--ink); }
+
+  /* Car tiles and photo cards */
+  .mb-car-tile { border: 1px solid var(--hairline); border-radius: var(--radius); }
+  .mb-car-tile:hover { border-color: var(--ink); }
+  .mb-car-tile-count { font-size: 0.82rem; }
+  .mb-car-tile-alert { border-radius: var(--radius-pill); padding: 2px 8px; }
+  .mb-photo-thumb-wrap { border: 1px solid var(--hairline); border-radius: var(--radius); padding: 8px; gap: 8px; }
+  .mb-photo-added { font-size: 0.8rem; }
+  .mb-photo-default-badge { border-radius: var(--radius-pill); padding: 2px 9px; font-size: 0.74rem; font-weight: 600; }
+  .mb-photo-comment-badge, .mb-photo-like-badge { border: 0; border-radius: var(--radius-pill); padding: 3px 8px; font-size: 0.74rem; background: rgba(10,16,30,0.72); }
+  .mb-photo-comments-hint { font-size: 0.8rem; }
+  .mb-photo-mods-toggle { font-size: 0.8rem; }
+  .mb-photo-mods-label { font-size: 0.8rem; }
+  .mb-photo-move-status { font-size: 0.78rem; }
+  .mb-photo-move-actions > * { flex: 1; }
+
+  /* The Gallery, Reel and Voting ticks become on/off switches */
+  .mb-photo-toggles { gap: 6px; }
+  .mb-photo-toggle, .mb-toggle { gap: 8px; font-size: 0.86rem; font-weight: 500; color: var(--ink); min-height: 26px; }
+  .mb-photo-toggle input, .mb-toggle input {
+    appearance: none; -webkit-appearance: none; flex-shrink: 0; margin: 0;
+    width: 34px; height: 20px; border-radius: var(--radius-pill); background: rgba(22,35,61,0.2);
+    position: relative; cursor: pointer; transition: background-color .15s ease;
+  }
+  .mb-photo-toggle input::after, .mb-toggle input::after {
+    content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%;
+    background: var(--white); box-shadow: 0 1px 2px rgba(0,0,0,0.25); transition: transform .15s ease;
+  }
+  .mb-photo-toggle input:checked, .mb-toggle input:checked { background: var(--orange); }
+  .mb-photo-toggle input:checked::after, .mb-toggle input:checked::after { transform: translateX(14px); }
+  .mb-photo-toggle input:disabled, .mb-toggle input:disabled { opacity: 0.45; cursor: default; }
+  .mb-photo-toggle input:focus-visible, .mb-toggle input:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+  @media (prefers-reduced-motion: reduce) { .mb-photo-toggle input, .mb-photo-toggle input::after, .mb-toggle input, .mb-toggle input::after { transition: none; } }
+
+  /* Mods: a fold with a chevron */
+  .mb-car-mods { padding: 4px 16px; }
+  button.mb-car-mods-label { min-height: 48px; font-size: 0.95rem; font-weight: 600; color: var(--ink); }
+  .mb-car-mods-title { display: inline-flex; align-items: center; gap: 8px; }
+  .mb-car-mods-body { padding-bottom: 12px; }
+  .mb-car-mods-note { font-size: 0.82rem; }
+  .mb-photo-mods-caret { display: inline-flex; line-height: 1; font-size: inherit; color: var(--steel); }
+  .mb-photo-mods-caret .icon { width: 16px; height: 16px; }
+
+  /* Photo viewer */
+  .mb-img-lightbox-close .icon, .mb-lightbox-nav .icon { width: 20px; height: 20px; }
+  .mb-lightbox-nav { border-radius: 50%; width: 40px; height: 40px; }
+  .mb-lightbox-body .mb-photo-mods-label, .mb-lightbox-comments-label { font-size: 0.84rem; font-weight: 600; color: var(--ink); }
+  .mb-comment-avatar { font-family: var(--font-body); }
+  .mb-comment-meta-time { font-size: 0.72rem; }
+  .mb-comment-photo-caption { font-size: 0.76rem; }
+  .mb-comments-toggle { font-size: 0.9rem; font-weight: 600; }
+  .mb-comments-empty { font-size: 0.86rem; }
+  .mb-loading p { font-size: 0.95rem; }
+  .mb-comment-alert-count { font-size: 0.74rem; }
 
   :focus-visible {
     outline: 2px solid var(--orange);
@@ -764,7 +899,7 @@ document.addEventListener('DOMContentLoaded', function () {
       <a href="signin.html" class="nav-link-mobile">Sign Up / Sign In</a>
       <div class="nav-item">
         <a href="index.html#build-feed" class="nav-link">Gallery Feed</a>
-        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Gallery Feed submenu">&#9660;</button>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Gallery Feed submenu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
         <div class="nav-dropdown">
           <a href="index.html#build-of-the-day" class="nav-sublink nav-sublink-new">Build of the Week</a>
           <a href="index.html#vote-frame" class="nav-sublink">Vote for Build</a>
@@ -774,7 +909,7 @@ document.addEventListener('DOMContentLoaded', function () {
       <a href="my-builds.html" class="nav-link nav-link-mybuilds active">My Garage</a>
       <div class="nav-item">
         <a href="profile.html" class="nav-link nav-link-profile">My Profile</a>
-        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle My Profile submenu">&#9660;</button>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle My Profile submenu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
         <div class="nav-dropdown">
           <a href="profile.html#messages" class="nav-sublink nav-sublink-new">Messages</a>
           <a href="profile.html#friends" class="nav-sublink nav-sublink-new">Friends</a>
@@ -783,12 +918,12 @@ document.addEventListener('DOMContentLoaded', function () {
       </div>
       <div class="nav-item">
         <a href="shop.html" class="nav-link">Shop</a>
-        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Shop submenu">&#9660;</button>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Shop submenu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
         <div class="nav-dropdown">
           <a href="shop.html#merch" class="nav-sublink">Merch</a>
           <div class="nav-item nav-subitem">
             <a href="shop.html#parts" class="nav-sublink nav-sublink-new">Parts</a>
-            <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Parts submenu">&#9660;</button>
+            <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Parts submenu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
             <div class="nav-dropdown">
               <a href="shop.html#tevo" class="nav-sublink">Tevo Solutions</a>
               <a href="shop.html#redline" class="nav-sublink">Redline Plates</a>
@@ -802,7 +937,7 @@ document.addEventListener('DOMContentLoaded', function () {
       <a href="index.html#events" class="nav-link">Events</a>
       <div class="nav-item">
         <a href="index.html#track-days" class="nav-link">Track Days</a>
-        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Track Days submenu">&#9660;</button>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Track Days submenu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
         <div class="nav-dropdown">
           <a href="track-day-prep.html" class="nav-sublink">Prep</a>
           <a href="track-day-on-the-day.html" class="nav-sublink nav-sublink-new">On The Day</a>
@@ -812,14 +947,14 @@ document.addEventListener('DOMContentLoaded', function () {
       </div>
       <div class="nav-item">
         <a href="blog.html" class="nav-link">Blog</a>
-        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Blog submenu">&#9660;</button>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Blog submenu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
         <div class="nav-dropdown">
           <a href="blog.html" class="nav-sublink nav-sublink-new">Owner Interviews</a>
         </div>
       </div>
       <div class="nav-item">
         <a href="index.html#about" class="nav-link">About</a>
-        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle About submenu">&#9660;</button>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle About submenu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
         <div class="nav-dropdown">
           <a href="https://www.facebook.com/groups/mt3uk/" class="nav-sublink" target="_blank" rel="noopener">Join The Facebook Group</a>
         </div>
@@ -827,7 +962,7 @@ document.addEventListener('DOMContentLoaded', function () {
       <a href="index.html#faq" class="nav-link">FAQs</a>
       <div class="nav-item">
         <a href="contact.html" class="nav-link">Contact</a>
-        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Contact submenu">&#9660;</button>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Contact submenu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
         <div class="nav-dropdown">
           <a href="https://ko-fi.com/mt3uk" class="nav-sublink" target="_blank" rel="noopener">Support Us</a>
         </div>
@@ -851,8 +986,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <section class="page-hero">
   <div class="wrap">
-    <a href="index.html" class="back-link">&larr; Back to MT3UK</a>
-    <span class="section-num mono">MY BUILDS</span>
+    <a href="index.html" class="back-link"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back to MT3UK</a>
+    <span class="section-num mono">My builds</span>
     <h1>My Garage</h1>
     <p>Manage the build(s) you've submitted to the gallery: choose where they appear, or remove them.</p>
   </div>
@@ -1088,12 +1223,12 @@ document.addEventListener('DOMContentLoaded', function () {
       </div>
 
       <div id="mb-car-detail-view" class="mb-car-detail" style="display:none;">
-        <span class="section-num mono">MANAGE CAR</span>
+        <span class="section-num mono">Manage car</span>
         <div class="mb-car-detail-header">
-          <button type="button" class="mb-back-btn" id="mb-car-back-btn">&larr; Back to garage</button>
+          <button type="button" class="mb-back-btn" id="mb-car-back-btn"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back to garage</button>
           <div class="mb-car-name-row">
             <span class="mb-car-name-text" id="mb-car-name-text"></span>
-            <button type="button" class="mb-car-name-btn" id="mb-car-name-edit">Edit</button>
+            <button type="button" class="mb-car-name-btn" id="mb-car-name-edit"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</button>
             <input type="text" class="mb-car-name-input" id="mb-car-name-input" maxlength="150" aria-label="Car name" hidden>
             <button type="button" class="mb-car-name-btn mb-car-name-save" id="mb-car-name-save" hidden>Save</button>
             <button type="button" class="mb-car-name-btn" id="mb-car-name-cancel" hidden>Cancel</button>
@@ -1111,7 +1246,7 @@ document.addEventListener('DOMContentLoaded', function () {
           </select>
           <span class="mb-car-photo-count mono" id="mb-car-photo-count"></span>
           <span class="mb-status mb-car-name-status" id="mb-car-name-status"></span>
-          <button type="button" class="mb-car-view-link" id="mb-car-view-link">View My Car</button>
+          <button type="button" class="mb-car-view-link" id="mb-car-view-link"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 17h14M3 13l2-5a2 2 0 0 1 1.9-1.4h10.2A2 2 0 0 1 19 8l2 5v4a1 1 0 0 1-1 1h-1a2 2 0 0 1-4 0H9a2 2 0 0 1-4 0H4a1 1 0 0 1-1-1Z"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>View my car</button>
         </div>
 
         <div class="mb-site-links" id="mb-car-site-links">
@@ -1124,7 +1259,7 @@ document.addEventListener('DOMContentLoaded', function () {
         <div class="mb-vote-hint" id="mb-vote-hint"></div>
 
         <div class="mb-car-mods" id="mb-car-mods">
-          <button type="button" class="mb-car-mods-label mono" id="mb-car-mods-toggle" aria-expanded="false" aria-controls="mb-car-mods-body">Mods<span class="mb-photo-mods-caret">&#9662;</span></button>
+          <button type="button" class="mb-car-mods-label mono" id="mb-car-mods-toggle" aria-expanded="false" aria-controls="mb-car-mods-body"><span class="mb-car-mods-title"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9Z"/></svg>Mods</span><span class="mb-photo-mods-caret"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span></button>
           <div class="mb-car-mods-body" id="mb-car-mods-body" hidden>
             <p class="mb-car-mods-note">Mods apply to all images for this car.</p>
             <p class="mb-car-mods-text" id="mb-car-mods-text"></p>
@@ -1180,11 +1315,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <div class="mb-img-lightbox" id="mb-img-lightbox" role="dialog" aria-modal="true" aria-hidden="true">
   <div class="mb-lightbox-panel">
-    <button type="button" class="mb-img-lightbox-close" aria-label="Close">&times;</button>
+    <button type="button" class="mb-img-lightbox-close" aria-label="Close"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     <div class="mb-lightbox-media">
       <img id="mb-img-lightbox-img" src="" alt="">
-      <button type="button" class="mb-lightbox-nav mb-lightbox-prev" id="mb-lightbox-prev-btn" aria-label="Previous photo">&lsaquo;</button>
-      <button type="button" class="mb-lightbox-nav mb-lightbox-next" id="mb-lightbox-next-btn" aria-label="Next photo">&rsaquo;</button>
+      <button type="button" class="mb-lightbox-nav mb-lightbox-prev" id="mb-lightbox-prev-btn" aria-label="Previous photo"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+      <button type="button" class="mb-lightbox-nav mb-lightbox-next" id="mb-lightbox-next-btn" aria-label="Next photo"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
     </div>
     <div class="mb-lightbox-body">
       <div class="mb-lightbox-actions" id="mb-lightbox-actions">
@@ -1199,7 +1334,7 @@ document.addEventListener('DOMContentLoaded', function () {
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-10.2-9.3C-0.2 8 1.4 3.9 5.3 3.2 7.7 2.8 10 3.9 12 6.4c2-2.5 4.3-3.6 6.7-3.2 3.9.7 5.5 4.8 3.5 8.5C19.5 16.4 12 21 12 21z"/></svg>
           <span class="mb-likes-count" id="mb-lightbox-likes-count">0</span>
           <span class="mb-likes-summary" id="mb-lightbox-likes-summary"></span>
-          <span class="mb-photo-mods-caret">&#9662;</span>
+          <span class="mb-photo-mods-caret"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
         </button>
         <ul class="mb-likes-list" id="mb-lightbox-likes-list" hidden></ul>
       </div>
@@ -1209,7 +1344,7 @@ document.addEventListener('DOMContentLoaded', function () {
       </div>
       </div>
       <div class="mb-photo-mods" id="mb-lightbox-mods">
-        <button type="button" class="mb-photo-mods-toggle mono" id="mb-lightbox-mods-toggle" aria-expanded="false">Mods<span class="mb-photo-mods-caret">&#9662;</span></button>
+        <button type="button" class="mb-photo-mods-toggle mono" id="mb-lightbox-mods-toggle" aria-expanded="false">Mods<span class="mb-photo-mods-caret"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span></button>
         <div class="mb-photo-mods-body" id="mb-lightbox-mods-body" hidden>
           <p class="mb-car-mods-note">Mods apply to all images for this car.</p>
           <p class="mb-car-mods-text"></p>
@@ -1235,8 +1370,8 @@ document.addEventListener('DOMContentLoaded', function () {
 <footer>
   <div class="wrap footer-row">
     <a href="/" class="logo footer-logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
-    <span class="mono">MODIFIED TESLA COMMUNITY &middot; <span class="member-count"></span> MEMBERS</span>
-    <span class="footer-links"><a href="privacy.html" class="mono" style="text-decoration:underline;">PRIVACY</a> <a href="https://www.facebook.com/groups/mt3uk/" target="_blank" rel="noopener" class="mono" style="text-decoration:underline;">FACEBOOK GROUP &#8599;</a></span>
+    <span class="footer-text">Modified Tesla community &middot; <span class="member-count"></span> members</span>
+    <span class="footer-links"><a href="privacy.html" style="text-decoration:underline;">Privacy</a> <a href="https://www.facebook.com/groups/mt3uk/" target="_blank" rel="noopener" style="text-decoration:underline;">Facebook group <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></a></span>
   </div>
 </footer>
 
@@ -1628,7 +1763,7 @@ document.addEventListener('DOMContentLoaded', function () {
               ? '<label class="mb-photo-toggle" title="Taken out of voting by MT3UK. You can enter a different photo."><input type="checkbox" data-flag="votable" disabled> Voting (removed)</label>'
               : '<label class="mb-photo-toggle" title="Your one entry in this week\'s Build of the Week vote"><input type="checkbox" data-flag="votable"' + (p.inVote ? ' checked' : '') + '> Voting</label>') +
           '</div>' +
-          (isDefault ? '' : '<button type="button" class="mb-photo-default-btn">Make Default</button>') +
+          (isDefault ? '' : '<button type="button" class="mb-photo-default-btn">Make default</button>') +
           '<button type="button" class="mb-photo-delete-btn">Delete</button>' +
           '<button type="button" class="mb-photo-move-btn">Move to another build</button>' +
           '<div class="mb-photo-move-panel" hidden>' +
@@ -1785,7 +1920,7 @@ document.addEventListener('DOMContentLoaded', function () {
               '<div class="mb-notif-item-name">' + escapeHtml(n.fromName || '') + '</div>' +
               '<div class="mb-notif-item-text">' + escapeHtml(n.text || '') + '</div>' +
               '<div class="mb-notif-item-date">' + timeAgo(n.createdAt) + '</div>' +
-            '</a><button type="button" class="mb-notif-dismiss" aria-label="Clear this notification">&times;</button></li>';
+            '</a><button type="button" class="mb-notif-dismiss" aria-label="Clear this notification"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></li>';
           }).join('')
         : (messagesRow ? '' : '<li class="mb-notif-empty">No notifications yet.</li>'));
       document.getElementById('mb-notif-clear-all').hidden = !notifications.length;
@@ -2386,7 +2521,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var modsArr = Array.isArray(mods) ? mods : [];
       carModsText.textContent = modsArr.length ? modsArr.join(', ') : 'No mods listed yet.';
       carModsTextarea.value = modsArr.join(', ');
-      carModsToggle.innerHTML = 'Mods (' + modsArr.length + ')<span class="mb-photo-mods-caret">&#9662;</span>';
+      carModsToggle.innerHTML = '<span class="mb-car-mods-title"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9Z"/></svg>Mods (' + modsArr.length + ')</span><span class="mb-photo-mods-caret"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>';
       setCarModsEditing(false);
     }
 
@@ -2430,7 +2565,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var modsArr = Array.isArray(mods) ? mods : [];
       var text = lightboxMods.querySelector('.mb-car-mods-text');
       text.textContent = modsArr.length ? modsArr.join(', ') : 'No mods listed yet.';
-      lightboxModsToggle.innerHTML = 'Mods (' + modsArr.length + ')<span class="mb-photo-mods-caret">&#9662;</span>';
+      lightboxModsToggle.innerHTML = 'Mods (' + modsArr.length + ')<span class="mb-photo-mods-caret"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>';
       lightboxModsBody.hidden = true;
       lightboxModsToggle.setAttribute('aria-expanded', 'false');
       lightboxMods.classList.remove('is-expanded');
@@ -2710,11 +2845,11 @@ document.addEventListener('DOMContentLoaded', function () {
           loadCars();
         } else {
           defaultBtn.disabled = false;
-          defaultBtn.textContent = 'Make Default';
+          defaultBtn.textContent = 'Make default';
         }
       }).catch(function () {
         defaultBtn.disabled = false;
-        defaultBtn.textContent = 'Make Default';
+        defaultBtn.textContent = 'Make default';
       });
     });
 

@@ -43,9 +43,14 @@
           "text": ""
         }
       ],
+      "entry": "£10",
+      "entryNote": "per vehicle",
+      "tickets": {
+        "intro": "This can then be used against any purchases made during the customers visit"
+      },
       "closing": "Fancy dress is heavily encouraged. See you there!",
-      "created": "2026-09-30",
-      "publish": "2026-09-30"
+      "publish": "2026-09-30",
+      "created": "2026-09-30"
     },
     {
       "slug": "race-of-remembrance-track-day-2026",

@@ -706,10 +706,10 @@ def test_text_that_is_too_long_is_refused_not_quietly_cut_off(device_page):
     open_events_admin(page)
     page.click('#ep-list [data-ep="edit"]')
     page.locator("#ep-form").wait_for(state="visible", timeout=5000)
-    page.fill("#ep-steps", "A" * 95 + " | short text")
+    page.fill("#ep-steps", "A" * 215 + " | short text")
     page.click("#ep-save")
     message = page.locator("#status").inner_text()
-    assert "step 1 title is 95 characters" in message.lower() and "limit is 80" in message and "Nothing has been saved" in message
+    assert "step 1 title is 215 characters" in message.lower() and "limit is 200" in message and "Nothing has been saved" in message
     assert "event_saved" not in page.mock_state, "Nothing was sent to be saved"
     # Shortened, with the detail after a |, it saves.
     page.fill("#ep-steps", "Bring your car | " + "detail " * 20)

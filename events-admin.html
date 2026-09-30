@@ -805,10 +805,10 @@
     var add = function (label, text, max, tip) { if (String(text || '').length > max) list.push({ label: label, length: String(text).length, max: max, tip: tip || '' }); };
     add('Tagline', entry.tagline, 200);
     (entry.description || []).forEach(function (t, i) { add('Description paragraph ' + (i + 1), t, 1500, 'Split it into two paragraphs with a blank line.'); });
-    (entry.highlights || []).forEach(function (t, i) { add('Highlight ' + (i + 1), t, 80, 'Keep highlights short, and put longer text in the description.'); });
+    (entry.highlights || []).forEach(function (t, i) { add('Highlight ' + (i + 1), t, 120, 'Keep highlights short, and put longer text in the description.'); });
     (entry.steps || []).forEach(function (s, i) {
-      add('How it works, step ' + (i + 1) + ' title', s.title, 80, 'Keep the title short and put the detail after a | so it becomes the step text (up to 300), or use the description for long paragraphs.');
-      add('How it works, step ' + (i + 1) + ' text', s.text, 300, 'Put longer text in the description.');
+      add('How it works, step ' + (i + 1) + ' title', s.title, 200, 'Keep the title short and put the detail after a | so it becomes the step text (up to 500), or use the description for long paragraphs.');
+      add('How it works, step ' + (i + 1) + ' text', s.text, 500, 'Put longer text in the description.');
     });
     (entry.schedule || []).forEach(function (s, i) { add('Running order ' + (i + 1) + ' title', s.title, 100); add('Running order ' + (i + 1) + ' text', s.text, 300); });
     (entry.faq || []).forEach(function (f, i) { add('Question ' + (i + 1), f.q, 150); add('Answer ' + (i + 1), f.a, 800); });

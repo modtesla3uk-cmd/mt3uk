@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Events Admin | MT3UK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
 <style>
   :root {
     --ink: #16233d;
@@ -19,7 +22,6 @@
     margin: 0;
     background: var(--ink);
     color: var(--white);
-    font-family: 'IBM Plex Mono', monospace;
     font-size: 0.85rem;
   }
   header {
@@ -103,8 +105,6 @@
   details > summary { cursor: pointer; list-style: none; }
   details > summary::-webkit-details-marker { display: none; }
   details > summary h2 { display: inline-block; margin: 0 0 14px; }
-  details > summary h2::before { content: "\25B8\00a0"; color: var(--orange); }
-  details[open] > summary h2::before { content: "\25BE\00a0"; }
   .past .event-card { opacity: 0.7; }
   .event-id.live { color: var(--green); border-color: var(--green); }
   .event-id.draft { color: var(--steel); border-color: var(--steel); }
@@ -112,6 +112,9 @@
   .ep-schedule input { width: auto; min-width: 10em; }
   .ep-schedule button { padding: 6px 12px; font-size: 0.72rem; }
   .ep-note { color: var(--steel); font-size: 0.72rem; margin: 0 0 14px; }
+  .ep-help { margin: 0 0 14px; }
+  .ep-help summary { color: var(--orange); font-size: 0.74rem; padding: 4px 0; }
+  .ep-help[open] summary { margin-bottom: 6px; }
   .ep-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
   .ep-fieldset { border: 1px solid rgba(255,255,255,0.2); padding: 14px 16px 16px; margin: 0 0 16px; min-width: 0; }
   .ep-fieldset legend { color: var(--orange); font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0 6px; }
@@ -133,12 +136,96 @@
   .tier-row .full { grid-column: 1 / -1; }
   .tier-row .checks { display: flex; gap: 18px; flex-wrap: wrap; }
   .tier-row textarea { min-height: 64px; }
+
+  /* ---------- Shared look, on the dark admin page ----------
+     Soft 10px corners, IBM Plex Sans in normal capitals, 44px buttons and
+     fields and line icons, as on the rest of the site (css/site-header.css). */
+  :root { --radius: 10px; --radius-sm: 8px; --radius-pill: 999px; --font-body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif; --focus-ring: 0 0 0 3px rgba(232, 84, 42, 0.4); }
+  body { font-family: var(--font-body); font-size: 0.95rem; line-height: 1.5; }
+  h1 { font-size: 1.15rem; font-weight: 700; letter-spacing: 0; }
+  h2 { font-size: 1.05rem; font-weight: 600; letter-spacing: 0; text-transform: none; }
+  .field label, .ep-fieldset legend { text-transform: none; letter-spacing: 0; font-size: 0.86rem; }
+  .ep-fieldset legend { font-weight: 600; }
+  input, textarea, select { min-height: 44px; border-radius: var(--radius-sm); font-family: inherit; font-size: 1rem; }
+  textarea { min-height: 96px; }
+  input:focus, textarea:focus, select:focus { outline: none; border-color: var(--orange); box-shadow: var(--focus-ring); }
+  input[type=checkbox], input[type=file] { min-height: 0; }
+  button {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 44px; padding: 10px 16px; border-radius: var(--radius);
+    background: var(--orange); color: #ffffff; border: 1px solid transparent;
+    font-family: var(--font-body); font-size: 0.93rem; font-weight: 600; line-height: 1.2;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+  }
+  button:hover { opacity: 1; background: #d4481f; }
+  button:disabled { opacity: 0.45; }
+  button.secondary { background: transparent; border-color: rgba(255,255,255,0.35); color: var(--white); }
+  button.secondary:hover { background: rgba(255,255,255,0.08); border-color: var(--white); }
+  button.danger { background: transparent; border-color: rgba(255,107,107,0.6); color: var(--red); }
+  button.danger:hover { background: rgba(255,107,107,0.14); color: var(--red); }
+  .event-actions button, .ep-schedule button { min-height: 40px; padding: 8px 14px; font-size: 0.86rem; border-radius: var(--radius-sm); }
+  .gallery-item button, .tier-row > button { min-height: 36px; padding: 6px 12px; font-size: 0.86rem; border-radius: var(--radius-sm); }
+  .form-card, .event-card, .ep-fieldset, .tier-row, .gallery-item { border-radius: var(--radius); }
+  .event-id { border-radius: var(--radius-pill); padding: 3px 12px; font-size: 0.8rem; font-weight: 600; }
+  .event-meta, .ep-note, .field .hint, .ep-fieldset .hint, .img-state { font-size: 0.82rem; }
+  .img-thumb { border-radius: var(--radius-sm); }
+  a { text-underline-offset: 3px; }
+  details > summary h2::before, details[open] > summary h2::before {
+    content: ""; display: inline-block; width: 18px; height: 18px; margin-right: 6px; vertical-align: -3px;
+    background: no-repeat center / 18px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e8542a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 18 6-6-6-6'/%3E%3C/svg%3E");
+    transition: transform .15s ease;
+  }
+  details[open] > summary h2::before { transform: rotate(90deg); }
+
+  /* Phones: larger text and tap targets. Desktop is unchanged. Inputs use
+     16px so iOS doesn't zoom in on focus. */
+  @media (max-width: 780px) {
+    body { font-size: 15px; }
+    header, main { padding-left: 16px; padding-right: 16px; }
+    h1 { font-size: 0.95rem; }
+    h2 { font-size: 0.95rem; }
+    input, select, textarea { font-size: 16px; }
+    button { min-height: 44px; font-size: 0.85rem; }
+    textarea { min-height: 110px; }
+    .status, .field label, .field .hint, .ep-fieldset .hint, .ep-note { font-size: 0.82rem; line-height: 1.5; }
+    .form-card { padding: 14px; }
+    .form-grid, .pair { grid-template-columns: 1fr; }
+    .ep-fieldset { padding: 12px 12px 14px; }
+    .ep-fieldset legend { font-size: 0.8rem; }
+    .form-actions button { flex: 1 1 auto; }
+
+    /* Event cards: badge and name side by side, buttons in a two-column grid */
+    .event-card { flex-wrap: wrap; }
+    .event-body { flex: 1 1 60%; min-width: 0; }
+    .event-name { font-size: 1.05rem; }
+    .event-meta { font-size: 0.85rem; }
+    .event-desc { font-size: 0.9rem; }
+    .event-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .event-actions button { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 0.85rem; }
+    .ep-bar button { flex: 1 1 100%; }
+    .ep-help summary { font-size: 0.85rem; padding: 10px 0; }
+    .ep-schedule { width: 100%; }
+    .ep-schedule input { flex: 1 1 100%; min-width: 0; }
+    .ep-schedule button { flex: 1 1 100%; min-height: 44px; padding: 8px 12px; font-size: 0.85rem; }
+
+    /* Images, tickets, tick boxes */
+    .img-slot { flex-direction: column; align-items: stretch; }
+    .img-slot input[type=file] { width: 100%; }
+    .img-thumb { width: 100%; max-width: 260px; height: auto; aspect-ratio: 16 / 10; }
+    .img-slot .img-state { font-size: 0.82rem; }
+    .gallery-slots { grid-template-columns: 1fr 1fr; }
+    .gallery-item input { font-size: 16px; padding: 8px; }
+    .gallery-item button, .tier-row > button { min-height: 44px; font-size: 0.85rem; }
+    .tier-row { grid-template-columns: 1fr; padding: 12px; }
+    .check { font-size: 0.9rem; min-height: 44px; }
+    .check input { width: 22px; height: 22px; }
+  }
 </style>
 </head>
 <body>
 <header>
   <div class="header-top">
-    <h1>MT3UK EVENTS ADMIN</h1>
+    <h1>MT3UK Events admin</h1>
     <a href="admin.html">Main admin</a>
   </div>
   <div class="key-row">
@@ -153,7 +240,10 @@
     <section>
       <details id="ep-wrap" open>
         <summary><h2>Event pages <span class="count" id="ep-count"></span></h2></summary>
-        <p class="ep-note">Each event page is a draft, scheduled or live, and is shown at event.html?e=web-address. Until it is live the public only sees a Coming soon card, and only you can open it: <strong>Preview</strong> opens it in this browser and stays open until you end it. Press <strong>Save</strong> and Preview shows the change straight away. From its publish date it goes live and is featured, with its image and tagline, in the homepage Events section until the event is over. Saves update the live site in about a minute.</p>
+        <p class="ep-note">Add and edit event pages here, then <strong>Preview</strong> them before they go live.</p>
+        <details class="ep-help"><summary>How this works</summary>
+          <p class="ep-note">Each event page is a draft, scheduled or live, and is shown at event.html?e=web-address. Until it is live the public only sees a Coming soon card, and only you can open it: <strong>Preview</strong> opens it in this browser and stays open until you end it. Press <strong>Save</strong> and Preview shows the change straight away. From its publish date it goes live and is featured, with its image and tagline, in the homepage Events section until the event is over. Saves update the live site in about a minute.</p>
+        </details>
         <div class="ep-bar"><button type="button" id="ep-new">Add an event page</button></div>
         <div id="ep-list"></div>
 
@@ -356,7 +446,7 @@
     listEl.innerHTML = pages.map(function (p) {
       var state = stateOf(p);
       var s = esc(p.slug);
-      var label = state === 'live' ? 'LIVE' : state === 'scheduled' ? 'SCHEDULED' : 'DRAFT';
+      var label = state === 'live' ? 'Live' : state === 'scheduled' ? 'Scheduled' : 'Draft';
       var when = state === 'draft' ? 'Not scheduled' : (state === 'live' ? 'Live since ' : 'Goes live ') + nice(p.publish);
       return '<div class="event-card">' +
         '<div class="event-id ' + state + '">' + label + '</div>' +

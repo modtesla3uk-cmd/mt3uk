@@ -33,13 +33,13 @@
     'html.ev-gated body>*:not(header):not(#ev-gate){display:none!important}' +
     '#ev-gate{min-height:calc(100svh - 70px);display:flex;align-items:center;justify-content:center;padding:48px 16px;background:#16233d;color:#fff;font-family:"IBM Plex Sans",Arial,sans-serif}' +
     '#ev-gate .evg-card{width:100%;max-width:440px;border:1px solid rgba(255,255,255,.2);padding:28px 24px;background:rgba(255,255,255,.04)}' +
-    '#ev-gate .evg-eyebrow{font-family:"IBM Plex Mono",monospace;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:#e8542a;margin:0 0 10px}' +
+    '#ev-gate .evg-eyebrow{font-family:"IBM Plex Sans",Arial,sans-serif;font-size:.78rem;color:#e8542a;margin:0 0 10px}' +
     '#ev-gate .evg-title{font-family:"Archivo Expanded",Arial,sans-serif;font-size:1.5rem;font-weight:800;line-height:1.25;margin:0 0 12px;color:#fff}' +
     '#ev-gate p{color:rgba(255,255,255,.8);line-height:1.5;margin:0 0 16px;font-size:.98rem}' +
     '#ev-gate .evg-msg{min-height:1.4em;margin:12px 0 0;font-size:.9rem;color:#ffb199}' +
     '#ev-gate .evg-back{display:inline-block;margin-top:6px;color:#fff;font-size:.9rem}' +
-    '.evg-pill{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:10px;background:#16233d;color:#fff;border:1px solid rgba(255,255,255,.25);border-left:4px solid #e8542a;padding:8px 12px;font-family:"IBM Plex Mono",monospace;font-size:.75rem;letter-spacing:.04em;white-space:nowrap;max-width:calc(100% - 24px)}' +
-    '.evg-pill button{background:none;border:1px solid rgba(255,255,255,.4);color:#fff;font:inherit;padding:3px 8px;cursor:pointer}' +
+    '.evg-pill{border-radius:10px;position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:10px;background:#16233d;color:#fff;border:1px solid rgba(255,255,255,.25);border-left:4px solid #e8542a;padding:8px 12px;font-family:"IBM Plex Sans",Arial,sans-serif;font-size:.75rem;white-space:nowrap;max-width:calc(100% - 24px)}' +
+    '.evg-pill button{background:none;border:1px solid rgba(255,255,255,.4);border-radius:8px;color:#fff;font:inherit;padding:5px 10px;cursor:pointer}' +
     '.evg-pill .evg-x{border:0;font-size:1rem;padding:0 4px}' +
     '@media (max-width:780px){.evg-pill{bottom:78px}}';
     '@media (max-width:780px){.evg-timer{bottom:78px}}';
@@ -90,10 +90,10 @@
     else document.body.insertBefore(gate, document.body.firstChild);
     gate.innerHTML =
       '<div class="evg-card">' +
-        '<p class="evg-eyebrow">MT3UK Event &middot; ' + (entry && entry.publish && !entry.draft ? 'Coming ' + esc(niceDate(entry.publish)) : 'Coming soon') + '</p>' +
+        '<p class="evg-eyebrow">MT3UK event &middot; ' + (entry && entry.publish && !entry.draft ? 'Coming ' + esc(niceDate(entry.publish)) : 'Coming soon') + '</p>' +
         '<p class="evg-title" role="heading" aria-level="1">' + esc((entry && entry.title) || 'Event details coming soon') + '</p>' +
         '<p>This event page isn&rsquo;t live yet. Details and tickets will be posted here, and in the Facebook group, as soon as it is.</p>' +
-        '<a class="evg-back" href="index.html#events">&larr; See all events</a>' +
+        '<a class="evg-back" href="index.html#events"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" style="width:16px;height:16px;vertical-align:-3px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg> See all events</a>' +
         '<p class="evg-msg" role="status">' + esc(message || '') + '</p>' +
       '</div>';
     show();
@@ -110,7 +110,7 @@
       pill.innerHTML =
         '<span>Admin preview: ' + (entry && entry.publish && !entry.draft ? 'goes live ' + esc(niceDate(entry.publish)) : 'draft, only you can see this') + '</span>' +
         '<button type="button" class="evg-end">End preview</button>' +
-        '<button type="button" class="evg-x" aria-label="Hide this note">&times;</button>';
+        '<button type="button" class="evg-x" aria-label="Hide this note"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>';
       document.body.appendChild(pill);
       pill.querySelector('.evg-x').addEventListener('click', function () { pill.parentNode.removeChild(pill); });
       pill.querySelector('.evg-end').addEventListener('click', function () { save(null); location.reload(); });

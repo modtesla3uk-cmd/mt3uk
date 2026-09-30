@@ -132,7 +132,7 @@ def test_a_draft_shows_striped_image_placeholders(device_page):
     serve(page, [event()])
     page.goto("/event.html?e=test-meet")
     page.locator(".ph").first.wait_for(state="visible", timeout=5000)
-    assert "HERO IMAGE" in page.locator(".ph").first.inner_text()
+    assert "Hero image" in page.locator(".ph").first.inner_text()
     assert page.locator('meta[name="robots"][content*="noindex"]').count() == 1
 
 
@@ -267,7 +267,7 @@ def test_admin_can_preview_publish_draft_and_delete(device_page):
     open_events_admin(page)
     card = page.locator("#ep-list .event-card")
     card.first.wait_for(state="visible", timeout=5000)
-    assert "DRAFT" in card.first.inner_text() and "Frunk or Treat UK 2026" in card.first.inner_text()
+    assert "Draft" in card.first.inner_text() and "Frunk or Treat UK 2026" in card.first.inner_text()
 
     with page.expect_popup() as popup_info:
         page.click('#ep-list [data-ep="preview"]')
@@ -276,11 +276,11 @@ def test_admin_can_preview_publish_draft_and_delete(device_page):
 
     page.once("dialog", lambda d: d.accept())
     page.click('#ep-list [data-ep="publish-now"]')
-    page.wait_for_function("document.querySelector('#ep-list .event-id').textContent === 'LIVE'", timeout=5000)
+    page.wait_for_function("document.querySelector('#ep-list .event-id').textContent === 'Live'", timeout=5000)
     assert page.locator('#ep-list [data-ep="delete"]').count() == 0, "A live event cannot be deleted"
     page.once("dialog", lambda d: d.accept())
     page.click('#ep-list [data-ep="draft"]')
-    page.wait_for_function("document.querySelector('#ep-list .event-id').textContent === 'DRAFT'", timeout=5000)
+    page.wait_for_function("document.querySelector('#ep-list .event-id').textContent === 'Draft'", timeout=5000)
     page.once("dialog", lambda d: d.accept())
     page.click('#ep-list [data-ep="delete"]')
     page.locator("#ep-list .empty").wait_for(state="visible", timeout=5000)
@@ -345,7 +345,7 @@ def test_admin_can_add_an_event_with_an_uploaded_image_tickets_and_save_and_prev
     assert saved["image"].startswith("images/") and len(saved["gallery"]) == 2
     assert page.mock_state["event_images"] == 3
     assert "Summer Meet 2027" in page.locator("#ep-list").inner_text()
-    assert "DRAFT" in page.locator("#ep-list .event-card").nth(1).inner_text()
+    assert "Draft" in page.locator("#ep-list .event-card").nth(1).inner_text()
 
 
 @ADMIN_ONLY
@@ -367,4 +367,26 @@ def test_event_pages_admin_fits_on_every_screen(device_page):
     page.click('#ep-list [data-ep="edit"]')
     page.locator("#ep-form").wait_for(state="visible", timeout=5000)
     page.click("#ep-add-tier")
+    assert overflow_width(page) <= 0
+
+
+@pytest.mark.parametrize("device_page", ["android"], indirect=True)
+def test_events_admin_is_readable_on_a_phone(device_page):
+    """The event cards keep their title readable and their buttons on screen,
+    and the form fields are 16px so phones don't zoom in on them."""
+    page = device_page
+    open_events_admin(page)
+    page.locator("#ep-list .event-card").first.wait_for(state="visible", timeout=5000)
+    width = page.evaluate("window.innerWidth")
+    assert page.locator("#ep-list .event-name").first.bounding_box()["width"] > 180, "The title must not be squeezed"
+    for button in page.locator("#ep-list .event-actions button").all():
+        box = button.bounding_box()
+        assert box["x"] >= 0 and box["x"] + box["width"] <= width, "A button runs off the screen"
+        assert box["height"] >= 42, "Buttons need a big enough tap target"
+    page.click('#ep-list [data-ep="edit"]')
+    page.locator("#ep-form").wait_for(state="visible", timeout=5000)
+    page.click("#ep-add-tier")
+    assert page.eval_on_selector("#ep-title", "e => parseFloat(getComputedStyle(e).fontSize)") >= 16
+    assert page.eval_on_selector("#ep-description", "e => parseFloat(getComputedStyle(e).fontSize)") >= 16
+    assert page.eval_on_selector(".tier-row .t-name", "e => parseFloat(getComputedStyle(e).fontSize)") >= 16
     assert overflow_width(page) <= 0

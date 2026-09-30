@@ -24,6 +24,8 @@
     u = String(u || '').trim();
     return /^https:\/\//i.test(u) || /^images\/[A-Za-z0-9_\-./]+$/.test(u) ? u : '';
   }
+  var ARROW_R = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+  var ARROW_L = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>';
   function list(v) { return Array.isArray(v) ? v : []; }
   function text(v) { return typeof v === 'string' ? v.trim() : ''; }
 
@@ -75,15 +77,15 @@
       var when = longDate(ev.startDate);
       var sub = '';
       if (ev.endDate && ev.endDate !== ev.startDate) { when = shortDate(ev.startDate) + ' to ' + longDate(ev.endDate); }
-      out.push(['WHEN', when, sub]);
+      out.push(['When', when, sub]);
     }
-    if (text(ev.venue)) out.push(['WHERE', text(ev.venue), text(ev.town)]);
+    if (text(ev.venue)) out.push(['Where', text(ev.venue), text(ev.town)]);
     if (ev.startTime) {
       var t = clock(ev.startTime) + (ev.endTime ? ' to ' + clock(ev.endTime) : '');
-      out.push(['TIME', t, text(ev.timeNote)]);
+      out.push(['Time', t, text(ev.timeNote)]);
     }
-    if (text(ev.entry)) out.push(['ENTRY', text(ev.entry), text(ev.entryNote)]);
-    else if (text(ev.what3words)) out.push(['WHAT3WORDS', text(ev.what3words), '']);
+    if (text(ev.entry)) out.push(['Entry', text(ev.entry), text(ev.entryNote)]);
+    else if (text(ev.what3words)) out.push(['What3words', text(ev.what3words), '']);
     return out;
   }
 
@@ -107,7 +109,7 @@
     var chips = list(ev.highlights).map(text).filter(Boolean);
     var steps = list(ev.steps).filter(function (s) { return s && (text(s.title) || text(s.text)); });
     if (!paras.length && !chips.length && !steps.length) return '';
-    var html = '<section class="ev-section"><div class="wrap ev-about">' + head(nextNum('ABOUT'), 'What to expect');
+    var html = '<section class="ev-section"><div class="wrap ev-about">' + head(nextNum('About'), 'What to expect');
     if (paras.length) {
       html += '<div class="cols">' + paras.map(function (p, i) { return '<p' + (i === 0 ? ' class="lead"' : '') + '>' + esc(p) + '</p>'; }).join('') + '</div>';
     }
@@ -125,16 +127,16 @@
     var tiers = list(t.tiers).filter(function (x) { return x && text(x.name); });
     var notes = list(t.notes).filter(function (x) { return x && (text(x.label) || text(x.value)); });
     if (!tiers.length && !notes.length && !text(t.intro)) return '';
-    var html = '<section class="ev-section alt"><div class="wrap"><div id="tickets" class="anchor"></div>' + head(nextNum('TICKETS'), 'Tickets and entry', text(t.intro));
+    var html = '<section class="ev-section alt"><div class="wrap"><div id="tickets" class="anchor"></div>' + head(nextNum('Tickets'), 'Tickets and entry', text(t.intro));
     if (tiers.length) {
       html += '<div class="tiers">' + tiers.map(function (x) {
         var cls = 'tier' + (x.featured ? ' featured' : '') + (x.soldOut ? ' soldout' : '');
-        var tag = x.soldOut ? '<span class="tier-tag quiet">SOLD OUT</span>' : (text(x.tag) ? '<span class="tier-tag' + (x.featured ? '' : ' quiet') + '">' + esc(text(x.tag)) + '</span>' : '');
+        var tag = x.soldOut ? '<span class="tier-tag quiet">Sold out</span>' : (text(x.tag) ? '<span class="tier-tag' + (x.featured ? '' : ' quiet') + '">' + esc(text(x.tag)) + '</span>' : '');
         var inc = list(x.includes).map(text).filter(Boolean);
         var url = safeUrl(x.url);
         var label = text(x.buttonLabel) || 'Get tickets';
         var btn = x.soldOut ? '<span class="btn btn-secondary" aria-disabled="true">Sold out</span>'
-          : url ? '<a class="btn ' + (x.featured ? 'btn-primary' : 'btn-secondary') + '" href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(label) + '</a>' : '';
+          : url ? '<a class="btn ' + (x.featured ? 'btn-accent' : 'btn-secondary') + '" href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(label) + '</a>' : '';
         return '<div class="' + cls + '">' + tag + '<h3>' + esc(text(x.name)) + '</h3>' +
           (text(x.price) ? '<div class="price">' + esc(text(x.price)) + '</div>' : '') +
           (text(x.per) ? '<div class="per">' + esc(text(x.per)) + '</div>' : '') +
@@ -150,7 +152,7 @@
   function scheduleHtml(ev) {
     var items = list(ev.schedule).filter(function (s) { return s && text(s.title); });
     if (!items.length) return '';
-    return '<section class="ev-section"><div class="wrap">' + head(nextNum('THE DAY'), 'Running order') +
+    return '<section class="ev-section"><div class="wrap">' + head(nextNum('The day'), 'Running order') +
       '<ol class="schedule">' + items.map(function (s) {
         return '<li><span class="t">' + esc(text(s.time)) + '</span><div><strong>' + esc(text(s.title)) + '</strong>' + (text(s.text) ? '<p>' + esc(text(s.text)) + '</p>' : '') + '</div></li>';
       }).join('') + '</ol></div></section>';
@@ -159,14 +161,14 @@
   function posterHtml(ev) {
     var url = safeUrl(ev.poster);
     if (!url) return '';
-    return '<section class="ev-section alt"><div class="wrap">' + head(nextNum('POSTER'), 'The poster') +
+    return '<section class="ev-section alt"><div class="wrap">' + head(nextNum('Poster'), 'The poster') +
       '<a class="poster" href="' + esc(url) + '" target="_blank" rel="noopener"><img src="' + esc(url) + '" alt="Poster for ' + esc(ev.title || ev.name) + '" loading="lazy"></a></div></section>';
   }
 
   function galleryHtml(ev, isDraft) {
     var items = list(ev.gallery).filter(function (g) { return g && safeUrl(g.src); });
     if (!items.length) return '';
-    return '<section class="ev-section"><div class="wrap">' + head(nextNum('PHOTOS'), text(ev.galleryTitle) || 'Photos') +
+    return '<section class="ev-section"><div class="wrap">' + head(nextNum('Photos'), text(ev.galleryTitle) || 'Photos') +
       '<div class="ev-gallery n' + Math.min(items.length, 5) + '">' + items.slice(0, 8).map(function (g) {
         return '<figure class="ev-img"><img src="' + esc(safeUrl(g.src)) + '" alt="' + esc(text(g.caption)) + '" loading="lazy">' +
           (text(g.caption) ? '<figcaption>' + esc(text(g.caption)) + '</figcaption>' : '') + '</figure>';
@@ -179,16 +181,16 @@
 
   function venueHtml(ev) {
     var rows = [];
-    if (text(ev.venue)) rows.push(['VENUE', text(ev.venue)]);
-    if (text(ev.address)) rows.push(['ADDRESS', text(ev.address)]);
-    if (text(ev.what3words)) rows.push(['WHAT3WORDS', text(ev.what3words)]);
-    list(ev.venueNotes).forEach(function (n) { if (n && text(n.label) && text(n.value)) rows.push([text(n.label).toUpperCase(), text(n.value)]); });
+    if (text(ev.venue)) rows.push(['Venue', text(ev.venue)]);
+    if (text(ev.address)) rows.push(['Address', text(ev.address)]);
+    if (text(ev.what3words)) rows.push(['What3words', text(ev.what3words)]);
+    list(ev.venueNotes).forEach(function (n) { if (n && text(n.label) && text(n.value)) rows.push([text(n.label), text(n.value)]); });
     if (!rows.length && !text(ev.directions)) return '';
     var q = mapsQuery(ev);
-    return '<section class="ev-section' + '"><div class="wrap"><div id="venue" class="anchor"></div>' + head(nextNum('VENUE'), 'Getting there') +
+    return '<section class="ev-section' + '"><div class="wrap"><div id="venue" class="anchor"></div>' + head(nextNum('Venue'), 'Getting there') +
       '<div class="venue-wrap"><div class="specs">' + rows.map(function (r) { return '<div class="spec-row"><span>' + esc(r[0]) + '</span><span>' + esc(r[1]) + '</span></div>'; }).join('') + '</div>' +
       (text(ev.directions) ? '<p class="directions">' + esc(text(ev.directions)) + '</p>' : '') +
-      (q ? '<a class="btn btn-secondary" href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q) + '" target="_blank" rel="noopener">Open in Maps &rarr;</a>' : '') +
+      (q ? '<a class="btn btn-secondary" href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q) + '" target="_blank" rel="noopener">Open in Maps ' + ARROW_R + '</a>' : '') +
       '</div></div></section>';
   }
 
@@ -218,12 +220,12 @@
   function heroHtml(ev, isDraft) {
     var d = ev.startDate ? new Date(ev.startDate + 'T12:00:00Z') : null;
     var dateBlock = d ? '<div class="ev-date" aria-label="' + esc(longDate(ev.startDate)) + '"><span class="m">' +
-      esc(d.toLocaleDateString('en-GB', { month: 'short', timeZone: 'UTC' }).toUpperCase()) + '</span><span class="d">' + d.getUTCDate() + '</span><span class="y">' + d.getUTCFullYear() + '</span></div>' : '';
-    var img = imageBlock(ev.heroImage || ev.image, 'ev-hero-img', { label: 'HERO IMAGE', size: '2100 x 900 (21:9). Crops to 4:3 on phones.' }, isDraft, ev.title || ev.name);
+      esc(d.toLocaleDateString('en-GB', { month: 'short', timeZone: 'UTC' })) + '</span><span class="d">' + d.getUTCDate() + '</span><span class="y">' + d.getUTCFullYear() + '</span></div>' : '';
+    var img = imageBlock(ev.heroImage || ev.image, 'ev-hero-img', { label: 'Hero image', size: '2100 x 900 (21:9). Crops to 4:3 on phones.' }, isDraft, ev.title || ev.name);
     return '<section class="ev-hero"><div class="wrap">' +
-      '<a href="index.html#events" class="back-link">&larr; Back to Events</a>' +
+      '<a href="index.html#events" class="back-link">' + ARROW_L + ' Back to Events</a>' +
       '<div class="ev-hero-top">' + dateBlock + '<div class="ev-hero-text">' +
-        '<span class="section-num mono">EVENTS / ' + esc((text(ev.kind) || 'MEET').toUpperCase()) + '</span>' +
+        '<span class="section-num mono">Events / ' + esc(text(ev.kind) || 'Meet') + '</span>' +
         '<h1>' + esc(ev.title || ev.name) + '</h1>' +
         (text(ev.tagline) ? '<p class="tagline">' + esc(text(ev.tagline)) + '</p>' : '') +
         (text(ev.organisers) ? '<p class="organisers">' + esc(text(ev.organisers)) + '</p>' : '') +
@@ -232,9 +234,9 @@
 
   function actionsHtml(ev) {
     var b = [];
-    if (hasTickets(ev)) b.push('<a class="btn btn-primary" href="#tickets">Get tickets &rarr;</a>');
+    if (hasTickets(ev)) b.push('<a class="btn btn-accent" href="#tickets">Get tickets ' + ARROW_R + '</a>');
     var cta = safeUrl(ev.ctaUrl);
-    if (cta) b.push('<a class="btn ' + (b.length ? 'btn-secondary' : 'btn-primary') + '" href="' + esc(cta) + '" target="_blank" rel="noopener">' + esc(text(ev.ctaLabel) || 'Event link') + ' &rarr;</a>');
+    if (cta) b.push('<a class="btn ' + (b.length ? 'btn-secondary' : 'btn-accent') + '" href="' + esc(cta) + '" target="_blank" rel="noopener">' + esc(text(ev.ctaLabel) || 'Event link') + ' ' + ARROW_R + '</a>');
     if (ev.startDate) b.push('<button class="btn btn-secondary" type="button" id="add-to-calendar">Add to calendar</button>');
     var q = mapsQuery(ev);
     if (q) b.push('<a class="btn btn-secondary" href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q) + '" target="_blank" rel="noopener">Get directions</a>');
@@ -243,9 +245,9 @@
 
   function closingHtml(ev) {
     var b = [];
-    if (hasTickets(ev)) b.push('<a class="btn btn-primary" href="#tickets">Get tickets &rarr;</a>');
+    if (hasTickets(ev)) b.push('<a class="btn btn-accent" href="#tickets">Get tickets ' + ARROW_R + '</a>');
     var cta = safeUrl(ev.ctaUrl);
-    if (cta) b.push('<a class="btn ' + (b.length ? 'btn-light' : 'btn-primary') + '" href="' + esc(cta) + '" target="_blank" rel="noopener">' + esc(text(ev.ctaLabel) || 'Event link') + ' &rarr;</a>');
+    if (cta) b.push('<a class="btn ' + (b.length ? 'btn-light' : 'btn-accent') + '" href="' + esc(cta) + '" target="_blank" rel="noopener">' + esc(text(ev.ctaLabel) || 'Event link') + ' ' + ARROW_R + '</a>');
     b.push('<a class="btn btn-light" href="https://www.facebook.com/groups/mt3uk" target="_blank" rel="noopener">Join the community</a>');
     return '<section class="ev-cta"><div class="wrap"><h2>See you there</h2><p>' + esc(text(ev.closing) || 'Tell a mate, and bring your Tesla or any EV.') + '</p><div class="row">' + b.join('') + '</div></div></section>';
   }
@@ -320,7 +322,7 @@
     var bar = document.getElementById('ev-ticket-bar');
     var price = firstPrice(ev);
     if (!bar || !hasTickets(ev) || !price) return;
-    bar.innerHTML = '<div><span class="from">TICKETS FROM</span><strong>' + esc(price.label) + '</strong></div><a class="btn btn-primary" href="#tickets">Get tickets</a>';
+    bar.innerHTML = '<div><span class="from">Tickets from</span><strong>' + esc(price.label) + '</strong></div><a class="btn btn-accent" href="#tickets">Get tickets</a>';
     bar.hidden = false;
   }
 
@@ -330,10 +332,10 @@
     robots.name = 'robots';
     robots.content = 'noindex';
     document.head.appendChild(robots);
-    main.innerHTML = '<section class="ev-section"><div class="wrap ev-missing"><span class="section-num mono">EVENTS</span>' +
+    main.innerHTML = '<section class="ev-section"><div class="wrap ev-missing"><span class="section-num mono">Events</span>' +
       '<h1>' + (bare ? 'MT3UK events' : 'We can\u2019t find that event') + '</h1>' +
       '<p>' + (bare ? 'Meets, shows and track days for modified Tesla owners. See what is coming up.' : 'It may not be live yet, or the link may be wrong. See what is coming up.') + '</p>' +
-      '<a class="btn btn-primary" href="index.html#events">See all events &rarr;</a></div></section>';
+      '<a class="btn btn-accent" href="index.html#events">See all events ' + ARROW_R + '</a></div></section>';
   }
 
   function render(ev) {

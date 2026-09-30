@@ -112,7 +112,7 @@
     if (!paras.length && !chips.length && !steps.length) return '';
     var html = '<section class="ev-section"><div class="wrap ev-about">' + head(nextNum('About'), 'What to expect');
     if (paras.length) {
-      html += '<div class="cols">' + paras.map(function (p, i) { return '<p' + (i === 0 ? ' class="lead"' : '') + '>' + esc(p) + '</p>'; }).join('') + '</div>';
+      html += '<div class="cols' + (paras.length === 1 ? ' one' : '') + '">' + paras.map(function (p, i) { return '<p' + (i === 0 ? ' class="lead"' : '') + '>' + esc(p) + '</p>'; }).join('') + '</div>';
     }
     if (chips.length) html += '<ul class="chips">' + chips.map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('') + '</ul>';
     if (steps.length) {

@@ -159,6 +159,11 @@
 
   .ev-about p { color: var(--ink-2); margin-bottom: 16px; max-width: 62ch; }
   .ev-about .lead { font-size: 1.12rem; color: var(--ink); font-weight: 500; }
+  /* A single short paragraph has nothing to split into columns, so centre it on desktop instead of leaving it flush left */
+  @media (min-width: 781px) {
+    .ev-about .cols.one { column-count: 1; column-rule: none; max-width: 700px; margin: 0 auto; text-align: center; }
+    .ev-about .cols.one p { margin-left: auto; margin-right: auto; max-width: none; }
+  }
 
   /* ---------- Tickets ---------- */
   .tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; align-items: stretch; }

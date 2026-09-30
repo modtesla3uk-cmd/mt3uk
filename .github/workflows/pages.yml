@@ -31,8 +31,8 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Install boto3
-        run: pip install boto3
+      - name: Install boto3 and Pillow
+        run: pip install boto3 Pillow
 
       - name: Regenerate gallery manifest from R2
         run: python3 scripts/build_gallery_manifest.py

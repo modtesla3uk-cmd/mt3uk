@@ -25,6 +25,7 @@
     return /^https:\/\//i.test(u) || /^images\/[A-Za-z0-9_\-./]+$/.test(u) ? u : '';
   }
   var ARROW_R = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+  var SHARE_ICON = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M16 6l-4-4-4 4M12 2v14"/></svg>';
   var ARROW_L = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>';
   function list(v) { return Array.isArray(v) ? v : []; }
   function text(v) { return typeof v === 'string' ? v.trim() : ''; }
@@ -238,6 +239,7 @@
     var cta = safeUrl(ev.ctaUrl);
     if (cta) b.push('<a class="btn ' + (b.length ? 'btn-secondary' : 'btn-accent') + '" href="' + esc(cta) + '" target="_blank" rel="noopener">' + esc(text(ev.ctaLabel) || 'Event link') + ' ' + ARROW_R + '</a>');
     if (ev.startDate) b.push('<button class="btn btn-secondary" type="button" id="add-to-calendar">Add to calendar</button>');
+    b.push('<button class="btn btn-secondary" type="button" id="share-event">' + SHARE_ICON + ' Share</button>');
     var q = mapsQuery(ev);
     if (q) b.push('<a class="btn btn-secondary" href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q) + '" target="_blank" rel="noopener">Get directions</a>');
     return b.length ? '<div class="ev-actions">' + b.join('') + '</div>' : '';
@@ -278,6 +280,28 @@
       a.click();
       a.remove();
       setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+    });
+  }
+
+  // Share: always the event's share page (share/event/<slug>.html), which has
+  // the event's own picture and text for chat and social link previews. The
+  // plain event.html?e=... address can only show one fixed preview.
+  function shareSetup(ev) {
+    var btn = document.getElementById('share-event');
+    if (!btn) return;
+    var url = 'https://mt3uk.com/share/event/' + slug + '.html';
+    var label = btn.innerHTML;
+    btn.addEventListener('click', function () {
+      if (navigator.share) {
+        navigator.share({ title: ev.title || ev.name, text: text(ev.tagline), url: url }).catch(function () {});
+        return;
+      }
+      var done = function () {
+        btn.textContent = 'Link copied';
+        setTimeout(function () { btn.innerHTML = label; }, 2000);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, function () { window.prompt('Copy this link', url); });
+      else window.prompt('Copy this link', url);
     });
   }
 
@@ -347,6 +371,7 @@
       aboutHtml(ev) + ticketsHtml(ev) + scheduleHtml(ev) + posterHtml(ev) + galleryHtml(ev, isDraft) + venueHtml(ev) + faqHtml(ev) + closingHtml(ev);
     pageMeta(ev, isDraft);
     calendar(ev);
+    shareSetup(ev);
     ticketBar(ev);
     if (location.hash) {
       var target = document.getElementById(location.hash.slice(1));

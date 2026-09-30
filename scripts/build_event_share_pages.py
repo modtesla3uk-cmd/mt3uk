@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """
 Writes a small share page for every event in data/event-pages.json to
-share/event/<slug>.html.
+share/event/<slug>.html, and a right-sized preview picture beside it,
+share/event/<slug>.jpg (1200 x 630, kept small: WhatsApp drops preview images
+that are much over 300 KB, and event photos are usually far bigger).
 
 Link previews in WhatsApp, Facebook, X and iMessage read a page's own HTML and
 do not run scripts, and event.html?e=<slug> is drawn by script, so on its own
@@ -18,9 +20,11 @@ made from the current data/event-pages.json and are not committed.
     python scripts/build_event_share_pages.py --check  # only list what would be written
 """
 import html
+import io
 import json
 import re
 import sys
+import urllib.request
 from datetime import date
 from pathlib import Path
 
@@ -48,6 +52,44 @@ def event_image(ev):
         if found:
             return found
     return DEFAULT_IMAGE
+
+
+PREVIEW_SIZE = (1200, 630)
+PREVIEW_MAX_BYTES = 280 * 1024
+NAVY = (22, 35, 61)
+
+
+def source_bytes(ev):
+    """The event's best picture (hero, card, poster) as bytes, or None."""
+    for field in ("heroImage", "image", "poster"):
+        url = (ev.get(field) or "").strip()
+        try:
+            if url.startswith("https://"):
+                request = urllib.request.Request(url, headers={"User-Agent": "mt3uk-build"})
+                with urllib.request.urlopen(request, timeout=20) as res:
+                    return res.read()
+            if re.fullmatch(r"images/[A-Za-z0-9_\-./]+", url) and (ROOT / url).exists():
+                return (ROOT / url).read_bytes()
+        except Exception as err:  # a picture that cannot be fetched is skipped
+            print(f"  could not read {field} for {ev.get('slug')}: {err}")
+    return None
+
+
+def make_preview(data):
+    """1200 x 630 JPEG under 300 KB from any picture. Wide photos are cropped
+    to fit; tall ones (posters) sit whole on navy. Needs Pillow."""
+    from PIL import Image, ImageOps
+    im = ImageOps.exif_transpose(Image.open(io.BytesIO(data))).convert("RGB")
+    if im.width >= im.height:
+        im = ImageOps.fit(im, PREVIEW_SIZE, method=Image.LANCZOS)
+    else:
+        im = ImageOps.pad(im, PREVIEW_SIZE, method=Image.LANCZOS, color=NAVY)
+    for quality in (85, 78, 70, 62, 55):
+        out = io.BytesIO()
+        im.save(out, "JPEG", quality=quality, optimize=True, progressive=True)
+        if out.tell() <= PREVIEW_MAX_BYTES:
+            break
+    return out.getvalue()
 
 
 def clock(hhmm):
@@ -83,14 +125,15 @@ def description(ev):
     return tagline or (when + "." if when else "MT3UK events: meets, shows and track days for modified Tesla owners.")
 
 
-def render(ev):
+def render(ev, preview_url=None):
     slug = ev["slug"]
     title = (ev.get("title") or ev.get("name") or "Event") + " – MT3UK Events"
     desc = description(ev)
-    image = event_image(ev)
+    image = preview_url or event_image(ev)
     url = f"{SITE_URL}/share/event/{slug}.html"
     e = html.escape
     target = f"/event.html?e={slug}"
+    size_tags = (f'\n<meta property="og:image:width" content="{PREVIEW_SIZE[0]}">\n<meta property="og:image:height" content="{PREVIEW_SIZE[1]}">' if preview_url else "")
     return f"""<!DOCTYPE html>
 <html lang="en-GB">
 <head>
@@ -106,7 +149,7 @@ def render(ev):
 <meta property="og:title" content="{e(title)}">
 <meta property="og:description" content="{e(desc)}">
 <meta property="og:image" content="{e(image)}">
-<meta property="og:image:alt" content="{e(ev.get('title') or ev.get('name') or 'Event')}">
+<meta property="og:image:alt" content="{e(ev.get('title') or ev.get('name') or 'Event')}">{size_tags}
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{e(title)}">
 <meta name="twitter:description" content="{e(desc)}">
@@ -131,25 +174,45 @@ def render(ev):
 """
 
 
-def pages_to_write():
-    """{file name: html} for every event with a valid web address."""
+def pages_to_write(previews=None):
+    """{file name: html} for every event with a valid web address. `previews`
+    maps a slug to the address of its right-sized preview picture."""
+    previews = previews or {}
     events = json.loads(DATA.read_text(encoding="utf-8")).get("events", [])
-    return {f"{ev['slug']}.html": render(ev) for ev in events if SLUG.fullmatch(ev.get("slug", ""))}
+    return {f"{ev['slug']}.html": render(ev, previews.get(ev["slug"])) for ev in events if SLUG.fullmatch(ev.get("slug", ""))}
 
 
 def main():
-    pages = pages_to_write()
+    events = [ev for ev in json.loads(DATA.read_text(encoding="utf-8")).get("events", []) if SLUG.fullmatch(ev.get("slug", ""))]
     if "--check" in sys.argv[1:]:
-        for name in sorted(pages):
+        for name in sorted(pages_to_write()):
             print(name)
         return
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    for old in OUT_DIR.glob("*.html"):
-        if old.name not in pages:
+    previews = {}
+    try:
+        import PIL  # noqa: F401
+        have_pillow = True
+    except ImportError:
+        have_pillow = False
+        print("Pillow is not installed, so previews use the original pictures")
+    for ev in events:
+        data = source_bytes(ev) if have_pillow else None
+        if not data:
+            continue
+        try:
+            (OUT_DIR / f"{ev['slug']}.jpg").write_bytes(make_preview(data))
+            previews[ev["slug"]] = f"{SITE_URL}/share/event/{ev['slug']}.jpg"
+        except Exception as err:
+            print(f"  could not make a preview for {ev['slug']}: {err}")
+    pages = pages_to_write(previews)
+    keep = set(pages) | {f"{slug}.jpg" for slug in previews}
+    for old in list(OUT_DIR.glob("*.html")) + list(OUT_DIR.glob("*.jpg")):
+        if old.name not in keep:
             old.unlink()
     for name, text in pages.items():
         (OUT_DIR / name).write_text(text, encoding="utf-8")
-    print(f"Wrote {len(pages)} event share page(s) to {OUT_DIR}")
+    print(f"Wrote {len(pages)} event share page(s) and {len(previews)} preview picture(s) to {OUT_DIR}")
 
 
 if __name__ == "__main__":

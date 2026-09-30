@@ -1786,8 +1786,8 @@
     text-decoration: none;
   }
   .ev-feature:hover { border-color: var(--orange); }
-  .ev-feature-img { position: relative; aspect-ratio: 16 / 10; background: var(--ink); overflow: hidden; }
-  .ev-feature-img img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.4s; }
+  .ev-feature-img { position: relative; min-height: 220px; background: var(--ink); overflow: hidden; }
+  .ev-feature-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.4s; }
   .ev-feature:hover .ev-feature-img img { transform: scale(1.03); }
   .ev-feature-noimg {
     display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;
@@ -1797,12 +1797,14 @@
   .ev-feature-body { display: flex; flex-direction: column; justify-content: center; gap: 8px; padding: 26px 28px; }
   .ev-feature-kicker { font-family: var(--font-body); font-size: 0.82rem; color: var(--orange); }
   .ev-feature-body h3 { font-family: 'Archivo Expanded', sans-serif; font-weight: 800; font-size: clamp(1.25rem, 2.6vw, 1.7rem); line-height: 1.15; color: var(--ink); }
-  .ev-feature-tagline { color: var(--ink-2, #223257); font-size: 1rem; }
-  .ev-feature-where { color: var(--steel); font-size: 0.88rem; }
+  .ev-feature-tagline { color: var(--ink); font-size: 1rem; }
+  .ev-feature-where { color: var(--ink-2, #223257); font-size: 0.92rem; }
+  .ev-feature-img img.ev-noimg { object-fit: contain; padding: 14% 20%; background: var(--ink); }
   .ev-feature-cta { align-self: flex-start; margin-top: 8px; padding: 10px 18px; background: var(--orange); color: var(--white); font-weight: 600; font-size: 0.92rem; }
   .ev-feature:hover .ev-feature-cta { background: #cf4620; }
   @media (max-width: 780px) {
     .ev-feature { grid-template-columns: 1fr; }
+    .ev-feature-img { min-height: 0; aspect-ratio: 16 / 10; }
     .ev-feature-body { padding: 20px; }
     .ev-feature-cta { align-self: stretch; text-align: center; }
   }
@@ -1828,12 +1830,12 @@
     color: var(--orange);
   }
   .event-info h3 { font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; font-size: 1.05rem; color: var(--ink); margin-bottom: 2px; }
-  .event-info p { color: var(--steel); font-size: 0.88rem; }
+  .event-info p { color: var(--ink-2, #223257); font-size: 0.92rem; }
   .event-status {
     font-family: var(--font-body);
     font-size: 0.8rem;
-    color: var(--steel);
-    border: 1px solid var(--steel);
+    color: var(--ink-2, #223257);
+    border: 1px solid var(--ink-2, #223257);
     padding: 5px 10px;
     white-space: nowrap;
     justify-self: start;
@@ -1848,14 +1850,10 @@
   .event-status-confirmed:hover { opacity: 0.85; }
   .past-events-heading {
     font-family: var(--font-body);
-    font-size: 0.85rem;
-    color: var(--steel);
-    margin-bottom: 8px;
-  }
-  #past-events-list .event-row { opacity: 0.6; }
-  .event-status-past {
-    color: var(--steel);
-    border-color: var(--steel);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 12px;
   }
   .event-meta {
     font-family: var(--font-body);
@@ -4900,7 +4898,7 @@
   </div>
 </section>
 
-<section id="events">
+<section id="events" data-share-image="images/MT3UK_RED_BLK_BG.png">
   <div class="wrap">
     <div class="section-head">
       <div>
@@ -4909,15 +4907,7 @@
       </div>
       <p>Full details always posted in the Facebook group first.</p>
     </div>
-    <div class="diagram" style="max-width: 320px; aspect-ratio: 1/1; margin: 0 0 32px;">
-      <img src="images/hero.jpg" alt="MT3UK members' modified Teslas lined up at a UK car show">
-      <div class="grid-overlay"></div>
-      <div class="corner tl"></div><div class="corner tr"></div>
-      <div class="corner bl"></div><div class="corner br"></div>
-      <span class="caption">FIG. 01: MT3UK MEMBERS AT A UK CAR SHOW</span>
-    </div>
     <div class="ev-features" id="event-features"></div>
-    <div class="events-list" id="confirmed-events-list"></div>
     <div class="events-list">
       <div class="event-row">
         <div class="event-date">TBC</div>
@@ -4937,7 +4927,7 @@
     </div>
     <div id="past-events-section" style="display: none; margin-top: 36px;">
       <h3 class="past-events-heading">Previous events</h3>
-      <div class="events-list" id="past-events-list"></div>
+      <div class="ev-features" id="past-events-list"></div>
     </div>
   </div>
 </section>
@@ -5228,137 +5218,114 @@
 </script>
 
 <script>
-  // Published event pages (data/event-pages.json) are featured above the
-  // meets list, with their image and tagline, until the event is over.
+  // The Events section: every event is a card with its own main image.
+  // The meets list (events-data/events-manifest.json) and the event pages
+  // (data/event-pages.json, linked by manifestId) are combined, so an event
+  // with a live page shows that page's details, and Join event opens the page
+  // with the full details. An event without a live page still links to its
+  // Facebook or ticket link, with the image from its draft page if it has one.
   (function () {
-    var box = document.getElementById('event-features');
-    if (!box) return;
+    var upcomingBox = document.getElementById('event-features');
+    var pastBox = document.getElementById('past-events-list');
+    var pastSection = document.getElementById('past-events-section');
+    if (!upcomingBox) return;
     var today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London' }).format(new Date());
+    var ARROW = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
     function esc(v) {
       return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
         return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
       });
     }
-    function when(ev) {
-      if (!ev.startDate) return 'Event';
-      var opts = { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' };
-      var text = new Date(ev.startDate + 'T12:00:00Z').toLocaleDateString('en-GB', opts);
-      if (ev.endDate && ev.endDate !== ev.startDate) text += ' to ' + new Date(ev.endDate + 'T12:00:00Z').toLocaleDateString('en-GB', opts);
-      return text;
+    function clock(hhmm) {
+      var m = /^(\d{1,2}):(\d{2})/.exec(hhmm || '');
+      if (!m) return '';
+      var h = +m[1], h12 = h % 12 || 12, suffix = h >= 12 ? 'pm' : 'am';
+      return m[2] === '00' ? h12 + suffix : h12 + ':' + m[2] + suffix;
     }
-    function card(ev) {
-      var img = ev.image
-        ? '<img src="' + esc(ev.image) + '" alt="' + esc(ev.title || ev.name) + '" loading="lazy">'
-        : '<div class="ev-feature-noimg">Event image</div>';
-      return '<a class="ev-feature" href="event.html?e=' + esc(ev.slug) + '">' +
-        '<div class="ev-feature-img">' + img + '</div>' +
-        '<div class="ev-feature-body">' +
-          '<span class="ev-feature-kicker">FEATURED EVENT / ' + esc(when(ev)) + '</span>' +
-          '<h3>' + esc(ev.title || ev.name) + '</h3>' +
-          (ev.tagline ? '<p class="ev-feature-tagline">' + esc(ev.tagline) + '</p>' : '') +
-          (ev.location ? '<p class="ev-feature-where">' + esc(ev.location) + '</p>' : '') +
-          '<span class="ev-feature-cta">View event<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>' +
-        '</div></a>';
+    function dayText(iso) {
+      return new Date(iso + 'T12:00:00Z').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).replace(/,/g, '');
     }
-    fetch('data/event-pages.json', { cache: 'no-store' })
-      .then(function (res) { return res.json(); })
-      .then(function (data) {
-        var live = ((data && data.events) || []).filter(function (ev) {
-          if (ev.draft || !ev.publish || ev.publish > today) return false;
-          var end = ev.endDate || ev.startDate;
-          return !end || end >= today;
+    function whenText(startDay, endDay, startTime, endTime) {
+      var text = dayText(startDay);
+      if (endDay && endDay !== startDay) return text + ' to ' + dayText(endDay);
+      var t = clock(startTime);
+      if (t && endTime && endTime !== startTime) t += ' to ' + clock(endTime);
+      return t ? text + ', ' + t : text;
+    }
+    function isLive(p) { return !!(p && !p.draft && p.publish && p.publish <= today); }
+    function pageImage(p) { return p ? (p.image || p.heroImage || p.poster || '') : ''; }
+
+    // One item per event, from either the meets list or a page of its own.
+    function build(manifest, pages) {
+      var byManifest = {};
+      var usedSlugs = {};
+      pages.forEach(function (p) { if (p.manifestId) byManifest[p.manifestId] = p; });
+      var items = [];
+      manifest.forEach(function (ev) {
+        var pg = byManifest[ev.id];
+        var live = isLive(pg);
+        if (pg) usedSlugs[pg.slug] = true;
+        var startDay = (ev.startTime || '').slice(0, 10);
+        var endDay = (ev.endTime || ev.startTime || '').slice(0, 10);
+        var going = (ev.attendingCount || 0) + (ev.interestedCount || 0) > 0 ? (ev.attendingCount || 0) + ' attending, ' + (ev.interestedCount || 0) + ' interested' : '';
+        items.push({
+          sort: ev.startTime || '', past: new Date(ev.endTime || ev.startTime) < new Date(),
+          title: live ? (pg.title || pg.name) : ev.name,
+          tagline: live && pg.tagline ? pg.tagline : ev.description,
+          when: whenText(startDay, endDay, (ev.startTime || '').slice(11, 16), (ev.endTime || '').slice(11, 16)),
+          where: (ev.location && ev.location.name) || '', going: going,
+          image: pageImage(pg),
+          href: live ? 'event.html?e=' + encodeURIComponent(pg.slug) : (ev.facebookUrl || ''), external: !live && !!ev.facebookUrl
         });
-        live.sort(function (a, b) { return (a.startDate || '9999') < (b.startDate || '9999') ? -1 : 1; });
-        box.innerHTML = live.map(card).join('');
-      })
-      .catch(function () {});
-  })();
-</script>
-
-<script>
-  (function () {
-    var list = document.getElementById('confirmed-events-list');
-    var pastSection = document.getElementById('past-events-section');
-    var pastList = document.getElementById('past-events-list');
-    if (!list) return;
-
-    function formatTime(date) {
-      var hours = date.getUTCHours();
-      var minutes = date.getUTCMinutes();
-      var suffix = hours >= 12 ? 'pm' : 'am';
-      var hour12 = hours % 12 || 12;
-      return minutes ? hour12 + ':' + (minutes < 10 ? '0' : '') + minutes + suffix : hour12 + suffix;
-    }
-
-    function formatDateRange(startTime, endTime) {
-      var start = new Date(startTime);
-      var end = endTime ? new Date(endTime) : null;
-      var dateOpts = { day: 'numeric', month: 'short', timeZone: 'UTC' };
-      var dateLabel = start.toLocaleDateString('en-GB', dateOpts);
-      var dayLabel = start.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
-      var timeLabel = formatTime(start);
-      if (end) timeLabel += '–' + formatTime(end);
-      return { dateLabel: dateLabel, metaLabel: dayLabel + ', ' + timeLabel };
-    }
-
-    // Older events that now have a live event page (data/event-pages.json,
-    // linked by manifestId): the featured card above shows an upcoming one, and
-    // a past one links to its page.
-    var pageFor = {};
-    function eventRowHtml(ev, isPast) {
-      var when = formatDateRange(ev.startTime, ev.endTime);
-      var metaParts = [when.metaLabel];
-      if (ev.location && ev.location.name) metaParts.push(ev.location.name);
-      if (typeof ev.attendingCount === 'number' && typeof ev.interestedCount === 'number') {
-        metaParts.push(ev.attendingCount + ' attending, ' + ev.interestedCount + ' interested');
-      }
-      var status = isPast
-        ? '<div class="event-status event-status-past">Past</div>'
-        : '<a class="event-status event-status-confirmed" href="' + ev.facebookUrl + '" target="_blank" rel="noopener">Join event</a>';
-      return '<div class="event-row">' +
-        '<div class="event-date">' + when.dateLabel + '</div>' +
-        '<div class="event-info">' +
-          '<h3>' + (pageFor[ev.id] ? '<a href="event.html?e=' + encodeURIComponent(pageFor[ev.id]) + '">' + ev.name + '</a>' : ev.name) + '</h3>' +
-          '<p>' + ev.description + '</p>' +
-          '<p class="event-meta">' + metaParts.join(' · ') + '</p>' +
-        '</div>' +
-        status +
-      '</div>';
-    }
-
-    function renderEvents(events) {
-      var now = new Date();
-      var upcoming = [];
-      var past = [];
-      events.forEach(function (ev) {
-        var end = new Date(ev.endTime || ev.startTime);
-        (end < now ? past : upcoming).push(ev);
       });
-      upcoming = upcoming.filter(function (ev) { return !pageFor[ev.id]; });
-      upcoming.sort(function (a, b) { return new Date(a.startTime) - new Date(b.startTime); });
-      past.sort(function (a, b) { return new Date(b.startTime) - new Date(a.startTime); });
+      pages.forEach(function (p) {
+        if (usedSlugs[p.slug] || !isLive(p)) return;
+        var endDay = p.endDate || p.startDate || '';
+        items.push({
+          sort: (p.startDate || '9999') + 'T' + (p.startTime || '00:00'), past: !!endDay && endDay < today,
+          title: p.title || p.name, tagline: p.tagline || '',
+          when: p.startDate ? whenText(p.startDate, p.endDate, p.startTime, p.endTime) : 'Event',
+          where: p.location || p.venue || '', going: '', image: pageImage(p),
+          href: 'event.html?e=' + encodeURIComponent(p.slug), external: false
+        });
+      });
+      return items;
+    }
 
-      if (upcoming.length) list.innerHTML = upcoming.map(function (ev) { return eventRowHtml(ev, false); }).join('');
+    function card(it) {
+      var img = it.image
+        ? '<img src="' + esc(it.image) + '" alt="' + esc(it.title) + '" loading="lazy">'
+        : '<img class="ev-noimg" src="images/MT3UK_RED_BLK_BG.png" alt="" loading="lazy">';
+      var linked = !!it.href && !(it.past && it.external);
+      var label = it.past ? 'View event' : 'Join event';
+      var inner = '<div class="ev-feature-img">' + img + '</div>' +
+        '<div class="ev-feature-body">' +
+          '<span class="ev-feature-kicker">' + esc(it.when) + (it.past ? ' &middot; Past event' : '') + '</span>' +
+          '<h3>' + esc(it.title) + '</h3>' +
+          (it.tagline ? '<p class="ev-feature-tagline">' + esc(it.tagline) + '</p>' : '') +
+          (it.where ? '<p class="ev-feature-where">' + esc(it.where) + '</p>' : '') +
+          (it.going ? '<p class="ev-feature-where">' + esc(it.going) + '</p>' : '') +
+          (linked ? '<span class="ev-feature-cta">' + label + ARROW + '</span>' : '') +
+        '</div>';
+      return linked
+        ? '<a class="ev-feature" href="' + esc(it.href) + '"' + (it.external ? ' target="_blank" rel="noopener"' : '') + '>' + inner + '</a>'
+        : '<div class="ev-feature">' + inner + '</div>';
+    }
 
-      if (past.length && pastSection && pastList) {
-        pastList.innerHTML = past.map(function (ev) { return eventRowHtml(ev, true); }).join('');
+    function draw(items) {
+      var up = items.filter(function (i) { return !i.past; }).sort(function (a, b) { return a.sort < b.sort ? -1 : 1; });
+      var past = items.filter(function (i) { return i.past; }).sort(function (a, b) { return a.sort < b.sort ? 1 : -1; });
+      upcomingBox.innerHTML = up.map(card).join('');
+      if (past.length && pastBox && pastSection) {
+        pastBox.innerHTML = past.map(card).join('');
         pastSection.style.display = '';
       }
     }
 
-    var today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London' }).format(new Date());
-    var pagesLoaded = fetch('data/event-pages.json', { cache: 'no-store' })
-      .then(function (response) { return response.json(); })
-      .then(function (data) {
-        ((data && data.events) || []).forEach(function (p) {
-          if (p.manifestId && !p.draft && p.publish && p.publish <= today) pageFor[p.manifestId] = p.slug;
-        });
-      })
-      .catch(function () {});
-    fetch('events-data/events-manifest.json', { cache: 'no-store' })
-      .then(function (response) { return response.json(); })
-      .then(function (manifest) { return pagesLoaded.then(function () { renderEvents((manifest && manifest.events) || []); }); })
-      .catch(function () {});
+    function json(url) { return fetch(url, { cache: 'no-store' }).then(function (r) { return r.json(); }).catch(function () { return null; }); }
+    Promise.all([json('events-data/events-manifest.json'), json('data/event-pages.json')]).then(function (r) {
+      draw(build((r[0] && r[0].events) || [], (r[1] && r[1].events) || []));
+    });
   })();
 </script>
 

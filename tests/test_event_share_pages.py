@@ -64,3 +64,38 @@ def test_the_plain_event_page_no_longer_shows_the_main_events_photo():
 def test_the_deploy_build_writes_the_event_share_pages():
     workflow = (ROOT / ".github" / "workflows" / "pages.yml").read_text(encoding="utf-8")
     assert "python3 scripts/build_event_share_pages.py" in workflow
+
+
+def test_the_preview_picture_is_1200_by_630_and_small_enough_for_whatsapp():
+    pytest = __import__("pytest")
+    pytest.importorskip("PIL")
+    from io import BytesIO
+    from PIL import Image
+    big_wide = Image.effect_noise((2400, 1000), 90).convert("RGB")  # noisy, so it compresses badly
+    buffer = BytesIO()
+    big_wide.save(buffer, "JPEG", quality=95)
+    assert len(buffer.getvalue()) > 400 * 1024, "The starting picture is large"
+    preview = builder.make_preview(buffer.getvalue())
+    assert len(preview) <= builder.PREVIEW_MAX_BYTES
+    assert Image.open(BytesIO(preview)).size == (1200, 630)
+    # A tall poster sits whole on navy instead of being cropped.
+    tall = Image.new("RGB", (1024, 1536), (250, 20, 140))
+    buffer = BytesIO()
+    tall.save(buffer, "JPEG")
+    poster = Image.open(BytesIO(builder.make_preview(buffer.getvalue())))
+    assert poster.size == (1200, 630)
+    assert poster.getpixel((5, 300)) == builder.NAVY or sum(abs(a - b) for a, b in zip(poster.getpixel((5, 300)), builder.NAVY)) < 30, "Navy either side"
+
+
+def test_a_share_page_uses_the_right_sized_preview_when_there_is_one():
+    ev = {"slug": "x-event", "title": "X", "image": "https://img.example/huge.jpg"}
+    with_preview = builder.render(ev, "https://mt3uk.com/share/event/x-event.jpg")
+    assert meta(with_preview, "og:image") == "https://mt3uk.com/share/event/x-event.jpg"
+    assert meta(with_preview, "og:image:width") == "1200" and meta(with_preview, "og:image:height") == "630"
+    without = builder.render(ev)
+    assert meta(without, "og:image") == "https://img.example/huge.jpg" and "og:image:width" not in without
+
+
+def test_the_deploy_build_can_make_the_previews():
+    workflow = (ROOT / ".github" / "workflows" / "pages.yml").read_text(encoding="utf-8")
+    assert "pip install boto3 Pillow" in workflow

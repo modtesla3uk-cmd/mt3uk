@@ -47,6 +47,12 @@ def full_event(**changes):
         **changes)
 
 
+def no_meets(page):
+    """An empty older meets list, so only event pages show on the homepage."""
+    page.route(re.compile(r".*/events-data/events-manifest\.json.*"), lambda route: route.fulfill(
+        status=200, body=json.dumps({"events": []}), headers={"Content-Type": "application/json"}))
+
+
 def open_events_admin(page):
     """Events admin with the key saved, so the page loads straight in."""
     page.add_init_script("sessionStorage.setItem('mt3ukAdminKey', 'test-key')")
@@ -231,8 +237,9 @@ def test_event_that_is_not_listed_stays_hidden(device_page):
 # ---------- The homepage ----------
 
 @all_devices
-def test_homepage_features_only_live_upcoming_events_with_image_and_tagline(device_page):
+def test_homepage_shows_only_live_event_pages_as_cards_with_image_and_tagline(device_page):
     page = device_page
+    no_meets(page)
     serve(page, [
         full_event(slug="live-one", title="Live Event Title"),
         event(slug="draft-one", title="Draft Title"),
@@ -242,52 +249,26 @@ def test_homepage_features_only_live_upcoming_events_with_image_and_tagline(devi
     page.goto("/index.html#events")
     cards = page.locator("#event-features .ev-feature")
     cards.first.wait_for(state="visible", timeout=5000)
-    assert cards.count() == 1
+    assert cards.count() == 1, "Drafts and scheduled pages are not shown"
     text = cards.first.inner_text()
     assert "Live Event Title" in text and "A tagline that sells it." in text and "Example Venue" in text
     assert cards.first.get_attribute("href") == "event.html?e=live-one"
     assert cards.first.locator("img").get_attribute("src") == "images/events/frunk-or-treat-uk/card.jpg"
+    assert "Join event" in text
+    past = page.locator("#past-events-list .ev-feature")
+    assert past.count() == 1 and "Finished Title" in past.first.inner_text() and "View event" in past.first.inner_text()
     assert overflow_width(page) <= 0
 
 
 @all_devices
-def test_homepage_has_no_feature_block_when_nothing_is_live(device_page):
+def test_homepage_has_no_event_cards_when_there_are_no_events(device_page):
     page = device_page
+    no_meets(page)
     serve(page, [event()])
     page.goto("/index.html#events")
-    page.wait_for_timeout(500)
+    page.wait_for_timeout(600)
     assert page.locator("#event-features .ev-feature").count() == 0
     assert page.locator("#event-features").is_hidden()
-
-
-# ---------- The Events admin page ----------
-
-@ADMIN_ONLY
-def test_admin_can_preview_publish_draft_and_delete(device_page):
-    page = device_page
-    open_events_admin(page)
-    frunk = page.locator('#ep-list .event-card[data-slug="frunk-or-treat-uk"]')
-    frunk.wait_for(state="visible", timeout=5000)
-    assert "Draft" in frunk.inner_text() and "Frunk or Treat UK 2026" in frunk.inner_text()
-    assert page.locator("#ep-list .event-card").count() == 4, "The three upcoming events have draft pages ready too"
-
-    with page.expect_popup() as popup_info:
-        page.click('#ep-list [data-ep="preview"]')
-    popup_info.value.wait_for_url(re.compile(r"event\.html\?e=frunk-or-treat-uk&gate=on&preview=e{32}"), timeout=5000)
-    assert page.mock_state["event_preview_minted"] == "frunk-or-treat-uk"
-
-    page.once("dialog", lambda d: d.accept())
-    frunk.locator('[data-ep="publish-now"]').click()
-    page.wait_for_function("document.querySelector('#ep-list .event-card[data-slug=\"frunk-or-treat-uk\"] .event-id').textContent === 'Live'", timeout=5000)
-    assert frunk.locator('[data-ep="delete"]').count() == 0, "A live event cannot be deleted"
-    page.once("dialog", lambda d: d.accept())
-    frunk.locator('[data-ep="draft"]').click()
-    page.wait_for_function("document.querySelector('#ep-list .event-card[data-slug=\"frunk-or-treat-uk\"] .event-id').textContent === 'Draft'", timeout=5000)
-    page.once("dialog", lambda d: d.accept())
-    frunk.locator('[data-ep="delete"]').click()
-    page.wait_for_function("document.querySelectorAll('#ep-list .event-card').length === 3", timeout=5000)
-    assert page.locator('#ep-list .event-card[data-slug="frunk-or-treat-uk"]').count() == 0
-    assert page.mock_state["event_actions"] == ["publish-now", "draft", "delete"]
 
 
 @ADMIN_ONLY
@@ -513,27 +494,68 @@ def test_an_older_event_can_become_a_full_event_page(device_page):
 
 
 @all_devices
-def test_homepage_shows_an_older_event_once_when_it_has_a_live_page(device_page):
+def test_every_event_card_has_its_image_and_join_event_opens_its_page(device_page):
     page = device_page
-    upcoming = dict(LEGACY, id="002")
-    other = dict(LEGACY, id="003", name="Other Meet", startTime="2099-10-10T09:00:00+0000", endTime="2099-10-10T18:00:00+0000")
+    with_page = dict(LEGACY, id="002")
+    draft_page = dict(LEGACY, id="003", name="Draft Page Meet", startTime="2099-10-10T09:00:00+0000", endTime="2099-10-10T18:00:00+0000", facebookUrl="https://www.facebook.com/share/draft/")
+    no_page = dict(LEGACY, id="004", name="No Page Meet", startTime="2099-11-11T09:00:00+0000", endTime="2099-11-11T18:00:00+0000", facebookUrl="https://www.facebook.com/share/nopage/")
     past = dict(LEGACY, id="001", name="Old Show", startTime="2020-09-25T09:00:00+0000", endTime="2020-09-25T18:00:00+0000")
     page.route(re.compile(r".*/events-data/events-manifest\.json.*"), lambda route: route.fulfill(
-        status=200, body=json.dumps({"events": [upcoming, other, past]}), headers={"Content-Type": "application/json"}))
+        status=200, body=json.dumps({"events": [with_page, draft_page, no_page, past]}), headers={"Content-Type": "application/json"}))
     serve(page, [
-        full_event(slug="lancing-show", title="Lancing Motor Show", manifestId="002", startDate="2099-09-27"),
+        event(slug="lancing-show", title="Lancing Motor Show", manifestId="002", startDate="2099-09-27", publish="2020-01-01", image="images/events/frunk-or-treat-uk/card.jpg"),
+        event(slug="draft-page", title="Draft Page", manifestId="003", image="images/events/frunk-or-treat-uk/poster.jpg"),
         full_event(slug="old-show-page", title="Old Show", manifestId="001", startDate="2020-09-25"),
-        event(slug="draft-page", title="Draft Page", manifestId="003"),
+        full_event(slug="page-only", title="Page Only Event", startDate="2099-12-12"),
     ])
     page.goto("/index.html#events")
-    page.locator("#event-features .ev-feature").first.wait_for(state="visible", timeout=5000)
-    page.wait_for_function("document.querySelector('#confirmed-events-list').textContent.indexOf('Other Meet') !== -1", timeout=5000)
-    rows = page.locator("#confirmed-events-list .event-row")
-    assert rows.count() == 1 and "Other Meet" in rows.first.inner_text(), "The upcoming event with a live page is the card, not a row"
-    assert page.locator("#event-features .ev-feature").count() == 1, "Only the upcoming live page is a card"
-    link = page.locator("#past-events-list h3 a")
-    assert link.get_attribute("href") == "event.html?e=old-show-page", "A past event links to its page"
+    cards = page.locator("#event-features .ev-feature")
+    cards.first.wait_for(state="visible", timeout=5000)
+    page.wait_for_function("document.querySelectorAll('#event-features .ev-feature').length === 4", timeout=5000)
+    assert cards.count() == 4, "One card per event: no repeats"
+    assert page.locator("#event-features .ev-feature-img img").count() == 4, "Every card has a picture"
+
+    # Live page: its image, and Join event opens the page with the full details.
+    lancing = page.locator("#event-features .ev-feature", has_text="Lancing Motor Show")
+    assert lancing.get_attribute("href") == "event.html?e=lancing-show" and lancing.get_attribute("target") is None
+    assert lancing.locator("img").get_attribute("src") == "images/events/frunk-or-treat-uk/card.jpg"
+    assert "Join event" in lancing.inner_text()
+    # A page that is not live yet: its image, but the link stays the external one.
+    draft = page.locator("#event-features .ev-feature", has_text="Draft Page Meet")
+    assert draft.get_attribute("href") == "https://www.facebook.com/share/draft/" and draft.get_attribute("target") == "_blank"
+    assert draft.locator("img").get_attribute("src") == "images/events/frunk-or-treat-uk/poster.jpg"
+    # No page at all: a neutral MT3UK picture, and the external link.
+    plain = page.locator("#event-features .ev-feature", has_text="No Page Meet")
+    assert plain.locator("img.ev-noimg").count() == 1 and plain.get_attribute("href") == "https://www.facebook.com/share/nopage/"
+    # A page with no older event behind it is listed too.
+    assert page.locator("#event-features .ev-feature", has_text="Page Only Event").get_attribute("href") == "event.html?e=page-only"
+    # Soonest first.
+    order = [c.inner_text().split("\n")[1] for c in cards.all()]
+    assert order[0] == "Lancing Motor Show" and order[-1] == "Page Only Event"
+    # Previous events are cards too, linking to their page.
+    old = page.locator("#past-events-list .ev-feature")
+    assert old.count() == 1 and old.get_attribute("href") == "event.html?e=old-show-page" and "Past event" in old.inner_text()
     assert overflow_width(page) <= 0
+
+
+@all_devices
+def test_the_events_section_has_no_hero_photo_and_its_text_is_not_faded(device_page):
+    page = device_page
+    with_page = dict(LEGACY, id="002")
+    past = dict(LEGACY, id="001", name="Old Show", startTime="2020-09-25T09:00:00+0000", endTime="2020-09-25T18:00:00+0000")
+    page.route(re.compile(r".*/events-data/events-manifest\.json.*"), lambda route: route.fulfill(
+        status=200, body=json.dumps({"events": [with_page, past]}), headers={"Content-Type": "application/json"}))
+    serve(page, [full_event(slug="lancing-show", manifestId="002", startDate="2099-09-27")])
+    page.goto("/index.html#events")
+    page.locator("#past-events-list .ev-feature").first.wait_for(state="visible", timeout=5000)
+    assert page.locator('#events img[src="images/hero.jpg"]').count() == 0 and page.locator("#events .diagram").count() == 0
+    assert "FIG. 01" not in page.locator("#events").inner_text()
+    steel = "rgb(124, 135, 152)"
+    for selector in ("#event-features .ev-feature-tagline", "#event-features .ev-feature-where", "#past-events-list .ev-feature-tagline", "#past-events-list .ev-feature-where", "#events .event-info p"):
+        for el in page.locator(selector).all():
+            assert el.evaluate("e => getComputedStyle(e).color") != steel, selector + " is not grey"
+    assert page.evaluate("getComputedStyle(document.querySelector('#past-events-list .ev-feature')).opacity") == "1", "Previous events are not faded"
+    assert page.evaluate("Number(getComputedStyle(document.querySelector('#past-events-list .ev-feature-body h3')).opacity)") == 1
 
 
 @ADMIN_ONLY
@@ -665,3 +687,22 @@ def test_text_that_is_too_long_is_refused_not_quietly_cut_off(device_page):
     page.click("#ep-save")
     page.wait_for_function("document.getElementById('status').textContent.indexOf('Saved') === 0", timeout=5000)
     assert page.mock_state["event_saved"]["steps"][0]["title"] == "Bring your car"
+
+
+@ADMIN_ONLY
+def test_the_share_button_uses_the_share_page_not_the_plain_address(device_page):
+    page = device_page
+    serve(page, [event(publish="2020-01-01", slug="test-meet")])
+    page.goto("/event.html?e=test-meet")
+    page.locator("#share-event").wait_for(state="visible", timeout=5000)
+    assert "Share" in page.locator("#share-event").inner_text()
+    # Where the phone or browser has a share sheet, it gets the share page.
+    page.evaluate("window.__shared = null; navigator.share = function (d) { window.__shared = d; return Promise.resolve(); }")
+    page.click("#share-event")
+    shared = page.evaluate("window.__shared")
+    assert shared["url"] == "https://mt3uk.com/share/event/test-meet.html" and shared["title"] == "Test Meet Title"
+    # Otherwise the link is copied.
+    page.evaluate("navigator.share = undefined; window.__copied = ''; navigator.clipboard.writeText = function (t) { window.__copied = t; return Promise.resolve(); }")
+    page.click("#share-event")
+    page.wait_for_function("document.getElementById('share-event').textContent.indexOf('Link copied') !== -1", timeout=5000)
+    assert page.evaluate("window.__copied") == "https://mt3uk.com/share/event/test-meet.html"

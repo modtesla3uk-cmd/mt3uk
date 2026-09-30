@@ -3,6 +3,10 @@
     "file": "project-3--by-richard-hughes-chen.jpg",
     "caption": "PROJECT 3",
     "name": "RichyRich",
+    "mods": [
+      "Wheels: Judd JSF-5, 19, 9.5, ET35, Hyper Black, Flow formed",
+      "Spacers: MPP, 13mm front, 17mm rear, hub-centric"
+    ],
     "votable": false,
     "color": "Green",
     "added": "2026-09-30",

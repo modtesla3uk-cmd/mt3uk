@@ -1,19 +1,19 @@
-/* Event page gate. An event page (event-<slug>.html) is listed in
-   data/event-pages.json as a draft or with a publish date (UK time). Until
-   it is published, the page shows a "Coming soon" card instead of the event.
-   Only the admin can open it early: the Event pages section of
-   events-admin.html has a Preview button that makes a one-time link (?preview=<token>),
-   which opens the page in that browser for 4 hours. There is no public code
-   or sign-up for events.
+/* Event page gate. Every event is an entry in data/event-pages.json, shown at
+   event.html?e=<slug>. An entry is a draft or has a publish date (UK time).
+   Until it is published, the page shows a "Coming soon" card instead of the
+   event. Only the admin can open it early: Preview on events-admin.html makes
+   a one-time link (?preview=<token>), and this browser then keeps the preview
+   open (about a month, or until you press End preview). There is no public
+   code or sign-up for events, and no countdown.
 
-   Loaded in each event page's <head> (not deferred), so the page is hidden
+   Loaded in the <head> of event.html (not deferred), so the page is hidden
    before anything shows. On localhost the gate is off, so pages can be
    checked while writing them; add ?gate=on to try it locally. */
 (function () {
   var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
-  var m = location.pathname.match(/event-([a-z0-9-]+)\.html$/);
-  if (!m) return;
-  var slug = m[1];
+  if (!/event\.html$/.test(location.pathname)) return;
+  var slug = ((location.search.match(/[?&]e=([A-Za-z0-9-]{1,60})(?:&|$)/) || [])[1] || '').toLowerCase();
+  if (!slug) return;
   var local = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
   if (local && !/[?&]gate=on\b/.test(location.search)) return;
 
@@ -38,11 +38,10 @@
     '#ev-gate p{color:rgba(255,255,255,.8);line-height:1.5;margin:0 0 16px;font-size:.98rem}' +
     '#ev-gate .evg-msg{min-height:1.4em;margin:12px 0 0;font-size:.9rem;color:#ffb199}' +
     '#ev-gate .evg-back{display:inline-block;margin-top:6px;color:#fff;font-size:.9rem}' +
-    '.evg-notice{position:fixed;left:50%;top:16px;transform:translateX(-50%);z-index:70;width:calc(100% - 32px);max-width:560px;box-sizing:border-box;background:#16233d;color:#fff;border:1px solid rgba(255,255,255,.25);border-left:4px solid #e8542a;padding:14px 44px 14px 16px;box-shadow:0 10px 30px rgba(0,0,0,.3);font-family:"IBM Plex Sans",Arial,sans-serif;font-size:.95rem;line-height:1.45}' +
-    '.evg-notice strong{display:block;margin-bottom:4px}' +
-    '.evg-notice p{margin:6px 0 0;color:rgba(255,255,255,.85)}' +
-    '.evg-notice-close{position:absolute;top:6px;right:6px;width:36px;height:36px;border:0;background:none;color:#fff;font-size:1.4rem;cursor:pointer}' +
-    '.evg-timer{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:60;background:#16233d;color:#fff;border:1px solid rgba(255,255,255,.25);padding:6px 12px;font-family:"IBM Plex Mono",monospace;font-size:.75rem;letter-spacing:.06em;white-space:nowrap}' +
+    '.evg-pill{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:10px;background:#16233d;color:#fff;border:1px solid rgba(255,255,255,.25);border-left:4px solid #e8542a;padding:8px 12px;font-family:"IBM Plex Mono",monospace;font-size:.75rem;letter-spacing:.04em;white-space:nowrap;max-width:calc(100% - 24px)}' +
+    '.evg-pill button{background:none;border:1px solid rgba(255,255,255,.4);color:#fff;font:inherit;padding:3px 8px;cursor:pointer}' +
+    '.evg-pill .evg-x{border:0;font-size:1rem;padding:0 4px}' +
+    '@media (max-width:780px){.evg-pill{bottom:78px}}';
     '@media (max-width:780px){.evg-timer{bottom:78px}}';
   document.head.appendChild(style);
 
@@ -82,16 +81,6 @@
     try { if (v) localStorage.setItem(STORE, JSON.stringify(v)); else localStorage.removeItem(STORE); } catch (e) {}
   }
 
-  function clock(ms) {
-    return new Date(ms).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/London' });
-  }
-
-  function timeLeft(ms) {
-    var mins = Math.max(1, Math.ceil(ms / 60000));
-    var h = Math.floor(mins / 60);
-    return (h ? h + 'h ' : '') + (mins % 60) + 'm';
-  }
-
   function drawGate(entry, message) {
     root.classList.add('ev-gated');
     var gate = document.createElement('div');
@@ -110,32 +99,21 @@
     show();
   }
 
-  // Preview open: a notice says how long for, and a small timer counts down.
-  function openFor(entry, expires) {
+  // Preview open: a small pill says it is not live. It stays until the admin
+  // ends the preview; there is no countdown.
+  function openFor(entry) {
     open();
     whenReady(function () {
-      var box = document.createElement('div');
-      box.className = 'evg-notice';
-      box.setAttribute('role', 'status');
-      box.innerHTML =
-        '<strong>Admin preview open until ' + esc(clock(expires)) + ' (' + esc(timeLeft(expires - Date.now())) + ')</strong>' +
-        '<p>' + (entry && entry.publish && !entry.draft
-          ? 'This event page goes live on ' + esc(niceDate(entry.publish)) + '.'
-          : 'This event page is a draft, so only you can see it.') + '</p>' +
-        '<button type="button" class="evg-notice-close" aria-label="Close">&times;</button>';
-      document.body.appendChild(box);
-      box.querySelector('.evg-notice-close').addEventListener('click', function () { box.parentNode.removeChild(box); });
-      var timer = document.createElement('div');
-      timer.className = 'evg-timer';
-      timer.setAttribute('role', 'status');
-      document.body.appendChild(timer);
-      function tick() {
-        var left = expires - Date.now();
-        if (left <= 0) { save(null); location.reload(); return; }
-        timer.textContent = 'Admin preview, not live: ' + timeLeft(left) + ' left';
-      }
-      tick();
-      setInterval(tick, 15000);
+      var pill = document.createElement('div');
+      pill.className = 'evg-pill';
+      pill.setAttribute('role', 'status');
+      pill.innerHTML =
+        '<span>Admin preview: ' + (entry && entry.publish && !entry.draft ? 'goes live ' + esc(niceDate(entry.publish)) : 'draft, only you can see this') + '</span>' +
+        '<button type="button" class="evg-end">End preview</button>' +
+        '<button type="button" class="evg-x" aria-label="Hide this note">&times;</button>';
+      document.body.appendChild(pill);
+      pill.querySelector('.evg-x').addEventListener('click', function () { pill.parentNode.removeChild(pill); });
+      pill.querySelector('.evg-end').addEventListener('click', function () { save(null); location.reload(); });
     });
   }
 
@@ -147,7 +125,7 @@
         .then(function (res) { return res.json().catch(function () { return {}; }); })
         .then(function (data) {
           if (data.success && data.token) { save({ token: data.token, expires: data.expires }); location.reload(); return; }
-          whenReady(function () { drawGate(entry, 'That preview link has expired or has already been used. Press Preview on the admin page for a new one.'); });
+          whenReady(function () { drawGate(entry, 'That preview link has expired or has already been used. Press Preview on the Events admin page for a new one.'); });
         })
         .catch(function () { whenReady(function () { drawGate(entry, 'Network error, please try again.'); }); });
       return;
@@ -161,7 +139,7 @@
     fetch(API + '/events/pages/preview/check?slug=' + encodeURIComponent(slug) + '&token=' + encodeURIComponent(current.token), { cache: 'no-store' })
       .then(function (res) { return res.ok ? res.json() : null; })
       .then(function (data) {
-        if (data && data.success) { openFor(entry, data.expires || current.expires); return; }
+        if (data && data.success) { openFor(entry); return; }
         save(null);
         whenReady(function () { drawGate(entry); });
       })
@@ -173,7 +151,7 @@
     .then(function (data) {
       var list = (data && data.events) || [];
       var entry = null;
-      list.forEach(function (ev) { if (ev.url === 'event-' + slug + '.html') entry = ev; });
+      list.forEach(function (ev) { if (ev.slug === slug) entry = ev; });
       // Live from the publish date. A page that isn't listed stays hidden too,
       // so a new page can't go live by accident.
       if (entry && entry.publish && !entry.draft && entry.publish <= todayUK()) { open(); return; }

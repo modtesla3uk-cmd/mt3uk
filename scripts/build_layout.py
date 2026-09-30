@@ -39,6 +39,7 @@ PAGES = {
     "shop": "shop.html",
     "reviews": "reviews.html",
     "contact": "contact.html",
+    "event": "index.html#events",
     "track-day-on-the-day": "index.html#track-days",
     "track-day-prep": "index.html#track-days",
     "track-day-venues": "index.html#track-days",

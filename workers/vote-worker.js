@@ -1925,17 +1925,23 @@ async function handleInterviewsAdminAction(request, env) {
 }
 
 // ---------- Event pages ----------
-// Each event page (event-<slug>.html) is listed in data/event-pages.json as a
-// draft or with a publish date (UK time), like Owner Interviews. Until it is
-// published its page shows only a Coming soon card (js/event-gate.js). Only
-// the admin can open it early: the events-admin page's Preview button mints a
-// one-time link here (needs the admin key), and the page swaps that link for
-// 4 hours of access in that browser. Access tokens are one KV key each, read
-// with get() only. Draft, Publish now and Schedule are one commit to
-// data/event-pages.json, which redeploys the site.
+// Every event is an entry in data/event-pages.json, shown at
+// event.html?e=<slug> (js/event-page.js). Like Owner Interviews, an entry is a
+// draft or has a publish date (UK time), and until it is published its page
+// shows only a Coming soon card (js/event-gate.js). Only the admin can open it
+// early: Preview on events-admin.html mints a one-time link here (admin key),
+// and the page swaps it for a long-lived access token in that browser.
+//
+// The admin page saves an event's details here. A save is one commit to
+// data/event-pages.json (the source of truth, which redeploys the site) and a
+// copy in one KV key, so a Preview shows the change straight away instead of
+// after the redeploy. Images go to the R2 bucket under events/<slug>/.
+// Everything is read with get() only.
 
 var EVENT_PREVIEW_LINK_TTL_SECONDS = 5 * 60;
-var EVENT_PREVIEW_ACCESS_TTL_SECONDS = 4 * 60 * 60;
+var EVENT_PREVIEW_ACCESS_TTL_SECONDS = 30 * 24 * 60 * 60;
+var EVENT_DRAFT_TTL_SECONDS = 30 * 24 * 60 * 60;
+var EVENT_IMAGE_MAX_BYTES = 6 * 1024 * 1024;
 
 async function readEventPagesFile(env) {
   var res = await fetch(
@@ -1950,9 +1956,185 @@ async function readEventPagesFile(env) {
   return { file: file, sha: data.sha };
 }
 
+async function writeEventPagesFile(env, current, message) {
+  var content = btoa(unescape(encodeURIComponent(JSON.stringify(current.file, null, 2) + '\n')));
+  return fetch(
+    'https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/' + EVENT_PAGES_PATH,
+    {
+      method: 'PUT',
+      headers: eventsGithubHeaders(env),
+      body: JSON.stringify({ message: message, content: content, sha: current.sha, branch: BASE_BRANCH })
+    }
+  );
+}
+
 function eventPageState(ev, today) {
   if (ev.draft || !ev.publish) return 'draft';
   return ev.publish <= today ? 'live' : 'scheduled';
+}
+
+function eventSlugOk(value) {
+  var slug = String(value || '').trim().toLowerCase();
+  return /^[a-z0-9][a-z0-9-]{0,59}$/.test(slug) ? slug : '';
+}
+
+async function putEventDraftCopy(env, entry) {
+  await env.VOTES.put('event-page-draft:' + entry.slug, JSON.stringify(entry), { expirationTtl: EVENT_DRAFT_TTL_SECONDS });
+}
+
+// The admin page reads the list from here rather than the site's copy, which
+// lags a minute or two behind a save while the site redeploys.
+async function handleEventPagesAdminList(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorized' }, 401);
+  try {
+    var current = await readEventPagesFile(env);
+    return json({ success: true, events: current.file.events });
+  } catch (err) {
+    return json({ success: false, message: err.message }, 500);
+  }
+}
+
+// ---- Checking what the admin form sends ----
+function evStr(value, max) {
+  return typeof value === 'string' ? value.trim().slice(0, max) : '';
+}
+function evList(value, max) {
+  return Array.isArray(value) ? value.slice(0, max) : [];
+}
+function evImage(value) {
+  var v = evStr(value, 400);
+  return /^https:\/\/[^\s"'<>]+$/i.test(v) || /^images\/[A-Za-z0-9_\-./]+$/.test(v) ? v : '';
+}
+function evLink(value) {
+  var v = evStr(value, 400);
+  return /^https:\/\/[^\s"'<>]+$/i.test(v) ? v : '';
+}
+function evDay(value) {
+  var v = evStr(value, 10);
+  return v && isValidIsoDay(v) ? v : '';
+}
+function evTime(value) {
+  var v = evStr(value, 5);
+  return /^([01]\d|2[0-3]):[0-5]\d$/.test(v) ? v : '';
+}
+
+// Turns the form's fields into the stored shape, or returns { error }.
+function cleanEventEntry(input) {
+  var slug = eventSlugOk(input && input.slug);
+  if (!slug) return { error: 'The web address name can only use letters, numbers and hyphens' };
+  var name = evStr(input.name, 100);
+  var title = evStr(input.title, 120);
+  if (!name) return { error: 'Give the event a name' };
+  if (!title) return { error: 'Give the event a title' };
+  var startDate = evDay(input.startDate);
+  var endDate = evDay(input.endDate);
+  if (endDate && startDate && endDate < startDate) return { error: 'The end date is before the start date' };
+  var startTime = evTime(input.startTime);
+  var endTime = evTime(input.endTime);
+  var venue = evStr(input.venue, 120);
+  var town = evStr(input.town, 80);
+  var w3w = evStr(input.what3words, 80).replace(/^\/*/, '');
+  if (w3w && !/^[a-zA-Z]+\.[a-zA-Z]+\.[a-zA-Z]+$/.test(w3w)) return { error: 'what3words needs three words with dots, like starter.minivans.doted' };
+
+  var tickets = input.tickets || {};
+  var entry = {
+    slug: slug,
+    name: name,
+    title: title,
+    tagline: evStr(input.tagline, 200),
+    organisers: evStr(input.organisers, 200),
+    kind: evStr(input.kind, 30),
+    startDate: startDate,
+    endDate: endDate,
+    startTime: startTime,
+    endTime: endTime,
+    timeNote: evStr(input.timeNote, 120),
+    venue: venue,
+    town: town,
+    address: evStr(input.address, 250),
+    what3words: w3w ? '///' + w3w.toLowerCase() : '',
+    location: evStr(input.location, 120) || [venue, town].filter(Boolean).join(', '),
+    directions: evStr(input.directions, 600),
+    venueNotes: evList(input.venueNotes, 8).map(function (n) { return { label: evStr(n && n.label, 30), value: evStr(n && n.value, 150) }; }).filter(function (n) { return n.label && n.value; }),
+    image: evImage(input.image),
+    heroImage: evImage(input.heroImage),
+    poster: evImage(input.poster),
+    galleryTitle: evStr(input.galleryTitle, 60),
+    gallery: evList(input.gallery, 8).map(function (g) { return { src: evImage(g && g.src), caption: evStr(g && g.caption, 120) }; }).filter(function (g) { return g.src; }),
+    description: evList(input.description, 12).map(function (p) { return evStr(p, 1500); }).filter(Boolean),
+    highlights: evList(input.highlights, 10).map(function (h) { return evStr(h, 80); }).filter(Boolean),
+    steps: evList(input.steps, 8).map(function (s) { return { title: evStr(s && s.title, 80), text: evStr(s && s.text, 300) }; }).filter(function (s) { return s.title || s.text; }),
+    entry: evStr(input.entry, 80),
+    entryNote: evStr(input.entryNote, 120),
+    tickets: {
+      intro: evStr(tickets.intro, 300),
+      tiers: evList(tickets.tiers, 6).map(function (t) {
+        t = t || {};
+        return {
+          name: evStr(t.name, 60), price: evStr(t.price, 20), per: evStr(t.per, 40), tag: evStr(t.tag, 30),
+          includes: evList(t.includes, 10).map(function (i) { return evStr(i, 100); }).filter(Boolean),
+          url: evLink(t.url), buttonLabel: evStr(t.buttonLabel, 30), featured: !!t.featured, soldOut: !!t.soldOut
+        };
+      }).filter(function (t) { return t.name; }),
+      notes: evList(tickets.notes, 6).map(function (n) { return { label: evStr(n && n.label, 30), value: evStr(n && n.value, 150) }; }).filter(function (n) { return n.label && n.value; })
+    },
+    schedule: evList(input.schedule, 20).map(function (s) { return { time: evStr(s && s.time, 20), title: evStr(s && s.title, 100), text: evStr(s && s.text, 300) }; }).filter(function (s) { return s.title; }),
+    faq: evList(input.faq, 15).map(function (f) { return { q: evStr(f && f.q, 150), a: evStr(f && f.a, 800) }; }).filter(function (f) { return f.q && f.a; }),
+    ctaUrl: evLink(input.ctaUrl),
+    ctaLabel: evStr(input.ctaLabel, 40),
+    closing: evStr(input.closing, 200)
+  };
+  // Empty things are left out of the file to keep it readable.
+  Object.keys(entry).forEach(function (k) {
+    var v = entry[k];
+    if (v === '' || (Array.isArray(v) && !v.length)) delete entry[k];
+  });
+  if (!entry.tickets.tiers.length && !entry.tickets.notes.length && !entry.tickets.intro) delete entry.tickets;
+  else Object.keys(entry.tickets).forEach(function (k) { var v = entry.tickets[k]; if (v === '' || (Array.isArray(v) && !v.length)) delete entry.tickets[k]; });
+  return { entry: entry };
+}
+
+// Save: adds a new event (as a draft) or updates one. The publish state is
+// never changed here, only by the actions below.
+async function handleEventPagesAdminSave(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorized' }, 401);
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
+  var cleaned = cleanEventEntry(body && body.entry);
+  if (cleaned.error) return json({ success: false, message: cleaned.error }, 400);
+  var entry = cleaned.entry;
+  var today = ukDateString(new Date());
+  try {
+    for (var attempt = 0; attempt < 2; attempt++) {
+      var current = await readEventPagesFile(env);
+      var idx = current.file.events.findIndex(function (e) { return e.slug === entry.slug; });
+      var line;
+      if (idx >= 0) {
+        var old = current.file.events[idx];
+        if (body.isNew) throw new Error('There is already an event called ' + entry.slug + ', choose another web address name');
+        if (old.publish) entry.publish = old.publish;
+        if (old.draft) entry.draft = true;
+        if (old.created) entry.created = old.created;
+        current.file.events[idx] = entry;
+        line = entry.name + ' saved';
+      } else {
+        if (!body.isNew) throw new Error('That event no longer exists, reload the page');
+        entry.draft = true;
+        entry.created = today;
+        current.file.events.push(entry);
+        line = entry.name + ' created as a draft';
+      }
+      var putRes = await writeEventPagesFile(env, current, 'Event pages (admin): ' + line);
+      if (putRes.ok) {
+        await putEventDraftCopy(env, entry);
+        return json({ success: true, events: current.file.events, entry: entry, change: line });
+      }
+      if (putRes.status !== 409 && putRes.status !== 422) throw new Error('Could not save the event pages file (' + putRes.status + ')');
+    }
+    throw new Error('The event pages file was changed by something else at the same time, please try again');
+  } catch (err) {
+    return json({ success: false, message: err.message }, 400);
+  }
 }
 
 async function handleEventPagesAdminAction(request, env) {
@@ -1960,22 +2142,29 @@ async function handleEventPagesAdminAction(request, env) {
   var body;
   try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
   var action = body && body.action;
-  if (['draft', 'publish-now', 'schedule'].indexOf(action) === -1) return json({ success: false, message: 'Unknown action' }, 400);
+  var slug = eventSlugOk(body && body.slug);
+  if (!slug) return json({ success: false, message: 'Invalid event' }, 400);
+  if (['draft', 'publish-now', 'schedule', 'delete'].indexOf(action) === -1) return json({ success: false, message: 'Unknown action' }, 400);
   if (action === 'schedule' && !isValidIsoDay(body.date)) return json({ success: false, message: 'Choose a valid date' }, 400);
   var today = ukDateString(new Date());
   if (action === 'schedule' && body.date <= today) return json({ success: false, message: 'Choose a date after today, or use Publish now' }, 400);
   try {
     for (var attempt = 0; attempt < 2; attempt++) {
       var current = await readEventPagesFile(env);
-      var ev = current.file.events.find(function (e) { return e.url === body.url; });
-      if (!ev) throw new Error('No event page ' + body.url + ', reload the page');
+      var idx = current.file.events.findIndex(function (e) { return e.slug === slug; });
+      if (idx < 0) throw new Error('No event ' + slug + ', reload the page');
+      var ev = current.file.events[idx];
       var from = body.from || {};
       if ((ev.publish || '') !== (from.publish || '') || !!ev.draft !== !!from.draft) {
         throw new Error(ev.name + ' was changed somewhere else since you loaded the page, reload and try again');
       }
       var state = eventPageState(ev, today);
       var line;
-      if (action === 'draft') {
+      if (action === 'delete') {
+        if (state === 'live') throw new Error(ev.name + ' is live. Move it to draft before deleting it');
+        line = ev.name + ' deleted';
+        current.file.events.splice(idx, 1);
+      } else if (action === 'draft') {
         if (state === 'draft') throw new Error(ev.name + ' is already a draft');
         line = ev.name + ' set to draft (was ' + ev.publish + ')';
         delete ev.publish;
@@ -1990,16 +2179,12 @@ async function handleEventPagesAdminAction(request, env) {
         ev.publish = body.date;
         delete ev.draft;
       }
-      var content = btoa(unescape(encodeURIComponent(JSON.stringify(current.file, null, 2) + '\n')));
-      var putRes = await fetch(
-        'https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/' + EVENT_PAGES_PATH,
-        {
-          method: 'PUT',
-          headers: eventsGithubHeaders(env),
-          body: JSON.stringify({ message: 'Event pages (admin): ' + line, content: content, sha: current.sha, branch: BASE_BRANCH })
-        }
-      );
-      if (putRes.ok) return json({ success: true, events: current.file.events, change: line });
+      var putRes = await writeEventPagesFile(env, current, 'Event pages (admin): ' + line);
+      if (putRes.ok) {
+        if (action === 'delete') await env.VOTES.delete('event-page-draft:' + slug);
+        else await putEventDraftCopy(env, ev);
+        return json({ success: true, events: current.file.events, change: line });
+      }
       if (putRes.status !== 409 && putRes.status !== 422) throw new Error('Could not save the event pages file (' + putRes.status + ')');
     }
     throw new Error('The event pages file was changed by something else at the same time, please try again');
@@ -2008,23 +2193,44 @@ async function handleEventPagesAdminAction(request, env) {
   }
 }
 
-// Admin page's Preview button: a one-time link token for one event page.
+// Image upload from the admin form: the body is the image itself. It goes to
+// the R2 bucket at events/<slug>/<random>.<ext> and the public address comes
+// back. The admin page shrinks photos first, so this is a safety limit.
+async function handleEventPagesImage(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorized' }, 401);
+  var slug = eventSlugOk(new URL(request.url).searchParams.get('slug'));
+  if (!slug) return json({ success: false, message: 'Save the event name and web address first' }, 400);
+  var bytes = new Uint8Array(await request.arrayBuffer());
+  if (!bytes.length) return json({ success: false, message: 'No image received' }, 400);
+  if (bytes.length > EVENT_IMAGE_MAX_BYTES) return json({ success: false, message: 'That image is over 6MB, please use a smaller one' }, 400);
+  var type = '';
+  var ext = '';
+  if (bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF) { type = 'image/jpeg'; ext = 'jpg'; }
+  else if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47) { type = 'image/png'; ext = 'png'; }
+  else if (bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 && bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50) { type = 'image/webp'; ext = 'webp'; }
+  if (!type) return json({ success: false, message: 'Images need to be JPEG, PNG or WebP' }, 400);
+  var name = 'events/' + slug + '/' + randomToken().slice(0, 16) + '.' + ext;
+  await env.GALLERY_BUCKET.put(name, bytes, { httpMetadata: { contentType: type, cacheControl: 'public, max-age=31536000, immutable' } });
+  return json({ success: true, url: GALLERY_PUBLIC_BASE_URL + '/' + name });
+}
+
+// Admin page's Preview button: a one-time link token for one event.
 async function handleEventPreviewMint(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorized' }, 401);
   var body;
   try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
-  var slug = previewSlug(body && body.slug, false);
-  if (!slug) return json({ success: false, message: 'Invalid event page' }, 400);
+  var slug = eventSlugOk(body && body.slug);
+  if (!slug) return json({ success: false, message: 'Invalid event' }, 400);
   var token = randomToken();
   await env.VOTES.put('event-preview-link:' + token, JSON.stringify({ slug: slug }), { expirationTtl: EVENT_PREVIEW_LINK_TTL_SECONDS });
   return json({ success: true, token: token });
 }
 
-// The event page swaps the one-time link for 4 hours of access.
+// The event page swaps the one-time link for a long-lived access token.
 async function handleEventPreviewLink(request, env) {
   var body;
   try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
-  var slug = previewSlug(body && body.slug, false);
+  var slug = eventSlugOk(body && body.slug);
   var linkToken = String((body && body.token) || '');
   var failed = json({ success: false, message: 'That link has expired or has already been used.' }, 400);
   if (!slug || !/^[A-Za-z0-9_-]{16,128}$/.test(linkToken)) return failed;
@@ -2039,16 +2245,31 @@ async function handleEventPreviewLink(request, env) {
   return json({ success: true, token: token, expires: expires });
 }
 
-async function handleEventPreviewCheck(request, env) {
-  var params = new URL(request.url).searchParams;
-  var token = String(params.get('token') || '');
-  var slug = previewSlug(params.get('slug'), false);
-  if (!/^[A-Za-z0-9_-]{16,128}$/.test(token) || !slug) return json({ success: false }, 401);
+async function eventPreviewRecord(env, token, slug) {
+  if (!/^[A-Za-z0-9_-]{16,128}$/.test(token) || !slug) return null;
   var raw = await env.VOTES.get('event-preview-access:' + token);
   var record = null;
   try { record = raw ? JSON.parse(raw) : null; } catch (e) { record = null; }
-  if (!record || record.slug !== slug || !(record.expires > Date.now())) return json({ success: false }, 401);
+  return record && record.slug === slug && record.expires > Date.now() ? record : null;
+}
+
+async function handleEventPreviewCheck(request, env) {
+  var params = new URL(request.url).searchParams;
+  var record = await eventPreviewRecord(env, String(params.get('token') || ''), eventSlugOk(params.get('slug')));
+  if (!record) return json({ success: false }, 401);
   return json({ success: true, expires: record.expires });
+}
+
+// The newest saved copy of an event, for the admin's preview only.
+async function handleEventPreviewContent(request, env) {
+  var params = new URL(request.url).searchParams;
+  var slug = eventSlugOk(params.get('slug'));
+  var record = await eventPreviewRecord(env, String(params.get('token') || ''), slug);
+  if (!record) return json({ success: false }, 401);
+  var raw = await env.VOTES.get('event-page-draft:' + slug);
+  var entry = null;
+  try { entry = raw ? JSON.parse(raw) : null; } catch (e) { entry = null; }
+  return json({ success: true, entry: entry });
 }
 
 var DIGEST_MANUAL_COOLDOWN_SECONDS = 120;
@@ -6239,8 +6460,17 @@ export default {
     if (url.pathname === '/events/admin' && request.method === 'DELETE') {
       return handleEventsAdminDelete(request, env);
     }
+    if (url.pathname === '/events/pages/admin' && request.method === 'GET') {
+      return handleEventPagesAdminList(request, env);
+    }
+    if (url.pathname === '/events/pages/admin/save' && request.method === 'POST') {
+      return handleEventPagesAdminSave(request, env);
+    }
     if (url.pathname === '/events/pages/admin/action' && request.method === 'POST') {
       return handleEventPagesAdminAction(request, env);
+    }
+    if (url.pathname === '/events/pages/admin/image' && request.method === 'POST') {
+      return handleEventPagesImage(request, env);
     }
     if (url.pathname === '/events/pages/admin/preview-link' && request.method === 'POST') {
       return handleEventPreviewMint(request, env);
@@ -6250,6 +6480,9 @@ export default {
     }
     if (url.pathname === '/events/pages/preview/check' && request.method === 'GET') {
       return handleEventPreviewCheck(request, env);
+    }
+    if (url.pathname === '/events/pages/preview/content' && request.method === 'GET') {
+      return handleEventPreviewContent(request, env);
     }
     if (url.pathname === '/interviews/admin' && request.method === 'GET') {
       return handleInterviewsAdminList(request, env);

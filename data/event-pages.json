@@ -1,14 +1,46 @@
 {
-  "_note": "Event pages (event-<slug>.html). Each one is a draft (\"draft\": true, no publish date) or has a publish date (UK time). A draft, or a page before its publish date, shows only a Coming soon card (js/event-gate.js) and can be opened by the admin with Preview on the admin page. From the publish date the page is public and, until the event has finished, is featured on the homepage Events section with its image and tagline. startDate and endDate are the event's dates (YYYY-MM-DD). image is the featured photo shown on the homepage card. Changed from the admin page, not by hand.",
+  "_note": "Event pages, shown at event.html?e=<slug>. Made and edited on events-admin.html (Event pages), not by hand. Each is a draft (\"draft\": true, no publish date) or has a publish date (UK time). A draft, or a page before its publish date, shows only a Coming soon card (js/event-gate.js) and can be opened by the admin with Preview. From the publish date the page is public and, until the event has finished, is featured on the homepage Events section with its image and tagline. Images are in images/events/ or on the image storage. js/event-page.js draws the page.",
   "events": [
     {
-      "name": "Example event (template)",
-      "title": "[Event name goes here]",
-      "tagline": "[One line that sells it.]",
-      "url": "event-template.html",
-      "startDate": "2027-06-27",
-      "endDate": "2027-06-27",
-      "location": "[Venue name]",
+      "slug": "frunk-or-treat-uk",
+      "name": "Frunk or Treat UK 2026",
+      "title": "Frunk or Treat UK",
+      "tagline": "All electric vehicles welcome!",
+      "organisers": "SheDrivesElectric presents, in collaboration with MT3UK and Chargeheads",
+      "kind": "Meet",
+      "startDate": "2026-10-31",
+      "startTime": "14:00",
+      "endTime": "17:00",
+      "venue": "Caffeine & Machine The Hill",
+      "town": "Ettington",
+      "address": "Houndshill House, Banbury Road, Ettington, Stratford-upon-Avon, CV37 7NS",
+      "what3words": "///starter.minivans.doted",
+      "location": "Caffeine & Machine The Hill, Ettington",
+      "image": "images/events/frunk-or-treat-uk/card.jpg",
+      "poster": "images/events/frunk-or-treat-uk/poster.jpg",
+      "description": [
+        "Bring your EV, decorate your frunk for Halloween and meet other EV owners at Caffeine & Machine The Hill in Ettington.",
+        "Display your Halloween themed, decorated frunk, get to know other EV owners and have a great time.",
+        "Fancy dress is heavily encouraged. It is a family friendly event, modifications are not necessary, and all electric vehicles are welcome."
+      ],
+      "highlights": [
+        "A family friendly event",
+        "Modifications are not necessary",
+        "All electric vehicles welcome",
+        "Fancy dress heavily encouraged"
+      ],
+      "steps": [
+        {
+          "title": "Bring your EV"
+        },
+        {
+          "title": "Display your Halloween themed decorated frunk"
+        },
+        {
+          "title": "Get to know other EV owners and have a great time"
+        }
+      ],
+      "closing": "Fancy dress is heavily encouraged. See you there!",
       "draft": true,
       "created": "2026-09-30"
     }

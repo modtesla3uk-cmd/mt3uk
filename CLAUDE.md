@@ -46,11 +46,13 @@ Static site for the MT3UK modified Tesla community, live at https://mt3uk.com. I
 
 ## Event pages
 
-- `event-template.html` is the template. Copy it to `event-<slug>.html` and follow the how-to comment at the top. Images are striped `.ph` placeholders that say their size.
-- `data/event-pages.json` lists every event page as a draft (`"draft": true`) or with a `publish` date (UK time). Add an entry for each new page (name, title, tagline, url, image, startDate, endDate, location, created).
-- `js/event-gate.js` (in each page's `<head>`) shows only a Coming soon card until the publish date. Only the admin can open it early: **Event pages** on `events-admin.html` has Preview (a one-time link, 4 hours), Publish now, Schedule and Draft. There is no public code or sign-up. A page not listed in the file, or a failed read of the file, stays hidden. The gate is off on localhost; add `?gate=on` to try it.
-- Published events are featured on the homepage Events section (image and tagline) until `endDate` has passed.
-- Worker routes are under `/events/pages/`. Tests: `tests/test_event_pages.py`.
+- One page, `event.html?e=<slug>`, shows every event. `js/event-page.js` draws it from that event's entry in `data/event-pages.json` (title, tagline, dates and times, venue, images, description, tickets, running order, FAQ). A section with nothing in it is left out, and a draft shows striped image placeholders. There is no per-event HTML file to copy.
+- **Make and edit events on `events-admin.html`** (Event pages): a form for every field, image uploads (shrunk in the browser, stored in the R2 bucket under `events/<slug>/`), Save, Preview, Publish now, Schedule, Draft and Delete (not while live). Do not hand-edit the JSON unless you have to. Entries in `images/events/` are fine too.
+- Each entry is a draft (`"draft": true`, no publish date) or has a `publish` date (UK time). `js/event-gate.js` shows only a Coming soon card until then. Only the admin can open it early: Preview mints a one-time link (needs the admin key) and the browser then keeps the preview open until **End preview** (about a month at most). There is no public code, sign-up or countdown. An event not in the file, or a failed read of the file, stays hidden. The gate is off on localhost; add `?gate=on` to try it.
+- Save writes `data/event-pages.json` (one commit, so the live site updates in about a minute) and a copy in KV, which Preview reads so a change shows straight away. Publish state changes only through the actions.
+- Live events are featured on the homepage Events section (card image and tagline) until `endDate` (or `startDate`) has passed.
+- Worker routes are under `/events/pages/`. Tests: `tests/test_event_pages.py` (browser, mocked worker) and `tests/test_event_worker.py` (runs the real handlers in node).
+- Share previews and Google see the same page for every event, as it is drawn by script. Per-event share pages would be a later job.
 
 ## Shop
 

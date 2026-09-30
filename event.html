@@ -4,29 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="js/event-gate.js"></script>
-<!--
-  EVENT PAGE TEMPLATE
-  How to use:
-   1. Copy this file to event-<slug>.html (e.g. event-lancing-motor-show.html).
-   2. Delete the noindex line below and the TEMPLATE strip near the top of the body.
-   3. Replace every [SQUARE BRACKET] placeholder and each grey .ph image box with a real
-      <img> (keep the class="ev-img" wrapper so the crop stays right). Every .ph says its size.
-   4. Update the data-* attributes on <main id="event"> (used by Add to calendar and Directions).
-   5. Delete any block you do not need: free event, no schedule, sold out, etc. are all fine.
-   6. Add an entry for the page to data/event-pages.json (name, title, tagline, url, image, startDate,
-      endDate, location, draft: true). It is then a draft that only the admin page's Preview can open;
-      Publish now or Schedule it from the Event pages section of events-admin.html. The homepage card uses
-      the image and tagline from that entry.
-   7. Update the title, description, canonical and Open Graph tags, then add the page to
-      PAGES in scripts/build_layout.py and generate_sitemap.py, and to data/search-index.json.
--->
-<meta name="robots" content="noindex, nofollow">
-<meta name="description" content="[One sentence: what the event is, where and when.]">
-<title>[Event name] – MT3UK Events</title>
-<link rel="canonical" href="https://mt3uk.com/event-[slug].html">
-<meta property="og:title" content="[Event name] – MT3UK Events">
-<meta property="og:description" content="[One sentence: what the event is, where and when.]">
-<meta property="og:image" content="https://mt3uk.com/images/events/[slug]/hero.jpg">
+<!-- EVENT PAGE. One page for every event: event.html?e=<slug>. Each event is an entry in
+     data/event-pages.json, made and edited on events-admin.html (Event pages), and js/event-page.js
+     draws it. The title and meta tags below are the fallback, and are replaced from the entry. -->
+<meta name="description" content="MT3UK events: meets, shows and track days for modified Tesla owners.">
+<title>Event – MT3UK Events</title>
+<link rel="canonical" href="https://mt3uk.com/event.html">
+<meta property="og:title" content="Event – MT3UK Events">
+<meta property="og:description" content="MT3UK events: meets, shows and track days for modified Tesla owners.">
+<meta property="og:image" content="https://mt3uk.com/images/hero.jpg">
 <link rel="icon" type="image/x-icon" href="images/site/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="images/site/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="images/site/favicon-16.png">
@@ -139,16 +125,6 @@
     border-color: var(--steel);
   }
 
-  /* ---------- Template notice ---------- */
-  .tpl-strip {
-    background: var(--orange);
-    color: var(--white);
-    text-align: center;
-    padding: 8px 16px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.74rem;
-    letter-spacing: 0.06em;
-  }
 
   /* ---------- Hero ---------- */
   .ev-hero { background: var(--ink); color: var(--paper); padding: 40px 0 0; }
@@ -181,9 +157,8 @@
 
   /* ---------- Key facts ---------- */
   .ev-facts { background: var(--paper); border-bottom: 1px solid var(--ink); }
-  .ev-facts-grid { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: -1px; border: 1px solid var(--ink); background: var(--paper); }
-  .ev-fact { padding: 18px 20px; border-right: 1px solid var(--ink); }
-  .ev-fact:last-child { border-right: none; }
+  .ev-facts-grid { display: grid; grid-template-columns: repeat(var(--n, 4), 1fr); gap: 1px; margin-top: -1px; border: 1px solid var(--ink); background: var(--ink); }
+  .ev-fact { padding: 18px 20px; background: var(--paper); }
   .ev-fact .mono { display: block; margin-bottom: 6px; }
   .ev-fact strong { display: block; font-size: 1.02rem; color: var(--ink); line-height: 1.3; }
   .ev-fact small { display: block; margin-top: 3px; font-size: 0.85rem; color: var(--steel); }
@@ -191,7 +166,8 @@
 
   /* ---------- Sections ---------- */
   .ev-section { padding: 56px 0; border-bottom: 1px solid var(--ink); }
-  .ev-section:last-of-type { border-bottom: none; }
+  .ev-section.alt { background: var(--paper-2); }
+  .anchor { scroll-margin-top: 90px; }
   .ev-head { margin-bottom: 28px; }
   .ev-head h2 { font-size: clamp(1.6rem, 3.2vw, 2.2rem); max-width: 22ch; }
   .ev-head p { color: var(--ink-2); margin-top: 10px; max-width: 58ch; }
@@ -306,10 +282,7 @@
     .ev-hero-top { flex-direction: column; align-items: flex-start; gap: 16px; margin-bottom: 20px; }
     .ev-hero-img { aspect-ratio: 4 / 3; }
     .ev-facts-grid { grid-template-columns: 1fr 1fr; }
-    .ev-fact:nth-child(2) { border-right: none; }
-    .ev-fact:nth-child(-n+2) { border-bottom: 1px solid var(--ink); }
-    .ev-fact:nth-child(3) { border-right: 1px solid var(--ink); }
-    .ev-fact:nth-child(4) { border-right: none; }
+    .ev-fact:last-child:nth-child(odd) { grid-column: 1 / -1; }
     .ev-actions .btn { flex: 1 1 100%; }
     .ev-section { padding: 38px 0; }
     .tiers { grid-template-columns: 1fr; }
@@ -337,12 +310,41 @@
     .ticket-bar .btn { padding: 11px 20px; }
     body { padding-bottom: 68px; }
   }
+
+  /* ---------- Event content pieces ---------- */
+  .ev-hero-img { margin-top: 4px; }
+  .organisers { color: rgba(243,241,234,0.65); font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; letter-spacing: 0.04em; margin-top: 12px; }
+  .chips { list-style: none; display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0 26px; }
+  .chips li { border: 1px solid var(--ink); padding: 8px 14px; font-weight: 600; font-size: 0.9rem; color: var(--ink); background: var(--white); }
+  .chips li::before { content: ''; display: inline-block; width: 8px; height: 8px; margin-right: 9px; background: var(--orange); }
+  .steps { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 6px; }
+  .steps li { display: flex; gap: 14px; align-items: flex-start; border: 1px solid var(--ink); background: var(--white); padding: 18px; }
+  .steps .step-n { flex: none; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; background: var(--orange); color: var(--white); font-family: 'Archivo Expanded', sans-serif; font-weight: 800; }
+  .steps strong { display: block; color: var(--ink); }
+  .steps p { color: var(--ink-2); font-size: 0.92rem; margin-top: 4px; }
+  .poster { display: block; max-width: 420px; margin: 0 auto; border: 1px solid var(--ink); background: var(--ink); }
+  .poster img { width: 100%; height: auto; }
+  .ev-gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .ev-gallery .ev-img { min-height: 0; aspect-ratio: 4 / 3; }
+  .ev-gallery.n1 { grid-template-columns: 1fr; max-width: 640px; margin: 0 auto; }
+  .venue-wrap { max-width: 640px; margin: 0 auto; }
+  .venue-wrap .btn { margin-top: 4px; }
+  .directions { color: var(--ink-2); margin: 0 0 16px; }
+  .ev-missing { text-align: center; }
+  .ev-missing h1 { margin: 6px 0 12px; }
+  .ev-missing p { color: var(--ink-2); margin-bottom: 20px; }
+  .ev-loading { padding: 80px 0; text-align: center; color: var(--steel); font-family: 'IBM Plex Mono', monospace; }
+  .ticket-bar[hidden] { display: none; }
+  .evg-pill-anchor { display: none; }
+  @media (max-width: 780px) {
+    .steps { grid-template-columns: 1fr; }
+    .ev-gallery { grid-template-columns: 1fr 1fr; }
+    .ev-gallery.n1 { grid-template-columns: 1fr; }
+  }
   @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 </style>
 </head>
 <body>
-
-<div class="tpl-strip">TEMPLATE / NOT LIVE / COPY THIS FILE, THEN DELETE THIS STRIP AND THE NOINDEX TAG</div>
 
 <header>
   <nav>
@@ -437,234 +439,10 @@
   </nav>
 </header>
 
-<!--
-  Structured data for Google. Copy into a <script type="application/ld+json"> block on the real page:
-  {
-    "@context": "https://schema.org",
-    "@type": "Event",
-    "name": "[Event name]",
-    "startDate": "2027-06-27T09:00:00+01:00",
-    "endDate": "2027-06-27T17:00:00+01:00",
-    "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
-    "eventStatus": "https://schema.org/EventScheduled",
-    "location": { "@type": "Place", "name": "[Venue]", "address": "[Address, postcode]" },
-    "image": ["https://mt3uk.com/images/events/[slug]/hero.jpg"],
-    "description": "[One sentence]",
-    "organizer": { "@type": "Organization", "name": "MT3UK", "url": "https://mt3uk.com" },
-    "offers": { "@type": "Offer", "url": "https://mt3uk.com/event-[slug].html#tickets", "price": "15", "priceCurrency": "GBP", "availability": "https://schema.org/InStock" }
-  }
--->
+<main id="event"><div class="ev-loading">Loading event...</div></main>
 
-<main id="event"
-  data-title="[Event name]"
-  data-start-utc="20270627T080000Z"
-  data-end-utc="20270627T160000Z"
-  data-location="[Venue name, Address, Postcode]"
-  data-url="https://mt3uk.com/event-[slug].html">
-
-  <!-- HERO: date block, title, tagline, big image -->
-  <section class="ev-hero">
-    <div class="wrap">
-      <a href="index.html#events" class="back-link">&larr; Back to Events</a>
-      <div class="ev-hero-top">
-        <div class="ev-date" aria-label="Sunday 27 June 2027">
-          <span class="m">JUN</span><span class="d">27</span><span class="y">2027</span>
-        </div>
-        <div class="ev-hero-text">
-          <span class="section-num mono">EVENTS / [MEET, SHOW OR TRACK DAY]</span>
-          <h1>[Event name goes here]</h1>
-          <p class="tagline">[One line that sells it. A good line here is the who, the what and the vibe.]</p>
-        </div>
-      </div>
-      <div class="ev-img ev-hero-img">
-        <div class="ph"><span><strong>HERO IMAGE</strong>2100 &times; 900 (21:9). Crops to 4:3 on phones, so keep the subject central.<br>Save as images/events/[slug]/hero.jpg</span></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- KEY FACTS: when, where, time, entry -->
-  <section class="ev-facts">
-    <div class="wrap">
-      <div class="ev-facts-grid">
-        <div class="ev-fact"><span class="mono">WHEN</span><strong>Sunday 27 June 2027</strong><small>[Rain date or note, if any]</small></div>
-        <div class="ev-fact"><span class="mono">WHERE</span><strong>[Venue name]</strong><small>[Town, postcode]</small></div>
-        <div class="ev-fact"><span class="mono">TIME</span><strong>9:00am to 5:00pm</strong><small>[Arrive from 8:30am]</small></div>
-        <div class="ev-fact"><span class="mono">ENTRY</span><strong>From &pound;[15] per car</strong><small>[Spectators free]</small></div>
-      </div>
-      <div class="ev-actions">
-        <a class="btn btn-primary" href="#tickets">Get tickets &rarr;</a>
-        <button class="btn btn-secondary" type="button" id="add-to-calendar">Add to calendar</button>
-        <a class="btn btn-secondary" id="get-directions" href="#venue" target="_blank" rel="noopener">Get directions</a>
-      </div>
-    </div>
-  </section>
-
-  <!-- DESCRIPTION -->
-  <section class="ev-section">
-    <div class="wrap ev-about">
-      <div class="ev-head">
-        <span class="section-num mono">01 / ABOUT</span>
-        <h2>What to expect</h2>
-      </div>
-      <div class="cols">
-        <p class="lead">[Opening paragraph: a plain, friendly sentence or two on what the day is and who it is for. Keep the first paragraph the strongest.]</p>
-        <p>[Second paragraph: what happens on the day. Cars on show, track sessions, talks, food, trade stands, club stickers, a group photo.]</p>
-        <p>[Third paragraph: who should come. Owners of any Tesla, modified or not. Mention if partners, kids or dogs are welcome.]</p>
-        <p>[Fourth paragraph: anything they need to know before arriving, such as parking, what to bring, or house rules. Longer detail can go in the FAQ below.]</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- TICKETS -->
-  <section class="ev-section" style="background: var(--paper-2);">
-    <div class="wrap">
-      <div id="tickets" style="scroll-margin-top: 90px;"></div>
-      <div class="ev-head">
-        <span class="section-num mono">02 / TICKETS</span>
-        <h2>Tickets and entry</h2>
-        <p>[Where tickets are sold and how they arrive. For example: tickets are sent by email, show the QR code on the gate.]</p>
-      </div>
-      <div class="tiers">
-        <div class="tier">
-          <span class="tier-tag quiet">SPECTATOR</span>
-          <h3>Spectator</h3>
-          <div class="price">Free</div>
-          <div class="per">PER PERSON</div>
-          <ul>
-            <li>Walk the show field</li>
-            <li>Meet the owners</li>
-            <li>[Anything else included]</li>
-          </ul>
-          <a class="btn btn-secondary" href="#">Register free</a>
-        </div>
-        <div class="tier featured">
-          <span class="tier-tag">MOST POPULAR</span>
-          <h3>Show your car</h3>
-          <div class="price">&pound;15</div>
-          <div class="per">PER CAR, DRIVER INCLUDED</div>
-          <ul>
-            <li>Reserved display space</li>
-            <li>Event window sticker</li>
-            <li>Entry into the owners' vote</li>
-            <li>[Anything else included]</li>
-          </ul>
-          <a class="btn btn-primary" href="https://example.com/tickets?utm_source=mt3uk_events&amp;utm_medium=internal&amp;utm_campaign=[slug]_tickets">Get a display ticket</a>
-        </div>
-        <div class="tier soldout">
-          <span class="tier-tag quiet">SOLD OUT</span>
-          <h3>Early bird</h3>
-          <div class="price">&pound;10</div>
-          <div class="per">PER CAR</div>
-          <ul>
-            <li>Same as display ticket</li>
-            <li>[Anything else included]</li>
-          </ul>
-          <span class="btn btn-secondary" aria-disabled="true">Sold out</span>
-        </div>
-      </div>
-      <div class="ticket-notes">
-        <div><span>REFUNDS</span><span>[Refunds up to 7 days before]</span></div>
-        <div><span>TICKET DEADLINE</span><span>[Tickets close 20 June 2027]</span></div>
-        <div><span>QUESTIONS</span><span><a href="contact.html" style="color:var(--orange);">Contact us</a></span></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- SCHEDULE -->
-  <section class="ev-section">
-    <div class="wrap">
-      <div class="ev-head">
-        <span class="section-num mono">03 / THE DAY</span>
-        <h2>Running order</h2>
-      </div>
-      <ol class="schedule" style="max-width: 640px; margin-left: auto; margin-right: auto;">
-        <li><span class="t">08:30</span><div><strong>Gates open</strong><p>[Display cars roll in and get parked up.]</p></div></li>
-        <li><span class="t">10:00</span><div><strong>[Main activity]</strong><p>[One line on what is happening.]</p></div></li>
-        <li><span class="t">13:00</span><div><strong>[Group photo]</strong><p>[One line on what is happening.]</p></div></li>
-        <li><span class="t">15:30</span><div><strong>[Awards or vote result]</strong><p>[One line on what is happening.]</p></div></li>
-        <li><span class="t">17:00</span><div><strong>Finish</strong><p>[Drive home safe.]</p></div></li>
-      </ol>
-    </div>
-  </section>
-
-  <!-- PHOTOS -->
-  <section class="ev-section" style="background: var(--paper-2);">
-    <div class="wrap">
-      <div class="ev-head">
-        <span class="section-num mono">04 / PHOTOS</span>
-        <h2>[Last year, or the venue]</h2>
-      </div>
-      <div class="ev-gallery">
-        <figure class="ev-img"><div class="ph"><span><strong>PHOTO 1, LARGE</strong>1200 &times; 900 (4:3)</span></div></figure>
-        <figure class="ev-img"><div class="ph"><span><strong>PHOTO 2</strong>800 &times; 600</span></div></figure>
-        <figure class="ev-img"><div class="ph"><span><strong>PHOTO 3</strong>800 &times; 600</span></div></figure>
-        <figure class="ev-img"><div class="ph"><span><strong>PHOTO 4</strong>800 &times; 600</span></div></figure>
-        <figure class="ev-img"><div class="ph"><span><strong>PHOTO 5</strong>800 &times; 600</span></div></figure>
-      </div>
-    </div>
-  </section>
-
-  <!-- VENUE -->
-  <section class="ev-section">
-    <div class="wrap">
-      <div id="venue" style="scroll-margin-top: 90px;"></div>
-      <div class="ev-head">
-        <span class="section-num mono">05 / VENUE</span>
-        <h2>Getting there</h2>
-      </div>
-      <div class="venue-grid">
-        <div class="ev-img venue-map">
-          <div class="ph"><span><strong>MAP OR VENUE IMAGE</strong>1200 &times; 900 (4:3). A screenshot of the map pin or a venue photo.</span></div>
-        </div>
-        <div class="venue-text">
-          <div class="specs">
-            <div class="spec-row"><span>VENUE</span><span>[Venue name]</span></div>
-            <div class="spec-row"><span>ADDRESS</span><span>[Street, Town, Postcode]</span></div>
-            <div class="spec-row"><span>PARKING</span><span>[Free on site]</span></div>
-            <div class="spec-row"><span>CHARGING</span><span>[Nearest chargers]</span></div>
-          </div>
-          <p>[Short directions or a tip: which entrance to use, what to look for, where marshals will be.]</p>
-          <a class="btn btn-secondary" id="get-directions-2" href="#venue" target="_blank" rel="noopener">Open in Maps &rarr;</a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- FAQ -->
-  <section class="ev-section" style="background: var(--paper-2);">
-    <div class="wrap">
-      <div class="ev-head">
-        <span class="section-num mono">06 / FAQ</span>
-        <h2>Good to know</h2>
-      </div>
-      <div class="faq">
-        <details><summary>Does my Tesla need to be modified?</summary><p>[No. Stock cars are just as welcome. Say so here if true.]</p></details>
-        <details><summary>Can I bring my family or dog?</summary><p>[Answer.]</p></details>
-        <details><summary>What if it rains?</summary><p>[Answer, including whether the event goes ahead.]</p></details>
-        <details><summary>Where can I charge?</summary><p>[Answer, including on site or nearby chargers.]</p></details>
-      </div>
-    </div>
-  </section>
-
-  <!-- CLOSING CTA -->
-  <section class="ev-cta">
-    <div class="wrap">
-      <h2>See you there</h2>
-      <p>[One friendly line. Tickets, then tell a mate.]</p>
-      <div class="row">
-        <a class="btn btn-primary" href="#tickets">Get tickets &rarr;</a>
-        <a class="btn btn-light" href="https://www.facebook.com/groups/mt3uk" target="_blank" rel="noopener">Join the community</a>
-      </div>
-    </div>
-  </section>
-
-</main>
-
-<!-- Phone only: keeps the price and ticket button in reach -->
-<div class="ticket-bar">
-  <div><span class="from">TICKETS FROM</span><strong>&pound;[15]</strong></div>
-  <a class="btn btn-primary" href="#tickets">Get tickets</a>
-</div>
+<!-- Phone only: keeps the price and ticket button in reach (shown when the event has tickets) -->
+<div class="ticket-bar" id="ev-ticket-bar" hidden></div>
 
 <footer>
   <div class="wrap footer-row">
@@ -673,47 +451,6 @@
     <span class="footer-links"><a href="privacy.html" class="mono" style="text-decoration:underline;">PRIVACY</a> <a href="https://www.facebook.com/groups/mt3uk/" target="_blank" rel="noopener" class="mono" style="text-decoration:underline;">FACEBOOK GROUP &#8599;</a></span>
   </div>
 </footer>
-
-<script>
-  (function () {
-    var ev = document.getElementById('event');
-    if (!ev) return;
-
-    // Directions: Google Maps search for the location on the page.
-    var maps = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(ev.dataset.location || '');
-    ['get-directions', 'get-directions-2'].forEach(function (id) {
-      var a = document.getElementById(id);
-      if (a) a.href = maps;
-    });
-
-    // Add to calendar: downloads a small .ics file.
-    var btn = document.getElementById('add-to-calendar');
-    if (!btn) return;
-    btn.addEventListener('click', function () {
-      var esc = function (s) { return String(s || '').replace(/([,;\\])/g, '\\$1').replace(/\n/g, '\\n'); };
-      var lines = [
-        'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//MT3UK//Events//EN', 'BEGIN:VEVENT',
-        'UID:' + (ev.dataset.startUtc || '') + '-' + Math.abs(hash(ev.dataset.title || '')) + '@mt3uk.com',
-        'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, ''),
-        'DTSTART:' + ev.dataset.startUtc,
-        'DTEND:' + ev.dataset.endUtc,
-        'SUMMARY:' + esc(ev.dataset.title),
-        'LOCATION:' + esc(ev.dataset.location),
-        'URL:' + (ev.dataset.url || ''),
-        'END:VEVENT', 'END:VCALENDAR'
-      ];
-      var blob = new Blob([lines.join('\r\n')], { type: 'text/calendar' });
-      var a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'mt3uk-event.ics';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
-    });
-    function hash(s) { var h = 0; for (var i = 0; i < s.length; i++) { h = (h << 5) - h + s.charCodeAt(i); h |= 0; } return h; }
-  })();
-</script>
 
 
   <script>
@@ -775,6 +512,7 @@
     }
   </script>
 
+<script src="js/event-page.js" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js" defer></script>
 <script src="js/signin-prompt.js" defer></script>

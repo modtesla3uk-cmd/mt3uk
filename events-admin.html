@@ -112,27 +112,27 @@
   .ep-schedule input { width: auto; min-width: 10em; }
   .ep-schedule button { padding: 6px 12px; font-size: 0.72rem; }
   .ep-note { color: var(--steel); font-size: 0.72rem; margin: 0 0 14px; }
-
-  /* Phones: larger text and tap targets. Desktop is unchanged. Inputs use
-     16px so iOS doesn't zoom in on focus. */
-  @media (max-width: 780px) {
-    body { font-size: 15px; }
-    header, main { padding-left: 16px; padding-right: 16px; }
-    h1 { font-size: 0.95rem; }
-    h2 { font-size: 0.95rem; }
-    input, textarea { font-size: 16px; }
-    button { min-height: 44px; }
-    .form-grid { grid-template-columns: 1fr; }
-    .field label, .field .hint, .status { font-size: 0.82rem; }
-    .event-card { flex-wrap: wrap; }
-    .event-body { flex-basis: calc(100% - 70px); }
-    .event-name { font-size: 1.05rem; }
-    .event-meta { font-size: 0.85rem; }
-    .event-desc { font-size: 0.9rem; }
-    .event-actions { width: 100%; justify-content: flex-start; }
-    .event-actions button { flex: 1 1 auto; min-height: 42px; padding: 8px 12px; font-size: 0.85rem; }
-    .form-actions button { flex: 1 1 auto; }
-  }
+  .ep-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+  .ep-fieldset { border: 1px solid rgba(255,255,255,0.2); padding: 14px 16px 16px; margin: 0 0 16px; min-width: 0; }
+  .ep-fieldset legend { color: var(--orange); font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0 6px; }
+  .ep-fieldset .hint { color: var(--steel); font-size: 0.68rem; }
+  .ep-fieldset textarea { min-height: 96px; }
+  .check { display: flex; align-items: center; gap: 8px; color: var(--white); font-size: 0.78rem; }
+  .check input { width: auto; }
+  .img-slot { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .img-thumb { width: 120px; height: 76px; object-fit: cover; border: 1px dashed rgba(255,255,255,0.35); background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: var(--steel); font-size: 0.66rem; text-align: center; }
+  img.img-thumb { border-style: solid; }
+  .img-slot input[type=file] { width: auto; max-width: 100%; padding: 6px; }
+  .img-slot .img-state { color: var(--steel); font-size: 0.7rem; }
+  .gallery-slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 10px; }
+  .gallery-item { border: 1px solid rgba(255,255,255,0.2); padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+  .gallery-item img { width: 100%; height: 90px; object-fit: cover; }
+  .gallery-item input { font-size: 0.72rem; padding: 6px; }
+  .gallery-item button, .tier-row > button { padding: 4px 8px; font-size: 0.68rem; }
+  .tier-row { border: 1px solid rgba(255,255,255,0.2); padding: 12px; margin-bottom: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
+  .tier-row .full { grid-column: 1 / -1; }
+  .tier-row .checks { display: flex; gap: 18px; flex-wrap: wrap; }
+  .tier-row textarea { min-height: 64px; }
 </style>
 </head>
 <body>
@@ -153,8 +153,94 @@
     <section>
       <details id="ep-wrap" open>
         <summary><h2>Event pages <span class="count" id="ep-count"></span></h2></summary>
-        <p class="ep-note">Full event pages, made by copying event-template.html. Each is a draft, scheduled or live. Until it is live, the public only sees a Coming soon card and only you can open it: <strong>Preview</strong> opens it for 4 hours in this browser. From its publish date it goes live and is featured, with its image and tagline, in the homepage Events section until the event is over. Changes save as one commit and the site updates in about a minute.</p>
+        <p class="ep-note">Each event page is a draft, scheduled or live, and is shown at event.html?e=web-address. Until it is live the public only sees a Coming soon card, and only you can open it: <strong>Preview</strong> opens it in this browser and stays open until you end it. Press <strong>Save</strong> and Preview shows the change straight away. From its publish date it goes live and is featured, with its image and tagline, in the homepage Events section until the event is over. Saves update the live site in about a minute.</p>
+        <div class="ep-bar"><button type="button" id="ep-new">Add an event page</button></div>
         <div id="ep-list"></div>
+
+        <form class="form-card hidden" id="ep-form" novalidate>
+          <h2 id="ep-form-title">New event page</h2>
+
+          <fieldset class="ep-fieldset"><legend>The basics</legend>
+            <div class="form-grid">
+              <div class="field"><label for="ep-name">Name (for you)</label><input type="text" id="ep-name" maxlength="100" placeholder="Frunk or Treat UK 2026"></div>
+              <div class="field"><label for="ep-slug">Web address name</label><input type="text" id="ep-slug" maxlength="60" placeholder="frunk-or-treat-uk"><span class="hint">Letters, numbers and hyphens. The page is event.html?e=this. Fixed once saved.</span></div>
+              <div class="field full"><label for="ep-title">Title on the page</label><input type="text" id="ep-title" maxlength="120" placeholder="Frunk or Treat UK"></div>
+              <div class="field full"><label for="ep-tagline">Tagline (shown on the homepage card too)</label><input type="text" id="ep-tagline" maxlength="200" placeholder="All electric vehicles welcome!"></div>
+              <div class="field full"><label for="ep-organisers">Presented by</label><input type="text" id="ep-organisers" maxlength="200" placeholder="SheDrivesElectric presents, in collaboration with MT3UK and Chargeheads"></div>
+              <div class="field"><label for="ep-kind">Type label</label><input type="text" id="ep-kind" maxlength="30" placeholder="MEET, SHOW or TRACK DAY"></div>
+            </div>
+          </fieldset>
+
+          <fieldset class="ep-fieldset"><legend>When</legend>
+            <div class="form-grid">
+              <div class="field"><label for="ep-start-date">Starts</label><div class="pair"><input type="date" id="ep-start-date" aria-label="Start date"><input type="time" id="ep-start-time" aria-label="Start time"></div></div>
+              <div class="field"><label for="ep-end-date">Ends</label><div class="pair"><input type="date" id="ep-end-date" aria-label="End date"><input type="time" id="ep-end-time" aria-label="End time"></div><span class="hint">End date is only needed for events over more than one day. Times are UK time.</span></div>
+              <div class="field full"><label for="ep-time-note">Note under the time (optional)</label><input type="text" id="ep-time-note" maxlength="120" placeholder="Arrive from 1:30pm"></div>
+            </div>
+          </fieldset>
+
+          <fieldset class="ep-fieldset"><legend>Where</legend>
+            <div class="form-grid">
+              <div class="field"><label for="ep-venue">Venue</label><input type="text" id="ep-venue" maxlength="120" placeholder="Caffeine &amp; Machine The Hill"></div>
+              <div class="field"><label for="ep-town">Town</label><input type="text" id="ep-town" maxlength="80" placeholder="Ettington"></div>
+              <div class="field full"><label for="ep-address">Address</label><input type="text" id="ep-address" maxlength="250" placeholder="Houndshill House, Banbury Road, Ettington, Stratford-upon-Avon, CV37 7NS"></div>
+              <div class="field"><label for="ep-w3w">what3words</label><input type="text" id="ep-w3w" maxlength="80" placeholder="starter.minivans.doted"></div>
+              <div class="field"><label for="ep-directions">Directions or a tip</label><input type="text" id="ep-directions" maxlength="600"></div>
+              <div class="field full"><label for="ep-venue-notes">More venue details, one per line as Label | Value</label><textarea id="ep-venue-notes" placeholder="Parking | Free on site&#10;Charging | Nearest chargers"></textarea></div>
+            </div>
+          </fieldset>
+
+          <fieldset class="ep-fieldset"><legend>Images</legend>
+            <div class="form-grid">
+              <div class="field full"><label>Card image (homepage, wide, about 16:10)</label><div class="img-slot" id="slot-image"></div></div>
+              <div class="field full"><label>Hero image (top of the page, optional, uses the card image if empty)</label><div class="img-slot" id="slot-heroImage"></div></div>
+              <div class="field full"><label>Poster (portrait, optional)</label><div class="img-slot" id="slot-poster"></div></div>
+              <div class="field full"><label>Photos (up to 8)</label><div class="gallery-slots" id="ep-gallery"></div><div class="img-slot"><input type="file" id="ep-gallery-add" accept="image/*" multiple aria-label="Add photos"><span class="img-state" id="gallery-state"></span></div></div>
+              <div class="field full"><label for="ep-gallery-title">Photos heading</label><input type="text" id="ep-gallery-title" maxlength="60" placeholder="Last year"></div>
+            </div>
+            <p class="hint">Photos are shrunk in your browser before they upload. Until an image is added the page shows a striped placeholder.</p>
+          </fieldset>
+
+          <fieldset class="ep-fieldset"><legend>The description</legend>
+            <div class="form-grid">
+              <div class="field full"><label for="ep-description">Description. A blank line starts a new paragraph, and the first one is shown larger</label><textarea id="ep-description" rows="8"></textarea></div>
+              <div class="field full"><label for="ep-highlights">Highlights, one per line</label><textarea id="ep-highlights" placeholder="A family friendly event&#10;Modifications are not necessary"></textarea></div>
+              <div class="field full"><label for="ep-steps">How it works, one step per line as Title | Text (text is optional)</label><textarea id="ep-steps" placeholder="Bring your EV&#10;Display your Halloween themed decorated frunk"></textarea></div>
+            </div>
+          </fieldset>
+
+          <fieldset class="ep-fieldset"><legend>Tickets and entry (leave empty if there are none)</legend>
+            <div class="form-grid">
+              <div class="field"><label for="ep-entry">Entry, shown in the key facts</label><input type="text" id="ep-entry" maxlength="80" placeholder="Free, no ticket needed"></div>
+              <div class="field"><label for="ep-entry-note">Note under entry</label><input type="text" id="ep-entry-note" maxlength="120"></div>
+              <div class="field full"><label for="ep-tickets-intro">Ticket introduction</label><input type="text" id="ep-tickets-intro" maxlength="300"></div>
+            </div>
+            <div id="ep-tiers"></div>
+            <div class="ep-bar"><button type="button" class="secondary" id="ep-add-tier">Add a ticket type</button></div>
+            <div class="field full"><label for="ep-ticket-notes">Ticket notes, one per line as Label | Value</label><textarea id="ep-ticket-notes" placeholder="Refunds | Up to 7 days before"></textarea></div>
+          </fieldset>
+
+          <fieldset class="ep-fieldset"><legend>Running order and questions (optional)</legend>
+            <div class="form-grid">
+              <div class="field full"><label for="ep-schedule-text">Running order, one per line as Time | Title | Text (text is optional)</label><textarea id="ep-schedule-text" placeholder="2pm | Gates open&#10;3:30pm | Frunk vote | Owners pick their favourite"></textarea></div>
+              <div class="field full"><label for="ep-faq">Questions, one per line as Question | Answer</label><textarea id="ep-faq" placeholder="Does my Tesla need to be modified? | No, any EV is welcome"></textarea></div>
+            </div>
+          </fieldset>
+
+          <fieldset class="ep-fieldset"><legend>Button and closing line (optional)</legend>
+            <div class="form-grid">
+              <div class="field"><label for="ep-cta-url">Event link (Facebook, Eventbrite etc.)</label><input type="url" id="ep-cta-url" placeholder="https://"></div>
+              <div class="field"><label for="ep-cta-label">Button text</label><input type="text" id="ep-cta-label" maxlength="40" placeholder="Event on Facebook"></div>
+              <div class="field full"><label for="ep-closing">Closing line</label><input type="text" id="ep-closing" maxlength="200" placeholder="Bring your EV, decorate your frunk and come and say hello."></div>
+            </div>
+          </fieldset>
+
+          <div class="form-actions">
+            <button type="submit" id="ep-save">Save</button>
+            <button type="button" id="ep-save-preview">Save and preview</button>
+            <button type="button" class="secondary" id="ep-cancel">Close</button>
+          </div>
+        </form>
       </details>
     </section>
 
@@ -225,15 +311,22 @@
   </div>
 </main>
 <script>
-// Event pages: Preview, Publish now, Schedule and Draft for the pages listed
-// in data/event-pages.json (see js/event-gate.js).
+// Event pages: add, edit, upload images, Preview, Publish now, Schedule,
+// Draft and Delete for the pages in data/event-pages.json (event.html?e=slug).
 (function () {
   var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
-  var listEl = document.getElementById('ep-list');
-  var countEl = document.getElementById('ep-count');
-  var statusEl = document.getElementById('status');
-  var keyInput = document.getElementById('admin-key');
+  var $ = function (id) { return document.getElementById(id); };
+  var listEl = $('ep-list');
+  var countEl = $('ep-count');
+  var statusEl = $('status');
+  var keyInput = $('admin-key');
+  var form = $('ep-form');
   var pages = [];
+  var editingSlug = '';
+  var isNew = false;
+  var images = { image: '', heroImage: '', poster: '' };
+  var gallery = [];
+  var uploading = 0;
 
   function key() { return keyInput.value.trim(); }
   function esc(v) {
@@ -249,69 +342,306 @@
   function nice(iso) {
     return new Date(iso + 'T12:00:00Z').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/London' });
   }
-  function slugOf(p) { return (p.url.match(/^event-([a-z0-9-]+)\.html$/) || [])[1] || ''; }
   function stateOf(p) {
     if (p.draft || !p.publish) return 'draft';
     return p.publish <= today() ? 'live' : 'scheduled';
   }
+  function slugify(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60); }
+  function find(slug) { return pages.filter(function (x) { return x.slug === slug; })[0]; }
 
+  // ---------- The list ----------
   function render() {
     countEl.textContent = pages.length ? '(' + pages.length + ')' : '';
-    if (!pages.length) { listEl.innerHTML = '<p class="empty">No event pages yet.</p>'; return; }
+    if (!pages.length) { listEl.innerHTML = '<p class="empty">No event pages yet. Press Add an event page.</p>'; return; }
     listEl.innerHTML = pages.map(function (p) {
       var state = stateOf(p);
-      var u = esc(p.url);
+      var s = esc(p.slug);
       var label = state === 'live' ? 'LIVE' : state === 'scheduled' ? 'SCHEDULED' : 'DRAFT';
       var when = state === 'draft' ? 'Not scheduled' : (state === 'live' ? 'Live since ' : 'Goes live ') + nice(p.publish);
       return '<div class="event-card">' +
         '<div class="event-id ' + state + '">' + label + '</div>' +
         '<div class="event-body">' +
           '<h3 class="event-name">' + esc(p.name) + '</h3>' +
-          '<p class="event-meta">' + esc(p.url) + (p.startDate ? ' · Event ' + esc(nice(p.startDate)) : '') + (p.location ? ' · ' + esc(p.location) : '') + '</p>' +
+          '<p class="event-meta">event.html?e=' + s + (p.startDate ? ' · Event ' + esc(nice(p.startDate)) : '') + (p.location ? ' · ' + esc(p.location) : '') + '</p>' +
           '<p class="event-meta">' + esc(when) + '</p>' +
           (p.tagline ? '<p class="event-desc">' + esc(p.tagline) + '</p>' : '') +
           (state === 'live' ? '' :
-            '<div class="ep-schedule"><input type="date" class="ep-date" data-url="' + u + '" value="' + (state === 'scheduled' ? esc(p.publish) : '') + '" aria-label="Publish date for ' + esc(p.name) + '">' +
-            '<button type="button" class="secondary" data-ep="schedule" data-url="' + u + '">Schedule</button></div>') +
+            '<div class="ep-schedule"><input type="date" class="ep-date" data-slug="' + s + '" value="' + (state === 'scheduled' ? esc(p.publish) : '') + '" aria-label="Publish date for ' + esc(p.name) + '">' +
+            '<button type="button" class="secondary" data-ep="schedule" data-slug="' + s + '">Schedule</button></div>') +
         '</div>' +
         '<div class="event-actions">' +
-          '<button type="button" data-ep="preview" data-url="' + u + '">Preview</button>' +
-          (state === 'live' ? '' : '<button type="button" class="secondary" data-ep="publish-now" data-url="' + u + '">Publish now</button>') +
-          (state === 'draft' ? '' : '<button type="button" class="secondary" data-ep="draft" data-url="' + u + '">Draft</button>') +
+          '<button type="button" data-ep="preview" data-slug="' + s + '">Preview</button>' +
+          '<button type="button" class="secondary" data-ep="edit" data-slug="' + s + '">Edit</button>' +
+          (state === 'live' ? '' : '<button type="button" class="secondary" data-ep="publish-now" data-slug="' + s + '">Publish now</button>') +
+          (state === 'draft' ? '' : '<button type="button" class="secondary" data-ep="draft" data-slug="' + s + '">Draft</button>') +
+          (state === 'live' ? '' : '<button type="button" class="danger" data-ep="delete" data-slug="' + s + '">Delete</button>') +
         '</div>' +
       '</div>';
     }).join('');
   }
 
-  // Preview: the worker makes a one-time link (needs the admin key), which
-  // opens in a new tab. The tab is opened straight away so it isn't blocked.
-  function preview(p, btn) {
-    if (!key()) { setStatus('Enter the admin key first.', 'error'); return; }
-    var tab = window.open('', '_blank');
-    btn.disabled = true;
-    setStatus('Making a preview link...');
-    fetch(API + '/events/pages/admin/preview-link?key=' + encodeURIComponent(key()), {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: slugOf(p) })
-    })
-      .then(function (res) { return res.json(); })
-      .then(function (data) {
-        btn.disabled = false;
-        if (!data.success || !data.token) {
-          if (tab) tab.close();
-          setStatus(data.message === 'Unauthorized' ? 'The admin key is not right.' : (data.message || 'Could not make a preview link.'), 'error');
-          return;
-        }
-        var href = p.url + '?gate=on&preview=' + encodeURIComponent(data.token);
-        if (tab) tab.location.href = href; else window.location.href = href;
-        setStatus('Preview opened for 4 hours in this browser.', 'ok');
-      })
-      .catch(function () { btn.disabled = false; if (tab) tab.close(); setStatus('Network error, please try again.', 'error'); });
+  // ---------- Talking to the worker ----------
+  function post(path, body) {
+    return fetch(API + path + (path.indexOf('?') === -1 ? '?' : '&') + 'key=' + encodeURIComponent(key()), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    }).then(function (res) {
+      return res.json().catch(function () { return {}; }).then(function (data) {
+        if (!data.success) throw new Error(data.message === 'Unauthorized' ? 'The admin key is not right.' : (data.message || 'Something went wrong (' + res.status + ')'));
+        return data;
+      });
+    });
   }
 
-  function run(action, url, btn) {
-    var p = pages.filter(function (x) { return x.url === url; })[0];
+  function loadList() {
+    fetch(API + '/events/pages/admin?key=' + encodeURIComponent(key()), { cache: 'no-store' })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (!data.success) throw new Error(data.message || 'Could not load the event pages');
+        pages = data.events || [];
+        render();
+      })
+      .catch(function (err) { listEl.innerHTML = '<p class="empty">' + esc(err.message) + '</p>'; });
+  }
+
+  // ---------- Preview ----------
+  // The worker makes a one-time link (needs the admin key). The new tab is
+  // opened straight away so the browser doesn't block it.
+  function preview(slug, btn) {
+    if (!key()) { setStatus('Enter the admin key first.', 'error'); return Promise.resolve(); }
+    var tab = window.open('', '_blank');
+    if (btn) btn.disabled = true;
+    setStatus('Making a preview link...');
+    return post('/events/pages/admin/preview-link', { slug: slug })
+      .then(function (data) {
+        var href = 'event.html?e=' + encodeURIComponent(slug) + '&gate=on&preview=' + encodeURIComponent(data.token);
+        if (tab) tab.location.href = href; else window.location.href = href;
+        setStatus('Preview opened. It stays open in this browser until you press End preview on the page.', 'ok');
+      })
+      .catch(function (err) { if (tab) tab.close(); setStatus(err.message, 'error'); })
+      .then(function () { if (btn) btn.disabled = false; });
+  }
+
+  // ---------- Images ----------
+  // Photos are shrunk and re-saved as JPEG here first (which also removes
+  // where they were taken), then uploaded to the site's image storage.
+  function shrink(file, maxSide) {
+    return new Promise(function (resolve, reject) {
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function () {
+        URL.revokeObjectURL(url);
+        var scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+        var c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(img.naturalWidth * scale));
+        c.height = Math.max(1, Math.round(img.naturalHeight * scale));
+        var ctx = c.getContext('2d');
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, c.width, c.height);
+        ctx.drawImage(img, 0, 0, c.width, c.height);
+        c.toBlob(function (blob) { blob ? resolve(blob) : reject(new Error('Could not prepare that image')); }, 'image/jpeg', 0.86);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('That file could not be read as an image. Try a JPEG or PNG.')); };
+      img.src = url;
+    });
+  }
+
+  function upload(file, maxSide) {
+    var slug = slugify($('ep-slug').value);
+    if (!slug) return Promise.reject(new Error('Fill in the name and web address name first.'));
+    if (!key()) return Promise.reject(new Error('Enter the admin key first.'));
+    uploading++;
+    return shrink(file, maxSide).then(function (blob) {
+      return fetch(API + '/events/pages/admin/image?slug=' + encodeURIComponent(slug) + '&key=' + encodeURIComponent(key()), {
+        method: 'POST', headers: { 'Content-Type': 'image/jpeg' }, body: blob
+      });
+    }).then(function (res) {
+      return res.json().catch(function () { return {}; }).then(function (data) {
+        if (!data.success) throw new Error(data.message === 'Unauthorized' ? 'The admin key is not right.' : (data.message || 'Upload failed'));
+        return data.url;
+      });
+    }).then(function (url) { uploading--; return url; }, function (err) { uploading--; throw err; });
+  }
+
+  function drawSlot(name, hint) {
+    var slot = $('slot-' + name);
+    var url = images[name];
+    slot.innerHTML = (url ? '<img class="img-thumb" src="' + esc(url) + '" alt="">' : '<div class="img-thumb">' + esc(hint) + '</div>') +
+      '<input type="file" accept="image/*" data-slot="' + name + '" aria-label="Choose ' + name + '">' +
+      (url ? '<button type="button" class="secondary" data-clear="' + name + '">Remove</button>' : '') +
+      '<span class="img-state"></span>';
+  }
+  var SLOTS = { image: ['Card image', 1800], heroImage: ['Hero image', 2400], poster: ['Poster', 1600] };
+  function drawSlots() { Object.keys(SLOTS).forEach(function (n) { drawSlot(n, SLOTS[n][0]); }); drawGallery(); }
+
+  function drawGallery() {
+    $('ep-gallery').innerHTML = gallery.map(function (g, i) {
+      return '<div class="gallery-item"><img src="' + esc(g.src) + '" alt=""><input type="text" data-cap="' + i + '" value="' + esc(g.caption || '') + '" placeholder="Caption (optional)" maxlength="120" aria-label="Caption for photo ' + (i + 1) + '">' +
+        '<button type="button" class="secondary" data-remove-photo="' + i + '">Remove</button></div>';
+    }).join('');
+  }
+
+  form.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.matches('input[type=file][data-slot]')) {
+      var name = t.getAttribute('data-slot');
+      var file = t.files && t.files[0];
+      if (!file) return;
+      var state = t.parentNode.querySelector('.img-state');
+      state.textContent = 'Uploading...';
+      upload(file, SLOTS[name][1]).then(function (url) { images[name] = url; drawSlot(name, SLOTS[name][0]); })
+        .catch(function (err) { state.textContent = err.message; t.value = ''; });
+    } else if (t.id === 'ep-gallery-add') {
+      var files = Array.prototype.slice.call(t.files || [], 0, Math.max(0, 8 - gallery.length));
+      if (!files.length) return;
+      var gs = $('gallery-state');
+      gs.textContent = 'Uploading ' + files.length + '...';
+      files.reduce(function (chain, f) {
+        return chain.then(function () { return upload(f, 1800).then(function (url) { gallery.push({ src: url, caption: '' }); drawGallery(); }); });
+      }, Promise.resolve()).then(function () { gs.textContent = ''; }).catch(function (err) { gs.textContent = err.message; });
+      t.value = '';
+    } else if (t.matches('[data-cap]')) {
+      gallery[+t.getAttribute('data-cap')].caption = t.value;
+    }
+  });
+  form.addEventListener('click', function (e) {
+    var clear = e.target.closest('[data-clear]');
+    if (clear) { var n = clear.getAttribute('data-clear'); images[n] = ''; drawSlot(n, SLOTS[n][0]); return; }
+    var rm = e.target.closest('[data-remove-photo]');
+    if (rm) { gallery.splice(+rm.getAttribute('data-remove-photo'), 1); drawGallery(); return; }
+    var rmTier = e.target.closest('[data-remove-tier]');
+    if (rmTier) { rmTier.closest('.tier-row').remove(); }
+  });
+
+  // ---------- Ticket types ----------
+  function tierRow(t) {
+    t = t || {};
+    var div = document.createElement('div');
+    div.className = 'tier-row';
+    div.innerHTML =
+      '<div class="field"><label>Name</label><input type="text" class="t-name" maxlength="60" value="' + esc(t.name) + '" placeholder="Show your car"></div>' +
+      '<div class="field"><label>Price</label><input type="text" class="t-price" maxlength="20" value="' + esc(t.price) + '" placeholder="&pound;15 or Free"></div>' +
+      '<div class="field"><label>Per</label><input type="text" class="t-per" maxlength="40" value="' + esc(t.per) + '" placeholder="per car"></div>' +
+      '<div class="field"><label>Label on the card</label><input type="text" class="t-tag" maxlength="30" value="' + esc(t.tag) + '" placeholder="MOST POPULAR"></div>' +
+      '<div class="field full"><label>What is included, one per line</label><textarea class="t-includes">' + esc((t.includes || []).join('\n')) + '</textarea></div>' +
+      '<div class="field"><label>Ticket link</label><input type="url" class="t-url" value="' + esc(t.url) + '" placeholder="https://"></div>' +
+      '<div class="field"><label>Button text</label><input type="text" class="t-button" maxlength="30" value="' + esc(t.buttonLabel) + '" placeholder="Get tickets"></div>' +
+      '<div class="full checks"><label class="check"><input type="checkbox" class="t-featured"' + (t.featured ? ' checked' : '') + '> Highlight this one</label>' +
+      '<label class="check"><input type="checkbox" class="t-sold"' + (t.soldOut ? ' checked' : '') + '> Sold out</label></div>' +
+      '<button type="button" class="danger full" data-remove-tier="1">Remove this ticket type</button>';
+    return div;
+  }
+  $('ep-add-tier').addEventListener('click', function () { $('ep-tiers').appendChild(tierRow()); });
+
+  // ---------- The form ----------
+  function lines(v) { return String(v || '').split('\n').map(function (l) { return l.trim(); }).filter(Boolean); }
+  function pairs(v, n) {
+    return lines(v).map(function (l) { var p = l.split('|').map(function (x) { return x.trim(); }); return p.length > n ? p.slice(0, n - 1).concat(p.slice(n - 1).join(' | ')) : p; });
+  }
+  function fromPairs(arr, keys) {
+    return (arr || []).map(function (o) { return keys.map(function (k) { return o[k] || ''; }).join(' | ').replace(/( \| )+$/, ''); }).join('\n');
+  }
+
+  function readForm() {
+    var g = function (id) { return $(id).value.trim(); };
+    return {
+      slug: slugify(g('ep-slug')), name: g('ep-name'), title: g('ep-title'), tagline: g('ep-tagline'), organisers: g('ep-organisers'), kind: g('ep-kind'),
+      startDate: g('ep-start-date'), startTime: g('ep-start-time'), endDate: g('ep-end-date'), endTime: g('ep-end-time'), timeNote: g('ep-time-note'),
+      venue: g('ep-venue'), town: g('ep-town'), address: g('ep-address'), what3words: g('ep-w3w'), directions: g('ep-directions'),
+      venueNotes: pairs($('ep-venue-notes').value, 2).map(function (p) { return { label: p[0], value: p[1] || '' }; }),
+      image: images.image, heroImage: images.heroImage, poster: images.poster,
+      gallery: gallery.map(function (x) { return { src: x.src, caption: x.caption || '' }; }), galleryTitle: g('ep-gallery-title'),
+      description: $('ep-description').value.split(/\n\s*\n/).map(function (p) { return p.replace(/\s*\n\s*/g, ' ').trim(); }).filter(Boolean),
+      highlights: lines($('ep-highlights').value),
+      steps: pairs($('ep-steps').value, 2).map(function (p) { return { title: p[0], text: p[1] || '' }; }),
+      entry: g('ep-entry'), entryNote: g('ep-entry-note'),
+      tickets: {
+        intro: g('ep-tickets-intro'),
+        tiers: Array.prototype.map.call($('ep-tiers').querySelectorAll('.tier-row'), function (r) {
+          var v = function (c) { return r.querySelector(c).value.trim(); };
+          return { name: v('.t-name'), price: v('.t-price'), per: v('.t-per'), tag: v('.t-tag'), includes: lines(r.querySelector('.t-includes').value),
+            url: v('.t-url'), buttonLabel: v('.t-button'), featured: r.querySelector('.t-featured').checked, soldOut: r.querySelector('.t-sold').checked };
+        }),
+        notes: pairs($('ep-ticket-notes').value, 2).map(function (p) { return { label: p[0], value: p[1] || '' }; })
+      },
+      schedule: pairs($('ep-schedule-text').value, 3).map(function (p) { return { time: p[0], title: p[1] || '', text: p[2] || '' }; }),
+      faq: pairs($('ep-faq').value, 2).map(function (p) { return { q: p[0], a: p[1] || '' }; }),
+      ctaUrl: g('ep-cta-url'), ctaLabel: g('ep-cta-label'), closing: g('ep-closing')
+    };
+  }
+
+  function fillForm(p) {
+    p = p || {};
+    var set = function (id, v) { $(id).value = v == null ? '' : v; };
+    set('ep-name', p.name); set('ep-slug', p.slug); set('ep-title', p.title); set('ep-tagline', p.tagline); set('ep-organisers', p.organisers); set('ep-kind', p.kind);
+    set('ep-start-date', p.startDate); set('ep-start-time', p.startTime); set('ep-end-date', p.endDate); set('ep-end-time', p.endTime); set('ep-time-note', p.timeNote);
+    set('ep-venue', p.venue); set('ep-town', p.town); set('ep-address', p.address); set('ep-w3w', (p.what3words || '').replace(/^\/+/, '')); set('ep-directions', p.directions);
+    set('ep-venue-notes', fromPairs(p.venueNotes, ['label', 'value']));
+    images = { image: p.image || '', heroImage: p.heroImage || '', poster: p.poster || '' };
+    gallery = (p.gallery || []).map(function (x) { return { src: x.src, caption: x.caption || '' }; });
+    set('ep-gallery-title', p.galleryTitle);
+    set('ep-description', (p.description || []).join('\n\n'));
+    set('ep-highlights', (p.highlights || []).join('\n'));
+    set('ep-steps', fromPairs(p.steps, ['title', 'text']));
+    set('ep-entry', p.entry); set('ep-entry-note', p.entryNote);
+    var t = p.tickets || {};
+    set('ep-tickets-intro', t.intro);
+    $('ep-tiers').innerHTML = '';
+    (t.tiers || []).forEach(function (x) { $('ep-tiers').appendChild(tierRow(x)); });
+    set('ep-ticket-notes', fromPairs(t.notes, ['label', 'value']));
+    set('ep-schedule-text', fromPairs(p.schedule, ['time', 'title', 'text']));
+    set('ep-faq', fromPairs(p.faq, ['q', 'a']));
+    set('ep-cta-url', p.ctaUrl); set('ep-cta-label', p.ctaLabel); set('ep-closing', p.closing);
+    drawSlots();
+  }
+
+  function openForm(p, creating) {
+    isNew = creating;
+    editingSlug = creating ? '' : p.slug;
+    delete $('ep-slug').dataset.touched;
+    fillForm(p);
+    $('ep-slug').readOnly = !creating;
+    $('ep-form-title').textContent = creating ? 'New event page' : 'Edit ' + p.name;
+    form.classList.remove('hidden');
+    form.classList.toggle('editing', !creating);
+    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  $('ep-new').addEventListener('click', function () { openForm({}, true); });
+  $('ep-cancel').addEventListener('click', function () { form.classList.add('hidden'); });
+  // The web address follows the name until it has been saved.
+  $('ep-name').addEventListener('input', function () { if (isNew && !$('ep-slug').dataset.touched) $('ep-slug').value = slugify($('ep-name').value); });
+  $('ep-slug').addEventListener('input', function () { $('ep-slug').dataset.touched = '1'; });
+  form.addEventListener('reset', function () { delete $('ep-slug').dataset.touched; });
+
+  function save(thenPreview) {
+    if (!key()) { setStatus('Enter the admin key first.', 'error'); return; }
+    if (uploading) { setStatus('Wait for the images to finish uploading.', 'error'); return; }
+    var entry = readForm();
+    if (!entry.name || !entry.title || !entry.slug) { setStatus('Fill in the name, web address name and title first.', 'error'); return; }
+    var buttons = [$('ep-save'), $('ep-save-preview')];
+    buttons.forEach(function (b) { b.disabled = true; });
+    setStatus('Saving...');
+    post('/events/pages/admin/save', { entry: entry, isNew: isNew }).then(function (data) {
+      pages = data.events || pages;
+      isNew = false;
+      editingSlug = entry.slug;
+      $('ep-slug').readOnly = true;
+      $('ep-form-title').textContent = 'Edit ' + entry.name;
+      render();
+      setStatus('Saved ' + entry.name + '. Preview shows it now, and the live site updates in about a minute.', 'ok');
+      if (thenPreview) return preview(entry.slug, null);
+    }).catch(function (err) { setStatus(err.message, 'error'); })
+      .then(function () { buttons.forEach(function (b) { b.disabled = false; }); });
+  }
+  form.addEventListener('submit', function (e) { e.preventDefault(); save(false); });
+  $('ep-save-preview').addEventListener('click', function () { save(true); });
+
+  // ---------- List buttons ----------
+  function run(action, slug, btn) {
+    var p = find(slug);
     if (!p) return;
-    if (action === 'preview') { preview(p, btn); return; }
+    if (action === 'preview') { preview(slug, btn); return; }
+    if (action === 'edit') { openForm(p, false); return; }
     if (!key()) { setStatus('Enter the admin key first.', 'error'); return; }
     var date = '';
     var question;
@@ -320,8 +650,10 @@
       question = 'Move ' + p.name + ' to drafts?' + (state === 'live' ? '\n\nIt is live now. Its page goes back behind the Coming soon card and it comes off the homepage.' : '\n\nIts publish date is cleared.');
     } else if (action === 'publish-now') {
       question = 'Publish ' + p.name + ' now?\n\nThe page goes live to everyone today and is featured on the homepage Events section.';
+    } else if (action === 'delete') {
+      question = 'Delete ' + p.name + '?\n\nThe page and everything you typed for it are removed. Uploaded images stay in storage. This cannot be undone.';
     } else {
-      var input = document.querySelector('.ep-date[data-url="' + url + '"]');
+      var input = document.querySelector('.ep-date[data-slug="' + slug + '"]');
       date = input && input.value;
       if (!date) { setStatus('Choose a publish date for ' + p.name + ' first.', 'error'); return; }
       question = 'Schedule ' + p.name + ' to go live on ' + nice(date) + '?';
@@ -329,31 +661,21 @@
     if (!window.confirm(question)) return;
     btn.disabled = true;
     setStatus('Saving...');
-    fetch(API + '/events/pages/admin/action?key=' + encodeURIComponent(key()), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: action, url: url, date: date, from: { publish: p.publish || '', draft: !!p.draft } })
-    })
-      .then(function (res) { return res.json(); })
+    post('/events/pages/admin/action', { action: action, slug: slug, date: date, from: { publish: p.publish || '', draft: !!p.draft } })
       .then(function (data) {
-        btn.disabled = false;
-        if (!data.success) { setStatus(data.message === 'Unauthorized' ? 'The admin key is not right.' : (data.message || 'Could not save.'), 'error'); return; }
         pages = data.events;
+        if (action === 'delete' && editingSlug === slug) form.classList.add('hidden');
         render();
         setStatus('Saved: ' + data.change + '. The live site updates in about a minute.', 'ok');
       })
-      .catch(function () { btn.disabled = false; setStatus('Network error, nothing was saved. Please try again.', 'error'); });
+      .catch(function (err) { btn.disabled = false; setStatus(err.message, 'error'); });
   }
-
-  document.getElementById('ep-wrap').addEventListener('click', function (e) {
+  $('ep-list').addEventListener('click', function (e) {
     var btn = e.target.closest('button[data-ep]');
-    if (btn) run(btn.getAttribute('data-ep'), btn.getAttribute('data-url'), btn);
+    if (btn) run(btn.getAttribute('data-ep'), btn.getAttribute('data-slug'), btn);
   });
 
-  fetch('data/event-pages.json', { cache: 'no-store' })
-    .then(function (res) { return res.json(); })
-    .then(function (data) { pages = (data && data.events) || []; render(); })
-    .catch(function () { listEl.innerHTML = '<p class="empty">Could not load data/event-pages.json.</p>'; });
+  document.addEventListener('mt3uk-events-admin-loaded', loadList);
 })();
 </script>
 <script>
@@ -525,6 +847,7 @@
     setStatus('Loading events...');
     request('GET').then(function (data) {
       sessionStorage.setItem('mt3ukAdminKey', key());
+      document.dispatchEvent(new CustomEvent('mt3uk-events-admin-loaded'));
       events = data.events || [];
       bodyEl.classList.remove('hidden');
       renderList();

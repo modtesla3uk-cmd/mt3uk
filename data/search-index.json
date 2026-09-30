@@ -36,6 +36,7 @@
   { "title": "About", "url": "index.html#about", "category": "Page", "description": "About the MT3UK community, built by owners for owners", "keywords": ["who we are", "community", "members"] },
   { "title": "FAQs", "url": "index.html#faq", "category": "Page", "description": "Frequently asked questions", "keywords": ["help", "questions"] },
   { "title": "Contact", "url": "contact.html", "category": "Page", "description": "Get in touch with MT3UK", "keywords": ["get in touch"] },
+  { "title": "Event details", "url": "event.html", "category": "Page", "description": "Where, when and how to join an MT3UK event", "keywords": ["events", "meet", "show", "tickets", "venue"] },
   { "title": "Facebook", "url": "contact.html", "category": "Contact", "description": "facebook.com/MT3UK", "keywords": ["social", "fb"] },
   { "title": "Instagram", "url": "contact.html", "category": "Contact", "description": "@mt3uk_com", "keywords": ["social", "ig"] },
   { "title": "Email", "url": "contact.html", "category": "Contact", "description": "modtesla3uk@gmail.com", "keywords": ["mail", "get in touch"] },

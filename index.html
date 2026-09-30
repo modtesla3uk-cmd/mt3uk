@@ -5250,7 +5250,7 @@
       var img = ev.image
         ? '<img src="' + esc(ev.image) + '" alt="' + esc(ev.title || ev.name) + '" loading="lazy">'
         : '<div class="ev-feature-noimg">Event image</div>';
-      return '<a class="ev-feature" href="' + esc(ev.url) + '">' +
+      return '<a class="ev-feature" href="event.html?e=' + esc(ev.slug) + '">' +
         '<div class="ev-feature-img">' + img + '</div>' +
         '<div class="ev-feature-body">' +
           '<span class="ev-feature-kicker">FEATURED EVENT / ' + esc(when(ev)) + '</span>' +

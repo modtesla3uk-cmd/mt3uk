@@ -114,6 +114,65 @@ def api_path(url):
     return url.split(marker, 1)[1].split("?", 1)[0]
 
 
+def event_pages_reply(path, method, post_data, state, url):
+    """Stand-in for the worker's event page routes (admin list, save, actions,
+    image upload and the admin-only preview)."""
+    try:
+        body = json.loads(post_data or "{}")
+    except (ValueError, TypeError):
+        body = {}
+    file = state.setdefault("event_pages_file", json.loads((REPO_ROOT / "data" / "event-pages.json").read_text(encoding="utf-8")))
+    events = file["events"]
+    if path == "/events/pages/admin" and method == "GET":
+        return {"success": True, "events": events}
+    if path == "/events/pages/admin/save":
+        entry = dict(body["entry"])
+        old = next((e for e in events if e["slug"] == entry["slug"]), None)
+        state["event_saved"] = entry
+        if old:
+            for k in ("publish", "draft", "created"):
+                if k in old:
+                    entry[k] = old[k]
+            events[events.index(old)] = entry
+        else:
+            entry.update({"draft": True, "created": "2026-09-30"})
+            events.append(entry)
+        state["event_preview_copy"] = entry
+        return {"success": True, "events": events, "entry": entry, "change": entry["name"] + " saved"}
+    if path == "/events/pages/admin/action":
+        ev = next(e for e in events if e["slug"] == body.get("slug"))
+        action = body.get("action")
+        state.setdefault("event_actions", []).append(action)
+        if action == "delete":
+            events.remove(ev)
+        elif action == "draft":
+            ev.pop("publish", None)
+            ev["draft"] = True
+        else:
+            ev["publish"] = body.get("date") or "2026-09-29"
+            ev.pop("draft", None)
+        return {"success": True, "events": events, "change": ev["name"] + " updated"}
+    if path == "/events/pages/admin/image":
+        state["event_images"] = state.get("event_images", 0) + 1
+        return {"success": True, "url": "images/events/frunk-or-treat-uk/card.jpg"}
+    if path == "/events/pages/admin/preview-link":
+        state["event_preview_minted"] = json.loads(post_data or "{}").get("slug")
+        return {"success": True, "token": "e" * 32}
+    if path == "/events/pages/preview/link":
+        if body.get("token") == "e" * 32 and not state.get("event_link_used"):
+            state["event_link_used"] = True
+            state["event_preview_ok"] = True
+            return {"success": True, "token": "q" * 64, "expires": 4102444800000}
+        return {"success": False, "message": "That link has expired or has already been used."}
+    if path == "/events/pages/preview/check":
+        return {"success": True, "expires": 4102444800000} if state.get("event_preview_ok") else {"success": False}
+    if path == "/events/pages/preview/content":
+        if not state.get("event_preview_ok"):
+            return {"success": False}
+        return {"success": True, "entry": state.get("event_preview_copy")}
+    return {"success": False}
+
+
 def api_reply(url, method, post_data, state):
     """Stand-in answers for the worker, enough for every page to render."""
     path = api_path(url)
@@ -219,39 +278,8 @@ def api_reply(url, method, post_data, state):
         return {"success": True, "interviews": file["interviews"], "change": line}
     if path == "/events/admin" and method == "GET":
         return {"success": True, "events": []}
-    if path == "/events/pages/admin/preview-link":
-        # The admin page's Preview button: a one-time link for one event page.
-        state["event_preview_minted"] = True
-        return {"success": True, "token": "e" * 32}
-    if path == "/events/pages/preview/link":
-        try:
-            body = json.loads(post_data or "{}")
-        except ValueError:
-            body = {}
-        if body.get("token") == "e" * 32 and not state.get("event_link_used"):
-            state["event_link_used"] = True
-            state["event_preview_ok"] = True
-            return {"success": True, "token": "q" * 64, "expires": 4102444800000}
-        return {"success": False, "message": "That link has expired or has already been used."}
-    if path == "/events/pages/preview/check":
-        if state.get("event_preview_ok"):
-            return {"success": True, "expires": 4102444800000}
-        return {"success": False}
-    if path == "/events/pages/admin/action":
-        try:
-            body = json.loads(post_data or "{}")
-        except ValueError:
-            body = {}
-        file = state.setdefault("event_pages_file", json.loads((REPO_ROOT / "data" / "event-pages.json").read_text(encoding="utf-8")))
-        ev = next(e for e in file["events"] if e["url"] == body.get("url"))
-        if body.get("action") == "draft":
-            ev.pop("publish", None)
-            ev["draft"] = True
-        else:
-            ev["publish"] = body.get("date") or "2026-09-29"
-            ev.pop("draft", None)
-        state.setdefault("event_actions", []).append(body.get("action"))
-        return {"success": True, "events": file["events"], "change": ev["name"] + " updated"}
+    if path.startswith("/events/pages/"):
+        return event_pages_reply(path, method, post_data, state, url)
     if path == "/interviews/preview/link":
         # The email link: works once, and only with the test's token.
         try:

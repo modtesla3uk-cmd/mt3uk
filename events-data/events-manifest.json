@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-30T15:16:29.779Z",
+  "generated": "2026-09-30T15:18:05.716Z",
   "totalEvents": 7,
   "events": [
     {
@@ -83,7 +83,7 @@
     {
       "id": "008",
       "name": "Race of remembrance - Track day",
-      "description": "Looking to enjoy a track day? You can join us too!",
+      "description": "Race of Remembrance Launch Track Day",
       "startTime": "2026-10-02T08:00:00+0000",
       "endTime": "2026-10-02T17:00:00+0000",
       "location": {

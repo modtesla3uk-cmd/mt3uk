@@ -1,4 +1,4 @@
-"""My Garage's car view: Mods folded away under Build of the Week, and the
+"""My Garage's car view: the mods list under Build of the Week, and the
 full-size photo viewer's Reel and Gallery buttons, this week's votes and
 Delete. Also the gallery opening a linked photo (?photo=)."""
 import json
@@ -12,23 +12,15 @@ def open_car(page):
     page.add_init_script("localStorage.setItem('mt3ukMyBuildsSession', 's1.test')")
     page.goto("/my-builds.html")
     page.locator(".mb-car-tile").first.click(timeout=10000)
-    page.locator("#mb-car-mods-toggle").wait_for(state="visible", timeout=5000)
+    page.locator("#mb-mods-builder .mbm-welcome").wait_for(state="visible", timeout=5000)
 
 
 @all_devices
-def test_mods_sit_under_build_of_the_week_folded_away(device_page):
+def test_mods_list_sits_under_build_of_the_week(device_page):
     page = device_page
     open_car(page)
-    order = page.evaluate("[...document.querySelectorAll('#mb-vote-hint, #mb-car-mods')].map(e => e.id)")
-    assert order == ["mb-vote-hint", "mb-car-mods"], order
-    toggle = page.locator("#mb-car-mods-toggle")
-    assert toggle.inner_text().upper().startswith("MODS (1)")
-    assert page.locator("#mb-car-mods-body").is_hidden()
-    toggle.click()
-    assert page.locator("#mb-car-mods-text").inner_text() == "Wheels"
-    assert toggle.get_attribute("aria-expanded") == "true"
-    toggle.click()
-    assert page.locator("#mb-car-mods-body").is_hidden()
+    order = page.evaluate("[...document.querySelectorAll('#mb-vote-hint, #mb-mods-builder')].map(e => e.id)")
+    assert order == ["mb-vote-hint", "mb-mods-builder"], order
     assert overflow_width(page) <= 0
     assert page.errors == [], diagnostics(page)
 

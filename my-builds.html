@@ -842,6 +842,106 @@
     .mb-signed-in { gap: 8px; }
   }
 
+  /* ---------- MODEL PICKER AND MODS BUILDER (js/mods-builder.js) ---------- */
+  .mb-field-label { font-size: 0.86rem; font-weight: 600; color: var(--ink); }
+  .mb-model-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; }
+  .mb-model-pick .chip { justify-content: center; min-height: 44px; border-radius: var(--radius-sm); position: relative; }
+  .mb-model-pick input { position: absolute; opacity: 0; pointer-events: none; }
+  .mb-model-pick .chip:has(input:checked) { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .mb-model-pick .chip:has(input:focus-visible) { box-shadow: var(--focus-ring); }
+  .mb-field-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .mb-mods-next { display: flex; gap: 10px; align-items: flex-start; margin: 0 0 16px; padding: 12px 14px; border-radius: var(--radius-sm); background: #fdf3ef; font-size: 0.9rem; color: var(--ink-2, var(--ink)); }
+  .mb-mods-next .icon { width: 18px; height: 18px; color: var(--orange); flex-shrink: 0; margin-top: 2px; }
+  #mb-car-model-select { min-height: 36px; }
+
+  .mbm { display: grid; gap: 14px; }
+  .mbm:empty { display: none; }
+  .mbm h3 { font-family: var(--font-head); font-size: 1.05rem; margin: 0; display: flex; align-items: center; gap: 8px; }
+  .mbm h3 .icon { width: 18px; height: 18px; color: var(--orange); }
+  .mbm p { margin: 0; }
+  .mbm-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .mbm-label { font-size: 0.86rem; font-weight: 600; color: var(--ink); }
+  .mbm-hint { font-size: 0.82rem; color: var(--steel); }
+  .mbm-welcome { display: grid; gap: 12px; padding: 18px; border-radius: var(--radius); background: var(--ink); color: #fff; }
+  .mbm-welcome h3 { color: #fff; }
+  .mbm-welcome p { color: #c9cfdb; font-size: 0.92rem; }
+  .mbm-welcome .mbm-skip { color: #c9cfdb; }
+  .mbm-welcome .mbm-skip:hover { color: #fff; background: rgba(255,255,255,0.08); }
+  .mbm-meter { display: grid; gap: 6px; }
+  .mbm-meter-bar { height: 8px; border-radius: var(--radius-pill); background: var(--paper-2); overflow: hidden; }
+  .mbm-meter-dark .mbm-meter-bar { background: rgba(255,255,255,0.15); }
+  .mbm-meter-bar span { display: block; height: 100%; border-radius: inherit; background: var(--orange); }
+  .mbm-meter-text { font-size: 0.82rem; color: var(--steel); }
+  .mbm-meter-dark .mbm-meter-text { color: #c9cfdb; }
+  .mbm-summary { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--hairline); border-radius: var(--radius); background: #fff; }
+  .mbm-summary-head { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; justify-content: space-between; }
+  .mbm-summary-head .mbm-meter { flex: 1; min-width: 160px; max-width: 280px; }
+  .mbm-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+  .mbm-tile { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 6px; min-height: 64px; padding: 10px 12px; border: 1px solid var(--hairline); border-radius: var(--radius-sm); background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 0.9rem; font-weight: 600; text-align: left; cursor: pointer; }
+  .mbm-tile:hover { border-color: var(--ink); }
+  .mbm-pill { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: var(--radius-pill); font-size: 0.76rem; font-weight: 600; white-space: nowrap; }
+  .mbm-pill-stock { background: var(--paper-2); color: var(--ink); }
+  .mbm-pill-up { background: #fdf3ef; color: #b8421f; }
+  .mbm-pill-todo { border: 1px dashed var(--hairline-strong); color: var(--steel); }
+  .mbm-pill-private { background: var(--paper-2); color: var(--steel); font-weight: 500; }
+  .mbm-public ul { margin: 6px 0 0; padding-left: 18px; font-size: 0.9rem; display: grid; gap: 2px; }
+  .mbm-builder { display: grid; gap: 12px; }
+  .mbm-about { display: grid; gap: 8px; padding: 14px 16px; border: 1px solid var(--hairline); border-radius: var(--radius); background: #fff; }
+  .mbm-areas { display: grid; gap: 8px; }
+  .mbm-area { border: 1px solid var(--hairline); border-radius: var(--radius); background: #fff; overflow: hidden; }
+  .mbm-area[open] { border-color: var(--hairline-strong); }
+  .mbm-area summary { list-style: none; display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 16px; cursor: pointer; }
+  .mbm-area summary::-webkit-details-marker { display: none; }
+  .mbm-area-name { flex: 1; font-weight: 700; }
+  .mbm-chev { width: 18px; height: 18px; color: var(--steel); transition: transform 0.2s; }
+  .mbm-area[open] .mbm-chev { transform: rotate(180deg); }
+  .mbm-area-body { display: grid; gap: 14px; padding: 14px 16px 16px; border-top: 1px solid var(--hairline); }
+  .mbm-up { display: grid; gap: 14px; }
+  .mbm-up[hidden], .mbm-sub[hidden], .mbm-grid[hidden] { display: none; }
+  .mbm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+  .mbm-field { display: grid; gap: 5px; min-width: 0; }
+  .mbm-field label { font-size: 0.86rem; font-weight: 600; color: var(--ink); }
+  .mbm-field textarea.field { min-height: 90px; resize: vertical; }
+  .mbm-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .mbm-toggle { display: inline-flex; width: fit-content; border: 1px solid var(--hairline-strong); border-radius: var(--radius-sm); overflow: hidden; }
+  .mbm-toggle button { min-height: 44px; padding: 0 18px; border: 0; background: #fff; color: var(--ink); font-family: var(--font-body); font-size: 0.9rem; font-weight: 600; cursor: pointer; }
+  .mbm-toggle button + button { border-left: 1px solid var(--hairline-strong); }
+  .mbm-toggle button[aria-pressed="true"] { background: var(--ink); color: #fff; }
+  .mbm-sub { display: grid; gap: 12px; padding-left: 12px; border-left: 3px solid var(--orange); }
+  .mbm-sub-title { font-weight: 700; font-size: 0.92rem; }
+  .mbm-private { display: grid; gap: 10px; padding: 12px; border-radius: var(--radius-sm); background: var(--paper); }
+  .mbm-private-title { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 0.86rem; font-weight: 600; }
+  .mbm-switch { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
+  .mbm-switch input { appearance: none; -webkit-appearance: none; position: relative; width: 38px; height: 22px; margin: 0; border-radius: var(--radius-pill); background: var(--hairline-strong); cursor: pointer; transition: background 0.15s; }
+  .mbm-switch input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform 0.15s; }
+  .mbm-switch input:checked { background: var(--orange); }
+  .mbm-switch input:checked::after { transform: translateX(16px); }
+  .mbm-switch input:focus-visible { box-shadow: var(--focus-ring); }
+  .mbm-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .mbm-saved { display: inline-flex; align-items: center; gap: 6px; font-size: 0.86rem; color: #1c8a4b; font-weight: 600; }
+  .mbm-saved.is-err { color: #b8361a; }
+  .mbm-saved .icon { width: 16px; height: 16px; }
+  .mbm-plans { display: grid; gap: 10px; padding: 16px; border: 1px solid var(--hairline); border-radius: var(--radius); background: #fff; }
+  .mbm-plans > p { font-size: 0.9rem; color: var(--steel); }
+  .mbm-plan-list { display: grid; gap: 10px; }
+  .mbm-plan-list:empty { display: none; }
+  .mbm-plan { display: grid; gap: 10px; padding: 12px; border-radius: var(--radius-sm); background: var(--paper); }
+  .mbm-plan .btn { justify-self: start; }
+  @media (min-width: 781px) {
+    .mbm-plan { grid-template-columns: 160px 1fr 180px auto; align-items: end; }
+  }
+  @media (max-width: 780px) {
+    .mb-field-pair { grid-template-columns: 1fr; gap: 0; }
+    .mbm-grid { grid-template-columns: 1fr 1fr; }
+    .mbm-tiles { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 420px) {
+    .mbm-grid { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .mbm-chev, .mbm-switch input, .mbm-switch input::after { transition: none; }
+  }
+
   :focus-visible {
     outline: 2px solid var(--orange);
     outline-offset: 2px;
@@ -1065,6 +1165,27 @@ document.addEventListener('DOMContentLoaded', function () {
             <input type="text" id="mb-submit-lastname" name="lastName" placeholder="e.g. Smith" autocomplete="family-name" maxlength="50" required>
           </div>
           <div class="mb-field">
+            <span class="mb-field-label" id="mb-submit-model-label">Model</span>
+            <div class="mb-model-pick" role="radiogroup" aria-labelledby="mb-submit-model-label">
+            <label class="chip"><input type="radio" name="model" value="Model 3"> Model 3</label>
+            <label class="chip"><input type="radio" name="model" value="Model Y"> Model Y</label>
+            <label class="chip"><input type="radio" name="model" value="Model S"> Model S</label>
+            <label class="chip"><input type="radio" name="model" value="Model X"> Model X</label>
+            <label class="chip"><input type="radio" name="model" value="Cybertruck"> Cybertruck</label>
+            <label class="chip"><input type="radio" name="model" value="Roadster"> Roadster</label>
+            </div>
+          </div>
+          <div class="mb-field-pair">
+            <div class="mb-field">
+            <label for="mb-submit-version">Version (optional)</label>
+            <input type="text" id="mb-submit-version" name="version" list="mb-version-list" maxlength="40" placeholder="e.g. Long Range">
+            </div>
+            <div class="mb-field">
+            <label for="mb-submit-year">Year (optional)</label>
+            <input type="text" id="mb-submit-year" name="year" inputmode="numeric" maxlength="4" placeholder="e.g. 2021">
+            </div>
+          </div>
+          <div class="mb-field">
             <label class="mono" for="mb-submit-carname">Car name</label>
             <input type="text" id="mb-submit-carname" name="carName" placeholder="Enter a name for this build" required>
           </div>
@@ -1090,10 +1211,7 @@ document.addEventListener('DOMContentLoaded', function () {
             <label class="mono" for="mb-submit-email">Email</label>
             <input type="email" id="mb-submit-email" name="email" placeholder="you@example.com" autocomplete="email" required>
           </div>
-          <div class="mb-field">
-            <label class="mono" for="mb-submit-mods">Mods (optional)</label>
-            <textarea id="mb-submit-mods" name="mods" rows="4" placeholder="e.g. Coilovers, 20&quot; wheels, wrap" maxlength="1000"></textarea>
-          </div>
+          <p class="mb-mods-next"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9Z"/></svg><span><strong>Mods come next.</strong> Once your car is in the garage we'll help you build its mods list, one area at a time.</span></p>
           <div class="mb-field">
             <label class="mono" for="mb-submit-photo">Photos (up to 3)</label>
             <input type="file" id="mb-submit-photo" name="photo" accept="image/*" multiple required>
@@ -1159,6 +1277,7 @@ document.addEventListener('DOMContentLoaded', function () {
         </form>
       </div>
 
+      <datalist id="mb-version-list"><option value="Standard Range"><option value="Standard Range Plus"><option value="Long Range"><option value="Performance"><option value="Plaid"><option value="Highland"><option value="Juniper"></datalist>
       <div id="mb-car-selector-view">
         <div class="mb-upload-toggle-row" id="build-upload">
           <button type="button" class="mb-upload-toggle-btn" id="mb-addcar-toggle-btn">+ Add Car No.1</button>
@@ -1169,6 +1288,27 @@ document.addEventListener('DOMContentLoaded', function () {
           <p>Give your car a name and add up to 3 photos. They'll go live in the gallery straight away.</p>
           <p class="mb-field-hint">Your car must be a Tesla.</p>
           <form id="mb-addcar-form">
+            <div class="mb-field">
+              <span class="mb-field-label" id="mb-addcar-model-label">Model</span>
+              <div class="mb-model-pick" role="radiogroup" aria-labelledby="mb-addcar-model-label">
+                <label class="chip"><input type="radio" name="model" value="Model 3"> Model 3</label>
+                <label class="chip"><input type="radio" name="model" value="Model Y"> Model Y</label>
+                <label class="chip"><input type="radio" name="model" value="Model S"> Model S</label>
+                <label class="chip"><input type="radio" name="model" value="Model X"> Model X</label>
+                <label class="chip"><input type="radio" name="model" value="Cybertruck"> Cybertruck</label>
+                <label class="chip"><input type="radio" name="model" value="Roadster"> Roadster</label>
+              </div>
+            </div>
+            <div class="mb-field-pair">
+              <div class="mb-field">
+                <label for="mb-addcar-version">Version (optional)</label>
+                <input type="text" id="mb-addcar-version" name="version" list="mb-version-list" maxlength="40" placeholder="e.g. Long Range">
+              </div>
+              <div class="mb-field">
+                <label for="mb-addcar-year">Year (optional)</label>
+                <input type="text" id="mb-addcar-year" name="year" inputmode="numeric" maxlength="4" placeholder="e.g. 2021">
+              </div>
+            </div>
             <div class="mb-field">
               <label class="mono" for="mb-addcar-carname">Car name</label>
               <input type="text" id="mb-addcar-carname" name="carName" placeholder="Enter a name for this build" required>
@@ -1191,10 +1331,7 @@ document.addEventListener('DOMContentLoaded', function () {
               <label class="mono" for="mb-addcar-caption">Caption</label>
               <input type="text" id="mb-addcar-caption" name="caption" placeholder="e.g. Viper Green Model Y" required>
             </div>
-            <div class="mb-field">
-              <label class="mono" for="mb-addcar-mods">Mods (optional)</label>
-              <textarea id="mb-addcar-mods" name="mods" rows="3" placeholder="e.g. Coilovers, 20&quot; wheels, wrap" maxlength="1000"></textarea>
-            </div>
+            <p class="mb-mods-next"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9Z"/></svg><span><strong>Mods come next.</strong> Once your car is in the garage we'll help you build its mods list, one area at a time.</span></p>
             <div class="mb-field">
               <label class="mono" for="mb-addcar-photo">Photos (up to 3)</label>
               <input type="file" id="mb-addcar-photo" name="photo" accept="image/*" multiple required>
@@ -1237,6 +1374,15 @@ document.addEventListener('DOMContentLoaded', function () {
             <option value="Green">Green</option>
             <option value="Other">Other</option>
           </select>
+          <select class="mb-car-color-select" id="mb-car-model-select" aria-label="Model">
+            <option value="">Model</option>
+            <option value="Model 3">Model 3</option>
+            <option value="Model Y">Model Y</option>
+            <option value="Model S">Model S</option>
+            <option value="Model X">Model X</option>
+            <option value="Cybertruck">Cybertruck</option>
+            <option value="Roadster">Roadster</option>
+          </select>
           <span class="mb-car-photo-count mono" id="mb-car-photo-count"></span>
           <span class="mb-status mb-car-name-status" id="mb-car-name-status"></span>
           <button type="button" class="mb-car-view-link" id="mb-car-view-link"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 17h14M3 13l2-5a2 2 0 0 1 1.9-1.4h10.2A2 2 0 0 1 19 8l2 5v4a1 1 0 0 1-1 1h-1a2 2 0 0 1-4 0H9a2 2 0 0 1-4 0H4a1 1 0 0 1-1-1Z"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>View my car</button>
@@ -1251,20 +1397,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         <div class="mb-vote-hint" id="mb-vote-hint"></div>
 
-        <div class="mb-car-mods" id="mb-car-mods">
-          <button type="button" class="mb-car-mods-label mono" id="mb-car-mods-toggle" aria-expanded="false" aria-controls="mb-car-mods-body"><span class="mb-car-mods-title"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9Z"/></svg>Mods</span><span class="mb-photo-mods-caret"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span></button>
-          <div class="mb-car-mods-body" id="mb-car-mods-body" hidden>
-            <p class="mb-car-mods-note">Mods apply to all images for this car.</p>
-            <p class="mb-car-mods-text" id="mb-car-mods-text"></p>
-            <textarea class="mb-car-mods-textarea" id="mb-car-mods-textarea" rows="2" placeholder="e.g. Coilovers, 20in wheels, Tint" hidden></textarea>
-            <span class="mb-field-hint" id="mb-car-mods-hint" hidden>Separate mods with a comma</span>
-            <div class="mb-car-mods-actions">
-              <button type="button" class="mb-photo-mods-add-btn" id="mb-car-mods-edit-btn">Edit</button>
-              <button type="button" class="mb-photo-mods-add-btn" id="mb-car-mods-save-btn" hidden>Save</button>
-              <button type="button" class="mb-photo-mods-add-btn" id="mb-car-mods-cancel-btn" hidden>Cancel</button>
-            </div>
-          </div>
-        </div>
+        <div class="mbm" id="mb-mods-builder"></div>
 
         <button type="button" class="mb-btn mb-add-photo-btn" id="mb-addphoto-toggle-btn">+ Add photo to this car</button>
         <div class="mb-upload-card" id="mb-addphoto-card" style="display:none;">
@@ -1420,6 +1553,7 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 <script src="js/passkeys.js"></script>
+<script src="js/mods-builder.js"></script>
 <script>
   (function () {
     var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
@@ -1448,6 +1582,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // ({ file, caption, votes }), or null.
     var voteEntry = null;
     var currentCarId = null;
+    // A car just added, opened once the garage reloads.
+    var openCarAfterLoad = null;
 
     var signinView = document.getElementById('mb-signin-view');
     var appView = document.getElementById('mb-app-view');
@@ -1793,7 +1929,8 @@ document.addEventListener('DOMContentLoaded', function () {
       } else {
         carViewLink.style.display = 'none';
       }
-      renderCarMods(car.mods);
+      carModelSelect.value = car.model || '';
+      renderCarMods(car);
       renderPhotoStrip(car);
       renderVoteHint();
       updateSiteLinks();
@@ -1855,7 +1992,11 @@ document.addEventListener('DOMContentLoaded', function () {
           carsData = result.data.cars || [];
           voteEntry = result.data.voteEntry || null;
           var alerts = computeCommentAlerts(carsData);
-          if (currentCarId && findCar(currentCarId)) {
+          var openNew = openCarAfterLoad;
+          openCarAfterLoad = null;
+          if (openNew && findCar(openNew)) {
+            showDetail(openNew);
+          } else if (currentCarId && findCar(currentCarId)) {
             renderCarDetail(findCar(currentCarId));
           } else {
             showSelector();
@@ -2235,6 +2376,8 @@ document.addEventListener('DOMContentLoaded', function () {
               addCarForm.reset();
               addCarCard.style.display = 'none';
               addCarToggleBtn.textContent = '+ ' + addCarLabel(carsData);
+              // Open the new car, where its mods list is built.
+              if (json.carId) openCarAfterLoad = json.carId;
               loadCars();
             } else {
               setStatus(addCarStatus, json.message || 'Something went wrong, please try again.', 'err');
@@ -2473,72 +2616,51 @@ document.addEventListener('DOMContentLoaded', function () {
       setTimeout(function () { el.remove(); }, 7000);
     }
 
-    function saveCarMods(mods) {
-      var car = findCar(currentCarId);
-      if (!car) return Promise.resolve({ success: false });
-      return saveCarField(currentCarId, { mods: mods, name: car.name }).then(function (data) {
-        if (data.success && data.car) {
-          if (data.car.id !== currentCarId) currentCarId = data.car.id;
-          car.mods = mods;
-        }
-        return data;
-      });
-    }
-
-    var carModsText = document.getElementById('mb-car-mods-text');
-    var carModsTextarea = document.getElementById('mb-car-mods-textarea');
-    var carModsHint = document.getElementById('mb-car-mods-hint');
-    var carModsEditBtn = document.getElementById('mb-car-mods-edit-btn');
-    var carModsSaveBtn = document.getElementById('mb-car-mods-save-btn');
-    var carModsCancelBtn = document.getElementById('mb-car-mods-cancel-btn');
-
-    function setCarModsEditing(editing) {
-      carModsText.hidden = editing;
-      carModsTextarea.hidden = !editing;
-      carModsHint.hidden = !editing;
-      carModsEditBtn.hidden = editing;
-      carModsSaveBtn.hidden = !editing;
-      carModsCancelBtn.hidden = !editing;
-    }
-
-    // Mods sit under Build of the Week, folded away until opened.
-    var carModsToggle = document.getElementById('mb-car-mods-toggle');
-    var carModsBody = document.getElementById('mb-car-mods-body');
-    function setCarModsOpen(open) {
-      carModsBody.hidden = !open;
-      carModsToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-    }
-    carModsToggle.addEventListener('click', function () { setCarModsOpen(carModsBody.hidden); });
-
-    function renderCarMods(mods) {
-      var modsArr = Array.isArray(mods) ? mods : [];
-      carModsText.textContent = modsArr.length ? modsArr.join(', ') : 'No mods listed yet.';
-      carModsTextarea.value = modsArr.join(', ');
-      carModsToggle.innerHTML = '<span class="mb-car-mods-title"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9Z"/></svg>Mods (' + modsArr.length + ')</span><span class="mb-photo-mods-caret"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>';
-      setCarModsEditing(false);
-    }
-
-    carModsEditBtn.addEventListener('click', function () {
-      setCarModsOpen(true);
-      setCarModsEditing(true);
-      carModsTextarea.focus();
+    // The mods builder (js/mods-builder.js): the "build your mods list"
+    // card, the areas and the plans, saved on the car.
+    var modsBuilder = window.MT3UKModsBuilder && window.MT3UKModsBuilder.mount(document.getElementById('mb-mods-builder'), {
+      save: function (fields) {
+        var car = findCar(currentCarId);
+        if (!car) return Promise.resolve({ success: false });
+        return saveCarField(currentCarId, Object.assign({ name: car.name }, fields)).then(function (data) {
+          if (data.success && data.car) {
+            if (data.car.id !== currentCarId) { currentCarId = data.car.id; car.id = data.car.id; car.virtual = false; }
+            car.mods = data.car.mods || car.mods;
+            car.specs = data.car.specs || car.specs;
+            car.plans = data.car.plans || car.plans;
+            if ('version' in data.car) car.version = data.car.version;
+            if ('year' in data.car) car.year = data.car.year;
+            renderLightboxMods(car.mods);
+          }
+          return data;
+        });
+      }
     });
 
-    carModsCancelBtn.addEventListener('click', function () {
-      var car = findCar(currentCarId);
-      renderCarMods(car ? car.mods : []);
-    });
+    function renderCarMods(car) {
+      if (modsBuilder) modsBuilder.show(car);
+    }
 
-    carModsSaveBtn.addEventListener('click', function () {
-      var newMods = carModsTextarea.value.split(',').map(function (m) { return m.trim(); }).filter(Boolean).slice(0, 50);
-      carModsSaveBtn.disabled = true;
-      saveCarMods(newMods).then(function (data) {
-        carModsSaveBtn.disabled = false;
-        if (data.success) {
-          renderCarMods(newMods);
-          renderLightboxMods(newMods);
-        }
-      }).catch(function () { carModsSaveBtn.disabled = false; });
+    var carModelSelect = document.getElementById('mb-car-model-select');
+    carModelSelect.addEventListener('change', function () {
+      var model = carModelSelect.value;
+      if (!currentCarId) return;
+      var car = findCar(currentCarId);
+      carModelSelect.disabled = true;
+      saveCarField(currentCarId, { model: model, name: car ? car.name : undefined })
+        .then(function (data) {
+          carModelSelect.disabled = false;
+          if (data.success) {
+            if (data.car && data.car.id !== currentCarId) { currentCarId = data.car.id; if (car) car.id = data.car.id; }
+            if (car) car.model = model;
+          } else {
+            carModelSelect.value = car ? (car.model || '') : '';
+          }
+        })
+        .catch(function () {
+          carModelSelect.disabled = false;
+          carModelSelect.value = car ? (car.model || '') : '';
+        });
     });
 
     var imgLightbox = document.getElementById('mb-img-lightbox');

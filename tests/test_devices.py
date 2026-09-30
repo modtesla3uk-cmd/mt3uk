@@ -388,17 +388,47 @@ def api_reply(url, method, post_data, state):
         return {"success": True, "subscribers": [d["email"] for d in details], "details": details}
     if path == "/my-builds" and method == "GET":
         car = dict(GARAGE_CAR, name=state.get("car_name", GARAGE_CAR["name"]))
+        car.update(state.get("car_details", {}))
         return {"success": True, "email": "member@example.com", "firstName": "Test", "lastName": "Member", "shownAs": "TestMember", "cars": [car], "voteEntry": GARAGE_VOTE_ENTRY}
     if path == "/my-builds/car" and method == "PUT":
         try:
-            name = json.loads(post_data or "{}").get("name")
+            body = json.loads(post_data or "{}")
         except ValueError:
-            name = None
+            body = {}
+        name = body.get("name")
+        state.setdefault("car_puts", []).append(body)
         # WebKit doesn't always pass the request body to the mock, so the
         # rename test's new name stands in when it's missing.
         state["car_name"] = name or "The Colonel"
-        return {"success": True, "car": {"id": GARAGE_CAR["id"], "name": name or GARAGE_CAR["name"]}}
+        car = {"id": GARAGE_CAR["id"], "name": name or GARAGE_CAR["name"]}
+        details = state.setdefault("car_details", {})
+        for key in ("model", "version", "year", "plans"):
+            if key in body:
+                details[key] = body[key]
+        if "specs" in body:
+            details["specs"] = body["specs"]
+            details["mods"] = mock_specs_to_mods(body["specs"])
+        car.update(details)
+        return {"success": True, "car": car}
+    if path in ("", "/") and method == "POST":
+        state.setdefault("submits", []).append(post_data or "")
+        return {"success": True, "carId": GARAGE_CAR["id"], "photo_urls": []}
     return {"success": True}
+
+
+def mock_specs_to_mods(specs):
+    """A rough stand-in for specsToMods in the worker (tested for real in
+    tests/test_garage_mods_worker.py): one line per upgraded area."""
+    lines = []
+    for area, spec in (specs or {}).items():
+        if spec.get("status") != "up":
+            continue
+        if area == "other":
+            lines += spec.get("items", [])
+            continue
+        words = " ".join(v for k, v in (spec.get("fields") or {}).items() if isinstance(v, str))
+        lines.append(area.capitalize() + (": " + words if words else ""))
+    return lines
 
 
 def passkey_reply(path, post_data, state):

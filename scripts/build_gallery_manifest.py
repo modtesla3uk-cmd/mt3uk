@@ -16,6 +16,7 @@ tie-broken by an optional numeric filename prefix, then alphabetically:
 This runs automatically in GitHub Actions on every push — nobody needs to
 run it by hand. Requires R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY env vars.
 """
+import hashlib
 import json
 import re
 import sys
@@ -102,16 +103,21 @@ def sidecar_data(client, key: str, sidecar_keys: set):
     reel = data.get("reel") is not False
     color = data.get("color")
     color = str(color).strip() if isinstance(color, str) and color.strip() else ""
-    # Non-sensitive: lets the site show a "Claim this build" control on
-    # legacy photos uploaded before My Garage accounts existed, without
-    # exposing the actual owner email in the public manifest.
+    # Who owns the photo, as the worker's one-way ownerKey(). New sidecars
+    # hold only that ("owner"), as the bucket is public; older ones still
+    # have the email until the worker's moveSidecarEmails() reaches them.
     email = data.get("email").strip().lower() if isinstance(data.get("email"), str) else ""
-    unclaimed = not email
+    owner_key = data.get("owner").strip() if isinstance(data.get("owner"), str) else ""
+    if not owner_key and email:
+        owner_key = hashlib.sha256(("mt3uk-owner:" + email).encode("utf-8")).hexdigest()[:16]
+    # Non-sensitive: lets the site show a "Claim this build" control on
+    # legacy photos uploaded before My Garage accounts existed.
+    unclaimed = not owner_key
     # The member's first and last name, stamped by the worker on uploads and
     # when they set their name in My Garage. Wins over the "--by-" name in
     # the filename, which older uploads (and My Garage uploads) lack.
     owner_name = data.get("name").strip() if isinstance(data.get("name"), str) else ""
-    return mods, votable, gallery, reel, color, unclaimed, email, owner_name
+    return mods, votable, gallery, reel, color, unclaimed, owner_key, owner_name
 
 
 def main():
@@ -137,7 +143,7 @@ def main():
             entry["caption"] = caption
         if name:
             entry["name"] = name
-        mods, votable, gallery, reel, color, unclaimed, email, owner_name = sidecar_data(client, key, sidecar_keys)
+        mods, votable, gallery, reel, color, unclaimed, owner_key, owner_name = sidecar_data(client, key, sidecar_keys)
         if owner_name:
             # As the member wrote it: nicknames keep their own capitals.
             name = owner_name
@@ -159,8 +165,8 @@ def main():
         entry["added"] = obj["LastModified"].astimezone(UK_TZ).date().isoformat()
         # Photos from the same owner on the same UK day share a group, which
         # the homepage reel shows as one post that swipes sideways. The group
-        # is named after its newest photo so the owner's email stays private.
-        owner = "e:" + email if email else ("n:" + name if name else "s:" + base_stem(stem, stems))
+        # is named after its newest photo so the owner stays private.
+        owner = "o:" + owner_key if owner_key else ("n:" + name if name else "s:" + base_stem(stem, stems))
         group_key = (owner, entry["added"])
         entry["group"] = groups.setdefault(group_key, filename)
         manifest.append(entry)

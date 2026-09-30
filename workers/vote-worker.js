@@ -121,8 +121,7 @@ function splitSubmitterName(stem) {
 // bucket instead of the GitHub-committed manifest, so a photo uploaded (or
 // edited) seconds ago is immediately eligible for voting/liking instead of
 // waiting on the sync-manifests Action to run and be published.
-async function listGalleryEntriesFromR2(env, opts) {
-  var includeEmail = opts && opts.includeEmail;
+async function listGalleryEntriesFromR2(env) {
   var objects = [];
   var cursor;
   do {
@@ -150,6 +149,7 @@ async function listGalleryEntriesFromR2(env, opts) {
     var votableSince = null;
     var color = null;
     var sidecarEmail = null;
+    var sidecarOwner = null;
     var sidecarName = null;
     var voteBlocked = false;
     var sidecarKey = o.key + '.json';
@@ -168,6 +168,7 @@ async function listGalleryEntriesFromR2(env, opts) {
           if (typeof sidecar.votableSince === 'string' && sidecar.votableSince) votableSince = sidecar.votableSince;
           if (typeof sidecar.color === 'string' && sidecar.color) color = sidecar.color;
           if (typeof sidecar.email === 'string' && sidecar.email) sidecarEmail = sidecar.email;
+          if (typeof sidecar.owner === 'string' && sidecar.owner) sidecarOwner = sidecar.owner;
           if (sidecar.voteBlocked === true) voteBlocked = true;
           // As the member wrote it: nicknames keep their own capitals.
           if (typeof sidecar.name === 'string' && sidecar.name.trim()) sidecarName = sidecar.name.trim();
@@ -183,12 +184,12 @@ async function listGalleryEntriesFromR2(env, opts) {
     // Non-sensitive: lets the site show a "Claim this build" control on
     // legacy photos uploaded before My Garage accounts existed, without
     // exposing the actual owner email to public callers.
-    if (!sidecarEmail) entry.unclaimed = true;
-    if (includeEmail && sidecarEmail) entry.email = sidecarEmail;
+    if (!sidecarEmail && !sidecarOwner) entry.unclaimed = true;
     // Who the photo belongs to, as a one-way key rather than the email, so
     // the vote can allow one entry per member and stop members voting for
     // their own build.
-    if (sidecarEmail) entry.owner = await ownerKey(sidecarEmail);
+    if (sidecarOwner) entry.owner = sidecarOwner;
+    else if (sidecarEmail) entry.owner = await ownerKey(sidecarEmail);
     // votableSince lets a photo that's re-enabled for voting after being opted
     // out become eligible again immediately, instead of being stuck outside the
     // today/yesterday eligibility window keyed off its original upload date.
@@ -2950,7 +2951,7 @@ async function sendLikeAlert(env, file, voterId, caption, likerEmail) {
     var obj = await env.GALLERY_BUCKET.get('gallery/' + file + '.json');
     if (obj) sidecar = await obj.json();
   } catch (e) {}
-  var ownerEmail = sidecar && sidecar.email;
+  var ownerEmail = await sidecarOwnerEmail(env, file, sidecar);
   if (!ownerEmail || ownerEmail === likerEmail) return;
   var onceKey = 'like-alert:' + file + ':' + voterId;
   if (await env.VOTES.get(onceKey)) return;
@@ -3235,9 +3236,7 @@ async function handlePhotoReport(request, env) {
       sidecar.gallery = false;
       sidecar.reel = false;
       sidecar.votable = false;
-      await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
-        httpMetadata: { contentType: 'application/json' }
-      });
+      await putSidecar(env, sidecarKey, sidecar);
       await triggerManifestRebuild(env);
     }
   }
@@ -3297,9 +3296,7 @@ async function handlePhotoReportsAdminDismiss(request, env) {
     sidecar.gallery = true;
     sidecar.reel = true;
     sidecar.votable = true;
-    await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
-      httpMetadata: { contentType: 'application/json' }
-    });
+    await putSidecar(env, sidecarKey, sidecar);
     await triggerManifestRebuild(env);
   }
 
@@ -3329,8 +3326,10 @@ async function handleGalleryAdminPhotoDelete(request, env) {
   await env.VOTES.delete('likes:' + file);
   await env.VOTES.delete(claimKey(file));
 
-  if (sidecar && sidecar.email) {
-    await removeSubscriberFile(env, sidecar.email, file);
+  var deletedOwner = await sidecarOwnerEmail(env, file, sidecar);
+  if (deletedOwner) {
+    await removeSubscriberFile(env, deletedOwner, file);
+    await env.VOTES.delete(photoOwnerKey(file));
   }
   if (sidecar && sidecar.carId) {
     var carRecordForDelete = await getCarRecord(env, sidecar.carId);
@@ -3422,7 +3421,7 @@ async function handleGalleryClaim(request, env) {
     var existingObj = await env.GALLERY_BUCKET.get(sidecarKey);
     if (existingObj) sidecar = await existingObj.json();
   } catch (e) {}
-  if (sidecar.email) {
+  if (sidecar.email || sidecar.owner) {
     return json({ success: false, message: 'This build has already been claimed.' }, 400);
   }
 
@@ -3560,9 +3559,7 @@ async function handleGalleryClaimsAdminDecide(request, env) {
     }
     var claimName = profileFullName(await getProfile(env, claim.email));
     if (claimName) sidecar.name = claimName;
-    await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
-      httpMetadata: { contentType: 'application/json' }
-    });
+    await putSidecar(env, sidecarKey, sidecar);
     await addSubscriberFiles(env, claim.email, [file]);
     claim.status = 'approved';
     await triggerManifestRebuild(env);
@@ -3620,10 +3617,8 @@ async function handleGalleryClaimsAdminUndo(request, env) {
       var existingObj = await env.GALLERY_BUCKET.get(sidecarKey);
       if (existingObj) sidecar = await existingObj.json();
     } catch (e) {}
-    delete sidecar.email;
-    await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
-      httpMetadata: { contentType: 'application/json' }
-    });
+    await clearPhotoOwner(env, file, sidecar);
+    await putSidecar(env, sidecarKey, sidecar);
     await removeSubscriberFile(env, claim.email, file);
     if (sidecar.carId) await clearSidecarCarId(env, file);
     await triggerManifestRebuild(env);
@@ -3690,9 +3685,7 @@ async function handleGalleryClaimsAdminAssign(request, env) {
   var assignName = profileFullName(await getProfile(env, email));
   if (assignName) sidecar.name = assignName;
   else delete sidecar.name;
-  await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
-    httpMetadata: { contentType: 'application/json' }
-  });
+  await putSidecar(env, sidecarKey, sidecar);
   await addSubscriberFiles(env, email, [file]);
   await triggerManifestRebuild(env);
 
@@ -3720,12 +3713,14 @@ async function handleAdminVoteEntries(request, env) {
     return json({ success: false, message: 'Unauthorized' }, 401);
   }
   var week = voteWeekString(new Date());
-  var manifest = await listGalleryEntriesFromR2(env, { includeEmail: true });
+  var manifest = await listGalleryEntriesFromR2(env);
   function row(p) {
-    return { file: p.file, caption: p.caption || '', name: p.name || '', email: p.email || '', added: p.votableSince || p.added || '' };
+    return { file: p.file, caption: p.caption || '', name: p.name || '', email: '', added: p.votableSince || p.added || '' };
   }
   var entries = await Promise.all(votingCandidates(manifest, week).map(async function (p) {
     var r = row(p);
+    // Emails live in KV, not the public sidecars (putSidecar).
+    if (p.owner) r.email = (await env.VOTES.get(photoOwnerKey(p.file))) || '';
     r.votes = parseInt((await env.VOTES.get('votes:' + week + ':' + p.file)) || '0', 10) || 0;
     return r;
   }));
@@ -3771,7 +3766,7 @@ async function handleAdminVoteEntryUpdate(request, env) {
     // Back into this week's vote, unless the owner has entered another
     // photo since, in which case they can now re-enter this one themselves.
     var manifest = await listGalleryEntriesFromR2(env);
-    var owner = sidecar.email ? await ownerKey(sidecar.email) : null;
+    var owner = sidecar.owner || (sidecar.email ? await ownerKey(sidecar.email) : null);
     var otherEntry = owner ? memberVoteEntry(manifest, week, owner) : null;
     if (otherEntry && otherEntry.file !== file) {
       message = 'Unblocked. The owner has entered another photo this week, so this one stays out until they switch.';
@@ -3784,9 +3779,7 @@ async function handleAdminVoteEntryUpdate(request, env) {
       message = 'Back in this week\u2019s vote.';
     }
   }
-  await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
-    httpMetadata: { contentType: 'application/json' }
-  });
+  await putSidecar(env, sidecarKey, sidecar);
   return json({ success: true, file: file, message: message });
 }
 
@@ -3954,11 +3947,9 @@ async function handleGalleryAdminSubscriberRename(request, env) {
       var existingObj = await env.GALLERY_BUCKET.get(sidecarKey);
       if (existingObj) sidecar = await existingObj.json();
     } catch (e) {}
-    if (sidecar.email === oldEmail) {
+    if ((await sidecarOwnerEmail(env, file, sidecar)) === oldEmail) {
       sidecar.email = newEmail;
-      await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
-        httpMetadata: { contentType: 'application/json' }
-      });
+      await putSidecar(env, sidecarKey, sidecar);
     }
   }
   if (oldFiles.length) await triggerManifestRebuild(env);
@@ -3992,12 +3983,10 @@ async function handleGalleryAdminSubscriberUnassign(request, env) {
     var existingObj = await env.GALLERY_BUCKET.get(sidecarKey);
     if (existingObj) sidecar = await existingObj.json();
   } catch (e) {}
-  if (sidecar.email === email) {
-    delete sidecar.email;
+  if ((await sidecarOwnerEmail(env, file, sidecar)) === email) {
+    await clearPhotoOwner(env, file, sidecar);
     delete sidecar.name;
-    await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
-      httpMetadata: { contentType: 'application/json' }
-    });
+    await putSidecar(env, sidecarKey, sidecar);
     if (sidecar.carId) await clearSidecarCarId(env, file);
   }
   await removeSubscriberFile(env, email, file);
@@ -4027,12 +4016,10 @@ async function handleGalleryAdminSubscriberDelete(request, env) {
       var existingObj = await env.GALLERY_BUCKET.get(sidecarKey);
       if (existingObj) sidecar = await existingObj.json();
     } catch (e) {}
-    if (sidecar.email === email) {
-      delete sidecar.email;
+    if ((await sidecarOwnerEmail(env, file, sidecar)) === email) {
+      await clearPhotoOwner(env, file, sidecar);
       delete sidecar.name;
-      await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
-        httpMetadata: { contentType: 'application/json' }
-      });
+      await putSidecar(env, sidecarKey, sidecar);
       if (sidecar.carId) await clearSidecarCarId(env, file);
     }
   }
@@ -4561,7 +4548,7 @@ async function notifyCommentRecipients(env, ctx, file, commenterEmail, commenter
       var obj = await env.GALLERY_BUCKET.get(sidecarKey);
       if (obj) sidecar = await obj.json();
     } catch (e) {}
-    ownerEmail = sidecar && sidecar.email;
+    ownerEmail = await sidecarOwnerEmail(env, file, sidecar);
   }
 
   var recipients = {};
@@ -5093,7 +5080,11 @@ async function getCarRecord(env, carId) {
   }
 }
 
+// Car records sit in the public photo bucket, so they never hold the
+// owner's email (older ones lose it in moveSidecarEmails).
 async function saveCarRecord(env, car) {
+  car = Object.assign({}, car);
+  delete car.email;
   await env.GALLERY_BUCKET.put(carRecordKey(car.id), JSON.stringify(car, null, 2) + '\n', {
     httpMetadata: { contentType: 'application/json' }
   });
@@ -5101,6 +5092,215 @@ async function saveCarRecord(env, car) {
 
 async function deleteCarRecord(env, carId) {
   await env.GALLERY_BUCKET.delete(carRecordKey(carId));
+  await env.VOTES.delete(carDetailsKey(carId));
+}
+
+// A car's model and its mods list, as built in My Garage. Kept in KV, not
+// with the car record in the photo bucket, because it holds things only the
+// owner sees (fitted dates, who fitted it, cost, plans). Everyone else sees
+// the flat mods list made from it by specsToMods().
+function carDetailsKey(carId) {
+  return 'car-details:' + carId;
+}
+
+async function getCarDetails(env, carId) {
+  try {
+    var raw = await env.VOTES.get(carDetailsKey(carId));
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function saveCarDetails(env, carId, details) {
+  await env.VOTES.put(carDetailsKey(carId), JSON.stringify(details));
+}
+
+var CAR_MODELS = ['Model 3', 'Model Y', 'Model S', 'Model X', 'Cybertruck', 'Roadster'];
+
+// The areas of the mods builder (js/mods-builder.js has the labels and
+// choices). fields: text answers. kinds: bodywork's separate jobs.
+// picks: things to tick. items: free text lines.
+var MOD_AREAS = {
+  wheels: { label: 'Wheels', fields: ['make', 'model', 'sizeFront', 'sizeRear', 'width', 'offset', 'finish', 'type'] },
+  tyres: { label: 'Tyres', fields: ['make', 'model', 'size'] },
+  suspension: { label: 'Suspension', fields: ['type', 'make', 'model', 'drop', 'notes'] },
+  brakes: { label: 'Brakes', fields: ['calipers', 'discs', 'pads', 'fluid'] },
+  bodywork: { label: 'Bodywork', kinds: {
+    wrap: ['make', 'colour'], ppf: ['make', 'model', 'coverage'], tint: ['front', 'rear'],
+    aero: ['parts', 'make', 'material'], dechrome: ['what'], lights: ['what']
+  } },
+  interior: { label: 'Interior', picks: ['Seats', 'Wheel or yoke', 'Carbon trim', 'Mats', 'Screens', 'Wraps'], fields: ['makeModel', 'details'] },
+  performance: { label: 'Performance', picks: ['Acceleration Boost', 'Track mode', 'Cooling', 'Other'], fields: ['makeModel', 'details'] },
+  audio: { label: 'Audio and tech', picks: ['Speakers', 'Amp', 'Sub', 'Dashcam', 'Chargers'], fields: ['makeModel', 'details'] },
+  other: { label: 'Anything else', items: true }
+};
+var MOD_KIND_LABELS = { wrap: 'Wrap', ppf: 'PPF', tint: 'Tint', aero: 'Aero', dechrome: 'De-chrome', lights: 'Lights' };
+
+function cleanModText(v, max) {
+  return typeof v === 'string' ? v.replace(/\s+/g, ' ').trim().slice(0, max || 80) : '';
+}
+
+function cleanModFields(input, names) {
+  var out = {};
+  if (!input || typeof input !== 'object') return out;
+  names.forEach(function (n) {
+    var v = cleanModText(input[n]);
+    if (v) out[n] = v;
+  });
+  return out;
+}
+
+function cleanFitted(input) {
+  var out = {};
+  if (!input || typeof input !== 'object') return out;
+  var month = parseInt(input.month, 10);
+  if (month >= 1 && month <= 12) out.month = month;
+  var year = parseInt(input.year, 10);
+  if (year >= 1990 && year <= new Date().getUTCFullYear() + 1) out.year = year;
+  var by = cleanModText(input.by);
+  if (by) out.by = by;
+  var cost = cleanModText(input.cost, 20);
+  if (cost) out.cost = cost;
+  return out;
+}
+
+// Keeps only the known areas and answers, trimmed. An area with no status is
+// still to do.
+function cleanSpecs(input) {
+  var out = {};
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return out;
+  Object.keys(MOD_AREAS).forEach(function (id) {
+    var area = MOD_AREAS[id];
+    var src = input[id];
+    if (!src || typeof src !== 'object') return;
+    if (src.status !== 'stock' && src.status !== 'up') return;
+    var a = { status: src.status };
+    if (src.status === 'up') {
+      if (area.fields) a.fields = cleanModFields(src.fields, area.fields);
+      if (area.kinds) {
+        a.kinds = {};
+        Object.keys(area.kinds).forEach(function (k) {
+          if (src.kinds && src.kinds[k] && typeof src.kinds[k] === 'object') a.kinds[k] = cleanModFields(src.kinds[k], area.kinds[k]);
+        });
+      }
+      if (area.picks) {
+        a.picks = Array.isArray(src.picks) ? area.picks.filter(function (p) { return src.picks.indexOf(p) !== -1; }) : [];
+      }
+      if (area.items) {
+        a.items = Array.isArray(src.items) ? src.items.map(function (i) { return cleanModText(i, 150); }).filter(Boolean).slice(0, 30) : [];
+      }
+      if (id === 'wheels' && src.spacers && typeof src.spacers === 'object' && src.spacers.on) {
+        a.spacers = cleanModFields(src.spacers, ['make', 'front', 'rear']);
+        a.spacers.on = true;
+        if (src.spacers.hub) a.spacers.hub = true;
+      }
+      var fitted = cleanFitted(src.fitted);
+      if (Object.keys(fitted).length) a.fitted = fitted;
+    }
+    out[id] = a;
+  });
+  return out;
+}
+
+function cleanPlans(input) {
+  if (!Array.isArray(input)) return [];
+  return input.map(function (p) {
+    if (!p || typeof p !== 'object') return null;
+    var what = cleanModText(p.what, 150);
+    if (!what) return null;
+    var plan = { what: what };
+    var area = cleanModText(p.area, 40);
+    if (area) plan.area = area;
+    var when = cleanModText(p.when, 40);
+    if (when) plan.when = when;
+    return plan;
+  }).filter(Boolean).slice(0, 10);
+}
+
+function cleanCarModel(body) {
+  var out = {};
+  if (!body || typeof body !== 'object') return out;
+  if (CAR_MODELS.indexOf(body.model) !== -1) out.model = body.model;
+  var version = cleanModText(body.version, 40);
+  if (version) out.version = version;
+  var year = parseInt(body.year, 10);
+  if (year >= 2008 && year <= new Date().getUTCFullYear() + 1) out.year = year;
+  return out;
+}
+
+function joinParts(parts, sep) {
+  return parts.filter(Boolean).join(sep || ', ');
+}
+
+// The public mods list: one readable line per upgrade. Never includes fitted
+// dates, who fitted it or cost, which only the owner sees.
+function specsToMods(specs) {
+  var lines = [];
+  var s = specs || {};
+  function up(id) { return s[id] && s[id].status === 'up' ? s[id] : null; }
+  var f;
+  var w = up('wheels');
+  if (w) {
+    f = w.fields || {};
+    var size = f.sizeFront && f.sizeRear && f.sizeFront !== f.sizeRear
+      ? f.sizeFront + ' front, ' + f.sizeRear + ' rear' : (f.sizeFront || f.sizeRear || '');
+    var line = joinParts([joinParts([f.make, f.model], ' '), size, f.width, f.offset, f.finish, f.type]);
+    lines.push('Wheels' + (line ? ': ' + line : ''));
+    if (w.spacers && w.spacers.on) {
+      var sp = w.spacers;
+      lines.push('Spacers' + ': ' + joinParts([sp.make, sp.front ? sp.front + ' front' : '', sp.rear ? sp.rear + ' rear' : '', sp.hub ? 'hub-centric' : '']));
+    }
+  }
+  var t = up('tyres');
+  if (t) {
+    f = t.fields || {};
+    lines.push('Tyres' + prefixed(joinParts([joinParts([f.make, f.model], ' '), f.size])));
+  }
+  var su = up('suspension');
+  if (su) {
+    f = su.fields || {};
+    lines.push('Suspension' + prefixed(joinParts([joinParts([f.make, f.model, f.type ? f.type.toLowerCase() : ''], ' '), f.drop ? f.drop + ' drop' : ''])));
+  }
+  var b = up('brakes');
+  if (b) {
+    f = b.fields || {};
+    lines.push('Brakes' + prefixed(joinParts([
+      f.calipers ? f.calipers + ' calipers' : '', f.discs ? f.discs + ' discs' : '',
+      f.pads ? f.pads + ' pads' : '', f.fluid ? f.fluid + ' fluid' : ''
+    ])));
+  }
+  var bw = up('bodywork');
+  if (bw) {
+    var kinds = bw.kinds || {};
+    var any = false;
+    Object.keys(MOD_AREAS.bodywork.kinds).forEach(function (k) {
+      if (!kinds[k]) return;
+      any = true;
+      var kf = kinds[k];
+      var text;
+      if (k === 'tint') text = joinParts([kf.front ? kf.front + ' front' : '', kf.rear ? kf.rear + ' rear' : '']);
+      else if (k === 'wrap') text = joinParts([kf.make, kf.colour], ' ');
+      else if (k === 'ppf') text = joinParts([joinParts([kf.make, kf.model], ' '), kf.coverage ? kf.coverage.toLowerCase() : '']);
+      else if (k === 'aero') text = joinParts([kf.parts, joinParts([kf.make, kf.material ? kf.material.toLowerCase() : ''], ' ')]);
+      else text = kf.what || '';
+      lines.push(MOD_KIND_LABELS[k] + prefixed(text));
+    });
+    if (!any) lines.push('Bodywork');
+  }
+  ['interior', 'performance', 'audio'].forEach(function (id) {
+    var a = up(id);
+    if (!a) return;
+    f = a.fields || {};
+    lines.push(MOD_AREAS[id].label + prefixed(joinParts([(a.picks || []).join(', '), f.makeModel, f.details])));
+  });
+  var o = up('other');
+  if (o) (o.items || []).forEach(function (i) { lines.push(i); });
+  return lines.map(function (l) { return l.slice(0, 150); }).slice(0, 50);
+}
+
+function prefixed(text) {
+  return text ? ': ' + text : '';
 }
 
 async function setSidecarCarId(env, file, carId, ownerEmail) {
@@ -5113,10 +5313,8 @@ async function setSidecarCarId(env, file, carId, ownerEmail) {
   sidecar.carId = carId;
   // Backfills the owner email onto legacy sidecars that predate comment
   // notifications, so this photo starts receiving them from here on.
-  if (!sidecar.email && ownerEmail) sidecar.email = ownerEmail;
-  await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
-    httpMetadata: { contentType: 'application/json' }
-  });
+  if (!sidecar.email && !sidecar.owner && ownerEmail) sidecar.email = ownerEmail;
+  await putSidecar(env, sidecarKey, sidecar);
 }
 
 // Un-stamps a photo's carId so it drops back into the shared "legacy"
@@ -5129,9 +5327,77 @@ async function clearSidecarCarId(env, file) {
     if (existingObj) sidecar = await existingObj.json();
   } catch (e) {}
   delete sidecar.carId;
-  await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
+  await putSidecar(env, sidecarKey, sidecar);
+}
+
+// A photo's owner. Each photo has a small settings file (its "sidecar",
+// gallery/<photo>.json) in the photo bucket, which is served publicly, so the
+// owner's email is kept in KV instead and the sidecar holds only the one-way
+// ownerKey() as `owner`. Older sidecars still carry `email` until
+// moveSidecarEmails() has been through them.
+function photoOwnerKey(file) {
+  return 'photo-owner:' + file;
+}
+
+// The only way a sidecar is written: moves any email into KV first.
+async function putSidecar(env, sidecarKey, sidecar) {
+  var out = Object.assign({}, sidecar);
+  if (typeof out.email === 'string' && out.email) {
+    var file = sidecarKey.replace(/^gallery\//, '').replace(/\.json$/, '');
+    var email = out.email.trim().toLowerCase();
+    await env.VOTES.put(photoOwnerKey(file), email);
+    out.owner = await ownerKey(email);
+  }
+  delete out.email;
+  await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(out, null, 2) + '\n', {
     httpMetadata: { contentType: 'application/json' }
   });
+}
+
+async function sidecarOwnerEmail(env, file, sidecar) {
+  if (sidecar && typeof sidecar.email === 'string' && sidecar.email) return sidecar.email;
+  if (sidecar && !sidecar.owner) return null;
+  return (await env.VOTES.get(photoOwnerKey(file))) || null;
+}
+
+async function clearPhotoOwner(env, file, sidecar) {
+  delete sidecar.email;
+  delete sidecar.owner;
+  await env.VOTES.delete(photoOwnerKey(file));
+}
+
+// One-off: takes the emails out of every existing sidecar and car record.
+// Runs from scheduled() a batch at a time until done (a KV flag), so it
+// never runs on a visitor's request.
+var SIDECAR_EMAIL_MOVE_FLAG = 'migrated:sidecar-emails-v1';
+var SIDECAR_EMAIL_MOVE_BATCH = 200;
+async function moveSidecarEmails(env) {
+  if (await env.VOTES.get(SIDECAR_EMAIL_MOVE_FLAG)) return { done: true, moved: 0 };
+  var cursor = (await env.VOTES.get(SIDECAR_EMAIL_MOVE_FLAG + ':cursor')) || undefined;
+  var listing = await env.GALLERY_BUCKET.list({ prefix: 'gallery/', cursor: cursor, limit: SIDECAR_EMAIL_MOVE_BATCH });
+  var moved = 0;
+  for (var i = 0; i < listing.objects.length; i++) {
+    var key = listing.objects[i].key;
+    if (!/\.json$/.test(key)) continue;
+    var data;
+    try {
+      var obj = await env.GALLERY_BUCKET.get(key);
+      if (!obj) continue;
+      data = await obj.json();
+    } catch (e) { continue; }
+    if (!data || typeof data !== 'object' || !('email' in data)) continue;
+    if (key.indexOf('gallery/cars/') === 0) await saveCarRecord(env, data);
+    else await putSidecar(env, key, data);
+    moved++;
+  }
+  if (listing.truncated && listing.cursor) {
+    await env.VOTES.put(SIDECAR_EMAIL_MOVE_FLAG + ':cursor', listing.cursor);
+    return { done: false, moved: moved };
+  }
+  await env.VOTES.put(SIDECAR_EMAIL_MOVE_FLAG, new Date().toISOString());
+  await env.VOTES.delete(SIDECAR_EMAIL_MOVE_FLAG + ':cursor');
+  if (moved) await triggerManifestRebuild(env);
+  return { done: true, moved: moved };
 }
 
 async function setSidecarMods(env, file, mods) {
@@ -5146,9 +5412,7 @@ async function setSidecarMods(env, file, mods) {
   } else {
     delete sidecar.mods;
   }
-  await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
-    httpMetadata: { contentType: 'application/json' }
-  });
+  await putSidecar(env, sidecarKey, sidecar);
 }
 
 // Members' first and last names, one KV key per member (read with a single
@@ -5214,9 +5478,7 @@ async function setSidecarName(env, file, name) {
   } catch (e) {}
   if (sidecar.name === name) return;
   sidecar.name = name;
-  await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
-    httpMetadata: { contentType: 'application/json' }
-  });
+  await putSidecar(env, sidecarKey, sidecar);
 }
 
 // Saves the signed-in member's name and puts it on all their photos, so
@@ -5251,8 +5513,9 @@ async function refreshPublicNameEverywhere(env, email, profile) {
   // Every photo the member owns: their saved list, plus any whose sidecar
   // names them but that dropped out of it (only when their name changes).
   var files = await getSubscriberFiles(env, email);
-  var owned = await listGalleryEntriesFromR2(env, { includeEmail: true }).catch(function () { return []; });
-  owned.forEach(function (p) { if (p.email === email && files.indexOf(p.file) === -1) files.push(p.file); });
+  var owned = await listGalleryEntriesFromR2(env).catch(function () { return []; });
+  var myOwner = await ownerKey(email);
+  owned.forEach(function (p) { if (p.owner === myOwner && files.indexOf(p.file) === -1) files.push(p.file); });
   await Promise.all(files.map(function (f) { return setSidecarName(env, f, name); }));
   if (files.length) await triggerManifestRebuild(env);
 }
@@ -5292,9 +5555,7 @@ async function setSidecarColor(env, file, color) {
   } else {
     delete sidecar.color;
   }
-  await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
-    httpMetadata: { contentType: 'application/json' }
-  });
+  await putSidecar(env, sidecarKey, sidecar);
 }
 
 // Virtual car id used to group all of a subscriber's legacy (pre-carId)
@@ -5603,7 +5864,7 @@ async function handleMyBuildsGet(request, env) {
   var manifest = [];
   if (files.length) {
     try {
-      manifest = await listGalleryEntriesFromR2(env, { includeEmail: true });
+      manifest = await listGalleryEntriesFromR2(env);
     } catch (e) {
       manifestOk = false;
     }
@@ -5619,11 +5880,12 @@ async function handleMyBuildsGet(request, env) {
   // of their saved file list, so a lagging listing can never look like a
   // deleted build and get pruned away below.
   var filesChanged = false;
+  var garageOwner = await ownerKey(email);
   if (manifestOk) {
     var fileSet = {};
     files.forEach(function (f) { fileSet[f] = true; });
     manifest.forEach(function (p) {
-      if (p.email === email && !fileSet[p.file]) {
+      if (p.owner && p.owner === garageOwner && !fileSet[p.file]) {
         files.push(p.file);
         fileSet[p.file] = true;
         filesChanged = true;
@@ -5746,12 +6008,20 @@ async function handleMyBuildsGet(request, env) {
     var color = record && record.color ? record.color : (first.color || '');
     var name = record ? record.name : (first.caption || 'MT3UK member build');
     var createdAt = record ? record.createdAt : new Date(first.uploadedAt || Date.now()).toISOString();
+    // The model and mods list (with its owner-only dates and costs) come
+    // back only here, to the owner.
+    var details = g.virtual ? null : await getCarDetails(env, g.id);
     return {
       id: g.id,
       virtual: !!g.virtual,
       name: name,
       mods: mods,
       color: color,
+      model: (details && details.model) || '',
+      version: (details && details.version) || '',
+      year: (details && details.year) || '',
+      specs: (details && details.specs) || null,
+      plans: (details && details.plans) || [],
       createdAt: createdAt,
       commentCount: photos.reduce(function (sum, p) { return sum + p.commentCount; }, 0),
       likeCount: photos.reduce(function (sum, p) { return sum + p.likeCount; }, 0),
@@ -5783,9 +6053,7 @@ async function withdrawVoteEntry(env, file, weekStr) {
     if (obj) sidecar = await obj.json();
   } catch (e) {}
   sidecar.votable = false;
-  await env.GALLERY_BUCKET.put(key, JSON.stringify(sidecar, null, 2) + '\n', {
-    httpMetadata: { contentType: 'application/json' }
-  });
+  await putSidecar(env, key, sidecar);
   await env.VOTES.delete('votes:' + weekStr + ':' + file);
 }
 
@@ -5874,9 +6142,7 @@ async function handleMyBuildsUpdate(request, env) {
     }
   }
 
-  await env.GALLERY_BUCKET.put(sidecarKey, JSON.stringify(sidecar, null, 2) + '\n', {
-    httpMetadata: { contentType: 'application/json' }
-  });
+  await putSidecar(env, sidecarKey, sidecar);
   await Promise.all(withdraw.map(function (f) { return withdrawVoteEntry(env, f, voteWeek); }));
   if (clearVotes) await env.VOTES.delete('votes:' + voteWeek + ':' + file);
 
@@ -5966,10 +6232,41 @@ async function handleMyBuildsCarUpdate(request, env) {
     await Promise.all(photos.map(function (f) { return setSidecarColor(env, f, body.color); }));
   }
 
+  // Model and the mods list from the builder (js/mods-builder.js). The
+  // public mods list on every photo is made from the specs.
+  var details = null;
+  var hasModel = body && ('model' in body || 'version' in body || 'year' in body);
+  var hasSpecs = body && body.specs && typeof body.specs === 'object';
+  if (hasModel || hasSpecs || (body && Array.isArray(body.plans))) {
+    details = (await getCarDetails(env, realCarId)) || {};
+    if (hasModel) {
+      // Only the ones sent change; an empty one clears it.
+      var model = cleanCarModel(body);
+      ['model', 'version', 'year'].forEach(function (k) {
+        if (!(k in body)) return;
+        if (model[k] !== undefined) details[k] = model[k];
+        else delete details[k];
+      });
+    }
+    if (hasSpecs) {
+      details.specs = cleanSpecs(body.specs);
+      var specMods = specsToMods(details.specs);
+      record.mods = specMods;
+      await Promise.all(photos.map(function (f) { return setSidecarMods(env, f, specMods); }));
+    }
+    if (body && Array.isArray(body.plans)) details.plans = cleanPlans(body.plans);
+    details.updatedAt = new Date().toISOString();
+    await saveCarDetails(env, realCarId, details);
+  }
+
   await saveCarRecord(env, record);
   await triggerManifestRebuild(env);
 
-  return json({ success: true, car: record });
+  var carOut = Object.assign({}, record);
+  if (details) {
+    ['model', 'version', 'year', 'specs', 'plans'].forEach(function (k) { if (details[k] !== undefined) carOut[k] = details[k]; });
+  }
+  return json({ success: true, car: carOut });
 }
 
 // Moves a single photo from whichever car (real or the shared virtual/
@@ -6143,11 +6440,7 @@ async function handleMyBuildsUpload(request, env) {
     if (!gallery) sidecar.gallery = false;
     if (!reel) sidecar.reel = false;
     if (!votable) sidecar.votable = false;
-    await env.GALLERY_BUCKET.put(
-      'gallery/' + filename + '.json',
-      JSON.stringify(sidecar, null, 2) + '\n',
-      { httpMetadata: { contentType: 'application/json' } }
-    );
+    await putSidecar(env, 'gallery/' + filename + '.json', sidecar);
 
     await addSubscriberFiles(env, email, [filename]);
 
@@ -7127,11 +7420,7 @@ export default {
         // only credited against the primary/voting shot.
         if (color) sidecar.color = color;
         if (!isPrimary || hasVoteEntry) sidecar.votable = false;
-        await env.GALLERY_BUCKET.put(
-          'gallery/' + filename + '.json',
-          JSON.stringify(sidecar, null, 2) + '\n',
-          { httpMetadata: { contentType: 'application/json' } }
-        );
+        await putSidecar(env, 'gallery/' + filename + '.json', sidecar);
 
         photoUrls.push(GALLERY_PUBLIC_BASE_URL + '/gallery/' + filename);
       }
@@ -7153,6 +7442,15 @@ export default {
           color: color,
           createdAt: new Date().toISOString()
         });
+        var submitModel = cleanCarModel({
+          model: (formData.get('model') || '').toString(),
+          version: (formData.get('version') || '').toString(),
+          year: (formData.get('year') || '').toString()
+        });
+        if (Object.keys(submitModel).length) {
+          submitModel.updatedAt = new Date().toISOString();
+          await saveCarDetails(env, newCarId, submitModel);
+        }
       }
 
       // No PR/review gate now the photos land straight in R2 - open an
@@ -7210,6 +7508,7 @@ export default {
       }
 
       var submitResult = { success: true, photo_url: photoUrls[0], photo_urls: photoUrls };
+      if (newCarId) submitResult.carId = newCarId;
       if (hasVoteEntry) submitResult.voteNote = 'You already have a build in this week’s vote, so this one isn’t entered. You can switch your entry in My Garage.';
       return json(submitResult);
     } catch (err) {
@@ -7221,6 +7520,9 @@ export default {
     ctx.waitUntil(tallyVotesIfUkMidnight(env));
     ctx.waitUntil(sendSubscribersDigestIfUk8pm(env).catch(function (e) {
       console.log('Subscribers digest failed:', e.message);
+    }));
+    ctx.waitUntil(moveSidecarEmails(env).catch(function (e) {
+      console.log('Moving sidecar emails failed:', e.message);
     }));
   }
 };

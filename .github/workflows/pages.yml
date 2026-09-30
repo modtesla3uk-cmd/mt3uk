@@ -31,14 +31,17 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Install boto3
-        run: pip install boto3
+      - name: Install boto3 and Pillow
+        run: pip install boto3 Pillow
 
       - name: Regenerate gallery manifest from R2
         run: python3 scripts/build_gallery_manifest.py
 
       - name: Regenerate track days manifest from R2
         run: python3 scripts/build_track_days_manifest.py
+
+      - name: Write a link-preview share page for every event
+        run: python3 scripts/build_event_share_pages.py
 
       - name: Strip markdown docs (CLAUDE.md, README.md, etc.) so they aren't published
         run: find . -name '*.md' -not -path './.git/*' -delete

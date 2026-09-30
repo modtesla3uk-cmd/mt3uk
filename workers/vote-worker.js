@@ -2082,7 +2082,7 @@ function cleanEventEntry(input) {
         return {
           name: evStr(t.name, 60), price: evStr(t.price, 20), per: evStr(t.per, 40), tag: evStr(t.tag, 30),
           includes: evList(t.includes, 10).map(function (i) { return evStr(i, 100); }).filter(Boolean),
-          url: evLink(t.url), buttonLabel: evStr(t.buttonLabel, 30), featured: !!t.featured, soldOut: !!t.soldOut
+          url: evLink(t.url), buttonLabel: evStr(t.buttonLabel, 30), featured: !!t.featured, soldOut: !!t.soldOut, addOn: !!t.addOn
         };
       }).filter(function (t) { return t.name; }),
       notes: evList(tickets.notes, 6).map(function (n) { return { label: evStr(n && n.label, 30), value: evStr(n && n.value, 150) }; }).filter(function (n) { return n.label && n.value; })

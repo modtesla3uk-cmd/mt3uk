@@ -8,6 +8,8 @@ on:
       - "*.html"
       - "data/featured.json"
       - "data/interviews.json"
+      - "data/event-pages.json"
+      - "images/events/**"
   repository_dispatch:
     types: [gallery-submission]
   workflow_dispatch: {}
@@ -47,6 +49,9 @@ jobs:
 
       - name: Regenerate page and section share pages
         run: python3 scripts/build_section_share_pages.py
+
+      - name: Regenerate event share pages and preview pictures
+        run: python3 scripts/build_event_share_pages.py
 
       - name: Regenerate track days manifest from R2
         run: python3 scripts/build_track_days_manifest.py

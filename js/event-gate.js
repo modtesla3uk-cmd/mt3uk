@@ -362,7 +362,7 @@
       .catch(function () { gateOrAdmin(entry); });
   }
 
-  fetch('data/event-pages.json', { cache: 'no-store' })
+  fetch('data/event-pages.json?t=' + Date.now(), { cache: 'no-store' })
     .then(function (res) { return res.json(); })
     .then(function (data) {
       var list = (data && data.events) || [];

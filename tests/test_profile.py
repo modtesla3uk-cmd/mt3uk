@@ -524,6 +524,9 @@ def test_profile_has_notifications_app_email_alerts_and_unsubscribe(device_page)
     assert order.index("email-alerts") == order.index("visibility") + 1, order
     tabs = page.locator(".pf-tabs a").all_inner_texts()
     assert tabs == ["Details", "Visibility", "Security"], tabs
+    # My Garage appears once on Profile: its card, not the signed-in bar too.
+    assert page.locator(".mt3uk-account-bar a[href='my-builds.html']").count() == 0
+    assert page.locator(".pf-garage a[href='my-builds.html']").count() == 1
     assert "always emailed" in alerts.inner_text()
     unsub = page.locator("#unsubscribe")
     assert unsub.locator("h2").inner_text() == "Unsubscribe"

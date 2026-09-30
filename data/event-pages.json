@@ -31,16 +31,199 @@
       ],
       "steps": [
         {
-          "title": "Bring your EV"
+          "title": "Bring your EV",
+          "text": ""
         },
         {
-          "title": "Display your Halloween themed decorated frunk"
+          "title": "Display your Halloween themed decorated frunk",
+          "text": ""
         },
         {
-          "title": "Get to know other EV owners and have a great time"
+          "title": "Get to know other EV owners and have a great time",
+          "text": ""
         }
       ],
+      "entry": "£10",
+      "entryNote": "per vehicle",
+      "tickets": {
+        "tiers": [
+          {
+            "name": "Per vehicle",
+            "price": "£10",
+            "per": "Per vehicle",
+            "tag": "",
+            "includes": [
+              "This can then be used against any purchases made during the customers visit"
+            ],
+            "url": "",
+            "buttonLabel": "",
+            "featured": true,
+            "soldOut": false,
+            "addOn": false
+          }
+        ]
+      },
       "closing": "Fancy dress is heavily encouraged. See you there!",
+      "created": "2026-09-30",
+      "draft": true
+    },
+    {
+      "slug": "race-of-remembrance-track-day-2026",
+      "name": "Race of Remembrance track day 2026",
+      "title": "Race of remembrance - Track day",
+      "tagline": "Race of Remembrance Launch Track Day",
+      "organisers": "Mission Motorsport",
+      "kind": "Track day",
+      "manifestId": "008",
+      "startDate": "2026-10-02",
+      "startTime": "08:00",
+      "endTime": "17:00",
+      "venue": "Thruxton Circuit",
+      "location": "Thruxton Circuit",
+      "image": "https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/events/race-of-remembrance-track-day-2026/a5b8c5500136402a.jpg",
+      "heroImage": "https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/events/race-of-remembrance-track-day-2026/fe52e156fb084d91.jpg",
+      "poster": "https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/events/race-of-remembrance-track-day-2026/cc2deebe49b54d57.jpg",
+      "description": [
+        "Sign up to enjoy a track day and deliver passenger rides for members of the Armed Forces Community, supporting Mission Motorsport",
+        "Mission Motorsport, The Forces’ Motorsport Charity, is proud to launch the 2026 Race of Remembrance from Thruxton Circuit. Meet the teams taking part and join beneficiaries and supporters in the paddock as preparations begin for the charity’s flagship event; a remembrance service with an endurance race attached.",
+        "With the track open, you’ll have a rare chance to take part in the action. Support the Armed Forces community by offering your passenger seat to a member of the Armed Forces community. All proceeds go to Mission Motorsport who are dedicated to helping those who have served, by creating life-changing opportunities in motorsport and the automotive industry.",
+        "First and foremost, this is a day of recovery sport for our beneficiaries, giving them the opportunity to enjoy thrilling passenger rides, connect with others, and engage with supporters of the charity.",
+        "Please note: A static noise test will be in place - a strict 90dBs."
+      ],
+      "highlights": [
+        "EXPERIENCE THE THRILL AT THE UK’S FASTEST RACE CIRCUIT"
+      ],
+      "steps": [
+        {
+          "title": "Offering your passenger seat provides a member of the Armed Forces community wit",
+          "text": ""
+        },
+        {
+          "title": "This is your chance to meet our fantastic forces community and treat them to an",
+          "text": ""
+        },
+        {
+          "title": "All those going out on track must ensure that:",
+          "text": ""
+        },
+        {
+          "title": "Both arms & legs are covered.",
+          "text": ""
+        },
+        {
+          "title": "Helmets are worn at all times whilst out on track.",
+          "text": ""
+        },
+        {
+          "title": "Please note that all cars are subject to noise testing. The limit is a STRICT 90",
+          "text": ""
+        },
+        {
+          "title": "Food is available to purchase from the onsite facilities.",
+          "text": ""
+        },
+        {
+          "title": "All the monies raised will be used to directly fund Mission Motorsport's work wi",
+          "text": ""
+        }
+      ],
+      "entry": "From £99",
+      "entryNote": "Driver tickets, sales end 2 Oct",
+      "tickets": {
+        "intro": "Book your driver ticket on Eventbrite. Sales end on 2 October 2026.",
+        "tiers": [
+          {
+            "name": "Driver Ticket",
+            "price": "£150",
+            "per": "per driver",
+            "tag": "",
+            "includes": [],
+            "url": "https://ror-launch-trackday26.eventbrite.co.uk",
+            "buttonLabel": "Book on Eventbrite",
+            "featured": true,
+            "soldOut": false,
+            "addOn": false
+          },
+          {
+            "name": "Driver Ticket Afternoon Only",
+            "price": "£99",
+            "per": "per driver",
+            "tag": "",
+            "includes": [],
+            "url": "https://ror-launch-trackday26.eventbrite.co.uk",
+            "buttonLabel": "Book on Eventbrite",
+            "featured": false,
+            "soldOut": false,
+            "addOn": false
+          },
+          {
+            "name": "Extra Driver",
+            "price": "£30",
+            "per": "per extra driver",
+            "tag": "",
+            "includes": [
+              "Only if a Driver Ticket has already been purchased",
+              "Also available as an add-on"
+            ],
+            "url": "https://ror-launch-trackday26.eventbrite.co.uk",
+            "buttonLabel": "Book on Eventbrite",
+            "featured": false,
+            "soldOut": false,
+            "addOn": false
+          }
+        ],
+        "notes": [
+          {
+            "label": "Sales end",
+            "value": "2 Oct 2026"
+          },
+          {
+            "label": "Extra Driver",
+            "value": "Only with a Driver Ticket"
+          }
+        ]
+      },
+      "ctaUrl": "https://ror-launch-trackday26.eventbrite.co.uk",
+      "ctaLabel": "Book on Eventbrite",
+      "publish": "2026-09-30",
+      "created": "2026-09-30"
+    },
+    {
+      "slug": "gasoline-juice-autumn-meet-2026",
+      "manifestId": "007",
+      "name": "Gasoline Juice Autumn Meet 2026",
+      "title": "Gasoline Juice Autumn Meet",
+      "tagline": "Let's get together at Gasoline Juice, a popular location for all types of cars and bikes with Automobile Artwork, SIM racing, coffee, cake and breakfast baps",
+      "kind": "Meet",
+      "startDate": "2026-10-18",
+      "startTime": "10:00",
+      "endTime": "15:00",
+      "venue": "The Royal Ordnance Depot",
+      "town": "Northampton",
+      "address": "The Royal Ordnance Depot, Harmans Way, Northampton NN7 4PS",
+      "location": "The Royal Ordnance Depot, Harmans Way, Northampton NN7 4PS",
+      "description": [
+        "Let's get together at Gasoline Juice, a popular location for all types of cars and bikes with Automobile Artwork, SIM racing, coffee, cake and breakfast baps"
+      ],
+      "ctaUrl": "https://fb.me/e/26kXOArot6",
+      "ctaLabel": "Facebook event",
+      "draft": true,
+      "created": "2026-09-30"
+    },
+    {
+      "slug": "cadwell-park-track-day-2026",
+      "manifestId": "006",
+      "name": "Cadwell Park Track Day 2026",
+      "title": "Cadwell Park Track Day",
+      "tagline": "No spaces available",
+      "kind": "Track day",
+      "startDate": "2026-10-23",
+      "startTime": "08:00",
+      "venue": "Cadwell Park",
+      "town": "Louth",
+      "location": "Cadwell Park - Louth",
+      "ctaUrl": "https://facebook.com/groups/mt3uk",
+      "ctaLabel": "Facebook group",
       "draft": true,
       "created": "2026-09-30"
     }

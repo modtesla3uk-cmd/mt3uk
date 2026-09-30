@@ -47,6 +47,12 @@ def full_event(**changes):
         **changes)
 
 
+def no_meets(page):
+    """An empty older meets list, so only event pages show on the homepage."""
+    page.route(re.compile(r".*/events-data/events-manifest\.json.*"), lambda route: route.fulfill(
+        status=200, body=json.dumps({"events": []}), headers={"Content-Type": "application/json"}))
+
+
 def open_events_admin(page):
     """Events admin with the key saved, so the page loads straight in."""
     page.add_init_script("sessionStorage.setItem('mt3ukAdminKey', 'test-key')")
@@ -231,8 +237,9 @@ def test_event_that_is_not_listed_stays_hidden(device_page):
 # ---------- The homepage ----------
 
 @all_devices
-def test_homepage_features_only_live_upcoming_events_with_image_and_tagline(device_page):
+def test_homepage_shows_only_live_event_pages_as_cards_with_image_and_tagline(device_page):
     page = device_page
+    no_meets(page)
     serve(page, [
         full_event(slug="live-one", title="Live Event Title"),
         event(slug="draft-one", title="Draft Title"),
@@ -242,33 +249,36 @@ def test_homepage_features_only_live_upcoming_events_with_image_and_tagline(devi
     page.goto("/index.html#events")
     cards = page.locator("#event-features .ev-feature")
     cards.first.wait_for(state="visible", timeout=5000)
-    assert cards.count() == 1
+    assert cards.count() == 1, "Drafts and scheduled pages are not shown"
     text = cards.first.inner_text()
     assert "Live Event Title" in text and "A tagline that sells it." in text and "Example Venue" in text
     assert cards.first.get_attribute("href") == "event.html?e=live-one"
     assert cards.first.locator("img").get_attribute("src") == "images/events/frunk-or-treat-uk/card.jpg"
+    assert "Join event" in text
+    past = page.locator("#past-events-list .ev-feature")
+    assert past.count() == 1 and "Finished Title" in past.first.inner_text() and "View event" in past.first.inner_text()
     assert overflow_width(page) <= 0
 
 
 @all_devices
-def test_homepage_has_no_feature_block_when_nothing_is_live(device_page):
+def test_homepage_has_no_event_cards_when_there_are_no_events(device_page):
     page = device_page
+    no_meets(page)
     serve(page, [event()])
     page.goto("/index.html#events")
-    page.wait_for_timeout(500)
+    page.wait_for_timeout(600)
     assert page.locator("#event-features .ev-feature").count() == 0
     assert page.locator("#event-features").is_hidden()
 
-
-# ---------- The Events admin page ----------
 
 @ADMIN_ONLY
 def test_admin_can_preview_publish_draft_and_delete(device_page):
     page = device_page
     open_events_admin(page)
-    card = page.locator("#ep-list .event-card")
-    card.first.wait_for(state="visible", timeout=5000)
-    assert "Draft" in card.first.inner_text() and "Frunk or Treat UK 2026" in card.first.inner_text()
+    frunk = page.locator('#ep-list .event-card[data-slug="frunk-or-treat-uk"]')
+    frunk.wait_for(state="visible", timeout=5000)
+    assert "Draft" in frunk.inner_text() and "Frunk or Treat UK 2026" in frunk.inner_text()
+    assert page.locator("#ep-list .event-card").count() == 4, "The three upcoming events have draft pages ready too"
 
     with page.expect_popup() as popup_info:
         page.click('#ep-list [data-ep="preview"]')
@@ -276,15 +286,17 @@ def test_admin_can_preview_publish_draft_and_delete(device_page):
     assert page.mock_state["event_preview_minted"] == "frunk-or-treat-uk"
 
     page.once("dialog", lambda d: d.accept())
-    page.click('#ep-list [data-ep="publish-now"]')
-    page.wait_for_function("document.querySelector('#ep-list .event-id').textContent === 'Live'", timeout=5000)
-    assert page.locator('#ep-list [data-ep="delete"]').count() == 0, "A live event cannot be deleted"
+    frunk.locator('[data-ep="publish-now"]').click()
+    page.wait_for_function("document.querySelector('#ep-list .event-card[data-slug=\"frunk-or-treat-uk\"] .event-id').textContent === 'Live'", timeout=5000)
+    assert frunk.locator('[data-ep="delete"]').count() == 0, "A live event cannot be deleted"
+    assert frunk.locator('[data-ep="copy"]').count() == 1, "A live event can still have its link copied"
     page.once("dialog", lambda d: d.accept())
-    page.click('#ep-list [data-ep="draft"]')
-    page.wait_for_function("document.querySelector('#ep-list .event-id').textContent === 'Draft'", timeout=5000)
+    frunk.locator('[data-ep="draft"]').click()
+    page.wait_for_function("document.querySelector('#ep-list .event-card[data-slug=\"frunk-or-treat-uk\"] .event-id').textContent === 'Draft'", timeout=5000)
     page.once("dialog", lambda d: d.accept())
-    page.click('#ep-list [data-ep="delete"]')
-    page.locator("#ep-list .empty").wait_for(state="visible", timeout=5000)
+    frunk.locator('[data-ep="delete"]').click()
+    page.wait_for_function("document.querySelectorAll('#ep-list .event-card').length === 3", timeout=5000)
+    assert page.locator('#ep-list .event-card[data-slug="frunk-or-treat-uk"]').count() == 0
     assert page.mock_state["event_actions"] == ["publish-now", "draft", "delete"]
 
 
@@ -441,7 +453,7 @@ def test_admin_can_copy_a_share_link_and_see_and_revoke_who_opened_a_preview(dev
     page.locator("#ep-list .event-card").first.wait_for(state="visible", timeout=5000)
     page.evaluate("navigator.clipboard.writeText = function (t) { window.__copied = t; return Promise.resolve(); }")
     page.click('#ep-list [data-ep="copy"]')
-    assert page.evaluate("window.__copied") == "https://mt3uk.com/event.html?e=frunk-or-treat-uk"
+    assert page.evaluate("window.__copied") == "https://mt3uk.com/share/event/frunk-or-treat-uk.html", "The link is the share page, which has the event's own preview image"
     assert "Link copied" in page.locator("#status").inner_text()
 
     page.click("#pv-wrap > summary")
@@ -477,7 +489,9 @@ def test_an_older_event_can_become_a_full_event_page(device_page):
     open_events_admin(page)
     card = page.locator("#upcoming-list .event-card", has_text="Lancing Motor Show")
     card.wait_for(state="visible", timeout=5000)
-    assert "Make event page" in card.inner_text() and "Event page:" not in card.inner_text()
+    assert card.locator('button[data-page="002"]').inner_text() == "Edit", "Edit opens the full editor"
+    assert card.locator('button[data-action="edit"]').inner_text() == "Quick edit", "The small form is still there"
+    assert "Event page:" not in card.inner_text()
 
     # The full editor opens, filled in from the older event.
     card.locator('button[data-page="002"]').click()
@@ -490,6 +504,7 @@ def test_an_older_event_can_become_a_full_event_page(device_page):
     assert page.input_value("#ep-tagline") == "Join us for a collective meet at Lancing Beach!"
     assert page.input_value("#ep-description") == "Join us for a collective meet at Lancing Beach!"
     assert page.input_value("#ep-cta-url") == LEGACY["facebookUrl"] and page.input_value("#ep-cta-label") == "Facebook event"
+    assert page.locator("#ep-tiers").count() == 1 and page.locator("#ep-add-tier").is_visible(), "Ticket options are there too"
     assert page.locator("#slot-image .img-thumb").count() == 1, "There are image slots to fill"
     page.click("#ep-save")
     page.wait_for_function("document.getElementById('status').textContent.indexOf('Saved') === 0", timeout=5000)
@@ -498,7 +513,7 @@ def test_an_older_event_can_become_a_full_event_page(device_page):
     # The older event now shows its page, and the button reopens it.
     page.wait_for_function("document.querySelector('#upcoming-list').textContent.indexOf('Event page: draft') !== -1", timeout=5000)
     card = page.locator("#upcoming-list .event-card", has_text="Lancing Motor Show")
-    assert "Edit event page" in card.inner_text()
+    assert card.locator('button[data-page="002"]').inner_text() == "Edit"
     page.click("#ep-cancel")
     card.locator('button[data-page="002"]').click()
     page.wait_for_function("document.getElementById('ep-form-title').textContent === 'Edit Lancing Motor Show'", timeout=5000)
@@ -508,27 +523,68 @@ def test_an_older_event_can_become_a_full_event_page(device_page):
 
 
 @all_devices
-def test_homepage_shows_an_older_event_once_when_it_has_a_live_page(device_page):
+def test_every_event_card_has_its_image_and_join_event_opens_its_page(device_page):
     page = device_page
-    upcoming = dict(LEGACY, id="002")
-    other = dict(LEGACY, id="003", name="Other Meet", startTime="2099-10-10T09:00:00+0000", endTime="2099-10-10T18:00:00+0000")
+    with_page = dict(LEGACY, id="002")
+    draft_page = dict(LEGACY, id="003", name="Draft Page Meet", startTime="2099-10-10T09:00:00+0000", endTime="2099-10-10T18:00:00+0000", facebookUrl="https://www.facebook.com/share/draft/")
+    no_page = dict(LEGACY, id="004", name="No Page Meet", startTime="2099-11-11T09:00:00+0000", endTime="2099-11-11T18:00:00+0000", facebookUrl="https://www.facebook.com/share/nopage/")
     past = dict(LEGACY, id="001", name="Old Show", startTime="2020-09-25T09:00:00+0000", endTime="2020-09-25T18:00:00+0000")
     page.route(re.compile(r".*/events-data/events-manifest\.json.*"), lambda route: route.fulfill(
-        status=200, body=json.dumps({"events": [upcoming, other, past]}), headers={"Content-Type": "application/json"}))
+        status=200, body=json.dumps({"events": [with_page, draft_page, no_page, past]}), headers={"Content-Type": "application/json"}))
     serve(page, [
-        full_event(slug="lancing-show", title="Lancing Motor Show", manifestId="002", startDate="2099-09-27"),
+        event(slug="lancing-show", title="Lancing Motor Show", manifestId="002", startDate="2099-09-27", publish="2020-01-01", image="images/events/frunk-or-treat-uk/card.jpg"),
+        event(slug="draft-page", title="Draft Page", manifestId="003", image="images/events/frunk-or-treat-uk/poster.jpg"),
         full_event(slug="old-show-page", title="Old Show", manifestId="001", startDate="2020-09-25"),
-        event(slug="draft-page", title="Draft Page", manifestId="003"),
+        full_event(slug="page-only", title="Page Only Event", startDate="2099-12-12"),
     ])
     page.goto("/index.html#events")
-    page.locator("#event-features .ev-feature").first.wait_for(state="visible", timeout=5000)
-    page.wait_for_function("document.querySelector('#confirmed-events-list').textContent.indexOf('Other Meet') !== -1", timeout=5000)
-    rows = page.locator("#confirmed-events-list .event-row")
-    assert rows.count() == 1 and "Other Meet" in rows.first.inner_text(), "The upcoming event with a live page is the card, not a row"
-    assert page.locator("#event-features .ev-feature").count() == 1, "Only the upcoming live page is a card"
-    link = page.locator("#past-events-list h3 a")
-    assert link.get_attribute("href") == "event.html?e=old-show-page", "A past event links to its page"
+    cards = page.locator("#event-features .ev-feature")
+    cards.first.wait_for(state="visible", timeout=5000)
+    page.wait_for_function("document.querySelectorAll('#event-features .ev-feature').length === 4", timeout=5000)
+    assert cards.count() == 4, "One card per event: no repeats"
+    assert page.locator("#event-features .ev-feature-img img").count() == 4, "Every card has a picture"
+
+    # Live page: its image, and Join event opens the page with the full details.
+    lancing = page.locator("#event-features .ev-feature", has_text="Lancing Motor Show")
+    assert lancing.get_attribute("href") == "event.html?e=lancing-show" and lancing.get_attribute("target") is None
+    assert lancing.locator("img").get_attribute("src") == "images/events/frunk-or-treat-uk/card.jpg"
+    assert "Join event" in lancing.inner_text()
+    # A page that is not live yet: its image, but the link stays the external one.
+    draft = page.locator("#event-features .ev-feature", has_text="Draft Page Meet")
+    assert draft.get_attribute("href") == "https://www.facebook.com/share/draft/" and draft.get_attribute("target") == "_blank"
+    assert draft.locator("img").get_attribute("src") == "images/events/frunk-or-treat-uk/poster.jpg"
+    # No page at all: a neutral MT3UK picture, and the external link.
+    plain = page.locator("#event-features .ev-feature", has_text="No Page Meet")
+    assert plain.locator("img.ev-noimg").count() == 1 and plain.get_attribute("href") == "https://www.facebook.com/share/nopage/"
+    # A page with no older event behind it is listed too.
+    assert page.locator("#event-features .ev-feature", has_text="Page Only Event").get_attribute("href") == "event.html?e=page-only"
+    # Soonest first.
+    order = [c.inner_text().split("\n")[1] for c in cards.all()]
+    assert order[0] == "Lancing Motor Show" and order[-1] == "Page Only Event"
+    # Previous events are cards too, linking to their page.
+    old = page.locator("#past-events-list .ev-feature")
+    assert old.count() == 1 and old.get_attribute("href") == "event.html?e=old-show-page" and "Past event" in old.inner_text()
     assert overflow_width(page) <= 0
+
+
+@all_devices
+def test_the_events_section_has_no_hero_photo_and_its_text_is_not_faded(device_page):
+    page = device_page
+    with_page = dict(LEGACY, id="002")
+    past = dict(LEGACY, id="001", name="Old Show", startTime="2020-09-25T09:00:00+0000", endTime="2020-09-25T18:00:00+0000")
+    page.route(re.compile(r".*/events-data/events-manifest\.json.*"), lambda route: route.fulfill(
+        status=200, body=json.dumps({"events": [with_page, past]}), headers={"Content-Type": "application/json"}))
+    serve(page, [full_event(slug="lancing-show", manifestId="002", startDate="2099-09-27")])
+    page.goto("/index.html#events")
+    page.locator("#past-events-list .ev-feature").first.wait_for(state="visible", timeout=5000)
+    assert page.locator('#events img[src="images/hero.jpg"]').count() == 0 and page.locator("#events .diagram").count() == 0
+    assert "FIG. 01" not in page.locator("#events").inner_text()
+    steel = "rgb(124, 135, 152)"
+    for selector in ("#event-features .ev-feature-tagline", "#event-features .ev-feature-where", "#past-events-list .ev-feature-tagline", "#past-events-list .ev-feature-where", "#events .event-info p"):
+        for el in page.locator(selector).all():
+            assert el.evaluate("e => getComputedStyle(e).color") != steel, selector + " is not grey"
+    assert page.evaluate("getComputedStyle(document.querySelector('#past-events-list .ev-feature')).opacity") == "1", "Previous events are not faded"
+    assert page.evaluate("Number(getComputedStyle(document.querySelector('#past-events-list .ev-feature-body h3')).opacity)") == 1
 
 
 @ADMIN_ONLY
@@ -576,3 +632,137 @@ def test_the_editor_opens_under_the_event_being_edited_with_an_arrow(device_page
     page.locator("#ep-form").wait_for(state="visible", timeout=5000)
     assert page.locator(".event-card.is-editing").count() == 0
     assert page.evaluate("document.getElementById('ep-form').previousElementSibling.previousElementSibling.classList.contains('ep-bar')")
+
+
+@ADMIN_ONLY
+def test_saving_the_full_editor_also_updates_the_older_event(device_page):
+    page = device_page
+    page.mock_state["legacy_events"] = [dict(LEGACY)]
+    open_events_admin(page)
+    page.locator('#upcoming-list [data-page="002"]').click()
+    page.locator("#ep-form").wait_for(state="visible", timeout=5000)
+    page.fill("#ep-title", "Lancing Motor Show 2099")
+    page.fill("#ep-tagline", "A new line for the list")
+    page.fill("#ep-venue", "The Green")
+    page.fill("#ep-town", "Lancing")
+    page.fill("#ep-start-time", "10:30")
+    page.fill("#ep-cta-url", "https://example.com/new-link")
+    page.click("#ep-save")
+    page.wait_for_function("document.querySelector('#upcoming-list').textContent.indexOf('Lancing Motor Show 2099') !== -1", timeout=5000)
+    sent = page.mock_state["legacy_saved"]
+    assert sent["id"] == "002" and sent["name"] == "Lancing Motor Show 2099" and sent["description"] == "A new line for the list"
+    assert sent["startDate"] == "2099-09-27" and sent["startTime"] == "10:30" and sent["endTime"] == "18:00"
+    assert sent["location"] == "The Green, Lancing" and sent["facebookUrl"] == "https://example.com/new-link"
+    assert sent["attendingCount"] == 10 and sent["interestedCount"] == 20, "The attendee counts are kept"
+    assert "saved" in page.locator("#status").inner_text().lower() and "could not" not in page.locator("#status").inner_text()
+    assert "The Green, Lancing" in page.locator("#upcoming-list").inner_text(), "The meets list shows the change"
+
+
+def test_the_upcoming_events_already_have_pages_ready():
+    by_id = {e.get("manifestId"): e for e in EVENTS}
+    manifest = json.loads((ROOT / "events-data" / "events-manifest.json").read_text(encoding="utf-8"))["events"]
+    for legacy in manifest:
+        if legacy["id"] in ("006", "007", "008"):
+            page_entry = by_id[legacy["id"]]
+            assert page_entry.get("draft") or page_entry.get("publish"), "Each one is a draft or has a publish date"
+            assert page_entry["title"] == legacy["name"] and page_entry["startDate"] == legacy["startTime"][:10]
+            assert page_entry["startTime"] == legacy["startTime"][11:16]
+            assert page_entry["ctaUrl"] == legacy["facebookUrl"]
+
+
+@ADMIN_ONLY
+def test_an_add_on_ticket_is_labelled_and_not_counted_in_the_from_price(device_page):
+    page = device_page
+    page.set_viewport_size({"width": 390, "height": 844})
+    tiers = [{"name": "Driver Ticket", "price": "\u00a3150", "url": "https://example.com/t", "featured": True},
+             {"name": "Afternoon Only", "price": "\u00a399", "url": "https://example.com/t"},
+             {"name": "Extra Driver", "price": "\u00a330", "url": "https://example.com/t", "addOn": True}]
+    serve(page, [event(publish="2020-01-01", tickets={"tiers": tiers})])
+    page.goto("/event.html?e=test-meet")
+    page.locator(".tier").first.wait_for(state="visible", timeout=5000)
+    assert "\u00a399" in page.locator("#ev-ticket-bar").inner_text(), "The cheapest real ticket, not the add-on"
+    extra = page.locator(".tier", has_text="Extra Driver")
+    assert "Add-on" in extra.inner_text()
+    assert "Add-on" not in page.locator(".tier", has_text="Afternoon Only").inner_text()
+
+
+@ADMIN_ONLY
+def test_the_admin_form_can_mark_a_ticket_as_an_add_on(device_page):
+    page = device_page
+    open_events_admin(page)
+    page.click('#ep-list [data-ep="edit"]')
+    page.locator("#ep-form").wait_for(state="visible", timeout=5000)
+    page.click("#ep-add-tier")
+    page.fill(".tier-row .t-name", "Extra Driver")
+    page.check(".tier-row .t-addon")
+    page.click("#ep-save")
+    page.wait_for_function("document.getElementById('status').textContent.indexOf('Saved') === 0", timeout=5000)
+    assert page.mock_state["event_saved"]["tickets"]["tiers"][0]["addOn"] is True
+
+
+@ADMIN_ONLY
+def test_text_that_is_too_long_is_refused_not_quietly_cut_off(device_page):
+    page = device_page
+    open_events_admin(page)
+    page.click('#ep-list [data-ep="edit"]')
+    page.locator("#ep-form").wait_for(state="visible", timeout=5000)
+    page.fill("#ep-steps", "A" * 95 + " | short text")
+    page.click("#ep-save")
+    message = page.locator("#status").inner_text()
+    assert "step 1 title is 95 characters" in message.lower() and "limit is 80" in message and "Nothing has been saved" in message
+    assert "event_saved" not in page.mock_state, "Nothing was sent to be saved"
+    # Shortened, with the detail after a |, it saves.
+    page.fill("#ep-steps", "Bring your car | " + "detail " * 20)
+    page.click("#ep-save")
+    page.wait_for_function("document.getElementById('status').textContent.indexOf('Saved') === 0", timeout=5000)
+    assert page.mock_state["event_saved"]["steps"][0]["title"] == "Bring your car"
+
+
+@ADMIN_ONLY
+def test_the_share_button_uses_the_share_page_not_the_plain_address(device_page):
+    page = device_page
+    serve(page, [event(publish="2020-01-01", slug="test-meet")])
+    page.goto("/event.html?e=test-meet")
+    page.locator("#share-event").wait_for(state="visible", timeout=5000)
+    assert "Share" in page.locator("#share-event").inner_text()
+    # Where the phone or browser has a share sheet, it gets the share page.
+    page.evaluate("window.__shared = null; navigator.share = function (d) { window.__shared = d; return Promise.resolve(); }")
+    page.click("#share-event")
+    shared = page.evaluate("window.__shared")
+    assert shared["url"] == "https://mt3uk.com/share/event/test-meet.html" and shared["title"] == "Test Meet Title"
+    # Otherwise the link is copied.
+    page.evaluate("navigator.share = undefined; window.__copied = ''; navigator.clipboard.writeText = function (t) { window.__copied = t; return Promise.resolve(); }")
+    page.click("#share-event")
+    page.wait_for_function("document.getElementById('share-event').textContent.indexOf('Link copied') !== -1", timeout=5000)
+    assert page.evaluate("window.__copied") == "https://mt3uk.com/share/event/test-meet.html"
+
+
+@ADMIN_ONLY
+def test_the_old_way_of_adding_an_event_is_gone_but_quick_edit_still_works(device_page):
+    page = device_page
+    page.mock_state["legacy_events"] = [dict(LEGACY)]
+    open_events_admin(page)
+    card = page.locator("#upcoming-list .event-card", has_text="Lancing Motor Show")
+    card.wait_for(state="visible", timeout=5000)
+    body = page.locator("#admin-body").inner_text()
+    assert "Add an event\\n" not in body and "Add event" not in body, "No separate Add an event form"
+    assert page.locator("#event-form").is_hidden(), "The small form is closed until Quick edit"
+    assert page.locator("text=Copy as new").count() == 0 and page.locator('[data-action="copy"]').count() == 0
+    assert "Add an event page" in body, "Adding is done with event pages"
+
+    # Quick edit opens the small form under the event, for the attendee counts.
+    card.locator('button[data-action="edit"]').click()
+    page.locator("#event-form").wait_for(state="visible", timeout=5000)
+    assert page.evaluate("document.getElementById('event-form').previousElementSibling.dataset.id") == "002"
+    assert "Quick edit" in page.locator("#form-title").inner_text()
+    page.fill("#f-attending", "42")
+    page.click("#save-btn")
+    page.wait_for_function("document.getElementById('status').textContent.indexOf('Saved event 002') === 0", timeout=5000)
+    assert page.mock_state["legacy_saved"]["attendingCount"] == "42" and page.mock_state["legacy_saved"]["id"] == "002"
+    assert page.locator("#event-form").is_hidden(), "It closes after saving"
+    # Cancel closes it too.
+    card = page.locator("#upcoming-list .event-card", has_text="Lancing Motor Show")
+    card.locator('button[data-action="edit"]').click()
+    page.locator("#event-form").wait_for(state="visible", timeout=5000)
+    page.click("#cancel-btn")
+    assert page.locator("#event-form").is_hidden() and page.locator(".event-card.is-editing").count() == 0

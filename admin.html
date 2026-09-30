@@ -1605,6 +1605,13 @@
       try { localStorage.setItem(OPEN_KEY, JSON.stringify(ids)); } catch (e) {}
     });
   });
+  // The toggle event fires a moment after the click, so a quick refresh
+  // could miss it: save what's open as the page goes too.
+  window.addEventListener('pagehide', function () {
+    var ids = Array.prototype.filter.call(document.querySelectorAll('details.collapsible'), function (d) { return d.open; })
+      .map(function (d) { return d.id; });
+    try { localStorage.setItem(OPEN_KEY, JSON.stringify(ids)); } catch (e) {}
+  });
 
   // ---------- Load all ----------
 

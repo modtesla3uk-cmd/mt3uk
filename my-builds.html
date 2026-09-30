@@ -994,15 +994,15 @@ document.addEventListener('DOMContentLoaded', function () {
       </div>
 
       <div class="mb-name-row" id="mb-name-row" hidden>
-        <span>Name: <strong id="mb-name-display"></strong></span>
-        <button type="button" class="mb-signout-btn" id="mb-name-edit-btn">Edit name</button>
+        <span>Shown on your builds as <strong id="mb-name-display"></strong></span>
+        <a class="mb-signout-btn" href="profile.html#details" id="mb-name-edit-btn">Change in Profile</a>
       </div>
 
       <p class="mb-push-moved" id="mb-push-moved">Phone notifications and the MT3UK app are now in your <a href="profile.html#notifications">Profile</a>.</p>
 
       <div class="mb-card mb-name-card" id="mb-name-card" hidden>
         <h2 id="mb-name-title">Your name</h2>
-        <p id="mb-name-intro">Your first and last name are shown on your builds and comments.</p>
+        <p id="mb-name-intro">Please add your first and last name.</p>
         <form id="mb-name-form">
           <div class="mb-field">
             <label class="mono" for="mb-name-first">First name</label>
@@ -1407,35 +1407,34 @@ document.addEventListener('DOMContentLoaded', function () {
       signinView.style.display = 'block';
     }
 
-    // The member's first and last name, shown on their builds and comments.
-    // Members from before names were collected are asked to add theirs.
+    // The name on the member's builds and comments comes from their Profile
+    // (nickname, or full name if they chose that under Visibility), so it's
+    // the same everywhere. Members from before names were collected are
+    // asked to add their first and last name here.
     var nameRow = document.getElementById('mb-name-row');
     var nameCard = document.getElementById('mb-name-card');
     var nameForm = document.getElementById('mb-name-form');
     var nameStatus = document.getElementById('mb-name-status');
 
-    function renderName(firstName, lastName) {
+    var shownAs = '';
+    function renderName(firstName, lastName, shown) {
       var hasName = !!(firstName && lastName);
+      if (shown) shownAs = shown;
+      if (!shownAs && hasName) shownAs = firstName + ' ' + lastName;
+      window.mt3ukMyBuildsName = shownAs;
       // Remembered for the "Signed in as" bar on other pages (js/account-bar.js).
       try {
         if (firstName) localStorage.setItem('mt3ukMyBuildsFirstName', firstName);
       } catch (e) {}
-      document.getElementById('mb-name-display').textContent = hasName ? firstName + ' ' + lastName : '';
+      document.getElementById('mb-name-display').textContent = hasName ? shownAs : '';
       nameRow.hidden = !hasName;
       nameCard.hidden = hasName;
       nameCard.classList.toggle('mb-name-needed', !hasName);
       document.getElementById('mb-name-title').textContent = hasName ? 'Your name' : 'Add your name';
-      document.getElementById('mb-name-intro').textContent = hasName
-        ? 'Your first and last name are shown on your builds and comments.'
-        : 'Please add your first and last name. They are shown on your builds and comments.';
+      document.getElementById('mb-name-intro').textContent = 'Please add your first and last name. Your builds and comments show your nickname, or your full name if you choose that in your Profile.';
       nameForm.elements.firstName.value = firstName || '';
       nameForm.elements.lastName.value = lastName || '';
     }
-
-    document.getElementById('mb-name-edit-btn').addEventListener('click', function () {
-      nameCard.hidden = !nameCard.hidden;
-      if (!nameCard.hidden) nameForm.elements.firstName.focus();
-    });
 
     nameForm.addEventListener('submit', function (e) {
       e.preventDefault();
@@ -1456,7 +1455,6 @@ document.addEventListener('DOMContentLoaded', function () {
           if (!data.success) return setStatus(nameStatus, data.message || 'Could not save your name.', 'err');
           renderName(data.firstName, data.lastName);
           setStatus(nameStatus, '', '');
-          window.mt3ukMyBuildsName = data.firstName + ' ' + data.lastName;
         })
         .catch(function () {
           saveBtn.disabled = false;
@@ -1702,7 +1700,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
           }
           showApp(result.data.email);
-          renderName(result.data.firstName, result.data.lastName);
+          renderName(result.data.firstName, result.data.lastName, result.data.shownAs);
           loadNotifications();
           carsData = result.data.cars || [];
           voteEntry = result.data.voteEntry || null;

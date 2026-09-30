@@ -155,16 +155,14 @@ def test_menu_account_bar_and_bell_link_to_profile(device_page):
     page.locator('#mt3uk-account-bar a[href="profile.html"]').wait_for(state="attached", timeout=5000)
 
     page.goto("/index.html")
+    # Unread messages show on the chat icon, not the bell.
+    page.wait_for_function("document.getElementById('nav-chat-count').textContent === '2'", timeout=5000)
     page.locator("#nav-bell-count").wait_for(state="visible", timeout=5000)
+    assert page.locator("#nav-bell-count").inner_text() == "2", "The bell counts its own notifications only"
     page.click("#nav-bell-btn")
-    link = page.locator("#nav-bell-panel .nav-bell-messages")
-    link.wait_for(timeout=5000)
-    assert "2 unread messages" in link.inner_text()
-    assert link.get_attribute("href") == "profile.html#messages"
-    # It opens the chat window rather than leaving the page.
-    link.click()
-    page.locator("#mt3uk-chat").wait_for(state="visible", timeout=5000)
-    assert "index.html" in page.url
+    page.locator("#nav-bell-panel .nav-bell-row").first.wait_for(timeout=5000)
+    assert page.locator("#nav-bell-panel .nav-bell-messages").count() == 0
+    assert "unread message" not in page.locator("#nav-bell-panel").inner_text()
     assert page.errors == [], diagnostics(page)
 
 
@@ -846,9 +844,7 @@ def test_links_in_messages_open_in_a_new_tab(device_page):
     page.evaluate("window.mt3ukChat.open('chats', 'f1')")
     page.locator("#mc-view-thread").wait_for(state="visible", timeout=5000)
     page.wait_for_function("document.getElementById('mc-bubbles').textContent.indexOf('Hi, love the wheels') !== -1", timeout=5000)
-    page.once("dialog", lambda d: d.accept("tevosolutions.co.uk"))
-    page.click("#mc-link-btn")
-    assert page.locator("#mc-compose-text").input_value() == "https://tevosolutions.co.uk"
+    assert page.locator("#mc-link-btn").count() == 0, "Links are typed or pasted; no link button"
     page.fill("#mc-compose-text", "Try www.mt3uk.com/shop.html, it's good")
     page.click("#mc-compose .mc-send")
     link = page.locator("#mc-bubbles .mc-msg.mine a").last
@@ -887,4 +883,190 @@ def test_attach_and_send_a_photo(device_page):
     page.keyboard.press("Escape")
     assert page.locator("#mc-viewer").count() == 0
     assert not page.locator("#mt3uk-chat").is_hidden(), "Escape closes the photo, not the chat"
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_my_garage_shows_the_same_name_as_profile(device_page):
+    page = device_page
+    signed_in(page)
+    page.goto("/my-builds.html")
+    row = page.locator("#mb-name-row")
+    row.wait_for(state="visible", timeout=10000)
+    assert page.locator("#mb-name-display").inner_text() == "TestMember", "The nickname, as in Profile"
+    link = page.locator("#mb-name-edit-btn")
+    assert link.get_attribute("href") == "profile.html#details"
+    assert page.evaluate("window.mt3ukMyBuildsName") == "TestMember"
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_chat_expands_to_full_screen_and_back(device_page):
+    page = device_page
+    signed_in(page)
+    page.goto("/shop.html")
+    page.locator("#nav-chat").click()
+    box = page.locator("#mt3uk-chat")
+    box.wait_for(state="visible", timeout=5000)
+    page.click("#mc-expand")
+    page.wait_for_timeout(300)
+    rect = box.bounding_box()
+    view = page.viewport_size
+    assert rect["width"] >= view["width"] - 1 and rect["height"] >= view["height"] - 1, rect
+    assert page.locator("#mc-expand").get_attribute("aria-pressed") == "true"
+    # Still full screen on the next page.
+    page.goto("/gallery.html")
+    box.wait_for(state="visible", timeout=5000)
+    page.wait_for_function("document.getElementById('mt3uk-chat').classList.contains('is-full')", timeout=5000)
+    page.click("#mc-expand")
+    assert "is-full" not in (box.get_attribute("class") or "")
+    assert overflow_width(page) <= 0
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_chat_page_fills_its_own_window(device_page):
+    page = device_page
+    signed_in(page)
+    page.goto("/chat.html?view=chats&with=f1")
+    box = page.locator("#mt3uk-chat")
+    box.wait_for(state="visible", timeout=5000)
+    page.wait_for_function("document.getElementById('mc-bubbles').textContent.indexOf('Hi, love the wheels') !== -1", timeout=5000)
+    assert "is-full" in box.get_attribute("class")
+    for gone in ("#mc-expand", "#mc-min", "#mc-popout"):
+        assert page.locator(gone).is_hidden(), gone
+    assert overflow_width(page) <= 0
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_chat_pop_out_only_on_computers(device_page):
+    page = device_page
+    signed_in(page)
+    page.goto("/shop.html")
+    page.locator("#nav-chat").click()
+    page.locator("#mt3uk-chat").wait_for(state="visible", timeout=5000)
+    computer = page.evaluate("matchMedia('(min-width: 781px) and (hover: hover) and (pointer: fine)').matches")
+    assert page.locator("#mc-popout").is_visible() == computer
+    if computer:
+        with page.context.expect_page() as popup:
+            page.click("#mc-popout")
+        chat = popup.value
+        chat.wait_for_load_state()
+        assert "chat.html" in chat.url
+        assert page.locator("#mt3uk-chat").is_hidden(), "The page's own chat closes"
+        chat.close()
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_paste_a_screenshot_into_a_message(device_page):
+    page = device_page
+    signed_in(page)
+    page.goto("/shop.html")
+    page.evaluate("window.mt3ukChat.open('chats', 'f1')")
+    page.locator("#mc-view-thread").wait_for(state="visible", timeout=5000)
+    page.wait_for_function("document.getElementById('mc-bubbles').textContent.indexOf('Hi, love the wheels') !== -1", timeout=5000)
+    # A screenshot on the clipboard, pasted into the message box.
+    page.evaluate("""() => {
+      const c = document.createElement('canvas'); c.width = 600; c.height = 1300;
+      const ctx = c.getContext('2d'); ctx.fillStyle = '#e8542a'; ctx.fillRect(0, 0, 600, 1300);
+      return new Promise(res => c.toBlob(b => {
+        const dt = new DataTransfer(); dt.items.add(new File([b], 'screenshot.png', { type: 'image/png' }));
+        const ev = new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true });
+        document.getElementById('mc-compose-text').dispatchEvent(ev); res();
+      }, 'image/png'));
+    }""")
+    page.locator("#mc-attach").wait_for(state="visible", timeout=5000)
+    assert page.evaluate("document.getElementById('mc-attach-img').naturalHeight") > 0
+    assert page.errors == [], diagnostics(page)
+
+
+def _open_sharad(page):
+    signed_in(page)
+    page.goto("/shop.html")
+    page.evaluate("window.mt3ukChat.open('chats', 'f1')")
+    page.locator("#mc-view-thread").wait_for(state="visible", timeout=5000)
+    page.wait_for_function("document.getElementById('mc-bubbles').textContent.indexOf('Hi, love the wheels') !== -1", timeout=5000)
+    return page.locator('#mc-bubbles .mc-msg[data-id="m1"] .mc-bubble')
+
+
+@all_devices
+def test_hold_a_message_to_react(device_page):
+    page = device_page
+    bubble = _open_sharad(page)
+    # Press and hold.
+    box = bubble.bounding_box()
+    page.mouse.move(box["x"] + 20, box["y"] + 10)
+    page.mouse.down()
+    page.wait_for_timeout(700)
+    page.mouse.up()
+    menu = page.locator(".mc-menu")
+    menu.wait_for(state="visible", timeout=5000)
+    emojis = [b.get_attribute("data-emoji") for b in menu.locator(".mc-react-row button").all()]
+    assert emojis == ["\u2764\ufe0f", "\U0001F606", "\U0001F62E", "\U0001F622", "\U0001F621", "\U0001F44D"]
+    assert menu.locator('button[data-act="save"]').count() == 0, "No photo, so no Save image"
+    page.mock_state["reacting_with"] = "\U0001F44D"
+    menu.locator('.mc-react-row button[data-emoji="\U0001F44D"]').click()
+    pill = page.locator('#mc-bubbles .mc-msg[data-id="m1"] .mc-reacts')
+    pill.wait_for(timeout=5000)
+    assert "\U0001F44D" in pill.inner_text()
+    assert page.mock_state.get("reaction") == ("m1", "\U0001F44D")
+    assert page.locator(".mc-menu").count() == 0
+
+    # Right-click opens the same menu on a computer; the same reaction again takes it off.
+    bubble.click(button="right")
+    on = page.locator('.mc-menu .mc-react-row button.is-on')
+    on.wait_for(timeout=5000)
+    page.mock_state["reacting_with"] = "\U0001F44D"
+    on.click()
+    page.wait_for_function("!document.querySelector('#mc-bubbles .mc-msg[data-id=\"m1\"] .mc-reacts')", timeout=5000)
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_reply_to_a_message(device_page):
+    page = device_page
+    bubble = _open_sharad(page)
+    bubble.click(button="right")
+    page.locator('.mc-menu button[data-act="reply"]').click()
+    page.locator("#mc-reply").wait_for(state="visible", timeout=5000)
+    assert "Hi, love the wheels" in page.locator("#mc-reply").inner_text()
+    page.mock_state["replying_to"] = "m1"
+    page.fill("#mc-compose-text", "Thanks!")
+    page.click("#mc-compose .mc-send")
+    quote = page.locator("#mc-bubbles .mc-msg.mine .mc-quote").last
+    quote.wait_for(timeout=5000)
+    assert "Hi, love the wheels" in quote.inner_text()
+    assert page.mock_state.get("replied_to") == "m1"
+    assert page.locator("#mc-reply").is_hidden()
+    quote.click()
+    page.wait_for_function("document.querySelector('#mc-bubbles .mc-msg[data-id=\"m1\"]').classList.contains('is-flash')", timeout=5000)
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_save_an_image_from_a_message(device_page):
+    page = device_page
+    _open_sharad(page)
+    from test_devices import TINY_JPEG
+    page.set_input_files("#mc-photo-input", files=[{"name": "car.jpg", "mimeType": "image/jpeg", "buffer": TINY_JPEG}])
+    page.locator("#mc-attach").wait_for(state="visible", timeout=5000)
+    page.mock_state["sending_photo"] = True
+    page.click("#mc-compose .mc-send")
+    photo = page.locator("#mc-bubbles .mc-msg.mine img.mc-photo").last
+    photo.wait_for(timeout=5000)
+    photo.click(button="right")
+    save = page.locator('.mc-menu button[data-act="save"]')
+    save.wait_for(timeout=5000)
+    # Phones get the share sheet (Save Image); computers download it.
+    page.evaluate("() => { navigator.canShare = () => true; navigator.share = f => { window.__shared = f.files.length; return Promise.resolve(); }; }")
+    touch = page.evaluate("matchMedia('(hover: none)').matches")
+    if touch:
+        save.click()
+        page.wait_for_function("window.__shared === 1", timeout=5000)
+    else:
+        with page.expect_download() as dl:
+            save.click()
+        assert dl.value.suggested_filename.startswith("mt3uk-photo")
     assert page.errors == [], diagnostics(page)

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mt3uk-shell-v8';
+const CACHE_NAME = 'mt3uk-shell-v9';
 const PRECACHE_URLS = [
   '/index.html',
   '/shop.html',
@@ -104,12 +104,17 @@ self.addEventListener('push', function (event) {
   try { data = event.data ? event.data.json() : {}; } catch (e) {
     data = { body: event.data ? event.data.text() : '' };
   }
-  event.waitUntil(self.registration.showNotification(data.title || 'MT3UK', {
+  // Open pages hear about it too, so the bell and the chat icon update
+  // straight away (js/notify-bell.js, js/messenger.js).
+  var tellPages = self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (windows) {
+    windows.forEach(function (w) { w.postMessage({ type: 'mt3uk-push', url: data.url || '/' }); });
+  }).catch(function () {});
+  event.waitUntil(Promise.all([tellPages, self.registration.showNotification(data.title || 'MT3UK', {
     body: data.body || '',
     icon: '/images/site/icon-192.png',
     badge: '/images/site/notification-badge.png',
     data: { url: data.url || '/' }
-  }));
+  })]));
 });
 
 self.addEventListener('notificationclick', function (event) {

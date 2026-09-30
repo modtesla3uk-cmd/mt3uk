@@ -289,7 +289,7 @@ def api_reply(url, method, post_data, state):
         return {"success": True, "subscribers": [d["email"] for d in details], "details": details}
     if path == "/my-builds" and method == "GET":
         car = dict(GARAGE_CAR, name=state.get("car_name", GARAGE_CAR["name"]))
-        return {"success": True, "email": "member@example.com", "firstName": "Test", "lastName": "Member", "cars": [car], "voteEntry": GARAGE_VOTE_ENTRY}
+        return {"success": True, "email": "member@example.com", "firstName": "Test", "lastName": "Member", "shownAs": "TestMember", "cars": [car], "voteEntry": GARAGE_VOTE_ENTRY}
     if path == "/my-builds/car" and method == "PUT":
         try:
             name = json.loads(post_data or "{}").get("name")
@@ -413,8 +413,23 @@ def profile_reply(path, method, post_data, state):
         if with_photo:
             msg["photo"] = True
             state["photo_sent"] = True
+        reply_to = body.get("replyTo") or state.pop("replying_to", None)
+        if reply_to:
+            q = next((m for m in p["thread"] if m["id"] == reply_to), None)
+            if q:
+                msg["replyTo"] = {"id": q["id"], "mine": q["mine"], "text": q["text"][:120], "photo": bool(q.get("photo"))}
+                state["replied_to"] = reply_to
         p["thread"].append(msg)
         return {"success": True, "message": msg}
+    if path == "/profile/messages/react":
+        m = next((m for m in p["thread"] if m["id"] == (body.get("messageId") or "m1")), p["thread"][0])
+        emoji = body.get("emoji") or state.pop("reacting_with", "")
+        if not emoji or m.get("myReaction") == emoji:
+            m.pop("myReaction", None)
+        else:
+            m["myReaction"] = emoji
+        state["reaction"] = (m["id"], m.get("myReaction"))
+        return {"success": True, "reaction": m.get("myReaction"), "message": m}
     if path == "/profile/messages/report":
         state["reported"] = True
         return {"success": True}

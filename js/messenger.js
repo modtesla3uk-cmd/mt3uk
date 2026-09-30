@@ -13,10 +13,13 @@
   notifications) open it too, on whatever page they're on.
 
   The window can be minimised to a small round bubble, and stays open or
-  minimised from page to page (sessionStorage). Web addresses in messages
-  become links, and photos can be attached: they're shrunk on the device
-  first and only ever shown through the worker, to the two people in the
-  conversation, for 90 days.
+  minimised from page to page (sessionStorage). It can also fill the
+  screen (expand), or on a computer pop out into its own window (chat.html,
+  where it always fills the window). Web addresses in messages become
+  links. Holding a message (or right-clicking it) offers reactions
+  (one each), Reply and, for photos, Save image. Photos and screenshots can be attached (or pasted): they're
+  shrunk on the device first and only ever shown through the worker, to the
+  two people in the conversation, for 90 days.
 
   window.mt3ukChat.open('chats' | 'friends' | 'mt3uk', friendId?) and
   window.mt3ukChat.close(). Uses the worker's /profile endpoints.
@@ -47,8 +50,15 @@
   var CHAT_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.6A8 8 0 1 1 21 12z"/></svg>';
   var SEND_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l16-8-6 16-2.5-6.5z"/></svg>';
   var PHOTO_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="12" cy="12" r="3.5"/><path d="M8 5l1.5-2h5L16 5"/></svg>';
-  var LINK_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg>';
+  var EXPAND_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
+  var SHRINK_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>';
+  var POPOUT_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-8 8M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
+  // chat.html: the chat on its own page, filling the window.
+  var STANDALONE = document.documentElement.hasAttribute('data-chat-page');
   var STATE_KEY = 'mt3ukChatState';
+  var REACTIONS = ['\u2764\ufe0f', '\ud83d\ude06', '\ud83d\ude2e', '\ud83d\ude22', '\ud83d\ude21', '\ud83d\udc4d'];
+  var REPLY_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 8L4 13l6 5M4 13h10a6 6 0 0 1 6 6v1"/></svg>';
+  var SAVE_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>';
 
   // ---------- Styles ----------
   var style = document.createElement('style');
@@ -63,6 +73,10 @@
     '#mt3uk-chat[hidden]{display:none}',
     // On phones a floating card, so the page stays in view above it.
     '@media (max-width:780px){#mt3uk-chat{left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));width:auto;height:min(62dvh,520px)}}',
+    // Expanded (or on chat.html): the whole screen.
+    '#mt3uk-chat.is-full{left:0;right:0;top:0;bottom:0;width:auto;height:100dvh;border-radius:0;padding-top:env(safe-area-inset-top,0px)}',
+    '#mt3uk-chat.is-full .mc-body,#mt3uk-chat.is-full .mc-compose,#mt3uk-chat.is-full .mc-attach,#mt3uk-chat.is-full .mc-tabs{padding-left:max(12px,calc((100% - 760px) / 2));padding-right:max(12px,calc((100% - 760px) / 2))}',
+    '.mc-icon-btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}',
     '#mt3uk-chat-min{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:420;width:54px;height:54px;border-radius:50%;border:2px solid #fff;background:#e8542a;color:#fff;box-shadow:0 10px 28px rgba(10,16,30,.35);display:flex;align-items:center;justify-content:center;cursor:pointer}',
     '#mt3uk-chat-min[hidden]{display:none}',
     '#mt3uk-chat-min svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round}',
@@ -148,6 +162,32 @@
     '.mc-photo{display:block;width:200px;max-width:100%;height:auto;min-height:90px;max-height:260px;object-fit:cover;background:#e7e9ee}',
     '.mc-gone{font-style:italic;color:#7c8798;font-size:.84rem;padding:6px 9px}',
     '.mc-msg.mine .mc-gone{color:#fff}',
+    '.mc-bubble{position:relative;-webkit-touch-callout:none}',
+    '.mc-msg.is-held .mc-bubble{box-shadow:0 0 0 3px rgba(232,84,42,.45)}',
+    '.mc-quote{display:block;width:100%;margin:0 0 6px;padding:5px 9px;border:0;border-left:3px solid #e8542a;border-radius:8px;background:rgba(22,35,61,.07);color:inherit;font:inherit;font-size:.8rem;line-height:1.35;text-align:left;cursor:pointer;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+    '.mc-msg.mine .mc-quote{background:rgba(255,255,255,.2);border-left-color:#fff}',
+    '.mc-bubble.has-photo .mc-quote{margin:4px 4px 6px;width:calc(100% - 8px)}',
+    '.mc-quote strong{display:block;font-size:.72rem}',
+    '.mc-reacts{position:absolute;bottom:-12px;right:8px;display:inline-flex;align-items:center;gap:1px;padding:1px 5px;border-radius:999px;background:#fff;box-shadow:0 1px 4px rgba(22,35,61,.25);font-size:.8rem;line-height:1.4}',
+    '.mc-msg:not(.mine) .mc-reacts{right:auto;left:8px}',
+    '.mc-msg.has-reacts .mc-msg-meta{margin-top:14px}',
+    '.mc-react-row{display:flex;justify-content:space-between;gap:4px;padding:10px 12px;border-bottom:1px solid rgba(22,35,61,.08)}',
+    '.mc-menu-card .mc-react-row button{width:44px;min-height:44px;padding:0;border:0;border-radius:50%;justify-content:center;font-size:1.55rem;line-height:1;background:none;transition:transform .12s ease}',
+    '.mc-menu-card .mc-react-row button:hover{transform:scale(1.15);background:none}',
+    '.mc-menu-card .mc-react-row button.is-on{background:rgba(232,84,42,.15)}',
+    '.mc-msg.is-flash .mc-bubble{animation:mc-flash 1.2s ease}',
+    '@keyframes mc-flash{0%,60%{box-shadow:0 0 0 3px #e8542a}100%{box-shadow:none}}',
+    '.mc-menu{position:absolute;inset:0;z-index:5;display:flex;align-items:flex-end;justify-content:center;background:rgba(10,16,30,.35);padding:12px}',
+    '.mc-menu-card{width:100%;max-width:340px;background:#fff;border-radius:16px;box-shadow:0 12px 34px rgba(10,16,30,.35);overflow:hidden}',
+    '.mc-menu-card button{display:flex;align-items:center;gap:12px;width:100%;min-height:50px;padding:12px 18px;border:0;border-top:1px solid rgba(22,35,61,.08);background:#fff;color:#16233d;font:600 .95rem "IBM Plex Sans",sans-serif;text-align:left;cursor:pointer}',
+    '.mc-menu-card > button:first-of-type{border-top:0}',
+    '.mc-menu-card button:hover{background:#fdf3ef}',
+    '.mc-menu-card svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}',
+    '.mc-reply{display:flex;align-items:center;gap:10px;padding:8px 12px 0;background:#fff;border-top:1px solid rgba(22,35,61,.1);font-size:.82rem;color:#5b6678}',
+    '.mc-reply[hidden]{display:none}',
+    '.mc-reply div{flex:1;min-width:0;border-left:3px solid #e8542a;padding-left:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+    '.mc-reply strong{color:#16233d}',
+    '.mc-reply + .mc-attach,.mc-reply + .mc-compose{border-top:0}',
     '#mc-viewer{position:fixed;inset:0;z-index:440;background:rgba(10,16,30,.92);display:flex;align-items:center;justify-content:center;padding:16px}',
     '#mc-viewer img{max-width:94vw;max-height:88vh;border-radius:8px}',
     '#mc-viewer button{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));right:14px}',
@@ -186,8 +226,11 @@
     c.textContent = n > 99 ? '99+' : String(n || '');
     icon.setAttribute('aria-label', n ? 'Messages, ' + n + ' unread' : 'Messages');
   }
-  // The bell's check already counts unread messages (js/notify-bell.js).
-  document.addEventListener('mt3ukMessagesUnread', function (e) { setIconCount((e.detail && e.detail.count) || 0); });
+  // Unread messages show here, not on the bell. The bell's check counts them
+  // (js/notify-bell.js); while the window is open its own list is fresher.
+  document.addEventListener('mt3ukMessagesUnread', function (e) {
+    if (box.hidden) setIconCount((e.detail && e.detail.count) || 0);
+  });
 
   // ---------- Window ----------
   var box = document.createElement('div');
@@ -200,6 +243,8 @@
     '<div class="mc-head">' +
       '<button type="button" class="mc-icon-btn" id="mc-back" aria-label="Back" hidden>&lsaquo;</button>' +
       '<h2 id="mc-title">Messages</h2>' +
+      '<button type="button" class="mc-icon-btn" id="mc-popout" aria-label="Open messages in a new window" hidden>' + POPOUT_ICON + '</button>' +
+      '<button type="button" class="mc-icon-btn" id="mc-expand" aria-label="Full screen" aria-pressed="false">' + EXPAND_ICON + '</button>' +
       '<button type="button" class="mc-icon-btn" id="mc-min" aria-label="Minimise messages">&minus;</button>' +
       '<button type="button" class="mc-icon-btn" id="mc-close" aria-label="Close messages">&times;</button>' +
     '</div>' +
@@ -233,6 +278,9 @@
         '<p class="mc-status" id="mc-thread-status" role="status"></p>' +
       '</div>' +
     '</div>' +
+    '<div class="mc-reply" id="mc-reply" hidden><div id="mc-reply-text"></div>' +
+      '<button type="button" class="mc-btn" id="mc-reply-cancel" aria-label="Cancel reply">&times;</button>' +
+    '</div>' +
     '<div class="mc-attach" id="mc-attach" hidden>' +
       '<img id="mc-attach-img" alt="Photo to send"><span>Photo ready to send</span>' +
       '<button type="button" class="mc-btn" id="mc-attach-remove">Remove</button>' +
@@ -240,7 +288,6 @@
     '<form class="mc-compose" id="mc-compose" hidden novalidate>' +
       '<button type="button" class="mc-tool" id="mc-photo-btn" aria-label="Attach a photo">' + PHOTO_ICON + '</button>' +
       '<input type="file" id="mc-photo-input" accept="image/*" hidden>' +
-      '<button type="button" class="mc-tool" id="mc-link-btn" aria-label="Add a link to a website">' + LINK_ICON + '</button>' +
       '<label for="mc-compose-text" class="mc-sr">Message</label>' +
       '<textarea id="mc-compose-text" rows="1" maxlength="1000" placeholder="Message"></textarea>' +
       '<button type="submit" class="mc-send" aria-label="Send">' + SEND_ICON + '</button>' +
@@ -277,9 +324,10 @@
     try { return JSON.parse(sessionStorage.getItem(STATE_KEY) || 'null'); } catch (e) { return null; }
   }
   function saveState(mode) {
+    if (STANDALONE) return;
     try {
       if (!mode) sessionStorage.removeItem(STATE_KEY);
-      else sessionStorage.setItem(STATE_KEY, JSON.stringify({ mode: mode, view: view === 'thread' ? 'chats' : view, withId: view === 'thread' ? openThreadId : null }));
+      else sessionStorage.setItem(STATE_KEY, JSON.stringify({ mode: mode, view: view === 'thread' ? 'chats' : view, withId: view === 'thread' ? openThreadId : null, full: box.classList.contains('is-full') }));
     } catch (e) {}
   }
 
@@ -320,6 +368,7 @@
     $('mc-back').hidden = true;
     $('mc-title').textContent = 'Messages';
     $('mc-signin-link').href = 'signin.html?next=' + encodeURIComponent(location.pathname + location.search);
+    if (STANDALONE) $('mc-signin-link').target = '_self';
     $('mc-signin').hidden = false;
   }
 
@@ -389,6 +438,8 @@
     openThreadId = id;
     $('mc-title').textContent = knownNames[id] || '';
     clearPhoto();
+    setReply(null);
+    closeMenu();
     if (!box.hidden) saveState('open');
     $('mc-bubbles').innerHTML = '<li class="mc-empty">Loading&hellip;</li>';
     status($('mc-thread-status'), '');
@@ -410,14 +461,25 @@
     var photo = m.photo || m.localUrl
       ? '<button type="button" class="mc-photo-btn" aria-label="View photo"><img class="mc-photo" alt="Photo" data-mid="' + esc(m.id || '') + '"' + (m.localUrl ? ' src="' + esc(m.localUrl) + '"' : '') + '></button>'
       : m.photoGone ? '<div class="mc-gone">Photo no longer available</div>' : '';
-    return '<li class="mc-msg' + (m.mine ? ' mine' : '') + '" data-id="' + esc(m.id || '') + '">' +
+    var r = m.replyTo;
+    var quote = r ? '<button type="button" class="mc-quote" data-jump="' + esc(r.id || '') + '"><strong>' + (r.gone ? 'Message' : r.mine ? 'You' : esc(name || 'Them')) + '</strong>' +
+      (r.gone ? 'No longer available' : r.text ? esc(r.text) : r.photo ? 'Photo' : '') + '</button>' : '';
+    var reacts = [m.theirReaction, m.myReaction].filter(function (x) { return REACTIONS.indexOf(x) !== -1; });
+    if (reacts.length === 2 && reacts[0] === reacts[1]) reacts = [reacts[0] + '2'];
+    var heart = reacts.length ? '<span class="mc-reacts" aria-label="Reactions">' + esc(reacts.join('')) + '</span>' : '';
+    if (m.id) messageData[m.id] = m;
+    return '<li class="mc-msg' + (m.mine ? ' mine' : '') + (heart ? ' has-reacts' : '') + '" data-id="' + esc(m.id || '') + '">' +
       (m.mine ? '' : '<span class="mc-avatar" aria-hidden="true">' + esc(initials(name)) + '</span>') +
-      '<div><div class="mc-bubble' + (photo ? ' has-photo' : '') + '">' + photo + (m.text ? (photo ? '<div class="mc-text">' + linkify(m.text) + '</div>' : linkify(m.text)) : '') + '</div>' +
+      '<div><div class="mc-bubble' + (photo ? ' has-photo' : '') + '">' + quote + photo + (m.text ? (photo ? '<div class="mc-text">' + linkify(m.text) + '</div>' : linkify(m.text)) : '') + heart + '</div>' +
       '<div class="mc-msg-meta"><time datetime="' + esc(m.at) + '">' + esc(when(m.at)) + '</time>' +
       (m.mine ? '' : '<button type="button" class="mc-report">Report</button>') + '</div></div></li>';
   }
 
+  // The messages on screen, by id, for the hold menu and replies.
+  var messageData = {};
+
   function drawBubbles(messages) {
+    messageData = {};
     $('mc-bubbles').innerHTML = messages.length ? messages.map(bubbleHtml).join('') : '<li class="mc-empty">No messages yet. Say hello.</li>';
     var body = $('mc-body');
     body.scrollTop = body.scrollHeight;
@@ -527,9 +589,130 @@
     }).catch(function () { if (btn) btn.disabled = false; });
   }
 
+  // ---------- Hold a message: reactions, Reply, Save image ----------
+  var replyingTo = null;
+  function setReply(m) {
+    replyingTo = m ? { id: m.id, mine: m.mine, text: m.text, photo: !!(m.photo || m.localUrl) } : null;
+    $('mc-reply').hidden = !m;
+    if (m) {
+      $('mc-reply-text').innerHTML = '<strong>Replying to ' + (m.mine ? 'yourself' : esc(knownNames[openThreadId] || 'them')) + '</strong><br>' + esc(m.text ? m.text.slice(0, 80) : 'Photo');
+      compose.focus({ preventScroll: true });
+    }
+  }
+
+  function closeMenu() {
+    var m = box.querySelector('.mc-menu');
+    if (m) m.remove();
+    box.querySelectorAll('.mc-msg.is-held').forEach(function (li) { li.classList.remove('is-held'); });
+  }
+
+  function openMenu(li) {
+    closeMenu();
+    var m = messageData[li.getAttribute('data-id')];
+    if (!m || !m.id) return;
+    li.classList.add('is-held');
+    if (navigator.vibrate) { try { navigator.vibrate(10); } catch (e) {} }
+    var img = li.querySelector('img.mc-photo');
+    var canSave = img && img.src;
+    var menu = document.createElement('div');
+    menu.className = 'mc-menu';
+    menu.innerHTML = '<div class="mc-menu-card" role="menu" aria-label="Message options">' +
+      '<div class="mc-react-row">' + REACTIONS.map(function (r) {
+        return '<button type="button" role="menuitem" data-act="react" data-emoji="' + r + '" class="' + (m.myReaction === r ? 'is-on' : '') + '" aria-label="React ' + r + '">' + r + '</button>';
+      }).join('') + '</div>' +
+      '<button type="button" role="menuitem" data-act="reply">' + REPLY_ICON + 'Reply</button>' +
+      (canSave ? '<button type="button" role="menuitem" data-act="save">' + SAVE_ICON + 'Save image</button>' : '') +
+    '</div>';
+    menu.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var b = e.target.closest('button[data-act]');
+      closeMenu();
+      if (!b) return;
+      var act = b.getAttribute('data-act');
+      if (act === 'reply') setReply(m);
+      if (act === 'react') reactTo(m, b.getAttribute('data-emoji'));
+      if (act === 'save') saveImage(img.src);
+    });
+    box.appendChild(menu);
+    var first = menu.querySelector('button');
+    if (first) first.focus({ preventScroll: true });
+  }
+
+  function reactTo(m, emoji) {
+    var id = openThreadId;
+    api('POST', '/profile/messages/react', { with: id, messageId: m.id, emoji: emoji }).then(function (data) {
+      if (!data.success || openThreadId !== id || !data.message) return;
+      var li = $('mc-bubbles').querySelector('.mc-msg[data-id="' + CSS.escape(m.id) + '"]');
+      if (!li) return;
+      li.outerHTML = bubbleHtml(data.message);
+      loadPhotos();
+    }).catch(function () {});
+  }
+
+  // On phones the share sheet has Save Image; elsewhere it downloads.
+  function saveImage(src) {
+    fetch(src).then(function (res) { return res.blob(); }).then(function (blob) {
+      var ext = blob.type === 'image/png' ? '.png' : blob.type === 'image/gif' ? '.gif' : '.jpg';
+      var file = new File([blob], 'mt3uk-photo' + ext, { type: blob.type || 'image/jpeg' });
+      var touch = window.matchMedia('(hover: none)').matches;
+      if (touch && navigator.canShare && navigator.canShare({ files: [file] })) {
+        return navigator.share({ files: [file] }).catch(function () {});
+      }
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(file);
+      a.download = file.name;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    }).catch(function () { status($('mc-thread-status'), 'Could not save the photo, please try again.', 'err'); });
+  }
+
+  // Press and hold (touch or mouse), or right-click, opens the menu.
+  var hold = null;
+  var held = false;
+  $('mc-bubbles').addEventListener('pointerdown', function (e) {
+    var li = e.target.closest('.mc-msg');
+    if (!li || !li.getAttribute('data-id') || e.button > 0) return;
+    held = false;
+    var x = e.clientX, y = e.clientY;
+    clearTimeout(hold);
+    hold = setTimeout(function () { held = true; openMenu(li); }, 450);
+    function cancel(ev) {
+      if (ev.type === 'pointermove' && Math.abs(ev.clientX - x) < 8 && Math.abs(ev.clientY - y) < 8) return;
+      clearTimeout(hold);
+      document.removeEventListener('pointermove', cancel);
+      document.removeEventListener('pointerup', cancel);
+      document.removeEventListener('pointercancel', cancel);
+    }
+    document.addEventListener('pointermove', cancel);
+    document.addEventListener('pointerup', cancel);
+    document.addEventListener('pointercancel', cancel);
+  });
+  $('mc-bubbles').addEventListener('contextmenu', function (e) {
+    var li = e.target.closest('.mc-msg');
+    if (!li || !li.getAttribute('data-id')) return;
+    e.preventDefault();
+    openMenu(li);
+  });
+  // A hold doesn't also count as a tap on the photo or a link.
+  $('mc-bubbles').addEventListener('click', function (e) {
+    if (held) { held = false; e.preventDefault(); e.stopPropagation(); }
+  }, true);
+  $('mc-reply-cancel').addEventListener('click', function () { setReply(null); });
+
   // ---------- Events ----------
   box.addEventListener('click', function (e) {
     var t;
+    if ((t = e.target.closest('.mc-quote'))) {
+      var target = $('mc-bubbles').querySelector('.mc-msg[data-id="' + CSS.escape(t.getAttribute('data-jump')) + '"]');
+      if (target) {
+        target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        target.classList.remove('is-flash');
+        void target.offsetWidth;
+        target.classList.add('is-flash');
+      }
+      return;
+    }
     if ((t = e.target.closest('.mc-photo-btn'))) { var img = t.querySelector('img'); if (img && img.src) viewPhoto(img.src); return; }
     if ((t = e.target.closest('.mc-tab'))) { show(t.dataset.view); return; }
     if ((t = e.target.closest('[data-mc-view]'))) { e.preventDefault(); show(t.getAttribute('data-mc-view')); return; }
@@ -582,7 +765,8 @@
     var form = $('mc-compose');
     if (form.requestSubmit) form.requestSubmit(); else form.querySelector('button').click();
   });
-  // ----- Photos: shrunk on the device (longest side 1280px) before sending.
+  // ----- Photos: shrunk on the device before sending (longest side 1280px,
+  // or 1600px for tall screenshots so their text stays sharp).
   var pendingPhoto = null;
   var pendingUrl = null;
   function clearPhoto() {
@@ -592,9 +776,9 @@
     $('mc-photo-input').value = '';
   }
   function shrink(file) {
-    var MAX = 1280;
     function draw(src, w, h) {
-      var scale = Math.min(1, MAX / Math.max(w, h));
+      var max = Math.max(w, h) / Math.min(w, h) > 1.6 ? 1600 : 1280;
+      var scale = Math.min(1, max / Math.max(w, h));
       var canvas = document.createElement('canvas');
       canvas.width = Math.max(1, Math.round(w * scale));
       canvas.height = Math.max(1, Math.round(h * scale));
@@ -623,7 +807,20 @@
   }
   $('mc-photo-btn').addEventListener('click', function () { $('mc-photo-input').click(); });
   $('mc-photo-input').addEventListener('change', function () {
-    var file = this.files && this.files[0];
+    usePhoto(this.files && this.files[0]);
+  });
+  // A screenshot copied on a computer can be pasted straight in.
+  compose.addEventListener('paste', function (e) {
+    var items = (e.clipboardData && e.clipboardData.items) || [];
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].kind === 'file' && /^image\//.test(items[i].type)) {
+        e.preventDefault();
+        usePhoto(items[i].getAsFile());
+        return;
+      }
+    }
+  });
+  function usePhoto(file) {
     if (!file) return;
     if (!/^image\//.test(file.type)) { status($('mc-thread-status'), 'Please choose a photo.', 'err'); return; }
     status($('mc-thread-status'), 'Getting your photo ready\u2026');
@@ -636,29 +833,9 @@
       status($('mc-thread-status'), '');
       compose.focus({ preventScroll: true });
     }).catch(function () { status($('mc-thread-status'), 'That photo couldn\u2019t be used. Try another, or a screenshot of it.', 'err'); });
-  });
+  }
   $('mc-attach-remove').addEventListener('click', clearPhoto);
 
-  // ----- Links: asks for a web address and adds it to the message.
-  $('mc-link-btn').addEventListener('click', function () {
-    var input = window.prompt('Add a link to a website', 'https://');
-    if (input === null) return;
-    var url = input.trim();
-    if (!url || url === 'https://') return;
-    if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
-    var ok = false;
-    try { var u = new URL(url); ok = /^https?:$/.test(u.protocol) && u.hostname.indexOf('.') !== -1; } catch (e) {}
-    if (!ok) { status($('mc-thread-status'), 'That doesn\u2019t look like a web address. Try something like mt3uk.com.', 'err'); return; }
-    status($('mc-thread-status'), '');
-    var at = typeof compose.selectionStart === 'number' ? compose.selectionStart : compose.value.length;
-    var before = compose.value.slice(0, at);
-    var after = compose.value.slice(at);
-    var add = (before && !/\s$/.test(before) ? ' ' : '') + url + (after && !/^\s/.test(after) ? ' ' : '');
-    compose.value = before + add + after;
-    compose.dispatchEvent(new Event('input'));
-    compose.focus();
-    try { compose.setSelectionRange(at + add.length, at + add.length); } catch (e) {}
-  });
 
   $('mc-compose').addEventListener('submit', function (e) {
     e.preventDefault();
@@ -675,6 +852,7 @@
       form.append('with', id);
       form.append('text', text);
       form.append('photo', photo, photo.type === 'image/gif' ? 'photo.gif' : 'photo.jpg');
+      if (replyingTo) form.append('replyTo', replyingTo.id);
       status($('mc-thread-status'), 'Sending photo\u2026');
       sending = fetch(API + '/profile/messages/send', { method: 'POST', headers: { 'X-Session-Token': session() }, body: form, cache: 'no-store' })
         .then(function (res) {
@@ -684,7 +862,7 @@
           });
         });
     } else {
-      sending = api('POST', '/profile/messages/send', { with: id, text: text });
+      sending = api('POST', '/profile/messages/send', { with: id, text: text, replyTo: replyingTo ? replyingTo.id : null });
     }
     sending.then(function (data) {
       btn.disabled = false;
@@ -703,7 +881,10 @@
       if (openThreadId !== id) return;
       var list = $('mc-bubbles');
       if (list.querySelector('.mc-empty')) list.innerHTML = '';
-      list.insertAdjacentHTML('beforeend', bubbleHtml({ id: data.message.id, text: data.message.text, at: data.message.at, mine: true, localUrl: photo ? localUrl : null }));
+      var shown = Object.assign({}, data.message, { mine: true, localUrl: photo ? localUrl : null });
+      if (photo) delete shown.photo;
+      list.insertAdjacentHTML('beforeend', bubbleHtml(shown));
+      setReply(null);
       $('mc-body').scrollTop = $('mc-body').scrollHeight;
       loadMessages().catch(function () {});
     }).catch(function (err) { btn.disabled = false; if (err.message !== 'signed out') status($('mc-thread-status'), 'Network error, please try again.', 'err'); });
@@ -738,6 +919,10 @@
 
   // Minimise: the window shrinks to the round bubble, just as it was.
   function minimise() {
+    if (box.classList.contains('is-full')) {
+      box.classList.remove('is-full');
+      document.documentElement.style.overflow = '';
+    }
     box.classList.remove('is-open');
     box.hidden = true;
     mini.hidden = false;
@@ -748,6 +933,7 @@
 
   function restore() {
     var st = readState() || {};
+    if (st.full) setFull(true);
     if (loadedHere) {
       reveal();
       saveState('open');
@@ -759,6 +945,13 @@
   }
 
   function close() {
+    if (STANDALONE) {
+      // Only windows the site opened can close themselves; otherwise go home.
+      window.close();
+      setTimeout(function () { location.href = '/'; }, 300);
+      return;
+    }
+    setFull(false);
     box.classList.remove('is-open');
     box.hidden = true;
     mini.hidden = true;
@@ -772,6 +965,32 @@
     if (lastFocus && lastFocus.focus) { try { lastFocus.focus({ preventScroll: true }); } catch (e) {} }
   }
 
+  // Full screen on the page, and back.
+  function setFull(on) {
+    box.classList.toggle('is-full', on);
+    var btn = $('mc-expand');
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btn.setAttribute('aria-label', on ? 'Exit full screen' : 'Full screen');
+    btn.innerHTML = on ? SHRINK_ICON : EXPAND_ICON;
+    if (!STANDALONE) {
+      document.documentElement.style.overflow = on ? 'hidden' : '';
+      if (!box.hidden) saveState('open');
+    }
+  }
+  $('mc-expand').addEventListener('click', function () { setFull(!box.classList.contains('is-full')); });
+
+  // On a computer, the chat can pop out into a window of its own.
+  var computer = window.matchMedia('(min-width: 781px) and (hover: hover) and (pointer: fine)');
+  function showPopout() { $('mc-popout').hidden = STANDALONE || !computer.matches; }
+  showPopout();
+  if (computer.addEventListener) computer.addEventListener('change', showPopout);
+  $('mc-popout').addEventListener('click', function () {
+    var url = 'chat.html?view=' + encodeURIComponent(view === 'thread' ? 'chats' : view) + (view === 'thread' && openThreadId ? '&with=' + encodeURIComponent(openThreadId) : '');
+    var w = window.open(url, 'mt3uk-chat', 'popup,width=460,height=760');
+    if (w) { try { w.focus(); } catch (e) {} close(); }
+    else location.href = url;
+  });
+
   $('mc-min').addEventListener('click', minimise);
   mini.addEventListener('click', restore);
 
@@ -782,7 +1001,9 @@
     open(!directUnread && broadcastsUnread ? 'mt3uk' : 'chats');
   });
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && !box.hidden) close();
+    if (e.key !== 'Escape' || box.hidden) return;
+    if (box.querySelector('.mc-menu')) { closeMenu(); return; }
+    close();
   });
 
   // Menu, bell, email and notification links to Messages and Friends open
@@ -809,15 +1030,43 @@
   // Arriving at a Messages or Friends link opens the window; otherwise it
   // comes back open or minimised as it was on the last page.
   function openFromUrl() {
+    if (STANDALONE) {
+      // chat.html?view=friends or ?with=<friend id>: always open, full.
+      var q = new URL(location.href).searchParams;
+      box.classList.add('is-full');
+      ['mc-expand', 'mc-min', 'mc-popout'].forEach(function (id) { $(id).hidden = true; });
+      $('mc-close').setAttribute('aria-label', 'Close this window');
+      open(q.get('view') || 'chats', q.get('with'));
+      return;
+    }
     if (!session()) { saveState(null); return; }
     var t = target(location.href);
     if (t) { open(t.view, t.withId); return; }
     var st = readState();
-    if (st && st.mode === 'open') open(st.view, st.withId);
+    if (st && st.mode === 'open') { if (st.full) setFull(true); open(st.view, st.withId); }
     else if (st && st.mode === 'min') { mount(); mini.hidden = false; }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', openFromUrl);
   else openFromUrl();
+
+  // A message arriving while the window is open (a phone notification, via
+  // sw.js) shows straight away.
+  if (navigator.serviceWorker && typeof navigator.serviceWorker.addEventListener === 'function') {
+    navigator.serviceWorker.addEventListener('message', function (e) {
+      if (!e.data || e.data.type !== 'mt3uk-push' || box.hidden || !session()) return;
+      if (view === 'thread' && openThreadId) {
+        // New messages only; anything being typed or attached stays.
+        var id = openThreadId;
+        api('GET', '/profile/messages/thread?with=' + encodeURIComponent(id)).then(function (data) {
+          if (openThreadId !== id || !data.success) return;
+          drawBubbles(data.messages);
+          loadMessages().catch(function () {});
+        }).catch(function () {});
+      } else {
+        loadMessages().catch(function () {});
+      }
+    });
+  }
 
   window.mt3ukChat = { open: open, close: close };
 })();

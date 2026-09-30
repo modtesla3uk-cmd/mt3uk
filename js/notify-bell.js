@@ -95,11 +95,6 @@
     panel.innerHTML =
       '<div class="nav-bell-head"><span>Notifications</span>' +
         (items.length ? '<button type="button" class="nav-bell-clear-all">Clear all</button>' : '') + '</div>' +
-      // Unread messages (from MT3UK and friends) open the chat window.
-      (messagesUnread
-        ? '<a class="nav-bell-item nav-bell-messages is-unread" href="profile.html#messages"><span class="nav-bell-item-name">Messages</span>' +
-          '<span class="nav-bell-item-text">You have ' + messagesUnread + ' unread message' + (messagesUnread === 1 ? '' : 's') + '</span></a>'
-        : '') +
       (items.length
         ? '<ul class="nav-bell-list">' + items.slice(0, 20).map(function (n) {
             return '<li class="nav-bell-row" data-id="' + esc(n.id || '') + '"><a class="nav-bell-item' + (n.read ? '' : ' is-unread') + '" href="' + esc(linkFor(n)) + '">' +
@@ -213,6 +208,14 @@
   });
 
   load();
-  // Check again every few minutes while the page is open.
+  // Check again every few minutes while the page is open, on coming back to
+  // the page, and straight away when a phone notification arrives (sw.js).
+  // The unread message count goes to the chat icon (js/messenger.js).
   setInterval(function () { if (!document.hidden && panel.hidden) load(); }, 3 * 60 * 1000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden && panel.hidden) load(); });
+  if (navigator.serviceWorker && typeof navigator.serviceWorker.addEventListener === 'function') {
+    navigator.serviceWorker.addEventListener('message', function (e) {
+      if (e.data && e.data.type === 'mt3uk-push' && panel.hidden) load();
+    });
+  }
 })();

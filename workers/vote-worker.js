@@ -168,7 +168,8 @@ async function listGalleryEntriesFromR2(env, opts) {
           if (typeof sidecar.color === 'string' && sidecar.color) color = sidecar.color;
           if (typeof sidecar.email === 'string' && sidecar.email) sidecarEmail = sidecar.email;
           if (sidecar.voteBlocked === true) voteBlocked = true;
-          if (typeof sidecar.name === 'string' && sidecar.name.trim()) sidecarName = sidecar.name.trim().toUpperCase();
+          // As the member wrote it: nicknames keep their own capitals.
+          if (typeof sidecar.name === 'string' && sidecar.name.trim()) sidecarName = sidecar.name.trim();
         }
       } catch (e) {}
     }
@@ -1241,15 +1242,65 @@ async function handleProfileThread(request, env) {
     success: true,
     with: await memberCard(env, other, false),
     friend: fr.friends.indexOf(other) !== -1,
-    messages: (Array.isArray(messages) ? messages : []).filter(function (m) { return !m.removed; }).map(function (m) {
-      var out = { id: m.id, text: m.text, at: m.at, mine: m.from === myId };
-      if (m.photo) {
-        if (dmPhotoExpired(m)) out.photoGone = true;
-        else out.photo = true;
-      }
-      return out;
-    })
+    messages: dmMessagesForPage(Array.isArray(messages) ? messages : [], myId)
   });
+}
+
+// Messages as the page sees them: no R2 keys or sender emails, plus each
+// person's reaction and a short quote of the message it replies to.
+function dmMessagesForPage(messages, myId) {
+  var byId = {};
+  messages.forEach(function (m) { byId[m.id] = m; });
+  return messages.filter(function (m) { return !m.removed; }).map(function (m) {
+    var out = { id: m.id, text: m.text, at: m.at, mine: m.from === myId };
+    if (m.photo) {
+      if (dmPhotoExpired(m)) out.photoGone = true;
+      else out.photo = true;
+    }
+    var reactions = m.reactions && typeof m.reactions === 'object' ? m.reactions : {};
+    Object.keys(reactions).forEach(function (id) {
+      if (id === myId) out.myReaction = reactions[id];
+      else out.theirReaction = reactions[id];
+    });
+    if (m.replyTo) {
+      var q = byId[m.replyTo];
+      out.replyTo = q && !q.removed
+        ? { id: q.id, mine: q.from === myId, text: String(q.text || '').slice(0, 120), photo: !!q.photo }
+        : { id: m.replyTo, gone: true };
+    }
+    return out;
+  });
+}
+
+// Reactions to a message: one each, from this set. Sending your current
+// one again (or none) takes it off.
+var DM_REACTIONS = ['\u2764\ufe0f', '\ud83d\ude06', '\ud83d\ude2e', '\ud83d\ude22', '\ud83d\ude21', '\ud83d\udc4d'];
+
+async function handleProfileMessageReact(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
+  var id = String((body && body.with) || '');
+  var index = await getDmIndex(env, email);
+  var fr = await getFriends(env, email);
+  var other = index[id] ? index[id].email : await emailForId(fr.friends, id);
+  if (!other) return json({ success: false, message: 'Conversation not found' }, 404);
+  var myId = await ownerKey(email);
+  var threadKey = await dmThreadKey(email, other);
+  var messages = await getJsonKey(env, threadKey, []);
+  if (!Array.isArray(messages)) messages = [];
+  var msg = messages.filter(function (m) { return m.id === (body && body.messageId) && !m.removed; })[0];
+  if (!msg) return json({ success: false, message: 'Message not found' }, 404);
+  var emoji = String((body && body.emoji) || '');
+  if (emoji && DM_REACTIONS.indexOf(emoji) === -1) return json({ success: false, message: 'Unknown reaction' }, 400);
+  var reactions = msg.reactions && typeof msg.reactions === 'object' ? msg.reactions : {};
+  if (!emoji || reactions[myId] === emoji) delete reactions[myId];
+  else reactions[myId] = emoji;
+  if (Object.keys(reactions).length) msg.reactions = reactions;
+  else delete msg.reactions;
+  await env.VOTES.put(threadKey, JSON.stringify(messages));
+  return json({ success: true, reaction: reactions[myId] || null, message: dmMessagesForPage(messages, myId).filter(function (m) { return m.id === msg.id; })[0] });
 }
 
 // A photo from a conversation, only for the two people in it.
@@ -1291,7 +1342,7 @@ async function handleProfileMessageSend(request, env) {
   if ((request.headers.get('Content-Type') || '').indexOf('multipart/form-data') === 0) {
     var form;
     try { form = await request.formData(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
-    body = { with: form.get('with'), text: form.get('text') };
+    body = { with: form.get('with'), text: form.get('text'), replyTo: form.get('replyTo') };
     photo = form.get('photo');
     if (photo && typeof photo !== 'string') {
       if (!photo.type || !/^image\/(jpeg|png|webp|gif)$/.test(photo.type)) return json({ success: false, message: 'Photos need to be JPEG, PNG, WebP or GIF.' }, 400);
@@ -1325,6 +1376,9 @@ async function handleProfileMessageSend(request, env) {
   var messages = await getJsonKey(env, threadKey, []);
   if (!Array.isArray(messages)) messages = [];
   var msg = { id: crypto.randomUUID(), from: myId, text: text, at: new Date().toISOString() };
+  // A reply quotes a message in the same conversation.
+  var replyTo = String((body && body.replyTo) || '');
+  if (replyTo && messages.some(function (m) { return m.id === replyTo && !m.removed; })) msg.replyTo = replyTo;
   if (photo) {
     var ext = { 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif' }[photo.type] || '.jpg';
     msg.photo = (await dmPhotoPrefix(email, other)) + msg.id + ext;
@@ -1355,8 +1409,7 @@ async function handleProfileMessageSend(request, env) {
       await sendMemberEmail(env, other, name + ' sent you a ' + (text ? 'message' : 'photo') + ' on MT3UK', name + ' sent you' + (text ? ' a message on MT3UK' : '') + said + '\n\nRead and reply in your Profile:\n\n' + PROFILE_URL + '#messages');
     }
   }
-  var sentMsg = { id: msg.id, text: msg.text, at: msg.at, mine: true };
-  if (msg.photo) sentMsg.photo = true;
+  var sentMsg = dmMessagesForPage(kept, myId).filter(function (m) { return m.id === msg.id; })[0];
   return json({ success: true, message: sentMsg });
 }
 
@@ -4579,7 +4632,11 @@ async function saveProfileEverywhere(env, email, firstName, lastName) {
 async function refreshPublicNameEverywhere(env, email, profile) {
   var name = publicName(profile || await getProfileRecord(env, email));
   if (!name) return;
+  // Every photo the member owns: their saved list, plus any whose sidecar
+  // names them but that dropped out of it (only when their name changes).
   var files = await getSubscriberFiles(env, email);
+  var owned = await listGalleryEntriesFromR2(env, { includeEmail: true }).catch(function () { return []; });
+  owned.forEach(function (p) { if (p.email === email && files.indexOf(p.file) === -1) files.push(p.file); });
   await Promise.all(files.map(function (f) { return setSidecarName(env, f, name); }));
   if (files.length) await triggerManifestRebuild(env);
 }
@@ -4990,6 +5047,21 @@ async function handleMyBuildsGet(request, env) {
   var entries = liveFiles.map(function (f) { return byFile[f]; });
   var groups = groupEntriesIntoCars(entries);
 
+  // Photos showing an old name (from before a nickname or Visibility
+  // change reached them) get the member's current name. Only happens when
+  // something is out of date, then the gallery is rebuilt.
+  var shownAs = publicName(await getProfileRecord(env, email));
+  if (manifestOk && shownAs) {
+    var stale = entries.filter(function (entry) { return entry.name !== shownAs; });
+    if (stale.length) {
+      await Promise.all(stale.map(function (entry) {
+        entry.name = shownAs;
+        return setSidecarName(env, entry.file, shownAs);
+      }));
+      await triggerManifestRebuild(env).catch(function () {});
+    }
+  }
+
   // The member's one entry in this week's Build of the Week vote, and its
   // votes so far, for the warning shown before they switch entry.
   var voteWeek = voteWeekString(new Date());
@@ -5072,6 +5144,9 @@ async function handleMyBuildsGet(request, env) {
     email: email,
     firstName: profile ? profile.firstName : '',
     lastName: profile ? profile.lastName : '',
+    // The name on their builds, comments and likes (nickname, or full name
+    // if they chose that in Profile, Visibility).
+    shownAs: shownAs || '',
     cars: cars,
     voteEntry: voteEntry
   });
@@ -6042,6 +6117,9 @@ export default {
     }
     if (url.pathname === '/profile/messages/send' && request.method === 'POST') {
       return handleProfileMessageSend(request, env);
+    }
+    if (url.pathname === '/profile/messages/react' && request.method === 'POST') {
+      return handleProfileMessageReact(request, env);
     }
     if (url.pathname === '/profile/messages/photo' && request.method === 'GET') {
       return handleProfileMessagePhoto(request, env);

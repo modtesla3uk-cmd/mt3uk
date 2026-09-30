@@ -2460,7 +2460,8 @@
         window.mt3ukMyBuildFiles = builds.map(function (b) { return b.file; });
         builds.forEach(function (b) { window.mt3ukMyBuildData[b.file] = b; });
         window.mt3ukMyBuildsEmail = data.email || null;
-        window.mt3ukMyBuildsName = data.firstName && data.lastName ? data.firstName + ' ' + data.lastName : '';
+        // The name comments show: nickname, or full name if chosen in Profile.
+        window.mt3ukMyBuildsName = data.shownAs || (data.firstName && data.lastName ? data.firstName + ' ' + data.lastName : '');
         mt3ukCheckNewComments(builds);
         document.dispatchEvent(new Event('mt3ukMyBuildsReady'));
       })
@@ -4202,7 +4203,8 @@
 
     function shareText(photo) {
       var caption = titleCase(photo.caption);
-      var name = titleCase(photo.name);
+      // Old names are in capitals; a member's own name keeps its capitals.
+      var name = /[a-z]/.test(photo.name || '') ? photo.name : titleCase(photo.name);
       var what = caption ? caption + (name ? ' by ' + name : '') : (name ? name + '\u2019s build' : 'this build');
       return 'Check out ' + what + ' on MT3UK, the UK\u2019s modified Tesla community';
     }

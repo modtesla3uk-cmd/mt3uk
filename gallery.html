@@ -628,7 +628,8 @@
         builds.forEach(function (b) { window.mt3ukMyBuildData[b.file] = b; });
         // Comments are posted as this member (js/gallery-social.js).
         window.mt3ukMyBuildsEmail = data.email || null;
-        window.mt3ukMyBuildsName = data.firstName && data.lastName ? data.firstName + ' ' + data.lastName : '';
+        // The name comments show: nickname, or full name if chosen in Profile.
+        window.mt3ukMyBuildsName = data.shownAs || (data.firstName && data.lastName ? data.firstName + ' ' + data.lastName : '');
         document.dispatchEvent(new Event('mt3ukMyBuildsReady'));
       })
       .catch(function () {});

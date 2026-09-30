@@ -139,7 +139,8 @@ def main():
             entry["name"] = name
         mods, votable, gallery, reel, color, unclaimed, email, owner_name = sidecar_data(client, key, sidecar_keys)
         if owner_name:
-            name = owner_name.upper()
+            # As the member wrote it: nicknames keep their own capitals.
+            name = owner_name
             entry["name"] = name
         if mods:
             entry["mods"] = mods

@@ -36,7 +36,8 @@
   // What gets shared: the message, and the link for each channel.
   function photoItem(photo, anchor) {
     var caption = titleCase(photo.caption);
-    var name = titleCase(photo.name);
+    // Old names are in capitals; a member's own name keeps its capitals.
+    var name = /[a-z]/.test(photo.name || '') ? photo.name : titleCase(photo.name);
     var what = caption ? caption + (name ? ' by ' + name : '') : (name ? name + '’s build' : 'this build');
     return {
       key: 'photo:' + photo.file,

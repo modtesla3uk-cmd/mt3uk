@@ -155,7 +155,7 @@ def test_open_the_app_popup_waits_for_the_intro(device_page):
     intro.wait_for(state="visible", timeout=5000)
     page.wait_for_timeout(600)
     assert page.locator("#mt3uk-open-app").count() == 0, "Not hidden under the intro"
-    intro.click()
+    intro.locator(".ix-look").click()
     page.locator("#mt3uk-open-app").wait_for(state="visible", timeout=8000)
 
 

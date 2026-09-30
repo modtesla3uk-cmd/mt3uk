@@ -1,5 +1,5 @@
-"""The homepage intro splash plays on the first visit on each phone or
-computer only: a new tab, a link from an email or chat, or the browser
+"""The homepage intro (the logo, then what MT3UK has and Join free) plays on
+the first visit on each phone or computer only: a new tab, a link from an email or chat, or the browser
 reopening doesn't bring it back (it is remembered in localStorage)."""
 from test_devices import device_page, browsers, all_devices, diagnostics  # noqa: F401
 
@@ -15,7 +15,7 @@ def test_intro_plays_on_the_first_visit_only(device_page):
     page.goto("/index.html")
     intro = page.locator("#mt3uk-intro")
     intro.wait_for(state="visible", timeout=5000)
-    intro.click()
+    intro.locator(".ix-look").click()
     intro.wait_for(state="detached", timeout=5000)
     assert page.evaluate("localStorage.getItem('mt3ukIntroSeen')") == "1"
 
@@ -36,4 +36,33 @@ def test_intro_plays_on_the_first_visit_only(device_page):
     # ?intro=1 still shows it, to check how it looks.
     page.goto("/index.html?intro=1")
     page.locator("#mt3uk-intro").wait_for(state="visible", timeout=5000)
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_intro_says_what_is_here_and_can_be_played_again(device_page):
+    page = device_page
+    clear_seen(page)
+    page.goto("/index.html")
+    intro = page.locator("#mt3uk-intro")
+    intro.wait_for(state="visible", timeout=5000)
+    tiles = intro.locator(".ix-finds a")
+    assert tiles.count() == 6
+    assert [tiles.nth(i).locator("b").inner_text() for i in range(6)] == [
+        "Member builds", "Build of the Week", "My Garage", "Owner Interviews", "Meets and track days", "Shop"]
+    assert intro.locator(".ix-join").get_attribute("href") == "signin.html?next=%2F"
+    page.wait_for_timeout(3800)
+    assert page.evaluate("document.getElementById('mt3uk-intro').scrollWidth <= window.innerWidth")
+    # Escape closes it.
+    page.keyboard.press("Escape")
+    intro.wait_for(state="detached", timeout=5000)
+
+    # "Play intro" in About brings it back without leaving the page.
+    link = page.locator("#play-intro")
+    link.scroll_into_view_if_needed()
+    link.click()
+    intro.wait_for(state="visible", timeout=5000)
+    assert page.url.endswith("/index.html")
+    intro.locator(".ix-skip").click()
+    intro.wait_for(state="detached", timeout=5000)
     assert page.errors == [], diagnostics(page)

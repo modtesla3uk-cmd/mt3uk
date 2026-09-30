@@ -2316,15 +2316,225 @@
   /* 01 Explore MT3UK: centred on desktop like the other section headings. */
   @media (min-width: 901px) { .categories-prefix, .categories-title { display: block; text-align: center; } }
   .categories-prefix { font-size: 0.82rem; font-weight: 600; }
+  /* About: "Play intro" plays the first-visit intro again. */
+  .about-intro { margin: 14px 0 0; }
+  .about-intro a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: 0.86rem; font-weight: 600; color: var(--steel); text-decoration: none; }
+  .about-intro a:hover { color: var(--orange); }
+  .about-intro .icon { width: 18px; height: 18px; }
   /* About: the facts box only as tall as its rows. */
   .specs { align-self: start; }
 </style>
 </head>
 <body>
-<!-- MT3UK intro splash: plays on the first visit on each phone or computer (not in the installed app), then holds on the logo until the visitor clicks, taps or presses a key. -->
+<!-- MT3UK intro: plays on the first visit on each phone or computer (not in the installed app). The logo arrives, then a welcome screen says what's here (Join free, Look around). "Play intro" in About plays it again. -->
 <script>
 (function () {
   var KEY = 'mt3ukIntroSeen';
+
+  var FINDS = [
+    ['gallery.html', 'M5 17h14M3 13l2-5a2 2 0 0 1 1.9-1.4h10.2A2 2 0 0 1 19 8l2 5v4a1 1 0 0 1-1 1h-1a2 2 0 0 1-4 0H9a2 2 0 0 1-4 0H4a1 1 0 0 1-1-1Z', 'Member builds', 'Modified Teslas from UK owners, with their mods listed'],
+    ['#build-of-the-day', 'M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0ZM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4', 'Build of the Week', 'Vote for your favourite, every week'],
+    ['my-builds.html', 'M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9Z', 'My Garage', 'Add your car and build its mods list'],
+    ['blog.html', 'M9 3h6v11a3 3 0 0 1-6 0ZM5 11a7 7 0 0 0 14 0M12 18v3', 'Owner Interviews', 'Real members talk through their builds'],
+    ['#events', 'M5 21V4M5 4h12l-2 4 2 4H5', 'Meets and track days', 'Events across the UK, and track day guides'],
+    ['shop.html', 'M6 7h12l1 14H5ZM9 7a3 3 0 0 1 6 0', 'Shop', 'Tees and stickers, plus parts from suppliers we trust']
+  ];
+
+  var css = [
+    '#mt3uk-intro{position:fixed;inset:0;z-index:2147483000;background:#0e1628;overflow-x:hidden;overflow-y:auto;color:#f3f1ea;',
+    'display:flex;flex-direction:column;align-items:center;padding:28px 18px;-webkit-tap-highlight-color:transparent;',
+    'font-family:"IBM Plex Sans",system-ui,sans-serif;clip-path:polygon(0 0,100% 0,100% 100%,0 100%);}',
+    '#mt3uk-intro:focus{outline:none}',
+    '#mt3uk-intro .ix-grid{position:fixed;inset:-50%;opacity:.13;pointer-events:none;',
+    'background-image:linear-gradient(90deg,#4a6491 1px,transparent 1px),linear-gradient(#4a6491 1px,transparent 1px);',
+    'background-size:64px 64px;transform:perspective(600px) rotateX(62deg) translateY(0);transform-origin:50% 100%;}',
+    '#mt3uk-intro .ix-glow{position:fixed;left:50%;top:40%;width:120vmax;height:60vmax;transform:translate(-50%,-50%);pointer-events:none;',
+    'background:radial-gradient(closest-side,rgba(232,84,42,.18),transparent 70%);opacity:0;}',
+    '#mt3uk-intro .ix-streak{position:fixed;left:0;height:2px;width:40vw;border-radius:2px;pointer-events:none;',
+    'background:linear-gradient(90deg,transparent,#f3f1ea);opacity:0;transform:translateX(-50vw);}',
+    '#mt3uk-intro .ix-stage{position:relative;width:100%;max-width:860px;margin:auto 0;display:flex;flex-direction:column;align-items:center;gap:16px;}',
+    '#mt3uk-intro .ix-logo{position:relative;width:min(78vw,440px);aspect-ratio:706/105;}',
+    '#mt3uk-intro .ix-mark,#mt3uk-intro .ix-line{position:absolute;inset:0;',
+    'background:url(images/site/mt3uk-intro-logo.png) no-repeat 0 0/100% 100%;}',
+    '#mt3uk-intro .ix-mark{clip-path:inset(0 0 11% 0);opacity:0;transform:translateX(-60vw) skewX(-18deg);}',
+    '#mt3uk-intro .ix-line{clip-path:inset(89% 100% 0 0);}',
+    '#mt3uk-intro .ix-tag{margin:6px 0 0;font:800 clamp(1.3rem,3.6vw,2rem)/1.2 "Archivo Expanded","Archivo",system-ui,sans-serif;text-align:center;text-wrap:balance;}',
+    '#mt3uk-intro .ix-tag span{color:#e8542a}',
+    '#mt3uk-intro .ix-sub{margin:-4px 0 0;font-size:clamp(.92rem,1.8vw,1.02rem);line-height:1.5;color:#c9cfdb;text-align:center;max-width:46ch;}',
+    '#mt3uk-intro .ix-finds{list-style:none;margin:6px 0 0;padding:0;width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}',
+    '#mt3uk-intro .ix-finds a{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:start;height:100%;padding:14px;border-radius:12px;',
+    'background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#f3f1ea;text-decoration:none;}',
+    '#mt3uk-intro .ix-finds a:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.22)}',
+    '#mt3uk-intro .ix-finds svg{width:22px;height:22px;fill:none;stroke:#f58a68;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;grid-row:span 2;margin-top:2px}',
+    '#mt3uk-intro .ix-finds b{font-size:.95rem;font-weight:700}',
+    '#mt3uk-intro .ix-finds small{font-size:.84rem;line-height:1.4;color:#b7bfcf}',
+    '#mt3uk-intro .ix-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:6px}',
+    '#mt3uk-intro .ix-btn{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 22px;border-radius:10px;',
+    'font:700 .95rem "IBM Plex Sans",system-ui,sans-serif;cursor:pointer;text-decoration:none;border:1px solid transparent}',
+    '#mt3uk-intro .ix-join{background:#e8542a;color:#fff}',
+    '#mt3uk-intro .ix-join:hover{background:#d24a22}',
+    '#mt3uk-intro .ix-look{background:transparent;border-color:rgba(255,255,255,.3);color:#f3f1ea}',
+    '#mt3uk-intro .ix-look:hover{border-color:#f3f1ea}',
+    '#mt3uk-intro .ix-signin{margin:0;font-size:.82rem;color:#8f99ad;text-align:center}',
+    '#mt3uk-intro .ix-signin a{color:#f3f1ea}',
+    '#mt3uk-intro .ix-skip{position:fixed;top:12px;right:14px;min-height:40px;padding:0 12px;border:0;border-radius:999px;background:rgba(255,255,255,.08);',
+    'color:#c9cfdb;font:600 .82rem "IBM Plex Sans",system-ui,sans-serif;cursor:pointer;opacity:0}',
+    '#mt3uk-intro a:focus-visible,#mt3uk-intro button:focus-visible{outline:2px solid #e8542a;outline-offset:2px}',
+    '#mt3uk-intro .ix-in{opacity:0;transform:translateY(12px)}',
+    '@media (max-width:640px){#mt3uk-intro{padding:22px 14px}#mt3uk-intro .ix-stage{gap:14px}',
+    '#mt3uk-intro .ix-finds{grid-template-columns:1fr 1fr;gap:8px}',
+    '#mt3uk-intro .ix-finds a{grid-template-columns:1fr;gap:6px;padding:12px}#mt3uk-intro .ix-finds svg{grid-row:auto}',
+    '#mt3uk-intro .ix-finds small{font-size:.78rem}}',
+    'html.mt3uk-intro-lock,html.mt3uk-intro-lock body{overflow:hidden!important;}',
+    '@keyframes ixStreak{0%{opacity:0;transform:translateX(-50vw)}15%{opacity:.9}100%{opacity:0;transform:translateX(160vw)}}',
+    '@keyframes ixMark{0%{opacity:0;transform:translateX(-60vw) skewX(-18deg);filter:blur(6px)}',
+    '55%{opacity:1;transform:translateX(3%) skewX(-6deg);filter:blur(0)}',
+    '75%{transform:translateX(-1%) skewX(2deg)}100%{opacity:1;transform:none;filter:none}}',
+    '@keyframes ixLine{to{clip-path:inset(89% 0 0 0)}}',
+    '@keyframes ixFade{to{opacity:1}}',
+    '@keyframes ixUp{to{opacity:1;transform:none}}',
+    '@keyframes ixGlow{0%{opacity:0}40%{opacity:1}100%{opacity:.6}}',
+    '@keyframes ixGrid{to{transform:perspective(600px) rotateX(62deg) translateY(64px)}}',
+    '@keyframes ixOut{0%{clip-path:polygon(0 0,100% 0,100% 100%,0 100%)}100%{clip-path:polygon(115% 0,100% 0,100% 100%,100% 100%)}}',
+    '#mt3uk-intro.ix-go .ix-grid{animation:ixGrid .6s linear infinite}',
+    '#mt3uk-intro.ix-go .ix-glow{animation:ixGlow 2.4s ease-out .75s forwards}',
+    '#mt3uk-intro.ix-go .ix-streak{animation:ixStreak 1.05s cubic-bezier(.3,.1,.2,1) forwards}',
+    '#mt3uk-intro.ix-go .ix-mark{animation:ixMark 1.35s cubic-bezier(.2,.8,.2,1) .35s forwards}',
+    '#mt3uk-intro.ix-go .ix-line{animation:ixLine .7s cubic-bezier(.7,0,.2,1) 1.5s forwards}',
+    '#mt3uk-intro.ix-go .ix-in{animation:ixUp .55s ease-out forwards}',
+    '#mt3uk-intro.ix-go .ix-skip{animation:ixFade .4s ease .8s forwards}',
+    '#mt3uk-intro.ix-out{animation:ixOut .8s cubic-bezier(.7,0,.25,1) forwards;pointer-events:none}',
+    '#mt3uk-intro.ix-reduced{transition:opacity .4s ease}',
+    '#mt3uk-intro.ix-reduced *{animation:none!important}',
+    '#mt3uk-intro.ix-reduced .ix-mark,#mt3uk-intro.ix-reduced .ix-in,#mt3uk-intro.ix-reduced .ix-skip{opacity:1;transform:none}',
+    '#mt3uk-intro.ix-reduced .ix-line{clip-path:inset(89% 0 0 0)}',
+    '#mt3uk-intro.ix-reduced.ix-out{opacity:0}'
+  ].join('');
+
+  function show() {
+    if (document.getElementById('mt3uk-intro')) return;
+    var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var doc = document.documentElement;
+    var style = document.createElement('style');
+    style.textContent = css;
+    document.head.appendChild(style);
+
+    var el = document.createElement('div');
+    el.id = 'mt3uk-intro';
+    el.setAttribute('role', 'dialog');
+    el.setAttribute('aria-modal', 'true');
+    el.setAttribute('aria-label', 'Welcome to MT3UK');
+    el.setAttribute('tabindex', '-1');
+    var streaks = '';
+    var tops = [22, 38, 61, 74, 86];
+    for (var i = 0; i < tops.length; i++) {
+      streaks += '<span class="ix-streak" style="top:' + tops[i] + '%;animation-delay:' + (i * 0.1).toFixed(2) + 's;width:' + (25 + i * 9) + 'vw"></span>';
+    }
+    // Everything after the logo comes in one after another.
+    var at = 1.9;
+    function delay(step) { return ' style="animation-delay:' + (at + step).toFixed(2) + 's"'; }
+    el.innerHTML = '<div class="ix-grid"></div><div class="ix-glow"></div>' + streaks +
+      '<button type="button" class="ix-skip" data-ix-close>Skip</button>' +
+      '<div class="ix-stage">' +
+        '<div class="ix-logo" role="img" aria-label="MT3UK"><span class="ix-mark"></span><span class="ix-line"></span></div>' +
+        '<p class="ix-tag ix-in"' + delay(0) + '>The UK community for <span>modified Teslas</span></p>' +
+        '<p class="ix-sub ix-in"' + delay(0.2) + '>Free to join. Share your build, see everyone else\'s and meet other owners.</p>' +
+        '<ul class="ix-finds">' + FINDS.map(function (f, n) {
+          return '<li class="ix-in"' + delay(0.4 + n * 0.14) + '><a href="' + f[0] + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + f[1] + '"/></svg><b>' + f[2] + '</b><small>' + f[3] + '</small></a></li>';
+        }).join('') + '</ul>' +
+        '<div class="ix-actions ix-in"' + delay(1.4) + '><a class="ix-btn ix-join" href="signin.html?next=%2F">Join free</a><button type="button" class="ix-btn ix-look" data-ix-close>Look around</button></div>' +
+        '<p class="ix-signin ix-in"' + delay(1.55) + '>Already a member? <a href="signin.html?next=%2F">Sign in</a></p>' +
+      '</div>';
+    if (reduced) el.className = 'ix-reduced';
+    doc.classList.add('mt3uk-intro-lock');
+    doc.appendChild(el);
+    try { el.focus({ preventScroll: true }); } catch (e) {}
+
+    // Whoosh sound, synthesised with Web Audio (no audio file). Browsers only allow it
+    // once the visitor has interacted with the site, so it stays silent otherwise.
+    var AC = window.AudioContext || window.webkitAudioContext, ac = null;
+    function whoosh(delay, dur, f0, f1, vol) {
+      if (!ac || ac.state !== 'running') return;
+      try {
+        var t = ac.currentTime + delay, n = Math.floor(ac.sampleRate * dur);
+        var buf = ac.createBuffer(1, n, ac.sampleRate), d = buf.getChannelData(0);
+        for (var j = 0; j < n; j++) d[j] = Math.random() * 2 - 1;
+        var src = ac.createBufferSource(); src.buffer = buf;
+        var bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 1.4;
+        bp.frequency.setValueAtTime(f0, t); bp.frequency.exponentialRampToValueAtTime(f1, t + dur);
+        var g = ac.createGain(); g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(vol, t + dur * 0.35);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        src.connect(bp); bp.connect(g); g.connect(ac.destination);
+        src.start(t); src.stop(t + dur + 0.05);
+      } catch (e) {}
+    }
+    if (!reduced && AC) { try { ac = new AC(); } catch (e) {} }
+
+    var done = false;
+    function finish(ev) {
+      if (done) return;
+      done = true;
+      if (ac) {
+        if (ev && ac.state !== 'running' && ac.resume) {
+          try { ac.resume().then(function () { whoosh(0, 0.7, 2400, 350, 0.22); }, function () {}); } catch (e) {}
+        } else {
+          whoosh(0, 0.7, 2400, 350, 0.22);
+        }
+        setTimeout(function () { try { ac.close(); } catch (e) {} }, 1500);
+      }
+      el.classList.add('ix-out');
+      doc.classList.remove('mt3uk-intro-lock');
+      setTimeout(function () {
+        if (el.parentNode) el.parentNode.removeChild(el);
+        if (style.parentNode) style.parentNode.removeChild(style);
+      }, 900);
+      window.removeEventListener('keydown', onKey);
+    }
+    // Links go where they say; Skip, Look around or a tap on the background
+    // closes it.
+    el.addEventListener('click', function (e) {
+      var link = e.target.closest('a');
+      if (link) {
+        if (link.getAttribute('href').charAt(0) === '#') finish(e);
+        return;
+      }
+      if (e.target.closest('[data-ix-close]') || !e.target.closest('.ix-finds, .ix-actions, .ix-signin')) finish(e);
+    });
+    function onKey(e) {
+      if (e.key === 'Escape' || ((e.key === 'Enter' || e.key === ' ') && e.target === el)) {
+        e.preventDefault();
+        finish(e);
+      }
+    }
+    window.addEventListener('keydown', onKey);
+
+    if (reduced) return;
+
+    // Start once the wordmark is ready, max 500ms wait.
+    var started = false;
+    function start() {
+      if (started) return;
+      started = true;
+      el.classList.add('ix-go');
+      whoosh(0.35, 1.2, 250, 3200, 0.25);
+    }
+    var img = new Image();
+    img.onload = img.onerror = start;
+    img.src = 'images/site/mt3uk-intro-logo.png';
+    if (img.complete) start();
+    setTimeout(start, 500);
+  }
+
+  // "Play intro" in About plays it again without reloading the page.
+  window.mt3ukPlayIntro = show;
+  document.addEventListener('click', function (e) {
+    var link = e.target.closest && e.target.closest('#play-intro');
+    if (!link) return;
+    e.preventDefault();
+    show();
+  });
+
   var force = /[?&]intro=1\b/.test(location.search);
   // Remembered in localStorage, so a new tab, a link from an email or chat,
   // or the browser reopening doesn't play it again (sessionStorage is the
@@ -2336,149 +2546,7 @@
     navigator.standalone === true || document.referrer.indexOf('android-app://') === 0;
   if (!force && installed) return;
   try { localStorage.setItem(KEY, '1'); } catch (e) {}
-
-  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var doc = document.documentElement;
-
-  var css = [
-    '#mt3uk-intro{position:fixed;inset:0;z-index:2147483000;background:#0e1628;overflow:hidden;cursor:pointer;',
-    'display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;',
-    'clip-path:polygon(0 0,100% 0,100% 100%,0 100%);}',
-    '#mt3uk-intro .ix-grid{position:absolute;inset:-50%;opacity:.14;',
-    'background-image:linear-gradient(90deg,#4a6491 1px,transparent 1px),linear-gradient(#4a6491 1px,transparent 1px);',
-    'background-size:64px 64px;transform:perspective(600px) rotateX(62deg) translateY(0);transform-origin:50% 100%;}',
-    '#mt3uk-intro .ix-glow{position:absolute;left:50%;top:50%;width:120vmax;height:60vmax;transform:translate(-50%,-50%);',
-    'background:radial-gradient(closest-side,rgba(232,84,42,.18),transparent 70%);opacity:0;}',
-    '#mt3uk-intro .ix-streak{position:absolute;left:0;height:2px;width:40vw;border-radius:2px;',
-    'background:linear-gradient(90deg,transparent,#f3f1ea);opacity:0;transform:translateX(-50vw);}',
-    '#mt3uk-intro .ix-stage{position:relative;width:min(90vw,706px);}',
-    '#mt3uk-intro .ix-logo{position:relative;width:100%;aspect-ratio:706/105;}',
-    '#mt3uk-intro .ix-mark,#mt3uk-intro .ix-line{position:absolute;inset:0;',
-    'background:url(images/site/mt3uk-intro-logo.png) no-repeat 0 0/100% 100%;}',
-    '#mt3uk-intro .ix-mark{clip-path:inset(0 0 11% 0);opacity:0;transform:translateX(-60vw) skewX(-18deg);}',
-    '#mt3uk-intro .ix-line{clip-path:inset(89% 100% 0 0);}',
-    '#mt3uk-intro .ix-tag{margin-top:clamp(14px,2.4vw,22px);font:500 clamp(.62rem,1.6vw,.82rem)/1.4 "IBM Plex Sans",system-ui,sans-serif;',
-    'letter-spacing:.32em;color:#f3f1ea;text-align:center;white-space:nowrap;opacity:0;}',
-    '#mt3uk-intro .ix-skip{position:absolute;right:16px;bottom:14px;font:500 .64rem "IBM Plex Sans",system-ui,sans-serif;',
-    'letter-spacing:.2em;color:#7c8798;opacity:0;}',
-    '#mt3uk-intro .ix-enter{margin-top:clamp(22px,4vw,36px);font:600 clamp(.66rem,1.7vw,.8rem)/1.4 "IBM Plex Sans",system-ui,sans-serif;',
-    'letter-spacing:.28em;color:#e8542a;text-align:center;white-space:nowrap;opacity:0;}',
-    '#mt3uk-intro:focus{outline:none}',
-    'html.mt3uk-intro-lock,html.mt3uk-intro-lock body{overflow:hidden!important;}',
-    '@keyframes ixStreak{0%{opacity:0;transform:translateX(-50vw)}15%{opacity:.9}100%{opacity:0;transform:translateX(160vw)}}',
-    '@keyframes ixMark{0%{opacity:0;transform:translateX(-60vw) skewX(-18deg);filter:blur(6px)}',
-    '55%{opacity:1;transform:translateX(3%) skewX(-6deg);filter:blur(0)}',
-    '75%{transform:translateX(-1%) skewX(2deg)}100%{opacity:1;transform:none;filter:none}}',
-    '@keyframes ixLine{to{clip-path:inset(89% 0 0 0)}}',
-    '@keyframes ixPulse{0%,100%{opacity:.45}50%{opacity:1}}',
-    '@keyframes ixHide{to{opacity:0}}',
-    '@keyframes ixFade{to{opacity:1}}',
-    '@keyframes ixGlow{0%{opacity:0}40%{opacity:1}100%{opacity:.6}}',
-    '@keyframes ixGrid{to{transform:perspective(600px) rotateX(62deg) translateY(64px)}}',
-    '@keyframes ixTag{0%{opacity:0;letter-spacing:.7em}100%{opacity:.85;letter-spacing:.32em}}',
-    '@keyframes ixOut{0%{clip-path:polygon(0 0,100% 0,100% 100%,0 100%)}100%{clip-path:polygon(115% 0,100% 0,100% 100%,100% 100%)}}',
-    '#mt3uk-intro.ix-go .ix-grid{animation:ixGrid .5s linear infinite}',
-    '#mt3uk-intro.ix-go .ix-glow{animation:ixGlow 2.4s ease-out .75s forwards}',
-    '#mt3uk-intro.ix-go .ix-streak{animation:ixStreak 1.05s cubic-bezier(.3,.1,.2,1) forwards}',
-    '#mt3uk-intro.ix-go .ix-mark{animation:ixMark 1.35s cubic-bezier(.2,.8,.2,1) .35s forwards}',
-    '#mt3uk-intro.ix-go .ix-line{animation:ixLine .7s cubic-bezier(.7,0,.2,1) 1.5s forwards}',
-    '#mt3uk-intro.ix-go .ix-tag{animation:ixTag 1s ease-out 1.95s forwards}',
-    '#mt3uk-intro.ix-go .ix-skip{animation:ixFade .4s ease 1s forwards,ixHide .3s ease 2.9s forwards}',
-    '#mt3uk-intro.ix-go .ix-enter{animation:ixFade .5s ease 3s forwards,ixPulse 1.8s ease-in-out 3.5s infinite}',
-    '#mt3uk-intro.ix-out{animation:ixOut .8s cubic-bezier(.7,0,.25,1) forwards;pointer-events:none}',
-    '#mt3uk-intro.ix-reduced{transition:opacity .4s ease}',
-    '#mt3uk-intro.ix-reduced *{animation:none!important}',
-    '#mt3uk-intro.ix-reduced .ix-mark,#mt3uk-intro.ix-reduced .ix-tag{opacity:1;transform:none}',
-    '#mt3uk-intro.ix-reduced .ix-line{clip-path:inset(89% 0 0 0)}',
-    '#mt3uk-intro.ix-reduced .ix-enter{opacity:1}',
-    '#mt3uk-intro.ix-reduced .ix-skip{display:none}',
-    '#mt3uk-intro.ix-reduced.ix-out{opacity:0}'
-  ].join('');
-
-  var style = document.createElement('style');
-  style.textContent = css;
-  document.head.appendChild(style);
-
-  var el = document.createElement('div');
-  el.id = 'mt3uk-intro';
-  el.setAttribute('role', 'button');
-  el.setAttribute('tabindex', '0');
-  el.setAttribute('aria-label', 'Enter MT3UK');
-  var touch = window.matchMedia && window.matchMedia('(hover: none)').matches;
-  var streaks = '';
-  var tops = [22, 38, 61, 74, 86];
-  for (var i = 0; i < tops.length; i++) {
-    streaks += '<span class="ix-streak" style="top:' + tops[i] + '%;animation-delay:' + (i * 0.1).toFixed(2) + 's;width:' + (25 + i * 9) + 'vw"></span>';
-  }
-  el.innerHTML = '<div class="ix-grid"></div><div class="ix-glow"></div>' + streaks +
-    '<div class="ix-stage"><div class="ix-logo"><span class="ix-mark"></span><span class="ix-line"></span></div>' +
-    '<div class="ix-tag">Modified Tesla owners community</div>' +
-    '<div class="ix-enter">' + (touch ? 'Tap' : 'Click') + ' to enter</div></div>' +
-    '<div class="ix-skip">' + (touch ? 'Tap' : 'Click') + ' to skip</div>';
-  if (reduced) el.className = 'ix-reduced';
-  doc.classList.add('mt3uk-intro-lock');
-  doc.appendChild(el);
-  try { el.focus({ preventScroll: true }); } catch (e) {}
-
-  // Whoosh sound, synthesised with Web Audio (no audio file). Browsers only allow it
-  // once the visitor has interacted with the site, so it stays silent otherwise.
-  var AC = window.AudioContext || window.webkitAudioContext, ac = null;
-  function whoosh(delay, dur, f0, f1, vol) {
-    if (!ac || ac.state !== 'running') return;
-    try {
-      var t = ac.currentTime + delay, n = Math.floor(ac.sampleRate * dur);
-      var buf = ac.createBuffer(1, n, ac.sampleRate), d = buf.getChannelData(0);
-      for (var j = 0; j < n; j++) d[j] = Math.random() * 2 - 1;
-      var src = ac.createBufferSource(); src.buffer = buf;
-      var bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 1.4;
-      bp.frequency.setValueAtTime(f0, t); bp.frequency.exponentialRampToValueAtTime(f1, t + dur);
-      var g = ac.createGain(); g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(vol, t + dur * 0.35);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-      src.connect(bp); bp.connect(g); g.connect(ac.destination);
-      src.start(t); src.stop(t + dur + 0.05);
-    } catch (e) {}
-  }
-  if (!reduced && AC) { try { ac = new AC(); } catch (e) {} }
-
-  var done = false;
-  function finish(ev) {
-    if (done) return;
-    done = true;
-    if (ac) {
-      if (ev && ac.state !== 'running' && ac.resume) {
-        try { ac.resume().then(function () { whoosh(0, 0.7, 2400, 350, 0.22); }, function () {}); } catch (e) {}
-      } else {
-        whoosh(0, 0.7, 2400, 350, 0.22);
-      }
-      setTimeout(function () { try { ac.close(); } catch (e) {} }, 1500);
-    }
-    el.classList.add('ix-out');
-    doc.classList.remove('mt3uk-intro-lock');
-    setTimeout(function () {
-      if (el.parentNode) el.parentNode.removeChild(el);
-      if (style.parentNode) style.parentNode.removeChild(style);
-    }, 900);
-    window.removeEventListener('keydown', finish);
-  }
-  el.addEventListener('click', finish);
-  window.addEventListener('keydown', finish);
-
-  if (reduced) return;
-
-  // Start once the wordmark is ready, max 500ms wait.
-  var started = false;
-  function start() {
-    if (started) return;
-    started = true;
-    el.classList.add('ix-go');
-    whoosh(0.35, 1.2, 250, 3200, 0.25);
-  }
-  var img = new Image();
-  img.onload = img.onerror = start;
-  img.src = 'images/site/mt3uk-intro-logo.png';
-  if (img.complete) start();
-  setTimeout(start, 500);
+  show();
 })();
 </script>
 
@@ -4916,6 +4984,7 @@
         <p>Whatever you're driving (Model S, 3, X or Y) and whatever stage your build is at, from a first set of wheels to a full track setup, you'll find people in the group who've done it, are doing it, or want to help you get there.</p>
         <p>We keep the group free from bots, spam and negativity, with a team of trusted admins on hand. Regular meet-ups across the UK and beyond, and a shared respect for doing mods properly.</p>
         <a href="https://www.facebook.com/groups/mt3uk/" class="btn btn-join-community" target="_blank" rel="noopener">Join The Facebook Group</a>
+        <p class="about-intro"><a href="index.html?intro=1" id="play-intro"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m10 8.5 5 3.5-5 3.5Z"/></svg>Play intro</a></p>
       </div>
       <div class="specs">
         <div class="spec-row"><span>Members</span><span class="member-count"></span></div>

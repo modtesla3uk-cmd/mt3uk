@@ -550,13 +550,13 @@ def test_app_card_says_installed_and_is_hidden_in_the_app(device_page):
 
 
 @all_devices
-def test_my_garage_points_to_profile_for_notifications(device_page):
+def test_my_garage_has_no_old_notices(device_page):
     page = device_page
     signed_in(page)
     page.goto("/my-builds.html")
     page.locator("#mb-app-view").wait_for(state="visible", timeout=5000)
-    link = page.locator("#mb-push-moved a")
-    assert link.get_attribute("href") == "profile.html#notifications"
+    assert page.locator(".beta-notice").count() == 0
+    assert page.locator("#mb-push-moved").count() == 0
     assert page.locator("#mb-push-toggle").count() == 0
     assert page.errors == []
 

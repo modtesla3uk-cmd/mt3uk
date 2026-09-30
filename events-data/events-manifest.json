@@ -1,20 +1,7 @@
 {
-  "generated": "2026-09-30T18:52:35.440Z",
-  "totalEvents": 6,
+  "generated": "2026-09-30T18:52:41.649Z",
+  "totalEvents": 5,
   "events": [
-    {
-      "id": "001",
-      "name": "Lancing Motor Show",
-      "description": "Join us for a collective meet at Lancing Beach!",
-      "startTime": "2025-09-25T09:00:00+0000",
-      "endTime": "2025-09-25T18:00:00+0000",
-      "location": {
-        "name": "Lancing Beach Green"
-      },
-      "facebookUrl": "https://fb.me/e/6xSNeEibQ/",
-      "attendingCount": 10,
-      "interestedCount": 20
-    },
     {
       "id": "002",
       "name": "Lancing Motor Show",

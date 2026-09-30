@@ -1611,6 +1611,22 @@
   // 'none' until a key is tried, then 'ok' or 'bad' (see loadClaims).
   var adminKeyState = 'none';
 
+  // Leaves a month-long "admin viewer" token in this browser, so unpublished
+  // events and interviews open for the admin without a Preview or email.
+  function ensureAdminViewer(adminKey) {
+    var have = null;
+    try { have = JSON.parse(localStorage.getItem('mt3ukAdminViewer') || 'null'); } catch (e) { have = null; }
+    var stillGood = have && have.token && have.expires > Date.now()
+      ? fetch(API + '/admin/viewer-check?token=' + encodeURIComponent(have.token), { cache: 'no-store' }).then(function (r) { return r.ok; }).catch(function () { return true; })
+      : Promise.resolve(false);
+    return stillGood.then(function (ok) {
+      if (ok) return;
+      return fetch(API + '/admin/viewer-token?key=' + encodeURIComponent(adminKey), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+        .then(function (r) { return r.json(); })
+        .then(function (d) { if (d && d.success) { try { localStorage.setItem('mt3ukAdminViewer', JSON.stringify({ token: d.token, expires: d.expires })); } catch (e) {} } });
+    }).catch(function () {});
+  }
+
   function loadAll() {
     var key = keyInput.value.trim();
     if (!key) {
@@ -1623,6 +1639,7 @@
     return Promise.all([loadClaims(key), loadUnclaimed(key), loadSubscribers(key), loadThreads(key), loadReported(key), loadVoteEntries(key)])
       .then(function () {
         statusEl.textContent = '';
+        if (adminKeyState === 'ok') ensureAdminViewer(key);
       })
       .catch(function () {
         statusEl.textContent = 'Network error loading data.';

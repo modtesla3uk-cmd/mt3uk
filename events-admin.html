@@ -886,7 +886,24 @@
   });
   $('pv-wrap').addEventListener('toggle', function () { if ($('pv-wrap').open) loadPreviews(); });
 
-  document.addEventListener('mt3uk-events-admin-loaded', loadList);
+
+  // Leaves a month-long "admin viewer" token in this browser, so unpublished
+  // events and interviews open for the admin without a Preview or email.
+  function ensureAdminViewer(adminKey) {
+    var have = null;
+    try { have = JSON.parse(localStorage.getItem('mt3ukAdminViewer') || 'null'); } catch (e) { have = null; }
+    var stillGood = have && have.token && have.expires > Date.now()
+      ? fetch(API + '/admin/viewer-check?token=' + encodeURIComponent(have.token), { cache: 'no-store' }).then(function (r) { return r.ok; }).catch(function () { return true; })
+      : Promise.resolve(false);
+    return stillGood.then(function (ok) {
+      if (ok) return;
+      return fetch(API + '/admin/viewer-token?key=' + encodeURIComponent(adminKey), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+        .then(function (r) { return r.json(); })
+        .then(function (d) { if (d && d.success) { try { localStorage.setItem('mt3ukAdminViewer', JSON.stringify({ token: d.token, expires: d.expires })); } catch (e) {} } });
+    }).catch(function () {});
+  }
+
+  document.addEventListener('mt3uk-events-admin-loaded', function () { loadList(); ensureAdminViewer(key()); });
 })();
 </script>
 <script>

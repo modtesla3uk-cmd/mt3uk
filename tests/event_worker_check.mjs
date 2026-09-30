@@ -21,8 +21,8 @@ globalThis.fetch = async (url, opts = {}) => {
   }
   throw new Error('unexpected fetch ' + url);
 };
-const call = async (method, path, body, raw) => {
-  const init = { method, headers: raw ? {} : { 'Content-Type': 'application/json' } };
+const call = async (method, path, body, raw, extra) => {
+  const init = { method, headers: Object.assign(raw ? {} : { 'Content-Type': 'application/json' }, extra || {}) };
   if (body !== undefined) init.body = raw ? body : JSON.stringify(body);
   const r = await worker.fetch(new Request('https://w.test' + path, init), env, { waitUntil() {} });
   return { status: r.status, body: await r.json().catch(() => ({})) };
@@ -97,6 +97,7 @@ r = await call('POST', '/events/pages/preview/verify', { email: 'friend@example.
 ok(r.status === 400, 'code is for one event only');
 r = await call('POST', '/events/pages/preview/verify', { email: 'friend@example.com', slug: 'frunk', code });
 const viewer = r.body.token;
+const memberSession = r.body.session;
 ok(r.status === 200 && viewer && r.body.joined === true && r.body.session && r.body.expires > Date.now() + 6 * 864e5, 'right code opens it for a week, joins and signs in');
 r = await call('GET', '/events/pages/preview/check?slug=frunk&token=' + viewer);
 ok(r.status === 200 && r.body.admin === false, 'viewer access checks out and is not admin');
@@ -106,6 +107,31 @@ r = await call('GET', '/events/pages/preview/content?slug=frunk&token=' + viewer
 ok(r.status === 200 && r.body.entry, 'viewer sees the saved copy');
 r = await call('POST', '/events/pages/preview/verify', { email: 'friend@example.com', slug: 'frunk', code });
 ok(r.status === 400, 'a code works once');
+// signed-in members (for example after a passkey) and the admin viewer
+r = await call('POST', '/events/pages/preview/session', { slug: 'frunk' });
+ok(r.status === 401, 'a session is needed to open a preview with one');
+r = await call('POST', '/events/pages/preview/session', { slug: 'frunk' }, false, { 'X-Session-Token': 'not-a-session' });
+ok(r.status === 401, 'a bad session is refused');
+r = await call('POST', '/events/pages/preview/session', { slug: 'no-such-event' }, false, { 'X-Session-Token': memberSession });
+ok(r.status === 404, 'a session cannot open an event that does not exist');
+r = await call('POST', '/events/pages/preview/session', { slug: 'frunk' }, false, { 'X-Session-Token': memberSession });
+ok(r.status === 200 && r.body.token && r.body.admin === undefined, 'a signed-in member opens the event preview');
+r = await call('GET', '/events/pages/preview/check?slug=frunk&token=' + r.body.token);
+ok(r.status === 200 && r.body.admin === false, 'that access is a viewer, not admin');
+r = await call('POST', '/interviews/preview/session', { slug: 'richard' }, false, { 'X-Session-Token': memberSession });
+ok(r.status === 200 && r.body.token, 'a signed-in member opens an interview preview');
+r = await call('POST', '/interviews/preview/session', { slug: 'richard' });
+ok(r.status === 401, 'an interview preview needs a session too');
+r = await call('POST', '/admin/viewer-token', {});
+ok(r.status === 401, 'the admin viewer token needs the admin key');
+r = await call('POST', '/admin/viewer-token' + K, {});
+const adminViewer = r.body.token;
+ok(r.status === 200 && adminViewer && r.body.expires > Date.now() + 25 * 864e5, 'admin key mints a month-long viewer token');
+r = await call('GET', '/admin/viewer-check?token=' + adminViewer); ok(r.status === 200, 'the admin viewer token checks out');
+r = await call('GET', '/admin/viewer-check?token=' + 'x'.repeat(40)); ok(r.status === 401, 'a made-up token does not');
+env.ADMIN_KEY = 'rotated';
+r = await call('GET', '/admin/viewer-check?token=' + adminViewer); ok(r.status === 401, 'changing the admin key ends every admin viewer token');
+env.ADMIN_KEY = 'secret';
 // the emailed link
 kv.delete('event-preview-cooldown:frunk:friend@example.com');
 await call('POST', '/events/pages/preview/request', { email: 'friend@example.com', slug: 'frunk' });
@@ -120,7 +146,7 @@ ok(r.status === 400, 'the emailed link works once');
 r = await call('GET', '/events/pages/admin/preview');
 ok(r.status === 401, 'previews list needs the admin key');
 r = await call('GET', '/events/pages/admin/preview' + K);
-ok(r.status === 200 && r.body.opened.length === 1 && r.body.opened[0].email === 'friend@example.com' && r.body.opened[0].opens === 2 && r.body.opened[0].joined === true, 'opening is logged once per email with a count');
+ok(r.status === 200 && r.body.opened.length === 1 && r.body.opened[0].email === 'friend@example.com' && r.body.opened[0].opens === 3 && r.body.opened[0].joined === true, 'opening is logged once per email with a count');
 r = await call('POST', '/events/pages/admin/preview' + K, { action: 'revoke', email: 'friend@example.com', slug: 'frunk' });
 ok(r.status === 200 && r.body.revoked.length === 1, 'revoke');
 r = await call('GET', '/events/pages/preview/check?slug=frunk&token=' + viewer);

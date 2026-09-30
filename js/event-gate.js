@@ -6,9 +6,11 @@
    - Anyone with the link can have a one-time code emailed, like Sign In and
      the Owner Interviews. A correct code opens the event in that browser for
      7 days, and signs them in (the worker makes them an MT3UK member if they
-     were not one already; the card says so). The events admin page lists who
+     were not one already; the card says so). Members can instead use a passkey
+     or, if already signed in, just continue. The events admin page lists who
      has opened each event and can revoke access.
-   - The admin uses Preview on events-admin.html, which makes a one-time link
+   - The admin's own browser opens straight away: the admin pages leave a
+     month-long token when the admin key is entered. Or use Preview on events-admin.html, which makes a one-time link
      (?preview=<token>) that keeps the preview open until End preview.
 
    There is no countdown. Loaded in the <head> of event.html (not deferred), so
@@ -58,6 +60,10 @@
     '#ev-gate .evg-join a{color:#fff}' +
     '#ev-gate .evg-junk{font-size:.86rem;border-left:3px solid #e8542a;padding:8px 10px;background:rgba(255,255,255,.06)}' +
     '#ev-gate .evg-msg.ok{color:#9fe0b0}' +
+    '#ev-gate .evg-alt{display:flex;flex-direction:column;gap:10px;margin-top:12px}' +
+    '#ev-gate .evg-alt-btn{width:100%;min-height:44px;border:1px solid rgba(255,255,255,.4);border-radius:10px;background:transparent;color:#fff;font-family:inherit;font-size:.95rem;font-weight:600;cursor:pointer}' +
+    '#ev-gate .evg-alt-btn:hover{border-color:#fff}' +
+    '#ev-gate .evg-alt-btn:disabled{opacity:.6;cursor:default}' +
     '.evg-notice{position:fixed;left:50%;top:16px;transform:translateX(-50%);z-index:70;width:calc(100% - 32px);max-width:560px;box-sizing:border-box;background:#16233d;color:#fff;border:1px solid rgba(255,255,255,.25);border-left:4px solid #e8542a;border-radius:10px;padding:14px 44px 14px 16px;box-shadow:0 10px 30px rgba(0,0,0,.3);font-family:"IBM Plex Sans",Arial,sans-serif;font-size:.95rem;line-height:1.45}' +
     '.evg-notice strong{display:block;margin-bottom:4px}' +
     '.evg-notice p{margin:6px 0 0;color:rgba(255,255,255,.85)}' +
@@ -101,6 +107,56 @@
     try { if (v) localStorage.setItem(STORE, JSON.stringify(v)); else localStorage.removeItem(STORE); } catch (e) {}
   }
 
+
+  // ----- Admin recognised on every gated page -----
+  // Entering the admin key on an admin page leaves a month-long token in
+  // this browser (see the admin pages), so a draft opens for the admin
+  // without a Preview or an emailed link.
+  function adminViewerToken() {
+    try {
+      var v = JSON.parse(localStorage.getItem('mt3ukAdminViewer') || 'null');
+      return v && v.token && v.expires > Date.now() ? v.token : '';
+    } catch (e) { return ''; }
+  }
+  function checkAdminViewer() {
+    var t = adminViewerToken();
+    if (!t) return Promise.resolve(false);
+    return fetch(API + '/admin/viewer-check?token=' + encodeURIComponent(t), { cache: 'no-store' })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (d) { return !!(d && d.success); })
+      .catch(function () { return false; });
+  }
+
+  // ----- Members: an existing sign-in, or a passkey -----
+  function signedInMember() {
+    try {
+      var session = localStorage.getItem('mt3ukMyBuildsSession');
+      var email = localStorage.getItem('mt3ukMyBuildsEmail');
+      return session && email ? { session: session, email: email } : null;
+    } catch (e) { return null; }
+  }
+  function passkeysAvailable() { return !!(window.PublicKeyCredential && navigator.credentials && navigator.credentials.get); }
+  function loadPasskeys() {
+    if (window.mt3ukPasskeys) return Promise.resolve();
+    return new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = 'js/passkeys.js';
+      s.onload = resolve;
+      s.onerror = function () { reject(new Error('Passkeys could not be loaded, please use the emailed code.')); };
+      document.head.appendChild(s);
+    });
+  }
+  function signInWithPasskey() {
+    return loadPasskeys().then(function () { return window.mt3ukPasskeys.signIn(); });
+  }
+  function openWithSession(path, who) {
+    return fetch(API + path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Session-Token': who.session },
+      body: JSON.stringify({ slug: slug })
+    }).then(function (res) { return res.json().catch(function () { return {}; }); });
+  }
+
   function post(path, body) {
     return fetch(API + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
       .then(function (res) { return res.json().catch(function () { return {}; }).then(function (data) { data.ok = res.ok; return data; }); });
@@ -138,6 +194,7 @@
     var title = esc((entry && entry.title) || 'Event details coming soon');
 
     function step1(msg) {
+      var member = signedInMember();
       gate.innerHTML =
         '<div class="evg-card">' +
           '<p class="evg-eyebrow">' + eyebrow + '</p>' +
@@ -149,11 +206,34 @@
             '<input type="email" id="evg-email" autocomplete="email" required value="' + esc(email) + '">' +
             '<button type="submit">Send code and subscribe</button>' +
           '</form>' +
+          (member || passkeysAvailable() ? '<div class="evg-alt">' +
+            (member ? '<button type="button" class="evg-alt-btn" data-alt="session">Continue as ' + esc(member.email) + '</button>' : '') +
+            (passkeysAvailable() ? '<button type="button" class="evg-alt-btn" data-alt="passkey">Use a passkey</button>' : '') + '</div>' : '') +
           '<p class="evg-msg" role="status">' + esc(msg || '') + '</p>' +
           '<a class="evg-back" href="index.html#events">' + BACK_ICON + ' See all events</a>' +
         '</div>';
       var form = gate.querySelector('form');
       var msgEl = gate.querySelector('.evg-msg');
+
+      Array.prototype.forEach.call(gate.querySelectorAll('.evg-alt-btn'), function (btn) {
+        btn.addEventListener('click', function () {
+          var usePasskey = btn.getAttribute('data-alt') === 'passkey';
+          btn.disabled = true;
+          msgEl.className = 'evg-msg';
+          msgEl.textContent = usePasskey ? 'Waiting for your passkey\u2026' : 'Opening\u2026';
+          var who = usePasskey ? signInWithPasskey() : Promise.resolve(signedInMember());
+          who.then(function (member) {
+            if (!member || !member.session) throw new Error('Please sign in again, or use the emailed code.');
+            return openWithSession('/events/pages/preview/session', member);
+          }).then(function (data) {
+            if (!data.success || !data.token) throw new Error(data.message || 'That did not work, please use the emailed code.');
+            granted(data, data.email || '');
+          }).catch(function (err) {
+            btn.disabled = false;
+            msgEl.textContent = (err && err.message) || 'Something went wrong, please try again.';
+          });
+        });
+      });
       form.addEventListener('submit', function (e) {
         e.preventDefault();
         var value = gate.querySelector('#evg-email').value.trim();
@@ -245,6 +325,14 @@
     });
   }
 
+  // An admin browser opens straight away; anyone else gets the gate card.
+  function gateOrAdmin(entry) {
+    checkAdminViewer().then(function (isAdmin) {
+      if (isAdmin) openFor(entry, true, false);
+      else whenReady(function () { drawGate(entry); });
+    });
+  }
+
   function gateFor(entry) {
     var current = saved();
     // A one-time link (the admin's Preview, or the one in the code email): swap it for access in this browser.
@@ -260,7 +348,7 @@
     }
     if (!current || !current.token || !(current.expires > Date.now())) {
       save(null);
-      whenReady(function () { drawGate(entry); });
+      gateOrAdmin(entry);
       return;
     }
     // Check the saved access with the worker, so it ends when it should.
@@ -269,9 +357,9 @@
       .then(function (data) {
         if (data && data.success) { openFor(entry, !!data.admin, !!current.joined); return; }
         save(null);
-        whenReady(function () { drawGate(entry); });
+        gateOrAdmin(entry);
       })
-      .catch(function () { whenReady(function () { drawGate(entry); }); });
+      .catch(function () { gateOrAdmin(entry); });
   }
 
   fetch('data/event-pages.json', { cache: 'no-store' })

@@ -50,6 +50,10 @@
     '#iv-gate .ivg-join a{color:#fff}' +
     '#iv-gate .ivg-msg{min-height:1.4em;margin:12px 0 0;font-size:.9rem;color:#ffb199}' +
     '#iv-gate .ivg-msg.ok{color:#9fe0b0}' +
+    '#iv-gate .ivg-alt{display:flex;flex-direction:column;gap:10px;margin-top:12px}' +
+    '#iv-gate .ivg-alt-btn{width:100%;min-height:48px;border:1px solid rgba(255,255,255,.4);background:transparent;color:#fff;font-family:"IBM Plex Mono",monospace;font-size:.9rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}' +
+    '#iv-gate .ivg-alt-btn:hover{border-color:#fff}' +
+    '#iv-gate .ivg-alt-btn:disabled{opacity:.6;cursor:default}' +
     '#iv-gate .ivg-back{display:inline-block;margin-top:18px;color:#fff;font-size:.9rem}' +
     '.ivg-notice{position:fixed;left:50%;top:16px;transform:translateX(-50%);z-index:70;width:calc(100% - 32px);max-width:560px;box-sizing:border-box;background:#16233d;color:#fff;border:1px solid rgba(255,255,255,.25);border-left:4px solid #e8542a;padding:14px 44px 14px 16px;box-shadow:0 10px 30px rgba(0,0,0,.3);font-family:Inter,Arial,sans-serif;font-size:.95rem;line-height:1.45}' +
     '.ivg-notice strong{display:block;margin-bottom:4px}' +
@@ -92,6 +96,56 @@
   }
   function save(v) {
     try { if (v) localStorage.setItem(STORE, JSON.stringify(v)); else localStorage.removeItem(STORE); } catch (e) {}
+  }
+
+
+  // ----- Admin recognised on every gated page -----
+  // Entering the admin key on an admin page leaves a month-long token in
+  // this browser (see the admin pages), so a draft opens for the admin
+  // without a Preview or an emailed link.
+  function adminViewerToken() {
+    try {
+      var v = JSON.parse(localStorage.getItem('mt3ukAdminViewer') || 'null');
+      return v && v.token && v.expires > Date.now() ? v.token : '';
+    } catch (e) { return ''; }
+  }
+  function checkAdminViewer() {
+    var t = adminViewerToken();
+    if (!t) return Promise.resolve(false);
+    return fetch(API + '/admin/viewer-check?token=' + encodeURIComponent(t), { cache: 'no-store' })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (d) { return !!(d && d.success); })
+      .catch(function () { return false; });
+  }
+
+  // ----- Members: an existing sign-in, or a passkey -----
+  function signedInMember() {
+    try {
+      var session = localStorage.getItem('mt3ukMyBuildsSession');
+      var email = localStorage.getItem('mt3ukMyBuildsEmail');
+      return session && email ? { session: session, email: email } : null;
+    } catch (e) { return null; }
+  }
+  function passkeysAvailable() { return !!(window.PublicKeyCredential && navigator.credentials && navigator.credentials.get); }
+  function loadPasskeys() {
+    if (window.mt3ukPasskeys) return Promise.resolve();
+    return new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = 'js/passkeys.js';
+      s.onload = resolve;
+      s.onerror = function () { reject(new Error('Passkeys could not be loaded, please use the emailed code.')); };
+      document.head.appendChild(s);
+    });
+  }
+  function signInWithPasskey() {
+    return loadPasskeys().then(function () { return window.mt3ukPasskeys.signIn(); });
+  }
+  function openWithSession(path, who) {
+    return fetch(API + path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Session-Token': who.session },
+      body: JSON.stringify({ slug: slug })
+    }).then(function (res) { return res.json().catch(function () { return {}; }); });
   }
 
   function post(path, body) {
@@ -171,6 +225,7 @@
     var email = '';
 
     function step1(msg) {
+      var member = signedInMember();
       gate.innerHTML =
         '<div class="ivg-card">' +
           '<p class="ivg-eyebrow">Owner Interview &middot; ' + (entry.publish ? 'Coming ' + esc(niceDate(entry.publish)) : 'Coming soon') + '</p>' +
@@ -182,12 +237,35 @@
             '<input type="email" id="ivg-email" autocomplete="email" required value="' + esc(email) + '">' +
             '<button type="submit">Send code and subscribe</button>' +
           '</form>' +
+          (member || passkeysAvailable() ? '<div class="ivg-alt">' +
+            (member ? '<button type="button" class="ivg-alt-btn" data-alt="session">Continue as ' + esc(member.email) + '</button>' : '') +
+            (passkeysAvailable() ? '<button type="button" class="ivg-alt-btn" data-alt="passkey">Use a passkey</button>' : '') + '</div>' : '') +
           '<button type="button" class="ivg-link ivg-admin">Admin: email me a one-time link</button>' +
           '<p class="ivg-msg" role="status">' + esc(msg || '') + '</p>' +
           '<a class="ivg-back" href="blog.html">&larr; See published interviews</a>' +
         '</div>';
       var form = gate.querySelector('form');
       var msgEl = gate.querySelector('.ivg-msg');
+
+      Array.prototype.forEach.call(gate.querySelectorAll('.ivg-alt-btn'), function (btn) {
+        btn.addEventListener('click', function () {
+          var usePasskey = btn.getAttribute('data-alt') === 'passkey';
+          btn.disabled = true;
+          msgEl.className = 'ivg-msg';
+          msgEl.textContent = usePasskey ? 'Waiting for your passkey\u2026' : 'Opening\u2026';
+          var who = usePasskey ? signInWithPasskey() : Promise.resolve(signedInMember());
+          who.then(function (member) {
+            if (!member || !member.session) throw new Error('Please sign in again, or use the emailed code.');
+            return openWithSession('/interviews/preview/session', member);
+          }).then(function (data) {
+            if (!data.success || !data.token) throw new Error(data.message || 'That did not work, please use the emailed code.');
+            granted(data, data.email || '');
+          }).catch(function (err) {
+            btn.disabled = false;
+            msgEl.textContent = (err && err.message) || 'Something went wrong, please try again.';
+          });
+        });
+      });
       form.addEventListener('submit', function (e) {
         e.preventDefault();
         var value = gate.querySelector('#ivg-email').value.trim();
@@ -263,6 +341,25 @@
     show();
   }
 
+  // The admin's browser opens straight away (a small note says it is not
+  // published); anyone else gets the gate card.
+  function openAdmin() {
+    open();
+    whenReady(function () {
+      var note = document.createElement('div');
+      note.className = 'ivg-timer';
+      note.setAttribute('role', 'status');
+      note.textContent = 'Admin preview, not yet published';
+      document.body.appendChild(note);
+    });
+  }
+  function gateOrAdmin(entry) {
+    checkAdminViewer().then(function (isAdmin) {
+      if (isAdmin) openAdmin();
+      else whenReady(function () { drawGate(entry); });
+    });
+  }
+
   function gateFor(entry) {
     var current = saved();
     // Already open in this browser: the link isn't needed again.
@@ -278,7 +375,7 @@
     var access = saved();
     if (!access || !access.token || !(access.expires > Date.now())) {
       save(null);
-      whenReady(function () { drawGate(entry); });
+      gateOrAdmin(entry);
       return;
     }
     // Check the saved access with the worker, so it ends when it should.
@@ -292,9 +389,9 @@
           return;
         }
         save(null);
-        whenReady(function () { drawGate(entry); });
+        gateOrAdmin(entry);
       })
-      .catch(function () { whenReady(function () { drawGate(entry); }); });
+      .catch(function () { gateOrAdmin(entry); });
   }
 
   fetch('data/interviews.json', { cache: 'no-store' })

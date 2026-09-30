@@ -2448,6 +2448,62 @@ async function handleEventPreviewContent(request, env) {
   return json({ success: true, entry: entry });
 }
 
+// ---------- Admin viewer and member sessions for previews ----------
+// The admin pages leave a long-lived "admin viewer" token in the admin's
+// browser (minted with the admin key), so the event and interview gates open
+// for the admin without waiting for a Preview or an emailed link. The token
+// is tied to the current admin key, so changing the key ends every one.
+// Anyone else uses an emailed code, or a passkey (or an existing sign-in),
+// which proves they are an MT3UK member just as a code proves their email.
+
+var ADMIN_VIEWER_TTL_SECONDS = 30 * 24 * 60 * 60;
+
+async function adminKeyStamp(env) {
+  var hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('admin-viewer:' + env.ADMIN_KEY));
+  return Array.from(new Uint8Array(hash)).slice(0, 8).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+}
+
+async function handleAdminViewerToken(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorized' }, 401);
+  var token = randomToken();
+  var expires = Date.now() + ADMIN_VIEWER_TTL_SECONDS * 1000;
+  await env.VOTES.put('admin-viewer:' + token, JSON.stringify({ k: await adminKeyStamp(env), expires: expires }), { expirationTtl: ADMIN_VIEWER_TTL_SECONDS });
+  return json({ success: true, token: token, expires: expires });
+}
+
+async function handleAdminViewerCheck(request, env) {
+  var token = String(new URL(request.url).searchParams.get('token') || '');
+  if (!/^[A-Za-z0-9_-]{16,128}$/.test(token) || !env.ADMIN_KEY) return json({ success: false }, 401);
+  var raw = await env.VOTES.get('admin-viewer:' + token);
+  var record = null;
+  try { record = raw ? JSON.parse(raw) : null; } catch (e) { record = null; }
+  if (!record || !(record.expires > Date.now()) || record.k !== (await adminKeyStamp(env))) return json({ success: false }, 401);
+  return json({ success: true, expires: record.expires });
+}
+
+// A signed-in member (for example just signed in with a passkey) opens an
+// event preview. The sign-in proves the email, like a code does.
+async function handleEventPreviewSession(request, env) {
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
+  var slug = eventSlugOk(body && body.slug);
+  if (!slug) return json({ success: false, message: 'Invalid event' }, 400);
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  if (!(await eventExists(env, slug))) return json({ success: false, message: 'That event page is not available' }, 404);
+  return grantEventViewer(env, email, slug, json({ success: false, message: "This email can't preview this event. It will be here once it is published." }, 403));
+}
+
+async function handleInterviewPreviewSession(request, env) {
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
+  var slug = previewSlug(body && body.slug, false);
+  if (!slug) return json({ success: false, message: 'Invalid interview' }, 400);
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  return grantPreview(env, email, slug, json({ success: false, message: "This email can't preview this interview. It will be here on its publish date." }, 403));
+}
+
 var DIGEST_MANUAL_COOLDOWN_SECONDS = 120;
 
 async function handleAdminSendDigest(request, env) {
@@ -6650,6 +6706,18 @@ export default {
     }
     if (url.pathname === '/events/pages/admin/preview-link' && request.method === 'POST') {
       return handleEventPreviewMint(request, env);
+    }
+    if (url.pathname === '/admin/viewer-token' && request.method === 'POST') {
+      return handleAdminViewerToken(request, env);
+    }
+    if (url.pathname === '/admin/viewer-check' && request.method === 'GET') {
+      return handleAdminViewerCheck(request, env);
+    }
+    if (url.pathname === '/events/pages/preview/session' && request.method === 'POST') {
+      return handleEventPreviewSession(request, env);
+    }
+    if (url.pathname === '/interviews/preview/session' && request.method === 'POST') {
+      return handleInterviewPreviewSession(request, env);
     }
     if (url.pathname === '/events/pages/preview/request' && request.method === 'POST') {
       return handleEventPreviewRequest(request, env);

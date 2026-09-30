@@ -49,7 +49,7 @@
         "tiers": [
           {
             "name": "Per vehicle",
-            "price": "£10",
+            "price": "£10.95",
             "per": "Per vehicle",
             "tag": "",
             "includes": [

@@ -198,7 +198,7 @@
       "town": "Northampton",
       "address": "The Royal Ordnance Depot, Harmans Way, Northampton NN7 4PS",
       "location": "The Royal Ordnance Depot, Northampton",
-      "image": "images/events/gasoline-juice-autumn-meet-2026/card.jpg",
+      "image": "https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/events/gasoline-juice-autumn-meet-2026/7991c644d0a344fb.jpg",
       "heroImage": "https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/events/gasoline-juice-autumn-meet-2026/435b9a3d3f144137.jpg",
       "poster": "images/events/gasoline-juice-autumn-meet-2026/poster.jpg",
       "description": [
@@ -217,8 +217,8 @@
       "ctaUrl": "https://fb.me/e/26kXOArot6",
       "ctaLabel": "Facebook event",
       "closing": "See you there!",
-      "created": "2026-09-30",
-      "publish": "2026-09-30"
+      "publish": "2026-09-30",
+      "created": "2026-09-30"
     },
     {
       "slug": "cadwell-park-track-day-2026",

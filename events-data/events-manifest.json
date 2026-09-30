@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-30T18:22:23.877Z",
+  "generated": "2026-09-30T18:23:15.360Z",
   "totalEvents": 7,
   "events": [
     {
@@ -72,7 +72,7 @@
       "name": "Autumn Meet",
       "description": "Let's get together at Gasoline Juice, a popular location for all types of cars and bikes with Automobile Artwork, SIM racing, coffee, cake and breakfast baps",
       "startTime": "2026-10-18T10:00:00+0000",
-      "endTime": "2026-10-18T15:00:00+0000",
+      "endTime": "2026-10-18T14:00:00+0000",
       "location": {
         "name": "The Royal Ordnance Depot, Northampton"
       },

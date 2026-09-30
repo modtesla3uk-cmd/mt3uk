@@ -19,14 +19,18 @@ from r2_client import PUBLIC_BASE_URL, get_client, list_objects
 DOMAIN = "https://mt3uk.com"
 OUTPUT_FILE = "sitemap.xml"
 LOCAL_IMAGE_DIRS = ["images/site"]
-R2_PREFIXES = ["gallery/", "track-days/"]
+# R2 images sit on another host, and a sitemap <loc> must be on the site's own
+# host ("URL not allowed" in Search Console). So they are listed as
+# <image:image> entries under the page that shows them instead.
+R2_PREFIXES = {"gallery/": "gallery.html", "track-days/": "track-day-prep.html"}
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
 PAGES = ["index.html", "shop.html", "reviews.html", "contact.html", "signin.html", "privacy.html", "track-day-prep.html", "gallery.html", "blog.html", "blog-richard.html", "blog-john.html", "blog-kam.html", "blog-yusuf.html", "blog-ryan.html", "blog-sharad.html", "blog-romil.html", "blog-unicorn.html"]
 
 def get_all_images():
-    """Scan the local site-image directory and the R2 bucket, returning a
-    list of image URLs."""
+    """Scan the local site-image directory and the R2 bucket. Returns
+    (local image URLs, {page: [R2 image URLs]})."""
     images = []
+    page_images = {}
 
     for img_dir in LOCAL_IMAGE_DIRS:
         if not os.path.exists(img_dir):
@@ -41,18 +45,18 @@ def get_all_images():
                     images.append(f"{DOMAIN}/{url_path}")
 
     client = get_client()
-    for prefix in R2_PREFIXES:
+    for prefix, page in R2_PREFIXES.items():
         for obj in list_objects(client, prefix):
             key = obj["Key"]
             if Path(key).suffix.lower() in ALLOWED_EXTENSIONS:
-                images.append(f"{PUBLIC_BASE_URL}/{quote(key)}")
+                page_images.setdefault(page, []).append(f"{PUBLIC_BASE_URL}/{quote(key)}")
 
-    return sorted(images)
+    return sorted(images), {k: sorted(v) for k, v in page_images.items()}
 
 def generate_sitemap():
     """Generate sitemap.xml with homepage and all images"""
     
-    images = get_all_images()
+    images, page_images = get_all_images()
     current_date = datetime.now().strftime("%Y-%m-%d")
     
     # Start XML
@@ -82,8 +86,14 @@ def generate_sitemap():
             f'    <lastmod>{current_date}</lastmod>',
             '    <changefreq>weekly</changefreq>',
             '    <priority>0.8</priority>',
-            '  </url>',
         ])
+        for img_url in page_images.get(page, []):
+            xml_lines.extend([
+                '    <image:image>',
+                f'      <image:loc>{img_url}</image:loc>',
+                '    </image:image>',
+            ])
+        xml_lines.append('  </url>')
     
     # Add each image
     for img_url in images:
@@ -109,6 +119,7 @@ def generate_sitemap():
     print(f"Sitemap generated: {OUTPUT_FILE}")
     print(f"   Pages: {len(PAGES)} entries")
     print(f"   Images: {len(images)} entries")
+    print(f"   Gallery images on pages: {sum(len(v) for v in page_images.values())}")
     print(f"   Total URLs: {len(images) + len(PAGES)}")
 
 if __name__ == "__main__":

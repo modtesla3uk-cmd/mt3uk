@@ -441,7 +441,7 @@ def test_admin_can_copy_a_share_link_and_see_and_revoke_who_opened_a_preview(dev
     page.locator("#ep-list .event-card").first.wait_for(state="visible", timeout=5000)
     page.evaluate("navigator.clipboard.writeText = function (t) { window.__copied = t; return Promise.resolve(); }")
     page.click('#ep-list [data-ep="copy"]')
-    assert page.evaluate("window.__copied") == "https://mt3uk.com/event.html?e=frunk-or-treat-uk"
+    assert page.evaluate("window.__copied") == "https://mt3uk.com/share/event/frunk-or-treat-uk.html", "The link is the share page, which has the event's own preview image"
     assert "Link copied" in page.locator("#status").inner_text()
 
     page.click("#pv-wrap > summary")

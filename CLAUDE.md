@@ -60,7 +60,7 @@ Static site for the MT3UK modified Tesla community, live at https://mt3uk.com. I
 - The older Facebook-style events (`events-data/events-manifest.json`, the Upcoming and Past lists on `events-admin.html`) can each have a full event page: **Make event page** opens the event page editor filled in from the event, and **Edit event page** reopens it. The page keeps `manifestId` (the older event's id). Once that page is live, the homepage shows the featured card instead of the older row (and a past one links to the page).
 - Live events are featured on the homepage Events section (card image and tagline) until `endDate` (or `startDate`) has passed.
 - Worker routes are under `/events/pages/`. Tests: `tests/test_event_pages.py` (browser, mocked worker) and `tests/test_event_worker.py` (runs the real handlers in node).
-- Share previews and Google see the same page for every event, as it is drawn by script. Per-event share pages would be a later job.
+- Link previews (WhatsApp, Facebook, X, iMessage) read a page's own HTML and do not run scripts, so `event.html?e=<slug>` can only show one fixed preview (the MT3UK logo). Each event therefore has a share page, `share/event/<slug>.html`, with its own title, when and where, and image (hero, else card, else poster), which sends people on to the event page. `scripts/build_event_share_pages.py` writes them from `data/event-pages.json` in the deploy build (`.github/workflows/pages.yml`); they are not committed. **Copy link** on `events-admin.html` copies that address, so always share that one, not `event.html?e=...`. Chat apps cache previews, so a link already shared may keep its old picture for a while.
 
 ## Shop
 

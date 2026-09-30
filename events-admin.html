@@ -883,8 +883,9 @@
 
   // ---------- Sharing: copy the link ----------
   function copyLink(p) {
-    var link = 'https://mt3uk.com/event.html?e=' + p.slug;
-    var done = function () { setStatus('Link copied: ' + link + '. Anyone you send it to can ask for an emailed code to see the page early.', 'ok'); };
+    // The share page has the event's own image and title for link previews, then sends people on to the event page.
+    var link = 'https://mt3uk.com/share/event/' + p.slug + '.html';
+    var done = function () { setStatus('Link copied: ' + link + '. It shows this event\u2019s own image in chat and social previews. Anyone you send it to can ask for an emailed code to see the page early.', 'ok'); };
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(link).then(done, function () { window.prompt('Copy this link', link); });
     } else {

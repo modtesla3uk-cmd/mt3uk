@@ -4,7 +4,7 @@ REFRESHED must not bring back the typewriter font (IBM Plex Mono)."""
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-REFRESHED = ["my-builds.html", "gallery.html", "index.html", "event.html", "events-admin.html", "signin.html", "profile.html"]
+REFRESHED = ["my-builds.html", "gallery.html", "index.html", "event.html", "events-admin.html", "signin.html", "profile.html", "admin.html"]
 SHARED_SCRIPTS = ["js/messenger.js", "js/notify-bell.js", "js/share.js", "js/account-bar.js", "js/signin-prompt.js", "js/gallery-social.js", "js/push-toggle.js"]
 
 

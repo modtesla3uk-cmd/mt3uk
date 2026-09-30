@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Admin | MT3UK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
 <style>
   :root {
     --ink: #16233d;
@@ -17,7 +20,6 @@
     margin: 0;
     background: var(--ink);
     color: var(--white);
-    font-family: 'IBM Plex Mono', monospace;
     font-size: 0.85rem;
   }
   header {
@@ -141,8 +143,14 @@
   .collapsible > summary, .subscriber-files-wrap > summary { cursor: pointer; list-style: none; }
   .collapsible > summary::-webkit-details-marker, .subscriber-files-wrap > summary::-webkit-details-marker { display: none; }
   .collapsible > summary h2 { display: inline-block; margin: 0; }
-  .collapsible > summary h2::before, .subscriber-files-wrap > summary::before { content: "\25B8\00a0"; color: var(--orange); }
-  .collapsible[open] > summary h2::before, .subscriber-files-wrap[open] > summary::before { content: "\25BE\00a0"; }
+  .collapsible > summary h2::before, .subscriber-files-wrap > summary::before {
+    content: ""; display: inline-block; width: 18px; height: 18px; margin-right: 8px; vertical-align: -3px;
+    background: var(--orange); transform: rotate(-90deg); transition: transform .15s ease;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / contain no-repeat;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+  .subscriber-files-wrap > summary::before { width: 14px; height: 14px; margin-right: 6px; vertical-align: -2px; }
+  .collapsible[open] > summary h2::before, .subscriber-files-wrap[open] > summary::before { transform: none; }
   .collapsible[open] > summary { margin-bottom: 14px; }
   .summary-count { color: var(--steel); }
   .add-subscriber-row { display: flex; gap: 8px; margin-bottom: 18px; }
@@ -314,6 +322,72 @@
     .iv-stats { grid-template-columns: 1fr 1fr; }
     .iv-table .iv-hide-sm { display: none; }
   }
+  /* ---------- Shared look, on the dark admin page ----------
+     Soft 10px corners, IBM Plex Sans in normal capitals, 44px buttons and
+     fields and line icons, as on the rest of the site and events-admin.html. */
+  :root { --radius: 10px; --radius-sm: 8px; --radius-pill: 999px; --font-body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif; --focus-ring: 0 0 0 3px rgba(232, 84, 42, 0.4); --line: rgba(255,255,255,0.16); }
+  body { font-family: var(--font-body); font-size: 0.95rem; line-height: 1.5; }
+  h1 { font-size: 1.15rem; font-weight: 700; letter-spacing: 0; }
+  h2 { font-size: 1.05rem; font-weight: 600; letter-spacing: 0; text-transform: none; }
+  h3, .iv-drafts-title, .bc-h3 { font-size: 0.98rem; font-weight: 600; }
+  .sub-head, .bell-group, .iv-stat-label, .iv-table th, .iv-type { text-transform: none; letter-spacing: 0; }
+  .sub-head { font-size: 0.9rem; }
+  .bell-group, .iv-table th { font-size: 0.8rem; font-weight: 600; }
+  .iv-stat-label { font-size: 0.82rem; }
+  .bell-new { font-size: 0.72rem; letter-spacing: 0; }
+  input, select, textarea { font-family: inherit; }
+  input[type="email"], input[type="text"], input[type="password"], input[type="search"], input[type="date"], select, textarea,
+  .key-row input, .subscriber-search input[type="search"], .subscriber-search input[type="date"],
+  .iv-settings select, .iv-filters select, .pv-form select, .bc-test-row select, .bc-form textarea, .iv-draft-date, .bell-key-row input {
+    min-height: 44px; border-radius: var(--radius-sm); font-size: 0.95rem; padding: 9px 12px;
+    background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3); color: var(--white); color-scheme: dark;
+  }
+  select option { color: #16233d; background: #ffffff; }
+  .iv-table input[type="date"], .iv-table input[type="text"], .iv-table textarea { min-height: 38px; font-size: 0.86rem; border-radius: var(--radius-sm); }
+  .iv-table textarea, .bc-form textarea { min-height: 96px; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--orange); box-shadow: var(--focus-ring); }
+  input[type=checkbox] { min-height: 0; width: 18px; height: 18px; accent-color: var(--orange); }
+  button {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 44px; padding: 10px 16px; border-radius: var(--radius);
+    background: var(--orange); color: #ffffff; border: 1px solid transparent;
+    font-family: var(--font-body); font-size: 0.93rem; font-weight: 600; line-height: 1.2;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+  }
+  button:hover { opacity: 1; background: #d4481f; }
+  button:disabled { opacity: 0.45; }
+  button.secondary { background: transparent; border-color: rgba(255,255,255,0.35); color: var(--white); }
+  button.secondary:hover { background: rgba(255,255,255,0.08); border-color: var(--white); }
+  button.danger, .reject-btn, .delete-btn { background: transparent; border-color: rgba(255,107,107,0.6); color: #ff6b6b; }
+  button.danger:hover, .reject-btn:hover, .delete-btn:hover { background: rgba(255,107,107,0.14); color: #ff6b6b; }
+  .approve-btn { background: #3f9e6e; }
+  .approve-btn:hover { background: #358a5f; }
+  .bell-btn, .bell-item { min-height: 0; border-radius: 50%; font-weight: 400; }
+  .bell-btn { background: none; }
+  .bell-btn:hover { background: rgba(255,255,255,0.06); }
+  .bell-item { border-radius: 0; background: none; font-size: 0.86rem; justify-content: flex-start; }
+  .bell-item:hover { background: rgba(255,255,255,0.07); }
+  .bell-thumb { border-radius: var(--radius-sm); }
+  .bell-thumb-blank .icon { width: 20px; height: 20px; }
+  .icon { width: 18px; height: 18px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vertical-align: middle; }
+  .iv-filters button, .iv-toolbar button, .iv-actions .iv-act, .iv-review-actions button, .bc-body .bc-row button, .bc-one button, .bc-test-row button,
+  .subscriber-file-row button, .subscriber-link-result button, .local-reported-row button, .delete-btn, .card-actions button, .subscriber-head button, .assign-row button, .pv-act {
+    min-height: 38px; padding: 7px 13px; font-size: 0.86rem; border-radius: var(--radius-sm);
+  }
+  .lightbox-close { min-height: 44px; width: 44px; padding: 0; border-radius: 50%; }
+  .card, .subscriber-card, .thread, .iv-stat, .iv-review, .bc-item { border-color: var(--line); border-radius: var(--radius); }
+  .thread { overflow: hidden; }
+  .card img, .thread-head img, .subscriber-file-row img { border-radius: var(--radius-sm); }
+  .iv-table th { border-bottom-color: var(--line); }
+  .iv-table td { border-bottom-color: rgba(255,255,255,0.08); }
+  .iv-type { border-radius: var(--radius-pill); padding: 2px 10px; font-size: 0.78rem; font-weight: 600; }
+  .card-file, .card-meta, .card-status, .comment-meta, .reports-badge, .hidden-badge, .subscriber-added, .subscriber-name.no-name, .subscriber-nick,
+  .subscriber-files-wrap > summary, .subscriber-file-row, .subscriber-search label, .subscriber-search-count, .subscriber-link-result,
+  .thread-head .file, .local-reported-row, .lightbox-caption, .iv-stat-note, .iv-settings, .iv-gap, .iv-table .iv-sub, .iv-status, .iv-note, .bc-test label { font-size: 0.84rem; }
+  .iv-table { font-size: 0.9rem; }
+  .comment { border-left-width: 3px; border-radius: 2px; }
+  .collapsible > summary { padding: 4px 0; }
+  a { text-underline-offset: 3px; }
   /* Phones: larger text and tap targets, single-column rows. Desktop is
      unchanged. Inputs use 16px so iOS doesn't zoom in on focus. */
   @media (max-width: 780px) {
@@ -351,6 +425,8 @@
     .subscriber-rename-row input { flex-basis: 100%; }
     .subscriber-rename-row button { flex: 1 1 auto; }
     .comment.is-reply { margin-left: 12px; }
+    button { min-height: 44px; font-size: 0.93rem; }
+    .iv-actions .iv-act { min-height: 36px; padding: 6px 10px; font-size: 0.8rem; white-space: nowrap; }
     .iv-table { font-size: 0.85rem; }
     .iv-settings select { font-size: 16px; }
   }
@@ -365,7 +441,7 @@
     </button>
     <div class="bell-panel" id="bell-panel" role="dialog" aria-label="Notifications" hidden></div>
   </div>
-  <h1>MT3UK ADMIN</h1>
+  <h1>MT3UK Admin</h1>
   <p class="admin-links"><a href="events-admin.html">Events admin</a> &middot; <a href="device-checklist.html">Device test checklist</a></p>
   <div class="key-row">
     <input type="password" id="admin-key" placeholder="Admin key" autocomplete="off">
@@ -376,7 +452,7 @@
   <p class="status" id="status"></p>
 
   <section>
-    <details class="collapsible" id="interviews-wrap" open>
+    <details class="collapsible" id="interviews-wrap">
       <summary><h2>Owner interviews <span class="summary-count" id="interviews-count"></span></h2></summary>
       <div class="iv-settings">
         <label>Release every
@@ -488,26 +564,26 @@
   <div class="admin-grid">
   <div class="admin-col">
     <section>
-      <details class="collapsible" id="pending-wrap" open>
+      <details class="collapsible" id="pending-wrap">
         <summary><h2>Pending claims <span class="summary-count" id="pending-count"></span></h2></summary>
         <div id="pending-claims"></div>
       </details>
     </section>
     <section>
-      <details class="collapsible" id="decided-wrap" open>
+      <details class="collapsible" id="decided-wrap">
         <summary><h2>Decided claims <span class="summary-count" id="decided-count"></span></h2></summary>
         <div id="decided-claims"></div>
       </details>
     </section>
     <section>
-      <details class="collapsible" id="unclaimed-wrap" open>
+      <details class="collapsible" id="unclaimed-wrap">
         <summary><h2>Unclaimed photos <span class="summary-count" id="unclaimed-count"></span></h2></summary>
         <datalist id="subscriber-emails"></datalist>
         <div id="unclaimed-photos"></div>
       </details>
     </section>
     <section>
-      <details class="collapsible" id="subscribers-wrap" open>
+      <details class="collapsible" id="subscribers-wrap">
         <summary><h2>Subscribers <span class="summary-count" id="subscribers-count"></span></h2></summary>
         <div class="digest-row">
           <button type="button" class="secondary" id="send-digest-btn">Send subscribers email now</button>
@@ -533,7 +609,7 @@
   </div>
   <div class="admin-col">
     <section>
-      <details class="collapsible" id="votes-wrap" open>
+      <details class="collapsible" id="votes-wrap">
         <summary><h2>Build of the Week entries <span class="summary-count" id="votes-count"></span></h2></summary>
         <p class="card-meta">This week's vote, newest first. Remove from voting takes a photo out of the vote and deletes its votes this week. The photo stays in the gallery and reel, and the owner can't put it back in, but they can enter a different photo.</p>
         <div id="vote-entries"></div>
@@ -542,19 +618,19 @@
       </details>
     </section>
     <section>
-      <details class="collapsible" id="comments-wrap" open>
+      <details class="collapsible" id="comments-wrap">
         <summary><h2>Reported comments <span class="summary-count" id="comments-count"></span></h2></summary>
         <div id="threads"></div>
       </details>
     </section>
     <section>
-      <details class="collapsible" id="rphotos-wrap" open>
+      <details class="collapsible" id="rphotos-wrap">
         <summary><h2>Reported photos <span class="summary-count" id="rphotos-count"></span></h2></summary>
         <div id="reported-photos"></div>
       </details>
     </section>
     <section>
-      <details class="collapsible" id="local-wrap" open>
+      <details class="collapsible" id="local-wrap">
         <summary><h2>Reported in this browser <span class="summary-count" id="local-count"></span></h2></summary>
         <p class="card-meta">These photos show as "Reported" (disabled) on the public site in this browser, from a local flag stored here, separate from server-side reports above. Clearing them here only affects this browser.</p>
         <div id="local-reported-list"></div>
@@ -564,7 +640,7 @@
   </div>
 </main>
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Photo preview">
-  <button type="button" class="secondary lightbox-close" aria-label="Close">Close</button>
+  <button type="button" class="secondary lightbox-close" aria-label="Close"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
   <img id="lightbox-img" src="" alt="">
   <div class="lightbox-caption" id="lightbox-caption"></div>
 </div>
@@ -1516,23 +1592,26 @@
     if (sec.el.children.length) update();
   });
 
-  // Expand sections with something in them and collapse empty ones. Decided
-  // claims only open when there's a new pending claim to judge against them.
-  function applyOpenRules() {
-    sections.forEach(function (sec) {
-      var open = sectionCount(sec.name) > 0;
-      if (sec.name === 'decided') open = sectionCount('pending') > 0;
-      if (sec.name === 'subscribers') open = true;
-      document.getElementById(sec.name + '-wrap').open = open;
+  // Sections open and close only when you click them, never on their own
+  // (loading or refreshing used to open every section with something in it).
+  // Whatever you leave open is remembered in this browser; the rest start closed.
+  var OPEN_KEY = 'mt3ukAdminOpen';
+  function readOpen() { try { return JSON.parse(localStorage.getItem(OPEN_KEY) || '[]'); } catch (e) { return []; } }
+  Array.prototype.forEach.call(document.querySelectorAll('details.collapsible'), function (d) {
+    if (readOpen().indexOf(d.id) !== -1) d.open = true;
+    d.addEventListener('toggle', function () {
+      var ids = readOpen().filter(function (id) { return id !== d.id; });
+      if (d.open) ids.push(d.id);
+      try { localStorage.setItem(OPEN_KEY, JSON.stringify(ids)); } catch (e) {}
     });
-  }
+  });
 
   // ---------- Load all ----------
 
   // 'none' until a key is tried, then 'ok' or 'bad' (see loadClaims).
   var adminKeyState = 'none';
 
-  function loadAll(applyRules) {
+  function loadAll() {
     var key = keyInput.value.trim();
     if (!key) {
       statusEl.textContent = 'Enter the admin key first.';
@@ -1544,7 +1623,6 @@
     return Promise.all([loadClaims(key), loadUnclaimed(key), loadSubscribers(key), loadThreads(key), loadReported(key), loadVoteEntries(key)])
       .then(function () {
         statusEl.textContent = '';
-        if (applyRules === true) applyOpenRules();
       })
       .catch(function () {
         statusEl.textContent = 'Network error loading data.';
@@ -1671,9 +1749,9 @@
         lastGroup = it.group;
       }
       html += '<button type="button" class="bell-item" data-index="' + i + '">' +
-        (it.img ? '<img class="bell-thumb" src="' + escapeHtml(it.img) + '" alt="">' : '<span class="bell-thumb bell-thumb-blank">&#9993;</span>') +
+        (it.img ? '<img class="bell-thumb" src="' + escapeHtml(it.img) + '" alt="">' : '<span class="bell-thumb bell-thumb-blank"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span>') +
         '<span class="bell-text"><span class="bell-title">' + escapeHtml(it.title) + '</span><span class="bell-sub">' + escapeHtml(it.sub) + '</span></span>' +
-        (seen.indexOf(it.id) === -1 ? '<span class="bell-new">NEW</span>' : '') +
+        (seen.indexOf(it.id) === -1 ? '<span class="bell-new">New</span>' : '') +
       '</button>';
     });
     bellPanel.innerHTML = html;

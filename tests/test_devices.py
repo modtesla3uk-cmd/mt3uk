@@ -873,6 +873,7 @@ def test_admin_can_take_a_photo_out_of_voting(device_page):
     page = device_page
     page.add_init_script("sessionStorage.setItem('mt3ukAdminKey', 'test-key')")
     page.goto("/admin.html")
+    page.locator("#votes-wrap > summary").click()
     card = page.locator("#vote-entries .card")
     card.first.wait_for(timeout=10000)
     text = card.first.inner_text()
@@ -887,6 +888,7 @@ def test_admin_can_take_a_photo_out_of_voting(device_page):
     assert any(line.startswith("POST /admin/vote-entries") for line in page.api_log[before:]), page.api_log[before:]
 
     # Send subscribers email now.
+    page.locator("#subscribers-wrap > summary").click()
     before = len(page.api_log)
     page.click("#send-digest-btn")
     page.wait_for_timeout(600)
@@ -990,6 +992,22 @@ def test_only_links_show_just_those_builds(device_page):
     card = page.locator('.vote-card[data-file="more-9.jpg"]')
     card.wait_for(timeout=10000)
     assert card.is_visible() and "vote-card-focus" in card.get_attribute("class")
+    assert page.errors == []
+
+
+@all_devices
+def test_admin_sections_stay_closed_until_opened(device_page):
+    """Loading or refreshing never opens a section; one you open stays open."""
+    page = device_page
+    page.add_init_script("sessionStorage.setItem('mt3ukAdminKey', 'test-key')")
+    page.goto("/admin.html")
+    page.locator("#pending-count", has_text="(1)").wait_for(timeout=10000)
+    opened = "[...document.querySelectorAll('details.collapsible')].filter(d => d.open).map(d => d.id)"
+    assert page.evaluate(opened) == []
+    page.locator("#votes-wrap > summary").click()
+    page.reload()
+    page.locator("#pending-count", has_text="(1)").wait_for(timeout=10000)
+    assert page.evaluate(opened) == ["votes-wrap"]
     assert page.errors == []
 
 

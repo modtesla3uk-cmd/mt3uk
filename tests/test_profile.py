@@ -345,6 +345,7 @@ def test_admin_can_draft_and_publish_interviews_now(device_page):
     page = device_page
     page.add_init_script("sessionStorage.setItem('mt3ukAdminKey', 'test-key')")
     page.goto("/admin.html")
+    page.locator("#interviews-wrap > summary").click()
     table = page.locator("#iv-list")
     table.locator("tbody tr").first.wait_for(timeout=5000)
     dialogs = []
@@ -376,6 +377,7 @@ def test_admin_shows_how_long_each_interview_was_current(device_page):
     page.route(re.compile(r".*/data/interviews\.json.*"), lambda route: route.fulfill(
         status=200, body=_json.dumps(data), headers={"Content-Type": "application/json"}))
     page.goto("/admin.html")
+    page.locator("#interviews-wrap > summary").click()
     page.locator("#iv-list .iv-current").first.wait_for(timeout=5000)
     text = page.locator("#iv-list").inner_text()
     assert "Was current for 14 days" in text
@@ -555,6 +557,7 @@ def test_admin_subscribers_show_nicknames(device_page):
     page = device_page
     page.add_init_script("sessionStorage.setItem('mt3ukAdminKey', 'test-key')")
     page.goto("/admin.html")
+    page.locator("#subscribers-wrap > summary").click()
     cards = page.locator("#subscribers-wrap .subscriber-card")
     cards.first.wait_for(timeout=5000)
     assert "@Sparky" in page.locator("#subscribers-wrap").inner_text()

@@ -43,7 +43,7 @@
           "text": ""
         }
       ],
-      "entry": "£10",
+      "entry": "£10.95",
       "entryNote": "per vehicle",
       "tickets": {
         "tiers": [
@@ -55,8 +55,8 @@
             "includes": [
               "This can then be used against any purchases made during the customers visit"
             ],
-            "url": "",
-            "buttonLabel": "",
+            "url": "https://www.universe.com/events/saturday-session-ft-frunk-or-treat-the-hill-tickets-30ZPHB",
+            "buttonLabel": "Get Tickets",
             "featured": true,
             "soldOut": false,
             "addOn": false
@@ -64,8 +64,8 @@
         ]
       },
       "closing": "Fancy dress is heavily encouraged. See you there!",
-      "created": "2026-09-30",
-      "draft": true
+      "draft": true,
+      "created": "2026-09-30"
     },
     {
       "slug": "race-of-remembrance-track-day-2026",

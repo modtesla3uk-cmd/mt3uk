@@ -164,7 +164,7 @@
             "url": "https://ror-launch-trackday26.eventbrite.co.uk",
             "buttonLabel": "Book on Eventbrite",
             "featured": false,
-            "soldOut": false,
+            "soldOut": true,
             "addOn": true
           }
         ],

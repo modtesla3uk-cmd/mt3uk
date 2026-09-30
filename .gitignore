@@ -2,5 +2,3 @@ __pycache__/
 .pytest_cache/
 test-results/
 
-# Written by scripts/build_event_share_pages.py in the deploy build
-share/event/

@@ -61,9 +61,16 @@ def test_the_plain_event_page_no_longer_shows_the_main_events_photo():
     assert (ROOT / "images" / "MT3UK_RED_BLK_BG.png").exists()
 
 
-def test_the_deploy_build_writes_the_event_share_pages():
-    workflow = (ROOT / ".github" / "workflows" / "pages.yml").read_text(encoding="utf-8")
-    assert "python3 scripts/build_event_share_pages.py" in workflow
+def test_the_workflows_write_and_commit_the_event_share_pages():
+    """mt3uk.com is served from the files in the repo, so the pages must be
+    committed, not only generated in the GitHub Pages build."""
+    sync = (ROOT / ".github" / "workflows" / "sync-manifests.yml").read_text(encoding="utf-8")
+    assert "python3 scripts/build_event_share_pages.py" in sync
+    assert '"data/event-pages.json"' in sync and '"images/events/**"' in sync, "Runs when an event is saved"
+    assert "git add" in sync and " share" in sync.split("git add", 1)[1].split("\n", 1)[0], "The share folder is committed"
+    assert "python3 scripts/build_event_share_pages.py" in (ROOT / ".github" / "workflows" / "pages.yml").read_text(encoding="utf-8")
+    ignored = (ROOT / ".gitignore").read_text(encoding="utf-8")
+    assert "share/event" not in ignored, "The share pages are committed, not ignored"
 
 
 def test_the_preview_picture_is_1200_by_630_and_small_enough_for_whatsapp():
@@ -96,6 +103,7 @@ def test_a_share_page_uses_the_right_sized_preview_when_there_is_one():
     assert meta(without, "og:image") == "https://img.example/huge.jpg" and "og:image:width" not in without
 
 
-def test_the_deploy_build_can_make_the_previews():
-    workflow = (ROOT / ".github" / "workflows" / "pages.yml").read_text(encoding="utf-8")
-    assert "pip install boto3 Pillow" in workflow
+def test_the_workflows_can_make_the_previews():
+    for name in ("pages.yml", "sync-manifests.yml"):
+        workflow = (ROOT / ".github" / "workflows" / name).read_text(encoding="utf-8")
+        assert "Pillow" in workflow, name

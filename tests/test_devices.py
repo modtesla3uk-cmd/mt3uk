@@ -305,12 +305,15 @@ def api_reply(url, method, post_data, state):
             saved = {}
         state["legacy_saved"] = saved
         events = state.setdefault("legacy_events", [])
+        updated = None
         for e in events:
             if e["id"] == saved.get("id"):
                 e.update({"name": saved["name"], "description": saved["description"], "facebookUrl": saved["facebookUrl"], "location": {"name": saved["location"]},
                           "startTime": saved["startDate"] + "T" + saved["startTime"] + ":00+0000",
-                          "endTime": (saved["endDate"] or saved["startDate"]) + "T" + (saved["endTime"] or saved["startTime"]) + ":00+0000"})
-        return {"success": True, "events": events}
+                          "endTime": (saved["endDate"] or saved["startDate"]) + "T" + (saved["endTime"] or saved["startTime"]) + ":00+0000",
+                          "attendingCount": int(saved.get("attendingCount") or 0), "interestedCount": int(saved.get("interestedCount") or 0)})
+                updated = e
+        return {"success": True, "events": events, "event": updated or saved}
     if path.startswith("/events/pages/"):
         return event_pages_reply(path, method, post_data, state, url)
     if path == "/interviews/preview/link":

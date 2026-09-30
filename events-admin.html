@@ -362,9 +362,8 @@
       </details>
     </section>
 
-    <section>
-      <form class="form-card" id="event-form" novalidate>
-        <h2 id="form-title">Add an event</h2>
+    <form class="form-card hidden" id="event-form" novalidate>
+        <h2 id="form-title">Edit event</h2>
         <div class="form-grid">
           <div class="field full">
             <label for="f-name">Event name</label>
@@ -407,11 +406,10 @@
           </div>
         </div>
         <div class="form-actions">
-          <button type="submit" id="save-btn">Add event</button>
-          <button type="button" class="secondary hidden" id="cancel-btn">Cancel edit</button>
+          <button type="submit" id="save-btn">Save changes</button>
+          <button type="button" class="secondary" id="cancel-btn">Cancel</button>
         </div>
-      </form>
-    </section>
+    </form>
 
     <section>
       <div class="list-head">
@@ -1142,7 +1140,6 @@
       '<div class="event-actions">' +
         '<button type="button" data-page="' + escapeHtml(ev.id) + '">Edit</button>' +
         '<button type="button" class="secondary" data-action="edit" data-id="' + escapeHtml(ev.id) + '" title="The small form: name, dates, place, link and attendee counts">Quick edit</button>' +
-        '<button type="button" class="secondary" data-action="copy" data-id="' + escapeHtml(ev.id) + '">Copy as new</button>' +
         '<button type="button" class="danger" data-action="delete" data-id="' + escapeHtml(ev.id) + '">Delete</button>' +
       '</div>' +
     '</div>';
@@ -1216,9 +1213,7 @@
     placeAll();
     form.reset();
     form.classList.remove('editing');
-    formTitle.textContent = 'Add an event';
-    saveBtn.textContent = 'Add event';
-    cancelBtn.classList.add('hidden');
+    form.classList.add('hidden');
   }
 
   function startEdit(ev) {
@@ -1226,32 +1221,13 @@
     editingId = ev.id;
     fillForm(ev);
     form.classList.add('editing');
-    formTitle.textContent = 'Edit event ' + ev.id;
-    saveBtn.textContent = 'Save changes';
-    cancelBtn.classList.remove('hidden');
+    form.classList.remove('hidden');
+    formTitle.textContent = 'Quick edit: ' + ev.name;
     anchorId = ev.id;
     parkAll();
     placeAll();
     showEditor();
     fields.name.focus({ preventScroll: true });
-  }
-
-  function startCopy(ev) {
-    resetForm();
-    fillForm(ev);
-    // A copy is usually next year's run of the same event, so the dates are
-    // cleared to make sure they get changed.
-    fields.startDate.value = '';
-    fields.endDate.value = '';
-    fields.attendingCount.value = '';
-    fields.interestedCount.value = '';
-    formTitle.textContent = 'Add an event (copied from ' + ev.id + ')';
-    setStatus('Set the new dates, then press Add event.');
-    anchorId = ev.id;
-    parkAll();
-    placeAll();
-    showEditor();
-    fields.startDate.focus({ preventScroll: true });
   }
 
   function load() {
@@ -1276,6 +1252,7 @@
 
   form.addEventListener('submit', function (e) {
     e.preventDefault();
+    if (!editingId) return;
     var missing = ['name', 'startDate', 'startTime', 'location', 'facebookUrl'].filter(function (f) {
       return !fields[f].value.trim();
     });
@@ -1289,12 +1266,11 @@
 
     saveBtn.disabled = true;
     setStatus('Saving...');
-    var wasEditing = !!editingId;
     request('POST', '', payload).then(function (data) {
       events = data.events || events;
       renderList();
       resetForm();
-      setStatus(savedMessage(wasEditing ? 'Saved' : 'Added', data.event), 'ok');
+      setStatus(savedMessage('Saved', data.event), 'ok');
     }).catch(function (err) {
       setStatus(err.message, 'error');
     }).then(function () { saveBtn.disabled = false; });
@@ -1308,7 +1284,6 @@
     var ev = events.filter(function (x) { return x.id === btn.dataset.id; })[0];
     if (!ev) return;
     if (btn.dataset.action === 'edit') { startEdit(ev); return; }
-    if (btn.dataset.action === 'copy') { startCopy(ev); return; }
     if (!confirm('Delete event ' + ev.id + ' "' + ev.name + '"? This removes it from the website.')) return;
     btn.disabled = true;
     setStatus('Deleting...');

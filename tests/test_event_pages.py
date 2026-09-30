@@ -735,3 +735,34 @@ def test_the_share_button_uses_the_share_page_not_the_plain_address(device_page)
     page.click("#share-event")
     page.wait_for_function("document.getElementById('share-event').textContent.indexOf('Link copied') !== -1", timeout=5000)
     assert page.evaluate("window.__copied") == "https://mt3uk.com/share/event/test-meet.html"
+
+
+@ADMIN_ONLY
+def test_the_old_way_of_adding_an_event_is_gone_but_quick_edit_still_works(device_page):
+    page = device_page
+    page.mock_state["legacy_events"] = [dict(LEGACY)]
+    open_events_admin(page)
+    card = page.locator("#upcoming-list .event-card", has_text="Lancing Motor Show")
+    card.wait_for(state="visible", timeout=5000)
+    body = page.locator("#admin-body").inner_text()
+    assert "Add an event\\n" not in body and "Add event" not in body, "No separate Add an event form"
+    assert page.locator("#event-form").is_hidden(), "The small form is closed until Quick edit"
+    assert page.locator("text=Copy as new").count() == 0 and page.locator('[data-action="copy"]').count() == 0
+    assert "Add an event page" in body, "Adding is done with event pages"
+
+    # Quick edit opens the small form under the event, for the attendee counts.
+    card.locator('button[data-action="edit"]').click()
+    page.locator("#event-form").wait_for(state="visible", timeout=5000)
+    assert page.evaluate("document.getElementById('event-form').previousElementSibling.dataset.id") == "002"
+    assert "Quick edit" in page.locator("#form-title").inner_text()
+    page.fill("#f-attending", "42")
+    page.click("#save-btn")
+    page.wait_for_function("document.getElementById('status').textContent.indexOf('Saved event 002') === 0", timeout=5000)
+    assert page.mock_state["legacy_saved"]["attendingCount"] == "42" and page.mock_state["legacy_saved"]["id"] == "002"
+    assert page.locator("#event-form").is_hidden(), "It closes after saving"
+    # Cancel closes it too.
+    card = page.locator("#upcoming-list .event-card", has_text="Lancing Motor Show")
+    card.locator('button[data-action="edit"]').click()
+    page.locator("#event-form").wait_for(state="visible", timeout=5000)
+    page.click("#cancel-btn")
+    assert page.locator("#event-form").is_hidden() and page.locator(".event-card.is-editing").count() == 0

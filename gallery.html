@@ -341,7 +341,12 @@
 
   .gallery-only-note { margin: 0 0 14px; padding: 10px 14px; border: 1px solid var(--ink); border-left: 3px solid var(--orange); background: var(--paper-2); font-family: 'IBM Plex Sans', sans-serif; font-size: 0.88rem; color: var(--ink); }
   .gallery-only-note[hidden] { display: none; }
-  .gallery-only-note a { color: var(--orange); font-weight: 600; }
+  .gallery-only-note { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px; }
+  .gallery-only-note a { color: var(--orange); font-weight: 600; white-space: nowrap; }
+  .gallery-member { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; letter-spacing: 0.04em; background: transparent; border: 1px solid var(--ink); color: var(--ink); padding: 7px 30px 7px 12px; cursor: pointer; max-width: 100%; appearance: none; -webkit-appearance: none; border-radius: 0;
+    background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%), linear-gradient(135deg, var(--ink) 50%, transparent 50%); background-position: calc(100% - 15px) 50%, calc(100% - 10px) 50%; background-size: 5px 5px; background-repeat: no-repeat; }
+  .gallery-member.active { background-color: var(--ink); color: var(--paper); background-image: linear-gradient(45deg, transparent 50%, var(--paper) 50%), linear-gradient(135deg, var(--paper) 50%, transparent 50%); }
+  .gallery-filters .filter-break { flex-basis: 100%; height: 0; }
   .gallery-filters {
     display: flex;
     flex-wrap: wrap;
@@ -555,7 +560,7 @@
         </div>
       </div>
     </div>
-    <p class="gallery-only-note" id="gallery-only-note" hidden>Showing your builds only. <a href="gallery.html">Show all builds</a></p>
+    <p class="gallery-only-note" id="gallery-only-note" hidden><span id="gallery-only-text">Your builds</span> <a href="gallery.html" id="gallery-only-clear">&times; Show all builds</a></p>
     <div class="gallery-filters" id="gallery-filters"></div>
     <div class="gallery-grid" id="gallery-grid">
       <p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">Loading builds&hellip;</p>
@@ -905,6 +910,17 @@
     var filteredPhotos = [];
     var currentColor = '';
     var currentPage = 1;
+    // Filters: My Garage and the chat link here as ?only=<file,file> (the
+    // chat adds &who=<friend's name>); the Member filter is ?member=<name>.
+    var params = new URL(window.location.href).searchParams;
+    var onlyFiles = (params.get('only') || '').split(',').filter(Boolean);
+    var onlyWho = params.get('who') || '';
+    var currentMember = params.get('member') || '';
+    function escHtml(v) {
+      return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
 
     function renderFilters() {
       var swatches = {
@@ -912,12 +928,41 @@
         Pink: '#e5789c', Green: '#3f7d4f',
         Other: 'repeating-linear-gradient(45deg, #b5aa94, #b5aa94 3px, #8a7f68 3px, #8a7f68 6px)'
       };
+      // Members with photos in the gallery, A to Z, with how many.
+      var counts = {};
+      allPhotos.forEach(function (p) { if (p.name) counts[p.name] = (counts[p.name] || 0) + 1; });
+      var members = Object.keys(counts).sort(function (a, b) { return a.localeCompare(b, 'en', { sensitivity: 'base' }); });
+      // A shared link's member, whatever its capitals; one no longer in the
+      // gallery is ignored.
+      if (currentMember && !counts[currentMember]) {
+        currentMember = members.filter(function (m) { return m.toLowerCase() === currentMember.toLowerCase(); })[0] || '';
+      }
       filtersEl.innerHTML = '<button type="button" class="filter-btn' + (currentColor === '' ? ' active' : '') + '" data-color="">All</button>' +
         COLORS.map(function (c) {
           return '<button type="button" class="filter-btn' + (currentColor === c ? ' active' : '') + '" data-color="' + c + '">' +
             '<span class="swatch" style="background:' + swatches[c] + '"></span>' + c +
           '</button>';
-        }).join('');
+        }).join('') +
+        '<span class="filter-break" aria-hidden="true"></span>' +
+        '<select id="gallery-member" aria-label="Show builds by member" class="gallery-member' + (currentMember ? ' active' : '') + '">' +
+          '<option value="">All members</option>' +
+          members.map(function (m) {
+            return '<option value="' + escHtml(m) + '"' + (m === currentMember ? ' selected' : '') + '>' + escHtml(m) + ' (' + counts[m] + ')</option>';
+          }).join('') +
+        '</select>';
+      document.getElementById('gallery-member').addEventListener('change', function () {
+        currentMember = this.value;
+        // Picking a member replaces a link's "only these builds" filter.
+        onlyFiles = [];
+        onlyWho = '';
+        var url = new URL(window.location.href);
+        url.searchParams.delete('only');
+        url.searchParams.delete('who');
+        if (currentMember) url.searchParams.set('member', currentMember); else url.searchParams.delete('member');
+        try { history.replaceState(null, '', url.pathname + url.search + url.hash); } catch (e) {}
+        applyFilter();
+        renderFilters();
+      });
       Array.prototype.slice.call(filtersEl.querySelectorAll('.filter-btn')).forEach(function (btn) {
         btn.addEventListener('click', function () {
           currentColor = btn.dataset.color || '';
@@ -928,7 +973,16 @@
     }
 
     function applyFilter() {
-      filteredPhotos = currentColor ? allPhotos.filter(function (p) { return p.color === currentColor; }) : allPhotos;
+      var photos = allPhotos;
+      if (onlyFiles.length) {
+        var only = photos.filter(function (p) { return onlyFiles.indexOf(p.file) !== -1; });
+        if (only.length) photos = only; else onlyFiles = [];
+      }
+      if (currentMember) photos = photos.filter(function (p) { return p.name === currentMember; });
+      var who = onlyFiles.length ? (onlyWho ? 'Builds by <strong>' + escHtml(onlyWho) + '</strong>' : 'Your builds') : currentMember ? 'Builds by <strong>' + escHtml(currentMember) + '</strong>' : '';
+      document.getElementById('gallery-only-text').innerHTML = who + ' (' + photos.length + ')';
+      document.getElementById('gallery-only-note').hidden = !who;
+      filteredPhotos = currentColor ? photos.filter(function (p) { return p.color === currentColor; }) : photos;
       window.mt3ukGalleryPhotos = filteredPhotos;
       currentPage = 1;
       render();
@@ -936,7 +990,7 @@
 
     function renderGrid(photos) {
       if (!photos.length) {
-        grid.innerHTML = '<p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">No photos yet, upload some to the gallery/ prefix in R2.</p>';
+        grid.innerHTML = '<p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">' + (allPhotos.length ? 'No builds match these filters.' : 'No photos yet, upload some to the gallery/ prefix in R2.') + '</p>';
         return;
       }
       grid.innerHTML = photos.map(function (p) {
@@ -1024,16 +1078,6 @@
             return;
           }
           allPhotos = photos.filter(function (p) { return p.gallery !== false; });
-          // My Garage links here as ?only=<file,file,...> to show just the
-          // member's own builds.
-          var onlyFiles = (new URL(window.location.href).searchParams.get('only') || '').split(',').filter(Boolean);
-          if (onlyFiles.length) {
-            var own = allPhotos.filter(function (p) { return onlyFiles.indexOf(p.file) !== -1; });
-            if (own.length) {
-              allPhotos = own;
-              document.getElementById('gallery-only-note').hidden = false;
-            }
-          }
           renderFilters();
           applyFilter();
         });

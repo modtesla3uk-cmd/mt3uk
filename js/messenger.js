@@ -559,7 +559,7 @@
       var unread = unreadById[c.id] || 0;
       return '<li class="mc-row">' + who(c, unread ? '<span class="mc-tag">' + unread + ' NEW</span>' : '') + '<span class="mc-actions">' +
         '<button type="button" class="mc-btn mc-btn-primary mc-msg-btn" data-id="' + esc(c.id) + '">Message</button>' +
-        (builds ? '<a class="mc-btn" href="gallery.html?only=' + encodeURIComponent(c.builds.join(',')) + '">Builds (' + builds + ')</a>' : '') +
+        (builds ? '<a class="mc-btn mc-builds" href="gallery.html?only=' + encodeURIComponent(c.builds.join(',')) + '&amp;who=' + encodeURIComponent(c.name) + '">Builds (' + builds + ')</a>' : '') +
         '<button type="button" class="mc-btn mc-fr" data-action="remove" data-id="' + esc(c.id) + '">Remove</button></span></li>';
     }).join('') : '<li class="mc-empty">No friends yet. Find members by their nickname above.</li>';
     updateBadges();
@@ -715,6 +715,16 @@
     }
     if ((t = e.target.closest('.mc-photo-btn'))) { var img = t.querySelector('img'); if (img && img.src) viewPhoto(img.src); return; }
     if ((t = e.target.closest('.mc-tab'))) { show(t.dataset.view); return; }
+    // A friend's builds: the chat shrinks to its bubble and the gallery
+    // opens behind it, still on the Friends tab for coming back.
+    if ((t = e.target.closest('.mc-builds')) && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
+      e.preventDefault();
+      // In the pop-out chat window, the gallery opens in the main window.
+      if (STANDALONE) { window.open(t.href, window.opener ? 'mt3uk-main' : '_blank'); return; }
+      minimise();
+      location.href = t.href;
+      return;
+    }
     if ((t = e.target.closest('[data-mc-view]'))) { e.preventDefault(); show(t.getAttribute('data-mc-view')); return; }
     if ((t = e.target.closest('.mc-thread-row'))) { openThread(t.getAttribute('data-id')); return; }
     if ((t = e.target.closest('.mc-msg-btn'))) { openThread(t.getAttribute('data-id')); return; }

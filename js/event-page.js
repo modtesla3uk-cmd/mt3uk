@@ -386,7 +386,7 @@
   }
 
   function loadStatic() {
-    return fetch('data/event-pages.json', { cache: 'no-store' }).then(function (res) { return res.json(); }).then(findEntry);
+    return fetch('data/event-pages.json?t=' + Date.now(), { cache: 'no-store' }).then(function (res) { return res.json(); }).then(findEntry);
   }
 
   function load() {

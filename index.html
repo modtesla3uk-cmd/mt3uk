@@ -2290,21 +2290,47 @@
   .sb-thumb { border-radius: var(--radius-sm); }
   .saved-builds-label, .bf-bubble-title { text-transform: none; letter-spacing: 0; font-size: 0.86rem; font-weight: 600; }
   .hp-app-btn { border-radius: var(--radius); font-weight: 600; }
+  /* Desktop: the first screen in two columns (the interview on the left, the
+     next interview and the sign-in box on the right) with the stats across
+     the bottom, rather than one narrow phone-style column. */
+  @media (min-width: 900px) {
+    .hero.hp-hero { min-height: 520px; padding-top: 72px; }
+    .hp-hero .hero-grid { display: block; }
+    .hp-hero .hero-grid > div:first-child {
+      display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      column-gap: 48px; align-items: end;
+    }
+    .hp-hero .hero-grid > div:first-child > .hp-eyebrow { grid-column: 1; grid-row: 1; }
+    .hp-hero .hero-grid > div:first-child > h1 { grid-column: 1; grid-row: 2; max-width: 22ch; font-size: clamp(1.9rem, 3.2vw, 2.6rem); }
+    .hp-hero .hero-grid > div:first-child > .hp-hero-meta { grid-column: 1; grid-row: 3; }
+    .hp-hero .hero-grid > div:first-child > .hp-hero-ctas { grid-column: 1; grid-row: 4; }
+    .hp-hero .hero-grid > div:first-child > .hp-hero-next { grid-column: 2; grid-row: 1 / 4; align-self: end; max-width: none; margin: 0 0 24px; }
+    .hp-hero .hero-grid > div:first-child > .hp-join { grid-column: 2; grid-row: 4; align-self: end; max-width: none; margin: 0; }
+    .hp-hero .hero-grid > div:first-child > .hp-stats { grid-column: 1 / -1; grid-row: 5; max-width: none; margin-top: 36px; }
+    .hp-hero .hp-join { background: rgba(14, 22, 40, 0.55); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); flex-wrap: wrap; row-gap: 10px; }
+    .hp-hero .hp-join p { flex-basis: 100%; }
+    .hp-eyebrow, #hp-hero-eyebrow { letter-spacing: 0.04em; }
+  }
+  .hp-btn, .hp-join-actions a, .hp-join-actions a.hp-join-garage { letter-spacing: 0; }
+  .hp-eyebrow, #hp-hero-eyebrow { letter-spacing: 0.04em; }
 </style>
 </head>
 <body>
-<!-- MT3UK intro splash: plays once per browser session on the homepage (not in the installed app), then holds on the logo until the visitor clicks, taps or presses a key. -->
+<!-- MT3UK intro splash: plays on the first visit on each phone or computer (not in the installed app), then holds on the logo until the visitor clicks, taps or presses a key. -->
 <script>
 (function () {
   var KEY = 'mt3ukIntroSeen';
   var force = /[?&]intro=1\b/.test(location.search);
-  try { if (!force && sessionStorage.getItem(KEY)) return; } catch (e) {}
+  // Remembered in localStorage, so a new tab, a link from an email or chat,
+  // or the browser reopening doesn't play it again (sessionStorage is the
+  // older, per-tab note).
+  try { if (!force && (localStorage.getItem(KEY) || sessionStorage.getItem(KEY))) return; } catch (e) {}
   // Skip it in the installed app (Home Screen or Google Play), which already
   // shows its own launch screen.
   var installed = (window.matchMedia && window.matchMedia('(display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui)').matches) ||
     navigator.standalone === true || document.referrer.indexOf('android-app://') === 0;
   if (!force && installed) return;
-  try { sessionStorage.setItem(KEY, '1'); } catch (e) {}
+  try { localStorage.setItem(KEY, '1'); } catch (e) {}
 
   var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var doc = document.documentElement;

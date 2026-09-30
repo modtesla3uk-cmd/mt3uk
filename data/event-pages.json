@@ -46,19 +46,63 @@
     },
     {
       "slug": "race-of-remembrance-track-day-2026",
-      "manifestId": "008",
       "name": "Race of Remembrance track day 2026",
       "title": "Race of remembrance - Track day",
       "tagline": "Looking to enjoy a track day? You can join us too!",
+      "organisers": "Mission Motorsport",
       "kind": "Track day",
+      "manifestId": "008",
       "startDate": "2026-10-02",
       "startTime": "08:00",
       "endTime": "17:00",
       "venue": "Thruxton Circuit",
       "location": "Thruxton Circuit",
       "description": [
-        "Looking to enjoy a track day? You can join us too!"
+        "Sign up to enjoy a track day and deliver passenger rides for members of the Armed Forces Community, supporting Mission Motorsport",
+        "Mission Motorsport, The Forces’ Motorsport Charity, is proud to launch the 2026 Race of Remembrance from Thruxton Circuit. Meet the teams taking part and join beneficiaries and supporters in the paddock as preparations begin for the charity’s flagship event; a remembrance service with an endurance race attached.",
+        "With the track open, you’ll have a rare chance to take part in the action. Support the Armed Forces community by offering your passenger seat to a member of the Armed Forces community. All proceeds go to Mission Motorsport who are dedicated to helping those who have served, by creating life-changing opportunities in motorsport and the automotive industry.",
+        "First and foremost, this is a day of recovery sport for our beneficiaries, giving them the opportunity to enjoy thrilling passenger rides, connect with others, and engage with supporters of the charity.",
+        "Please note: A static noise test will be in place - a strict 90dBs."
       ],
+      "highlights": [
+        "EXPERIENCE THE THRILL AT THE UK’S FASTEST RACE CIRCUIT"
+      ],
+      "steps": [
+        {
+          "title": "Offering your passenger seat provides a member of the Armed Forces community wit",
+          "text": ""
+        },
+        {
+          "title": "This is your chance to meet our fantastic forces community and treat them to an ",
+          "text": ""
+        },
+        {
+          "title": "All those going out on track must ensure that:",
+          "text": ""
+        },
+        {
+          "title": "Both arms & legs are covered.",
+          "text": ""
+        },
+        {
+          "title": "Helmets are worn at all times whilst out on track.",
+          "text": ""
+        },
+        {
+          "title": "Please note that all cars are subject to noise testing. The limit is a STRICT 90",
+          "text": ""
+        },
+        {
+          "title": "Food is available to purchase from the onsite facilities.",
+          "text": ""
+        },
+        {
+          "title": "All the monies raised will be used to directly fund Mission Motorsport's work wi",
+          "text": ""
+        }
+      ],
+      "entry": "£99",
+      "entryNote": "Driver Ticket Afternoon Only",
       "ctaUrl": "https://ror-launch-trackday26.eventbrite.co.uk",
       "ctaLabel": "Book on Eventbrite",
       "draft": true,

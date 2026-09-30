@@ -1931,6 +1931,10 @@ async function handleInterviewsAdminAction(request, env) {
 // shows only a Coming soon card (js/event-gate.js). Only the admin can open it
 // early: Preview on events-admin.html mints a one-time link here (admin key),
 // and the page swaps it for a long-lived access token in that browser.
+// People the admin shares the link with can ask for a one-time code by email,
+// as on Owner Interviews (the code email says it subscribes them). A code
+// opens the draft in that browser for 7 days, signs them in, and every
+// opening is logged for the admin page, which can revoke an email.
 //
 // The admin page saves an event's details here. A save is one commit to
 // data/event-pages.json (the source of truth, which redeploys the site) and a
@@ -1942,6 +1946,9 @@ var EVENT_PREVIEW_LINK_TTL_SECONDS = 5 * 60;
 var EVENT_PREVIEW_ACCESS_TTL_SECONDS = 30 * 24 * 60 * 60;
 var EVENT_DRAFT_TTL_SECONDS = 30 * 24 * 60 * 60;
 var EVENT_IMAGE_MAX_BYTES = 6 * 1024 * 1024;
+var EVENT_VIEWER_ACCESS_TTL_SECONDS = 7 * 24 * 60 * 60;
+var EVENT_PREVIEW_LOG_KEY = 'event-preview-log';
+var EVENT_PREVIEW_REVOKED_KEY = 'event-preview-revoked';
 
 async function readEventPagesFile(env) {
   var res = await fetch(
@@ -2226,19 +2233,156 @@ async function handleEventPreviewMint(request, env) {
   return json({ success: true, token: token });
 }
 
-// The event page swaps the one-time link for a long-lived access token.
+function eventPreviewCodeKey(email, slug) {
+  return 'event-preview-code:' + slug + ':' + email;
+}
+
+async function eventPreviewRevoked(env, email, slug) {
+  var revoked = await getPreviewList(env, EVENT_PREVIEW_REVOKED_KEY);
+  return revoked.some(function (entry) { return entry.email === email && (entry.slug === '*' || entry.slug === slug); });
+}
+
+// One row per email and event: when first and last opened, how often.
+async function logEventPreviewOpen(env, email, slug, joined) {
+  var log = await getPreviewList(env, EVENT_PREVIEW_LOG_KEY);
+  var now = new Date().toISOString();
+  var row = null;
+  log.forEach(function (entry) { if (entry.email === email && entry.slug === slug) row = entry; });
+  if (row) {
+    row.lastOpened = now;
+    row.opens = (row.opens || 1) + 1;
+  } else {
+    log.push({ email: email, slug: slug, firstOpened: now, lastOpened: now, opens: 1, joined: !!joined });
+  }
+  log.sort(function (a, b) { return a.lastOpened < b.lastOpened ? 1 : -1; });
+  await env.VOTES.put(EVENT_PREVIEW_LOG_KEY, JSON.stringify(log.slice(0, PREVIEW_LOG_MAX)));
+}
+
+// A real event: the saved copy, or failing that the file in the repo.
+async function eventExists(env, slug) {
+  if ((await env.VOTES.get('event-page-draft:' + slug)) !== null) return true;
+  try {
+    var current = await readEventPagesFile(env);
+    return current.file.events.some(function (e) { return e.slug === slug; });
+  } catch (err) {
+    return false;
+  }
+}
+
+var EVENT_LINK_FAILED = 'That link has expired or has already been used. Enter your email for a new code.';
+
+// Someone the admin shared the link with asks for a code by email.
+async function handleEventPreviewRequest(request, env) {
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
+  var email = previewEmail(body && body.email);
+  var slug = eventSlugOk(body && body.slug);
+  if (!email) return json({ success: false, message: 'Please enter a valid email' }, 400);
+  if (!slug) return json({ success: false, message: 'Invalid event' }, 400);
+  var reply = json({ success: true, message: "We've sent a 6-digit code to " + email + ". It lasts 15 minutes. Check your junk folder if it hasn't arrived." });
+
+  var ipKey = 'event-preview-ip:' + getClientIp(request);
+  var ipCount = parseInt(await env.VOTES.get(ipKey), 10) || 0;
+  if (ipCount >= PREVIEW_REQUESTS_PER_IP_PER_HOUR) {
+    return json({ success: false, message: 'Too many attempts, please try again in an hour.' }, 429);
+  }
+  await env.VOTES.put(ipKey, String(ipCount + 1), { expirationTtl: 3600 });
+
+  if (await eventPreviewRevoked(env, email, slug)) {
+    return json({ success: false, message: "This email can't preview this event. It will be here once it is published." }, 403);
+  }
+  var cooldownKey = 'event-preview-cooldown:' + slug + ':' + email;
+  if ((await env.VOTES.get(cooldownKey)) !== null) return reply;
+  await env.VOTES.put(cooldownKey, '1', { expirationTtl: 60 });
+  // Nothing is sent for an event that does not exist.
+  if (!(await eventExists(env, slug))) return reply;
+
+  var code = signInCode();
+  var expires = Math.floor(Date.now() / 1000) + PREVIEW_CODE_TTL_SECONDS;
+  var linkToken = randomToken();
+  await env.VOTES.put(eventPreviewCodeKey(email, slug), JSON.stringify({ code: code, tries: 0, link: linkToken }), { expiration: expires, metadata: { expires: expires } });
+  await env.VOTES.put('event-preview-link:' + linkToken, JSON.stringify({ email: email, slug: slug }), { expiration: expires });
+  try {
+    var isMember = (await env.VOTES.get('subscriber:' + email)) !== null;
+    var subject = 'MT3UK event preview: your code is ' + code;
+    var text = 'Here is your code to preview an MT3UK event page before it is published:\n\n' + code +
+      '\n\nOr tap this link to open it straight away:\n\n' + MY_BUILDS_SITE_URL + '/event.html?e=' + slug + '&preview=' + linkToken +
+      '\n\nThe code and link expire in 15 minutes and work once. The event page then stays open in that browser for 7 days.' +
+      (isMember ? '' :
+        '\n\nUsing this code also subscribes you to MT3UK (it\'s free) with this email address. You\'ll be signed in, so you can like and comment on member builds and Owner Interviews, and add your own car in My Garage whenever you like. You can stop emails or unsubscribe any time from your Profile: ' + PROFILE_URL + '#unsubscribe') +
+      '\n\nPlease don\'t share the event page until it is published. If you did not ask for this code, you can ignore this email.';
+    await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, email, rawEmail(MY_BUILDS_FROM_EMAIL, email, subject, text)));
+  } catch (err) {
+    console.log('Event preview email failed:', err.message);
+  }
+  return reply;
+}
+
+async function handleEventPreviewVerify(request, env) {
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
+  var email = previewEmail(body && body.email);
+  var slug = eventSlugOk(body && body.slug);
+  var code = String((body && body.code) || '').replace(/\D/g, '');
+  var failed = json({ success: false, message: 'That code is not right or has expired. Check the latest email, or send a new code.' }, 400);
+  if (!email || !slug || code.length !== 6) return failed;
+
+  var key = eventPreviewCodeKey(email, slug);
+  var meta = await env.VOTES.getWithMetadata(key);
+  var record = null;
+  try { record = meta.value ? JSON.parse(meta.value) : null; } catch (e) { record = null; }
+  if (!record) return failed;
+  if (record.code !== code) {
+    record.tries = (record.tries || 0) + 1;
+    var expires = (meta.metadata && meta.metadata.expires) || 0;
+    if (record.tries >= MAX_SIGN_IN_CODE_TRIES || expires < Math.floor(Date.now() / 1000) + 60) {
+      await env.VOTES.delete(key);
+    } else {
+      await env.VOTES.put(key, JSON.stringify(record), { expiration: expires, metadata: { expires: expires } });
+    }
+    return failed;
+  }
+  await env.VOTES.delete(key);
+  if (record.link) await env.VOTES.delete('event-preview-link:' + record.link);
+  return grantEventViewer(env, email, slug, failed);
+}
+
+// Opens the event for 7 days, joins and signs in the email, and logs it.
+async function grantEventViewer(env, email, slug, failed) {
+  if (await eventPreviewRevoked(env, email, slug)) return failed;
+  var token = randomToken();
+  var expires = Date.now() + EVENT_VIEWER_ACCESS_TTL_SECONDS * 1000;
+  await env.VOTES.put('event-preview-access:' + token, JSON.stringify({ slug: slug, email: email, expires: expires }), { expirationTtl: EVENT_VIEWER_ACCESS_TTL_SECONDS });
+  var joined = false;
+  if ((await env.VOTES.get('subscriber:' + email)) === null) {
+    await env.VOTES.put('subscriber:' + email, JSON.stringify([]));
+    await markSubscriberSince(env, email);
+    joined = true;
+  }
+  await logEventPreviewOpen(env, email, slug, joined);
+  var session = await createSession(env, email);
+  return json({ success: true, token: token, expires: expires, joined: joined, session: session, email: email });
+}
+
+// The event page swaps a one-time link for a long-lived access token. The
+// link is either the admin's (from Preview) or a shared viewer's (from the
+// code email, which carries their email).
 async function handleEventPreviewLink(request, env) {
   var body;
   try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
   var slug = eventSlugOk(body && body.slug);
   var linkToken = String((body && body.token) || '');
-  var failed = json({ success: false, message: 'That link has expired or has already been used.' }, 400);
+  var failed = json({ success: false, message: EVENT_LINK_FAILED }, 400);
   if (!slug || !/^[A-Za-z0-9_-]{16,128}$/.test(linkToken)) return failed;
   var raw = await env.VOTES.get('event-preview-link:' + linkToken);
   var link = null;
   try { link = raw ? JSON.parse(raw) : null; } catch (e) { link = null; }
   if (!link || link.slug !== slug) return failed;
   await env.VOTES.delete('event-preview-link:' + linkToken);
+  if (link.email) {
+    await env.VOTES.delete(eventPreviewCodeKey(link.email, slug));
+    return grantEventViewer(env, link.email, slug, failed);
+  }
   var token = randomToken();
   var expires = Date.now() + EVENT_PREVIEW_ACCESS_TTL_SECONDS * 1000;
   await env.VOTES.put('event-preview-access:' + token, JSON.stringify({ slug: slug, expires: expires }), { expirationTtl: EVENT_PREVIEW_ACCESS_TTL_SECONDS });
@@ -2250,14 +2394,46 @@ async function eventPreviewRecord(env, token, slug) {
   var raw = await env.VOTES.get('event-preview-access:' + token);
   var record = null;
   try { record = raw ? JSON.parse(raw) : null; } catch (e) { record = null; }
-  return record && record.slug === slug && record.expires > Date.now() ? record : null;
+  if (!record || record.slug !== slug || !(record.expires > Date.now())) return null;
+  // A revoked email loses its preview straight away.
+  if (record.email && (await eventPreviewRevoked(env, record.email, slug))) {
+    await env.VOTES.delete('event-preview-access:' + token);
+    return null;
+  }
+  return record;
 }
 
 async function handleEventPreviewCheck(request, env) {
   var params = new URL(request.url).searchParams;
   var record = await eventPreviewRecord(env, String(params.get('token') || ''), eventSlugOk(params.get('slug')));
   if (!record) return json({ success: false }, 401);
-  return json({ success: true, expires: record.expires });
+  return json({ success: true, expires: record.expires, admin: !record.email });
+}
+
+// Admin page: who has opened an event with a code, and Revoke or Restore.
+async function handleEventPreviewAdminList(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorized' }, 401);
+  return json({ success: true, opened: await getPreviewList(env, EVENT_PREVIEW_LOG_KEY), revoked: await getPreviewList(env, EVENT_PREVIEW_REVOKED_KEY) });
+}
+
+async function handleEventPreviewAdminSave(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorized' }, 401);
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
+  var email = previewEmail(body && body.email);
+  var slug = previewSlug(body && body.slug, true);
+  if (!email) return json({ success: false, message: 'Please enter a valid email' }, 400);
+  if (!slug) return json({ success: false, message: 'Choose an event' }, 400);
+  var revoked = await getPreviewList(env, EVENT_PREVIEW_REVOKED_KEY);
+  var rest = revoked.filter(function (entry) { return !(entry.email === email && entry.slug === slug); });
+  if (body.action === 'revoke') {
+    if (rest.length >= 500) return json({ success: false, message: 'The list is full' }, 400);
+    rest.push({ email: email, slug: slug, revoked: new Date().toISOString() });
+  } else if (body.action !== 'restore') {
+    return json({ success: false, message: 'Unknown action' }, 400);
+  }
+  await env.VOTES.put(EVENT_PREVIEW_REVOKED_KEY, JSON.stringify(rest));
+  return json({ success: true, opened: await getPreviewList(env, EVENT_PREVIEW_LOG_KEY), revoked: rest });
 }
 
 // The newest saved copy of an event, for the admin's preview only.
@@ -6474,6 +6650,18 @@ export default {
     }
     if (url.pathname === '/events/pages/admin/preview-link' && request.method === 'POST') {
       return handleEventPreviewMint(request, env);
+    }
+    if (url.pathname === '/events/pages/preview/request' && request.method === 'POST') {
+      return handleEventPreviewRequest(request, env);
+    }
+    if (url.pathname === '/events/pages/preview/verify' && request.method === 'POST') {
+      return handleEventPreviewVerify(request, env);
+    }
+    if (url.pathname === '/events/pages/admin/preview' && request.method === 'GET') {
+      return handleEventPreviewAdminList(request, env);
+    }
+    if (url.pathname === '/events/pages/admin/preview' && request.method === 'POST') {
+      return handleEventPreviewAdminSave(request, env);
     }
     if (url.pathname === '/events/pages/preview/link' && request.method === 'POST') {
       return handleEventPreviewLink(request, env);

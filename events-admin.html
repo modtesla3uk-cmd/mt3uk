@@ -112,6 +112,11 @@
   .ep-schedule input { width: auto; min-width: 10em; }
   .ep-schedule button { padding: 6px 12px; font-size: 0.72rem; }
   .ep-note { color: var(--steel); font-size: 0.72rem; margin: 0 0 14px; }
+  .pv-form { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .pv-form input { flex: 1 1 220px; }
+  .pv-form select { flex: 1 1 180px; background: rgba(0,0,0,0.3); color: var(--white); border: 1px solid rgba(255,255,255,0.3); padding: 9px 10px; }
+  #pv-note.error, .ep-note.error { color: var(--red); }
+  #pv-note.ok { color: var(--green); }
   .ep-help { margin: 0 0 14px; }
   .ep-help summary { color: var(--orange); font-size: 0.74rem; padding: 4px 0; }
   .ep-help[open] summary { margin-bottom: 6px; }
@@ -204,6 +209,7 @@
     .event-actions button { width: 100%; min-height: 44px; padding: 8px 12px; font-size: 0.85rem; }
     .ep-bar button { flex: 1 1 100%; }
     .ep-help summary { font-size: 0.85rem; padding: 10px 0; }
+    .pv-form input, .pv-form select, .pv-form button { flex: 1 1 100%; }
     .ep-schedule { width: 100%; }
     .ep-schedule input { flex: 1 1 100%; min-width: 0; }
     .ep-schedule button { flex: 1 1 100%; min-height: 44px; padding: 8px 12px; font-size: 0.85rem; }
@@ -242,7 +248,7 @@
         <summary><h2>Event pages <span class="count" id="ep-count"></span></h2></summary>
         <p class="ep-note">Add and edit event pages here, then <strong>Preview</strong> them before they go live.</p>
         <details class="ep-help"><summary>How this works</summary>
-          <p class="ep-note">Each event page is a draft, scheduled or live, and is shown at event.html?e=web-address. Until it is live the public only sees a Coming soon card, and only you can open it: <strong>Preview</strong> opens it in this browser and stays open until you end it. Press <strong>Save</strong> and Preview shows the change straight away. From its publish date it goes live and is featured, with its image and tagline, in the homepage Events section until the event is over. Saves update the live site in about a minute.</p>
+          <p class="ep-note">Each event page is a draft, scheduled or live, and is shown at event.html?e=web-address. Until it is live the public only sees a Coming soon card. <strong>Preview</strong> opens it for you in this browser and stays open until you end it. To show it to others first, press <strong>Copy link</strong> and send it: they can ask for an emailed code (see Event previews below). Press <strong>Save</strong> and Preview shows the change straight away. From its publish date it goes live and is featured, with its image and tagline, in the homepage Events section until the event is over. Saves update the live site in about a minute.</p>
         </details>
         <div class="ep-bar"><button type="button" id="ep-new">Add an event page</button></div>
         <div id="ep-list"></div>
@@ -331,6 +337,20 @@
             <button type="button" class="secondary" id="ep-cancel">Close</button>
           </div>
         </form>
+      </details>
+    </section>
+
+    <section>
+      <details id="pv-wrap">
+        <summary><h2>Event previews <span class="count" id="pv-count"></span></h2></summary>
+        <p class="ep-note">To share an event before it is live, press <strong>Copy link</strong> on it above and send the link. Anyone with the link can ask for a one-time code by email. A code opens the page for 7 days, signs them in, and makes them an MT3UK member if they weren&rsquo;t already. Below is everyone who has opened one. <strong>Revoke</strong> ends their preview straight away and stops new codes, and <strong>Restore</strong> undoes it.</p>
+        <form class="pv-form" id="pv-form" novalidate>
+          <input type="email" id="pv-email" placeholder="Email to revoke" autocomplete="off" aria-label="Email to revoke">
+          <select id="pv-slug" aria-label="Event"><option value="*">All events</option></select>
+          <button type="submit" class="danger">Revoke</button>
+        </form>
+        <p class="ep-note" id="pv-note" role="status"></p>
+        <div id="pv-list"></div>
       </details>
     </section>
 
@@ -441,6 +461,7 @@
 
   // ---------- The list ----------
   function render() {
+    fillPreviewSelect();
     countEl.textContent = pages.length ? '(' + pages.length + ')' : '';
     if (!pages.length) { listEl.innerHTML = '<p class="empty">No event pages yet. Press Add an event page.</p>'; return; }
     listEl.innerHTML = pages.map(function (p) {
@@ -461,6 +482,7 @@
         '</div>' +
         '<div class="event-actions">' +
           '<button type="button" data-ep="preview" data-slug="' + s + '">Preview</button>' +
+          (state === 'live' ? '' : '<button type="button" class="secondary" data-ep="copy" data-slug="' + s + '">Copy link</button>') +
           '<button type="button" class="secondary" data-ep="edit" data-slug="' + s + '">Edit</button>' +
           (state === 'live' ? '' : '<button type="button" class="secondary" data-ep="publish-now" data-slug="' + s + '">Publish now</button>') +
           (state === 'draft' ? '' : '<button type="button" class="secondary" data-ep="draft" data-slug="' + s + '">Draft</button>') +
@@ -489,6 +511,7 @@
         if (!data.success) throw new Error(data.message || 'Could not load the event pages');
         pages = data.events || [];
         render();
+        fillPreviewSelect();
       })
       .catch(function (err) { listEl.innerHTML = '<p class="empty">' + esc(err.message) + '</p>'; });
   }
@@ -732,6 +755,7 @@
     if (!p) return;
     if (action === 'preview') { preview(slug, btn); return; }
     if (action === 'edit') { openForm(p, false); return; }
+    if (action === 'copy') { copyLink(p); return; }
     if (!key()) { setStatus('Enter the admin key first.', 'error'); return; }
     var date = '';
     var question;
@@ -764,6 +788,103 @@
     var btn = e.target.closest('button[data-ep]');
     if (btn) run(btn.getAttribute('data-ep'), btn.getAttribute('data-slug'), btn);
   });
+
+  // ---------- Sharing: copy the link ----------
+  function copyLink(p) {
+    var link = 'https://mt3uk.com/event.html?e=' + p.slug;
+    var done = function () { setStatus('Link copied: ' + link + '. Anyone you send it to can ask for an emailed code to see the page early.', 'ok'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(link).then(done, function () { window.prompt('Copy this link', link); });
+    } else {
+      window.prompt('Copy this link', link);
+    }
+  }
+
+  // ---------- Who has opened a preview ----------
+  var pvNames = { '*': 'All events' };
+  var pvLast = null;
+  function pvNote(text, kind) { var n = $('pv-note'); n.textContent = text || ''; n.className = 'ep-note' + (kind ? ' ' + kind : ''); }
+  function when(iso) {
+    if (!iso) return '';
+    var d = new Date(iso);
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'Europe/London' }) + ' ' +
+      d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/London' });
+  }
+  function fillPreviewSelect() {
+    var sel = $('pv-slug');
+    sel.innerHTML = '<option value="*">All events</option>';
+    pages.forEach(function (p) {
+      pvNames[p.slug] = p.name;
+      var o = document.createElement('option');
+      o.value = p.slug;
+      o.textContent = p.name;
+      sel.appendChild(o);
+    });
+    if (pvLast) drawPreviews(pvLast);
+  }
+  function revokedFor(revoked, email, slug) {
+    var hit = null;
+    revoked.forEach(function (r) { if (r.email === email && (r.slug === slug || r.slug === '*')) hit = hit || r; });
+    return hit;
+  }
+  function pvButton(action, email, slug, label, cls) {
+    return '<button type="button" class="' + cls + '" data-pv="' + action + '" data-email="' + esc(email) + '" data-slug="' + esc(slug) + '">' + label + '</button>';
+  }
+  function drawPreviews(data) {
+    pvLast = data;
+    var opened = data.opened || [];
+    var revoked = data.revoked || [];
+    $('pv-count').textContent = opened.length ? '(' + opened.length + ')' : '';
+    var cards = opened.map(function (o) {
+      var r = revokedFor(revoked, o.email, o.slug);
+      return '<div class="event-card"><div class="event-body">' +
+        '<h3 class="event-name">' + esc(o.email) + '</h3>' +
+        '<p class="event-meta">' + esc(pvNames[o.slug] || o.slug) + (o.joined ? ' · Joined MT3UK with this preview' : '') + '</p>' +
+        '<p class="event-meta">First opened ' + esc(when(o.firstOpened)) + (o.opens > 1 ? ' · opened ' + esc(o.opens) + ' times, last ' + esc(when(o.lastOpened)) : '') + '</p></div>' +
+        '<div class="event-actions">' + (r ? '<span class="event-meta">Revoked' + (r.slug === '*' ? ' (all)' : '') + '</span>' + pvButton('restore', r.email, r.slug, 'Restore', 'secondary')
+          : pvButton('revoke', o.email, o.slug, 'Revoke', 'danger')) + '</div></div>';
+    });
+    revoked.forEach(function (r) {
+      var shown = opened.some(function (o) { return o.email === r.email && (r.slug === '*' || o.slug === r.slug); });
+      if (shown) return;
+      cards.push('<div class="event-card"><div class="event-body"><h3 class="event-name">' + esc(r.email) + '</h3><p class="event-meta">' + esc(pvNames[r.slug] || r.slug) + ' · Not opened · Revoked</p></div>' +
+        '<div class="event-actions">' + pvButton('restore', r.email, r.slug, 'Restore', 'secondary') + '</div></div>');
+    });
+    $('pv-list').innerHTML = cards.length ? cards.join('') : '<p class="empty">No one has opened an event preview yet.</p>';
+  }
+  function loadPreviews() {
+    if (!key()) { $('pv-list').innerHTML = '<p class="empty">Enter the admin key at the top of the page to see who has opened a preview.</p>'; return; }
+    fetch(API + '/events/pages/admin/preview?key=' + encodeURIComponent(key()), { cache: 'no-store' })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (!data.success) { $('pv-list').innerHTML = '<p class="empty">' + esc(data.message === 'Unauthorized' ? 'The admin key is not right.' : (data.message || 'Could not load the list.')) + '</p>'; return; }
+        drawPreviews(data);
+      })
+      .catch(function () { $('pv-list').innerHTML = '<p class="empty">Network error loading the list.</p>'; });
+  }
+  function savePreview(action, email, slug) {
+    if (!key()) { pvNote('Enter the admin key first.', 'error'); return Promise.resolve(false); }
+    return post('/events/pages/admin/preview', { action: action, email: email, slug: slug })
+      .then(function (data) {
+        pvNote(action === 'revoke' ? 'Revoked ' + email + ' (' + (pvNames[slug] || slug) + ').' : 'Restored ' + email + '.', 'ok');
+        drawPreviews(data);
+        return true;
+      })
+      .catch(function (err) { pvNote(err.message, 'error'); return false; });
+  }
+  $('pv-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var email = $('pv-email').value.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { pvNote('Enter a valid email.', 'error'); return; }
+    savePreview('revoke', email, $('pv-slug').value).then(function (ok) { if (ok) $('pv-email').value = ''; });
+  });
+  $('pv-list').addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-pv]');
+    if (!btn) return;
+    btn.disabled = true;
+    savePreview(btn.getAttribute('data-pv'), btn.getAttribute('data-email'), btn.getAttribute('data-slug'));
+  });
+  $('pv-wrap').addEventListener('toggle', function () { if ($('pv-wrap').open) loadPreviews(); });
 
   document.addEventListener('mt3uk-events-admin-loaded', loadList);
 })();

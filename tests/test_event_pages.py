@@ -177,7 +177,8 @@ def test_draft_event_shows_coming_soon_and_admin_preview_link_opens_it(device_pa
     assert page.locator("#event").is_hidden(), "The event itself stays hidden"
     assert page.locator("body > header").is_visible(), "The site header stays so people can go elsewhere"
     assert "Test Meet Title" in gate.inner_text()
-    assert gate.locator("input, form").count() == 0, "There is no public code or sign-up for events"
+    assert "Getting a code subscribes you to MT3UK" in gate.inner_text(), "Clear that asking for a code subscribes them"
+    assert page.locator("#ev-gate button[type=submit]").inner_text().lower() == "send code and subscribe"
     assert overflow_width(page) <= 0
 
     # The admin's one-time link opens it, and is removed from the address.
@@ -186,7 +187,7 @@ def test_draft_event_shows_coming_soon_and_admin_preview_link_opens_it(device_pa
     assert page.locator("#ev-gate").count() == 0
     assert "preview=" not in page.url and "e=test-meet" in page.url
     pill = page.locator(".evg-pill").inner_text()
-    assert "draft" in pill.lower()
+    assert "admin preview" in pill.lower() and "only you can see this" in pill.lower()
     assert not re.search(r"\d+\s*[hm]\b|left|until", pill), "There is no countdown"
     # The preview shows the newest saved text from the worker.
     page.wait_for_function("document.querySelector('h1') && document.querySelector('h1').textContent.indexOf('Saved copy title') !== -1", timeout=5000)
@@ -390,3 +391,75 @@ def test_events_admin_is_readable_on_a_phone(device_page):
     assert page.eval_on_selector("#ep-description", "e => parseFloat(getComputedStyle(e).fontSize)") >= 16
     assert page.eval_on_selector(".tier-row .t-name", "e => parseFloat(getComputedStyle(e).fontSize)") >= 16
     assert overflow_width(page) <= 0
+
+
+@all_devices
+def test_someone_the_link_was_shared_with_can_ask_for_an_emailed_code(device_page):
+    page = device_page
+    serve(page, [event()])
+    page.mock_state["event_preview_copy"] = event(title="Saved copy title")
+    page.goto("/event.html?e=test-meet&gate=on")
+    gate = page.locator("#ev-gate")
+    gate.wait_for(state="visible", timeout=5000)
+    page.fill("#evg-email", "not an email")
+    page.click("#ev-gate button[type=submit]")
+    assert "valid email" in page.locator("#ev-gate .evg-msg").inner_text()
+    page.fill("#evg-email", "friend@example.com")
+    page.click("#ev-gate button[type=submit]")
+    page.locator("#evg-code").wait_for(state="visible", timeout=5000)
+    assert "friend@example.com" in gate.inner_text() and page.mock_state["event_code_requested"] == "friend@example.com"
+
+    # A wrong code is refused, the right one opens the page.
+    page.fill("#evg-code", "000000")
+    page.click("#ev-gate button[type=submit]")
+    page.wait_for_function("document.querySelector('#ev-gate .evg-msg').textContent.indexOf('not right') !== -1", timeout=5000)
+    assert page.locator("#event").is_hidden()
+    page.fill("#evg-code", "123456")
+    page.click("#ev-gate button[type=submit]")
+    page.wait_for_function("document.querySelector('.evg-pill') !== null", timeout=5000)
+    assert page.locator("#ev-gate").count() == 0
+    pill = page.locator(".evg-pill").inner_text()
+    assert "Preview" in pill and "share" in pill and "Admin" not in pill, "A shared viewer is asked not to share it"
+    assert not re.search(r"\d+\s*[hm]\b|left|until", pill), "There is no countdown"
+    # Using the code signs them in, joins them and welcomes them once.
+    assert page.evaluate("localStorage.getItem('mt3ukMyBuildsSession')") == "s1.event"
+    assert page.evaluate("localStorage.getItem('mt3ukMyBuildsEmail')") == "friend@example.com"
+    page.locator("#mt3uk-nick-prompt").wait_for(state="visible", timeout=5000)
+    page.click(".mt3uk-nick-later")
+    assert "Welcome to MT3UK" in page.locator(".evg-notice").inner_text()
+    page.wait_for_function("document.querySelector('h1') && document.querySelector('h1').textContent.indexOf('Saved copy title') !== -1", timeout=5000)
+    page.goto("/event.html?e=test-meet&gate=on")
+    page.wait_for_function("document.querySelector('.evg-pill') !== null", timeout=5000)
+    assert page.locator(".evg-notice").count() == 0, "The welcome shows once"
+    assert page.evaluate("JSON.parse(localStorage.getItem('mt3ukEventPreview:test-meet')).joined") is None
+
+
+@ADMIN_ONLY
+def test_admin_can_copy_a_share_link_and_see_and_revoke_who_opened_a_preview(device_page):
+    page = device_page
+    open_events_admin(page)
+    page.locator("#ep-list .event-card").first.wait_for(state="visible", timeout=5000)
+    page.evaluate("navigator.clipboard.writeText = function (t) { window.__copied = t; return Promise.resolve(); }")
+    page.click('#ep-list [data-ep="copy"]')
+    assert page.evaluate("window.__copied") == "https://mt3uk.com/event.html?e=frunk-or-treat-uk"
+    assert "Link copied" in page.locator("#status").inner_text()
+
+    page.click("#pv-wrap > summary")
+    card = page.locator("#pv-list .event-card")
+    card.first.wait_for(state="visible", timeout=5000)
+    text = card.first.inner_text()
+    assert "friend@example.com" in text and "Frunk or Treat UK 2026" in text and "opened 3 times" in text and "Joined MT3UK" in text
+    page.click('#pv-list [data-pv="revoke"]')
+    page.locator('#pv-list [data-pv="restore"]').wait_for(state="visible", timeout=5000)
+    assert "Revoked" in page.locator("#pv-list").inner_text()
+    page.click('#pv-list [data-pv="restore"]')
+    page.locator('#pv-list [data-pv="revoke"]').wait_for(state="visible", timeout=5000)
+    # Revoke ahead of time by email.
+    page.fill("#pv-email", "Other@Example.com")
+    page.select_option("#pv-slug", "frunk-or-treat-uk")
+    page.click("#pv-form button")
+    page.wait_for_function("document.getElementById('pv-list').textContent.indexOf('other@example.com') !== -1", timeout=5000)
+    assert "Not opened" in page.locator("#pv-list").inner_text()
+    page.fill("#pv-email", "bad")
+    page.click("#pv-form button")
+    assert "valid email" in page.locator("#pv-note").inner_text()

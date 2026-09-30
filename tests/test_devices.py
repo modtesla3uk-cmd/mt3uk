@@ -165,7 +165,27 @@ def event_pages_reply(path, method, post_data, state, url):
             return {"success": True, "token": "q" * 64, "expires": 4102444800000}
         return {"success": False, "message": "That link has expired or has already been used."}
     if path == "/events/pages/preview/check":
-        return {"success": True, "expires": 4102444800000} if state.get("event_preview_ok") else {"success": False}
+        return {"success": True, "expires": 4102444800000, "admin": state.get("event_preview_admin", True)} if state.get("event_preview_ok") else {"success": False}
+    if path == "/events/pages/preview/request":
+        state["event_code_requested"] = body.get("email")
+        return {"success": True, "message": "We've sent a 6-digit code to " + str(body.get("email")) + ". It lasts 15 minutes."}
+    if path == "/events/pages/preview/verify":
+        state["event_verify_tries"] = state.get("event_verify_tries", 0) + 1
+        code = body.get("code") or "000000"
+        if code == "123456":
+            state["event_preview_ok"] = True
+            state["event_preview_admin"] = False
+            return {"success": True, "token": "v" * 64, "expires": 4102444800000, "joined": True, "session": "s1.event", "email": body.get("email")}
+        return {"success": False, "message": "That code is not right or has expired."}
+    if path == "/events/pages/admin/preview":
+        opened = [{"email": "friend@example.com", "slug": "frunk-or-treat-uk", "firstOpened": "2026-10-01T10:00:00Z", "lastOpened": "2026-10-02T12:00:00Z", "opens": 3, "joined": True}]
+        revoked = state.setdefault("event_preview_revoked", [])
+        if method == "POST":
+            if body.get("action") == "revoke":
+                revoked.append({"email": body["email"], "slug": body["slug"], "revoked": "2026-10-03T09:00:00Z"})
+            else:
+                revoked[:] = [r for r in revoked if not (r["email"] == body["email"] and r["slug"] == body["slug"])]
+        return {"success": True, "opened": opened, "revoked": revoked}
     if path == "/events/pages/preview/content":
         if not state.get("event_preview_ok"):
             return {"success": False}

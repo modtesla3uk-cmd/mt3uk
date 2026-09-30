@@ -1,12 +1,13 @@
 // Run by tests/test_event_worker.py: exercises the worker's event page routes with a fake
 // KV store, image bucket and GitHub. WORKER_MODULE is a copy of the worker that node can load.
 const worker = (await import(process.env.WORKER_MODULE)).default;
-const kv = new Map(); 
+const kv = new Map(); const meta = new Map();
 const env = {
   ADMIN_KEY: 'secret',
-  VOTES: { get: async k => kv.has(k) ? kv.get(k) : null, put: async (k, v) => { kv.set(k, v); }, delete: async k => { kv.delete(k); }, getWithMetadata: async k => ({ value: kv.get(k) || null }) },
+  VOTES: { get: async k => kv.has(k) ? kv.get(k) : null, put: async (k, v, o) => { kv.set(k, v); meta.set(k, o && o.metadata); }, delete: async k => { kv.delete(k); meta.delete(k); }, getWithMetadata: async k => ({ value: kv.has(k) ? kv.get(k) : null, metadata: meta.get(k) || null }) },
   GALLERY_BUCKET: { objects: {}, put: async function (k, v, o) { this.objects[k] = { size: v.length, o }; } },
-  GITHUB_TOKEN: 'x'
+  GITHUB_TOKEN: 'x',
+  SEND_EMAIL: { sent: [], send: async function (m) { this.sent.push(m.raw); } }
 };
 // Fake GitHub contents API holding data/event-pages.json
 let file = { _note: 'n', events: [] }; let sha = 1;
@@ -77,5 +78,61 @@ ok(r.status === 200 && /\/events\/frunk\/[a-f0-9]+\.jpg$/.test(r.body.url) && Ob
 r = await call('POST', '/events/pages/admin/image?slug=frunk&key=secret', new Uint8Array([1, 2, 3, 4]), true);
 ok(r.status === 400, 'non-image refused');
 r = await call('POST', '/events/pages/admin/image?slug=frunk', jpg, true); ok(r.status === 401, 'image needs the key');
+// shared viewers: emailed code
+const lastMail = () => env.SEND_EMAIL.sent[env.SEND_EMAIL.sent.length - 1] || '';
+r = await call('POST', '/events/pages/preview/request', { email: 'not-an-email', slug: 'frunk' });
+ok(r.status === 400, 'request needs a real email');
+r = await call('POST', '/events/pages/preview/request', { email: 'friend@example.com', slug: 'no-such-event' });
+ok(r.status === 200 && env.SEND_EMAIL.sent.length === 0, 'no email for an event that does not exist');
+r = await call('POST', '/events/pages/preview/request', { email: 'friend@example.com', slug: 'frunk' });
+ok(r.status === 200 && env.SEND_EMAIL.sent.length === 1, 'code emailed for a real event');
+let mail = lastMail();
+const code = (mail.match(/\r\n\r\n(\d{6})\r\n/) || [])[1];
+const linkTok = (mail.match(/event\.html\?e=frunk&preview=([A-Za-z0-9_-]+)/) || [])[1];
+ok(code && linkTok, 'email has a code and a link to the event page');
+ok(/subscribes you to MT3UK/.test(mail) && /7 days/.test(mail), 'email says it subscribes them and how long it lasts');
+r = await call('POST', '/events/pages/preview/verify', { email: 'friend@example.com', slug: 'frunk', code: '000000' });
+ok(r.status === 400, 'wrong code refused');
+r = await call('POST', '/events/pages/preview/verify', { email: 'friend@example.com', slug: 'other', code });
+ok(r.status === 400, 'code is for one event only');
+r = await call('POST', '/events/pages/preview/verify', { email: 'friend@example.com', slug: 'frunk', code });
+const viewer = r.body.token;
+ok(r.status === 200 && viewer && r.body.joined === true && r.body.session && r.body.expires > Date.now() + 6 * 864e5, 'right code opens it for a week, joins and signs in');
+r = await call('GET', '/events/pages/preview/check?slug=frunk&token=' + viewer);
+ok(r.status === 200 && r.body.admin === false, 'viewer access checks out and is not admin');
+r = await call('GET', '/events/pages/preview/check?slug=frunk&token=' + access);
+ok(r.status === 200 && r.body.admin === true, 'admin access is marked admin');
+r = await call('GET', '/events/pages/preview/content?slug=frunk&token=' + viewer);
+ok(r.status === 200 && r.body.entry, 'viewer sees the saved copy');
+r = await call('POST', '/events/pages/preview/verify', { email: 'friend@example.com', slug: 'frunk', code });
+ok(r.status === 400, 'a code works once');
+// the emailed link
+kv.delete('event-preview-cooldown:frunk:friend@example.com');
+await call('POST', '/events/pages/preview/request', { email: 'friend@example.com', slug: 'frunk' });
+mail = lastMail();
+const link2 = (mail.match(/event\.html\?e=frunk&preview=([A-Za-z0-9_-]+)/) || [])[1];
+ok(!/subscribes you to MT3UK/.test(mail), 'members are not told they are being subscribed again');
+r = await call('POST', '/events/pages/preview/link', { slug: 'frunk', token: link2 });
+ok(r.status === 200 && r.body.token && r.body.session, 'the emailed link opens it');
+r = await call('POST', '/events/pages/preview/link', { slug: 'frunk', token: link2 });
+ok(r.status === 400, 'the emailed link works once');
+// admin sees who opened it, and can revoke
+r = await call('GET', '/events/pages/admin/preview');
+ok(r.status === 401, 'previews list needs the admin key');
+r = await call('GET', '/events/pages/admin/preview' + K);
+ok(r.status === 200 && r.body.opened.length === 1 && r.body.opened[0].email === 'friend@example.com' && r.body.opened[0].opens === 2 && r.body.opened[0].joined === true, 'opening is logged once per email with a count');
+r = await call('POST', '/events/pages/admin/preview' + K, { action: 'revoke', email: 'friend@example.com', slug: 'frunk' });
+ok(r.status === 200 && r.body.revoked.length === 1, 'revoke');
+r = await call('GET', '/events/pages/preview/check?slug=frunk&token=' + viewer);
+ok(r.status === 401, 'revoking ends an open preview straight away');
+r = await call('GET', '/events/pages/preview/check?slug=frunk&token=' + access);
+ok(r.status === 200, 'revoking a viewer does not touch the admin preview');
+kv.delete('event-preview-cooldown:frunk:friend@example.com');
+r = await call('POST', '/events/pages/preview/request', { email: 'friend@example.com', slug: 'frunk' });
+ok(r.status === 403, 'a revoked email cannot ask for a new code');
+r = await call('POST', '/events/pages/admin/preview' + K, { action: 'restore', email: 'friend@example.com', slug: 'frunk' });
+ok(r.status === 200 && r.body.revoked.length === 0, 'restore');
+r = await call('POST', '/events/pages/admin/preview' + K, { action: 'revoke', email: 'bad', slug: 'frunk' });
+ok(r.status === 400, 'revoke needs a real email');
 r = await call('POST', '/events/pages/admin/action' + K, { action: 'delete', slug: 'frunk', from: { publish: '', draft: true } });
 ok(r.status === 200 && file.events.length === 0 && !kv.has('event-page-draft:frunk'), 'delete a draft');

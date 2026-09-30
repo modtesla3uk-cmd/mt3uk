@@ -46,7 +46,21 @@
       "entry": "£10",
       "entryNote": "per vehicle",
       "tickets": {
-        "intro": "This can then be used against any purchases made during the customers visit"
+        "intro": "This can then be used against any purchases made during the customers visit",
+        "tiers": [
+          {
+            "name": "Per vehicle",
+            "price": "£10",
+            "per": "Per vehicle",
+            "tag": "",
+            "includes": [],
+            "url": "",
+            "buttonLabel": "",
+            "featured": true,
+            "soldOut": false,
+            "addOn": false
+          }
+        ]
       },
       "closing": "Fancy dress is heavily encouraged. See you there!",
       "publish": "2026-09-30",

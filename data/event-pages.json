@@ -46,14 +46,15 @@
       "entry": "£10",
       "entryNote": "per vehicle",
       "tickets": {
-        "intro": "This can then be used against any purchases made during the customers visit",
         "tiers": [
           {
             "name": "Per vehicle",
             "price": "£10",
             "per": "Per vehicle",
             "tag": "",
-            "includes": [],
+            "includes": [
+              "This can then be used against any purchases made during the customers visit"
+            ],
             "url": "",
             "buttonLabel": "",
             "featured": true,

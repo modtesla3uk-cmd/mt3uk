@@ -1207,6 +1207,8 @@
   .bl-badge { border-radius: var(--radius-pill); padding: 4px 11px; font-weight: 600; }
   .bl-cta { border-radius: var(--radius); }
   .bl-btn { border-radius: var(--radius); font-weight: 600; }
+  /* One or two interviews sit in the middle on wider screens, not flush left. */
+  @media (min-width: 700px) { .bl-grid { justify-content: center; grid-template-columns: repeat(auto-fit, minmax(0, 300px)); } }
 </style>
 </head>
 <body>

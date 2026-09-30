@@ -7,6 +7,7 @@ const FEATURED_PATH = 'data/featured.json';
 const REVIEWS_PATH = 'data/reviews.json';
 const EVENTS_PATH = 'events-data/events-manifest.json';
 const INTERVIEWS_PATH = 'data/interviews.json';
+const EVENT_PAGES_PATH = 'data/event-pages.json';
 const GALLERY_PUBLIC_BASE_URL = 'https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev';
 const MAX_GALLERY_PHOTOS = 3;
 const GALLERY_SUBMIT_COOLDOWN_SECONDS = 60 * 60 * 24;
@@ -1921,6 +1922,133 @@ async function handleInterviewsAdminAction(request, env) {
   } catch (err) {
     return json({ success: false, message: err.message }, 400);
   }
+}
+
+// ---------- Event pages ----------
+// Each event page (event-<slug>.html) is listed in data/event-pages.json as a
+// draft or with a publish date (UK time), like Owner Interviews. Until it is
+// published its page shows only a Coming soon card (js/event-gate.js). Only
+// the admin can open it early: the admin page's Preview button mints a
+// one-time link here (needs the admin key), and the page swaps that link for
+// 4 hours of access in that browser. Access tokens are one KV key each, read
+// with get() only. Draft, Publish now and Schedule are one commit to
+// data/event-pages.json, which redeploys the site.
+
+var EVENT_PREVIEW_LINK_TTL_SECONDS = 5 * 60;
+var EVENT_PREVIEW_ACCESS_TTL_SECONDS = 4 * 60 * 60;
+
+async function readEventPagesFile(env) {
+  var res = await fetch(
+    'https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/' + EVENT_PAGES_PATH + '?ref=' + BASE_BRANCH,
+    { headers: eventsGithubHeaders(env), cf: { cacheTtl: 0 } }
+  );
+  if (!res.ok) throw new Error('Could not read the event pages file (' + res.status + ')');
+  var data = await res.json();
+  var text = decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
+  var file = JSON.parse(text);
+  if (!Array.isArray(file.events)) file.events = [];
+  return { file: file, sha: data.sha };
+}
+
+function eventPageState(ev, today) {
+  if (ev.draft || !ev.publish) return 'draft';
+  return ev.publish <= today ? 'live' : 'scheduled';
+}
+
+async function handleEventPagesAdminAction(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorized' }, 401);
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
+  var action = body && body.action;
+  if (['draft', 'publish-now', 'schedule'].indexOf(action) === -1) return json({ success: false, message: 'Unknown action' }, 400);
+  if (action === 'schedule' && !isValidIsoDay(body.date)) return json({ success: false, message: 'Choose a valid date' }, 400);
+  var today = ukDateString(new Date());
+  if (action === 'schedule' && body.date <= today) return json({ success: false, message: 'Choose a date after today, or use Publish now' }, 400);
+  try {
+    for (var attempt = 0; attempt < 2; attempt++) {
+      var current = await readEventPagesFile(env);
+      var ev = current.file.events.find(function (e) { return e.url === body.url; });
+      if (!ev) throw new Error('No event page ' + body.url + ', reload the page');
+      var from = body.from || {};
+      if ((ev.publish || '') !== (from.publish || '') || !!ev.draft !== !!from.draft) {
+        throw new Error(ev.name + ' was changed somewhere else since you loaded the page, reload and try again');
+      }
+      var state = eventPageState(ev, today);
+      var line;
+      if (action === 'draft') {
+        if (state === 'draft') throw new Error(ev.name + ' is already a draft');
+        line = ev.name + ' set to draft (was ' + ev.publish + ')';
+        delete ev.publish;
+        ev.draft = true;
+      } else if (action === 'publish-now') {
+        if (state === 'live') throw new Error(ev.name + ' is already live');
+        line = ev.name + ' published now (' + today + ')';
+        ev.publish = today;
+        delete ev.draft;
+      } else {
+        line = ev.name + ' scheduled for ' + body.date;
+        ev.publish = body.date;
+        delete ev.draft;
+      }
+      var content = btoa(unescape(encodeURIComponent(JSON.stringify(current.file, null, 2) + '\n')));
+      var putRes = await fetch(
+        'https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/' + EVENT_PAGES_PATH,
+        {
+          method: 'PUT',
+          headers: eventsGithubHeaders(env),
+          body: JSON.stringify({ message: 'Event pages (admin): ' + line, content: content, sha: current.sha, branch: BASE_BRANCH })
+        }
+      );
+      if (putRes.ok) return json({ success: true, events: current.file.events, change: line });
+      if (putRes.status !== 409 && putRes.status !== 422) throw new Error('Could not save the event pages file (' + putRes.status + ')');
+    }
+    throw new Error('The event pages file was changed by something else at the same time, please try again');
+  } catch (err) {
+    return json({ success: false, message: err.message }, 400);
+  }
+}
+
+// Admin page's Preview button: a one-time link token for one event page.
+async function handleEventPreviewMint(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorized' }, 401);
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
+  var slug = previewSlug(body && body.slug, false);
+  if (!slug) return json({ success: false, message: 'Invalid event page' }, 400);
+  var token = randomToken();
+  await env.VOTES.put('event-preview-link:' + token, JSON.stringify({ slug: slug }), { expirationTtl: EVENT_PREVIEW_LINK_TTL_SECONDS });
+  return json({ success: true, token: token });
+}
+
+// The event page swaps the one-time link for 4 hours of access.
+async function handleEventPreviewLink(request, env) {
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request' }, 400); }
+  var slug = previewSlug(body && body.slug, false);
+  var linkToken = String((body && body.token) || '');
+  var failed = json({ success: false, message: 'That link has expired or has already been used.' }, 400);
+  if (!slug || !/^[A-Za-z0-9_-]{16,128}$/.test(linkToken)) return failed;
+  var raw = await env.VOTES.get('event-preview-link:' + linkToken);
+  var link = null;
+  try { link = raw ? JSON.parse(raw) : null; } catch (e) { link = null; }
+  if (!link || link.slug !== slug) return failed;
+  await env.VOTES.delete('event-preview-link:' + linkToken);
+  var token = randomToken();
+  var expires = Date.now() + EVENT_PREVIEW_ACCESS_TTL_SECONDS * 1000;
+  await env.VOTES.put('event-preview-access:' + token, JSON.stringify({ slug: slug, expires: expires }), { expirationTtl: EVENT_PREVIEW_ACCESS_TTL_SECONDS });
+  return json({ success: true, token: token, expires: expires });
+}
+
+async function handleEventPreviewCheck(request, env) {
+  var params = new URL(request.url).searchParams;
+  var token = String(params.get('token') || '');
+  var slug = previewSlug(params.get('slug'), false);
+  if (!/^[A-Za-z0-9_-]{16,128}$/.test(token) || !slug) return json({ success: false }, 401);
+  var raw = await env.VOTES.get('event-preview-access:' + token);
+  var record = null;
+  try { record = raw ? JSON.parse(raw) : null; } catch (e) { record = null; }
+  if (!record || record.slug !== slug || !(record.expires > Date.now())) return json({ success: false }, 401);
+  return json({ success: true, expires: record.expires });
 }
 
 var DIGEST_MANUAL_COOLDOWN_SECONDS = 120;
@@ -6110,6 +6238,18 @@ export default {
     }
     if (url.pathname === '/events/admin' && request.method === 'DELETE') {
       return handleEventsAdminDelete(request, env);
+    }
+    if (url.pathname === '/events/pages/admin/action' && request.method === 'POST') {
+      return handleEventPagesAdminAction(request, env);
+    }
+    if (url.pathname === '/events/pages/admin/preview-link' && request.method === 'POST') {
+      return handleEventPreviewMint(request, env);
+    }
+    if (url.pathname === '/events/pages/preview/link' && request.method === 'POST') {
+      return handleEventPreviewLink(request, env);
+    }
+    if (url.pathname === '/events/pages/preview/check' && request.method === 'GET') {
+      return handleEventPreviewCheck(request, env);
     }
     if (url.pathname === '/interviews/admin' && request.method === 'GET') {
       return handleInterviewsAdminList(request, env);

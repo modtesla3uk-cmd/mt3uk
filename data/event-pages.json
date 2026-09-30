@@ -1,0 +1,16 @@
+{
+  "_note": "Event pages (event-<slug>.html). Each one is a draft (\"draft\": true, no publish date) or has a publish date (UK time). A draft, or a page before its publish date, shows only a Coming soon card (js/event-gate.js) and can be opened by the admin with Preview on the admin page. From the publish date the page is public and, until the event has finished, is featured on the homepage Events section with its image and tagline. startDate and endDate are the event's dates (YYYY-MM-DD). image is the featured photo shown on the homepage card. Changed from the admin page, not by hand.",
+  "events": [
+    {
+      "name": "Example event (template)",
+      "title": "[Event name goes here]",
+      "tagline": "[One line that sells it.]",
+      "url": "event-template.html",
+      "startDate": "2027-06-27",
+      "endDate": "2027-06-27",
+      "location": "[Venue name]",
+      "draft": true,
+      "created": "2026-09-30"
+    }
+  ]
+}

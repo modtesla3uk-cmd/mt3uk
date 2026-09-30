@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="js/event-gate.js"></script>
+<!--
+  EVENT PAGE TEMPLATE
+  How to use:
+   1. Copy this file to event-<slug>.html (e.g. event-lancing-motor-show.html).
+   2. Delete the noindex line below and the TEMPLATE strip near the top of the body.
+   3. Replace every [SQUARE BRACKET] placeholder and each grey .ph image box with a real
+      <img> (keep the class="ev-img" wrapper so the crop stays right). Every .ph says its size.
+   4. Update the data-* attributes on <main id="event"> (used by Add to calendar and Directions).
+   5. Delete any block you do not need: free event, no schedule, sold out, etc. are all fine.
+   6. Add an entry for the page to data/event-pages.json (name, title, tagline, url, image, startDate,
+      endDate, location, draft: true). It is then a draft that only the admin page's Preview can open;
+      Publish now or Schedule it from the Event pages section of admin.html. The homepage card uses
+      the image and tagline from that entry.
+   7. Update the title, description, canonical and Open Graph tags, then add the page to
+      PAGES in scripts/build_layout.py and generate_sitemap.py, and to data/search-index.json.
+-->
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="[One sentence: what the event is, where and when.]">
+<title>[Event name] – MT3UK Events</title>
+<link rel="canonical" href="https://mt3uk.com/event-[slug].html">
+<meta property="og:title" content="[Event name] – MT3UK Events">
+<meta property="og:description" content="[One sentence: what the event is, where and when.]">
+<meta property="og:image" content="https://mt3uk.com/images/events/[slug]/hero.jpg">
+<link rel="icon" type="image/x-icon" href="images/site/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="images/site/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="images/site/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="images/site/apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#16233d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MT3UK">
+<script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
+<link rel="stylesheet" href="css/site-header.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap');
+
+  :root {
+    --ink: #16233d;
+    --ink-2: #223257;
+    --paper: #f3f1ea;
+    --paper-2: #e9e5d8;
+    --charcoal: #1c1c1c;
+    --orange: #e8542a;
+    --line: #4a6491;
+    --steel: #7c8798;
+    --white: #ffffff;
+    --content-max: 1000px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--paper);
+    color: var(--charcoal);
+    font-family: 'IBM Plex Sans', sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 {
+    font-family: 'Archivo Expanded', sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .mono {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    color: var(--steel);
+  }
+  a { color: inherit; text-decoration: none; }
+  img { max-width: 100%; display: block; }
+  .wrap { max-width: var(--content-max); margin: 0 auto; padding: 0 28px; }
+
+  /* ---------- NAV: shared, see css/site-header.css ---------- */
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 13px 22px;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border: 1px solid var(--ink);
+    cursor: pointer;
+  }
+  .btn-primary { background: var(--orange); border-color: var(--orange); color: var(--white); }
+  .btn-primary:hover { background: #cf4620; border-color: #cf4620; }
+  .btn-secondary { background: transparent; color: var(--ink); }
+  .btn-secondary:hover { background: var(--ink); color: var(--paper); }
+  .btn-light { background: transparent; color: var(--paper); border-color: rgba(243,241,234,0.5); }
+  .btn-light:hover { background: var(--paper); color: var(--ink); border-color: var(--paper); }
+  .btn:focus-visible, a:focus-visible, summary:focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; }
+
+  .section-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--orange);
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  /* ---------- Image placeholders (replace each with a real <img>) ---------- */
+  .ev-img { position: relative; overflow: hidden; background: var(--ink-2); }
+  .ev-img img { width: 100%; height: 100%; object-fit: cover; }
+  .ph {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 16px;
+    width: 100%;
+    height: 100%;
+    color: rgba(243,241,234,0.75);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.74rem;
+    letter-spacing: 0.06em;
+    line-height: 1.6;
+    background:
+      repeating-linear-gradient(135deg, rgba(255,255,255,0.05) 0 14px, transparent 14px 28px),
+      var(--ink-2);
+    border: 1px dashed rgba(243,241,234,0.35);
+  }
+  .ph strong { display: block; color: var(--orange); font-weight: 500; }
+  .ph.on-light {
+    color: var(--ink-2);
+    background:
+      repeating-linear-gradient(135deg, rgba(22,35,61,0.06) 0 14px, transparent 14px 28px),
+      var(--paper-2);
+    border-color: var(--steel);
+  }
+
+  /* ---------- Template notice ---------- */
+  .tpl-strip {
+    background: var(--orange);
+    color: var(--white);
+    text-align: center;
+    padding: 8px 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.74rem;
+    letter-spacing: 0.06em;
+  }
+
+  /* ---------- Hero ---------- */
+  .ev-hero { background: var(--ink); color: var(--paper); padding: 40px 0 0; }
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: rgba(243,241,234,0.65);
+    margin-bottom: 22px;
+  }
+  .back-link:hover { color: var(--orange); }
+  .ev-hero-top { display: flex; align-items: flex-end; gap: 24px; margin-bottom: 26px; }
+  .ev-date {
+    flex: none;
+    width: 84px;
+    text-align: center;
+    background: var(--paper);
+    color: var(--ink);
+    border-top: 6px solid var(--orange);
+  }
+  .ev-date .m { display: block; padding-top: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; letter-spacing: 0.1em; }
+  .ev-date .d { display: block; font-family: 'Archivo Expanded', sans-serif; font-weight: 800; font-size: 2.2rem; line-height: 1.05; }
+  .ev-date .y { display: block; padding-bottom: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--steel); }
+  .ev-hero .section-num { margin-bottom: 8px; }
+  .ev-hero h1 { color: var(--paper); font-size: clamp(1.9rem, 4.6vw, 3rem); line-height: 1.08; max-width: 18ch; }
+  .ev-hero .tagline { color: rgba(243,241,234,0.8); font-size: 1.05rem; margin-top: 12px; max-width: 52ch; }
+  .ev-hero-img { aspect-ratio: 21 / 9; }
+
+  /* ---------- Key facts ---------- */
+  .ev-facts { background: var(--paper); border-bottom: 1px solid var(--ink); }
+  .ev-facts-grid { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: -1px; border: 1px solid var(--ink); background: var(--paper); }
+  .ev-fact { padding: 18px 20px; border-right: 1px solid var(--ink); }
+  .ev-fact:last-child { border-right: none; }
+  .ev-fact .mono { display: block; margin-bottom: 6px; }
+  .ev-fact strong { display: block; font-size: 1.02rem; color: var(--ink); line-height: 1.3; }
+  .ev-fact small { display: block; margin-top: 3px; font-size: 0.85rem; color: var(--steel); }
+  .ev-actions { display: flex; flex-wrap: wrap; gap: 12px; padding: 22px 0 28px; }
+
+  /* ---------- Sections ---------- */
+  .ev-section { padding: 56px 0; border-bottom: 1px solid var(--ink); }
+  .ev-section:last-of-type { border-bottom: none; }
+  .ev-head { margin-bottom: 28px; }
+  .ev-head h2 { font-size: clamp(1.6rem, 3.2vw, 2.2rem); max-width: 22ch; }
+  .ev-head p { color: var(--ink-2); margin-top: 10px; max-width: 58ch; }
+
+  .ev-about p { color: var(--ink-2); margin-bottom: 16px; max-width: 62ch; }
+  .ev-about .lead { font-size: 1.12rem; color: var(--ink); font-weight: 500; }
+
+  /* ---------- Tickets ---------- */
+  .tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; align-items: stretch; }
+  .tier {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--ink);
+    background: var(--white);
+    padding: 24px 22px;
+  }
+  .tier.featured { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .tier .tier-tag {
+    align-self: flex-start;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    padding: 3px 8px;
+    margin-bottom: 14px;
+    background: var(--orange);
+    color: var(--white);
+  }
+  .tier .tier-tag.quiet { background: var(--paper-2); color: var(--ink-2); }
+  .tier h3 { font-size: 1.05rem; margin-bottom: 10px; }
+  .tier.featured h3 { color: var(--paper); }
+  .tier .price { font-family: 'Archivo Expanded', sans-serif; font-weight: 800; font-size: 2.3rem; line-height: 1; color: var(--ink); }
+  .tier.featured .price { color: var(--paper); }
+  .tier .per { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: var(--steel); margin: 6px 0 16px; }
+  .tier.featured .per { color: rgba(243,241,234,0.6); }
+  .tier ul { list-style: none; margin-bottom: 22px; flex: 1; }
+  .tier li { position: relative; padding: 7px 0 7px 22px; font-size: 0.92rem; border-top: 1px solid rgba(22,35,61,0.15); }
+  .tier.featured li { border-top-color: rgba(243,241,234,0.2); }
+  .tier li::before { content: ''; position: absolute; left: 0; top: 14px; width: 9px; height: 9px; background: var(--orange); }
+  .tier .btn { width: 100%; }
+  .tier.featured .btn-secondary { color: var(--paper); border-color: rgba(243,241,234,0.5); }
+  .tier.soldout { opacity: 0.6; }
+  .tier.soldout .btn { pointer-events: none; background: var(--paper-2); color: var(--steel); border-color: var(--paper-2); }
+  .ticket-notes { margin-top: 24px; border: 1px solid var(--ink); }
+  .ticket-notes div { display: flex; justify-content: space-between; gap: 20px; padding: 13px 18px; border-bottom: 1px solid var(--ink); font-size: 0.92rem; }
+  .ticket-notes div:last-child { border-bottom: none; }
+  .ticket-notes span:first-child { color: var(--steel); font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; }
+  .ticket-notes span:last-child { font-weight: 600; color: var(--ink); text-align: right; }
+
+  /* ---------- Schedule ---------- */
+  .schedule { list-style: none; border-left: 2px solid var(--ink); margin-left: 6px; }
+  .schedule li { position: relative; display: grid; grid-template-columns: 96px 1fr; gap: 16px; padding: 0 0 22px 24px; }
+  .schedule li:last-child { padding-bottom: 0; }
+  .schedule li::before { content: ''; position: absolute; left: -7px; top: 5px; width: 12px; height: 12px; background: var(--orange); border: 2px solid var(--paper); }
+  .schedule .t { font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; color: var(--orange); padding-top: 2px; }
+  .schedule strong { display: block; color: var(--ink); }
+  .schedule p { color: var(--ink-2); font-size: 0.93rem; }
+
+  /* ---------- Gallery ---------- */
+  .ev-gallery { display: grid; grid-template-columns: 2fr 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 12px; }
+  .ev-gallery .ev-img:first-child { grid-row: 1 / 3; min-height: 300px; }
+  .ev-gallery .ev-img { min-height: 144px; }
+  .ev-gallery figcaption { position: absolute; left: 0; bottom: 0; right: 0; padding: 8px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--paper); background: linear-gradient(transparent, rgba(22,35,61,0.85)); }
+
+  /* ---------- Venue ---------- */
+  .venue-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+  .venue-map { aspect-ratio: 4 / 3; }
+  .specs { border: 1px solid var(--ink); margin-bottom: 18px; }
+  .spec-row { display: flex; justify-content: space-between; gap: 20px; padding: 13px 18px; border-bottom: 1px solid var(--ink); font-size: 0.92rem; }
+  .spec-row:last-child { border-bottom: none; }
+  .spec-row span:first-child { color: var(--steel); font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; }
+  .spec-row span:last-child { font-weight: 600; color: var(--ink); text-align: right; }
+  .venue-text p { color: var(--ink-2); margin-bottom: 14px; }
+
+  /* ---------- FAQ ---------- */
+  .faq { border: 1px solid var(--ink); max-width: 720px; }
+  .faq details { border-bottom: 1px solid var(--ink); }
+  .faq details:last-child { border-bottom: none; }
+  .faq summary { list-style: none; cursor: pointer; padding: 16px 48px 16px 18px; font-weight: 600; color: var(--ink); position: relative; }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary::after { content: '+'; position: absolute; right: 18px; top: 50%; transform: translateY(-50%); font-family: 'IBM Plex Mono', monospace; font-size: 1.2rem; color: var(--orange); }
+  .faq details[open] summary::after { content: '\2212'; }
+  .faq details p { padding: 0 18px 18px; color: var(--ink-2); font-size: 0.95rem; }
+
+  /* ---------- Closing call to action ---------- */
+  .ev-cta { background: var(--ink); color: var(--paper); padding: 52px 0; text-align: center; }
+  .ev-cta h2 { color: var(--paper); font-size: clamp(1.5rem, 3vw, 2rem); max-width: 22ch; margin: 0 auto 10px; }
+  .ev-cta p { color: rgba(243,241,234,0.75); margin: 0 auto 24px; max-width: 46ch; }
+  .ev-cta .row { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; }
+
+  /* ---------- Sticky mobile ticket bar ---------- */
+  .ticket-bar { display: none; }
+
+  /* ---------- Desktop ---------- */
+  @media (min-width: 781px) {
+    .ev-hero .wrap { text-align: center; }
+    .ev-hero-top { justify-content: center; align-items: center; text-align: left; }
+    .ev-hero .ev-hero-text { max-width: 640px; }
+    .ev-actions { justify-content: center; }
+    .ev-head { text-align: center; }
+    .ev-head h2, .ev-head p { margin-left: auto; margin-right: auto; }
+    /* Long-form description: 2 columns with a dividing line */
+    .ev-about .cols { column-count: 2; column-gap: 56px; column-rule: 1px solid rgba(22,35,61,0.25); }
+    .ev-about .cols p { max-width: none; break-inside: avoid-column; }
+    .faq { margin: 0 auto; }
+  }
+
+  /* ---------- Mobile ---------- */
+  @media (max-width: 780px) {
+    .wrap { padding: 0 20px; }
+    .ev-hero { padding-top: 26px; }
+    .back-link { margin-bottom: 14px; }
+    .ev-hero-top { flex-direction: column; align-items: flex-start; gap: 16px; margin-bottom: 20px; }
+    .ev-hero-img { aspect-ratio: 4 / 3; }
+    .ev-facts-grid { grid-template-columns: 1fr 1fr; }
+    .ev-fact:nth-child(2) { border-right: none; }
+    .ev-fact:nth-child(-n+2) { border-bottom: 1px solid var(--ink); }
+    .ev-fact:nth-child(3) { border-right: 1px solid var(--ink); }
+    .ev-fact:nth-child(4) { border-right: none; }
+    .ev-actions .btn { flex: 1 1 100%; }
+    .ev-section { padding: 38px 0; }
+    .tiers { grid-template-columns: 1fr; }
+    .ev-gallery { grid-template-columns: 1fr 1fr; grid-template-rows: auto; }
+    .ev-gallery .ev-img:first-child { grid-column: 1 / 3; grid-row: auto; min-height: 220px; }
+    .venue-grid { grid-template-columns: 1fr; }
+    .schedule li { grid-template-columns: 70px 1fr; gap: 10px; padding-left: 20px; }
+    .ticket-notes div, .spec-row { flex-direction: column; gap: 2px; }
+    .ticket-notes span:last-child, .spec-row span:last-child { text-align: left; }
+    .ticket-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      z-index: 50;
+      padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+      background: var(--ink);
+      color: var(--paper);
+      border-top: 2px solid var(--orange);
+    }
+    .ticket-bar .from { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: rgba(243,241,234,0.65); display: block; }
+    .ticket-bar strong { font-family: 'Archivo Expanded', sans-serif; font-size: 1.15rem; }
+    .ticket-bar .btn { padding: 11px 20px; }
+    body { padding-bottom: 68px; }
+  }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+
+<div class="tpl-strip">TEMPLATE / NOT LIVE / COPY THIS FILE, THEN DELETE THIS STRIP AND THE NOINDEX TAG</div>
+
+<header>
+  <nav>
+    <div class="nav-center">
+      <a href="/" class="logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
+    <div class="navlinks" id="navlinks">
+      <a href="signin.html" class="nav-link-mobile">Sign Up / Sign In</a>
+      <div class="nav-item">
+        <a href="index.html#build-feed" class="nav-link">Gallery Feed</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Gallery Feed submenu">&#9660;</button>
+        <div class="nav-dropdown">
+          <a href="index.html#build-of-the-day" class="nav-sublink nav-sublink-new">Build of the Week</a>
+          <a href="index.html#vote-frame" class="nav-sublink">Vote for Build</a>
+          <a href="gallery.html" class="nav-sublink">Full Gallery</a>
+        </div>
+      </div>
+      <a href="my-builds.html" class="nav-link nav-link-mybuilds">My Garage</a>
+      <div class="nav-item">
+        <a href="profile.html" class="nav-link nav-link-profile">My Profile</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle My Profile submenu">&#9660;</button>
+        <div class="nav-dropdown">
+          <a href="profile.html#messages" class="nav-sublink nav-sublink-new">Messages</a>
+          <a href="profile.html#friends" class="nav-sublink nav-sublink-new">Friends</a>
+          <a href="profile.html" class="nav-sublink">Settings</a>
+        </div>
+      </div>
+      <div class="nav-item">
+        <a href="shop.html" class="nav-link">Shop</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Shop submenu">&#9660;</button>
+        <div class="nav-dropdown">
+          <a href="shop.html#merch" class="nav-sublink">Merch</a>
+          <div class="nav-item nav-subitem">
+            <a href="shop.html#parts" class="nav-sublink nav-sublink-new">Parts</a>
+            <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Parts submenu">&#9660;</button>
+            <div class="nav-dropdown">
+              <a href="shop.html#tevo" class="nav-sublink">Tevo Solutions</a>
+              <a href="shop.html#redline" class="nav-sublink">Redline Plates</a>
+              <a href="shop.html#evoffer" class="nav-sublink">EVOffer Sport Seats</a>
+              <a href="shop.html#offers" class="nav-sublink nav-sublink-offer">Offers</a>
+            </div>
+          </div>
+          <a href="reviews.html" class="nav-sublink">Customer Reviews</a>
+        </div>
+      </div>
+      <a href="index.html#events" class="nav-link active">Events</a>
+      <div class="nav-item">
+        <a href="index.html#track-days" class="nav-link">Track Days</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Track Days submenu">&#9660;</button>
+        <div class="nav-dropdown">
+          <a href="track-day-prep.html" class="nav-sublink">Prep</a>
+          <a href="track-day-on-the-day.html" class="nav-sublink nav-sublink-new">On The Day</a>
+          <a href="track-day-venues.html" class="nav-sublink">Venues</a>
+          <a href="track-day-prep.html#track-day-finder" class="nav-sublink">Track Day Finder</a>
+        </div>
+      </div>
+      <div class="nav-item">
+        <a href="blog.html" class="nav-link">Blog</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Blog submenu">&#9660;</button>
+        <div class="nav-dropdown">
+          <a href="blog.html" class="nav-sublink nav-sublink-new">Owner Interviews</a>
+        </div>
+      </div>
+      <div class="nav-item">
+        <a href="index.html#about" class="nav-link">About</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle About submenu">&#9660;</button>
+        <div class="nav-dropdown">
+          <a href="https://www.facebook.com/groups/mt3uk/" class="nav-sublink" target="_blank" rel="noopener">Join The Facebook Group</a>
+        </div>
+      </div>
+      <a href="index.html#faq" class="nav-link">FAQs</a>
+      <div class="nav-item">
+        <a href="contact.html" class="nav-link">Contact</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Contact submenu">&#9660;</button>
+        <div class="nav-dropdown">
+          <a href="https://ko-fi.com/mt3uk" class="nav-sublink" target="_blank" rel="noopener">Support Us</a>
+        </div>
+      </div>
+      </div>
+    </div>
+    <div class="nav-search" id="nav-search">
+      <button type="button" class="nav-search-toggle" id="nav-search-toggle" aria-expanded="false" aria-controls="nav-search-panel" aria-label="Search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      </button>
+      <div class="nav-search-panel" id="nav-search-panel">
+        <input type="text" id="nav-search-input" placeholder="Search&hellip; e.g. Gallery, Shop, Hoodies, Number Plates, Pads" autocomplete="off">
+        <div class="nav-search-results" id="nav-search-results"></div>
+      </div>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navlinks">
+      <span class="hamburger-bar"></span><span class="hamburger-bar"></span><span class="hamburger-bar"></span>
+    </button>
+  </nav>
+</header>
+
+<!--
+  Structured data for Google. Copy into a <script type="application/ld+json"> block on the real page:
+  {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    "name": "[Event name]",
+    "startDate": "2027-06-27T09:00:00+01:00",
+    "endDate": "2027-06-27T17:00:00+01:00",
+    "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+    "eventStatus": "https://schema.org/EventScheduled",
+    "location": { "@type": "Place", "name": "[Venue]", "address": "[Address, postcode]" },
+    "image": ["https://mt3uk.com/images/events/[slug]/hero.jpg"],
+    "description": "[One sentence]",
+    "organizer": { "@type": "Organization", "name": "MT3UK", "url": "https://mt3uk.com" },
+    "offers": { "@type": "Offer", "url": "https://mt3uk.com/event-[slug].html#tickets", "price": "15", "priceCurrency": "GBP", "availability": "https://schema.org/InStock" }
+  }
+-->
+
+<main id="event"
+  data-title="[Event name]"
+  data-start-utc="20270627T080000Z"
+  data-end-utc="20270627T160000Z"
+  data-location="[Venue name, Address, Postcode]"
+  data-url="https://mt3uk.com/event-[slug].html">
+
+  <!-- HERO: date block, title, tagline, big image -->
+  <section class="ev-hero">
+    <div class="wrap">
+      <a href="index.html#events" class="back-link">&larr; Back to Events</a>
+      <div class="ev-hero-top">
+        <div class="ev-date" aria-label="Sunday 27 June 2027">
+          <span class="m">JUN</span><span class="d">27</span><span class="y">2027</span>
+        </div>
+        <div class="ev-hero-text">
+          <span class="section-num mono">EVENTS / [MEET, SHOW OR TRACK DAY]</span>
+          <h1>[Event name goes here]</h1>
+          <p class="tagline">[One line that sells it. A good line here is the who, the what and the vibe.]</p>
+        </div>
+      </div>
+      <div class="ev-img ev-hero-img">
+        <div class="ph"><span><strong>HERO IMAGE</strong>2100 &times; 900 (21:9). Crops to 4:3 on phones, so keep the subject central.<br>Save as images/events/[slug]/hero.jpg</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- KEY FACTS: when, where, time, entry -->
+  <section class="ev-facts">
+    <div class="wrap">
+      <div class="ev-facts-grid">
+        <div class="ev-fact"><span class="mono">WHEN</span><strong>Sunday 27 June 2027</strong><small>[Rain date or note, if any]</small></div>
+        <div class="ev-fact"><span class="mono">WHERE</span><strong>[Venue name]</strong><small>[Town, postcode]</small></div>
+        <div class="ev-fact"><span class="mono">TIME</span><strong>9:00am to 5:00pm</strong><small>[Arrive from 8:30am]</small></div>
+        <div class="ev-fact"><span class="mono">ENTRY</span><strong>From &pound;[15] per car</strong><small>[Spectators free]</small></div>
+      </div>
+      <div class="ev-actions">
+        <a class="btn btn-primary" href="#tickets">Get tickets &rarr;</a>
+        <button class="btn btn-secondary" type="button" id="add-to-calendar">Add to calendar</button>
+        <a class="btn btn-secondary" id="get-directions" href="#venue" target="_blank" rel="noopener">Get directions</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- DESCRIPTION -->
+  <section class="ev-section">
+    <div class="wrap ev-about">
+      <div class="ev-head">
+        <span class="section-num mono">01 / ABOUT</span>
+        <h2>What to expect</h2>
+      </div>
+      <div class="cols">
+        <p class="lead">[Opening paragraph: a plain, friendly sentence or two on what the day is and who it is for. Keep the first paragraph the strongest.]</p>
+        <p>[Second paragraph: what happens on the day. Cars on show, track sessions, talks, food, trade stands, club stickers, a group photo.]</p>
+        <p>[Third paragraph: who should come. Owners of any Tesla, modified or not. Mention if partners, kids or dogs are welcome.]</p>
+        <p>[Fourth paragraph: anything they need to know before arriving, such as parking, what to bring, or house rules. Longer detail can go in the FAQ below.]</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- TICKETS -->
+  <section class="ev-section" style="background: var(--paper-2);">
+    <div class="wrap">
+      <div id="tickets" style="scroll-margin-top: 90px;"></div>
+      <div class="ev-head">
+        <span class="section-num mono">02 / TICKETS</span>
+        <h2>Tickets and entry</h2>
+        <p>[Where tickets are sold and how they arrive. For example: tickets are sent by email, show the QR code on the gate.]</p>
+      </div>
+      <div class="tiers">
+        <div class="tier">
+          <span class="tier-tag quiet">SPECTATOR</span>
+          <h3>Spectator</h3>
+          <div class="price">Free</div>
+          <div class="per">PER PERSON</div>
+          <ul>
+            <li>Walk the show field</li>
+            <li>Meet the owners</li>
+            <li>[Anything else included]</li>
+          </ul>
+          <a class="btn btn-secondary" href="#">Register free</a>
+        </div>
+        <div class="tier featured">
+          <span class="tier-tag">MOST POPULAR</span>
+          <h3>Show your car</h3>
+          <div class="price">&pound;15</div>
+          <div class="per">PER CAR, DRIVER INCLUDED</div>
+          <ul>
+            <li>Reserved display space</li>
+            <li>Event window sticker</li>
+            <li>Entry into the owners' vote</li>
+            <li>[Anything else included]</li>
+          </ul>
+          <a class="btn btn-primary" href="https://example.com/tickets?utm_source=mt3uk_events&amp;utm_medium=internal&amp;utm_campaign=[slug]_tickets">Get a display ticket</a>
+        </div>
+        <div class="tier soldout">
+          <span class="tier-tag quiet">SOLD OUT</span>
+          <h3>Early bird</h3>
+          <div class="price">&pound;10</div>
+          <div class="per">PER CAR</div>
+          <ul>
+            <li>Same as display ticket</li>
+            <li>[Anything else included]</li>
+          </ul>
+          <span class="btn btn-secondary" aria-disabled="true">Sold out</span>
+        </div>
+      </div>
+      <div class="ticket-notes">
+        <div><span>REFUNDS</span><span>[Refunds up to 7 days before]</span></div>
+        <div><span>TICKET DEADLINE</span><span>[Tickets close 20 June 2027]</span></div>
+        <div><span>QUESTIONS</span><span><a href="contact.html" style="color:var(--orange);">Contact us</a></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCHEDULE -->
+  <section class="ev-section">
+    <div class="wrap">
+      <div class="ev-head">
+        <span class="section-num mono">03 / THE DAY</span>
+        <h2>Running order</h2>
+      </div>
+      <ol class="schedule" style="max-width: 640px; margin-left: auto; margin-right: auto;">
+        <li><span class="t">08:30</span><div><strong>Gates open</strong><p>[Display cars roll in and get parked up.]</p></div></li>
+        <li><span class="t">10:00</span><div><strong>[Main activity]</strong><p>[One line on what is happening.]</p></div></li>
+        <li><span class="t">13:00</span><div><strong>[Group photo]</strong><p>[One line on what is happening.]</p></div></li>
+        <li><span class="t">15:30</span><div><strong>[Awards or vote result]</strong><p>[One line on what is happening.]</p></div></li>
+        <li><span class="t">17:00</span><div><strong>Finish</strong><p>[Drive home safe.]</p></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- PHOTOS -->
+  <section class="ev-section" style="background: var(--paper-2);">
+    <div class="wrap">
+      <div class="ev-head">
+        <span class="section-num mono">04 / PHOTOS</span>
+        <h2>[Last year, or the venue]</h2>
+      </div>
+      <div class="ev-gallery">
+        <figure class="ev-img"><div class="ph"><span><strong>PHOTO 1, LARGE</strong>1200 &times; 900 (4:3)</span></div></figure>
+        <figure class="ev-img"><div class="ph"><span><strong>PHOTO 2</strong>800 &times; 600</span></div></figure>
+        <figure class="ev-img"><div class="ph"><span><strong>PHOTO 3</strong>800 &times; 600</span></div></figure>
+        <figure class="ev-img"><div class="ph"><span><strong>PHOTO 4</strong>800 &times; 600</span></div></figure>
+        <figure class="ev-img"><div class="ph"><span><strong>PHOTO 5</strong>800 &times; 600</span></div></figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- VENUE -->
+  <section class="ev-section">
+    <div class="wrap">
+      <div id="venue" style="scroll-margin-top: 90px;"></div>
+      <div class="ev-head">
+        <span class="section-num mono">05 / VENUE</span>
+        <h2>Getting there</h2>
+      </div>
+      <div class="venue-grid">
+        <div class="ev-img venue-map">
+          <div class="ph"><span><strong>MAP OR VENUE IMAGE</strong>1200 &times; 900 (4:3). A screenshot of the map pin or a venue photo.</span></div>
+        </div>
+        <div class="venue-text">
+          <div class="specs">
+            <div class="spec-row"><span>VENUE</span><span>[Venue name]</span></div>
+            <div class="spec-row"><span>ADDRESS</span><span>[Street, Town, Postcode]</span></div>
+            <div class="spec-row"><span>PARKING</span><span>[Free on site]</span></div>
+            <div class="spec-row"><span>CHARGING</span><span>[Nearest chargers]</span></div>
+          </div>
+          <p>[Short directions or a tip: which entrance to use, what to look for, where marshals will be.]</p>
+          <a class="btn btn-secondary" id="get-directions-2" href="#venue" target="_blank" rel="noopener">Open in Maps &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="ev-section" style="background: var(--paper-2);">
+    <div class="wrap">
+      <div class="ev-head">
+        <span class="section-num mono">06 / FAQ</span>
+        <h2>Good to know</h2>
+      </div>
+      <div class="faq">
+        <details><summary>Does my Tesla need to be modified?</summary><p>[No. Stock cars are just as welcome. Say so here if true.]</p></details>
+        <details><summary>Can I bring my family or dog?</summary><p>[Answer.]</p></details>
+        <details><summary>What if it rains?</summary><p>[Answer, including whether the event goes ahead.]</p></details>
+        <details><summary>Where can I charge?</summary><p>[Answer, including on site or nearby chargers.]</p></details>
+      </div>
+    </div>
+  </section>
+
+  <!-- CLOSING CTA -->
+  <section class="ev-cta">
+    <div class="wrap">
+      <h2>See you there</h2>
+      <p>[One friendly line. Tickets, then tell a mate.]</p>
+      <div class="row">
+        <a class="btn btn-primary" href="#tickets">Get tickets &rarr;</a>
+        <a class="btn btn-light" href="https://www.facebook.com/groups/mt3uk" target="_blank" rel="noopener">Join the community</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- Phone only: keeps the price and ticket button in reach -->
+<div class="ticket-bar">
+  <div><span class="from">TICKETS FROM</span><strong>&pound;[15]</strong></div>
+  <a class="btn btn-primary" href="#tickets">Get tickets</a>
+</div>
+
+<footer>
+  <div class="wrap footer-row">
+    <a href="/" class="logo footer-logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
+    <span class="mono">MODIFIED TESLA COMMUNITY &middot; <span class="member-count"></span> MEMBERS</span>
+    <span class="footer-links"><a href="privacy.html" class="mono" style="text-decoration:underline;">PRIVACY</a> <a href="https://www.facebook.com/groups/mt3uk/" target="_blank" rel="noopener" class="mono" style="text-decoration:underline;">FACEBOOK GROUP &#8599;</a></span>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var ev = document.getElementById('event');
+    if (!ev) return;
+
+    // Directions: Google Maps search for the location on the page.
+    var maps = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(ev.dataset.location || '');
+    ['get-directions', 'get-directions-2'].forEach(function (id) {
+      var a = document.getElementById(id);
+      if (a) a.href = maps;
+    });
+
+    // Add to calendar: downloads a small .ics file.
+    var btn = document.getElementById('add-to-calendar');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+      var esc = function (s) { return String(s || '').replace(/([,;\\])/g, '\\$1').replace(/\n/g, '\\n'); };
+      var lines = [
+        'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//MT3UK//Events//EN', 'BEGIN:VEVENT',
+        'UID:' + (ev.dataset.startUtc || '') + '-' + Math.abs(hash(ev.dataset.title || '')) + '@mt3uk.com',
+        'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, ''),
+        'DTSTART:' + ev.dataset.startUtc,
+        'DTEND:' + ev.dataset.endUtc,
+        'SUMMARY:' + esc(ev.dataset.title),
+        'LOCATION:' + esc(ev.dataset.location),
+        'URL:' + (ev.dataset.url || ''),
+        'END:VEVENT', 'END:VCALENDAR'
+      ];
+      var blob = new Blob([lines.join('\r\n')], { type: 'text/calendar' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'mt3uk-event.ics';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+    });
+    function hash(s) { var h = 0; for (var i = 0; i < s.length; i++) { h = (h << 5) - h + s.charCodeAt(i); h |= 0; } return h; }
+  })();
+</script>
+
+
+  <script>
+    (function () {
+        var hamburger = document.getElementById('hamburger');
+        var navMenu = document.getElementById('navlinks');
+        if (!hamburger || !navMenu) return;
+
+        function closeMenu() {
+              navMenu.classList.remove('active');
+              hamburger.setAttribute('aria-expanded', 'false');
+        }
+
+        hamburger.addEventListener('click', function (e) {
+              e.stopPropagation();
+              var open = navMenu.classList.toggle('active');
+              hamburger.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+
+        navMenu.querySelectorAll('.nav-link, .nav-sublink').forEach(function (link) {
+              link.addEventListener('click', closeMenu);
+        });
+
+        navMenu.querySelectorAll('.nav-dropdown-toggle').forEach(function (toggle) {
+              toggle.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var item = toggle.closest('.nav-item');
+                    var open = item.classList.toggle('open');
+                    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+              });
+        });
+
+        document.addEventListener('click', function (e) {
+              if (!e.target.closest('header nav')) closeMenu();
+        });
+    })();
+  </script>
+
+  <script>
+    (function () {
+      fetch('data/community.json', { cache: 'no-store' })
+        .then(function (res) { return res.ok ? res.json() : null; })
+        .then(function (data) {
+          if (!data || !data.members) return;
+          document.querySelectorAll('.member-count').forEach(function (el) {
+            el.textContent = data.members;
+          });
+        })
+        .catch(function () {});
+    })();
+  </script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('/sw.js');
+      });
+    }
+  </script>
+
+<script src="js/share.js" defer></script>
+<script src="js/account-bar.js" defer></script>
+<script src="js/signin-prompt.js" defer></script>
+<script src="js/notify-bell.js" defer></script>
+<script src="js/messenger.js" defer></script>
+<script src="js/search.js" defer></script>
+
+</body>
+</html>

@@ -44,6 +44,14 @@ Static site for the MT3UK modified Tesla community, live at https://mt3uk.com. I
   - add `<script src="js/interview-gate.js"></script>` in the `<head>`, after the viewport meta. Until the publish date the page asks for a one-time code, which anyone can have emailed, like Sign In. A code opens it for 4 hours (and makes that email a member if it is not one already). The admin page (Interview previews) lists who has opened each one and can revoke access. The gate is off on localhost; add `?gate=on` to try it.
 - Comments run in demo mode on localhost, stored in localStorage. Add `?comments=live` to use the real worker.
 
+## Event pages
+
+- `event-template.html` is the template. Copy it to `event-<slug>.html` and follow the how-to comment at the top. Images are striped `.ph` placeholders that say their size.
+- `data/event-pages.json` lists every event page as a draft (`"draft": true`) or with a `publish` date (UK time). Add an entry for each new page (name, title, tagline, url, image, startDate, endDate, location, created).
+- `js/event-gate.js` (in each page's `<head>`) shows only a Coming soon card until the publish date. Only the admin can open it early: **Event pages** on `admin.html` has Preview (a one-time link, 4 hours), Publish now, Schedule and Draft. There is no public code or sign-up. A page not listed in the file, or a failed read of the file, stays hidden. The gate is off on localhost; add `?gate=on` to try it.
+- Published events are featured on the homepage Events section (image and tagline) until `endDate` has passed.
+- Worker routes are under `/events/pages/`. Tests: `tests/test_event_pages.py`.
+
 ## Shop
 
 - The Tee card and modal are the template for new products. Zoomable product images use the hold-to-pan zoom in shop.html (`panTargets`, `.zoom-pan`), which zooms back out on release. Never use a plain CSS hover zoom or a link.

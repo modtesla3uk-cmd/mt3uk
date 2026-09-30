@@ -217,6 +217,39 @@ def api_reply(url, method, post_data, state):
             line = iv["name"] + " published now"
         state.setdefault("interview_actions", []).append((action, url))
         return {"success": True, "interviews": file["interviews"], "change": line}
+    if path == "/events/pages/admin/preview-link":
+        # The admin page's Preview button: a one-time link for one event page.
+        state["event_preview_minted"] = True
+        return {"success": True, "token": "e" * 32}
+    if path == "/events/pages/preview/link":
+        try:
+            body = json.loads(post_data or "{}")
+        except ValueError:
+            body = {}
+        if body.get("token") == "e" * 32 and not state.get("event_link_used"):
+            state["event_link_used"] = True
+            state["event_preview_ok"] = True
+            return {"success": True, "token": "q" * 64, "expires": 4102444800000}
+        return {"success": False, "message": "That link has expired or has already been used."}
+    if path == "/events/pages/preview/check":
+        if state.get("event_preview_ok"):
+            return {"success": True, "expires": 4102444800000}
+        return {"success": False}
+    if path == "/events/pages/admin/action":
+        try:
+            body = json.loads(post_data or "{}")
+        except ValueError:
+            body = {}
+        file = state.setdefault("event_pages_file", json.loads((REPO_ROOT / "data" / "event-pages.json").read_text(encoding="utf-8")))
+        ev = next(e for e in file["events"] if e["url"] == body.get("url"))
+        if body.get("action") == "draft":
+            ev.pop("publish", None)
+            ev["draft"] = True
+        else:
+            ev["publish"] = body.get("date") or "2026-09-29"
+            ev.pop("draft", None)
+        state.setdefault("event_actions", []).append(body.get("action"))
+        return {"success": True, "events": file["events"], "change": ev["name"] + " updated"}
     if path == "/interviews/preview/link":
         # The email link: works once, and only with the test's token.
         try:

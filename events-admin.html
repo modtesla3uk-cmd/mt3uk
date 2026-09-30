@@ -526,7 +526,7 @@
         '</div>' +
         '<div class="event-actions">' +
           '<button type="button" data-ep="preview" data-slug="' + s + '">Preview</button>' +
-          (state === 'live' ? '' : '<button type="button" class="secondary" data-ep="copy" data-slug="' + s + '">Copy link</button>') +
+          '<button type="button" class="secondary" data-ep="copy" data-slug="' + s + '">Copy link</button>' +
           '<button type="button" class="secondary" data-ep="edit" data-slug="' + s + '">Edit</button>' +
           (state === 'live' ? '' : '<button type="button" class="secondary" data-ep="publish-now" data-slug="' + s + '">Publish now</button>') +
           (state === 'draft' ? '' : '<button type="button" class="secondary" data-ep="draft" data-slug="' + s + '">Draft</button>') +
@@ -931,7 +931,8 @@
   function copyLink(p) {
     // The share page has the event's own image and title for link previews, then sends people on to the event page.
     var link = 'https://mt3uk.com/share/event/' + p.slug + '.html';
-    var done = function () { setStatus('Link copied: ' + link + '. It shows this event\u2019s own image in chat and social previews. Anyone you send it to can ask for an emailed code to see the page early.', 'ok'); };
+    var live = stateOf(p) === 'live';
+    var done = function () { setStatus('Link copied: ' + link + '. It shows this event\u2019s own image in chat and social previews.' + (live ? '' : ' Anyone you send it to can ask for an emailed code to see the page early.'), 'ok'); };
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(link).then(done, function () { window.prompt('Copy this link', link); });
     } else {

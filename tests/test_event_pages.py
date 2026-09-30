@@ -272,6 +272,35 @@ def test_homepage_has_no_event_cards_when_there_are_no_events(device_page):
 
 
 @ADMIN_ONLY
+def test_admin_can_preview_publish_draft_and_delete(device_page):
+    page = device_page
+    open_events_admin(page)
+    frunk = page.locator('#ep-list .event-card[data-slug="frunk-or-treat-uk"]')
+    frunk.wait_for(state="visible", timeout=5000)
+    assert "Draft" in frunk.inner_text() and "Frunk or Treat UK 2026" in frunk.inner_text()
+    assert page.locator("#ep-list .event-card").count() == 4, "The three upcoming events have draft pages ready too"
+
+    with page.expect_popup() as popup_info:
+        page.click('#ep-list [data-ep="preview"]')
+    popup_info.value.wait_for_url(re.compile(r"event\.html\?e=frunk-or-treat-uk&gate=on&preview=e{32}"), timeout=5000)
+    assert page.mock_state["event_preview_minted"] == "frunk-or-treat-uk"
+
+    page.once("dialog", lambda d: d.accept())
+    frunk.locator('[data-ep="publish-now"]').click()
+    page.wait_for_function("document.querySelector('#ep-list .event-card[data-slug=\"frunk-or-treat-uk\"] .event-id').textContent === 'Live'", timeout=5000)
+    assert frunk.locator('[data-ep="delete"]').count() == 0, "A live event cannot be deleted"
+    assert frunk.locator('[data-ep="copy"]').count() == 1, "A live event can still have its link copied"
+    page.once("dialog", lambda d: d.accept())
+    frunk.locator('[data-ep="draft"]').click()
+    page.wait_for_function("document.querySelector('#ep-list .event-card[data-slug=\"frunk-or-treat-uk\"] .event-id').textContent === 'Draft'", timeout=5000)
+    page.once("dialog", lambda d: d.accept())
+    frunk.locator('[data-ep="delete"]').click()
+    page.wait_for_function("document.querySelectorAll('#ep-list .event-card').length === 3", timeout=5000)
+    assert page.locator('#ep-list .event-card[data-slug="frunk-or-treat-uk"]').count() == 0
+    assert page.mock_state["event_actions"] == ["publish-now", "draft", "delete"]
+
+
+@ADMIN_ONLY
 def test_admin_edit_form_is_filled_from_the_event_and_saves_it_back(device_page):
     page = device_page
     open_events_admin(page)

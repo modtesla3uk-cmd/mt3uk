@@ -163,7 +163,7 @@
       "ctaUrl": "https://ror-launch-trackday26.eventbrite.co.uk",
       "ctaLabel": "Book on Eventbrite",
       "created": "2026-09-30",
-      "publish": "2026-09-30"
+      "draft": true
     },
     {
       "slug": "gasoline-juice-autumn-meet-2026",

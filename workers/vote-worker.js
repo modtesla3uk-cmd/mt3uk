@@ -2051,6 +2051,8 @@ function cleanEventEntry(input) {
     tagline: evStr(input.tagline, 200),
     organisers: evStr(input.organisers, 200),
     kind: evStr(input.kind, 30),
+    // The older Facebook-style event (events-manifest.json) this page belongs to, if any.
+    manifestId: /^[A-Za-z0-9_-]{1,20}$/.test(evStr(input.manifestId, 20)) ? evStr(input.manifestId, 20) : '',
     startDate: startDate,
     endDate: endDate,
     startTime: startTime,

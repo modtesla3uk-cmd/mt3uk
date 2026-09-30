@@ -182,6 +182,14 @@
   }
   details[open] > summary h2::before { transform: rotate(90deg); }
 
+  /* The editor opens right under the event being edited, which gets an outline and a small arrow by its title */
+  .event-card.is-editing { border-color: var(--orange); margin-bottom: 0; border-bottom-left-radius: 0; border-bottom-right-radius: 0; opacity: 1; }
+  .event-card.is-editing .event-name::after {
+    content: ""; display: inline-block; width: 18px; height: 18px; margin-left: 8px; vertical-align: -3px;
+    background: no-repeat center / 18px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e8542a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  }
+  .form-card.inline { margin: 0 0 12px; border-color: var(--orange); border-top-color: rgba(232, 84, 42, 0.35); border-top-left-radius: 0; border-top-right-radius: 0; }
+
   /* Phones: larger text and tap targets. Desktop is unchanged. Inputs use
      16px so iOS doesn't zoom in on focus. */
   @media (max-width: 780px) {
@@ -434,6 +442,7 @@
   var pages = [];
   var editingSlug = '';
   var isNew = false;
+  var currentManifestId = '';
   var images = { image: '', heroImage: '', poster: '' };
   var gallery = [];
   var uploading = 0;
@@ -459,17 +468,52 @@
   function slugify(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60); }
   function find(slug) { return pages.filter(function (x) { return x.slug === slug; })[0]; }
 
+  // ---------- The editors open under the event being edited ----------
+  // Each editor form is moved to sit right under its event's card (which is
+  // marked with an outline and an arrow by its title), and back to its usual
+  // place when closed. Redrawing a list parks the forms first, then puts them
+  // back, so a save doesn't lose the editor.
+  var Inline = window.mt3ukInline = {
+    parkers: [],
+    placers: [],
+    parkAll: function () { this.parkers.forEach(function (f) { f(); }); },
+    placeAll: function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.event-card.is-editing'), function (c) { c.classList.remove('is-editing'); });
+      this.placers.forEach(function (f) { f(); });
+    },
+    show: function (card) { if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  };
+  var epLegacyId = '';   // the older event whose card the page editor sits under
+  var epHome = document.createElement('div');
+  $('ep-wrap').querySelector('.ep-bar').after(epHome);
+  function epCard() {
+    if (epLegacyId) return document.querySelector('#upcoming-list .event-card[data-id="' + epLegacyId + '"], #past-list .event-card[data-id="' + epLegacyId + '"]');
+    if (editingSlug) return listEl.querySelector('.event-card[data-slug="' + editingSlug + '"]');
+    return null;
+  }
+  Inline.parkers.push(function () { epHome.after(form); form.classList.remove('inline'); });
+  Inline.placers.push(function () {
+    if (form.classList.contains('hidden')) return;
+    var card = epCard();
+    if (!card) return;
+    card.classList.add('is-editing');
+    card.after(form);
+    form.classList.add('inline');
+  });
+
   // ---------- The list ----------
   function render() {
+    Inline.parkAll();
+    if (window.mt3ukRenderLegacy) window.mt3ukRenderLegacy();
     fillPreviewSelect();
     countEl.textContent = pages.length ? '(' + pages.length + ')' : '';
-    if (!pages.length) { listEl.innerHTML = '<p class="empty">No event pages yet. Press Add an event page.</p>'; return; }
+    if (!pages.length) { listEl.innerHTML = '<p class="empty">No event pages yet. Press Add an event page.</p>'; Inline.placeAll(); return; }
     listEl.innerHTML = pages.map(function (p) {
       var state = stateOf(p);
       var s = esc(p.slug);
       var label = state === 'live' ? 'Live' : state === 'scheduled' ? 'Scheduled' : 'Draft';
       var when = state === 'draft' ? 'Not scheduled' : (state === 'live' ? 'Live since ' : 'Goes live ') + nice(p.publish);
-      return '<div class="event-card">' +
+      return '<div class="event-card" data-slug="' + s + '">' +
         '<div class="event-id ' + state + '">' + label + '</div>' +
         '<div class="event-body">' +
           '<h3 class="event-name">' + esc(p.name) + '</h3>' +
@@ -490,6 +534,7 @@
         '</div>' +
       '</div>';
     }).join('');
+    Inline.placeAll();
   }
 
   // ---------- Talking to the worker ----------
@@ -657,7 +702,7 @@
   function readForm() {
     var g = function (id) { return $(id).value.trim(); };
     return {
-      slug: slugify(g('ep-slug')), name: g('ep-name'), title: g('ep-title'), tagline: g('ep-tagline'), organisers: g('ep-organisers'), kind: g('ep-kind'),
+      slug: slugify(g('ep-slug')), manifestId: currentManifestId, name: g('ep-name'), title: g('ep-title'), tagline: g('ep-tagline'), organisers: g('ep-organisers'), kind: g('ep-kind'),
       startDate: g('ep-start-date'), startTime: g('ep-start-time'), endDate: g('ep-end-date'), endTime: g('ep-end-time'), timeNote: g('ep-time-note'),
       venue: g('ep-venue'), town: g('ep-town'), address: g('ep-address'), what3words: g('ep-w3w'), directions: g('ep-directions'),
       venueNotes: pairs($('ep-venue-notes').value, 2).map(function (p) { return { label: p[0], value: p[1] || '' }; }),
@@ -707,20 +752,30 @@
     drawSlots();
   }
 
-  function openForm(p, creating) {
+  function openForm(p, creating, legacyId) {
     isNew = creating;
+    epLegacyId = legacyId || '';
     editingSlug = creating ? '' : p.slug;
+    currentManifestId = p.manifestId || '';
     delete $('ep-slug').dataset.touched;
     fillForm(p);
     $('ep-slug').readOnly = !creating;
     $('ep-form-title').textContent = creating ? 'New event page' : 'Edit ' + p.name;
     form.classList.remove('hidden');
     form.classList.toggle('editing', !creating);
-    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    Inline.parkAll();
+    Inline.placeAll();
+    Inline.show(form.previousElementSibling && form.previousElementSibling.classList.contains('event-card') ? form.previousElementSibling : form);
+  }
+  function closeForm() {
+    form.classList.add('hidden');
+    epLegacyId = '';
+    Inline.parkAll();
+    Inline.placeAll();
   }
 
   $('ep-new').addEventListener('click', function () { openForm({}, true); });
-  $('ep-cancel').addEventListener('click', function () { form.classList.add('hidden'); });
+  $('ep-cancel').addEventListener('click', closeForm);
   // The web address follows the name until it has been saved.
   $('ep-name').addEventListener('input', function () { if (isNew && !$('ep-slug').dataset.touched) $('ep-slug').value = slugify($('ep-name').value); });
   $('ep-slug').addEventListener('input', function () { $('ep-slug').dataset.touched = '1'; });
@@ -778,7 +833,7 @@
     post('/events/pages/admin/action', { action: action, slug: slug, date: date, from: { publish: p.publish || '', draft: !!p.draft } })
       .then(function (data) {
         pages = data.events;
-        if (action === 'delete' && editingSlug === slug) form.classList.add('hidden');
+        if (action === 'delete' && editingSlug === slug) closeForm();
         render();
         setStatus('Saved: ' + data.change + '. The live site updates in about a minute.', 'ok');
       })
@@ -787,6 +842,43 @@
   $('ep-list').addEventListener('click', function (e) {
     var btn = e.target.closest('button[data-ep]');
     if (btn) run(btn.getAttribute('data-ep'), btn.getAttribute('data-slug'), btn);
+  });
+
+  // ---------- Older events (Facebook-style) can have a full event page ----------
+  window.mt3ukPageState = stateOf;
+  window.mt3ukPageFor = function (manifestId) {
+    return pages.filter(function (x) { return x.manifestId === manifestId; })[0] || null;
+  };
+  function prefillFromLegacy(ev) {
+    var st = ev.startTime || '';
+    var en = ev.endTime || '';
+    var base = slugify(ev.name + (st ? ' ' + st.slice(0, 4) : ''));
+    var slug = base;
+    for (var n = 2; find(slug); n++) slug = base.slice(0, 55) + '-' + n;
+    var desc = String(ev.description || '').trim();
+    var link = /^https:\/\//i.test(ev.facebookUrl || '') ? ev.facebookUrl : '';
+    return {
+      slug: slug, manifestId: ev.id, name: ev.name, title: ev.name, kind: 'Meet',
+      tagline: desc.length <= 200 ? desc : '',
+      description: desc ? [desc] : [],
+      startDate: st.slice(0, 10), startTime: st.slice(11, 16),
+      endDate: en.slice(0, 10) !== st.slice(0, 10) ? en.slice(0, 10) : '',
+      endTime: en && en !== st ? en.slice(11, 16) : '',
+      venue: (ev.location && ev.location.name) || '',
+      ctaUrl: link, ctaLabel: link ? 'Facebook event' : ''
+    };
+  }
+  $('admin-body').addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-page]');
+    if (!btn) return;
+    var id = btn.getAttribute('data-page');
+    var legacy = (window.mt3ukLegacyEvents ? window.mt3ukLegacyEvents() : []).filter(function (x) { return x.id === id; })[0];
+    if (!legacy) return;
+    var have = window.mt3ukPageFor(id);
+    if (have) { openForm(have, false, id); return; }
+    openForm(prefillFromLegacy(legacy), true, id);
+    $('ep-slug').dataset.touched = '1';
+    setStatus('Filled in from the event. Add the images, tagline and anything else you want, then Save. The page stays a draft until you publish it.');
   });
 
   // ---------- Sharing: copy the link ----------
@@ -983,7 +1075,7 @@
   }
 
   function renderEvent(ev) {
-    return '<div class="event-card">' +
+    return '<div class="event-card" data-id="' + escapeHtml(ev.id) + '">' +
       '<div class="event-id">' + escapeHtml(ev.id) + '</div>' +
       '<div class="event-body">' +
         '<p class="event-name">' + escapeHtml(ev.name) + '</p>' +
@@ -991,17 +1083,51 @@
         '<p class="event-meta">' + escapeHtml(ev.location && ev.location.name) +
           ' · ' + escapeHtml(ev.attendingCount || 0) + ' attending, ' + escapeHtml(ev.interestedCount || 0) + ' interested</p>' +
         '<p class="event-meta"><a href="' + escapeHtml(ev.facebookUrl) + '" target="_blank" rel="noopener">' + escapeHtml(ev.facebookUrl) + '</a></p>' +
+        (function () {
+          var page = window.mt3ukPageFor && window.mt3ukPageFor(ev.id);
+          if (!page) return '';
+          var state = window.mt3ukPageState(page);
+          return '<p class="event-meta">Event page: ' + (state === 'live' ? 'live' : state === 'scheduled' ? 'scheduled' : 'draft') + '</p>';
+        })() +
         (ev.description ? '<p class="event-desc">' + escapeHtml(ev.description) + '</p>' : '') +
       '</div>' +
       '<div class="event-actions">' +
         '<button type="button" data-action="edit" data-id="' + escapeHtml(ev.id) + '">Edit</button>' +
+        '<button type="button" class="secondary" data-page="' + escapeHtml(ev.id) + '">' + (window.mt3ukPageFor && window.mt3ukPageFor(ev.id) ? 'Edit event page' : 'Make event page') + '</button>' +
         '<button type="button" class="secondary" data-action="copy" data-id="' + escapeHtml(ev.id) + '">Copy as new</button>' +
         '<button type="button" class="danger" data-action="delete" data-id="' + escapeHtml(ev.id) + '">Delete</button>' +
       '</div>' +
     '</div>';
   }
 
+  // The event pages script (below) uses these to link an older event to its page.
+  window.mt3ukLegacyEvents = function () { return events; };
+  window.mt3ukRenderLegacy = function () { renderList(); };
+
+  // The editor sits under the event being edited (see window.mt3ukInline).
+  var formHome = document.createElement('div');
+  form.before(formHome);
+  var anchorId = '';
+  if (window.mt3ukInline) {
+    window.mt3ukInline.parkers.push(function () { formHome.after(form); form.classList.remove('inline'); });
+    window.mt3ukInline.placers.push(function () {
+      if (!anchorId) return;
+      var card = document.querySelector('#upcoming-list .event-card[data-id="' + anchorId + '"], #past-list .event-card[data-id="' + anchorId + '"]');
+      if (!card) return;
+      card.classList.add('is-editing');
+      card.after(form);
+      form.classList.add('inline');
+    });
+  }
+  function parkAll() { if (window.mt3ukInline) window.mt3ukInline.parkAll(); }
+  function placeAll() { if (window.mt3ukInline) window.mt3ukInline.placeAll(); }
+  function showEditor() {
+    var card = anchorId ? document.querySelector('.event-card.is-editing[data-id="' + anchorId + '"]') : null;
+    (card || form).scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   function renderList() {
+    parkAll();
     var now = new Date();
     var upcoming = [];
     var past = [];
@@ -1014,6 +1140,7 @@
     pastEl.innerHTML = past.length ? past.map(renderEvent).join('') : '<p class="empty">No past events.</p>';
     document.getElementById('upcoming-count').textContent = '(' + upcoming.length + ')';
     document.getElementById('past-count').textContent = '(' + past.length + ')';
+    placeAll();
   }
 
   function fillForm(ev) {
@@ -1035,6 +1162,9 @@
 
   function resetForm() {
     editingId = '';
+    anchorId = '';
+    parkAll();
+    placeAll();
     form.reset();
     form.classList.remove('editing');
     formTitle.textContent = 'Add an event';
@@ -1050,7 +1180,10 @@
     formTitle.textContent = 'Edit event ' + ev.id;
     saveBtn.textContent = 'Save changes';
     cancelBtn.classList.remove('hidden');
-    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    anchorId = ev.id;
+    parkAll();
+    placeAll();
+    showEditor();
     fields.name.focus({ preventScroll: true });
   }
 
@@ -1065,7 +1198,10 @@
     fields.interestedCount.value = '';
     formTitle.textContent = 'Add an event (copied from ' + ev.id + ')';
     setStatus('Set the new dates, then press Add event.');
-    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    anchorId = ev.id;
+    parkAll();
+    placeAll();
+    showEditor();
     fields.startDate.focus({ preventScroll: true });
   }
 

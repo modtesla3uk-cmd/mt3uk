@@ -33,10 +33,11 @@ let r = await call('POST', '/events/pages/admin/save' + K, { isNew: true, entry:
 ok(r.status === 400, 'bad slug refused');
 r = await call('POST', '/events/pages/admin/save', { isNew: true, entry: { slug: 'frunk', name: 'Frunk', title: 'Frunk or Treat' } });
 ok(r.status === 401, 'save needs the admin key');
-r = await call('POST', '/events/pages/admin/save' + K, { isNew: true, entry: { slug: 'frunk', name: 'Frunk', title: 'Frunk or Treat UK', startDate: '2026-10-31', startTime: '14:00', endTime: '17:00', what3words: '///Starter.Minivans.Doted', image: 'javascript:alert(1)', poster: 'images/events/x/poster.jpg', ctaUrl: 'http://insecure', description: ['a', '', 'b'], tickets: { tiers: [{ name: 'Free', price: 'Free', includes: ['x', ''], url: 'https://ok.example/t', featured: 1 }] } } });
+r = await call('POST', '/events/pages/admin/save' + K, { isNew: true, entry: { slug: 'frunk', manifestId: '002', name: 'Frunk', title: 'Frunk or Treat UK', startDate: '2026-10-31', startTime: '14:00', endTime: '17:00', what3words: '///Starter.Minivans.Doted', image: 'javascript:alert(1)', poster: 'images/events/x/poster.jpg', ctaUrl: 'http://insecure', description: ['a', '', 'b'], tickets: { tiers: [{ name: 'Free', price: 'Free', includes: ['x', ''], url: 'https://ok.example/t', featured: 1 }] } } });
 ok(r.status === 200 && r.body.entry.draft === true && r.body.entry.created, 'new event is a draft with a created date');
 ok(r.body.entry.what3words === '///starter.minivans.doted', 'what3words tidied');
 ok(!('image' in r.body.entry) && !('ctaUrl' in r.body.entry), 'unsafe image and link dropped');
+ok(r.body.entry.manifestId === '002', 'the link to an older event is kept');
 ok(r.body.entry.description.length === 2 && r.body.entry.tickets.tiers[0].includes.length === 1, 'blank lines dropped');
 ok(file.events.length === 1 && kv.has('event-page-draft:frunk'), 'saved to the file and to the preview copy');
 r = await call('POST', '/events/pages/admin/save' + K, { isNew: true, entry: { slug: 'frunk', name: 'Again', title: 'Again' } });

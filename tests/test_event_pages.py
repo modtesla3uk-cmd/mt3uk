@@ -463,3 +463,116 @@ def test_admin_can_copy_a_share_link_and_see_and_revoke_who_opened_a_preview(dev
     page.fill("#pv-email", "bad")
     page.click("#pv-form button")
     assert "valid email" in page.locator("#pv-note").inner_text()
+
+
+LEGACY = {"id": "002", "name": "Lancing Motor Show", "description": "Join us for a collective meet at Lancing Beach!",
+          "startTime": "2099-09-27T09:00:00+0000", "endTime": "2099-09-27T18:00:00+0000", "location": {"name": "Lancing Beach Green"},
+          "facebookUrl": "https://www.facebook.com/share/1BjtEUPS42/", "attendingCount": 10, "interestedCount": 20}
+
+
+@ADMIN_ONLY
+def test_an_older_event_can_become_a_full_event_page(device_page):
+    page = device_page
+    page.mock_state["legacy_events"] = [LEGACY]
+    open_events_admin(page)
+    card = page.locator("#upcoming-list .event-card", has_text="Lancing Motor Show")
+    card.wait_for(state="visible", timeout=5000)
+    assert "Make event page" in card.inner_text() and "Event page:" not in card.inner_text()
+
+    # The full editor opens, filled in from the older event.
+    card.locator('button[data-page="002"]').click()
+    page.locator("#ep-form").wait_for(state="visible", timeout=5000)
+    assert page.input_value("#ep-name") == "Lancing Motor Show" and page.input_value("#ep-title") == "Lancing Motor Show"
+    assert page.input_value("#ep-slug") == "lancing-motor-show-2099"
+    assert page.input_value("#ep-start-date") == "2099-09-27" and page.input_value("#ep-start-time") == "09:00"
+    assert page.input_value("#ep-end-date") == "" and page.input_value("#ep-end-time") == "18:00"
+    assert page.input_value("#ep-venue") == "Lancing Beach Green"
+    assert page.input_value("#ep-tagline") == "Join us for a collective meet at Lancing Beach!"
+    assert page.input_value("#ep-description") == "Join us for a collective meet at Lancing Beach!"
+    assert page.input_value("#ep-cta-url") == LEGACY["facebookUrl"] and page.input_value("#ep-cta-label") == "Facebook event"
+    assert page.locator("#slot-image .img-thumb").count() == 1, "There are image slots to fill"
+    page.click("#ep-save")
+    page.wait_for_function("document.getElementById('status').textContent.indexOf('Saved') === 0", timeout=5000)
+    assert page.mock_state["event_saved"]["manifestId"] == "002"
+
+    # The older event now shows its page, and the button reopens it.
+    page.wait_for_function("document.querySelector('#upcoming-list').textContent.indexOf('Event page: draft') !== -1", timeout=5000)
+    card = page.locator("#upcoming-list .event-card", has_text="Lancing Motor Show")
+    assert "Edit event page" in card.inner_text()
+    page.click("#ep-cancel")
+    card.locator('button[data-page="002"]').click()
+    page.wait_for_function("document.getElementById('ep-form-title').textContent === 'Edit Lancing Motor Show'", timeout=5000)
+    assert page.eval_on_selector("#ep-slug", "e => e.readOnly")
+    # The older event's own Edit, Copy and Delete are untouched.
+    assert card.locator('button[data-action="edit"]').count() == 1 and card.locator('button[data-action="delete"]').count() == 1
+
+
+@all_devices
+def test_homepage_shows_an_older_event_once_when_it_has_a_live_page(device_page):
+    page = device_page
+    upcoming = dict(LEGACY, id="002")
+    other = dict(LEGACY, id="003", name="Other Meet", startTime="2099-10-10T09:00:00+0000", endTime="2099-10-10T18:00:00+0000")
+    past = dict(LEGACY, id="001", name="Old Show", startTime="2020-09-25T09:00:00+0000", endTime="2020-09-25T18:00:00+0000")
+    page.route(re.compile(r".*/events-data/events-manifest\.json.*"), lambda route: route.fulfill(
+        status=200, body=json.dumps({"events": [upcoming, other, past]}), headers={"Content-Type": "application/json"}))
+    serve(page, [
+        full_event(slug="lancing-show", title="Lancing Motor Show", manifestId="002", startDate="2099-09-27"),
+        full_event(slug="old-show-page", title="Old Show", manifestId="001", startDate="2020-09-25"),
+        event(slug="draft-page", title="Draft Page", manifestId="003"),
+    ])
+    page.goto("/index.html#events")
+    page.locator("#event-features .ev-feature").first.wait_for(state="visible", timeout=5000)
+    page.wait_for_function("document.querySelector('#confirmed-events-list').textContent.indexOf('Other Meet') !== -1", timeout=5000)
+    rows = page.locator("#confirmed-events-list .event-row")
+    assert rows.count() == 1 and "Other Meet" in rows.first.inner_text(), "The upcoming event with a live page is the card, not a row"
+    assert page.locator("#event-features .ev-feature").count() == 1, "Only the upcoming live page is a card"
+    link = page.locator("#past-events-list h3 a")
+    assert link.get_attribute("href") == "event.html?e=old-show-page", "A past event links to its page"
+    assert overflow_width(page) <= 0
+
+
+@ADMIN_ONLY
+def test_the_editor_opens_under_the_event_being_edited_with_an_arrow(device_page):
+    page = device_page
+    page.mock_state["legacy_events"] = [LEGACY]
+    open_events_admin(page)
+    page.locator("#ep-list .event-card").first.wait_for(state="visible", timeout=5000)
+    under = "document.getElementById('%s').previousElementSibling === document.querySelector('%s .event-card.is-editing')"
+
+    # An event page: the editor sits right under its card, which gets an arrow by its title.
+    page.click('#ep-list [data-ep="edit"]')
+    page.locator("#ep-form").wait_for(state="visible", timeout=5000)
+    card = page.locator("#ep-list .event-card.is-editing")
+    assert card.count() == 1 and "Frunk or Treat UK 2026" in card.inner_text()
+    assert page.evaluate(under % ("ep-form", "#ep-list"))
+    arrow = page.evaluate("getComputedStyle(document.querySelector('.event-card.is-editing .event-name'), '::after').content")
+    assert arrow not in ("none", "normal", ""), "A small arrow marks the event being edited"
+
+    # A save redraws the list, and the editor stays under its event.
+    page.click("#ep-save")
+    page.wait_for_function("document.getElementById('status').textContent.indexOf('Saved') === 0", timeout=5000)
+    assert page.evaluate(under % ("ep-form", "#ep-list"))
+
+    # Closing puts the editor away and takes the arrow off.
+    page.click("#ep-cancel")
+    assert page.locator(".event-card.is-editing").count() == 0 and page.locator("#ep-form").is_hidden()
+
+    # An older event: its own Edit opens its editor under it, and cancelling puts it back.
+    page.click('#upcoming-list [data-action="edit"]')
+    page.wait_for_function("document.querySelector('#upcoming-list .event-card.is-editing') !== null", timeout=5000)
+    assert page.evaluate(under % ("event-form", "#upcoming-list"))
+    page.click("#cancel-btn")
+    assert page.locator(".event-card.is-editing").count() == 0
+    assert not page.evaluate("document.getElementById('event-form').previousElementSibling.classList.contains('event-card')")
+
+    # Make event page from an older event opens the page editor under that event.
+    page.click('#upcoming-list [data-page="002"]')
+    page.locator("#ep-form").wait_for(state="visible", timeout=5000)
+    assert page.evaluate("document.getElementById('ep-form').previousElementSibling.dataset.id") == "002"
+    page.click("#ep-cancel")
+
+    # A brand new page opens under the Add button, with no event marked.
+    page.click("#ep-new")
+    page.locator("#ep-form").wait_for(state="visible", timeout=5000)
+    assert page.locator(".event-card.is-editing").count() == 0
+    assert page.evaluate("document.getElementById('ep-form').previousElementSibling.previousElementSibling.classList.contains('ep-bar')")

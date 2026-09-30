@@ -297,7 +297,7 @@ def api_reply(url, method, post_data, state):
         state.setdefault("interview_actions", []).append((action, url))
         return {"success": True, "interviews": file["interviews"], "change": line}
     if path == "/events/admin" and method == "GET":
-        return {"success": True, "events": []}
+        return {"success": True, "events": state.get("legacy_events", [])}
     if path.startswith("/events/pages/"):
         return event_pages_reply(path, method, post_data, state, url)
     if path == "/interviews/preview/link":

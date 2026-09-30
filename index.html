@@ -5301,6 +5301,10 @@
       return { dateLabel: dateLabel, metaLabel: dayLabel + ', ' + timeLabel };
     }
 
+    // Older events that now have a live event page (data/event-pages.json,
+    // linked by manifestId): the featured card above shows an upcoming one, and
+    // a past one links to its page.
+    var pageFor = {};
     function eventRowHtml(ev, isPast) {
       var when = formatDateRange(ev.startTime, ev.endTime);
       var metaParts = [when.metaLabel];
@@ -5314,7 +5318,7 @@
       return '<div class="event-row">' +
         '<div class="event-date">' + when.dateLabel + '</div>' +
         '<div class="event-info">' +
-          '<h3>' + ev.name + '</h3>' +
+          '<h3>' + (pageFor[ev.id] ? '<a href="event.html?e=' + encodeURIComponent(pageFor[ev.id]) + '">' + ev.name + '</a>' : ev.name) + '</h3>' +
           '<p>' + ev.description + '</p>' +
           '<p class="event-meta">' + metaParts.join(' · ') + '</p>' +
         '</div>' +
@@ -5330,6 +5334,7 @@
         var end = new Date(ev.endTime || ev.startTime);
         (end < now ? past : upcoming).push(ev);
       });
+      upcoming = upcoming.filter(function (ev) { return !pageFor[ev.id]; });
       upcoming.sort(function (a, b) { return new Date(a.startTime) - new Date(b.startTime); });
       past.sort(function (a, b) { return new Date(b.startTime) - new Date(a.startTime); });
 
@@ -5341,9 +5346,18 @@
       }
     }
 
+    var today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London' }).format(new Date());
+    var pagesLoaded = fetch('data/event-pages.json', { cache: 'no-store' })
+      .then(function (response) { return response.json(); })
+      .then(function (data) {
+        ((data && data.events) || []).forEach(function (p) {
+          if (p.manifestId && !p.draft && p.publish && p.publish <= today) pageFor[p.manifestId] = p.slug;
+        });
+      })
+      .catch(function () {});
     fetch('events-data/events-manifest.json', { cache: 'no-store' })
       .then(function (response) { return response.json(); })
-      .then(function (manifest) { renderEvents((manifest && manifest.events) || []); })
+      .then(function (manifest) { return pagesLoaded.then(function () { renderEvents((manifest && manifest.events) || []); }); })
       .catch(function () {});
   })();
 </script>

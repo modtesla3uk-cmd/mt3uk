@@ -43,20 +43,20 @@
           "text": ""
         }
       ],
-      "entry": "£10",
+      "entry": "£10.95",
       "entryNote": "per vehicle",
       "tickets": {
         "tiers": [
           {
             "name": "Per vehicle",
-            "price": "£10",
+            "price": "£10.95",
             "per": "Per vehicle",
             "tag": "",
             "includes": [
               "This can then be used against any purchases made during the customers visit"
             ],
-            "url": "",
-            "buttonLabel": "",
+            "url": "https://www.universe.com/events/saturday-session-ft-frunk-or-treat-the-hill-tickets-30ZPHB",
+            "buttonLabel": "Get Tickets",
             "featured": true,
             "soldOut": false,
             "addOn": false
@@ -65,7 +65,7 @@
       },
       "closing": "Fancy dress is heavily encouraged. See you there!",
       "created": "2026-09-30",
-      "draft": true
+      "publish": "2026-09-30"
     },
     {
       "slug": "race-of-remembrance-track-day-2026",
@@ -95,19 +95,15 @@
       ],
       "steps": [
         {
-          "title": "Offering your passenger seat provides a member of the Armed Forces community wit",
+          "title": "This is your chance to meet our fantastic forces community and treat them to an unforgettable day.",
           "text": ""
         },
         {
-          "title": "This is your chance to meet our fantastic forces community and treat them to an",
+          "title": "A chance to give back, we guarantee that you'll come away fulfilled, feeling good and wanting to do it all over again!",
           "text": ""
         },
         {
-          "title": "All those going out on track must ensure that:",
-          "text": ""
-        },
-        {
-          "title": "Both arms & legs are covered.",
+          "title": "All those going out on track must ensure that: Both arms & legs are covered.",
           "text": ""
         },
         {
@@ -115,7 +111,7 @@
           "text": ""
         },
         {
-          "title": "Please note that all cars are subject to noise testing. The limit is a STRICT 90",
+          "title": "Please note that all cars are subject to noise testing. The limit is a STRICT 90dB.",
           "text": ""
         },
         {
@@ -123,7 +119,7 @@
           "text": ""
         },
         {
-          "title": "All the monies raised will be used to directly fund Mission Motorsport's work wi",
+          "title": "All the monies raised will be used to directly fund Mission Motorsport's work",
           "text": ""
         }
       ],

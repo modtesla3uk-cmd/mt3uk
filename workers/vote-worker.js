@@ -2071,8 +2071,8 @@ function cleanEventEntry(input) {
     galleryTitle: evStr(input.galleryTitle, 60),
     gallery: evList(input.gallery, 8).map(function (g) { return { src: evImage(g && g.src), caption: evStr(g && g.caption, 120) }; }).filter(function (g) { return g.src; }),
     description: evList(input.description, 12).map(function (p) { return evStr(p, 1500); }).filter(Boolean),
-    highlights: evList(input.highlights, 10).map(function (h) { return evStr(h, 80); }).filter(Boolean),
-    steps: evList(input.steps, 8).map(function (s) { return { title: evStr(s && s.title, 80), text: evStr(s && s.text, 300) }; }).filter(function (s) { return s.title || s.text; }),
+    highlights: evList(input.highlights, 10).map(function (h) { return evStr(h, 120); }).filter(Boolean),
+    steps: evList(input.steps, 8).map(function (s) { return { title: evStr(s && s.title, 200), text: evStr(s && s.text, 500) }; }).filter(function (s) { return s.title || s.text; }),
     entry: evStr(input.entry, 80),
     entryNote: evStr(input.entryNote, 120),
     tickets: {

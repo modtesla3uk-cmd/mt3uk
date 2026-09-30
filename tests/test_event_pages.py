@@ -278,6 +278,7 @@ def test_admin_can_preview_publish_draft_and_delete(device_page):
     frunk = page.locator('#ep-list .event-card[data-slug="frunk-or-treat-uk"]')
     frunk.wait_for(state="visible", timeout=5000)
     assert "Draft" in frunk.inner_text() and "Frunk or Treat UK 2026" in frunk.inner_text()
+    assert frunk.locator('[data-ep="share"]').count() == 0, "A draft has no Share button, only Copy link"
     assert page.locator("#ep-list .event-card").count() == 4, "The three upcoming events have draft pages ready too"
 
     with page.expect_popup() as popup_info:
@@ -290,6 +291,12 @@ def test_admin_can_preview_publish_draft_and_delete(device_page):
     page.wait_for_function("document.querySelector('#ep-list .event-card[data-slug=\"frunk-or-treat-uk\"] .event-id').textContent === 'Live'", timeout=5000)
     assert frunk.locator('[data-ep="delete"]').count() == 0, "A live event cannot be deleted"
     assert frunk.locator('[data-ep="copy"]').count() == 1, "A live event can still have its link copied"
+    assert frunk.locator('[data-ep="share"]').count() == 1, "A live event has a Share button"
+    page.evaluate("window.__shared = null; navigator.share = function (d) { window.__shared = d; return Promise.resolve(); };")
+    frunk.locator('[data-ep="share"]').click()
+    shared = page.evaluate("window.__shared")
+    assert shared["url"] == "https://mt3uk.com/share/event/frunk-or-treat-uk.html", "Shares the share page, which has the event's own picture"
+
     page.once("dialog", lambda d: d.accept())
     frunk.locator('[data-ep="draft"]').click()
     page.wait_for_function("document.querySelector('#ep-list .event-card[data-slug=\"frunk-or-treat-uk\"] .event-id').textContent === 'Draft'", timeout=5000)
@@ -706,10 +713,10 @@ def test_text_that_is_too_long_is_refused_not_quietly_cut_off(device_page):
     open_events_admin(page)
     page.click('#ep-list [data-ep="edit"]')
     page.locator("#ep-form").wait_for(state="visible", timeout=5000)
-    page.fill("#ep-steps", "A" * 95 + " | short text")
+    page.fill("#ep-steps", "A" * 215 + " | short text")
     page.click("#ep-save")
     message = page.locator("#status").inner_text()
-    assert "step 1 title is 95 characters" in message.lower() and "limit is 80" in message and "Nothing has been saved" in message
+    assert "step 1 title is 215 characters" in message.lower() and "limit is 200" in message and "Nothing has been saved" in message
     assert "event_saved" not in page.mock_state, "Nothing was sent to be saved"
     # Shortened, with the detail after a |, it saves.
     page.fill("#ep-steps", "Bring your car | " + "detail " * 20)

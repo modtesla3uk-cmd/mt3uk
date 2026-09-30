@@ -5155,7 +5155,7 @@ async function saveCarDetails(env, carId, details) {
   await env.VOTES.put(carDetailsKey(carId), JSON.stringify(details));
 }
 
-var CAR_MODELS = ['Model 3', 'Model Y', 'Model S', 'Model X', 'Cybertruck', 'Roadster'];
+var CAR_MODELS = ['Model 3', 'Model Y', 'Model S', 'Model X'];
 
 // The areas of the mods builder (js/mods-builder.js has the labels and
 // choices). fields: text answers. kinds: bodywork's separate jobs.
@@ -5177,7 +5177,7 @@ var MOD_AREAS = {
     aero: ['parts', 'make', 'material'], dechrome: ['what'], lights: ['what']
   }, moreFields: ['part', 'makeModel'] },
   interior: { label: 'Interior', picks: ['Seats', 'Wheel or yoke', 'Carbon trim', 'Mats', 'Screens', 'Wraps'], fields: ['makeModel', 'details'] },
-  performance: { label: 'Performance', picks: ['Acceleration Boost', 'Track mode', 'Cooling', 'Other'], fields: ['makeModel', 'details'] },
+  performance: { label: 'Performance', picks: ['Acceleration Boost', 'Cooling', 'Other'], fields: ['makeModel', 'details'] },
   audio: { label: 'Audio and tech', picks: ['Speakers', 'Amp', 'Sub', 'Dashcam', 'Chargers'], fields: ['makeModel', 'details'] },
   other: { label: 'Anything else', items: true }
 };

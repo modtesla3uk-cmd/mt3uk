@@ -40,7 +40,12 @@ def test_add_a_car_asks_for_the_model_and_opens_the_new_car(device_page):
     page.select_option("#mb-addcar-color", "Grey")
     page.fill("#mb-addcar-caption", "Grey Model Y")
     years = page.locator("#mb-addcar-year option").all_inner_texts()
-    assert years[1] == str(__import__("datetime").date.today().year) and years[-1] == "2018"
+    assert years[1] == str(__import__("datetime").date.today().year) and years[-1] == "2012"
+    # Versions follow the model picked, with no Cybertruck or Roadster.
+    assert form.locator(".mb-model-pick input").evaluate_all("els => els.map(e => e.value)") == ["Model 3", "Model Y", "Model S", "Model X"]
+    versions = page.locator("#mb-addcar-version option").all_inner_texts()
+    assert "Juniper Performance" in versions and "Long Range AWD" in versions and "P100D" not in versions
+    page.select_option("#mb-addcar-version", "Long Range AWD")
     page.select_option("#mb-addcar-year", "2023")
     page.set_input_files("#mb-addcar-photo", files=[{"name": "car.jpg", "mimeType": "image/jpeg", "buffer": b"\xff\xd8\xff\xd9"}])
     assert overflow_width(page) <= 0
@@ -49,7 +54,7 @@ def test_add_a_car_asks_for_the_model_and_opens_the_new_car(device_page):
     page.locator("#mb-mods-builder .mbm-welcome").wait_for(state="visible", timeout=5000)
     submits = page.mock_state.get("submits", [])
     if submits and submits[-1]:
-        assert 'name="model"' in submits[-1] and "Model Y" in submits[-1]
+        assert 'name="model"' in submits[-1] and "Model Y" in submits[-1] and "Long Range AWD" in submits[-1]
     assert page.errors == [], diagnostics(page)
 
 
@@ -194,8 +199,10 @@ def test_a_saved_list_shows_rows_plans_and_what_others_see(device_page):
     assert form.get_by_label("Month fitted").first.input_value() == "3"
     form.locator("[data-cancel]").click()
 
-    about = open_row(page, "about")
-    assert about.locator('[data-car="version"]').input_value() == "Performance"
+    # Version and year sit next to Model, at the top.
+    assert page.locator("#mb-car-version-select").input_value() == "Performance"
+    assert page.locator("#mb-car-year-select").input_value() == "2021"
+    assert page.locator('#mb-mods-builder [data-mv-area="about"]').count() == 0
     plans = open_row(page, "plans")
     assert plans.locator(".mbm-plan").first.get_by_label("What").input_value() == "Big brake kit"
     public = open_row(page, "public")
@@ -334,4 +341,30 @@ def test_each_part_has_its_own_when_and_where(device_page):
         assert "fitted" not in b
         # The job with nothing but a date shows as "Nothing added yet" to the owner.
         assert "Nothing added yet" in open_row(page, "bodywork").inner_text()
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_version_and_year_next_to_the_model(device_page):
+    page = device_page
+    open_car(page)
+    version = page.locator("#mb-car-version-select")
+    assert version.is_disabled(), "Pick the model first"
+    page.select_option("#mb-car-model-select", "Model S")
+    page.wait_for_function("!document.getElementById('mb-car-version-select').disabled", timeout=5000)
+    options = version.locator("option").all_inner_texts()
+    assert "P85D" in options and "Plaid" in options and "Juniper Standard" not in options
+    version.select_option("P85D")
+    page.wait_for_function("!document.getElementById('mb-car-version-select').disabled", timeout=5000)
+    page.select_option("#mb-car-year-select", "2015")
+    page.wait_for_function("!document.getElementById('mb-car-year-select').disabled", timeout=5000)
+    years = page.locator("#mb-car-year-select option").all_inner_texts()
+    assert years[-1] == "2012"
+    body = last_put(page)
+    if body:
+        assert body.get("year") == "2015"
+        puts = page.mock_state["car_puts"]
+        assert any(p.get("version") == "P85D" for p in puts)
+        assert any(p.get("model") == "Model S" and p.get("version") == "" for p in puts), "A new model clears the version"
+    assert overflow_width(page) <= 0
     assert page.errors == [], diagnostics(page)

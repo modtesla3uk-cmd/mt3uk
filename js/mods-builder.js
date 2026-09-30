@@ -21,7 +21,39 @@
 */
 (function () {
   var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-  var VERSIONS = ['Standard Range', 'Standard Range Plus', 'Long Range', 'Performance', 'Plaid', 'Highland', 'Juniper', 'Cyberbeast'];
+  // Versions of each model, oldest first, for the Version drop-downs in My
+  // Garage (next to Model). Highland is the 2024 Model 3 refresh, Juniper
+  // the 2025 Model Y.
+  var CAR_VERSIONS = {
+    'Model S': ['60', '60D', '70', '70D', '75', '75D', '85', '85D', 'P85', 'P85+', 'P85D', '90D', 'P90D', '100D', 'P100D',
+      'Long Range', 'Long Range Plus', 'Performance', 'Plaid', 'Dual Motor All-Wheel Drive'],
+    'Model X': ['60D', '70D', '75D', '90D', 'P90D', '100D', 'P100D', 'Long Range', 'Long Range Plus', 'Performance', 'Plaid',
+      'Dual Motor All-Wheel Drive'],
+    'Model 3': ['Standard Range', 'Standard Range Plus', 'Mid Range', 'Long Range RWD', 'Long Range AWD', 'Performance',
+      'Rear-Wheel Drive', 'Highland Rear-Wheel Drive', 'Highland Long Range RWD', 'Highland Long Range AWD', 'Highland Performance'],
+    'Model Y': ['Standard Range', 'Rear-Wheel Drive', 'Long Range RWD', 'Long Range AWD', 'Performance',
+      'Juniper Standard', 'Juniper Rear-Wheel Drive', 'Juniper Long Range RWD', 'Juniper Long Range AWD', 'Juniper Performance']
+  };
+  var FIRST_CAR_YEAR = 2012;
+
+  // The Version drop-down's options for a model; a saved version that isn't
+  // listed stays as an option.
+  function versionOptions(model, value) {
+    var list = (CAR_VERSIONS[model] || []).slice();
+    if (value && list.indexOf(value) === -1) list.push(value);
+    return '<option value="">' + (model ? 'Version' : 'Pick the model first') + '</option>' +
+      list.map(function (v) { return '<option' + (v === value ? ' selected' : '') + '>' + esc(v) + '</option>'; }).join('') +
+      (model ? '<option value="Other"' + (value === 'Other' ? ' selected' : '') + '>Other or not sure</option>' : '');
+  }
+
+  // Years from this year back to 2012, newest first.
+  function yearOptions(value) {
+    var now = new Date().getFullYear(), years = [];
+    for (var y = now; y >= FIRST_CAR_YEAR; y--) years.push(y);
+    value = parseInt(value, 10) || '';
+    if (value && years.indexOf(value) === -1) years.push(value);
+    return '<option value="">Year</option>' + years.map(function (y) { return '<option value="' + y + '"' + (y === value ? ' selected' : '') + '>' + y + '</option>'; }).join('');
+  }
 
   // [answer name, label, placeholder or choices]
   var AREAS = [
@@ -58,7 +90,7 @@
     { id: 'interior', label: 'Interior', picks: ['Seats', 'Wheel or yoke', 'Carbon trim', 'Mats', 'Screens', 'Wraps'], fields: [
       ['makeModel', 'Make and model', 'e.g. Recaro Sportster'], ['details', 'Details', 'Anything else about it']
     ] },
-    { id: 'performance', label: 'Performance', picks: ['Acceleration Boost', 'Track mode', 'Cooling', 'Other'], fields: [
+    { id: 'performance', label: 'Performance', picks: ['Acceleration Boost', 'Cooling', 'Other'], fields: [
       ['makeModel', 'Make and model', ''], ['details', 'Details', '']
     ] },
     { id: 'audio', label: 'Audio and tech', picks: ['Speakers', 'Amp', 'Sub', 'Dashcam', 'Chargers'], fields: [
@@ -77,7 +109,7 @@
     ['wheels', /\b(wheels?|rims?|forged|alloys?|spacers?)\b|\b\d{2}\s?x\s?\d{1,2}(\.\d)?\b/i],
     ['suspension', /\b(coilovers?|springs?|lowering|arms?|links?|anti-?roll|sway ?bars?|struts?|dampers?|air suspension|air ride|camber|bushe?s|suspension)\b/i],
     ['bodywork', /\b(wrap|wrapped|vinyl|ppf|tint|tinted|bumper|diffuser|spoiler|splitter|lip|skirts?|wing|bonnet|badges?|chrome|de-?chrome|headlights?|tail ?lights?|lights?|body ?kit|mirror)\b/i],
-    ['performance', /\b(boost|acceleration|track mode|cooling|intake|tune|remap)\b/i]
+    ['performance', /\b(boost|acceleration|cooling|intake|tune|remap)\b/i]
   ];
   function sortMods(lines) {
     var out = { rest: [] };
@@ -101,14 +133,8 @@
     tick: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>'
   };
 
-  // Years from this year back to 2018. An earlier saved year stays listed.
   function yearSelect(id, attrs, value) {
-    var now = new Date().getFullYear(), years = [];
-    for (var y = now; y >= 2018; y--) years.push(y);
-    value = parseInt(value, 10) || '';
-    if (value && years.indexOf(value) === -1) years.push(value);
-    return '<select class="field" id="' + id + '" ' + attrs + '><option value="">Year</option>' +
-      years.map(function (y) { return '<option value="' + y + '"' + (y === value ? ' selected' : '') + '>' + y + '</option>'; }).join('') + '</select>';
+    return '<select class="field" id="' + id + '" ' + attrs + '>' + yearOptions(value) + '</select>';
   }
 
   function esc(s) {
@@ -326,15 +352,6 @@
         (isOpen ? '<div class="mv-body">' + body + '</div>' : '') + '</div>';
     }
 
-    function aboutHtml() {
-      var v = 'mbm-' + (++uid), y = 'mbm-' + (++uid);
-      return '<div class="mbm-grid">' +
-          '<div class="mbm-field"><label for="' + v + '">Version</label><input class="field" id="' + v + '" data-car="version" list="mbm-versions" maxlength="40" placeholder="e.g. Long Range" value="' + esc(car.version || '') + '"></div>' +
-          '<div class="mbm-field"><label for="' + y + '">Year</label>' + yearSelect(y, 'data-car="year"', car.year) + '</div>' +
-        '</div><datalist id="mbm-versions">' + VERSIONS.map(function (x) { return '<option value="' + esc(x) + '">'; }).join('') + '</datalist>' +
-        '<div class="mbm-row"><button type="button" class="btn btn-primary btn-sm" data-about-save>Save</button><span class="mbm-saved" data-about-saved role="status"></span></div>';
-    }
-
     function plansHtml() {
       return '<p class="mbm-hint">Plans for further mods or changes.</p>' +
         '<div class="mbm-plan-list">' + plans.map(planHtml).join('') + '</div>' +
@@ -357,16 +374,13 @@
       var n = MV.publicCount(view);
       var galleryLink = car.photos && car.photos[0] ? 'gallery.html?photo=' + encodeURIComponent(car.photos[0].file || car.photos[0]) : 'gallery.html';
       h += '<div class="mv-rows">' +
-        (car.specs ? extraRow('about', 'Version and year', joinBits([car.version, car.year]), aboutHtml()) +
-          extraRow('plans', 'What\'s next?', plans.length ? plans.length + (plans.length === 1 ? ' plan' : ' plans') : '', plansHtml()) : '') +
+        (car.specs ? extraRow('plans', 'What\'s next?', plans.length ? plans.length + (plans.length === 1 ? ' plan' : ' plans') : '', plansHtml()) : '') +
         extraRow('public', 'What others see', n + (n === 1 ? ' mod' : ' mods'),
           (MV.publicList(view) || '<p class="mbm-hint">Nothing yet. Add your mods above and they show here.</p>') +
           '<div class="mbm-row"><a class="btn btn-secondary btn-sm" href="' + galleryLink + '">See it in the Gallery</a></div>', 'eye') +
         '</div>';
       root.innerHTML = h;
     }
-
-    function joinBits(bits) { return bits.filter(Boolean).join(' · '); }
 
     // Reads one area's answers from the page into specs.
     function readArea(box) {
@@ -485,10 +499,6 @@
         return;
       }
       if (t.closest('[data-cancel]')) { cancelEdit(); render(); return; }
-      if (t.closest('[data-about-save]')) {
-        save(root.querySelector('[data-about-saved]')).then(function (d) { if (d) render(); });
-        return;
-      }
       var box = t.closest('.mbm-area');
       var status = t.closest('[data-status]');
       if (status && box) {
@@ -618,5 +628,5 @@
     };
   }
 
-  window.MT3UKModsBuilder = { mount: mount, areas: AREAS, sortMods: sortMods };
+  window.MT3UKModsBuilder = { mount: mount, areas: AREAS, sortMods: sortMods, versionOptions: versionOptions, yearOptions: yearOptions, versions: CAR_VERSIONS };
 })();

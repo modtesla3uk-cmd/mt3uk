@@ -852,7 +852,15 @@
   .mb-field-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .mb-mods-next { display: flex; gap: 10px; align-items: flex-start; margin: 0 0 16px; padding: 12px 14px; border-radius: var(--radius-sm); background: #fdf3ef; font-size: 0.9rem; color: var(--ink-2, var(--ink)); }
   .mb-mods-next .icon { width: 18px; height: 18px; color: var(--orange); flex-shrink: 0; margin-top: 2px; }
-  #mb-car-model-select { min-height: 36px; }
+  #mb-car-model-select, #mb-car-version-select, #mb-car-year-select { min-height: 36px; }
+  #mb-car-version-select:disabled { opacity: 0.6; }
+  /* Model, version and year stay together. */
+  .mb-car-spec { display: inline-flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  #mb-car-version-select { max-width: 220px; }
+  @media (max-width: 780px) {
+    .mb-car-spec { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; width: 100%; }
+    .mb-car-spec #mb-car-version-select { max-width: none; width: 100%; }
+  }
 
   .mbm { display: grid; gap: 14px; }
   .mbm:empty { display: none; }
@@ -1186,14 +1194,12 @@ document.addEventListener('DOMContentLoaded', function () {
             <label class="chip"><input type="radio" name="model" value="Model Y"> Model Y</label>
             <label class="chip"><input type="radio" name="model" value="Model S"> Model S</label>
             <label class="chip"><input type="radio" name="model" value="Model X"> Model X</label>
-            <label class="chip"><input type="radio" name="model" value="Cybertruck"> Cybertruck</label>
-            <label class="chip"><input type="radio" name="model" value="Roadster"> Roadster</label>
             </div>
           </div>
           <div class="mb-field-pair">
             <div class="mb-field">
             <label for="mb-submit-version">Version (optional)</label>
-            <input type="text" id="mb-submit-version" name="version" list="mb-version-list" maxlength="40" placeholder="e.g. Long Range">
+            <select id="mb-submit-version" name="version" data-version-select><option value="">Pick the model first</option></select>
             </div>
             <div class="mb-field">
             <label for="mb-submit-year">Year (optional)</label>
@@ -1291,8 +1297,6 @@ document.addEventListener('DOMContentLoaded', function () {
           <p class="mb-status" id="mb-name-status"></p>
         </form>
       </div>
-
-      <datalist id="mb-version-list"><option value="Standard Range"><option value="Standard Range Plus"><option value="Long Range"><option value="Performance"><option value="Plaid"><option value="Highland"><option value="Juniper"></datalist>
       <div id="mb-car-selector-view">
         <div class="mb-upload-toggle-row" id="build-upload">
           <button type="button" class="mb-upload-toggle-btn" id="mb-addcar-toggle-btn">+ Add Car No.1</button>
@@ -1310,14 +1314,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 <label class="chip"><input type="radio" name="model" value="Model Y"> Model Y</label>
                 <label class="chip"><input type="radio" name="model" value="Model S"> Model S</label>
                 <label class="chip"><input type="radio" name="model" value="Model X"> Model X</label>
-                <label class="chip"><input type="radio" name="model" value="Cybertruck"> Cybertruck</label>
-                <label class="chip"><input type="radio" name="model" value="Roadster"> Roadster</label>
               </div>
             </div>
             <div class="mb-field-pair">
               <div class="mb-field">
                 <label for="mb-addcar-version">Version (optional)</label>
-                <input type="text" id="mb-addcar-version" name="version" list="mb-version-list" maxlength="40" placeholder="e.g. Long Range">
+                <select id="mb-addcar-version" name="version" data-version-select><option value="">Pick the model first</option></select>
               </div>
               <div class="mb-field">
                 <label for="mb-addcar-year">Year (optional)</label>
@@ -1389,15 +1391,17 @@ document.addEventListener('DOMContentLoaded', function () {
             <option value="Green">Green</option>
             <option value="Other">Other</option>
           </select>
+          <span class="mb-car-spec">
           <select class="mb-car-color-select" id="mb-car-model-select" aria-label="Model">
             <option value="">Model</option>
             <option value="Model 3">Model 3</option>
             <option value="Model Y">Model Y</option>
             <option value="Model S">Model S</option>
             <option value="Model X">Model X</option>
-            <option value="Cybertruck">Cybertruck</option>
-            <option value="Roadster">Roadster</option>
           </select>
+          <select class="mb-car-color-select" id="mb-car-version-select" aria-label="Version"><option value="">Version</option></select>
+          <select class="mb-car-color-select" id="mb-car-year-select" aria-label="Year"><option value="">Year</option></select>
+          </span>
           <span class="mb-car-photo-count mono" id="mb-car-photo-count"></span>
           <span class="mb-status mb-car-name-status" id="mb-car-name-status"></span>
           <button type="button" class="mb-car-view-link" id="mb-car-view-link"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 17h14M3 13l2-5a2 2 0 0 1 1.9-1.4h10.2A2 2 0 0 1 19 8l2 5v4a1 1 0 0 1-1 1h-1a2 2 0 0 1-4 0H9a2 2 0 0 1-4 0H4a1 1 0 0 1-1-1Z"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>View my car</button>
@@ -1945,7 +1949,7 @@ document.addEventListener('DOMContentLoaded', function () {
       } else {
         carViewLink.style.display = 'none';
       }
-      carModelSelect.value = car.model || '';
+      drawCarModel(car);
       renderCarMods(car);
       renderPhotoStrip(car);
       renderVoteHint();
@@ -2658,36 +2662,55 @@ document.addEventListener('DOMContentLoaded', function () {
       if (modsBuilder) modsBuilder.show(car);
     }
 
-    // Year drop-downs on Add a car: this year back to 2018.
+    // Model, version and year: drop-downs on Add a car and next to the
+    // car's name (the versions of each model are in js/mods-builder.js).
+    var MB = window.MT3UKModsBuilder;
     document.querySelectorAll('select[data-year-select]').forEach(function (sel) {
-      for (var y = new Date().getFullYear(); y >= 2018; y--) {
-        var opt = document.createElement('option');
-        opt.value = opt.textContent = String(y);
-        sel.appendChild(opt);
-      }
+      sel.innerHTML = MB.yearOptions('').replace('>Year<', '>Choose<');
+    });
+    document.querySelectorAll('select[data-version-select]').forEach(function (sel) {
+      sel.innerHTML = MB.versionOptions('', '');
+      var form = sel.closest('form');
+      form.addEventListener('change', function (e) {
+        if (e.target.name === 'model') sel.innerHTML = MB.versionOptions(e.target.value, '');
+      });
+      form.addEventListener('reset', function () { setTimeout(function () { sel.innerHTML = MB.versionOptions('', ''); }, 0); });
     });
 
     var carModelSelect = document.getElementById('mb-car-model-select');
-    carModelSelect.addEventListener('change', function () {
-      var model = carModelSelect.value;
+    var carVersionSelect = document.getElementById('mb-car-version-select');
+    var carYearSelect = document.getElementById('mb-car-year-select');
+    function drawCarModel(car) {
+      carModelSelect.value = (car && car.model) || '';
+      carVersionSelect.innerHTML = MB.versionOptions((car && car.model) || '', (car && car.version) || '');
+      carVersionSelect.disabled = !(car && car.model);
+      carYearSelect.innerHTML = MB.yearOptions((car && car.year) || '');
+    }
+    // Saves one of model, version or year; a new model clears the version.
+    function saveCarModel(sel, key) {
       if (!currentCarId) return;
       var car = findCar(currentCarId);
-      carModelSelect.disabled = true;
-      saveCarField(currentCarId, { model: model, name: car ? car.name : undefined })
+      var fields = { name: car ? car.name : undefined };
+      fields[key] = sel.value;
+      if (key === 'model') fields.version = '';
+      sel.disabled = true;
+      saveCarField(currentCarId, fields)
         .then(function (data) {
-          carModelSelect.disabled = false;
+          sel.disabled = false;
           if (data.success) {
             if (data.car && data.car.id !== currentCarId) { currentCarId = data.car.id; if (car) car.id = data.car.id; }
-            if (car) car.model = model;
-          } else {
-            carModelSelect.value = car ? (car.model || '') : '';
+            if (car) {
+              car[key] = key === 'year' ? (parseInt(sel.value, 10) || '') : sel.value;
+              if (key === 'model') car.version = '';
+            }
           }
+          drawCarModel(car);
         })
-        .catch(function () {
-          carModelSelect.disabled = false;
-          carModelSelect.value = car ? (car.model || '') : '';
-        });
-    });
+        .catch(function () { sel.disabled = false; drawCarModel(car); });
+    }
+    carModelSelect.addEventListener('change', function () { saveCarModel(carModelSelect, 'model'); });
+    carVersionSelect.addEventListener('change', function () { saveCarModel(carVersionSelect, 'version'); });
+    carYearSelect.addEventListener('change', function () { saveCarModel(carYearSelect, 'year'); });
 
     var imgLightbox = document.getElementById('mb-img-lightbox');
     var imgLightboxImg = document.getElementById('mb-img-lightbox-img');

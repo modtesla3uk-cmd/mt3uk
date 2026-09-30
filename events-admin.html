@@ -525,6 +525,7 @@
         '<div class="event-actions">' +
           '<button type="button" data-ep="preview" data-slug="' + s + '">Preview</button>' +
           '<button type="button" class="secondary" data-ep="copy" data-slug="' + s + '">Copy link</button>' +
+          (state === 'live' ? '<button type="button" class="secondary" data-ep="share" data-slug="' + s + '"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M16 6l-4-4-4 4M12 2v14"/></svg> Share</button>' : '') +
           '<button type="button" class="secondary" data-ep="edit" data-slug="' + s + '">Edit</button>' +
           (state === 'live' ? '' : '<button type="button" class="secondary" data-ep="publish-now" data-slug="' + s + '">Publish now</button>') +
           (state === 'draft' ? '' : '<button type="button" class="secondary" data-ep="draft" data-slug="' + s + '">Draft</button>') +
@@ -855,6 +856,7 @@
     if (action === 'preview') { preview(slug, btn); return; }
     if (action === 'edit') { openForm(p, false); return; }
     if (action === 'copy') { copyLink(p); return; }
+    if (action === 'share') { shareEvent(p); return; }
     if (!key()) { setStatus('Enter the admin key first.', 'error'); return; }
     var date = '';
     var question;
@@ -926,6 +928,16 @@
   });
 
   // ---------- Sharing: copy the link ----------
+  // Share sheet on phones and Mac/Windows browsers that have one, else the link is copied.
+  function shareEvent(p) {
+    var link = 'https://mt3uk.com/share/event/' + p.slug + '.html';
+    if (navigator.share) {
+      navigator.share({ title: p.title || p.name, text: p.tagline || '', url: link }).catch(function () {});
+      return;
+    }
+    copyLink(p);
+  }
+
   function copyLink(p) {
     // The share page has the event's own image and title for link previews, then sends people on to the event page.
     var link = 'https://mt3uk.com/share/event/' + p.slug + '.html';

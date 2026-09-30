@@ -187,8 +187,8 @@
     {
       "slug": "gasoline-juice-autumn-meet-2026",
       "manifestId": "007",
-      "name": "Gasoline Juice Autumn Meet 2026",
-      "title": "Gasoline Juice Autumn Meet",
+      "name": "Autumn Meet 2026",
+      "title": "Autumn Meet",
       "tagline": "Let's get together at Gasoline Juice, a popular location for all types of cars and bikes with Automobile Artwork, SIM racing, coffee, cake and breakfast baps",
       "kind": "Meet",
       "startDate": "2026-10-18",
@@ -203,6 +203,8 @@
       ],
       "ctaUrl": "https://fb.me/e/26kXOArot6",
       "ctaLabel": "Facebook event",
+      "image": "images/events/gasoline-juice-autumn-meet-2026/card.jpg",
+      "poster": "images/events/gasoline-juice-autumn-meet-2026/poster.jpg",
       "draft": true,
       "created": "2026-09-30"
     },

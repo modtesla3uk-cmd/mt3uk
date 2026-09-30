@@ -278,7 +278,8 @@ def test_admin_can_preview_publish_draft_and_delete(device_page):
     frunk = page.locator('#ep-list .event-card[data-slug="frunk-or-treat-uk"]')
     frunk.wait_for(state="visible", timeout=5000)
     assert "Draft" in frunk.inner_text() and "Frunk or Treat UK 2026" in frunk.inner_text()
-    assert frunk.locator('[data-ep="share"]').count() == 0, "A draft has no Share button, only Copy link"
+    cadwell = page.locator('#ep-list .event-card[data-slug="cadwell-park-track-day-2026"]')
+    assert cadwell.locator('[data-ep="share"]').count() == 0, "A draft has no Share button, only Copy link"
     assert page.locator("#ep-list .event-card").count() == 4, "The three upcoming events have draft pages ready too"
 
     with page.expect_popup() as popup_info:

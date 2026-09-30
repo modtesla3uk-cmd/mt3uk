@@ -33,15 +33,15 @@
     'html.iv-gate-wait body{visibility:hidden}' +
     'html.iv-gated body>*:not(header):not(#iv-gate){display:none!important}' +
     '#iv-gate{min-height:calc(100svh - 70px);display:flex;align-items:center;justify-content:center;padding:48px 16px;background:#16233d;color:#fff;font-family:Inter,Arial,sans-serif}' +
-    '#iv-gate .ivg-card{width:100%;max-width:440px;border:1px solid rgba(255,255,255,.2);padding:28px 24px;background:rgba(255,255,255,.04)}' +
-    '#iv-gate .ivg-eyebrow{font-family:"IBM Plex Mono",monospace;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:#e8542a;margin:0 0 10px}' +
+    '#iv-gate .ivg-card{width:100%;max-width:440px;border:1px solid rgba(255,255,255,.2);border-radius:14px;padding:28px 24px;background:rgba(255,255,255,.04)}' +
+    '#iv-gate .ivg-eyebrow{font-family:"IBM Plex Sans", sans-serif;font-size: 0.86rem;font-weight:600;color:#e8542a;margin:0 0 10px}' +
     '#iv-gate .ivg-title{font-size:1.5rem;font-weight:700;line-height:1.25;margin:0 0 12px;color:#fff}' +
     '#iv-gate p{color:rgba(255,255,255,.8);line-height:1.5;margin:0 0 16px;font-size:.98rem}' +
-    '#iv-gate p.ivg-junk{font-size:.86rem;border-left:3px solid #e8542a;padding:8px 10px;background:rgba(255,255,255,.06)}' +
+    '#iv-gate p.ivg-junk{font-size:.86rem;border-left:3px solid #e8542a;border-radius:8px;padding:8px 10px;background:rgba(255,255,255,.06)}' +
     '#iv-gate label{display:block;font-size:.85rem;color:rgba(255,255,255,.75);margin:0 0 6px}' +
-    '#iv-gate input{width:100%;box-sizing:border-box;padding:12px 14px;font-size:16px;border:1px solid rgba(255,255,255,.35);background:#fff;color:#16233d;border-radius:0;margin:0 0 12px}' +
-    '#iv-gate input.ivg-code{letter-spacing:.4em;font-family:"IBM Plex Mono",monospace;text-align:center}' +
-    '#iv-gate button{width:100%;min-height:48px;border:0;background:#e8542a;color:#fff;font-family:"IBM Plex Mono",monospace;font-size:.9rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}' +
+    '#iv-gate input{width:100%;box-sizing:border-box;padding:12px 14px;font-size:16px;border:1px solid rgba(255,255,255,.35);background:#fff;color:#16233d;border-radius:8px;margin:0 0 12px}' +
+    '#iv-gate input.ivg-code{letter-spacing:.4em;font-family:"IBM Plex Sans", sans-serif;text-align:center}' +
+    '#iv-gate button{width:100%;min-height:48px;border:0;border-radius:10px;font-weight:600;background:#e8542a;color:#fff;font-family:"IBM Plex Sans", sans-serif;font-size: 0.9rem;cursor:pointer}' +
     '#iv-gate button:disabled{opacity:.6;cursor:default}' +
     '#iv-gate .ivg-admin{display:block;margin-top:10px;font-size:.8rem;opacity:.75}' +
     '#iv-gate .ivg-link{background:none;border:0;min-height:0;width:auto;padding:0;margin-top:14px;color:rgba(255,255,255,.7);text-decoration:underline;text-transform:none;letter-spacing:0;font-family:inherit;font-size:.88rem}' +
@@ -51,15 +51,15 @@
     '#iv-gate .ivg-msg{min-height:1.4em;margin:12px 0 0;font-size:.9rem;color:#ffb199}' +
     '#iv-gate .ivg-msg.ok{color:#9fe0b0}' +
     '#iv-gate .ivg-alt{display:flex;flex-direction:column;gap:10px;margin-top:12px}' +
-    '#iv-gate .ivg-alt-btn{width:100%;min-height:48px;border:1px solid rgba(255,255,255,.4);background:transparent;color:#fff;font-family:"IBM Plex Mono",monospace;font-size:.9rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}' +
+    '#iv-gate .ivg-alt-btn{width:100%;min-height:48px;border:1px solid rgba(255,255,255,.4);border-radius:10px;background:transparent;color:#fff;font-family:"IBM Plex Sans", sans-serif;font-size:.9rem;font-weight:600;cursor:pointer}' +
     '#iv-gate .ivg-alt-btn:hover{border-color:#fff}' +
     '#iv-gate .ivg-alt-btn:disabled{opacity:.6;cursor:default}' +
     '#iv-gate .ivg-back{display:inline-block;margin-top:18px;color:#fff;font-size:.9rem}' +
-    '.ivg-notice{position:fixed;left:50%;top:16px;transform:translateX(-50%);z-index:70;width:calc(100% - 32px);max-width:560px;box-sizing:border-box;background:#16233d;color:#fff;border:1px solid rgba(255,255,255,.25);border-left:4px solid #e8542a;padding:14px 44px 14px 16px;box-shadow:0 10px 30px rgba(0,0,0,.3);font-family:Inter,Arial,sans-serif;font-size:.95rem;line-height:1.45}' +
+    '.ivg-notice{position:fixed;left:50%;top:16px;transform:translateX(-50%);z-index:70;width:calc(100% - 32px);max-width:560px;box-sizing:border-box;background:#16233d;color:#fff;border:1px solid rgba(255,255,255,.25);border-left:4px solid #e8542a;border-radius:10px;padding:14px 44px 14px 16px;box-shadow:0 10px 30px rgba(0,0,0,.3);font-family:Inter,Arial,sans-serif;font-size:.95rem;line-height:1.45}' +
     '.ivg-notice strong{display:block;margin-bottom:4px}' +
     '.ivg-notice p{margin:6px 0 0;color:rgba(255,255,255,.85)}' +
-    '.ivg-notice-close{position:absolute;top:6px;right:6px;width:36px;height:36px;border:0;background:none;color:#fff;font-size:1.4rem;cursor:pointer}' +
-    '.ivg-timer{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:60;background:#16233d;color:#fff;border:1px solid rgba(255,255,255,.25);padding:6px 12px;font-family:"IBM Plex Mono",monospace;font-size:.75rem;letter-spacing:.06em;white-space:nowrap}';
+    '.ivg-notice-close{position:absolute;top:6px;right:6px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:0;border-radius:50%;background:none;color:#fff;cursor:pointer}' +
+    '.ivg-timer{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:60;background:#16233d;color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:6px 14px;font-family:"IBM Plex Sans", sans-serif;font-size: 0.83rem;white-space:nowrap}';
   document.head.appendChild(style);
 
   function show() { root.classList.remove('iv-gate-wait'); }
@@ -172,7 +172,7 @@
       '<strong>Preview open until ' + esc(clock(expires)) + ' (' + esc(timeLeft(expires - Date.now())) + ')</strong>' +
       (joined ? '<p>Welcome to MT3UK: you&rsquo;re now subscribed and signed in, so you can like and comment. Set a nickname or unsubscribe in your <a href="profile.html" style="color:#fff">Profile</a>.</p>' : '') +
       '<p>' + (entry.publish ? 'This interview is published on ' + esc(niceDate(entry.publish)) + '. Please don&rsquo;t share it until then.' : 'This interview isn&rsquo;t published yet. Please don&rsquo;t share it until it is.') + '</p>' +
-      '<button type="button" class="ivg-notice-close" aria-label="Close">&times;</button>';
+      '<button type="button" class="ivg-notice-close" aria-label="Close"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>';
     document.body.appendChild(box);
     box.querySelector('.ivg-notice-close').addEventListener('click', function () { box.parentNode.removeChild(box); });
   }

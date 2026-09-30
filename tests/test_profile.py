@@ -518,6 +518,12 @@ def test_profile_has_notifications_app_email_alerts_and_unsubscribe(device_page)
 
     alerts = page.locator("#email-alerts")
     assert "Email alerts" in alerts.locator("h2").inner_text()
+    # Email alerts sit straight under Visibility; the tabs have no Emails
+    # or My Garage button (My Garage has its own card).
+    order = page.evaluate("[...document.querySelectorAll('#pf-app > .pf-card')].map(e => e.id)")
+    assert order.index("email-alerts") == order.index("visibility") + 1, order
+    tabs = page.locator(".pf-tabs a").all_inner_texts()
+    assert tabs == ["Details", "Visibility", "Security"], tabs
     assert "always emailed" in alerts.inner_text()
     unsub = page.locator("#unsubscribe")
     assert unsub.locator("h2").inner_text() == "Unsubscribe"

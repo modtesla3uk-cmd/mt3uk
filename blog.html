@@ -26,7 +26,7 @@
 </script>
 <link rel="stylesheet" href="css/site-header.css">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 
   :root {
     --ink: #16233d;
@@ -61,9 +61,8 @@
   }
 
   .mono {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.06em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.8rem;
     color: var(--steel);
   }
 
@@ -86,7 +85,7 @@
     gap: 10px;
     padding: 10px 44px 10px 0;
     position: relative;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.8rem;
     overflow: hidden;
   }
@@ -171,9 +170,8 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.75rem;
-    letter-spacing: 0.05em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.83rem;
     color: var(--orange);
     border: 1px solid var(--orange);
     padding: 5px 10px;
@@ -247,10 +245,9 @@
     color: var(--ink);
   }
   .hero-stats div span {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.78rem;
     color: var(--steel);
-    letter-spacing: 0.04em;
   }
 
   /* --- blueprint diagram --- */
@@ -280,9 +277,8 @@
     position: absolute;
     left: 18px;
     bottom: 16px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.68rem;
-    letter-spacing: 0.04em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.76rem;
     color: var(--paper);
     background: rgba(22,35,61,0.72);
     padding: 5px 9px;
@@ -316,8 +312,8 @@
     flex-wrap: wrap;
   }
   .section-num {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.78rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.86rem;
     color: var(--orange);
     margin-bottom: 10px;
     display: block;
@@ -346,7 +342,7 @@
     font-size: 0.92rem;
   }
   .spec-row:last-child { border-bottom: none; }
-  .spec-row span:first-child { color: var(--steel); font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; }
+  .spec-row span:first-child { color: var(--steel); font-family: 'IBM Plex Sans', sans-serif; font-size: 0.86rem; }
   .spec-row span:last-child { font-weight: 600; color: var(--ink); text-align: right; }
 
   .page-hero {
@@ -357,8 +353,8 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.78rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.86rem;
     color: var(--steel);
     text-decoration: none;
     margin-bottom: 18px;
@@ -391,10 +387,8 @@
   .track-prep > p { color: var(--ink-2); margin-bottom: 14px; }
   .track-prep-eyebrow {
     display: block;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.8rem;
     color: var(--orange);
     margin: 34px 0 12px;
   }
@@ -422,8 +416,8 @@
   .track-prep-list.numbered li { counter-increment: track-step; }
   .track-prep-list.numbered li::before {
     content: counter(track-step);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.8rem;
     font-weight: 700;
   }
   .track-prep-list li strong { color: var(--ink); }
@@ -491,9 +485,8 @@
     left: 0; right: 0; bottom: 0;
     padding: 9px 12px;
     background: linear-gradient(0deg, rgba(22,35,61,0.82), rgba(22,35,61,0));
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.68rem;
-    letter-spacing: 0.03em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.76rem;
     color: var(--paper);
     display: flex;
     flex-direction: column;
@@ -539,8 +532,8 @@
   #hero-bf-frame { margin: 0 auto; }
   .hero-media { display: flex; flex-direction: column; gap: 12px; align-items: center; }
   .hero-media-note {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.78rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.86rem;
     color: var(--steel);
     text-align: center;
     max-width: 340px;
@@ -661,7 +654,7 @@
   }
   .bf-rail-btn svg { width: 26px; height: 26px; fill: currentColor; }
   .bf-rail-count {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: 'IBM Plex Sans', sans-serif;
     font-size: 11px;
     color: rgba(255,255,255,0.9);
     font-variant-numeric: tabular-nums;
@@ -693,9 +686,8 @@
     letter-spacing: -0.01em;
   }
   .bf-sub {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.03em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.8rem;
     color: rgba(255,255,255,0.75);
   }
 
@@ -706,9 +698,8 @@
     z-index: 6;
     color: rgba(255,255,255,0.55);
     display: flex; flex-direction: column; align-items: center; gap: 2px;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: 'IBM Plex Sans', sans-serif;
     font-size: 9.5px;
-    letter-spacing: 0.1em;
     animation: bf-hintbob 1.8s ease-in-out infinite;
     pointer-events: none;
   }
@@ -748,9 +739,8 @@
     position: absolute;
     top: 14px;
     left: 14px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.66rem;
-    letter-spacing: 0.04em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.74rem;
     color: var(--paper);
     background: var(--orange);
     padding: 5px 9px;
@@ -792,9 +782,8 @@
     left: 0; right: 0; bottom: 0;
     padding: 9px 12px;
     background: linear-gradient(0deg, rgba(22,35,61,0.82), rgba(22,35,61,0));
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.68rem;
-    letter-spacing: 0.03em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.76rem;
     color: var(--paper);
   }
   .track-day-frame .mono {
@@ -811,9 +800,8 @@
     margin-top: 24px;
   }
   .gallery-pagination .page-btn {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.04em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.8rem;
     background: transparent;
     border: 1px solid var(--ink);
     color: var(--ink);
@@ -911,15 +899,15 @@
     .event-row { grid-template-columns: 1fr; gap: 8px; }
   }
   .event-date {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.85rem;
     color: var(--orange);
   }
   .event-info h3 { font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; font-size: 1.05rem; color: var(--ink); margin-bottom: 4px; }
   .event-info p { color: var(--steel); font-size: 0.88rem; }
   .event-status {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.8rem;
     color: var(--steel);
     border: 1px solid var(--steel);
     padding: 5px 10px;
@@ -950,8 +938,8 @@
   .shop-card svg { width: 100%; height: 140px; margin-bottom: 18px; }
 
   .shop-preview-hint {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.66rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.74rem;
     font-weight: 300;
     color: var(--steel);
     margin: 0 0 8px;
@@ -1008,8 +996,8 @@
   .shop-card .tag {
     display: inline-block;
     margin-top: 14px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.68rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.76rem;
     color: var(--orange);
     border: 1px solid var(--orange);
     padding: 3px 8px;
@@ -1022,9 +1010,8 @@
     gap: 6px;
     background: var(--orange);
     color: var(--paper);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.66rem;
-    letter-spacing: 0.03em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.74rem;
     padding: 5px 9px;
     margin-top: 14px;
     margin-bottom: 10px;
@@ -1039,16 +1026,16 @@
   .tee-offer-save {
     background: var(--orange);
     color: var(--paper);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.68rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.76rem;
     font-weight: 600;
     padding: 4px 8px;
   }
-  .tee-offer-was { font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; color: var(--steel); text-decoration: line-through; }
+  .tee-offer-was { font-family: 'IBM Plex Sans', sans-serif; font-size: 0.85rem; color: var(--steel); text-decoration: line-through; }
   .tee-offer-now { font-family: 'Archivo Expanded', sans-serif; font-size: 1.15rem; font-weight: 800; color: var(--orange); }
   .tee-modal-body .tee-offer-now { font-size: 1.5rem; }
   .tee-modal-body .tee-offer-was { color: #aeb8cc; }
-  .tee-offer-note { margin-top: 10px; font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--steel); }
+  .tee-offer-note { margin-top: 10px; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.76rem; color: var(--steel); }
   .tee-offer-actions {
     display: flex;
     align-items: center;
@@ -1062,9 +1049,8 @@
     background: transparent;
     border: 1px solid var(--orange);
     color: var(--orange);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.68rem;
-    letter-spacing: 0.02em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.76rem;
     padding: 3px 8px;
     cursor: pointer;
   }
@@ -1117,9 +1103,8 @@
   .interview-figure img { width: 100%; height: auto; border: 1px solid var(--ink); }
   .interview-figure-narrow img { width: auto; max-width: min(100%, 360px); margin: 0 auto; }
   .interview-figure figcaption {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.04em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.8rem;
     color: var(--steel);
     margin-top: 8px;
     text-align: center;
@@ -1143,7 +1128,7 @@
   .lightbox { position: fixed; inset: 0; background: rgba(22,35,61,0.97); display: none; align-items: center; justify-content: center; flex-direction: column; z-index: 200; padding: 40px 20px; }
   .lightbox.open { display: flex; }
   .lightbox-img { max-width: min(92vw, 1400px); max-height: 80vh; object-fit: contain; border: 1px solid rgba(243,241,234,0.25); }
-  .lightbox-caption { margin-top: 16px; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; letter-spacing: 0.04em; color: var(--paper); text-align: center; max-width: 92vw; }
+  .lightbox-caption { margin-top: 16px; font-family: "IBM Plex Sans", sans-serif; font-size: 0.86rem; color: var(--paper); text-align: center; max-width: 92vw; }
   .lightbox-close { position: absolute; top: 22px; right: 28px; background: transparent; border: 1px solid var(--paper); color: var(--paper); width: 40px; height: 40px; font-size: 1.4rem; line-height: 1; cursor: pointer; }
   .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(22,35,61,0.6); border: 1px solid var(--paper); color: var(--paper); width: 46px; height: 46px; font-size: 1.6rem; line-height: 1; cursor: pointer; }
   .lightbox-close:hover, .lightbox-nav:hover { background: var(--orange); border-color: var(--orange); }
@@ -1182,24 +1167,46 @@
   .bl-card.bl-latest { border-width: 2px; }
   .bl-media { position: relative; display: block; aspect-ratio: 16 / 10; overflow: hidden; background: var(--paper-2); }
   .bl-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .bl-badge { position: absolute; left: 12px; top: 12px; background: #c8431d; color: #ffffff; font-family: 'IBM Plex Mono', monospace; font-size: 0.66rem; letter-spacing: 0.08em; padding: 5px 9px; }
+  .bl-badge { position: absolute; left: 12px; top: 12px; background: #c8431d; color: #ffffff; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.74rem; padding: 5px 9px; }
   .bl-body { display: flex; flex-direction: column; gap: 6px; padding: 18px 18px 16px; flex: 1; }
-  .bl-date { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; letter-spacing: 0.08em; color: #b83c19; text-transform: uppercase; }
+  .bl-date { font-family: 'IBM Plex Sans', sans-serif; font-size: 0.76rem; color: #b83c19; }
   .bl-title { font-family: 'Archivo Expanded', sans-serif; font-weight: 700; font-size: 1.08rem; line-height: 1.3; color: var(--ink); }
-  .bl-meta { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; letter-spacing: 0.04em; color: #56606f; text-transform: uppercase; }
+  .bl-meta { font-family: 'IBM Plex Sans', sans-serif; font-size: 0.78rem; color: #56606f; }
   .bl-excerpt { color: var(--ink-2); font-size: 0.92rem; line-height: 1.5; margin-top: 4px; }
-  .bl-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: auto; padding-top: 12px; font-family: 'IBM Plex Mono', monospace; font-size: 0.74rem; }
+  .bl-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: auto; padding-top: 12px; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.82rem; }
   .bl-read { color: #b83c19; font-weight: 500; }
   .bl-comments { color: #56606f; }
   .bl-card.bl-next { background: transparent; border-style: dashed; }
   .bl-card.bl-next .bl-media img { filter: blur(6px) saturate(0.8); transform: scale(1.12); }
   .bl-card.bl-next .bl-read { color: #56606f; }
   .bl-cta { margin-top: 40px; background: var(--ink); color: var(--paper); padding: 26px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 18px; }
-  .bl-cta-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; letter-spacing: 0.1em; color: #b9c0cf; }
+  .bl-cta-label { font-family: 'IBM Plex Sans', sans-serif; font-size: 0.76rem; color: #b9c0cf; }
   .bl-cta h2 { color: #ffffff; font-size: 1.25rem; margin: 6px 0; }
   .bl-cta p { color: #d3d8e2; font-size: 0.92rem; max-width: 52ch; }
-  .bl-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 12px 22px; background: #c8431d; color: #ffffff; font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; }
+  .bl-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 12px 22px; background: #c8431d; color: #ffffff; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.8rem; }
   .bl-btn:hover { background: #a93814; }
+  /* ---------- STYLE REFRESH: soft corners, one font, clearer buttons ----------
+     Uses the shared tokens in css/site-header.css (--radius, --hairline...). */
+  .section-num, .section-num.mono { font-size: 0.82rem; font-weight: 600; color: var(--orange); }
+  .page-hero .back-link { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 6px 10px; margin-left: -10px; border-radius: var(--radius-sm); color: var(--ink); font-size: 0.88rem; font-weight: 600; }
+  .page-hero .back-link:hover { background: rgba(22,35,61,0.06); color: var(--ink); }
+  .specs { border: 1px solid var(--hairline); border-radius: var(--radius); background: var(--white, #ffffff); overflow: hidden; }
+  .spec-row { border-bottom: 1px solid var(--hairline); }
+  .spec-row span:first-child { font-size: 0.84rem; font-weight: 600; }
+  .interview-figure img, .interview-gallery img { border: 0; border-radius: var(--radius); }
+  .interview-outro { border: 1px solid rgba(232,84,42,0.25); border-radius: var(--radius); background: #fdf3ef; }
+  .btn { border-radius: var(--radius); font-family: var(--font-body); text-transform: none; letter-spacing: 0; }
+  .lightbox-close, .lightbox-nav { display: flex; align-items: center; justify-content: center; border: 0; border-radius: 50%; background: rgba(243,241,234,0.12); }
+  .lightbox-close:hover, .lightbox-nav:hover { background: var(--orange); }
+  .lightbox-close .icon, .lightbox-nav .icon { width: 22px; height: 22px; }
+  .bl-read, .bl-btn { display: inline-flex; align-items: center; gap: 6px; }
+  .bl-read .icon, .bl-btn .icon { width: 16px; height: 16px; }
+  .bl-card { border: 1px solid var(--hairline); border-radius: var(--radius); overflow: hidden; }
+  .bl-card.bl-latest { border-width: 1px; border-color: var(--hairline-strong); box-shadow: 0 2px 10px rgba(22,35,61,0.08); }
+  .bl-card.bl-next { border-style: dashed; border-color: var(--hairline-strong); }
+  .bl-badge { border-radius: var(--radius-pill); padding: 4px 11px; font-weight: 600; }
+  .bl-cta { border-radius: var(--radius); }
+  .bl-btn { border-radius: var(--radius); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -1299,8 +1306,8 @@
 
 <section class="page-hero">
   <div class="wrap">
-    <a href="index.html" class="back-link">&larr; Back to Home</a>
-    <span class="section-num mono">BLOG / OWNER INTERVIEWS</span>
+    <a href="index.html" class="back-link"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back to Home</a>
+    <span class="section-num mono">Blog / Owner interviews</span>
     <h1>Owner Interviews</h1>
     <p>Real members, real builds. The stories behind the cars in the MT3UK group, in the owners&rsquo; own words.</p>
   </div>
@@ -1316,18 +1323,18 @@
           <span class="bl-title">Founding the MT3UK Community</span>
           <span class="bl-meta">Richard &middot; Model 3 Performance &middot; 2019</span>
           <span class="bl-excerpt">From a white Model 3 lost in the crowd to a Hidden Forest wrap, KW coilovers and track days. Richard on why he started MT3UK.</span>
-          <span class="bl-foot"><span class="bl-read">Read the interview &rarr;</span></span>
+          <span class="bl-foot"><span class="bl-read">Read the interview<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span></span>
         </span>
       </a>
     </div>
 
     <div class="bl-cta">
       <div>
-        <span class="bl-cta-label">YOUR TURN</span>
+        <span class="bl-cta-label">Your turn</span>
         <h2>Could this be your build?</h2>
         <p>We&rsquo;re looking for members to feature. Answer a few questions, send some photos, and we&rsquo;ll do the rest.</p>
       </div>
-      <a href="contact.html" class="bl-btn">Get featured &rarr;</a>
+      <a href="contact.html" class="bl-btn">Get featured<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
     </div>
   </div>
 </section>
@@ -1409,7 +1416,7 @@
       box.setAttribute('role', 'dialog');
       box.setAttribute('aria-modal', 'true');
       box.setAttribute('aria-hidden', 'true');
-      box.innerHTML = '<button class="lightbox-close" aria-label="Close">&times;</button><button class="lightbox-nav lightbox-prev" aria-label="Previous photo">&lsaquo;</button><button class="lightbox-nav lightbox-next" aria-label="Next photo">&rsaquo;</button><img class="lightbox-img" src="" alt=""><div class="lightbox-caption"></div>';
+      box.innerHTML = '<button class="lightbox-close" aria-label="Close"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button><button class="lightbox-nav lightbox-prev" aria-label="Previous photo"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button><button class="lightbox-nav lightbox-next" aria-label="Next photo"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button><img class="lightbox-img" src="" alt=""><div class="lightbox-caption"></div>';
       document.body.appendChild(box);
       var img = box.querySelector('.lightbox-img');
       var cap = box.querySelector('.lightbox-caption');
@@ -1496,12 +1503,12 @@
           var html = published.map(function (i, n) {
             return '<a class="bl-card' + (n === 0 ? ' bl-latest' : '') + '" href="' + esc(i.url) + '" data-thread="interview:' + esc(slugOf(i)) + '">' +
               '<span class="bl-media"><img src="' + esc(i.image) + '" alt="' + esc(i.name + '’s ' + i.car) + '" loading="lazy">' +
-              (n === 0 ? '<span class="bl-badge">LATEST</span>' : '') + '</span>' +
+              (n === 0 ? '<span class="bl-badge">Latest</span>' : '') + '</span>' +
               '<span class="bl-body"><span class="bl-date">' + esc(prettyDay(i.publish)) + '</span>' +
               '<span class="bl-title">' + esc(i.title) + '</span>' +
               '<span class="bl-meta">' + meta(i) + '</span>' +
               '<span class="bl-excerpt">' + esc(i.excerpt) + '</span>' +
-              '<span class="bl-foot"><span class="bl-read">Read the interview &rarr;</span><span class="bl-comments"></span></span></span></a>';
+              '<span class="bl-foot"><span class="bl-read">Read the interview<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span><span class="bl-comments"></span></span></span></a>';
           }).join('');
           if (next) {
             html += '<div class="bl-card bl-next">' +

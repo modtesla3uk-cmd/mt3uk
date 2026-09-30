@@ -27,7 +27,7 @@
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
 <link rel="stylesheet" href="css/site-header.css">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 
   :root {
     --ink: #16233d;
@@ -62,9 +62,8 @@
   }
 
   .mono {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.06em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.8rem;
     color: var(--steel);
   }
 
@@ -87,7 +86,7 @@
     gap: 10px;
     padding: 10px 44px 10px 0;
     position: relative;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.8rem;
     overflow: hidden;
   }
@@ -162,8 +161,8 @@
     flex-wrap: wrap;
   }
   .section-num {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.78rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.86rem;
     color: var(--orange);
     margin-bottom: 10px;
     display: block;
@@ -183,7 +182,7 @@
     font-size: 0.92rem;
   }
   .spec-row:last-child { border-bottom: none; }
-  .spec-row span:first-child { color: var(--steel); font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; }
+  .spec-row span:first-child { color: var(--steel); font-family: 'IBM Plex Sans', sans-serif; font-size: 0.86rem; }
   .spec-row span:last-child { font-weight: 600; color: var(--ink); text-align: right; }
 
   .inline-link {
@@ -203,8 +202,8 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.78rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.86rem;
     color: var(--steel);
     text-decoration: none;
     margin-bottom: 18px;
@@ -281,8 +280,8 @@
     flex-direction: column;
     align-items: flex-end;
     gap: 2px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.78rem;
     color: #aeb8cc;
     text-decoration: none;
     z-index: 2;
@@ -318,8 +317,8 @@
   .offer-card:hover { border-color: var(--orange); }
   .offer-card .tag {
     display: inline-block;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.68rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.76rem;
     color: var(--orange);
     border: 1px solid var(--orange);
     padding: 3px 8px;
@@ -364,8 +363,8 @@
   }
   .img-lightbox-close:hover { background: var(--orange); border-color: var(--orange); }
   .shop-preview-hint {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.66rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.74rem;
     font-weight: 300;
     color: var(--steel);
     margin: 0 0 8px;
@@ -425,8 +424,8 @@
   .shop-card .tag {
     display: inline-block;
     margin-top: 14px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.68rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.76rem;
     color: var(--orange);
     border: 1px solid var(--orange);
     padding: 3px 8px;
@@ -435,9 +434,8 @@
   .shop-live-heading {
     grid-column: 1 / -1;
     color: var(--paper);
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.8rem;
-    letter-spacing: 0.04em;
     margin: 8px 0 2px;
   }
   .shop-live-card {
@@ -481,9 +479,8 @@
     gap: 6px;
     background: var(--orange);
     color: var(--paper);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.78rem;
-    letter-spacing: 0.03em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.86rem;
     padding: 6px 11px;
     margin-top: 14px;
     margin-bottom: 10px;
@@ -497,10 +494,9 @@
   }
   .feature-new-badge {
     display: inline-block;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.62rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.7rem;
     font-weight: 700;
-    letter-spacing: 0.04em;
     color: var(--paper);
     background: var(--orange);
     padding: 2px 5px;
@@ -510,16 +506,16 @@
   .tee-offer-save {
     background: var(--orange);
     color: var(--paper);
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.82rem;
     font-weight: 600;
     padding: 5px 10px;
   }
-  .tee-offer-was { font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; color: var(--steel); text-decoration: line-through; }
+  .tee-offer-was { font-family: 'IBM Plex Sans', sans-serif; font-size: 0.85rem; color: var(--steel); text-decoration: line-through; }
   .tee-offer-now { font-family: 'Archivo Expanded', sans-serif; font-size: 1.15rem; font-weight: 800; color: var(--orange); }
   .tee-modal-body .tee-offer-now { font-size: 1.5rem; }
   .tee-modal-body .tee-offer-was { color: #aeb8cc; }
-  .tee-offer-note { margin-top: 10px; font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--steel); }
+  .tee-offer-note { margin-top: 10px; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.76rem; color: var(--steel); }
   .tee-offer-actions {
     display: flex;
     align-items: center;
@@ -537,9 +533,8 @@
     background: transparent;
     border: 1px solid var(--orange);
     color: var(--orange);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.75rem;
-    letter-spacing: 0.02em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.83rem;
     padding: 5px 9px;
     cursor: pointer;
     margin: 4px 0 0;
@@ -556,10 +551,9 @@
     background: var(--orange);
     border: 1px solid var(--orange);
     color: var(--paper);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.78rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.86rem;
     font-weight: 600;
-    letter-spacing: 0.02em;
     padding: 8px 16px;
     text-decoration: none;
   }
@@ -639,8 +633,8 @@
     top: 14px;
     left: 14px;
     display: inline-block;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.68rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.76rem;
     color: var(--orange);
     border: 1px solid var(--orange);
     padding: 3px 8px;
@@ -705,9 +699,8 @@
   .a2hs-banner.show { bottom: 16px; }
   .a2hs-banner .a2hs-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
   .a2hs-banner .a2hs-btn {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.04em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.8rem;
     cursor: pointer;
     border: none;
     background: transparent;
@@ -718,6 +711,29 @@
   @media (max-width: 480px) {
     .a2hs-banner { flex-direction: column; align-items: flex-start; }
   }
+  /* ---------- STYLE REFRESH: soft corners, one font, clearer buttons ----------
+     Uses the shared tokens in css/site-header.css (--radius, --hairline...). */
+  .section-num, .section-num.mono { font-size: 0.82rem; font-weight: 600; color: var(--orange); }
+  .page-hero .back-link { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 6px 10px; margin-left: -10px; border-radius: var(--radius-sm); color: var(--ink); font-size: 0.88rem; font-weight: 600; }
+  .page-hero .back-link:hover { background: rgba(22,35,61,0.06); color: var(--ink); }
+  .specs { border: 1px solid var(--hairline); border-radius: var(--radius); overflow: hidden; }
+  .spec-row { border-bottom: 1px solid var(--hairline); }
+  .spec-row span:first-child { font-size: 0.84rem; font-weight: 600; }
+  .btn { border-radius: var(--radius); font-family: var(--font-body); text-transform: none; letter-spacing: 0; }
+  .shop-card, .offer-card { border-radius: var(--radius); }
+  .shop-card .tag, .offer-card .tag, .detail-toggle { border-radius: var(--radius-pill); font-size: 0.8rem; font-weight: 600; padding: 4px 10px; border-width: 1px; }
+  .detail-toggle::after { content: ''; width: 14px; height: 14px; background: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / contain no-repeat; }
+  .tee-offer-actions .tee-shop-btn, .tee-modal-tag { border-radius: var(--radius); }
+  .tee-offer-save { border-radius: var(--radius-pill); }
+  .img-lightbox-close { display: flex; align-items: center; justify-content: center; border: 0; border-radius: 50%; background: rgba(22,35,61,0.8); }
+  .img-lightbox-close .icon { width: 22px; height: 22px; }
+  .tevo-panel, .shop-live-card { border-radius: var(--radius); }
+  .shop-preview-trigger, .shop-preview-thumb, .tee-modal-media { border-radius: var(--radius-sm); overflow: hidden; }
+  .tee-modal-panel { border-radius: 14px; }
+  .tee-modal-close, .tee-modal-arrow { border-radius: 50%; }
+  .tee-modal-thumbs button { border-radius: var(--radius-sm); overflow: hidden; }
 </style>
 </head>
 <body>
@@ -817,8 +833,8 @@
 
 <section class="page-hero">
   <div class="wrap">
-    <a href="index.html" class="back-link">&larr; Back to MT3UK</a>
-    <span class="section-num mono">SHOP</span>
+    <a href="index.html" class="back-link"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back to MT3UK</a>
+    <span class="section-num mono">Shop</span>
     <h1>MT3UK Shop</h1>
     <p>One-stop MT3UK shop for upgrades and merch</p>
   </div>
@@ -828,7 +844,7 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">01 / MERCH</span>
+        <span class="section-num">01 / Merch</span>
         <h2>Exclusive Merch for MT3UK</h2>
         <p class="section-note">Grab yourself some merch curated for MT3UK members</p>
       </div>
@@ -841,7 +857,7 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">02 / PARTS</span>
+        <span class="section-num">02 / Parts</span>
         <h2>Parts</h2>
         <p class="section-note">We work with trusted suppliers and mechanics who know how to get the most out of your Tesla. These upgrades are recommendations from the community, based on real world experience.</p>
       </div>
@@ -850,17 +866,17 @@
       <h3>Current Offers</h3>
       <div class="offers-grid">
         <a class="offer-card" href="#merch">
-          <span class="tag">SAVE 10%</span>
+          <span class="tag">Save 10%</span>
           <h4>10% off Merch</h4>
           <p>Tees, hoodies and stickers, discounted for members.</p>
         </a>
         <a class="offer-card" href="#brace">
-          <span class="tag">LIMITED STOCK</span>
+          <span class="tag">Limited stock</span>
           <h4>Master Cylinder Brace &ndash; &pound;95</h4>
           <p>Reduced from &pound;125 RRP while stock lasts.</p>
         </a>
         <a class="offer-card" href="#evoffer">
-          <span class="tag">SAVE 20%</span>
+          <span class="tag">Save 20%</span>
           <h4>20% off EVOffer Sport Seats</h4>
           <p>Use code MT3UKEVO20 across premium interior upgrades.</p>
         </a>
@@ -888,7 +904,7 @@
         </div>
         <p class="tee-modal-lead">Fast road / occasional track use pads for Model 3 Performance/Y, supplied by Tevo Solutions.</p>
         <div class="tee-offer-actions">
-          <span class="tag">AVAILABLE NOW</span>
+          <span class="tag">Available now</span>
           <a class="tee-shop-btn" href="https://www.tevo.solutions/braking/pagid-street-brake-pads-for-model-3y-performance?ref=mt3uk" target="_blank" rel="noopener">View on Tevo</a>
         </div>
         <p class="tee-offer-note">Remember to mention MT3UK</p>
@@ -904,7 +920,7 @@
         </div>
         <p class="tee-modal-lead">UK-made Ceramic Kevlar track pads, supplied by Tevo Solutions.</p>
         <div class="tee-offer-actions">
-          <span class="tag">AVAILABLE NOW</span>
+          <span class="tag">Available now</span>
           <a class="tee-shop-btn" href="https://www.tevo.solutions/braking/carbotech-brake-pads-for-model-3-performance-front?ref=mt3uk" target="_blank" rel="noopener">View on Tevo</a>
         </div>
         <p class="tee-offer-note">Remember to mention MT3UK</p>
@@ -930,7 +946,7 @@
         </div>
         <p class="tee-modal-lead">Crisp, high-quality printed characters with a classic factory look, supplied by Redline Plates.</p>
         <div class="tee-offer-actions">
-          <span class="tag">AVAILABLE NOW</span>
+          <span class="tag">Available now</span>
           <a class="tee-shop-btn" href="https://redlineplates.co.uk/products/printed-2d?sca_ref=12355291.6TjtDWclxi8n0ZD&utm_source=mt3uk_shop&utm_medium=internal&utm_campaign=redline_2d" target="_blank" rel="noopener">View on Redline Plates</a>
         </div>
       </div>
@@ -942,7 +958,7 @@
         </div>
         <p class="tee-modal-lead">Domed gel characters for a sleek, high-gloss finish with a subtle raised effect, supplied by Redline Plates.</p>
         <div class="tee-offer-actions">
-          <span class="tag">AVAILABLE NOW</span>
+          <span class="tag">Available now</span>
           <a class="tee-shop-btn" href="https://redlineplates.co.uk/products/3d-gel?sca_ref=12355291.6TjtDWclxi8n0ZD&utm_source=mt3uk_shop&utm_medium=internal&utm_campaign=redline_3d" target="_blank" rel="noopener">View on Redline Plates</a>
         </div>
       </div>
@@ -954,7 +970,7 @@
         </div>
         <p class="tee-modal-lead">Precision-cut gloss black acrylic characters for a bold, modern look with sharp, raised lettering, supplied by Redline Plates.</p>
         <div class="tee-offer-actions">
-          <span class="tag">AVAILABLE NOW</span>
+          <span class="tag">Available now</span>
           <a class="tee-shop-btn" href="https://redlineplates.co.uk/products/4d-acrylic?sca_ref=12355291.6TjtDWclxi8n0ZD&utm_source=mt3uk_shop&utm_medium=internal&utm_campaign=redline_4d" target="_blank" rel="noopener">View on Redline Plates</a>
         </div>
       </div>
@@ -966,7 +982,7 @@
         </div>
         <p class="tee-modal-lead">Custom display plates designed for meets, events, photoshoots and displays, supplied by Redline Plates. Non-road-legal.</p>
         <div class="tee-offer-actions">
-          <span class="tag">AVAILABLE NOW</span>
+          <span class="tag">Available now</span>
           <a class="tee-shop-btn" href="https://redlineplates.co.uk/products/show-plate?sca_ref=12355291.6TjtDWclxi8n0ZD&utm_source=mt3uk_shop&utm_medium=internal&utm_campaign=redline_show" target="_blank" rel="noopener">View on Redline Plates</a>
         </div>
       </div>
@@ -977,7 +993,7 @@
       <h3>In partnership with EVOffer</h3>
       <p>EVOffer specializes in high-end Tesla performance upgrades and cabin retrofits, bringing factory-inspired styling and next-level ergonomics to your interior. Premium materials and custom configurations designed specifically for enthusiasts.</p>
       <div class="tevo-panel-logo">
-        <span class="tag" style="background:var(--orange); color:var(--paper); font-weight:700;">20% OFF WITH CODE: MT3UKEVO20</span>
+        <span class="tag" style="background:var(--orange); color:var(--paper); font-weight:700;">20% off with code MT3UKEVO20</span>
       </div>
       <p class="detail-desc" style="margin-top:10px;">Orders for these upgrade seats are handled directly via EVOffer. Remember to apply coupon code <strong>MT3UKEVO20</strong> at checkout to claim your 20% member discount.</p>
     </div>
@@ -991,13 +1007,13 @@
         </div>
         <p class="tee-modal-lead">High-support bucket seats molded after the modern Tesla performance design, offering enhanced ergonomics and aggressive styling.</p>
         <div class="tee-offer-price">
-          <span class="tee-offer-save">SAVE 20%</span>
+          <span class="tee-offer-save">Save 20%</span>
           <span class="tee-offer-was">Use code MT3UKEVO20</span>
           <span class="tee-offer-now">Exclusive Offer</span>
         </div>
         <p class="tee-offer-note">Compatible with Model 3 &amp; Model Y</p>
         <div class="tee-offer-actions">
-          <span class="tag">AVAILABLE NOW</span>
+          <span class="tag">Available now</span>
           <a class="tee-shop-btn" href="https://evoffer.com/product/model-3-y-ludicrous-style-sport-seats/?coupon=MT3UKEVO20" target="_blank" rel="noopener">View on EVOffer</a>
         </div>
       </div>
@@ -1010,13 +1026,13 @@
         </div>
         <p class="tee-modal-lead">Complete front and rear cabin upgrade bundle featuring the signature Ludicrous styling layout for maximum visual impact.</p>
         <div class="tee-offer-price">
-          <span class="tee-offer-save">SAVE 20%</span>
+          <span class="tee-offer-save">Save 20%</span>
           <span class="tee-offer-was">Use code MT3UKEVO20</span>
           <span class="tee-offer-now">Exclusive Offer</span>
         </div>
         <p class="tee-offer-note">Full front &amp; rear seat pack</p>
         <div class="tee-offer-actions">
-          <span class="tag">AVAILABLE NOW</span>
+          <span class="tag">Available now</span>
           <a class="tee-shop-btn" href="https://evoffer.com/product/model-3-y-ludicrous-style-performance-sport-seats-essential-pack/?coupon=MT3UKEVO20" target="_blank" rel="noopener">View on EVOffer</a>
         </div>
       </div>
@@ -1029,13 +1045,13 @@
         </div>
         <p class="tee-modal-lead">Designed for ultimate long-distance driving comfort and track support, redistributing pressure points with premium contouring.</p>
         <div class="tee-offer-price">
-          <span class="tee-offer-save">SAVE 20%</span>
+          <span class="tee-offer-save">Save 20%</span>
           <span class="tee-offer-was">Use code MT3UKEVO20</span>
           <span class="tee-offer-now">Exclusive Offer</span>
         </div>
         <p class="tee-offer-note">Ergonomic long-distance upgrade</p>
         <div class="tee-offer-actions">
-          <span class="tag">AVAILABLE NOW</span>
+          <span class="tag">Available now</span>
           <a class="tee-shop-btn" href="https://evoffer.com/product/model-3-y-zero-gravity-sport-seats/?coupon=MT3UKEVO20" target="_blank" rel="noopener">View on EVOffer</a>
         </div>
       </div>
@@ -1048,13 +1064,13 @@
         </div>
         <p class="tee-modal-lead">Bring the iconic high-bolster, track-ready aesthetic of the flagship Plaid models directly into your cockpit.</p>
         <div class="tee-offer-price">
-          <span class="tee-offer-save">SAVE 20%</span>
+          <span class="tee-offer-save">Save 20%</span>
           <span class="tee-offer-was">Use code MT3UKEVO20</span>
           <span class="tee-offer-now">Exclusive Offer</span>
         </div>
         <p class="tee-offer-note">Flagship Plaid inspired aesthetic</p>
         <div class="tee-offer-actions">
-          <span class="tag">AVAILABLE NOW</span>
+          <span class="tag">Available now</span>
           <a class="tee-shop-btn" href="https://evoffer.com/product/model-s-x-plaid-style-performance-sport-seats/?coupon=MT3UKEVO20" target="_blank" rel="noopener">View on EVOffer</a>
         </div>
       </div>
@@ -1063,7 +1079,7 @@
 </section>
 
 <div class="img-lightbox" id="img-lightbox" role="dialog" aria-modal="true" aria-hidden="true">
-  <button type="button" class="img-lightbox-close" aria-label="Close">&times;</button>
+  <button type="button" class="img-lightbox-close" aria-label="Close"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
   <img id="img-lightbox-img" src="" alt="">
 </div>
 
@@ -1309,7 +1325,7 @@
             : 'Install MT3UK for quicker access to builds and voting.') + '</span>' +
           '<span class="a2hs-actions">' +
             (isIOS ? '' : '<button type="button" class="a2hs-btn a2hs-install">Install</button>') +
-            '<button type="button" class="a2hs-btn a2hs-close" aria-label="Dismiss">&times;</button>' +
+            '<button type="button" class="a2hs-btn a2hs-close" aria-label="Dismiss"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' +
           '</span>';
         document.body.appendChild(banner);
         requestAnimationFrame(function () { banner.classList.add('show'); });
@@ -1383,7 +1399,7 @@
         var was = money(p.minPrice);
         var now = money(p.minPrice * (100 - SAVE_PERCENT) / 100);
         return '<div class="tee-offer-price">' +
-          '<span class="tee-offer-save">SAVE ' + SAVE_PERCENT + '%</span>' +
+          '<span class="tee-offer-save">Save ' + SAVE_PERCENT + '%</span>' +
           '<span class="tee-offer-was">' + prefix + was + '</span>' +
           '<span class="tee-offer-now">' + prefix + now + '</span>' +
         '</div>';
@@ -1447,10 +1463,10 @@
             '</ul>' +
             '<p class="detail-desc">We have stock of these from Tevo Solutions at a reduced price, so let us know if you&rsquo;re interested.</p>' +
             '<div class="specs">' +
-              '<div class="spec-row"><span>BRACKET MATERIAL</span><span>CNC milled 2014T651 aluminium billet</span></div>' +
-              '<div class="spec-row"><span>FINISH</span><span>Machined &amp; anodised</span></div>' +
+              '<div class="spec-row"><span>Bracket material</span><span>CNC milled 2014T651 aluminium billet</span></div>' +
+              '<div class="spec-row"><span>Finish</span><span>Machined &amp; anodised</span></div>' +
               '<div class="spec-row"><span>WEIGHT (EXCL. BOLTS)</span><span>200g</span></div>' +
-              '<div class="spec-row"><span>INCLUDED</span><span>Bracket, extended mounting bolts, adjustable foot, locking grub screw, hex keys</span></div>' +
+              '<div class="spec-row"><span>Included</span><span>Bracket, extended mounting bolts, adjustable foot, locking grub screw, hex keys</span></div>' +
             '</div>' +
           '</div>' +
           '<div class="tee-offer-price">' +
@@ -1460,7 +1476,7 @@
           '<p class="tee-offer-note">Delivered to UK addresses</p>' +
           soldHtml('brace', sales) +
           '<div class="tee-offer-actions">' +
-            '<span class="tag">' + (p.available ? 'AVAILABLE NOW' : 'SOLD OUT') + '</span>' +
+            '<span class="tag">' + (p.available ? 'Available now' : 'Sold out') + '</span>' +
             '<a class="tee-shop-btn" href="' + esc(url) + '" target="_blank" rel="noopener">Order Here</a>' +
           '</div>';
         partsHost.appendChild(card);
@@ -1508,7 +1524,7 @@
             offerPriceHtml(p) +
             (key ? soldHtml(key, sales) : '') +
             '<div class="tee-offer-actions">' +
-              '<span class="tag">' + (p.available ? 'AVAILABLE NOW' : 'SOLD OUT') + '</span>' +
+              '<span class="tag">' + (p.available ? 'Available now' : 'Sold out') + '</span>' +
               '<a class="tee-shop-btn" href="' + esc(url) + '" target="_blank" rel="noopener">Shop now</a>' +
             '</div>';
           host.appendChild(card);

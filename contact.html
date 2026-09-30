@@ -27,7 +27,7 @@
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
 <link rel="stylesheet" href="css/site-header.css">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 
   :root {
     --ink: #16233d;
@@ -62,9 +62,8 @@
   }
 
   .mono {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.06em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.8rem;
     color: var(--steel);
   }
 
@@ -87,7 +86,7 @@
     gap: 10px;
     padding: 10px 44px 10px 0;
     position: relative;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.8rem;
     overflow: hidden;
   }
@@ -162,8 +161,8 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.78rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.86rem;
     color: var(--steel);
     text-decoration: none;
     margin-bottom: 18px;
@@ -268,9 +267,8 @@
   .a2hs-banner.show { bottom: 16px; }
   .a2hs-banner .a2hs-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
   .a2hs-banner .a2hs-btn {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.04em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.8rem;
     cursor: pointer;
     border: none;
     background: transparent;
@@ -281,6 +279,17 @@
   @media (max-width: 480px) {
     .a2hs-banner { flex-direction: column; align-items: flex-start; }
   }
+  /* ---------- STYLE REFRESH: soft corners, one font, clearer buttons ----------
+     Uses the shared tokens in css/site-header.css (--radius, --hairline...). */
+  .section-num, .section-num.mono { font-size: 0.82rem; font-weight: 600; color: var(--orange); }
+  .page-hero .back-link { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 6px 10px; margin-left: -10px; border-radius: var(--radius-sm); color: var(--ink); font-size: 0.88rem; font-weight: 600; }
+  .page-hero .back-link:hover { background: rgba(22,35,61,0.06); color: var(--ink); }
+  .specs { border: 1px solid var(--hairline); border-radius: var(--radius); background: var(--white, #ffffff); overflow: hidden; }
+  .spec-row { border-bottom: 1px solid var(--hairline); }
+  .spec-row span:first-child { font-size: 0.84rem; font-weight: 600; }
+  .btn { border-radius: var(--radius); font-family: var(--font-body); text-transform: none; letter-spacing: 0; }
+  .contact-card { border: 1px solid var(--hairline); border-radius: var(--radius); background: var(--white, #ffffff); }
+  .contact-card:hover, .contact-card:focus-visible { border-color: var(--ink); }
 </style>
 </head>
 <body>
@@ -292,7 +301,7 @@
       <a href="shop.html#tee" class="promo-banner-msg">&#9201; New Tee options available!! | Hoodies | Club Stickers | Master Cylinder Braces | Brake Pads | Number Plates, shop now &rarr;</a>
       <a href="shop.html#tee" class="promo-banner-msg" aria-hidden="true">&#9201; New Tee options available!! | Hoodies | Club Stickers | Master Cylinder Braces | Brake Pads | Number Plates, shop now &rarr;</a>
     </div>
-    <button type="button" class="promo-banner-close" id="promo-banner-close" aria-label="Dismiss banner">&times;</button>
+    <button type="button" class="promo-banner-close" id="promo-banner-close" aria-label="Dismiss banner"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
   </div>
 </div>
 <script>
@@ -406,8 +415,8 @@
 
 <section class="page-hero">
   <div class="wrap">
-    <a href="index.html" class="back-link">&larr; Back to MT3UK</a>
-    <span class="section-num mono">CONTACT</span>
+    <a href="index.html" class="back-link"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back to MT3UK</a>
+    <span class="section-num mono">Contact</span>
     <h1>Get in touch</h1>
     <p>The quickest way to reach the community is the Facebook group, but you can also find us here.</p>
   </div>
@@ -548,7 +557,7 @@
           : 'Install MT3UK for quicker access to builds and voting.') + '</span>' +
         '<span class="a2hs-actions">' +
           (isIOS ? '' : '<button type="button" class="a2hs-btn a2hs-install">Install</button>') +
-          '<button type="button" class="a2hs-btn a2hs-close" aria-label="Dismiss">&times;</button>' +
+          '<button type="button" class="a2hs-btn a2hs-close" aria-label="Dismiss"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' +
         '</span>';
       document.body.appendChild(banner);
       requestAnimationFrame(function () { banner.classList.add('show'); });

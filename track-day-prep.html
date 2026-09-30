@@ -18,7 +18,7 @@
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
 <link rel="stylesheet" href="css/site-header.css">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 
   :root {
     --ink: #16233d;
@@ -53,9 +53,8 @@
   }
 
   .mono {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.06em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.8rem;
     color: var(--steel);
   }
 
@@ -78,7 +77,7 @@
     gap: 10px;
     padding: 10px 44px 10px 0;
     position: relative;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.8rem;
     overflow: hidden;
   }
@@ -163,9 +162,8 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.75rem;
-    letter-spacing: 0.05em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.83rem;
     color: var(--orange);
     border: 1px solid var(--orange);
     padding: 5px 10px;
@@ -239,10 +237,9 @@
     color: var(--ink);
   }
   .hero-stats div span {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.78rem;
     color: var(--steel);
-    letter-spacing: 0.04em;
   }
 
   /* --- blueprint diagram --- */
@@ -272,9 +269,8 @@
     position: absolute;
     left: 18px;
     bottom: 16px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.68rem;
-    letter-spacing: 0.04em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.76rem;
     color: var(--paper);
     background: rgba(22,35,61,0.72);
     padding: 5px 9px;
@@ -308,8 +304,8 @@
     flex-wrap: wrap;
   }
   .section-num {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.78rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.86rem;
     color: var(--orange);
     margin-bottom: 10px;
     display: block;
@@ -338,7 +334,7 @@
     font-size: 0.92rem;
   }
   .spec-row:last-child { border-bottom: none; }
-  .spec-row span:first-child { color: var(--steel); font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; }
+  .spec-row span:first-child { color: var(--steel); font-family: 'IBM Plex Sans', sans-serif; font-size: 0.86rem; }
   .spec-row span:last-child { font-weight: 600; color: var(--ink); text-align: right; }
 
   .page-hero {
@@ -349,8 +345,8 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.78rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.86rem;
     color: var(--steel);
     text-decoration: none;
     margin-bottom: 18px;
@@ -383,10 +379,8 @@
   .track-prep > p { color: var(--ink-2); margin-bottom: 14px; }
   .track-prep-eyebrow {
     display: block;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.8rem;
     color: var(--orange);
     margin: 34px 0 12px;
   }
@@ -414,8 +408,8 @@
   .track-prep-list.numbered li { counter-increment: track-step; }
   .track-prep-list.numbered li::before {
     content: counter(track-step);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.8rem;
     font-weight: 700;
   }
   .track-prep-list li strong { color: var(--ink); }
@@ -483,9 +477,8 @@
     left: 0; right: 0; bottom: 0;
     padding: 9px 12px;
     background: linear-gradient(0deg, rgba(22,35,61,0.82), rgba(22,35,61,0));
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.68rem;
-    letter-spacing: 0.03em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.76rem;
     color: var(--paper);
     display: flex;
     flex-direction: column;
@@ -531,8 +524,8 @@
   #hero-bf-frame { margin: 0 auto; }
   .hero-media { display: flex; flex-direction: column; gap: 12px; align-items: center; }
   .hero-media-note {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.78rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.86rem;
     color: var(--steel);
     text-align: center;
     max-width: 340px;
@@ -653,7 +646,7 @@
   }
   .bf-rail-btn svg { width: 26px; height: 26px; fill: currentColor; }
   .bf-rail-count {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: 'IBM Plex Sans', sans-serif;
     font-size: 11px;
     color: rgba(255,255,255,0.9);
     font-variant-numeric: tabular-nums;
@@ -685,9 +678,8 @@
     letter-spacing: -0.01em;
   }
   .bf-sub {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.03em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.8rem;
     color: rgba(255,255,255,0.75);
   }
 
@@ -698,9 +690,8 @@
     z-index: 6;
     color: rgba(255,255,255,0.55);
     display: flex; flex-direction: column; align-items: center; gap: 2px;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: 'IBM Plex Sans', sans-serif;
     font-size: 9.5px;
-    letter-spacing: 0.1em;
     animation: bf-hintbob 1.8s ease-in-out infinite;
     pointer-events: none;
   }
@@ -740,9 +731,8 @@
     position: absolute;
     top: 14px;
     left: 14px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.66rem;
-    letter-spacing: 0.04em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.74rem;
     color: var(--paper);
     background: var(--orange);
     padding: 5px 9px;
@@ -784,9 +774,8 @@
     left: 0; right: 0; bottom: 0;
     padding: 9px 12px;
     background: linear-gradient(0deg, rgba(22,35,61,0.82), rgba(22,35,61,0));
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.68rem;
-    letter-spacing: 0.03em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.76rem;
     color: var(--paper);
   }
   .track-day-frame .mono {
@@ -803,9 +792,8 @@
     margin-top: 24px;
   }
   .gallery-pagination .page-btn {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.04em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.8rem;
     background: transparent;
     border: 1px solid var(--ink);
     color: var(--ink);
@@ -903,15 +891,15 @@
     .event-row { grid-template-columns: 1fr; gap: 8px; }
   }
   .event-date {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.85rem;
     color: var(--orange);
   }
   .event-info h3 { font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; font-size: 1.05rem; color: var(--ink); margin-bottom: 4px; }
   .event-info p { color: var(--steel); font-size: 0.88rem; }
   .event-status {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.8rem;
     color: var(--steel);
     border: 1px solid var(--steel);
     padding: 5px 10px;
@@ -942,8 +930,8 @@
   .shop-card svg { width: 100%; height: 140px; margin-bottom: 18px; }
 
   .shop-preview-hint {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.66rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.74rem;
     font-weight: 300;
     color: var(--steel);
     margin: 0 0 8px;
@@ -1000,8 +988,8 @@
   .shop-card .tag {
     display: inline-block;
     margin-top: 14px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.68rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.76rem;
     color: var(--orange);
     border: 1px solid var(--orange);
     padding: 3px 8px;
@@ -1014,9 +1002,8 @@
     gap: 6px;
     background: var(--orange);
     color: var(--paper);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.66rem;
-    letter-spacing: 0.03em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.74rem;
     padding: 5px 9px;
     margin-top: 14px;
     margin-bottom: 10px;
@@ -1031,16 +1018,16 @@
   .tee-offer-save {
     background: var(--orange);
     color: var(--paper);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.68rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.76rem;
     font-weight: 600;
     padding: 4px 8px;
   }
-  .tee-offer-was { font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; color: var(--steel); text-decoration: line-through; }
+  .tee-offer-was { font-family: 'IBM Plex Sans', sans-serif; font-size: 0.85rem; color: var(--steel); text-decoration: line-through; }
   .tee-offer-now { font-family: 'Archivo Expanded', sans-serif; font-size: 1.15rem; font-weight: 800; color: var(--orange); }
   .tee-modal-body .tee-offer-now { font-size: 1.5rem; }
   .tee-modal-body .tee-offer-was { color: #aeb8cc; }
-  .tee-offer-note { margin-top: 10px; font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--steel); }
+  .tee-offer-note { margin-top: 10px; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.76rem; color: var(--steel); }
   .tee-offer-actions {
     display: flex;
     align-items: center;
@@ -1054,9 +1041,8 @@
     background: transparent;
     border: 1px solid var(--orange);
     color: var(--orange);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.68rem;
-    letter-spacing: 0.02em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.76rem;
     padding: 3px 8px;
     cursor: pointer;
   }
@@ -1092,6 +1078,16 @@
     outline: 2px solid var(--orange);
     outline-offset: 2px;
   }
+  /* ---------- STYLE REFRESH: soft corners, one font, clearer buttons ----------
+     Uses the shared tokens in css/site-header.css (--radius, --hairline...). */
+  .section-num, .section-num.mono { font-size: 0.82rem; font-weight: 600; color: var(--orange); }
+  .page-hero .back-link { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 6px 10px; margin-left: -10px; border-radius: var(--radius-sm); color: var(--ink); font-size: 0.88rem; font-weight: 600; }
+  .page-hero .back-link:hover { background: rgba(22,35,61,0.06); color: var(--ink); }
+  .specs { border: 1px solid var(--hairline); border-radius: var(--radius); background: var(--white, #ffffff); overflow: hidden; }
+  .spec-row { border-bottom: 1px solid var(--hairline); }
+  .spec-row span:first-child { font-size: 0.84rem; font-weight: 600; }
+  .btn { border-radius: var(--radius); font-family: var(--font-body); text-transform: none; letter-spacing: 0; }
+  .track-prep-eyebrow { font-size: 0.9rem; font-weight: 600; }
 </style>
 </head>
 <body>
@@ -1103,7 +1099,7 @@
       <a href="shop.html#tee" class="promo-banner-msg">&#9201; New Tee options available!! | Hoodies | Club Stickers | Master Cylinder Braces | Brake Pads | Number Plates, shop now &rarr;</a>
       <a href="shop.html#tee" class="promo-banner-msg" aria-hidden="true">&#9201; New Tee options available!! | Hoodies | Club Stickers | Master Cylinder Braces | Brake Pads | Number Plates, shop now &rarr;</a>
     </div>
-    <button type="button" class="promo-banner-close" id="promo-banner-close" aria-label="Dismiss banner">&times;</button>
+    <button type="button" class="promo-banner-close" id="promo-banner-close" aria-label="Dismiss banner"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
   </div>
 </div>
 <script>
@@ -1217,8 +1213,8 @@
 
 <section class="page-hero">
   <div class="wrap">
-    <a href="index.html#track-days" class="back-link">&larr; Back to Track Days</a>
-    <span class="section-num mono">TRACK DAYS / PREP</span>
+    <a href="index.html#track-days" class="back-link"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back to Track Days</a>
+    <span class="section-num mono">Track days / Prep</span>
     <h1>Track Day Prep: What You Need to Know</h1>
     <p>Taking a modified Tesla onto track is a different beast to a spirited drive down B roads. Sustained hard braking, high cornering loads, and repeated full-power acceleration expose weaknesses that never show up on the school run. Here's what the MT3UK community has learned.</p>
   </div>
@@ -1276,12 +1272,12 @@
 
       <span class="track-prep-eyebrow">Pre-Track Checklist</span>
       <div class="specs" style="margin-top: 14px;">
-        <div class="spec-row"><span>TYRES</span><span>Check tread &amp; pressures cold, budget for wear</span></div>
-        <div class="spec-row"><span>BRAKES</span><span>Fresh pads/fluid, check for warping before you go</span></div>
-        <div class="spec-row"><span>COOLING</span><span>Precondition battery &amp; monitor temps between sessions</span></div>
-        <div class="spec-row"><span>WEIGHT</span><span>Strip the boot, remove anything loose</span></div>
-        <div class="spec-row"><span>CHARGE</span><span>Arrive at 80-90%, plan a charger for the drive home</span></div>
-        <div class="spec-row"><span>PACK</span><span>Tyre gauge, torque wrench, tow strap, first aid kit</span></div>
+        <div class="spec-row"><span>Tyres</span><span>Check tread &amp; pressures cold, budget for wear</span></div>
+        <div class="spec-row"><span>Brakes</span><span>Fresh pads/fluid, check for warping before you go</span></div>
+        <div class="spec-row"><span>Cooling</span><span>Precondition battery &amp; monitor temps between sessions</span></div>
+        <div class="spec-row"><span>Weight</span><span>Strip the boot, remove anything loose</span></div>
+        <div class="spec-row"><span>Charge</span><span>Arrive at 80-90%, plan a charger for the drive home</span></div>
+        <div class="spec-row"><span>Pack</span><span>Tyre gauge, torque wrench, tow strap, first aid kit</span></div>
       </div>
 
       <span class="track-prep-eyebrow">UK Track Day Venues</span>

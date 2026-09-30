@@ -236,8 +236,6 @@
   .pf-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
   .pf-tabs a { font-family: var(--font-body); font-size: 0.86rem; border: 1px solid var(--ink); padding: 8px 12px; display: inline-flex; align-items: center; gap: 6px; }
   .pf-tabs a:hover { border-color: var(--orange); color: var(--orange); }
-  .pf-tabs .pf-tab-garage { margin-left: auto; background: var(--orange); border-color: var(--orange); color: #fff; }
-  .pf-tabs .pf-tab-garage:hover { color: #fff; opacity: 0.9; }
   .pf-badge { background: var(--orange); color: #fff; border-radius: 999px; font-size: 0.68rem; min-width: 18px; height: 18px; padding: 0 5px; display: inline-flex; align-items: center; justify-content: center; font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; letter-spacing: 0; }
   .pf-grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 22px; align-items: start; }
   .pf-card { border: 1px solid var(--ink); padding: 26px 24px; background: var(--paper); margin-bottom: 22px; scroll-margin-top: 90px; min-width: 0; }
@@ -339,7 +337,6 @@
   @media (max-width: 780px) {
     .pf-grid { grid-template-columns: minmax(0, 1fr); }
     .pf-card { padding: 22px 16px; }
-    .pf-tabs .pf-tab-garage { margin-left: 0; }
     .pf-bubble { max-width: 90%; }
     .pf-compose { flex-direction: column; align-items: stretch; }
   }
@@ -417,8 +414,6 @@
   .pf-tabs a { border: 1px solid var(--hairline-strong); border-radius: var(--radius-pill); background: var(--white, #ffffff); font-weight: 600; min-height: 36px; }
   .pf-app-steps { border: 1px solid var(--hairline); border-radius: var(--radius-sm); }
   .pf-bubble { border: 1px solid var(--hairline); border-radius: 14px; }
-  .pf-tab-garage { display: inline-flex; align-items: center; gap: 4px; }
-  .pf-tab-garage .icon { width: 16px; height: 16px; }
 </style>
 </head>
 <body>
@@ -576,8 +571,6 @@
         <a href="#details">Details</a>
         <a href="#visibility">Visibility</a>
         <a href="#security">Security</a>
-        <a href="#email-alerts">Emails</a>
-        <a href="my-builds.html" class="pf-tab-garage">My Garage<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
       </div>
 
       <div class="pf-grid">
@@ -643,6 +636,13 @@
         </div>
       </div>
 
+      <div class="pf-card" id="email-alerts">
+        <h2>Email alerts</h2>
+        <label class="pf-check"><input type="checkbox" id="pf-emails"> <span>Email me alerts: comments and likes on my builds, friend requests, and messages from MT3UK and friends.</span></label>
+        <p class="pf-hint">One-time sign-in and access codes are always emailed. With alerts off, you&rsquo;ll still see everything in the bell and here once you&rsquo;re signed in.</p>
+        <p class="si-status" id="pf-emails-status" role="status"></p>
+      </div>
+
       <div class="pf-card" id="security">
         <h2>Security</h2>
         <div class="pf-sec" id="passkeys">
@@ -659,13 +659,6 @@
           <button type="button" class="si-btn pf-danger" id="pf-signout-all">Sign out of all devices</button>
           <p class="si-status" id="pf-signout-all-status" role="status"></p>
         </div>
-      </div>
-
-      <div class="pf-card" id="email-alerts">
-        <h2>Email alerts</h2>
-        <label class="pf-check"><input type="checkbox" id="pf-emails"> <span>Email me alerts: comments and likes on my builds, friend requests, and messages from MT3UK and friends.</span></label>
-        <p class="pf-hint">One-time sign-in and access codes are always emailed. With alerts off, you&rsquo;ll still see everything in the bell and here once you&rsquo;re signed in.</p>
-        <p class="si-status" id="pf-emails-status" role="status"></p>
       </div>
 
       <div class="pf-card" id="unsubscribe">

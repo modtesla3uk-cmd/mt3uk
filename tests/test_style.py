@@ -4,8 +4,14 @@ REFRESHED must not bring back the typewriter font (IBM Plex Mono)."""
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-REFRESHED = ["my-builds.html", "gallery.html", "index.html", "event.html", "events-admin.html", "signin.html", "profile.html", "admin.html"]
-SHARED_SCRIPTS = ["js/messenger.js", "js/notify-bell.js", "js/share.js", "js/account-bar.js", "js/signin-prompt.js", "js/gallery-social.js", "js/push-toggle.js"]
+REFRESHED = [
+    "index.html", "gallery.html", "my-builds.html", "signin.html", "profile.html", "shop.html", "reviews.html",
+    "contact.html", "privacy.html", "event.html", "events-admin.html", "offline.html", "chat.html",
+    "track-day-prep.html", "track-day-on-the-day.html", "track-day-venues.html", "blog.html", "admin.html",
+]
+# Every Owner Interview page too, including new ones copied from an old one.
+REFRESHED += sorted(p.name for p in ROOT.glob("blog-*.html"))
+SHARED_SCRIPTS = ["js/interview-comments.js", "js/interview-gate.js", "js/messenger.js", "js/notify-bell.js", "js/share.js", "js/account-bar.js", "js/signin-prompt.js", "js/gallery-social.js", "js/push-toggle.js"]
 
 
 def read(name):

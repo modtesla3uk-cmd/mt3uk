@@ -50,7 +50,7 @@ def test_live_products_render_with_discount_pricing(page):
     expect(cards).to_have_count(2)
 
     tee_card = cards.first
-    assert "SAVE 10%" in tee_card.locator(".tee-offer-save").inner_text()
+    assert "Save 10%" in tee_card.locator(".tee-offer-save").inner_text()
     assert "22.99" in tee_card.locator(".tee-offer-was").inner_text()
     assert "20.69" in tee_card.locator(".tee-offer-now").inner_text()
 
@@ -59,8 +59,8 @@ def test_available_and_sold_out_tags_reflect_product_state(page):
     page.goto("/shop.html")
     cards = page.locator("#shop-live-products .shop-live-card")
 
-    assert cards.nth(0).locator(".tag").inner_text() == "AVAILABLE NOW"
-    assert cards.nth(1).locator(".tag").inner_text() == "SOLD OUT"
+    assert cards.nth(0).locator(".tag").inner_text() == "Available now"
+    assert cards.nth(1).locator(".tag").inner_text() == "Sold out"
 
 
 def test_shop_now_link_carries_utm_params(page):

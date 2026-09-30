@@ -13,6 +13,9 @@
   vote and search show. The area and answer names here must match
   MOD_AREAS there.
 
+  The list shows as drop-down rows (js/mods-view.js, from car.view, which
+  the worker makes); Edit opens that area's form in its row.
+
   Use: MT3UKModsBuilder.mount(element, { save: function (fields) -> Promise
   of the worker's reply }) returns { show: function (car) }.
 */
@@ -31,15 +34,19 @@
     { id: 'tyres', label: 'Tyres', fields: [
       ['make', 'Make', 'e.g. Michelin'], ['model', 'Model', 'e.g. Pilot Sport 4S'], ['size', 'Size', 'e.g. 245/35 R20']
     ] },
-    { id: 'suspension', label: 'Suspension', fields: [
-      ['type', 'Type', ['Coilovers', 'Lowering springs', 'Adjustable links', 'Anti-roll bars', 'Air suspension', 'Other']],
+    { id: 'suspension', label: 'Suspension', coil: true, fields: [
+      ['type', 'Type', ['Coilovers', 'Lowering springs', 'Adjustable links', 'Control arms', 'Anti-roll bars', 'Air suspension', 'Other']],
       ['make', 'Make', 'e.g. KW'], ['model', 'Model', 'e.g. V3'], ['drop', 'Drop', 'e.g. 35mm'],
-      ['notes', 'Settings or notes (only you see these)', 'e.g. Damping 6 front, 8 rear']
+      ['notes', 'Notes (only you see these)', 'Anything else about it']
     ] },
     { id: 'brakes', label: 'Brakes', fields: [
-      ['calipers', 'Calipers', 'e.g. Stock, painted orange'], ['discs', 'Discs', 'e.g. EBC USR'],
-      ['pads', 'Pads', 'e.g. Pagid RSL29'], ['fluid', 'Fluid and lines', 'e.g. Motul RBF 660']
-    ] },
+      ['#', 'Front'],
+      ['frontCalipers', 'Calipers', 'e.g. AP Racing CP9660'], ['frontDiscs', 'Discs', 'e.g. 372x32 slotted'], ['frontPads', 'Pads', 'e.g. Pagid RSL29'],
+      ['#', 'Rear'],
+      ['rearCalipers', 'Calipers', 'e.g. Stock, painted orange'], ['rearDiscs', 'Discs', 'e.g. 355x24'], ['rearPads', 'Pads', 'e.g. Pagid RSL29'],
+      ['#', 'Front and rear'],
+      ['fluid', 'Fluid and lines', 'e.g. Motul RBF 660, braided lines']
+    ], moreFields: [['part', 'Part', 'e.g. Brake cooling ducts'], ['makeModel', 'Make and model', '']] },
     { id: 'bodywork', label: 'Bodywork', kinds: [
       ['wrap', 'Wrap', [['make', 'Make', 'e.g. 3M'], ['colour', 'Colour and finish', 'e.g. 2080 Satin Dark Grey']]],
       ['ppf', 'PPF', [['make', 'Make', 'e.g. XPEL'], ['model', 'Film', 'e.g. Ultimate Plus'], ['coverage', 'Coverage', ['Full car', 'Front end', 'Track pack', 'Other']]]],
@@ -47,7 +54,7 @@
       ['aero', 'Aero', [['parts', 'Parts', 'e.g. Splitter, spoiler'], ['make', 'Make', 'e.g. Maxton'], ['material', 'Material', ['Carbon', 'Plastic', 'Fibreglass', 'Other']]]],
       ['dechrome', 'De-chrome', [['what', 'What', 'e.g. Window trim, badges']]],
       ['lights', 'Lights', [['what', 'What', 'e.g. Smoked side repeaters']]]
-    ] },
+    ], moreFields: [['part', 'Part', 'e.g. Front bumper'], ['makeModel', 'Make and model', 'e.g. Robot Crypton']] },
     { id: 'interior', label: 'Interior', picks: ['Seats', 'Wheel or yoke', 'Carbon trim', 'Mats', 'Screens', 'Wraps'], fields: [
       ['makeModel', 'Make and model', 'e.g. Recaro Sportster'], ['details', 'Details', 'Anything else about it']
     ] },
@@ -94,6 +101,16 @@
     tick: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>'
   };
 
+  // Years from this year back to 2018. An earlier saved year stays listed.
+  function yearSelect(id, attrs, value) {
+    var now = new Date().getFullYear(), years = [];
+    for (var y = now; y >= 2018; y--) years.push(y);
+    value = parseInt(value, 10) || '';
+    if (value && years.indexOf(value) === -1) years.push(value);
+    return '<select class="field" id="' + id + '" ' + attrs + '><option value="">Year</option>' +
+      years.map(function (y) { return '<option value="' + y + '"' + (y === value ? ' selected' : '') + '>' + y + '</option>'; }).join('') + '</select>';
+  }
+
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
@@ -106,7 +123,27 @@
   function setSkipped(carId) { try { localStorage.setItem(skipKey(carId), '1'); } catch (e) {} }
 
   function mount(root, opts) {
-    var car = null, specs = {}, plans = [], openArea = null, building = false, uid = 0, sortedNote = false;
+    var car = null, specs = {}, plans = [], uid = 0, sortedNote = false;
+    var openRows = {}, editing = null;
+
+    function cancelEdit() {
+      specs = copy(car.specs);
+      editing = null;
+    }
+
+    // Start: the mods listed before are sorted into areas and saved, so the
+    // rows show them; with none, the first area opens to fill in.
+    function start() {
+      var status = root.querySelector('[data-start-status]');
+      if (status) status.textContent = 'Setting up your list…';
+      var hadMods = !!(specs.wheels || specs.suspension || specs.brakes || specs.bodywork || specs.interior || specs.audio || specs.tyres || specs.performance || specs.other);
+      save(null).then(function (d) {
+        if (!d) { if (status) status.textContent = 'Could not start, please try again.'; return; }
+        sortedNote = hadMods;
+        if (!hadMods) { editing = 'wheels'; openRows.wheels = true; }
+        render();
+      });
+    }
 
     // Moves the lines under Anything else into their areas (as extra
     // parts), marking those areas Upgraded. Anything unmatched stays put.
@@ -140,6 +177,7 @@
     }
 
     function field(prefix, f, value) {
+      if (f[0] === '#') return '<p class="mbm-group">' + esc(f[1]) + '</p>';
       var id = 'mbm-' + (++uid);
       var label = '<label for="' + id + '">' + esc(f[1]) + '</label>';
       if (Array.isArray(f[2])) {
@@ -149,16 +187,50 @@
       return '<div class="mbm-field">' + label + '<input class="field" id="' + id + '" data-f="' + prefix + f[0] + '" maxlength="80" placeholder="' + esc(f[2]) + '" value="' + esc(value || '') + '"></div>';
     }
 
-    function fittedHtml(a, s) {
-      var fit = s.fitted || {};
+    // When and where, for a part. prefix is where it is saved, such as
+    // "kinds.wrap." or "more.0." ("" for the area's main part).
+    function fittedHtml(prefix, fit) {
+      fit = fit || {};
       var m = 'mbm-' + (++uid), y = 'mbm-' + (++uid), b = 'mbm-' + (++uid), c = 'mbm-' + (++uid);
       return '<div class="mbm-private"><p class="mbm-private-title">When and where <span class="mbm-pill mbm-pill-private">Only you see these</span></p><div class="mbm-grid">' +
-        '<div class="mbm-field"><label for="' + m + '">Month fitted</label><select class="field" id="' + m + '" data-f="fitted.month"><option value="">Month</option>' +
+        '<div class="mbm-field"><label for="' + m + '">Month fitted</label><select class="field" id="' + m + '" data-f="' + prefix + 'fitted.month"><option value="">Month</option>' +
         MONTHS.map(function (mm, i) { return '<option value="' + (i + 1) + '"' + (fit.month === i + 1 ? ' selected' : '') + '>' + mm + '</option>'; }).join('') + '</select></div>' +
-        '<div class="mbm-field"><label for="' + y + '">Year fitted</label><input class="field" id="' + y + '" data-f="fitted.year" inputmode="numeric" maxlength="4" placeholder="e.g. 2025" value="' + esc(fit.year || '') + '"></div>' +
-        '<div class="mbm-field"><label for="' + b + '">Fitted by</label><input class="field" id="' + b + '" data-f="fitted.by" maxlength="80" placeholder="A garage, or yourself" value="' + esc(fit.by || '') + '"></div>' +
-        '<div class="mbm-field"><label for="' + c + '">Cost</label><input class="field" id="' + c + '" data-f="fitted.cost" maxlength="20" placeholder="£" value="' + esc(fit.cost || '') + '"></div>' +
+        '<div class="mbm-field"><label for="' + y + '">Year fitted</label>' + yearSelect(y, 'data-f="' + prefix + 'fitted.year"', fit.year) + '</div>' +
+        '<div class="mbm-field"><label for="' + b + '">Fitted by</label><input class="field" id="' + b + '" data-f="' + prefix + 'fitted.by" maxlength="80" placeholder="A garage, or yourself" value="' + esc(fit.by || '') + '"></div>' +
+        '<div class="mbm-field"><label for="' + c + '">Cost</label><input class="field" id="' + c + '" data-f="' + prefix + 'fitted.cost" maxlength="20" placeholder="£" value="' + esc(fit.cost || '') + '"></div>' +
         '</div></div>';
+    }
+
+    // Coilover settings: rebound and compression, front and rear, for road
+    // and track. Shown when the type is Coilovers.
+    function coilHtml(prefix, vals) {
+      var on = vals.type === 'Coilovers';
+      var h = '<div class="mbm-sub" data-coil' + (on ? '' : ' hidden') + '><p class="mbm-sub-title">Coilover settings <span class="mbm-pill mbm-pill-stock">Shown on your build</span></p>';
+      [['road', 'Road'], ['track', 'Track']].forEach(function (use) {
+        h += '<div class="mbm-grid mbm-coil-grid">' + field(prefix, ['#', use[1]]) + [
+          ['ReboundFront', 'Rebound front'], ['ReboundRear', 'Rebound rear'],
+          ['CompressionFront', 'Compression front'], ['CompressionRear', 'Compression rear']
+        ].map(function (c) { return field(prefix, [use[0] + c[0], c[1], 'e.g. 8 clicks'], vals[use[0] + c[0]]); }).join('') + '</div>';
+      });
+      return h + '</div>';
+    }
+
+    function entryHtml(a, fields, prefix, vals) {
+      return '<div class="mbm-grid">' + fields.map(function (f) { return field(prefix, f, vals[f[0]]); }).join('') + '</div>' +
+        (a.coil ? coilHtml(prefix, vals) : '');
+    }
+
+    // "+ More": further parts in the same area.
+    function moreHtml(a, s) {
+      var fields = a.moreFields || a.fields;
+      if (!fields) return '';
+      var noun = a.label.toLowerCase();
+      return (s.more || []).map(function (m, i) {
+        return '<div class="mbm-more" data-more="' + i + '"><div class="mbm-more-head"><p class="mbm-sub-title">More ' + esc(noun) + '</p>' +
+          '<button type="button" class="btn btn-ghost btn-sm" data-more-remove aria-label="Remove this part">' + ICON.bin + 'Remove</button></div>' +
+          entryHtml(a, fields, 'more.' + i + '.', m || {}) + fittedHtml('more.' + i + '.', (m || {}).fitted) + '</div>';
+      }).join('') +
+        '<div class="mbm-row"><button type="button" class="btn btn-secondary btn-sm" data-more-add>' + ICON.plus + 'More ' + esc(noun) + '</button></div>';
     }
 
     function upgradedHtml(a, s) {
@@ -169,10 +241,7 @@
           return '<button type="button" class="chip' + (on ? ' is-on' : '') + '" data-pick="' + esc(p) + '" aria-pressed="' + on + '">' + esc(p) + '</button>';
         }).join('') + '</div></div>';
       }
-      if (a.fields) {
-        var vals = s.fields || {};
-        h += '<div class="mbm-grid">' + a.fields.map(function (f) { return field('fields.', f, vals[f[0]]); }).join('') + '</div>';
-      }
+      if (a.fields) h += entryHtml(a, a.fields, 'fields.', s.fields || {});
       if (a.kinds) {
         var kinds = s.kinds || {};
         h += '<div class="mbm-field"><span class="mbm-label">What have you done?</span><div class="mbm-chips">' + a.kinds.map(function (k) {
@@ -182,7 +251,8 @@
         a.kinds.forEach(function (k) {
           var kv = kinds[k[0]];
           h += '<div class="mbm-sub" data-kind-body="' + k[0] + '"' + (kv ? '' : ' hidden') + '><p class="mbm-sub-title">' + esc(k[1]) + '</p><div class="mbm-grid">' +
-            k[2].map(function (f) { return field('kinds.' + k[0] + '.', f, (kv || {})[f[0]]); }).join('') + '</div></div>';
+            k[2].map(function (f) { return field('kinds.' + k[0] + '.', f, (kv || {})[f[0]]); }).join('') + '</div>' +
+            fittedHtml('kinds.' + k[0] + '.', (kv || {}).fitted) + '</div>';
         });
       }
       if (a.spacers) {
@@ -199,26 +269,29 @@
         h += '<div class="mbm-field"><label for="' + t + '">One mod per line</label><textarea class="field" id="' + t + '" data-f="items" rows="4" placeholder="Anything not covered above">' + esc((s.items || []).join('\n')) + '</textarea></div>';
         if ((s.items || []).length) h += '<div class="mbm-row"><button type="button" class="btn btn-secondary btn-sm" data-sort>Sort into areas</button><span class="mbm-hint">Moves each one to the area it belongs in, such as wheels or brakes.</span></div>';
       } else {
-        // More parts in the same area, such as a second set of arms.
-        h += '<div class="mbm-field"><label for="' + t + '">Also fitted (one per line)</label><textarea class="field" id="' + t + '" data-f="items" rows="' + Math.max(2, (s.items || []).length) + '" placeholder="Any other ' + esc(a.label.toLowerCase()) + ' parts">' + esc((s.items || []).join('\n')) + '</textarea></div>';
-        h += fittedHtml(a, s);
+        h += moreHtml(a, s);
+        // Parts sorted in from an older mods list, as written.
+        if ((s.items || []).length) {
+          h += '<div class="mbm-field"><label for="' + t + '">Also fitted (one per line)</label><textarea class="field" id="' + t + '" data-f="items" rows="' + Math.max(2, s.items.length) + '">' + esc(s.items.join('\n')) + '</textarea></div>';
+        }
+        if (!a.kinds) h += fittedHtml('', s.fitted);
       }
       return h;
     }
 
+    // The form for one area, shown in its row after Edit.
     function areaHtml(a) {
       var s = specs[a.id] || {};
       var up = s.status === 'up';
-      return '<details class="mbm-area" data-area="' + a.id + '"' + (openArea === a.id ? ' open' : '') + '>' +
-        '<summary><span class="mbm-area-name">' + esc(a.label) + '</span><span data-pill>' + statusPill(a.id) + '</span>' + ICON.chev + '</summary>' +
+      return '<div class="mbm-area" data-area="' + a.id + '">' +
         '<div class="mbm-area-body">' +
           '<div class="mbm-toggle" role="group" aria-label="' + esc(a.label) + '">' +
             '<button type="button" data-status="stock" aria-pressed="' + (s.status === 'stock') + '">Stock</button>' +
             '<button type="button" data-status="up" aria-pressed="' + up + '">Upgraded</button>' +
           '</div>' +
           '<div class="mbm-up" data-up-body' + (up ? '' : ' hidden') + '>' + upgradedHtml(a, s) + '</div>' +
-          '<div class="mbm-actions"><button type="button" class="btn btn-primary btn-sm" data-save>Save</button><span class="mbm-saved" data-saved role="status"></span></div>' +
-        '</div></details>';
+          '<div class="mbm-actions"><button type="button" class="btn btn-ghost btn-sm" data-cancel>Cancel</button><button type="button" class="btn btn-primary btn-sm" data-save>Save</button><span class="mbm-saved" data-saved role="status"></span></div>' +
+        '</div></div>';
     }
 
     function planHtml(p, i) {
@@ -231,48 +304,69 @@
         '<button type="button" class="btn btn-ghost btn-sm" data-plan-remove aria-label="Remove this plan">' + ICON.bin + 'Remove</button></div>';
     }
 
-    function summaryHtml() {
-      var welcome = !car.specs && !building && !skipped(car.id);
-      if (welcome) {
-        return '<div class="mbm-welcome">' +
-          '<h3>Let\'s build ' + esc(car.name || 'your car') + '\'s mods list</h3>' +
-          '<p>Pick what you\'ve changed and we\'ll ask the right questions: wheels, suspension, brakes, wrap and the rest. Anything still stock takes one tap.</p>' +
-          meter(true) +
-          '<div class="mbm-row"><button type="button" class="btn btn-accent" data-start>Start</button><button type="button" class="btn btn-ghost mbm-skip" data-skip>Skip for now</button></div>' +
-        '</div>';
-      }
-      var h = '<div class="mbm-summary">' +
-        '<div class="mbm-summary-head"><h3>' + ICON.wrench + 'Mods list</h3>' + meter(false) + '</div>' +
-        '<div class="mbm-tiles">' + AREAS.map(function (a) {
-          return '<button type="button" class="mbm-tile" data-open="' + a.id + '"><span>' + esc(a.label) + '</span>' + statusPill(a.id) + '</button>';
-        }).join('') + '</div>';
-      if ((car.mods || []).length) {
-        h += '<div class="mbm-public"><p class="mbm-label">Shown on your build</p><ul>' + car.mods.map(function (m) { return '<li>' + esc(m) + '</li>'; }).join('') + '</ul></div>';
-      }
-      return h + '</div>';
+    function welcomeHtml() {
+      return '<div class="mbm-welcome">' +
+        '<h3>Let\'s build ' + esc(car.name || 'your car') + '\'s mods list</h3>' +
+        '<p>Pick what you\'ve changed and we\'ll ask the right questions: wheels, suspension, brakes, wrap and the rest. Anything still stock takes one tap.' +
+        ((car.mods || []).length ? ' The mods you listed before are sorted into areas for you.' : '') + '</p>' +
+        meter(true) +
+        '<div class="mbm-row"><button type="button" class="btn btn-accent" data-start>Start</button><button type="button" class="btn btn-ghost mbm-skip" data-skip>Skip for now</button></div>' +
+        '<p class="mbm-saved" data-start-status role="status"></p>' +
+      '</div>';
     }
 
-    function builderHtml() {
+    // A row of our own (car details, plans, what others see), drawn like
+    // the area rows in js/mods-view.js.
+    function extraRow(id, label, count, body, iconName) {
+      var isOpen = !!openRows[id];
+      return '<div class="mv-area' + (isOpen ? ' is-open' : '') + '" data-mv-area="' + id + '">' +
+        '<button type="button" class="mv-row" data-mv-open="' + id + '" aria-expanded="' + isOpen + '">' +
+        (iconName ? window.MT3UKModsView.icon(iconName, 'mv-eye') : '') +
+        '<span class="mv-name">' + esc(label) + '</span><span class="mv-count">' + esc(count) + '</span>' + window.MT3UKModsView.icon('chev', 'mv-chev') + '</button>' +
+        (isOpen ? '<div class="mv-body">' + body + '</div>' : '') + '</div>';
+    }
+
+    function aboutHtml() {
       var v = 'mbm-' + (++uid), y = 'mbm-' + (++uid);
-      return '<div class="mbm-builder">' +
-        (sortedNote ? '<p class="mbm-note">We\'ve put your existing mods into areas. Check each one, add sizes, dates and so on if you like, and press Save.</p>' : '') +
-        '<div class="mbm-about"><p class="mbm-label">About this car</p><div class="mbm-grid">' +
+      return '<div class="mbm-grid">' +
           '<div class="mbm-field"><label for="' + v + '">Version</label><input class="field" id="' + v + '" data-car="version" list="mbm-versions" maxlength="40" placeholder="e.g. Long Range" value="' + esc(car.version || '') + '"></div>' +
-          '<div class="mbm-field"><label for="' + y + '">Year</label><input class="field" id="' + y + '" data-car="year" inputmode="numeric" maxlength="4" placeholder="e.g. 2021" value="' + esc(car.year || '') + '"></div>' +
-        '</div><datalist id="mbm-versions">' + VERSIONS.map(function (x) { return '<option value="' + esc(x) + '">'; }).join('') + '</datalist></div>' +
-        '<div class="mbm-areas">' + AREAS.map(areaHtml).join('') + '</div>' +
-        '<div class="mbm-plans"><h3>What\'s next?</h3><p>Plans for further mods or changes.</p>' +
-          '<div class="mbm-plan-list">' + plans.map(planHtml).join('') + '</div>' +
-          '<div class="mbm-row"><button type="button" class="btn btn-secondary btn-sm" data-plan-add>' + ICON.plus + 'Add a plan</button><button type="button" class="btn btn-primary btn-sm" data-plans-save>Save plans</button><span class="mbm-saved" data-plans-saved role="status"></span></div>' +
-        '</div>' +
-        '<div class="mbm-row"><button type="button" class="btn btn-secondary" data-close>Done</button></div>' +
-      '</div>';
+          '<div class="mbm-field"><label for="' + y + '">Year</label>' + yearSelect(y, 'data-car="year"', car.year) + '</div>' +
+        '</div><datalist id="mbm-versions">' + VERSIONS.map(function (x) { return '<option value="' + esc(x) + '">'; }).join('') + '</datalist>' +
+        '<div class="mbm-row"><button type="button" class="btn btn-primary btn-sm" data-about-save>Save</button><span class="mbm-saved" data-about-saved role="status"></span></div>';
+    }
+
+    function plansHtml() {
+      return '<p class="mbm-hint">Plans for further mods or changes.</p>' +
+        '<div class="mbm-plan-list">' + plans.map(planHtml).join('') + '</div>' +
+        '<div class="mbm-row"><button type="button" class="btn btn-secondary btn-sm" data-plan-add>' + ICON.plus + 'Add a plan</button><button type="button" class="btn btn-primary btn-sm" data-plans-save>Save plans</button><span class="mbm-saved" data-plans-saved role="status"></span></div>';
     }
 
     function render() {
       if (!car) { root.innerHTML = ''; return; }
-      root.innerHTML = summaryHtml() + (building ? builderHtml() : '');
+      if (!car.specs && !skipped(car.id)) { root.innerHTML = welcomeHtml(); return; }
+      var MV = window.MT3UKModsView;
+      var view = car.view || [];
+      var done = view.filter(function (a) { return a.status !== 'todo' && a.id !== 'mods'; }).length;
+      var h = '<div class="mbm-list-head"><div><h3>' + ICON.wrench + 'Mods list</h3><p class="mbm-hint">Tap an area to see what\'s in it, then Edit to change it.</p></div>' +
+        (car.specs ? '<div class="mbm-meter"><div class="mbm-meter-bar"><span style="width:' + Math.round(done / AREAS.length * 100) + '%"></span></div><span class="mbm-meter-text">' + done + ' of ' + AREAS.length + ' areas done</span></div>'
+          : '<button type="button" class="btn btn-accent btn-sm" data-start>Build my mods list</button>') + '</div>';
+      if (sortedNote) h += '<p class="mbm-note">We\'ve put your existing mods into areas. Open each one to check it, and Edit to add sizes, dates and so on.</p>';
+      h += '<div class="mv-rows mv-two">' + MV.rows(view, { owner: true, open: openRows, editing: editing, editHtml: function (id) {
+        return areaHtml(AREAS.filter(function (x) { return x.id === id; })[0]);
+      } }) + '</div>';
+      var n = MV.publicCount(view);
+      var galleryLink = car.photos && car.photos[0] ? 'gallery.html?photo=' + encodeURIComponent(car.photos[0].file || car.photos[0]) : 'gallery.html';
+      h += '<div class="mv-rows">' +
+        (car.specs ? extraRow('about', 'Version and year', joinBits([car.version, car.year]), aboutHtml()) +
+          extraRow('plans', 'What\'s next?', plans.length ? plans.length + (plans.length === 1 ? ' plan' : ' plans') : '', plansHtml()) : '') +
+        extraRow('public', 'What others see', n + (n === 1 ? ' mod' : ' mods'),
+          (MV.publicList(view) || '<p class="mbm-hint">Nothing yet. Add your mods above and they show here.</p>') +
+          '<div class="mbm-row"><a class="btn btn-secondary btn-sm" href="' + galleryLink + '">See it in the Gallery</a></div>', 'eye') +
+        '</div>';
+      root.innerHTML = h;
     }
+
+    function joinBits(bits) { return bits.filter(Boolean).join(' · '); }
 
     // Reads one area's answers from the page into specs.
     function readArea(box) {
@@ -292,7 +386,8 @@
         if (value === '' || value === false) return;
         var o = next;
         for (var i = 0; i < path.length - 1; i++) { o[path[i]] = o[path[i]] || {}; o = o[path[i]]; }
-        o[path[path.length - 1]] = (path[0] === 'fitted' && path[1] !== 'by' && path[1] !== 'cost') ? parseInt(value, 10) || '' : value;
+        var last = path[path.length - 1];
+        o[last] = (path[path.length - 2] === 'fitted' && (last === 'month' || last === 'year')) ? parseInt(value, 10) || '' : value;
       });
       if (a.picks) {
         next.picks = [];
@@ -308,6 +403,13 @@
       if (a.spacers) {
         var on = box.querySelector('[data-spacers="1"]').getAttribute('aria-pressed') === 'true';
         if (on) { next.spacers = next.spacers || {}; next.spacers.on = true; } else delete next.spacers;
+      }
+      // Keep "More" rows, even empty ones just added, in their order.
+      var moreRows = box.querySelectorAll('[data-more]').length;
+      if (moreRows) {
+        var m = next.more || {};
+        next.more = [];
+        for (var r = 0; r < moreRows; r++) next.more.push(m[r] || {});
       }
       specs[id] = next;
     }
@@ -329,8 +431,8 @@
 
     function save(note) {
       root.querySelectorAll('.mbm-area').forEach(readArea);
-      readPlans();
-      var fields = Object.assign({ specs: specs, plans: plans.filter(function (p) { return p.what; }) }, readCar());
+      if (root.querySelector('.mbm-plan-list')) readPlans();
+      var fields = Object.assign({ specs: specs, plans: plans.filter(function (p) { return p.what; }) }, root.querySelector('[data-car]') ? readCar() : {});
       if (note) { note.textContent = 'Saving…'; note.className = note.className.replace(/ is-err/, ''); }
       return opts.save(fields).then(function (data) {
         if (!data || !data.success) throw new Error((data && data.message) || '');
@@ -338,50 +440,55 @@
         car.specs = saved.specs || copy(specs);
         car.plans = saved.plans || plans;
         car.mods = saved.mods || car.mods;
+        if (saved.view) car.view = saved.view;
         if ('version' in saved) car.version = saved.version;
         if ('year' in saved) car.year = saved.year;
         specs = copy(car.specs);
         if (note) note.innerHTML = ICON.tick + 'Saved';
-        refreshSummary();
         if (opts.onSaved) opts.onSaved(car);
         return data;
       }).catch(function () {
         if (note) { note.textContent = 'Could not save, please try again.'; note.className += ' is-err'; }
+        return null;
       });
     }
 
-    // After a save, update the pills and the summary without redrawing the
-    // form someone is typing in.
-    function refreshSummary() {
-      root.querySelectorAll('.mbm-area').forEach(function (box) {
-        box.querySelector('[data-pill]').innerHTML = statusPill(box.getAttribute('data-area'));
-      });
-      var first = root.firstElementChild;
-      if (!first) return;
-      var tmp = document.createElement('div');
-      tmp.innerHTML = summaryHtml();
-      root.replaceChild(tmp.firstElementChild, first);
-    }
-
-    function openBuilder(areaId) {
-      if (!building) {
-        building = true;
-        openArea = areaId || AREAS[0].id;
-        render();
-      } else {
-        root.querySelectorAll('.mbm-area').forEach(function (d) { d.open = d.getAttribute('data-area') === areaId; });
-      }
-      var target = root.querySelector('.mbm-area[data-area="' + (areaId || AREAS[0].id) + '"]') || root.querySelector('.mbm-builder');
-      if (target && target.scrollIntoView) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    // Coilover settings appear when the type is Coilovers.
+    root.addEventListener('change', function (e) {
+      var sel = e.target;
+      if (!sel.matches || !sel.matches('select[data-f$=".type"]')) return;
+      var holder = sel.closest('.mbm-more') || sel.closest('.mbm-up');
+      var coil = holder && holder.querySelector(':scope > [data-coil]');
+      if (coil) coil.hidden = sel.value !== 'Coilovers';
+    });
 
     root.addEventListener('click', function (e) {
       var t = e.target;
-      if (t.closest('[data-start]')) { openBuilder(); return; }
+      if (t.closest('[data-start]')) { start(); return; }
       if (t.closest('[data-skip]')) { setSkipped(car.id); render(); return; }
-      var open = t.closest('[data-open]');
-      if (open) { openBuilder(open.getAttribute('data-open')); return; }
-      if (t.closest('[data-close]')) { building = false; openArea = null; render(); return; }
+      var mvOpen = t.closest('[data-mv-open]');
+      if (mvOpen) {
+        var rowId = mvOpen.getAttribute('data-mv-open');
+        openRows[rowId] = !openRows[rowId];
+        if (!openRows[rowId] && editing === rowId) cancelEdit();
+        render();
+        return;
+      }
+      var mvEdit = t.closest('[data-mv-edit]');
+      if (mvEdit) {
+        if (editing) cancelEdit();
+        editing = mvEdit.getAttribute('data-mv-edit');
+        openRows[editing] = true;
+        render();
+        var form = root.querySelector('.mbm-area[data-area="' + editing + '"]');
+        if (form && form.scrollIntoView) form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        return;
+      }
+      if (t.closest('[data-cancel]')) { cancelEdit(); render(); return; }
+      if (t.closest('[data-about-save]')) {
+        save(root.querySelector('[data-about-saved]')).then(function (d) { if (d) render(); });
+        return;
+      }
       var box = t.closest('.mbm-area');
       var status = t.closest('[data-status]');
       if (status && box) {
@@ -394,7 +501,8 @@
         }
         box.querySelectorAll('[data-status]').forEach(function (b) { b.setAttribute('aria-pressed', String(b === status)); });
         box.querySelector('[data-up-body]').hidden = !up;
-        box.querySelector('[data-pill]').innerHTML = statusPill(id);
+        var pillEl = box.querySelector('[data-pill]');
+        if (pillEl) pillEl.innerHTML = statusPill(id);
         return;
       }
       var chip = t.closest('[data-pick], [data-kind]');
@@ -414,7 +522,33 @@
         box.querySelector('[data-spacers-body]').hidden = sp.getAttribute('data-spacers') !== '1';
         return;
       }
-      if (t.closest('[data-save]')) { save(box.querySelector('[data-saved]')); return; }
+      if (t.closest('[data-save]')) {
+        save(box.querySelector('[data-saved]')).then(function (d) {
+          if (!d) return;
+          editing = null;
+          sortedNote = false;
+          render();
+        });
+        return;
+      }
+      var addMore = t.closest('[data-more-add]'), removeMore = t.closest('[data-more-remove]');
+      if ((addMore || removeMore) && box) {
+        var areaId = box.getAttribute('data-area');
+        readArea(box);
+        var sp = specs[areaId];
+        sp.more = sp.more || [];
+        if (addMore) sp.more.push({});
+        else sp.more.splice(parseInt(removeMore.closest('[data-more]').getAttribute('data-more'), 10), 1);
+        var tmp = document.createElement('div');
+        tmp.innerHTML = areaHtml(AREAS.filter(function (x) { return x.id === areaId; })[0]);
+        box.parentNode.replaceChild(tmp.firstElementChild, box);
+        if (addMore) {
+          var rows = root.querySelectorAll('.mbm-area[data-area="' + areaId + '"] [data-more]');
+          var first = rows.length && rows[rows.length - 1].querySelector('.field');
+          if (first) first.focus();
+        }
+        return;
+      }
       if (t.closest('[data-plan-add]')) {
         readPlans();
         plans.push({});
@@ -430,13 +564,18 @@
         root.querySelector('.mbm-plan-list').innerHTML = plans.map(planHtml).join('');
         return;
       }
-      if (t.closest('[data-plans-save]')) save(root.querySelector('[data-plans-saved]'));
+      if (t.closest('[data-plans-save]')) {
+        save(root.querySelector('[data-plans-saved]')).then(function (d) { if (d) render(); });
+      }
       if (t.closest('[data-sort]')) {
         root.querySelectorAll('.mbm-area').forEach(readArea);
-        readPlans();
+        if (root.querySelector('.mbm-plan-list')) readPlans();
         sortedNote = sortOther();
-        openArea = null;
+        // Saved straight away, so each area shows what moved into it. The
+        // form closes first, so the save doesn't read the old list back.
+        editing = null;
         render();
+        save(null).then(function () { render(); });
         var note = root.querySelector('.mbm-note');
         if (note && note.scrollIntoView) note.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
@@ -455,9 +594,25 @@
           specs.other = { status: 'up', items: car.mods.slice() };
           sortedNote = sortOther();
         }
+        // Bodywork saved with one date for everything: it goes on the
+        // first job ticked, so nothing is lost.
+        var bw = specs.bodywork;
+        if (bw && bw.fitted && bw.kinds) {
+          var firstKind = Object.keys(bw.kinds)[0];
+          if (firstKind && !bw.kinds[firstKind].fitted) bw.kinds[firstKind].fitted = bw.fitted;
+          delete bw.fitted;
+        }
+        // Brakes saved before front and rear: treat them as the front.
+        var br = specs.brakes && specs.brakes.fields;
+        if (br && !br.frontCalipers && !br.frontDiscs && !br.frontPads) {
+          ['Calipers', 'Discs', 'Pads'].forEach(function (k) {
+            var old = k.toLowerCase();
+            if (br[old]) { br['front' + k] = br[old]; delete br[old]; }
+          });
+        }
         plans = copy(car.plans || []);
         if (!Array.isArray(plans)) plans = [];
-        if (!sameCar) { building = false; openArea = null; }
+        if (!sameCar) { openRows = {}; editing = null; }
         render();
       }
     };

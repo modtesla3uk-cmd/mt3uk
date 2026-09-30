@@ -956,6 +956,7 @@ async function handleProfileGet(request, env) {
     lastName: profile.lastName || '',
     nickname: profile.nickname || '',
     showName: profile.showName === 'name' ? 'name' : 'nickname',
+    modQuestionsOff: !!profile.modQuestionsOff,
     hideRealName: !!profile.hideRealName,
     apps: profile.apps && typeof profile.apps === 'object' ? profile.apps : {},
     emailsOff: !!profile.emailsOff,
@@ -1002,8 +1003,13 @@ async function handleProfileUpdate(request, env) {
   }
   // Visibility: show the nickname or the full name, and whether members can
   // find them by their real name.
-  if ('showName' in body || 'hideRealName' in body) {
+  if ('showName' in body || 'hideRealName' in body || 'modQuestionsOff' in body) {
     var vis = await getProfileRecord(env, email);
+    // Questions about their mods from members who aren't friends.
+    if ('modQuestionsOff' in body) {
+      if (body.modQuestionsOff) vis.modQuestionsOff = true;
+      else delete vis.modQuestionsOff;
+    }
     var before = publicName(vis);
     if ('showName' in body) {
       if (body.showName === 'name') vis.showName = 'name';
@@ -1043,7 +1049,7 @@ async function handleProfileUpdate(request, env) {
   await syncMemberName(env, email);
   var saved = await getProfileRecord(env, email);
   return json({ success: true, firstName: saved.firstName || '', lastName: saved.lastName || '', nickname: saved.nickname || '',
-    showName: saved.showName === 'name' ? 'name' : 'nickname', hideRealName: !!saved.hideRealName, emailsOff: !!saved.emailsOff });
+    showName: saved.showName === 'name' ? 'name' : 'nickname', hideRealName: !!saved.hideRealName, emailsOff: !!saved.emailsOff, modQuestionsOff: !!saved.modQuestionsOff });
 }
 
 // Leave MT3UK: deletes the member's builds and everything kept about them.
@@ -1277,6 +1283,8 @@ async function handleProfileThread(request, env) {
     success: true,
     with: await memberCard(env, other, false),
     friend: fr.friends.indexOf(other) !== -1,
+    // Friends, or someone who asked about one of your mods (or you theirs).
+    canReply: fr.friends.indexOf(other) !== -1 || !!index[id],
     messages: dmMessagesForPage(Array.isArray(messages) ? messages : [], myId)
   });
 }
@@ -1288,6 +1296,7 @@ function dmMessagesForPage(messages, myId) {
   messages.forEach(function (m) { byId[m.id] = m; });
   return messages.filter(function (m) { return !m.removed; }).map(function (m) {
     var out = { id: m.id, text: m.text, at: m.at, mine: m.from === myId };
+    if (m.about) out.about = { mod: m.about.mod, file: m.about.file };
     if (m.photo) {
       if (dmPhotoExpired(m)) out.photoGone = true;
       else out.photo = true;
@@ -1391,7 +1400,33 @@ async function handleProfileMessageSend(request, env) {
   var profile = await getProfileRecord(env, email);
   if (profile.dmBlocked) return json({ success: false, message: 'Messaging is turned off for your account. Please get in touch through the Contact page.' }, 403);
   var fr = await getFriends(env, email);
-  var other = await emailForId(fr.friends, String((body && body.with) || ''));
+  var other = null;
+  // A question about a mod on someone's build (the Gallery's Full mods
+  // list): any member can ask the photo's owner, unless they've turned mod
+  // questions off.
+  var about = null;
+  if (body && body.about && typeof body.about === 'object' && !body.with) {
+    var aboutFile = String(body.about.file || '').slice(0, 200);
+    var aboutMod = cleanModText(String(body.about.mod || ''), 150);
+    if (!aboutFile || aboutFile.indexOf('/') !== -1 || !aboutMod) return json({ success: false, message: 'Choose a mod to ask about.' }, 400);
+    var aboutSidecar = null;
+    try {
+      var aboutObj = await env.GALLERY_BUCKET.get('gallery/' + aboutFile + '.json');
+      if (aboutObj) aboutSidecar = await aboutObj.json();
+    } catch (e) {}
+    other = aboutSidecar ? await sidecarOwnerEmail(env, aboutFile, aboutSidecar) : null;
+    if (!other) return json({ success: false, message: 'This build has no owner to ask yet.' }, 404);
+    if (other === email) return json({ success: false, message: 'That\u2019s your own build.' }, 400);
+    var ownerRecord = await getProfileRecord(env, other);
+    if (ownerRecord.modQuestionsOff || ownerRecord.dmBlocked) return json({ success: false, message: 'This member isn\u2019t taking questions about their mods.' }, 403);
+    about = { mod: aboutMod, file: aboutFile };
+  } else {
+    // Friends, or anyone you already have a conversation with (such as a
+    // member who asked about one of your mods).
+    var wantId = String((body && body.with) || '');
+    var myIndex = await getDmIndex(env, email);
+    other = myIndex[wantId] ? myIndex[wantId].email : await emailForId(fr.friends, wantId);
+  }
   if (!other) return json({ success: false, message: 'You can only message your friends.' }, 403);
   var text = String((body && body.text) || '').replace(/\r\n?/g, '\n').trim().slice(0, MAX_DM_LENGTH);
   if (!text && !photo) return json({ success: false, message: 'Write a message first.' }, 400);
@@ -1411,6 +1446,7 @@ async function handleProfileMessageSend(request, env) {
   var messages = await getJsonKey(env, threadKey, []);
   if (!Array.isArray(messages)) messages = [];
   var msg = { id: crypto.randomUUID(), from: myId, text: text, at: new Date().toISOString() };
+  if (about) msg.about = about;
   // A reply quotes a message in the same conversation.
   var replyTo = String((body && body.replyTo) || '');
   if (replyTo && messages.some(function (m) { return m.id === replyTo && !m.removed; })) msg.replyTo = replyTo;
@@ -1437,11 +1473,14 @@ async function handleProfileMessageSend(request, env) {
 
   // One alert per quiet spell, not one per message.
   if (!was.unread) {
-    var name = publicName(profile) || 'A friend';
-    var pushed = await sendPushToMember(env, other, { title: 'Message from ' + name, body: text ? text.slice(0, 140) : 'Sent you a photo', url: '/profile.html?with=' + myId + '#messages' });
+    var name = publicName(profile) || (about ? 'A member' : 'A friend');
+    var title = about ? name + ' asked about your ' + about.mod : 'Message from ' + name;
+    var pushed = await sendPushToMember(env, other, { title: title.slice(0, 120), body: text ? text.slice(0, 140) : 'Sent you a photo', url: '/profile.html?with=' + myId + '#messages' });
     if (!pushed) {
       var said = text ? ':\n\n"' + text.slice(0, 500) + '"' + (photo ? '\n\n(and a photo)' : '') : ' a photo.';
-      await sendMemberEmail(env, other, name + ' sent you a ' + (text ? 'message' : 'photo') + ' on MT3UK', name + ' sent you' + (text ? ' a message on MT3UK' : '') + said + '\n\nRead and reply in your Profile:\n\n' + PROFILE_URL + '#messages');
+      if (about) {
+        await sendMemberEmail(env, other, name + ' asked about your ' + about.mod.slice(0, 80) + ' on MT3UK', name + ' asked about your ' + about.mod + ':\n\n"' + text.slice(0, 500) + '"\n\nRead and reply in your Profile:\n\n' + PROFILE_URL + '#messages');
+      } else await sendMemberEmail(env, other, name + ' sent you a ' + (text ? 'message' : 'photo') + ' on MT3UK', name + ' sent you' + (text ? ' a message on MT3UK' : '') + said + '\n\nRead and reply in your Profile:\n\n' + PROFILE_URL + '#messages');
     }
   }
   var sentMsg = dmMessagesForPage(kept, myId).filter(function (m) { return m.id === msg.id; })[0];
@@ -5121,15 +5160,22 @@ var CAR_MODELS = ['Model 3', 'Model Y', 'Model S', 'Model X', 'Cybertruck', 'Roa
 // The areas of the mods builder (js/mods-builder.js has the labels and
 // choices). fields: text answers. kinds: bodywork's separate jobs.
 // picks: things to tick. items: free text lines.
+var COILOVER_SETTINGS = ['road', 'track'].reduce(function (all, use) {
+  return all.concat([use + 'ReboundFront', use + 'ReboundRear', use + 'CompressionFront', use + 'CompressionRear']);
+}, []);
 var MOD_AREAS = {
   wheels: { label: 'Wheels', fields: ['make', 'model', 'sizeFront', 'sizeRear', 'width', 'offset', 'finish', 'type'] },
   tyres: { label: 'Tyres', fields: ['make', 'model', 'size'] },
-  suspension: { label: 'Suspension', fields: ['type', 'make', 'model', 'drop', 'notes'] },
-  brakes: { label: 'Brakes', fields: ['calipers', 'discs', 'pads', 'fluid'] },
+  // Coilovers also have rebound and compression settings for road and
+  // track, front and rear, shown on the build (notes stay owner only).
+  suspension: { label: 'Suspension', fields: ['type', 'make', 'model', 'drop', 'notes'].concat(COILOVER_SETTINGS) },
+  // Front and rear (calipers, discs, pads are older saves, shown as Brakes).
+  brakes: { label: 'Brakes', fields: ['frontCalipers', 'frontDiscs', 'frontPads', 'rearCalipers', 'rearDiscs', 'rearPads', 'fluid', 'calipers', 'discs', 'pads'],
+    moreFields: ['part', 'makeModel'] },
   bodywork: { label: 'Bodywork', kinds: {
     wrap: ['make', 'colour'], ppf: ['make', 'model', 'coverage'], tint: ['front', 'rear'],
     aero: ['parts', 'make', 'material'], dechrome: ['what'], lights: ['what']
-  } },
+  }, moreFields: ['part', 'makeModel'] },
   interior: { label: 'Interior', picks: ['Seats', 'Wheel or yoke', 'Carbon trim', 'Mats', 'Screens', 'Wraps'], fields: ['makeModel', 'details'] },
   performance: { label: 'Performance', picks: ['Acceleration Boost', 'Track mode', 'Cooling', 'Other'], fields: ['makeModel', 'details'] },
   audio: { label: 'Audio and tech', picks: ['Speakers', 'Amp', 'Sub', 'Dashcam', 'Chargers'], fields: ['makeModel', 'details'] },
@@ -5181,11 +5227,28 @@ function cleanSpecs(input) {
       if (area.kinds) {
         a.kinds = {};
         Object.keys(area.kinds).forEach(function (k) {
-          if (src.kinds && src.kinds[k] && typeof src.kinds[k] === 'object') a.kinds[k] = cleanModFields(src.kinds[k], area.kinds[k]);
+          if (src.kinds && src.kinds[k] && typeof src.kinds[k] === 'object') {
+            a.kinds[k] = cleanModFields(src.kinds[k], area.kinds[k]);
+            var kindFitted = cleanFitted(src.kinds[k].fitted);
+            if (Object.keys(kindFitted).length) a.kinds[k].fitted = kindFitted;
+          }
         });
       }
       if (area.picks) {
         a.picks = Array.isArray(src.picks) ? area.picks.filter(function (p) { return src.picks.indexOf(p) !== -1; }) : [];
+      }
+      // "+ More": further parts in the same area, such as links as well as
+      // coilovers.
+      var moreFields = area.moreFields || area.fields;
+      if (moreFields && Array.isArray(src.more)) {
+        // Each part has its own when and where.
+        var more = src.more.map(function (m) {
+          var part = cleanModFields(m, moreFields);
+          var partFitted = cleanFitted(m && m.fitted);
+          if (Object.keys(part).length && Object.keys(partFitted).length) part.fitted = partFitted;
+          return part;
+        }).filter(function (m) { return Object.keys(m).length; }).slice(0, 10);
+        if (more.length) a.more = more;
       }
       // Extra parts, one per line: any area can have them ("Also fitted"),
       // and Anything else is only these.
@@ -5235,86 +5298,173 @@ function joinParts(parts, sep) {
 }
 
 // The public mods list: one readable line per upgrade. Never includes fitted
-// dates, who fitted it or cost, which only the owner sees.
+// dates, who fitted it, cost, notes or coilover settings, which only the
+// owner sees.
+function modLine(id, f, isMore) {
+  f = f || {};
+  if (id === 'wheels') {
+    var size = f.sizeFront && f.sizeRear && f.sizeFront !== f.sizeRear
+      ? f.sizeFront + ' front, ' + f.sizeRear + ' rear' : (f.sizeFront || f.sizeRear || '');
+    return [['Wheels', joinParts([joinParts([f.make, f.model], ' '), size, f.width, f.offset, f.finish, f.type])]];
+  }
+  if (id === 'tyres') return [['Tyres', joinParts([joinParts([f.make, f.model], ' '), f.size])]];
+  if (id === 'suspension') {
+    var lines = [['Suspension', joinParts([joinParts([f.make, f.model, f.type ? f.type.toLowerCase() : ''], ' '), f.drop ? f.drop + ' drop' : ''])]];
+    // Coilover settings, for road and track.
+    ['road', 'track'].forEach(function (use) {
+      function pair(kind) {
+        var fr = f[use + kind + 'Front'], re = f[use + kind + 'Rear'];
+        if (!fr && !re) return '';
+        return kind.toLowerCase() + ' ' + joinParts([fr ? fr + ' front' : '', re ? re + ' rear' : '']);
+      }
+      lines.push(['Coilover settings (' + use + ')', joinParts([pair('Rebound'), pair('Compression')], '; ')]);
+    });
+    return lines;
+  }
+  if (id === 'brakes' && !isMore) {
+    function set(c, d, p) {
+      return joinParts([c ? c + ' calipers' : '', d ? d + ' discs' : '', p ? p + ' pads' : '']);
+    }
+    return [
+      ['Brakes', set(f.calipers, f.discs, f.pads)],
+      ['Front brakes', set(f.frontCalipers, f.frontDiscs, f.frontPads)],
+      ['Rear brakes', set(f.rearCalipers, f.rearDiscs, f.rearPads)],
+      ['Brake fluid and lines', f.fluid || '']
+    ].filter(function (l) { return l[1]; });
+  }
+  if (id === 'brakes' || id === 'bodywork') return [[MOD_AREAS[id].label, joinParts([f.part, f.makeModel])]];
+  return [[MOD_AREAS[id].label, joinParts([f.makeModel, f.details])]];
+}
+
 function specsToMods(specs) {
   var lines = [];
   var s = specs || {};
   function up(id) { return s[id] && s[id].status === 'up' ? s[id] : null; }
-  // An area's own line, then its extra parts as written. A bare area name
-  // only when there is nothing else to say.
-  function add(id, label, text) {
-    var extras = (up(id) && up(id).items) || [];
-    if (text) lines.push(label + ': ' + text);
-    else if (!extras.length && label) lines.push(label);
+  function push(pairs) {
+    pairs.forEach(function (l) { if (l[1]) lines.push(l[0] + ': ' + l[1]); });
+    return pairs.some(function (l) { return l[1]; });
   }
-  function extras(id) {
-    var a = up(id);
-    if (a && id !== 'other') (a.items || []).forEach(function (i) { lines.push(i); });
-  }
-  var f;
-  var w = up('wheels');
-  if (w) {
-    f = w.fields || {};
-    var size = f.sizeFront && f.sizeRear && f.sizeFront !== f.sizeRear
-      ? f.sizeFront + ' front, ' + f.sizeRear + ' rear' : (f.sizeFront || f.sizeRear || '');
-    var line = joinParts([joinParts([f.make, f.model], ' '), size, f.width, f.offset, f.finish, f.type]);
-    add('wheels', 'Wheels', line);
-    if (w.spacers && w.spacers.on) {
-      var sp = w.spacers;
-      lines.push('Spacers' + ': ' + joinParts([sp.make, sp.front ? sp.front + ' front' : '', sp.rear ? sp.rear + ' rear' : '', sp.hub ? 'hub-centric' : '']));
-    }
-    extras('wheels');
-  }
-  var t = up('tyres');
-  if (t) {
-    f = t.fields || {};
-    add('tyres', 'Tyres', joinParts([joinParts([f.make, f.model], ' '), f.size]));
-    extras('tyres');
-  }
-  var su = up('suspension');
-  if (su) {
-    f = su.fields || {};
-    add('suspension', 'Suspension', joinParts([joinParts([f.make, f.model, f.type ? f.type.toLowerCase() : ''], ' '), f.drop ? f.drop + ' drop' : '']));
-    extras('suspension');
-  }
-  var b = up('brakes');
-  if (b) {
-    f = b.fields || {};
-    add('brakes', 'Brakes', joinParts([
-      f.calipers ? f.calipers + ' calipers' : '', f.discs ? f.discs + ' discs' : '',
-      f.pads ? f.pads + ' pads' : '', f.fluid ? f.fluid + ' fluid' : ''
-    ]));
-    extras('brakes');
-  }
-  var bw = up('bodywork');
-  if (bw) {
-    var kinds = bw.kinds || {};
-    var any = false;
-    Object.keys(MOD_AREAS.bodywork.kinds).forEach(function (k) {
-      if (!kinds[k]) return;
-      any = true;
-      var kf = kinds[k];
-      var text;
-      if (k === 'tint') text = joinParts([kf.front ? kf.front + ' front' : '', kf.rear ? kf.rear + ' rear' : '']);
-      else if (k === 'wrap') text = joinParts([kf.make, kf.colour], ' ');
-      else if (k === 'ppf') text = joinParts([joinParts([kf.make, kf.model], ' '), kf.coverage ? kf.coverage.toLowerCase() : '']);
-      else if (k === 'aero') text = joinParts([kf.parts, joinParts([kf.make, kf.material ? kf.material.toLowerCase() : ''], ' ')]);
-      else text = kf.what || '';
-      lines.push(MOD_KIND_LABELS[k] + prefixed(text));
-    });
-    if (!any) add('bodywork', 'Bodywork', '');
-    extras('bodywork');
-  }
-  ['interior', 'performance', 'audio'].forEach(function (id) {
+  Object.keys(MOD_AREAS).forEach(function (id) {
     var a = up(id);
     if (!a) return;
-    f = a.fields || {};
-    add(id, MOD_AREAS[id].label, joinParts([(a.picks || []).join(', '), f.makeModel, f.details]));
-    extras(id);
+    if (id === 'other') {
+      (a.items || []).forEach(function (i) { lines.push(i); });
+      return;
+    }
+    var said = false;
+    if (id === 'bodywork') {
+      var kinds = a.kinds || {};
+      Object.keys(MOD_AREAS.bodywork.kinds).forEach(function (k) {
+        if (!kinds[k]) return;
+        said = true;
+        var kf = kinds[k];
+        var text;
+        if (k === 'tint') text = joinParts([kf.front ? kf.front + ' front' : '', kf.rear ? kf.rear + ' rear' : '']);
+        else if (k === 'wrap') text = joinParts([kf.make, kf.colour], ' ');
+        else if (k === 'ppf') text = joinParts([joinParts([kf.make, kf.model], ' '), kf.coverage ? kf.coverage.toLowerCase() : '']);
+        else if (k === 'aero') text = joinParts([kf.parts, joinParts([kf.make, kf.material ? kf.material.toLowerCase() : ''], ' ')]);
+        else text = kf.what || '';
+        lines.push(MOD_KIND_LABELS[k] + prefixed(text));
+      });
+    } else {
+      var main = modLine(id, a.fields);
+      if (MOD_AREAS[id].picks && (a.picks || []).length) {
+        main = [[MOD_AREAS[id].label, joinParts([a.picks.join(', '), main[0][1]])]];
+      }
+      said = push(main);
+    }
+    if (id === 'wheels' && a.spacers && a.spacers.on) {
+      var sp = a.spacers;
+      lines.push('Spacers: ' + joinParts([sp.make, sp.front ? sp.front + ' front' : '', sp.rear ? sp.rear + ' rear' : '', sp.hub ? 'hub-centric' : '']));
+      said = true;
+    }
+    (a.more || []).forEach(function (m) { if (push(modLine(id, m, true))) said = true; });
+    (a.items || []).forEach(function (i) { lines.push(i); said = true; });
+    // Upgraded with nothing filled in yet: just the area.
+    if (!said) lines.push(MOD_AREAS[id].label);
   });
-  var o = up('other');
-  if (o) (o.items || []).forEach(function (i) { lines.push(i); });
   return lines.map(function (l) { return l.slice(0, 150); }).slice(0, 50);
+}
+
+// A car's mods for display (My Garage and the Gallery's Full mods list):
+// each area with its parts, worded as the public list. meta (when it was
+// fitted, by whom, cost) only when owner is true.
+var MOD_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+function fittedMeta(f) {
+  if (!f) return '';
+  var when = f.year ? 'Fitted ' + (f.month ? MOD_MONTHS[f.month - 1] + ' ' : '') + f.year : '';
+  var cost = f.cost ? (/^[£$€]/.test(f.cost) ? f.cost : '£' + f.cost) : '';
+  return joinParts([when, f.by, cost], ' · ');
+}
+
+function coilSettings(f) {
+  var out = null;
+  ['road', 'track'].forEach(function (use) {
+    var row = {};
+    ['ReboundFront', 'ReboundRear', 'CompressionFront', 'CompressionRear'].forEach(function (k) {
+      if (f[use + k]) row[k.charAt(0).toLowerCase() + k.slice(1)] = f[use + k];
+    });
+    if (Object.keys(row).length) { out = out || {}; out[use] = row; }
+  });
+  return out;
+}
+
+function specsToView(specs, owner, flatMods) {
+  var s = specs || {};
+  if (!specs) {
+    // Older cars with a plain list of mods.
+    var lines = (flatMods || []).filter(Boolean);
+    return lines.length ? [{ id: 'mods', label: 'Mods', status: 'up', parts: lines.map(function (l) { return { what: l }; }) }] : [];
+  }
+  var KIND_OF = { 'Front brakes': 'Front', 'Rear brakes': 'Rear', 'Brake fluid and lines': 'Fluid and lines' };
+  return Object.keys(MOD_AREAS).map(function (id) {
+    var a = s[id];
+    var status = a && (a.status === 'up' || a.status === 'stock') ? a.status : 'todo';
+    var area = { id: id, label: MOD_AREAS[id].label, status: status, parts: [] };
+    if (status !== 'up') return area;
+    function add(part, fitted) {
+      if (owner) { var m = fittedMeta(fitted); if (m) part.meta = m; }
+      area.parts.push(part);
+    }
+    if (id === 'bodywork') {
+      var kinds = a.kinds || {};
+      Object.keys(MOD_AREAS.bodywork.kinds).forEach(function (k) {
+        if (!kinds[k]) return;
+        var line = specsToMods({ bodywork: { status: 'up', kinds: (function () { var o = {}; o[k] = kinds[k]; return o; })() } })[0] || '';
+        var text = line.indexOf(': ') !== -1 ? line.slice(line.indexOf(': ') + 2) : '';
+        if (!text && !owner) return;
+        var part = { kind: MOD_KIND_LABELS[k], what: text };
+        if (!text) part.empty = true;
+        add(part, kinds[k].fitted);
+      });
+    } else if (id !== 'other') {
+      var main = modLine(id, a.fields);
+      if (MOD_AREAS[id].picks && (a.picks || []).length) main = [[MOD_AREAS[id].label, joinParts([a.picks.join(', '), main[0][1]])]];
+      var first = true;
+      main.forEach(function (l) {
+        // Coilover settings go in the part's table instead.
+        if (!l[1] || /^Coilover settings/.test(l[0])) return;
+        var part = { what: l[1] };
+        if (KIND_OF[l[0]]) part.kind = KIND_OF[l[0]];
+        if (id === 'suspension') { var cs = coilSettings(a.fields || {}); if (cs) part.settings = cs; }
+        add(part, first ? a.fitted : null);
+        first = false;
+      });
+      if (id === 'wheels' && a.spacers && a.spacers.on) {
+        var sp = a.spacers;
+        add({ kind: 'Spacers', what: joinParts([sp.make, sp.front ? sp.front + ' front' : '', sp.rear ? sp.rear + ' rear' : '', sp.hub ? 'hub-centric' : '']) });
+      }
+    }
+    (a.more || []).forEach(function (m) {
+      var l = modLine(id, m, true)[0];
+      if (!l || !l[1]) return;
+      var part = { what: l[1] };
+      if (id === 'suspension') { var cs = coilSettings(m); if (cs) part.settings = cs; }
+      add(part, m.fitted);
+    });
+    (a.items || []).forEach(function (i) { add({ what: i }); });
+    return area;
+  });
 }
 
 function prefixed(text) {
@@ -6040,6 +6190,7 @@ async function handleMyBuildsGet(request, env) {
       year: (details && details.year) || '',
       specs: (details && details.specs) || null,
       plans: (details && details.plans) || [],
+      view: specsToView(details && details.specs, true, mods),
       createdAt: createdAt,
       commentCount: photos.reduce(function (sum, p) { return sum + p.commentCount; }, 0),
       likeCount: photos.reduce(function (sum, p) { return sum + p.likeCount; }, 0),
@@ -6169,6 +6320,44 @@ async function handleMyBuildsUpdate(request, env) {
   return json({ success: true, file: file, withdrawn: withdraw });
 }
 
+// A car's mods for other members (the Gallery's Full mods list): found from
+// one of its photos. Public parts only, never dates, fitters or costs.
+async function handleCarPublic(request, env) {
+  var url = new URL(request.url);
+  var file = String(url.searchParams.get('file') || '');
+  if (!file || file.indexOf('/') !== -1 || file.length > 200) return json({ success: false, message: 'file is required' }, 400);
+  var sidecar = null;
+  try {
+    var obj = await env.GALLERY_BUCKET.get('gallery/' + file + '.json');
+    if (obj) sidecar = await obj.json();
+  } catch (e) {}
+  if (!sidecar) return json({ success: false, message: 'Not found' }, 404);
+  var ownerEmail = await sidecarOwnerEmail(env, file, sidecar);
+  var ownerProfile = ownerEmail ? await getProfileRecord(env, ownerEmail) : null;
+  var out = { success: true, file: file, name: '', model: '', version: '', year: '', ownerName: '', ownerId: '', canAsk: false, view: [] };
+  var record = sidecar.carId ? await getCarRecord(env, sidecar.carId) : null;
+  var details = sidecar.carId ? await getCarDetails(env, sidecar.carId) : null;
+  out.name = (record && record.name) || '';
+  if (details) {
+    out.model = details.model || '';
+    out.version = details.version || '';
+    out.year = details.year || '';
+  }
+  var flat = (record && record.mods) || (Array.isArray(sidecar.mods) ? sidecar.mods : []);
+  out.view = specsToView(details && details.specs, false, flat);
+  if (ownerEmail) {
+    out.ownerName = publicName(ownerProfile) || 'MT3UK member';
+    out.ownerId = await ownerKey(ownerEmail);
+    out.canAsk = !ownerProfile.modQuestionsOff && !ownerProfile.dmBlocked;
+    // Signed in: whether it's their own car (no asking yourself).
+    var viewer = request.headers.get('X-Session-Token') ? await resolveSession(request, env) : null;
+    if (viewer && viewer === ownerEmail) out.mine = true;
+  }
+  var res = json(out);
+  res.headers.set('Cache-Control', 'private, max-age=60');
+  return res;
+}
+
 async function handleMyBuildsCarUpdate(request, env) {
   var email = await resolveSession(request, env);
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
@@ -6284,6 +6473,8 @@ async function handleMyBuildsCarUpdate(request, env) {
   if (details) {
     ['model', 'version', 'year', 'specs', 'plans'].forEach(function (k) { if (details[k] !== undefined) carOut[k] = details[k]; });
   }
+  var viewDetails = details || (await getCarDetails(env, realCarId));
+  carOut.view = specsToView(viewDetails && viewDetails.specs, true, record.mods);
   return json({ success: true, car: carOut });
 }
 
@@ -7283,6 +7474,9 @@ export default {
     }
     if (url.pathname === '/my-builds' && request.method === 'PUT') {
       return handleMyBuildsUpdate(request, env);
+    }
+    if (url.pathname === '/cars/public' && request.method === 'GET') {
+      return handleCarPublic(request, env);
     }
     if (url.pathname === '/my-builds/car' && request.method === 'PUT') {
       return handleMyBuildsCarUpdate(request, env);

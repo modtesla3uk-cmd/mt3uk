@@ -609,6 +609,7 @@
 </footer>
 
 <script src="js/gallery-social.js"></script>
+<script src="js/mods-view.js"></script>
 <script src="js/gallery-live.js"></script>
 <script>
   window.MT3UK_R2_BASE = 'https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev';
@@ -1127,7 +1128,7 @@
 <script>
   (function () {
     var style = document.createElement('style');
-    style.textContent = '.gallery-slot.filled img { cursor: zoom-in; } .lightbox { position: fixed; inset: 0; background: rgba(22,35,61,0.94); display: none; align-items: center; justify-content: center; flex-direction: column; z-index: 200; padding: 40px 20px; } .lightbox.open { display: flex; } .lightbox-img { max-width: min(92vw, 1100px); max-height: 78vh; object-fit: contain; border: 0; border-radius: 10px; } .lightbox-caption { margin-top: 16px; font-family: var(--font-body); font-size: 0.86rem; color: var(--paper); } .lightbox-mods { display: none; margin-top: 10px; max-width: min(92vw, 1100px); font-family: var(--font-body); font-size: 0.76rem; color: rgba(243,241,234,0.7); text-align: center; } .lightbox-mods.has-mods { display: block; } .lightbox-close { position: absolute; top: 22px; right: 28px; display: flex; align-items: center; justify-content: center; background: rgba(243,241,234,0.12); border: 0; border-radius: 50%; color: var(--paper); width: 40px; height: 40px; line-height: 1; cursor: pointer; } .lightbox-close .icon, .lightbox-nav .icon { width: 22px; height: 22px; } .lightbox-close:hover { background: var(--orange); border-color: var(--orange); } .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); display: flex; align-items: center; justify-content: center; background: rgba(243,241,234,0.12); border: 0; border-radius: 50%; color: var(--paper); width: 46px; height: 46px; line-height: 1; cursor: pointer; } .lightbox-nav:hover { background: var(--orange); border-color: var(--orange); } .lightbox-prev { left: 20px; } .lightbox-next { right: 20px; } @media (max-width: 700px) { .lightbox-nav { width: 38px; height: 38px; font-size: 1.3rem; } .lightbox-prev { left: 8px; } .lightbox-next { right: 8px; } } @media (max-width: 600px) { .lightbox-close { top: 14px; right: 14px; width: 36px; height: 36px; } } .lightbox-vote { display: none; margin-top: 16px; align-items: center; gap: 14px; } .lightbox.open[data-mode="vote"] .lightbox-vote { display: flex; } .lightbox-vote-count { font-family: var(--font-body); font-size: 0.86rem; color: var(--paper); } .lightbox-vote-btn { font-family: var(--font-body); font-size: 0.8rem; min-height: 44px; padding: 9px 18px; border: 1px solid var(--paper); border-radius: 10px; background: transparent; color: var(--paper); font-weight: 600; cursor: pointer; transition: background .2s ease, color .2s ease; } .lightbox-vote-btn:hover:not(:disabled) { background: var(--orange); border-color: var(--orange); } .lightbox-vote-btn:disabled { cursor: default; opacity: 0.7; background: var(--orange); border-color: var(--orange); } .lightbox-report { margin-top: 14px; background: transparent; border: none; color: rgba(243,241,234,0.5); font-family: var(--font-body); font-size: 0.76rem; text-decoration: underline; cursor: pointer; } .lightbox-report:hover { color: var(--paper); } .lightbox-report:disabled { text-decoration: none; cursor: default; } .lightbox-claim-wrap { display: none; margin-top: 10px; max-width: min(92vw, 360px); text-align: center; } .lightbox-claim-wrap.show { display: block; } .lightbox-claim { background: transparent; border: 1px solid var(--orange); border-radius: 8px; font-weight: 600; color: var(--orange); font-family: var(--font-body); font-size: 0.78rem; padding: 8px 14px; cursor: pointer; } .lightbox-claim:hover:not(:disabled) { background: var(--orange); color: var(--ink); } .lightbox-claim:disabled { opacity: 0.7; cursor: default; } .lightbox-claim-form { display: none; margin-top: 10px; } .lightbox-claim-form.show { display: block; } .lightbox.claiming .lightbox-nav { display: none; } .lightbox.claiming { justify-content: flex-start; overflow-y: auto; padding-top: 72px; padding-bottom: 32px; } .lightbox.claiming .lightbox-img { max-height: 32vh; flex-shrink: 0; } @media (max-height: 700px) { .lightbox.claiming { padding-top: 60px; } .lightbox.claiming .lightbox-img { max-height: 22vh; } } .lightbox-claim-guest { display: none; } .lightbox-claim-guest.show { display: block; } .lightbox-claim-guest-intro { font-family: var(--font-body); font-size: 0.76rem; line-height: 1.5; color: rgba(243,241,234,0.75); margin: 0 0 8px; } .lightbox-claim-guest-intro a { color: var(--orange); text-decoration: underline; } .lightbox-claim-input { display: block; width: 100%; box-sizing: border-box; margin: 0 0 8px; background: rgba(243,241,234,0.08); border: 1px solid rgba(243,241,234,0.35); color: var(--paper); font-family: "IBM Plex Sans", sans-serif; font-size: 16px; padding: 8px; border-radius: 8px; } .lightbox-claim-note { width: 100%; box-sizing: border-box; background: rgba(243,241,234,0.08); border: 1px solid rgba(243,241,234,0.35); color: var(--paper); font-family: "IBM Plex Sans", sans-serif; font-size: 0.86rem; padding: 8px; resize: vertical; border-radius: 8px; } .lightbox-claim-actions { display: flex; gap: 8px; justify-content: center; margin-top: 8px; } .lightbox-claim-submit, .lightbox-claim-cancel { border-radius: 8px; font-weight: 600; min-height: 36px; font-family: var(--font-body); font-size: 0.76rem; padding: 7px 12px; cursor: pointer; } .lightbox-claim-submit { background: var(--orange); border: 1px solid var(--orange); color: var(--ink); } .lightbox-claim-submit:disabled { opacity: 0.7; cursor: default; } .lightbox-claim-cancel { background: transparent; border: 1px solid rgba(243,241,234,0.4); color: var(--paper); } .lightbox-claim-status { margin-top: 8px; font-family: var(--font-body); font-size: 0.76rem; color: rgba(243,241,234,0.75); } .lightbox-claim-status a { color: var(--orange); text-decoration: underline; }';
+    style.textContent = '.gallery-slot.filled img { cursor: zoom-in; } .lightbox { position: fixed; inset: 0; background: rgba(22,35,61,0.94); display: none; align-items: center; justify-content: center; flex-direction: column; z-index: 200; padding: 40px 20px; } .lightbox.open { display: flex; } .lightbox-img { max-width: min(92vw, 1100px); max-height: 78vh; object-fit: contain; border: 0; border-radius: 10px; } .lightbox-caption { margin-top: 16px; font-family: var(--font-body); font-size: 0.86rem; color: var(--paper); } .lightbox-mods { display: none; margin-top: 10px; } .lightbox-mods.has-mods { display: block; } .lightbox-mods-btn { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 14px; border: 1px solid rgba(243,241,234,0.3); border-radius: 999px; background: rgba(243,241,234,0.08); color: var(--paper); font-family: var(--font-body); font-size: 0.84rem; font-weight: 600; cursor: pointer; } .lightbox-mods-btn:hover, .lightbox-mods-btn[aria-expanded=\"true\"] { border-color: var(--orange); color: #fff; } .lightbox-mods-btn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; } .lightbox-mods-panel { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 4; width: min(92vw, 560px); max-height: 55vh; overflow-y: auto; box-sizing: border-box; padding: 14px 16px 16px; color: #fff; background: rgba(12,14,20,0.72); -webkit-backdrop-filter: blur(16px) saturate(140%); backdrop-filter: blur(16px) saturate(140%); border: 1px solid rgba(255,255,255,0.16); border-radius: 20px; box-shadow: 0 14px 34px rgba(0,0,0,0.35); font-family: var(--font-body); } .lightbox-mods-panel[hidden] { display: none; } .lightbox-mods-head { display: flex; align-items: center; justify-content: space-between; margin: 0 0 10px; } .lightbox-mods-title { margin: 0; font-size: 0.86rem; font-weight: 600; color: rgba(255,255,255,0.8); } .lightbox-mods-close { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%; background: rgba(255,255,255,0.14); color: #fff; cursor: pointer; } .lightbox-mods-close:hover { background: rgba(255,255,255,0.28); } .lightbox-mods-close .icon { width: 16px; height: 16px; } .lightbox-mods-panel ul { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; } .lightbox-mods-panel li { padding: 5px 11px; border-radius: 999px; background: rgba(255,255,255,0.12); font-size: 0.8rem; line-height: 1.35; } .lightbox-mods-full { margin-left: auto; margin-right: 8px; min-height: 32px; padding: 0 12px; border: 1px solid rgba(255,255,255,0.3); border-radius: 999px; background: none; color: #fff; font: 600 0.8rem var(--font-body); cursor: pointer; } .lightbox-mods-full:hover { border-color: var(--orange); } .lightbox-car { position: absolute; inset: 0; z-index: 6; display: flex; align-items: flex-end; justify-content: center; background: rgba(14,22,40,0.55); padding: 16px; } .lightbox-car[hidden] { display: none; } .lightbox-car-card { width: min(100%, 760px); max-height: calc(100% - 40px); overflow-y: auto; box-sizing: border-box; background: var(--paper); color: var(--ink); border-radius: 18px; box-shadow: 0 20px 50px rgba(0,0,0,0.4); padding: 18px; display: grid; gap: 12px; font-family: var(--font-body); } @media (min-width: 781px) { .lightbox-car { align-items: center; } } .lightbox-car-head { display: flex; align-items: flex-start; gap: 10px; } .lightbox-car-head > div { flex: 1; min-width: 0; } .lightbox-car-head h3 { margin: 0; font-family: var(--font-head); font-size: 1.15rem; } .lightbox-car-head p { margin: 2px 0 0; font-size: 0.85rem; color: var(--steel); } .lightbox-car-close { width: 40px; height: 40px; flex-shrink: 0; border: 0; border-radius: 50%; background: var(--paper-2, #e9e5d8); color: var(--ink); display: flex; align-items: center; justify-content: center; cursor: pointer; } .lightbox-car-close .icon { width: 18px; height: 18px; } .lightbox-car-note { margin: 0; font-size: 0.84rem; color: var(--steel); } .lightbox-ask { display: grid; gap: 10px; padding: 14px; border-radius: 12px; background: #fff; border: 1px solid var(--hairline-strong, rgba(22,35,61,.24)); } .lightbox-ask[hidden] { display: none; } .lightbox-ask-tag { display: grid; gap: 2px; padding: 8px 12px; border-left: 3px solid var(--orange); background: #fdf3ef; border-radius: 6px; font-size: 0.86rem; } .lightbox-ask-tag small { font-size: 0.72rem; font-weight: 700; color: #b8421f; } .lightbox-ask textarea { width: 100%; box-sizing: border-box; min-height: 80px; padding: 10px 12px; border: 1px solid var(--hairline-strong, rgba(22,35,61,.24)); border-radius: 10px; font: 1rem var(--font-body); resize: vertical; } .lightbox-ask-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; } .lightbox-ask-status { font-size: 0.84rem; color: var(--steel); } .lightbox-ask-status a { color: var(--orange); } .lightbox-close { position: absolute; top: 22px; right: 28px; display: flex; align-items: center; justify-content: center; background: rgba(243,241,234,0.12); border: 0; border-radius: 50%; color: var(--paper); width: 40px; height: 40px; line-height: 1; cursor: pointer; } .lightbox-close .icon, .lightbox-nav .icon { width: 22px; height: 22px; } .lightbox-close:hover { background: var(--orange); border-color: var(--orange); } .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); display: flex; align-items: center; justify-content: center; background: rgba(243,241,234,0.12); border: 0; border-radius: 50%; color: var(--paper); width: 46px; height: 46px; line-height: 1; cursor: pointer; } .lightbox-nav:hover { background: var(--orange); border-color: var(--orange); } .lightbox-prev { left: 20px; } .lightbox-next { right: 20px; } @media (max-width: 700px) { .lightbox-nav { width: 38px; height: 38px; font-size: 1.3rem; } .lightbox-prev { left: 8px; } .lightbox-next { right: 8px; } } @media (max-width: 600px) { .lightbox-close { top: 14px; right: 14px; width: 36px; height: 36px; } } .lightbox-vote { display: none; margin-top: 16px; align-items: center; gap: 14px; } .lightbox.open[data-mode="vote"] .lightbox-vote { display: flex; } .lightbox-vote-count { font-family: var(--font-body); font-size: 0.86rem; color: var(--paper); } .lightbox-vote-btn { font-family: var(--font-body); font-size: 0.8rem; min-height: 44px; padding: 9px 18px; border: 1px solid var(--paper); border-radius: 10px; background: transparent; color: var(--paper); font-weight: 600; cursor: pointer; transition: background .2s ease, color .2s ease; } .lightbox-vote-btn:hover:not(:disabled) { background: var(--orange); border-color: var(--orange); } .lightbox-vote-btn:disabled { cursor: default; opacity: 0.7; background: var(--orange); border-color: var(--orange); } .lightbox-report { margin-top: 14px; background: transparent; border: none; color: rgba(243,241,234,0.5); font-family: var(--font-body); font-size: 0.76rem; text-decoration: underline; cursor: pointer; } .lightbox-report:hover { color: var(--paper); } .lightbox-report:disabled { text-decoration: none; cursor: default; } .lightbox-claim-wrap { display: none; margin-top: 10px; max-width: min(92vw, 360px); text-align: center; } .lightbox-claim-wrap.show { display: block; } .lightbox-claim { background: transparent; border: 1px solid var(--orange); border-radius: 8px; font-weight: 600; color: var(--orange); font-family: var(--font-body); font-size: 0.78rem; padding: 8px 14px; cursor: pointer; } .lightbox-claim:hover:not(:disabled) { background: var(--orange); color: var(--ink); } .lightbox-claim:disabled { opacity: 0.7; cursor: default; } .lightbox-claim-form { display: none; margin-top: 10px; } .lightbox-claim-form.show { display: block; } .lightbox.claiming .lightbox-nav { display: none; } .lightbox.claiming { justify-content: flex-start; overflow-y: auto; padding-top: 72px; padding-bottom: 32px; } .lightbox.claiming .lightbox-img { max-height: 32vh; flex-shrink: 0; } @media (max-height: 700px) { .lightbox.claiming { padding-top: 60px; } .lightbox.claiming .lightbox-img { max-height: 22vh; } } .lightbox-claim-guest { display: none; } .lightbox-claim-guest.show { display: block; } .lightbox-claim-guest-intro { font-family: var(--font-body); font-size: 0.76rem; line-height: 1.5; color: rgba(243,241,234,0.75); margin: 0 0 8px; } .lightbox-claim-guest-intro a { color: var(--orange); text-decoration: underline; } .lightbox-claim-input { display: block; width: 100%; box-sizing: border-box; margin: 0 0 8px; background: rgba(243,241,234,0.08); border: 1px solid rgba(243,241,234,0.35); color: var(--paper); font-family: "IBM Plex Sans", sans-serif; font-size: 16px; padding: 8px; border-radius: 8px; } .lightbox-claim-note { width: 100%; box-sizing: border-box; background: rgba(243,241,234,0.08); border: 1px solid rgba(243,241,234,0.35); color: var(--paper); font-family: "IBM Plex Sans", sans-serif; font-size: 0.86rem; padding: 8px; resize: vertical; border-radius: 8px; } .lightbox-claim-actions { display: flex; gap: 8px; justify-content: center; margin-top: 8px; } .lightbox-claim-submit, .lightbox-claim-cancel { border-radius: 8px; font-weight: 600; min-height: 36px; font-family: var(--font-body); font-size: 0.76rem; padding: 7px 12px; cursor: pointer; } .lightbox-claim-submit { background: var(--orange); border: 1px solid var(--orange); color: var(--ink); } .lightbox-claim-submit:disabled { opacity: 0.7; cursor: default; } .lightbox-claim-cancel { background: transparent; border: 1px solid rgba(243,241,234,0.4); color: var(--paper); } .lightbox-claim-status { margin-top: 8px; font-family: var(--font-body); font-size: 0.76rem; color: rgba(243,241,234,0.75); } .lightbox-claim-status a { color: var(--orange); text-decoration: underline; }';
     document.head.appendChild(style);
 
     var lightbox = document.createElement('div');
@@ -1136,12 +1137,127 @@
     lightbox.setAttribute('role', 'dialog');
     lightbox.setAttribute('aria-modal', 'true');
     lightbox.setAttribute('aria-hidden', 'true');
-    lightbox.innerHTML = '<button class="lightbox-close" aria-label="Close"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button><button class="lightbox-nav lightbox-prev" aria-label="Previous photo"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button><button class="lightbox-nav lightbox-next" aria-label="Next photo"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button><img class="lightbox-img" src="" alt=""><div class="lightbox-caption"></div><div class="lightbox-mods"></div><button type="button" class="lightbox-report" id="lightbox-report-btn">Report this image</button><div class="lightbox-claim-wrap" id="lightbox-claim-wrap"><button type="button" class="lightbox-claim" id="lightbox-claim-btn">Claim this build</button><div class="lightbox-claim-form" id="lightbox-claim-form"><div class="lightbox-claim-guest" id="lightbox-claim-guest"><p class="lightbox-claim-guest-intro">Not a member yet? Add your details and we\u2019ll set up your My Garage once your claim is approved.</p><input type="text" class="lightbox-claim-input" id="lightbox-claim-first" placeholder="First name" autocomplete="given-name" maxlength="50"><input type="text" class="lightbox-claim-input" id="lightbox-claim-last" placeholder="Last name" autocomplete="family-name" maxlength="50"><input type="email" class="lightbox-claim-input" id="lightbox-claim-email" placeholder="Email" autocomplete="email" maxlength="200"><p class="lightbox-claim-guest-intro">Already a member? <a href="my-builds.html">Sign in to My Garage</a> first instead.</p></div><textarea class="lightbox-claim-note" id="lightbox-claim-note" rows="2" maxlength="500" placeholder="Optional: tell us how we can verify this is your car"></textarea><div class="lightbox-claim-actions"><button type="button" class="lightbox-claim-submit" id="lightbox-claim-submit">Submit claim</button><button type="button" class="lightbox-claim-cancel" id="lightbox-claim-cancel">Cancel</button></div></div><p class="lightbox-claim-status" id="lightbox-claim-status"></p></div>';
+    lightbox.innerHTML = '<button class="lightbox-close" aria-label="Close"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button><button class="lightbox-nav lightbox-prev" aria-label="Previous photo"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button><button class="lightbox-nav lightbox-next" aria-label="Next photo"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button><img class="lightbox-img" src="" alt=""><div class="lightbox-caption"></div><div class="lightbox-mods"><button type="button" class="lightbox-mods-btn" aria-expanded="false" aria-controls="lightbox-mods-panel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9Z"/></svg><span></span></button></div><div class="lightbox-mods-panel" id="lightbox-mods-panel" hidden><div class="lightbox-mods-head"><p class="lightbox-mods-title">Mods</p><button type="button" class="lightbox-mods-full">Full list</button><button type="button" class="lightbox-mods-close" aria-label="Close mods list"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div><ul></ul></div><div class="lightbox-car" id="lightbox-car" hidden role="dialog" aria-modal="true" aria-label="Full mods list"><div class="lightbox-car-card"><div class="lightbox-car-head"><div><h3 class="lightbox-car-name"></h3><p class="lightbox-car-sub"></p></div><button type="button" class="lightbox-car-close" aria-label="Close full mods list"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div><p class="lightbox-car-note" hidden></p><div class="mv-rows lightbox-car-rows"></div><div class="lightbox-ask" hidden><div class="lightbox-ask-tag"><small>About this mod</small><span class="lightbox-ask-mod"></span></div><label class="lightbox-car-note" for="lightbox-ask-text">Your question</label><textarea id="lightbox-ask-text" maxlength="1000" placeholder="Ask about it"></textarea><div class="lightbox-ask-actions"><button type="button" class="btn btn-accent btn-sm lightbox-ask-send">Send</button><button type="button" class="btn btn-ghost btn-sm lightbox-ask-cancel">Cancel</button><span class="lightbox-ask-status" role="status"></span></div></div></div></div><button type="button" class="lightbox-report" id="lightbox-report-btn">Report this image</button><div class="lightbox-claim-wrap" id="lightbox-claim-wrap"><button type="button" class="lightbox-claim" id="lightbox-claim-btn">Claim this build</button><div class="lightbox-claim-form" id="lightbox-claim-form"><div class="lightbox-claim-guest" id="lightbox-claim-guest"><p class="lightbox-claim-guest-intro">Not a member yet? Add your details and we\u2019ll set up your My Garage once your claim is approved.</p><input type="text" class="lightbox-claim-input" id="lightbox-claim-first" placeholder="First name" autocomplete="given-name" maxlength="50"><input type="text" class="lightbox-claim-input" id="lightbox-claim-last" placeholder="Last name" autocomplete="family-name" maxlength="50"><input type="email" class="lightbox-claim-input" id="lightbox-claim-email" placeholder="Email" autocomplete="email" maxlength="200"><p class="lightbox-claim-guest-intro">Already a member? <a href="my-builds.html">Sign in to My Garage</a> first instead.</p></div><textarea class="lightbox-claim-note" id="lightbox-claim-note" rows="2" maxlength="500" placeholder="Optional: tell us how we can verify this is your car"></textarea><div class="lightbox-claim-actions"><button type="button" class="lightbox-claim-submit" id="lightbox-claim-submit">Submit claim</button><button type="button" class="lightbox-claim-cancel" id="lightbox-claim-cancel">Cancel</button></div></div><p class="lightbox-claim-status" id="lightbox-claim-status"></p></div>';
     document.body.appendChild(lightbox);
 
     var lightboxImg = lightbox.querySelector('.lightbox-img');
     var lightboxCaption = lightbox.querySelector('.lightbox-caption');
     var lightboxMods = lightbox.querySelector('.lightbox-mods');
+    // Mods: a button under the caption opens a frosted list over the photo,
+    // like the homepage reel.
+    var modsBtn = lightbox.querySelector('.lightbox-mods-btn');
+    var modsPanel = lightbox.querySelector('.lightbox-mods-panel');
+    function setModsOpen(open) {
+      modsPanel.hidden = !open;
+      modsBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    modsBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      setModsOpen(modsPanel.hidden);
+    });
+    lightbox.querySelector('.lightbox-mods-close').addEventListener('click', function (e) {
+      e.stopPropagation();
+      setModsOpen(false);
+    });
+
+    // Full mods list: the car's list in drop-down rows (js/mods-view.js),
+    // read only, with "Ask about this" on each part.
+    var carSheet = lightbox.querySelector('.lightbox-car');
+    var carRows = carSheet.querySelector('.lightbox-car-rows');
+    var carNote = carSheet.querySelector('.lightbox-car-note');
+    var askBox = carSheet.querySelector('.lightbox-ask');
+    var askText = carSheet.querySelector('#lightbox-ask-text');
+    var askStatus = carSheet.querySelector('.lightbox-ask-status');
+    var carData = null, carOpen = {}, askMod = '';
+    function carEsc(v) { return window.MT3UKModsView ? window.MT3UKModsView.esc(v) : String(v); }
+    function drawCar() {
+      if (!carData || !window.MT3UKModsView) return;
+      var token = null;
+      try { token = localStorage.getItem('mt3ukMyBuildsSession'); } catch (e) {}
+      var canAsk = carData.canAsk && !carData.mine;
+      carRows.innerHTML = window.MT3UKModsView.rows(carData.view, { open: carOpen, ask: canAsk }) ||
+        '<p class="lightbox-car-note">No mods listed yet.</p>';
+      if (canAsk && !token) {
+        var next = encodeURIComponent('gallery.html?photo=' + carData.file);
+        carRows.querySelectorAll('[data-mv-ask]').forEach(function (b) {
+          var a = document.createElement('a');
+          a.className = b.className;
+          a.href = 'signin.html?next=' + next;
+          a.textContent = 'Sign in to ask';
+          b.parentNode.replaceChild(a, b);
+        });
+      }
+      carNote.hidden = !(carData.ownerName && !carData.canAsk && !carData.mine);
+      carNote.textContent = carData.ownerName + ' isn\u2019t taking questions about their mods.';
+    }
+    function openCar() {
+      var p = getPhotos()[currentIndex];
+      if (!p) return;
+      carSheet.hidden = false;
+      askBox.hidden = true;
+      carOpen = {};
+      carSheet.querySelector('.lightbox-car-name').textContent = p.caption || 'Mods list';
+      carSheet.querySelector('.lightbox-car-sub').textContent = '';
+      carRows.innerHTML = '<p class="lightbox-car-note">Loading\u2026</p>';
+      var headers = {};
+      try { var tk = localStorage.getItem('mt3ukMyBuildsSession'); if (tk) headers['X-Session-Token'] = tk; } catch (e) {}
+      fetch(MT3UK_API + '/cars/public?file=' + encodeURIComponent(p.file), { headers: headers })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (!data || !data.success) throw new Error();
+          carData = data;
+          // Everything upgraded starts open, so the list reads at a glance.
+          (data.view || []).forEach(function (a) { if (a.status === 'up') carOpen[a.id] = true; });
+          carSheet.querySelector('.lightbox-car-name').textContent = data.name || p.caption || 'Mods list';
+          carSheet.querySelector('.lightbox-car-sub').textContent = [[data.model, data.version].filter(Boolean).join(' '), data.year, data.ownerName ? 'by ' + data.ownerName : ''].filter(Boolean).join(' \u00b7 ');
+          drawCar();
+        })
+        .catch(function () { carRows.innerHTML = '<p class="lightbox-car-note">Could not load the mods list, please try again.</p>'; });
+    }
+    function closeCar() { carSheet.hidden = true; carData = null; }
+    lightbox.querySelector('.lightbox-mods-full').addEventListener('click', function (e) {
+      e.stopPropagation();
+      openCar();
+    });
+    carSheet.querySelector('.lightbox-car-close').addEventListener('click', function (e) { e.stopPropagation(); closeCar(); });
+    carSheet.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (e.target === carSheet) { closeCar(); return; }
+      var row = e.target.closest('[data-mv-open]');
+      if (row) { var id = row.getAttribute('data-mv-open'); carOpen[id] = !carOpen[id]; drawCar(); return; }
+      var ask = e.target.closest('[data-mv-ask]');
+      if (ask) {
+        askMod = ask.getAttribute('data-mod');
+        carSheet.querySelector('.lightbox-ask-mod').textContent = askMod;
+        askText.value = '';
+        askStatus.textContent = '';
+        askBox.hidden = false;
+        askText.placeholder = 'Ask ' + (carData.ownerName || 'the owner') + ' about it';
+        askText.focus();
+        if (askBox.scrollIntoView) askBox.scrollIntoView({ block: 'nearest' });
+        return;
+      }
+      if (e.target.closest('.lightbox-ask-cancel')) { askBox.hidden = true; return; }
+      var send = e.target.closest('.lightbox-ask-send');
+      if (send) {
+        var text = askText.value.trim();
+        if (!text) { askStatus.textContent = 'Write your question first.'; askText.focus(); return; }
+        var token = null;
+        try { token = localStorage.getItem('mt3ukMyBuildsSession'); } catch (err) {}
+        send.disabled = true;
+        askStatus.textContent = 'Sending\u2026';
+        fetch(MT3UK_API + '/profile/messages/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Session-Token': token || '' },
+          body: JSON.stringify({ about: { file: carData.file, mod: askMod }, text: text })
+        }).then(function (r) { return r.json(); }).then(function (data) {
+          send.disabled = false;
+          if (!data.success) { askStatus.textContent = data.message || 'Could not send, please try again.'; return; }
+          askText.value = '';
+          askStatus.innerHTML = 'Sent. ' + carEsc(carData.ownerName || 'The owner') + '\u2019s reply will show in your <a href="profile.html#messages">messages</a>.';
+        }).catch(function () { send.disabled = false; askStatus.textContent = 'Could not send, please try again.'; });
+      }
+    });
     var closeBtn = lightbox.querySelector('.lightbox-close');
     var prevBtn = lightbox.querySelector('.lightbox-prev');
     var nextBtn = lightbox.querySelector('.lightbox-next');
@@ -1181,8 +1297,13 @@
       lightboxImg.alt = p.caption || 'MT3UK member build';
       lightboxCaption.textContent = p.caption || '';
       var mods = p.mods || [];
-      lightboxMods.textContent = mods.length ? 'Mods: ' + mods.join(' · ') : '';
+      modsBtn.querySelector('span').textContent = 'Mods (' + mods.length + ')';
+      modsPanel.querySelector('ul').innerHTML = mods.map(function (m) {
+        return '<li>' + String(m).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }) + '</li>';
+      }).join('');
       lightboxMods.classList.toggle('has-mods', mods.length > 0);
+      setModsOpen(false);
+      closeCar();
       if (social) social.show(p.file);
       var alreadyReported = reportedFiles.indexOf(p.file) !== -1;
       reportBtn.disabled = alreadyReported;
@@ -1300,6 +1421,8 @@
     }
 
     function closeLightbox() {
+      setModsOpen(false);
+      closeCar();
       lightbox.classList.remove('open');
       lightbox.setAttribute('aria-hidden', 'true');
       lightboxImg.src = '';
@@ -1317,6 +1440,8 @@
         if (idx === -1) return;
         var claimBadgeEl = e.target.closest('.g-claim-badge');
         openLightbox(idx);
+        // The mods badge on a photo opens its mods list straight away.
+        if (e.target.closest('.g-mods-badge')) setModsOpen(true);
         if (claimBadgeEl) {
           e.stopPropagation();
           claimBtn.click();
@@ -1350,7 +1475,11 @@
 
     document.addEventListener('keydown', function (e) {
       if (!lightbox.classList.contains('open')) return;
-      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'Escape') {
+        if (!carSheet.hidden) closeCar();
+        else if (!modsPanel.hidden) setModsOpen(false);
+        else closeLightbox();
+      }
       if (e.key === 'ArrowRight') goNext();
       if (e.key === 'ArrowLeft') goPrev();
     });

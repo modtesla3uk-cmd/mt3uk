@@ -2316,17 +2316,17 @@
   /* 01 Explore MT3UK: centred on desktop like the other section headings. */
   @media (min-width: 901px) { .categories-prefix, .categories-title { display: block; text-align: center; } }
   .categories-prefix { font-size: 0.82rem; font-weight: 600; }
-  /* About: "Play intro" plays the first-visit intro again. */
-  .about-intro { margin: 14px 0 0; }
-  .about-intro a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: 0.86rem; font-weight: 600; color: var(--steel); text-decoration: none; }
-  .about-intro a:hover { color: var(--orange); }
-  .about-intro .icon { width: 18px; height: 18px; }
+  /* "Play intro" at the bottom corner of the first screen. */
+  .hp-play-intro { position: absolute; left: 16px; bottom: 12px; z-index: 3; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 4px; font-family: var(--font-body); font-size: 0.8rem; font-weight: 600; letter-spacing: 0; color: rgba(243, 241, 234, 0.72); text-decoration: none; }
+  .hp-play-intro:hover { color: #f3f1ea; }
+  .hp-play-intro svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  @media (min-width: 901px) { .hp-play-intro { left: auto; right: max(16px, calc((100% - var(--content-max, 1000px)) / 2 + 24px)); } }
   /* About: the facts box only as tall as its rows. */
   .specs { align-self: start; }
 </style>
 </head>
 <body>
-<!-- MT3UK intro: plays on the first visit on each phone or computer (not in the installed app). The logo arrives, then a welcome screen says what's here (Join free, Look around). "Play intro" in About plays it again. -->
+<!-- MT3UK intro: plays on the first visit on each phone or computer (not in the installed app). The logo arrives, then a welcome screen says what's here (Join free, Look around). "Play intro" on the first screen plays it again. -->
 <script>
 (function () {
   var KEY = 'mt3ukIntroSeen';
@@ -2450,39 +2450,10 @@
     doc.appendChild(el);
     try { el.focus({ preventScroll: true }); } catch (e) {}
 
-    // Whoosh sound, synthesised with Web Audio (no audio file). Browsers only allow it
-    // once the visitor has interacted with the site, so it stays silent otherwise.
-    var AC = window.AudioContext || window.webkitAudioContext, ac = null;
-    function whoosh(delay, dur, f0, f1, vol) {
-      if (!ac || ac.state !== 'running') return;
-      try {
-        var t = ac.currentTime + delay, n = Math.floor(ac.sampleRate * dur);
-        var buf = ac.createBuffer(1, n, ac.sampleRate), d = buf.getChannelData(0);
-        for (var j = 0; j < n; j++) d[j] = Math.random() * 2 - 1;
-        var src = ac.createBufferSource(); src.buffer = buf;
-        var bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 1.4;
-        bp.frequency.setValueAtTime(f0, t); bp.frequency.exponentialRampToValueAtTime(f1, t + dur);
-        var g = ac.createGain(); g.gain.setValueAtTime(0.0001, t);
-        g.gain.exponentialRampToValueAtTime(vol, t + dur * 0.35);
-        g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-        src.connect(bp); bp.connect(g); g.connect(ac.destination);
-        src.start(t); src.stop(t + dur + 0.05);
-      } catch (e) {}
-    }
-    if (!reduced && AC) { try { ac = new AC(); } catch (e) {} }
-
     var done = false;
     function finish(ev) {
       if (done) return;
       done = true;
-      if (ac) {
-        if (ev && ac.state !== 'running' && ac.resume) {
-          try { ac.resume().then(function () { whoosh(0, 0.7, 2400, 350, 0.22); }, function () {}); } catch (e) {}
-        } else {
-          whoosh(0, 0.7, 2400, 350, 0.22);
-        }
-        setTimeout(function () { try { ac.close(); } catch (e) {} }, 1500);
-      }
       el.classList.add('ix-out');
       doc.classList.remove('mt3uk-intro-lock');
       setTimeout(function () {
@@ -2517,7 +2488,6 @@
       if (started) return;
       started = true;
       el.classList.add('ix-go');
-      whoosh(0.35, 1.2, 250, 3200, 0.25);
     }
     var img = new Image();
     img.onload = img.onerror = start;
@@ -2526,7 +2496,7 @@
     setTimeout(start, 500);
   }
 
-  // "Play intro" in About plays it again without reloading the page.
+  // "Play intro" on the first screen plays it again without reloading the page.
   window.mt3ukPlayIntro = show;
   document.addEventListener('click', function (e) {
     var link = e.target.closest && e.target.closest('#play-intro');
@@ -3084,6 +3054,7 @@
       <div class="hero-media" style="display:none;"></div>
     </div>
   </div>
+  <a href="index.html?intro=1" id="play-intro" class="hp-play-intro"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m10 8.5 5 3.5-5 3.5Z"/></svg>Play intro</a>
   <button type="button" class="hp-scroll-cue" id="hp-scroll-cue" aria-label="Scroll down to Explore MT3UK">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8l7 7 7-7"/><path d="M5 2l7 7 7-7" class="hp-scroll-cue-back"/></svg>
   </button>
@@ -4984,7 +4955,6 @@
         <p>Whatever you're driving (Model S, 3, X or Y) and whatever stage your build is at, from a first set of wheels to a full track setup, you'll find people in the group who've done it, are doing it, or want to help you get there.</p>
         <p>We keep the group free from bots, spam and negativity, with a team of trusted admins on hand. Regular meet-ups across the UK and beyond, and a shared respect for doing mods properly.</p>
         <a href="https://www.facebook.com/groups/mt3uk/" class="btn btn-join-community" target="_blank" rel="noopener">Join The Facebook Group</a>
-        <p class="about-intro"><a href="index.html?intro=1" id="play-intro"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m10 8.5 5 3.5-5 3.5Z"/></svg>Play intro</a></p>
       </div>
       <div class="specs">
         <div class="spec-row"><span>Members</span><span class="member-count"></span></div>

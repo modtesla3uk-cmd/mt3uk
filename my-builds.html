@@ -862,6 +862,19 @@
   .mbm-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
   .mbm-label { font-size: 0.86rem; font-weight: 600; color: var(--ink); }
   .mbm-hint { font-size: 0.82rem; color: var(--steel); }
+  .mbm-group { grid-column: 1 / -1; margin: 4px 0 -4px; font-size: 0.8rem; font-weight: 700; color: var(--steel); }
+  .mbm-coil-grid, .mbm-private .mbm-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  @media (max-width: 780px) { .mbm-private .mbm-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 780px) { .mbm-coil-grid { grid-template-columns: 1fr 1fr; } }
+  .mbm-more { display: grid; gap: 12px; padding: 12px; border: 1px solid var(--hairline); border-radius: var(--radius-sm); background: var(--paper); }
+  .mbm-more-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .mbm-more-head .btn { min-height: 36px; }
+  .mbm-list-head { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; justify-content: space-between; }
+  .mbm-list-head > div:first-child { display: grid; gap: 2px; }
+  .mbm-list-head .mbm-meter { flex: 1; min-width: 160px; max-width: 280px; }
+  .mbm .mv-body .mbm-area { border: 0; background: none; }
+  .mbm .mv-body .mbm-area-body { padding: 8px 0 0; border-top: 0; }
+  .mbm .mv-body > .mbm-grid, .mbm .mv-body > .mbm-row { margin-top: 10px; }
   .mbm-note { margin: 0; padding: 12px 14px; border-radius: var(--radius-sm); background: #fdf3ef; font-size: 0.9rem; color: var(--ink); }
   .mbm-welcome { display: grid; gap: 12px; padding: 18px; border-radius: var(--radius); background: var(--ink); color: #fff; }
   .mbm-welcome h3 { color: #fff; }
@@ -938,6 +951,7 @@
   }
   @media (max-width: 420px) {
     .mbm-grid { grid-template-columns: 1fr; }
+    .mbm-grid.mbm-coil-grid { grid-template-columns: 1fr 1fr; }
   }
   @media (prefers-reduced-motion: reduce) {
     .mbm-chev, .mbm-switch input, .mbm-switch input::after { transition: none; }
@@ -1183,7 +1197,7 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
             <div class="mb-field">
             <label for="mb-submit-year">Year (optional)</label>
-            <input type="text" id="mb-submit-year" name="year" inputmode="numeric" maxlength="4" placeholder="e.g. 2021">
+            <select id="mb-submit-year" name="year" data-year-select><option value="">Choose</option></select>
             </div>
           </div>
           <div class="mb-field">
@@ -1307,7 +1321,7 @@ document.addEventListener('DOMContentLoaded', function () {
               </div>
               <div class="mb-field">
                 <label for="mb-addcar-year">Year (optional)</label>
-                <input type="text" id="mb-addcar-year" name="year" inputmode="numeric" maxlength="4" placeholder="e.g. 2021">
+                <select id="mb-addcar-year" name="year" data-year-select><option value="">Choose</option></select>
               </div>
             </div>
             <div class="mb-field">
@@ -1554,6 +1568,7 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 <script src="js/passkeys.js"></script>
+<script src="js/mods-view.js"></script>
 <script src="js/mods-builder.js"></script>
 <script>
   (function () {
@@ -2628,6 +2643,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (data.car.id !== currentCarId) { currentCarId = data.car.id; car.id = data.car.id; car.virtual = false; }
             car.mods = data.car.mods || car.mods;
             car.specs = data.car.specs || car.specs;
+            if (data.car.view) car.view = data.car.view;
             car.plans = data.car.plans || car.plans;
             if ('version' in data.car) car.version = data.car.version;
             if ('year' in data.car) car.year = data.car.year;
@@ -2641,6 +2657,15 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderCarMods(car) {
       if (modsBuilder) modsBuilder.show(car);
     }
+
+    // Year drop-downs on Add a car: this year back to 2018.
+    document.querySelectorAll('select[data-year-select]').forEach(function (sel) {
+      for (var y = new Date().getFullYear(); y >= 2018; y--) {
+        var opt = document.createElement('option');
+        opt.value = opt.textContent = String(y);
+        sel.appendChild(opt);
+      }
+    });
 
     var carModelSelect = document.getElementById('mb-car-model-select');
     carModelSelect.addEventListener('change', function () {

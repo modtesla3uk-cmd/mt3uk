@@ -57,12 +57,23 @@ def test_intro_says_what_is_here_and_can_be_played_again(device_page):
     page.keyboard.press("Escape")
     intro.wait_for(state="detached", timeout=5000)
 
-    # "Play intro" in About brings it back without leaving the page.
-    link = page.locator("#play-intro")
-    link.scroll_into_view_if_needed()
+    # "Play intro" on the first screen brings it back without leaving the
+    # page.
+    page.evaluate("window.scrollTo(0, 0)")
+    link = page.locator("#hp-hero #play-intro")
+    assert link.count() == 1
+    box = link.bounding_box()
+    assert box and box["y"] + box["height"] <= page.viewport_size["height"], "On the first screen"
     link.click()
     intro.wait_for(state="visible", timeout=5000)
     assert page.url.endswith("/index.html")
     intro.locator(".ix-skip").click()
     intro.wait_for(state="detached", timeout=5000)
     assert page.errors == [], diagnostics(page)
+
+
+def test_intro_is_silent():
+    from pathlib import Path
+    html = (Path(__file__).resolve().parent.parent / "index.html").read_text(encoding="utf-8")
+    intro = html.split("<!-- MT3UK intro:", 1)[1].split("</script>", 1)[0]
+    assert "AudioContext" not in intro and "whoosh" not in intro

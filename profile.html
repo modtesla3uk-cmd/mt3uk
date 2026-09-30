@@ -638,6 +638,7 @@
           <label class="pf-check"><input type="radio" name="pf-show" value="name" id="pf-show-name"> <span>My full name <span class="pf-muted" id="pf-show-name-eg"></span></span></label>
         </fieldset>
         <label class="pf-check"><input type="checkbox" id="pf-findable"> <span>Let members find me by my real name when they search for friends. Your nickname can always be searched.</span></label>
+        <label class="pf-check"><input type="checkbox" id="pf-mod-questions"> <span>Let members ask about my mods. Anyone signed in can send you a question about a part on your build from its mods list, even if you aren't friends.</span></label>
         <p class="si-status" id="pf-vis-status" role="status"></p>
 
         <div class="pf-push" id="notifications" data-push-card>
@@ -973,6 +974,7 @@
       $('pf-show-nick-eg').textContent = profile.nickname ? '(' + profile.nickname + ')' : '';
       $('pf-show-name-eg').textContent = full ? '(' + full + ')' : '(add your name in Your details first)';
       $('pf-findable').checked = !profile.hideRealName;
+      $('pf-mod-questions').checked = !profile.modQuestionsOff;
     }
     function saveVisibility(body, undo) {
       status($('pf-vis-status'), 'Saving…');
@@ -980,6 +982,7 @@
         if (!data.success) { undo(); status($('pf-vis-status'), data.message || 'Could not save.', 'err'); return; }
         profile.showName = data.showName;
         profile.hideRealName = data.hideRealName;
+        profile.modQuestionsOff = data.modQuestionsOff;
         drawVisibility();
         status($('pf-vis-status'), 'Saved.' + ('showName' in body ? ' Your builds, comments and likes will show ' + (data.showName === 'name' ? 'your full name' : 'your nickname') + ' shortly.' : ''), 'ok');
       }).catch(function (err) { undo(); if (err.message !== 'signed out') status($('pf-vis-status'), 'Network error, please try again.', 'err'); });
@@ -992,6 +995,9 @@
     });
     $('pf-findable').addEventListener('change', function () {
       saveVisibility({ hideRealName: !$('pf-findable').checked }, drawVisibility);
+    });
+    $('pf-mod-questions').addEventListener('change', function () {
+      saveVisibility({ modQuestionsOff: !$('pf-mod-questions').checked }, drawVisibility);
     });
 
     // ---------- Passkeys ----------

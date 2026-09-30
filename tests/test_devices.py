@@ -389,6 +389,7 @@ def api_reply(url, method, post_data, state):
     if path == "/my-builds" and method == "GET":
         car = dict(GARAGE_CAR, name=state.get("car_name", GARAGE_CAR["name"]))
         car.update(state.get("car_details", {}))
+        car["view"] = mock_specs_to_view(car.get("specs"), car.get("mods"))
         return {"success": True, "email": "member@example.com", "firstName": "Test", "lastName": "Member", "shownAs": "TestMember", "cars": [car], "voteEntry": GARAGE_VOTE_ENTRY}
     if path == "/my-builds/car" and method == "PUT":
         try:
@@ -409,7 +410,14 @@ def api_reply(url, method, post_data, state):
             details["specs"] = body["specs"]
             details["mods"] = mock_specs_to_mods(body["specs"])
         car.update(details)
+        car["view"] = mock_specs_to_view(details.get("specs"), details.get("mods", GARAGE_CAR["mods"]))
         return {"success": True, "car": car}
+    if path == "/cars/public" and method == "GET":
+        return state.get("car_public") or {
+            "success": True, "file": "test-build.jpg", "name": "Test Model 3", "model": "Model 3", "version": "Performance",
+            "year": 2019, "ownerName": "Richard", "ownerId": "o1", "canAsk": True,
+            "view": mock_specs_to_view({"suspension": {"status": "up", "fields": {"make": "KW", "model": "V3"}, "fitted": {"year": 2023}},
+                                        "performance": {"status": "stock"}}, owner=False)}
     if path in ("", "/") and method == "POST":
         state.setdefault("submits", []).append(post_data or "")
         return {"success": True, "carId": GARAGE_CAR["id"], "photo_urls": []}
@@ -429,6 +437,43 @@ def mock_specs_to_mods(specs):
         words = " ".join(v for k, v in (spec.get("fields") or {}).items() if isinstance(v, str))
         lines.append(area.capitalize() + (": " + words if words else ""))
     return lines
+
+
+MOD_AREA_LABELS = [("wheels", "Wheels"), ("tyres", "Tyres"), ("suspension", "Suspension"), ("brakes", "Brakes"),
+                   ("bodywork", "Bodywork"), ("interior", "Interior"), ("performance", "Performance"),
+                   ("audio", "Audio and tech"), ("other", "Anything else")]
+
+
+def mock_specs_to_view(specs, mods=None, owner=True):
+    """A rough stand-in for specsToView in the worker: the areas with their
+    parts, and the owner-only "Fitted" line when owner is true."""
+    if not specs:
+        return [{"id": "mods", "label": "Mods", "status": "up", "parts": [{"what": m} for m in (mods or [])]}] if mods else []
+    view = []
+    for area_id, label in MOD_AREA_LABELS:
+        a = specs.get(area_id) or {}
+        status = a.get("status") if a.get("status") in ("up", "stock") else "todo"
+        parts = []
+        if status == "up":
+            def add(part, fitted=None):
+                if owner and fitted and fitted.get("year"):
+                    part["meta"] = "Fitted %s" % fitted["year"]
+                parts.append(part)
+            words = " ".join(v for v in (a.get("fields") or {}).values() if isinstance(v, str))
+            if words:
+                add({"what": words}, a.get("fitted"))
+            for kind, kv in (a.get("kinds") or {}).items():
+                text = " ".join(v for v in kv.values() if isinstance(v, str))
+                if text or owner:
+                    add(dict({"kind": kind.capitalize(), "what": text}, **({} if text else {"empty": True})), kv.get("fitted"))
+            for m in a.get("more") or []:
+                text = " ".join(v for v in m.values() if isinstance(v, str))
+                if text:
+                    add({"what": text}, m.get("fitted"))
+            for line in a.get("items") or []:
+                add({"what": line})
+        view.append({"id": area_id, "label": label, "status": status, "parts": parts})
+    return view
 
 
 def passkey_reply(path, post_data, state):
@@ -473,7 +518,7 @@ def profile_reply(path, method, post_data, state):
         body = {}
     p = state.setdefault("profile", {
         "firstName": "Test", "lastName": "Member", "nickname": state.get("start_nickname", "TestMember"), "emailsOff": False,
-        "showName": "nickname", "hideRealName": False,
+        "showName": "nickname", "hideRealName": False, "modQuestionsOff": False,
         "friends": [{"id": "f1", "nickname": "Sharad", "name": "Sharad", "builds": ["test-build.jpg"]}],
         "incoming": [{"id": "r1", "nickname": "RyanK", "name": "RyanK"}],
         "outgoing": [],
@@ -485,7 +530,7 @@ def profile_reply(path, method, post_data, state):
     state.setdefault("profile_calls", []).append((method, path, body))
     if path == "/profile" and method == "GET":
         return {"success": True, "email": "member@example.com", "id": "me", "firstName": p["firstName"], "lastName": p["lastName"],
-                "nickname": p["nickname"], "showName": p["showName"], "hideRealName": p["hideRealName"], "apps": state.get("apps", {}), "emailsOff": p["emailsOff"], "member": True, "since": "2026-01-10T10:00:00Z",
+                "nickname": p["nickname"], "showName": p["showName"], "hideRealName": p["hideRealName"], "modQuestionsOff": p.get("modQuestionsOff", False), "apps": state.get("apps", {}), "emailsOff": p["emailsOff"], "member": True, "since": "2026-01-10T10:00:00Z",
                 "builds": ["test-build.jpg"], "friends": p["friends"], "incoming": p["incoming"], "outgoing": p["outgoing"],
                 "unread": {"broadcasts": 1, "direct": 1, "requests": len(p["incoming"])}}
     if path == "/profile" and method == "POST":
@@ -499,11 +544,11 @@ def profile_reply(path, method, post_data, state):
         state["saved_once"] = True
         if body.get("nickname") == "taken":
             return {"success": False, "message": "That nickname is taken. Try another."}
-        for k in ("firstName", "lastName", "nickname", "emailsOff", "showName", "hideRealName"):
+        for k in ("firstName", "lastName", "nickname", "emailsOff", "showName", "hideRealName", "modQuestionsOff"):
             if k in body:
                 p[k] = body[k]
         return {"success": True, "firstName": p["firstName"], "lastName": p["lastName"], "nickname": p["nickname"],
-                "showName": p["showName"], "hideRealName": p["hideRealName"], "emailsOff": p["emailsOff"]}
+                "showName": p["showName"], "hideRealName": p["hideRealName"], "emailsOff": p["emailsOff"], "modQuestionsOff": p.get("modQuestionsOff", False)}
     if path == "/profile/search":
         return {"success": True, "results": [{"id": "s2", "nickname": "Shaz", "name": "Shaz", "status": ""}]}
     if path == "/profile/friends":
@@ -529,7 +574,15 @@ def profile_reply(path, method, post_data, state):
         return {"success": True}
     if path == "/profile/messages/thread":
         state["thread_read"] = True
+        if state.get("thread_about"):
+            # A member who isn't a friend asked about one of your mods.
+            p["thread"][0]["about"] = {"mod": "KW V3 coilovers", "file": "test-build.jpg"}
+            return {"success": True, "with": {"id": "f1", "nickname": "Sharad", "name": "Sharad"}, "friend": False, "canReply": True, "messages": p["thread"]}
         return {"success": True, "with": {"id": "f1", "nickname": "Sharad", "name": "Sharad"}, "friend": True, "messages": p["thread"]}
+    if path == "/profile/messages/send" and body.get("about"):
+        # A question about a mod, from the Gallery's Full mods list.
+        state.setdefault("mod_questions", []).append(body)
+        return {"success": True, "message": {"id": "q1", "text": body.get("text"), "at": "2026-09-29T10:00:00Z", "mine": True, "about": body["about"]}}
     if path == "/profile/messages/send":
         # A photo comes as form data (WebKit may not pass the body on, so
         # the test can say a photo is on its way).

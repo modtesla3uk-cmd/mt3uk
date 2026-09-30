@@ -1082,3 +1082,34 @@ def test_save_an_image_from_a_message(device_page):
             save.click()
         assert dl.value.suggested_filename.startswith("mt3uk-photo")
     assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_members_can_ask_about_my_mods_switch(device_page):
+    page = device_page
+    signed_in(page)
+    page.goto("/profile.html#visibility")
+    page.locator("#pf-app").wait_for(state="visible", timeout=5000)
+    switch = page.locator("#pf-mod-questions")
+    assert switch.is_checked(), "On by default"
+    page.mock_state["fallback_body"] = {"modQuestionsOff": True}
+    switch.uncheck()
+    page.wait_for_function("document.getElementById('pf-vis-status').textContent === 'Saved.'", timeout=5000)
+    assert page.mock_state["profile"]["modQuestionsOff"] is True
+    page.reload()
+    page.locator("#pf-app").wait_for(state="visible", timeout=5000)
+    assert not page.locator("#pf-mod-questions").is_checked()
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_a_question_about_a_mod_shows_the_mod_and_can_be_answered(device_page):
+    page = device_page
+    page.mock_state["thread_about"] = True
+    _open_sharad(page)
+    about = page.locator('#mc-bubbles .mc-msg[data-id="m1"] .mc-about')
+    assert "About this mod" in about.inner_text() and "KW V3 coilovers" in about.inner_text()
+    assert about.get_attribute("href") == "gallery.html?photo=test-build.jpg"
+    # Not friends, but they asked, so the reply box is there.
+    assert page.locator("#mc-compose").is_visible()
+    assert page.errors == [], diagnostics(page)

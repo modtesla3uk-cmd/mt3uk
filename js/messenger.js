@@ -168,6 +168,8 @@
     '.mc-msg.mine .mc-quote{background:rgba(255,255,255,.2);border-left-color:#fff}',
     '.mc-bubble.has-photo .mc-quote{margin:4px 4px 6px;width:calc(100% - 8px)}',
     '.mc-quote strong{display:block;font-size:.72rem}',
+    'a.mc-about{text-decoration:none;white-space:normal;background:#fdf3ef;opacity:1}',
+    '.mc-msg.mine a.mc-about{background:rgba(255,255,255,.2)}',
     '.mc-reacts{position:absolute;bottom:-12px;right:8px;display:inline-flex;align-items:center;gap:1px;padding:1px 5px;border-radius:999px;background:#fff;box-shadow:0 1px 4px rgba(22,35,61,.25);font-size:.8rem;line-height:1.4}',
     '.mc-msg:not(.mine) .mc-reacts{right:auto;left:8px}',
     '.mc-msg.has-reacts .mc-msg-meta{margin-top:14px}',
@@ -448,11 +450,13 @@
       if (!data.success) { status($('mc-thread-status'), data.message || 'Could not open this conversation.', 'err'); return; }
       knownNames[id] = data.with.name;
       $('mc-title').textContent = data.with.name + (data.with.nickname && data.with.nickname !== data.with.name ? ' (' + data.with.nickname + ')' : '');
-      $('mc-compose').hidden = !data.friend;
-      if (!data.friend) status($('mc-thread-status'), 'You are no longer friends, so you can read these messages but not reply.');
+      // Friends, or a member who asked about one of your mods.
+      var canReply = 'canReply' in data ? data.canReply : data.friend;
+      $('mc-compose').hidden = !canReply;
+      if (!canReply) status($('mc-thread-status'), 'You are no longer friends, so you can read these messages but not reply.');
       drawBubbles(data.messages);
       loadMessages().catch(function () {});
-      if (window.matchMedia('(hover: hover) and (pointer: fine)').matches && data.friend) $('mc-compose-text').focus();
+      if (window.matchMedia('(hover: hover) and (pointer: fine)').matches && canReply) $('mc-compose-text').focus();
     }).catch(function () {});
   }
 
@@ -464,6 +468,10 @@
     var r = m.replyTo;
     var quote = r ? '<button type="button" class="mc-quote" data-jump="' + esc(r.id || '') + '"><strong>' + (r.gone ? 'Message' : r.mine ? 'You' : esc(name || 'Them')) + '</strong>' +
       (r.gone ? 'No longer available' : r.text ? esc(r.text) : r.photo ? 'Photo' : '') + '</button>' : '';
+    // A question about a mod on a build, from its mods list in the Gallery.
+    if (m.about && m.about.mod) {
+      quote = '<a class="mc-quote mc-about" href="gallery.html?photo=' + encodeURIComponent(m.about.file || '') + '"><strong>About this mod</strong>' + esc(m.about.mod) + '</a>' + quote;
+    }
     var reacts = [m.theirReaction, m.myReaction].filter(function (x) { return REACTIONS.indexOf(x) !== -1; });
     if (reacts.length === 2 && reacts[0] === reacts[1]) reacts = [reacts[0] + '2'];
     var heart = reacts.length ? '<span class="mc-reacts" aria-label="Reactions">' + esc(reacts.join('')) + '</span>' : '';

@@ -6,6 +6,7 @@ page shows only a Coming soon card (js/event-gate.js), and only the admin can
 open it early, with Preview. Published events are featured on the homepage.
 On localhost the gate is off unless the page has ?gate=on."""
 import base64
+import copy
 import json
 import re
 from pathlib import Path
@@ -274,6 +275,14 @@ def test_homepage_has_no_event_cards_when_there_are_no_events(device_page):
 @ADMIN_ONLY
 def test_admin_can_preview_publish_draft_and_delete(device_page):
     page = device_page
+    # The live file changes as events are published, so this starts from a
+    # copy with Frunk or Treat still a draft.
+    events = copy.deepcopy(json.loads((ROOT / "data" / "event-pages.json").read_text(encoding="utf-8")))
+    for ev in events["events"]:
+        if ev["slug"] == "frunk-or-treat-uk":
+            ev["draft"] = True
+            ev.pop("publish", None)
+    page.mock_state["event_pages_file"] = events
     open_events_admin(page)
     frunk = page.locator('#ep-list .event-card[data-slug="frunk-or-treat-uk"]')
     frunk.wait_for(state="visible", timeout=5000)

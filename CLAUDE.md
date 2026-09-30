@@ -48,7 +48,7 @@ Static site for the MT3UK modified Tesla community, live at https://mt3uk.com. I
 
 - `event-template.html` is the template. Copy it to `event-<slug>.html` and follow the how-to comment at the top. Images are striped `.ph` placeholders that say their size.
 - `data/event-pages.json` lists every event page as a draft (`"draft": true`) or with a `publish` date (UK time). Add an entry for each new page (name, title, tagline, url, image, startDate, endDate, location, created).
-- `js/event-gate.js` (in each page's `<head>`) shows only a Coming soon card until the publish date. Only the admin can open it early: **Event pages** on `admin.html` has Preview (a one-time link, 4 hours), Publish now, Schedule and Draft. There is no public code or sign-up. A page not listed in the file, or a failed read of the file, stays hidden. The gate is off on localhost; add `?gate=on` to try it.
+- `js/event-gate.js` (in each page's `<head>`) shows only a Coming soon card until the publish date. Only the admin can open it early: **Event pages** on `events-admin.html` has Preview (a one-time link, 4 hours), Publish now, Schedule and Draft. There is no public code or sign-up. A page not listed in the file, or a failed read of the file, stays hidden. The gate is off on localhost; add `?gate=on` to try it.
 - Published events are featured on the homepage Events section (image and tagline) until `endDate` has passed.
 - Worker routes are under `/events/pages/`. Tests: `tests/test_event_pages.py`.
 

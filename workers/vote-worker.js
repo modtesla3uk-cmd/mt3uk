@@ -1928,7 +1928,7 @@ async function handleInterviewsAdminAction(request, env) {
 // Each event page (event-<slug>.html) is listed in data/event-pages.json as a
 // draft or with a publish date (UK time), like Owner Interviews. Until it is
 // published its page shows only a Coming soon card (js/event-gate.js). Only
-// the admin can open it early: the admin page's Preview button mints a
+// the admin can open it early: the events-admin page's Preview button mints a
 // one-time link here (needs the admin key), and the page swaps that link for
 // 4 hours of access in that browser. Access tokens are one KV key each, read
 // with get() only. Draft, Publish now and Schedule are one commit to

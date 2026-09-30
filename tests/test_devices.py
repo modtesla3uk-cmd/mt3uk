@@ -217,6 +217,8 @@ def api_reply(url, method, post_data, state):
             line = iv["name"] + " published now"
         state.setdefault("interview_actions", []).append((action, url))
         return {"success": True, "interviews": file["interviews"], "change": line}
+    if path == "/events/admin" and method == "GET":
+        return {"success": True, "events": []}
     if path == "/events/pages/admin/preview-link":
         # The admin page's Preview button: a one-time link for one event page.
         state["event_preview_minted"] = True

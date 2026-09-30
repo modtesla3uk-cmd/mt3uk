@@ -106,6 +106,12 @@
   details > summary h2::before { content: "\25B8\00a0"; color: var(--orange); }
   details[open] > summary h2::before { content: "\25BE\00a0"; }
   .past .event-card { opacity: 0.7; }
+  .event-id.live { color: var(--green); border-color: var(--green); }
+  .event-id.draft { color: var(--steel); border-color: var(--steel); }
+  .ep-schedule { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+  .ep-schedule input { width: auto; min-width: 10em; }
+  .ep-schedule button { padding: 6px 12px; font-size: 0.72rem; }
+  .ep-note { color: var(--steel); font-size: 0.72rem; margin: 0 0 14px; }
 
   /* Phones: larger text and tap targets. Desktop is unchanged. Inputs use
      16px so iOS doesn't zoom in on focus. */
@@ -144,6 +150,14 @@
   <p class="status" id="status" role="status"></p>
 
   <div id="admin-body" class="hidden">
+    <section>
+      <details id="ep-wrap" open>
+        <summary><h2>Event pages <span class="count" id="ep-count"></span></h2></summary>
+        <p class="ep-note">Full event pages, made by copying event-template.html. Each is a draft, scheduled or live. Until it is live, the public only sees a Coming soon card and only you can open it: <strong>Preview</strong> opens it for 4 hours in this browser. From its publish date it goes live and is featured, with its image and tagline, in the homepage Events section until the event is over. Changes save as one commit and the site updates in about a minute.</p>
+        <div id="ep-list"></div>
+      </details>
+    </section>
+
     <section>
       <form class="form-card" id="event-form" novalidate>
         <h2 id="form-title">Add an event</h2>
@@ -210,6 +224,138 @@
     </section>
   </div>
 </main>
+<script>
+// Event pages: Preview, Publish now, Schedule and Draft for the pages listed
+// in data/event-pages.json (see js/event-gate.js).
+(function () {
+  var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
+  var listEl = document.getElementById('ep-list');
+  var countEl = document.getElementById('ep-count');
+  var statusEl = document.getElementById('status');
+  var keyInput = document.getElementById('admin-key');
+  var pages = [];
+
+  function key() { return keyInput.value.trim(); }
+  function esc(v) {
+    return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function setStatus(text, kind) {
+    statusEl.textContent = text || '';
+    statusEl.className = 'status' + (kind ? ' ' + kind : '');
+  }
+  function today() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London' }).format(new Date()); }
+  function nice(iso) {
+    return new Date(iso + 'T12:00:00Z').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/London' });
+  }
+  function slugOf(p) { return (p.url.match(/^event-([a-z0-9-]+)\.html$/) || [])[1] || ''; }
+  function stateOf(p) {
+    if (p.draft || !p.publish) return 'draft';
+    return p.publish <= today() ? 'live' : 'scheduled';
+  }
+
+  function render() {
+    countEl.textContent = pages.length ? '(' + pages.length + ')' : '';
+    if (!pages.length) { listEl.innerHTML = '<p class="empty">No event pages yet.</p>'; return; }
+    listEl.innerHTML = pages.map(function (p) {
+      var state = stateOf(p);
+      var u = esc(p.url);
+      var label = state === 'live' ? 'LIVE' : state === 'scheduled' ? 'SCHEDULED' : 'DRAFT';
+      var when = state === 'draft' ? 'Not scheduled' : (state === 'live' ? 'Live since ' : 'Goes live ') + nice(p.publish);
+      return '<div class="event-card">' +
+        '<div class="event-id ' + state + '">' + label + '</div>' +
+        '<div class="event-body">' +
+          '<h3 class="event-name">' + esc(p.name) + '</h3>' +
+          '<p class="event-meta">' + esc(p.url) + (p.startDate ? ' · Event ' + esc(nice(p.startDate)) : '') + (p.location ? ' · ' + esc(p.location) : '') + '</p>' +
+          '<p class="event-meta">' + esc(when) + '</p>' +
+          (p.tagline ? '<p class="event-desc">' + esc(p.tagline) + '</p>' : '') +
+          (state === 'live' ? '' :
+            '<div class="ep-schedule"><input type="date" class="ep-date" data-url="' + u + '" value="' + (state === 'scheduled' ? esc(p.publish) : '') + '" aria-label="Publish date for ' + esc(p.name) + '">' +
+            '<button type="button" class="secondary" data-ep="schedule" data-url="' + u + '">Schedule</button></div>') +
+        '</div>' +
+        '<div class="event-actions">' +
+          '<button type="button" data-ep="preview" data-url="' + u + '">Preview</button>' +
+          (state === 'live' ? '' : '<button type="button" class="secondary" data-ep="publish-now" data-url="' + u + '">Publish now</button>') +
+          (state === 'draft' ? '' : '<button type="button" class="secondary" data-ep="draft" data-url="' + u + '">Draft</button>') +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  // Preview: the worker makes a one-time link (needs the admin key), which
+  // opens in a new tab. The tab is opened straight away so it isn't blocked.
+  function preview(p, btn) {
+    if (!key()) { setStatus('Enter the admin key first.', 'error'); return; }
+    var tab = window.open('', '_blank');
+    btn.disabled = true;
+    setStatus('Making a preview link...');
+    fetch(API + '/events/pages/admin/preview-link?key=' + encodeURIComponent(key()), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: slugOf(p) })
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        btn.disabled = false;
+        if (!data.success || !data.token) {
+          if (tab) tab.close();
+          setStatus(data.message === 'Unauthorized' ? 'The admin key is not right.' : (data.message || 'Could not make a preview link.'), 'error');
+          return;
+        }
+        var href = p.url + '?gate=on&preview=' + encodeURIComponent(data.token);
+        if (tab) tab.location.href = href; else window.location.href = href;
+        setStatus('Preview opened for 4 hours in this browser.', 'ok');
+      })
+      .catch(function () { btn.disabled = false; if (tab) tab.close(); setStatus('Network error, please try again.', 'error'); });
+  }
+
+  function run(action, url, btn) {
+    var p = pages.filter(function (x) { return x.url === url; })[0];
+    if (!p) return;
+    if (action === 'preview') { preview(p, btn); return; }
+    if (!key()) { setStatus('Enter the admin key first.', 'error'); return; }
+    var date = '';
+    var question;
+    var state = stateOf(p);
+    if (action === 'draft') {
+      question = 'Move ' + p.name + ' to drafts?' + (state === 'live' ? '\n\nIt is live now. Its page goes back behind the Coming soon card and it comes off the homepage.' : '\n\nIts publish date is cleared.');
+    } else if (action === 'publish-now') {
+      question = 'Publish ' + p.name + ' now?\n\nThe page goes live to everyone today and is featured on the homepage Events section.';
+    } else {
+      var input = document.querySelector('.ep-date[data-url="' + url + '"]');
+      date = input && input.value;
+      if (!date) { setStatus('Choose a publish date for ' + p.name + ' first.', 'error'); return; }
+      question = 'Schedule ' + p.name + ' to go live on ' + nice(date) + '?';
+    }
+    if (!window.confirm(question)) return;
+    btn.disabled = true;
+    setStatus('Saving...');
+    fetch(API + '/events/pages/admin/action?key=' + encodeURIComponent(key()), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: action, url: url, date: date, from: { publish: p.publish || '', draft: !!p.draft } })
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        btn.disabled = false;
+        if (!data.success) { setStatus(data.message === 'Unauthorized' ? 'The admin key is not right.' : (data.message || 'Could not save.'), 'error'); return; }
+        pages = data.events;
+        render();
+        setStatus('Saved: ' + data.change + '. The live site updates in about a minute.', 'ok');
+      })
+      .catch(function () { btn.disabled = false; setStatus('Network error, nothing was saved. Please try again.', 'error'); });
+  }
+
+  document.getElementById('ep-wrap').addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-ep]');
+    if (btn) run(btn.getAttribute('data-ep'), btn.getAttribute('data-url'), btn);
+  });
+
+  fetch('data/event-pages.json', { cache: 'no-store' })
+    .then(function (res) { return res.json(); })
+    .then(function (data) { pages = (data && data.events) || []; render(); })
+    .catch(function () { listEl.innerHTML = '<p class="empty">Could not load data/event-pages.json.</p>'; });
+})();
+</script>
 <script>
 (function () {
   var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';

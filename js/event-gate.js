@@ -1,8 +1,8 @@
 /* Event page gate. An event page (event-<slug>.html) is listed in
    data/event-pages.json as a draft or with a publish date (UK time). Until
    it is published, the page shows a "Coming soon" card instead of the event.
-   Only the admin can open it early: the Event pages section of the admin
-   page has a Preview button that makes a one-time link (?preview=<token>),
+   Only the admin can open it early: the Event pages section of
+   events-admin.html has a Preview button that makes a one-time link (?preview=<token>),
    which opens the page in that browser for 4 hours. There is no public code
    or sign-up for events.
 

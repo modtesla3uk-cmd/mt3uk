@@ -22,6 +22,13 @@ def serve(page, events):
         status=200, body=json.dumps({"events": events}), headers={"Content-Type": "application/json"}))
 
 
+def open_events_admin(page):
+    """Events admin with the key saved, so the page loads straight in."""
+    page.add_init_script("sessionStorage.setItem('mt3ukAdminKey', 'test-key')")
+    page.goto("/events-admin.html")
+    page.locator("#admin-body").wait_for(state="visible", timeout=5000)
+
+
 def template(**changes):
     entry = {"name": "Example event", "title": "Example Event Title", "tagline": "A tagline that sells it.",
              "url": "event-template.html", "startDate": "2099-06-27", "endDate": "2099-06-27",
@@ -136,25 +143,24 @@ def test_homepage_has_no_feature_block_when_nothing_is_live(device_page):
 def test_admin_can_preview_publish_and_draft_an_event_page(device_page):
     page = device_page
     serve(page, [template(draft=True)])
-    page.goto("/admin.html")
-    row = page.locator("#ep-list tbody tr")
-    row.first.wait_for(state="visible", timeout=5000)
-    assert "Draft" in row.first.inner_text()
+    open_events_admin(page)
+    card = page.locator("#ep-list .event-card")
+    card.first.wait_for(state="visible", timeout=5000)
+    assert "DRAFT" in card.first.inner_text()
 
-    # Preview needs the admin key, then opens the page with a one-time link.
-    page.fill("#admin-key", "test-key")
+    # Preview opens the page with a one-time link.
     with page.expect_popup() as popup_info:
-        page.click('#ep-list .ep-act[data-action="preview"]')
+        page.click('#ep-list [data-ep="preview"]')
     popup = popup_info.value
     popup.wait_for_url(re.compile(r"event-template\.html\?gate=on&preview=e{32}"), timeout=5000)
 
     # Publish now, then move it back to a draft.
     page.once("dialog", lambda d: d.accept())
-    page.click('#ep-list .ep-act[data-action="publish-now"]')
-    page.wait_for_function("document.querySelector('#ep-list .iv-status').textContent === 'Live'", timeout=5000)
+    page.click('#ep-list [data-ep="publish-now"]')
+    page.wait_for_function("document.querySelector('#ep-list .event-id').textContent === 'LIVE'", timeout=5000)
     page.once("dialog", lambda d: d.accept())
-    page.click('#ep-list .ep-act[data-action="draft"]')
-    page.wait_for_function("document.querySelector('#ep-list .iv-status').textContent === 'Draft'", timeout=5000)
+    page.click('#ep-list [data-ep="draft"]')
+    page.wait_for_function("document.querySelector('#ep-list .event-id').textContent === 'DRAFT'", timeout=5000)
     assert page.mock_state["event_actions"] == ["publish-now", "draft"]
 
 
@@ -162,7 +168,18 @@ def test_admin_can_preview_publish_and_draft_an_event_page(device_page):
 def test_preview_needs_the_admin_key(device_page):
     page = device_page
     serve(page, [template(draft=True)])
-    page.goto("/admin.html")
-    page.locator("#ep-list .ep-act").first.wait_for(state="visible", timeout=5000)
-    page.click('#ep-list .ep-act[data-action="preview"]')
-    assert "admin key" in page.locator("#ep-note").inner_text()
+    open_events_admin(page)
+    page.locator("#ep-list [data-ep]").first.wait_for(state="visible", timeout=5000)
+    page.fill("#admin-key", "")
+    page.click('#ep-list [data-ep="preview"]')
+    assert "admin key" in page.locator("#status").inner_text()
+
+
+@all_devices
+def test_event_pages_fit_on_the_events_admin_page(device_page):
+    page = device_page
+    serve(page, [template(draft=True), template(name="Second", url="event-second.html", publish="2099-01-01")])
+    open_events_admin(page)
+    page.locator("#ep-list .event-card").nth(1).wait_for(state="visible", timeout=5000)
+    assert "SCHEDULED" in page.locator("#ep-list .event-card").nth(1).inner_text()
+    assert overflow_width(page) <= 0

@@ -43,6 +43,65 @@
       "closing": "Fancy dress is heavily encouraged. See you there!",
       "draft": true,
       "created": "2026-09-30"
+    },
+    {
+      "slug": "race-of-remembrance-track-day-2026",
+      "manifestId": "008",
+      "name": "Race of Remembrance track day 2026",
+      "title": "Race of remembrance - Track day",
+      "tagline": "Looking to enjoy a track day? You can join us too!",
+      "kind": "Track day",
+      "startDate": "2026-10-02",
+      "startTime": "08:00",
+      "endTime": "17:00",
+      "venue": "Thruxton Circuit",
+      "location": "Thruxton Circuit",
+      "description": [
+        "Looking to enjoy a track day? You can join us too!"
+      ],
+      "ctaUrl": "https://ror-launch-trackday26.eventbrite.co.uk",
+      "ctaLabel": "Book on Eventbrite",
+      "draft": true,
+      "created": "2026-09-30"
+    },
+    {
+      "slug": "gasoline-juice-autumn-meet-2026",
+      "manifestId": "007",
+      "name": "Gasoline Juice Autumn Meet 2026",
+      "title": "Gasoline Juice Autumn Meet",
+      "tagline": "Let's get together at Gasoline Juice, a popular location for all types of cars and bikes with Automobile Artwork, SIM racing, coffee, cake and breakfast baps",
+      "kind": "Meet",
+      "startDate": "2026-10-18",
+      "startTime": "10:00",
+      "endTime": "15:00",
+      "venue": "The Royal Ordnance Depot",
+      "town": "Northampton",
+      "address": "The Royal Ordnance Depot, Harmans Way, Northampton NN7 4PS",
+      "location": "The Royal Ordnance Depot, Harmans Way, Northampton NN7 4PS",
+      "description": [
+        "Let's get together at Gasoline Juice, a popular location for all types of cars and bikes with Automobile Artwork, SIM racing, coffee, cake and breakfast baps"
+      ],
+      "ctaUrl": "https://fb.me/e/26kXOArot6",
+      "ctaLabel": "Facebook event",
+      "draft": true,
+      "created": "2026-09-30"
+    },
+    {
+      "slug": "cadwell-park-track-day-2026",
+      "manifestId": "006",
+      "name": "Cadwell Park Track Day 2026",
+      "title": "Cadwell Park Track Day",
+      "tagline": "No spaces available",
+      "kind": "Track day",
+      "startDate": "2026-10-23",
+      "startTime": "08:00",
+      "venue": "Cadwell Park",
+      "town": "Louth",
+      "location": "Cadwell Park - Louth",
+      "ctaUrl": "https://facebook.com/groups/mt3uk",
+      "ctaLabel": "Facebook group",
+      "draft": true,
+      "created": "2026-09-30"
     }
   ]
 }

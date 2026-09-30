@@ -266,9 +266,10 @@ def test_homepage_has_no_feature_block_when_nothing_is_live(device_page):
 def test_admin_can_preview_publish_draft_and_delete(device_page):
     page = device_page
     open_events_admin(page)
-    card = page.locator("#ep-list .event-card")
-    card.first.wait_for(state="visible", timeout=5000)
-    assert "Draft" in card.first.inner_text() and "Frunk or Treat UK 2026" in card.first.inner_text()
+    frunk = page.locator('#ep-list .event-card[data-slug="frunk-or-treat-uk"]')
+    frunk.wait_for(state="visible", timeout=5000)
+    assert "Draft" in frunk.inner_text() and "Frunk or Treat UK 2026" in frunk.inner_text()
+    assert page.locator("#ep-list .event-card").count() == 4, "The three upcoming events have draft pages ready too"
 
     with page.expect_popup() as popup_info:
         page.click('#ep-list [data-ep="preview"]')
@@ -276,15 +277,16 @@ def test_admin_can_preview_publish_draft_and_delete(device_page):
     assert page.mock_state["event_preview_minted"] == "frunk-or-treat-uk"
 
     page.once("dialog", lambda d: d.accept())
-    page.click('#ep-list [data-ep="publish-now"]')
-    page.wait_for_function("document.querySelector('#ep-list .event-id').textContent === 'Live'", timeout=5000)
-    assert page.locator('#ep-list [data-ep="delete"]').count() == 0, "A live event cannot be deleted"
+    frunk.locator('[data-ep="publish-now"]').click()
+    page.wait_for_function("document.querySelector('#ep-list .event-card[data-slug=\"frunk-or-treat-uk\"] .event-id').textContent === 'Live'", timeout=5000)
+    assert frunk.locator('[data-ep="delete"]').count() == 0, "A live event cannot be deleted"
     page.once("dialog", lambda d: d.accept())
-    page.click('#ep-list [data-ep="draft"]')
-    page.wait_for_function("document.querySelector('#ep-list .event-id').textContent === 'Draft'", timeout=5000)
+    frunk.locator('[data-ep="draft"]').click()
+    page.wait_for_function("document.querySelector('#ep-list .event-card[data-slug=\"frunk-or-treat-uk\"] .event-id').textContent === 'Draft'", timeout=5000)
     page.once("dialog", lambda d: d.accept())
-    page.click('#ep-list [data-ep="delete"]')
-    page.locator("#ep-list .empty").wait_for(state="visible", timeout=5000)
+    frunk.locator('[data-ep="delete"]').click()
+    page.wait_for_function("document.querySelectorAll('#ep-list .event-card').length === 3", timeout=5000)
+    assert page.locator('#ep-list .event-card[data-slug="frunk-or-treat-uk"]').count() == 0
     assert page.mock_state["event_actions"] == ["publish-now", "draft", "delete"]
 
 
@@ -477,7 +479,9 @@ def test_an_older_event_can_become_a_full_event_page(device_page):
     open_events_admin(page)
     card = page.locator("#upcoming-list .event-card", has_text="Lancing Motor Show")
     card.wait_for(state="visible", timeout=5000)
-    assert "Make event page" in card.inner_text() and "Event page:" not in card.inner_text()
+    assert card.locator('button[data-page="002"]').inner_text() == "Edit", "Edit opens the full editor"
+    assert card.locator('button[data-action="edit"]').inner_text() == "Quick edit", "The small form is still there"
+    assert "Event page:" not in card.inner_text()
 
     # The full editor opens, filled in from the older event.
     card.locator('button[data-page="002"]').click()
@@ -490,6 +494,7 @@ def test_an_older_event_can_become_a_full_event_page(device_page):
     assert page.input_value("#ep-tagline") == "Join us for a collective meet at Lancing Beach!"
     assert page.input_value("#ep-description") == "Join us for a collective meet at Lancing Beach!"
     assert page.input_value("#ep-cta-url") == LEGACY["facebookUrl"] and page.input_value("#ep-cta-label") == "Facebook event"
+    assert page.locator("#ep-tiers").count() == 1 and page.locator("#ep-add-tier").is_visible(), "Ticket options are there too"
     assert page.locator("#slot-image .img-thumb").count() == 1, "There are image slots to fill"
     page.click("#ep-save")
     page.wait_for_function("document.getElementById('status').textContent.indexOf('Saved') === 0", timeout=5000)
@@ -498,7 +503,7 @@ def test_an_older_event_can_become_a_full_event_page(device_page):
     # The older event now shows its page, and the button reopens it.
     page.wait_for_function("document.querySelector('#upcoming-list').textContent.indexOf('Event page: draft') !== -1", timeout=5000)
     card = page.locator("#upcoming-list .event-card", has_text="Lancing Motor Show")
-    assert "Edit event page" in card.inner_text()
+    assert card.locator('button[data-page="002"]').inner_text() == "Edit"
     page.click("#ep-cancel")
     card.locator('button[data-page="002"]').click()
     page.wait_for_function("document.getElementById('ep-form-title').textContent === 'Edit Lancing Motor Show'", timeout=5000)
@@ -576,3 +581,39 @@ def test_the_editor_opens_under_the_event_being_edited_with_an_arrow(device_page
     page.locator("#ep-form").wait_for(state="visible", timeout=5000)
     assert page.locator(".event-card.is-editing").count() == 0
     assert page.evaluate("document.getElementById('ep-form').previousElementSibling.previousElementSibling.classList.contains('ep-bar')")
+
+
+@ADMIN_ONLY
+def test_saving_the_full_editor_also_updates_the_older_event(device_page):
+    page = device_page
+    page.mock_state["legacy_events"] = [dict(LEGACY)]
+    open_events_admin(page)
+    page.locator('#upcoming-list [data-page="002"]').click()
+    page.locator("#ep-form").wait_for(state="visible", timeout=5000)
+    page.fill("#ep-title", "Lancing Motor Show 2099")
+    page.fill("#ep-tagline", "A new line for the list")
+    page.fill("#ep-venue", "The Green")
+    page.fill("#ep-town", "Lancing")
+    page.fill("#ep-start-time", "10:30")
+    page.fill("#ep-cta-url", "https://example.com/new-link")
+    page.click("#ep-save")
+    page.wait_for_function("document.querySelector('#upcoming-list').textContent.indexOf('Lancing Motor Show 2099') !== -1", timeout=5000)
+    sent = page.mock_state["legacy_saved"]
+    assert sent["id"] == "002" and sent["name"] == "Lancing Motor Show 2099" and sent["description"] == "A new line for the list"
+    assert sent["startDate"] == "2099-09-27" and sent["startTime"] == "10:30" and sent["endTime"] == "18:00"
+    assert sent["location"] == "The Green, Lancing" and sent["facebookUrl"] == "https://example.com/new-link"
+    assert sent["attendingCount"] == 10 and sent["interestedCount"] == 20, "The attendee counts are kept"
+    assert "saved" in page.locator("#status").inner_text().lower() and "could not" not in page.locator("#status").inner_text()
+    assert "The Green, Lancing" in page.locator("#upcoming-list").inner_text(), "The meets list shows the change"
+
+
+def test_the_upcoming_events_already_have_draft_pages_ready():
+    by_id = {e.get("manifestId"): e for e in EVENTS}
+    manifest = json.loads((ROOT / "events-data" / "events-manifest.json").read_text(encoding="utf-8"))["events"]
+    for legacy in manifest:
+        if legacy["id"] in ("006", "007", "008"):
+            page_entry = by_id[legacy["id"]]
+            assert page_entry["draft"] is True, "Ready as drafts, nothing is public"
+            assert page_entry["title"] == legacy["name"] and page_entry["startDate"] == legacy["startTime"][:10]
+            assert page_entry["startTime"] == legacy["startTime"][11:16]
+            assert page_entry["ctaUrl"] == legacy["facebookUrl"]

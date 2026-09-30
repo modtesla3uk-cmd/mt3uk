@@ -298,6 +298,19 @@ def api_reply(url, method, post_data, state):
         return {"success": True, "interviews": file["interviews"], "change": line}
     if path == "/events/admin" and method == "GET":
         return {"success": True, "events": state.get("legacy_events", [])}
+    if path == "/events/admin" and method == "POST":
+        try:
+            saved = json.loads(post_data or "{}")
+        except (ValueError, TypeError):
+            saved = {}
+        state["legacy_saved"] = saved
+        events = state.setdefault("legacy_events", [])
+        for e in events:
+            if e["id"] == saved.get("id"):
+                e.update({"name": saved["name"], "description": saved["description"], "facebookUrl": saved["facebookUrl"], "location": {"name": saved["location"]},
+                          "startTime": saved["startDate"] + "T" + saved["startTime"] + ":00+0000",
+                          "endTime": (saved["endDate"] or saved["startDate"]) + "T" + (saved["endTime"] or saved["startTime"]) + ":00+0000"})
+        return {"success": True, "events": events}
     if path.startswith("/events/pages/"):
         return event_pages_reply(path, method, post_data, state, url)
     if path == "/interviews/preview/link":

@@ -157,6 +157,18 @@
       "image": "images/blog/owner-interviews/unicorn/show-field.jpg",
       "publish": "2027-03-18",
       "created": "2026-09-29"
+    },
+    {
+      "name": "John Chambers - Track",
+      "type": "track",
+      "car": "Model 3 Performance on track",
+      "year": "2019",
+      "title": "Zaphod on Track: John’s Model 3 Performance Track Day Setup",
+      "excerpt": "50+ track days and sprints: the Tevo and AP Racing brakes, Öhlins suspension and tyres that make a Model 3 competitive, and charging on the day.",
+      "url": "blog-john-track-day.html",
+      "image": "images/blog/owner-interviews/john-track-day/paddock.jpg",
+      "publish": "2027-04-01",
+      "created": "2026-09-30"
     }
   ]
 }

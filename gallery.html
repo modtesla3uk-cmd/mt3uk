@@ -579,6 +579,7 @@
 </footer>
 
 <script src="js/gallery-social.js"></script>
+<script src="js/gallery-live.js"></script>
 <script>
   window.MT3UK_R2_BASE = 'https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev';
   window.mt3ukFetchJSON = (function () {
@@ -588,6 +589,8 @@
         cache[url] = fetch(url, { cache: 'no-store' })
           .then(function (res) { return res.ok ? res.json() : fallback; })
           .catch(function () { return fallback; });
+        // New uploads show straight away (js/gallery-live.js).
+        if (url === 'images/gallery/manifest.json' && window.mt3ukWithLivePhotos) cache[url] = window.mt3ukWithLivePhotos(cache[url]);
       }
       return cache[url];
     };
@@ -1080,6 +1083,7 @@
           allPhotos = photos.filter(function (p) { return p.gallery !== false; });
           renderFilters();
           applyFilter();
+          document.dispatchEvent(new Event('mt3ukGalleryReady'));
         });
     }
 
@@ -1287,6 +1291,16 @@
           e.stopPropagation();
           claimBtn.click();
         }
+      });
+    }
+
+    // My Garage's Gallery button links here as ?photo=<file>: open it.
+    var linkedPhoto = new URL(window.location.href).searchParams.get('photo');
+    if (linkedPhoto) {
+      document.addEventListener('mt3ukGalleryReady', function openLinked() {
+        document.removeEventListener('mt3ukGalleryReady', openLinked);
+        var idx = getPhotos().findIndex(function (p) { return p.file === linkedPhoto; });
+        if (idx !== -1) openLightbox(idx);
       });
     }
 

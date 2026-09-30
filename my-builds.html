@@ -499,6 +499,20 @@
   .mb-photo-added { font-size: 0.68rem; color: var(--steel); }
   .mb-car-mods { display: flex; flex-direction: column; gap: 6px; border: 1px solid var(--line); background: var(--paper-2); padding: 12px 14px; }
   .mb-car-mods-label { font-size: 0.72rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--orange); font-weight: 700; }
+  button.mb-car-mods-label { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 32px; padding: 0; border: 0; background: none; cursor: pointer; text-align: left; font-family: 'IBM Plex Mono', monospace; }
+  button.mb-car-mods-label .mb-photo-mods-caret { transition: transform 0.15s; }
+  button.mb-car-mods-label[aria-expanded="true"] .mb-photo-mods-caret { transform: rotate(180deg); }
+  .mb-car-mods-body { display: flex; flex-direction: column; gap: 6px; }
+  .mb-car-mods-body[hidden] { display: none; }
+  .mb-lightbox-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .mb-lightbox-actions[hidden] { display: none; }
+  .mb-lightbox-go { display: inline-flex; align-items: center; min-height: 34px; padding: 6px 12px; border: 1px solid var(--ink); color: var(--ink); background: transparent; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; letter-spacing: 0.04em; text-decoration: none; cursor: pointer; }
+  .mb-lightbox-go:hover { background: var(--ink); color: var(--paper); }
+  .mb-lightbox-go[hidden], .mb-lightbox-votes[hidden] { display: none; }
+  .mb-lightbox-votes { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 6px 12px; background: var(--orange); color: #fff; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; letter-spacing: 0.04em; font-weight: 600; }
+  .mb-lightbox-delete { margin-left: auto; min-height: 34px; padding: 6px 12px; border: 1px solid var(--line); background: transparent; color: var(--ink); font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; cursor: pointer; }
+  .mb-lightbox-delete:hover, .mb-lightbox-delete.mb-delete-confirm { border-color: var(--orange); color: var(--orange); }
+  .mb-lightbox-delete.mb-delete-confirm { background: var(--orange); color: var(--paper); }
   .mb-car-mods-note { font-size: 0.72rem; color: var(--steel); margin: 0; }
   .mb-car-mods-text { font-size: 0.85rem; color: var(--ink); margin: 0; }
   .mb-car-mods-textarea { font-family: 'IBM Plex Sans', sans-serif; font-size: 0.85rem; border: 1px solid var(--line); background: var(--white); padding: 8px 10px; resize: vertical; }
@@ -1107,20 +1121,22 @@ document.addEventListener('DOMContentLoaded', function () {
           <a href="gallery.html" data-link="gallery">Gallery</a>
         </div>
 
+        <div class="mb-vote-hint" id="mb-vote-hint"></div>
+
         <div class="mb-car-mods" id="mb-car-mods">
-          <div class="mb-car-mods-label mono">Mods</div>
-          <p class="mb-car-mods-note">Mods apply to all images for this car.</p>
-          <p class="mb-car-mods-text" id="mb-car-mods-text"></p>
-          <textarea class="mb-car-mods-textarea" id="mb-car-mods-textarea" rows="2" placeholder="e.g. Coilovers, 20in wheels, Tint" hidden></textarea>
-          <span class="mb-field-hint" id="mb-car-mods-hint" hidden>Separate mods with a comma</span>
-          <div class="mb-car-mods-actions">
-            <button type="button" class="mb-photo-mods-add-btn" id="mb-car-mods-edit-btn">Edit</button>
-            <button type="button" class="mb-photo-mods-add-btn" id="mb-car-mods-save-btn" hidden>Save</button>
-            <button type="button" class="mb-photo-mods-add-btn" id="mb-car-mods-cancel-btn" hidden>Cancel</button>
+          <button type="button" class="mb-car-mods-label mono" id="mb-car-mods-toggle" aria-expanded="false" aria-controls="mb-car-mods-body">Mods<span class="mb-photo-mods-caret">&#9662;</span></button>
+          <div class="mb-car-mods-body" id="mb-car-mods-body" hidden>
+            <p class="mb-car-mods-note">Mods apply to all images for this car.</p>
+            <p class="mb-car-mods-text" id="mb-car-mods-text"></p>
+            <textarea class="mb-car-mods-textarea" id="mb-car-mods-textarea" rows="2" placeholder="e.g. Coilovers, 20in wheels, Tint" hidden></textarea>
+            <span class="mb-field-hint" id="mb-car-mods-hint" hidden>Separate mods with a comma</span>
+            <div class="mb-car-mods-actions">
+              <button type="button" class="mb-photo-mods-add-btn" id="mb-car-mods-edit-btn">Edit</button>
+              <button type="button" class="mb-photo-mods-add-btn" id="mb-car-mods-save-btn" hidden>Save</button>
+              <button type="button" class="mb-photo-mods-add-btn" id="mb-car-mods-cancel-btn" hidden>Cancel</button>
+            </div>
           </div>
         </div>
-
-        <div class="mb-vote-hint" id="mb-vote-hint"></div>
 
         <button type="button" class="mb-btn mb-add-photo-btn" id="mb-addphoto-toggle-btn">+ Add photo to this car</button>
         <div class="mb-upload-card" id="mb-addphoto-card" style="display:none;">
@@ -1171,6 +1187,12 @@ document.addEventListener('DOMContentLoaded', function () {
       <button type="button" class="mb-lightbox-nav mb-lightbox-next" id="mb-lightbox-next-btn" aria-label="Next photo">&rsaquo;</button>
     </div>
     <div class="mb-lightbox-body">
+      <div class="mb-lightbox-actions" id="mb-lightbox-actions">
+        <a class="mb-lightbox-go" id="mb-lightbox-reel" href="index.html#build-feed">Reel</a>
+        <a class="mb-lightbox-go" id="mb-lightbox-gallery" href="gallery.html">Gallery</a>
+        <span class="mb-lightbox-votes" id="mb-lightbox-votes" hidden></span>
+        <button type="button" class="mb-lightbox-delete" id="mb-lightbox-delete">Delete</button>
+      </div>
       <div class="mb-lightbox-top">
       <div class="mb-lightbox-likes" id="mb-lightbox-likes" hidden>
         <button type="button" class="mb-likes-toggle" id="mb-lightbox-likes-toggle" aria-expanded="false">
@@ -2351,14 +2373,25 @@ document.addEventListener('DOMContentLoaded', function () {
       carModsCancelBtn.hidden = !editing;
     }
 
+    // Mods sit under Build of the Week, folded away until opened.
+    var carModsToggle = document.getElementById('mb-car-mods-toggle');
+    var carModsBody = document.getElementById('mb-car-mods-body');
+    function setCarModsOpen(open) {
+      carModsBody.hidden = !open;
+      carModsToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    carModsToggle.addEventListener('click', function () { setCarModsOpen(carModsBody.hidden); });
+
     function renderCarMods(mods) {
       var modsArr = Array.isArray(mods) ? mods : [];
       carModsText.textContent = modsArr.length ? modsArr.join(', ') : 'No mods listed yet.';
       carModsTextarea.value = modsArr.join(', ');
+      carModsToggle.innerHTML = 'Mods (' + modsArr.length + ')<span class="mb-photo-mods-caret">&#9662;</span>';
       setCarModsEditing(false);
     }
 
     carModsEditBtn.addEventListener('click', function () {
+      setCarModsOpen(true);
       setCarModsEditing(true);
       carModsTextarea.focus();
     });
@@ -2495,6 +2528,46 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     }
 
+    var lightboxReel = document.getElementById('mb-lightbox-reel');
+    var lightboxGallery = document.getElementById('mb-lightbox-gallery');
+    var lightboxVotes = document.getElementById('mb-lightbox-votes');
+    var lightboxDelete = document.getElementById('mb-lightbox-delete');
+    var lightboxDeleteTimer = null;
+    lightboxDelete.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var file = lightboxFile;
+      if (!file) return;
+      if (!lightboxDelete.classList.contains('mb-delete-confirm')) {
+        lightboxDelete.classList.add('mb-delete-confirm');
+        lightboxDelete.textContent = 'Confirm delete?';
+        clearTimeout(lightboxDeleteTimer);
+        lightboxDeleteTimer = setTimeout(function () {
+          lightboxDelete.classList.remove('mb-delete-confirm');
+          lightboxDelete.textContent = 'Delete';
+        }, 4000);
+        return;
+      }
+      clearTimeout(lightboxDeleteTimer);
+      lightboxDelete.disabled = true;
+      lightboxDelete.textContent = 'Deleting\u2026';
+      fetch(API + '/my-builds?file=' + encodeURIComponent(file), { method: 'DELETE', headers: { 'X-Session-Token': getSession() } })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (!data || !data.success) throw new Error('delete');
+          var wrap = photoStrip.querySelector('.mb-photo-thumb-wrap[data-file="' + CSS.escape(file) + '"]');
+          if (wrap) wrap.remove();
+          var closeBtn = imgLightbox.querySelector('.mb-img-lightbox-close');
+          if (closeBtn) closeBtn.click();
+          if (!photoStrip.querySelector('.mb-photo-thumb-wrap')) showSelector();
+          loadCars();
+        })
+        .catch(function () {
+          lightboxDelete.disabled = false;
+          lightboxDelete.classList.remove('mb-delete-confirm');
+          lightboxDelete.textContent = 'Delete';
+        });
+    });
+
     function openPhotoLightbox(file) {
       var car = findCar(currentCarId);
       var photo = car && car.photos.find(function (p) { return p.file === file; });
@@ -2509,6 +2582,18 @@ document.addEventListener('DOMContentLoaded', function () {
       var shareable = !!(photo.gallery && photo.reel);
       lightboxShareBtn.hidden = !shareable;
       lightboxShareNote.hidden = shareable;
+      // Open this photo in the reel or the gallery (where it shows), its
+      // votes if it's this week's entry, and Delete.
+      lightboxReel.href = 'index.html?photo=' + encodeURIComponent(file) + '#build-feed';
+      lightboxReel.hidden = !photo.reel;
+      lightboxGallery.href = 'gallery.html?photo=' + encodeURIComponent(file);
+      lightboxGallery.hidden = !photo.gallery;
+      var votes = photo.inVote && voteEntry && voteEntry.file === file ? voteEntry.votes || 0 : null;
+      lightboxVotes.hidden = votes === null;
+      lightboxVotes.textContent = votes === null ? '' : votes + ' vote' + (votes === 1 ? '' : 's') + ' this week';
+      lightboxDelete.disabled = false;
+      lightboxDelete.classList.remove('mb-delete-confirm');
+      lightboxDelete.textContent = 'Delete';
       loadLightboxComments(file);
       lightboxComposerAvatar.textContent = commentInitials(myGarageEmail);
       lightboxComposerInput.value = '';

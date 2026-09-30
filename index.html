@@ -2381,6 +2381,7 @@
 })();
 </script>
 
+<script src="js/gallery-live.js"></script>
 <script>
   window.MT3UK_R2_BASE = 'https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev';
   window.mt3ukFetchJSON = (function () {
@@ -2390,6 +2391,8 @@
         cache[url] = fetch(url, { cache: 'no-store' })
           .then(function (res) { return res.ok ? res.json() : fallback; })
           .catch(function () { return fallback; });
+        // New uploads show straight away (js/gallery-live.js).
+        if (url === 'images/gallery/manifest.json' && window.mt3ukWithLivePhotos) cache[url] = window.mt3ukWithLivePhotos(cache[url]);
       }
       return cache[url];
     };

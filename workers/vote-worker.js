@@ -218,6 +218,39 @@ async function getLiveGalleryEntries(env, ctx) {
   return entries;
 }
 
+// The live photo list for the site, so a new upload shows in the reel and
+// gallery within seconds, before the published manifest catches up. Only the
+// fields the manifest has: never emails or owner keys. Same edge cache as
+// the rest (GALLERY_LIVE_CACHE_SECONDS).
+async function handleGalleryLive(request, env, ctx) {
+  var entries = (await getLiveGalleryEntries(env, ctx)).slice()
+    .sort(function (a, b) { return (b.uploadedAt || 0) - (a.uploadedAt || 0); });
+  var groups = {};
+  var photos = entries.map(function (e) {
+    var p = { file: e.file, added: e.added };
+    if (e.caption) p.caption = e.caption;
+    if (e.name) p.name = e.name;
+    if (e.mods && e.mods.length) p.mods = e.mods;
+    if (e.votable === false) p.votable = false;
+    if (e.gallery === false) p.gallery = false;
+    if (e.reel === false) p.reel = false;
+    if (e.color) p.color = e.color;
+    if (e.unclaimed) p.unclaimed = true;
+    // Same-day photos from one owner share a post in the reel, as in the
+    // manifest (scripts/build_gallery_manifest.py).
+    var key = (e.owner || e.file) + '|' + e.added;
+    p.group = groups[key] || (groups[key] = e.file);
+    return p;
+  });
+  return new Response(JSON.stringify({ success: true, photos: photos }), {
+    headers: {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'public, max-age=' + GALLERY_LIVE_CACHE_SECONDS,
+      'Access-Control-Allow-Origin': '*'
+    }
+  });
+}
+
 function titleCaseWords(value) {
   return String(value || '').toLowerCase().replace(/(^|[\s-])([a-z])/g, function (m, sep, c) { return sep + c.toUpperCase(); });
 }
@@ -5082,24 +5115,27 @@ async function handleMyBuildsGet(request, env) {
     var record = records[g.id];
     if (record && Array.isArray(record.photos) && record.photos.length) {
       // Respect the owner's saved/drag-reordered order; any photo not yet
-      // in the saved order (e.g. just uploaded) is appended, oldest first.
+      // in the saved order (e.g. just uploaded) goes first, newest first.
       var byFileMap = {};
       g.entries.forEach(function (entry) { byFileMap[entry.file] = entry; });
       var seen = {};
       var ordered = record.photos.map(function (f) { return byFileMap[f]; }).filter(Boolean);
       ordered.forEach(function (entry) { seen[entry.file] = true; });
       var rest = g.entries.filter(function (entry) { return !seen[entry.file]; })
-        .sort(function (a, b) { return (a.uploadedAt || 0) - (b.uploadedAt || 0); });
-      g.entries = ordered.concat(rest);
+        .sort(function (a, b) { return (b.uploadedAt || 0) - (a.uploadedAt || 0); });
+      g.entries = rest.concat(ordered);
     } else {
-      // Oldest photo first within a car so new photos append to the end
-      // rather than reshuffling the garage.
-      g.entries.sort(function (a, b) { return (a.uploadedAt || 0) - (b.uploadedAt || 0); });
+      // Newest photo first within a car, so a photo just added is at the
+      // top of its list.
+      g.entries.sort(function (a, b) { return (b.uploadedAt || 0) - (a.uploadedAt || 0); });
     }
   });
-  groups.sort(function (a, b) {
-    return (a.entries[0].uploadedAt || 0) - (b.entries[0].uploadedAt || 0);
-  });
+  // Cars stay in the order they were first added (by their oldest photo),
+  // so adding a photo doesn't reshuffle the garage.
+  function firstAdded(g) {
+    return g.entries.reduce(function (min, e) { return Math.min(min, e.uploadedAt || 0); }, Infinity);
+  }
+  groups.sort(function (a, b) { return firstAdded(a) - firstAdded(b); });
 
   var cars = await Promise.all(groups.map(async function (g) {
     var record = records[g.id];
@@ -5121,10 +5157,12 @@ async function handleMyBuildsGet(request, env) {
         likeCount: likeCount
       };
     }));
-    var mods = record && Array.isArray(record.mods) ? record.mods : (g.entries[0].mods || []);
-    var color = record && record.color ? record.color : (g.entries[0].color || '');
-    var name = record ? record.name : (g.entries[0].caption || 'MT3UK member build');
-    var createdAt = record ? record.createdAt : new Date(g.entries[0].uploadedAt || Date.now()).toISOString();
+    // A car without a saved record takes its details from its first photo.
+    var first = g.entries.reduce(function (o, e) { return (e.uploadedAt || 0) < (o.uploadedAt || 0) ? e : o; }, g.entries[0]);
+    var mods = record && Array.isArray(record.mods) ? record.mods : (first.mods || []);
+    var color = record && record.color ? record.color : (first.color || '');
+    var name = record ? record.name : (first.caption || 'MT3UK member build');
+    var createdAt = record ? record.createdAt : new Date(first.uploadedAt || Date.now()).toISOString();
     return {
       id: g.id,
       virtual: !!g.virtual,
@@ -6177,6 +6215,9 @@ export default {
     }
     if (url.pathname === '/gallery/report' && request.method === 'POST') {
       return handlePhotoReport(request, env);
+    }
+    if (url.pathname === '/gallery/live' && request.method === 'GET') {
+      return handleGalleryLive(request, env, ctx);
     }
     if (url.pathname === '/gallery/admin/reports' && request.method === 'GET') {
       return handlePhotoReportsAdminList(request, env);

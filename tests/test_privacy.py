@@ -112,3 +112,13 @@ def test_message_photos_stay_private():
     thread = worker[worker.index("async function handleProfileThread"):worker.index("async function handleProfileMessagePhoto")]
     assert "out.photo = true" in thread and "m.photo;" not in thread, "The R2 key is never sent to the page"
     assert "await deleteDmPhotos(env, email, index[k].email);" in worker, "Leaving deletes the photos"
+
+
+def test_live_photo_list_has_no_emails():
+    """The public live photo list (/gallery/live) carries only the fields the
+    published manifest has: never emails or owner keys."""
+    worker = (ROOT / "workers" / "vote-worker.js").read_text(encoding="utf-8")
+    live = worker[worker.index("async function handleGalleryLive"):worker.index("function titleCaseWords")]
+    assert "getLiveGalleryEntries(env, ctx)" in live, "Never the includeEmail listing"
+    assert "p.email" not in live and "p.owner" not in live
+    assert "var p = { file: e.file, added: e.added };" in live, "Fields are copied one by one"

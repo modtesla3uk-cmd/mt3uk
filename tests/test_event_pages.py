@@ -617,3 +617,33 @@ def test_the_upcoming_events_already_have_draft_pages_ready():
             assert page_entry["title"] == legacy["name"] and page_entry["startDate"] == legacy["startTime"][:10]
             assert page_entry["startTime"] == legacy["startTime"][11:16]
             assert page_entry["ctaUrl"] == legacy["facebookUrl"]
+
+
+@ADMIN_ONLY
+def test_an_add_on_ticket_is_labelled_and_not_counted_in_the_from_price(device_page):
+    page = device_page
+    page.set_viewport_size({"width": 390, "height": 844})
+    tiers = [{"name": "Driver Ticket", "price": "\u00a3150", "url": "https://example.com/t", "featured": True},
+             {"name": "Afternoon Only", "price": "\u00a399", "url": "https://example.com/t"},
+             {"name": "Extra Driver", "price": "\u00a330", "url": "https://example.com/t", "addOn": True}]
+    serve(page, [event(publish="2020-01-01", tickets={"tiers": tiers})])
+    page.goto("/event.html?e=test-meet")
+    page.locator(".tier").first.wait_for(state="visible", timeout=5000)
+    assert "\u00a399" in page.locator("#ev-ticket-bar").inner_text(), "The cheapest real ticket, not the add-on"
+    extra = page.locator(".tier", has_text="Extra Driver")
+    assert "Add-on" in extra.inner_text()
+    assert "Add-on" not in page.locator(".tier", has_text="Afternoon Only").inner_text()
+
+
+@ADMIN_ONLY
+def test_the_admin_form_can_mark_a_ticket_as_an_add_on(device_page):
+    page = device_page
+    open_events_admin(page)
+    page.click('#ep-list [data-ep="edit"]')
+    page.locator("#ep-form").wait_for(state="visible", timeout=5000)
+    page.click("#ep-add-tier")
+    page.fill(".tier-row .t-name", "Extra Driver")
+    page.check(".tier-row .t-addon")
+    page.click("#ep-save")
+    page.wait_for_function("document.getElementById('status').textContent.indexOf('Saved') === 0", timeout=5000)
+    assert page.mock_state["event_saved"]["tickets"]["tiers"][0]["addOn"] is True

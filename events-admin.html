@@ -684,7 +684,8 @@
       '<div class="field"><label>Ticket link</label><input type="url" class="t-url" value="' + esc(t.url) + '" placeholder="https://"></div>' +
       '<div class="field"><label>Button text</label><input type="text" class="t-button" maxlength="30" value="' + esc(t.buttonLabel) + '" placeholder="Get tickets"></div>' +
       '<div class="full checks"><label class="check"><input type="checkbox" class="t-featured"' + (t.featured ? ' checked' : '') + '> Highlight this one</label>' +
-      '<label class="check"><input type="checkbox" class="t-sold"' + (t.soldOut ? ' checked' : '') + '> Sold out</label></div>' +
+      '<label class="check"><input type="checkbox" class="t-sold"' + (t.soldOut ? ' checked' : '') + '> Sold out</label>' +
+      '<label class="check"><input type="checkbox" class="t-addon"' + (t.addOn ? ' checked' : '') + '> Add-on (needs another ticket)</label></div>' +
       '<button type="button" class="danger full" data-remove-tier="1">Remove this ticket type</button>';
     return div;
   }
@@ -717,7 +718,7 @@
         tiers: Array.prototype.map.call($('ep-tiers').querySelectorAll('.tier-row'), function (r) {
           var v = function (c) { return r.querySelector(c).value.trim(); };
           return { name: v('.t-name'), price: v('.t-price'), per: v('.t-per'), tag: v('.t-tag'), includes: lines(r.querySelector('.t-includes').value),
-            url: v('.t-url'), buttonLabel: v('.t-button'), featured: r.querySelector('.t-featured').checked, soldOut: r.querySelector('.t-sold').checked };
+            url: v('.t-url'), buttonLabel: v('.t-button'), featured: r.querySelector('.t-featured').checked, soldOut: r.querySelector('.t-sold').checked, addOn: r.querySelector('.t-addon').checked };
         }),
         notes: pairs($('ep-ticket-notes').value, 2).map(function (p) { return { label: p[0], value: p[1] || '' }; })
       },

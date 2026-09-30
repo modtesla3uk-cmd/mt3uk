@@ -131,7 +131,7 @@
     if (tiers.length) {
       html += '<div class="tiers">' + tiers.map(function (x) {
         var cls = 'tier' + (x.featured ? ' featured' : '') + (x.soldOut ? ' soldout' : '');
-        var tag = x.soldOut ? '<span class="tier-tag quiet">Sold out</span>' : (text(x.tag) ? '<span class="tier-tag' + (x.featured ? '' : ' quiet') + '">' + esc(text(x.tag)) + '</span>' : '');
+        var tag = x.soldOut ? '<span class="tier-tag quiet">Sold out</span>' : (text(x.tag) ? '<span class="tier-tag' + (x.featured ? '' : ' quiet') + '">' + esc(text(x.tag)) + '</span>' : (x.addOn ? '<span class="tier-tag quiet">Add-on</span>' : ''));
         var inc = list(x.includes).map(text).filter(Boolean);
         var url = safeUrl(x.url);
         var label = text(x.buttonLabel) || 'Get tickets';
@@ -204,7 +204,7 @@
   function firstPrice(ev) {
     var best = null;
     list((ev.tickets || {}).tiers).forEach(function (t) {
-      if (!t || t.soldOut) return;
+      if (!t || t.soldOut || t.addOn) return;
       var n = parseFloat(String(t.price || '').replace(/[^0-9.]/g, ''));
       if (!isNaN(n) && (best === null || n < best.n)) best = { n: n, label: text(t.price) };
       else if (/free/i.test(String(t.price || '')) && best === null) best = { n: 0, label: 'Free' };

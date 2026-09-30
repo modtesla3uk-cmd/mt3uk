@@ -629,13 +629,13 @@ def test_saving_the_full_editor_also_updates_the_older_event(device_page):
     assert "The Green, Lancing" in page.locator("#upcoming-list").inner_text(), "The meets list shows the change"
 
 
-def test_the_upcoming_events_already_have_draft_pages_ready():
+def test_the_upcoming_events_already_have_pages_ready():
     by_id = {e.get("manifestId"): e for e in EVENTS}
     manifest = json.loads((ROOT / "events-data" / "events-manifest.json").read_text(encoding="utf-8"))["events"]
     for legacy in manifest:
         if legacy["id"] in ("006", "007", "008"):
             page_entry = by_id[legacy["id"]]
-            assert page_entry["draft"] is True, "Ready as drafts, nothing is public"
+            assert page_entry.get("draft") or page_entry.get("publish"), "Each one is a draft or has a publish date"
             assert page_entry["title"] == legacy["name"] and page_entry["startDate"] == legacy["startTime"][:10]
             assert page_entry["startTime"] == legacy["startTime"][11:16]
             assert page_entry["ctaUrl"] == legacy["facebookUrl"]

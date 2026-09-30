@@ -107,7 +107,7 @@
         'border-radius:14px;box-shadow:0 12px 32px rgba(5,7,12,.28);padding:12px;font-family:"IBM Plex Sans",sans-serif}' +
       '.mt3uk-share-pop[hidden]{display:none}' +
       '.mt3uk-share-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;font-weight:600;font-size:.92rem}' +
-      '.mt3uk-share-close{background:none;border:0;font-size:1.3rem;line-height:1;cursor:pointer;color:inherit;padding:2px 6px}' +
+      '.mt3uk-share-close{display:flex;align-items:center;justify-content:center;background:none;border:0;border-radius:50%;width:32px;height:32px;line-height:1;cursor:pointer;color:inherit;padding:0}' +
       '.mt3uk-share-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}' +
       '.mt3uk-share-opt{display:block;text-align:center;padding:9px 6px;border:1px solid #16233d;border-radius:8px;background:#fff;' +
         'color:#16233d;text-decoration:none;font:600 .82rem "IBM Plex Sans",sans-serif;cursor:pointer}' +
@@ -146,7 +146,7 @@
     panel.hidden = true;
     panel.innerHTML =
       '<div class="mt3uk-share-head"><span class="mt3uk-share-title">Share</span>' +
-        '<button type="button" class="mt3uk-share-close" aria-label="Close share options">&times;</button></div>' +
+        '<button type="button" class="mt3uk-share-close" aria-label="Close share options"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>' +
       '<div class="mt3uk-share-grid">' +
         '<a class="mt3uk-share-opt" data-channel="whatsapp" target="_blank" rel="noopener">WhatsApp</a>' +
         '<a class="mt3uk-share-opt" data-channel="facebook" target="_blank" rel="noopener">Facebook</a>' +

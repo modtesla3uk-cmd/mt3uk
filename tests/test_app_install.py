@@ -284,24 +284,48 @@ def test_chrome_on_android_gets_the_chrome_tip(device_page):
 
 
 
+ANDROID_UA = "Object.defineProperty(navigator, 'userAgent', { get: function () { return 'Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36 EdgA/129.0.0.0'; } });"
+
+
 @all_devices
-def test_android_notices_the_app_was_deleted(device_page):
-    """Android browsers say whether the app is installed: if it's been
-    deleted, the row offers Install again and the worker is told."""
+def test_android_no_answer_keeps_a_known_app(device_page):
+    """Android browsers can confirm the app is installed, but their "no"
+    misses home screen shortcuts and apps added from another browser, so a
+    "no" alone doesn't bring back Install the app when the app is known."""
     page = device_page
     sign_in(page)
-    page.add_init_script("""
-      Object.defineProperty(navigator, 'userAgent', { get: function () { return 'Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36 EdgA/129.0.0.0'; } });
-      localStorage.setItem('mt3ukAppInstalled', '1');
+    page.add_init_script(ANDROID_UA + """
+      localStorage.setItem('mt3ukAppInstalled', String(Date.now()));
       navigator.getInstalledRelatedApps = () => Promise.resolve([]);
     """)
     page.goto("/index.html")
-    page.locator("#app-install-btn").wait_for(state="visible", timeout=5000)
-    assert "Get the MT3UK app" in page.locator("#get-the-app").inner_text()
-    assert page.evaluate("localStorage.getItem('mt3ukAppInstalled')") is None
-    page.wait_for_timeout(800)
-    assert page.locator("#mt3uk-open-app").count() == 0, "No Open the app pop-up without the app"
+    page.wait_for_function("document.getElementById('get-the-app').textContent.indexOf('You have the MT3UK app') !== -1", timeout=5000)
+    assert page.locator("#app-install-btn").is_hidden()
+    assert page.evaluate("localStorage.getItem('mt3ukAppInstalled')") is not None
     removed = [c for c in page.mock_state.get("profile_calls", []) if c[2].get("appRemoved")]
+    assert not removed
+    assert page.errors == []
+
+
+@all_devices
+def test_android_notices_the_app_was_deleted(device_page):
+    """A deleted app shows up as the browser offering to install it again:
+    the row offers Install and the worker is told."""
+    page = device_page
+    sign_in(page)
+    page.add_init_script(ANDROID_UA + """
+      localStorage.setItem('mt3ukAppInstalled', '1');
+      navigator.getInstalledRelatedApps = () => Promise.resolve([]);
+    """)
+    page.add_init_script(FAKE_PROMPT)
+    page.goto("/index.html")
+    page.wait_for_function("document.getElementById('get-the-app').textContent.indexOf('Get the MT3UK app') !== -1 && !document.getElementById('app-install-btn').hidden", timeout=5000)
+    assert page.evaluate("localStorage.getItem('mt3ukAppInstalled')") is None
+    for _ in range(30):
+        removed = [c for c in page.mock_state.get("profile_calls", []) if c[2].get("appRemoved")]
+        if removed:
+            break
+        page.wait_for_timeout(100)
     assert removed and removed[0][2]["appRemoved"] == "android"
     assert page.errors == []
 
@@ -419,4 +443,18 @@ def test_profile_app_card_has_the_iphone_drop_down(device_page):
     assert "Add to Home Screen" in steps.inner_text() and "Open as Web App" in steps.inner_text()
     btn.click()
     assert steps.is_hidden()
+    assert page.errors == []
+
+
+@all_devices
+def test_add_to_home_screen_banner_stays_away_once_installed(device_page):
+    """The Add to Home Screen banner (after a couple of visits) isn't shown
+    once the app is known to be installed, on any page."""
+    page = device_page
+    page.add_init_script(NO_CHECK + " localStorage.setItem('mt3ukVisitCount', '5'); localStorage.setItem('mt3ukAppInstalled', String(Date.now()));")
+    page.add_init_script(FAKE_PROMPT)
+    for path in ("/signin.html", "/profile.html", "/contact.html", "/privacy.html"):
+        page.goto(path)
+        page.wait_for_timeout(600)
+        assert page.locator(".a2hs-banner").count() == 0, path
     assert page.errors == []

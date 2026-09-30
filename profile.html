@@ -28,7 +28,7 @@
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
 <link rel="stylesheet" href="css/site-header.css">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 
   :root {
     --ink: #16233d;
@@ -63,9 +63,8 @@
   }
 
   .mono {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.06em;
+    font-family: var(--font-body);
+    font-size: 0.8rem;
     color: var(--steel);
   }
 
@@ -88,7 +87,7 @@
     gap: 10px;
     padding: 10px 44px 10px 0;
     position: relative;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-body);
     font-size: 0.8rem;
     overflow: hidden;
   }
@@ -163,8 +162,8 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.78rem;
+    font-family: var(--font-body);
+    font-size: 0.86rem;
     color: var(--steel);
     text-decoration: none;
     margin-bottom: 18px;
@@ -196,7 +195,7 @@
   .si-card h2, .si-garage h2, .si-signed-in h2 { font-size: 1.15rem; margin-bottom: 8px; }
   .si-card p, .si-garage p, .si-signed-in p { color: var(--steel); font-size: 0.92rem; margin-bottom: 18px; }
   .si-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
-  .si-field label { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; letter-spacing: 0.06em; color: var(--steel); text-transform: uppercase; }
+  .si-field label { font-family: var(--font-body); font-size: 0.8rem; color: var(--steel); }
   .si-field input {
     border: 1px solid var(--ink); background: #ffffff; padding: 11px 12px;
     font-family: 'IBM Plex Sans', sans-serif; font-size: 1rem; color: var(--charcoal);
@@ -235,7 +234,7 @@
   .pf-nick-gate .si-field input { font-size: 1.05rem; }
   .pf-nick-gate p.si-status-err { color: var(--orange); font-weight: 600; }
   .pf-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
-  .pf-tabs a { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; letter-spacing: 0.04em; text-transform: uppercase; border: 1px solid var(--ink); padding: 8px 12px; display: inline-flex; align-items: center; gap: 6px; }
+  .pf-tabs a { font-family: var(--font-body); font-size: 0.86rem; border: 1px solid var(--ink); padding: 8px 12px; display: inline-flex; align-items: center; gap: 6px; }
   .pf-tabs a:hover { border-color: var(--orange); color: var(--orange); }
   .pf-tabs .pf-tab-garage { margin-left: auto; background: var(--orange); border-color: var(--orange); color: #fff; }
   .pf-tabs .pf-tab-garage:hover { color: #fff; opacity: 0.9; }
@@ -248,7 +247,7 @@
   .pf-card h2 { font-size: 1.15rem; margin-bottom: 14px; }
   .pf-card h3, .pf-h3 { font-size: 0.98rem; margin: 20px 0 10px; }
   .pf-view { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 8px 18px; margin-bottom: 14px; }
-  .pf-view dt { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--steel); padding-top: 3px; }
+  .pf-view dt { font-family: var(--font-body); font-size: 0.8rem; color: var(--steel); padding-top: 3px; }
   .pf-view dd { overflow-wrap: anywhere; font-weight: 500; }
   .pf-hint { color: var(--steel); font-size: 0.88rem; margin-bottom: 14px; }
   .pf-hint a { color: var(--orange); text-decoration: underline; }
@@ -275,7 +274,7 @@
   .pf-who span.pf-new { color: #fff; font-size: 0.7rem; display: inline-block; margin: 4px 0 0; }
   #email-alerts .pf-check { margin-bottom: 10px; }
   .pf-fieldset { border: 0; margin: 0 0 16px; padding: 0; display: grid; gap: 10px; }
-  .pf-fieldset legend { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--steel); margin-bottom: 10px; }
+  .pf-fieldset legend { font-family: var(--font-body); font-size: 0.8rem; color: var(--steel); margin-bottom: 10px; }
   .pf-muted { color: var(--steel); font-size: 0.88rem; overflow-wrap: anywhere; }
   .pf-nick-check { min-height: 1.2em; margin-bottom: 6px; font-weight: 600; }
   .pf-nick-check:empty { display: none; }
@@ -308,7 +307,7 @@
   .pf-bc { display: block !important; }
   .pf-bc h3 { margin: 0 0 4px; font-size: 1rem; display: flex; align-items: center; gap: 8px; }
   .pf-bc .pf-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--orange); flex-shrink: 0; }
-  .pf-bc time, .pf-thread-row time { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: var(--steel); }
+  .pf-bc time, .pf-thread-row time { font-family: var(--font-body); font-size: 0.8rem; color: var(--steel); }
   .pf-bc p { margin-top: 8px; white-space: pre-line; overflow-wrap: anywhere; }
   .pf-thread-row { cursor: pointer; }
   .pf-thread-row:hover strong { color: var(--orange); }
@@ -318,7 +317,7 @@
   .pf-bubble { max-width: 80%; padding: 10px 12px; background: #ffffff; border: 1px solid rgba(22, 35, 61, 0.2); align-self: flex-start; }
   .pf-bubble.mine { align-self: flex-end; background: var(--ink); color: #ffffff; border-color: var(--ink); }
   .pf-bubble p { white-space: pre-line; overflow-wrap: anywhere; }
-  .pf-bubble footer { padding: 0; margin-top: 4px; display: flex; gap: 10px; align-items: center; font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; opacity: 0.75; }
+  .pf-bubble footer { padding: 0; margin-top: 4px; display: flex; gap: 10px; align-items: center; font-family: var(--font-body); font-size: 0.76rem; opacity: 0.75; }
   .pf-bubble .pf-report { background: none; border: 0; padding: 0; font: inherit; color: inherit; text-decoration: underline; cursor: pointer; }
   .pf-compose { display: flex; gap: 10px; align-items: flex-end; border-top: 1px solid rgba(22, 35, 61, 0.15); padding-top: 12px; }
   .pf-compose textarea, .pf-search input { flex: 1; min-width: 0; border: 1px solid var(--ink); background: #ffffff; padding: 10px 12px; font: inherit; font-size: 1rem; resize: vertical; }
@@ -385,9 +384,8 @@
   .a2hs-banner.show { bottom: 16px; }
   .a2hs-banner .a2hs-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
   .a2hs-banner .a2hs-btn {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.04em;
+    font-family: var(--font-body);
+    font-size: 0.8rem;
     cursor: pointer;
     border: none;
     background: transparent;
@@ -398,6 +396,29 @@
   @media (max-width: 480px) {
     .a2hs-banner { flex-direction: column; align-items: flex-start; }
   }
+  /* ---------- STYLE REFRESH: soft corners, one font, clearer buttons ----------
+     Uses the shared tokens in css/site-header.css (--radius, --hairline...). */
+  .section-num, .section-num.mono { font-size: 0.82rem; font-weight: 600; color: var(--orange); }
+  .page-hero .back-link { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 6px 10px; margin-left: -10px; border-radius: var(--radius-sm); color: var(--ink); font-size: 0.88rem; font-weight: 600; }
+  .page-hero .back-link:hover { background: rgba(22,35,61,0.06); color: var(--ink); }
+  .si-card, .si-signed-in, .pf-signed-out, .pf-left, .pf-nick-gate, .pf-card {
+    border: 1px solid var(--hairline); border-radius: var(--radius); background: var(--white, #ffffff);
+  }
+  .si-card-join, .si-signed-in, .pf-signed-out, .pf-left, .pf-nick-gate { border-top: 1px solid var(--hairline); box-shadow: inset 0 3px 0 var(--orange); }
+  .si-passkey-offer { border: 1px solid rgba(28,138,75,0.3); border-radius: var(--radius); background: #f1f9f4; }
+  .si-junk { border-radius: var(--radius-sm); }
+  .si-field label { font-size: 0.86rem; font-weight: 600; color: var(--ink); }
+  .si-field input, .pf-compose textarea, .pf-search input { border: 1px solid var(--hairline-strong); border-radius: var(--radius-sm); min-height: 44px; }
+  .si-field input:focus, .pf-compose textarea:focus, .pf-search input:focus { outline: none; border-color: var(--orange); box-shadow: var(--focus-ring); }
+  .si-btn { gap: 6px; min-height: 44px; border: 1px solid var(--hairline-strong); border-radius: var(--radius); background: var(--white, #ffffff); }
+  .si-btn:hover { border-color: var(--ink); color: var(--ink); }
+  .si-btn-primary, .si-btn-primary:hover { background: var(--orange); border-color: var(--orange); color: #ffffff; }
+  .si-btn .icon { width: 16px; height: 16px; }
+  .pf-tabs a { border: 1px solid var(--hairline-strong); border-radius: var(--radius-pill); background: var(--white, #ffffff); font-weight: 600; min-height: 36px; }
+  .pf-app-steps { border: 1px solid var(--hairline); border-radius: var(--radius-sm); }
+  .pf-bubble { border: 1px solid var(--hairline); border-radius: 14px; }
+  .pf-tab-garage { display: inline-flex; align-items: center; gap: 4px; }
+  .pf-tab-garage .icon { width: 16px; height: 16px; }
 </style>
 </head>
 <body>
@@ -409,7 +430,7 @@
       <a href="shop.html#tee" class="promo-banner-msg">&#9201; New Tee options available!! | Hoodies | Club Stickers | Master Cylinder Braces | Brake Pads | Number Plates, shop now &rarr;</a>
       <a href="shop.html#tee" class="promo-banner-msg" aria-hidden="true">&#9201; New Tee options available!! | Hoodies | Club Stickers | Master Cylinder Braces | Brake Pads | Number Plates, shop now &rarr;</a>
     </div>
-    <button type="button" class="promo-banner-close" id="promo-banner-close" aria-label="Dismiss banner">&times;</button>
+    <button type="button" class="promo-banner-close" id="promo-banner-close" aria-label="Dismiss banner"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
   </div>
 </div>
 <script>
@@ -523,8 +544,8 @@
 
 <section class="page-hero" data-no-share>
   <div class="wrap">
-    <a href="index.html" class="back-link">&larr; Back to MT3UK</a>
-    <span class="section-num mono">MY PROFILE</span>
+    <a href="index.html" class="back-link"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back to MT3UK</a>
+    <span class="section-num mono">My profile</span>
     <h1>Your profile</h1>
     <p>Your details, visibility, security and email choices. Only you can see this page. Messages and friends are in the chat window: tap the speech bubble at the top of any page.</p>
   </div>
@@ -556,7 +577,7 @@
         <a href="#visibility">Visibility</a>
         <a href="#security">Security</a>
         <a href="#email-alerts">Emails</a>
-        <a href="my-builds.html" class="pf-tab-garage">My Garage &rarr;</a>
+        <a href="my-builds.html" class="pf-tab-garage">My Garage<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
       </div>
 
       <div class="pf-grid">
@@ -588,7 +609,7 @@
           <div class="pf-card pf-garage">
             <h2>My Garage</h2>
             <p id="pf-builds">Add photos and mods of your car and it joins the gallery, the reel and the weekly vote.</p>
-            <a href="my-builds.html" class="si-btn si-btn-primary">Go to My Garage &rarr;</a>
+            <a href="my-builds.html" class="si-btn si-btn-primary">Go to My Garage<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
             <a href="#" class="pf-link" id="pf-builds-link" hidden>See your builds in the gallery</a>
           </div>
 
@@ -737,7 +758,7 @@
       return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
     }
 
-    if (isStandalone() || localStorage.getItem(STORAGE_DISMISSED) === '1') return;
+    if (isStandalone() || localStorage.getItem(STORAGE_DISMISSED) === '1' || localStorage.getItem('mt3ukAppInstalled')) return;
 
     if (!sessionStorage.getItem(SESSION_FLAG)) {
       sessionStorage.setItem(SESSION_FLAG, '1');
@@ -768,7 +789,7 @@
           : 'Install MT3UK for quicker access to builds and voting.') + '</span>' +
         '<span class="a2hs-actions">' +
           (isIOS ? '' : '<button type="button" class="a2hs-btn a2hs-install">Install</button>') +
-          '<button type="button" class="a2hs-btn a2hs-close" aria-label="Dismiss">&times;</button>' +
+          '<button type="button" class="a2hs-btn a2hs-close" aria-label="Dismiss"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' +
         '</span>';
       document.body.appendChild(banner);
       requestAnimationFrame(function () { banner.classList.add('show'); });

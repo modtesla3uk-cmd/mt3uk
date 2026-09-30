@@ -101,7 +101,7 @@
               '<span class="nav-bell-item-name">' + esc(n.fromName || '') + '</span>' +
               '<span class="nav-bell-item-text">' + esc(n.text || (n.type === 'like' ? 'liked your build' : '')) + '</span>' +
               '<span class="nav-bell-item-date">' + esc(timeAgo(n.createdAt)) + '</span>' +
-            '</a><button type="button" class="nav-bell-dismiss" aria-label="Clear this notification">&times;</button></li>';
+            '</a><button type="button" class="nav-bell-dismiss" aria-label="Clear this notification"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></li>';
           }).join('') + '</ul>'
         : '<p class="nav-bell-empty">No notifications yet. You&rsquo;ll see likes and comments on your builds here.</p>') +
       '<a class="nav-bell-all" href="profile.html">My Profile &rarr;</a>';

@@ -114,7 +114,7 @@
     '.mc-btn-primary{background:#e8542a;border-color:#e8542a;color:#fff}',
     '.mc-btn-primary:hover{color:#fff;opacity:.9}',
     '.mc-btn:disabled{opacity:.5;cursor:default}',
-    '.mc-tag{font:600 .7rem "IBM Plex Mono",monospace;letter-spacing:.04em;color:#7c8798}',
+    '.mc-tag{font:600 .78rem "IBM Plex Sans",sans-serif;color:#7c8798}',
     '.mc-h3{margin:14px 2px 8px;font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#7c8798}',
     '.mc-h3:first-child{margin-top:4px}',
     '.mc-empty{display:block;padding:18px 8px;text-align:center;color:#7c8798;font-size:.88rem;line-height:1.5}',
@@ -246,7 +246,7 @@
       '<button type="button" class="mc-icon-btn" id="mc-popout" aria-label="Open messages in a new window" hidden>' + POPOUT_ICON + '</button>' +
       '<button type="button" class="mc-icon-btn" id="mc-expand" aria-label="Full screen" aria-pressed="false">' + EXPAND_ICON + '</button>' +
       '<button type="button" class="mc-icon-btn" id="mc-min" aria-label="Minimise messages">&minus;</button>' +
-      '<button type="button" class="mc-icon-btn" id="mc-close" aria-label="Close messages">&times;</button>' +
+      '<button type="button" class="mc-icon-btn" id="mc-close" aria-label="Close messages"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' +
     '</div>' +
     '<div class="mc-tabs" id="mc-tabs" role="tablist">' +
       '<button type="button" class="mc-tab" role="tab" data-view="chats" aria-selected="true">Chats <span class="mc-badge" id="mc-badge-chats" hidden></span></button>' +
@@ -279,7 +279,7 @@
       '</div>' +
     '</div>' +
     '<div class="mc-reply" id="mc-reply" hidden><div id="mc-reply-text"></div>' +
-      '<button type="button" class="mc-btn" id="mc-reply-cancel" aria-label="Cancel reply">&times;</button>' +
+      '<button type="button" class="mc-btn" id="mc-reply-cancel" aria-label="Cancel reply"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' +
     '</div>' +
     '<div class="mc-attach" id="mc-attach" hidden>' +
       '<img id="mc-attach-img" alt="Photo to send"><span>Photo ready to send</span>' +
@@ -519,7 +519,7 @@
     v.id = 'mc-viewer';
     v.setAttribute('role', 'dialog');
     v.setAttribute('aria-label', 'Photo');
-    v.innerHTML = '<img alt="Photo" src="' + esc(src) + '"><button type="button" class="mc-icon-btn" aria-label="Close photo">&times;</button>';
+    v.innerHTML = '<img alt="Photo" src="' + esc(src) + '"><button type="button" class="mc-icon-btn" aria-label="Close photo"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>';
     function shut() { v.remove(); document.removeEventListener('keydown', onKey, true); }
     function onKey(e) { if (e.key === 'Escape') { e.stopPropagation(); shut(); } }
     v.addEventListener('click', shut);

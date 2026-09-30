@@ -22,15 +22,15 @@
       '.mt3uk-signin-backdrop{position:fixed;inset:0;z-index:2147482000;background:rgba(14,22,40,.55);',
       '-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:16px}',
       '.mt3uk-signin-box{background:#f3f1ea;color:#16233d;max-width:380px;width:100%;padding:22px 20px 18px;',
-      'box-shadow:0 18px 50px rgba(0,0,0,.35);border-top:4px solid #e8542a;font-family:inherit}',
+      'border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.35);font-family:inherit}',
       '.mt3uk-signin-box h2{margin:0 0 8px;font-size:1.15rem;line-height:1.3}',
       '.mt3uk-signin-box p{margin:0 0 16px;font-size:.92rem;line-height:1.5;color:#3d4a61}',
       '.mt3uk-signin-actions{display:flex;flex-direction:column;gap:8px}',
       '.mt3uk-signin-actions a,.mt3uk-signin-actions button{display:flex;align-items:center;justify-content:center;min-height:44px;',
-      'padding:10px 16px;font-family:"IBM Plex Mono",monospace;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;',
-      'text-decoration:none;cursor:pointer;border:1px solid #16233d;background:transparent;color:#16233d}',
+      'padding:10px 16px;font-family:"IBM Plex Sans",sans-serif;font-size:.93rem;font-weight:600;',
+      'text-decoration:none;cursor:pointer;border:1px solid rgba(22,35,61,.28);border-radius:10px;background:#fff;color:#16233d}',
       '.mt3uk-signin-actions a.mt3uk-signin-primary{background:#e8542a;border-color:#e8542a;color:#fff}',
-      '.mt3uk-signin-actions button{border-color:transparent;color:#6b7689}'
+      '.mt3uk-signin-actions button{border-color:transparent;background:transparent;color:#6b7689}'
     ].join('');
     var style = document.createElement('style');
     style.textContent = css;

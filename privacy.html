@@ -590,7 +590,7 @@
       return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
     }
 
-    if (isStandalone() || localStorage.getItem(STORAGE_DISMISSED) === '1') return;
+    if (isStandalone() || localStorage.getItem(STORAGE_DISMISSED) === '1' || localStorage.getItem('mt3ukAppInstalled')) return;
 
     if (!sessionStorage.getItem(SESSION_FLAG)) {
       sessionStorage.setItem(SESSION_FLAG, '1');

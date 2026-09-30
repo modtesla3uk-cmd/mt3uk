@@ -99,10 +99,12 @@
       if (installedHere()) installed();
       else if (reported && Date.now() - reported < MONTH) installed(reported);
     }
-    // Android browsers can say for sure, including when it's been deleted.
+    // Android browsers can confirm it's installed. A "no" isn't reliable (a
+    // home screen shortcut isn't reported), so that falls back to what's known;
+    // a deleted app shows up as the browser offering to install (onPrompt).
     if (isAndroid && navigator.getInstalledRelatedApps) {
       navigator.getInstalledRelatedApps()
-        .then(function (list) { if (list && list.length) installed(); else notInstalled(); })
+        .then(function (list) { if (list && list.length) installed(); else known(); })
         .catch(known);
     } else {
       known();

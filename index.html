@@ -5916,7 +5916,7 @@
       return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
     }
 
-    if (isStandalone() || localStorage.getItem(STORAGE_DISMISSED) === '1' || localStorage.getItem('mt3ukAppInstalled') === '1') return;
+    if (isStandalone() || localStorage.getItem(STORAGE_DISMISSED) === '1' || localStorage.getItem('mt3ukAppInstalled')) return;
 
     if (!sessionStorage.getItem(SESSION_FLAG)) {
       sessionStorage.setItem(SESSION_FLAG, '1');
@@ -6175,8 +6175,11 @@
     if (isAndroid && navigator.getInstalledRelatedApps) {
       navigator.getInstalledRelatedApps()
         .then(function (apps) {
+          // A "no" isn't reliable (a home screen shortcut, or an app added
+          // from another browser, isn't reported), so fall back to what's
+          // known. A deleted app shows up as the browser offering to install.
           if (apps && apps.length) markInstalled();
-          else { forget(); box.hidden = false; }
+          else knownOrAsk();
         })
         .catch(knownOrAsk);
     } else {

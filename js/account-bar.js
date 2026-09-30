@@ -94,7 +94,7 @@
       '#mt3uk-nick-prompt form{background:#f3f1ea;color:#1c1c1c;border-top:4px solid #e8542a;max-width:420px;width:100%;padding:24px 22px;box-shadow:0 20px 50px rgba(0,0,0,.35)}' +
       '#mt3uk-nick-prompt h2{font-family:"Archivo Expanded",sans-serif;font-size:1.15rem;color:#16233d;margin:0 0 8px}' +
       '#mt3uk-nick-prompt p{margin:0 0 14px;color:#4a5568;font-size:.92rem;line-height:1.45}' +
-      '#mt3uk-nick-prompt label{display:block;font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:#7c8798;margin-bottom:6px}' +
+      '#mt3uk-nick-prompt label{display:block;font-family:"IBM Plex Sans",sans-serif;font-size:.86rem;font-weight:600;color:#16233d;margin-bottom:6px}' +
       '#mt3uk-nick-prompt input{width:100%;box-sizing:border-box;border:1px solid #16233d;background:#fff;padding:11px 12px;font:inherit;font-size:16px;margin-bottom:12px}' +
       '#mt3uk-nick-prompt .mt3uk-nick-row{display:flex;gap:10px;flex-wrap:wrap}' +
       '#mt3uk-nick-prompt button{min-height:44px;padding:10px 16px;border:1px solid #16233d;background:transparent;color:#16233d;font:inherit;font-weight:600;cursor:pointer;border-radius:4px}' +

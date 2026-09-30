@@ -27,7 +27,7 @@
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
 <link rel="stylesheet" href="css/site-header.css">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 
   :root {
     --ink: #16233d;
@@ -62,9 +62,8 @@
   }
 
   .mono {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.06em;
+    font-family: var(--font-body);
+    font-size: 0.8rem;
     color: var(--steel);
   }
 
@@ -87,7 +86,7 @@
     gap: 10px;
     padding: 10px 44px 10px 0;
     position: relative;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-body);
     font-size: 0.8rem;
     overflow: hidden;
   }
@@ -162,17 +161,16 @@
     flex-wrap: wrap;
   }
   .section-num {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.78rem;
+    font-family: var(--font-body);
+    font-size: 0.86rem;
     color: var(--orange);
     margin-bottom: 10px;
     display: block;
   }
   .section-title-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
   .refresh-btn {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.03em;
+    font-family: var(--font-body);
+    font-size: 0.78rem;
     padding: 6px 12px;
     border: 1px solid var(--ink);
     background: transparent;
@@ -203,8 +201,8 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.78rem;
+    font-family: var(--font-body);
+    font-size: 0.86rem;
     color: var(--steel);
     text-decoration: none;
     margin-bottom: 18px;
@@ -282,9 +280,8 @@
     left: 0; right: 0; bottom: 0;
     padding: 9px 12px;
     background: linear-gradient(0deg, rgba(22,35,61,0.82), rgba(22,35,61,0));
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.68rem;
-    letter-spacing: 0.03em;
+    font-family: var(--font-body);
+    font-size: 0.76rem;
     color: var(--paper);
     display: flex;
     flex-direction: column;
@@ -324,13 +321,12 @@
     color: var(--paper);
     padding: 4px 7px;
     cursor: pointer;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.62rem;
-    letter-spacing: 0.03em;
+    font-family: var(--font-body);
+    font-size: 0.7rem;
   }
   .g-mods-badge:hover { background: var(--orange); border-color: var(--orange); }
   .g-mods-badge svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
-  .g-claim-badge { position: absolute; top: 8px; left: 8px; z-index: 2; background: rgba(232,84,42,0.9); border: 1px solid var(--orange); color: var(--paper); padding: 4px 8px; cursor: pointer; font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; letter-spacing: 0.03em; }
+  .g-claim-badge { position: absolute; top: 8px; left: 8px; z-index: 2; background: rgba(232,84,42,0.9); border: 1px solid var(--orange); color: var(--paper); padding: 4px 8px; cursor: pointer; font-family: var(--font-body); font-size: 0.68rem; }
   .g-claim-badge:hover { background: var(--orange); }
   .gallery-note {
     margin-top: 20px;
@@ -343,7 +339,7 @@
   .gallery-only-note[hidden] { display: none; }
   .gallery-only-note { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px; }
   .gallery-only-note a { color: var(--orange); font-weight: 600; white-space: nowrap; }
-  .gallery-member { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; letter-spacing: 0.04em; background: transparent; border: 1px solid var(--ink); color: var(--ink); padding: 7px 30px 7px 12px; cursor: pointer; max-width: 100%; appearance: none; -webkit-appearance: none; border-radius: 0;
+  .gallery-member { font-family: var(--font-body); font-size: 0.8rem; background: transparent; border: 1px solid var(--ink); color: var(--ink); padding: 7px 30px 7px 12px; cursor: pointer; max-width: 100%; appearance: none; -webkit-appearance: none; border-radius: 0;
     background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%), linear-gradient(135deg, var(--ink) 50%, transparent 50%); background-position: calc(100% - 15px) 50%, calc(100% - 10px) 50%; background-size: 5px 5px; background-repeat: no-repeat; }
   .gallery-member.active { background-color: var(--ink); color: var(--paper); background-image: linear-gradient(45deg, transparent 50%, var(--paper) 50%), linear-gradient(135deg, var(--paper) 50%, transparent 50%); }
   .gallery-filters .filter-break { flex-basis: 100%; height: 0; }
@@ -356,9 +352,8 @@
     margin-bottom: 20px;
   }
   .gallery-filters .filter-btn {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.04em;
+    font-family: var(--font-body);
+    font-size: 0.8rem;
     background: transparent;
     border: 1px solid var(--ink);
     color: var(--ink);
@@ -386,9 +381,8 @@
     margin-top: 24px;
   }
   .gallery-pagination .page-btn {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.04em;
+    font-family: var(--font-body);
+    font-size: 0.8rem;
     background: transparent;
     border: 1px solid var(--ink);
     color: var(--ink);
@@ -413,6 +407,42 @@
   }
   .footer-row .mono { font-size: 0.72rem; }
 
+  /* ---------- STYLE REFRESH: soft corners, one font, clearer buttons ----------
+     Uses the shared tokens in css/site-header.css (--radius, --hairline...). */
+  .section-num, .section-num.mono { font-size: 0.82rem; font-weight: 600; color: var(--orange); }
+  .page-hero .back-link {
+    min-height: 36px; padding: 6px 10px; margin-left: -10px; border-radius: var(--radius-sm);
+    color: var(--ink); font-size: 0.88rem; font-weight: 600;
+  }
+  .page-hero .back-link:hover { background: rgba(22,35,61,0.06); color: var(--ink); }
+  .refresh-btn, .gallery-filters .filter-btn, .gallery-pagination .page-btn, .gallery-member {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 36px;
+    border: 1px solid var(--hairline-strong); background-color: var(--white); color: var(--ink);
+    font-size: 0.86rem; font-weight: 600; transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .refresh-btn, .gallery-pagination .page-btn { padding: 7px 12px; border-radius: var(--radius-sm); }
+  .refresh-btn .icon { width: 16px; height: 16px; }
+  .gallery-filters .filter-btn { padding: 6px 14px; border-radius: var(--radius-pill); }
+  .gallery-member { border-radius: var(--radius-pill); padding: 6px 34px 6px 14px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2316233d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-position: right 12px center; background-size: 16px; background-repeat: no-repeat; }
+  .gallery-member.active { background-color: var(--ink); color: var(--white);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); }
+  .refresh-btn:hover:not(:disabled), .gallery-filters .filter-btn:hover, .gallery-pagination .page-btn:hover:not(:disabled), .gallery-member:hover {
+    background-color: var(--white); border-color: var(--ink); color: var(--ink);
+  }
+  .gallery-filters .filter-btn.active, .gallery-filters .filter-btn.active:hover { background: var(--ink); border-color: var(--ink); color: var(--white); }
+  .gallery-member.active:hover { background-color: var(--ink); color: var(--white); }
+  .gallery-grid { border: 0; padding: 0; gap: 6px; background: none; }
+  .gallery-slot { border-radius: var(--radius-sm); }
+  .gallery-slot.filled { border: 0; }
+  .gallery-slot .g-name { font-size: 0.7rem; }
+  .g-mods-badge, .g-claim-badge { border-radius: var(--radius-pill); border: 0; padding: 4px 9px; }
+  .gallery-only-note { border: 1px solid rgba(232,84,42,0.25); border-radius: var(--radius); background: #fdf3ef; padding: 10px 16px; }
+  .gallery-only-note a { display: inline-flex; align-items: center; gap: 4px; }
+  .gallery-only-note .icon { width: 16px; height: 16px; }
+  .promo-banner-close .icon { width: 18px; height: 18px; }
+
   :focus-visible {
     outline: 2px solid var(--orange);
     outline-offset: 2px;
@@ -428,7 +458,7 @@
       <a href="shop.html#tee" class="promo-banner-msg">&#9201; New Tee options available!! | Hoodies | Club Stickers | Master Cylinder Braces | Brake Pads | Number Plates, shop now &rarr;</a>
       <a href="shop.html#tee" class="promo-banner-msg" aria-hidden="true">&#9201; New Tee options available!! | Hoodies | Club Stickers | Master Cylinder Braces | Brake Pads | Number Plates, shop now &rarr;</a>
     </div>
-    <button type="button" class="promo-banner-close" id="promo-banner-close" aria-label="Dismiss banner">&times;</button>
+    <button type="button" class="promo-banner-close" id="promo-banner-close" aria-label="Dismiss banner"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
   </div>
 </div>
 <script>
@@ -542,8 +572,8 @@
 
 <section class="page-hero">
   <div class="wrap">
-    <a href="index.html" class="back-link">&larr; Back to Home</a>
-    <span class="section-num mono">FULL GALLERY</span>
+    <a href="index.html" class="back-link"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back to Home</a>
+    <span class="section-num mono">Full gallery</span>
     <h1>Every build the group has shared</h1>
     <p>From first-mod daily drivers to fully track-prepped builds. Every entry is submitted by its owner with a caption and, where they've listed them, the mods behind it. Want yours in here? <a href="my-builds.html#build-upload" class="inline-link">Upload it in My Garage</a>.</p>
   </div>
@@ -553,14 +583,14 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">01 / FULL GALLERY</span>
+        <span class="section-num">01 / Full gallery</span>
         <div class="section-title-row">
           <h2>Full Gallery</h2>
-          <button type="button" class="refresh-btn" id="gallery-refresh-btn" aria-label="Refresh gallery">&#8635; Refresh</button>
+          <button type="button" class="refresh-btn" id="gallery-refresh-btn" aria-label="Refresh gallery"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></svg>Refresh</button>
         </div>
       </div>
     </div>
-    <p class="gallery-only-note" id="gallery-only-note" hidden><span id="gallery-only-text">Your builds</span> <a href="gallery.html" id="gallery-only-clear">&times; Show all builds</a></p>
+    <p class="gallery-only-note" id="gallery-only-note" hidden><span id="gallery-only-text">Your builds</span> <a href="gallery.html" id="gallery-only-clear"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>Show all builds</a></p>
     <div class="gallery-filters" id="gallery-filters"></div>
     <div class="gallery-grid" id="gallery-grid">
       <p class="mono" style="grid-column: 1 / -1; padding: 24px; color: var(--steel);">Loading builds&hellip;</p>
@@ -682,7 +712,7 @@
     function ensureModal() {
       if (modal) return modal;
       var style = document.createElement('style');
-      style.textContent = '.ebm-overlay { position: fixed; inset: 0; background: rgba(22,35,61,0.85); display: none; align-items: center; justify-content: center; z-index: 300; padding: 20px; } .ebm-overlay.open { display: flex; } .ebm-panel { background: var(--paper, #f3f1ea); max-width: 420px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; border: 1px solid var(--ink, #16233d); } .ebm-close { position: absolute; top: 10px; right: 10px; z-index: 2; width: 34px; height: 34px; border: 1px solid rgba(255,255,255,0.8); background: rgba(22,35,61,0.6); color: #fff; font-size: 1.3rem; line-height: 1; cursor: pointer; } .ebm-close:hover { background: var(--orange, #e8542a); color: #fff; border-color: var(--orange, #e8542a); } .ebm-media { aspect-ratio: 4/3; overflow: hidden; background: var(--ink, #16233d); position: relative; } .ebm-media img { width: 100%; height: 100%; object-fit: contain; display: block; } .ebm-body { padding: 18px; display: flex; flex-direction: column; gap: 14px; } .ebm-caption { font-family: "IBM Plex Mono", monospace; font-size: 0.8rem; letter-spacing: 0.03em; } .ebm-toggles { display: flex; flex-wrap: wrap; gap: 12px; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; } .ebm-toggle { display: flex; align-items: center; gap: 6px; cursor: pointer; } .ebm-vote-link { color: var(--orange, #e8542a); text-decoration: underline; } .ebm-mods { display: flex; flex-direction: column; gap: 8px; } .ebm-mods-label { display: block; font-size: 0.78rem; } .ebm-mods-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; } .ebm-mods-list:empty { display: none; } .ebm-mods-list li { display: flex; align-items: center; gap: 6px; border: 1px solid var(--ink, #16233d); padding: 5px 6px 5px 10px; font-family: "IBM Plex Mono", monospace; font-size: 0.76rem; } .ebm-mods-remove { border: none; background: transparent; cursor: pointer; font-size: 1rem; line-height: 1; color: var(--steel, #7c8798); } .ebm-mods-remove:hover { color: var(--orange, #e8542a); } .ebm-mods-input-row { display: flex; gap: 8px; } .ebm-mods-input-row input { flex: 1; border: 1px solid var(--ink, #16233d); background: #fff; padding: 8px 10px; font-family: "IBM Plex Sans", sans-serif; font-size: 0.85rem; } .ebm-mods-add-btn { border: 1px solid var(--ink, #16233d); background: transparent; padding: 0 14px; font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; cursor: pointer; } .ebm-mods-add-btn:hover { background: var(--ink, #16233d); color: #fff; } .ebm-actions { display: flex; align-items: center; gap: 10px; } .ebm-save-btn { border: 1px solid var(--orange, #e8542a); background: var(--orange, #e8542a); color: #fff; padding: 9px 16px; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; cursor: pointer; } .ebm-save-btn:disabled { opacity: 0.6; cursor: default; } .ebm-status { font-size: 0.76rem; color: var(--steel, #7c8798); } .ebm-status-ok { color: #1c8a4b; font-weight: 700; } .ebm-status-err { color: var(--orange, #e8542a); } .ebm-danger { border-top: 1px solid rgba(0,0,0,0.12); padding-top: 12px; } .ebm-delete-btn { border: 1px solid var(--line, #4a6491); background: transparent; padding: 7px 12px; font-family: "IBM Plex Mono", monospace; font-size: 0.76rem; cursor: pointer; } .ebm-delete-btn:hover { border-color: var(--orange, #e8542a); color: var(--orange, #e8542a); } .ebm-delete-btn.ebm-delete-confirm { border-color: var(--orange, #e8542a); background: var(--orange, #e8542a); color: #fff; } .ebm-manage-link { font-size: 0.72rem; color: var(--steel, #7c8798); } .ebm-manage-link a { color: var(--orange, #e8542a); text-decoration: underline; }';
+      style.textContent = '.ebm-overlay { position: fixed; inset: 0; background: rgba(22,35,61,0.85); display: none; align-items: center; justify-content: center; z-index: 300; padding: 20px; } .ebm-overlay.open { display: flex; } .ebm-panel { background: var(--paper, #f3f1ea); max-width: 420px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; border: 0; border-radius: 14px; box-shadow: 0 30px 70px rgba(0,0,0,0.45); } .ebm-close { position: absolute; top: 10px; right: 10px; z-index: 2; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 50%; background: rgba(15,20,30,0.6); color: #fff; line-height: 1; cursor: pointer; } .ebm-close:hover { background: var(--orange, #e8542a); color: #fff; border-color: var(--orange, #e8542a); } .ebm-media { aspect-ratio: 4/3; overflow: hidden; background: var(--ink, #16233d); position: relative; } .ebm-media img { width: 100%; height: 100%; object-fit: contain; display: block; } .ebm-body { padding: 18px; display: flex; flex-direction: column; gap: 14px; } .ebm-caption { font-family: var(--font-body); font-size: 0.8rem; } .ebm-toggles { display: flex; flex-wrap: wrap; gap: 12px; font-family: var(--font-body); font-size: 0.86rem; } .ebm-toggle { display: flex; align-items: center; gap: 6px; cursor: pointer; } .ebm-vote-link { color: var(--orange, #e8542a); text-decoration: underline; } .ebm-mods { display: flex; flex-direction: column; gap: 8px; } .ebm-mods-label { display: block; font-size: 0.78rem; } .ebm-mods-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; } .ebm-mods-list:empty { display: none; } .ebm-mods-list li { display: flex; align-items: center; gap: 6px; border: 1px solid rgba(22,35,61,0.28); border-radius: 999px; background: #fff; padding: 4px 6px 4px 12px; font-family: var(--font-body); font-size: 0.84rem; } .ebm-mods-remove { border: none; background: transparent; cursor: pointer; display: flex; padding: 2px; line-height: 1; color: var(--steel, #7c8798); } .ebm-mods-remove .icon { width: 14px; height: 14px; } .ebm-mods-remove:hover { color: var(--orange, #e8542a); } .ebm-mods-input-row { display: flex; gap: 8px; } .ebm-mods-input-row input { flex: 1; min-height: 40px; border: 1px solid rgba(22,35,61,0.28); border-radius: 8px; background: #fff; padding: 8px 10px; font-family: "IBM Plex Sans", sans-serif; font-size: 0.85rem; } .ebm-mods-add-btn { border: 1px solid rgba(22,35,61,0.28); border-radius: 8px; background: #fff; color: var(--ink, #16233d); font-weight: 600; padding: 0 14px; font-family: var(--font-body); font-size: 0.8rem; cursor: pointer; } .ebm-mods-add-btn:hover { border-color: var(--ink, #16233d); } .ebm-actions { display: flex; align-items: center; gap: 10px; } .ebm-save-btn { min-height: 44px; border: 1px solid var(--orange, #e8542a); border-radius: 10px; background: var(--orange, #e8542a); color: #fff; font-weight: 600; padding: 9px 18px; font-family: var(--font-body); font-size: 0.86rem; cursor: pointer; } .ebm-save-btn:disabled { opacity: 0.6; cursor: default; } .ebm-status { font-size: 0.76rem; color: var(--steel, #7c8798); } .ebm-status-ok { color: #1c8a4b; font-weight: 700; } .ebm-status-err { color: var(--orange, #e8542a); } .ebm-danger { border-top: 1px solid rgba(0,0,0,0.12); padding-top: 12px; } .ebm-delete-btn { min-height: 36px; border: 1px solid rgba(184,54,26,0.35); border-radius: 8px; background: #fff; color: #b8361a; font-weight: 600; padding: 7px 12px; font-family: var(--font-body); font-size: 0.84rem; cursor: pointer; } .ebm-delete-btn:hover { background: #fdf0ec; } .ebm-delete-btn.ebm-delete-confirm { border-color: #b8361a; background: #b8361a; color: #fff; } .ebm-manage-link { font-size: 0.72rem; color: var(--steel, #7c8798); } .ebm-manage-link a { color: var(--orange, #e8542a); text-decoration: underline; }';
       document.head.appendChild(style);
 
       modal = document.createElement('div');
@@ -692,7 +722,7 @@
       modal.setAttribute('aria-hidden', 'true');
       modal.innerHTML =
         '<div class="ebm-panel">' +
-          '<button type="button" class="ebm-close" aria-label="Close">&times;</button>' +
+          '<button type="button" class="ebm-close" aria-label="Close"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' +
           '<div class="ebm-media"><img alt=""></div>' +
           '<div class="ebm-body">' +
             '<span class="ebm-caption"></span>' +
@@ -732,7 +762,7 @@
       function renderMods() {
         modsList.innerHTML = currentMods.map(function (m, idx) {
           var safe = String(m).replace(/</g, '&lt;');
-          return '<li><span>' + safe + '</span><button type="button" class="ebm-mods-remove" data-idx="' + idx + '" aria-label="Remove ' + safe + '">&times;</button></li>';
+          return '<li><span>' + safe + '</span><button type="button" class="ebm-mods-remove" data-idx="' + idx + '" aria-label="Remove ' + safe + '"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></li>';
         }).join('');
       }
 
@@ -886,7 +916,7 @@
       modal.querySelector('input[data-flag="reel"]').checked = data.reel !== false;
       modsList.innerHTML = currentMods.map(function (m, idx) {
         var safe = String(m).replace(/</g, '&lt;');
-        return '<li><span>' + safe + '</span><button type="button" class="ebm-mods-remove" data-idx="' + idx + '" aria-label="Remove ' + safe + '">&times;</button></li>';
+        return '<li><span>' + safe + '</span><button type="button" class="ebm-mods-remove" data-idx="' + idx + '" aria-label="Remove ' + safe + '"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></li>';
       }).join('');
       modsInput.value = '';
       statusEl.textContent = '';
@@ -1063,16 +1093,16 @@
       var refreshBtn = document.getElementById('gallery-refresh-btn');
       if (refreshBtn) {
         refreshBtn.disabled = true;
-        if (forceRefresh) refreshBtn.innerHTML = '&#8635; Refreshing&hellip;';
+        if (forceRefresh) refreshBtn.innerHTML = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></svg>Refreshing&hellip;';
       }
       window.mt3ukFetchJSON('images/gallery/manifest.json', null, forceRefresh)
         .then(function (photos) {
           if (refreshBtn) {
             refreshBtn.disabled = false;
             if (forceRefresh) {
-              refreshBtn.innerHTML = photos ? '&#10003; Refreshed' : '&#8635; Refresh';
+              refreshBtn.innerHTML = photos ? '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Refreshed' : '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></svg>Refresh';
               if (photos) {
-                setTimeout(function () { refreshBtn.innerHTML = '&#8635; Refresh'; }, 1800);
+                setTimeout(function () { refreshBtn.innerHTML = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></svg>Refresh'; }, 1800);
               }
             }
           }
@@ -1097,7 +1127,7 @@
 <script>
   (function () {
     var style = document.createElement('style');
-    style.textContent = '.gallery-slot.filled img { cursor: zoom-in; } .lightbox { position: fixed; inset: 0; background: rgba(22,35,61,0.94); display: none; align-items: center; justify-content: center; flex-direction: column; z-index: 200; padding: 40px 20px; } .lightbox.open { display: flex; } .lightbox-img { max-width: min(92vw, 1100px); max-height: 78vh; object-fit: contain; border: 1px solid rgba(243,241,234,0.25); } .lightbox-caption { margin-top: 16px; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; letter-spacing: 0.04em; color: var(--paper); } .lightbox-mods { display: none; margin-top: 10px; max-width: min(92vw, 1100px); font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; letter-spacing: 0.03em; color: rgba(243,241,234,0.7); text-align: center; } .lightbox-mods.has-mods { display: block; } .lightbox-close { position: absolute; top: 22px; right: 28px; background: transparent; border: 1px solid var(--paper); color: var(--paper); width: 40px; height: 40px; font-size: 1.4rem; line-height: 1; cursor: pointer; } .lightbox-close:hover { background: var(--orange); border-color: var(--orange); } .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(22,35,61,0.6); border: 1px solid var(--paper); color: var(--paper); width: 46px; height: 46px; font-size: 1.6rem; line-height: 1; cursor: pointer; } .lightbox-nav:hover { background: var(--orange); border-color: var(--orange); } .lightbox-prev { left: 20px; } .lightbox-next { right: 20px; } @media (max-width: 700px) { .lightbox-nav { width: 38px; height: 38px; font-size: 1.3rem; } .lightbox-prev { left: 8px; } .lightbox-next { right: 8px; } } @media (max-width: 600px) { .lightbox-close { top: 14px; right: 14px; width: 36px; height: 36px; } } .lightbox-vote { display: none; margin-top: 16px; align-items: center; gap: 14px; } .lightbox.open[data-mode="vote"] .lightbox-vote { display: flex; } .lightbox-vote-count { font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; letter-spacing: 0.04em; color: var(--paper); } .lightbox-vote-btn { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; letter-spacing: 0.04em; padding: 9px 16px; border: 1px solid var(--paper); background: transparent; color: var(--paper); cursor: pointer; transition: background .2s ease, color .2s ease; } .lightbox-vote-btn:hover:not(:disabled) { background: var(--orange); border-color: var(--orange); } .lightbox-vote-btn:disabled { cursor: default; opacity: 0.7; background: var(--orange); border-color: var(--orange); } .lightbox-report { margin-top: 14px; background: transparent; border: none; color: rgba(243,241,234,0.5); font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; letter-spacing: 0.03em; text-decoration: underline; cursor: pointer; } .lightbox-report:hover { color: var(--paper); } .lightbox-report:disabled { text-decoration: none; cursor: default; } .lightbox-claim-wrap { display: none; margin-top: 10px; max-width: min(92vw, 360px); text-align: center; } .lightbox-claim-wrap.show { display: block; } .lightbox-claim { background: transparent; border: 1px solid var(--orange); color: var(--orange); font-family: "IBM Plex Mono", monospace; font-size: 0.7rem; letter-spacing: 0.03em; padding: 8px 14px; cursor: pointer; } .lightbox-claim:hover:not(:disabled) { background: var(--orange); color: var(--ink); } .lightbox-claim:disabled { opacity: 0.7; cursor: default; } .lightbox-claim-form { display: none; margin-top: 10px; } .lightbox-claim-form.show { display: block; } .lightbox.claiming .lightbox-nav { display: none; } .lightbox.claiming { justify-content: flex-start; overflow-y: auto; padding-top: 72px; padding-bottom: 32px; } .lightbox.claiming .lightbox-img { max-height: 32vh; flex-shrink: 0; } @media (max-height: 700px) { .lightbox.claiming { padding-top: 60px; } .lightbox.claiming .lightbox-img { max-height: 22vh; } } .lightbox-claim-guest { display: none; } .lightbox-claim-guest.show { display: block; } .lightbox-claim-guest-intro { font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; line-height: 1.5; color: rgba(243,241,234,0.75); margin: 0 0 8px; } .lightbox-claim-guest-intro a { color: var(--orange); text-decoration: underline; } .lightbox-claim-input { display: block; width: 100%; box-sizing: border-box; margin: 0 0 8px; background: rgba(243,241,234,0.08); border: 1px solid rgba(243,241,234,0.35); color: var(--paper); font-family: "IBM Plex Sans", sans-serif; font-size: 16px; padding: 8px; } .lightbox-claim-note { width: 100%; box-sizing: border-box; background: rgba(243,241,234,0.08); border: 1px solid rgba(243,241,234,0.35); color: var(--paper); font-family: "IBM Plex Sans", sans-serif; font-size: 0.78rem; padding: 8px; resize: vertical; } .lightbox-claim-actions { display: flex; gap: 8px; justify-content: center; margin-top: 8px; } .lightbox-claim-submit, .lightbox-claim-cancel { font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; letter-spacing: 0.03em; padding: 7px 12px; cursor: pointer; } .lightbox-claim-submit { background: var(--orange); border: 1px solid var(--orange); color: var(--ink); } .lightbox-claim-submit:disabled { opacity: 0.7; cursor: default; } .lightbox-claim-cancel { background: transparent; border: 1px solid rgba(243,241,234,0.4); color: var(--paper); } .lightbox-claim-status { margin-top: 8px; font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; letter-spacing: 0.02em; color: rgba(243,241,234,0.75); } .lightbox-claim-status a { color: var(--orange); text-decoration: underline; }';
+    style.textContent = '.gallery-slot.filled img { cursor: zoom-in; } .lightbox { position: fixed; inset: 0; background: rgba(22,35,61,0.94); display: none; align-items: center; justify-content: center; flex-direction: column; z-index: 200; padding: 40px 20px; } .lightbox.open { display: flex; } .lightbox-img { max-width: min(92vw, 1100px); max-height: 78vh; object-fit: contain; border: 0; border-radius: 10px; } .lightbox-caption { margin-top: 16px; font-family: var(--font-body); font-size: 0.86rem; color: var(--paper); } .lightbox-mods { display: none; margin-top: 10px; max-width: min(92vw, 1100px); font-family: var(--font-body); font-size: 0.76rem; color: rgba(243,241,234,0.7); text-align: center; } .lightbox-mods.has-mods { display: block; } .lightbox-close { position: absolute; top: 22px; right: 28px; display: flex; align-items: center; justify-content: center; background: rgba(243,241,234,0.12); border: 0; border-radius: 50%; color: var(--paper); width: 40px; height: 40px; line-height: 1; cursor: pointer; } .lightbox-close .icon, .lightbox-nav .icon { width: 22px; height: 22px; } .lightbox-close:hover { background: var(--orange); border-color: var(--orange); } .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); display: flex; align-items: center; justify-content: center; background: rgba(243,241,234,0.12); border: 0; border-radius: 50%; color: var(--paper); width: 46px; height: 46px; line-height: 1; cursor: pointer; } .lightbox-nav:hover { background: var(--orange); border-color: var(--orange); } .lightbox-prev { left: 20px; } .lightbox-next { right: 20px; } @media (max-width: 700px) { .lightbox-nav { width: 38px; height: 38px; font-size: 1.3rem; } .lightbox-prev { left: 8px; } .lightbox-next { right: 8px; } } @media (max-width: 600px) { .lightbox-close { top: 14px; right: 14px; width: 36px; height: 36px; } } .lightbox-vote { display: none; margin-top: 16px; align-items: center; gap: 14px; } .lightbox.open[data-mode="vote"] .lightbox-vote { display: flex; } .lightbox-vote-count { font-family: var(--font-body); font-size: 0.86rem; color: var(--paper); } .lightbox-vote-btn { font-family: var(--font-body); font-size: 0.8rem; min-height: 44px; padding: 9px 18px; border: 1px solid var(--paper); border-radius: 10px; background: transparent; color: var(--paper); font-weight: 600; cursor: pointer; transition: background .2s ease, color .2s ease; } .lightbox-vote-btn:hover:not(:disabled) { background: var(--orange); border-color: var(--orange); } .lightbox-vote-btn:disabled { cursor: default; opacity: 0.7; background: var(--orange); border-color: var(--orange); } .lightbox-report { margin-top: 14px; background: transparent; border: none; color: rgba(243,241,234,0.5); font-family: var(--font-body); font-size: 0.76rem; text-decoration: underline; cursor: pointer; } .lightbox-report:hover { color: var(--paper); } .lightbox-report:disabled { text-decoration: none; cursor: default; } .lightbox-claim-wrap { display: none; margin-top: 10px; max-width: min(92vw, 360px); text-align: center; } .lightbox-claim-wrap.show { display: block; } .lightbox-claim { background: transparent; border: 1px solid var(--orange); border-radius: 8px; font-weight: 600; color: var(--orange); font-family: var(--font-body); font-size: 0.78rem; padding: 8px 14px; cursor: pointer; } .lightbox-claim:hover:not(:disabled) { background: var(--orange); color: var(--ink); } .lightbox-claim:disabled { opacity: 0.7; cursor: default; } .lightbox-claim-form { display: none; margin-top: 10px; } .lightbox-claim-form.show { display: block; } .lightbox.claiming .lightbox-nav { display: none; } .lightbox.claiming { justify-content: flex-start; overflow-y: auto; padding-top: 72px; padding-bottom: 32px; } .lightbox.claiming .lightbox-img { max-height: 32vh; flex-shrink: 0; } @media (max-height: 700px) { .lightbox.claiming { padding-top: 60px; } .lightbox.claiming .lightbox-img { max-height: 22vh; } } .lightbox-claim-guest { display: none; } .lightbox-claim-guest.show { display: block; } .lightbox-claim-guest-intro { font-family: var(--font-body); font-size: 0.76rem; line-height: 1.5; color: rgba(243,241,234,0.75); margin: 0 0 8px; } .lightbox-claim-guest-intro a { color: var(--orange); text-decoration: underline; } .lightbox-claim-input { display: block; width: 100%; box-sizing: border-box; margin: 0 0 8px; background: rgba(243,241,234,0.08); border: 1px solid rgba(243,241,234,0.35); color: var(--paper); font-family: "IBM Plex Sans", sans-serif; font-size: 16px; padding: 8px; border-radius: 8px; } .lightbox-claim-note { width: 100%; box-sizing: border-box; background: rgba(243,241,234,0.08); border: 1px solid rgba(243,241,234,0.35); color: var(--paper); font-family: "IBM Plex Sans", sans-serif; font-size: 0.86rem; padding: 8px; resize: vertical; border-radius: 8px; } .lightbox-claim-actions { display: flex; gap: 8px; justify-content: center; margin-top: 8px; } .lightbox-claim-submit, .lightbox-claim-cancel { border-radius: 8px; font-weight: 600; min-height: 36px; font-family: var(--font-body); font-size: 0.76rem; padding: 7px 12px; cursor: pointer; } .lightbox-claim-submit { background: var(--orange); border: 1px solid var(--orange); color: var(--ink); } .lightbox-claim-submit:disabled { opacity: 0.7; cursor: default; } .lightbox-claim-cancel { background: transparent; border: 1px solid rgba(243,241,234,0.4); color: var(--paper); } .lightbox-claim-status { margin-top: 8px; font-family: var(--font-body); font-size: 0.76rem; color: rgba(243,241,234,0.75); } .lightbox-claim-status a { color: var(--orange); text-decoration: underline; }';
     document.head.appendChild(style);
 
     var lightbox = document.createElement('div');
@@ -1106,7 +1136,7 @@
     lightbox.setAttribute('role', 'dialog');
     lightbox.setAttribute('aria-modal', 'true');
     lightbox.setAttribute('aria-hidden', 'true');
-    lightbox.innerHTML = '<button class="lightbox-close" aria-label="Close">&times;</button><button class="lightbox-nav lightbox-prev" aria-label="Previous photo">&lsaquo;</button><button class="lightbox-nav lightbox-next" aria-label="Next photo">&rsaquo;</button><img class="lightbox-img" src="" alt=""><div class="lightbox-caption"></div><div class="lightbox-mods"></div><button type="button" class="lightbox-report" id="lightbox-report-btn">Report this image</button><div class="lightbox-claim-wrap" id="lightbox-claim-wrap"><button type="button" class="lightbox-claim" id="lightbox-claim-btn">Claim this build</button><div class="lightbox-claim-form" id="lightbox-claim-form"><div class="lightbox-claim-guest" id="lightbox-claim-guest"><p class="lightbox-claim-guest-intro">Not a member yet? Add your details and we\u2019ll set up your My Garage once your claim is approved.</p><input type="text" class="lightbox-claim-input" id="lightbox-claim-first" placeholder="First name" autocomplete="given-name" maxlength="50"><input type="text" class="lightbox-claim-input" id="lightbox-claim-last" placeholder="Last name" autocomplete="family-name" maxlength="50"><input type="email" class="lightbox-claim-input" id="lightbox-claim-email" placeholder="Email" autocomplete="email" maxlength="200"><p class="lightbox-claim-guest-intro">Already a member? <a href="my-builds.html">Sign in to My Garage</a> first instead.</p></div><textarea class="lightbox-claim-note" id="lightbox-claim-note" rows="2" maxlength="500" placeholder="Optional: tell us how we can verify this is your car"></textarea><div class="lightbox-claim-actions"><button type="button" class="lightbox-claim-submit" id="lightbox-claim-submit">Submit claim</button><button type="button" class="lightbox-claim-cancel" id="lightbox-claim-cancel">Cancel</button></div></div><p class="lightbox-claim-status" id="lightbox-claim-status"></p></div>';
+    lightbox.innerHTML = '<button class="lightbox-close" aria-label="Close"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button><button class="lightbox-nav lightbox-prev" aria-label="Previous photo"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button><button class="lightbox-nav lightbox-next" aria-label="Next photo"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button><img class="lightbox-img" src="" alt=""><div class="lightbox-caption"></div><div class="lightbox-mods"></div><button type="button" class="lightbox-report" id="lightbox-report-btn">Report this image</button><div class="lightbox-claim-wrap" id="lightbox-claim-wrap"><button type="button" class="lightbox-claim" id="lightbox-claim-btn">Claim this build</button><div class="lightbox-claim-form" id="lightbox-claim-form"><div class="lightbox-claim-guest" id="lightbox-claim-guest"><p class="lightbox-claim-guest-intro">Not a member yet? Add your details and we\u2019ll set up your My Garage once your claim is approved.</p><input type="text" class="lightbox-claim-input" id="lightbox-claim-first" placeholder="First name" autocomplete="given-name" maxlength="50"><input type="text" class="lightbox-claim-input" id="lightbox-claim-last" placeholder="Last name" autocomplete="family-name" maxlength="50"><input type="email" class="lightbox-claim-input" id="lightbox-claim-email" placeholder="Email" autocomplete="email" maxlength="200"><p class="lightbox-claim-guest-intro">Already a member? <a href="my-builds.html">Sign in to My Garage</a> first instead.</p></div><textarea class="lightbox-claim-note" id="lightbox-claim-note" rows="2" maxlength="500" placeholder="Optional: tell us how we can verify this is your car"></textarea><div class="lightbox-claim-actions"><button type="button" class="lightbox-claim-submit" id="lightbox-claim-submit">Submit claim</button><button type="button" class="lightbox-claim-cancel" id="lightbox-claim-cancel">Cancel</button></div></div><p class="lightbox-claim-status" id="lightbox-claim-status"></p></div>';
     document.body.appendChild(lightbox);
 
     var lightboxImg = lightbox.querySelector('.lightbox-img');

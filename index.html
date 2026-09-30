@@ -35,7 +35,7 @@
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
 <link rel="stylesheet" href="css/site-header.css">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 
   :root {
     --ink: #16233d;
@@ -70,9 +70,8 @@
   }
 
   .mono {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.06em;
+    font-family: var(--font-body);
+    font-size: 0.8rem;
     color: var(--steel);
   }
 
@@ -95,7 +94,7 @@
     gap: 10px;
     padding: 10px 44px 10px 0;
     position: relative;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-body);
     font-size: 0.8rem;
     overflow: hidden;
   }
@@ -227,8 +226,8 @@
     border-bottom: 1px solid var(--ink);
   }
   .categories-prefix {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.78rem;
+    font-family: var(--font-body);
+    font-size: 0.86rem;
     color: var(--orange);
     margin-bottom: 4px;
     display: block;
@@ -361,9 +360,8 @@
     position: absolute;
     left: 18px;
     bottom: 16px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.68rem;
-    letter-spacing: 0.04em;
+    font-family: var(--font-body);
+    font-size: 0.76rem;
     color: var(--paper);
     background: rgba(22,35,61,0.72);
     padding: 5px 9px;
@@ -393,8 +391,8 @@
   }
 
   .section-num {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.78rem;
+    font-family: var(--font-body);
+    font-size: 0.86rem;
     color: var(--orange);
     margin-bottom: 2px;
     display: block;
@@ -415,9 +413,8 @@
   }
 
   .refresh-btn {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.03em;
+    font-family: var(--font-body);
+    font-size: 0.78rem;
     padding: 6px 12px;
     border: 1px solid var(--ink);
     background: transparent;
@@ -518,7 +515,7 @@
     font-size: 0.92rem;
   }
   .spec-row:last-child { border-bottom: none; }
-  .spec-row span:first-child { color: var(--steel); font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; }
+  .spec-row span:first-child { color: var(--steel); font-family: var(--font-body); font-size: 0.86rem; }
   .spec-row span:last-child { font-weight: 600; color: var(--ink); text-align: right; }
 
   .section-num-link {
@@ -580,9 +577,8 @@
     left: 0; right: 0; bottom: 0;
     padding: 9px 12px;
     background: linear-gradient(0deg, rgba(22,35,61,0.82), rgba(22,35,61,0));
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.68rem;
-    letter-spacing: 0.03em;
+    font-family: var(--font-body);
+    font-size: 0.76rem;
     color: var(--paper);
     display: flex;
     flex-direction: column;
@@ -622,9 +618,8 @@
     color: var(--paper);
     padding: 4px 7px;
     cursor: pointer;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.62rem;
-    letter-spacing: 0.03em;
+    font-family: var(--font-body);
+    font-size: 0.7rem;
   }
   .g-mods-badge:hover { background: var(--orange); border-color: var(--orange); }
   .g-mods-badge svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
@@ -687,8 +682,7 @@
   .hp-join-email { color: #b9c0cf; white-space: nowrap; }
   .hp-join-actions { display: flex; gap: 6px; flex-shrink: 0; }
   .hp-join-actions a {
-    font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; letter-spacing: 0.06em;
-    text-transform: uppercase; text-decoration: none; white-space: nowrap;
+    font-family: var(--font-body); font-size: 0.8rem; text-decoration: none; white-space: nowrap;
     padding: 8px 10px; border: 1px solid rgba(255,255,255,0.6); color: #ffffff;
   }
   /* Matches the orange Sign Up / Sign In button in the menu. */
@@ -737,9 +731,8 @@
     background: var(--orange);
     color: var(--paper);
     border: 1px solid var(--ink);
-    font-family: "IBM Plex Mono", monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.03em;
+    font-family: var(--font-body);
+    font-size: 0.78rem;
     padding: 9px 16px;
     cursor: pointer;
     opacity: 0;
@@ -1022,9 +1015,8 @@
     background: rgba(5,7,12,0.55);
     border: 1px solid rgba(255,255,255,0.35);
     color: var(--white);
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-body);
     font-size: 9.5px;
-    letter-spacing: 0.05em;
     padding: 4px 8px;
     cursor: pointer;
   }
@@ -1063,9 +1055,8 @@
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
     padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
     color: var(--white);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.03em;
+    font-family: var(--font-body);
+    font-size: 0.8rem;
     text-align: center;
   }
   .bf-viewer-line { display: flex; align-items: center; justify-content: center; gap: 12px; }
@@ -1125,7 +1116,7 @@
   .bf-viewer-next { right: 16px; }
   @media (hover: none) { .bf-viewer-nav { display: none; } }
   .bf-rail-count {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-body);
     font-size: 13px;
     font-weight: 600;
     color: rgba(255,255,255,0.9);
@@ -1141,7 +1132,7 @@
   .bf-save-btn .bf-icon-save { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
   .bf-save-btn[data-saved="true"] { color: var(--orange); }
   .bf-save-btn[data-saved="true"] .bf-icon-save { fill: currentColor; }
-  .bf-toast { position: fixed; left: 50%; bottom: 32px; transform: translateX(-50%) translateY(12px); background: var(--ink); color: var(--paper); border: 1px solid var(--orange); font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; letter-spacing: 0.04em; padding: 10px 18px; z-index: 300; opacity: 0; pointer-events: none; transition: opacity 0.2s ease, transform 0.2s ease; }
+  .bf-toast { position: fixed; left: 50%; bottom: 32px; transform: translateX(-50%) translateY(12px); background: var(--ink); color: var(--paper); border: 1px solid var(--orange); font-family: var(--font-body); font-size: 0.8rem; padding: 10px 18px; z-index: 300; opacity: 0; pointer-events: none; transition: opacity 0.2s ease, transform 0.2s ease; }
   .bf-toast.bf-toast-show { opacity: 1; transform: translateX(-50%) translateY(0); }
   .bf-mods-btn .bf-icon-mods { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
   .bf-mods-btn[aria-pressed="true"] { color: var(--orange); }
@@ -1461,9 +1452,8 @@
     letter-spacing: -0.01em;
   }
   .bf-sub {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.03em;
+    font-family: var(--font-body);
+    font-size: 0.8rem;
     color: rgba(255,255,255,0.75);
   }
 
@@ -1478,9 +1468,8 @@
     background: rgba(5,7,12,0.55);
     border: 1px solid rgba(255,255,255,0.35);
     color: var(--white);
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-body);
     font-size: 9.5px;
-    letter-spacing: 0.05em;
     padding: 5px 8px;
     cursor: pointer;
   }
@@ -1522,9 +1511,8 @@
     position: absolute;
     top: 14px;
     left: 14px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.66rem;
-    letter-spacing: 0.04em;
+    font-family: var(--font-body);
+    font-size: 0.74rem;
     color: var(--paper);
     background: var(--orange);
     padding: 5px 9px;
@@ -1533,9 +1521,8 @@
     position: absolute;
     bottom: 14px;
     left: 14px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.66rem;
-    letter-spacing: 0.04em;
+    font-family: var(--font-body);
+    font-size: 0.74rem;
     color: var(--paper);
     background: rgba(22,35,61,0.7);
     padding: 5px 9px;
@@ -1587,15 +1574,14 @@
   .vote-card .vote-media.is-landscape { background: var(--ink); }
   .vote-card .vote-media img.is-landscape { object-fit: contain; }
   .vote-card .vote-body { padding: 14px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
-  .vote-card .vote-caption { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; letter-spacing: 0.03em; color: var(--ink); }
+  .vote-card .vote-caption { font-family: var(--font-body); font-size: 0.78rem; color: var(--ink); }
   .vote-card .vote-count { font-size: 1rem; font-weight: 600; color: var(--ink); }
   .vote-card.leading .vote-count { font-weight: 800; color: var(--orange); }
-  .vote-countdown { font-family: 'IBM Plex Mono', monospace; font-size: 0.85em; font-weight: 700; color: var(--orange); }
+  .vote-countdown { font-family: var(--font-body); font-size: 0.85em; font-weight: 700; color: var(--orange); }
   .vote-card .vote-btn {
     margin-top: auto;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.68rem;
-    letter-spacing: 0.04em;
+    font-family: var(--font-body);
+    font-size: 0.76rem;
     padding: 8px 10px;
     border: 1px solid var(--ink);
     background: transparent;
@@ -1608,9 +1594,8 @@
   .vote-card.voted .vote-btn { background: var(--orange); border-color: var(--orange); color: var(--paper); }
   .vote-card .vote-report {
     background: none; border: 0; color: var(--steel);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.62rem;
-    letter-spacing: 0.02em;
+    font-family: var(--font-body);
+    font-size: 0.7rem;
     cursor: pointer;
     text-decoration: underline;
     padding: 0;
@@ -1619,7 +1604,7 @@
   .vote-card .vote-report:hover { color: var(--ink); }
   .vote-card .vote-own {
     margin-top: auto;
-    font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; letter-spacing: 0.04em;
+    font-family: var(--font-body); font-size: 0.76rem;
     padding: 8px 10px; text-align: center;
     border: 1px dashed var(--steel); color: var(--steel);
   }
@@ -1648,9 +1633,8 @@
     left: 0; right: 0; bottom: 0;
     padding: 9px 12px;
     background: linear-gradient(0deg, rgba(22,35,61,0.82), rgba(22,35,61,0));
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.68rem;
-    letter-spacing: 0.03em;
+    font-family: var(--font-body);
+    font-size: 0.76rem;
     color: var(--paper);
   }
   .track-day-frame .mono {
@@ -1662,9 +1646,8 @@
     max-width: 640px;
     margin: 10px auto 0;
     text-align: center;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.03em;
+    font-family: var(--font-body);
+    font-size: 0.8rem;
     color: var(--steel);
   }
   .track-day-venue-context a { color: var(--orange); }
@@ -1677,9 +1660,8 @@
     margin-top: 20px;
   }
   .gallery-pagination .page-btn {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.04em;
+    font-family: var(--font-body);
+    font-size: 0.8rem;
     background: transparent;
     border: 1px solid var(--ink);
     color: var(--ink);
@@ -1809,11 +1791,11 @@
   .ev-feature:hover .ev-feature-img img { transform: scale(1.03); }
   .ev-feature-noimg {
     display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;
-    font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; letter-spacing: 0.08em; color: rgba(243,241,234,0.7);
+    font-family: var(--font-body); font-size: 0.8rem; color: rgba(243,241,234,0.7);
     background: repeating-linear-gradient(135deg, rgba(255,255,255,0.05) 0 14px, transparent 14px 28px), var(--ink-2, #223257);
   }
   .ev-feature-body { display: flex; flex-direction: column; justify-content: center; gap: 8px; padding: 26px 28px; }
-  .ev-feature-kicker { font-family: 'IBM Plex Mono', monospace; font-size: 0.74rem; letter-spacing: 0.08em; color: var(--orange); }
+  .ev-feature-kicker { font-family: var(--font-body); font-size: 0.82rem; color: var(--orange); }
   .ev-feature-body h3 { font-family: 'Archivo Expanded', sans-serif; font-weight: 800; font-size: clamp(1.25rem, 2.6vw, 1.7rem); line-height: 1.15; color: var(--ink); }
   .ev-feature-tagline { color: var(--ink-2, #223257); font-size: 1rem; }
   .ev-feature-where { color: var(--steel); font-size: 0.88rem; }
@@ -1841,15 +1823,15 @@
     .event-row { grid-template-columns: 1fr; gap: 8px; }
   }
   .event-date {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-body);
     font-size: 0.85rem;
     color: var(--orange);
   }
   .event-info h3 { font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; font-size: 1.05rem; color: var(--ink); margin-bottom: 2px; }
   .event-info p { color: var(--steel); font-size: 0.88rem; }
   .event-status {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
+    font-family: var(--font-body);
+    font-size: 0.8rem;
     color: var(--steel);
     border: 1px solid var(--steel);
     padding: 5px 10px;
@@ -1865,11 +1847,9 @@
   }
   .event-status-confirmed:hover { opacity: 0.85; }
   .past-events-heading {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-body);
     font-size: 0.85rem;
-    letter-spacing: 0.04em;
     color: var(--steel);
-    text-transform: uppercase;
     margin-bottom: 8px;
   }
   #past-events-list .event-row { opacity: 0.6; }
@@ -1878,8 +1858,8 @@
     border-color: var(--steel);
   }
   .event-meta {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.78rem;
+    font-family: var(--font-body);
+    font-size: 0.86rem;
     color: var(--steel);
     margin-top: 4px;
   }
@@ -1938,7 +1918,7 @@
   .hp-open-app-row button { min-height: 40px; padding: 8px 16px; font: inherit; font-size: 0.88rem; cursor: pointer; border: 1px solid rgba(255,255,255,0.5); background: transparent; color: #ffffff; }
   .hp-open-app-row .hp-open-app-ok:first-child, .hp-open-app-row .hp-open-app-go { background: #1c8a4b; border-color: #1c8a4b; font-weight: 600; }
   .hp-app.hp-app-open .hp-app-icon { stroke: #1c8a4b; }
-  .hp-app-btn { background: var(--orange); color: #ffffff; border: 0; min-height: 44px; padding: 10px 20px; font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; white-space: nowrap; }
+  .hp-app-btn { background: var(--orange); color: #ffffff; border: 0; min-height: 44px; padding: 10px 20px; font-family: var(--font-body); font-size: 0.8rem; cursor: pointer; white-space: nowrap; }
   .hp-app-btn:hover { opacity: 0.9; }
   .hp-app-steps { grid-column: 1 / -1; padding: 14px 16px; border: 1px solid rgba(22,35,61,0.2); font-size: 0.9rem; }
   .hp-app-steps[hidden] { display: none; }
@@ -1992,19 +1972,18 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    font-family: 'Archivo Expanded', sans-serif;
-    font-weight: 700;
-    font-size: 0.85rem;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 0.93rem;
     background: var(--ink);
     color: var(--paper);
     border: 1px solid var(--ink);
-    padding: 12px 22px;
+    border-radius: var(--radius);
+    min-height: 44px;
+    padding: 10px 18px;
     cursor: pointer;
     text-decoration: none;
-    box-shadow: 0 4px 12px rgba(22, 35, 61, 0.15);
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
   }
 
   /* Specific variants for visual flair */
@@ -2032,23 +2011,23 @@
   .submit-form button:hover {
     background: #cf4620;
     border-color: #cf4620;
-    box-shadow: 0 6px 16px rgba(232, 84, 42, 0.3);
   }
 
   .nav-cta-shop,
   .refresh-btn,
   .page-btn,
   .vote-btn {
-    background: transparent;
+    background: var(--white);
     color: var(--ink);
-    border-color: var(--ink);
+    border-color: var(--hairline-strong);
   }
   .nav-cta-shop:hover,
   .refresh-btn:hover:not(:disabled),
   .page-btn:hover:not(:disabled),
   .vote-btn:hover:not(:disabled) {
-    background: var(--ink);
-    color: var(--paper);
+    background: var(--white);
+    color: var(--ink);
+    border-color: var(--ink);
   }
 
   /* Tactile click press effect */
@@ -2060,7 +2039,6 @@
   .nav-cta:active,
   .submit-form button:active {
     transform: translateY(1px);
-    box-shadow: 0 2px 6px rgba(22, 35, 61, 0.2);
   }
 
   /* Mobile Consistency Overrides */
@@ -2104,9 +2082,8 @@
   .a2hs-banner.show { bottom: 16px; }
   .a2hs-banner .a2hs-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
   .a2hs-banner .a2hs-btn {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.04em;
+    font-family: var(--font-body);
+    font-size: 0.8rem;
     cursor: pointer;
     border: none;
     background: transparent;
@@ -2119,7 +2096,7 @@
   }
 
   /* ---------- HOMEPAGE REFRESH: announcement bar, interview hero, categories, owner interviews, car of the day ---------- */
-  .hp-announce { display: block; background: #c8431d; color: #ffffff; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 0.74rem; font-weight: 500; letter-spacing: 0.08em; line-height: 1.4; padding: 10px 16px; text-decoration: none; text-transform: uppercase; }
+  .hp-announce { display: block; background: #c8431d; color: #ffffff; text-align: center; font-family: var(--font-body); font-size: 0.82rem; font-weight: 500; line-height: 1.4; padding: 10px 16px; text-decoration: none; }
   .hp-announce:hover { background: #a93814; color: #ffffff; }
   .hp-announce[hidden] { display: none; }
 
@@ -2178,14 +2155,14 @@
   .hp-hero .hero-grid { justify-items: start; text-align: left; }
   /* The interview heading is kept modest so the categories below get a look in. */
   .hp-hero h1 { max-width: 26ch; font-size: clamp(1.35rem, 3.2vw, 2.1rem); line-height: 1.2; margin-bottom: 8px; }
-  .hp-eyebrow { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 0.74rem; letter-spacing: 0.14em; line-height: 1.5; color: #f58a68; margin-bottom: 12px; text-transform: uppercase; }
+  .hp-eyebrow { display: block; font-family: var(--font-body); font-size: 0.82rem; letter-spacing: 0.14em; line-height: 1.5; color: #f58a68; margin-bottom: 12px; }
   /* The hero eyebrow sits over the interview photo, so it's white and
      larger, with a shadow to stand out against brick and bright skies. */
   #hp-hero-eyebrow { font-size: 0.9rem; font-weight: 600; color: #ffffff; text-shadow: 0 1px 3px rgba(0,0,0,0.75), 0 0 12px rgba(0,0,0,0.45); }
   @media (max-width: 780px) { #hp-hero-eyebrow { font-size: 0.8rem; letter-spacing: 0.08em; } }
-  .hp-hero-meta { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; letter-spacing: 0.06em; color: #d3d8e2; text-transform: uppercase; margin: 0 0 24px; }
+  .hp-hero-meta { font-family: var(--font-body); font-size: 0.86rem; color: #d3d8e2; margin: 0 0 24px; }
   .hp-hero-ctas { display: flex; flex-wrap: wrap; gap: 12px; }
-  .hp-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 12px 22px; font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none; border: 1px solid transparent; transition: background 0.2s ease, color 0.2s ease; }
+  .hp-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 12px 22px; font-family: var(--font-body); font-size: 0.8rem; font-weight: 500; text-decoration: none; border: 1px solid transparent; transition: background 0.2s ease, color 0.2s ease; }
   .hp-btn-primary { background: #c8431d; color: #ffffff; }
   .hp-btn-primary:hover { background: #a93814; color: #ffffff; }
   .hp-btn-ghost { border-color: rgba(255, 255, 255, 0.6); color: #ffffff; background: transparent; }
@@ -2196,13 +2173,13 @@
   .hp-next-thumb { width: 72px; height: 54px; flex-shrink: 0; overflow: hidden; background: var(--ink); }
   .hp-next-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; filter: blur(4px) saturate(0.8); transform: scale(1.15); }
   .hp-next-text { min-width: 0; }
-  .hp-next-label { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 0.66rem; letter-spacing: 0.08em; color: #f58a68; text-transform: uppercase; margin-bottom: 2px; }
+  .hp-next-label { display: block; font-family: var(--font-body); font-size: 0.74rem; color: #f58a68; margin-bottom: 2px; }
   .hp-next-title { display: block; font-weight: 600; font-size: 0.92rem; line-height: 1.3; color: #ffffff; }
   .hp-next-sub { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 0.78rem; line-height: 1.4; color: #d3d8e2; margin-top: 2px; }
-  .hp-next-arrow { margin-left: auto; padding-left: 4px; font-family: 'IBM Plex Mono', monospace; color: #f58a68; }
+  .hp-next-arrow { margin-left: auto; padding-left: 4px; font-family: var(--font-body); color: #f58a68; }
   .hp-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 28px; padding: 18px 0 26px; border-top: 1px solid rgba(255, 255, 255, 0.2); width: 100%; max-width: 560px; }
   .hp-stats strong { display: block; min-height: 1.2em; font-family: 'Archivo Expanded', sans-serif; font-size: 1.4rem; color: #ffffff; line-height: 1.2; }
-  .hp-stats span { font-family: 'IBM Plex Mono', monospace; font-size: 0.66rem; letter-spacing: 0.06em; color: #b9c0cf; }
+  .hp-stats span { font-family: var(--font-body); font-size: 0.74rem; color: #b9c0cf; }
   @media (max-width: 600px) { .hp-hero-ctas .hp-btn { flex: 1 1 140px; } }
 
   .category-card.hp-cat { flex-direction: column; align-items: stretch; justify-content: space-between; gap: 10px; min-height: 96px; }
@@ -2221,11 +2198,11 @@
   .hp-cat.hp-cat-dragging { position: fixed; z-index: 60; margin: 0; pointer-events: none; transform: scale(1.04) rotate(-1deg); box-shadow: 0 16px 34px rgba(22, 35, 61, 0.3); background: #ffffff; transition: none; }
   .hp-cat-placeholder { border: 2px dashed var(--orange); background: rgba(232, 84, 42, 0.06); }
   .categories-grid.hp-cats > .hp-cat-placeholder:last-child { grid-column: 1 / -1; }
-  .hp-cat-hint { margin: 12px 0 0; font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: #56606f; }
+  .hp-cat-hint { margin: 12px 0 0; font-family: var(--font-body); font-size: 0.78rem; color: #56606f; }
   .hp-cat-hint button { background: none; border: 0; padding: 0; margin-left: 6px; font: inherit; color: var(--orange); text-decoration: underline; cursor: pointer; }
   .hp-cat-hint button[hidden] { display: none; }
   .hp-cat-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-  .hp-cat-meta { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; line-height: 1.45; color: #56606f; }
+  .hp-cat-meta { font-family: var(--font-body); font-size: 0.78rem; line-height: 1.45; color: #56606f; }
   /* minmax(0, 1fr) and wrapping keep any tile, badge and all, inside its
      column wherever it's moved to. */
   .categories-grid.hp-cats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -2233,7 +2210,7 @@
   .categories-grid.hp-cats .category-card-content { flex-wrap: wrap; min-width: 0; row-gap: 6px; }
   .categories-grid.hp-cats .hp-cat-meta { overflow-wrap: anywhere; }
   @media (min-width: 900px) { .categories-grid.hp-cats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-  .hp-new { font-style: normal; font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; font-weight: 500; letter-spacing: 0.08em; background: #c8431d; color: #ffffff; padding: 2px 6px; }
+  .hp-new { font-style: normal; font-family: var(--font-body); font-size: 0.7rem; font-weight: 500; background: #c8431d; color: #ffffff; padding: 2px 6px; }
 
   .hp-int-grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
   @media (min-width: 900px) { .hp-int-grid { grid-template-columns: 1.3fr 1fr; align-items: start; } }
@@ -2244,18 +2221,77 @@
   .hp-int-thumb { width: 104px; height: 76px; flex-shrink: 0; overflow: hidden; background: var(--paper-2); }
   .hp-int-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .is-next .hp-int-thumb img { filter: blur(5px) saturate(0.8); transform: scale(1.15); }
-  .hp-int-label { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; letter-spacing: 0.08em; color: #b83c19; margin-bottom: 4px; text-transform: uppercase; }
+  .hp-int-label { display: block; font-family: var(--font-body); font-size: 0.76rem; color: #b83c19; margin-bottom: 4px; }
   .hp-int-title { display: block; font-weight: 600; font-size: 0.95rem; line-height: 1.3; }
   .hp-int-sub { display: block; font-size: 0.82rem; color: #56606f; margin-top: 2px; }
-  .hp-int-all { display: inline-block; margin-top: 14px; font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; font-weight: 500; color: #b83c19; text-decoration: none; }
+  .hp-int-all { display: inline-block; margin-top: 14px; font-family: var(--font-body); font-size: 0.8rem; font-weight: 500; color: #b83c19; text-decoration: none; }
   .hp-int-all:hover { text-decoration: underline; }
   .hp-int-cta { background: var(--ink); color: var(--paper); padding: 24px 20px; display: flex; flex-direction: column; gap: 10px; }
-  .hp-int-cta .hp-int-cta-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; letter-spacing: 0.1em; color: #b9c0cf; }
+  .hp-int-cta .hp-int-cta-label { font-family: var(--font-body); font-size: 0.76rem; letter-spacing: 0.1em; color: #b9c0cf; }
   .hp-int-cta h3 { font-family: 'Archivo Expanded', sans-serif; font-size: 1.15rem; color: #ffffff; margin: 0; }
   .hp-int-cta p { color: #d3d8e2; font-size: 0.92rem; margin: 0 0 6px; }
 
-  .hp-countdown { font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem; color: #56606f; margin-top: 4px; }
+  .hp-countdown { font-family: var(--font-body); font-size: 0.82rem; color: #56606f; margin-top: 4px; }
   .hp-countdown strong { color: #b83c19; }
+  /* ---------- STYLE REFRESH: soft corners, one font, clearer buttons ----------
+     Uses the shared tokens in css/site-header.css (--radius, --hairline...). */
+  .section-num { font-size: 0.82rem; font-weight: 600; }
+  .section-num-link, .hp-int-all, .hp-join-garage { display: inline-flex; align-items: center; gap: 4px; }
+  .section-num-link .icon, .hp-int-all .icon, .hp-join-garage .icon, .hp-btn .icon, .ev-feature-cta .icon { width: 16px; height: 16px; }
+  .refresh-btn { min-height: 36px; padding: 7px 12px; border-radius: var(--radius-sm); font-size: 0.86rem; }
+  .refresh-btn .icon, .page-btn .icon { width: 16px; height: 16px; }
+  .hero-main-cta { font-family: var(--font-body); font-weight: 600; border-radius: var(--radius); letter-spacing: 0; }
+  .hp-btn { border-radius: var(--radius); gap: 6px; font-weight: 600; font-size: 0.93rem; }
+  .ev-feature-cta { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: var(--radius); min-height: 44px; }
+  .mt3uk-share-btn { border-color: var(--hairline-strong); }
+  .mt3uk-share-btn:hover { background: var(--white, #fff); border-color: var(--ink); color: var(--ink); }
+  .bf-full-btn { border-radius: var(--radius-pill); padding: 4px 9px; }
+  .bf-viewer-close { display: flex; align-items: center; justify-content: center; border: 0; border-radius: 50%; background: rgba(0,0,0,0.5); }
+  .bf-viewer-close .icon, .bf-viewer-nav .icon { width: 22px; height: 22px; }
+  .bf-viewer-nav { display: flex; align-items: center; justify-content: center; padding: 0; }
+  .bf-car-nav { padding: 0; }
+  .bf-car-nav .icon { width: 18px; height: 18px; }
+  .bf-mods-close, .bf-comments-close { padding: 0; }
+  .bf-mods-close .icon { width: 16px; height: 16px; }
+  .bf-comments-close { width: 30px; height: 30px; }
+  .bf-comments-close .icon { width: 16px; height: 16px; }
+  .ebm-close .icon, .ebm-mods-remove .icon { pointer-events: none; }
+
+  /* Tiles, cards and panels: soft corners, light borders */
+  .category-card { border: 1px solid var(--hairline); border-radius: var(--radius); background: var(--white); box-shadow: 0 1px 2px rgba(22,35,61,0.06); }
+  .category-card span { letter-spacing: 0; }
+  .hp-cat-placeholder { border-radius: var(--radius); }
+  .hp-app, .section-gallery-cta, .submit-guidance, .specs, .ev-feature, .vote-how, .hp-int-item, .track-day-frame {
+    border: 1px solid var(--hairline); border-radius: var(--radius); overflow: hidden;
+  }
+  .hp-app { background: var(--white); }
+  .hp-app-steps { border-radius: var(--radius-sm); }
+  .hp-app-hide { border: 1px solid var(--hairline-strong); border-radius: var(--radius-sm); font-weight: 600; }
+  .hp-int-item.is-next { border-style: dashed; border-color: var(--hairline-strong); }
+  .bf-only-note { border: 1px solid rgba(232,84,42,0.25); border-radius: var(--radius); background: #fdf3ef; }
+  .bf-frame { border: 0; border-radius: 14px; }
+  .bf-toast, .bf-new-toast { border-radius: var(--radius-pill); }
+  .botm-frame { border: 1px solid var(--hairline); border-radius: var(--radius); background: var(--white); }
+  .botm-frame .botm-badge, .botm-frame .botm-voted-by { border-radius: var(--radius-pill); padding: 4px 11px; font-weight: 600; }
+  .vote-frame { border: 0; gap: 10px; }
+  .vote-card { border: 1px solid var(--hairline); border-radius: var(--radius); margin: 0; background: var(--white); }
+  .vote-card.voted { border-color: var(--orange); box-shadow: 0 0 0 1px var(--orange); }
+  .vote-card .vote-caption { font-size: 0.86rem; font-weight: 600; }
+  .vote-card .vote-btn { border: 1px solid var(--hairline-strong); border-radius: var(--radius-sm); background: var(--white); font-size: 0.86rem; font-weight: 600; min-height: 36px; padding: 7px 10px; }
+  .vote-card .vote-btn:hover:not(:disabled) { background: var(--white); color: var(--ink); border-color: var(--ink); }
+  .vote-card.voted .vote-btn { background: var(--orange); border-color: var(--orange); color: var(--white); }
+  .vote-card .vote-own { border: 1px dashed var(--hairline-strong); border-radius: var(--radius-sm); }
+  .event-status { border-radius: var(--radius-pill); border-color: var(--hairline-strong); font-weight: 600; }
+  .event-status.event-status-confirmed { border-radius: var(--radius); border-color: var(--orange); }
+  .vote-card .vote-btn { line-height: 1.2; }
+  .hp-join { border-radius: var(--radius); }
+  .hp-join-actions a { border-radius: var(--radius-sm); }
+  .hp-hero-next { border-radius: var(--radius); }
+  .gallery-slot { border-radius: var(--radius-sm); }
+  .form-row input[type="text"], .form-row input[type="email"], .form-row input[type="file"], .form-row textarea { border: 1px solid var(--hairline-strong); border-radius: var(--radius-sm); }
+  .sb-thumb { border-radius: var(--radius-sm); }
+  .saved-builds-label, .bf-bubble-title { text-transform: none; letter-spacing: 0; font-size: 0.86rem; font-weight: 600; }
+  .hp-app-btn { border-radius: var(--radius); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -2292,11 +2328,11 @@
     'background:url(images/site/mt3uk-intro-logo.png) no-repeat 0 0/100% 100%;}',
     '#mt3uk-intro .ix-mark{clip-path:inset(0 0 11% 0);opacity:0;transform:translateX(-60vw) skewX(-18deg);}',
     '#mt3uk-intro .ix-line{clip-path:inset(89% 100% 0 0);}',
-    '#mt3uk-intro .ix-tag{margin-top:clamp(14px,2.4vw,22px);font:500 clamp(.62rem,1.6vw,.82rem)/1.4 "IBM Plex Mono",ui-monospace,monospace;',
+    '#mt3uk-intro .ix-tag{margin-top:clamp(14px,2.4vw,22px);font:500 clamp(.62rem,1.6vw,.82rem)/1.4 "IBM Plex Sans",system-ui,sans-serif;',
     'letter-spacing:.32em;color:#f3f1ea;text-align:center;white-space:nowrap;opacity:0;}',
-    '#mt3uk-intro .ix-skip{position:absolute;right:16px;bottom:14px;font:500 .64rem "IBM Plex Mono",ui-monospace,monospace;',
+    '#mt3uk-intro .ix-skip{position:absolute;right:16px;bottom:14px;font:500 .64rem "IBM Plex Sans",system-ui,sans-serif;',
     'letter-spacing:.2em;color:#7c8798;opacity:0;}',
-    '#mt3uk-intro .ix-enter{margin-top:clamp(22px,4vw,36px);font:600 clamp(.66rem,1.7vw,.8rem)/1.4 "IBM Plex Mono",ui-monospace,monospace;',
+    '#mt3uk-intro .ix-enter{margin-top:clamp(22px,4vw,36px);font:600 clamp(.66rem,1.7vw,.8rem)/1.4 "IBM Plex Sans",system-ui,sans-serif;',
     'letter-spacing:.28em;color:#e8542a;text-align:center;white-space:nowrap;opacity:0;}',
     '#mt3uk-intro:focus{outline:none}',
     'html.mt3uk-intro-lock,html.mt3uk-intro-lock body{overflow:hidden!important;}',
@@ -2347,9 +2383,9 @@
   }
   el.innerHTML = '<div class="ix-grid"></div><div class="ix-glow"></div>' + streaks +
     '<div class="ix-stage"><div class="ix-logo"><span class="ix-mark"></span><span class="ix-line"></span></div>' +
-    '<div class="ix-tag">MODIFIED TESLA OWNERS COMMUNITY</div>' +
-    '<div class="ix-enter">' + (touch ? 'TAP' : 'CLICK') + ' TO ENTER</div></div>' +
-    '<div class="ix-skip">' + (touch ? 'TAP' : 'CLICK') + ' TO SKIP</div>';
+    '<div class="ix-tag">Modified Tesla owners community</div>' +
+    '<div class="ix-enter">' + (touch ? 'Tap' : 'Click') + ' to enter</div></div>' +
+    '<div class="ix-skip">' + (touch ? 'Tap' : 'Click') + ' to skip</div>';
   if (reduced) el.className = 'ix-reduced';
   doc.classList.add('mt3uk-intro-lock');
   doc.appendChild(el);
@@ -2548,7 +2584,7 @@
     function ensureModal() {
       if (modal) return modal;
       var style = document.createElement('style');
-      style.textContent = '.ebm-overlay { position: fixed; inset: 0; background: rgba(22,35,61,0.85); display: none; align-items: center; justify-content: center; z-index: 300; padding: 20px; } .ebm-overlay.open { display: flex; } .ebm-panel { background: var(--paper, #f3f1ea); max-width: 420px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; border: 1px solid var(--ink, #16233d); } .ebm-close { position: absolute; top: 10px; right: 10px; z-index: 2; width: 34px; height: 34px; border: 1px solid rgba(255,255,255,0.8); background: rgba(22,35,61,0.6); color: #fff; font-size: 1.3rem; line-height: 1; cursor: pointer; } .ebm-close:hover { background: var(--orange, #e8542a); color: #fff; border-color: var(--orange, #e8542a); } .ebm-media { aspect-ratio: 4/3; overflow: hidden; background: var(--ink, #16233d); position: relative; } .ebm-media img { width: 100%; height: 100%; object-fit: contain; display: block; } .ebm-body { padding: 18px; display: flex; flex-direction: column; gap: 14px; } .ebm-caption { font-family: "IBM Plex Mono", monospace; font-size: 0.8rem; letter-spacing: 0.03em; } .ebm-toggles { display: flex; flex-wrap: wrap; gap: 12px; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; } .ebm-toggle { display: flex; align-items: center; gap: 6px; cursor: pointer; } .ebm-vote-link { color: var(--orange, #e8542a); text-decoration: underline; } .ebm-mods { display: flex; flex-direction: column; gap: 8px; } .ebm-mods-label { display: block; font-size: 0.78rem; } .ebm-mods-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; } .ebm-mods-list:empty { display: none; } .ebm-mods-list li { display: flex; align-items: center; gap: 6px; border: 1px solid var(--ink, #16233d); padding: 5px 6px 5px 10px; font-family: "IBM Plex Mono", monospace; font-size: 0.76rem; } .ebm-mods-remove { border: none; background: transparent; cursor: pointer; font-size: 1rem; line-height: 1; color: var(--steel, #7c8798); } .ebm-mods-remove:hover { color: var(--orange, #e8542a); } .ebm-mods-input-row { display: flex; gap: 8px; } .ebm-mods-input-row input { flex: 1; border: 1px solid var(--ink, #16233d); background: #fff; padding: 8px 10px; font-family: "IBM Plex Sans", sans-serif; font-size: 0.85rem; } .ebm-mods-add-btn { border: 1px solid var(--ink, #16233d); background: transparent; padding: 0 14px; font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; cursor: pointer; } .ebm-mods-add-btn:hover { background: var(--ink, #16233d); color: #fff; } .ebm-actions { display: flex; align-items: center; gap: 10px; } .ebm-save-btn { border: 1px solid var(--orange, #e8542a); background: var(--orange, #e8542a); color: #fff; padding: 9px 16px; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; cursor: pointer; } .ebm-save-btn:disabled { opacity: 0.6; cursor: default; } .ebm-status { font-size: 0.76rem; color: var(--steel, #7c8798); } .ebm-status-ok { color: #1c8a4b; font-weight: 700; } .ebm-status-err { color: var(--orange, #e8542a); } .ebm-danger { border-top: 1px solid rgba(0,0,0,0.12); padding-top: 12px; } .ebm-delete-btn { border: 1px solid var(--line, #4a6491); background: transparent; padding: 7px 12px; font-family: "IBM Plex Mono", monospace; font-size: 0.76rem; cursor: pointer; } .ebm-delete-btn:hover { border-color: var(--orange, #e8542a); color: var(--orange, #e8542a); } .ebm-delete-btn.ebm-delete-confirm { border-color: var(--orange, #e8542a); background: var(--orange, #e8542a); color: #fff; } .ebm-manage-link { font-size: 0.72rem; color: var(--steel, #7c8798); } .ebm-manage-link a { color: var(--orange, #e8542a); text-decoration: underline; }';
+      style.textContent = '.ebm-overlay { position: fixed; inset: 0; background: rgba(22,35,61,0.85); display: none; align-items: center; justify-content: center; z-index: 300; padding: 20px; } .ebm-overlay.open { display: flex; } .ebm-panel { background: var(--paper, #f3f1ea); max-width: 420px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; border: 0; border-radius: 14px; box-shadow: 0 30px 70px rgba(0,0,0,0.45); } .ebm-close { position: absolute; top: 10px; right: 10px; z-index: 2; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 50%; background: rgba(15,20,30,0.6); color: #fff; line-height: 1; cursor: pointer; } .ebm-close:hover { background: var(--orange, #e8542a); color: #fff; border-color: var(--orange, #e8542a); } .ebm-media { aspect-ratio: 4/3; overflow: hidden; background: var(--ink, #16233d); position: relative; } .ebm-media img { width: 100%; height: 100%; object-fit: contain; display: block; } .ebm-body { padding: 18px; display: flex; flex-direction: column; gap: 14px; } .ebm-caption { font-family: var(--font-body); font-size: 0.8rem; } .ebm-toggles { display: flex; flex-wrap: wrap; gap: 12px; font-family: var(--font-body); font-size: 0.86rem; } .ebm-toggle { display: flex; align-items: center; gap: 6px; cursor: pointer; } .ebm-vote-link { color: var(--orange, #e8542a); text-decoration: underline; } .ebm-mods { display: flex; flex-direction: column; gap: 8px; } .ebm-mods-label { display: block; font-size: 0.78rem; } .ebm-mods-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; } .ebm-mods-list:empty { display: none; } .ebm-mods-list li { display: flex; align-items: center; gap: 6px; border: 1px solid rgba(22,35,61,0.28); border-radius: 999px; background: #fff; padding: 4px 6px 4px 12px; font-family: var(--font-body); font-size: 0.84rem; } .ebm-mods-remove { border: none; background: transparent; cursor: pointer; display: flex; padding: 2px; line-height: 1; color: var(--steel, #7c8798); } .ebm-mods-remove .icon { width: 14px; height: 14px; } .ebm-mods-remove:hover { color: var(--orange, #e8542a); } .ebm-mods-input-row { display: flex; gap: 8px; } .ebm-mods-input-row input { flex: 1; min-height: 40px; border: 1px solid rgba(22,35,61,0.28); border-radius: 8px; background: #fff; padding: 8px 10px; font-family: "IBM Plex Sans", sans-serif; font-size: 0.85rem; } .ebm-mods-add-btn { border: 1px solid rgba(22,35,61,0.28); border-radius: 8px; background: #fff; color: var(--ink, #16233d); font-weight: 600; padding: 0 14px; font-family: var(--font-body); font-size: 0.8rem; cursor: pointer; } .ebm-mods-add-btn:hover { border-color: var(--ink, #16233d); } .ebm-actions { display: flex; align-items: center; gap: 10px; } .ebm-save-btn { min-height: 44px; border: 1px solid var(--orange, #e8542a); border-radius: 10px; background: var(--orange, #e8542a); color: #fff; font-weight: 600; padding: 9px 18px; font-family: var(--font-body); font-size: 0.86rem; cursor: pointer; } .ebm-save-btn:disabled { opacity: 0.6; cursor: default; } .ebm-status { font-size: 0.76rem; color: var(--steel, #7c8798); } .ebm-status-ok { color: #1c8a4b; font-weight: 700; } .ebm-status-err { color: var(--orange, #e8542a); } .ebm-danger { border-top: 1px solid rgba(0,0,0,0.12); padding-top: 12px; } .ebm-delete-btn { min-height: 36px; border: 1px solid rgba(184,54,26,0.35); border-radius: 8px; background: #fff; color: #b8361a; font-weight: 600; padding: 7px 12px; font-family: var(--font-body); font-size: 0.84rem; cursor: pointer; } .ebm-delete-btn:hover { background: #fdf0ec; } .ebm-delete-btn.ebm-delete-confirm { border-color: #b8361a; background: #b8361a; color: #fff; } .ebm-manage-link { font-size: 0.72rem; color: var(--steel, #7c8798); } .ebm-manage-link a { color: var(--orange, #e8542a); text-decoration: underline; }';
       document.head.appendChild(style);
 
       modal = document.createElement('div');
@@ -2558,7 +2594,7 @@
       modal.setAttribute('aria-hidden', 'true');
       modal.innerHTML =
         '<div class="ebm-panel">' +
-          '<button type="button" class="ebm-close" aria-label="Close">&times;</button>' +
+          '<button type="button" class="ebm-close" aria-label="Close"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' +
           '<div class="ebm-media"><img alt=""></div>' +
           '<div class="ebm-body">' +
             '<span class="ebm-caption"></span>' +
@@ -2598,7 +2634,7 @@
       function renderMods() {
         modsList.innerHTML = currentMods.map(function (m, idx) {
           var safe = String(m).replace(/</g, '&lt;');
-          return '<li><span>' + safe + '</span><button type="button" class="ebm-mods-remove" data-idx="' + idx + '" aria-label="Remove ' + safe + '">&times;</button></li>';
+          return '<li><span>' + safe + '</span><button type="button" class="ebm-mods-remove" data-idx="' + idx + '" aria-label="Remove ' + safe + '"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></li>';
         }).join('');
       }
 
@@ -2750,7 +2786,7 @@
       modal.querySelector('input[data-flag="reel"]').checked = data.reel !== false;
       modsList.innerHTML = currentMods.map(function (m, idx) {
         var safe = String(m).replace(/</g, '&lt;');
-        return '<li><span>' + safe + '</span><button type="button" class="ebm-mods-remove" data-idx="' + idx + '" aria-label="Remove ' + safe + '">&times;</button></li>';
+        return '<li><span>' + safe + '</span><button type="button" class="ebm-mods-remove" data-idx="' + idx + '" aria-label="Remove ' + safe + '"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></li>';
       }).join('');
       modsInput.value = '';
       statusEl.textContent = '';
@@ -2920,7 +2956,7 @@
                 (firstName ? '<strong>' + esc(firstName) + '</strong>' + (masked ? ' <span class="hp-join-email">&middot; ' + esc(masked) + '</span>' : '')
                   : '<strong>' + esc(masked || 'a member') + '</strong>');
               var actions = document.getElementById('hp-join-actions');
-              actions.innerHTML = '<a href="my-builds.html" class="hp-join-garage">My Garage &rarr;</a><a href="#" class="hp-join-signout">Sign out</a>';
+              actions.innerHTML = '<a href="my-builds.html" class="hp-join-garage">My Garage<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a><a href="#" class="hp-join-signout">Sign out</a>';
               actions.querySelector('.hp-join-signout').addEventListener('click', function (e) {
                 e.preventDefault();
                 if (window.mt3ukSignOut) { window.mt3ukSignOut(); return; }
@@ -2943,9 +2979,9 @@
           })();
         </script>
         <div class="hp-stats">
-          <div><strong class="member-count"></strong><span>MEMBERS</span></div>
-          <div><strong id="hp-stat-builds"></strong><span>BUILDS IN THE GALLERY</span></div>
-          <div><strong id="hp-stat-events"></strong><span>UPCOMING EVENTS</span></div>
+          <div><strong class="member-count"></strong><span>Members</span></div>
+          <div><strong id="hp-stat-builds"></strong><span>Builds in the gallery</span></div>
+          <div><strong id="hp-stat-events"></strong><span>Upcoming events</span></div>
         </div>
       </div>
       <div class="hero-media" style="display:none;"></div>
@@ -3013,7 +3049,7 @@
           <div class="hp-cat-top">
             <div class="category-card-content">
               <svg class="card-icon" viewBox="0 0 24 24"><path d="M3 21V10l9-6 9 6v11"/><path d="M9 21v-8h6v8"/></svg>
-              <span>MY GARAGE</span>
+              <span>My Garage</span>
             </div>
             <svg class="card-chevron" viewBox="0 0 24 16" aria-hidden="true"><path d="M2 2l6 6-6 6" /><path d="M8 2l6 6-6 6" /><path d="M14 2l6 6-6 6" /></svg>
           </div>
@@ -3023,7 +3059,7 @@
           <div class="hp-cat-top">
             <div class="category-card-content">
               <svg class="card-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-              <span>EVENTS</span>
+              <span>Events</span>
             </div>
             <svg class="card-chevron" viewBox="0 0 24 16" aria-hidden="true"><path d="M2 2l6 6-6 6" /><path d="M8 2l6 6-6 6" /><path d="M14 2l6 6-6 6" /></svg>
           </div>
@@ -3033,7 +3069,7 @@
           <div class="hp-cat-top">
             <div class="category-card-content">
               <svg class="card-icon" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22V15"/></svg>
-              <span>TRACK DAYS</span>
+              <span>Track days</span>
             </div>
             <svg class="card-chevron" viewBox="0 0 24 16" aria-hidden="true"><path d="M2 2l6 6-6 6" /><path d="M8 2l6 6-6 6" /><path d="M14 2l6 6-6 6" /></svg>
           </div>
@@ -3043,7 +3079,7 @@
           <div class="hp-cat-top">
             <div class="category-card-content">
               <svg class="card-icon" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-              <span>SHOP</span>
+              <span>Shop</span>
             </div>
             <svg class="card-chevron" viewBox="0 0 24 16" aria-hidden="true"><path d="M2 2l6 6-6 6" /><path d="M8 2l6 6-6 6" /><path d="M14 2l6 6-6 6" /></svg>
           </div>
@@ -3053,7 +3089,7 @@
           <div class="hp-cat-top">
             <div class="category-card-content">
               <svg class="card-icon" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4V5z"/><path d="M8 9h8M8 12h5"/></svg>
-              <span>OWNER INTERVIEWS</span>
+              <span>Owner interviews</span>
               <em class="hp-new">NEW</em>
             </div>
             <svg class="card-chevron" viewBox="0 0 24 16" aria-hidden="true"><path d="M2 2l6 6-6 6" /><path d="M8 2l6 6-6 6" /><path d="M14 2l6 6-6 6" /></svg>
@@ -3208,7 +3244,7 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">02 / GALLERY FEED</span>
+        <span class="section-num">02 / Gallery feed</span>
         <h2>Swipe through the builds</h2>
       </div>
       <p>Scroll through recent member builds. Likes, comment and you can bookmark your favourites, or sit back and let it play.</p>
@@ -3243,7 +3279,7 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">03 / BUILD OF THE WEEK</span>
+        <span class="section-num">03 / Build of the Week</span>
         <h2>Build of the Week</h2>
         <p id="hero-vote-countdown" class="hp-countdown">Voting closes in <strong>-- days -- hrs -- mins</strong></p>
       </div>
@@ -3254,10 +3290,10 @@
     </div>
     <div class="section-head" style="margin-top: 36px;">
       <div>
-        <span class="section-num">VOTE FOR NEXT WEEK</span>
+        <span class="section-num">Vote for next week</span>
         <div class="section-title-row">
           <h2 class="vote-heading" data-share-anchor="vote-frame">Vote for next week's Build of the Week</h2>
-          <button type="button" class="refresh-btn" id="vote-refresh-btn" aria-label="Refresh voting builds">&#8635; Refresh</button>
+          <button type="button" class="refresh-btn" id="vote-refresh-btn" aria-label="Refresh voting builds"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></svg>Refresh</button>
         </div>
       </div>
       <p>Pick your favourite from the builds added this week and last week, newest first. The winner becomes next week's Build of the Week. Voting closes at midnight on Sunday so get your votes in! <span class="vote-countdown" id="vote-countdown"></span> You can only vote for other members' builds. Votes are being checked before tallying up for inconsistencies.</p>
@@ -3290,7 +3326,7 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">04 / OWNER INTERVIEWS</span>
+        <span class="section-num">04 / Owner interviews</span>
         <h2>Meet the owners</h2>
       </div>
       <p>Real members, real builds. The stories behind the cars in the group.</p>
@@ -3303,13 +3339,13 @@
           <span><span class="hp-int-label">Owner interview</span><span class="hp-int-title">Founding the MT3UK Community</span><span class="hp-int-sub">Richard &middot; Model 3 Performance</span></span>
         </a>
       </div>
-        <a class="hp-int-all" href="blog.html">See all interviews &rarr;</a>
+        <a class="hp-int-all" href="blog.html">See all interviews<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
       </div>
       <div class="hp-int-cta">
-        <span class="hp-int-cta-label">YOUR TURN</span>
+        <span class="hp-int-cta-label">Your turn</span>
         <h3>Could this be your build?</h3>
         <p>We&rsquo;re looking for members to feature. Answer a few questions, send some photos, and we&rsquo;ll do the rest.</p>
-        <a href="contact.html" class="hp-btn hp-btn-primary">Get featured &rarr;</a>
+        <a href="contact.html" class="hp-btn hp-btn-primary">Get featured<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
       </div>
     </div>
   </div>
@@ -3420,7 +3456,7 @@
       return '<div class="bf-comments-block" hidden>' +
           '<div class="bf-comments-header">' +
             '<p class="bf-comments-panel-title">Comments</p>' +
-            '<button type="button" class="bf-comments-close" aria-label="Close comments">&times;</button>' +
+            '<button type="button" class="bf-comments-close" aria-label="Close comments"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' +
           '</div>' +
           '<button type="button" class="bf-comments-expand" aria-expanded="false">Loading&hellip;</button>' +
           '<div class="bf-comments-content" hidden>' +
@@ -3435,7 +3471,7 @@
         '<div class="bf-comments-block bf-likes-block" hidden>' +
           '<div class="bf-comments-header">' +
             '<p class="bf-comments-panel-title">Liked by</p>' +
-            '<button type="button" class="bf-comments-close bf-likes-close" aria-label="Close likes">&times;</button>' +
+            '<button type="button" class="bf-comments-close bf-likes-close" aria-label="Close likes"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' +
           '</div>' +
           '<div class="bf-likes-summary"></div>' +
           '<ul class="bf-likes-list"></ul>' +
@@ -3483,8 +3519,8 @@
             '</button>' +
           '</div>' +
           (post.length > 1 ?
-            '<button type="button" class="bf-car-nav bf-car-prev" aria-label="Previous photo" hidden>&lsaquo;</button>' +
-            '<button type="button" class="bf-car-nav bf-car-next" aria-label="Next photo">&rsaquo;</button>' +
+            '<button type="button" class="bf-car-nav bf-car-prev" aria-label="Previous photo" hidden><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>' +
+            '<button type="button" class="bf-car-nav bf-car-next" aria-label="Next photo"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>' +
             '<div class="bf-dots" aria-hidden="true">' +
               post.map(function (p, i) { return '<i class="bf-dot' + (i === 0 ? ' active' : '') + '"></i>'; }).join('') +
             '</div>' : '') +
@@ -3492,7 +3528,7 @@
           '<div class="bf-mods-panel bf-bubble">' +
             '<div class="bf-bubble-head">' +
               '<p class="bf-bubble-title">Mods</p>' +
-              '<button type="button" class="bf-mods-close" aria-label="Close mods list">&times;</button>' +
+              '<button type="button" class="bf-mods-close" aria-label="Close mods list"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' +
             '</div>' +
             '<ul></ul>' +
           '</div>' +
@@ -3501,7 +3537,7 @@
           '<div class="bf-share-panel bf-bubble" hidden>' +
             '<div class="bf-bubble-head">' +
               '<p class="bf-bubble-title">Share this build</p>' +
-              '<button type="button" class="bf-mods-close bf-share-close" aria-label="Close share options">&times;</button>' +
+              '<button type="button" class="bf-mods-close bf-share-close" aria-label="Close share options"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' +
             '</div>' +
             '<div class="bf-share-options">' +
               '<a class="bf-share-option" data-channel="whatsapp" target="_blank" rel="noopener">WhatsApp</a>' +
@@ -4604,10 +4640,10 @@
         viewer.setAttribute('aria-modal', 'true');
         viewer.setAttribute('aria-label', 'Full image');
         viewer.innerHTML =
-          '<button type="button" class="bf-viewer-close" aria-label="Close full image">&times;</button>' +
+          '<button type="button" class="bf-viewer-close" aria-label="Close full image"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' +
           '<button type="button" class="bf-viewer-share" aria-label="Share this photo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 3L10 14M21 3l-7 18-4-7-7-4z"/></svg></button>' +
-          '<button type="button" class="bf-viewer-nav bf-viewer-prev" aria-label="Previous photo">&lsaquo;</button>' +
-          '<button type="button" class="bf-viewer-nav bf-viewer-next" aria-label="Next photo">&rsaquo;</button>' +
+          '<button type="button" class="bf-viewer-nav bf-viewer-prev" aria-label="Previous photo"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>' +
+          '<button type="button" class="bf-viewer-nav bf-viewer-next" aria-label="Next photo"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>' +
           '<div class="bf-viewer-track"></div>' +
           '<div class="bf-viewer-foot">' +
             '<div class="bf-viewer-line"><span class="bf-viewer-caption"></span><span class="bf-viewer-dots"></span></div>' +
@@ -4840,7 +4876,7 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">05 / ABOUT</span>
+        <span class="section-num">05 / About</span>
         <h2>Built by owners, for owners</h2>
       </div>
     </div>
@@ -4853,12 +4889,12 @@
         <a href="https://www.facebook.com/groups/mt3uk/" class="btn btn-join-community" target="_blank" rel="noopener">Join The Facebook Group</a>
       </div>
       <div class="specs">
-        <div class="spec-row"><span>MEMBERS</span><span class="member-count"></span></div>
-        <div class="spec-row"><span>COVERAGE</span><span>GLOBAL</span></div>
-        <div class="spec-row"><span>MODELS</span><span>S / 3 / X / Y</span></div>
-        <div class="spec-row"><span>PLATFORM</span><span>Facebook Group</span></div>
-        <div class="spec-row"><span>ACTIVITY</span><span>Daily threads</span></div>
-        <div class="spec-row"><span>FOCUS</span><span>Wraps · Wheels · Suspension · Track</span></div>
+        <div class="spec-row"><span>Members</span><span class="member-count"></span></div>
+        <div class="spec-row"><span>Coverage</span><span>Global</span></div>
+        <div class="spec-row"><span>Models</span><span>S / 3 / X / Y</span></div>
+        <div class="spec-row"><span>Platform</span><span>Facebook Group</span></div>
+        <div class="spec-row"><span>Activity</span><span>Daily threads</span></div>
+        <div class="spec-row"><span>Focus</span><span>Wraps · Wheels · Suspension · Track</span></div>
       </div>
     </div>
   </div>
@@ -4868,7 +4904,7 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">06 / EVENTS</span>
+        <span class="section-num">06 / Events</span>
         <h2>Meets & events</h2>
       </div>
       <p>Full details always posted in the Facebook group first.</p>
@@ -4886,17 +4922,17 @@
       <div class="event-row">
         <div class="event-date">TBC</div>
         <div class="event-info"><h3>MT3UK Summer Meet</h3><p>Location and date to be confirmed, posted in the group</p></div>
-        <div class="event-status">PLANNING</div>
+        <div class="event-status">Planning</div>
       </div>
       <div class="event-row">
         <div class="event-date">TBC</div>
         <div class="event-info"><h3>Regional meet-up</h3><p>Smaller, informal get-together, location by region interest</p></div>
-        <div class="event-status">PLANNING</div>
+        <div class="event-status">Planning</div>
       </div>
       <div class="event-row">
         <div class="event-date">TBC</div>
         <div class="event-info"><h3>Track day</h3><p>For members interested in a group track session</p></div>
-        <div class="event-status">GAUGING INTEREST</div>
+        <div class="event-status">Gauging interest</div>
       </div>
     </div>
     <div id="past-events-section" style="display: none; margin-top: 36px;">
@@ -4910,7 +4946,7 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">07 / TRACK DAYS <a href="track-day-prep.html" class="section-num-link">Prep Guide →</a></span>
+        <span class="section-num">07 / Track days <a href="track-day-prep.html" class="section-num-link">Prep guide<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a></span>
         <h2>From sighting laps to setting your PB</h2>
       </div>
       <p>Prep, upgrades and honest advice, for first timers and seasoned track goers alike.</p>
@@ -4942,7 +4978,7 @@
   <div class="wrap">
     <div class="section-head">
       <div>
-        <span class="section-num">08 / FAQ</span>
+        <span class="section-num">08 / FAQs</span>
         <h2>Common questions</h2>
       </div>
       <p>Everything you need to know before you join.</p>
@@ -5021,7 +5057,7 @@
 <script>
   (function () {
     var style = document.createElement('style');
-    style.textContent = '.gallery-slot.filled img { cursor: zoom-in; } .lightbox { position: fixed; inset: 0; background: rgba(22,35,61,0.94); display: none; align-items: center; justify-content: center; flex-direction: column; z-index: 200; padding: 40px 20px; } .lightbox.open { display: flex; } .lightbox-img { max-width: min(92vw, 1100px); max-height: 78vh; object-fit: contain; border: 1px solid rgba(243,241,234,0.25); } .lightbox-caption { margin-top: 16px; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; letter-spacing: 0.04em; color: var(--paper); } .lightbox-mods { display: none; margin-top: 10px; max-width: min(92vw, 1100px); font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; letter-spacing: 0.03em; color: rgba(243,241,234,0.7); text-align: center; } .lightbox-mods.has-mods { display: block; } .lightbox-close { position: absolute; top: 22px; right: 28px; background: transparent; border: 1px solid var(--paper); color: var(--paper); width: 40px; height: 40px; font-size: 1.4rem; line-height: 1; cursor: pointer; } .lightbox-close:hover { background: var(--orange); border-color: var(--orange); } .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(22,35,61,0.6); border: 1px solid var(--paper); color: var(--paper); width: 46px; height: 46px; font-size: 1.6rem; line-height: 1; cursor: pointer; } .lightbox-nav:hover { background: var(--orange); border-color: var(--orange); } .lightbox-prev { left: 20px; } .lightbox-next { right: 20px; } @media (max-width: 700px) { .lightbox-nav { width: 38px; height: 38px; font-size: 1.3rem; } .lightbox-prev { left: 8px; } .lightbox-next { right: 8px; } } @media (max-width: 600px) { .lightbox-close { top: 14px; right: 14px; width: 36px; height: 36px; } } .lightbox-vote { display: none; margin-top: 16px; align-items: center; gap: 14px; } .lightbox.open[data-mode="vote"] .lightbox-vote { display: flex; } .lightbox-vote-count { font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; letter-spacing: 0.04em; color: var(--paper); } .lightbox-vote-btn { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; letter-spacing: 0.04em; padding: 9px 16px; border: 1px solid var(--paper); background: transparent; color: var(--paper); cursor: pointer; transition: background .2s ease, color .2s ease; } .lightbox-vote-btn:hover:not(:disabled) { background: var(--orange); border-color: var(--orange); } .lightbox-vote-btn:disabled { cursor: default; opacity: 0.7; background: var(--orange); border-color: var(--orange); }' +
+    style.textContent = '.gallery-slot.filled img { cursor: zoom-in; } .lightbox { position: fixed; inset: 0; background: rgba(22,35,61,0.94); display: none; align-items: center; justify-content: center; flex-direction: column; z-index: 200; padding: 40px 20px; } .lightbox.open { display: flex; } .lightbox-img { max-width: min(92vw, 1100px); max-height: 78vh; object-fit: contain; border: 0; border-radius: 10px; } .lightbox-caption { margin-top: 16px; font-family: var(--font-body); font-size: 0.86rem; color: var(--paper); } .lightbox-mods { display: none; margin-top: 10px; max-width: min(92vw, 1100px); font-family: var(--font-body); font-size: 0.76rem; color: rgba(243,241,234,0.7); text-align: center; } .lightbox-mods.has-mods { display: block; } .lightbox-close { position: absolute; top: 22px; right: 28px; display: flex; align-items: center; justify-content: center; background: rgba(243,241,234,0.12); border: 0; border-radius: 50%; color: var(--paper); width: 40px; height: 40px; line-height: 1; cursor: pointer; } .lightbox-close .icon, .lightbox-nav .icon { width: 22px; height: 22px; } .lightbox-close:hover { background: var(--orange); border-color: var(--orange); } .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); display: flex; align-items: center; justify-content: center; background: rgba(243,241,234,0.12); border: 0; border-radius: 50%; color: var(--paper); width: 46px; height: 46px; line-height: 1; cursor: pointer; } .lightbox-nav:hover { background: var(--orange); border-color: var(--orange); } .lightbox-prev { left: 20px; } .lightbox-next { right: 20px; } @media (max-width: 700px) { .lightbox-nav { width: 38px; height: 38px; font-size: 1.3rem; } .lightbox-prev { left: 8px; } .lightbox-next { right: 8px; } } @media (max-width: 600px) { .lightbox-close { top: 14px; right: 14px; width: 36px; height: 36px; } } .lightbox-vote { display: none; margin-top: 16px; align-items: center; gap: 14px; } .lightbox.open[data-mode="vote"] .lightbox-vote { display: flex; } .lightbox-vote-count { font-family: var(--font-body); font-size: 0.86rem; color: var(--paper); } .lightbox-vote-btn { font-family: var(--font-body); font-size: 0.8rem; min-height: 44px; padding: 9px 18px; border: 1px solid var(--paper); border-radius: 10px; background: transparent; color: var(--paper); font-weight: 600; cursor: pointer; transition: background .2s ease, color .2s ease; } .lightbox-vote-btn:hover:not(:disabled) { background: var(--orange); border-color: var(--orange); } .lightbox-vote-btn:disabled { cursor: default; opacity: 0.7; background: var(--orange); border-color: var(--orange); }' +
       // Fit on short screens (and behind phone toolbars): the photo shrinks to
       // leave room for the caption, mods and Vote button, a long mods list
       // scrolls within itself, and the view scrolls if it still can't fit.
@@ -5037,7 +5073,7 @@
     lightbox.setAttribute('role', 'dialog');
     lightbox.setAttribute('aria-modal', 'true');
     lightbox.setAttribute('aria-hidden', 'true');
-    lightbox.innerHTML = '<button class="lightbox-close" aria-label="Close">&times;</button><button class="lightbox-nav lightbox-prev" aria-label="Previous photo">&lsaquo;</button><button class="lightbox-nav lightbox-next" aria-label="Next photo">&rsaquo;</button><img class="lightbox-img" src="" alt=""><div class="lightbox-caption"></div><div class="lightbox-mods"></div><div class="lightbox-vote"><span class="lightbox-vote-count"></span><button type="button" class="lightbox-vote-btn">Vote for this build</button></div>';
+    lightbox.innerHTML = '<button class="lightbox-close" aria-label="Close"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button><button class="lightbox-nav lightbox-prev" aria-label="Previous photo"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button><button class="lightbox-nav lightbox-next" aria-label="Next photo"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button><img class="lightbox-img" src="" alt=""><div class="lightbox-caption"></div><div class="lightbox-mods"></div><div class="lightbox-vote"><span class="lightbox-vote-count"></span><button type="button" class="lightbox-vote-btn">Vote for this build</button></div>';
     document.body.appendChild(lightbox);
 
     var lightboxImg = lightbox.querySelector('.lightbox-img');
@@ -5204,16 +5240,16 @@
       });
     }
     function when(ev) {
-      if (!ev.startDate) return 'EVENT';
+      if (!ev.startDate) return 'Event';
       var opts = { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' };
       var text = new Date(ev.startDate + 'T12:00:00Z').toLocaleDateString('en-GB', opts);
       if (ev.endDate && ev.endDate !== ev.startDate) text += ' to ' + new Date(ev.endDate + 'T12:00:00Z').toLocaleDateString('en-GB', opts);
-      return text.toUpperCase();
+      return text;
     }
     function card(ev) {
       var img = ev.image
         ? '<img src="' + esc(ev.image) + '" alt="' + esc(ev.title || ev.name) + '" loading="lazy">'
-        : '<div class="ev-feature-noimg">EVENT IMAGE</div>';
+        : '<div class="ev-feature-noimg">Event image</div>';
       return '<a class="ev-feature" href="' + esc(ev.url) + '">' +
         '<div class="ev-feature-img">' + img + '</div>' +
         '<div class="ev-feature-body">' +
@@ -5221,7 +5257,7 @@
           '<h3>' + esc(ev.title || ev.name) + '</h3>' +
           (ev.tagline ? '<p class="ev-feature-tagline">' + esc(ev.tagline) + '</p>' : '') +
           (ev.location ? '<p class="ev-feature-where">' + esc(ev.location) + '</p>' : '') +
-          '<span class="ev-feature-cta">View event &rarr;</span>' +
+          '<span class="ev-feature-cta">View event<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>' +
         '</div></a>';
     }
     fetch('data/event-pages.json', { cache: 'no-store' })
@@ -5258,7 +5294,7 @@
       var start = new Date(startTime);
       var end = endTime ? new Date(endTime) : null;
       var dateOpts = { day: 'numeric', month: 'short', timeZone: 'UTC' };
-      var dateLabel = start.toLocaleDateString('en-GB', dateOpts).toUpperCase();
+      var dateLabel = start.toLocaleDateString('en-GB', dateOpts);
       var dayLabel = start.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
       var timeLabel = formatTime(start);
       if (end) timeLabel += '–' + formatTime(end);
@@ -5273,8 +5309,8 @@
         metaParts.push(ev.attendingCount + ' attending, ' + ev.interestedCount + ' interested');
       }
       var status = isPast
-        ? '<div class="event-status event-status-past">PAST</div>'
-        : '<a class="event-status event-status-confirmed" href="' + ev.facebookUrl + '" target="_blank" rel="noopener">JOIN EVENT</a>';
+        ? '<div class="event-status event-status-past">Past</div>'
+        : '<a class="event-status event-status-confirmed" href="' + ev.facebookUrl + '" target="_blank" rel="noopener">Join event</a>';
       return '<div class="event-row">' +
         '<div class="event-date">' + when.dateLabel + '</div>' +
         '<div class="event-info">' +
@@ -5357,9 +5393,9 @@
         return;
       }
       pagination.innerHTML =
-        '<button type="button" class="page-btn" id="track-day-prev"' + (currentPage === 1 ? ' disabled' : '') + '>&lsaquo; Prev</button>' +
+        '<button type="button" class="page-btn" id="track-day-prev"' + (currentPage === 1 ? ' disabled' : '') + '><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Prev</button>' +
         '<span class="mono">Track Day ' + currentPage + ' of ' + totalPages + '</span>' +
-        '<button type="button" class="page-btn" id="track-day-next"' + (currentPage === totalPages ? ' disabled' : '') + '>Next &rsaquo;</button>';
+        '<button type="button" class="page-btn" id="track-day-next"' + (currentPage === totalPages ? ' disabled' : '') + '>Next<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>';
 
       var prevBtn = document.getElementById('track-day-prev');
       var nextBtn = document.getElementById('track-day-next');
@@ -5461,7 +5497,7 @@
         var safeCaption = featured.caption.replace(/</g, '&lt;');
         var voteCount = (results[1] && results[1].file === featured.file && typeof results[1].votes === 'number') ? results[1].votes : null;
         var voteLine = voteCount !== null ? '<p class="botm-voted-note">Voted No.1 by you. <a href="#vote-frame">Vote for next week below</a></p>' : '';
-        var votedByBadge = voteCount !== null ? '<span class="botm-voted-by">VOTED BY YOU</span>' : '';
+        var votedByBadge = voteCount !== null ? '<span class="botm-voted-by">Voted by you</span>' : '';
         var mods = featured.mods || [];
         var modsBadge = mods.length ?
           '<button type="button" class="g-mods-badge" aria-label="View mods list">' +
@@ -5470,13 +5506,13 @@
           '</button>' : '';
         frame.innerHTML =
           '<div class="botm-media">' +
-            '<span class="botm-badge">BUILD OF THE WEEK</span>' +
+            '<span class="botm-badge">Build of the Week</span>' +
             '<img src="' + window.MT3UK_R2_BASE + '/gallery/' + featured.file.replace(/&/g, '&amp;') + '" alt="' + safeCaption + '" loading="lazy">' +
             modsBadge +
             votedByBadge +
           '</div>' +
           '<div class="botm-body">' +
-            '<span class="mono">BUILD OF THE WEEK</span>' +
+            '<span class="mono">Build of the Week</span>' +
             '<h3 class="botm-caption">' + safeCaption + '</h3>' +
             voteLine +
             '<p>Chosen by member votes. Get your build in the gallery and it could be next.</p>' +
@@ -5802,7 +5838,7 @@
       var refreshBtn = document.getElementById('vote-refresh-btn');
       if (refreshBtn) {
         refreshBtn.disabled = true;
-        if (isManualRefresh) refreshBtn.innerHTML = '&#8635; Refreshing&hellip;';
+        if (isManualRefresh) refreshBtn.innerHTML = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></svg>Refreshing&hellip;';
       }
       return fetch(VOTE_ENDPOINT + '/votes', { headers: voteHeaders(), cache: 'no-store' })
         .then(function (res) { return res.json(); })
@@ -5811,7 +5847,7 @@
             refreshBtn.disabled = false;
             if (isManualRefresh) {
               refreshBtn.innerHTML = '&#10003; Refreshed';
-              setTimeout(function () { refreshBtn.innerHTML = '&#8635; Refresh'; }, 1800);
+              setTimeout(function () { refreshBtn.innerHTML = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></svg>Refresh'; }, 1800);
             }
           }
           render(data);
@@ -5819,7 +5855,7 @@
         .catch(function () {
           if (refreshBtn) {
             refreshBtn.disabled = false;
-            if (isManualRefresh) refreshBtn.innerHTML = '&#8635; Refresh';
+            if (isManualRefresh) refreshBtn.innerHTML = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></svg>Refresh';
           }
           frame.innerHTML = '<p class="mono" style="padding: 24px; color: var(--steel);">Voting couldn\'t be loaded.</p>';
         });
@@ -5911,7 +5947,7 @@
           : 'Install MT3UK for quicker access to builds and voting.') + '</span>' +
         '<span class="a2hs-actions">' +
           (isIOS ? '' : '<button type="button" class="a2hs-btn a2hs-install">Install</button>') +
-          '<button type="button" class="a2hs-btn a2hs-close" aria-label="Dismiss">&times;</button>' +
+          '<button type="button" class="a2hs-btn a2hs-close" aria-label="Dismiss"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' +
         '</span>';
       document.body.appendChild(banner);
       requestAnimationFrame(function () { banner.classList.add('show'); });

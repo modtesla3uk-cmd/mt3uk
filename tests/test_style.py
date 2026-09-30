@@ -4,7 +4,7 @@ REFRESHED must not bring back the typewriter font (IBM Plex Mono)."""
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-REFRESHED = ["my-builds.html"]
+REFRESHED = ["my-builds.html", "gallery.html", "index.html"]
 
 
 def read(name):

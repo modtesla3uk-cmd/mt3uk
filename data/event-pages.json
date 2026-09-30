@@ -73,7 +73,7 @@
           "text": ""
         },
         {
-          "title": "This is your chance to meet our fantastic forces community and treat them to an ",
+          "title": "This is your chance to meet our fantastic forces community and treat them to an",
           "text": ""
         },
         {
@@ -110,6 +110,8 @@
             "name": "Driver Ticket",
             "price": "£150",
             "per": "per driver",
+            "tag": "",
+            "includes": [],
             "url": "https://ror-launch-trackday26.eventbrite.co.uk",
             "buttonLabel": "Book on Eventbrite",
             "featured": true,
@@ -120,6 +122,8 @@
             "name": "Driver Ticket Afternoon Only",
             "price": "£99",
             "per": "per driver",
+            "tag": "",
+            "includes": [],
             "url": "https://ror-launch-trackday26.eventbrite.co.uk",
             "buttonLabel": "Book on Eventbrite",
             "featured": false,
@@ -130,6 +134,7 @@
             "name": "Extra Driver",
             "price": "£30",
             "per": "per extra driver",
+            "tag": "",
             "includes": [
               "Only if a Driver Ticket has already been purchased",
               "Also available as an add-on"
@@ -138,7 +143,7 @@
             "buttonLabel": "Book on Eventbrite",
             "featured": false,
             "soldOut": false,
-            "addOn": true
+            "addOn": false
           }
         ],
         "notes": [

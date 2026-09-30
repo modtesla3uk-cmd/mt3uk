@@ -5187,9 +5187,10 @@ function cleanSpecs(input) {
       if (area.picks) {
         a.picks = Array.isArray(src.picks) ? area.picks.filter(function (p) { return src.picks.indexOf(p) !== -1; }) : [];
       }
-      if (area.items) {
-        a.items = Array.isArray(src.items) ? src.items.map(function (i) { return cleanModText(i, 150); }).filter(Boolean).slice(0, 30) : [];
-      }
+      // Extra parts, one per line: any area can have them ("Also fitted"),
+      // and Anything else is only these.
+      var items = Array.isArray(src.items) ? src.items.map(function (i) { return cleanModText(i, 150); }).filter(Boolean).slice(0, 30) : [];
+      if (items.length || area.items) a.items = items;
       if (id === 'wheels' && src.spacers && typeof src.spacers === 'object' && src.spacers.on) {
         a.spacers = cleanModFields(src.spacers, ['make', 'front', 'rear']);
         a.spacers.on = true;
@@ -5239,6 +5240,17 @@ function specsToMods(specs) {
   var lines = [];
   var s = specs || {};
   function up(id) { return s[id] && s[id].status === 'up' ? s[id] : null; }
+  // An area's own line, then its extra parts as written. A bare area name
+  // only when there is nothing else to say.
+  function add(id, label, text) {
+    var extras = (up(id) && up(id).items) || [];
+    if (text) lines.push(label + ': ' + text);
+    else if (!extras.length && label) lines.push(label);
+  }
+  function extras(id) {
+    var a = up(id);
+    if (a && id !== 'other') (a.items || []).forEach(function (i) { lines.push(i); });
+  }
   var f;
   var w = up('wheels');
   if (w) {
@@ -5246,29 +5258,33 @@ function specsToMods(specs) {
     var size = f.sizeFront && f.sizeRear && f.sizeFront !== f.sizeRear
       ? f.sizeFront + ' front, ' + f.sizeRear + ' rear' : (f.sizeFront || f.sizeRear || '');
     var line = joinParts([joinParts([f.make, f.model], ' '), size, f.width, f.offset, f.finish, f.type]);
-    lines.push('Wheels' + (line ? ': ' + line : ''));
+    add('wheels', 'Wheels', line);
     if (w.spacers && w.spacers.on) {
       var sp = w.spacers;
       lines.push('Spacers' + ': ' + joinParts([sp.make, sp.front ? sp.front + ' front' : '', sp.rear ? sp.rear + ' rear' : '', sp.hub ? 'hub-centric' : '']));
     }
+    extras('wheels');
   }
   var t = up('tyres');
   if (t) {
     f = t.fields || {};
-    lines.push('Tyres' + prefixed(joinParts([joinParts([f.make, f.model], ' '), f.size])));
+    add('tyres', 'Tyres', joinParts([joinParts([f.make, f.model], ' '), f.size]));
+    extras('tyres');
   }
   var su = up('suspension');
   if (su) {
     f = su.fields || {};
-    lines.push('Suspension' + prefixed(joinParts([joinParts([f.make, f.model, f.type ? f.type.toLowerCase() : ''], ' '), f.drop ? f.drop + ' drop' : ''])));
+    add('suspension', 'Suspension', joinParts([joinParts([f.make, f.model, f.type ? f.type.toLowerCase() : ''], ' '), f.drop ? f.drop + ' drop' : '']));
+    extras('suspension');
   }
   var b = up('brakes');
   if (b) {
     f = b.fields || {};
-    lines.push('Brakes' + prefixed(joinParts([
+    add('brakes', 'Brakes', joinParts([
       f.calipers ? f.calipers + ' calipers' : '', f.discs ? f.discs + ' discs' : '',
       f.pads ? f.pads + ' pads' : '', f.fluid ? f.fluid + ' fluid' : ''
-    ])));
+    ]));
+    extras('brakes');
   }
   var bw = up('bodywork');
   if (bw) {
@@ -5286,13 +5302,15 @@ function specsToMods(specs) {
       else text = kf.what || '';
       lines.push(MOD_KIND_LABELS[k] + prefixed(text));
     });
-    if (!any) lines.push('Bodywork');
+    if (!any) add('bodywork', 'Bodywork', '');
+    extras('bodywork');
   }
   ['interior', 'performance', 'audio'].forEach(function (id) {
     var a = up(id);
     if (!a) return;
     f = a.fields || {};
-    lines.push(MOD_AREAS[id].label + prefixed(joinParts([(a.picks || []).join(', '), f.makeModel, f.details])));
+    add(id, MOD_AREAS[id].label, joinParts([(a.picks || []).join(', '), f.makeModel, f.details]));
+    extras(id);
   });
   var o = up('other');
   if (o) (o.items || []).forEach(function (i) { lines.push(i); });

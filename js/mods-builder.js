@@ -60,6 +60,32 @@
     { id: 'other', label: 'Anything else', items: true }
   ];
 
+  // Sorting mods listed before the builder into its areas, by keywords.
+  // Checked in this order, so "steering wheel" is interior, not wheels.
+  var SORT_RULES = [
+    ['interior', /\b(seats?|steering|yoke|interior|dash|mats?|ambient|alcantara|console|headliner)\b/i],
+    ['audio', /\b(speakers?|amps?|amplifier|subs?|subwoofer|audio|dash ?cam|dashcam|camera|chargers?|charging pad|transmitter|teslogic|hud)\b/i],
+    ['brakes', /\b(brakes?|calipers?|callipers?|discs?|rotors?|pads?|brake fluid)\b/i],
+    ['tyres', /\b(tyres?|tires?|michelin|pirelli|continental|pilot sport)\b/i],
+    ['wheels', /\b(wheels?|rims?|forged|alloys?|spacers?)\b|\b\d{2}\s?x\s?\d{1,2}(\.\d)?\b/i],
+    ['suspension', /\b(coilovers?|springs?|lowering|arms?|links?|anti-?roll|sway ?bars?|struts?|dampers?|air suspension|air ride|camber|bushe?s|suspension)\b/i],
+    ['bodywork', /\b(wrap|wrapped|vinyl|ppf|tint|tinted|bumper|diffuser|spoiler|splitter|lip|skirts?|wing|bonnet|badges?|chrome|de-?chrome|headlights?|tail ?lights?|lights?|body ?kit|mirror)\b/i],
+    ['performance', /\b(boost|acceleration|track mode|cooling|intake|tune|remap)\b/i]
+  ];
+  function sortMods(lines) {
+    var out = { rest: [] };
+    lines.forEach(function (line) {
+      for (var i = 0; i < SORT_RULES.length; i++) {
+        if (SORT_RULES[i][1].test(line)) {
+          (out[SORT_RULES[i][0]] = out[SORT_RULES[i][0]] || []).push(line);
+          return;
+        }
+      }
+      out.rest.push(line);
+    });
+    return out;
+  }
+
   var ICON = {
     chev: '<svg class="icon mbm-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>',
     wrench: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9Z"/></svg>',
@@ -80,7 +106,26 @@
   function setSkipped(carId) { try { localStorage.setItem(skipKey(carId), '1'); } catch (e) {} }
 
   function mount(root, opts) {
-    var car = null, specs = {}, plans = [], openArea = null, building = false, uid = 0;
+    var car = null, specs = {}, plans = [], openArea = null, building = false, uid = 0, sortedNote = false;
+
+    // Moves the lines under Anything else into their areas (as extra
+    // parts), marking those areas Upgraded. Anything unmatched stays put.
+    function sortOther() {
+      var lines = (specs.other && specs.other.items) || [];
+      if (!lines.length) return false;
+      var sorted = sortMods(lines);
+      var moved = false;
+      AREAS.forEach(function (a) {
+        if (a.id === 'other' || !sorted[a.id]) return;
+        var s = specs[a.id] && specs[a.id].status === 'up' ? specs[a.id] : { status: 'up' };
+        s.items = (s.items || []).concat(sorted[a.id]);
+        specs[a.id] = s;
+        moved = true;
+      });
+      if (sorted.rest.length) specs.other = { status: 'up', items: sorted.rest };
+      else delete specs.other;
+      return moved;
+    }
 
     function areaDone(id) { return !!(specs[id] && (specs[id].status === 'stock' || specs[id].status === 'up')); }
     function doneCount() { return AREAS.filter(function (a) { return areaDone(a.id); }).length; }
@@ -149,12 +194,15 @@
           field('spacers.', ['make', 'Spacer make', 'e.g. H&R'], sp.make) + field('spacers.', ['front', 'Front spacers', 'e.g. 15mm'], sp.front) + field('spacers.', ['rear', 'Rear spacers', 'e.g. 20mm'], sp.rear) +
           '<label class="mbm-switch" for="' + hub + '"><input type="checkbox" id="' + hub + '" data-f="spacers.hub"' + (sp.hub ? ' checked' : '') + '> Hub-centric</label></div></div>';
       }
+      var t = 'mbm-' + (++uid);
       if (a.items) {
-        var t = 'mbm-' + (++uid);
         h += '<div class="mbm-field"><label for="' + t + '">One mod per line</label><textarea class="field" id="' + t + '" data-f="items" rows="4" placeholder="Anything not covered above">' + esc((s.items || []).join('\n')) + '</textarea></div>';
-        if (s.fromOld) h += '<p class="mbm-hint">These are the mods you listed before. Move each one into its area above when you have a moment, then take it out of here.</p>';
+        if ((s.items || []).length) h += '<div class="mbm-row"><button type="button" class="btn btn-secondary btn-sm" data-sort>Sort into areas</button><span class="mbm-hint">Moves each one to the area it belongs in, such as wheels or brakes.</span></div>';
+      } else {
+        // More parts in the same area, such as a second set of arms.
+        h += '<div class="mbm-field"><label for="' + t + '">Also fitted (one per line)</label><textarea class="field" id="' + t + '" data-f="items" rows="' + Math.max(2, (s.items || []).length) + '" placeholder="Any other ' + esc(a.label.toLowerCase()) + ' parts">' + esc((s.items || []).join('\n')) + '</textarea></div>';
+        h += fittedHtml(a, s);
       }
-      if (!a.items) h += fittedHtml(a, s);
       return h;
     }
 
@@ -207,6 +255,7 @@
     function builderHtml() {
       var v = 'mbm-' + (++uid), y = 'mbm-' + (++uid);
       return '<div class="mbm-builder">' +
+        (sortedNote ? '<p class="mbm-note">We\'ve put your existing mods into areas. Check each one, add sizes, dates and so on if you like, and press Save.</p>' : '') +
         '<div class="mbm-about"><p class="mbm-label">About this car</p><div class="mbm-grid">' +
           '<div class="mbm-field"><label for="' + v + '">Version</label><input class="field" id="' + v + '" data-car="version" list="mbm-versions" maxlength="40" placeholder="e.g. Long Range" value="' + esc(car.version || '') + '"></div>' +
           '<div class="mbm-field"><label for="' + y + '">Year</label><input class="field" id="' + y + '" data-car="year" inputmode="numeric" maxlength="4" placeholder="e.g. 2021" value="' + esc(car.year || '') + '"></div>' +
@@ -382,6 +431,15 @@
         return;
       }
       if (t.closest('[data-plans-save]')) save(root.querySelector('[data-plans-saved]'));
+      if (t.closest('[data-sort]')) {
+        root.querySelectorAll('.mbm-area').forEach(readArea);
+        readPlans();
+        sortedNote = sortOther();
+        openArea = null;
+        render();
+        var note = root.querySelector('.mbm-note');
+        if (note && note.scrollIntoView) note.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
     });
 
     return {
@@ -392,8 +450,10 @@
         specs = copy(car.specs);
         // Mods listed before the builder carry over under Anything else,
         // so nothing is lost on the first save.
+        sortedNote = false;
         if (!car.specs && (car.mods || []).length) {
-          specs.other = { status: 'up', items: car.mods.slice(), fromOld: true };
+          specs.other = { status: 'up', items: car.mods.slice() };
+          sortedNote = sortOther();
         }
         plans = copy(car.plans || []);
         if (!Array.isArray(plans)) plans = [];
@@ -403,5 +463,5 @@
     };
   }
 
-  window.MT3UKModsBuilder = { mount: mount, areas: AREAS };
+  window.MT3UKModsBuilder = { mount: mount, areas: AREAS, sortMods: sortMods };
 })();

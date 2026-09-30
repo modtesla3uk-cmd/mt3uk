@@ -26,10 +26,12 @@ const specs = m.cleanSpecs({
   hacks: { status: 'up' }
 });
 const mods = m.specsToMods(specs);
+const extraSpecs = m.cleanSpecs({ suspension: { status: 'up', items: ['KW v3 Coilovers', 'MPP arms'] }, brakes: { status: 'up', fields: { pads: 'Pagid' }, items: ['AP Racing rear discs'] } });
+const extraMods = m.specsToMods(extraSpecs);
 const model = m.cleanCarModel({ model: 'Model 3', version: 'Performance', year: '2021' });
 const badModel = m.cleanCarModel({ model: 'Model Q', year: '1900' });
 const plans = m.cleanPlans([{ area: 'Brakes', what: 'Big brake kit', when: 'Spring 2027' }, { what: '' }, 'junk']);
-console.log(JSON.stringify({ specs, mods, model, badModel, plans }));
+console.log(JSON.stringify({ specs, mods, model, badModel, plans, extraSpecs, extraMods }));
 """
 
 
@@ -73,3 +75,7 @@ def test_specs_are_cleaned_and_the_public_list_has_no_private_details():
     assert out["model"] == {"model": "Model 3", "version": "Performance", "year": 2021}
     assert out["badModel"] == {}
     assert out["plans"] == [{"what": "Big brake kit", "area": "Brakes", "when": "Spring 2027"}]
+    # Extra parts in any area: kept, and listed as written, with no bare
+    # "Suspension" line when only extras were given.
+    assert out["extraSpecs"]["suspension"]["items"] == ["KW v3 Coilovers", "MPP arms"]
+    assert out["extraMods"] == ["KW v3 Coilovers", "MPP arms", "Brakes: Pagid pads", "AP Racing rear discs"]

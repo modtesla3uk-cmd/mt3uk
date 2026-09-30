@@ -72,13 +72,12 @@ def test_build_the_mods_list(device_page):
     assert "0 of 9 areas done" in card.inner_text() or "1 of 9 areas done" in card.inner_text()
     card.locator("[data-start]").click()
 
-    # The mods listed before the builder carry over under Anything else.
-    other = page.locator('.mbm-area[data-area="other"]')
-    assert other.locator("textarea").input_value() == "Wheels"
-
+    # The mods listed before the builder are sorted into their areas.
+    assert "put your existing mods into areas" in page.locator(".mbm-note").inner_text()
     wheels = page.locator('.mbm-area[data-area="wheels"]')
     assert wheels.get_attribute("open") is not None
-    wheels.locator('[data-status="up"]').click()
+    assert wheels.get_by_label("Also fitted (one per line)").input_value() == "Wheels"
+    assert wheels.locator('[data-status="up"]').get_attribute("aria-pressed") == "true"
     wheels.get_by_label("Make", exact=True).fill("Vossen")
     wheels.get_by_label("Offset (ET)").fill("ET35")
     wheels.locator('[data-spacers="1"]').click()
@@ -96,11 +95,12 @@ def test_build_the_mods_list(device_page):
         assert spec["fields"]["make"] == "Vossen" and spec["fields"]["offset"] == "ET35"
         assert spec["spacers"]["on"] is True and spec["spacers"]["front"] == "15mm"
         assert spec["fitted"] == {"year": 2025, "cost": "2400"}
-        assert body["specs"]["other"]["items"] == ["Wheels"]
+        assert spec["items"] == ["Wheels"]
+        assert "other" not in body["specs"]
         # The summary updates, with the public list the worker made.
         summary = page.locator("#mb-mods-builder .mbm-summary")
         summary.wait_for(timeout=5000)
-        assert "2 of 9 areas done" in summary.inner_text()
+        assert "1 of 9 areas done" in summary.inner_text()
         assert "Wheels: Vossen ET35" in summary.locator(".mbm-public").inner_text()
 
     # Stock takes one tap.
@@ -149,4 +149,60 @@ def test_a_saved_list_shows_its_progress_and_plans(device_page):
     plan = page.locator(".mbm-plan").first
     assert plan.get_by_label("What").input_value() == "Big brake kit"
     assert page.locator('[data-car="version"]').input_value() == "Performance"
+    assert page.errors == [], diagnostics(page)
+
+
+RICHARDS_MODS = [
+    "KW v3 Coilovers", "MPP Front Upper and Rear Control arms", "MPP Rear Traction and Trailing arms",
+    "Highland Performance style seats", "Robot Crypton Front bumper", "Carbon Factory Rear Diffuser",
+    "CMST Carbon rear spoiler", "Tevo T4 Forged 20x9 wheels", "AP Racing Radical CP9660 Front Calipers",
+    "AP Racing 372x32 Front Slotted discs", "AP Racing rear 355x24 Rear discs", "Teslogic v2 transmitter",
+    "Carbon steering wheel", "LED interior dash", "Avery Gloss Hidden Forest Vinyl wrap",
+]
+SORTED = {
+    "suspension": RICHARDS_MODS[0:3],
+    "interior": ["Highland Performance style seats", "Carbon steering wheel", "LED interior dash"],
+    "bodywork": ["Robot Crypton Front bumper", "Carbon Factory Rear Diffuser", "CMST Carbon rear spoiler", "Avery Gloss Hidden Forest Vinyl wrap"],
+    "wheels": ["Tevo T4 Forged 20x9 wheels"],
+    "brakes": RICHARDS_MODS[8:11],
+    "audio": ["Teslogic v2 transmitter"],
+}
+
+
+def extras(page, area):
+    return page.locator(f'.mbm-area[data-area="{area}"]').get_by_label("Also fitted (one per line)").input_value().split("\n")
+
+
+@all_devices
+def test_existing_mods_are_sorted_into_areas(device_page):
+    page = device_page
+    page.mock_state["car_details"] = {"mods": RICHARDS_MODS}
+    open_car(page)
+    assert "6 of 9 areas done" in page.locator(".mbm-welcome").inner_text()
+    page.locator("[data-start]").click()
+    for area, lines in SORTED.items():
+        assert extras(page, area) == lines, area
+    assert page.locator('.mbm-area[data-area="other"] [data-pill]').inner_text() == "To do"
+    assert overflow_width(page) <= 0
+    page.locator('.mbm-area[data-area="wheels"] [data-save]').click()
+    page.locator('.mbm-area[data-area="wheels"] [data-saved]').get_by_text("Saved").wait_for(timeout=5000)
+    body = last_put(page)
+    if body:
+        assert {k: v["items"] for k, v in body["specs"].items()} == SORTED
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_sort_into_areas_on_a_saved_list(device_page):
+    page = device_page
+    page.mock_state["car_details"] = {"specs": {"other": {"status": "up", "items": RICHARDS_MODS + ["Something odd"]}}, "mods": RICHARDS_MODS}
+    signed_in(page)
+    page.goto("/my-builds.html")
+    page.locator(".mb-car-tile").first.click(timeout=10000)
+    page.locator("#mb-mods-builder .mbm-tile", has_text="Anything else").click()
+    page.locator('.mbm-area[data-area="other"] [data-sort]').click()
+    page.locator(".mbm-note").wait_for(timeout=5000)
+    for area, lines in SORTED.items():
+        assert extras(page, area) == lines, area
+    assert page.locator('.mbm-area[data-area="other"] textarea').input_value() == "Something odd"
     assert page.errors == [], diagnostics(page)

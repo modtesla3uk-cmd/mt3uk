@@ -647,6 +647,15 @@
     </image:image>
   </url>
   <url>
+    <loc>https://mt3uk.com/images/site/mt3uk-intro-wordmark.png</loc>
+    <lastmod>2026-10-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://mt3uk.com/images/site/mt3uk-intro-wordmark.png</image:loc>
+    </image:image>
+  </url>
+  <url>
     <loc>https://mt3uk.com/images/site/mt3uk-sticker.png</loc>
     <lastmod>2026-10-01</lastmod>
     <changefreq>monthly</changefreq>

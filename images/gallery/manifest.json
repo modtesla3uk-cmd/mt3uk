@@ -1,11 +1,20 @@
 [
   {
+    "file": "under-wraps-ocd.jpeg",
+    "caption": "UNDER WRAPS OCD",
+    "name": "Swiss",
+    "votable": false,
+    "color": "Other",
+    "added": "2026-10-01",
+    "group": "under-wraps-ocd.jpeg"
+  },
+  {
     "file": "deep-blue-model-3--by-niaz-h-three.jpg",
     "caption": "DEEP BLUE MODEL 3",
     "name": "Swiss",
     "color": "Other",
     "added": "2026-10-01",
-    "group": "deep-blue-model-3--by-niaz-h-three.jpg"
+    "group": "under-wraps-ocd.jpeg"
   },
   {
     "file": "chrome-is-still-alive--by-scott-duncan.jpg",

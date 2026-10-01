@@ -110,8 +110,13 @@
   .tp-pill-admin { background: #fdf3ef; color: #b8421f; }
   .tp-boards { display: grid; gap: 10px; }
   @media (min-width: 781px) { .tp-boards { grid-template-columns: 1fr 1fr; } }
-  .tp-board-card { background: #fff; border: 1px solid var(--hairline); border-radius: var(--radius); padding: 12px 14px; display: grid; gap: 8px; }
+  .tp-board-card { background: #fff; border: 1px solid var(--hairline); border-radius: var(--radius); padding: 12px 14px; display: grid; gap: 8px; align-content: start; }
   .tp-board-card b { color: var(--ink); }
+  .tp-board-card.is-busy { border-color: var(--orange); box-shadow: 0 0 0 1px rgba(232,84,42,.25); }
+  .tp-board-name { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .tp-board-name .tp-small { margin: 0; }
+  .chip.is-busy { border-color: var(--orange); }
+  .tp-count { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: var(--radius-pill); background: var(--orange); color: #fff; font-size: 0.74rem; font-weight: 700; }
 
   /* Add a session */
   .tp-add-grid { display: grid; gap: 14px; align-items: start; }

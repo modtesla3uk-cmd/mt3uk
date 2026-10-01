@@ -96,12 +96,19 @@ class FakeWorker:
             sid = q.get("id", [""])[0]
             self.sessions.pop(sid, None)
             self.index = [s for s in self.index if s["id"] != sid]
+        elif path == "/track/counts":
+            counts = {}
+            for s in self.index:
+                if s.get("privacy") in ("build", "board") and s.get("venueId") and s.get("layoutId"):
+                    k = "track-board:%s:%s" % (s["venueId"], s["layoutId"])
+                    counts[k] = counts.get(k, 0) + 1
+            data = {"success": True, "counts": counts}
         elif path == "/track/tracks":
             data = {"success": True, "extra": {"venues": []}}
         elif path == "/track/board":
             entries = [{"carId": "car1", "sessionId": s["id"], "car": CAR["name"], "model": "Model 3", "owner": "Rich", "time": s["bestTime"], "date": s["date"], "conditions": s.get("conditions"), "mods": ["KW V3 coilovers"]}
-                       for s in self.index if s.get("privacy") == "board" and s.get("venueId") == q.get("venue", [""])[0]]
-            data = {"success": True, "entries": entries}
+                       for s in self.index if s.get("privacy") in ("build", "board") and s.get("venueId") == q.get("venue", [""])[0]]
+            data = {"success": True, "entries": sorted(entries, key=lambda e: e["time"])}
         elif path == "/track/public":
             data = {"success": True, "car": {"id": "car1", "name": CAR["name"], "model": "Model 3", "owner": "Rich"}, "mine": False, "sessions": [s for s in self.index if s.get("privacy") in ("build", "board")]}
         elif path == "/track/requests":
@@ -181,7 +188,7 @@ def test_session_settings_and_leaderboard(page):
     page.set_input_files("#tp-file", str(FIXTURE))
     page.locator("[data-privacy] [data-v='board']").click()
     page.get_by_role("button", name="Save session").click()
-    expect(page.locator(".tp-session-head .tp-pill")).to_contain_text("Leaderboard")
+    expect(page.locator(".tp-session-head .tp-pill")).to_contain_text("Shared")
     page.goto("/track.html?board=thruxton:main")
     row = page.locator(".tp-board tbody tr")
     expect(row).to_have_count(1)
@@ -259,7 +266,7 @@ def test_drag_run_away_from_a_strip(page, admin):
         else:
             page.locator("#tp-street").click()
             expect(page.locator("#tp-street")).to_have_attribute("aria-checked", "true")
-            expect(page.locator("[data-privacy] [data-v='build']")).to_have_count(0)
+            expect(page.locator("[data-privacy] [data-v='board']")).to_have_count(0)
             page.get_by_role("button", name="Save session").click()
             expect(page.locator(".tp-notice.is-admin")).to_contain_text("Street run")
             assert fake.saved[0]["street"] is True and fake.saved[0]["adminViewer"] == "admintoken1234567890"
@@ -311,3 +318,23 @@ def test_admin_tracks_panel_sets_up_a_requested_track(device_page):
     assert "Old Airfield" in page.locator("#tk-list").inner_text()
     assert overflow_width(page) <= 0
     assert page.errors == [], diagnostics(page)
+
+
+def test_leaderboards_list_busy_tracks_first_with_counts(page):
+    fake = FakeWorker()
+    shared = dict(EARLIER, id="sh1", privacy="build")
+    fake.index = [shared, dict(EARLIER, id="sh2", privacy="board", bestTime=101.2), dict(EARLIER, id="pv1", privacy="private")]
+    fake.sessions = {}
+    open_page(page, fake, "/track.html?boards=1", signed_in=False)
+    first = page.locator(".tp-board-card").first
+    expect(first).to_contain_text("Thruxton")
+    expect(first).to_contain_text("2 sessions")
+    expect(first).to_have_class(re.compile("is-busy"))
+    expect(first.locator(".chip .tp-count")).to_have_text("2")
+    # Tracks with nothing yet have no number.
+    expect(page.locator(".tp-board-card").nth(1).locator(".tp-count")).to_have_count(0)
+    first.locator(".chip").first.click()
+    rows = page.locator(".tp-board tbody tr")
+    expect(rows).to_have_count(2)
+    expect(rows.first).to_contain_text("1:41.200")
+    expect(page.locator(".tp-head .tp-sub")).to_contain_text("Every shared session here, fastest lap first.")

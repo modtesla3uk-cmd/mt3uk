@@ -211,14 +211,14 @@
       var entries = d.entries || [];
       boardEl.innerHTML = entries.length ? '<table class="iv-table"><tbody>' + entries.map(function (en, i) {
         var res = en.time ? Math.floor(en.time / 60) + ':' + ((en.time % 60) < 10 ? '0' : '') + (en.time % 60).toFixed(3) : en.quarter ? en.quarter.toFixed(2) + ' s' : '';
-        return '<tr><td>' + (i + 1) + '</td><td>' + esc(en.car) + '<span class="iv-sub"> ' + esc(en.owner) + ', ' + esc(en.model) + '</span></td><td>' + res + '</td><td><a class="iv-sub" href="track.html?s=' + esc(en.sessionId) + '" target="_blank" rel="noopener">View</a></td><td><button type="button" class="danger iv-act" data-car="' + esc(en.carId) + '">Remove</button></td></tr>';
+        return '<tr><td>' + (i + 1) + '</td><td>' + esc(en.car) + '<span class="iv-sub"> ' + esc(en.owner) + ', ' + esc(en.model) + '</span></td><td>' + res + '</td><td><a class="iv-sub" href="track.html?s=' + esc(en.sessionId) + '" target="_blank" rel="noopener">View</a></td><td><button type="button" class="danger iv-act" data-session="' + esc(en.sessionId) + '">Remove</button></td></tr>';
       }).join('') + '</tbody></table>' : '<p class="empty">Nobody on this board yet.</p>';
     });
   }
   boardEl.addEventListener('click', function (e) {
-    var b = e.target.closest('[data-car]');
-    if (!b || !window.confirm('Take this car off the leaderboard? Its session stays on the build.')) return;
-    call('DELETE', '/track/admin/board-entry?board=' + encodeURIComponent(boardSel.value) + '&car=' + encodeURIComponent(b.getAttribute('data-car'))).then(function (d) {
+    var b = e.target.closest('[data-session]');
+    if (!b || !window.confirm('Take this session off the leaderboard? It stays on the build.')) return;
+    call('DELETE', '/track/admin/board-entry?board=' + encodeURIComponent(boardSel.value) + '&session=' + encodeURIComponent(b.getAttribute('data-session'))).then(function (d) {
       if (!d.ok) { note(d.message || 'Could not remove it.', 'error'); return; }
       drawBoard();
     });

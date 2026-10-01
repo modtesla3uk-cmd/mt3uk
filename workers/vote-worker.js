@@ -6536,6 +6536,7 @@ function trackSummary(rec) {
     vmax: rec.vmax || 0, quality: rec.quality
   };
   if (rec.street) o.street = true;
+  if (rec.offBoard) o.offBoard = true;
   if (rec.type === 'drag') {
     var runs = rec.runs || [];
     var bq = runs.filter(function (r) { return r.quarter; }).sort(function (a, b) { return a.quarter - b.quarter; })[0];
@@ -6579,28 +6580,36 @@ async function isAdminViewerToken(env, token) {
 // Rebuilds this car's place on one board from its shared sessions.
 async function refreshTrackBoard(env, boardKey, carId) {
   if (!boardKey) return;
+  // Every shared session of this car at this track ("On my build" and
+  // "Leaderboard" both count), unless the admin took one off.
   var shared = await getJsonKey(env, 'track-public:' + carId, []);
-  var mine = shared.filter(function (s) { return s.privacy === 'board' && trackBoardKey(s) === boardKey && trackScore(s); })
-    .sort(function (a, b) { return trackScore(a) - trackScore(b); })[0];
+  var mine = shared.filter(function (s) { return (s.privacy === 'board' || s.privacy === 'build') && !s.street && !s.offBoard && trackBoardKey(s) === boardKey && trackScore(s); });
   var board = await getJsonKey(env, boardKey, []);
   board = board.filter(function (e) { return e.carId !== carId; });
-  if (mine) {
+  if (mine.length) {
     var record = await getCarRecord(env, carId);
     var details = await getCarDetails(env, carId);
     var ownerEmail = record ? await carOwnerEmail(env, record) : null;
-    var entry = {
-      carId: carId, sessionId: mine.id, date: mine.date, conditions: mine.conditions || '', tyres: mine.tyres || '',
-      car: (record && record.name) || 'MT3UK member build', model: (details && details.model) || '', version: (details && details.version) || '', year: (details && details.year) || '',
-      owner: ownerEmail ? (publicName(await getProfileRecord(env, ownerEmail)) || 'MT3UK member') : 'MT3UK member',
-      photo: record && record.photos && record.photos[0] ? record.photos[0] : '',
-      mods: ((record && record.mods) || []).slice(0, 30)
-    };
-    if (mine.type === 'drag') { entry.quarter = mine.quarter; entry.quarterSpeed = mine.quarterSpeed; entry.s60 = mine.s60; }
-    else entry.time = mine.bestTime;
-    board.push(entry);
+    var owner = ownerEmail ? (publicName(await getProfileRecord(env, ownerEmail)) || 'MT3UK member') : 'MT3UK member';
+    mine.forEach(function (m) {
+      var entry = {
+        carId: carId, sessionId: m.id, date: m.date, conditions: m.conditions || '', tyres: m.tyres || '',
+        car: (record && record.name) || 'MT3UK member build', model: (details && details.model) || '', version: (details && details.version) || '', year: (details && details.year) || '',
+        owner: owner, photo: record && record.photos && record.photos[0] ? record.photos[0] : '',
+        mods: ((record && record.mods) || []).slice(0, 30)
+      };
+      if (m.type === 'drag') { entry.quarter = m.quarter; entry.quarterSpeed = m.quarterSpeed; entry.s60 = m.s60; }
+      else entry.time = m.bestTime;
+      board.push(entry);
+    });
   }
   board.sort(function (a, b) { return (a.time || a.quarter) - (b.time || b.quarter); });
-  await env.VOTES.put(boardKey, JSON.stringify(board.slice(0, TRACK_BOARD_MAX)));
+  board = board.slice(0, TRACK_BOARD_MAX);
+  await env.VOTES.put(boardKey, JSON.stringify(board));
+  // How many sessions each board has, for the list of tracks (one key).
+  var counts = await getJsonKey(env, 'track-board-counts', {});
+  if (board.length) counts[boardKey] = board.length; else delete counts[boardKey];
+  await env.VOTES.put('track-board-counts', JSON.stringify(counts));
 }
 
 // The owner of a car record, from its first photo's owner.
@@ -6851,23 +6860,28 @@ function maskEmailForAdmin(email) {
 async function handleTrackAdminBoardEntry(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
   var params = new URL(request.url).searchParams;
-  var board = String(params.get('board') || ''), carId = String(params.get('car') || '');
+  var board = String(params.get('board') || ''), sessionId = String(params.get('session') || '');
   if (!/^(track-board:[a-z0-9-]+:[a-z0-9-]+|drag-board:[a-z0-9-]+)$/.test(board)) return json({ success: false, message: 'Unknown board' }, 400);
   var entries = await getJsonKey(env, board, []);
-  await env.VOTES.put(board, JSON.stringify(entries.filter(function (e) { return e.carId !== carId; })));
-  // Keep it off the board: the car's session goes back to "On my build".
-  var entry = entries.find(function (e) { return e.carId === carId; });
-  if (entry && entry.sessionId) {
-    var rec = await getJsonKey(env, 'track-session:' + entry.sessionId, null);
-    if (rec && rec.privacy === 'board') {
-      rec.privacy = 'build';
-      await env.VOTES.put('track-session:' + rec.id, JSON.stringify(rec));
-      var shared = await getJsonKey(env, 'track-public:' + carId, []);
-      shared.forEach(function (s) { if (s.id === rec.id) s.privacy = 'build'; });
-      await env.VOTES.put('track-public:' + carId, JSON.stringify(shared));
-    }
+  var entry = entries.find(function (e) { return e.sessionId === sessionId; });
+  if (!entry) return json({ success: false, message: 'Not on this leaderboard' }, 404);
+  // Kept off the leaderboard; the session stays on the build.
+  var rec = await getJsonKey(env, 'track-session:' + sessionId, null);
+  if (rec) {
+    rec.offBoard = true;
+    await env.VOTES.put('track-session:' + rec.id, JSON.stringify(rec));
   }
+  var shared = await getJsonKey(env, 'track-public:' + entry.carId, []);
+  shared.forEach(function (s) { if (s.id === sessionId) s.offBoard = true; });
+  await env.VOTES.put('track-public:' + entry.carId, JSON.stringify(shared));
+  await refreshTrackBoard(env, board, entry.carId);
   return json({ success: true });
+}
+
+async function handleTrackCounts(request, env) {
+  var res = json({ success: true, counts: await getJsonKey(env, 'track-board-counts', {}) });
+  res.headers.set('Cache-Control', 'public, max-age=60');
+  return res;
 }
 
 // A member leaving: their sessions, index, shared lists and board places.
@@ -8039,6 +8053,9 @@ export default {
     }
     if (url.pathname === '/drag/board' && request.method === 'GET') {
       return handleTrackBoard(request, env, true);
+    }
+    if (url.pathname === '/track/counts' && request.method === 'GET') {
+      return handleTrackCounts(request, env);
     }
     if (url.pathname === '/track/tracks' && request.method === 'GET') {
       return handleTrackTracks(request, env);

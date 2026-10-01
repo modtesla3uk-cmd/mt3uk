@@ -118,8 +118,7 @@
   function trackName(s) { return s.venue + (s.layout && s.layout !== s.venue ? ', ' + s.layout : ''); }
   function privacyPill(p, street) {
     if (street) return '<span class="tp-pill tp-pill-admin">' + icon('shield') + 'Street run, admin only</span>';
-    if (p === 'board') return '<span class="tp-pill">' + icon('trophy') + 'Leaderboard</span>';
-    if (p === 'build') return '<span class="tp-pill">' + icon('eye') + 'On my build</span>';
+    if (p === 'board' || p === 'build') return '<span class="tp-pill">' + icon('eye') + 'Shared</span>';
     return '<span class="tp-pill">' + icon('lock') + 'Only me</span>';
   }
   function sessionResult(s) {
@@ -139,7 +138,7 @@
   // ---------- Home ----------
   function showHome() {
     loading();
-    Promise.all([getMine(), getLibrary()]).then(function (r) {
+    Promise.all([getMine(), getLibrary(), getCounts()]).then(function (r) {
       var m = r[0];
       var h = '';
       if (!m) {
@@ -151,7 +150,7 @@
       } else {
         h += myCarsHtml(m);
       }
-      h += '<div class="tp-section"><div class="tp-head"><h2>Leaderboards</h2><a href="track.html?boards=1" data-go="boards=1" class="tp-link">All tracks' + icon('chev') + '</a></div>' + boardsListHtml(r[1], true) + '</div>';
+      h += '<div class="tp-section"><div class="tp-head"><h2>Leaderboards</h2><a href="track.html?boards=1" data-go="boards=1" class="tp-link">All tracks' + icon('chev') + '</a></div>' + boardsListHtml(r[1], true, r[2]) + '</div>';
       app.innerHTML = h;
       wireCarChips(m);
     }).catch(function () { failed('Track sessions could not be loaded. Check your connection and try again.'); });
@@ -185,24 +184,44 @@
       showHome();
     });
   }
-  function boardsListHtml(lib, short) {
-    var circuits = lib.venues.filter(function (v) { return v.type === 'circuit' && (v.layouts || []).length; });
-    var strips = lib.venues.filter(function (v) { return v.type === 'drag'; });
+  // How many shared sessions each leaderboard has (one worker call).
+  var counts = null;
+  function getCounts() {
+    if (counts) return Promise.resolve(counts);
+    return api('GET', '/track/counts').then(function (d) { counts = d.counts || {}; return counts; }).catch(function () { return {}; });
+  }
+  function countChip(q, label, n) {
+    return '<a class="chip' + (n ? ' is-busy' : '') + '" href="track.html?' + q + '" data-go="' + esc(q) + '">' + esc(label) +
+      (n ? '<span class="tp-count" aria-label="' + n + ' session' + (n === 1 ? '' : 's') + '">' + n + '</span>' : '') + '</a>';
+  }
+  // Tracks with sessions first, busiest first, each layout with its count.
+  function boardsListHtml(lib, short, c) {
+    c = c || {};
+    var circuits = lib.venues.filter(function (v) { return v.type === 'circuit' && (v.layouts || []).length; }).map(function (v, i) {
+      var total = v.layouts.reduce(function (t, l) { return t + (c['track-board:' + v.id + ':' + l.id] || 0); }, 0);
+      return { v: v, total: total, i: i };
+    }).sort(function (a, b) { return b.total - a.total || a.i - b.i; });
+    var strips = lib.venues.filter(function (v) { return v.type === 'drag'; }).map(function (v, i) { return { v: v, n: c['drag-board:' + v.id] || 0, i: i }; })
+      .sort(function (a, b) { return b.n - a.n || a.i - b.i; });
     if (short) circuits = circuits.slice(0, 6);
-    return '<div class="tp-boards">' + circuits.map(function (v) {
-      return '<div class="tp-board-card"><b>' + esc(v.name) + '</b><div class="tp-chips">' + v.layouts.map(function (l) {
-        var q = 'board=' + encodeURIComponent(v.id + ':' + l.id);
-        return '<a class="chip" href="track.html?' + q + '" data-go="' + esc(q) + '">' + esc(l.name) + '</a>';
-      }).join('') + '</div></div>';
-    }).join('') + '<div class="tp-board-card"><b>Drag strips</b><div class="tp-chips">' + strips.map(function (v) {
-      var q = 'drag=' + encodeURIComponent(v.id);
-      return '<a class="chip" href="track.html?' + q + '" data-go="' + esc(q) + '">' + esc(v.name) + '</a>';
-    }).join('') + '</div></div></div>';
+    var dragTotal = strips.reduce(function (t, x) { return t + x.n; }, 0);
+    function card(name, total, chips) {
+      return '<div class="tp-board-card' + (total ? ' is-busy' : '') + '"><div class="tp-board-name"><b>' + esc(name) + '</b>' + (total ? '<span class="tp-small">' + total + ' session' + (total === 1 ? '' : 's') + '</span>' : '') + '</div><div class="tp-chips">' + chips + '</div></div>';
+    }
+    var circuitCards = circuits.map(function (x) {
+      return card(x.v.name, x.total, x.v.layouts.map(function (l) { return countChip('board=' + encodeURIComponent(x.v.id + ':' + l.id), l.name, c['track-board:' + x.v.id + ':' + l.id] || 0); }).join(''));
+    });
+    var dragCard = card('Drag strips', dragTotal, strips.map(function (x) { return countChip('drag=' + encodeURIComponent(x.v.id), x.v.name, x.n); }).join(''));
+    // Drag strips go among the circuits by how busy they are.
+    var at = circuits.filter(function (x) { return x.total >= dragTotal && dragTotal; }).length;
+    if (!dragTotal) at = circuitCards.length;
+    circuitCards.splice(at, 0, dragCard);
+    return '<div class="tp-boards">' + circuitCards.join('') + '</div>';
   }
   function showBoards() {
     loading();
-    getLibrary().then(function (lib) {
-      app.innerHTML = back('Track sessions', '') + '<div class="tp-section"><div class="tp-head"><h2>Leaderboards</h2></div><p class="tp-sub">The best lap of each car at each track, from sessions members chose to put on the leaderboard. Tap a layout.</p>' + boardsListHtml(lib, false) + '</div>';
+    Promise.all([getLibrary(), getCounts()]).then(function (r) {
+      app.innerHTML = back('Track sessions', '') + '<div class="tp-section"><div class="tp-head"><h2>Leaderboards</h2></div><p class="tp-sub">Every session members have shared, fastest first. The number is how many sessions each track has. Tap a layout.</p>' + boardsListHtml(r[0], false, r[1]) + '</div>';
     });
   }
 
@@ -309,7 +328,6 @@
     if (a.startLine) opts.startLine = a.startLine;
     a.session = T.analyse(a.rd, a.lib, opts);
     a.type = a.session.type;
-    if (a.privacy === 'board' && !canBoard()) a.privacy = 'build';
     drawAdd();
     status('');
   }
@@ -365,12 +383,15 @@
     var b = runs.slice().sort(function (x, y) { return x.s60 - y.s60; })[0];
     return q ? 'Best quarter mile ' + q.quarter.toFixed(2) + ' s at ' + V.fmtV(q.quarterSpeed) + '.' : 'Best 0 to 60 mph ' + b.s60.toFixed(2) + ' s.';
   }
+  // Only me, or Shared (on the car's page and the track's leaderboard).
+  // Older sessions saved as "build" count as Shared.
   function privacyOptions(on, limit) {
-    var opts = [['private', 'Only me', 'The default. Nobody else sees it.'], ['build', 'On my build', 'Members see your laps on your car\'s page.'], ['board', 'On my build and the leaderboard', 'Your best goes on the leaderboard with your car and mods.']];
+    if (on === 'build') on = 'board';
+    var opts = [['private', 'Only me', 'The default. Nobody else sees it.'],
+      ['board', 'Shared', limit === 'noboard' ? 'Members see it on your car\'s page. This track has no leaderboard yet.' : 'Members see it on your car\'s page and on this track\'s leaderboard, with your car and mods.']];
     if (limit === 'street') opts = opts.slice(0, 1);
     return opts.map(function (o) {
-      var off = limit === 'noboard' && o[0] === 'board';
-      return '<button type="button" class="tp-opt' + (on === o[0] ? ' is-on' : '') + '" data-v="' + o[0] + '"' + (off ? ' disabled' : '') + '><span class="tp-dot"></span><span><b>' + o[1] + '</b><span>' + (off ? 'Only for tracks and layouts we know, and drag strips.' : o[2]) + '</span></span></button>';
+      return '<button type="button" class="tp-opt' + (on === o[0] ? ' is-on' : '') + '" data-v="' + o[0] + '"><span class="tp-dot"></span><span><b>' + o[1] + '</b><span>' + o[2] + '</span></span></button>';
     }).join('');
   }
   function miniMap(s) {
@@ -442,7 +463,7 @@
     btn.disabled = true;
     status('Saving...');
     var carReady = a.car.virtual
-      ? api('PUT', '/my-builds/car', { carId: a.car.id }).then(function (d) { if (!d.success) throw new Error(d.message || 'Could not set up the car'); a.car.id = d.car.id; a.car.virtual = false; mine = null; return d.car.id; })
+      ? api('PUT', '/my-builds/car', { carId: a.car.id }).then(function (d) { if (!d.success) throw new Error(d.message || 'Could not set up the car'); a.car.id = d.car.id; a.car.virtual = false; mine = null; counts = null; return d.car.id; })
       : Promise.resolve(a.car.id);
     carReady.then(function (carId) {
       if (s.type === 'track' && (a.requestStart || (s.venueId && !s.layoutId))) {
@@ -455,7 +476,7 @@
       return api('POST', '/track/sessions', { carId: carId, session: s, conditions: a.conditions, tyres: a.tyres || '', temp: a.temp, notes: a.notes || '', privacy: a.privacy, venueName: a.venueName || '', street: a.street, adminViewer: a.street ? adminViewerToken() : '' });
     }).then(function (d) {
       if (!d.success) throw new Error(d.message || 'Could not save the session.');
-      mine = null;
+      mine = null; counts = null;
       go('s=' + d.session.id);
     }).catch(function (e) {
       btn.disabled = false;
@@ -738,7 +759,7 @@
       var t = document.getElementById('tp-e-temp').value.trim();
       api('PUT', '/track/session', { id: s.id, privacy: edit.privacy, conditions: edit.conditions || '', tyres: document.getElementById('tp-e-tyres').value, temp: t === '' ? null : parseFloat(t), notes: document.getElementById('tp-e-notes').value }).then(function (d) {
         if (!d.success) { status(d.message || 'Could not save.', 'error'); return; }
-        mine = null;
+        mine = null; counts = null;
         Object.assign(view.s, { privacy: d.session.privacy, conditions: d.session.conditions, tyres: d.session.tyres, temp: d.session.temp, notes: document.getElementById('tp-e-notes').value });
         getMine().then(function (m) { view.mine = m; drawSession(); status('Saved.', 'ok'); });
       });
@@ -747,7 +768,7 @@
       if (!window.confirm('Delete this session? This can\'t be undone.')) return;
       api('DELETE', '/track/session?id=' + encodeURIComponent(s.id)).then(function (d) {
         if (!d.success) { status(d.message || 'Could not delete.', 'error'); return; }
-        mine = null;
+        mine = null; counts = null;
         go('');
       });
     });
@@ -760,7 +781,7 @@
       if (!d.success) return failed('That build could not be found.');
       var c = d.car;
       var h = back('Track sessions', '') + '<div class="tp-head"><div><h2>' + esc(c.name || 'MT3UK build') + '</h2><p class="tp-sub">' + esc([c.owner, [c.year, c.model, c.version].filter(Boolean).join(' ')].filter(Boolean).join(' · ')) + '</p></div>' + unitsChip() + '</div>';
-      if (d.mine) h += '<p class="tp-sub">This is what other members see. Only sessions you set to "On my build" or the leaderboard show here.</p>';
+      if (d.mine) h += '<p class="tp-sub">This is what other members see. Only sessions you share show here.</p>';
       h += d.sessions.length ? '<div class="tp-list">' + d.sessions.map(sessionRow).join('') + '</div>' : '<div class="card tp-empty">' + icon('flag') + '<p>No shared sessions yet.</p></div>';
       h += '<p class="tp-sub"><a href="gallery.html" class="tp-link">See the build in the Gallery' + icon('chev') + '</a></p>';
       app.innerHTML = h;
@@ -778,7 +799,7 @@
       var entries = r[1].entries || [];
       function draw() {
         var shown = entries.filter(function (e) { return boardModel === 'All' || e.model === boardModel; });
-        var h = back('Leaderboards', 'boards=1') + '<div class="tp-head"><div><h2>' + esc(title) + '</h2><p class="tp-sub">' + (isDrag ? 'Best quarter mile per car.' : 'Best lap per car.') + ' Put a session here by choosing "On my build and the leaderboard".</p></div>' + unitsChip() + '</div>' +
+        var h = back('Leaderboards', 'boards=1') + '<div class="tp-head"><div><h2>' + esc(title) + '</h2><p class="tp-sub">' + (isDrag ? 'Every shared run here, quickest quarter mile first.' : 'Every shared session here, fastest lap first.') + ' Share a session to put it on.</p></div>' + unitsChip() + '</div>' +
           '<div class="tp-chips" id="tp-models">' + ['All'].concat(MODELS).map(function (m) { return '<button type="button" class="chip' + (m === boardModel ? ' is-on' : '') + '" data-m="' + m + '">' + m + '</button>'; }).join('') + '</div>';
         if (!shown.length) h += '<div class="card tp-empty">' + icon('trophy') + '<p>Nobody on this board yet' + (boardModel === 'All' ? '' : ' for the ' + esc(boardModel)) + '. Be the first.</p></div>';
         else h += '<div class="card"><div class="tp-scroll"><table class="tp-table tp-board"><thead><tr><th>#</th><th>Car</th><th>' + (isDrag ? '1/4 mile' : 'Lap') + '</th><th>Date</th><th></th></tr></thead><tbody>' + shown.map(function (e, i) {

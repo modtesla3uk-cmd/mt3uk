@@ -78,7 +78,7 @@ ok(r.status === 200 && !r.body.session.mine && !('notes' in r.body.session) && !
 r = await call('GET', '/track/public?car=cara1');
 ok(r.body.sessions.length === 1 && r.body.car.owner === 'Rich' && r.body.car.model === 'Model 3', 'on the build page');
 r = await call('GET', '/track/board?venue=thruxton&layout=main');
-ok(r.body.entries.length === 0, 'not on the board');
+ok(r.body.entries.length === 1 && r.body.entries[0].sessionId === id1, 'shared on the build: on the leaderboard too');
 r = await call('PUT', '/track/session', { id: id1, privacy: 'board' }, 'tok-a');
 r = await call('GET', '/track/board?venue=thruxton&layout=main');
 ok(r.body.entries.length === 1 && r.body.entries[0].owner === 'Rich' && r.body.entries[0].model === 'Model 3' && r.body.entries[0].mods[0] === 'KW V3 coilovers' && Math.abs(r.body.entries[0].time - 99.786) < 0.01, 'on the leaderboard with the car and mods');
@@ -90,16 +90,20 @@ const slow = JSON.parse(JSON.stringify(session)); slow.bestTime = 101.5;
 r = await call('POST', '/track/sessions', { carId: 'cara1', session: slow, privacy: 'board' }, 'tok-a');
 const id2 = r.body.session.id;
 r = await call('GET', '/track/board?venue=thruxton&layout=main');
-ok(r.body.entries.length === 1 && Math.abs(r.body.entries[0].time - 99.786) < 0.01, 'one place per car, the best one');
+ok(r.body.entries.length === 2 && Math.abs(r.body.entries[0].time - 99.786) < 0.01 && r.body.entries[1].time === 101.5, 'every shared session listed, fastest first');
+r = await call('GET', '/track/counts');
+ok(r.body.counts['track-board:thruxton:main'] === 2, 'session count for the track list');
 r = await call('DELETE', '/track/session?id=' + id1, undefined, 'tok-b');
 ok(r.status === 404, 'others cannot delete it');
 r = await call('DELETE', '/track/session?id=' + id1, undefined, 'tok-a');
 r = await call('GET', '/track/board?venue=thruxton&layout=main');
-ok(r.body.entries.length === 1 && r.body.entries[0].time === 101.5 && r.body.entries[0].sessionId === id2, 'deleting the best brings back the next best');
+ok(r.body.entries.length === 1 && r.body.entries[0].time === 101.5 && r.body.entries[0].sessionId === id2, 'deleting a session takes it off');
 ok(!kv.has('track-session:' + id1), 'session removed');
 r = await call('PUT', '/track/session', { id: id2, privacy: 'private' }, 'tok-a');
 r = await call('GET', '/track/board?venue=thruxton&layout=main');
 ok(r.body.entries.length === 0, 'made private: off the board');
+r = await call('GET', '/track/counts');
+ok(!('track-board:thruxton:main' in r.body.counts), 'count gone with the last session');
 
 // Checks on what is sent.
 const bad = JSON.parse(JSON.stringify(session)); bad.bestTime = 20;
@@ -122,6 +126,7 @@ function dragCsv(lat, lng) {
 const pod = T.analyse(T.read(dragCsv(52.2365, -0.596), 'd.csv'), lib);
 r = await call('POST', '/track/sessions', { carId: 'carb1', session: pod, privacy: 'board' }, 'tok-b');
 ok(r.status === 200 && r.body.session.atVenue && r.body.session.venue === 'Santa Pod Raceway' && r.body.session.privacy === 'board', 'drag run at Santa Pod saved to the board');
+const podId = r.body.session.id;
 r = await call('GET', '/drag/board?venue=santa-pod');
 ok(r.body.entries.length === 1 && r.body.entries[0].quarter > 10 && r.body.entries[0].model === 'Model Y', 'drag board');
 const street = T.analyse(T.read(dragCsv(51.5, -0.12), 's.csv'), lib, { type: 'drag' });
@@ -163,9 +168,12 @@ r = await call('PUT', '/track/admin/tracks?key=secret', { remove: 'old-airfield'
 ok(!r.body.library.venues.some(v => v.id === 'old-airfield'), 'admin removes a track');
 
 // Admin takes an entry off a board.
-r = await call('DELETE', '/track/admin/board-entry?key=secret&board=drag-board:santa-pod&car=carb1');
+r = await call('DELETE', '/track/admin/board-entry?key=secret&board=drag-board:santa-pod&session=' + podId);
 r = await call('GET', '/drag/board?venue=santa-pod');
-ok(r.body.entries.length === 0 && JSON.parse(kv.get('track-public:carb1')).find(s => s.venueId === 'santa-pod').privacy === 'build', 'board entry removed, the session stays on the build');
+ok(r.body.entries.length === 0 && JSON.parse(kv.get('track-public:carb1')).find(s => s.venueId === 'santa-pod').offBoard === true, 'board entry removed, the session stays on the build');
+r = await call('PUT', '/track/session', { id: podId, privacy: 'board' }, 'tok-b');
+r = await call('GET', '/drag/board?venue=santa-pod');
+ok(r.body.entries.length === 0, 'and it stays off when the member saves it again');
 
 // Leaving the site clears everything.
 await mod.deleteMemberAccount(env, A);

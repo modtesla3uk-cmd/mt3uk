@@ -1,5 +1,5 @@
 {
-  "_note": "Track sessions (track.html, js/track-parse.js). Each venue has a centre and a radius in metres, used to recognise it from a file's GPS. A circuit has layouts: lap length in metres (used to tell layouts apart), a start line (two [lat, lng] points), optional sector lines and named corners. \"check\": true means the centre or lap length is approximate and wants confirming from a real file. Start lines, sectors and corners are added from the Tracks panel on admin.html, which stores its changes in the worker (KV track-library) on top of this file.",
+  "_note": "Track sessions (track.html, js/track-parse.js). Each venue has a centre and a radius in metres, used to recognise it from a file's GPS. A circuit has layouts: lap length in metres (used to tell layouts apart), a start line (two [lat, lng] points), optional sector lines and named corners. A sprint or hill climb has courses, each with a start line and a separate finish line. \"check\": true means the centre or lap length is approximate and wants confirming from a real file. Start lines, sectors and corners are added from the Tracks panel on admin.html, which stores its changes in the worker (KV track-library) on top of this file.",
   "venues": [
     {
       "id": "thruxton", "name": "Thruxton", "type": "circuit", "lat": 51.2085, "lng": -1.6055, "radius": 2500,
@@ -93,6 +93,16 @@
       "id": "lydden", "name": "Lydden Hill", "type": "circuit", "lat": 51.1770, "lng": 1.1990, "radius": 1500, "check": true,
       "layouts": [ { "id": "main", "name": "Lydden Hill", "length": 1600, "check": true } ]
     },
+    { "id": "shelsley-walsh", "name": "Shelsley Walsh", "type": "sprint", "lat": 52.2355, "lng": -2.3913, "radius": 1500, "check": true,
+      "layouts": [ { "id": "hill", "name": "Hill climb", "length": 914, "check": true } ] },
+    { "id": "prescott", "name": "Prescott", "type": "sprint", "lat": 51.9612, "lng": -2.0233, "radius": 1500, "check": true,
+      "layouts": [ { "id": "long", "name": "Long course", "length": 1127, "check": true }, { "id": "club", "name": "Club course", "length": 880, "check": true } ] },
+    { "id": "gurston-down", "name": "Gurston Down", "type": "sprint", "lat": 51.0270, "lng": -1.9097, "radius": 1500, "check": true,
+      "layouts": [ { "id": "hill", "name": "Hill climb", "length": 914, "check": true } ] },
+    { "id": "harewood", "name": "Harewood", "type": "sprint", "lat": 53.8912, "lng": -1.5061, "radius": 1500, "check": true,
+      "layouts": [ { "id": "hill", "name": "Hill climb", "length": 1450, "check": true } ] },
+    { "id": "curborough", "name": "Curborough", "type": "sprint", "lat": 52.6947, "lng": -1.8146, "radius": 1500, "check": true,
+      "layouts": [ { "id": "sprint", "name": "Sprint course", "length": 1400, "check": true } ] },
     { "id": "santa-pod", "name": "Santa Pod Raceway", "type": "drag", "lat": 52.2370, "lng": -0.5960, "radius": 1500, "check": true },
     { "id": "elvington", "name": "Elvington", "type": "drag", "lat": 53.9230, "lng": -0.9920, "radius": 2500, "check": true },
     { "id": "crail", "name": "Crail Raceway", "type": "drag", "lat": 56.2700, "lng": -2.6290, "radius": 1500, "check": true }

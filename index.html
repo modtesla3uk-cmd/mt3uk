@@ -2231,7 +2231,7 @@
   .category-card.hp-cat { flex-direction: column; align-items: stretch; justify-content: space-between; gap: 10px; min-height: 96px; }
   /* Whichever tile comes last runs the full width, so members can put the
      tiles in any order (hold one to move it) without leaving gaps. */
-  .categories-grid.hp-cats > .hp-cat:last-child { grid-column: 1 / -1; min-height: 76px; }
+  .categories-grid.hp-cats > .hp-cat:nth-child(odd):last-child { grid-column: 1 / -1; min-height: 76px; }
   .hp-cat { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
   .hp-cat-hint-mouse { display: none; }
   @media (hover: hover) and (pointer: fine) {
@@ -2243,7 +2243,7 @@
   .hp-cat.hp-cat-holding { transform: scale(0.97); }
   .hp-cat.hp-cat-dragging { position: fixed; z-index: 60; margin: 0; pointer-events: none; transform: scale(1.04) rotate(-1deg); box-shadow: 0 16px 34px rgba(22, 35, 61, 0.3); background: #ffffff; transition: none; }
   .hp-cat-placeholder { border: 2px dashed var(--orange); background: rgba(232, 84, 42, 0.06); }
-  .categories-grid.hp-cats > .hp-cat-placeholder:last-child { grid-column: 1 / -1; }
+  .categories-grid.hp-cats > .hp-cat-placeholder:nth-child(odd):last-child { grid-column: 1 / -1; }
   .hp-cat-hint { margin: 12px 0 0; font-family: var(--font-body); font-size: 0.78rem; color: #56606f; }
   .hp-cat-hint button { background: none; border: 0; padding: 0; margin-left: 6px; font: inherit; color: var(--orange); text-decoration: underline; cursor: pointer; }
   .hp-cat-hint button[hidden] { display: none; }
@@ -2255,7 +2255,8 @@
   .categories-grid.hp-cats .hp-cat { min-width: 0; }
   .categories-grid.hp-cats .category-card-content { flex-wrap: wrap; min-width: 0; row-gap: 6px; }
   .categories-grid.hp-cats .hp-cat-meta { overflow-wrap: anywhere; }
-  @media (min-width: 900px) { .categories-grid.hp-cats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  /* Six tiles: two across on phones, three across on desktop. */
+  @media (min-width: 900px) { .categories-grid.hp-cats { grid-template-columns: repeat(3, minmax(0, 1fr)); } .categories-grid.hp-cats > .hp-cat:nth-child(odd):last-child { grid-column: auto; } }
   .hp-new { font-style: normal; font-family: var(--font-body); font-size: 0.7rem; font-weight: 500; background: #c8431d; color: #ffffff; padding: 2px 6px; }
 
   .hp-int-grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
@@ -2992,6 +2993,7 @@
           <a href="track-day-prep.html" class="nav-sublink">Prep</a>
           <a href="track-day-on-the-day.html" class="nav-sublink nav-sublink-new">On The Day</a>
           <a href="track-day-venues.html" class="nav-sublink">Venues</a>
+          <a href="leaderboards.html" class="nav-sublink nav-sublink-new">Leaderboards</a>
           <a href="track-day-prep.html#track-day-finder" class="nav-sublink">Track Day Finder</a>
         </div>
       </div>
@@ -3139,25 +3141,23 @@
         var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         window.scrollTo({ top: Math.max(0, top), behavior: reduce ? 'auto' : 'smooth' });
       });
-      // The hint above the chevron: once a session, gone on scroll or tap.
+      // The hint beside the chevron: always there on the first screen. It
+      // steps aside while the page is scrolled down and comes back at the top.
       var hint = document.getElementById('hp-more-hint');
       if (hint) {
-        var seen = false;
-        try { seen = sessionStorage.getItem('mt3ukMoreHint') === '1'; } catch (e) {}
-        function hideHint() {
-          hint.classList.remove('is-on');
-          try { sessionStorage.setItem('mt3ukMoreHint', '1'); } catch (e) {}
-          window.removeEventListener('scroll', onScroll);
+        var ready = false;
+        function showHint() {
+          var on = ready && window.pageYOffset <= 40 && !document.getElementById('mt3uk-intro');
+          hint.classList.toggle('is-on', on);
         }
-        function onScroll() { if (window.pageYOffset > 40) hideHint(); }
-        hint.addEventListener('click', function () { hideHint(); cue.click(); });
-        if (!seen) {
-          setTimeout(function () {
-            if (window.pageYOffset > 40 || document.getElementById('mt3uk-intro')) return;
-            hint.classList.add('is-on');
-            window.addEventListener('scroll', onScroll, { passive: true });
-          }, 1500);
-        }
+        hint.addEventListener('click', function () { cue.click(); });
+        window.addEventListener('scroll', showHint, { passive: true });
+        setTimeout(function () {
+          ready = true;
+          showHint();
+          // Play intro covers the page: show the hint once it closes.
+          var poll = setInterval(function () { if (!document.getElementById('mt3uk-intro')) { clearInterval(poll); showHint(); } }, 500);
+        }, 1500);
       }
     })();
   </script>
@@ -3207,11 +3207,22 @@
           <div class="hp-cat-top">
             <div class="category-card-content">
               <svg class="card-icon" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22V15"/></svg>
-              <span>Track days</span>
+              <span>Track day guides</span>
             </div>
             <svg class="card-chevron" viewBox="0 0 24 16" aria-hidden="true"><path d="M2 2l6 6-6 6" /><path d="M8 2l6 6-6 6" /><path d="M14 2l6 6-6 6" /></svg>
           </div>
-          <div class="hp-cat-meta" id="hp-meta-track">Prep guides, venues and on the day</div>
+          <div class="hp-cat-meta" id="hp-meta-track">How to prep your Tesla, the UK venues and what to expect on the day</div>
+        </a>
+        <a href="track.html" class="category-card hp-cat" data-cat="sessions">
+          <div class="hp-cat-top">
+            <div class="category-card-content">
+              <svg class="card-icon" viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/></svg>
+              <span>Track sessions</span>
+              <em class="hp-new">NEW</em>
+            </div>
+            <svg class="card-chevron" viewBox="0 0 24 16" aria-hidden="true"><path d="M2 2l6 6-6 6" /><path d="M8 2l6 6-6 6" /><path d="M14 2l6 6-6 6" /></svg>
+          </div>
+          <div class="hp-cat-meta">Map your laps, then see who's quickest on the leaderboards</div>
         </a>
         <a href="shop.html" class="category-card hp-cat" data-cat="shop">
           <div class="hp-cat-top">
@@ -6603,10 +6614,6 @@
       var meet = events.filter(function (e) { return !isTrack(e); })[0];
       var track = events.filter(isTrack)[0];
       if (meet) setText('hp-meta-events', 'Next: ' + meet.name.trim() + ' · ' + prettyDay(meet.startTime));
-      if (track) {
-        var where = ((track.location && track.location.name) || track.name).trim().split(/\s+-\s+/)[0];
-        setText('hp-meta-track', 'Next: ' + where + ' · ' + prettyDay(track.startTime));
-      }
     });
   })();
 </script>

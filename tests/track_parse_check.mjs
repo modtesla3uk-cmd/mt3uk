@@ -42,6 +42,10 @@ ok(rc.format === 'CSV' && rc.speedUnit === 'mph', 'CSV with a header lower down 
 let sc = T.analyse(rc, lib);
 ok(sc.venueId === 'thruxton' && sc.layoutId === 'main' && sc.laps.length === 2 && near(sc.bestTime, 99.786, 0.05), 'CSV gives the same best lap');
 ok(sc.gDerived === true && sc.latMax > 0.5, 'g worked out from GPS when the file has none');
+// An outside air temperature column is read (in °F here); tyre temperatures are not.
+csv = 'Time (s),Latitude,Longitude,Speed (mph),Tyre Temp FL,Air Temp (°F)\n' + pts.map(p => [p.t.toFixed(2), p.lat.toFixed(7), p.lng.toFixed(7), (p.v / 1.609344).toFixed(2), 60, 66].join(',')).join('\n');
+ok(T.analyse(T.read(csv, 'temp.csv'), lib).airTemp === 19, 'air temperature from the file, °F turned into °C');
+ok(T.analyse(T.read(csv.replace('Air Temp (°F)', 'Brake Temp'), 'temp.csv'), lib).airTemp === undefined, 'other temperatures are not taken as the air temperature');
 // Semicolons, no unit in the header, m/s: the unit is worked out from the movement.
 csv = 'time;lat;lon;speed\n' + pts.map(p => [p.t.toFixed(2), p.lat.toFixed(7), p.lng.toFixed(7), (p.v / 3.6).toFixed(3)].join(';')).join('\n');
 rc = T.read(csv, 'x.csv');
@@ -78,6 +82,28 @@ ok(su.needsStartLine && !su.venueId && su.trace.outline.length > 100 && /don't k
 ru = T.read('time,latitude,longitude,speed (km/h)\n' + moved, 'u.csv');
 su = T.analyse(ru, lib, { startLine: [[51.2077017 + 1.5, -1.6088667], [51.2076237 + 1.5, -1.6091363]] });
 ok(su.laps.length === 2 && near(su.bestTime, 99.786, 0.05) && su.startLineFromMember, 'member start line times the laps');
+
+// Sprint: a made-up course at Thruxton from the start line to a finish line 1.5 km round.
+{
+  const tr = s.trace.laps[2];
+  const i = tr.findIndex(p => p[0] >= 1500);
+  const p0 = tr[i - 3], p1 = tr[i + 3], c = tr[i];
+  const dx = p1[2] - p0[2], dy = p1[3] - p0[3], L = Math.hypot(dx, dy), nx = -dy / L, ny = dx / L;
+  const proj = T.projector(s.origin[0], s.origin[1]);
+  const finish = [proj.ll(c[2] + nx * 15, c[3] + ny * 15), proj.ll(c[2] - nx * 15, c[3] - ny * 15)];
+  const start = lib.venues.find(v => v.id === 'thruxton').layouts[0].startLine;
+  const sprintLib = { venues: [{ id: 'test-sprint', name: 'Test Sprint', type: 'sprint', lat: 51.2085, lng: -1.6055, radius: 2500, layouts: [{ id: 'short', name: 'Short course', length: 1500, startLine: start, finishLine: finish }] }] };
+  const sp = T.analyse(T.read(vbo, 'f.vbo'), sprintLib);
+  ok(sp.type === 'sprint' && sp.venueId === 'test-sprint' && sp.layoutId === 'short', 'sprint venue found and the type set');
+  ok(sp.laps.length === 2 && sp.laps.every(l => Math.abs(l.dist - 1500) < 40), 'two runs, start to finish');
+  ok(near(sp.bestTime, c[1], 0.3) && sp.finishLine, 'run time matches the time to the finish line');
+  const sq = T.analyse(T.read(vbo, 'f.vbo'), { venues: [] }, { type: 'sprint' });
+  ok(sq.needsStartLine && sq.needsFinish && /Tap the start, then the finish/.test(sq.problem), 'unknown course asks for the start and finish');
+  const sm = T.analyse(T.read(vbo, 'f.vbo'), { venues: [] }, { type: 'sprint', startLine: start, finishLine: finish });
+  ok(sm.laps.length === 2 && sm.startLineFromMember, 'member start and finish time the runs');
+  const so = T.analyse(T.read(vbo, 'f.vbo'), { venues: [] }, { type: 'other' });
+  ok(so.type === 'other' && !so.needsStartLine && so.trace.outline.length > 100, 'other: mapped without needing a start line');
+}
 
 // Drag: a made-up standing start at Santa Pod, and the same on a road.
 function dragCsv(lat, lng) {

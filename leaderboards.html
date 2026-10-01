@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Track sessions - MT3UK</title>
-<meta name="description" content="Upload your RaceBox, VBOX or lap timer file and see every lap mapped, compare laps corner by corner, track your times as you modify your Tesla, and join the leaderboards.">
-<link rel="canonical" href="https://mt3uk.com/track.html">
+<title>Leaderboards - MT3UK</title>
+<meta name="description" content="Who's quickest? Real lap times from modified Teslas at UK circuits, drag strips and hill climbs, from members' own lap timers.">
+<link rel="canonical" href="https://mt3uk.com/leaderboards.html">
 <link rel="icon" type="image/x-icon" href="images/site/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="images/site/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="images/site/favicon-16.png">
@@ -16,13 +16,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MT3UK">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Track sessions - MT3UK">
-<meta property="og:description" content="Upload your RaceBox, VBOX or lap timer file and see every lap mapped, compare laps corner by corner, track your times as you modify your Tesla, and join the leaderboards.">
+<meta property="og:title" content="Leaderboards - MT3UK">
+<meta property="og:description" content="Who's quickest? Real lap times from modified Teslas at UK circuits, drag strips and hill climbs, from members' own lap timers.">
 <meta property="og:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
-<meta property="og:url" content="https://mt3uk.com/track.html">
+<meta property="og:url" content="https://mt3uk.com/leaderboards.html">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Track sessions - MT3UK">
-<meta name="twitter:description" content="Upload your RaceBox, VBOX or lap timer file and see every lap mapped, compare laps corner by corner, track your times as you modify your Tesla, and join the leaderboards.">
+<meta name="twitter:title" content="Leaderboards - MT3UK">
+<meta name="twitter:description" content="Who's quickest? Real lap times from modified Teslas at UK circuits, drag strips and hill climbs, from members' own lap timers.">
 <meta name="twitter:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
 <link rel="stylesheet" href="css/site-header.css">
@@ -221,24 +221,27 @@
   .tp-cmp-pick { margin-bottom: 14px; }
   .tp-cmp-pick .tp-field { margin-bottom: 0; }
   .tp-fields .btn-block { margin-top: 4px; }
-  /* Your cars, then the chosen car's sessions */
-  .tp-cars { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; }
-  .tp-car { display: grid; gap: 2px; min-height: 64px; padding: 10px 14px; text-align: left; background: #fff; border: 1px solid var(--hairline-strong); border-radius: var(--radius); font: inherit; color: var(--ink); cursor: pointer; }
-  .tp-car b { font-size: 0.95rem; overflow-wrap: anywhere; }
-  .tp-car span { font-size: 0.8rem; color: var(--steel); }
-  .tp-car.is-on { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
-  .tp-for { margin: 2px 0 0; font-weight: 600; color: var(--ink); }
-  .tp-boards-link { display: flex; align-items: center; gap: 12px; min-height: 64px; margin-top: 30px; padding: 12px 16px; border-radius: var(--radius); background: var(--ink); color: #fff; }
-  .tp-boards-link > .icon:first-child { color: #f58a68; width: 24px; height: 24px; }
-  .tp-boards-link > span { flex: 1; display: grid; }
-  .tp-boards-link b { font-size: 1rem; }
-  .tp-boards-link span span { font-size: 0.84rem; color: #d3d8e2; }
-  .tp-boards-link:hover { background: #22345a; }
   .tp-src { display: flex; gap: 6px; align-items: flex-start; margin: -6px 0 14px; font-size: 0.8rem; color: var(--steel); }
   .tp-src .icon { width: 15px; height: 15px; margin-top: 2px; color: var(--steel); }
   .tp-src a { color: var(--ink); text-decoration: underline; }
   .tp-weather-row { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin: -4px 0 14px; }
   .tp-weather-row .tp-src { margin: 0; flex: 1; min-width: 200px; }
+  /* Leaderboards page */
+  .lb-hero { background: #16233d; border-bottom: 0; }
+  .lb-hero h1 { color: #ffffff; }
+  .lb-hero p { color: #d3d8e2; }
+  .lb-hero .back-link { color: #b9c0cf; }
+  .lb-types { margin-bottom: 16px; }
+  .lb-strip { text-decoration: none; color: inherit; }
+  .lb-strip:hover { border-color: var(--hairline-strong); }
+  .lb-note { margin: 12px 0 0; }
+  .lb-cta { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; justify-content: space-between; margin-top: 22px; }
+  .lb-cta b { display: block; color: var(--ink); }
+  .lb-cta p { color: var(--steel); font-size: 0.9rem; max-width: 52ch; }
+  .lb-pos { display: inline-grid; place-items: center; min-width: 26px; height: 26px; border-radius: 50%; font-weight: 700; }
+  .lb-top1 .lb-pos { background: #e8b923; color: #16233d; }
+  .lb-top2 .lb-pos { background: #c4c9d2; color: #16233d; }
+  .lb-top3 .lb-pos { background: #c98a52; color: #ffffff; }
 </style>
 
 </head>
@@ -260,7 +263,7 @@
         </div>
       </div>
       <a href="my-builds.html" class="nav-link nav-link-mybuilds">My Garage</a>
-      <a href="track.html" class="nav-link nav-link-track nav-sublink-new active">Track Sessions</a>
+      <a href="track.html" class="nav-link nav-link-track nav-sublink-new">Track Sessions</a>
       <div class="nav-item">
         <a href="profile.html" class="nav-link nav-link-profile">My Profile</a>
         <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle My Profile submenu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
@@ -290,7 +293,7 @@
       </div>
       <a href="index.html#events" class="nav-link">Events</a>
       <div class="nav-item">
-        <a href="index.html#track-days" class="nav-link">Track Days</a>
+        <a href="index.html#track-days" class="nav-link active">Track Days</a>
         <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Track Days submenu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
         <div class="nav-dropdown">
           <a href="track-day-prep.html" class="nav-sublink">Prep</a>
@@ -339,17 +342,17 @@
   </nav>
 </header>
 
-<section class="page-hero" data-no-share>
+<section class="page-hero lb-hero" data-no-share>
   <div class="wrap">
-    <a href="my-builds.html" class="back-link"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>My Garage</a>
-    <h1>Track sessions</h1>
-    <p>Your track days and drag runs from your lap timer file: every lap mapped, where you gained and lost time, and what your mods did to your times.</p>
+    <a href="track.html" class="back-link"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Track Sessions</a>
+    <h1>Who&rsquo;s quickest?</h1>
+    <p>Real times from modified Teslas on UK tracks, drag strips and hill climbs, straight from members&rsquo; own lap timers. Every car&rsquo;s fastest, with the mods that got it there.</p>
   </div>
 </section>
 
 <main class="tp-main">
-  <div class="wrap" id="tp-app">
-    <noscript><p>Track sessions needs JavaScript turned on.</p></noscript>
+  <div class="wrap" id="lb-app">
+    <noscript><p>The leaderboards need JavaScript turned on.</p></noscript>
   </div>
 </main>
 
@@ -497,7 +500,7 @@
 
 <script src="js/track-parse.js" defer></script>
 <script src="js/track-view.js" defer></script>
-<script src="js/track-page.js" defer></script>
+<script src="js/leaderboard-page.js" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js" defer></script>
 <script src="js/signin-prompt.js" defer></script>

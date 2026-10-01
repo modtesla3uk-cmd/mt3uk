@@ -21,7 +21,7 @@
   if (!app || !T || !V) return;
   var esc = V.esc;
   var RUN_COLORS = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#4a3aa7', '#e34948'];
-  var MODELS = ['Model 3', 'Model Y', 'Model S', 'Model X'];
+  var TYPE_WORD = { drag: 'drag', sprint: 'sprint', other: 'other' };
   var ICON = {
     upload: '<path d="M12 15V3M7 8l5-5 5 5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/>',
     flag: '<path d="M4 21V4M4 4h12l-2 4 2 4H4"/>',
@@ -66,6 +66,40 @@
     return adminCheck;
   }
 
+  // ---------- Weather at the track (Open-Meteo, free, no key) ----------
+  // Air temperature for the session's hour at the track, and rain in the
+  // three hours before, to suggest Dry, Damp or Wet. Only the track's
+  // position and the date go to Open-Meteo. Their licence asks for credit,
+  // so wherever it's used the page says "Open-Meteo".
+  var METEO_CREDIT = '<a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>';
+  function ukToday() {
+    try { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London' }).format(new Date()); } catch (e) { return new Date().toISOString().slice(0, 10); }
+  }
+  function lookupWeather(origin, date, time) {
+    if (!origin || origin.length !== 2 || !/^\d{4}-\d{2}-\d{2}$/.test(date || '')) return Promise.resolve(null);
+    var daysAgo = Math.round((Date.parse(ukToday()) - Date.parse(date)) / 864e5);
+    if (daysAgo < 0) return Promise.resolve(null);
+    var q = 'latitude=' + Number(origin[0]).toFixed(3) + '&longitude=' + Number(origin[1]).toFixed(3) + '&hourly=temperature_2m,precipitation,wind_speed_10m&timezone=Europe%2FLondon';
+    // Recent days come from the forecast service, older ones from the archive.
+    var url = daysAgo <= 60 ? 'https://api.open-meteo.com/v1/forecast?' + q + '&past_days=' + (daysAgo + 1) + '&forecast_days=1'
+      : 'https://archive-api.open-meteo.com/v1/archive?' + q + '&start_date=' + date + '&end_date=' + date;
+    var hour = /^\d{2}:/.test(time || '') ? time.slice(0, 2) : '12';
+    return fetch(url).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+      var h = d && d.hourly;
+      if (!h || !h.time) return null;
+      var i = h.time.indexOf(date + 'T' + hour + ':00');
+      if (i === -1 || h.temperature_2m[i] == null) return null;
+      var rain = 0;
+      for (var k = Math.max(0, i - 3); k <= i; k++) rain += h.precipitation[k] || 0;
+      return { temp: Math.round(h.temperature_2m[i]), rain: Math.round(rain * 10) / 10, wind: h.wind_speed_10m ? Math.round(h.wind_speed_10m[i]) : null, hour: hour + ':00' };
+    }).catch(function () { return null; });
+  }
+  function weatherConditions(w) { return w.rain >= 1 ? 'Wet' : w.rain >= 0.2 ? 'Damp' : 'Dry'; }
+  function weatherNote(w, place) {
+    return 'From ' + METEO_CREDIT + ' weather for ' + esc(place || 'the track') + ' at ' + esc(w.hour) + ': ' + w.temp + '°C, ' +
+      (w.rain ? w.rain + ' mm of rain in the 3 hours before' : 'no rain in the 3 hours before') + (w.wind != null ? ', wind ' + w.wind + ' km/h' : '') + '.';
+  }
+
   var library = null;
   function getLibrary() {
     if (library) return Promise.resolve(library);
@@ -105,9 +139,10 @@
     var p = params();
     if (p.get('s')) return showSession(p.get('s'));
     if (p.get('add')) return showAdd(p.get('car'));
-    if (p.get('board')) return showBoard(p.get('board').split(':')[0], p.get('board').split(':')[1] || '', false);
-    if (p.get('drag')) return showBoard(p.get('drag'), '', true);
-    if (p.get('boards')) return showBoards();
+    // The leaderboards have their own page now; old links still work.
+    if (p.get('board')) { location.replace('leaderboards.html?board=' + encodeURIComponent(p.get('board'))); return; }
+    if (p.get('drag')) { location.replace('leaderboards.html?drag=' + encodeURIComponent(p.get('drag'))); return; }
+    if (p.get('boards')) { location.replace('leaderboards.html'); return; }
     if (p.get('car')) return showCar(p.get('car'));
     return showHome();
   }
@@ -123,7 +158,8 @@
   }
   function sessionResult(s) {
     if (s.type === 'drag') return s.quarter ? s.quarter.toFixed(2) + ' s, 1/4 mile' : s.s60 ? s.s60.toFixed(2) + ' s, 0 to 60 mph' : (s.runs || 0) + ' runs';
-    return s.bestTime ? V.fmtLap(s.bestTime) : (s.laps || 0) + ' laps';
+    if (s.type === 'other' && !s.bestTime) return s.vmax ? 'Top ' + V.fmtV(s.vmax) : '';
+    return s.bestTime ? V.fmtLap(s.bestTime) : (s.laps || 0) + (s.type === 'sprint' ? ' runs' : ' laps');
   }
   function notesHtml(list) {
     return list.map(function (n) {
@@ -138,19 +174,19 @@
   // ---------- Home ----------
   function showHome() {
     loading();
-    Promise.all([getMine(), getLibrary(), getCounts()]).then(function (r) {
+    Promise.all([getMine(), getLibrary()]).then(function (r) {
       var m = r[0];
       var h = '';
       if (!m) {
         h += '<div class="card tp-intro"><h2>Your track days, mapped</h2><p>Upload the file from your lap timer (RaceBox, VBOX, Harry\'s LapTimer, TrackAddict, AiM and most phone apps) and see every lap drawn on the track, where you gained and lost time, and how your times changed as you modified the car.</p>' +
           '<ul class="tp-ticks"><li>' + icon('check') + 'Laps, sectors and corners found for you</li><li>' + icon('check') + 'Compare any two laps, corner by corner</li><li>' + icon('check') + 'See what each mod in My Garage did to your times</li><li>' + icon('check') + 'Drag runs from the strip: 60 ft, 0 to 60, quarter mile</li><li>' + icon('check') + 'Private unless you choose to share</li></ul>' +
-          '<div class="tp-actions"><a class="btn btn-accent" href="signin.html?next=/track.html">Sign in to add a session</a><a class="btn btn-secondary" id="tp-boards-btn" href="track.html?boards=1" data-go="boards=1">' + icon('trophy') + 'Leaderboards</a></div></div>';
+          '<div class="tp-actions"><a class="btn btn-accent" href="signin.html?next=/track.html">Sign in to add a session</a><a class="btn btn-secondary" id="tp-boards-btn" href="leaderboards.html">' + icon('trophy') + 'Leaderboards</a></div></div>';
       } else if (!m.cars.length) {
         h += '<div class="card tp-intro"><h2>Add your car first</h2><p>Sessions belong to a car, so the times can be matched to its mods. Add your car with a photo in My Garage, then come back here.</p><a class="btn btn-accent" href="my-builds.html">Go to My Garage</a></div>';
       } else {
         h += myCarsHtml(m);
       }
-      h += '<div class="tp-section"><div class="tp-head"><h2>Leaderboards</h2><a href="track.html?boards=1" data-go="boards=1" class="tp-link">All tracks' + icon('chev') + '</a></div>' + boardsListHtml(r[1], true, r[2]) + '</div>';
+      h += '<a class="tp-boards-link" href="leaderboards.html">' + icon('trophy') + '<span><b>Leaderboards</b><span>Who\'s quickest at each track, strip and hill climb</span></span>' + icon('chev') + '</a>';
       app.innerHTML = h;
       wireCarChips(m);
     }).catch(function () { failed('Track sessions could not be loaded. Check your connection and try again.'); });
@@ -161,17 +197,21 @@
     if (!m.cars.some(function (c) { return c.id === currentCar; })) currentCar = m.cars[0].id;
     var car = m.cars.filter(function (c) { return c.id === currentCar; })[0];
     var list = m.sessions.filter(function (s) { return s.carId === car.id; });
-    var h = '<div class="tp-section"><div class="tp-head"><h2>Your sessions</h2>' + unitsChip() + '</div>';
-    if (m.cars.length > 1) h += '<div class="tp-chips" id="tp-cars">' + m.cars.map(function (c) { return '<button type="button" class="chip' + (c.id === car.id ? ' is-on' : '') + '" data-car="' + esc(c.id) + '">' + esc(c.name) + '</button>'; }).join('') + '</div>';
+    // Your cars: pick one; its sessions are listed below.
+    var h = '<div class="tp-section"><div class="tp-head"><h2>Your cars</h2></div><div class="tp-cars" id="tp-cars">' + m.cars.map(function (c) {
+      var n = m.sessions.filter(function (x) { return x.carId === c.id; }).length;
+      return '<button type="button" class="tp-car' + (c.id === car.id ? ' is-on' : '') + '" data-car="' + esc(c.id) + '" aria-pressed="' + (c.id === car.id) + '"><b>' + esc(c.name) + '</b><span>' +
+        esc([c.model, c.version].filter(Boolean).join(' ') || 'Car') + ' &middot; ' + n + ' session' + (n === 1 ? '' : 's') + '</span></button>';
+    }).join('') + '</div></div>';
+    h += '<div class="tp-section"><div class="tp-head"><div><h2>Sessions</h2><p class="tp-sub tp-for">' + esc(car.name) + '</p></div>' + unitsChip() + '</div>';
     h += '<div class="tp-actions"><a class="btn btn-accent" href="track.html?add=1&car=' + encodeURIComponent(car.id) + '" data-go="add=1&car=' + esc(encodeURIComponent(car.id)) + '">' + icon('upload') + 'Add a session</a>' +
-      '<a class="btn btn-secondary" id="tp-boards-btn" href="track.html?boards=1" data-go="boards=1">' + icon('trophy') + 'Leaderboards</a>' +
       (car.virtual ? '' : '<a class="btn btn-secondary" href="track.html?car=' + encodeURIComponent(car.id) + '" data-go="car=' + esc(encodeURIComponent(car.id)) + '">What others see</a>') + '</div>';
     if (!list.length) h += '<div class="card tp-empty">' + icon('flag') + '<p>No sessions for ' + esc(car.name) + ' yet. Add the file from your lap timer to get started.</p></div>';
     else h += '<div class="tp-list">' + list.map(sessionRow).join('') + '</div>';
     return h + '</div>';
   }
   function sessionRow(s) {
-    return '<a class="tp-row" href="track.html?s=' + esc(s.id) + '" data-go="s=' + esc(s.id) + '"><span class="tp-row-main"><b>' + esc(trackName(s)) + '</b><span>' + esc(niceDate(s.date)) + (s.conditions ? ', ' + esc(s.conditions) : '') + (s.type === 'drag' ? ', drag' : '') + '</span></span>' +
+    return '<a class="tp-row" href="track.html?s=' + esc(s.id) + '" data-go="s=' + esc(s.id) + '"><span class="tp-row-main"><b>' + esc(trackName(s)) + '</b><span>' + esc(niceDate(s.date)) + (s.conditions ? ', ' + esc(s.conditions) : '') + (TYPE_WORD[s.type] ? ', ' + TYPE_WORD[s.type] : '') + '</span></span>' +
       '<span class="tp-row-res">' + esc(sessionResult(s)) + '</span>' + (s.privacy !== undefined ? privacyPill(s.privacy, s.street) : '') + icon('chev') + '</a>';
   }
   function wireCarChips(m) {
@@ -185,46 +225,7 @@
       showHome();
     });
   }
-  // How many shared sessions each leaderboard has (one worker call).
   var counts = null;
-  function getCounts() {
-    if (counts) return Promise.resolve(counts);
-    return api('GET', '/track/counts').then(function (d) { counts = d.counts || {}; return counts; }).catch(function () { return {}; });
-  }
-  function countChip(q, label, n) {
-    return '<a class="chip' + (n ? ' is-busy' : '') + '" href="track.html?' + q + '" data-go="' + esc(q) + '">' + esc(label) +
-      (n ? '<span class="tp-count" aria-label="' + n + ' session' + (n === 1 ? '' : 's') + '">' + n + '</span>' : '') + '</a>';
-  }
-  // Tracks with sessions first, busiest first, each layout with its count.
-  function boardsListHtml(lib, short, c) {
-    c = c || {};
-    var circuits = lib.venues.filter(function (v) { return v.type === 'circuit' && (v.layouts || []).length; }).map(function (v, i) {
-      var total = v.layouts.reduce(function (t, l) { return t + (c['track-board:' + v.id + ':' + l.id] || 0); }, 0);
-      return { v: v, total: total, i: i };
-    }).sort(function (a, b) { return b.total - a.total || a.i - b.i; });
-    var strips = lib.venues.filter(function (v) { return v.type === 'drag'; }).map(function (v, i) { return { v: v, n: c['drag-board:' + v.id] || 0, i: i }; })
-      .sort(function (a, b) { return b.n - a.n || a.i - b.i; });
-    if (short) circuits = circuits.slice(0, 6);
-    var dragTotal = strips.reduce(function (t, x) { return t + x.n; }, 0);
-    function card(name, total, chips) {
-      return '<div class="tp-board-card' + (total ? ' is-busy' : '') + '"><div class="tp-board-name"><b>' + esc(name) + '</b>' + (total ? '<span class="tp-small">' + total + ' session' + (total === 1 ? '' : 's') + '</span>' : '') + '</div><div class="tp-chips">' + chips + '</div></div>';
-    }
-    var circuitCards = circuits.map(function (x) {
-      return card(x.v.name, x.total, x.v.layouts.map(function (l) { return countChip('board=' + encodeURIComponent(x.v.id + ':' + l.id), l.name, c['track-board:' + x.v.id + ':' + l.id] || 0); }).join(''));
-    });
-    var dragCard = card('Drag strips', dragTotal, strips.map(function (x) { return countChip('drag=' + encodeURIComponent(x.v.id), x.v.name, x.n); }).join(''));
-    // Drag strips go among the circuits by how busy they are.
-    var at = circuits.filter(function (x) { return x.total >= dragTotal && dragTotal; }).length;
-    if (!dragTotal) at = circuitCards.length;
-    circuitCards.splice(at, 0, dragCard);
-    return '<div class="tp-boards">' + circuitCards.join('') + '</div>';
-  }
-  function showBoards() {
-    loading();
-    Promise.all([getLibrary(), getCounts()]).then(function (r) {
-      app.innerHTML = back('Track sessions', '') + '<div class="tp-section"><div class="tp-head"><h2>Leaderboards</h2></div><p class="tp-sub">Every session members have shared, fastest first. The number is how many sessions each track has. Tap a layout.</p>' + boardsListHtml(r[0], false, r[1]) + '</div>';
-    });
-  }
 
   // ---------- Add a session ----------
   var add = null;
@@ -327,30 +328,59 @@
     var opts = {};
     if (a.type) opts.type = a.type;
     if (a.startLine) opts.startLine = a.startLine;
+    if (a.finishLine) opts.finishLine = a.finishLine;
     a.session = T.analyse(a.rd, a.lib, opts);
     a.type = a.session.type;
     drawAdd();
     status('');
+    fillTemp();
+  }
+  // Air temperature: from the file when the logger records it, otherwise
+  // looked up from Open-Meteo. Anything the member types wins.
+  function fillTemp() {
+    var a = add, s = a.session;
+    if (!s || (a.tempSource === 'member' && a.temp != null)) return;
+    if (s.airTemp != null) {
+      a.temp = s.airTemp; a.tempSource = 'file'; a.weather = null;
+      if (document.getElementById('tp-result')) drawResult();
+      return;
+    }
+    var key = (s.origin || []).join(',') + s.date + s.time;
+    if (a.weatherKey === key) return;
+    a.weatherKey = key;
+    lookupWeather(s.origin, s.date, s.time).then(function (w) {
+      if (!w || add !== a || a.weatherKey !== key || a.tempSource === 'member') return;
+      a.temp = w.temp; a.tempSource = 'weather'; a.weather = w;
+      if (!a.condTouched) a.conditions = weatherConditions(w);
+      if (document.getElementById('tp-result')) drawResult();
+    });
   }
   function canBoard() {
     var s = add.session;
     if (!s) return false;
     if (s.type === 'drag') return !!s.atVenue;
+    if (s.type === 'other') return false;
     return !!(s.venueId && s.layoutId && s.laps && s.laps.length && !s.needsStartLine);
   }
   function drawResult() {
     var a = add, s = a.session, box = document.getElementById('tp-result');
     var h = '<div class="card tp-fields">';
-    h += '<div class="tp-field"><span class="tp-lbl">Type</span><div class="tp-chips" data-type>' + [['track', 'Track day'], ['drag', 'Drag run']].map(function (t) { return '<button type="button" class="chip' + (s.type === t[0] ? ' is-on' : '') + '" data-v="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</div></div>';
-    if (s.type === 'track') {
+    h += '<div class="tp-field"><span class="tp-lbl">Type</span><div class="tp-chips" data-type>' + [['track', 'Track day'], ['drag', 'Drag run'], ['sprint', 'Sprint or hill climb'], ['other', 'Other']].map(function (t) { return '<button type="button" class="chip' + (s.type === t[0] ? ' is-on' : '') + '" data-v="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</div></div>';
+    var isSprint = s.type === 'sprint', word = isSprint ? 'run' : 'lap';
+    if (s.type === 'other') {
+      h += '<div class="tp-notice is-ok">' + icon('check') + '<div><b>' + esc(s.venue || 'Your drive') + '</b><br>Mapped with your top speed and grip. Other sessions aren\'t timed for a leaderboard.' + (s.laps && s.laps.length ? ' ' + s.laps.length + ' laps found too.' : '') + '</div></div>' +
+        (!s.venueId ? '<div class="tp-field"><label for="tp-venue-name">Where was it?</label><input class="field" id="tp-venue-name" placeholder="For example, Autotest at Curborough" value="' + esc(a.venueName || '') + '"></div>' : '');
+    } else if (s.type === 'track' || isSprint) {
       if (s.needsStartLine) {
-        h += '<div class="tp-notice is-warn">' + icon('pin') + '<div><b>' + esc(s.venue || 'New track') + '</b><br>' + esc(s.problem) + '</div></div>' +
-          '<svg class="tv-chart tp-tap" id="tp-tap" role="img" aria-label="Your trace. Tap the start and finish line."></svg>' +
+        var tapText = isSprint ? (a.startLine && !a.finishLine ? 'Now tap the finish line.' : 'Tap the start line, then the finish line.') : 'Tap where the start and finish line is.';
+        h += '<div class="tp-notice is-warn">' + icon('pin') + '<div><b>' + esc(s.venue || (isSprint ? 'New course' : 'New track')) + '</b><br>' + esc(s.problem) + '</div></div>' +
+          '<p class="tp-sub" id="tp-tap-step">' + tapText + '</p>' +
+          '<svg class="tv-chart tp-tap" id="tp-tap" role="img" aria-label="Your trace. ' + tapText + '"></svg>' +
           (!s.venueId ? '<div class="tp-field"><label for="tp-venue-name">Track name</label><input class="field" id="tp-venue-name" placeholder="For example, Blyton Park" value="' + esc(a.venueName || '') + '"></div>' : '');
       } else {
         var timed = s.laps.filter(function (l) { return l.kind === 'timed'; }).length;
         h += '<div class="tp-notice is-ok">' + miniMap(s) + '<div><b>' + esc(s.venue ? trackName(s) : (a.venueName || 'Your track')) + '</b><br>' +
-          (s.venueId ? 'Found from the GPS in your file. ' : 'Timed from the start line you picked. ') + timed + ' timed lap' + (timed === 1 ? '' : 's') + (s.bestTime ? ', best ' + V.fmtLap(s.bestTime) : '') + '.</div></div>';
+          (s.venueId ? 'Found from the GPS in your file. ' : isSprint ? 'Timed between the start and finish you picked. ' : 'Timed from the start line you picked. ') + timed + ' timed ' + word + (timed === 1 ? '' : 's') + (s.bestTime ? ', best ' + V.fmtLap(s.bestTime) : '') + '.</div></div>';
         if (s.venueId && !s.layoutId) h += '<p class="tp-sub">We know ' + esc(s.venue) + ' but couldn\'t tell which layout this is, so it can\'t go on a leaderboard yet. We\'ve let the admin know.</p>';
         if (!s.venueId) h += '<div class="tp-field"><label for="tp-venue-name">Track name</label><input class="field" id="tp-venue-name" placeholder="For example, Blyton Park" value="' + esc(a.venueName || '') + '"></div>';
       }
@@ -363,11 +393,13 @@
         if (a.admin) h += '<div class="tp-notice is-admin">' + icon('shield') + '<div>Admin only option.</div></div><button type="button" class="tp-switch" role="switch" aria-checked="' + a.street + '" id="tp-street"><span><b>Include as a street run</b><br><small>Kept private, never on a leaderboard or build page.</small></span><span class="tp-track"></span></button>';
       }
     }
-    var saveable = s.type === 'drag' ? (s.runs || []).length && (s.atVenue || (a.admin && a.street)) : !s.needsStartLine && s.laps && s.laps.length;
+    var saveable = s.type === 'drag' ? (s.runs || []).length && (s.atVenue || (a.admin && a.street)) : s.type === 'other' ? true : !s.needsStartLine && s.laps && s.laps.length;
     if (saveable) {
       h += '<div class="tp-field"><span class="tp-lbl">Conditions</span><div class="tp-chips" data-cond>' + ['Dry', 'Damp', 'Wet'].map(function (c) { return '<button type="button" class="chip' + (a.conditions === c ? ' is-on' : '') + '" data-v="' + c + '">' + c + '</button>'; }).join('') + '</div></div>' +
         '<div class="tp-f2"><div class="tp-field"><label for="tp-tyres">Tyres</label><input class="field" id="tp-tyres" placeholder="For example, Pilot Sport 4S" value="' + esc(a.tyres || '') + '"></div>' +
         '<div class="tp-field"><label for="tp-temp">Air temperature (°C)</label><input class="field" id="tp-temp" inputmode="numeric" placeholder="18" value="' + esc(a.temp == null ? '' : a.temp) + '"></div></div>' +
+        (a.tempSource === 'weather' && a.weather ? '<p class="tp-src" id="tp-temp-src">' + icon('info') + '<span>' + weatherNote(a.weather, s.venue) + (a.condTouched ? '' : ' Conditions set to match. Change them if the track was different.') + '</span></p>'
+          : a.tempSource === 'file' ? '<p class="tp-src" id="tp-temp-src">' + icon('info') + '<span>From the air temperature recorded in your file.</span></p>' : '') +
         '<div class="tp-field"><label for="tp-notes">Notes (only you see these)</label><input class="field" id="tp-notes" placeholder="Pressures, set-up, traffic..." value="' + esc(a.notes || '') + '"></div>' +
         '<div class="tp-field"><span class="tp-lbl">Who can see it</span><div class="tp-privacy" data-privacy>' + privacyOptions(a.privacy, a.street ? 'street' : canBoard() ? '' : 'noboard') + '</div></div>' +
         '<button type="button" class="btn btn-accent btn-block" id="tp-save">Save session</button>';
@@ -414,13 +446,17 @@
       ['tyres', 'temp', 'notes', 'venue-name'].forEach(function (k) {
         var el = document.getElementById('tp-' + k);
         if (!el) return;
-        if (k === 'temp') a.temp = el.value.trim() === '' ? null : parseFloat(el.value);
+        if (k === 'temp') {
+          var tv = el.value.trim() === '' ? null : parseFloat(el.value);
+          if (tv !== a.temp) { a.tempSource = tv == null ? '' : 'member'; a.weather = null; }
+          a.temp = tv;
+        }
         else if (k === 'venue-name') a.venueName = el.value.trim();
         else a[k] = el.value.trim();
       });
     }
     group('[data-type]', function (v) { keep(); if (v !== a.type) { a.type = v; analyse(); } });
-    group('[data-cond]', function (v) { keep(); a.conditions = v; drawResult(); });
+    group('[data-cond]', function (v) { keep(); a.conditions = v; a.condTouched = true; drawResult(); });
     group('[data-privacy]', function (v) { keep(); a.privacy = v; drawResult(); });
     var st = document.getElementById('tp-street');
     if (st) st.addEventListener('click', function () { keep(); a.street = !a.street; if (a.street) a.privacy = 'private'; drawResult(); });
@@ -451,12 +487,27 @@
       trace.forEach(function (p, k) { var pp = m.P(p[2], p[3]); var dd = (pp[0] - q.x) * (pp[0] - q.x) + (pp[1] - q.y) * (pp[1] - q.y); if (dd < bd) { bd = dd; bi = k; } });
       var p0 = trace[Math.max(0, bi - 3)], p1 = trace[Math.min(trace.length - 1, bi + 3)], c = trace[bi];
       var dx = p1[2] - p0[2], dy = p1[3] - p0[3], L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L;
-      a.startLine = [proj.ll(c[2] + nx * 15, c[3] + ny * 15), proj.ll(c[2] - nx * 15, c[3] - ny * 15)];
+      var line = [proj.ll(c[2] + nx * 15, c[3] + ny * 15), proj.ll(c[2] - nx * 15, c[3] - ny * 15)];
       var nameEl = document.getElementById('tp-venue-name');
       a.venueName = nameEl ? nameEl.value.trim() : a.venueName;
       a.requestStart = true;
+      if (s.type === 'sprint' && (!a.startLine || a.finishLine)) {
+        // First tap: the start. The second tap is the finish.
+        a.startLine = line; a.finishLine = null;
+        var step = document.getElementById('tp-tap-step');
+        if (step) step.textContent = 'Start set. Now tap the finish line.';
+        var el = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        var pp = m.P(c[2], c[3]);
+        el.setAttribute('cx', pp[0]); el.setAttribute('cy', pp[1]); el.setAttribute('r', 8); el.setAttribute('fill', '#1baf7a');
+        svg.appendChild(el);
+        return;
+      }
+      if (s.type === 'sprint') a.finishLine = line; else a.startLine = line;
       analyse();
-      if (add.session.needsStartLine) status('No laps were found from that point. Tap right on the straight where you cross the line.', 'error');
+      if (add.session.needsStartLine) {
+        if (s.type === 'sprint') { a.startLine = null; a.finishLine = null; }
+        status(s.type === 'sprint' ? 'No runs were found between those points. Tap the start line, then the finish line, right on the road.' : 'No laps were found from that point. Tap right on the straight where you cross the line.', 'error');
+      }
     });
   }
   function saveSession(btn) {
@@ -467,14 +518,14 @@
       ? api('PUT', '/my-builds/car', { carId: a.car.id }).then(function (d) { if (!d.success) throw new Error(d.message || 'Could not set up the car'); a.car.id = d.car.id; a.car.virtual = false; mine = null; counts = null; return d.car.id; })
       : Promise.resolve(a.car.id);
     carReady.then(function (carId) {
-      if (s.type === 'track' && (a.requestStart || (s.venueId && !s.layoutId))) {
+      if ((s.type === 'track' || s.type === 'sprint') && (a.requestStart || (s.venueId && !s.layoutId))) {
         var out = [];
         var lap = s.trace.laps && s.trace.laps[s.best];
         var origin = s.origin || [0, 0], proj = T.projector(origin[0], origin[1]);
         if (lap) lap.filter(function (_, i) { return i % 4 === 0; }).forEach(function (p) { out.push(proj.ll(p[2], p[3]).map(function (v) { return Math.round(v * 1e6) / 1e6; })); });
-        api('POST', '/track/requests', { kind: 'circuit', name: a.venueName || s.venue || '', venueId: s.venueId || '', startLine: s.startLine, lapLength: lap ? lap[lap.length - 1][0] : null, outline: out, note: s.venueId ? 'Layout not recognised' : 'New track' }).catch(function () {});
+        api('POST', '/track/requests', { kind: s.type === 'sprint' ? 'sprint' : 'circuit', name: a.venueName || s.venue || '', venueId: s.venueId || '', startLine: s.startLine, finishLine: s.finishLine || null, lapLength: lap ? lap[lap.length - 1][0] : null, outline: out, note: s.type === 'sprint' ? (s.venueId ? 'Course not recognised' : 'New sprint or hill climb') : s.venueId ? 'Layout not recognised' : 'New track' }).catch(function () {});
       }
-      return api('POST', '/track/sessions', { carId: carId, session: s, conditions: a.conditions, tyres: a.tyres || '', temp: a.temp, notes: a.notes || '', privacy: a.privacy, venueName: a.venueName || '', street: a.street, adminViewer: a.street ? adminViewerToken() : '' });
+      return api('POST', '/track/sessions', { carId: carId, session: s, conditions: a.conditions, tyres: a.tyres || '', temp: a.temp, tempSource: a.temp == null ? '' : (a.tempSource || 'member'), weather: a.tempSource === 'weather' ? a.weather : null, notes: a.notes || '', privacy: a.privacy, venueName: a.venueName || '', street: a.street, adminViewer: a.street ? adminViewerToken() : '' });
     }).then(function (d) {
       if (!d.success) throw new Error(d.message || 'Could not save the session.');
       mine = null; counts = null;
@@ -501,14 +552,48 @@
   function drawSession() {
     var s = view.s;
     var h = back(s.mine ? 'Your sessions' : 'Back', s.mine ? '' : (s.carId ? 'car=' + encodeURIComponent(s.carId) : ''));
-    h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '</h2><p class="tp-sub">' + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + '</p></div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) : '') + unitsChip() + '</div></div>';
+    h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '</h2><p class="tp-sub">' + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + '</p></div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) : '') + unitsChip() + '</div></div>';
+    LW = s.type === 'sprint' ? 'Run' : 'Lap';
+    var untimed = s.type === 'other' && !(s.laps && s.laps.length);
     if (s.type === 'drag') h += dragHtml(s);
+    else if (untimed) h += otherHtml(s);
     else h += trackHtml(s);
     if (s.mine) h += ownerHtml(s);
     app.innerHTML = h;
     if (s.type === 'drag') drawDragCharts(s);
+    else if (untimed) drawOtherCharts(s);
     else drawTrackCharts(s);
+    // Sprints and hill climbs have runs, not laps.
+    if (s.type === 'sprint') runWords(app);
     if (s.mine) wireOwner(s);
+  }
+  var LW = 'Lap';
+  // Swaps lap words for run words in the page's text (not in attributes).
+  function runWords(root) {
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null), node, list = [];
+    while ((node = walker.nextNode())) list.push(node);
+    list.forEach(function (n) {
+      n.nodeValue = n.nodeValue.replace(/\bLaps\b/g, 'Runs').replace(/\blaps\b/g, 'runs').replace(/\bLap\b/g, 'Run').replace(/\blap\b/g, 'run');
+    });
+  }
+  // Other sessions without laps: the drive mapped, with its numbers.
+  function otherHtml(s) {
+    var h = tiles([
+      ['Top speed', s.vmax ? V.fmtV(s.vmax) : '-', '', 1],
+      ['Most grip used', s.latMax ? s.latMax.toFixed(2) + ' g' : '-', s.brakeMax ? 'Braking ' + s.brakeMax.toFixed(2) + ' g' : ''],
+      ['Distance', s.distance ? V.fmtD(s.distance) : '-', s.duration ? Math.round(s.duration / 60) + ' minutes' : '']
+    ]);
+    h += '<div class="card"><div class="tp-chart-head"><h3>Your drive, coloured by speed</h3></div><svg class="tv-chart" id="tp-map" role="img" aria-label="The drive drawn from GPS, coloured by speed"></svg>' +
+      '<div class="tp-chart-foot"><span class="tp-ramp"><span id="tp-ramp-lo"></span><i></i><span id="tp-ramp-hi"></span></span><span>Other sessions are mapped but not timed for a leaderboard.</span></div></div>';
+    return h;
+  }
+  function drawOtherCharts(s) {
+    var out = s.outline || (s.trace && s.trace.outline) || [];
+    if (out.length < 2) return;
+    var proj = T.projector(out[0][0], out[0][1]), d = 0, prev = null;
+    var trace = out.map(function (p) { var xy = proj.xy(p[0], p[1]); if (prev) d += Math.hypot(xy[0] - prev[0], xy[1] - prev[1]); prev = xy; return [d, 0, xy[0], xy[1], p[2] || 0, 0, 0]; });
+    var mm = V.map(document.getElementById('tp-map'), trace, {});
+    if (mm) { document.getElementById('tp-ramp-lo').textContent = V.fmtV(mm.vmin); document.getElementById('tp-ramp-hi').textContent = V.fmtV(mm.vmax); }
   }
   function tiles(list) {
     return '<div class="tp-tiles">' + list.map(function (t) { return '<div class="tp-tile' + (t[3] ? ' is-hero' : '') + '"><div class="k">' + esc(t[0]) + '</div><div class="v">' + esc(t[1]) + '</div><div class="s">' + esc(t[2] || '') + '</div></div>'; }).join('') + '</div>';
@@ -572,7 +657,7 @@
     }).join('');
     // Your best laps from other days at the same layout.
     if (s.mine && view.mine && s.layoutId) {
-      var others = view.mine.sessions.filter(function (o) { return o.id !== s.id && o.type === 'track' && o.venueId === s.venueId && o.layoutId === s.layoutId && o.bestTime; });
+      var others = view.mine.sessions.filter(function (o) { return o.id !== s.id && o.type === s.type && o.venueId === s.venueId && o.layoutId === s.layoutId && o.bestTime; });
       if (others.length) h += '<optgroup label="Your best on other days">' + others.map(function (o) { var v = 'x:' + o.id; return '<option value="' + v + '"' + (sel === v ? ' selected' : '') + '>' + esc(niceDate(o.date)) + ', ' + V.fmtLap(o.bestTime) + '</option>'; }).join('') + '</optgroup>';
     }
     return h;
@@ -589,7 +674,7 @@
       });
     }
     var l = (view.s.laps || []).filter(function (x) { return String(x.n) === String(v); })[0];
-    return Promise.resolve(l ? { trace: view.s.trace.laps[l.n], label: 'Lap ' + l.n, time: l.time } : null);
+    return Promise.resolve(l ? { trace: view.s.trace.laps[l.n], label: LW + ' ' + l.n, time: l.time } : null);
   }
   function startLineXY(s) {
     if (!s.startLine || !s.origin || s.origin.length !== 2) return null;
@@ -669,6 +754,7 @@
       notes.push({ icon: 'brake', text: A.label + ' peaked at ' + brake.toFixed(2) + ' g braking and ' + lat.toFixed(2) + ' g cornering. ' + Math.round(comb * 100) + '% of the lap mixes braking or power with cornering (the dots between the axes).', small: 'Blending braking into the turn-in fills out the circle, and is often where time is found.' });
       notes.push({ icon: 'info', text: 'These are observations from the data, not coaching. Weather, tyres, traffic and flags all change lap times.' });
       document.getElementById('tp-cmp-notes').innerHTML = notesHtml(notes);
+      if (view.s.type === 'sprint') { runWords(document.getElementById('compare')); }
     });
   }
   // Mods with a fitted date, from the car's list in My Garage (owner only).
@@ -689,7 +775,7 @@
   function drawOverTime(s) {
     var box = document.getElementById('tp-time');
     if (!box || !view.mine) return;
-    var list = view.mine.sessions.filter(function (o) { return o.carId === s.carId && o.type === 'track' && o.venueId === s.venueId && o.layoutId === s.layoutId && o.bestTime; });
+    var list = view.mine.sessions.filter(function (o) { return o.carId === s.carId && o.type === s.type && o.venueId === s.venueId && o.layoutId === s.layoutId && o.bestTime; });
     if (list.length < 2) { box.innerHTML = '<div class="card tp-empty">' + icon('up') + '<p>Add another session here to see your times over time, with the mods you fitted in between marked from My Garage.</p></div>'; return; }
     var dates = list.map(function (o) { return o.date.slice(0, 7); }).sort();
     var mods = carMods(s.carId).filter(function (m) { return m.date >= dates[0].slice(0, 7) && m.date <= dates[dates.length - 1]; });
@@ -740,11 +826,26 @@
       '<div class="tp-field"><span class="tp-lbl">Who can see it</span><div class="tp-privacy" data-privacy>' + privacyOptions(s.privacy, limit) + '</div></div>' +
       '<div class="tp-field"><span class="tp-lbl">Conditions</span><div class="tp-chips" data-cond>' + ['Dry', 'Damp', 'Wet'].map(function (c) { return '<button type="button" class="chip' + (s.conditions === c ? ' is-on' : '') + '" data-v="' + c + '">' + c + '</button>'; }).join('') + '</div></div>' +
       '<div class="tp-f2"><div class="tp-field"><label for="tp-e-tyres">Tyres</label><input class="field" id="tp-e-tyres" value="' + esc(s.tyres || '') + '"></div><div class="tp-field"><label for="tp-e-temp">Air temperature (°C)</label><input class="field" id="tp-e-temp" inputmode="numeric" value="' + esc(s.temp == null ? '' : s.temp) + '"></div></div>' +
+      '<div class="tp-weather-row"><button type="button" class="btn btn-secondary btn-sm" id="tp-e-weather">Fill in from weather</button><p class="tp-src" id="tp-e-src">' + (s.tempSource === 'weather' && s.weather ? icon('info') + '<span>' + weatherNote(s.weather, s.venue) + '</span>' : s.tempSource === 'file' ? icon('info') + '<span>From the air temperature recorded in your file.</span>' : '') + '</p></div>' +
       '<div class="tp-field"><label for="tp-e-notes">Notes (only you see these)</label><input class="field" id="tp-e-notes" value="' + esc(s.notes || '') + '"></div>' +
       '<div class="tp-actions"><button type="button" class="btn btn-primary" id="tp-e-save">Save changes</button><button type="button" class="btn btn-danger" id="tp-e-del">' + icon('trash') + 'Delete</button></div><p class="tp-status" id="tp-status" role="status"></p></div></div>';
   }
   function wireOwner(s) {
-    var edit = { privacy: s.privacy, conditions: s.conditions };
+    var edit = { privacy: s.privacy, conditions: s.conditions, tempSource: s.tempSource || '', weather: s.weather || null, temp: s.temp };
+    var tempEl = document.getElementById('tp-e-temp');
+    tempEl.addEventListener('input', function () { edit.tempSource = tempEl.value.trim() === '' ? '' : 'member'; edit.weather = null; document.getElementById('tp-e-src').innerHTML = ''; });
+    document.getElementById('tp-e-weather').addEventListener('click', function () {
+      var src = document.getElementById('tp-e-src');
+      src.textContent = 'Looking up the weather...';
+      lookupWeather(s.origin, s.date, s.time).then(function (w) {
+        if (!w) { src.textContent = 'No weather found for that day and place.'; return; }
+        tempEl.value = w.temp;
+        edit.tempSource = 'weather'; edit.weather = w;
+        edit.conditions = weatherConditions(w);
+        document.querySelectorAll('#settings [data-cond] button[data-v]').forEach(function (x) { x.classList.toggle('is-on', x.getAttribute('data-v') === edit.conditions); });
+        src.innerHTML = icon('info') + '<span>' + weatherNote(w, s.venue) + ' Conditions set to match. Save changes to keep it.</span>';
+      });
+    });
     function group(sel, key) {
       var g = document.querySelector('#settings ' + sel);
       g.addEventListener('click', function (e) {
@@ -758,10 +859,10 @@
     group('[data-cond]', 'conditions');
     document.getElementById('tp-e-save').addEventListener('click', function () {
       var t = document.getElementById('tp-e-temp').value.trim();
-      api('PUT', '/track/session', { id: s.id, privacy: edit.privacy, conditions: edit.conditions || '', tyres: document.getElementById('tp-e-tyres').value, temp: t === '' ? null : parseFloat(t), notes: document.getElementById('tp-e-notes').value }).then(function (d) {
+      api('PUT', '/track/session', { id: s.id, privacy: edit.privacy, conditions: edit.conditions || '', tyres: document.getElementById('tp-e-tyres').value, temp: t === '' ? null : parseFloat(t), tempSource: t === '' ? '' : (edit.tempSource || 'member'), weather: edit.tempSource === 'weather' ? edit.weather : null, notes: document.getElementById('tp-e-notes').value }).then(function (d) {
         if (!d.success) { status(d.message || 'Could not save.', 'error'); return; }
         mine = null; counts = null;
-        Object.assign(view.s, { privacy: d.session.privacy, conditions: d.session.conditions, tyres: d.session.tyres, temp: d.session.temp, notes: document.getElementById('tp-e-notes').value });
+        Object.assign(view.s, { privacy: d.session.privacy, conditions: d.session.conditions, tyres: d.session.tyres, temp: d.session.temp, tempSource: d.session.tempSource, weather: d.session.weather, notes: document.getElementById('tp-e-notes').value });
         getMine().then(function (m) { view.mine = m; drawSession(); status('Saved.', 'ok'); });
       });
     });
@@ -787,36 +888,6 @@
       h += '<p class="tp-sub"><a href="gallery.html" class="tp-link">See the build in the Gallery' + icon('chev') + '</a></p>';
       app.innerHTML = h;
     }).catch(function () { failed('That build could not be loaded.'); });
-  }
-
-  // ---------- Leaderboards ----------
-  var boardModel = 'All';
-  function showBoard(venueId, layoutId, isDrag) {
-    loading();
-    Promise.all([getLibrary(), api('GET', (isDrag ? '/drag/board?venue=' : '/track/board?venue=') + encodeURIComponent(venueId) + (isDrag ? '' : '&layout=' + encodeURIComponent(layoutId)))]).then(function (r) {
-      var v = r[0].venues.filter(function (x) { return x.id === venueId; })[0];
-      var l = v && v.layouts ? v.layouts.filter(function (x) { return x.id === layoutId; })[0] : null;
-      var title = v ? v.name + (l && l.name !== v.name ? ', ' + l.name : '') : venueId;
-      var entries = r[1].entries || [];
-      function draw() {
-        var shown = entries.filter(function (e) { return boardModel === 'All' || e.model === boardModel; });
-        var h = back('Leaderboards', 'boards=1') + '<div class="tp-head"><div><h2>' + esc(title) + '</h2><p class="tp-sub">' + (isDrag ? 'Every shared run here, quickest quarter mile first.' : 'Every shared session here, fastest lap first.') + ' Share a session to put it on.</p></div>' + unitsChip() + '</div>' +
-          '<div class="tp-chips" id="tp-models">' + ['All'].concat(MODELS).map(function (m) { return '<button type="button" class="chip' + (m === boardModel ? ' is-on' : '') + '" data-m="' + m + '">' + m + '</button>'; }).join('') + '</div>';
-        if (!shown.length) h += '<div class="card tp-empty">' + icon('trophy') + '<p>Nobody on this board yet' + (boardModel === 'All' ? '' : ' for the ' + esc(boardModel)) + '. Be the first.</p></div>';
-        else h += '<div class="card"><div class="tp-scroll"><table class="tp-table tp-board"><thead><tr><th>#</th><th>Car</th><th>' + (isDrag ? '1/4 mile' : 'Lap') + '</th><th>Date</th><th></th></tr></thead><tbody>' + shown.map(function (e, i) {
-          var res = isDrag ? e.quarter.toFixed(2) + ' s<small>' + V.fmtV(e.quarterSpeed) + '</small>' : V.fmtLap(e.time);
-          return '<tr><td>' + (i + 1) + '</td><td><b>' + esc(e.car) + '</b><small>' + esc([e.owner, [e.year, e.model, e.version].filter(Boolean).join(' ')].filter(Boolean).join(' · ')) + '</small>' +
-            (e.mods && e.mods.length ? '<details class="tp-mods"><summary>Mods (' + e.mods.length + ')</summary><div class="tp-chips">' + e.mods.map(function (m) { return '<span class="tp-modchip">' + esc(m) + '</span>'; }).join('') + '</div></details>' : '') + '</td>' +
-            '<td class="tp-res">' + res + '</td><td>' + esc(niceDate(e.date)) + (e.conditions ? '<small>' + esc(e.conditions) + '</small>' : '') + '</td><td><a class="btn btn-ghost btn-sm" href="track.html?s=' + esc(e.sessionId) + '" data-go="s=' + esc(e.sessionId) + '">View</a></td></tr>';
-        }).join('') + '</tbody></table></div><p class="tp-small">Mods are the ones listed on the build. Weather and tyres vary between days.</p></div>';
-        app.innerHTML = h;
-        document.getElementById('tp-models').addEventListener('click', function (e) {
-          var b = e.target.closest('[data-m]');
-          if (b) { boardModel = b.getAttribute('data-m'); draw(); }
-        });
-      }
-      draw();
-    }).catch(function () { failed('The leaderboard could not be loaded.'); });
   }
 
   route();

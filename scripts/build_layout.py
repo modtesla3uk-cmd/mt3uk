@@ -34,6 +34,7 @@ PAGES = {
     "gallery": "gallery.html",
     "my-builds": "my-builds.html",
     "track": "track.html",
+    "leaderboards": "index.html#track-days",
     "signin": "signin.html",
     "profile": "profile.html",
     "privacy": "privacy.html",

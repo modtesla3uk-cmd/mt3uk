@@ -92,7 +92,7 @@ def test_scroll_cue_jumps_to_section_01(device_page):
 
 @all_devices
 def test_looking_for_something_else_hint(device_page):
-    """A hint by the chevron, once a session, so people landing on the
+    """A hint by the chevron on the first screen, so people landing on the
     interview still find My Garage and the rest; a tap goes to section 01."""
     page = device_page
     page.emulate_media(reduced_motion="reduce")
@@ -113,10 +113,12 @@ def test_looking_for_something_else_hint(device_page):
     header_bottom = page.evaluate("document.querySelector('header').getBoundingClientRect().bottom")
     section_top = page.evaluate("document.querySelector('.categories-section').getBoundingClientRect().top")
     assert abs(section_top - header_bottom) <= 3, (section_top, header_bottom)
-    # Once a session.
-    page.reload()
-    page.wait_for_timeout(2200)
+    # Out of the way while scrolled down, back on the first screen.
     assert page.locator("#hp-more-hint.is-on").count() == 0
+    page.evaluate("window.scrollTo(0, 0)")
+    page.locator("#hp-more-hint.is-on").wait_for(timeout=3000)
+    page.reload()
+    page.locator("#hp-more-hint.is-on").wait_for(timeout=5000)
     assert page.errors == []
 
 
@@ -155,3 +157,14 @@ def test_clicking_a_tile_still_opens_it(device_page):
     page.goto("/index.html")
     page.locator('.hp-cat[data-cat="garage"]').click()
     page.wait_for_url("**/my-builds.html", timeout=5000)
+
+
+def test_track_tiles(page):
+    """Track day guides sum up the guides; Track sessions has its own tile."""
+    page.goto("/index.html")
+    guides = page.locator('.hp-cat[data-cat="track"]')
+    assert "Track day guides" in guides.inner_text()
+    assert "prep" in guides.inner_text()
+    sessions = page.locator('.hp-cat[data-cat="sessions"]')
+    assert sessions.get_attribute("href") == "track.html"
+    assert "leaderboards" in sessions.inner_text()

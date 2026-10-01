@@ -106,7 +106,9 @@
     speed: ['speed', 'velocity', 'gps speed', 'gps_speed', 'speed (km/h)', 'speed (kph)', 'speed (mph)', 'speed (m/s)', 'speed_kmh', 'speed_mph', 'speed kmh', 'speed mph', 'gps speed (km/h)', 'gps speed (mph)', 'speed[km/h]', 'speed[mph]', 'velocity kmh'],
     la: ['latacc', 'lat acc', 'lateral acc', 'lateral acceleration', 'lat g', 'lateral g', 'gforce lat', 'g lat', 'gps latacc', 'lateral', 'accel lateral', 'acc lateral', 'lat accel', 'g-force lateral', 'lateral (g)'],
     lo: ['longacc', 'long acc', 'longitudinal acc', 'longitudinal acceleration', 'long g', 'longitudinal g', 'gforce long', 'g long', 'gps lonacc', 'inline', 'accel longitudinal', 'acc longitudinal', 'long accel', 'g-force longitudinal', 'longitudinal (g)', 'inline g'],
-    sats: ['sats', 'satellites', 'gps sats', 'satellite count', 'num sats', 'gps satellites']
+    sats: ['sats', 'satellites', 'gps sats', 'satellite count', 'num sats', 'gps satellites'],
+    // Outside air only: tyre, battery and motor temperatures are left alone.
+    temp: ['air temp', 'air temperature', 'ambient temp', 'ambient temperature', 'ambient', 'outside temp', 'outside temperature', 'oat', 'ambient air temp', 'air temp c', 'ambient temp c']
   };
   function normHeader(h) { return String(h).trim().replace(/^"|"$/g, '').toLowerCase().replace(/\s+/g, ' '); }
   function stripUnit(h) { return h.replace(/\s*[\(\[][^\)\]]*[\)\]]\s*$/, '').trim(); }
@@ -168,7 +170,7 @@
       if (hi === -1) { hi = 0; headers = splitCsv(lines[0], delim).map(normHeader); }
       cols = { time: mapping.time, lat: mapping.lat, lng: mapping.lng, speed: mapping.speed == null ? -1 : mapping.speed, la: -1, lo: -1, sats: -1 };
     } else if (hi !== -1) {
-      cols = { time: findCol(headers, 'time'), lat: findCol(headers, 'lat'), lng: findCol(headers, 'lng'), speed: findCol(headers, 'speed'), la: findCol(headers, 'la'), lo: findCol(headers, 'lo'), sats: findCol(headers, 'sats') };
+      cols = { time: findCol(headers, 'time'), lat: findCol(headers, 'lat'), lng: findCol(headers, 'lng'), speed: findCol(headers, 'speed'), la: findCol(headers, 'la'), lo: findCol(headers, 'lo'), sats: findCol(headers, 'sats'), temp: findCol(headers, 'temp') };
       if (cols.time === -1) {
         // Some apps split date and clock time; any column with "time" in it.
         for (var k = 0; k < headers.length; k++) if (/time/.test(headers[k]) && k !== cols.lat && k !== cols.lng) { cols.time = k; break; }
@@ -192,14 +194,14 @@
       if (prev !== null && t <= prev) continue;
       prev = t;
       if (startedAt === null && tm.abs) startedAt = tm.abs;
-      pts.push({ t: t, lat: lat, lng: lng, v: cols.speed >= 0 ? num(f[cols.speed]) : NaN, la: cols.la >= 0 ? num(f[cols.la]) : NaN, lo: cols.lo >= 0 ? num(f[cols.lo]) : NaN, sats: cols.sats >= 0 ? num(f[cols.sats]) : NaN });
+      pts.push({ t: t, lat: lat, lng: lng, v: cols.speed >= 0 ? num(f[cols.speed]) : NaN, la: cols.la >= 0 ? num(f[cols.la]) : NaN, lo: cols.lo >= 0 ? num(f[cols.lo]) : NaN, sats: cols.sats >= 0 ? num(f[cols.sats]) : NaN, temp: cols.temp >= 0 ? num(f[cols.temp]) : NaN });
     }
     if (!pts.length) throw new Error('No readings with a position were found in this file.');
     var t0 = pts[0].t;
     pts.forEach(function (p) { p.t -= t0; });
     var venue = '';
     lines.slice(0, Math.max(hi, 0)).forEach(function (l) { var m = l.match(/(?:venue|track|circuit)\s*[:,]\s*"?([^",]+)/i); if (m && !venue) venue = m[1].trim(); });
-    return { format: 'CSV', points: pts, startLine: null, venueName: venue, startedAt: startedAt, speedUnit: unit, columns: cols };
+    return { format: 'CSV', points: pts, startLine: null, venueName: venue, startedAt: startedAt, speedUnit: unit, columns: cols, tempF: cols.temp >= 0 && /(°|deg|\b)f\b|fahrenheit/.test(headers[cols.temp]) };
   }
 
   function readGpx(text) {
@@ -287,6 +289,9 @@
     var sats = pts.filter(function (p) { return isFinite(p.sats); }).map(function (p) { return p.sats; });
     out.sats = sats.length ? round(sats.reduce(function (a, b) { return a + b; }, 0) / sats.length, 1) : null;
     out.quality = out.hz >= 10 ? 'good' : out.hz >= 5 ? 'fair' : 'rough';
+    // Outside air temperature, when the logger records it (average, in °C).
+    var temps = pts.map(function (p) { return out.tempF ? (p.temp - 32) * 5 / 9 : p.temp; }).filter(function (v) { return isFinite(v) && v > -30 && v < 50; });
+    if (temps.length > pts.length * 0.5) out.airTemp = Math.round(median(temps));
   }
   function smooth(a, n) {
     return a.map(function (_, i) {
@@ -346,10 +351,13 @@
     return null;
   }
 
-  function buildLaps(points, cr, sectorCr) {
+  // Laps between one start-line crossing and the next or, for a sprint,
+  // runs from the start line to the finish line (pairs).
+  function buildLaps(points, cr, sectorCr, pairs) {
     var laps = [];
-    for (var j = 0; j < cr.length - 1; j++) {
-      var s = cr[j], e = cr[j + 1];
+    var segs = pairs || cr.slice(0, -1).map(function (c, j) { return [c, cr[j + 1]]; });
+    for (var j = 0; j < segs.length; j++) {
+      var s = segs[j][0], e = segs[j][1];
       var vmax = 0, vmin = Infinity;
       for (var k = s.i; k < e.i; k++) { vmax = Math.max(vmax, points[k].v); vmin = Math.min(vmin, points[k].v); }
       var lap = { n: j + 1, start: s.t, time: round(e.t - s.t, 3), dist: Math.round(e.d - s.d), vmax: round(vmax, 1), vmin: round(vmin, 1), i0: s.i, i1: e.i, d0: s.d };
@@ -377,7 +385,7 @@
     var med = median(laps.map(function (l) { return l.time; })), medD = median(laps.map(function (l) { return l.dist; }));
     laps.forEach(function (l, idx) {
       if (l.dist < medD * 0.8) l.kind = 'short';
-      else if (l.time > med * 1.12) l.kind = idx === laps.length - 1 && l.vmin < 45 ? 'in' : idx === 0 && l.vmin < 45 ? 'out' : 'slow';
+      else if (l.time > med * 1.12) l.kind = pairs ? 'slow' : idx === laps.length - 1 && l.vmin < 45 ? 'in' : idx === 0 && l.vmin < 45 ? 'out' : 'slow';
       else l.kind = 'timed';
     });
     return laps;
@@ -469,14 +477,16 @@
     opts = opts || {};
     var pts = rd.points;
     var type = opts.type || null;
-    var venue = findVenue(pts, library, type === 'drag' ? 'drag' : type === 'track' ? 'circuit' : null);
+    var venue = findVenue(pts, library, type === 'drag' ? 'drag' : type === 'track' ? 'circuit' : type === 'sprint' ? 'sprint' : null);
     if (!type) {
       if (venue && venue.type === 'drag') type = 'drag';
+      else if (venue && venue.type === 'sprint') type = 'sprint';
       else if (venue) type = 'track';
       else type = dragRuns(prepare(pts)).length && !rd.startLine ? 'drag' : 'track';
     }
     var session = { type: type, format: rd.format, hz: rd.hz, sats: rd.sats, quality: rd.quality, startedAt: rd.startedAt || null, venueName: rd.venueName || '', speedDerived: !!rd.speedDerived, gDerived: !!rd.gDerived };
     if (rd.startedAt) session.date = ukDate(rd.startedAt), session.time = ukTime(rd.startedAt);
+    if (rd.airTemp != null) session.airTemp = rd.airTemp;
     if (venue) { session.venueId = venue.id; session.venue = venue.name; }
     var origin = venue ? [venue.lat, venue.lng] : [pts[0].lat, pts[0].lng];
     var proj = projector(origin[0], origin[1]);
@@ -498,8 +508,10 @@
       return session;
     }
 
+    if (type === 'sprint') return sprintSession(session, rd, pts, library, venue, proj, origin, opts);
+
     // Which start line: the layout's, else the one in the file, else the member's.
-    var layouts = venue && venue.layouts ? venue.layouts : [];
+    var layouts = venue && venue.layouts && venue.type === 'circuit' ? venue.layouts : [];
     var choice = null, minGap = 20;
     var candidates = [];
     layouts.forEach(function (l) { if (l.startLine && l.startLine.length === 2) candidates.push({ layout: l, line: l.startLine, sectors: l.sectors || [] }); });
@@ -515,6 +527,8 @@
       var score = laps.length - lengthScore * 10 + (c.layout ? 1 : 0);
       if (!choice || score > choice.score) choice = { c: c, cr: cr, score: score, med: med };
     });
+    if (type === 'other') session.trace = { outline: outline(pts) };
+    if (!choice && type === 'other') { session.laps = []; return session; }
     if (!choice) {
       session.laps = [];
       session.needsStartLine = true;
@@ -536,6 +550,46 @@
     if (choice.c.own) session.startLineFromMember = true;
     var sectorCr = layout && layout.sectors && layout.sectors.length ? layout.sectors.map(function (s) { return crossings(pts, proj, s, minGap); }) : null;
     var laps = buildLaps(pts, choice.cr, sectorCr);
+    return timedTail(session, pts, laps, layout, proj, origin);
+  }
+
+  // Sprints and hill climbs: timed from the start line to the finish line.
+  function sprintSession(session, rd, pts, library, venue, proj, origin, opts) {
+    var sv = venue && venue.type === 'sprint' ? venue : findVenue(pts, library, 'sprint');
+    delete session.venueId; delete session.venue;
+    if (sv) { session.venueId = sv.id; session.venue = sv.name; }
+    var cands = [];
+    ((sv && sv.layouts) || []).forEach(function (l) { if (l.startLine && l.finishLine) cands.push({ layout: l, start: l.startLine, finish: l.finishLine }); });
+    if (opts.startLine && opts.finishLine) cands.push({ layout: null, start: opts.startLine, finish: opts.finishLine, own: true });
+    var pick = null;
+    cands.forEach(function (c) {
+      var st = crossings(pts, proj, c.start, 5), fi = crossings(pts, proj, c.finish, 5), pairs = [];
+      st.forEach(function (a) {
+        var e = fi.filter(function (f) { return f.t > a.t + 3 && f.t - a.t < 900; })[0];
+        if (e && (!pairs.length || a.t > pairs[pairs.length - 1][1].t)) pairs.push([a, e]);
+      });
+      if (pairs.length && (!pick || pairs.length > pick.pairs.length)) pick = { c: c, pairs: pairs };
+    });
+    if (!pick) {
+      session.laps = [];
+      session.needsStartLine = true;
+      session.needsFinish = true;
+      session.trace = { outline: outline(pts) };
+      session.problem = sv ? 'We know ' + sv.name + ' but not its start and finish yet. Tap the start, then the finish, on your trace.' : 'We don\'t know this course yet. Tap the start, then the finish, on your trace and we\'ll add it.';
+      return session;
+    }
+    var layout = pick.c.layout;
+    if (!layout && sv && sv.layouts && sv.layouts.length === 1) layout = sv.layouts[0];
+    if (layout) { session.layoutId = layout.id; session.layout = layout.name; }
+    session.startLine = pick.c.start;
+    session.finishLine = pick.c.finish;
+    if (pick.c.own) session.startLineFromMember = true;
+    var laps = buildLaps(pts, null, null, pick.pairs);
+    return timedTail(session, pts, laps, layout, proj, origin);
+  }
+
+  // Bests, sectors, traces and corners for laps or sprint runs.
+  function timedTail(session, pts, laps, layout, proj, origin) {
     var timed = laps.filter(function (l) { return l.kind === 'timed'; });
     var best = timed.reduce(function (b, l) { return !b || l.time < b.time ? l : b; }, null);
     session.laps = laps.map(function (l) { return { n: l.n, start: round(l.start, 2), time: l.time, dist: l.dist, vmax: l.vmax, kind: l.kind, sectors: l.sectors }; });
@@ -552,6 +606,7 @@
     var traces = {};
     laps.forEach(function (l) { traces[l.n] = lapTrace(pts, l, hz); });
     session.trace = { hz: hz, laps: traces, origin: origin };
+    if (session.type === 'other') session.trace.outline = outline(pts);
     if (best) {
       var corners = findCorners(traces[best.n]);
       var named = (layout && layout.corners) || [];

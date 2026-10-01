@@ -30,7 +30,7 @@ EARLIER = {
 
 
 def summary(rec):
-    keys = ["id", "carId", "type", "venueId", "venue", "layoutId", "layout", "date", "time", "privacy", "conditions", "tyres", "temp", "vmax", "quality", "street", "atVenue"]
+    keys = ["id", "carId", "type", "venueId", "venue", "layoutId", "layout", "date", "time", "privacy", "conditions", "tyres", "temp", "tempSource", "weather", "vmax", "quality", "street", "atVenue"]
     out = {k: rec.get(k) for k in keys if k in rec}
     if rec.get("type") == "drag":
         runs = rec.get("runs") or []
@@ -73,7 +73,7 @@ class FakeWorker:
                 status, data = 400, {"success": False, "message": "Drag runs can only be saved from a drag strip we know."}
             else:
                 rec.update({"id": "new%d" % (len(self.sessions) + 1), "carId": body["carId"], "privacy": "private" if body.get("street") else body.get("privacy", "private"),
-                            "conditions": body.get("conditions"), "tyres": body.get("tyres"), "temp": body.get("temp"), "notes": body.get("notes"), "street": bool(body.get("street"))})
+                            "conditions": body.get("conditions"), "tyres": body.get("tyres"), "temp": body.get("temp"), "tempSource": body.get("tempSource"), "weather": body.get("weather"), "notes": body.get("notes"), "street": bool(body.get("street"))})
                 self.sessions[rec["id"]] = rec
                 self.saved.append(body)
                 self.index.insert(0, summary(rec))
@@ -87,7 +87,7 @@ class FakeWorker:
                 status, data = 404, {"success": False}
         elif path == "/track/session" and req.method == "PUT":
             rec = self.sessions[body["id"]]
-            for k in ("privacy", "conditions", "tyres", "temp", "notes"):
+            for k in ("privacy", "conditions", "tyres", "temp", "tempSource", "weather", "notes"):
                 if k in body:
                     rec[k] = body[k]
             self.index = [summary(rec) if s["id"] == rec["id"] else s for s in self.index]
@@ -105,10 +105,15 @@ class FakeWorker:
             data = {"success": True, "counts": counts}
         elif path == "/track/tracks":
             data = {"success": True, "extra": {"venues": []}}
-        elif path == "/track/board":
-            entries = [{"carId": "car1", "sessionId": s["id"], "car": CAR["name"], "model": "Model 3", "owner": "Rich", "time": s["bestTime"], "date": s["date"], "conditions": s.get("conditions"), "mods": ["KW V3 coilovers"]}
-                       for s in self.index if s.get("privacy") in ("build", "board") and s.get("venueId") == q.get("venue", [""])[0]]
-            data = {"success": True, "entries": sorted(entries, key=lambda e: e["time"])}
+        elif path in ("/track/board", "/sprint/board"):
+            # Each car's fastest, with how many sessions it has there.
+            kind = "sprint" if path == "/sprint/board" else "track"
+            mine = [s for s in self.index if s.get("privacy") in ("build", "board") and s.get("venueId") == q.get("venue", [""])[0] and s.get("type", "track") == kind and s.get("bestTime")]
+            entries = []
+            if mine:
+                best = min(mine, key=lambda s: s["bestTime"])
+                entries = [{"carId": "car1", "sessionId": best["id"], "car": CAR["name"], "model": "Model 3", "owner": "Rich", "time": best["bestTime"], "date": best["date"], "conditions": best.get("conditions"), "mods": ["KW V3 coilovers"], "sessions": len(mine)}]
+            data = {"success": True, "entries": entries}
         elif path == "/track/public":
             data = {"success": True, "car": {"id": "car1", "name": CAR["name"], "model": "Model 3", "owner": "Rich"}, "mine": False, "sessions": [s for s in self.index if s.get("privacy") in ("build", "board")]}
         elif path == "/track/requests":
@@ -121,8 +126,18 @@ class FakeWorker:
         route.fulfill(status=status, content_type="application/json", body=json.dumps(data), headers={"Access-Control-Allow-Origin": "*"})
 
 
+def meteo_reply(route):
+    """Stand-in for Open-Meteo: 19.4°C and no rain all day at the track."""
+    q = parse_qs(urlparse(route.request.url).query)
+    day = q.get("start_date", ["2026-05-28"])[0]
+    hours = ["%sT%02d:00" % (day, h) for h in range(24)]
+    data = {"hourly": {"time": hours, "temperature_2m": [19.4] * 24, "precipitation": [0] * 24, "wind_speed_10m": [12] * 24}}
+    route.fulfill(status=200, content_type="application/json", body=json.dumps(data), headers={"Access-Control-Allow-Origin": "*"})
+
+
 def open_page(page, fake, path="/track.html", signed_in=True, admin=False):
     page.route("**/%s/**" % API_HOST, fake.reply)
+    page.route("**/*open-meteo.com/**", meteo_reply)
     script = ""
     if signed_in:
         script += "localStorage.setItem('mt3ukMyBuildsSession','tok');localStorage.setItem('mt3ukMyBuildsEmail','a@example.com');"
@@ -137,36 +152,40 @@ def test_signed_out_explains_and_lists_leaderboards(page):
     open_page(page, FakeWorker(), signed_in=False)
     expect(page.locator(".tp-intro h2")).to_have_text("Your track days, mapped")
     expect(page.locator(".tp-intro a.btn").first).to_have_attribute("href", "signin.html?next=/track.html")
-    # Visitors can open the leaderboards too.
+    # Visitors can open the leaderboards too, on their own page.
     page.locator("#tp-boards-btn").click()
-    expect(page.locator(".tp-head h2")).to_have_text("Leaderboards")
-    page.go_back()
+    expect(page).to_have_url(re.compile(r"leaderboards\.html$"))
+    expect(page.locator(".lb-hero h1")).to_have_text("Who’s quickest?")
     expect(page.locator(".tp-board-card").first).to_contain_text("Thruxton")
 
 
 def test_add_a_session_from_the_racebox_file(page):
     fake = FakeWorker()
     open_page(page, fake)
-    expect(page.locator("#tp-boards-btn")).to_have_attribute("href", "track.html?boards=1")
+    expect(page.locator(".tp-boards-link")).to_have_attribute("href", "leaderboards.html")
     page.get_by_role("link", name="Add a session").click()
     page.set_input_files("#tp-file", str(FIXTURE))
     notice = page.locator("#tp-result .tp-notice.is-ok")
     expect(notice).to_contain_text("Thruxton")
     expect(notice).to_contain_text(re.compile(r"2 timed laps, best 1:39\.78[56]"))
-    page.locator("[data-cond] [data-v='Damp']").click()
-    page.locator("[data-cond] [data-v='Dry']").click()
+    # Air temperature filled in from Open-Meteo, and said so.
+    expect(page.locator("#tp-temp")).to_have_value("19")
+    expect(page.locator("#tp-temp-src")).to_contain_text("Open-Meteo weather for Thruxton at 14:00: 19°C, no rain")
+    expect(page.locator("#tp-temp-src a")).to_have_attribute("href", "https://open-meteo.com/")
+    expect(page.locator("[data-cond] [data-v='Dry']")).to_have_class(re.compile("is-on"))
     page.fill("#tp-tyres", "Pilot Sport 4S")
-    page.fill("#tp-temp", "19")
     page.locator("[data-privacy] [data-v='board']").click()
     page.get_by_role("button", name="Save session").click()
     expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
     saved = fake.saved[0]
     assert saved["carId"] == "car1" and saved["privacy"] == "board" and saved["conditions"] == "Dry" and saved["temp"] == 19
+    assert saved["tempSource"] == "weather" and saved["weather"]["temp"] == 19 and saved["weather"]["hour"] == "14:00"
     assert saved["session"]["venueId"] == "thruxton" and abs(saved["session"]["bestTime"] - 99.786) < 0.01
     assert len(json.dumps(saved["session"])) < 200000
 
     # The session page
     expect(page.locator(".tp-session-head h2")).to_have_text("Thruxton")
+    expect(page.locator(".tp-session-head .tp-sub")).to_contain_text("19°C (Open-Meteo)")
     expect(page.locator(".tp-tile.is-hero .v")).to_have_text(re.compile(r"1:39\.78[56]"))
     expect(page.locator(".tp-table").first.locator("tbody tr")).to_have_count(2)
     # Distances in miles with mph (the default), kilometres with km/h.
@@ -201,11 +220,12 @@ def test_session_settings_and_leaderboard(page):
     page.get_by_role("button", name="Save session").click()
     expect(page.locator(".tp-session-head .tp-pill")).to_contain_text("Shared")
     page.goto("/track.html?board=thruxton:main")
+    expect(page).to_have_url(re.compile(r"leaderboards\.html\?board=thruxton"))
     row = page.locator(".tp-board tbody tr")
     expect(row).to_have_count(1)
     expect(row).to_contain_text("Arctic Three")
     expect(row).to_contain_text(re.compile(r"1:39\.78[56]"))
-    page.locator("#tp-models [data-m='Model Y']").click()
+    page.locator("#lb-models [data-m='Model Y']").click()
     expect(page.locator(".tp-empty")).to_contain_text("Nobody on this board yet for the Model Y")
     # Make it private from the session page.
     page.goto("/track.html?s=new1")
@@ -213,6 +233,16 @@ def test_session_settings_and_leaderboard(page):
     page.get_by_role("button", name="Save changes").click()
     expect(page.locator(".tp-session-head .tp-pill")).to_contain_text("Only me")
     assert fake.sessions["new1"]["privacy"] == "private"
+    # A session saved with the wrong temperature: fill it in from the weather.
+    page.fill("#tp-e-temp", "0")
+    page.get_by_role("button", name="Save changes").click()
+    expect(page.locator(".tp-session-head .tp-sub")).to_contain_text("0°C")
+    page.get_by_role("button", name="Fill in from weather").click()
+    expect(page.locator("#tp-e-temp")).to_have_value("19")
+    expect(page.locator("#tp-e-src")).to_contain_text("Open-Meteo")
+    page.get_by_role("button", name="Save changes").click()
+    expect(page.locator(".tp-session-head .tp-sub")).to_contain_text("19°C (Open-Meteo)")
+    assert fake.sessions["new1"]["tempSource"] == "weather"
 
 
 def test_csv_with_unknown_columns_asks_which_is_which(page):
@@ -336,7 +366,7 @@ def test_leaderboards_list_busy_tracks_first_with_counts(page):
     shared = dict(EARLIER, id="sh1", privacy="build")
     fake.index = [shared, dict(EARLIER, id="sh2", privacy="board", bestTime=101.2), dict(EARLIER, id="pv1", privacy="private")]
     fake.sessions = {}
-    open_page(page, fake, "/track.html?boards=1", signed_in=False)
+    open_page(page, fake, "/leaderboards.html", signed_in=False)
     first = page.locator(".tp-board-card").first
     expect(first).to_contain_text("Thruxton")
     expect(first).to_contain_text("2 sessions")
@@ -345,7 +375,36 @@ def test_leaderboards_list_busy_tracks_first_with_counts(page):
     # Tracks with nothing yet have no number.
     expect(page.locator(".tp-board-card").nth(1).locator(".tp-count")).to_have_count(0)
     first.locator(".chip").first.click()
+    # Public view: each car's fastest, so one row for the one car.
     rows = page.locator(".tp-board tbody tr")
-    expect(rows).to_have_count(2)
+    expect(rows).to_have_count(1)
     expect(rows.first).to_contain_text("1:41.200")
-    expect(page.locator(".tp-head .tp-sub")).to_contain_text("Every shared session here, fastest lap first.")
+    expect(page.locator(".tp-head .tp-sub")).to_contain_text("Each car's fastest lap.")
+    # Drag and sprint have their own tabs.
+    page.locator(".tp-back").click()
+    page.locator(".lb-types a", has_text="Drag").click()
+    expect(page.locator(".tp-board-card").first).to_contain_text("Santa Pod")
+    page.locator(".lb-types a", has_text="Sprint and hill climb").click()
+    expect(page.locator(".tp-board-card").first).to_contain_text("Shelsley Walsh")
+
+
+def test_cars_are_separate_from_sessions(page):
+    open_page(page, FakeWorker())
+    cars = page.locator("#tp-cars .tp-car")
+    expect(cars).to_have_count(1)
+    expect(cars.first).to_contain_text("Arctic Three")
+    expect(cars.first).to_contain_text("1 session")
+    expect(page.locator(".tp-for")).to_have_text("Arctic Three")
+    expect(page.locator(".tp-list .tp-row")).to_have_count(1)
+    expect(page.locator(".tp-boards-link")).to_have_attribute("href", "leaderboards.html")
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    types = page.locator("[data-type] button")
+    expect(types).to_have_text(["Track day", "Drag run", "Sprint or hill climb", "Other"])
+    # Other: mapped and saved, never on a leaderboard.
+    page.locator("[data-type] [data-v='other']").click()
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("aren't timed for a leaderboard")
+    expect(page.locator("[data-privacy] [data-v='board'] span span")).to_contain_text("no leaderboard")
+    # An unknown sprint course: tap the start, then the finish.
+    page.locator("[data-type] [data-v='sprint']").click()
+    expect(page.locator("#tp-tap-step")).to_have_text("Tap the start line, then the finish line.")

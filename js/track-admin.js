@@ -53,7 +53,7 @@
     (extra.venues || []).forEach(function (v) { changed[v.id] = true; });
     listEl.innerHTML = '<table class="iv-table tk-table"><thead><tr><th>Track</th><th>Layouts</th><th>Set up</th><th></th></tr></thead><tbody>' + library.venues.map(function (v) {
       var layouts = v.layouts || [];
-      var ready = v.type === 'drag' ? 'Drag strip' : layouts.map(function (l) { return esc(l.name) + ': ' + (l.startLine ? 'start line' : '<span class="tk-miss">no start line</span>') + (l.corners && l.corners.length ? ', ' + l.corners.length + ' corners' : '') + (l.sectors && l.sectors.length ? ', ' + l.sectors.length + ' sector lines' : ''); }).join('<br>');
+      var ready = v.type === 'drag' ? 'Drag strip' : layouts.map(function (l) { return esc(l.name) + ': ' + (l.startLine ? 'start line' : '<span class="tk-miss">no start line</span>') + (v.type === 'sprint' ? (l.finishLine ? ', finish line' : ', <span class="tk-miss">no finish line</span>') : '') + (l.corners && l.corners.length ? ', ' + l.corners.length + ' corners' : '') + (l.sectors && l.sectors.length ? ', ' + l.sectors.length + ' sector lines' : ''); }).join('<br>');
       return '<tr><td><b>' + esc(v.name) + '</b>' + (changed[v.id] ? ' <span class="iv-sub">(changed here)</span>' : '') + (v.check ? '<span class="iv-sub">Centre or lengths to check</span>' : '') + '</td><td>' + (v.type === 'drag' ? '-' : layouts.length) + '</td><td class="iv-sub">' + ready + '</td>' +
         '<td><div class="iv-actions"><button type="button" class="secondary iv-act" data-edit="' + esc(v.id) + '">Edit</button><button type="button" class="danger iv-act" data-remove="' + esc(v.id) + '">Remove</button></div></td></tr>';
     }).join('') + '</tbody></table><div class="iv-toolbar tk-top"><button type="button" class="secondary" data-new>Add a track</button></div>';
@@ -75,9 +75,11 @@
   });
 
   function layoutHtml(l, i) {
-    return '<fieldset class="tk-layout" data-i="' + i + '"><legend>Layout ' + (i + 1) + '</legend>' +
-      '<div class="tk-row"><label>Name<input type="text" data-l="name" value="' + esc(l.name) + '"></label><label>Lap length (m)<input type="text" inputmode="numeric" data-l="length" value="' + esc(l.length || '') + '"></label></div>' +
+    var sprint = editing && editing.type === 'sprint';
+    return '<fieldset class="tk-layout" data-i="' + i + '"><legend>' + (sprint ? 'Course ' : 'Layout ') + (i + 1) + '</legend>' +
+      '<div class="tk-row"><label>Name<input type="text" data-l="name" value="' + esc(l.name) + '"></label><label>' + (sprint ? 'Course length (m)' : 'Lap length (m)') + '<input type="text" inputmode="numeric" data-l="length" value="' + esc(l.length || '') + '"></label></div>' +
       '<label>Start line: two points, as lat, lng, lat, lng<input type="text" data-l="startLine" placeholder="51.2077017, -1.6088667, 51.2076237, -1.6091363" value="' + esc(lineText(l.startLine)) + '"></label>' +
+      (sprint ? '<label>Finish line: two points, as lat, lng, lat, lng<input type="text" data-l="finishLine" value="' + esc(lineText(l.finishLine)) + '"></label>' : '') +
       '<label>Sector lines, one per line (lat, lng, lat, lng)<textarea data-l="sectors" rows="2">' + esc((l.sectors || []).map(lineText).join('\n')) + '</textarea></label>' +
       '<label>Corners in order, one per line (Name, lat, lng)<textarea data-l="corners" rows="3" placeholder="Allard, 51.2094, -1.6093">' + esc((l.corners || []).map(function (c) { return c.name + ', ' + c.lat + ', ' + c.lng; }).join('\n')) + '</textarea></label>' +
       '<button type="button" class="danger iv-act" data-drop-layout="' + i + '">Remove layout</button></fieldset>';
@@ -87,11 +89,11 @@
     editing = v;
     formEl.hidden = false;
     formEl.innerHTML = '<h3>' + (v.id ? 'Edit ' + esc(v.name) : 'Add a track') + '</h3>' +
-      '<div class="tk-row"><label>Name<input type="text" id="tk-name" value="' + esc(v.name) + '"></label><label>Type<select id="tk-type"><option value="circuit"' + (v.type !== 'drag' ? ' selected' : '') + '>Circuit</option><option value="drag"' + (v.type === 'drag' ? ' selected' : '') + '>Drag strip</option></select></label></div>' +
+      '<div class="tk-row"><label>Name<input type="text" id="tk-name" value="' + esc(v.name) + '"></label><label>Type<select id="tk-type"><option value="circuit"' + (v.type === 'circuit' || !v.type ? ' selected' : '') + '>Circuit</option><option value="drag"' + (v.type === 'drag' ? ' selected' : '') + '>Drag strip</option><option value="sprint"' + (v.type === 'sprint' ? ' selected' : '') + '>Sprint or hill climb</option></select></label></div>' +
       '<div class="tk-row"><label>Centre latitude<input type="text" inputmode="decimal" id="tk-lat" value="' + esc(v.lat) + '"></label><label>Centre longitude<input type="text" inputmode="decimal" id="tk-lng" value="' + esc(v.lng) + '"></label><label>Radius (m)<input type="text" inputmode="numeric" id="tk-radius" value="' + esc(v.radius || 2000) + '"></label></div>' +
       '<p class="iv-note">A file is matched to this track when most of it is inside the radius. Layouts are told apart by lap length.</p>' +
       '<div id="tk-layouts">' + (v.type === 'drag' ? '' : (v.layouts || []).map(layoutHtml).join('')) + '</div>' +
-      (v.type === 'drag' ? '' : '<div class="iv-toolbar"><button type="button" class="secondary" id="tk-add-layout">Add a layout</button>' +
+      (v.type === 'drag' ? '' : '<div class="iv-toolbar"><button type="button" class="secondary" id="tk-add-layout">' + (v.type === 'sprint' ? 'Add a course' : 'Add a layout') + '</button>' +
         '<label class="tk-from">Corners from a shared session<input type="text" id="tk-session" placeholder="Session link or id"></label><button type="button" class="secondary" id="tk-corners">Fill corners</button></div>') +
       '<div class="iv-toolbar"><button type="button" id="tk-save">Save track</button><button type="button" class="secondary" id="tk-cancel">Cancel</button>' +
       '<button type="button" class="tk-switch" role="switch" id="tk-check" aria-checked="' + !!v.check + '"><span class="tk-track"></span>Still to check</button></div>';
@@ -100,12 +102,12 @@
 
   function readForm() {
     var v = { id: editing.id || '', name: document.getElementById('tk-name').value.trim(), type: document.getElementById('tk-type').value, lat: parseFloat(document.getElementById('tk-lat').value), lng: parseFloat(document.getElementById('tk-lng').value), radius: parseInt(document.getElementById('tk-radius').value, 10) || 2000, check: document.getElementById('tk-check').getAttribute('aria-checked') === 'true' };
-    if (v.type === 'circuit') {
+    if (v.type !== 'drag') {
       v.layouts = [].slice.call(formEl.querySelectorAll('.tk-layout')).map(function (fs) {
-        function f(k) { return fs.querySelector('[data-l="' + k + '"]').value; }
+        function f(k) { var el = fs.querySelector('[data-l="' + k + '"]'); return el ? el.value : ''; }
         return {
           id: (editing.layouts && editing.layouts[+fs.getAttribute('data-i')] || {}).id || '',
-          name: f('name').trim(), length: parseInt(f('length'), 10) || 0, startLine: parseLine(f('startLine')),
+          name: f('name').trim(), length: parseInt(f('length'), 10) || 0, startLine: parseLine(f('startLine')), finishLine: parseLine(f('finishLine')),
           sectors: f('sectors').split('\n').map(parseLine).filter(Boolean),
           corners: f('corners').split('\n').map(function (row) { var p = row.split(','); return p.length >= 3 ? { name: p.slice(0, p.length - 2).join(',').trim(), lat: parseFloat(p[p.length - 2]), lng: parseFloat(p[p.length - 1]) } : null; }).filter(function (c) { return c && c.name && isFinite(c.lat) && isFinite(c.lng); })
         };
@@ -114,6 +116,9 @@
     return v;
   }
 
+  formEl.addEventListener('change', function (e) {
+    if (e.target.id === 'tk-type') { editing = Object.assign(editing, readForm()); if (editing.type !== 'drag' && !(editing.layouts || []).length) editing.layouts = [{ name: '', length: '' }]; openForm(editing); }
+  });
   formEl.addEventListener('click', function (e) {
     var sw = e.target.closest('#tk-check');
     if (sw) { sw.setAttribute('aria-checked', sw.getAttribute('aria-checked') === 'true' ? 'false' : 'true'); return; }
@@ -167,7 +172,7 @@
     var open = list.filter(function (r) { return !r.done; });
     document.getElementById('tracks-count').textContent = open.length ? '(' + open.length + ' new)' : '';
     reqEl.innerHTML = open.length ? open.map(function (r) {
-      return '<div class="tk-req" data-id="' + esc(r.id) + '">' + outlineSvg(r.outline) + '<div><b>' + esc(r.name || 'Unnamed') + '</b> <span class="iv-sub">' + (r.kind === 'drag' ? 'Drag strip' : 'Circuit') + (r.venueId ? ', layout at ' + esc(r.venueId) : '') + (r.lapLength ? ', lap about ' + Math.round(r.lapLength) + ' m' : '') + ', from ' + esc(r.from) + ', ' + esc(String(r.at).slice(0, 10)) + '</span>' +
+      return '<div class="tk-req" data-id="' + esc(r.id) + '">' + outlineSvg(r.outline) + '<div><b>' + esc(r.name || 'Unnamed') + '</b> <span class="iv-sub">' + (r.kind === 'drag' ? 'Drag strip' : r.kind === 'sprint' ? 'Sprint or hill climb' : 'Circuit') + (r.venueId ? ', layout at ' + esc(r.venueId) : '') + (r.lapLength ? ', lap about ' + Math.round(r.lapLength) + ' m' : '') + ', from ' + esc(r.from) + ', ' + esc(String(r.at).slice(0, 10)) + '</span>' +
         (r.note ? '<p class="iv-sub">' + esc(r.note) + '</p>' : '') +
         '<p class="iv-sub"><a href="https://www.google.com/maps?q=' + r.lat + ',' + r.lng + '" target="_blank" rel="noopener">See it on a map</a>' + (r.startLine ? ' &middot; start line ' + esc(lineText(r.startLine)) : '') + '</p>' +
         '<div class="iv-actions"><button type="button" class="iv-act" data-use="' + esc(r.id) + '">Set up this track</button><button type="button" class="secondary iv-act" data-done="' + esc(r.id) + '">Dismiss</button></div></div></div>';
@@ -182,8 +187,10 @@
     var r = reqEl._list.filter(function (x) { return x.id === id; })[0];
     if (use) {
       var known = r.venueId && library.venues.filter(function (v) { return v.id === r.venueId; })[0];
-      var v = known ? JSON.parse(JSON.stringify(known)) : { id: '', name: r.name || '', type: r.kind === 'drag' ? 'drag' : 'circuit', lat: r.lat, lng: r.lng, radius: r.kind === 'drag' ? 1500 : 2000, layouts: [] };
+      var v = known ? JSON.parse(JSON.stringify(known)) : { id: '', name: r.name || '', type: r.kind || 'circuit', lat: r.lat, lng: r.lng, radius: r.kind === 'circuit' ? 2000 : 1500, layouts: [] };
+      editing = v;
       if (v.type === 'circuit') v.layouts.push({ name: known ? 'New layout' : 'Full circuit', length: r.lapLength ? Math.round(r.lapLength) : '', startLine: r.startLine });
+      if (v.type === 'sprint') v.layouts.push({ name: known ? 'New course' : 'Course', length: r.lapLength ? Math.round(r.lapLength) : '', startLine: r.startLine, finishLine: r.finishLine });
       openForm(v);
       call('POST', '/track/admin/requests', { id: id, action: 'approve' });
     } else {
@@ -197,7 +204,7 @@
     var opts = ['<option value="">Choose a leaderboard</option>'];
     library.venues.forEach(function (v) {
       if (v.type === 'drag') opts.push('<option value="drag-board:' + esc(v.id) + '">' + esc(v.name) + ' (drag)</option>');
-      else (v.layouts || []).forEach(function (l) { opts.push('<option value="track-board:' + esc(v.id) + ':' + esc(l.id) + '">' + esc(v.name + (l.name !== v.name ? ', ' + l.name : '')) + '</option>'); });
+      else (v.layouts || []).forEach(function (l) { opts.push('<option value="' + (v.type === 'sprint' ? 'sprint-board:' : 'track-board:') + esc(v.id) + ':' + esc(l.id) + '">' + esc(v.name + (l.name !== v.name ? ', ' + l.name : '')) + (v.type === 'sprint' ? ' (sprint)' : '') + '</option>'); });
     });
     boardSel.innerHTML = opts.join('');
   }
@@ -206,7 +213,7 @@
     var b = boardSel.value;
     if (!b) { boardEl.innerHTML = ''; return; }
     var parts = b.split(':');
-    var path = parts[0] === 'drag-board' ? '/drag/board?venue=' + parts[1] : '/track/board?venue=' + parts[1] + '&layout=' + parts[2];
+    var path = parts[0] === 'drag-board' ? '/drag/board?venue=' + parts[1] : (parts[0] === 'sprint-board' ? '/sprint/board?venue=' : '/track/board?venue=') + parts[1] + '&layout=' + parts[2];
     fetch(API + path, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
       var entries = d.entries || [];
       boardEl.innerHTML = entries.length ? '<table class="iv-table"><tbody>' + entries.map(function (en, i) {

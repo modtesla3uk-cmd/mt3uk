@@ -1,5 +1,15 @@
 [
   {
+    "file": "test-caption--by-rhc-lord.jpg",
+    "caption": "TEST CAPTION",
+    "name": "LordRHC",
+    "votable": false,
+    "reel": false,
+    "color": "White",
+    "added": "2026-10-01",
+    "group": "test-caption--by-rhc-lord.jpg"
+  },
+  {
     "file": "track-prepared-model-3-performance--by-john-chambers.jpg",
     "caption": "TRACK PREPARED MODEL 3 PERFORMANCE",
     "name": "John Chambers",

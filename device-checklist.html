@@ -9,31 +9,36 @@
 <style>
   :root {
     --ink: #16233d;
-    --ink-2: #1e2d4a;
+    --ink-2: #ffffff;
+    --paper: #f3f1ea;
+    --card: #ffffff;
     --orange: #e8542a;
-    --steel: #9aa4b5;
+    --steel: #5b6577;
     --white: #ffffff;
-    --green: #4caf7d;
-    --red: #ff6b6b;
-    --line: rgba(255, 255, 255, 0.12);
+    --green: #2a8a5a;
+    --red: #c13a3a;
+    --line: rgba(22, 35, 61, 0.14);
+    --line-strong: rgba(22, 35, 61, 0.3);
+    --hover: rgba(22, 35, 61, 0.05);
+    --field: #ffffff;
   }
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    background: var(--ink);
-    color: var(--white);
+    background: var(--paper);
+    color: var(--ink);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
     font-size: 15px;
     line-height: 1.5;
   }
-  a { color: var(--white); }
+  a { color: var(--ink); }
   .wrap { max-width: 1000px; margin: 0 auto; padding: 24px 16px 60px; }
   h1 { font-size: 1.4rem; margin: 0 0 4px; color: var(--orange); }
   h2 { font-size: 1.05rem; margin: 0 0 6px; color: var(--orange); }
   .intro { color: var(--steel); margin: 0 0 14px; }
-  .card { border: 1px solid var(--line); background: var(--ink-2); padding: 16px; margin: 0 0 26px; }
+  .card { border: 1px solid var(--line); background: var(--card); padding: 16px; margin: 0 0 26px; }
   button {
-    background: var(--ink); color: var(--white); border: 1px solid var(--line);
+    background: var(--card); color: var(--ink); border: 1px solid var(--line);
     padding: 8px 12px; font-size: 0.9rem; border-radius: 4px; cursor: pointer;
   }
   button.primary { background: var(--orange); border-color: var(--orange); }
@@ -46,16 +51,16 @@
   .run-status.busy { color: var(--steel); }
   .run-meta { color: var(--steel); font-size: 0.88rem; flex: 1; min-width: 200px; }
   .devices { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-  .devices li { border: 1px solid var(--line); padding: 10px 12px; background: var(--ink); }
+  .devices li { border: 1px solid var(--line); padding: 10px 12px; background: var(--card); }
   .devices .dev-name { font-weight: 600; display: flex; align-items: center; gap: 8px; }
   .devices .dev-state { font-size: 0.85rem; color: var(--steel); margin-top: 2px; }
   .icon { width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; flex-shrink: 0; }
-  .icon.ok { background: var(--green); color: var(--ink); }
-  .icon.bad { background: var(--red); color: var(--ink); }
-  .icon.busy { background: var(--line); color: var(--white); }
+  .icon.ok { background: var(--green); color: #ffffff; }
+  .icon.bad { background: var(--red); color: #ffffff; }
+  .icon.busy { background: var(--line); color: var(--ink); }
   .fails { margin: 8px 0 0; padding: 0; list-style: none; font-size: 0.84rem; }
-  .fails li { border: 0; padding: 4px 0 0; background: none; color: #ffd2d2; overflow-wrap: anywhere; }
-  .fails code { color: var(--white); font-size: 0.8rem; }
+  .fails li { border: 0; padding: 4px 0 0; background: none; color: #b03030; overflow-wrap: anywhere; }
+  .fails code { color: var(--ink); font-size: 0.8rem; }
   .run-links { margin-top: 12px; font-size: 0.88rem; display: flex; flex-wrap: wrap; gap: 6px 18px; }
   .covers { color: var(--steel); font-size: 0.85rem; margin: 12px 0 0; }
 
@@ -65,7 +70,7 @@
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .chips label {
     display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
-    border: 1px solid var(--line); background: var(--ink); padding: 6px 10px; border-radius: 999px; font-size: 0.88rem;
+    border: 1px solid var(--line); background: var(--card); padding: 6px 10px; border-radius: 999px; font-size: 0.88rem;
   }
   .chips input { accent-color: var(--orange); }
   .run-form details { margin-bottom: 12px; }
@@ -73,7 +78,7 @@
   .run-form details .chips { margin-top: 8px; }
   .run-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
   .run-actions input {
-    background: var(--ink); color: var(--white); border: 1px solid var(--line);
+    background: var(--card); color: var(--ink); border: 1px solid var(--line);
     padding: 8px 10px; font-size: 0.95rem; border-radius: 4px; flex: 1 1 180px; min-width: 0;
   }
   #run-msg { font-size: 0.88rem; color: var(--steel); width: 100%; }
@@ -84,7 +89,7 @@
   .bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 12px; }
   .bar label { font-size: 0.8rem; color: var(--steel); }
   .bar select, .bar input {
-    background: var(--ink); color: var(--white); border: 1px solid var(--line);
+    background: var(--card); color: var(--ink); border: 1px solid var(--line);
     padding: 8px 10px; font-size: 0.95rem; border-radius: 4px;
   }
   .bar input { min-width: 0; flex: 1 1 160px; }
@@ -110,9 +115,20 @@
     .devices { grid-template-columns: 1fr; }
   }
 </style>
+<link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
 <div class="wrap">
+  <ul class="admin-nav" aria-label="Admin sections">
+    <li><a href="admin.html#grp-gallery">Gallery and builds</a></li>
+    <li><a href="admin.html#grp-reports">Reports</a></li>
+    <li><a href="admin.html#grp-members">Members</a></li>
+    <li><a href="admin.html#grp-interviews">Owner interviews</a></li>
+    <li><a href="admin.html#grp-tracks">Track sessions</a></li>
+    <li class="nav-gap" aria-hidden="true"></li>
+    <li><a href="events-admin.html">Events</a></li>
+    <li><a href="device-checklist.html" aria-current="page">Device checks</a></li>
+  </ul>
   <h1>Device Checks</h1>
   <p class="intro">The site tests itself automatically after every change. You only need to look here if something is red, or if you've been asked to try the hands-on checks on your own phone.</p>
 

@@ -102,9 +102,18 @@ ok(su.laps.length === 2 && near(su.bestTime, 99.786, 0.05) && su.startLineFromMe
   const sm = T.analyse(T.read(vbo, 'f.vbo'), { venues: [] }, { type: 'sprint', startLine: start, finishLine: finish });
   ok(sm.laps.length === 2 && sm.startLineFromMember, 'member start and finish time the runs');
   // Ignoring the first time the file crosses the finish line (off unless asked for).
-  const sk = T.analyse(T.read(vbo, 'f.vbo'), sprintLib, { ignoreFirstFinish: true });
-  ok(sk.laps.length === 1 && sk.firstFinishIgnored === 1 && sk.laps[0].start > 100, 'the first finish crossing can be ignored: only the second run is left');
-  ok(sp.laps.length === 2 && sp.firstFinishIgnored === undefined, 'and it is not ignored unless asked');
+  // A point-to-point course (a hill climb: the finish is far from the start) never skips it.
+  const hc = T.analyse(T.read(vbo, 'f.vbo'), sprintLib, { ignoreFirstFinish: true });
+  ok(hc.laps.length === 2 && hc.pointToPoint === true && hc.firstFinishIgnored === undefined, 'a hill climb keeps both runs even when asked to ignore the first finish');
+  ok(sp.laps.length === 2 && sp.firstFinishIgnored === undefined, 'and nothing is ignored unless asked');
+  // A sprint that loops back past the finish: the finish near the start of the lap.
+  const loopAt = tr.findIndex(p => p[0] >= 3000), q0 = tr[loopAt - 3], q1 = tr[loopAt + 3], qc = tr[loopAt];
+  const qx = q1[2] - q0[2], qy = q1[3] - q0[3], qL = Math.hypot(qx, qy), qnx = -qy / qL, qny = qx / qL;
+  const loopFinish = [proj.ll(qc[2] + qnx * 15, qc[3] + qny * 15), proj.ll(qc[2] - qnx * 15, qc[3] - qny * 15)];
+  const loopLib = { venues: [{ id: 'loop-sprint', name: 'Loop Sprint', type: 'sprint', lat: 51.2085, lng: -1.6055, radius: 2500, layouts: [{ id: 'loop', name: 'Loop course', length: 3000, startLine: start, finishLine: loopFinish }] }] };
+  const lp = T.analyse(T.read(vbo, 'f.vbo'), loopLib), lk = T.analyse(T.read(vbo, 'f.vbo'), loopLib, { ignoreFirstFinish: true });
+  ok(lp.laps.length === 2 && !lp.pointToPoint, 'a loop sprint times both runs by default');
+  ok(lk.laps.length === 1 && lk.firstFinishIgnored === 1 && lk.laps[0].start > 100, 'a loop sprint can ignore the first finish crossing: only the second run is left');
   const so = T.analyse(T.read(vbo, 'f.vbo'), { venues: [] }, { type: 'other' });
   ok(so.type === 'other' && !so.needsStartLine && so.trace.outline.length > 100, 'other: mapped without needing a start line');
 }

@@ -11,20 +11,29 @@
 <style>
   :root {
     --ink: #16233d;
+    --ink-2: #ffffff;
+    --paper: #f3f1ea;
+    --card: #ffffff;
     --orange: #e8542a;
-    --steel: #7c8798;
+    --steel: #5b6577;
     --white: #ffffff;
+    --green: #2a8a5a;
+    --red: #c13a3a;
+    --line: rgba(22, 35, 61, 0.14);
+    --line-strong: rgba(22, 35, 61, 0.3);
+    --hover: rgba(22, 35, 61, 0.05);
+    --field: #ffffff;
   }
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    background: var(--ink);
-    color: var(--white);
+    background: var(--paper);
+    color: var(--ink);
     font-size: 0.85rem;
   }
   header {
     padding: 20px 24px;
-    border-bottom: 1px solid rgba(255,255,255,0.15);
+    border-bottom: 1px solid var(--line);
     position: relative;
   }
   /* Notification bell: what needs attention, with a preview of each item. */
@@ -32,7 +41,7 @@
   .bell-btn {
     position: relative; width: 42px; height: 42px; padding: 0;
     display: flex; align-items: center; justify-content: center;
-    background: none; border: 1px solid rgba(255,255,255,0.35); border-radius: 50%; color: var(--white);
+    background: none; border: 1px solid var(--line-strong); border-radius: 50%; color: var(--ink);
   }
   .bell-btn:hover { border-color: var(--orange); color: var(--orange); }
   .bell-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
@@ -44,17 +53,17 @@
   .bell-badge[hidden] { display: none; }
   .bell-panel {
     position: absolute; top: 50px; right: 0; width: min(380px, calc(100vw - 32px)); max-height: 70vh; overflow-y: auto;
-    background: #0f1a2e; border: 1px solid rgba(255,255,255,0.25); border-radius: 12px;
-    box-shadow: 0 14px 40px rgba(0,0,0,0.45); padding: 8px 0;
+    background: var(--card); border: 1px solid var(--line-strong); border-radius: 12px;
+    box-shadow: 0 14px 40px rgba(22,35,61,0.18); padding: 8px 0;
   }
   .bell-panel[hidden] { display: none; }
   .bell-group { padding: 10px 14px 4px; font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--steel); }
   .bell-item {
     display: flex; gap: 10px; align-items: center; width: 100%; padding: 8px 14px; text-align: left;
-    background: none; border: 0; color: var(--white); font-size: 0.78rem; cursor: pointer;
+    background: none; border: 0; color: var(--ink); font-size: 0.78rem; cursor: pointer;
   }
-  .bell-item:hover, .bell-item:focus-visible { background: rgba(255,255,255,0.07); }
-  .bell-thumb { width: 40px; height: 40px; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.2); }
+  .bell-item:hover, .bell-item:focus-visible { background: var(--hover); }
+  .bell-thumb { width: 40px; height: 40px; object-fit: cover; flex-shrink: 0; border: 1px solid var(--line); }
   .bell-thumb-blank { display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--steel); }
   .bell-text { min-width: 0; flex: 1; }
   .bell-title { display: block; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -62,9 +71,9 @@
   .bell-new { flex-shrink: 0; font-size: 0.6rem; font-weight: 700; color: var(--orange); letter-spacing: 0.05em; }
   .bell-empty { padding: 14px; color: var(--steel); font-size: 0.8rem; }
   .bell-key { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
-  .bell-key-label { font-size: 0.8rem; color: var(--white); }
+  .bell-key-label { font-size: 0.8rem; color: var(--ink); }
   .bell-key-row { display: flex; gap: 8px; }
-  .bell-key-row input { flex: 1; min-width: 0; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3); color: var(--white); padding: 9px 10px; font-family: inherit; font-size: 16px; }
+  .bell-key-row input { flex: 1; min-width: 0; background: var(--field); border: 1px solid var(--line-strong); color: var(--ink); padding: 9px 10px; font-family: inherit; font-size: 16px; }
   .bell-flash { outline: 2px solid var(--orange); outline-offset: 3px; transition: outline-color 1.5s ease; }
   @media (max-width: 600px) {
     header h1 { padding-right: 56px; }
@@ -74,7 +83,7 @@
   h1 { font-size: 1rem; letter-spacing: 0.04em; margin: 0 0 4px; color: var(--orange); }
   .admin-links { margin: 0 0 12px; }
   .admin-links a { color: var(--orange); }
-  h2 { font-size: 0.85rem; letter-spacing: 0.04em; margin: 0 0 14px; color: var(--white); text-transform: uppercase; }
+  h2 { font-size: 0.85rem; letter-spacing: 0.04em; margin: 0 0 14px; color: var(--ink); text-transform: uppercase; }
   main { max-width: 1400px; margin: 0 auto; padding: 24px; }
   .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
   .admin-col { min-width: 0; }
@@ -83,17 +92,17 @@
   .key-row { display: flex; gap: 8px; margin-bottom: 20px; }
   .key-row input {
     flex: 1;
-    background: rgba(0,0,0,0.3);
-    border: 1px solid rgba(255,255,255,0.3);
-    color: var(--white);
+    background: var(--field);
+    border: 1px solid var(--line-strong);
+    color: var(--ink);
     padding: 10px 12px;
     font-family: inherit;
     font-size: inherit;
   }
   input[type="email"], input[type="text"] {
-    background: rgba(0,0,0,0.3);
-    border: 1px solid rgba(255,255,255,0.3);
-    color: var(--white);
+    background: var(--field);
+    border: 1px solid var(--line-strong);
+    color: var(--ink);
     padding: 8px 10px;
     font-family: inherit;
     font-size: inherit;
@@ -109,12 +118,12 @@
   }
   button:hover { opacity: 0.9; }
   button:disabled { opacity: 0.5; cursor: default; }
-  button.secondary { background: none; border: 1px solid rgba(255,255,255,0.35); color: var(--white); }
-  button.danger { background: none; border: 1px solid #ff6b6b; color: #ff6b6b; }
-  button.danger:hover { background: #ff6b6b; color: var(--ink); }
+  button.secondary { background: none; border: 1px solid var(--line-strong); color: var(--ink); }
+  button.danger { background: none; border: 1px solid #c13a3a; color: #c13a3a; }
+  button.danger:hover { background: #c13a3a; color: var(--ink); }
   .status { color: var(--steel); margin-bottom: 16px; }
   .card {
-    border: 1px solid rgba(255,255,255,0.2);
+    border: 1px solid var(--line);
     margin-bottom: 18px;
     display: flex;
     gap: 14px;
@@ -128,12 +137,12 @@
   .card-meta { color: var(--steel); font-size: 0.68rem; margin-bottom: 10px; }
   .card-status { font-size: 0.68rem; margin-top: 6px; }
   .card-guest { color: var(--orange); }
-  .card-status.approved { color: #4caf7d; }
-  .card-status.rejected { color: #ff6b6b; }
+  .card-status.approved { color: var(--green); }
+  .card-status.rejected { color: #c13a3a; }
   .card-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
   .approve-btn { background: #4caf7d; }
-  .reject-btn { background: none; border: 1px solid #ff6b6b; color: #ff6b6b; }
-  .reject-btn:hover { background: #ff6b6b; color: var(--ink); }
+  .reject-btn { background: none; border: 1px solid #c13a3a; color: #c13a3a; }
+  .reject-btn:hover { background: #c13a3a; color: var(--ink); }
   .assign-row { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
   .assign-row input { flex: 1; min-width: 160px; }
   .empty { color: var(--steel); }
@@ -142,22 +151,22 @@
   .card-votes { color: var(--orange); font-weight: 700; }
   .collapsible > summary, .subscriber-files-wrap > summary { cursor: pointer; list-style: none; }
   .collapsible > summary::-webkit-details-marker, .subscriber-files-wrap > summary::-webkit-details-marker { display: none; }
-  .collapsible > summary h2 { display: inline-block; margin: 0; }
-  .collapsible > summary h2::before, .subscriber-files-wrap > summary::before {
+  .collapsible > summary .panel-title { display: inline-block; margin: 0; }
+  .collapsible > summary .panel-title::before, .subscriber-files-wrap > summary::before {
     content: ""; display: inline-block; width: 18px; height: 18px; margin-right: 8px; vertical-align: -3px;
     background: var(--orange); transform: rotate(-90deg); transition: transform .15s ease;
     -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / contain no-repeat;
             mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / contain no-repeat;
   }
   .subscriber-files-wrap > summary::before { width: 14px; height: 14px; margin-right: 6px; vertical-align: -2px; }
-  .collapsible[open] > summary h2::before, .subscriber-files-wrap[open] > summary::before { transform: none; }
+  .collapsible[open] > summary .panel-title::before, .subscriber-files-wrap[open] > summary::before { transform: none; }
   .collapsible[open] > summary { margin-bottom: 14px; }
   .summary-count { color: var(--steel); }
   .add-subscriber-row { display: flex; gap: 8px; margin-bottom: 18px; }
   .digest-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
   .digest-row .card-meta { margin: 0; flex: 1; min-width: 200px; }
   .add-subscriber-row input { flex: 1; }
-  .subscriber-card { border: 1px solid rgba(255,255,255,0.2); margin-bottom: 14px; padding: 14px; }
+  .subscriber-card { border: 1px solid var(--line); margin-bottom: 14px; padding: 14px; }
   .subscriber-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .subscriber-email { color: var(--orange); flex: 1; min-width: 160px; word-break: break-all; }
   .subscriber-files-wrap { margin-top: 10px; }
@@ -165,28 +174,28 @@
   .subscriber-files { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
   .subscriber-file-row { display: flex; align-items: center; gap: 8px; font-size: 0.72rem; }
   .subscriber-file-row img { width: 48px; height: 48px; object-fit: cover; flex-shrink: 0; cursor: zoom-in; }
-  .subscriber-file-row .file-name { flex: 1; word-break: break-all; color: var(--white); }
+  .subscriber-file-row .file-name { flex: 1; word-break: break-all; color: var(--ink); }
   .subscriber-file-row button { padding: 4px 10px; font-size: 0.68rem; }
   .subscriber-edit { display: none; margin-top: 10px; flex-direction: column; gap: 8px; }
   .subscriber-edit.open { display: flex; }
   .subscriber-rename-row { display: flex; gap: 8px; flex-wrap: wrap; }
   .subscriber-rename-row input { flex: 1; min-width: 120px; }
   .subscriber-who { flex: 1; min-width: 160px; }
-  .subscriber-name { color: var(--white); font-size: 0.9rem; }
+  .subscriber-name { color: var(--ink); font-size: 0.9rem; }
   .subscriber-name.no-name { color: var(--steel); font-size: 0.72rem; }
   .subscriber-nick { color: var(--orange, #e8542a); font-size: 0.75rem; }
   .subscriber-nick.no-name { color: var(--steel); font-size: 0.68rem; }
-  .card-name { color: var(--white); margin: 4px 0 0; }
+  .card-name { color: var(--ink); margin: 4px 0 0; }
   .add-subscriber-row { flex-wrap: wrap; }
   .subscriber-search { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
   .subscriber-search input[type="search"] { flex: 1; min-width: 140px; }
   .subscriber-search label { color: var(--steel); font-size: 0.72rem; display: flex; align-items: center; gap: 6px; }
   .subscriber-search input[type="date"] {
-    background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3); color: var(--white);
-    padding: 7px 8px; font-family: inherit; font-size: inherit; color-scheme: dark;
+    background: var(--field); border: 1px solid var(--line-strong); color: var(--ink);
+    padding: 7px 8px; font-family: inherit; font-size: inherit; color-scheme: light;
   }
   .subscriber-search input[type="search"] {
-    background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3); color: var(--white);
+    background: var(--field); border: 1px solid var(--line-strong); color: var(--ink);
     padding: 8px 10px; font-family: inherit; font-size: inherit;
   }
   .subscriber-search-count { color: var(--steel); font-size: 0.72rem; margin: 0 0 14px; }
@@ -195,11 +204,11 @@
   .subscriber-link-result[hidden] { display: none; }
   .subscriber-link-result input { flex: 1; min-width: 160px; font-size: 0.68rem; padding: 6px 8px; }
   .subscriber-link-result button { padding: 6px 10px; font-size: 0.68rem; }
-  .subscriber-link-result .ok { color: #4caf7d; }
-  .subscriber-link-result .warn { color: #ff6b6b; }
+  .subscriber-link-result .ok { color: var(--green); }
+  .subscriber-link-result .warn { color: #c13a3a; }
   .add-subscriber-row input { min-width: 120px; }
   .thread {
-    border: 1px solid rgba(255,255,255,0.2);
+    border: 1px solid var(--line);
     margin-bottom: 24px;
   }
   .thread-head {
@@ -207,12 +216,12 @@
     align-items: center;
     gap: 12px;
     padding: 12px;
-    background: rgba(255,255,255,0.05);
+    background: var(--hover);
   }
   .thread-head img { width: 56px; height: 56px; object-fit: cover; flex-shrink: 0; cursor: zoom-in; }
   .thread-head .file { word-break: break-all; color: var(--steel); font-size: 0.72rem; }
   .thread-body { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
-  .comment { border-left: 2px solid rgba(255,255,255,0.15); padding-left: 10px; }
+  .comment { border-left: 2px solid var(--line); padding-left: 10px; }
   .comment.is-reported { border-left-color: var(--orange); }
   .comment.is-reply { margin-left: 24px; }
   .comment-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
@@ -220,11 +229,11 @@
   .comment-meta { color: var(--steel); font-size: 0.68rem; }
   .comment-text { margin: 4px 0; word-break: break-word; }
   .comment-actions { display: flex; gap: 10px; align-items: center; }
-  .reports-badge { color: #ff6b6b; font-size: 0.68rem; }
+  .reports-badge { color: #c13a3a; font-size: 0.68rem; }
   .hidden-badge { color: var(--steel); font-size: 0.68rem; }
-  .delete-btn { background: none; border: 1px solid #ff6b6b; color: #ff6b6b; padding: 4px 10px; font-size: 0.68rem; }
-  .delete-btn:hover { background: #ff6b6b; color: var(--ink); }
-  .local-reported-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 0.72rem; }
+  .delete-btn { background: none; border: 1px solid #c13a3a; color: #c13a3a; padding: 4px 10px; font-size: 0.68rem; }
+  .delete-btn:hover { background: #c13a3a; color: var(--ink); }
+  .local-reported-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 0.72rem; }
   .local-reported-row .file-name { flex: 1; word-break: break-all; }
   .local-reported-row button { padding: 4px 10px; font-size: 0.68rem; }
   .clear-all-row { margin-bottom: 12px; }
@@ -246,43 +255,43 @@
   .lightbox-caption { color: var(--steel); font-size: 0.72rem; word-break: break-all; text-align: center; }
   .lightbox-close { position: absolute; top: 12px; right: 12px; padding: 6px 12px; }
   .iv-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
-  .iv-stat { border: 1px solid rgba(255,255,255,0.2); padding: 12px; }
+  .iv-stat { border: 1px solid var(--line); padding: 12px; }
   .iv-stat-label { color: var(--steel); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em; }
   .iv-stat-value { font-size: 1.1rem; margin-top: 4px; }
   .iv-stat-note { color: var(--steel); font-size: 0.68rem; margin-top: 4px; }
   .iv-stat.urgent { border-color: var(--orange); }
   .iv-stat.urgent .iv-stat-value { color: var(--orange); }
   .iv-settings { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; color: var(--steel); font-size: 0.72rem; }
-  .iv-settings select { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3); color: var(--white); font-family: inherit; font-size: inherit; padding: 4px 6px; }
+  .iv-settings select { background: var(--field); border: 1px solid var(--line-strong); color: var(--ink); font-family: inherit; font-size: inherit; padding: 4px 6px; }
   .iv-gap { color: var(--orange); font-size: 0.72rem; margin: 0 0 12px; }
   .iv-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
-  .iv-table th { text-align: left; color: var(--steel); font-weight: normal; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em; padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.2); }
-  .iv-table td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); vertical-align: top; }
-  .iv-table a { color: var(--white); }
+  .iv-table th { text-align: left; color: var(--steel); font-weight: normal; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+  .iv-table td { padding: 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .iv-table a { color: var(--ink); }
   .iv-table .iv-sub { color: var(--steel); font-size: 0.68rem; }
   .iv-table a.iv-sub { display: block; margin-top: 3px; }
   .iv-table .num { text-align: right; }
-  .iv-filters select { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3); color: var(--white); font-family: inherit; font-size: inherit; padding: 7px 8px; }
+  .iv-filters select { background: var(--field); border: 1px solid var(--line-strong); color: var(--ink); font-family: inherit; font-size: inherit; padding: 7px 8px; }
   .iv-filters button { padding: 7px 12px; font-size: 0.72rem; }
-  .iv-type { display: inline-block; font-size: 0.62rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 6px; border: 1px solid rgba(255,255,255,0.35); color: var(--steel); }
+  .iv-type { display: inline-block; font-size: 0.62rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 6px; border: 1px solid var(--line-strong); color: var(--steel); }
   .iv-type.track { border-color: var(--orange); color: var(--orange); }
   .iv-status { font-size: 0.68rem; }
-  .iv-status.published { color: #4caf7d; }
+  .iv-status.published { color: var(--green); }
   .iv-status.scheduled { color: var(--orange); }
   .iv-actions { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px; }
   .iv-actions .iv-act { padding: 4px 8px; font-size: 0.68rem; }
   .iv-drafts-title { margin: 22px 0 4px; font-size: 0.9rem; }
-  .iv-draft-date { color-scheme: dark; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3); color: var(--white); padding: 6px 8px; font: inherit; }
+  .iv-draft-date { color-scheme: light; background: var(--field); border: 1px solid var(--line-strong); color: var(--ink); padding: 6px 8px; font: inherit; }
   .iv-toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
   .iv-toolbar button { padding: 6px 12px; font-size: 0.72rem; }
   .iv-note { color: var(--steel); font-size: 0.72rem; }
   .bc-form { display: flex; flex-direction: column; gap: 8px; margin: 12px 0 18px; }
-  .bc-form textarea { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3); color: var(--white); padding: 8px 10px; font: inherit; resize: vertical; }
+  .bc-form textarea { background: var(--field); border: 1px solid var(--line-strong); color: var(--ink); padding: 8px 10px; font: inherit; resize: vertical; }
   .bc-email { display: flex; gap: 8px; align-items: center; font-size: 0.8rem; }
   .bc-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
   .bc-h3 { margin: 22px 0 6px; font-size: 0.9rem; }
   .bc-text { white-space: pre-line; overflow-wrap: anywhere; }
-  .bc-item { border: 1px solid rgba(255,255,255,0.2); margin-bottom: 8px; }
+  .bc-item { border: 1px solid var(--line); margin-bottom: 8px; }
   .bc-item > summary { cursor: pointer; padding: 10px 12px; list-style: revert; }
   .bc-body { padding: 0 12px 12px; }
   .bc-body .bc-row { margin: 8px 0; }
@@ -290,24 +299,24 @@
   .bc-one { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
   .bc-one input { flex: 1 1 200px; min-width: 0; }
   .bc-one button { padding: 6px 10px; font-size: 0.72rem; }
-  .bc-test { margin-top: 14px; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.25); }
+  .bc-test { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line-strong); }
   .bc-test label { display: block; font-size: 0.72rem; margin-bottom: 6px; }
   .bc-test-row { display: flex; gap: 8px; flex-wrap: wrap; }
   .bc-test-row input { flex: 1 1 200px; min-width: 0; }
   .bc-test-row button { padding: 6px 12px; font-size: 0.72rem; }
-  .bc-test-row select { flex: 0 1 auto; min-width: 0; max-width: 100%; background: #0f172a; color: var(--white); border: 1px solid rgba(255,255,255,0.35); padding: 6px 8px; font: inherit; font-size: 0.78rem; }
+  .bc-test-row select { flex: 0 1 auto; min-width: 0; max-width: 100%; background: var(--card); color: var(--ink); border: 1px solid var(--line-strong); padding: 6px 8px; font: inherit; font-size: 0.78rem; }
   .bc-emailed summary { cursor: pointer; margin-top: 6px; }
   .pv-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; }
   .pv-form input[type="email"] { flex: 1 1 220px; min-width: 0; }
-  .pv-form select { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3); color: var(--white); padding: 8px 10px; font: inherit; }
+  .pv-form select { background: var(--field); border: 1px solid var(--line-strong); color: var(--ink); padding: 8px 10px; font: inherit; }
   .pv-form select option { color: #16233d; }
-  .iv-note.error { color: #ff6b6b; }
-  .iv-note.ok { color: #4caf7d; }
+  .iv-note.error { color: #c13a3a; }
+  .iv-note.ok { color: var(--green); }
   .iv-table input[type="date"], .iv-table input[type="text"], .iv-table textarea {
-    width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3);
-    color: var(--white); font-family: inherit; font-size: 0.72rem; padding: 5px 6px; margin-top: 4px;
+    width: 100%; box-sizing: border-box; background: var(--field); border: 1px solid var(--line-strong);
+    color: var(--ink); font-family: inherit; font-size: 0.72rem; padding: 5px 6px; margin-top: 4px;
   }
-  .iv-table input[type="date"] { color-scheme: dark; max-width: 170px; }
+  .iv-table input[type="date"] { color-scheme: light; max-width: 170px; }
   .iv-table textarea { min-height: 52px; resize: vertical; }
   .iv-table input.changed, .iv-table textarea.changed { border-color: var(--orange); }
   .iv-review { border: 1px solid var(--orange); padding: 14px; margin-bottom: 14px; font-size: 0.78rem; }
@@ -340,7 +349,7 @@
   .key-row input, .subscriber-search input[type="search"], .subscriber-search input[type="date"],
   .iv-settings select, .iv-filters select, .pv-form select, .bc-test-row select, .bc-form textarea, .iv-draft-date, .bell-key-row input {
     min-height: 44px; border-radius: var(--radius-sm); font-size: 0.95rem; padding: 9px 12px;
-    background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3); color: var(--white); color-scheme: dark;
+    background: var(--field); border: 1px solid var(--line-strong); color: var(--ink); color-scheme: light;
   }
   select option { color: #16233d; background: #ffffff; }
   .iv-table input[type="date"], .iv-table input[type="text"], .iv-table textarea { min-height: 38px; font-size: 0.86rem; border-radius: var(--radius-sm); }
@@ -356,17 +365,17 @@
   }
   button:hover { opacity: 1; background: #d4481f; }
   button:disabled { opacity: 0.45; }
-  button.secondary { background: transparent; border-color: rgba(255,255,255,0.35); color: var(--white); }
-  button.secondary:hover { background: rgba(255,255,255,0.08); border-color: var(--white); }
-  button.danger, .reject-btn, .delete-btn { background: transparent; border-color: rgba(255,107,107,0.6); color: #ff6b6b; }
-  button.danger:hover, .reject-btn:hover, .delete-btn:hover { background: rgba(255,107,107,0.14); color: #ff6b6b; }
+  button.secondary { background: transparent; border-color: var(--line-strong); color: var(--ink); }
+  button.secondary:hover { background: var(--hover); border-color: var(--ink); }
+  button.danger, .reject-btn, .delete-btn { background: transparent; border-color: rgba(193,58,58,0.5); color: #c13a3a; }
+  button.danger:hover, .reject-btn:hover, .delete-btn:hover { background: rgba(193,58,58,0.08); color: #c13a3a; }
   .approve-btn { background: #3f9e6e; }
   .approve-btn:hover { background: #358a5f; }
   .bell-btn, .bell-item { min-height: 0; border-radius: 50%; font-weight: 400; }
   .bell-btn { background: none; }
-  .bell-btn:hover { background: rgba(255,255,255,0.06); }
+  .bell-btn:hover { background: var(--hover); }
   .bell-item { border-radius: 0; background: none; font-size: 0.86rem; justify-content: flex-start; }
-  .bell-item:hover { background: rgba(255,255,255,0.07); }
+  .bell-item:hover { background: var(--hover); }
   .bell-thumb { border-radius: var(--radius-sm); }
   .bell-thumb-blank .icon { width: 20px; height: 20px; }
   .icon { width: 18px; height: 18px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vertical-align: middle; }
@@ -379,7 +388,7 @@
   .thread { overflow: hidden; }
   .card img, .thread-head img, .subscriber-file-row img { border-radius: var(--radius-sm); }
   .iv-table th { border-bottom-color: var(--line); }
-  .iv-table td { border-bottom-color: rgba(255,255,255,0.08); }
+  .iv-table td { border-bottom-color: var(--hover); }
   .iv-type { border-radius: var(--radius-pill); padding: 2px 10px; font-size: 0.78rem; font-weight: 600; }
   .card-file, .card-meta, .card-status, .comment-meta, .reports-badge, .hidden-badge, .subscriber-added, .subscriber-name.no-name, .subscriber-nick,
   .subscriber-files-wrap > summary, .subscriber-file-row, .subscriber-search label, .subscriber-search-count, .subscriber-link-result,
@@ -437,19 +446,20 @@
   .tk-form label { display: grid; gap: 4px; font-size: 0.82rem; color: var(--steel); }
   .tk-form textarea { width: 100%; min-height: 60px; }
   .tk-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
-  .tk-layout { border: 1px solid rgba(255,255,255,0.2); border-radius: var(--radius-sm); padding: 10px 12px; display: grid; gap: 8px; }
+  .tk-layout { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 10px 12px; display: grid; gap: 8px; }
   .tk-layout legend { font-size: 0.82rem; color: var(--steel); padding: 0 4px; }
   .tk-layout .danger { justify-self: start; }
   .tk-from { flex: 1; min-width: 200px; }
-  .tk-switch { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; background: none; border: 0; color: var(--white); padding: 0 6px; }
-  .tk-track { width: 42px; height: 26px; border-radius: 13px; background: rgba(255,255,255,0.25); position: relative; }
+  .tk-switch { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; background: none; border: 0; color: var(--ink); padding: 0 6px; }
+  .tk-track { width: 42px; height: 26px; border-radius: 13px; background: var(--line-strong); position: relative; }
   .tk-track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform .15s; }
   .tk-switch[aria-checked="true"] .tk-track { background: var(--orange); }
   .tk-switch[aria-checked="true"] .tk-track::after { transform: translateX(16px); }
-  .tk-req { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.15); }
+  .tk-req { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
   .tk-outline { width: 120px; height: 80px; flex: none; color: var(--orange); }
   #tk-board { margin-top: 10px; }
 </style>
+<link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
 <header>
@@ -461,18 +471,141 @@
     <div class="bell-panel" id="bell-panel" role="dialog" aria-label="Notifications" hidden></div>
   </div>
   <h1>MT3UK Admin</h1>
-  <p class="admin-links"><a href="events-admin.html">Events admin</a> &middot; <a href="device-checklist.html">Device test checklist</a></p>
   <div class="key-row">
     <input type="password" id="admin-key" placeholder="Admin key" autocomplete="off">
     <button id="load-btn" type="button">Load</button>
   </div>
 </header>
 <main>
+  <ul class="admin-nav" aria-label="Admin sections">
+    <li><a href="admin.html#grp-gallery">Gallery and builds</a></li>
+    <li><a href="admin.html#grp-reports">Reports</a></li>
+    <li><a href="admin.html#grp-members">Members</a></li>
+    <li><a href="admin.html#grp-interviews">Owner interviews</a></li>
+    <li><a href="admin.html#grp-tracks">Track sessions</a></li>
+    <li class="nav-gap" aria-hidden="true"></li>
+    <li><a href="events-admin.html">Events</a></li>
+    <li><a href="device-checklist.html">Device checks</a></li>
+  </ul>
   <p class="status" id="status"></p>
 
-  <section>
+  <section class="admin-group" id="grp-gallery" aria-labelledby="grp-gallery-h">
+    <div class="group-head"><h2 id="grp-gallery-h">Gallery and builds</h2><p>Photo claims, unclaimed photos and the Build of the Week entries.</p></div>
+    <div class="panel-wrap">
+    <details class="collapsible" id="pending-wrap">
+      <summary><h3 class="panel-title">Pending claims <span class="summary-count" id="pending-count"></span></h3></summary>
+      <div id="pending-claims"></div>
+    </details>
+    </div>
+    <div class="panel-wrap">
+    <details class="collapsible" id="decided-wrap">
+      <summary><h3 class="panel-title">Decided claims <span class="summary-count" id="decided-count"></span></h3></summary>
+      <div id="decided-claims"></div>
+    </details>
+    </div>
+    <div class="panel-wrap">
+    <details class="collapsible" id="unclaimed-wrap">
+      <summary><h3 class="panel-title">Unclaimed photos <span class="summary-count" id="unclaimed-count"></span></h3></summary>
+      <datalist id="subscriber-emails"></datalist>
+      <div id="unclaimed-photos"></div>
+    </details>
+    </div>
+    <div class="panel-wrap">
+    <details class="collapsible" id="votes-wrap">
+      <summary><h3 class="panel-title">Build of the Week entries <span class="summary-count" id="votes-count"></span></h3></summary>
+      <p class="card-meta">This week's vote, newest first. Remove from voting takes a photo out of the vote and deletes its votes this week. The photo stays in the gallery and reel, and the owner can't put it back in, but they can enter a different photo.</p>
+      <div id="vote-entries"></div>
+      <h3 class="sub-head">Taken out of voting</h3>
+      <div id="vote-removed"></div>
+    </details>
+    </div>
+  </section>
+
+  <section class="admin-group" id="grp-reports" aria-labelledby="grp-reports-h">
+    <div class="group-head"><h2 id="grp-reports-h">Reports</h2><p>Comments and photos members have reported, and what has been reported from this browser.</p></div>
+    <div class="panel-wrap">
+    <details class="collapsible" id="comments-wrap">
+      <summary><h3 class="panel-title">Reported comments <span class="summary-count" id="comments-count"></span></h3></summary>
+      <div id="threads"></div>
+    </details>
+    </div>
+    <div class="panel-wrap">
+    <details class="collapsible" id="rphotos-wrap">
+      <summary><h3 class="panel-title">Reported photos <span class="summary-count" id="rphotos-count"></span></h3></summary>
+      <div id="reported-photos"></div>
+    </details>
+    </div>
+    <div class="panel-wrap">
+    <details class="collapsible" id="local-wrap">
+      <summary><h3 class="panel-title">Reported in this browser <span class="summary-count" id="local-count"></span></h3></summary>
+      <p class="card-meta">These photos show as "Reported" (disabled) on the public site in this browser, from a local flag stored here, separate from server-side reports above. Clearing them here only affects this browser.</p>
+      <div id="local-reported-list"></div>
+    </details>
+    </div>
+  </section>
+
+  <section class="admin-group" id="grp-members" aria-labelledby="grp-members-h">
+    <div class="group-head"><h2 id="grp-members-h">Members</h2><p>Subscribers, and messages to them.</p></div>
+    <div class="panel-wrap">
+    <details class="collapsible" id="subscribers-wrap">
+      <summary><h3 class="panel-title">Subscribers <span class="summary-count" id="subscribers-count"></span></h3></summary>
+      <div class="digest-row">
+        <button type="button" class="secondary" id="send-digest-btn">Send subscribers email now</button>
+        <span class="card-meta" id="send-digest-status">Emails the list of members to modtesla3uk@gmail.com. It also goes out every day at 8pm.</span>
+      </div>
+      <div class="add-subscriber-row">
+        <input type="text" id="new-subscriber-first" placeholder="First name" autocomplete="off">
+        <input type="text" id="new-subscriber-last" placeholder="Last name" autocomplete="off">
+        <input type="email" id="new-subscriber-email" placeholder="new-subscriber@email.com" autocomplete="off">
+        <button type="button" id="add-subscriber-btn">Add subscriber</button>
+      </div>
+      <div class="subscriber-search">
+        <input type="search" id="sub-search-name" placeholder="Search name or nickname" autocomplete="off">
+        <input type="search" id="sub-search-email" placeholder="Search email" autocomplete="off">
+        <label>Added from <input type="date" id="sub-search-from"></label>
+        <label>to <input type="date" id="sub-search-to"></label>
+        <button type="button" class="secondary" id="sub-search-clear">Clear</button>
+      </div>
+      <p class="subscriber-search-count" id="sub-search-count"></p>
+      <div id="subscribers-list"></div>
+    </details>
+    </div>
+    <div class="panel-wrap">
+    <details class="collapsible" id="members-msg-wrap">
+      <summary><h3 class="panel-title">Messages to subscribers <span class="summary-count" id="msg-count"></span></h3></summary>
+      <p class="iv-note">Members and subscribers are the same people: everyone with an MT3UK account. A message always goes to their Profile inbox, and the bell shows it as unread. Tick <strong>Also send it by email</strong> to email it too (members who have turned emails off are skipped).</p>
+      <form class="bc-form" id="bc-form" novalidate>
+        <input type="text" id="bc-title" placeholder="Title, e.g. Track day at Thruxton" maxlength="120" aria-label="Message title">
+        <textarea id="bc-text" rows="5" maxlength="5000" placeholder="Message" aria-label="Message"></textarea>
+        <label class="bc-email"><input type="checkbox" id="bc-email"> Also send it by email</label>
+        <div class="bc-row"><button type="submit">Send message</button><span class="iv-note" id="bc-note"></span></div>
+        <div class="bc-test">
+          <label for="bc-test-email">Send a test to</label>
+          <div class="bc-test-row">
+            <input type="email" id="bc-test-email" placeholder="you@example.com" autocomplete="email">
+            <select id="bc-test-variant" aria-label="Send as">
+              <option value="full">As members get it</option>
+              <option value="withheader">With unsubscribe header</option>
+              <option value="plain">Plain, like a sign-in email</option>
+            </select>
+            <button type="button" class="secondary" id="bc-test-btn">Send test</button>
+          </div>
+          <p class="iv-note" id="bc-test-note" role="status">Emails this title and message to one address, with [Test] in the subject. Nothing is saved or sent to anyone else. To find what sends it to Junk, send it each way and see which arrive in the inbox.</p>
+        </div>
+      </form>
+      <div id="bc-list"></div>
+      <h3 class="bc-h3">Reported friend messages <span class="summary-count" id="dm-count"></span></h3>
+      <p class="iv-note">Members can report a message a friend sent them. Remove deletes that message; Block also stops the sender messaging anyone until you unblock them.</p>
+      <div id="dm-list"></div>
+    </details>
+    </div>
+  </section>
+
+  <section class="admin-group" id="grp-interviews" aria-labelledby="grp-interviews-h">
+    <div class="group-head"><h2 id="grp-interviews-h">Owner interviews</h2><p>The interview pipeline and who has opened a preview.</p></div>
+    <div class="panel-wrap">
     <details class="collapsible" id="interviews-wrap">
-      <summary><h2>Owner interviews <span class="summary-count" id="interviews-count"></span></h2></summary>
+      <summary><h3 class="panel-title">Owner interviews <span class="summary-count" id="interviews-count"></span></h3></summary>
       <div class="iv-settings">
         <label>Release every
           <select id="iv-cadence">
@@ -532,41 +665,10 @@
       <div id="iv-list"></div>
       <div id="iv-drafts"></div>
     </details>
-  </section>
-
-  <section>
-    <details class="collapsible" id="members-msg-wrap">
-      <summary><h2>Messages to subscribers <span class="summary-count" id="msg-count"></span></h2></summary>
-      <p class="iv-note">Members and subscribers are the same people: everyone with an MT3UK account. A message always goes to their Profile inbox, and the bell shows it as unread. Tick <strong>Also send it by email</strong> to email it too (members who have turned emails off are skipped).</p>
-      <form class="bc-form" id="bc-form" novalidate>
-        <input type="text" id="bc-title" placeholder="Title, e.g. Track day at Thruxton" maxlength="120" aria-label="Message title">
-        <textarea id="bc-text" rows="5" maxlength="5000" placeholder="Message" aria-label="Message"></textarea>
-        <label class="bc-email"><input type="checkbox" id="bc-email"> Also send it by email</label>
-        <div class="bc-row"><button type="submit">Send message</button><span class="iv-note" id="bc-note"></span></div>
-        <div class="bc-test">
-          <label for="bc-test-email">Send a test to</label>
-          <div class="bc-test-row">
-            <input type="email" id="bc-test-email" placeholder="you@example.com" autocomplete="email">
-            <select id="bc-test-variant" aria-label="Send as">
-              <option value="full">As members get it</option>
-              <option value="withheader">With unsubscribe header</option>
-              <option value="plain">Plain, like a sign-in email</option>
-            </select>
-            <button type="button" class="secondary" id="bc-test-btn">Send test</button>
-          </div>
-          <p class="iv-note" id="bc-test-note" role="status">Emails this title and message to one address, with [Test] in the subject. Nothing is saved or sent to anyone else. To find what sends it to Junk, send it each way and see which arrive in the inbox.</p>
-        </div>
-      </form>
-      <div id="bc-list"></div>
-      <h3 class="bc-h3">Reported friend messages <span class="summary-count" id="dm-count"></span></h3>
-      <p class="iv-note">Members can report a message a friend sent them. Remove deletes that message; Block also stops the sender messaging anyone until you unblock them.</p>
-      <div id="dm-list"></div>
-    </details>
-  </section>
-
-  <section>
+    </div>
+    <div class="panel-wrap">
     <details class="collapsible" id="preview-wrap">
-      <summary><h2>Interview previews <span class="summary-count" id="preview-count"></span></h2></summary>
+      <summary><h3 class="panel-title">Interview previews <span class="summary-count" id="preview-count"></span></h3></summary>
       <p class="iv-note">Until an interview is published, anyone can ask for a one-time code on its page. A code opens that interview for 4 hours, signs them in, and makes them a member if they weren&rsquo;t already. Below is everyone who has opened one. Revoke ends their preview straight away and stops new codes; Restore undoes it.</p>
       <form class="pv-form" id="pv-form" novalidate>
         <input type="email" id="pv-email" placeholder="Email" autocomplete="off" aria-label="Email to revoke">
@@ -578,11 +680,14 @@
       </form>
       <div id="pv-list"></div>
     </details>
+    </div>
   </section>
 
-  <section>
+  <section class="admin-group" id="grp-tracks" aria-labelledby="grp-tracks-h">
+    <div class="group-head"><h2 id="grp-tracks-h">Track sessions</h2><p>The tracks and tyres that Track sessions offers, and the leaderboards.</p></div>
+    <div class="panel-wrap">
     <details class="collapsible" id="tracks-wrap">
-      <summary><h2>Tracks <span class="summary-count" id="tracks-count"></span></h2></summary>
+      <summary><h3 class="panel-title">Tracks <span class="summary-count" id="tracks-count"></span></h3></summary>
       <p class="iv-note">The tracks and drag strips that Track sessions recognises from a member's file. Most start without a start line: add one (or set up a member's request below) so laps are timed and the track gets a leaderboard. Changes apply to new uploads straight away.</p>
       <p class="iv-note" id="tk-note" role="status"></p>
       <h3 class="sub-head">New track requests</h3>
@@ -594,85 +699,21 @@
       <select id="tk-board-pick" aria-label="Leaderboard"></select>
       <div id="tk-board"></div>
     </details>
+    </div>
+    <div class="panel-wrap">
+    <details class="collapsible" id="tyres-wrap">
+      <summary><h3 class="panel-title">Tyres <span class="summary-count" id="tyres-count"></span></h3></summary>
+      <p class="iv-note">The tyre makes and models offered in Track sessions. The Model box suggests a make's models and members can still type anything. data/tyres.json is the starting list; changes made here are stored by the worker on top of it and used straight away.</p>
+      <p class="iv-note" id="ty-note" role="status"></p>
+      <div class="tk-form" id="ty-form" hidden></div>
+      <h3 class="sub-head">Makes</h3>
+      <div id="ty-list"></div>
+      <h3 class="sub-head">Sizes</h3>
+      <div id="ty-sizes"></div>
+    </details>
+    </div>
   </section>
 
-  <div class="admin-grid">
-  <div class="admin-col">
-    <section>
-      <details class="collapsible" id="pending-wrap">
-        <summary><h2>Pending claims <span class="summary-count" id="pending-count"></span></h2></summary>
-        <div id="pending-claims"></div>
-      </details>
-    </section>
-    <section>
-      <details class="collapsible" id="decided-wrap">
-        <summary><h2>Decided claims <span class="summary-count" id="decided-count"></span></h2></summary>
-        <div id="decided-claims"></div>
-      </details>
-    </section>
-    <section>
-      <details class="collapsible" id="unclaimed-wrap">
-        <summary><h2>Unclaimed photos <span class="summary-count" id="unclaimed-count"></span></h2></summary>
-        <datalist id="subscriber-emails"></datalist>
-        <div id="unclaimed-photos"></div>
-      </details>
-    </section>
-    <section>
-      <details class="collapsible" id="subscribers-wrap">
-        <summary><h2>Subscribers <span class="summary-count" id="subscribers-count"></span></h2></summary>
-        <div class="digest-row">
-          <button type="button" class="secondary" id="send-digest-btn">Send subscribers email now</button>
-          <span class="card-meta" id="send-digest-status">Emails the list of members to modtesla3uk@gmail.com. It also goes out every day at 8pm.</span>
-        </div>
-        <div class="add-subscriber-row">
-          <input type="text" id="new-subscriber-first" placeholder="First name" autocomplete="off">
-          <input type="text" id="new-subscriber-last" placeholder="Last name" autocomplete="off">
-          <input type="email" id="new-subscriber-email" placeholder="new-subscriber@email.com" autocomplete="off">
-          <button type="button" id="add-subscriber-btn">Add subscriber</button>
-        </div>
-        <div class="subscriber-search">
-          <input type="search" id="sub-search-name" placeholder="Search name or nickname" autocomplete="off">
-          <input type="search" id="sub-search-email" placeholder="Search email" autocomplete="off">
-          <label>Added from <input type="date" id="sub-search-from"></label>
-          <label>to <input type="date" id="sub-search-to"></label>
-          <button type="button" class="secondary" id="sub-search-clear">Clear</button>
-        </div>
-        <p class="subscriber-search-count" id="sub-search-count"></p>
-        <div id="subscribers-list"></div>
-      </details>
-    </section>
-  </div>
-  <div class="admin-col">
-    <section>
-      <details class="collapsible" id="votes-wrap">
-        <summary><h2>Build of the Week entries <span class="summary-count" id="votes-count"></span></h2></summary>
-        <p class="card-meta">This week's vote, newest first. Remove from voting takes a photo out of the vote and deletes its votes this week. The photo stays in the gallery and reel, and the owner can't put it back in, but they can enter a different photo.</p>
-        <div id="vote-entries"></div>
-        <h3 class="sub-head">Taken out of voting</h3>
-        <div id="vote-removed"></div>
-      </details>
-    </section>
-    <section>
-      <details class="collapsible" id="comments-wrap">
-        <summary><h2>Reported comments <span class="summary-count" id="comments-count"></span></h2></summary>
-        <div id="threads"></div>
-      </details>
-    </section>
-    <section>
-      <details class="collapsible" id="rphotos-wrap">
-        <summary><h2>Reported photos <span class="summary-count" id="rphotos-count"></span></h2></summary>
-        <div id="reported-photos"></div>
-      </details>
-    </section>
-    <section>
-      <details class="collapsible" id="local-wrap">
-        <summary><h2>Reported in this browser <span class="summary-count" id="local-count"></span></h2></summary>
-        <p class="card-meta">These photos show as "Reported" (disabled) on the public site in this browser, from a local flag stored here, separate from server-side reports above. Clearing them here only affects this browser.</p>
-        <div id="local-reported-list"></div>
-      </details>
-    </section>
-  </div>
-  </div>
 </main>
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Photo preview">
   <button type="button" class="secondary lightbox-close" aria-label="Close"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
@@ -2754,5 +2795,7 @@
 })();
 </script>
 <script src="js/track-admin.js" defer></script>
+<script src="js/tyre-data.js" defer></script>
+<script src="js/tyre-admin.js" defer></script>
 </body>
 </html>

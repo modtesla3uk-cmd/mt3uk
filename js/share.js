@@ -121,7 +121,11 @@
         'position:relative;top:-2px;flex-shrink:0}' +
       '.mt3uk-share-dot svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round}' +
       '.mt3uk-share-dot:hover,.mt3uk-share-dot:focus-visible{opacity:1;background:#e8542a;border-color:#e8542a;color:#fff}' +
-      '.mt3uk-share-dot::before{content:"";position:absolute;inset:-8px}';
+      '.mt3uk-share-dot::before{content:"";position:absolute;inset:-8px}' +
+      // Phones: over at the far right of the heading line.
+      // (float for plain headings, margin-left:auto for flex ones).
+      '@media (max-width:780px){.mt3uk-share-dot{float:right;margin:0 0 0 auto;top:0;shape-outside:margin-box;shape-margin:10px}h1.mt3uk-share-heading{display:flex}' +
+        '.mt3uk-share-heading,.mt3uk-share-wrap{align-self:stretch;flex:1 1 auto;max-width:none!important}}';
     var style = document.createElement('style');
     style.id = 'mt3uk-share-styles';
     style.textContent = css;
@@ -250,6 +254,13 @@
       e.stopPropagation();
       share(pageItem(opts, btn));
     });
+    heading.classList.add('mt3uk-share-heading');
+    // On phones the button sits at the far right, so the boxes around the
+    // heading, up to its section head, stretch to the full width too.
+    for (var box = heading.parentElement, n = 0; box && n < 3 && !/^(SECTION|BODY|MAIN)$/.test(box.tagName) && !box.classList.contains('wrap'); box = box.parentElement, n++) {
+      box.classList.add('mt3uk-share-wrap');
+      if (box.classList.contains('section-head')) break;
+    }
     heading.appendChild(btn);
   }
 

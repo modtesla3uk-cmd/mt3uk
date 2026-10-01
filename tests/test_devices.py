@@ -968,7 +968,9 @@ def test_vote_one_entry_and_not_your_own(device_page):
     assert other.locator(".vote-btn").count() == 1
     assert "You can only vote for other members' builds." in page.inner_text("#build-of-the-day")
     page.goto("/index.html#vote-how")
-    assert page.locator("#vote-how").get_attribute("open") is not None, "How voting works did not open"
+    # A same-page hash change opens it from the hashchange event, which can
+    # land a moment after goto returns, so wait for it rather than check once.
+    page.wait_for_function("document.getElementById('vote-how').open", timeout=5000)
     page.goto("/index.html#vote-frame")
     page.locator(".vote-card").first.wait_for(timeout=10000)
 

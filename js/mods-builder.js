@@ -32,7 +32,13 @@
     'Model 3': ['Standard Range', 'Standard Range Plus', 'Mid Range', 'Long Range RWD', 'Long Range AWD', 'Performance',
       'Rear-Wheel Drive', 'Highland Rear-Wheel Drive', 'Highland Long Range RWD', 'Highland Long Range AWD', 'Highland Performance'],
     'Model Y': ['Standard Range', 'Rear-Wheel Drive', 'Long Range RWD', 'Long Range AWD', 'Performance',
-      'Juniper Standard', 'Juniper Rear-Wheel Drive', 'Juniper Long Range RWD', 'Juniper Long Range AWD', 'Juniper Performance']
+      'Juniper Standard', 'Juniper Rear-Wheel Drive', 'Juniper Long Range RWD', 'Juniper Long Range AWD', 'Juniper Performance'],
+    // Other cars: the Ioniq 5 N (2024 on) and 6 N (2025 on) come in one
+    // version; the Taycan saloon (2019 on), Cross Turismo and Sport Turismo.
+    'Hyundai Ioniq 5 N': ['Ioniq 5 N'],
+    'Hyundai Ioniq 6 N': ['Ioniq 6 N'],
+    'Porsche Taycan': ['Taycan', '4', '4S', 'GTS', 'Turbo', 'Turbo S', 'Turbo GT', 'Turbo GT Weissach Package',
+      '4 Cross Turismo', '4S Cross Turismo', 'Turbo Cross Turismo', 'Turbo S Cross Turismo', 'GTS Sport Turismo']
   };
   var FIRST_CAR_YEAR = 2012;
 

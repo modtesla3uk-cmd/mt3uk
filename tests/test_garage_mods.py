@@ -1,3 +1,4 @@
+from playwright.sync_api import expect
 """My Garage's model picker and mods list (js/mods-builder.js with the rows
 from js/mods-view.js): the model on Add a car and on an existing car, the
 "build your mods list" card, the drop-down rows with Edit, and "What others
@@ -42,7 +43,8 @@ def test_add_a_car_asks_for_the_model_and_opens_the_new_car(device_page):
     years = page.locator("#mb-addcar-year option").all_inner_texts()
     assert years[1] == str(__import__("datetime").date.today().year) and years[-1] == "2012"
     # Versions follow the model picked, with no Cybertruck or Roadster.
-    assert form.locator(".mb-model-pick input").evaluate_all("els => els.map(e => e.value)") == ["Model 3", "Model Y", "Model S", "Model X"]
+    assert form.locator(".mb-model-pick input").evaluate_all("els => els.map(e => e.value)") == ["Model 3", "Model Y", "Model S", "Model X", "Hyundai Ioniq 5 N", "Hyundai Ioniq 6 N", "Porsche Taycan"]
+    expect(form.locator(".mb-model-group")).to_have_text("Other cars")
     versions = page.locator("#mb-addcar-version option").all_inner_texts()
     assert "Juniper Performance" in versions and "Long Range AWD" in versions and "P100D" not in versions
     page.select_option("#mb-addcar-version", "Long Range AWD")
@@ -59,6 +61,26 @@ def test_add_a_car_asks_for_the_model_and_opens_the_new_car(device_page):
 
 
 @all_devices
+def test_other_cars_can_be_added_with_their_versions(device_page):
+    """The Ioniq 5 N, Ioniq 6 N and Taycan are under Other cars, each with
+    its own versions."""
+    page = device_page
+    signed_in(page)
+    page.goto("/my-builds.html")
+    page.locator("#mb-addcar-toggle-btn").click(timeout=10000)
+    form = page.locator("#mb-addcar-form")
+    form.locator(".mb-model-pick .chip", has_text="Taycan").click()
+    versions = page.locator("#mb-addcar-version option").all_inner_texts()
+    assert "Turbo S" in versions and "4S Cross Turismo" in versions and "Juniper Performance" not in versions
+    form.locator(".mb-model-pick .chip", has_text="Ioniq 5 N").click()
+    versions = page.locator("#mb-addcar-version option").all_inner_texts()
+    assert "Ioniq 5 N" in versions and "Turbo S" not in versions
+    page.select_option("#mb-addcar-version", "Ioniq 5 N")
+    assert overflow_width(page) <= 0
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
 def test_existing_car_gets_a_model_picker(device_page):
     page = device_page
     open_car(page)
@@ -68,6 +90,11 @@ def test_existing_car_gets_a_model_picker(device_page):
     body = last_put(page)
     if body:
         assert body.get("model") == "Model 3"
+    # Other cars are in the list too, grouped.
+    assert page.locator("#mb-car-model-select optgroup").evaluate_all("els => els.map(e => e.label)") == ["Tesla", "Other cars"]
+    page.select_option("#mb-car-model-select", "Hyundai Ioniq 6 N")
+    page.wait_for_function("document.getElementById('mb-car-model-select').disabled === false", timeout=5000)
+    assert "Ioniq 6 N" in page.locator("#mb-car-version-select option").all_inner_texts()
     assert page.errors == [], diagnostics(page)
 
 

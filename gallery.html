@@ -1406,7 +1406,7 @@
       var photos = getPhotos();
       var p = photos[currentIndex];
       if (!p || reportBtn.disabled) return;
-      if (!window.confirm('Report this photo as inappropriate or not a Tesla?')) return;
+      if (!window.confirm('Report this photo as inappropriate or not a car for MT3UK?')) return;
       reportBtn.disabled = true;
       reportBtn.textContent = 'Reported';
       fetch(MT3UK_API + '/gallery/report', {

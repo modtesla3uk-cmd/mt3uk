@@ -5157,7 +5157,7 @@ async function saveCarDetails(env, carId, details) {
   await env.VOTES.put(carDetailsKey(carId), JSON.stringify(details));
 }
 
-var CAR_MODELS = ['Model 3', 'Model Y', 'Model S', 'Model X'];
+var CAR_MODELS = ['Model 3', 'Model Y', 'Model S', 'Model X', 'Hyundai Ioniq 5 N', 'Hyundai Ioniq 6 N', 'Porsche Taycan'];
 
 // The areas of the mods builder (js/mods-builder.js has the labels and
 // choices). fields: text answers. kinds: bodywork's separate jobs.

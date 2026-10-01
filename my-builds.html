@@ -877,6 +877,7 @@
   .mb-model-pick input { position: absolute; opacity: 0; pointer-events: none; }
   .mb-model-pick .chip:has(input:checked) { background: var(--ink); border-color: var(--ink); color: #fff; }
   .mb-model-pick .chip:has(input:focus-visible) { box-shadow: var(--focus-ring); }
+  .mb-model-group { grid-column: 1 / -1; font-size: 0.85rem; font-weight: 600; color: var(--steel); margin-top: 4px; }
   .mb-field-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .mb-mods-next { display: flex; gap: 10px; align-items: flex-start; margin: 0 0 16px; padding: 12px 14px; border-radius: var(--radius-sm); background: #fdf3ef; font-size: 0.9rem; color: var(--ink-2, var(--ink)); }
   .mb-mods-next .icon { width: 18px; height: 18px; color: var(--orange); flex-shrink: 0; margin-top: 2px; }
@@ -1212,7 +1213,7 @@ document.addEventListener('DOMContentLoaded', function () {
       <div class="mb-card mb-submit-card" id="mb-submit-card" style="display:none;">
         <h2>Submit your first build</h2>
         <p>Send us a shot of your build and a caption, and we'll get it added to the gallery and set you up with an account so you can manage it here.</p>
-        <p class="mb-field-hint">Your car must be a Tesla.</p>
+        <p class="mb-field-hint">Your car must be a Tesla, a Hyundai Ioniq 5 N or 6 N, or a Porsche Taycan.</p>
         <form id="mb-submit-form">
           <input type="checkbox" name="botcheck" class="mb-hp-field" tabindex="-1" autocomplete="off">
           <div class="mb-field">
@@ -1230,6 +1231,10 @@ document.addEventListener('DOMContentLoaded', function () {
             <label class="chip"><input type="radio" name="model" value="Model Y"> Model Y</label>
             <label class="chip"><input type="radio" name="model" value="Model S"> Model S</label>
             <label class="chip"><input type="radio" name="model" value="Model X"> Model X</label>
+            <span class="mb-model-group">Other cars</span>
+            <label class="chip"><input type="radio" name="model" value="Hyundai Ioniq 5 N"> Ioniq 5 N</label>
+            <label class="chip"><input type="radio" name="model" value="Hyundai Ioniq 6 N"> Ioniq 6 N</label>
+            <label class="chip"><input type="radio" name="model" value="Porsche Taycan"> Taycan</label>
             </div>
           </div>
           <div class="mb-field-pair">
@@ -1348,7 +1353,7 @@ document.addEventListener('DOMContentLoaded', function () {
         <div class="mb-upload-card" id="mb-addcar-card" style="display:none;">
           <h2>Add a car</h2>
           <p>Give your car a name and add up to 3 photos. They'll go live in the gallery straight away.</p>
-          <p class="mb-field-hint">Your car must be a Tesla.</p>
+          <p class="mb-field-hint">Your car must be a Tesla, a Hyundai Ioniq 5 N or 6 N, or a Porsche Taycan.</p>
           <form id="mb-addcar-form">
             <div class="mb-field">
               <span class="mb-field-label" id="mb-addcar-model-label">Model</span>
@@ -1357,6 +1362,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 <label class="chip"><input type="radio" name="model" value="Model Y"> Model Y</label>
                 <label class="chip"><input type="radio" name="model" value="Model S"> Model S</label>
                 <label class="chip"><input type="radio" name="model" value="Model X"> Model X</label>
+                <span class="mb-model-group">Other cars</span>
+                <label class="chip"><input type="radio" name="model" value="Hyundai Ioniq 5 N"> Ioniq 5 N</label>
+                <label class="chip"><input type="radio" name="model" value="Hyundai Ioniq 6 N"> Ioniq 6 N</label>
+                <label class="chip"><input type="radio" name="model" value="Porsche Taycan"> Taycan</label>
               </div>
             </div>
             <div class="mb-field-pair">
@@ -1437,10 +1446,17 @@ document.addEventListener('DOMContentLoaded', function () {
           <span class="mb-car-spec">
           <select class="mb-car-color-select" id="mb-car-model-select" aria-label="Model">
             <option value="">Model</option>
-            <option value="Model 3">Model 3</option>
-            <option value="Model Y">Model Y</option>
-            <option value="Model S">Model S</option>
-            <option value="Model X">Model X</option>
+            <optgroup label="Tesla">
+              <option value="Model 3">Model 3</option>
+              <option value="Model Y">Model Y</option>
+              <option value="Model S">Model S</option>
+              <option value="Model X">Model X</option>
+            </optgroup>
+            <optgroup label="Other cars">
+              <option value="Hyundai Ioniq 5 N">Ioniq 5 N</option>
+              <option value="Hyundai Ioniq 6 N">Ioniq 6 N</option>
+              <option value="Porsche Taycan">Taycan</option>
+            </optgroup>
           </select>
           <select class="mb-car-color-select" id="mb-car-version-select" aria-label="Version"><option value="">Version</option></select>
           <select class="mb-car-color-select" id="mb-car-year-select" aria-label="Year"><option value="">Year</option></select>

@@ -4785,7 +4785,7 @@
           if (btn.dataset.reported === 'true') return;
           var file = btn.closest('.bf-slide').dataset.current;
           if (isOwnPhoto(file)) return;
-          if (!window.confirm('Report this photo as inappropriate or not a Tesla?')) return;
+          if (!window.confirm('Report this photo as inappropriate or not a car for MT3UK?')) return;
           btn.dataset.reported = 'true';
           btn.setAttribute('aria-label', 'Reported');
           fetch(MT3UK_API + '/gallery/report', {
@@ -6024,7 +6024,7 @@
         btn.addEventListener('click', function (e) {
           e.stopPropagation();
           if (btn.disabled) return;
-          if (!window.confirm('Report this photo as inappropriate or not a Tesla?')) return;
+          if (!window.confirm('Report this photo as inappropriate or not a car for MT3UK?')) return;
           var card = btn.closest('.vote-card');
           var file = card.getAttribute('data-file');
           btn.disabled = true;

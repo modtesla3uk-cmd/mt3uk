@@ -18,7 +18,9 @@
   var app = document.getElementById('lb-app');
   if (!app || !T || !V) return;
   var esc = V.esc;
-  var MODELS = ['Model 3', 'Model Y', 'Model S', 'Model X'];
+  var MODELS = ['Model 3', 'Model Y', 'Model S', 'Model X', 'Hyundai Ioniq 5 N', 'Hyundai Ioniq 6 N', 'Porsche Taycan'];
+  // Short names for the filter chips.
+  var MODEL_SHORT = { 'Hyundai Ioniq 5 N': 'Ioniq 5 N', 'Hyundai Ioniq 6 N': 'Ioniq 6 N', 'Porsche Taycan': 'Taycan' };
   var TYPES = [['track', 'Track days', 'circuit'], ['drag', 'Drag', 'drag'], ['sprint', 'Sprint and hill climb', 'sprint']];
   var ICON = {
     trophy: '<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/>',
@@ -122,7 +124,7 @@
         var what = type === 'drag' ? 'Each car\'s quickest quarter mile.' : type === 'sprint' ? 'Each car\'s fastest run.' : 'Each car\'s fastest lap.';
         var h = '<a class="tp-back" href="leaderboards.html?type=' + type + '" data-go="type=' + type + '">' + icon('back') + 'All ' + (type === 'drag' ? 'drag strips' : type === 'sprint' ? 'sprints and hill climbs' : 'tracks') + '</a>' +
           '<div class="tp-head"><div><h2>' + esc(title) + '</h2><p class="tp-sub">' + what + '</p></div>' + unitsChip() + '</div>' +
-          '<div class="tp-chips" id="lb-models">' + ['All'].concat(MODELS).map(function (m) { return '<button type="button" class="chip' + (m === boardModel ? ' is-on' : '') + '" data-m="' + m + '">' + m + '</button>'; }).join('') + '</div>';
+          '<div class="tp-chips" id="lb-models">' + ['All'].concat(MODELS).map(function (m) { return '<button type="button" class="chip' + (m === boardModel ? ' is-on' : '') + '" data-m="' + m + '">' + (MODEL_SHORT[m] || m) + '</button>'; }).join('') + '</div>';
         if (!shown.length) h += '<div class="card tp-empty">' + icon('trophy') + '<p>Nobody on this board yet' + (boardModel === 'All' ? '' : ' for the ' + esc(boardModel)) + '. Be the first.</p></div>';
         else h += '<div class="card"><div class="tp-scroll"><table class="tp-table tp-board"><thead><tr><th>#</th><th>Car</th><th>' + (type === 'drag' ? '1/4 mile' : type === 'sprint' ? 'Run' : 'Lap') + '</th><th>Date</th><th></th></tr></thead><tbody>' + shown.map(function (e, i) {
           var res = type === 'drag' ? e.quarter.toFixed(2) + ' s<small>' + V.fmtV(e.quarterSpeed) + '</small>' : V.fmtLap(e.time);

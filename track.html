@@ -131,12 +131,15 @@
   .tp-drop.is-over { border-color: var(--orange); background: #fdf3ef; }
   .tp-drop > .icon { width: 30px; height: 30px; color: var(--orange); }
   .tp-drop small { color: var(--steel); }
-  .tp-file { display: flex; gap: 12px; align-items: center; padding: 12px; border: 1px solid var(--hairline); border-radius: var(--radius-sm); margin-top: 12px; }
-  .tp-file .icon { color: var(--ok-ink); }
+  .tp-file { display: flex; gap: 12px; align-items: flex-start; padding: 12px; border: 1px solid var(--hairline); border-radius: var(--radius-sm); margin-top: 12px; }
+  .tp-file .icon { color: var(--ok-ink); flex: none; margin-top: 1px; }
+  .tp-file.is-bad .icon { color: var(--warn-ink); }
   .tp-file b { display: block; font-size: 0.9rem; overflow-wrap: anywhere; color: var(--ink); }
   .tp-file span { font-size: 0.8rem; color: var(--steel); }
   .tp-file-list { list-style: none; margin: 4px 0 6px; padding: 0; display: grid; gap: 6px; }
+  .tp-file > div > ul:first-child { margin-top: 0; }
   .tp-file-list .tp-file-when { display: block; }
+  .tp-file-list .tp-file-skip { display: block; color: var(--warn-ink); font-weight: 600; }
   .tp-help { margin-top: 12px; font-size: 0.88rem; }
   .tp-help summary { cursor: pointer; font-weight: 600; min-height: 36px; display: flex; align-items: center; gap: 6px; color: var(--ink); }
   .tp-help ul { margin: 6px 0 0 20px; color: var(--steel); display: grid; gap: 4px; }

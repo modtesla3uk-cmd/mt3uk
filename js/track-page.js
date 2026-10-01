@@ -276,7 +276,7 @@
       '<div class="tp-add-grid"><div class="card">' +
       (a.cars.length > 1 ? '<div class="tp-field"><label for="tp-car">Car</label><select class="field" id="tp-car">' + a.cars.map(function (c) { return '<option value="' + esc(c.id) + '"' + (c.id === a.car.id ? ' selected' : '') + '>' + esc(c.name) + '</option>'; }).join('') + '</select></div>' : '<p class="tp-car-one">Car: <b>' + esc(a.car.name) + '</b></p>') +
       '<label class="tp-drop" id="tp-drop">' + icon('upload') + '<b>Drop your files here, or choose them</b><small>One file, or all of a day\'s files together (they make one session). VBO, CSV or GPX. Works with RaceBox, VBOX, Harry\'s LapTimer, TrackAddict, AiM and most phone apps.</small><span class="btn btn-secondary btn-sm">Choose files</span><input type="file" id="tp-file" multiple accept=".vbo,.csv,.gpx,.txt,text/csv,application/gpx+xml" hidden></label>' +
-      (a.files && a.files.length ? '<div class="tp-file">' + icon('check') + '<div>' + (a.files.length > 1 ? '<b>' + a.files.length + ' files</b>' : '') + '<ul class="tp-file-list">' + a.files.map(function (f, i) { var w = a.fileWhen && a.fileWhen[i]; return '<li><b>' + esc(f.name) + '</b>' + (w ? '<span class="tp-file-when">' + esc(w) + '</span>' : '') + '</li>'; }).join('') + '</ul><span>' + esc(fileMeta()) + '</span></div></div>' : '') +
+      (a.files && a.files.length ? fileBox() : '') +
       '<details class="tp-help"><summary>' + icon('info') + 'How to get the file from your lap timer</summary><ul>' +
       '<li><b>RaceBox:</b> open the session in the app, share or export it and choose VBO (CSV works too).</li>' +
       '<li><b>VBOX:</b> copy the .vbo file from the SD card.</li>' +
@@ -294,12 +294,33 @@
     if (sel) sel.addEventListener('change', function () { a.car = a.cars.filter(function (c) { return c.id === sel.value; })[0]; });
     if (a.session) drawResult();
   }
+  // What each file in the box is called when a day's files are combined:
+  // "session" for a track day, "run" for sprints, hill climbs and drag.
+  function partWord(type, many) {
+    var w = type === 'sprint' || type === 'drag' ? 'run' : 'session';
+    return many ? w + 's' : w;
+  }
   function fileMeta() {
     var rd = add.rd;
     if (!rd || !rd.points) return '';
     // Minutes on track, leaving out the gaps between files.
     var mins = rd.runs ? rd.points.reduce(function (acc, p, i, arr) { return i && p.run === arr[i - 1].run ? acc + p.t - arr[i - 1].t : acc; }, 0) / 60 : rd.points[rd.points.length - 1].t / 60;
-    return (rd.runs ? rd.runs + ' runs, ' : '') + rd.points.length.toLocaleString('en-GB') + ' readings, ' + rd.hz + ' a second, ' + Math.max(1, Math.round(mins)) + ' minutes' + (rd.sats ? ', ' + rd.sats + ' satellites on average' : '');
+    return (rd.runs ? rd.runs + ' ' + partWord(add.type, true) + ', ' : '') + rd.points.length.toLocaleString('en-GB') + ' readings, ' + rd.hz + ' a second, ' + Math.max(1, Math.round(mins)) + ' minutes' + (rd.sats ? ', ' + rd.sats + ' satellites on average' : '');
+  }
+  // The chosen files, in time order. A file that couldn't be used says so
+  // and gets a warning mark instead of a tick; the tick only shows when at
+  // least one file worked.
+  function fileBox() {
+    var a = add, list = a.list || a.files.map(function (f) { return { f: f }; });
+    var used = list.filter(function (x) { return x.rd; }).length, skipped = list.length - used;
+    var head = list.length > 1 ? '<b>' + list.length + ' files' + (skipped && a.list ? ' (' + skipped + ' skipped)' : '') + '</b>' : '';
+    var items = list.map(function (x) {
+      var w = x.rd ? fileWhen(x.rd) : '';
+      return '<li' + (x.reason ? ' class="is-skipped"' : '') + '><b>' + esc(x.f.name) + '</b>' + (w ? '<span class="tp-file-when">' + esc(w) + '</span>' : '') + (x.reason ? '<span class="tp-file-skip">Skipped: ' + esc(x.reason) + '</span>' : '') + '</li>';
+    }).join('');
+    var meta = a.rd ? fileMeta() : '';
+    var mark = a.rd ? 'check' : a.pending ? 'info' : 'warn';
+    return '<div class="tp-file' + (a.rd ? '' : a.pending ? '' : ' is-bad') + '">' + icon(mark) + '<div>' + head + '<ul class="tp-file-list">' + items + '</ul>' + (meta ? '<span>' + esc(meta) + '</span>' : '') + '</div></div>';
   }
   // Each file's date and start time, and where they came from.
   var WHEN_FROM = { file: 'recorded in the file', name: 'from the file name', saved: 'from when the file was saved' };
@@ -327,37 +348,65 @@
         reader.readAsText(file);
       });
     })).then(function (read) {
-      add.files = read; add.fileWhen = null;
+      add.files = read; add.list = null; add.rd = null;
       add.session = null; add.startLine = null; add.type = null; add.date = null; add.time = null;
       add.weatherKey = null; if (add.tempSource !== 'member') { add.temp = null; add.tempSource = ''; add.weather = null; }
       parseFile();
     }).catch(function (e) { status(e.message || 'That file could not be opened.', 'error'); });
   }
   function headerSig(h) { return h.join('|').toLowerCase().slice(0, 300); }
+  // Why a file couldn't be used, in a few words for under its name.
+  function skipReason(e) {
+    var m = (e && e.message) || '';
+    if (/too short/i.test(m)) return 'too short to use';
+    if (/No readings with a position|No track points/i.test(m)) return 'no positions in it';
+    return m ? m.replace(/\.$/, '').replace(/^./, function (c) { return c.toLowerCase(); }) : 'could not be read';
+  }
+  // When a file was recorded, to put a day's files in order.
+  function fileKey(rd, i) {
+    return rd.startedAt || (rd.fileDate ? Date.parse(rd.fileDate + 'T' + (rd.fileTime || '00:00') + ':00Z') : 0) || i;
+  }
   function parseFile(mapping) {
     var a = add;
+    a.pending = false;
     try {
       if (!mapping) {
         try { var saved = JSON.parse(localStorage.getItem(MAP_KEY) || '{}'); mapping = null; a.savedMaps = saved; } catch (e) { a.savedMaps = {}; }
       }
       // Each file read on its own; a column choice (from the member, or
-      // remembered) is used for files the reader didn't recognise.
-      var rds = [];
+      // remembered) is used for files the reader didn't recognise. A file
+      // that can't be used is skipped and the rest carry on.
+      var good = [], bad = [], lastErr = null;
       for (var fi = 0; fi < a.files.length; fi++) {
         var f = a.files[fi];
-        var one = T.read(f.text, f.name, null, f.modified);
-        if (one.needsMapping) {
-          var sig = headerSig(one.needsMapping.headers);
-          var mp = mapping || (a.savedMaps && a.savedMaps[sig]);
-          if (!mp) { drawAdd(); return drawMapping(one.needsMapping); }
-          one = T.read(f.text, f.name, mp, f.modified);
+        try {
+          var one = T.read(f.text, f.name, null, f.modified);
+          if (one.needsMapping) {
+            var sig = headerSig(one.needsMapping.headers);
+            var mp = mapping || (a.savedMaps && a.savedMaps[sig]);
+            if (!mp) { a.pending = true; drawAdd(); return drawMapping(one.needsMapping); }
+            one = T.read(f.text, f.name, mp, f.modified);
+          }
+          good.push({ f: f, rd: one, k: fileKey(one, fi) });
+        } catch (e) {
+          lastErr = e;
+          bad.push({ f: f, reason: skipReason(e) });
         }
-        rds.push(one);
       }
-      a.fileWhen = rds.map(fileWhen);
+      if (!good.length) {
+        a.list = null; a.rd = null; a.session = null;
+        drawAdd();
+        status(a.files.length > 1 ? 'None of those files could be used. ' + (lastErr && lastErr.message || '') : (lastErr && lastErr.message) || 'That file could not be read.', 'error');
+        return;
+      }
+      good.forEach(function (x, i) { x.i = i; });
+      good.sort(function (x, y) { return x.k - y.k || x.i - y.i; });
+      var rds = good.map(function (x) { return x.rd; });
       a.rd = T.combine(rds);
+      a.list = good.concat(bad);
       analyse();
     } catch (e) {
+      a.list = null; a.rd = null; a.session = null;
       drawAdd();
       status((e && e.message) || 'That file could not be read.', 'error');
     }
@@ -729,8 +778,10 @@
     if (s.mine && s.venueId && s.layoutId) h += '<div class="tp-section" id="over-time"><div class="tp-head"><h2>' + esc(trackName(s)) + ' over time</h2></div><div id="tp-time"></div></div>';
     return h;
   }
-  // "Lap 5", or "Run 2, lap 5" on a day made from several files.
-  function lapName(l, s) { return s.runs > 1 ? 'Run ' + (l.run || 1) + ', lap ' + l.n : 'Lap ' + l.n; }
+  // "Lap 5", or "Session 2, lap 5" on a day made from several files
+  // ("Run 2" for sprints and hill climbs).
+  function lapName(l, s) { return s.runs > 1 ? cap(partWord(s.type)) + ' ' + (l.run || 1) + ', lap ' + l.n : 'Lap ' + l.n; }
+  function cap(w) { return w.charAt(0).toUpperCase() + w.slice(1); }
   function lapKind(l, s) {
     if (l.n === s.best) return '<span class="tp-badge">Best</span>';
     var k = { 'in': 'In lap', out: 'Out lap', slow: 'Slow', short: 'Cut short' }[l.kind];
@@ -740,7 +791,7 @@
     var best = (s.laps || []).filter(function (l) { return l.n === s.best; })[0];
     var bs = s.bestSectors || [];
     var n = Math.max.apply(null, [0].concat((s.laps || []).map(function (l) { return (l.sectors || []).length; })));
-    var head = '<thead><tr>' + (s.runs > 1 ? '<th>Run</th>' : '') + '<th>Lap</th><th>Time</th>';
+    var head = '<thead><tr>' + (s.runs > 1 ? '<th>' + cap(partWord(s.type)) + '</th>' : '') + '<th>Lap</th><th>Time</th>';
     for (var i = 0; i < n; i++) head += '<th>S' + (i + 1) + '</th>';
     head += '<th>Top ' + V.unit() + '</th><th>Gap</th></tr></thead>';
     return head + '<tbody>' + (s.laps || []).map(function (l) {

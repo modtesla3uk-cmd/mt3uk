@@ -583,14 +583,15 @@ def test_a_days_files_make_one_session_in_runs(page):
     expect(page.locator(".tp-file > div > b")).to_have_text("2 files")
     expect(page.locator(".tp-file-list li b")).to_have_text(["session-1.vbo", "session-2.vbo"])
     expect(page.locator(".tp-file-when").first).to_contain_text("recorded in the file")
-    expect(page.locator(".tp-file > div > span")).to_contain_text("2 runs")
+    expect(page.locator(".tp-file > div > span")).to_contain_text("2 sessions")
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text(re.compile(r"4 timed laps, best 1:39\.78[56]"))
     page.get_by_role("button", name="Save session").click()
     expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
     saved = fake.saved[0]["session"]
     assert saved["runs"] == 2 and sorted({l["run"] for l in saved["laps"]}) == [1, 2]
-    expect(page.locator(".tp-table thead th").first).to_have_text("Run")
-    expect(page.locator("#tp-map-laps .chip").first).to_contain_text(re.compile(r"^Run 1, lap \d+$"))
+    # A track day's files are sessions; sprints and drag are runs.
+    expect(page.locator(".tp-table thead th").first).to_have_text("Session")
+    expect(page.locator("#tp-map-laps .chip").first).to_contain_text(re.compile(r"^Session 1, lap \d+$"))
     # Satellite imagery under the map, with its credit, and it can be turned off.
     m = page.locator("#tp-map")
     expect(m.locator(".tv-sat image").first).to_be_attached()
@@ -651,3 +652,87 @@ def test_another_day_on_the_map(page):
     page.locator("#tp-days-key .tp-day-x").click()
     expect(page.locator("#tp-days-key .tp-day")).to_have_count(0)
     assert lines() == 0
+
+
+def short_vbo(rows=5):
+    """The real file's header with only a few readings: too short to use."""
+    lines = FIXTURE.read_text(encoding="latin-1").splitlines()
+    cut = lines.index("[data]") + 1
+    return "\n".join(lines[:cut + rows]).encode("latin-1")
+
+
+def later_vbo(hours=1):
+    """The real file as if recorded some hours later the same day."""
+    out = []
+    data = False
+    for ln in FIXTURE.read_text(encoding="latin-1").splitlines():
+        if data and ln.strip():
+            ln = "%02d%s" % (int(ln[:2]) + hours, ln[2:])
+        if ln.strip() == "[data]":
+            data = True
+        out.append(ln)
+    return "\n".join(out).encode("latin-1")
+
+
+def test_a_file_that_is_too_short_is_skipped_and_the_rest_carry_on(page):
+    """One recording stopped straight away: it is skipped with a reason, the
+    other files still make the session, and no figures from an earlier choice
+    are left showing."""
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", files=[
+        {"name": "good.vbo", "mimeType": "text/plain", "buffer": FIXTURE.read_bytes()},
+        {"name": "pitlane.vbo", "mimeType": "text/plain", "buffer": short_vbo()},
+    ])
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text(re.compile(r"2 timed laps"))
+    expect(page.locator(".tp-file > div > b").first).to_have_text("2 files (1 skipped)")
+    expect(page.locator(".tp-file-list li.is-skipped")).to_have_count(1)
+    expect(page.locator(".tp-file-list li.is-skipped")).to_contain_text("pitlane.vbo")
+    expect(page.locator(".tp-file-skip")).to_have_text("Skipped: too short to use")
+    # The readings line counts only the file that worked: no "2 sessions".
+    expect(page.locator(".tp-file > div > span").last).not_to_contain_text("2 sessions")
+    expect(page.locator(".tp-file > div > span").last).to_contain_text("readings")
+    # Only short files: the error shows and nothing from before is left.
+    page.set_input_files("#tp-file", files=[{"name": "pitlane.vbo", "mimeType": "text/plain", "buffer": short_vbo()}])
+    expect(page.locator("#tp-status")).to_contain_text("too short")
+    expect(page.locator("#tp-result")).to_be_empty()
+    expect(page.locator(".tp-file.is-bad")).to_have_count(1)
+    expect(page.locator(".tp-file > div > span")).to_have_count(0)
+
+
+def test_files_are_listed_in_time_order(page):
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", files=[
+        {"name": "b-later.vbo", "mimeType": "text/plain", "buffer": later_vbo()},
+        {"name": "a-earlier.vbo", "mimeType": "text/plain", "buffer": FIXTURE.read_bytes()},
+    ])
+    expect(page.locator(".tp-file-list li b")).to_have_text(["a-earlier.vbo", "b-later.vbo"])
+
+
+def test_the_tick_lines_up_with_the_top_of_the_file_box(page):
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", files=[
+        {"name": "one.vbo", "mimeType": "text/plain", "buffer": FIXTURE.read_bytes()},
+        {"name": "two.vbo", "mimeType": "text/plain", "buffer": later_vbo()},
+        {"name": "three.vbo", "mimeType": "text/plain", "buffer": later_vbo(2)},
+    ])
+    tick = page.locator(".tp-file > .icon").bounding_box()
+    first = page.locator(".tp-file > div > b").first.bounding_box()
+    assert abs(tick["y"] - first["y"]) < 6, (tick, first)
+
+
+def test_changing_the_type_after_loading_relabels_the_files(page):
+    """A track day's files are sessions; switch to a sprint and they are runs."""
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", files=[
+        {"name": "one.vbo", "mimeType": "text/plain", "buffer": FIXTURE.read_bytes()},
+        {"name": "two.vbo", "mimeType": "text/plain", "buffer": later_vbo()},
+    ])
+    expect(page.locator(".tp-file > div > span").last).to_contain_text("2 sessions")
+    page.locator("[data-type] button[data-v='sprint']").click()
+    expect(page.locator(".tp-file > div > span").last).to_contain_text("2 runs")
+    page.locator("[data-type] button[data-v='track']").click()
+    expect(page.locator(".tp-file > div > span").last).to_contain_text("2 sessions")

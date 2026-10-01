@@ -1254,3 +1254,70 @@ def test_share_buttons_fit_on_a_phone(device_page):
     box, h1 = btn.bounding_box(), page.locator(".page-hero h1").bounding_box()
     assert box["x"] + box["width"] <= page.viewport_size["width"], box
     assert overflow_width(page) <= 0
+
+
+def _with_a_sprint_course(route):
+    d = json.loads((ROOT / "data" / "tracks.json").read_text(encoding="utf-8"))
+    d["venues"].append({
+        "id": "test-sprint", "name": "Test Sprint", "type": "sprint", "lat": 51.2085, "lng": -1.6055, "radius": 2500,
+        "layouts": [{"id": "short", "name": "Short course", "length": 1500,
+                     "startLine": [[51.2077017, -1.6088667], [51.2076237, -1.6091363]],
+                     "finishLine": [[51.21336186446567, -1.5952994261752478], [51.21310801069265, -1.5951472854432356]]}],
+    })
+    route.fulfill(status=200, content_type="application/json", body=json.dumps(d))
+
+
+def test_sprints_can_ignore_the_first_finish_line_crossing(page):
+    """On a known sprint course the first finish crossing in a file is ignored
+    by default, with a switch to turn that off. Circuits don't get the switch."""
+    page.route(re.compile(r".*/data/tracks\.json.*"), _with_a_sprint_course)
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    expect(page.locator("#tp-ignore-finish")).to_have_count(0)
+    page.locator("[data-type] button[data-v='sprint']").click()
+    result = page.locator("#tp-result .tp-notice.is-ok")
+    expect(result).to_contain_text("Test Sprint")
+    switch = page.locator("#tp-ignore-finish")
+    expect(switch).to_have_attribute("aria-checked", "true")
+    expect(switch).to_contain_text("Ignored once in this file")
+    expect(result).to_contain_text("1 timed run,")
+    switch.click()
+    expect(page.locator("#tp-ignore-finish")).to_have_attribute("aria-checked", "false")
+    expect(result).to_contain_text("2 timed runs")
+    page.locator("#tp-ignore-finish").click()
+    expect(result).to_contain_text("1 timed run,")
+    # A circuit has no such switch.
+    page.locator("[data-type] button[data-v='track']").click()
+    expect(page.locator("#tp-ignore-finish")).to_have_count(0)
+
+
+def test_go_back_to_the_start_during_playback(page):
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator("#tp-speed path")).to_have_count(2)
+    start, toggle, clock = page.locator("#tp-play-start"), page.locator("#tp-play-toggle"), page.locator("#tp-clock")
+    expect(start).to_have_text("Start")
+    expect(start).to_have_attribute("aria-label", "Go back to the start")
+    page.locator("#tp-speeds [data-speed='5']").click()
+    toggle.click()
+    page.wait_for_timeout(1000)
+    assert float(page.locator("#tp-scrub").input_value()) > 2
+    # While playing: stops and goes to 0:00.0, with both cars on the line.
+    start.click()
+    expect(toggle).to_have_text("Play")
+    expect(clock).to_have_text(re.compile(r"^0:00\.0 / "))
+    assert float(page.locator("#tp-scrub").input_value()) == 0
+    assert page.locator('#tp-map2 g[visibility="visible"]').filter(has=page.locator('circle[r="7"]')).count() == 2
+    # Play then goes from the beginning; after pausing mid-lap, Start goes back too.
+    toggle.click()
+    page.wait_for_timeout(600)
+    toggle.click()
+    assert float(page.locator("#tp-scrub").input_value()) > 0
+    start.click()
+    assert float(page.locator("#tp-scrub").input_value()) == 0

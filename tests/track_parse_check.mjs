@@ -101,6 +101,10 @@ ok(su.laps.length === 2 && near(su.bestTime, 99.786, 0.05) && su.startLineFromMe
   ok(sq.needsStartLine && sq.needsFinish && /Tap the start, then the finish/.test(sq.problem), 'unknown course asks for the start and finish');
   const sm = T.analyse(T.read(vbo, 'f.vbo'), { venues: [] }, { type: 'sprint', startLine: start, finishLine: finish });
   ok(sm.laps.length === 2 && sm.startLineFromMember, 'member start and finish time the runs');
+  // Ignoring the first time the file crosses the finish line (off unless asked for).
+  const sk = T.analyse(T.read(vbo, 'f.vbo'), sprintLib, { ignoreFirstFinish: true });
+  ok(sk.laps.length === 1 && sk.firstFinishIgnored === 1 && sk.laps[0].start > 100, 'the first finish crossing can be ignored: only the second run is left');
+  ok(sp.laps.length === 2 && sp.firstFinishIgnored === undefined, 'and it is not ignored unless asked');
   const so = T.analyse(T.read(vbo, 'f.vbo'), { venues: [] }, { type: 'other' });
   ok(so.type === 'other' && !so.needsStartLine && so.trace.outline.length > 100, 'other: mapped without needing a start line');
 }

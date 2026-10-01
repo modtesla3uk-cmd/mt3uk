@@ -26,6 +26,7 @@
   var ICON = {
     upload: '<path d="M12 15V3M7 8l5-5 5 5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/>',
     flag: '<path d="M4 21V4M4 4h12l-2 4 2 4H4"/>',
+    start: '<path fill="currentColor" stroke="none" d="M5 4h2v16H5zM20 4.5v15a1 1 0 0 1-1.5.86L8 12.86a1 1 0 0 1 0-1.72l10.5-7.5A1 1 0 0 1 20 4.5Z"/>',
     play: '<path fill="currentColor" stroke="none" d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5Z"/>',
     pause: '<path fill="currentColor" stroke="none" d="M6 4h4v16H6zM14 4h4v16h-4z"/>',
     rewind: '<path fill="currentColor" stroke="none" transform="translate(24 0) scale(-1 1)" d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5Z"/>',
@@ -533,6 +534,8 @@
     if (a.type) opts.type = a.type;
     if (a.startLine) opts.startLine = a.startLine;
     if (a.finishLine) opts.finishLine = a.finishLine;
+    // Sprints and hill climbs: ignore the first time a file crosses the finish line (on by default).
+    if (a.ignoreFinish !== false) opts.ignoreFirstFinish = true;
     a.session = T.analyse(a.rd, a.lib, opts);
     // A date or start time the member typed wins over the file's.
     if (a.date) { a.session.date = a.date; a.session.dateFrom = 'member'; }
@@ -589,6 +592,7 @@
         var timed = s.laps.filter(function (l) { return l.kind === 'timed'; }).length;
         h += '<div class="tp-notice is-ok">' + miniMap(s) + '<div><b>' + esc(s.venue ? trackName(s) : (a.venueName || 'Your track')) + '</b><br>' +
           (s.venueId ? 'Found from the GPS in your file. ' : isSprint ? 'Timed between the start and finish you picked. ' : 'Timed from the start line you picked. ') + timed + ' timed ' + word + (timed === 1 ? '' : 's') + (s.bestTime ? ', best ' + V.fmtLap(s.bestTime) : '') + '.</div></div>';
+        if (isSprint) h += '<button type="button" class="tp-switch" role="switch" aria-checked="' + (a.ignoreFinish !== false) + '" id="tp-ignore-finish"><span><b>Ignore the first time it crosses the finish line</b><br><small>' + (s.firstFinishIgnored ? 'Ignored once in this file. Turn it off if your first run is missing.' : 'Turn this off if your first run is missing.') + '</small></span><span class="tp-track"></span></button>';
         if (s.venueId && !s.layoutId) h += '<p class="tp-sub">We know ' + esc(s.venue) + ' but couldn\'t tell which layout this is, so it can\'t go on a leaderboard yet. We\'ve let the admin know.</p>';
         if (!s.venueId) h += '<div class="tp-field"><label for="tp-venue-name">Track name</label><input class="field" id="tp-venue-name" placeholder="For example, Blyton Park" value="' + esc(a.venueName || '') + '"></div>';
       }
@@ -691,6 +695,8 @@
     });
     group('[data-cond]', function (v) { keep(); a.conditions = v; a.condTouched = true; drawResult(); });
     group('[data-privacy]', function (v) { keep(); a.privacy = v; drawResult(); });
+    var ig = document.getElementById('tp-ignore-finish');
+    if (ig) ig.addEventListener('click', function () { keep(); a.ignoreFinish = a.ignoreFinish === false; analyse(); });
     var st = document.getElementById('tp-street');
     if (st) st.addEventListener('click', function () { keep(); a.street = !a.street; if (a.street) a.privacy = 'private'; drawResult(); });
     var save = document.getElementById('tp-save');
@@ -936,7 +942,7 @@
         '<div class="tp-grid tp-g-map"><div class="card"><div class="tp-chart-head"><h3>Speed through the lap</h3><div class="tp-key" id="tp-key"></div></div><svg class="tv-chart" id="tp-speed" role="img" aria-label="Speed against distance for both laps"></svg>' +
         '<div class="tp-chart-head"><h3>Time gap</h3><span class="tp-small" id="tp-gap-cap"></span></div><svg class="tv-chart" id="tp-delta" role="img" aria-label="Running time gap between the laps"></svg></div>' +
         '<div class="tp-grid"><div class="card"><div class="tp-chart-head"><h3>Where you are</h3><div class="tp-chips" id="tp-sync" role="group" aria-label="How the two dots are lined up"><button type="button" class="chip chip-sm is-on" data-sync="time">Same moment</button><button type="button" class="chip chip-sm" data-sync="point">Same point</button></div></div><p class="tp-small tp-sync-note" id="tp-sync-note"></p>' +
-        '<div class="tp-play" id="tp-play"><div class="tp-play-row"><button type="button" class="btn btn-secondary" id="tp-play-back" data-play="back"></button><button type="button" class="btn btn-primary" id="tp-play-toggle" data-play="toggle"></button>' +
+        '<div class="tp-play" id="tp-play"><div class="tp-play-row"><div class="tp-play-btns"><button type="button" class="btn btn-secondary" id="tp-play-start" data-play="start" aria-label="Go back to the start"></button><button type="button" class="btn btn-secondary" id="tp-play-back" data-play="back"></button><button type="button" class="btn btn-primary" id="tp-play-toggle" data-play="toggle"></button></div>' +
         '<div class="tp-chips" id="tp-speeds" role="group" aria-label="Playback speed">' + [['0.5', 'x0.5'], ['1', 'x1'], ['2', 'x2'], ['5', 'x5']].map(function (v) { return '<button type="button" class="chip" data-speed="' + v[0] + '">' + v[1] + '</button>'; }).join('') + '</div>' +
         '<button type="button" class="chip is-on" id="tp-follow" aria-pressed="true" title="When the map is zoomed in, keep the cars in view">Follow cars</button></div>' +
         '<div class="tp-scrub-row"><input type="range" id="tp-scrub" min="0" max="100" step="0.01" value="0" aria-label="Position in the lap"><span class="tp-clock" id="tp-clock">0:00.0</span></div></div>' +
@@ -1115,8 +1121,9 @@
   var pb = { raf: 0, playing: false, dir: 1, speed: 1, t: 0, last: 0, active: false, render: null, tEnd: 0 };
   function clock(t) { var m = Math.floor(t / 60), sec = t - m * 60; return m + ':' + (sec < 10 ? '0' : '') + sec.toFixed(1); }
   function playUi() {
-    var tog = document.getElementById('tp-play-toggle'), back = document.getElementById('tp-play-back');
+    var tog = document.getElementById('tp-play-toggle'), back = document.getElementById('tp-play-back'), st = document.getElementById('tp-play-start');
     if (!tog || !back) return;
+    if (st && !st.firstChild) st.innerHTML = icon('start') + 'Start';
     var fw = pb.playing && pb.dir > 0, bw = pb.playing && pb.dir < 0;
     tog.innerHTML = icon(fw ? 'pause' : 'play') + (fw ? 'Pause' : 'Play');
     back.innerHTML = icon(bw ? 'pause' : 'rewind') + (bw ? 'Pause' : 'Rewind');
@@ -1130,6 +1137,14 @@
     if (pb.raf) cancelAnimationFrame(pb.raf);
     pb.raf = 0; pb.playing = false;
     playUi();
+  }
+  // Back to the start of the lap: stops playback and puts both cars on the line.
+  function toStart() {
+    if (!pb.render) return;
+    stopPlay();
+    pb.active = true;
+    pb.t = 0;
+    pb.render(0);
   }
   function startPlay(dir) {
     if (!pb.render) return;
@@ -1171,7 +1186,8 @@
     if (!box) return;
     box.addEventListener('click', function (e) {
       var b = e.target.closest('[data-play]'), sp = e.target.closest('[data-speed]');
-      if (b) startPlay(b.getAttribute('data-play') === 'back' ? -1 : 1);
+      if (b && b.getAttribute('data-play') === 'start') toStart();
+      else if (b) startPlay(b.getAttribute('data-play') === 'back' ? -1 : 1);
       else if (sp) { pb.speed = parseFloat(sp.getAttribute('data-speed')); playUi(); }
     });
     var fol = document.getElementById('tp-follow');

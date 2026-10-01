@@ -120,6 +120,9 @@
   .tp-play { margin: 8px 0 12px; display: grid; gap: 10px; }
   .tp-play-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
   .tp-play .btn .icon { width: 16px; height: 16px; }
+  .tp-play-btns { display: flex; gap: 8px; width: 100%; }
+  .tp-play-btns .btn { flex: 1 1 0; min-width: 0; padding-left: 10px; padding-right: 10px; }
+  @media (min-width: 560px) { .tp-play-btns { width: auto; } .tp-play-btns .btn { flex: none; padding-left: 16px; padding-right: 16px; } }
   .tp-play .chip { min-height: 44px; min-width: 52px; justify-content: center; }
   .tp-scrub-row { display: flex; align-items: center; gap: 12px; }
   .tp-scrub-row input[type="range"] { flex: 1; min-width: 0; height: 32px; accent-color: var(--orange); }

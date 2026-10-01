@@ -672,12 +672,25 @@
     if (opts.startLine && opts.finishLine) cands.push({ layout: null, start: opts.startLine, finish: opts.finishLine, own: true });
     var pick = null;
     cands.forEach(function (c) {
-      var st = crossings(pts, proj, c.start, 5), fi = crossings(pts, proj, c.finish, 5), pairs = [];
-      st.forEach(function (a) {
-        var e = fi.filter(function (f) { return f.t > a.t + 3 && f.t - a.t < 900; })[0];
-        if (e && (!pairs.length || a.t > pairs[pairs.length - 1][1].t)) pairs.push([a, e]);
+      var st = crossings(pts, proj, c.start, 5), fi = crossings(pts, proj, c.finish, 5), pairs = [], skipped = 0;
+      // Optionally ignore the first time each file crosses the finish line
+      // (a file with just one crossing keeps it).
+      if (opts.ignoreFirstFinish) {
+        var by = {};
+        fi.forEach(function (f) { var r = pts[f.i].run || 0; (by[r] = by[r] || []).push(f); });
+        var kept = fi.filter(function (f) { var g = by[pts[f.i].run || 0]; return g.length < 2 || g[0] !== f; });
+        skipped = fi.length - kept.length;
+        fi = kept;
+      }
+      // Each finish ends the run that began at the last start crossing since
+      // the previous finish (in the same file).
+      var lastEnd = -Infinity;
+      fi.forEach(function (f) {
+        var a = null;
+        st.forEach(function (x) { if (x.t > lastEnd && x.t + 3 < f.t && f.t - x.t < 900 && pts[x.i].run === pts[f.i].run) a = x; });
+        if (a) { pairs.push([a, f]); lastEnd = f.t; }
       });
-      if (pairs.length && (!pick || pairs.length > pick.pairs.length)) pick = { c: c, pairs: pairs };
+      if (pairs.length && (!pick || pairs.length > pick.pairs.length)) pick = { c: c, pairs: pairs, skipped: skipped };
     });
     if (!pick) {
       session.laps = [];
@@ -693,6 +706,7 @@
     session.startLine = pick.c.start;
     session.finishLine = pick.c.finish;
     if (pick.c.own) session.startLineFromMember = true;
+    if (pick.skipped) session.firstFinishIgnored = pick.skipped;
     var laps = buildLaps(pts, null, null, pick.pairs);
     return timedTail(session, pts, laps, layout, proj, origin);
   }

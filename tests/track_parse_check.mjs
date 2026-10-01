@@ -139,3 +139,31 @@ ok(tn.some(n => /1 wet or damp session is shown but left out/.test(n.text)), 'we
 const merged = T.mergeLibrary(lib, { venues: [{ id: 'thruxton', removed: true }, { id: 'new-one', name: 'New', type: 'circuit', lat: 1, lng: 1, radius: 1000, layouts: [] }] });
 ok(!merged.venues.some(v => v.id === 'thruxton') && merged.venues.some(v => v.id === 'new-one') && merged.venues.length === lib.venues.length, 'library merge adds, replaces and removes');
 ok(T.fmtLap(99.786) === '1:39.786' && T.niceDate('2026-05-28') === '28 May 2026', 'formatting');
+
+// Tesla Track Mode style CSV: elapsed time in milliseconds, a Lap column,
+// acceleration in m/s², and a track with no start line in the list.
+{
+  const src = T.read(vbo, 'x.vbo');
+  const timed = T.analyse(src, lib);
+  const starts = timed.laps.map(l => l.start);
+  const rows = ['Lap,Elapsed Time (ms),Speed (MPH),Latitude (decimal),Longitude (decimal),Lateral Acceleration (m/s^2),Longitudinal Acceleration (m/s^2)'];
+  src.points.forEach(p => {
+    const lap = starts.filter(t => p.t >= t).length;
+    rows.push([lap, Math.round(p.t * 1000), (p.v / 1.609344).toFixed(2), p.lat.toFixed(7), p.lng.toFixed(7), '0.5', '-0.2'].join(','));
+  });
+  const tesla = rows.join('\n');
+  const noLines = JSON.parse(JSON.stringify(lib));
+  noLines.venues.forEach(v => (v.layouts || []).forEach(l => { delete l.startLine; }));
+  const tr = T.read(tesla, 'telemetry-v1-2024-03-29-15_39_08.csv');
+  ok(tr.hz >= 10 && tr.hz <= 14, 'Tesla milliseconds read as seconds: ' + tr.hz + ' a second');
+  ok(near(tr.points[tr.points.length - 1].t, src.points[src.points.length - 1].t, 1), 'Tesla file length in seconds');
+  ok(tr.startLine && tr.startLine.length === 2, 'start line taken from where the Lap column goes up');
+  const ts = T.analyse(tr, noLines);
+  ok(!ts.needsStartLine && ts.laps.length === timed.laps.length, 'Tesla laps found with no start line in the list: ' + ts.laps.length);
+  const best = Math.min(...ts.laps.map(l => l.time));
+  ok(near(best, Math.min(...timed.laps.map(l => l.time)), 0.3), 'Tesla best lap matches the VBO: ' + best);
+  ok(near(Math.abs(tr.points[50].la), 0.5 / 9.81, 0.02), 'acceleration in m/s² turned into g: ' + tr.points[50].la);
+  // The same file without a unit in the header is still read as milliseconds.
+  const bare = tesla.replace('Elapsed Time (ms)', 'Elapsed Time');
+  ok(T.read(bare, 't.csv').hz >= 10, 'milliseconds worked out from the numbers');
+}

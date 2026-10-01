@@ -107,6 +107,8 @@
     la: ['latacc', 'lat acc', 'lateral acc', 'lateral acceleration', 'lat g', 'lateral g', 'gforce lat', 'g lat', 'gps latacc', 'lateral', 'accel lateral', 'acc lateral', 'lat accel', 'g-force lateral', 'lateral (g)'],
     lo: ['longacc', 'long acc', 'longitudinal acc', 'longitudinal acceleration', 'long g', 'longitudinal g', 'gforce long', 'g long', 'gps lonacc', 'inline', 'accel longitudinal', 'acc longitudinal', 'long accel', 'g-force longitudinal', 'longitudinal (g)', 'inline g'],
     sats: ['sats', 'satellites', 'gps sats', 'satellite count', 'num sats', 'gps satellites'],
+    // The lap number some loggers write (Tesla Track Mode does).
+    lap: ['lap', 'lap number', 'lap #', 'lap no', 'lap_number', 'lapnumber', 'lap count'],
     // Outside air only: tyre, battery and motor temperatures are left alone.
     temp: ['air temp', 'air temperature', 'ambient temp', 'ambient temperature', 'ambient', 'outside temp', 'outside temperature', 'oat', 'ambient air temp', 'air temp c', 'ambient temp c']
   };
@@ -170,7 +172,7 @@
       if (hi === -1) { hi = 0; headers = splitCsv(lines[0], delim).map(normHeader); }
       cols = { time: mapping.time, lat: mapping.lat, lng: mapping.lng, speed: mapping.speed == null ? -1 : mapping.speed, la: -1, lo: -1, sats: -1 };
     } else if (hi !== -1) {
-      cols = { time: findCol(headers, 'time'), lat: findCol(headers, 'lat'), lng: findCol(headers, 'lng'), speed: findCol(headers, 'speed'), la: findCol(headers, 'la'), lo: findCol(headers, 'lo'), sats: findCol(headers, 'sats'), temp: findCol(headers, 'temp') };
+      cols = { time: findCol(headers, 'time'), lat: findCol(headers, 'lat'), lng: findCol(headers, 'lng'), speed: findCol(headers, 'speed'), la: findCol(headers, 'la'), lo: findCol(headers, 'lo'), sats: findCol(headers, 'sats'), temp: findCol(headers, 'temp'), lap: findCol(headers, 'lap') };
       if (cols.time === -1) {
         // Some apps split date and clock time; any column with "time" in it.
         for (var k = 0; k < headers.length; k++) if (/time/.test(headers[k]) && k !== cols.lat && k !== cols.lng) { cols.time = k; break; }
@@ -194,14 +196,50 @@
       if (prev !== null && t <= prev) continue;
       prev = t;
       if (startedAt === null && tm.abs) startedAt = tm.abs;
-      pts.push({ t: t, lat: lat, lng: lng, v: cols.speed >= 0 ? num(f[cols.speed]) : NaN, la: cols.la >= 0 ? num(f[cols.la]) : NaN, lo: cols.lo >= 0 ? num(f[cols.lo]) : NaN, sats: cols.sats >= 0 ? num(f[cols.sats]) : NaN, temp: cols.temp >= 0 ? num(f[cols.temp]) : NaN });
+      pts.push({ t: t, lat: lat, lng: lng, v: cols.speed >= 0 ? num(f[cols.speed]) : NaN, la: cols.la >= 0 ? num(f[cols.la]) : NaN, lo: cols.lo >= 0 ? num(f[cols.lo]) : NaN, sats: cols.sats >= 0 ? num(f[cols.sats]) : NaN, temp: cols.temp >= 0 ? num(f[cols.temp]) : NaN, lap: cols.lap >= 0 ? num(f[cols.lap]) : NaN, abs: !!tm.abs });
     }
     if (!pts.length) throw new Error('No readings with a position were found in this file.');
+    // Elapsed time in milliseconds (Tesla Track Mode writes "Elapsed Time
+    // (ms)"): said in the header, or plain from the numbers, whole steps of
+    // 10 to 1000 that would make the file over 6 hours long as seconds.
+    var th = headers ? headers[cols.time] || '' : '';
+    var ms = /\(ms\)|\[ms\]|\bms\b|millis|msec/.test(th);
+    if (!ms && !pts[0].abs && pts.length > 20) {
+      var steps = [];
+      for (var q = 1; q < Math.min(pts.length, 400); q++) steps.push(pts[q].t - pts[q - 1].t);
+      steps.sort(function (x, y) { return x - y; });
+      var step = steps[Math.floor(steps.length / 2)];
+      var whole = pts.slice(0, 200).every(function (p) { return p.t === Math.round(p.t); });
+      ms = whole && step >= 10 && step <= 1000 && pts[pts.length - 1].t - pts[0].t > 6 * 3600;
+    }
+    if (ms) pts.forEach(function (p) { p.t /= 1000; });
+    // Acceleration in m/s² rather than g.
+    if (cols.la >= 0 && /m\/s/.test(headers ? headers[cols.la] || '' : '')) pts.forEach(function (p) { p.la /= 9.81; });
+    if (cols.lo >= 0 && /m\/s/.test(headers ? headers[cols.lo] || '' : '')) pts.forEach(function (p) { p.lo /= 9.81; });
     var t0 = pts[0].t;
-    pts.forEach(function (p) { p.t -= t0; });
+    pts.forEach(function (p) { p.t -= t0; delete p.abs; });
+    var fileLine = cols.lap >= 0 ? lineFromLaps(pts) : null;
+    pts.forEach(function (p) { delete p.lap; });
     var venue = '';
     lines.slice(0, Math.max(hi, 0)).forEach(function (l) { var m = l.match(/(?:venue|track|circuit)\s*[:,]\s*"?([^",]+)/i); if (m && !venue) venue = m[1].trim(); });
-    return { format: 'CSV', points: pts, startLine: null, venueName: venue, startedAt: startedAt, speedUnit: unit, columns: cols, tempF: cols.temp >= 0 && /(°|deg|\b)f\b|fahrenheit/.test(headers[cols.temp]) };
+    return { format: 'CSV', points: pts, startLine: fileLine, venueName: venue, startedAt: startedAt, speedUnit: unit, columns: cols, tempF: cols.temp >= 0 && /(°|deg|\b)f\b|fahrenheit/.test(headers[cols.temp]) };
+  }
+
+  // Where the file's lap number goes up is the start/finish line: a short
+  // line across the direction of travel there, like a member's tap.
+  function lineFromLaps(pts) {
+    for (var i = 4; i < pts.length - 4; i++) {
+      var a = pts[i - 1].lap, b = pts[i].lap;
+      if (!isFinite(a) || !isFinite(b) || b <= a || a < 0) continue;
+      // Halfway between the readings either side, so it isn't on a reading.
+      var proj = projector((pts[i - 1].lat + pts[i].lat) / 2, (pts[i - 1].lng + pts[i].lng) / 2);
+      var p0 = proj.xy(pts[i - 4].lat, pts[i - 4].lng), p1 = proj.xy(pts[i + 4].lat, pts[i + 4].lng);
+      var dx = p1[0] - p0[0], dy = p1[1] - p0[1], L = Math.hypot(dx, dy);
+      if (L < 1) continue;
+      var nx = -dy / L, ny = dx / L;
+      return [proj.ll(nx * 15, ny * 15), proj.ll(-nx * 15, -ny * 15)];
+    }
+    return null;
   }
 
   function readGpx(text) {

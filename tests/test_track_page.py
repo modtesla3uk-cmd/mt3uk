@@ -459,3 +459,16 @@ def test_tap_the_start_line_on_a_zoomable_map(page, tmp_path):
     assert width() < full * 0.6, "scroll zooms in"
     page.mouse.click(pt[0], pt[1])
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed lap")
+
+
+def test_tesla_track_mode_file_finds_its_own_laps(page):
+    """Tesla Track Mode telemetry: times in milliseconds and a Lap column.
+    At a track with no start line yet, the laps come from the file, with no
+    tap needed."""
+    page.route(re.compile(r".*/data/tracks\.json.*"), _without_start_line)
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(ROOT / "tests" / "fixtures" / "tesla-track-mode-thruxton.csv"))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text(re.compile(r"2 timed laps, best 1:39\.\d+"))
+    expect(page.locator("#tp-tap")).to_have_count(0)
+    expect(page.locator("body")).to_contain_text(re.compile(r"readings, 1[0-4] a second"))

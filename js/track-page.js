@@ -26,6 +26,7 @@
   var ICON = {
     upload: '<path d="M12 15V3M7 8l5-5 5 5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/>',
     flag: '<path d="M4 21V4M4 4h12l-2 4 2 4H4"/>',
+    expand: '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',
     start: '<path fill="currentColor" stroke="none" d="M5 4h2v16H5zM20 4.5v15a1 1 0 0 1-1.5.86L8 12.86a1 1 0 0 1 0-1.72l10.5-7.5A1 1 0 0 1 20 4.5Z"/>',
     play: '<path fill="currentColor" stroke="none" d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5Z"/>',
     pause: '<path fill="currentColor" stroke="none" d="M6 4h4v16H6zM14 4h4v16h-4z"/>',
@@ -153,6 +154,7 @@
   });
   function route() {
     stopPlay();
+    if (cmpFull) { cmpFull = false; document.body.classList.remove('tp-noscroll'); }
     V.hideTip();
     var p = params();
     // Sessions and builds have their own share button, so the page one steps aside.
@@ -198,6 +200,69 @@
       if (window.mt3ukSharePage) window.mt3ukSharePage(opts, btn);
     });
   }
+  // Tyres: make and model from the known list (the model box suggests, never
+  // limits), and the size as separate width, profile and diameter drop-downs.
+  var TY = window.MT3UKTyres;
+  // The makes, models and sizes come from data/tyres.json and the admin's changes.
+  function loadTyres() { return TY ? TY.load().catch(function () {}) : Promise.resolve(); }
+  function tyreInit(s) {
+    if (!TY) return {};
+    if (s.tyreMake !== undefined || s.tyreModel !== undefined || s.tyreWidth) return { make: s.tyreMake || '', model: s.tyreModel || '', w: s.tyreWidth || '', p: s.tyreProfile || '', d: s.tyreRim || '' };
+    return TY.parse(s.tyres || '');
+  }
+  function tyreOpts(list, sel, label, unit) {
+    return '<option value="">' + label + '</option>' + list.map(function (v) { return '<option value="' + v + '"' + (String(sel) === String(v) ? ' selected' : '') + '>' + v + (unit || '') + '</option>'; }).join('');
+  }
+  function tyreModels(make) { return ((TY && TY.makes[make]) || []).map(function (m) { return '<option value="' + esc(m) + '"></option>'; }).join(''); }
+  function tyreFields(pre, t) {
+    if (!TY) return '';
+    t = t || {};
+    var known = !!(t.make && Object.prototype.hasOwnProperty.call(TY.makes, t.make)), other = !!(t.make && !known);
+    return '<div class="tp-tyres"><span class="tp-lbl">Tyres</span>' +
+      '<div class="tp-f2"><div class="tp-field"><label for="' + pre + '-make">Make</label><select class="field" id="' + pre + '-make"><option value="">Not set</option>' +
+        Object.keys(TY.makes).map(function (m) { return '<option value="' + esc(m) + '"' + (known && t.make === m ? ' selected' : '') + '>' + esc(m) + '</option>'; }).join('') +
+        '<option value="__other"' + (other ? ' selected' : '') + '>Other make</option></select></div>' +
+      '<div class="tp-field"><label for="' + pre + '-model">Model</label><input class="field" id="' + pre + '-model" list="' + pre + '-models" autocomplete="off" placeholder="For example, Pilot Sport 4S" value="' + esc(t.model || '') + '"><datalist id="' + pre + '-models">' + tyreModels(known ? t.make : '') + '</datalist></div></div>' +
+      '<div class="tp-field" id="' + pre + '-other-wrap"' + (other ? '' : ' hidden') + '><label for="' + pre + '-make-other">Make</label><input class="field" id="' + pre + '-make-other" value="' + esc(other ? t.make : '') + '"></div>' +
+      '<div class="tp-f3"><div class="tp-field"><label for="' + pre + '-w">Width (mm)</label><select class="field" id="' + pre + '-w">' + tyreOpts(TY.widths, t.w, 'Width') + '</select></div>' +
+      '<div class="tp-field"><label for="' + pre + '-p">Profile (%)</label><select class="field" id="' + pre + '-p">' + tyreOpts(TY.profiles, t.p, 'Profile') + '</select></div>' +
+      '<div class="tp-field"><label for="' + pre + '-d">Diameter (in)</label><select class="field" id="' + pre + '-d">' + tyreOpts(TY.rims, t.d, 'Diameter') + '</select></div></div>' +
+      '<p class="tp-src tp-tyre-preview" id="' + pre + '-preview"></p></div>';
+  }
+  function readTyre(pre) {
+    var mk = document.getElementById(pre + '-make');
+    if (!mk || !TY) return null;
+    function v(id) { var el = document.getElementById(pre + '-' + id); return el ? el.value.trim() : ''; }
+    var make = mk.value === '__other' ? v('make-other') : mk.value;
+    return { make: make, model: v('model'), w: v('w') ? parseInt(v('w'), 10) : '', p: v('p') ? parseInt(v('p'), 10) : '', d: v('d') ? parseInt(v('d'), 10) : '' };
+  }
+  // What goes to the worker: the description and its parts.
+  function tyrePayload(t) {
+    t = t || {};
+    return { tyres: TY ? TY.compose(t) : '', tyreMake: t.make || '', tyreModel: t.model || '', tyreWidth: t.w || null, tyreProfile: t.p || null, tyreRim: t.d || null };
+  }
+  function wireTyres(pre) {
+    var mk = document.getElementById(pre + '-make');
+    if (!mk || !TY) return;
+    function preview() {
+      var el = document.getElementById(pre + '-preview'), t = readTyre(pre), txt = TY.compose(t);
+      if (el) el.textContent = txt ? 'Saved as: ' + txt : '';
+      var half = t && ((t.w || t.p || t.d) && !(t.w && t.p && t.d));
+      if (el && half) el.textContent += (txt ? '. ' : '') + 'Pick the width, profile and diameter to save the size.';
+    }
+    mk.addEventListener('change', function () {
+      var wrap = document.getElementById(pre + '-other-wrap');
+      if (wrap) wrap.hidden = mk.value !== '__other';
+      var dl = document.getElementById(pre + '-models');
+      if (dl) dl.innerHTML = tyreModels(mk.value);
+      preview();
+    });
+    ['model', 'make-other', 'w', 'p', 'd'].forEach(function (k) {
+      var el = document.getElementById(pre + '-' + k);
+      if (el) { el.addEventListener('input', preview); el.addEventListener('change', preview); }
+    });
+    preview();
+  }
   function unitsChip() { return '<button type="button" class="chip tp-units" data-units>' + (V.units.mph ? 'mph' : 'km/h') + '</button>'; }
   app.addEventListener('click', function (e) {
     if (!e.target.closest('[data-units]')) return;
@@ -205,7 +270,8 @@
     // Adding a session: redraw it in the new unit, keeping the file and
     // everything chosen or typed so far.
     if (params().get('add') && add && add.session && document.getElementById('tp-result')) {
-      ['tyres', 'notes'].forEach(function (k) { var el = document.getElementById('tp-' + k); if (el) add[k] = el.value.trim(); });
+      var ty = readTyre('tp-tyre'); if (ty) { add.tyre = ty; add.tyres = TY.compose(ty); }
+      var ne = document.getElementById('tp-notes'); if (ne) add.notes = ne.value.trim();
       var te = document.getElementById('tp-temp');
       if (te) { var tv = te.value.trim() === '' ? null : parseFloat(te.value); if (tv !== add.temp) { add.temp = tv; add.tempSource = tv == null ? '' : 'member'; add.weather = null; } }
       drawAdd();
@@ -351,7 +417,7 @@
   function showAdd(carId) {
     if (!token()) { location.href = 'signin.html?next=' + encodeURIComponent('/track.html?add=1'); return; }
     loading();
-    Promise.all([getMine(), getLibrary(), isAdmin()]).then(function (r) {
+    Promise.all([getMine(), getLibrary(), isAdmin(), loadTyres()]).then(function (r) {
       var m = r[0];
       if (!m) { location.href = 'signin.html?next=' + encodeURIComponent('/track.html?add=1'); return; }
       if (!m.cars.length) return showHome();
@@ -450,6 +516,8 @@
       });
     })).then(function (read) {
       add.files = read; add.list = null; add.rd = null;
+      add.nameLooked = false;
+      if (add.venueNameLooked) { add.venueName = ''; add.venueNameLooked = false; }
       add.session = null; add.startLine = null; add.type = null; add.date = null; add.time = null;
       add.weatherKey = null; if (add.tempSource !== 'member') { add.temp = null; add.tempSource = ''; add.weather = null; }
       parseFile();
@@ -544,6 +612,61 @@
     drawAdd();
     status('');
     fillTemp();
+    lookupName();
+  }
+  // A track we don't know: look up its name from where it is (OpenStreetMap, via
+  // the Overpass service), so the member only has to check it. Only the
+  // position of the track, rounded to about 100 m, is sent.
+  var nameCache = {};
+  function lookupPoint(s) {
+    var o = s.trace && s.trace.outline;
+    if (o && o.length) { var m = o[Math.floor(o.length / 2)]; return [m[0], m[1]]; }
+    return s.origin && s.origin.length === 2 ? s.origin : null;
+  }
+  function trackNameFromMap(lat, lng) {
+    lat = Math.round(lat * 1000) / 1000; lng = Math.round(lng * 1000) / 1000;
+    var key = lat + ',' + lng;
+    if (nameCache[key] !== undefined) return Promise.resolve(nameCache[key]);
+    var around = 'around:900,' + lat + ',' + lng;
+    var q = '[out:json][timeout:8];(nwr(' + around + ')["highway"="raceway"]["name"];nwr(' + around + ')["leisure"="track"]["name"];nwr(' + around + ')["sport"~"^(motor|karting|motor_racing)$"]["name"];);out tags center 20;';
+    var ctl = typeof AbortController === 'function' ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctl) ctl.abort(); }, 9000);
+    return fetch('https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(q), ctl ? { signal: ctl.signal } : undefined)
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        clearTimeout(timer);
+        var best = null, bd = Infinity;
+        ((d && d.elements) || []).forEach(function (el) {
+          var name = el.tags && String(el.tags.name || '').trim(), c = el.center || (el.lat != null ? { lat: el.lat, lon: el.lon } : null);
+          if (!name || !c) return;
+          // The nearest named track; a kart track is the last choice.
+          var dist = T.haversine({ lat: lat, lng: lng }, { lat: c.lat, lng: c.lon }) + (/kart/i.test(name) || /kart/i.test(el.tags.sport || '') ? 500 : 0);
+          if (dist < bd) { bd = dist; best = name; }
+        });
+        nameCache[key] = best ? best.slice(0, 60) : null;
+        return nameCache[key];
+      })
+      .catch(function () { clearTimeout(timer); return null; });
+  }
+  function lookupName() {
+    var a = add, s = a && a.session;
+    if (!s || a.replaceId || s.venueId || (s.type !== 'track' && s.type !== 'sprint') || a.venueName || a.nameLooked) return;
+    var pt = lookupPoint(s);
+    if (!pt) return;
+    a.nameLooked = true;
+    trackNameFromMap(pt[0], pt[1]).then(function (name) {
+      if (!name || add !== a || a.venueName) return;
+      var el = document.getElementById('tp-venue-name');
+      if (el && el.value.trim()) return;
+      a.venueName = name; a.lookedName = name; a.venueNameLooked = true;
+      if (el) {
+        el.value = name;
+        if (!document.getElementById('tp-name-src')) el.parentNode.insertAdjacentHTML('afterend', nameNote());
+      }
+    });
+  }
+  function nameNote() {
+    return '<p class="tp-src" id="tp-name-src">' + icon('info') + '<span>Name found from the map (OpenStreetMap). Change it if it isn\'t right.</span></p>';
   }
   // Air temperature: from the file when the logger records it, otherwise
   // looked up from Open-Meteo. Anything the member types wins.
@@ -587,14 +710,14 @@
           '<p class="tp-sub" id="tp-tap-step">' + tapText + '</p>' +
           '<p class="tp-small">Zoom in with the + button (or pinch or scroll) and tap right on the road.</p>' +
           '<svg class="tv-chart tp-tap" id="tp-tap" role="img" aria-label="Your trace. ' + tapText + '"></svg>' +
-          (!s.venueId ? '<div class="tp-field"><label for="tp-venue-name">Track name</label><input class="field" id="tp-venue-name" placeholder="For example, Blyton Park" value="' + esc(a.venueName || '') + '"></div>' : '');
+          (!s.venueId ? '<div class="tp-field"><label for="tp-venue-name">Track name</label><input class="field" id="tp-venue-name" placeholder="For example, Blyton Park" value="' + esc(a.venueName || '') + '"></div>' + (a.venueNameLooked ? nameNote() : '') : '');
       } else {
         var timed = s.laps.filter(function (l) { return l.kind === 'timed'; }).length;
         h += '<div class="tp-notice is-ok">' + miniMap(s) + '<div><b>' + esc(s.venue ? trackName(s) : (a.venueName || 'Your track')) + '</b><br>' +
           (s.venueId ? 'Found from the GPS in your file. ' : isSprint ? 'Timed between the start and finish you picked. ' : 'Timed from the start line you picked. ') + timed + ' timed ' + word + (timed === 1 ? '' : 's') + (s.bestTime ? ', best ' + V.fmtLap(s.bestTime) : '') + '.</div></div>';
-        if (isSprint) h += '<button type="button" class="tp-switch" role="switch" aria-checked="' + (a.ignoreFinish !== false) + '" id="tp-ignore-finish"><span><b>Ignore the first time it crosses the finish line</b><br><small>' + (s.firstFinishIgnored ? 'Ignored once in this file. Turn it off if your first run is missing.' : 'Turn this off if your first run is missing.') + '</small></span><span class="tp-track"></span></button>';
+        if (isSprint && !s.pointToPoint) h += '<button type="button" class="tp-switch" role="switch" aria-checked="' + (a.ignoreFinish !== false) + '" id="tp-ignore-finish"><span><b>Ignore the first time it crosses the finish line</b><br><small>' + (s.firstFinishIgnored ? 'Ignored once in this file. Turn it off if your first run is missing.' : 'Turn this off if your first run is missing.') + '</small></span><span class="tp-track"></span></button>';
         if (s.venueId && !s.layoutId) h += '<p class="tp-sub">We know ' + esc(s.venue) + ' but couldn\'t tell which layout this is, so it can\'t go on a leaderboard yet. We\'ve let the admin know.</p>';
-        if (!s.venueId) h += '<div class="tp-field"><label for="tp-venue-name">Track name</label><input class="field" id="tp-venue-name" placeholder="For example, Blyton Park" value="' + esc(a.venueName || '') + '"></div>';
+        if (!s.venueId) h += '<div class="tp-field"><label for="tp-venue-name">Track name</label><input class="field" id="tp-venue-name" placeholder="For example, Blyton Park" value="' + esc(a.venueName || '') + '"></div>' + (a.venueNameLooked ? nameNote() : '');
       }
     } else {
       var runs = s.runs || [];
@@ -618,8 +741,8 @@
           : s.dateFrom === 'file' ? '<p class="tp-src" id="tp-date-src">' + icon('info') + '<span>Date and time recorded in your file.</span></p>'
           : !s.date ? '<p class="tp-src" id="tp-date-src">' + icon('info') + '<span>Your file has no date in it. Add the date and start time to look up the weather.</span></p>' : '');
       h += '<div class="tp-field"><span class="tp-lbl">Conditions</span><div class="tp-chips" data-cond>' + ['Dry', 'Damp', 'Wet'].map(function (c) { return '<button type="button" class="chip' + (a.conditions === c ? ' is-on' : '') + '" data-v="' + c + '">' + c + '</button>'; }).join('') + '</div></div>' +
-        '<div class="tp-f2"><div class="tp-field"><label for="tp-tyres">Tyres</label><input class="field" id="tp-tyres" placeholder="For example, Pilot Sport 4S" value="' + esc(a.tyres || '') + '"></div>' +
-        '<div class="tp-field"><label for="tp-temp">Air temperature (°C)</label><input class="field" id="tp-temp" inputmode="numeric" placeholder="18" value="' + esc(a.temp == null ? '' : a.temp) + '"></div></div>' +
+        tyreFields('tp-tyre', a.tyre) +
+        '<div class="tp-field"><label for="tp-temp">Air temperature (°C)</label><input class="field" id="tp-temp" inputmode="numeric" placeholder="18" value="' + esc(a.temp == null ? '' : a.temp) + '"></div>' +
         (a.tempSource === 'weather' && a.weather ? '<p class="tp-src" id="tp-temp-src">' + icon('info') + '<span>' + weatherNote(a.weather, s.venue) + (a.condTouched ? '' : ' Conditions set to match. Change them if the track was different.') + '</span></p>'
           : a.tempSource === 'file' ? '<p class="tp-src" id="tp-temp-src">' + icon('info') + '<span>From the air temperature recorded in your file.</span></p>' : '') +
         '<div class="tp-field"><label for="tp-notes">Notes (only you see these)</label><input class="field" id="tp-notes" placeholder="Pressures, set-up, traffic..." value="' + esc(a.notes || '') + '"></div>' +
@@ -665,7 +788,9 @@
       if (g) g.addEventListener('click', function (e) { var b = e.target.closest('button[data-v]'); if (b && !b.disabled) fn(b.getAttribute('data-v')); });
     }
     function keep() {
-      ['tyres', 'temp', 'notes', 'venue-name'].forEach(function (k) {
+      var ty = readTyre('tp-tyre');
+      if (ty) { a.tyre = ty; a.tyres = TY.compose(ty); }
+      ['temp', 'notes', 'venue-name'].forEach(function (k) {
         var el = document.getElementById('tp-' + k);
         if (!el) return;
         if (k === 'temp') {
@@ -673,7 +798,7 @@
           if (tv !== a.temp) { a.tempSource = tv == null ? '' : 'member'; a.weather = null; }
           a.temp = tv;
         }
-        else if (k === 'venue-name') a.venueName = el.value.trim();
+        else if (k === 'venue-name') { a.venueName = el.value.trim(); if (a.venueNameLooked && a.venueName !== a.lookedName) a.venueNameLooked = false; }
         else a[k] = el.value.trim();
       });
     }
@@ -699,6 +824,7 @@
     if (ig) ig.addEventListener('click', function () { keep(); a.ignoreFinish = a.ignoreFinish === false; analyse(); });
     var st = document.getElementById('tp-street');
     if (st) st.addEventListener('click', function () { keep(); a.street = !a.street; if (a.street) a.privacy = 'private'; drawResult(); });
+    wireTyres('tp-tyre');
     var save = document.getElementById('tp-save');
     if (save) save.addEventListener('click', function () { keep(); saveSession(save); });
     var req = document.getElementById('tp-req');
@@ -785,7 +911,7 @@
         api('POST', '/track/requests', { kind: s.type === 'sprint' ? 'sprint' : 'circuit', name: a.venueName || s.venue || '', venueId: s.venueId || '', startLine: s.startLine, finishLine: s.finishLine || null, lapLength: lap ? lap[lap.length - 1][0] : null, outline: out, note: s.type === 'sprint' ? (s.venueId ? 'Course not recognised' : 'New sprint or hill climb') : s.venueId ? 'Layout not recognised' : 'New track' }).catch(function () {});
       }
       if (a.replaceId) return api('PUT', '/track/session', { id: a.replaceId, session: s, venueName: a.venueName || '' }, true);
-      return api('POST', '/track/sessions', { carId: carId, session: s, conditions: a.conditions, tyres: a.tyres || '', temp: a.temp, tempSource: a.temp == null ? '' : (a.tempSource || 'member'), weather: a.tempSource === 'weather' ? a.weather : null, notes: a.notes || '', privacy: a.privacy, venueName: a.venueName || '', street: a.street, adminViewer: a.street ? adminViewerToken() : '' }, true);
+      return api('POST', '/track/sessions', { carId: carId, session: s, conditions: a.conditions, tyres: a.tyres || '', tyreMake: (a.tyre && a.tyre.make) || '', tyreModel: (a.tyre && a.tyre.model) || '', tyreWidth: (a.tyre && a.tyre.w) || null, tyreProfile: (a.tyre && a.tyre.p) || null, tyreRim: (a.tyre && a.tyre.d) || null, temp: a.temp, tempSource: a.temp == null ? '' : (a.tempSource || 'member'), weather: a.tempSource === 'weather' ? a.weather : null, notes: a.notes || '', privacy: a.privacy, venueName: a.venueName || '', street: a.street, adminViewer: a.street ? adminViewerToken() : '' }, true);
     }).then(function (d) {
       if (!d.success) throw new Error(d.message || 'Could not save the session.');
       mine = null; counts = null;
@@ -832,7 +958,7 @@
       var src = r[0], m = r[1];
       if (!src.p || !m) throw new Error((src && src.message) || 'Could not load your readings.');
       var car = m.cars.filter(function (c) { return c.id === s.carId; })[0] || m.cars[0];
-      add = { car: car, cars: m.cars, lib: r[2], admin: r[3], rd: restoreSource(src), session: null, type: type, startLine: null, conditions: s.conditions || 'Dry', condTouched: true, privacy: s.privacy, street: false, tyres: s.tyres || '', temp: s.temp, tempSource: s.tempSource || '', weather: s.weather || null, notes: s.notes || '', date: s.date, time: s.time, venueName: s.venueId ? '' : s.venue, replaceId: s.id, files: null, list: null };
+      add = { car: car, cars: m.cars, lib: r[2], admin: r[3], rd: restoreSource(src), session: null, type: type, startLine: null, conditions: s.conditions || 'Dry', condTouched: true, privacy: s.privacy, street: false, tyres: s.tyres || '', tyre: tyreInit(s), temp: s.temp, tempSource: s.tempSource || '', weather: s.weather || null, notes: s.notes || '', date: s.date, time: s.time, venueName: s.venueId ? '' : s.venue, replaceId: s.id, files: null, list: null };
       analyse();
       window.scrollTo(0, 0);
     }).catch(function (e) { status((e && e.message) || 'Could not load your readings.', 'error'); });
@@ -842,7 +968,7 @@
   var view = null;
   function showSession(id) {
     loading();
-    Promise.all([api('GET', '/track/session?id=' + encodeURIComponent(id)), getMine().catch(function () { return null; })]).then(function (r) {
+    Promise.all([api('GET', '/track/session?id=' + encodeURIComponent(id)), getMine().catch(function () { return null; }), loadTyres()]).then(function (r) {
       var d = r[0];
       if (!d.success) return failed('This session isn\'t available. It may be private or removed.');
       view = { s: d.session, mine: r[1], a: d.session.best || 1, b: null, other: {}, members: [], memberById: {} };
@@ -937,17 +1063,22 @@
       (s.sectorsByThirds ? '<p class="tp-small">Sectors are thirds of the lap until this track has its own sector points.</p>' : '') + '</div></div>';
     h += '<div class="tp-section"><h3>What we spotted</h3><div class="tp-notes">' + notesHtml(T.sessionNotes(s, V.fmtV, V.fmtD)) + '</div></div>';
     if (s.trace && s.trace.laps && Object.keys(s.trace.laps).length) {
-      h += '<div class="tp-section" id="compare"><div class="tp-head"><h2>Compare laps</h2></div><p class="tp-sub">Pick two laps. Move along a chart to see where both are, at the same moment or the same point on track (switch under the map).</p>' +
+      h += '<div class="tp-section" id="compare"><div class="tp-head"><h2>Compare laps</h2></div><p class="tp-sub">Pick two laps. Press Play, or move along a chart, to see where both are at the same moment. The slower lap trails by the time gap.</p>' +
         '<div class="card tp-cmp-pick"><div class="tp-f2"><div class="tp-field"><label for="tp-cmp-a">Lap A</label><select class="field" id="tp-cmp-a">' + lapOptions(view.a) + '</select></div><div class="tp-field"><label for="tp-cmp-b">Lap B</label><select class="field" id="tp-cmp-b">' + lapOptions(view.b) + '</select></div></div></div>' +
-        '<div class="tp-grid tp-g-map"><div class="card"><div class="tp-chart-head"><h3>Speed through the lap</h3><div class="tp-key" id="tp-key"></div></div><svg class="tv-chart" id="tp-speed" role="img" aria-label="Speed against distance for both laps"></svg>' +
+        '<div class="tp-grid tp-g-map"><div class="tp-grid"><div class="card tp-o-speed"><div class="tp-chart-head"><h3>Speed through the lap</h3><div class="tp-key" id="tp-key"></div></div><svg class="tv-chart" id="tp-speed" role="img" aria-label="Speed against distance for both laps"></svg>' +
         '<div class="tp-chart-head"><h3>Time gap</h3><span class="tp-small" id="tp-gap-cap"></span></div><svg class="tv-chart" id="tp-delta" role="img" aria-label="Running time gap between the laps"></svg></div>' +
-        '<div class="tp-grid"><div class="card"><div class="tp-chart-head"><h3>Where you are</h3><div class="tp-chips" id="tp-sync" role="group" aria-label="How the two dots are lined up"><button type="button" class="chip chip-sm is-on" data-sync="time">Same moment</button><button type="button" class="chip chip-sm" data-sync="point">Same point</button></div></div><p class="tp-small tp-sync-note" id="tp-sync-note"></p>' +
+        '<div class="card tp-o-corner"><h3>Corner by corner</h3><div class="tp-scroll"><table class="tp-table" id="tp-corners"></table></div></div></div>' +
+        '<div class="tp-grid"><div class="card tp-mapcard" id="tp-mapcard"><div class="tp-chart-head tp-map-head"><h3>Where you are</h3><button type="button" class="btn btn-secondary btn-sm" id="tp-full" aria-label="Full screen map"></button></div>' +
+        '<p class="tp-small tp-sync-note">Both laps at the same moment: the slower one trails by the time gap.</p>' +
         '<div class="tp-play" id="tp-play"><div class="tp-play-row"><div class="tp-play-btns"><button type="button" class="btn btn-secondary" id="tp-play-start" data-play="start" aria-label="Go back to the start"></button><button type="button" class="btn btn-secondary" id="tp-play-back" data-play="back"></button><button type="button" class="btn btn-primary" id="tp-play-toggle" data-play="toggle"></button></div>' +
         '<div class="tp-chips" id="tp-speeds" role="group" aria-label="Playback speed">' + [['0.5', 'x0.5'], ['1', 'x1'], ['2', 'x2'], ['5', 'x5']].map(function (v) { return '<button type="button" class="chip" data-speed="' + v[0] + '">' + v[1] + '</button>'; }).join('') + '</div>' +
         '<button type="button" class="chip is-on" id="tp-follow" aria-pressed="true" title="When the map is zoomed in, keep the cars in view">Follow cars</button></div>' +
         '<div class="tp-scrub-row"><input type="range" id="tp-scrub" min="0" max="100" step="0.01" value="0" aria-label="Position in the lap"><span class="tp-clock" id="tp-clock">0:00.0</span></div></div>' +
-        '<svg class="tv-chart" id="tp-map2" role="img" aria-label="Track map with both laps\' lines and positions"></svg></div>' +
-        '<div class="card"><h3>Corner by corner</h3><div class="tp-scroll"><table class="tp-table" id="tp-corners"></table></div></div></div></div>' +
+        '<div class="tp-mapwrap" id="tp-mapwrap"><svg class="tv-chart" id="tp-map2" role="img" aria-label="Track map with both laps\' lines and positions"></svg></div>' +
+        '<div class="tp-metrics" id="tp-metrics" aria-live="off"></div>' +
+        '<div class="tp-gbox" id="tp-gbox"><div class="tp-chart-head"><h3>G-force</h3><div class="tp-chips" id="tp-gtoggles" role="group" aria-label="G-force lines to show">' + G_DEFS.map(function (d) { return '<button type="button" class="chip chip-sm is-on" data-g="' + d[0] + '" aria-pressed="true"><i class="tp-gkey" style="background:' + d[2] + '"></i>' + d[1] + '</button>'; }).join('') + '</div></div>' +
+        '<svg class="tv-chart" id="tp-gforce" role="img" aria-label="Acceleration and cornering g-force against distance for both laps"></svg><p class="tp-small" id="tp-gnote"></p></div></div>' +
+        '</div></div>' +
         '<div class="tp-grid tp-g2"><div class="card"><div class="tp-chart-head"><h3>How much grip you used, lap A</h3><span class="tp-small">Each dot is a moment on the lap. The further from the middle, the harder the car was working the tyres.</span></div><svg class="tv-chart tp-gg" id="tp-gg" role="img" aria-label="Sideways against lengthways g for lap A"></svg></div><div class="tp-notes" id="tp-cmp-notes"></div></div></div>';
     }
     if (s.mine && s.venueId && s.layoutId) h += '<div class="tp-section" id="over-time"><div class="tp-head"><h2>' + esc(trackName(s)) + ' over time</h2></div><div id="tp-time"></div></div>';
@@ -1095,7 +1226,6 @@
       drawMainMap(s);
     });
     var sa = document.getElementById('tp-cmp-a'), sb = document.getElementById('tp-cmp-b');
-    wireSync();
     wirePlay();
     if (sa) {
       sa.addEventListener('change', function () { view.a = sa.value; drawCompare(s); });
@@ -1105,8 +1235,10 @@
     if (s.mine) drawOverTime(s);
   }
   // How the two laps are lined up on the "Where you are" map.
-  var cmpSync = 'time';
-  var SYNC_NOTE = { time: 'Both laps at the same moment: the slower one trails by the time gap.', point: 'Both laps at the same point on track.' };
+  // Lines the G-force chart can show (key, label, colour).
+  var G_DEFS = [['acc', 'Acceleration G', '#1baf7a'], ['cor', 'Cornering G', '#7a3fc4']];
+  var gShow = { acc: true, cor: true };
+  var cmpFull = false, cmpDrawG = null;
   // The distance a lap had reached after t seconds.
   function distAtTime(trace, t) {
     var lo = 0, hi = trace.length - 1;
@@ -1154,6 +1286,7 @@
     pb.dir = dir; pb.playing = true; pb.active = true; pb.last = 0;
     // Starting playback always puts the cars back in view when zoomed in.
     setFollow(true);
+    if (cmpMap && cmpMap.prefetchSat) cmpMap.prefetchSat();
     playUi();
     if (!pb.raf) pb.raf = requestAnimationFrame(tick);
   }
@@ -1173,6 +1306,38 @@
     pb.render(pb.t);
     pb.raf = requestAnimationFrame(tick);
   }
+  function gUi() {
+    document.querySelectorAll('#tp-gtoggles [data-g]').forEach(function (b) {
+      var on = !!gShow[b.getAttribute('data-g')];
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+  // Full screen: the map fills the screen with the controls, numbers and
+  // G-force lines along the bottom. Redrawn to the new size, keeping the lap's place.
+  function fullUi() {
+    var b = document.getElementById('tp-full'), card = document.getElementById('tp-mapcard');
+    if (card) card.classList.toggle('is-full', cmpFull);
+    document.body.classList.toggle('tp-noscroll', cmpFull);
+    if (b) {
+      b.innerHTML = icon(cmpFull ? 'x' : 'expand') + (cmpFull ? 'Exit full screen' : 'Full screen');
+      b.setAttribute('aria-label', cmpFull ? 'Exit full screen' : 'Full screen map');
+    }
+  }
+  function setFull(on) {
+    cmpFull = !!on;
+    fullUi();
+    if (view && view.s && document.getElementById('tp-map2')) drawCompare(view.s, true);
+    if (cmpFull) { var b = document.getElementById('tp-full'); if (b) b.focus({ preventScroll: true }); }
+  }
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && cmpFull) setFull(false); });
+  // Turning the phone while full screen: draw the map to the new size.
+  var resizeTimer = null;
+  window.addEventListener('resize', function () {
+    if (!cmpFull) return;
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () { if (cmpFull && view && view.s && document.getElementById('tp-map2')) drawCompare(view.s, true); }, 200);
+  });
   // Whether a zoomed-in map keeps the cars in view. Dragging the map turns it off.
   var cmpMap = null;
   function setFollow(on) {
@@ -1192,6 +1357,19 @@
     });
     var fol = document.getElementById('tp-follow');
     if (fol) fol.addEventListener('click', function () { setFollow(!cmpFollow); });
+    var fb = document.getElementById('tp-full');
+    if (fb) fb.addEventListener('click', function () { setFull(!cmpFull); });
+    var gt = document.getElementById('tp-gtoggles');
+    if (gt) gt.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-g]');
+      if (!b) return;
+      var k = b.getAttribute('data-g');
+      gShow[k] = !gShow[k];
+      gUi();
+      if (cmpDrawG) cmpDrawG();
+    });
+    gUi();
+    fullUi();
     document.getElementById('tp-scrub').addEventListener('input', function (e) {
       if (!pb.render) return;
       stopPlay();
@@ -1201,20 +1379,9 @@
     });
     playUi();
   }
-  function wireSync() {
-    var box = document.getElementById('tp-sync'), note = document.getElementById('tp-sync-note');
-    if (!box) return;
-    function show() {
-      box.querySelectorAll('button[data-sync]').forEach(function (b) { b.classList.toggle('is-on', b.getAttribute('data-sync') === cmpSync); });
-      if (note) note.textContent = SYNC_NOTE[cmpSync];
-    }
-    box.addEventListener('click', function (e) {
-      var b = e.target.closest('button[data-sync]');
-      if (b) { cmpSync = b.getAttribute('data-sync'); show(); }
-    });
-    show();
-  }
-  function drawCompare(s) {
+  function drawCompare(s, keep) {
+    // Redrawing for full screen carries on from the same place in the lap.
+    var resume = keep ? { t: pb.t, active: pb.active, playing: pb.playing, dir: pb.dir } : null;
     Promise.all([lapTrace(view.a), lapTrace(view.b || view.a)]).then(function (r) {
       var A = r[0], B = r[1];
       if (!A || !B) return;
@@ -1229,35 +1396,61 @@
       var vmax = 0; A.trace.concat(B.trace).forEach(function (p) { vmax = Math.max(vmax, V.spd(p[4])); });
       var yt = V.nice(0, vmax, 6);
       var mapEl = document.getElementById('tp-map2');
-      var mo = V.map(mapEl, A.trace, { mono: true, lines: A === B ? [{ trace: A.trace, color: c1 }] : [{ trace: B.trace, color: c2 }, { trace: A.trace, color: c1 }], startLine: startLineXY(s), corners: s.corners, origin: s.origin });
+      var mapBox = document.getElementById('tp-mapwrap');
+      var fill = cmpFull && mapBox ? { w: mapBox.clientWidth, h: mapBox.clientHeight } : null;
+      var mo = V.map(mapEl, A.trace, { fill: fill, mono: true, lines: A === B ? [{ trace: A.trace, color: c1 }] : [{ trace: B.trace, color: c2 }, { trace: A.trace, color: c1 }], startLine: startLineXY(s), corners: s.corners, origin: s.origin });
       cmpMap = mo;
       if (mo && mo.setFollow) mo.setFollow(cmpFollow);
       if (mo && mo.zoom && mo.zoom.onPan) mo.zoom.onPan(function () { if (cmpFollow) setFollow(false); });
-      var other = [];
-      // Same moment: the quicker lap is at x and the other is wherever it was
-      // at that elapsed time, so it trails by the time gap. Same point: both
-      // at distance x.
+      // Smoothed G-force rows [distance, acceleration, cornering] for each lap.
+      function smoothG(trace) {
+        return trace.map(function (p, i) {
+          var n = 0, ac = 0, co = 0;
+          for (var k = Math.max(0, i - 2); k <= Math.min(trace.length - 1, i + 2); k++) { ac += trace[k][6]; co += Math.abs(trace[k][5]); n++; }
+          return [p[0], ac / n, co / n];
+        });
+      }
+      var ga = smoothG(A.trace), gb = A === B ? ga : smoothG(B.trace);
+      var fmtAcc = function (v) { return (v >= 0 ? '+' : '') + v.toFixed(2) + ' g'; }, fmtCor = function (v) { return v.toFixed(2) + ' g'; };
+      // The numbers under the map: each lap's speed and G-force where its dot is.
+      var mbox = document.getElementById('tp-metrics');
+      function mrow(id, colour, label) {
+        return '<div class="tp-mrow"><span class="tp-mkey" style="background:' + colour + '"></span><b>' + esc(label) + '</b>' +
+          '<span class="tp-mv"><small>Speed</small><i data-m="' + id + '-v">-</i></span><span class="tp-mv"><small>Accel</small><i data-m="' + id + '-acc">-</i></span><span class="tp-mv"><small>Corner</small><i data-m="' + id + '-cor">-</i></span></div>';
+      }
+      if (mbox) mbox.innerHTML = mrow('a', c1, A.label + ' (A)') + (A === B ? '' : mrow('b', c2, B.label + ' (B)')) + '<div class="tp-mgap" data-m="gap"></div>';
+      function setM(id, v) { var el = mbox && mbox.querySelector('[data-m="' + id + '"]'); if (el) el.textContent = v; }
+      function showMetrics(pa, pb, g) {
+        var ra = at(ga, pa[0]), rb = at(gb, pb[0]);
+        setM('a-v', V.fmtV(pa[4])); setM('a-acc', fmtAcc(ra[1])); setM('a-cor', fmtCor(ra[2]));
+        if (A !== B) { setM('b-v', V.fmtV(pb[4])); setM('b-acc', fmtAcc(rb[1])); setM('b-cor', fmtCor(rb[2])); setM('gap', 'A is ' + Math.abs(g).toFixed(2) + ' s ' + (g >= 0 ? 'ahead' : 'behind')); }
+      }
+      function charts() { return [sp, dl, gl].filter(Boolean); }
+      // The quicker lap is at x and the other is wherever it was at that
+      // elapsed time, so it trails by the time gap.
       function move(x) {
         if (!mo) return;
-        var pa = at(A.trace, x), pb = at(B.trace, x);
-        if (cmpSync === 'time' && A !== B) {
+        var pa = at(A.trace, x), pb = at(B.trace, x), gap = pb[1] - pa[1];
+        if (A !== B) {
           var t = Math.min(pa[1], pb[1]);
           if (pa[1] > t) pa = at(A.trace, distAtTime(A.trace, t));
           else if (pb[1] > t) pb = at(B.trace, distAtTime(B.trace, t));
         }
         mo.placeA(pa); mo.placeB(pb);
+        showMetrics(pa, pb, gap);
       }
       // Back to where playback or the slider left it, else hidden.
       function leave() {
         if (pb.active && pb.render) { pb.render(pb.t); return; }
         if (mo) { mo.placeA(null); mo.placeB(null); }
-        other.forEach(function (o) { o.hide(); });
+        charts().forEach(function (o) { o.hide(); });
       }
       // Played or scrubbed to t seconds into the lap: the leader's place sets
-      // the chart cursor, and each lap's dot goes where it was at that time.
+      // the chart cursors, and each lap's dot goes where it was at that time.
       function renderAt(t) {
         var x = Math.min(dmax, Math.max(distAtTime(A.trace, t), distAtTime(B.trace, t)));
-        move(x); sp.show(x); dl.show(x);
+        move(x);
+        charts().forEach(function (o) { o.show(x); });
         var sc = document.getElementById('tp-scrub'), ck = document.getElementById('tp-clock');
         if (sc) sc.value = t;
         if (ck) ck.textContent = clock(t) + ' / ' + clock(pb.tEnd);
@@ -1266,12 +1459,43 @@
         var pa = at(A.trace, x), pb = at(B.trace, x), g = pb[1] - pa[1];
         return '<b>' + V.fmtD(x, 2) + '</b>' + V.row(A.label, V.fmtV(pa[4]), c1) + V.row(B.label, V.fmtV(pb[4]), c2) + V.row('A is', Math.abs(g).toFixed(2) + ' s ' + (g >= 0 ? 'ahead' : 'behind'));
       }
+      function tipG(x) {
+        var ra = at(ga, x), rb = at(gb, x), h = '<b>' + V.fmtD(x, 2) + '</b>';
+        if (gShow.acc) h += V.row('Accel, A', fmtAcc(ra[1]), c1) + (A === B ? '' : V.row('Accel, B', fmtAcc(rb[1]), c2));
+        if (gShow.cor) h += V.row('Corner, A', fmtCor(ra[2]), c1) + (A === B ? '' : V.row('Corner, B', fmtCor(rb[2]), c2));
+        return h;
+      }
+      // The coloured G-force lines: solid for lap A, dashed for lap B, each
+      // switched on or off with its chip.
+      var gl = null;
+      function drawG() {
+        var gs = document.getElementById('tp-gforce'), note = document.getElementById('tp-gnote');
+        if (!gs) return;
+        var defs = G_DEFS.filter(function (d) { return gShow[d[0]]; }), series = [], lo = 0, hi = 0.5;
+        defs.forEach(function (d) {
+          var col = d[0] === 'acc' ? 1 : 2;
+          [[ga, null], [gb, '5 4']].forEach(function (lp, li) {
+            if (li && A === B) return;
+            lp[0].forEach(function (r) { lo = Math.min(lo, r[col]); hi = Math.max(hi, r[col]); });
+            series.push({ color: d[2], dash: lp[1], pts: lp[0].map(function (r) { return [r[0], r[col]]; }), at: function (x) { return at(lp[0], x)[col]; } });
+          });
+        });
+        if (note) note.textContent = !defs.length ? 'Turn a line on to see it.' : A === B ? A.label : 'Solid line: ' + A.label + ' (A). Dashed line: ' + B.label + ' (B).';
+        if (!defs.length) { gs.innerHTML = ''; gs.removeAttribute('viewBox'); gl = null; return; }
+        var gy = V.nice(Math.floor(lo * 2) / 2, Math.ceil(hi * 2) / 2, 4);
+        gl = V.line(gs, {
+          H: cmpFull ? 110 : 150, x0: 0, x1: dmax, y0: gy[0], y1: gy[gy.length - 1], xt: xt, xf: xf, yt: gy, zero: 0, yf: function (v) { return v + ' g'; },
+          series: series, tip: tipG, onMove: function (x) { userHover(); move(x); sp.show(x); dl.show(x); }, onLeave: leave
+        });
+        if (pb.active && pb.render) pb.render(pb.t);
+      }
+      cmpDrawG = drawG;
       var sp, dl;
       sp = V.line(document.getElementById('tp-speed'), {
         H: 240, x0: 0, x1: dmax, y0: 0, y1: yt[yt.length - 1], xt: xt, xf: xf, yt: yt,
         series: [{ color: c2, pts: B.trace.map(function (p) { return [p[0], V.spd(p[4])]; }), at: function (x) { return V.spd(at(B.trace, x)[4]); } }, { color: c1, pts: A.trace.map(function (p) { return [p[0], V.spd(p[4])]; }), at: function (x) { return V.spd(at(A.trace, x)[4]); } }],
         under: function (svg, X) { (s.corners || []).forEach(function (c) { var t = document.createElementNS('http://www.w3.org/2000/svg', 'text'); t.setAttribute('x', X(c.d)); t.setAttribute('y', 22); t.setAttribute('text-anchor', 'middle'); t.setAttribute('font-weight', '700'); t.textContent = c.n; svg.appendChild(t); }); },
-        tip: tipF, onMove: function (x) { userHover(); move(x); dl.show(x); }, onLeave: leave
+        tip: tipF, onMove: function (x) { userHover(); move(x); dl.show(x); if (gl) gl.show(x); }, onLeave: leave
       });
       var dp = [];
       for (var x = 0; x <= dmax; x += 10) dp.push([x, at(B.trace, x)[1] - at(A.trace, x)[1]]);
@@ -1279,18 +1503,23 @@
       var gyt = V.nice(Math.min(0, gmin), Math.max(0.5, gmax), 4);
       dl = V.line(document.getElementById('tp-delta'), {
         H: 150, x0: 0, x1: dmax, y0: gyt[0], y1: gyt[gyt.length - 1], xt: xt, xf: xf, yt: gyt, zero: 0, yf: function (v) { return (v > 0 ? '+' : '') + v + ' s'; },
-        series: [{ color: c1, area: true, pts: dp, at: function (x) { return at(B.trace, x)[1] - at(A.trace, x)[1]; } }], tip: tipF, onMove: function (x) { userHover(); move(x); sp.show(x); }, onLeave: leave
+        series: [{ color: c1, area: true, pts: dp, at: function (x) { return at(B.trace, x)[1] - at(A.trace, x)[1]; } }], tip: tipF, onMove: function (x) { userHover(); move(x); sp.show(x); if (gl) gl.show(x); }, onLeave: leave
       });
-      other = [sp, dl];
       // Hovering a chart takes over from playback.
       function userHover() { stopPlay(); pb.active = false; }
       stopPlay();
       pb.active = false; pb.t = 0;
       pb.tEnd = Math.max(A.trace[A.trace.length - 1][1], B.trace[B.trace.length - 1][1]);
       pb.render = renderAt;
+      drawG();
       var scrub = document.getElementById('tp-scrub'), clk = document.getElementById('tp-clock');
       if (scrub) { scrub.max = pb.tEnd; scrub.value = 0; }
       if (clk) clk.textContent = clock(0) + ' / ' + clock(pb.tEnd);
+      if (resume) {
+        pb.t = Math.min(resume.t, pb.tEnd); pb.active = resume.active;
+        if (resume.active) renderAt(pb.t);
+        if (resume.playing) startPlay(resume.dir);
+      }
       var total = B.time - A.time;
       document.getElementById('tp-gap-cap').textContent = 'Above the line, A is ahead. A finishes ' + Math.abs(total).toFixed(2) + ' s ' + (total >= 0 ? 'ahead' : 'behind') + '.';
       var gains = s.corners && s.corners.length ? T.cornerGains(A.trace, B.trace, s.corners) : [];
@@ -1378,13 +1607,15 @@
     return '<div class="tp-section" id="settings"><div class="tp-head"><h2>Session settings</h2></div><div class="card tp-fields">' + typeBox +
       '<div class="tp-field"><span class="tp-lbl">Who can see it</span><div class="tp-privacy" data-privacy>' + privacyOptions(s.privacy, limit) + '</div></div>' +
       '<div class="tp-field"><span class="tp-lbl">Conditions</span><div class="tp-chips" data-cond>' + ['Dry', 'Damp', 'Wet'].map(function (c) { return '<button type="button" class="chip' + (s.conditions === c ? ' is-on' : '') + '" data-v="' + c + '">' + c + '</button>'; }).join('') + '</div></div>' +
-      '<div class="tp-f2"><div class="tp-field"><label for="tp-e-tyres">Tyres</label><input class="field" id="tp-e-tyres" value="' + esc(s.tyres || '') + '"></div><div class="tp-field"><label for="tp-e-temp">Air temperature (°C)</label><input class="field" id="tp-e-temp" inputmode="numeric" value="' + esc(s.temp == null ? '' : s.temp) + '"></div></div>' +
+      tyreFields('tp-e-tyre', tyreInit(s)) +
+      '<div class="tp-field"><label for="tp-e-temp">Air temperature (°C)</label><input class="field" id="tp-e-temp" inputmode="numeric" value="' + esc(s.temp == null ? '' : s.temp) + '"></div>' +
       '<div class="tp-weather-row"><button type="button" class="btn btn-secondary btn-sm" id="tp-e-weather">Fill in from weather</button><p class="tp-src" id="tp-e-src">' + (s.tempSource === 'weather' && s.weather ? icon('info') + '<span>' + weatherNote(s.weather, s.venue) + '</span>' : s.tempSource === 'file' ? icon('info') + '<span>From the air temperature recorded in your file.</span>' : '') + '</p></div>' +
       '<div class="tp-field"><label for="tp-e-notes">Notes (only you see these)</label><input class="field" id="tp-e-notes" value="' + esc(s.notes || '') + '"></div>' +
       '<div class="tp-actions"><button type="button" class="btn btn-primary" id="tp-e-save">Save changes</button><button type="button" class="btn btn-danger" id="tp-e-del">' + icon('trash') + 'Delete</button></div><p class="tp-status" id="tp-status" role="status"></p></div></div>';
   }
   function wireOwner(s) {
     var edit = { privacy: s.privacy, conditions: s.conditions, tempSource: s.tempSource || '', weather: s.weather || null, temp: s.temp };
+    wireTyres('tp-e-tyre');
     var tempEl = document.getElementById('tp-e-temp');
     tempEl.addEventListener('input', function () { edit.tempSource = tempEl.value.trim() === '' ? '' : 'member'; edit.weather = null; document.getElementById('tp-e-src').innerHTML = ''; });
     document.getElementById('tp-e-weather').addEventListener('click', function () {
@@ -1417,10 +1648,11 @@
     });
     document.getElementById('tp-e-save').addEventListener('click', function () {
       var t = document.getElementById('tp-e-temp').value.trim();
-      api('PUT', '/track/session', { id: s.id, privacy: edit.privacy, conditions: edit.conditions || '', tyres: document.getElementById('tp-e-tyres').value, temp: t === '' ? null : parseFloat(t), tempSource: t === '' ? '' : (edit.tempSource || 'member'), weather: edit.tempSource === 'weather' ? edit.weather : null, notes: document.getElementById('tp-e-notes').value }).then(function (d) {
+      var ty = tyrePayload(readTyre('tp-e-tyre'));
+      api('PUT', '/track/session', Object.assign({ id: s.id, privacy: edit.privacy, conditions: edit.conditions || '' }, ty, { temp: t === '' ? null : parseFloat(t), tempSource: t === '' ? '' : (edit.tempSource || 'member'), weather: edit.tempSource === 'weather' ? edit.weather : null, notes: document.getElementById('tp-e-notes').value })).then(function (d) {
         if (!d.success) { status(d.message || 'Could not save.', 'error'); return; }
         mine = null; counts = null;
-        Object.assign(view.s, { privacy: d.session.privacy, conditions: d.session.conditions, tyres: d.session.tyres, temp: d.session.temp, tempSource: d.session.tempSource, weather: d.session.weather, notes: document.getElementById('tp-e-notes').value });
+        Object.assign(view.s, { privacy: d.session.privacy, conditions: d.session.conditions, tyres: d.session.tyres, tyreMake: d.session.tyreMake, tyreModel: d.session.tyreModel, tyreWidth: d.session.tyreWidth, tyreProfile: d.session.tyreProfile, tyreRim: d.session.tyreRim, temp: d.session.temp, tempSource: d.session.tempSource, weather: d.session.weather, notes: document.getElementById('tp-e-notes').value });
         getMine().then(function (m) { view.mine = m; drawSession(); status('Saved.', 'ok'); });
       });
     });

@@ -442,3 +442,27 @@ def test_track_sessions_button_on_the_garage(device_page):
     btn.wait_for(state="hidden", timeout=5000)
     assert overflow_width(page) <= 0
     assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_a_car_can_be_added_without_a_caption(device_page):
+    """The caption is optional on every upload form, so Add a car goes through
+    with it left blank."""
+    page = device_page
+    signed_in(page)
+    page.goto("/my-builds.html")
+    for field in ("mb-submit-caption", "mb-addcar-caption", "mb-upload-caption"):
+        assert page.locator("#" + field).get_attribute("required") is None, field
+        assert page.locator("label[for=%s]" % field).inner_text() == "Caption (optional)", field
+    page.locator("#mb-addcar-toggle-btn").click(timeout=10000)
+    form = page.locator("#mb-addcar-form")
+    form.locator(".mb-model-pick .chip", has_text="Model Y").click()
+    page.fill("#mb-addcar-carname", "No Caption Y")
+    page.select_option("#mb-addcar-color", "Grey")
+    page.set_input_files("#mb-addcar-photo", files=[{"name": "car.jpg", "mimeType": "image/jpeg", "buffer": b"\xff\xd8\xff\xd9"}])
+    page.click("#mb-addcar-submit-btn")
+    page.locator("#mb-mods-builder .mbm-welcome").wait_for(state="visible", timeout=5000)
+    submits = page.mock_state.get("submits", [])
+    if submits and submits[-1]:
+        assert 'name="caption"' in submits[-1] and "No Caption Y" in submits[-1]
+    assert page.errors == [], diagnostics(page)

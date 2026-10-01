@@ -94,7 +94,8 @@
   function map(svg, trace, opts) {
     opts = opts || {};
     svg.innerHTML = '';
-    var W = Math.min(640, width(svg, 600)), H = Math.round(W * (opts.tall ? 0.62 : 0.7));
+    // opts.fill: { w, h } to fill a box exactly (full screen), else a 640 wide map.
+    var W = opts.fill ? Math.max(200, Math.round(opts.fill.w)) : Math.min(640, width(svg, 600)), H = opts.fill ? Math.max(160, Math.round(opts.fill.h)) : Math.round(W * (opts.tall ? 0.62 : 0.7));
     svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
     svg.classList.add('tv-map');
     if (!trace || trace.length < 2) { zoomControls(svg, null); return null; }
@@ -208,7 +209,7 @@
       if (Math.abs(w.x + w.w / 2 - t[0]) < 0.01 && Math.abs(w.y + w.h / 2 - t[1]) < 0.01) return;
       zoom.centreOn(t[0], t[1]);
     }
-    return { vmin: vmin, vmax: vmax, placeA: function (p) { place(dotA, p); posA = p; follow(); }, placeB: function (p) { place(dotB, p); posB = p; follow(); }, setFollow: function (on) { following = !!on; if (on) follow(); }, P: P, marker: marker, zoom: zoom };
+    return { vmin: vmin, vmax: vmax, placeA: function (p) { place(dotA, p); posA = p; follow(); }, placeB: function (p) { place(dotB, p); posB = p; follow(); }, setFollow: function (on) { following = !!on; if (on) follow(); }, prefetchSat: function () { if (sat) sat.prefetch(trace); }, P: P, marker: marker, zoom: zoom };
   }
 
   // ---------- Satellite ground ----------
@@ -219,6 +220,9 @@
   var SAT_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/';
   var satOn = true;
   try { satOn = localStorage.getItem('mt3ukTrackSat') !== '0'; } catch (e) {}
+  // Tiles already fetched this visit, so panning back, or playing a lap
+  // again, shows them straight away (the browser also keeps them on disk).
+  var tileSeen = {};
   function satGround(svg, g, origin, P, s, x0, y0, H, oy, ox) {
     if (!g || !origin || origin.length !== 2 || !window.MT3UKTrack) return null;
     var proj = window.MT3UKTrack.projector(origin[0], origin[1]);
@@ -228,29 +232,94 @@
     function tileLat(y, z) { var n = Math.PI - 2 * Math.PI * y / Math.pow(2, z); return 180 / Math.PI * Math.atan(Math.sinh(n)); }
     function tileX(lng, z) { return Math.floor((lng + 180) / 360 * Math.pow(2, z)); }
     function tileY(lat, z) { var r = lat * Math.PI / 180; return Math.floor((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * Math.pow(2, z)); }
-    var timer = null;
-    function draw() {
-      g.innerHTML = '';
-      svg.classList.toggle('has-sat', satOn);
-      if (!satOn) return;
+    var shown = {};      // key -> { z, node }: tiles drawn on this map
+    var timer = null, last = 0;
+    // The tile zoom that matches the map's current zoom.
+    function zoomLevel() {
       var vb = svg.viewBox.baseVal, r = svg.getBoundingClientRect();
-      var a = fromMap(vb.x, vb.y), b = fromMap(vb.x + vb.width, vb.y + vb.height);
-      // Metres per screen pixel, then the tile zoom to match it.
       var mpp = (vb.width / s) / Math.max(1, r.width || vb.width);
       var z = Math.round(Math.log(156543.03 * Math.cos(origin[0] * Math.PI / 180) / Math.max(0.05, mpp)) / Math.LN2);
-      z = Math.max(12, Math.min(19, z));
+      return Math.max(12, Math.min(19, z));
+    }
+    // Loads a tile, then calls back once it can be drawn without a gap.
+    function load(url, done) {
+      if (tileSeen[url] === true) { done(); return; }
+      var im = new Image();
+      im.onload = function () { tileSeen[url] = true; done(); };
+      im.onerror = function () { delete tileSeen[url]; };
+      im.src = url;
+    }
+    // Tiles from other zoom levels stay underneath until this level's tiles
+    // are all in, so the picture never goes blank while moving.
+    function settle(z, wanted) {
+      var ready = wanted.every(function (k) { return shown[k]; });
+      if (!ready) return;
+      Object.keys(shown).forEach(function (k) {
+        var t = shown[k];
+        if (t.z !== z) { if (t.node.parentNode) t.node.parentNode.removeChild(t.node); delete shown[k]; }
+      });
+    }
+    function draw() {
+      svg.classList.toggle('has-sat', satOn);
+      if (!satOn) { g.innerHTML = ''; shown = {}; return; }
+      var vb = svg.viewBox.baseVal;
+      var a = fromMap(vb.x, vb.y), b = fromMap(vb.x + vb.width, vb.y + vb.height);
+      var z = zoomLevel();
       var xa = tileX(Math.min(a[1], b[1]), z), xb = tileX(Math.max(a[1], b[1]), z);
       var ya = tileY(Math.max(a[0], b[0]), z), yb = tileY(Math.min(a[0], b[0]), z);
       if ((xb - xa + 1) * (yb - ya + 1) > 80) return;
-      for (var tx = xa; tx <= xb; tx++) for (var ty = ya; ty <= yb; ty++) {
-        var nw = toMap(tileLat(ty, z), tileLng(tx, z)), se = toMap(tileLat(ty + 1, z), tileLng(tx + 1, z));
-        el('image', { href: SAT_URL + z + '/' + ty + '/' + tx, x: nw[0], y: nw[1], width: se[0] - nw[0] + 0.5, height: se[1] - nw[1] + 0.5, preserveAspectRatio: 'none' }, g);
+      var wanted = [];
+      // One tile of margin all round, so tiles are ready before the view gets there.
+      for (var tx = xa - 1; tx <= xb + 1; tx++) for (var ty = ya - 1; ty <= yb + 1; ty++) {
+        (function (tx, ty) {
+          var key = z + '/' + ty + '/' + tx, inView = tx >= xa && tx <= xb && ty >= ya && ty <= yb;
+          if (inView) wanted.push(key);
+          if (shown[key]) return;
+          var url = SAT_URL + key;
+          load(url, function () {
+            if (shown[key] || !satOn) { if (inView) settle(z, wanted); return; }
+            var nw = toMap(tileLat(ty, z), tileLng(tx, z)), se = toMap(tileLat(ty + 1, z), tileLng(tx + 1, z));
+            var node = el('image', { href: url, x: nw[0], y: nw[1], width: se[0] - nw[0] + 0.5, height: se[1] - nw[1] + 0.5, preserveAspectRatio: 'none' }, g);
+            shown[key] = { z: z, node: node };
+            settle(z, wanted);
+          });
+        })(tx, ty);
       }
+      // Tiles well away from the view at this zoom level are dropped.
+      Object.keys(shown).forEach(function (k) {
+        var t = shown[k];
+        if (t.z !== z) return;
+        var p = k.split('/'), ky = +p[1], kx = +p[2];
+        if (kx < xa - 3 || kx > xb + 3 || ky < ya - 3 || ky > yb + 3) { if (t.node.parentNode) t.node.parentNode.removeChild(t.node); delete shown[k]; }
+      });
+      settle(z, wanted);
     }
     draw();
+    // Redraws at most every 200 ms while the view is moving, with one at the
+    // end, so the picture keeps up during playback instead of waiting for it to stop.
+    function later() {
+      var now = Date.now();
+      if (now - last >= 200) { last = now; clearTimeout(timer); timer = null; draw(); return; }
+      if (!timer) timer = setTimeout(function () { timer = null; last = Date.now(); draw(); }, 200 - (now - last));
+    }
+    // Fetches the tiles along a trace at the current zoom, ready for playback.
+    function prefetch(trace) {
+      if (!satOn || !trace || !trace.length) return;
+      var z = zoomLevel(), seen = {}, n = 0;
+      for (var i = 0; i < trace.length && n < 400; i += 3) {
+        var ll = proj.ll(trace[i][2], trace[i][3]), cx = tileX(ll[1], z), cy = tileY(ll[0], z);
+        for (var dx = -1; dx <= 1; dx++) for (var dy = -1; dy <= 1; dy++) {
+          var key = z + '/' + (cy + dy) + '/' + (cx + dx);
+          if (seen[key]) continue;
+          seen[key] = 1; n++;
+          load(SAT_URL + key, function () {});
+        }
+      }
+    }
     return {
-      later: function () { clearTimeout(timer); timer = setTimeout(draw, 150); },
-      toggle: function () { satOn = !satOn; try { localStorage.setItem('mt3ukTrackSat', satOn ? '1' : '0'); } catch (e) {} draw(); return satOn; },
+      later: later,
+      prefetch: prefetch,
+      toggle: function () { satOn = !satOn; try { localStorage.setItem('mt3ukTrackSat', satOn ? '1' : '0'); } catch (e) {} shown = {}; g.innerHTML = ''; draw(); return satOn; },
       on: function () { return satOn; }
     };
   }
@@ -432,7 +501,7 @@
         var base = Y(cfg.zero || 0);
         el('path', { d: 'M' + X(sr.pts[0][0]) + ',' + base + ' ' + sr.pts.map(function (p) { return 'L' + X(p[0]).toFixed(1) + ',' + Y(p[1]).toFixed(1); }).join(' ') + ' L' + X(sr.pts[sr.pts.length - 1][0]) + ',' + base + 'Z', fill: sr.color, opacity: 0.12 }, svg);
       }
-      el('path', { d: sr.pts.map(function (p, i) { return (i ? 'L' : 'M') + X(p[0]).toFixed(1) + ',' + Y(p[1]).toFixed(1); }).join(' '), fill: 'none', stroke: sr.color, 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, svg);
+      el('path', { d: sr.pts.map(function (p, i) { return (i ? 'L' : 'M') + X(p[0]).toFixed(1) + ',' + Y(p[1]).toFixed(1); }).join(' '), fill: 'none', stroke: sr.color, 'stroke-width': sr.width || 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round', 'stroke-dasharray': sr.dash || 'none' }, svg);
     });
     var cross = el('line', { y1: m.t, y2: H - m.b, stroke: C.steel, 'stroke-width': 1, visibility: 'hidden' }, svg);
     var dots = cfg.series.map(function (sr) { return el('circle', { r: 4.5, fill: sr.color, stroke: C.card, 'stroke-width': 2, visibility: 'hidden' }, svg); });

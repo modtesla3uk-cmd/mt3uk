@@ -671,26 +671,36 @@
     ((sv && sv.layouts) || []).forEach(function (l) { if (l.startLine && l.finishLine) cands.push({ layout: l, start: l.startLine, finish: l.finishLine }); });
     if (opts.startLine && opts.finishLine) cands.push({ layout: null, start: opts.startLine, finish: opts.finishLine, own: true });
     var pick = null;
+    function mid(line) { var a = proj.xy(line[0][0], line[0][1]), b = proj.xy(line[1][0], line[1][1]); return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]; }
     cands.forEach(function (c) {
-      var st = crossings(pts, proj, c.start, 5), fi = crossings(pts, proj, c.finish, 5), pairs = [], skipped = 0;
-      // Optionally ignore the first time each file crosses the finish line
-      // (a file with just one crossing keeps it).
-      if (opts.ignoreFirstFinish) {
+      var st = crossings(pts, proj, c.start, 5), fi = crossings(pts, proj, c.finish, 5);
+      // Each finish ends the run that began at the last start crossing since
+      // the previous finish (in the same file).
+      function pairUp(fin) {
+        var out = [], lastEnd = -Infinity;
+        fin.forEach(function (f) {
+          var a = null;
+          st.forEach(function (x) { if (x.t > lastEnd && x.t + 3 < f.t && f.t - x.t < 900 && pts[x.i].run === pts[f.i].run) a = x; });
+          if (a) { out.push([a, f]); lastEnd = f.t; }
+        });
+        return out;
+      }
+      var pairs = pairUp(fi), skipped = 0, climb = false;
+      // A hill climb runs point to point: the finish is far from the start
+      // compared with the run itself. A sprint loops back past the finish, so
+      // there the first crossing can optionally be ignored (a file with just
+      // one crossing keeps it).
+      var ms = mid(c.start), mf = mid(c.finish), sep = Math.hypot(ms[0] - mf[0], ms[1] - mf[1]);
+      var runLen = c.layout && c.layout.length ? c.layout.length : median(pairs.map(function (pr) { return pr[1].d - pr[0].d; }));
+      climb = !!(pairs.length && runLen && sep > 0.6 * runLen);
+      if (opts.ignoreFirstFinish && !climb) {
         var by = {};
         fi.forEach(function (f) { var r = pts[f.i].run || 0; (by[r] = by[r] || []).push(f); });
         var kept = fi.filter(function (f) { var g = by[pts[f.i].run || 0]; return g.length < 2 || g[0] !== f; });
         skipped = fi.length - kept.length;
-        fi = kept;
+        if (skipped) pairs = pairUp(kept);
       }
-      // Each finish ends the run that began at the last start crossing since
-      // the previous finish (in the same file).
-      var lastEnd = -Infinity;
-      fi.forEach(function (f) {
-        var a = null;
-        st.forEach(function (x) { if (x.t > lastEnd && x.t + 3 < f.t && f.t - x.t < 900 && pts[x.i].run === pts[f.i].run) a = x; });
-        if (a) { pairs.push([a, f]); lastEnd = f.t; }
-      });
-      if (pairs.length && (!pick || pairs.length > pick.pairs.length)) pick = { c: c, pairs: pairs, skipped: skipped };
+      if (pairs.length && (!pick || pairs.length > pick.pairs.length)) pick = { c: c, pairs: pairs, skipped: skipped, climb: climb };
     });
     if (!pick) {
       session.laps = [];
@@ -707,6 +717,7 @@
     session.finishLine = pick.c.finish;
     if (pick.c.own) session.startLineFromMember = true;
     if (pick.skipped) session.firstFinishIgnored = pick.skipped;
+    if (pick.climb) session.pointToPoint = true;
     var laps = buildLaps(pts, null, null, pick.pairs);
     return timedTail(session, pts, laps, layout, proj, origin);
   }

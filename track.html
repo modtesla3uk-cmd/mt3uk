@@ -126,6 +126,38 @@
   .tp-play .chip { min-height: 44px; min-width: 52px; justify-content: center; }
   .tp-scrub-row { display: flex; align-items: center; gap: 12px; }
   .tp-scrub-row input[type="range"] { flex: 1; min-width: 0; height: 32px; accent-color: var(--orange); }
+  /* Phones keep the order: speed chart, map, corner table. */
+  @media (max-width: 780px) { .tp-g-map > .tp-grid { display: contents; } .tp-o-speed { order: 1; } .tp-mapcard { order: 2; } .tp-o-corner { order: 3; } }
+  .tp-field[hidden] { display: none; }
+  .tp-f3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .tp-tyres { display: block; margin-bottom: 14px; }
+  .tp-tyres > .tp-lbl { display: block; margin-bottom: 6px; }
+  .tp-tyre-preview { margin: -6px 0 0; min-height: 1.1em; }
+  .tp-map-head { align-items: center; }
+  .tp-metrics { display: grid; gap: 6px; margin: 10px 0 4px; }
+  .tp-mrow { display: grid; grid-template-columns: auto minmax(0, 1fr) repeat(3, auto); align-items: center; gap: 4px 12px; font-size: 0.86rem; }
+  .tp-mrow b { color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tp-mkey { width: 12px; height: 12px; border-radius: 50%; }
+  .tp-mv { display: grid; justify-items: end; min-width: 58px; }
+  .tp-mv small { color: var(--steel); font-size: 0.72rem; }
+  .tp-mv i { font-style: normal; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); }
+  .tp-mgap { color: var(--steel); font-size: 0.82rem; font-variant-numeric: tabular-nums; min-height: 1.2em; }
+  .tp-gbox { margin-top: 10px; }
+  .tp-gkey { display: inline-block; width: 12px; height: 4px; border-radius: 2px; }
+  .tp-gbox .chip:not(.is-on) { opacity: 0.6; }
+  /* Full screen: the map fills the screen, with the controls, numbers and G-force lines along the bottom. */
+  body.tp-noscroll { overflow: hidden; }
+  .tp-mapcard.is-full { position: fixed; inset: 0; z-index: 1100; display: flex; flex-direction: column; height: 100vh; height: 100dvh; margin: 0; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); border: 0; border-radius: 0; background: var(--paper, #f3f1ea); overflow: hidden; }
+  .tp-mapcard.is-full .tp-map-head { order: 0; margin-bottom: 6px; }
+  .tp-mapcard.is-full .tp-sync-note { display: none; }
+  .tp-mapcard.is-full .tp-mapwrap { order: 1; flex: 1 1 auto; min-height: 0; }
+  .tp-mapcard.is-full .tv-zoom-wrap { height: 100%; }
+  .tp-mapcard.is-full #tp-map2 { width: 100%; height: 100%; }
+  .tp-mapcard.is-full .tp-play { order: 2; margin: 8px 0 2px; gap: 6px; }
+  .tp-mapcard.is-full .tp-metrics { order: 3; margin: 6px 0 2px; }
+  .tp-mapcard.is-full .tp-gbox { order: 4; margin-top: 4px; }
+  .tp-mapcard.is-full .tp-gbox .tp-chart-head { margin-bottom: 2px; }
+  @media (max-height: 560px) { .tp-mapcard.is-full .tp-gbox, .tp-mapcard.is-full .tp-scrub-row { display: none; } }
   .tp-clock { font-size: 0.82rem; font-variant-numeric: tabular-nums; color: var(--steel); white-space: nowrap; }
   .tp-boards { display: grid; gap: 10px; }
   @media (min-width: 781px) { .tp-boards { grid-template-columns: 1fr 1fr; } }
@@ -557,6 +589,7 @@
 
 <script src="js/track-parse.js" defer></script>
 <script src="js/track-view.js" defer></script>
+<script src="js/tyre-data.js"></script>
 <script src="js/track-page.js" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js" defer></script>

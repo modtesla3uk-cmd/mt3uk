@@ -6759,13 +6759,28 @@ async function handleTrackSessionSave(request, env) {
   return json({ success: true, session: trackSummary(rec) });
 }
 
+function composeTrackTyres(rec) {
+  var name = [rec.tyreMake, rec.tyreModel].filter(Boolean).join(' ');
+  var size = rec.tyreWidth && rec.tyreProfile && rec.tyreRim ? rec.tyreWidth + '/' + rec.tyreProfile + ' R' + rec.tyreRim : '';
+  return trackText([name, size].filter(Boolean).join(', '), 80);
+}
+
 function applyTrackEdits(rec, body) {
   if (TRACK_PRIVACY.indexOf(body.privacy) !== -1) rec.privacy = body.privacy;
   if (!rec.privacy) rec.privacy = 'private';
   // Leaderboards need a known track and layout (or drag strip).
   if (rec.privacy === 'board' && !trackBoardKey(rec)) rec.privacy = 'build';
   if ('conditions' in body) rec.conditions = TRACK_CONDITIONS.indexOf(body.conditions) !== -1 ? body.conditions : '';
-  if ('tyres' in body) rec.tyres = trackText(body.tyres, 60);
+  // Tyres: make, model and size (width, profile, diameter) as separate parts;
+  // the description is built from them. Older free-text entries still work.
+  if ('tyreMake' in body || 'tyreModel' in body || 'tyreWidth' in body || 'tyreProfile' in body || 'tyreRim' in body) {
+    var tw = trackNum(body.tyreWidth, 125, 395), tp = trackNum(body.tyreProfile, 20, 90), td = trackNum(body.tyreRim, 12, 26);
+    rec.tyreMake = trackText(body.tyreMake, 40);
+    rec.tyreModel = trackText(body.tyreModel, 50);
+    ['tyreWidth', 'tyreProfile', 'tyreRim'].forEach(function (k) { delete rec[k]; });
+    if (tw && tp && td) { rec.tyreWidth = Math.round(tw); rec.tyreProfile = Math.round(tp); rec.tyreRim = Math.round(td); }
+    rec.tyres = composeTrackTyres(rec);
+  } else if ('tyres' in body) rec.tyres = trackText(body.tyres, 80);
   if ('temp' in body) rec.temp = trackNum(body.temp, -30, 50);
   // Where the temperature came from: the logger's file, Open-Meteo weather
   // (shown with credit to Open-Meteo), or typed by the member.
@@ -6834,7 +6849,7 @@ async function handleTrackSessionUpdate(request, env) {
     next.owner = rec.owner;
     next.carId = rec.carId;
     next.createdAt = rec.createdAt;
-    ['privacy', 'conditions', 'tyres', 'temp', 'tempSource', 'weather', 'notes', 'hasSource'].forEach(function (k) { if (rec[k] !== undefined) next[k] = rec[k]; });
+    ['privacy', 'conditions', 'tyres', 'tyreMake', 'tyreModel', 'tyreWidth', 'tyreProfile', 'tyreRim', 'temp', 'tempSource', 'weather', 'notes', 'hasSource'].forEach(function (k) { if (rec[k] !== undefined) next[k] = rec[k]; });
     rec = next;
     delete body.privacy;
   }
@@ -6929,6 +6944,59 @@ async function handleTrackBoard(request, env, drag) {
   var res = json({ success: true, entries: await getJsonKey(env, key, []) });
   res.headers.set('Cache-Control', 'public, max-age=60');
   return res;
+}
+
+// The tyre makes and models: data/tyres.json is the starting list and the
+// admin's changes (the Tyres panel on admin.html) sit on top of it in one KV key.
+// Everything is read with get() only.
+var TYRE_LIBRARY_KEY = 'tyre-library';
+
+function cleanTyreSizes(list, lo, hi) {
+  var out = [];
+  (Array.isArray(list) ? list : []).slice(0, 80).forEach(function (v) {
+    var n = trackNum(v, lo, hi);
+    if (n !== null && out.indexOf(Math.round(n)) === -1) out.push(Math.round(n));
+  });
+  return out.sort(function (a, b) { return a - b; });
+}
+
+function cleanTyreLibrary(input) {
+  input = input && typeof input === 'object' ? input : {};
+  var seen = {}, makes = [];
+  (Array.isArray(input.makes) ? input.makes : []).slice(0, 300).forEach(function (m) {
+    var name = trackText(m && m.name, 40);
+    if (!name || seen[name.toLowerCase()]) return;
+    seen[name.toLowerCase()] = true;
+    if (m.removed) { makes.push({ name: name, removed: true }); return; }
+    var models = [], have = {};
+    (Array.isArray(m.models) ? m.models : []).slice(0, 400).forEach(function (md) {
+      var t = trackText(md, 60);
+      if (t && !have[t.toLowerCase()]) { have[t.toLowerCase()] = true; models.push(t); }
+    });
+    makes.push({ name: name, models: models });
+  });
+  var out = { makes: makes };
+  var w = cleanTyreSizes(input.widths, 100, 500), p = cleanTyreSizes(input.profiles, 15, 100), r = cleanTyreSizes(input.rims, 10, 30);
+  if (w.length) out.widths = w;
+  if (p.length) out.profiles = p;
+  if (r.length) out.rims = r;
+  return out;
+}
+
+async function handleTyresPublic(request, env) {
+  var res = json({ success: true, extra: await getJsonKey(env, TYRE_LIBRARY_KEY, {}) });
+  res.headers.set('Cache-Control', 'public, max-age=60');
+  return res;
+}
+
+async function handleTyresAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  if (request.method === 'GET') return json({ success: true, extra: await getJsonKey(env, TYRE_LIBRARY_KEY, {}) });
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var library = cleanTyreLibrary(body && body.library);
+  await env.VOTES.put(TYRE_LIBRARY_KEY, JSON.stringify(library));
+  return json({ success: true, extra: library });
 }
 
 async function handleTrackTracks(request, env) {
@@ -7298,9 +7366,6 @@ async function handleMyBuildsUpload(request, env) {
   var votable = formData.get('votable') === '1';
   var carId = (formData.get('carId') || '').toString();
 
-  if (!caption) {
-    return json({ success: false, message: 'Caption is required' }, 400);
-  }
   if (!file || typeof file === 'string') {
     return json({ success: false, message: 'Photo is required' }, 400);
   }
@@ -7413,8 +7478,8 @@ async function handleMyBuildsUpload(request, env) {
           method: 'POST',
           headers: ghHeaders,
           body: JSON.stringify({
-            title: 'My Builds upload: ' + caption,
-            body: '**Caption:** ' + caption + '\n**Submitted by (account):** ' + publicLabel(uploaderName, email) +
+            title: 'My Builds upload: ' + (caption || filename),
+            body: '**Caption:** ' + (caption || '(none)') + '\n**Submitted by (account):** ' + publicLabel(uploaderName, email) +
               (mods.length ? '\n**Mods:** ' + mods.join(', ') : '') +
               '\n**Flags:** gallery=' + gallery + ', reel=' + reel + ', votable=' + votable +
               '\n\n![photo](' + GALLERY_PUBLIC_BASE_URL + '/gallery/' + filename + ')' +
@@ -8195,6 +8260,12 @@ export default {
     if (url.pathname === '/track/session' && request.method === 'PUT') {
       return handleTrackSessionUpdate(request, env);
     }
+    if (url.pathname === '/tyres' && request.method === 'GET') {
+      return handleTyresPublic(request, env);
+    }
+    if (url.pathname === '/tyres/admin' && (request.method === 'GET' || request.method === 'PUT')) {
+      return handleTyresAdmin(request, env);
+    }
     if (url.pathname === '/track/session/source' && request.method === 'POST') {
       return handleTrackSourceSave(request, env);
     }
@@ -8318,9 +8389,6 @@ export default {
     if (color && CAR_COLORS.indexOf(color) === -1) color = '';
     var files = formData.getAll('photo').filter(function (f) { return f && typeof f !== 'string'; });
 
-    if (!caption) {
-      return json({ success: false, message: 'Caption is required' }, 400);
-    }
     if (!files.length) {
       return json({ success: false, message: 'Photo is required' }, 400);
     }
@@ -8431,8 +8499,8 @@ export default {
             method: 'POST',
             headers: ghHeaders,
             body: JSON.stringify({
-              title: 'Gallery submission: ' + caption,
-              body: '**Caption:** ' + caption + '\n**Submitted by:** ' + publicLabel(name, email) +
+              title: 'Gallery submission: ' + (caption || carName || 'new build'),
+              body: '**Caption:** ' + (caption || '(none)') + '\n**Submitted by:** ' + publicLabel(name, email) +
                 (mods.length ? '\n**Mods (on primary photo):** ' + mods.join(', ') : '') +
                 '\n\n' + photoUrls.map(function (u, idx) { return '![photo ' + (idx + 1) + '](' + u + ')'; }).join('\n\n') +
                 '\n\nThese photos are already live in the gallery' + (photoUrls.length > 1 ? ' (first one is the primary/voting entry)' : '') + '. Close this issue once reviewed, ' +

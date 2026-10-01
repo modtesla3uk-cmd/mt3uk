@@ -230,6 +230,59 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   ok(res2.status === 413, 'a gzipped upload too big once unzipped is refused: ' + res2.status);
 }
 
+// The tyre makes and models: public list, and the admin's changes on top of data/tyres.json.
+{
+  r = await call('GET', '/tyres');
+  ok(r.status === 200 && r.body.success && Object.keys(r.body.extra).length === 0, 'no changes to the tyre list to start with');
+  r = await call('GET', '/tyres/admin');
+  ok(r.status === 401, 'the admin list needs the key');
+  r = await call('PUT', '/tyres/admin?key=wrong', { library: { makes: [] } });
+  ok(r.status === 401, 'and so does saving');
+  r = await call('PUT', '/tyres/admin?key=secret', { library: {
+    makes: [
+      { name: 'Acme <b>Tyres', models: ['Rocket', 'rocket', ' Bolt ', '', 'X'.repeat(90)] },
+      { name: 'Kumho', removed: true },
+      { name: 'acme <b>tyres', models: ['Duplicate'] },
+      { name: '', models: ['Nameless'] }
+    ],
+    widths: [215, '205', 205, 9999, 'x', 50], profiles: [], rims: [17, 18, 99]
+  } }, undefined);
+  ok(r.status === 200 && r.body.success, 'saved');
+  const ex = r.body.extra;
+  ok(ex.makes.length === 2 && ex.makes[0].name === 'Acme b Tyres' && ex.makes[0].models.length === 3 && ex.makes[0].models[0] === 'Rocket' && ex.makes[0].models[2].length === 60, 'makes cleaned: markup out, duplicates dropped, names and models trimmed: ' + JSON.stringify(ex.makes[0]));
+  ok(ex.makes[1].name === 'Kumho' && ex.makes[1].removed === true && !('models' in ex.makes[1]), 'a make can be taken off');
+  ok(JSON.stringify(ex.widths) === '[205,215]' && !('profiles' in ex) && JSON.stringify(ex.rims) === '[17,18]', 'sizes kept only when sensible: ' + JSON.stringify(ex));
+  r = await call('GET', '/tyres');
+  ok(r.body.extra.makes.length === 2 && JSON.stringify(r.body.extra.widths) === '[205,215]', 'the public list serves the admin changes');
+  r = await call('GET', '/tyres/admin?key=secret');
+  ok(r.status === 200 && r.body.extra.makes[0].name === 'Acme b Tyres', 'and the admin list returns them');
+  r = await call('PUT', '/tyres/admin?key=secret', { library: 'nonsense' });
+  ok(r.status === 200 && r.body.extra.makes.length === 0, 'rubbish saves as an empty list');
+  await call('PUT', '/tyres/admin?key=secret', { library: { makes: [] } });
+}
+
+// Tyres: make, model and size as separate parts; the description is built from them.
+{
+  r = await call('POST', '/track/sessions', { carId: 'cara1', session, tyreMake: 'Michelin', tyreModel: 'Pilot Sport 4S', tyreWidth: 245, tyreProfile: 35, tyreRim: 19, tyres: 'ignored' }, 'tok-a');
+  const tid = r.body.session.id;
+  ok(r.body.session.tyres === 'Michelin Pilot Sport 4S, 245/35 R19', 'the tyre description is built from make, model and size: ' + r.body.session.tyres);
+  let g = await call('GET', '/track/session?id=' + tid, undefined, 'tok-a');
+  ok(g.body.session.tyreMake === 'Michelin' && g.body.session.tyreModel === 'Pilot Sport 4S' && g.body.session.tyreWidth === 245 && g.body.session.tyreProfile === 35 && g.body.session.tyreRim === 19, 'the parts are kept');
+  r = await call('PUT', '/track/session', { id: tid, tyreMake: 'Pirelli', tyreModel: 'P Zero Trofeo R', tyreWidth: 265, tyreProfile: 35, tyreRim: 20 }, 'tok-a');
+  ok(r.body.session.tyres === 'Pirelli P Zero Trofeo R, 265/35 R20', 'changed in the settings');
+  r = await call('PUT', '/track/session', { id: tid, tyreMake: 'Pirelli', tyreModel: 'P Zero', tyreWidth: 265, tyreProfile: null, tyreRim: 20 }, 'tok-a');
+  ok(r.body.session.tyres === 'Pirelli P Zero', 'a part-filled size is left out: ' + r.body.session.tyres);
+  g = await call('GET', '/track/session?id=' + tid, undefined, 'tok-a');
+  ok(!('tyreWidth' in g.body.session) && !('tyreRim' in g.body.session), 'and not stored');
+  r = await call('PUT', '/track/session', { id: tid, tyreMake: 'X<b>', tyreModel: 'Y', tyreWidth: 5000, tyreProfile: 35, tyreRim: 19 }, 'tok-a');
+  ok(r.body.session.tyres === 'X b Y' && !r.body.session.tyres.includes('<') , 'odd sizes are refused and markup is cleaned: ' + r.body.session.tyres);
+  r = await call('PUT', '/track/session', { id: tid, tyreMake: '', tyreModel: '', tyreWidth: null, tyreProfile: null, tyreRim: null }, 'tok-a');
+  ok(r.body.session.tyres === '', 'cleared');
+  r = await call('PUT', '/track/session', { id: tid, tyres: 'AD08R 255/40 ZR18' }, 'tok-a');
+  ok(r.body.session.tyres === 'AD08R 255/40 ZR18', 'free text from before still works');
+  await call('DELETE', '/track/session?id=' + tid, undefined, 'tok-a');
+}
+
 // Keeping a session's readings so its type can be changed later.
 {
   const text = fs.readFileSync(ROOT + 'tests/fixtures/thruxton-trimmed.vbo', 'latin1');

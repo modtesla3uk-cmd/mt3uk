@@ -55,6 +55,7 @@ class FakeWorker:
         self.requests = []
         self.sources = {}
         self.boards = {}
+        self.tyre_extra = {}
         self.fail_source = False
 
     def reply(self, route):
@@ -83,7 +84,7 @@ class FakeWorker:
                 status, data = 400, {"success": False, "message": "Drag runs can only be saved from a drag strip we know."}
             else:
                 rec.update({"id": "new%d" % (len(self.sessions) + 1), "carId": body["carId"], "privacy": "private" if body.get("street") else body.get("privacy", "private"),
-                            "conditions": body.get("conditions"), "tyres": body.get("tyres"), "temp": body.get("temp"), "tempSource": body.get("tempSource"), "weather": body.get("weather"), "notes": body.get("notes"), "street": bool(body.get("street"))})
+                            "conditions": body.get("conditions"), "tyres": body.get("tyres"), "tyreMake": body.get("tyreMake"), "tyreModel": body.get("tyreModel"), "tyreWidth": body.get("tyreWidth"), "tyreProfile": body.get("tyreProfile"), "tyreRim": body.get("tyreRim"), "temp": body.get("temp"), "tempSource": body.get("tempSource"), "weather": body.get("weather"), "notes": body.get("notes"), "street": bool(body.get("street"))})
                 self.sessions[rec["id"]] = rec
                 self.saved.append(body)
                 self.index.insert(0, summary(rec))
@@ -95,6 +96,8 @@ class FakeWorker:
                 data = {"success": True, "session": dict(rec, mine=True, car=CAR["name"])}
             else:
                 status, data = 404, {"success": False}
+        elif path == "/tyres" and req.method == "GET":
+            data = {"success": True, "extra": self.tyre_extra}
         elif path == "/track/session/source" and req.method == "POST":
             sid = q.get("id", [""])[0]
             if self.fail_source:
@@ -111,7 +114,7 @@ class FakeWorker:
         elif path == "/track/session" and req.method == "PUT" and body.get("session"):
             old = self.sessions[body["id"]]
             rec = dict(body["session"])
-            for k in ("id", "carId", "privacy", "conditions", "tyres", "temp", "tempSource", "weather", "notes", "hasSource"):
+            for k in ("id", "carId", "privacy", "conditions", "tyres", "tyreMake", "tyreModel", "tyreWidth", "tyreProfile", "tyreRim", "temp", "tempSource", "weather", "notes", "hasSource"):
                 rec[k] = old.get(k)
             self.sessions[old["id"]] = rec
             self.replaced = getattr(self, "replaced", []) + [body]
@@ -119,7 +122,7 @@ class FakeWorker:
             data = {"success": True, "session": summary(rec)}
         elif path == "/track/session" and req.method == "PUT":
             rec = self.sessions[body["id"]]
-            for k in ("privacy", "conditions", "tyres", "temp", "tempSource", "weather", "notes"):
+            for k in ("privacy", "conditions", "tyres", "tyreMake", "tyreModel", "tyreWidth", "tyreProfile", "tyreRim", "temp", "tempSource", "weather", "notes"):
                 if k in body:
                     rec[k] = body[k]
             self.index = [summary(rec) if s["id"] == rec["id"] else s for s in self.index]
@@ -171,6 +174,10 @@ def meteo_reply(route):
 def open_page(page, fake, path="/track.html", signed_in=True, admin=False):
     page.route("**/%s/**" % API_HOST, fake.reply)
     page.route("**/*open-meteo.com/**", meteo_reply)
+    # The service worker's own fetches skip these mocks, so it isn't let register.
+    page.add_init_script("navigator.serviceWorker && (navigator.serviceWorker.register = () => new Promise(() => {}))")
+    if not getattr(page, "overpass_set", False):
+        page.route("**/overpass-api.de/**", lambda route: route.fulfill(status=200, content_type="application/json", body='{"elements": []}', headers={"Access-Control-Allow-Origin": "*"}))
     script = ""
     if signed_in:
         script += "localStorage.setItem('mt3ukMyBuildsSession','tok');localStorage.setItem('mt3ukMyBuildsEmail','a@example.com');"
@@ -207,16 +214,16 @@ def test_add_a_session_from_the_racebox_file(page):
     expect(page.locator("#tp-temp-src a")).to_have_attribute("href", "https://open-meteo.com/")
     # Wind in the chosen unit, and switching units keeps the upload.
     expect(page.locator("#tp-temp-src")).to_contain_text("wind 7 mph")
-    page.fill("#tp-tyres", "Cup 2")
+    page.fill("#tp-tyre-model", "Cup 2")
     page.locator(".tp-head [data-units]").click()
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text(re.compile(r"2 timed laps, best 1:39\.78[56]"))
     expect(page.locator("#tp-temp-src")).to_contain_text("wind 12 km/h")
-    expect(page.locator("#tp-tyres")).to_have_value("Cup 2")
+    expect(page.locator("#tp-tyre-model")).to_have_value("Cup 2")
     expect(page.locator("#tp-temp")).to_have_value("19")
     page.locator(".tp-head [data-units]").click()
     expect(page.locator("#tp-temp-src")).to_contain_text("wind 7 mph")
     expect(page.locator("[data-cond] [data-v='Dry']")).to_have_class(re.compile("is-on"))
-    page.fill("#tp-tyres", "Pilot Sport 4S")
+    page.fill("#tp-tyre-model", "Pilot Sport 4S")
     page.locator("[data-privacy] [data-v='board']").click()
     page.get_by_role("button", name="Save session").click()
     expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
@@ -774,7 +781,7 @@ def test_saving_keeps_the_readings_and_the_type_can_be_changed_after(page):
     page.get_by_role("link", name="Add a session").click()
     page.set_input_files("#tp-file", str(FIXTURE))
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
-    page.fill("#tp-tyres", "AD08R")
+    page.fill("#tp-tyre-model", "AD08R")
     page.fill("#tp-notes", "keep me")
     page.get_by_role("button", name="Save session").click()
     expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
@@ -786,7 +793,7 @@ def test_saving_keeps_the_readings_and_the_type_can_be_changed_after(page):
     expect(page.locator("[data-type] .chip.is-on")).to_have_text("Other")
     expect(page.locator("#tp-result")).to_contain_text("Mapped with your top speed and grip")
     # Their details aren't asked for again.
-    expect(page.locator("#tp-tyres")).to_have_count(0)
+    expect(page.locator("#tp-tyre-model")).to_have_count(0)
     # Thruxton is a known venue, so there is no name to ask for.
     expect(page.locator("#tp-venue-name")).to_have_count(0)
     page.get_by_role("button", name="Save changes").click()
@@ -919,38 +926,26 @@ def test_a_car_not_on_the_board_gets_no_trophy(page):
     expect(page.locator(".tp-rank")).to_have_count(0)
 
 
-def test_compare_dots_can_be_the_same_moment_or_the_same_point(page):
-    """Hovering the compare charts: by default the two dots are where each lap
-    was at the same moment, so the slower lap trails; "Same point" puts both at
-    the same place on track."""
+def test_compare_dots_show_each_lap_at_the_same_moment(page):
+    """Hovering a compare chart puts each dot where its lap was at the same
+    moment, so against a slower lap the slower dot trails. There is no longer a
+    "same point" switch."""
     fake = FakeWorker()
-    open_page(page, fake)
-    page.get_by_role("link", name="Add a session").click()
-    page.set_input_files("#tp-file", str(FIXTURE))
-    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
-    page.get_by_role("button", name="Save session").click()
-    expect(page.locator("#tp-speed path")).to_have_count(2)
-    expect(page.locator("#tp-sync .chip.is-on")).to_have_text("Same moment")
-    expect(page.locator("#tp-sync-note")).to_contain_text("slower one trails")
+    save_thruxton_with_a_member_board(page, fake)
+    page.locator("#tp-cmp-b").select_option("x:m1")
+    expect(page.locator("#tp-key")).to_contain_text("Ann, Blue Y (B)")
+    expect(page.locator("#tp-sync")).to_have_count(0)
+    expect(page.locator(".tp-sync-note")).to_contain_text("slower one trails")
     page.locator("#tp-speed").scroll_into_view_if_needed()
     box = page.locator("#tp-speed").bounding_box()
-
-    def separation():
-        page.mouse.move(box["x"] + box["width"] * 0.1, box["y"] + box["height"] * 0.5)
-        page.mouse.move(box["x"] + box["width"] * 0.9, box["y"] + box["height"] * 0.5)
-        return page.evaluate("""() => {
-          const g = [...document.querySelectorAll('#tp-map2 g[visibility="visible"]')].filter(x => x.querySelector('circle[r="7"]'));
-          const xy = g.map(x => (x.getAttribute('transform').match(/translate\\(([-\\d.e]+) ([-\\d.e]+)\\)/) || []).slice(1).map(Number));
-          return xy.length === 2 ? Math.hypot(xy[0][0] - xy[1][0], xy[0][1] - xy[1][1]) : -1;
-        }""")
-
-    moment = separation()
-    assert moment > 0
-    page.locator("#tp-sync [data-sync='point']").click()
-    expect(page.locator("#tp-sync .chip.is-on")).to_have_text("Same point")
-    expect(page.locator("#tp-sync-note")).to_contain_text("same point on track")
-    point = separation()
-    assert point >= 0 and moment > point + 1, (moment, point)
+    page.mouse.move(box["x"] + box["width"] * 0.1, box["y"] + box["height"] * 0.5)
+    page.mouse.move(box["x"] + box["width"] * 0.9, box["y"] + box["height"] * 0.5)
+    sep = page.evaluate("""() => {
+      const g = [...document.querySelectorAll('#tp-map2 g[visibility="visible"]')].filter(x => x.querySelector('circle[r="7"]'));
+      const xy = g.map(x => (x.getAttribute('transform').match(/translate\\(([-\\d.e]+) ([-\\d.e]+)\\)/) || []).slice(1).map(Number));
+      return xy.length === 2 ? Math.hypot(xy[0][0] - xy[1][0], xy[0][1] - xy[1][1]) : -1;
+    }""")
+    assert sep > 20, sep
 
 
 def test_play_and_rewind_the_compare_laps_at_different_speeds(page):
@@ -1106,7 +1101,6 @@ def test_no_member_laps_when_only_your_own_car_is_on_the_board(page):
 def test_zoomed_in_playback_follows_the_cars_until_you_turn_following_off(page):
     fake = FakeWorker()
     save_thruxton_with_a_member_board(page, fake)
-    page.locator("#tp-sync [data-sync='point']").click()
     page.locator("#tp-speeds [data-speed='5']").click()
     page.locator("#tp-map2").scroll_into_view_if_needed()
     zoom_in = page.locator("#tp-map2").locator("xpath=..").locator(".tv-zoom-in")
@@ -1129,7 +1123,6 @@ def test_zoomed_in_playback_follows_the_cars_until_you_turn_following_off(page):
     page.locator("#tp-play-toggle").click()
     # Same moment with a gap: the leader stays in view even if the other dot
     # is off screen.
-    page.locator("#tp-sync [data-sync='time']").click()
     page.locator("#tp-scrub").evaluate("el => { el.value = 40; el.dispatchEvent(new Event('input', {bubbles: true})); }")
     page.locator("#tp-play-toggle").click()
     page.wait_for_timeout(500)
@@ -1167,7 +1160,6 @@ def test_playback_follows_the_cars_after_pinch_zooming_and_after_a_drag(page):
     map by hand (following off), pressing Play follows the cars again."""
     fake = FakeWorker()
     save_thruxton_with_a_member_board(page, fake)
-    page.locator("#tp-sync [data-sync='point']").click()
     page.locator("#tp-speeds [data-speed='5']").click()
     page.locator("#tp-map2").scroll_into_view_if_needed()
     box = page.locator("#tp-map2").bounding_box()
@@ -1256,21 +1248,27 @@ def test_share_buttons_fit_on_a_phone(device_page):
     assert overflow_width(page) <= 0
 
 
-def _with_a_sprint_course(route):
-    d = json.loads((ROOT / "data" / "tracks.json").read_text(encoding="utf-8"))
-    d["venues"].append({
-        "id": "test-sprint", "name": "Test Sprint", "type": "sprint", "lat": 51.2085, "lng": -1.6055, "radius": 2500,
-        "layouts": [{"id": "short", "name": "Short course", "length": 1500,
-                     "startLine": [[51.2077017, -1.6088667], [51.2076237, -1.6091363]],
-                     "finishLine": [[51.21336186446567, -1.5952994261752478], [51.21310801069265, -1.5951472854432356]]}],
-    })
-    route.fulfill(status=200, content_type="application/json", body=json.dumps(d))
+LOOP_FINISH = [[51.207161766976405, -1.6006471781562528], [51.20741738988989, -1.6007916855992967]]
+HILL_FINISH = [[51.21336186446567, -1.5952994261752478], [51.21310801069265, -1.5951472854432356]]
+
+
+def _course(finish, length):
+    def handler(route):
+        d = json.loads((ROOT / "data" / "tracks.json").read_text(encoding="utf-8"))
+        d["venues"].append({
+            "id": "test-sprint", "name": "Test Sprint", "type": "sprint", "lat": 51.2085, "lng": -1.6055, "radius": 2500,
+            "layouts": [{"id": "short", "name": "Short course", "length": length,
+                         "startLine": [[51.2077017, -1.6088667], [51.2076237, -1.6091363]], "finishLine": finish}],
+        })
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(d))
+    return handler
 
 
 def test_sprints_can_ignore_the_first_finish_line_crossing(page):
-    """On a known sprint course the first finish crossing in a file is ignored
-    by default, with a switch to turn that off. Circuits don't get the switch."""
-    page.route(re.compile(r".*/data/tracks\.json.*"), _with_a_sprint_course)
+    """On a sprint that loops back past the finish, the first finish crossing in
+    a file is ignored by default, with a switch to turn that off. Circuits don't
+    get the switch."""
+    page.route(re.compile(r".*/data/tracks\.json.*"), _course(LOOP_FINISH, 3000))
     open_page(page, FakeWorker())
     page.get_by_role("link", name="Add a session").click()
     page.set_input_files("#tp-file", str(FIXTURE))
@@ -1290,6 +1288,20 @@ def test_sprints_can_ignore_the_first_finish_line_crossing(page):
     expect(result).to_contain_text("1 timed run,")
     # A circuit has no such switch.
     page.locator("[data-type] button[data-v='track']").click()
+    expect(page.locator("#tp-ignore-finish")).to_have_count(0)
+
+
+def test_hill_climbs_never_ignore_the_first_finish_crossing(page):
+    """A hill climb runs point to point, so there is no switch and both runs
+    are timed."""
+    page.route(re.compile(r".*/data/tracks\.json.*"), _course(HILL_FINISH, 1500))
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    page.locator("[data-type] button[data-v='sprint']").click()
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("Test Sprint")
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("2 timed runs")
     expect(page.locator("#tp-ignore-finish")).to_have_count(0)
 
 
@@ -1321,3 +1333,420 @@ def test_go_back_to_the_start_during_playback(page):
     assert float(page.locator("#tp-scrub").input_value()) > 0
     start.click()
     assert float(page.locator("#tp-scrub").input_value()) == 0
+
+
+def test_satellite_tiles_keep_up_while_playing_zoomed_in(page):
+    """The picture under the map used to wait for the view to stop moving, so
+    during playback it never drew. Now tiles load as the view follows the cars,
+    and a tile covers the middle of the view the whole time."""
+    requests = []
+
+    def tile(route):
+        requests.append(route.request.url)
+        sat_reply(route)
+    page.route("**/World_Imagery/**", tile)
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    page.locator("#tp-map2").scroll_into_view_if_needed()
+    zoom_in = page.locator("#tp-map2").locator("xpath=..").locator(".tv-zoom-in")
+    for _ in range(5):
+        zoom_in.click()
+    page.locator("#tp-speeds [data-speed='5']").click()
+    page.locator("#tp-play-toggle").click()
+    covered = []
+    for _ in range(6):
+        page.wait_for_timeout(450)
+        covered.append(page.evaluate("""() => {
+          const svg = document.getElementById('tp-map2'), vb = svg.viewBox.baseVal;
+          const cx = vb.x + vb.width / 2, cy = vb.y + vb.height / 2;
+          return [...svg.querySelectorAll('.tv-sat image')].some(im => {
+            const x = +im.getAttribute('x'), y = +im.getAttribute('y'), w = +im.getAttribute('width'), h = +im.getAttribute('height');
+            return cx >= x && cx <= x + w && cy >= y && cy <= y + h;
+          });
+        }"""))
+    page.locator("#tp-play-toggle").click()
+    assert all(covered), covered
+    # It looked ahead along the lap, not just at the first view.
+    assert len(set(requests)) > 8, len(set(requests))
+
+
+def test_g_force_lines_can_be_switched_on_and_off(page):
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    toggles = page.locator("#tp-gtoggles .chip")
+    expect(toggles).to_have_text(["Acceleration G", "Cornering G"])
+    expect(page.locator("#tp-gtoggles .chip.is-on")).to_have_count(2)
+    lines = page.locator("#tp-gforce > path[stroke-width]")
+    # Two lines, each for lap A (solid) and lap B (dashed).
+    expect(lines).to_have_count(4)
+    expect(page.locator("#tp-gforce > path[stroke-dasharray='5 4']")).to_have_count(2)
+    expect(page.locator("#tp-gnote")).to_contain_text("Solid line")
+    toggles.nth(0).click()
+    expect(toggles.nth(0)).to_have_attribute("aria-pressed", "false")
+    expect(lines).to_have_count(2)
+    toggles.nth(1).click()
+    expect(page.locator("#tp-gnote")).to_have_text("Turn a line on to see it.")
+    expect(lines).to_have_count(0)
+    toggles.nth(1).click()
+    expect(lines).to_have_count(2)
+    # Hovering shows both laps' values.
+    page.locator("#tp-gforce").scroll_into_view_if_needed()
+    box = page.locator("#tp-gforce").bounding_box()
+    page.mouse.move(box["x"] + box["width"] * 0.3, box["y"] + box["height"] * 0.5)
+    page.mouse.move(box["x"] + box["width"] * 0.5, box["y"] + box["height"] * 0.5)
+    expect(page.locator(".tv-tip")).to_contain_text("Corner, A")
+    expect(page.locator(".tv-tip")).not_to_contain_text("Accel, A")
+
+
+def test_numbers_under_the_map_follow_the_dots(page):
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    expect(page.locator("#tp-metrics .tp-mrow")).to_have_count(2)
+    expect(page.locator('#tp-metrics [data-m="a-v"]')).to_have_text("-")
+    page.locator("#tp-scrub").evaluate("el => { el.value = 30; el.dispatchEvent(new Event('input', {bubbles: true})); }")
+    expect(page.locator('#tp-metrics [data-m="a-v"]')).to_have_text(re.compile(r"^\d+ mph$|^\d+\.\d mph$"))
+    expect(page.locator('#tp-metrics [data-m="a-acc"]')).to_have_text(re.compile(r"^[+-]\d\.\d\d g$"))
+    expect(page.locator('#tp-metrics [data-m="a-cor"]')).to_have_text(re.compile(r"^\d\.\d\d g$"))
+    expect(page.locator('#tp-metrics [data-m="gap"]')).to_have_text(re.compile(r"^A is \d+\.\d\d s (ahead|behind)$"))
+    first = page.locator('#tp-metrics [data-m="a-v"]').inner_text()
+    page.locator("#tp-scrub").evaluate("el => { el.value = 60; el.dispatchEvent(new Event('input', {bubbles: true})); }")
+    assert page.locator('#tp-metrics [data-m="a-v"]').inner_text() != first
+
+
+def test_the_map_can_go_full_screen_with_the_numbers_along_the_bottom(page):
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    page.locator("#tp-scrub").evaluate("el => { el.value = 30; el.dispatchEvent(new Event('input', {bubbles: true})); }")
+    full = page.locator("#tp-full")
+    expect(full).to_have_text("Full screen")
+    full.click()
+    card = page.locator("#tp-mapcard")
+    expect(card).to_have_class(re.compile(r"is-full"))
+    expect(full).to_have_text("Exit full screen")
+    vp = page.viewport_size
+    cb = card.bounding_box()
+    assert cb["width"] >= vp["width"] - 1 and cb["height"] >= vp["height"] - 1, (cb, vp)
+    # The map fills the middle and the controls, numbers and lines sit under it.
+    mb, tb, mt, gb = (page.locator(s).bounding_box() for s in ("#tp-map2", "#tp-play-toggle", "#tp-metrics", "#tp-gforce"))
+    assert mb["height"] > vp["height"] * 0.3, mb
+    assert tb["y"] > mb["y"] + mb["height"] - 2 and mt["y"] > tb["y"] and gb["y"] > mt["y"], (mb, tb, mt, gb)
+    assert gb["y"] + gb["height"] <= vp["height"] + 1
+    # Same place in the lap, dots and numbers still showing.
+    assert abs(float(page.locator("#tp-scrub").input_value()) - 30) < 0.2
+    assert page.evaluate("document.body.classList.contains('tp-noscroll')")
+    expect(page.locator('#tp-metrics [data-m="a-v"]')).not_to_have_text("-")
+    # Playback works in full screen, and Escape comes back.
+    page.locator("#tp-play-toggle").click()
+    page.wait_for_timeout(500)
+    assert float(page.locator("#tp-scrub").input_value()) > 30.2
+    page.locator("#tp-play-toggle").click()
+    page.keyboard.press("Escape")
+    expect(card).not_to_have_class(re.compile(r"is-full"))
+    expect(full).to_have_text("Full screen")
+    assert not page.evaluate("document.body.classList.contains('tp-noscroll')")
+    assert float(page.locator("#tp-scrub").input_value()) > 30
+
+
+def test_full_screen_map_on_a_phone(page):
+    page.set_viewport_size({"width": 390, "height": 844})
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    page.locator("#tp-full").click()
+    expect(page.locator("#tp-mapcard")).to_have_class(re.compile(r"is-full"))
+    assert overflow_width(page) <= 0
+    mb = page.locator("#tp-map2").bounding_box()
+    assert mb["height"] > 200 and mb["width"] <= 390, mb
+    for sel in ("#tp-play-toggle", "#tp-metrics", "#tp-gforce"):
+        box = page.locator(sel).bounding_box()
+        assert box and box["y"] + box["height"] <= 845, (sel, box)
+    # A phone on its side: the map keeps most of the screen, nothing spills.
+    page.set_viewport_size({"width": 844, "height": 390})
+    page.wait_for_timeout(300)
+    page.locator("#tp-full").click()
+    page.locator("#tp-full").click()
+    expect(page.locator("#tp-mapcard")).to_have_class(re.compile(r"is-full"))
+    assert overflow_width(page) <= 0
+    mb = page.locator("#tp-map2").bounding_box()
+    assert mb["height"] > 120, mb
+    expect(page.locator("#tp-play-toggle")).to_be_visible()
+    page.locator("#tp-full").click()
+    expect(page.locator("#tp-mapcard")).not_to_have_class(re.compile(r"is-full"))
+
+
+def _unknown_track(route):
+    """The track list without Thruxton, so the file's track isn't known."""
+    d = json.loads((ROOT / "data" / "tracks.json").read_text(encoding="utf-8"))
+    d["venues"] = [v for v in d["venues"] if v["id"] != "thruxton"]
+    route.fulfill(status=200, content_type="application/json", body=json.dumps(d))
+
+
+def _overpass(page, elements):
+    """Stand-in for the Overpass lookup; returns the requests it was sent."""
+    seen = []
+
+    def reply(route):
+        seen.append(route.request.url)
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"elements": elements}), headers={"Access-Control-Allow-Origin": "*"})
+    page.route("**/overpass-api.de/**", reply)
+    page.overpass_set = True
+    return seen
+
+
+def test_an_unknown_track_is_named_from_its_position(page):
+    """A track we don't have: its name is looked up from the coordinates and
+    filled in for the member to check. A kart track nearby isn't picked over
+    the circuit, and only rounded coordinates are sent."""
+    page.route(re.compile(r".*/data/tracks\.json.*"), _unknown_track)
+    seen = _overpass(page, [
+        {"type": "way", "tags": {"name": "Thruxton Kart Track", "sport": "karting"}, "center": {"lat": 51.2090, "lon": -1.6060}},
+        {"type": "way", "tags": {"name": "Thruxton Circuit", "highway": "raceway"}, "center": {"lat": 51.2100, "lon": -1.6050}},
+    ])
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    name = page.locator("#tp-venue-name")
+    expect(name).to_have_value("Thruxton Circuit")
+    expect(page.locator("#tp-name-src")).to_contain_text("found from the map")
+    assert len(seen) == 1
+    q = parse_qs(urlparse(seen[0]).query)["data"][0]
+    coords = re.search(r"around:900,(-?[\d.]+),(-?[\d.]+)", q)
+    assert coords and all(len(c.split(".")[1]) <= 3 for c in coords.groups()), q
+    # Saved with the looked-up name.
+    page.get_by_role("button", name="Save session").click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
+    assert fake.saved[0]["venueName"] == "Thruxton Circuit"
+
+
+def test_a_name_the_member_types_is_what_is_saved(page):
+    page.route(re.compile(r".*/data/tracks\.json.*"), _unknown_track)
+    _overpass(page, [{"type": "way", "tags": {"name": "Thruxton Circuit"}, "center": {"lat": 51.2100, "lon": -1.6050}}])
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-venue-name")).to_have_value("Thruxton Circuit")
+    page.fill("#tp-venue-name", "My own name")
+    page.get_by_role("button", name="Save session").click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
+    assert fake.saved[0]["venueName"] == "My own name"
+
+
+def test_no_lookup_for_a_known_track(page):
+    seen = _overpass(page, [{"type": "way", "tags": {"name": "Somewhere Else"}, "center": {"lat": 51.2, "lon": -1.6}}])
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("Thruxton")
+    page.wait_for_timeout(600)
+    assert seen == []
+    expect(page.locator("#tp-venue-name")).to_have_count(0)
+
+
+def test_nothing_is_filled_in_when_the_lookup_finds_nothing(page):
+    page.route(re.compile(r".*/data/tracks\.json.*"), _unknown_track)
+    seen = _overpass(page, [])
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-venue-name")).to_have_value("")
+    page.wait_for_timeout(600)
+    assert len(seen) == 1
+    expect(page.locator("#tp-name-src")).to_have_count(0)
+    expect(page.locator("#tp-venue-name")).to_have_value("")
+
+
+def open_saved_session(page, fake):
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    page.get_by_role("button", name="Save session").click()
+    expect(page.get_by_role("heading", name="Session settings")).to_be_visible()
+
+
+def test_tyres_make_model_and_size_in_session_settings(page):
+    """Make from the known makes, the model suggested from that make, and the
+    size as separate width, profile and diameter drop-downs."""
+    fake = FakeWorker()
+    open_saved_session(page, fake)
+    makes = page.locator("#tp-e-tyre-make option").all_inner_texts()
+    assert makes[0] == "Not set" and makes[-1] == "Other make"
+    assert len(makes) > 30 and {"Michelin", "Pirelli", "Continental", "Goodyear", "Bridgestone", "Yokohama", "Hankook", "Toyo", "Nitto"} <= set(makes)
+    assert page.locator("#tp-e-tyre-w option").all_inner_texts()[:3] == ["Width", "175", "185"]
+    assert "245" in page.locator("#tp-e-tyre-w option").all_inner_texts()
+    assert "35" in page.locator("#tp-e-tyre-p option").all_inner_texts()
+    assert page.locator("#tp-e-tyre-d option").all_inner_texts()[0] == "Diameter" and "19" in page.locator("#tp-e-tyre-d option").all_inner_texts()
+    # The model suggestions follow the make.
+    page.select_option("#tp-e-tyre-make", "Michelin")
+    models = page.locator("#tp-e-tyre-models option").evaluate_all("els => els.map(e => e.value)")
+    assert "Pilot Sport 4S" in models and "P Zero" not in models
+    page.select_option("#tp-e-tyre-make", "Pirelli")
+    assert "P Zero Trofeo R" in page.locator("#tp-e-tyre-models option").evaluate_all("els => els.map(e => e.value)")
+    # Any make or model can still be typed.
+    page.select_option("#tp-e-tyre-make", "__other")
+    expect(page.locator("#tp-e-tyre-other-wrap")).to_be_visible()
+    page.fill("#tp-e-tyre-make-other", "Hoosier")
+    page.fill("#tp-e-tyre-model", "R7")
+    expect(page.locator("#tp-e-tyre-preview")).to_have_text("Saved as: Hoosier R7")
+    page.select_option("#tp-e-tyre-make", "Michelin")
+    expect(page.locator("#tp-e-tyre-other-wrap")).to_be_hidden()
+    page.fill("#tp-e-tyre-model", "Pilot Sport 4S")
+    page.select_option("#tp-e-tyre-w", "245")
+    expect(page.locator("#tp-e-tyre-preview")).to_contain_text("Pick the width, profile and diameter")
+    page.select_option("#tp-e-tyre-p", "35")
+    page.select_option("#tp-e-tyre-d", "19")
+    expect(page.locator("#tp-e-tyre-preview")).to_have_text("Saved as: Michelin Pilot Sport 4S, 245/35 R19")
+    page.get_by_role("button", name="Save changes").click()
+    expect(page.locator("#tp-status")).to_have_text("Saved.")
+    rec = fake.sessions["new1"]
+    assert (rec["tyres"], rec["tyreMake"], rec["tyreModel"], rec["tyreWidth"], rec["tyreProfile"], rec["tyreRim"]) == ("Michelin Pilot Sport 4S, 245/35 R19", "Michelin", "Pilot Sport 4S", 245, 35, 19)
+    expect(page.locator(".tp-session-head .tp-sub")).to_contain_text("Michelin Pilot Sport 4S, 245/35 R19")
+    # It comes back filled in.
+    expect(page.locator("#tp-e-tyre-make")).to_have_value("Michelin")
+    expect(page.locator("#tp-e-tyre-w")).to_have_value("245")
+    expect(page.locator("#tp-e-tyre-p")).to_have_value("35")
+    expect(page.locator("#tp-e-tyre-d")).to_have_value("19")
+
+
+def test_older_free_text_tyres_fill_the_new_fields(page):
+    fake = FakeWorker()
+    open_saved_session(page, fake)
+    fake.sessions["new1"]["tyres"] = "Pilot Sport 4S 245/35R19"
+    for k in ("tyreMake", "tyreModel", "tyreWidth", "tyreProfile", "tyreRim"):
+        fake.sessions["new1"].pop(k, None)
+    page.reload()
+    expect(page.locator("#tp-e-tyre-make")).to_have_value("Michelin")
+    expect(page.locator("#tp-e-tyre-model")).to_have_value("Pilot Sport 4S")
+    expect(page.locator("#tp-e-tyre-w")).to_have_value("245")
+    expect(page.locator("#tp-e-tyre-p")).to_have_value("35")
+    expect(page.locator("#tp-e-tyre-d")).to_have_value("19")
+    # A make we don't list stays as typed.
+    fake.sessions["new1"]["tyres"] = "Hoosier R7, 255/40 ZR18"
+    page.reload()
+    expect(page.locator("#tp-e-tyre-model")).to_have_value("Hoosier R7")
+    expect(page.locator("#tp-e-tyre-w")).to_have_value("255")
+    expect(page.locator("#tp-e-tyre-d")).to_have_value("18")
+
+
+def test_tyres_when_adding_a_session(page):
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    page.select_option("#tp-tyre-make", "Yokohama")
+    page.fill("#tp-tyre-model", "Advan Neova AD09")
+    page.select_option("#tp-tyre-w", "265")
+    page.select_option("#tp-tyre-p", "35")
+    page.select_option("#tp-tyre-d", "19")
+    # Switching units redraws the form without losing the tyres.
+    page.locator(".tp-head [data-units]").click()
+    expect(page.locator("#tp-tyre-make")).to_have_value("Yokohama")
+    expect(page.locator("#tp-tyre-d")).to_have_value("19")
+    page.get_by_role("button", name="Save session").click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
+    saved = fake.saved[0]
+    assert (saved["tyres"], saved["tyreMake"], saved["tyreWidth"], saved["tyreProfile"], saved["tyreRim"]) == ("Yokohama Advan Neova AD09, 265/35 R19", "Yokohama", 265, 35, 19)
+
+
+def test_tyre_choices_come_from_the_manifest_with_the_admin_changes_on_top(page):
+    """data/tyres.json is the starting list; the worker's changes replace or
+    take off makes and replace the size lists."""
+    manifest = {"makes": [{"name": "Acme", "models": ["Rocket"]}, {"name": "Zed", "models": ["Z1"]}, {"name": "Mid", "models": []}],
+                "widths": [205, 215], "profiles": [40, 45], "rims": [18, 19]}
+    page.route(re.compile(r".*/data/tyres\.json.*"), lambda route: route.fulfill(status=200, content_type="application/json", body=json.dumps(manifest)))
+    fake = FakeWorker()
+    fake.tyre_extra = {"makes": [{"name": "Zed", "removed": True}, {"name": "Bolt", "models": ["B1", "B2"]}, {"name": "Acme", "models": ["Rocket 2"]}], "rims": [17]}
+    open_saved_session(page, fake)
+    assert page.locator("#tp-e-tyre-make option").all_inner_texts() == ["Not set", "Acme", "Bolt", "Mid", "Other make"]
+    assert page.locator("#tp-e-tyre-w option").all_inner_texts() == ["Width", "205", "215"]
+    assert page.locator("#tp-e-tyre-p option").all_inner_texts() == ["Profile", "40", "45"]
+    assert page.locator("#tp-e-tyre-d option").all_inner_texts() == ["Diameter", "17"]
+    page.select_option("#tp-e-tyre-make", "Acme")
+    assert page.locator("#tp-e-tyre-models option").evaluate_all("els => els.map(e => e.value)") == ["Rocket 2"]
+    page.select_option("#tp-e-tyre-make", "Bolt")
+    assert page.locator("#tp-e-tyre-models option").evaluate_all("els => els.map(e => e.value)") == ["B1", "B2"]
+
+
+def test_the_shipped_manifest_lists_the_makes(page):
+    """The real data/tyres.json: makes, models and sizes, including Kumho."""
+    d = json.loads((ROOT / "data" / "tyres.json").read_text(encoding="utf-8"))
+    names = [m["name"] for m in d["makes"]]
+    assert names == sorted(names, key=str.lower) and len(names) == len(set(names)) and len(names) > 30
+    kumho = next(m for m in d["makes"] if m["name"] == "Kumho")["models"]
+    assert "Ecsta Sport S PS72" in kumho and "Ecsta PS71" in kumho and len(kumho) > 20
+    assert 245 in d["widths"] and 35 in d["profiles"] and 19 in d["rims"]
+    assert all(len(set(m["models"])) == len(m["models"]) for m in d["makes"])
+
+
+def test_admin_tyres_panel_edits_makes_models_and_sizes(page):
+    store = {"extra": {}}
+    puts = []
+
+    def api(route):
+        req = route.request
+        path = urlparse(req.url).path
+        if path == "/tyres/admin" and req.method == "GET":
+            body = {"success": True, "extra": store["extra"]}
+        elif path == "/tyres/admin" and req.method == "PUT":
+            lib = json.loads(req.post_data)["library"]
+            puts.append(lib)
+            store["extra"] = lib
+            body = {"success": True, "extra": lib}
+        else:
+            body = {"success": True}
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(body), headers={"Access-Control-Allow-Origin": "*"})
+    page.route("**/%s/**" % API_HOST, api)
+    page.add_init_script("sessionStorage.setItem('mt3ukAdminKey', 'test-key')")
+    page.goto("/admin.html")
+    page.locator("#tyres-wrap > summary").click()
+    expect(page.locator("#ty-list")).to_contain_text("Michelin")
+    expect(page.locator("#tyres-count")).to_have_text(re.compile(r"^\(\d+ makes\)$"))
+    rows = page.locator("#ty-list tbody tr")
+    start = rows.count()
+    assert start > 30
+    # Add a make with models.
+    page.get_by_role("button", name="Add a make").click()
+    page.fill("#ty-name", "Acme Tyres")
+    page.fill("#ty-models", "Rocket\nBolt\n\nRocket 2")
+    page.get_by_role("button", name="Save make").click()
+    expect(page.locator("#ty-note")).to_have_text("Saved. Track sessions use it straight away.")
+    assert puts[-1]["makes"] == [{"name": "Acme Tyres", "models": ["Rocket", "Bolt", "Rocket 2"]}]
+    expect(rows).to_have_count(start + 1)
+    expect(page.locator("#ty-list tr", has_text="Acme Tyres")).to_contain_text("changed here")
+    # Edit a make from the file: its models are replaced, the name is fixed.
+    page.locator('[data-edit="Kumho"]').click()
+    assert page.locator("#ty-name").get_attribute("readonly") is not None
+    models = page.locator("#ty-models").input_value().split("\n")
+    assert "Ecsta Sport S PS72" in models and len(models) > 20
+    page.fill("#ty-models", "Ecsta PS71\nEcsta PS91")
+    page.get_by_role("button", name="Save make").click()
+    expect(page.locator("#ty-note")).to_have_text("Saved. Track sessions use it straight away.")
+    assert {"name": "Kumho", "models": ["Ecsta PS71", "Ecsta PS91"]} in puts[-1]["makes"]
+    # Taking a make off the list keeps a note of it; taking off one added here just drops it.
+    page.once("dialog", lambda d: d.accept())
+    page.locator('[data-remove="Toyo"]').click()
+    expect(page.locator("#ty-list")).not_to_contain_text("Toyo")
+    assert {"name": "Toyo", "removed": True} in puts[-1]["makes"]
+    page.once("dialog", lambda d: d.accept())
+    page.locator('[data-remove="Acme Tyres"]').click()
+    expect(page.locator("#ty-list")).not_to_contain_text("Acme Tyres")
+    assert all(m["name"] != "Acme Tyres" for m in puts[-1]["makes"])
+    # A make that is already there can't be added twice.
+    page.get_by_role("button", name="Add a make").click()
+    page.fill("#ty-name", "Michelin")
+    page.get_by_role("button", name="Save make").click()
+    expect(page.locator("#ty-note")).to_contain_text("already on the list")
+    page.get_by_role("button", name="Cancel").click()
+    # Sizes.
+    expect(page.locator("#ty-widths")).to_have_value(re.compile(r"175, 185, .*355"))
+    page.fill("#ty-widths", "205, 215, 225")
+    page.fill("#ty-rims", "17 18 19")
+    page.get_by_role("button", name="Save sizes").click()
+    expect(page.locator("#ty-note")).to_have_text("Saved. Track sessions use it straight away.")
+    assert puts[-1]["widths"] == [205, 215, 225] and puts[-1]["rims"] == [17, 18, 19] and "profiles" not in puts[-1]
+    page.get_by_role("button", name="Use the file's sizes").click()
+    expect(page.locator("#ty-widths")).to_have_value(re.compile(r"175, 185"))
+    assert "widths" not in puts[-1] and "rims" not in puts[-1]
+    assert overflow_width(page) <= 0

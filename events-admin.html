@@ -11,38 +11,45 @@
 <style>
   :root {
     --ink: #16233d;
+    --ink-2: #ffffff;
+    --paper: #f3f1ea;
+    --card: #ffffff;
     --orange: #e8542a;
-    --steel: #7c8798;
+    --steel: #5b6577;
     --white: #ffffff;
-    --green: #4caf7d;
-    --red: #ff6b6b;
+    --green: #2a8a5a;
+    --red: #c13a3a;
+    --line: rgba(22, 35, 61, 0.14);
+    --line-strong: rgba(22, 35, 61, 0.3);
+    --hover: rgba(22, 35, 61, 0.05);
+    --field: #ffffff;
   }
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    background: var(--ink);
-    color: var(--white);
+    background: var(--paper);
+    color: var(--ink);
     font-size: 0.85rem;
   }
   header {
     padding: 20px 24px;
-    border-bottom: 1px solid rgba(255,255,255,0.15);
+    border-bottom: 1px solid var(--line);
   }
   .header-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 12px; }
   h1 { font-size: 1rem; letter-spacing: 0.04em; margin: 0; color: var(--orange); }
-  h2 { font-size: 0.85rem; letter-spacing: 0.04em; margin: 0 0 14px; color: var(--white); text-transform: uppercase; }
+  h2 { font-size: 0.85rem; letter-spacing: 0.04em; margin: 0 0 14px; color: var(--ink); text-transform: uppercase; }
   a { color: var(--orange); }
   main { max-width: 1000px; margin: 0 auto; padding: 24px; }
   section { margin-bottom: 36px; }
   input, textarea {
     width: 100%;
-    background: rgba(0,0,0,0.3);
-    border: 1px solid rgba(255,255,255,0.3);
-    color: var(--white);
+    background: var(--field);
+    border: 1px solid var(--line-strong);
+    color: var(--ink);
     padding: 9px 10px;
     font-family: inherit;
     font-size: inherit;
-    color-scheme: dark;
+    color-scheme: light;
   }
   textarea { resize: vertical; min-height: 64px; }
   input:focus, textarea:focus { outline: 1px solid var(--orange); border-color: var(--orange); }
@@ -57,7 +64,7 @@
   }
   button:hover { opacity: 0.9; }
   button:disabled { opacity: 0.5; cursor: default; }
-  button.secondary { background: none; border: 1px solid rgba(255,255,255,0.35); color: var(--white); }
+  button.secondary { background: none; border: 1px solid var(--line-strong); color: var(--ink); }
   button.danger { background: none; border: 1px solid var(--red); color: var(--red); }
   button.danger:hover { background: var(--red); color: var(--ink); }
   .key-row { display: flex; gap: 8px; }
@@ -67,7 +74,7 @@
   .status.error { color: var(--red); }
   .hidden { display: none !important; }
 
-  .form-card { border: 1px solid rgba(255,255,255,0.2); padding: 18px; }
+  .form-card { border: 1px solid var(--line); padding: 18px; }
   .form-card.editing { border-color: var(--orange); }
   .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
   .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
@@ -78,10 +85,10 @@
   .form-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
 
   .list-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
-  .list-head h2 { margin: 0; }
+  .list-head .panel-title { margin: 0; }
   .count { color: var(--steel); }
   .event-card {
-    border: 1px solid rgba(255,255,255,0.2);
+    border: 1px solid var(--line);
     margin-bottom: 12px;
     padding: 14px;
     display: flex;
@@ -104,7 +111,7 @@
   .empty { color: var(--steel); }
   details > summary { cursor: pointer; list-style: none; }
   details > summary::-webkit-details-marker { display: none; }
-  details > summary h2 { display: inline-block; margin: 0 0 14px; }
+  details > summary .panel-title { display: inline-block; margin: 0 0 14px; }
   .past .event-card { opacity: 0.7; }
   .event-id.live { color: var(--green); border-color: var(--green); }
   .event-id.draft { color: var(--steel); border-color: var(--steel); }
@@ -114,30 +121,30 @@
   .ep-note { color: var(--steel); font-size: 0.72rem; margin: 0 0 14px; }
   .pv-form { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
   .pv-form input { flex: 1 1 220px; }
-  .pv-form select { flex: 1 1 180px; background: rgba(0,0,0,0.3); color: var(--white); border: 1px solid rgba(255,255,255,0.3); padding: 9px 10px; }
+  .pv-form select { flex: 1 1 180px; background: var(--field); color: var(--ink); border: 1px solid var(--line-strong); padding: 9px 10px; }
   #pv-note.error, .ep-note.error { color: var(--red); }
   #pv-note.ok { color: var(--green); }
   .ep-help { margin: 0 0 14px; }
   .ep-help summary { color: var(--orange); font-size: 0.74rem; padding: 4px 0; }
   .ep-help[open] summary { margin-bottom: 6px; }
   .ep-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
-  .ep-fieldset { border: 1px solid rgba(255,255,255,0.2); padding: 14px 16px 16px; margin: 0 0 16px; min-width: 0; }
+  .ep-fieldset { border: 1px solid var(--line); padding: 14px 16px 16px; margin: 0 0 16px; min-width: 0; }
   .ep-fieldset legend { color: var(--orange); font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0 6px; }
   .ep-fieldset .hint { color: var(--steel); font-size: 0.68rem; }
   .ep-fieldset textarea { min-height: 96px; }
-  .check { display: flex; align-items: center; gap: 8px; color: var(--white); font-size: 0.78rem; }
+  .check { display: flex; align-items: center; gap: 8px; color: var(--ink); font-size: 0.78rem; }
   .check input { width: auto; }
   .img-slot { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-  .img-thumb { width: 120px; height: 76px; object-fit: cover; border: 1px dashed rgba(255,255,255,0.35); background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: var(--steel); font-size: 0.66rem; text-align: center; }
+  .img-thumb { width: 120px; height: 76px; object-fit: cover; border: 1px dashed var(--line-strong); background: var(--field); display: flex; align-items: center; justify-content: center; color: var(--steel); font-size: 0.66rem; text-align: center; }
   img.img-thumb { border-style: solid; }
   .img-slot input[type=file] { width: auto; max-width: 100%; padding: 6px; }
   .img-slot .img-state { color: var(--steel); font-size: 0.7rem; }
   .gallery-slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 10px; }
-  .gallery-item { border: 1px solid rgba(255,255,255,0.2); padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+  .gallery-item { border: 1px solid var(--line); padding: 8px; display: flex; flex-direction: column; gap: 6px; }
   .gallery-item img { width: 100%; height: 90px; object-fit: cover; }
   .gallery-item input { font-size: 0.72rem; padding: 6px; }
   .gallery-item button, .tier-row > button { padding: 4px 8px; font-size: 0.68rem; }
-  .tier-row { border: 1px solid rgba(255,255,255,0.2); padding: 12px; margin-bottom: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
+  .tier-row { border: 1px solid var(--line); padding: 12px; margin-bottom: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
   .tier-row .full { grid-column: 1 / -1; }
   .tier-row .checks { display: flex; gap: 18px; flex-wrap: wrap; }
   .tier-row textarea { min-height: 64px; }
@@ -164,10 +171,10 @@
   }
   button:hover { opacity: 1; background: #d4481f; }
   button:disabled { opacity: 0.45; }
-  button.secondary { background: transparent; border-color: rgba(255,255,255,0.35); color: var(--white); }
-  button.secondary:hover { background: rgba(255,255,255,0.08); border-color: var(--white); }
-  button.danger { background: transparent; border-color: rgba(255,107,107,0.6); color: var(--red); }
-  button.danger:hover { background: rgba(255,107,107,0.14); color: var(--red); }
+  button.secondary { background: transparent; border-color: var(--line-strong); color: var(--ink); }
+  button.secondary:hover { background: var(--hover); border-color: var(--ink); }
+  button.danger { background: transparent; border-color: rgba(193,58,58,0.5); color: var(--red); }
+  button.danger:hover { background: rgba(193,58,58,0.08); color: var(--red); }
   .event-actions button, .ep-schedule button { min-height: 40px; padding: 8px 14px; font-size: 0.86rem; border-radius: var(--radius-sm); }
   .gallery-item button, .tier-row > button { min-height: 36px; padding: 6px 12px; font-size: 0.86rem; border-radius: var(--radius-sm); }
   .form-card, .event-card, .ep-fieldset, .tier-row, .gallery-item { border-radius: var(--radius); }
@@ -175,12 +182,12 @@
   .event-meta, .ep-note, .field .hint, .ep-fieldset .hint, .img-state { font-size: 0.82rem; }
   .img-thumb { border-radius: var(--radius-sm); }
   a { text-underline-offset: 3px; }
-  details > summary h2::before, details[open] > summary h2::before {
+  details > summary .panel-title::before, details[open] > summary .panel-title::before {
     content: ""; display: inline-block; width: 18px; height: 18px; margin-right: 6px; vertical-align: -3px;
     background: no-repeat center / 18px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e8542a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 18 6-6-6-6'/%3E%3C/svg%3E");
     transition: transform .15s ease;
   }
-  details[open] > summary h2::before { transform: rotate(90deg); }
+  details[open] > summary .panel-title::before { transform: rotate(90deg); }
 
   /* The editor opens right under the event being edited, which gets an outline and a small arrow by its title */
   .event-card.is-editing { border-color: var(--orange); margin-bottom: 0; border-bottom-left-radius: 0; border-bottom-right-radius: 0; opacity: 1; }
@@ -235,25 +242,35 @@
     .check input { width: 22px; height: 22px; }
   }
 </style>
+<link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
 <header>
-  <div class="header-top">
-    <h1>MT3UK Events admin</h1>
-    <a href="admin.html">Main admin</a>
-  </div>
+  <h1>MT3UK Admin</h1>
   <div class="key-row">
     <input type="password" id="admin-key" placeholder="Admin key" autocomplete="off">
     <button id="load-btn" type="button">Load</button>
   </div>
 </header>
 <main>
+  <ul class="admin-nav" aria-label="Admin sections">
+    <li><a href="admin.html#grp-gallery">Gallery and builds</a></li>
+    <li><a href="admin.html#grp-reports">Reports</a></li>
+    <li><a href="admin.html#grp-members">Members</a></li>
+    <li><a href="admin.html#grp-interviews">Owner interviews</a></li>
+    <li><a href="admin.html#grp-tracks">Track sessions</a></li>
+    <li class="nav-gap" aria-hidden="true"></li>
+    <li><a href="events-admin.html" aria-current="page">Events</a></li>
+    <li><a href="device-checklist.html">Device checks</a></li>
+  </ul>
   <p class="status" id="status" role="status"></p>
 
   <div id="admin-body" class="hidden">
+    <section class="admin-group" id="grp-pages" aria-labelledby="grp-pages-h">
+      <div class="group-head"><h2 id="grp-pages-h">Event pages</h2><p>Make and edit the event pages, and share a draft before it goes live.</p></div>
     <section>
       <details id="ep-wrap" open>
-        <summary><h2>Event pages <span class="count" id="ep-count"></span></h2></summary>
+        <summary><h3 class="panel-title">Event pages <span class="count" id="ep-count"></span></h3></summary>
         <p class="ep-note">Add and edit event pages here, then <strong>Preview</strong> them before they go live.</p>
         <details class="ep-help"><summary>How this works</summary>
           <p class="ep-note">Each event page is a draft, scheduled or live, and is shown at event.html?e=web-address. Until it is live the public only sees a Coming soon card. <strong>Preview</strong> opens it for you in this browser and stays open until you end it. To show it to others first, press <strong>Copy link</strong> and send it: they can ask for an emailed code (see Event previews below). Press <strong>Save</strong> and Preview shows the change straight away. From its publish date it goes live and is featured, with its image and tagline, in the homepage Events section until the event is over. Saves update the live site in about a minute.</p>
@@ -350,7 +367,7 @@
 
     <section>
       <details id="pv-wrap">
-        <summary><h2>Event previews <span class="count" id="pv-count"></span></h2></summary>
+        <summary><h3 class="panel-title">Event previews <span class="count" id="pv-count"></span></h3></summary>
         <p class="ep-note">To share an event before it is live, press <strong>Copy link</strong> on it above and send the link. Anyone with the link can ask for a one-time code by email. A code opens the page for 7 days, signs them in, and makes them an MT3UK member if they weren&rsquo;t already. Below is everyone who has opened one. <strong>Revoke</strong> ends their preview straight away and stops new codes, and <strong>Restore</strong> undoes it.</p>
         <form class="pv-form" id="pv-form" novalidate>
           <input type="email" id="pv-email" placeholder="Email to revoke" autocomplete="off" aria-label="Email to revoke">
@@ -361,6 +378,10 @@
         <div id="pv-list"></div>
       </details>
     </section>
+    </section>
+
+    <section class="admin-group" id="grp-meets" aria-labelledby="grp-meets-h">
+      <div class="group-head"><h2 id="grp-meets-h">Meets list</h2><p>The upcoming and past events in the homepage meets list. Each one can open the full event page editor.</p></div>
 
     <form class="form-card hidden" id="event-form" novalidate>
         <h2 id="form-title">Edit event</h2>
@@ -413,16 +434,17 @@
 
     <section>
       <div class="list-head">
-        <h2>Upcoming events <span class="count" id="upcoming-count"></span></h2>
+        <h3 class="panel-title">Upcoming events <span class="count" id="upcoming-count"></span></h3>
       </div>
       <div id="upcoming-list"></div>
     </section>
 
     <section class="past">
       <details id="past-wrap">
-        <summary><h2>Past events <span class="count" id="past-count"></span></h2></summary>
+        <summary><h3 class="panel-title">Past events <span class="count" id="past-count"></span></h3></summary>
         <div id="past-list"></div>
       </details>
+    </section>
     </section>
   </div>
 </main>

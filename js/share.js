@@ -233,6 +233,23 @@
     share(photoItem(photo, anchor));
   };
 
+  // A page of its own that has no section share page, such as one track
+  // session: window.mt3ukSharePage({ url, text, heading, subject, campaign }, buttonEl)
+  // shares that exact address (with UTM parameters).
+  window.mt3ukSharePage = function (opts, anchor) {
+    if (!opts || !opts.url) return;
+    share({
+      key: 'url:' + opts.url,
+      anchor: anchor,
+      heading: opts.heading || 'Share this page',
+      subject: opts.subject || 'MT3UK',
+      text: opts.text || 'Check this out on MT3UK, the UK’s modified Tesla community',
+      link: function (channel) {
+        return opts.url + (opts.url.indexOf('?') === -1 ? '?' : '&') + utm(channel, opts.campaign || 'page_share');
+      }
+    });
+  };
+
   // Small round share buttons by the page heading and each section heading.
   var ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 3L10 14M21 3l-7 18-4-7-7-4z"/></svg>';
 

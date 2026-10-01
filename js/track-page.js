@@ -154,6 +154,8 @@
     stopPlay();
     V.hideTip();
     var p = params();
+    // Sessions and builds have their own share button, so the page one steps aside.
+    document.body.setAttribute('data-tp-view', p.get('s') ? 'session' : p.get('car') && !p.get('add') ? 'car' : '');
     if (p.get('s')) return showSession(p.get('s'));
     if (p.get('add')) return showAdd(p.get('car'));
     // The leaderboards have their own page now; old links still work.
@@ -182,6 +184,18 @@
     return list.map(function (n) {
       return '<div class="tp-note">' + icon(n.icon || 'info') + '<div><p>' + esc(n.text) + '</p>' + (n.small ? '<small>' + esc(n.small) + '</small>' : '') + '</div></div>';
     }).join('');
+  }
+  // The round share button, top right of a public session or build page.
+  var SITE_URL = 'https://mt3uk.com/';
+  function shareDot(label) {
+    return '<button type="button" class="mt3uk-share-dot tp-share-dot" data-tp-share aria-label="' + esc(label) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 3L10 14M21 3l-7 18-4-7-7-4z"/></svg></button>';
+  }
+  function wireShare(opts) {
+    var btn = document.querySelector('[data-tp-share]');
+    if (btn) btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      if (window.mt3ukSharePage) window.mt3ukSharePage(opts, btn);
+    });
   }
   function unitsChip() { return '<button type="button" class="chip tp-units" data-units>' + (V.units.mph ? 'mph' : 'km/h') + '</button>'; }
   app.addEventListener('click', function (e) {
@@ -844,7 +858,7 @@
   function drawSession() {
     var s = view.s;
     var h = back(s.mine ? 'Your sessions' : 'Back', s.mine ? '' : (s.carId ? 'car=' + encodeURIComponent(s.carId) : ''));
-    h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '</h2><p class="tp-sub">' + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + '</p></div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) + '<span id="tp-rank-slot"></span>' : '') + unitsChip() + '</div></div>';
+    h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '</h2><p class="tp-sub">' + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + '</p></div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) + '<span id="tp-rank-slot"></span>' : '') + unitsChip() + (s.street || s.privacy === 'private' ? '' : shareDot('Share this session')) + '</div></div>';
     LW = s.type === 'sprint' ? 'Run' : 'Lap';
     var untimed = s.type === 'other' && !(s.laps && s.laps.length);
     if (s.type === 'drag') h += dragHtml(s);
@@ -858,6 +872,11 @@
     // Sprints and hill climbs have runs, not laps.
     if (s.type === 'sprint') runWords(app);
     if (s.mine) wireOwner(s);
+    if (!s.street && s.privacy !== 'private') {
+      var what = s.type === 'drag' ? 'Drag run' : s.type === 'sprint' ? 'Sprint or hill climb run' : 'Track session', res = sessionResult(s);
+      wireShare({ url: SITE_URL + 'track.html?s=' + encodeURIComponent(s.id), heading: 'Share this session', subject: trackName(s) + ' | MT3UK', campaign: 'track_session',
+        text: what + ' at ' + trackName(s) + (res ? ', ' + res + ',' : '') + ' on MT3UK, the UK’s modified Tesla community' });
+    }
     if (s.mine && boardPathOf(s)) loadRanks(s.carId, [s]).then(function (r) {
       var slot = document.getElementById('tp-rank-slot');
       if (slot && view && view.s === s && r[s.id]) slot.innerHTML = rankBadge(r[s.id], trackName(s));
@@ -1118,6 +1137,8 @@
     if (dir > 0 && pb.t >= pb.tEnd) pb.t = 0;
     if (dir < 0 && pb.t <= 0) pb.t = pb.tEnd;
     pb.dir = dir; pb.playing = true; pb.active = true; pb.last = 0;
+    // Starting playback always puts the cars back in view when zoomed in.
+    setFollow(true);
     playUi();
     if (!pb.raf) pb.raf = requestAnimationFrame(tick);
   }
@@ -1403,11 +1424,13 @@
     api('GET', '/track/public?car=' + encodeURIComponent(carId)).then(function (d) {
       if (!d.success) return failed('That build could not be found.');
       var c = d.car;
-      var h = back('Track sessions', '') + '<div class="tp-head"><div><h2>' + esc(c.name || 'MT3UK build') + '</h2><p class="tp-sub">' + esc([c.owner, [c.year, c.model, c.version].filter(Boolean).join(' ')].filter(Boolean).join(' · ')) + '</p></div>' + unitsChip() + '</div>';
+      var h = back('Track sessions', '') + '<div class="tp-head"><div><h2>' + esc(c.name || 'MT3UK build') + '</h2><p class="tp-sub">' + esc([c.owner, [c.year, c.model, c.version].filter(Boolean).join(' ')].filter(Boolean).join(' · ')) + '</p></div>' + '<div class="tp-head-side">' + unitsChip() + shareDot('Share this build') + '</div></div>';
       if (d.mine) h += '<p class="tp-sub">This is what other members see. Only sessions you share show here.</p>';
       h += d.sessions.length ? '<div class="tp-list">' + d.sessions.map(sessionRow).join('') + '</div>' : '<div class="card tp-empty">' + icon('flag') + '<p>No shared sessions yet.</p></div>';
       h += '<p class="tp-sub"><a href="gallery.html" class="tp-link">See the build in the Gallery' + icon('chev') + '</a></p>';
       app.innerHTML = h;
+      wireShare({ url: SITE_URL + 'track.html?car=' + encodeURIComponent(carId), heading: 'Share this build', subject: (c.name || 'MT3UK build') + ' | MT3UK', campaign: 'track_build',
+        text: (c.name || 'This MT3UK build') + '’s track sessions on MT3UK, the UK’s modified Tesla community' });
     }).catch(function () { failed('That build could not be loaded.'); });
   }
 

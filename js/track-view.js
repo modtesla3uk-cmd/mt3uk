@@ -197,7 +197,7 @@
     // uses place() directly, so the map doesn't slide away.
     var posA = null, posB = null, following = true;
     function follow() {
-      if (!following || !zoom || zoom.k() <= 1.01 || (!posA && !posB)) return;
+      if (!following || !zoom || zoom.k() <= 1.01 || (!posA && !posB) || zoom.active()) return;
       var qa = posA && P(posA[2], posA[3]), qb = posB && P(posB[2], posB[3]), t;
       if (qa && qb) {
         var v = zoom.view();
@@ -357,7 +357,6 @@
         var q = point(svg, mid);
         zoomAt(d1 / d0, q.x, q.y);
         dragged = true;
-        if (panCb) panCb();
         e.preventDefault();
         return;
       }
@@ -399,6 +398,8 @@
     return {
       zoomAt: zoomAt, centreOn: centreOn, busy: function () { return count() > 1 || dragged; }, k: function () { return W / vb.w; },
       view: function () { return { x: vb.x, y: vb.y, w: vb.w, h: vb.h }; },
+      // A finger or mouse button is down on the map.
+      active: function () { return count() > 0; },
       // Called when the member drags or pinches the map by hand.
       onPan: function (cb) { panCb = cb; }
     };

@@ -1103,7 +1103,7 @@ def test_no_member_laps_when_only_your_own_car_is_on_the_board(page):
     expect(page.locator("#tp-cmp-b optgroup[label=\"Other members' best laps\"]")).to_have_count(0)
 
 
-def test_zoomed_in_playback_follows_the_cars_until_you_drag_the_map(page):
+def test_zoomed_in_playback_follows_the_cars_until_you_turn_following_off(page):
     fake = FakeWorker()
     save_thruxton_with_a_member_board(page, fake)
     page.locator("#tp-sync [data-sync='point']").click()
@@ -1148,12 +1148,109 @@ def test_zoomed_in_playback_follows_the_cars_until_you_drag_the_map(page):
     page.mouse.up()
     expect(page.locator("#tp-follow")).to_have_attribute("aria-pressed", "false")
     vb = lambda: page.evaluate("(() => { const b = document.getElementById('tp-map2').viewBox.baseVal; return [b.x, b.y]; })()")
+    # Pressing Play follows the cars again; the chip can switch it off mid-play.
+    page.locator("#tp-play-toggle").click()
+    expect(page.locator("#tp-follow")).to_have_attribute("aria-pressed", "true")
+    page.locator("#tp-follow").click()
+    expect(page.locator("#tp-follow")).to_have_attribute("aria-pressed", "false")
     before = vb()
-    page.locator("#tp-play-toggle").click()
     page.wait_for_timeout(500)
-    page.locator("#tp-play-toggle").click()
     assert vb() == before
-    # Follow again.
+    page.locator("#tp-play-toggle").click()
     page.locator("#tp-follow").click()
     expect(page.locator("#tp-follow")).to_have_attribute("aria-pressed", "true")
     expect(page.locator("#tp-follow")).to_have_class(re.compile(r"is-on"))
+
+
+def test_playback_follows_the_cars_after_pinch_zooming_and_after_a_drag(page):
+    """Pinching to zoom is not a pan, so following stays on. After dragging the
+    map by hand (following off), pressing Play follows the cars again."""
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    page.locator("#tp-sync [data-sync='point']").click()
+    page.locator("#tp-speeds [data-speed='5']").click()
+    page.locator("#tp-map2").scroll_into_view_if_needed()
+    box = page.locator("#tp-map2").bounding_box()
+    cx, cy = box["x"] + box["width"] / 2, box["y"] + box["height"] / 2
+    # A two-finger pinch outwards, as touch pointer events.
+    page.evaluate("""([cx, cy]) => {
+      const svg = document.getElementById('tp-map2');
+      const ev = (type, id, x, y) => svg.dispatchEvent(new PointerEvent(type, { pointerId: id, clientX: x, clientY: y, bubbles: true, cancelable: true, pointerType: 'touch' }));
+      ev('pointerdown', 1, cx - 20, cy); ev('pointerdown', 2, cx + 20, cy);
+      for (let i = 1; i <= 8; i++) { ev('pointermove', 1, cx - 20 - i * 12, cy); ev('pointermove', 2, cx + 20 + i * 12, cy); }
+      ev('pointerup', 1, cx - 116, cy); ev('pointerup', 2, cx + 116, cy);
+    }""", [cx, cy])
+    expect(page.locator("#tp-follow")).to_have_attribute("aria-pressed", "true")
+    # A drag turns it off; Play turns it back on and the view follows.
+    page.mouse.move(cx, cy)
+    page.mouse.down()
+    page.mouse.move(cx + 60, cy + 40, steps=6)
+    page.mouse.up()
+    expect(page.locator("#tp-follow")).to_have_attribute("aria-pressed", "false")
+    page.locator("#tp-play-toggle").click()
+    expect(page.locator("#tp-follow")).to_have_attribute("aria-pressed", "true")
+    seen = set()
+    for _ in range(4):
+        page.wait_for_timeout(300)
+        seen.add(tuple(round(v) for v in page.evaluate("(() => { const b = document.getElementById('tp-map2').viewBox.baseVal; return [b.x, b.y]; })()")))
+    page.locator("#tp-play-toggle").click()
+    assert len(seen) > 1, seen
+
+
+def test_share_buttons_on_track_sessions_and_leaderboards(page):
+    """The round share button by the page heading, as on the other pages."""
+    open_page(page, FakeWorker())
+    expect(page.locator(".page-hero h1 .mt3uk-share-dot")).to_be_visible()
+    page.goto("/leaderboards.html")
+    expect(page.locator(".page-hero h1 .mt3uk-share-dot")).to_be_visible()
+    page.locator(".page-hero h1 .mt3uk-share-dot").click()
+    expect(page.locator(".mt3uk-share-pop")).to_be_visible()
+    expect(page.locator(".mt3uk-share-pop [data-channel='copy_link']")).to_be_visible()
+    expect(page.locator(".mt3uk-share-pop [data-channel='whatsapp']")).to_have_attribute("href", re.compile(r"share%2Fsection%2Fleaderboards\.html"))
+
+
+def test_a_shared_session_and_a_build_page_have_their_own_share_button(page):
+    """Top right of a shared session, and of a build's shared sessions, a share
+    button for that exact page. The page-wide one steps aside, and a private
+    session has none."""
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    # Private by default: no share button.
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator(".tp-session-head")).to_be_visible()
+    expect(page.locator("[data-tp-share]")).to_have_count(0)
+    expect(page.locator(".page-hero .mt3uk-share-dot")).to_be_hidden()
+    # Shared: the button is there, top right, beside the units chip.
+    page.locator("#settings [data-privacy] [data-v='board']").click()
+    page.get_by_role("button", name="Save changes").click()
+    expect(page.locator(".tp-session-head [data-tp-share]")).to_be_visible()
+    expect(page.locator(".page-hero .mt3uk-share-dot")).to_be_hidden()
+    page.locator(".tp-session-head [data-tp-share]").click()
+    pop = page.locator(".mt3uk-share-pop")
+    expect(pop).to_be_visible()
+    expect(pop.locator(".mt3uk-share-title")).to_have_text("Share this session")
+    href = pop.locator("[data-channel='whatsapp']").get_attribute("href")
+    assert "track.html%3Fs%3Dnew1" in href and "Thruxton" in href, href
+    page.keyboard.press("Escape")
+    # A build's shared sessions.
+    page.goto("/track.html?car=car1")
+    expect(page.locator(".tp-head [data-tp-share]")).to_be_visible()
+    expect(page.locator(".page-hero .mt3uk-share-dot")).to_be_hidden()
+    page.locator(".tp-head [data-tp-share]").click()
+    expect(page.locator(".mt3uk-share-pop .mt3uk-share-title")).to_have_text("Share this build")
+    assert "track.html%3Fcar%3Dcar1" in page.locator(".mt3uk-share-pop [data-channel='whatsapp']").get_attribute("href")
+
+
+@all_devices
+def test_share_buttons_fit_on_a_phone(device_page):
+    page = device_page
+    fake = FakeWorker()
+    open_page(page, fake, path="/leaderboards.html")
+    btn = page.locator(".page-hero h1 .mt3uk-share-dot")
+    expect(btn).to_be_visible()
+    box, h1 = btn.bounding_box(), page.locator(".page-hero h1").bounding_box()
+    assert box["x"] + box["width"] <= page.viewport_size["width"], box
+    assert overflow_width(page) <= 0

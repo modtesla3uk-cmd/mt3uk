@@ -184,6 +184,18 @@ r = await call('PUT', '/track/session', { id: podId, privacy: 'board' }, 'tok-b'
 r = await call('GET', '/drag/board?venue=santa-pod');
 ok(r.body.entries.length === 0, 'and it stays off when the member saves it again');
 
+// Several files from one day: each lap keeps its run.
+{
+  const vboText = fs.readFileSync(ROOT + 'tests/fixtures/thruxton-trimmed.vbo', 'latin1');
+  const r1 = T.read(vboText, 'a.vbo'), r2 = T.read(vboText, 'b.vbo');
+  r2.startedAt = r1.startedAt + 3600000;
+  const day = T.analyse(T.combine([r1, r2]), lib);
+  const rr = await call('POST', '/track/sessions', { carId: 'cara1', session: day }, 'tok-a');
+  const got = await call('GET', '/track/session?id=' + rr.body.session.id, undefined, 'tok-a');
+  ok(rr.status === 200 && got.body.session.runs === 2 && got.body.session.laps.filter(l => l.run === 2).length === day.laps.filter(l => l.run === 2).length, 'runs kept on a day of several files');
+  await call('DELETE', '/track/session?id=' + rr.body.session.id, undefined, 'tok-a');
+}
+
 // Leaving the site clears everything.
 await mod.deleteMemberAccount(env, A);
 ok(!kv.has('track-index:' + (await mod.ownerKey(A))) && ![...kv.keys()].some(k => k.startsWith('track-session:') && JSON.parse(kv.get(k)).carId === 'cara1') && !kv.has('track-public:cara1'), 'a member leaving removes their sessions');

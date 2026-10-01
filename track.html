@@ -193,6 +193,24 @@
   /* Maps zoom (js/track-view.js): lines keep their width, buttons top right. */
   .tv-zoom-wrap { position: relative; }
   .tv-map line, .tv-map polyline { vector-effect: non-scaling-stroke; }
+  /* Zoomed in, a map stays inside its card. */
+  .tv-chart.tv-map { overflow: hidden; }
+  .tv-map .tv-band { vector-effect: none; }
+  /* Satellite ground: a white line and markers read over the imagery. */
+  .tv-map.has-sat .tv-mono { stroke: #ffffff; }
+  .tv-map.has-sat { background: #2b2f26; }
+  .tv-sat-credit { position: absolute; right: 6px; bottom: 4px; padding: 1px 6px; border-radius: 4px; background: rgba(255, 255, 255, 0.8); font-size: 0.64rem; color: #3b4556; pointer-events: none; }
+  .tv-sat-credit[hidden] { display: none; }
+  .tv-zoom-sat[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .tp-days { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin-top: 10px; }
+  .tp-day-sel { width: auto; min-width: 200px; min-height: 40px; padding-top: 6px; padding-bottom: 6px; }
+  .tp-days-key { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; }
+  .tp-days-key:empty { display: none; }
+  .tp-day { display: inline-flex; align-items: center; gap: 6px; padding: 2px 4px 2px 10px; border: 1px solid var(--hairline-strong); border-radius: var(--radius-pill); font-size: 0.82rem; }
+  .tp-day i { width: 18px; border-top: 2.5px dashed; }
+  .tp-day-x { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 0; background: none; color: var(--steel); cursor: pointer; border-radius: 50%; }
+  .tp-day-x .icon { width: 14px; height: 14px; }
+  .tp-day-x:hover { color: var(--ink); background: var(--paper-2, #f3f1ea); }
   .tv-map.is-zoomed { touch-action: none; cursor: grab; }
   .tv-map.is-zoomed.tp-tap { cursor: crosshair; }
   .tv-zoom-btns { position: absolute; top: 8px; right: 8px; display: flex; flex-direction: column; gap: 6px; z-index: 2; }

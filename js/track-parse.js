@@ -283,6 +283,33 @@
     return out;
   }
 
+  // Several files from one day (a lap timer writes one per time out) as one
+  // reading: in time order, each carrying on 5 minutes after the last, with
+  // every point marked with its run. Laps never span two runs. Throws when
+  // the files are from different days.
+  var RUN_GAP = 300;
+  function combine(rds) {
+    if (rds.length === 1) return rds[0];
+    function dayOf(rd) { return rd.startedAt ? ukDate(rd.startedAt) : rd.fileDate || ''; }
+    function when(rd, i) { return rd.startedAt || (rd.fileDate ? Date.parse(rd.fileDate + 'T' + (rd.fileTime || '00:00') + ':00Z') : 0) || i; }
+    var days = rds.map(dayOf).filter(Boolean);
+    if (days.some(function (d) { return d !== days[0]; })) throw new Error('These files are from different days. Add one day at a time.');
+    var order = rds.map(function (rd, i) { return { rd: rd, k: when(rd, i), i: i }; }).sort(function (x, y) { return x.k - y.k || x.i - y.i; });
+    var pts = [], offset = 0;
+    order.forEach(function (o, n) {
+      var src = o.rd.points;
+      src.forEach(function (p) { var q = Object.assign({}, p); q.t = p.t + offset; q.run = n + 1; pts.push(q); });
+      offset = pts[pts.length - 1].t + RUN_GAP;
+    });
+    var first = order[0].rd;
+    var out = Object.assign({}, first, { points: pts, runs: order.length });
+    out.startLine = (order.filter(function (o) { return o.rd.startLine; })[0] || {}).rd ? order.filter(function (o) { return o.rd.startLine; })[0].rd.startLine : null;
+    out.venueName = (order.filter(function (o) { return o.rd.venueName; })[0] || { rd: first }).rd.venueName || '';
+    out.speedDerived = order.some(function (o) { return o.rd.speedDerived; });
+    out.gDerived = order.some(function (o) { return o.rd.gDerived; });
+    return out;
+  }
+
   // A date (and time) in the file name, for files with none inside, such as
   // Tesla Track Mode's telemetry-v1-2024-03-29-15_39_08.csv. Taken as UK
   // local time.
@@ -391,6 +418,7 @@
     var out = [];
     for (var i = 1; i < points.length; i++) {
       var p = points[i - 1], q = points[i];
+      if (p.run !== q.run) continue;
       var d1 = o(A, B, [p.x, p.y]), d2 = o(A, B, [q.x, q.y]), d3 = o([p.x, p.y], [q.x, q.y], A), d4 = o([p.x, p.y], [q.x, q.y], B);
       if (d1 * d2 < 0 && d3 * d4 < 0) {
         var f = d1 / (d1 - d2);
@@ -419,9 +447,11 @@
     var segs = pairs || cr.slice(0, -1).map(function (c, j) { return [c, cr[j + 1]]; });
     for (var j = 0; j < segs.length; j++) {
       var s = segs[j][0], e = segs[j][1];
+      // A "lap" across the gap between two files isn't one.
+      if (points[s.i].run !== points[Math.max(s.i, e.i - 1)].run) continue;
       var vmax = 0, vmin = Infinity;
       for (var k = s.i; k < e.i; k++) { vmax = Math.max(vmax, points[k].v); vmin = Math.min(vmin, points[k].v); }
-      var lap = { n: j + 1, start: s.t, time: round(e.t - s.t, 3), dist: Math.round(e.d - s.d), vmax: round(vmax, 1), vmin: round(vmin, 1), i0: s.i, i1: e.i, d0: s.d };
+      var lap = { n: laps.length + 1, run: points[s.i].run || undefined, start: s.t, time: round(e.t - s.t, 3), dist: Math.round(e.d - s.d), vmax: round(vmax, 1), vmin: round(vmin, 1), i0: s.i, i1: e.i, d0: s.d };
       if (sectorCr && sectorCr.length) {
         var marks = [s.t];
         sectorCr.forEach(function (sc) { var c = sc.filter(function (x) { return x.t > s.t && x.t < e.t; })[0]; marks.push(c ? c.t : NaN); });
@@ -654,7 +684,9 @@
   function timedTail(session, pts, laps, layout, proj, origin) {
     var timed = laps.filter(function (l) { return l.kind === 'timed'; });
     var best = timed.reduce(function (b, l) { return !b || l.time < b.time ? l : b; }, null);
-    session.laps = laps.map(function (l) { return { n: l.n, start: round(l.start, 2), time: l.time, dist: l.dist, vmax: l.vmax, kind: l.kind, sectors: l.sectors }; });
+    session.laps = laps.map(function (l) { var o = { n: l.n, start: round(l.start, 2), time: l.time, dist: l.dist, vmax: l.vmax, kind: l.kind, sectors: l.sectors }; if (l.run) o.run = l.run; return o; });
+    var runs = laps.reduce(function (m, l) { return Math.max(m, l.run || 1); }, 1);
+    if (runs > 1) session.runs = runs;
     session.sectorsByThirds = laps.some(function (l) { return l.sectorsByThirds; });
     if (best) {
       session.best = best.n;
@@ -816,7 +848,7 @@
   }
 
   var api = {
-    read: read, dateFromName: dateFromName, analyse: analyse, sessionNotes: sessionNotes, trendNotes: trendNotes, cornerGains: cornerGains,
+    read: read, combine: combine, dateFromName: dateFromName, analyse: analyse, sessionNotes: sessionNotes, trendNotes: trendNotes, cornerGains: cornerGains,
     traceAt: traceAt, findCorners: findCorners, mergeLibrary: mergeLibrary, fmtLap: fmtLap, niceDate: niceDate,
     haversine: haversine, projector: projector, dragRuns: dragRuns, KMH_PER_MPH: KMH_PER_MPH
   };

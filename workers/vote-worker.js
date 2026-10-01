@@ -6470,7 +6470,9 @@ function cleanTrackLaps(laps) {
       n: trackNum(l.n, 1, 1000) || 0, start: trackNum(l.start, 0, 864000) || 0, time: t,
       dist: trackNum(l.dist, 0, 100000) || 0, vmax: trackNum(l.vmax, 0, 500) || 0,
       kind: ['timed', 'in', 'out', 'slow', 'short'].indexOf(l.kind) !== -1 ? l.kind : 'timed',
-      sectors: cleanNumArrays(l.sectors, 1).slice(0, 10)
+      sectors: cleanNumArrays(l.sectors, 1).slice(0, 10),
+      // Which file of the day the lap came from (several files make one session).
+      run: trackNum(l.run, 1, 50) || undefined
     };
   }).filter(Boolean);
 }
@@ -6526,6 +6528,8 @@ function cleanTrackSession(s, library) {
     out.outline = cleanNumArrays(ol, 2).slice(0, 2000).map(function (p) { return p.slice(0, 3); });
   }
   out.best = trackNum(s.best, 1, 1000);
+  var runs = trackNum(s.runs, 2, 50);
+  if (runs) out.runs = Math.round(runs);
   out.bestSectors = cleanNumArrays(s.bestSectors, 1).slice(0, 10);
   out.sectorsByThirds = !!s.sectorsByThirds;
   out.startLine = trackLine(s.startLine);

@@ -25,6 +25,7 @@
   var ICON = {
     upload: '<path d="M12 15V3M7 8l5-5 5 5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/>',
     flag: '<path d="M4 21V4M4 4h12l-2 4 2 4H4"/>',
+    x: '<path d="M18 6 6 18M6 6l12 12"/>',
     corner: '<path d="M4 20c0-9 7-16 16-16"/><path d="M15 4h5v5"/>',
     sig: '<path d="M2 20h.01M7 20v-4M12 20v-8M17 20V8M22 4v16"/>',
     up: '<path d="m3 17 6-6 4 4 8-8"/><path d="M14 7h7v7"/>',
@@ -97,7 +98,7 @@
   function weatherConditions(w) { return w.rain >= 1 ? 'Wet' : w.rain >= 0.2 ? 'Damp' : 'Dry'; }
   function weatherNote(w, place) {
     return 'From ' + METEO_CREDIT + ' weather for ' + esc(place || 'the track') + ' at ' + esc(w.hour) + ': ' + w.temp + '°C, ' +
-      (w.rain ? w.rain + ' mm of rain in the 3 hours before' : 'no rain in the 3 hours before') + (w.wind != null ? ', wind ' + w.wind + ' km/h' : '') + '.';
+      (w.rain ? w.rain + ' mm of rain in the 3 hours before' : 'no rain in the 3 hours before') + (w.wind != null ? ', wind ' + V.fmtV(w.wind) : '') + '.';
   }
 
   var library = null;
@@ -168,7 +169,18 @@
   }
   function unitsChip() { return '<button type="button" class="chip tp-units" data-units>' + (V.units.mph ? 'mph' : 'km/h') + '</button>'; }
   app.addEventListener('click', function (e) {
-    if (e.target.closest('[data-units]')) { V.setMph(!V.units.mph); route(); }
+    if (!e.target.closest('[data-units]')) return;
+    V.setMph(!V.units.mph);
+    // Adding a session: redraw it in the new unit, keeping the file and
+    // everything chosen or typed so far.
+    if (params().get('add') && add && add.session && document.getElementById('tp-result')) {
+      ['tyres', 'notes'].forEach(function (k) { var el = document.getElementById('tp-' + k); if (el) add[k] = el.value.trim(); });
+      var te = document.getElementById('tp-temp');
+      if (te) { var tv = te.value.trim() === '' ? null : parseFloat(te.value); if (tv !== add.temp) { add.temp = tv; add.tempSource = tv == null ? '' : 'member'; add.weather = null; } }
+      drawAdd();
+      return;
+    }
+    route();
   });
 
   // ---------- Home ----------
@@ -252,8 +264,8 @@
     var h = back('Track sessions', '') + '<div class="tp-head"><h2>Add a session</h2>' + unitsChip() + '</div>' +
       '<div class="tp-add-grid"><div class="card">' +
       (a.cars.length > 1 ? '<div class="tp-field"><label for="tp-car">Car</label><select class="field" id="tp-car">' + a.cars.map(function (c) { return '<option value="' + esc(c.id) + '"' + (c.id === a.car.id ? ' selected' : '') + '>' + esc(c.name) + '</option>'; }).join('') + '</select></div>' : '<p class="tp-car-one">Car: <b>' + esc(a.car.name) + '</b></p>') +
-      '<label class="tp-drop" id="tp-drop">' + icon('upload') + '<b>Drop your file here, or choose one</b><small>VBO, CSV or GPX. Works with RaceBox, VBOX, Harry\'s LapTimer, TrackAddict, AiM and most phone apps.</small><span class="btn btn-secondary btn-sm">Choose a file</span><input type="file" id="tp-file" accept=".vbo,.csv,.gpx,.txt,text/csv,application/gpx+xml" hidden></label>' +
-      (a.file ? '<div class="tp-file">' + icon('check') + '<div><b>' + esc(a.file.name) + '</b><span>' + esc(fileMeta()) + '</span></div></div>' : '') +
+      '<label class="tp-drop" id="tp-drop">' + icon('upload') + '<b>Drop your files here, or choose them</b><small>One file, or all of a day\'s files together (they make one session). VBO, CSV or GPX. Works with RaceBox, VBOX, Harry\'s LapTimer, TrackAddict, AiM and most phone apps.</small><span class="btn btn-secondary btn-sm">Choose files</span><input type="file" id="tp-file" multiple accept=".vbo,.csv,.gpx,.txt,text/csv,application/gpx+xml" hidden></label>' +
+      (a.files && a.files.length ? '<div class="tp-file">' + icon('check') + '<div><b>' + (a.files.length > 1 ? a.files.length + ' files: ' : '') + esc(a.files.map(function (f) { return f.name; }).join(', ')) + '</b><span>' + esc(fileMeta()) + '</span></div></div>' : '') +
       '<details class="tp-help"><summary>' + icon('info') + 'How to get the file from your lap timer</summary><ul>' +
       '<li><b>RaceBox:</b> open the session in the app, share or export it and choose VBO (CSV works too).</li>' +
       '<li><b>VBOX:</b> copy the .vbo file from the SD card.</li>' +
@@ -263,10 +275,10 @@
       '<div id="tp-result"></div></div>';
     app.innerHTML = h;
     var input = document.getElementById('tp-file'), drop = document.getElementById('tp-drop');
-    input.addEventListener('change', function () { if (input.files[0]) readFile(input.files[0]); });
+    input.addEventListener('change', function () { if (input.files.length) readFiles(input.files); });
     ['dragenter', 'dragover'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('is-over'); }); });
     ['dragleave', 'drop'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove('is-over'); }); });
-    drop.addEventListener('drop', function (e) { var f = e.dataTransfer && e.dataTransfer.files[0]; if (f) readFile(f); });
+    drop.addEventListener('drop', function (e) { var fl = e.dataTransfer && e.dataTransfer.files; if (fl && fl.length) readFiles(fl); });
     var sel = document.getElementById('tp-car');
     if (sel) sel.addEventListener('change', function () { a.car = a.cars.filter(function (c) { return c.id === sel.value; })[0]; });
     if (a.session) drawResult();
@@ -274,24 +286,34 @@
   function fileMeta() {
     var rd = add.rd;
     if (!rd || !rd.points) return '';
-    return rd.points.length.toLocaleString('en-GB') + ' readings, ' + rd.hz + ' a second, ' + Math.max(1, Math.round(rd.points[rd.points.length - 1].t / 60)) + ' minutes' + (rd.sats ? ', ' + rd.sats + ' satellites on average' : '');
+    // Minutes on track, leaving out the gaps between files.
+    var mins = rd.runs ? rd.points.reduce(function (acc, p, i, arr) { return i && p.run === arr[i - 1].run ? acc + p.t - arr[i - 1].t : acc; }, 0) / 60 : rd.points[rd.points.length - 1].t / 60;
+    return (rd.runs ? rd.runs + ' runs, ' : '') + rd.points.length.toLocaleString('en-GB') + ' readings, ' + rd.hz + ' a second, ' + Math.max(1, Math.round(mins)) + ' minutes' + (rd.sats ? ', ' + rd.sats + ' satellites on average' : '');
   }
   function status(msg, kind) {
     var el = document.getElementById('tp-status');
     if (el) { el.textContent = msg || ''; el.className = 'tp-status' + (kind ? ' is-' + kind : ''); }
   }
-  function readFile(file) {
-    if (file.size > 80 * 1024 * 1024) { status('That file is over 80 MB. Export just the one session and try again.', 'error'); return; }
-    status('Reading ' + file.name + '...');
-    var reader = new FileReader();
-    reader.onload = function () {
-      add.file = { name: file.name, text: String(reader.result || '') };
+  // One file, or all of a day's files: read them all, then they're
+  // combined into one session (track-parse.js combine).
+  function readFiles(list) {
+    var files = Array.prototype.slice.call(list, 0, 12);
+    var big = files.filter(function (f) { return f.size > 80 * 1024 * 1024; })[0];
+    if (big) { status(big.name + ' is over 80 MB. Export just the one session and try again.', 'error'); return; }
+    status('Reading ' + (files.length > 1 ? files.length + ' files' : files[0].name) + '...');
+    Promise.all(files.map(function (file) {
+      return new Promise(function (resolve, reject) {
+        var reader = new FileReader();
+        reader.onload = function () { resolve({ name: file.name, text: String(reader.result || '') }); };
+        reader.onerror = function () { reject(new Error(file.name + ' could not be opened.')); };
+        reader.readAsText(file);
+      });
+    })).then(function (read) {
+      add.files = read;
       add.session = null; add.startLine = null; add.type = null; add.date = null; add.time = null;
       add.weatherKey = null; if (add.tempSource !== 'member') { add.temp = null; add.tempSource = ''; add.weather = null; }
       parseFile();
-    };
-    reader.onerror = function () { status('That file could not be opened.', 'error'); };
-    reader.readAsText(file);
+    }).catch(function (e) { status(e.message || 'That file could not be opened.', 'error'); });
   }
   function headerSig(h) { return h.join('|').toLowerCase().slice(0, 300); }
   function parseFile(mapping) {
@@ -300,14 +322,21 @@
       if (!mapping) {
         try { var saved = JSON.parse(localStorage.getItem(MAP_KEY) || '{}'); mapping = null; a.savedMaps = saved; } catch (e) { a.savedMaps = {}; }
       }
-      var rd = T.read(a.file.text, a.file.name, mapping);
-      if (rd.needsMapping) {
-        var sig = headerSig(rd.needsMapping.headers);
-        if (a.savedMaps && a.savedMaps[sig]) return parseFile(a.savedMaps[sig]);
-        drawAdd();
-        return drawMapping(rd.needsMapping);
+      // Each file read on its own; a column choice (from the member, or
+      // remembered) is used for files the reader didn't recognise.
+      var rds = [];
+      for (var fi = 0; fi < a.files.length; fi++) {
+        var f = a.files[fi];
+        var one = T.read(f.text, f.name);
+        if (one.needsMapping) {
+          var sig = headerSig(one.needsMapping.headers);
+          var mp = mapping || (a.savedMaps && a.savedMaps[sig]);
+          if (!mp) { drawAdd(); return drawMapping(one.needsMapping); }
+          one = T.read(f.text, f.name, mp);
+        }
+        rds.push(one);
       }
-      a.rd = rd;
+      a.rd = T.combine(rds);
       analyse();
     } catch (e) {
       drawAdd();
@@ -510,7 +539,7 @@
     var proj = T.projector(out[0][0], out[0][1]);
     var d = 0, prev = null;
     var trace = out.map(function (p) { var xy = proj.xy(p[0], p[1]); if (prev) d += Math.hypot(xy[0] - prev[0], xy[1] - prev[1]); prev = xy; return [d, 0, xy[0], xy[1], p[2], 0, 0]; });
-    var m = V.map(svg, trace, { mono: true, tall: true });
+    var m = V.map(svg, trace, { mono: true, tall: true, origin: [out[0][0], out[0][1]] });
     svg.style.cursor = 'crosshair';
     svg.addEventListener('click', function (e) {
       var q = V.point(svg, e);
@@ -644,7 +673,7 @@
     if (out.length < 2) return;
     var proj = T.projector(out[0][0], out[0][1]), d = 0, prev = null;
     var trace = out.map(function (p) { var xy = proj.xy(p[0], p[1]); if (prev) d += Math.hypot(xy[0] - prev[0], xy[1] - prev[1]); prev = xy; return [d, 0, xy[0], xy[1], p[2] || 0, 0, 0]; });
-    var mm = V.map(document.getElementById('tp-map'), trace, {});
+    var mm = V.map(document.getElementById('tp-map'), trace, { origin: [out[0][0], out[0][1]] });
     if (mm) { document.getElementById('tp-ramp-lo').textContent = V.fmtV(mm.vmin); document.getElementById('tp-ramp-hi').textContent = V.fmtV(mm.vmax); }
   }
   function tiles(list) {
@@ -661,8 +690,8 @@
       ['Distance', s.distance ? V.fmtD(s.distance) : '-', s.duration ? Math.round(s.duration / 60) + ' minutes' : '']
     ]);
     h += '<div class="tp-grid tp-g-map"><div class="card"><div class="tp-chart-head"><h3>Your line, coloured by speed</h3><div class="tp-chips" id="tp-map-laps">' +
-      laps.filter(function (l) { return s.trace && s.trace.laps && s.trace.laps[l.n]; }).map(function (l) { return '<button type="button" class="chip chip-sm' + (l.n === view.a ? ' is-on' : '') + '" data-lap="' + l.n + '">Lap ' + l.n + '</button>'; }).join('') + '</div></div>' +
-      '<svg class="tv-chart" id="tp-map" role="img" aria-label="The lap drawn from GPS, coloured by speed"></svg>' +
+      laps.filter(function (l) { return s.trace && s.trace.laps && s.trace.laps[l.n]; }).map(function (l) { return '<button type="button" class="chip chip-sm' + (l.n === view.a ? ' is-on' : '') + '" data-lap="' + l.n + '">' + lapName(l, s) + '</button>'; }).join('') + '</div></div>' +
+      '<svg class="tv-chart" id="tp-map" role="img" aria-label="The lap drawn from GPS, coloured by speed"></svg>' + otherDaysSelect(s) +
       '<div class="tp-chart-foot"><span class="tp-ramp"><span id="tp-ramp-lo"></span><i></i><span id="tp-ramp-hi"></span></span><span>Drawn from the GPS in the file. Numbers are the slowest corners.</span></div></div>' +
       '<div class="card"><h3>Laps</h3><div class="tp-scroll"><table class="tp-table">' + lapTable(s) + '</table></div>' +
       (s.sectorsByThirds ? '<p class="tp-small">Sectors are thirds of the lap until this track has its own sector points.</p>' : '') + '</div></div>';
@@ -679,6 +708,8 @@
     if (s.mine && s.venueId && s.layoutId) h += '<div class="tp-section" id="over-time"><div class="tp-head"><h2>' + esc(trackName(s)) + ' over time</h2></div><div id="tp-time"></div></div>';
     return h;
   }
+  // "Lap 5", or "Run 2, lap 5" on a day made from several files.
+  function lapName(l, s) { return s.runs > 1 ? 'Run ' + (l.run || 1) + ', lap ' + l.n : 'Lap ' + l.n; }
   function lapKind(l, s) {
     if (l.n === s.best) return '<span class="tp-badge">Best</span>';
     var k = { 'in': 'In lap', out: 'Out lap', slow: 'Slow', short: 'Cut short' }[l.kind];
@@ -688,7 +719,7 @@
     var best = (s.laps || []).filter(function (l) { return l.n === s.best; })[0];
     var bs = s.bestSectors || [];
     var n = Math.max.apply(null, [0].concat((s.laps || []).map(function (l) { return (l.sectors || []).length; })));
-    var head = '<thead><tr><th>Lap</th><th>Time</th>';
+    var head = '<thead><tr>' + (s.runs > 1 ? '<th>Run</th>' : '') + '<th>Lap</th><th>Time</th>';
     for (var i = 0; i < n; i++) head += '<th>S' + (i + 1) + '</th>';
     head += '<th>Top ' + V.unit() + '</th><th>Gap</th></tr></thead>';
     return head + '<tbody>' + (s.laps || []).map(function (l) {
@@ -699,13 +730,13 @@
         cells += '<td class="' + (isBest ? 'is-fast' : '') + '">' + (v == null ? '' : v.toFixed(2)) + (isBest ? '<span class="tp-sr"> (best sector)</span>' : '') + '</td>';
       }
       var gap = best && l.n !== best.n && l.kind !== 'short' ? '+' + (l.time - best.time).toFixed(3) : '';
-      return '<tr class="' + (l.n === s.best ? 'is-best' : '') + '"><td>' + l.n + lapKind(l, s) + '</td><td>' + V.fmtLap(l.time) + '</td>' + cells + '<td>' + Math.round(V.spd(l.vmax || 0)) + '</td><td>' + gap + '</td></tr>';
+      return '<tr class="' + (l.n === s.best ? 'is-best' : '') + '">' + (s.runs > 1 ? '<td>' + (l.run || 1) + '</td>' : '') + '<td>' + l.n + lapKind(l, s) + '</td><td>' + V.fmtLap(l.time) + '</td>' + cells + '<td>' + Math.round(V.spd(l.vmax || 0)) + '</td><td>' + gap + '</td></tr>';
     }).join('') + '</tbody>';
   }
   function lapOptions(sel) {
     var s = view.s;
     var h = (s.laps || []).filter(function (l) { return s.trace.laps[l.n]; }).map(function (l) {
-      return '<option value="' + l.n + '"' + (String(sel) === String(l.n) ? ' selected' : '') + '>Lap ' + l.n + ', ' + V.fmtLap(l.time) + (l.n === s.best ? ' (best)' : l.kind === 'in' ? ' (in lap)' : l.kind === 'out' ? ' (out lap)' : '') + '</option>';
+      return '<option value="' + l.n + '"' + (String(sel) === String(l.n) ? ' selected' : '') + '>' + lapName(l, s) + ', ' + V.fmtLap(l.time) + (l.n === s.best ? ' (best)' : l.kind === 'in' ? ' (in lap)' : l.kind === 'out' ? ' (out lap)' : '') + '</option>';
     }).join('');
     // Your best laps from other days at the same layout.
     if (s.mine && view.mine && s.layoutId) {
@@ -721,7 +752,7 @@
       return api('GET', '/track/session?id=' + encodeURIComponent(id)).then(function (d) {
         var o = d.session;
         var tr = o && o.trace && o.trace.laps && o.trace.laps[o.best];
-        view.other[id] = tr ? { trace: tr, label: niceDate(o.date), time: o.bestTime } : null;
+        view.other[id] = tr ? { trace: tr, label: niceDate(o.date), time: o.bestTime, origin: o.origin } : null;
         return view.other[id];
       });
     }
@@ -733,21 +764,74 @@
     var proj = T.projector(s.origin[0], s.origin[1]);
     return s.startLine.map(function (p) { return proj.xy(p[0], p[1]); });
   }
+  // Another session's lap in this session's map coordinates (each session's
+  // trace is in metres around its own origin).
+  function intoThis(s, o) {
+    if (!o.origin || o.origin.length !== 2 || !s.origin || s.origin.length !== 2) return o.trace;
+    if (o.origin[0] === s.origin[0] && o.origin[1] === s.origin[1]) return o.trace;
+    var from = T.projector(o.origin[0], o.origin[1]), to = T.projector(s.origin[0], s.origin[1]);
+    return o.trace.map(function (p) { var ll = from.ll(p[2], p[3]), xy = to.xy(ll[0], ll[1]); var q = p.slice(); q[2] = xy[0]; q[3] = xy[1]; return q; });
+  }
+  var DAY_COLORS = ['#6a3d9a', '#1f78b4', '#e7298a'];
+  // The lap on the map, the whole session's laps as the track underneath,
+  // and any other days added, dashed.
+  function drawMainMap(s) {
+    var tr = s.trace.laps[view.a];
+    if (!tr) return;
+    var band = Object.keys(s.trace.laps).map(function (k) { return s.trace.laps[k]; });
+    var overlays = (view.days || []).map(function (d, i) { return { trace: intoThis(s, d), color: DAY_COLORS[i % DAY_COLORS.length] }; });
+    var mm = V.map(document.getElementById('tp-map'), tr, { corners: s.corners, startLine: startLineXY(s), lap: view.a, band: band, overlays: overlays, origin: s.origin });
+    if (mm) { document.getElementById('tp-ramp-lo').textContent = V.fmtV(mm.vmin); document.getElementById('tp-ramp-hi').textContent = V.fmtV(mm.vmax); }
+    var key = document.getElementById('tp-days-key');
+    if (key) key.innerHTML = (view.days || []).map(function (d, i) {
+      return '<span class="tp-day"><i style="border-color:' + DAY_COLORS[i % DAY_COLORS.length] + '"></i>' + esc(d.label) + ', ' + esc(V.fmtLap(d.time)) + '<button type="button" class="tp-day-x" data-day="' + i + '" aria-label="Remove ' + esc(d.label) + '">' + icon('x') + '</button></span>';
+    }).join('');
+  }
+  // "Add another day": your best lap from other sessions at this layout,
+  // drawn on the map (up to 3).
+  function wireOtherDays(s) {
+    var sel = document.getElementById('tp-add-day');
+    var key = document.getElementById('tp-days-key');
+    if (!sel) return;
+    sel.addEventListener('change', function () {
+      var v = sel.value;
+      sel.value = '';
+      if (!v) return;
+      view.days = view.days || [];
+      if (view.days.length >= 3) { view.days.shift(); }
+      lapTrace(v).then(function (d) {
+        if (!d) return;
+        d.key = v;
+        if (view.days.some(function (x) { return x.key === v; })) return;
+        view.days.push(d);
+        drawMainMap(s);
+      });
+    });
+    key.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-day]');
+      if (!b) return;
+      view.days.splice(parseInt(b.getAttribute('data-day'), 10), 1);
+      drawMainMap(s);
+    });
+  }
+  function otherDaysSelect(s) {
+    if (!(s.mine && view.mine && s.layoutId)) return '';
+    var others = view.mine.sessions.filter(function (o) { return o.id !== s.id && o.type === s.type && o.venueId === s.venueId && o.layoutId === s.layoutId && o.bestTime; });
+    if (!others.length) return '';
+    return '<div class="tp-days"><label class="tp-small" for="tp-add-day">Add another day to the map</label><select class="field tp-day-sel" id="tp-add-day"><option value="">Choose a day</option>' +
+      others.map(function (o) { return '<option value="x:' + esc(o.id) + '">' + esc(niceDate(o.date)) + ', ' + esc(V.fmtLap(o.bestTime)) + '</option>'; }).join('') + '</select><div class="tp-days-key" id="tp-days-key"></div></div>';
+  }
   function drawTrackCharts(s) {
     if (!s.trace || !s.trace.laps) return;
-    var mapLap = view.a, tr = s.trace.laps[mapLap];
-    if (tr) {
-      var mm = V.map(document.getElementById('tp-map'), tr, { corners: s.corners, startLine: startLineXY(s), lap: mapLap });
-      if (mm) { document.getElementById('tp-ramp-lo').textContent = V.fmtV(mm.vmin); document.getElementById('tp-ramp-hi').textContent = V.fmtV(mm.vmax); }
-    }
+    drawMainMap(s);
+    wireOtherDays(s);
     var chips = document.getElementById('tp-map-laps');
     if (chips) chips.addEventListener('click', function (e) {
       var b = e.target.closest('[data-lap]');
       if (!b) return;
       view.a = parseInt(b.getAttribute('data-lap'), 10);
       chips.querySelectorAll('.chip').forEach(function (c) { c.classList.toggle('is-on', c === b); });
-      var m2 = V.map(document.getElementById('tp-map'), s.trace.laps[view.a], { corners: s.corners, startLine: startLineXY(s), lap: view.a });
-      if (m2) { document.getElementById('tp-ramp-lo').textContent = V.fmtV(m2.vmin); document.getElementById('tp-ramp-hi').textContent = V.fmtV(m2.vmax); }
+      drawMainMap(s);
     });
     var sa = document.getElementById('tp-cmp-a'), sb = document.getElementById('tp-cmp-b');
     if (sa) {
@@ -761,6 +845,9 @@
     Promise.all([lapTrace(view.a), lapTrace(view.b || view.a)]).then(function (r) {
       var A = r[0], B = r[1];
       if (!A || !B) return;
+      // Another day's lap, moved onto this session's map.
+      if (A.origin) A = Object.assign({}, A, { trace: intoThis(s, A) });
+      if (B.origin) B = Object.assign({}, B, { trace: intoThis(s, B) });
       var c1 = RUN_COLORS[0], c2 = RUN_COLORS[1];
       document.getElementById('tp-key').innerHTML = '<span><i style="background:' + c1 + '"></i>' + esc(A.label) + ' (A)</span><span><i style="background:' + c2 + '"></i>' + esc(B.label) + ' (B)</span>';
       var at = V.traceAt;
@@ -769,7 +856,7 @@
       var vmax = 0; A.trace.concat(B.trace).forEach(function (p) { vmax = Math.max(vmax, V.spd(p[4])); });
       var yt = V.nice(0, vmax, 6);
       var mapEl = document.getElementById('tp-map2');
-      var mo = V.map(mapEl, A.trace, { mono: true, startLine: startLineXY(s), corners: s.corners });
+      var mo = V.map(mapEl, A.trace, { mono: true, startLine: startLineXY(s), corners: s.corners, origin: s.origin });
       var other = [];
       function move(x) { if (mo) { mo.placeA(at(A.trace, x)); mo.placeB(at(B.trace, x)); } }
       function leave() { if (mo) { mo.placeA(null); mo.placeB(null); } other.forEach(function (o) { o.hide(); }); }

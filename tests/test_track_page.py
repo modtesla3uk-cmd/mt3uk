@@ -172,6 +172,16 @@ def test_add_a_session_from_the_racebox_file(page):
     expect(page.locator("#tp-temp")).to_have_value("19")
     expect(page.locator("#tp-temp-src")).to_contain_text("Open-Meteo weather for Thruxton at 14:00: 19°C, no rain")
     expect(page.locator("#tp-temp-src a")).to_have_attribute("href", "https://open-meteo.com/")
+    # Wind in the chosen unit, and switching units keeps the upload.
+    expect(page.locator("#tp-temp-src")).to_contain_text("wind 7 mph")
+    page.fill("#tp-tyres", "Cup 2")
+    page.locator(".tp-head [data-units]").click()
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text(re.compile(r"2 timed laps, best 1:39\.78[56]"))
+    expect(page.locator("#tp-temp-src")).to_contain_text("wind 12 km/h")
+    expect(page.locator("#tp-tyres")).to_have_value("Cup 2")
+    expect(page.locator("#tp-temp")).to_have_value("19")
+    page.locator(".tp-head [data-units]").click()
+    expect(page.locator("#tp-temp-src")).to_contain_text("wind 7 mph")
     expect(page.locator("[data-cond] [data-v='Dry']")).to_have_class(re.compile("is-on"))
     page.fill("#tp-tyres", "Pilot Sport 4S")
     page.locator("[data-privacy] [data-v='board']").click()
@@ -208,6 +218,9 @@ def test_add_a_session_from_the_racebox_file(page):
     dot = page.evaluate("""(() => { const g = [...document.querySelectorAll('#tp-map2 g[visibility="visible"]')][0]; const m = g.getAttribute('transform').match(/translate\\(([-\\d.]+) ([-\\d.]+)\\)/); return [+m[1], +m[2]]; })()""")
     assert after[0] <= dot[0] <= after[0] + after[2] and after[1] <= dot[1] <= after[1] + after[3], (dot, after)
     expect(page.locator("#tp-gg").locator("xpath=..").locator(".tv-zoom-in")).to_be_visible()
+    # Zoomed in, the maps stay inside their cards.
+    assert page.evaluate("getComputedStyle(document.getElementById('tp-map2')).overflow") == "hidden"
+    assert page.evaluate("getComputedStyle(document.getElementById('tp-gg')).overflow") == "hidden"
     expect(page.locator(".tp-gg").locator("xpath=../..").locator("h3")).to_contain_text("How much grip you used")
     # Speed key runs red (slow) to green (fast).
     expect(page.locator(".tp-ramp i").first).to_have_css("background-image", re.compile(r"rgb\(215, 48, 39\).*rgb\(26, 152, 80\)"))
@@ -351,7 +364,8 @@ def test_phone_layout_has_no_sideways_scroll(page):
     wide = page.evaluate("document.documentElement.scrollWidth")
     assert wide <= 390, wide
     over = page.evaluate("""() => [...document.querySelectorAll('#tp-app *')].filter(e => {
-        if (e.closest('.tp-scroll')) return false;
+        // Scrolling tables, and map contents the map cuts off at its edge.
+        if (e.closest('.tp-scroll') || e.closest('svg.tv-map')) return false;
         const r = e.getBoundingClientRect(); return r.width && r.right > window.innerWidth + 1;
     }).map(e => e.className.baseVal !== undefined ? e.tagName : e.className).slice(0, 5)""")
     assert over == [], over
@@ -513,3 +527,87 @@ def test_tesla_file_gets_its_date_and_weather_from_the_file_name(page):
     page.locator("#tp-date").dispatch_event("change")
     expect(page.locator("#tp-date-src")).to_have_count(0)
     expect(page.locator("#tp-temp-src")).to_contain_text("Open-Meteo")
+
+
+SAT_TILE = '<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"><rect width="256" height="256" fill="#3d5a2a"/></svg>'
+
+
+def sat_reply(route):
+    """Stand-in for the Esri satellite tiles."""
+    route.fulfill(status=200, content_type="image/svg+xml", body=SAT_TILE, headers={"Access-Control-Allow-Origin": "*"})
+
+
+def test_a_days_files_make_one_session_in_runs(page):
+    """Several files from one day: one session, laps in runs, no lap across
+    the gap between files, and a Run column on the session page."""
+    page.route("**/World_Imagery/**", sat_reply)
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    data = FIXTURE.read_bytes()
+    page.set_input_files("#tp-file", files=[
+        {"name": "session-1.vbo", "mimeType": "text/plain", "buffer": data},
+        {"name": "session-2.vbo", "mimeType": "text/plain", "buffer": data},
+    ])
+    expect(page.locator(".tp-file b")).to_contain_text("2 files: session-1.vbo, session-2.vbo")
+    expect(page.locator(".tp-file span")).to_contain_text("2 runs")
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text(re.compile(r"4 timed laps, best 1:39\.78[56]"))
+    page.get_by_role("button", name="Save session").click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
+    saved = fake.saved[0]["session"]
+    assert saved["runs"] == 2 and sorted({l["run"] for l in saved["laps"]}) == [1, 2]
+    expect(page.locator(".tp-table thead th").first).to_have_text("Run")
+    expect(page.locator("#tp-map-laps .chip").first).to_contain_text(re.compile(r"^Run 1, lap \d+$"))
+    # Satellite imagery under the map, with its credit, and it can be turned off.
+    m = page.locator("#tp-map")
+    expect(m.locator(".tv-sat image").first).to_be_attached()
+    credit = m.locator("xpath=..").locator(".tv-sat-credit")
+    expect(credit).to_contain_text("Esri")
+    m.locator("xpath=..").locator(".tv-zoom-sat").click()
+    expect(m.locator(".tv-sat image")).to_have_count(0)
+    expect(credit).to_be_hidden()
+    m.locator("xpath=..").locator(".tv-zoom-sat").click()
+    expect(m.locator(".tv-sat image").first).to_be_attached()
+    # Zoomed in, the track band widens to a real track's width.
+    # On screen: the band's width times the zoom.
+    band = lambda: float(m.locator(".tv-band").first.get_attribute("stroke-width")) * page.evaluate("(() => { const s = document.getElementById('tp-map'); return s.getBoundingClientRect().width / s.viewBox.baseVal.width; })()")
+    before = band()
+    for _ in range(6):
+        m.locator("xpath=..").locator(".tv-zoom-in").click()
+    assert band() > before * 1.5, (before, band())
+
+
+def test_files_from_different_days_are_turned_away(page):
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    tesla = (ROOT / "tests" / "fixtures" / "tesla-track-mode-thruxton.csv").read_bytes()
+    page.set_input_files("#tp-file", files=[
+        {"name": "session.vbo", "mimeType": "text/plain", "buffer": FIXTURE.read_bytes()},
+        {"name": "telemetry-v1-2024-03-29-15_39_08.csv", "mimeType": "text/csv", "buffer": tesla},
+    ])
+    expect(page.locator("#tp-status")).to_contain_text("different days")
+
+
+def test_another_day_on_the_map(page):
+    """Your best lap from another session at the same track, drawn on the
+    map, dashed, with a key and a way to take it off."""
+    page.route("**/World_Imagery/**", sat_reply)
+    fake = FakeWorker()
+    open_page(page, fake)
+    for _ in range(2):
+        page.goto("/track.html?add=1")
+        page.set_input_files("#tp-file", str(FIXTURE))
+        expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+        page.get_by_role("button", name="Save session").click()
+        expect(page).to_have_url(re.compile(r"track\.html\?s=new\d"))
+    sel = page.locator("#tp-add-day")
+    expect(sel.locator("option[value='x:new1']")).to_have_count(1)
+    lines = lambda: page.locator("#tp-map polyline[stroke-dasharray]").count()
+    assert lines() == 0
+    sel.select_option("x:new1")
+    expect(page.locator("#tp-days-key .tp-day")).to_have_count(1)
+    expect(page.locator("#tp-days-key .tp-day")).to_contain_text("1:39")
+    assert lines() == 1
+    page.locator("#tp-days-key .tp-day-x").click()
+    expect(page.locator("#tp-days-key .tp-day")).to_have_count(0)
+    assert lines() == 0

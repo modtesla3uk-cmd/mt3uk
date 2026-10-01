@@ -105,10 +105,24 @@
     function P(x, y) { return [ox + (x - x0) * s, H - oy - (y - y0) * s]; }
     var vmin = Infinity, vmax = -Infinity;
     trace.forEach(function (p) { vmin = Math.min(vmin, p[4]); vmax = Math.max(vmax, p[4]); });
-    el('polyline', { points: trace.map(function (p) { return P(p[2], p[3]).join(','); }).join(' '), fill: 'none', stroke: C.hair, 'stroke-width': 14, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, svg);
+    // Satellite imagery underneath (Esri World Imagery), when there's an
+    // origin to place it by and the member hasn't switched it off.
+    var satG = opts.origin ? el('g', { 'class': 'tv-sat' }, svg) : null;
+    // The track: a grey band drawn from every lap of the session, so it
+    // covers the road actually used. Zoomed in it grows to a real track's
+    // width (about 12 m), so your line can be seen within it.
+    var bands = (opts.band && opts.band.length ? opts.band : [trace]).map(function (tr) {
+      return el('polyline', { 'class': 'tv-band', points: tr.map(function (p) { return P(p[2], p[3]).join(','); }).join(' '), fill: 'none', stroke: C.hair, 'stroke-width': 14, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, svg);
+    });
+    function bandWidth(k) { var w = Math.max(14 / k, TRACK_WIDTH_M * s); bands.forEach(function (b) { b.setAttribute('stroke-width', w); }); }
+    bandWidth(1);
+    // Other days' laps, dashed, under your line.
+    (opts.overlays || []).forEach(function (o) {
+      el('polyline', { points: o.trace.map(function (p) { return P(p[2], p[3]).join(','); }).join(' '), fill: 'none', stroke: o.color, 'stroke-width': 2.5, 'stroke-dasharray': '6 5', 'stroke-linejoin': 'round' }, svg);
+    });
     for (var i = 1; i < trace.length; i++) {
       var a = P(trace[i - 1][2], trace[i - 1][3]), b = P(trace[i][2], trace[i][3]);
-      el('line', { x1: a[0], y1: a[1], x2: b[0], y2: b[1], stroke: opts.mono ? C.steel : ramp((trace[i][4] - vmin) / ((vmax - vmin) || 1)), 'stroke-width': opts.mono ? 3 : 5, 'stroke-linecap': 'round' }, svg);
+      el('line', { 'class': opts.mono ? 'tv-mono' : 'tv-speed', x1: a[0], y1: a[1], x2: b[0], y2: b[1], stroke: opts.mono ? C.steel : ramp((trace[i][4] - vmin) / ((vmax - vmin) || 1)), 'stroke-width': opts.mono ? 3 : 5, 'stroke-linecap': 'round' }, svg);
     }
     // Markers (start line, corners, dots) keep their size when zoomed: each
     // is a group at its point, scaled back by the zoom.
@@ -159,8 +173,11 @@
       });
       hit.addEventListener('pointerleave', function () { place(dotA, null); hideTip(); });
     }
-    var zoom = zoomControls(svg, { W: W, H: H, pts: trace.map(function (p) { return P(p[2], p[3]); }), onZoom: function (kk) {
+    var sat = satGround(svg, satG, opts.origin, P, s, x0, y0, H, oy, ox, bands);
+    var zoom = zoomControls(svg, { W: W, H: H, sat: sat, pts: trace.map(function (p) { return P(p[2], p[3]); }), onZoom: function (kk) {
       k = kk;
+      bandWidth(kk);
+      if (sat) sat.later();
       fixed.forEach(function (m) { moveMarker(m, m.x, m.y); });
     } });
     // When the dot is moved from outside the map (scrubbing a chart), a
@@ -174,10 +191,56 @@
     return { vmin: vmin, vmax: vmax, placeA: function (p) { place(dotA, p); follow(p); }, placeB: function (p) { place(dotB, p); }, P: P, marker: marker, zoom: zoom };
   }
 
+  // ---------- Satellite ground ----------
+  // Web Mercator tiles placed on the map's flat metres: each tile's corners
+  // go lat/lng -> metres around the session's origin -> the map. Over a
+  // track that's accurate to well under a metre. The tile zoom follows the
+  // map's zoom so the picture stays sharp; redrawn after zooming or panning.
+  var SAT_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/';
+  var satOn = true;
+  try { satOn = localStorage.getItem('mt3ukTrackSat') !== '0'; } catch (e) {}
+  function satGround(svg, g, origin, P, s, x0, y0, H, oy, ox, bands) {
+    if (!g || !origin || origin.length !== 2 || !window.MT3UKTrack) return null;
+    var proj = window.MT3UKTrack.projector(origin[0], origin[1]);
+    function toMap(lat, lng) { var xy = proj.xy(lat, lng); return P(xy[0], xy[1]); }
+    function fromMap(px, py) { var x = (px - ox) / s + x0, y = (H - oy - py) / s + y0; return proj.ll(x, y); }
+    function tileLng(x, z) { return x / Math.pow(2, z) * 360 - 180; }
+    function tileLat(y, z) { var n = Math.PI - 2 * Math.PI * y / Math.pow(2, z); return 180 / Math.PI * Math.atan(Math.sinh(n)); }
+    function tileX(lng, z) { return Math.floor((lng + 180) / 360 * Math.pow(2, z)); }
+    function tileY(lat, z) { var r = lat * Math.PI / 180; return Math.floor((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * Math.pow(2, z)); }
+    var timer = null;
+    function draw() {
+      g.innerHTML = '';
+      svg.classList.toggle('has-sat', satOn);
+      // Over the imagery the band is a see-through dark strip, so the coloured line stands out.
+      bands.forEach(function (b) { b.setAttribute('stroke', satOn ? 'rgba(10, 14, 22, 0.45)' : C.hair); });
+      if (!satOn) return;
+      var vb = svg.viewBox.baseVal, r = svg.getBoundingClientRect();
+      var a = fromMap(vb.x, vb.y), b = fromMap(vb.x + vb.width, vb.y + vb.height);
+      // Metres per screen pixel, then the tile zoom to match it.
+      var mpp = (vb.width / s) / Math.max(1, r.width || vb.width);
+      var z = Math.round(Math.log(156543.03 * Math.cos(origin[0] * Math.PI / 180) / Math.max(0.05, mpp)) / Math.LN2);
+      z = Math.max(12, Math.min(19, z));
+      var xa = tileX(Math.min(a[1], b[1]), z), xb = tileX(Math.max(a[1], b[1]), z);
+      var ya = tileY(Math.max(a[0], b[0]), z), yb = tileY(Math.min(a[0], b[0]), z);
+      if ((xb - xa + 1) * (yb - ya + 1) > 80) return;
+      for (var tx = xa; tx <= xb; tx++) for (var ty = ya; ty <= yb; ty++) {
+        var nw = toMap(tileLat(ty, z), tileLng(tx, z)), se = toMap(tileLat(ty + 1, z), tileLng(tx + 1, z));
+        el('image', { href: SAT_URL + z + '/' + ty + '/' + tx, x: nw[0], y: nw[1], width: se[0] - nw[0] + 0.5, height: se[1] - nw[1] + 0.5, preserveAspectRatio: 'none' }, g);
+      }
+    }
+    draw();
+    return {
+      later: function () { clearTimeout(timer); timer = setTimeout(draw, 150); },
+      toggle: function () { satOn = !satOn; try { localStorage.setItem('mt3ukTrackSat', satOn ? '1' : '0'); } catch (e) {} draw(); return satOn; },
+      on: function () { return satOn; }
+    };
+  }
+
   // Zoom and pan for a map: + / - / reset buttons, the mouse wheel, a pinch,
   // and dragging once zoomed in. It works on the SVG viewBox, so point()
   // keeps mapping taps to the right place. A drag that pans isn't a click.
-  var ZOOM_MAX = 8;
+  var ZOOM_MAX = 16, TRACK_WIDTH_M = 12;
   function zoomControls(svg, cfg) {
     var wrap = svg.parentNode;
     if (!wrap.classList.contains('tv-zoom-wrap')) {
@@ -223,6 +286,19 @@
     var reset = btn('tv-zoom-reset', 'Show the whole track', 'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');
     box.appendChild(plus); box.appendChild(minus); box.appendChild(reset);
     wrap.appendChild(box);
+    var oldCredit = wrap.querySelector('.tv-sat-credit');
+    if (oldCredit) oldCredit.remove();
+    if (cfg.sat) {
+      var layer = btn('tv-zoom-sat', 'Satellite view', 'M12 3 2 8l10 5 10-5-10-5ZM2 13l10 5 10-5M2 17l10 5 10-5');
+      layer.setAttribute('aria-pressed', String(cfg.sat.on()));
+      box.appendChild(layer);
+      var credit = document.createElement('div');
+      credit.className = 'tv-sat-credit';
+      credit.textContent = 'Imagery: Esri, Maxar, Earthstar Geographics';
+      credit.hidden = !cfg.sat.on();
+      wrap.appendChild(credit);
+      layer.addEventListener('click', function () { var on = cfg.sat.toggle(); layer.setAttribute('aria-pressed', String(on)); credit.hidden = !on; });
+    }
     // The buttons zoom towards the bit of track nearest the middle of the
     // view, so a loop's empty middle doesn't fill the screen.
     function nearCentre() {

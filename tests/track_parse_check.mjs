@@ -196,3 +196,22 @@ ok(T.fmtLap(99.786) === '1:39.786' && T.niceDate('2026-05-28') === '28 May 2026'
   const s2 = T.analyse(T.read(tesla, 'telemetry-v1-2024-03-29-15_39_08.csv'), lib);
   ok(s2.date === '2024-03-29' && s2.time === '15:39' && s2.dateFrom === 'name', 'session date from the Tesla file name');
 }
+
+// Several files from one day as one session, in runs.
+{
+  const one = T.read(vbo, 'run1.vbo'), two = T.read(vbo, 'run2.vbo');
+  two.startedAt = one.startedAt + 3600 * 1000;
+  const both = T.combine([two, one]);
+  ok(both.runs === 2 && both.points[0].run === 1 && both.points[both.points.length - 1].run === 2, 'files combined in time order, each point marked with its run');
+  const s = T.analyse(both, lib);
+  const single = T.analyse(T.read(vbo, 'x.vbo'), lib);
+  ok(s.laps.length === single.laps.length * 2 && s.runs === 2, 'laps from both runs: ' + s.laps.length);
+  ok(s.laps.every(l => l.time < 200), 'no lap spans the gap between files: ' + s.laps.map(l => l.time).join(', '));
+  ok(s.laps.filter(l => l.run === 1).length === single.laps.length && s.laps.filter(l => l.run === 2).length === single.laps.length, 'each lap knows its run');
+  ok(s.laps.map(l => l.n).join() === s.laps.map((l, i) => i + 1).join(), 'laps numbered straight through');
+  ok(Math.abs(s.laps.find(l => l.n === s.best).time - 99.785) < 0.01, 'best lap of the day');
+  const other = T.read(vbo, 'x.vbo'); other.startedAt = one.startedAt + 86400 * 1000 * 3;
+  let err = '';
+  try { T.combine([one, other]); } catch (e) { err = e.message; }
+  ok(/different days/.test(err), 'files from different days are refused');
+}

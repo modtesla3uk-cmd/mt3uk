@@ -234,6 +234,11 @@
   .tp-boards-link b { font-size: 1rem; }
   .tp-boards-link span span { font-size: 0.84rem; color: #d3d8e2; }
   .tp-boards-link:hover { background: #22345a; }
+  /* Above Your cars for members; the end of the page otherwise. */
+  .tp-cars-wrap + .tp-boards-link, .tp-section + .tp-boards-link { margin-top: 30px; }
+  #tp-app > .tp-boards-link:first-child { margin: 0 0 26px; }
+  .tp-boards-link.is-quiet { opacity: 0.55; }
+  .tp-boards-link.is-quiet:hover { opacity: 0.8; }
   .tp-src { display: flex; gap: 6px; align-items: flex-start; margin: -6px 0 14px; font-size: 0.8rem; color: var(--steel); }
   .tp-src .icon { width: 15px; height: 15px; margin-top: 2px; color: var(--steel); }
   .tp-src a { color: var(--ink); text-decoration: underline; }

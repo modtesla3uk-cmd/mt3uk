@@ -184,12 +184,18 @@
       } else if (!m.cars.length) {
         h += '<div class="card tp-intro"><h2>Add your car first</h2><p>Sessions belong to a car, so the times can be matched to its mods. Add your car with a photo in My Garage, then come back here.</p><a class="btn btn-accent" href="my-builds.html">Go to My Garage</a></div>';
       } else {
-        h += myCarsHtml(m);
+        // Leaderboards first, above the cars. Faded until the member has a
+        // session of their own to put on a board.
+        h += boardsLink(!m.sessions.length) + myCarsHtml(m);
       }
-      h += '<a class="tp-boards-link" href="leaderboards.html">' + icon('trophy') + '<span><b>Leaderboards</b><span>Who\'s quickest at each track, strip and hill climb</span></span>' + icon('chev') + '</a>';
+      if (!m || !m.cars.length) h += boardsLink(false);
       app.innerHTML = h;
       wireCarChips(m);
     }).catch(function () { failed('Track sessions could not be loaded. Check your connection and try again.'); });
+  }
+  function boardsLink(quiet) {
+    return '<a class="tp-boards-link' + (quiet ? ' is-quiet' : '') + '" href="leaderboards.html">' + icon('trophy') + '<span><b>Leaderboards</b><span>' +
+      (quiet ? 'Add a session to get your car on the board' : 'Who\'s quickest at each track, strip and hill climb') + '</span></span>' + icon('chev') + '</a>';
   }
   var currentCar = null;
   function myCarsHtml(m) {

@@ -309,6 +309,18 @@
 
   .mb-upload-toggle-row { max-width: 720px; margin: 0 auto 18px; display: flex; flex-wrap: wrap; gap: 8px; }
   a.mb-upload-toggle-btn { text-decoration: none; }
+  /* Track your car: Track Sessions and Leaderboards together. Leaderboards
+     is faded until the member has a session of their own. */
+  .mb-track-card { max-width: 720px; margin: 0 auto 18px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 16px; padding: 14px 16px; background: var(--white, #fff); border: 1px solid var(--hairline, rgba(22,35,61,0.12)); border-radius: var(--radius, 10px); }
+  .mb-track-card h2 { margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; }
+  .mb-track-card p { margin: 2px 0 0; font-size: 0.88rem; color: var(--steel, #56606f); }
+  .mb-track-card-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+  .mb-track-card .mb-track-btn { display: inline-flex; align-items: center; gap: 8px; }
+  .mb-track-card .mb-track-btn .icon { width: 18px; height: 18px; }
+  .mb-track-card .mb-track-btn.is-quiet { opacity: 0.5; }
+  .mb-track-card .mb-track-btn.is-quiet:hover { opacity: 0.85; }
+  .mb-track-card .mb-track-btn { white-space: nowrap; }
+  @media (max-width: 520px) { .mb-track-card-btns { width: 100%; } .mb-track-card-btns .mb-track-btn { flex: 1 1 0; justify-content: center; padding: 10px 10px; font-size: 0.9rem; gap: 6px; } }
   .mb-new { display: inline-block; padding: 1px 7px; border-radius: 999px; background: var(--orange); color: #fff; font-size: 0.68rem; font-weight: 700; line-height: 1.5; }
   .mb-upload-toggle-btn {
     display: inline-flex;
@@ -1310,7 +1322,16 @@ document.addEventListener('DOMContentLoaded', function () {
       <div id="mb-car-selector-view">
         <div class="mb-upload-toggle-row" id="build-upload">
           <button type="button" class="mb-upload-toggle-btn" id="mb-addcar-toggle-btn">+ Add Car No.1</button>
-          <a class="mb-upload-toggle-btn mb-track-btn" id="mb-track-btn" href="track.html"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V4M4 4h12l-2 4 2 4H4"/></svg>Track Sessions <span class="mb-new">NEW</span></a>
+        </div>
+        <div class="mb-track-card" id="mb-track-card">
+          <div class="mb-track-card-text">
+            <h2>Track your car <span class="mb-new">NEW</span></h2>
+            <p>Map your laps and see who&rsquo;s quickest.</p>
+          </div>
+          <div class="mb-track-card-btns">
+            <a class="mb-upload-toggle-btn mb-track-btn" id="mb-track-btn" href="track.html"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V4M4 4h12l-2 4 2 4H4"/></svg>Track Sessions</a>
+            <a class="mb-upload-toggle-btn mb-track-btn is-quiet" id="mb-boards-btn" href="leaderboards.html" title="Add a session to get your car on the board"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/></svg>Leaderboards</a>
+          </div>
         </div>
 
         <div class="mb-upload-card" id="mb-addcar-card" style="display:none;">
@@ -1924,8 +1945,8 @@ document.addEventListener('DOMContentLoaded', function () {
               : '<label class="mb-photo-toggle" title="Your one entry in this week\'s Build of the Week vote"><input type="checkbox" data-flag="votable"' + (p.inVote ? ' checked' : '') + '> Voting</label>') +
           '</div>' +
           (isDefault ? '' : '<button type="button" class="mb-photo-default-btn">Make default</button>') +
+          '<button type="button" class="mb-photo-move-btn">Move photo</button>' +
           '<button type="button" class="mb-photo-delete-btn">Delete</button>' +
-          '<button type="button" class="mb-photo-move-btn">Move to another build</button>' +
           '<div class="mb-photo-move-panel" hidden>' +
             '<select class="mb-photo-move-select">' +
               '<option value="">Choose a build…</option>' +
@@ -2003,6 +2024,20 @@ document.addEventListener('DOMContentLoaded', function () {
       }).then(function (res) { return res.json(); });
     }
 
+    // Leaderboards in Track your car is faded until there's a session.
+    function markBoardsButton(token) {
+      var btn = document.getElementById('mb-boards-btn');
+      if (!btn) return;
+      fetch(API + '/track/sessions', { headers: { 'X-Session-Token': token }, cache: 'no-store' })
+        .then(function (res) { return res.ok ? res.json() : {}; })
+        .then(function (d) {
+          var has = !!(d.sessions && d.sessions.length);
+          btn.classList.toggle('is-quiet', !has);
+          btn.title = has ? '' : 'Add a session to get your car on the board';
+        })
+        .catch(function () {});
+    }
+
     function loadCars() {
       var token = getSession();
       if (!token) { showSignin(); return; }
@@ -2019,6 +2054,7 @@ document.addEventListener('DOMContentLoaded', function () {
           }
           showApp(result.data.email);
           renderName(result.data.firstName, result.data.lastName, result.data.shownAs);
+          markBoardsButton(token);
           loadNotifications();
           carsData = result.data.cars || [];
           voteEntry = result.data.voteEntry || null;

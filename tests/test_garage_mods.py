@@ -398,10 +398,20 @@ def test_track_sessions_button_on_the_garage(device_page):
     page = device_page
     signed_in(page)
     page.goto("/my-builds.html")
+    menu = page.locator("#mb-track-menu > summary")
+    menu.wait_for(state="visible", timeout=10000)
+    assert "Track your car?" in menu.inner_text()
+    assert menu.bounding_box()["height"] >= 44
+    menu.click()
     btn = page.locator("#mb-track-btn")
-    btn.wait_for(state="visible", timeout=10000)
-    assert "Track Sessions" in btn.inner_text()
+    btn.wait_for(state="visible", timeout=5000)
+    assert "My Track Sessions" in btn.inner_text()
     assert btn.get_attribute("href") == "track.html"
-    assert btn.bounding_box()["height"] >= 44
+    assert page.locator("#mb-boards-btn").get_attribute("href") == "leaderboards.html"
+    # No track data in this mock: Track Sessions is faded, Leaderboards never is.
+    assert "is-quiet" in btn.get_attribute("class")
+    assert "is-quiet" not in page.locator("#mb-boards-btn").get_attribute("class")
+    page.mouse.click(5, 5)
+    btn.wait_for(state="hidden", timeout=5000)
     assert overflow_width(page) <= 0
     assert page.errors == [], diagnostics(page)

@@ -20,6 +20,9 @@
   function spd(k) { return units.mph ? k / 1.609344 : k; }
   function unit() { return units.mph ? 'mph' : 'km/h'; }
   function fmtV(k) { return Math.round(spd(k)) + ' ' + unit(); }
+  // Distances follow the same choice: miles with mph, kilometres with km/h.
+  function distK() { return units.mph ? 1609.344 : 1000; }
+  function fmtD(m, dp) { return (m / distK()).toFixed(dp == null ? 1 : dp) + (units.mph ? ' mi' : ' km'); }
   function fmtLap(s) {
     if (s == null || !isFinite(s)) return '';
     var m = Math.floor(s / 60), r = s - m * 60;
@@ -131,7 +134,7 @@
         if (bd > 900) { place(dotA, null); hideTip(); return; }
         var p = trace[bi];
         place(dotA, p);
-        tip('<b>' + (opts.lap ? 'Lap ' + opts.lap + ', ' : '') + Math.round(p[0]) + ' m</b>' + row('Speed', fmtV(p[4])) + row('Time', p[1].toFixed(1) + ' s') + row('Cornering', Math.abs(p[5]).toFixed(2) + ' g'), e.clientX, e.clientY);
+        tip('<b>' + (opts.lap ? 'Lap ' + opts.lap + ', ' : '') + fmtD(p[0], 2) + '</b>' + row('Speed', fmtV(p[4])) + row('Time', p[1].toFixed(1) + ' s') + row('Cornering', Math.abs(p[5]).toFixed(2) + ' g'), e.clientX, e.clientY);
       });
       hit.addEventListener('pointerleave', function () { place(dotA, null); hideTip(); });
     }
@@ -288,6 +291,6 @@
 
   window.MT3UKTrackView = {
     map: map, line: line, gg: gg, timeline: timeline, drag: drag, nice: nice, ramp: ramp,
-    fmtLap: fmtLap, fmtV: fmtV, spd: spd, unit: unit, units: units, setMph: setMph, esc: esc, tip: tip, hideTip: hideTip, row: row, traceAt: traceAt, colors: C
+    fmtLap: fmtLap, fmtV: fmtV, fmtD: fmtD, distK: distK, spd: spd, unit: unit, units: units, setMph: setMph, esc: esc, tip: tip, hideTip: hideTip, row: row, traceAt: traceAt, colors: C
   };
 })();

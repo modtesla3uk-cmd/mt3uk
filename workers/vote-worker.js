@@ -6384,6 +6384,8 @@ function trackText(v, max) {
   return String(v == null ? '' : v).replace(/[\u0000-\u001f<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max || 80);
 }
 function trackNum(v, lo, hi) {
+  // Left blank is blank, not 0.
+  if (v == null || (typeof v === 'string' && v.trim() === '')) return null;
   var n = Number(v);
   return isFinite(n) && n >= lo && n <= hi ? n : null;
 }

@@ -2098,7 +2098,7 @@
   .hp-announce:hover { background: #a93814; color: #ffffff; }
   .hp-announce[hidden] { display: none; }
 
-  .hero.hp-hero { display: flex; align-items: flex-end; min-height: 440px; padding: 56px 0 0; background-position: center; background-image: linear-gradient(rgba(14, 22, 40, 0.45), rgba(14, 22, 40, 0.94) 72%), url('images/blog/owner-interviews/richard/hidden-forest-wrap.jpg'); }
+  .hero.hp-hero { display: flex; align-items: flex-end; min-height: 440px; padding: 56px 0 0; background-color: #16233d; background-position: center; background-size: cover; background-image: linear-gradient(rgba(14, 22, 40, 0.2), rgba(14, 22, 40, 0.88) 70%), url('images/blog/owner-interviews/richard/hidden-forest-wrap.jpg'); }
   .hp-hero > .wrap { width: 100%; }
   /* Chevron at the bottom of the hero: more below, tap to jump to 01. */
   .hero.hp-hero { padding-bottom: 64px; }
@@ -2106,11 +2106,35 @@
     position: absolute; left: 50%; bottom: 10px; z-index: 3;
     width: 48px; height: 48px; margin-left: -24px; padding: 0;
     display: flex; align-items: center; justify-content: center;
-    background: transparent; border: 0; border-radius: 50%; cursor: pointer; color: #e8542a;
+    background: transparent; border: 0; border-radius: 50%; cursor: pointer; color: #f6a98c;
   }
   .hp-scroll-cue svg { width: 32px; height: 32px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.6)); }
-  .hp-scroll-cue .hp-scroll-cue-back { opacity: 0.45; }
-  .hp-scroll-cue:hover, .hp-scroll-cue:focus-visible { color: #ff7a4f; }
+  /* Both arrows the same pale orange on the dark hero, no fade. */
+  .hp-scroll-cue .hp-scroll-cue-back { opacity: 1; }
+  /* "Looking for something else?" above the chevron, shown once a
+     session so people landing on an interview still find My Garage and
+     the rest. A tap does what the chevron does. */
+  .hp-more-hint {
+    position: absolute; bottom: 10px; z-index: 4; left: calc(50% + 32px); right: 12px; transform: translateY(6px);
+    display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 7px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 14px; background: rgba(14, 22, 40, 0.85);
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+    color: #ffffff; font-family: var(--font-body); font-size: 0.76rem; font-weight: 500; line-height: 1.3; text-align: left;
+    cursor: pointer; opacity: 0; pointer-events: none; transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .hp-more-hint b { font-weight: 700; }
+  /* A little tail pointing at the chevron. */
+  .hp-more-hint::after { content: ""; position: absolute; top: 50%; left: -6px; width: 10px; height: 10px; margin-top: -5px; background: rgba(14, 22, 40, 0.85); border-left: 1px solid rgba(255, 255, 255, 0.25); border-bottom: 1px solid rgba(255, 255, 255, 0.25); transform: rotate(45deg); }
+  .hp-more-hint.is-on { opacity: 1; pointer-events: auto; transform: translateY(0); }
+  .hp-more-hint .hp-more-long { display: none; }
+  /* Desktop: on the left of the chevron (Play intro is on the right). */
+  @media (min-width: 901px) {
+    .hp-more-hint { left: auto; right: calc(50% + 32px); bottom: 12px; white-space: nowrap; font-size: 0.82rem; border-radius: var(--radius-pill); padding: 8px 16px; }
+    .hp-more-hint::after { left: auto; right: -6px; border-left: 0; border-bottom: 0; border-right: 1px solid rgba(255, 255, 255, 0.25); border-top: 1px solid rgba(255, 255, 255, 0.25); }
+    .hp-more-hint .hp-more-long { display: inline; }
+  }
+  @media (prefers-reduced-motion: reduce) { .hp-more-hint { transition: none; transform: none; } }
+  .hp-scroll-cue:hover, .hp-scroll-cue:focus-visible { color: #ffc4ad; }
   .hp-scroll-cue:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; }
   /* Up chevron at the top middle of section 01: back to the first screen. */
   .hp-scroll-top {
@@ -2149,6 +2173,18 @@
     .hp-hero .hero-grid > div:first-child > .hp-join,
     .hp-hero .hero-grid > div:first-child > .hp-stats { margin-top: auto; }
     .hp-hero .hp-stats { padding-bottom: 12px; }
+    /* The website note stays small so the first screen still fits. */
+    .hp-hero .hp-site-note { margin: 0; font-size: 0.78rem; line-height: 1.45; }
+    /* Phones: the card kept compact so the first screen still ends at
+       the stats and Play intro, with a strip of the photo showing above. */
+    .hp-hero .hp-hero-card { padding: 12px; gap: 6px; margin-top: 36px; }
+    .hp-hero .hp-hero-card h1 { font-size: 1.15rem; }
+    .hp-hero .hp-hero-excerpt { font-size: 0.84rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .hero.hp-hero { padding-top: 14px; }
+    .hp-hero .hero-grid > div:first-child { gap: 10px; }
+    .hp-hero .hp-hero-next .hp-next-sub { -webkit-line-clamp: 1; }
+    .hp-hero .hp-hero-next { padding-top: 8px; padding-bottom: 8px; }
+    .hp-hero .hp-next-thumb { height: 44px; width: 60px; }
   }
   .hp-hero .hero-grid { justify-items: start; text-align: left; }
   /* The interview heading is kept modest so the categories below get a look in. */
@@ -2159,6 +2195,17 @@
   #hp-hero-eyebrow { font-size: 0.9rem; font-weight: 600; color: #ffffff; text-shadow: 0 1px 3px rgba(0,0,0,0.75), 0 0 12px rgba(0,0,0,0.45); }
   @media (max-width: 780px) { #hp-hero-eyebrow { font-size: 0.8rem; letter-spacing: 0.08em; } }
   .hp-hero-meta { font-family: var(--font-body); font-size: 0.86rem; color: #d3d8e2; margin: 0 0 24px; }
+  /* The interview in its own light card over the photo, like a magazine cover. */
+  .hp-hero-card { display: grid; gap: 8px; justify-items: start; max-width: 420px; padding: 16px; border-radius: 12px; background: rgba(243, 241, 234, 0.92); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); color: #16233d; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25); }
+  .hp-hero-card h1 { color: #16233d; margin: 0; }
+  .hp-hero-card .hp-hero-meta { color: #5d6577; margin: 0; }
+  .hp-hero-tag { display: inline-flex; align-items: center; gap: 6px; padding: 4px 11px; border-radius: var(--radius-pill); background: #e8542a; color: #ffffff; font-family: var(--font-body); font-size: 0.78rem; font-weight: 700; }
+  .hp-hero-tag .icon { width: 14px; height: 14px; stroke-width: 2.2; }
+  .hp-hero-tag #hp-hero-eyebrow { font-size: inherit; letter-spacing: 0; text-shadow: none; color: inherit; font-weight: inherit; }
+  .hp-hero-excerpt { font-family: var(--font-body); font-size: 0.86rem; line-height: 1.5; color: #22324f; margin: 0; }
+  .hp-hero .hp-hero-read { min-height: 44px; padding: 8px 16px; gap: 8px; margin-top: 2px; background: #16233d; color: #ffffff; border-radius: var(--radius-sm); font-size: 0.88rem; font-weight: 600; }
+  .hp-hero .hp-hero-read:hover { background: #22345a; color: #ffffff; }
+  .hp-hero .hp-hero-read .icon { width: 18px; height: 18px; }
   .hp-site-note { font-family: var(--font-body); font-size: 0.86rem; line-height: 1.5; color: #d3d8e2; margin: 18px 0 18px; max-width: 520px; }
   .hp-hero-ctas { display: flex; flex-wrap: wrap; gap: 12px; }
   .hp-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 12px 22px; font-family: var(--font-body); font-size: 0.8rem; font-weight: 500; text-decoration: none; border: 1px solid transparent; transition: background 0.2s ease, color 0.2s ease; }
@@ -2301,13 +2348,12 @@
       display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
       column-gap: 48px; align-items: end;
     }
-    .hp-hero .hero-grid > div:first-child > .hp-eyebrow { grid-column: 1; grid-row: 1; }
-    .hp-hero .hero-grid > div:first-child > h1 { grid-column: 1; grid-row: 2; max-width: 22ch; font-size: clamp(1.9rem, 3.2vw, 2.6rem); }
-    .hp-hero .hero-grid > div:first-child > .hp-hero-meta { grid-column: 1; grid-row: 3; }
-    .hp-hero .hero-grid > div:first-child > .hp-hero-ctas { grid-column: 1; grid-row: 4; }
-    .hp-hero .hero-grid > div:first-child > .hp-hero-next { grid-column: 2; grid-row: 1 / 4; align-self: end; max-width: none; margin: 0 0 24px; }
-    .hp-hero .hero-grid > div:first-child > .hp-join { grid-column: 2; grid-row: 4; align-self: end; max-width: none; margin: 0; }
-    .hp-hero .hero-grid > div:first-child > .hp-stats { grid-column: 1 / -1; grid-row: 5; max-width: none; margin-top: 36px; }
+    .hp-hero .hero-grid > div:first-child > .hp-hero-card { grid-column: 1; grid-row: 1 / 3; align-self: end; padding: 20px; }
+    .hp-hero .hp-hero-card h1 { max-width: 24ch; font-size: clamp(1.3rem, 2vw, 1.6rem); }
+    .hp-hero .hero-grid > div:first-child > .hp-hero-next { grid-column: 2; grid-row: 1; align-self: end; max-width: none; margin: 0 0 16px; }
+    .hp-hero .hero-grid > div:first-child > .hp-join { grid-column: 2; grid-row: 2; align-self: end; max-width: none; margin: 0; }
+    .hp-hero .hero-grid > div:first-child > .hp-site-note { grid-column: 1 / -1; grid-row: 3; max-width: none; margin: 20px 0 0; }
+    .hp-hero .hero-grid > div:first-child > .hp-stats { grid-column: 1 / -1; grid-row: 4; max-width: none; margin-top: 18px; }
     .hp-hero .hp-join { background: rgba(14, 22, 40, 0.55); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); flex-wrap: wrap; row-gap: 10px; }
     .hp-hero .hp-join p { flex-basis: 100%; }
     .hp-eyebrow, #hp-hero-eyebrow { letter-spacing: 0.04em; }
@@ -2992,12 +3038,12 @@
   <div class="wrap">
     <div class="hero-grid">
       <div>
-        <span class="hp-eyebrow" id="hp-hero-eyebrow">Latest owner interview</span>
-        <h1 style="color: #ffffff;" id="hp-hero-title">Interview with the founder of the MT3UK Community</h1>
-        <p class="hp-hero-meta" id="hp-hero-meta">Richard &middot; Model 3 Performance &middot; 2019</p>
-        <div class="hp-hero-ctas">
-          <a href="blog-richard.html" class="hp-btn hp-btn-primary" id="hp-hero-cta">Read Richard&rsquo;s story &rarr;</a>
-          <a href="my-builds.html#build-upload" class="hp-btn hp-btn-ghost">Add your car</a>
+        <div class="hp-hero-card">
+          <span class="hp-hero-tag"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9Z"/></svg><span id="hp-hero-eyebrow">Latest interview</span></span>
+          <h1 id="hp-hero-title">Interview with the founder of the MT3UK Community</h1>
+          <p class="hp-hero-meta" id="hp-hero-meta">Richard &middot; Model 3 Performance &middot; 2019</p>
+          <p class="hp-hero-excerpt" id="hp-hero-excerpt">From a white Model 3 lost in the crowd to a Hidden Forest wrap, KW coilovers and track days. Richard on why he started MT3UK.</p>
+          <a href="blog-richard.html" class="hp-btn hp-hero-read" id="hp-hero-cta"><span id="hp-hero-cta-text">Read the interview</span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
         </div>
         <a href="#owner-interviews" class="hp-hero-next" id="hp-hero-next" hidden></a>
         <p class="hp-site-note">This is the MT3UK website: gallery, events, shop and My Garage. Our Facebook group is separate, and you don&rsquo;t need Facebook to use the site.</p>
@@ -3058,6 +3104,7 @@
     </div>
   </div>
   <a href="index.html?intro=1" id="play-intro" class="hp-play-intro"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m10 8.5 5 3.5-5 3.5Z"/></svg>Play intro</a>
+  <button type="button" class="hp-more-hint" id="hp-more-hint" aria-label="Looking for something else? Scroll down to Explore MT3UK"><span><b>Looking for something else?</b><span class="hp-more-long"> My Garage, Gallery, Events and more below</span></span></button>
   <button type="button" class="hp-scroll-cue" id="hp-scroll-cue" aria-label="Scroll down to Explore MT3UK">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8l7 7 7-7"/><path d="M5 2l7 7 7-7" class="hp-scroll-cue-back"/></svg>
   </button>
@@ -3092,6 +3139,26 @@
         var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         window.scrollTo({ top: Math.max(0, top), behavior: reduce ? 'auto' : 'smooth' });
       });
+      // The hint above the chevron: once a session, gone on scroll or tap.
+      var hint = document.getElementById('hp-more-hint');
+      if (hint) {
+        var seen = false;
+        try { seen = sessionStorage.getItem('mt3ukMoreHint') === '1'; } catch (e) {}
+        function hideHint() {
+          hint.classList.remove('is-on');
+          try { sessionStorage.setItem('mt3ukMoreHint', '1'); } catch (e) {}
+          window.removeEventListener('scroll', onScroll);
+        }
+        function onScroll() { if (window.pageYOffset > 40) hideHint(); }
+        hint.addEventListener('click', function () { hideHint(); cue.click(); });
+        if (!seen) {
+          setTimeout(function () {
+            if (window.pageYOffset > 40 || document.getElementById('mt3uk-intro')) return;
+            hint.classList.add('is-on');
+            window.addEventListener('scroll', onScroll, { passive: true });
+          }, 1500);
+        }
+      }
     })();
   </script>
 </section>
@@ -6452,17 +6519,18 @@
       // Hero
       var hero = document.getElementById('hp-hero');
       if (hero && feature.image) {
-        hero.style.backgroundImage = 'linear-gradient(rgba(14, 22, 40, 0.45), rgba(14, 22, 40, 0.94) 72%), url("' + feature.image + '")';
+        hero.style.backgroundImage = 'linear-gradient(rgba(14, 22, 40, 0.2), rgba(14, 22, 40, 0.88) 70%), url("' + feature.image + '")';
         // Portrait photos crop hard in the wide hero, so each interview can say where the car sits
         hero.style.backgroundPosition = feature.heroPosition || 'center';
       }
-      setText('hp-hero-eyebrow', live ? 'Latest owner interview' : 'Owner interviews · launching ' + prettyDay(feature.publish));
+      setText('hp-hero-eyebrow', live ? 'Latest interview' : 'Interviews start ' + prettyDay(feature.publish));
       setText('hp-hero-title', feature.title);
       setText('hp-hero-meta', metaLine(feature));
+      setText('hp-hero-excerpt', feature.excerpt || '');
       var cta = document.getElementById('hp-hero-cta');
       if (cta) {
-        if (live) { cta.href = feature.url; cta.textContent = 'Read ' + feature.name + '’s story →'; }
-        else { cta.href = '#build-feed'; cta.textContent = 'Explore the builds ↓'; }
+        cta.href = live ? feature.url : '#build-feed';
+        setText('hp-hero-cta-text', live ? 'Read the interview' : 'Explore the builds');
       }
       var nextLink = document.getElementById('hp-hero-next');
       if (nextLink && next) {
@@ -6505,15 +6573,11 @@
       if (tile) tile.href = live ? feature.url : '#owner-interviews';
       setText('hp-meta-interviews', live ? 'Latest: ' + feature.name + ' · ' + feature.car : 'Launching ' + prettyDay(feature.publish));
 
-      // Announcement bar: for 14 days after each new interview, or before launch
+      // Announcement bar: only before the first interview. Once one is
+      // live, the card at the top of the page shows the latest instead.
       var bar = document.getElementById('hp-announce');
       if (bar) {
-        var ageDays = live ? (Date.parse(today) - Date.parse(live.publish)) / 86400000 : null;
-        if (live && ageDays <= 14) {
-          bar.textContent = 'New owner interview: ' + live.title + ' →';
-          bar.href = live.url;
-          bar.hidden = false;
-        } else if (!live) {
+        if (!live) {
           bar.textContent = 'Owner Interviews launch ' + prettyDay(feature.publish) + ' →';
           bar.href = '#owner-interviews';
           bar.hidden = false;

@@ -144,7 +144,7 @@
       if (!m) {
         h += '<div class="card tp-intro"><h2>Your track days, mapped</h2><p>Upload the file from your lap timer (RaceBox, VBOX, Harry\'s LapTimer, TrackAddict, AiM and most phone apps) and see every lap drawn on the track, where you gained and lost time, and how your times changed as you modified the car.</p>' +
           '<ul class="tp-ticks"><li>' + icon('check') + 'Laps, sectors and corners found for you</li><li>' + icon('check') + 'Compare any two laps, corner by corner</li><li>' + icon('check') + 'See what each mod in My Garage did to your times</li><li>' + icon('check') + 'Drag runs from the strip: 60 ft, 0 to 60, quarter mile</li><li>' + icon('check') + 'Private unless you choose to share</li></ul>' +
-          '<a class="btn btn-accent" href="signin.html?next=/track.html">Sign in to add a session</a></div>';
+          '<div class="tp-actions"><a class="btn btn-accent" href="signin.html?next=/track.html">Sign in to add a session</a><a class="btn btn-secondary" id="tp-boards-btn" href="track.html?boards=1" data-go="boards=1">' + icon('trophy') + 'Leaderboards</a></div></div>';
       } else if (!m.cars.length) {
         h += '<div class="card tp-intro"><h2>Add your car first</h2><p>Sessions belong to a car, so the times can be matched to its mods. Add your car with a photo in My Garage, then come back here.</p><a class="btn btn-accent" href="my-builds.html">Go to My Garage</a></div>';
       } else {
@@ -164,6 +164,7 @@
     var h = '<div class="tp-section"><div class="tp-head"><h2>Your sessions</h2>' + unitsChip() + '</div>';
     if (m.cars.length > 1) h += '<div class="tp-chips" id="tp-cars">' + m.cars.map(function (c) { return '<button type="button" class="chip' + (c.id === car.id ? ' is-on' : '') + '" data-car="' + esc(c.id) + '">' + esc(c.name) + '</button>'; }).join('') + '</div>';
     h += '<div class="tp-actions"><a class="btn btn-accent" href="track.html?add=1&car=' + encodeURIComponent(car.id) + '" data-go="add=1&car=' + esc(encodeURIComponent(car.id)) + '">' + icon('upload') + 'Add a session</a>' +
+      '<a class="btn btn-secondary" id="tp-boards-btn" href="track.html?boards=1" data-go="boards=1">' + icon('trophy') + 'Leaderboards</a>' +
       (car.virtual ? '' : '<a class="btn btn-secondary" href="track.html?car=' + encodeURIComponent(car.id) + '" data-go="car=' + esc(encodeURIComponent(car.id)) + '">What others see</a>') + '</div>';
     if (!list.length) h += '<div class="card tp-empty">' + icon('flag') + '<p>No sessions for ' + esc(car.name) + ' yet. Add the file from your lap timer to get started.</p></div>';
     else h += '<div class="tp-list">' + list.map(sessionRow).join('') + '</div>';
@@ -520,7 +521,7 @@
       ['Best possible', s.possible ? V.fmtLap(s.possible) : '-', s.possible && best && best.time - s.possible < 0.05 ? 'Same as your best lap' : 'Your best sectors together'],
       ['Top speed', s.vmax ? V.fmtV(s.vmax) : '-', ''],
       ['Most grip used', s.latMax ? s.latMax.toFixed(2) + ' g' : '-', s.brakeMax ? 'Braking ' + s.brakeMax.toFixed(2) + ' g' : ''],
-      ['Distance', s.distance ? (s.distance / 1000).toFixed(1) + ' km' : '-', s.duration ? Math.round(s.duration / 60) + ' minutes' : '']
+      ['Distance', s.distance ? V.fmtD(s.distance) : '-', s.duration ? Math.round(s.duration / 60) + ' minutes' : '']
     ]);
     h += '<div class="tp-grid tp-g-map"><div class="card"><div class="tp-chart-head"><h3>Your line, coloured by speed</h3><div class="tp-chips" id="tp-map-laps">' +
       laps.filter(function (l) { return s.trace && s.trace.laps && s.trace.laps[l.n]; }).map(function (l) { return '<button type="button" class="chip chip-sm' + (l.n === view.a ? ' is-on' : '') + '" data-lap="' + l.n + '">Lap ' + l.n + '</button>'; }).join('') + '</div></div>' +
@@ -528,7 +529,7 @@
       '<div class="tp-chart-foot"><span class="tp-ramp"><span id="tp-ramp-lo"></span><i></i><span id="tp-ramp-hi"></span></span><span>Drawn from the GPS in the file. Numbers are the slowest corners.</span></div></div>' +
       '<div class="card"><h3>Laps</h3><div class="tp-scroll"><table class="tp-table">' + lapTable(s) + '</table></div>' +
       (s.sectorsByThirds ? '<p class="tp-small">Sectors are thirds of the lap until this track has its own sector points.</p>' : '') + '</div></div>';
-    h += '<div class="tp-section"><h3>What we spotted</h3><div class="tp-notes">' + notesHtml(T.sessionNotes(s, V.fmtV)) + '</div></div>';
+    h += '<div class="tp-section"><h3>What we spotted</h3><div class="tp-notes">' + notesHtml(T.sessionNotes(s, V.fmtV, V.fmtD)) + '</div></div>';
     if (s.trace && s.trace.laps && Object.keys(s.trace.laps).length) {
       h += '<div class="tp-section" id="compare"><div class="tp-head"><h2>Compare laps</h2></div><p class="tp-sub">Pick two laps. Move along a chart to see both at the same point on track.</p>' +
         '<div class="card tp-cmp-pick"><div class="tp-f2"><div class="tp-field"><label for="tp-cmp-a">Lap A</label><select class="field" id="tp-cmp-a">' + lapOptions(view.a) + '</select></div><div class="tp-field"><label for="tp-cmp-b">Lap B</label><select class="field" id="tp-cmp-b">' + lapOptions(view.b) + '</select></div></div></div>' +
@@ -627,7 +628,7 @@
       document.getElementById('tp-key').innerHTML = '<span><i style="background:' + c1 + '"></i>' + esc(A.label) + ' (A)</span><span><i style="background:' + c2 + '"></i>' + esc(B.label) + ' (B)</span>';
       var at = V.traceAt;
       var dmax = Math.min(A.trace[A.trace.length - 1][0], B.trace[B.trace.length - 1][0]);
-      var xt = V.nice(0, dmax, 6).filter(function (v) { return v <= dmax; }), xf = function (v) { return (v / 1000).toFixed(1) + ' km'; };
+      var dk = V.distK(), xt = V.nice(0, dmax / dk, 6).map(function (v) { return v * dk; }).filter(function (v) { return v <= dmax; }), xf = function (v) { return V.fmtD(v); };
       var vmax = 0; A.trace.concat(B.trace).forEach(function (p) { vmax = Math.max(vmax, V.spd(p[4])); });
       var yt = V.nice(0, vmax, 6);
       var mapEl = document.getElementById('tp-map2');
@@ -637,7 +638,7 @@
       function leave() { if (mo) { mo.placeA(null); mo.placeB(null); } other.forEach(function (o) { o.hide(); }); }
       function tipF(x) {
         var pa = at(A.trace, x), pb = at(B.trace, x), g = pb[1] - pa[1];
-        return '<b>' + (x / 1000).toFixed(2) + ' km</b>' + V.row(A.label, V.fmtV(pa[4]), c1) + V.row(B.label, V.fmtV(pb[4]), c2) + V.row('A is', Math.abs(g).toFixed(2) + ' s ' + (g >= 0 ? 'ahead' : 'behind'));
+        return '<b>' + V.fmtD(x, 2) + '</b>' + V.row(A.label, V.fmtV(pa[4]), c1) + V.row(B.label, V.fmtV(pb[4]), c2) + V.row('A is', Math.abs(g).toFixed(2) + ' s ' + (g >= 0 ? 'ahead' : 'behind'));
       }
       var sp, dl;
       sp = V.line(document.getElementById('tp-speed'), {
@@ -725,7 +726,7 @@
       '<div class="card"><h3>Runs</h3><div class="tp-scroll"><table class="tp-table"><thead><tr><th>Run</th><th>60 ft</th><th>0-60</th><th>60-100</th><th>1/8</th><th>1/4</th><th>Trap</th></tr></thead><tbody>' +
       runs.map(function (r, i) { function f(v) { return v ? v.toFixed(2) : '-'; } return '<tr' + (r === bq ? ' class="is-best"' : '') + '><td>' + (i + 1) + '</td><td>' + f(r.ft60) + '</td><td>' + f(r.s60) + '</td><td>' + f(r.s60to100) + '</td><td>' + f(r.eighth) + '</td><td>' + f(r.quarter) + '</td><td>' + (r.quarterSpeed ? Math.round(V.spd(r.quarterSpeed)) : '-') + '</td></tr>'; }).join('') +
       '</tbody></table></div><p class="tp-small">Times from the first movement, worked out from GPS speed. Strip timing lights use a short rollout, so their times are usually a little quicker.</p></div></div>';
-    h += '<div class="tp-section"><h3>What we spotted</h3><div class="tp-notes">' + notesHtml(T.sessionNotes(s, V.fmtV)) + '</div></div>';
+    h += '<div class="tp-section"><h3>What we spotted</h3><div class="tp-notes">' + notesHtml(T.sessionNotes(s, V.fmtV, V.fmtD)) + '</div></div>';
     return h;
   }
   function drawDragCharts(s) {

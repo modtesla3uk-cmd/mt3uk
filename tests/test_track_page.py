@@ -136,13 +136,18 @@ def open_page(page, fake, path="/track.html", signed_in=True, admin=False):
 def test_signed_out_explains_and_lists_leaderboards(page):
     open_page(page, FakeWorker(), signed_in=False)
     expect(page.locator(".tp-intro h2")).to_have_text("Your track days, mapped")
-    expect(page.locator(".tp-intro a.btn")).to_have_attribute("href", "signin.html?next=/track.html")
+    expect(page.locator(".tp-intro a.btn").first).to_have_attribute("href", "signin.html?next=/track.html")
+    # Visitors can open the leaderboards too.
+    page.locator("#tp-boards-btn").click()
+    expect(page.locator(".tp-head h2")).to_have_text("Leaderboards")
+    page.go_back()
     expect(page.locator(".tp-board-card").first).to_contain_text("Thruxton")
 
 
 def test_add_a_session_from_the_racebox_file(page):
     fake = FakeWorker()
     open_page(page, fake)
+    expect(page.locator("#tp-boards-btn")).to_have_attribute("href", "track.html?boards=1")
     page.get_by_role("link", name="Add a session").click()
     page.set_input_files("#tp-file", str(FIXTURE))
     notice = page.locator("#tp-result .tp-notice.is-ok")
@@ -164,6 +169,12 @@ def test_add_a_session_from_the_racebox_file(page):
     expect(page.locator(".tp-session-head h2")).to_have_text("Thruxton")
     expect(page.locator(".tp-tile.is-hero .v")).to_have_text(re.compile(r"1:39\.78[56]"))
     expect(page.locator(".tp-table").first.locator("tbody tr")).to_have_count(2)
+    # Distances in miles with mph (the default), kilometres with km/h.
+    expect(page.locator(".tp-tile").nth(4).locator(".v")).to_have_text(re.compile(r"^\d+\.\d mi$"))
+    expect(page.locator("#tp-speed")).to_contain_text(" mi")
+    page.locator("[data-units]").first.click()
+    expect(page.locator(".tp-tile").nth(4).locator(".v")).to_have_text(re.compile(r"^\d+\.\d km$"))
+    page.locator("[data-units]").first.click()
     expect(page.locator(".tp-notes").first).to_contain_text("corner 2")
     assert page.locator("#tp-map line").count() > 200
     # Compare: both laps drawn, hovering shows both speeds.

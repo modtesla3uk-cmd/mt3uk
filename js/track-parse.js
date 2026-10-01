@@ -602,8 +602,9 @@
 
   // What we spotted in one session. speed(kmh) formats a speed in the
   // member's units.
-  function sessionNotes(s, speed) {
+  function sessionNotes(s, speed, dist) {
     speed = speed || function (k) { return Math.round(k / KMH_PER_MPH) + ' mph'; };
+    dist = dist || function (m) { return (m / 1609.344).toFixed(1) + ' mi'; };
     var out = [];
     if (s.type === 'drag') {
       var runs = s.runs || [];
@@ -625,7 +626,7 @@
       if (l.n === best || !tr[l.n] || l.kind === 'short') return;
       var up = 0, upAt = 0;
       tr[l.n].forEach(function (p) { var q = traceAt(bt, p[0]); var lead = q[1] - p[1]; if (lead > up) { up = lead; upAt = p[0]; } });
-      if (up >= 0.4 && !out.some(function (o) { return o.lapAhead; })) out.push({ icon: 'flag', lapAhead: true, text: 'Lap ' + l.n + ' was ' + up.toFixed(1) + ' s up on your best lap ' + (upAt / 1000).toFixed(1) + ' km in' + (l.kind === 'in' ? ', before you came in to the pits.' : ', then lost it later in the lap.'), small: 'Put those parts together and there is more time in the car.' });
+      if (up >= 0.4 && !out.some(function (o) { return o.lapAhead; })) out.push({ icon: 'flag', lapAhead: true, text: 'Lap ' + l.n + ' was ' + up.toFixed(1) + ' s up on your best lap ' + dist(upAt) + ' in' + (l.kind === 'in' ? ', before you came in to the pits.' : ', then lost it later in the lap.'), small: 'Put those parts together and there is more time in the car.' });
     });
     var others = laps.filter(function (l) { return l.kind === 'timed' && l.n !== best; }).sort(function (a, b) { return a.time - b.time; });
     if (others.length && s.corners && s.corners.length) {

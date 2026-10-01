@@ -91,6 +91,36 @@ def test_scroll_cue_jumps_to_section_01(device_page):
 
 
 @all_devices
+def test_looking_for_something_else_hint(device_page):
+    """A hint by the chevron, once a session, so people landing on the
+    interview still find My Garage and the rest; a tap goes to section 01."""
+    page = device_page
+    page.emulate_media(reduced_motion="reduce")
+    page.goto("/index.html")
+    hint = page.locator("#hp-more-hint.is-on")
+    hint.wait_for(timeout=5000)
+    assert "Looking for something else?" in hint.inner_text()
+    # Beside the chevron, not over Play intro or the stats.
+    cue = page.locator("#hp-scroll-cue").bounding_box()
+    box = hint.bounding_box()
+    play = page.locator("#play-intro").bounding_box()
+    stats = page.locator("#hp-hero .hp-stats").bounding_box()
+    assert box["x"] >= play["x"] + play["width"] or box["x"] + box["width"] <= play["x"], "Not over Play intro"
+    assert box["y"] >= stats["y"] + stats["height"] - 30, "Below the stats"
+    assert abs((box["y"] + box["height"] / 2) - (cue["y"] + cue["height"] / 2)) < 30, "Level with the chevron"
+    hint.click()
+    page.wait_for_timeout(1200)
+    header_bottom = page.evaluate("document.querySelector('header').getBoundingClientRect().bottom")
+    section_top = page.evaluate("document.querySelector('.categories-section').getBoundingClientRect().top")
+    assert abs(section_top - header_bottom) <= 3, (section_top, header_bottom)
+    # Once a session.
+    page.reload()
+    page.wait_for_timeout(2200)
+    assert page.locator("#hp-more-hint.is-on").count() == 0
+    assert page.errors == []
+
+
+@all_devices
 def test_mouse_can_drag_a_tile_without_holding(device_page):
     """On desktop people press and drag straight away, without holding first."""
     page = device_page

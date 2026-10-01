@@ -412,6 +412,23 @@ def api_reply(url, method, post_data, state):
         car.update(details)
         car["view"] = mock_specs_to_view(details.get("specs"), details.get("mods", GARAGE_CAR["mods"]))
         return {"success": True, "car": car}
+    if path == "/track/admin/tracks":
+        base = json.loads((REPO_ROOT / "data" / "tracks.json").read_text(encoding="utf-8"))
+        if method == "PUT":
+            body = json.loads(post_data or "{}")
+            state.setdefault("track_admin_puts", []).append(body)
+            if body.get("venue"):
+                v = dict(body["venue"], id=body["venue"].get("id") or "old-airfield")
+                base["venues"] = [x for x in base["venues"] if x["id"] != v["id"]] + [v]
+        return {"success": True, "extra": {"venues": []}, "library": base}
+    if path == "/track/admin/requests":
+        if method == "POST":
+            state.setdefault("track_admin_requests", []).append(json.loads(post_data or "{}"))
+            return {"success": True}
+        return {"success": True, "requests": [{"id": "r1", "at": "2026-09-30T10:00:00Z", "from": "a***@example.com", "kind": "circuit", "name": "Old Airfield",
+                                               "lat": 53.1, "lng": -1.1, "lapLength": 2100, "startLine": [[53.1, -1.1], [53.1001, -1.1001]], "outline": [[53.1, -1.1], [53.105, -1.11], [53.11, -1.1], [53.1, -1.1]]}]}
+    if path == "/track/sessions" and method == "GET":
+        return {"success": True, "sessions": state.get("track_sessions", [])}
     if path == "/cars/public" and method == "GET":
         return state.get("car_public") or {
             "success": True, "file": "test-build.jpg", "name": "Test Model 3", "model": "Model 3", "version": "Performance",

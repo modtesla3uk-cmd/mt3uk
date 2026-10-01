@@ -20,7 +20,8 @@
     lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
     edit: '<path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
     chat: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z"/>',
-    eye: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>'
+    eye: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',
+    flag: '<path d="M4 21V4M4 4h12l-2 4 2 4H4"/>'
   };
   function icon(name, cls) {
     return '<svg class="icon' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24" aria-hidden="true">' + ICON[name] + '</svg>';
@@ -67,6 +68,7 @@
     '.mv-chips{display:flex;flex-wrap:wrap;gap:6px}',
     '.mv-chip{display:inline-block;padding:4px 11px;border-radius:999px;background:var(--paper,#f3f1ea);border:1px solid var(--hairline,rgba(22,35,61,.12));font-size:.82rem;overflow-wrap:anywhere}',
     '.mv-row .mv-eye{color:var(--orange,#e8542a)}',
+    '.mv-new{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:var(--orange,#e8542a);color:#fff;font-size:.68rem;font-weight:700;vertical-align:2px}',
     '@media (prefers-reduced-motion:reduce){.mv-row .mv-chev{transition:none}}'
   ].join('');
   function addStyles() {

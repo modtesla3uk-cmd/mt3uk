@@ -1,0 +1,100 @@
+{
+  "_note": "Track sessions (track.html, js/track-parse.js). Each venue has a centre and a radius in metres, used to recognise it from a file's GPS. A circuit has layouts: lap length in metres (used to tell layouts apart), a start line (two [lat, lng] points), optional sector lines and named corners. \"check\": true means the centre or lap length is approximate and wants confirming from a real file. Start lines, sectors and corners are added from the Tracks panel on admin.html, which stores its changes in the worker (KV track-library) on top of this file.",
+  "venues": [
+    {
+      "id": "thruxton", "name": "Thruxton", "type": "circuit", "lat": 51.2085, "lng": -1.6055, "radius": 2500,
+      "layouts": [
+        { "id": "main", "name": "Thruxton", "length": 3790,
+          "startLine": [[51.2077017, -1.6088667], [51.2076237, -1.6091363]],
+          "sectors": [], "corners": [] }
+      ]
+    },
+    {
+      "id": "silverstone", "name": "Silverstone", "type": "circuit", "lat": 52.0730, "lng": -1.0150, "radius": 3500, "check": true,
+      "layouts": [
+        { "id": "gp", "name": "Grand Prix", "length": 5891, "check": true },
+        { "id": "national", "name": "National", "length": 2639, "check": true },
+        { "id": "international", "name": "International", "length": 2989, "check": true }
+      ]
+    },
+    {
+      "id": "brands-hatch", "name": "Brands Hatch", "type": "circuit", "lat": 51.3570, "lng": 0.2630, "radius": 2500, "check": true,
+      "layouts": [
+        { "id": "indy", "name": "Indy", "length": 1929, "check": true },
+        { "id": "gp", "name": "Grand Prix", "length": 3908, "check": true }
+      ]
+    },
+    {
+      "id": "donington", "name": "Donington Park", "type": "circuit", "lat": 52.8300, "lng": -1.3780, "radius": 2500, "check": true,
+      "layouts": [
+        { "id": "national", "name": "National", "length": 3185, "check": true },
+        { "id": "gp", "name": "Grand Prix", "length": 4020, "check": true }
+      ]
+    },
+    {
+      "id": "snetterton", "name": "Snetterton", "type": "circuit", "lat": 52.4640, "lng": 0.9460, "radius": 3000, "check": true,
+      "layouts": [
+        { "id": "300", "name": "Snetterton 300", "length": 4779, "check": true },
+        { "id": "200", "name": "Snetterton 200", "length": 3197, "check": true },
+        { "id": "100", "name": "Snetterton 100", "length": 1963, "check": true }
+      ]
+    },
+    {
+      "id": "oulton-park", "name": "Oulton Park", "type": "circuit", "lat": 53.1780, "lng": -2.6150, "radius": 2500, "check": true,
+      "layouts": [
+        { "id": "international", "name": "International", "length": 4307, "check": true },
+        { "id": "island", "name": "Island", "length": 3620, "check": true },
+        { "id": "fosters", "name": "Foster's", "length": 2690, "check": true }
+      ]
+    },
+    {
+      "id": "castle-combe", "name": "Castle Combe", "type": "circuit", "lat": 51.4910, "lng": -2.2150, "radius": 2000, "check": true,
+      "layouts": [ { "id": "main", "name": "Castle Combe", "length": 2977, "check": true } ]
+    },
+    {
+      "id": "cadwell-park", "name": "Cadwell Park", "type": "circuit", "lat": 53.3100, "lng": -0.0600, "radius": 2000, "check": true,
+      "layouts": [
+        { "id": "full", "name": "Full circuit", "length": 3480, "check": true },
+        { "id": "club", "name": "Club", "length": 2410, "check": true }
+      ]
+    },
+    {
+      "id": "croft", "name": "Croft", "type": "circuit", "lat": 54.4550, "lng": -1.5560, "radius": 2000, "check": true,
+      "layouts": [ { "id": "main", "name": "Croft", "length": 3423, "check": true } ]
+    },
+    {
+      "id": "knockhill", "name": "Knockhill", "type": "circuit", "lat": 56.1300, "lng": -3.5070, "radius": 1500, "check": true,
+      "layouts": [ { "id": "main", "name": "Knockhill", "length": 2092, "check": true } ]
+    },
+    {
+      "id": "anglesey", "name": "Anglesey (Trac Mon)", "type": "circuit", "lat": 53.1890, "lng": -4.4970, "radius": 2000, "check": true,
+      "layouts": [
+        { "id": "international", "name": "International", "length": 3400, "check": true },
+        { "id": "coastal", "name": "Coastal", "length": 2500, "check": true },
+        { "id": "national", "name": "National", "length": 1930, "check": true }
+      ]
+    },
+    {
+      "id": "bedford", "name": "Bedford Autodrome", "type": "circuit", "lat": 52.2340, "lng": -0.4740, "radius": 3000, "check": true,
+      "layouts": [
+        { "id": "gt", "name": "GT", "length": 6000, "check": true },
+        { "id": "west", "name": "West", "length": 3000, "check": true }
+      ]
+    },
+    {
+      "id": "goodwood", "name": "Goodwood", "type": "circuit", "lat": 50.8590, "lng": -0.7590, "radius": 2000, "check": true,
+      "layouts": [ { "id": "main", "name": "Goodwood", "length": 3830, "check": true } ]
+    },
+    {
+      "id": "blyton", "name": "Blyton Park", "type": "circuit", "lat": 53.4630, "lng": -0.6890, "radius": 2000, "check": true,
+      "layouts": [ { "id": "outer", "name": "Outer", "length": 2600, "check": true } ]
+    },
+    {
+      "id": "lydden", "name": "Lydden Hill", "type": "circuit", "lat": 51.1770, "lng": 1.1990, "radius": 1500, "check": true,
+      "layouts": [ { "id": "main", "name": "Lydden Hill", "length": 1600, "check": true } ]
+    },
+    { "id": "santa-pod", "name": "Santa Pod Raceway", "type": "drag", "lat": 52.2370, "lng": -0.5960, "radius": 1500, "check": true },
+    { "id": "elvington", "name": "Elvington", "type": "drag", "lat": 53.9230, "lng": -0.9920, "radius": 2500, "check": true },
+    { "id": "crail", "name": "Crail Raceway", "type": "drag", "lat": 56.2700, "lng": -2.6290, "radius": 1500, "check": true }
+  ]
+}

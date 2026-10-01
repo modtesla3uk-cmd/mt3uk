@@ -368,3 +368,26 @@ def test_version_and_year_next_to_the_model(device_page):
         assert any(p.get("model") == "Model S" and p.get("version") == "" for p in puts), "A new model clears the version"
     assert overflow_width(page) <= 0
     assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_track_sessions_row_on_the_car(device_page):
+    page = device_page
+    page.mock_state["car_details"] = {"specs": {"brakes": {"status": "stock"}}, "mods": []}
+    page.mock_state["track_sessions"] = [
+        {"id": "s1", "carId": "car-1", "type": "track", "venue": "Thruxton", "layout": "Thruxton", "date": "2026-05-28", "conditions": "Dry", "bestTime": 99.786},
+        {"id": "s2", "carId": "other-car", "type": "track", "venue": "Snetterton", "layout": "Snetterton 300", "date": "2026-06-01", "bestTime": 130.5},
+    ]
+    signed_in(page)
+    page.goto("/my-builds.html")
+    page.locator(".mb-car-tile").first.click(timeout=10000)
+    rows(page).wait_for(timeout=5000)
+    head = page.locator('#mb-mods-builder [data-mv-area="track"] .mv-row')
+    head.wait_for(timeout=5000)
+    assert "NEW" in head.inner_text() and "1 session" in head.inner_text()
+    row = open_row(page, "track")
+    assert "Thruxton" in row.inner_text() and "1:39.786" in row.inner_text() and "Snetterton" not in row.inner_text()
+    assert row.locator("a.mbm-track").get_attribute("href") == "track.html?s=s1"
+    assert row.get_by_role("link", name="Add a session").get_attribute("href") == "track.html?add=1&car=car-1"
+    assert overflow_width(page) <= 0
+    assert page.errors == [], diagnostics(page)

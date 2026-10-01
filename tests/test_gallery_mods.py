@@ -96,3 +96,21 @@ def test_no_asking_about_your_own_car_or_when_turned_off(device_page):
     assert sheet.locator(".mv-ask").count() == 0
     assert "Dave isn’t taking questions" in sheet.locator(".lightbox-car-note").first.inner_text()
     assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_full_list_shows_shared_track_bests(device_page):
+    page = device_page
+    page.mock_state["car_public"] = {
+        "success": True, "file": "test-build.jpg", "carId": "car-1", "name": "Test Model 3", "ownerName": "Richard", "canAsk": False,
+        "view": [{"id": "suspension", "label": "Suspension", "status": "up", "parts": [{"kind": "", "what": "KW V3"}]}],
+        "track": [{"type": "track", "venue": "Thruxton", "layout": "Thruxton", "id": "s1", "bestTime": 99.786}],
+    }
+    sheet = open_full_list(page)
+    track = sheet.locator(".lightbox-car-track")
+    assert track.is_visible()
+    assert "Thruxton" in track.inner_text() and "1:39.786" in track.inner_text()
+    assert track.locator("a").first.get_attribute("href") == "track.html?s=s1"
+    assert track.get_by_text("All shared sessions").get_attribute("href") == "track.html?car=car-1"
+    assert overflow_width(page) <= 0
+    assert page.errors == [], diagnostics(page)

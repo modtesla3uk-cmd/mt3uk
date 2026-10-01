@@ -8,10 +8,11 @@ REFRESHED = [
     "index.html", "gallery.html", "my-builds.html", "signin.html", "profile.html", "shop.html", "reviews.html",
     "contact.html", "privacy.html", "event.html", "events-admin.html", "offline.html", "chat.html",
     "track-day-prep.html", "track-day-on-the-day.html", "track-day-venues.html", "blog.html", "admin.html",
+    "track.html",
 ]
 # Every Owner Interview page too, including new ones copied from an old one.
 REFRESHED += sorted(p.name for p in ROOT.glob("blog-*.html"))
-SHARED_SCRIPTS = ["js/interview-comments.js", "js/interview-gate.js", "js/messenger.js", "js/notify-bell.js", "js/share.js", "js/account-bar.js", "js/signin-prompt.js", "js/gallery-social.js", "js/push-toggle.js", "js/mods-builder.js", "js/mods-view.js"]
+SHARED_SCRIPTS = ["js/interview-comments.js", "js/interview-gate.js", "js/messenger.js", "js/notify-bell.js", "js/share.js", "js/account-bar.js", "js/signin-prompt.js", "js/gallery-social.js", "js/push-toggle.js", "js/mods-builder.js", "js/mods-view.js", "js/track-page.js", "js/track-view.js"]
 
 
 def read(name):

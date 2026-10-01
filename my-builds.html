@@ -870,6 +870,12 @@
   .mbm-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
   .mbm-label { font-size: 0.86rem; font-weight: 600; color: var(--ink); }
   .mbm-hint { font-size: 0.82rem; color: var(--steel); }
+  .mbm-tracks { display: grid; gap: 6px; margin: 6px 0 10px; }
+  .mbm-track { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 52px; padding: 8px 12px; border: 1px solid var(--hairline); border-radius: var(--radius-sm); color: var(--ink); }
+  .mbm-track:hover { border-color: var(--hairline-strong); }
+  .mbm-track b { display: block; font-size: 0.9rem; }
+  .mbm-track small { font-size: 0.78rem; color: var(--steel); }
+  .mbm-track-res { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .mbm-group { grid-column: 1 / -1; margin: 4px 0 -4px; font-size: 0.8rem; font-weight: 700; color: var(--steel); }
   .mbm-coil-grid, .mbm-private .mbm-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   @media (max-width: 780px) { .mbm-private .mbm-grid { grid-template-columns: 1fr 1fr; } }
@@ -1029,6 +1035,7 @@ document.addEventListener('DOMContentLoaded', function () {
         </div>
       </div>
       <a href="my-builds.html" class="nav-link nav-link-mybuilds active">My Garage</a>
+      <a href="track.html" class="nav-link nav-link-track nav-sublink-new">Track Sessions</a>
       <div class="nav-item">
         <a href="profile.html" class="nav-link nav-link-profile">My Profile</a>
         <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle My Profile submenu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
@@ -2639,6 +2646,12 @@ document.addEventListener('DOMContentLoaded', function () {
     // The mods builder (js/mods-builder.js): the "build your mods list"
     // card, the areas and the plans, saved on the car.
     var modsBuilder = window.MT3UKModsBuilder && window.MT3UKModsBuilder.mount(document.getElementById('mb-mods-builder'), {
+      // The member's track sessions (track.html), for the Track sessions row.
+      trackSessions: function () {
+        return fetch(API + '/track/sessions', { headers: { 'X-Session-Token': getSession() || '' }, cache: 'no-store' })
+          .then(function (res) { return res.ok ? res.json() : {}; })
+          .then(function (d) { return d.sessions || []; });
+      },
       save: function (fields) {
         var car = findCar(currentCarId);
         if (!car) return Promise.resolve({ success: false });

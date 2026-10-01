@@ -343,13 +343,42 @@
 
     // A row of our own (car details, plans, what others see), drawn like
     // the area rows in js/mods-view.js.
-    function extraRow(id, label, count, body, iconName) {
+    function extraRow(id, label, count, body, iconName, isNew) {
       var isOpen = !!openRows[id];
       return '<div class="mv-area' + (isOpen ? ' is-open' : '') + '" data-mv-area="' + id + '">' +
         '<button type="button" class="mv-row" data-mv-open="' + id + '" aria-expanded="' + isOpen + '">' +
         (iconName ? window.MT3UKModsView.icon(iconName, 'mv-eye') : '') +
-        '<span class="mv-name">' + esc(label) + '</span><span class="mv-count">' + esc(count) + '</span>' + window.MT3UKModsView.icon('chev', 'mv-chev') + '</button>' +
+        '<span class="mv-name">' + esc(label) + (isNew ? ' <span class="mv-new">NEW</span>' : '') + '</span><span class="mv-count">' + esc(count) + '</span>' + window.MT3UKModsView.icon('chev', 'mv-chev') + '</button>' +
         (isOpen ? '<div class="mv-body">' + body + '</div>' : '') + '</div>';
+    }
+
+    // Track sessions (track.html) for this car: the latest few, from
+    // opts.trackSessions(), which returns a promise of the member's list.
+    var tracks = null;
+    function loadTracks() {
+      if (tracks || !opts.trackSessions) return;
+      tracks = [];
+      opts.trackSessions().then(function (list) { tracks = list || []; render(); }).catch(function () {});
+    }
+    function carTracks() { return (tracks || []).filter(function (t) { return car && t.carId === car.id; }); }
+    function trackCount() {
+      var n = carTracks().length;
+      return n ? n + (n === 1 ? ' session' : ' sessions') : '';
+    }
+    function trackResult(t) {
+      if (t.type === 'drag') return t.quarter ? t.quarter.toFixed(2) + ' s, 1/4 mile' : (t.runs || 0) + ' runs';
+      if (!t.bestTime) return '';
+      var m = Math.floor(t.bestTime / 60), r = t.bestTime - m * 60;
+      return m + ':' + (r < 10 ? '0' : '') + r.toFixed(3);
+    }
+    function trackHtml() {
+      var list = carTracks();
+      var id = car && !car.virtual ? encodeURIComponent(car.id) : '';
+      var h = list.length ? '<div class="mbm-tracks">' + list.slice(0, 4).map(function (t) {
+        return '<a class="mbm-track" href="track.html?s=' + encodeURIComponent(t.id) + '"><span><b>' + esc(t.venue + (t.layout && t.layout !== t.venue ? ', ' + t.layout : '')) + '</b><small>' + esc(t.date || '') + (t.conditions ? ', ' + esc(t.conditions) : '') + '</small></span><span class="mbm-track-res">' + esc(trackResult(t)) + '</span></a>';
+      }).join('') + '</div>' : '<p class="mbm-hint">Upload the file from your lap timer (RaceBox, VBOX, Harry\'s LapTimer and others) to see your laps mapped and how your times change as you add mods.</p>';
+      return h + '<div class="mbm-row"><a class="btn btn-accent btn-sm" href="track.html?add=1' + (id ? '&car=' + id : '') + '">Add a session</a>' +
+        (list.length ? '<a class="btn btn-secondary btn-sm" href="track.html' + (id ? '?mycar=' + id : '') + '">All sessions</a>' : '') + '</div>';
     }
 
     function plansHtml() {
@@ -361,6 +390,7 @@
     function render() {
       if (!car) { root.innerHTML = ''; return; }
       if (!car.specs && !skipped(car.id)) { root.innerHTML = welcomeHtml(); return; }
+      loadTracks();
       var MV = window.MT3UKModsView;
       var view = car.view || [];
       var done = view.filter(function (a) { return a.status !== 'todo' && a.id !== 'mods'; }).length;
@@ -375,6 +405,7 @@
       var galleryLink = car.photos && car.photos[0] ? 'gallery.html?photo=' + encodeURIComponent(car.photos[0].file || car.photos[0]) : 'gallery.html';
       h += '<div class="mv-rows">' +
         (car.specs ? extraRow('plans', 'What\'s next?', plans.length ? plans.length + (plans.length === 1 ? ' plan' : ' plans') : '', plansHtml()) : '') +
+        (opts.trackSessions ? extraRow('track', 'Track sessions', trackCount(), trackHtml(), 'flag', true) : '') +
         extraRow('public', 'What others see', n + (n === 1 ? ' mod' : ' mods'),
           (MV.publicList(view) || '<p class="mbm-hint">Nothing yet. Add your mods above and they show here.</p>') +
           '<div class="mbm-row"><a class="btn btn-secondary btn-sm" href="' + galleryLink + '">See it in the Gallery</a></div>', 'eye') +

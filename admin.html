@@ -430,6 +430,25 @@
     .iv-table { font-size: 0.85rem; }
     .iv-settings select { font-size: 16px; }
   }
+  .tk-table td { vertical-align: top; }
+  .tk-miss { color: var(--orange); }
+  .tk-top { margin-top: 10px; }
+  .tk-form { border: 1px solid var(--orange); border-radius: var(--radius); padding: 14px; margin: 14px 0; display: grid; gap: 10px; }
+  .tk-form label { display: grid; gap: 4px; font-size: 0.82rem; color: var(--steel); }
+  .tk-form textarea { width: 100%; min-height: 60px; }
+  .tk-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+  .tk-layout { border: 1px solid rgba(255,255,255,0.2); border-radius: var(--radius-sm); padding: 10px 12px; display: grid; gap: 8px; }
+  .tk-layout legend { font-size: 0.82rem; color: var(--steel); padding: 0 4px; }
+  .tk-layout .danger { justify-self: start; }
+  .tk-from { flex: 1; min-width: 200px; }
+  .tk-switch { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; background: none; border: 0; color: var(--white); padding: 0 6px; }
+  .tk-track { width: 42px; height: 26px; border-radius: 13px; background: rgba(255,255,255,0.25); position: relative; }
+  .tk-track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform .15s; }
+  .tk-switch[aria-checked="true"] .tk-track { background: var(--orange); }
+  .tk-switch[aria-checked="true"] .tk-track::after { transform: translateX(16px); }
+  .tk-req { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.15); }
+  .tk-outline { width: 120px; height: 80px; flex: none; color: var(--orange); }
+  #tk-board { margin-top: 10px; }
 </style>
 </head>
 <body>
@@ -558,6 +577,22 @@
         <span class="iv-note" id="pv-note"></span>
       </form>
       <div id="pv-list"></div>
+    </details>
+  </section>
+
+  <section>
+    <details class="collapsible" id="tracks-wrap">
+      <summary><h2>Tracks <span class="summary-count" id="tracks-count"></span></h2></summary>
+      <p class="iv-note">The tracks and drag strips that Track sessions recognises from a member's file. Most start without a start line: add one (or set up a member's request below) so laps are timed and the track gets a leaderboard. Changes apply to new uploads straight away.</p>
+      <p class="iv-note" id="tk-note" role="status"></p>
+      <h3 class="sub-head">New track requests</h3>
+      <div id="tk-requests"></div>
+      <div class="tk-form" id="tk-form" hidden></div>
+      <h3 class="sub-head">Tracks</h3>
+      <div id="tk-list"></div>
+      <h3 class="sub-head">Leaderboards</h3>
+      <select id="tk-board-pick" aria-label="Leaderboard"></select>
+      <div id="tk-board"></div>
     </details>
   </section>
 
@@ -2718,5 +2753,6 @@
   wrap.addEventListener('toggle', function () { if (wrap.open) load(); });
 })();
 </script>
+<script src="js/track-admin.js" defer></script>
 </body>
 </html>

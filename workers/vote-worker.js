@@ -1056,6 +1056,7 @@ async function handleProfileUpdate(request, env) {
 // Comments stay, under the name they were posted with.
 async function deleteMemberAccount(env, email) {
   var files = await getSubscriberFiles(env, email);
+  await deleteMemberTrackData(env, email);
   for (var i = 0; i < files.length; i++) await deleteMemberPhoto(env, email, files[i]);
 
   var fr = await getFriends(env, email);
@@ -5132,6 +5133,7 @@ async function saveCarRecord(env, car) {
 async function deleteCarRecord(env, carId) {
   await env.GALLERY_BUCKET.delete(carRecordKey(carId));
   await env.VOTES.delete(carDetailsKey(carId));
+  await deleteCarTrackData(env, carId);
 }
 
 // A car's model and its mods list, as built in My Garage. Kept in KV, not
@@ -6345,6 +6347,10 @@ async function handleCarPublic(request, env) {
   }
   var flat = (record && record.mods) || (Array.isArray(sidecar.mods) ? sidecar.mods : []);
   out.view = specsToView(details && details.specs, false, flat);
+  if (sidecar.carId) {
+    out.carId = sidecar.carId;
+    out.track = await trackBestsForCar(env, sidecar.carId);
+  }
   if (ownerEmail) {
     out.ownerName = publicName(ownerProfile) || 'MT3UK member';
     out.ownerId = await ownerKey(ownerEmail);
@@ -6356,6 +6362,538 @@ async function handleCarPublic(request, env) {
   var res = json(out);
   res.headers.set('Cache-Control', 'private, max-age=60');
   return res;
+}
+
+// ---------- Track sessions (track.html, js/track-parse.js) ----------
+// A member's track days and drag runs. The file is read in the browser and
+// only the laps, summary and a trimmed trace come here. Everything is in KV
+// under single keys read with get(), never list():
+//   track-session:<id>          one session (private unless shared)
+//   track-index:<ownerKey>      that member's session summaries
+//   track-public:<carId>        the car's shared session summaries
+//   track-board:<venue>:<layout> / drag-board:<venue>   best per car
+//   track-library               the admin's tracks, over data/tracks.json
+//   track-requests              "new track" requests for the admin
+var TRACKS_URL = MY_BUILDS_SITE_URL + '/data/tracks.json';
+var TRACK_SESSION_MAX_BYTES = 1500000;
+var TRACK_PRIVACY = ['private', 'build', 'board'];
+var TRACK_CONDITIONS = ['Dry', 'Damp', 'Wet'];
+var TRACK_BOARD_MAX = 300;
+
+function trackText(v, max) {
+  return String(v == null ? '' : v).replace(/[\u0000-\u001f<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max || 80);
+}
+function trackNum(v, lo, hi) {
+  var n = Number(v);
+  return isFinite(n) && n >= lo && n <= hi ? n : null;
+}
+function trackId(v) {
+  var s = String(v || '').toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+  return s;
+}
+function trackDist(a, b) {
+  var R = 6371000, d1 = (b[0] - a[0]) * Math.PI / 180, d2 = (b[1] - a[1]) * Math.PI / 180;
+  var h = Math.sin(d1 / 2) * Math.sin(d1 / 2) + Math.cos(a[0] * Math.PI / 180) * Math.cos(b[0] * Math.PI / 180) * Math.sin(d2 / 2) * Math.sin(d2 / 2);
+  return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+}
+function trackLine(v) {
+  if (!Array.isArray(v) || v.length !== 2) return null;
+  var out = v.map(function (p) { return Array.isArray(p) ? [trackNum(p[0], -90, 90), trackNum(p[1], -180, 180)] : [null, null]; });
+  return out.every(function (p) { return p[0] !== null && p[1] !== null; }) ? out : null;
+}
+
+// The site's track list with the admin's changes on top.
+async function getTrackLibrary(env) {
+  var base = { venues: [] };
+  try {
+    var res = await fetch(TRACKS_URL, { cf: { cacheTtl: 300, cacheEverything: true } });
+    if (res.ok) base = await res.json();
+  } catch (e) {}
+  var extra = await getJsonKey(env, 'track-library', { venues: [] });
+  var list = (base.venues || []).slice();
+  (extra.venues || []).forEach(function (v) {
+    var i = list.findIndex(function (x) { return x.id === v.id; });
+    if (v.removed) { if (i !== -1) list.splice(i, 1); return; }
+    if (i === -1) list.push(v); else list[i] = v;
+  });
+  return { venues: list };
+}
+
+function cleanTrackVenue(v) {
+  if (!v || typeof v !== 'object') return null;
+  var id = trackId(v.id || v.name);
+  var name = trackText(v.name, 60);
+  var lat = trackNum(v.lat, -90, 90), lng = trackNum(v.lng, -180, 180);
+  if (!id || !name || lat === null || lng === null) return null;
+  var out = { id: id, name: name, type: v.type === 'drag' ? 'drag' : 'circuit', lat: lat, lng: lng, radius: trackNum(v.radius, 200, 10000) || 2000 };
+  if (v.check) out.check = true;
+  if (out.type === 'circuit') {
+    out.layouts = (Array.isArray(v.layouts) ? v.layouts : []).slice(0, 12).map(function (l) {
+      var lid = trackId(l && (l.id || l.name));
+      if (!lid) return null;
+      var lo = { id: lid, name: trackText(l.name, 60) || lid, length: trackNum(l.length, 300, 30000) || 0 };
+      var sl = trackLine(l.startLine);
+      if (sl) lo.startLine = sl;
+      lo.sectors = (Array.isArray(l.sectors) ? l.sectors : []).map(trackLine).filter(Boolean).slice(0, 8);
+      lo.corners = (Array.isArray(l.corners) ? l.corners : []).slice(0, 40).map(function (c) {
+        var cn = trackText(c && c.name, 40), clat = trackNum(c && c.lat, -90, 90), clng = trackNum(c && c.lng, -180, 180);
+        return cn && clat !== null && clng !== null ? { name: cn, lat: clat, lng: clng } : null;
+      }).filter(Boolean);
+      if (l.check) lo.check = true;
+      return lo;
+    }).filter(Boolean);
+  }
+  return out;
+}
+
+// Only finite numbers in nested arrays: the laps' traces.
+function cleanNumArrays(v, depth) {
+  if (!Array.isArray(v)) return [];
+  return v.map(function (x) {
+    if (depth > 1) return cleanNumArrays(x, depth - 1);
+    var n = Number(x);
+    return isFinite(n) ? n : 0;
+  });
+}
+
+function cleanTrackLaps(laps) {
+  return (Array.isArray(laps) ? laps : []).slice(0, 300).map(function (l) {
+    var t = trackNum(l && l.time, 1, 36000);
+    if (t === null) return null;
+    return {
+      n: trackNum(l.n, 1, 1000) || 0, start: trackNum(l.start, 0, 864000) || 0, time: t,
+      dist: trackNum(l.dist, 0, 100000) || 0, vmax: trackNum(l.vmax, 0, 500) || 0,
+      kind: ['timed', 'in', 'out', 'slow', 'short'].indexOf(l.kind) !== -1 ? l.kind : 'timed',
+      sectors: cleanNumArrays(l.sectors, 1).slice(0, 10)
+    };
+  }).filter(Boolean);
+}
+
+function cleanTrackRuns(runs) {
+  var keys = ['start', 'lat', 'lng', 'ft60', 'ft60Speed', 'eighth', 'eighthSpeed', 'quarter', 'quarterSpeed', 's60', 's100', 'k100', 's60to100', 'vmax'];
+  return (Array.isArray(runs) ? runs : []).slice(0, 50).map(function (r) {
+    var o = {};
+    keys.forEach(function (k) { var n = Number(r && r[k]); if (r && r[k] != null && isFinite(n)) o[k] = n; });
+    o.curve = cleanNumArrays(r && r.curve, 2).slice(0, 400);
+    return o.s60 ? o : null;
+  }).filter(Boolean);
+}
+
+// The parsed session from the browser, checked against the track list.
+// Venue and layout names come from the list, not the browser.
+function cleanTrackSession(s, library) {
+  if (!s || typeof s !== 'object') return { error: 'No session sent' };
+  var out = { type: s.type === 'drag' ? 'drag' : 'track' };
+  out.format = ['VBO', 'CSV', 'GPX'].indexOf(s.format) !== -1 ? s.format : 'CSV';
+  out.hz = trackNum(s.hz, 0, 1000) || 0;
+  out.sats = trackNum(s.sats, 0, 64);
+  out.quality = ['good', 'fair', 'rough'].indexOf(s.quality) !== -1 ? s.quality : 'rough';
+  out.date = /^\d{4}-\d{2}-\d{2}$/.test(s.date || '') ? s.date : ukDateString(new Date());
+  out.time = /^\d{2}:\d{2}$/.test(s.time || '') ? s.time : '';
+  ['duration', 'distance', 'vmax', 'latMax', 'brakeMax', 'accMax', 'bestTime', 'possible'].forEach(function (k) { var n = trackNum(s[k], -100, 1e7); if (n !== null) out[k] = n; });
+  out.speedDerived = !!s.speedDerived;
+  out.gDerived = !!s.gDerived;
+  var venue = (library.venues || []).find(function (v) { return v.id === s.venueId; }) || null;
+  if (venue) { out.venueId = venue.id; out.venue = venue.name; }
+  else out.venue = trackText(s.venueName || s.venue, 60) || (out.type === 'drag' ? 'Drag run' : 'Unknown track');
+  out.origin = cleanNumArrays(s.origin, 1).slice(0, 2);
+  if (out.type === 'drag') {
+    out.runs = cleanTrackRuns(s.runs);
+    if (!out.runs.length) return { error: 'No drag run found in this file' };
+    // At a venue only if the first run starts inside a drag venue.
+    var r0 = out.runs[0];
+    var dv = (library.venues || []).find(function (v) { return v.type === 'drag' && trackDist([v.lat, v.lng], [r0.lat, r0.lng]) <= v.radius; });
+    out.atVenue = !!dv;
+    if (dv) { out.venueId = dv.id; out.venue = dv.name; } else { delete out.venueId; }
+    return out;
+  }
+  if (venue && venue.type !== 'circuit') { delete out.venueId; }
+  var layout = venue && venue.layouts ? venue.layouts.find(function (l) { return l.id === s.layoutId; }) : null;
+  if (layout) { out.layoutId = layout.id; out.layout = layout.name; }
+  out.laps = cleanTrackLaps(s.laps);
+  if (!out.laps.length) return { error: 'No laps found in this file' };
+  out.best = trackNum(s.best, 1, 1000);
+  out.bestSectors = cleanNumArrays(s.bestSectors, 1).slice(0, 10);
+  out.sectorsByThirds = !!s.sectorsByThirds;
+  out.startLine = trackLine(s.startLine);
+  out.startLineFromMember = !!s.startLineFromMember;
+  out.corners = (Array.isArray(s.corners) ? s.corners : []).slice(0, 40).map(function (c) {
+    return { n: trackNum(c.n, 1, 100) || 0, d: trackNum(c.d, 0, 100000) || 0, x: trackNum(c.x, -1e6, 1e6) || 0, y: trackNum(c.y, -1e6, 1e6) || 0, v: trackNum(c.v, 0, 500) || 0, lat: trackNum(c.lat, -90, 90), lng: trackNum(c.lng, -180, 180), name: trackText(c.name, 40) };
+  });
+  var tr = s.trace && s.trace.laps && typeof s.trace.laps === 'object' ? s.trace.laps : {};
+  var laps = {};
+  Object.keys(tr).slice(0, 300).forEach(function (k) { if (/^\d{1,4}$/.test(k)) laps[k] = cleanNumArrays(tr[k], 2).slice(0, 20000); });
+  out.trace = { hz: trackNum(s.trace && s.trace.hz, 0.1, 50) || 5, laps: laps };
+  // A best lap faster than the layout allows (over about 300 km/h average) is refused.
+  if (layout && layout.length && out.bestTime && out.bestTime < layout.length / 85) return { error: 'That lap time is not possible here' };
+  return out;
+}
+
+function trackSummary(rec) {
+  var o = {
+    id: rec.id, carId: rec.carId, type: rec.type, venueId: rec.venueId || '', venue: rec.venue, layoutId: rec.layoutId || '', layout: rec.layout || '',
+    date: rec.date, time: rec.time || '', privacy: rec.privacy, conditions: rec.conditions || '', tyres: rec.tyres || '', temp: rec.temp,
+    vmax: rec.vmax || 0, quality: rec.quality
+  };
+  if (rec.street) o.street = true;
+  if (rec.type === 'drag') {
+    var runs = rec.runs || [];
+    var bq = runs.filter(function (r) { return r.quarter; }).sort(function (a, b) { return a.quarter - b.quarter; })[0];
+    var b60 = runs.slice().sort(function (a, b) { return a.s60 - b.s60; })[0];
+    o.runs = runs.length;
+    if (bq) { o.quarter = bq.quarter; o.quarterSpeed = bq.quarterSpeed; }
+    if (b60) o.s60 = b60.s60;
+    o.atVenue = !!rec.atVenue;
+  } else {
+    o.bestTime = rec.bestTime || null;
+    o.laps = (rec.laps || []).length;
+  }
+  return o;
+}
+
+function trackBoardKey(rec) {
+  if (rec.type === 'drag') return rec.venueId && rec.atVenue && !rec.street ? 'drag-board:' + rec.venueId : '';
+  return rec.venueId && rec.layoutId ? 'track-board:' + rec.venueId + ':' + rec.layoutId : '';
+}
+function trackScore(s) { return s.type === 'drag' ? s.quarter : s.bestTime; }
+
+// Whether the signed-in member owns this car (one of their photos is in it).
+async function carBelongsTo(env, email, carId) {
+  if (!/^[A-Za-z0-9_-]{1,80}$/.test(String(carId || ''))) return null;
+  var record = await getCarRecord(env, carId);
+  if (!record) return null;
+  var files = await getSubscriberFiles(env, email);
+  var mine = (record.photos || []).some(function (f) { return files.indexOf(f) !== -1; });
+  return mine ? record : null;
+}
+
+async function isAdminViewerToken(env, token) {
+  token = String(token || '');
+  if (!/^[A-Za-z0-9_-]{16,128}$/.test(token) || !env.ADMIN_KEY) return false;
+  var raw = await env.VOTES.get('admin-viewer:' + token);
+  var record = null;
+  try { record = raw ? JSON.parse(raw) : null; } catch (e) { record = null; }
+  return !!(record && record.expires > Date.now() && record.k === (await adminKeyStamp(env)));
+}
+
+// Rebuilds this car's place on one board from its shared sessions.
+async function refreshTrackBoard(env, boardKey, carId) {
+  if (!boardKey) return;
+  var shared = await getJsonKey(env, 'track-public:' + carId, []);
+  var mine = shared.filter(function (s) { return s.privacy === 'board' && trackBoardKey(s) === boardKey && trackScore(s); })
+    .sort(function (a, b) { return trackScore(a) - trackScore(b); })[0];
+  var board = await getJsonKey(env, boardKey, []);
+  board = board.filter(function (e) { return e.carId !== carId; });
+  if (mine) {
+    var record = await getCarRecord(env, carId);
+    var details = await getCarDetails(env, carId);
+    var ownerEmail = record ? await carOwnerEmail(env, record) : null;
+    var entry = {
+      carId: carId, sessionId: mine.id, date: mine.date, conditions: mine.conditions || '', tyres: mine.tyres || '',
+      car: (record && record.name) || 'MT3UK member build', model: (details && details.model) || '', version: (details && details.version) || '', year: (details && details.year) || '',
+      owner: ownerEmail ? (publicName(await getProfileRecord(env, ownerEmail)) || 'MT3UK member') : 'MT3UK member',
+      photo: record && record.photos && record.photos[0] ? record.photos[0] : '',
+      mods: ((record && record.mods) || []).slice(0, 30)
+    };
+    if (mine.type === 'drag') { entry.quarter = mine.quarter; entry.quarterSpeed = mine.quarterSpeed; entry.s60 = mine.s60; }
+    else entry.time = mine.bestTime;
+    board.push(entry);
+  }
+  board.sort(function (a, b) { return (a.time || a.quarter) - (b.time || b.quarter); });
+  await env.VOTES.put(boardKey, JSON.stringify(board.slice(0, TRACK_BOARD_MAX)));
+}
+
+// The owner of a car record, from its first photo's owner.
+async function carOwnerEmail(env, record) {
+  var file = record && record.photos && record.photos[0];
+  if (!file) return null;
+  try {
+    var obj = await env.GALLERY_BUCKET.get('gallery/' + file + '.json');
+    var sidecar = obj ? await obj.json() : null;
+    return sidecar ? await sidecarOwnerEmail(env, file, sidecar) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function putTrackIndexes(env, email, rec, removed) {
+  var oKey = 'track-index:' + (await ownerKey(email));
+  var index = (await getJsonKey(env, oKey, [])).filter(function (s) { return s.id !== rec.id; });
+  if (!removed) index.unshift(trackSummary(rec));
+  index.sort(function (a, b) { return (b.date + b.time) < (a.date + a.time) ? -1 : 1; });
+  await env.VOTES.put(oKey, JSON.stringify(index));
+  var pKey = 'track-public:' + rec.carId;
+  var shared = await getJsonKey(env, pKey, []);
+  var had = shared.some(function (s) { return s.id === rec.id; });
+  shared = shared.filter(function (s) { return s.id !== rec.id; });
+  var share = !removed && rec.privacy !== 'private' && !rec.street;
+  if (share) shared.unshift(trackSummary(rec));
+  if (share || had) {
+    shared.sort(function (a, b) { return (b.date + b.time) < (a.date + a.time) ? -1 : 1; });
+    await env.VOTES.put(pKey, JSON.stringify(shared));
+  }
+  await refreshTrackBoard(env, trackBoardKey(rec), rec.carId);
+}
+
+async function handleTrackSessionsList(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  return json({ success: true, sessions: await getJsonKey(env, 'track-index:' + (await ownerKey(email)), []) });
+}
+
+async function handleTrackSessionSave(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var raw = await request.text();
+  if (raw.length > TRACK_SESSION_MAX_BYTES) return json({ success: false, message: 'This session is too big to save. Try a shorter file.' }, 413);
+  var body;
+  try { body = JSON.parse(raw); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var record = await carBelongsTo(env, email, body.carId);
+  if (!record) return json({ success: false, message: 'That car is not linked to your account' }, 403);
+  var library = await getTrackLibrary(env);
+  var rec = cleanTrackSession(body.session, library);
+  if (rec.error) return json({ success: false, message: rec.error }, 400);
+  rec.street = false;
+  if (rec.type === 'drag' && !rec.atVenue) {
+    // Street runs: admins only, and always private.
+    if (!body.street || !(await isAdminViewerToken(env, body.adminViewer))) {
+      return json({ success: false, message: 'Drag runs can only be saved from a drag strip we know. If you were at one we don\'t list, tell us and we\'ll add it.' }, 400);
+    }
+    rec.street = true;
+  }
+  rec.id = randomToken().slice(0, 20);
+  rec.owner = await ownerKey(email);
+  rec.carId = String(body.carId);
+  rec.createdAt = new Date().toISOString();
+  applyTrackEdits(rec, body);
+  if (rec.street) rec.privacy = 'private';
+  await env.VOTES.put('track-session:' + rec.id, JSON.stringify(rec));
+  await putTrackIndexes(env, email, rec);
+  return json({ success: true, session: trackSummary(rec) });
+}
+
+function applyTrackEdits(rec, body) {
+  if (TRACK_PRIVACY.indexOf(body.privacy) !== -1) rec.privacy = body.privacy;
+  if (!rec.privacy) rec.privacy = 'private';
+  // Leaderboards need a known track and layout (or drag strip).
+  if (rec.privacy === 'board' && !trackBoardKey(rec)) rec.privacy = 'build';
+  if ('conditions' in body) rec.conditions = TRACK_CONDITIONS.indexOf(body.conditions) !== -1 ? body.conditions : '';
+  if ('tyres' in body) rec.tyres = trackText(body.tyres, 60);
+  if ('temp' in body) rec.temp = trackNum(body.temp, -30, 50);
+  if ('notes' in body) rec.notes = trackText(body.notes, 500);
+  if ('venueName' in body && !rec.venueId) rec.venue = trackText(body.venueName, 60) || rec.venue;
+}
+
+async function getOwnTrackSession(request, env, id) {
+  var email = await resolveSession(request, env);
+  if (!email) return { error: json({ success: false, message: 'Please sign in again' }, 401) };
+  var rec = await getJsonKey(env, 'track-session:' + id, null);
+  if (!rec || rec.owner !== (await ownerKey(email))) return { error: json({ success: false, message: 'Session not found' }, 404) };
+  return { email: email, rec: rec };
+}
+
+async function handleTrackSessionGet(request, env) {
+  var id = String(new URL(request.url).searchParams.get('id') || '');
+  if (!/^[a-f0-9]{8,40}$/.test(id)) return json({ success: false, message: 'Session not found' }, 404);
+  var rec = await getJsonKey(env, 'track-session:' + id, null);
+  if (!rec) return json({ success: false, message: 'Session not found' }, 404);
+  var viewer = request.headers.get('X-Session-Token') ? await resolveSession(request, env) : null;
+  var mine = !!viewer && rec.owner === (await ownerKey(viewer));
+  if (!mine && (rec.privacy === 'private' || rec.street)) return json({ success: false, message: 'Session not found' }, 404);
+  var out = Object.assign({}, rec);
+  delete out.owner;
+  if (!mine) delete out.notes;
+  out.mine = mine;
+  var car = await getCarRecord(env, rec.carId);
+  out.car = car ? car.name : '';
+  return json({ success: true, session: out });
+}
+
+async function handleTrackSessionUpdate(request, env) {
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var got = await getOwnTrackSession(request, env, String(body.id || ''));
+  if (got.error) return got.error;
+  var rec = got.rec;
+  var oldBoard = trackBoardKey(rec);
+  applyTrackEdits(rec, body);
+  if (rec.street) rec.privacy = 'private';
+  await env.VOTES.put('track-session:' + rec.id, JSON.stringify(rec));
+  await putTrackIndexes(env, got.email, rec);
+  if (oldBoard && oldBoard !== trackBoardKey(rec)) await refreshTrackBoard(env, oldBoard, rec.carId);
+  return json({ success: true, session: trackSummary(rec) });
+}
+
+async function handleTrackSessionDelete(request, env) {
+  var got = await getOwnTrackSession(request, env, String(new URL(request.url).searchParams.get('id') || ''));
+  if (got.error) return got.error;
+  await env.VOTES.delete('track-session:' + got.rec.id);
+  await putTrackIndexes(env, got.email, got.rec, true);
+  return json({ success: true });
+}
+
+async function handleTrackPublic(request, env) {
+  var carId = String(new URL(request.url).searchParams.get('car') || '');
+  if (!/^[A-Za-z0-9_-]{1,80}$/.test(carId)) return json({ success: false, message: 'car is required' }, 400);
+  var record = await getCarRecord(env, carId);
+  if (!record) return json({ success: false, message: 'Not found' }, 404);
+  var details = await getCarDetails(env, carId);
+  var ownerEmail = await carOwnerEmail(env, record);
+  var viewer = request.headers.get('X-Session-Token') ? await resolveSession(request, env) : null;
+  var res = json({
+    success: true,
+    car: { id: carId, name: record.name || '', model: (details && details.model) || '', version: (details && details.version) || '', year: (details && details.year) || '', photo: (record.photos || [])[0] || '', owner: ownerEmail ? (publicName(await getProfileRecord(env, ownerEmail)) || 'MT3UK member') : '' },
+    mine: !!viewer && viewer === ownerEmail,
+    sessions: await getJsonKey(env, 'track-public:' + carId, [])
+  });
+  res.headers.set('Cache-Control', 'private, max-age=60');
+  return res;
+}
+
+// Best shared lap per track for a car (Gallery and My Garage), one get.
+async function trackBestsForCar(env, carId) {
+  if (!carId) return [];
+  var shared = await getJsonKey(env, 'track-public:' + carId, []);
+  var best = {};
+  shared.forEach(function (s) {
+    var k = s.type === 'drag' ? 'drag:' + (s.venueId || s.venue) : (s.venueId || s.venue) + ':' + (s.layoutId || '');
+    var score = trackScore(s);
+    if (!score) return;
+    if (!best[k] || score < trackScore(best[k])) best[k] = s;
+  });
+  return Object.keys(best).map(function (k) {
+    var s = best[k];
+    return { type: s.type, venue: s.venue, layout: s.layout || '', venueId: s.venueId, layoutId: s.layoutId, date: s.date, bestTime: s.bestTime, quarter: s.quarter, quarterSpeed: s.quarterSpeed, id: s.id };
+  });
+}
+
+async function handleTrackBoard(request, env, drag) {
+  var params = new URL(request.url).searchParams;
+  var venue = trackId(params.get('venue')), layout = trackId(params.get('layout'));
+  if (!venue || (!drag && !layout)) return json({ success: false, message: 'venue is required' }, 400);
+  var key = drag ? 'drag-board:' + venue : 'track-board:' + venue + ':' + layout;
+  var res = json({ success: true, entries: await getJsonKey(env, key, []) });
+  res.headers.set('Cache-Control', 'public, max-age=60');
+  return res;
+}
+
+async function handleTrackTracks(request, env) {
+  var res = json({ success: true, extra: await getJsonKey(env, 'track-library', { venues: [] }) });
+  res.headers.set('Cache-Control', 'public, max-age=60');
+  return res;
+}
+
+async function handleTrackRequest(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var list = await getJsonKey(env, 'track-requests', []);
+  var mineRecent = list.filter(function (r) { return r.from === email && !r.done; }).length;
+  if (mineRecent >= 10) return json({ success: false, message: 'You already have requests waiting. We\'ll get to them soon.' }, 429);
+  var outline = cleanNumArrays(body.outline, 2).slice(0, 400).map(function (p) { return p.slice(0, 2); });
+  var req = {
+    id: randomToken().slice(0, 12), at: new Date().toISOString(), from: email,
+    kind: body.kind === 'drag' ? 'drag' : 'circuit',
+    name: trackText(body.name, 60), note: trackText(body.note, 300),
+    venueId: trackId(body.venueId), startLine: trackLine(body.startLine), lapLength: trackNum(body.lapLength, 0, 30000),
+    lat: trackNum(body.lat, -90, 90), lng: trackNum(body.lng, -180, 180), outline: outline
+  };
+  if (req.lat === null && outline.length) { req.lat = outline[0][0]; req.lng = outline[0][1]; }
+  if (req.lat === null) return json({ success: false, message: 'Where is it? The request needs a position.' }, 400);
+  list.unshift(req);
+  await env.VOTES.put('track-requests', JSON.stringify(list.slice(0, 200)));
+  return json({ success: true });
+}
+
+async function handleTrackAdminTracks(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var extra = await getJsonKey(env, 'track-library', { venues: [] });
+  if (request.method === 'GET') return json({ success: true, extra: extra, library: await getTrackLibrary(env) });
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var venues = (extra.venues || []).slice();
+  if (body.remove) {
+    var rid = trackId(body.remove);
+    venues = venues.filter(function (v) { return v.id !== rid; });
+    venues.push({ id: rid, removed: true });
+  } else {
+    var v = cleanTrackVenue(body.venue);
+    if (!v) return json({ success: false, message: 'A track needs a name and a centre (latitude and longitude).' }, 400);
+    venues = venues.filter(function (x) { return x.id !== v.id; });
+    venues.push(v);
+  }
+  await env.VOTES.put('track-library', JSON.stringify({ venues: venues }));
+  return json({ success: true, library: await getTrackLibrary(env) });
+}
+
+async function handleTrackAdminRequests(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var list = await getJsonKey(env, 'track-requests', []);
+  if (request.method === 'GET') {
+    return json({ success: true, requests: list.map(function (r) { var o = Object.assign({}, r); o.from = maskEmailForAdmin(r.from); return o; }) });
+  }
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var req = list.find(function (r) { return r.id === body.id; });
+  if (!req) return json({ success: false, message: 'Request not found' }, 404);
+  req.done = body.action === 'approve' ? 'approved' : 'dismissed';
+  req.doneAt = new Date().toISOString();
+  await env.VOTES.put('track-requests', JSON.stringify(list));
+  return json({ success: true });
+}
+
+function maskEmailForAdmin(email) {
+  var m = String(email || '').match(/^(.)(.*)(@.*)$/);
+  return m ? m[1] + '***' + m[3] : '';
+}
+
+async function handleTrackAdminBoardEntry(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var params = new URL(request.url).searchParams;
+  var board = String(params.get('board') || ''), carId = String(params.get('car') || '');
+  if (!/^(track-board:[a-z0-9-]+:[a-z0-9-]+|drag-board:[a-z0-9-]+)$/.test(board)) return json({ success: false, message: 'Unknown board' }, 400);
+  var entries = await getJsonKey(env, board, []);
+  await env.VOTES.put(board, JSON.stringify(entries.filter(function (e) { return e.carId !== carId; })));
+  // Keep it off the board: the car's session goes back to "On my build".
+  var entry = entries.find(function (e) { return e.carId === carId; });
+  if (entry && entry.sessionId) {
+    var rec = await getJsonKey(env, 'track-session:' + entry.sessionId, null);
+    if (rec && rec.privacy === 'board') {
+      rec.privacy = 'build';
+      await env.VOTES.put('track-session:' + rec.id, JSON.stringify(rec));
+      var shared = await getJsonKey(env, 'track-public:' + carId, []);
+      shared.forEach(function (s) { if (s.id === rec.id) s.privacy = 'build'; });
+      await env.VOTES.put('track-public:' + carId, JSON.stringify(shared));
+    }
+  }
+  return json({ success: true });
+}
+
+// A member leaving: their sessions, index, shared lists and board places.
+async function deleteMemberTrackData(env, email) {
+  var oKey = 'track-index:' + (await ownerKey(email));
+  var index = await getJsonKey(env, oKey, []);
+  var cars = {};
+  for (var i = 0; i < index.length; i++) {
+    await env.VOTES.delete('track-session:' + index[i].id);
+    cars[index[i].carId] = true;
+  }
+  await env.VOTES.delete(oKey);
+  var carIds = Object.keys(cars);
+  for (var c = 0; c < carIds.length; c++) await deleteCarTrackData(env, carIds[c]);
+}
+
+// A car going: its shared list and board places (the sessions stay with
+// the member).
+async function deleteCarTrackData(env, carId) {
+  var shared = await getJsonKey(env, 'track-public:' + carId, null);
+  if (!shared) return;
+  await env.VOTES.delete('track-public:' + carId);
+  var boards = {};
+  shared.forEach(function (s) { var k = trackBoardKey(s); if (k) boards[k] = true; });
+  var keys = Object.keys(boards);
+  for (var i = 0; i < keys.length; i++) await refreshTrackBoard(env, keys[i], carId);
 }
 
 async function handleMyBuildsCarUpdate(request, env) {
@@ -7477,6 +8015,45 @@ export default {
     }
     if (url.pathname === '/cars/public' && request.method === 'GET') {
       return handleCarPublic(request, env);
+    }
+    if (url.pathname === '/track/sessions' && request.method === 'GET') {
+      return handleTrackSessionsList(request, env);
+    }
+    if (url.pathname === '/track/sessions' && request.method === 'POST') {
+      return handleTrackSessionSave(request, env);
+    }
+    if (url.pathname === '/track/session' && request.method === 'GET') {
+      return handleTrackSessionGet(request, env);
+    }
+    if (url.pathname === '/track/session' && request.method === 'PUT') {
+      return handleTrackSessionUpdate(request, env);
+    }
+    if (url.pathname === '/track/session' && request.method === 'DELETE') {
+      return handleTrackSessionDelete(request, env);
+    }
+    if (url.pathname === '/track/public' && request.method === 'GET') {
+      return handleTrackPublic(request, env);
+    }
+    if (url.pathname === '/track/board' && request.method === 'GET') {
+      return handleTrackBoard(request, env, false);
+    }
+    if (url.pathname === '/drag/board' && request.method === 'GET') {
+      return handleTrackBoard(request, env, true);
+    }
+    if (url.pathname === '/track/tracks' && request.method === 'GET') {
+      return handleTrackTracks(request, env);
+    }
+    if (url.pathname === '/track/requests' && request.method === 'POST') {
+      return handleTrackRequest(request, env);
+    }
+    if (url.pathname === '/track/admin/tracks' && (request.method === 'GET' || request.method === 'PUT')) {
+      return handleTrackAdminTracks(request, env);
+    }
+    if (url.pathname === '/track/admin/requests' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleTrackAdminRequests(request, env);
+    }
+    if (url.pathname === '/track/admin/board-entry' && request.method === 'DELETE') {
+      return handleTrackAdminBoardEntry(request, env);
     }
     if (url.pathname === '/my-builds/car' && request.method === 'PUT') {
       return handleMyBuildsCarUpdate(request, env);

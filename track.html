@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Track sessions - MT3UK</title>
+<meta name="description" content="Upload your RaceBox, VBOX or lap timer file and see every lap mapped, compare laps corner by corner, track your times as you modify your Tesla, and join the leaderboards.">
+<link rel="canonical" href="https://mt3uk.com/track.html">
+<link rel="icon" type="image/x-icon" href="images/site/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="images/site/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="images/site/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="images/site/apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#16233d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MT3UK">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Track sessions - MT3UK">
+<meta property="og:description" content="Upload your RaceBox, VBOX or lap timer file and see every lap mapped, compare laps corner by corner, track your times as you modify your Tesla, and join the leaderboards.">
+<meta property="og:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
+<meta property="og:url" content="https://mt3uk.com/track.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Track sessions - MT3UK">
+<meta name="twitter:description" content="Upload your RaceBox, VBOX or lap timer file and see every lap mapped, compare laps corner by corner, track your times as you modify your Tesla, and join the leaderboards.">
+<meta name="twitter:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
+<script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
+<link rel="stylesheet" href="css/site-header.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
+  :root {
+    --ink: #16233d;
+    --ink-2: #223257;
+    --paper: #f3f1ea;
+    --paper-2: #e9e5d8;
+    --charcoal: #1c1c1c;
+    --orange: #e8542a;
+    --line: #4a6491;
+    --steel: #6b7385;
+    --white: #ffffff;
+    --ok-bg: #e8f4ec;
+    --ok-ink: #1d6b3a;
+    --warn-bg: #fff4dd;
+    --warn-ink: #7a5000;
+    --content-max: 1000px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--paper); color: var(--charcoal); font-family: var(--font-body); line-height: 1.5; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  h1, h2, h3 { font-family: var(--font-head); font-weight: 800; letter-spacing: -0.01em; color: var(--ink); line-height: 1.2; }
+  h2 { font-size: 1.2rem; }
+  h3 { font-size: 0.98rem; margin-bottom: 8px; }
+  a { color: inherit; text-decoration: none; }
+  img { max-width: 100%; display: block; }
+  .wrap { max-width: var(--content-max); margin: 0 auto; padding: 0 28px; }
+  @media (max-width: 780px) { .wrap { padding: 0 16px; } }
+
+  /* ---------- NAV: shared, see css/site-header.css ---------- */
+
+  /* ---------- PAGE HERO ---------- */
+  .page-hero { padding: 40px 0 28px; border-bottom: 1px solid var(--hairline); }
+  .page-hero .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 0.86rem; color: var(--steel); margin-bottom: 16px; }
+  .page-hero .back-link:hover { color: var(--orange); }
+  .page-hero .eyebrow { display: block; font-size: 0.82rem; font-weight: 600; color: var(--steel); margin-bottom: 8px; }
+  .page-hero h1 { margin-bottom: 12px; font-size: clamp(1.6rem, 4vw, 2.3rem); }
+  .page-hero p { color: var(--ink-2); max-width: 58ch; font-size: 1.02rem; }
+  @media (max-width: 780px) { .page-hero { padding: 24px 0 20px; } .page-hero .back-link { margin-bottom: 10px; } }
+  @media (min-width: 901px) {
+    .page-hero .wrap { text-align: center; }
+    .page-hero p { margin-left: auto; margin-right: auto; }
+  }
+
+  /* ---------- TRACK SESSIONS ---------- */
+  .tp-main { padding: 26px 0 64px; }
+  .tp-loading { padding: 40px 0; text-align: center; color: var(--steel); }
+  .tp-section { margin-top: 30px; }
+  .tp-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 16px; margin-bottom: 12px; }
+  .tp-head-side { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .tp-sub { color: var(--steel); font-size: 0.92rem; margin: 4px 0 12px; max-width: 64ch; }
+  .tp-small { color: var(--steel); font-size: 0.8rem; margin-top: 8px; }
+  .tp-link { display: inline-flex; align-items: center; gap: 4px; color: var(--ink); font-weight: 600; font-size: 0.9rem; }
+  .tp-link:hover { color: var(--orange); }
+  .tp-back { display: inline-flex; align-items: center; gap: 6px; color: var(--steel); font-size: 0.88rem; margin-bottom: 14px; min-height: 32px; }
+  .tp-back:hover { color: var(--orange); }
+  .tp-units { flex: none; }
+  .card { padding: 16px; }
+  .tp-intro { padding: 22px; display: grid; gap: 12px; justify-items: start; }
+  .tp-intro p { color: var(--ink-2); max-width: 62ch; }
+  .tp-ticks { list-style: none; display: grid; gap: 6px; }
+  .tp-ticks li { display: flex; gap: 8px; align-items: center; font-size: 0.94rem; }
+  .tp-ticks .icon { color: var(--ok-ink); }
+  .tp-empty { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; color: var(--steel); }
+  .tp-empty .icon { color: var(--orange); }
+  .tp-empty p { flex: 1; min-width: 200px; }
+  .tp-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip-sm { min-height: 32px; padding: 4px 11px; font-size: 0.8rem; }
+  .tp-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+  .tp-list { display: grid; gap: 8px; }
+  .tp-row { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 10px 14px; background: #fff; border: 1px solid var(--hairline); border-radius: var(--radius); }
+  .tp-row:hover { border-color: var(--hairline-strong); }
+  .tp-row-main { flex: 1; min-width: 0; display: grid; }
+  .tp-row-main b { font-size: 0.96rem; color: var(--ink); overflow-wrap: anywhere; }
+  .tp-row-main span { font-size: 0.82rem; color: var(--steel); }
+  .tp-row-res { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }
+  .tp-row > .icon { color: var(--steel); }
+  @media (max-width: 560px) { .tp-row { flex-wrap: wrap; } .tp-row-main { flex-basis: calc(100% - 40px); } .tp-row > .icon { order: 2; } .tp-row-res { order: 3; } .tp-pill { order: 4; } }
+  .tp-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: var(--radius-pill); background: var(--paper-2); color: var(--ink); font-size: 0.76rem; font-weight: 600; white-space: nowrap; }
+  .tp-pill .icon { width: 13px; height: 13px; }
+  .tp-pill-admin { background: #fdf3ef; color: #b8421f; }
+  .tp-boards { display: grid; gap: 10px; }
+  @media (min-width: 781px) { .tp-boards { grid-template-columns: 1fr 1fr; } }
+  .tp-board-card { background: #fff; border: 1px solid var(--hairline); border-radius: var(--radius); padding: 12px 14px; display: grid; gap: 8px; }
+  .tp-board-card b { color: var(--ink); }
+
+  /* Add a session */
+  .tp-add-grid { display: grid; gap: 14px; align-items: start; }
+  @media (min-width: 781px) { .tp-add-grid { grid-template-columns: 1fr 1fr; } }
+  .tp-car-one { margin-bottom: 12px; color: var(--steel); }
+  .tp-car-one b { color: var(--ink); }
+  .tp-field { display: grid; gap: 6px; margin-bottom: 14px; }
+  .tp-field label, .tp-lbl { font-size: 0.82rem; font-weight: 600; color: var(--steel); }
+  .tp-f2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 420px) { .tp-f2 { grid-template-columns: 1fr; } }
+  .tp-drop { border: 2px dashed var(--hairline-strong); border-radius: var(--radius); padding: 22px 16px; text-align: center; display: grid; gap: 8px; justify-items: center; cursor: pointer; }
+  .tp-drop.is-over { border-color: var(--orange); background: #fdf3ef; }
+  .tp-drop > .icon { width: 30px; height: 30px; color: var(--orange); }
+  .tp-drop small { color: var(--steel); }
+  .tp-file { display: flex; gap: 12px; align-items: center; padding: 12px; border: 1px solid var(--hairline); border-radius: var(--radius-sm); margin-top: 12px; }
+  .tp-file .icon { color: var(--ok-ink); }
+  .tp-file b { display: block; font-size: 0.9rem; overflow-wrap: anywhere; color: var(--ink); }
+  .tp-file span { font-size: 0.8rem; color: var(--steel); }
+  .tp-help { margin-top: 12px; font-size: 0.88rem; }
+  .tp-help summary { cursor: pointer; font-weight: 600; min-height: 36px; display: flex; align-items: center; gap: 6px; color: var(--ink); }
+  .tp-help ul { margin: 6px 0 0 20px; color: var(--steel); display: grid; gap: 4px; }
+  .tp-status { margin-top: 10px; font-size: 0.88rem; color: var(--steel); min-height: 1.2em; }
+  .tp-status.is-error { color: #b8361a; }
+  .tp-status.is-ok { color: var(--ok-ink); }
+  .tp-mapping { margin-top: 14px; border-top: 1px solid var(--hairline); padding-top: 14px; display: grid; gap: 10px; }
+  .tp-mapping p { color: var(--steel); font-size: 0.88rem; }
+  .tp-sample { overflow-x: auto; border: 1px solid var(--hairline); border-radius: var(--radius-sm); }
+  .tp-notice { display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: var(--radius); font-size: 0.9rem; margin-bottom: 14px; }
+  .tp-notice b { color: var(--ink); }
+  .tp-notice.is-ok { background: var(--ok-bg); color: var(--ok-ink); }
+  .tp-notice.is-warn { background: var(--warn-bg); color: var(--warn-ink); }
+  .tp-notice.is-admin { background: #fdf3ef; color: #b8421f; }
+  .tp-mini { width: 64px; height: 48px; flex: none; }
+  .tp-privacy { display: grid; gap: 8px; }
+  .tp-opt { display: flex; gap: 12px; align-items: flex-start; width: 100%; padding: 12px; text-align: left; background: #fff; border: 1px solid var(--hairline-strong); border-radius: var(--radius-sm); font: inherit; color: inherit; cursor: pointer; }
+  .tp-opt.is-on { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+  .tp-opt:disabled { opacity: 0.5; cursor: default; }
+  .tp-opt b { display: block; font-size: 0.92rem; color: var(--ink); }
+  .tp-opt span span { font-size: 0.82rem; color: var(--steel); }
+  .tp-dot { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--hairline-strong); flex: none; margin-top: 2px; display: grid; place-items: center; }
+  .tp-opt.is-on .tp-dot { border-color: var(--ink); }
+  .tp-opt.is-on .tp-dot::after { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--ink); }
+  .tp-switch { display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 100%; min-height: 48px; margin-bottom: 14px; background: none; border: 0; font: inherit; color: var(--ink); text-align: left; cursor: pointer; }
+  .tp-switch small { color: var(--steel); }
+  .tp-track { width: 46px; height: 28px; border-radius: 14px; background: var(--hairline-strong); position: relative; flex: none; transition: background .15s; }
+  .tp-track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .15s; }
+  .tp-switch[aria-checked="true"] .tp-track { background: var(--orange); }
+  .tp-switch[aria-checked="true"] .tp-track::after { transform: translateX(18px); }
+  .tp-tap { cursor: crosshair; margin-bottom: 14px; border: 1px solid var(--hairline); border-radius: var(--radius-sm); }
+
+  /* A session */
+  .tp-session-head h2 { font-size: 1.35rem; }
+  .tp-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+  @media (min-width: 781px) { .tp-tiles { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+  .tp-tile { background: #fff; border: 1px solid var(--hairline); border-radius: var(--radius); padding: 12px 14px; min-width: 0; }
+  .tp-tile.is-hero { border-color: var(--ink); }
+  .tp-tile .k { font-size: 0.78rem; font-weight: 600; color: var(--steel); }
+  .tp-tile .v { font-family: var(--font-head); font-weight: 800; font-size: 1.35rem; color: var(--ink); font-variant-numeric: tabular-nums; line-height: 1.25; overflow-wrap: anywhere; }
+  .tp-tile .s { font-size: 0.78rem; color: var(--steel); }
+  .tp-grid { display: grid; gap: 14px; margin-bottom: 14px; }
+  .tp-grid > * { min-width: 0; }
+  @media (min-width: 781px) { .tp-g-map { grid-template-columns: 1.25fr 1fr; align-items: start; } .tp-g2 { grid-template-columns: 1fr 1fr; align-items: start; } }
+  .tp-chart-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 12px; margin: 4px 0 8px; }
+  .tp-chart-head h3 { margin: 0; }
+  .tp-chart-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 12px; font-size: 0.8rem; color: var(--steel); margin-top: 6px; }
+  .tp-ramp { display: inline-flex; align-items: center; gap: 8px; }
+  .tp-ramp i { width: 110px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, #b7d3f6, #3987e5, #0d366b); }
+  .tp-key { display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.8rem; color: var(--steel); }
+  .tp-key i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+  .tp-key i.is-ring { width: 10px; height: 10px; border-radius: 50%; border: 2px solid #2a78d6; background: #fff; }
+  .tp-key .is-mod { color: #b8421f; }
+  .tp-key i.is-dash { height: 2px; background: repeating-linear-gradient(90deg, #e8542a 0 4px, transparent 4px 7px); }
+  .tv-chart { display: block; width: 100%; height: auto; overflow: visible; touch-action: pan-y; }
+  .tv-chart text { font-family: var(--font-body); font-size: 12px; fill: #6b7385; font-variant-numeric: tabular-nums; }
+  .tp-gg { max-width: 380px; margin: 0 auto; }
+  .tv-tip { position: fixed; pointer-events: none; z-index: 50; background: #fff; color: var(--ink); border: 1px solid var(--hairline-strong); border-radius: var(--radius-sm); padding: 8px 10px; font-size: 0.8rem; box-shadow: 0 6px 20px rgba(22,35,61,.16); display: none; min-width: 140px; font-variant-numeric: tabular-nums; }
+  .tv-tip b { display: block; margin-bottom: 2px; }
+  .tv-r { display: flex; justify-content: space-between; gap: 12px; }
+  .tv-r i { display: inline-block; width: 10px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+  .tp-scroll { overflow-x: auto; }
+  .tp-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; font-variant-numeric: tabular-nums; }
+  .tp-table th, .tp-table td { padding: 9px 8px; text-align: right; border-bottom: 1px solid var(--hairline); white-space: nowrap; vertical-align: top; }
+  .tp-table th:first-child, .tp-table td:first-child { text-align: left; }
+  .tp-table th { font-size: 0.76rem; font-weight: 600; color: var(--steel); }
+  .tp-table tr:last-child td { border-bottom: 0; }
+  .tp-table tr.is-best td { font-weight: 700; }
+  .tp-table td.is-fast { color: var(--ok-ink); font-weight: 700; }
+  .tp-table a { color: var(--ink); text-decoration: underline; }
+  .tp-board td:nth-child(2) { text-align: left; white-space: normal; min-width: 160px; }
+  .tp-board small, .tp-table td small { display: block; font-size: 0.76rem; color: var(--steel); font-weight: 400; }
+  .tp-res { font-weight: 700; }
+  .tp-mods summary { cursor: pointer; font-size: 0.78rem; color: var(--ink); margin-top: 4px; }
+  .tp-modchip { display: inline-block; padding: 3px 9px; border-radius: var(--radius-pill); background: var(--paper); border: 1px solid var(--hairline); font-size: 0.76rem; margin-top: 4px; }
+  .tp-badge { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: var(--radius-pill); font-size: 0.7rem; font-weight: 700; background: var(--ink); color: #fff; vertical-align: 1px; }
+  .tp-badge.is-soft { background: var(--paper-2); color: var(--ink); }
+  .tp-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .tp-notes { display: grid; gap: 10px; align-content: start; }
+  .tp-note { display: flex; gap: 12px; padding: 12px 14px; background: #fff; border: 1px solid var(--hairline); border-radius: var(--radius); }
+  .tp-note > .icon { color: var(--orange); margin-top: 2px; }
+  .tp-note p { font-size: 0.92rem; color: var(--ink); }
+  .tp-note small { display: block; color: var(--steel); font-size: 0.8rem; margin-top: 3px; }
+  .tp-cmp-pick { margin-bottom: 14px; }
+  .tp-cmp-pick .tp-field { margin-bottom: 0; }
+  .tp-fields .btn-block { margin-top: 4px; }
+</style>
+
+</head>
+<body>
+
+<header>
+  <nav>
+    <div class="nav-center">
+      <a href="/" class="logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
+    <div class="navlinks" id="navlinks">
+      <a href="signin.html" class="nav-link-mobile">Sign Up / Sign In</a>
+      <div class="nav-item">
+        <a href="index.html#build-feed" class="nav-link">Gallery Feed</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Gallery Feed submenu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div class="nav-dropdown">
+          <a href="index.html#build-of-the-day" class="nav-sublink nav-sublink-new">Build of the Week</a>
+          <a href="index.html#vote-frame" class="nav-sublink">Vote for Build</a>
+          <a href="gallery.html" class="nav-sublink">Full Gallery</a>
+        </div>
+      </div>
+      <a href="my-builds.html" class="nav-link nav-link-mybuilds">My Garage</a>
+      <a href="track.html" class="nav-link nav-link-track nav-sublink-new active">Track Sessions</a>
+      <div class="nav-item">
+        <a href="profile.html" class="nav-link nav-link-profile">My Profile</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle My Profile submenu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div class="nav-dropdown">
+          <a href="profile.html#messages" class="nav-sublink nav-sublink-new">Messages</a>
+          <a href="profile.html#friends" class="nav-sublink nav-sublink-new">Friends</a>
+          <a href="profile.html" class="nav-sublink">Settings</a>
+        </div>
+      </div>
+      <div class="nav-item">
+        <a href="shop.html" class="nav-link">Shop</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Shop submenu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div class="nav-dropdown">
+          <a href="shop.html#merch" class="nav-sublink">Merch</a>
+          <div class="nav-item nav-subitem">
+            <a href="shop.html#parts" class="nav-sublink nav-sublink-new">Parts</a>
+            <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Parts submenu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+            <div class="nav-dropdown">
+              <a href="shop.html#tevo" class="nav-sublink">Tevo Solutions</a>
+              <a href="shop.html#redline" class="nav-sublink">Redline Plates</a>
+              <a href="shop.html#evoffer" class="nav-sublink">EVOffer Sport Seats</a>
+              <a href="shop.html#offers" class="nav-sublink nav-sublink-offer">Offers</a>
+            </div>
+          </div>
+          <a href="reviews.html" class="nav-sublink">Customer Reviews</a>
+        </div>
+      </div>
+      <a href="index.html#events" class="nav-link">Events</a>
+      <div class="nav-item">
+        <a href="index.html#track-days" class="nav-link">Track Days</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Track Days submenu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div class="nav-dropdown">
+          <a href="track-day-prep.html" class="nav-sublink">Prep</a>
+          <a href="track-day-on-the-day.html" class="nav-sublink nav-sublink-new">On The Day</a>
+          <a href="track-day-venues.html" class="nav-sublink">Venues</a>
+          <a href="track-day-prep.html#track-day-finder" class="nav-sublink">Track Day Finder</a>
+        </div>
+      </div>
+      <div class="nav-item">
+        <a href="blog.html" class="nav-link">Blog</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Blog submenu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div class="nav-dropdown">
+          <a href="blog.html" class="nav-sublink nav-sublink-new">Owner Interviews</a>
+        </div>
+      </div>
+      <div class="nav-item">
+        <a href="index.html#about" class="nav-link">About</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle About submenu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div class="nav-dropdown">
+          <a href="https://www.facebook.com/groups/mt3uk/" class="nav-sublink" target="_blank" rel="noopener">Join The Facebook Group</a>
+        </div>
+      </div>
+      <a href="index.html#faq" class="nav-link">FAQs</a>
+      <div class="nav-item">
+        <a href="contact.html" class="nav-link">Contact</a>
+        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Contact submenu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div class="nav-dropdown">
+          <a href="https://ko-fi.com/mt3uk" class="nav-sublink" target="_blank" rel="noopener">Support Us</a>
+        </div>
+      </div>
+      </div>
+    </div>
+    <div class="nav-search" id="nav-search">
+      <button type="button" class="nav-search-toggle" id="nav-search-toggle" aria-expanded="false" aria-controls="nav-search-panel" aria-label="Search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      </button>
+      <div class="nav-search-panel" id="nav-search-panel">
+        <input type="text" id="nav-search-input" placeholder="Search&hellip; e.g. Gallery, Shop, Hoodies, Number Plates, Pads" autocomplete="off">
+        <div class="nav-search-results" id="nav-search-results"></div>
+      </div>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navlinks">
+      <span class="hamburger-bar"></span><span class="hamburger-bar"></span><span class="hamburger-bar"></span>
+    </button>
+  </nav>
+</header>
+
+<section class="page-hero" data-no-share>
+  <div class="wrap">
+    <a href="my-builds.html" class="back-link"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>My Garage</a>
+    <h1>Track sessions</h1>
+    <p>Your track days and drag runs from your lap timer file: every lap mapped, where you gained and lost time, and what your mods did to your times.</p>
+  </div>
+</section>
+
+<main class="tp-main">
+  <div class="wrap" id="tp-app">
+    <noscript><p>Track sessions needs JavaScript turned on.</p></noscript>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap footer-row">
+    <a href="/" class="logo footer-logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
+    <span class="footer-text">Modified Tesla community &middot; <span class="member-count"></span> members</span>
+    <span class="footer-links"><a href="privacy.html" style="text-decoration:underline;">Privacy</a> <a href="https://www.facebook.com/groups/mt3uk/" target="_blank" rel="noopener" style="text-decoration:underline;">Facebook group <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></a></span>
+  </div>
+</footer>
+
+<script>
+  (function () {
+      var hamburger = document.getElementById('hamburger');
+      var navMenu = document.getElementById('navlinks');
+      if (!hamburger || !navMenu) return;
+
+      function closeMenu() {
+            navMenu.classList.remove('active');
+            hamburger.setAttribute('aria-expanded', 'false');
+      }
+
+      hamburger.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var open = navMenu.classList.toggle('active');
+            hamburger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+
+      navMenu.querySelectorAll('.nav-link, .nav-sublink').forEach(function (link) {
+            link.addEventListener('click', closeMenu);
+      });
+
+      navMenu.querySelectorAll('.nav-dropdown-toggle').forEach(function (toggle) {
+            toggle.addEventListener('click', function (e) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  var item = toggle.closest('.nav-item');
+                  var open = item.classList.toggle('open');
+                  toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            });
+      });
+
+      document.addEventListener('click', function (e) {
+            if (!e.target.closest('header nav')) closeMenu();
+      });
+  })();
+</script>
+
+<script>
+  (function () {
+    fetch('data/community.json', { cache: 'no-store' })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (data) {
+        if (!data || !data.members) return;
+        document.querySelectorAll('.member-count').forEach(function (el) {
+          el.textContent = data.members;
+        });
+      })
+      .catch(function () {});
+  })();
+</script>
+
+<script>
+  (function () {
+    var STORAGE_VISITS = 'mt3ukVisitCount';
+    var STORAGE_DISMISSED = 'mt3ukA2HSDismissed';
+    var SESSION_FLAG = 'mt3ukVisitCounted';
+
+    function isStandalone() {
+      return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    }
+
+    if (isStandalone() || localStorage.getItem(STORAGE_DISMISSED) === '1' || localStorage.getItem('mt3ukAppInstalled')) return;
+
+    if (!sessionStorage.getItem(SESSION_FLAG)) {
+      sessionStorage.setItem(SESSION_FLAG, '1');
+      var visits = parseInt(localStorage.getItem(STORAGE_VISITS) || '0', 10) + 1;
+      localStorage.setItem(STORAGE_VISITS, String(visits));
+    }
+    var visitCount = parseInt(localStorage.getItem(STORAGE_VISITS) || '0', 10);
+    if (visitCount < 2) return;
+
+    var deferredPrompt = null;
+    var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+    var bannerShown = false;
+
+    function dismiss(banner) {
+      banner.classList.remove('show');
+      setTimeout(function () { banner.remove(); }, 300);
+      localStorage.setItem(STORAGE_DISMISSED, '1');
+    }
+
+    function showBanner() {
+      if (bannerShown) return;
+      bannerShown = true;
+      var banner = document.createElement('div');
+      banner.className = 'a2hs-banner';
+      banner.innerHTML =
+        '<span class="a2hs-text">' + (isIOS
+          ? 'Add MT3UK to your Home Screen: tap Share, then \'Add to Home Screen\'.'
+          : 'Install MT3UK for quicker access to builds and voting.') + '</span>' +
+        '<span class="a2hs-actions">' +
+          (isIOS ? '' : '<button type="button" class="a2hs-btn a2hs-install">Install</button>') +
+          '<button type="button" class="a2hs-btn a2hs-close" aria-label="Dismiss"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' +
+        '</span>';
+      document.body.appendChild(banner);
+      requestAnimationFrame(function () { banner.classList.add('show'); });
+
+      var closeBtn = banner.querySelector('.a2hs-close');
+      if (closeBtn) closeBtn.addEventListener('click', function () { dismiss(banner); });
+
+      var installBtn = banner.querySelector('.a2hs-install');
+      if (installBtn) {
+        installBtn.addEventListener('click', function () {
+          if (!deferredPrompt) { dismiss(banner); return; }
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.finally(function () { dismiss(banner); });
+        });
+      }
+    }
+
+    if (isIOS) {
+      showBanner();
+    } else {
+      window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault();
+        deferredPrompt = e;
+        showBanner();
+      });
+    }
+
+    window.addEventListener('appinstalled', function () {
+      localStorage.setItem(STORAGE_DISMISSED, '1');
+    });
+  })();
+</script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('/sw.js');
+    });
+  }
+</script>
+
+<script src="js/track-parse.js" defer></script>
+<script src="js/track-view.js" defer></script>
+<script src="js/track-page.js" defer></script>
+<script src="js/share.js" defer></script>
+<script src="js/account-bar.js" defer></script>
+<script src="js/signin-prompt.js" defer></script>
+<script src="js/notify-bell.js" defer></script>
+<script src="js/messenger.js" defer></script>
+<script src="js/search.js" defer></script>
+
+</body>
+</html>

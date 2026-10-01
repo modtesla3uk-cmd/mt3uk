@@ -761,7 +761,6 @@
     "caption": "R2 UPLOAD PIPELINE TEST",
     "name": "RICHARD R2 TEST",
     "color": "Pink",
-    "unclaimed": true,
     "added": "2026-09-18",
     "group": "r2-upload-pipeline-test--by-richard-r2-test.jpg"
   },
@@ -1125,9 +1124,8 @@
   {
     "file": "38-the-unicorn-tesla.jpeg",
     "caption": "THE UNICORN TESLA",
-    "unclaimed": true,
     "added": "2026-09-18",
-    "group": "38-the-unicorn-tesla.jpeg"
+    "group": "r2-upload-pipeline-test--by-richard-r2-test.jpg"
   },
   {
     "file": "37-ghost.jpg",

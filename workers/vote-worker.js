@@ -6368,7 +6368,7 @@ async function handleCarPublic(request, env) {
 // A member's track days and drag runs. The file is read in the browser and
 // only the laps, summary and a trimmed trace come here. Everything is in KV
 // under single keys read with get(), never list():
-//   track-session:<id>          one session (private unless shared)
+//   track-session:<id>          one session (private unless shared), gzipped
 //   track-index:<ownerKey>      that member's session summaries
 //   track-public:<carId>        the car's shared session summaries
 //   track-board:<venue>:<layout> / drag-board:<venue>   best per car
@@ -6376,6 +6376,53 @@ async function handleCarPublic(request, env) {
 //   track-requests              "new track" requests for the admin
 var TRACKS_URL = MY_BUILDS_SITE_URL + '/data/tracks.json';
 var TRACK_SESSION_MAX_BYTES = 1500000;
+// Sessions are stored gzipped (about 60% smaller). The page sends them
+// gzipped too; TRACK_SESSION_MAX_BYTES is the most it may send or that may be
+// stored, and a session may be at most this big once unzipped.
+var TRACK_UNZIPPED_MAX_BYTES = 6000000;
+
+async function gzipText(text) {
+  return new Response(new Blob([text]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer();
+}
+
+// Unzips, stopping (and throwing) once past max bytes.
+async function gunzipText(data, max) {
+  var reader = new Blob([data]).stream().pipeThrough(new DecompressionStream('gzip')).getReader();
+  var chunks = [], n = 0;
+  for (;;) {
+    var r = await reader.read();
+    if (r.done) break;
+    n += r.value.length;
+    if (n > max) { await reader.cancel(); throw new Error('too big'); }
+    chunks.push(r.value);
+  }
+  var out = new Uint8Array(n), o = 0;
+  chunks.forEach(function (c) { out.set(c, o); o += c.length; });
+  return new TextDecoder().decode(out);
+}
+
+function isGzip(buf) {
+  var b = new Uint8Array(buf, 0, Math.min(2, buf.byteLength));
+  return b.length === 2 && b[0] === 0x1f && b[1] === 0x8b;
+}
+
+// Sessions saved before compression are plain JSON; newer ones gzipped.
+async function getTrackSession(env, id) {
+  try {
+    var buf = await env.VOTES.get('track-session:' + id, 'arrayBuffer');
+    if (!buf) return null;
+    return JSON.parse(isGzip(buf) ? await gunzipText(buf, TRACK_UNZIPPED_MAX_BYTES) : new TextDecoder().decode(buf));
+  } catch (e) {
+    return null;
+  }
+}
+
+async function putTrackSession(env, rec) {
+  var gz = await gzipText(JSON.stringify(rec));
+  if (gz.byteLength > TRACK_SESSION_MAX_BYTES) return false;
+  await env.VOTES.put('track-session:' + rec.id, gz);
+  return true;
+}
 var TRACK_PRIVACY = ['private', 'build', 'board'];
 var TRACK_CONDITIONS = ['Dry', 'Damp', 'Wet'];
 var TRACK_BOARD_MAX = 300;
@@ -6674,10 +6721,16 @@ async function handleTrackSessionsList(request, env) {
 async function handleTrackSessionSave(request, env) {
   var email = await resolveSession(request, env);
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
-  var raw = await request.text();
-  if (raw.length > TRACK_SESSION_MAX_BYTES) return json({ success: false, message: 'This session is too big to save. Try a shorter file.' }, 413);
+  var tooBig = json({ success: false, message: 'This session is too big to save. Try a shorter file.' }, 413);
+  var buf = await request.arrayBuffer();
+  var gzipped = isGzip(buf);
+  if (buf.byteLength > (gzipped ? TRACK_SESSION_MAX_BYTES : TRACK_UNZIPPED_MAX_BYTES)) return tooBig;
   var body;
-  try { body = JSON.parse(raw); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  try {
+    body = JSON.parse(gzipped ? await gunzipText(buf, TRACK_UNZIPPED_MAX_BYTES) : new TextDecoder().decode(buf));
+  } catch (e) {
+    return e && e.message === 'too big' ? tooBig : json({ success: false, message: 'Invalid request body' }, 400);
+  }
   var record = await carBelongsTo(env, email, body.carId);
   if (!record) return json({ success: false, message: 'That car is not linked to your account' }, 403);
   var library = await getTrackLibrary(env);
@@ -6697,7 +6750,7 @@ async function handleTrackSessionSave(request, env) {
   rec.createdAt = new Date().toISOString();
   applyTrackEdits(rec, body);
   if (rec.street) rec.privacy = 'private';
-  await env.VOTES.put('track-session:' + rec.id, JSON.stringify(rec));
+  if (!(await putTrackSession(env, rec))) return tooBig;
   await putTrackIndexes(env, email, rec);
   return json({ success: true, session: trackSummary(rec) });
 }
@@ -6728,7 +6781,7 @@ function applyTrackEdits(rec, body) {
 async function getOwnTrackSession(request, env, id) {
   var email = await resolveSession(request, env);
   if (!email) return { error: json({ success: false, message: 'Please sign in again' }, 401) };
-  var rec = await getJsonKey(env, 'track-session:' + id, null);
+  var rec = await getTrackSession(env, id);
   if (!rec || rec.owner !== (await ownerKey(email))) return { error: json({ success: false, message: 'Session not found' }, 404) };
   return { email: email, rec: rec };
 }
@@ -6736,7 +6789,7 @@ async function getOwnTrackSession(request, env, id) {
 async function handleTrackSessionGet(request, env) {
   var id = String(new URL(request.url).searchParams.get('id') || '');
   if (!/^[a-f0-9]{8,40}$/.test(id)) return json({ success: false, message: 'Session not found' }, 404);
-  var rec = await getJsonKey(env, 'track-session:' + id, null);
+  var rec = await getTrackSession(env, id);
   if (!rec) return json({ success: false, message: 'Session not found' }, 404);
   var viewer = request.headers.get('X-Session-Token') ? await resolveSession(request, env) : null;
   var mine = !!viewer && rec.owner === (await ownerKey(viewer));
@@ -6759,7 +6812,7 @@ async function handleTrackSessionUpdate(request, env) {
   var oldBoard = trackBoardKey(rec);
   applyTrackEdits(rec, body);
   if (rec.street) rec.privacy = 'private';
-  await env.VOTES.put('track-session:' + rec.id, JSON.stringify(rec));
+  await putTrackSession(env, rec);
   await putTrackIndexes(env, got.email, rec);
   if (oldBoard && oldBoard !== trackBoardKey(rec)) await refreshTrackBoard(env, oldBoard, rec.carId);
   return json({ success: true, session: trackSummary(rec) });
@@ -6898,10 +6951,10 @@ async function handleTrackAdminBoardEntry(request, env) {
   var entry = entries.find(function (e) { return e.sessionId === sessionId; });
   if (!entry) return json({ success: false, message: 'Not on this leaderboard' }, 404);
   // Kept off the leaderboard; the session stays on the build.
-  var rec = await getJsonKey(env, 'track-session:' + sessionId, null);
+  var rec = await getTrackSession(env, sessionId);
   if (rec) {
     rec.offBoard = true;
-    await env.VOTES.put('track-session:' + rec.id, JSON.stringify(rec));
+    await putTrackSession(env, rec);
   }
   var shared = await getJsonKey(env, 'track-public:' + entry.carId, []);
   shared.forEach(function (s) { if (s.id === sessionId) s.offBoard = true; });

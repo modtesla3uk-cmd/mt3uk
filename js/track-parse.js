@@ -267,7 +267,10 @@
     return { format: 'GPX', points: pts, startLine: null, venueName: name, startedAt: a0, speedUnit: 'km/h' };
   }
 
-  function read(text, fileName, mapping) {
+  // savedAt (optional): when the file was last saved on the device, from
+  // the browser. Used for the date only when the file and its name have
+  // none, taking the session to have ended when the file was saved.
+  function read(text, fileName, mapping, savedAt) {
     text = String(text || '').replace(/^﻿/, '');
     var name = String(fileName || '').toLowerCase();
     var out;
@@ -278,8 +281,12 @@
     finishPoints(out);
     if (!out.startedAt) {
       var fd = dateFromName(fileName);
-      if (fd) { out.fileDate = fd.date; out.fileTime = fd.time; }
-    }
+      if (fd) { out.fileDate = fd.date; out.fileTime = fd.time; out.dateSrc = 'name'; }
+      else if (savedAt > 0 && out.points.length) {
+        var began = savedAt - out.points[out.points.length - 1].t * 1000;
+        out.fileDate = ukDate(began); out.fileTime = ukTime(began); out.dateSrc = 'saved';
+      }
+    } else out.dateSrc = 'file';
     return out;
   }
 
@@ -576,8 +583,8 @@
       else type = dragRuns(prepare(pts)).length && !rd.startLine ? 'drag' : 'track';
     }
     var session = { type: type, format: rd.format, hz: rd.hz, sats: rd.sats, quality: rd.quality, startedAt: rd.startedAt || null, venueName: rd.venueName || '', speedDerived: !!rd.speedDerived, gDerived: !!rd.gDerived };
-    if (rd.startedAt) session.date = ukDate(rd.startedAt), session.time = ukTime(rd.startedAt);
-    else if (rd.fileDate) { session.date = rd.fileDate; session.time = rd.fileTime || ''; session.dateFrom = 'name'; }
+    if (rd.startedAt) session.date = ukDate(rd.startedAt), session.time = ukTime(rd.startedAt), session.dateFrom = 'file';
+    else if (rd.fileDate) { session.date = rd.fileDate; session.time = rd.fileTime || ''; session.dateFrom = rd.dateSrc || 'name'; }
     if (rd.airTemp != null) session.airTemp = rd.airTemp;
     if (venue) { session.venueId = venue.id; session.venue = venue.name; }
     var origin = venue ? [venue.lat, venue.lng] : [pts[0].lat, pts[0].lng];
@@ -585,10 +592,20 @@
     prepare(pts, proj);
     session.duration = round(pts[pts.length - 1].t, 1);
     session.distance = Math.round(pts[pts.length - 1].d);
-    session.vmax = round(Math.max.apply(null, pts.map(function (p) { return p.v; })), 1);
-    session.latMax = round(Math.max.apply(null, pts.map(function (p) { return Math.abs(p.la); })), 2);
-    session.brakeMax = round(-Math.min.apply(null, pts.map(function (p) { return p.lo; })), 2);
-    session.accMax = round(Math.max.apply(null, pts.map(function (p) { return p.lo; })), 2);
+    // A loop, not Math.max.apply: a day of files can be well over 100,000
+    // readings, more arguments than a browser allows in one call.
+    var vmax = -Infinity, latMax = -Infinity, loMin = Infinity, loMax = -Infinity;
+    for (var pi = 0; pi < pts.length; pi++) {
+      var pp = pts[pi];
+      if (pp.v > vmax) vmax = pp.v;
+      if (Math.abs(pp.la) > latMax) latMax = Math.abs(pp.la);
+      if (pp.lo < loMin) loMin = pp.lo;
+      if (pp.lo > loMax) loMax = pp.lo;
+    }
+    session.vmax = round(vmax, 1);
+    session.latMax = round(latMax, 2);
+    session.brakeMax = round(-loMin, 2);
+    session.accMax = round(loMax, 2);
     session.origin = origin;
 
     if (type === 'drag') {
@@ -849,7 +866,7 @@
 
   var api = {
     read: read, combine: combine, dateFromName: dateFromName, analyse: analyse, sessionNotes: sessionNotes, trendNotes: trendNotes, cornerGains: cornerGains,
-    traceAt: traceAt, findCorners: findCorners, mergeLibrary: mergeLibrary, fmtLap: fmtLap, niceDate: niceDate,
+    traceAt: traceAt, findCorners: findCorners, mergeLibrary: mergeLibrary, fmtLap: fmtLap, niceDate: niceDate, ukDate: ukDate, ukTime: ukTime,
     haversine: haversine, projector: projector, dragRuns: dragRuns, KMH_PER_MPH: KMH_PER_MPH
   };
   if (typeof module === 'object' && module.exports) module.exports = api;

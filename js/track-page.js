@@ -44,11 +44,22 @@
   };
   function icon(n) { return '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">' + ICON[n] + '</svg>'; }
   function token() { try { return localStorage.getItem(SESSION_KEY) || ''; } catch (e) { return ''; } }
-  function api(method, path, body) {
+  // gzip: send the body compressed (a saved session is about 60% smaller).
+  // The worker spots gzip from its first bytes. Browsers without
+  // CompressionStream send it as it is.
+  function api(method, path, body, gzip) {
     var opts = { method: method, headers: {}, cache: 'no-store' };
     if (token()) opts.headers['X-Session-Token'] = token();
-    if (body !== undefined) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
-    return fetch(API + path, opts).then(function (r) {
+    var ready = Promise.resolve();
+    if (body !== undefined) {
+      opts.headers['Content-Type'] = 'application/json';
+      opts.body = JSON.stringify(body);
+      if (gzip && typeof CompressionStream === 'function') {
+        ready = new Response(new Blob([opts.body]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer()
+          .then(function (gz) { opts.body = gz; }, function () {});
+      }
+    }
+    return ready.then(function () { return fetch(API + path, opts); }).then(function (r) {
       return r.json().catch(function () { return {}; }).then(function (d) { d.status = r.status; return d; });
     });
   }
@@ -265,7 +276,7 @@
       '<div class="tp-add-grid"><div class="card">' +
       (a.cars.length > 1 ? '<div class="tp-field"><label for="tp-car">Car</label><select class="field" id="tp-car">' + a.cars.map(function (c) { return '<option value="' + esc(c.id) + '"' + (c.id === a.car.id ? ' selected' : '') + '>' + esc(c.name) + '</option>'; }).join('') + '</select></div>' : '<p class="tp-car-one">Car: <b>' + esc(a.car.name) + '</b></p>') +
       '<label class="tp-drop" id="tp-drop">' + icon('upload') + '<b>Drop your files here, or choose them</b><small>One file, or all of a day\'s files together (they make one session). VBO, CSV or GPX. Works with RaceBox, VBOX, Harry\'s LapTimer, TrackAddict, AiM and most phone apps.</small><span class="btn btn-secondary btn-sm">Choose files</span><input type="file" id="tp-file" multiple accept=".vbo,.csv,.gpx,.txt,text/csv,application/gpx+xml" hidden></label>' +
-      (a.files && a.files.length ? '<div class="tp-file">' + icon('check') + '<div><b>' + (a.files.length > 1 ? a.files.length + ' files: ' : '') + esc(a.files.map(function (f) { return f.name; }).join(', ')) + '</b><span>' + esc(fileMeta()) + '</span></div></div>' : '') +
+      (a.files && a.files.length ? '<div class="tp-file">' + icon('check') + '<div>' + (a.files.length > 1 ? '<b>' + a.files.length + ' files</b>' : '') + '<ul class="tp-file-list">' + a.files.map(function (f, i) { var w = a.fileWhen && a.fileWhen[i]; return '<li><b>' + esc(f.name) + '</b>' + (w ? '<span class="tp-file-when">' + esc(w) + '</span>' : '') + '</li>'; }).join('') + '</ul><span>' + esc(fileMeta()) + '</span></div></div>' : '') +
       '<details class="tp-help"><summary>' + icon('info') + 'How to get the file from your lap timer</summary><ul>' +
       '<li><b>RaceBox:</b> open the session in the app, share or export it and choose VBO (CSV works too).</li>' +
       '<li><b>VBOX:</b> copy the .vbo file from the SD card.</li>' +
@@ -290,6 +301,13 @@
     var mins = rd.runs ? rd.points.reduce(function (acc, p, i, arr) { return i && p.run === arr[i - 1].run ? acc + p.t - arr[i - 1].t : acc; }, 0) / 60 : rd.points[rd.points.length - 1].t / 60;
     return (rd.runs ? rd.runs + ' runs, ' : '') + rd.points.length.toLocaleString('en-GB') + ' readings, ' + rd.hz + ' a second, ' + Math.max(1, Math.round(mins)) + ' minutes' + (rd.sats ? ', ' + rd.sats + ' satellites on average' : '');
   }
+  // Each file's date and start time, and where they came from.
+  var WHEN_FROM = { file: 'recorded in the file', name: 'from the file name', saved: 'from when the file was saved' };
+  function fileWhen(rd) {
+    var d = rd.startedAt ? T.ukDate(rd.startedAt) : rd.fileDate, t = rd.startedAt ? T.ukTime(rd.startedAt) : rd.fileTime;
+    if (!d) return 'No date found';
+    return niceDate(d) + (t ? ', ' + t : '') + ' (' + WHEN_FROM[rd.dateSrc || 'name'] + ')';
+  }
   function status(msg, kind) {
     var el = document.getElementById('tp-status');
     if (el) { el.textContent = msg || ''; el.className = 'tp-status' + (kind ? ' is-' + kind : ''); }
@@ -304,12 +322,12 @@
     Promise.all(files.map(function (file) {
       return new Promise(function (resolve, reject) {
         var reader = new FileReader();
-        reader.onload = function () { resolve({ name: file.name, text: String(reader.result || '') }); };
+        reader.onload = function () { resolve({ name: file.name, text: String(reader.result || ''), modified: file.lastModified || 0 }); };
         reader.onerror = function () { reject(new Error(file.name + ' could not be opened.')); };
         reader.readAsText(file);
       });
     })).then(function (read) {
-      add.files = read;
+      add.files = read; add.fileWhen = null;
       add.session = null; add.startLine = null; add.type = null; add.date = null; add.time = null;
       add.weatherKey = null; if (add.tempSource !== 'member') { add.temp = null; add.tempSource = ''; add.weather = null; }
       parseFile();
@@ -327,15 +345,16 @@
       var rds = [];
       for (var fi = 0; fi < a.files.length; fi++) {
         var f = a.files[fi];
-        var one = T.read(f.text, f.name);
+        var one = T.read(f.text, f.name, null, f.modified);
         if (one.needsMapping) {
           var sig = headerSig(one.needsMapping.headers);
           var mp = mapping || (a.savedMaps && a.savedMaps[sig]);
           if (!mp) { drawAdd(); return drawMapping(one.needsMapping); }
-          one = T.read(f.text, f.name, mp);
+          one = T.read(f.text, f.name, mp, f.modified);
         }
         rds.push(one);
       }
+      a.fileWhen = rds.map(fileWhen);
       a.rd = T.combine(rds);
       analyse();
     } catch (e) {
@@ -440,6 +459,8 @@
       h += '<div class="tp-f2"><div class="tp-field"><label for="tp-date">Date</label><input class="field" type="date" id="tp-date" max="' + esc(ukToday()) + '" value="' + esc(s.date || '') + '"></div>' +
         '<div class="tp-field"><label for="tp-time">Start time</label><input class="field" type="time" id="tp-time" value="' + esc(s.time || '') + '"></div></div>' +
         (s.dateFrom === 'name' ? '<p class="tp-src" id="tp-date-src">' + icon('info') + '<span>Date and time from the file name. Change them if they\'re not right.</span></p>'
+          : s.dateFrom === 'saved' ? '<p class="tp-src" id="tp-date-src">' + icon('info') + '<span>Your file has no date in it, so these are from when it was saved on your device. Change them if they\'re not right.</span></p>'
+          : s.dateFrom === 'file' ? '<p class="tp-src" id="tp-date-src">' + icon('info') + '<span>Date and time recorded in your file.</span></p>'
           : !s.date ? '<p class="tp-src" id="tp-date-src">' + icon('info') + '<span>Your file has no date in it. Add the date and start time to look up the weather.</span></p>' : '');
       h += '<div class="tp-field"><span class="tp-lbl">Conditions</span><div class="tp-chips" data-cond>' + ['Dry', 'Damp', 'Wet'].map(function (c) { return '<button type="button" class="chip' + (a.conditions === c ? ' is-on' : '') + '" data-v="' + c + '">' + c + '</button>'; }).join('') + '</div></div>' +
         '<div class="tp-f2"><div class="tp-field"><label for="tp-tyres">Tyres</label><input class="field" id="tp-tyres" placeholder="For example, Pilot Sport 4S" value="' + esc(a.tyres || '') + '"></div>' +
@@ -606,7 +627,7 @@
         if (lap) lap.filter(function (_, i) { return i % 4 === 0; }).forEach(function (p) { out.push(proj.ll(p[2], p[3]).map(function (v) { return Math.round(v * 1e6) / 1e6; })); });
         api('POST', '/track/requests', { kind: s.type === 'sprint' ? 'sprint' : 'circuit', name: a.venueName || s.venue || '', venueId: s.venueId || '', startLine: s.startLine, finishLine: s.finishLine || null, lapLength: lap ? lap[lap.length - 1][0] : null, outline: out, note: s.type === 'sprint' ? (s.venueId ? 'Course not recognised' : 'New sprint or hill climb') : s.venueId ? 'Layout not recognised' : 'New track' }).catch(function () {});
       }
-      return api('POST', '/track/sessions', { carId: carId, session: s, conditions: a.conditions, tyres: a.tyres || '', temp: a.temp, tempSource: a.temp == null ? '' : (a.tempSource || 'member'), weather: a.tempSource === 'weather' ? a.weather : null, notes: a.notes || '', privacy: a.privacy, venueName: a.venueName || '', street: a.street, adminViewer: a.street ? adminViewerToken() : '' });
+      return api('POST', '/track/sessions', { carId: carId, session: s, conditions: a.conditions, tyres: a.tyres || '', temp: a.temp, tempSource: a.temp == null ? '' : (a.tempSource || 'member'), weather: a.tempSource === 'weather' ? a.weather : null, notes: a.notes || '', privacy: a.privacy, venueName: a.venueName || '', street: a.street, adminViewer: a.street ? adminViewerToken() : '' }, true);
     }).then(function (d) {
       if (!d.success) throw new Error(d.message || 'Could not save the session.');
       mine = null; counts = null;
@@ -701,7 +722,7 @@
         '<div class="card tp-cmp-pick"><div class="tp-f2"><div class="tp-field"><label for="tp-cmp-a">Lap A</label><select class="field" id="tp-cmp-a">' + lapOptions(view.a) + '</select></div><div class="tp-field"><label for="tp-cmp-b">Lap B</label><select class="field" id="tp-cmp-b">' + lapOptions(view.b) + '</select></div></div></div>' +
         '<div class="tp-grid tp-g-map"><div class="card"><div class="tp-chart-head"><h3>Speed through the lap</h3><div class="tp-key" id="tp-key"></div></div><svg class="tv-chart" id="tp-speed" role="img" aria-label="Speed against distance for both laps"></svg>' +
         '<div class="tp-chart-head"><h3>Time gap</h3><span class="tp-small" id="tp-gap-cap"></span></div><svg class="tv-chart" id="tp-delta" role="img" aria-label="Running time gap between the laps"></svg></div>' +
-        '<div class="tp-grid"><div class="card"><h3>Where you are</h3><svg class="tv-chart" id="tp-map2" role="img" aria-label="Track map with both laps\' positions"></svg></div>' +
+        '<div class="tp-grid"><div class="card"><h3>Where you are</h3><svg class="tv-chart" id="tp-map2" role="img" aria-label="Track map with both laps\' lines and positions"></svg></div>' +
         '<div class="card"><h3>Corner by corner</h3><div class="tp-scroll"><table class="tp-table" id="tp-corners"></table></div></div></div></div>' +
         '<div class="tp-grid tp-g2"><div class="card"><div class="tp-chart-head"><h3>How much grip you used, lap A</h3><span class="tp-small">Each dot is a moment on the lap. The further from the middle, the harder the car was working the tyres.</span></div><svg class="tv-chart tp-gg" id="tp-gg" role="img" aria-label="Sideways against lengthways g for lap A"></svg></div><div class="tp-notes" id="tp-cmp-notes"></div></div></div>';
     }
@@ -856,7 +877,7 @@
       var vmax = 0; A.trace.concat(B.trace).forEach(function (p) { vmax = Math.max(vmax, V.spd(p[4])); });
       var yt = V.nice(0, vmax, 6);
       var mapEl = document.getElementById('tp-map2');
-      var mo = V.map(mapEl, A.trace, { mono: true, startLine: startLineXY(s), corners: s.corners, origin: s.origin });
+      var mo = V.map(mapEl, A.trace, { mono: true, lines: A === B ? [{ trace: A.trace, color: c1 }] : [{ trace: B.trace, color: c2 }, { trace: A.trace, color: c1 }], startLine: startLineXY(s), corners: s.corners, origin: s.origin });
       var other = [];
       function move(x) { if (mo) { mo.placeA(at(A.trace, x)); mo.placeB(at(B.trace, x)); } }
       function leave() { if (mo) { mo.placeA(null); mo.placeB(null); } other.forEach(function (o) { o.hide(); }); }
@@ -888,7 +909,7 @@
       var notes = [];
       var big = gains.slice().sort(function (x, y) { return Math.abs(y.gain) - Math.abs(x.gain); })[0];
       if (big && Math.abs(total) > 0.05) notes.push({ icon: 'corner', text: 'The biggest difference was at corner ' + big.n + (big.name ? ' (' + big.name + ')' : '') + ': A ' + (big.gain >= 0 ? 'gained ' : 'lost ') + Math.abs(big.gain).toFixed(2) + ' s there, out of ' + Math.abs(total).toFixed(2) + ' s in all.', small: 'Measured from 200 m before the slowest point to 150 m after.' });
-      var brake = Math.max.apply(null, A.trace.map(function (p) { return -p[6]; })), lat = Math.max.apply(null, A.trace.map(function (p) { return Math.abs(p[5]); }));
+      var brake = A.trace.reduce(function (m, p) { return Math.max(m, -p[6]); }, -Infinity), lat = A.trace.reduce(function (m, p) { return Math.max(m, Math.abs(p[5])); }, -Infinity);
       var comb = A.trace.filter(function (p) { return Math.hypot(p[5], p[6]) > 0.6 && Math.abs(p[5]) > 0.3 && Math.abs(p[6]) > 0.3; }).length / A.trace.length;
       notes.push({ icon: 'brake', text: A.label + ' peaked at ' + brake.toFixed(2) + ' g braking and ' + lat.toFixed(2) + ' g cornering. ' + Math.round(comb * 100) + '% of the lap mixes braking or power with cornering (the dots between the axes).', small: 'Blending braking into the turn-in fills out the circle, and is often where time is found.' });
       notes.push({ icon: 'info', text: 'These are observations from the data, not coaching. Weather, tyres, traffic and flags all change lap times.' });

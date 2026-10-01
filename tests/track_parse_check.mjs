@@ -215,3 +215,20 @@ ok(T.fmtLap(99.786) === '1:39.786' && T.niceDate('2026-05-28') === '28 May 2026'
   try { T.combine([one, other]); } catch (e) { err = e.message; }
   ok(/different days/.test(err), 'files from different days are refused');
 }
+
+// A whole day of Tesla files (well over 100,000 readings) is read without
+// running out of stack (no Math.max.apply over every reading).
+{
+  const lines = fs.readFileSync(ROOT + 'tests/fixtures/tesla-track-mode-thruxton.csv', 'utf8').trim().split('\n');
+  const head = lines[0], rows = lines.slice(1).map(r => r.split(','));
+  const end = +rows[rows.length - 1][1] + 100;
+  const files = [9, 10, 11, 14, 15].map(h => {
+    const out = [head];
+    for (let c = 0; c < 11; c++) rows.forEach(r => { const q = r.slice(); q[0] = String(+r[0] + c * 3); q[1] = String(+r[1] + c * end); out.push(q.join(',')); });
+    return T.read(out.join('\n'), 'telemetry-v1-2024-03-29-' + h + '_00_00.csv');
+  });
+  const day = T.combine(files);
+  let s = null, err = '';
+  try { s = T.analyse(day, lib); } catch (e) { err = e.message; }
+  ok(day.points.length > 140000 && s && s.laps.length > 50, 'a day of ' + day.points.length + ' readings is analysed' + (err ? ': ' + err : '') + (s ? ', ' + s.laps.length + ' laps' : ''));
+}

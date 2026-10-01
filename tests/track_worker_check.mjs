@@ -3,6 +3,7 @@
 // as the page does. WORKER_MODULE is a copy of the worker that node can load.
 import { createRequire } from 'module';
 import fs from 'fs';
+import zlib from 'zlib';
 const require = createRequire(import.meta.url);
 const ROOT = new URL('..', import.meta.url).pathname;
 const T = require(ROOT + 'js/track-parse.js');
@@ -14,7 +15,16 @@ const kv = new Map();
 const bucket = new Map();
 const env = {
   ADMIN_KEY: 'secret',
-  VOTES: { get: async k => kv.has(k) ? kv.get(k) : null, put: async (k, v) => { kv.set(k, v); }, delete: async k => { kv.delete(k); } },
+  // Like KV: strings or ArrayBuffers in, read back as text or 'arrayBuffer'.
+  VOTES: {
+    get: async (k, type) => {
+      if (!kv.has(k)) return null;
+      const v = kv.get(k);
+      if (type === 'arrayBuffer') return typeof v === 'string' ? new TextEncoder().encode(v).buffer : v;
+      return typeof v === 'string' ? v : new TextDecoder().decode(v);
+    },
+    put: async (k, v) => { kv.set(k, v); }, delete: async k => { kv.delete(k); }
+  },
   GALLERY_BUCKET: {
     get: async k => bucket.has(k) ? { json: async () => JSON.parse(bucket.get(k)) } : null,
     put: async (k, v) => { bucket.set(k, typeof v === 'string' ? v : 'binary'); },
@@ -24,6 +34,8 @@ const env = {
   SEND_EMAIL: { sent: [], send: async function (m) { this.sent.push(m.raw); } }
 };
 globalThis.fetch = async url => String(url).endsWith('/data/tracks.json') ? new Response(tracksJson, { status: 200 }) : new Response('{}', { status: 200 });
+// A stored session, unzipped.
+const stored = k => { const v = kv.get(k); return JSON.parse(typeof v === 'string' ? v : zlib.gunzipSync(Buffer.from(v)).toString()); };
 const ok = (c, m) => { if (!c) { console.log('FAIL', m); process.exitCode = 1; } else console.log('ok  ', m); };
 const A = 'a@example.com', B = 'b@example.com';
 kv.set('my-builds-session:tok-a', A);
@@ -67,6 +79,10 @@ const fake = JSON.parse(JSON.stringify(session)); fake.venue = 'Made up <b>'; fa
 r = await call('POST', '/track/sessions', { carId: 'cara1', session: fake, conditions: 'Dry', tyres: 'Pilot Sport 4S', temp: 19, notes: 'First go' }, 'tok-a');
 ok(r.status === 200 && r.body.session.privacy === 'private', 'saved, private by default ' + JSON.stringify(r.body).slice(0, 200));
 const id1 = r.body.session.id;
+{
+  const v = kv.get('track-session:' + id1), raw = JSON.stringify(stored('track-session:' + id1)).length;
+  ok(v instanceof ArrayBuffer && new Uint8Array(v)[0] === 0x1f && v.byteLength < raw * 0.6, 'stored gzipped: ' + (v.byteLength || 0) + ' bytes, ' + raw + ' unzipped');
+}
 ok(r.body.session.venue === 'Thruxton' && r.body.session.layout === 'Thruxton' && Math.abs(r.body.session.bestTime - 99.786) < 0.01, 'venue and layout names come from the track list');
 r = await call('GET', '/track/sessions', undefined, 'tok-a');
 ok(r.body.sessions.length === 1 && r.body.sessions[0].id === id1 && r.body.sessions[0].tyres === 'Pilot Sport 4S', 'in my list');
@@ -118,8 +134,8 @@ ok(!('track-board:thruxton:main' in r.body.counts), 'count gone with the last se
 const bad = JSON.parse(JSON.stringify(session)); bad.bestTime = 20;
 r = await call('POST', '/track/sessions', { carId: 'cara1', session: bad }, 'tok-a');
 ok(r.status === 400 && /not possible/.test(r.body.message), 'impossible lap time refused');
-r = await call('POST', '/track/sessions', '{"carId":"cara1","session":{"laps":[]},"pad":"' + 'x'.repeat(1600000) + '"}', 'tok-a');
-ok(r.status === 413, 'too big refused');
+r = await call('POST', '/track/sessions', '{"carId":"cara1","session":{"laps":[]},"pad":"' + 'x'.repeat(6100000) + '"}', 'tok-a');
+ok(r.status === 413, 'an uncompressed upload over 6 MB is refused');
 const unknown = JSON.parse(JSON.stringify(session)); delete unknown.venueId; delete unknown.layoutId; unknown.venueName = 'My airfield';
 r = await call('POST', '/track/sessions', { carId: 'cara1', session: unknown, privacy: 'board', venueName: 'Old airfield' }, 'tok-a');
 ok(r.status === 200 && r.body.session.venue === 'Old airfield' && r.body.session.privacy === 'build', 'a track not in the list can be shared on the build but not on a board');
@@ -196,6 +212,24 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   await call('DELETE', '/track/session?id=' + rr.body.session.id, undefined, 'tok-a');
 }
 
+// The page sends sessions gzipped; old sessions stored as plain JSON still open.
+{
+  const gz = zlib.gzipSync(JSON.stringify({ carId: 'cara1', session, privacy: 'build' }));
+  const res = await worker.fetch(new Request('https://w.test/track/sessions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Session-Token': 'tok-a' }, body: gz }), env, { waitUntil() {} });
+  const d = await res.json();
+  ok(res.status === 200 && Math.abs(d.session.bestTime - 99.786) < 0.01, 'a gzipped upload is saved');
+  const id = d.session.id;
+  kv.set('track-session:' + id, JSON.stringify(stored('track-session:' + id)));
+  r = await call('GET', '/track/session?id=' + id, undefined, 'tok-a');
+  ok(r.status === 200 && r.body.session.trace.laps['2'].length > 100, 'a session stored before compression still opens');
+  r = await call('PUT', '/track/session', { id, tyres: 'AD08R' }, 'tok-a');
+  ok(r.body.session.tyres === 'AD08R' && kv.get('track-session:' + id) instanceof ArrayBuffer, 'and is gzipped when next changed');
+  await call('DELETE', '/track/session?id=' + id, undefined, 'tok-a');
+  const bomb = zlib.gzipSync(JSON.stringify({ carId: 'cara1', session, pad: 'x'.repeat(7000000) }));
+  const res2 = await worker.fetch(new Request('https://w.test/track/sessions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Session-Token': 'tok-a' }, body: bomb }), env, { waitUntil() {} });
+  ok(res2.status === 413, 'a gzipped upload too big once unzipped is refused: ' + res2.status);
+}
+
 // Leaving the site clears everything.
 await mod.deleteMemberAccount(env, A);
-ok(!kv.has('track-index:' + (await mod.ownerKey(A))) && ![...kv.keys()].some(k => k.startsWith('track-session:') && JSON.parse(kv.get(k)).carId === 'cara1') && !kv.has('track-public:cara1'), 'a member leaving removes their sessions');
+ok(!kv.has('track-index:' + (await mod.ownerKey(A))) && ![...kv.keys()].some(k => k.startsWith('track-session:') && stored(k).carId === 'cara1') && !kv.has('track-public:cara1'), 'a member leaving removes their sessions');

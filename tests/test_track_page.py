@@ -3,6 +3,7 @@ adding a session from the real Thruxton RaceBox file (tests/fixtures), the
 session page and lap compare, over time with mods, leaderboards, a CSV whose
 columns need picking, drag runs away from a strip (members can't save them,
 admins can as private street runs), and the phone layout."""
+import gzip
 import json
 import re
 from pathlib import Path
@@ -50,6 +51,7 @@ class FakeWorker:
         self.index = [dict(EARLIER)] if earlier else []
         self.admin = admin
         self.saved = []
+        self.gzipped = False
         self.requests = []
 
     def reply(self, route):
@@ -57,9 +59,14 @@ class FakeWorker:
         url = urlparse(req.url)
         path, q = url.path, parse_qs(url.query)
         body = None
-        if req.post_data:
+        raw = req.post_data_buffer
+        if raw:
+            # Saved sessions come gzipped, as the real worker takes them.
+            if raw[:2] == b"\x1f\x8b":
+                raw = gzip.decompress(raw)
+                self.gzipped = True
             try:
-                body = json.loads(req.post_data)
+                body = json.loads(raw)
             except ValueError:
                 body = None
         status, data = 200, {"success": True}
@@ -188,6 +195,7 @@ def test_add_a_session_from_the_racebox_file(page):
     page.get_by_role("button", name="Save session").click()
     expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
     saved = fake.saved[0]
+    assert fake.gzipped, "the session is sent gzipped"
     assert saved["carId"] == "car1" and saved["privacy"] == "board" and saved["conditions"] == "Dry" and saved["temp"] == 19
     assert saved["tempSource"] == "weather" and saved["weather"]["temp"] == 19 and saved["weather"]["hour"] == "14:00"
     assert saved["session"]["venueId"] == "thruxton" and abs(saved["session"]["bestTime"] - 99.786) < 0.01
@@ -203,6 +211,9 @@ def test_add_a_session_from_the_racebox_file(page):
     # is scrubbed, and the grip chart can be zoomed too.
     m2 = page.locator("#tp-map2")
     m2.scroll_into_view_if_needed()
+    # Both laps' lines, each in its dot's colour (A blue, B orange).
+    expect(m2.locator("polyline.tv-line")).to_have_count(2)
+    assert [m2.locator("polyline.tv-line").nth(i).get_attribute("stroke") for i in range(2)] == ["#eb6834", "#2a78d6"]
     zin = m2.locator("xpath=..").locator(".tv-zoom-in")
     for _ in range(3):
         zin.click()
@@ -520,6 +531,7 @@ def test_tesla_file_gets_its_date_and_weather_from_the_file_name(page):
     expect(page.locator("#tp-date")).to_have_value("2024-03-29")
     expect(page.locator("#tp-time")).to_have_value("15:39")
     expect(page.locator("#tp-date-src")).to_contain_text("from the file name")
+    expect(page.locator(".tp-file-when")).to_have_text("29 Mar 2024, 15:39 (from the file name)")
     expect(page.locator("#tp-temp")).to_have_value("19")
     expect(page.locator("#tp-temp-src")).to_contain_text("Open-Meteo")
     # Changing the date looks the weather up again for the new day.
@@ -527,6 +539,25 @@ def test_tesla_file_gets_its_date_and_weather_from_the_file_name(page):
     page.locator("#tp-date").dispatch_event("change")
     expect(page.locator("#tp-date-src")).to_have_count(0)
     expect(page.locator("#tp-temp-src")).to_contain_text("Open-Meteo")
+
+
+def test_file_with_no_date_uses_when_it_was_saved(page):
+    """No date in the file or its name: the date and start time come from
+    when the file was saved on the device, less the session's length."""
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    text = (ROOT / "tests" / "fixtures" / "tesla-track-mode-thruxton.csv").read_text()
+    page.evaluate("""([text]) => {
+        const input = document.getElementById('tp-file');
+        // Saved at 16:00 UK time (15:00 UTC) on 3 June 2026.
+        const f = new File([text], 'thruxton.csv', { type: 'text/csv', lastModified: Date.UTC(2026, 5, 3, 15, 0, 0) });
+        const dt = new DataTransfer(); dt.items.add(f); input.files = dt.files;
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+    }""", [text])
+    expect(page.locator("#tp-date")).to_have_value("2026-06-03")
+    expect(page.locator("#tp-time")).to_have_value(re.compile(r"^15:[45]\d$"))
+    expect(page.locator("#tp-date-src")).to_contain_text("saved on your device")
+    expect(page.locator(".tp-file-when")).to_contain_text(re.compile(r"3 Jun 2026, 15:[45]\d \(from when the file was saved\)"))
 
 
 SAT_TILE = '<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"><rect width="256" height="256" fill="#3d5a2a"/></svg>'
@@ -549,8 +580,10 @@ def test_a_days_files_make_one_session_in_runs(page):
         {"name": "session-1.vbo", "mimeType": "text/plain", "buffer": data},
         {"name": "session-2.vbo", "mimeType": "text/plain", "buffer": data},
     ])
-    expect(page.locator(".tp-file b")).to_contain_text("2 files: session-1.vbo, session-2.vbo")
-    expect(page.locator(".tp-file span")).to_contain_text("2 runs")
+    expect(page.locator(".tp-file > div > b")).to_have_text("2 files")
+    expect(page.locator(".tp-file-list li b")).to_have_text(["session-1.vbo", "session-2.vbo"])
+    expect(page.locator(".tp-file-when").first).to_contain_text("recorded in the file")
+    expect(page.locator(".tp-file > div > span")).to_contain_text("2 runs")
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text(re.compile(r"4 timed laps, best 1:39\.78[56]"))
     page.get_by_role("button", name="Save session").click()
     expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))

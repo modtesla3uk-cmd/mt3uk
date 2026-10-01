@@ -120,7 +120,14 @@
     (opts.overlays || []).forEach(function (o) {
       el('polyline', { points: o.trace.map(function (p) { return P(p[2], p[3]).join(','); }).join(' '), fill: 'none', stroke: o.color, 'stroke-width': 2.5, 'stroke-dasharray': '6 5', 'stroke-linejoin': 'round' }, svg);
     });
-    for (var i = 1; i < trace.length; i++) {
+    // Two laps compared: each line in its own colour (B under A), with a
+    // pale edge so both show on the satellite picture.
+    (opts.lines || []).forEach(function (o) {
+      var pts = o.trace.map(function (p) { return P(p[2], p[3]).join(','); }).join(' ');
+      el('polyline', { 'class': 'tv-line-edge', points: pts, fill: 'none', stroke: 'rgba(255,255,255,.85)', 'stroke-width': 5.5, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, svg);
+      el('polyline', { 'class': 'tv-line', points: pts, fill: 'none', stroke: o.color, 'stroke-width': 3, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, svg);
+    });
+    for (var i = 1; i < (opts.lines ? 0 : trace.length); i++) {
       var a = P(trace[i - 1][2], trace[i - 1][3]), b = P(trace[i][2], trace[i][3]);
       el('line', { 'class': opts.mono ? 'tv-mono' : 'tv-speed', x1: a[0], y1: a[1], x2: b[0], y2: b[1], stroke: opts.mono ? C.steel : ramp((trace[i][4] - vmin) / ((vmax - vmin) || 1)), 'stroke-width': opts.mono ? 3 : 5, 'stroke-linecap': 'round' }, svg);
     }

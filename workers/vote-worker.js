@@ -6369,6 +6369,7 @@ async function handleCarPublic(request, env) {
 // only the laps, summary and a trimmed trace come here. Everything is in KV
 // under single keys read with get(), never list():
 //   track-session:<id>          one session (private unless shared), gzipped
+//   track-source:<id>           that session's readings, gzipped, for the owner only (changing its type)
 //   track-index:<ownerKey>      that member's session summaries
 //   track-public:<carId>        the car's shared session summaries
 //   track-board:<venue>:<layout> / drag-board:<venue>   best per car
@@ -6380,6 +6381,9 @@ var TRACK_SESSION_MAX_BYTES = 1500000;
 // gzipped too; TRACK_SESSION_MAX_BYTES is the most it may send or that may be
 // stored, and a session may be at most this big once unzipped.
 var TRACK_UNZIPPED_MAX_BYTES = 6000000;
+// The readings kept with a session so its type can be changed later.
+var TRACK_SOURCE_MAX_BYTES = 3000000;
+var TRACK_SOURCE_UNZIPPED_MAX_BYTES = 14000000;
 
 async function gzipText(text) {
   return new Response(new Blob([text]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer();
@@ -6805,23 +6809,79 @@ async function handleTrackSessionGet(request, env) {
 
 async function handleTrackSessionUpdate(request, env) {
   var body;
-  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  try {
+    var buf = await request.arrayBuffer();
+    var gzipped = isGzip(buf);
+    if (buf.byteLength > (gzipped ? TRACK_SESSION_MAX_BYTES : TRACK_UNZIPPED_MAX_BYTES)) return json({ success: false, message: 'This session is too big to save. Try a shorter file.' }, 413);
+    body = JSON.parse(gzipped ? await gunzipText(buf, TRACK_UNZIPPED_MAX_BYTES) : new TextDecoder().decode(buf));
+  } catch (e) {
+    return json({ success: false, message: 'Invalid request body' }, 400);
+  }
+  if (!body || typeof body !== 'object') return json({ success: false, message: 'Invalid request body' }, 400);
   var got = await getOwnTrackSession(request, env, String(body.id || ''));
   if (got.error) return got.error;
   var rec = got.rec;
   var oldBoard = trackBoardKey(rec);
+  if (body.session && typeof body.session === 'object') {
+    // A new type: the readings read again as that type. The member's own
+    // details (privacy, conditions, tyres, temperature, notes) carry over.
+    if (rec.street) return json({ success: false, message: 'Street runs can\'t change type.' }, 400);
+    var next = cleanTrackSession(body.session, await getTrackLibrary(env));
+    if (next.error) return json({ success: false, message: next.error }, 400);
+    if (next.type === 'drag' && !next.atVenue) return json({ success: false, message: 'Drag runs can only be saved from a drag strip we know. If you were at one we don\'t list, tell us and we\'ll add it.' }, 400);
+    next.street = false;
+    next.id = rec.id;
+    next.owner = rec.owner;
+    next.carId = rec.carId;
+    next.createdAt = rec.createdAt;
+    ['privacy', 'conditions', 'tyres', 'temp', 'tempSource', 'weather', 'notes', 'hasSource'].forEach(function (k) { if (rec[k] !== undefined) next[k] = rec[k]; });
+    rec = next;
+    delete body.privacy;
+  }
   applyTrackEdits(rec, body);
   if (rec.street) rec.privacy = 'private';
-  await putTrackSession(env, rec);
+  if (!(await putTrackSession(env, rec))) return json({ success: false, message: 'This session is too big to save. Try a shorter file.' }, 413);
   await putTrackIndexes(env, got.email, rec);
   if (oldBoard && oldBoard !== trackBoardKey(rec)) await refreshTrackBoard(env, oldBoard, rec.carId);
   return json({ success: true, session: trackSummary(rec) });
+}
+
+// The readings behind a session, kept (gzipped, owner only) so the member can
+// change its type later. The page sends them just after saving; a session
+// without them simply can't change type.
+async function handleTrackSourceSave(request, env) {
+  var got = await getOwnTrackSession(request, env, String(new URL(request.url).searchParams.get('id') || ''));
+  if (got.error) return got.error;
+  var buf = await request.arrayBuffer();
+  if (!isGzip(buf)) return json({ success: false, message: 'Send the readings gzipped.' }, 400);
+  if (buf.byteLength > TRACK_SOURCE_MAX_BYTES) return json({ success: false, message: 'Those readings are too big to keep.' }, 413);
+  var src;
+  try { src = JSON.parse(await gunzipText(buf, TRACK_SOURCE_UNZIPPED_MAX_BYTES)); } catch (e) {
+    return json({ success: false, message: e && e.message === 'too big' ? 'Those readings are too big to keep.' : 'Invalid request body' }, e && e.message === 'too big' ? 413 : 400);
+  }
+  var rows = src && src.v === 1 && src.rd && typeof src.rd === 'object' && Array.isArray(src.p) ? src.p : null;
+  if (!rows || rows.length < 10 || rows.length > 400000) return json({ success: false, message: 'Invalid readings' }, 400);
+  var ends = [rows[0], rows[rows.length - 1]];
+  if (!ends.every(function (r) { return Array.isArray(r) && r.length >= 3 && r.length <= 12 && isFinite(r[0]) && isFinite(r[1]) && isFinite(r[2]); })) return json({ success: false, message: 'Invalid readings' }, 400);
+  await env.VOTES.put('track-source:' + got.rec.id, buf);
+  if (!got.rec.hasSource) { got.rec.hasSource = true; await putTrackSession(env, got.rec); }
+  return json({ success: true });
+}
+
+// Back out as the stored gzip, which the browser unzips (Content-Encoding).
+async function handleTrackSourceGet(request, env) {
+  var got = await getOwnTrackSession(request, env, String(new URL(request.url).searchParams.get('id') || ''));
+  if (got.error) return got.error;
+  var buf = await env.VOTES.get('track-source:' + got.rec.id, 'arrayBuffer');
+  if (!buf) return json({ success: false, message: 'No readings were kept for this session.' }, 404);
+  return new Response(buf, { status: 200, headers: { 'Content-Type': 'application/json', 'Content-Encoding': 'gzip', 'Cache-Control': 'no-store', 'Access-Control-Allow-Origin': '*' } });
 }
 
 async function handleTrackSessionDelete(request, env) {
   var got = await getOwnTrackSession(request, env, String(new URL(request.url).searchParams.get('id') || ''));
   if (got.error) return got.error;
   await env.VOTES.delete('track-session:' + got.rec.id);
+  await env.VOTES.delete('track-source:' + got.rec.id);
   await putTrackIndexes(env, got.email, got.rec, true);
   return json({ success: true });
 }
@@ -6976,6 +7036,7 @@ async function deleteMemberTrackData(env, email) {
   var cars = {};
   for (var i = 0; i < index.length; i++) {
     await env.VOTES.delete('track-session:' + index[i].id);
+    await env.VOTES.delete('track-source:' + index[i].id);
     cars[index[i].carId] = true;
   }
   await env.VOTES.delete(oKey);
@@ -8133,6 +8194,12 @@ export default {
     }
     if (url.pathname === '/track/session' && request.method === 'PUT') {
       return handleTrackSessionUpdate(request, env);
+    }
+    if (url.pathname === '/track/session/source' && request.method === 'POST') {
+      return handleTrackSourceSave(request, env);
+    }
+    if (url.pathname === '/track/session/source' && request.method === 'GET') {
+      return handleTrackSourceGet(request, env);
     }
     if (url.pathname === '/track/session' && request.method === 'DELETE') {
       return handleTrackSessionDelete(request, env);

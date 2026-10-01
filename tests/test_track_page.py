@@ -53,6 +53,8 @@ class FakeWorker:
         self.saved = []
         self.gzipped = False
         self.requests = []
+        self.sources = {}
+        self.fail_source = False
 
     def reply(self, route):
         req = route.request
@@ -92,6 +94,28 @@ class FakeWorker:
                 data = {"success": True, "session": dict(rec, mine=True, car=CAR["name"])}
             else:
                 status, data = 404, {"success": False}
+        elif path == "/track/session/source" and req.method == "POST":
+            sid = q.get("id", [""])[0]
+            if self.fail_source:
+                status, data = 413, {"success": False, "message": "Those readings are too big to keep."}
+            else:
+                self.sources[sid] = body
+                self.sessions[sid]["hasSource"] = True
+        elif path == "/track/session/source" and req.method == "GET":
+            sid = q.get("id", [""])[0]
+            if sid in self.sources:
+                data = dict(self.sources[sid], success=True)
+            else:
+                status, data = 404, {"success": False, "message": "No readings were kept for this session."}
+        elif path == "/track/session" and req.method == "PUT" and body.get("session"):
+            old = self.sessions[body["id"]]
+            rec = dict(body["session"])
+            for k in ("id", "carId", "privacy", "conditions", "tyres", "temp", "tempSource", "weather", "notes", "hasSource"):
+                rec[k] = old.get(k)
+            self.sessions[old["id"]] = rec
+            self.replaced = getattr(self, "replaced", []) + [body]
+            self.index = [summary(rec) if s["id"] == rec["id"] else s for s in self.index]
+            data = {"success": True, "session": summary(rec)}
         elif path == "/track/session" and req.method == "PUT":
             rec = self.sessions[body["id"]]
             for k in ("privacy", "conditions", "tyres", "temp", "tempSource", "weather", "notes"):
@@ -736,3 +760,75 @@ def test_changing_the_type_after_loading_relabels_the_files(page):
     expect(page.locator(".tp-file > div > span").last).to_contain_text("2 runs")
     page.locator("[data-type] button[data-v='track']").click()
     expect(page.locator(".tp-file > div > span").last).to_contain_text("2 sessions")
+
+
+def test_saving_keeps_the_readings_and_the_type_can_be_changed_after(page):
+    """Saved sessions keep their readings, so the type can be changed on the
+    session page: Track day to Other, checked, saved, with the member's own
+    details (tyres, notes) kept. Sessions saved without readings say why they
+    can't be changed."""
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    page.fill("#tp-tyres", "AD08R")
+    page.fill("#tp-notes", "keep me")
+    page.get_by_role("button", name="Save session").click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
+    # The readings went up (gzipped) just after saving.
+    assert fake.sources["new1"]["v"] == 1 and len(fake.sources["new1"]["p"]) > 1000
+    expect(page.locator("#settings [data-retype] .chip.is-on")).to_have_text("Track day")
+    page.locator("#settings [data-retype] button[data-v='other']").click()
+    expect(page.get_by_role("heading", name="Change the type")).to_be_visible()
+    expect(page.locator("[data-type] .chip.is-on")).to_have_text("Other")
+    expect(page.locator("#tp-result")).to_contain_text("Mapped with your top speed and grip")
+    # Their details aren't asked for again.
+    expect(page.locator("#tp-tyres")).to_have_count(0)
+    # Thruxton is a known venue, so there is no name to ask for.
+    expect(page.locator("#tp-venue-name")).to_have_count(0)
+    page.get_by_role("button", name="Save changes").click()
+    expect(page.get_by_role("heading", name="Session settings")).to_be_visible()
+    rec = fake.sessions["new1"]
+    assert rec["type"] == "other" and rec["tyres"] == "AD08R" and rec["notes"] == "keep me"
+    assert fake.replaced[0]["session"]["type"] == "other"
+    expect(page.locator("#settings [data-retype] .chip.is-on")).to_have_text("Other")
+    # Back to a track day: the laps come back from the saved readings.
+    page.locator("#settings [data-retype] button[data-v='track']").click()
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text(re.compile(r"2 timed laps, best 1:39\.78[56]"))
+    page.get_by_role("button", name="Save changes").click()
+    expect(page.locator("#settings [data-retype] .chip.is-on")).to_have_text("Track day")
+    assert fake.sessions["new1"]["type"] == "track" and len(fake.sessions["new1"]["laps"]) == 2
+
+
+def test_a_session_saved_without_readings_cannot_change_type(page):
+    fake = FakeWorker()
+    fake.fail_source = True
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    page.get_by_role("button", name="Save session").click()
+    # The session still saved; the settings say why the type is fixed.
+    expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
+    expect(page.locator("#settings [data-retype]")).to_have_count(0)
+    expect(page.locator("#settings")).to_contain_text("saved before we kept the readings")
+
+
+def test_changing_to_a_sprint_asks_for_the_start_and_finish(page):
+    """A track day saved at a circuit becomes a sprint: the course isn't known,
+    so the member taps the start, then the finish, before saving."""
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator("#settings [data-retype]")).to_be_visible()
+    page.locator("#settings [data-retype] button[data-v='sprint']").click()
+    expect(page.locator("#tp-tap-step")).to_have_text("Tap the start line, then the finish line.")
+    expect(page.get_by_role("button", name="Save changes")).to_have_count(0)
+    # Leaving without saving changes nothing.
+    page.get_by_role("link", name="Back to the session").click()
+    expect(page.locator("#settings [data-retype] .chip.is-on")).to_have_text("Track day")
+    assert fake.sessions["new1"]["type"] == "track"

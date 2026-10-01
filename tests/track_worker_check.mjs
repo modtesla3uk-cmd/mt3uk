@@ -230,6 +230,60 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   ok(res2.status === 413, 'a gzipped upload too big once unzipped is refused: ' + res2.status);
 }
 
+// Keeping a session's readings so its type can be changed later.
+{
+  const text = fs.readFileSync(ROOT + 'tests/fixtures/thruxton-trimmed.vbo', 'latin1');
+  const rd = T.read(text, 'f.vbo');
+  const meta = Object.assign({}, rd); delete meta.points;
+  const src = { v: 1, rd: meta, p: rd.points.map(q => [q.t, q.lat, q.lng, q.v, q.la, q.lo, q.sats, q.temp, 0]) };
+  const send = (path, body, token, method) => worker.fetch(new Request('https://w.test' + path, { method: method || 'POST', headers: token ? { 'X-Session-Token': token } : {}, body }), env, { waitUntil() {} });
+  r = await call('POST', '/track/sessions', { carId: 'cara1', session, tyres: 'AD08R', notes: 'keep me', conditions: 'Wet', privacy: 'board' }, 'tok-a');
+  const sid = r.body.session.id;
+  ok(!(await call('GET', '/track/session?id=' + sid, undefined, 'tok-a')).body.session.hasSource, 'no readings kept until they are sent');
+  let res = await send('/track/session/source?id=' + sid, JSON.stringify(src), 'tok-a');
+  ok(res.status === 400, 'readings must be gzipped: ' + res.status);
+  res = await send('/track/session/source?id=' + sid, zlib.gzipSync(JSON.stringify(src)), 'tok-b');
+  ok(res.status === 404, 'only the owner can keep readings: ' + res.status);
+  res = await send('/track/session/source?id=' + sid, zlib.gzipSync(JSON.stringify({ v: 1, rd: {}, p: [[1, 2, 3]] })), 'tok-a');
+  ok(res.status === 400, 'too few readings are refused: ' + res.status);
+  res = await send('/track/session/source?id=' + sid, zlib.gzipSync(JSON.stringify(src)), 'tok-a');
+  ok(res.status === 200, 'readings kept: ' + res.status);
+  r = await call('GET', '/track/session?id=' + sid, undefined, 'tok-a');
+  ok(r.body.session.hasSource === true, 'the session knows it has its readings');
+  res = await send('/track/session/source?id=' + sid, undefined, 'tok-a', 'GET');
+  const back = JSON.parse(zlib.gunzipSync(Buffer.from(await res.arrayBuffer())).toString());
+  ok(res.status === 200 && res.headers.get('Content-Encoding') === 'gzip' && back.p.length === src.p.length && back.rd.format === rd.format, 'the owner gets the readings back');
+  res = await send('/track/session/source?id=' + sid, undefined, 'tok-b', 'GET');
+  ok(res.status === 404, 'others cannot read them: ' + res.status);
+  res = await send('/track/session/source?id=' + sid, undefined, undefined, 'GET');
+  ok(res.status === 401, 'nor can visitors: ' + res.status);
+  // Changing the type: the new analysis replaces the old, the member's details stay.
+  let board = await call('GET', '/track/board?venue=thruxton&layout=main');
+  ok(board.body.entries.some(e => e.sessionId === sid), 'on the leaderboard as a track day');
+  const other = T.analyse(T.read(text, 'f.vbo'), lib, { type: 'other' });
+  r = await call('PUT', '/track/session', { id: sid, session: other, venueName: 'Autotest' }, 'tok-a');
+  ok(r.status === 200 && r.body.session.id === sid && r.body.session.type === 'other', 'the type is changed: ' + JSON.stringify(r.body).slice(0, 160));
+  r = await call('GET', '/track/session?id=' + sid, undefined, 'tok-a');
+  const sx = r.body.session;
+  ok(sx.type === 'other' && sx.tyres === 'AD08R' && sx.notes === 'keep me' && sx.conditions === 'Wet' && sx.hasSource === true && sx.carId === 'cara1' && sx.owner === undefined, 'details and readings carry over');
+  board = await call('GET', '/track/board?venue=thruxton&layout=main');
+  ok(!board.body.entries.some(e => e.sessionId === sid), 'an other session is not on the leaderboard');
+  r = await call('GET', '/track/sessions', undefined, 'tok-a');
+  ok(r.body.sessions.filter(x => x.id === sid).length === 1 && r.body.sessions.find(x => x.id === sid).type === 'other', 'one entry in my list, with the new type');
+  r = await call('PUT', '/track/session', { id: sid, session: T.analyse(T.read(text, 'f.vbo'), lib, { type: 'drag' }) }, 'tok-a');
+  ok(r.status === 400, 'cannot become a drag run away from a strip: ' + r.status);
+  r = await call('PUT', '/track/session', { id: sid, session: session }, 'tok-b');
+  ok(r.status === 404, 'only the owner changes the type');
+  r = await call('PUT', '/track/session', { id: sid, session }, 'tok-a');
+  board = await call('GET', '/track/board?venue=thruxton&layout=main');
+  ok(r.status === 200 && r.body.session.type === 'track' && r.body.session.privacy !== 'private' && board.body.entries.some(e => e.sessionId === sid), 'and back to a track day, still shared and on the leaderboard');
+  const gzPut = zlib.gzipSync(JSON.stringify({ id: sid, session: other }));
+  res = await send('/track/session', gzPut, 'tok-a', 'PUT');
+  ok(res.status === 200 && (await res.json()).session.type === 'other', 'a gzipped change is accepted');
+  await call('DELETE', '/track/session?id=' + sid, undefined, 'tok-a');
+  ok(!kv.has('track-source:' + sid), 'deleting the session deletes its readings');
+}
+
 // Leaving the site clears everything.
 await mod.deleteMemberAccount(env, A);
 ok(!kv.has('track-index:' + (await mod.ownerKey(A))) && ![...kv.keys()].some(k => k.startsWith('track-session:') && stored(k).carId === 'cara1') && !kv.has('track-public:cara1'), 'a member leaving removes their sessions');

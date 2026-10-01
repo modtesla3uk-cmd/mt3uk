@@ -22,6 +22,7 @@
   var esc = V.esc;
   var RUN_COLORS = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#4a3aa7', '#e34948'];
   var TYPE_WORD = { drag: 'drag', sprint: 'sprint', other: 'other' };
+  var TYPES = [['track', 'Track day'], ['drag', 'Drag run'], ['sprint', 'Sprint or hill climb'], ['other', 'Other']];
   var ICON = {
     upload: '<path d="M12 15V3M7 8l5-5 5 5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/>',
     flag: '<path d="M4 21V4M4 4h12l-2 4 2 4H4"/>',
@@ -272,7 +273,18 @@
   }
   function drawAdd() {
     var a = add;
-    var h = back('Track sessions', '') + '<div class="tp-head"><h2>Add a session</h2>' + unitsChip() + '</div>' +
+    var h;
+    if (a.replaceId) {
+      // Changing a saved session's type: its saved readings are read again.
+      h = back('Back to the session', 's=' + a.replaceId) + '<div class="tp-head"><h2>Change the type</h2>' + unitsChip() + '</div>' +
+        '<div class="tp-add-grid"><div class="card"><p class="tp-car-one">Car: <b>' + esc(a.car.name) + '</b></p>' +
+        '<p class="tp-sub">Using the readings saved with this session. Pick the type below, check the result, then save.</p>' +
+        '<p class="tp-status" id="tp-status" role="status"></p></div><div id="tp-result"></div></div>';
+      app.innerHTML = h;
+      if (a.session) drawResult();
+      return;
+    }
+    h = back('Track sessions', '') + '<div class="tp-head"><h2>Add a session</h2>' + unitsChip() + '</div>' +
       '<div class="tp-add-grid"><div class="card">' +
       (a.cars.length > 1 ? '<div class="tp-field"><label for="tp-car">Car</label><select class="field" id="tp-car">' + a.cars.map(function (c) { return '<option value="' + esc(c.id) + '"' + (c.id === a.car.id ? ' selected' : '') + '>' + esc(c.name) + '</option>'; }).join('') + '</select></div>' : '<p class="tp-car-one">Car: <b>' + esc(a.car.name) + '</b></p>') +
       '<label class="tp-drop" id="tp-drop">' + icon('upload') + '<b>Drop your files here, or choose them</b><small>One file, or all of a day\'s files together (they make one session). VBO, CSV or GPX. Works with RaceBox, VBOX, Harry\'s LapTimer, TrackAddict, AiM and most phone apps.</small><span class="btn btn-secondary btn-sm">Choose files</span><input type="file" id="tp-file" multiple accept=".vbo,.csv,.gpx,.txt,text/csv,application/gpx+xml" hidden></label>' +
@@ -446,7 +458,7 @@
   // looked up from Open-Meteo. Anything the member types wins.
   function fillTemp() {
     var a = add, s = a.session;
-    if (!s || (a.tempSource === 'member' && a.temp != null)) return;
+    if (!s || a.replaceId || (a.tempSource === 'member' && a.temp != null)) return;
     if (s.airTemp != null) {
       a.temp = s.airTemp; a.tempSource = 'file'; a.weather = null;
       if (document.getElementById('tp-result')) drawResult();
@@ -472,7 +484,7 @@
   function drawResult() {
     var a = add, s = a.session, box = document.getElementById('tp-result');
     var h = '<div class="card tp-fields">';
-    h += '<div class="tp-field"><span class="tp-lbl">Type</span><div class="tp-chips" data-type>' + [['track', 'Track day'], ['drag', 'Drag run'], ['sprint', 'Sprint or hill climb'], ['other', 'Other']].map(function (t) { return '<button type="button" class="chip' + (s.type === t[0] ? ' is-on' : '') + '" data-v="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</div></div>';
+    h += '<div class="tp-field"><span class="tp-lbl">Type</span><div class="tp-chips" data-type>' + TYPES.map(function (t) { return '<button type="button" class="chip' + (s.type === t[0] ? ' is-on' : '') + '" data-v="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</div></div>';
     var isSprint = s.type === 'sprint', word = isSprint ? 'run' : 'lap';
     if (s.type === 'other') {
       h += '<div class="tp-notice is-ok">' + icon('check') + '<div><b>' + esc(s.venue || 'Your drive') + '</b><br>Mapped with your top speed and grip. Other sessions aren\'t timed for a leaderboard.' + (s.laps && s.laps.length ? ' ' + s.laps.length + ' laps found too.' : '') + '</div></div>' +
@@ -502,7 +514,9 @@
       }
     }
     var saveable = s.type === 'drag' ? (s.runs || []).length && (s.atVenue || (a.admin && a.street)) : s.type === 'other' ? true : !s.needsStartLine && s.laps && s.laps.length;
-    if (saveable) {
+    if (saveable && a.replaceId) {
+      h += '<button type="button" class="btn btn-accent btn-block" id="tp-save">Save changes</button>';
+    } else if (saveable) {
       // The date and start time: from the file, its name, or the member. The
       // weather lookup needs them, and the session is saved on that date.
       h += '<div class="tp-f2"><div class="tp-field"><label for="tp-date">Date</label><input class="field" type="date" id="tp-date" max="' + esc(ukToday()) + '" value="' + esc(s.date || '') + '"></div>' +
@@ -665,7 +679,7 @@
     var a = add, s = a.session;
     btn.disabled = true;
     status('Saving...');
-    var carReady = a.car.virtual
+    var carReady = a.car.virtual && !a.replaceId
       ? api('PUT', '/my-builds/car', { carId: a.car.id }).then(function (d) { if (!d.success) throw new Error(d.message || 'Could not set up the car'); a.car.id = d.car.id; a.car.virtual = false; mine = null; counts = null; return d.car.id; })
       : Promise.resolve(a.car.id);
     carReady.then(function (carId) {
@@ -676,15 +690,58 @@
         if (lap) lap.filter(function (_, i) { return i % 4 === 0; }).forEach(function (p) { out.push(proj.ll(p[2], p[3]).map(function (v) { return Math.round(v * 1e6) / 1e6; })); });
         api('POST', '/track/requests', { kind: s.type === 'sprint' ? 'sprint' : 'circuit', name: a.venueName || s.venue || '', venueId: s.venueId || '', startLine: s.startLine, finishLine: s.finishLine || null, lapLength: lap ? lap[lap.length - 1][0] : null, outline: out, note: s.type === 'sprint' ? (s.venueId ? 'Course not recognised' : 'New sprint or hill climb') : s.venueId ? 'Layout not recognised' : 'New track' }).catch(function () {});
       }
+      if (a.replaceId) return api('PUT', '/track/session', { id: a.replaceId, session: s, venueName: a.venueName || '' }, true);
       return api('POST', '/track/sessions', { carId: carId, session: s, conditions: a.conditions, tyres: a.tyres || '', temp: a.temp, tempSource: a.temp == null ? '' : (a.tempSource || 'member'), weather: a.tempSource === 'weather' ? a.weather : null, notes: a.notes || '', privacy: a.privacy, venueName: a.venueName || '', street: a.street, adminViewer: a.street ? adminViewerToken() : '' }, true);
     }).then(function (d) {
       if (!d.success) throw new Error(d.message || 'Could not save the session.');
       mine = null; counts = null;
-      go('s=' + d.session.id);
+      if (a.replaceId) { go('s=' + d.session.id); return; }
+      // Keep the readings with the session, so its type can be changed later.
+      // Best effort: a session without them still works.
+      status('Keeping your readings...');
+      return keepReadings(d.session.id, a.rd).then(function () { go('s=' + d.session.id); });
     }).catch(function (e) {
       btn.disabled = false;
       status(e.message || 'Could not save the session.', 'error');
     });
+  }
+
+  // The readings as compact rows, for the worker to keep (gzipped) with the
+  // session. Rounded to about a centimetre and a millisecond.
+  function sourceOf(rd) {
+    var meta = {};
+    Object.keys(rd).forEach(function (k) { if (k !== 'points') meta[k] = rd[k]; });
+    function r(v, n) { return v == null || !isFinite(v) ? null : Math.round(v * n) / n; }
+    return { v: 1, rd: meta, p: rd.points.map(function (q) { return [r(q.t, 1000), r(q.lat, 1e7), r(q.lng, 1e7), r(q.v, 100), r(q.la, 1000), r(q.lo, 1000), r(q.sats, 1), r(q.temp, 10), q.run || 0]; }) };
+  }
+  function restoreSource(src) {
+    var rd = Object.assign({}, src.rd);
+    function n(v) { return v == null ? NaN : v; }
+    rd.points = src.p.map(function (a) {
+      var q = { t: a[0], lat: a[1], lng: a[2], v: n(a[3]), la: n(a[4]), lo: n(a[5]), sats: n(a[6]), temp: n(a[7]) };
+      if (a[8]) q.run = a[8];
+      return q;
+    });
+    return rd;
+  }
+  function keepReadings(id, rd) {
+    var send = api('POST', '/track/session/source?id=' + encodeURIComponent(id), sourceOf(rd), true).catch(function () {});
+    var wait = new Promise(function (resolve) { setTimeout(resolve, 20000); });
+    return Promise.race([send, wait]);
+  }
+  // Change a saved session's type: its readings come back from the worker and
+  // go through the same screen as adding one (tap the line if the course is
+  // new, then check the result and save).
+  function startRetype(s, type) {
+    status('Loading your readings...');
+    Promise.all([api('GET', '/track/session/source?id=' + encodeURIComponent(s.id)), getMine(), getLibrary(), isAdmin()]).then(function (r) {
+      var src = r[0], m = r[1];
+      if (!src.p || !m) throw new Error((src && src.message) || 'Could not load your readings.');
+      var car = m.cars.filter(function (c) { return c.id === s.carId; })[0] || m.cars[0];
+      add = { car: car, cars: m.cars, lib: r[2], admin: r[3], rd: restoreSource(src), session: null, type: type, startLine: null, conditions: s.conditions || 'Dry', condTouched: true, privacy: s.privacy, street: false, tyres: s.tyres || '', temp: s.temp, tempSource: s.tempSource || '', weather: s.weather || null, notes: s.notes || '', date: s.date, time: s.time, venueName: s.venueId ? '' : s.venue, replaceId: s.id, files: null, list: null };
+      analyse();
+      window.scrollTo(0, 0);
+    }).catch(function (e) { status((e && e.message) || 'Could not load your readings.', 'error'); });
   }
 
   // ---------- One session ----------
@@ -1033,7 +1090,10 @@
 
   function ownerHtml(s) {
     var limit = s.street ? 'street' : (s.type === 'drag' ? (s.atVenue ? '' : 'noboard') : (s.venueId && s.layoutId ? '' : 'noboard'));
-    return '<div class="tp-section" id="settings"><div class="tp-head"><h2>Session settings</h2></div><div class="card tp-fields">' +
+    var typeBox = s.street ? '' : s.hasSource
+      ? '<div class="tp-field"><span class="tp-lbl">Type</span><div class="tp-chips" data-retype>' + TYPES.map(function (t) { return '<button type="button" class="chip' + (s.type === t[0] ? ' is-on' : '') + '" data-v="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</div><p class="tp-small">Picked the wrong one? Choose another and we\'ll read your saved readings again as that type.</p></div>'
+      : '<p class="tp-src">' + icon('info') + '<span>This session was saved before we kept the readings, so its type can\'t be changed. Add the file again to save it as a different type.</span></p>';
+    return '<div class="tp-section" id="settings"><div class="tp-head"><h2>Session settings</h2></div><div class="card tp-fields">' + typeBox +
       '<div class="tp-field"><span class="tp-lbl">Who can see it</span><div class="tp-privacy" data-privacy>' + privacyOptions(s.privacy, limit) + '</div></div>' +
       '<div class="tp-field"><span class="tp-lbl">Conditions</span><div class="tp-chips" data-cond>' + ['Dry', 'Damp', 'Wet'].map(function (c) { return '<button type="button" class="chip' + (s.conditions === c ? ' is-on' : '') + '" data-v="' + c + '">' + c + '</button>'; }).join('') + '</div></div>' +
       '<div class="tp-f2"><div class="tp-field"><label for="tp-e-tyres">Tyres</label><input class="field" id="tp-e-tyres" value="' + esc(s.tyres || '') + '"></div><div class="tp-field"><label for="tp-e-temp">Air temperature (°C)</label><input class="field" id="tp-e-temp" inputmode="numeric" value="' + esc(s.temp == null ? '' : s.temp) + '"></div></div>' +
@@ -1068,6 +1128,11 @@
     }
     group('[data-privacy]', 'privacy');
     group('[data-cond]', 'conditions');
+    var rt = document.querySelector('#settings [data-retype]');
+    if (rt) rt.addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-v]');
+      if (b && b.getAttribute('data-v') !== s.type) startRetype(s, b.getAttribute('data-v'));
+    });
     document.getElementById('tp-e-save').addEventListener('click', function () {
       var t = document.getElementById('tp-e-temp').value.trim();
       api('PUT', '/track/session', { id: s.id, privacy: edit.privacy, conditions: edit.conditions || '', tyres: document.getElementById('tp-e-tyres').value, temp: t === '' ? null : parseFloat(t), tempSource: t === '' ? '' : (edit.tempSource || 'member'), weather: edit.tempSource === 'weather' ? edit.weather : null, notes: document.getElementById('tp-e-notes').value }).then(function (d) {

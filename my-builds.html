@@ -307,7 +307,9 @@
   .mb-notif-item-date { font-family: var(--font-body); font-size: 0.62rem; color: var(--steel); margin-top: 4px; }
   .mb-notif-empty { padding: 16px 12px; font-size: 0.8rem; color: var(--steel); }
 
-  .mb-upload-toggle-row { max-width: 720px; margin: 0 auto 18px; }
+  .mb-upload-toggle-row { max-width: 720px; margin: 0 auto 18px; display: flex; flex-wrap: wrap; gap: 8px; }
+  a.mb-upload-toggle-btn { text-decoration: none; }
+  .mb-new { display: inline-block; padding: 1px 7px; border-radius: 999px; background: var(--orange); color: #fff; font-size: 0.68rem; font-weight: 700; line-height: 1.5; }
   .mb-upload-toggle-btn {
     display: inline-flex;
     align-items: center;
@@ -1307,6 +1309,7 @@ document.addEventListener('DOMContentLoaded', function () {
       <div id="mb-car-selector-view">
         <div class="mb-upload-toggle-row" id="build-upload">
           <button type="button" class="mb-upload-toggle-btn" id="mb-addcar-toggle-btn">+ Add Car No.1</button>
+          <a class="mb-upload-toggle-btn mb-track-btn" id="mb-track-btn" href="track.html"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V4M4 4h12l-2 4 2 4H4"/></svg>Track Sessions <span class="mb-new">NEW</span></a>
         </div>
 
         <div class="mb-upload-card" id="mb-addcar-card" style="display:none;">

@@ -391,3 +391,17 @@ def test_track_sessions_row_on_the_car(device_page):
     assert row.get_by_role("link", name="Add a session").get_attribute("href") == "track.html?add=1&car=car-1"
     assert overflow_width(page) <= 0
     assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_track_sessions_button_on_the_garage(device_page):
+    page = device_page
+    signed_in(page)
+    page.goto("/my-builds.html")
+    btn = page.locator("#mb-track-btn")
+    btn.wait_for(state="visible", timeout=10000)
+    assert "Track Sessions" in btn.inner_text()
+    assert btn.get_attribute("href") == "track.html"
+    assert btn.bounding_box()["height"] >= 44
+    assert overflow_width(page) <= 0
+    assert page.errors == [], diagnostics(page)

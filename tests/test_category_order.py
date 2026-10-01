@@ -164,7 +164,7 @@ def test_track_tiles(page):
     page.goto("/index.html")
     guides = page.locator('.hp-cat[data-cat="track"]')
     assert "Track day guides" in guides.inner_text()
-    assert "prep" in guides.inner_text()
+    assert "venues" in guides.inner_text()
     sessions = page.locator('.hp-cat[data-cat="sessions"]')
     assert sessions.get_attribute("href") == "track.html"
-    assert "leaderboards" in sessions.inner_text()
+    assert "quickest" in sessions.inner_text()

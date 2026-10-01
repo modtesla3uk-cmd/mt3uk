@@ -239,7 +239,7 @@
   }
 
   function addDot(heading, opts) {
-    if (!heading || heading.closest('[data-no-share]') || heading.querySelector('.mt3uk-share-dot')) return;
+    if (!heading || (heading.closest('[data-no-share]') && !heading.hasAttribute('data-share-page')) || heading.querySelector('.mt3uk-share-dot')) return;
     var btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'mt3uk-share-dot';
@@ -277,10 +277,13 @@
     var page = (path.replace(/^\//, '').replace(/\.html$/, '') || 'home').replace(/[^\w-]/g, '');
     var stem = page === 'home' ? 'index' : page;
 
-    var main = document.querySelector('h1:not(header h1)');
+    // A page whose h1 isn't about the page (the homepage hero shows the
+    // latest interview) marks another element with data-share-page="<title>".
+    var marked = document.querySelector('[data-share-page]');
+    var main = marked || document.querySelector('h1:not(header h1)');
     if (main) {
       addDot(main, {
-        path: path, stem: stem, title: headingText(main) || 'MT3UK', intro: introAfter(document, main),
+        path: path, stem: stem, title: (marked && marked.getAttribute('data-share-page')) || headingText(main) || 'MT3UK', intro: marked ? '' : introAfter(document, main),
         campaign: 'page_' + page, heading: 'Share this page',
         text: page === 'home' ? 'Check out MT3UK, the UK’s modified Tesla community' : null
       });

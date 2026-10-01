@@ -2228,7 +2228,18 @@
   .hp-stats span { font-family: var(--font-body); font-size: 0.74rem; color: #b9c0cf; }
   @media (max-width: 600px) { .hp-hero-ctas .hp-btn { flex: 1 1 140px; } }
 
-  .category-card.hp-cat { flex-direction: column; align-items: stretch; justify-content: space-between; gap: 10px; min-height: 96px; }
+  .category-card.hp-cat { flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 6px; min-height: 0; padding: 14px 16px; }
+  /* Two across: the chevron sits up by the icon so the title, and its NEW
+     badge, get the tile's full width. */
+  @media (max-width: 899px) {
+    .hp-cat .card-chevron { position: absolute; top: 18px; right: 14px; }
+    .hp-cat .category-card-content { padding-right: 0; }
+    .hp-cat .category-card-content > span { flex-basis: 100%; font-size: 0.9rem; text-wrap: balance; }
+  }
+  /* The last word and its NEW badge stay together on one line. */
+  .hp-cat .hp-nowrap { white-space: nowrap; font: inherit; }
+  @media (max-width: 899px) { .hp-cat .hp-new { font-size: 0.62rem; padding: 1px 4px; margin-left: 2px; } }
+  .hp-cat .hp-new { display: inline-block; margin-left: 4px; vertical-align: 2px; line-height: 1.3; white-space: nowrap; }
   /* Whichever tile comes last runs the full width, so members can put the
      tiles in any order (hold one to move it) without leaving gaps. */
   .categories-grid.hp-cats > .hp-cat:nth-child(odd):last-child { grid-column: 1 / -1; min-height: 76px; }
@@ -2240,15 +2251,30 @@
     .hp-cat { cursor: grab; }
     .hp-cat.hp-cat-dragging { cursor: grabbing; }
   }
-  .hp-cat.hp-cat-holding { transform: scale(0.97); }
+  /* Floating tiles: a soft shadow underneath, a lift on hover, and they
+     rise further when held, ready to be dragged. */
+  .categories-grid.hp-cats .hp-cat { border-color: rgba(22, 35, 61, 0.06); box-shadow: 0 1px 2px rgba(22, 35, 61, 0.05), 0 8px 20px -6px rgba(22, 35, 61, 0.16); transition: transform 0.2s ease, box-shadow 0.2s ease; }
+  .categories-grid.hp-cats .hp-cat:hover { transform: translateY(-3px); box-shadow: 0 2px 4px rgba(22, 35, 61, 0.06), 0 16px 30px -8px rgba(22, 35, 61, 0.24); }
+  .hp-cat.hp-cat-holding { transform: translateY(-4px) scale(1.03) !important; box-shadow: 0 4px 8px rgba(22, 35, 61, 0.08), 0 22px 40px -10px rgba(22, 35, 61, 0.32) !important; }
   .hp-cat.hp-cat-dragging { position: fixed; z-index: 60; margin: 0; pointer-events: none; transform: scale(1.04) rotate(-1deg); box-shadow: 0 16px 34px rgba(22, 35, 61, 0.3); background: #ffffff; transition: none; }
   .hp-cat-placeholder { border: 2px dashed var(--orange); background: rgba(232, 84, 42, 0.06); }
   .categories-grid.hp-cats > .hp-cat-placeholder:nth-child(odd):last-child { grid-column: 1 / -1; }
-  .hp-cat-hint { margin: 12px 0 0; font-family: var(--font-body); font-size: 0.78rem; color: #56606f; }
-  .hp-cat-hint button { background: none; border: 0; padding: 0; margin-left: 6px; font: inherit; color: var(--orange); text-decoration: underline; cursor: pointer; }
+  .hp-cat-hint { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; margin: 0 0 14px; padding: 8px 12px; border: 1px dashed var(--hairline-strong); border-radius: var(--radius-sm); font-family: var(--font-body); font-size: 0.84rem; color: var(--ink-2, #3b4556); }
+  .hp-cat-intro { margin: -8px 0 16px; font-family: var(--font-body); font-size: 0.95rem; color: #56606f; }
+  @media (min-width: 901px) { .hp-cat-intro { text-align: center; } }
+  .hp-cat-hint .icon { width: 18px; height: 18px; flex: none; color: var(--orange); }
+  .hp-cat-hint b { color: var(--ink, #16233d); }
+  .hp-cat-hint button { background: none; border: 0; padding: 0; margin-left: auto; min-height: 32px; font: inherit; color: var(--orange); text-decoration: underline; cursor: pointer; }
+  @media (min-width: 901px) { .hp-cat-hint { justify-content: center; } .hp-cat-hint button { margin-left: 8px; } }
+  .hp-cat { position: relative; }
+  .hp-cat-grip { position: absolute; right: 8px; bottom: 8px; width: 16px; height: 16px; fill: #a6adb9; stroke: none; pointer-events: none; }
+  /* A one-off nudge the first time the tiles come into view. */
+  @keyframes hp-cat-nudge { 0%, 100% { transform: none; } 25% { transform: rotate(-1.2deg); } 75% { transform: rotate(1.2deg); } }
+  .hp-cats.is-nudging .hp-cat { animation: hp-cat-nudge 0.45s ease-in-out 2; }
+  @media (prefers-reduced-motion: reduce) { .hp-cats.is-nudging .hp-cat { animation: none; } }
   .hp-cat-hint button[hidden] { display: none; }
   .hp-cat-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-  .hp-cat-meta { font-family: var(--font-body); font-size: 0.78rem; line-height: 1.45; color: #56606f; }
+  .hp-cat-meta { font-family: var(--font-body); font-size: 0.78rem; line-height: 1.45; color: #56606f; padding-right: 14px; }
   /* minmax(0, 1fr) and wrapping keep any tile, badge and all, inside its
      column wherever it's moved to. */
   .categories-grid.hp-cats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -3048,7 +3074,7 @@
           <a href="blog-richard.html" class="hp-btn hp-hero-read" id="hp-hero-cta"><span id="hp-hero-cta-text">Read the interview</span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
         </div>
         <a href="#owner-interviews" class="hp-hero-next" id="hp-hero-next" hidden></a>
-        <p class="hp-site-note">This is the MT3UK website: gallery, events, shop and My Garage. Our Facebook group is separate, and you don&rsquo;t need Facebook to use the site.</p>
+        <p class="hp-site-note" data-share-page="MT3UK">This is the MT3UK website: gallery, events, shop and My Garage. Our Facebook group is separate, and you don&rsquo;t need Facebook to use the site.</p>
         <div class="hp-join" id="hp-join" hidden>
           <p id="hp-join-text"><strong>Join MT3UK to like, comment and get alerts</strong> when members like or comment on your build. It&rsquo;s free.</p>
           <div class="hp-join-actions" id="hp-join-actions">
@@ -3166,7 +3192,7 @@
 <!-- CARBON FIBER PATTERN WRAPPER ENCLOSING CATEGORIES -->
 <div class="tesla-watermark-wrapper">
   <!-- CATEGORIES SECTION -->
-  <section class="categories-section">
+  <section class="categories-section" id="explore" data-share-image="images/MT3UK_RED_BLK_BG.png">
     <div class="wrap">
       <button type="button" class="hp-scroll-top" id="hp-scroll-top" aria-label="Back to the top">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 16l7-7 7 7"/><path d="M5 22l7-7 7 7" class="hp-scroll-cue-back"/></svg>
@@ -3182,6 +3208,8 @@
       </script>
       <span class="categories-prefix">01 /</span>
       <h2 class="categories-title">Explore MT3UK</h2>
+      <p class="hp-cat-intro">Your garage, meets, track days, the shop and member stories, all in one place.</p>
+      <div class="hp-cat-hint" id="hp-cat-hint"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg><span><b>Make it yours:</b> <span class="hp-cat-hint-touch">hold any tile, then drag it to a new spot.</span><span class="hp-cat-hint-mouse">drag any tile to a new spot.</span></span><button type="button" id="hp-cat-reset" hidden>Reset order</button></div>
       <div class="categories-grid hp-cats">
         <a href="my-builds.html" class="category-card hp-cat nav-link-mybuilds-hero" data-cat="garage">
           <div class="hp-cat-top">
@@ -3191,7 +3219,7 @@
             </div>
             <svg class="card-chevron" viewBox="0 0 24 16" aria-hidden="true"><path d="M2 2l6 6-6 6" /><path d="M8 2l6 6-6 6" /><path d="M14 2l6 6-6 6" /></svg>
           </div>
-          <div class="hp-cat-meta" id="hp-meta-garage">Add your build to the gallery</div>
+          <div class="hp-cat-meta" id="hp-meta-garage">Add your build to the gallery</div><svg class="hp-cat-grip" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="6" r="1.4"/><circle cx="15" cy="6" r="1.4"/><circle cx="9" cy="12" r="1.4"/><circle cx="15" cy="12" r="1.4"/><circle cx="9" cy="18" r="1.4"/><circle cx="15" cy="18" r="1.4"/></svg>
         </a>
         <a href="#events" class="category-card hp-cat" data-cat="events">
           <div class="hp-cat-top">
@@ -3201,7 +3229,7 @@
             </div>
             <svg class="card-chevron" viewBox="0 0 24 16" aria-hidden="true"><path d="M2 2l6 6-6 6" /><path d="M8 2l6 6-6 6" /><path d="M14 2l6 6-6 6" /></svg>
           </div>
-          <div class="hp-cat-meta" id="hp-meta-events">Meets across the UK</div>
+          <div class="hp-cat-meta" id="hp-meta-events">Meets across the UK</div><svg class="hp-cat-grip" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="6" r="1.4"/><circle cx="15" cy="6" r="1.4"/><circle cx="9" cy="12" r="1.4"/><circle cx="15" cy="12" r="1.4"/><circle cx="9" cy="18" r="1.4"/><circle cx="15" cy="18" r="1.4"/></svg>
         </a>
         <a href="track-day-prep.html" class="category-card hp-cat" data-cat="track">
           <div class="hp-cat-top">
@@ -3211,18 +3239,17 @@
             </div>
             <svg class="card-chevron" viewBox="0 0 24 16" aria-hidden="true"><path d="M2 2l6 6-6 6" /><path d="M8 2l6 6-6 6" /><path d="M14 2l6 6-6 6" /></svg>
           </div>
-          <div class="hp-cat-meta" id="hp-meta-track">How to prep your Tesla, the UK venues and what to expect on the day</div>
+          <div class="hp-cat-meta" id="hp-meta-track">Prep, venues and what to expect on the day</div><svg class="hp-cat-grip" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="6" r="1.4"/><circle cx="15" cy="6" r="1.4"/><circle cx="9" cy="12" r="1.4"/><circle cx="15" cy="12" r="1.4"/><circle cx="9" cy="18" r="1.4"/><circle cx="15" cy="18" r="1.4"/></svg>
         </a>
         <a href="track.html" class="category-card hp-cat" data-cat="sessions">
           <div class="hp-cat-top">
             <div class="category-card-content">
               <svg class="card-icon" viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/></svg>
-              <span>Track sessions</span>
-              <em class="hp-new">NEW</em>
+              <span>Track <span class="hp-nowrap">sessions <em class="hp-new">NEW</em></span></span>
             </div>
             <svg class="card-chevron" viewBox="0 0 24 16" aria-hidden="true"><path d="M2 2l6 6-6 6" /><path d="M8 2l6 6-6 6" /><path d="M14 2l6 6-6 6" /></svg>
           </div>
-          <div class="hp-cat-meta">Map your laps, then see who's quickest on the leaderboards</div>
+          <div class="hp-cat-meta">Map your laps and see who&rsquo;s quickest</div><svg class="hp-cat-grip" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="6" r="1.4"/><circle cx="15" cy="6" r="1.4"/><circle cx="9" cy="12" r="1.4"/><circle cx="15" cy="12" r="1.4"/><circle cx="9" cy="18" r="1.4"/><circle cx="15" cy="18" r="1.4"/></svg>
         </a>
         <a href="shop.html" class="category-card hp-cat" data-cat="shop">
           <div class="hp-cat-top">
@@ -3232,21 +3259,19 @@
             </div>
             <svg class="card-chevron" viewBox="0 0 24 16" aria-hidden="true"><path d="M2 2l6 6-6 6" /><path d="M8 2l6 6-6 6" /><path d="M14 2l6 6-6 6" /></svg>
           </div>
-          <div class="hp-cat-meta">Tees, stickers and parts</div>
+          <div class="hp-cat-meta">Tees, hoodies, stickers and member deals on parts</div><svg class="hp-cat-grip" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="6" r="1.4"/><circle cx="15" cy="6" r="1.4"/><circle cx="9" cy="12" r="1.4"/><circle cx="15" cy="12" r="1.4"/><circle cx="9" cy="18" r="1.4"/><circle cx="15" cy="18" r="1.4"/></svg>
         </a>
         <a href="#owner-interviews" class="category-card hp-cat" id="hp-cat-interviews" data-cat="interviews">
           <div class="hp-cat-top">
             <div class="category-card-content">
               <svg class="card-icon" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4V5z"/><path d="M8 9h8M8 12h5"/></svg>
-              <span>Owner interviews</span>
-              <em class="hp-new">NEW</em>
+              <span>Owner <span class="hp-nowrap">interviews <em class="hp-new">NEW</em></span></span>
             </div>
             <svg class="card-chevron" viewBox="0 0 24 16" aria-hidden="true"><path d="M2 2l6 6-6 6" /><path d="M8 2l6 6-6 6" /><path d="M14 2l6 6-6 6" /></svg>
           </div>
-          <div class="hp-cat-meta" id="hp-meta-interviews">Real members, real builds</div>
+          <div class="hp-cat-meta" id="hp-meta-interviews">Real members, real builds</div><svg class="hp-cat-grip" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="6" r="1.4"/><circle cx="15" cy="6" r="1.4"/><circle cx="9" cy="12" r="1.4"/><circle cx="15" cy="12" r="1.4"/><circle cx="9" cy="18" r="1.4"/><circle cx="15" cy="18" r="1.4"/></svg>
         </a>
       </div>
-      <p class="hp-cat-hint" id="hp-cat-hint"><span class="hp-cat-hint-touch">Tip: hold a tile to move it.</span><span class="hp-cat-hint-mouse">Tip: drag a tile to move it.</span><button type="button" id="hp-cat-reset" hidden>Reset order</button></p>
       <script>
         // Hold a category tile, then drag it to rearrange the grid. The order
         // is kept in this browser (localStorage mt3ukCategoryOrder).
@@ -3278,6 +3303,22 @@
             if (Array.isArray(saved)) { apply(saved); resetBtn.hidden = currentOrder().join() === defaultOrder.join(); }
           } catch (e) {}
           resetBtn.addEventListener('click', function () { apply(defaultOrder); save(); });
+
+          // Show once that the tiles move: a little wiggle the first time
+          // they come into view, until the member has moved one.
+          var NUDGE = 'mt3ukCatNudged';
+          var nudged = false;
+          try { nudged = localStorage.getItem(NUDGE) === '1' || !!localStorage.getItem(KEY); } catch (e) {}
+          if (!nudged && 'IntersectionObserver' in window) {
+            var io = new IntersectionObserver(function (entries) {
+              if (!entries[0].isIntersecting) return;
+              io.disconnect();
+              grid.classList.add('is-nudging');
+              setTimeout(function () { grid.classList.remove('is-nudging'); }, 1000);
+              try { localStorage.setItem(NUDGE, '1'); } catch (e) {}
+            }, { threshold: 0.6 });
+            io.observe(grid);
+          }
 
           var holdTimer = null, start = null, tile = null, dragging = false, placeholder = null, offset = null, suppressClick = false, withMouse = false;
 

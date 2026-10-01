@@ -13,7 +13,7 @@ Static site for the MT3UK modified Tesla community, live at https://mt3uk.com. I
   - **Small changes** (wording, colours, fonts, layout tweaks): a browser check on phone and desktop is enough before pushing. The GitHub test run covers the rest.
 - **Check mobile as well as desktop** for any layout change. The main mobile breakpoint is `max-width: 780px`.
 - **Never use em dashes** in site copy, commit messages or anything else. Use commas, colons, brackets or full stops.
-- **Proofread new copy** for spelling before adding it.
+- **Proofread new copy** for spelling and grammar before adding it, and before showing it to Richard. Use British spelling (colour, tyres, programme). Plurals never take an apostrophe: "modified Teslas", "the 2020s", "MOTs". An apostrophe is only for possession or a missing letter ("the Tesla's brakes", "who's quickest"). "Its" is possessive and "it's" means "it is".
 
 ## Worker
 

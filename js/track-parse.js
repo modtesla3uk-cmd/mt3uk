@@ -183,7 +183,7 @@
       return { needsMapping: { headers: hh, rows: lines.slice((hi === -1 ? 0 : hi) + 1, (hi === -1 ? 0 : hi) + 4).map(function (l) { return splitCsv(l, delim); }) } };
     }
     var unit = mapping && mapping.speedUnit ? mapping.speedUnit : (cols.speed >= 0 ? unitFromHeader(headers[cols.speed]) : '');
-    var pts = [], startedAt = null, clockDays = 0, prev = null;
+    var pts = [], startedAt = null, clockDays = 0, prev = null, lapOffset = 0, lastLap = null, step = 0;
     for (var r = hi + 1; r < lines.length; r++) {
       var f = splitCsv(lines[r], delim);
       var tm = parseTime(f[cols.time]);
@@ -193,7 +193,14 @@
       var t = tm.t;
       if (tm.clock && prev !== null && t + clockDays + 43200 < prev) clockDays += 86400;
       t += tm.clock ? clockDays : 0;
+      // Some loggers (Tesla Track Mode) start the elapsed time again at 0 on
+      // each new lap: carry it on from the end of the lap before.
+      var lapNo = cols.lap >= 0 ? num(f[cols.lap]) : NaN;
+      if (isFinite(lapNo) && lastLap !== null && lapNo > lastLap && prev !== null && t + lapOffset < prev) lapOffset = prev - t + step;
+      if (isFinite(lapNo)) lastLap = lapNo;
+      t += lapOffset;
       if (prev !== null && t <= prev) continue;
+      if (prev !== null) step = t - prev;
       prev = t;
       if (startedAt === null && tm.abs) startedAt = tm.abs;
       pts.push({ t: t, lat: lat, lng: lng, v: cols.speed >= 0 ? num(f[cols.speed]) : NaN, la: cols.la >= 0 ? num(f[cols.la]) : NaN, lo: cols.lo >= 0 ? num(f[cols.lo]) : NaN, sats: cols.sats >= 0 ? num(f[cols.sats]) : NaN, temp: cols.temp >= 0 ? num(f[cols.temp]) : NaN, lap: cols.lap >= 0 ? num(f[cols.lap]) : NaN, abs: !!tm.abs });

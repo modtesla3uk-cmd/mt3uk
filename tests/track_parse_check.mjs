@@ -167,3 +167,21 @@ ok(T.fmtLap(99.786) === '1:39.786' && T.niceDate('2026-05-28') === '28 May 2026'
   const bare = tesla.replace('Elapsed Time (ms)', 'Elapsed Time');
   ok(T.read(bare, 't.csv').hz >= 10, 'milliseconds worked out from the numbers');
 }
+
+// Tesla Track Mode starts Elapsed Time again at 0 on each lap; the readings
+// are written 2 or 3 times over.
+{
+  const src = fs.readFileSync(ROOT + 'tests/fixtures/tesla-track-mode-thruxton.csv', 'utf8').trim().split('\n');
+  const head = src[0], rows = src.slice(1).map(l => l.split(','));
+  let lapStart = 0, lap = null;
+  const out = [head];
+  rows.forEach(c => {
+    if (c[0] !== lap) { lap = c[0]; lapStart = +c[1]; }
+    const line = [c[0], +c[1] - lapStart].concat(c.slice(2)).join(',');
+    out.push(line, line);
+  });
+  const tr = T.read(out.join('\n'), 'telemetry-v1.csv');
+  const ts = T.analyse(tr, lib);
+  ok(near(tr.points[tr.points.length - 1].t, +rows[rows.length - 1][1] / 1000, 1), 'per-lap elapsed time carried on across laps: ' + Math.round(tr.points[tr.points.length - 1].t) + ' s');
+  ok(ts.laps.length === 2 && near(Math.min(...ts.laps.map(l => l.time)), 99.785, 0.3), 'laps from a file whose time restarts each lap: ' + ts.laps.map(l => l.time).join(', '));
+}

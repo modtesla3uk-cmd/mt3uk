@@ -286,7 +286,8 @@
     var reader = new FileReader();
     reader.onload = function () {
       add.file = { name: file.name, text: String(reader.result || '') };
-      add.session = null; add.startLine = null; add.type = null;
+      add.session = null; add.startLine = null; add.type = null; add.date = null; add.time = null;
+      add.weatherKey = null; if (add.tempSource !== 'member') { add.temp = null; add.tempSource = ''; add.weather = null; }
       parseFile();
     };
     reader.onerror = function () { status('That file could not be opened.', 'error'); };
@@ -336,6 +337,9 @@
     if (a.startLine) opts.startLine = a.startLine;
     if (a.finishLine) opts.finishLine = a.finishLine;
     a.session = T.analyse(a.rd, a.lib, opts);
+    // A date or start time the member typed wins over the file's.
+    if (a.date) { a.session.date = a.date; a.session.dateFrom = 'member'; }
+    if (a.time) a.session.time = a.time;
     a.type = a.session.type;
     drawAdd();
     status('');
@@ -402,6 +406,12 @@
     }
     var saveable = s.type === 'drag' ? (s.runs || []).length && (s.atVenue || (a.admin && a.street)) : s.type === 'other' ? true : !s.needsStartLine && s.laps && s.laps.length;
     if (saveable) {
+      // The date and start time: from the file, its name, or the member. The
+      // weather lookup needs them, and the session is saved on that date.
+      h += '<div class="tp-f2"><div class="tp-field"><label for="tp-date">Date</label><input class="field" type="date" id="tp-date" max="' + esc(ukToday()) + '" value="' + esc(s.date || '') + '"></div>' +
+        '<div class="tp-field"><label for="tp-time">Start time</label><input class="field" type="time" id="tp-time" value="' + esc(s.time || '') + '"></div></div>' +
+        (s.dateFrom === 'name' ? '<p class="tp-src" id="tp-date-src">' + icon('info') + '<span>Date and time from the file name. Change them if they\'re not right.</span></p>'
+          : !s.date ? '<p class="tp-src" id="tp-date-src">' + icon('info') + '<span>Your file has no date in it. Add the date and start time to look up the weather.</span></p>' : '');
       h += '<div class="tp-field"><span class="tp-lbl">Conditions</span><div class="tp-chips" data-cond>' + ['Dry', 'Damp', 'Wet'].map(function (c) { return '<button type="button" class="chip' + (a.conditions === c ? ' is-on' : '') + '" data-v="' + c + '">' + c + '</button>'; }).join('') + '</div></div>' +
         '<div class="tp-f2"><div class="tp-field"><label for="tp-tyres">Tyres</label><input class="field" id="tp-tyres" placeholder="For example, Pilot Sport 4S" value="' + esc(a.tyres || '') + '"></div>' +
         '<div class="tp-field"><label for="tp-temp">Air temperature (°C)</label><input class="field" id="tp-temp" inputmode="numeric" placeholder="18" value="' + esc(a.temp == null ? '' : a.temp) + '"></div></div>' +
@@ -463,6 +473,21 @@
       });
     }
     group('[data-type]', function (v) { keep(); if (v !== a.type) { a.type = v; analyse(); } });
+    ['tp-date', 'tp-time'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('change', function () {
+        keep();
+        var v = el.value;
+        if (id === 'tp-date') { if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return; a.date = v; a.session.date = v; a.session.dateFrom = 'member'; }
+        else { a.time = v; a.session.time = v; }
+        // Look the weather up again for the new date or hour.
+        a.weatherKey = null;
+        if (a.tempSource !== 'member') { a.temp = null; a.tempSource = ''; a.weather = null; }
+        drawResult();
+        fillTemp();
+      });
+    });
     group('[data-cond]', function (v) { keep(); a.conditions = v; a.condTouched = true; drawResult(); });
     group('[data-privacy]', function (v) { keep(); a.privacy = v; drawResult(); });
     var st = document.getElementById('tp-street');
@@ -649,7 +674,7 @@
         '<div class="tp-chart-head"><h3>Time gap</h3><span class="tp-small" id="tp-gap-cap"></span></div><svg class="tv-chart" id="tp-delta" role="img" aria-label="Running time gap between the laps"></svg></div>' +
         '<div class="tp-grid"><div class="card"><h3>Where you are</h3><svg class="tv-chart" id="tp-map2" role="img" aria-label="Track map with both laps\' positions"></svg></div>' +
         '<div class="card"><h3>Corner by corner</h3><div class="tp-scroll"><table class="tp-table" id="tp-corners"></table></div></div></div></div>' +
-        '<div class="tp-grid tp-g2"><div class="card"><div class="tp-chart-head"><h3>Grip used, lap A</h3><span class="tp-small">Each dot is a moment on the lap.</span></div><svg class="tv-chart tp-gg" id="tp-gg" role="img" aria-label="Sideways against lengthways g for lap A"></svg></div><div class="tp-notes" id="tp-cmp-notes"></div></div></div>';
+        '<div class="tp-grid tp-g2"><div class="card"><div class="tp-chart-head"><h3>How much grip you used, lap A</h3><span class="tp-small">Each dot is a moment on the lap. The further from the middle, the harder the car was working the tyres.</span></div><svg class="tv-chart tp-gg" id="tp-gg" role="img" aria-label="Sideways against lengthways g for lap A"></svg></div><div class="tp-notes" id="tp-cmp-notes"></div></div></div>';
     }
     if (s.mine && s.venueId && s.layoutId) h += '<div class="tp-section" id="over-time"><div class="tp-head"><h2>' + esc(trackName(s)) + ' over time</h2></div><div id="tp-time"></div></div>';
     return h;

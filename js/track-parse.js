@@ -276,7 +276,23 @@
     else out = readCsv(text, mapping);
     if (out.needsMapping) return out;
     finishPoints(out);
+    if (!out.startedAt) {
+      var fd = dateFromName(fileName);
+      if (fd) { out.fileDate = fd.date; out.fileTime = fd.time; }
+    }
     return out;
+  }
+
+  // A date (and time) in the file name, for files with none inside, such as
+  // Tesla Track Mode's telemetry-v1-2024-03-29-15_39_08.csv. Taken as UK
+  // local time.
+  function dateFromName(name) {
+    var n = String(name || '').replace(/^.*[\\/]/, '');
+    var m = n.match(/(20\d\d)[-_.]?(0[1-9]|1[0-2])[-_.]?(0[1-9]|[12]\d|3[01])(?:[-_T ]+([01]\d|2[0-3])[-_:.]?([0-5]\d)(?:[-_:.]?([0-5]\d))?)?/);
+    if (!m) return null;
+    var d = m[1] + '-' + m[2] + '-' + m[3];
+    if (!isFinite(Date.parse(d + 'T00:00:00Z'))) return null;
+    return { date: d, time: m[4] ? m[4] + ':' + m[5] : '' };
   }
 
   // Speeds in km/h and g worked out where the file has none, then smoothed.
@@ -531,6 +547,7 @@
     }
     var session = { type: type, format: rd.format, hz: rd.hz, sats: rd.sats, quality: rd.quality, startedAt: rd.startedAt || null, venueName: rd.venueName || '', speedDerived: !!rd.speedDerived, gDerived: !!rd.gDerived };
     if (rd.startedAt) session.date = ukDate(rd.startedAt), session.time = ukTime(rd.startedAt);
+    else if (rd.fileDate) { session.date = rd.fileDate; session.time = rd.fileTime || ''; session.dateFrom = 'name'; }
     if (rd.airTemp != null) session.airTemp = rd.airTemp;
     if (venue) { session.venueId = venue.id; session.venue = venue.name; }
     var origin = venue ? [venue.lat, venue.lng] : [pts[0].lat, pts[0].lng];
@@ -799,7 +816,7 @@
   }
 
   var api = {
-    read: read, analyse: analyse, sessionNotes: sessionNotes, trendNotes: trendNotes, cornerGains: cornerGains,
+    read: read, dateFromName: dateFromName, analyse: analyse, sessionNotes: sessionNotes, trendNotes: trendNotes, cornerGains: cornerGains,
     traceAt: traceAt, findCorners: findCorners, mergeLibrary: mergeLibrary, fmtLap: fmtLap, niceDate: niceDate,
     haversine: haversine, projector: projector, dragRuns: dragRuns, KMH_PER_MPH: KMH_PER_MPH
   };

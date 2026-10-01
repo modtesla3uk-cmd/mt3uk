@@ -12,7 +12,7 @@
 */
 (function () {
   var NS = 'http://www.w3.org/2000/svg';
-  var C = { s1: '#2a78d6', s2: '#eb6834', ink: '#16233d', steel: '#6b7385', grid: 'rgba(22,35,61,.08)', axis: 'rgba(22,35,61,.24)', card: '#ffffff', orange: '#e8542a', orangeInk: '#b8421f', rampLo: '#b7d3f6', rampMid: '#3987e5', rampHi: '#0d366b', hair: 'rgba(22,35,61,.12)' };
+  var C = { s1: '#2a78d6', s2: '#eb6834', ink: '#16233d', steel: '#6b7385', grid: 'rgba(22,35,61,.08)', axis: 'rgba(22,35,61,.24)', card: '#ffffff', orange: '#e8542a', orangeInk: '#b8421f', rampLo: '#d73027', rampMid: '#f4c430', rampHi: '#1a9850', hair: 'rgba(22,35,61,.12)' };
   var units = { mph: true };
   try { units.mph = localStorage.getItem('mt3ukTrackUnits') !== 'kmh'; } catch (e) {}
 
@@ -163,7 +163,15 @@
       k = kk;
       fixed.forEach(function (m) { moveMarker(m, m.x, m.y); });
     } });
-    return { vmin: vmin, vmax: vmax, placeA: function (p) { place(dotA, p); }, placeB: function (p) { place(dotB, p); }, P: P, marker: marker, zoom: zoom };
+    // When the dot is moved from outside the map (scrubbing a chart), a
+    // zoomed-in view follows it so the car stays in the middle. Hovering the
+    // map itself uses place() directly, so the map doesn't slide away.
+    function follow(p) {
+      if (!p || !zoom || zoom.k() <= 1.01) return;
+      var q = P(p[2], p[3]);
+      zoom.centreOn(q[0], q[1]);
+    }
+    return { vmin: vmin, vmax: vmax, placeA: function (p) { place(dotA, p); follow(p); }, placeB: function (p) { place(dotB, p); }, P: P, marker: marker, zoom: zoom };
   }
 
   // Zoom and pan for a map: + / - / reset buttons, the mouse wheel, a pinch,
@@ -288,7 +296,11 @@
       svg.removeEventListener('click', onClick, true);
     };
     set();
-    return { zoomAt: zoomAt, busy: function () { return count() > 1 || dragged; }, k: function () { return W / vb.w; } };
+    function centreOn(x, y) {
+      vb.x = x - vb.w / 2; vb.y = y - vb.h / 2;
+      clamp(); set();
+    }
+    return { zoomAt: zoomAt, centreOn: centreOn, busy: function () { return count() > 1 || dragged; }, k: function () { return W / vb.w; } };
   }
   function row(k, v, color) {
     return '<div class="tv-r"><span>' + (color ? '<i style="background:' + color + '"></i>' : '') + esc(k) + '</span><span>' + v + '</span></div>';
@@ -357,22 +369,41 @@
   // ---------- Grip used ----------
   function gg(svg, trace, color) {
     svg.innerHTML = '';
+    svg.classList.add('tv-map');
     var W = 360, H = 360, cx = W / 2, cy = H / 2, R = 140, sc = R / 1.3;
     svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    el('line', { x1: cx - R, x2: cx + R, y1: cy, y2: cy, stroke: C.axis }, svg);
+    el('line', { x1: cx, x2: cx, y1: cy - R, y2: cy + R, stroke: C.axis }, svg);
     [0.5, 1.0].forEach(function (r) {
-      el('circle', { cx: cx, cy: cy, r: r * sc, fill: 'none', stroke: C.grid, 'stroke-width': 1.5, 'stroke-dasharray': r === 1 ? '' : '3 4' }, svg);
-      text(svg, cx + 4, cy - r * sc - 4, r.toFixed(1) + ' g');
+      el('circle', { cx: cx, cy: cy, r: r * sc, fill: 'none', stroke: C.axis, 'stroke-width': 1.5, 'stroke-dasharray': r === 1 ? '' : '4 4' }, svg);
     });
-    el('line', { x1: cx - R, x2: cx + R, y1: cy, y2: cy, stroke: C.grid }, svg);
-    el('line', { x1: cx, x2: cx, y1: cy - R, y2: cy + R, stroke: C.grid }, svg);
-    text(svg, cx, cy - R - 6, 'Accelerate', { 'text-anchor': 'middle', fill: C.steel });
-    text(svg, cx, cy + R + 18, 'Brake', { 'text-anchor': 'middle', fill: C.steel });
-    text(svg, cx - R + 2, cy - 6, 'Cornering', { fill: C.steel });
-    text(svg, cx + R - 2, cy - 6, 'Cornering', { 'text-anchor': 'end', fill: C.steel });
+    var dots = el('g', {}, svg);
     trace.forEach(function (p) {
       var x = Math.max(-1.3, Math.min(1.3, p[5])), y = Math.max(-1.3, Math.min(1.3, p[6]));
-      el('circle', { cx: cx + x * sc, cy: cy - y * sc, r: 2.2, fill: color || C.s1, 'fill-opacity': 0.4 }, svg);
+      el('circle', { cx: cx + x * sc, cy: cy - y * sc, r: 2.2, fill: color || C.s1, 'fill-opacity': 0.45 }, dots);
     });
+    // Labels on top of the dots, dark and bold, kept the same size when
+    // zoomed in (each is a group scaled back by the zoom).
+    var fixed = [];
+    function label(x, y, s2, anchor, pill) {
+      var g = el('g', {}, svg);
+      fixed.push({ g: g, x: x, y: y });
+      var w = s2.length * 7.2 + 12;
+      var bx = anchor === 'middle' ? -w / 2 : anchor === 'end' ? -w : 0;
+      el('rect', { x: bx, y: -12, width: w, height: 18, rx: 9, fill: '#ffffff', 'fill-opacity': pill ? 0.95 : 0.85, stroke: pill ? C.axis : 'none' }, g);
+      text(g, bx + w / 2, 2, s2, { 'text-anchor': 'middle', 'font-size': pill ? 11 : 12.5, 'font-weight': 700, fill: pill ? C.steel : C.ink });
+      g.setAttribute('transform', 'translate(' + x + ' ' + y + ')');
+    }
+    label(cx + 0.5 * sc * 0.72, cy - 0.5 * sc * 0.72, '0.5 g', 'middle', true);
+    label(cx + 1.0 * sc * 0.72, cy - 1.0 * sc * 0.72, '1.0 g', 'middle', true);
+    label(cx, cy - R - 4, 'Accelerating', 'middle');
+    label(cx, cy + R + 10, 'Braking', 'middle');
+    label(cx - R + 4, cy - 14, 'Cornering', 'start');
+    label(cx + R - 4, cy - 14, 'Cornering', 'end');
+    zoomControls(svg, { W: W, H: H, pts: [[cx, cy]], onZoom: function (k) {
+      fixed.forEach(function (f) { f.g.setAttribute('transform', 'translate(' + f.x + ' ' + f.y + ') scale(' + (1 / k) + ')'); });
+      dots.querySelectorAll('circle').forEach(function (c) { c.setAttribute('r', 2.2 / Math.sqrt(k)); });
+    } });
   }
 
   // ---------- Best lap per session ----------

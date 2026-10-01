@@ -185,3 +185,14 @@ ok(T.fmtLap(99.786) === '1:39.786' && T.niceDate('2026-05-28') === '28 May 2026'
   ok(near(tr.points[tr.points.length - 1].t, +rows[rows.length - 1][1] / 1000, 1), 'per-lap elapsed time carried on across laps: ' + Math.round(tr.points[tr.points.length - 1].t) + ' s');
   ok(ts.laps.length === 2 && near(Math.min(...ts.laps.map(l => l.time)), 99.785, 0.3), 'laps from a file whose time restarts each lap: ' + ts.laps.map(l => l.time).join(', '));
 }
+
+// A date and time in the file name, for files with none inside.
+{
+  ok(JSON.stringify(T.dateFromName('telemetry-v1-2024-03-29-15_39_08.csv')) === '{"date":"2024-03-29","time":"15:39"}', 'Tesla file name date and time');
+  ok(JSON.stringify(T.dateFromName('Session_20250621_143005.csv')) === '{"date":"2025-06-21","time":"14:30"}', 'compact file name date and time');
+  ok(T.dateFromName('2026-05-28 trackday.gpx').date === '2026-05-28' && T.dateFromName('2026-05-28 trackday.gpx').time === '', 'date with no time');
+  ok(T.dateFromName('my laps.csv') === null && T.dateFromName('lap-2026-13-40.csv') === null, 'no date, or not a real one');
+  const tesla = fs.readFileSync(ROOT + 'tests/fixtures/tesla-track-mode-thruxton.csv', 'utf8');
+  const s2 = T.analyse(T.read(tesla, 'telemetry-v1-2024-03-29-15_39_08.csv'), lib);
+  ok(s2.date === '2024-03-29' && s2.time === '15:39' && s2.dateFrom === 'name', 'session date from the Tesla file name');
+}

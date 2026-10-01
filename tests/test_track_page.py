@@ -189,6 +189,28 @@ def test_add_a_session_from_the_racebox_file(page):
     expect(page.locator(".tp-tile.is-hero .v")).to_have_text(re.compile(r"1:39\.78[56]"))
     # Which lap, without an "of" count that leaves out the out-lap.
     expect(page.locator(".tp-tile.is-hero .s")).to_have_text(re.compile(r"^Lap \d+$"))
+    # Comparing laps: zoomed in, the map follows the car as the speed chart
+    # is scrubbed, and the grip chart can be zoomed too.
+    m2 = page.locator("#tp-map2")
+    m2.scroll_into_view_if_needed()
+    zin = m2.locator("xpath=..").locator(".tv-zoom-in")
+    for _ in range(3):
+        zin.click()
+    vb = lambda: page.evaluate("(() => { const b = document.getElementById('tp-map2').viewBox.baseVal; return [b.x, b.y, b.width, b.height]; })()")
+    before = vb()
+    sp = page.locator("#tp-speed")
+    sp.scroll_into_view_if_needed()
+    box = sp.bounding_box()
+    page.mouse.move(box["x"] + box["width"] * 0.7, box["y"] + box["height"] / 2)
+    page.wait_for_timeout(100)
+    after = vb()
+    assert after[:2] != before[:2], "the zoomed map moved to follow the car"
+    dot = page.evaluate("""(() => { const g = [...document.querySelectorAll('#tp-map2 g[visibility="visible"]')][0]; const m = g.getAttribute('transform').match(/translate\\(([-\\d.]+) ([-\\d.]+)\\)/); return [+m[1], +m[2]]; })()""")
+    assert after[0] <= dot[0] <= after[0] + after[2] and after[1] <= dot[1] <= after[1] + after[3], (dot, after)
+    expect(page.locator("#tp-gg").locator("xpath=..").locator(".tv-zoom-in")).to_be_visible()
+    expect(page.locator(".tp-gg").locator("xpath=../..").locator("h3")).to_contain_text("How much grip you used")
+    # Speed key runs red (slow) to green (fast).
+    expect(page.locator(".tp-ramp i").first).to_have_css("background-image", re.compile(r"rgb\(215, 48, 39\).*rgb\(26, 152, 80\)"))
     expect(page.locator(".tp-table").first.locator("tbody tr")).to_have_count(2)
     # Distances in miles with mph (the default), kilometres with km/h.
     expect(page.locator(".tp-tile").nth(4).locator(".v")).to_have_text(re.compile(r"^\d+\.\d mi$"))
@@ -472,3 +494,22 @@ def test_tesla_track_mode_file_finds_its_own_laps(page):
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text(re.compile(r"2 timed laps, best 1:39\.\d+"))
     expect(page.locator("#tp-tap")).to_have_count(0)
     expect(page.locator("body")).to_contain_text(re.compile(r"readings, 1[0-4] a second"))
+
+
+def test_tesla_file_gets_its_date_and_weather_from_the_file_name(page):
+    """Tesla files have no date inside: it comes from the file name, then the
+    temperature is looked up for that day and hour."""
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    data = (ROOT / "tests" / "fixtures" / "tesla-track-mode-thruxton.csv").read_bytes()
+    page.set_input_files("#tp-file", files=[{"name": "telemetry-v1-2024-03-29-15_39_08.csv", "mimeType": "text/csv", "buffer": data}])
+    expect(page.locator("#tp-date")).to_have_value("2024-03-29")
+    expect(page.locator("#tp-time")).to_have_value("15:39")
+    expect(page.locator("#tp-date-src")).to_contain_text("from the file name")
+    expect(page.locator("#tp-temp")).to_have_value("19")
+    expect(page.locator("#tp-temp-src")).to_contain_text("Open-Meteo")
+    # Changing the date looks the weather up again for the new day.
+    page.fill("#tp-date", "2024-03-30")
+    page.locator("#tp-date").dispatch_event("change")
+    expect(page.locator("#tp-date-src")).to_have_count(0)
+    expect(page.locator("#tp-temp-src")).to_contain_text("Open-Meteo")

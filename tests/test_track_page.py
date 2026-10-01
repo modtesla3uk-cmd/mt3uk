@@ -601,6 +601,13 @@ def test_a_days_files_make_one_session_in_runs(page):
     expect(credit).to_be_hidden()
     m.locator("xpath=..").locator(".tv-zoom-sat").click()
     expect(m.locator(".tv-sat image").first).to_be_attached()
+    # Over the satellite picture the grey band is hidden (the photo shows
+    # the track); with it off, the band is back.
+    expect(m.locator(".tv-band").first).to_be_hidden()
+    m.locator("xpath=..").locator(".tv-zoom-sat").click()
+    expect(m.locator(".tv-band").first).to_be_visible()
+    # Overlapping laps don't darken the band: one see-through group.
+    assert m.locator(".tv-bands").get_attribute("opacity") == "0.12"
     # Zoomed in, the track band widens to a real track's width.
     # On screen: the band's width times the zoom.
     band = lambda: float(m.locator(".tv-band").first.get_attribute("stroke-width")) * page.evaluate("(() => { const s = document.getElementById('tp-map'); return s.getBoundingClientRect().width / s.viewBox.baseVal.width; })()")

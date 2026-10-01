@@ -111,8 +111,12 @@
     // The track: a grey band drawn from every lap of the session, so it
     // covers the road actually used. Zoomed in it grows to a real track's
     // width (about 12 m), so your line can be seen within it.
+    // Every lap's band is solid inside one see-through group, so where laps
+    // overlap the band doesn't get darker. Hidden over the satellite picture,
+    // which shows the real track.
+    var bandG = el('g', { 'class': 'tv-bands', opacity: 0.12 }, svg);
     var bands = (opts.band && opts.band.length ? opts.band : [trace]).map(function (tr) {
-      return el('polyline', { 'class': 'tv-band', points: tr.map(function (p) { return P(p[2], p[3]).join(','); }).join(' '), fill: 'none', stroke: C.hair, 'stroke-width': 14, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, svg);
+      return el('polyline', { 'class': 'tv-band', points: tr.map(function (p) { return P(p[2], p[3]).join(','); }).join(' '), fill: 'none', stroke: C.ink, 'stroke-width': 14, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, bandG);
     });
     function bandWidth(k) { var w = Math.max(14 / k, TRACK_WIDTH_M * s); bands.forEach(function (b) { b.setAttribute('stroke-width', w); }); }
     bandWidth(1);
@@ -180,7 +184,7 @@
       });
       hit.addEventListener('pointerleave', function () { place(dotA, null); hideTip(); });
     }
-    var sat = satGround(svg, satG, opts.origin, P, s, x0, y0, H, oy, ox, bands);
+    var sat = satGround(svg, satG, opts.origin, P, s, x0, y0, H, oy, ox);
     var zoom = zoomControls(svg, { W: W, H: H, sat: sat, pts: trace.map(function (p) { return P(p[2], p[3]); }), onZoom: function (kk) {
       k = kk;
       bandWidth(kk);
@@ -206,7 +210,7 @@
   var SAT_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/';
   var satOn = true;
   try { satOn = localStorage.getItem('mt3ukTrackSat') !== '0'; } catch (e) {}
-  function satGround(svg, g, origin, P, s, x0, y0, H, oy, ox, bands) {
+  function satGround(svg, g, origin, P, s, x0, y0, H, oy, ox) {
     if (!g || !origin || origin.length !== 2 || !window.MT3UKTrack) return null;
     var proj = window.MT3UKTrack.projector(origin[0], origin[1]);
     function toMap(lat, lng) { var xy = proj.xy(lat, lng); return P(xy[0], xy[1]); }
@@ -219,8 +223,6 @@
     function draw() {
       g.innerHTML = '';
       svg.classList.toggle('has-sat', satOn);
-      // Over the imagery the band is a see-through dark strip, so the coloured line stands out.
-      bands.forEach(function (b) { b.setAttribute('stroke', satOn ? 'rgba(10, 14, 22, 0.45)' : C.hair); });
       if (!satOn) return;
       var vb = svg.viewBox.baseVal, r = svg.getBoundingClientRect();
       var a = fromMap(vb.x, vb.y), b = fromMap(vb.x + vb.width, vb.y + vb.height);

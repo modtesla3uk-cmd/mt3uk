@@ -11,7 +11,7 @@
     if (mt3ukNav && mt3ukNav.type === 'reload' && location.hash) history.replaceState(null, '', location.pathname + location.search);
   } catch (e) {}
 </script>
-<title>MT3UK:The Modified Tesla Owners Community Page</title>
+<title>MT3UK: The Modified Tesla Owners Website</title>
 <meta name="description" content="MT3UK is the global community for modified Tesla owners: wraps, wheels, suspension and track builds. Browse the gallery, join the group and get MT3UK merch.">
 <link rel="canonical" href="https://mt3uk.com/">
 <link rel="icon" type="image/x-icon" href="images/site/favicon.ico">
@@ -25,12 +25,12 @@
 <meta name="apple-mobile-web-app-title" content="MT3UK">
 <meta property="og:type" content="website">
 <meta property="og:title" content="MT3UK:The Modified Tesla Owners Community Page">
-<meta property="og:description" content="MT3UK is the global community for modified Tesla owners: wraps, wheels, suspension, stance and track builds. Browse the gallery, join the Facebook group and grab MT3UK merch.">
+<meta property="og:description" content="MT3UK is the global community for modified Tesla owners: wraps, wheels, suspension, stance and track builds. Browse the gallery, see events and grab MT3UK merch. This is the MT3UK website, separate from our Facebook group.">
 <meta property="og:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
 <meta property="og:url" content="https://mt3uk.com/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="MT3UK:The Modified Tesla Owners Community Page">
-<meta name="twitter:description" content="MT3UK is the global community for modified Tesla owners: wraps, wheels, suspension, stance and track builds. Browse the gallery, join the Facebook group and grab MT3UK merch.">
+<meta name="twitter:description" content="MT3UK is the global community for modified Tesla owners: wraps, wheels, suspension, stance and track builds. Browse the gallery, see events and grab MT3UK merch. This is the MT3UK website, separate from our Facebook group.">
 <meta name="twitter:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
 <link rel="stylesheet" href="css/site-header.css">
@@ -2159,6 +2159,7 @@
   #hp-hero-eyebrow { font-size: 0.9rem; font-weight: 600; color: #ffffff; text-shadow: 0 1px 3px rgba(0,0,0,0.75), 0 0 12px rgba(0,0,0,0.45); }
   @media (max-width: 780px) { #hp-hero-eyebrow { font-size: 0.8rem; letter-spacing: 0.08em; } }
   .hp-hero-meta { font-family: var(--font-body); font-size: 0.86rem; color: #d3d8e2; margin: 0 0 24px; }
+  .hp-site-note { font-family: var(--font-body); font-size: 0.86rem; line-height: 1.5; color: #d3d8e2; margin: 18px 0 18px; max-width: 520px; }
   .hp-hero-ctas { display: flex; flex-wrap: wrap; gap: 12px; }
   .hp-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 12px 22px; font-family: var(--font-body); font-size: 0.8rem; font-weight: 500; text-decoration: none; border: 1px solid transparent; transition: background 0.2s ease, color 0.2s ease; }
   .hp-btn-primary { background: #c8431d; color: #ffffff; }
@@ -2353,9 +2354,9 @@
     '#mt3uk-intro .ix-streak{position:fixed;left:0;height:2px;width:40vw;border-radius:2px;pointer-events:none;',
     'background:linear-gradient(90deg,transparent,#f3f1ea);opacity:0;transform:translateX(-50vw);}',
     '#mt3uk-intro .ix-stage{position:relative;width:100%;max-width:860px;margin:auto 0;display:flex;flex-direction:column;align-items:center;gap:16px;}',
-    '#mt3uk-intro .ix-logo{position:relative;width:min(78vw,440px);aspect-ratio:706/105;}',
+    '#mt3uk-intro .ix-logo{position:relative;width:min(62vw,312px);aspect-ratio:501/105;}',
     '#mt3uk-intro .ix-mark,#mt3uk-intro .ix-line{position:absolute;inset:0;',
-    'background:url(images/site/mt3uk-intro-logo.png) no-repeat 0 0/100% 100%;}',
+    'background:url(images/site/mt3uk-intro-wordmark.png) no-repeat 0 0/100% 100%;}',
     '#mt3uk-intro .ix-mark{clip-path:inset(0 0 11% 0);opacity:0;transform:translateX(-60vw) skewX(-18deg);}',
     '#mt3uk-intro .ix-line{clip-path:inset(89% 100% 0 0);}',
     '#mt3uk-intro .ix-tag{margin:6px 0 0;font:800 clamp(1.3rem,3.6vw,2rem)/1.2 "Archivo Expanded","Archivo",system-ui,sans-serif;text-align:center;text-wrap:balance;}',
@@ -2491,7 +2492,7 @@
     }
     var img = new Image();
     img.onload = img.onerror = start;
-    img.src = 'images/site/mt3uk-intro-logo.png';
+    img.src = 'images/site/mt3uk-intro-wordmark.png';
     if (img.complete) start();
     setTimeout(start, 500);
   }
@@ -2959,7 +2960,7 @@
         <a href="#about" class="nav-link active">About</a>
         <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle About submenu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
         <div class="nav-dropdown">
-          <a href="https://www.facebook.com/groups/mt3uk/" class="nav-sublink" target="_blank" rel="noopener">Join The Facebook Group</a>
+          <a href="https://www.facebook.com/groups/mt3uk/" class="nav-sublink" target="_blank" rel="noopener">Our separate Facebook group</a>
         </div>
       </div>
       <a href="#faq" class="nav-link">FAQs</a>
@@ -2999,6 +3000,7 @@
           <a href="my-builds.html#build-upload" class="hp-btn hp-btn-ghost">Add your car</a>
         </div>
         <a href="#owner-interviews" class="hp-hero-next" id="hp-hero-next" hidden></a>
+        <p class="hp-site-note">This is the MT3UK website: gallery, events, shop and My Garage. Our Facebook group is separate, and you don&rsquo;t need Facebook to use the site.</p>
         <div class="hp-join" id="hp-join" hidden>
           <p id="hp-join-text"><strong>Join MT3UK to like, comment and get alerts</strong> when members like or comment on your build. It&rsquo;s free.</p>
           <div class="hp-join-actions" id="hp-join-actions">
@@ -4955,13 +4957,13 @@
         <p>Subtle look, front lip, full body kit, race-prepped track build - we love them all.</p>
         <p>Whatever you're driving (Model S, 3, X or Y) and whatever stage your build is at, from a first set of wheels to a full track setup, you'll find people in the group who've done it, are doing it, or want to help you get there.</p>
         <p>We keep the group free from bots, spam and negativity, with a team of trusted admins on hand. Regular meet-ups across the UK and beyond, and a shared respect for doing mods properly.</p>
-        <a href="https://www.facebook.com/groups/mt3uk/" class="btn btn-join-community" target="_blank" rel="noopener">Join The Facebook Group</a>
+        <a href="https://www.facebook.com/groups/mt3uk/" class="btn btn-join-community" target="_blank" rel="noopener">Also join our Facebook group</a>
       </div>
       <div class="specs">
         <div class="spec-row"><span>Members</span><span class="member-count"></span></div>
         <div class="spec-row"><span>Coverage</span><span>Global</span></div>
         <div class="spec-row"><span>Models</span><span>S / 3 / X / Y</span></div>
-        <div class="spec-row"><span>Platform</span><span>Facebook Group</span></div>
+        <div class="spec-row"><span>Platform</span><span>Website + Facebook group</span></div>
         <div class="spec-row"><span>Activity</span><span>Daily threads</span></div>
         <div class="spec-row"><span>Focus</span><span>Wraps · Wheels · Suspension · Track</span></div>
       </div>
@@ -5046,7 +5048,10 @@
     </div>
     <div class="events-list">
       <div class="event-row" style="grid-template-columns: 1fr;">
-        <div class="event-info"><h3>Is MT3UK free to join?</h3><p>Yes, it's a free Facebook group. No membership fees, no sign-up forms, just an admin-approved request to keep the bots and spam out.</p></div>
+        <div class="event-info"><h3>Is this the Facebook group?</h3><p>No. This is the MT3UK website (mt3uk.com), with the gallery, events, shop and My Garage. The Facebook group is a separate community, and you don&rsquo;t need Facebook to use the site.</p></div>
+      </div>
+      <div class="event-row" style="grid-template-columns: 1fr;">
+        <div class="event-info"><h3>Is MT3UK free to join?</h3><p>Yes. The website is free to use and members sign in with just an email. Our separate Facebook group is free too, with an admin-approved request to keep the bots and spam out.</p></div>
       </div>
       <div class="event-row" style="grid-template-columns: 1fr;">
         <div class="event-info"><h3>Which Tesla models can I bring?</h3><p>All of them. Model S, 3, X and Y owners are all welcome, whatever stage your build is at.</p></div>
@@ -5071,8 +5076,13 @@
   "mainEntity": [
     {
       "@type": "Question",
+      "name": "Is this the Facebook group?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. This is the MT3UK website (mt3uk.com), with the gallery, events, shop and My Garage. The Facebook group is a separate community, and you don't need Facebook to use the site." }
+    },
+    {
+      "@type": "Question",
       "name": "Is MT3UK free to join?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Yes, it's a free Facebook group. No membership fees, no sign-up forms, just an admin-approved request to keep the bots and spam out." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. The website is free to use and members sign in with just an email. Our separate Facebook group is free too, with an admin-approved request to keep the bots and spam out." }
     },
     {
       "@type": "Question",
@@ -5103,7 +5113,7 @@
     <span class="section-num" style="text-align:center; display:block;">09 / Join</span>
     <h2><span class="member-count"></span> modified Tesla owners are already in. You're next.</h2>
     <p>Post your build, ask the questions, find the meets. It's free and it takes ten seconds.</p>
-    <a href="https://www.facebook.com/groups/mt3uk/" class="btn btn-primary" target="_blank" rel="noopener">Join MT3UK on Facebook</a>
+    <a href="https://www.facebook.com/groups/mt3uk/" class="btn btn-primary" target="_blank" rel="noopener">Also join our Facebook group</a>
   </div>
 </section>
 

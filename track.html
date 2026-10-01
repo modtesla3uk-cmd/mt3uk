@@ -190,6 +190,18 @@
   .tp-key .is-mod { color: #b8421f; }
   .tp-key i.is-dash { height: 2px; background: repeating-linear-gradient(90deg, #e8542a 0 4px, transparent 4px 7px); }
   .tv-chart { display: block; width: 100%; height: auto; overflow: visible; touch-action: pan-y; }
+  /* Maps zoom (js/track-view.js): lines keep their width, buttons top right. */
+  .tv-zoom-wrap { position: relative; }
+  .tv-map line, .tv-map polyline { vector-effect: non-scaling-stroke; }
+  .tv-map.is-zoomed { touch-action: none; cursor: grab; }
+  .tv-map.is-zoomed.tp-tap { cursor: crosshair; }
+  .tv-zoom-btns { position: absolute; top: 8px; right: 8px; display: flex; flex-direction: column; gap: 6px; z-index: 2; }
+  .tv-zoom-btn { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; padding: 0; border: 1px solid var(--hairline-strong); border-radius: 50%; background: rgba(255, 255, 255, 0.94); color: var(--ink); cursor: pointer; box-shadow: 0 2px 6px rgba(22, 35, 61, 0.12); }
+  .tv-zoom-btn::before { content: ""; position: absolute; inset: -2px; }
+  .tv-zoom-btn { position: relative; }
+  .tv-zoom-btn .icon { width: 18px; height: 18px; }
+  .tv-zoom-btn:hover { background: #fff; border-color: var(--ink); }
+  .tv-zoom-btn[hidden] { display: none; }
   .tv-chart text { font-family: var(--font-body); font-size: 12px; fill: #6b7385; font-variant-numeric: tabular-nums; }
   .tp-gg { max-width: 380px; margin: 0 auto; }
   .tv-tip { position: fixed; pointer-events: none; z-index: 50; background: #fff; color: var(--ink); border: 1px solid var(--hairline-strong); border-radius: var(--radius-sm); padding: 8px 10px; font-size: 0.8rem; box-shadow: 0 6px 20px rgba(22,35,61,.16); display: none; min-width: 140px; font-variant-numeric: tabular-nums; }

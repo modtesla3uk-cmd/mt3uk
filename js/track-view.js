@@ -62,9 +62,10 @@
     tipEl.style.top = ly + 'px';
   }
   function hideTip() { if (tipEl) tipEl.style.display = 'none'; }
+  // Screen position to SVG units, allowing for a zoomed or panned viewBox.
   function point(svg, evt) {
     var r = svg.getBoundingClientRect(), vb = svg.viewBox.baseVal;
-    return { x: (evt.clientX - r.left) * vb.width / r.width, y: (evt.clientY - r.top) * vb.height / r.height };
+    return { x: vb.x + (evt.clientX - r.left) * vb.width / r.width, y: vb.y + (evt.clientY - r.top) * vb.height / r.height };
   }
   function width(svg, fallback) {
     var par = svg.parentNode, w = 0;
@@ -93,9 +94,10 @@
   function map(svg, trace, opts) {
     opts = opts || {};
     svg.innerHTML = '';
-    var W = Math.min(640, width(svg, 600)), H = Math.round(W * 0.7);
+    var W = Math.min(640, width(svg, 600)), H = Math.round(W * (opts.tall ? 0.62 : 0.7));
     svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
-    if (!trace || trace.length < 2) return null;
+    svg.classList.add('tv-map');
+    if (!trace || trace.length < 2) { zoomControls(svg, null); return null; }
     var x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
     trace.forEach(function (p) { x0 = Math.min(x0, p[2]); x1 = Math.max(x1, p[2]); y0 = Math.min(y0, p[3]); y1 = Math.max(y1, p[3]); });
     var pad = 24, s = Math.min((W - 2 * pad) / ((x1 - x0) || 1), (H - 2 * pad) / ((y1 - y0) || 1));
@@ -108,37 +110,185 @@
       var a = P(trace[i - 1][2], trace[i - 1][3]), b = P(trace[i][2], trace[i][3]);
       el('line', { x1: a[0], y1: a[1], x2: b[0], y2: b[1], stroke: opts.mono ? C.steel : ramp((trace[i][4] - vmin) / ((vmax - vmin) || 1)), 'stroke-width': opts.mono ? 3 : 5, 'stroke-linecap': 'round' }, svg);
     }
+    // Markers (start line, corners, dots) keep their size when zoomed: each
+    // is a group at its point, scaled back by the zoom.
+    var fixed = [], k = 1;
+    function marker(x, y) {
+      var g = el('g', {}, svg);
+      var m = { g: g, x: x, y: y };
+      fixed.push(m);
+      g.setAttribute('transform', 'translate(' + x + ' ' + y + ') scale(' + (1 / k) + ')');
+      return m;
+    }
+    function moveMarker(m, x, y) { m.x = x; m.y = y; m.g.setAttribute('transform', 'translate(' + x + ' ' + y + ') scale(' + (1 / k) + ')'); }
     if (opts.startLine) {
       var sa = P(opts.startLine[0][0], opts.startLine[0][1]), sb = P(opts.startLine[1][0], opts.startLine[1][1]);
       var mx = (sa[0] + sb[0]) / 2, my = (sa[1] + sb[1]) / 2, dx = sb[0] - sa[0], dy = sb[1] - sa[1], L = Math.hypot(dx, dy) || 1;
-      el('line', { x1: mx - dx / L * 14, y1: my - dy / L * 14, x2: mx + dx / L * 14, y2: my + dy / L * 14, stroke: C.ink, 'stroke-width': 3 }, svg);
-      text(svg, mx + 18, my + 5, 'Start / finish', { 'font-size': 13, fill: C.ink });
+      var sm = marker(mx, my);
+      el('line', { x1: -dx / L * 14, y1: -dy / L * 14, x2: dx / L * 14, y2: dy / L * 14, stroke: C.ink, 'stroke-width': 3 }, sm.g);
+      text(sm.g, 18, 5, 'Start / finish', { 'font-size': 13, fill: C.ink });
     }
     (opts.corners || []).forEach(function (c) {
-      var p = P(c.x, c.y);
-      el('circle', { cx: p[0], cy: p[1], r: 11, fill: C.card, stroke: C.axis }, svg);
-      text(svg, p[0], p[1] + 4.5, String(c.n), { 'text-anchor': 'middle', 'font-size': 12, 'font-weight': 700, fill: C.ink });
+      var p = P(c.x, c.y), cm = marker(p[0], p[1]);
+      el('circle', { cx: 0, cy: 0, r: 11, fill: C.card, stroke: C.axis }, cm.g);
+      text(cm.g, 0, 4.5, String(c.n), { 'text-anchor': 'middle', 'font-size': 12, 'font-weight': 700, fill: C.ink });
     });
-    var dotB = el('circle', { r: 7, fill: C.s2, stroke: C.card, 'stroke-width': 2.5, visibility: 'hidden' }, svg);
-    var dotA = el('circle', { r: 7, fill: C.s1, stroke: C.card, 'stroke-width': 2.5, visibility: 'hidden' }, svg);
-    function place(dot, p) {
-      if (!p) { dot.setAttribute('visibility', 'hidden'); return; }
+    function dot(color) {
+      var dm = marker(0, 0);
+      el('circle', { r: 7, fill: color, stroke: C.card, 'stroke-width': 2.5 }, dm.g);
+      dm.g.setAttribute('visibility', 'hidden');
+      return dm;
+    }
+    var dotB = dot(C.s2), dotA = dot(C.s1);
+    function place(dm, p) {
+      if (!p) { dm.g.setAttribute('visibility', 'hidden'); return; }
       var q = P(p[2], p[3]);
-      dot.setAttribute('cx', q[0]); dot.setAttribute('cy', q[1]); dot.setAttribute('visibility', 'visible');
+      moveMarker(dm, q[0], q[1]);
+      dm.g.setAttribute('visibility', 'visible');
     }
     if (!opts.mono) {
       var hit = el('rect', { x: 0, y: 0, width: W, height: H, fill: 'transparent' }, svg);
       hit.addEventListener('pointermove', function (e) {
+        if (e.pointerType === 'touch' && zoom.busy()) return;
         var q = point(svg, e), bi = 0, bd = Infinity;
-        trace.forEach(function (p, k) { var pp = P(p[2], p[3]), d = (pp[0] - q.x) * (pp[0] - q.x) + (pp[1] - q.y) * (pp[1] - q.y); if (d < bd) { bd = d; bi = k; } });
-        if (bd > 900) { place(dotA, null); hideTip(); return; }
+        trace.forEach(function (p, j) { var pp = P(p[2], p[3]), d = (pp[0] - q.x) * (pp[0] - q.x) + (pp[1] - q.y) * (pp[1] - q.y); if (d < bd) { bd = d; bi = j; } });
+        if (bd > 900 / (k * k)) { place(dotA, null); hideTip(); return; }
         var p = trace[bi];
         place(dotA, p);
         tip('<b>' + (opts.lap ? 'Lap ' + opts.lap + ', ' : '') + fmtD(p[0], 2) + '</b>' + row('Speed', fmtV(p[4])) + row('Time', p[1].toFixed(1) + ' s') + row('Cornering', Math.abs(p[5]).toFixed(2) + ' g'), e.clientX, e.clientY);
       });
       hit.addEventListener('pointerleave', function () { place(dotA, null); hideTip(); });
     }
-    return { vmin: vmin, vmax: vmax, placeA: function (p) { place(dotA, p); }, placeB: function (p) { place(dotB, p); }, P: P };
+    var zoom = zoomControls(svg, { W: W, H: H, pts: trace.map(function (p) { return P(p[2], p[3]); }), onZoom: function (kk) {
+      k = kk;
+      fixed.forEach(function (m) { moveMarker(m, m.x, m.y); });
+    } });
+    return { vmin: vmin, vmax: vmax, placeA: function (p) { place(dotA, p); }, placeB: function (p) { place(dotB, p); }, P: P, marker: marker, zoom: zoom };
+  }
+
+  // Zoom and pan for a map: + / - / reset buttons, the mouse wheel, a pinch,
+  // and dragging once zoomed in. It works on the SVG viewBox, so point()
+  // keeps mapping taps to the right place. A drag that pans isn't a click.
+  var ZOOM_MAX = 8;
+  function zoomControls(svg, cfg) {
+    var wrap = svg.parentNode;
+    if (!wrap.classList.contains('tv-zoom-wrap')) {
+      var w = document.createElement('div');
+      w.className = 'tv-zoom-wrap';
+      wrap.insertBefore(w, svg);
+      w.appendChild(svg);
+      wrap = w;
+    }
+    var old = wrap.querySelector('.tv-zoom-btns');
+    if (old) old.remove();
+    if (svg._zoomOff) { svg._zoomOff(); svg._zoomOff = null; }
+    if (!cfg) return null;
+    var W = cfg.W, H = cfg.H, vb = { x: 0, y: 0, w: W, h: H };
+    function set() {
+      svg.setAttribute('viewBox', vb.x + ' ' + vb.y + ' ' + vb.w + ' ' + vb.h);
+      var kk = W / vb.w;
+      svg.classList.toggle('is-zoomed', kk > 1.01);
+      reset.hidden = kk <= 1.01;
+      cfg.onZoom(kk);
+    }
+    function zoomAt(f, cx, cy) {
+      var nw = Math.max(W / ZOOM_MAX, Math.min(W, vb.w / f)), nh = nw * H / W;
+      if (cx == null) { cx = vb.x + vb.w / 2; cy = vb.y + vb.h / 2; }
+      vb.x = cx - (cx - vb.x) * nw / vb.w; vb.y = cy - (cy - vb.y) * nh / vb.h;
+      vb.w = nw; vb.h = nh;
+      clamp(); set();
+    }
+    function clamp() {
+      vb.x = Math.max(0, Math.min(W - vb.w, vb.x));
+      vb.y = Math.max(0, Math.min(H - vb.h, vb.y));
+    }
+    function btn(cls, label, path) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'tv-zoom-btn ' + cls; b.setAttribute('aria-label', label);
+      b.innerHTML = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="' + path + '"/></svg>';
+      return b;
+    }
+    var box = document.createElement('div');
+    box.className = 'tv-zoom-btns';
+    var plus = btn('tv-zoom-in', 'Zoom in', 'M12 5v14M5 12h14');
+    var minus = btn('tv-zoom-out', 'Zoom out', 'M5 12h14');
+    var reset = btn('tv-zoom-reset', 'Show the whole track', 'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');
+    box.appendChild(plus); box.appendChild(minus); box.appendChild(reset);
+    wrap.appendChild(box);
+    // The buttons zoom towards the bit of track nearest the middle of the
+    // view, so a loop's empty middle doesn't fill the screen.
+    function nearCentre() {
+      var cx = vb.x + vb.w / 2, cy = vb.y + vb.h / 2, best = null, bd = Infinity;
+      (cfg.pts || []).forEach(function (p) { var d = (p[0] - cx) * (p[0] - cx) + (p[1] - cy) * (p[1] - cy); if (d < bd) { bd = d; best = p; } });
+      return best || [cx, cy];
+    }
+    plus.addEventListener('click', function () {
+      var c = nearCentre(), nw = Math.max(W / ZOOM_MAX, vb.w / 1.6), nh = nw * H / W;
+      vb = { x: c[0] - nw / 2, y: c[1] - nh / 2, w: nw, h: nh };
+      clamp(); set();
+    });
+    minus.addEventListener('click', function () { zoomAt(1 / 1.6); });
+    reset.addEventListener('click', function () { vb = { x: 0, y: 0, w: W, h: H }; set(); });
+
+    function onWheel(e) {
+      e.preventDefault();
+      var q = point(svg, e);
+      zoomAt(e.deltaY < 0 ? 1.25 : 0.8, q.x, q.y);
+    }
+    var pts = {}, start = null, dragged = false;
+    function count() { return Object.keys(pts).length; }
+    function onDown(e) {
+      pts[e.pointerId] = { x: e.clientX, y: e.clientY };
+      dragged = false;
+      start = { vb: Object.assign({}, vb), pts: JSON.parse(JSON.stringify(pts)) };
+    }
+    function onMove(e) {
+      if (!pts[e.pointerId] || !start) return;
+      pts[e.pointerId] = { x: e.clientX, y: e.clientY };
+      var r = svg.getBoundingClientRect(), u = vb.w / r.width;
+      var ids = Object.keys(pts);
+      if (ids.length >= 2 && start.pts[ids[0]] && start.pts[ids[1]]) {
+        var a0 = start.pts[ids[0]], b0 = start.pts[ids[1]], a1 = pts[ids[0]], b1 = pts[ids[1]];
+        var d0 = Math.hypot(a0.x - b0.x, a0.y - b0.y) || 1, d1 = Math.hypot(a1.x - b1.x, a1.y - b1.y) || 1;
+        var mid = { clientX: (a1.x + b1.x) / 2, clientY: (a1.y + b1.y) / 2 };
+        vb = Object.assign({}, start.vb);
+        var q = point(svg, mid);
+        zoomAt(d1 / d0, q.x, q.y);
+        dragged = true;
+        e.preventDefault();
+        return;
+      }
+      if (vb.w >= W - 0.5) return;
+      var s0 = start.pts[e.pointerId];
+      if (!s0) return;
+      var mx = e.clientX - s0.x, my = e.clientY - s0.y;
+      if (!dragged && Math.hypot(mx, my) < 6) return;
+      dragged = true;
+      vb.x = start.vb.x - mx * u; vb.y = start.vb.y - my * u;
+      clamp(); set();
+      e.preventDefault();
+    }
+    function onUp(e) {
+      delete pts[e.pointerId];
+      start = count() ? { vb: Object.assign({}, vb), pts: JSON.parse(JSON.stringify(pts)) } : null;
+    }
+    function onClick(e) { if (dragged) { e.stopPropagation(); e.preventDefault(); dragged = false; } }
+    svg.addEventListener('wheel', onWheel, { passive: false });
+    svg.addEventListener('pointerdown', onDown);
+    svg.addEventListener('pointermove', onMove);
+    svg.addEventListener('pointerup', onUp);
+    svg.addEventListener('pointercancel', onUp);
+    svg.addEventListener('click', onClick, true);
+    svg._zoomOff = function () {
+      svg.removeEventListener('wheel', onWheel);
+      svg.removeEventListener('pointerdown', onDown);
+      svg.removeEventListener('pointermove', onMove);
+      svg.removeEventListener('pointerup', onUp);
+      svg.removeEventListener('pointercancel', onUp);
+      svg.removeEventListener('click', onClick, true);
+    };
+    set();
+    return { zoomAt: zoomAt, busy: function () { return count() > 1 || dragged; }, k: function () { return W / vb.w; } };
   }
   function row(k, v, color) {
     return '<div class="tv-r"><span>' + (color ? '<i style="background:' + color + '"></i>' : '') + esc(k) + '</span><span>' + v + '</span></div>';
@@ -291,6 +441,6 @@
 
   window.MT3UKTrackView = {
     map: map, line: line, gg: gg, timeline: timeline, drag: drag, nice: nice, ramp: ramp,
-    fmtLap: fmtLap, fmtV: fmtV, fmtD: fmtD, distK: distK, spd: spd, unit: unit, units: units, setMph: setMph, esc: esc, tip: tip, hideTip: hideTip, row: row, traceAt: traceAt, colors: C
+    fmtLap: fmtLap, fmtV: fmtV, fmtD: fmtD, distK: distK, spd: spd, unit: unit, units: units, setMph: setMph, esc: esc, tip: tip, hideTip: hideTip, row: row, traceAt: traceAt, point: point, colors: C
   };
 })();

@@ -381,6 +381,7 @@
         var tapText = isSprint ? (a.startLine && !a.finishLine ? 'Now tap the finish line.' : 'Tap the start line, then the finish line.') : 'Tap where the start and finish line is.';
         h += '<div class="tp-notice is-warn">' + icon('pin') + '<div><b>' + esc(s.venue || (isSprint ? 'New course' : 'New track')) + '</b><br>' + esc(s.problem) + '</div></div>' +
           '<p class="tp-sub" id="tp-tap-step">' + tapText + '</p>' +
+          '<p class="tp-small">Zoom in with the + button (or pinch or scroll) and tap right on the road.</p>' +
           '<svg class="tv-chart tp-tap" id="tp-tap" role="img" aria-label="Your trace. ' + tapText + '"></svg>' +
           (!s.venueId ? '<div class="tp-field"><label for="tp-venue-name">Track name</label><input class="field" id="tp-venue-name" placeholder="For example, Blyton Park" value="' + esc(a.venueName || '') + '"></div>' : '');
       } else {
@@ -484,11 +485,10 @@
     var proj = T.projector(out[0][0], out[0][1]);
     var d = 0, prev = null;
     var trace = out.map(function (p) { var xy = proj.xy(p[0], p[1]); if (prev) d += Math.hypot(xy[0] - prev[0], xy[1] - prev[1]); prev = xy; return [d, 0, xy[0], xy[1], p[2], 0, 0]; });
-    var m = V.map(svg, trace, { mono: true });
+    var m = V.map(svg, trace, { mono: true, tall: true });
     svg.style.cursor = 'crosshair';
     svg.addEventListener('click', function (e) {
-      var r = svg.getBoundingClientRect(), vb = svg.viewBox.baseVal;
-      var q = { x: (e.clientX - r.left) * vb.width / r.width, y: (e.clientY - r.top) * vb.height / r.height };
+      var q = V.point(svg, e);
       var bi = 0, bd = Infinity;
       trace.forEach(function (p, k) { var pp = m.P(p[2], p[3]); var dd = (pp[0] - q.x) * (pp[0] - q.x) + (pp[1] - q.y) * (pp[1] - q.y); if (dd < bd) { bd = dd; bi = k; } });
       var p0 = trace[Math.max(0, bi - 3)], p1 = trace[Math.min(trace.length - 1, bi + 3)], c = trace[bi];
@@ -502,19 +502,40 @@
         a.startLine = line; a.finishLine = null;
         var step = document.getElementById('tp-tap-step');
         if (step) step.textContent = 'Start set. Now tap the finish line.';
+        var pp = m.P(c[2], c[3]), mk = m.marker(pp[0], pp[1]);
         var el = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        var pp = m.P(c[2], c[3]);
-        el.setAttribute('cx', pp[0]); el.setAttribute('cy', pp[1]); el.setAttribute('r', 8); el.setAttribute('fill', '#1baf7a');
-        svg.appendChild(el);
+        el.setAttribute('r', 8); el.setAttribute('fill', '#1baf7a');
+        mk.g.appendChild(el);
         return;
       }
       if (s.type === 'sprint') a.finishLine = line; else a.startLine = line;
       analyse();
-      if (add.session.needsStartLine) {
+      var bad = s.type !== 'sprint' && implausibleLaps(add.session);
+      if (bad) {
+        // A line in the wrong place can still give "laps": one long one from
+        // the paddock, say. Don't take those.
+        a.startLine = null;
+        analyse();
+        status('That line gives a ' + V.fmtLap(bad) + ' lap, which can\'t be right. Zoom in and tap the straight you cross on every lap.', 'error');
+      } else if (add.session.needsStartLine) {
         if (s.type === 'sprint') { a.startLine = null; a.finishLine = null; }
-        status(s.type === 'sprint' ? 'No runs were found between those points. Tap the start line, then the finish line, right on the road.' : 'No laps were found from that point. Tap right on the straight where you cross the line.', 'error');
+        status(s.type === 'sprint' ? 'No runs were found between those points. Tap the start line, then the finish line, right on the road.' : 'No laps were found from that point. Zoom in and tap right on the straight where you cross the line.', 'error');
       }
     });
+  }
+  // Laps from a tapped line that can't be real: the best over 15 minutes,
+  // or most laps far longer than the trace's own loop. Returns the best
+  // lap's time when they're implausible.
+  function implausibleLaps(s) {
+    var laps = (s && s.laps) || [];
+    if (!laps.length) return 0;
+    var best = Math.min.apply(null, laps.map(function (l) { return l.time; }));
+    if (best > 900) return best;
+    var dists = laps.map(function (l) { return l.dist; }).sort(function (x, y) { return x - y; });
+    var v = ((add.lib && add.lib.venues) || []).filter(function (x) { return x.id === s.venueId; })[0];
+    var ly = v && (v.layouts || []).filter(function (x) { return x.id === s.layoutId; })[0];
+    if (ly && ly.length && dists[Math.floor(dists.length / 2)] > ly.length * 3) return best;
+    return 0;
   }
   function saveSession(btn) {
     var a = add, s = a.session;
@@ -608,7 +629,7 @@
     var laps = s.laps || [];
     var best = laps.filter(function (l) { return l.n === s.best; })[0];
     var h = tiles([
-      ['Best lap', best ? V.fmtLap(best.time) : '-', best ? 'Lap ' + best.n + ' of ' + laps.length : '', 1],
+      ['Best lap', best ? V.fmtLap(best.time) : '-', best ? 'Lap ' + best.n : '', 1],
       ['Best possible', s.possible ? V.fmtLap(s.possible) : '-', s.possible && best && best.time - s.possible < 0.05 ? 'Same as your best lap' : 'Your best sectors together'],
       ['Top speed', s.vmax ? V.fmtV(s.vmax) : '-', ''],
       ['Most grip used', s.latMax ? s.latMax.toFixed(2) + ' g' : '-', s.brakeMax ? 'Braking ' + s.brakeMax.toFixed(2) + ' g' : ''],

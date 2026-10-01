@@ -187,6 +187,8 @@ def test_add_a_session_from_the_racebox_file(page):
     expect(page.locator(".tp-session-head h2")).to_have_text("Thruxton")
     expect(page.locator(".tp-session-head .tp-sub")).to_contain_text("19°C (Open-Meteo)")
     expect(page.locator(".tp-tile.is-hero .v")).to_have_text(re.compile(r"1:39\.78[56]"))
+    # Which lap, without an "of" count that leaves out the out-lap.
+    expect(page.locator(".tp-tile.is-hero .s")).to_have_text(re.compile(r"^Lap \d+$"))
     expect(page.locator(".tp-table").first.locator("tbody tr")).to_have_count(2)
     # Distances in miles with mph (the default), kilometres with km/h.
     expect(page.locator(".tp-tile").nth(4).locator(".v")).to_have_text(re.compile(r"^\d+\.\d mi$"))
@@ -408,3 +410,52 @@ def test_cars_are_separate_from_sessions(page):
     # An unknown sprint course: tap the start, then the finish.
     page.locator("[data-type] [data-v='sprint']").click()
     expect(page.locator("#tp-tap-step")).to_have_text("Tap the start line, then the finish line.")
+
+
+def _without_start_line(route):
+    d = json.loads((ROOT / "data" / "tracks.json").read_text(encoding="utf-8"))
+    for v in d["venues"]:
+        if v["id"] == "thruxton":
+            for layout in v.get("layouts", []):
+                layout.pop("startLine", None)
+    route.fulfill(status=200, content_type="application/json", body=json.dumps(d))
+
+
+def test_tap_the_start_line_on_a_zoomable_map(page, tmp_path):
+    """A track with no start line yet (like Bedford): the member zooms the
+    map and taps the line. Taps still land in the right place when zoomed."""
+    no_line = tmp_path / "noline.vbo"
+    no_line.write_bytes(b"".join(l for l in FIXTURE.read_bytes().splitlines(True) if not l.startswith(b"Start ")))
+    page.route(re.compile(r".*/data/tracks\.json.*"), _without_start_line)
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(no_line))
+    tap = page.locator("#tp-tap")
+    tap.wait_for(timeout=10000)
+    tap.scroll_into_view_if_needed()
+    expect(page.locator("#tp-result")).to_contain_text("Zoom in")
+    width = lambda: page.evaluate("document.getElementById('tp-tap').viewBox.baseVal.width")
+    full = width()
+    reset = page.locator(".tv-zoom-reset")
+    expect(reset).to_be_hidden()
+    page.locator(".tv-zoom-in").click()
+    page.locator(".tv-zoom-in").click()
+    assert width() < full * 0.5, "zoomed in"
+    expect(reset).to_be_visible()
+    reset.click()
+    assert abs(width() - full) < 0.5, "reset shows the whole track"
+    # Scroll-zoom over a point on the trace: it stays under the pointer, and
+    # a tap there through the zoomed viewBox still finds the laps.
+    pt = page.evaluate("""() => {
+      const svg = document.getElementById('tp-tap'), vb = svg.viewBox.baseVal, r = svg.getBoundingClientRect();
+      const pts = svg.querySelector('polyline').getAttribute('points').split(' ').map(s => s.split(',').map(Number));
+      const p = pts[Math.floor(pts.length / 2)];
+      return [r.left + p[0] * r.width / vb.width, r.top + p[1] * r.height / vb.height];
+    }""")
+    page.mouse.move(pt[0], pt[1])
+    for _ in range(3):
+        page.mouse.wheel(0, -120)
+        page.wait_for_timeout(50)
+    assert width() < full * 0.6, "scroll zooms in"
+    page.mouse.click(pt[0], pt[1])
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed lap")

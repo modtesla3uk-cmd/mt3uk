@@ -3,6 +3,9 @@
     "file": "under-wraps-ocd.jpeg",
     "caption": "UNDER WRAPS OCD",
     "name": "Swiss",
+    "mods": [
+      "Interior: Wheel or yoke, Hansshow, White with white airbag"
+    ],
     "color": "Other",
     "added": "2026-10-01",
     "group": "under-wraps-ocd.jpeg"
@@ -11,6 +14,9 @@
     "file": "deep-blue-model-3--by-niaz-h-three.jpg",
     "caption": "DEEP BLUE MODEL 3",
     "name": "Swiss",
+    "mods": [
+      "Interior: Wheel or yoke, Hansshow, White with white airbag"
+    ],
     "votable": false,
     "color": "Other",
     "added": "2026-10-01",

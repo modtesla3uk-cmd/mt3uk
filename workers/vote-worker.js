@@ -7098,6 +7098,17 @@ async function handleMyBuildsPhotoMove(request, env) {
     return json({ success: false, message: 'That photo is already in that build' }, 400);
   }
 
+  // Check the target build is the member's before changing anything. Car
+  // records no longer hold an email (saveCarRecord strips it), so ownership
+  // comes from the member's own photos, as in carBelongsTo.
+  var targetRecord = null;
+  if (targetCarId !== 'new' && targetCarId !== LEGACY_VIRTUAL_CAR_ID) {
+    targetRecord = await carBelongsTo(env, email, targetCarId);
+    if (!targetRecord) {
+      return json({ success: false, message: 'That build is not linked to your account' }, 403);
+    }
+  }
+
   // Detach from its current real car (if any) before attaching elsewhere.
   if (currentCarId) {
     var currentRecord = await getCarRecord(env, currentCarId);
@@ -7130,10 +7141,6 @@ async function handleMyBuildsPhotoMove(request, env) {
     resultCarId = LEGACY_VIRTUAL_CAR_ID;
     await clearSidecarCarId(env, file);
   } else {
-    var targetRecord = await getCarRecord(env, targetCarId);
-    if (!targetRecord || targetRecord.email !== email) {
-      return json({ success: false, message: 'That build is not linked to your account' }, 403);
-    }
     resultCarId = targetCarId;
     if ((targetRecord.photos || []).indexOf(file) === -1) {
       targetRecord.photos = (targetRecord.photos || []).concat([file]);

@@ -191,15 +191,24 @@
       if (sat) sat.later();
       fixed.forEach(function (m) { moveMarker(m, m.x, m.y); });
     } });
-    // When the dot is moved from outside the map (scrubbing a chart), a
-    // zoomed-in view follows it so the car stays in the middle. Hovering the
-    // map itself uses place() directly, so the map doesn't slide away.
-    function follow(p) {
-      if (!p || !zoom || zoom.k() <= 1.01) return;
-      var q = P(p[2], p[3]);
-      zoom.centreOn(q[0], q[1]);
+    // When the dots are moved from outside the map (scrubbing a chart,
+    // playback), a zoomed-in view follows them: centred between the two while
+    // both fit on screen, else on the one in front. Hovering the map itself
+    // uses place() directly, so the map doesn't slide away.
+    var posA = null, posB = null, following = true;
+    function follow() {
+      if (!following || !zoom || zoom.k() <= 1.01 || (!posA && !posB)) return;
+      var qa = posA && P(posA[2], posA[3]), qb = posB && P(posB[2], posB[3]), t;
+      if (qa && qb) {
+        var v = zoom.view();
+        var fits = Math.abs(qa[0] - qb[0]) < v.w * 0.6 && Math.abs(qa[1] - qb[1]) < v.h * 0.6;
+        t = fits ? [(qa[0] + qb[0]) / 2, (qa[1] + qb[1]) / 2] : (posA[0] >= posB[0] ? qa : qb);
+      } else t = qa || qb;
+      var w = zoom.view();
+      if (Math.abs(w.x + w.w / 2 - t[0]) < 0.01 && Math.abs(w.y + w.h / 2 - t[1]) < 0.01) return;
+      zoom.centreOn(t[0], t[1]);
     }
-    return { vmin: vmin, vmax: vmax, placeA: function (p) { place(dotA, p); follow(p); }, placeB: function (p) { place(dotB, p); }, P: P, marker: marker, zoom: zoom };
+    return { vmin: vmin, vmax: vmax, placeA: function (p) { place(dotA, p); posA = p; follow(); }, placeB: function (p) { place(dotB, p); posB = p; follow(); }, setFollow: function (on) { following = !!on; if (on) follow(); }, P: P, marker: marker, zoom: zoom };
   }
 
   // ---------- Satellite ground ----------
@@ -328,7 +337,7 @@
       var q = point(svg, e);
       zoomAt(e.deltaY < 0 ? 1.25 : 0.8, q.x, q.y);
     }
-    var pts = {}, start = null, dragged = false;
+    var pts = {}, start = null, dragged = false, panCb = null;
     function count() { return Object.keys(pts).length; }
     function onDown(e) {
       pts[e.pointerId] = { x: e.clientX, y: e.clientY };
@@ -348,6 +357,7 @@
         var q = point(svg, mid);
         zoomAt(d1 / d0, q.x, q.y);
         dragged = true;
+        if (panCb) panCb();
         e.preventDefault();
         return;
       }
@@ -357,6 +367,7 @@
       var mx = e.clientX - s0.x, my = e.clientY - s0.y;
       if (!dragged && Math.hypot(mx, my) < 6) return;
       dragged = true;
+      if (panCb) panCb();
       vb.x = start.vb.x - mx * u; vb.y = start.vb.y - my * u;
       clamp(); set();
       e.preventDefault();
@@ -385,7 +396,12 @@
       vb.x = x - vb.w / 2; vb.y = y - vb.h / 2;
       clamp(); set();
     }
-    return { zoomAt: zoomAt, centreOn: centreOn, busy: function () { return count() > 1 || dragged; }, k: function () { return W / vb.w; } };
+    return {
+      zoomAt: zoomAt, centreOn: centreOn, busy: function () { return count() > 1 || dragged; }, k: function () { return W / vb.w; },
+      view: function () { return { x: vb.x, y: vb.y, w: vb.w, h: vb.h }; },
+      // Called when the member drags or pinches the map by hand.
+      onPan: function (cb) { panCb = cb; }
+    };
   }
   function row(k, v, color) {
     return '<div class="tv-r"><span>' + (color ? '<i style="background:' + color + '"></i>' : '') + esc(k) + '</span><span>' + v + '</span></div>';

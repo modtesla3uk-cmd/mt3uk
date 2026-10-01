@@ -26,6 +26,9 @@
   var ICON = {
     upload: '<path d="M12 15V3M7 8l5-5 5 5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/>',
     flag: '<path d="M4 21V4M4 4h12l-2 4 2 4H4"/>',
+    play: '<path fill="currentColor" stroke="none" d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5Z"/>',
+    pause: '<path fill="currentColor" stroke="none" d="M6 4h4v16H6zM14 4h4v16h-4z"/>',
+    rewind: '<path fill="currentColor" stroke="none" transform="translate(24 0) scale(-1 1)" d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5Z"/>',
     x: '<path d="M18 6 6 18M6 6l12 12"/>',
     corner: '<path d="M4 20c0-9 7-16 16-16"/><path d="M15 4h5v5"/>',
     sig: '<path d="M2 20h.01M7 20v-4M12 20v-8M17 20V8M22 4v16"/>',
@@ -148,6 +151,7 @@
     if (a && !e.metaKey && !e.ctrlKey) { e.preventDefault(); go(a.getAttribute('data-go')); }
   });
   function route() {
+    stopPlay();
     V.hideTip();
     var p = params();
     if (p.get('s')) return showSession(p.get('s'));
@@ -215,6 +219,7 @@
       if (!m || !m.cars.length) h += boardsLink(false);
       app.innerHTML = h;
       wireCarChips(m);
+      if (m && m.cars && m.cars.length) wireSessionList(m);
     }).catch(function () { failed('Track sessions could not be loaded. Check your connection and try again.'); });
   }
   function boardsLink(quiet) {
@@ -237,11 +242,80 @@
     h += '<div class="tp-actions"><a class="btn btn-accent" href="track.html?add=1&car=' + encodeURIComponent(car.id) + '" data-go="add=1&car=' + esc(encodeURIComponent(car.id)) + '">' + icon('upload') + 'Add a session</a>' +
       (car.virtual ? '' : '<a class="btn btn-secondary" href="track.html?car=' + encodeURIComponent(car.id) + '" data-go="car=' + esc(encodeURIComponent(car.id)) + '">What others see</a>') + '</div>';
     if (!list.length) h += '<div class="card tp-empty">' + icon('flag') + '<p>No sessions for ' + esc(car.name) + ' yet. Add the file from your lap timer to get started.</p></div>';
-    else h += '<div class="tp-list">' + list.map(sessionRow).join('') + '</div>';
+    else h += trackFilterHtml(list) + '<div class="tp-list" id="tp-sess-list">' + list.filter(inTrackFilter).map(sessionRow).join('') + '</div>';
     return h + '</div>';
   }
+  // Filter the list by track name (only when there's more than one track).
+  var trackFilter = '';
+  function inTrackFilter(s) { return !trackFilter || trackName(s) === trackFilter; }
+  function trackFilterHtml(list) {
+    var names = {};
+    list.forEach(function (x) { var n = trackName(x); names[n] = (names[n] || 0) + 1; });
+    var keys = Object.keys(names).sort(function (x, y) { return x.localeCompare(y); });
+    if (!names[trackFilter]) trackFilter = '';
+    if (keys.length < 2) return '';
+    return '<div class="tp-field tp-filter"><label for="tp-track-filter">Track</label><select class="field" id="tp-track-filter"><option value="">All tracks (' + list.length + ')</option>' +
+      keys.map(function (k) { return '<option value="' + esc(k) + '"' + (k === trackFilter ? ' selected' : '') + '>' + esc(k) + ' (' + names[k] + ')</option>'; }).join('') + '</select></div>';
+  }
+  // Where the car sits on the leaderboard: a trophy on the session that holds
+  // its place. 1st is Platinum, 2nd Gold, 3rd Silver, then 4th, 5th and so on.
+  var TIERS = { 1: 'Platinum', 2: 'Gold', 3: 'Silver' };
+  function ordinal(n) {
+    var t = n % 100, u = n % 10;
+    return n + (t >= 11 && t <= 13 ? 'th' : u === 1 ? 'st' : u === 2 ? 'nd' : u === 3 ? 'rd' : 'th');
+  }
+  function rankBadge(r, name) {
+    return '<em class="tp-rank tp-rank-' + (r.rank <= 3 ? r.rank : 'n') + '" title="' + esc(ordinal(r.rank) + ' of ' + r.of + ' on the ' + name + ' leaderboard') + '">' + icon('trophy') + (TIERS[r.rank] ? TIERS[r.rank] + ' ' : '') + ordinal(r.rank) + '</em>';
+  }
+  function boardPathOf(s) {
+    if (s.street || s.privacy === 'private' || !s.venueId) return '';
+    if (s.type === 'drag') return s.atVenue ? '/drag/board?venue=' + encodeURIComponent(s.venueId) : '';
+    if (s.type === 'other' || !s.layoutId) return '';
+    return (s.type === 'sprint' ? '/sprint/board?venue=' : '/track/board?venue=') + encodeURIComponent(s.venueId) + '&layout=' + encodeURIComponent(s.layoutId);
+  }
+  // { sessionId: { rank, of } } for the sessions that hold the car's place.
+  function loadRanks(carId, list) {
+    var paths = {};
+    list.forEach(function (x) { var pth = boardPathOf(x); if (pth) paths[pth] = 1; });
+    var out = {};
+    return Promise.all(Object.keys(paths).map(function (pth) {
+      return api('GET', pth).then(function (d) {
+        var e = (d && d.entries) || [], i = -1;
+        e.forEach(function (x, k) { if (i < 0 && x.carId === carId) i = k; });
+        if (i >= 0) out[e[i].sessionId] = { rank: i + 1, of: e.length };
+      }).catch(function () {});
+    })).then(function () { return out; });
+  }
+  var ranks = {}, ranksFor = '';
+  function applyRanks(list) {
+    var rows = document.querySelectorAll('#tp-sess-list .tp-row[data-sid]');
+    Array.prototype.forEach.call(rows, function (row) {
+      var r = ranks[row.getAttribute('data-sid')];
+      if (!r || row.querySelector('.tp-rank')) return;
+      var sess = list.filter(function (x) { return x.id === row.getAttribute('data-sid'); })[0];
+      row.querySelector('.tp-row-main').insertAdjacentHTML('beforeend', rankBadge(r, sess ? trackName(sess) : 'track'));
+    });
+  }
+  function wireSessionList(m) {
+    var car = m.cars.filter(function (c) { return c.id === currentCar; })[0];
+    if (!car) return;
+    var list = m.sessions.filter(function (x) { return x.carId === car.id; });
+    var sel = document.getElementById('tp-track-filter');
+    if (sel) sel.addEventListener('change', function () {
+      trackFilter = sel.value;
+      document.getElementById('tp-sess-list').innerHTML = list.filter(inTrackFilter).map(sessionRow).join('');
+      applyRanks(list);
+    });
+    if (ranksFor !== car.id) { ranks = {}; ranksFor = car.id; }
+    applyRanks(list);
+    loadRanks(car.id, list).then(function (r) {
+      if (ranksFor !== car.id || currentCar !== car.id) return;
+      ranks = r;
+      applyRanks(list);
+    });
+  }
   function sessionRow(s) {
-    return '<a class="tp-row" href="track.html?s=' + esc(s.id) + '" data-go="s=' + esc(s.id) + '"><span class="tp-row-main"><b>' + esc(trackName(s)) + '</b><span>' + esc(niceDate(s.date)) + (s.conditions ? ', ' + esc(s.conditions) : '') + (TYPE_WORD[s.type] ? ', ' + TYPE_WORD[s.type] : '') + '</span></span>' +
+    return '<a class="tp-row" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '"><span class="tp-row-main"><b>' + esc(trackName(s)) + '</b><span>' + esc(niceDate(s.date)) + (s.conditions ? ', ' + esc(s.conditions) : '') + (TYPE_WORD[s.type] ? ', ' + TYPE_WORD[s.type] : '') + '</span></span>' +
       '<span class="tp-row-res">' + esc(sessionResult(s)) + '</span>' + (s.privacy !== undefined ? privacyPill(s.privacy, s.street) : '') + icon('chev') + '</a>';
   }
   function wireCarChips(m) {
@@ -751,16 +825,26 @@
     Promise.all([api('GET', '/track/session?id=' + encodeURIComponent(id)), getMine().catch(function () { return null; })]).then(function (r) {
       var d = r[0];
       if (!d.success) return failed('This session isn\'t available. It may be private or removed.');
-      view = { s: d.session, mine: r[1], a: d.session.best || 1, b: null, other: {} };
+      view = { s: d.session, mine: r[1], a: d.session.best || 1, b: null, other: {}, members: [], memberById: {} };
       var timed = (d.session.laps || []).filter(function (l) { return l.kind !== 'short' && l.n !== view.a; }).sort(function (x, y) { return x.time - y.time; });
       view.b = timed[0] ? String(timed[0].n) : null;
-      drawSession();
+      // Other members' best laps at this track, from its leaderboard.
+      var bp = d.session.venueId && d.session.layoutId && (d.session.type === 'track' || d.session.type === 'sprint')
+        ? (d.session.type === 'sprint' ? '/sprint/board?venue=' : '/track/board?venue=') + encodeURIComponent(d.session.venueId) + '&layout=' + encodeURIComponent(d.session.layoutId) : '';
+      var board = bp ? api('GET', bp).catch(function () { return null; }) : Promise.resolve(null);
+      return board.then(function (b) {
+        var mineIds = {};
+        ((view.mine && view.mine.sessions) || []).forEach(function (x) { mineIds[x.id] = 1; });
+        view.members = ((b && b.entries) || []).filter(function (e) { return e.sessionId && e.sessionId !== d.session.id && e.carId !== d.session.carId && !mineIds[e.sessionId] && e.time; }).slice(0, 50);
+        view.members.forEach(function (e) { view.memberById[e.sessionId] = e; });
+        drawSession();
+      });
     }).catch(function () { failed('This session could not be loaded. Check your connection and try again.'); });
   }
   function drawSession() {
     var s = view.s;
     var h = back(s.mine ? 'Your sessions' : 'Back', s.mine ? '' : (s.carId ? 'car=' + encodeURIComponent(s.carId) : ''));
-    h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '</h2><p class="tp-sub">' + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + '</p></div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) : '') + unitsChip() + '</div></div>';
+    h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '</h2><p class="tp-sub">' + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + '</p></div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) + '<span id="tp-rank-slot"></span>' : '') + unitsChip() + '</div></div>';
     LW = s.type === 'sprint' ? 'Run' : 'Lap';
     var untimed = s.type === 'other' && !(s.laps && s.laps.length);
     if (s.type === 'drag') h += dragHtml(s);
@@ -774,6 +858,10 @@
     // Sprints and hill climbs have runs, not laps.
     if (s.type === 'sprint') runWords(app);
     if (s.mine) wireOwner(s);
+    if (s.mine && boardPathOf(s)) loadRanks(s.carId, [s]).then(function (r) {
+      var slot = document.getElementById('tp-rank-slot');
+      if (slot && view && view.s === s && r[s.id]) slot.innerHTML = rankBadge(r[s.id], trackName(s));
+    });
   }
   var LW = 'Lap';
   // Swaps lap words for run words in the page's text (not in attributes).
@@ -824,11 +912,16 @@
       (s.sectorsByThirds ? '<p class="tp-small">Sectors are thirds of the lap until this track has its own sector points.</p>' : '') + '</div></div>';
     h += '<div class="tp-section"><h3>What we spotted</h3><div class="tp-notes">' + notesHtml(T.sessionNotes(s, V.fmtV, V.fmtD)) + '</div></div>';
     if (s.trace && s.trace.laps && Object.keys(s.trace.laps).length) {
-      h += '<div class="tp-section" id="compare"><div class="tp-head"><h2>Compare laps</h2></div><p class="tp-sub">Pick two laps. Move along a chart to see both at the same point on track.</p>' +
+      h += '<div class="tp-section" id="compare"><div class="tp-head"><h2>Compare laps</h2></div><p class="tp-sub">Pick two laps. Move along a chart to see where both are, at the same moment or the same point on track (switch under the map).</p>' +
         '<div class="card tp-cmp-pick"><div class="tp-f2"><div class="tp-field"><label for="tp-cmp-a">Lap A</label><select class="field" id="tp-cmp-a">' + lapOptions(view.a) + '</select></div><div class="tp-field"><label for="tp-cmp-b">Lap B</label><select class="field" id="tp-cmp-b">' + lapOptions(view.b) + '</select></div></div></div>' +
         '<div class="tp-grid tp-g-map"><div class="card"><div class="tp-chart-head"><h3>Speed through the lap</h3><div class="tp-key" id="tp-key"></div></div><svg class="tv-chart" id="tp-speed" role="img" aria-label="Speed against distance for both laps"></svg>' +
         '<div class="tp-chart-head"><h3>Time gap</h3><span class="tp-small" id="tp-gap-cap"></span></div><svg class="tv-chart" id="tp-delta" role="img" aria-label="Running time gap between the laps"></svg></div>' +
-        '<div class="tp-grid"><div class="card"><h3>Where you are</h3><svg class="tv-chart" id="tp-map2" role="img" aria-label="Track map with both laps\' lines and positions"></svg></div>' +
+        '<div class="tp-grid"><div class="card"><div class="tp-chart-head"><h3>Where you are</h3><div class="tp-chips" id="tp-sync" role="group" aria-label="How the two dots are lined up"><button type="button" class="chip chip-sm is-on" data-sync="time">Same moment</button><button type="button" class="chip chip-sm" data-sync="point">Same point</button></div></div><p class="tp-small tp-sync-note" id="tp-sync-note"></p>' +
+        '<div class="tp-play" id="tp-play"><div class="tp-play-row"><button type="button" class="btn btn-secondary" id="tp-play-back" data-play="back"></button><button type="button" class="btn btn-primary" id="tp-play-toggle" data-play="toggle"></button>' +
+        '<div class="tp-chips" id="tp-speeds" role="group" aria-label="Playback speed">' + [['0.5', 'x0.5'], ['1', 'x1'], ['2', 'x2'], ['5', 'x5']].map(function (v) { return '<button type="button" class="chip" data-speed="' + v[0] + '">' + v[1] + '</button>'; }).join('') + '</div>' +
+        '<button type="button" class="chip is-on" id="tp-follow" aria-pressed="true" title="When the map is zoomed in, keep the cars in view">Follow cars</button></div>' +
+        '<div class="tp-scrub-row"><input type="range" id="tp-scrub" min="0" max="100" step="0.01" value="0" aria-label="Position in the lap"><span class="tp-clock" id="tp-clock">0:00.0</span></div></div>' +
+        '<svg class="tv-chart" id="tp-map2" role="img" aria-label="Track map with both laps\' lines and positions"></svg></div>' +
         '<div class="card"><h3>Corner by corner</h3><div class="tp-scroll"><table class="tp-table" id="tp-corners"></table></div></div></div></div>' +
         '<div class="tp-grid tp-g2"><div class="card"><div class="tp-chart-head"><h3>How much grip you used, lap A</h3><span class="tp-small">Each dot is a moment on the lap. The further from the middle, the harder the car was working the tyres.</span></div><svg class="tv-chart tp-gg" id="tp-gg" role="img" aria-label="Sideways against lengthways g for lap A"></svg></div><div class="tp-notes" id="tp-cmp-notes"></div></div></div>';
     }
@@ -872,7 +965,18 @@
       var others = view.mine.sessions.filter(function (o) { return o.id !== s.id && o.type === s.type && o.venueId === s.venueId && o.layoutId === s.layoutId && o.bestTime; });
       if (others.length) h += '<optgroup label="Your best on other days">' + others.map(function (o) { var v = 'x:' + o.id; return '<option value="' + v + '"' + (sel === v ? ' selected' : '') + '>' + esc(niceDate(o.date)) + ', ' + V.fmtLap(o.bestTime) + '</option>'; }).join('') + '</optgroup>';
     }
+    h += memberOptions(sel);
     return h;
+  }
+  function memberName(e) { return (e.owner || 'A member') + (e.car ? ', ' + e.car : ''); }
+  // Other members' best laps here, from the leaderboard (shared sessions only).
+  function memberOptions(sel) {
+    var list = (view && view.members) || [];
+    if (!list.length) return '';
+    return '<optgroup label="Other members\' best laps">' + list.map(function (e) {
+      var v = 'x:' + e.sessionId;
+      return '<option value="' + esc(v) + '"' + (sel === v ? ' selected' : '') + '>' + esc(memberName(e)) + ', ' + V.fmtLap(e.time) + '</option>';
+    }).join('') + '</optgroup>';
   }
   function lapTrace(v) {
     if (String(v).indexOf('x:') === 0) {
@@ -881,7 +985,8 @@
       return api('GET', '/track/session?id=' + encodeURIComponent(id)).then(function (d) {
         var o = d.session;
         var tr = o && o.trace && o.trace.laps && o.trace.laps[o.best];
-        view.other[id] = tr ? { trace: tr, label: niceDate(o.date), time: o.bestTime, origin: o.origin } : null;
+        var mem = view.memberById && view.memberById[id];
+        view.other[id] = tr ? { trace: tr, label: mem ? memberName(mem) : niceDate(o.date), time: o.bestTime, origin: o.origin } : null;
         return view.other[id];
       });
     }
@@ -944,14 +1049,16 @@
     });
   }
   function otherDaysSelect(s) {
-    if (!(s.mine && view.mine && s.layoutId)) return '';
-    var others = view.mine.sessions.filter(function (o) { return o.id !== s.id && o.type === s.type && o.venueId === s.venueId && o.layoutId === s.layoutId && o.bestTime; });
-    if (!others.length) return '';
-    return '<div class="tp-days"><label class="tp-small" for="tp-add-day">Add another day to the map</label><select class="field tp-day-sel" id="tp-add-day"><option value="">Choose a day</option>' +
-      others.map(function (o) { return '<option value="x:' + esc(o.id) + '">' + esc(niceDate(o.date)) + ', ' + esc(V.fmtLap(o.bestTime)) + '</option>'; }).join('') + '</select><div class="tp-days-key" id="tp-days-key"></div></div>';
+    var others = s.mine && view.mine && s.layoutId ? view.mine.sessions.filter(function (o) { return o.id !== s.id && o.type === s.type && o.venueId === s.venueId && o.layoutId === s.layoutId && o.bestTime; }) : [];
+    var members = (view.members || []).length;
+    if (!others.length && !members) return '';
+    return '<div class="tp-days"><label class="tp-small" for="tp-add-day">Add another lap to the map</label><select class="field tp-day-sel" id="tp-add-day"><option value="">Choose a lap</option>' +
+      (others.length ? '<optgroup label="Your best on other days">' + others.map(function (o) { return '<option value="x:' + esc(o.id) + '">' + esc(niceDate(o.date)) + ', ' + esc(V.fmtLap(o.bestTime)) + '</option>'; }).join('') + '</optgroup>' : '') +
+      memberOptions('') + '</select><div class="tp-days-key" id="tp-days-key"></div></div>';
   }
   function drawTrackCharts(s) {
     if (!s.trace || !s.trace.laps) return;
+    pb.render = null;
     drawMainMap(s);
     wireOtherDays(s);
     var chips = document.getElementById('tp-map-laps');
@@ -963,12 +1070,112 @@
       drawMainMap(s);
     });
     var sa = document.getElementById('tp-cmp-a'), sb = document.getElementById('tp-cmp-b');
+    wireSync();
+    wirePlay();
     if (sa) {
       sa.addEventListener('change', function () { view.a = sa.value; drawCompare(s); });
       sb.addEventListener('change', function () { view.b = sb.value; drawCompare(s); });
       drawCompare(s);
     }
     if (s.mine) drawOverTime(s);
+  }
+  // How the two laps are lined up on the "Where you are" map.
+  var cmpSync = 'time';
+  var SYNC_NOTE = { time: 'Both laps at the same moment: the slower one trails by the time gap.', point: 'Both laps at the same point on track.' };
+  // The distance a lap had reached after t seconds.
+  function distAtTime(trace, t) {
+    var lo = 0, hi = trace.length - 1;
+    if (t <= trace[0][1]) return trace[0][0];
+    if (t >= trace[hi][1]) return trace[hi][0];
+    while (lo < hi) { var m = (lo + hi) >> 1; if (trace[m][1] < t) lo = m + 1; else hi = m; }
+    var p = trace[lo - 1], q = trace[lo], f = (t - p[1]) / ((q[1] - p[1]) || 1);
+    return p[0] + (q[0] - p[0]) * f;
+  }
+  // Play the two laps along the track in real time (x1), forwards or back.
+  var cmpFollow = true;
+  var pb = { raf: 0, playing: false, dir: 1, speed: 1, t: 0, last: 0, active: false, render: null, tEnd: 0 };
+  function clock(t) { var m = Math.floor(t / 60), sec = t - m * 60; return m + ':' + (sec < 10 ? '0' : '') + sec.toFixed(1); }
+  function playUi() {
+    var tog = document.getElementById('tp-play-toggle'), back = document.getElementById('tp-play-back');
+    if (!tog || !back) return;
+    var fw = pb.playing && pb.dir > 0, bw = pb.playing && pb.dir < 0;
+    tog.innerHTML = icon(fw ? 'pause' : 'play') + (fw ? 'Pause' : 'Play');
+    back.innerHTML = icon(bw ? 'pause' : 'rewind') + (bw ? 'Pause' : 'Rewind');
+    document.querySelectorAll('#tp-speeds [data-speed]').forEach(function (b) {
+      var on = parseFloat(b.getAttribute('data-speed')) === pb.speed;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+  function stopPlay() {
+    if (pb.raf) cancelAnimationFrame(pb.raf);
+    pb.raf = 0; pb.playing = false;
+    playUi();
+  }
+  function startPlay(dir) {
+    if (!pb.render) return;
+    if (pb.playing && pb.dir === dir) { stopPlay(); return; }
+    if (dir > 0 && pb.t >= pb.tEnd) pb.t = 0;
+    if (dir < 0 && pb.t <= 0) pb.t = pb.tEnd;
+    pb.dir = dir; pb.playing = true; pb.active = true; pb.last = 0;
+    playUi();
+    if (!pb.raf) pb.raf = requestAnimationFrame(tick);
+  }
+  function tick(now) {
+    pb.raf = 0;
+    if (!pb.playing) return;
+    // A long gap (the tab was hidden) isn't played through.
+    var dt = pb.last ? Math.min(0.1, (now - pb.last) / 1000) : 0;
+    pb.last = now;
+    pb.t += pb.dir * pb.speed * dt;
+    if ((pb.dir > 0 && pb.t >= pb.tEnd) || (pb.dir < 0 && pb.t <= 0)) {
+      pb.t = pb.dir > 0 ? pb.tEnd : 0;
+      pb.render(pb.t);
+      stopPlay();
+      return;
+    }
+    pb.render(pb.t);
+    pb.raf = requestAnimationFrame(tick);
+  }
+  // Whether a zoomed-in map keeps the cars in view. Dragging the map turns it off.
+  var cmpMap = null;
+  function setFollow(on) {
+    cmpFollow = on;
+    var fol = document.getElementById('tp-follow');
+    if (fol) { fol.classList.toggle('is-on', on); fol.setAttribute('aria-pressed', on ? 'true' : 'false'); }
+    if (cmpMap && cmpMap.setFollow) cmpMap.setFollow(on);
+  }
+  function wirePlay() {
+    var box = document.getElementById('tp-play');
+    if (!box) return;
+    box.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-play]'), sp = e.target.closest('[data-speed]');
+      if (b) startPlay(b.getAttribute('data-play') === 'back' ? -1 : 1);
+      else if (sp) { pb.speed = parseFloat(sp.getAttribute('data-speed')); playUi(); }
+    });
+    var fol = document.getElementById('tp-follow');
+    if (fol) fol.addEventListener('click', function () { setFollow(!cmpFollow); });
+    document.getElementById('tp-scrub').addEventListener('input', function (e) {
+      if (!pb.render) return;
+      stopPlay();
+      pb.active = true;
+      pb.t = parseFloat(e.target.value) || 0;
+      pb.render(pb.t);
+    });
+    playUi();
+  }
+  function wireSync() {
+    var box = document.getElementById('tp-sync'), note = document.getElementById('tp-sync-note');
+    if (!box) return;
+    function show() {
+      box.querySelectorAll('button[data-sync]').forEach(function (b) { b.classList.toggle('is-on', b.getAttribute('data-sync') === cmpSync); });
+      if (note) note.textContent = SYNC_NOTE[cmpSync];
+    }
+    box.addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-sync]');
+      if (b) { cmpSync = b.getAttribute('data-sync'); show(); }
+    });
+    show();
   }
   function drawCompare(s) {
     Promise.all([lapTrace(view.a), lapTrace(view.b || view.a)]).then(function (r) {
@@ -986,9 +1193,38 @@
       var yt = V.nice(0, vmax, 6);
       var mapEl = document.getElementById('tp-map2');
       var mo = V.map(mapEl, A.trace, { mono: true, lines: A === B ? [{ trace: A.trace, color: c1 }] : [{ trace: B.trace, color: c2 }, { trace: A.trace, color: c1 }], startLine: startLineXY(s), corners: s.corners, origin: s.origin });
+      cmpMap = mo;
+      if (mo && mo.setFollow) mo.setFollow(cmpFollow);
+      if (mo && mo.zoom && mo.zoom.onPan) mo.zoom.onPan(function () { if (cmpFollow) setFollow(false); });
       var other = [];
-      function move(x) { if (mo) { mo.placeA(at(A.trace, x)); mo.placeB(at(B.trace, x)); } }
-      function leave() { if (mo) { mo.placeA(null); mo.placeB(null); } other.forEach(function (o) { o.hide(); }); }
+      // Same moment: the quicker lap is at x and the other is wherever it was
+      // at that elapsed time, so it trails by the time gap. Same point: both
+      // at distance x.
+      function move(x) {
+        if (!mo) return;
+        var pa = at(A.trace, x), pb = at(B.trace, x);
+        if (cmpSync === 'time' && A !== B) {
+          var t = Math.min(pa[1], pb[1]);
+          if (pa[1] > t) pa = at(A.trace, distAtTime(A.trace, t));
+          else if (pb[1] > t) pb = at(B.trace, distAtTime(B.trace, t));
+        }
+        mo.placeA(pa); mo.placeB(pb);
+      }
+      // Back to where playback or the slider left it, else hidden.
+      function leave() {
+        if (pb.active && pb.render) { pb.render(pb.t); return; }
+        if (mo) { mo.placeA(null); mo.placeB(null); }
+        other.forEach(function (o) { o.hide(); });
+      }
+      // Played or scrubbed to t seconds into the lap: the leader's place sets
+      // the chart cursor, and each lap's dot goes where it was at that time.
+      function renderAt(t) {
+        var x = Math.min(dmax, Math.max(distAtTime(A.trace, t), distAtTime(B.trace, t)));
+        move(x); sp.show(x); dl.show(x);
+        var sc = document.getElementById('tp-scrub'), ck = document.getElementById('tp-clock');
+        if (sc) sc.value = t;
+        if (ck) ck.textContent = clock(t) + ' / ' + clock(pb.tEnd);
+      }
       function tipF(x) {
         var pa = at(A.trace, x), pb = at(B.trace, x), g = pb[1] - pa[1];
         return '<b>' + V.fmtD(x, 2) + '</b>' + V.row(A.label, V.fmtV(pa[4]), c1) + V.row(B.label, V.fmtV(pb[4]), c2) + V.row('A is', Math.abs(g).toFixed(2) + ' s ' + (g >= 0 ? 'ahead' : 'behind'));
@@ -998,7 +1234,7 @@
         H: 240, x0: 0, x1: dmax, y0: 0, y1: yt[yt.length - 1], xt: xt, xf: xf, yt: yt,
         series: [{ color: c2, pts: B.trace.map(function (p) { return [p[0], V.spd(p[4])]; }), at: function (x) { return V.spd(at(B.trace, x)[4]); } }, { color: c1, pts: A.trace.map(function (p) { return [p[0], V.spd(p[4])]; }), at: function (x) { return V.spd(at(A.trace, x)[4]); } }],
         under: function (svg, X) { (s.corners || []).forEach(function (c) { var t = document.createElementNS('http://www.w3.org/2000/svg', 'text'); t.setAttribute('x', X(c.d)); t.setAttribute('y', 22); t.setAttribute('text-anchor', 'middle'); t.setAttribute('font-weight', '700'); t.textContent = c.n; svg.appendChild(t); }); },
-        tip: tipF, onMove: function (x) { move(x); dl.show(x); }, onLeave: leave
+        tip: tipF, onMove: function (x) { userHover(); move(x); dl.show(x); }, onLeave: leave
       });
       var dp = [];
       for (var x = 0; x <= dmax; x += 10) dp.push([x, at(B.trace, x)[1] - at(A.trace, x)[1]]);
@@ -1006,9 +1242,18 @@
       var gyt = V.nice(Math.min(0, gmin), Math.max(0.5, gmax), 4);
       dl = V.line(document.getElementById('tp-delta'), {
         H: 150, x0: 0, x1: dmax, y0: gyt[0], y1: gyt[gyt.length - 1], xt: xt, xf: xf, yt: gyt, zero: 0, yf: function (v) { return (v > 0 ? '+' : '') + v + ' s'; },
-        series: [{ color: c1, area: true, pts: dp, at: function (x) { return at(B.trace, x)[1] - at(A.trace, x)[1]; } }], tip: tipF, onMove: function (x) { move(x); sp.show(x); }, onLeave: leave
+        series: [{ color: c1, area: true, pts: dp, at: function (x) { return at(B.trace, x)[1] - at(A.trace, x)[1]; } }], tip: tipF, onMove: function (x) { userHover(); move(x); sp.show(x); }, onLeave: leave
       });
       other = [sp, dl];
+      // Hovering a chart takes over from playback.
+      function userHover() { stopPlay(); pb.active = false; }
+      stopPlay();
+      pb.active = false; pb.t = 0;
+      pb.tEnd = Math.max(A.trace[A.trace.length - 1][1], B.trace[B.trace.length - 1][1]);
+      pb.render = renderAt;
+      var scrub = document.getElementById('tp-scrub'), clk = document.getElementById('tp-clock');
+      if (scrub) { scrub.max = pb.tEnd; scrub.value = 0; }
+      if (clk) clk.textContent = clock(0) + ' / ' + clock(pb.tEnd);
       var total = B.time - A.time;
       document.getElementById('tp-gap-cap').textContent = 'Above the line, A is ahead. A finishes ' + Math.abs(total).toFixed(2) + ' s ' + (total >= 0 ? 'ahead' : 'behind') + '.';
       var gains = s.corners && s.corners.length ? T.cornerGains(A.trace, B.trace, s.corners) : [];

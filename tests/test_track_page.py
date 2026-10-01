@@ -54,6 +54,7 @@ class FakeWorker:
         self.gzipped = False
         self.requests = []
         self.sources = {}
+        self.boards = {}
         self.fail_source = False
 
     def reply(self, route):
@@ -139,12 +140,13 @@ class FakeWorker:
         elif path in ("/track/board", "/sprint/board"):
             # Each car's fastest, with how many sessions it has there.
             kind = "sprint" if path == "/sprint/board" else "track"
+            custom = self.boards.get("%s:%s:%s" % (path, q.get("venue", [""])[0], q.get("layout", [""])[0]))
             mine = [s for s in self.index if s.get("privacy") in ("build", "board") and s.get("venueId") == q.get("venue", [""])[0] and s.get("type", "track") == kind and s.get("bestTime")]
             entries = []
             if mine:
                 best = min(mine, key=lambda s: s["bestTime"])
                 entries = [{"carId": "car1", "sessionId": best["id"], "car": CAR["name"], "model": "Model 3", "owner": "Rich", "time": best["bestTime"], "date": best["date"], "conditions": best.get("conditions"), "mods": ["KW V3 coilovers"], "sessions": len(mine)}]
-            data = {"success": True, "entries": entries}
+            data = {"success": True, "entries": custom if custom is not None else entries}
         elif path == "/track/public":
             data = {"success": True, "car": {"id": "car1", "name": CAR["name"], "model": "Model 3", "owner": "Rich"}, "mine": False, "sessions": [s for s in self.index if s.get("privacy") in ("build", "board")]}
         elif path == "/track/requests":
@@ -832,3 +834,326 @@ def test_changing_to_a_sprint_asks_for_the_start_and_finish(page):
     page.get_by_role("link", name="Back to the session").click()
     expect(page.locator("#settings [data-retype] .chip.is-on")).to_have_text("Track day")
     assert fake.sessions["new1"]["type"] == "track"
+
+
+def shared_session(sid, venue_id, venue, layout_id, best, date="2026-04-01", privacy="board"):
+    return dict(EARLIER, id=sid, venueId=venue_id, venue=venue, layoutId=layout_id, layout=venue, bestTime=best, date=date, privacy=privacy)
+
+
+def board_row(car_id, session_id, time):
+    return {"carId": car_id, "sessionId": session_id, "car": "Car " + car_id, "model": "Model 3", "owner": "X", "time": time, "date": "2026-04-01", "conditions": "Dry", "mods": []}
+
+
+def test_sessions_can_be_filtered_by_track_name(page):
+    fake = FakeWorker(earlier=False)
+    fake.index = [shared_session("a1", "thruxton", "Thruxton", "main", 100, "2026-04-03"),
+                  shared_session("a2", "thruxton", "Thruxton", "main", 101, "2026-04-02"),
+                  shared_session("b1", "brands", "Brands Hatch", "indy", 60, "2026-04-01", privacy="private")]
+    open_page(page, fake)
+    rows = page.locator("#tp-sess-list .tp-row")
+    expect(rows).to_have_count(3)
+    sel = page.locator("#tp-track-filter")
+    expect(sel.locator("option")).to_have_text(["All tracks (3)", "Brands Hatch (1)", "Thruxton (2)"])
+    sel.select_option("Brands Hatch")
+    expect(rows).to_have_count(1)
+    expect(rows.first).to_contain_text("Brands Hatch")
+    sel.select_option("Thruxton")
+    expect(rows).to_have_count(2)
+    sel.select_option("")
+    expect(rows).to_have_count(3)
+
+
+def test_no_filter_when_there_is_only_one_track(page):
+    fake = FakeWorker(earlier=False)
+    fake.index = [shared_session("a1", "thruxton", "Thruxton", "main", 100)]
+    open_page(page, fake)
+    expect(page.locator("#tp-sess-list .tp-row")).to_have_count(1)
+    expect(page.locator("#tp-track-filter")).to_have_count(0)
+
+
+def test_trophies_show_where_the_car_ranks_on_each_leaderboard(page):
+    """1st Platinum, 2nd Gold, 3rd Silver, then 4th, 5th and so on, on the
+    session that holds the car's place. A private session has none."""
+    fake = FakeWorker(earlier=False)
+    fake.index = [shared_session("a1", "thruxton", "Thruxton", "main", 100),
+                  shared_session("a2", "thruxton", "Thruxton", "main", 105, "2026-03-01"),
+                  shared_session("b1", "brands", "Brands Hatch", "indy", 60, privacy="private"),
+                  shared_session("c1", "cadwell", "Cadwell Park", "full", 90),
+                  shared_session("d1", "donington", "Donington Park", "gp", 95),
+                  shared_session("e1", "oulton", "Oulton Park", "intl", 99)]
+    fake.boards = {
+        "/track/board:thruxton:main": [board_row("car1", "a1", 100), board_row("o1", "x", 101)],
+        "/track/board:cadwell:full": [board_row("o1", "x", 80), board_row("car1", "c1", 90), board_row("o2", "y", 91)],
+        "/track/board:donington:gp": [board_row("o1", "x", 80), board_row("o2", "y", 81), board_row("car1", "d1", 95)],
+        "/track/board:oulton:intl": [board_row("o%d" % n, "x", 80 + n) for n in range(10)] + [board_row("car1", "e1", 99)],
+    }
+    open_page(page, fake)
+    badge = lambda sid: page.locator('#tp-sess-list .tp-row[data-sid="%s"] .tp-rank' % sid)
+    expect(badge("a1")).to_have_text("Platinum 1st")
+    expect(badge("a1")).to_have_class(re.compile(r"tp-rank-1"))
+    expect(badge("c1")).to_have_text("Gold 2nd")
+    expect(badge("d1")).to_have_text("Silver 3rd")
+    expect(badge("e1")).to_have_text("11th")
+    expect(badge("e1")).to_have_class(re.compile(r"tp-rank-n"))
+    expect(badge("e1")).to_have_attribute("title", "11th of 11 on the Oulton Park leaderboard")
+    # Only the session holding the place; none on a private one.
+    expect(badge("a2")).to_have_count(0)
+    expect(badge("b1")).to_have_count(0)
+    # Still there after filtering and clearing the filter.
+    page.locator("#tp-track-filter").select_option("Cadwell Park")
+    expect(badge("c1")).to_have_text("Gold 2nd")
+    # And on the session page.
+    fake.sessions["a1"] = dict(fake.index[0], laps=[], trace={"laps": {}}, mine=True)
+    page.locator("#tp-track-filter").select_option("")
+    page.locator('#tp-sess-list .tp-row[data-sid="a1"]').click()
+    expect(page.locator("#tp-rank-slot .tp-rank")).to_have_text("Platinum 1st")
+
+
+def test_a_car_not_on_the_board_gets_no_trophy(page):
+    fake = FakeWorker(earlier=False)
+    fake.index = [shared_session("a1", "thruxton", "Thruxton", "main", 100)]
+    fake.boards = {"/track/board:thruxton:main": [board_row("o1", "x", 90)]}
+    open_page(page, fake)
+    expect(page.locator("#tp-sess-list .tp-row")).to_have_count(1)
+    page.wait_for_timeout(500)
+    expect(page.locator(".tp-rank")).to_have_count(0)
+
+
+def test_compare_dots_can_be_the_same_moment_or_the_same_point(page):
+    """Hovering the compare charts: by default the two dots are where each lap
+    was at the same moment, so the slower lap trails; "Same point" puts both at
+    the same place on track."""
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator("#tp-speed path")).to_have_count(2)
+    expect(page.locator("#tp-sync .chip.is-on")).to_have_text("Same moment")
+    expect(page.locator("#tp-sync-note")).to_contain_text("slower one trails")
+    page.locator("#tp-speed").scroll_into_view_if_needed()
+    box = page.locator("#tp-speed").bounding_box()
+
+    def separation():
+        page.mouse.move(box["x"] + box["width"] * 0.1, box["y"] + box["height"] * 0.5)
+        page.mouse.move(box["x"] + box["width"] * 0.9, box["y"] + box["height"] * 0.5)
+        return page.evaluate("""() => {
+          const g = [...document.querySelectorAll('#tp-map2 g[visibility="visible"]')].filter(x => x.querySelector('circle[r="7"]'));
+          const xy = g.map(x => (x.getAttribute('transform').match(/translate\\(([-\\d.e]+) ([-\\d.e]+)\\)/) || []).slice(1).map(Number));
+          return xy.length === 2 ? Math.hypot(xy[0][0] - xy[1][0], xy[0][1] - xy[1][1]) : -1;
+        }""")
+
+    moment = separation()
+    assert moment > 0
+    page.locator("#tp-sync [data-sync='point']").click()
+    expect(page.locator("#tp-sync .chip.is-on")).to_have_text("Same point")
+    expect(page.locator("#tp-sync-note")).to_contain_text("same point on track")
+    point = separation()
+    assert point >= 0 and moment > point + 1, (moment, point)
+
+
+def test_play_and_rewind_the_compare_laps_at_different_speeds(page):
+    """Play moves both laps along the track in real time (x1), Rewind goes back
+    the same way, and x0.5, x2 and x5 change the pace. The slider moves the
+    laps by hand, and hovering a chart takes over."""
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator("#tp-speed path")).to_have_count(2)
+    toggle, back, clock = page.locator("#tp-play-toggle"), page.locator("#tp-play-back"), page.locator("#tp-clock")
+    expect(toggle).to_have_text("Play")
+    expect(back).to_have_text("Rewind")
+    expect(page.locator("#tp-speeds .chip.is-on")).to_have_text("x1")
+    expect(page.locator("#tp-speeds .chip")).to_have_text(["x0.5", "x1", "x2", "x5"])
+    expect(clock).to_have_text(re.compile(r"^0:00\.0 / \d+:\d\d\.\d$"))
+
+    def secs():
+        txt = clock.inner_text().split(" / ")[0]
+        m, s = txt.split(":")
+        return int(m) * 60 + float(s)
+
+    def dots():
+        return page.locator('#tp-map2 g[visibility="visible"]').filter(has=page.locator('circle[r="7"]')).count()
+
+    # Play: the clock runs, the dots appear, and Pause stops it.
+    toggle.click()
+    expect(toggle).to_have_text("Pause")
+    page.wait_for_timeout(1200)
+    t1 = secs()
+    assert 0.5 < t1 < 3, t1
+    assert dots() == 2
+    toggle.click()
+    expect(toggle).to_have_text("Play")
+    held = secs()
+    page.wait_for_timeout(400)
+    assert secs() == held
+    # Rewind goes back from there.
+    back.click()
+    expect(back).to_have_text("Pause")
+    page.wait_for_timeout(500)
+    assert secs() < held
+    back.click()
+    expect(back).to_have_text("Rewind")
+    # A faster speed covers more of the lap in the same time.
+    page.locator("#tp-scrub").evaluate("el => { el.value = 0; el.dispatchEvent(new Event('input', {bubbles: true})); }")
+    assert secs() == 0
+    page.locator("#tp-speeds [data-speed='5']").click()
+    expect(page.locator("#tp-speeds .chip.is-on")).to_have_text("x5")
+    toggle.click()
+    page.wait_for_timeout(1000)
+    fast = secs()
+    toggle.click()
+    assert fast > 2.5, fast
+    # The slider moves the laps by hand and stops playback.
+    page.locator("#tp-scrub").evaluate("el => { el.value = 30; el.dispatchEvent(new Event('input', {bubbles: true})); }")
+    assert abs(secs() - 30) < 0.2
+    expect(toggle).to_have_text("Play")
+    # Hovering a chart takes over from playback.
+    toggle.click()
+    page.locator("#tp-speed").scroll_into_view_if_needed()
+    box = page.locator("#tp-speed").bounding_box()
+    page.mouse.move(box["x"] + box["width"] * 0.4, box["y"] + box["height"] * 0.5)
+    expect(toggle).to_have_text("Play")
+
+
+def test_playback_stops_at_the_end_and_starts_again_from_the_top(page):
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator("#tp-speed path")).to_have_count(2)
+    toggle, clock = page.locator("#tp-play-toggle"), page.locator("#tp-clock")
+    end = float(page.locator("#tp-scrub").get_attribute("max"))
+    page.locator("#tp-speeds [data-speed='5']").click()
+    page.locator("#tp-scrub").evaluate("(el, v) => { el.value = v; el.dispatchEvent(new Event('input', {bubbles: true})); }", end - 2)
+    toggle.click()
+    expect(toggle).to_have_text("Play")
+    expect(clock).to_have_text(re.compile(r"^%d:%04.1f / " % (int(end // 60), end % 60)))
+    # Play again from the end starts at the beginning.
+    toggle.click()
+    page.wait_for_timeout(300)
+    assert float(page.locator("#tp-scrub").input_value()) < 3
+    toggle.click()
+    # Rewind from the start jumps to the end and runs back.
+    page.locator("#tp-scrub").evaluate("el => { el.value = 0; el.dispatchEvent(new Event('input', {bubbles: true})); }")
+    page.locator("#tp-play-back").click()
+    page.wait_for_timeout(300)
+    assert float(page.locator("#tp-scrub").input_value()) > end - 5
+    page.locator("#tp-play-back").click()
+
+
+def member_session(rec, slower=1.1):
+    """Another member's shared session at the same track: the same laps, slower."""
+    import copy
+    m = copy.deepcopy(rec)
+    m["id"] = "m1"
+    m["bestTime"] = round(rec["bestTime"] * slower, 3)
+    for lap in m["laps"]:
+        lap["time"] = round(lap["time"] * slower, 3)
+    for tr in m["trace"]["laps"].values():
+        for p in tr:
+            p[1] = p[1] * slower
+    m["privacy"] = "board"
+    return m
+
+
+def save_thruxton_with_a_member_board(page, fake):
+    fake.boards = {"/track/board:thruxton:main": [board_row("carM", "m1", 109.8)]}
+    fake.boards["/track/board:thruxton:main"][0].update(owner="Ann", car="Blue Y")
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator("#tp-speed path")).to_have_count(2)
+    fake.sessions["m1"] = member_session(fake.sessions["new1"])
+
+
+def test_other_members_laps_can_be_compared_and_put_on_the_map(page):
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    group = page.locator("#tp-cmp-b optgroup[label=\"Other members' best laps\"]")
+    expect(group.locator("option")).to_have_text(["Ann, Blue Y, 1:49.800"])
+    page.locator("#tp-cmp-b").select_option("x:m1")
+    expect(page.locator("#tp-key")).to_contain_text("Ann, Blue Y (B)")
+    expect(page.locator("#tp-gap-cap")).to_contain_text("A finishes")
+    expect(page.locator("#tp-gap-cap")).to_contain_text("ahead")
+    # Their lap can be added to the main map too.
+    add = page.locator("#tp-add-day")
+    expect(add.locator("optgroup[label=\"Other members' best laps\"] option")).to_have_count(1)
+    add.select_option("x:m1")
+    expect(page.locator("#tp-days-key .tp-day")).to_contain_text("Ann, Blue Y")
+
+
+def test_no_member_laps_when_only_your_own_car_is_on_the_board(page):
+    fake = FakeWorker()
+    fake.boards = {"/track/board:thruxton:main": [board_row("car1", "new1", 99.8)]}
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator("#tp-speed path")).to_have_count(2)
+    expect(page.locator("#tp-cmp-b optgroup[label=\"Other members' best laps\"]")).to_have_count(0)
+
+
+def test_zoomed_in_playback_follows_the_cars_until_you_drag_the_map(page):
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    page.locator("#tp-sync [data-sync='point']").click()
+    page.locator("#tp-speeds [data-speed='5']").click()
+    page.locator("#tp-map2").scroll_into_view_if_needed()
+    zoom_in = page.locator("#tp-map2").locator("xpath=..").locator(".tv-zoom-in")
+    for _ in range(4):
+        zoom_in.click()
+    expect(page.locator("#tp-follow")).to_have_attribute("aria-pressed", "true")
+
+    def in_view():
+        return page.evaluate("""() => {
+          const svg = document.getElementById('tp-map2'), vb = svg.viewBox.baseVal;
+          const xy = [...svg.querySelectorAll('g[visibility="visible"]')].filter(g => g.querySelector('circle[r="7"]'))
+            .map(g => (g.getAttribute('transform').match(/translate\\(([-\\d.e]+) ([-\\d.e]+)\\)/) || []).slice(1).map(Number));
+          return xy.length === 2 && xy.every(p => p[0] > vb.x && p[0] < vb.x + vb.width && p[1] > vb.y && p[1] < vb.y + vb.height);
+        }""")
+
+    page.locator("#tp-play-toggle").click()
+    for _ in range(4):
+        page.wait_for_timeout(400)
+        assert in_view()
+    page.locator("#tp-play-toggle").click()
+    # Same moment with a gap: the leader stays in view even if the other dot
+    # is off screen.
+    page.locator("#tp-sync [data-sync='time']").click()
+    page.locator("#tp-scrub").evaluate("el => { el.value = 40; el.dispatchEvent(new Event('input', {bubbles: true})); }")
+    page.locator("#tp-play-toggle").click()
+    page.wait_for_timeout(500)
+    page.locator("#tp-play-toggle").click()
+    assert page.evaluate("""() => {
+      const svg = document.getElementById('tp-map2'), vb = svg.viewBox.baseVal;
+      return [...svg.querySelectorAll('g[visibility="visible"]')].filter(g => g.querySelector('circle[r="7"]'))
+        .map(g => (g.getAttribute('transform').match(/translate\\(([-\\d.e]+) ([-\\d.e]+)\\)/) || []).slice(1).map(Number))
+        .some(p => p[0] > vb.x && p[0] < vb.x + vb.width && p[1] > vb.y && p[1] < vb.y + vb.height);
+    }""")
+    # Dragging the map by hand turns following off, so it can be explored.
+    box = page.locator("#tp-map2").bounding_box()
+    page.mouse.move(box["x"] + box["width"] * 0.5, box["y"] + box["height"] * 0.5)
+    page.mouse.down()
+    page.mouse.move(box["x"] + box["width"] * 0.7, box["y"] + box["height"] * 0.6, steps=6)
+    page.mouse.up()
+    expect(page.locator("#tp-follow")).to_have_attribute("aria-pressed", "false")
+    vb = lambda: page.evaluate("(() => { const b = document.getElementById('tp-map2').viewBox.baseVal; return [b.x, b.y]; })()")
+    before = vb()
+    page.locator("#tp-play-toggle").click()
+    page.wait_for_timeout(500)
+    page.locator("#tp-play-toggle").click()
+    assert vb() == before
+    # Follow again.
+    page.locator("#tp-follow").click()
+    expect(page.locator("#tp-follow")).to_have_attribute("aria-pressed", "true")
+    expect(page.locator("#tp-follow")).to_have_class(re.compile(r"is-on"))

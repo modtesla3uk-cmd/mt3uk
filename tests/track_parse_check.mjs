@@ -89,6 +89,22 @@ ru = T.read('time,latitude,longitude,speed (km/h)\n' + moved, 'u.csv');
 su = T.analyse(ru, lib, { startLine: [[51.2077017 + 1.5, -1.6088667], [51.2076237 + 1.5, -1.6091363]] });
 ok(su.laps.length === 2 && near(su.bestTime, 99.786, 0.05) && su.startLineFromMember, 'member start line times the laps');
 
+// A line drawn exactly through a reading (a straight road, positions rounded) still counts as crossed.
+{
+  const lat0 = 51.7, lng0 = -1.3, rows = [];
+  let tt = 0;
+  for (let i = 0; i < 60; i++) rows.push({ lat: lat0, lng: lng0, v: 0, t: (tt += 0.1), sats: 9 });
+  for (let i = 1; i <= 100; i++) rows.push({ lat: lat0 + i * 10 / 110540, lng: lng0, v: 72, t: (tt += 0.5), sats: 9 });
+  const line = i => [[lat0 + i * 10 / 110540, lng0 - 0.0003], [lat0 + i * 10 / 110540, lng0 + 0.0003]];
+  const rdl = Object.assign({}, T.read(vbo, 'f.vbo'), { points: rows, startLine: null, hz: 2 });
+  let found = 0;
+  for (const [a, b] of [[2, 20], [5, 40], [8, 60], [3, 30], [10, 50]]) {
+    const r = T.analyse(Object.assign({}, rdl, { points: rows.map(q => Object.assign({}, q)) }), { venues: [] }, { type: 'sprint', startLine: line(a), finishLine: line(b), ignoreFirstFinish: true });
+    if (r.laps && r.laps.length === 1) found++;
+  }
+  ok(found === 5, 'lines drawn exactly through a reading are still crossed (' + found + ' of 5 placements found the run)');
+}
+
 // A standing start away from any known drag strip is not assumed to be a drag run (it may be a sprint).
 {
   const rows = ['time,latitude,longitude,speed (mph)'];

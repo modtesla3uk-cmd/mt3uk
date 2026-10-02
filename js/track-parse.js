@@ -483,7 +483,8 @@
       var p = points[i - 1], q = points[i];
       if (p.run !== q.run) continue;
       var d1 = o(A, B, [p.x, p.y]), d2 = o(A, B, [q.x, q.y]), d3 = o([p.x, p.y], [q.x, q.y], A), d4 = o([p.x, p.y], [q.x, q.y], B);
-      if (d1 * d2 < 0 && d3 * d4 < 0) {
+      // A reading exactly on the line (a straight road, positions rounded) counts as one crossing, not none.
+      if ((d1 <= 0) !== (d2 <= 0) && (d3 <= 0) !== (d4 <= 0)) {
         var f = d1 / (d1 - d2);
         var t = p.t + f * (q.t - p.t), d = p.d + f * (q.d - p.d);
         if (!out.length || t - out[out.length - 1].t > minGap) out.push({ i: i, t: t, d: d });

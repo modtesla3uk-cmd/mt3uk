@@ -120,6 +120,43 @@
     for (var j = 0; j < headers.length; j++) if (list.indexOf(stripUnit(headers[j])) !== -1) return j;
     return -1;
   }
+  // Channels some loggers write beyond position and speed (Tesla Track Mode
+  // does): state of charge, power, throttle, brake pressure, battery, brake and
+  // inverter temperatures, tyre pressures and slip. Found by their headers.
+  var EXTRA = {
+    soc: /state of charge|\bsoc\b/, pwr: /^power( level)?\b|\bpower\b.*\bkw\b/, thr: /throttle/, bpr: /brake pressure/,
+    bat: /battery temp/, brk: /brake temp/, inv: /inverter temp/, tpr: /(tire|tyre) pressure/, slp: /(tire|tyre) slip/
+  };
+  function extraCols(headers) {
+    if (!headers) return null;
+    var out = {}, any = false;
+    headers.forEach(function (h, i) {
+      Object.keys(EXTRA).forEach(function (k) {
+        if (EXTRA[k].test(h)) { (out[k] = out[k] || []).push(i); any = true; }
+      });
+    });
+    return any ? out : null;
+  }
+  function chVals(f, idx) {
+    var v = [];
+    (idx || []).forEach(function (i) { var n = num(f[i]); if (isFinite(n)) v.push(n); });
+    return v;
+  }
+  // One point's extra channels: only what the file has.
+  function chOf(f, xc) {
+    var ch = {}, v;
+    if ((v = chVals(f, xc.soc)).length) ch.soc = v[0];
+    if ((v = chVals(f, xc.pwr)).length) ch.pwr = v[0];
+    if ((v = chVals(f, xc.thr)).length) ch.thr = v[0];
+    if ((v = chVals(f, xc.bpr)).length) ch.bpr = v[0];
+    if ((v = chVals(f, xc.bat)).length) ch.bat = v[0];
+    if ((v = chVals(f, xc.brk)).length) ch.brk = Math.max.apply(null, v);
+    if ((v = chVals(f, xc.inv)).length) ch.inv = Math.max.apply(null, v);
+    // Tyre pressure reads 0 until the sensors report: a zero is no reading.
+    if ((v = chVals(f, xc.tpr)).length) { var tp = v.filter(function (n) { return n > 0; }); ch.tpr = tp.length ? tp.reduce(function (a, b) { return a + b; }, 0) / tp.length : 0; }
+    if ((v = chVals(f, xc.slp)).length) ch.slp = Math.max.apply(null, v.map(Math.abs));
+    return ch;
+  }
   function splitCsv(line, delim) {
     var out = [], cur = '', q = false;
     for (var i = 0; i < line.length; i++) {
@@ -182,6 +219,7 @@
       var hh = splitCsv(lines[hi === -1 ? 0 : hi], delim).map(function (x) { return x.trim().replace(/^"|"$/g, ''); });
       return { needsMapping: { headers: hh, rows: lines.slice((hi === -1 ? 0 : hi) + 1, (hi === -1 ? 0 : hi) + 4).map(function (l) { return splitCsv(l, delim); }) } };
     }
+    var xc = mapping ? null : extraCols(headers);
     var unit = mapping && mapping.speedUnit ? mapping.speedUnit : (cols.speed >= 0 ? unitFromHeader(headers[cols.speed]) : '');
     var pts = [], startedAt = null, clockDays = 0, prev = null, lapOffset = 0, lastLap = null, step = 0;
     for (var r = hi + 1; r < lines.length; r++) {
@@ -203,7 +241,8 @@
       if (prev !== null) step = t - prev;
       prev = t;
       if (startedAt === null && tm.abs) startedAt = tm.abs;
-      pts.push({ t: t, lat: lat, lng: lng, v: cols.speed >= 0 ? num(f[cols.speed]) : NaN, la: cols.la >= 0 ? num(f[cols.la]) : NaN, lo: cols.lo >= 0 ? num(f[cols.lo]) : NaN, sats: cols.sats >= 0 ? num(f[cols.sats]) : NaN, temp: cols.temp >= 0 ? num(f[cols.temp]) : NaN, lap: cols.lap >= 0 ? num(f[cols.lap]) : NaN, abs: !!tm.abs });
+      var chp = xc ? chOf(f, xc) : null;
+      pts.push({ ch: chp, t: t, lat: lat, lng: lng, v: cols.speed >= 0 ? num(f[cols.speed]) : NaN, la: cols.la >= 0 ? num(f[cols.la]) : NaN, lo: cols.lo >= 0 ? num(f[cols.lo]) : NaN, sats: cols.sats >= 0 ? num(f[cols.sats]) : NaN, temp: cols.temp >= 0 ? num(f[cols.temp]) : NaN, lap: cols.lap >= 0 ? num(f[cols.lap]) : NaN, abs: !!tm.abs });
     }
     if (!pts.length) throw new Error('No readings with a position were found in this file.');
     // Elapsed time in milliseconds (Tesla Track Mode writes "Elapsed Time
@@ -226,7 +265,7 @@
     var t0 = pts[0].t;
     pts.forEach(function (p) { p.t -= t0; delete p.abs; });
     var fileLine = cols.lap >= 0 ? lineFromLaps(pts) : null;
-    pts.forEach(function (p) { delete p.lap; });
+    pts.forEach(function (p) { delete p.lap; if (!p.ch) delete p.ch; });
     var venue = '';
     lines.slice(0, Math.max(hi, 0)).forEach(function (l) { var m = l.match(/(?:venue|track|circuit)\s*[:,]\s*"?([^",]+)/i); if (m && !venue) venue = m[1].trim(); });
     return { format: 'CSV', points: pts, startLine: fileLine, venueName: venue, startedAt: startedAt, speedUnit: unit, columns: cols, tempF: cols.temp >= 0 && /(°|deg|\b)f\b|fahrenheit/.test(headers[cols.temp]) };
@@ -590,6 +629,8 @@
     var origin = venue ? [venue.lat, venue.lng] : [pts[0].lat, pts[0].lng];
     var proj = projector(origin[0], origin[1]);
     prepare(pts, proj);
+    var cdata = carData(pts);
+    if (cdata) session.carData = cdata;
     session.duration = round(pts[pts.length - 1].t, 1);
     session.distance = Math.round(pts[pts.length - 1].d);
     // A loop, not Math.max.apply: a day of files can be well over 100,000
@@ -903,6 +944,14 @@
     if (m.month) { var last = new Date(Date.UTC(m.year, m.month, 0)).getUTCDate(); return [m.year + '-' + pad2(m.month) + '-01', m.year + '-' + pad2(m.month) + '-' + pad2(last)]; }
     return [m.year + '-01-01', m.year + '-12-31'];
   }
+  // The same tyres written two ways ("Pilot Sport 4S" and "Michelin Pilot Sport
+  // 4S, 245/35 R19") count as the same; nothing written on one side does not.
+  function sameTyres(x, y) {
+    function norm(t) { return String(t || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\b\d{3} \d{2} (z )?r? ?\d{2}\b/, '').trim(); }
+    var a = norm(x), b = norm(y);
+    if (!a || !b) return !a && !b;
+    return a === b || a.indexOf(b) !== -1 || b.indexOf(a) !== -1;
+  }
   function modImpact(sessions, mods) {
     var dry = (sessions || []).filter(function (s) { return s.bestTime && (s.conditions || 'Dry') === 'Dry'; }).sort(function (a, b) { return a.date < b.date ? -1 : 1; });
     var wins = (mods || []).filter(function (m) { return m && m.year; }).map(function (m) { var w = monthWindow(m); return { label: m.label, start: w[0], end: w[1], year: m.year, month: m.month || null }; }).sort(function (a, b) { return a.start < b.start ? -1 : a.start > b.start ? 1 : 0; });
@@ -921,7 +970,7 @@
       if (!before.length || !after.length) { skipped.push({ labels: g.labels, year: g.year, month: g.month, why: !before.length && !after.length ? 'no dry sessions either side' : !before.length ? 'no dry session before' : 'no dry session after' }); return; }
       function best(list) { return list.slice().sort(function (a, b) { return a.bestTime - b.bestTime; })[0]; }
       var b = best(before), a = best(after), flags = [];
-      if ((b.tyres || '') !== (a.tyres || '') && (b.tyres || a.tyres)) flags.push('different tyres');
+      if (!sameTyres(b.tyres, a.tyres)) flags.push('different tyres');
       if (isFinite(b.temp) && isFinite(a.temp) && b.temp !== null && a.temp !== null && Math.abs(a.temp - b.temp) >= 8) flags.push(Math.abs(a.temp - b.temp) + '°C ' + (a.temp > b.temp ? 'warmer' : 'colder'));
       if (before.length === 1 && after.length === 1) flags.push('one session each side');
       rows.push({ labels: g.labels, year: g.year, month: g.month, before: b.bestTime, after: a.bestTime, change: round(a.bestTime - b.bestTime, 3), beforeDate: b.date, afterDate: a.date, nBefore: before.length, nAfter: after.length, flags: flags });
@@ -935,6 +984,65 @@
   }
 
   // Merges the admin's changes (KV) over data/tracks.json, by venue id.
+
+  // What the extra channels say over the whole file, kept small: start and end
+  // charge, peak power and regeneration, peak temperatures, peak brake
+  // pressure, how long the throttle was flat out, tyre pressures and slip.
+  // A channel that never moves (all zeros) is listed as empty, not summarised.
+  // The car's temperatures are written as a percentage, and in the files seen
+  // so far as a fraction of one, so a channel that never goes above 1.5 is
+  // scaled to a percentage here.
+  function carData(pts) {
+    var st = {}, n = 0, dt = 0, flat = 0, prevT = null;
+    for (var i = 0; i < pts.length; i++) {
+      var c = pts[i].ch;
+      if (c) {
+        n++;
+        Object.keys(c).forEach(function (k) {
+          var v = c[k];
+          if (!isFinite(v)) return;
+          // Tyre pressure reads 0 until the sensors report, so zeros are skipped once it does.
+          if (k === 'tpr' && v === 0) { if (!st[k]) st[k] = { first: 0, last: 0, min: 0, max: 0, nz: false }; return; }
+          if (k === 'tpr' && st[k] && !st[k].nz) { st[k].first = v; st[k].min = v; st[k].max = v; }
+          var a = st[k] || (st[k] = { first: v, last: v, min: v, max: v, nz: false });
+          a.last = v; if (v < a.min) a.min = v; if (v > a.max) a.max = v; if (v !== 0) a.nz = true;
+        });
+        if (isFinite(c.thr) && prevT !== null) { var step = Math.min(2, pts[i].t - prevT); if (step > 0) { dt += step; if (c.thr >= 95) flat += step; } }
+      }
+      prevT = pts[i].t;
+    }
+    if (!n) return null;
+    var out = { found: [], empty: [] };
+    function pct(a) { return a.max <= 1.5 ? 100 : 1; }
+    function on(k, label) { if (!st[k]) return null; if (!st[k].nz && st[k].min === st[k].max) { out.empty.push(label); return null; } out.found.push(label); return st[k]; }
+    var a;
+    if ((a = on('soc', 'State of charge'))) out.soc = { start: round(a.first, 1), end: round(a.last, 1) };
+    if ((a = on('pwr', 'Power'))) out.power = { max: round(Math.max(0, a.max), 0), regen: round(Math.max(0, -a.min), 0) };
+    if ((a = on('thr', 'Throttle')) && dt > 0) out.throttle = { full: round(flat / dt, 2) };
+    if ((a = on('bpr', 'Brake pressure'))) out.brakePressure = { max: round(a.max, 1) };
+    if ((a = on('bat', 'Battery temperature'))) out.batteryTemp = { start: round(a.first * pct(a), 0), max: round(a.max * pct(a), 0) };
+    if ((a = on('brk', 'Brake temperature'))) out.brakeTemp = { max: round(a.max * pct(a), 0) };
+    if ((a = on('inv', 'Inverter temperature'))) out.inverterTemp = { max: round(a.max * pct(a), 0) };
+    if ((a = on('tpr', 'Tyre pressure'))) out.tyrePressure = { start: round(a.first, 2), end: round(a.last, 2), max: round(a.max, 2) };
+    if ((a = on('slp', 'Tyre slip'))) out.slip = { max: round(a.max, 2) };
+    return out.found.length || out.empty.length ? out : null;
+  }
+
+  // What a file holds, for the "what's in your file" line: position and time
+  // are always there; the rest by what the readings carry.
+  function fileChannels(rd) {
+    var pts = rd.points || [], any = function (f) { for (var i = 0; i < pts.length; i++) if (f(pts[i])) return true; return false; };
+    var cd = carData(pts) || { found: [], empty: [] };
+    return {
+      have: ['GPS position'].concat(
+        any(function (p) { return isFinite(p.v); }) ? ['Speed'] : [],
+        any(function (p) { return isFinite(p.la) || isFinite(p.lo); }) ? ['G-force'] : [],
+        rd.startLine ? ['Lap numbers'] : [],
+        cd.found),
+      empty: cd.empty
+    };
+  }
+
   function mergeLibrary(base, extra) {
     var list = venues(base).map(function (v) { return v; });
     venues(extra).forEach(function (v) {
@@ -947,7 +1055,7 @@
   }
 
   var api = {
-    read: read, combine: combine, dateFromName: dateFromName, analyse: analyse, sessionNotes: sessionNotes, trendNotes: trendNotes, isTrackPart: isTrackPart, modImpact: modImpact, cornerGains: cornerGains,
+    read: read, combine: combine, dateFromName: dateFromName, analyse: analyse, sessionNotes: sessionNotes, trendNotes: trendNotes, isTrackPart: isTrackPart, modImpact: modImpact, carData: carData, fileChannels: fileChannels, cornerGains: cornerGains,
     traceAt: traceAt, findCorners: findCorners, mergeLibrary: mergeLibrary, fmtLap: fmtLap, niceDate: niceDate, ukDate: ukDate, ukTime: ukTime,
     haversine: haversine, projector: projector, dragRuns: dragRuns, KMH_PER_MPH: KMH_PER_MPH
   };

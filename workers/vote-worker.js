@@ -6542,6 +6542,33 @@ function cleanTrackRuns(runs) {
 
 // The parsed session from the browser, checked against the track list.
 // Venue and layout names come from the list, not the browser.
+// The car's own channels summarised by the page (js/track-parse.js carData):
+// only known keys, as numbers within sensible limits.
+function cleanCarData(c) {
+  if (!c || typeof c !== 'object') return null;
+  var out = {};
+  function grp(key, fields, lo, hi) {
+    var g = c[key];
+    if (!g || typeof g !== 'object') return;
+    var o = {}, any = false;
+    fields.forEach(function (f) { var n = trackNum(g[f], lo, hi); if (n !== null) { o[f] = n; any = true; } });
+    if (any) out[key] = o;
+  }
+  grp('soc', ['start', 'end'], 0, 100);
+  grp('power', ['max', 'regen'], 0, 5000);
+  grp('throttle', ['full'], 0, 1);
+  grp('brakePressure', ['max'], 0, 1000);
+  grp('batteryTemp', ['start', 'max'], -100, 1000);
+  grp('brakeTemp', ['max'], -100, 5000);
+  grp('inverterTemp', ['max'], -100, 1000);
+  grp('tyrePressure', ['start', 'end', 'max'], 0, 20);
+  grp('slip', ['max'], 0, 100);
+  function names(list) { return (Array.isArray(list) ? list : []).slice(0, 12).map(function (x) { return trackText(x, 30); }).filter(Boolean); }
+  out.found = names(c.found);
+  out.empty = names(c.empty);
+  return out.found.length || out.empty.length ? out : null;
+}
+
 function cleanTrackSession(s, library) {
   if (!s || typeof s !== 'object') return { error: 'No session sent' };
   // Track day (laps), drag run, sprint or hill climb (start to finish), or
@@ -6560,6 +6587,8 @@ function cleanTrackSession(s, library) {
   if (venue) { out.venueId = venue.id; out.venue = venue.name; }
   else out.venue = trackText(s.venueName || s.venue, 60) || (out.type === 'drag' ? 'Drag run' : out.type === 'sprint' ? 'Sprint' : out.type === 'other' ? 'Drive' : 'Unknown track');
   out.origin = cleanNumArrays(s.origin, 1).slice(0, 2);
+  var carData = cleanCarData(s.carData);
+  if (carData) out.carData = carData;
   if (out.type === 'drag') {
     out.runs = cleanTrackRuns(s.runs);
     if (!out.runs.length) return { error: 'No drag run found in this file' };

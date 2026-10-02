@@ -210,6 +210,15 @@
     if (s.tyreMake !== undefined || s.tyreModel !== undefined || s.tyreWidth) return { make: s.tyreMake || '', model: s.tyreModel || '', w: s.tyreWidth || '', p: s.tyreProfile || '', d: s.tyreRim || '' };
     return TY.parse(s.tyres || '');
   }
+  // The tyres from the car's most recent session, to start the next one with.
+  function lastTyre(m, carId) {
+    if (!TY || !m) return null;
+    var list = (m.sessions || []).filter(function (x) { return x.carId === carId && x.tyres; })
+      .sort(function (x, y) { return (y.date + (y.time || '')) < (x.date + (x.time || '')) ? -1 : 1; });
+    if (!list.length) return null;
+    var t = TY.parse(list[0].tyres);
+    return t.make || t.model || t.w ? t : null;
+  }
   function tyreOpts(list, sel, label, unit) {
     return '<option value="">' + label + '</option>' + list.map(function (v) { return '<option value="' + v + '"' + (String(sel) === String(v) ? ' selected' : '') + '>' + v + (unit || '') + '</option>'; }).join('');
   }
@@ -270,7 +279,7 @@
     // Adding a session: redraw it in the new unit, keeping the file and
     // everything chosen or typed so far.
     if (params().get('add') && add && add.session && document.getElementById('tp-result')) {
-      var ty = readTyre('tp-tyre'); if (ty) { add.tyre = ty; add.tyres = TY.compose(ty); }
+      var ty = readTyre('tp-tyre'); if (ty) { var nt = TY.compose(ty); if (add.tyrePre && nt !== add.tyres) add.tyrePre = false; add.tyre = ty; add.tyres = nt; }
       var ne = document.getElementById('tp-notes'); if (ne) add.notes = ne.value.trim();
       var te = document.getElementById('tp-temp');
       if (te) { var tv = te.value.trim() === '' ? null : parseFloat(te.value); if (tv !== add.temp) { add.temp = tv; add.tempSource = tv == null ? '' : 'member'; add.weather = null; } }
@@ -414,6 +423,15 @@
 
   // ---------- Add a session ----------
   var add = null;
+  // Where a file comes from, for the Add a session screen.
+  var FILE_SOURCES = [
+    ['Tesla Track Mode', 'Save the session\'s telemetry to a USB drive from Track Mode. The file is named like telemetry-v1-2025-04-25-11_35_49.csv. Copy it to your phone or computer and add it here. Besides laps, speed and G-force it holds the car\'s own data: charge, power, throttle, brake pressure, temperatures, tyre pressures and slip.'],
+    ['RaceBox', 'Open the session in the app, share or export it and choose VBO (CSV works too).'],
+    ['VBOX', 'Copy the .vbo file from the SD card.'],
+    ['Harry\'s LapTimer or TrackAddict', 'Export the session as CSV (or GPX) and save it to your phone.'],
+    ['AiM', 'Export from Race Studio as CSV with GPS latitude, longitude and speed.'],
+    ['Something else', 'Any CSV or GPX with a time, latitude, longitude and ideally speed. If the columns are not recognised you can pick them yourself.']
+  ];
   function showAdd(carId) {
     if (!token()) { location.href = 'signin.html?next=' + encodeURIComponent('/track.html?add=1'); return; }
     loading();
@@ -423,6 +441,8 @@
       if (!m.cars.length) return showHome();
       var car = m.cars.filter(function (c) { return c.id === carId; })[0] || m.cars[0];
       add = { car: car, cars: m.cars, lib: r[1], admin: r[2], rd: null, session: null, type: null, startLine: null, conditions: 'Dry', privacy: 'private', street: false, file: null };
+      var lt = lastTyre(m, car.id);
+      if (lt) { add.tyre = lt; add.tyres = TY.compose(lt); add.tyrePre = true; }
       drawAdd();
     }).catch(function () { failed('Could not load your cars. Check your connection and try again.'); });
   }
@@ -444,11 +464,9 @@
       (a.cars.length > 1 ? '<div class="tp-field"><label for="tp-car">Car</label><select class="field" id="tp-car">' + a.cars.map(function (c) { return '<option value="' + esc(c.id) + '"' + (c.id === a.car.id ? ' selected' : '') + '>' + esc(c.name) + '</option>'; }).join('') + '</select></div>' : '<p class="tp-car-one">Car: <b>' + esc(a.car.name) + '</b></p>') +
       '<label class="tp-drop" id="tp-drop">' + icon('upload') + '<b>Drop your files here, or choose them</b><small>One file, or all of a day\'s files together (they make one session). VBO, CSV or GPX. Works with RaceBox, VBOX, Harry\'s LapTimer, TrackAddict, AiM and most phone apps.</small><span class="btn btn-secondary btn-sm">Choose files</span><input type="file" id="tp-file" multiple accept=".vbo,.csv,.gpx,.txt,text/csv,application/gpx+xml" hidden></label>' +
       (a.files && a.files.length ? fileBox() : '') +
-      '<details class="tp-help"><summary>' + icon('info') + 'How to get the file from your lap timer</summary><ul>' +
-      '<li><b>RaceBox:</b> open the session in the app, share or export it and choose VBO (CSV works too).</li>' +
-      '<li><b>VBOX:</b> copy the .vbo file from the SD card.</li>' +
-      '<li><b>Harry\'s LapTimer, TrackAddict:</b> export the session as CSV (or GPX) and save it to your phone.</li>' +
-      '<li><b>AiM:</b> export from Race Studio as CSV with GPS latitude, longitude and speed.</li></ul></details>' +
+      '<details class="tp-help"' + (a.files && a.files.length ? '' : ' open') + '><summary>' + icon('info') + 'Where do I get my file?</summary>' +
+      '<div class="tp-chips tp-src-chips" id="tp-src-chips" role="group" aria-label="Where your data comes from">' + FILE_SOURCES.map(function (f, i) { return '<button type="button" class="chip chip-sm' + (i === 0 ? ' is-on' : '') + '" data-src="' + i + '">' + esc(f[0]) + '</button>'; }).join('') + '</div>' +
+      '<p class="tp-small tp-src-steps" id="tp-src-steps">' + esc(FILE_SOURCES[0][1]) + '</p></details>' +
       '<div id="tp-mapping"></div><p class="tp-status" id="tp-status" role="status"></p></div>' +
       '<div id="tp-result"></div></div>';
     app.innerHTML = h;
@@ -457,8 +475,19 @@
     ['dragenter', 'dragover'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('is-over'); }); });
     ['dragleave', 'drop'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove('is-over'); }); });
     drop.addEventListener('drop', function (e) { var fl = e.dataTransfer && e.dataTransfer.files; if (fl && fl.length) readFiles(fl); });
+    var chips = document.getElementById('tp-src-chips');
+    if (chips) chips.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-src]');
+      if (!b) return;
+      [].forEach.call(chips.querySelectorAll('[data-src]'), function (x) { x.classList.toggle('is-on', x === b); });
+      document.getElementById('tp-src-steps').textContent = FILE_SOURCES[+b.getAttribute('data-src')][1];
+    });
     var sel = document.getElementById('tp-car');
-    if (sel) sel.addEventListener('change', function () { a.car = a.cars.filter(function (c) { return c.id === sel.value; })[0]; });
+    if (sel) sel.addEventListener('change', function () {
+      a.car = a.cars.filter(function (c) { return c.id === sel.value; })[0];
+      // Tyres follow the car chosen, until they have been changed by hand.
+      if (a.tyrePre || !a.tyre) { var lt = lastTyre(mine, a.car.id); a.tyre = lt || undefined; a.tyres = lt ? TY.compose(lt) : ''; a.tyrePre = !!lt; }
+    });
     if (a.session) drawResult();
   }
   // What each file in the box is called when a day's files are combined:
@@ -695,10 +724,17 @@
     if (s.type === 'other') return false;
     return !!(s.venueId && s.layoutId && s.laps && s.laps.length && !s.needsStartLine);
   }
+  // What the file holds, so a member can see their data was picked up.
+  function channelsHtml(a) {
+    if (!a.rd || !T.fileChannels) return '';
+    var c = T.fileChannels(a.rd);
+    return '<p class="tp-small tp-chans" id="tp-chans"><b>In your file:</b> ' + esc(c.have.join(', ')) + '.' + (c.empty.length ? ' In the file but empty: ' + esc(c.empty.join(', ').toLowerCase()) + '.' : '') + '</p>';
+  }
   function drawResult() {
     var a = add, s = a.session, box = document.getElementById('tp-result');
     var h = '<div class="card tp-fields">';
     h += '<div class="tp-field"><span class="tp-lbl">Type</span><div class="tp-chips" data-type>' + TYPES.map(function (t) { return '<button type="button" class="chip' + (s.type === t[0] ? ' is-on' : '') + '" data-v="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</div></div>';
+    h += channelsHtml(a);
     var isSprint = s.type === 'sprint', word = isSprint ? 'run' : 'lap';
     if (s.type === 'other') {
       h += '<div class="tp-notice is-ok">' + icon('check') + '<div><b>' + esc(s.venue || 'Your drive') + '</b><br>Mapped with your top speed and grip. Other sessions aren\'t timed for a leaderboard.' + (s.laps && s.laps.length ? ' ' + s.laps.length + ' laps found too.' : '') + '</div></div>' +
@@ -741,7 +777,7 @@
           : s.dateFrom === 'file' ? '<p class="tp-src" id="tp-date-src">' + icon('info') + '<span>Date and time recorded in your file.</span></p>'
           : !s.date ? '<p class="tp-src" id="tp-date-src">' + icon('info') + '<span>Your file has no date in it. Add the date and start time to look up the weather.</span></p>' : '');
       h += '<div class="tp-field"><span class="tp-lbl">Conditions</span><div class="tp-chips" data-cond>' + ['Dry', 'Damp', 'Wet'].map(function (c) { return '<button type="button" class="chip' + (a.conditions === c ? ' is-on' : '') + '" data-v="' + c + '">' + c + '</button>'; }).join('') + '</div></div>' +
-        tyreFields('tp-tyre', a.tyre) +
+        tyreFields('tp-tyre', a.tyre) + (a.tyrePre && a.tyre ? '<p class="tp-small tp-tyre-note">Filled in from your last session with this car. Change it if it is different.</p>' : '') +
         '<div class="tp-field"><label for="tp-temp">Air temperature (°C)</label><input class="field" id="tp-temp" inputmode="numeric" placeholder="18" value="' + esc(a.temp == null ? '' : a.temp) + '"></div>' +
         (a.tempSource === 'weather' && a.weather ? '<p class="tp-src" id="tp-temp-src">' + icon('info') + '<span>' + weatherNote(a.weather, s.venue) + (a.condTouched ? '' : ' Conditions set to match. Change them if the track was different.') + '</span></p>'
           : a.tempSource === 'file' ? '<p class="tp-src" id="tp-temp-src">' + icon('info') + '<span>From the air temperature recorded in your file.</span></p>' : '') +
@@ -789,7 +825,7 @@
     }
     function keep() {
       var ty = readTyre('tp-tyre');
-      if (ty) { a.tyre = ty; a.tyres = TY.compose(ty); }
+      if (ty) { var nt2 = TY.compose(ty); if (a.tyrePre && nt2 !== a.tyres) a.tyrePre = false; a.tyre = ty; a.tyres = nt2; }
       ['temp', 'notes', 'venue-name'].forEach(function (k) {
         var el = document.getElementById('tp-' + k);
         if (!el) return;
@@ -996,6 +1032,7 @@
     if (s.type === 'drag') h += dragHtml(s);
     else if (untimed) h += otherHtml(s);
     else h += trackHtml(s);
+    h += carDataHtml(s);
     if (s.mine) h += ownerHtml(s);
     app.innerHTML = h;
     if (s.type === 'drag') drawDragCharts(s);
@@ -1041,6 +1078,25 @@
     var trace = out.map(function (p) { var xy = proj.xy(p[0], p[1]); if (prev) d += Math.hypot(xy[0] - prev[0], xy[1] - prev[1]); prev = xy; return [d, 0, xy[0], xy[1], p[2] || 0, 0, 0]; });
     var mm = V.map(document.getElementById('tp-map'), trace, { origin: [out[0][0], out[0][1]] });
     if (mm) { document.getElementById('tp-ramp-lo').textContent = V.fmtV(mm.vmin); document.getElementById('tp-ramp-hi').textContent = V.fmtV(mm.vmax); }
+  }
+  // The car's own channels, when the file had them (Tesla Track Mode does).
+  function carDataHtml(s) {
+    var c = s.carData;
+    if (!c) return '';
+    var t = [], pct = function (n) { return Math.round(n) + '%'; };
+    if (c.soc) t.push(['Charge used', (c.soc.start - c.soc.end).toFixed(1) + ' points', c.soc.start.toFixed(0) + '% to ' + c.soc.end.toFixed(0) + '%']);
+    if (c.power) t.push(['Peak power', Math.round(c.power.max) + ' kW', c.power.regen ? 'Regeneration up to ' + Math.round(c.power.regen) + ' kW' : '']);
+    if (c.brakePressure) t.push(['Hardest braking', c.brakePressure.max.toFixed(1) + ' bar', 'Peak brake pressure']);
+    if (c.throttle) t.push(['Flat out', Math.round(c.throttle.full * 100) + '%', 'Of the time, throttle at 95% or more']);
+    if (c.batteryTemp) t.push(['Battery temperature', 'Up to ' + pct(c.batteryTemp.max), 'Started at ' + pct(c.batteryTemp.start)]);
+    if (c.brakeTemp) t.push(['Hottest brakes', pct(c.brakeTemp.max), 'Of the car\'s own scale']);
+    if (c.inverterTemp) t.push(['Hottest inverter', pct(c.inverterTemp.max), 'Of the car\'s own scale']);
+    if (c.tyrePressure) t.push(['Tyre pressure', c.tyrePressure.start.toFixed(2) + ' to ' + c.tyrePressure.end.toFixed(2) + ' bar', Math.round(c.tyrePressure.start * 14.5) + ' to ' + Math.round(c.tyrePressure.end * 14.5) + ' psi, average of the four']);
+    if (c.slip) t.push(['Most tyre slip', c.slip.max.toFixed(2), 'Estimated by the car']);
+    if (!t.length && !(c.empty || []).length) return '';
+    return '<div class="tp-section" id="car-data"><div class="tp-head"><h2>From the car</h2></div>' + (t.length ? tiles(t) : '') +
+      '<p class="tp-small">Read from the file your car wrote. Temperatures are shown as a percentage, as the car reports them, not in degrees.' +
+      ((c.empty || []).length ? ' In the file but empty: ' + esc((c.empty || []).join(', ').toLowerCase()) + '.' : '') + '</p></div>';
   }
   function tiles(list) {
     return '<div class="tp-tiles">' + list.map(function (t) { return '<div class="tp-tile' + (t[3] ? ' is-hero' : '') + '"><div class="k">' + esc(t[0]) + '</div><div class="v">' + esc(t[1]) + '</div><div class="s">' + esc(t[2] || '') + '</div></div>'; }).join('') + '</div>';
@@ -1547,10 +1603,29 @@
         var m = String(p.meta || '').match(/Fitted (?:([A-Z][a-z]{2}) )?(\d{4})/);
         if (!m || p.empty) return;
         var month = m[1] ? MONTHS.indexOf(m[1]) + 1 : 6;
-        out.push({ label: (p.kind ? p.kind + ': ' : a.label + ': ') + p.what, month: month, year: parseInt(m[2], 10), date: m[2] + '-' + (month < 10 ? '0' : '') + month });
+        out.push({ label: (p.kind ? p.kind + ': ' : a.label + ': ') + p.what, month: month, monthKnown: !!m[1], year: parseInt(m[2], 10), date: m[2] + '-' + (month < 10 ? '0' : '') + month });
       });
     });
     return out;
+  }
+  // What each track part did: the best dry time here before and after it was
+  // fitted, from the member's own sessions. Other things change between days,
+  // so the card says what it could not account for.
+  function impactHtml(list, s) {
+    var mods = carMods(s.carId).map(function (m) { return { label: m.label, year: m.year, month: m.monthKnown ? m.month : null }; });
+    var head = '<div class="card tp-impact" id="tp-impact"><div class="tp-chart-head"><h3>What each mod did</h3></div>';
+    if (!mods.length) return head + '<p class="tp-small">Add when you fitted your wheels, tyres, suspension, brakes, aero and performance parts on your build (the Fitted date) and this compares your best dry time here before and after each one.</p></div>';
+    var r = T.modImpact(list.map(function (o) { return { id: o.id, date: o.date, bestTime: o.bestTime, conditions: o.conditions, temp: o.temp, tyres: o.tyres }; }), mods);
+    var h = head;
+    if (!r.rows.length) h += '<p class="tp-small">Not enough yet. A part needs a dry session here before it was fitted and another after.</p>';
+    else h += '<div class="tp-scroll"><table class="tp-table tp-impact-table"><thead><tr><th>Part</th><th>Before</th><th>After</th><th>Change</th></tr></thead><tbody>' + r.rows.map(function (x) {
+      var better = x.change < 0, same = Math.abs(x.change) < 0.005;
+      return '<tr><td>' + x.labels.map(esc).join('<br>') + (x.labels.length > 1 ? '<small>Fitted together, so the change is for all of them</small>' : '') + (x.flags.length ? '<small>' + x.flags.map(esc).join(', ') + '</small>' : '') + '</td>' +
+        '<td>' + V.fmtLap(x.before) + '<small>' + esc(niceDate(x.beforeDate)) + '</small></td><td>' + V.fmtLap(x.after) + '<small>' + esc(niceDate(x.afterDate)) + '</small></td>' +
+        '<td class="' + (same ? '' : better ? 'is-fast' : 'is-slow') + '">' + (same ? 'No change' : (better ? '' : '+') + x.change.toFixed(3) + ' s') + '</td></tr>';
+    }).join('') + '</tbody></table></div>';
+    if (r.skipped.length) h += '<p class="tp-small">Not compared (' + r.skipped.map(function (x) { return esc(x.labels.join(', ') + ': ' + x.why); }).join('; ') + ').</p>';
+    return h + '<p class="tp-small">Your best dry time before and after each part, at this track. Weather, tyres and driving change between days, so treat it as a guide.</p></div>';
   }
   function drawOverTime(s) {
     var box = document.getElementById('tp-time');
@@ -1567,6 +1642,7 @@
         var ch = (o.conditions || 'Dry') === 'Dry' && prev ? o.bestTime - prev.bestTime : null;
         return '<tr' + (o.id === s.id ? ' class="is-best"' : '') + '><td><a href="track.html?s=' + esc(o.id) + '" data-go="s=' + esc(o.id) + '">' + esc(niceDate(o.date)) + '</a></td><td>' + V.fmtLap(o.bestTime) + '</td><td>' + (ch === null ? '' : (ch > 0 ? '+' : '') + ch.toFixed(2)) + '</td><td>' + esc(o.conditions || '') + (o.temp != null ? ', ' + o.temp + '°C' : '') + '</td></tr>';
       }).join('') + '</tbody></table></div></div></div>';
+    box.insertAdjacentHTML('beforeend', impactHtml(list, s));
     V.timeline(document.getElementById('tp-timeline'), list.map(function (o) {
       return { date: o.date, time: o.bestTime, wet: (o.conditions || 'Dry') !== 'Dry', mine: o.id === s.id, label: niceDate(o.date), conditions: o.conditions, temp: o.temp, onClick: function () { go('s=' + o.id); } };
     }), mods);

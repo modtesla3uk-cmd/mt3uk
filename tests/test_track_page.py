@@ -828,7 +828,7 @@ def test_saving_keeps_the_readings_and_the_type_can_be_changed_after(page):
     page.get_by_role("button", name="Save changes").click()
     expect(page.get_by_role("heading", name="Session settings")).to_be_visible()
     rec = fake.sessions["new1"]
-    assert rec["type"] == "other" and rec["tyres"] == "AD08R" and rec["notes"] == "keep me"
+    assert rec["type"] == "other" and rec["tyres"] == "Michelin AD08R" and rec["notes"] == "keep me"
     assert fake.replaced[0]["session"]["type"] == "other"
     expect(page.locator("#settings [data-retype] .chip.is-on")).to_have_text("Other")
     # Back to a track day: the laps come back from the saved readings.
@@ -1896,3 +1896,144 @@ def test_follow_still_works_after_the_map_is_dragged_and_let_go_off_the_map(page
         assert vb() != moved, "round %d: the zoomed map did not follow the cars" % lap
         page.locator("#tp-follow").click()
         expect(page.locator("#tp-follow")).to_have_attribute("aria-pressed", "false")
+
+
+def tesla_full_csv():
+    """The Thruxton fixture with some of the extra columns a full Tesla Track Mode export has."""
+    lines = (ROOT / "tests" / "fixtures" / "tesla-track-mode-thruxton.csv").read_text(encoding="utf-8").strip().split("\n")
+    out = [lines[0] + ",Throttle Position (%),Brake Pressure (bar),Power Level (KW),State of Charge (%),Tire Pressure Front Left (bar),Battery Temp (%),Brake Temperature Front Left (% est.)"]
+    n = len(lines) - 1
+    for i, line in enumerate(lines[1:]):
+        f, accel = i / n, i % 40 < 20
+        out.append(line + ",%d,%s,%d,%.2f,0,%.3f,%.3f" % (100 if accel else 0, 0 if accel else 35.5, 250 if accel else -120, 80 - 5 * f, 0.5 + 0.12 * f, 0.02 + 0.3 * f))
+    return "\n".join(out)
+
+
+def test_where_do_i_get_my_file_has_a_source_picker(page):
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    expect(page.locator(".tp-help")).to_have_attribute("open", "")
+    steps = page.locator("#tp-src-steps")
+    expect(page.locator("#tp-src-chips .is-on")).to_have_text("Tesla Track Mode")
+    expect(steps).to_contain_text("telemetry-v1")
+    page.locator("#tp-src-chips [data-src]", has_text="VBOX").click()
+    expect(steps).to_contain_text("SD card")
+    expect(page.locator("#tp-src-chips .is-on")).to_have_text("VBOX")
+    page.locator("#tp-src-chips [data-src]", has_text="Something else").click()
+    expect(steps).to_contain_text("CSV or GPX")
+
+
+def test_the_cars_own_data_is_picked_up_and_shown_on_the_session(page):
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", files=[{"name": "telemetry-v1-2026-05-28-10_00_00.csv", "mimeType": "text/csv", "buffer": tesla_full_csv().encode()}])
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    # Says what was found, and what was in the file but empty.
+    chans = page.locator("#tp-chans")
+    expect(chans).to_contain_text("Speed")
+    expect(chans).to_contain_text("Lap numbers")
+    expect(chans).to_contain_text("Battery temperature")
+    expect(chans).to_contain_text("Throttle")
+    expect(chans).to_contain_text("In the file but empty: tyre pressure")
+    page.get_by_role("button", name="Save session").click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
+    assert fake.saved[0]["session"]["carData"]["power"] == {"max": 250, "regen": 120}
+    card = page.locator("#car-data")
+    expect(card.locator("h2")).to_have_text("From the car")
+    expect(card).to_contain_text("250 kW")
+    expect(card).to_contain_text("Regeneration up to 120 kW")
+    expect(card).to_contain_text("35.5 bar")
+    expect(card).to_contain_text("Battery temperature")
+    expect(card).to_contain_text("not in degrees")
+    expect(card).to_contain_text("In the file but empty: tyre pressure")
+
+
+def test_a_file_without_the_cars_channels_has_no_car_data_card(page):
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    expect(page.locator("#tp-chans")).to_contain_text("GPS position")
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator("#tp-speed path")).to_have_count(2)
+    expect(page.locator("#car-data")).to_have_count(0)
+
+
+def test_tyres_start_from_the_last_session_with_that_car(page):
+    fake = FakeWorker()
+    fake.index = [dict(EARLIER, tyres="Michelin Pilot Sport 4S, 245/35 R19")]
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    expect(page.locator("#tp-tyre-make")).to_have_value("Michelin")
+    expect(page.locator("#tp-tyre-model")).to_have_value("Pilot Sport 4S")
+    expect(page.locator(".tp-tyre-note")).to_contain_text("Filled in from your last session")
+    # Changing them is allowed, and the note goes once they are different.
+    page.fill("#tp-tyre-model", "Cup 2")
+    page.locator(".tp-head [data-units]").click()
+    expect(page.locator("#tp-tyre-model")).to_have_value("Cup 2")
+    expect(page.locator(".tp-tyre-note")).to_have_count(0)
+    page.get_by_role("button", name="Save session").click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
+    assert fake.saved[0]["tyreMake"] == "Michelin" and fake.saved[0]["tyreModel"] == "Cup 2"
+
+
+def test_what_each_mod_did_compares_before_and_after(page):
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    page.get_by_role("button", name="Save session").click()
+    card = page.locator("#tp-impact")
+    expect(card.locator("h3")).to_have_text("What each mod did")
+    # The coilovers were fitted in April 2026, between the March and May sessions.
+    row = card.locator("tbody tr")
+    expect(row).to_have_count(1)
+    expect(row).to_contain_text("Coilovers: KW V3")
+    expect(row).to_contain_text("1:42.470")
+    expect(row).to_contain_text(re.compile(r"1:39\.78[56]"))
+    expect(row.locator("td").nth(3)).to_have_class(re.compile("is-fast"))
+    expect(row.locator("td").nth(3)).to_contain_text(re.compile(r"-2\.68[0-9] s"))
+    # The tyres are written two ways but are the same tyre, so there's no tyre warning.
+    expect(row).not_to_contain_text("different tyres")
+    expect(card).to_contain_text("treat it as a guide")
+
+
+def test_what_each_mod_did_explains_when_there_is_nothing_to_compare(page):
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.route("**/%s/my-builds" % API_HOST, lambda route: route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "cars": [dict(CAR, view=[])]}), headers={"Access-Control-Allow-Origin": "*"}))
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator("#tp-impact")).to_contain_text("Add when you fitted your wheels, tyres, suspension")
+
+
+def test_follow_recovers_when_the_map_thinks_a_finger_is_still_down(page):
+    """A touch the browser never reported as lifted used to block following for
+    good, leaving the cars out of view while Follow cars showed as on."""
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    page.locator("#tp-map2").scroll_into_view_if_needed()
+    zoom_in = page.locator("#tp-map2").locator("xpath=..").locator(".tv-zoom-in")
+    for _ in range(4):
+        zoom_in.click()
+    # A finger goes down on the map and its lifting is never seen.
+    page.evaluate("""() => {
+      const svg = document.getElementById('tp-map2'), r = svg.getBoundingClientRect();
+      svg.dispatchEvent(new PointerEvent('pointerdown', { pointerId: 77, pointerType: 'touch', clientX: r.x + r.width / 2, clientY: r.y + r.height / 2, bubbles: true }));
+    }""")
+    page.locator("#tp-speeds [data-speed='5']").click()
+    page.locator("#tp-play-toggle").click()
+    page.wait_for_timeout(2200)
+    in_view = page.evaluate("""() => {
+      const svg = document.getElementById('tp-map2'), vb = svg.viewBox.baseVal;
+      const xy = [...svg.querySelectorAll('g[visibility="visible"]')].filter(g => g.querySelector('circle[r="7"]'))
+        .map(g => (g.getAttribute('transform').match(/translate\\(([-\\d.e]+) ([-\\d.e]+)\\)/) || []).slice(1).map(Number));
+      return xy.length === 2 && xy.some(p => p[0] > vb.x && p[0] < vb.x + vb.width && p[1] > vb.y && p[1] < vb.y + vb.height);
+    }""")
+    assert in_view, "the cars were not kept in view after a touch that never ended"

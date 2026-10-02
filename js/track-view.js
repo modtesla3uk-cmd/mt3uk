@@ -421,15 +421,17 @@
       var q = point(svg, e);
       zoomAt(e.deltaY < 0 ? 1.25 : 0.8, q.x, q.y);
     }
-    var pts = {}, start = null, dragged = false, panCb = null;
+    var pts = {}, start = null, dragged = false, panCb = null, lastEv = 0;
     function count() { return Object.keys(pts).length; }
     function onDown(e) {
+      lastEv = Date.now();
       pts[e.pointerId] = { x: e.clientX, y: e.clientY };
       dragged = false;
       start = { vb: Object.assign({}, vb), pts: JSON.parse(JSON.stringify(pts)) };
     }
     function onMove(e) {
       if (!pts[e.pointerId] || !start) return;
+      lastEv = Date.now();
       // A mouse let go off the map never said so: no button down means it is up.
       if (e.pointerType === 'mouse' && e.buttons === 0) { onUp(e); return; }
       pts[e.pointerId] = { x: e.clientX, y: e.clientY };
@@ -475,6 +477,14 @@
     svg.addEventListener('pointercancel', onUp);
     svg.addEventListener('lostpointercapture', onUp);
     svg.addEventListener('click', onClick, true);
+    // A finger lifted off the map, or taken over by the browser, is not always
+    // reported to the map itself: listen on the page too so it is never left "down".
+    function onAnyUp(e) { if (pts[e.pointerId]) onUp(e); }
+    function onAway() { pts = {}; start = null; }
+    document.addEventListener('pointerup', onAnyUp, true);
+    document.addEventListener('pointercancel', onAnyUp, true);
+    window.addEventListener('blur', onAway);
+    document.addEventListener('visibilitychange', onAway);
     svg._zoomOff = function () {
       svg.removeEventListener('wheel', onWheel);
       svg.removeEventListener('pointerdown', onDown);
@@ -483,6 +493,10 @@
       svg.removeEventListener('pointercancel', onUp);
       svg.removeEventListener('lostpointercapture', onUp);
       svg.removeEventListener('click', onClick, true);
+      document.removeEventListener('pointerup', onAnyUp, true);
+      document.removeEventListener('pointercancel', onAnyUp, true);
+      window.removeEventListener('blur', onAway);
+      document.removeEventListener('visibilitychange', onAway);
     };
     set();
     function centreOn(x, y) {
@@ -493,7 +507,8 @@
       zoomAt: zoomAt, centreOn: centreOn, busy: function () { return count() > 1 || dragged; }, k: function () { return W / vb.w; },
       view: function () { return { x: vb.x, y: vb.y, w: vb.w, h: vb.h }; },
       // A finger or mouse button is down on the map.
-      active: function () { return count() > 0; },
+      // (A touch with no news for over a second is taken to be over.)
+      active: function () { return count() > 0 && Date.now() - lastEv < 1000; },
       // Called when the member drags or pinches the map by hand.
       onPan: function (cb) { panCb = cb; }
     };

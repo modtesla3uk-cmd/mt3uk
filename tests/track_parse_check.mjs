@@ -181,6 +181,56 @@ ok(T.fmtLap(99.786) === '1:39.786' && T.niceDate('2026-05-28') === '28 May 2026'
   ok(T.read(bare, 't.csv').hz >= 10, 'milliseconds worked out from the numbers');
 }
 
+
+// Tyres written two ways are the same tyres; nothing on one side is not.
+{
+  const mk = (id, date, t, tyres) => ({ id, date, bestTime: t, conditions: 'Dry', temp: 15, tyres });
+  const one = (before, after) => T.modImpact([mk('a', '2026-03-01', 100, before), mk('b', '2026-06-01', 99, after)], [{ label: 'Wheels: forged', year: 2026, month: 4 }]).rows[0].flags;
+  ok(one('Pilot Sport 4S', 'Michelin Pilot Sport 4S, 245/35 R19').indexOf('different tyres') === -1, 'the same tyres written two ways are not flagged');
+  ok(one('Michelin Pilot Sport 4S, 245/35 R19', 'Michelin Pilot Sport 4S, 255/35 R19').indexOf('different tyres') === -1, 'a different size alone is not a different tyre');
+  ok(one('Pilot Sport 4S', 'Kumho Ecsta PS71').indexOf('different tyres') !== -1, 'different tyres are flagged');
+  ok(one('', 'Kumho Ecsta PS71').indexOf('different tyres') !== -1 && one('', '').indexOf('different tyres') === -1, 'tyres given on only one side are flagged, none on either are not');
+}
+
+// A full Tesla Track Mode export (29 columns): the channels beyond position,
+// speed and G-force are summarised, and a channel that never moves is empty.
+{
+  const src = T.read(vbo, 'x.vbo');
+  const timed = T.analyse(src, lib);
+  const starts = timed.laps.map(l => l.start);
+  const head = 'Lap,Elapsed Time (ms),Speed (MPH),Latitude (decimal),Longitude (decimal),Lateral Acceleration (m/s^2),Longitudinal Acceleration (m/s^2),Throttle Position (%),Brake Pressure (bar),Steering Angle (deg),Steering Angle Rate (deg/s),Yaw Rate (rad/s),Power Level (KW),State of Charge (%),Tire Pressure Front Left (bar),Tire Pressure Front Right (bar),Tire Pressure Rear Left (bar),Tire Pressure Rear Right (bar),Brake Temperature Front Left (% est.),Brake Temperature Front Right (% est.),Brake Temperature Rear Left (% est.),Brake Temperature Rear Right (% est.),Front Inverter Temp (%),Rear Inverter Temp (%),Battery Temp (%),Tire Slip Front Left (% est.),Tire Slip Front Right (% est.),Tire Slip Rear Left (% est.),Tire Slip Rear Right (% est.)';
+  const n = src.points.length;
+  const rows = [head];
+  src.points.forEach((p, i) => {
+    const lap = starts.filter(t => p.t >= t).length, f = i / n;
+    const accel = i % 40 < 20;
+    rows.push([lap, Math.round(p.t * 1000), (p.v / 1.609344).toFixed(2), p.lat.toFixed(7), p.lng.toFixed(7), '0.5', '-0.2',
+      accel ? 100 : 0, accel ? 0 : 35.5, 10, 0, 0, accel ? 250 : -120, (80 - 5 * f).toFixed(2), 0, 0, 0, 0,
+      (0.02 + 0.3 * f).toFixed(3), (0.02 + 0.2 * f).toFixed(3), 0.02, 0.02, 0.6, (0.7 + 0.1 * f).toFixed(3), (0.5 + 0.12 * f).toFixed(3), -0.11, -0.11, -0.11, 0.35].join(','));
+  });
+  const rd = T.read(rows.join('\n'), 'telemetry-v1-2025-04-25-11_35_49.csv');
+  const ts = T.analyse(rd, lib);
+  const cd = ts.carData;
+  ok(cd && cd.soc && near(cd.soc.start, 80, 0.1) && cd.soc.end < cd.soc.start && cd.soc.end > 74, 'charge at the start and end: ' + JSON.stringify(cd && cd.soc));
+  ok(cd.power.max === 250 && cd.power.regen === 120, 'peak power and regeneration (negative power): ' + JSON.stringify(cd.power));
+  ok(cd.brakePressure.max === 35.5, 'peak brake pressure');
+  ok(cd.throttle.full > 0.4 && cd.throttle.full < 0.6, 'time with the throttle flat out: ' + cd.throttle.full);
+  ok(near(cd.batteryTemp.start, 50, 1) && near(cd.batteryTemp.max, 62, 1), 'battery temperature written as a fraction is shown as a percentage: ' + JSON.stringify(cd.batteryTemp));
+  ok(near(cd.brakeTemp.max, 32, 1) && near(cd.inverterTemp.max, 80, 1), 'hottest brake and inverter');
+  ok(cd.slip.max === 0.35, 'tyre slip');
+  ok(cd.empty.indexOf('Tyre pressure') !== -1 && !cd.tyrePressure, 'tyre pressures that never move are listed as empty, not summarised');
+  ok(ts.laps.length === timed.laps.length, 'laps still found with the extra columns');
+  const fc = T.fileChannels(rd);
+  ok(fc.have.indexOf('Speed') !== -1 && fc.have.indexOf('G-force') !== -1 && fc.have.indexOf('Lap numbers') !== -1 && fc.have.indexOf('Battery temperature') !== -1 && fc.empty.indexOf('Tyre pressure') !== -1, 'what is in the file: ' + fc.have.join(', '));
+  // Tyre pressures that start at 0 until the sensors report: zeros are skipped.
+  const tp = rows.map((r, i) => { if (!i) return r; const c = r.split(','); const v = i < 20 ? 0 : 2.4 + i / 5000; c[14] = c[15] = c[16] = c[17] = v; return c.join(','); });
+  const tcd = T.analyse(T.read(tp.join('\n'), 't.csv'), lib).carData;
+  ok(tcd.tyrePressure && near(tcd.tyrePressure.start, 2.4, 0.05) && tcd.tyrePressure.end > tcd.tyrePressure.start && tcd.empty.indexOf('Tyre pressure') === -1, 'tyre pressure from the first real reading: ' + JSON.stringify(tcd.tyrePressure));
+  // A file with only the basic columns has no car data.
+  ok(!T.analyse(T.read(vbo, 'x.vbo'), lib).carData, 'no car data from a file without those channels');
+  // A file that is a parked capture (the extra channels barely move) is still read as an error, not a crash.
+}
+
 // Tesla Track Mode starts Elapsed Time again at 0 on each lap; the readings
 // are written 2 or 3 times over.
 {

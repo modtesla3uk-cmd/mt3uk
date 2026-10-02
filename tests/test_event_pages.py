@@ -276,10 +276,10 @@ def test_homepage_has_no_event_cards_when_there_are_no_events(device_page):
 def test_admin_can_preview_publish_draft_and_delete(device_page):
     page = device_page
     # The live file changes as events are published, so this starts from a
-    # copy with Frunk or Treat still a draft.
+    # copy with Frunk or Treat and Cadwell Park still drafts.
     events = copy.deepcopy(json.loads((ROOT / "data" / "event-pages.json").read_text(encoding="utf-8")))
     for ev in events["events"]:
-        if ev["slug"] == "frunk-or-treat-uk":
+        if ev["slug"] in ("frunk-or-treat-uk", "cadwell-park-track-day-2026"):
             ev["draft"] = True
             ev.pop("publish", None)
     page.mock_state["event_pages_file"] = events

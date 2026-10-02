@@ -1412,6 +1412,20 @@
   function postBody(a, carId, sess) {
     return { carId: carId, session: sess, conditions: a.conditions, tyres: a.tyres || '', tyreMake: (a.tyre && a.tyre.make) || '', tyreModel: (a.tyre && a.tyre.model) || '', tyreWidth: (a.tyre && a.tyre.w) || null, tyreProfile: (a.tyre && a.tyre.p) || null, tyreRim: (a.tyre && a.tyre.d) || null, temp: a.temp, tempSource: a.temp == null ? '' : (a.tempSource || 'member'), weather: a.tempSource === 'weather' ? a.weather : null, notes: a.notes || '', privacy: a.privacy, venueName: a.venueName || '', street: a.street, adminViewer: a.street ? adminViewerToken() : '' };
   }
+  // Tell MT3UK about a course it cannot place on a leaderboard: a venue we do not list, a listed venue whose layout
+  // was not recognised, or a layout with no official start line yet (the member's line is offered for it). Track days
+  // find their own lap line, so this cannot wait for the member to tap one.
+  function requestCourse(a, s) {
+    if (s.type !== 'track' && s.type !== 'sprint') return;
+    var ownLine = s.layoutId && !s.officialLines && s.startLine && ((a.lib.venues || []).filter(function (vv) { return vv.id === s.venueId; })[0] || { layouts: [] }).layouts.filter(function (l) { return l.id === s.layoutId && !l.startLine; }).length;
+    if (!(a.requestStart || ownLine || !s.layoutId)) return;
+    var out = [];
+    var lap = s.trace && s.trace.laps && s.trace.laps[s.best];
+    var origin = s.origin || [0, 0], proj = T.projector(origin[0], origin[1]);
+    if (lap) lap.filter(function (_, i) { return i % 4 === 0; }).forEach(function (p) { out.push(proj.ll(p[2], p[3]).map(function (v) { return Math.round(v * 1e6) / 1e6; })); });
+    else if (s.trace && s.trace.outline) s.trace.outline.filter(function (_, i) { return i % 4 === 0; }).forEach(function (p) { out.push([p[0], p[1]]); });
+    return api('POST', '/track/requests', { kind: s.type === 'sprint' ? 'sprint' : 'circuit', name: a.venueName || s.venue || '', venueId: s.venueId || '', layoutId: ownLine ? s.layoutId : '', organizer: s.type === 'sprint' ? (a.organizer || s.organizer || '') : '', startLine: s.startLine, finishLine: s.finishLine || null, lapLength: lap ? lap[lap.length - 1][0] : null, outline: out, note: s.type === 'sprint' ? (s.venueId ? 'Course not recognised' : 'New sprint or hill climb') : s.venueId ? 'Layout not recognised' : 'New track' }).catch(function () {});
+  }
   // Several files: each is timed on its own and saved as its own session, with the settings chosen
   // above. A file that gives no laps or runs is left out and listed.
   function saveBatch(a, carId) {
@@ -1434,6 +1448,7 @@
         if (!x.rd.timeRebuilt && !siblingLine && s1.startLine) siblingLine = s1.startLine;
         s1.fileName = String(x.f.name + (x.merged ? ', ' + x.merged.name : '')).slice(0, 200);
         if (!drive && !s1.venueId && a.venueName) s1.venueName = a.venueName;
+        if (!drive) requestCourse(a, s1);
         var body = postBody(a, carId, s1);
         if (drive) { body.privacy = 'private'; body.venueName = ''; }
         return api('POST', '/track/sessions', body, true).then(function (d) {
@@ -1465,14 +1480,7 @@
       ? api('PUT', '/my-builds/car', { carId: a.car.id }).then(function (d) { if (!d.success) throw new Error(d.message || 'Could not set up the car'); a.car.id = d.car.id; a.car.virtual = false; mine = null; counts = null; return d.car.id; })
       : Promise.resolve(a.car.id);
     carReady.then(function (carId) {
-      var ownLine = s.layoutId && !s.officialLines && s.startLine && ((a.lib.venues || []).filter(function (vv) { return vv.id === s.venueId; })[0] || { layouts: [] }).layouts.filter(function (l) { return l.id === s.layoutId && !l.startLine; }).length;
-      if ((s.type === 'track' || s.type === 'sprint') && (a.requestStart || ownLine || (s.venueId && !s.layoutId))) {
-        var out = [];
-        var lap = s.trace.laps && s.trace.laps[s.best];
-        var origin = s.origin || [0, 0], proj = T.projector(origin[0], origin[1]);
-        if (lap) lap.filter(function (_, i) { return i % 4 === 0; }).forEach(function (p) { out.push(proj.ll(p[2], p[3]).map(function (v) { return Math.round(v * 1e6) / 1e6; })); });
-        api('POST', '/track/requests', { kind: s.type === 'sprint' ? 'sprint' : 'circuit', name: a.venueName || s.venue || '', venueId: s.venueId || '', layoutId: ownLine ? s.layoutId : '', organizer: s.type === 'sprint' ? (a.organizer || s.organizer || '') : '', startLine: s.startLine, finishLine: s.finishLine || null, lapLength: lap ? lap[lap.length - 1][0] : null, outline: out, note: s.type === 'sprint' ? (s.venueId ? 'Course not recognised' : 'New sprint or hill climb') : s.venueId ? 'Layout not recognised' : 'New track' }).catch(function () {});
-      }
+      requestCourse(a, s);
       if (a.replaceId) return api('PUT', '/track/session', { id: a.replaceId, session: s, venueName: a.venueName || '' }, true);
       if ((a.list || []).filter(function (x) { return x.rd && !x.mergedInto; }).length > 1) return saveBatch(a, carId);
       return api('POST', '/track/sessions', postBody(a, carId, s), true);

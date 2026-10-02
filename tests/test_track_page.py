@@ -2172,6 +2172,11 @@ def test_an_unknown_track_is_named_from_its_position(page):
     page.get_by_role("button", name="Save session").click()
     expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
     assert fake.saved[0]["venueName"] == "Thruxton Circuit"
+    # MT3UK is told about the new track, without the member tapping a start line: a track day finds its own.
+    assert len(fake.requests) == 1
+    req = fake.requests[0]
+    assert req["kind"] == "circuit" and req["name"] == "Thruxton Circuit" and req["note"] == "New track"
+    assert req["startLine"] and req["lapLength"] and len(req["outline"]) > 10
 
 
 def test_a_name_the_member_types_is_what_is_saved(page):

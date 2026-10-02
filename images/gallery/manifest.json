@@ -1,5 +1,13 @@
 [
   {
+    "file": "photo--by-matthew-king.jpeg",
+    "caption": "PHOTO",
+    "name": "TeslaCat",
+    "color": "White",
+    "added": "2026-10-02",
+    "group": "photo--by-matthew-king.jpeg"
+  },
+  {
     "file": "test-caption--by-rhc-lord.jpg",
     "caption": "TEST CAPTION",
     "name": "LordRHC",

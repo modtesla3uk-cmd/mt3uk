@@ -443,7 +443,7 @@
     h += '<div class="tp-actions"><a class="btn btn-accent" href="track.html?add=1&car=' + encodeURIComponent(car.id) + '" data-go="add=1&car=' + esc(encodeURIComponent(car.id)) + '">' + icon('upload') + 'Add a session</a>' +
       (car.virtual ? '' : '<a class="btn btn-secondary" href="track.html?car=' + encodeURIComponent(car.id) + '" data-go="car=' + esc(encodeURIComponent(car.id)) + '">What others see</a>') + '</div>';
     if (!list.length) h += '<div class="card tp-empty">' + icon('flag') + '<p>No sessions for ' + esc(car.name) + ' yet. Add the file from your lap timer to get started.</p></div>';
-    else h += trackFilterHtml(list) + '<div class="tp-list" id="tp-sess-list">' + list.filter(inTrackFilter).map(sessionRow).join('') + '</div>';
+    else h += trackFilterHtml(list) + '<div class="tp-list" id="tp-sess-list">' + sessionListHtml(list.filter(inTrackFilter)) + '</div>';
     return h + '</div>';
   }
   // Filter the list by track name (only when there's more than one track).
@@ -504,7 +504,7 @@
     var sel = document.getElementById('tp-track-filter');
     if (sel) sel.addEventListener('change', function () {
       trackFilter = sel.value;
-      document.getElementById('tp-sess-list').innerHTML = list.filter(inTrackFilter).map(sessionRow).join('');
+      document.getElementById('tp-sess-list').innerHTML = sessionListHtml(list.filter(inTrackFilter));
       applyRanks(list);
     });
     if (ranksFor !== car.id) { ranks = {}; ranksFor = car.id; }
@@ -518,6 +518,43 @@
   function sessionRow(s) {
     return '<a class="tp-row" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '"><span class="tp-row-main"><b>' + esc(trackName(s)) + '</b><span>' + esc(niceDate(s.date)) + (s.conditions ? ', ' + esc(s.conditions) : '') + (TYPE_WORD[s.type] ? ', ' + TYPE_WORD[s.type] : '') + '</span></span>' +
       '<span class="tp-row-res">' + esc(sessionResult(s)) + '</span>' + (s.privacy !== undefined ? privacyPill(s.privacy, s.street) : '') + icon('chev') + '</a>';
+  }
+  // Sessions at the same track on the same day are grouped, in time of day order, and numbered by it:
+  // #1 is the earliest. Street runs and drives that are not timed on a track stay on their own.
+  function dayKey(s) {
+    if (s.type === 'other' || s.street || !s.date) return '';
+    return [s.type === 'sprint' ? 'sprint' : s.type === 'drag' ? 'drag' : 'circuit', s.venueId || s.venue || '', s.layoutId || '', s.organizer || '', s.date].join('|');
+  }
+  function byTime(a, b) { return (a.time || '').localeCompare(b.time || '') || (a.id < b.id ? -1 : 1); }
+  // Where a session falls in its day at its track, from the sessions we know of: { n: 2, of: 5 }, or null on its own.
+  function dayPlace(s, all) {
+    var k = dayKey(s);
+    if (!k) return null;
+    var day = (all || []).filter(function (x) { return x.id === s.id || dayKey(x) === k; }).sort(byTime);
+    if (day.length < 2 || day.every(function (x) { return x.id !== s.id; })) return null;
+    return { n: day.map(function (x) { return x.id; }).indexOf(s.id) + 1, of: day.length };
+  }
+  function dayRow(s, n) {
+    return '<a class="tp-row" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '"><span class="tp-daygroup-no">#' + n + '</span><span class="tp-row-main"><b>' + (s.time ? esc(s.time) : 'Time not known') + '</b><span>' +
+      esc([s.type === 'drag' ? (s.runs || 0) + ' run' + (s.runs === 1 ? '' : 's') : (s.laps || 0) + (s.type === 'sprint' ? ' run' : ' lap') + (s.laps === 1 ? '' : 's'), s.conditions].filter(Boolean).join(', ')) + '</span></span>' +
+      '<span class="tp-row-res">' + esc(sessionResult(s)) + '</span>' + (s.privacy !== undefined ? privacyPill(s.privacy, s.street) : '') + icon('chev') + '</a>';
+  }
+  // The list as rows, with a day at one track in a card of its own when it has two or more sessions.
+  function sessionListHtml(list) {
+    var groups = {}, order = [];
+    list.forEach(function (s) {
+      var k = dayKey(s) || 'one:' + s.id;
+      if (!groups[k]) { groups[k] = []; order.push(k); }
+      groups[k].push(s);
+    });
+    return order.map(function (k) {
+      var g = groups[k];
+      if (g.length < 2) return sessionRow(g[0]);
+      g = g.slice().sort(byTime);
+      var best = g.filter(function (x) { return x.bestTime; }).sort(function (a, b) { return a.bestTime - b.bestTime; })[0];
+      return '<div class="card tp-daygroup"><div class="tp-daygroup-head"><h3>' + esc(niceDate(g[0].date)) + ' on ' + esc(trackName(g[0])) + '</h3><span class="tp-small">' + g.length + ' sessions' + (best ? ', best ' + esc(V.fmtLap(best.bestTime)) : '') + '</span></div>' +
+        '<div class="tp-list">' + g.map(function (x, i) { return dayRow(x, i + 1); }).join('') + '</div></div>';
+    }).join('');
   }
   function wireCarChips(m) {
     var chips = document.getElementById('tp-cars');
@@ -1338,9 +1375,11 @@
   }
   function drawSession() {
     var s = view.s;
+    // Where it falls among your sessions at this track that day, by time of day.
+    var place = s.mine && view.mine ? dayPlace(s, view.mine.sessions) : null;
     var h = back(s.mine ? 'Your sessions' : 'Back', s.mine ? '' : (s.carId ? 'car=' + encodeURIComponent(s.carId) : ''));
     if (s.adminView) h += '<p class="tp-admin-banner" id="tp-admin-banner">' + icon('lock') + 'Admin view, read only. This is a private session and this view is logged. Notes are not shown.</p>';
-    h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '</h2><p class="tp-sub">' + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + '</p>' + (s.fileName && (s.mine || s.adminView) ? '<p class="tp-small tp-filename" id="tp-filename">' + icon('file') + 'File: ' + esc(s.fileName) + '</p>' : '') + '</div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) + '<span id="tp-rank-slot"></span>' : '') + unitsChip() + (s.street || s.privacy === 'private' ? '' : shareDot('Share this session')) + '</div></div>';
+    h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '</h2><p class="tp-sub">' + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (place ? ' &middot; <b id="tp-day-place">Session ' + place.n + ' of ' + place.of + ' that day</b>' : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + '</p>' + (s.fileName && (s.mine || s.adminView) ? '<p class="tp-small tp-filename" id="tp-filename">' + icon('file') + 'File: ' + esc(s.fileName) + '</p>' : '') + '</div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) + '<span id="tp-rank-slot"></span>' : '') + unitsChip() + (s.street || s.privacy === 'private' ? '' : shareDot('Share this session')) + '</div></div>';
     LW = s.type === 'sprint' ? 'Run' : 'Lap';
     // Timed with older code and no readings kept to work it out again: only uploading the file again updates it.
     if (s.mine && !s.hasSource && s.type !== 'other' && (s.analysisVersion || 1) < T.ANALYSIS_VERSION) h += '<p class="tp-notice" id="tp-old-version">' + icon('info') + '<span>Timed with an older version. Upload the file again to update the times.</span></p>';
@@ -2122,7 +2161,7 @@
       '<div class="tp-field"><label for="tp-e-temp">Air temperature (°C)</label><input class="field" id="tp-e-temp" inputmode="numeric" value="' + esc(s.temp == null ? '' : s.temp) + '"></div>' +
       '<div class="tp-weather-row"><button type="button" class="btn btn-secondary btn-sm" id="tp-e-weather">Fill in from weather</button><p class="tp-src" id="tp-e-src">' + (s.tempSource === 'weather' && s.weather ? icon('info') + '<span>' + weatherNote(s.weather, s.venue) + '</span>' : s.tempSource === 'file' ? icon('info') + '<span>From the air temperature recorded in your file.</span>' : '') + '</p></div>' +
       '<div class="tp-field"><label for="tp-e-notes">Notes (only you see these)</label><input class="field" id="tp-e-notes" value="' + esc(s.notes || '') + '"></div>' +
-      '<div class="tp-actions"><button type="button" class="btn btn-primary" id="tp-e-save">Save changes</button><button type="button" class="btn btn-danger" id="tp-e-del">' + icon('trash') + 'Delete</button></div><p class="tp-status" id="tp-status" role="status"></p></div></div>';
+      '<div class="tp-actions"><button type="button" class="btn btn-primary" id="tp-e-save">Save changes</button><button type="button" class="btn btn-accent" id="tp-e-saveclose">Save and close</button><button type="button" class="btn btn-secondary" id="tp-e-discard">Discard</button><button type="button" class="btn btn-danger" id="tp-e-del">' + icon('trash') + 'Delete</button></div><p class="tp-status" id="tp-status" role="status"></p></div></div>';
   }
   function wireOwner(s) {
     var edit = { privacy: s.privacy, conditions: s.conditions, tempSource: s.tempSource || '', weather: s.weather || null, temp: s.temp };
@@ -2157,15 +2196,35 @@
       var b = e.target.closest('button[data-v]');
       if (b && b.getAttribute('data-v') !== s.type) startRetype(s, b.getAttribute('data-v'));
     });
-    document.getElementById('tp-e-save').addEventListener('click', function () {
+    // Any change to the settings below marks them unsaved, so Discard can ask before throwing them away.
+    var dirty = false;
+    var box = document.getElementById('settings');
+    ['input', 'change', 'click'].forEach(function (ev) {
+      box.addEventListener(ev, function (e) {
+        if (e.target.closest('#tp-e-save, #tp-e-saveclose, #tp-e-discard, #tp-e-del')) return;
+        if (ev === 'click' && !e.target.closest('button[data-v], #tp-e-weather')) return;
+        dirty = true;
+      });
+    });
+    // Back to Your sessions, as the Back link does.
+    function closeSession() { go(''); }
+    function saveSettings(thenClose) {
       var t = document.getElementById('tp-e-temp').value.trim();
       var ty = tyrePayload(readTyre('tp-e-tyre'));
       api('PUT', '/track/session', Object.assign({ id: s.id, privacy: edit.privacy, conditions: edit.conditions || '' }, ty, { temp: t === '' ? null : parseFloat(t), tempSource: t === '' ? '' : (edit.tempSource || 'member'), weather: edit.tempSource === 'weather' ? edit.weather : null, notes: document.getElementById('tp-e-notes').value })).then(function (d) {
         if (!d.success) { status(d.message || 'Could not save.', 'error'); return; }
         mine = null; counts = null;
         Object.assign(view.s, { privacy: d.session.privacy, conditions: d.session.conditions, tyres: d.session.tyres, tyreMake: d.session.tyreMake, tyreModel: d.session.tyreModel, tyreWidth: d.session.tyreWidth, tyreProfile: d.session.tyreProfile, tyreRim: d.session.tyreRim, temp: d.session.temp, tempSource: d.session.tempSource, weather: d.session.weather, notes: document.getElementById('tp-e-notes').value });
+        dirty = false;
+        if (thenClose) { closeSession(); return; }
         getMine().then(function (m) { view.mine = m; drawSession(); status('Saved.', 'ok'); });
       });
+    }
+    document.getElementById('tp-e-save').addEventListener('click', function () { saveSettings(false); });
+    document.getElementById('tp-e-saveclose').addEventListener('click', function () { saveSettings(true); });
+    document.getElementById('tp-e-discard').addEventListener('click', function () {
+      if (dirty && !window.confirm('Discard your changes to this session?')) return;
+      closeSession();
     });
     document.getElementById('tp-e-del').addEventListener('click', function () {
       if (!window.confirm('Delete this session? This can\'t be undone.')) return;
@@ -2185,7 +2244,7 @@
       var c = d.car;
       var h = back('Track sessions', '') + '<div class="tp-head"><div><h2>' + esc(c.name || 'MT3UK build') + '</h2><p class="tp-sub">' + esc([c.owner, [c.year, c.model, c.version].filter(Boolean).join(' ')].filter(Boolean).join(' · ')) + '</p></div>' + '<div class="tp-head-side">' + unitsChip() + shareDot('Share this build') + '</div></div>';
       if (d.mine) h += '<p class="tp-sub">This is what other members see. Only sessions you share show here.</p>';
-      h += d.sessions.length ? '<div class="tp-list">' + d.sessions.map(sessionRow).join('') + '</div>' : '<div class="card tp-empty">' + icon('flag') + '<p>No shared sessions yet.</p></div>';
+      h += d.sessions.length ? '<div class="tp-list">' + sessionListHtml(d.sessions) + '</div>' : '<div class="card tp-empty">' + icon('flag') + '<p>No shared sessions yet.</p></div>';
       h += '<p class="tp-sub"><a href="gallery.html" class="tp-link">See the build in the Gallery' + icon('chev') + '</a></p>';
       app.innerHTML = h;
       wireShare({ url: SITE_URL + 'track.html?car=' + encodeURIComponent(carId), heading: 'Share this build', subject: (c.name || 'MT3UK build') + ' | MT3UK', campaign: 'track_build',

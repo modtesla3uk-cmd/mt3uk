@@ -104,6 +104,12 @@
   .tp-row-main span { font-size: 0.82rem; color: var(--steel); }
   .tp-row-res { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }
   .tp-row > .icon { color: var(--steel); }
+  .tp-daygroup { padding: 14px; }
+  .tp-daygroup-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; margin-bottom: 10px; }
+  .tp-daygroup-head h3 { margin: 0; font-size: 1.05rem; }
+  .tp-daygroup .tp-list { gap: 8px; }
+  .tp-daygroup-no { min-width: 2.2em; font-weight: 700; color: var(--steel); font-variant-numeric: tabular-nums; }
+  @media (max-width: 560px) { .tp-daygroup .tp-row-main { flex-basis: calc(100% - 96px); } .tp-daygroup-no { min-width: 1.8em; } }
   @media (max-width: 560px) { .tp-row { flex-wrap: wrap; } .tp-row-main { flex-basis: calc(100% - 40px); } .tp-row > .icon { order: 2; } .tp-row-res { order: 3; } .tp-pill { order: 4; } }
   .tp-admin-banner { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; padding: 10px 14px; border-radius: var(--radius); background: var(--paper-2); border: 1px solid var(--hairline-strong); font-size: 0.9rem; font-weight: 600; }
   .tp-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: var(--radius-pill); background: var(--paper-2); color: var(--ink); font-size: 0.76rem; font-weight: 600; white-space: nowrap; }
@@ -721,10 +727,10 @@
   }
 </script>
 
-<script src="js/track-parse.js?v=20261002b" defer></script>
-<script src="js/track-view.js?v=20261002b" defer></script>
+<script src="js/track-parse.js?v=20261004" defer></script>
+<script src="js/track-view.js?v=20261004" defer></script>
 <script src="js/tyre-data.js"></script>
-<script src="js/track-page.js?v=20261002b" defer></script>
+<script src="js/track-page.js?v=20261004" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js" defer></script>
 <script src="js/signin-prompt.js" defer></script>

@@ -387,6 +387,95 @@ def test_older_session_without_readings_asks_for_the_file_again(page):
     expect(page.locator("#tp-old-version")).to_have_count(0)
 
 
+def test_save_and_close_and_discard_on_a_saved_session(page):
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator(".tp-session-head")).to_be_visible()
+    page.goto("/track.html?s=new1")
+    expect(page.locator("#tp-e-saveclose")).to_have_text("Save and close")
+    expect(page.locator("#tp-e-discard")).to_have_text("Discard")
+    # Discard with nothing changed just closes, with no question and nothing saved.
+    page.locator("#tp-e-discard").click()
+    expect(page).to_have_url(re.compile(r"/track\.html$"))
+    # Discard after a change asks first; Cancel keeps the page and the unsaved change.
+    page.goto("/track.html?s=new1")
+    page.fill("#tp-e-notes", "scribble")
+    dialogs = []
+    page.once("dialog", lambda d: (dialogs.append(d.message), d.dismiss()))
+    page.locator("#tp-e-discard").click()
+    assert dialogs and "Discard" in dialogs[0]
+    expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
+    expect(page.locator("#tp-e-notes")).to_have_value("scribble")
+    assert fake.sessions["new1"].get("notes") != "scribble"
+    # Accepting it closes without saving.
+    page.once("dialog", lambda d: d.accept())
+    page.locator("#tp-e-discard").click()
+    expect(page).to_have_url(re.compile(r"/track\.html$"))
+    assert fake.sessions["new1"].get("notes") != "scribble"
+    # Save and close saves the change, then goes back to Your sessions.
+    page.goto("/track.html?s=new1")
+    page.fill("#tp-e-notes", "keep this")
+    page.locator("#tp-e-saveclose").click()
+    expect(page).to_have_url(re.compile(r"/track\.html$"))
+    assert fake.sessions["new1"]["notes"] == "keep this"
+
+
+def day_session(sid, time, best, laps, date="2026-07-14", venue="Castle Combe", venue_id="castle-combe"):
+    return {"id": sid, "carId": "car1", "type": "track", "venueId": venue_id, "venue": venue, "layoutId": "main", "layout": venue, "date": date, "time": time,
+            "privacy": "private", "conditions": "Dry", "bestTime": best, "laps": [{"n": i + 1, "time": best} for i in range(laps)], "vmax": 150}
+
+
+def test_sessions_at_the_same_track_on_the_same_day_are_grouped_by_time(page):
+    fake = FakeWorker(earlier=False)
+    day = [day_session("d21", "14:46", 87.71, 4), day_session("d12", "11:29", 81.17, 5), day_session("d07", "09:25", 89.17, 3)]
+    other = [day_session("e01", "10:00", 99.0, 4, date="2026-06-01", venue="Thruxton", venue_id="thruxton")]
+    for s in day + other:
+        fake.sessions[s["id"]] = dict(s)
+        fake.index.append(summary(s))
+    open_page(page, fake)
+    card = page.locator(".tp-daygroup")
+    expect(card).to_have_count(1)
+    expect(card.locator("h3")).to_have_text("14 Jul 2026 on Castle Combe")
+    expect(card.locator(".tp-daygroup-head .tp-small")).to_contain_text("3 sessions, best 1:21.170")
+    rows = card.locator(".tp-row")
+    expect(rows).to_have_count(3)
+    # In time of day order, numbered by it.
+    expect(rows.nth(0)).to_contain_text("#1")
+    expect(rows.nth(0)).to_contain_text("09:25")
+    expect(rows.nth(0)).to_contain_text("3 laps")
+    expect(rows.nth(1)).to_contain_text("#2")
+    expect(rows.nth(1)).to_contain_text("11:29")
+    expect(rows.nth(1)).to_contain_text("1:21.170")
+    expect(rows.nth(2)).to_contain_text("#3")
+    expect(rows.nth(2)).to_contain_text("14:46")
+    # A session on its own stays a plain row.
+    expect(page.locator("#tp-sess-list > a.tp-row")).to_have_count(1)
+    expect(page.locator("#tp-sess-list > a.tp-row")).to_contain_text("Thruxton")
+    # Opening one says where it falls in the day.
+    rows.nth(1).click()
+    expect(page.locator("#tp-day-place")).to_have_text("Session 2 of 3 that day")
+    # Phone: no sideways scroll.
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.go_back()
+    expect(page.locator(".tp-daygroup")).to_be_visible()
+    assert page.evaluate("document.documentElement.scrollWidth") <= 390
+
+
+def test_a_lone_session_has_no_day_number(page):
+    fake = FakeWorker(earlier=False)
+    s = day_session("solo1", "10:00", 90.0, 4)
+    fake.sessions[s["id"]] = dict(s)
+    fake.index.append(summary(s))
+    open_page(page, fake)
+    expect(page.locator(".tp-daygroup")).to_have_count(0)
+    page.locator("#tp-sess-list a.tp-row").first.click()
+    expect(page.locator(".tp-session-head")).to_be_visible()
+    expect(page.locator("#tp-day-place")).to_have_count(0)
+
+
 def test_csv_with_unknown_columns_asks_which_is_which(page):
     # The same laps as a CSV with columns we don't recognise.
     lines = FIXTURE.read_text(encoding="latin-1").splitlines()

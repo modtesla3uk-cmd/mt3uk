@@ -213,6 +213,11 @@ ok(T.fmtLap(99.786) === '1:39.786' && T.niceDate('2026-05-28') === '28 May 2026'
   const cd = ts.carData;
   ok(cd && cd.soc && near(cd.soc.start, 80, 0.1) && cd.soc.end < cd.soc.start && cd.soc.end > 74, 'charge at the start and end: ' + JSON.stringify(cd && cd.soc));
   ok(cd.power.max === 250 && cd.power.regen === 120, 'peak power and regeneration (negative power): ' + JSON.stringify(cd.power));
+  ok(cd.power.early === 250 && cd.power.late === 250, 'flat-out peak power early and late in the session: ' + JSON.stringify(cd.power));
+  // Power that drops late on (the car holding back when hot) is seen.
+  const fade = rows.map((r, i) => { if (!i) return r; const c = r.split(','); if (i > rows.length * 0.6 && +c[12] > 0) c[12] = 190; return c.join(','); });
+  const fcd = T.analyse(T.read(fade.join('\n'), 't.csv'), lib).carData;
+  ok(fcd.power.early === 250 && fcd.power.late === 190, 'late peak power lower than early: ' + JSON.stringify(fcd.power));
   ok(cd.brakePressure.max === 35.5, 'peak brake pressure');
   ok(cd.throttle.full > 0.4 && cd.throttle.full < 0.6, 'time with the throttle flat out: ' + cd.throttle.full);
   ok(near(cd.batteryTemp.start, 50, 1) && near(cd.batteryTemp.max, 62, 1), 'battery temperature written as a fraction is shown as a percentage: ' + JSON.stringify(cd.batteryTemp));
@@ -226,6 +231,17 @@ ok(T.fmtLap(99.786) === '1:39.786' && T.niceDate('2026-05-28') === '28 May 2026'
   const tp = rows.map((r, i) => { if (!i) return r; const c = r.split(','); const v = i < 20 ? 0 : 2.4 + i / 5000; c[14] = c[15] = c[16] = c[17] = v; return c.join(','); });
   const tcd = T.analyse(T.read(tp.join('\n'), 't.csv'), lib).carData;
   ok(tcd.tyrePressure && near(tcd.tyrePressure.start, 2.4, 0.05) && tcd.tyrePressure.end > tcd.tyrePressure.start && tcd.empty.indexOf('Tyre pressure') === -1, 'tyre pressure from the first real reading: ' + JSON.stringify(tcd.tyrePressure));
+  // A day made from two files: figures for the whole day and for each file.
+  {
+    const half = Math.floor(rows.length / 2);
+    const f1 = rows.slice(0, half).join('\n'), f2 = [rows[0]].concat(rows.slice(half)).join('\n');
+    const day = T.combine([T.read(f1, 'telemetry-v1-2025-04-25-10_00_00.csv'), T.read(f2, 'telemetry-v1-2025-04-25-11_00_00.csv')]);
+    const dcd = T.analyse(day, lib).carData;
+    ok(dcd.runs && dcd.runs.length === 2 && dcd.runs[0].run === 1 && dcd.runs[1].run === 2, 'one set of figures per file: ' + JSON.stringify((dcd.runs || []).map(r => r.run)));
+    ok(near(dcd.soc.start, 80, 0.1) && near(dcd.runs[0].soc.start, 80, 0.1) && near(dcd.runs[1].soc.end, dcd.soc.end, 0.01) && dcd.runs[1].soc.start < dcd.runs[0].soc.start, 'each file has its own start and end charge');
+    ok(!dcd.runs[0].found && dcd.found.length, 'the list of channels is kept once, for the day');
+    ok(!T.analyse(T.read(f1, 'one.csv'), lib).carData.runs, 'a single file has no per-file figures');
+  }
   // A file with only the basic columns has no car data.
   ok(!T.analyse(T.read(vbo, 'x.vbo'), lib).carData, 'no car data from a file without those channels');
   // A file that is a parked capture (the extra channels barely move) is still read as an error, not a crash.

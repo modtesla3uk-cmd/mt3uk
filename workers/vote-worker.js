@@ -6544,7 +6544,7 @@ function cleanTrackRuns(runs) {
 // Venue and layout names come from the list, not the browser.
 // The car's own channels summarised by the page (js/track-parse.js carData):
 // only known keys, as numbers within sensible limits.
-function cleanCarData(c) {
+function cleanCarData(c, inner) {
   if (!c || typeof c !== 'object') return null;
   var out = {};
   function grp(key, fields, lo, hi) {
@@ -6555,7 +6555,7 @@ function cleanCarData(c) {
     if (any) out[key] = o;
   }
   grp('soc', ['start', 'end'], 0, 100);
-  grp('power', ['max', 'regen'], 0, 5000);
+  grp('power', ['max', 'regen', 'early', 'late'], 0, 5000);
   grp('throttle', ['full'], 0, 1);
   grp('brakePressure', ['max'], 0, 1000);
   grp('batteryTemp', ['start', 'max'], -100, 1000);
@@ -6563,6 +6563,17 @@ function cleanCarData(c) {
   grp('inverterTemp', ['max'], -100, 1000);
   grp('tyrePressure', ['start', 'end', 'max'], 0, 20);
   grp('slip', ['max'], 0, 100);
+  // One set per file when a day was made from several (inner: one of those).
+  if (inner) {
+    var r = trackNum(c.run, 1, 50);
+    if (r === null || Object.keys(out).length === 0) return null;
+    out.run = Math.round(r);
+    return out;
+  }
+  if (Array.isArray(c.runs)) {
+    var runs = c.runs.slice(0, 20).map(function (x) { return cleanCarData(x, true); }).filter(Boolean);
+    if (runs.length > 1) out.runs = runs;
+  }
   function names(list) { return (Array.isArray(list) ? list : []).slice(0, 12).map(function (x) { return trackText(x, 30); }).filter(Boolean); }
   out.found = names(c.found);
   out.empty = names(c.empty);

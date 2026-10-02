@@ -630,6 +630,22 @@
     var proj = projector(origin[0], origin[1]);
     prepare(pts, proj);
     var cdata = carData(pts);
+    // A day made from several files: the same figures for each file too, so the
+    // page can show one session's figures at a time.
+    if (cdata && pts.length && pts[pts.length - 1].run > 1) {
+      var byRun = {};
+      pts.forEach(function (p) { (byRun[p.run || 1] = byRun[p.run || 1] || []).push(p); });
+      cdata.runs = Object.keys(byRun).map(Number).sort(function (a, b) { return a - b; }).map(function (r) {
+        var rp = byRun[r], t0 = rp[0].t;
+        // Each file's own clock, so its thirds (for held-back power) are its own.
+        var one = carData(rp.map(function (p) { return { t: p.t - t0, ch: p.ch }; }));
+        if (!one) return null;
+        delete one.found; delete one.empty;
+        one.run = r;
+        return one;
+      }).filter(Boolean);
+      if (cdata.runs.length < 2) delete cdata.runs;
+    }
     if (cdata) session.carData = cdata;
     session.duration = round(pts[pts.length - 1].t, 1);
     session.distance = Math.round(pts[pts.length - 1].d);
@@ -994,6 +1010,9 @@
   // scaled to a percentage here.
   function carData(pts) {
     var st = {}, n = 0, dt = 0, flat = 0, prevT = null;
+    // Peak power in the first and last third of the file, at full throttle when
+    // the file says so, to see whether the car held power back as it got hot.
+    var tEnd = pts.length ? pts[pts.length - 1].t : 0, early = 0, late = 0;
     for (var i = 0; i < pts.length; i++) {
       var c = pts[i].ch;
       if (c) {
@@ -1008,6 +1027,10 @@
           a.last = v; if (v < a.min) a.min = v; if (v > a.max) a.max = v; if (v !== 0) a.nz = true;
         });
         if (isFinite(c.thr) && prevT !== null) { var step = Math.min(2, pts[i].t - prevT); if (step > 0) { dt += step; if (c.thr >= 95) flat += step; } }
+        if (isFinite(c.pwr) && (!isFinite(c.thr) || c.thr >= 95)) {
+          if (pts[i].t < tEnd / 3) early = Math.max(early, c.pwr);
+          else if (pts[i].t > tEnd * 2 / 3) late = Math.max(late, c.pwr);
+        }
       }
       prevT = pts[i].t;
     }
@@ -1017,7 +1040,10 @@
     function on(k, label) { if (!st[k]) return null; if (!st[k].nz && st[k].min === st[k].max) { out.empty.push(label); return null; } out.found.push(label); return st[k]; }
     var a;
     if ((a = on('soc', 'State of charge'))) out.soc = { start: round(a.first, 1), end: round(a.last, 1) };
-    if ((a = on('pwr', 'Power'))) out.power = { max: round(Math.max(0, a.max), 0), regen: round(Math.max(0, -a.min), 0) };
+    if ((a = on('pwr', 'Power'))) {
+      out.power = { max: round(Math.max(0, a.max), 0), regen: round(Math.max(0, -a.min), 0) };
+      if (early > 0 && late > 0) { out.power.early = round(early, 0); out.power.late = round(late, 0); }
+    }
     if ((a = on('thr', 'Throttle')) && dt > 0) out.throttle = { full: round(flat / dt, 2) };
     if ((a = on('bpr', 'Brake pressure'))) out.brakePressure = { max: round(a.max, 1) };
     if ((a = on('bat', 'Battery temperature'))) out.batteryTemp = { start: round(a.first * pct(a), 0), max: round(a.max * pct(a), 0) };

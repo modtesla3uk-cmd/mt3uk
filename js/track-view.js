@@ -95,7 +95,7 @@
     opts = opts || {};
     svg.innerHTML = '';
     // opts.fill: { w, h } to fill a box exactly (full screen), else a 640 wide map.
-    var W = opts.fill ? Math.max(200, Math.round(opts.fill.w)) : Math.min(640, width(svg, 600)), H = opts.fill ? Math.max(160, Math.round(opts.fill.h)) : Math.round(W * (opts.tall ? 0.62 : 0.7));
+    var W = opts.fill ? Math.max(200, Math.round(opts.fill.w)) : Math.min(640, width(svg, 600)), H = opts.fill ? Math.max(160, Math.round(opts.fill.h)) : Math.round(W * (opts.ratio || (opts.tall ? 0.62 : 0.7)));
     svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
     svg.classList.add('tv-map');
     if (!trace || trace.length < 2) { zoomControls(svg, null); return null; }
@@ -129,7 +129,7 @@
     // pale edge so both show on the satellite picture.
     // The lines are thin and get thinner as the map zooms in (linePx), so the
     // real width of the track shows either side of them.
-    var edgeEls = [], lineEls = [], segG = null;
+    var edgeEls = [], lineEls = [], segG = null, rampGs = [];
     function linePx(k) {
       var t = Math.min(1, Math.max(0, (k - 1) / 3));
       return { edge: 4.5 - 1.5 * t, line: 2.5 - 0.75 * t, seg: (opts.mono ? 2.5 : 3) - (opts.mono ? 0.75 : 1) * t, alpha: 0.7 - 0.2 * t };
@@ -137,7 +137,19 @@
     (opts.lines || []).forEach(function (o) {
       var pts = o.trace.map(function (p) { return P(p[2], p[3]).join(','); }).join(' ');
       edgeEls.push(el('polyline', { 'class': 'tv-line-edge', points: pts, fill: 'none', stroke: 'rgba(255,255,255,.7)', 'stroke-width': 4.5, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, svg));
-      lineEls.push(el('polyline', { 'class': 'tv-line', points: pts, fill: 'none', stroke: o.color, 'stroke-width': 2.5, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, svg));
+      // o.ramp: coloured by speed along the lap (the same colours as the key).
+      if (o.ramp) {
+        var rg = el('g', { 'class': 'tv-segs', 'stroke-width': linePx(1).seg }, svg);
+        rampGs.push(rg);
+        for (var r = 1; r < o.trace.length; r++) {
+          var ra = P(o.trace[r - 1][2], o.trace[r - 1][3]), rb = P(o.trace[r][2], o.trace[r][3]);
+          el('line', { 'class': 'tv-speed', x1: ra[0], y1: ra[1], x2: rb[0], y2: rb[1], stroke: ramp((o.trace[r][4] - vmin) / ((vmax - vmin) || 1)), 'stroke-linecap': 'round' }, rg);
+        }
+        return;
+      }
+      var la = { 'class': 'tv-line', points: pts, fill: 'none', stroke: o.color, 'stroke-width': 2.5, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' };
+      if (o.dash) la['stroke-dasharray'] = o.dash;
+      lineEls.push(el('polyline', la, svg));
     });
     if (!opts.lines) segG = el('g', { 'class': 'tv-segs', 'stroke-width': linePx(1).seg }, svg);
     for (var i = 1; i < (opts.lines ? 0 : trace.length); i++) {
@@ -149,6 +161,7 @@
       edgeEls.forEach(function (e) { e.setAttribute('stroke-width', w.edge); e.setAttribute('stroke', 'rgba(255,255,255,' + w.alpha.toFixed(2) + ')'); });
       lineEls.forEach(function (e) { e.setAttribute('stroke-width', w.line); });
       if (segG) segG.setAttribute('stroke-width', w.seg);
+      rampGs.forEach(function (g) { g.setAttribute('stroke-width', w.seg); });
     }
     // Markers (start line, corners, dots) keep their size when zoomed: each
     // is a group at its point, scaled back by the zoom.
@@ -248,8 +261,9 @@
       var m = marker(0, 0);
       m.rot = el('g', {}, m.g);
       el('path', { d: 'M-2 -8 L12 0 L-2 8 Z', fill: color, stroke: C.card, 'stroke-width': 2, 'stroke-linejoin': 'round' }, m.rot);
-      m.pill = el('rect', { rx: 9, ry: 9, height: 18, fill: color, stroke: C.card, 'stroke-width': 1.5 }, m.g);
-      m.label = text(m.g, 0, 0, letter, { 'font-size': 12, 'font-weight': 700, fill: '#ffffff' });
+      m.pill = el('rect', { rx: 10, ry: 10, height: 20, fill: color, stroke: C.card, 'stroke-width': 1.5 }, m.g);
+      // style, not fill: the page's chart text colour would otherwise win.
+      m.label = text(m.g, 0, 0, letter, { style: 'fill:#ffffff;font-size:13px;font-weight:700' });
       m.letter = letter;
       m.g.setAttribute('class', 'tv-edge');
       m.g.setAttribute('pointer-events', 'none');
@@ -260,7 +274,7 @@
     function edgeFor(m, pos, other) {
       if (!m) return;
       var q = pos && P(pos[2], pos[3]);
-      var v = zoom && zoom.view();
+      var v = zoom && seen();
       // The same point for both (one lap only): one arrow is enough.
       var same = other && pos && other[2] === pos[2] && other[3] === pos[3] && m === edgeB;
       if (!q || !v || !zoom || zoom.k() <= 1.01 || same || (q[0] >= v.x && q[0] <= v.x + v.w && q[1] >= v.y && q[1] <= v.y + v.h)) { m.g.setAttribute('visibility', 'hidden'); return; }
@@ -277,13 +291,21 @@
       m.label.textContent = lbl;
       var horiz = Math.abs(dx) * v.h >= Math.abs(dy) * v.w;
       // A pill beside the arrow, on the side away from the edge.
-      var tw = lbl.length * 6.6 + 14;
-      var px = horiz ? (dx > 0 ? -12 - tw : 12) : -tw / 2, py = horiz ? -9 : (dy > 0 ? -34 : 16);
+      var tw = lbl.length * 7.2 + 16;
+      var px = horiz ? (dx > 0 ? -12 - tw : 12) : -tw / 2, py = horiz ? -10 : (dy > 0 ? -36 : 16);
       m.pill.setAttribute('x', px.toFixed(1)); m.pill.setAttribute('y', py); m.pill.setAttribute('width', tw.toFixed(1));
       m.label.setAttribute('x', (px + tw / 2).toFixed(1));
-      m.label.setAttribute('y', py + 13);
+      m.label.setAttribute('y', py + 14.5);
       m.label.setAttribute('text-anchor', 'middle');
       m.g.setAttribute('visibility', 'visible');
+    }
+    // What is actually on screen: the map can show a little more than its
+    // view box when its box is a different shape (full screen on a phone).
+    function seen() {
+      var v = zoom.view(), r = svg.getBoundingClientRect();
+      if (!r.width || !r.height) return v;
+      var sc = Math.min(r.width / v.w, r.height / v.h), w = r.width / sc, h = r.height / sc;
+      return { x: v.x + (v.w - w) / 2, y: v.y + (v.h - h) / 2, w: w, h: h };
     }
     function edges() { edgeFor(edgeA, posA, posB); edgeFor(edgeB, posB, posA); }
     return { vmin: vmin, vmax: vmax, placeA: function (p) { place(dotA, p); posA = p; follow(); edges(); }, placeB: function (p) { place(dotB, p); posB = p; follow(); edges(); }, setFollow: function (on) { following = !!on; if (on) { lastT = 0; follow(); edges(); } }, setGap: function (g) { gapS = g == null || !isFinite(g) ? null : g; }, prefetchSat: function () { if (sat) sat.prefetch(trace); }, P: P, marker: marker, zoom: zoom };
@@ -539,6 +561,9 @@
     svg.addEventListener('pointercancel', onUp);
     svg.addEventListener('lostpointercapture', onUp);
     svg.addEventListener('click', onClick, true);
+    // Any mouse button drags the map, so the right button's menu is kept out of the way.
+    function noMenu(e) { e.preventDefault(); }
+    svg.addEventListener('contextmenu', noMenu);
     // A finger lifted off the map, or taken over by the browser, is not always
     // reported to the map itself: listen on the page too so it is never left "down".
     function onAnyUp(e) { if (pts[e.pointerId]) onUp(e); }
@@ -555,6 +580,7 @@
       svg.removeEventListener('pointercancel', onUp);
       svg.removeEventListener('lostpointercapture', onUp);
       svg.removeEventListener('click', onClick, true);
+      svg.removeEventListener('contextmenu', noMenu);
       document.removeEventListener('pointerup', onAnyUp, true);
       document.removeEventListener('pointercancel', onAnyUp, true);
       window.removeEventListener('blur', onAway);
@@ -631,7 +657,7 @@
       if (cfg.onMove) cfg.onMove(xv);
     });
     hit.addEventListener('pointerleave', function () { hide(); if (cfg.onLeave) cfg.onLeave(); });
-    return { show: show, hide: hide, X: X, Y: Y };
+    return { show: show, hide: hide, X: X, Y: Y, plot: { l: m.l, r: m.r, W: W } };
   }
 
   function nice(lo, hi, n) {

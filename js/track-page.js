@@ -552,7 +552,7 @@
       add.files = read; add.list = null; add.rd = null;
       add.nameLooked = false;
       if (add.venueNameLooked) { add.venueName = ''; add.venueNameLooked = false; }
-      add.session = null; add.startLine = null; add.type = null; add.date = null; add.time = null;
+      add.session = null; add.startLine = null; add.finishLine = null; add.editLines = false; add.tapFull = false; add.tapOutline = null; add.type = null; add.date = null; add.time = null;
       add.weatherKey = null; if (add.tempSource !== 'member') { add.temp = null; add.tempSource = ''; add.weather = null; }
       parseFile();
     }).catch(function (e) { status(e.message || 'That file could not be opened.', 'error'); });
@@ -745,17 +745,24 @@
       h += '<div class="tp-notice is-ok">' + icon('check') + '<div><b>' + esc(s.venue || 'Your drive') + '</b><br>Mapped with your top speed and grip. Other sessions aren\'t timed for a leaderboard.' + (s.laps && s.laps.length ? ' ' + s.laps.length + ' laps found too.' : '') + '</div></div>' +
         (!s.venueId ? '<div class="tp-field"><label for="tp-venue-name">Where was it?</label><input class="field" id="tp-venue-name" placeholder="For example, Autotest at Curborough" value="' + esc(a.venueName || '') + '"></div>' : '');
     } else if (s.type === 'track' || isSprint) {
-      if (s.needsStartLine) {
-        var tapText = isSprint ? (a.startLine && !a.finishLine ? 'Now tap the finish line.' : 'Tap the start line, then the finish line.') : 'Tap where the start and finish line is.';
-        h += '<div class="tp-notice is-warn">' + icon('pin') + '<div><b>' + esc(s.venue || (isSprint ? 'New course' : 'New track')) + '</b><br>' + esc(s.problem) + '</div></div>' +
+      if (s.needsStartLine || a.editLines) {
+        var tapText = tapHint(a, isSprint), hasMarks = !!(a.startLine || a.finishLine);
+        var timedNow = s.needsStartLine ? 0 : (s.laps || []).filter(function (l) { return l.kind === 'timed'; }).length;
+        h += (s.needsStartLine ? '<div class="tp-notice is-warn">' + icon('pin') + '<div><b>' + esc(s.venue || (isSprint ? 'New course' : 'New track')) + '</b><br>' + esc(s.problem) + '</div></div>'
+          : '<div class="tp-notice is-ok">' + icon('check') + '<div>' + timedNow + ' timed ' + word + (timedNow === 1 ? '' : 's') + (s.bestTime ? ', best ' + V.fmtLap(s.bestTime) : '') + '. Drag a marker to move it, then press Done.</div></div>') +
           '<p class="tp-sub" id="tp-tap-step">' + tapText + '</p>' +
-          '<p class="tp-small">Zoom in with the + button (or pinch or scroll) and tap right on the road.</p>' +
-          '<svg class="tv-chart tp-tap" id="tp-tap" role="img" aria-label="Your trace. ' + tapText + '"></svg>' +
+          '<p class="tp-small">Zoom in with the + button, the mouse wheel or a pinch. Drag the map with any mouse button to move it. A quick click or tap places a marker, and a marker can be dragged along the track.</p>' +
+          '<div class="tp-tapbox' + (a.tapFull ? ' is-full' : '') + '" id="tp-tapbox"><div class="tp-tapmap" id="tp-tapmap"><svg class="tv-chart tp-tap" id="tp-tap" role="img" aria-label="Your trace. ' + tapText + '"></svg></div>' +
+          '<div class="tp-tap-tools"><button type="button" class="btn btn-secondary btn-sm" data-tap="undo"' + (hasMarks ? '' : ' disabled') + '>' + icon('rewind') + 'Undo last marker</button>' +
+          '<button type="button" class="btn btn-secondary btn-sm" data-tap="clear"' + (hasMarks ? '' : ' disabled') + '>' + icon('x') + 'Clear markers</button>' +
+          '<button type="button" class="btn btn-secondary btn-sm" data-tap="full">' + icon(a.tapFull ? 'x' : 'expand') + (a.tapFull ? 'Exit full screen' : 'Full screen') + '</button>' +
+          (a.editLines && !s.needsStartLine ? '<button type="button" class="btn btn-primary btn-sm" data-tap="done">' + icon('check') + 'Done</button>' : '') + '</div></div>' +
           (!s.venueId ? '<div class="tp-field"><label for="tp-venue-name">Track name</label><input class="field" id="tp-venue-name" placeholder="For example, Blyton Park" value="' + esc(a.venueName || '') + '"></div>' + (a.venueNameLooked ? nameNote() : '') : '');
       } else {
         var timed = s.laps.filter(function (l) { return l.kind === 'timed'; }).length;
         h += '<div class="tp-notice is-ok">' + miniMap(s) + '<div><b>' + esc(s.venue ? trackName(s) : (a.venueName || 'Your track')) + '</b><br>' +
           (s.venueId ? 'Found from the GPS in your file. ' : isSprint ? 'Timed between the start and finish you picked. ' : 'Timed from the start line you picked. ') + timed + ' timed ' + word + (timed === 1 ? '' : 's') + (s.bestTime ? ', best ' + V.fmtLap(s.bestTime) : '') + '.</div></div>';
+        if (a.startLine || a.finishLine) h += '<button type="button" class="btn btn-secondary btn-sm tp-move-lines" data-tap="edit">' + icon('pin') + 'Move ' + (isSprint ? 'start and finish' : 'the start line') + '</button>';
         if (isSprint && !s.pointToPoint) h += '<button type="button" class="tp-switch" role="switch" aria-checked="' + (a.ignoreFinish !== false) + '" id="tp-ignore-finish"><span><b>Ignore the first time it crosses the finish line</b><br><small>' + (s.firstFinishIgnored ? 'Ignored once in this file. Turn it off if your first run is missing.' : 'Turn this off if your first run is missing.') + '</small></span><span class="tp-track"></span></button>';
         if (s.venueId && !s.layoutId) h += '<p class="tp-sub">We know ' + esc(s.venue) + ' but couldn\'t tell which layout this is, so it can\'t go on a leaderboard yet. We\'ve let the admin know.</p>';
         if (!s.venueId) h += '<div class="tp-field"><label for="tp-venue-name">Track name</label><input class="field" id="tp-venue-name" placeholder="For example, Blyton Park" value="' + esc(a.venueName || '') + '"></div>' + (a.venueNameLooked ? nameNote() : '');
@@ -795,7 +802,9 @@
     h += '</div>';
     box.innerHTML = h;
     wireResult();
-    if (s.needsStartLine) drawTap();
+    if (s.needsStartLine || a.editLines) drawTap();
+    var mv = box.querySelector('[data-tap="edit"]');
+    if (mv) mv.addEventListener('click', function () { add.editLines = true; drawResult(); var tb = document.getElementById('tp-tapbox'); if (tb) tb.scrollIntoView({ block: 'nearest' }); });
   }
   function bestRunLine(runs) {
     var q = runs.filter(function (r) { return r.quarter; }).sort(function (x, y) { return x.quarter - y.quarter; })[0];
@@ -877,50 +886,129 @@
       });
     });
   }
-  // Unknown start line: the member taps their trace.
+  // What to do next on the tap map.
+  function tapHint(a, sprint) {
+    if (sprint) return !a.startLine ? 'Tap the start line, then the finish line.' : !a.finishLine ? 'Start set. Now tap the finish line.' : 'Start and finish set. Drag either marker to move it.';
+    return a.startLine ? 'Start and finish line set. Drag the marker to move it.' : 'Tap where the start and finish line is.';
+  }
+  // Unknown start line: the member taps their trace. Markers can be undone,
+  // cleared or dragged along the track; a click only counts as a tap when the
+  // map wasn't being dragged.
   function drawTap() {
-    var a = add, s = a.session, svg = document.getElementById('tp-tap');
-    var out = s.trace.outline;
+    var a = add, s = a.session, svg = document.getElementById('tp-tap'), wrap = document.getElementById('tp-tapmap');
+    // A timed session keeps its laps, not the whole trace: read the trace again
+    // (with no lines) to have the whole drive to place markers on.
+    var out = s.trace && s.trace.outline;
+    if (!out) { if (!a.tapOutline) { var bare = T.analyse(a.rd, a.lib, { type: s.type }); a.tapOutline = bare.trace && bare.trace.outline; } out = a.tapOutline; }
+    if (!out || !out.length) return;
+    var sprint = s.type === 'sprint';
     var proj = T.projector(out[0][0], out[0][1]);
     var d = 0, prev = null;
     var trace = out.map(function (p) { var xy = proj.xy(p[0], p[1]); if (prev) d += Math.hypot(xy[0] - prev[0], xy[1] - prev[1]); prev = xy; return [d, 0, xy[0], xy[1], p[2], 0, 0]; });
-    var m = V.map(svg, trace, { mono: true, tall: true, origin: [out[0][0], out[0][1]] });
+    document.body.classList.toggle('tp-noscroll', !!a.tapFull);
+    var fill = a.tapFull && wrap ? { w: wrap.clientWidth, h: wrap.clientHeight } : null;
+    var m = V.map(svg, trace, { mono: true, ratio: 0.85, fill: fill, origin: [out[0][0], out[0][1]] });
     svg.style.cursor = 'crosshair';
-    svg.addEventListener('click', function (e) {
-      var q = V.point(svg, e);
+    function nearest(px, py) {
       var bi = 0, bd = Infinity;
-      trace.forEach(function (p, k) { var pp = m.P(p[2], p[3]); var dd = (pp[0] - q.x) * (pp[0] - q.x) + (pp[1] - q.y) * (pp[1] - q.y); if (dd < bd) { bd = dd; bi = k; } });
+      trace.forEach(function (p, k) { var pp = m.P(p[2], p[3]); var dd = (pp[0] - px) * (pp[0] - px) + (pp[1] - py) * (pp[1] - py); if (dd < bd) { bd = dd; bi = k; } });
+      return bi;
+    }
+    // A line across the track at a point of the trace, and back again.
+    function lineAt(bi) {
       var p0 = trace[Math.max(0, bi - 3)], p1 = trace[Math.min(trace.length - 1, bi + 3)], c = trace[bi];
       var dx = p1[2] - p0[2], dy = p1[3] - p0[3], L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L;
-      var line = [proj.ll(c[2] + nx * 15, c[3] + ny * 15), proj.ll(c[2] - nx * 15, c[3] - ny * 15)];
+      return [proj.ll(c[2] + nx * 15, c[3] + ny * 15), proj.ll(c[2] - nx * 15, c[3] - ny * 15)];
+    }
+    function indexOf(line) {
+      var mid = proj.xy((line[0][0] + line[1][0]) / 2, (line[0][1] + line[1][1]) / 2), bi = 0, bd = Infinity;
+      trace.forEach(function (p, k) { var dd = (p[2] - mid[0]) * (p[2] - mid[0]) + (p[3] - mid[1]) * (p[3] - mid[1]); if (dd < bd) { bd = dd; bi = k; } });
+      return bi;
+    }
+    // Start (green, S) and finish (red, F); a circuit has one start/finish (S/F).
+    function mark(kind, bi) {
+      var c = trace[bi], pp = m.P(c[2], c[3]), mk = m.marker(pp[0], pp[1]);
+      var ns = 'http://www.w3.org/2000/svg', circle = document.createElementNS(ns, 'circle'), label = document.createElementNS(ns, 'text');
+      circle.setAttribute('r', 11); circle.setAttribute('fill', kind === 'finish' ? '#d33a2c' : '#1baf7a'); circle.setAttribute('stroke', '#ffffff'); circle.setAttribute('stroke-width', 2.5);
+      label.setAttribute('text-anchor', 'middle'); label.setAttribute('y', 4); label.setAttribute('style', 'fill:#ffffff;font-size:' + (sprint ? 11 : 9) + 'px;font-weight:700');
+      label.textContent = kind === 'finish' ? 'F' : sprint ? 'S' : 'S/F';
+      mk.g.appendChild(circle); mk.g.appendChild(label);
+      mk.g.setAttribute('class', 'tp-tapmark');
+      mk.g.setAttribute('data-mark', kind);
+      mk.g.style.cursor = 'grab';
+      // Dragging a marker moves it along the track; the map doesn't pan.
+      mk.g.addEventListener('pointerdown', function (e) {
+        e.stopPropagation(); e.preventDefault();
+        try { mk.g.setPointerCapture(e.pointerId); } catch (err) { /* not capturable */ }
+        var at = bi;
+        function mv(ev) { var q = V.point(svg, ev); at = nearest(q.x, q.y); var np = m.P(trace[at][2], trace[at][3]); mk.x = np[0]; mk.y = np[1]; mk.g.setAttribute('transform', mk.g.getAttribute('transform').replace(/translate\([^)]*\)/, 'translate(' + np[0] + ' ' + np[1] + ')')); }
+        function up() {
+          mk.g.removeEventListener('pointermove', mv); mk.g.removeEventListener('pointerup', up); mk.g.removeEventListener('pointercancel', up);
+          if (at === bi) return;
+          if (kind === 'finish') a.finishLine = lineAt(at); else a.startLine = lineAt(at);
+          linesChanged();
+        }
+        mk.g.addEventListener('pointermove', mv); mk.g.addEventListener('pointerup', up); mk.g.addEventListener('pointercancel', up);
+      });
+      return mk;
+    }
+    if (a.startLine) mark('start', indexOf(a.startLine));
+    if (a.finishLine) mark('finish', indexOf(a.finishLine));
+    // Only a quick, still, left-button click places a marker.
+    var down = null;
+    svg.addEventListener('pointerdown', function (e) { down = { x: e.clientX, y: e.clientY, t: Date.now(), b: e.button }; });
+    svg.addEventListener('click', function (e) {
+      if (!down || down.b !== 0 || Date.now() - down.t > 600 || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 6) return;
+      if (e.target.closest && e.target.closest('.tp-tapmark')) return;
+      var full = sprint ? a.startLine && a.finishLine : a.startLine;
+      if (full) { status(sprint ? 'Both markers are placed. Drag one to move it, or undo or clear them.' : 'The marker is placed. Drag it to move it, or clear it.', ''); return; }
+      var q = V.point(svg, e), line = lineAt(nearest(q.x, q.y));
       var nameEl = document.getElementById('tp-venue-name');
       a.venueName = nameEl ? nameEl.value.trim() : a.venueName;
       a.requestStart = true;
-      if (s.type === 'sprint' && (!a.startLine || a.finishLine)) {
-        // First tap: the start. The second tap is the finish.
-        a.startLine = line; a.finishLine = null;
-        var step = document.getElementById('tp-tap-step');
-        if (step) step.textContent = 'Start set. Now tap the finish line.';
-        var pp = m.P(c[2], c[3]), mk = m.marker(pp[0], pp[1]);
-        var el = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        el.setAttribute('r', 8); el.setAttribute('fill', '#1baf7a');
-        mk.g.appendChild(el);
-        return;
-      }
-      if (s.type === 'sprint') a.finishLine = line; else a.startLine = line;
-      analyse();
-      var bad = s.type !== 'sprint' && implausibleLaps(add.session);
-      if (bad) {
-        // A line in the wrong place can still give "laps": one long one from
-        // the paddock, say. Don't take those.
-        a.startLine = null;
-        analyse();
-        status('That line gives a ' + V.fmtLap(bad) + ' lap, which can\'t be right. Zoom in and tap the straight you cross on every lap.', 'error');
-      } else if (add.session.needsStartLine) {
-        if (s.type === 'sprint') { a.startLine = null; a.finishLine = null; }
-        status(s.type === 'sprint' ? 'No runs were found between those points. Tap the start line, then the finish line, right on the road.' : 'No laps were found from that point. Zoom in and tap right on the straight where you cross the line.', 'error');
-      }
+      if (sprint && !a.startLine) a.startLine = line; else if (sprint) a.finishLine = line; else a.startLine = line;
+      linesChanged();
     });
+    var tools = document.getElementById('tp-tapbox');
+    if (tools) tools.querySelectorAll('[data-tap]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var what = b.getAttribute('data-tap');
+        if (what === 'undo') { if (sprint && a.finishLine) a.finishLine = null; else a.startLine = null; linesChanged(); }
+        else if (what === 'clear') { a.startLine = null; a.finishLine = null; linesChanged(); }
+        else if (what === 'full') { a.tapFull = !a.tapFull; drawResult(); }
+        else if (what === 'done') { a.editLines = false; a.tapFull = false; document.body.classList.remove('tp-noscroll'); drawResult(); }
+      });
+    });
+  }
+  // The markers changed: time the laps again once the lines are complete,
+  // otherwise just show the markers placed so far.
+  function linesChanged() {
+    var a = add, sprint = a.session && a.session.type === 'sprint';
+    var complete = sprint ? a.startLine && a.finishLine : a.startLine;
+    if (!complete) {
+      // Back to "needs a line" with the markers placed so far kept.
+      var s0 = a.startLine, f0 = a.finishLine;
+      a.startLine = null; a.finishLine = null;
+      analyse();
+      a.startLine = s0; a.finishLine = f0;
+      if (!a.session.needsStartLine) a.editLines = true;
+      drawResult();
+      return;
+    }
+    analyse();
+    var bad = !sprint && implausibleLaps(add.session);
+    if (bad) {
+      // A line in the wrong place can still give "laps": one long one from
+      // the paddock, say. Don't take those.
+      a.startLine = null;
+      analyse();
+      status('That line gives a ' + V.fmtLap(bad) + ' lap, which can\'t be right. Zoom in and tap the straight you cross on every lap.', 'error');
+    } else if (add.session.needsStartLine) {
+      // Keep the markers so they can be moved rather than placed again.
+      a.editLines = true;
+      drawResult();
+      status(sprint ? 'No runs were found between those points. Drag the markers right onto the road where you started and finished.' : 'No laps were found from that point. Drag the marker right onto the straight you cross on every lap.', 'error');
+    }
   }
   // Laps from a tapped line that can't be real: the best over 15 minutes,
   // or most laps far longer than the trace's own loop. Returns the best
@@ -1037,7 +1125,6 @@
     if (s.type === 'drag') h += dragHtml(s);
     else if (untimed) h += otherHtml(s);
     else h += trackHtml(s);
-    h += carDataHtml(s);
     if (s.mine) h += ownerHtml(s);
     app.innerHTML = h;
     if (s.type === 'drag') drawDragCharts(s);
@@ -1072,6 +1159,7 @@
       ['Most grip used', s.latMax ? s.latMax.toFixed(2) + ' g' : '-', s.brakeMax ? 'Braking ' + s.brakeMax.toFixed(2) + ' g' : ''],
       ['Distance', s.distance ? V.fmtD(s.distance) : '-', s.duration ? Math.round(s.duration / 60) + ' minutes' : '']
     ]);
+    h += carDataHtml(s);
     h += '<div class="card"><div class="tp-chart-head"><h3>Your drive, coloured by speed</h3></div><svg class="tv-chart" id="tp-map" role="img" aria-label="The drive drawn from GPS, coloured by speed"></svg>' +
       '<div class="tp-chart-foot"><span class="tp-ramp"><span id="tp-ramp-lo"></span><i></i><span id="tp-ramp-hi"></span></span><span>Other sessions are mapped but not timed for a leaderboard.</span></div></div>';
     return h;
@@ -1084,27 +1172,84 @@
     var mm = V.map(document.getElementById('tp-map'), trace, { origin: [out[0][0], out[0][1]] });
     if (mm) { document.getElementById('tp-ramp-lo').textContent = V.fmtV(mm.vmin); document.getElementById('tp-ramp-hi').textContent = V.fmtV(mm.vmax); }
   }
+  // Pressures in bar or psi (remembered in this browser).
+  var PSI_PER_BAR = 14.5038;
+  var pressUnit = 'bar';
+  try { if (localStorage.getItem('mt3ukPressure') === 'psi') pressUnit = 'psi'; } catch (e) { /* storage blocked */ }
+  function press(bar, dp) { return pressUnit === 'psi' ? Math.round(bar * PSI_PER_BAR) + '' : bar.toFixed(dp); }
+  // Which of a day's sessions the tiles show ('all' for the whole day).
+  var carRun = 'all', carRunFor = null;
+  document.addEventListener('click', function (e) {
+    var rb = e.target.closest && e.target.closest('#car-data [data-car-run]');
+    if (rb && view && view.s) {
+      carRun = rb.getAttribute('data-car-run');
+      var cb = document.getElementById('car-data');
+      if (cb) cb.outerHTML = carDataHtml(view.s);
+      var nr = document.querySelector('#car-data [data-car-run="' + carRun + '"]');
+      if (nr) nr.focus();
+      return;
+    }
+    var b = e.target.closest && e.target.closest('#car-data [data-press]');
+    if (!b || !view || !view.s) return;
+    pressUnit = b.getAttribute('data-press');
+    try { localStorage.setItem('mt3ukPressure', pressUnit); } catch (err) { /* storage blocked */ }
+    var box = document.getElementById('car-data');
+    if (box) box.outerHTML = carDataHtml(view.s);
+    var nb = document.querySelector('#car-data [data-press="' + pressUnit + '"]');
+    if (nb) nb.focus();
+  });
+  // Track Mode's temperature zones, as owners describe the colours on the car's
+  // screen: under 70% normal, then yellow, orange (the car starts holding back)
+  // and red at 100%. Shown as colour and a short meaning, never as degrees.
+  function heatZone(p) {
+    if (p >= 100) return { cls: 'is-red', text: 'Red: at the limit, the car cuts power' };
+    if (p >= 85) return { cls: 'is-orange', text: 'Orange: near the limit, the car may hold back power' };
+    if (p >= 70) return { cls: 'is-yellow', text: 'Yellow: warm, close to peak performance' };
+    return { cls: 'is-ok', text: 'Normal operating range' };
+  }
+  // Peak power late in the session well under what it was early on, when the
+  // throttle was flat out both times: the car probably held power back.
+  function powerHeldBack(p) {
+    return p && p.early >= 50 && p.late > 0 && p.late < p.early * 0.9 ? p : null;
+  }
   // The car's own channels, when the file had them (Tesla Track Mode does).
   function carDataHtml(s) {
-    var c = s.carData;
-    if (!c) return '';
+    var all = s.carData;
+    if (!all) return '';
+    if (carRunFor !== s.id) { carRun = 'all'; carRunFor = s.id; }
+    var runs = all.runs && all.runs.length > 1 ? all.runs : null, word = partWord(s.type);
+    var picked = runs && carRun !== 'all' ? runs.filter(function (r) { return String(r.run) === carRun; })[0] : null;
+    if (!picked) carRun = 'all';
+    var c = picked ? Object.assign({ found: all.found, empty: all.empty }, picked) : all;
+    // Which session the figures come from.
+    var from = picked ? cap(word) + ' ' + picked.run + ' of ' + runs.length + ', ' + niceDate(s.date)
+      : runs ? 'The whole day, all ' + runs.length + ' ' + word + 's, ' + niceDate(s.date)
+      : 'This ' + word + ', ' + niceDate(s.date) + (s.time ? ' at ' + s.time : '');
     var t = [], pct = function (n) { return Math.round(n) + '%'; };
-    if (c.soc) t.push(['Charge used', (c.soc.start - c.soc.end).toFixed(1) + ' points', c.soc.start.toFixed(0) + '% to ' + c.soc.end.toFixed(0) + '%']);
+    if (c.soc) t.push(['Charge used', Math.round(c.soc.start - c.soc.end) + '%', 'Of the battery, ' + c.soc.start.toFixed(0) + '% to ' + c.soc.end.toFixed(0) + '%']);
     if (c.power) t.push(['Peak power', Math.round(c.power.max) + ' kW', c.power.regen ? 'Regeneration up to ' + Math.round(c.power.regen) + ' kW' : '']);
-    if (c.brakePressure) t.push(['Hardest braking', c.brakePressure.max.toFixed(1) + ' bar', 'Peak brake pressure']);
+    if (c.brakePressure) t.push(['Hardest braking', press(c.brakePressure.max, 1) + ' ' + pressUnit, 'Peak brake pressure']);
     if (c.throttle) t.push(['Flat out', Math.round(c.throttle.full * 100) + '%', 'Of the time, throttle at 95% or more']);
-    if (c.batteryTemp) t.push(['Battery temperature', 'Up to ' + pct(c.batteryTemp.max), 'Started at ' + pct(c.batteryTemp.start)]);
-    if (c.brakeTemp) t.push(['Hottest brakes', pct(c.brakeTemp.max), 'Of the car\'s own scale']);
-    if (c.inverterTemp) t.push(['Hottest inverter', pct(c.inverterTemp.max), 'Of the car\'s own scale']);
-    if (c.tyrePressure) t.push(['Tyre pressure', c.tyrePressure.start.toFixed(2) + ' to ' + c.tyrePressure.end.toFixed(2) + ' bar', Math.round(c.tyrePressure.start * 14.5) + ' to ' + Math.round(c.tyrePressure.end * 14.5) + ' psi, average of the four']);
+    var z;
+    if (c.batteryTemp) { z = heatZone(c.batteryTemp.max); t.push(['Battery temperature', 'Up to ' + pct(c.batteryTemp.max), 'Started at ' + pct(c.batteryTemp.start) + '. ' + z.text, 0, 'tp-heat ' + z.cls]); }
+    if (c.brakeTemp) { z = heatZone(c.brakeTemp.max); t.push(['Hottest brakes (estimated)', pct(c.brakeTemp.max), 'The car\'s own estimate, not a reading. ' + z.text, 0, 'tp-heat ' + z.cls]); }
+    if (c.inverterTemp) { z = heatZone(c.inverterTemp.max); t.push(['Hottest inverter', pct(c.inverterTemp.max), z.text, 0, 'tp-heat ' + z.cls]); }
+    if (c.tyrePressure) t.push(['Tyre pressure', press(c.tyrePressure.start, 2) + ' to ' + press(c.tyrePressure.end, 2) + ' ' + pressUnit, 'Start to end, average of the four']);
     if (c.slip) t.push(['Most tyre slip', c.slip.max.toFixed(2), 'Estimated by the car']);
     if (!t.length && !(c.empty || []).length) return '';
-    return '<div class="tp-section" id="car-data"><div class="tp-head"><h2>From the car</h2></div>' + (t.length ? tiles(t) : '') +
-      '<p class="tp-small">Read from the file your car wrote. Temperatures are shown as a percentage, as the car reports them, not in degrees.' +
+    var hasPress = c.brakePressure || c.tyrePressure, held = powerHeldBack(c.power);
+    return '<div class="tp-section" id="car-data"><div class="tp-head"><h2>Track Mode</h2>' +
+      (hasPress ? '<div class="tp-chips" role="group" aria-label="Pressure in">' + ['bar', 'psi'].map(function (u) { return '<button type="button" class="chip chip-sm' + (u === pressUnit ? ' is-on' : '') + '" data-press="' + u + '" aria-pressed="' + (u === pressUnit) + '">' + u + '</button>'; }).join('') + '</div>' : '') +
+      '</div>' +
+      (runs ? '<div class="tp-chips tp-car-runs" role="group" aria-label="Show the figures for">' + [['all', 'Whole day']].concat(runs.map(function (r) { return [String(r.run), cap(word) + ' ' + r.run]; })).map(function (o) { return '<button type="button" class="chip chip-sm' + (o[0] === carRun ? ' is-on' : '') + '" data-car-run="' + o[0] + '" aria-pressed="' + (o[0] === carRun) + '">' + esc(o[1]) + '</button>'; }).join('') + '</div>' : '') +
+      '<p class="tp-sub tp-car-from" id="tp-car-from">' + icon('info') + esc(from) + '</p>' +
+      (t.length ? tiles(t) : '') +
+      (held ? '<div class="tp-note tp-held" id="tp-held">' + icon('warn') + '<p>Power held back? Flat out, your peak power fell from ' + held.early + ' kW early in the session to ' + held.late + ' kW late on.<small>The car limits power as parts get hot. Compare with the temperatures above.</small></p></div>' : '') +
+      '<p class="tp-small">Read from the file your car wrote. Temperatures are shown as a percentage, as the car reports them, not in degrees. Their colours follow the Track Mode zones as owners describe them (yellow from 70%, orange from 85%, red at 100%).' +
       ((c.empty || []).length ? ' In the file but empty: ' + esc((c.empty || []).join(', ').toLowerCase()) + '.' : '') + '</p></div>';
   }
   function tiles(list) {
-    return '<div class="tp-tiles">' + list.map(function (t) { return '<div class="tp-tile' + (t[3] ? ' is-hero' : '') + '"><div class="k">' + esc(t[0]) + '</div><div class="v">' + esc(t[1]) + '</div><div class="s">' + esc(t[2] || '') + '</div></div>'; }).join('') + '</div>';
+    return '<div class="tp-tiles">' + list.map(function (t) { return '<div class="tp-tile' + (t[3] ? ' is-hero' : '') + (t[4] ? ' ' + t[4] : '') + '"><div class="k">' + esc(t[0]) + '</div><div class="v">' + esc(t[1]) + '</div><div class="s">' + esc(t[2] || '') + '</div></div>'; }).join('') + '</div>';
   }
   function trackHtml(s) {
     var laps = s.laps || [];
@@ -1116,32 +1261,37 @@
       ['Most grip used', s.latMax ? s.latMax.toFixed(2) + ' g' : '-', s.brakeMax ? 'Braking ' + s.brakeMax.toFixed(2) + ' g' : ''],
       ['Distance', s.distance ? V.fmtD(s.distance) : '-', s.duration ? Math.round(s.duration / 60) + ' minutes' : '']
     ]);
-    h += '<div class="tp-grid tp-g-map"><div class="card"><div class="tp-chart-head"><h3>Your line, coloured by speed</h3><div class="tp-chips" id="tp-map-laps">' +
-      laps.filter(function (l) { return s.trace && s.trace.laps && s.trace.laps[l.n]; }).map(function (l) { return '<button type="button" class="chip chip-sm' + (l.n === view.a ? ' is-on' : '') + '" data-lap="' + l.n + '">' + lapName(l, s) + '</button>'; }).join('') + '</div></div>' +
-      '<svg class="tv-chart" id="tp-map" role="img" aria-label="The lap drawn from GPS, coloured by speed"></svg>' + otherDaysSelect(s) +
-      '<div class="tp-chart-foot"><span class="tp-ramp"><span id="tp-ramp-lo"></span><i></i><span id="tp-ramp-hi"></span></span><span>Drawn from the GPS in the file. Numbers are the slowest corners.</span></div></div>' +
-      '<div class="card"><h3>Laps</h3><div class="tp-scroll"><table class="tp-table">' + lapTable(s) + '</table></div>' +
-      (s.sectorsByThirds ? '<p class="tp-small">Sectors are thirds of the lap until this track has its own sector points.</p>' : '') + '</div></div>';
-    h += '<div class="tp-section"><h3>What we spotted</h3><div class="tp-notes">' + notesHtml(T.sessionNotes(s, V.fmtV, V.fmtD)) + '</div></div>';
+    // Track Mode figures straight after the headline tiles (nothing when the file had none).
+    h += carDataHtml(s);
+    // The lap times, folded away until opened (shown after Compare laps).
+    var lapsHtml = '<details class="card tp-laps" id="tp-laps"><summary><h3>Laps</h3><span class="tp-small">' + laps.length + ' ' + (laps.length === 1 ? 'lap' : 'laps') + (best ? ', best ' + V.fmtLap(best.time) : '') + '</span>' + icon('chev') + '</summary><div class="tp-scroll"><table class="tp-table">' + lapTable(s) + '</table></div>' +
+      (s.sectorsByThirds ? '<p class="tp-small">Sectors are thirds of the lap until this track has its own sector points.</p>' : '') + '</details>';
+    var spottedHtml = '<div class="tp-section"><h3>What we spotted</h3><div class="tp-notes">' + notesHtml(T.sessionNotes(s, V.fmtV, V.fmtD)) + '</div></div>';
+    // One map: Compare laps' "Where you are", straight after the tiles.
     if (s.trace && s.trace.laps && Object.keys(s.trace.laps).length) {
       h += '<div class="tp-section" id="compare"><div class="tp-head"><h2>Compare laps</h2></div><p class="tp-sub">Pick two laps. Press Play, or move along a chart, to see where both are at the same moment. The slower lap trails by the time gap.</p>' +
         '<div class="card tp-cmp-pick"><div class="tp-f2"><div class="tp-field"><label for="tp-cmp-a">Lap A</label><select class="field" id="tp-cmp-a">' + lapOptions(view.a) + '</select></div><div class="tp-field"><label for="tp-cmp-b">Lap B</label><select class="field" id="tp-cmp-b">' + lapOptions(view.b) + '</select></div></div></div>' +
         '<div class="tp-grid tp-g-map"><div class="tp-grid"><div class="card tp-o-speed"><div class="tp-chart-head"><h3>Speed through the lap</h3><div class="tp-key" id="tp-key"></div></div><svg class="tv-chart" id="tp-speed" role="img" aria-label="Speed against distance for both laps"></svg>' +
         '<div class="tp-chart-head"><h3>Time gap</h3><span class="tp-small" id="tp-gap-cap"></span></div><svg class="tv-chart" id="tp-delta" role="img" aria-label="Running time gap between the laps"></svg></div>' +
         '<div class="card tp-o-corner"><h3>Corner by corner</h3><div class="tp-scroll"><table class="tp-table" id="tp-corners"></table></div></div></div>' +
-        '<div class="tp-grid"><div class="card tp-mapcard" id="tp-mapcard"><div class="tp-chart-head tp-map-head"><h3>Where you are</h3><button type="button" class="btn btn-secondary btn-sm" id="tp-full" aria-label="Full screen map"></button></div>' +
+        '<div class="tp-grid"><div class="card tp-mapcard" id="tp-mapcard"><div class="tp-chart-head tp-map-head"><h3>Where you are</h3><button type="button" class="tp-switch tp-gswitch tp-speedsw" role="switch" id="tp-speedcol" aria-checked="' + cmpSpeed + '"><span>Colour by speed</span><span class="tp-track"></span></button><button type="button" class="btn btn-secondary btn-sm" id="tp-full" aria-label="Full screen map"></button></div>' +
         '<p class="tp-small tp-sync-note">Both laps at the same moment: the slower one trails by the time gap.</p>' +
         '<div class="tp-play" id="tp-play"><div class="tp-play-row"><div class="tp-play-btns"><button type="button" class="btn btn-secondary" id="tp-play-start" data-play="start" aria-label="Go back to the start"></button><button type="button" class="btn btn-secondary" id="tp-play-back" data-play="back"></button><button type="button" class="btn btn-primary" id="tp-play-toggle" data-play="toggle"></button></div>' +
         '<div class="tp-chips" id="tp-speeds" role="group" aria-label="Playback speed">' + [['0.5', 'x0.5'], ['1', 'x1'], ['2', 'x2'], ['5', 'x5']].map(function (v) { return '<button type="button" class="chip" data-speed="' + v[0] + '">' + v[1] + '</button>'; }).join('') + '</div>' +
         '<button type="button" class="chip is-on" id="tp-follow" aria-pressed="true" title="When the map is zoomed in, keep the cars in view">Follow cars</button></div>' +
-        '<div class="tp-scrub-row"><div class="tp-scrub-track"><div class="tp-ruler" id="tp-ruler" aria-hidden="true"></div><input type="range" id="tp-scrub" min="0" max="100" step="0.01" value="0" aria-label="Position in the lap"></div><span class="tp-clock" id="tp-clock">0:00.0</span></div></div>' +
-        '<div class="tp-mapwrap" id="tp-mapwrap"><svg class="tv-chart" id="tp-map2" role="img" aria-label="Track map with both laps\' lines and positions"></svg></div>' +
+        '</div>' +
+        '<div class="tp-mapwrap" id="tp-mapwrap"><svg class="tv-chart" id="tp-map2" role="img" aria-label="Track map with both laps\' lines and positions"></svg>' +
+        '<div class="tp-chart-foot tp-speedkey" id="tp-speedkey"' + (cmpSpeed ? '' : ' hidden') + '><span class="tp-ramp"><span id="tp-ramp-lo"></span><i></i><span id="tp-ramp-hi"></span></span><span>Lap A coloured by speed, lap B dashed. Numbers are the slowest corners.</span></div></div>' +
         '<div class="tp-metrics" id="tp-metrics" aria-live="off"></div>' +
         '<div class="tp-gbox" id="tp-gbox"><div class="tp-chart-head"><h3>G-force and speed</h3><button type="button" class="tp-switch tp-gswitch" role="switch" id="tp-gshow" aria-checked="' + !gHidden + '"><span>Show</span><span class="tp-track"></span></button><div class="tp-chips" id="tp-gtoggles" role="group" aria-label="G-force lines to show">' + G_DEFS.map(function (d) { return '<button type="button" class="chip chip-sm is-on" data-g="' + d[0] + '" aria-pressed="true"><i class="tp-gkey" style="background:' + d[2] + '"></i>' + d[1] + '</button>'; }).join('') + '</div></div>' +
-        '<svg class="tv-chart" id="tp-gforce" role="img" aria-label="Acceleration and cornering g-force against distance for both laps"></svg><p class="tp-small" id="tp-gnote"></p></div></div>' +
+        '<svg class="tv-chart" id="tp-gforce" role="img" aria-label="Acceleration, cornering and speed over the lap for both laps"></svg>' +
+        // The slider sits under the chart, lined up with its time axis.
+        '<div class="tp-scrub-row"><div class="tp-scrub-track" id="tp-scrub-track"><div class="tp-ruler" id="tp-ruler" aria-hidden="true"></div><input type="range" id="tp-scrub" min="0" max="100" step="0.01" value="0" aria-label="Position in the lap"></div><span class="tp-clock" id="tp-clock">0:00.0</span></div>' +
+        '<p class="tp-small" id="tp-gnote"></p></div></div>' +
         '</div></div>' +
         '<div class="tp-grid tp-g2"><div class="card"><div class="tp-chart-head"><h3>How much grip you used, lap A</h3><span class="tp-small">Each dot is a moment on the lap. The further from the middle, the harder the car was working the tyres.</span></div><svg class="tv-chart tp-gg" id="tp-gg" role="img" aria-label="Sideways against lengthways g for lap A"></svg></div><div class="tp-notes" id="tp-cmp-notes"></div></div></div>';
     }
+    h += lapsHtml + spottedHtml;
     if (s.mine && s.venueId && s.layoutId) h += '<div class="tp-section" id="over-time"><div class="tp-head"><h2>' + esc(trackName(s)) + ' over time</h2></div><div id="tp-time"></div></div>';
     return h;
   }
@@ -1225,69 +1375,9 @@
     var from = T.projector(o.origin[0], o.origin[1]), to = T.projector(s.origin[0], s.origin[1]);
     return o.trace.map(function (p) { var ll = from.ll(p[2], p[3]), xy = to.xy(ll[0], ll[1]); var q = p.slice(); q[2] = xy[0]; q[3] = xy[1]; return q; });
   }
-  var DAY_COLORS = ['#6a3d9a', '#1f78b4', '#e7298a'];
-  // The lap on the map, the whole session's laps as the track underneath,
-  // and any other days added, dashed.
-  function drawMainMap(s) {
-    var tr = s.trace.laps[view.a];
-    if (!tr) return;
-    var band = Object.keys(s.trace.laps).map(function (k) { return s.trace.laps[k]; });
-    var overlays = (view.days || []).map(function (d, i) { return { trace: intoThis(s, d), color: DAY_COLORS[i % DAY_COLORS.length] }; });
-    var mm = V.map(document.getElementById('tp-map'), tr, { corners: s.corners, startLine: startLineXY(s), lap: view.a, band: band, overlays: overlays, origin: s.origin });
-    if (mm) { document.getElementById('tp-ramp-lo').textContent = V.fmtV(mm.vmin); document.getElementById('tp-ramp-hi').textContent = V.fmtV(mm.vmax); }
-    var key = document.getElementById('tp-days-key');
-    if (key) key.innerHTML = (view.days || []).map(function (d, i) {
-      return '<span class="tp-day"><i style="border-color:' + DAY_COLORS[i % DAY_COLORS.length] + '"></i>' + esc(d.label) + ', ' + esc(V.fmtLap(d.time)) + '<button type="button" class="tp-day-x" data-day="' + i + '" aria-label="Remove ' + esc(d.label) + '">' + icon('x') + '</button></span>';
-    }).join('');
-  }
-  // "Add another day": your best lap from other sessions at this layout,
-  // drawn on the map (up to 3).
-  function wireOtherDays(s) {
-    var sel = document.getElementById('tp-add-day');
-    var key = document.getElementById('tp-days-key');
-    if (!sel) return;
-    sel.addEventListener('change', function () {
-      var v = sel.value;
-      sel.value = '';
-      if (!v) return;
-      view.days = view.days || [];
-      if (view.days.length >= 3) { view.days.shift(); }
-      lapTrace(v).then(function (d) {
-        if (!d) return;
-        d.key = v;
-        if (view.days.some(function (x) { return x.key === v; })) return;
-        view.days.push(d);
-        drawMainMap(s);
-      });
-    });
-    key.addEventListener('click', function (e) {
-      var b = e.target.closest('[data-day]');
-      if (!b) return;
-      view.days.splice(parseInt(b.getAttribute('data-day'), 10), 1);
-      drawMainMap(s);
-    });
-  }
-  function otherDaysSelect(s) {
-    var others = s.mine && view.mine && s.layoutId ? view.mine.sessions.filter(function (o) { return o.id !== s.id && o.type === s.type && o.venueId === s.venueId && o.layoutId === s.layoutId && o.bestTime; }) : [];
-    var members = (view.members || []).length;
-    if (!others.length && !members) return '';
-    return '<div class="tp-days"><label class="tp-small" for="tp-add-day">Add another lap to the map</label><select class="field tp-day-sel" id="tp-add-day"><option value="">Choose a lap</option>' +
-      (others.length ? '<optgroup label="Your best on other days">' + others.map(function (o) { return '<option value="x:' + esc(o.id) + '">' + esc(niceDate(o.date)) + ', ' + esc(V.fmtLap(o.bestTime)) + '</option>'; }).join('') + '</optgroup>' : '') +
-      memberOptions('') + '</select><div class="tp-days-key" id="tp-days-key"></div></div>';
-  }
   function drawTrackCharts(s) {
     if (!s.trace || !s.trace.laps) return;
     pb.render = null;
-    drawMainMap(s);
-    wireOtherDays(s);
-    var chips = document.getElementById('tp-map-laps');
-    if (chips) chips.addEventListener('click', function (e) {
-      var b = e.target.closest('[data-lap]');
-      if (!b) return;
-      view.a = parseInt(b.getAttribute('data-lap'), 10);
-      chips.querySelectorAll('.chip').forEach(function (c) { c.classList.toggle('is-on', c === b); });
-      drawMainMap(s);
-    });
     var sa = document.getElementById('tp-cmp-a'), sb = document.getElementById('tp-cmp-b');
     wirePlay();
     if (sa) {
@@ -1304,7 +1394,10 @@
   // The whole G-force and speed chart can be hidden (remembered in this browser).
   var gHidden = false;
   try { gHidden = localStorage.getItem('mt3ukTrackChart') === 'off'; } catch (e) { /* storage blocked */ }
-  var cmpFull = false, cmpDrawG = null;
+  var cmpFull = false, cmpDrawG = null, cmpAlign = null;
+  // The map's lap A in speed colours (remembered in this browser).
+  var cmpSpeed = true;
+  try { cmpSpeed = localStorage.getItem('mt3ukTrackSpeedLine') !== 'off'; } catch (e) { /* storage blocked */ }
   // The distance a lap had reached after t seconds.
   function distAtTime(trace, t) {
     var lo = 0, hi = trace.length - 1;
@@ -1445,6 +1538,15 @@
     if (fol) fol.addEventListener('click', function () { setFollow(!cmpFollow); });
     var fb = document.getElementById('tp-full');
     if (fb) fb.addEventListener('click', function () { setFull(!cmpFull); });
+    var sc = document.getElementById('tp-speedcol');
+    if (sc) sc.addEventListener('click', function () {
+      cmpSpeed = !cmpSpeed;
+      sc.setAttribute('aria-checked', String(cmpSpeed));
+      var key = document.getElementById('tp-speedkey');
+      if (key) key.hidden = !cmpSpeed;
+      try { localStorage.setItem('mt3ukTrackSpeedLine', cmpSpeed ? 'on' : 'off'); } catch (e) { /* storage blocked */ }
+      if (view && view.s) drawCompare(view.s, true);
+    });
     var gs = document.getElementById('tp-gshow'), gbox = document.getElementById('tp-gbox');
     if (gbox) gbox.classList.toggle('is-off', gHidden);
     if (gs) gs.addEventListener('click', function () {
@@ -1454,6 +1556,7 @@
       try { localStorage.setItem('mt3ukTrackChart', gHidden ? 'off' : 'on'); } catch (e) { /* storage blocked */ }
       // Full screen: the map takes the room, so draw it to its new size.
       if (cmpFull && view && view.s) drawCompare(view.s, true);
+      else if (cmpAlign) cmpAlign();
     });
     var gt = document.getElementById('tp-gtoggles');
     if (gt) gt.addEventListener('click', function (e) {
@@ -1495,7 +1598,13 @@
       var mapEl = document.getElementById('tp-map2');
       var mapBox = document.getElementById('tp-mapwrap');
       var fill = cmpFull && mapBox ? { w: mapBox.clientWidth, h: mapBox.clientHeight } : null;
-      var mo = V.map(mapEl, A.trace, { fill: fill, mono: true, lines: A === B ? [{ trace: A.trace, color: c1 }] : [{ trace: B.trace, color: c2 }, { trace: A.trace, color: c1 }], startLine: startLineXY(s), corners: s.corners, origin: s.origin });
+      var lines = cmpSpeed ? (A === B ? [{ trace: A.trace, ramp: true }] : [{ trace: B.trace, color: c2, dash: '6 5' }, { trace: A.trace, ramp: true }])
+        : (A === B ? [{ trace: A.trace, color: c1 }] : [{ trace: B.trace, color: c2 }, { trace: A.trace, color: c1 }]);
+      // The whole session's laps underneath as the track's width.
+      var band = Object.keys(s.trace.laps).map(function (k) { return s.trace.laps[k]; });
+      var mo = V.map(mapEl, A.trace, { fill: fill, mono: true, lines: lines, band: band, startLine: startLineXY(s), corners: s.corners, origin: s.origin });
+      var lo = document.getElementById('tp-ramp-lo'), hi = document.getElementById('tp-ramp-hi');
+      if (mo && lo && hi) { lo.textContent = V.fmtV(mo.vmin); hi.textContent = V.fmtV(mo.vmax); }
       cmpMap = mo;
       if (mo && mo.setFollow) mo.setFollow(cmpFollow);
       if (mo && mo.zoom && mo.zoom.onPan) mo.zoom.onPan(function () { if (cmpFollow) setFollow(false); });
@@ -1526,8 +1635,8 @@
       // The quicker lap is at x and the other is wherever it was at that
       // elapsed time, so it trails by the time gap.
       function move(x) {
-        if (!mo) return;
-        var pa = at(A.trace, x), pb = at(B.trace, x), gap = pb[1] - pa[1];
+        if (!mo) return 0;
+        var pa = at(A.trace, x), pb = at(B.trace, x), gap = pb[1] - pa[1], when = A !== B ? Math.min(pa[1], pb[1]) : pa[1];
         if (A !== B) {
           var t = Math.min(pa[1], pb[1]);
           if (pa[1] > t) pa = at(A.trace, distAtTime(A.trace, t));
@@ -1536,6 +1645,7 @@
         if (mo.setGap) mo.setGap(A !== B ? gap : null);
         mo.placeA(pa); mo.placeB(pb);
         showMetrics(pa, pb, gap);
+        return when;
       }
       // Back to where playback or the slider left it, else hidden.
       function leave() {
@@ -1548,7 +1658,8 @@
       function renderAt(t) {
         var x = Math.min(dmax, Math.max(distAtTime(A.trace, t), distAtTime(B.trace, t)));
         move(x);
-        charts().forEach(function (o) { o.show(x); });
+        [sp, dl].forEach(function (o) { if (o) o.show(x); });
+        if (gl) gl.show(Math.min(t, tEndG));
         var sc = document.getElementById('tp-scrub'), ck = document.getElementById('tp-clock');
         if (sc) { sc.value = t; scrubFill(sc); }
         if (ck) ck.textContent = clock(t) + ' / ' + clock(pb.tEnd);
@@ -1558,14 +1669,29 @@
         return '<b>' + V.fmtD(x, 2) + '</b>' + V.row(A.label, V.fmtV(pa[4]), c1) + V.row(B.label, V.fmtV(pb[4]), c2) + V.row('A is', Math.abs(g).toFixed(2) + ' s ' + (g >= 0 ? 'ahead' : 'behind'));
       }
       function tipG(x) {
-        var ra = at(ga, x), rb = at(gb, x), h = '<b>' + V.fmtD(x, 2) + '</b>';
+        var ra = at(gaT, x), rb = at(gbT, x), h = '<b>' + clock(x) + '</b>';
         if (gShow.acc) h += V.row('Accel, A', fmtAcc(ra[1]), c1) + (A === B ? '' : V.row('Accel, B', fmtAcc(rb[1]), c2));
         if (gShow.cor) h += V.row('Corner, A', fmtCor(ra[2]), c1) + (A === B ? '' : V.row('Corner, B', fmtCor(rb[2]), c2));
-        if (gShow.spd) h += V.row('Speed, A', V.fmtV(at(A.trace, x)[4]), c1) + (A === B ? '' : V.row('Speed, B', V.fmtV(at(B.trace, x)[4]), c2));
+        if (gShow.spd) h += V.row('Speed, A', V.fmtV(at(spA, x)[1]), c1) + (A === B ? '' : V.row('Speed, B', V.fmtV(at(spB, x)[1]), c2));
         return h;
       }
       // The coloured G-force lines: solid for lap A, dashed for lap B, each
       // switched on or off with its chip.
+      // The G-force and speed chart runs on time, like playback and the map: at
+      // any point it shows both laps at the same moment, and its time axis is
+      // the ruler for the slider underneath.
+      function onTime(trace, rows) { return trace.map(function (p, i) { return [p[1], rows[i][1], rows[i][2]]; }); }
+      var gaT = onTime(A.trace, ga), gbT = A === B ? gaT : onTime(B.trace, gb);
+      var spA = A.trace.map(function (p) { return [p[1], V.spd(p[4])]; }), spB = A === B ? spA : B.trace.map(function (p) { return [p[1], V.spd(p[4])]; });
+      var tEndG = Math.max(A.trace[A.trace.length - 1][1], B.trace[B.trace.length - 1][1]);
+      function timeTicks(fitPx) {
+        var fit = Math.max(2, Math.floor(fitPx / 46));
+        var step = [1, 2, 5, 10, 15, 20, 30, 60, 120, 300, 600].filter(function (st) { return tEndG / st <= fit; })[0] || 600;
+        var out = [];
+        for (var v = 0; v <= tEndG + 1e-6; v += step) out.push(v);
+        return out;
+      }
+      function mss(v) { return Math.floor(v / 60) + ':' + ('0' + Math.round(v % 60)).slice(-2); }
       var gl = null;
       function drawG() {
         var gs = document.getElementById('tp-gforce'), note = document.getElementById('tp-gnote');
@@ -1573,7 +1699,7 @@
         var defs = G_DEFS.filter(function (d) { return gShow[d[0]]; }), series = [], lo = 0, hi = 0.5;
         defs.filter(function (d) { return d[0] !== 'spd'; }).forEach(function (d) {
           var col = d[0] === 'acc' ? 1 : 2;
-          [[ga, null], [gb, '5 4']].forEach(function (lp, li) {
+          [[gaT, null], [gbT, '5 4']].forEach(function (lp, li) {
             if (li && A === B) return;
             lp[0].forEach(function (r) { lo = Math.min(lo, r[col]); hi = Math.max(hi, r[col]); });
             series.push({ color: d[2], width: 1.25, dash: lp[1], pts: lp[0].map(function (r) { return [r[0], r[col]]; }), at: function (x) { return at(lp[0], x)[col]; } });
@@ -1581,27 +1707,41 @@
         });
         // Speed on its own scale, on the right.
         var spdOn = gShow.spd, sy = V.nice(0, vmax, 3);
-        if (spdOn) [[A, null], [B, '5 4']].forEach(function (lp, li) {
+        if (spdOn) [[spA, null], [spB, '5 4']].forEach(function (lp, li) {
           if (li && A === B) return;
-          series.push({ axis: 2, color: '#d99a00', width: 1.25, dash: lp[1], pts: lp[0].trace.map(function (p) { return [p[0], V.spd(p[4])]; }), at: function (x) { return V.spd(at(lp[0].trace, x)[4]); } });
+          series.push({ axis: 2, color: '#d99a00', width: 1.25, dash: lp[1], pts: lp[0], at: function (x) { return at(lp[0], x)[1]; } });
         });
         if (note) note.textContent = !defs.length ? 'Turn a line on to see it.' : A === B ? A.label : 'Solid line: ' + A.label + ' (A). Dashed line: ' + B.label + ' (B).';
-        if (!defs.length) { gs.innerHTML = ''; gs.removeAttribute('viewBox'); gl = null; return; }
+        if (!defs.length) { gs.innerHTML = ''; gs.removeAttribute('viewBox'); gl = null; alignScrub(); return; }
         var gy = V.nice(Math.floor(lo * 2) / 2, Math.ceil(hi * 2) / 2, 4);
         gl = V.line(gs, {
-          H: cmpFull ? 110 : 150, x0: 0, x1: dmax, y0: gy[0], y1: gy[gy.length - 1], xt: xt, xf: xf, yt: gy, zero: 0, yf: function (v) { return v + ' g'; },
+          H: cmpFull ? 110 : 150, x0: 0, x1: tEndG, y0: gy[0], y1: gy[gy.length - 1], xt: timeTicks(gs.clientWidth || 600), xf: mss, yt: gy, zero: 0, yf: function (v) { return v + ' g'; },
           y2: spdOn ? { y0: 0, y1: sy[sy.length - 1], yt: sy, yf: function (v) { return String(v); } } : null,
-          series: series, tip: tipG, onMove: function (x) { userHover(); move(x); sp.show(x); dl.show(x); }, onLeave: leave
+          // Moving over the chart moves playback to that moment, slider and all.
+          series: series, tip: tipG, onMove: function (t) { stopPlay(); pb.active = true; pb.t = t; renderAt(t); }, onLeave: leave
         });
+        alignScrub();
         if (pb.active && pb.render) pb.render(pb.t);
       }
       cmpDrawG = drawG;
+      cmpAlign = function () { alignScrub(); };
+      // The slider's ends line up with the chart's time axis, so the chart is its ruler.
+      function alignScrub() {
+        var tr = document.getElementById('tp-scrub-track'), gs = document.getElementById('tp-gforce'), box = document.getElementById('tp-gbox');
+        if (!tr) return;
+        var on = gl && gl.plot && gs && box && !box.classList.contains('is-off') && gs.clientWidth;
+        var k = on ? gs.clientWidth / gl.plot.W : 1;
+        tr.style.marginLeft = on ? (gl.plot.l * k).toFixed(1) + 'px' : '';
+        tr.style.marginRight = on ? (gl.plot.r * k).toFixed(1) + 'px' : '';
+        if (box) box.classList.toggle('has-axis', !!on);
+        drawRuler(pb.tEnd || tEndG);
+      }
       var sp, dl;
       sp = V.line(document.getElementById('tp-speed'), {
         H: 240, x0: 0, x1: dmax, y0: 0, y1: yt[yt.length - 1], xt: xt, xf: xf, yt: yt,
         series: [{ color: c2, pts: B.trace.map(function (p) { return [p[0], V.spd(p[4])]; }), at: function (x) { return V.spd(at(B.trace, x)[4]); } }, { color: c1, pts: A.trace.map(function (p) { return [p[0], V.spd(p[4])]; }), at: function (x) { return V.spd(at(A.trace, x)[4]); } }],
         under: function (svg, X) { (s.corners || []).forEach(function (c) { var t = document.createElementNS('http://www.w3.org/2000/svg', 'text'); t.setAttribute('x', X(c.d)); t.setAttribute('y', 22); t.setAttribute('text-anchor', 'middle'); t.setAttribute('font-weight', '700'); t.textContent = c.n; svg.appendChild(t); }); },
-        tip: tipF, onMove: function (x) { userHover(); move(x); dl.show(x); if (gl) gl.show(x); }, onLeave: leave
+        tip: tipF, onMove: function (x) { userHover(); var w = move(x); dl.show(x); if (gl) gl.show(w); }, onLeave: leave
       });
       var dp = [];
       for (var x = 0; x <= dmax; x += 10) dp.push([x, at(B.trace, x)[1] - at(A.trace, x)[1]]);
@@ -1609,7 +1749,7 @@
       var gyt = V.nice(Math.min(0, gmin), Math.max(0.5, gmax), 4);
       dl = V.line(document.getElementById('tp-delta'), {
         H: 150, x0: 0, x1: dmax, y0: gyt[0], y1: gyt[gyt.length - 1], xt: xt, xf: xf, yt: gyt, zero: 0, yf: function (v) { return (v > 0 ? '+' : '') + v + ' s'; },
-        series: [{ color: c1, area: true, pts: dp, at: function (x) { return at(B.trace, x)[1] - at(A.trace, x)[1]; } }], tip: tipF, onMove: function (x) { userHover(); move(x); sp.show(x); if (gl) gl.show(x); }, onLeave: leave
+        series: [{ color: c1, area: true, pts: dp, at: function (x) { return at(B.trace, x)[1] - at(A.trace, x)[1]; } }], tip: tipF, onMove: function (x) { userHover(); var w = move(x); sp.show(x); if (gl) gl.show(w); }, onLeave: leave
       });
       // Hovering a chart takes over from playback.
       function userHover() { stopPlay(); pb.active = false; }
@@ -1715,6 +1855,7 @@
       ['1/8 mile', b8 ? b8.eighth.toFixed(2) + ' s' : '-', b8 ? 'at ' + V.fmtV(b8.eighthSpeed) : ''],
       ['Runs', String(runs.length), '']
     ]);
+    h += carDataHtml(s);
     h += '<div class="tp-grid tp-g-map"><div class="card"><div class="tp-chart-head"><h3>Speed off the line</h3><div class="tp-key">' + runs.slice(0, 8).map(function (r, i) { return '<span><i style="background:' + RUN_COLORS[i] + '"></i>Run ' + (i + 1) + '</span>'; }).join('') + '</div></div><svg class="tv-chart" id="tp-drag" role="img" aria-label="Speed against time for each run"></svg></div>' +
       '<div class="card"><h3>Runs</h3><div class="tp-scroll"><table class="tp-table"><thead><tr><th>Run</th><th>60 ft</th><th>0-60</th><th>60-100</th><th>1/8</th><th>1/4</th><th>Trap</th></tr></thead><tbody>' +
       runs.map(function (r, i) { function f(v) { return v ? v.toFixed(2) : '-'; } return '<tr' + (r === bq ? ' class="is-best"' : '') + '><td>' + (i + 1) + '</td><td>' + f(r.ft60) + '</td><td>' + f(r.s60) + '</td><td>' + f(r.s60to100) + '</td><td>' + f(r.eighth) + '</td><td>' + f(r.quarter) + '</td><td>' + (r.quarterSpeed ? Math.round(V.spd(r.quarterSpeed)) : '-') + '</td></tr>'; }).join('') +

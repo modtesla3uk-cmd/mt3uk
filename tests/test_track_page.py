@@ -251,9 +251,20 @@ def test_add_a_session_from_the_racebox_file(page):
     # is scrubbed, and the grip chart can be zoomed too.
     m2 = page.locator("#tp-map2")
     m2.scroll_into_view_if_needed()
-    # Both laps' lines, each in its dot's colour (A blue, B orange).
+    # One map: lap A coloured by speed, lap B dashed in its dot's colour, with the speed key.
+    expect(m2.locator("g.tv-segs line.tv-speed").first).to_be_attached()
+    expect(m2.locator("polyline.tv-line")).to_have_count(1)
+    assert m2.locator("polyline.tv-line").get_attribute("stroke-dasharray") == "6 5"
+    expect(page.locator("#tp-speedkey")).to_be_visible()
+    expect(page.locator("#tp-ramp-lo")).to_have_text(re.compile(r"mph$"))
+    # Colour by speed off: both laps' lines, each in its dot's colour (A blue, B orange).
+    page.locator("#tp-speedcol").click()
+    expect(page.locator("#tp-speedcol")).to_have_attribute("aria-checked", "false")
     expect(m2.locator("polyline.tv-line")).to_have_count(2)
     assert [m2.locator("polyline.tv-line").nth(i).get_attribute("stroke") for i in range(2)] == ["#eb6834", "#2a78d6"]
+    expect(page.locator("#tp-speedkey")).to_be_hidden()
+    page.locator("#tp-speedcol").click()
+    expect(page.locator("#tp-speedkey")).to_be_visible()
     zin = m2.locator("xpath=..").locator(".tv-zoom-in")
     for _ in range(3):
         zin.click()
@@ -275,7 +286,7 @@ def test_add_a_session_from_the_racebox_file(page):
     expect(page.locator(".tp-gg").locator("xpath=../..").locator("h3")).to_contain_text("How much grip you used")
     # Speed key runs red (slow) through amber to blue (fast), which shows on grass and tarmac.
     expect(page.locator(".tp-ramp i").first).to_have_css("background-image", re.compile(r"rgb\(229, 56, 59\).*rgb\(255, 176, 0\).*rgb\(0, 166, 230\)"))
-    expect(page.locator(".tp-table").first.locator("tbody tr")).to_have_count(2)
+    expect(page.locator("#tp-laps .tp-table tbody tr")).to_have_count(2)
     # Distances in miles with mph (the default), kilometres with km/h.
     expect(page.locator(".tp-tile").nth(4).locator(".v")).to_have_text(re.compile(r"^\d+\.\d mi$"))
     expect(page.locator("#tp-speed")).to_contain_text(" mi")
@@ -283,7 +294,7 @@ def test_add_a_session_from_the_racebox_file(page):
     expect(page.locator(".tp-tile").nth(4).locator(".v")).to_have_text(re.compile(r"^\d+\.\d km$"))
     page.locator("[data-units]").first.click()
     expect(page.locator(".tp-notes").first).to_contain_text("corner 2")
-    assert page.locator("#tp-map line").count() > 200
+    assert page.locator("#tp-map2 g.tv-segs line").count() > 200
     # Compare: both laps drawn, hovering shows both speeds.
     expect(page.locator("#tp-speed path")).to_have_count(2)
     page.locator("#tp-speed").scroll_into_view_if_needed()
@@ -652,10 +663,10 @@ def test_a_days_files_make_one_session_in_runs(page):
     saved = fake.saved[0]["session"]
     assert saved["runs"] == 2 and sorted({l["run"] for l in saved["laps"]}) == [1, 2]
     # A track day's files are sessions; sprints and drag are runs.
-    expect(page.locator(".tp-table thead th").first).to_have_text("Session")
-    expect(page.locator("#tp-map-laps .chip").first).to_contain_text(re.compile(r"^Session 1, lap \d+$"))
+    expect(page.locator("#tp-laps .tp-table thead th").first).to_have_text("Session")
+    expect(page.locator("#tp-cmp-a option").first).to_contain_text(re.compile(r"^Session 1, lap \d+"))
     # Satellite imagery under the map, with its credit, and it can be turned off.
-    m = page.locator("#tp-map")
+    m = page.locator("#tp-map2")
     expect(m.locator(".tv-sat image").first).to_be_attached()
     credit = m.locator("xpath=..").locator(".tv-sat-credit")
     expect(credit).to_contain_text("Esri")
@@ -673,7 +684,7 @@ def test_a_days_files_make_one_session_in_runs(page):
     assert m.locator(".tv-bands").get_attribute("opacity") == "0.12"
     # Zoomed in, the track band widens to a real track's width.
     # On screen: the band's width times the zoom.
-    band = lambda: float(m.locator(".tv-band").first.get_attribute("stroke-width")) * page.evaluate("(() => { const s = document.getElementById('tp-map'); return s.getBoundingClientRect().width / s.viewBox.baseVal.width; })()")
+    band = lambda: float(m.locator(".tv-band").first.get_attribute("stroke-width")) * page.evaluate("(() => { const s = document.getElementById('tp-map2'); return s.getBoundingClientRect().width / s.viewBox.baseVal.width; })()")
     before = band()
     for _ in range(6):
         m.locator("xpath=..").locator(".tv-zoom-in").click()
@@ -692,8 +703,8 @@ def test_files_from_different_days_are_turned_away(page):
 
 
 def test_another_day_on_the_map(page):
-    """Your best lap from another session at the same track, drawn on the
-    map, dashed, with a key and a way to take it off."""
+    """Your best lap from another session at the same track goes on the map as
+    lap B, dashed, with the day in its label."""
     page.route("**/World_Imagery/**", sat_reply)
     fake = FakeWorker()
     open_page(page, fake)
@@ -703,17 +714,13 @@ def test_another_day_on_the_map(page):
         expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
         page.get_by_role("button", name="Save session").click()
         expect(page).to_have_url(re.compile(r"track\.html\?s=new\d"))
-    sel = page.locator("#tp-add-day")
+    sel = page.locator("#tp-cmp-b")
     expect(sel.locator("option[value='x:new1']")).to_have_count(1)
-    lines = lambda: page.locator("#tp-map polyline[stroke-dasharray]").count()
-    assert lines() == 0
     sel.select_option("x:new1")
-    expect(page.locator("#tp-days-key .tp-day")).to_have_count(1)
-    expect(page.locator("#tp-days-key .tp-day")).to_contain_text("1:39")
-    assert lines() == 1
-    page.locator("#tp-days-key .tp-day-x").click()
-    expect(page.locator("#tp-days-key .tp-day")).to_have_count(0)
-    assert lines() == 0
+    expect(page.locator("#tp-key")).to_contain_text("Your best lap, 28 May (B)")
+    expect(page.locator("#tp-map2 polyline.tv-line[stroke-dasharray]")).to_have_count(1)
+    # There is only one map now.
+    expect(page.locator("#tp-map")).to_have_count(0)
 
 
 def short_vbo(rows=5):
@@ -1108,11 +1115,8 @@ def test_other_members_laps_can_be_compared_and_put_on_the_map(page):
     expect(page.locator("#tp-key")).to_contain_text("Ann, Blue Y, best lap, 28 May (B)")
     expect(page.locator("#tp-gap-cap")).to_contain_text("A finishes")
     expect(page.locator("#tp-gap-cap")).to_contain_text("ahead")
-    # Their lap can be added to the main map too.
-    add = page.locator("#tp-add-day")
-    expect(add.locator("optgroup[label=\"Other members' best laps\"] option")).to_have_count(1)
-    add.select_option("x:m1")
-    expect(page.locator("#tp-days-key .tp-day")).to_contain_text("Ann, Blue Y")
+    # Their lap is on the map as lap B.
+    expect(page.locator("#tp-map2 polyline.tv-line[stroke-dasharray]")).to_have_count(1)
 
 
 def test_no_member_laps_when_only_your_own_car_is_on_the_board(page):
@@ -1903,14 +1907,17 @@ def test_follow_still_works_after_the_map_is_dragged_and_let_go_off_the_map(page
         expect(page.locator("#tp-follow")).to_have_attribute("aria-pressed", "false")
 
 
-def tesla_full_csv():
-    """The Thruxton fixture with some of the extra columns a full Tesla Track Mode export has."""
+def tesla_full_csv(hot=False):
+    """The Thruxton fixture with some of the extra columns a full Tesla Track Mode export has.
+    hot: the battery and brakes run up into the orange and yellow zones, and power drops late on."""
     lines = (ROOT / "tests" / "fixtures" / "tesla-track-mode-thruxton.csv").read_text(encoding="utf-8").strip().split("\n")
     out = [lines[0] + ",Throttle Position (%),Brake Pressure (bar),Power Level (KW),State of Charge (%),Tire Pressure Front Left (bar),Battery Temp (%),Brake Temperature Front Left (% est.)"]
     n = len(lines) - 1
     for i, line in enumerate(lines[1:]):
         f, accel = i / n, i % 40 < 20
-        out.append(line + ",%d,%s,%d,%.2f,0,%.3f,%.3f" % (100 if accel else 0, 0 if accel else 35.5, 250 if accel else -120, 80 - 5 * f, 0.5 + 0.12 * f, 0.02 + 0.3 * f))
+        power = (190 if hot and f > 0.6 else 250) if accel else -120
+        bat, brk = (0.6 + 0.29 * f, 0.3 + 0.48 * f) if hot else (0.5 + 0.12 * f, 0.02 + 0.3 * f)
+        out.append(line + ",%d,%s,%d,%.2f,0,%.3f,%.3f" % (100 if accel else 0, 0 if accel else 35.5, power, 80 - 5 * f, bat, brk))
     return "\n".join(out)
 
 
@@ -1943,15 +1950,25 @@ def test_the_cars_own_data_is_picked_up_and_shown_on_the_session(page):
     expect(chans).to_contain_text("In the file but empty: tyre pressure")
     page.get_by_role("button", name="Save session").click()
     expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
-    assert fake.saved[0]["session"]["carData"]["power"] == {"max": 250, "regen": 120}
+    assert fake.saved[0]["session"]["carData"]["power"] == {"max": 250, "regen": 120, "early": 250, "late": 250}
     card = page.locator("#car-data")
-    expect(card.locator("h2")).to_have_text("From the car")
+    expect(card.locator("h2")).to_have_text("Track Mode")
     expect(card).to_contain_text("250 kW")
     expect(card).to_contain_text("Regeneration up to 120 kW")
     expect(card).to_contain_text("35.5 bar")
     expect(card).to_contain_text("Battery temperature")
     expect(card).to_contain_text("not in degrees")
     expect(card).to_contain_text("In the file but empty: tyre pressure")
+    # Charge used as a percentage of the battery.
+    expect(card.locator(".tp-tile", has_text="Charge used")).to_contain_text("5%")
+    # Pressures in bar or psi, remembered.
+    card.locator("[data-press='psi']").click()
+    expect(page.locator("#car-data")).to_contain_text("515 psi")
+    expect(page.locator("#car-data [data-press='psi']")).to_have_class(re.compile("is-on"))
+    page.reload()
+    expect(page.locator("#car-data")).to_contain_text("515 psi")
+    page.locator("#car-data [data-press='bar']").click()
+    expect(page.locator("#car-data")).to_contain_text("35.5 bar")
 
 
 def test_a_file_without_the_cars_channels_has_no_car_data_card(page):
@@ -2049,6 +2066,7 @@ FOLLOW_HARNESS = """async ([steps]) => {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   const host = document.createElement('div');
   host.style.cssText = 'width:400px;height:420px;position:fixed;left:0;top:0;background:#fff;z-index:99999';
+  svg.setAttribute('class', 'tv-chart');
   host.appendChild(svg); document.body.appendChild(host);
   const trace = [];
   for (let i = 0; i <= 300; i++) { const d = i * 5; trace.push([d, d / 40, d, 60 * Math.sin(d / 300), 40, 0, 0]); }
@@ -2192,3 +2210,230 @@ def test_compared_laps_say_which_session_and_day_they_are_from(page):
     fake.sessions["earlier1"] = earlier
     page.locator("#tp-cmp-b").select_option("x:earlier1")
     expect(key).to_contain_text("Your best lap, 28 Mar (B)")
+
+
+def test_the_off_screen_label_is_white_on_the_cars_colour(page):
+    open_page(page, FakeWorker())
+    r = page.evaluate(FOLLOW_HARNESS, [[["both", 200, 185, 300, 1.9], ["apart", 200, 150, 600, 3.8]]])
+    assert r["apart"]["edgeB"] == "B, 3.8 s behind"
+    fill = page.evaluate("""() => { const t = [...document.querySelectorAll('g.tv-edge')].find(g => g.getAttribute('visibility') === 'visible').querySelector('text'); return getComputedStyle(t).fill; }""")
+    assert fill == "rgb(255, 255, 255)", fill
+
+
+def test_the_chart_is_on_time_and_moving_over_it_moves_playback(page):
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    gs = page.locator("#tp-gforce")
+    gs.scroll_into_view_if_needed()
+    # The time axis is the ruler: minutes and seconds along the bottom.
+    labels = gs.locator("text[text-anchor='middle']").evaluate_all("els => els.map(e => e.textContent)")
+    assert labels[0] == "0:00" and all(re.match(r"^\d+:\d\d$", t) for t in labels), labels
+    expect(page.locator("#tp-ruler")).to_be_hidden()
+    # The slider sits under the chart, with its ends at the chart's axis.
+    sb, gb = page.locator("#tp-scrub").bounding_box(), gs.bounding_box()
+    assert sb["y"] > gb["y"] + gb["height"] - 4
+    assert sb["x"] > gb["x"] + 30 and sb["x"] + sb["width"] < gb["x"] + gb["width"] - 30, (sb, gb)
+    # Moving over the chart moves playback there: slider, clock and the line on the chart.
+    page.mouse.move(gb["x"] + gb["width"] * 0.5, gb["y"] + gb["height"] * 0.4)
+    page.mouse.move(gb["x"] + gb["width"] * 0.6, gb["y"] + gb["height"] * 0.4)
+    value = float(page.locator("#tp-scrub").input_value())
+    mx = float(page.locator("#tp-scrub").get_attribute("max"))
+    assert 0.45 < value / mx < 0.7, (value, mx)
+    cross = gs.locator("line[visibility='visible']")
+    expect(cross).to_have_count(1)
+    expect(page.locator("#tp-metrics [data-m='a-v']")).not_to_have_text("-")
+    # The slider's line and the chart's line are at the same place across.
+    sx = sb["x"] + sb["width"] * value / mx
+    cx = float(cross.get_attribute("x1")) * gb["width"] / float(gs.get_attribute("viewBox").split()[2]) + gb["x"]
+    assert abs(sx - cx) < 6, (sx, cx)
+    # Leaving the chart keeps the place.
+    page.mouse.move(gb["x"] + gb["width"] * 0.6, gb["y"] - 60)
+    assert float(page.locator("#tp-scrub").input_value()) == value
+    # With the chart hidden, the slider gets its own ruler back.
+    page.locator("#tp-gshow").click()
+    expect(page.locator("#tp-ruler")).to_be_visible()
+    expect(page.locator("#tp-ruler span").first).to_have_text("0:00")
+
+
+def test_car_temperatures_are_coloured_by_zone_and_held_back_power_is_noted(page):
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", files=[{"name": "telemetry-v1-2026-05-28-10_00_00.csv", "mimeType": "text/csv", "buffer": tesla_full_csv(hot=True).encode()}])
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    page.get_by_role("button", name="Save session").click()
+    card = page.locator("#car-data")
+    battery = card.locator(".tp-tile", has_text="Battery temperature")
+    expect(battery).to_have_class(re.compile("is-orange"))
+    expect(battery).to_contain_text("Orange: near the limit, the car may hold back power")
+    brakes = card.locator(".tp-tile", has_text="Hottest brakes")
+    expect(brakes).to_have_class(re.compile("is-yellow"))
+    expect(brakes).to_contain_text("Yellow: warm")
+    expect(card.locator("#tp-held")).to_contain_text("fell from 250 kW early in the session to 190 kW late on")
+    expect(card).to_contain_text("yellow from 70%, orange from 85%, red at 100%")
+
+
+def test_no_held_back_note_when_power_holds_up(page):
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", files=[{"name": "telemetry-v1-2026-05-28-10_00_00.csv", "mimeType": "text/csv", "buffer": tesla_full_csv().encode()}])
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator("#car-data .tp-tile", has_text="Battery temperature")).to_have_class(re.compile("is-ok"))
+    expect(page.locator("#tp-held")).to_have_count(0)
+
+
+def test_car_figures_say_which_session_and_can_show_each_one(page):
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    lines = tesla_full_csv().split("\n")
+    half = len(lines) // 2
+    f1 = "\n".join(lines[:half])
+    f2 = "\n".join([lines[0]] + lines[half:])
+    page.set_input_files("#tp-file", files=[
+        {"name": "telemetry-v1-2026-05-28-10_00_00.csv", "mimeType": "text/csv", "buffer": f1.encode()},
+        {"name": "telemetry-v1-2026-05-28-11_00_00.csv", "mimeType": "text/csv", "buffer": f2.encode()}])
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_be_visible()
+    page.get_by_role("button", name="Save session").click()
+    card = page.locator("#car-data")
+    expect(card.locator("#tp-car-from")).to_contain_text("The whole day, all 2 sessions, 28 May 2026")
+    chips = card.locator("[data-car-run]")
+    expect(chips).to_have_text(["Whole day", "Session 1", "Session 2"])
+    day_charge = card.locator(".tp-tile", has_text="Charge used").locator(".s").inner_text()
+    page.locator("#car-data [data-car-run='2']").click()
+    expect(page.locator("#tp-car-from")).to_contain_text("Session 2 of 2, 28 May 2026")
+    expect(page.locator("#car-data [data-car-run='2']")).to_have_class(re.compile("is-on"))
+    expect(page.locator("#car-data .tp-tile", has_text="Charge used").locator(".s")).not_to_have_text(day_charge)
+    page.locator("#car-data [data-car-run='all']").click()
+    expect(page.locator("#tp-car-from")).to_contain_text("The whole day")
+
+
+def test_car_figures_from_one_file_say_so_and_brakes_are_estimated(page):
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", files=[{"name": "telemetry-v1-2026-05-28-10_00_00.csv", "mimeType": "text/csv", "buffer": tesla_full_csv().encode()}])
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    page.get_by_role("button", name="Save session").click()
+    card = page.locator("#car-data")
+    expect(card.locator("#tp-car-from")).to_contain_text("This session, 28 May 2026")
+    expect(card.locator("[data-car-run]")).to_have_count(0)
+    brakes = card.locator(".tp-tile", has_text="Hottest brakes")
+    expect(brakes.locator(".k")).to_have_text("Hottest brakes (estimated)")
+    expect(brakes).to_contain_text("The car's own estimate, not a reading.")
+
+
+def test_track_mode_sits_under_the_best_lap_tiles_and_laps_are_folded(page):
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", files=[{"name": "telemetry-v1-2026-05-28-10_00_00.csv", "mimeType": "text/csv", "buffer": tesla_full_csv().encode()}])
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    page.get_by_role("button", name="Save session").click()
+    # Straight after the Best lap tiles, before the maps.
+    expect(page.locator("#car-data")).to_be_visible()
+    assert page.evaluate("document.getElementById('car-data').previousElementSibling.classList.contains('tp-tiles')")
+    assert page.evaluate("!!(document.getElementById('car-data').compareDocumentPosition(document.getElementById('tp-map2')) & Node.DOCUMENT_POSITION_FOLLOWING)")
+    # The lap times are folded away, with a summary, and open on a tap.
+    laps = page.locator("#tp-laps")
+    expect(laps).not_to_have_attribute("open", "")
+    expect(laps.locator("summary")).to_contain_text(re.compile(r"Laps\s*\d+ laps, best 1:39\.78[56]"))
+    expect(laps.locator("table")).to_be_hidden()
+    laps.locator("summary").click()
+    expect(laps.locator("table")).to_be_visible()
+
+
+def _trace_point(page, frac):
+    """Where on screen a point part way along the tap map's trace is (scrolled into view)."""
+    page.locator("#tp-tap polyline").first.wait_for(state="attached")
+    page.locator("#tp-tap").scroll_into_view_if_needed()
+    return page.evaluate("""(frac) => {
+      const svg = document.getElementById('tp-tap'), vb = svg.viewBox.baseVal, r = svg.getBoundingClientRect();
+      const pts = svg.querySelector('polyline').getAttribute('points').split(' ').map(s => s.split(',').map(Number));
+      const p = pts[Math.floor(pts.length * frac)];
+      return [r.left + (p[0] - vb.x) * r.width / vb.width, r.top + (p[1] - vb.y) * r.height / vb.height];
+    }""", frac)
+
+
+def test_start_and_finish_markers_can_be_undone_cleared_dragged_and_moved_later(page):
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    page.locator("[data-type] [data-v='sprint']").click()
+    step = page.locator("#tp-tap-step")
+    expect(step).to_have_text("Tap the start line, then the finish line.")
+    marks = page.locator("#tp-tap .tp-tapmark")
+    undo, clear = page.get_by_role("button", name="Undo last marker"), page.get_by_role("button", name="Clear markers")
+    expect(undo).to_be_disabled()
+    # The right mouse button's menu is kept away from the map.
+    assert page.evaluate("(() => { const e = new MouseEvent('contextmenu', { bubbles: true, cancelable: true }); document.getElementById('tp-tap').dispatchEvent(e); return e.defaultPrevented; })()")
+    a = _trace_point(page, 0.2)
+    page.mouse.click(a[0], a[1])
+    expect(step).to_have_text("Start set. Now tap the finish line.")
+    expect(marks).to_have_count(1)
+    expect(undo).to_be_enabled()
+    # Dragging (not a quick click) never places a marker.
+    b = _trace_point(page, 0.6)
+    page.mouse.move(b[0], b[1])
+    page.mouse.down()
+    page.mouse.move(b[0] + 40, b[1] + 30, steps=5)
+    page.mouse.up()
+    expect(marks).to_have_count(1)
+    # Undo takes the start away again.
+    undo.click()
+    expect(marks).to_have_count(0)
+    expect(step).to_have_text("Tap the start line, then the finish line.")
+    # Start and finish: the runs are timed, and the lines can be moved later.
+    a = _trace_point(page, 0.2)
+    page.mouse.click(a[0], a[1])
+    b = _trace_point(page, 0.6)
+    page.mouse.click(b[0], b[1])
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("Timed between the start and finish you picked")
+    page.get_by_role("button", name="Move start and finish").click()
+    expect(marks).to_have_count(2)
+    expect(page.get_by_role("button", name="Done")).to_be_visible()
+    # Drag the finish marker further along the track.
+    fin = page.locator("#tp-tap [data-mark='finish']")
+    page.locator("#tp-tap").scroll_into_view_if_needed()
+    before = fin.bounding_box()
+    c = _trace_point(page, 0.7)
+    page.mouse.move(before["x"] + before["width"] / 2, before["y"] + before["height"] / 2)
+    page.mouse.down()
+    page.mouse.move(c[0], c[1], steps=8)
+    page.mouse.up()
+    expect(page.locator("#tp-tap [data-mark='finish']")).to_have_count(1)
+    after = page.locator("#tp-tap [data-mark='finish']").bounding_box()
+    assert abs(after["x"] - before["x"]) + abs(after["y"] - before["y"]) > 10, (before, after)
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("Drag a marker to move it, then press Done")
+    page.get_by_role("button", name="Done").click()
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("Timed between the start and finish you picked")
+    # Clear takes both away.
+    page.get_by_role("button", name="Move start and finish").click()
+    page.get_by_role("button", name="Clear markers").click()
+    expect(marks).to_have_count(0)
+    expect(step).to_have_text("Tap the start line, then the finish line.")
+
+
+def test_the_marker_map_is_bigger_and_can_go_full_screen(page):
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    page.locator("[data-type] [data-v='sprint']").click()
+    tap = page.locator("#tp-tap")
+    expect(tap).to_be_visible()
+    box = tap.bounding_box()
+    assert box["height"] >= box["width"] * 0.8, box
+    page.get_by_role("button", name="Full screen").click()
+    expect(page.locator("#tp-tapbox")).to_have_class(re.compile("is-full"))
+    vp = page.viewport_size
+    big = page.locator("#tp-tap").bounding_box()
+    assert big["width"] >= vp["width"] - 40 and big["height"] >= vp["height"] * 0.6, big
+    # Markers still go where they're placed in full screen.
+    a = _trace_point(page, 0.3)
+    page.mouse.click(a[0], a[1])
+    expect(page.locator("#tp-tap .tp-tapmark")).to_have_count(1)
+    page.get_by_role("button", name="Exit full screen").click()
+    expect(page.locator("#tp-tapbox")).not_to_have_class(re.compile("is-full"))
+    expect(page.locator("#tp-tap .tp-tapmark")).to_have_count(1)

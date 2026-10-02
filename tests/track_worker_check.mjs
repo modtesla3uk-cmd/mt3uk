@@ -358,13 +358,14 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
 // The car's own channels are kept, cleaned, with the session.
 {
   const withData = JSON.parse(JSON.stringify(session));
-  withData.carData = { soc: { start: 80, end: 74.5 }, power: { max: 250, regen: 120 }, batteryTemp: { start: 50, max: 62 }, tyrePressure: { start: 'x', end: 2.5 }, slip: { max: 9999 }, evil: { a: 1 }, found: ['State of charge', 'Power', '<b>x</b>'], empty: ['Tyre pressure'] };
+  withData.carData = { soc: { start: 80, end: 74.5 }, power: { max: 250, regen: 120, early: 250, late: 190 }, batteryTemp: { start: 50, max: 62 }, tyrePressure: { start: 'x', end: 2.5 }, slip: { max: 9999 }, evil: { a: 1 }, found: ['State of charge', 'Power', '<b>x</b>'], empty: ['Tyre pressure'], runs: [{ run: 1, soc: { start: 80, end: 77 } }, { run: 2, soc: { start: 77, end: 74.5 }, evil: 1 }, { run: 'x', soc: { start: 1, end: 0 } }] };
   r = await call('POST', '/track/sessions', { carId: 'cara1', session: withData, privacy: 'private' }, 'tok-a');
   const cid = r.body.session.id;
   r = await call('GET', '/track/session?id=' + cid, undefined, 'tok-a');
   const cd = r.body.session.carData;
-  ok(cd && cd.soc.start === 80 && cd.power.regen === 120 && cd.batteryTemp.max === 62 && cd.tyrePressure.end === 2.5 && !('start' in cd.tyrePressure) && !cd.slip && !cd.evil, 'car data kept, bad values dropped: ' + JSON.stringify(cd));
+  ok(cd && cd.soc.start === 80 && cd.power.regen === 120 && cd.power.late === 190 && cd.batteryTemp.max === 62 && cd.tyrePressure.end === 2.5 && !('start' in cd.tyrePressure) && !cd.slip && !cd.evil, 'car data kept, bad values dropped: ' + JSON.stringify(cd));
   ok(cd.found.length === 3 && cd.empty[0] === 'Tyre pressure', 'which channels the file had');
+  ok(cd.runs && cd.runs.length === 2 && cd.runs[1].run === 2 && cd.runs[1].soc.end === 74.5 && !cd.runs[1].evil, 'figures for each file of a day kept, cleaned: ' + JSON.stringify(cd.runs));
   await call('DELETE', '/track/session?id=' + cid, undefined, 'tok-a');
 }
 

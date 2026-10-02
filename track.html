@@ -172,6 +172,11 @@
   .tp-gbox #tp-gtoggles { order: 2; }
   @media (max-width: 780px) { .tp-gbox .tp-gswitch { order: 2; } .tp-gbox #tp-gtoggles { order: 3; flex-basis: 100%; } }
   .tp-gbox.is-off #tp-gtoggles, .tp-gbox.is-off #tp-gforce, .tp-gbox.is-off #tp-gnote { display: none; }
+  /* Under the chart, the slider lines up with the chart's time axis, which is its ruler. */
+  .tp-gbox .tp-scrub-row { display: block; margin-top: -2px; }
+  .tp-gbox .tp-clock { display: block; text-align: right; margin-top: 2px; }
+  .tp-gbox.has-axis .tp-ruler { display: none; }
+  .tp-gbox.has-axis .tp-scrub-track { padding-top: 0; }
   /* Full screen: the map fills the screen, with the controls, numbers and G-force lines along the bottom. */
   body.tp-noscroll { overflow: hidden; }
   .tp-mapcard.is-full { position: fixed; inset: 0; z-index: 1100; display: flex; flex-direction: column; height: 100vh; height: 100dvh; margin: 0; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); border: 0; border-radius: 0; background: var(--paper, #f3f1ea); overflow: hidden; }
@@ -262,6 +267,49 @@
   .tp-tile .k { font-size: 0.78rem; font-weight: 600; color: var(--steel); }
   .tp-tile .v { font-family: var(--font-head); font-weight: 800; font-size: 1.35rem; color: var(--ink); font-variant-numeric: tabular-nums; line-height: 1.25; overflow-wrap: anywhere; }
   .tp-tile .s { font-size: 0.78rem; color: var(--steel); }
+  /* Track Mode temperature zones: a coloured edge and a light tint */
+  .tp-tile.tp-heat { border-left-width: 5px; }
+  .tp-tile.is-ok { border-left-color: #1d8a4e; }
+  .tp-tile.is-yellow { border-left-color: #e6b800; background: #fffbea; }
+  .tp-tile.is-orange { border-left-color: #e8742a; background: #fff4ec; }
+  .tp-tile.is-red { border-left-color: #d33a2c; background: #fdeeec; }
+  .tp-held { margin: 0 0 12px; }
+  /* One map: Colour by speed switch and the speed key under it */
+  .tp-map-head { flex-wrap: wrap; align-items: center; gap: 8px; }
+  .tp-map-head .tp-speedsw { width: auto; min-height: 44px; margin: 0 0 0 auto; gap: 8px; font-size: 0.85rem; color: var(--steel); flex: none; }
+  .tp-speedkey { margin-top: 6px; }
+  .tp-speedkey[hidden] { display: none; }
+  /* Full screen: no title, and just the colour key, so the map keeps its room */
+  .tp-mapcard.is-full .tp-map-head h3 { display: none; }
+  .tp-mapcard.is-full .tp-map-head .tp-speedsw { margin-left: 0; }
+  .tp-mapcard.is-full .tp-map-head #tp-full { margin-left: auto; }
+  .tp-mapcard.is-full .tp-mapwrap { position: relative; }
+  .tp-mapcard.is-full .tp-speedkey { position: absolute; left: 8px; top: 8px; margin: 0; padding: 4px 8px; border-radius: var(--radius-sm); background: rgba(255,255,255,.9); }
+  .tp-mapcard.is-full .tp-speedkey > span:last-child { display: none; }
+  /* Placing the start and finish: a bigger map, tools, and full screen */
+  .tp-tapbox { margin: 0 0 14px; }
+  .tp-tapbox .tp-tap { margin-bottom: 0; }
+  .tp-tap-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .tp-tap-tools .btn .icon { width: 16px; height: 16px; }
+  .tp-tapbox.is-full { position: fixed; inset: 0; z-index: 1100; display: flex; flex-direction: column; margin: 0; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); background: var(--paper); }
+  .tp-tapbox.is-full .tp-tapmap { flex: 1 1 auto; min-height: 0; }
+  .tp-tapbox.is-full .tv-zoom-wrap { height: 100%; }
+  .tp-tapbox.is-full #tp-tap { width: 100%; height: 100%; }
+  .tp-move-lines { margin: 0 0 12px; }
+  .tp-move-lines .icon { width: 16px; height: 16px; }
+  #car-data { margin-bottom: 18px; }
+  /* Lap times, folded away */
+  .tp-laps { align-self: start; }
+  .tp-laps summary { display: flex; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; list-style: none; }
+  .tp-laps summary::-webkit-details-marker { display: none; }
+  .tp-laps summary h3 { margin: 0; }
+  .tp-laps summary .tp-small { margin: 0; }
+  .tp-laps summary .icon { margin-left: auto; width: 18px; height: 18px; color: var(--steel); transition: transform .15s; }
+  .tp-laps[open] summary .icon { transform: rotate(90deg); }
+  .tp-laps[open] summary { margin-bottom: 8px; }
+  .tp-car-runs { margin: 0 0 8px; }
+  .tp-car-from { display: flex; align-items: center; gap: 6px; margin: 0 0 10px; }
+  .tp-car-from .icon { width: 16px; height: 16px; color: var(--steel); flex: none; }
   .tp-grid { display: grid; gap: 14px; margin-bottom: 14px; }
   .tp-grid > * { min-width: 0; }
   @media (min-width: 781px) { .tp-g-map { grid-template-columns: 1.25fr 1fr; align-items: start; } .tp-g2 { grid-template-columns: 1fr 1fr; align-items: start; } }

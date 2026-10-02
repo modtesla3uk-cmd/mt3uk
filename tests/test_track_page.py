@@ -872,6 +872,80 @@ def test_the_leaderboard_has_a_my_sessions_button_back_to_your_sessions(page):
     assert page.evaluate("document.documentElement.scrollWidth") <= 390
 
 
+def test_the_battery_start_and_end_are_rounded_once(page):
+    fake = FakeWorker(earlier=False)
+    rec = car_lap_session()
+    rec["carData"]["soc"] = {"start": 62.72, "end": 60.48}
+    for l in rec["laps"]:
+        l.pop("carData")
+    fake.sessions["lp1"] = rec
+    fake.index.append(summary(rec))
+    open_page(page, fake, path="/track.html?s=lp1")
+    # 62.72 and 60.48 show as 63% and 60%, as the car's own display would, and the charge used is 2%.
+    tile = page.locator("#car-data .tp-tile", has_text="Charge used")
+    expect(tile).to_contain_text("2%")
+    expect(tile).to_contain_text("63% to 60%")
+
+
+def test_a_lap_timer_file_and_a_track_mode_file_from_one_session_are_joined(page):
+    fake = FakeWorker(earlier=False)
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session", exact=True).click()
+    rb = (ROOT / "tests" / "fixtures" / "racebox-drive-2026-10-02.gpx").read_bytes()
+    car = (ROOT / "tests" / "fixtures" / "tesla-track-mode-drive-2026-10-02.csv").read_bytes()
+    page.set_input_files("#tp-file", files=[
+        {"name": "RaceBox_Drag_Session_on_02-10-2026_23-03.gpx", "mimeType": "application/gpx+xml", "buffer": rb},
+        {"name": "telemetry-v1-2026-10-02-23_01_21.csv", "mimeType": "text/csv", "buffer": car}])
+    # One session: the timed file says it has the car data, the car file says where it went.
+    files = page.locator(".tp-file-list")
+    expect(files).to_contain_text("With the car data from telemetry-v1-2026-10-02-23_01_21.csv")
+    expect(files).to_contain_text("Car data added to the session from RaceBox_Drag_Session_on_02-10-2026_23-03.gpx")
+    expect(files).to_contain_text("lined up, match 1.00")
+    expect(page.locator(".tp-skipped, .tp-file-skip")).to_have_count(0)
+    # It can be switched to separate files, and back.
+    toggle = page.locator("#tp-merge-toggle")
+    expect(toggle).to_have_text("Save the files separately instead")
+    toggle.click()
+    expect(page.locator(".tp-file-list")).to_contain_text("Joining is switched off")
+    expect(page.locator("#tp-merge-toggle")).to_have_text("Join the lap timer and car files")
+    page.locator("#tp-merge-toggle").click()
+    expect(page.locator(".tp-file-list")).to_contain_text("lined up, match")
+    # A drive, not a circuit: choose Other, then saving keeps one session with both file names and the car's figures.
+    page.locator("[data-type] [data-v='other']").click()
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator(".tp-session-head")).to_be_visible()
+    assert len(fake.saved) == 1
+    saved = fake.saved[0]["session"]
+    assert saved["carSource"]["name"] == "telemetry-v1-2026-10-02-23_01_21.csv" and saved["carSource"]["match"] > 0.99 and saved["carSource"]["g"]
+    assert "RaceBox_Drag_Session" in saved["fileName"] and "telemetry-v1-2026-10-02" in saved["fileName"]
+    assert saved["carData"]["soc"]["start"] > saved["carData"]["soc"]["end"]
+    # The session page says where the car's figures came from.
+    expect(page.locator("#tp-car-from")).to_contain_text("lined up with the lap timer file")
+
+
+def test_a_track_mode_file_that_does_not_line_up_is_saved_on_its_own_and_says_why(page):
+    import csv, io
+    fake = FakeWorker(earlier=False)
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session", exact=True).click()
+    rb = (ROOT / "tests" / "fixtures" / "racebox-drive-2026-10-02.gpx").read_bytes()
+    rows = list(csv.reader(io.StringIO((ROOT / "tests" / "fixtures" / "tesla-track-mode-drive-2026-10-02.csv").read_text())))
+    head, body = rows[0], rows[1:]
+    k = head.index("Speed (MPH)")
+    speeds = [r[k] for r in body][::-1]   # the same drive's speeds in the wrong order: they cannot match
+    for r, v in zip(body, speeds):
+        r[k] = v
+    out = io.StringIO()
+    csv.writer(out, lineterminator="\n").writerows([head] + body)
+    page.set_input_files("#tp-file", files=[
+        {"name": "RaceBox_Drag_Session_on_02-10-2026_23-03.gpx", "mimeType": "application/gpx+xml", "buffer": rb},
+        {"name": "telemetry-v1-2026-10-02-23_01_21.csv", "mimeType": "text/csv", "buffer": out.getvalue().encode()}])
+    expect(page.locator(".tp-file-list")).to_contain_text("Saved on its own")
+    expect(page.locator(".tp-file-list")).not_to_contain_text("Car data added")
+    expect(page.locator("#tp-merge-toggle")).to_be_visible()
+
+
+
 def test_csv_with_unknown_columns_asks_which_is_which(page):
     # The same laps as a CSV with columns we don't recognise.
     lines = FIXTURE.read_text(encoding="latin-1").splitlines()

@@ -639,6 +639,15 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   const lapGot = await call('GET', '/track/session?id=' + lapSaved.body.session.id, undefined, 'tok-a');
   const l0 = lapGot.body.session.laps && lapGot.body.session.laps[0];
   ok(l0 && l0.carData && l0.carData.soc && Number.isFinite(l0.carData.soc.start) && !('run' in l0.carData), 'a lap\'s own car figures are kept when the session is saved');
+  // A lap timer file joined with a Track Mode file keeps which car file it came from, and how well they lined up
+  const rbRd = T.read(fs.readFileSync(ROOT + 'tests/fixtures/racebox-drive-2026-10-02.gpx', 'utf8'), 'RaceBox_Drag_Session_on_02-10-2026_23-03.gpx');
+  const tmRd = T.read(fs.readFileSync(ROOT + 'tests/fixtures/tesla-track-mode-drive-2026-10-02.csv', 'utf8'), 'telemetry-v1-2026-10-02-23_01_21.csv');
+  const joined = T.mergeSources(rbRd, tmRd);
+  const joinedSess = T.analyse(Object.assign({}, joined.rd, { carSource: Object.assign({}, joined.rd.carSource, { name: 'telemetry-v1-2026-10-02-23_01_21.csv' }) }), lib, { type: 'other' });
+  const joinedSaved = await call('POST', '/track/sessions', { carId: 'cara1', session: joinedSess }, 'tok-a');
+  const joinedGot = await call('GET', '/track/session?id=' + joinedSaved.body.session.id, undefined, 'tok-a');
+  const cs = joinedGot.body.session.carSource;
+  ok(cs && cs.name === 'telemetry-v1-2026-10-02-23_01_21.csv' && cs.match > 0.99 && cs.g === true && cs.speed === true, 'a joined session keeps its car file name and how well it lined up');
   const plain = await call('POST', '/track/sessions', { carId: 'cara1', session }, 'tok-a');
   const list2 = await call('GET', '/track/sessions', undefined, 'tok-a');
   ok(!('soc' in list2.body.sessions.find(x => x.id === plain.body.session.id)), 'a session with no battery figures has none');

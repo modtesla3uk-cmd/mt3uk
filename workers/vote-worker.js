@@ -6601,6 +6601,15 @@ function cleanTrackSession(s, library) {
   ['duration', 'distance', 'vmax', 'latMax', 'brakeMax', 'accMax', 'bestTime', 'possible'].forEach(function (k) { var n = trackNum(s[k], -100, 1e7); if (n !== null) out[k] = n; });
   var fname = trackText(s.fileName, 200);
   if (fname) out.fileName = fname;
+  // A lap timer file joined with a Track Mode file: the car file's name and how well they lined up.
+  if (s.carSource && typeof s.carSource === 'object') {
+    var cs = { name: trackText(s.carSource.name, 120) }, csShift = trackNum(s.carSource.shift, -86400, 86400), csMatch = trackNum(s.carSource.match, 0, 1);
+    if (csShift !== null) cs.shift = csShift;
+    if (csMatch !== null) cs.match = csMatch;
+    if (s.carSource.speed) cs.speed = true;
+    if (s.carSource.g) cs.g = true;
+    out.carSource = cs;
+  }
   // Which version of the timing code worked this out (see MT3UKTrack.ANALYSIS_VERSION); none means the first.
   var av = trackNum(s.analysisVersion, 1, 1000);
   if (av) out.analysisVersion = Math.round(av);

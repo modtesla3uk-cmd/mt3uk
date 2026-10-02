@@ -530,3 +530,44 @@ ok(T.fmtLap(99.786) === '1:39.786' && T.niceDate('2026-05-28') === '28 May 2026'
   ok(lc && lc.soc && lc.power && lc.batteryTemp && !('found' in lc) && !('empty' in lc), 'a lap carries its own Track Mode figures (charge, power, temperatures)');
   ok(lc && lc.soc.start >= lc.soc.end && ss.carData.soc.start >= lc.soc.start - 0.5, 'its battery figures sit inside the whole session\'s');
 }
+
+// The battery keeps two decimals, so rounding to a whole percent happens once: 60.48 is 60, not 61
+{
+  const rd = T.read(fs.readFileSync(ROOT + 'tests/fixtures/tesla-track-mode-short-drive-end.csv', 'utf8'), 'telemetry-v1-2026-10-02-23_01_21.csv');
+  const d = T.analyse(rd, { venues: [] }, { type: 'other' });
+  ok(d.carData && d.carData.soc && d.carData.soc.end === 60.48 && Math.round(d.carData.soc.end) === 60, 'the battery at the end is kept as 60.48, which is 60%, not 61% (' + (d.carData && d.carData.soc && d.carData.soc.end) + ')');
+}
+
+// Two files from one session: a lap timer's and the car's are lined up by their speed and joined
+{
+  const car = T.read(fs.readFileSync(ROOT + 'tests/fixtures/tesla-track-mode-no-timestamps-lap.csv', 'utf8'), 'telemetry-v1-2024-02-23-15_10_30.csv');
+  // The same drive as a lap timer logs it: 10 a second, its clock starting 37.5 s before the car file, a little noise, and
+  // speed and g-force only worked out from the positions (as a GPX has).
+  const OFFSET = 37.5, pts = []; let seed = 7; const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647 - 0.5; };
+  for (let t = 0; t < OFFSET; t += 0.1) pts.push({ t, lat: car.points[0].lat, lng: car.points[0].lng, v: 0, la: 1.5, lo: 1.5, sats: NaN });
+  const last = car.points[car.points.length - 1].t; let j = 0;
+  for (let tc = 0; tc <= last; tc += 0.1) {
+    while (j < car.points.length - 2 && car.points[j + 1].t < tc) j++;
+    const a = car.points[j], b = car.points[j + 1], f = (tc - a.t) / ((b.t - a.t) || 1);
+    pts.push({ t: OFFSET + tc, lat: a.lat + (b.lat - a.lat) * f + rnd() * 2e-6, lng: a.lng + (b.lng - a.lng) * f + rnd() * 2e-6, v: a.v + (b.v - a.v) * f + rnd() * 0.6, la: 1.5, lo: -1.5, sats: NaN });
+  }
+  const timed = Object.assign({}, car, { points: pts, format: 'VBO', timeRebuilt: false, speedDerived: true, gDerived: true });
+  const r = T.mergeSources(timed, car);
+  ok(r.rd && Math.abs(r.shift - OFFSET) < 0.15 && r.corr > 0.99, 'the car file is lined up with the timed file by its speed (offset ' + (r.shift && r.shift.toFixed(2)) + ' s, match ' + (r.corr && r.corr.toFixed(3)) + ')');
+  const ms = T.analyse(r.rd, { venues: [] }, {});
+  ok(ms.laps && ms.laps.length === 1 && ms.laps[0].carData && ms.laps[0].carData.soc && ms.carSource && ms.carSource.match > 0.99, 'the joined session is timed by the lap timer and each lap has the car\'s figures');
+  const carOnly = T.analyse(car, { venues: [] }, {});
+  ok(ms.gDerived === false && Math.abs(ms.latMax - carOnly.latMax) < 0.05 && ms.latMax < 1.2, 'the car\'s own g-forces replace the ones worked out from GPS (' + ms.latMax + ' g, the car says ' + carOnly.latMax + ', not 1.5)');
+  const other = T.read(fs.readFileSync(ROOT + 'tests/fixtures/thruxton-trimmed.vbo', 'latin1'), 'f.vbo');
+  const bad = T.mergeSources(other, car);
+  ok(!bad.rd && /line up|enough movement|same place/.test(bad.reason), 'files from different drives are not joined (' + bad.reason + ')');
+  const noCar = T.mergeSources(other, other);
+  ok(!noCar.rd && /no car data/.test(noCar.reason), 'a second file without car data is not joined');
+  // The real pair: a RaceBox GPX and the Track Mode file of the same drive
+  const rb = T.read(fs.readFileSync(ROOT + 'tests/fixtures/racebox-drive-2026-10-02.gpx', 'utf8'), 'RaceBox_Drag_Session_on_02-10-2026_23-03.gpx');
+  const tm = T.read(fs.readFileSync(ROOT + 'tests/fixtures/tesla-track-mode-drive-2026-10-02.csv', 'utf8'), 'telemetry-v1-2026-10-02-23_01_21.csv');
+  const real = T.mergeSources(rb, tm);
+  ok(real.rd && real.corr > 0.99 && Math.abs(real.shift) < 0.5, 'a real RaceBox and Track Mode pair line up (offset ' + (real.shift && real.shift.toFixed(2)) + ' s, match ' + (real.corr && real.corr.toFixed(4)) + ')');
+  const rs = T.analyse(real.rd, { venues: [] }, { type: 'other' });
+  ok(rs.gDerived === false && rs.latMax > 0.3 && rs.latMax < 0.7 && rs.carData && rs.carData.soc && rs.carData.soc.end < rs.carData.soc.start + 0.01, 'the real pair gives the car\'s own g-forces (' + rs.latMax + ' g) and its battery figures');
+}

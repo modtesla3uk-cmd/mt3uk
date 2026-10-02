@@ -573,6 +573,13 @@ def test_tap_the_start_line_on_a_zoomable_map(page, tmp_path):
     expect(reset).to_be_visible()
     reset.click()
     assert abs(width() - full) < 0.5, "reset shows the whole track"
+    # Zooming out goes past the whole track, so there is room round it, and reset brings it back.
+    for _ in range(6):
+        page.locator(".tv-zoom-out").click()
+    assert width() > full * 2, "zooms out past the whole track"
+    expect(reset).to_be_visible()
+    reset.click()
+    assert abs(width() - full) < 0.5, "reset shows the whole track again"
     # Scroll-zoom over a point on the trace: it stays under the pointer, and
     # a tap there through the zoomed viewBox still finds the laps.
     pt = page.evaluate("""() => {

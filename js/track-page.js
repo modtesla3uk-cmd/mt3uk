@@ -898,7 +898,7 @@
         else a[k] = el.value.trim();
       });
     }
-    group('[data-type]', function (v) { keep(); if (v !== a.type) { a.type = v; analyse(); } });
+    group('[data-type]', function (v) { keep(); if (v !== a.type) { a.type = v; a.startLine = null; a.finishLine = null; a.editLines = false; a.tapFull = false; analyse(); } });
     ['tp-date', 'tp-time'].forEach(function (id) {
       var el = document.getElementById(id);
       if (!el) return;

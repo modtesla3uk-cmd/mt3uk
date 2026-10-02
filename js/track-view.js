@@ -426,7 +426,7 @@
   // Zoom and pan for a map: + / - / reset buttons, the mouse wheel, a pinch,
   // and dragging once zoomed in. It works on the SVG viewBox, so point()
   // keeps mapping taps to the right place. A drag that pans isn't a click.
-  var ZOOM_MAX = 16, TRACK_WIDTH_M = 12;
+  var ZOOM_MAX = 16, ZOOM_MIN = 0.4, TRACK_WIDTH_M = 12;
   function zoomControls(svg, cfg) {
     var wrap = svg.parentNode;
     if (!wrap.classList.contains('tv-zoom-wrap')) {
@@ -445,19 +445,20 @@
       svg.setAttribute('viewBox', vb.x + ' ' + vb.y + ' ' + vb.w + ' ' + vb.h);
       var kk = W / vb.w;
       svg.classList.toggle('is-zoomed', kk > 1.01);
-      reset.hidden = kk <= 1.01;
+      reset.hidden = Math.abs(kk - 1) <= 0.01;
       cfg.onZoom(kk);
     }
     function zoomAt(f, cx, cy) {
-      var nw = Math.max(W / ZOOM_MAX, Math.min(W, vb.w / f)), nh = nw * H / W;
+      var nw = Math.max(W / ZOOM_MAX, Math.min(W / ZOOM_MIN, vb.w / f)), nh = nw * H / W;
       if (cx == null) { cx = vb.x + vb.w / 2; cy = vb.y + vb.h / 2; }
       vb.x = cx - (cx - vb.x) * nw / vb.w; vb.y = cy - (cy - vb.y) * nh / vb.h;
       vb.w = nw; vb.h = nh;
       clamp(); set();
     }
     function clamp() {
-      vb.x = Math.max(0, Math.min(W - vb.w, vb.x));
-      vb.y = Math.max(0, Math.min(H - vb.h, vb.y));
+      // Zoomed out past the whole track, the map sits in the middle of the extra room.
+      vb.x = vb.w >= W ? (W - vb.w) / 2 : Math.max(0, Math.min(W - vb.w, vb.x));
+      vb.y = vb.h >= H ? (H - vb.h) / 2 : Math.max(0, Math.min(H - vb.h, vb.y));
     }
     function btn(cls, label, path) {
       var b = document.createElement('button');

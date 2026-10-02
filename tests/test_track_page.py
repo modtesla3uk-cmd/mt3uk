@@ -387,7 +387,7 @@ def test_older_session_without_readings_asks_for_the_file_again(page):
     expect(page.locator("#tp-old-version")).to_have_count(0)
 
 
-def test_save_and_close_and_discard_on_a_saved_session(page):
+def test_close_and_discard_on_a_saved_session(page):
     fake = FakeWorker()
     open_page(page, fake)
     page.get_by_role("link", name="Add a session").click()
@@ -395,31 +395,38 @@ def test_save_and_close_and_discard_on_a_saved_session(page):
     page.get_by_role("button", name="Save session").click()
     expect(page.locator(".tp-session-head")).to_be_visible()
     page.goto("/track.html?s=new1")
-    expect(page.locator("#tp-e-saveclose")).to_have_text("Save and close")
+    expect(page.locator("#tp-e-close")).to_have_text("Close")
     expect(page.locator("#tp-e-discard")).to_have_text("Discard")
-    # Discard with nothing changed just closes, with no question and nothing saved.
-    page.locator("#tp-e-discard").click()
+    expect(page.locator("#tp-e-saveclose")).to_have_count(0)
+    # Close with nothing changed just closes, with no question and nothing saved.
+    page.locator("#tp-e-close").click()
     expect(page).to_have_url(re.compile(r"/track\.html$"))
-    # Discard after a change asks first; Cancel keeps the page and the unsaved change.
+    # Close after a change asks first; Cancel keeps the page and the unsaved change.
     page.goto("/track.html?s=new1")
     page.fill("#tp-e-notes", "scribble")
     dialogs = []
     page.once("dialog", lambda d: (dialogs.append(d.message), d.dismiss()))
-    page.locator("#tp-e-discard").click()
-    assert dialogs and "Discard" in dialogs[0]
+    page.locator("#tp-e-close").click()
+    assert dialogs and "Close without saving" in dialogs[0]
     expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
     expect(page.locator("#tp-e-notes")).to_have_value("scribble")
-    assert fake.sessions["new1"].get("notes") != "scribble"
     # Accepting it closes without saving.
     page.once("dialog", lambda d: d.accept())
-    page.locator("#tp-e-discard").click()
+    page.locator("#tp-e-close").click()
     expect(page).to_have_url(re.compile(r"/track\.html$"))
     assert fake.sessions["new1"].get("notes") != "scribble"
-    # Save and close saves the change, then goes back to Your sessions.
+    # Discard puts the settings back as last saved and stays on the page.
     page.goto("/track.html?s=new1")
+    page.fill("#tp-e-notes", "scribble")
+    page.locator("#tp-e-discard").click()
+    expect(page.locator("#tp-e-notes")).to_have_value("")
+    expect(page.locator("#tp-status")).to_contain_text("Changes discarded")
+    expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
+    assert fake.sessions["new1"].get("notes") != "scribble"
+    # Save changes keeps the change.
     page.fill("#tp-e-notes", "keep this")
-    page.locator("#tp-e-saveclose").click()
-    expect(page).to_have_url(re.compile(r"/track\.html$"))
+    page.get_by_role("button", name="Save changes").click()
+    expect(page.locator("#tp-status")).to_contain_text("Saved")
     assert fake.sessions["new1"]["notes"] == "keep this"
 
 

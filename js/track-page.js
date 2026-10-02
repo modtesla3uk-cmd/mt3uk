@@ -2161,7 +2161,7 @@
       '<div class="tp-field"><label for="tp-e-temp">Air temperature (°C)</label><input class="field" id="tp-e-temp" inputmode="numeric" value="' + esc(s.temp == null ? '' : s.temp) + '"></div>' +
       '<div class="tp-weather-row"><button type="button" class="btn btn-secondary btn-sm" id="tp-e-weather">Fill in from weather</button><p class="tp-src" id="tp-e-src">' + (s.tempSource === 'weather' && s.weather ? icon('info') + '<span>' + weatherNote(s.weather, s.venue) + '</span>' : s.tempSource === 'file' ? icon('info') + '<span>From the air temperature recorded in your file.</span>' : '') + '</p></div>' +
       '<div class="tp-field"><label for="tp-e-notes">Notes (only you see these)</label><input class="field" id="tp-e-notes" value="' + esc(s.notes || '') + '"></div>' +
-      '<div class="tp-actions"><button type="button" class="btn btn-primary" id="tp-e-save">Save changes</button><button type="button" class="btn btn-accent" id="tp-e-saveclose">Save and close</button><button type="button" class="btn btn-secondary" id="tp-e-discard">Discard</button><button type="button" class="btn btn-danger" id="tp-e-del">' + icon('trash') + 'Delete</button></div><p class="tp-status" id="tp-status" role="status"></p></div></div>';
+      '<div class="tp-actions"><button type="button" class="btn btn-primary" id="tp-e-save">Save changes</button><button type="button" class="btn btn-secondary" id="tp-e-close">Close</button><button type="button" class="btn btn-ghost" id="tp-e-discard">Discard</button><button type="button" class="btn btn-danger" id="tp-e-del">' + icon('trash') + 'Delete</button></div><p class="tp-status" id="tp-status" role="status"></p></div></div>';
   }
   function wireOwner(s) {
     var edit = { privacy: s.privacy, conditions: s.conditions, tempSource: s.tempSource || '', weather: s.weather || null, temp: s.temp };
@@ -2201,14 +2201,14 @@
     var box = document.getElementById('settings');
     ['input', 'change', 'click'].forEach(function (ev) {
       box.addEventListener(ev, function (e) {
-        if (e.target.closest('#tp-e-save, #tp-e-saveclose, #tp-e-discard, #tp-e-del')) return;
+        if (e.target.closest('#tp-e-save, #tp-e-close, #tp-e-discard, #tp-e-del')) return;
         if (ev === 'click' && !e.target.closest('button[data-v], #tp-e-weather')) return;
         dirty = true;
       });
     });
     // Back to Your sessions, as the Back link does.
     function closeSession() { go(''); }
-    function saveSettings(thenClose) {
+    function saveSettings() {
       var t = document.getElementById('tp-e-temp').value.trim();
       var ty = tyrePayload(readTyre('tp-e-tyre'));
       api('PUT', '/track/session', Object.assign({ id: s.id, privacy: edit.privacy, conditions: edit.conditions || '' }, ty, { temp: t === '' ? null : parseFloat(t), tempSource: t === '' ? '' : (edit.tempSource || 'member'), weather: edit.tempSource === 'weather' ? edit.weather : null, notes: document.getElementById('tp-e-notes').value })).then(function (d) {
@@ -2216,15 +2216,20 @@
         mine = null; counts = null;
         Object.assign(view.s, { privacy: d.session.privacy, conditions: d.session.conditions, tyres: d.session.tyres, tyreMake: d.session.tyreMake, tyreModel: d.session.tyreModel, tyreWidth: d.session.tyreWidth, tyreProfile: d.session.tyreProfile, tyreRim: d.session.tyreRim, temp: d.session.temp, tempSource: d.session.tempSource, weather: d.session.weather, notes: document.getElementById('tp-e-notes').value });
         dirty = false;
-        if (thenClose) { closeSession(); return; }
         getMine().then(function (m) { view.mine = m; drawSession(); status('Saved.', 'ok'); });
       });
     }
-    document.getElementById('tp-e-save').addEventListener('click', function () { saveSettings(false); });
-    document.getElementById('tp-e-saveclose').addEventListener('click', function () { saveSettings(true); });
-    document.getElementById('tp-e-discard').addEventListener('click', function () {
-      if (dirty && !window.confirm('Discard your changes to this session?')) return;
+    document.getElementById('tp-e-save').addEventListener('click', saveSettings);
+    // Close leaves without saving; it only checks first when something was changed.
+    document.getElementById('tp-e-close').addEventListener('click', function () {
+      if (dirty && !window.confirm('Close without saving your changes?')) return;
       closeSession();
+    });
+    // Discard puts the settings back as they were last saved, and stays on the page.
+    document.getElementById('tp-e-discard').addEventListener('click', function () {
+      var had = dirty;
+      drawSession();
+      if (had) status('Changes discarded.', 'ok');
     });
     document.getElementById('tp-e-del').addEventListener('click', function () {
       if (!window.confirm('Delete this session? This can\'t be undone.')) return;

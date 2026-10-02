@@ -183,7 +183,8 @@
       var sm = marker(mx, my);
       el('line', { x1: -dx / L * 14, y1: -dy / L * 14, x2: dx / L * 14, y2: dy / L * 14, stroke: '#ffffff', 'stroke-width': 6, 'stroke-linecap': 'round' }, sm.g);
       el('line', { x1: -dx / L * 14, y1: -dy / L * 14, x2: dx / L * 14, y2: dy / L * 14, stroke: colour, 'stroke-width': 3.5, 'stroke-linecap': 'round' }, sm.g);
-      text(sm.g, 18, 5, label, { 'font-size': 13, 'font-weight': 700, fill: '#ffffff', stroke: '#1a1a1a', 'stroke-width': 3.5, 'paint-order': 'stroke', 'stroke-linejoin': 'round' });
+      // A style, not attributes: the page's own text rule would otherwise turn it grey.
+      text(sm.g, 18, 5, label, { 'font-size': 13, 'font-weight': 700, fill: '#ffffff', stroke: '#1a1a1a', 'stroke-width': 3.5, 'paint-order': 'stroke', 'stroke-linejoin': 'round', style: 'fill:#ffffff;stroke:#1a1a1a;stroke-width:3.5px;paint-order:stroke;stroke-linejoin:round;font-weight:700;font-size:13px' });
     }
     if (opts.startLine) lineMarker(opts.startLine, opts.finishLine ? 'Start' : 'Start / finish', opts.finishLine ? '#1baf7a' : C.ink);
     if (opts.finishLine) lineMarker(opts.finishLine, 'Finish', '#d33a2c');

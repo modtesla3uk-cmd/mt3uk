@@ -720,6 +720,13 @@
     // A listed layout's own start line wins; the file's or the member's line is only a fallback.
     candidates.filter(function (c) { return c.layout; }).forEach(evalLine);
     if (!choice) candidates.filter(function (c) { return !c.layout; }).forEach(evalLine);
+    // A track day needs no start line from the member: with none from the
+    // track, the file or the member, the lap line is found from the trace (the
+    // place on it that the car crosses most often, and fastest).
+    if (!choice && type === 'track') {
+      var auto = autoLapLine(pts, proj, minGap);
+      if (auto) choice = { c: { layout: null, line: auto.line, sectors: [], auto: true }, cr: auto.cr, score: auto.cr.length, med: median(buildLaps(pts, auto.cr).map(function (l) { return l.dist; })) };
+    }
     if (type === 'other') session.trace = { outline: outline(pts) };
     if (!choice && type === 'other') { session.laps = []; return session; }
     if (!choice) {
@@ -741,7 +748,7 @@
     }
     if (layout) { session.layoutId = layout.id; session.layout = layout.name; }
     session.startLine = choice.c.line;
-    if (choice.c.own) session.startLineFromMember = true; else if (choice.c.layout) session.officialLines = true;
+    if (choice.c.own) session.startLineFromMember = true; else if (choice.c.auto) session.autoLine = true; else if (choice.c.layout) session.officialLines = true;
     var sectorCr = layout && layout.sectors && layout.sectors.length ? layout.sectors.map(function (s) { return crossings(pts, proj, s, minGap); }) : null;
     var laps = buildLaps(pts, choice.cr, sectorCr);
     return timedTail(session, pts, laps, layout, proj, origin);
@@ -884,6 +891,23 @@
       session.corners = corners;
     }
     return session;
+  }
+
+  // A line across the road at the place on the trace that is crossed most
+  // times (most laps), the fastest of those: samples the trace and counts.
+  function autoLapLine(pts, proj, minGap) {
+    var n = pts.length, step = Math.max(4, Math.floor(n / 80)), best = null;
+    for (var i = 6; i < n - 6; i += step) {
+      var p0 = pts[i - 5], p1 = pts[i + 5], dx = p1.x - p0.x, dy = p1.y - p0.y, L = Math.hypot(dx, dy);
+      if (L < 3 || pts[i].v < 20) continue;
+      var nx = -dy / L * 15, ny = dx / L * 15;
+      var line = [proj.ll(pts[i].x + nx, pts[i].y + ny), proj.ll(pts[i].x - nx, pts[i].y - ny)];
+      var cr = crossings(pts, proj, line, minGap);
+      if (cr.length < 2) continue;
+      var score = cr.length + pts[i].v / 1000;
+      if (!best || score > best.score) best = { line: line, cr: cr, score: score };
+    }
+    return best;
   }
 
   function prepare(pts, proj) {

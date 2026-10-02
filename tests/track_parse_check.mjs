@@ -78,7 +78,13 @@ ok(T.sessionNotes(sg).some(n => /Rough data/.test(n.text)), 'rough data note');
 const moved = pts.map(p => [p.t.toFixed(2), (p.lat + 1.5).toFixed(7), p.lng.toFixed(7), p.v.toFixed(2)].join(',')).join('\n');
 let ru = T.read('time,latitude,longitude,speed (km/h)\n' + moved, 'u.csv');
 let su = T.analyse(ru, lib);
-ok(su.needsStartLine && !su.venueId && su.trace.outline.length > 100 && /don't know this track/.test(su.problem), 'unknown track asks for the start line');
+ok(!su.needsStartLine && !su.venueId && su.autoLine === true && su.laps.length >= 2, 'an unknown track finds its own lap line, so a track day needs no start line from the member (' + su.laps.length + ' laps)');
+{
+  // One lap only: nothing repeats, so there is no line to find and the member is asked.
+  const once = pts.filter(p => p.t < 70).map(p => [p.t.toFixed(2), (p.lat + 1.5).toFixed(7), p.lng.toFixed(7), p.v.toFixed(2)].join(',')).join('\n');
+  const one = T.analyse(T.read('time,latitude,longitude,speed (km/h)\n' + once, 'u.csv'), lib);
+  ok(one.needsStartLine && /don't know this track/.test(one.problem), 'with a single pass over the ground the start line is still asked for');
+}
 ru = T.read('time,latitude,longitude,speed (km/h)\n' + moved, 'u.csv');
 su = T.analyse(ru, lib, { startLine: [[51.2077017 + 1.5, -1.6088667], [51.2076237 + 1.5, -1.6091363]] });
 ok(su.laps.length === 2 && near(su.bestTime, 99.786, 0.05) && su.startLineFromMember, 'member start line times the laps');

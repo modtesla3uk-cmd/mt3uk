@@ -24,6 +24,8 @@
   var TYPE_WORD = { drag: 'drag', sprint: 'sprint', other: 'other' };
   var TYPES = [['track', 'Track day'], ['drag', 'Drag run'], ['sprint', 'Sprint or hill climb'], ['other', 'Other']];
   var ICON = {
+    prev: '<path d="M15 5l-7 7 7 7"/>',
+    next: '<path d="M9 5l7 7-7 7"/>',
     file: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/>',
     upload: '<path d="M12 15V3M7 8l5-5 5 5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/>',
     flag: '<path d="M4 21V4M4 4h12l-2 4 2 4H4"/>',
@@ -147,20 +149,73 @@
   // ---------- Early preview gate ----------
   var PREVIEW_USES = ['Tesla Track Mode', 'RaceBox', 'Another lap timer app', 'Just having a look'];
   var PREVIEW_SHOTS = [
-    ['images/track-preview/track-mode.jpg', 'Best lap tiles and the Track Mode figures from a Tesla file: charge used, peak power, braking, battery and brake temperature, with the temperature zones coloured.', 956, 687, 'The car\'s own data from Tesla Track Mode, with temperature zones'],
-    ['images/track-preview/compare.jpg', 'Two laps compared: speed through the lap, the time gap, corner by corner, and a map with both laps and a play button.', 956, 880, 'Compare any two laps: speed, time gap, corners and a map you can play'],
-    ['images/track-preview/chart.jpg', 'G-force and speed for both laps on one chart, with a time ruler and slider under it.', 380, 360, 'G-force and speed on one chart, in step with the map']
+    ['images/track-preview/sec-pick.jpg', 'Two drop-down boxes for choosing which two laps to compare, here lap 2 and lap 1.', 956, 205, 'Pick any two laps to compare'],
+    ['images/track-preview/sec-speed.jpg', 'Speed through the lap for both laps on one chart with the corner numbers above it, and under it the time gap showing where the faster lap gained.', 525, 497, 'Speed through the lap, and where the time was gained'],
+    ['images/track-preview/sec-map.jpg', 'A satellite map with both laps drawn on it, coloured by speed, with play, rewind and follow buttons and the corner numbers.', 420, 665, 'Both laps on one map, with a play button'],
+    ['images/track-preview/sec-corners.jpg', 'A table of each corner with the slowest speed on each lap and how much time the faster lap gained there.', 525, 158, 'Corner by corner, who gained where'],
+    ['images/track-preview/chart.jpg', 'G-force and speed for both laps on one chart, with a time ruler and slider under it.', 380, 360, 'G-force and speed on one chart, in step with the map'],
+    ['images/track-preview/sec-best-lap.jpg', 'Tiles for the best lap, the best possible lap, top speed, most grip used and distance.', 956, 105, 'Your best lap and best possible at a glance'],
+    ['images/track-preview/sec-track-mode.jpg', 'Tesla Track Mode figures: charge used, peak power, hardest braking, flat out time, and battery and brake temperatures with the temperature zones coloured.', 956, 430, 'The car\'s own data from Tesla Track Mode'],
+    ['images/track-preview/sec-power.jpg', 'A note saying peak power fell from 250 kW early in the session to 190 kW late on, because the car limits power as parts get hot.', 956, 132, 'A note when the car held power back']
   ];
+  // The preview pictures, one at a time: Previous and Next (or the arrow keys),
+  // full screen, and Close (or Escape).
+  function openShot(index, opener) {
+    var old = document.getElementById('tp-lb');
+    if (old) old.remove();
+    var n = PREVIEW_SHOTS.length, at = index;
+    var box = document.createElement('div');
+    box.className = 'tp-lb'; box.id = 'tp-lb'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-label', 'Preview pictures');
+    box.innerHTML = '<div class="tp-lb-bar"><span class="tp-lb-count" id="tp-lb-count"></span><span class="tp-lb-tools"><button type="button" class="tp-lb-btn" data-lb="full" aria-label="Full screen">' + icon('expand') + '</button><button type="button" class="tp-lb-btn" data-lb="close" aria-label="Close">' + icon('x') + '</button></span></div>' +
+      '<div class="tp-lb-stage"><button type="button" class="tp-lb-btn tp-lb-prev" data-lb="prev" aria-label="Previous picture">' + icon('prev') + '</button><figure class="tp-lb-fig"><img id="tp-lb-img" alt=""><figcaption id="tp-lb-cap"></figcaption></figure><button type="button" class="tp-lb-btn tp-lb-next" data-lb="next" aria-label="Next picture">' + icon('next') + '</button></div>';
+    document.body.appendChild(box);
+    document.body.classList.add('tp-noscroll');
+    function show(k) {
+      at = (k + n) % n;
+      var x = PREVIEW_SHOTS[at];
+      var img = document.getElementById('tp-lb-img');
+      img.src = x[0]; img.alt = x[1];
+      document.getElementById('tp-lb-cap').textContent = x[4] + '. ' + x[1];
+      document.getElementById('tp-lb-count').textContent = (at + 1) + ' of ' + n;
+    }
+    function close() {
+      if (document.fullscreenElement) { try { document.exitFullscreen(); } catch (e) { /* already out */ } }
+      box.remove(); document.body.classList.remove('tp-noscroll'); document.removeEventListener('keydown', onKey);
+      if (opener && document.body.contains(opener)) opener.focus();
+    }
+    function onKey(e) {
+      if (e.key === 'Escape') close();
+      else if (e.key === 'ArrowLeft') show(at - 1);
+      else if (e.key === 'ArrowRight') show(at + 1);
+    }
+    document.addEventListener('keydown', onKey);
+    box.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-lb]');
+      if (!b) { if (e.target === box || e.target.classList.contains('tp-lb-stage')) close(); return; }
+      var what = b.getAttribute('data-lb');
+      if (what === 'close') close();
+      else if (what === 'prev') show(at - 1);
+      else if (what === 'next') show(at + 1);
+      else if (what === 'full') {
+        if (document.fullscreenElement) document.exitFullscreen();
+        else if (box.requestFullscreen) box.requestFullscreen().catch(function () { /* not allowed here */ });
+      }
+    });
+    // Swiping on a phone.
+    var sx = null;
+    box.addEventListener('touchstart', function (e) { sx = e.touches[0].clientX; }, { passive: true });
+    box.addEventListener('touchend', function (e) { if (sx === null) return; var dx = e.changedTouches[0].clientX - sx; sx = null; if (Math.abs(dx) > 50) show(at + (dx < 0 ? 1 : -1)); }, { passive: true });
+    show(index);
+    box.querySelector('[data-lb="close"]').focus();
+  }
   function showGate() {
     app.innerHTML = '<div class="tp-loading" role="status">Loading...</div>';
     api('GET', '/track/access').then(function (d) {
       var status = d.success && d.access ? d.access : 'none';
       var pending = status === 'pending';
-      var h = '<div class="card tp-gate"><span class="early-badge early-badge-lg">Early preview</span><h2>Track Sessions is being tested</h2>' +
+      var h = '<div class="card tp-gate"><span class="early-badge early-badge-lg">Early preview</span><h2>Track Sessions is being tested</h2><div class="tp-gate-top"><div class="tp-gate-intro">' +
         '<p>Upload the file from your lap timer or Tesla Track Mode and see every lap mapped, where you gained and lost time, and what your mods did to your times. We are letting a small group try it first so we can fix things before it opens to everyone.</p>' +
-        '<ul class="tp-ticks"><li>' + icon('check') + 'Laps, sectors and corners found for you</li><li>' + icon('check') + 'Compare any two laps, corner by corner, with playback</li><li>' + icon('check') + 'Tesla Track Mode figures: charge, power, braking and temperatures</li><li>' + icon('check') + 'Sessions are private until you choose to share them</li></ul>' +
-        '<div class="tp-gate-shots">' + PREVIEW_SHOTS.map(function (x) { return '<figure><img src="' + x[0] + '" alt="' + esc(x[1]) + '" width="' + x[2] + '" height="' + x[3] + '" loading="lazy"><figcaption>' + esc(x[4]) + '</figcaption></figure>'; }).join('') + '</div>' +
-        '<p class="tp-small">Screenshots use example data.</p>';
+        '<ul class="tp-ticks"><li>' + icon('check') + 'Laps, sectors and corners found for you</li><li>' + icon('check') + 'Compare any two laps, corner by corner, with playback</li><li>' + icon('check') + 'Tesla Track Mode figures: charge, power, braking and temperatures</li><li>' + icon('check') + 'Sessions are private until you choose to share them</li></ul></div><div class="tp-gate-ask">';
       if (pending) {
         h += '<div class="tp-notice is-ok" id="tp-gate-done">' + icon('check') + '<div><b>Request received</b><br>We will email you when you are in. Thank you for waiting.</div></div>';
       } else {
@@ -169,8 +224,12 @@
           '<div class="tp-field"><label for="tp-gate-note">Anything we should know? (optional)</label><textarea class="field" id="tp-gate-note" rows="3" maxlength="300" placeholder="For example, the tracks you go to"></textarea></div>' +
           '<button type="submit" class="btn btn-accent" id="tp-gate-send">Request access</button><p class="tp-status" id="tp-gate-status" role="status"></p></form>';
       }
-      h += '<p class="tp-small">The <a href="leaderboards.html">Ranking</a> page is open to everyone to look at.</p></div>';
+      h += '</div></div>' +
+        '<h3 class="tp-gate-see">See what it does</h3><p class="tp-small">Tap a picture to see it bigger. Screenshots use example data.</p>' +
+        '<div class="tp-gate-thumbs">' + PREVIEW_SHOTS.map(function (x, k) { return '<button type="button" class="tp-thumb" data-shot="' + k + '" aria-label="Open: ' + esc(x[4]) + '"><span class="tp-thumb-img"><img src="' + x[0] + '" alt="" width="' + x[2] + '" height="' + x[3] + '" loading="lazy"></span><span class="tp-thumb-cap">' + esc(x[4]) + '</span></button>'; }).join('') + '</div>' +
+        '<p class="tp-small">The <a href="leaderboards.html">Ranking</a> page is open to everyone to look at.</p></div>';
       app.innerHTML = h;
+      app.querySelectorAll('[data-shot]').forEach(function (b) { b.addEventListener('click', function () { openShot(parseInt(b.getAttribute('data-shot'), 10), b); }); });
       var f = document.getElementById('tp-gate-form');
       if (f) f.addEventListener('submit', function (e) {
         e.preventDefault();
@@ -605,7 +664,7 @@
       add.files = read; add.list = null; add.rd = null;
       add.nameLooked = false;
       if (add.venueNameLooked) { add.venueName = ''; add.venueNameLooked = false; }
-      add.session = null; add.startLine = null; add.finishLine = null; add.editLines = false; add.tapFull = false; add.tapAuto = false; add.tapOutline = null; add.finishCross = 0; add.organizer = ''; add.type = null; add.date = null; add.time = null;
+      add.session = null; add.startLine = null; add.finishLine = null; add.editLines = false; add.tapFull = false; add.tapAuto = false; add.tapOutline = null; add.finishCross = 0; add.organizer = ''; add.confirmLines = false; add.type = null; add.date = null; add.time = null;
       add.weatherKey = null; if (add.tempSource !== 'member') { add.temp = null; add.tempSource = ''; add.weather = null; }
       parseFile();
     }).catch(function (e) { status(e.message || 'That file could not be opened.', 'error'); });
@@ -792,8 +851,6 @@
   }
   function drawResult() {
     var a = add, s = a.session, box = document.getElementById('tp-result');
-    // Asking for the lines opens the map full screen, once, so they are easy to set.
-    if (s.needsStartLine && !a.tapAuto) { a.tapAuto = true; a.tapFull = true; }
     if (!(s.needsStartLine || a.editLines) && a.tapFull) { a.tapFull = false; document.body.classList.remove('tp-noscroll'); }
     var h = '<div class="card tp-fields">';
     h += '<div class="tp-field"><span class="tp-lbl">Type</span><div class="tp-chips" data-type>' + TYPES.map(function (t) { return '<button type="button" class="chip' + (s.type === t[0] ? ' is-on' : '') + '" data-v="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</div></div>';
@@ -813,19 +870,19 @@
         var tapText = tapHint(a, isSprint), hasMarks = !!(a.startLine || a.finishLine);
         var timedNow = s.needsStartLine ? 0 : (s.laps || []).filter(function (l) { return l.kind === 'timed'; }).length;
         h += (s.needsStartLine ? '<div class="tp-notice is-warn">' + icon('pin') + '<div><b>' + esc(s.venue || (isSprint ? 'New course' : 'New track')) + '</b><br>' + esc(s.problem) + '</div></div>'
-          : '<div class="tp-notice is-ok">' + icon('check') + '<div>' + timedNow + ' timed ' + word + (timedNow === 1 ? '' : 's') + (s.bestTime ? ', best ' + V.fmtLap(s.bestTime) : '') + '. Drag a marker to move it, then press Done.</div></div>') +
+          : '<div class="tp-notice is-ok">' + icon('check') + '<div>' + timedNow + ' timed ' + word + (timedNow === 1 ? '' : 's') + (s.bestTime ? ', best ' + V.fmtLap(s.bestTime) : '') + '. ' + (a.confirmLines ? (isSprint ? 'Check the start and finish are where the run really started and finished. Drag a marker if one is out, then confirm.' : 'Check the start and finish line is in the right place. Drag the marker if it is out, then confirm.') : 'Drag a marker to move it, then press Done.') + '</div></div>') +
           '<p class="tp-small">Zoom in with the + button, the mouse wheel or a pinch. Drag the map with any mouse button to move it. A quick click or tap places a marker, and a marker can be dragged along the track.</p>' +
           '<div class="tp-tapbox' + (a.tapFull ? ' is-full' : '') + '" id="tp-tapbox"><p class="tp-sub tp-tap-step" id="tp-tap-step">' + tapText + '</p><div class="tp-tapmap" id="tp-tapmap"><svg class="tv-chart tp-tap" id="tp-tap" role="img" aria-label="Your trace. ' + tapText + '"></svg></div>' +
           '<div class="tp-tap-tools"><button type="button" class="btn btn-secondary btn-sm" data-tap="undo"' + (hasMarks ? '' : ' disabled') + '>' + icon('rewind') + 'Undo last marker</button>' +
           '<button type="button" class="btn btn-secondary btn-sm" data-tap="clear"' + (hasMarks ? '' : ' disabled') + '>' + icon('x') + 'Clear markers</button>' +
           (!isSprint && s.needsStartLine ? '<button type="button" class="btn btn-secondary btn-sm" data-tap="sprint">' + icon('pin') + 'Separate start and finish</button>' : '') +
           '<button type="button" class="btn btn-secondary btn-sm" data-tap="full">' + icon(a.tapFull ? 'x' : 'expand') + (a.tapFull ? 'Exit full screen' : 'Full screen') + '</button>' +
-          (a.editLines && !s.needsStartLine ? '<button type="button" class="btn btn-primary btn-sm" data-tap="done">' + icon('check') + 'Done</button>' : '') + '</div></div>' +
+          (a.editLines && !s.needsStartLine ? '<button type="button" class="btn btn-primary btn-sm" data-tap="done">' + icon('check') + (a.confirmLines ? 'Yes, these are correct' : 'Done') + '</button>' : '') + '</div></div>' +
           (!s.venueId ? '<div class="tp-field"><label for="tp-venue-name">Track name</label><input class="field" id="tp-venue-name" placeholder="For example, Blyton Park" value="' + esc(a.venueName || '') + '"></div>' + (a.venueNameLooked ? nameNote() : '') : '');
       } else {
         var timed = s.laps.filter(function (l) { return l.kind === 'timed'; }).length;
         h += '<div class="tp-notice is-ok">' + miniMap(s) + '<div><b>' + esc(s.venue ? trackName(s) : (a.venueName || 'Your track')) + '</b><br>' +
-          (s.officialLines ? 'Timed with this course\'s official ' + (isSprint ? 'start and finish lines' : 'start line') + ', which only MT3UK sets so results stay comparable. ' : s.venueId ? 'Found from the GPS in your file. ' : isSprint ? 'Timed between the start and finish you picked. ' : 'Timed from the start line you picked. ') + timed + ' timed ' + word + (timed === 1 ? '' : 's') + (s.bestTime ? ', best ' + V.fmtLap(s.bestTime) : '') + '.</div></div>';
+          (s.autoLine ? 'No start line is set for this track, so your laps were found from your own trace. ' : s.officialLines ? 'Timed with this course\'s official ' + (isSprint ? 'start and finish lines' : 'start line') + ', which only MT3UK sets so results stay comparable. ' : s.venueId ? 'Found from the GPS in your file. ' : isSprint ? 'Timed between the start and finish you picked. ' : 'Timed from the start line you picked. ') + timed + ' timed ' + word + (timed === 1 ? '' : 's') + (s.bestTime ? ', best ' + V.fmtLap(s.bestTime) : '') + '.</div></div>';
         if ((a.startLine || a.finishLine || s.startLine) && !s.officialLines) h += '<button type="button" class="btn btn-secondary btn-sm tp-move-lines" data-tap="edit">' + icon('pin') + 'Move ' + (isSprint ? 'start and finish' : 'the start line') + '</button>';
         if (isSprint && !s.pointToPoint) h += '<button type="button" class="tp-switch" role="switch" aria-checked="' + (a.ignoreFinish !== false) + '" id="tp-ignore-finish"><span><b>Ignore the first time each run crosses the finish line</b><br><small>' + (s.firstFinishIgnored ? 'Skipped the first crossing on ' + s.firstFinishIgnored + ' run' + (s.firstFinishIgnored === 1 ? '' : 's') + ' in this file. Turn it off if a run is missing or ends too late.' : 'Only a run that crosses the finish line more than once has a crossing to skip. Turn this off if a run is missing.') + '</small></span><span class="tp-track"></span></button>';
         if (isSprint) h += '<div class="tp-field"><label for="tp-finish-cross">Run ends on</label><select class="field" id="tp-finish-cross"><option value="">Automatic (see the switch above)</option>' + [1, 2, 3, 4, 5].map(function (n) { return '<option value="' + n + '"' + (a.finishCross === n ? ' selected' : '') + '>Crossing ' + n + ' of the finish line</option>'; }).join('') + '</select><p class="tp-small">If the car passes the finish line before the run really ends, choose which crossing finishes the timing. It counts from the start line.</p></div>';
@@ -873,7 +930,7 @@
       // Lines that came from the file or a known course become markers to move.
       var cur = add.session || {};
       if (!add.startLine && !add.finishLine && cur.startLine) { add.startLine = cur.startLine; add.finishLine = cur.type === 'sprint' ? cur.finishLine || null : null; }
-      add.editLines = true; drawResult(); var tb = document.getElementById('tp-tapbox'); if (tb) tb.scrollIntoView({ block: 'nearest' }); });
+      add.editLines = true; add.confirmLines = false; drawResult(); var tb = document.getElementById('tp-tapbox'); if (tb) tb.scrollIntoView({ block: 'nearest' }); });
   }
   function bestRunLine(runs) {
     var q = runs.filter(function (r) { return r.quarter; }).sort(function (x, y) { return x.quarter - y.quarter; })[0];
@@ -921,7 +978,7 @@
         else a[k] = el.value.trim();
       });
     }
-    group('[data-type]', function (v) { keep(); if (v !== a.type) { a.type = v; a.startLine = null; a.finishLine = null; a.editLines = false; a.tapFull = false; a.tapAuto = false; analyse(); } });
+    group('[data-type]', function (v) { keep(); if (v !== a.type) { a.type = v; a.startLine = null; a.finishLine = null; a.editLines = false; a.confirmLines = false; a.tapFull = false; a.tapAuto = false; analyse(); } });
     ['tp-date', 'tp-time'].forEach(function (id) {
       var el = document.getElementById(id);
       if (!el) return;
@@ -1047,10 +1104,10 @@
       b.addEventListener('click', function () {
         var what = b.getAttribute('data-tap');
         if (what === 'undo') { if (sprint && a.finishLine) a.finishLine = null; else a.startLine = null; linesChanged(); }
-        else if (what === 'clear') { a.startLine = null; a.finishLine = null; linesChanged(); }
-        else if (what === 'sprint') { a.type = 'sprint'; a.startLine = null; a.finishLine = null; a.editLines = false; a.tapAuto = false; analyse(); }
+        else if (what === 'clear') { a.startLine = null; a.finishLine = null; a.confirmLines = false; linesChanged(); }
+        else if (what === 'sprint') { a.type = 'sprint'; a.startLine = null; a.finishLine = null; a.editLines = false; a.confirmLines = false; a.tapAuto = false; analyse(); }
         else if (what === 'full') { a.tapFull = !a.tapFull; drawResult(); }
-        else if (what === 'done') { a.editLines = false; a.tapFull = false; document.body.classList.remove('tp-noscroll'); drawResult(); }
+        else if (what === 'done') { a.editLines = false; a.confirmLines = false; a.tapFull = false; document.body.classList.remove('tp-noscroll'); drawResult(); }
       });
     });
   }
@@ -1077,6 +1134,10 @@
       a.startLine = null;
       analyse();
       status('That line gives a ' + V.fmtLap(bad) + ' lap, which can\'t be right. Zoom in and tap the straight you cross on every lap.', 'error');
+    } else if (!add.session.needsStartLine) {
+      // Both lines are down: stay on the map and ask the member to check them.
+      a.editLines = true; a.confirmLines = true;
+      drawResult();
     } else if (add.session.needsStartLine) {
       // Keep the markers so they can be moved rather than placed again.
       a.editLines = true;

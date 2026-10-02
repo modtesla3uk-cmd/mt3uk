@@ -559,6 +559,8 @@ def test_tap_the_start_line_on_a_zoomable_map(page, tmp_path):
     open_page(page, FakeWorker())
     page.get_by_role("link", name="Add a session").click()
     page.set_input_files("#tp-file", str(no_line))
+    # A track day finds its own lap line; a sprint needs the start and the finish tapped.
+    page.locator("[data-type] [data-v='sprint']").click()
     tap = page.locator("#tp-tap")
     tap.wait_for(timeout=10000)
     tap.scroll_into_view_if_needed()
@@ -594,7 +596,7 @@ def test_tap_the_start_line_on_a_zoomable_map(page, tmp_path):
         page.wait_for_timeout(50)
     assert width() < full * 0.6, "scroll zooms in"
     page.mouse.click(pt[0], pt[1])
-    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed lap")
+    expect(page.locator("#tp-tap .tp-tapmark")).to_have_count(1)
 
 
 def test_tesla_track_mode_file_finds_its_own_laps(page):
@@ -820,7 +822,6 @@ def test_changing_the_type_after_loading_relabels_the_files(page):
     expect(page.locator(".tp-file > div > span").last).to_contain_text("2 sessions")
     page.locator("[data-type] button[data-v='sprint']").click()
     expect(page.locator(".tp-file > div > span").last).to_contain_text("2 runs")
-    page.get_by_role("button", name="Exit full screen").click()
     page.locator("[data-type] button[data-v='track']").click()
     expect(page.locator(".tp-file > div > span").last).to_contain_text("2 sessions")
 
@@ -891,9 +892,7 @@ def test_changing_to_a_sprint_asks_for_the_start_and_finish(page):
     page.locator("#settings [data-retype] button[data-v='sprint']").click()
     expect(page.locator("#tp-tap-step")).to_have_text("Tap the start line, then the finish line.")
     expect(page.get_by_role("button", name="Save changes")).to_have_count(0)
-    # The map opens full screen to set them; leaving without saving changes nothing.
-    expect(page.locator("#tp-tapbox")).to_have_class(re.compile("is-full"))
-    page.get_by_role("button", name="Exit full screen").click()
+    # Leaving without saving changes nothing.
     page.get_by_role("link", name="Back to the session").click()
     expect(page.locator("#settings [data-retype] .chip.is-on")).to_have_text("Track day")
     assert fake.sessions["new1"]["type"] == "track"
@@ -2408,6 +2407,7 @@ def test_start_and_finish_markers_can_be_undone_cleared_dragged_and_moved_later(
     page.mouse.click(a[0], a[1])
     b = _trace_point(page, 0.6)
     page.mouse.click(b[0], b[1])
+    page.get_by_role("button", name="Yes, these are correct").click()
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("Timed between the start and finish you picked")
     page.get_by_role("button", name="Move start and finish").click()
     expect(marks).to_have_count(2)
@@ -2424,8 +2424,9 @@ def test_start_and_finish_markers_can_be_undone_cleared_dragged_and_moved_later(
     expect(page.locator("#tp-tap [data-mark='finish']")).to_have_count(1)
     after = page.locator("#tp-tap [data-mark='finish']").bounding_box()
     assert abs(after["x"] - before["x"]) + abs(after["y"] - before["y"]) > 10, (before, after)
-    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("Drag a marker to move it, then press Done")
-    page.get_by_role("button", name="Done").click()
+    # A moved marker is checked again before it is taken.
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("Check the start and finish")
+    page.get_by_role("button", name="Yes, these are correct").click()
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("Timed between the start and finish you picked")
     # Clear takes both away.
     page.get_by_role("button", name="Move start and finish").click()
@@ -2434,16 +2435,20 @@ def test_start_and_finish_markers_can_be_undone_cleared_dragged_and_moved_later(
     expect(step).to_have_text("Tap the start line, then the finish line.")
 
 
-def test_the_marker_map_opens_full_screen_and_asks_for_both_lines(page):
+def test_the_marker_map_has_a_full_screen_button_and_asks_for_both_lines(page):
     open_page(page, FakeWorker())
     page.get_by_role("link", name="Add a session").click()
     page.set_input_files("#tp-file", str(FIXTURE))
     page.locator("[data-type] [data-v='sprint']").click()
     tap = page.locator("#tp-tap")
     expect(tap).to_be_visible()
-    # Asking for the lines opens the map full screen, with the prompt inside it.
-    expect(page.locator("#tp-tapbox")).to_have_class(re.compile("is-full"))
+    # Not full screen until the member asks, with the prompt in the box either way.
+    expect(page.locator("#tp-tapbox")).not_to_have_class(re.compile("is-full"))
     expect(page.locator("#tp-tapbox #tp-tap-step")).to_have_text("Tap the start line, then the finish line.")
+    box = tap.bounding_box()
+    assert box["height"] >= box["width"] * 0.8, box
+    page.get_by_role("button", name="Full screen").click()
+    expect(page.locator("#tp-tapbox")).to_have_class(re.compile("is-full"))
     vp = page.viewport_size
     big = tap.bounding_box()
     assert big["width"] >= vp["width"] - 40 and big["height"] >= vp["height"] * 0.6, big
@@ -2455,24 +2460,39 @@ def test_the_marker_map_opens_full_screen_and_asks_for_both_lines(page):
     page.get_by_role("button", name="Exit full screen").click()
     expect(page.locator("#tp-tapbox")).not_to_have_class(re.compile("is-full"))
     expect(page.locator("#tp-tap .tp-tapmark")).to_have_count(1)
-    box = tap.bounding_box()
-    assert box["height"] >= box["width"] * 0.8, box
-    page.get_by_role("button", name="Full screen").click()
-    expect(page.locator("#tp-tapbox")).to_have_class(re.compile("is-full"))
 
 
-def test_a_track_day_file_can_switch_to_a_separate_start_and_finish(page, tmp_path):
+def test_after_setting_both_lines_the_member_is_asked_to_confirm_them(page):
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    page.locator("[data-type] [data-v='sprint']").click()
+    a = _trace_point(page, 0.2)
+    page.mouse.click(a[0], a[1])
+    b = _trace_point(page, 0.6)
+    page.mouse.click(b[0], b[1])
+    notice = page.locator("#tp-result .tp-notice.is-ok")
+    expect(notice).to_contain_text("Check the start and finish")
+    expect(page.locator("#tp-tap .tp-tapmark")).to_have_count(2)
+    page.get_by_role("button", name="Yes, these are correct").click()
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("Timed between the start and finish you picked")
+    expect(page.locator("#tp-tap")).to_have_count(0)
+
+
+def test_a_track_day_needs_no_start_line_from_the_member(page, tmp_path):
     no_line = tmp_path / "noline.vbo"
     no_line.write_bytes(b"".join(l for l in FIXTURE.read_bytes().splitlines(True) if not l.startswith(b"Start ")))
     page.route(re.compile(r".*/data/tracks\.json.*"), _without_start_line)
     open_page(page, FakeWorker())
     page.get_by_role("link", name="Add a session").click()
     page.set_input_files("#tp-file", str(no_line))
-    expect(page.locator("#tp-tapbox")).to_have_class(re.compile("is-full"))
-    expect(page.locator("#tp-tap-step")).to_have_text("Tap where the start and finish line is.")
-    page.get_by_role("button", name="Separate start and finish").click()
+    # No tapping: the laps are found from the trace.
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("found from your own trace")
+    expect(page.locator("#tp-tap")).to_have_count(0)
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed lap")
+    # A sprint still asks for both lines.
+    page.locator("[data-type] [data-v='sprint']").click()
     expect(page.locator("#tp-tap-step")).to_have_text("Tap the start line, then the finish line.")
-    expect(page.locator("#tp-tapbox")).to_have_class(re.compile("is-full"))
 
 
 def test_members_without_access_see_the_early_preview_page_and_can_ask(page):
@@ -2484,10 +2504,29 @@ def test_members_without_access_see_the_early_preview_page_and_can_ask(page):
     expect(gate.locator(".early-badge")).to_have_text("Early preview")
     # A short explainer and screenshots, with their descriptions.
     expect(gate.locator(".tp-ticks li")).to_have_count(4)
-    shots = gate.locator(".tp-gate-shots img")
-    expect(shots).to_have_count(3)
-    assert all(src.startswith("images/track-preview/") for src in shots.evaluate_all("els => els.map(e => e.getAttribute('src'))"))
-    assert all(len(a) > 30 for a in shots.evaluate_all("els => els.map(e => e.alt)"))
+    shots = gate.locator(".tp-gate-thumbs [data-shot]")
+    expect(shots).to_have_count(8)
+    assert all(src.startswith("images/track-preview/") for src in gate.locator(".tp-thumb img").evaluate_all("els => els.map(e => e.getAttribute('src'))"))
+    # The request form comes before the pictures, beside the explanation.
+    form_y = gate.locator("#tp-gate-form").bounding_box()["y"]
+    assert form_y < gate.locator(".tp-gate-thumbs").bounding_box()["y"]
+    # A picture opens in a viewer with Previous, Next, Full screen and Close.
+    shots.first.click()
+    lb = page.locator("#tp-lb")
+    expect(lb).to_be_visible()
+    expect(lb.locator("#tp-lb-count")).to_have_text("1 of 8")
+    first = lb.locator("#tp-lb-img").get_attribute("src")
+    assert len(lb.locator("#tp-lb-img").get_attribute("alt")) > 30
+    lb.get_by_role("button", name="Next picture").click()
+    expect(lb.locator("#tp-lb-count")).to_have_text("2 of 8")
+    assert lb.locator("#tp-lb-img").get_attribute("src") != first
+    page.keyboard.press("ArrowLeft")
+    expect(lb.locator("#tp-lb-count")).to_have_text("1 of 8")
+    page.keyboard.press("ArrowLeft")
+    expect(lb.locator("#tp-lb-count")).to_have_text("8 of 8")
+    expect(lb.get_by_role("button", name="Full screen")).to_be_visible()
+    page.keyboard.press("Escape")
+    expect(lb).to_have_count(0)
     # The tool itself is not shown.
     expect(page.get_by_role("link", name="Add a session")).to_have_count(0)
     # Asking for access.
@@ -2551,6 +2590,19 @@ def test_official_lines_cannot_be_moved_and_sprint_lines_are_labelled(page):
     texts = [l[0] for l in labels]
     assert "Start" in texts and "Finish" in texts, labels
     assert all(l[1] == "#ffffff" and l[2] == "stroke" for l in labels if l[0] in ("Start", "Finish")), labels
+    # The page's own rule for chart text is grey: the labels must still come out white.
+    fill = page.evaluate("""() => {
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('class', 'tv-chart');
+      document.body.appendChild(svg);
+      const trace = [0, 1, 2, 3].map(i => [i * 50, 0, i * 50, 0, 20, 0, 0]);
+      window.MT3UKTrackView.map(svg, trace, { startLine: [[0, -10], [0, 10]], finishLine: [[150, -10], [150, 10]] });
+      const t = [...svg.querySelectorAll('text')].filter(x => x.textContent === 'Finish')[0];
+      const c = getComputedStyle(t).fill;
+      svg.remove();
+      return c;
+    }""")
+    assert fill == "rgb(255, 255, 255)", fill
 
 
 def test_changing_the_tyre_make_clears_the_model(page):
@@ -2575,6 +2627,7 @@ def test_a_sprint_member_can_choose_which_finish_crossing_ends_the_run(page):
     page.mouse.click(a[0], a[1])
     b = _trace_point(page, 0.6)
     page.mouse.click(b[0], b[1])
+    page.get_by_role("button", name="Yes, these are correct").click()
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("Timed between the start and finish you picked")
     sel = page.locator("#tp-finish-cross")
     expect(sel).to_be_visible()

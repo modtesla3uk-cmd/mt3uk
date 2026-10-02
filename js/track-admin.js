@@ -343,14 +343,18 @@
   function fmtTime(t) { return t == null ? '-' : window.MT3UKTrack.fmtLap(t); }
   // The saved session's own settings, as the options the Add a session page would have used.
   function retimeOpts(old) {
-    var o = { type: old.type, ignoreFirstFinish: true };
+    var o = { type: old.type, ignoreFirstFinish: old.ignoreFinish !== false };
     if (old.rollout) o.rollout = true;
     if (old.organizer) o.organizer = old.organizer;
     if (old.finishCrossing) o.finishCrossing = old.finishCrossing;
     if (old.startLineFromMember && old.startLine) { o.startLine = old.startLine; if (old.finishLine) o.finishLine = old.finishLine; }
     return o;
   }
-  function retimeOne(row, apply, lib) {
+  // A best time that moves by more than this is held back for a look: Check sessions flags it and Re-time
+  // skips it unless the switch beside the button is on.
+  var BIG_CHANGE = 0.1;
+  function isBig(c) { return c.from != null && c.to != null && c.from > 0 && Math.abs(c.to - c.from) / c.from > BIG_CHANGE; }
+  function retimeOne(row, apply, lib, allowBig) {
     var T = window.MT3UKTrack;
     return call('GET', '/track/admin/retime?id=' + encodeURIComponent(row.id)).then(function (d) {
       if (!d.success) throw new Error(d.message || 'Could not read the session.');
@@ -365,9 +369,12 @@
         // The member's details and the date they typed carry over.
         next.date = old.date; next.time = old.time || next.time;
         next.fileName = old.fileName;
+        if (old.ignoreFinish === false) next.ignoreFinish = false;
         if (!old.venueId) next.venueName = old.venue;
         var change = { id: row.id, venue: old.venue, date: old.date, type: old.type, from: old.type === 'drag' ? (old.runs && old.runs[0] && old.runs[0].s60) : old.bestTime, to: next.type === 'drag' ? (next.runs && next.runs[0] && next.runs[0].s60) : next.bestTime };
-        if (!apply) return change;
+        change.big = isBig(change);
+        if (!apply || (change.big && !allowBig)) return change;
+        change.saved = true;
         return call('POST', '/track/admin/retime', { id: row.id, session: next }).then(function (res) {
           if (!res.ok || !res.success) throw new Error(res.message || 'Could not save.');
           return change;
@@ -379,7 +386,8 @@
     if (!key()) { retimeNote.textContent = 'Enter the admin key at the top of the page first.'; return; }
     if (!window.MT3UKTrack) { retimeNote.textContent = 'The timing code has not loaded yet.'; return; }
     var V = window.MT3UKTrack.ANALYSIS_VERSION;
-    var seen = 0, old = 0, noSource = 0, done = 0, failed = 0, unchanged = 0;
+    var seen = 0, old = 0, noSource = 0, done = 0, failed = 0, unchanged = 0, held = 0;
+    var allowBig = bigSwitch && bigSwitch.getAttribute('aria-checked') === 'true';
     retimeBtn.disabled = checkBtn.disabled = true;
     retimeList.innerHTML = '';
     function say(t) { retimeNote.textContent = t; }
@@ -387,7 +395,13 @@
       say(msg);
       retimeBtn.disabled = checkBtn.disabled = false;
     }
-    function line(t) { var li = document.createElement('li'); li.textContent = t; retimeList.appendChild(li); }
+    // Each line links to the session, which the admin can open read only to see whose it is.
+    function line(t, id) {
+      var li = document.createElement('li');
+      if (id) { var a = document.createElement('a'); a.href = 'track.html?s=' + encodeURIComponent(id); a.target = '_blank'; a.rel = 'noopener'; a.textContent = t; li.appendChild(a); }
+      else li.textContent = t;
+      retimeList.appendChild(li);
+    }
     Promise.all([
       fetch('data/tracks.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).catch(function () { return { venues: [] }; }),
       call('GET', '/track/admin/tracks')
@@ -407,17 +421,19 @@
           var chain = Promise.resolve();
           todo.forEach(function (r) {
             chain = chain.then(function () {
-              return retimeOne(r, apply, lib).then(function (c) {
+              return retimeOne(r, apply, lib, allowBig).then(function (c) {
                 var same = c.from === c.to || (c.from != null && c.to != null && Math.abs(c.from - c.to) < 0.0005);
-                if (same) unchanged++; else line(c.venue + ', ' + c.date + ' (' + c.type + '): ' + fmtTime(c.from) + ' to ' + fmtTime(c.to));
+                var text = c.venue + ', ' + c.date + ' (' + c.type + '): ' + fmtTime(c.from) + ' to ' + fmtTime(c.to);
+                if (c.big && (!apply || !allowBig)) { held++; line(text + (apply ? ' (over 10%, not saved)' : ' (over 10%, held back unless you allow big changes)'), c.id); return; }
+                if (same) unchanged++; else line(text, c.id);
                 done++;
-              }).catch(function (e) { failed++; line(r.venue + ', ' + r.date + ': skipped (' + (e && e.message || 'error') + ')'); });
+              }).catch(function (e) { failed++; line(r.venue + ', ' + r.date + ': skipped (' + (e && e.message || 'error') + ')', r.id); });
             });
           });
           chain.then(function () {
             say((apply ? 'Working... ' : 'Checking... ') + seen + ' sessions looked at, ' + old + ' out of date.');
             if (!d.done) { page(d.cursor); return; }
-            var summary = seen + ' sessions looked at. ' + old + ' were timed with older code: ' + done + (apply ? ' re-timed' : ' can be re-timed') + ' (' + unchanged + ' came out the same), ' + noSource + ' have no readings kept so the member needs to upload again, ' + failed + ' skipped.';
+            var summary = seen + ' sessions looked at. ' + old + ' were timed with older code: ' + done + (apply ? ' re-timed' : ' can be re-timed') + ' (' + unchanged + ' came out the same), ' + held + ' held back for moving over 10%, ' + noSource + ' have no readings kept so the member needs to upload again, ' + failed + ' skipped.';
             if (!apply) { finish(summary); return; }
             say(summary + ' Rebuilding the leaderboards...');
             var cars = 0;
@@ -436,6 +452,8 @@
       page('');
     }).catch(function () { finish('Could not load the track list.'); });
   }
+  var bigSwitch = document.getElementById('tk-retime-big');
+  if (bigSwitch) bigSwitch.addEventListener('click', function () { bigSwitch.setAttribute('aria-checked', bigSwitch.getAttribute('aria-checked') === 'true' ? 'false' : 'true'); });
   if (checkBtn) checkBtn.addEventListener('click', function () { runRetime(false); });
   if (retimeBtn) retimeBtn.addEventListener('click', function () {
     if (!window.confirm('Re-time every session that was timed with older code? Their times will change. Run Check sessions first to see what moves.')) return;

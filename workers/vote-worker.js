@@ -6645,6 +6645,7 @@ function cleanTrackSession(s, library) {
     // Who ran it (B19, say): courses at one venue can have different lines.
     var org = trackText(s.organizer, 40);
     if (org) out.organizer = org;
+    if (s.ignoreFinish === false) out.ignoreFinish = false;
   }
   out.startLineFromMember = !!s.startLineFromMember;
   // A course with official lines only takes sessions timed on them (within

@@ -751,6 +751,8 @@
     if (a.organizer) opts.organizer = a.organizer;
     if (a.rollout) opts.rollout = true;
     a.session = T.analyse(a.rd, a.lib, opts);
+    // Kept so Re-time sessions can time it the same way later (on is the default).
+    if (a.session.type === 'sprint' && a.ignoreFinish === false) a.session.ignoreFinish = false;
     // A date or start time the member typed wins over the file's.
     if (a.date) { a.session.date = a.date; a.session.dateFrom = 'member'; }
     if (a.time) a.session.time = a.time;

@@ -140,7 +140,7 @@ def _retime_source():
     return subprocess.run(["node", "-e", script], capture_output=True, text=True, check=True, cwd=".").stdout
 
 
-def _retime_mocks(page, saved):
+def _retime_mocks(page, saved, old_best=99.9):
     cors = {"Access-Control-Allow-Origin": "*"}
     source = _retime_source()
     rows = [
@@ -148,7 +148,7 @@ def _retime_mocks(page, saved):
         {"id": "aaaaaaaa02", "type": "track", "venue": "Castle Combe", "date": "2026-07-02", "best": 80.1, "version": 1, "hasSource": False},
         {"id": "aaaaaaaa03", "type": "track", "venue": "Croft", "date": "2026-07-03", "best": 70.0, "version": 99, "hasSource": True},
     ]
-    old = {"id": "aaaaaaaa01", "type": "track", "venue": "Thruxton", "date": "2026-07-01", "time": "10:00", "bestTime": 99.9}
+    old = {"id": "aaaaaaaa01", "type": "track", "venue": "Thruxton", "date": "2026-07-01", "time": "10:00", "bestTime": old_best}
 
     def retime(route):
         req = route.request
@@ -180,6 +180,8 @@ def test_admin_check_sessions_counts_old_ones_and_saves_nothing(page):
     expect(note).to_contain_text("2 were timed with older code")
     expect(note).to_contain_text("1 have no readings kept")
     expect(page.locator("#tk-retime-list li")).to_have_count(1)
+    # Each result links to the session, so the admin can open it and see whose it is.
+    expect(page.locator("#tk-retime-list li a")).to_have_attribute("href", "track.html?s=aaaaaaaa01")
     assert saved == []
 
 
@@ -194,6 +196,34 @@ def test_admin_retime_saves_the_new_timing_then_rebuilds_the_boards(page):
     assert len(saved) == 1 and saved[0]["id"] == "aaaaaaaa01"
     s = saved[0]["session"]
     assert s["analysisVersion"] >= 2 and s["date"] == "2026-07-01" and s["laps"]
+
+
+def test_admin_retime_holds_back_a_best_time_that_moves_over_ten_percent(page):
+    saved = []
+    open_admin(page, "admin.html")
+    _retime_mocks(page, saved, old_best=60.0)
+    page.on("dialog", lambda d: d.accept())
+    page.locator("#tracks-wrap summary").click()
+    page.locator("#tk-retime-check").click()
+    expect(page.locator("#tk-retime-list li")).to_contain_text("held back unless you allow big changes")
+    expect(page.locator("#tk-retime-note")).to_contain_text("1 held back for moving over 10%")
+    page.locator("#tk-retime").click()
+    expect(page.locator("#tk-retime-note")).to_contain_text("Leaderboards rebuilt")
+    expect(page.locator("#tk-retime-list li")).to_contain_text("not saved")
+    assert saved == []
+
+
+def test_admin_retime_saves_a_big_change_when_the_switch_is_on(page):
+    saved = []
+    open_admin(page, "admin.html")
+    _retime_mocks(page, saved, old_best=60.0)
+    page.on("dialog", lambda d: d.accept())
+    page.locator("#tracks-wrap summary").click()
+    page.locator("#tk-retime-big").click()
+    expect(page.locator("#tk-retime-big")).to_have_attribute("aria-checked", "true")
+    page.locator("#tk-retime").click()
+    expect(page.locator("#tk-retime-note")).to_contain_text("Leaderboards rebuilt")
+    assert len(saved) == 1 and saved[0]["id"] == "aaaaaaaa01"
 
 
 def test_admin_track_type_has_sprint_and_hill_climb_as_separate_choices(page):

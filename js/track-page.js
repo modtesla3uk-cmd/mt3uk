@@ -854,6 +854,13 @@
     if (isSprint) out += '<div class="tp-field"><label for="tp-finish-cross">Run ends on</label><select class="field" id="tp-finish-cross"><option value="">Automatic (see the switch above)</option>' + [1, 2, 3, 4, 5].map(function (n) { return '<option value="' + n + '"' + (a.finishCross === n ? ' selected' : '') + '>Crossing ' + n + ' of the finish line</option>'; }).join('') + '</select><p class="tp-small">If the car passes the finish line before the run really ends, choose which crossing finishes the timing. It counts from the start line.</p></div>';
     return out;
   }
+  // For the admin: which sprint courses the page knows near this file, and why none matched.
+  function courseDebugHtml(a, s) {
+    var o = s.origin;
+    if (!o || o.length !== 2 || !a.lib) return '';
+    var near = (a.lib.venues || []).filter(function (v) { return v.type === (s.type === 'sprint' ? 'sprint' : 'circuit'); }).map(function (v) { return { v: v, d: Math.round(T.haversine({ lat: o[0], lng: o[1] }, v)) }; }).sort(function (x, y) { return x.d - y.d; }).slice(0, 2);
+    return '<p class="tp-small tp-debug">Admin: ' + (a.lib.venues || []).length + ' tracks are loaded. ' + (near.length ? 'Nearest ' + (s.type === 'sprint' ? 'sprint' : 'circuit') + ' venues: ' + near.map(function (n) { var withLines = (n.v.layouts || []).filter(function (l) { return l.startLine && (s.type !== 'sprint' || l.finishLine); }).length; return esc(n.v.name) + ' (' + n.d + ' m away, radius ' + (n.v.radius || '?') + ' m, ' + withLines + ' of ' + (n.v.layouts || []).length + ' courses with lines)'; }).join('; ') + '.' : 'No venue of this type is listed.') + '</p>';
+  }
   function drawResult() {
     var a = add, s = a.session, box = document.getElementById('tp-result');
     if (!(s.needsStartLine || a.editLines) && a.tapFull) { a.tapFull = false; document.body.classList.remove('tp-noscroll'); }
@@ -888,7 +895,7 @@
       if (s.needsStartLine || a.editLines) {
         var tapText = tapHint(a, isSprint), hasMarks = !!(a.startLine || a.finishLine);
         var timedNow = s.needsStartLine ? 0 : (s.laps || []).filter(function (l) { return l.kind === 'timed'; }).length;
-        h += (s.needsStartLine ? '<div class="tp-notice is-warn">' + icon('pin') + '<div><b>' + esc(s.venue || (isSprint ? 'New course' : 'New track')) + '</b><br>' + esc(s.problem) + '</div></div>'
+        h += (s.needsStartLine ? '<div class="tp-notice is-warn">' + icon('pin') + '<div><b>' + esc(s.venue || (isSprint ? 'New course' : 'New track')) + '</b><br>' + esc(s.problem) + (a.admin ? courseDebugHtml(a, s) : '') + '</div></div>'
           : '<div class="tp-notice is-ok">' + icon('check') + '<div>' + timedNow + ' timed ' + word + (timedNow === 1 ? '' : 's') + (s.bestTime ? ', best ' + V.fmtLap(s.bestTime) : '') + '. ' + (a.confirmLines ? (isSprint ? '<b>Confirm correct Start and Finish lines.</b> Check they are where the run really started and finished. Drag a marker if one is out, then tick the button.' : '<b>Confirm the Start and Finish line is correct.</b> Drag the marker if it is out, then tick the button.') : 'Drag a marker to move it, then press Done.') + '</div></div>') +
           (!s.needsStartLine ? sprintControlsHtml(a, s, isSprint) : '') +
           '<p class="tp-small">Zoom in with the + button, the mouse wheel or a pinch. Drag the map with any mouse button to move it. A quick click or tap places a marker, and a marker can be dragged along the track.</p>' +

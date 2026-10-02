@@ -2777,3 +2777,21 @@ def test_members_who_are_not_the_admin_are_not_offered_to_make_lines_official(pa
     page.get_by_role("switch", name="Correct lines?").click()
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("Timed between the start and finish you picked")
     expect(page.locator("#tp-make-official")).to_have_count(0)
+
+
+def test_the_admin_sees_which_courses_are_known_when_a_course_is_not_recognised(page):
+    open_page(page, FakeWorker(admin=True), admin=True)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    page.locator("[data-type] [data-v='sprint']").click()
+    expect(page.locator(".tp-debug")).to_contain_text("tracks are loaded")
+    expect(page.locator(".tp-debug")).to_contain_text("Nearest sprint venues")
+
+
+def test_members_do_not_see_the_course_diagnostics(page):
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    page.locator("[data-type] [data-v='sprint']").click()
+    expect(page.locator("#tp-tap-step")).to_be_visible()
+    expect(page.locator(".tp-debug")).to_have_count(0)

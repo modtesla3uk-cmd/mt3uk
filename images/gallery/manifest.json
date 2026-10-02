@@ -1,5 +1,13 @@
 [
   {
+    "file": "photo.jpg",
+    "caption": "PHOTO",
+    "name": "The_Colonel",
+    "color": "Grey",
+    "added": "2026-10-02",
+    "group": "photo.jpg"
+  },
+  {
     "file": "photo--by-andy-greaves.jpeg",
     "caption": "PHOTO",
     "name": "AndySV1K",

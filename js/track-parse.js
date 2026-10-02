@@ -618,6 +618,7 @@
 
   // rollout: metres the car moves before the clock starts (0.3048 for the 1 ft rollout of strip timing
   // lights and RaceBox's option); 0 times from the first movement.
+  var ROLLOUT_START_KMH = 6;
   function dragRuns(points, rollout) {
     var runs = [];
     rollout = rollout > 0 ? rollout : 0;
@@ -627,11 +628,22 @@
       var still = 0;
       for (var b = i - 1; b > 0 && points[b].v < 2; b--) still = points[i - 1].t - points[b].t;
       if (still < 0.5 && i > 5) continue;
-      var t0 = points[i - 1].t, base = t0, rolled = !rollout, x = 0, vmax = 0, out = { start: t0, lat: points[i].lat, lng: points[i].lng, curve: [[0, 0]] };
+      var t0 = points[i - 1].t, j = i;
+      // With the rollout on, RaceBox starts its clock a little after the first movement: on a real
+      // file its times match a start at about 6 km/h (under 4 mph). Working out one foot of distance from
+      // smoothed GPS speed starts it 0.1 s too soon, and a creep forward before the launch starts it
+      // seconds too soon.
+      if (rollout) {
+        while (j < points.length && points[j].v < ROLLOUT_START_KMH) j++;
+        if (j >= points.length) continue;
+        var pj = points[j - 1];
+        t0 = pj.t + (ROLLOUT_START_KMH - pj.v) / ((points[j].v - pj.v) || 1) * (points[j].t - pj.t);
+      }
+      var base = t0, rolled = true, x = 0, vmax = 0, out = { start: t0, lat: points[i].lat, lng: points[i].lng, curve: [[0, 0]] };
       var marks = { ft60: 18.288, eighth: 201.168, quarter: 402.336 }, sp = { s30: 30 * KMH_PER_MPH, s60: 60 * KMH_PER_MPH, s100: 100 * KMH_PER_MPH, k100: 100 };
       var lastCurve = 0;
-      for (var k = i; k < points.length; k++) {
-        var p = points[k - 1], q = points[k], dt = q.t - p.t;
+      for (var k = j; k < points.length; k++) {
+        var p = rollout && k === j ? { t: t0, v: ROLLOUT_START_KMH } : points[k - 1], q = points[k], dt = q.t - p.t;
         var nx = x + (p.v + q.v) / 2 / 3.6 * dt;
         if (!rolled && nx >= rollout) { rolled = true; base = p.t + (rollout - x) / ((nx - x) || 1) * dt; }
         Object.keys(marks).forEach(function (m) { if (!out[m] && nx >= marks[m]) { var f = (marks[m] - x) / ((nx - x) || 1); out[m] = round(p.t + f * dt - base, 2); out[m + 'Speed'] = round(p.v + f * (q.v - p.v), 1); } });

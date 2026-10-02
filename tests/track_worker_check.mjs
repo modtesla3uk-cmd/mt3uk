@@ -531,6 +531,15 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   ok(r.status === 200 && nv2.layouts.length === 2 && nv2.layouts.some(l => l.id === 'cscc' && l.organizer === 'CSCC'), 'a second organiser adds a second course to the venue');
   await call('DELETE', '/track/session?id=' + spId, undefined, 'tok-a');
 }
+// The admin makes the lines they just set the official ones from the Add a session page.
+{
+  const course = { kind: 'sprint', name: 'Quick Course', organizer: 'A1', startLine: [[51.3, -0.8], [51.3002, -0.8002]], finishLine: [[51.31, -0.81], [51.3102, -0.8102]], lapLength: 700, lat: 51.3, lng: -0.8 };
+  r = await call('POST', '/track/admin/course', course, 'tok-a');
+  ok(r.status === 401, 'making a course official needs the admin');
+  r = await call('POST', '/track/admin/course', course, 'tok-a', { 'X-Admin-Viewer': tok });
+  const qv = r.body.library && r.body.library.venues.find(v => v.id === 'quick-course');
+  ok(r.status === 200 && qv && qv.type === 'sprint' && qv.layouts[0].id === 'a1' && qv.layouts[0].startLine && qv.layouts[0].finishLine && qv.layouts[0].organizer === 'A1', 'the admin makes a course official in one step');
+}
 // A layout with no official line: the first request fills it in, and one request per course waits.
 {
   const body = { kind: 'circuit', name: 'Silverstone', venueId: 'silverstone', layoutId: 'gp', startLine: [[52.0725, -1.0148], [52.0726, -1.0150]], lapLength: 5891, lat: 52.0725, lng: -1.0148 };

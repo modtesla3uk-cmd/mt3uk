@@ -7330,6 +7330,27 @@ async function handleTrackAdminTracks(request, env) {
   return json({ success: true, library: await getTrackLibrary(env) });
 }
 
+// The admin, from the Add a session page: makes the lines they just set the
+// official ones for that course, straight away (no request to wait on). The
+// admin viewer token proves who they are; the new course is linked to their
+// own saved sessions the same way "Approve and add track" does it.
+async function handleTrackAdminCourse(request, env) {
+  if (!(await isAdminViewerToken(env, request.headers.get('X-Admin-Viewer')))) return json({ success: false, message: 'Unauthorised' }, 401);
+  var email = await resolveSession(request, env);
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var kind = ['sprint'].indexOf(body.kind) !== -1 ? 'sprint' : 'circuit';
+  var req = {
+    kind: kind, name: trackText(body.name, 60), organizer: kind === 'sprint' ? trackText(body.organizer, 40) : '',
+    venueId: trackId(body.venueId), layoutId: '', startLine: trackLine(body.startLine), finishLine: kind === 'sprint' ? trackLine(body.finishLine) : null,
+    lapLength: trackNum(body.lapLength, 0, 30000), lat: trackNum(body.lat, -90, 90), lng: trackNum(body.lng, -180, 180), from: email || ''
+  };
+  if (req.lat === null || req.lng === null) return json({ success: false, message: 'Where is it? The course needs a position.' }, 400);
+  var added = await addTrackFromRequest(env, req);
+  if (added.error) return json({ success: false, message: added.error }, 400);
+  return json({ success: true, relinked: added.relinked, venueId: added.venueId, layoutId: added.layoutId, library: await getTrackLibrary(env) });
+}
+
 async function handleTrackAdminRequests(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
   var list = await getJsonKey(env, 'track-requests', []);
@@ -8655,6 +8676,9 @@ export default {
     }
     if (url.pathname === '/track/access/admin' && (request.method === 'GET' || request.method === 'POST')) {
       return handleTrackAccessAdmin(request, env);
+    }
+    if (url.pathname === '/track/admin/course' && request.method === 'POST') {
+      return handleTrackAdminCourse(request, env);
     }
     if (url.pathname === '/track/admin/sessions' && request.method === 'GET') {
       return handleTrackAdminSessions(request, env);

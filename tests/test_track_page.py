@@ -53,6 +53,7 @@ class FakeWorker:
         self.saved = []
         self.gzipped = False
         self.requests = []
+        self.courses = []
         self.sources = {}
         self.boards = {}
         self.access = "approved"
@@ -171,6 +172,12 @@ class FakeWorker:
             data = {"success": True, "car": {"id": "car1", "name": CAR["name"], "model": "Model 3", "owner": "Rich"}, "mine": False, "sessions": [s for s in self.index if s.get("privacy") in ("build", "board")]}
         elif path == "/track/requests":
             self.requests.append(body)
+        elif path == "/track/admin/course" and req.method == "POST":
+            self.courses.append(body)
+            lib = json.loads((ROOT / "data" / "tracks.json").read_text(encoding="utf-8"))
+            lib["venues"].append({"id": "made-sprint", "name": body.get("name") or "Made Sprint", "type": "sprint", "lat": body["lat"], "lng": body["lng"], "radius": 2500,
+                                  "layouts": [{"id": "course", "name": "Course", "length": body.get("lapLength") or 0, "startLine": body["startLine"], "finishLine": body["finishLine"]}]})
+            data = {"success": True, "relinked": 0, "library": lib}
         elif path == "/admin/viewer-check":
             data = {"success": self.admin}
             status = 200 if self.admin else 401
@@ -2736,3 +2743,35 @@ def test_g_forces_worked_out_from_gps_are_marked_as_estimated(page, tmp_path):
     expect(page.locator("#tp-gbox h3")).to_contain_text("(estimated)")
     expect(page.locator(".tp-gg").locator("xpath=../..").locator("h3")).to_contain_text("(estimated)")
     expect(page.locator(".tp-note", has_text="Peak braking").first).to_contain_text("(estimated)")
+
+
+def test_the_admin_can_make_the_lines_they_set_the_official_ones(page):
+    open_page(page, FakeWorker(admin=True), admin=True)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    page.locator("[data-type] [data-v='sprint']").click()
+    a = _trace_point(page, 0.2)
+    page.mouse.click(a[0], a[1])
+    b = _trace_point(page, 0.6)
+    page.mouse.click(b[0], b[1])
+    page.get_by_role("switch", name="Correct lines?").click()
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("Timed between the start and finish you picked")
+    page.get_by_role("button", name="Make official").click()
+    # The course is remembered: this file is now timed on its official lines, which cannot be moved.
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("official start and finish lines")
+    expect(page.get_by_role("button", name="Move start and finish")).to_have_count(0)
+    expect(page.locator("#tp-official-box")).to_have_count(0)
+
+
+def test_members_who_are_not_the_admin_are_not_offered_to_make_lines_official(page):
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    page.locator("[data-type] [data-v='sprint']").click()
+    a = _trace_point(page, 0.2)
+    page.mouse.click(a[0], a[1])
+    b = _trace_point(page, 0.6)
+    page.mouse.click(b[0], b[1])
+    page.get_by_role("switch", name="Correct lines?").click()
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("Timed between the start and finish you picked")
+    expect(page.locator("#tp-make-official")).to_have_count(0)

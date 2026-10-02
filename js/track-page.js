@@ -901,8 +901,14 @@
         var timed = s.laps.filter(function (l) { return l.kind === 'timed'; }).length;
         h += '<div class="tp-notice is-ok">' + miniMap(s) + '<div><b>' + esc(s.venue ? trackName(s) : (a.venueName || 'Your track')) + '</b><br>' +
           (s.autoLine ? 'No start line is set for this track, so your laps were found from your own trace. ' : s.officialLines ? 'Timed with this course\'s official ' + (isSprint ? 'start and finish lines' : 'start line') + ', which only MT3UK sets so results stay comparable. ' : s.venueId ? 'Found from the GPS in your file. ' : isSprint ? 'Timed between the start and finish you picked. ' : 'Timed from the start line you picked. ') + timed + ' timed ' + word + (timed === 1 ? '' : 's') + (s.bestTime ? ', best ' + V.fmtLap(s.bestTime) : '') + '.</div></div>';
+        // A pass with a long stop in the middle is not a lap: this is probably a sprint or hill climb file.
+        var lapTimes = (s.laps || []).filter(function (l) { return l.kind === 'timed'; }).map(function (l) { return l.time; });
+        var gapLap = !isSprint && s.type === 'track' && (s.laps || []).some(function (l) { return l.kind === 'slow' && lapTimes.length && l.time > 3 * Math.min.apply(null, lapTimes); });
+        if (gapLap) h += '<div class="tp-notice is-warn">' + icon('warn') + '<div><b>The car stopped for a long time between passes.</b><br>That is not a lap, so it is left out. If these were sprint or hill climb runs, switch the type to time each run from the start to the finish. <button type="button" class="btn btn-secondary btn-sm" data-tap="sprint">Switch to Sprint or hill climb</button></div></div>';
         if ((a.startLine || a.finishLine || s.startLine) && !s.officialLines && !s.autoLine) h += '<button type="button" class="btn btn-secondary btn-sm tp-move-lines" data-tap="edit">' + icon('pin') + 'Move ' + (isSprint ? 'start and finish' : 'the start line') + '</button>';
         h += sprintControlsHtml(a, s, isSprint);
+        // The admin can make the lines just set the official ones, so the course is remembered for everyone.
+        if (a.admin && s.startLineFromMember && s.startLine && (isSprint ? s.finishLine : true)) h += '<div class="tp-notice is-admin" id="tp-official-box">' + icon('shield') + '<div>Admin: make these the official ' + (isSprint ? 'start and finish lines' : 'start line') + ' for this course, so every file uploaded there uses them. <button type="button" class="btn btn-secondary btn-sm" id="tp-make-official">Make official</button></div></div>';
         if (s.venueId && !s.layoutId) h += '<p class="tp-sub">We know ' + esc(s.venue) + ' but couldn\'t tell which layout this is, so it can\'t go on a leaderboard yet. We\'ve let the admin know.</p>';
       }
     } else {
@@ -1006,6 +1012,21 @@
     group('[data-privacy]', function (v) { keep(); a.privacy = v; drawResult(); });
     var orgIn = document.getElementById('tp-organiser');
     if (orgIn) orgIn.addEventListener('change', function () { keep(); a.organizer = orgIn.value.trim().slice(0, 40); analyse(); });
+    var offBtn = document.getElementById('tp-make-official');
+    if (offBtn) offBtn.addEventListener('click', function () {
+      keep();
+      var s2 = a.session, nameEl = document.getElementById('tp-venue-name'), laps = (s2.laps || []).filter(function (l) { return l.n === s2.best; })[0];
+      offBtn.disabled = true;
+      api('POST', '/track/admin/course', { kind: s2.type === 'sprint' ? 'sprint' : 'circuit', name: (nameEl && nameEl.value.trim()) || a.venueName || s2.venue || '', organizer: a.organizer || s2.organizer || '', venueId: s2.venueId || '', startLine: s2.startLine, finishLine: s2.finishLine || null, lapLength: laps && laps.dist ? laps.dist : 0, lat: s2.origin && s2.origin[0], lng: s2.origin && s2.origin[1] }).then(function (d) {
+        if (!d.success) { offBtn.disabled = false; status(d.message || 'Could not make that official.', 'error'); return; }
+        // The course now exists: this file (and every other) is timed on its lines.
+        a.lib = d.library; a.startLine = null; a.finishLine = null; a.editLines = false; a.confirmLines = false;
+        analyse();
+        status('Official lines saved. ' + d.relinked + ' of your saved sessions were linked to them.', 'ok');
+      }).catch(function () { offBtn.disabled = false; status('Could not reach the server.', 'error'); });
+    });
+    var hintBtn = document.querySelector('#tp-result .tp-notice [data-tap="sprint"]');
+    if (hintBtn) hintBtn.addEventListener('click', function () { keep(); a.type = 'sprint'; a.startLine = null; a.finishLine = null; a.editLines = false; a.confirmLines = false; a.tapFull = false; a.tapAuto = false; analyse(); });
     var useLast = document.getElementById('tp-use-last-tyres');
     if (useLast) useLast.addEventListener('click', function () { keep(); a.tyre = a.lastTyre; a.tyres = TY.compose(a.lastTyre); a.tyrePre = true; drawResult(); });
     var fcSel = document.getElementById('tp-finish-cross');
@@ -1498,7 +1519,7 @@
   }
   function lapOptions(sel) {
     var s = view.s;
-    var h = (s.laps || []).filter(function (l) { return s.trace.laps[l.n]; }).map(function (l) {
+    var h = (s.laps || []).filter(function (l) { return s.trace.laps[l.n] && (l.kind === 'timed' || l.kind === 'in' || l.kind === 'out' || String(l.n) === String(sel)); }).map(function (l) {
       return '<option value="' + l.n + '"' + (String(sel) === String(l.n) ? ' selected' : '') + '>' + lapName(l, s) + ', ' + V.fmtLap(l.time) + (l.n === s.best ? ' (best)' : l.kind === 'in' ? ' (in lap)' : l.kind === 'out' ? ' (out lap)' : '') + '</option>';
     }).join('');
     // Your best laps from other days at the same layout.

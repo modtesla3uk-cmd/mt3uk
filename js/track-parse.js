@@ -1047,6 +1047,8 @@
       return out.filter(Boolean);
     }
     var laps = s.laps || [], tr = s.trace && s.trace.laps, best = s.best;
+    // The out lap is not numbered, so Lap 1 is the first timed lap after it.
+    function shown(l) { return l.n - laps.filter(function (x) { return x.kind === 'out' && x.n < l.n; }).length; }
     if (!best || !tr) { out.push(qualityNote(s)); return out.filter(Boolean); }
     if (s.possible && s.bestTime - s.possible >= 0.1) out.push({ icon: 'flag', text: 'Your best sectors add up to ' + fmtLap(s.possible) + ', ' + (s.bestTime - s.possible).toFixed(2) + ' s quicker than your best lap.', small: s.sectorsByThirds ? 'Sectors are thirds of the lap until this track has its own sector points.' : 'Green sector times are your best of each.' });
     // A lap that was ahead of the best for a while.
@@ -1055,12 +1057,12 @@
       if (l.n === best || !tr[l.n] || l.kind === 'short') return;
       var up = 0, upAt = 0;
       tr[l.n].forEach(function (p) { var q = traceAt(bt, p[0]); var lead = q[1] - p[1]; if (lead > up) { up = lead; upAt = p[0]; } });
-      if (up >= 0.4 && !out.some(function (o) { return o.lapAhead; })) out.push({ icon: 'flag', lapAhead: true, text: 'Lap ' + l.n + ' was ' + up.toFixed(1) + ' s up on your best lap ' + dist(upAt) + ' in' + (l.kind === 'in' ? ', before you came in to the pits.' : ', then lost it later in the lap.'), small: 'Put those parts together and there is more time in the car.' });
+      if (up >= 0.4 && !out.some(function (o) { return o.lapAhead; })) out.push({ icon: 'flag', lapAhead: true, text: 'Lap ' + shown(l) + ' was ' + up.toFixed(1) + ' s up on your best lap ' + dist(upAt) + ' in' + (l.kind === 'in' ? ', before you came in to the pits.' : ', then lost it later in the lap.'), small: 'Put those parts together and there is more time in the car.' });
     });
     var others = laps.filter(function (l) { return l.kind === 'timed' && l.n !== best; }).sort(function (a, b) { return a.time - b.time; });
     if (others.length && s.corners && s.corners.length) {
       var g = cornerGains(bt, tr[others[0].n], s.corners).sort(function (a, b) { return b.gain - a.gain; })[0];
-      if (g && g.gain >= 0.15) out.push({ icon: 'corner', text: 'Compared with lap ' + others[0].n + ', most of your best lap\'s time came at ' + cornerName(g) + ': ' + g.gain.toFixed(2) + ' s, carrying ' + speed(Math.max(0, g.va - g.vb)) + ' more at the slowest point.', small: 'Measured from 200 m before the slowest point to 150 m after.' });
+      if (g && g.gain >= 0.15) out.push({ icon: 'corner', text: 'Compared with lap ' + shown(others[0]) + ', most of your best lap\'s time came at ' + cornerName(g) + ': ' + g.gain.toFixed(2) + ' s, carrying ' + speed(Math.max(0, g.va - g.vb)) + ' more at the slowest point.', small: 'Measured from 200 m before the slowest point to 150 m after.' });
     }
     if (s.brakeMax) out.push({ icon: 'brake', text: 'Peak braking ' + s.brakeMax.toFixed(2) + ' g, peak cornering ' + s.latMax.toFixed(2) + ' g' + (s.gDerived ? ' (estimated)' : '') + ', top speed ' + speed(s.vmax) + '.', small: s.gDerived ? 'Estimated: worked out from GPS, as the file has no g readings, so treat these as a guide.' : '' });
     out.push(qualityNote(s));

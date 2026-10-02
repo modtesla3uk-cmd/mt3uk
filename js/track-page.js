@@ -1485,7 +1485,7 @@
       ['Most grip used' + (s.gDerived ? ' (estimated)' : ''), s.latMax ? s.latMax.toFixed(2) + ' g' : '-', s.brakeMax ? 'Braking ' + s.brakeMax.toFixed(2) + ' g' : ''],
       ['Run distance', best && best.dist ? V.fmtD(best.dist) : '-', laps.length > 1 ? laps.length + ' runs in this file' : '']
     ] : [
-      ['Best lap', best ? V.fmtLap(best.time) : '-', best ? 'Lap ' + best.n : '', 1],
+      ['Best lap', best ? V.fmtLap(best.time) : '-', best ? lapName(best, s) : '', 1],
       ['Best possible', s.possible ? V.fmtLap(s.possible) : '-', s.possible && best && best.time - s.possible < 0.05 ? 'Same as your best lap' : 'Your best sectors together'],
       ['Top speed', s.vmax ? V.fmtV(s.vmax) : '-', ''],
       ['Most grip used' + (s.gDerived ? ' (estimated)' : ''), s.latMax ? s.latMax.toFixed(2) + ' g' : '-', s.brakeMax ? 'Braking ' + s.brakeMax.toFixed(2) + ' g' : ''],
@@ -1527,7 +1527,9 @@
   }
   // "Lap 5", or "Session 2, lap 5" on a day made from several files
   // ("Run 2" for sprints and hill climbs).
-  function lapName(l, s) { return s.runs > 1 ? cap(partWord(s.type)) + ' ' + (l.run || 1) + ', lap ' + l.n : 'Lap ' + l.n; }
+  // The out lap is not a numbered lap: Lap 1 is the first timed one after it.
+  function lapNo(l, s) { return l.n - (s.laps || []).filter(function (x) { return x.kind === 'out' && x.n < l.n; }).length; }
+  function lapName(l, s) { return l.kind === 'out' ? 'Out lap' : s.runs > 1 ? cap(partWord(s.type)) + ' ' + (l.run || 1) + ', lap ' + lapNo(l, s) : 'Lap ' + lapNo(l, s); }
   function cap(w) { return w.charAt(0).toUpperCase() + w.slice(1); }
   function lapKind(l, s) {
     if (l.n === s.best) return '<span class="tp-badge">Best</span>';
@@ -1549,13 +1551,13 @@
         cells += '<td class="' + (isBest ? 'is-fast' : '') + '">' + (v == null ? '' : v.toFixed(2)) + (isBest ? '<span class="tp-sr"> (best sector)</span>' : '') + '</td>';
       }
       var gap = best && l.n !== best.n && l.kind !== 'short' ? '+' + (l.time - best.time).toFixed(3) : '';
-      return '<tr class="' + (l.n === s.best ? 'is-best' : '') + '">' + (s.runs > 1 ? '<td>' + (l.run || 1) + '</td>' : '') + '<td>' + l.n + lapKind(l, s) + '</td><td>' + V.fmtLap(l.time) + '</td>' + cells + '<td>' + Math.round(V.spd(l.vmax || 0)) + '</td><td>' + gap + '</td></tr>';
+      return '<tr class="' + (l.n === s.best ? 'is-best' : '') + '">' + (s.runs > 1 ? '<td>' + (l.run || 1) + '</td>' : '') + '<td>' + (l.kind === 'out' ? '' : lapNo(l, s)) + lapKind(l, s) + '</td><td>' + V.fmtLap(l.time) + '</td>' + cells + '<td>' + Math.round(V.spd(l.vmax || 0)) + '</td><td>' + gap + '</td></tr>';
     }).join('') + '</tbody>';
   }
   function lapOptions(sel) {
     var s = view.s;
     var h = (s.laps || []).filter(function (l) { return s.trace.laps[l.n] && (l.kind === 'timed' || l.kind === 'in' || l.kind === 'out' || String(l.n) === String(sel)); }).map(function (l) {
-      return '<option value="' + l.n + '"' + (String(sel) === String(l.n) ? ' selected' : '') + '>' + lapName(l, s) + ', ' + V.fmtLap(l.time) + (l.n === s.best ? ' (best)' : l.kind === 'in' ? ' (in lap)' : l.kind === 'out' ? ' (out lap)' : '') + '</option>';
+      return '<option value="' + l.n + '"' + (String(sel) === String(l.n) ? ' selected' : '') + '>' + lapName(l, s) + ', ' + V.fmtLap(l.time) + (l.n === s.best ? ' (best)' : l.kind === 'in' ? ' (in lap)' : '') + '</option>';
     }).join('');
     // Your best laps from other days at the same layout.
     if (s.mine && view.mine && s.layoutId) {

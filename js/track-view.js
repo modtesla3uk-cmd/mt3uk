@@ -248,7 +248,8 @@
       var m = marker(0, 0);
       m.rot = el('g', {}, m.g);
       el('path', { d: 'M-2 -8 L12 0 L-2 8 Z', fill: color, stroke: C.card, 'stroke-width': 2, 'stroke-linejoin': 'round' }, m.rot);
-      m.label = text(m.g, 0, 0, letter, { 'font-size': 12, 'font-weight': 700, fill: color, stroke: C.card, 'stroke-width': 3, 'paint-order': 'stroke' });
+      m.pill = el('rect', { rx: 9, ry: 9, height: 18, fill: color, stroke: C.card, 'stroke-width': 1.5 }, m.g);
+      m.label = text(m.g, 0, 0, letter, { 'font-size': 12, 'font-weight': 700, fill: '#ffffff' });
       m.letter = letter;
       m.g.setAttribute('class', 'tv-edge');
       m.g.setAttribute('pointer-events', 'none');
@@ -275,9 +276,13 @@
       }
       m.label.textContent = lbl;
       var horiz = Math.abs(dx) * v.h >= Math.abs(dy) * v.w;
-      m.label.setAttribute('x', horiz ? (dx > 0 ? -10 : 10) : 0);
-      m.label.setAttribute('y', horiz ? 4 : (dy > 0 ? -14 : 22));
-      m.label.setAttribute('text-anchor', horiz ? (dx > 0 ? 'end' : 'start') : 'middle');
+      // A pill beside the arrow, on the side away from the edge.
+      var tw = lbl.length * 6.6 + 14;
+      var px = horiz ? (dx > 0 ? -12 - tw : 12) : -tw / 2, py = horiz ? -9 : (dy > 0 ? -34 : 16);
+      m.pill.setAttribute('x', px.toFixed(1)); m.pill.setAttribute('y', py); m.pill.setAttribute('width', tw.toFixed(1));
+      m.label.setAttribute('x', (px + tw / 2).toFixed(1));
+      m.label.setAttribute('y', py + 13);
+      m.label.setAttribute('text-anchor', 'middle');
       m.g.setAttribute('visibility', 'visible');
     }
     function edges() { edgeFor(edgeA, posA, posB); edgeFor(edgeB, posB, posA); }
@@ -582,9 +587,13 @@
     svg.innerHTML = '';
     var W = cfg.W || width(svg), H = cfg.H || 240;
     svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
-    var m = { l: 46, r: 12, t: 12, b: 28 };
+    // cfg.y2 { y0, y1, yt, yf }: a second scale on the right, for series with axis: 2.
+    var m = { l: 46, r: cfg.y2 ? 46 : 12, t: 12, b: 28 };
     function X(v) { return m.l + (v - cfg.x0) / ((cfg.x1 - cfg.x0) || 1) * (W - m.l - m.r); }
     function Y(v) { return H - m.b - (v - cfg.y0) / ((cfg.y1 - cfg.y0) || 1) * (H - m.t - m.b); }
+    function Y2(v) { return H - m.b - (v - cfg.y2.y0) / ((cfg.y2.y1 - cfg.y2.y0) || 1) * (H - m.t - m.b); }
+    function Yof(sr) { return sr.axis === 2 && cfg.y2 ? Y2 : Y; }
+    if (cfg.y2) cfg.y2.yt.forEach(function (v) { text(svg, W - m.r + 8, Y2(v) + 4, cfg.y2.yf ? cfg.y2.yf(v) : String(v), { 'text-anchor': 'start' }); });
     cfg.yt.forEach(function (v) {
       el('line', { x1: m.l, x2: W - m.r, y1: Y(v), y2: Y(v), stroke: v === cfg.zero ? C.axis : C.grid }, svg);
       text(svg, m.l - 8, Y(v) + 4, cfg.yf ? cfg.yf(v) : String(v), { 'text-anchor': 'end' });
@@ -594,6 +603,7 @@
     if (cfg.under) cfg.under(svg, X, Y);
     cfg.series.forEach(function (sr) {
       if (!sr.pts.length) return;
+      var Y = Yof(sr);
       if (sr.area) {
         var base = Y(cfg.zero || 0);
         el('path', { d: 'M' + X(sr.pts[0][0]) + ',' + base + ' ' + sr.pts.map(function (p) { return 'L' + X(p[0]).toFixed(1) + ',' + Y(p[1]).toFixed(1); }).join(' ') + ' L' + X(sr.pts[sr.pts.length - 1][0]) + ',' + base + 'Z', fill: sr.color, opacity: 0.12 }, svg);
@@ -608,7 +618,7 @@
       var vals = cfg.series.map(function (sr, i) {
         var v = sr.at(xv);
         if (v == null || !isFinite(v)) { dots[i].setAttribute('visibility', 'hidden'); return v; }
-        dots[i].setAttribute('cx', X(xv)); dots[i].setAttribute('cy', Y(v)); dots[i].setAttribute('visibility', 'visible');
+        dots[i].setAttribute('cx', X(xv)); dots[i].setAttribute('cy', Yof(cfg.series[i])(v)); dots[i].setAttribute('visibility', 'visible');
         return v;
       });
       if (e && cfg.tip) tip(cfg.tip(xv, vals), e.clientX, e.clientY);

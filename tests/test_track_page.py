@@ -962,7 +962,7 @@ def test_compare_dots_show_each_lap_at_the_same_moment(page):
     fake = FakeWorker()
     save_thruxton_with_a_member_board(page, fake)
     page.locator("#tp-cmp-b").select_option("x:m1")
-    expect(page.locator("#tp-key")).to_contain_text("Ann, Blue Y (B)")
+    expect(page.locator("#tp-key")).to_contain_text("Ann, Blue Y, best lap, 28 May (B)")
     expect(page.locator("#tp-sync")).to_have_count(0)
     expect(page.locator(".tp-sync-note")).to_contain_text("slower one trails")
     page.locator("#tp-speed").scroll_into_view_if_needed()
@@ -1105,7 +1105,7 @@ def test_other_members_laps_can_be_compared_and_put_on_the_map(page):
     group = page.locator("#tp-cmp-b optgroup[label=\"Other members' best laps\"]")
     expect(group.locator("option")).to_have_text(["Ann, Blue Y, 1:49.800"])
     page.locator("#tp-cmp-b").select_option("x:m1")
-    expect(page.locator("#tp-key")).to_contain_text("Ann, Blue Y (B)")
+    expect(page.locator("#tp-key")).to_contain_text("Ann, Blue Y, best lap, 28 May (B)")
     expect(page.locator("#tp-gap-cap")).to_contain_text("A finishes")
     expect(page.locator("#tp-gap-cap")).to_contain_text("ahead")
     # Their lap can be added to the main map too.
@@ -1403,16 +1403,21 @@ def test_g_force_lines_can_be_switched_on_and_off(page):
     fake = FakeWorker()
     save_thruxton_with_a_member_board(page, fake)
     toggles = page.locator("#tp-gtoggles .chip")
-    expect(toggles).to_have_text(["Acceleration G", "Cornering G"])
-    expect(page.locator("#tp-gtoggles .chip.is-on")).to_have_count(2)
+    expect(toggles).to_have_text(["Acceleration G", "Cornering G", "Speed"])
+    expect(page.locator("#tp-gtoggles .chip.is-on")).to_have_count(3)
     lines = page.locator("#tp-gforce > path[stroke-width]")
-    # Two lines, each for lap A (solid) and lap B (dashed).
-    expect(lines).to_have_count(4)
-    expect(page.locator("#tp-gforce > path[stroke-dasharray='5 4']")).to_have_count(2)
+    # Three lines (acceleration, cornering, speed), each for lap A (solid) and lap B (dashed).
+    expect(lines).to_have_count(6)
+    expect(page.locator("#tp-gforce > path[stroke-dasharray='5 4']")).to_have_count(3)
     expect(page.locator("#tp-gnote")).to_contain_text("Solid line")
+    # Speed has its own scale on the right.
+    expect(page.locator("#tp-gforce text[text-anchor='start']")).to_have_count(4)
     toggles.nth(0).click()
     expect(toggles.nth(0)).to_have_attribute("aria-pressed", "false")
+    expect(lines).to_have_count(4)
+    toggles.nth(2).click()
     expect(lines).to_have_count(2)
+    expect(page.locator("#tp-gforce text[text-anchor='start']")).to_have_count(0)
     toggles.nth(1).click()
     expect(page.locator("#tp-gnote")).to_have_text("Turn a line on to see it.")
     expect(lines).to_have_count(0)
@@ -2114,3 +2119,76 @@ def test_a_glide_finishes_while_playback_is_paused(page):
     w = r["both"]["viewW"]
     assert r["scrubbed apart"]["now"]["toLeader"] > 0.25 * w
     assert r["scrubbed apart"]["after"]["toLeader"] < 0.5, r["scrubbed apart"]
+
+
+def test_playback_slider_has_a_time_ruler_and_a_line_marker(page):
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    ruler = page.locator("#tp-ruler")
+    # Minutes and seconds along the lap, starting at 0:00.
+    expect(ruler.locator("span").first).to_have_text("0:00")
+    labels = ruler.locator("span").all_inner_texts()
+    assert len(labels) >= 3 and all(re.match(r"^\d+:\d\d$", t) for t in labels), labels
+    assert ruler.locator("i.is-major").count() >= 3 and ruler.locator("i:not(.is-major)").count() >= 1
+    # The marker is a thin upright line, and the orange fill follows it.
+    scrub = page.locator("#tp-scrub")
+    expect(scrub).to_have_css("appearance", "none")
+    scrub.evaluate("el => { el.value = el.max / 2; el.dispatchEvent(new Event('input', {bubbles: true})); }")
+    assert abs(float(scrub.evaluate("el => el.style.getPropertyValue('--p')").rstrip('%')) - 50) < 0.5
+    page.locator("#tp-play-toggle").click()
+    page.wait_for_timeout(300)
+    assert float(scrub.evaluate("el => el.style.getPropertyValue('--p')").rstrip('%')) > 50
+
+
+def test_playback_buttons_are_compact_on_a_phone(page):
+    page.set_viewport_size({"width": 390, "height": 844})
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    start, back, toggle = page.locator("#tp-play-start"), page.locator("#tp-play-back"), page.locator("#tp-play-toggle")
+    # Start and Rewind are icon buttons on a phone, still named for screen readers and 44px or more to tap.
+    for b, name in ((start, "Go back to the start"), (back, "Rewind")):
+        box = b.bounding_box()
+        assert 44 <= box["width"] <= 52 and box["height"] >= 44, (name, box)
+        expect(b).to_have_attribute("aria-label", name)
+    expect(toggle).to_contain_text("Play")
+    assert toggle.bounding_box()["width"] > 150
+    # The speed chips and Follow cars fit on one row.
+    ys = {round(c.bounding_box()["y"]) for c in page.locator(".tp-play .chip").all()}
+    assert len(ys) == 1, ys
+    assert overflow_width(page) <= 0
+
+
+def test_g_force_and_speed_chart_has_thin_lines_and_can_be_hidden(page):
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    lines = page.locator("#tp-gforce > path[stroke-width]")
+    expect(lines).to_have_count(6)
+    assert set(lines.evaluate_all("els => els.map(e => e.getAttribute('stroke-width'))")) == {"1.25"}
+    switch = page.locator("#tp-gshow")
+    expect(switch).to_have_attribute("aria-checked", "true")
+    switch.click()
+    expect(switch).to_have_attribute("aria-checked", "false")
+    expect(page.locator("#tp-gforce")).to_be_hidden()
+    expect(page.locator("#tp-gtoggles")).to_be_hidden()
+    # Remembered next time.
+    page.reload()
+    expect(page.locator("#tp-gshow")).to_have_attribute("aria-checked", "false")
+    expect(page.locator("#tp-gforce")).to_be_hidden()
+    page.locator("#tp-gshow").click()
+    expect(page.locator("#tp-gforce")).to_be_visible()
+
+
+def test_compared_laps_say_which_session_and_day_they_are_from(page):
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    key = page.locator("#tp-key")
+    # Laps from this session carry its date.
+    expect(key).to_contain_text(re.compile(r"Lap \d, 28 May \(A\)"))
+    expect(key).to_contain_text(re.compile(r"Lap \d, 28 May \(B\)"))
+    expect(page.locator("#tp-metrics")).to_contain_text(re.compile(r"Lap \d, 28 May \(A\)"))
+    # Your best on another day says so, with that day.
+    earlier = member_session(fake.sessions["new1"])
+    earlier["date"] = "2026-03-28"
+    fake.sessions["earlier1"] = earlier
+    page.locator("#tp-cmp-b").select_option("x:earlier1")
+    expect(key).to_contain_text("Your best lap, 28 Mar (B)")

@@ -801,7 +801,9 @@
       var ms = mid(c.start), mf = mid(c.finish), sep = Math.hypot(ms[0] - mf[0], ms[1] - mf[1]);
       var runLen = c.layout && c.layout.length ? c.layout.length : median(pairs.map(function (pr) { return pr[1].d - pr[0].d; }));
       climb = !!(pairs.length && runLen && sep > 0.6 * runLen);
-      if (opts.ignoreFirstFinish && !climb && !fc) {
+      // Only a run that crosses the finish more than once has a crossing to skip, so this
+      // is safe on a point-to-point course too (whatever the course looks like from its size).
+      if (opts.ignoreFirstFinish && !fc) {
         // The first finish crossing after each start is the one skipped (when
         // that run crosses the finish line more than once), run by run.
         var by = {};

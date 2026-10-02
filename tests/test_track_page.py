@@ -1341,9 +1341,9 @@ def test_sprints_can_ignore_the_first_finish_line_crossing(page):
     expect(page.locator("#tp-ignore-finish")).to_have_count(0)
 
 
-def test_hill_climbs_never_ignore_the_first_finish_crossing(page):
-    """A hill climb runs point to point, so there is no switch and both runs
-    are timed."""
+def test_hill_climbs_keep_both_runs_with_the_ignore_switch_on(page):
+    """A hill climb crosses the finish once per run, so there is nothing to
+    skip: both runs are timed, and the switch is there if it is needed."""
     page.route(re.compile(r".*/data/tracks\.json.*"), _course(HILL_FINISH, 1500))
     open_page(page, FakeWorker())
     page.get_by_role("link", name="Add a session").click()
@@ -1352,7 +1352,7 @@ def test_hill_climbs_never_ignore_the_first_finish_crossing(page):
     page.locator("[data-type] button[data-v='sprint']").click()
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("Test Sprint")
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("2 timed runs")
-    expect(page.locator("#tp-ignore-finish")).to_have_count(0)
+    expect(page.locator("#tp-ignore-finish")).to_be_visible()
 
 
 def test_go_back_to_the_start_during_playback(page):
@@ -2474,7 +2474,14 @@ def test_after_setting_both_lines_the_member_is_asked_to_confirm_them(page):
     notice = page.locator("#tp-result .tp-notice.is-ok")
     expect(notice).to_contain_text("Check the start and finish")
     expect(page.locator("#tp-tap .tp-tapmark")).to_have_count(2)
-    page.get_by_role("button", name="Yes, these are correct").click()
+    # The ignore switch and the finish crossing are there while the lines are checked, not only after.
+    expect(page.locator("#tp-ignore-finish")).to_be_visible()
+    expect(page.locator("#tp-finish-cross")).to_be_visible()
+    # The confirm button is highlighted and has no tick, so it reads as something still to press.
+    confirm = page.get_by_role("button", name="Yes, these are correct")
+    expect(confirm).to_have_class(re.compile("btn-accent"))
+    expect(confirm.locator("svg")).to_have_count(0)
+    confirm.click()
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("Timed between the start and finish you picked")
     expect(page.locator("#tp-tap")).to_have_count(0)
 

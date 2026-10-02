@@ -849,6 +849,14 @@
     var c = T.fileChannels(a.rd);
     return '<p class="tp-small tp-chans" id="tp-chans"><b>In your file:</b> ' + esc(c.have.join(', ')) + '.' + (c.empty.length ? ' In the file but empty: ' + esc(c.empty.join(', ').toLowerCase()) + '.' : '') + '</p>';
   }
+  // The sprint's ignore switch and "Run ends on" choice: shown while the lines are
+  // being checked too, so the member can see the time change as they set them.
+  function sprintControlsHtml(a, s, isSprint) {
+    var out = '';
+    if (isSprint) out += '<button type="button" class="tp-switch" role="switch" aria-checked="' + (a.ignoreFinish !== false) + '" id="tp-ignore-finish"><span><b>Ignore the first time each run crosses the finish line</b><br><small>' + (s.firstFinishIgnored ? 'Skipped the first crossing on ' + s.firstFinishIgnored + ' run' + (s.firstFinishIgnored === 1 ? '' : 's') + ' in this file. Turn it off if a run is missing or ends too late.' : 'Only a run that crosses the finish line more than once has a crossing to skip. Turn this off if a run is missing.') + '</small></span><span class="tp-track"></span></button>';
+    if (isSprint) out += '<div class="tp-field"><label for="tp-finish-cross">Run ends on</label><select class="field" id="tp-finish-cross"><option value="">Automatic (see the switch above)</option>' + [1, 2, 3, 4, 5].map(function (n) { return '<option value="' + n + '"' + (a.finishCross === n ? ' selected' : '') + '>Crossing ' + n + ' of the finish line</option>'; }).join('') + '</select><p class="tp-small">If the car passes the finish line before the run really ends, choose which crossing finishes the timing. It counts from the start line.</p></div>';
+    return out;
+  }
   function drawResult() {
     var a = add, s = a.session, box = document.getElementById('tp-result');
     if (!(s.needsStartLine || a.editLines) && a.tapFull) { a.tapFull = false; document.body.classList.remove('tp-noscroll'); }
@@ -871,21 +879,21 @@
         var timedNow = s.needsStartLine ? 0 : (s.laps || []).filter(function (l) { return l.kind === 'timed'; }).length;
         h += (s.needsStartLine ? '<div class="tp-notice is-warn">' + icon('pin') + '<div><b>' + esc(s.venue || (isSprint ? 'New course' : 'New track')) + '</b><br>' + esc(s.problem) + '</div></div>'
           : '<div class="tp-notice is-ok">' + icon('check') + '<div>' + timedNow + ' timed ' + word + (timedNow === 1 ? '' : 's') + (s.bestTime ? ', best ' + V.fmtLap(s.bestTime) : '') + '. ' + (a.confirmLines ? (isSprint ? 'Check the start and finish are where the run really started and finished. Drag a marker if one is out, then confirm.' : 'Check the start and finish line is in the right place. Drag the marker if it is out, then confirm.') : 'Drag a marker to move it, then press Done.') + '</div></div>') +
+          (!s.needsStartLine ? sprintControlsHtml(a, s, isSprint) : '') +
           '<p class="tp-small">Zoom in with the + button, the mouse wheel or a pinch. Drag the map with any mouse button to move it. A quick click or tap places a marker, and a marker can be dragged along the track.</p>' +
           '<div class="tp-tapbox' + (a.tapFull ? ' is-full' : '') + '" id="tp-tapbox"><p class="tp-sub tp-tap-step" id="tp-tap-step">' + tapText + '</p><div class="tp-tapmap" id="tp-tapmap"><svg class="tv-chart tp-tap" id="tp-tap" role="img" aria-label="Your trace. ' + tapText + '"></svg></div>' +
           '<div class="tp-tap-tools"><button type="button" class="btn btn-secondary btn-sm" data-tap="undo"' + (hasMarks ? '' : ' disabled') + '>' + icon('rewind') + 'Undo last marker</button>' +
           '<button type="button" class="btn btn-secondary btn-sm" data-tap="clear"' + (hasMarks ? '' : ' disabled') + '>' + icon('x') + 'Clear markers</button>' +
           (!isSprint && s.needsStartLine ? '<button type="button" class="btn btn-secondary btn-sm" data-tap="sprint">' + icon('pin') + 'Separate start and finish</button>' : '') +
           '<button type="button" class="btn btn-secondary btn-sm" data-tap="full">' + icon(a.tapFull ? 'x' : 'expand') + (a.tapFull ? 'Exit full screen' : 'Full screen') + '</button>' +
-          (a.editLines && !s.needsStartLine ? '<button type="button" class="btn btn-primary btn-sm" data-tap="done">' + icon('check') + (a.confirmLines ? 'Yes, these are correct' : 'Done') + '</button>' : '') + '</div></div>' +
+          (a.editLines && !s.needsStartLine ? (a.confirmLines ? '<button type="button" class="btn btn-accent tp-confirm" data-tap="done">Yes, these are correct</button>' : '<button type="button" class="btn btn-primary btn-sm" data-tap="done">' + icon('check') + 'Done</button>') : '') + '</div></div>' +
           (!s.venueId ? '<div class="tp-field"><label for="tp-venue-name">Track name</label><input class="field" id="tp-venue-name" placeholder="For example, Blyton Park" value="' + esc(a.venueName || '') + '"></div>' + (a.venueNameLooked ? nameNote() : '') : '');
       } else {
         var timed = s.laps.filter(function (l) { return l.kind === 'timed'; }).length;
         h += '<div class="tp-notice is-ok">' + miniMap(s) + '<div><b>' + esc(s.venue ? trackName(s) : (a.venueName || 'Your track')) + '</b><br>' +
           (s.autoLine ? 'No start line is set for this track, so your laps were found from your own trace. ' : s.officialLines ? 'Timed with this course\'s official ' + (isSprint ? 'start and finish lines' : 'start line') + ', which only MT3UK sets so results stay comparable. ' : s.venueId ? 'Found from the GPS in your file. ' : isSprint ? 'Timed between the start and finish you picked. ' : 'Timed from the start line you picked. ') + timed + ' timed ' + word + (timed === 1 ? '' : 's') + (s.bestTime ? ', best ' + V.fmtLap(s.bestTime) : '') + '.</div></div>';
         if ((a.startLine || a.finishLine || s.startLine) && !s.officialLines) h += '<button type="button" class="btn btn-secondary btn-sm tp-move-lines" data-tap="edit">' + icon('pin') + 'Move ' + (isSprint ? 'start and finish' : 'the start line') + '</button>';
-        if (isSprint && !s.pointToPoint) h += '<button type="button" class="tp-switch" role="switch" aria-checked="' + (a.ignoreFinish !== false) + '" id="tp-ignore-finish"><span><b>Ignore the first time each run crosses the finish line</b><br><small>' + (s.firstFinishIgnored ? 'Skipped the first crossing on ' + s.firstFinishIgnored + ' run' + (s.firstFinishIgnored === 1 ? '' : 's') + ' in this file. Turn it off if a run is missing or ends too late.' : 'Only a run that crosses the finish line more than once has a crossing to skip. Turn this off if a run is missing.') + '</small></span><span class="tp-track"></span></button>';
-        if (isSprint) h += '<div class="tp-field"><label for="tp-finish-cross">Run ends on</label><select class="field" id="tp-finish-cross"><option value="">Automatic (see the switch above)</option>' + [1, 2, 3, 4, 5].map(function (n) { return '<option value="' + n + '"' + (a.finishCross === n ? ' selected' : '') + '>Crossing ' + n + ' of the finish line</option>'; }).join('') + '</select><p class="tp-small">If the car passes the finish line before the run really ends, choose which crossing finishes the timing. It counts from the start line.</p></div>';
+        h += sprintControlsHtml(a, s, isSprint);
         if (s.venueId && !s.layoutId) h += '<p class="tp-sub">We know ' + esc(s.venue) + ' but couldn\'t tell which layout this is, so it can\'t go on a leaderboard yet. We\'ve let the admin know.</p>';
         if (!s.venueId) h += '<div class="tp-field"><label for="tp-venue-name">Track name</label><input class="field" id="tp-venue-name" placeholder="For example, Blyton Park" value="' + esc(a.venueName || '') + '"></div>' + (a.venueNameLooked ? nameNote() : '');
       }

@@ -576,6 +576,11 @@
     });
   }
   var counts = null;
+  // The Saved message after an upload goes away when dismissed.
+  document.addEventListener('click', function (e) {
+    var x = e.target.closest && e.target.closest('#tp-saved-x');
+    if (x && x.closest('#tp-saved')) x.closest('#tp-saved').remove();
+  });
   // A day's group opens and closes from its heading, and stays as chosen when the list is drawn again.
   document.addEventListener('click', function (e) {
     var b = e.target.closest && e.target.closest('[data-day-toggle]');
@@ -1319,6 +1324,7 @@
     }).then(function (d) {
       if (!d.success) throw new Error(d.message || 'Could not save the session.');
       mine = null; counts = null;
+      justSaved = { files: (a.files || []).length || 1 };
       if (a.replaceId) { go('s=' + d.session.id); return; }
       // Keep the readings with the session, so its type can be changed later.
       // Best effort: a session without them still works.
@@ -1395,7 +1401,7 @@
     var s = view.s;
     // Where it falls among your sessions at this track that day, by time of day.
     var place = s.mine && view.mine ? dayPlace(s, view.mine.sessions) : null;
-    var h = back(s.mine ? 'Your sessions' : 'Back', s.mine ? '' : (s.carId ? 'car=' + encodeURIComponent(s.carId) : ''));
+    var h = (justSaved && s.mine ? savedHtml(justSaved) : '') + back(s.mine ? 'Your sessions' : 'Back', s.mine ? '' : (s.carId ? 'car=' + encodeURIComponent(s.carId) : ''));
     if (s.adminView) h += '<p class="tp-admin-banner" id="tp-admin-banner">' + icon('lock') + 'Admin view, read only. This is a private session and this view is logged. Notes are not shown.</p>';
     h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '</h2>' + (s.ownerName ? '<p class="tp-by" id="tp-by">' + icon('user') + '<span>Session by <b>' + esc(s.ownerName) + '</b>' + (s.mine ? ' (you)' : '') + '</span></p>' : '') + '<p class="tp-sub">' + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (place ? ' &middot; <b id="tp-day-place">Session ' + place.n + ' of ' + place.of + ' that day</b>' : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + '</p>' + (s.fileName && (s.mine || s.adminView) ? '<p class="tp-small tp-filename" id="tp-filename">' + icon('file') + 'File: ' + esc(s.fileName) + '</p>' : '') + '</div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) + '<span id="tp-rank-slot"></span>' : '') + unitsChip() + (s.street || s.privacy === 'private' ? '' : shareDot('Share this session')) + '</div></div>';
     LW = s.type === 'sprint' ? 'Run' : 'Lap';
@@ -1406,6 +1412,7 @@
     else if (untimed) h += otherHtml(s);
     else h += trackHtml(s);
     if (s.mine) h += ownerHtml(s);
+    justSaved = null;
     app.innerHTML = h;
     if (s.type === 'drag') drawDragCharts(s);
     else if (untimed) drawOtherCharts(s);
@@ -1424,6 +1431,15 @@
     });
   }
   var LW = 'Lap';
+  // Set when a session has just been saved, so the page it opens on says so once.
+  var justSaved = null;
+  function savedHtml(j) {
+    var many = j.files > 1;
+    return '<div class="tp-notice is-ok tp-saved" id="tp-saved" role="status">' + icon('check') + '<div><b>Saved</b><br>' +
+      (many ? 'Your ' + j.files + ' files were combined into one session. ' : 'Your session is saved. ') +
+      '<a class="tp-link" href="track.html" data-go="">Go back to Track sessions</a></div>' +
+      '<button type="button" class="tp-saved-x" id="tp-saved-x" aria-label="Dismiss">' + icon('x') + '</button></div>';
+  }
   // Swaps lap words for run words in the page's text (not in attributes).
   function runWords(root) {
     var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null), node, list = [];

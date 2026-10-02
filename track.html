@@ -254,6 +254,9 @@
   .tp-notice { display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: var(--radius); font-size: 0.9rem; margin-bottom: 14px; }
   .tp-notice b { color: var(--ink); }
   .tp-notice.is-ok { background: var(--ok-bg); color: var(--ok-ink); }
+  .tp-saved { position: relative; align-items: flex-start; padding-right: 52px; font-size: 1rem; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12); }
+  .tp-saved .tp-link { color: inherit; text-decoration: underline; }
+  .tp-saved-x { position: absolute; top: 4px; right: 4px; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 0; background: none; color: inherit; cursor: pointer; border-radius: var(--radius-sm); }
   .tp-notice.is-warn { background: var(--warn-bg); color: var(--warn-ink); }
   .tp-notice.is-admin { background: #fdf3ef; color: #b8421f; }
   .tp-mini { width: 64px; height: 48px; flex: none; }
@@ -736,10 +739,10 @@
   }
 </script>
 
-<script src="js/track-parse.js?v=20261007" defer></script>
-<script src="js/track-view.js?v=20261007" defer></script>
+<script src="js/track-parse.js?v=20261008" defer></script>
+<script src="js/track-view.js?v=20261008" defer></script>
 <script src="js/tyre-data.js"></script>
-<script src="js/track-page.js?v=20261007" defer></script>
+<script src="js/track-page.js?v=20261008" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js" defer></script>
 <script src="js/signin-prompt.js" defer></script>

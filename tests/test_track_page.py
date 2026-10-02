@@ -520,6 +520,38 @@ def test_a_session_says_whose_it_is(page):
     expect(page.locator("#tp-by")).not_to_contain_text("(you)")
 
 
+def test_saving_a_session_shows_a_saved_message_with_a_way_back(page):
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    page.get_by_role("button", name="Save session").click()
+    # The session opens with a Saved message at the top, above everything else.
+    saved = page.locator("#tp-saved")
+    expect(saved).to_be_visible()
+    expect(saved).to_contain_text("Saved")
+    expect(saved).to_contain_text("Your session is saved")
+    box = saved.bounding_box()
+    assert box["y"] < page.locator(".tp-session-head").bounding_box()["y"]
+    # It can be dismissed.
+    page.locator("#tp-saved-x").click()
+    expect(saved).to_have_count(0)
+    # Opening a session later shows no message.
+    page.goto("/track.html?s=new1")
+    expect(page.locator(".tp-session-head")).to_be_visible()
+    expect(page.locator("#tp-saved")).to_have_count(0)
+    # Saving again and following the link goes back to the Track sessions list.
+    page.goto("/track.html")
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator("#tp-saved")).to_be_visible()
+    page.get_by_role("link", name="Go back to Track sessions").click()
+    expect(page).to_have_url(re.compile(r"/track\.html$"))
+    expect(page.locator("#tp-saved")).to_have_count(0)
+    expect(page.locator("#tp-sess-list")).to_be_visible()
+
+
 def test_csv_with_unknown_columns_asks_which_is_which(page):
     # The same laps as a CSV with columns we don't recognise.
     lines = FIXTURE.read_text(encoding="latin-1").splitlines()

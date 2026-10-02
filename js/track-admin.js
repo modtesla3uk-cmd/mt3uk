@@ -175,12 +175,25 @@
       return '<div class="tk-req" data-id="' + esc(r.id) + '">' + outlineSvg(r.outline) + '<div><b>' + esc(r.name || 'Unnamed') + '</b> <span class="iv-sub">' + (r.kind === 'drag' ? 'Drag strip' : r.kind === 'sprint' ? 'Sprint or hill climb' : 'Circuit') + (r.venueId ? ', layout at ' + esc(r.venueId) : '') + (r.lapLength ? ', lap about ' + Math.round(r.lapLength) + ' m' : '') + ', from ' + esc(r.from) + ', ' + esc(String(r.at).slice(0, 10)) + '</span>' +
         (r.note ? '<p class="iv-sub">' + esc(r.note) + '</p>' : '') +
         '<p class="iv-sub"><a href="https://www.google.com/maps?q=' + r.lat + ',' + r.lng + '" target="_blank" rel="noopener">See it on a map</a>' + (r.startLine ? ' &middot; start line ' + esc(lineText(r.startLine)) : '') + '</p>' +
-        '<div class="iv-actions"><button type="button" class="iv-act" data-use="' + esc(r.id) + '">Set up this track</button><button type="button" class="secondary iv-act" data-done="' + esc(r.id) + '">Dismiss</button></div></div></div>';
+        '<div class="iv-actions">' + (r.kind !== 'drag' && r.startLine && (r.kind !== 'sprint' || r.finishLine) ? '<button type="button" class="iv-act" data-add="' + esc(r.id) + '">Approve and add track</button>' : '') + '<button type="button" class="secondary iv-act" data-use="' + esc(r.id) + '">Set up by hand</button><button type="button" class="secondary iv-act" data-done="' + esc(r.id) + '">Dismiss</button></div></div></div>';
     }).join('') : '<p class="empty">No new requests.</p>';
     reqEl._list = list;
   }
 
   reqEl.addEventListener('click', function (e) {
+    var add = e.target.closest('[data-add]');
+    if (add) {
+      var aid = add.getAttribute('data-add');
+      add.disabled = true;
+      call('POST', '/track/admin/requests', { id: aid, action: 'add' }).then(function (d) {
+        if (!d || !d.success) { add.disabled = false; note((d && d.message) || 'Could not add that track.', 'error'); return; }
+        if (d.library) library = d.library;
+        drawRequests(reqEl._list.map(function (x) { return x.id === aid ? Object.assign({}, x, { done: 'approved' }) : x; }));
+        drawList();
+        note('Track added. ' + d.relinked + ' of the member\'s saved session' + (d.relinked === 1 ? '' : 's') + ' linked to it.', 'ok');
+      });
+      return;
+    }
     var use = e.target.closest('[data-use]'), done = e.target.closest('[data-done]');
     var id = (use || done || {}).getAttribute ? (use || done).getAttribute(use ? 'data-use' : 'data-done') : null;
     if (!id) return;

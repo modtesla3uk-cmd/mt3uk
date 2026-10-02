@@ -453,7 +453,7 @@ def test_admin_tracks_panel_sets_up_a_requested_track(device_page):
     req.wait_for(timeout=10000)
     assert "Old Airfield" in req.inner_text() and page.locator("#tracks-count").inner_text() == "(1 new)"
     assert "Thruxton" in page.locator("#tk-list").inner_text()
-    req.get_by_role("button", name="Set up this track").click()
+    req.get_by_role("button", name="Set up by hand").click()
     form = page.locator("#tk-form")
     assert form.locator("#tk-name").input_value() == "Old Airfield"
     assert form.locator('[data-l="startLine"]').input_value() == "53.1, -1.1, 53.1001, -1.1001"

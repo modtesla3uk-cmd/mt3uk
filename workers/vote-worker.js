@@ -7319,10 +7319,77 @@ async function handleTrackAdminRequests(request, env) {
   try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
   var req = list.find(function (r) { return r.id === body.id; });
   if (!req) return json({ success: false, message: 'Request not found' }, 404);
-  req.done = body.action === 'approve' ? 'approved' : 'dismissed';
+  var relinked = 0;
+  if (body.action === 'add') {
+    if (req.done) return json({ success: false, message: 'This request is already done.' }, 400);
+    var added = await addTrackFromRequest(env, req);
+    if (added.error) return json({ success: false, message: added.error }, 400);
+    relinked = added.relinked;
+    req.venueId = added.venueId; req.layoutId = added.layoutId;
+  }
+  req.done = body.action === 'approve' || body.action === 'add' ? 'approved' : 'dismissed';
   req.doneAt = new Date().toISOString();
   await env.VOTES.put('track-requests', JSON.stringify(list));
-  return json({ success: true });
+  return json({ success: true, relinked: relinked, library: body.action === 'add' ? await getTrackLibrary(env) : undefined });
+}
+
+// "Approve and add track": makes the circuit or sprint course from what the
+// member marked (the start and finish lines, the length and the position),
+// then links that member's saved sessions for it to the new course so they
+// reach the leaderboard. Admin only, so the list() free reads here are fine.
+async function addTrackFromRequest(env, req) {
+  if (req.kind === 'drag') return { error: 'Drag strips are added by hand: they need a venue radius.' };
+  if (!req.startLine) return { error: 'This request has no start line to build a course from.' };
+  var sprint = req.kind === 'sprint';
+  if (sprint && !req.finishLine) return { error: 'A sprint or hill climb needs a finish line, and this request has none.' };
+  var extra = await getJsonKey(env, 'track-library', { venues: [] });
+  var library = await getTrackLibrary(env);
+  var venues = (extra.venues || []).slice();
+  var existing = req.venueId ? (library.venues || []).find(function (v) { return v.id === req.venueId; }) : null;
+  var wantType = sprint ? 'sprint' : 'circuit';
+  if (existing && existing.type !== wantType) existing = null;
+  var layout = { name: trackText(req.name, 60) || (sprint ? 'Course' : 'Layout'), length: req.lapLength || 0, startLine: req.startLine, sectors: [], corners: [] };
+  if (sprint) layout.finishLine = req.finishLine;
+  var venue;
+  if (existing) {
+    venue = JSON.parse(JSON.stringify(existing));
+    venue.layouts = (venue.layouts || []).slice();
+    var base = trackId(layout.name) || 'course', lid = base, n = 2;
+    while (venue.layouts.some(function (l) { return l.id === lid; })) lid = base + '-' + (n++);
+    layout.id = lid;
+    venue.layouts.push(layout);
+  } else {
+    layout.id = 'course';
+    venue = { id: trackId(req.name), name: trackText(req.name, 60), type: wantType, lat: req.lat, lng: req.lng, radius: sprint ? 1500 : 2000, layouts: [layout] };
+    if (!venue.id || !venue.name) return { error: 'The request needs a name to make a track.' };
+    var taken = (library.venues || []).find(function (v) { return v.id === venue.id; });
+    if (taken) return { error: 'A track called "' + taken.name + '" is already listed. Pick that track in the request or rename this one.' };
+  }
+  var clean = cleanTrackVenue(venue);
+  if (!clean) return { error: 'Could not build a track from this request.' };
+  venues = venues.filter(function (x) { return x.id !== clean.id; });
+  venues.push(clean);
+  await env.VOTES.put('track-library', JSON.stringify({ venues: venues }));
+  var layoutId = clean.layouts[clean.layouts.length - 1].id;
+  // Link the member's own sessions: same kind, not on a course yet, and
+  // either the same name or a start line within 60 m of the marked one.
+  var relinked = 0, email = req.from;
+  var index = await getJsonKey(env, 'track-index:' + (await ownerKey(email)), []);
+  for (var i = 0; i < index.length; i++) {
+    var e = index[i];
+    if (e.type !== (sprint ? 'sprint' : 'track') || e.layoutId) continue;
+    var rec = await getTrackSession(env, e.id);
+    if (!rec || rec.layoutId || rec.street) continue;
+    var near = rec.startLine && trackDist(rec.startLine[0], req.startLine[0]) <= 60 && trackDist(rec.startLine[1], req.startLine[1]) <= 60;
+    var same = trackText(rec.venue, 60).toLowerCase() === clean.name.toLowerCase();
+    if (!near && !same) continue;
+    rec.venueId = clean.id; rec.venue = clean.name; rec.layoutId = layoutId;
+    rec.layout = clean.layouts[clean.layouts.length - 1].name;
+    if (!(await putTrackSession(env, rec))) continue;
+    await putTrackIndexes(env, email, rec);
+    relinked++;
+  }
+  return { venueId: clean.id, layoutId: layoutId, relinked: relinked };
 }
 
 function maskEmailForAdmin(email) {

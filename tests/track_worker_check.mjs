@@ -502,6 +502,29 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   for (const x of [s1, s2, s3, s4]) await call('DELETE', '/track/session?id=' + x.body.session.id, undefined, 'tok-a');
 }
 
+// Approve and add track: the course is made from the member's markers and their sessions are linked.
+{
+  const sl = [[51.2, -0.9], [51.2002, -0.9002]], fl = [[51.21, -0.91], [51.2102, -0.9102]];
+  const sp = JSON.parse(JSON.stringify(session)); sp.type = 'sprint'; sp.venueName = 'Newfield Sprint'; sp.startLine = sl; sp.finishLine = fl; delete sp.venueId; delete sp.layoutId;
+  r = await call('POST', '/track/sessions', { carId: 'cara1', session: sp, privacy: 'board' }, 'tok-a');
+  ok(r.status === 200 && !r.body.session.layoutId, 'an unknown sprint course saves with no course ' + JSON.stringify(r.body).slice(0, 120));
+  const spId = r.body.session.id;
+  await call('POST', '/track/requests', { kind: 'sprint', name: 'Newfield Sprint', startLine: sl, finishLine: fl, lapLength: 800, lat: 51.2, lng: -0.9 }, 'tok-a');
+  const reqs = (await call('GET', '/track/admin/requests?key=secret')).body.requests;
+  const rq = reqs.find(x => x.name === 'Newfield Sprint');
+  r = await call('POST', '/track/admin/requests?key=nope', { id: rq.id, action: 'add' });
+  ok(r.status === 401, 'adding a track needs the admin key');
+  r = await call('POST', '/track/admin/requests?key=secret', { id: rq.id, action: 'add' });
+  ok(r.status === 200 && r.body.relinked === 1, 'track added and one session linked ' + JSON.stringify(r.body).slice(0, 200));
+  const nv = r.body.library.venues.find(v => v.id === 'newfield-sprint');
+  ok(nv && nv.type === 'sprint' && nv.layouts[0].finishLine && nv.layouts[0].startLine, 'the sprint course has both lines');
+  const lk = stored('track-session:' + spId);
+  ok(lk.venueId === 'newfield-sprint' && lk.layoutId === 'course', 'the saved session is linked to the course');
+  ok(kv.has('sprint-board:newfield-sprint:course') && JSON.stringify(stored('sprint-board:newfield-sprint:course')).includes(spId), 'and it reached the sprint leaderboard');
+  r = await call('POST', '/track/admin/requests?key=secret', { id: rq.id, action: 'add' });
+  ok(r.status === 400, 'adding the same track twice is refused');
+  await call('DELETE', '/track/session?id=' + spId, undefined, 'tok-a');
+}
 // Admin read-only view of a private session, logged.
 {
   r = await call('POST', '/track/sessions', { carId: 'cara1', session: JSON.parse(JSON.stringify(session)), notes: 'Secret note', privacy: 'private' }, 'tok-a');

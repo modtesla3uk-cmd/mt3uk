@@ -1,5 +1,13 @@
 [
   {
+    "file": "shelsley-walsh-hill-climb.jpg",
+    "caption": "SHELSLEY WALSH HILL CLIMB",
+    "name": "John Chambers",
+    "color": "Grey",
+    "added": "2026-10-02",
+    "group": "shelsley-walsh-hill-climb.jpg"
+  },
+  {
     "file": "photo--by-matthew-king.jpeg",
     "caption": "PHOTO",
     "name": "TeslaCat",
@@ -38,6 +46,7 @@
       "De-chrome: Trim, Door Handles, Badges",
       "Interior: Wheel or yoke, Royal Steering Wheels, Alcantara trimmed"
     ],
+    "votable": false,
     "color": "Grey",
     "added": "2026-10-01",
     "group": "track-prepared-model-3-performance--by-john-chambers.jpg"

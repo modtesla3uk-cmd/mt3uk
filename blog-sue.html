@@ -1201,6 +1201,14 @@
   .track-prep-eyebrow { font-size: 0.9rem; font-weight: 600; }
   /* A question next to a photo keeps its orange bar beside the text, not under the photo. */
   .interview-q { overflow: hidden; }
+  /* Sue's interview is short, so its photos run larger on desktop. */
+  @media (min-width: 960px) {
+    .interview-big-photos .interview-figure.fig-full { width: 100%; float: none; margin: 28px 0 32px; }
+    .interview-big-photos .interview-figure.fig-right:not(.fig-narrow),
+    .interview-big-photos .interview-figure.fig-left:not(.fig-narrow) { width: 52%; }
+    .interview-big-photos .interview-figure.fig-narrow { width: 38%; }
+    .interview-big-photos .interview-gallery.g2 { max-width: none; }
+  }
 </style>
 </head>
 <body>
@@ -1311,7 +1319,7 @@
 
 <section style="padding: 44px 0 64px;">
   <div class="wrap interview-wrap">
-    <article class="interview">
+    <article class="interview interview-big-photos">
 
       <h2 class="interview-q">Who are you?</h2>
       <p>I&rsquo;m Sue, from Northamptonshire, and I joined the group on 27 June 2026.</p>

@@ -273,8 +273,8 @@ def test_add_a_session_from_the_racebox_file(page):
     assert page.evaluate("getComputedStyle(document.getElementById('tp-map2')).overflow") == "hidden"
     assert page.evaluate("getComputedStyle(document.getElementById('tp-gg')).overflow") == "hidden"
     expect(page.locator(".tp-gg").locator("xpath=../..").locator("h3")).to_contain_text("How much grip you used")
-    # Speed key runs red (slow) to green (fast).
-    expect(page.locator(".tp-ramp i").first).to_have_css("background-image", re.compile(r"rgb\(215, 48, 39\).*rgb\(26, 152, 80\)"))
+    # Speed key runs red (slow) through amber to blue (fast), which shows on grass and tarmac.
+    expect(page.locator(".tp-ramp i").first).to_have_css("background-image", re.compile(r"rgb\(229, 56, 59\).*rgb\(255, 176, 0\).*rgb\(0, 166, 230\)"))
     expect(page.locator(".tp-table").first.locator("tbody tr")).to_have_count(2)
     # Distances in miles with mph (the default), kilometres with km/h.
     expect(page.locator(".tp-tile").nth(4).locator(".v")).to_have_text(re.compile(r"^\d+\.\d mi$"))
@@ -481,8 +481,21 @@ def test_leaderboards_list_busy_tracks_first_with_counts(page):
     page.locator(".tp-back").click()
     page.locator(".lb-types a", has_text="Drag").click()
     expect(page.locator(".tp-board-card").first).to_contain_text("Santa Pod")
-    page.locator(".lb-types a", has_text="Sprint and hill climb").click()
+    # Sprints and hill climbs are separate tabs.
+    page.locator(".lb-types a", has_text="Sprint").click()
+    expect(page.locator(".tp-board-card").first).to_contain_text("Curborough")
+    expect(page.locator(".tp-board-card", has_text="Shelsley Walsh")).to_have_count(0)
+    page.locator(".lb-types a", has_text="Hill climb").click()
     expect(page.locator(".tp-board-card").first).to_contain_text("Shelsley Walsh")
+    expect(page.locator(".tp-board-card", has_text="Curborough")).to_have_count(0)
+    # A hill climb's board goes back to the hill climbs, a sprint's to the sprints.
+    page.locator(".tp-board-card", has_text="Shelsley Walsh").locator(".lb-layout").first.click()
+    expect(page.locator(".tp-back")).to_have_text("All hill climbs")
+    page.locator(".tp-back").click()
+    expect(page.locator(".lb-types a.is-on")).to_have_text("Hill climb")
+    page.locator(".lb-types a", has_text="Sprint").click()
+    page.locator(".tp-board-card", has_text="Curborough").locator(".lb-layout").first.click()
+    expect(page.locator(".tp-back")).to_have_text("All sprints")
 
 
 def test_cars_are_separate_from_sessions(page):
@@ -1845,3 +1858,41 @@ def test_leaderboard_fits_a_phone(device_page):
     for sel in ("#lb-models", ".lb-filters"):
         b = page.locator(sel).bounding_box()
         assert b["x"] + b["width"] <= page.viewport_size["width"] + 1, (sel, b)
+
+
+def test_follow_still_works_after_the_map_is_dragged_and_let_go_off_the_map(page):
+    """Letting go of the mouse outside the map used to leave it 'held down', so
+    the zoomed map stopped following the cars and the Follow chip seemed dead."""
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    page.locator("#tp-map2").scroll_into_view_if_needed()
+    zoom_in = page.locator("#tp-map2").locator("xpath=..").locator(".tv-zoom-in")
+    for _ in range(4):
+        zoom_in.click()
+    vb = lambda: page.evaluate("(() => { const b = document.getElementById('tp-map2').viewBox.baseVal; return [b.x, b.y]; })()")
+    scrub = lambda v: page.locator("#tp-scrub").evaluate("(el, v) => { el.value = v; el.dispatchEvent(new Event('input', {bubbles: true})); }", v)
+    box = page.locator("#tp-map2").bounding_box()
+    for lap in range(3):
+        # Drag the map by hand and let go well outside it.
+        page.mouse.move(box["x"] + box["width"] * 0.5, box["y"] + box["height"] * 0.5)
+        page.mouse.down()
+        page.mouse.move(box["x"] + box["width"] * 0.7, box["y"] + box["height"] * 0.6, steps=4)
+        page.mouse.move(box["x"] + box["width"] + 80, box["y"] - 40, steps=4)
+        page.mouse.up()
+        expect(page.locator("#tp-follow")).to_have_attribute("aria-pressed", "false")
+        # Without a button down, moving over the map must not drag it.
+        before = vb()
+        page.mouse.move(box["x"] + box["width"] * 0.3, box["y"] + box["height"] * 0.3, steps=4)
+        page.mouse.move(box["x"] + box["width"] * 0.6, box["y"] + box["height"] * 0.5, steps=4)
+        assert vb() == before, "the map moved with no button held"
+        # Turn Follow on and scrub: the view goes to the cars.
+        page.locator("#tp-follow").click()
+        expect(page.locator("#tp-follow")).to_have_attribute("aria-pressed", "true")
+        scrub(30 + lap * 25)
+        page.wait_for_timeout(150)
+        moved = vb()
+        scrub(80 - lap * 20)
+        page.wait_for_timeout(150)
+        assert vb() != moved, "round %d: the zoomed map did not follow the cars" % lap
+        page.locator("#tp-follow").click()
+        expect(page.locator("#tp-follow")).to_have_attribute("aria-pressed", "false")

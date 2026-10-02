@@ -124,3 +124,15 @@ def test_admin_can_rebuild_the_leaderboards_in_steps(page):
     expect(page.locator("#tk-rebuild-note")).to_have_text("Done: 3 cars brought up to date.")
     assert len(calls) == 2 and "key=test-key" in calls[0] and "cursor=2" in calls[1]
     expect(page.locator("#tk-rebuild")).to_be_enabled()
+
+
+def test_admin_track_type_has_sprint_and_hill_climb_as_separate_choices(page):
+    open_admin(page, "admin.html")
+    page.locator("#tracks-wrap summary").click()
+    page.locator("#tk-list [data-edit='shelsley-walsh']").click()
+    select = page.locator("#tk-type")
+    expect(select.locator("option")).to_have_text(["Circuit", "Drag strip", "Sprint", "Hill climb"])
+    expect(select).to_have_value("hill")
+    page.locator("#tk-cancel").click()
+    page.locator("#tk-list [data-edit='curborough']").click()
+    expect(page.locator("#tk-type")).to_have_value("sprint")

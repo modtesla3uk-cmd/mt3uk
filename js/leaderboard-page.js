@@ -3,7 +3,7 @@
   sessions (track.html). Each car's fastest at each track layout, drag strip
   and sprint or hill climb course.
 
-    leaderboards.html                         track days (or ?type=drag, ?type=sprint)
+    leaderboards.html                         track days (or ?type=drag, ?type=sprint, ?type=hill)
     leaderboards.html?board=<venue>:<layout>  one circuit layout
     leaderboards.html?drag=<venue>            one drag strip
     leaderboards.html?sprint=<venue>:<course> one sprint or hill climb course
@@ -21,7 +21,9 @@
   var MODELS = ['Model 3', 'Model Y', 'Model S', 'Model X', 'Hyundai Ioniq 5 N', 'Hyundai Ioniq 6 N', 'Porsche Taycan'];
   // Short names for the filter chips.
   var MODEL_SHORT = { 'Hyundai Ioniq 5 N': 'Ioniq 5 N', 'Hyundai Ioniq 6 N': 'Ioniq 6 N', 'Porsche Taycan': 'Taycan' };
-  var TYPES = [['track', 'Track days', 'circuit'], ['drag', 'Drag', 'drag'], ['sprint', 'Sprint and hill climb', 'sprint']];
+  var TYPES = [['track', 'Track days', 'circuit'], ['drag', 'Drag', 'drag'], ['sprint', 'Sprint', 'sprint'], ['hill', 'Hill climb', 'sprint']];
+  // What each kind of board is called in "All ..." links and buttons.
+  var KIND_NAME = { track: 'tracks', drag: 'drag strips', sprint: 'sprints', hill: 'hill climbs' };
   var ICON = {
     trophy: '<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/>',
     back: '<path d="M19 12H5M12 19l-7-7 7-7"/>',
@@ -104,8 +106,10 @@
     var h = '<div class="tp-chips lb-types" role="tablist">' + TYPES.map(function (x) {
       return '<a class="chip' + (x[0] === t[0] ? ' is-on' : '') + '" role="tab" aria-selected="' + (x[0] === t[0]) + '" href="leaderboards.html?type=' + x[0] + '" data-go="type=' + x[0] + '">' + x[1] + '</a>';
     }).join('') + '</div>';
-    var venues = library.venues.filter(function (v) { return v.type === t[2]; }).map(function (v, i) {
-      var total = t[0] === 'drag' ? (counts[boardKey('drag', v.id)] || 0) : (v.layouts || []).reduce(function (n, l) { return n + (counts[boardKey(t[0], v.id, l.id)] || 0); }, 0);
+    // Sprints and hill climbs share one kind of board; the venue's hill flag tells them apart.
+    var bt = t[0] === 'hill' ? 'sprint' : t[0];
+    var venues = library.venues.filter(function (v) { return v.type === t[2] && (t[0] === 'hill' ? !!v.hill : t[0] === 'sprint' ? !v.hill : true); }).map(function (v, i) {
+      var total = t[0] === 'drag' ? (counts[boardKey('drag', v.id)] || 0) : (v.layouts || []).reduce(function (n, l) { return n + (counts[boardKey(bt, v.id, l.id)] || 0); }, 0);
       return { v: v, total: total, i: i };
     }).sort(function (a, b) { return b.total - a.total || a.i - b.i; });
     var busy = venues.filter(function (x) { return x.total; }), quiet = venues.length - busy.length;
@@ -118,13 +122,13 @@
           (x.total ? '<span class="tp-small">' + x.total + ' run' + (x.total === 1 ? '' : 's') + '</span>' : '<span class="tp-small">No runs yet</span>') + '</div>' +
           (x.total ? podium(key, true) : '') + '<span class="tp-small lb-what">Quickest quarter mile per car</span></a>';
       }
-      var layouts = v.layouts || [], active = layouts.filter(function (l) { return counts[boardKey(t[0], v.id, l.id)]; }), idle = layouts.filter(function (l) { return !counts[boardKey(t[0], v.id, l.id)]; });
+      var layouts = v.layouts || [], active = layouts.filter(function (l) { return counts[boardKey(bt, v.id, l.id)]; }), idle = layouts.filter(function (l) { return !counts[boardKey(bt, v.id, l.id)]; });
       return '<div class="tp-board-card lb-venue' + (x.total ? ' is-busy' : '') + '"><div class="tp-board-name"><b>' + esc(v.name) + '</b>' +
         (x.total ? '<span class="tp-small">' + x.total + ' session' + (x.total === 1 ? '' : 's') + '</span>' : '') + '</div>' +
-        active.map(function (l) { return layoutBlock(t[0], v, l); }).join('') +
-        (idle.length ? (active.length ? '<p class="tp-small lb-idle">No sessions yet: ' + idle.map(function (l) { return esc(l.name); }).join(', ') + '</p>' : idle.map(function (l) { return layoutBlock(t[0], v, l); }).join('')) : '') + '</div>';
+        active.map(function (l) { return layoutBlock(bt, v, l); }).join('') +
+        (idle.length ? (active.length ? '<p class="tp-small lb-idle">No sessions yet: ' + idle.map(function (l) { return esc(l.name); }).join(', ') + '</p>' : idle.map(function (l) { return layoutBlock(bt, v, l); }).join('')) : '') + '</div>';
     }).join('') + '</div>';
-    if (busy.length && quiet) h += '<p class="lb-more"><button type="button" class="btn btn-secondary btn-sm" data-showall>' + (showAll ? 'Only show ' + (t[0] === 'drag' ? 'strips' : 'tracks') + ' with sessions' : 'Show all ' + venues.length + ' (' + quiet + ' with no sessions yet)') + '</button></p>';
+    if (busy.length && quiet) h += '<p class="lb-more"><button type="button" class="btn btn-secondary btn-sm" data-showall>' + (showAll ? 'Only show ' + KIND_NAME[t[0]] + ' with sessions' : 'Show all ' + venues.length + ' (' + quiet + ' with no sessions yet)') + '</button></p>';
     h += '<p class="tp-small lb-note">Times are each car\'s fastest. Open a layout for the whole board and filters.</p>';
     h += ctaHtml();
     app.innerHTML = h;
@@ -222,7 +226,8 @@
         var shown = rank(entries, type);
         var what = type === 'drag' ? 'Each car\'s quickest quarter mile.' : type === 'sprint' ? 'Each car\'s fastest run.' : 'Each car\'s fastest lap.';
         var filtered = fCond !== 'All' || fMake !== 'All';
-        var h = '<a class="tp-back" href="leaderboards.html?type=' + type + '" data-go="type=' + type + '">' + icon('back') + 'All ' + (type === 'drag' ? 'drag strips' : type === 'sprint' ? 'sprints and hill climbs' : 'tracks') + '</a>' +
+        var listType = type === 'sprint' && v && v.hill ? 'hill' : type;
+        var h = '<a class="tp-back" href="leaderboards.html?type=' + listType + '" data-go="type=' + listType + '">' + icon('back') + 'All ' + KIND_NAME[listType] + '</a>' +
           '<div class="tp-head"><div><h2>' + esc(title) + '</h2><p class="tp-sub">' + what + '</p></div></div>' +
           '<div class="lb-filters"><div class="lb-filter-top"><div class="tp-chips lb-models" id="lb-models">' + ['All'].concat(MODELS).map(function (m) { return '<button type="button" class="chip' + (m === boardModel ? ' is-on' : '') + '" data-m="' + m + '">' + (MODEL_SHORT[m] || m) + '</button>'; }).join('') + '</div>' + unitsChip() + '</div>' +
           (conds.length > 1 || makes.length ? '<div class="lb-selects">' +

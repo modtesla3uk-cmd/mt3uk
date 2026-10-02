@@ -6480,6 +6480,8 @@ function cleanTrackVenue(v) {
   if (!id || !name || lat === null || lng === null) return null;
   var out = { id: id, name: name, type: ['drag', 'sprint'].indexOf(v.type) !== -1 ? v.type : 'circuit', lat: lat, lng: lng, radius: trackNum(v.radius, 200, 10000) || 2000 };
   if (v.check) out.check = true;
+  // A sprint-type venue that is a hill climb: the leaderboards list those on their own.
+  if (out.type === 'sprint' && v.hill) out.hill = true;
   // Circuits have layouts; sprints and hill climbs have courses, each with
   // a separate finish line.
   if (out.type === 'circuit' || out.type === 'sprint') {

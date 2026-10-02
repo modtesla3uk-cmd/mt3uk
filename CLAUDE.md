@@ -7,10 +7,9 @@ Static site for the MT3UK modified Tesla community, live at https://mt3uk.com. I
 - **Ask before any commit or push.** Wait for an explicit yes each time. An earlier yes does not cover later changes, and an ambiguous instruction ("leave for now") is not permission.
 - **Commit to `main`**, as there is no `dev` branch. If a push is rejected because the bots have added commits, rebase onto `origin/main` and push again. Never force-push.
 - **The site is live.** A push to `main` deploys straight away, so verify changes locally first.
-- **Run the tests** with `python -m pytest -q` (pytest-playwright, tests in `tests/`, about 3 minutes). Afterwards, check the "Run Playwright tests" workflow with `gh run list`. If you change copy, prices or markup, search `tests/*.py` for the old text or selectors and update them in the same commit.
-  - **Ask before running the full suite**, in case more changes are coming. One run covers everything waiting to be pushed.
-  - **Bigger changes** (the worker, sign-in, likes, comments, uploads, anything members use to do things): run the full suite before pushing.
-  - **Small changes** (wording, colours, fonts, layout tweaks): a browser check on phone and desktop is enough before pushing. The GitHub test run covers the rest.
+- **Run the tests** with `python -m pytest -q` (pytest-playwright, tests in `tests/`, the full suite takes about 12 minutes). Afterwards, check the "Run Playwright tests" workflow on GitHub. If you change copy, prices or markup, search `tests/*.py` for the old text or selectors and update them in the same commit.
+  - **Smaller changes** (wording, colours, fonts, layout tweaks, a single feature, a small worker change): run only the tests that cover what changed, for example `python -m pytest -q tests/test_track_page.py tests/test_track_worker.py`, plus a browser check on phone and desktop for anything visual. Do not run the full suite. GitHub runs the whole suite after the push.
+  - **Lots of big changes at once** (several features, or large changes to the worker, sign-in, likes, comments or uploads): offer to run the full suite and wait for a yes before doing so. Never run it unprompted.
 - **Check mobile as well as desktop** for any layout change. The main mobile breakpoint is `max-width: 780px`.
 - **Never use em dashes** in site copy, commit messages or anything else. Use commas, colons, brackets or full stops.
 - **Proofread new copy** for spelling and grammar before adding it, and before showing it to Richard. Use British spelling (colour, tyres, programme). Plurals never take an apostrophe: "modified Teslas", "the 2020s", "MOTs". An apostrophe is only for possession or a missing letter ("the Tesla's brakes", "who's quickest"). "Its" is possessive and "it's" means "it is".

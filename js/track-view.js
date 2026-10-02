@@ -12,7 +12,7 @@
 */
 (function () {
   var NS = 'http://www.w3.org/2000/svg';
-  var C = { s1: '#2a78d6', s2: '#eb6834', ink: '#16233d', steel: '#6b7385', grid: 'rgba(22,35,61,.08)', axis: 'rgba(22,35,61,.24)', card: '#ffffff', orange: '#e8542a', orangeInk: '#b8421f', rampLo: '#d73027', rampMid: '#f4c430', rampHi: '#1a9850', hair: 'rgba(22,35,61,.12)' };
+  var C = { s1: '#2a78d6', s2: '#eb6834', ink: '#16233d', steel: '#6b7385', grid: 'rgba(22,35,61,.08)', axis: 'rgba(22,35,61,.24)', card: '#ffffff', orange: '#e8542a', orangeInk: '#b8421f', rampLo: '#e5383b', rampMid: '#ffb000', rampHi: '#00a6e6', hair: 'rgba(22,35,61,.12)' };
   var units = { mph: true };
   try { units.mph = localStorage.getItem('mt3ukTrackUnits') !== 'kmh'; } catch (e) {}
 
@@ -127,14 +127,28 @@
     });
     // Two laps compared: each line in its own colour (B under A), with a
     // pale edge so both show on the satellite picture.
+    // The lines are thin and get thinner as the map zooms in (linePx), so the
+    // real width of the track shows either side of them.
+    var edgeEls = [], lineEls = [], segG = null;
+    function linePx(k) {
+      var t = Math.min(1, Math.max(0, (k - 1) / 3));
+      return { edge: 4.5 - 1.5 * t, line: 2.5 - 0.75 * t, seg: (opts.mono ? 2.5 : 3) - (opts.mono ? 0.75 : 1) * t, alpha: 0.7 - 0.2 * t };
+    }
     (opts.lines || []).forEach(function (o) {
       var pts = o.trace.map(function (p) { return P(p[2], p[3]).join(','); }).join(' ');
-      el('polyline', { 'class': 'tv-line-edge', points: pts, fill: 'none', stroke: 'rgba(255,255,255,.85)', 'stroke-width': 5.5, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, svg);
-      el('polyline', { 'class': 'tv-line', points: pts, fill: 'none', stroke: o.color, 'stroke-width': 3, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, svg);
+      edgeEls.push(el('polyline', { 'class': 'tv-line-edge', points: pts, fill: 'none', stroke: 'rgba(255,255,255,.7)', 'stroke-width': 4.5, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, svg));
+      lineEls.push(el('polyline', { 'class': 'tv-line', points: pts, fill: 'none', stroke: o.color, 'stroke-width': 2.5, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, svg));
     });
+    if (!opts.lines) segG = el('g', { 'class': 'tv-segs', 'stroke-width': linePx(1).seg }, svg);
     for (var i = 1; i < (opts.lines ? 0 : trace.length); i++) {
       var a = P(trace[i - 1][2], trace[i - 1][3]), b = P(trace[i][2], trace[i][3]);
-      el('line', { 'class': opts.mono ? 'tv-mono' : 'tv-speed', x1: a[0], y1: a[1], x2: b[0], y2: b[1], stroke: opts.mono ? C.steel : ramp((trace[i][4] - vmin) / ((vmax - vmin) || 1)), 'stroke-width': opts.mono ? 3 : 5, 'stroke-linecap': 'round' }, svg);
+      el('line', { 'class': opts.mono ? 'tv-mono' : 'tv-speed', x1: a[0], y1: a[1], x2: b[0], y2: b[1], stroke: opts.mono ? C.steel : ramp((trace[i][4] - vmin) / ((vmax - vmin) || 1)), 'stroke-linecap': 'round' }, segG);
+    }
+    function lineWidth(k) {
+      var w = linePx(k);
+      edgeEls.forEach(function (e) { e.setAttribute('stroke-width', w.edge); e.setAttribute('stroke', 'rgba(255,255,255,' + w.alpha.toFixed(2) + ')'); });
+      lineEls.forEach(function (e) { e.setAttribute('stroke-width', w.line); });
+      if (segG) segG.setAttribute('stroke-width', w.seg);
     }
     // Markers (start line, corners, dots) keep their size when zoomed: each
     // is a group at its point, scaled back by the zoom.
@@ -189,6 +203,7 @@
     var zoom = zoomControls(svg, { W: W, H: H, sat: sat, pts: trace.map(function (p) { return P(p[2], p[3]); }), onZoom: function (kk) {
       k = kk;
       bandWidth(kk);
+      lineWidth(kk);
       if (sat) sat.later();
       fixed.forEach(function (m) { moveMarker(m, m.x, m.y); });
     } });
@@ -415,6 +430,8 @@
     }
     function onMove(e) {
       if (!pts[e.pointerId] || !start) return;
+      // A mouse let go off the map never said so: no button down means it is up.
+      if (e.pointerType === 'mouse' && e.buttons === 0) { onUp(e); return; }
       pts[e.pointerId] = { x: e.clientX, y: e.clientY };
       var r = svg.getBoundingClientRect(), u = vb.w / r.width;
       var ids = Object.keys(pts);
@@ -435,6 +452,9 @@
       var mx = e.clientX - s0.x, my = e.clientY - s0.y;
       if (!dragged && Math.hypot(mx, my) < 6) return;
       dragged = true;
+      // Keep hold of the pointer once it is a drag, so letting go anywhere
+      // (even off the map) still reaches onUp.
+      try { svg.setPointerCapture(e.pointerId); } catch (err) { /* not capturable */ }
       if (panCb) panCb();
       vb.x = start.vb.x - mx * u; vb.y = start.vb.y - my * u;
       clamp(); set();
@@ -443,6 +463,9 @@
     function onUp(e) {
       delete pts[e.pointerId];
       start = count() ? { vb: Object.assign({}, vb), pts: JSON.parse(JSON.stringify(pts)) } : null;
+      // The click that follows a drag is swallowed; if none comes (let go off
+      // the map), don't stay "dragging".
+      if (dragged && !count()) setTimeout(function () { dragged = false; }, 60);
     }
     function onClick(e) { if (dragged) { e.stopPropagation(); e.preventDefault(); dragged = false; } }
     svg.addEventListener('wheel', onWheel, { passive: false });
@@ -450,6 +473,7 @@
     svg.addEventListener('pointermove', onMove);
     svg.addEventListener('pointerup', onUp);
     svg.addEventListener('pointercancel', onUp);
+    svg.addEventListener('lostpointercapture', onUp);
     svg.addEventListener('click', onClick, true);
     svg._zoomOff = function () {
       svg.removeEventListener('wheel', onWheel);
@@ -457,6 +481,7 @@
       svg.removeEventListener('pointermove', onMove);
       svg.removeEventListener('pointerup', onUp);
       svg.removeEventListener('pointercancel', onUp);
+      svg.removeEventListener('lostpointercapture', onUp);
       svg.removeEventListener('click', onClick, true);
     };
     set();

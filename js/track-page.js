@@ -305,7 +305,7 @@
   }
   function boardsLink(quiet) {
     return '<a class="tp-boards-link' + (quiet ? ' is-quiet' : '') + '" href="leaderboards.html">' + icon('trophy') + '<span><b>Leaderboards</b><span>' +
-      (quiet ? 'Add a session to get your car on the board' : 'Rankings at each track, strip and hill climb') + '</span></span>' + icon('chev') + '</a>';
+      (quiet ? 'Add a session to get your car on the board' : 'Rankings at each track, drag strip, sprint and hill climb') + '</span></span>' + icon('chev') + '</a>';
   }
   var currentCar = null;
   function myCarsHtml(m) {
@@ -1007,7 +1007,7 @@
     if (!s.street && s.privacy !== 'private') {
       var what = s.type === 'drag' ? 'Drag run' : s.type === 'sprint' ? 'Sprint or hill climb run' : 'Track session', res = sessionResult(s);
       wireShare({ url: SITE_URL + 'track.html?s=' + encodeURIComponent(s.id), heading: 'Share this session', subject: trackName(s) + ' | MT3UK', campaign: 'track_session',
-        text: what + ' at ' + trackName(s) + (res ? ', ' + res + ',' : '') + ' on MT3UK, the UK’s modified Tesla community' });
+        text: what + ' at ' + trackName(s) + (res ? ', ' + res + ',' : '') + ' on MT3UK' });
     }
     if (s.mine && boardPathOf(s)) loadRanks(s.carId, [s]).then(function (r) {
       var slot = document.getElementById('tp-rank-slot');
@@ -1679,7 +1679,7 @@
       h += '<p class="tp-sub"><a href="gallery.html" class="tp-link">See the build in the Gallery' + icon('chev') + '</a></p>';
       app.innerHTML = h;
       wireShare({ url: SITE_URL + 'track.html?car=' + encodeURIComponent(carId), heading: 'Share this build', subject: (c.name || 'MT3UK build') + ' | MT3UK', campaign: 'track_build',
-        text: (c.name || 'This MT3UK build') + '’s track sessions on MT3UK, the UK’s modified Tesla community' });
+        text: (c.name || 'This MT3UK build') + '’s track sessions on MT3UK' });
     }).catch(function () { failed('That build could not be loaded.'); });
   }
 

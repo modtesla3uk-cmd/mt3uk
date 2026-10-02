@@ -194,6 +194,15 @@ thr.layouts[0].corners = [{ name: 'Allard', lat: session.corners[0].lat, lng: se
 r = await call('PUT', '/track/admin/tracks?key=secret', { venue: thr });
 r = await call('GET', '/track/tracks');
 const merged = T.mergeLibrary(lib, r.body.extra);
+// A sprint-type venue can be marked as a hill climb; the flag only counts for sprint venues.
+{
+  const base = { id: 'test-hill', name: 'Test Hill', lat: 52, lng: -2, radius: 1500, layouts: [{ name: 'Hill climb', length: 900 }] };
+  await call('PUT', '/track/admin/tracks?key=secret', { venue: Object.assign({}, base, { type: 'sprint', hill: true }) });
+  await call('PUT', '/track/admin/tracks?key=secret', { venue: Object.assign({}, base, { id: 'test-circuit', name: 'Test Circuit', type: 'circuit', hill: true }) });
+  const got = (await call('GET', '/track/tracks')).body.extra.venues;
+  ok(got.find(v => v.id === 'test-hill').hill === true && got.find(v => v.id === 'test-hill').type === 'sprint', 'a hill climb is kept as a sprint venue marked hill');
+  ok(!('hill' in got.find(v => v.id === 'test-circuit')), 'the hill flag is only kept on sprint venues');
+}
 ok(merged.venues.find(v => v.id === 'thruxton').layouts[0].corners[0].name === 'Allard', 'corner names from the admin reach the reader');
 const again = T.analyse(T.read(fs.readFileSync(ROOT + 'tests/fixtures/thruxton-trimmed.vbo', 'latin1'), 'f.vbo'), merged);
 ok(again.corners[0].name === 'Allard', 'and the corner is named on the next upload');

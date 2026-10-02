@@ -305,6 +305,25 @@
     return null;
   }
 
+  // RaceBox writes its start line as a waypoint named "Start". Turned into a
+  // line across the trace there, so laps are cut where RaceBox cuts them.
+  function gpxStartLine(text, pts) {
+    var m = /<wpt\b([^>]*)>\s*<name>\s*Start\s*<\/name>/i.exec(text);
+    if (!m) return null;
+    var lat = num((m[1].match(/lat="([^"]+)"/) || [])[1]), lng = num((m[1].match(/lon="([^"]+)"/) || [])[1]);
+    if (!isFinite(lat) || !isFinite(lng) || pts.length < 20) return null;
+    var proj = projector(lat, lng), best = -1, bd = Infinity;
+    var xy = pts.map(function (p) { return proj.xy(p.lat, p.lng); });
+    for (var i = 0; i < xy.length; i++) { var d = Math.hypot(xy[i][0], xy[i][1]); if (d < bd) { bd = d; best = i; } }
+    // Not on the trace (a different track's file): leave it.
+    if (bd > 30 || best < 0) return null;
+    var a = xy[Math.max(0, best - 8)], b = xy[Math.min(xy.length - 1, best + 8)];
+    var dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy);
+    if (L < 1) return null;
+    var nx = -dy / L * 15, ny = dx / L * 15;
+    return [proj.ll(nx, ny), proj.ll(-nx, -ny)];
+  }
+
   function readGpx(text) {
     var pts = [], re = /<trkpt\b([^>]*)>([\s\S]*?)<\/trkpt>/g, m;
     while ((m = re.exec(text))) {
@@ -320,7 +339,7 @@
     var a0 = pts[0].abs;
     pts.forEach(function (p) { p.t = (p.abs - a0) / 1000; delete p.abs; });
     var name = (text.match(/<name>([^<]+)<\/name>/) || [])[1] || '';
-    return { format: 'GPX', points: pts, startLine: null, venueName: name, startedAt: a0, speedUnit: 'km/h' };
+    return { format: 'GPX', points: pts, startLine: gpxStartLine(text, pts), venueName: name, startedAt: a0, speedUnit: 'km/h' };
   }
 
   // savedAt (optional): when the file was last saved on the device, from

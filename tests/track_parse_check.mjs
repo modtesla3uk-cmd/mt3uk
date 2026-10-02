@@ -485,3 +485,11 @@ ok(T.fmtLap(99.786) === '1:39.786' && T.niceDate('2026-05-28') === '28 May 2026'
   const wet = T.modImpact([{ id: 'x', date: '2026-01-10', bestTime: 100, conditions: 'Wet' }, { id: 'y', date: '2026-06-20', bestTime: 99, conditions: 'Dry' }], [{ label: 'Pads', year: 2026, month: 3 }]);
   ok(wet.rows.length === 0, 'wet sessions are not compared');
 }
+
+// RaceBox GPX: its "Start" waypoint is the lap line, so laps are cut where RaceBox cuts them
+{
+  const gx = T.read(fs.readFileSync(ROOT + 'tests/fixtures/racebox-castle-combe-gpx.gpx', 'utf8'), 'racebox.gpx');
+  const sx = T.analyse(gx, lib, { type: 'track' });
+  ok(gx.startLine && !sx.autoLine && sx.venueId === 'castle-combe', 'GPX Start waypoint is used as the lap line, not a guessed one');
+  ok(sx.laps.length === 5 && near(sx.bestTime, 77.686, 0.1), 'Castle Combe best lap matches RaceBox (1:17.68)');
+}

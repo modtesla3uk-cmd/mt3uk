@@ -105,6 +105,7 @@
   .tp-row-res { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }
   .tp-row > .icon { color: var(--steel); }
   @media (max-width: 560px) { .tp-row { flex-wrap: wrap; } .tp-row-main { flex-basis: calc(100% - 40px); } .tp-row > .icon { order: 2; } .tp-row-res { order: 3; } .tp-pill { order: 4; } }
+  .tp-admin-banner { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; padding: 10px 14px; border-radius: var(--radius); background: var(--paper-2); border: 1px solid var(--hairline-strong); font-size: 0.9rem; font-weight: 600; }
   .tp-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: var(--radius-pill); background: var(--paper-2); color: var(--ink); font-size: 0.76rem; font-weight: 600; white-space: nowrap; }
   .tp-pill .icon { width: 13px; height: 13px; }
   .tp-pill-admin { background: #fdf3ef; color: #b8421f; }
@@ -274,6 +275,16 @@
   .tp-tile.is-orange { border-left-color: #e8742a; background: #fff4ec; }
   .tp-tile.is-red { border-left-color: #d33a2c; background: #fdeeec; }
   .tp-held { margin: 0 0 12px; }
+  /* Early preview gate */
+  .tp-gate h2 { margin: 0 0 8px; }
+  .tp-gate > p { max-width: 62ch; color: var(--ink-2); }
+  .tp-gate-shots { display: grid; gap: 16px; margin: 16px 0 6px; }
+  .tp-gate-shots figure { margin: 0; }
+  .tp-gate-shots img { display: block; width: 100%; height: auto; border: 1px solid var(--hairline); border-radius: var(--radius); background: #fff; }
+  .tp-gate-shots figcaption { margin-top: 6px; font-size: 0.82rem; color: var(--steel); }
+  .tp-gate-form { max-width: 520px; margin: 18px 0 8px; padding-top: 16px; border-top: 1px solid var(--hairline); }
+  .tp-gate-form h3 { margin: 0 0 10px; }
+  @media (min-width: 781px) { .tp-gate-shots { grid-template-columns: 1fr 1fr; } .tp-gate-shots figure:first-child { grid-column: 1 / -1; } }
   /* One map: Colour by speed switch and the speed key under it */
   .tp-map-head { flex-wrap: wrap; align-items: center; gap: 8px; }
   .tp-map-head .tp-speedsw { width: auto; min-height: 44px; margin: 0 0 0 auto; gap: 8px; font-size: 0.85rem; color: var(--steel); flex: none; }
@@ -432,7 +443,7 @@
         </div>
       </div>
       <a href="my-builds.html" class="nav-link nav-link-mybuilds">My Garage</a>
-      <a href="track.html" class="nav-link nav-link-track nav-sublink-new active">Track Sessions</a>
+      <a href="track.html" class="nav-link nav-link-track active">Track Sessions <span class="early-badge">Early preview</span></a>
       <div class="nav-item">
         <a href="profile.html" class="nav-link nav-link-profile">My Profile</a>
         <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle My Profile submenu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
@@ -514,6 +525,7 @@
 <section class="page-hero">
   <div class="wrap">
     <a href="my-builds.html" class="back-link"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>My Garage</a>
+    <span class="early-badge early-badge-lg">Early preview</span>
     <h1>Track sessions</h1>
     <p>Your track days and drag runs from your lap timer file: every lap mapped, where you gained and lost time, and what your mods did to your times.</p>
   </div>

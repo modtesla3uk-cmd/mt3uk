@@ -45,7 +45,7 @@ function json(data, status) {
       'Content-Type': 'application/json',
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, X-Voter-Id, X-Session-Token'
+      'Access-Control-Allow-Headers': 'Content-Type, X-Voter-Id, X-Session-Token, X-Admin-Viewer'
     }
   });
 }
@@ -6822,6 +6822,131 @@ async function putTrackIndexes(env, email, rec, removed) {
   await refreshTrackBoard(env, trackBoardKey(rec), rec.carId);
 }
 
+// ---- Track sessions: early preview access ----------------------------------
+// The tool is an early preview. A member can use it when they are on the
+// approved list, when the admin has opened it to everyone, or when they
+// already had track sessions before the preview began. Everything is one KV
+// key (track-access), read with get(). Shared sessions, leaderboards and the
+// track list stay public.
+var TRACK_ACCESS_KEY = 'track-access';
+async function getTrackAccess(env) {
+  var a = await getJsonKey(env, TRACK_ACCESS_KEY, {});
+  return { open: !!a.open, imported: typeof a.imported === 'string' ? a.imported : '', allowed: Array.isArray(a.allowed) ? a.allowed : [], pending: Array.isArray(a.pending) ? a.pending : [] };
+}
+function putTrackAccess(env, a) { return env.VOTES.put(TRACK_ACCESS_KEY, JSON.stringify(a)); }
+function accessEmail(e) { return String(e || '').trim().toLowerCase().slice(0, 200); }
+async function trackAccessStatus(env, email) {
+  var a = await getTrackAccess(env);
+  var e = accessEmail(email);
+  if (a.open || a.allowed.some(function (x) { return x.email === e; })) return 'approved';
+  // Members who already had sessions keep using it, until the admin has put
+  // them on the approved list (after that the list decides, so Revoke works).
+  if (!a.imported) {
+    var had = await getJsonKey(env, 'track-index:' + (await ownerKey(email)), []);
+    if (had && had.length) return 'approved';
+  }
+  return a.pending.some(function (x) { return x.email === e; }) ? 'pending' : 'none';
+}
+// Null when the member may use the tool (or isn't signed in, which the
+// handler itself answers); otherwise the refusal.
+async function trackAccessGate(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return null;
+  if ((await trackAccessStatus(env, email)) === 'approved') return null;
+  return json({ success: false, needsAccess: true, message: 'Track Sessions is an early preview. Request access to use it.' }, 403);
+}
+async function handleTrackAccess(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  return json({ success: true, access: await trackAccessStatus(env, email) });
+}
+async function handleTrackAccessRequest(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var body = {};
+  try { body = await request.json(); } catch (e) { body = {}; }
+  var status = await trackAccessStatus(env, email);
+  if (status === 'approved') return json({ success: true, access: status });
+  if (status === 'pending') return json({ success: true, access: status });
+  var a = await getTrackAccess(env);
+  var profile = await getProfileRecord(env, email);
+  var name = (publicName(profile) || '').slice(0, 60);
+  var note = trackText(body.note, 300), use = trackText(body.use, 40);
+  a.pending.unshift({ email: accessEmail(email), name: name, use: use, note: note, at: new Date().toISOString() });
+  a.pending = a.pending.slice(0, 300);
+  await putTrackAccess(env, a);
+  // A note to the admin (best effort: the request is kept either way).
+  try {
+    var subject = 'Track Sessions early access request';
+    var text = subscriberLabel(name, email) + ' has asked for early access to Track Sessions.\n\n' +
+      (use ? 'Using: ' + use + '\n' : '') + (note ? 'Their note:\n' + note + '\n\n' : '\n') +
+      'Approve or decline: ' + MY_BUILDS_SITE_URL + '/admin.html#tracks-wrap';
+    await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text)));
+  } catch (e) { /* the request is saved */ }
+  return json({ success: true, access: 'pending' });
+}
+async function handleTrackAccessAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var a = await getTrackAccess(env);
+  if (request.method === 'GET') return json({ success: true, open: a.open, imported: a.imported, allowed: a.allowed, pending: a.pending });
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var action = String(body.action || ''), e = accessEmail(body.email);
+  if (action === 'open') {
+    a.open = !!body.open;
+  } else if (action === 'import') {
+    // Once only: running it again would put back anyone who had been revoked.
+    if (a.imported) return json({ success: false, message: 'The current testers were already added on ' + a.imported.slice(0, 10) + '.' }, 409);
+    // Admin only, rarely used, so list() is fine: put everyone who already has
+    // track sessions on the approved list, so they can be revoked like anyone else.
+    var hashes = {}, idx = await env.VOTES.list({ prefix: 'track-index:', limit: 1000 }), found = [];
+    for (var i = 0; i < idx.keys.length && i < 500; i++) {
+      var h = idx.keys[i].name.slice('track-index:'.length), arr = await getJsonKey(env, idx.keys[i].name, []);
+      if (arr && arr.length) hashes[h] = arr.length;
+    }
+    var cursor, pages = 0;
+    do {
+      var page = await env.VOTES.list({ prefix: 'subscriber:', limit: 1000, cursor: cursor });
+      for (var k = 0; k < page.keys.length; k++) {
+        var em = accessEmail(page.keys[k].name.slice('subscriber:'.length));
+        if (hashes[await ownerKey(em)] && !found.some(function (f) { return f.email === em; })) found.push({ email: em, sessions: hashes[await ownerKey(em)] });
+      }
+      cursor = page.list_complete ? undefined : page.cursor; pages++;
+    } while (cursor && pages < 20);
+    var added = [];
+    for (var m = 0; m < found.length; m++) {
+      if (a.allowed.some(function (x) { return x.email === found[m].email; })) continue;
+      var nm = '';
+      try { nm = (publicName(await getProfileRecord(env, found[m].email)) || '').slice(0, 60); } catch (er) { nm = ''; }
+      a.allowed.push({ email: found[m].email, name: nm, at: new Date().toISOString(), existing: true });
+      a.pending = a.pending.filter(function (x) { return x.email !== found[m].email; });
+      added.push({ email: found[m].email, name: nm });
+    }
+    a.imported = new Date().toISOString();
+    await putTrackAccess(env, a);
+    return json({ success: true, open: a.open, imported: a.imported, allowed: a.allowed, pending: a.pending, added: added, found: found.length });
+  } else {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) return json({ success: false, message: 'That does not look like an email address.' }, 400);
+    var wasPending = a.pending.filter(function (x) { return x.email === e; })[0];
+    a.pending = a.pending.filter(function (x) { return x.email !== e; });
+    if (action === 'approve' || action === 'add') {
+      if (!a.allowed.some(function (x) { return x.email === e; })) a.allowed.push({ email: e, name: (wasPending && wasPending.name) || '', at: new Date().toISOString() });
+      if (action === 'approve' && body.notify !== false) {
+        try {
+          var text = 'Hello,\n\nYou now have early access to Track Sessions on MT3UK. Sign in and open Track Sessions to add your first session: ' + MY_BUILDS_SITE_URL + '/track.html\n\nIt is an early preview, so please tell us what works and what does not.';
+          await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, e, rawEmail(MY_BUILDS_FROM_EMAIL, e, 'You have early access to Track Sessions', text)));
+        } catch (err) { /* approved either way */ }
+      }
+    } else if (action === 'revoke') {
+      a.allowed = a.allowed.filter(function (x) { return x.email !== e; });
+    } else if (action !== 'deny') {
+      return json({ success: false, message: 'Unknown action' }, 400);
+    }
+  }
+  await putTrackAccess(env, a);
+  return json({ success: true, open: a.open, imported: a.imported, allowed: a.allowed, pending: a.pending });
+}
+
 async function handleTrackSessionsList(request, env) {
   var email = await resolveSession(request, env);
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
@@ -6918,14 +7043,43 @@ async function handleTrackSessionGet(request, env) {
   if (!rec) return json({ success: false, message: 'Session not found' }, 404);
   var viewer = request.headers.get('X-Session-Token') ? await resolveSession(request, env) : null;
   var mine = !!viewer && rec.owner === (await ownerKey(viewer));
-  if (!mine && (rec.privacy === 'private' || rec.street)) return json({ success: false, message: 'Session not found' }, 404);
+  // The admin can open a private session, read only and without the member's
+  // notes. Every such view is logged (see logTrackAdminView).
+  var adminView = false;
+  if (!mine && (rec.privacy === 'private' || rec.street)) {
+    if (await isAdminViewerToken(env, request.headers.get('X-Admin-Viewer'))) adminView = true;
+    else return json({ success: false, message: 'Session not found' }, 404);
+  }
   var out = Object.assign({}, rec);
   delete out.owner;
   if (!mine) delete out.notes;
   out.mine = mine;
+  if (adminView) out.adminView = true;
   var car = await getCarRecord(env, rec.carId);
   out.car = car ? car.name : '';
+  if (adminView) await logTrackAdminView(env, rec, out.car);
   return json({ success: true, session: out });
+}
+
+// Each time the admin opens a private session: when, which one, whose car.
+// One key, newest first, the last 300.
+var TRACK_ADMIN_VIEWS_KEY = 'track-admin-views';
+async function logTrackAdminView(env, rec, car) {
+  var list = await getJsonKey(env, TRACK_ADMIN_VIEWS_KEY, []);
+  var last = list[0];
+  // Reloading the same session within a minute is one view.
+  if (last && last.id === rec.id && Date.now() - Date.parse(last.at) < 60000) return;
+  list.unshift({ at: new Date().toISOString(), id: rec.id, car: car || '', venue: rec.venue || '', type: rec.type, date: rec.date, privacy: rec.privacy });
+  await env.VOTES.put(TRACK_ADMIN_VIEWS_KEY, JSON.stringify(list.slice(0, 300)));
+}
+// Admin: a member's sessions by email, and the log of admin views.
+async function handleTrackAdminSessions(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var params = new URL(request.url).searchParams, email = accessEmail(params.get('email'));
+  if (!email) return json({ success: true, views: await getJsonKey(env, TRACK_ADMIN_VIEWS_KEY, []) });
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ success: false, message: 'That does not look like an email address.' }, 400);
+  var list = await getJsonKey(env, 'track-index:' + (await ownerKey(email)), []);
+  return json({ success: true, sessions: list.map(function (s) { return { id: s.id, type: s.type, venue: s.venue, layout: s.layout || '', date: s.date, time: s.time || '', privacy: s.privacy, car: '', bestTime: s.bestTime || null, quarter: s.quarter || null }; }) });
 }
 
 async function handleTrackSessionUpdate(request, env) {
@@ -7228,6 +7382,13 @@ async function handleTrackBoardsRebuild(request, env) {
 
 // A member leaving: their sessions, index, shared lists and board places.
 async function deleteMemberTrackData(env, email) {
+  // Off the early preview lists too.
+  var acc = await getTrackAccess(env), em = accessEmail(email);
+  if (acc.allowed.some(function (x) { return x.email === em; }) || acc.pending.some(function (x) { return x.email === em; })) {
+    acc.allowed = acc.allowed.filter(function (x) { return x.email !== em; });
+    acc.pending = acc.pending.filter(function (x) { return x.email !== em; });
+    await putTrackAccess(env, acc);
+  }
   var oKey = 'track-index:' + (await ownerKey(email));
   var index = await getJsonKey(env, oKey, []);
   var cars = {};
@@ -8376,6 +8537,25 @@ export default {
     }
     if (url.pathname === '/cars/public' && request.method === 'GET') {
       return handleCarPublic(request, env);
+    }
+    if (url.pathname === '/track/access' && request.method === 'GET') {
+      return handleTrackAccess(request, env);
+    }
+    if (url.pathname === '/track/access/request' && request.method === 'POST') {
+      return handleTrackAccessRequest(request, env);
+    }
+    if (url.pathname === '/track/access/admin' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleTrackAccessAdmin(request, env);
+    }
+    if (url.pathname === '/track/admin/sessions' && request.method === 'GET') {
+      return handleTrackAdminSessions(request, env);
+    }
+    // The member's own sessions need access (early preview): lists, saves,
+    // changes, readings and deletes. Shared sessions and boards stay public.
+    if ((url.pathname === '/track/sessions' || url.pathname === '/track/session/source' ||
+        (url.pathname === '/track/session' && request.method !== 'GET')) && request.method !== 'OPTIONS') {
+      var noAccess = await trackAccessGate(request, env);
+      if (noAccess) return noAccess;
     }
     if (url.pathname === '/track/sessions' && request.method === 'GET') {
       return handleTrackSessionsList(request, env);

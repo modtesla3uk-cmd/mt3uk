@@ -182,6 +182,24 @@ ok(T.fmtLap(99.786) === '1:39.786' && T.niceDate('2026-05-28') === '28 May 2026'
 }
 
 
+
+// A VBOX Touch writes its start line as longitude then latitude, in minutes with
+// longitude positive to the west, and only about a metre long.
+{
+  const rows = [];
+  for (let i = 0; i < 60; i++) rows.push('009 ' + (142043 + Math.floor(i / 10)) + '.' + (i % 10) + '0 +' + (3070.6 + i * 0.001).toFixed(6) + ' -00071.9000 ' + (40 + i).toFixed(3) + ' 100.0 +0111.2 +0000.00 +00.00 -00.00 00002');
+  const vbo = ['File created on 20/05/2023 @ 15:20:41', '', '[header]', 'satellites', 'time', 'latitude', 'longitude', 'velocity kmh', 'heading', 'height', 'vertical velocity m/s', 'Long accel g', 'Lat accel g', 'solution type', '',
+    '[channel units]', '', '[laptiming]', 'Start        -71.89949 +3070.63870 -71.90033 +3070.63841', '', '[column names]', 'sats time lat long velocity heading height vert-vel longacc latacc solution_type', '', '[data]'].concat(rows).join('\n');
+  const rd = T.read(vbo, 'VBOX0016.vbo');
+  const [a, b] = rd.startLine;
+  ok(near(a[0], 51.1773, 0.001) && near(a[1], 1.1983, 0.001) && near(b[0], 51.1773, 0.001) && near(b[1], 1.1983, 0.001), 'a longitude-then-latitude start line is read as UK coordinates: ' + JSON.stringify(rd.startLine));
+  const pr = T.projector(a[0], a[1]), xa = pr.xy(a[0], a[1]), xb = pr.xy(b[0], b[1]);
+  ok(near(Math.hypot(xa[0] - xb[0], xa[1] - xb[1]), 30, 1), 'a one metre line is stretched to 30 m so a car can cross it');
+  // The older order (latitude then longitude, as in the Thruxton file) still reads as before.
+  const old = T.read(vbo.replace('Start        -71.89949 +3070.63870 -71.90033 +3070.63841', 'Start        +03072.46210 +000096.53200 +03072.45742 +000096.54818'), 'x.vbo').startLine;
+  ok(near(old[0][0], 51.2077, 0.001) && near(old[0][1], -1.6089, 0.001), 'latitude then longitude is still read the old way: ' + JSON.stringify(old[0]));
+}
+
 // Tyres written two ways are the same tyres; nothing on one side is not.
 {
   const mk = (id, date, t, tyres) => ({ id, date, bestTime: t, conditions: 'Dry', temp: 15, tyres });

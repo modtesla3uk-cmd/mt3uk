@@ -56,6 +56,7 @@
   function api(method, path, body, gzip) {
     var opts = { method: method, headers: {}, cache: 'no-store' };
     if (token()) opts.headers['X-Session-Token'] = token();
+    if (method === 'GET' && adminViewerToken()) opts.headers['X-Admin-Viewer'] = adminViewerToken();
     var ready = Promise.resolve();
     if (body !== undefined) {
       opts.headers['Content-Type'] = 'application/json';
@@ -135,9 +136,52 @@
     if (!token()) return Promise.resolve(null);
     return Promise.all([api('GET', '/my-builds'), api('GET', '/track/sessions')]).then(function (r) {
       if (r[0].status === 401) return null;
+      // Early preview: not on the approved list yet. Not kept, so approval shows on the next visit.
+      if (r[1].status === 403 && r[1].needsAccess) return { gate: true, cars: r[0].cars || [], sessions: [] };
       mine = { cars: (r[0].cars || []), sessions: r[1].sessions || [] };
       return mine;
     });
+  }
+
+  // ---------- Early preview gate ----------
+  var PREVIEW_USES = ['Tesla Track Mode', 'RaceBox', 'Another lap timer app', 'Just having a look'];
+  var PREVIEW_SHOTS = [
+    ['images/track-preview/track-mode.jpg', 'Best lap tiles and the Track Mode figures from a Tesla file: charge used, peak power, braking, battery and brake temperature, with the temperature zones coloured.', 956, 687, 'The car\'s own data from Tesla Track Mode, with temperature zones'],
+    ['images/track-preview/compare.jpg', 'Two laps compared: speed through the lap, the time gap, corner by corner, and a map with both laps and a play button.', 956, 880, 'Compare any two laps: speed, time gap, corners and a map you can play'],
+    ['images/track-preview/chart.jpg', 'G-force and speed for both laps on one chart, with a time ruler and slider under it.', 380, 360, 'G-force and speed on one chart, in step with the map']
+  ];
+  function showGate() {
+    app.innerHTML = '<div class="tp-loading" role="status">Loading...</div>';
+    api('GET', '/track/access').then(function (d) {
+      var status = d.success && d.access ? d.access : 'none';
+      var pending = status === 'pending';
+      var h = '<div class="card tp-gate"><span class="early-badge early-badge-lg">Early preview</span><h2>Track Sessions is being tested</h2>' +
+        '<p>Upload the file from your lap timer or Tesla Track Mode and see every lap mapped, where you gained and lost time, and what your mods did to your times. We are letting a small group try it first so we can fix things before it opens to everyone.</p>' +
+        '<ul class="tp-ticks"><li>' + icon('check') + 'Laps, sectors and corners found for you</li><li>' + icon('check') + 'Compare any two laps, corner by corner, with playback</li><li>' + icon('check') + 'Tesla Track Mode figures: charge, power, braking and temperatures</li><li>' + icon('check') + 'Sessions are private until you choose to share them</li></ul>' +
+        '<div class="tp-gate-shots">' + PREVIEW_SHOTS.map(function (x) { return '<figure><img src="' + x[0] + '" alt="' + esc(x[1]) + '" width="' + x[2] + '" height="' + x[3] + '" loading="lazy"><figcaption>' + esc(x[4]) + '</figcaption></figure>'; }).join('') + '</div>' +
+        '<p class="tp-small">Screenshots use example data.</p>';
+      if (pending) {
+        h += '<div class="tp-notice is-ok" id="tp-gate-done">' + icon('check') + '<div><b>Request received</b><br>We will email you when you are in. Thank you for waiting.</div></div>';
+      } else {
+        h += '<form id="tp-gate-form" class="tp-gate-form"><h3>Ask for early access</h3>' +
+          '<div class="tp-field"><label for="tp-gate-use">What will you use it with?</label><select class="field" id="tp-gate-use">' + PREVIEW_USES.map(function (u) { return '<option>' + esc(u) + '</option>'; }).join('') + '</select></div>' +
+          '<div class="tp-field"><label for="tp-gate-note">Anything we should know? (optional)</label><textarea class="field" id="tp-gate-note" rows="3" maxlength="300" placeholder="For example, the tracks you go to"></textarea></div>' +
+          '<button type="submit" class="btn btn-accent" id="tp-gate-send">Request access</button><p class="tp-status" id="tp-gate-status" role="status"></p></form>';
+      }
+      h += '<p class="tp-small">The <a href="leaderboards.html">Ranking</a> page is open to everyone to look at.</p></div>';
+      app.innerHTML = h;
+      var f = document.getElementById('tp-gate-form');
+      if (f) f.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var btn = document.getElementById('tp-gate-send'), st = document.getElementById('tp-gate-status');
+        btn.disabled = true; st.textContent = 'Sending...';
+        api('POST', '/track/access/request', { use: document.getElementById('tp-gate-use').value, note: document.getElementById('tp-gate-note').value }).then(function (r) {
+          if (r.success && r.access === 'approved') { mine = null; return showHome(); }
+          if (r.success) { showGate(); return; }
+          btn.disabled = false; st.textContent = r.message || 'Could not send that. Try again.';
+        }).catch(function () { btn.disabled = false; st.textContent = 'Could not send that. Check your connection and try again.'; });
+      });
+    }).catch(function () { failed('Could not load this page. Check your connection and try again.'); });
   }
 
   // ---------- Routing ----------
@@ -299,6 +343,7 @@
     loading();
     Promise.all([getMine(), getLibrary()]).then(function (r) {
       var m = r[0];
+      if (m && m.gate) return showGate();
       var h = '';
       if (!m) {
         h += '<div class="card tp-intro"><h2>Your track days, mapped</h2><p>Upload the file from your lap timer (RaceBox, VBOX, Harry\'s LapTimer, TrackAddict, AiM and most phone apps) and see every lap drawn on the track, where you gained and lost time, and how your times changed as you modified the car.</p>' +
@@ -443,6 +488,7 @@
     Promise.all([getMine(), getLibrary(), isAdmin(), loadTyres()]).then(function (r) {
       var m = r[0];
       if (!m) { location.href = 'signin.html?next=' + encodeURIComponent('/track.html?add=1'); return; }
+      if (m.gate) return showGate();
       if (!m.cars.length) return showHome();
       var car = m.cars.filter(function (c) { return c.id === carId; })[0] || m.cars[0];
       add = { car: car, cars: m.cars, lib: r[1], admin: r[2], rd: null, session: null, type: null, startLine: null, conditions: 'Dry', privacy: 'private', street: false, file: null };
@@ -815,7 +861,7 @@
   // Older sessions saved as "build" count as Shared.
   function privacyOptions(on, limit) {
     if (on === 'build') on = 'board';
-    var opts = [['private', 'Only me', 'The default. Nobody else sees it.'],
+    var opts = [['private', 'Only me', 'The default. Only you, and MT3UK\'s admin if you ask for help.'],
       ['board', 'Shared', limit === 'noboard' ? 'Members see it on your car\'s page. This track has no leaderboard yet.' : 'Members see it on your car\'s page and on this track\'s leaderboard, with your car and mods.']];
     if (limit === 'street') opts = opts.slice(0, 1);
     return opts.map(function (o) {
@@ -1119,6 +1165,7 @@
   function drawSession() {
     var s = view.s;
     var h = back(s.mine ? 'Your sessions' : 'Back', s.mine ? '' : (s.carId ? 'car=' + encodeURIComponent(s.carId) : ''));
+    if (s.adminView) h += '<p class="tp-admin-banner" id="tp-admin-banner">' + icon('lock') + 'Admin view, read only. This is a private session and this view is logged. Notes are not shown.</p>';
     h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '</h2><p class="tp-sub">' + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + '</p></div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) + '<span id="tp-rank-slot"></span>' : '') + unitsChip() + (s.street || s.privacy === 'private' ? '' : shareDot('Share this session')) + '</div></div>';
     LW = s.type === 'sprint' ? 'Run' : 'Lap';
     var untimed = s.type === 'other' && !(s.laps && s.laps.length);

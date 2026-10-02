@@ -46,6 +46,8 @@ globalThis.fetch = async url => String(url).endsWith('/data/tracks.json') ? new 
 const stored = k => { const v = kv.get(k); return JSON.parse(typeof v === 'string' ? v : zlib.gunzipSync(Buffer.from(v)).toString()); };
 const ok = (c, m) => { if (!c) { console.log('FAIL', m); process.exitCode = 1; } else console.log('ok  ', m); };
 const A = 'a@example.com', B = 'b@example.com';
+// Track Sessions is an early preview: these two members are approved (the gate has its own tests below).
+kv.set('track-access', JSON.stringify({ open: false, allowed: [{ email: A }, { email: B }], pending: [] }));
 kv.set('my-builds-session:tok-a', A);
 kv.set('my-builds-session:tok-b', B);
 kv.set('profile:' + A, JSON.stringify({ firstName: 'Rich', lastName: 'H', nickname: 'Rich' }));
@@ -59,9 +61,10 @@ await mod.putSidecar(env, 'gallery/b1.jpg.json', { email: B, carId: 'carb1' });
 await mod.saveCarRecord(env, { id: 'carb1', name: 'Blue Y', photos: ['b1.jpg'], mods: [] });
 kv.set('car-details:carb1', JSON.stringify({ model: 'Model Y' }));
 
-const call = async (method, path, body, token) => {
+const call = async (method, path, body, token, extra) => {
   const init = { method, headers: { 'Content-Type': 'application/json' } };
   if (token) init.headers['X-Session-Token'] = token;
+  if (extra) Object.assign(init.headers, extra);
   if (body !== undefined) init.body = typeof body === 'string' ? body : JSON.stringify(body);
   const r = await worker.fetch(new Request('https://w.test' + path, init), env, { waitUntil() {} });
   return { status: r.status, body: await r.json().catch(() => ({})) };
@@ -369,6 +372,90 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   await call('DELETE', '/track/session?id=' + cid, undefined, 'tok-a');
 }
 
+
+// Early preview: members need access; shared sessions and boards stay public.
+{
+  const C = 'c@example.com', D = 'd@example.com';
+  kv.set('my-builds-session:tok-c', C);
+  kv.set('profile:' + C, JSON.stringify({ firstName: 'Chris', lastName: 'N', nickname: 'Chris' }));
+  kv.set('my-builds-session:tok-d', D);
+  const before = env.SEND_EMAIL.sent.length;
+  r = await call('GET', '/track/access', undefined, 'tok-c');
+  ok(r.status === 200 && r.body.access === 'none', 'a new member has no access yet');
+  r = await call('GET', '/track/access');
+  ok(r.status === 401, 'checking access needs a sign in');
+  r = await call('GET', '/track/sessions', undefined, 'tok-c');
+  ok(r.status === 403 && r.body.needsAccess === true, 'their sessions are refused until approved: ' + r.status);
+  r = await call('POST', '/track/sessions', { carId: 'carc1', session: session }, 'tok-c');
+  ok(r.status === 403 && r.body.needsAccess, 'saving is refused too (the worker checks, not just the page)');
+  r = await call('GET', '/track/sessions');
+  ok(r.status === 401, 'a visitor still gets the sign in answer');
+  r = await call('GET', '/track/board?venue=thruxton&layout=main');
+  ok(r.status === 200, 'boards stay public');
+  r = await call('GET', '/track/counts');
+  ok(r.status === 200, 'the track list stays public');
+  // Requesting
+  r = await call('POST', '/track/access/request', { use: 'Tesla Track Mode', note: 'Thruxton days <b>x</b>' }, 'tok-c');
+  ok(r.status === 200 && r.body.access === 'pending', 'a request is kept as pending');
+  const sent = env.SEND_EMAIL.sent.slice(before).join('\n');
+  ok(/modtesla3uk@gmail\.com/.test(sent) && /Chris/.test(sent) && /Tesla Track Mode/.test(sent), 'the admin is emailed with who and what for');
+  const emails = env.SEND_EMAIL.sent.length;
+  r = await call('POST', '/track/access/request', {}, 'tok-c');
+  ok(r.body.access === 'pending' && env.SEND_EMAIL.sent.length === emails && stored('track-access').pending.length === 1, 'asking again does not add a second request or email');
+  // Admin
+  r = await call('GET', '/track/access/admin');
+  ok(r.status === 401, 'the admin list needs the admin key');
+  r = await call('GET', '/track/access/admin?key=secret');
+  ok(r.body.pending.length === 1 && r.body.pending[0].email === C && r.body.pending[0].use === 'Tesla Track Mode' && r.body.allowed.length === 2, 'the admin sees who is waiting');
+  r = await call('POST', '/track/access/admin?key=secret', { action: 'approve', email: C });
+  ok(r.body.pending.length === 0 && r.body.allowed.some(x => x.email === C), 'approving moves them to the list');
+  ok(env.SEND_EMAIL.sent.slice(emails).join('\n').includes(C), 'and tells them');
+  r = await call('GET', '/track/sessions', undefined, 'tok-c');
+  ok(r.status === 200, 'approved: their sessions open');
+  r = await call('POST', '/track/access/admin?key=secret', { action: 'revoke', email: C });
+  r = await call('GET', '/track/sessions', undefined, 'tok-c');
+  ok(r.status === 403, 'revoked: refused again');
+  r = await call('POST', '/track/access/admin?key=secret', { action: 'bad', email: C });
+  ok(r.status === 400, 'an unknown action is refused');
+  r = await call('POST', '/track/access/admin?key=secret', { action: 'approve', email: 'nope' });
+  ok(r.status === 400, 'a bad email is refused');
+  // Denied requests can ask again
+  await call('POST', '/track/access/request', {}, 'tok-c');
+  r = await call('POST', '/track/access/admin?key=secret', { action: 'deny', email: C });
+  ok(r.body.pending.length === 0 && !r.body.allowed.some(x => x.email === C), 'declined: off the waiting list, not on the approved list');
+  // Open to everyone
+  r = await call('POST', '/track/access/admin?key=secret', { action: 'open', open: true });
+  r = await call('GET', '/track/sessions', undefined, 'tok-c');
+  ok(r.status === 200, 'open to all members: everyone is in');
+  r = await call('POST', '/track/access/admin?key=secret', { action: 'open', open: false });
+  r = await call('GET', '/track/sessions', undefined, 'tok-c');
+  ok(r.status === 403, 'and closed again');
+  // Members who already had sessions keep using it
+  kv.set('track-index:' + (await mod.ownerKey(D)), JSON.stringify([{ id: 'old1' }]));
+  r = await call('GET', '/track/access', undefined, 'tok-d');
+  ok(r.body.access === 'approved', 'a member with sessions from before the preview keeps access');
+  r = await call('GET', '/track/sessions', undefined, 'tok-d');
+  ok(r.status === 200, 'and can open them');
+  // Putting the current testers on the approved list, so they can be revoked.
+  kv.set('subscriber:' + D, JSON.stringify([]));
+  r = await call('POST', '/track/access/admin?key=secret', { action: 'import' });
+  ok(r.status === 200 && r.body.added.length === 1 && r.body.added[0].email === D && r.body.found >= 1, 'import finds members who have sessions and adds them: ' + JSON.stringify(r.body.added));
+  ok(r.body.allowed.some(x => x.email === D && x.existing) && r.body.imported, 'they are on the approved list, marked as existing testers');
+  ok(!r.body.allowed.some(x => x.email === C), 'members without sessions are not added');
+  r = await call('POST', '/track/access/admin?key=secret', { action: 'import' });
+  ok(r.status === 409, 'importing twice is refused (it would put back anyone revoked)');
+  r = await call('GET', '/track/sessions', undefined, 'tok-d');
+  ok(r.status === 200, 'they still have access');
+  r = await call('POST', '/track/access/admin?key=secret', { action: 'revoke', email: D });
+  r = await call('GET', '/track/sessions', undefined, 'tok-d');
+  ok(r.status === 403, 'revoked: refused even though they have sessions');
+  r = await call('GET', '/track/access', undefined, 'tok-d');
+  ok(r.body.access === 'none', 'and shown the request page');
+  kv.delete('track-index:' + (await mod.ownerKey(D)));
+  kv.delete('subscriber:' + D);
+  { const acc = stored('track-access'); delete acc.imported; acc.allowed = acc.allowed.filter(x => x.email !== D); kv.set('track-access', JSON.stringify(acc)); }
+}
+
 // Leaderboard entries carry the tyres, each car's best for every mix of
 // conditions and tyres, and only the parts that matter on a track.
 {
@@ -414,6 +501,31 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   await mod.saveCarRecord(env, { id: 'cara1', name: 'Arctic Three', photos: ['a1.jpg'], mods: ['KW V3 coilovers'] });
   for (const x of [s1, s2, s3, s4]) await call('DELETE', '/track/session?id=' + x.body.session.id, undefined, 'tok-a');
 }
+
+// Admin read-only view of a private session, logged.
+{
+  r = await call('POST', '/track/sessions', { carId: 'cara1', session: JSON.parse(JSON.stringify(session)), notes: 'Secret note', privacy: 'private' }, 'tok-a');
+  const pid = r.body.session.id;
+  r = await call('GET', '/track/session?id=' + pid);
+  ok(r.status === 404, 'a private session is hidden from the public');
+  r = await call('GET', '/track/session?id=' + pid, undefined, undefined, { 'X-Admin-Viewer': 'not-a-real-token-1234567' });
+  ok(r.status === 404, 'a bad admin token does not open it');
+  r = await call('GET', '/track/session?id=' + pid, undefined, undefined, { 'X-Admin-Viewer': tok });
+  ok(r.status === 200 && r.body.session.adminView === true && r.body.session.notes === undefined && r.body.session.owner === undefined && !r.body.session.mine, 'admin opens a private session read only, no notes ' + r.status + JSON.stringify(r.body).slice(0, 200));
+  await call('GET', '/track/session?id=' + pid, undefined, undefined, { 'X-Admin-Viewer': tok });
+  const logged = stored('track-admin-views');
+  ok(logged.length === 1 && logged[0].id === pid, 'the view is logged once (repeat within a minute merges)');
+  r = await call('GET', '/track/admin/sessions?email=' + encodeURIComponent(A));
+  ok(r.status === 401, 'finding a member needs the admin key');
+  r = await call('GET', '/track/admin/sessions?key=secret&email=' + encodeURIComponent(A));
+  ok(r.status === 200 && r.body.sessions.some(x => x.id === pid), 'admin lists a member\'s sessions');
+  r = await call('GET', '/track/admin/sessions?key=secret');
+  ok(r.status === 200 && r.body.views.length === 1, 'admin reads the view log');
+}
+// A member leaving is taken off the early preview lists.
+kv.set('track-access', JSON.stringify({ open: false, allowed: [{ email: A }, { email: B }, { email: 'gone@example.com' }], pending: [{ email: 'gone@example.com' }] }));
+await mod.deleteMemberAccount(env, 'gone@example.com');
+ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && stored('track-access').allowed.length === 2, 'a member who leaves comes off the early preview lists');
 
 // Leaving the site clears everything.
 await mod.deleteMemberAccount(env, A);

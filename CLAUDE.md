@@ -67,6 +67,12 @@ Static site for the MT3UK modified Tesla community, live at https://mt3uk.com. I
 - **Edit them on the Tyres panel of `admin.html`** rather than by hand. A change is stored in KV (`tyre-library`, `/tyres/admin`) on top of the file and is live straight away; the file is only the starting list. A make can be taken off the list, and a size list is only stored when it differs from the file's.
 - The Model box suggests a make's models but accepts anything typed. A session keeps the parts (`tyreMake`, `tyreModel`, `tyreWidth`, `tyreProfile`, `tyreRim`) and a built description in `tyres`, which is what the pages and leaderboards show. Older free-text entries are split into the parts when their settings are opened.
 
+## Track sessions: early preview
+
+- Track Sessions is an **early preview**: members need access to use it. It has an "Early preview" badge (`.early-badge` in `css/site-header.css`) in the menu (`partials/header.html`), on the page, in My Garage and on the homepage tile. Remove those when it opens to everyone.
+- Members without access see an explainer with screenshots (`images/track-preview/`, made from example data) and a **Request access** form on `track.html`. A request emails the admin and waits on the **Early access** panel of `admin.html` (`js/track-access-admin.js`), where it is approved or declined; approving emails the member. **Open to all members** there lets everyone in without changing code.
+- The list is one KV key (`track-access`: `open`, `allowed`, `pending`), read with `get()`. The worker checks it on the member routes (their session list, saves, changes, readings, deletes) in `trackAccessGate`, so the page cannot be bypassed. Members who already had sessions before the preview keep access automatically until **Add current testers** is pressed on the Early access panel (once only): that puts them on the approved list so they can be revoked like anyone else, after which the list alone decides. Shared sessions, boards and the track list stay public. A member who leaves comes off the lists.
+
 ## Track sessions: leaderboards
 
 - `leaderboards.html` (headed **Ranking**) is drawn by `js/leaderboard-page.js`. The track list shows each venue's top three per layout from `/track/counts` (`counts` and `leaders`, both single KV keys, read with `get()`). A board page filters by model, conditions and tyre make or model.

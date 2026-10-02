@@ -685,8 +685,32 @@
   </section>
 
   <section class="admin-group" id="grp-tracks" aria-labelledby="grp-tracks-h">
-    <div class="group-head"><h2 id="grp-tracks-h">Track sessions</h2><p>The tracks and tyres that Track sessions offers, and the leaderboards.</p></div>
+    <div class="group-head"><h2 id="grp-tracks-h">Track sessions</h2><p>Who can use Track sessions, the tracks and tyres it offers, and the leaderboards.</p></div>
     <div class="panel-wrap">
+    <details class="collapsible" id="access-wrap">
+      <summary><h3 class="panel-title">Early access <span class="summary-count" id="access-count"></span></h3></summary>
+      <p class="iv-note">Track Sessions is an early preview. Members ask for access on the page and wait here. Members who already had sessions before the preview keep using it. Shared sessions and the Ranking page stay open to everyone.</p>
+      <p class="iv-note" id="ac-note" role="status"></p>
+      <div class="iv-toolbar"><button type="button" class="tk-switch" role="switch" id="ac-open" aria-checked="false"><span class="tk-track"></span>Open to all members</button></div>
+      <h3 class="sub-head">Waiting for access</h3>
+      <div id="ac-pending"></div>
+      <h3 class="sub-head">Approved</h3>
+      <div class="iv-toolbar"><button type="button" class="secondary" id="ac-import">Add current testers</button><span class="iv-note" id="ac-import-note"></span></div>
+      <div id="ac-allowed"></div>
+      <h3 class="sub-head">Add someone</h3>
+      <form class="iv-toolbar" id="ac-add-form"><input type="email" id="ac-add-email" placeholder="Member's email" aria-label="Member's email" autocomplete="off"><button type="submit">Approve by email</button></form>
+    </details>
+    </div>
+    <div class="panel-wrap">
+    <details class="collapsible" id="member-sessions-wrap">
+      <summary><h3 class="panel-title">Member sessions</h3></summary>
+      <p class="iv-note">Find a member by email to open their sessions, even private ones. You get a read-only view without their notes, and each view is logged below. Members are told in the privacy page. Links open on this browser once you have entered the admin key.</p>
+      <p class="iv-note" id="ms-note" role="status"></p>
+      <div class="iv-toolbar"><input type="email" class="field" id="ms-email" placeholder="Member email" autocomplete="off"><button type="button" class="iv-act" id="ms-find">Find sessions</button></div>
+      <div id="ms-list"></div>
+      <h3 class="sub-head">Recent admin views</h3>
+      <div id="ms-views"></div>
+    </details>
     <details class="collapsible" id="tracks-wrap">
       <summary><h3 class="panel-title">Tracks <span class="summary-count" id="tracks-count"></span></h3></summary>
       <p class="iv-note">The tracks and drag strips that Track sessions recognises from a member's file. Most start without a start line: add one (or set up a member's request below) so laps are timed and the track gets a leaderboard. Changes apply to new uploads straight away.</p>
@@ -2798,6 +2822,8 @@
 })();
 </script>
 <script src="js/admin-subnav.js" defer></script>
+<script src="js/track-access-admin.js" defer></script>
+<script src="js/track-member-admin.js" defer></script>
 <script src="js/track-admin.js" defer></script>
 <script src="js/tyre-data.js" defer></script>
 <script src="js/tyre-admin.js" defer></script>

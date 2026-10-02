@@ -55,6 +55,8 @@ class FakeWorker:
         self.requests = []
         self.sources = {}
         self.boards = {}
+        self.access = "approved"
+        self.access_requests = []
         self.tyre_extra = {}
         self.fail_source = False
 
@@ -76,6 +78,14 @@ class FakeWorker:
         status, data = 200, {"success": True}
         if path == "/my-builds":
             data = {"success": True, "cars": [CAR]}
+        elif path == "/track/sessions" and req.method == "GET" and self.access != "approved":
+            status, data = 403, {"success": False, "needsAccess": True}
+        elif path == "/track/access" and req.method == "GET":
+            data = {"success": True, "access": self.access}
+        elif path == "/track/access/request" and req.method == "POST":
+            self.access_requests.append(body)
+            self.access = "pending"
+            data = {"success": True, "access": "pending"}
         elif path == "/track/sessions" and req.method == "GET":
             data = {"success": True, "sessions": self.index}
         elif path == "/track/sessions" and req.method == "POST":
@@ -2437,3 +2447,58 @@ def test_the_marker_map_is_bigger_and_can_go_full_screen(page):
     page.get_by_role("button", name="Exit full screen").click()
     expect(page.locator("#tp-tapbox")).not_to_have_class(re.compile("is-full"))
     expect(page.locator("#tp-tap .tp-tapmark")).to_have_count(1)
+
+
+def test_members_without_access_see_the_early_preview_page_and_can_ask(page):
+    fake = FakeWorker()
+    fake.access = "none"
+    open_page(page, fake)
+    gate = page.locator(".tp-gate")
+    expect(gate.locator("h2")).to_have_text("Track Sessions is being tested")
+    expect(gate.locator(".early-badge")).to_have_text("Early preview")
+    # A short explainer and screenshots, with their descriptions.
+    expect(gate.locator(".tp-ticks li")).to_have_count(4)
+    shots = gate.locator(".tp-gate-shots img")
+    expect(shots).to_have_count(3)
+    assert all(src.startswith("images/track-preview/") for src in shots.evaluate_all("els => els.map(e => e.getAttribute('src'))"))
+    assert all(len(a) > 30 for a in shots.evaluate_all("els => els.map(e => e.alt)"))
+    # The tool itself is not shown.
+    expect(page.get_by_role("link", name="Add a session")).to_have_count(0)
+    # Asking for access.
+    gate.locator("#tp-gate-use").select_option("RaceBox")
+    gate.locator("#tp-gate-note").fill("Thruxton and Brands")
+    gate.get_by_role("button", name="Request access").click()
+    expect(page.locator("#tp-gate-done")).to_contain_text("Request received")
+    assert fake.access_requests == [{"use": "RaceBox", "note": "Thruxton and Brands"}]
+    expect(page.get_by_role("button", name="Request access")).to_have_count(0)
+
+
+def test_a_member_already_waiting_sees_the_waiting_message(page):
+    fake = FakeWorker()
+    fake.access = "pending"
+    open_page(page, fake)
+    expect(page.locator("#tp-gate-done")).to_contain_text("We will email you when you are in")
+    expect(page.locator("#tp-gate-form")).to_have_count(0)
+
+
+def test_approved_members_get_the_tool_and_adding_a_session_is_gated_too(page):
+    fake = FakeWorker()
+    open_page(page, fake)
+    expect(page.locator(".tp-gate")).to_have_count(0)
+    expect(page.get_by_role("link", name="Add a session")).to_be_visible()
+    # The add page for someone not approved shows the same page.
+    fake2 = FakeWorker()
+    fake2.access = "none"
+    page.unroute_all()
+    open_page(page, fake2, "/track.html?add=1")
+    expect(page.locator(".tp-gate")).to_be_visible()
+
+
+def test_the_early_preview_badge_is_on_the_menu_the_page_and_the_garage(page):
+    page.goto("/track.html")
+    expect(page.locator("nav .nav-link-track .early-badge").first).to_have_text("Early preview")
+    expect(page.locator(".page-hero .early-badge")).to_have_text("Early preview")
+    page.goto("/index.html")
+    expect(page.locator(".hp-cat[data-cat='sessions'] .early-badge")).to_have_text("Early preview")
+    page.goto("/my-builds.html")
+    expect(page.locator("#mb-track-btn .early-badge")).to_have_text("Early preview")

@@ -436,3 +436,7 @@ nav {
 .footer-text, .footer-links a { font-family: var(--font-body); font-size: 0.82rem; color: var(--steel); letter-spacing: 0; text-transform: none; }
 .footer-links a { display: inline-flex; align-items: center; gap: 4px; }
 .footer-links .icon { width: 14px; height: 14px; }
+
+/* Early preview badge: a feature that is open to a few members while it is tested */
+.early-badge { display: inline-block; margin-left: 6px; padding: 2px 8px; border: 1px solid rgba(232, 84, 42, 0.35); border-radius: var(--radius-pill, 999px); background: #fff4ec; color: #b8421f; font-family: var(--font-body); font-size: 0.68rem; font-weight: 600; line-height: 1.35; white-space: nowrap; vertical-align: middle; letter-spacing: 0; text-transform: none; }
+.early-badge-lg { margin: 0 0 12px; padding: 3px 10px; font-size: 0.8rem; }

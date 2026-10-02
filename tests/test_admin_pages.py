@@ -16,7 +16,7 @@ GROUPS = [
     ("grp-reports", "Reports", ["comments-wrap", "rphotos-wrap", "local-wrap"]),
     ("grp-members", "Members", ["subscribers-wrap", "members-msg-wrap"]),
     ("grp-interviews", "Owner interviews", ["interviews-wrap", "preview-wrap"]),
-    ("grp-tracks", "Track sessions", ["tracks-wrap", "tyres-wrap"]),
+    ("grp-tracks", "Track sessions", ["access-wrap", "member-sessions-wrap", "tracks-wrap", "tyres-wrap"]),
 ]
 
 
@@ -97,7 +97,7 @@ def test_admin_sub_menu_lists_the_sections_of_the_current_category(page):
     expect(page.locator('.admin-nav a[data-here="true"]')).to_have_text("Gallery and builds")
     # Choosing a category swaps the sub menu to that category's sections.
     page.locator('.admin-nav a[href="admin.html#grp-tracks"]').click()
-    expect(sub.locator("a")).to_have_text(["Tracks", "Tyres"])
+    expect(sub.locator("a")).to_have_text(["Early access", "Member sessions", "Tracks", "Tyres"])
     expect(page.locator('.admin-nav a[data-here="true"]')).to_have_text("Track sessions")
     # Choosing a section opens its panel and scrolls to it.
     sub.locator("a", has_text="Tyres").click()
@@ -136,3 +136,83 @@ def test_admin_track_type_has_sprint_and_hill_climb_as_separate_choices(page):
     page.locator("#tk-cancel").click()
     page.locator("#tk-list [data-edit='curborough']").click()
     expect(page.locator("#tk-type")).to_have_value("sprint")
+
+
+def test_admin_early_access_panel_approves_declines_revokes_and_opens(page):
+    state = {"open": False, "allowed": [{"email": "old@example.com", "name": "Old", "at": "2026-09-01T10:00:00Z"}],
+             "pending": [{"email": "ann@example.com", "name": "Ann B", "use": "RaceBox", "note": "Brands Hatch days", "at": "2026-10-01T09:00:00Z"},
+                         {"email": "bob@example.com", "name": "", "use": "Tesla Track Mode", "note": "", "at": "2026-10-01T10:00:00Z"}]}
+    calls = []
+
+    def access(route):
+        req = route.request
+        if req.method == "POST":
+            body = json.loads(req.post_data)
+            calls.append(body)
+            e = body.get("email")
+            if body["action"] == "open":
+                state["open"] = body["open"]
+            elif body["action"] in ("approve", "add"):
+                state["pending"] = [p for p in state["pending"] if p["email"] != e]
+                state["allowed"].append({"email": e, "name": "", "at": "2026-10-02T09:00:00Z"})
+            elif body["action"] == "deny":
+                state["pending"] = [p for p in state["pending"] if p["email"] != e]
+            elif body["action"] == "revoke":
+                state["allowed"] = [a for a in state["allowed"] if a["email"] != e]
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(dict(state, success=True)), headers={"Access-Control-Allow-Origin": "*"})
+    open_admin(page, "admin.html")
+    page.route("**/track/access/admin**", access)
+    page.reload()
+    # The count shows without opening the panel.
+    expect(page.locator("#access-count")).to_have_text("2 waiting")
+    page.locator("#access-wrap summary").click()
+    rows = page.locator("#ac-pending tbody tr")
+    expect(rows).to_have_count(2)
+    expect(rows.first).to_contain_text("Ann B")
+    expect(rows.first).to_contain_text("RaceBox")
+    expect(rows.first).to_contain_text("Brands Hatch days")
+    rows.first.get_by_role("button", name="Approve").click()
+    expect(page.locator("#ac-note")).to_contain_text("Approved")
+    expect(rows).to_have_count(1)
+    expect(page.locator("#ac-allowed")).to_contain_text("ann@example.com")
+    rows.first.get_by_role("button", name="Decline").click()
+    expect(page.locator("#ac-pending")).to_contain_text("Nobody is waiting")
+    expect(page.locator("#access-count")).to_have_text("2 approved")
+    # Revoke needs a yes; add by email; open to all.
+    page.once("dialog", lambda d: d.accept())
+    page.locator("#ac-allowed [data-revoke='old@example.com']").click()
+    expect(page.locator("#ac-allowed")).not_to_contain_text("old@example.com")
+    page.fill("#ac-add-email", "new@example.com")
+    page.get_by_role("button", name="Approve by email").click()
+    expect(page.locator("#ac-allowed")).to_contain_text("new@example.com")
+    page.once("dialog", lambda d: d.accept())
+    page.locator("#ac-open").click()
+    expect(page.locator("#ac-open")).to_have_attribute("aria-checked", "true")
+    expect(page.locator("#access-count")).to_have_text("open to all")
+    assert [c["action"] for c in calls] == ["approve", "deny", "revoke", "add", "open"]
+
+
+def test_admin_can_add_the_current_testers_to_the_early_access_list(page):
+    state = {"open": False, "imported": "", "pending": [], "allowed": []}
+
+    def access(route):
+        req = route.request
+        if req.method == "POST":
+            body = json.loads(req.post_data)
+            if body["action"] == "import":
+                state["imported"] = "2026-10-02T09:00:00Z"
+                state["allowed"] = [{"email": "john@example.com", "name": "John C", "at": "2026-10-02T09:00:00Z", "existing": True}]
+                route.fulfill(status=200, content_type="application/json", body=json.dumps(dict(state, success=True, found=1, added=[{"email": "john@example.com", "name": "John C"}])), headers={"Access-Control-Allow-Origin": "*"})
+                return
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(dict(state, success=True)), headers={"Access-Control-Allow-Origin": "*"})
+    open_admin(page, "admin.html")
+    page.route("**/track/access/admin**", access)
+    page.reload()
+    page.locator("#access-wrap summary").click()
+    expect(page.locator("#ac-import-note")).to_contain_text("cannot be revoked")
+    page.once("dialog", lambda d: d.accept())
+    page.locator("#ac-import").click()
+    expect(page.locator("#ac-note")).to_contain_text("Added 1: John C")
+    expect(page.locator("#ac-allowed")).to_contain_text("john@example.com, current tester")
+    expect(page.locator("#ac-import")).to_be_disabled()
+    expect(page.locator("#ac-import-note")).to_contain_text("Revoke works for everyone")

@@ -62,8 +62,24 @@
       } else if (sec === '[laptiming]') {
         var p = s.split(/\s+/);
         if (/^start/i.test(p[0]) && p.length >= 5) {
-          var a = [num(p[1]) / 60, -num(p[2]) / 60], b = [num(p[3]) / 60, -num(p[4]) / 60];
-          if (isFinite(a[0]) && isFinite(b[0])) startLine = [a, b];
+          // Degrees as minutes, longitude positive to the west. Some boxes write
+          // each point as latitude then longitude, others as longitude then
+          // latitude: latitude is the bigger number (about 3000 minutes in
+          // the UK, against under 500 for longitude).
+          var v = [num(p[1]), num(p[2]), num(p[3]), num(p[4])];
+          function pt(x, y) { var latFirst = Math.abs(x) >= Math.abs(y); return [(latFirst ? x : y) / 60, -(latFirst ? y : x) / 60]; }
+          var a = pt(v[0], v[1]), b = pt(v[2], v[3]);
+          if (isFinite(a[0]) && isFinite(a[1]) && isFinite(b[0]) && isFinite(b[1])) {
+            // Some boxes (the VBOX Touch) keep the line as two points about a metre apart, which a
+            // car never crosses. A line under 10 m is stretched to 30 m along the same direction.
+            var pr = projector((a[0] + b[0]) / 2, (a[1] + b[1]) / 2), xa = pr.xy(a[0], a[1]), xb = pr.xy(b[0], b[1]);
+            var len = Math.hypot(xb[0] - xa[0], xb[1] - xa[1]);
+            if (len > 0.05 && len < 10) {
+              var ux = (xb[0] - xa[0]) / len * 15, uy = (xb[1] - xa[1]) / len * 15, cx = (xa[0] + xb[0]) / 2, cy = (xa[1] + xb[1]) / 2;
+              a = pr.ll(cx - ux, cy - uy); b = pr.ll(cx + ux, cy + uy);
+            }
+            startLine = [a, b];
+          }
         }
       } else if (sec === '[column names]') {
         cols = s.split(/\s+/).map(function (c) { return c.toLowerCase(); });

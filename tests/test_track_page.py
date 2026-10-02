@@ -31,7 +31,7 @@ EARLIER = {
 
 
 def summary(rec):
-    keys = ["id", "carId", "type", "venueId", "venue", "layoutId", "layout", "date", "time", "privacy", "conditions", "tyres", "temp", "tempSource", "weather", "vmax", "quality", "street", "atVenue"]
+    keys = ["id", "carId", "type", "venueId", "venue", "layoutId", "layout", "date", "time", "privacy", "conditions", "tyres", "temp", "tempSource", "weather", "vmax", "soc", "quality", "street", "atVenue"]
     out = {k: rec.get(k) for k in keys if k in rec}
     if rec.get("type") == "drag":
         runs = rec.get("runs") or []
@@ -446,7 +446,7 @@ def test_sessions_at_the_same_track_on_the_same_day_are_grouped_by_time(page):
     card = page.locator(".tp-daygroup")
     expect(card).to_have_count(1)
     expect(card.locator("h3")).to_have_text("14 Jul 2026 on Castle Combe")
-    expect(card.locator(".tp-daygroup-head .tp-small")).to_have_text("3 sessions")
+    expect(card.locator(".tp-daygroup-count .tp-small")).to_have_text("3 sessions")
     # Collapsed: only the fastest session of the day shows, with its place in the day.
     expect(card).to_have_attribute("data-open", "false")
     expect(card.locator(".tp-daygroup-label")).to_have_text("Fastest session of the day")
@@ -457,7 +457,7 @@ def test_sessions_at_the_same_track_on_the_same_day_are_grouped_by_time(page):
     expect(best).to_contain_text("1:21.170")
     expect(card.locator(".tp-daygroup-all")).to_be_hidden()
     # Opening it lists every session in time of day order, numbered by it, with the fastest marked.
-    card.locator("[data-day-toggle]").click()
+    card.locator(".tp-daygroup-title").click()
     expect(card).to_have_attribute("data-open", "true")
     expect(card.locator(".tp-daygroup-best")).to_be_hidden()
     rows = card.locator(".tp-daygroup-all .tp-row")
@@ -472,13 +472,13 @@ def test_sessions_at_the_same_track_on_the_same_day_are_grouped_by_time(page):
     expect(rows.nth(2)).to_contain_text("14:46")
     expect(card.locator(".tp-fastest")).to_have_count(1)
     # It stays open when the list is drawn again (changing the track filter), and closes again from the heading.
-    card.locator("[data-day-toggle]").click()
+    card.locator(".tp-daygroup-title").click()
     expect(card).to_have_attribute("data-open", "false")
     # A session on its own stays a plain row.
     expect(page.locator("#tp-sess-list > a.tp-row")).to_have_count(1)
     expect(page.locator("#tp-sess-list > a.tp-row")).to_contain_text("Thruxton")
     # Opening one says where it falls in the day.
-    card.locator("[data-day-toggle]").click()
+    card.locator(".tp-daygroup-title").click()
     rows.nth(1).click()
     expect(page.locator("#tp-day-place")).to_have_text("Session 2 of 3 that day")
     # Phone: no sideways scroll.
@@ -550,6 +550,160 @@ def test_saving_a_session_shows_a_saved_message_with_a_way_back(page):
     expect(page).to_have_url(re.compile(r"/track\.html$"))
     expect(page.locator("#tp-saved")).to_have_count(0)
     expect(page.locator("#tp-sess-list")).to_be_visible()
+
+
+def test_several_files_are_saved_as_a_session_each_grouped_by_day(page, tmp_path):
+    fake = FakeWorker(earlier=False)
+    open_page(page, fake)
+    a, b = tmp_path / "RaceBox Track Session one.vbo", tmp_path / "RaceBox Track Session two.vbo"
+    a.write_bytes(FIXTURE.read_bytes())
+    b.write_bytes(FIXTURE.read_bytes())
+    page.get_by_role("link", name="Add a session", exact=True).click()
+    page.set_input_files("#tp-file", [str(a), str(b)])
+    expect(page.locator(".tp-file")).to_contain_text("each is saved as its own session")
+    page.get_by_role("button", name="Save session").click()
+    # Back on the list, with a message that says how many were saved.
+    saved = page.locator("#tp-saved")
+    expect(saved).to_contain_text("2 sessions saved, one for each file")
+    assert len(fake.saved) == 2
+    assert sorted(x["session"]["fileName"] for x in fake.saved) == ["RaceBox Track Session one.vbo", "RaceBox Track Session two.vbo"]
+    assert all(not x["session"].get("runs") or isinstance(x["session"]["runs"], list) for x in fake.saved)
+    # Each is its own session, grouped on the day.
+    expect(page.locator(".tp-daygroup")).to_have_count(1)
+    expect(page.locator(".tp-daygroup-count .tp-small")).to_have_text("2 sessions")
+
+
+def test_share_every_session_on_a_day_from_its_group(page):
+    fake = FakeWorker(earlier=False)
+    for sid, t, best in (("g1", "09:25", 89.1), ("g2", "11:29", 81.1), ("g3", "14:46", 87.7)):
+        rec = day_session(sid, t, best, 3)
+        fake.sessions[sid] = dict(rec)
+        fake.index.append(summary(rec))
+    open_page(page, fake)
+    sw = page.locator("[data-day-share]")
+    expect(sw).to_have_attribute("aria-checked", "false")
+    # Turning it on asks first; Cancel changes nothing.
+    page.once("dialog", lambda d: d.dismiss())
+    sw.click()
+    assert all(v["privacy"] == "private" for v in fake.sessions.values())
+    # Accepting shares all three, and says so.
+    page.once("dialog", lambda d: d.accept())
+    sw.click()
+    expect(page.locator("#tp-saved")).to_contain_text("All 3 sessions at 14 Jul 2026 at Castle Combe are now Shared")
+    assert all(v["privacy"] == "board" for v in fake.sessions.values())
+    expect(page.locator("[data-day-share]")).to_have_attribute("aria-checked", "true")
+    # Turning it off makes them all Only me, with no question.
+    page.locator("[data-day-share]").click()
+    expect(page.locator("#tp-saved")).to_contain_text("are now Only me")
+    assert all(v["privacy"] == "private" for v in fake.sessions.values())
+
+
+def merged_session(files=None):
+    """A session saved the old way: files merged into one, with its readings kept. files = [(name, text)]; the Thruxton test file twice by default."""
+    import subprocess
+    if files is None:
+        text = FIXTURE.read_text(encoding="latin-1")
+        files = [("thruxton-1.vbo", text), ("thruxton-2.vbo", text)]
+    script = (
+        "const fs=require('fs');const T=require('./js/track-parse.js');"
+        "const lib=JSON.parse(fs.readFileSync('data/tracks.json','utf8'));"
+        "const files=JSON.parse(fs.readFileSync(0,'utf8'));"
+        "const c=T.combine(files.map(f=>T.read(f[1],f[0])));const s=T.analyse(c,lib);"
+        "const meta={};Object.keys(c).forEach(k=>{if(k!=='points')meta[k]=c[k]});"
+        "const r=(v,n)=>v==null||!isFinite(v)?null:Math.round(v*n)/n;"
+        "const src={v:1,rd:meta,p:c.points.map(q=>[r(q.t,1000),r(q.lat,1e7),r(q.lng,1e7),r(q.v,100),r(q.la,1000),r(q.lo,1000),r(q.sats,1),r(q.temp,10),q.run||0])};"
+        "console.log(JSON.stringify({session:s,source:src}));"
+    )
+    out = subprocess.run(["node", "-e", script], input=json.dumps(files), capture_output=True, text=True, check=True).stdout
+    return json.loads(out)
+
+
+def seed_merged(fake, files=None, sid="m1"):
+    data = merged_session(files)
+    rec = dict(data["session"], id=sid, carId="car1", privacy="private", conditions="Dry", hasSource=True)
+    fake.sessions[sid] = rec
+    fake.sources[sid] = data["source"]
+    fake.index.append(summary(rec))
+    return rec
+
+
+def test_a_merged_session_can_be_split_into_one_per_file(page):
+    data = merged_session()
+    fake = FakeWorker(earlier=False)
+    rec = dict(data["session"], id="m1", carId="car1", privacy="private", conditions="Dry", tyres="Test tyre", notes="keep me", hasSource=True,
+               fileName="RaceBox Track Session on 28-05-2026 16-00.vbo, RaceBox Track Session on 28-05-2026 14-34.vbo")
+    assert rec["runs"] == 2
+    fake.sessions["m1"] = rec
+    fake.sources["m1"] = data["source"]
+    fake.index.append(summary(rec))
+    open_page(page, fake, path="/track.html?s=m1")
+    split = page.locator("#tp-e-split")
+    expect(split).to_have_text("Split into 2 sessions")
+    page.once("dialog", lambda d: d.accept())
+    split.click()
+    expect(page.locator("#tp-saved")).to_contain_text("Split into 2 sessions")
+    # The merged one is gone and there is one session per file, with the settings carried over and each file's own time.
+    assert "m1" not in fake.sessions and len(fake.sessions) == 2
+    made = sorted(fake.sessions.values(), key=lambda x: x["time"])
+    assert [x["time"] for x in made] == ["14:34", "16:00"]
+    assert all(x["date"] == "2026-05-28" and x["notes"] == "keep me" and x["tyres"] == "Test tyre" and x["privacy"] == "private" for x in made)
+    assert all(not isinstance(x.get("runs"), int) for x in made)
+    expect(page.locator(".tp-daygroup")).to_have_count(1)
+    expect(page.locator(".tp-daygroup-count .tp-small")).to_have_text("2 sessions")
+
+
+def test_a_drive_with_no_time_stamps_is_saved_as_a_drive_beside_the_timed_files(page):
+    fake = FakeWorker(earlier=False)
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session", exact=True).click()
+    drive = (ROOT / "tests" / "fixtures" / "tesla-track-mode-no-timestamps.csv").read_bytes()
+    page.set_input_files("#tp-file", files=[
+        {"name": "telemetry-v1-2026-05-28-10_00_00.csv", "mimeType": "text/csv", "buffer": tesla_full_csv().encode()},
+        {"name": "telemetry-v1-2026-05-28-15_10_30.csv", "mimeType": "text/csv", "buffer": drive}])
+    # The drive is not skipped: it says what it is.
+    expect(page.locator(".tp-file > div > b")).to_have_text("2 files")
+    expect(page.locator(".tp-file-list")).to_contain_text("A drive: no time stamps in the file")
+    expect(page.locator(".tp-file-skip")).to_have_count(0)
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator("#tp-saved")).to_contain_text("2 sessions saved")
+    assert len(fake.saved) == 2
+    types = sorted(x["session"]["type"] for x in fake.saved)
+    assert types == ["other", "track"]
+    other = [x for x in fake.saved if x["session"]["type"] == "other"][0]
+    assert other["privacy"] == "private" and other["session"].get("carData")
+
+
+def test_a_day_group_adds_up_the_charge_used_on_track_and_between_runs(page):
+    fake = FakeWorker(earlier=False)
+    day = [("c1", "09:00", 80, 70), ("c2", "11:00", 70, 60), ("c3", "14:00", 60, 55)]
+    for sid, t, a, b in day:
+        rec = day_session(sid, t, 85.0, 3)
+        rec["soc"] = [a, b]
+        fake.sessions[sid] = dict(rec)
+        fake.index.append(summary(rec))
+    # A drive between the runs the same day, with its own charge.
+    drive = {"id": "dr1", "carId": "car1", "type": "other", "venue": "Drive", "date": "2026-07-14", "time": "10:00", "privacy": "private", "vmax": 100, "soc": [86.9, 85.2], "quality": "good"}
+    fake.sessions["dr1"] = dict(drive)
+    fake.index.append(summary(drive))
+    open_page(page, fake)
+    expect(page.locator(".tp-daygroup-charge")).to_have_text("Charge used 25% on track, 2% between runs")
+    # A session without battery figures is said so, not hidden.
+    rec = fake.sessions["c3"]
+    del rec["soc"]
+    fake.index = [summary(rec) if x["id"] == "c3" else x for x in fake.index]
+    page.reload()
+    expect(page.locator(".tp-daygroup-charge")).to_have_text("Charge used 20% on track, 2% between runs (from 2 of 3 sessions)")
+
+
+def test_a_day_group_without_battery_figures_shows_no_charge_line(page):
+    fake = FakeWorker(earlier=False)
+    for sid, t in (("n1", "09:00"), ("n2", "11:00")):
+        rec = day_session(sid, t, 85.0, 3)
+        fake.sessions[sid] = dict(rec)
+        fake.index.append(summary(rec))
+    open_page(page, fake)
+    expect(page.locator(".tp-daygroup")).to_have_count(1)
+    expect(page.locator(".tp-daygroup-charge")).to_have_count(0)
 
 
 def test_csv_with_unknown_columns_asks_which_is_which(page):
@@ -863,9 +1017,9 @@ def sat_reply(route):
     route.fulfill(status=200, content_type="image/svg+xml", body=SAT_TILE, headers={"Access-Control-Allow-Origin": "*"})
 
 
-def test_a_days_files_make_one_session_in_runs(page):
-    """Several files from one day: one session, laps in runs, no lap across
-    the gap between files, and a Run column on the session page."""
+def test_an_older_session_from_several_files_keeps_its_runs(page):
+    """A session saved before files were split: laps in runs, no lap across
+    the gap between files, and a Session column on the session page."""
     page.route("**/World_Imagery/**", sat_reply)
     fake = FakeWorker()
     open_page(page, fake)
@@ -880,10 +1034,10 @@ def test_a_days_files_make_one_session_in_runs(page):
     expect(page.locator(".tp-file-when").first).to_contain_text("recorded in the file")
     expect(page.locator(".tp-file > div > span")).to_contain_text("2 sessions")
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text(re.compile(r"4 timed laps, best 1:39\.78[56]"))
-    page.get_by_role("button", name="Save session").click()
-    expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
-    saved = fake.saved[0]["session"]
-    assert saved["runs"] == 2 and sorted({l["run"] for l in saved["laps"]}) == [1, 2]
+    # An older session saved from several files keeps its runs: laps never span the gap between files.
+    rec = seed_merged(fake)
+    assert rec["runs"] == 2 and sorted({l["run"] for l in rec["laps"]}) == [1, 2]
+    page.goto("/track.html?s=m1")
     # A track day's files are sessions; sprints and drag are runs.
     expect(page.locator("#tp-laps .tp-table thead th").first).to_have_text("Session")
     expect(page.locator("#tp-cmp-a option").first).to_contain_text(re.compile(r"^Session 1, lap \d+"))
@@ -2521,16 +2675,12 @@ def test_no_held_back_note_when_power_holds_up(page):
 def test_car_figures_say_which_session_and_can_show_each_one(page):
     fake = FakeWorker()
     open_page(page, fake)
-    page.get_by_role("link", name="Add a session").click()
     lines = tesla_full_csv().split("\n")
     half = len(lines) // 2
     f1 = "\n".join(lines[:half])
     f2 = "\n".join([lines[0]] + lines[half:])
-    page.set_input_files("#tp-file", files=[
-        {"name": "telemetry-v1-2026-05-28-10_00_00.csv", "mimeType": "text/csv", "buffer": f1.encode()},
-        {"name": "telemetry-v1-2026-05-28-11_00_00.csv", "mimeType": "text/csv", "buffer": f2.encode()}])
-    expect(page.locator("#tp-result .tp-notice.is-ok")).to_be_visible()
-    page.get_by_role("button", name="Save session").click()
+    seed_merged(fake, [("telemetry-v1-2026-05-28-10_00_00.csv", f1), ("telemetry-v1-2026-05-28-11_00_00.csv", f2)])
+    page.goto("/track.html?s=m1")
     card = page.locator("#car-data")
     expect(card.locator("#tp-car-from")).to_contain_text("The whole day, all 2 sessions, 28 May 2026")
     chips = card.locator("[data-car-run]")

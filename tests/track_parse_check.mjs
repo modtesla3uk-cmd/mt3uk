@@ -493,3 +493,24 @@ ok(T.fmtLap(99.786) === '1:39.786' && T.niceDate('2026-05-28') === '28 May 2026'
   ok(gx.startLine && !sx.autoLine && sx.venueId === 'castle-combe', 'GPX Start waypoint is used as the lap line, not a guessed one');
   ok(sx.laps.length === 5 && near(sx.bestTime, 77.686, 0.1), 'Castle Combe best lap matches RaceBox (1:17.68)');
 }
+
+// RaceBox names its files day first; the day and time come out the right way round
+{
+  const d = T.dateFromName('RaceBox_Track_Session_on_14-07-2026_10-10_2.gpx');
+  ok(d && d.date === '2026-07-14' && d.time === '10:10', 'a RaceBox file name gives its day and time (14-07-2026 10-10)');
+  const t = T.dateFromName('telemetry-v1-2025-04-25-11_35_49.csv');
+  ok(t && t.date === '2025-04-25' && t.time === '11:35', 'a year-first name still works');
+}
+
+// A Track Mode file with every time stamp at 0 (a drive between timed sessions) is read, not refused
+{
+  const txt = fs.readFileSync(ROOT + 'tests/fixtures/tesla-track-mode-no-timestamps.csv', 'utf8');
+  let rd = null, err = '';
+  try { rd = T.read(txt, 'telemetry-v1-2024-02-23-15_10_30.csv'); } catch (e) { err = e.message; }
+  ok(rd && !err, 'a file with every time stamp at 0 is read (' + err + ')');
+  ok(rd && rd.timeRebuilt === true && rd.points.length === 300 && near(rd.points[299].t, 299 * 0.08, 0.001), 'its time is rebuilt from the rows at the car\'s 80 ms step');
+  const drive = T.analyse(rd, { venues: [] }, { type: 'other' });
+  ok(drive.type === 'other' && drive.carData && drive.carData.found.length > 5 && drive.distance > 30 && drive.date === '2024-02-23' && drive.time === '15:10', 'as a drive it has its day, distance and car figures');
+  const normal = T.read(fs.readFileSync(ROOT + 'tests/fixtures/tesla-track-mode-thruxton.csv', 'utf8'), 'telemetry-v1-2025-04-25-11_35_49.csv');
+  ok(!normal.timeRebuilt, 'a file with real time stamps is not rebuilt');
+}

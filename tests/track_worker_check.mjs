@@ -624,6 +624,19 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   ok(x.status === 404, 'an unknown session is refused');
 }
 
+// A Track Mode session's summary carries its battery start and end, so a day's group can add up the charge used
+{
+  const tesla = T.analyse(T.read(fs.readFileSync(ROOT + 'tests/fixtures/tesla-track-mode-no-timestamps.csv', 'utf8'), 'telemetry-v1-2024-02-23-15_10_30.csv'), lib, { type: 'other' });
+  ok(tesla.carData && tesla.carData.soc, 'the Track Mode drive file has battery figures');
+  const saved = await call('POST', '/track/sessions', { carId: 'cara1', session: tesla }, 'tok-a');
+  const list = await call('GET', '/track/sessions', undefined, 'tok-a');
+  const row = list.body.sessions.find(x => x.id === saved.body.session.id);
+  ok(row && Array.isArray(row.soc) && row.soc.length === 2 && row.soc[0] >= row.soc[1] && row.soc.every(Number.isFinite), 'the list entry has the battery at the start and end (' + (row && row.soc) + ')');
+  const plain = await call('POST', '/track/sessions', { carId: 'cara1', session }, 'tok-a');
+  const list2 = await call('GET', '/track/sessions', undefined, 'tok-a');
+  ok(!('soc' in list2.body.sessions.find(x => x.id === plain.body.session.id)), 'a session with no battery figures has none');
+}
+
 // Leaving the site clears everything.
 await mod.deleteMemberAccount(env, A);
 ok(!kv.has('track-index:' + (await mod.ownerKey(A))) && ![...kv.keys()].some(k => k.startsWith('track-session:') && stored(k).carId === 'cara1') && !kv.has('track-public:cara1'), 'a member leaving removes their sessions');

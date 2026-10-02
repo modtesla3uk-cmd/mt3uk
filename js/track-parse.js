@@ -243,9 +243,24 @@
     var xc = mapping ? null : extraCols(headers);
     var unit = mapping && mapping.speedUnit ? mapping.speedUnit : (cols.speed >= 0 ? unitFromHeader(headers[cols.speed]) : '');
     var pts = [], startedAt = null, clockDays = 0, prev = null, lapOffset = 0, lastLap = null, step = 0;
+    // Every time stamp the same, in a file that counts milliseconds: Track Mode writes files like this for a drive between
+    // timed sessions. The car logs at a fixed 80 ms step, so the time is the row number times that. Nothing in such a file
+    // can be timed for laps, but its map and car data count.
+    var flat = false, flatN = 0;
+    if (/\(ms\)|\[ms\]|\bms\b|millis|msec/.test(headers[cols.time] || '')) {
+      var seen = null, same = true, count = 0;
+      for (var q0 = hi + 1; q0 < lines.length && same; q0++) {
+        var tv = parseTime(splitCsv(lines[q0], delim)[cols.time]);
+        if (!isFinite(tv.t)) continue;
+        count++;
+        if (seen === null) seen = tv.t; else if (tv.t !== seen) same = false;
+      }
+      flat = same && count >= 10;
+    }
     for (var r = hi + 1; r < lines.length; r++) {
       var f = splitCsv(lines[r], delim);
       var tm = parseTime(f[cols.time]);
+      if (flat && isFinite(tm.t)) tm = { t: flatN++ * 80 };
       var lat = num(f[cols.lat]), lng = num(f[cols.lng]);
       if (!isFinite(tm.t) || !isFinite(lat) || !isFinite(lng) || (lat === 0 && lng === 0)) continue;
       if (Math.abs(lat) > 90 || Math.abs(lng) > 180) { lat /= 60; lng /= 60; }
@@ -289,7 +304,7 @@
     pts.forEach(function (p) { delete p.lap; if (!p.ch) delete p.ch; });
     var venue = '';
     lines.slice(0, Math.max(hi, 0)).forEach(function (l) { var m = l.match(/(?:venue|track|circuit)\s*[:,]\s*"?([^",]+)/i); if (m && !venue) venue = m[1].trim(); });
-    return { format: 'CSV', points: pts, startLine: fileLine, venueName: venue, startedAt: startedAt, speedUnit: unit, columns: cols, tempF: cols.temp >= 0 && /(°|deg|\b)f\b|fahrenheit/.test(headers[cols.temp]) };
+    return { format: 'CSV', points: pts, startLine: fileLine, venueName: venue, startedAt: startedAt, speedUnit: unit, timeRebuilt: flat, columns: cols, tempF: cols.temp >= 0 && /(°|deg|\b)f\b|fahrenheit/.test(headers[cols.temp]) };
   }
 
   // Where the file's lap number goes up is the start/finish line: a short
@@ -401,6 +416,9 @@
   // local time.
   function dateFromName(name) {
     var n = String(name || '').replace(/^.*[\\/]/, '');
+    // Day first, as RaceBox names its files: RaceBox_Track_Session_on_14-07-2026_10-10.vbo.
+    var dm = n.match(/(?:^|[^\d])(0[1-9]|[12]\d|3[01])-(0[1-9]|1[0-2])-(20\d\d)(?:[-_T ]+([01]\d|2[0-3])[-_:.]?([0-5]\d))?/);
+    if (dm && isFinite(Date.parse(dm[3] + '-' + dm[2] + '-' + dm[1] + 'T00:00:00Z'))) return { date: dm[3] + '-' + dm[2] + '-' + dm[1], time: dm[4] ? dm[4] + ':' + dm[5] : '' };
     var m = n.match(/(20\d\d)[-_.]?(0[1-9]|1[0-2])[-_.]?(0[1-9]|[12]\d|3[01])(?:[-_T ]+([01]\d|2[0-3])[-_:.]?([0-5]\d)(?:[-_:.]?([0-5]\d))?)?/);
     if (!m) return null;
     var d = m[1] + '-' + m[2] + '-' + m[3];

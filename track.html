@@ -107,10 +107,17 @@
   .tp-by { display: flex; align-items: center; gap: 6px; margin: 4px 0 2px; font-size: 0.92rem; color: var(--ink); }
   .tp-by .icon { width: 16px; height: 16px; color: var(--steel); flex: none; }
   .tp-daygroup { padding: 14px; }
-  .tp-daygroup-head { display: flex; align-items: center; gap: 4px 12px; width: 100%; min-height: 44px; margin: 0; padding: 0; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
-  .tp-daygroup-head h3 { flex: 1; min-width: 0; margin: 0; font-size: 1.05rem; }
-  .tp-daygroup-head .icon { color: var(--steel); transition: transform 0.15s; }
-  .tp-daygroup[data-open="true"] .tp-daygroup-head .icon { transform: rotate(90deg); }
+  .tp-daygroup-head { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 14px; min-height: 44px; }
+  .tp-daygroup-head h3 { margin: 0; font-size: 1.05rem; text-align: left; }
+  .tp-daygroup-title, .tp-daygroup-count { display: flex; align-items: center; gap: 8px; min-height: 44px; margin: 0; padding: 0; background: none; border: 0; color: inherit; font: inherit; cursor: pointer; }
+  .tp-daygroup-title { flex: 1; min-width: 0; text-align: left; }
+  .tp-daygroup-share { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0; background: none; border: 0; font: inherit; font-size: 0.88rem; font-weight: 600; color: var(--ink); cursor: pointer; }
+  .tp-daygroup-share[aria-checked="true"] .tp-track { background: var(--orange); }
+  .tp-daygroup-share[aria-checked="true"] .tp-track::after { transform: translateX(18px); }
+  .tp-daygroup-share:disabled { opacity: 0.6; cursor: wait; }
+  .tp-daygroup-count .icon { color: var(--steel); transition: transform 0.15s; }
+  .tp-daygroup[data-open="true"] .tp-daygroup-count .icon { transform: rotate(90deg); }
+  .tp-daygroup-charge { margin: 2px 0 4px; color: var(--steel); }
   .tp-daygroup-best { display: grid; gap: 6px; margin-top: 6px; }
   .tp-daygroup-label { color: var(--steel); }
   .tp-daygroup-all { margin-top: 8px; gap: 8px; }
@@ -739,10 +746,10 @@
   }
 </script>
 
-<script src="js/track-parse.js?v=20261008" defer></script>
-<script src="js/track-view.js?v=20261008" defer></script>
+<script src="js/track-parse.js?v=20261011" defer></script>
+<script src="js/track-view.js?v=20261011" defer></script>
 <script src="js/tyre-data.js"></script>
-<script src="js/track-page.js?v=20261008" defer></script>
+<script src="js/track-page.js?v=20261011" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js" defer></script>
 <script src="js/signin-prompt.js" defer></script>

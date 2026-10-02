@@ -419,6 +419,8 @@
         h += boardsLink(!m.sessions.length) + myCarsHtml(m);
       }
       if (!m || !m.cars.length) h += boardsLink(false);
+      // Sessions just saved from a batch: say so at the top.
+      if (justSaved && (justSaved.batch || justSaved.text)) { h = savedHtml(justSaved) + h; justSaved = null; }
       app.innerHTML = h;
       wireCarChips(m);
       if (m && m.cars && m.cars.length) wireSessionList(m);
@@ -444,7 +446,7 @@
     h += '<div class="tp-actions"><a class="btn btn-accent" href="track.html?add=1&car=' + encodeURIComponent(car.id) + '" data-go="add=1&car=' + esc(encodeURIComponent(car.id)) + '">' + icon('upload') + 'Add a session</a>' +
       (car.virtual ? '' : '<a class="btn btn-secondary" href="track.html?car=' + encodeURIComponent(car.id) + '" data-go="car=' + esc(encodeURIComponent(car.id)) + '">What others see</a>') + '</div>';
     if (!list.length) h += '<div class="card tp-empty">' + icon('flag') + '<p>No sessions for ' + esc(car.name) + ' yet. Add the file from your lap timer to get started.</p></div>';
-    else h += trackFilterHtml(list) + '<div class="tp-list" id="tp-sess-list">' + sessionListHtml(list.filter(inTrackFilter)) + '</div>';
+    else h += trackFilterHtml(list) + '<div class="tp-list" id="tp-sess-list">' + sessionListHtml(list.filter(inTrackFilter), true, list) + '</div>';
     return h + '</div>';
   }
   // Filter the list by track name (only when there's more than one track).
@@ -505,7 +507,7 @@
     var sel = document.getElementById('tp-track-filter');
     if (sel) sel.addEventListener('change', function () {
       trackFilter = sel.value;
-      document.getElementById('tp-sess-list').innerHTML = sessionListHtml(list.filter(inTrackFilter));
+      document.getElementById('tp-sess-list').innerHTML = sessionListHtml(list.filter(inTrackFilter), true, list);
       applyRanks(list);
     });
     if (ranksFor !== car.id) { ranks = {}; ranksFor = car.id; }
@@ -542,7 +544,18 @@
   }
   // The list as rows, with a day at one track in a card of its own when it has two or more sessions.
   var openDays = {};
-  function sessionListHtml(list) {
+  // The battery used in one session, in points of charge (Track Mode files carry it).
+  function chargeUsed(x) { return x.soc && x.soc.length === 2 ? Math.max(0, x.soc[0] - x.soc[1]) : null; }
+  // A day's charge: on track, and on drives that day between the runs, from the sessions that have it.
+  function dayCharge(g, all) {
+    var drives = (all || []).filter(function (x) { return x.type === 'other' && x.date === g[0].date; });
+    var on = g.filter(function (x) { return chargeUsed(x) !== null; }), between = drives.filter(function (x) { return chargeUsed(x) !== null; });
+    if (!on.length) return '';
+    function sum(a) { return Math.round(a.reduce(function (t, x) { return t + chargeUsed(x); }, 0)); }
+    var txt = 'Charge used ' + sum(on) + '% on track' + (between.length ? ', ' + sum(between) + '% between runs' : '');
+    return txt + (on.length < g.length ? ' (from ' + on.length + ' of ' + g.length + ' sessions)' : '');
+  }
+  function sessionListHtml(list, owner, all) {
     var groups = {}, order = [];
     list.forEach(function (s) {
       var k = dayKey(s) || 'one:' + s.id;
@@ -559,7 +572,10 @@
       var key = k, open = openDays[key] || !fast;
       var best = fast && fast.type !== 'drag' ? V.fmtLap(fast.bestTime) : '';
       return '<div class="card tp-daygroup" data-open="' + (open ? 'true' : 'false') + '" data-day="' + esc(key) + '">' +
-        '<button type="button" class="tp-daygroup-head" data-day-toggle aria-expanded="' + (open ? 'true' : 'false') + '" aria-label="' + esc(niceDate(g[0].date) + ' on ' + trackName(g[0]) + ', ' + g.length + ' sessions') + '"><h3>' + esc(niceDate(g[0].date)) + ' on ' + esc(trackName(g[0])) + '</h3><span class="tp-small">' + g.length + ' sessions</span>' + icon('chev') + '</button>' +
+        '<div class="tp-daygroup-head"><button type="button" class="tp-daygroup-title" data-day-toggle aria-expanded="' + (open ? 'true' : 'false') + '" aria-label="' + esc(niceDate(g[0].date) + ' on ' + trackName(g[0]) + ', ' + g.length + ' sessions') + '"><h3>' + esc(niceDate(g[0].date)) + ' on ' + esc(trackName(g[0])) + '</h3></button>' +
+        (owner ? '<button type="button" class="tp-daygroup-share" role="switch" data-day-share data-ids="' + esc(g.map(function (x) { return x.id; }).join(',')) + '" data-what="' + esc(niceDate(g[0].date) + ' at ' + trackName(g[0])) + '" aria-checked="' + (g.every(function (x) { return x.privacy && x.privacy !== 'private'; }) ? 'true' : 'false') + '" aria-label="Share all ' + g.length + ' sessions"><span>Shared</span><span class="tp-track"></span></button>' : '') +
+        '<button type="button" class="tp-daygroup-count" data-day-toggle aria-expanded="' + (open ? 'true' : 'false') + '" aria-label="Show or hide the ' + g.length + ' sessions"><span class="tp-small">' + g.length + ' sessions</span>' + icon('chev') + '</button></div>' +
+        (dayCharge(g, all) ? '<p class="tp-small tp-daygroup-charge">' + esc(dayCharge(g, all)) + '</p>' : '') +
         (fast ? '<div class="tp-daygroup-best"><span class="tp-small tp-daygroup-label">Fastest session of the day</span>' + dayRow(fast, g.indexOf(fast) + 1, false) + '</div>' : '') +
         '<div class="tp-list tp-daygroup-all">' + g.map(function (x, i) { return dayRow(x, i + 1, x === fast); }).join('') + '</div></div>';
     }).join('');
@@ -576,6 +592,25 @@
     });
   }
   var counts = null;
+  // The switch on a day's group: share every session that day at that track, or make them all Only me.
+  document.addEventListener('click', function (e) {
+    var sw = e.target.closest && e.target.closest('[data-day-share]');
+    if (!sw || sw.disabled) return;
+    var ids = sw.getAttribute('data-ids').split(','), what = sw.getAttribute('data-what');
+    var share = sw.getAttribute('aria-checked') !== 'true', value = share ? 'board' : 'private';
+    if (share && !window.confirm('Share all ' + ids.length + ' sessions at ' + what + '? Members will see them on your car\'s page, and on the track\'s leaderboard where it has one.')) return;
+    sw.disabled = true;
+    sw.setAttribute('aria-checked', share ? 'true' : 'false');
+    var chain = Promise.resolve(), failed = 0;
+    ids.forEach(function (id) {
+      chain = chain.then(function () { return api('PUT', '/track/session', { id: id, privacy: value }).then(function (d) { if (!d.success) failed++; }).catch(function () { failed++; }); });
+    });
+    chain.then(function () {
+      mine = null; counts = null;
+      justSaved = { text: failed ? failed + ' of the ' + ids.length + ' sessions at ' + what + ' could not be changed. Try again.' : 'All ' + ids.length + ' sessions at ' + what + ' are now ' + (share ? 'Shared' : 'Only me') + '.' };
+      showHome();
+    });
+  });
   // The Saved message after an upload goes away when dismissed.
   document.addEventListener('click', function (e) {
     var x = e.target.closest && e.target.closest('#tp-saved-x');
@@ -588,7 +623,7 @@
     var box = b.closest('.tp-daygroup');
     var open = box.getAttribute('data-open') !== 'true';
     box.setAttribute('data-open', open ? 'true' : 'false');
-    b.setAttribute('aria-expanded', open ? 'true' : 'false');
+    Array.prototype.forEach.call(box.querySelectorAll('[data-day-toggle]'), function (x) { x.setAttribute('aria-expanded', open ? 'true' : 'false'); });
     openDays[box.getAttribute('data-day')] = open;
   });
 
@@ -686,9 +721,11 @@
     var head = list.length > 1 ? '<b>' + list.length + ' files' + (skipped && a.list ? ' (' + skipped + ' skipped)' : '') + '</b>' : '';
     var items = list.map(function (x) {
       var w = x.rd ? fileWhen(x.rd) : '';
-      return '<li' + (x.reason ? ' class="is-skipped"' : '') + '><b>' + esc(x.f.name) + '</b>' + (w ? '<span class="tp-file-when">' + esc(w) + '</span>' : '') + (x.reason ? '<span class="tp-file-skip">Skipped: ' + esc(x.reason) + '</span>' : '') + '</li>';
+      return '<li' + (x.reason ? ' class="is-skipped"' : '') + '><b>' + esc(x.f.name) + '</b>' + (w ? '<span class="tp-file-when">' + esc(w) + '</span>' : '') + (x.drive ? '<span class="tp-file-when">A drive: no time stamps in the file, so it has no laps. Saved as a Drive with its car figures.</span>' : '') + (x.reason ? '<span class="tp-file-skip">Skipped: ' + esc(x.reason) + '</span>' : '') + '</li>';
     }).join('');
     var meta = a.rd ? fileMeta() : '';
+    // Several files are saved as one session each, not merged.
+    if (used > 1 && !a.replaceId) meta = used + ' files: each is saved as its own session, grouped by day.' + (meta ? ' ' + meta : '');
     var mark = a.rd ? 'check' : a.pending ? 'info' : 'warn';
     return '<div class="tp-file' + (a.rd ? '' : a.pending ? '' : ' is-bad') + '">' + icon(mark) + '<div>' + head + '<ul class="tp-file-list">' + items + '</ul>' + (meta ? '<span>' + esc(meta) + '</span>' : '') + '</div></div>';
   }
@@ -759,7 +796,7 @@
             if (!mp) { a.pending = true; drawAdd(); return drawMapping(one.needsMapping); }
             one = T.read(f.text, f.name, mp, f.modified);
           }
-          good.push({ f: f, rd: one, k: fileKey(one, fi) });
+          good.push({ f: f, rd: one, k: fileKey(one, fi), drive: !!one.timeRebuilt });
         } catch (e) {
           lastErr = e;
           bad.push({ f: f, reason: skipReason(e) });
@@ -773,7 +810,11 @@
       }
       good.forEach(function (x, i) { x.i = i; });
       good.sort(function (x, y) { return x.k - y.k || x.i - y.i; });
-      var rds = good.map(function (x) { return x.rd; });
+      // A drive between timed sessions (no time stamps in the file) has no laps to time: the laps come from the
+      // other files, and each drive is kept as a Drive session with its car figures. Only drives: it is one.
+      var timed = good.filter(function (x) { return !x.drive; });
+      var rds = (timed.length ? timed : good).map(function (x) { return x.rd; });
+      if (!timed.length) a.type = 'other';
       a.rd = T.combine(rds);
       a.list = good.concat(bad);
       analyse();
@@ -799,8 +840,8 @@
       parseFile(mp);
     });
   }
-  function analyse() {
-    var a = add;
+  // What the member chose, as the options for the timing code.
+  function analysisOpts(a) {
     var opts = {};
     if (a.type) opts.type = a.type;
     if (a.startLine) opts.startLine = a.startLine;
@@ -810,6 +851,11 @@
     if (a.finishCross) opts.finishCrossing = a.finishCross;
     if (a.organizer) opts.organizer = a.organizer;
     if (a.rollout) opts.rollout = true;
+    return opts;
+  }
+  function analyse() {
+    var a = add;
+    var opts = analysisOpts(a);
     a.session = T.analyse(a.rd, a.lib, opts);
     // Kept so Re-time sessions can time it the same way later (on is the default).
     if (a.session.type === 'sprint' && a.ignoreFinish === false) a.session.ignoreFinish = false;
@@ -1294,6 +1340,37 @@
     if (ly && ly.length && dists[Math.floor(dists.length / 2)] > ly.length * 3) return best;
     return 0;
   }
+  // What the worker is sent to save one session, with the settings chosen for the upload.
+  function postBody(a, carId, sess) {
+    return { carId: carId, session: sess, conditions: a.conditions, tyres: a.tyres || '', tyreMake: (a.tyre && a.tyre.make) || '', tyreModel: (a.tyre && a.tyre.model) || '', tyreWidth: (a.tyre && a.tyre.w) || null, tyreProfile: (a.tyre && a.tyre.p) || null, tyreRim: (a.tyre && a.tyre.d) || null, temp: a.temp, tempSource: a.temp == null ? '' : (a.tempSource || 'member'), weather: a.tempSource === 'weather' ? a.weather : null, notes: a.notes || '', privacy: a.privacy, venueName: a.venueName || '', street: a.street, adminViewer: a.street ? adminViewerToken() : '' };
+  }
+  // Several files: each is timed on its own and saved as its own session, with the settings chosen
+  // above. A file that gives no laps or runs is left out and listed.
+  function saveBatch(a, carId) {
+    var items = (a.list || []).filter(function (x) { return x.rd; }), opts = analysisOpts(a), made = [], skipped = [];
+    var chain = Promise.resolve();
+    items.forEach(function (x) {
+      chain = chain.then(function () {
+        var s1 = T.analyse(x.rd, a.lib, x.drive ? Object.assign({}, opts, { type: 'other' }) : opts);
+        var none = x.drive ? !(s1.distance > 0) : s1.type === 'drag' ? !(s1.runs && s1.runs.length) : !(s1.laps && s1.laps.length);
+        if (none || s1.needsStartLine) { skipped.push({ name: x.f.name, reason: s1.problem || (s1.type === 'drag' ? 'No drag run found.' : 'No laps were found.') }); return; }
+        s1.fileName = String(x.f.name || '').slice(0, 200);
+        if (!x.drive && !s1.venueId && a.venueName) s1.venueName = a.venueName;
+        // A drive is a mapped drive with its car figures: private, and never on a leaderboard.
+        var body = postBody(a, carId, s1);
+        if (x.drive) { body.privacy = 'private'; body.venueName = ''; }
+        return api('POST', '/track/sessions', body, true).then(function (d) {
+          if (!d.success) { skipped.push({ name: x.f.name, reason: d.message || 'Could not save it.' }); return; }
+          made.push(d.session.id);
+          return keepReadings(d.session.id, x.rd);
+        });
+      });
+    });
+    return chain.then(function () {
+      if (!made.length) throw new Error('None of those files could be saved. ' + (skipped[0] ? skipped[0].name + ': ' + skipped[0].reason : ''));
+      return { success: true, batch: made.length, ids: made, skipped: skipped };
+    });
+  }
   function saveSession(btn) {
     var a = add, s = a.session;
     // The file's name, kept with the session so the member can tell which file it was.
@@ -1320,10 +1397,12 @@
         api('POST', '/track/requests', { kind: s.type === 'sprint' ? 'sprint' : 'circuit', name: a.venueName || s.venue || '', venueId: s.venueId || '', layoutId: ownLine ? s.layoutId : '', organizer: s.type === 'sprint' ? (a.organizer || s.organizer || '') : '', startLine: s.startLine, finishLine: s.finishLine || null, lapLength: lap ? lap[lap.length - 1][0] : null, outline: out, note: s.type === 'sprint' ? (s.venueId ? 'Course not recognised' : 'New sprint or hill climb') : s.venueId ? 'Layout not recognised' : 'New track' }).catch(function () {});
       }
       if (a.replaceId) return api('PUT', '/track/session', { id: a.replaceId, session: s, venueName: a.venueName || '' }, true);
-      return api('POST', '/track/sessions', { carId: carId, session: s, conditions: a.conditions, tyres: a.tyres || '', tyreMake: (a.tyre && a.tyre.make) || '', tyreModel: (a.tyre && a.tyre.model) || '', tyreWidth: (a.tyre && a.tyre.w) || null, tyreProfile: (a.tyre && a.tyre.p) || null, tyreRim: (a.tyre && a.tyre.d) || null, temp: a.temp, tempSource: a.temp == null ? '' : (a.tempSource || 'member'), weather: a.tempSource === 'weather' ? a.weather : null, notes: a.notes || '', privacy: a.privacy, venueName: a.venueName || '', street: a.street, adminViewer: a.street ? adminViewerToken() : '' }, true);
+      if ((a.list || []).filter(function (x) { return x.rd; }).length > 1) return saveBatch(a, carId);
+      return api('POST', '/track/sessions', postBody(a, carId, s), true);
     }).then(function (d) {
       if (!d.success) throw new Error(d.message || 'Could not save the session.');
       mine = null; counts = null;
+      if (d.batch) { justSaved = { batch: d.batch, skipped: d.skipped || [] }; go(''); return; }
       justSaved = { files: (a.files || []).length || 1 };
       if (a.replaceId) { go('s=' + d.session.id); return; }
       // Keep the readings with the session, so its type can be changed later.
@@ -1434,6 +1513,12 @@
   // Set when a session has just been saved, so the page it opens on says so once.
   var justSaved = null;
   function savedHtml(j) {
+    if (j.text) return '<div class="tp-notice is-ok tp-saved" id="tp-saved" role="status">' + icon('check') + '<div><b>Done</b><br>' + esc(j.text) + '</div><button type="button" class="tp-saved-x" id="tp-saved-x" aria-label="Dismiss">' + icon('x') + '</button></div>';
+    if (j.batch) {
+      return '<div class="tp-notice is-ok tp-saved" id="tp-saved" role="status">' + icon('check') + '<div><b>Saved</b><br>' + (j.split ? 'Split into ' : '') + j.batch + ' session' + (j.batch === 1 ? '' : 's') + (j.split ? '.' : ' saved, one for each file.') + ' They are grouped by day below.' +
+        (j.skipped && j.skipped.length ? '<br><span class="tp-small">' + j.skipped.length + ' file' + (j.skipped.length === 1 ? ' was' : 's were') + ' not saved: ' + esc(j.skipped.map(function (x) { return x.name + ' (' + x.reason + ')'; }).join('; ')) + '</span>' : '') + '</div>' +
+        '<button type="button" class="tp-saved-x" id="tp-saved-x" aria-label="Dismiss">' + icon('x') + '</button></div>';
+    }
     var many = j.files > 1;
     return '<div class="tp-notice is-ok tp-saved" id="tp-saved" role="status">' + icon('check') + '<div><b>Saved</b><br>' +
       (many ? 'Your ' + j.files + ' files were combined into one session. ' : 'Your session is saved. ') +
@@ -2190,7 +2275,10 @@
     var typeBox = s.street ? '' : s.hasSource
       ? '<div class="tp-field"><span class="tp-lbl">Type</span><div class="tp-chips" data-retype>' + TYPES.map(function (t) { return '<button type="button" class="chip' + (s.type === t[0] ? ' is-on' : '') + '" data-v="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</div><p class="tp-small">Picked the wrong one? Choose another and we\'ll read your saved readings again as that type.</p></div>'
       : '<p class="tp-src">' + icon('info') + '<span>This session was saved before we kept the readings, so its type can\'t be changed. Add the file again to save it as a different type.</span></p>';
-    return '<div class="tp-section" id="settings"><div class="tp-head"><h2>Session settings</h2></div><div class="card tp-fields">' + typeBox +
+    // Saved as several files merged into one: offer one session per file.
+    var splitBox = s.hasSource && !s.street && (s.type === 'track' || s.type === 'sprint') && typeof s.runs === 'number' && s.runs > 1
+      ? '<div class="tp-field"><span class="tp-lbl">Several files</span><p class="tp-src">' + icon('info') + '<span>This is ' + s.runs + ' files merged into one session. Split it to get one session for each file, grouped by day.</span></p><button type="button" class="btn btn-secondary btn-sm" id="tp-e-split">Split into ' + s.runs + ' sessions</button></div>' : '';
+    return '<div class="tp-section" id="settings"><div class="tp-head"><h2>Session settings</h2></div><div class="card tp-fields">' + typeBox + splitBox +
       '<div class="tp-field"><span class="tp-lbl">Who can see it</span><div class="tp-privacy" data-privacy>' + privacyOptions(s.privacy, limit) + '</div></div>' +
       '<div class="tp-field"><span class="tp-lbl">Conditions</span><div class="tp-chips" data-cond>' + ['Dry', 'Damp', 'Wet'].map(function (c) { return '<button type="button" class="chip' + (s.conditions === c ? ' is-on' : '') + '" data-v="' + c + '">' + c + '</button>'; }).join('') + '</div></div>' +
       tyreFields('tp-e-tyre', tyreInit(s)) +
@@ -2267,6 +2355,8 @@
       drawSession();
       if (had) status('Changes discarded.', 'ok');
     });
+    var splitBtn = document.getElementById('tp-e-split');
+    if (splitBtn) splitBtn.addEventListener('click', function () { splitSession(s, splitBtn); });
     document.getElementById('tp-e-del').addEventListener('click', function () {
       if (!window.confirm('Delete this session? This can\'t be undone.')) return;
       api('DELETE', '/track/session?id=' + encodeURIComponent(s.id)).then(function (d) {
@@ -2274,6 +2364,67 @@
         mine = null; counts = null;
         go('');
       });
+    });
+  }
+
+  // A session saved as several files merged into one, made into one session per file from the readings kept
+  // with it. Each file's own day and time come from its name where the names allow, else it keeps the
+  // session's. The member's settings carry over to every new session, then the merged one is removed.
+  function splitSession(s, btn) {
+    if (!window.confirm('Split this into ' + s.runs + ' separate sessions? The merged session is replaced and your settings carry over.')) return;
+    btn.disabled = true;
+    status('Loading your readings...');
+    Promise.all([api('GET', '/track/session/source?id=' + encodeURIComponent(s.id)), getLibrary()]).then(function (r) {
+      var src = r[0], lib = r[1];
+      if (!src.p) throw new Error((src && src.message) || 'Could not load your readings.');
+      var rd = restoreSource(src), groups = {}, order = [];
+      rd.points.forEach(function (q) { var k = q.run || 1; if (!groups[k]) { groups[k] = []; order.push(k); } groups[k].push(q); });
+      if (order.length < 2) throw new Error('This session is not several files.');
+      // The files' names in time order, when each has a date in it.
+      var names = String(s.fileName || '').split(', '), when = names.map(function (n) { var d = T.dateFromName(n); return d ? { name: n, date: d.date, time: d.time || '' } : null; });
+      var named = names.length === order.length && when.every(Boolean) ? when.slice().sort(function (x, y) { return (x.date + x.time).localeCompare(y.date + y.time); }) : null;
+      var opts = { type: s.type, ignoreFirstFinish: s.ignoreFinish !== false };
+      if (s.organizer) opts.organizer = s.organizer;
+      if (s.finishCrossing) opts.finishCrossing = s.finishCrossing;
+      if (s.startLineFromMember && s.startLine) { opts.startLine = s.startLine; if (s.finishLine) opts.finishLine = s.finishLine; }
+      var settings = { conditions: s.conditions || '', tyres: s.tyres || '', tyre: tyreInit(s), temp: s.temp, tempSource: s.tempSource || '', weather: s.weather || null, notes: s.notes || '', privacy: s.privacy, venueName: s.venueId ? '' : s.venue, street: false };
+      var made = [], skipped = [], chain = Promise.resolve();
+      order.forEach(function (k, i) {
+        chain = chain.then(function () {
+          var pts = groups[k], t0 = pts[0].t;
+          var one = Object.assign({}, rd, { points: pts.map(function (q) { var c = Object.assign({}, q); c.t = q.t - t0; delete c.run; return c; }) });
+          delete one.runs;
+          if (named) { one.fileDate = named[i].date; one.fileTime = named[i].time; delete one.startedAt; }
+          else if (i) { one.fileDate = s.date; one.fileTime = s.time || ''; delete one.startedAt; }
+          var s1 = T.analyse(one, lib, opts);
+          var none = !(s1.laps && s1.laps.length);
+          if (none || s1.needsStartLine) { skipped.push({ name: named ? named[i].name : 'File ' + (i + 1), reason: s1.problem || 'No laps were found.' }); return; }
+          s1.fileName = named ? named[i].name : '';
+          if (!s1.venueId && settings.venueName) s1.venueName = settings.venueName;
+          return api('POST', '/track/sessions', postBody(settings, s.carId, s1), true).then(function (d) {
+            if (!d.success) { skipped.push({ name: s1.fileName || 'File ' + (i + 1), reason: d.message || 'Could not save it.' }); return; }
+            made.push(d.session.id);
+            return keepReadings(d.session.id, one);
+          });
+        });
+      });
+      return chain.then(function () {
+        if (!made.length) throw new Error('None of the files could be made into a session.');
+        // Anything that could not be made means keeping the merged session, so nothing is lost.
+        if (skipped.length) {
+          return Promise.all(made.map(function (id) { return api('DELETE', '/track/session?id=' + encodeURIComponent(id)); })).then(function () {
+            throw new Error(skipped.length + ' of the files could not be made into a session (' + skipped[0].name + ': ' + skipped[0].reason + '). Nothing was changed.');
+          });
+        }
+        return api('DELETE', '/track/session?id=' + encodeURIComponent(s.id)).then(function () { return made.length; });
+      });
+    }).then(function (n) {
+      mine = null; counts = null;
+      justSaved = { batch: n, split: true, skipped: [] };
+      go('');
+    }).catch(function (e) {
+      btn.disabled = false;
+      status((e && e.message) || 'Could not split the session.', 'error');
     });
   }
 

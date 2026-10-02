@@ -800,7 +800,7 @@
         reader.readAsText(file);
       });
     })).then(function (read) {
-      add.files = read; add.list = null; add.rd = null;
+      add.files = read; add.list = null; add.rd = null; add.mergeOff = false;
       add.nameLooked = false;
       if (add.venueNameLooked) { add.venueName = ''; add.venueNameLooked = false; }
       add.session = null; add.startLine = null; add.finishLine = null; add.editLines = false; add.tapFull = false; add.tapAuto = false; add.tapOutline = null; add.finishCross = 0; add.organizer = ''; add.rollout = false; add.confirmLines = false; add.type = null; add.date = null; add.time = null;
@@ -863,20 +863,21 @@
       var joined = [];
       if (carFiles.length && timerFiles.length) {
         carFiles.forEach(function (c) {
-          var bestM = null;
+          var bestM = null, why = '';
           timerFiles.forEach(function (t) {
             if (t.merged) return;
             var r = T.mergeSources(t.rd, c.rd);
             if (r.rd && (!bestM || r.corr > bestM.r.corr)) bestM = { t: t, r: r };
-            else if (!r.rd && !c.noMerge) c.noMerge = r.reason;
+            else if (!r.rd && !why) why = r.reason;
           });
+          c.noMerge = '';
           if (bestM && !a.mergeOff) {
             bestM.t.rd = Object.assign({}, bestM.r.rd, { carSource: Object.assign({}, bestM.r.rd.carSource, { name: c.f.name }) });
             bestM.t.merged = { name: c.f.name, shift: bestM.r.shift, match: bestM.r.corr };
             c.mergedInto = bestM.t.f.name;
             joined.push(c);
           } else if (bestM) c.noMerge = 'Joining is switched off.';
-          else if (!c.noMerge) c.noMerge = 'It did not line up with the other file.';
+          else c.noMerge = why || 'It did not line up with the other file.';
         });
         good = good.filter(function (x) { return joined.indexOf(x) === -1; });
       }

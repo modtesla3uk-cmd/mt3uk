@@ -466,7 +466,9 @@
     var A = speedGrid(timed, 1), B = speedGrid(car, 1);
     var dA = A.v.length, dB = B.v.length, minOver = Math.min(60, Math.min(dA, dB) * 0.5);
     var best = null, scores = [];
-    for (var k = -(dB - 1); k < dA; k++) {
+    // Two files from one session start within minutes of each other; a window of half an hour either way keeps a
+    // whole day's file from taking seconds to search.
+    for (var k = Math.max(-(dB - 1), -1800); k < Math.min(dA, 1800); k++) {
       var c = corrAt(A, B, k, minOver);
       if (c === null) continue;
       scores.push([k, c]);

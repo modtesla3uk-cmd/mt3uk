@@ -86,3 +86,41 @@ def test_admin_pages_fit_a_phone(page, name):
     assert nav["width"] <= 390
     for link in page.locator(".admin-nav a").all():
         assert link.bounding_box()["height"] >= 43
+
+
+def test_admin_sub_menu_lists_the_sections_of_the_current_category(page):
+    open_admin(page, "admin.html")
+    sub = page.locator("#admin-subnav")
+    # The first category is current at the top: its four panels are listed.
+    expect(sub).to_be_visible()
+    assert sub.locator("a").all_inner_texts() == ["Pending claims", "Decided claims", "Unclaimed photos", "Build of the Week entries"]
+    expect(page.locator('.admin-nav a[data-here="true"]')).to_have_text("Gallery and builds")
+    # Choosing a category swaps the sub menu to that category's sections.
+    page.locator('.admin-nav a[href="admin.html#grp-tracks"]').click()
+    expect(sub.locator("a")).to_have_text(["Tracks", "Tyres"])
+    expect(page.locator('.admin-nav a[data-here="true"]')).to_have_text("Track sessions")
+    # Choosing a section opens its panel and scrolls to it.
+    sub.locator("a", has_text="Tyres").click()
+    expect(page.locator("#tyres-wrap")).to_have_attribute("open", "")
+    expect(page.locator("#tyres-wrap summary")).to_be_in_viewport()
+    # The sub menu sits under the main menu, not over it.
+    a = page.locator(".admin-nav").bounding_box()
+    b = sub.bounding_box()
+    assert b["y"] >= a["y"] + a["height"] - 1
+
+
+def test_admin_can_rebuild_the_leaderboards_in_steps(page):
+    calls = []
+
+    def rebuild(route):
+        url = route.request.url
+        calls.append(url)
+        data = {"success": True, "cars": 2, "done": False, "cursor": "2"} if "cursor=" not in url else {"success": True, "cars": 1, "done": True, "cursor": ""}
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(data), headers={"Access-Control-Allow-Origin": "*"})
+    open_admin(page, "admin.html")
+    page.route("**/track/boards/rebuild**", rebuild)
+    page.locator("#tracks-wrap summary").click()
+    page.locator("#tk-rebuild").click()
+    expect(page.locator("#tk-rebuild-note")).to_have_text("Done: 3 cars brought up to date.")
+    assert len(calls) == 2 and "key=test-key" in calls[0] and "cursor=2" in calls[1]
+    expect(page.locator("#tk-rebuild")).to_be_enabled()

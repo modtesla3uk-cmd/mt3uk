@@ -23,7 +23,15 @@ const env = {
       if (type === 'arrayBuffer') return typeof v === 'string' ? new TextEncoder().encode(v).buffer : v;
       return typeof v === 'string' ? v : new TextDecoder().decode(v);
     },
-    put: async (k, v) => { kv.set(k, v); }, delete: async k => { kv.delete(k); }
+    put: async (k, v) => { kv.set(k, v); }, delete: async k => { kv.delete(k); },
+    // Like KV list(): keys by prefix, a page at a time, in name order.
+    list: async ({ prefix = '', limit = 1000, cursor } = {}) => {
+      const all = [...kv.keys()].filter(k => k.startsWith(prefix)).sort();
+      const from = cursor ? parseInt(cursor, 10) : 0;
+      const keys = all.slice(from, from + limit).map(name => ({ name }));
+      const more = from + limit < all.length;
+      return { keys, list_complete: !more, cursor: more ? String(from + limit) : undefined };
+    }
   },
   GALLERY_BUCKET: {
     get: async k => bucket.has(k) ? { json: async () => JSON.parse(bucket.get(k)) } : null,
@@ -335,6 +343,53 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   ok(res.status === 200 && (await res.json()).session.type === 'other', 'a gzipped change is accepted');
   await call('DELETE', '/track/session?id=' + sid, undefined, 'tok-a');
   ok(!kv.has('track-source:' + sid), 'deleting the session deletes its readings');
+}
+
+
+// Leaderboard entries carry the tyres, each car's best for every mix of
+// conditions and tyres, and only the parts that matter on a track.
+{
+  await mod.saveCarRecord(env, { id: 'cara1', name: 'Arctic Three', photos: ['a1.jpg'], mods: ['KW V3 coilovers', 'Matte grey wrap', 'Leather seat covers', 'Carbon seats, saves 12 kg', 'Front splitter'] });
+  const mk = (t, cond, make, model, privacy = 'board') => {
+    const x = JSON.parse(JSON.stringify(session)); x.bestTime = t;
+    return call('POST', '/track/sessions', { carId: 'cara1', session: x, privacy, conditions: cond, tyreMake: make, tyreModel: model, tyreWidth: 245, tyreProfile: 35, tyreRim: 19 }, 'tok-a');
+  };
+  const s1 = await mk(99.0, 'Dry', 'Michelin', 'Pilot Sport 4S');
+  const s2 = await mk(100.0, 'Dry', 'Kumho', 'Ecsta PS71');
+  const s3 = await mk(105.0, 'Wet', 'Kumho', 'Ecsta PS71');
+  const s4 = await mk(101.0, 'Dry', 'Michelin', 'Pilot Sport 4S');
+  ok([s1, s2, s3, s4].every(x => x.status === 200), 'four sessions with tyres saved');
+  let b = (await call('GET', '/track/board?venue=thruxton&layout=main')).body.entries;
+  const e = b.find(x => x.carId === 'cara1');
+  ok(b.filter(x => x.carId === 'cara1').length === 1 && Math.abs(e.time - 99.0) < 0.01 && e.tyreMake === 'Michelin' && e.tyreModel === 'Pilot Sport 4S' && e.tyres === 'Michelin Pilot Sport 4S, 245/35 R19', 'the entry names the tyres of its best');
+  ok(e.bests.length === 3 && e.bests[0].time === 99 && e.bests.map(x => x.conditions + ':' + x.tyreMake).join() === 'Dry:Michelin,Dry:Kumho,Wet:Kumho', 'a best for each mix of conditions and tyres: ' + JSON.stringify(e.bests.map(x => [x.conditions, x.tyreMake, x.time])));
+  ok(e.bests.every(x => x.sessionId && x.date), 'each best opens its session');
+  ok(JSON.stringify(e.mods) === JSON.stringify(['KW V3 coilovers', 'Carbon seats, saves 12 kg', 'Front splitter']), 'only track parts, weight savings kept: ' + JSON.stringify(e.mods));
+  r = await call('GET', '/track/counts');
+  const lead = r.body.leaders['track-board:thruxton:main'];
+  ok(lead && lead.length === 1 && lead[0].owner === 'Rich' && lead[0].car === 'Arctic Three' && Math.abs(lead[0].time - 99) < 0.01 && !('mods' in lead[0]), 'the track list gets the top of each board: ' + JSON.stringify(lead));
+  r = await call('GET', '/track/sessions', undefined, 'tok-a');
+  ok(r.body.sessions.find(x => x.id === s2.body.session.id).tyreMake === 'Kumho', 'the summary has the tyre make and model');
+  // A session taken off the board drops out of the bests.
+  await call('PUT', '/track/session', { id: s3.body.session.id, privacy: 'private' }, 'tok-a');
+  b = (await call('GET', '/track/board?venue=thruxton&layout=main')).body.entries.find(x => x.carId === 'cara1');
+  ok(b.bests.length === 2, 'a private session is not in the bests');
+
+  // The admin rebuild fills in entries made before this existed.
+  const key = 'track-board:thruxton:main';
+  kv.set(key, JSON.stringify([{ carId: 'cara1', sessionId: s1.body.session.id, date: '2025-01-01', time: 99, car: 'Old', mods: ['Seat covers'], sessions: 4 }]));
+  r = await call('POST', '/track/boards/rebuild');
+  ok(r.status === 401, 'rebuilding the boards needs the admin key');
+  let rounds = 0, cars = 0;
+  do { r = await call('POST', '/track/boards/rebuild?key=secret' + (r.body && r.body.cursor ? '&cursor=' + r.body.cursor : '')); cars += r.body.cars || 0; rounds++; } while (r.body.success && !r.body.done && rounds < 20);
+  const rebuilt = stored(key).find(x => x.carId === 'cara1');
+  ok(r.body.done && cars >= 1 && rebuilt.bests.length === 2 && rebuilt.car === 'Arctic Three' && rebuilt.mods.length === 3, 'the rebuild gives old entries their bests and track parts (' + cars + ' cars, ' + rounds + ' calls)');
+
+  // The page's rule and the worker's rule agree.
+  const cases = [['wheels', { what: '19in forged' }], ['tyres', { what: 'PS4S' }], ['suspension', { what: 'KW V3' }], ['brakes', { what: 'pads' }], ['performance', { what: 'tune' }], ['interior', { what: 'Carbon seats' }], ['interior', { what: 'Saves 8 kg' }], ['bodywork', { kind: 'Aero', what: 'wing' }], ['bodywork', { kind: 'Wrap', what: 'matte' }], ['mods', { what: 'KW coilovers' }], ['mods', { what: 'Leather seats' }], ['other', { what: 'Lightweight battery' }], ['audio', { what: 'Subwoofer' }]];
+  ok(cases.every(([a, p]) => mod.isTrackPart(a, p) === T.isTrackPart(a, p)), 'the worker and the page agree on which parts matter on a track');
+  await mod.saveCarRecord(env, { id: 'cara1', name: 'Arctic Three', photos: ['a1.jpg'], mods: ['KW V3 coilovers'] });
+  for (const x of [s1, s2, s3, s4]) await call('DELETE', '/track/session?id=' + x.body.session.id, undefined, 'tok-a');
 }
 
 // Leaving the site clears everything.

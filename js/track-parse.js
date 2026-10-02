@@ -871,6 +871,63 @@
     out.push({ icon: 'info', text: (wet ? wet + ' wet or damp session' + (wet > 1 ? 's are' : ' is') + ' shown but left out of the trend. ' : '') + 'These are observations from your data, not coaching. Weather, tyres, traffic and flags all change lap times.', small: '' });
     return out;
   }
+
+  // ---------- Which parts matter on track ----------
+  // Wheels, tyres, suspension, brakes and performance parts, aero from bodywork,
+  // and anything whose text discloses a weight saving. Seats, trim, audio,
+  // wraps and tints don't change a lap time (or can't be measured), so they
+  // are left out of the track views. For a car with only a plain list of mods,
+  // and for "anything else", the wording decides.
+  var TRACK_AREAS = { wheels: 1, tyres: 1, suspension: 1, brakes: 1, performance: 1 };
+  var TRACK_WORDS = /\b(tyres?|tires?|coilovers?|springs?|dampers?|shocks?|anti[- ]?roll|sway|brakes?|pads?|discs?|rotors?|calipers?|wheels?|rims?|spacers?|aero|wing|splitter|diffuser|canards?|lowering|geometry|alignment|camber|toe|tune|tuned|boost|cooling|cooler)\b/i;
+  var WEIGHT_WORDS = /\b\d+(?:\.\d+)?\s?kg\b|weight[- ]?(?:saving|saved|reduction|loss)|lightweight|lightened/i;
+  function isTrackPart(areaId, part) {
+    part = part || {};
+    var text = (part.kind ? part.kind + ' ' : '') + (part.what || '');
+    if (WEIGHT_WORDS.test(text)) return true;
+    if (TRACK_AREAS[areaId]) return true;
+    if (areaId === 'bodywork') return part.kind === 'Aero';
+    if (areaId === 'mods' || areaId === 'other') return TRACK_WORDS.test(text);
+    return false;
+  }
+
+  // ---------- What a part did ----------
+  // sessions: the car's sessions at one track layout { id, date, bestTime,
+  // conditions, temp, tyres }. mods: parts with a fitted month { label, year,
+  // month } (month null when only the year is known). For each part, or group
+  // of parts fitted together, the best dry time before and after, using the
+  // dry sessions between it and the neighbouring parts, and leaving out any
+  // session in the month it was fitted (the day isn't known).
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+  function monthWindow(m) {
+    if (m.month) { var last = new Date(Date.UTC(m.year, m.month, 0)).getUTCDate(); return [m.year + '-' + pad2(m.month) + '-01', m.year + '-' + pad2(m.month) + '-' + pad2(last)]; }
+    return [m.year + '-01-01', m.year + '-12-31'];
+  }
+  function modImpact(sessions, mods) {
+    var dry = (sessions || []).filter(function (s) { return s.bestTime && (s.conditions || 'Dry') === 'Dry'; }).sort(function (a, b) { return a.date < b.date ? -1 : 1; });
+    var wins = (mods || []).filter(function (m) { return m && m.year; }).map(function (m) { var w = monthWindow(m); return { label: m.label, start: w[0], end: w[1], year: m.year, month: m.month || null }; }).sort(function (a, b) { return a.start < b.start ? -1 : a.start > b.start ? 1 : 0; });
+    // Parts whose fitting months overlap are one group: they can't be told apart.
+    var groups = [];
+    wins.forEach(function (w) {
+      var g = groups[groups.length - 1];
+      if (g && w.start <= g.end) { g.labels.push(w.label); if (w.end > g.end) g.end = w.end; }
+      else groups.push({ labels: [w.label], start: w.start, end: w.end, year: w.year, month: w.month });
+    });
+    var rows = [], skipped = [];
+    groups.forEach(function (g, i) {
+      var prevEnd = i ? groups[i - 1].end : '0000-00-00', nextStart = i < groups.length - 1 ? groups[i + 1].start : '9999-99-99';
+      var before = dry.filter(function (s) { return s.date > prevEnd && s.date < g.start; });
+      var after = dry.filter(function (s) { return s.date > g.end && s.date < nextStart; });
+      if (!before.length || !after.length) { skipped.push({ labels: g.labels, year: g.year, month: g.month, why: !before.length && !after.length ? 'no dry sessions either side' : !before.length ? 'no dry session before' : 'no dry session after' }); return; }
+      function best(list) { return list.slice().sort(function (a, b) { return a.bestTime - b.bestTime; })[0]; }
+      var b = best(before), a = best(after), flags = [];
+      if ((b.tyres || '') !== (a.tyres || '') && (b.tyres || a.tyres)) flags.push('different tyres');
+      if (isFinite(b.temp) && isFinite(a.temp) && b.temp !== null && a.temp !== null && Math.abs(a.temp - b.temp) >= 8) flags.push(Math.abs(a.temp - b.temp) + '°C ' + (a.temp > b.temp ? 'warmer' : 'colder'));
+      if (before.length === 1 && after.length === 1) flags.push('one session each side');
+      rows.push({ labels: g.labels, year: g.year, month: g.month, before: b.bestTime, after: a.bestTime, change: round(a.bestTime - b.bestTime, 3), beforeDate: b.date, afterDate: a.date, nBefore: before.length, nAfter: after.length, flags: flags });
+    });
+    return { rows: rows, skipped: skipped };
+  }
   function niceDate(d) {
     var m = String(d || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
     if (!m) return d || '';
@@ -890,7 +947,7 @@
   }
 
   var api = {
-    read: read, combine: combine, dateFromName: dateFromName, analyse: analyse, sessionNotes: sessionNotes, trendNotes: trendNotes, cornerGains: cornerGains,
+    read: read, combine: combine, dateFromName: dateFromName, analyse: analyse, sessionNotes: sessionNotes, trendNotes: trendNotes, isTrackPart: isTrackPart, modImpact: modImpact, cornerGains: cornerGains,
     traceAt: traceAt, findCorners: findCorners, mergeLibrary: mergeLibrary, fmtLap: fmtLap, niceDate: niceDate, ukDate: ukDate, ukTime: ukTime,
     haversine: haversine, projector: projector, dragRuns: dragRuns, KMH_PER_MPH: KMH_PER_MPH
   };

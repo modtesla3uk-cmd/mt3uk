@@ -137,7 +137,14 @@ class FakeWorker:
                 if s.get("privacy") in ("build", "board") and s.get("venueId") and s.get("layoutId"):
                     k = "track-board:%s:%s" % (s["venueId"], s["layoutId"])
                     counts[k] = counts.get(k, 0) + 1
-            data = {"success": True, "counts": counts}
+            leaders = {}
+            for k in counts:
+                v, l = k.split(":")[1:3]
+                here = [x for x in self.index if x.get("privacy") in ("build", "board") and x.get("venueId") == v and x.get("layoutId") == l and x.get("bestTime")]
+                if here:
+                    best = min(here, key=lambda x: x["bestTime"])
+                    leaders[k] = [{"car": CAR["name"], "model": "Model 3", "owner": "Rich", "date": best["date"], "time": best["bestTime"]}]
+            data = {"success": True, "counts": counts, "leaders": leaders}
         elif path == "/track/tracks":
             data = {"success": True, "extra": {"venues": []}}
         elif path in ("/track/board", "/sprint/board"):
@@ -195,7 +202,7 @@ def test_signed_out_explains_and_lists_leaderboards(page):
     # Visitors can open the leaderboards too, on their own page.
     page.locator("#tp-boards-btn").click()
     expect(page).to_have_url(re.compile(r"leaderboards\.html$"))
-    expect(page.locator(".lb-hero h1")).to_have_text("Who’s quickest?")
+    expect(page.locator(".lb-hero h1")).to_have_text("Ranking")
     expect(page.locator(".tp-board-card").first).to_contain_text("Thruxton")
 
 
@@ -302,7 +309,7 @@ def test_session_settings_and_leaderboard(page):
     expect(page.locator(".tp-session-head .tp-pill")).to_contain_text("Shared")
     page.goto("/track.html?board=thruxton:main")
     expect(page).to_have_url(re.compile(r"leaderboards\.html\?board=thruxton"))
-    row = page.locator(".tp-board tbody tr")
+    row = page.locator(".lb-row")
     expect(row).to_have_count(1)
     expect(row).to_contain_text("Arctic Three")
     expect(row).to_contain_text(re.compile(r"1:39\.78[56]"))
@@ -453,12 +460,20 @@ def test_leaderboards_list_busy_tracks_first_with_counts(page):
     expect(first).to_contain_text("Thruxton")
     expect(first).to_contain_text("2 sessions")
     expect(first).to_have_class(re.compile("is-busy"))
-    expect(first.locator(".chip .tp-count")).to_have_text("2")
-    # Tracks with nothing yet have no number.
-    expect(page.locator(".tp-board-card").nth(1).locator(".tp-count")).to_have_count(0)
-    first.locator(".chip").first.click()
+    # The top three show on the card, with position, name and time, without opening the track.
+    expect(first.locator(".lb-podium li").first).to_contain_text("Rich")
+    expect(first.locator(".lb-podium li").first.locator(".lb-pos")).to_have_text("1")
+    expect(first.locator(".lb-podium li").first).to_contain_text("1:41.200")
+    # Tracks with nothing yet are tucked away until asked for.
+    expect(page.locator(".tp-board-card")).to_have_count(1)
+    page.get_by_role("button", name=re.compile("Show all")).click()
+    assert page.locator(".tp-board-card").count() > 1
+    expect(page.locator(".tp-board-card").nth(1).locator(".lb-podium")).to_have_count(0)
+    expect(page.get_by_role("button", name=re.compile("Only show"))).to_be_visible()
+    page.get_by_role("button", name=re.compile("Only show")).click()
+    first.locator(".lb-layout").first.click()
     # Public view: each car's fastest, so one row for the one car.
-    rows = page.locator(".tp-board tbody tr")
+    rows = page.locator(".lb-row")
     expect(rows).to_have_count(1)
     expect(rows.first).to_contain_text("1:41.200")
     expect(page.locator(".tp-head .tp-sub")).to_contain_text("Each car's fastest lap.")
@@ -579,6 +594,7 @@ def test_file_with_no_date_uses_when_it_was_saved(page):
     when the file was saved on the device, less the session's length."""
     open_page(page, FakeWorker())
     page.get_by_role("link", name="Add a session").click()
+    expect(page.locator("#tp-file")).to_be_attached()
     text = (ROOT / "tests" / "fixtures" / "tesla-track-mode-thruxton.csv").read_text()
     page.evaluate("""([text]) => {
         const input = document.getElementById('tp-file');
@@ -1750,3 +1766,82 @@ def test_admin_tyres_panel_edits_makes_models_and_sizes(page):
     expect(page.locator("#ty-widths")).to_have_value(re.compile(r"175, 185"))
     assert "widths" not in puts[-1] and "rims" not in puts[-1]
     assert overflow_width(page) <= 0
+
+
+def test_leaderboard_filters_rank_each_car_by_its_best_that_matches(page):
+    fake = FakeWorker(earlier=False)
+
+    def best(sid, t, cond, make, model):
+        return {"sessionId": sid, "date": "2026-04-02", "conditions": cond, "tyres": make + " " + model + ", 245/35 R19", "tyreMake": make, "tyreModel": model, "time": t}
+    a = board_row("a", "a-dry", 90.0)
+    a.update(owner="Ann", car="Ann's 3", mods=["Coilovers: KW V3", "Wheels: 19in forged"], tyres="Michelin Pilot Sport 4S, 245/35 R19", tyreMake="Michelin", tyreModel="Pilot Sport 4S", sessions=3,
+             bests=[best("a-dry", 90.0, "Dry", "Michelin", "Pilot Sport 4S"), best("a-wet", 99.0, "Wet", "Kumho", "Ecsta PS71")])
+    b = board_row("b", "b-dry", 91.5)
+    b.update(owner="Ben", car="Ben's Y", model="Model Y", mods=[], tyres="Kumho Ecsta PS71, 245/35 R19", tyreMake="Kumho", tyreModel="Ecsta PS71", sessions=1,
+             bests=[best("b-dry", 91.5, "Dry", "Kumho", "Ecsta PS71")])
+    # An older entry: only its fastest, with the tyres as free text.
+    c = board_row("c", "c-old", 95.0)
+    c.update(owner="Cat", car="Cat's S", model="Model S", tyres="Michelin Pilot Sport 4S 245/35R19", sessions=2)
+    fake.boards = {"/track/board:thruxton:main": [a, b, c]}
+    open_page(page, fake, "/leaderboards.html?board=thruxton:main", signed_in=False)
+    rows = page.locator(".lb-row")
+    expect(rows).to_have_count(3)
+    expect(rows.first).to_contain_text("Ann's 3")
+    expect(rows.first).to_contain_text("Fastest")
+    expect(rows.nth(1)).to_contain_text("+1.500 s")
+    # Tyres and the track parts are on the row, without opening anything.
+    expect(rows.first).to_contain_text("Michelin Pilot Sport 4S, 245/35 R19")
+    expect(rows.first.locator(".tp-modchip").first).to_have_text("Coilovers: KW V3")
+    expect(rows.nth(1)).to_contain_text("Kumho Ecsta PS71")
+    # The whole row opens the session through its name.
+    expect(rows.first.locator("a.lb-name")).to_have_attribute("href", "track.html?s=a-dry")
+    # Conditions: Ann's best wet is her Kumho run; the others have no wet result.
+    page.locator("#lb-cond").select_option("Wet")
+    expect(rows).to_have_count(1)
+    expect(rows.first).to_contain_text("Ann's 3")
+    expect(rows.first).to_contain_text("1:39.000")
+    expect(page.locator("#lb-cond")).to_be_focused()
+    page.locator("#lb-cond").select_option("All")
+    # Tyre make: each car's best on that make (Ann's only Kumho run was wet).
+    page.locator("#lb-make").select_option("Kumho")
+    expect(rows).to_have_count(2)
+    expect(rows.first).to_contain_text("Ben's Y")
+    expect(rows.nth(1)).to_contain_text("Ann's 3")
+    expect(rows.nth(1)).to_contain_text("1:39.000")
+    # Older entries are matched from their tyre text.
+    page.locator("#lb-make").select_option("Michelin")
+    expect(rows).to_have_count(2)
+    expect(rows.first).to_contain_text("Ann's 3")
+    expect(rows.nth(1)).to_contain_text("Cat's S")
+    page.locator("#lb-tyre").select_option("Pilot Sport 4S")
+    expect(rows).to_have_count(2)
+    # Together with the model chips, and Clear puts everything back.
+    page.locator("#lb-models [data-m='Model Y']").click()
+    expect(page.locator(".tp-empty")).to_contain_text("Nobody matches these filters")
+    page.get_by_role("button", name="Clear filters").click()
+    page.locator("#lb-models [data-m='All']").click()
+    expect(rows).to_have_count(3)
+    assert overflow_width(page) <= 0
+
+
+@all_devices
+def test_leaderboard_fits_a_phone(device_page):
+    page = device_page
+    row = board_row("a", "a1", 90.0)
+    row.update(owner="Ann", car="A very long car name for a phone screen", mods=["Coilovers: KW V3 with a long description", "Wheels: 19in forged", "Brakes: Brembo GT", "Tyres: Michelin PS4S", "Front splitter"],
+               tyres="Michelin Pilot Sport 4S, 245/35 R19", sessions=4)
+
+    # Device pages send worker calls to /__mock-api, so answer the board here.
+    def reply(route):
+        data = {"success": True, "entries": [row]} if "/track/board" in route.request.url else {"success": True}
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(data), headers={"Access-Control-Allow-Origin": "*"})
+    page.route("**/__mock-api/**", reply)
+    page.goto("/leaderboards.html?board=thruxton:main")
+    expect(page.locator(".lb-row")).to_have_count(1)
+    assert overflow_width(page) <= 0
+    box = page.locator(".lb-time").bounding_box()
+    assert box["x"] + box["width"] <= page.viewport_size["width"], box
+    # The filters and the model chips stay inside the screen too.
+    for sel in ("#lb-models", ".lb-filters"):
+        b = page.locator(sel).bounding_box()
+        assert b["x"] + b["width"] <= page.viewport_size["width"] + 1, (sel, b)

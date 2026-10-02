@@ -230,4 +230,22 @@
       drawBoard();
     });
   });
+
+  // Brings every leaderboard place up to date, a few cars at a time.
+  var rebuildBtn = document.getElementById('tk-rebuild'), rebuildNote = document.getElementById('tk-rebuild-note');
+  if (rebuildBtn) rebuildBtn.addEventListener('click', function () {
+    var cars = 0;
+    rebuildBtn.disabled = true;
+    function step(cursor) {
+      call('POST', '/track/boards/rebuild' + (cursor ? '?cursor=' + encodeURIComponent(cursor) : '')).then(function (d) {
+        if (!d.ok || !d.success) { rebuildNote.textContent = d.message || 'Could not rebuild the leaderboards.'; rebuildBtn.disabled = false; return; }
+        cars += d.cars || 0;
+        if (d.done) { rebuildNote.textContent = 'Done: ' + cars + ' car' + (cars === 1 ? '' : 's') + ' brought up to date.'; rebuildBtn.disabled = false; if (boardSel.value) drawBoard(); return; }
+        rebuildNote.textContent = 'Working... ' + cars + ' cars so far.';
+        step(d.cursor);
+      }).catch(function () { rebuildNote.textContent = 'Could not reach the server.'; rebuildBtn.disabled = false; });
+    }
+    rebuildNote.textContent = 'Working...';
+    step('');
+  });
 })();

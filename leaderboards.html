@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Leaderboards - MT3UK</title>
-<meta name="description" content="Who's quickest? Real lap times from modified Teslas at UK circuits, drag strips and hill climbs, from members' own lap timers.">
+<meta name="description" content="Ranking: real lap times from modified Teslas at UK circuits, drag strips and hill climbs, from members' own lap timers.">
 <link rel="canonical" href="https://mt3uk.com/leaderboards.html">
 <link rel="icon" type="image/x-icon" href="images/site/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="images/site/favicon-32.png">
@@ -17,12 +17,12 @@
 <meta name="apple-mobile-web-app-title" content="MT3UK">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Leaderboards - MT3UK">
-<meta property="og:description" content="Who's quickest? Real lap times from modified Teslas at UK circuits, drag strips and hill climbs, from members' own lap timers.">
+<meta property="og:description" content="Ranking: real lap times from modified Teslas at UK circuits, drag strips and hill climbs, from members' own lap timers.">
 <meta property="og:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
 <meta property="og:url" content="https://mt3uk.com/leaderboards.html">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Leaderboards - MT3UK">
-<meta name="twitter:description" content="Who's quickest? Real lap times from modified Teslas at UK circuits, drag strips and hill climbs, from members' own lap timers.">
+<meta name="twitter:description" content="Ranking: real lap times from modified Teslas at UK circuits, drag strips and hill climbs, from members' own lap timers.">
 <meta name="twitter:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
 <link rel="stylesheet" href="css/site-header.css">
@@ -242,6 +242,62 @@
   .lb-top1 .lb-pos { background: #e8b923; color: #16233d; }
   .lb-top2 .lb-pos { background: #c4c9d2; color: #16233d; }
   .lb-top3 .lb-pos { background: #c98a52; color: #ffffff; }
+  /* Track list: each venue shows its top three per layout */
+  .lb-venues { align-items: start; }
+  .lb-venues .lb-venue { gap: 10px; }
+  .lb-layout { display: grid; gap: 6px; padding: 10px 12px; border: 1px solid var(--hairline); border-radius: var(--radius-sm); text-decoration: none; color: inherit; background: var(--paper); }
+  .lb-layout:hover { border-color: var(--hairline-strong); }
+  .lb-layout-head { display: flex; align-items: baseline; gap: 10px; }
+  .lb-layout-head b { color: var(--ink); }
+  .lb-layout-head .tp-small { margin: 0 auto 0 0; }
+  .lb-layout-head .icon { align-self: center; color: var(--steel); width: 18px; height: 18px; }
+  a.lb-venue { text-decoration: none; color: inherit; }
+  .lb-podium { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .lb-podium li { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+  .lb-who { min-width: 0; display: grid; }
+  .lb-who b { color: var(--ink); font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lb-who small { color: var(--steel); font-size: 0.76rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lb-res { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); }
+  .lb-idle { margin: 0; }
+  .lb-more { margin: 14px 0 0; }
+  .lb-what { margin: 0; }
+  /* One board */
+  .lb-filters { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; margin: 0 0 14px; }
+  .lb-filter-top { display: flex; align-items: flex-start; gap: 10px; justify-content: space-between; }
+  .lb-models { flex: 1; min-width: 0; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
+  .lb-models .chip { flex: none; }
+  @media (min-width: 781px) { .lb-models { flex-wrap: wrap; overflow-x: visible; } }
+  .lb-filter-top .tp-units { flex: none; }
+  .lb-selects { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: end; }
+  @media (min-width: 781px) { .lb-selects { grid-template-columns: repeat(3, minmax(0, 220px)) auto; } }
+  .lb-sel { display: grid; gap: 4px; font-size: 0.8rem; color: var(--steel); }
+  .lb-sel .field { min-height: 44px; }
+  .lb-count { margin: 0 0 8px; }
+  .lb-card { padding: 4px 0; }
+  .lb-list { list-style: none; margin: 0; padding: 0; }
+  .lb-row { position: relative; display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; grid-template-areas: "pos car time" ". info info" ". mods mods"; gap: 4px 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--hairline); }
+  .lb-row:last-child { border-bottom: 0; }
+  .lb-row:hover { background: var(--paper); }
+  .lb-row > .icon { display: none; }
+  .lb-row .lb-pos { grid-area: pos; }
+  .lb-car { grid-area: car; min-width: 0; display: grid; }
+  .lb-name { font-weight: 700; color: var(--ink); text-decoration: none; }
+  .lb-name::after { content: ''; position: absolute; inset: 0; }
+  .lb-name:focus-visible { outline: 2px solid var(--orange); outline-offset: -2px; }
+  .lb-car small, .lb-time small { color: var(--steel); font-size: 0.78rem; }
+  .lb-time { grid-area: time; text-align: right; display: grid; }
+  .lb-time b { font-size: 1.05rem; font-variant-numeric: tabular-nums; color: var(--ink); }
+  .lb-info { grid-area: info; display: grid; gap: 1px; font-size: 0.82rem; }
+  .lb-tyre { color: var(--ink); }
+  .lb-tyre.is-none { color: var(--steel); }
+  .lb-date { color: var(--steel); font-size: 0.78rem; }
+  .lb-mods { grid-area: mods; display: flex; flex-wrap: wrap; gap: 4px; }
+  .lb-mods .tp-modchip { margin-top: 0; }
+  .tp-modchip.is-more { color: var(--steel); }
+  @media (min-width: 781px) {
+    .lb-row { grid-template-columns: 40px minmax(0, 1.2fr) 110px minmax(0, 1.3fr) 20px; grid-template-areas: "pos car time info chev" ". mods mods mods ."; column-gap: 16px; padding: 14px 20px; }
+    .lb-row > .icon { display: block; grid-area: chev; width: 18px; height: 18px; color: var(--steel); }
+  }
 </style>
 
 </head>
@@ -345,7 +401,7 @@
 <section class="page-hero lb-hero">
   <div class="wrap">
     <a href="track.html" class="back-link"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Track Sessions</a>
-    <h1>Who&rsquo;s quickest?</h1>
+    <h1>Ranking</h1>
     <p>Real times from modified Teslas on UK tracks, drag strips and hill climbs, straight from members&rsquo; own lap timers. Every car&rsquo;s fastest, with the mods that got it there.</p>
   </div>
 </section>
@@ -500,6 +556,7 @@
 
 <script src="js/track-parse.js" defer></script>
 <script src="js/track-view.js" defer></script>
+<script src="js/tyre-data.js" defer></script>
 <script src="js/leaderboard-page.js" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js" defer></script>

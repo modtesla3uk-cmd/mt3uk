@@ -487,6 +487,7 @@
     <li><a href="events-admin.html">Events</a></li>
     <li><a href="device-checklist.html">Device checks</a></li>
   </ul>
+  <ul class="admin-subnav" id="admin-subnav" aria-label="Sections in this category" hidden></ul>
   <p class="status" id="status"></p>
 
   <section class="admin-group" id="grp-gallery" aria-labelledby="grp-gallery-h">
@@ -696,6 +697,8 @@
       <h3 class="sub-head">Tracks</h3>
       <div id="tk-list"></div>
       <h3 class="sub-head">Leaderboards</h3>
+      <p class="iv-note">Leaderboard places keep each car's best for every mix of conditions and tyres, and its track-relevant parts. Places made before that are brought up to date here: it goes through the cars a few at a time.</p>
+      <div class="iv-toolbar"><button type="button" class="secondary" id="tk-rebuild">Rebuild all leaderboards</button><span class="iv-note" id="tk-rebuild-note" role="status"></span></div>
       <select id="tk-board-pick" aria-label="Leaderboard"></select>
       <div id="tk-board"></div>
     </details>
@@ -2794,6 +2797,7 @@
   wrap.addEventListener('toggle', function () { if (wrap.open) load(); });
 })();
 </script>
+<script src="js/admin-subnav.js" defer></script>
 <script src="js/track-admin.js" defer></script>
 <script src="js/tyre-data.js" defer></script>
 <script src="js/tyre-admin.js" defer></script>

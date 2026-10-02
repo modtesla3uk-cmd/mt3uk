@@ -245,3 +245,28 @@ ok(T.fmtLap(99.786) === '1:39.786' && T.niceDate('2026-05-28') === '28 May 2026'
   try { s = T.analyse(day, lib); } catch (e) { err = e.message; }
   ok(day.points.length > 140000 && s && s.laps.length > 50, 'a day of ' + day.points.length + ' readings is analysed' + (err ? ': ' + err : '') + (s ? ', ' + s.laps.length + ' laps' : ''));
 }
+
+// Track-relevant parts, and what each part did.
+{
+  ok(T.isTrackPart('tyres', { what: 'Michelin Pilot Sport 4S' }) && T.isTrackPart('wheels', { what: 'Forged 19s' }) && T.isTrackPart('suspension', { what: 'KW V3' }) && T.isTrackPart('brakes', { what: 'Pads' }) && T.isTrackPart('performance', { what: 'Acceleration Boost' }), 'wheels, tyres, suspension, brakes and performance count on track');
+  ok(!T.isTrackPart('audio', { what: 'Subwoofer' }) && !T.isTrackPart('bodywork', { kind: 'Wrap', what: 'Matte' }) && !T.isTrackPart('bodywork', { kind: 'Tint', what: 'Rear' }) && !T.isTrackPart('interior', { what: 'Seats: Recaro' }) && !T.isTrackPart('interior', { what: 'Carbon trim' }), 'audio, wraps, tints, seats and trim do not');
+  ok(T.isTrackPart('bodywork', { kind: 'Aero', what: 'Splitter' }), 'aero counts');
+  ok(T.isTrackPart('interior', { what: 'Seats: Recaro, 12 kg lighter' }) && T.isTrackPart('other', { what: 'Lightweight carbon boot' }), 'a disclosed weight saving counts, wherever it is listed');
+  ok(T.isTrackPart('mods', { what: 'KW V3 coilovers' }) && !T.isTrackPart('mods', { what: 'Window tint' }), 'a plain list is judged by its wording');
+  const S = [
+    { id: 'a', date: '2026-01-10', bestTime: 102, conditions: 'Dry', temp: 10, tyres: 'PS4S' },
+    { id: 'b', date: '2026-03-15', bestTime: 100.5, conditions: 'Dry', temp: 12, tyres: 'PS4S' },
+    { id: 'c', date: '2026-05-02', bestTime: 99, conditions: 'Dry', temp: 24, tyres: 'Cup 2' },
+    { id: 'w', date: '2026-05-20', bestTime: 105, conditions: 'Wet' },
+    { id: 'd', date: '2026-07-01', bestTime: 98.7, conditions: 'Dry', temp: 22, tyres: 'Cup 2' }
+  ];
+  const r = T.modImpact(S, [{ label: 'KW V3 coilovers', year: 2026, month: 2 }, { label: 'Cup 2', year: 2026, month: 4 }, { label: 'Pads', year: 2026, month: 4 }, { label: 'Wing', year: 2027, month: null }]);
+  ok(r.rows.length === 2 && r.rows[0].labels[0] === 'KW V3 coilovers' && r.rows[0].before === 102 && r.rows[0].after === 100.5 && r.rows[0].change === -1.5, 'a part: best dry time before and after');
+  ok(r.rows[0].flags.join() === 'one session each side', 'and says when there is one session each side');
+  ok(r.rows[1].labels.join() === 'Cup 2,Pads' && r.rows[1].change === -1.8 && r.rows[1].flags.includes('different tyres') && r.rows[1].flags.includes('10°C warmer'), 'parts fitted in the same month are one group, with the tyre and temperature caveats');
+  ok(r.skipped.length === 1 && r.skipped[0].labels[0] === 'Wing', 'a part with no dry session after is skipped');
+  const m = T.modImpact([{ id: 'x', date: '2026-04-10', bestTime: 100, conditions: 'Dry' }, { id: 'y', date: '2026-04-20', bestTime: 99, conditions: 'Dry' }], [{ label: 'Pads', year: 2026, month: 4 }]);
+  ok(m.rows.length === 0 && m.skipped.length === 1, 'sessions in the month a part was fitted are left out (the day is unknown)');
+  const wet = T.modImpact([{ id: 'x', date: '2026-01-10', bestTime: 100, conditions: 'Wet' }, { id: 'y', date: '2026-06-20', bestTime: 99, conditions: 'Dry' }], [{ label: 'Pads', year: 2026, month: 3 }]);
+  ok(wet.rows.length === 0, 'wet sessions are not compared');
+}

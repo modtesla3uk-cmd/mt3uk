@@ -18,7 +18,7 @@ def test_track_routes_in_the_worker():
         module = Path(tmp) / "worker.mjs"
         source = (ROOT / "workers" / "vote-worker.js").read_text(encoding="utf-8")
         source = source.replace("import { EmailMessage } from 'cloudflare:email';", "class EmailMessage { constructor(f, t, raw) { this.raw = raw; } }", 1)
-        source += "\nexport { putSidecar, saveCarRecord, deleteMemberAccount, ownerKey };\n"
+        source += "\nexport { putSidecar, saveCarRecord, deleteMemberAccount, ownerKey, isTrackPart };\n"
         module.write_text(source, encoding="utf-8")
         result = subprocess.run(
             ["node", str(ROOT / "tests" / "track_worker_check.mjs")],

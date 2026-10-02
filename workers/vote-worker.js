@@ -6604,6 +6604,8 @@ function trackSummary(rec) {
     date: rec.date, time: rec.time || '', privacy: rec.privacy, conditions: rec.conditions || '', tyres: rec.tyres || '', temp: rec.temp, tempSource: rec.tempSource || '', weather: rec.weather || null,
     vmax: rec.vmax || 0, quality: rec.quality
   };
+  if (rec.tyreMake) o.tyreMake = rec.tyreMake;
+  if (rec.tyreModel) o.tyreModel = rec.tyreModel;
   if (rec.street) o.street = true;
   if (rec.offBoard) o.offBoard = true;
   if (rec.type === 'drag') {
@@ -6619,6 +6621,55 @@ function trackSummary(rec) {
     o.laps = (rec.laps || []).length;
   }
   return o;
+}
+
+// Parts that matter on a track: wheels, tyres, suspension, brakes,
+// performance, aero, and anything that says it saves weight. The same rule as
+// isTrackPart in js/track-parse.js (a test keeps the two together).
+var TRACK_AREAS = { wheels: 1, tyres: 1, suspension: 1, brakes: 1, performance: 1 };
+var TRACK_WORDS = /\b(tyres?|tires?|coilovers?|springs?|dampers?|shocks?|anti[- ]?roll|sway|brakes?|pads?|discs?|rotors?|calipers?|wheels?|rims?|spacers?|aero|wing|splitter|diffuser|canards?|lowering|geometry|alignment|camber|toe|tune|tuned|boost|cooling|cooler)\b/i;
+var WEIGHT_WORDS = /\b\d+(?:\.\d+)?\s?kg\b|weight[- ]?(?:saving|saved|reduction|loss)|lightweight|lightened/i;
+function isTrackPart(areaId, part) {
+  part = part || {};
+  var text = (part.kind ? part.kind + ' ' : '') + (part.what || '');
+  if (WEIGHT_WORDS.test(text)) return true;
+  if (TRACK_AREAS[areaId]) return true;
+  if (areaId === 'bodywork') return part.kind === 'Aero';
+  if (areaId === 'mods' || areaId === 'other') return TRACK_WORDS.test(text);
+  return false;
+}
+
+// The track-relevant parts of a build, as short lines for a leaderboard row.
+function trackBoardMods(record, details) {
+  var out = [];
+  specsToView(details && details.specs, false, (record && record.mods) || []).forEach(function (a) {
+    (a.parts || []).forEach(function (p) {
+      if (p.empty || !p.what || !isTrackPart(a.id, p)) return;
+      var tag = p.kind || (a.id === 'mods' ? '' : a.label);
+      out.push(trackText((tag ? tag + ': ' : '') + p.what, 90));
+    });
+  });
+  return out.slice(0, 30);
+}
+
+// Each car's fastest here for every mix of conditions and tyres, so a board
+// can be filtered ("Dry, Michelin") and still rank each car fairly.
+var TRACK_BESTS_MAX = 12;
+function trackBests(list) {
+  var by = {};
+  list.forEach(function (s) {
+    var k = (s.conditions || '') + '|' + String(s.tyres || '').toLowerCase();
+    if (!by[k] || trackScore(s) < trackScore(by[k])) by[k] = s;
+  });
+  return Object.keys(by).map(function (k) { return by[k]; })
+    .sort(function (a, b) { return trackScore(a) - trackScore(b); }).slice(0, TRACK_BESTS_MAX)
+    .map(function (s) {
+      var b = { sessionId: s.id, date: s.date, conditions: s.conditions || '', tyres: s.tyres || '' };
+      if (s.tyreMake) b.tyreMake = s.tyreMake;
+      if (s.tyreModel) b.tyreModel = s.tyreModel;
+      if (s.type === 'drag') { b.quarter = s.quarter; b.quarterSpeed = s.quarterSpeed; b.s60 = s.s60; } else b.time = s.bestTime;
+      return b;
+    });
 }
 
 function trackBoardKey(rec) {
@@ -6668,8 +6719,11 @@ async function refreshTrackBoard(env, boardKey, carId) {
       car: (record && record.name) || 'MT3UK member build', model: (details && details.model) || '', version: (details && details.version) || '', year: (details && details.year) || '',
       owner: ownerEmail ? (publicName(await getProfileRecord(env, ownerEmail)) || 'MT3UK member') : 'MT3UK member',
       photo: record && record.photos && record.photos[0] ? record.photos[0] : '',
-      mods: ((record && record.mods) || []).slice(0, 30)
+      mods: trackBoardMods(record, details),
+      bests: trackBests(here.filter(function (s) { return !s.offBoard; }))
     };
+    if (mine.tyreMake) entry.tyreMake = mine.tyreMake;
+    if (mine.tyreModel) entry.tyreModel = mine.tyreModel;
     if (mine.type === 'drag') { entry.quarter = mine.quarter; entry.quarterSpeed = mine.quarterSpeed; entry.s60 = mine.s60; }
     else entry.time = mine.bestTime;
     board.push(entry);
@@ -6682,6 +6736,16 @@ async function refreshTrackBoard(env, boardKey, carId) {
   var total = board.reduce(function (n, e) { return n + (e.sessions || 1); }, 0);
   if (total) counts[boardKey] = total; else delete counts[boardKey];
   await env.VOTES.put('track-board-counts', JSON.stringify(counts));
+  // The top three on each board, so the track list can show them (one key).
+  var leaders = await getJsonKey(env, 'track-board-leaders', {});
+  if (board.length) {
+    leaders[boardKey] = board.slice(0, 3).map(function (e) {
+      var l = { car: e.car, owner: e.owner, model: e.model || '', date: e.date };
+      if (e.time) l.time = e.time; else { l.quarter = e.quarter; l.quarterSpeed = e.quarterSpeed; }
+      return l;
+    });
+  } else delete leaders[boardKey];
+  await env.VOTES.put('track-board-leaders', JSON.stringify(leaders));
 }
 
 // The owner of a car record, from its first photo's owner.
@@ -7092,9 +7156,32 @@ async function handleTrackAdminBoardEntry(request, env) {
 }
 
 async function handleTrackCounts(request, env) {
-  var res = json({ success: true, counts: await getJsonKey(env, 'track-board-counts', {}) });
+  var res = json({ success: true, counts: await getJsonKey(env, 'track-board-counts', {}), leaders: await getJsonKey(env, 'track-board-leaders', {}) });
   res.headers.set('Cache-Control', 'public, max-age=60');
   return res;
+}
+
+// Admin: rebuilds every leaderboard entry from the shared lists, a few cars at
+// a time (call again with the cursor until it says done). Used after the board
+// entries gained tyres and track parts. list() is fine here: admin only, and
+// rarely used.
+var TRACK_REBUILD_CARS = 2;
+async function handleTrackBoardsRebuild(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var params = new URL(request.url).searchParams;
+  var cursor = params.get('cursor') || undefined;
+  var page = await env.VOTES.list({ prefix: 'track-public:', limit: TRACK_REBUILD_CARS, cursor: cursor });
+  var done = 0;
+  for (var i = 0; i < page.keys.length; i++) {
+    var carId = page.keys[i].name.slice('track-public:'.length);
+    var shared = await getJsonKey(env, page.keys[i].name, []);
+    var boards = {};
+    shared.forEach(function (s) { var k = trackBoardKey(s); if (k) boards[k] = true; });
+    var keys = Object.keys(boards);
+    for (var b = 0; b < keys.length; b++) await refreshTrackBoard(env, keys[b], carId);
+    done++;
+  }
+  return json({ success: true, cars: done, done: !!page.list_complete, cursor: page.list_complete ? '' : page.cursor });
 }
 
 // A member leaving: their sessions, index, shared lists and board places.
@@ -8286,6 +8373,9 @@ export default {
     }
     if (url.pathname === '/sprint/board' && request.method === 'GET') {
       return handleTrackBoard(request, env, 'sprint');
+    }
+    if (url.pathname === '/track/boards/rebuild' && request.method === 'POST') {
+      return handleTrackBoardsRebuild(request, env);
     }
     if (url.pathname === '/track/counts' && request.method === 'GET') {
       return handleTrackCounts(request, env);

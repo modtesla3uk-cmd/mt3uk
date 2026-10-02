@@ -305,7 +305,7 @@
   }
   function boardsLink(quiet) {
     return '<a class="tp-boards-link' + (quiet ? ' is-quiet' : '') + '" href="leaderboards.html">' + icon('trophy') + '<span><b>Leaderboards</b><span>' +
-      (quiet ? 'Add a session to get your car on the board' : 'Who\'s quickest at each track, strip and hill climb') + '</span></span>' + icon('chev') + '</a>';
+      (quiet ? 'Add a session to get your car on the board' : 'Rankings at each track, strip and hill climb') + '</span></span>' + icon('chev') + '</a>';
   }
   var currentCar = null;
   function myCarsHtml(m) {
@@ -1543,6 +1543,7 @@
     var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     ((car && car.view) || []).forEach(function (a) {
       (a.parts || []).forEach(function (p) {
+        if (!T.isTrackPart(a.id, p)) return;
         var m = String(p.meta || '').match(/Fitted (?:([A-Z][a-z]{2}) )?(\d{4})/);
         if (!m || p.empty) return;
         var month = m[1] ? MONTHS.indexOf(m[1]) + 1 : 6;

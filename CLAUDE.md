@@ -68,6 +68,12 @@ Static site for the MT3UK modified Tesla community, live at https://mt3uk.com. I
 - **Edit them on the Tyres panel of `admin.html`** rather than by hand. A change is stored in KV (`tyre-library`, `/tyres/admin`) on top of the file and is live straight away; the file is only the starting list. A make can be taken off the list, and a size list is only stored when it differs from the file's.
 - The Model box suggests a make's models but accepts anything typed. A session keeps the parts (`tyreMake`, `tyreModel`, `tyreWidth`, `tyreProfile`, `tyreRim`) and a built description in `tyres`, which is what the pages and leaderboards show. Older free-text entries are split into the parts when their settings are opened.
 
+## Track sessions: leaderboards
+
+- `leaderboards.html` (headed **Ranking**) is drawn by `js/leaderboard-page.js`. The track list shows each venue's top three per layout from `/track/counts` (`counts` and `leaders`, both single KV keys, read with `get()`). A board page filters by model, conditions and tyre make or model.
+- Each board entry is a car's fastest, plus `bests`: its fastest for every mix of conditions and tyres, so a filter can rank each car by its best that matches. `mods` holds only track-relevant parts (`isTrackPart`, kept the same in `js/track-parse.js` and the worker, with a test). Entries made before `bests` existed still work (the page falls back to their one result and reads the tyres from the text).
+- **Rebuild all leaderboards** on the Tracks panel of `admin.html` (`POST /track/boards/rebuild`, admin key, a couple of cars per call) brings old entries up to date. It uses KV `list()`, which is fine for an admin-only route.
+
 ## Shop
 
 - The Tee card and modal are the template for new products. Zoomable product images use the hold-to-pan zoom in shop.html (`panTargets`, `.zoom-pan`), which zooms back out on release. Never use a plain CSS hover zoom or a link.

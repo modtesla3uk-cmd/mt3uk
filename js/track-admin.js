@@ -314,4 +314,121 @@
     rebuildNote.textContent = 'Working...';
     step('');
   });
+  // Re-time sessions: when the timing code changes, saved sessions keep their old times. This reads each
+  // session that was timed with an older version (MT3UKTrack.ANALYSIS_VERSION) and still has its readings,
+  // works it out again with the member's own settings, saves it, then rebuilds the leaderboards.
+  // Check sessions only counts and lists what would change.
+  var retimeBtn = document.getElementById('tk-retime'), checkBtn = document.getElementById('tk-retime-check');
+  var retimeNote = document.getElementById('tk-retime-note'), retimeList = document.getElementById('tk-retime-list');
+  function restoreSource(src) {
+    var rd = Object.assign({}, src.rd);
+    function n(v) { return v == null ? NaN : v; }
+    rd.points = src.p.map(function (a) {
+      var q = { t: a[0], lat: a[1], lng: a[2], v: n(a[3]), la: n(a[4]), lo: n(a[5]), sats: n(a[6]), temp: n(a[7]) };
+      if (a[8]) q.run = a[8];
+      return q;
+    });
+    return rd;
+  }
+  function fmtTime(t) { return t == null ? '-' : window.MT3UKTrack.fmtLap(t); }
+  // The saved session's own settings, as the options the Add a session page would have used.
+  function retimeOpts(old) {
+    var o = { type: old.type, ignoreFirstFinish: true };
+    if (old.rollout) o.rollout = true;
+    if (old.organizer) o.organizer = old.organizer;
+    if (old.finishCrossing) o.finishCrossing = old.finishCrossing;
+    if (old.startLineFromMember && old.startLine) { o.startLine = old.startLine; if (old.finishLine) o.finishLine = old.finishLine; }
+    return o;
+  }
+  function retimeOne(row, apply, lib) {
+    var T = window.MT3UKTrack;
+    return call('GET', '/track/admin/retime?id=' + encodeURIComponent(row.id)).then(function (d) {
+      if (!d.success) throw new Error(d.message || 'Could not read the session.');
+      var old = d.session;
+      return fetch(API + '/track/admin/retime/source?id=' + encodeURIComponent(row.id) + '&key=' + encodeURIComponent(key()), { cache: 'no-store' }).then(function (r) {
+        if (!r.ok) throw new Error('No readings kept.');
+        return r.json();
+      }).then(function (src) {
+        if (!src.p || !src.rd) throw new Error('No readings kept.');
+        var next = T.analyse(restoreSource(src), lib, retimeOpts(old));
+        if (next.problem && !(next.laps && next.laps.length) && !(next.runs && next.runs.length)) throw new Error(next.problem);
+        // The member's details and the date they typed carry over.
+        next.date = old.date; next.time = old.time || next.time;
+        next.fileName = old.fileName;
+        if (!old.venueId) next.venueName = old.venue;
+        var change = { id: row.id, venue: old.venue, date: old.date, type: old.type, from: old.type === 'drag' ? (old.runs && old.runs[0] && old.runs[0].s60) : old.bestTime, to: next.type === 'drag' ? (next.runs && next.runs[0] && next.runs[0].s60) : next.bestTime };
+        if (!apply) return change;
+        return call('POST', '/track/admin/retime', { id: row.id, session: next }).then(function (res) {
+          if (!res.ok || !res.success) throw new Error(res.message || 'Could not save.');
+          return change;
+        });
+      });
+    });
+  }
+  function runRetime(apply) {
+    if (!key()) { retimeNote.textContent = 'Enter the admin key at the top of the page first.'; return; }
+    if (!window.MT3UKTrack) { retimeNote.textContent = 'The timing code has not loaded yet.'; return; }
+    var V = window.MT3UKTrack.ANALYSIS_VERSION;
+    var seen = 0, old = 0, noSource = 0, done = 0, failed = 0, unchanged = 0;
+    retimeBtn.disabled = checkBtn.disabled = true;
+    retimeList.innerHTML = '';
+    function say(t) { retimeNote.textContent = t; }
+    function finish(msg) {
+      say(msg);
+      retimeBtn.disabled = checkBtn.disabled = false;
+    }
+    function line(t) { var li = document.createElement('li'); li.textContent = t; retimeList.appendChild(li); }
+    Promise.all([
+      fetch('data/tracks.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).catch(function () { return { venues: [] }; }),
+      call('GET', '/track/admin/tracks')
+    ]).then(function (res) {
+      var lib = window.MT3UKTrack.mergeLibrary(res[0], res[1] && res[1].extra);
+      function page(cursor) {
+        call('GET', '/track/admin/retime' + (cursor ? '?cursor=' + encodeURIComponent(cursor) : '')).then(function (d) {
+          if (!d.ok || !d.success) { finish(d.message || 'Could not list the sessions.'); return; }
+          var todo = [];
+          d.sessions.forEach(function (r) {
+            seen++;
+            if (r.type === 'other' || r.version >= V) return;
+            old++;
+            if (!r.hasSource) { noSource++; return; }
+            todo.push(r);
+          });
+          var chain = Promise.resolve();
+          todo.forEach(function (r) {
+            chain = chain.then(function () {
+              return retimeOne(r, apply, lib).then(function (c) {
+                var same = c.from === c.to || (c.from != null && c.to != null && Math.abs(c.from - c.to) < 0.0005);
+                if (same) unchanged++; else line(c.venue + ', ' + c.date + ' (' + c.type + '): ' + fmtTime(c.from) + ' to ' + fmtTime(c.to));
+                done++;
+              }).catch(function (e) { failed++; line(r.venue + ', ' + r.date + ': skipped (' + (e && e.message || 'error') + ')'); });
+            });
+          });
+          chain.then(function () {
+            say((apply ? 'Working... ' : 'Checking... ') + seen + ' sessions looked at, ' + old + ' out of date.');
+            if (!d.done) { page(d.cursor); return; }
+            var summary = seen + ' sessions looked at. ' + old + ' were timed with older code: ' + done + (apply ? ' re-timed' : ' can be re-timed') + ' (' + unchanged + ' came out the same), ' + noSource + ' have no readings kept so the member needs to upload again, ' + failed + ' skipped.';
+            if (!apply) { finish(summary); return; }
+            say(summary + ' Rebuilding the leaderboards...');
+            var cars = 0;
+            (function step(c) {
+              call('POST', '/track/boards/rebuild' + (c ? '?cursor=' + encodeURIComponent(c) : '')).then(function (b) {
+                if (!b.ok || !b.success) { finish(summary + ' The leaderboards could not be rebuilt: use Rebuild all leaderboards.'); return; }
+                cars += b.cars || 0;
+                if (b.done) { finish(summary + ' Leaderboards rebuilt (' + cars + ' cars).'); return; }
+                step(b.cursor);
+              }).catch(function () { finish(summary + ' The leaderboards could not be rebuilt: use Rebuild all leaderboards.'); });
+            })('');
+          });
+        }).catch(function () { finish('Could not reach the server.'); });
+      }
+      say('Looking at the sessions...');
+      page('');
+    }).catch(function () { finish('Could not load the track list.'); });
+  }
+  if (checkBtn) checkBtn.addEventListener('click', function () { runRetime(false); });
+  if (retimeBtn) retimeBtn.addEventListener('click', function () {
+    if (!window.confirm('Re-time every session that was timed with older code? Their times will change. Run Check sessions first to see what moves.')) return;
+    runRetime(true);
+  });
 })();

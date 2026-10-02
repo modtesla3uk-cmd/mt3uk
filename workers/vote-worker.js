@@ -6596,6 +6596,9 @@ function cleanTrackSession(s, library) {
   ['duration', 'distance', 'vmax', 'latMax', 'brakeMax', 'accMax', 'bestTime', 'possible'].forEach(function (k) { var n = trackNum(s[k], -100, 1e7); if (n !== null) out[k] = n; });
   var fname = trackText(s.fileName, 200);
   if (fname) out.fileName = fname;
+  // Which version of the timing code worked this out (see MT3UKTrack.ANALYSIS_VERSION); none means the first.
+  var av = trackNum(s.analysisVersion, 1, 1000);
+  if (av) out.analysisVersion = Math.round(av);
   // Saved without times because its course is not listed yet: the admin has been told.
   var pending = trackText(s.pendingCourse, 60);
   if (pending) out.pendingCourse = pending;
@@ -6829,7 +6832,10 @@ async function carOwnerEmail(env, record) {
 }
 
 async function putTrackIndexes(env, email, rec, removed) {
-  var oKey = 'track-index:' + (await ownerKey(email));
+  return putTrackIndexesFor(env, await ownerKey(email), rec, removed);
+}
+async function putTrackIndexesFor(env, owner, rec, removed) {
+  var oKey = 'track-index:' + owner;
   var index = (await getJsonKey(env, oKey, [])).filter(function (s) { return s.id !== rec.id; });
   if (!removed) index.unshift(trackSummary(rec));
   index.sort(function (a, b) { return (b.date + b.time) < (a.date + a.time) ? -1 : 1; });
@@ -7501,6 +7507,77 @@ async function handleTrackCounts(request, env) {
 // entries gained tyres and track parts. list() is fine here: admin only, and
 // rarely used.
 var TRACK_REBUILD_CARS = 2;
+// Admin: bring saved sessions up to date after the timing code changes. The
+// timing runs in the browser, so the admin page reads each session and its
+// readings here, works it out again and posts it back. Admin only, so
+// list() is fine here.
+//   GET  /track/admin/retime?cursor=   a page of sessions: id, type, analysis version, readings kept
+//   GET  /track/admin/retime?id=       one saved session
+//   GET  /track/admin/retime/source?id=  its readings (gzipped)
+//   POST /track/admin/retime           { id, session } replaces the timing, keeps the member's details
+var TRACK_RETIME_PAGE = 20;
+async function handleTrackAdminRetime(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var params = new URL(request.url).searchParams;
+  if (request.method === 'GET') {
+    var one = params.get('id');
+    if (one) {
+      if (!/^[a-f0-9]{8,40}$/.test(one)) return json({ success: false, message: 'Session not found' }, 404);
+      var found = await getTrackSession(env, one);
+      return found ? json({ success: true, session: found }) : json({ success: false, message: 'Session not found' }, 404);
+    }
+    var page = await env.VOTES.list({ prefix: 'track-session:', limit: TRACK_RETIME_PAGE, cursor: params.get('cursor') || undefined });
+    var rows = [];
+    for (var i = 0; i < page.keys.length; i++) {
+      var rec = await getTrackSession(env, page.keys[i].name.slice('track-session:'.length));
+      if (!rec) continue;
+      rows.push({ id: rec.id, type: rec.type, venue: rec.venue || '', date: rec.date || '', best: rec.bestTime || null, version: rec.analysisVersion || 1, hasSource: !!rec.hasSource, street: !!rec.street });
+    }
+    return json({ success: true, sessions: rows, done: !!page.list_complete, cursor: page.list_complete ? '' : page.cursor });
+  }
+  var body;
+  try {
+    var buf = await request.arrayBuffer();
+    var gzipped = isGzip(buf);
+    if (buf.byteLength > (gzipped ? TRACK_SESSION_MAX_BYTES : TRACK_UNZIPPED_MAX_BYTES)) return json({ success: false, message: 'This session is too big to save.' }, 413);
+    body = JSON.parse(gzipped ? await gunzipText(buf, TRACK_UNZIPPED_MAX_BYTES) : new TextDecoder().decode(buf));
+  } catch (e) {
+    return json({ success: false, message: 'Invalid request body' }, 400);
+  }
+  if (!body || typeof body !== 'object' || !/^[a-f0-9]{8,40}$/.test(String(body.id || ''))) return json({ success: false, message: 'Invalid request body' }, 400);
+  var old = await getTrackSession(env, String(body.id));
+  if (!old) return json({ success: false, message: 'Session not found' }, 404);
+  var next = cleanTrackSession(body.session, await getTrackLibrary(env));
+  if (next.error) return json({ success: false, message: next.error }, 400);
+  next.id = old.id;
+  next.owner = old.owner;
+  next.carId = old.carId;
+  next.createdAt = old.createdAt;
+  // Street runs and runs at an unlisted strip stay private and off every board.
+  next.street = !!old.street;
+  if (next.type === 'drag') {
+    if (old.unlisted || (!next.atVenue && !old.street)) next.unlisted = true;
+    if (!old.street) delete next.outline;
+  }
+  ['privacy', 'conditions', 'tyres', 'tyreMake', 'tyreModel', 'tyreWidth', 'tyreProfile', 'tyreRim', 'temp', 'tempSource', 'weather', 'notes', 'hasSource', 'fileName'].forEach(function (k) { if (old[k] !== undefined) next[k] = old[k]; });
+  if (next.street || next.unlisted) next.privacy = 'private';
+  if (next.privacy === 'board' && !trackBoardKey(next)) next.privacy = 'build';
+  var oldBoard = trackBoardKey(old);
+  if (!(await putTrackSession(env, next))) return json({ success: false, message: 'This session is too big to save.' }, 413);
+  await putTrackIndexesFor(env, old.owner, next);
+  if (oldBoard && oldBoard !== trackBoardKey(next)) await refreshTrackBoard(env, oldBoard, next.carId);
+  return json({ success: true, session: trackSummary(next) });
+}
+
+async function handleTrackAdminRetimeSource(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var id = String(new URL(request.url).searchParams.get('id') || '');
+  if (!/^[a-f0-9]{8,40}$/.test(id)) return json({ success: false, message: 'Session not found' }, 404);
+  var buf = await env.VOTES.get('track-source:' + id, 'arrayBuffer');
+  if (!buf) return json({ success: false, message: 'No readings were kept for this session.' }, 404);
+  return new Response(buf, { status: 200, headers: { 'Content-Type': 'application/json', 'Content-Encoding': 'gzip', 'Cache-Control': 'no-store', 'Access-Control-Allow-Origin': '*' } });
+}
+
 async function handleTrackBoardsRebuild(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
   var params = new URL(request.url).searchParams;
@@ -8691,6 +8768,12 @@ export default {
     }
     if (url.pathname === '/track/admin/sessions' && request.method === 'GET') {
       return handleTrackAdminSessions(request, env);
+    }
+    if (url.pathname === '/track/admin/retime' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleTrackAdminRetime(request, env);
+    }
+    if (url.pathname === '/track/admin/retime/source' && request.method === 'GET') {
+      return handleTrackAdminRetimeSource(request, env);
     }
     // The member's own sessions need access (early preview): lists, saves,
     // changes, readings and deletes. Shared sessions and boards stay public.

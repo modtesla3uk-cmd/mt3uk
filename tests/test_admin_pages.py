@@ -3,6 +3,7 @@ light look, one navigation shared by all three, and the panels in logical
 groups."""
 import json
 import re
+import subprocess
 
 import pytest
 from playwright.sync_api import expect
@@ -124,6 +125,73 @@ def test_admin_can_rebuild_the_leaderboards_in_steps(page):
     expect(page.locator("#tk-rebuild-note")).to_have_text("Done: 3 cars brought up to date.")
     assert len(calls) == 2 and "key=test-key" in calls[0] and "cursor=2" in calls[1]
     expect(page.locator("#tk-rebuild")).to_be_enabled()
+
+
+def _retime_source():
+    """The readings of the Thruxton test file, as the worker keeps them for a session."""
+    script = (
+        "const fs=require('fs');const T=require('./js/track-parse.js');"
+        "const rd=T.read(fs.readFileSync('tests/fixtures/thruxton-trimmed.vbo','latin1'),'f.vbo');"
+        "const meta={};Object.keys(rd).forEach(k=>{if(k!=='points')meta[k]=rd[k]});"
+        "const r=(v,n)=>v==null||!isFinite(v)?null:Math.round(v*n)/n;"
+        "console.log(JSON.stringify({v:1,rd:meta,p:rd.points.map(q=>[r(q.t,1000),r(q.lat,1e7),r(q.lng,1e7),r(q.v,100),r(q.la,1000),r(q.lo,1000),r(q.sats,1),r(q.temp,10),q.run||0])}));"
+    )
+    return subprocess.run(["node", "-e", script], capture_output=True, text=True, check=True, cwd=".").stdout
+
+
+def _retime_mocks(page, saved):
+    cors = {"Access-Control-Allow-Origin": "*"}
+    source = _retime_source()
+    rows = [
+        {"id": "aaaaaaaa01", "type": "track", "venue": "Thruxton", "date": "2026-07-01", "best": 99.9, "version": 1, "hasSource": True},
+        {"id": "aaaaaaaa02", "type": "track", "venue": "Castle Combe", "date": "2026-07-02", "best": 80.1, "version": 1, "hasSource": False},
+        {"id": "aaaaaaaa03", "type": "track", "venue": "Croft", "date": "2026-07-03", "best": 70.0, "version": 99, "hasSource": True},
+    ]
+    old = {"id": "aaaaaaaa01", "type": "track", "venue": "Thruxton", "date": "2026-07-01", "time": "10:00", "bestTime": 99.9}
+
+    def retime(route):
+        req = route.request
+        if req.method == "POST":
+            saved.append(json.loads(req.post_data))
+            body = {"success": True, "session": {"id": "aaaaaaaa01"}}
+        elif "id=" in req.url:
+            body = {"success": True, "session": old}
+        else:
+            body = {"success": True, "sessions": rows, "done": True, "cursor": ""}
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(body), headers=cors)
+
+    page.route("**/track/admin/retime/source**", lambda route: route.fulfill(status=200, content_type="application/json", body=source, headers=cors))
+    page.route("**/track/admin/retime?**", retime)
+    page.route("**/track/admin/retime", retime)
+    page.route("**/track/boards/rebuild**", lambda route: route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "cars": 4, "done": True, "cursor": ""}), headers=cors))
+    page.route("**/track/admin/tracks**", lambda route: route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "extra": {}}), headers=cors))
+
+
+def test_admin_check_sessions_counts_old_ones_and_saves_nothing(page):
+    saved = []
+    open_admin(page, "admin.html")
+    _retime_mocks(page, saved)
+    page.locator("#tracks-wrap summary").click()
+    page.locator("#tk-retime-check").click()
+    note = page.locator("#tk-retime-note")
+    expect(note).to_contain_text("3 sessions looked at")
+    expect(note).to_contain_text("2 were timed with older code")
+    expect(note).to_contain_text("1 have no readings kept")
+    expect(page.locator("#tk-retime-list li")).to_have_count(1)
+    assert saved == []
+
+
+def test_admin_retime_saves_the_new_timing_then_rebuilds_the_boards(page):
+    saved = []
+    open_admin(page, "admin.html")
+    _retime_mocks(page, saved)
+    page.on("dialog", lambda d: d.accept())
+    page.locator("#tracks-wrap summary").click()
+    page.locator("#tk-retime").click()
+    expect(page.locator("#tk-retime-note")).to_contain_text("Leaderboards rebuilt (4 cars)")
+    assert len(saved) == 1 and saved[0]["id"] == "aaaaaaaa01"
+    s = saved[0]["session"]
+    assert s["analysisVersion"] >= 2 and s["date"] == "2026-07-01" and s["laps"]
 
 
 def test_admin_track_type_has_sprint_and_hill_climb_as_separate_choices(page):

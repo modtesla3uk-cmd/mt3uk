@@ -593,6 +593,35 @@ kv.set('track-access', JSON.stringify({ open: false, allowed: [{ email: A }, { e
 await mod.deleteMemberAccount(env, 'gone@example.com');
 ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && stored('track-access').allowed.length === 2, 'a member who leaves comes off the early preview lists');
 
+// Admin: re-time saved sessions (list, read one, read its readings, save the new timing)
+{
+  const saved = await call('POST', '/track/sessions', { carId: 'cara1', session: Object.assign({}, session, { analysisVersion: undefined }), conditions: 'Dry', privacy: 'build', tyres: 'Test tyre', notes: 'keep me' }, 'tok-a');
+  const id = saved.body.session.id;
+  ok(saved.status === 200, 'a session saved without a version');
+  ok(stored('track-session:' + id).analysisVersion === undefined, 'sessions timed before the version stamp have none');
+  let x = await call('GET', '/track/admin/retime');
+  ok(x.status === 401, 're-time needs the admin key');
+  x = await call('GET', '/track/admin/retime?key=secret');
+  const row = x.body.sessions.find(s => s.id === id);
+  ok(x.status === 200 && row && row.version === 1 && x.body.done === true, 're-time lists sessions with their version (none counts as 1)');
+  x = await call('GET', '/track/admin/retime?key=secret&id=' + id);
+  ok(x.status === 200 && x.body.session.id === id, 're-time reads one session');
+  x = await call('GET', '/track/admin/retime/source?key=secret&id=' + id);
+  ok(x.status === 404, 'no readings kept gives a clear answer');
+  const fresh = T.analyse(T.read(fs.readFileSync(ROOT + 'tests/fixtures/thruxton-trimmed.vbo', 'latin1'), 'f.vbo'), lib);
+  ok(fresh.analysisVersion === T.ANALYSIS_VERSION, 'the parser stamps its version on a new analysis');
+  x = await call('POST', '/track/admin/retime', { id, session: fresh });
+  ok(x.status === 401, 'saving a re-timed session needs the admin key');
+  x = await call('POST', '/track/admin/retime?key=secret', { id, session: fresh });
+  const after = stored('track-session:' + id);
+  ok(x.status === 200 && after.analysisVersion === T.ANALYSIS_VERSION, 're-timing stores the new version');
+  ok(after.owner === stored('track-session:' + id).owner && after.carId === 'cara1' && after.notes === 'keep me' && after.tyres === 'Test tyre' && after.privacy === 'build', "the member's details and owner carry over");
+  const idx = JSON.parse(kv.get('track-index:' + after.owner));
+  ok(idx.some(s => s.id === id), 'the owner list still has it');
+  x = await call('POST', '/track/admin/retime?key=secret', { id: 'deadbeefdeadbeef', session: fresh });
+  ok(x.status === 404, 'an unknown session is refused');
+}
+
 // Leaving the site clears everything.
 await mod.deleteMemberAccount(env, A);
 ok(!kv.has('track-index:' + (await mod.ownerKey(A))) && ![...kv.keys()].some(k => k.startsWith('track-session:') && stored(k).carId === 'cara1') && !kv.has('track-public:cara1'), 'a member leaving removes their sessions');

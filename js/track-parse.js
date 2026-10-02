@@ -19,6 +19,10 @@
 */
 (function (root) {
   var KMH_PER_MPH = 1.609344;
+  // Goes up whenever a change here moves saved times. Sessions record the one that timed them,
+  // so the admin's Re-time sessions knows which are out of date (none recorded means 1).
+  // 2: GPX Start waypoint, drag clock matched to RaceBox with the rollout on, out lap not numbered.
+  var ANALYSIS_VERSION = 2;
   var DEG = Math.PI / 180;
 
   function num(s) {
@@ -618,8 +622,13 @@
 
   // rollout: metres the car moves before the clock starts (0.3048 for the 1 ft rollout of strip timing
   // lights and RaceBox's option); 0 times from the first movement.
+  // RaceBox's 1 ft rollout, found by fitting its own times: on files with real speed readings its clock
+  // starts once the car has travelled about 0.16 m from the first movement (three runs across two
+  // sessions agreed to within 1 cm). Where the speed is only worked out from positions, which smooths
+  // the launch, it matches a start at about 6 km/h instead.
+  var ROLLOUT_METRES = 0.16;
   var ROLLOUT_START_KMH = 6;
-  function dragRuns(points, rollout) {
+  function dragRuns(points, rollout, speedDerived) {
     var runs = [];
     rollout = rollout > 0 ? rollout : 0;
     for (var i = 1; i < points.length; i++) {
@@ -629,21 +638,31 @@
       for (var b = i - 1; b > 0 && points[b].v < 2; b--) still = points[i - 1].t - points[b].t;
       if (still < 0.5 && i > 5) continue;
       var t0 = points[i - 1].t, j = i;
-      // With the rollout on, RaceBox starts its clock a little after the first movement: on a real
-      // file its times match a start at about 6 km/h (under 4 mph). Working out one foot of distance from
-      // smoothed GPS speed starts it 0.1 s too soon, and a creep forward before the launch starts it
-      // seconds too soon.
-      if (rollout) {
+      // With the rollout on, RaceBox starts its clock a little after the first movement (see above).
+      if (rollout && speedDerived) {
         while (j < points.length && points[j].v < ROLLOUT_START_KMH) j++;
         if (j >= points.length) continue;
         var pj = points[j - 1];
         t0 = pj.t + (ROLLOUT_START_KMH - pj.v) / ((points[j].v - pj.v) || 1) * (points[j].t - pj.t);
+      } else if (rollout) {
+        // Distance from the first reading above 2 km/h. A gap in the readings or a stop starts it again.
+        var rx = 0, found = false;
+        for (j = i + 1; j < points.length; j++) {
+          var rp = points[j - 1], rq = points[j], rdt = rq.t - rp.t;
+          if (rdt > 0.3 || rq.v < 2) { rx = 0; continue; }
+          var rn = rx + (rp.v + rq.v) / 2 / 3.6 * rdt;
+          if (rn >= ROLLOUT_METRES) { t0 = rp.t + (ROLLOUT_METRES - rx) / ((rn - rx) || 1) * rdt; found = true; break; }
+          rx = rn;
+        }
+        if (!found) continue;
+        // The loop below goes on from the reading after the start.
+        j = Math.max(i, j);
       }
       var base = t0, rolled = true, x = 0, vmax = 0, out = { start: t0, lat: points[i].lat, lng: points[i].lng, curve: [[0, 0]] };
       var marks = { ft60: 18.288, eighth: 201.168, quarter: 402.336 }, sp = { s30: 30 * KMH_PER_MPH, s60: 60 * KMH_PER_MPH, s100: 100 * KMH_PER_MPH, k100: 100 };
       var lastCurve = 0;
       for (var k = j; k < points.length; k++) {
-        var p = rollout && k === j ? { t: t0, v: ROLLOUT_START_KMH } : points[k - 1], q = points[k], dt = q.t - p.t;
+        var p = rollout && k === j ? { t: t0, v: points[k - 1].v + (points[k].v - points[k - 1].v) * ((t0 - points[k - 1].t) / ((points[k].t - points[k - 1].t) || 1)) } : points[k - 1], q = points[k], dt = q.t - p.t;
         var nx = x + (p.v + q.v) / 2 / 3.6 * dt;
         if (!rolled && nx >= rollout) { rolled = true; base = p.t + (rollout - x) / ((nx - x) || 1) * dt; }
         Object.keys(marks).forEach(function (m) { if (!out[m] && nx >= marks[m]) { var f = (marks[m] - x) / ((nx - x) || 1); out[m] = round(p.t + f * dt - base, 2); out[m + 'Speed'] = round(p.v + f * (q.v - p.v), 1); } });
@@ -676,7 +695,7 @@
       // sprint or a hill climb, so the member picks the type.
       else type = 'track';
     }
-    var session = { type: type, format: rd.format, hz: rd.hz, sats: rd.sats, quality: rd.quality, startedAt: rd.startedAt || null, venueName: rd.venueName || '', speedDerived: !!rd.speedDerived, gDerived: !!rd.gDerived };
+    var session = { analysisVersion: ANALYSIS_VERSION, type: type, format: rd.format, hz: rd.hz, sats: rd.sats, quality: rd.quality, startedAt: rd.startedAt || null, venueName: rd.venueName || '', speedDerived: !!rd.speedDerived, gDerived: !!rd.gDerived };
     if (rd.startedAt) session.date = ukDate(rd.startedAt), session.time = ukTime(rd.startedAt), session.dateFrom = 'file';
     else if (rd.fileDate) { session.date = rd.fileDate; session.time = rd.fileTime || ''; session.dateFrom = rd.dateSrc || 'name'; }
     if (rd.airTemp != null) session.airTemp = rd.airTemp;
@@ -731,7 +750,7 @@
       var dv = venue && venue.type === 'drag' ? venue : findVenue(pts, library, 'drag');
       session.atVenue = !!dv;
       if (dv) { session.venueId = dv.id; session.venue = dv.name; }
-      session.runs = dragRuns(pts, opts.rollout ? 0.3048 : 0);
+      session.runs = dragRuns(pts, !!opts.rollout, !!rd.speedDerived);
       if (opts.rollout) session.rollout = true;
       // The drive's path, for the map on a street run (the worker keeps it only for those).
       session.trace = { outline: outline(pts) };
@@ -1278,7 +1297,7 @@
   var api = {
     read: read, combine: combine, dateFromName: dateFromName, analyse: analyse, sessionNotes: sessionNotes, trendNotes: trendNotes, isTrackPart: isTrackPart, modImpact: modImpact, carData: carData, fileChannels: fileChannels, cornerGains: cornerGains,
     traceAt: traceAt, findCorners: findCorners, mergeLibrary: mergeLibrary, fmtLap: fmtLap, niceDate: niceDate, ukDate: ukDate, ukTime: ukTime,
-    haversine: haversine, outline: outline, projector: projector, dragRuns: dragRuns, KMH_PER_MPH: KMH_PER_MPH
+    haversine: haversine, outline: outline, projector: projector, dragRuns: dragRuns, KMH_PER_MPH: KMH_PER_MPH, ANALYSIS_VERSION: ANALYSIS_VERSION
   };
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.MT3UKTrack = api;

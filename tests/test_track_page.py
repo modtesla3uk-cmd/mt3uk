@@ -363,6 +363,30 @@ def test_session_settings_and_leaderboard(page):
     assert fake.sessions["new1"]["tempSource"] == "weather"
 
 
+def test_older_session_without_readings_asks_for_the_file_again(page):
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator(".tp-session-head")).to_be_visible()
+    # A new session carries the current version, so it has no note.
+    page.goto("/track.html?s=new1")
+    expect(page.locator(".tp-session-head")).to_be_visible()
+    assert fake.sessions["new1"]["analysisVersion"] >= 2
+    expect(page.locator("#tp-old-version")).to_have_count(0)
+    # Timed with older code and no readings kept: only uploading again updates it.
+    fake.sessions["new1"].pop("analysisVersion")
+    fake.sessions["new1"]["hasSource"] = False
+    page.goto("/track.html?s=new1")
+    expect(page.locator("#tp-old-version")).to_contain_text("Upload the file again to update the times")
+    # With readings kept the admin's Re-time sessions can fix it, so no note.
+    fake.sessions["new1"]["hasSource"] = True
+    page.goto("/track.html?s=new1")
+    expect(page.locator(".tp-session-head")).to_be_visible()
+    expect(page.locator("#tp-old-version")).to_have_count(0)
+
+
 def test_csv_with_unknown_columns_asks_which_is_which(page):
     # The same laps as a CSV with columns we don't recognise.
     lines = FIXTURE.read_text(encoding="latin-1").splitlines()

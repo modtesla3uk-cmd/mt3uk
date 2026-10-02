@@ -122,7 +122,7 @@ ok(su.laps.length === 2 && near(su.bestTime, 99.786, 0.05) && su.startLineFromMe
   ok(times.every(x => x > 0 && Math.abs(x - times[0]) < 0.1), 'the run time does not depend on where the start marker is within 40 m of the launch (' + times.map(x => x.toFixed(2)).join(', ') + ' s)');
 }
 
-// Drag runs: 0 to 30 mph, and the 1 ft rollout (the clock starts at about 4 mph, a little after the first movement).
+// Drag runs: 0 to 30 mph, and the 1 ft rollout (the clock starts a little after the first movement).
 {
   const lat0 = 51.7, lng0 = -1.3, rows = [];
   let tt = 0;

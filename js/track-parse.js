@@ -23,7 +23,8 @@
   // so the admin's Re-time sessions knows which are out of date (none recorded means 1).
   // 2: GPX Start waypoint, drag clock matched to RaceBox with the rollout on, out lap not numbered.
   // 3: each lap keeps the car's own figures for that lap (Track Mode files).
-  var ANALYSIS_VERSION = 3;
+  // 4: the battery start and end keep two decimals, so rounding to a whole percent happens once (60.48 shows as 60, not 61).
+  var ANALYSIS_VERSION = 4;
   var DEG = Math.PI / 180;
 
   function num(s) {
@@ -427,6 +428,110 @@
     return out;
   }
 
+
+  // ---------- Two files from one session ----------
+  // A lap timer (RaceBox, Racelogic) times and places the laps best; Track Mode has the car's own channels. Given both
+  // readings of the same session, line them up by their speed traces and carry the car's channels onto the timed
+  // readings, so the laps stay the lap timer's and each lap gets the car's figures.
+
+  // Speed at evenly spaced times (km/h), by linear interpolation. t0 is the first time, step in seconds.
+  function speedGrid(pts, step) {
+    var t0 = pts[0].t, n = Math.floor((pts[pts.length - 1].t - t0) / step) + 1, out = new Array(n), j = 0;
+    for (var i = 0; i < n; i++) {
+      var t = t0 + i * step;
+      while (j < pts.length - 2 && pts[j + 1].t < t) j++;
+      var a = pts[j], b = pts[j + 1] || a, f = b.t > a.t ? (t - a.t) / (b.t - a.t) : 0;
+      f = Math.max(0, Math.min(1, f));
+      out[i] = (isFinite(a.v) ? a.v : 0) + ((isFinite(b.v) ? b.v : 0) - (isFinite(a.v) ? a.v : 0)) * f;
+    }
+    return { t0: t0, step: step, v: out };
+  }
+  // Correlation of A(t) with B(t - shift) over the time both cover; null when they overlap too little or are flat.
+  function corrAt(A, B, shift, minOverlap) {
+    var k = Math.round(shift / A.step), i0 = Math.max(0, k), i1 = Math.min(A.v.length, k + B.v.length);
+    var n = i1 - i0;
+    if (n * A.step < minOverlap) return null;
+    var sa = 0, sb = 0, i;
+    for (i = i0; i < i1; i++) { sa += A.v[i]; sb += B.v[i - k]; }
+    var ma = sa / n, mb = sb / n, saa = 0, sbb = 0, sab = 0;
+    for (i = i0; i < i1; i++) { var da = A.v[i] - ma, db = B.v[i - k] - mb; saa += da * da; sbb += db * db; sab += da * db; }
+    if (saa / n < 25 || sbb / n < 25) return null; // a speed spread under 5 km/h: nothing to match
+    return sab / Math.sqrt(saa * sbb);
+  }
+  // Where the car file starts on the timed file's clock (seconds), found from the two speed traces. Returns
+  // { shift, corr, second, overlap } or null. second is the best match more than 10 s away from the chosen one: a
+  // match is only trusted when it clearly stands out from that.
+  function alignSpeeds(timed, car) {
+    if (timed.length < 20 || car.length < 20) return null;
+    var A = speedGrid(timed, 1), B = speedGrid(car, 1);
+    var dA = A.v.length, dB = B.v.length, minOver = Math.min(60, Math.min(dA, dB) * 0.5);
+    var best = null, scores = [];
+    for (var k = -(dB - 1); k < dA; k++) {
+      var c = corrAt(A, B, k, minOver);
+      if (c === null) continue;
+      scores.push([k, c]);
+      if (!best || c > best.c) best = { k: k, c: c };
+    }
+    if (!best) return null;
+    var second = -1;
+    scores.forEach(function (x) { if (Math.abs(x[0] - best.k) > 10 && x[1] > second) second = x[1]; });
+    // Refine to a tenth of a second around the whole-second best.
+    var A2 = speedGrid(timed, 0.1), B2 = speedGrid(car, 0.1), fine = { s: best.k, c: best.c };
+    for (var s = best.k - 1.5; s <= best.k + 1.5; s += 0.1) {
+      var c2 = corrAt(A2, B2, s, minOver);
+      if (c2 !== null && c2 > fine.c - 1e-9 && c2 >= fine.c) fine = { s: s, c: c2 };
+    }
+    // The car's t = 0 sits at timed time timed[0].t + shift - car[0].t, on the timed clock.
+    return { shift: (timed[0].t - car[0].t) + fine.s, corr: fine.c, second: second, overlap: Math.min(dA, dB) };
+  }
+  // The timed reading with the car's channels on it, or { reason } when the two do not line up reliably.
+  function mergeSources(timed, car) {
+    var carPts = car.points.filter(function (p) { return p.ch; });
+    if (!carPts.length) return { reason: 'The second file has no car data.' };
+    if (timed.points.some(function (p) { return p.ch; })) return { reason: 'The first file already has car data.' };
+    var m = alignSpeeds(timed.points, car.points);
+    if (!m) return { reason: 'There is not enough movement in both files to line them up.' };
+    var margin = m.corr - Math.max(m.second, 0);
+    if (m.corr < 0.9 || margin < 0.03) return { reason: 'The two files do not line up reliably (match ' + m.corr.toFixed(2) + ').', corr: m.corr };
+    // The places must agree too: the car's GPS is coarser, so allow for that.
+    var ds = [];
+    for (var i = 0; i < timed.points.length; i += Math.max(1, Math.floor(timed.points.length / 60))) {
+      var tp = timed.points[i], tc = tp.t - m.shift, lo = 0, hi = car.points.length - 1;
+      if (tc < car.points[0].t || tc > car.points[hi].t) continue;
+      while (lo < hi) { var mid = (lo + hi) >> 1; if (car.points[mid].t < tc) lo = mid + 1; else hi = mid; }
+      ds.push(haversine(tp, car.points[lo]));
+    }
+    ds.sort(function (a, b) { return a - b; });
+    if (ds.length >= 5 && ds[ds.length >> 1] > 150) return { reason: 'The two files are not in the same place.', corr: m.corr };
+    // Where the timed file only has speed and g-force worked out from GPS positions (a GPX has no speed of its own),
+    // the car's own readings are better: its g-forces come from a sensor, not from differences of noisy positions.
+    var useSpeed = !!timed.speedDerived && !car.speedDerived && car.points.some(function (p) { return isFinite(p.v); });
+    var useG = !!timed.gDerived && !car.gDerived && car.points.some(function (p) { return isFinite(p.la) && isFinite(p.lo); });
+    var pts = timed.points.map(function (p) {
+      var tc = p.t - m.shift, q = Object.assign({}, p);
+      if (tc < car.points[0].t - 0.5 || tc > car.points[car.points.length - 1].t + 0.5) return q;
+      var lo = 0, hi = car.points.length - 1;
+      while (lo < hi) { var mid2 = (lo + hi) >> 1; if (car.points[mid2].t < tc) lo = mid2 + 1; else hi = mid2; }
+      var b = car.points[lo], a = car.points[Math.max(0, lo - 1)], f = b.t > a.t ? Math.max(0, Math.min(1, (tc - a.t) / (b.t - a.t))) : 0;
+      function mix(x, y) { return isFinite(x) && isFinite(y) ? x + (y - x) * f : isFinite(y) ? y : x; }
+      if (useSpeed) q.v = mix(a.v, b.v);
+      if (useG) { q.la = mix(a.la, b.la); q.lo = mix(a.lo, b.lo); }
+      if (!a.ch || !b.ch) { if (b.ch) q.ch = Object.assign({}, b.ch); else if (a.ch) q.ch = Object.assign({}, a.ch); return q; }
+      var ch = {};
+      Object.keys(b.ch).forEach(function (k) {
+        var x = a.ch[k], y = b.ch[k];
+        ch[k] = isFinite(x) && isFinite(y) ? x + (y - x) * f : y;
+      });
+      q.ch = ch;
+      return q;
+    });
+    var out = Object.assign({}, timed, { points: pts });
+    out.carSource = { shift: round(m.shift, 2), match: round(m.corr, 3) };
+    if (useSpeed) { out.speedDerived = false; out.carSource.speed = true; }
+    if (useG) { out.gDerived = false; out.carSource.g = true; }
+    return { rd: out, shift: m.shift, corr: m.corr };
+  }
+
   // A date (and time) in the file name, for files with none inside, such as
   // Tesla Track Mode's telemetry-v1-2024-03-29-15_39_08.csv. Taken as UK
   // local time.
@@ -755,6 +860,8 @@
       if (cdata.runs.length < 2) delete cdata.runs;
     }
     if (cdata) session.carData = cdata;
+    // Joined from a lap timer file and a Track Mode file: which, and how well they lined up.
+    if (rd.carSource) session.carSource = rd.carSource;
     session.duration = round(pts[pts.length - 1].t, 1);
     session.distance = Math.round(pts[pts.length - 1].d);
     // A loop, not Math.max.apply: a day of files can be well over 100,000
@@ -1293,7 +1400,7 @@
     function pct(a) { return a.max <= 1.5 ? 100 : 1; }
     function on(k, label) { if (!st[k]) return null; if (!st[k].nz && st[k].min === st[k].max) { out.empty.push(label); return null; } out.found.push(label); return st[k]; }
     var a;
-    if ((a = on('soc', 'State of charge'))) out.soc = { start: round(a.first, 1), end: round(a.last, 1) };
+    if ((a = on('soc', 'State of charge'))) out.soc = { start: round(a.first, 2), end: round(a.last, 2) };
     if ((a = on('pwr', 'Power'))) {
       out.power = { max: round(Math.max(0, a.max), 0), regen: round(Math.max(0, -a.min), 0) };
       if (early > 0 && late > 0) { out.power.early = round(early, 0); out.power.late = round(late, 0); }
@@ -1337,7 +1444,7 @@
   var api = {
     read: read, combine: combine, dateFromName: dateFromName, analyse: analyse, sessionNotes: sessionNotes, trendNotes: trendNotes, isTrackPart: isTrackPart, modImpact: modImpact, carData: carData, fileChannels: fileChannels, cornerGains: cornerGains,
     traceAt: traceAt, findCorners: findCorners, mergeLibrary: mergeLibrary, fmtLap: fmtLap, niceDate: niceDate, ukDate: ukDate, ukTime: ukTime,
-    haversine: haversine, outline: outline, projector: projector, dragRuns: dragRuns, KMH_PER_MPH: KMH_PER_MPH, ANALYSIS_VERSION: ANALYSIS_VERSION
+    mergeSources: mergeSources, alignSpeeds: alignSpeeds, haversine: haversine, outline: outline, projector: projector, dragRuns: dragRuns, KMH_PER_MPH: KMH_PER_MPH, ANALYSIS_VERSION: ANALYSIS_VERSION
   };
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.MT3UKTrack = api;

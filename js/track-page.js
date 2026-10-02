@@ -639,6 +639,13 @@
       showHome();
     });
   });
+  // Two files from one session (a lap timer's and the car's): join them, or save them separately.
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('#tp-merge-toggle');
+    if (!b || !add || !add.files) return;
+    add.mergeOff = !add.mergeOff;
+    parseFile();
+  });
   // Choosing a lap changes the figures: the tiles and the Track Mode card follow it.
   document.addEventListener('change', function (e) {
     var sel = e.target.closest && e.target.closest('#tp-lap-pick');
@@ -754,17 +761,18 @@
   // least one file worked.
   function fileBox() {
     var a = add, list = a.list || a.files.map(function (f) { return { f: f }; });
-    var used = list.filter(function (x) { return x.rd; }).length, skipped = list.length - used;
+    var used = list.filter(function (x) { return x.rd && !x.mergedInto; }).length, skipped = list.filter(function (x) { return x.reason; }).length;
     var head = list.length > 1 ? '<b>' + list.length + ' files' + (skipped && a.list ? ' (' + skipped + ' skipped)' : '') + '</b>' : '';
     var items = list.map(function (x) {
       var w = x.rd ? fileWhen(x.rd) : '';
-      return '<li' + (x.reason ? ' class="is-skipped"' : '') + '><b>' + esc(x.f.name) + '</b>' + (w ? '<span class="tp-file-when">' + esc(w) + '</span>' : '') + (x.rebuilt ? '<span class="tp-file-when">No time stamps in this file (the car\'s timer was not running): its times are worked out from the speed and the GPS path.</span>' : '') + (x.reason ? '<span class="tp-file-skip">Skipped: ' + esc(x.reason) + '</span>' : '') + '</li>';
+      return '<li' + (x.reason ? ' class="is-skipped"' : '') + '><b>' + esc(x.f.name) + '</b>' + (w ? '<span class="tp-file-when">' + esc(w) + '</span>' : '') + (x.rebuilt ? '<span class="tp-file-when">No time stamps in this file (the car\'s timer was not running): its times are worked out from the speed and the GPS path.</span>' : '') + (x.mergedInto ? '<span class="tp-file-when">Car data added to the session from ' + esc(x.mergedInto) + '.</span>' : '') + (x.merged ? '<span class="tp-file-when">With the car data from ' + esc(x.merged.name) + ' (lined up, match ' + x.merged.match.toFixed(2) + ').</span>' : '') + (x.noMerge && x.rd ? '<span class="tp-file-when">Saved on its own: ' + esc(x.noMerge) + '</span>' : '') + (x.reason ? '<span class="tp-file-skip">Skipped: ' + esc(x.reason) + '</span>' : '') + '</li>';
     }).join('');
     var meta = a.rd ? fileMeta() : '';
     // Several files are saved as one session each, not merged.
     if (used > 1 && !a.replaceId) meta = used + ' files: each is saved as its own session, grouped by day.' + (meta ? ' ' + meta : '');
+    var joinBtn = a.canMerge ? '<button type="button" class="btn btn-secondary btn-sm" id="tp-merge-toggle">' + (a.mergeOff ? 'Join the lap timer and car files' : 'Save the files separately instead') + '</button>' : '';
     var mark = a.rd ? 'check' : a.pending ? 'info' : 'warn';
-    return '<div class="tp-file' + (a.rd ? '' : a.pending ? '' : ' is-bad') + '">' + icon(mark) + '<div>' + head + '<ul class="tp-file-list">' + items + '</ul>' + (meta ? '<span>' + esc(meta) + '</span>' : '') + '</div></div>';
+    return '<div class="tp-file' + (a.rd ? '' : a.pending ? '' : ' is-bad') + '">' + icon(mark) + '<div>' + head + '<ul class="tp-file-list">' + items + '</ul>' + (meta ? '<span>' + esc(meta) + '</span>' : '') + joinBtn + '</div></div>';
   }
   // Each file's date and start time, and where they came from.
   var WHEN_FROM = { file: 'recorded in the file', name: 'from the file name', saved: 'from when the file was saved' };
@@ -847,9 +855,35 @@
       }
       good.forEach(function (x, i) { x.i = i; });
       good.sort(function (x, y) { return x.k - y.k || x.i - y.i; });
+      // A lap timer's file and a Track Mode file from the same session: line them up by their speed and keep one
+      // session, timed by the lap timer and with the car's figures. A car file that will not line up reliably is
+      // saved on its own, and says why.
+      var carFiles = good.filter(function (x) { return x.rd.format === 'CSV' && x.rd.points.some(function (p) { return p.ch; }); });
+      var timerFiles = good.filter(function (x) { return carFiles.indexOf(x) === -1; });
+      var joined = [];
+      if (carFiles.length && timerFiles.length) {
+        carFiles.forEach(function (c) {
+          var bestM = null;
+          timerFiles.forEach(function (t) {
+            if (t.merged) return;
+            var r = T.mergeSources(t.rd, c.rd);
+            if (r.rd && (!bestM || r.corr > bestM.r.corr)) bestM = { t: t, r: r };
+            else if (!r.rd && !c.noMerge) c.noMerge = r.reason;
+          });
+          if (bestM && !a.mergeOff) {
+            bestM.t.rd = Object.assign({}, bestM.r.rd, { carSource: Object.assign({}, bestM.r.rd.carSource, { name: c.f.name }) });
+            bestM.t.merged = { name: c.f.name, shift: bestM.r.shift, match: bestM.r.corr };
+            c.mergedInto = bestM.t.f.name;
+            joined.push(c);
+          } else if (bestM) c.noMerge = 'Joining is switched off.';
+          else if (!c.noMerge) c.noMerge = 'It did not line up with the other file.';
+        });
+        good = good.filter(function (x) { return joined.indexOf(x) === -1; });
+      }
+      a.canMerge = carFiles.length > 0 && timerFiles.length > 0;
       var rds = good.map(function (x) { return x.rd; });
       a.rd = T.combine(rds);
-      a.list = good.concat(bad);
+      a.list = good.concat(joined, bad);
       analyse();
     } catch (e) {
       a.list = null; a.rd = null; a.session = null;
@@ -1380,11 +1414,11 @@
   // Several files: each is timed on its own and saved as its own session, with the settings chosen
   // above. A file that gives no laps or runs is left out and listed.
   function saveBatch(a, carId) {
-    var items = (a.list || []).filter(function (x) { return x.rd; }), opts = analysisOpts(a), made = [], skipped = [], siblingLine = null;
+    var items = (a.list || []).filter(function (x) { return x.rd && !x.mergedInto; }), opts = analysisOpts(a), made = [], skipped = [], siblingLine = null;
     // Files with real time stamps first: a file the car wrote with no time stamps may have no start line of its own,
     // so it borrows the one found on the files from the same upload.
     var ordered = items.filter(function (x) { return !x.rd.timeRebuilt; }).concat(items.filter(function (x) { return x.rd.timeRebuilt; }));
-    function hasLaps(s1) { return s1.type === 'drag' ? !!(s1.runs && s1.runs.length) : !!(s1.laps && s1.laps.length); }
+    function hasLaps(s1) { return s1.type === 'drag' ? !!(s1.runs && s1.runs.length) : s1.type === 'other' ? s1.distance > 0 : !!(s1.laps && s1.laps.length); }
     var chain = Promise.resolve();
     ordered.forEach(function (x) {
       chain = chain.then(function () {
@@ -1397,7 +1431,7 @@
         }
         if (drive ? !(s1.distance > 0) : (!hasLaps(s1) || s1.needsStartLine)) { skipped.push({ name: x.f.name, reason: s1.problem || (s1.type === 'drag' ? 'No drag run found.' : 'No laps were found.') }); return; }
         if (!x.rd.timeRebuilt && !siblingLine && s1.startLine) siblingLine = s1.startLine;
-        s1.fileName = String(x.f.name || '').slice(0, 200);
+        s1.fileName = String(x.f.name + (x.merged ? ', ' + x.merged.name : '')).slice(0, 200);
         if (!drive && !s1.venueId && a.venueName) s1.venueName = a.venueName;
         var body = postBody(a, carId, s1);
         if (drive) { body.privacy = 'private'; body.venueName = ''; }
@@ -1439,12 +1473,12 @@
         api('POST', '/track/requests', { kind: s.type === 'sprint' ? 'sprint' : 'circuit', name: a.venueName || s.venue || '', venueId: s.venueId || '', layoutId: ownLine ? s.layoutId : '', organizer: s.type === 'sprint' ? (a.organizer || s.organizer || '') : '', startLine: s.startLine, finishLine: s.finishLine || null, lapLength: lap ? lap[lap.length - 1][0] : null, outline: out, note: s.type === 'sprint' ? (s.venueId ? 'Course not recognised' : 'New sprint or hill climb') : s.venueId ? 'Layout not recognised' : 'New track' }).catch(function () {});
       }
       if (a.replaceId) return api('PUT', '/track/session', { id: a.replaceId, session: s, venueName: a.venueName || '' }, true);
-      if ((a.list || []).filter(function (x) { return x.rd; }).length > 1) return saveBatch(a, carId);
+      if ((a.list || []).filter(function (x) { return x.rd && !x.mergedInto; }).length > 1) return saveBatch(a, carId);
       return api('POST', '/track/sessions', postBody(a, carId, s), true);
     }).then(function (d) {
       if (!d.success) throw new Error(d.message || 'Could not save the session.');
       mine = null; counts = null;
-      if (d.batch) { justSaved = { batch: d.batch, skipped: d.skipped || [] }; go(''); return; }
+      if (d.batch) { justSaved = { batch: d.batch, skipped: d.skipped || [], joined: (a.list || []).filter(function (x) { return x.merged; }).length }; go(''); return; }
       justSaved = { files: (a.files || []).length || 1 };
       if (a.replaceId) { go('s=' + d.session.id); return; }
       // Keep the readings with the session, so its type can be changed later.
@@ -1557,7 +1591,7 @@
   function savedHtml(j) {
     if (j.text) return '<div class="tp-notice is-ok tp-saved" id="tp-saved" role="status">' + icon('check') + '<div><b>Done</b><br>' + esc(j.text) + '</div><button type="button" class="tp-saved-x" id="tp-saved-x" aria-label="Dismiss">' + icon('x') + '</button></div>';
     if (j.batch) {
-      return '<div class="tp-notice is-ok tp-saved" id="tp-saved" role="status">' + icon('check') + '<div><b>Saved</b><br>' + (j.split ? 'Split into ' : '') + j.batch + ' session' + (j.batch === 1 ? '' : 's') + (j.split ? '.' : ' saved, one for each file.') + ' They are grouped by day below.' +
+      return '<div class="tp-notice is-ok tp-saved" id="tp-saved" role="status">' + icon('check') + '<div><b>Saved</b><br>' + (j.split ? 'Split into ' : '') + j.batch + ' session' + (j.batch === 1 ? '' : 's') + (j.split ? '.' : (j.joined ? ' saved. ' + j.joined + (j.joined === 1 ? ' has' : ' have') + ' the car\'s Track Mode data joined on.' : ' saved, one for each file.')) + ' They are grouped by day below.' +
         (j.skipped && j.skipped.length ? '<br><span class="tp-small">' + j.skipped.length + ' file' + (j.skipped.length === 1 ? ' was' : 's were') + ' not saved: ' + esc(j.skipped.map(function (x) { return x.name + ' (' + x.reason + ')'; }).join('; ')) + '</span>' : '') + '</div>' +
         '<button type="button" class="tp-saved-x" id="tp-saved-x" aria-label="Dismiss">' + icon('x') + '</button></div>';
     }
@@ -1655,6 +1689,7 @@
       : picked ? cap(word) + ' ' + picked.run + ' of ' + runs.length + ', ' + niceDate(s.date)
       : runs ? 'The whole day, all ' + runs.length + ' ' + word + 's, ' + niceDate(s.date)
       : 'This ' + word + ', ' + niceDate(s.date) + (s.time ? ' at ' + s.time : '');
+    if (s.carSource && s.carSource.name) from += '. The car\'s figures come from ' + s.carSource.name + ', lined up with the lap timer file' + (s.carSource.match ? ' (match ' + Number(s.carSource.match).toFixed(2) + ')' : '') + (s.carSource.g ? '. Speed and g-forces are the car\'s own, not worked out from GPS' : '') + '.';
     var t = [], pct = function (n) { return Math.round(n) + '%'; };
     if (c.soc) t.push(['Charge used', Math.round(c.soc.start - c.soc.end) + '%', 'Of the battery, ' + c.soc.start.toFixed(0) + '% to ' + c.soc.end.toFixed(0) + '%']);
     if (c.power) t.push(['Peak power', Math.round(c.power.max) + ' kW', c.power.regen ? 'Regeneration up to ' + Math.round(c.power.regen) + ' kW' : '']);

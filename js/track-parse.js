@@ -803,24 +803,32 @@
       climb = !!(pairs.length && runLen && sep > 0.6 * runLen);
       // Only a run that crosses the finish more than once has a crossing to skip, so this
       // is safe on a point-to-point course too (whatever the course looks like from its size).
-      if (opts.ignoreFirstFinish && !fc) {
-        // The first finish crossing after each start is the one skipped (when
-        // that run crosses the finish line more than once), run by run.
-        var by = {};
-        fi.forEach(function (f) {
-          var from = -Infinity;
-          st.forEach(function (x) { if (x.t < f.t && x.t > from) from = x.t; });
-          var key = pts[f.i].run + ':' + from;
-          (by[key] = by[key] || []).push(f);
-        });
-        var kept = fi.filter(function (f) {
-          var from = -Infinity;
-          st.forEach(function (x) { if (x.t < f.t && x.t > from) from = x.t; });
-          var g = by[pts[f.i].run + ':' + from];
-          return g.length < 2 || g[0] !== f;
-        });
-        skipped = fi.length - kept.length;
-        if (skipped) pairs = pairUp(kept);
+      var stopsIn = fc ? [] : standstills(pts);
+      if (!fc && (opts.ignoreFirstFinish || stopsIn.length)) {
+        // Between stops the car is on one run. A run starts when the car crosses the start line (the
+        // first crossing after the last run ended) and ends on the first finish crossing after that, or
+        // the second when the first is skipped. A loop that passes the start again is still that run.
+        var stopAt = stopsIn, skipPairs = [], lastSkipEnd = -Infinity;
+        if (stopAt.length) {
+          st.forEach(function (x) {
+            if (x.t <= lastSkipEnd) return;
+            var until = Infinity;
+            for (var si = 0; si < stopAt.length; si++) { if (stopAt[si] > x.t + 3) { until = stopAt[si]; break; } }
+            var after = fi.filter(function (f) { return f.t > x.t + 3 && f.t < until && f.t - x.t < 900 && pts[f.i].run === pts[x.i].run; });
+            if (!after.length) return;
+            var end = opts.ignoreFirstFinish && after.length >= 2 ? after[1] : after[0];
+            if (opts.ignoreFirstFinish && after.length >= 2) skipped++;
+            skipPairs.push([x, end]); lastSkipEnd = end.t;
+          });
+          if (skipPairs.length) pairs = skipPairs;
+        } else {
+          // No stops in the file: the first finish after each start, run by run.
+          var by = {}, startOf = function (f) { var from = -Infinity; st.forEach(function (x) { if (x.t < f.t && x.t > from) from = x.t; }); return pts[f.i].run + ':' + from; };
+          fi.forEach(function (f) { var key = startOf(f); (by[key] = by[key] || []).push(f); });
+          var kept = fi.filter(function (f) { var g = by[startOf(f)]; return g.length < 2 || g[0] !== f; });
+          skipped = fi.length - kept.length;
+          if (skipped) pairs = pairUp(kept);
+        }
       }
       if (pairs.length && (!pick || pairs.length > pick.pairs.length)) pick = { c: c, pairs: pairs, skipped: skipped, climb: climb };
     }
@@ -910,6 +918,17 @@
       if (!best || score > best.score) best = { line: line, cr: cr, score: score };
     }
     return best;
+  }
+
+  // The times the car came to a stop (under 5 km/h for 3 s or more): the gaps between runs.
+  function standstills(pts) {
+    var out = [], from = -1;
+    for (var i = 0; i < pts.length; i++) {
+      if (pts[i].v < 5) { if (from < 0) from = i; }
+      else if (from >= 0) { if (pts[i - 1].t - pts[from].t >= 3) out.push(pts[from].t); from = -1; }
+    }
+    if (from >= 0 && pts[pts.length - 1].t - pts[from].t >= 3) out.push(pts[from].t);
+    return out;
   }
 
   function prepare(pts, proj) {

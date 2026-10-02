@@ -135,6 +135,22 @@ ok(su.laps.length === 2 && near(su.bestTime, 99.786, 0.05) && su.startLineFromMe
     ok(off.laps.length === 2 && on.laps.length === 2, 'out and back: two runs either way ' + off.laps.length + '/' + on.laps.length + ' ' + (off.problem || '') + ' ' + JSON.stringify(l0) + ' ' + base.length)
     ok(on.firstFinishIgnored === 2 && on.bestTime > off.bestTime + 20, 'ignoring the first finish crossing ends each run on its second crossing (' + off.bestTime + ' to ' + on.bestTime + ')');
   }
+  // A sprint on a loop: the start line is on the lap, so it is crossed again part way through a run.
+  // Each run is still one run (start, then the second finish crossing), not one per lap.
+  {
+    const rd0 = T.read(vbo, 'f.vbo'), lap = rd0.points.slice(0, 2400);
+    let t = 0;
+    const mk = (src, v) => src.map(q => Object.assign({}, q, { v: v, t: (t += 0.1) }));
+    const run = () => mk(lap, 100).concat(mk(lap, 100));
+    const pts3 = run().concat(mk(Array(60).fill(lap[lap.length - 1]), 0), run());
+    const rdx = Object.assign({}, rd0, { points: pts3 });
+    const mid = i => { const a = lap[i], b = lap[i + 4]; const dx = b.lng - a.lng, dy = b.lat - a.lat, L = Math.hypot(dx, dy) || 1; return [[a.lat + dx / L * 0.0001, a.lng - dy / L * 0.0001], [a.lat - dx / L * 0.0001, a.lng + dy / L * 0.0001]]; };
+    const l0 = mid(100), l1 = mid(900);
+    const off = T.analyse(rdx, { venues: [] }, { type: 'sprint', startLine: l0, finishLine: l1 });
+    const on = T.analyse(rdx, { venues: [] }, { type: 'sprint', startLine: l0, finishLine: l1, ignoreFirstFinish: true });
+    ok(off.laps.length === 4, 'on a loop with no skipping each lap is a run (' + off.laps.length + ')');
+    ok(on.laps.length === 2 && on.firstFinishIgnored === 2 && on.bestTime > off.bestTime + 20, 'with the first finish skipped there are two runs, each from the start to the second finish (' + on.laps.length + ' runs, ' + on.bestTime + ' s against ' + off.bestTime + ' s)');
+  }
   // The member can choose which crossing of the finish line ends a run.
   const f1 = T.analyse(T.read(vbo, 'f.vbo'), loopLib, { finishCrossing: 1 }), f9 = T.analyse(T.read(vbo, 'f.vbo'), loopLib, { finishCrossing: 9 });
   ok(f1.laps.length === 2 && f1.finishCrossing === 1 && near(f1.bestTime, lp.bestTime, 0.01), 'crossing 1 ends each run on the first finish crossing');

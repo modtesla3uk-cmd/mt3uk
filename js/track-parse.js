@@ -808,19 +808,44 @@
         // Between stops the car is on one run. A run starts when the car crosses the start line (the
         // first crossing after the last run ended) and ends on the first finish crossing after that, or
         // the second when the first is skipped. A loop that passes the start again is still that run.
-        var stopAt = stopsIn, skipPairs = [], lastSkipEnd = -Infinity;
+        var stopAt = stopsIn, skipPairs = [];
         if (stopAt.length) {
-          st.forEach(function (x) {
-            if (x.t <= lastSkipEnd) return;
-            var until = Infinity;
-            for (var si = 0; si < stopAt.length; si++) { if (stopAt[si] > x.t + 3) { until = stopAt[si]; break; } }
-            var after = fi.filter(function (f) { return f.t > x.t + 3 && f.t < until && f.t - x.t < 900 && pts[f.i].run === pts[x.i].run; });
-            if (!after.length) return;
-            var end = opts.ignoreFirstFinish && after.length >= 2 ? after[1] : after[0];
-            if (opts.ignoreFirstFinish && after.length >= 2) skipped++;
-            skipPairs.push([x, end]); lastSkipEnd = end.t;
+          // Each stretch between two stops is one possible run: it starts at the first start crossing
+          // in it (the launch) and ends on the finish crossing after that.
+          var edges = [[-Infinity, stopAt[0][0]]];
+          for (var si = 0; si < stopAt.length; si++) edges.push([stopAt[si][1], si + 1 < stopAt.length ? stopAt[si + 1][0] : Infinity]);
+          // Start line as a segment in metres, to tell whether the launch happened at it.
+          var sa = proj.xy(c.start[0][0], c.start[0][1]), sb = proj.xy(c.start[1][0], c.start[1][1]);
+          function nearStart(p) {
+            var vx = sb[0] - sa[0], vy = sb[1] - sa[1], L2 = vx * vx + vy * vy || 1;
+            var u = Math.max(0, Math.min(1, ((p.x - sa[0]) * vx + (p.y - sa[1]) * vy) / L2));
+            return Math.hypot(p.x - (sa[0] + u * vx), p.y - (sa[1] + u * vy)) <= 25;
+          }
+          edges.forEach(function (seg, ei) {
+            // A run starts at the launch (the car moving off after a stop). The start line counts when it
+            // is crossed within a few seconds of that, or when the car launched from right at it, so the
+            // exact place the line was drawn does not change the result. Back-to-back runs with no stop
+            // between them each count after that.
+            var cursor = seg[0] - 2.5, first = true;
+            for (var guard = 0; guard < 50; guard++) {
+              var x = st.filter(function (cr) { return cr.t > cursor && cr.t < seg[1]; })[0];
+              if (first && ei > 0) {
+                var launchIdx = 0;
+                while (launchIdx < pts.length - 1 && pts[launchIdx].t < seg[0]) launchIdx++;
+                if (x && x.t > seg[0] + 25) x = null;
+                if (!x && nearStart(pts[launchIdx])) x = { i: launchIdx, t: seg[0], d: pts[launchIdx].d };
+              }
+              first = false;
+              if (!x) break;
+              var after = fi.filter(function (f) { return f.t > x.t + 3 && f.t < seg[1] && f.t - x.t < 900 && pts[f.i].run === pts[x.i].run; });
+              if (!after.length) { cursor = x.t; continue; }
+              var end = opts.ignoreFirstFinish && after.length >= 2 ? after[1] : after[0];
+              if (opts.ignoreFirstFinish && after.length >= 2) skipped++;
+              skipPairs.push([x, end]);
+              cursor = end.t;
+            }
           });
-          if (skipPairs.length) pairs = skipPairs;
+          pairs = skipPairs;
         } else {
           // No stops in the file: the first finish after each start, run by run.
           var by = {}, startOf = function (f) { var from = -Infinity; st.forEach(function (x) { if (x.t < f.t && x.t > from) from = x.t; }); return pts[f.i].run + ':' + from; };
@@ -920,14 +945,14 @@
     return best;
   }
 
-  // The times the car came to a stop (under 5 km/h for 3 s or more): the gaps between runs.
+  // When the car stood still (under 5 km/h for 3 s or more), as [from, to] times: the gaps between runs.
   function standstills(pts) {
     var out = [], from = -1;
     for (var i = 0; i < pts.length; i++) {
       if (pts[i].v < 5) { if (from < 0) from = i; }
-      else if (from >= 0) { if (pts[i - 1].t - pts[from].t >= 3) out.push(pts[from].t); from = -1; }
+      else if (from >= 0) { if (pts[i - 1].t - pts[from].t >= 3) out.push([pts[from].t, pts[i - 1].t]); from = -1; }
     }
-    if (from >= 0 && pts[pts.length - 1].t - pts[from].t >= 3) out.push(pts[from].t);
+    if (from >= 0 && pts[pts.length - 1].t - pts[from].t >= 3) out.push([pts[from].t, pts[pts.length - 1].t]);
     return out;
   }
 

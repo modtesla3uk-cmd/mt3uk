@@ -120,36 +120,28 @@ ok(su.laps.length === 2 && near(su.bestTime, 99.786, 0.05) && su.startLineFromMe
   const lp = T.analyse(T.read(vbo, 'f.vbo'), loopLib), lk = T.analyse(T.read(vbo, 'f.vbo'), loopLib, { ignoreFirstFinish: true });
   ok(lp.laps.length === 2 && !lp.pointToPoint, 'a loop sprint times both runs by default');
   ok(lk.laps.length === 2 && lk.firstFinishIgnored === undefined, 'a run that crosses the finish line once keeps it, even when asked to ignore the first crossing');
-  // Out and back: each run crosses the finish line twice. Ignoring the first crossing ends every run on the second one.
+  // A sprint on a loop: the start line is on the lap, so the car crosses it again part way through a run.
+  // A run starts at the launch and ends on the second finish crossing, however the line was placed.
   {
-    const rd0 = T.read(vbo, 'f.vbo'), base = rd0.points.slice(0, 2400);
-    const there = base.concat(base.slice().reverse());
+    const R = 200, lat0 = 51.5, lng0 = -1.0, kLng = 111320 * Math.cos(lat0 * Math.PI / 180);
+    const at = th => ({ lat: lat0 + R * Math.sin(th) / 110540, lng: lng0 + R * Math.cos(th) / kLng });
+    const lineAt = th => { const p = at(th), n = 12; return [[p.lat + n * Math.sin(th) / 110540, p.lng + n * Math.cos(th) / kLng], [p.lat - n * Math.sin(th) / 110540, p.lng - n * Math.cos(th) / kLng]]; };
     let t = 0;
-    const mk = (src, v) => src.map(q => Object.assign({}, q, { v: v, t: (t += 0.1) }));
-    const pts2 = mk(there, 100).concat(mk(Array(60).fill(there[there.length - 1]), 0), mk(there, 100));
-    const rdx = Object.assign({}, rd0, { points: pts2 });
-    const mid = i => { const a = base[i], b = base[i + 4]; const dx = b.lng - a.lng, dy = b.lat - a.lat, L = Math.hypot(dx, dy) || 1; return [[a.lat + dx / L * 0.0001, a.lng - dy / L * 0.0001], [a.lat - dx / L * 0.0001, a.lng + dy / L * 0.0001]]; };
-    const l0 = mid(100), l1 = mid(900);
-    const off = T.analyse(rdx, { venues: [] }, { type: 'sprint', startLine: l0, finishLine: l1 });
-    const on = T.analyse(rdx, { venues: [] }, { type: 'sprint', startLine: l0, finishLine: l1, ignoreFirstFinish: true });
-    ok(off.laps.length === 2 && on.laps.length === 2, 'out and back: two runs either way ' + off.laps.length + '/' + on.laps.length + ' ' + (off.problem || '') + ' ' + JSON.stringify(l0) + ' ' + base.length)
-    ok(on.firstFinishIgnored === 2 && on.bestTime > off.bestTime + 20, 'ignoring the first finish crossing ends each run on its second crossing (' + off.bestTime + ' to ' + on.bestTime + ')');
-  }
-  // A sprint on a loop: the start line is on the lap, so it is crossed again part way through a run.
-  // Each run is still one run (start, then the second finish crossing), not one per lap.
-  {
-    const rd0 = T.read(vbo, 'f.vbo'), lap = rd0.points.slice(0, 2400);
-    let t = 0;
-    const mk = (src, v) => src.map(q => Object.assign({}, q, { v: v, t: (t += 0.1) }));
-    const run = () => mk(lap, 100).concat(mk(lap, 100));
-    const pts3 = run().concat(mk(Array(60).fill(lap[lap.length - 1]), 0), run());
-    const rdx = Object.assign({}, rd0, { points: pts3 });
-    const mid = i => { const a = lap[i], b = lap[i + 4]; const dx = b.lng - a.lng, dy = b.lat - a.lat, L = Math.hypot(dx, dy) || 1; return [[a.lat + dx / L * 0.0001, a.lng - dy / L * 0.0001], [a.lat - dx / L * 0.0001, a.lng + dy / L * 0.0001]]; };
-    const l0 = mid(100), l1 = mid(900);
-    const off = T.analyse(rdx, { venues: [] }, { type: 'sprint', startLine: l0, finishLine: l1 });
-    const on = T.analyse(rdx, { venues: [] }, { type: 'sprint', startLine: l0, finishLine: l1, ignoreFirstFinish: true });
-    ok(off.laps.length === 4, 'on a loop with no skipping each lap is a run (' + off.laps.length + ')');
-    ok(on.laps.length === 2 && on.firstFinishIgnored === 2 && on.bestTime > off.bestTime + 20, 'with the first finish skipped there are two runs, each from the start to the second finish (' + on.laps.length + ' runs, ' + on.bestTime + ' s against ' + off.bestTime + ' s)');
+    const rows = [], still = (th, secs) => { for (let i = 0; i < secs * 10; i++) rows.push(Object.assign({ v: 0, t: (t += 0.1), sats: 9 }, at(th))); };
+    const drive = laps => { const n = Math.round(laps * 1257 / 30 * 10); for (let i = 1; i <= n; i++) rows.push(Object.assign({ v: 108, t: (t += 0.1), sats: 9 }, at(i / n * laps * 2 * Math.PI))); };
+    still(0, 5); drive(2); still(0, 8); drive(2); still(0, 5);
+    const rdx = Object.assign({}, T.read(vbo, 'f.vbo'), { points: rows, startLine: null, hz: 10 });
+    const S = lineAt(0.02), F = lineAt(Math.PI / 2 + 0.02);
+    const on = T.analyse(rdx, { venues: [] }, { type: 'sprint', startLine: S, finishLine: F, ignoreFirstFinish: true });
+    ok(on.laps.length === 2 && near(on.laps[0].time, 52.4, 1.5) && near(on.laps[1].time, 52.4, 1.5), 'a loop sprint: two runs, each from the launch to the second finish crossing (' + on.laps.map(l => l.time).join(', ') + ')');
+    ok(on.firstFinishIgnored === 2, 'the first finish crossing is skipped on each run');
+    const off = T.analyse(rdx, { venues: [] }, { type: 'sprint', startLine: S, finishLine: F });
+    ok(off.laps.length === 4, 'with no skipping each lap is a run (' + off.laps.length + ')');
+    // Drawn a little either side of where the car launches, the result is the same.
+    for (const th of [-0.03, 0.03, 0.06]) {
+      const moved = T.analyse(rdx, { venues: [] }, { type: 'sprint', startLine: lineAt(th), finishLine: F, ignoreFirstFinish: true });
+      ok(moved.laps.length === 2 && moved.laps[0].time > 45, 'start line moved a little (' + th + ' rad) still gives two runs: ' + moved.laps.map(l => l.time).join(', '));
+    }
   }
   // The member can choose which crossing of the finish line ends a run.
   const f1 = T.analyse(T.read(vbo, 'f.vbo'), loopLib, { finishCrossing: 1 }), f9 = T.analyse(T.read(vbo, 'f.vbo'), loopLib, { finishCrossing: 9 });

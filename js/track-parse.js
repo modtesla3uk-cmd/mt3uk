@@ -243,9 +243,10 @@
     var xc = mapping ? null : extraCols(headers);
     var unit = mapping && mapping.speedUnit ? mapping.speedUnit : (cols.speed >= 0 ? unitFromHeader(headers[cols.speed]) : '');
     var pts = [], startedAt = null, clockDays = 0, prev = null, lapOffset = 0, lastLap = null, step = 0;
-    // Every time stamp the same, in a file that counts milliseconds: Track Mode writes files like this for a drive between
-    // timed sessions. The car logs at a fixed 80 ms step, so the time is the row number times that. Nothing in such a file
-    // can be timed for laps, but its map and car data count.
+    // Every time stamp the same, in a file that counts milliseconds (Track Mode writes files like this when its timer was
+    // not running). The rows are evenly spaced, but the step differs between car software versions (80 ms in some, about
+    // 21 ms in others), so it is worked out from the file: the speed times the step must add up to the distance the GPS
+    // path covers. With no speed to go on it falls back to 80 ms.
     var flat = false, flatN = 0;
     if (/\(ms\)|\[ms\]|\bms\b|millis|msec/.test(headers[cols.time] || '')) {
       var seen = null, same = true, count = 0;
@@ -257,10 +258,11 @@
       }
       flat = same && count >= 10;
     }
+    var flatStep = 80;
     for (var r = hi + 1; r < lines.length; r++) {
       var f = splitCsv(lines[r], delim);
       var tm = parseTime(f[cols.time]);
-      if (flat && isFinite(tm.t)) tm = { t: flatN++ * 80 };
+      if (flat && isFinite(tm.t)) tm = { t: flatN++ };
       var lat = num(f[cols.lat]), lng = num(f[cols.lng]);
       if (!isFinite(tm.t) || !isFinite(lat) || !isFinite(lng) || (lat === 0 && lng === 0)) continue;
       if (Math.abs(lat) > 90 || Math.abs(lng) > 180) { lat /= 60; lng /= 60; }
@@ -294,6 +296,19 @@
       var whole = pts.slice(0, 200).every(function (p) { return p.t === Math.round(p.t); });
       ms = whole && step >= 10 && step <= 1000 && pts[pts.length - 1].t - pts[0].t > 6 * 3600;
     }
+    if (flat) {
+      var toMs = unit === 'mph' ? 0.44704 : unit === 'km/h' ? 1 / 3.6 : unit === 'knots' ? 0.514444 : unit === 'm/s' ? 1 : 0;
+      var path = 0, vsum = 0;
+      for (var z = 1; z < pts.length; z++) {
+        path += haversine(pts[z - 1], pts[z]);
+        if (isFinite(pts[z].v) && isFinite(pts[z - 1].v)) vsum += (pts[z].v + pts[z - 1].v) / 2 * toMs;
+      }
+      // Seconds per row; kept within what a car logger does (5 to 250 ms), else 80 ms.
+      var step = toMs && vsum > 0 && path > 50 ? path / vsum : 0.08;
+      if (!(step >= 0.005 && step <= 0.25)) step = 0.08;
+      flatStep = step * 1000;
+      pts.forEach(function (p) { p.t *= flatStep; });
+    }
     if (ms) pts.forEach(function (p) { p.t /= 1000; });
     // Acceleration in m/s² rather than g.
     if (cols.la >= 0 && /m\/s/.test(headers ? headers[cols.la] || '' : '')) pts.forEach(function (p) { p.la /= 9.81; });
@@ -304,7 +319,7 @@
     pts.forEach(function (p) { delete p.lap; if (!p.ch) delete p.ch; });
     var venue = '';
     lines.slice(0, Math.max(hi, 0)).forEach(function (l) { var m = l.match(/(?:venue|track|circuit)\s*[:,]\s*"?([^",]+)/i); if (m && !venue) venue = m[1].trim(); });
-    return { format: 'CSV', points: pts, startLine: fileLine, venueName: venue, startedAt: startedAt, speedUnit: unit, timeRebuilt: flat, columns: cols, tempF: cols.temp >= 0 && /(°|deg|\b)f\b|fahrenheit/.test(headers[cols.temp]) };
+    return { format: 'CSV', points: pts, startLine: fileLine, venueName: venue, startedAt: startedAt, speedUnit: unit, timeRebuilt: flat, rebuiltStep: flat ? flatStep / 1000 : 0, columns: cols, tempF: cols.temp >= 0 && /(°|deg|\b)f\b|fahrenheit/.test(headers[cols.temp]) };
   }
 
   // Where the file's lap number goes up is the start/finish line: a short

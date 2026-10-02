@@ -547,9 +547,13 @@
   // The battery used in one session, in points of charge (Track Mode files carry it).
   function chargeUsed(x) { return x.soc && x.soc.length === 2 ? Math.max(0, x.soc[0] - x.soc[1]) : null; }
   // A day's charge: on track, and on drives that day between the runs, from the sessions that have it.
-  function dayCharge(g, all) {
-    var drives = (all || []).filter(function (x) { return x.type === 'other' && x.date === g[0].date; });
-    var on = g.filter(function (x) { return chargeUsed(x) !== null; }), between = drives.filter(function (x) { return chargeUsed(x) !== null; });
+  // The same file saved twice counts once (same day, time and battery start and end).
+  function dayCharge(g, drives) {
+    function once(a) {
+      var seen = {};
+      return a.filter(function (x) { var k = [x.date, x.time, x.soc && x.soc.join('-')].join('|'); if (seen[k]) return false; seen[k] = 1; return true; });
+    }
+    var on = once(g.filter(function (x) { return chargeUsed(x) !== null; })), between = once((drives || []).filter(function (x) { return chargeUsed(x) !== null; }));
     if (!on.length) return '';
     function sum(a) { return Math.round(a.reduce(function (t, x) { return t + chargeUsed(x); }, 0)); }
     var txt = 'Charge used ' + sum(on) + '% on track' + (between.length ? ', ' + sum(between) + '% between runs' : '');
@@ -562,10 +566,15 @@
       if (!groups[k]) { groups[k] = []; order.push(k); }
       groups[k].push(s);
     });
+    // A drive between runs belongs to the first day group on its date: it is counted in that group's charge and
+    // kept inside it, not listed on its own.
+    var driveOwner = {};
+    order.forEach(function (k) { var g0 = groups[k]; if (g0.length > 1 && !driveOwner[g0[0].date]) driveOwner[g0[0].date] = k; });
     return order.map(function (k) {
       var g = groups[k];
-      if (g.length < 2) return sessionRow(g[0]);
+      if (g.length < 2) return g[0].type === 'other' && driveOwner[g[0].date] ? '' : sessionRow(g[0]);
       g = g.slice().sort(byTime);
+      var drives = driveOwner[g[0].date] === k ? (all || list).filter(function (x) { return x.type === 'other' && x.date === g[0].date; }).sort(byTime) : [];
       // The fastest of the day: the best lap or run, or for drag runs the quickest quarter mile (else 0 to 60).
       function score(x) { return x.type === 'drag' ? (x.quarter || (x.s60 ? 1000 + x.s60 : 0)) : x.bestTime || 0; }
       var fast = g.filter(function (x) { return score(x) > 0; }).sort(function (a, b) { return score(a) - score(b); })[0];
@@ -575,9 +584,11 @@
         '<div class="tp-daygroup-head"><button type="button" class="tp-daygroup-title" data-day-toggle aria-expanded="' + (open ? 'true' : 'false') + '" aria-label="' + esc(niceDate(g[0].date) + ' on ' + trackName(g[0]) + ', ' + g.length + ' sessions') + '"><h3>' + esc(niceDate(g[0].date)) + ' on ' + esc(trackName(g[0])) + '</h3></button>' +
         (owner ? '<button type="button" class="tp-daygroup-share" role="switch" data-day-share data-ids="' + esc(g.map(function (x) { return x.id; }).join(',')) + '" data-what="' + esc(niceDate(g[0].date) + ' at ' + trackName(g[0])) + '" aria-checked="' + (g.every(function (x) { return x.privacy && x.privacy !== 'private'; }) ? 'true' : 'false') + '" aria-label="Share all ' + g.length + ' sessions"><span>Shared</span><span class="tp-track"></span></button>' : '') +
         '<button type="button" class="tp-daygroup-count" data-day-toggle aria-expanded="' + (open ? 'true' : 'false') + '" aria-label="Show or hide the ' + g.length + ' sessions"><span class="tp-small">' + g.length + ' sessions</span>' + icon('chev') + '</button></div>' +
-        (dayCharge(g, all) ? '<p class="tp-small tp-daygroup-charge">' + esc(dayCharge(g, all)) + '</p>' : '') +
+        (dayCharge(g, drives) ? '<p class="tp-small tp-daygroup-charge">' + esc(dayCharge(g, drives)) + '</p>' : '') +
         (fast ? '<div class="tp-daygroup-best"><span class="tp-small tp-daygroup-label">Fastest session of the day</span>' + dayRow(fast, g.indexOf(fast) + 1, false) + '</div>' : '') +
-        '<div class="tp-list tp-daygroup-all">' + g.map(function (x, i) { return dayRow(x, i + 1, x === fast); }).join('') + '</div></div>';
+        '<div class="tp-list tp-daygroup-all">' + g.map(function (x, i) { return dayRow(x, i + 1, x === fast); }).join('') +
+        (drives.length ? '<span class="tp-small tp-daygroup-label tp-drives-label">Drives between runs (' + drives.length + ')</span>' + drives.map(sessionRow).join('') : '') +
+        (owner ? '<button type="button" class="btn btn-danger btn-sm tp-daygroup-delete" data-day-delete data-ids="' + esc(g.concat(drives).map(function (x) { return x.id; }).join(',')) + '" data-label="' + esc(trackName(g[0])) + '" data-date="' + esc(niceDate(g[0].date)) + '">' + icon('trash') + 'Delete this day</button>' : '') + '</div></div>';
     }).join('');
   }
   function wireCarChips(m) {
@@ -592,6 +603,23 @@
     });
   }
   var counts = null;
+  // Delete every session of a day at one track (and the drives between its runs), after asking.
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-day-delete]');
+    if (!b || b.disabled) return;
+    var ids = b.getAttribute('data-ids').split(','), what = b.getAttribute('data-label') + ' - ' + b.getAttribute('data-date');
+    if (!window.confirm('Confirm delete?\n\nThis will delete all ' + ids.length + ' sessions for this day (' + what + '). This can\'t be undone.')) return;
+    b.disabled = true;
+    var chain = Promise.resolve(), failed = 0;
+    ids.forEach(function (id) {
+      chain = chain.then(function () { return api('DELETE', '/track/session?id=' + encodeURIComponent(id)).then(function (d) { if (!d.success) failed++; }).catch(function () { failed++; }); });
+    });
+    chain.then(function () {
+      mine = null; counts = null;
+      justSaved = { text: failed ? failed + ' of the ' + ids.length + ' sessions for ' + what + ' could not be deleted. Try again.' : 'Deleted all ' + ids.length + ' sessions for this day (' + what + ').' };
+      showHome();
+    });
+  });
   // The switch on a day's group: share every session that day at that track, or make them all Only me.
   document.addEventListener('click', function (e) {
     var sw = e.target.closest && e.target.closest('[data-day-share]');
@@ -721,7 +749,7 @@
     var head = list.length > 1 ? '<b>' + list.length + ' files' + (skipped && a.list ? ' (' + skipped + ' skipped)' : '') + '</b>' : '';
     var items = list.map(function (x) {
       var w = x.rd ? fileWhen(x.rd) : '';
-      return '<li' + (x.reason ? ' class="is-skipped"' : '') + '><b>' + esc(x.f.name) + '</b>' + (w ? '<span class="tp-file-when">' + esc(w) + '</span>' : '') + (x.drive ? '<span class="tp-file-when">A drive: no time stamps in the file, so it has no laps. Saved as a Drive with its car figures.</span>' : '') + (x.reason ? '<span class="tp-file-skip">Skipped: ' + esc(x.reason) + '</span>' : '') + '</li>';
+      return '<li' + (x.reason ? ' class="is-skipped"' : '') + '><b>' + esc(x.f.name) + '</b>' + (w ? '<span class="tp-file-when">' + esc(w) + '</span>' : '') + (x.rebuilt ? '<span class="tp-file-when">No time stamps in this file (the car\'s timer was not running): its times are worked out from the speed and the GPS path.</span>' : '') + (x.reason ? '<span class="tp-file-skip">Skipped: ' + esc(x.reason) + '</span>' : '') + '</li>';
     }).join('');
     var meta = a.rd ? fileMeta() : '';
     // Several files are saved as one session each, not merged.
@@ -796,7 +824,7 @@
             if (!mp) { a.pending = true; drawAdd(); return drawMapping(one.needsMapping); }
             one = T.read(f.text, f.name, mp, f.modified);
           }
-          good.push({ f: f, rd: one, k: fileKey(one, fi), drive: !!one.timeRebuilt });
+          good.push({ f: f, rd: one, k: fileKey(one, fi), rebuilt: !!one.timeRebuilt });
         } catch (e) {
           lastErr = e;
           bad.push({ f: f, reason: skipReason(e) });
@@ -810,11 +838,7 @@
       }
       good.forEach(function (x, i) { x.i = i; });
       good.sort(function (x, y) { return x.k - y.k || x.i - y.i; });
-      // A drive between timed sessions (no time stamps in the file) has no laps to time: the laps come from the
-      // other files, and each drive is kept as a Drive session with its car figures. Only drives: it is one.
-      var timed = good.filter(function (x) { return !x.drive; });
-      var rds = (timed.length ? timed : good).map(function (x) { return x.rd; });
-      if (!timed.length) a.type = 'other';
+      var rds = good.map(function (x) { return x.rd; });
       a.rd = T.combine(rds);
       a.list = good.concat(bad);
       analyse();
@@ -1347,18 +1371,27 @@
   // Several files: each is timed on its own and saved as its own session, with the settings chosen
   // above. A file that gives no laps or runs is left out and listed.
   function saveBatch(a, carId) {
-    var items = (a.list || []).filter(function (x) { return x.rd; }), opts = analysisOpts(a), made = [], skipped = [];
+    var items = (a.list || []).filter(function (x) { return x.rd; }), opts = analysisOpts(a), made = [], skipped = [], siblingLine = null;
+    // Files with real time stamps first: a file the car wrote with no time stamps may have no start line of its own,
+    // so it borrows the one found on the files from the same upload.
+    var ordered = items.filter(function (x) { return !x.rd.timeRebuilt; }).concat(items.filter(function (x) { return x.rd.timeRebuilt; }));
+    function hasLaps(s1) { return s1.type === 'drag' ? !!(s1.runs && s1.runs.length) : !!(s1.laps && s1.laps.length); }
     var chain = Promise.resolve();
-    items.forEach(function (x) {
+    ordered.forEach(function (x) {
       chain = chain.then(function () {
-        var s1 = T.analyse(x.rd, a.lib, x.drive ? Object.assign({}, opts, { type: 'other' }) : opts);
-        var none = x.drive ? !(s1.distance > 0) : s1.type === 'drag' ? !(s1.runs && s1.runs.length) : !(s1.laps && s1.laps.length);
-        if (none || s1.needsStartLine) { skipped.push({ name: x.f.name, reason: s1.problem || (s1.type === 'drag' ? 'No drag run found.' : 'No laps were found.') }); return; }
+        var s1 = T.analyse(x.rd, a.lib, opts), drive = false;
+        if (x.rd.timeRebuilt && (!hasLaps(s1) || s1.needsStartLine) && siblingLine) s1 = T.analyse(x.rd, a.lib, Object.assign({}, opts, { startLine: siblingLine }));
+        if (x.rd.timeRebuilt && (!hasLaps(s1) || s1.needsStartLine)) {
+          // Nothing to time: keep it as a drive with its map and car figures, private and off every leaderboard.
+          s1 = T.analyse(x.rd, a.lib, Object.assign({}, opts, { type: 'other' }));
+          drive = true;
+        }
+        if (drive ? !(s1.distance > 0) : (!hasLaps(s1) || s1.needsStartLine)) { skipped.push({ name: x.f.name, reason: s1.problem || (s1.type === 'drag' ? 'No drag run found.' : 'No laps were found.') }); return; }
+        if (!x.rd.timeRebuilt && !siblingLine && s1.startLine) siblingLine = s1.startLine;
         s1.fileName = String(x.f.name || '').slice(0, 200);
-        if (!x.drive && !s1.venueId && a.venueName) s1.venueName = a.venueName;
-        // A drive is a mapped drive with its car figures: private, and never on a leaderboard.
+        if (!drive && !s1.venueId && a.venueName) s1.venueName = a.venueName;
         var body = postBody(a, carId, s1);
-        if (x.drive) { body.privacy = 'private'; body.venueName = ''; }
+        if (drive) { body.privacy = 'private'; body.venueName = ''; }
         return api('POST', '/track/sessions', body, true).then(function (d) {
           if (!d.success) { skipped.push({ name: x.f.name, reason: d.message || 'Could not save it.' }); return; }
           made.push(d.session.id);

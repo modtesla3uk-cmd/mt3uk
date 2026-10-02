@@ -652,7 +652,7 @@ def test_a_merged_session_can_be_split_into_one_per_file(page):
     expect(page.locator(".tp-daygroup-count .tp-small")).to_have_text("2 sessions")
 
 
-def test_a_drive_with_no_time_stamps_is_saved_as_a_drive_beside_the_timed_files(page):
+def test_a_file_with_no_time_stamps_and_no_lap_is_kept_as_a_drive_beside_the_timed_files(page):
     fake = FakeWorker(earlier=False)
     open_page(page, fake)
     page.get_by_role("link", name="Add a session", exact=True).click()
@@ -662,7 +662,7 @@ def test_a_drive_with_no_time_stamps_is_saved_as_a_drive_beside_the_timed_files(
         {"name": "telemetry-v1-2026-05-28-15_10_30.csv", "mimeType": "text/csv", "buffer": drive}])
     # The drive is not skipped: it says what it is.
     expect(page.locator(".tp-file > div > b")).to_have_text("2 files")
-    expect(page.locator(".tp-file-list")).to_contain_text("A drive: no time stamps in the file")
+    expect(page.locator(".tp-file-list")).to_contain_text("No time stamps in this file")
     expect(page.locator(".tp-file-skip")).to_have_count(0)
     page.get_by_role("button", name="Save session").click()
     expect(page.locator("#tp-saved")).to_contain_text("2 sessions saved")
@@ -685,8 +685,18 @@ def test_a_day_group_adds_up_the_charge_used_on_track_and_between_runs(page):
     drive = {"id": "dr1", "carId": "car1", "type": "other", "venue": "Drive", "date": "2026-07-14", "time": "10:00", "privacy": "private", "vmax": 100, "soc": [86.9, 85.2], "quality": "good"}
     fake.sessions["dr1"] = dict(drive)
     fake.index.append(summary(drive))
+    # The same drive saved twice counts once.
+    dup = dict(drive, id="dr2")
+    fake.sessions["dr2"] = dict(dup)
+    fake.index.append(summary(dup))
     open_page(page, fake)
     expect(page.locator(".tp-daygroup-charge")).to_have_text("Charge used 25% on track, 2% between runs")
+    # The drives are not listed on their own: they sit inside the day's group, opened from its heading.
+    expect(page.locator("#tp-sess-list > a.tp-row")).to_have_count(0)
+    expect(page.locator(".tp-drives-label")).to_be_hidden()
+    page.locator(".tp-daygroup-title").click()
+    expect(page.locator(".tp-drives-label")).to_have_text("Drives between runs (2)")
+    expect(page.locator(".tp-daygroup-all a.tp-row")).to_have_count(5)
     # A session without battery figures is said so, not hidden.
     rec = fake.sessions["c3"]
     del rec["soc"]
@@ -704,6 +714,59 @@ def test_a_day_group_without_battery_figures_shows_no_charge_line(page):
     open_page(page, fake)
     expect(page.locator(".tp-daygroup")).to_have_count(1)
     expect(page.locator(".tp-daygroup-charge")).to_have_count(0)
+
+
+def test_a_drive_with_no_day_group_is_listed_on_its_own(page):
+    fake = FakeWorker(earlier=False)
+    drive = {"id": "dr9", "carId": "car1", "type": "other", "venue": "Drive", "date": "2026-07-14", "time": "10:00", "privacy": "private", "vmax": 100, "soc": [86.9, 85.2], "quality": "good"}
+    fake.sessions["dr9"] = dict(drive)
+    fake.index.append(summary(drive))
+    open_page(page, fake)
+    expect(page.locator(".tp-daygroup")).to_have_count(0)
+    expect(page.locator("#tp-sess-list > a.tp-row")).to_have_count(1)
+
+
+def test_a_lap_in_a_file_with_no_time_stamps_is_timed(page):
+    fake = FakeWorker(earlier=False)
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session", exact=True).click()
+    lap = (ROOT / "tests" / "fixtures" / "tesla-track-mode-no-timestamps-lap.csv").read_bytes()
+    page.set_input_files("#tp-file", files=[{"name": "telemetry-v1-2024-02-23-15_10_30.csv", "mimeType": "text/csv", "buffer": lap}])
+    expect(page.locator(".tp-file-list")).to_contain_text("No time stamps in this file")
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text(re.compile(r"1 timed lap, best 1:4[5-7]\.\d"))
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator(".tp-session-head")).to_be_visible()
+    saved = fake.saved[0]["session"]
+    assert saved["type"] == "track" and len(saved["laps"]) == 1 and 104 < saved["laps"][0]["time"] < 109
+
+
+def test_delete_a_whole_day_from_its_group(page):
+    fake = FakeWorker(earlier=False)
+    for sid, t in (("x1", "09:00"), ("x2", "11:00"), ("x3", "14:00")):
+        rec = day_session(sid, t, 85.0, 3)
+        fake.sessions[sid] = dict(rec)
+        fake.index.append(summary(rec))
+    drive = {"id": "xd", "carId": "car1", "type": "other", "venue": "Drive", "date": "2026-07-14", "time": "10:00", "privacy": "private", "vmax": 100, "soc": [86.9, 85.2], "quality": "good"}
+    fake.sessions["xd"] = dict(drive)
+    fake.index.append(summary(drive))
+    other = day_session("keep1", "10:00", 99.0, 4, date="2026-06-01", venue="Thruxton", venue_id="thruxton")
+    fake.sessions["keep1"] = dict(other)
+    fake.index.append(summary(other))
+    open_page(page, fake)
+    page.locator(".tp-daygroup-title").click()
+    # It asks first, naming how many and which day; Cancel deletes nothing.
+    messages = []
+    page.once("dialog", lambda d: (messages.append(d.message), d.dismiss()))
+    page.locator("[data-day-delete]").click()
+    assert messages and "Confirm delete?" in messages[0] and "all 4 sessions for this day (Castle Combe - 14 Jul 2026)" in messages[0]
+    assert len(fake.sessions) == 5
+    # Accepting deletes the day and its drives, and nothing from another day.
+    page.once("dialog", lambda d: d.accept())
+    page.locator("[data-day-delete]").click()
+    expect(page.locator("#tp-saved")).to_contain_text("Deleted all 4 sessions for this day (Castle Combe - 14 Jul 2026)")
+    assert sorted(fake.sessions) == ["keep1"]
+    expect(page.locator(".tp-daygroup")).to_have_count(0)
+    expect(page.locator("#tp-sess-list > a.tp-row")).to_have_count(1)
 
 
 def test_csv_with_unknown_columns_asks_which_is_which(page):

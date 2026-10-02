@@ -502,15 +502,22 @@ ok(T.fmtLap(99.786) === '1:39.786' && T.niceDate('2026-05-28') === '28 May 2026'
   ok(t && t.date === '2025-04-25' && t.time === '11:35', 'a year-first name still works');
 }
 
-// A Track Mode file with every time stamp at 0 (a drive between timed sessions) is read, not refused
+// A Track Mode file with every time stamp at 0 (its timer was not running) is read, with the time worked out from the file
 {
   const txt = fs.readFileSync(ROOT + 'tests/fixtures/tesla-track-mode-no-timestamps.csv', 'utf8');
   let rd = null, err = '';
   try { rd = T.read(txt, 'telemetry-v1-2024-02-23-15_10_30.csv'); } catch (e) { err = e.message; }
   ok(rd && !err, 'a file with every time stamp at 0 is read (' + err + ')');
-  ok(rd && rd.timeRebuilt === true && rd.points.length === 300 && near(rd.points[299].t, 299 * 0.08, 0.001), 'its time is rebuilt from the rows at the car\'s 80 ms step');
+  ok(rd && rd.timeRebuilt === true && rd.points.length === 300 && rd.rebuiltStep >= 0.005 && rd.rebuiltStep <= 0.25 && near(rd.points[299].t, 299 * rd.rebuiltStep, 0.001), 'its time is rebuilt from the rows, with the step worked out from the file');
   const drive = T.analyse(rd, { venues: [] }, { type: 'other' });
   ok(drive.type === 'other' && drive.carData && drive.carData.found.length > 5 && drive.distance > 30 && drive.date === '2024-02-23' && drive.time === '15:10', 'as a drive it has its day, distance and car figures');
+  // The step comes from the speed and the GPS path: the speed times the rebuilt time adds up to the distance driven.
+  const P = rd.points; let gps = 0, spd = 0;
+  for (let i = 1; i < P.length; i++) { gps += T.haversine(P[i - 1], P[i]); spd += (P[i - 1].v + P[i].v) / 2 / 3.6 * (P[i].t - P[i - 1].t); }
+  ok(Math.abs(spd / gps - 1) < 0.05, 'speed times the rebuilt time matches the GPS distance (' + (spd / gps).toFixed(3) + ')');
+  const lap = T.read(fs.readFileSync(ROOT + 'tests/fixtures/tesla-track-mode-no-timestamps-lap.csv', 'utf8'), 'telemetry-v1-2024-02-23-15_10_30.csv');
+  const ls = T.analyse(lap, { venues: [] }, {});
+  ok(ls.laps && ls.laps.length === 1 && ls.laps[0].kind === 'timed' && near(ls.laps[0].time, 106.4, 1.5) && near(ls.laps[0].dist, 2416, 40), 'a whole lap in such a file is timed (' + (ls.laps && ls.laps[0] && ls.laps[0].time) + ' s)');
   const normal = T.read(fs.readFileSync(ROOT + 'tests/fixtures/tesla-track-mode-thruxton.csv', 'utf8'), 'telemetry-v1-2025-04-25-11_35_49.csv');
   ok(!normal.timeRebuilt, 'a file with real time stamps is not rebuilt');
 }

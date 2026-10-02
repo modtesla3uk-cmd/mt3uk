@@ -1,6 +1,7 @@
 """The admin pages (admin.html, events-admin.html, device-checklist.html): a
 light look, one navigation shared by all three, and the panels in logical
 groups."""
+import gzip
 import json
 import re
 import subprocess
@@ -160,7 +161,8 @@ def _retime_mocks(page, saved):
             body = {"success": True, "sessions": rows, "done": True, "cursor": ""}
         route.fulfill(status=200, content_type="application/json", body=json.dumps(body), headers=cors)
 
-    page.route("**/track/admin/retime/source**", lambda route: route.fulfill(status=200, content_type="application/json", body=source, headers=cors))
+    # The readings arrive still gzipped, as they did on the live site, so the page has to unzip them itself.
+    page.route("**/track/admin/retime/source**", lambda route: route.fulfill(status=200, content_type="application/json", body=gzip.compress(source.encode()), headers=cors))
     page.route("**/track/admin/retime?**", retime)
     page.route("**/track/admin/retime", retime)
     page.route("**/track/boards/rebuild**", lambda route: route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "cars": 4, "done": True, "cursor": ""}), headers=cors))

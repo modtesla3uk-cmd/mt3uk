@@ -330,6 +330,16 @@
     });
     return rd;
   }
+  // The readings come back gzipped. The browser usually unzips them on the way in, but not always, so
+  // look at the first two bytes and unzip here when they are still the gzip marker.
+  function readSource(buf) {
+    var b = new Uint8Array(buf);
+    if (b.length > 2 && b[0] === 0x1f && b[1] === 0x8b) {
+      if (typeof DecompressionStream !== 'function') throw new Error('This browser cannot unzip the readings.');
+      return new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream('gzip'))).text().then(JSON.parse);
+    }
+    return JSON.parse(new TextDecoder().decode(buf));
+  }
   function fmtTime(t) { return t == null ? '-' : window.MT3UKTrack.fmtLap(t); }
   // The saved session's own settings, as the options the Add a session page would have used.
   function retimeOpts(old) {
@@ -347,8 +357,8 @@
       var old = d.session;
       return fetch(API + '/track/admin/retime/source?id=' + encodeURIComponent(row.id) + '&key=' + encodeURIComponent(key()), { cache: 'no-store' }).then(function (r) {
         if (!r.ok) throw new Error('No readings kept.');
-        return r.json();
-      }).then(function (src) {
+        return r.arrayBuffer();
+      }).then(readSource).then(function (src) {
         if (!src.p || !src.rd) throw new Error('No readings kept.');
         var next = T.analyse(restoreSource(src), lib, retimeOpts(old));
         if (next.problem && !(next.laps && next.laps.length) && !(next.runs && next.runs.length)) throw new Error(next.problem);

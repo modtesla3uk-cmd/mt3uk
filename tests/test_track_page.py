@@ -432,6 +432,9 @@ def test_drag_run_away_from_a_strip(page, admin):
             expect(page.locator(".tp-notice.is-admin")).to_contain_text("Street run")
             assert fake.saved[0]["street"] is True and fake.saved[0]["adminViewer"] == "admintoken1234567890"
             expect(page.locator(".tp-tile.is-hero .v")).to_have_text(re.compile(r"^\d+\.\d\d s$"))
+            # A street run shows where the drive went, for testing.
+            expect(page.locator("#tp-map")).to_be_visible()
+            assert page.locator("#tp-map .tv-speed").count() > 20
     finally:
         path.unlink()
 
@@ -2815,3 +2818,40 @@ def test_a_sprint_with_no_runs_can_be_saved_without_times_and_the_admin_is_told(
     assert fake.saved[0]["session"]["type"] == "other" and fake.saved[0]["session"]["pendingCourse"] == "Abingdon"
     assert fake.requests[0]["kind"] == "sprint" and fake.requests[0]["name"] == "Abingdon" and fake.requests[0]["outline"]
     expect(page.locator("#tp-pending-course")).to_contain_text("Abingdon is not set up yet")
+
+
+def test_drag_runs_show_0_to_30_and_have_a_1_ft_rollout_switch(page):
+    path = ROOT / "tests" / "fixtures" / "_tmp_rollout.csv"
+    path.write_text(drag_csv(51.5, -0.12), encoding="utf-8")
+    try:
+        fake = FakeWorker(admin=True)
+        open_page(page, fake, "/track.html?add=1&car=car1", admin=True)
+        page.set_input_files("#tp-file", str(path))
+        page.locator("[data-type] [data-v='drag']").click()
+        switch = page.locator("#tp-rollout")
+        expect(switch).to_have_attribute("aria-checked", "false")
+        page.locator("#tp-street").click()
+        page.get_by_role("button", name="Save session").click()
+        expect(page.locator(".tp-tile .k", has_text="0 to 30 mph")).to_be_visible()
+        expect(page.locator(".tp-table th", has_text="0-30")).to_be_visible()
+        expect(page.locator(".tp-small", has_text="first movement").first).to_be_visible()
+    finally:
+        path.unlink()
+
+
+def test_the_1_ft_rollout_switch_shortens_the_times_and_is_kept_with_the_run(page):
+    path = ROOT / "tests" / "fixtures" / "_tmp_rollout2.csv"
+    path.write_text(drag_csv(51.5, -0.12), encoding="utf-8")
+    try:
+        fake = FakeWorker(admin=True)
+        open_page(page, fake, "/track.html?add=1&car=car1", admin=True)
+        page.set_input_files("#tp-file", str(path))
+        page.locator("[data-type] [data-v='drag']").click()
+        page.locator("#tp-street").click()
+        page.locator("#tp-rollout").click()
+        expect(page.locator("#tp-rollout")).to_have_attribute("aria-checked", "true")
+        page.get_by_role("button", name="Save session").click()
+        expect(page.locator(".tp-small", has_text="1 ft rollout").first).to_be_visible()
+        assert fake.saved[0]["session"].get("rollout") is True
+    finally:
+        path.unlink()

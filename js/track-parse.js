@@ -597,22 +597,26 @@
 
   // ---------- Drag runs ----------
 
-  function dragRuns(points) {
+  // rollout: metres the car moves before the clock starts (0.3048 for the 1 ft rollout of strip timing
+  // lights and RaceBox's option); 0 times from the first movement.
+  function dragRuns(points, rollout) {
     var runs = [];
+    rollout = rollout > 0 ? rollout : 0;
     for (var i = 1; i < points.length; i++) {
       if (!(points[i - 1].v < 2 && points[i].v >= 2)) continue;
       // Stood still for at least half a second first.
       var still = 0;
       for (var b = i - 1; b > 0 && points[b].v < 2; b--) still = points[i - 1].t - points[b].t;
       if (still < 0.5 && i > 5) continue;
-      var t0 = points[i - 1].t, x = 0, vmax = 0, out = { start: t0, lat: points[i].lat, lng: points[i].lng, curve: [[0, 0]] };
-      var marks = { ft60: 18.288, eighth: 201.168, quarter: 402.336 }, sp = { s60: 60 * KMH_PER_MPH, s100: 100 * KMH_PER_MPH, k100: 100 };
+      var t0 = points[i - 1].t, base = t0, rolled = !rollout, x = 0, vmax = 0, out = { start: t0, lat: points[i].lat, lng: points[i].lng, curve: [[0, 0]] };
+      var marks = { ft60: 18.288, eighth: 201.168, quarter: 402.336 }, sp = { s30: 30 * KMH_PER_MPH, s60: 60 * KMH_PER_MPH, s100: 100 * KMH_PER_MPH, k100: 100 };
       var lastCurve = 0;
       for (var k = i; k < points.length; k++) {
         var p = points[k - 1], q = points[k], dt = q.t - p.t;
         var nx = x + (p.v + q.v) / 2 / 3.6 * dt;
-        Object.keys(marks).forEach(function (m) { if (!out[m] && nx >= marks[m]) { var f = (marks[m] - x) / ((nx - x) || 1); out[m] = round(p.t + f * dt - t0, 2); out[m + 'Speed'] = round(p.v + f * (q.v - p.v), 1); } });
-        Object.keys(sp).forEach(function (m) { if (!out[m] && q.v >= sp[m]) { var f = (sp[m] - p.v) / ((q.v - p.v) || 1); out[m] = round(p.t + f * dt - t0, 2); } });
+        if (!rolled && nx >= rollout) { rolled = true; base = p.t + (rollout - x) / ((nx - x) || 1) * dt; }
+        Object.keys(marks).forEach(function (m) { if (!out[m] && nx >= marks[m]) { var f = (marks[m] - x) / ((nx - x) || 1); out[m] = round(p.t + f * dt - base, 2); out[m + 'Speed'] = round(p.v + f * (q.v - p.v), 1); } });
+        Object.keys(sp).forEach(function (m) { if (!out[m] && rolled && q.v >= sp[m]) { var f = (sp[m] - p.v) / ((q.v - p.v) || 1); out[m] = round(p.t + f * dt - base, 2); } });
         x = nx; vmax = Math.max(vmax, q.v);
         if (q.t - t0 - lastCurve >= 0.1) { out.curve.push([round(q.t - t0, 2), round(q.v, 1)]); lastCurve = q.t - t0; }
         if (q.v < vmax - 15 || out.quarter) { i = k; break; }
@@ -696,7 +700,10 @@
       var dv = venue && venue.type === 'drag' ? venue : findVenue(pts, library, 'drag');
       session.atVenue = !!dv;
       if (dv) { session.venueId = dv.id; session.venue = dv.name; }
-      session.runs = dragRuns(pts);
+      session.runs = dragRuns(pts, opts.rollout ? 0.3048 : 0);
+      if (opts.rollout) session.rollout = true;
+      // The drive's path, for the map on a street run (the worker keeps it only for those).
+      session.trace = { outline: outline(pts) };
       if (!session.runs.length) session.problem = 'No drag run found. A run needs a standing start and to reach 60 mph.';
       return session;
     }

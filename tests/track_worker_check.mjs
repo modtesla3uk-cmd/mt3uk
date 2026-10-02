@@ -170,6 +170,7 @@ const lying = JSON.parse(JSON.stringify(street)); lying.atVenue = true; lying.ve
 r = await call('POST', '/track/sessions', { carId: 'carb1', session: lying }, 'tok-b');
 ok(r.status === 200 && r.body.session.unlisted === true && r.body.session.privacy === 'private' && !r.body.session.venueId, 'a drag run claiming a venue is not trusted: it is saved private and unlisted (the server checks the position)');
 const lyingId = r.body.session.id;
+ok(stored('track-session:' + lyingId).outline === undefined, 'only street runs keep the path of the drive');
 r = await call('POST', '/track/sessions', { carId: 'carb1', session: street, street: true, adminViewer: 'not-a-real-token-123456' }, 'tok-b');
 ok(r.status === 200 && !r.body.session.street && r.body.session.unlisted === true, 'without an admin it is an unlisted private run, never a street run');
 await call('DELETE', '/track/session?id=' + r.body.session.id, undefined, 'tok-b');

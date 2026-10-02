@@ -6533,7 +6533,7 @@ function cleanTrackLaps(laps) {
 }
 
 function cleanTrackRuns(runs) {
-  var keys = ['start', 'lat', 'lng', 'ft60', 'ft60Speed', 'eighth', 'eighthSpeed', 'quarter', 'quarterSpeed', 's60', 's100', 'k100', 's60to100', 'vmax'];
+  var keys = ['start', 'lat', 'lng', 'ft60', 'ft60Speed', 'eighth', 'eighthSpeed', 'quarter', 'quarterSpeed', 's30', 's60', 's100', 'k100', 's60to100', 'vmax'];
   return (Array.isArray(runs) ? runs : []).slice(0, 50).map(function (r) {
     var o = {};
     keys.forEach(function (k) { var n = Number(r && r[k]); if (r && r[k] != null && isFinite(n)) o[k] = n; });
@@ -6609,12 +6609,16 @@ function cleanTrackSession(s, library) {
   if (carData) out.carData = carData;
   if (out.type === 'drag') {
     out.runs = cleanTrackRuns(s.runs);
+    if (s.rollout) out.rollout = true;
     if (!out.runs.length) return { error: 'No drag run found in this file' };
     // At a venue only if the first run starts inside a drag venue.
     var r0 = out.runs[0];
     var dv = (library.venues || []).find(function (v) { return v.type === 'drag' && trackDist([v.lat, v.lng], [r0.lat, r0.lng]) <= v.radius; });
     out.atVenue = !!dv;
     if (dv) { out.venueId = dv.id; out.venue = dv.name; } else { delete out.venueId; }
+    // The path is kept for street runs only (the save handlers drop it from every other drag run).
+    var dol = s.trace && Array.isArray(s.trace.outline) ? s.trace.outline : [];
+    out.outline = cleanNumArrays(dol, 2).slice(0, 2000).map(function (p) { return p.slice(0, 3); });
     return out;
   }
   var wantVenue = out.type === 'sprint' ? 'sprint' : 'circuit';
@@ -6999,6 +7003,7 @@ async function handleTrackSessionSave(request, env) {
     if (body.street && (await isAdminViewerToken(env, body.adminViewer))) rec.street = true;
     else rec.unlisted = true;
   }
+  if (rec.type === 'drag' && !rec.street) delete rec.outline;
   rec.id = randomToken().slice(0, 20);
   rec.owner = await ownerKey(email);
   rec.carId = String(body.carId);
@@ -7126,6 +7131,7 @@ async function handleTrackSessionUpdate(request, env) {
     if (next.error) return json({ success: false, message: next.error }, 400);
     if (next.type === 'drag' && !next.atVenue) next.unlisted = true;
     next.street = false;
+    if (next.type === 'drag') delete next.outline;
     next.id = rec.id;
     next.owner = rec.owner;
     next.carId = rec.carId;

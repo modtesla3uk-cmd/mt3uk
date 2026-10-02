@@ -661,7 +661,7 @@
       add.files = read; add.list = null; add.rd = null;
       add.nameLooked = false;
       if (add.venueNameLooked) { add.venueName = ''; add.venueNameLooked = false; }
-      add.session = null; add.startLine = null; add.finishLine = null; add.editLines = false; add.tapFull = false; add.tapAuto = false; add.tapOutline = null; add.finishCross = 0; add.organizer = ''; add.confirmLines = false; add.type = null; add.date = null; add.time = null;
+      add.session = null; add.startLine = null; add.finishLine = null; add.editLines = false; add.tapFull = false; add.tapAuto = false; add.tapOutline = null; add.finishCross = 0; add.organizer = ''; add.rollout = false; add.confirmLines = false; add.type = null; add.date = null; add.time = null;
       add.weatherKey = null; if (add.tempSource !== 'member') { add.temp = null; add.tempSource = ''; add.weather = null; }
       parseFile();
     }).catch(function (e) { status(e.message || 'That file could not be opened.', 'error'); });
@@ -749,6 +749,7 @@
     if (a.ignoreFinish !== false) opts.ignoreFirstFinish = true;
     if (a.finishCross) opts.finishCrossing = a.finishCross;
     if (a.organizer) opts.organizer = a.organizer;
+    if (a.rollout) opts.rollout = true;
     a.session = T.analyse(a.rd, a.lib, opts);
     // A date or start time the member typed wins over the file's.
     if (a.date) { a.session.date = a.date; a.session.dateFrom = 'member'; }
@@ -928,6 +929,9 @@
         if (a.admin) h += '<div class="tp-notice is-admin">' + icon('shield') + '<div>Admin only option.</div></div><button type="button" class="tp-switch" role="switch" aria-checked="' + a.street + '" id="tp-street"><span><b>Include as a street run</b><br><small>Kept private, never on a leaderboard or build page.</small></span><span class="tp-track"></span></button>';
       }
     }
+    if (s.type === 'drag' && (s.runs || []).length) {
+        h += '<button type="button" class="tp-switch" role="switch" aria-checked="' + !!a.rollout + '" id="tp-rollout"><span><b>1 ft rollout</b><br><small>Start the clock after the car has moved one foot, as strip timing lights and RaceBox\'s option do. Off times from the first movement.</small></span><span class="tp-track"></span></button>';
+    }
     var saveable = s.type === 'drag' ? (s.runs || []).length : s.type === 'other' ? true : !s.needsStartLine && s.laps && s.laps.length;
     if (saveable && a.replaceId) {
       h += '<button type="button" class="btn btn-accent btn-block" id="tp-save">Save changes</button>';
@@ -1023,6 +1027,8 @@
     group('[data-privacy]', function (v) { keep(); a.privacy = v; drawResult(); });
     var orgIn = document.getElementById('tp-organiser');
     if (orgIn) orgIn.addEventListener('change', function () { keep(); a.organizer = orgIn.value.trim().slice(0, 40); analyse(); });
+    var rollSw = document.getElementById('tp-rollout');
+    if (rollSw) rollSw.addEventListener('click', function () { keep(); a.rollout = !a.rollout; analyse(); });
     var untimedBtn = document.getElementById('tp-save-untimed');
     if (untimedBtn) untimedBtn.addEventListener('click', function () {
       keep();
@@ -2068,6 +2074,7 @@
     var runs = s.runs || [];
     var bq = runs.filter(function (r) { return r.quarter; }).sort(function (a, b) { return a.quarter - b.quarter; })[0];
     var b60 = runs.slice().sort(function (a, b) { return a.s60 - b.s60; })[0];
+    var b30 = runs.filter(function (r) { return r.s30; }).sort(function (a, b) { return a.s30 - b.s30; })[0];
     var b8 = runs.filter(function (r) { return r.eighth; }).sort(function (a, b) { return a.eighth - b.eighth; })[0];
     var bmid = runs.filter(function (r) { return r.s60to100; }).sort(function (a, b) { return a.s60to100 - b.s60to100; })[0];
     var h = '';
@@ -2075,22 +2082,26 @@
     else if (s.atVenue) h += '<div class="tp-notice is-ok">' + icon('check') + '<div><b>' + esc(s.venue) + '</b><br>Runs from the strip.</div></div>';
     h += tiles([
       ['1/4 mile', bq ? bq.quarter.toFixed(2) + ' s' : '-', bq ? 'at ' + V.fmtV(bq.quarterSpeed) : 'Not reached', 1],
+      ['0 to 30 mph', b30 ? b30.s30.toFixed(2) + ' s' : '-', s.rollout ? '1 ft rollout' : 'From first movement'],
       ['0 to 60 mph', b60 ? b60.s60.toFixed(2) + ' s' : '-', b60 && b60.ft60 ? '60 ft in ' + b60.ft60.toFixed(2) + ' s' : ''],
       ['60 to 100 mph', bmid ? bmid.s60to100.toFixed(2) + ' s' : '-', ''],
       ['1/8 mile', b8 ? b8.eighth.toFixed(2) + ' s' : '-', b8 ? 'at ' + V.fmtV(b8.eighthSpeed) : ''],
       ['Runs', String(runs.length), '']
     ]);
     h += carDataHtml(s);
+    // Street runs (admin testing) also show where the drive went.
+    if (s.street && (s.outline || (s.trace && s.trace.outline) || []).length > 1) h += '<div class="card"><div class="tp-chart-head"><h3>Your drive, coloured by speed</h3></div><svg class="tv-chart" id="tp-map" role="img" aria-label="The drive drawn from GPS, coloured by speed"></svg><div class="tp-chart-foot"><span class="tp-ramp"><span id="tp-ramp-lo"></span><i></i><span id="tp-ramp-hi"></span></span><span>Street runs are private and never on a leaderboard.</span></div></div>';
     h += '<div class="tp-grid tp-g-map"><div class="card"><div class="tp-chart-head"><h3>Speed off the line</h3><div class="tp-key">' + runs.slice(0, 8).map(function (r, i) { return '<span><i style="background:' + RUN_COLORS[i] + '"></i>Run ' + (i + 1) + '</span>'; }).join('') + '</div></div><svg class="tv-chart" id="tp-drag" role="img" aria-label="Speed against time for each run"></svg></div>' +
-      '<div class="card"><h3>Runs</h3><div class="tp-scroll"><table class="tp-table"><thead><tr><th>Run</th><th>60 ft</th><th>0-60</th><th>60-100</th><th>1/8</th><th>1/4</th><th>Trap</th></tr></thead><tbody>' +
-      runs.map(function (r, i) { function f(v) { return v ? v.toFixed(2) : '-'; } return '<tr' + (r === bq ? ' class="is-best"' : '') + '><td>' + (i + 1) + '</td><td>' + f(r.ft60) + '</td><td>' + f(r.s60) + '</td><td>' + f(r.s60to100) + '</td><td>' + f(r.eighth) + '</td><td>' + f(r.quarter) + '</td><td>' + (r.quarterSpeed ? Math.round(V.spd(r.quarterSpeed)) : '-') + '</td></tr>'; }).join('') +
-      '</tbody></table></div><p class="tp-small">Times from the first movement, worked out from GPS speed. Strip timing lights use a short rollout, so their times are usually a little quicker.</p></div></div>';
+      '<div class="card"><h3>Runs</h3><div class="tp-scroll"><table class="tp-table"><thead><tr><th>Run</th><th>60 ft</th><th>0-30</th><th>0-60</th><th>60-100</th><th>1/8</th><th>1/4</th><th>Trap</th></tr></thead><tbody>' +
+      runs.map(function (r, i) { function f(v) { return v ? v.toFixed(2) : '-'; } return '<tr' + (r === bq ? ' class="is-best"' : '') + '><td>' + (i + 1) + '</td><td>' + f(r.ft60) + '</td><td>' + f(r.s30) + '</td><td>' + f(r.s60) + '</td><td>' + f(r.s60to100) + '</td><td>' + f(r.eighth) + '</td><td>' + f(r.quarter) + '</td><td>' + (r.quarterSpeed ? Math.round(V.spd(r.quarterSpeed)) : '-') + '</td></tr>'; }).join('') +
+      '</tbody></table></div><p class="tp-small">' + (s.rollout ? 'Timed with a 1 ft rollout: the clock starts once the car has moved one foot, as strip timing lights and RaceBox\'s rollout option do. Worked out from GPS speed.' : 'Times from the first movement, worked out from GPS speed. Strip timing lights and RaceBox\'s rollout option start the clock after about a foot of movement, so their times are usually a little quicker.') + '</p></div></div>';
     h += '<div class="tp-section"><h3>What we spotted</h3><div class="tp-notes">' + notesHtml(T.sessionNotes(s, V.fmtV, V.fmtD)) + '</div></div>';
     return h;
   }
   function drawDragCharts(s) {
     var svg = document.getElementById('tp-drag');
     if (svg && (s.runs || []).length) V.drag(svg, s.runs.slice(0, 8), RUN_COLORS);
+    if (s.street && (s.outline || (s.trace && s.trace.outline) || []).length > 1 && document.getElementById('tp-map')) drawOtherCharts(s);
   }
 
   function ownerHtml(s) {

@@ -836,6 +836,7 @@ def test_saving_keeps_the_readings_and_the_type_can_be_changed_after(page):
     page.get_by_role("link", name="Add a session").click()
     page.set_input_files("#tp-file", str(FIXTURE))
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    page.get_by_role("button", name="Use previous tyres").click()
     page.fill("#tp-tyre-model", "AD08R")
     page.fill("#tp-notes", "keep me")
     page.get_by_role("button", name="Save session").click()
@@ -1999,13 +2000,18 @@ def test_a_file_without_the_cars_channels_has_no_car_data_card(page):
     expect(page.locator("#car-data")).to_have_count(0)
 
 
-def test_tyres_start_from_the_last_session_with_that_car(page):
+def test_tyres_start_empty_and_the_last_ones_can_be_loaded(page):
     fake = FakeWorker()
     fake.index = [dict(EARLIER, tyres="Michelin Pilot Sport 4S, 245/35 R19")]
     open_page(page, fake)
     page.get_by_role("link", name="Add a session").click()
     page.set_input_files("#tp-file", str(FIXTURE))
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    # The tyres start empty, with an offer to load the car's last ones.
+    expect(page.locator("#tp-tyre-make")).to_have_value("")
+    expect(page.locator("#tp-tyre-model")).to_have_value("")
+    expect(page.locator("#tp-tyre-offer")).to_contain_text("Michelin Pilot Sport 4S")
+    page.get_by_role("button", name="Use previous tyres").click()
     expect(page.locator("#tp-tyre-make")).to_have_value("Michelin")
     expect(page.locator("#tp-tyre-model")).to_have_value("Pilot Sport 4S")
     expect(page.locator(".tp-tyre-note")).to_contain_text("Filled in from your last session")
@@ -2025,6 +2031,7 @@ def test_what_each_mod_did_compares_before_and_after(page):
     page.get_by_role("link", name="Add a session").click()
     page.set_input_files("#tp-file", str(FIXTURE))
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    page.get_by_role("button", name="Use previous tyres").click()
     page.get_by_role("button", name="Save session").click()
     card = page.locator("#tp-impact")
     expect(card.locator("h3")).to_have_text("What each mod did")
@@ -2407,7 +2414,7 @@ def test_start_and_finish_markers_can_be_undone_cleared_dragged_and_moved_later(
     page.mouse.click(a[0], a[1])
     b = _trace_point(page, 0.6)
     page.mouse.click(b[0], b[1])
-    page.get_by_role("button", name="Yes, these are correct").click()
+    page.get_by_role("switch", name="Correct lines?").click()
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("Timed between the start and finish you picked")
     page.get_by_role("button", name="Move start and finish").click()
     expect(marks).to_have_count(2)
@@ -2425,8 +2432,8 @@ def test_start_and_finish_markers_can_be_undone_cleared_dragged_and_moved_later(
     after = page.locator("#tp-tap [data-mark='finish']").bounding_box()
     assert abs(after["x"] - before["x"]) + abs(after["y"] - before["y"]) > 10, (before, after)
     # A moved marker is checked again before it is taken.
-    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("Check the start and finish")
-    page.get_by_role("button", name="Yes, these are correct").click()
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("Confirm correct Start and Finish lines")
+    page.get_by_role("switch", name="Correct lines?").click()
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("Timed between the start and finish you picked")
     # Clear takes both away.
     page.get_by_role("button", name="Move start and finish").click()
@@ -2472,16 +2479,19 @@ def test_after_setting_both_lines_the_member_is_asked_to_confirm_them(page):
     b = _trace_point(page, 0.6)
     page.mouse.click(b[0], b[1])
     notice = page.locator("#tp-result .tp-notice.is-ok")
-    expect(notice).to_contain_text("Check the start and finish")
+    expect(notice).to_contain_text("Confirm correct Start and Finish lines")
     expect(page.locator("#tp-tap .tp-tapmark")).to_have_count(2)
     # The ignore switch and the finish crossing are there while the lines are checked, not only after.
     expect(page.locator("#tp-ignore-finish")).to_be_visible()
     expect(page.locator("#tp-finish-cross")).to_be_visible()
-    # The confirm button is highlighted and has no tick, so it reads as something still to press.
-    confirm = page.get_by_role("button", name="Yes, these are correct")
-    expect(confirm).to_have_class(re.compile("btn-accent"))
-    expect(confirm.locator("svg")).to_have_count(0)
+    # The question starts white and unticked; ticking it turns it orange.
+    confirm = page.get_by_role("switch", name="Correct lines?")
+    expect(confirm).to_have_attribute("aria-checked", "false")
+    assert page.evaluate("getComputedStyle(document.querySelector('.tp-confirm')).backgroundColor") == "rgb(255, 255, 255)"
     confirm.click()
+    page.wait_for_timeout(250)
+    ticked = page.evaluate("(() => { const b = document.querySelector('.tp-confirm'); return b ? [b.getAttribute('aria-checked'), getComputedStyle(b).backgroundColor] : null; })()")
+    assert ticked is None or ticked == ["true", "rgb(232, 84, 42)"], ticked
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("Timed between the start and finish you picked")
     expect(page.locator("#tp-tap")).to_have_count(0)
 
@@ -2634,7 +2644,7 @@ def test_a_sprint_member_can_choose_which_finish_crossing_ends_the_run(page):
     page.mouse.click(a[0], a[1])
     b = _trace_point(page, 0.6)
     page.mouse.click(b[0], b[1])
-    page.get_by_role("button", name="Yes, these are correct").click()
+    page.get_by_role("switch", name="Correct lines?").click()
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("Timed between the start and finish you picked")
     sel = page.locator("#tp-finish-cross")
     expect(sel).to_be_visible()
@@ -2668,3 +2678,22 @@ def test_the_session_page_shows_the_name_of_the_file_it_came_from(page):
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
     page.get_by_role("button", name="Save session").click()
     expect(page.locator("#tp-filename")).to_contain_text("File: " + FIXTURE.name)
+
+
+def test_confirming_the_lines_scrolls_back_to_the_result(page):
+    page.set_viewport_size({"width": 400, "height": 800})
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    page.locator("[data-type] [data-v='sprint']").click()
+    a = _trace_point(page, 0.2)
+    page.mouse.click(a[0], a[1])
+    b = _trace_point(page, 0.6)
+    page.mouse.click(b[0], b[1])
+    page.get_by_role("switch", name="Correct lines?").scroll_into_view_if_needed()
+    page.get_by_role("switch", name="Correct lines?").click()
+    notice = page.locator("#tp-result .tp-notice.is-ok")
+    expect(notice).to_contain_text("Timed between the start and finish you picked")
+    page.wait_for_timeout(300)
+    top = notice.bounding_box()["y"]
+    assert 0 <= top < 300, top

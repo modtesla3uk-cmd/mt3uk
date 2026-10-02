@@ -559,7 +559,8 @@
       var car = m.cars.filter(function (c) { return c.id === carId; })[0] || m.cars[0];
       add = { car: car, cars: m.cars, lib: r[1], admin: r[2], rd: null, session: null, type: null, startLine: null, conditions: 'Dry', privacy: 'private', street: false, file: null };
       var lt = lastTyre(m, car.id);
-      if (lt) { add.tyre = lt; add.tyres = TY.compose(lt); add.tyrePre = true; }
+      // The tyres start empty; the car's last ones are offered with a button.
+      add.lastTyre = lt || null;
       drawAdd();
     }).catch(function () { failed('Could not load your cars. Check your connection and try again.'); });
   }
@@ -603,7 +604,8 @@
     if (sel) sel.addEventListener('change', function () {
       a.car = a.cars.filter(function (c) { return c.id === sel.value; })[0];
       // Tyres follow the car chosen, until they have been changed by hand.
-      if (a.tyrePre || !a.tyre) { var lt = lastTyre(mine, a.car.id); a.tyre = lt || undefined; a.tyres = lt ? TY.compose(lt) : ''; a.tyrePre = !!lt; }
+      a.lastTyre = lastTyre(mine, a.car.id) || null;
+      if (a.tyrePre) { a.tyre = undefined; a.tyres = ''; a.tyrePre = false; }
     });
     if (a.session) drawResult();
   }
@@ -878,7 +880,7 @@
         var tapText = tapHint(a, isSprint), hasMarks = !!(a.startLine || a.finishLine);
         var timedNow = s.needsStartLine ? 0 : (s.laps || []).filter(function (l) { return l.kind === 'timed'; }).length;
         h += (s.needsStartLine ? '<div class="tp-notice is-warn">' + icon('pin') + '<div><b>' + esc(s.venue || (isSprint ? 'New course' : 'New track')) + '</b><br>' + esc(s.problem) + '</div></div>'
-          : '<div class="tp-notice is-ok">' + icon('check') + '<div>' + timedNow + ' timed ' + word + (timedNow === 1 ? '' : 's') + (s.bestTime ? ', best ' + V.fmtLap(s.bestTime) : '') + '. ' + (a.confirmLines ? (isSprint ? 'Check the start and finish are where the run really started and finished. Drag a marker if one is out, then confirm.' : 'Check the start and finish line is in the right place. Drag the marker if it is out, then confirm.') : 'Drag a marker to move it, then press Done.') + '</div></div>') +
+          : '<div class="tp-notice is-ok">' + icon('check') + '<div>' + timedNow + ' timed ' + word + (timedNow === 1 ? '' : 's') + (s.bestTime ? ', best ' + V.fmtLap(s.bestTime) : '') + '. ' + (a.confirmLines ? (isSprint ? '<b>Confirm correct Start and Finish lines.</b> Check they are where the run really started and finished. Drag a marker if one is out, then tick the button.' : '<b>Confirm the Start and Finish line is correct.</b> Drag the marker if it is out, then tick the button.') : 'Drag a marker to move it, then press Done.') + '</div></div>') +
           (!s.needsStartLine ? sprintControlsHtml(a, s, isSprint) : '') +
           '<p class="tp-small">Zoom in with the + button, the mouse wheel or a pinch. Drag the map with any mouse button to move it. A quick click or tap places a marker, and a marker can be dragged along the track.</p>' +
           '<div class="tp-tapbox' + (a.tapFull ? ' is-full' : '') + '" id="tp-tapbox"><p class="tp-sub tp-tap-step" id="tp-tap-step">' + tapText + '</p><div class="tp-tapmap" id="tp-tapmap"><svg class="tv-chart tp-tap" id="tp-tap" role="img" aria-label="Your trace. ' + tapText + '"></svg></div>' +
@@ -886,7 +888,7 @@
           '<button type="button" class="btn btn-secondary btn-sm" data-tap="clear"' + (hasMarks ? '' : ' disabled') + '>' + icon('x') + 'Clear markers</button>' +
           (!isSprint && s.needsStartLine ? '<button type="button" class="btn btn-secondary btn-sm" data-tap="sprint">' + icon('pin') + 'Separate start and finish</button>' : '') +
           '<button type="button" class="btn btn-secondary btn-sm" data-tap="full">' + icon(a.tapFull ? 'x' : 'expand') + (a.tapFull ? 'Exit full screen' : 'Full screen') + '</button>' +
-          (a.editLines && !s.needsStartLine ? (a.confirmLines ? '<button type="button" class="btn btn-accent tp-confirm" data-tap="done">Yes, these are correct</button>' : '<button type="button" class="btn btn-primary btn-sm" data-tap="done">' + icon('check') + 'Done</button>') : '') + '</div></div>' +
+          (a.editLines && !s.needsStartLine ? (a.confirmLines ? '<button type="button" class="btn btn-secondary tp-confirm" data-tap="done" role="switch" aria-checked="false">' + icon('check') + 'Correct lines?</button>' : '<button type="button" class="btn btn-primary btn-sm" data-tap="done">' + icon('check') + 'Done</button>') : '') + '</div></div>' +
           (!s.venueId ? '<div class="tp-field"><label for="tp-venue-name">Track name</label><input class="field" id="tp-venue-name" placeholder="For example, Blyton Park" value="' + esc(a.venueName || '') + '"></div>' + (a.venueNameLooked ? nameNote() : '') : '');
       } else {
         var timed = s.laps.filter(function (l) { return l.kind === 'timed'; }).length;
@@ -919,7 +921,7 @@
           : s.dateFrom === 'file' ? '<p class="tp-src" id="tp-date-src">' + icon('info') + '<span>Date and time recorded in your file.</span></p>'
           : !s.date ? '<p class="tp-src" id="tp-date-src">' + icon('info') + '<span>Your file has no date in it. Add the date and start time to look up the weather.</span></p>' : '');
       h += '<div class="tp-field"><span class="tp-lbl">Conditions</span><div class="tp-chips" data-cond>' + ['Dry', 'Damp', 'Wet'].map(function (c) { return '<button type="button" class="chip' + (a.conditions === c ? ' is-on' : '') + '" data-v="' + c + '">' + c + '</button>'; }).join('') + '</div></div>' +
-        tyreFields('tp-tyre', a.tyre) + (a.tyrePre && a.tyre ? '<p class="tp-small tp-tyre-note">Filled in from your last session with this car. Change it if it is different.</p>' : '') +
+        tyreFields('tp-tyre', a.tyre) + (a.tyrePre && a.tyre ? '<p class="tp-small tp-tyre-note">Filled in from your last session with this car. Change it if it is different.</p>' : (a.lastTyre && !(a.tyre && (a.tyre.make || a.tyre.model || a.tyre.w)) ? '<p class="tp-small tp-tyre-note" id="tp-tyre-offer">Same tyres as last time (' + esc(TY.compose(a.lastTyre)) + ')? <button type="button" class="btn btn-secondary btn-sm" id="tp-use-last-tyres">Use previous tyres</button></p>' : '')) +
         '<div class="tp-field"><label for="tp-temp">Air temperature (°C)</label><input class="field" id="tp-temp" inputmode="numeric" placeholder="18" value="' + esc(a.temp == null ? '' : a.temp) + '"></div>' +
         (a.tempSource === 'weather' && a.weather ? '<p class="tp-src" id="tp-temp-src">' + icon('info') + '<span>' + weatherNote(a.weather, s.venue) + (a.condTouched ? '' : ' Conditions set to match. Change them if the track was different.') + '</span></p>'
           : a.tempSource === 'file' ? '<p class="tp-src" id="tp-temp-src">' + icon('info') + '<span>From the air temperature recorded in your file.</span></p>' : '') +
@@ -1006,6 +1008,8 @@
     group('[data-privacy]', function (v) { keep(); a.privacy = v; drawResult(); });
     var orgIn = document.getElementById('tp-organiser');
     if (orgIn) orgIn.addEventListener('change', function () { keep(); a.organizer = orgIn.value.trim().slice(0, 40); analyse(); });
+    var useLast = document.getElementById('tp-use-last-tyres');
+    if (useLast) useLast.addEventListener('click', function () { keep(); a.tyre = a.lastTyre; a.tyres = TY.compose(a.lastTyre); a.tyrePre = true; drawResult(); });
     var fcSel = document.getElementById('tp-finish-cross');
     if (fcSel) fcSel.addEventListener('change', function () { keep(); a.finishCross = fcSel.value ? parseInt(fcSel.value, 10) : 0; analyse(); });
     var ig = document.getElementById('tp-ignore-finish');
@@ -1115,7 +1119,20 @@
         else if (what === 'clear') { a.startLine = null; a.finishLine = null; a.confirmLines = false; linesChanged(); }
         else if (what === 'sprint') { a.type = 'sprint'; a.startLine = null; a.finishLine = null; a.editLines = false; a.confirmLines = false; a.tapAuto = false; analyse(); }
         else if (what === 'full') { a.tapFull = !a.tapFull; drawResult(); }
-        else if (what === 'done') { a.editLines = false; a.confirmLines = false; a.tapFull = false; document.body.classList.remove('tp-noscroll'); drawResult(); }
+        else if (what === 'done') {
+          var finish = function () {
+            var wasConfirm = a.confirmLines;
+            a.editLines = false; a.confirmLines = false; a.tapFull = false; document.body.classList.remove('tp-noscroll'); drawResult();
+            // Confirmed: back to the top of the result (the time, the switches), where the member carries on.
+            if (wasConfirm) { var top = document.querySelector('#tp-result .tp-notice'); if (top && top.scrollIntoView) top.scrollIntoView({ block: 'start' }); }
+          };
+          if (a.confirmLines) {
+            // Ticked: the button goes orange for a moment, then the lines are taken.
+            if (b.getAttribute('aria-checked') === 'true') return;
+            b.setAttribute('aria-checked', 'true'); b.classList.add('is-on');
+            setTimeout(finish, 450);
+          } else finish();
+        }
       });
     });
   }

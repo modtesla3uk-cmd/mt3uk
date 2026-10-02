@@ -318,7 +318,11 @@
   .tp-tap-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
   .tp-tap-tools .btn .icon { width: 16px; height: 16px; }
   .tp-tapbox.is-full { position: fixed; inset: 0; z-index: 1100; display: flex; flex-direction: column; margin: 0; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); background: var(--paper); }
-  .tp-confirm { box-shadow: 0 0 0 3px rgba(232, 84, 42, 0.28); }
+  #tp-result .tp-notice { scroll-margin-top: 80px; }
+  .tp-confirm { background: #fff; color: var(--ink); }
+  .tp-confirm .icon { width: 18px; height: 18px; color: var(--hairline-strong); }
+  .tp-confirm.is-on { background: var(--orange, #e8542a); border-color: var(--orange, #e8542a); color: #fff; }
+  .tp-confirm.is-on .icon { color: #fff; }
   .tp-tapbox .tp-tap-step { margin: 0 0 8px; font-weight: 600; }
   .tp-tapbox.is-full .tp-tapmap { flex: 1 1 auto; min-height: 0; }
   .tp-tapbox.is-full .tv-zoom-wrap { height: 100%; }

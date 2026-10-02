@@ -295,7 +295,7 @@ def test_add_a_session_from_the_racebox_file(page):
     assert page.evaluate("getComputedStyle(document.getElementById('tp-gg')).overflow") == "hidden"
     expect(page.locator(".tp-gg").locator("xpath=../..").locator("h3")).to_contain_text("How much grip you used")
     # Speed key runs red (slow) through amber to blue (fast), which shows on grass and tarmac.
-    expect(page.locator(".tp-ramp i").first).to_have_css("background-image", re.compile(r"rgb\(229, 56, 59\).*rgb\(255, 176, 0\).*rgb\(0, 166, 230\)"))
+    expect(page.locator(".tp-ramp i").first).to_have_css("background-image", re.compile(r"rgb\(90, 24, 154\).*rgb\(214, 51, 108\).*rgb\(198, 244, 50\)"))
     expect(page.locator("#tp-laps .tp-table tbody tr")).to_have_count(2)
     # Distances in miles with mph (the default), kilometres with km/h.
     expect(page.locator(".tp-tile").nth(4).locator(".v")).to_have_text(re.compile(r"^\d+\.\d mi$"))
@@ -2509,3 +2509,40 @@ def test_the_early_preview_badge_is_on_the_menu_the_page_and_the_garage(page):
     expect(page.locator(".hp-cat[data-cat='sessions'] .early-badge")).to_have_text("Early preview")
     page.goto("/my-builds.html")
     expect(page.locator("#mb-track-btn .early-badge")).to_have_text("Early preview")
+
+
+def test_a_start_line_from_the_file_can_be_moved_and_sprint_lines_are_labelled(page):
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    page.locator("#tp-result .tp-notice.is-ok").wait_for(timeout=10000)
+    # The fixture's start line came from the file (or a known track): it can still be moved.
+    page.get_by_role("button", name="Move the start line").click()
+    expect(page.locator("#tp-tap .tp-tapmark")).to_have_count(1)
+    expect(page.get_by_role("button", name="Done")).to_be_visible()
+    # A map with a start and a finish line names each, in text that reads on the satellite picture.
+    labels = page.evaluate("""() => {
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      document.body.appendChild(svg);
+      const trace = [0, 1, 2, 3].map(i => [i * 50, 0, i * 50, 0, 20, 0, 0]);
+      window.MT3UKTrackView && window.MT3UKTrackView.map(svg, trace, { startLine: [[0, -10], [0, 10]], finishLine: [[150, -10], [150, 10]] });
+      const t = [...svg.querySelectorAll('text')].map(x => [x.textContent, x.getAttribute('fill'), x.getAttribute('paint-order')]);
+      svg.remove();
+      return t;
+    }""")
+    texts = [l[0] for l in labels]
+    assert "Start" in texts and "Finish" in texts, labels
+    assert all(l[1] == "#ffffff" and l[2] == "stroke" for l in labels if l[0] in ("Start", "Finish")), labels
+
+
+def test_changing_the_tyre_make_clears_the_model(page):
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    page.locator("#tp-tyre-make").wait_for(timeout=10000)
+    makes = page.evaluate("[...document.querySelectorAll('#tp-tyre-make option')].map(o => o.value).filter(v => v && v !== '__other')")
+    assert len(makes) >= 2
+    page.select_option("#tp-tyre-make", makes[0])
+    page.fill("#tp-tyre-model", "Something typed")
+    page.select_option("#tp-tyre-make", makes[1])
+    expect(page.locator("#tp-tyre-model")).to_have_value("")

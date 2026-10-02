@@ -1099,7 +1099,7 @@
   var api = {
     read: read, combine: combine, dateFromName: dateFromName, analyse: analyse, sessionNotes: sessionNotes, trendNotes: trendNotes, isTrackPart: isTrackPart, modImpact: modImpact, carData: carData, fileChannels: fileChannels, cornerGains: cornerGains,
     traceAt: traceAt, findCorners: findCorners, mergeLibrary: mergeLibrary, fmtLap: fmtLap, niceDate: niceDate, ukDate: ukDate, ukTime: ukTime,
-    haversine: haversine, projector: projector, dragRuns: dragRuns, KMH_PER_MPH: KMH_PER_MPH
+    haversine: haversine, outline: outline, projector: projector, dragRuns: dragRuns, KMH_PER_MPH: KMH_PER_MPH
   };
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.MT3UKTrack = api;

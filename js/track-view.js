@@ -12,7 +12,7 @@
 */
 (function () {
   var NS = 'http://www.w3.org/2000/svg';
-  var C = { s1: '#2a78d6', s2: '#eb6834', ink: '#16233d', steel: '#6b7385', grid: 'rgba(22,35,61,.08)', axis: 'rgba(22,35,61,.24)', card: '#ffffff', orange: '#e8542a', orangeInk: '#b8421f', rampLo: '#e5383b', rampMid: '#ffb000', rampHi: '#00a6e6', hair: 'rgba(22,35,61,.12)' };
+  var C = { s1: '#2a78d6', s2: '#eb6834', ink: '#16233d', steel: '#6b7385', grid: 'rgba(22,35,61,.08)', axis: 'rgba(22,35,61,.24)', card: '#ffffff', orange: '#e8542a', orangeInk: '#b8421f', rampLo: '#5a189a', rampMid: '#d6336c', rampHi: '#c6f432', hair: 'rgba(22,35,61,.12)' };
   var units = { mph: true };
   try { units.mph = localStorage.getItem('mt3ukTrackUnits') !== 'kmh'; } catch (e) {}
 
@@ -174,13 +174,19 @@
       return m;
     }
     function moveMarker(m, x, y) { m.x = x; m.y = y; m.g.setAttribute('transform', 'translate(' + x + ' ' + y + ') scale(' + (1 / k) + ')'); }
-    if (opts.startLine) {
-      var sa = P(opts.startLine[0][0], opts.startLine[0][1]), sb = P(opts.startLine[1][0], opts.startLine[1][1]);
+    // A line across the track with a label that reads on the satellite
+    // picture too (white with a dark edge). A sprint or hill climb has a
+    // separate start (green) and finish (red).
+    function lineMarker(line, label, colour) {
+      var sa = P(line[0][0], line[0][1]), sb = P(line[1][0], line[1][1]);
       var mx = (sa[0] + sb[0]) / 2, my = (sa[1] + sb[1]) / 2, dx = sb[0] - sa[0], dy = sb[1] - sa[1], L = Math.hypot(dx, dy) || 1;
       var sm = marker(mx, my);
-      el('line', { x1: -dx / L * 14, y1: -dy / L * 14, x2: dx / L * 14, y2: dy / L * 14, stroke: C.ink, 'stroke-width': 3 }, sm.g);
-      text(sm.g, 18, 5, 'Start / finish', { 'font-size': 13, fill: C.ink });
+      el('line', { x1: -dx / L * 14, y1: -dy / L * 14, x2: dx / L * 14, y2: dy / L * 14, stroke: '#ffffff', 'stroke-width': 6, 'stroke-linecap': 'round' }, sm.g);
+      el('line', { x1: -dx / L * 14, y1: -dy / L * 14, x2: dx / L * 14, y2: dy / L * 14, stroke: colour, 'stroke-width': 3.5, 'stroke-linecap': 'round' }, sm.g);
+      text(sm.g, 18, 5, label, { 'font-size': 13, 'font-weight': 700, fill: '#ffffff', stroke: '#1a1a1a', 'stroke-width': 3.5, 'paint-order': 'stroke', 'stroke-linejoin': 'round' });
     }
+    if (opts.startLine) lineMarker(opts.startLine, opts.finishLine ? 'Start' : 'Start / finish', opts.finishLine ? '#1baf7a' : C.ink);
+    if (opts.finishLine) lineMarker(opts.finishLine, 'Finish', '#d33a2c');
     (opts.corners || []).forEach(function (c) {
       var p = P(c.x, c.y), cm = marker(p[0], p[1]);
       el('circle', { cx: 0, cy: 0, r: 11, fill: C.card, stroke: C.axis }, cm.g);

@@ -313,8 +313,14 @@
       if (wrap) wrap.hidden = mk.value !== '__other';
       var dl = document.getElementById(pre + '-models');
       if (dl) dl.innerHTML = tyreModels(mk.value);
+      // A different make has different models, so the old one goes.
+      var md = document.getElementById(pre + '-model');
+      if (md) md.value = '';
       preview();
     });
+    // The list of models drops down as soon as the empty box is tapped.
+    var mdl = document.getElementById(pre + '-model');
+    if (mdl) mdl.addEventListener('focus', function () { if (!mdl.value && typeof mdl.showPicker === 'function') { try { mdl.showPicker(); } catch (e) { /* not allowed here */ } } });
     ['model', 'make-other', 'w', 'p', 'd'].forEach(function (k) {
       var el = document.getElementById(pre + '-' + k);
       if (el) { el.addEventListener('input', preview); el.addEventListener('change', preview); }
@@ -808,7 +814,7 @@
         var timed = s.laps.filter(function (l) { return l.kind === 'timed'; }).length;
         h += '<div class="tp-notice is-ok">' + miniMap(s) + '<div><b>' + esc(s.venue ? trackName(s) : (a.venueName || 'Your track')) + '</b><br>' +
           (s.venueId ? 'Found from the GPS in your file. ' : isSprint ? 'Timed between the start and finish you picked. ' : 'Timed from the start line you picked. ') + timed + ' timed ' + word + (timed === 1 ? '' : 's') + (s.bestTime ? ', best ' + V.fmtLap(s.bestTime) : '') + '.</div></div>';
-        if (a.startLine || a.finishLine) h += '<button type="button" class="btn btn-secondary btn-sm tp-move-lines" data-tap="edit">' + icon('pin') + 'Move ' + (isSprint ? 'start and finish' : 'the start line') + '</button>';
+        if (a.startLine || a.finishLine || s.startLine) h += '<button type="button" class="btn btn-secondary btn-sm tp-move-lines" data-tap="edit">' + icon('pin') + 'Move ' + (isSprint ? 'start and finish' : 'the start line') + '</button>';
         if (isSprint && !s.pointToPoint) h += '<button type="button" class="tp-switch" role="switch" aria-checked="' + (a.ignoreFinish !== false) + '" id="tp-ignore-finish"><span><b>Ignore the first time it crosses the finish line</b><br><small>' + (s.firstFinishIgnored ? 'Ignored once in this file. Turn it off if your first run is missing.' : 'Turn this off if your first run is missing.') + '</small></span><span class="tp-track"></span></button>';
         if (s.venueId && !s.layoutId) h += '<p class="tp-sub">We know ' + esc(s.venue) + ' but couldn\'t tell which layout this is, so it can\'t go on a leaderboard yet. We\'ve let the admin know.</p>';
         if (!s.venueId) h += '<div class="tp-field"><label for="tp-venue-name">Track name</label><input class="field" id="tp-venue-name" placeholder="For example, Blyton Park" value="' + esc(a.venueName || '') + '"></div>' + (a.venueNameLooked ? nameNote() : '');
@@ -850,7 +856,11 @@
     wireResult();
     if (s.needsStartLine || a.editLines) drawTap();
     var mv = box.querySelector('[data-tap="edit"]');
-    if (mv) mv.addEventListener('click', function () { add.editLines = true; drawResult(); var tb = document.getElementById('tp-tapbox'); if (tb) tb.scrollIntoView({ block: 'nearest' }); });
+    if (mv) mv.addEventListener('click', function () {
+      // Lines that came from the file or a known course become markers to move.
+      var cur = add.session || {};
+      if (!add.startLine && !add.finishLine && cur.startLine) { add.startLine = cur.startLine; add.finishLine = cur.type === 'sprint' ? cur.finishLine || null : null; }
+      add.editLines = true; drawResult(); var tb = document.getElementById('tp-tapbox'); if (tb) tb.scrollIntoView({ block: 'nearest' }); });
   }
   function bestRunLine(runs) {
     var q = runs.filter(function (r) { return r.quarter; }).sort(function (x, y) { return x.quarter - y.quarter; })[0];
@@ -945,7 +955,7 @@
     // A timed session keeps its laps, not the whole trace: read the trace again
     // (with no lines) to have the whole drive to place markers on.
     var out = s.trace && s.trace.outline;
-    if (!out) { if (!a.tapOutline) { var bare = T.analyse(a.rd, a.lib, { type: s.type }); a.tapOutline = bare.trace && bare.trace.outline; } out = a.tapOutline; }
+    if (!out) { if (!a.tapOutline) a.tapOutline = T.outline(a.rd.points); out = a.tapOutline; }
     if (!out || !out.length) return;
     var sprint = s.type === 'sprint';
     var proj = T.projector(out[0][0], out[0][1]);
@@ -1409,10 +1419,11 @@
     var l = (view.s.laps || []).filter(function (x) { return String(x.n) === String(v); })[0];
     return Promise.resolve(l ? { trace: view.s.trace.laps[l.n], label: lapName(l, view.s) + ', ' + shortDate(view.s.date), time: l.time } : null);
   }
-  function startLineXY(s) {
-    if (!s.startLine || !s.origin || s.origin.length !== 2) return null;
+  function startLineXY(s, line) {
+    line = line || s.startLine;
+    if (!line || !s.origin || s.origin.length !== 2) return null;
     var proj = T.projector(s.origin[0], s.origin[1]);
-    return s.startLine.map(function (p) { return proj.xy(p[0], p[1]); });
+    return line.map(function (p) { return proj.xy(p[0], p[1]); });
   }
   // Another session's lap in this session's map coordinates (each session's
   // trace is in metres around its own origin).
@@ -1649,7 +1660,7 @@
         : (A === B ? [{ trace: A.trace, color: c1 }] : [{ trace: B.trace, color: c2 }, { trace: A.trace, color: c1 }]);
       // The whole session's laps underneath as the track's width.
       var band = Object.keys(s.trace.laps).map(function (k) { return s.trace.laps[k]; });
-      var mo = V.map(mapEl, A.trace, { fill: fill, mono: true, lines: lines, band: band, startLine: startLineXY(s), corners: s.corners, origin: s.origin });
+      var mo = V.map(mapEl, A.trace, { fill: fill, mono: true, lines: lines, band: band, startLine: startLineXY(s), finishLine: s.type === 'sprint' ? startLineXY(s, s.finishLine) : null, corners: s.corners, origin: s.origin });
       var lo = document.getElementById('tp-ramp-lo'), hi = document.getElementById('tp-ramp-hi');
       if (mo && lo && hi) { lo.textContent = V.fmtV(mo.vmin); hi.textContent = V.fmtV(mo.vmax); }
       cmpMap = mo;

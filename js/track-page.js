@@ -149,15 +149,9 @@
   // ---------- Early preview gate ----------
   var PREVIEW_USES = ['Tesla Track Mode', 'RaceBox', 'Another lap timer app', 'Just having a look'];
   var PREVIEW_SHOTS = [
-    ['images/track-preview/sec-pick.jpg', 'Two drop-down boxes for choosing which two laps to compare, here lap 2 and lap 1.', 956, 205, 'Pick any two laps to compare'],
-    ['images/track-preview/sec-speed.jpg', 'Speed through the lap for both laps on one chart with the corner numbers above it, and under it the time gap showing where the faster lap gained.', 525, 497, 'Speed through the lap, and where the time was gained'],
-    ['images/track-preview/sec-map.jpg', 'A satellite map with both laps drawn on it, coloured by speed, with play, rewind and follow buttons and the corner numbers.', 420, 665, 'Both laps on one map, with a play button'],
-    ['images/track-preview/sec-corners.jpg', 'A table of each corner with the slowest speed on each lap and how much time the faster lap gained there.', 525, 158, 'Corner by corner, who gained where'],
-    ['images/track-preview/chart.jpg', 'G-force and speed for both laps on one chart, with a time ruler and slider under it.', 380, 360, 'G-force and speed on one chart, in step with the map'],
-    ['images/track-preview/sec-best-lap.jpg', 'Tiles for the best lap, the best possible lap, top speed, most grip used and distance.', 956, 105, 'Your best lap and best possible at a glance'],
-    ['images/track-preview/sec-track-mode.jpg', 'Tesla Track Mode figures: charge used, peak power, hardest braking, flat out time, and battery and brake temperatures with the temperature zones coloured.', 956, 430, 'The car\'s own data from Tesla Track Mode'],
-    ['images/track-preview/sec-power.jpg', 'A note saying peak power fell from 250 kW early in the session to 190 kW late on, because the car limits power as parts get hot.', 956, 132, 'A note when the car held power back']
+    ['images/track-preview/session-overview.jpg', 'A whole session zoomed out: the best lap tiles, the Tesla Track Mode figures, two laps compared with speed and time gap charts, a map and a corner by corner table, then the grip circle and what we spotted.', 760, 2310, 'A whole session, zoomed out']
   ];
+
   // The preview pictures, one at a time: Previous and Next (or the arrow keys),
   // full screen, and Close (or Escape).
   function openShot(index, opener) {
@@ -165,7 +159,7 @@
     if (old) old.remove();
     var n = PREVIEW_SHOTS.length, at = index;
     var box = document.createElement('div');
-    box.className = 'tp-lb'; box.id = 'tp-lb'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-label', 'Preview pictures');
+    box.className = 'tp-lb' + (n === 1 ? ' tp-lb-one' : ''); box.id = 'tp-lb'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-label', 'Preview pictures');
     box.innerHTML = '<div class="tp-lb-bar"><span class="tp-lb-count" id="tp-lb-count"></span><span class="tp-lb-tools"><button type="button" class="tp-lb-btn" data-lb="full" aria-label="Full screen">' + icon('expand') + '</button><button type="button" class="tp-lb-btn" data-lb="close" aria-label="Close">' + icon('x') + '</button></span></div>' +
       '<div class="tp-lb-stage"><button type="button" class="tp-lb-btn tp-lb-prev" data-lb="prev" aria-label="Previous picture">' + icon('prev') + '</button><figure class="tp-lb-fig"><img id="tp-lb-img" alt=""><figcaption id="tp-lb-cap"></figcaption></figure><button type="button" class="tp-lb-btn tp-lb-next" data-lb="next" aria-label="Next picture">' + icon('next') + '</button></div>';
     document.body.appendChild(box);
@@ -176,7 +170,7 @@
       var img = document.getElementById('tp-lb-img');
       img.src = x[0]; img.alt = x[1];
       document.getElementById('tp-lb-cap').textContent = x[4] + '. ' + x[1];
-      document.getElementById('tp-lb-count').textContent = (at + 1) + ' of ' + n;
+      document.getElementById('tp-lb-count').textContent = n > 1 ? (at + 1) + ' of ' + n : '';
     }
     function close() {
       if (document.fullscreenElement) { try { document.exitFullscreen(); } catch (e) { /* already out */ } }
@@ -225,7 +219,7 @@
           '<button type="submit" class="btn btn-accent" id="tp-gate-send">Request access</button><p class="tp-status" id="tp-gate-status" role="status"></p></form>';
       }
       h += '</div></div>' +
-        '<h3 class="tp-gate-see">See what it does</h3><p class="tp-small">Tap a picture to see it bigger. Screenshots use example data.</p>' +
+        '<h3 class="tp-gate-see">See what it does</h3><p class="tp-small">Tap the picture to see it bigger. It uses example data.</p>' +
         '<div class="tp-gate-thumbs">' + PREVIEW_SHOTS.map(function (x, k) { return '<button type="button" class="tp-thumb" data-shot="' + k + '" aria-label="Open: ' + esc(x[4]) + '"><span class="tp-thumb-img"><img src="' + x[0] + '" alt="" width="' + x[2] + '" height="' + x[3] + '" loading="lazy"></span><span class="tp-thumb-cap">' + esc(x[4]) + '</span></button>'; }).join('') + '</div>' +
         '<p class="tp-small">The <a href="leaderboards.html">Ranking</a> page is open to everyone to look at.</p></div>';
       app.innerHTML = h;

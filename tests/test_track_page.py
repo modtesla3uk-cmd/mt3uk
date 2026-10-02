@@ -2519,25 +2519,17 @@ def test_members_without_access_see_the_early_preview_page_and_can_ask(page):
     # A short explainer and screenshots, with their descriptions.
     expect(gate.locator(".tp-ticks li")).to_have_count(4)
     shots = gate.locator(".tp-gate-thumbs [data-shot]")
-    expect(shots).to_have_count(8)
+    expect(shots).to_have_count(1)
     assert all(src.startswith("images/track-preview/") for src in gate.locator(".tp-thumb img").evaluate_all("els => els.map(e => e.getAttribute('src'))"))
-    # The request form comes before the pictures, beside the explanation.
+    # The request form comes before the picture, beside the explanation.
     form_y = gate.locator("#tp-gate-form").bounding_box()["y"]
     assert form_y < gate.locator(".tp-gate-thumbs").bounding_box()["y"]
-    # A picture opens in a viewer with Previous, Next, Full screen and Close.
+    # The one zoomed out picture opens in a viewer with Full screen and Close, and no Previous or Next.
     shots.first.click()
     lb = page.locator("#tp-lb")
     expect(lb).to_be_visible()
-    expect(lb.locator("#tp-lb-count")).to_have_text("1 of 8")
-    first = lb.locator("#tp-lb-img").get_attribute("src")
     assert len(lb.locator("#tp-lb-img").get_attribute("alt")) > 30
-    lb.get_by_role("button", name="Next picture").click()
-    expect(lb.locator("#tp-lb-count")).to_have_text("2 of 8")
-    assert lb.locator("#tp-lb-img").get_attribute("src") != first
-    page.keyboard.press("ArrowLeft")
-    expect(lb.locator("#tp-lb-count")).to_have_text("1 of 8")
-    page.keyboard.press("ArrowLeft")
-    expect(lb.locator("#tp-lb-count")).to_have_text("8 of 8")
+    expect(lb.get_by_role("button", name="Next picture")).to_be_hidden()
     expect(lb.get_by_role("button", name="Full screen")).to_be_visible()
     page.keyboard.press("Escape")
     expect(lb).to_have_count(0)

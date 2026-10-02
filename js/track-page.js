@@ -49,6 +49,7 @@
     back: '<path d="M19 12H5M12 19l-7-7 7-7"/>',
     chev: '<path d="m9 6 6 6-6 6"/>',
     trash: '<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/>',
+    user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/>',
     pin: '<path d="M12 21s-7-6.3-7-12a7 7 0 0 1 14 0c0 5.7-7 12-7 12Z"/><circle cx="12" cy="9" r="2.5"/>'
   };
   function icon(n) { return '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">' + ICON[n] + '</svg>'; }
@@ -534,12 +535,13 @@
     if (day.length < 2 || day.every(function (x) { return x.id !== s.id; })) return null;
     return { n: day.map(function (x) { return x.id; }).indexOf(s.id) + 1, of: day.length };
   }
-  function dayRow(s, n) {
+  function dayRow(s, n, fastest) {
     return '<a class="tp-row" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '"><span class="tp-daygroup-no">#' + n + '</span><span class="tp-row-main"><b>' + (s.time ? esc(s.time) : 'Time not known') + '</b><span>' +
-      esc([s.type === 'drag' ? (s.runs || 0) + ' run' + (s.runs === 1 ? '' : 's') : (s.laps || 0) + (s.type === 'sprint' ? ' run' : ' lap') + (s.laps === 1 ? '' : 's'), s.conditions].filter(Boolean).join(', ')) + '</span></span>' +
+      esc([s.type === 'drag' ? (s.runs || 0) + ' run' + (s.runs === 1 ? '' : 's') : (s.laps || 0) + (s.type === 'sprint' ? ' run' : ' lap') + (s.laps === 1 ? '' : 's'), s.conditions].filter(Boolean).join(', ')) + (fastest ? ' <b class="tp-fastest">Fastest</b>' : '') + '</span></span>' +
       '<span class="tp-row-res">' + esc(sessionResult(s)) + '</span>' + (s.privacy !== undefined ? privacyPill(s.privacy, s.street) : '') + icon('chev') + '</a>';
   }
   // The list as rows, with a day at one track in a card of its own when it has two or more sessions.
+  var openDays = {};
   function sessionListHtml(list) {
     var groups = {}, order = [];
     list.forEach(function (s) {
@@ -551,9 +553,15 @@
       var g = groups[k];
       if (g.length < 2) return sessionRow(g[0]);
       g = g.slice().sort(byTime);
-      var best = g.filter(function (x) { return x.bestTime; }).sort(function (a, b) { return a.bestTime - b.bestTime; })[0];
-      return '<div class="card tp-daygroup"><div class="tp-daygroup-head"><h3>' + esc(niceDate(g[0].date)) + ' on ' + esc(trackName(g[0])) + '</h3><span class="tp-small">' + g.length + ' sessions' + (best ? ', best ' + esc(V.fmtLap(best.bestTime)) : '') + '</span></div>' +
-        '<div class="tp-list">' + g.map(function (x, i) { return dayRow(x, i + 1); }).join('') + '</div></div>';
+      // The fastest of the day: the best lap or run, or for drag runs the quickest quarter mile (else 0 to 60).
+      function score(x) { return x.type === 'drag' ? (x.quarter || (x.s60 ? 1000 + x.s60 : 0)) : x.bestTime || 0; }
+      var fast = g.filter(function (x) { return score(x) > 0; }).sort(function (a, b) { return score(a) - score(b); })[0];
+      var key = k, open = openDays[key] || !fast;
+      var best = fast && fast.type !== 'drag' ? V.fmtLap(fast.bestTime) : '';
+      return '<div class="card tp-daygroup" data-open="' + (open ? 'true' : 'false') + '" data-day="' + esc(key) + '">' +
+        '<button type="button" class="tp-daygroup-head" data-day-toggle aria-expanded="' + (open ? 'true' : 'false') + '" aria-label="' + esc(niceDate(g[0].date) + ' on ' + trackName(g[0]) + ', ' + g.length + ' sessions') + '"><h3>' + esc(niceDate(g[0].date)) + ' on ' + esc(trackName(g[0])) + '</h3><span class="tp-small">' + g.length + ' sessions</span>' + icon('chev') + '</button>' +
+        (fast ? '<div class="tp-daygroup-best"><span class="tp-small tp-daygroup-label">Fastest session of the day</span>' + dayRow(fast, g.indexOf(fast) + 1, false) + '</div>' : '') +
+        '<div class="tp-list tp-daygroup-all">' + g.map(function (x, i) { return dayRow(x, i + 1, x === fast); }).join('') + '</div></div>';
     }).join('');
   }
   function wireCarChips(m) {
@@ -568,6 +576,16 @@
     });
   }
   var counts = null;
+  // A day's group opens and closes from its heading, and stays as chosen when the list is drawn again.
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-day-toggle]');
+    if (!b) return;
+    var box = b.closest('.tp-daygroup');
+    var open = box.getAttribute('data-open') !== 'true';
+    box.setAttribute('data-open', open ? 'true' : 'false');
+    b.setAttribute('aria-expanded', open ? 'true' : 'false');
+    openDays[box.getAttribute('data-day')] = open;
+  });
 
   // ---------- Add a session ----------
   var add = null;
@@ -1379,7 +1397,7 @@
     var place = s.mine && view.mine ? dayPlace(s, view.mine.sessions) : null;
     var h = back(s.mine ? 'Your sessions' : 'Back', s.mine ? '' : (s.carId ? 'car=' + encodeURIComponent(s.carId) : ''));
     if (s.adminView) h += '<p class="tp-admin-banner" id="tp-admin-banner">' + icon('lock') + 'Admin view, read only. This is a private session and this view is logged. Notes are not shown.</p>';
-    h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '</h2><p class="tp-sub">' + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (place ? ' &middot; <b id="tp-day-place">Session ' + place.n + ' of ' + place.of + ' that day</b>' : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + '</p>' + (s.fileName && (s.mine || s.adminView) ? '<p class="tp-small tp-filename" id="tp-filename">' + icon('file') + 'File: ' + esc(s.fileName) + '</p>' : '') + '</div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) + '<span id="tp-rank-slot"></span>' : '') + unitsChip() + (s.street || s.privacy === 'private' ? '' : shareDot('Share this session')) + '</div></div>';
+    h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '</h2>' + (s.ownerName ? '<p class="tp-by" id="tp-by">' + icon('user') + '<span>Session by <b>' + esc(s.ownerName) + '</b>' + (s.mine ? ' (you)' : '') + '</span></p>' : '') + '<p class="tp-sub">' + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (place ? ' &middot; <b id="tp-day-place">Session ' + place.n + ' of ' + place.of + ' that day</b>' : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + '</p>' + (s.fileName && (s.mine || s.adminView) ? '<p class="tp-small tp-filename" id="tp-filename">' + icon('file') + 'File: ' + esc(s.fileName) + '</p>' : '') + '</div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) + '<span id="tp-rank-slot"></span>' : '') + unitsChip() + (s.street || s.privacy === 'private' ? '' : shareDot('Share this session')) + '</div></div>';
     LW = s.type === 'sprint' ? 'Run' : 'Lap';
     // Timed with older code and no readings kept to work it out again: only uploading the file again updates it.
     if (s.mine && !s.hasSource && s.type !== 'other' && (s.analysisVersion || 1) < T.ANALYSIS_VERSION) h += '<p class="tp-notice" id="tp-old-version">' + icon('info') + '<span>Timed with an older version. Upload the file again to update the times.</span></p>';
@@ -1629,13 +1647,15 @@
         var tr = o && o.trace && o.trace.laps && o.trace.laps[o.best];
         var mem = view.memberById && view.memberById[id];
         // Which lap this is, so A and B say where they came from.
-        var lbl = mem ? memberName(mem) + ', best ' + LW.toLowerCase() + ', ' + shortDate(o.date) : 'Your best ' + LW.toLowerCase() + ', ' + shortDate(o.date);
+        var lbl = mem ? memberName(mem) + ', best ' + LW.toLowerCase() + ', ' + shortDate(o.date) : (o.mine ? 'Your best ' : (o.ownerName ? o.ownerName + ', best ' : 'Best ')) + LW.toLowerCase() + ', ' + shortDate(o.date);
         view.other[id] = tr ? { trace: tr, label: lbl, time: o.bestTime, origin: o.origin } : null;
         return view.other[id];
       });
     }
     var l = (view.s.laps || []).filter(function (x) { return String(x.n) === String(v); })[0];
-    return Promise.resolve(l ? { trace: view.s.trace.laps[l.n], label: lapName(l, view.s) + ', ' + shortDate(view.s.date), time: l.time } : null);
+    // Whose lap it is, so A and B can't be mixed up: "You" for your own, otherwise the member's name.
+    var who = view.s.mine ? 'You' : (view.s.ownerName || '');
+    return Promise.resolve(l ? { trace: view.s.trace.laps[l.n], label: (who ? who + ', ' : '') + lapName(l, view.s) + ', ' + shortDate(view.s.date), time: l.time } : null);
   }
   function startLineXY(s, line) {
     line = line || s.startLine;

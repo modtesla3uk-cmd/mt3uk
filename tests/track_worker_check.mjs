@@ -99,6 +99,8 @@ r = await call('GET', '/track/sessions', undefined, 'tok-a');
 ok(r.body.sessions.length === 1 && r.body.sessions[0].id === id1 && r.body.sessions[0].tyres === 'Pilot Sport 4S', 'in my list');
 r = await call('GET', '/track/session?id=' + id1, undefined, 'tok-a');
 ok(r.status === 200 && r.body.session.mine && r.body.session.notes === 'First go' && r.body.session.trace.laps['2'].length > 100 && !r.body.session.owner, 'the owner opens it with the trace');
+ok(r.body.session.ownerName === 'Rich', 'a session says whose it is (the owner\'s public name)');
+ok(!JSON.stringify(r.body.session).includes(A), 'and never gives their email');
 r = await call('GET', '/track/session?id=' + id1, undefined, 'tok-b');
 ok(r.status === 404, 'private: others cannot open it');
 r = await call('GET', '/track/session?id=' + id1);

@@ -7090,6 +7090,9 @@ async function handleTrackSessionGet(request, env) {
   if (adminView) out.adminView = true;
   var car = await getCarRecord(env, rec.carId);
   out.car = car ? car.name : '';
+  // Whose it is, as other members see them (nickname or name), so a session opened from a leaderboard says who ran it.
+  var ownerEmail = car ? await carOwnerEmail(env, car) : null;
+  out.ownerName = ownerEmail ? (publicName(await getProfileRecord(env, ownerEmail)) || 'MT3UK member') : 'MT3UK member';
   if (adminView) await logTrackAdminView(env, rec, out.car);
   return json({ success: true, session: out });
 }

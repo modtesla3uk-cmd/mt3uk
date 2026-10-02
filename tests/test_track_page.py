@@ -104,7 +104,7 @@ class FakeWorker:
             sid = q.get("id", [""])[0]
             rec = self.sessions.get(sid)
             if rec:
-                data = {"success": True, "session": dict(rec, mine=True, car=CAR["name"])}
+                data = {"success": True, "session": dict(rec, mine=True, car=CAR["name"], ownerName=rec.get("ownerName", "Rich"))}
             else:
                 status, data = 404, {"success": False}
         elif path == "/tyres" and req.method == "GET":
@@ -446,22 +446,39 @@ def test_sessions_at_the_same_track_on_the_same_day_are_grouped_by_time(page):
     card = page.locator(".tp-daygroup")
     expect(card).to_have_count(1)
     expect(card.locator("h3")).to_have_text("14 Jul 2026 on Castle Combe")
-    expect(card.locator(".tp-daygroup-head .tp-small")).to_contain_text("3 sessions, best 1:21.170")
-    rows = card.locator(".tp-row")
+    expect(card.locator(".tp-daygroup-head .tp-small")).to_have_text("3 sessions")
+    # Collapsed: only the fastest session of the day shows, with its place in the day.
+    expect(card).to_have_attribute("data-open", "false")
+    expect(card.locator(".tp-daygroup-label")).to_have_text("Fastest session of the day")
+    best = card.locator(".tp-daygroup-best .tp-row")
+    expect(best).to_have_count(1)
+    expect(best).to_contain_text("#2")
+    expect(best).to_contain_text("11:29")
+    expect(best).to_contain_text("1:21.170")
+    expect(card.locator(".tp-daygroup-all")).to_be_hidden()
+    # Opening it lists every session in time of day order, numbered by it, with the fastest marked.
+    card.locator("[data-day-toggle]").click()
+    expect(card).to_have_attribute("data-open", "true")
+    expect(card.locator(".tp-daygroup-best")).to_be_hidden()
+    rows = card.locator(".tp-daygroup-all .tp-row")
     expect(rows).to_have_count(3)
-    # In time of day order, numbered by it.
     expect(rows.nth(0)).to_contain_text("#1")
     expect(rows.nth(0)).to_contain_text("09:25")
     expect(rows.nth(0)).to_contain_text("3 laps")
     expect(rows.nth(1)).to_contain_text("#2")
     expect(rows.nth(1)).to_contain_text("11:29")
-    expect(rows.nth(1)).to_contain_text("1:21.170")
+    expect(rows.nth(1).locator(".tp-fastest")).to_have_text("Fastest")
     expect(rows.nth(2)).to_contain_text("#3")
     expect(rows.nth(2)).to_contain_text("14:46")
+    expect(card.locator(".tp-fastest")).to_have_count(1)
+    # It stays open when the list is drawn again (changing the track filter), and closes again from the heading.
+    card.locator("[data-day-toggle]").click()
+    expect(card).to_have_attribute("data-open", "false")
     # A session on its own stays a plain row.
     expect(page.locator("#tp-sess-list > a.tp-row")).to_have_count(1)
     expect(page.locator("#tp-sess-list > a.tp-row")).to_contain_text("Thruxton")
     # Opening one says where it falls in the day.
+    card.locator("[data-day-toggle]").click()
     rows.nth(1).click()
     expect(page.locator("#tp-day-place")).to_have_text("Session 2 of 3 that day")
     # Phone: no sideways scroll.
@@ -481,6 +498,26 @@ def test_a_lone_session_has_no_day_number(page):
     page.locator("#tp-sess-list a.tp-row").first.click()
     expect(page.locator(".tp-session-head")).to_be_visible()
     expect(page.locator("#tp-day-place")).to_have_count(0)
+
+
+def test_a_session_says_whose_it_is(page):
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator(".tp-session-head")).to_be_visible()
+    # Your own: your name, marked as you, and the lap labels start with "You".
+    page.goto("/track.html?s=new1")
+    expect(page.locator("#tp-by")).to_have_text("Session by Rich (you)")
+    # Someone else's, opened from a leaderboard: their name, not marked as you.
+    fake.sessions["new1"]["ownerName"] = "Ann"
+    page.route("**/track/session?id=new1", lambda route: route.fulfill(
+        status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"},
+        body=json.dumps({"success": True, "session": dict(fake.sessions["new1"], mine=False, car="Blue Y", ownerName="Ann")})))
+    page.goto("/track.html?s=new1")
+    expect(page.locator("#tp-by")).to_have_text("Session by Ann")
+    expect(page.locator("#tp-by")).not_to_contain_text("(you)")
 
 
 def test_csv_with_unknown_columns_asks_which_is_which(page):

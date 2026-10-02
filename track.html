@@ -104,10 +104,19 @@
   .tp-row-main span { font-size: 0.82rem; color: var(--steel); }
   .tp-row-res { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }
   .tp-row > .icon { color: var(--steel); }
+  .tp-by { display: flex; align-items: center; gap: 6px; margin: 4px 0 2px; font-size: 0.92rem; color: var(--ink); }
+  .tp-by .icon { width: 16px; height: 16px; color: var(--steel); flex: none; }
   .tp-daygroup { padding: 14px; }
-  .tp-daygroup-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; margin-bottom: 10px; }
-  .tp-daygroup-head h3 { margin: 0; font-size: 1.05rem; }
-  .tp-daygroup .tp-list { gap: 8px; }
+  .tp-daygroup-head { display: flex; align-items: center; gap: 4px 12px; width: 100%; min-height: 44px; margin: 0; padding: 0; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+  .tp-daygroup-head h3 { flex: 1; min-width: 0; margin: 0; font-size: 1.05rem; }
+  .tp-daygroup-head .icon { color: var(--steel); transition: transform 0.15s; }
+  .tp-daygroup[data-open="true"] .tp-daygroup-head .icon { transform: rotate(90deg); }
+  .tp-daygroup-best { display: grid; gap: 6px; margin-top: 6px; }
+  .tp-daygroup-label { color: var(--steel); }
+  .tp-daygroup-all { margin-top: 8px; gap: 8px; }
+  .tp-daygroup[data-open="false"] .tp-daygroup-all { display: none; }
+  .tp-daygroup[data-open="true"] .tp-daygroup-best { display: none; }
+  .tp-row-main b.tp-fastest { margin-left: 4px; padding: 1px 8px; border-radius: var(--radius-pill); background: var(--ok-bg); color: var(--ok-ink); font-size: 0.74rem; font-weight: 600; }
   .tp-daygroup-no { min-width: 2.2em; font-weight: 700; color: var(--steel); font-variant-numeric: tabular-nums; }
   @media (max-width: 560px) { .tp-daygroup .tp-row-main { flex-basis: calc(100% - 96px); } .tp-daygroup-no { min-width: 1.8em; } }
   @media (max-width: 560px) { .tp-row { flex-wrap: wrap; } .tp-row-main { flex-basis: calc(100% - 40px); } .tp-row > .icon { order: 2; } .tp-row-res { order: 3; } .tp-pill { order: 4; } }
@@ -727,10 +736,10 @@
   }
 </script>
 
-<script src="js/track-parse.js?v=20261005" defer></script>
-<script src="js/track-view.js?v=20261005" defer></script>
+<script src="js/track-parse.js?v=20261007" defer></script>
+<script src="js/track-view.js?v=20261007" defer></script>
 <script src="js/tyre-data.js"></script>
-<script src="js/track-page.js?v=20261005" defer></script>
+<script src="js/track-page.js?v=20261007" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js" defer></script>
 <script src="js/signin-prompt.js" defer></script>

@@ -819,11 +819,12 @@
           for (var si = 0; si < stopAt.length; si++) edges.push([stopAt[si][1], si + 1 < stopAt.length ? stopAt[si + 1][0] : Infinity]);
           // Start line as a segment in metres, to tell whether the launch happened at it.
           var sa = proj.xy(c.start[0][0], c.start[0][1]), sb = proj.xy(c.start[1][0], c.start[1][1]);
-          function nearStart(p) {
+          function startDist(p) {
             var vx = sb[0] - sa[0], vy = sb[1] - sa[1], L2 = vx * vx + vy * vy || 1;
             var u = Math.max(0, Math.min(1, ((p.x - sa[0]) * vx + (p.y - sa[1]) * vy) / L2));
-            return Math.hypot(p.x - (sa[0] + u * vx), p.y - (sa[1] + u * vy)) <= 25;
+            return Math.hypot(p.x - (sa[0] + u * vx), p.y - (sa[1] + u * vy));
           }
+          function nearStart(p) { return startDist(p) <= 25; }
           edges.forEach(function (seg, ei) {
             // A run starts at the launch (the car moving off after a stop). The start line counts when it
             // is crossed within a few seconds of that, or when the car launched from right at it, so the
@@ -837,6 +838,15 @@
                 while (launchIdx < pts.length - 1 && pts[launchIdx].t < seg[0]) launchIdx++;
                 if (x && x.t > seg[0] + 25) x = null;
                 if (!x && nearStart(pts[launchIdx])) x = { i: launchIdx, t: seg[0], d: pts[launchIdx].d };
+              }
+              if (x && first && ei > 0) {
+                // A standing start from at or just behind the line is timed from the moment the car moves
+                // off, not from the moment its front crosses a marker drawn some metres further on: where
+                // the marker sits (20 m on is two seconds) then does not change the time.
+                var k = 0;
+                while (k < pts.length - 1 && pts[k].t < seg[0]) k++;
+                while (k > 0 && pts[k - 1].v > 0.5) k--;
+                if (pts[k].t < x.t && x.t - pts[k].t < 8 && startDist(pts[k]) <= 40) x = { i: k, t: pts[k].t, d: pts[k].d };
               }
               first = false;
               if (!x) break;

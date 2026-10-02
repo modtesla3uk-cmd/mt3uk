@@ -105,6 +105,23 @@ ok(su.laps.length === 2 && near(su.bestTime, 99.786, 0.05) && su.startLineFromMe
   ok(found === 5, 'lines drawn exactly through a reading are still crossed (' + found + ' of 5 placements found the run)');
 }
 
+// A standing start is timed from the launch: where the start marker sits (within 40 m ahead) does not change the time.
+{
+  const lat0 = 51.7, lng0 = -1.3, rows = [];
+  let tt = 0;
+  for (let i = 0; i < 80; i++) rows.push({ lat: lat0, lng: lng0, v: 0, t: (tt += 0.05), sats: 9 });
+  const t0 = tt;
+  for (let i = 1; i <= 360; i++) { const u = i * 0.05, d = 0.5 * 4 * u * u, v = Math.min(4 * u, 60) * 3.6; rows.push({ lat: lat0 + d / 110540, lng: lng0, v: v, t: (tt += 0.05), sats: 9 }); }
+  for (let i = 0; i < 80; i++) rows.push({ lat: rows[rows.length - 1].lat, lng: lng0, v: 0, t: (tt += 0.05), sats: 9 });
+  const line = m => [[lat0 + m / 110540, lng0 - 0.0003], [lat0 + m / 110540, lng0 + 0.0003]];
+  const times = [];
+  for (const startAt of [0.5, 5, 12, 20, 30]) {
+    const r = T.analyse(Object.assign({}, T.read(vbo, 'f.vbo'), { points: rows.map(q => Object.assign({}, q)), startLine: null, hz: 20 }), { venues: [] }, { type: 'sprint', startLine: line(startAt), finishLine: line(250), ignoreFirstFinish: true });
+    times.push(r.laps && r.laps.length ? r.laps[0].time : -1);
+  }
+  ok(times.every(x => x > 0 && Math.abs(x - times[0]) < 0.1), 'the run time does not depend on where the start marker is within 40 m of the launch (' + times.map(x => x.toFixed(2)).join(', ') + ' s)');
+}
+
 // A standing start away from any known drag strip is not assumed to be a drag run (it may be a sprint).
 {
   const rows = ['time,latitude,longitude,speed (mph)'];

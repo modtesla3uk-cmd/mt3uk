@@ -6596,6 +6596,9 @@ function cleanTrackSession(s, library) {
   ['duration', 'distance', 'vmax', 'latMax', 'brakeMax', 'accMax', 'bestTime', 'possible'].forEach(function (k) { var n = trackNum(s[k], -100, 1e7); if (n !== null) out[k] = n; });
   var fname = trackText(s.fileName, 200);
   if (fname) out.fileName = fname;
+  // Saved without times because its course is not listed yet: the admin has been told.
+  var pending = trackText(s.pendingCourse, 60);
+  if (pending) out.pendingCourse = pending;
   out.speedDerived = !!s.speedDerived;
   out.gDerived = !!s.gDerived;
   var venue = (library.venues || []).find(function (v) { return v.id === s.venueId; }) || null;
@@ -6666,6 +6669,7 @@ function trackSummary(rec) {
   if (rec.tyreMake) o.tyreMake = rec.tyreMake;
   if (rec.tyreModel) o.tyreModel = rec.tyreModel;
   if (rec.street) o.street = true;
+  if (rec.unlisted) o.unlisted = true;
   if (rec.offBoard) o.offBoard = true;
   if (rec.type === 'drag') {
     var runs = rec.runs || [];
@@ -6990,18 +6994,17 @@ async function handleTrackSessionSave(request, env) {
   if (rec.error) return json({ success: false, message: rec.error }, 400);
   rec.street = false;
   if (rec.type === 'drag' && !rec.atVenue) {
-    // Street runs: admins only, and always private.
-    if (!body.street || !(await isAdminViewerToken(env, body.adminViewer))) {
-      return json({ success: false, message: 'Drag runs can only be saved from a drag strip we know. If you were at one we don\'t list, tell us and we\'ll add it.' }, 400);
-    }
-    rec.street = true;
+    // Street runs: admins only, and always private. Anyone else's run at a strip we don't list is
+    // kept private and off every leaderboard until the strip is added.
+    if (body.street && (await isAdminViewerToken(env, body.adminViewer))) rec.street = true;
+    else rec.unlisted = true;
   }
   rec.id = randomToken().slice(0, 20);
   rec.owner = await ownerKey(email);
   rec.carId = String(body.carId);
   rec.createdAt = new Date().toISOString();
   applyTrackEdits(rec, body);
-  if (rec.street) rec.privacy = 'private';
+  if (rec.street || rec.unlisted) rec.privacy = 'private';
   if (!(await putTrackSession(env, rec))) return tooBig;
   await putTrackIndexes(env, email, rec);
   return json({ success: true, session: trackSummary(rec) });
@@ -7121,7 +7124,7 @@ async function handleTrackSessionUpdate(request, env) {
     if (rec.street) return json({ success: false, message: 'Street runs can\'t change type.' }, 400);
     var next = cleanTrackSession(body.session, await getTrackLibrary(env));
     if (next.error) return json({ success: false, message: next.error }, 400);
-    if (next.type === 'drag' && !next.atVenue) return json({ success: false, message: 'Drag runs can only be saved from a drag strip we know. If you were at one we don\'t list, tell us and we\'ll add it.' }, 400);
+    if (next.type === 'drag' && !next.atVenue) next.unlisted = true;
     next.street = false;
     next.id = rec.id;
     next.owner = rec.owner;
@@ -7132,7 +7135,7 @@ async function handleTrackSessionUpdate(request, env) {
     delete body.privacy;
   }
   applyTrackEdits(rec, body);
-  if (rec.street) rec.privacy = 'private';
+  if (rec.street || rec.unlisted) rec.privacy = 'private';
   if (!(await putTrackSession(env, rec))) return json({ success: false, message: 'This session is too big to save. Try a shorter file.' }, 413);
   await putTrackIndexes(env, got.email, rec);
   if (oldBoard && oldBoard !== trackBoardKey(rec)) await refreshTrackBoard(env, oldBoard, rec.carId);

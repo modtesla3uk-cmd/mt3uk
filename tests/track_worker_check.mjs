@@ -168,9 +168,11 @@ ok(r.body.entries.length === 1 && r.body.entries[0].quarter > 10 && r.body.entri
 const street = T.analyse(T.read(dragCsv(51.5, -0.12), 's.csv'), lib, { type: 'drag' });
 const lying = JSON.parse(JSON.stringify(street)); lying.atVenue = true; lying.venueId = 'santa-pod';
 r = await call('POST', '/track/sessions', { carId: 'carb1', session: lying }, 'tok-b');
-ok(r.status === 400 && /drag strip/.test(r.body.message), 'a street run claiming a venue is refused (the server checks the position)');
+ok(r.status === 200 && r.body.session.unlisted === true && r.body.session.privacy === 'private' && !r.body.session.venueId, 'a drag run claiming a venue is not trusted: it is saved private and unlisted (the server checks the position)');
+const lyingId = r.body.session.id;
 r = await call('POST', '/track/sessions', { carId: 'carb1', session: street, street: true, adminViewer: 'not-a-real-token-123456' }, 'tok-b');
-ok(r.status === 400, 'street run refused without an admin');
+ok(r.status === 200 && !r.body.session.street && r.body.session.unlisted === true, 'without an admin it is an unlisted private run, never a street run');
+await call('DELETE', '/track/session?id=' + r.body.session.id, undefined, 'tok-b');
 const tok = (await call('POST', '/admin/viewer-token?key=secret', {})).body.token;
 r = await call('POST', '/track/sessions', { carId: 'carb1', session: street, street: true, adminViewer: tok, privacy: 'board' }, 'tok-b');
 ok(r.status === 200 && r.body.session.street === true && r.body.session.privacy === 'private', 'admin street run saved, forced private');

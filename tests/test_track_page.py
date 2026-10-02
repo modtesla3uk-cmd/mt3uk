@@ -91,8 +91,8 @@ class FakeWorker:
             data = {"success": True, "sessions": self.index}
         elif path == "/track/sessions" and req.method == "POST":
             rec = dict(body["session"])
-            if rec.get("type") == "drag" and not rec.get("atVenue") and not (body.get("street") and self.admin):
-                status, data = 400, {"success": False, "message": "Drag runs can only be saved from a drag strip we know."}
+            if False:
+                pass
             else:
                 rec.update({"id": "new%d" % (len(self.sessions) + 1), "carId": body["carId"], "privacy": "private" if body.get("street") else body.get("privacy", "private"),
                             "conditions": body.get("conditions"), "tyres": body.get("tyres"), "tyreMake": body.get("tyreMake"), "tyreModel": body.get("tyreModel"), "tyreWidth": body.get("tyreWidth"), "tyreProfile": body.get("tyreProfile"), "tyreRim": body.get("tyreRim"), "temp": body.get("temp"), "tempSource": body.get("tempSource"), "weather": body.get("weather"), "notes": body.get("notes"), "street": bool(body.get("street"))})
@@ -417,11 +417,13 @@ def test_drag_run_away_from_a_strip(page, admin):
         expect(page.locator("#tp-result")).to_contain_text("We couldn't find a drag strip here")
         if not admin:
             expect(page.locator("#tp-street")).to_have_count(0)
-            expect(page.get_by_role("button", name="Save session")).to_have_count(0)
+            # It can still be saved: private, off the leaderboards, and MT3UK is told about the strip.
+            expect(page.locator("[data-privacy] [data-v='board']")).to_have_count(0)
             page.fill("#tp-req-name", "Local strip")
-            page.get_by_role("button", name="Ask for it to be added").click()
-            expect(page.locator("#tp-status")).to_contain_text("Thanks")
+            page.get_by_role("button", name="Save session").click()
+            expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
             assert fake.requests[0]["kind"] == "drag" and fake.requests[0]["name"] == "Local strip"
+            assert fake.saved[0]["session"]["type"] == "drag" and not fake.saved[0].get("street")
         else:
             page.locator("#tp-street").click()
             expect(page.locator("#tp-street")).to_have_attribute("aria-checked", "true")
@@ -2795,3 +2797,21 @@ def test_members_do_not_see_the_course_diagnostics(page):
     page.locator("[data-type] [data-v='sprint']").click()
     expect(page.locator("#tp-tap-step")).to_be_visible()
     expect(page.locator(".tp-debug")).to_have_count(0)
+
+
+def test_a_sprint_with_no_runs_can_be_saved_without_times_and_the_admin_is_told(page, tmp_path):
+    no_line = tmp_path / "noline.vbo"
+    no_line.write_bytes(b"".join(l for l in FIXTURE.read_bytes().splitlines(True) if not l.startswith(b"Start ")))
+    page.route(re.compile(r".*/data/tracks\.json.*"), _without_start_line)
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(no_line))
+    page.locator("[data-type] [data-v='sprint']").click()
+    page.fill("#tp-venue-name", "Abingdon")
+    page.get_by_role("button", name="Save without times, tell MT3UK").click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
+    # Saved as a mapped drive, with the course named, and a request for the admin.
+    assert fake.saved[0]["session"]["type"] == "other" and fake.saved[0]["session"]["pendingCourse"] == "Abingdon"
+    assert fake.requests[0]["kind"] == "sprint" and fake.requests[0]["name"] == "Abingdon" and fake.requests[0]["outline"]
+    expect(page.locator("#tp-pending-course")).to_contain_text("Abingdon is not set up yet")

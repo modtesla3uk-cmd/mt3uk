@@ -928,7 +928,7 @@
         if (a.admin) h += '<div class="tp-notice is-admin">' + icon('shield') + '<div>Admin only option.</div></div><button type="button" class="tp-switch" role="switch" aria-checked="' + a.street + '" id="tp-street"><span><b>Include as a street run</b><br><small>Kept private, never on a leaderboard or build page.</small></span><span class="tp-track"></span></button>';
       }
     }
-    var saveable = s.type === 'drag' ? (s.runs || []).length && (s.atVenue || (a.admin && a.street)) : s.type === 'other' ? true : !s.needsStartLine && s.laps && s.laps.length;
+    var saveable = s.type === 'drag' ? (s.runs || []).length : s.type === 'other' ? true : !s.needsStartLine && s.laps && s.laps.length;
     if (saveable && a.replaceId) {
       h += '<button type="button" class="btn btn-accent btn-block" id="tp-save">Save changes</button>';
     } else if (saveable) {
@@ -938,8 +938,11 @@
         (a.tempSource === 'weather' && a.weather ? '<p class="tp-src" id="tp-temp-src">' + icon('info') + '<span>' + weatherNote(a.weather, s.venue) + (a.condTouched ? '' : ' Conditions set to match. Change them if the track was different.') + '</span></p>'
           : a.tempSource === 'file' ? '<p class="tp-src" id="tp-temp-src">' + icon('info') + '<span>From the air temperature recorded in your file.</span></p>' : '') +
         '<div class="tp-field"><label for="tp-notes">Notes (only you see these)</label><input class="field" id="tp-notes" placeholder="Pressures, set-up, traffic..." value="' + esc(a.notes || '') + '"></div>' +
-        '<div class="tp-field"><span class="tp-lbl">Who can see it</span><div class="tp-privacy" data-privacy>' + privacyOptions(a.privacy, a.street ? 'street' : canBoard() ? '' : 'noboard') + '</div></div>' +
+        '<div class="tp-field"><span class="tp-lbl">Who can see it</span><div class="tp-privacy" data-privacy>' + privacyOptions(a.privacy, a.street || (s.type === 'drag' && !s.atVenue) ? 'street' : canBoard() ? '' : 'noboard') + '</div></div>' +
+        (s.type === 'drag' && !s.atVenue && !a.street ? '<div class="tp-field"><label for="tp-req-name">Which drag strip were you at?</label><input class="field" id="tp-req-name" placeholder="Name of the venue" value="' + esc(a.venueName || '') + '"><p class="tp-small">You can save it now. It stays private and off every leaderboard until the strip is added, and MT3UK is told about it.</p></div>' : '') +
         '<button type="button" class="btn btn-accent btn-block" id="tp-save">Save session</button>';
+    } else if ((s.type === 'track' || s.type === 'sprint') && s.needsStartLine) {
+      h += '<div class="tp-notice"><div><b>Cannot time it yet?</b><br>Save it without times. It stays private, and MT3UK is told about the course so it can be added. Once it is, open the session, go to Session settings and change the type to ' + (s.type === 'sprint' ? 'Sprint or hill climb' : 'Track day') + ' to time it.</div></div><button type="button" class="btn btn-secondary btn-block" id="tp-save-untimed">Save without times, tell MT3UK</button>';
     } else if (s.type === 'drag' && (s.runs || []).length && !s.atVenue) {
       h += '<div class="tp-field"><label for="tp-req-name">Which drag strip were you at?</label><input class="field" id="tp-req-name" placeholder="Name of the venue"></div><button type="button" class="btn btn-secondary btn-block" id="tp-req">Ask for it to be added</button>';
     }
@@ -1020,6 +1023,18 @@
     group('[data-privacy]', function (v) { keep(); a.privacy = v; drawResult(); });
     var orgIn = document.getElementById('tp-organiser');
     if (orgIn) orgIn.addEventListener('change', function () { keep(); a.organizer = orgIn.value.trim().slice(0, 40); analyse(); });
+    var untimedBtn = document.getElementById('tp-save-untimed');
+    if (untimedBtn) untimedBtn.addEventListener('click', function () {
+      keep();
+      var s0 = a.session, nameEl = document.getElementById('tp-venue-name'), name = (nameEl && nameEl.value.trim()) || a.venueName || s0.venue || '';
+      var o0 = s0.origin || [], ol = ((s0.trace && s0.trace.outline) || []).filter(function (_, i) { return i % 4 === 0; }).map(function (q) { return [q[0], q[1]]; });
+      untimedBtn.disabled = true;
+      api('POST', '/track/requests', { kind: s0.type === 'sprint' ? 'sprint' : 'circuit', name: name, venueId: s0.venueId || '', organizer: s0.type === 'sprint' ? (a.organizer || '') : '', startLine: a.startLine || null, finishLine: a.finishLine || null, lat: o0[0], lng: o0[1], outline: ol, note: 'Saved without times: the course or its lines are not set up' }).catch(function () {});
+      // Saved as a mapped drive. Changing its type to Sprint or Track day later times it.
+      a.pendingCourse = name || 'this course'; a.venueName = name; a.type = 'other';
+      analyse();
+      saveSession(untimedBtn);
+    });
     var offBtn = document.getElementById('tp-make-official');
     if (offBtn) offBtn.addEventListener('click', function () {
       keep();
@@ -1215,6 +1230,12 @@
     var a = add, s = a.session;
     // The file's name, kept with the session so the member can tell which file it was.
     if (!s.venueId && a.venueName) s.venueName = a.venueName;
+    if (a.pendingCourse) s.pendingCourse = a.pendingCourse;
+    // A drag run at a strip we do not list: save it, and tell MT3UK about the strip.
+    if (s.type === 'drag' && !s.atVenue && !a.street && s.runs && s.runs[0]) {
+      var stripEl = document.getElementById('tp-req-name');
+      api('POST', '/track/requests', { kind: 'drag', name: (stripEl && stripEl.value.trim()) || a.venueName || '', lat: s.runs[0].lat, lng: s.runs[0].lng, note: 'Drag run saved at a strip we do not list' }).catch(function () {});
+    }
     s.fileName = (a.files || []).map(function (f) { return f.name; }).join(', ').slice(0, 200);
     btn.disabled = true;
     status('Saving...');
@@ -1346,7 +1367,7 @@
   }
   // Other sessions without laps: the drive mapped, with its numbers.
   function otherHtml(s) {
-    var h = tiles([
+    var h = (s.pendingCourse ? '<div class="tp-notice is-warn" id="tp-pending-course">' + icon('pin') + '<div><b>Saved without times</b><br>' + esc(s.pendingCourse) + ' is not set up yet, and MT3UK has been told. Once it is, change this session\'s type to Sprint or hill climb (or Track day) in Session settings below to time it.</div></div>' : '') + tiles([
       ['Top speed', s.vmax ? V.fmtV(s.vmax) : '-', '', 1],
       ['Most grip used' + (s.gDerived ? ' (estimated)' : ''), s.latMax ? s.latMax.toFixed(2) + ' g' : '-', s.brakeMax ? 'Braking ' + s.brakeMax.toFixed(2) + ' g' : ''],
       ['Distance', s.distance ? V.fmtD(s.distance) : '-', s.duration ? Math.round(s.duration / 60) + ' minutes' : '']

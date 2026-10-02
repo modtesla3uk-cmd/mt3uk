@@ -1564,6 +1564,9 @@ def test_an_unknown_track_is_named_from_its_position(page):
     name = page.locator("#tp-venue-name")
     expect(name).to_have_value("Thruxton Circuit")
     expect(page.locator("#tp-name-src")).to_contain_text("found from the map")
+    # The track name and the date come first, above the file's contents and the map.
+    name_y = name.bounding_box()["y"]
+    assert name_y < page.locator("#tp-date").bounding_box()["y"] < page.locator("#tp-chans").bounding_box()["y"]
     assert len(seen) == 1
     q = parse_qs(urlparse(seen[0]).query)["data"][0]
     coords = re.search(r"around:900,(-?[\d.]+),(-?[\d.]+)", q)
@@ -2520,6 +2523,8 @@ def test_a_track_day_needs_no_start_line_from_the_member(page, tmp_path):
     # No tapping: the laps are found from the trace.
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("found from your own trace")
     expect(page.locator("#tp-tap")).to_have_count(0)
+    # Nothing to move on a track day: the lap line is found for them.
+    expect(page.get_by_role("button", name="Move the start line")).to_have_count(0)
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed lap")
     # A sprint still asks for both lines.
     page.locator("[data-type] [data-v='sprint']").click()
@@ -2703,3 +2708,31 @@ def test_confirming_the_lines_scrolls_back_to_the_result(page):
     page.wait_for_timeout(300)
     top = notice.bounding_box()["y"]
     assert 0 <= top < 300, top
+
+
+def test_g_forces_are_only_marked_as_estimated_when_the_file_has_none(page):
+    # A file with its own g readings: shown as they are.
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator(".tp-tile .k", has_text="Most grip used")).to_have_text("Most grip used")
+    expect(page.locator("#tp-gbox h3")).not_to_contain_text("estimated")
+    expect(page.locator(".tp-note", has_text="Peak braking").first).not_to_contain_text("estimated")
+
+
+def test_g_forces_worked_out_from_gps_are_marked_as_estimated(page, tmp_path):
+    # A file with no g readings: worked out from GPS, so marked.
+    text = FIXTURE.read_bytes().decode("latin1")
+    no_g = tmp_path / "nog.vbo"
+    no_g.write_bytes(re.sub(r"(?i)\blong ?acc\b|\blat ?acc\b|longacc|latacc", "unused", text).encode("latin1"))
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(no_g))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator(".tp-tile .k", has_text="Most grip used")).to_have_text("Most grip used (estimated)")
+    expect(page.locator("#tp-gbox h3")).to_contain_text("(estimated)")
+    expect(page.locator(".tp-gg").locator("xpath=../..").locator("h3")).to_contain_text("(estimated)")
+    expect(page.locator(".tp-note", has_text="Peak braking").first).to_contain_text("(estimated)")

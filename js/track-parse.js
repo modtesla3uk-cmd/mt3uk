@@ -979,7 +979,7 @@
       var g = cornerGains(bt, tr[others[0].n], s.corners).sort(function (a, b) { return b.gain - a.gain; })[0];
       if (g && g.gain >= 0.15) out.push({ icon: 'corner', text: 'Compared with lap ' + others[0].n + ', most of your best lap\'s time came at ' + cornerName(g) + ': ' + g.gain.toFixed(2) + ' s, carrying ' + speed(Math.max(0, g.va - g.vb)) + ' more at the slowest point.', small: 'Measured from 200 m before the slowest point to 150 m after.' });
     }
-    if (s.brakeMax) out.push({ icon: 'brake', text: 'Peak braking ' + s.brakeMax.toFixed(2) + ' g, peak cornering ' + s.latMax.toFixed(2) + ' g, top speed ' + speed(s.vmax) + '.', small: s.gDerived ? 'Worked out from GPS, as the file has no g readings, so treat these as a guide.' : '' });
+    if (s.brakeMax) out.push({ icon: 'brake', text: 'Peak braking ' + s.brakeMax.toFixed(2) + ' g, peak cornering ' + s.latMax.toFixed(2) + ' g' + (s.gDerived ? ' (estimated)' : '') + ', top speed ' + speed(s.vmax) + '.', small: s.gDerived ? 'Estimated: worked out from GPS, as the file has no g readings, so treat these as a guide.' : '' });
     out.push(qualityNote(s));
     return out.filter(Boolean);
   }

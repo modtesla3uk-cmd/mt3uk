@@ -1749,15 +1749,26 @@
       return '<tr class="' + (l.n === s.best ? 'is-best' : '') + '">' + (s.runs > 1 ? '<td>' + (l.run || 1) + '</td>' : '') + '<td>' + (l.kind === 'out' ? '' : lapNo(l, s)) + lapKind(l, s) + '</td><td>' + V.fmtLap(l.time) + '</td>' + cells + '<td>' + Math.round(V.spd(l.vmax || 0)) + '</td><td>' + gap + '</td></tr>';
     }).join('') + '</tbody>';
   }
+  // The same track: the same course where it is a listed one; otherwise by where it was (within 2 km), or by name.
+  function sameTrack(o, s) {
+    if (o.type !== s.type) return false;
+    if (s.layoutId && o.layoutId) return o.venueId === s.venueId && o.layoutId === s.layoutId;
+    if (o.origin && s.origin && o.origin.length === 2 && s.origin.length === 2) return T.haversine({ lat: o.origin[0], lng: o.origin[1] }, { lat: s.origin[0], lng: s.origin[1] }) < 2000;
+    return !!o.venue && String(o.venue).toLowerCase() === String(s.venue || '').toLowerCase();
+  }
   function lapOptions(sel) {
     var s = view.s;
     var h = (s.laps || []).filter(function (l) { return s.trace.laps[l.n] && (l.kind === 'timed' || l.kind === 'in' || l.kind === 'out' || String(l.n) === String(sel)); }).map(function (l) {
       return '<option value="' + l.n + '"' + (String(sel) === String(l.n) ? ' selected' : '') + '>' + lapName(l, s) + ', ' + V.fmtLap(l.time) + (l.n === s.best ? ' (best)' : l.kind === 'in' ? ' (in lap)' : '') + '</option>';
     }).join('');
-    // Your best laps from other days at the same layout.
-    if (s.mine && view.mine && s.layoutId) {
-      var others = view.mine.sessions.filter(function (o) { return o.id !== s.id && o.type === s.type && o.venueId === s.venueId && o.layoutId === s.layoutId && o.bestTime; });
-      if (others.length) h += '<optgroup label="Your best on other days">' + others.map(function (o) { var v = 'x:' + o.id; return '<option value="' + v + '"' + (sel === v ? ' selected' : '') + '>' + esc(niceDate(o.date)) + ', ' + V.fmtLap(o.bestTime) + '</option>'; }).join('') + '</optgroup>';
+    // Your best laps from your other sessions at the same track, on any day, so the sessions of one track day
+    // can be compared with each other too.
+    if (s.mine && view.mine) {
+      var others = view.mine.sessions.filter(function (o) { return o.id !== s.id && o.bestTime && sameTrack(o, s); }).sort(function (a, b) { return (b.date + (b.time || '')).localeCompare(a.date + (a.time || '')); });
+      if (others.length) h += '<optgroup label="Your other sessions at this track">' + others.map(function (o) {
+        var v = 'x:' + o.id;
+        return '<option value="' + v + '"' + (sel === v ? ' selected' : '') + '>' + esc(shortDate(o.date) + (o.time ? ', ' + o.time : '')) + ', ' + V.fmtLap(o.bestTime) + '</option>';
+      }).join('') + '</optgroup>';
     }
     h += memberOptions(sel);
     return h;

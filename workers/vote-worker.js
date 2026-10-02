@@ -6674,6 +6674,8 @@ function trackSummary(rec) {
     vmax: rec.vmax || 0, quality: rec.quality
   };
   if (rec.organizer) o.organizer = rec.organizer;
+  // Where it was, to about 100 m: sessions at a track we do not list yet are matched to each other by place.
+  if (rec.origin && rec.origin.length === 2 && isFinite(rec.origin[0]) && isFinite(rec.origin[1])) o.origin = [Math.round(rec.origin[0] * 1000) / 1000, Math.round(rec.origin[1] * 1000) / 1000];
   // Battery at the start and end (Track Mode files), so a day's group can add up the charge used.
   if (rec.carData && rec.carData.soc && isFinite(rec.carData.soc.start) && isFinite(rec.carData.soc.end)) o.soc = [rec.carData.soc.start, rec.carData.soc.end];
   if (rec.tyreMake) o.tyreMake = rec.tyreMake;

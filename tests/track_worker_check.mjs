@@ -632,6 +632,7 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   const list = await call('GET', '/track/sessions', undefined, 'tok-a');
   const row = list.body.sessions.find(x => x.id === saved.body.session.id);
   ok(row && Array.isArray(row.soc) && row.soc.length === 2 && row.soc[0] >= row.soc[1] && row.soc.every(Number.isFinite), 'the list entry has the battery at the start and end (' + (row && row.soc) + ')');
+  ok(Array.isArray(row.origin) && row.origin.length === 2 && row.origin.every(Number.isFinite), 'the list entry says where it was, so sessions at an unlisted track can be matched');
   const plain = await call('POST', '/track/sessions', { carId: 'cara1', session }, 'tok-a');
   const list2 = await call('GET', '/track/sessions', undefined, 'tok-a');
   ok(!('soc' in list2.body.sessions.find(x => x.id === plain.body.session.id)), 'a session with no battery figures has none');

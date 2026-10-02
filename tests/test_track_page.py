@@ -326,7 +326,7 @@ def test_add_a_session_from_the_racebox_file(page):
     expect(page.locator("#tp-timeline")).to_contain_text("Coilovers: KW V3")
     expect(page.locator("#over-time .tp-notes")).to_contain_text("after Coilovers: KW V3 was fitted")
     # Compare with the earlier day is offered.
-    expect(page.locator("#tp-cmp-b optgroup")).to_have_attribute("label", "Your best on other days")
+    expect(page.locator("#tp-cmp-b optgroup")).to_have_attribute("label", "Your other sessions at this track")
 
 
 def test_session_settings_and_leaderboard(page):
@@ -767,6 +767,29 @@ def test_delete_a_whole_day_from_its_group(page):
     assert sorted(fake.sessions) == ["keep1"]
     expect(page.locator(".tp-daygroup")).to_have_count(0)
     expect(page.locator("#tp-sess-list > a.tp-row")).to_have_count(1)
+
+
+def test_sessions_of_one_track_day_can_be_compared_with_each_other_even_at_an_unlisted_track(page):
+    fake = FakeWorker(earlier=False)
+    # Three sessions the same day at a track that is not in the list: no venue or layout, only a place.
+    for sid, t, best in (("u1", "09:00", 90.0), ("u2", "11:00", 88.5), ("u3", "14:00", 91.2)):
+        rec = day_session(sid, t, best, 3, venue="Unknown track")
+        rec.pop("venueId", None)
+        rec.pop("layoutId", None)
+        rec["origin"] = [51.4910, -2.2150]
+        rec["trace"] = {"hz": 5, "laps": {"1": [[0, 0, 0, 0, 100, 0, 0], [500, 40, 100, 5, 120, 0, 0]], "2": [[0, 0, 0, 0, 100, 0, 0], [500, 40, 100, 5, 120, 0, 0]], "3": [[0, 0, 0, 0, 100, 0, 0], [500, 40, 100, 5, 120, 0, 0]]}}
+        rec["best"] = 1
+        fake.sessions[sid] = dict(rec)
+        fake.index.append(dict(summary(rec), origin=rec["origin"]))
+    open_page(page, fake, path="/track.html?s=u2")
+    expect(page.locator(".tp-session-head")).to_be_visible()
+    group = page.locator("#tp-cmp-b optgroup")
+    expect(group).to_have_attribute("label", "Your other sessions at this track")
+    # Both other sessions that day are offered, told apart by time.
+    options = group.locator("option")
+    expect(options).to_have_count(2)
+    texts = options.all_inner_texts()
+    assert any("14:00" in t and "1:31.200" in t for t in texts) and any("09:00" in t and "1:30.000" in t for t in texts), texts
 
 
 def test_csv_with_unknown_columns_asks_which_is_which(page):

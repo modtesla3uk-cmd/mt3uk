@@ -59,8 +59,6 @@
     }).catch(function () { note('Could not reach the server.', 'error'); });
   }
   wrap.addEventListener('toggle', function () { if (wrap.open) load(); });
-  var loadBtn = document.getElementById('load-btn');
-  if (loadBtn) loadBtn.addEventListener('click', function () { setTimeout(load, 50); });
   wrap.addEventListener('click', function (e) {
     var a = e.target.closest('[data-approve]'), d = e.target.closest('[data-deny]'), r = e.target.closest('[data-revoke]');
     if (a) act({ action: 'approve', email: a.getAttribute('data-approve') }, 'Approved. They have been emailed.');
@@ -87,6 +85,7 @@
     act({ action: 'add', email: email }, 'Added. They can use it now (no email sent).');
     input.value = '';
   });
+  document.addEventListener('mt3uk-admin-refresh', function () { if (key()) load(); });
   // The count shows without opening the panel, once the key is known.
   if (key()) load();
 })();

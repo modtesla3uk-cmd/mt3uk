@@ -113,13 +113,63 @@ ok(su.laps.length === 2 && near(su.bestTime, 99.786, 0.05) && su.startLineFromMe
   const loopLib = { venues: [{ id: 'loop-sprint', name: 'Loop Sprint', type: 'sprint', lat: 51.2085, lng: -1.6055, radius: 2500, layouts: [{ id: 'loop', name: 'Loop course', length: 3000, startLine: start, finishLine: loopFinish }] }] };
   const lp = T.analyse(T.read(vbo, 'f.vbo'), loopLib), lk = T.analyse(T.read(vbo, 'f.vbo'), loopLib, { ignoreFirstFinish: true });
   ok(lp.laps.length === 2 && !lp.pointToPoint, 'a loop sprint times both runs by default');
-  ok(lk.laps.length === 1 && lk.firstFinishIgnored === 1 && lk.laps[0].start > 100, 'a loop sprint can ignore the first finish crossing: only the second run is left');
+  ok(lk.laps.length === 2 && lk.firstFinishIgnored === undefined, 'a run that crosses the finish line once keeps it, even when asked to ignore the first crossing');
+  // Out and back: each run crosses the finish line twice. Ignoring the first crossing ends every run on the second one.
+  {
+    const rd0 = T.read(vbo, 'f.vbo'), base = rd0.points.slice(0, 2400);
+    const there = base.concat(base.slice().reverse());
+    let t = 0;
+    const mk = (src, v) => src.map(q => Object.assign({}, q, { v: v, t: (t += 0.1) }));
+    const pts2 = mk(there, 100).concat(mk(Array(60).fill(there[there.length - 1]), 0), mk(there, 100));
+    const rdx = Object.assign({}, rd0, { points: pts2 });
+    const mid = i => { const a = base[i], b = base[i + 4]; const dx = b.lng - a.lng, dy = b.lat - a.lat, L = Math.hypot(dx, dy) || 1; return [[a.lat + dx / L * 0.0001, a.lng - dy / L * 0.0001], [a.lat - dx / L * 0.0001, a.lng + dy / L * 0.0001]]; };
+    const l0 = mid(100), l1 = mid(900);
+    const off = T.analyse(rdx, { venues: [] }, { type: 'sprint', startLine: l0, finishLine: l1 });
+    const on = T.analyse(rdx, { venues: [] }, { type: 'sprint', startLine: l0, finishLine: l1, ignoreFirstFinish: true });
+    ok(off.laps.length === 2 && on.laps.length === 2, 'out and back: two runs either way ' + off.laps.length + '/' + on.laps.length + ' ' + (off.problem || '') + ' ' + JSON.stringify(l0) + ' ' + base.length)
+    ok(on.firstFinishIgnored === 2 && on.bestTime > off.bestTime + 20, 'ignoring the first finish crossing ends each run on its second crossing (' + off.bestTime + ' to ' + on.bestTime + ')');
+  }
   // The member can choose which crossing of the finish line ends a run.
   const f1 = T.analyse(T.read(vbo, 'f.vbo'), loopLib, { finishCrossing: 1 }), f9 = T.analyse(T.read(vbo, 'f.vbo'), loopLib, { finishCrossing: 9 });
   ok(f1.laps.length === 2 && f1.finishCrossing === 1 && near(f1.bestTime, lp.bestTime, 0.01), 'crossing 1 ends each run on the first finish crossing');
   ok(f9.needsStartLine && f9.laps.length === 0, 'a crossing the car never reaches gives no runs, so the lines are asked for again');
   const f2 = T.analyse(T.read(vbo, 'f.vbo'), loopLib, { finishCrossing: 2, ignoreFirstFinish: true });
   ok(f2.finishCrossing === 2 && f2.firstFinishIgnored === undefined, 'a chosen crossing replaces the ignore switch');
+  // One wild reading (a glitch) is not a car's grip.
+  {
+    const base0 = T.analyse(T.read(vbo, 'f.vbo'), lib), spiky = T.read(vbo, 'f.vbo');
+    const k = Math.floor(spiky.points.length / 2);
+    spiky.points[k].la = 2.9; spiky.points[k].lo = -3.1;
+    const sp2 = T.analyse(spiky, lib);
+    ok(near(sp2.latMax, base0.latMax, 0.01) && near(sp2.brakeMax, base0.brakeMax, 0.01), 'a single wild g reading does not set the peak (' + base0.latMax + ' g, braking ' + base0.brakeMax + ' g)');
+    const still = T.read(vbo, 'f.vbo');
+    for (let j = 0; j < 4; j++) { still.points[j].v = 1; still.points[j].la = 2.5; }
+    ok(near(T.analyse(still, lib).latMax, base0.latMax, 0.2), 'cornering g is not counted when almost stopped');
+  }
+  // The course's official lines win: a member's own lines are not used when they exist.
+  {
+    const official = lib.venues.find(v => v.id === 'thruxton').layouts[0];
+    const moved = T.analyse(T.read(vbo, 'f.vbo'), lib, { startLine: loopFinish });
+    ok(moved.officialLines === true && !moved.startLineFromMember && JSON.stringify(moved.startLine) === JSON.stringify(official.startLine) && moved.layoutId === official.id, 'a circuit with an official start line ignores the member\'s line');
+    const movedSprint = T.analyse(T.read(vbo, 'f.vbo'), sprintLib, { type: 'sprint', startLine: loopFinish, finishLine: start });
+    ok(movedSprint.officialLines === true && !movedSprint.startLineFromMember && movedSprint.layoutId === 'short', 'a sprint course with official lines ignores the member\'s lines');
+    const noLine = JSON.parse(JSON.stringify(lib)); delete noLine.venues.find(v => v.id === 'thruxton').layouts[0].startLine;
+    const own = T.analyse(T.read(vbo, 'f.vbo'), noLine, { startLine: official.startLine });
+    ok(own.startLineFromMember === true && !own.officialLines, 'with no official line the member\'s line is still used');
+  }
+  // Organisers: the same venue can have courses with different lines.
+  const orgLib = JSON.parse(JSON.stringify(sprintLib)); orgLib.venues[0].layouts[0].organizer = 'B19';
+  const o1 = T.analyse(T.read(vbo, 'f.vbo'), orgLib, { organizer: ' b19 ' });
+  ok(o1.layoutId === 'short' && o1.organizer === 'B19' && o1.laps.length === 2, 'a known organiser finds its course and keeps the organiser');
+  const o2 = T.analyse(T.read(vbo, 'f.vbo'), orgLib, { organizer: 'CSCC' });
+  ok(o2.needsStartLine && /CSCC course/.test(o2.problem) && !o2.layoutId, 'a different organiser at a known venue asks for its start and finish');
+  const o3 = T.analyse(T.read(vbo, 'f.vbo'), orgLib, { organizer: 'CSCC', startLine: start, finishLine: finish });
+  ok(o3.laps.length === 2 && !o3.layoutId && o3.organizer === 'CSCC' && o3.startLineFromMember, 'the member\'s own lines time it, but it is not B19\'s course');
+  const farLib = JSON.parse(JSON.stringify(sprintLib)); farLib.venues[0].layouts[0].startLine = start.map(p => [p[0] + 0.01, p[1]]); farLib.venues[0].layouts[0].finishLine = finish.map(p => [p[0] + 0.01, p[1]]);
+  const o4 = T.analyse(T.read(vbo, 'f.vbo'), farLib, { type: 'sprint', startLine: start, finishLine: finish });
+  ok(o4.laps.length === 2 && !o4.layoutId && o4.courseDiffers === true, 'lines well away from the only listed course are not that course');
+  const o5 = T.analyse(T.read(vbo, 'f.vbo'), orgLib, { type: 'sprint', startLine: start, finishLine: finish });
+  ok(o5.layoutId === 'short' && !o5.courseDiffers, 'the same lines are the listed course');
   const so = T.analyse(T.read(vbo, 'f.vbo'), { venues: [] }, { type: 'other' });
   ok(so.type === 'other' && !so.needsStartLine && so.trace.outline.length > 100, 'other: mapped without needing a start line');
 }
@@ -201,6 +251,10 @@ ok(T.fmtLap(99.786) === '1:39.786' && T.niceDate('2026-05-28') === '28 May 2026'
   ok(near(a[0], 51.1773, 0.001) && near(a[1], 1.1983, 0.001) && near(b[0], 51.1773, 0.001) && near(b[1], 1.1983, 0.001), 'a longitude-then-latitude start line is read as UK coordinates: ' + JSON.stringify(rd.startLine));
   const pr = T.projector(a[0], a[1]), xa = pr.xy(a[0], a[1]), xb = pr.xy(b[0], b[1]);
   ok(near(Math.hypot(xa[0] - xb[0], xa[1] - xb[1]), 30, 1), 'a one metre line is stretched to 30 m so a car can cross it');
+  // Those two points are the car's position and heading, so they run along the road: the line made from them goes across it.
+  const o1 = pr.xy(-(-71.89949) / 60 * 0 + 3070.63870 / 60, 71.89949 / 60), o2 = pr.xy(3070.63841 / 60, 71.90033 / 60);
+  const dot = ((o2[0] - o1[0]) * (xb[0] - xa[0]) + (o2[1] - o1[1]) * (xb[1] - xa[1])) / (Math.hypot(o2[0] - o1[0], o2[1] - o1[1]) * Math.hypot(xb[0] - xa[0], xb[1] - xa[1]));
+  ok(Math.abs(dot) < 0.05, 'the stretched line is across the direction of the two points, not along it (cos ' + dot.toFixed(3) + ')');
   // The older order (latitude then longitude, as in the Thruxton file) still reads as before.
   const old = T.read(vbo.replace('Start        -71.89949 +3070.63870 -71.90033 +3070.63841', 'Start        +03072.46210 +000096.53200 +03072.45742 +000096.54818'), 'x.vbo').startLine;
   ok(near(old[0][0], 51.2077, 0.001) && near(old[0][1], -1.6089, 0.001), 'latitude then longitude is still read the old way: ' + JSON.stringify(old[0]));

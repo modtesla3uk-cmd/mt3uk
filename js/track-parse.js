@@ -70,13 +70,14 @@
           function pt(x, y) { var latFirst = Math.abs(x) >= Math.abs(y); return [(latFirst ? x : y) / 60, -(latFirst ? y : x) / 60]; }
           var a = pt(v[0], v[1]), b = pt(v[2], v[3]);
           if (isFinite(a[0]) && isFinite(a[1]) && isFinite(b[0]) && isFinite(b[1])) {
-            // Some boxes (the VBOX Touch) keep the line as two points about a metre apart, which a
-            // car never crosses. A line under 10 m is stretched to 30 m along the same direction.
+            // Some boxes (the VBOX Touch) keep the start as two points about a metre apart: the
+            // car's position and heading when it was set, so they run along the road, not across
+            // it. A line under 10 m is made a 30 m line across that direction, through its middle.
             var pr = projector((a[0] + b[0]) / 2, (a[1] + b[1]) / 2), xa = pr.xy(a[0], a[1]), xb = pr.xy(b[0], b[1]);
             var len = Math.hypot(xb[0] - xa[0], xb[1] - xa[1]);
             if (len > 0.05 && len < 10) {
               var ux = (xb[0] - xa[0]) / len * 15, uy = (xb[1] - xa[1]) / len * 15, cx = (xa[0] + xb[0]) / 2, cy = (xa[1] + xb[1]) / 2;
-              a = pr.ll(cx - ux, cy - uy); b = pr.ll(cx + ux, cy + uy);
+              a = pr.ll(cx + uy, cy - ux); b = pr.ll(cx - uy, cy + ux);
             }
             startLine = [a, b];
           }
@@ -668,13 +669,20 @@
     // A loop, not Math.max.apply: a day of files can be well over 100,000
     // readings, more arguments than a browser allows in one call.
     var vmax = -Infinity, latMax = -Infinity, loMin = Infinity, loMax = -Infinity;
+    // The g figures come from the file's own readings, but one wild reading
+    // (a bump, or a logger glitch when stopped) is not a car's grip: each is the
+    // middle of three in a row, and cornering is only counted when moving.
+    function mid3(x, y, z) { return x > y ? (y > z ? y : (x > z ? z : x)) : (x > z ? x : (y > z ? z : y)); }
     for (var pi = 0; pi < pts.length; pi++) {
       var pp = pts[pi];
       if (pp.v > vmax) vmax = pp.v;
-      if (Math.abs(pp.la) > latMax) latMax = Math.abs(pp.la);
-      if (pp.lo < loMin) loMin = pp.lo;
-      if (pp.lo > loMax) loMax = pp.lo;
+      var pa = pts[pi > 0 ? pi - 1 : pi], pn = pts[pi < pts.length - 1 ? pi + 1 : pi];
+      var laM = mid3(pa.la, pp.la, pn.la), loM = mid3(pa.lo, pp.lo, pn.lo);
+      if (pp.v >= 15 && Math.abs(laM) > latMax) latMax = Math.abs(laM);
+      if (loM < loMin) loMin = loM;
+      if (loM > loMax) loMax = loM;
     }
+    if (latMax === -Infinity) latMax = 0;
     session.vmax = round(vmax, 1);
     session.latMax = round(latMax, 2);
     session.brakeMax = round(-loMin, 2);
@@ -699,7 +707,7 @@
     layouts.forEach(function (l) { if (l.startLine && l.startLine.length === 2) candidates.push({ layout: l, line: l.startLine, sectors: l.sectors || [] }); });
     if (opts.startLine) candidates.push({ layout: null, line: opts.startLine, sectors: [], own: true });
     if (rd.startLine) candidates.push({ layout: null, line: rd.startLine, sectors: [], fromFile: true });
-    candidates.forEach(function (c) {
+    function evalLine(c) {
       var cr = crossings(pts, proj, c.line, minGap);
       if (cr.length < 2) return;
       var laps = buildLaps(pts, cr);
@@ -708,7 +716,10 @@
       if (c.layout && lengthScore > 0.12) return;
       var score = laps.length - lengthScore * 10 + (c.layout ? 1 : 0);
       if (!choice || score > choice.score) choice = { c: c, cr: cr, score: score, med: med };
-    });
+    }
+    // A listed layout's own start line wins; the file's or the member's line is only a fallback.
+    candidates.filter(function (c) { return c.layout; }).forEach(evalLine);
+    if (!choice) candidates.filter(function (c) { return !c.layout; }).forEach(evalLine);
     if (type === 'other') session.trace = { outline: outline(pts) };
     if (!choice && type === 'other') { session.laps = []; return session; }
     if (!choice) {
@@ -722,6 +733,7 @@
     if (!layout && layouts.length) {
       // A start line from the file or the member: match the layout by lap length.
       layout = layouts.reduce(function (best, l) {
+        if (l.startLine) return best;
         var e = l.length ? Math.abs(choice.med - l.length) / l.length : 1;
         return e < 0.12 && (!best || e < best.e) ? { l: l, e: e } : best;
       }, null);
@@ -729,7 +741,7 @@
     }
     if (layout) { session.layoutId = layout.id; session.layout = layout.name; }
     session.startLine = choice.c.line;
-    if (choice.c.own) session.startLineFromMember = true;
+    if (choice.c.own) session.startLineFromMember = true; else if (choice.c.layout) session.officialLines = true;
     var sectorCr = layout && layout.sectors && layout.sectors.length ? layout.sectors.map(function (s) { return crossings(pts, proj, s, minGap); }) : null;
     var laps = buildLaps(pts, choice.cr, sectorCr);
     return timedTail(session, pts, laps, layout, proj, origin);
@@ -741,11 +753,15 @@
     delete session.venueId; delete session.venue;
     if (sv) { session.venueId = sv.id; session.venue = sv.name; }
     var cands = [];
-    ((sv && sv.layouts) || []).forEach(function (l) { if (l.startLine && l.finishLine) cands.push({ layout: l, start: l.startLine, finish: l.finishLine }); });
+    // The organiser (B19, say) says which course at the venue this was: the
+    // same venue can have courses with different start and finish lines.
+    var org = String(opts.organizer || '').trim().toLowerCase();
+    function ofOrganiser(l) { return !org || String(l.organizer || l.name || '').trim().toLowerCase() === org; }
+    ((sv && sv.layouts) || []).forEach(function (l) { if (l.startLine && l.finishLine && ofOrganiser(l)) cands.push({ layout: l, start: l.startLine, finish: l.finishLine }); });
     if (opts.startLine && opts.finishLine) cands.push({ layout: null, start: opts.startLine, finish: opts.finishLine, own: true });
     var pick = null;
     function mid(line) { var a = proj.xy(line[0][0], line[0][1]), b = proj.xy(line[1][0], line[1][1]); return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]; }
-    cands.forEach(function (c) {
+    function evalCand(c) {
       var st = crossings(pts, proj, c.start, 5), fi = crossings(pts, proj, c.finish, 5);
       // Each finish ends the run that began at the last start crossing since
       // the previous finish (in the same file).
@@ -779,28 +795,55 @@
       var runLen = c.layout && c.layout.length ? c.layout.length : median(pairs.map(function (pr) { return pr[1].d - pr[0].d; }));
       climb = !!(pairs.length && runLen && sep > 0.6 * runLen);
       if (opts.ignoreFirstFinish && !climb && !fc) {
+        // The first finish crossing after each start is the one skipped (when
+        // that run crosses the finish line more than once), run by run.
         var by = {};
-        fi.forEach(function (f) { var r = pts[f.i].run || 0; (by[r] = by[r] || []).push(f); });
-        var kept = fi.filter(function (f) { var g = by[pts[f.i].run || 0]; return g.length < 2 || g[0] !== f; });
+        fi.forEach(function (f) {
+          var from = -Infinity;
+          st.forEach(function (x) { if (x.t < f.t && x.t > from) from = x.t; });
+          var key = pts[f.i].run + ':' + from;
+          (by[key] = by[key] || []).push(f);
+        });
+        var kept = fi.filter(function (f) {
+          var from = -Infinity;
+          st.forEach(function (x) { if (x.t < f.t && x.t > from) from = x.t; });
+          var g = by[pts[f.i].run + ':' + from];
+          return g.length < 2 || g[0] !== f;
+        });
         skipped = fi.length - kept.length;
         if (skipped) pairs = pairUp(kept);
       }
       if (pairs.length && (!pick || pairs.length > pick.pairs.length)) pick = { c: c, pairs: pairs, skipped: skipped, climb: climb };
-    });
+    }
+    // The course's own lines come first. The member's lines are only used when
+    // the course's give no runs (or it has none), so nobody can time a listed
+    // course on lines they moved.
+    cands.filter(function (c) { return !c.own; }).forEach(evalCand);
+    if (!pick) cands.filter(function (c) { return c.own; }).forEach(evalCand);
     if (!pick) {
       session.laps = [];
       session.needsStartLine = true;
       session.needsFinish = true;
       session.trace = { outline: outline(pts) };
-      session.problem = sv ? 'We know ' + sv.name + ' but not its start and finish yet. Tap the start, then the finish, on your trace.' : 'We don\'t know this course yet. Tap the start, then the finish, on your trace and we\'ll add it.';
+      session.problem = sv ? 'We know ' + sv.name + ' but not ' + (org ? 'the ' + String(opts.organizer).trim() + ' course' : 'its start and finish') + ' yet. Tap the start, then the finish, on your trace.' : 'We don\'t know this course yet. Tap the start, then the finish, on your trace and we\'ll add it.';
       return session;
     }
     var layout = pick.c.layout;
-    if (!layout && sv && sv.layouts && sv.layouts.length === 1) layout = sv.layouts[0];
+    // Only one course listed and the member's own lines: it is that course
+    // when their lines are where its lines are (or it has none to compare),
+    // and never when they named a different organiser.
+    function lineMid(l) { return [(l[0][0] + l[1][0]) / 2, (l[0][1] + l[1][1]) / 2]; }
+    function sameLine(a, b) { var x = lineMid(a), y = lineMid(b); return haversine({ lat: x[0], lng: x[1] }, { lat: y[0], lng: y[1] }) <= 25; }
+    if (!layout && sv && sv.layouts && sv.layouts.length === 1 && ofOrganiser(sv.layouts[0])) {
+      var only = sv.layouts[0];
+      if (!only.startLine || !only.finishLine || sameLine(only.startLine, pick.c.start) && sameLine(only.finishLine, pick.c.finish)) layout = only;
+      else session.courseDiffers = true;
+    }
     if (layout) { session.layoutId = layout.id; session.layout = layout.name; }
+    if (layout && layout.organizer) session.organizer = layout.organizer; else if (opts.organizer) session.organizer = String(opts.organizer).trim().slice(0, 40);
     session.startLine = pick.c.start;
     session.finishLine = pick.c.finish;
-    if (pick.c.own) session.startLineFromMember = true;
+    if (pick.c.own) session.startLineFromMember = true; else if (pick.c.layout) session.officialLines = true;
     if (pick.skipped) session.firstFinishIgnored = pick.skipped;
     if (opts.finishCrossing >= 1) session.finishCrossing = Math.min(9, Math.round(opts.finishCrossing));
     if (pick.climb) session.pointToPoint = true;

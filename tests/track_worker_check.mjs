@@ -505,11 +505,11 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
 // Approve and add track: the course is made from the member's markers and their sessions are linked.
 {
   const sl = [[51.2, -0.9], [51.2002, -0.9002]], fl = [[51.21, -0.91], [51.2102, -0.9102]];
-  const sp = JSON.parse(JSON.stringify(session)); sp.type = 'sprint'; sp.venueName = 'Newfield Sprint'; sp.startLine = sl; sp.finishLine = fl; delete sp.venueId; delete sp.layoutId;
+  const sp = JSON.parse(JSON.stringify(session)); sp.type = 'sprint'; sp.venueName = 'Newfield Sprint'; sp.organizer = 'B19'; sp.startLine = sl; sp.finishLine = fl; delete sp.venueId; delete sp.layoutId;
   r = await call('POST', '/track/sessions', { carId: 'cara1', session: sp, privacy: 'board' }, 'tok-a');
   ok(r.status === 200 && !r.body.session.layoutId, 'an unknown sprint course saves with no course ' + JSON.stringify(r.body).slice(0, 120));
   const spId = r.body.session.id;
-  await call('POST', '/track/requests', { kind: 'sprint', name: 'Newfield Sprint', startLine: sl, finishLine: fl, lapLength: 800, lat: 51.2, lng: -0.9 }, 'tok-a');
+  await call('POST', '/track/requests', { kind: 'sprint', name: 'Newfield Sprint', organizer: 'B19', startLine: sl, finishLine: fl, lapLength: 800, lat: 51.2, lng: -0.9 }, 'tok-a');
   const reqs = (await call('GET', '/track/admin/requests?key=secret')).body.requests;
   const rq = reqs.find(x => x.name === 'Newfield Sprint');
   r = await call('POST', '/track/admin/requests?key=nope', { id: rq.id, action: 'add' });
@@ -517,17 +517,46 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   r = await call('POST', '/track/admin/requests?key=secret', { id: rq.id, action: 'add' });
   ok(r.status === 200 && r.body.relinked === 1, 'track added and one session linked ' + JSON.stringify(r.body).slice(0, 200));
   const nv = r.body.library.venues.find(v => v.id === 'newfield-sprint');
-  ok(nv && nv.type === 'sprint' && nv.layouts[0].finishLine && nv.layouts[0].startLine, 'the sprint course has both lines');
+  ok(nv && nv.type === 'sprint' && nv.layouts[0].finishLine && nv.layouts[0].startLine && nv.layouts[0].organizer === 'B19' && nv.layouts[0].name === 'B19', 'the sprint course has both lines and is named for its organiser');
   const lk = stored('track-session:' + spId);
-  ok(lk.venueId === 'newfield-sprint' && lk.layoutId === 'course', 'the saved session is linked to the course');
-  ok(kv.has('sprint-board:newfield-sprint:course') && JSON.stringify(stored('sprint-board:newfield-sprint:course')).includes(spId), 'and it reached the sprint leaderboard');
+  ok(lk.venueId === 'newfield-sprint' && lk.layoutId === 'b19' && lk.organizer === 'B19', 'the saved session is linked to the organiser\'s course');
+  ok(kv.has('sprint-board:newfield-sprint:b19') && JSON.stringify(stored('sprint-board:newfield-sprint:b19')).includes(spId), 'and it reached the sprint leaderboard');
   r = await call('POST', '/track/admin/requests?key=secret', { id: rq.id, action: 'add' });
   ok(r.status === 400, 'adding the same track twice is refused');
+  // Another organiser at the same venue gets its own course beside the first.
+  await call('POST', '/track/requests', { kind: 'sprint', name: 'Newfield Sprint', venueId: 'newfield-sprint', organizer: 'CSCC', startLine: [[51.205, -0.905], [51.2052, -0.9052]], finishLine: [[51.215, -0.915], [51.2152, -0.9152]], lapLength: 900, lat: 51.2, lng: -0.9 }, 'tok-a');
+  const rq2 = (await call('GET', '/track/admin/requests?key=secret')).body.requests.find(x => x.organizer === 'CSCC');
+  r = await call('POST', '/track/admin/requests?key=secret', { id: rq2.id, action: 'add' });
+  const nv2 = r.body.library.venues.find(v => v.id === 'newfield-sprint');
+  ok(r.status === 200 && nv2.layouts.length === 2 && nv2.layouts.some(l => l.id === 'cscc' && l.organizer === 'CSCC'), 'a second organiser adds a second course to the venue');
   await call('DELETE', '/track/session?id=' + spId, undefined, 'tok-a');
+}
+// A layout with no official line: the first request fills it in, and one request per course waits.
+{
+  const body = { kind: 'circuit', name: 'Silverstone', venueId: 'silverstone', layoutId: 'gp', startLine: [[52.0725, -1.0148], [52.0726, -1.0150]], lapLength: 5891, lat: 52.0725, lng: -1.0148 };
+  await call('POST', '/track/requests', body, 'tok-a');
+  await call('POST', '/track/requests', body, 'tok-b');
+  const waiting = (await call('GET', '/track/admin/requests?key=secret')).body.requests.filter(x => !x.done && x.layoutId === 'gp');
+  ok(waiting.length === 1, 'one request waits per course');
+  r = await call('POST', '/track/admin/requests?key=secret', { id: waiting[0].id, action: 'add' });
+  const gp = r.body.library && r.body.library.venues.find(v => v.id === 'silverstone').layouts.find(l => l.id === 'gp');
+  ok(r.status === 200 && r.body.filled === true && gp.startLine && gp.length, 'approving sets the official line on the existing layout ' + r.status + JSON.stringify(r.body).slice(0, 200));
+}
+// A course with official lines does not take a session timed on lines that were moved.
+{
+  const moved = JSON.parse(JSON.stringify(session));
+  const lay = JSON.parse(tracksJson).venues.find(v => v.id === 'thruxton').layouts[0];
+  if (lay.startLine && moved.startLine) {
+    moved.startLine = moved.startLine.map(p => [p[0] + 0.001, p[1]]); moved.startLineFromMember = true;
+    r = await call('POST', '/track/sessions', { carId: 'cara1', session: moved, privacy: 'board' }, 'tok-a');
+    ok(r.status === 200 && !r.body.session.layoutId, 'lines moved off the official ones: no course, so no leaderboard place');
+    await call('DELETE', '/track/session?id=' + r.body.session.id, undefined, 'tok-a');
+  }
 }
 // Admin read-only view of a private session, logged.
 {
-  r = await call('POST', '/track/sessions', { carId: 'cara1', session: JSON.parse(JSON.stringify(session)), notes: 'Secret note', privacy: 'private' }, 'tok-a');
+  const fileSession = JSON.parse(JSON.stringify(session)); fileSession.fileName = 'VBOX0016.vbo';
+  r = await call('POST', '/track/sessions', { carId: 'cara1', session: fileSession, notes: 'Secret note', privacy: 'private' }, 'tok-a');
   const pid = r.body.session.id;
   r = await call('GET', '/track/session?id=' + pid);
   ok(r.status === 404, 'a private session is hidden from the public');
@@ -535,6 +564,8 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   ok(r.status === 404, 'a bad admin token does not open it');
   r = await call('GET', '/track/session?id=' + pid, undefined, undefined, { 'X-Admin-Viewer': tok });
   ok(r.status === 200 && r.body.session.adminView === true && r.body.session.notes === undefined && r.body.session.owner === undefined && !r.body.session.mine, 'admin opens a private session read only, no notes ' + r.status + JSON.stringify(r.body).slice(0, 200));
+  ok(r.body.session.fileName === 'VBOX0016.vbo', 'the admin sees the file name');
+  { const own = await call('GET', '/track/session?id=' + pid, undefined, 'tok-a'); ok(own.body.session.fileName === 'VBOX0016.vbo', 'the owner sees the file name'); await call('PUT', '/track/session', { id: pid, privacy: 'build' }, 'tok-a'); const pub = await call('GET', '/track/session?id=' + pid); ok(pub.status === 200 && pub.body.session.fileName === undefined, 'other people never see the file name'); await call('PUT', '/track/session', { id: pid, privacy: 'private' }, 'tok-a'); }
   await call('GET', '/track/session?id=' + pid, undefined, undefined, { 'X-Admin-Viewer': tok });
   const logged = stored('track-admin-views');
   ok(logged.length === 1 && logged[0].id === pid, 'the view is logged once (repeat within a minute merges)');

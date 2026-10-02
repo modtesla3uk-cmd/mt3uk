@@ -6493,6 +6493,8 @@ function cleanTrackVenue(v) {
       if (sl) lo.startLine = sl;
       var fl = out.type === 'sprint' ? trackLine(l.finishLine) : null;
       if (fl) lo.finishLine = fl;
+      var lorg = out.type === 'sprint' ? trackText(l.organizer, 40) : '';
+      if (lorg) lo.organizer = lorg;
       lo.sectors = (Array.isArray(l.sectors) ? l.sectors : []).map(trackLine).filter(Boolean).slice(0, 8);
       lo.corners = (Array.isArray(l.corners) ? l.corners : []).slice(0, 40).map(function (c) {
         var cn = trackText(c && c.name, 40), clat = trackNum(c && c.lat, -90, 90), clng = trackNum(c && c.lng, -180, 180);
@@ -6592,6 +6594,8 @@ function cleanTrackSession(s, library) {
   out.date = /^\d{4}-\d{2}-\d{2}$/.test(s.date || '') ? s.date : ukDateString(new Date());
   out.time = /^\d{2}:\d{2}$/.test(s.time || '') ? s.time : '';
   ['duration', 'distance', 'vmax', 'latMax', 'brakeMax', 'accMax', 'bestTime', 'possible'].forEach(function (k) { var n = trackNum(s[k], -100, 1e7); if (n !== null) out[k] = n; });
+  var fname = trackText(s.fileName, 200);
+  if (fname) out.fileName = fname;
   out.speedDerived = !!s.speedDerived;
   out.gDerived = !!s.gDerived;
   var venue = (library.venues || []).find(function (v) { return v.id === s.venueId; }) || null;
@@ -6626,8 +6630,20 @@ function cleanTrackSession(s, library) {
   out.bestSectors = cleanNumArrays(s.bestSectors, 1).slice(0, 10);
   out.sectorsByThirds = !!s.sectorsByThirds;
   out.startLine = trackLine(s.startLine);
-  if (out.type === 'sprint') out.finishLine = trackLine(s.finishLine);
+  if (out.type === 'sprint') {
+    out.finishLine = trackLine(s.finishLine);
+    // Who ran it (B19, say): courses at one venue can have different lines.
+    var org = trackText(s.organizer, 40);
+    if (org) out.organizer = org;
+  }
   out.startLineFromMember = !!s.startLineFromMember;
+  // A course with official lines only takes sessions timed on them (within
+  // 25 m): lines a member moved never reach its leaderboard.
+  if (layout && layout.startLine) {
+    var near = function (a, b) { return a && b && trackDist([(a[0][0] + a[1][0]) / 2, (a[0][1] + a[1][1]) / 2], [(b[0][0] + b[1][0]) / 2, (b[0][1] + b[1][1]) / 2]) <= 25; };
+    var onOfficial = near(out.startLine, layout.startLine) && (out.type !== 'sprint' || !layout.finishLine || near(out.finishLine, layout.finishLine));
+    if (!onOfficial) { delete out.layoutId; delete out.layout; layout = null; }
+  }
   out.corners = (Array.isArray(s.corners) ? s.corners : []).slice(0, 40).map(function (c) {
     return { n: trackNum(c.n, 1, 100) || 0, d: trackNum(c.d, 0, 100000) || 0, x: trackNum(c.x, -1e6, 1e6) || 0, y: trackNum(c.y, -1e6, 1e6) || 0, v: trackNum(c.v, 0, 500) || 0, lat: trackNum(c.lat, -90, 90), lng: trackNum(c.lng, -180, 180), name: trackText(c.name, 40) };
   });
@@ -6646,6 +6662,7 @@ function trackSummary(rec) {
     date: rec.date, time: rec.time || '', privacy: rec.privacy, conditions: rec.conditions || '', tyres: rec.tyres || '', temp: rec.temp, tempSource: rec.tempSource || '', weather: rec.weather || null,
     vmax: rec.vmax || 0, quality: rec.quality
   };
+  if (rec.organizer) o.organizer = rec.organizer;
   if (rec.tyreMake) o.tyreMake = rec.tyreMake;
   if (rec.tyreModel) o.tyreModel = rec.tyreModel;
   if (rec.street) o.street = true;
@@ -6880,7 +6897,7 @@ async function handleTrackAccessRequest(request, env) {
     var subject = 'Track Sessions early access request';
     var text = subscriberLabel(name, email) + ' has asked for early access to Track Sessions.\n\n' +
       (use ? 'Using: ' + use + '\n' : '') + (note ? 'Their note:\n' + note + '\n\n' : '\n') +
-      'Approve or decline: ' + MY_BUILDS_SITE_URL + '/admin.html#tracks-wrap';
+      'Approve or decline: ' + MY_BUILDS_SITE_URL + '/admin.html#grp-tracks';
     await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text)));
   } catch (e) { /* the request is saved */ }
   return json({ success: true, access: 'pending' });
@@ -7053,6 +7070,7 @@ async function handleTrackSessionGet(request, env) {
   var out = Object.assign({}, rec);
   delete out.owner;
   if (!mine) delete out.notes;
+  if (!mine && !adminView) delete out.fileName;
   out.mine = mine;
   if (adminView) out.adminView = true;
   var car = await getCarRecord(env, rec.carId);
@@ -7277,12 +7295,15 @@ async function handleTrackRequest(request, env) {
   var req = {
     id: randomToken().slice(0, 12), at: new Date().toISOString(), from: email,
     kind: ['drag', 'sprint'].indexOf(body.kind) !== -1 ? body.kind : 'circuit',
+    organizer: ['drag', 'sprint'].indexOf(body.kind) === 1 ? trackText(body.organizer, 40) : '',
     name: trackText(body.name, 60), note: trackText(body.note, 300),
-    venueId: trackId(body.venueId), startLine: trackLine(body.startLine), finishLine: trackLine(body.finishLine), lapLength: trackNum(body.lapLength, 0, 30000),
+    venueId: trackId(body.venueId), layoutId: trackId(body.layoutId), startLine: trackLine(body.startLine), finishLine: trackLine(body.finishLine), lapLength: trackNum(body.lapLength, 0, 30000),
     lat: trackNum(body.lat, -90, 90), lng: trackNum(body.lng, -180, 180), outline: outline
   };
   if (req.lat === null && outline.length) { req.lat = outline[0][0]; req.lng = outline[0][1]; }
   if (req.lat === null) return json({ success: false, message: 'Where is it? The request needs a position.' }, 400);
+  // One waiting request per course is enough.
+  if (req.venueId && list.some(function (r) { return !r.done && r.venueId === req.venueId && (r.layoutId || '') === (req.layoutId || '') && (r.organizer || '') === (req.organizer || ''); })) return json({ success: true });
   list.unshift(req);
   await env.VOTES.put('track-requests', JSON.stringify(list.slice(0, 200)));
   return json({ success: true });
@@ -7319,18 +7340,18 @@ async function handleTrackAdminRequests(request, env) {
   try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
   var req = list.find(function (r) { return r.id === body.id; });
   if (!req) return json({ success: false, message: 'Request not found' }, 404);
-  var relinked = 0;
+  var relinked = 0, filled = false;
   if (body.action === 'add') {
     if (req.done) return json({ success: false, message: 'This request is already done.' }, 400);
     var added = await addTrackFromRequest(env, req);
     if (added.error) return json({ success: false, message: added.error }, 400);
-    relinked = added.relinked;
+    relinked = added.relinked; filled = !!added.filled;
     req.venueId = added.venueId; req.layoutId = added.layoutId;
   }
   req.done = body.action === 'approve' || body.action === 'add' ? 'approved' : 'dismissed';
   req.doneAt = new Date().toISOString();
   await env.VOTES.put('track-requests', JSON.stringify(list));
-  return json({ success: true, relinked: relinked, library: body.action === 'add' ? await getTrackLibrary(env) : undefined });
+  return json({ success: true, relinked: relinked, filled: filled, library: body.action === 'add' ? await getTrackLibrary(env) : undefined });
 }
 
 // "Approve and add track": makes the circuit or sprint course from what the
@@ -7345,11 +7366,31 @@ async function addTrackFromRequest(env, req) {
   var extra = await getJsonKey(env, 'track-library', { venues: [] });
   var library = await getTrackLibrary(env);
   var venues = (extra.venues || []).slice();
+  // A listed layout with no official line yet: the request fills it in.
+  if (req.layoutId && req.venueId) {
+    var lv = (library.venues || []).find(function (v) { return v.id === req.venueId; });
+    var ll = lv && (lv.layouts || []).find(function (l) { return l.id === req.layoutId; });
+    if (ll) {
+      if (ll.startLine) return { error: 'That course already has official lines. Dismiss this request.' };
+      var upd = JSON.parse(JSON.stringify(lv));
+      var ul = upd.layouts.find(function (l) { return l.id === req.layoutId; });
+      ul.startLine = req.startLine;
+      if (sprint) ul.finishLine = req.finishLine;
+      if (!ul.length && req.lapLength) ul.length = Math.round(req.lapLength);
+      if (sprint && req.organizer && !ul.organizer) ul.organizer = req.organizer;
+      var cleanV = cleanTrackVenue(upd);
+      if (!cleanV) return { error: 'Could not update that course.' };
+      venues = venues.filter(function (x) { return x.id !== cleanV.id; });
+      venues.push(cleanV);
+      await env.VOTES.put('track-library', JSON.stringify({ venues: venues }));
+      return { venueId: cleanV.id, layoutId: req.layoutId, relinked: 0, filled: true };
+    }
+  }
   var existing = req.venueId ? (library.venues || []).find(function (v) { return v.id === req.venueId; }) : null;
   var wantType = sprint ? 'sprint' : 'circuit';
   if (existing && existing.type !== wantType) existing = null;
-  var layout = { name: trackText(req.name, 60) || (sprint ? 'Course' : 'Layout'), length: req.lapLength || 0, startLine: req.startLine, sectors: [], corners: [] };
-  if (sprint) layout.finishLine = req.finishLine;
+  var layout = { name: (sprint && req.organizer) || trackText(req.name, 60) || (sprint ? 'Course' : 'Layout'), length: req.lapLength || 0, startLine: req.startLine, sectors: [], corners: [] };
+  if (sprint) { layout.finishLine = req.finishLine; if (req.organizer) layout.organizer = req.organizer; }
   var venue;
   if (existing) {
     venue = JSON.parse(JSON.stringify(existing));
@@ -7359,7 +7400,7 @@ async function addTrackFromRequest(env, req) {
     layout.id = lid;
     venue.layouts.push(layout);
   } else {
-    layout.id = 'course';
+    layout.id = (sprint && trackId(req.organizer)) || 'course';
     venue = { id: trackId(req.name), name: trackText(req.name, 60), type: wantType, lat: req.lat, lng: req.lng, radius: sprint ? 1500 : 2000, layouts: [layout] };
     if (!venue.id || !venue.name) return { error: 'The request needs a name to make a track.' };
     var taken = (library.venues || []).find(function (v) { return v.id === venue.id; });
@@ -7383,6 +7424,7 @@ async function addTrackFromRequest(env, req) {
     var near = rec.startLine && trackDist(rec.startLine[0], req.startLine[0]) <= 60 && trackDist(rec.startLine[1], req.startLine[1]) <= 60;
     var same = trackText(rec.venue, 60).toLowerCase() === clean.name.toLowerCase();
     if (!near && !same) continue;
+    if (req.organizer && rec.organizer && rec.organizer.toLowerCase() !== req.organizer.toLowerCase()) continue;
     rec.venueId = clean.id; rec.venue = clean.name; rec.layoutId = layoutId;
     rec.layout = clean.layouts[clean.layouts.length - 1].name;
     if (!(await putTrackSession(env, rec))) continue;

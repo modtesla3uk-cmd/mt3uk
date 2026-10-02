@@ -26,20 +26,60 @@
   }
 
   wrap.addEventListener('toggle', function () { if (wrap.open && !library) load(); });
+  // The new-track requests show in the bell, so they load once the key is known and again on each check.
+  document.addEventListener('mt3uk-admin-refresh', function () { if (key()) load(true); });
+  if (key()) load(true);
 
-  function load() {
+  function load(quiet) {
     if (!key()) { note('Enter the admin key at the top of the page first.', 'error'); return; }
-    note('Loading tracks...');
+    if (!quiet) note('Loading tracks...');
     Promise.all([
       fetch('data/tracks.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).catch(function () { return { venues: [] }; }),
       call('GET', '/track/admin/tracks'),
       call('GET', '/track/admin/requests')
     ]).then(function (r) {
-      if (!r[1].ok) { note('The admin key is not right.', 'error'); return; }
+      if (!r[1].ok) { if (!quiet) note('The admin key is not right.', 'error'); return; }
       base = r[0]; extra = r[1].extra || { venues: [] }; library = r[1].library || base;
       note('');
       drawList(); drawRequests(r[2].requests || []); drawBoardPick();
     }).catch(function () { note('Could not load the tracks.', 'error'); });
+  }
+
+  // A map of a course: the trace a member sent (when there is one), the start
+  // line (green) and the finish line (red), over the satellite picture.
+  function openMap(title, outline, startLine, finishLine, note) {
+    var T = window.MT3UKTrack, V = window.MT3UKTrackView;
+    if (!T || !V) { window.alert('The map is still loading. Try again in a moment.'); return; }
+    var first = (outline && outline[0]) || (startLine && startLine[0]) || (finishLine && finishLine[0]);
+    if (!first) return;
+    var proj = T.projector(first[0], first[1]);
+    var lineXY = function (l) { return l ? l.map(function (p) { return proj.xy(p[0], p[1]); }) : null; };
+    var pts = outline && outline.length > 1 ? outline.map(function (p) { return proj.xy(p[0], p[1]); }) : null;
+    if (!pts) {
+      // No trace: a stretch through the lines, along the way a car would drive.
+      var s = lineXY(startLine), f = lineXY(finishLine);
+      if (s && f) pts = [[(s[0][0] + s[1][0]) / 2, (s[0][1] + s[1][1]) / 2], [(f[0][0] + f[1][0]) / 2, (f[0][1] + f[1][1]) / 2]];
+      else if (s) {
+        var dx = s[1][0] - s[0][0], dy = s[1][1] - s[0][1], L = Math.hypot(dx, dy) || 1, cx = (s[0][0] + s[1][0]) / 2, cy = (s[0][1] + s[1][1]) / 2;
+        pts = [[cx + dy / L * 100, cy - dx / L * 100], [cx - dy / L * 100, cy + dx / L * 100]];
+      }
+    }
+    if (!pts) return;
+    var d = 0, trace = pts.map(function (p, i) { if (i) d += Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]); return [d, 0, p[0], p[1], 0, 0, 0]; });
+    var old = document.getElementById('tk-map-modal');
+    if (old) old.remove();
+    var modal = document.createElement('div');
+    modal.className = 'tk-map-modal'; modal.id = 'tk-map-modal';
+    modal.innerHTML = '<div class="tk-map-card" role="dialog" aria-modal="true" aria-label="' + esc(title) + '"><div class="tk-map-head"><h3>' + esc(title) + '</h3><button type="button" class="secondary iv-act" data-close-map>Close</button></div>' +
+      '<div class="tk-map-box" id="tk-map-box"><svg class="tv-chart" id="tk-map-svg" role="img" aria-label="' + esc(title) + '"></svg></div>' +
+      '<p class="tk-map-note">' + esc(note || 'Green is the start line, red is the finish line. Zoom with the + button, the wheel or a pinch.') + '</p></div>';
+    document.body.appendChild(modal);
+    var box = document.getElementById('tk-map-box'), svg = document.getElementById('tk-map-svg');
+    V.map(svg, trace, { mono: true, fill: { w: box.clientWidth, h: box.clientHeight }, origin: first, startLine: lineXY(startLine), finishLine: finishLine && startLine ? lineXY(finishLine) : null });
+    function close() { modal.remove(); document.removeEventListener('keydown', onKey); }
+    function onKey(e) { if (e.key === 'Escape') close(); }
+    document.addEventListener('keydown', onKey);
+    modal.addEventListener('click', function (e) { if (e.target === modal || e.target.closest('[data-close-map]')) close(); });
   }
 
   function lineText(l) { return l && l.length === 2 ? [l[0][0], l[0][1], l[1][0], l[1][1]].join(', ') : ''; }
@@ -55,12 +95,18 @@
       var layouts = v.layouts || [];
       var ready = v.type === 'drag' ? 'Drag strip' : layouts.map(function (l) { return esc(l.name) + ': ' + (l.startLine ? 'start line' : '<span class="tk-miss">no start line</span>') + (v.type === 'sprint' ? (l.finishLine ? ', finish line' : ', <span class="tk-miss">no finish line</span>') : '') + (l.corners && l.corners.length ? ', ' + l.corners.length + ' corners' : '') + (l.sectors && l.sectors.length ? ', ' + l.sectors.length + ' sector lines' : ''); }).join('<br>');
       return '<tr><td><b>' + esc(v.name) + '</b>' + (changed[v.id] ? ' <span class="iv-sub">(changed here)</span>' : '') + (v.check ? '<span class="iv-sub">Centre or lengths to check</span>' : '') + '</td><td>' + (v.type === 'drag' ? '-' : layouts.length) + '</td><td class="iv-sub">' + ready + '</td>' +
-        '<td><div class="iv-actions"><button type="button" class="secondary iv-act" data-edit="' + esc(v.id) + '">Edit</button><button type="button" class="danger iv-act" data-remove="' + esc(v.id) + '">Remove</button></div></td></tr>';
+        '<td><div class="iv-actions">' + layouts.filter(function (l) { return l.startLine; }).map(function (l) { return '<button type="button" class="secondary iv-act" data-map="' + esc(v.id + ':' + l.id) + '">Map' + (layouts.length > 1 ? ': ' + esc(l.name) : '') + '</button>'; }).join('') + '<button type="button" class="secondary iv-act" data-edit="' + esc(v.id) + '">Edit</button><button type="button" class="danger iv-act" data-remove="' + esc(v.id) + '">Remove</button></div></td></tr>';
     }).join('') + '</tbody></table><div class="iv-toolbar tk-top"><button type="button" class="secondary" data-new>Add a track</button></div>';
   }
 
   listEl.addEventListener('click', function (e) {
-    var ed = e.target.closest('[data-edit]'), rm = e.target.closest('[data-remove]');
+    var ed = e.target.closest('[data-edit]'), rm = e.target.closest('[data-remove]'), mp = e.target.closest('[data-map]');
+    if (mp) {
+      var ids = mp.getAttribute('data-map').split(':'), mv = library.venues.filter(function (v) { return v.id === ids[0]; })[0];
+      var ml = mv && (mv.layouts || []).filter(function (l) { return l.id === ids[1]; })[0];
+      if (ml) openMap(mv.name + (ml.name && ml.name !== mv.name ? ', ' + ml.name : ''), null, ml.startLine, mv.type === 'sprint' ? ml.finishLine : null, 'The official lines for this course. The line between them is only a guide; the picture shows the real ground.');
+      return;
+    }
     if (e.target.closest('[data-new]')) return openForm({ id: '', name: '', type: 'circuit', lat: '', lng: '', radius: 2000, layouts: [{ id: '', name: '', length: '' }] });
     if (ed) return openForm(JSON.parse(JSON.stringify(library.venues.filter(function (v) { return v.id === ed.getAttribute('data-edit'); })[0])));
     if (rm) {
@@ -78,6 +124,7 @@
     var sprint = editing && editing.type === 'sprint';
     return '<fieldset class="tk-layout" data-i="' + i + '"><legend>' + (sprint ? 'Course ' : 'Layout ') + (i + 1) + '</legend>' +
       '<div class="tk-row"><label>Name<input type="text" data-l="name" value="' + esc(l.name) + '"></label><label>' + (sprint ? 'Course length (m)' : 'Lap length (m)') + '<input type="text" inputmode="numeric" data-l="length" value="' + esc(l.length || '') + '"></label></div>' +
+      (sprint ? '<label>Organiser (for example B19): courses at one venue can differ<input type="text" data-l="organizer" value="' + esc(l.organizer || '') + '"></label>' : '') +
       '<label>Start line: two points, as lat, lng, lat, lng<input type="text" data-l="startLine" placeholder="51.2077017, -1.6088667, 51.2076237, -1.6091363" value="' + esc(lineText(l.startLine)) + '"></label>' +
       (sprint ? '<label>Finish line: two points, as lat, lng, lat, lng<input type="text" data-l="finishLine" value="' + esc(lineText(l.finishLine)) + '"></label>' : '') +
       '<label>Sector lines, one per line (lat, lng, lat, lng)<textarea data-l="sectors" rows="2">' + esc((l.sectors || []).map(lineText).join('\n')) + '</textarea></label>' +
@@ -107,7 +154,7 @@
         function f(k) { var el = fs.querySelector('[data-l="' + k + '"]'); return el ? el.value : ''; }
         return {
           id: (editing.layouts && editing.layouts[+fs.getAttribute('data-i')] || {}).id || '',
-          name: f('name').trim(), length: parseInt(f('length'), 10) || 0, startLine: parseLine(f('startLine')), finishLine: parseLine(f('finishLine')),
+          name: f('name').trim(), organizer: f('organizer').trim(), length: parseInt(f('length'), 10) || 0, startLine: parseLine(f('startLine')), finishLine: parseLine(f('finishLine')),
           sectors: f('sectors').split('\n').map(parseLine).filter(Boolean),
           corners: f('corners').split('\n').map(function (row) { var p = row.split(','); return p.length >= 3 ? { name: p.slice(0, p.length - 2).join(',').trim(), lat: parseFloat(p[p.length - 2]), lng: parseFloat(p[p.length - 1]) } : null; }).filter(function (c) { return c && c.name && isFinite(c.lat) && isFinite(c.lng); })
         };
@@ -175,12 +222,18 @@
       return '<div class="tk-req" data-id="' + esc(r.id) + '">' + outlineSvg(r.outline) + '<div><b>' + esc(r.name || 'Unnamed') + '</b> <span class="iv-sub">' + (r.kind === 'drag' ? 'Drag strip' : r.kind === 'sprint' ? 'Sprint or hill climb' : 'Circuit') + (r.venueId ? ', layout at ' + esc(r.venueId) : '') + (r.lapLength ? ', lap about ' + Math.round(r.lapLength) + ' m' : '') + ', from ' + esc(r.from) + ', ' + esc(String(r.at).slice(0, 10)) + '</span>' +
         (r.note ? '<p class="iv-sub">' + esc(r.note) + '</p>' : '') +
         '<p class="iv-sub"><a href="https://www.google.com/maps?q=' + r.lat + ',' + r.lng + '" target="_blank" rel="noopener">See it on a map</a>' + (r.startLine ? ' &middot; start line ' + esc(lineText(r.startLine)) : '') + '</p>' +
-        '<div class="iv-actions">' + (r.kind !== 'drag' && r.startLine && (r.kind !== 'sprint' || r.finishLine) ? '<button type="button" class="iv-act" data-add="' + esc(r.id) + '">Approve and add track</button>' : '') + '<button type="button" class="secondary iv-act" data-use="' + esc(r.id) + '">Set up by hand</button><button type="button" class="secondary iv-act" data-done="' + esc(r.id) + '">Dismiss</button></div></div></div>';
+        '<div class="iv-actions">' + (r.startLine || (r.outline && r.outline.length > 1) ? '<button type="button" class="secondary iv-act" data-map-req="' + esc(r.id) + '">Open map</button>' : '') + (r.kind !== 'drag' && r.startLine && (r.kind !== 'sprint' || r.finishLine) ? '<button type="button" class="iv-act" data-add="' + esc(r.id) + '">Approve and add track</button>' : '') + '<button type="button" class="secondary iv-act" data-use="' + esc(r.id) + '">Set up by hand</button><button type="button" class="secondary iv-act" data-done="' + esc(r.id) + '">Dismiss</button></div></div></div>';
     }).join('') : '<p class="empty">No new requests.</p>';
     reqEl._list = list;
   }
 
   reqEl.addEventListener('click', function (e) {
+    var mp = e.target.closest('[data-map-req]');
+    if (mp) {
+      var mr = reqEl._list.filter(function (x) { return x.id === mp.getAttribute('data-map-req'); })[0];
+      if (mr) openMap((mr.name || 'New track') + (mr.organizer ? ', ' + mr.organizer : '') + ' (from a member\'s file)', mr.outline, mr.startLine, mr.kind === 'sprint' ? mr.finishLine : null, 'The line is the member\'s trace. Check the green start and red finish are where the course really starts and finishes before approving.');
+      return;
+    }
     var add = e.target.closest('[data-add]');
     if (add) {
       var aid = add.getAttribute('data-add');
@@ -190,7 +243,7 @@
         if (d.library) library = d.library;
         drawRequests(reqEl._list.map(function (x) { return x.id === aid ? Object.assign({}, x, { done: 'approved' }) : x; }));
         drawList();
-        note('Track added. ' + d.relinked + ' of the member\'s saved session' + (d.relinked === 1 ? '' : 's') + ' linked to it.', 'ok');
+        note(d.filled ? 'Official lines set for that course.' : 'Track added. ' + d.relinked + ' of the member\'s saved session' + (d.relinked === 1 ? '' : 's') + ' linked to it.', 'ok');
       });
       return;
     }

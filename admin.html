@@ -460,6 +460,7 @@
   #tk-board { margin-top: 10px; }
 </style>
 <link rel="stylesheet" href="css/admin.css">
+<link rel="stylesheet" href="css/track-map.css">
 </head>
 <body>
 <header>
@@ -474,6 +475,7 @@
   <div class="key-row">
     <input type="password" id="admin-key" placeholder="Admin key" autocomplete="off">
     <button id="load-btn" type="button">Load</button>
+    <button id="refresh-btn" type="button" class="secondary" aria-label="Refresh everything from the server">Refresh</button>
   </div>
 </header>
 <main>
@@ -1745,6 +1747,8 @@
     }
     sessionStorage.setItem('mt3ukAdminKey', key);
     statusEl.textContent = 'Loading…';
+    // Early access and Tracks fetch their own lists, at the same time as the rest.
+    document.dispatchEvent(new CustomEvent('mt3uk-admin-refresh'));
 
     return Promise.all([loadClaims(key), loadUnclaimed(key), loadSubscribers(key), loadThreads(key), loadReported(key), loadVoteEntries(key)])
       .then(function () {
@@ -1757,6 +1761,7 @@
   }
 
   loadBtn.addEventListener('click', function () { loadAll(true); });
+  document.getElementById('refresh-btn').addEventListener('click', function () { loadAll(true); });
   keyInput.addEventListener('keydown', function (e) {
     if (e.key === 'Enter') loadAll(true);
   });
@@ -1809,6 +1814,24 @@
         id: 'photo:' + file, group: 'Reported photos', section: 'rphotos', el: card,
         img: (card.querySelector('img') || {}).src || '',
         title: file, sub: textOf(card, '.card-meta')
+      });
+    });
+    // Early access requests and new-track requests wait in their own panels.
+    document.querySelectorAll('#ac-pending [data-approve]').forEach(function (btn) {
+      var row = btn.closest('tr'), email = btn.getAttribute('data-approve');
+      var cells = row ? row.querySelectorAll('td') : [];
+      items.push({
+        id: 'access:' + email, group: 'Early access requests', section: 'access', el: row, img: '',
+        title: (cells[0] ? cells[0].textContent.trim() : email) || email,
+        sub: 'Wants early access to Track sessions' + (cells[1] && cells[1].textContent.trim() ? ' (' + cells[1].textContent.trim() + ')' : '')
+      });
+    });
+    document.querySelectorAll('#tk-requests .tk-req').forEach(function (card) {
+      var name = card.querySelector('b'), kind = card.querySelector('.iv-sub');
+      items.push({
+        id: 'track:' + card.getAttribute('data-id'), group: 'New track requests', section: 'tracks', el: card, img: '',
+        title: name ? name.textContent.trim() : 'New track',
+        sub: kind ? kind.textContent.trim() : 'Needs approving'
       });
     });
     return items;
@@ -1920,7 +1943,7 @@
   });
 
   var bellTimer = null;
-  [pendingEl, threadsEl, reportedEl].forEach(function (el) {
+  [pendingEl, threadsEl, reportedEl, document.getElementById('ac-pending'), document.getElementById('tk-requests')].filter(Boolean).forEach(function (el) {
     new MutationObserver(function () {
       clearTimeout(bellTimer);
       bellTimer = setTimeout(renderBell, 100);
@@ -1934,6 +1957,7 @@
     loadClaims(key);
     loadThreads(key);
     loadReported(key);
+    document.dispatchEvent(new CustomEvent('mt3uk-admin-refresh'));
   }, 3 * 60 * 1000);
 
   if (savedKey) loadAll(true);
@@ -2822,6 +2846,8 @@
 })();
 </script>
 <script src="js/admin-subnav.js" defer></script>
+<script src="js/track-parse.js" defer></script>
+<script src="js/track-view.js" defer></script>
 <script src="js/track-access-admin.js" defer></script>
 <script src="js/track-member-admin.js" defer></script>
 <script src="js/track-admin.js" defer></script>

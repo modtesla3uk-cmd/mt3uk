@@ -79,6 +79,16 @@ Static site for the MT3UK modified Tesla community, live at https://mt3uk.com. I
 - Each board entry is a car's fastest, plus `bests`: its fastest for every mix of conditions and tyres, so a filter can rank each car by its best that matches. `mods` holds only track-relevant parts (`isTrackPart`, kept the same in `js/track-parse.js` and the worker, with a test). Entries made before `bests` existed still work (the page falls back to their one result and reads the tyres from the text).
 - **Rebuild all leaderboards** on the Tracks panel of `admin.html` (`POST /track/boards/rebuild`, admin key, a couple of cars per call) brings old entries up to date. It uses KV `list()`, which is fine for an admin-only route.
 
+## Track sessions: sprint organisers
+
+- Courses at one sprint venue can have different start and finish lines, so a sprint session has an **Organiser** (B19, say). A course (layout) at a sprint venue is named for its organiser and carries `organizer`; the leaderboard shows "Lydden Hill, B19". `js/track-parse.js` only uses the courses of the organiser the member typed. A session whose own lines are more than 25 m from the only listed course, or that names an organiser the venue does not have, gets no course and so no leaderboard, and a request goes to the admin. **Approve and add track** (Tracks panel) builds the course from the request's lines and organiser, then links that member's sessions. Add the organiser on a course by hand in the Tracks panel's course form.
+
+## Track sessions: official start and finish lines
+
+- Members cannot move the lines of a course that has official ones (`startLine`, and `finishLine` for sprints, in `data/tracks.json` or the Tracks panel). `js/track-parse.js` tries the course's lines first and only falls back to the member's or the file's own when the course has none or they give no runs; the page then has no Move button (`officialLines`). The worker also drops the course and leaderboard place from a session whose lines are more than 25 m from the official ones (`cleanTrackSession`).
+- Most layouts have no official line yet. The first member's request (kept one per course) shows in the Admin bell; **Approve and add track** sets that layout's official line from it (or adds the course), after checking it on **Open map**. Until then the member's own line times it and the layout is matched by length.
+- Sprint ignore switch: skips the first finish crossing after each start, when that run crosses the finish more than once. "Run ends on" picks a crossing by number instead. A saved session keeps its file name (`fileName`, shown only to its owner and the admin view). Peak g ignores one-reading spikes and cornering below 15 km/h.
+
 ## Shop
 
 - The Tee card and modal are the template for new products. Zoomable product images use the hold-to-pan zoom in shop.html (`panTargets`, `.zoom-pan`), which zooms back out on release. Never use a plain CSS hover zoom or a link.

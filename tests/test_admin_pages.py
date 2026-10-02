@@ -216,3 +216,54 @@ def test_admin_can_add_the_current_testers_to_the_early_access_list(page):
     expect(page.locator("#ac-allowed")).to_contain_text("john@example.com, current tester")
     expect(page.locator("#ac-import")).to_be_disabled()
     expect(page.locator("#ac-import-note")).to_contain_text("Revoke works for everyone")
+
+
+def test_the_bell_lists_early_access_requests_and_new_track_requests(page):
+    access = {"open": False, "allowed": [], "pending": [{"email": "ann@example.com", "name": "Ann B", "use": "RaceBox", "note": "", "at": "2026-10-01T09:00:00Z"}]}
+    req = {"id": "r1", "kind": "sprint", "name": "Newfield Sprint", "from": "j***@example.com", "lat": 51.2, "lng": -0.9, "startLine": [[51.2, -0.9], [51.2002, -0.9002]], "finishLine": [[51.21, -0.91], [51.2102, -0.9102]], "outline": [], "at": "2026-10-02T09:00:00Z"}
+    open_admin(page, "admin.html")
+    ok = {"Access-Control-Allow-Origin": "*"}
+    page.route("**/track/access/admin**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps(dict(access, success=True)), headers=ok))
+    page.route("**/track/admin/requests**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "requests": [req]}), headers=ok))
+    page.route("**/track/admin/tracks**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "extra": {"venues": []}, "library": {"venues": []}}), headers=ok))
+    page.reload()
+    expect(page.locator("#bell-badge")).to_be_visible()
+    page.locator("#bell-btn").click()
+    panel = page.locator("#bell-panel")
+    expect(panel).to_contain_text("Early access requests (1)")
+    expect(panel).to_contain_text("Ann B")
+    expect(panel).to_contain_text("New track requests (1)")
+    expect(panel).to_contain_text("Newfield Sprint")
+    # Choosing one opens its panel.
+    panel.get_by_text("Newfield Sprint").click()
+    expect(page.locator("#tracks-wrap")).to_have_attribute("open", "")
+
+
+def test_admin_can_open_a_map_of_a_requested_course_and_the_load_refreshes_everything(page):
+    req = {"id": "r1", "kind": "sprint", "name": "Newfield Sprint", "organizer": "B19", "from": "j***@example.com", "lat": 51.2, "lng": -0.9,
+           "startLine": [[51.2, -0.9], [51.2002, -0.9002]], "finishLine": [[51.21, -0.91], [51.2102, -0.9102]],
+           "outline": [[51.2, -0.9], [51.205, -0.905], [51.21, -0.91]], "at": "2026-10-02T09:00:00Z"}
+    hits = {"access": 0}
+    ok = {"Access-Control-Allow-Origin": "*"}
+
+    def access(route):
+        hits["access"] += 1
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "open": False, "allowed": [], "pending": []}), headers=ok)
+    open_admin(page, "admin.html")
+    page.route("**/track/access/admin**", access)
+    page.route("**/track/admin/requests**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "requests": [req]}), headers=ok))
+    page.route("**/track/admin/tracks**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "extra": {"venues": []}, "library": {"venues": []}}), headers=ok))
+    page.reload()
+    page.locator("#tracks-wrap summary").click()
+    page.get_by_role("button", name="Open map").click()
+    modal = page.locator("#tk-map-modal")
+    expect(modal).to_be_visible()
+    expect(modal.locator("text", has_text="Start")).to_have_count(1)
+    expect(modal.locator("text", has_text="Finish")).to_have_count(1)
+    modal.get_by_role("button", name="Close").click()
+    expect(modal).to_have_count(0)
+    # Refresh asks for everything again, including the early access list.
+    before = hits["access"]
+    page.get_by_role("button", name="Refresh").click()
+    page.wait_for_timeout(500)
+    assert hits["access"] > before

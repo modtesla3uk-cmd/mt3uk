@@ -1332,13 +1332,11 @@ def test_sprints_can_ignore_the_first_finish_line_crossing(page):
     expect(result).to_contain_text("Test Sprint")
     switch = page.locator("#tp-ignore-finish")
     expect(switch).to_have_attribute("aria-checked", "true")
-    expect(switch).to_contain_text("Ignored once in this file")
-    expect(result).to_contain_text("1 timed run,")
+    expect(switch).to_contain_text("Only a run that crosses the finish line more than once")
+    expect(result).to_contain_text("2 timed runs")
     switch.click()
     expect(page.locator("#tp-ignore-finish")).to_have_attribute("aria-checked", "false")
     expect(result).to_contain_text("2 timed runs")
-    page.locator("#tp-ignore-finish").click()
-    expect(result).to_contain_text("1 timed run,")
     # A circuit has no such switch.
     page.locator("[data-type] button[data-v='track']").click()
     expect(page.locator("#tp-ignore-finish")).to_have_count(0)
@@ -2532,15 +2530,14 @@ def test_the_early_preview_badge_is_on_the_menu_the_page_and_the_garage(page):
     expect(page.locator("#mb-track-btn .early-badge")).to_have_text("Early preview")
 
 
-def test_a_start_line_from_the_file_can_be_moved_and_sprint_lines_are_labelled(page):
+def test_official_lines_cannot_be_moved_and_sprint_lines_are_labelled(page):
     open_page(page, FakeWorker())
     page.get_by_role("link", name="Add a session").click()
     page.set_input_files("#tp-file", str(FIXTURE))
     page.locator("#tp-result .tp-notice.is-ok").wait_for(timeout=10000)
-    # The fixture's start line came from the file (or a known track): it can still be moved.
-    page.get_by_role("button", name="Move the start line").click()
-    expect(page.locator("#tp-tap .tp-tapmark")).to_have_count(1)
-    expect(page.get_by_role("button", name="Done")).to_be_visible()
+    # Thruxton has official lines: they are used, and a member cannot move them.
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("official start line")
+    expect(page.get_by_role("button", name="Move the start line")).to_have_count(0)
     # A map with a start and a finish line names each, in text that reads on the satellite picture.
     labels = page.evaluate("""() => {
       const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -2586,3 +2583,28 @@ def test_a_sprint_member_can_choose_which_finish_crossing_ends_the_run(page):
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("Timed between the start and finish you picked")
     page.locator("#tp-finish-cross").select_option("")
     expect(page.locator("#tp-finish-cross")).to_have_value("")
+
+
+def test_a_sprint_asks_who_organised_it_and_keeps_the_answer(page):
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-organiser")).to_have_count(0)
+    page.locator("[data-type] [data-v='sprint']").click()
+    org = page.locator("#tp-organiser")
+    expect(org).to_be_visible()
+    org.fill("B19")
+    org.press("Tab")
+    expect(page.locator("#tp-organiser")).to_have_value("B19")
+    # It survives the map asking for the lines.
+    expect(page.locator("#tp-tap-step")).to_have_text("Tap the start line, then the finish line.")
+    expect(page.locator("#tp-organiser")).to_have_value("B19")
+
+
+def test_the_session_page_shows_the_name_of_the_file_it_came_from(page):
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator("#tp-filename")).to_contain_text("File: " + FIXTURE.name)

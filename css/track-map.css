@@ -1,0 +1,33 @@
+/* The map styles of js/track-view.js, for pages other than track.html (the Admin course map). */
+  .tv-chart { display: block; width: 100%; height: auto; overflow: visible; touch-action: pan-y; }
+  /* Maps zoom (js/track-view.js): lines keep their width, buttons top right. */
+  .tv-zoom-wrap { position: relative; }
+  .tv-map line, .tv-map polyline { vector-effect: non-scaling-stroke; }
+  /* Zoomed in, a map stays inside its card. */
+  .tv-chart.tv-map { overflow: hidden; }
+  .tv-map .tv-band { vector-effect: none; }
+  /* Satellite ground: a white line and markers read over the imagery. */
+  .tv-map.has-sat .tv-mono { stroke: #ffffff; }
+  .tv-map.has-sat .tv-bands { display: none; }
+  .tv-map.has-sat { background: #2b2f26; }
+  .tv-sat-credit { position: absolute; right: 6px; bottom: 4px; padding: 1px 6px; border-radius: 4px; background: rgba(255, 255, 255, 0.8); font-size: 0.64rem; color: #3b4556; pointer-events: none; }
+  .tv-sat-credit[hidden] { display: none; }
+  .tv-zoom-sat[aria-pressed="true"] { background: var(--ink, #16233d); color: #fff; border-color: var(--ink, #16233d); }
+  .tv-map.is-zoomed { touch-action: none; cursor: grab; }
+  .tv-zoom-btns { position: absolute; top: 8px; right: 8px; display: flex; flex-direction: column; gap: 6px; z-index: 2; }
+  .tv-zoom-btn { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; padding: 0; border: 1px solid var(--hairline-strong, rgba(22,35,61,.24)); border-radius: 50%; background: rgba(255, 255, 255, 0.94); color: var(--ink, #16233d); cursor: pointer; box-shadow: 0 2px 6px rgba(22, 35, 61, 0.12); }
+  .tv-zoom-btn::before { content: ""; position: absolute; inset: -2px; }
+  .tv-zoom-btn { position: relative; }
+  .tv-zoom-btn .icon { width: 18px; height: 18px; }
+  .tv-zoom-btn:hover { background: #fff; border-color: var(--ink, #16233d); }
+  .tv-zoom-btn[hidden] { display: none; }
+  .tv-chart text { font-family: var(--font-body, "IBM Plex Sans", sans-serif); font-size: 12px; fill: #6b7385; font-variant-numeric: tabular-nums; }
+
+.tk-map-modal { position: fixed; inset: 0; z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(22, 35, 61, 0.55); }
+.tk-map-card { display: flex; flex-direction: column; gap: 10px; width: min(960px, 100%); max-height: 100%; padding: 14px; border-radius: 10px; background: #ffffff; }
+.tk-map-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.tk-map-head h3 { margin: 0; font-size: 1.05rem; }
+.tk-map-box { height: min(70vh, 640px); min-height: 280px; }
+.tk-map-box .tv-zoom-wrap { height: 100%; }
+.tk-map-box svg { width: 100%; height: 100%; }
+.tk-map-note { margin: 0; font-size: 0.85rem; color: #6b7385; }

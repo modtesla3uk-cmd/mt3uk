@@ -604,7 +604,7 @@
       add.files = read; add.list = null; add.rd = null;
       add.nameLooked = false;
       if (add.venueNameLooked) { add.venueName = ''; add.venueNameLooked = false; }
-      add.session = null; add.startLine = null; add.finishLine = null; add.editLines = false; add.tapFull = false; add.tapOutline = null; add.type = null; add.date = null; add.time = null;
+      add.session = null; add.startLine = null; add.finishLine = null; add.editLines = false; add.tapFull = false; add.tapAuto = false; add.tapOutline = null; add.finishCross = 0; add.type = null; add.date = null; add.time = null;
       add.weatherKey = null; if (add.tempSource !== 'member') { add.temp = null; add.tempSource = ''; add.weather = null; }
       parseFile();
     }).catch(function (e) { status(e.message || 'That file could not be opened.', 'error'); });
@@ -690,6 +690,7 @@
     if (a.finishLine) opts.finishLine = a.finishLine;
     // Sprints and hill climbs: ignore the first time a file crosses the finish line (on by default).
     if (a.ignoreFinish !== false) opts.ignoreFirstFinish = true;
+    if (a.finishCross) opts.finishCrossing = a.finishCross;
     a.session = T.analyse(a.rd, a.lib, opts);
     // A date or start time the member typed wins over the file's.
     if (a.date) { a.session.date = a.date; a.session.dateFrom = 'member'; }
@@ -789,6 +790,9 @@
   }
   function drawResult() {
     var a = add, s = a.session, box = document.getElementById('tp-result');
+    // Asking for the lines opens the map full screen, once, so they are easy to set.
+    if (s.needsStartLine && !a.tapAuto) { a.tapAuto = true; a.tapFull = true; }
+    if (!(s.needsStartLine || a.editLines) && a.tapFull) { a.tapFull = false; document.body.classList.remove('tp-noscroll'); }
     var h = '<div class="card tp-fields">';
     h += '<div class="tp-field"><span class="tp-lbl">Type</span><div class="tp-chips" data-type>' + TYPES.map(function (t) { return '<button type="button" class="chip' + (s.type === t[0] ? ' is-on' : '') + '" data-v="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</div></div>';
     h += channelsHtml(a);
@@ -802,11 +806,11 @@
         var timedNow = s.needsStartLine ? 0 : (s.laps || []).filter(function (l) { return l.kind === 'timed'; }).length;
         h += (s.needsStartLine ? '<div class="tp-notice is-warn">' + icon('pin') + '<div><b>' + esc(s.venue || (isSprint ? 'New course' : 'New track')) + '</b><br>' + esc(s.problem) + '</div></div>'
           : '<div class="tp-notice is-ok">' + icon('check') + '<div>' + timedNow + ' timed ' + word + (timedNow === 1 ? '' : 's') + (s.bestTime ? ', best ' + V.fmtLap(s.bestTime) : '') + '. Drag a marker to move it, then press Done.</div></div>') +
-          '<p class="tp-sub" id="tp-tap-step">' + tapText + '</p>' +
           '<p class="tp-small">Zoom in with the + button, the mouse wheel or a pinch. Drag the map with any mouse button to move it. A quick click or tap places a marker, and a marker can be dragged along the track.</p>' +
-          '<div class="tp-tapbox' + (a.tapFull ? ' is-full' : '') + '" id="tp-tapbox"><div class="tp-tapmap" id="tp-tapmap"><svg class="tv-chart tp-tap" id="tp-tap" role="img" aria-label="Your trace. ' + tapText + '"></svg></div>' +
+          '<div class="tp-tapbox' + (a.tapFull ? ' is-full' : '') + '" id="tp-tapbox"><p class="tp-sub tp-tap-step" id="tp-tap-step">' + tapText + '</p><div class="tp-tapmap" id="tp-tapmap"><svg class="tv-chart tp-tap" id="tp-tap" role="img" aria-label="Your trace. ' + tapText + '"></svg></div>' +
           '<div class="tp-tap-tools"><button type="button" class="btn btn-secondary btn-sm" data-tap="undo"' + (hasMarks ? '' : ' disabled') + '>' + icon('rewind') + 'Undo last marker</button>' +
           '<button type="button" class="btn btn-secondary btn-sm" data-tap="clear"' + (hasMarks ? '' : ' disabled') + '>' + icon('x') + 'Clear markers</button>' +
+          (!isSprint && s.needsStartLine ? '<button type="button" class="btn btn-secondary btn-sm" data-tap="sprint">' + icon('pin') + 'Separate start and finish</button>' : '') +
           '<button type="button" class="btn btn-secondary btn-sm" data-tap="full">' + icon(a.tapFull ? 'x' : 'expand') + (a.tapFull ? 'Exit full screen' : 'Full screen') + '</button>' +
           (a.editLines && !s.needsStartLine ? '<button type="button" class="btn btn-primary btn-sm" data-tap="done">' + icon('check') + 'Done</button>' : '') + '</div></div>' +
           (!s.venueId ? '<div class="tp-field"><label for="tp-venue-name">Track name</label><input class="field" id="tp-venue-name" placeholder="For example, Blyton Park" value="' + esc(a.venueName || '') + '"></div>' + (a.venueNameLooked ? nameNote() : '') : '');
@@ -816,6 +820,7 @@
           (s.venueId ? 'Found from the GPS in your file. ' : isSprint ? 'Timed between the start and finish you picked. ' : 'Timed from the start line you picked. ') + timed + ' timed ' + word + (timed === 1 ? '' : 's') + (s.bestTime ? ', best ' + V.fmtLap(s.bestTime) : '') + '.</div></div>';
         if (a.startLine || a.finishLine || s.startLine) h += '<button type="button" class="btn btn-secondary btn-sm tp-move-lines" data-tap="edit">' + icon('pin') + 'Move ' + (isSprint ? 'start and finish' : 'the start line') + '</button>';
         if (isSprint && !s.pointToPoint) h += '<button type="button" class="tp-switch" role="switch" aria-checked="' + (a.ignoreFinish !== false) + '" id="tp-ignore-finish"><span><b>Ignore the first time it crosses the finish line</b><br><small>' + (s.firstFinishIgnored ? 'Ignored once in this file. Turn it off if your first run is missing.' : 'Turn this off if your first run is missing.') + '</small></span><span class="tp-track"></span></button>';
+        if (isSprint) h += '<div class="tp-field"><label for="tp-finish-cross">Run ends on</label><select class="field" id="tp-finish-cross"><option value="">Automatic (see the switch above)</option>' + [1, 2, 3, 4, 5].map(function (n) { return '<option value="' + n + '"' + (a.finishCross === n ? ' selected' : '') + '>Crossing ' + n + ' of the finish line</option>'; }).join('') + '</select><p class="tp-small">If the car passes the finish line before the run really ends, choose which crossing finishes the timing. It counts from the start line.</p></div>';
         if (s.venueId && !s.layoutId) h += '<p class="tp-sub">We know ' + esc(s.venue) + ' but couldn\'t tell which layout this is, so it can\'t go on a leaderboard yet. We\'ve let the admin know.</p>';
         if (!s.venueId) h += '<div class="tp-field"><label for="tp-venue-name">Track name</label><input class="field" id="tp-venue-name" placeholder="For example, Blyton Park" value="' + esc(a.venueName || '') + '"></div>' + (a.venueNameLooked ? nameNote() : '');
       }
@@ -908,7 +913,7 @@
         else a[k] = el.value.trim();
       });
     }
-    group('[data-type]', function (v) { keep(); if (v !== a.type) { a.type = v; a.startLine = null; a.finishLine = null; a.editLines = false; a.tapFull = false; analyse(); } });
+    group('[data-type]', function (v) { keep(); if (v !== a.type) { a.type = v; a.startLine = null; a.finishLine = null; a.editLines = false; a.tapFull = false; a.tapAuto = false; analyse(); } });
     ['tp-date', 'tp-time'].forEach(function (id) {
       var el = document.getElementById(id);
       if (!el) return;
@@ -926,6 +931,8 @@
     });
     group('[data-cond]', function (v) { keep(); a.conditions = v; a.condTouched = true; drawResult(); });
     group('[data-privacy]', function (v) { keep(); a.privacy = v; drawResult(); });
+    var fcSel = document.getElementById('tp-finish-cross');
+    if (fcSel) fcSel.addEventListener('change', function () { keep(); a.finishCross = fcSel.value ? parseInt(fcSel.value, 10) : 0; analyse(); });
     var ig = document.getElementById('tp-ignore-finish');
     if (ig) ig.addEventListener('click', function () { keep(); a.ignoreFinish = a.ignoreFinish === false; analyse(); });
     var st = document.getElementById('tp-street');
@@ -1031,6 +1038,7 @@
         var what = b.getAttribute('data-tap');
         if (what === 'undo') { if (sprint && a.finishLine) a.finishLine = null; else a.startLine = null; linesChanged(); }
         else if (what === 'clear') { a.startLine = null; a.finishLine = null; linesChanged(); }
+        else if (what === 'sprint') { a.type = 'sprint'; a.startLine = null; a.finishLine = null; a.editLines = false; a.tapAuto = false; analyse(); }
         else if (what === 'full') { a.tapFull = !a.tapFull; drawResult(); }
         else if (what === 'done') { a.editLines = false; a.tapFull = false; document.body.classList.remove('tp-noscroll'); drawResult(); }
       });

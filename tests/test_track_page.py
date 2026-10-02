@@ -820,6 +820,7 @@ def test_changing_the_type_after_loading_relabels_the_files(page):
     expect(page.locator(".tp-file > div > span").last).to_contain_text("2 sessions")
     page.locator("[data-type] button[data-v='sprint']").click()
     expect(page.locator(".tp-file > div > span").last).to_contain_text("2 runs")
+    page.get_by_role("button", name="Exit full screen").click()
     page.locator("[data-type] button[data-v='track']").click()
     expect(page.locator(".tp-file > div > span").last).to_contain_text("2 sessions")
 
@@ -890,7 +891,9 @@ def test_changing_to_a_sprint_asks_for_the_start_and_finish(page):
     page.locator("#settings [data-retype] button[data-v='sprint']").click()
     expect(page.locator("#tp-tap-step")).to_have_text("Tap the start line, then the finish line.")
     expect(page.get_by_role("button", name="Save changes")).to_have_count(0)
-    # Leaving without saving changes nothing.
+    # The map opens full screen to set them; leaving without saving changes nothing.
+    expect(page.locator("#tp-tapbox")).to_have_class(re.compile("is-full"))
+    page.get_by_role("button", name="Exit full screen").click()
     page.get_by_role("link", name="Back to the session").click()
     expect(page.locator("#settings [data-retype] .chip.is-on")).to_have_text("Track day")
     assert fake.sessions["new1"]["type"] == "track"
@@ -2433,27 +2436,45 @@ def test_start_and_finish_markers_can_be_undone_cleared_dragged_and_moved_later(
     expect(step).to_have_text("Tap the start line, then the finish line.")
 
 
-def test_the_marker_map_is_bigger_and_can_go_full_screen(page):
+def test_the_marker_map_opens_full_screen_and_asks_for_both_lines(page):
     open_page(page, FakeWorker())
     page.get_by_role("link", name="Add a session").click()
     page.set_input_files("#tp-file", str(FIXTURE))
     page.locator("[data-type] [data-v='sprint']").click()
     tap = page.locator("#tp-tap")
     expect(tap).to_be_visible()
-    box = tap.bounding_box()
-    assert box["height"] >= box["width"] * 0.8, box
-    page.get_by_role("button", name="Full screen").click()
+    # Asking for the lines opens the map full screen, with the prompt inside it.
     expect(page.locator("#tp-tapbox")).to_have_class(re.compile("is-full"))
+    expect(page.locator("#tp-tapbox #tp-tap-step")).to_have_text("Tap the start line, then the finish line.")
     vp = page.viewport_size
-    big = page.locator("#tp-tap").bounding_box()
+    big = tap.bounding_box()
     assert big["width"] >= vp["width"] - 40 and big["height"] >= vp["height"] * 0.6, big
     # Markers still go where they're placed in full screen.
     a = _trace_point(page, 0.3)
     page.mouse.click(a[0], a[1])
     expect(page.locator("#tp-tap .tp-tapmark")).to_have_count(1)
+    expect(page.locator("#tp-tapbox #tp-tap-step")).to_have_text("Start set. Now tap the finish line.")
     page.get_by_role("button", name="Exit full screen").click()
     expect(page.locator("#tp-tapbox")).not_to_have_class(re.compile("is-full"))
     expect(page.locator("#tp-tap .tp-tapmark")).to_have_count(1)
+    box = tap.bounding_box()
+    assert box["height"] >= box["width"] * 0.8, box
+    page.get_by_role("button", name="Full screen").click()
+    expect(page.locator("#tp-tapbox")).to_have_class(re.compile("is-full"))
+
+
+def test_a_track_day_file_can_switch_to_a_separate_start_and_finish(page, tmp_path):
+    no_line = tmp_path / "noline.vbo"
+    no_line.write_bytes(b"".join(l for l in FIXTURE.read_bytes().splitlines(True) if not l.startswith(b"Start ")))
+    page.route(re.compile(r".*/data/tracks\.json.*"), _without_start_line)
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(no_line))
+    expect(page.locator("#tp-tapbox")).to_have_class(re.compile("is-full"))
+    expect(page.locator("#tp-tap-step")).to_have_text("Tap where the start and finish line is.")
+    page.get_by_role("button", name="Separate start and finish").click()
+    expect(page.locator("#tp-tap-step")).to_have_text("Tap the start line, then the finish line.")
+    expect(page.locator("#tp-tapbox")).to_have_class(re.compile("is-full"))
 
 
 def test_members_without_access_see_the_early_preview_page_and_can_ask(page):
@@ -2546,3 +2567,22 @@ def test_changing_the_tyre_make_clears_the_model(page):
     page.fill("#tp-tyre-model", "Something typed")
     page.select_option("#tp-tyre-make", makes[1])
     expect(page.locator("#tp-tyre-model")).to_have_value("")
+
+
+def test_a_sprint_member_can_choose_which_finish_crossing_ends_the_run(page):
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    page.locator("[data-type] [data-v='sprint']").click()
+    a = _trace_point(page, 0.2)
+    page.mouse.click(a[0], a[1])
+    b = _trace_point(page, 0.6)
+    page.mouse.click(b[0], b[1])
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("Timed between the start and finish you picked")
+    sel = page.locator("#tp-finish-cross")
+    expect(sel).to_be_visible()
+    sel.select_option("1")
+    expect(page.locator("#tp-finish-cross")).to_have_value("1")
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("Timed between the start and finish you picked")
+    page.locator("#tp-finish-cross").select_option("")
+    expect(page.locator("#tp-finish-cross")).to_have_value("")

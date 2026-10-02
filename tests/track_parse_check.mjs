@@ -114,6 +114,12 @@ ok(su.laps.length === 2 && near(su.bestTime, 99.786, 0.05) && su.startLineFromMe
   const lp = T.analyse(T.read(vbo, 'f.vbo'), loopLib), lk = T.analyse(T.read(vbo, 'f.vbo'), loopLib, { ignoreFirstFinish: true });
   ok(lp.laps.length === 2 && !lp.pointToPoint, 'a loop sprint times both runs by default');
   ok(lk.laps.length === 1 && lk.firstFinishIgnored === 1 && lk.laps[0].start > 100, 'a loop sprint can ignore the first finish crossing: only the second run is left');
+  // The member can choose which crossing of the finish line ends a run.
+  const f1 = T.analyse(T.read(vbo, 'f.vbo'), loopLib, { finishCrossing: 1 }), f9 = T.analyse(T.read(vbo, 'f.vbo'), loopLib, { finishCrossing: 9 });
+  ok(f1.laps.length === 2 && f1.finishCrossing === 1 && near(f1.bestTime, lp.bestTime, 0.01), 'crossing 1 ends each run on the first finish crossing');
+  ok(f9.needsStartLine && f9.laps.length === 0, 'a crossing the car never reaches gives no runs, so the lines are asked for again');
+  const f2 = T.analyse(T.read(vbo, 'f.vbo'), loopLib, { finishCrossing: 2, ignoreFirstFinish: true });
+  ok(f2.finishCrossing === 2 && f2.firstFinishIgnored === undefined, 'a chosen crossing replaces the ignore switch');
   const so = T.analyse(T.read(vbo, 'f.vbo'), { venues: [] }, { type: 'other' });
   ok(so.type === 'other' && !so.needsStartLine && so.trace.outline.length > 100, 'other: mapped without needing a start line');
 }

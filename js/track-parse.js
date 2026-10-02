@@ -758,7 +758,19 @@
         });
         return out;
       }
-      var pairs = pairUp(fi), skipped = 0, climb = false;
+      // opts.finishCrossing (1 to 9): the run ends on that crossing of the
+      // finish line after the start, whatever else it crosses on the way.
+      function pairNth(n) {
+        var out = [], lastEnd = -Infinity;
+        st.forEach(function (x) {
+          if (x.t <= lastEnd) return;
+          var after = fi.filter(function (f) { return f.t > x.t + 3 && f.t - x.t < 900 && pts[f.i].run === pts[x.i].run; });
+          if (after.length >= n) { out.push([x, after[n - 1]]); lastEnd = after[n - 1].t; }
+        });
+        return out;
+      }
+      var fc = opts.finishCrossing >= 1 ? Math.min(9, Math.round(opts.finishCrossing)) : 0;
+      var pairs = fc ? pairNth(fc) : pairUp(fi), skipped = 0, climb = false;
       // A hill climb runs point to point: the finish is far from the start
       // compared with the run itself. A sprint loops back past the finish, so
       // there the first crossing can optionally be ignored (a file with just
@@ -766,7 +778,7 @@
       var ms = mid(c.start), mf = mid(c.finish), sep = Math.hypot(ms[0] - mf[0], ms[1] - mf[1]);
       var runLen = c.layout && c.layout.length ? c.layout.length : median(pairs.map(function (pr) { return pr[1].d - pr[0].d; }));
       climb = !!(pairs.length && runLen && sep > 0.6 * runLen);
-      if (opts.ignoreFirstFinish && !climb) {
+      if (opts.ignoreFirstFinish && !climb && !fc) {
         var by = {};
         fi.forEach(function (f) { var r = pts[f.i].run || 0; (by[r] = by[r] || []).push(f); });
         var kept = fi.filter(function (f) { var g = by[pts[f.i].run || 0]; return g.length < 2 || g[0] !== f; });
@@ -790,6 +802,7 @@
     session.finishLine = pick.c.finish;
     if (pick.c.own) session.startLineFromMember = true;
     if (pick.skipped) session.firstFinishIgnored = pick.skipped;
+    if (opts.finishCrossing >= 1) session.finishCrossing = Math.min(9, Math.round(opts.finishCrossing));
     if (pick.climb) session.pointToPoint = true;
     var laps = buildLaps(pts, null, null, pick.pairs);
     return timedTail(session, pts, laps, layout, proj, origin);

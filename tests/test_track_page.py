@@ -172,6 +172,8 @@ class FakeWorker:
             data = {"success": True, "car": {"id": "car1", "name": CAR["name"], "model": "Model 3", "owner": "Rich"}, "mine": False, "sessions": [s for s in self.index if s.get("privacy") in ("build", "board")]}
         elif path == "/track/requests":
             self.requests.append(body)
+        elif path == "/track/admin/course" and req.method == "POST" and not req.headers.get("x-admin-viewer"):
+            status, data = 401, {"success": False, "message": "Unauthorised"}
         elif path == "/track/admin/course" and req.method == "POST":
             self.courses.append(body)
             lib = json.loads((ROOT / "data" / "tracks.json").read_text(encoding="utf-8"))

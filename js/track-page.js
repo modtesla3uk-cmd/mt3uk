@@ -59,7 +59,8 @@
   function api(method, path, body, gzip) {
     var opts = { method: method, headers: {}, cache: 'no-store' };
     if (token()) opts.headers['X-Session-Token'] = token();
-    if (method === 'GET' && adminViewerToken()) opts.headers['X-Admin-Viewer'] = adminViewerToken();
+    // The admin view of a private session (GET) and the admin-only routes carry the admin viewer token.
+    if ((method === 'GET' || path.indexOf('/track/admin/') === 0) && adminViewerToken()) opts.headers['X-Admin-Viewer'] = adminViewerToken();
     var ready = Promise.resolve();
     if (body !== undefined) {
       opts.headers['Content-Type'] = 'application/json';

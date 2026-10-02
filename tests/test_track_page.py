@@ -792,6 +792,86 @@ def test_sessions_of_one_track_day_can_be_compared_with_each_other_even_at_an_un
     assert any("14:00" in t and "1:31.200" in t for t in texts) and any("09:00" in t and "1:30.000" in t for t in texts), texts
 
 
+def lap_row(d, t, v, la, lo):
+    return [d, t, d * 0.1, 0, v, la, lo]
+
+
+def car_lap_session(with_car=True):
+    def car(a, b, pw):
+        return {"soc": {"start": a, "end": b}, "power": {"max": pw}, "brakePressure": {"max": 30.0 + pw / 100}}
+    laps = [
+        {"n": 1, "start": 0, "time": 90.0, "dist": 2400, "vmax": 150.0, "kind": "timed", "sectors": [30.0, 30.0, 30.0]},
+        {"n": 2, "start": 95, "time": 91.5, "dist": 2410, "vmax": 140.0, "kind": "timed", "sectors": [30.5, 30.5, 30.5]},
+    ]
+    if with_car:
+        laps[0]["carData"] = car(80, 78, 300)
+        laps[1]["carData"] = car(78, 75, 340)
+    trace = {"1": [lap_row(0, 0, 100, 0.2, 0.1), lap_row(500, 20, 150, 0.8, -0.9), lap_row(2400, 90, 110, 0.3, 0.2)],
+             "2": [lap_row(0, 0, 100, 0.2, 0.1), lap_row(500, 20, 140, 1.1, -1.2), lap_row(2410, 91.5, 105, 0.3, 0.2)]}
+    rec = {"id": "lp1", "carId": "car1", "type": "track", "venueId": "thruxton", "venue": "Thruxton", "layoutId": "main", "layout": "Thruxton", "date": "2026-05-28", "time": "14:34",
+           "privacy": "private", "conditions": "Dry", "bestTime": 90.0, "best": 1, "possible": 89.5, "vmax": 150.0, "latMax": 1.1, "brakeMax": 1.2, "distance": 4810, "duration": 190,
+           "hz": 25, "quality": "good", "laps": laps, "trace": {"hz": 5, "laps": trace}, "origin": [51.0, -1.0], "bestSectors": [30.0, 30.0, 30.0], "corners": []}
+    if with_car:
+        rec["carData"] = {"found": ["State of charge", "Power", "Brake pressure"], "empty": [], "soc": {"start": 80, "end": 75}, "power": {"max": 340}, "brakePressure": {"max": 33.4}}
+    return rec
+
+
+def test_choosing_a_lap_updates_the_tiles_and_the_track_mode_figures(page):
+    fake = FakeWorker(earlier=False)
+    rec = car_lap_session()
+    fake.sessions["lp1"] = rec
+    fake.index.append(summary(rec))
+    open_page(page, fake, path="/track.html?s=lp1")
+    tiles = page.locator("#tp-headline .tp-tile")
+    # Whole session to begin with: the best lap, and the day's charge.
+    expect(tiles.first).to_contain_text("Best lap")
+    expect(tiles.first).to_contain_text("1:30.000")
+    expect(page.locator("#car-data .tp-tile", has_text="Charge used")).to_contain_text("5%")
+    # Lap 2: its own time, how far off the best, its own top speed and grip, and its own charge.
+    page.locator("#tp-lap-pick").select_option("2")
+    expect(tiles.first).to_contain_text("Lap time")
+    expect(tiles.first).to_contain_text("1:31.500")
+    expect(tiles.first).to_contain_text("+1.500 s on your best lap")
+    expect(page.locator("#headline-top, #tp-headline .tp-tile", has_text="Most grip used")).to_contain_text("1.10 g")
+    expect(page.locator("#tp-headline .tp-tile", has_text="Top speed")).to_contain_text(re.compile(r"87|140"))
+    expect(page.locator("#car-data .tp-tile", has_text="Charge used")).to_contain_text("3%")
+    expect(page.locator("#car-data .tp-tile", has_text="Peak power")).to_contain_text("340 kW")
+    expect(page.locator("#tp-car-from")).to_contain_text("Lap 2")
+    # Back to the whole session.
+    page.locator("#tp-lap-pick").select_option("")
+    expect(tiles.first).to_contain_text("Best lap")
+    expect(page.locator("#car-data .tp-tile", has_text="Charge used")).to_contain_text("5%")
+
+
+def test_a_lap_without_its_own_car_figures_says_so_and_shows_the_whole_session(page):
+    fake = FakeWorker(earlier=False)
+    rec = car_lap_session(with_car=True)
+    for l in rec["laps"]:
+        l.pop("carData")
+    fake.sessions["lp1"] = rec
+    fake.index.append(summary(rec))
+    open_page(page, fake, path="/track.html?s=lp1")
+    page.locator("#tp-lap-pick").select_option("1")
+    expect(page.locator("#tp-car-from")).to_contain_text("this lap's own figures were not kept")
+    expect(page.locator("#car-data .tp-tile", has_text="Charge used")).to_contain_text("5%")
+
+
+def test_the_leaderboard_has_a_my_sessions_button_back_to_your_sessions(page):
+    fake = FakeWorker()
+    open_page(page, fake, path="/leaderboards.html")
+    button = page.locator("#lb-my-sessions")
+    expect(button).to_have_text("My Sessions")
+    assert button.bounding_box()["height"] >= 43
+    button.click()
+    expect(page).to_have_url(re.compile(r"/track\.html$"))
+    expect(page.locator("#tp-sess-list")).to_be_visible()
+    # On a phone it fits with no sideways scroll.
+    page.goto("/leaderboards.html")
+    page.set_viewport_size({"width": 390, "height": 844})
+    expect(page.locator("#lb-my-sessions")).to_be_visible()
+    assert page.evaluate("document.documentElement.scrollWidth") <= 390
+
+
 def test_csv_with_unknown_columns_asks_which_is_which(page):
     # The same laps as a CSV with columns we don't recognise.
     lines = FIXTURE.read_text(encoding="latin-1").splitlines()

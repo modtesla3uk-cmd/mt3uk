@@ -288,6 +288,16 @@
   .tp-thumb:hover .tp-thumb-img, .tp-thumb:focus-visible .tp-thumb-img { border-color: var(--ink); }
   .tp-thumb-img img { width: 100%; height: 100%; object-fit: cover; object-position: top left; }
   .tp-thumb-cap { font-size: 0.82rem; color: var(--steel); }
+  .tp-gate-thumbs:has(> .tp-thumb:only-child) { display: block; }
+  .tp-gate-thumbs > .tp-thumb:only-child { max-width: 460px; margin: 0 auto; }
+  .tp-gate-thumbs > .tp-thumb:only-child .tp-thumb-img { display: block; aspect-ratio: auto; max-height: 560px; overflow: hidden; position: relative; }
+  .tp-gate-thumbs > .tp-thumb:only-child .tp-thumb-img img { height: auto; }
+  /* Angled Preview stamp over the picture: remove when Track Sessions opens to everyone. */
+  .tp-gate-thumbs > .tp-thumb:only-child .tp-thumb-img::after { content: "Preview"; position: absolute; top: 34%; left: 50%; transform: translate(-50%, -50%) rotate(-22deg); padding: 8px 34px; border-radius: var(--radius-pill); background: rgba(240, 90, 30, 0.55); color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35); font: 700 clamp(1.4rem, 7vw, 2.2rem)/1.1 var(--font-body); letter-spacing: 0.02em; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12); pointer-events: none; }
+  .tp-lb-one .tp-lb-prev, .tp-lb-one .tp-lb-next { display: none; }
+  .tp-lb-one .tp-lb-stage { align-items: flex-start; overflow-y: auto; }
+  .tp-lb-one .tp-lb-fig { justify-content: flex-start; max-height: none; }
+  .tp-lb-one .tp-lb-fig img { max-height: none; width: min(100%, 900px); }
   @media (min-width: 781px) { .tp-gate-top { grid-template-columns: 1fr 380px; gap: 28px; align-items: start; } .tp-gate-form { margin-top: 0; } }
   .tp-lb { position: fixed; inset: 0; z-index: 2000; display: flex; flex-direction: column; background: rgba(15, 22, 38, 0.98); color: #fff; }
   .tp-lb-bar { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; font-size: 0.9rem; }
@@ -330,6 +340,17 @@
   .tp-move-lines { margin: 0 0 12px; }
   .tp-move-lines .icon { width: 16px; height: 16px; }
   #car-data { margin-bottom: 18px; }
+  .tp-cardata summary { display: flex; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; list-style: none; }
+  .tp-cardata summary::-webkit-details-marker { display: none; }
+  .tp-cardata summary h2 { margin: 0; flex: none; }
+  .tp-cardata summary .tp-small { margin: 0; min-width: 0; }
+  .tp-cardata .tp-open { margin-left: auto; flex: none; width: 36px; height: 36px; display: grid; place-items: center; border-radius: var(--radius-pill); background: var(--orange); color: #fff; }
+  .tp-cardata .tp-open .icon { width: 18px; height: 18px; transition: transform .15s; }
+  .tp-cardata[open] .tp-open { background: transparent; color: var(--steel); box-shadow: inset 0 0 0 1px var(--hairline-strong); }
+  .tp-cardata[open] .tp-open .icon { transform: rotate(90deg); }
+  .tp-cardata[open] summary { margin-bottom: 8px; }
+  .tp-cardata:not([open]) summary:hover .tp-open { filter: brightness(1.08); }
+  @media (max-width: 780px) { .tp-cardata summary { flex-wrap: wrap; } .tp-cardata summary .tp-small { order: 3; flex-basis: 100%; } }
   /* Lap times, folded away */
   .tp-laps { align-self: start; }
   .tp-laps summary { display: flex; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; list-style: none; }

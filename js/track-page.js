@@ -149,15 +149,9 @@
   // ---------- Early preview gate ----------
   var PREVIEW_USES = ['Tesla Track Mode', 'RaceBox', 'Another lap timer app', 'Just having a look'];
   var PREVIEW_SHOTS = [
-    ['images/track-preview/sec-pick.jpg', 'Two drop-down boxes for choosing which two laps to compare, here lap 2 and lap 1.', 956, 205, 'Pick any two laps to compare'],
-    ['images/track-preview/sec-speed.jpg', 'Speed through the lap for both laps on one chart with the corner numbers above it, and under it the time gap showing where the faster lap gained.', 525, 497, 'Speed through the lap, and where the time was gained'],
-    ['images/track-preview/sec-map.jpg', 'A satellite map with both laps drawn on it, coloured by speed, with play, rewind and follow buttons and the corner numbers.', 420, 665, 'Both laps on one map, with a play button'],
-    ['images/track-preview/sec-corners.jpg', 'A table of each corner with the slowest speed on each lap and how much time the faster lap gained there.', 525, 158, 'Corner by corner, who gained where'],
-    ['images/track-preview/chart.jpg', 'G-force and speed for both laps on one chart, with a time ruler and slider under it.', 380, 360, 'G-force and speed on one chart, in step with the map'],
-    ['images/track-preview/sec-best-lap.jpg', 'Tiles for the best lap, the best possible lap, top speed, most grip used and distance.', 956, 105, 'Your best lap and best possible at a glance'],
-    ['images/track-preview/sec-track-mode.jpg', 'Tesla Track Mode figures: charge used, peak power, hardest braking, flat out time, and battery and brake temperatures with the temperature zones coloured.', 956, 430, 'The car\'s own data from Tesla Track Mode'],
-    ['images/track-preview/sec-power.jpg', 'A note saying peak power fell from 250 kW early in the session to 190 kW late on, because the car limits power as parts get hot.', 956, 132, 'A note when the car held power back']
+    ['images/track-preview/session-overview.jpg', 'A whole session zoomed out: the best lap tiles, the Tesla Track Mode figures, two laps compared with speed and time gap charts, a map and a corner by corner table, then the grip circle and what we spotted.', 760, 2310, 'A whole session, zoomed out']
   ];
+
   // The preview pictures, one at a time: Previous and Next (or the arrow keys),
   // full screen, and Close (or Escape).
   function openShot(index, opener) {
@@ -165,7 +159,7 @@
     if (old) old.remove();
     var n = PREVIEW_SHOTS.length, at = index;
     var box = document.createElement('div');
-    box.className = 'tp-lb'; box.id = 'tp-lb'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-label', 'Preview pictures');
+    box.className = 'tp-lb' + (n === 1 ? ' tp-lb-one' : ''); box.id = 'tp-lb'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-label', 'Preview pictures');
     box.innerHTML = '<div class="tp-lb-bar"><span class="tp-lb-count" id="tp-lb-count"></span><span class="tp-lb-tools"><button type="button" class="tp-lb-btn" data-lb="full" aria-label="Full screen">' + icon('expand') + '</button><button type="button" class="tp-lb-btn" data-lb="close" aria-label="Close">' + icon('x') + '</button></span></div>' +
       '<div class="tp-lb-stage"><button type="button" class="tp-lb-btn tp-lb-prev" data-lb="prev" aria-label="Previous picture">' + icon('prev') + '</button><figure class="tp-lb-fig"><img id="tp-lb-img" alt=""><figcaption id="tp-lb-cap"></figcaption></figure><button type="button" class="tp-lb-btn tp-lb-next" data-lb="next" aria-label="Next picture">' + icon('next') + '</button></div>';
     document.body.appendChild(box);
@@ -176,7 +170,7 @@
       var img = document.getElementById('tp-lb-img');
       img.src = x[0]; img.alt = x[1];
       document.getElementById('tp-lb-cap').textContent = x[4] + '. ' + x[1];
-      document.getElementById('tp-lb-count').textContent = (at + 1) + ' of ' + n;
+      document.getElementById('tp-lb-count').textContent = n > 1 ? (at + 1) + ' of ' + n : '';
     }
     function close() {
       if (document.fullscreenElement) { try { document.exitFullscreen(); } catch (e) { /* already out */ } }
@@ -225,7 +219,7 @@
           '<button type="submit" class="btn btn-accent" id="tp-gate-send">Request access</button><p class="tp-status" id="tp-gate-status" role="status"></p></form>';
       }
       h += '</div></div>' +
-        '<h3 class="tp-gate-see">See what it does</h3><p class="tp-small">Tap a picture to see it bigger. Screenshots use example data.</p>' +
+        '<h3 class="tp-gate-see">See what it does</h3><p class="tp-small">Tap the picture to see it bigger. It uses example data.</p>' +
         '<div class="tp-gate-thumbs">' + PREVIEW_SHOTS.map(function (x, k) { return '<button type="button" class="tp-thumb" data-shot="' + k + '" aria-label="Open: ' + esc(x[4]) + '"><span class="tp-thumb-img"><img src="' + x[0] + '" alt="" width="' + x[2] + '" height="' + x[3] + '" loading="lazy"></span><span class="tp-thumb-cap">' + esc(x[4]) + '</span></button>'; }).join('') + '</div>' +
         '<p class="tp-small">The <a href="leaderboards.html">Ranking</a> page is open to everyone to look at.</p></div>';
       app.innerHTML = h;
@@ -1342,7 +1336,10 @@
   try { if (localStorage.getItem('mt3ukPressure') === 'psi') pressUnit = 'psi'; } catch (e) { /* storage blocked */ }
   function press(bar, dp) { return pressUnit === 'psi' ? Math.round(bar * PSI_PER_BAR) + '' : bar.toFixed(dp); }
   // Which of a day's sessions the tiles show ('all' for the whole day).
-  var carRun = 'all', carRunFor = null;
+  var carRun = 'all', carRunFor = null, carOpen = false;
+  document.addEventListener('toggle', function (e) {
+    if (e.target && e.target.id === 'car-data') carOpen = e.target.open;
+  }, true);
   document.addEventListener('click', function (e) {
     var rb = e.target.closest && e.target.closest('#car-data [data-car-run]');
     if (rb && view && view.s) {
@@ -1380,7 +1377,7 @@
   function carDataHtml(s) {
     var all = s.carData;
     if (!all) return '';
-    if (carRunFor !== s.id) { carRun = 'all'; carRunFor = s.id; }
+    if (carRunFor !== s.id) { carRun = 'all'; carRunFor = s.id; carOpen = false; }
     var runs = all.runs && all.runs.length > 1 ? all.runs : null, word = partWord(s.type);
     var picked = runs && carRun !== 'all' ? runs.filter(function (r) { return String(r.run) === carRun; })[0] : null;
     if (!picked) carRun = 'all';
@@ -1402,7 +1399,9 @@
     if (c.slip) t.push(['Most tyre slip', c.slip.max.toFixed(2), 'Estimated by the car']);
     if (!t.length && !(c.empty || []).length) return '';
     var hasPress = c.brakePressure || c.tyrePressure, held = powerHeldBack(c.power);
-    return '<div class="tp-section" id="car-data"><div class="tp-head"><h2>Track Mode</h2>' +
+    // Folded away until opened, with the headline figures in the summary.
+    var gist = t.slice(0, 3).map(function (x) { return x[0] + ' ' + x[1]; }).join(', ');
+    return '<details class="card tp-cardata" id="car-data"' + (carOpen ? ' open' : '') + '><summary><h2>Track Mode</h2><span class="tp-small">' + esc(gist || 'The car\'s own data') + '</span><span class="tp-open">' + icon('chev') + '</span></summary><div class="tp-head">' +
       (hasPress ? '<div class="tp-chips" role="group" aria-label="Pressure in">' + ['bar', 'psi'].map(function (u) { return '<button type="button" class="chip chip-sm' + (u === pressUnit ? ' is-on' : '') + '" data-press="' + u + '" aria-pressed="' + (u === pressUnit) + '">' + u + '</button>'; }).join('') + '</div>' : '') +
       '</div>' +
       (runs ? '<div class="tp-chips tp-car-runs" role="group" aria-label="Show the figures for">' + [['all', 'Whole day']].concat(runs.map(function (r) { return [String(r.run), cap(word) + ' ' + r.run]; })).map(function (o) { return '<button type="button" class="chip chip-sm' + (o[0] === carRun ? ' is-on' : '') + '" data-car-run="' + o[0] + '" aria-pressed="' + (o[0] === carRun) + '">' + esc(o[1]) + '</button>'; }).join('') + '</div>' : '') +
@@ -1410,7 +1409,7 @@
       (t.length ? tiles(t) : '') +
       (held ? '<div class="tp-note tp-held" id="tp-held">' + icon('warn') + '<p>Power held back? Flat out, your peak power fell from ' + held.early + ' kW early in the session to ' + held.late + ' kW late on.<small>The car limits power as parts get hot. Compare with the temperatures above.</small></p></div>' : '') +
       '<p class="tp-small">Read from the file your car wrote. Temperatures are shown as a percentage, as the car reports them, not in degrees. Their colours follow the Track Mode zones as owners describe them (yellow from 70%, orange from 85%, red at 100%).' +
-      ((c.empty || []).length ? ' In the file but empty: ' + esc((c.empty || []).join(', ').toLowerCase()) + '.' : '') + '</p></div>';
+      ((c.empty || []).length ? ' In the file but empty: ' + esc((c.empty || []).join(', ').toLowerCase()) + '.' : '') + '</p></details>';
   }
   function tiles(list) {
     return '<div class="tp-tiles">' + list.map(function (t) { return '<div class="tp-tile' + (t[3] ? ' is-hero' : '') + (t[4] ? ' ' + t[4] : '') + '"><div class="k">' + esc(t[0]) + '</div><div class="v">' + esc(t[1]) + '</div><div class="s">' + esc(t[2] || '') + '</div></div>'; }).join('') + '</div>';

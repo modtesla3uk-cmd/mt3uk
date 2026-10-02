@@ -1980,11 +1980,15 @@ def test_the_cars_own_data_is_picked_up_and_shown_on_the_session(page):
     # Charge used as a percentage of the battery.
     expect(card.locator(".tp-tile", has_text="Charge used")).to_contain_text("5%")
     # Pressures in bar or psi, remembered.
+    card.locator("summary").click()
     card.locator("[data-press='psi']").click()
     expect(page.locator("#car-data")).to_contain_text("515 psi")
     expect(page.locator("#car-data [data-press='psi']")).to_have_class(re.compile("is-on"))
+    # Still open after the redraw.
+    expect(page.locator("#car-data")).to_have_attribute("open", "")
     page.reload()
     expect(page.locator("#car-data")).to_contain_text("515 psi")
+    page.locator("#car-data summary").click()
     page.locator("#car-data [data-press='bar']").click()
     expect(page.locator("#car-data")).to_contain_text("35.5 bar")
 
@@ -2325,6 +2329,7 @@ def test_car_figures_say_which_session_and_can_show_each_one(page):
     expect(card.locator("#tp-car-from")).to_contain_text("The whole day, all 2 sessions, 28 May 2026")
     chips = card.locator("[data-car-run]")
     expect(chips).to_have_text(["Whole day", "Session 1", "Session 2"])
+    card.locator("summary").click()
     day_charge = card.locator(".tp-tile", has_text="Charge used").locator(".s").inner_text()
     page.locator("#car-data [data-car-run='2']").click()
     expect(page.locator("#tp-car-from")).to_contain_text("Session 2 of 2, 28 May 2026")
@@ -2360,6 +2365,15 @@ def test_track_mode_sits_under_the_best_lap_tiles_and_laps_are_folded(page):
     expect(page.locator("#car-data")).to_be_visible()
     assert page.evaluate("document.getElementById('car-data').previousElementSibling.classList.contains('tp-tiles')")
     assert page.evaluate("!!(document.getElementById('car-data').compareDocumentPosition(document.getElementById('tp-map2')) & Node.DOCUMENT_POSITION_FOLLOWING)")
+    # Track Mode is folded away too, with the headline figures and a highlighted arrow.
+    car = page.locator("#car-data")
+    expect(car).not_to_have_attribute("open", "")
+    expect(car.locator("summary")).to_contain_text("Track Mode")
+    expect(car.locator("summary")).to_contain_text("Charge used")
+    expect(car.locator(".tp-tile").first).to_be_hidden()
+    expect(car.locator(".tp-open")).to_be_visible()
+    car.locator("summary").click()
+    expect(car.locator(".tp-tile").first).to_be_visible()
     # The lap times are folded away, with a summary, and open on a tap.
     laps = page.locator("#tp-laps")
     expect(laps).not_to_have_attribute("open", "")
@@ -2522,25 +2536,17 @@ def test_members_without_access_see_the_early_preview_page_and_can_ask(page):
     # A short explainer and screenshots, with their descriptions.
     expect(gate.locator(".tp-ticks li")).to_have_count(4)
     shots = gate.locator(".tp-gate-thumbs [data-shot]")
-    expect(shots).to_have_count(8)
+    expect(shots).to_have_count(1)
     assert all(src.startswith("images/track-preview/") for src in gate.locator(".tp-thumb img").evaluate_all("els => els.map(e => e.getAttribute('src'))"))
-    # The request form comes before the pictures, beside the explanation.
+    # The request form comes before the picture, beside the explanation.
     form_y = gate.locator("#tp-gate-form").bounding_box()["y"]
     assert form_y < gate.locator(".tp-gate-thumbs").bounding_box()["y"]
-    # A picture opens in a viewer with Previous, Next, Full screen and Close.
+    # The one zoomed out picture opens in a viewer with Full screen and Close, and no Previous or Next.
     shots.first.click()
     lb = page.locator("#tp-lb")
     expect(lb).to_be_visible()
-    expect(lb.locator("#tp-lb-count")).to_have_text("1 of 8")
-    first = lb.locator("#tp-lb-img").get_attribute("src")
     assert len(lb.locator("#tp-lb-img").get_attribute("alt")) > 30
-    lb.get_by_role("button", name="Next picture").click()
-    expect(lb.locator("#tp-lb-count")).to_have_text("2 of 8")
-    assert lb.locator("#tp-lb-img").get_attribute("src") != first
-    page.keyboard.press("ArrowLeft")
-    expect(lb.locator("#tp-lb-count")).to_have_text("1 of 8")
-    page.keyboard.press("ArrowLeft")
-    expect(lb.locator("#tp-lb-count")).to_have_text("8 of 8")
+    expect(lb.get_by_role("button", name="Next picture")).to_be_hidden()
     expect(lb.get_by_role("button", name="Full screen")).to_be_visible()
     page.keyboard.press("Escape")
     expect(lb).to_have_count(0)

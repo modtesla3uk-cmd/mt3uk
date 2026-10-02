@@ -1042,15 +1042,15 @@ def test_admin_notification_bell(device_page):
     page.goto("/admin.html")
     badge = page.locator("#bell-badge")
     badge.wait_for(state="visible", timeout=10000)
-    assert badge.inner_text() == "3"
+    assert badge.inner_text() == "4"
 
     # The bell lists a preview of each, and opening it marks them as seen.
     page.click("#bell-btn")
     panel = page.locator("#bell-panel")
     text = panel.inner_text()
-    for words in ("PENDING CLAIMS (1)", "CLAIM PERSON", "REPORTED COMMENTS (1)", "Not a nice comment", "REPORTED PHOTOS (1)", "reported-photo.jpg"):
+    for words in ("PENDING CLAIMS (1)", "CLAIM PERSON", "REPORTED COMMENTS (1)", "Not a nice comment", "REPORTED PHOTOS (1)", "reported-photo.jpg", "NEW TRACK REQUESTS (1)", "Old Airfield"):
         assert words.lower() in text.lower(), words + " missing from: " + text
-    assert panel.locator(".bell-thumb").count() == 3
+    assert panel.locator(".bell-thumb").count() == 4
     assert badge.is_hidden()
     assert overflow_width(page) <= 1
 

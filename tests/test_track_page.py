@@ -1979,11 +1979,15 @@ def test_the_cars_own_data_is_picked_up_and_shown_on_the_session(page):
     # Charge used as a percentage of the battery.
     expect(card.locator(".tp-tile", has_text="Charge used")).to_contain_text("5%")
     # Pressures in bar or psi, remembered.
+    card.locator("summary").click()
     card.locator("[data-press='psi']").click()
     expect(page.locator("#car-data")).to_contain_text("515 psi")
     expect(page.locator("#car-data [data-press='psi']")).to_have_class(re.compile("is-on"))
+    # Still open after the redraw.
+    expect(page.locator("#car-data")).to_have_attribute("open", "")
     page.reload()
     expect(page.locator("#car-data")).to_contain_text("515 psi")
+    page.locator("#car-data summary").click()
     page.locator("#car-data [data-press='bar']").click()
     expect(page.locator("#car-data")).to_contain_text("35.5 bar")
 
@@ -2318,6 +2322,7 @@ def test_car_figures_say_which_session_and_can_show_each_one(page):
     expect(card.locator("#tp-car-from")).to_contain_text("The whole day, all 2 sessions, 28 May 2026")
     chips = card.locator("[data-car-run]")
     expect(chips).to_have_text(["Whole day", "Session 1", "Session 2"])
+    card.locator("summary").click()
     day_charge = card.locator(".tp-tile", has_text="Charge used").locator(".s").inner_text()
     page.locator("#car-data [data-car-run='2']").click()
     expect(page.locator("#tp-car-from")).to_contain_text("Session 2 of 2, 28 May 2026")
@@ -2353,6 +2358,15 @@ def test_track_mode_sits_under_the_best_lap_tiles_and_laps_are_folded(page):
     expect(page.locator("#car-data")).to_be_visible()
     assert page.evaluate("document.getElementById('car-data').previousElementSibling.classList.contains('tp-tiles')")
     assert page.evaluate("!!(document.getElementById('car-data').compareDocumentPosition(document.getElementById('tp-map2')) & Node.DOCUMENT_POSITION_FOLLOWING)")
+    # Track Mode is folded away too, with the headline figures and a highlighted arrow.
+    car = page.locator("#car-data")
+    expect(car).not_to_have_attribute("open", "")
+    expect(car.locator("summary")).to_contain_text("Track Mode")
+    expect(car.locator("summary")).to_contain_text("Charge used")
+    expect(car.locator(".tp-tile").first).to_be_hidden()
+    expect(car.locator(".tp-open")).to_be_visible()
+    car.locator("summary").click()
+    expect(car.locator(".tp-tile").first).to_be_visible()
     # The lap times are folded away, with a summary, and open on a tap.
     laps = page.locator("#tp-laps")
     expect(laps).not_to_have_attribute("open", "")

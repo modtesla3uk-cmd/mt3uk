@@ -6521,7 +6521,10 @@ function cleanTrackLaps(laps) {
   return (Array.isArray(laps) ? laps : []).slice(0, 300).map(function (l) {
     var t = trackNum(l && l.time, 1, 36000);
     if (t === null) return null;
-    return {
+    // The car's own figures for this one lap (Track Mode files).
+    var lc = l.carData && typeof l.carData === 'object' ? cleanCarData(Object.assign({}, l.carData, { run: 1 }), true) : null;
+    if (lc) delete lc.run;
+    var out = {
       n: trackNum(l.n, 1, 1000) || 0, start: trackNum(l.start, 0, 864000) || 0, time: t,
       dist: trackNum(l.dist, 0, 100000) || 0, vmax: trackNum(l.vmax, 0, 500) || 0,
       kind: ['timed', 'in', 'out', 'slow', 'short'].indexOf(l.kind) !== -1 ? l.kind : 'timed',
@@ -6529,6 +6532,8 @@ function cleanTrackLaps(laps) {
       // Which file of the day the lap came from (several files make one session).
       run: trackNum(l.run, 1, 50) || undefined
     };
+    if (lc && Object.keys(lc).length) out.carData = lc;
+    return out;
   }).filter(Boolean);
 }
 

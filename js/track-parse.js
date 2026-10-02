@@ -22,7 +22,8 @@
   // Goes up whenever a change here moves saved times. Sessions record the one that timed them,
   // so the admin's Re-time sessions knows which are out of date (none recorded means 1).
   // 2: GPX Start waypoint, drag clock matched to RaceBox with the rollout on, out lap not numbered.
-  var ANALYSIS_VERSION = 2;
+  // 3: each lap keeps the car's own figures for that lap (Track Mode files).
+  var ANALYSIS_VERSION = 3;
   var DEG = Math.PI / 180;
 
   function num(s) {
@@ -1000,7 +1001,13 @@
   function timedTail(session, pts, laps, layout, proj, origin) {
     var timed = laps.filter(function (l) { return l.kind === 'timed'; });
     var best = timed.reduce(function (b, l) { return !b || l.time < b.time ? l : b; }, null);
-    session.laps = laps.map(function (l) { var o = { n: l.n, start: round(l.start, 2), time: l.time, dist: l.dist, vmax: l.vmax, kind: l.kind, sectors: l.sectors }; if (l.run) o.run = l.run; return o; });
+    session.laps = laps.map(function (l) {
+      var o = { n: l.n, start: round(l.start, 2), time: l.time, dist: l.dist, vmax: l.vmax, kind: l.kind, sectors: l.sectors };
+      if (l.run) o.run = l.run;
+      // The car's own figures for this lap alone (charge, power, brakes, temperatures, tyres), when the file has them.
+      if (session.carData && l.i1 > l.i0) { var lc = carData(pts.slice(l.i0, l.i1 + 1)); if (lc) { delete lc.found; delete lc.empty; if (Object.keys(lc).length) o.carData = lc; } }
+      return o;
+    });
     var runs = laps.reduce(function (m, l) { return Math.max(m, l.run || 1); }, 1);
     if (runs > 1) session.runs = runs;
     session.sectorsByThirds = laps.some(function (l) { return l.sectorsByThirds; });

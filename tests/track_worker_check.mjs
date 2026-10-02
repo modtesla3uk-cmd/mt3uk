@@ -633,6 +633,12 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   const row = list.body.sessions.find(x => x.id === saved.body.session.id);
   ok(row && Array.isArray(row.soc) && row.soc.length === 2 && row.soc[0] >= row.soc[1] && row.soc.every(Number.isFinite), 'the list entry has the battery at the start and end (' + (row && row.soc) + ')');
   ok(Array.isArray(row.origin) && row.origin.length === 2 && row.origin.every(Number.isFinite), 'the list entry says where it was, so sessions at an unlisted track can be matched');
+  // A lap's own Track Mode figures are kept with the session
+  const lapSess = T.analyse(T.read(fs.readFileSync(ROOT + 'tests/fixtures/tesla-track-mode-no-timestamps-lap.csv', 'utf8'), 'telemetry-v1-2024-02-23-15_10_30.csv'), lib);
+  const lapSaved = await call('POST', '/track/sessions', { carId: 'cara1', session: lapSess }, 'tok-a');
+  const lapGot = await call('GET', '/track/session?id=' + lapSaved.body.session.id, undefined, 'tok-a');
+  const l0 = lapGot.body.session.laps && lapGot.body.session.laps[0];
+  ok(l0 && l0.carData && l0.carData.soc && Number.isFinite(l0.carData.soc.start) && !('run' in l0.carData), 'a lap\'s own car figures are kept when the session is saved');
   const plain = await call('POST', '/track/sessions', { carId: 'cara1', session }, 'tok-a');
   const list2 = await call('GET', '/track/sessions', undefined, 'tok-a');
   ok(!('soc' in list2.body.sessions.find(x => x.id === plain.body.session.id)), 'a session with no battery figures has none');

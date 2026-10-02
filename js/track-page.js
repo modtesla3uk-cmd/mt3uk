@@ -639,6 +639,15 @@
       showHome();
     });
   });
+  // Choosing a lap changes the figures: the tiles and the Track Mode card follow it.
+  document.addEventListener('change', function (e) {
+    var sel = e.target.closest && e.target.closest('#tp-lap-pick');
+    if (!sel || !view || !view.s) return;
+    lapSel = sel.value ? parseInt(sel.value, 10) : null;
+    lapSelFor = view.s.id;
+    var box = document.getElementById('tp-headline');
+    if (box) box.innerHTML = headlineHtml(view.s);
+  });
   // The Saved message after an upload goes away when dismissed.
   document.addEventListener('click', function (e) {
     var x = e.target.closest && e.target.closest('#tp-saved-x');
@@ -1601,7 +1610,7 @@
     if (rb && view && view.s) {
       carRun = rb.getAttribute('data-car-run');
       var cb = document.getElementById('car-data');
-      if (cb) cb.outerHTML = carDataHtml(view.s);
+      if (cb) cb.outerHTML = carDataHtml(view.s, chosenLap(view.s));
       var nr = document.querySelector('#car-data [data-car-run="' + carRun + '"]');
       if (nr) nr.focus();
       return;
@@ -1611,7 +1620,7 @@
     pressUnit = b.getAttribute('data-press');
     try { localStorage.setItem('mt3ukPressure', pressUnit); } catch (err) { /* storage blocked */ }
     var box = document.getElementById('car-data');
-    if (box) box.outerHTML = carDataHtml(view.s);
+    if (box) box.outerHTML = carDataHtml(view.s, chosenLap(view.s));
     var nb = document.querySelector('#car-data [data-press="' + pressUnit + '"]');
     if (nb) nb.focus();
   });
@@ -1630,16 +1639,20 @@
     return p && p.early >= 50 && p.late > 0 && p.late < p.early * 0.9 ? p : null;
   }
   // The car's own channels, when the file had them (Tesla Track Mode does).
-  function carDataHtml(s) {
+  // lap (optional): the lap chosen above the figures. Its own figures show when the file had them and they were kept.
+  function carDataHtml(s, lap) {
     var all = s.carData;
     if (!all) return '';
     if (carRunFor !== s.id) { carRun = 'all'; carRunFor = s.id; carOpen = false; }
-    var runs = all.runs && all.runs.length > 1 ? all.runs : null, word = partWord(s.type);
+    var lapCar = lap && lap.carData ? lap.carData : null;
+    var runs = !lap && all.runs && all.runs.length > 1 ? all.runs : null, word = partWord(s.type);
     var picked = runs && carRun !== 'all' ? runs.filter(function (r) { return String(r.run) === carRun; })[0] : null;
     if (!picked) carRun = 'all';
-    var c = picked ? Object.assign({ found: all.found, empty: all.empty }, picked) : all;
+    var c = lapCar ? Object.assign({ found: all.found, empty: all.empty }, lapCar) : picked ? Object.assign({ found: all.found, empty: all.empty }, picked) : all;
     // Which session the figures come from.
-    var from = picked ? cap(word) + ' ' + picked.run + ' of ' + runs.length + ', ' + niceDate(s.date)
+    var from = lapCar ? lapName(lap, s) + ', ' + niceDate(s.date) + (s.time ? ' at ' + s.time : '')
+      : lap ? 'The whole session: this lap\'s own figures were not kept for this session. Adding the file again, or the admin\'s Re-time sessions, brings them.'
+      : picked ? cap(word) + ' ' + picked.run + ' of ' + runs.length + ', ' + niceDate(s.date)
       : runs ? 'The whole day, all ' + runs.length + ' ' + word + 's, ' + niceDate(s.date)
       : 'This ' + word + ', ' + niceDate(s.date) + (s.time ? ' at ' + s.time : '');
     var t = [], pct = function (n) { return Math.round(n) + '%'; };
@@ -1670,24 +1683,67 @@
   function tiles(list) {
     return '<div class="tp-tiles">' + list.map(function (t) { return '<div class="tp-tile' + (t[3] ? ' is-hero' : '') + (t[4] ? ' ' + t[4] : '') + '"><div class="k">' + esc(t[0]) + '</div><div class="v">' + esc(t[1]) + '</div><div class="s">' + esc(t[2] || '') + '</div></div>'; }).join('') + '</div>';
   }
+  // The lap chosen above the headline figures (none: the whole session).
+  var lapSel = null, lapSelFor = null;
+  function chosenLap(s) { return lapSel ? (s.laps || []).filter(function (l) { return l.n === lapSel; })[0] || null : null; }
+  // Most cornering and braking g in one lap, from its trace (sideways and lengthways g are columns 5 and 6).
+  function lapG(s, l) {
+    var rows = (s.trace && s.trace.laps && s.trace.laps[l.n]) || [], lat = 0, brake = 0;
+    rows.forEach(function (p) { lat = Math.max(lat, Math.abs(p[5] || 0)); brake = Math.max(brake, -(p[6] || 0)); });
+    return { lat: lat, brake: brake };
+  }
+  // The headline tiles and the Track Mode figures, for the whole session or for the lap chosen.
+  function headlineHtml(s) {
+    var laps = s.laps || [], sprint = s.type === 'sprint', LWd = sprint ? 'Run' : 'Lap';
+    var best = laps.filter(function (l) { return l.n === s.best; })[0], sel = chosenLap(s);
+    var h;
+    if (sel) {
+      var g = lapG(s, sel);
+      var vs = best && sel.n !== best.n ? '+' + (sel.time - best.time).toFixed(3) + ' s on your best ' + LWd.toLowerCase() : sel.n === s.best ? 'Your best ' + LWd.toLowerCase() : '';
+      h = tiles(sprint ? [
+        [LWd + ' time', V.fmtLap(sel.time), lapName(sel, s) + (vs ? ', ' + vs : ''), 1],
+        ['Top speed', sel.vmax ? V.fmtV(sel.vmax) : '-', ''],
+        ['Most grip used' + (s.gDerived ? ' (estimated)' : ''), g.lat ? g.lat.toFixed(2) + ' g' : '-', g.brake ? 'Braking ' + g.brake.toFixed(2) + ' g' : ''],
+        ['Run distance', sel.dist ? V.fmtD(sel.dist) : '-', '']
+      ] : [
+        [LWd + ' time', V.fmtLap(sel.time), lapName(sel, s) + (vs ? ', ' + vs : ''), 1],
+        ['Best possible', s.possible ? V.fmtLap(s.possible) : '-', 'Your best sectors together, whole session'],
+        ['Top speed', sel.vmax ? V.fmtV(sel.vmax) : '-', 'This ' + LWd.toLowerCase()],
+        ['Most grip used' + (s.gDerived ? ' (estimated)' : ''), g.lat ? g.lat.toFixed(2) + ' g' : '-', g.brake ? 'Braking ' + g.brake.toFixed(2) + ' g' : ''],
+        ['Distance', sel.dist ? V.fmtD(sel.dist) : '-', V.fmtLap(sel.time) + ' ' + LWd.toLowerCase()]
+      ]);
+    } else {
+      h = tiles(sprint ? [
+        // A sprint is one timed run: no best possible lap, and the distance is the run's.
+        ['Best run', best ? V.fmtLap(best.time) : '-', best ? 'Run ' + best.n : '', 1],
+        ['Top speed', s.vmax ? V.fmtV(s.vmax) : '-', ''],
+        ['Most grip used' + (s.gDerived ? ' (estimated)' : ''), s.latMax ? s.latMax.toFixed(2) + ' g' : '-', s.brakeMax ? 'Braking ' + s.brakeMax.toFixed(2) + ' g' : ''],
+        ['Run distance', best && best.dist ? V.fmtD(best.dist) : '-', laps.length > 1 ? laps.length + ' runs in this file' : '']
+      ] : [
+        ['Best lap', best ? V.fmtLap(best.time) : '-', best ? lapName(best, s) : '', 1],
+        ['Best possible', s.possible ? V.fmtLap(s.possible) : '-', s.possible && best && best.time - s.possible < 0.05 ? 'Same as your best lap' : 'Your best sectors together'],
+        ['Top speed', s.vmax ? V.fmtV(s.vmax) : '-', ''],
+        ['Most grip used' + (s.gDerived ? ' (estimated)' : ''), s.latMax ? s.latMax.toFixed(2) + ' g' : '-', s.brakeMax ? 'Braking ' + s.brakeMax.toFixed(2) + ' g' : ''],
+        ['Distance', s.distance ? V.fmtD(s.distance) : '-', s.duration ? Math.round(s.duration / 60) + ' minutes' : '']
+      ]);
+    }
+    // Track Mode figures straight after the headline tiles (nothing when the file had none).
+    return h + carDataHtml(s, sel);
+  }
+  // Choose a lap, or the whole session, for the figures below.
+  function lapPickHtml(s) {
+    var laps = (s.laps || []).filter(function (l) { return l.kind !== 'short' || l.n === lapSel; });
+    if (laps.length < 2) return '';
+    var LWd = s.type === 'sprint' ? 'Run' : 'Lap';
+    return '<div class="tp-field tp-lap-pick"><label for="tp-lap-pick">Figures for</label><select class="field" id="tp-lap-pick"><option value="">Whole session</option>' + laps.map(function (l) {
+      return '<option value="' + l.n + '"' + (lapSel === l.n ? ' selected' : '') + '>' + esc(lapName(l, s) + ', ' + V.fmtLap(l.time) + (l.n === s.best ? ' (best)' : l.kind === 'in' ? ' (in ' + LWd.toLowerCase() + ')' : '')) + '</option>';
+    }).join('') + '</select></div>';
+  }
   function trackHtml(s) {
     var laps = s.laps || [];
     var best = laps.filter(function (l) { return l.n === s.best; })[0];
-    var h = tiles(s.type === 'sprint' ? [
-      // A sprint is one timed run: no best possible lap, and the distance is the run's.
-      ['Best run', best ? V.fmtLap(best.time) : '-', best ? 'Run ' + best.n : '', 1],
-      ['Top speed', s.vmax ? V.fmtV(s.vmax) : '-', ''],
-      ['Most grip used' + (s.gDerived ? ' (estimated)' : ''), s.latMax ? s.latMax.toFixed(2) + ' g' : '-', s.brakeMax ? 'Braking ' + s.brakeMax.toFixed(2) + ' g' : ''],
-      ['Run distance', best && best.dist ? V.fmtD(best.dist) : '-', laps.length > 1 ? laps.length + ' runs in this file' : '']
-    ] : [
-      ['Best lap', best ? V.fmtLap(best.time) : '-', best ? lapName(best, s) : '', 1],
-      ['Best possible', s.possible ? V.fmtLap(s.possible) : '-', s.possible && best && best.time - s.possible < 0.05 ? 'Same as your best lap' : 'Your best sectors together'],
-      ['Top speed', s.vmax ? V.fmtV(s.vmax) : '-', ''],
-      ['Most grip used' + (s.gDerived ? ' (estimated)' : ''), s.latMax ? s.latMax.toFixed(2) + ' g' : '-', s.brakeMax ? 'Braking ' + s.brakeMax.toFixed(2) + ' g' : ''],
-      ['Distance', s.distance ? V.fmtD(s.distance) : '-', s.duration ? Math.round(s.duration / 60) + ' minutes' : '']
-    ]);
-    // Track Mode figures straight after the headline tiles (nothing when the file had none).
-    h += carDataHtml(s);
+    if (lapSelFor !== s.id) { lapSel = null; lapSelFor = s.id; }
+    var h = lapPickHtml(s) + '<div id="tp-headline">' + headlineHtml(s) + '</div>';
     // The lap times, folded away until opened (shown after Compare laps).
     var lapsHtml = '<details class="card tp-laps" id="tp-laps"><summary><h3>Laps</h3><span class="tp-small">' + laps.length + ' ' + (laps.length === 1 ? 'lap' : 'laps') + (best ? ', best ' + V.fmtLap(best.time) : '') + '</span>' + icon('chev') + '</summary><div class="tp-scroll"><table class="tp-table">' + lapTable(s) + '</table></div>' +
       (s.sectorsByThirds ? '<p class="tp-small">Sectors are thirds of the lap until this track has its own sector points.</p>' : '') + '</details>';

@@ -521,3 +521,12 @@ ok(T.fmtLap(99.786) === '1:39.786' && T.niceDate('2026-05-28') === '28 May 2026'
   const normal = T.read(fs.readFileSync(ROOT + 'tests/fixtures/tesla-track-mode-thruxton.csv', 'utf8'), 'telemetry-v1-2025-04-25-11_35_49.csv');
   ok(!normal.timeRebuilt, 'a file with real time stamps is not rebuilt');
 }
+
+// Each lap keeps the car's own figures for that lap
+{
+  const rd = T.read(fs.readFileSync(ROOT + 'tests/fixtures/tesla-track-mode-no-timestamps-lap.csv', 'utf8'), 'telemetry-v1-2024-02-23-15_10_30.csv');
+  const ss = T.analyse(rd, { venues: [] }, {});
+  const lc = ss.laps && ss.laps[0] && ss.laps[0].carData;
+  ok(lc && lc.soc && lc.power && lc.batteryTemp && !('found' in lc) && !('empty' in lc), 'a lap carries its own Track Mode figures (charge, power, temperatures)');
+  ok(lc && lc.soc.start >= lc.soc.end && ss.carData.soc.start >= lc.soc.start - 0.5, 'its battery figures sit inside the whole session\'s');
+}

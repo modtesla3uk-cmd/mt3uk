@@ -2037,3 +2037,80 @@ def test_follow_recovers_when_the_map_thinks_a_finger_is_still_down(page):
       return xy.length === 2 && xy.some(p => p[0] > vb.x && p[0] < vb.x + vb.width && p[1] > vb.y && p[1] < vb.y + vb.height);
     }""")
     assert in_view, "the cars were not kept in view after a touch that never ended"
+
+
+FOLLOW_HARNESS = """async ([steps]) => {
+  const V = window.MT3UKTrackView;
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  const host = document.createElement('div');
+  host.style.cssText = 'width:400px;height:420px;position:fixed;left:0;top:0;background:#fff;z-index:99999';
+  host.appendChild(svg); document.body.appendChild(host);
+  const trace = [];
+  for (let i = 0; i <= 300; i++) { const d = i * 5; trace.push([d, d / 40, d, 60 * Math.sin(d / 300), 40, 0, 0]); }
+  const mo = V.map(svg, trace, { mono: true, lines: [{ trace, color: '#2a78d6' }] });
+  const zin = host.querySelector('.tv-zoom-in');
+  for (let i = 0; i < 4; i++) zin.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const centre = () => { const b = svg.viewBox.baseVal; return [b.x + b.width / 2, b.y + b.height / 2]; };
+  const xy = i => mo.P(trace[i][2], trace[i][3]);
+  const dist = (p, q) => Math.hypot(p[0] - q[0], p[1] - q[1]);
+  const put = (a, b) => { mo.placeA(trace[a]); mo.placeB(trace[b]); };
+  const edge = letter => { const g = [...svg.querySelectorAll('g.tv-edge')].find(x => x.querySelector('text').textContent.startsWith(letter)); return g && g.getAttribute('visibility') === 'visible' ? g.querySelector('text').textContent : null; };
+  const out = {};
+  for (const [name, a, b, wait, gap, idle] of steps) {
+    if (gap !== undefined) mo.setGap(gap);
+    put(a, b);
+    const c = centre(), mid = [(xy(a)[0] + xy(b)[0]) / 2, (xy(a)[1] + xy(b)[1]) / 2];
+    out[name] = { now: { toLeader: dist(c, xy(a)), toMid: dist(c, mid) } };
+    if (wait && idle) {
+      // Paused: nothing moves the cars, the glide finishes by itself.
+      await sleep(wait);
+      out[name].after = { toLeader: dist(centre(), xy(a)), toMid: dist(centre(), mid), maxStep: 0 };
+    } else if (wait) {
+      // Keep calling as playback does, frame by frame.
+      const end = performance.now() + wait;
+      let maxStep = 0, prev = centre();
+      while (performance.now() < end) { await new Promise(r => requestAnimationFrame(r)); put(a, b); const cc = centre(); maxStep = Math.max(maxStep, dist(cc, prev)); prev = cc; }
+      const c2 = centre();
+      out[name].after = { toLeader: dist(c2, xy(a)), toMid: dist(c2, mid), maxStep };
+    }
+    out[name].edgeA = edge('A'); out[name].edgeB = edge('B');
+    out[name].viewW = svg.viewBox.baseVal.width;
+  }
+  return out;
+}"""
+
+
+def test_follow_glides_between_both_cars_and_the_leader(page):
+    open_page(page, FakeWorker())
+    r = page.evaluate(FOLLOW_HARNESS, [[
+        ["both", 200, 185, 600, 1.9],
+        ["apart", 200, 150, 700, 4.4],
+        ["near the limit", 200, 172, 600, 3.0],
+        ["close again", 200, 190, 700, 1.2],
+    ]])
+    w = r["both"]["viewW"]
+    # Close together: centred between the two, both in view, no arrows.
+    assert r["both"]["after"]["toMid"] < 0.5, r["both"]
+    assert r["both"]["edgeA"] is None and r["both"]["edgeB"] is None
+    # The slower car drops back: the view glides to the leader, not one jump.
+    assert r["apart"]["now"]["toLeader"] > 0.25 * w, r["apart"]
+    assert r["apart"]["after"]["toLeader"] < 0.5, r["apart"]
+    assert r["apart"]["after"]["maxStep"] < 0.2 * w, r["apart"]
+    # The car off screen gets an arrow at the edge with the gap.
+    assert r["apart"]["edgeB"] == "B, 4.4 s behind", r["apart"]
+    assert r["apart"]["edgeA"] is None
+    # A gap just under the limit doesn't flick straight back to both.
+    assert r["near the limit"]["after"]["toLeader"] < 0.5, r["near the limit"]
+    # Close again: back between the two, gliding, and the arrow goes.
+    assert r["close again"]["after"]["toMid"] < 0.5, r["close again"]
+    assert r["close again"]["after"]["maxStep"] < 0.2 * w
+    assert r["close again"]["edgeB"] is None
+
+
+def test_a_glide_finishes_while_playback_is_paused(page):
+    open_page(page, FakeWorker())
+    r = page.evaluate(FOLLOW_HARNESS, [[["both", 200, 185, 400, 1.9], ["scrubbed apart", 200, 150, 700, 4.4, True]]])
+    w = r["both"]["viewW"]
+    assert r["scrubbed apart"]["now"]["toLeader"] > 0.25 * w
+    assert r["scrubbed apart"]["after"]["toLeader"] < 0.5, r["scrubbed apart"]

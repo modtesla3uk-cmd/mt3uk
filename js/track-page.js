@@ -1492,6 +1492,7 @@
           if (pa[1] > t) pa = at(A.trace, distAtTime(A.trace, t));
           else if (pb[1] > t) pb = at(B.trace, distAtTime(B.trace, t));
         }
+        if (mo.setGap) mo.setGap(A !== B ? gap : null);
         mo.placeA(pa); mo.placeB(pb);
         showMetrics(pa, pb, gap);
       }

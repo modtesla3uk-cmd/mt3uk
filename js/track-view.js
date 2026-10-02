@@ -206,25 +206,82 @@
       lineWidth(kk);
       if (sat) sat.later();
       fixed.forEach(function (m) { moveMarker(m, m.x, m.y); });
+      if (typeof edgeA !== 'undefined' && edgeA) edges();
     } });
     // When the dots are moved from outside the map (scrubbing a chart,
     // playback), a zoomed-in view follows them: centred between the two while
     // both fit on screen, else on the one in front. Hovering the map itself
     // uses place() directly, so the map doesn't slide away.
-    var posA = null, posB = null, following = true;
+    // The change between the two is a glide, not a jump: the view follows the
+    // leader exactly and the pull towards the middle of the two (blend) eases
+    // in and out. It lets go of the other car when they are over 60% of the
+    // screen apart and only takes both again under 45%, so a gap near the
+    // limit doesn't flick back and forth.
+    var posA = null, posB = null, following = true, both = true, blend = 1, lastT = 0, glideRaf = null;
+    var GLIDE = 0.12; // seconds: most of the glide is done in about a third of a second
     function follow() {
-      if (!following || !zoom || zoom.k() <= 1.01 || (!posA && !posB) || zoom.active()) return;
+      if (!following || !zoom || zoom.k() <= 1.01 || (!posA && !posB) || zoom.active()) { lastT = 0; return; }
       var qa = posA && P(posA[2], posA[3]), qb = posB && P(posB[2], posB[3]), t;
+      var now = (window.performance && performance.now()) || Date.now();
+      var dt = lastT ? Math.min(0.25, (now - lastT) / 1000) : 1;
+      lastT = now;
       if (qa && qb) {
         var v = zoom.view();
-        var fits = Math.abs(qa[0] - qb[0]) < v.w * 0.6 && Math.abs(qa[1] - qb[1]) < v.h * 0.6;
-        t = fits ? [(qa[0] + qb[0]) / 2, (qa[1] + qb[1]) / 2] : (posA[0] >= posB[0] ? qa : qb);
+        var apart = Math.max(Math.abs(qa[0] - qb[0]) / v.w, Math.abs(qa[1] - qb[1]) / v.h);
+        if (both && apart > 0.6) both = false;
+        else if (!both && apart < 0.45) both = true;
+        blend += ((both ? 1 : 0) - blend) * (1 - Math.exp(-dt / GLIDE));
+        if (Math.abs(blend - (both ? 1 : 0)) < 0.02) blend = both ? 1 : 0;
+        var lead = posA[0] >= posB[0] ? qa : qb, mid = [(qa[0] + qb[0]) / 2, (qa[1] + qb[1]) / 2];
+        t = [lead[0] + (mid[0] - lead[0]) * blend, lead[1] + (mid[1] - lead[1]) * blend];
+        // Paused part way through a glide: finish it.
+        if (blend !== (both ? 1 : 0) && !glideRaf && window.requestAnimationFrame) glideRaf = requestAnimationFrame(function () { glideRaf = null; follow(); });
       } else t = qa || qb;
       var w = zoom.view();
       if (Math.abs(w.x + w.w / 2 - t[0]) < 0.01 && Math.abs(w.y + w.h / 2 - t[1]) < 0.01) return;
       zoom.centreOn(t[0], t[1]);
     }
-    return { vmin: vmin, vmax: vmax, placeA: function (p) { place(dotA, p); posA = p; follow(); }, placeB: function (p) { place(dotB, p); posB = p; follow(); }, setFollow: function (on) { following = !!on; if (on) follow(); }, prefetchSat: function () { if (sat) sat.prefetch(trace); }, P: P, marker: marker, zoom: zoom };
+    // A car off the edge of a zoomed-in map: an arrow in its colour at the
+    // edge, pointing to it, with the gap.
+    var gapS = null;
+    function edgeArrow(color, letter) {
+      var m = marker(0, 0);
+      m.rot = el('g', {}, m.g);
+      el('path', { d: 'M-2 -8 L12 0 L-2 8 Z', fill: color, stroke: C.card, 'stroke-width': 2, 'stroke-linejoin': 'round' }, m.rot);
+      m.label = text(m.g, 0, 0, letter, { 'font-size': 12, 'font-weight': 700, fill: color, stroke: C.card, 'stroke-width': 3, 'paint-order': 'stroke' });
+      m.letter = letter;
+      m.g.setAttribute('class', 'tv-edge');
+      m.g.setAttribute('pointer-events', 'none');
+      m.g.setAttribute('visibility', 'hidden');
+      return m;
+    }
+    var edgeB = edgeArrow(C.s2, 'B'), edgeA = edgeArrow(C.s1, 'A');
+    function edgeFor(m, pos, other) {
+      if (!m) return;
+      var q = pos && P(pos[2], pos[3]);
+      var v = zoom && zoom.view();
+      // The same point for both (one lap only): one arrow is enough.
+      var same = other && pos && other[2] === pos[2] && other[3] === pos[3] && m === edgeB;
+      if (!q || !v || !zoom || zoom.k() <= 1.01 || same || (q[0] >= v.x && q[0] <= v.x + v.w && q[1] >= v.y && q[1] <= v.y + v.h)) { m.g.setAttribute('visibility', 'hidden'); return; }
+      var cx = v.x + v.w / 2, cy = v.y + v.h / 2, dx = q[0] - cx, dy = q[1] - cy, pad = 18 / k;
+      var sc = Math.min(dx ? (v.w / 2 - pad) / Math.abs(dx) : Infinity, dy ? (v.h / 2 - pad) / Math.abs(dy) : Infinity);
+      moveMarker(m, cx + dx * sc, cy + dy * sc);
+      m.rot.setAttribute('transform', 'rotate(' + (Math.atan2(dy, dx) * 180 / Math.PI).toFixed(1) + ')');
+      // The label sits inside the map, away from the edge the arrow points at.
+      var lbl = m.letter;
+      if (gapS !== null && posA && posB) {
+        var trailing = gapS >= 0 ? 'B' : 'A';
+        lbl += ', ' + Math.abs(gapS).toFixed(1) + ' s ' + (m.letter === trailing ? 'behind' : 'ahead');
+      }
+      m.label.textContent = lbl;
+      var horiz = Math.abs(dx) * v.h >= Math.abs(dy) * v.w;
+      m.label.setAttribute('x', horiz ? (dx > 0 ? -10 : 10) : 0);
+      m.label.setAttribute('y', horiz ? 4 : (dy > 0 ? -14 : 22));
+      m.label.setAttribute('text-anchor', horiz ? (dx > 0 ? 'end' : 'start') : 'middle');
+      m.g.setAttribute('visibility', 'visible');
+    }
+    function edges() { edgeFor(edgeA, posA, posB); edgeFor(edgeB, posB, posA); }
+    return { vmin: vmin, vmax: vmax, placeA: function (p) { place(dotA, p); posA = p; follow(); edges(); }, placeB: function (p) { place(dotB, p); posB = p; follow(); edges(); }, setFollow: function (on) { following = !!on; if (on) { lastT = 0; follow(); edges(); } }, setGap: function (g) { gapS = g == null || !isFinite(g) ? null : g; }, prefetchSat: function () { if (sat) sat.prefetch(trace); }, P: P, marker: marker, zoom: zoom };
   }
 
   // ---------- Satellite ground ----------

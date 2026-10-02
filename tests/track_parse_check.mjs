@@ -89,6 +89,15 @@ ru = T.read('time,latitude,longitude,speed (km/h)\n' + moved, 'u.csv');
 su = T.analyse(ru, lib, { startLine: [[51.2077017 + 1.5, -1.6088667], [51.2076237 + 1.5, -1.6091363]] });
 ok(su.laps.length === 2 && near(su.bestTime, 99.786, 0.05) && su.startLineFromMember, 'member start line times the laps');
 
+// A standing start away from any known drag strip is not assumed to be a drag run (it may be a sprint).
+{
+  const rows = ['time,latitude,longitude,speed (mph)'];
+  let x = 0;
+  for (let i = 0; i <= 200; i++) { const tt = i / 10, v = tt < 2 ? 0 : 150 * (1 - Math.exp(-(tt - 2) / 6.65)); x += v * 0.44704 * 0.1; rows.push(tt.toFixed(1) + ',' + (53.5 + x / 110540).toFixed(7) + ',-1.5000000,' + v.toFixed(2)); }
+  const unknown = T.analyse(T.read(rows.join('\n'), 'run.csv'), { venues: [] });
+  ok(unknown.type === 'track', 'a standing start at an unknown place defaults to a track day, not a drag run (' + unknown.type + ')');
+}
+
 // Sprint: a made-up course at Thruxton from the start line to a finish line 1.5 km round.
 {
   const tr = s.trace.laps[2];

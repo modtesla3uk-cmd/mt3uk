@@ -636,7 +636,9 @@
       if (venue && venue.type === 'drag') type = 'drag';
       else if (venue && venue.type === 'sprint') type = 'sprint';
       else if (venue) type = 'track';
-      else type = dragRuns(prepare(pts)).length && !rd.startLine ? 'drag' : 'track';
+      // Only a known drag strip makes it a drag run. Anywhere else a standing start is as likely a
+      // sprint or a hill climb, so the member picks the type.
+      else type = 'track';
     }
     var session = { type: type, format: rd.format, hz: rd.hz, sats: rd.sats, quality: rd.quality, startedAt: rd.startedAt || null, venueName: rd.venueName || '', speedDerived: !!rd.speedDerived, gDerived: !!rd.gDerived };
     if (rd.startedAt) session.date = ukDate(rd.startedAt), session.time = ukTime(rd.startedAt), session.dateFrom = 'file';

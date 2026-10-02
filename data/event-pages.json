@@ -234,8 +234,12 @@
       "location": "Cadwell Park, Louth",
       "image": "https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/events/cadwell-park-track-day-2026/0b5fd21bdfc34deb.jpg",
       "heroImage": "https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/events/cadwell-park-track-day-2026/81e56e6ded2a49fd.jpg",
-      "ctaUrl": "https://facebook.com/groups/mt3uk",
-      "ctaLabel": "Facebook group",
+      "description": [
+        "• The Mountain: The circuit's most famous and thrilling feature, a steep, undulating section where fast motorcycles and cars dramatically go airborne by several feet. • Character: A tight, twisty, and highly undulating roller-coaster layout winding through open parkland and woods. • Focus: While narrow for modern top-tier car racing, motorcycle racing is king here, most notably hosting the annual Bennetts British Superbike Championship \"Party in the Park\" event in August."
+      ],
+      "entry": "£159.00",
+      "ctaUrl": "https://javelintrackdays.co.uk/trackdays/Cadwell-Park/CP231026",
+      "ctaLabel": "Event on Javelin",
       "draft": true,
       "created": "2026-09-30"
     }

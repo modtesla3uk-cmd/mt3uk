@@ -73,6 +73,7 @@ class FakeWorker:
         self.lines_proposal = None
         self.line_requests = []
         self.line_proposals = []
+        self.line_images = []
         self.raw_gzip_source = False
 
     def reply(self, route):
@@ -130,6 +131,9 @@ class FakeWorker:
             self.line_requests.append(body)
             self.lines_status = "pending"
             data = {"success": True, "state": "pending"}
+        elif path == "/track/lines/image" and req.method == "POST":
+            self.line_images.append((q.get("which", [""])[0], raw))
+            data = {"success": True}
         elif path == "/track/lines/propose" and req.method == "POST":
             self.line_proposals.append(body)
             self.lines_proposal = {"at": "2026-10-03T12:00:00Z", "from": {"startLine": None, "finishLine": None, "time": 99.8}, "to": {"startLine": body["startLine"], "finishLine": body.get("finishLine"), "time": body.get("time")}}
@@ -3889,12 +3893,17 @@ def test_a_member_requests_to_edit_the_map_and_sends_a_change_for_approval(page)
     page.get_by_role("switch", name="Correct lines?").click()
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed lap")
     page.get_by_role("button", name="Send for approval").click()
+    # The pictures are drawn and sent first, then the change; the session page then says it is waiting.
+    expect(box).to_contain_text("Your change is waiting for MT3UK to approve it", timeout=15000)
     expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
     # What was sent: the new start line (two points) and the time on it. The saved session is untouched.
     assert len(fake.line_proposals) == 1
     sent = fake.line_proposals[0]
     assert sent["id"] == "new1" and len(sent["startLine"]) == 2 and len(sent["startLine"][0]) == 2 and sent["finishLine"] is None and sent["time"] > 60
     assert not getattr(fake, "replaced", []), "the session itself is not changed"
+    # The old and the new lines were drawn as pictures and sent first, for MT3UK's email.
+    assert sorted(w for w, _ in fake.line_images) == ["after", "before"]
+    assert all(b[:3] == b"\xff\xd8\xff" and len(b) > 2000 for _, b in fake.line_images), [len(b) for _, b in fake.line_images]
     expect(box).to_contain_text("Your change is waiting for MT3UK to approve it")
     expect(box.get_by_role("button", name="Change it again")).to_be_visible()
 
@@ -3931,3 +3940,18 @@ def test_a_readings_failure_says_what_the_server_said(page):
     page.reload()
     page.get_by_role("button", name="Edit the map").click()
     expect(page.locator("#tp-line-note")).to_contain_text("No readings were kept for this session.")
+
+
+def test_the_line_picture_is_a_jpeg_of_the_lines_even_with_no_satellite_imagery(page):
+    """MT3UKLineImage draws the old or new lines for the email. With the tile server unreachable it still gives a
+    1000 x 600 JPEG (the drive's trace and the lines on a plain background)."""
+    page.route("**/server.arcgisonline.com/**", lambda route: route.abort())
+    open_page(page, FakeWorker())
+    out = page.evaluate("""async () => {
+      const blob = await window.MT3UKLineImage.make({ title: 'Old lines', subtitle: 'Time 1:58.089',
+        lines: [{ line: [[51.6926409, -1.3170275], [51.6926050, -1.3174584]], kind: 'start', label: 'Start' }, { line: [[51.6897602, -1.3163671], [51.6897898, -1.3159349]], kind: 'finish', label: 'Finish' }],
+        frame: [[51.6926409, -1.3170275], [51.6897898, -1.3159349]], outline: [[51.6926, -1.3172], [51.6912, -1.3168], [51.6898, -1.3162]] });
+      const bmp = await createImageBitmap(blob);
+      return { type: blob.type, size: blob.size, w: bmp.width, h: bmp.height };
+    }""")
+    assert out["type"] == "image/jpeg" and out["w"] == 1000 and out["h"] == 600 and out["size"] > 3000, out

@@ -618,7 +618,7 @@ def test_admin_line_editing_panel_allows_shows_the_change_and_undoes_or_revokes(
         {"id": "s1", "name": "Ann B", "email": "a***@example.com", "note": "The finish is early", "at": "2026-10-01T09:00:00Z", "status": "pending", "grantedAt": "", "proposal": None, "what": "Abingdon Airfield, AMC LCS, 2022-04-10", "type": "sprint", "best": 118.089},
         {"id": "s2", "name": "Bob", "email": "b***@example.com", "note": "", "at": "2026-10-01T10:00:00Z", "status": "granted", "grantedAt": "2026-10-01T11:00:00Z", "proposal": None, "what": "Thruxton, 2026-05-28", "type": "track", "best": 99.786},
         {"id": "s3", "name": "Cat", "email": "c***@example.com", "note": "", "at": "2026-10-01T12:00:00Z", "status": "granted", "grantedAt": "2026-10-01T13:00:00Z", "what": "Brands Hatch, 2026-06-01", "type": "track", "best": 99.8,
-         "proposal": {"at": "2026-10-02T09:30:00Z", "from": {"startLine": line(51.1, -1.1), "finishLine": None, "time": 99.8}, "to": {"startLine": line(51.1005, -1.1005), "finishLine": None, "time": 99.2}}},
+         "proposal": {"at": "2026-10-02T09:30:00Z", "from": {"startLine": line(51.1, -1.1), "finishLine": None, "time": 99.8}, "to": {"startLine": line(51.1005, -1.1005), "finishLine": None, "time": 99.2}, "images": {"before": True, "after": True}, "emailFailed": True}},
     ]}
     calls = []
 
@@ -656,6 +656,13 @@ def test_admin_line_editing_panel_allows_shows_the_change_and_undoes_or_revokes(
     expect(rows.nth(2)).to_contain_text("1:39.200")
     expect(rows.nth(2).get_by_role("button", name="Accept")).to_be_visible()
     expect(rows.nth(1).get_by_role("button", name="Accept")).to_have_count(0)
+    # The pictures of the old and the new lines, from the admin's picture route, and a warning when the email failed.
+    pics = rows.nth(2).locator(".ln-pic img")
+    expect(pics).to_have_count(2)
+    expect(pics.nth(0)).to_have_attribute("src", re.compile(r"/track/lines/image\?id=s3&which=before&key=test-key"))
+    expect(pics.nth(1)).to_have_attribute("src", re.compile(r"which=after"))
+    expect(rows.nth(2)).to_contain_text("The email about this change could not be sent")
+    expect(rows.nth(1).locator(".ln-pic")).to_have_count(0)
     rows.nth(0).get_by_role("button", name="Allow").click()
     expect(page.locator("#ln-note")).to_contain_text("Allowed")
     expect(rows.nth(0)).to_contain_text("Waiting for them to change the map")

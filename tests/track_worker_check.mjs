@@ -672,7 +672,7 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   ok(r.status === 200 && r.body.proposal && r.body.proposal.to.time === 99.5, 'the member sends the moved lines');
   ok(startOf() === orig, 'and nothing on the session has changed');
   const note = env.SEND_EMAIL.sent[before] || '';
-  ok(env.SEND_EMAIL.sent.length === before + 1 && /accept or undo/.test(note) && /from: /.test(note) && /to:   /.test(note) && /1:39\.500/.test(note) && new RegExp('admin\\.html#lines-' + lid).test(note) && new RegExp('track\\.html\\?s=' + lid).test(note), 'the admin is emailed what the lines and time were and would be, with a link to the request and the session');
+  ok(env.SEND_EMAIL.sent.length === before + 1 && /awaiting your approval/i.test(note) && /from: /.test(note) && /to:   /.test(note) && /1:39\.500/.test(note) && new RegExp('admin\\.html#lines-' + lid).test(note) && new RegExp('track\\.html\\?s=' + lid).test(note), 'the admin is emailed what the lines and time were and would be, with a link to the request and the session');
   r = await call('GET', '/track/lines/admin?key=secret');
   const row2 = r.body.requests.find(x => x.id === lid);
   ok(row2.status === 'granted' && row2.proposal && row2.proposal.from.startLine[0][0] === orig && Math.abs(row2.proposal.to.startLine[0][0] - (orig + 0.0003)) < 1e-9, 'the admin sees the change from and to');
@@ -694,6 +694,70 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   ok(r.body.state === 'none', 'and the status is back to none');
   r = await call('POST', '/track/lines/admin?key=secret', { id: 'nope', action: 'grant' });
   ok(r.status === 404, 'an unknown request is refused');
+}
+// Pictures of a change: the old and new lines, drawn in the member's browser, come with it, show in the admin's email
+// (embedded) and on the panel, and go when the change is dealt with. They are optional: a change never waits on them.
+{
+  const saved = await call('POST', '/track/sessions', { carId: 'cara1', session, conditions: 'Dry', privacy: 'build', tyres: 'Test tyre' }, 'tok-a');
+  const lid = saved.body.session.id;
+  const raw = async (method, path, bytes, token) => {
+    const init = { method, headers: { 'Content-Type': 'application/octet-stream' } };
+    if (token) init.headers['X-Session-Token'] = token;
+    if (bytes !== undefined) init.body = bytes;
+    const res = await worker.fetch(new Request('https://w.test' + path, init), env, { waitUntil() {} });
+    return { status: res.status, type: res.headers.get('Content-Type') || '', bytes: new Uint8Array(await res.arrayBuffer()) };
+  };
+  const jpeg = n => { const b = new Uint8Array(n); b[0] = 0xff; b[1] = 0xd8; b[2] = 0xff; b[3] = 0xe0; for (let i = 4; i < n; i++) b[i] = i % 251; return b; };
+  const moved = JSON.parse(JSON.stringify(session)); moved.startLine = moved.startLine.map(p => [p[0] + 0.0003, p[1]]);
+  const send = () => call('POST', '/track/lines/propose', { id: lid, startLine: moved.startLine, time: 99.5 }, 'tok-a');
+  const pic = (which, token) => raw('POST', '/track/lines/image?id=' + lid + '&which=' + which, jpeg(2000), token);
+  await call('POST', '/track/lines/request', { id: lid }, 'tok-a');
+  r = await pic('before', 'tok-a');
+  ok(r.status === 403, 'pictures cannot be sent before the admin allows editing');
+  await call('POST', '/track/lines/admin?key=secret', { id: lid, action: 'grant' });
+  r = await raw('POST', '/track/lines/image?id=' + lid + '&which=before', new TextEncoder().encode('not a picture at all'), 'tok-a');
+  ok(r.status === 400, 'a file that is not a picture is refused');
+  r = await raw('POST', '/track/lines/image?id=' + lid + '&which=before', jpeg(1600000), 'tok-a');
+  ok(r.status === 413, 'a picture over 1.5 MB is refused');
+  r = await raw('POST', '/track/lines/image?id=' + lid + '&which=sideways', jpeg(2000), 'tok-a');
+  ok(r.status === 400, 'only a before and an after picture');
+  r = await pic('before', 'tok-b');
+  ok(r.status !== 200, 'another member cannot send one');
+  r = await pic('before', 'tok-a');
+  const r2 = await pic('after', 'tok-a');
+  ok(r.status === 200 && r2.status === 200, 'the member sends the old and the new picture');
+  const before = env.SEND_EMAIL.sent.length;
+  r = await send();
+  ok(r.status === 200 && r.body.proposal.images.before === true && r.body.proposal.images.after === true, 'the change says it has both pictures');
+  const mail = env.SEND_EMAIL.sent[before] || '';
+  ok(env.SEND_EMAIL.sent.length === before + 1 && /Subject: Map edit awaiting your approval: Thruxton/.test(mail) && /AWAITING YOUR APPROVAL/.test(mail), 'the admin is emailed that a change is awaiting approval');
+  ok(/multipart\/related/.test(mail) && /multipart\/alternative/.test(mail) && /Content-Type: text\/plain/.test(mail) && /Content-Type: text\/html/.test(mail), 'with a text version and an HTML version');
+  ok((mail.match(/Content-Type: image\/jpeg/g) || []).length === 2 && /Content-ID: <before-/.test(mail) && /Content-ID: <after-/.test(mail) && /src="cid:before-/.test(mail) && /src="cid:after-/.test(mail) && /\/9j\/4A/.test(mail), 'and both pictures embedded in it');
+  ok(new RegExp('admin\\.html#lines-' + lid).test(mail) && new RegExp('track\\.html\\?s=' + lid).test(mail), 'with the links to the request and the session');
+  r = await raw('GET', '/track/lines/image?id=' + lid + '&which=before');
+  ok(r.status === 401, 'the pictures need the admin key to look at');
+  r = await raw('GET', '/track/lines/image?key=secret&id=' + lid + '&which=after');
+  ok(r.status === 200 && r.type === 'image/jpeg' && r.bytes.length === 2000 && r.bytes[0] === 0xff, 'the admin can look at them');
+  r = await raw('GET', '/track/lines/image?key=secret&id=nothex&which=after');
+  ok(r.status === 404, 'and only for a real session');
+  r = await call('POST', '/track/lines/admin?key=secret', { id: lid, action: 'undo' });
+  r = await raw('GET', '/track/lines/image?key=secret&id=' + lid + '&which=before');
+  ok(r.status === 404 && !kv.has('track-line-image:' + lid + ':after'), 'undoing the change removes the pictures');
+  // Without pictures the change still goes, with the same email and no pictures in it.
+  const before2 = env.SEND_EMAIL.sent.length;
+  r = await send();
+  const mail2 = env.SEND_EMAIL.sent[before2] || '';
+  ok(r.status === 200 && r.body.proposal.images.before === false && !/Content-Type: image/.test(mail2) && /awaiting your approval/.test(mail2), 'a change with no pictures is still sent and emailed');
+  // An email that cannot be sent is kept and flagged, so the panel can say so.
+  const realSend = env.SEND_EMAIL.send;
+  env.SEND_EMAIL.send = async () => { throw new Error('mail is down'); };
+  await call('POST', '/track/lines/admin?key=secret', { id: lid, action: 'undo' });
+  r = await send();
+  env.SEND_EMAIL.send = realSend;
+  ok(r.status === 200 && r.body.proposal.emailFailed === true && stored('track-line-access').find(x => x.id === lid).proposal, 'a change is kept and flagged when its email could not be sent');
+  await pic('before', 'tok-a');
+  await call('POST', '/track/lines/admin?key=secret', { id: lid, action: 'revoke' });
+  ok(!kv.has('track-line-image:' + lid + ':before'), 'revoking removes any pictures left');
 }
 // A layout with no official line: the first request fills it in, and one request per course waits.
 {

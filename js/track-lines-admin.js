@@ -30,7 +30,7 @@
     var d = new Date(iso);
     return isNaN(d) ? '' : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) + ', ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
   }
-  function lineText(l) { return l && l.length === 2 ? [l[0][0], l[0][1], l[1][0], l[1][1]].join(', ') : 'not set'; }
+  function lineText(l) { return l && l.length === 2 ? [l[0][0], l[0][1], l[1][0], l[1][1]].map(function (v) { return Math.round(v * 1e7) / 1e7; }).join(', ') : 'not set'; }
   function timeText(t) { return t ? window.MT3UKTrack.fmtLap(t) : 'no time'; }
   function same(a, b) { return lineText(a) === lineText(b); }
 
@@ -38,10 +38,12 @@
   function changeHtml(r) {
     var p = r.proposal, sprint = r.type === 'sprint';
     function row(label, from, to) { return same(from, to) ? '' : '<tr><td>' + label + '</td><td>' + esc(lineText(from)) + '</td><td>' + esc(lineText(to)) + '</td></tr>'; }
-    return '<div class="iv-sub">Changed ' + esc(when(p.at)) + '. The session has not changed yet.</div>' +
+    function pic(which, label) { return p.images && p.images[which] ? '<figure class="ln-pic"><a href="' + esc(url('/track/lines/image?id=' + encodeURIComponent(r.id) + '&which=' + which)) + '" target="_blank" rel="noopener"><img alt="' + esc(label) + ' on the map" src="' + esc(url('/track/lines/image?id=' + encodeURIComponent(r.id) + '&which=' + which)) + '"></a><figcaption>' + label + '</figcaption></figure>' : ''; }
+    return '<div class="iv-sub">Changed ' + esc(when(p.at)) + '. The session has not changed yet.</div>' + (p.emailFailed ? '<div class="iv-sub tk-miss">The email about this change could not be sent, so this panel is the only place it shows.</div>' : '') +
       '<table class="iv-table"><thead><tr><th></th><th>From</th><th>To</th></tr></thead><tbody>' +
       row('Start line', p.from.startLine, p.to.startLine) + (sprint ? row('Finish line', p.from.finishLine, p.to.finishLine) : '') +
-      '<tr><td>Time</td><td>' + esc(timeText(p.from.time)) + '</td><td>' + esc(timeText(p.to.time)) + ' <span class="iv-sub">(their figure, worked out again when you accept)</span></td></tr></tbody></table>';
+      '<tr><td>Time</td><td>' + esc(timeText(p.from.time)) + '</td><td>' + esc(timeText(p.to.time)) + ' <span class="iv-sub">(their figure, worked out again when you accept)</span></td></tr></tbody></table>' +
+      (p.images && (p.images.before || p.images.after) ? '<div class="ln-pics">' + pic('before', 'Old lines') + pic('after', 'New lines') + '</div>' : '');
   }
   function draw() {
     var changed = rows.filter(function (r) { return r.proposal; }).length, waiting = rows.filter(function (r) { return r.status === 'pending'; }).length;

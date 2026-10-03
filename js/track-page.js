@@ -1722,18 +1722,40 @@
       add = { car: car, cars: m.cars, lib: r[2], admin: false, rd: restoreSource(src), session: null, type: s.type, startLine: s.startLine || null, finishLine: s.type === 'sprint' ? (s.finishLine || null) : null,
         editLines: true, confirmLines: false, lineEdit: true, organizer: s.organizer || '', ignoreFinish: s.ignoreFinish !== false, finishCross: s.finishCrossing || 0, rollout: !!s.rollout,
         conditions: s.conditions || 'Dry', condTouched: true, privacy: s.privacy, street: false, tyres: s.tyres || '', tyre: tyreInit(s), temp: s.temp, tempSource: s.tempSource || '', weather: s.weather || null,
-        notes: s.notes || '', date: s.date, time: s.time, venueName: s.venueId ? '' : s.venue, replaceId: s.id, files: null, list: null };
+        notes: s.notes || '', date: s.date, time: s.time, venueName: s.venueId ? '' : s.venue, replaceId: s.id, files: null, list: null,
+        oldLines: { startLine: s.startLine || null, finishLine: s.type === 'sprint' ? (s.finishLine || null) : null, time: s.bestTime || null } };
       analyse();
       window.scrollTo(0, 0);
     }).catch(function (e) { if (note) note.textContent = (e && e.message) || 'Could not load your readings.'; var b = document.getElementById('tp-line-edit'); if (b) b.disabled = false; });
+  }
+  // The pictures for MT3UK's email: the old lines and the new ones on the same view. Best effort: a change is sent
+  // without them if they cannot be drawn or sent.
+  function linePictures(a, s) {
+    var LI = window.MT3UKLineImage, sprint = s.type === 'sprint', o = a.oldLines || {};
+    if (!LI) return Promise.resolve([null, null]);
+    var set = function (st, fi) { return [st ? { line: st, kind: 'start', label: sprint ? 'Start' : 'Start / finish' } : null, sprint && fi ? { line: fi, kind: 'finish', label: 'Finish' } : null].filter(Boolean); };
+    if (!a.tapOutline) a.tapOutline = T.outline(a.rd.points);
+    var base = { frame: [].concat(o.startLine || [], o.finishLine || [], s.startLine || [], sprint ? s.finishLine || [] : []), outline: a.tapOutline.map(function (p) { return [p[0], p[1]]; }) };
+    var make = function (title, time, lines) { return LI.make(Object.assign({ title: title, subtitle: time ? 'Time ' + V.fmtLap(time) : '', lines: lines }, base)).catch(function () { return null; }); };
+    return Promise.all([make('Old lines', o.time, set(o.startLine, o.finishLine)), make('New lines', s.bestTime, set(s.startLine, s.finishLine))]);
+  }
+  function sendPicture(id, which, blob) {
+    var headers = { 'Content-Type': 'application/octet-stream' };
+    if (token()) headers['X-Session-Token'] = token();
+    return fetch(API + '/track/lines/image?id=' + encodeURIComponent(id) + '&which=' + which, { method: 'POST', headers: headers, body: blob }).catch(function () {});
   }
   // Send the moved lines to MT3UK. Nothing on the session changes yet.
   function sendLineChange(btn) {
     var a = add, s = a.session;
     if (!s || s.needsStartLine || !s.startLine || (s.type === 'sprint' && !s.finishLine)) { status('Set both lines first.', 'error'); return; }
     btn.disabled = true;
-    status('Sending...');
-    api('POST', '/track/lines/propose', { id: a.replaceId, startLine: s.startLine, finishLine: s.type === 'sprint' ? s.finishLine : null, time: s.bestTime || null }).then(function (d) {
+    status('Making the pictures of the old and new lines...');
+    linePictures(a, s).then(function (pics) {
+      status('Sending...');
+      return Promise.all([pics[0] ? sendPicture(a.replaceId, 'before', pics[0]) : null, pics[1] ? sendPicture(a.replaceId, 'after', pics[1]) : null]);
+    }).catch(function () {}).then(function () {
+      return api('POST', '/track/lines/propose', { id: a.replaceId, startLine: s.startLine, finishLine: s.type === 'sprint' ? s.finishLine : null, time: s.bestTime || null });
+    }).then(function (d) {
       if (!d.success) throw new Error(d.message || 'Could not send that.');
       go('s=' + a.replaceId);
     }).catch(function (e) { btn.disabled = false; status((e && e.message) || 'Could not send that.', 'error'); });

@@ -4238,6 +4238,34 @@ function rawEmail(from, to, subject, bodyText, extraHeaders) {
   return lines.join('\r\n');
 }
 
+// An email with a plain text version, an HTML version and inline pictures (images: [{ cid, type, name, bytes }]),
+// as multipart/related. Mail apps that cannot show HTML or pictures fall back to the text.
+function bytesToBase64(bytes) {
+  var out = '', chunk = 0x8000;
+  for (var i = 0; i < bytes.length; i += chunk) out += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+  return btoa(out);
+}
+function rawEmailWithImages(from, to, subject, bodyText, bodyHtml, images) {
+  var id = crypto.randomUUID().replace(/-/g, ''), rel = 'rel-' + id, alt = 'alt-' + id;
+  var lines = [
+    'From: MT3UK <' + from + '>', 'To: ' + to, 'Subject: ' + encodeHeaderText(subject), 'Date: ' + new Date().toUTCString(),
+    'Message-ID: <' + crypto.randomUUID() + '@mt3uk.com>', 'MIME-Version: 1.0',
+    'Content-Type: multipart/related; boundary="' + rel + '"', '',
+    '--' + rel, 'Content-Type: multipart/alternative; boundary="' + alt + '"', '',
+    '--' + alt, 'Content-Type: text/plain; charset=utf-8', 'Content-Transfer-Encoding: 8bit', '', String(bodyText).replace(/\r?\n/g, '\r\n'),
+    '--' + alt, 'Content-Type: text/html; charset=utf-8', 'Content-Transfer-Encoding: 8bit', '', String(bodyHtml).replace(/\r?\n/g, '\r\n'),
+    '--' + alt + '--'
+  ];
+  (images || []).forEach(function (im) {
+    var b64 = bytesToBase64(im.bytes).replace(/(.{76})/g, '$1\r\n');
+    lines.push('--' + rel, 'Content-Type: ' + im.type + '; name="' + im.name + '"', 'Content-Transfer-Encoding: base64', 'Content-ID: <' + im.cid + '>',
+      'Content-Disposition: inline; filename="' + im.name + '"', '', b64);
+  });
+  lines.push('--' + rel + '--', '');
+  return lines.join('\r\n');
+}
+function htmlEscape(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
 // For emails members can turn off (alerts and messages from MT3UK).
 // One-click unsubscribe (RFC 8058): Gmail and Outlook show their own
 // Unsubscribe button and POST to the signed link, which turns off that
@@ -7257,7 +7285,7 @@ function trackLinesMoved(a, b) {
   function moved(x, y) { return !!(x && y && x.length === 2 && y.length === 2 && (trackDist(x[0], y[0]) > 1 || trackDist(x[1], y[1]) > 1)); }
   return moved(a.startLine, b.startLine) || moved(a.finishLine, b.finishLine);
 }
-function trackLineText(l) { return l && l.length === 2 ? [l[0][0], l[0][1], l[1][0], l[1][1]].join(', ') : 'not set'; }
+function trackLineText(l) { return l && l.length === 2 ? [l[0][0], l[0][1], l[1][0], l[1][1]].map(function (v) { return Math.round(v * 1e7) / 1e7; }).join(', ') : 'not set'; }
 function trackTimeText(t) { return t ? Math.floor(t / 60) + ':' + (t % 60 < 10 ? '0' : '') + (t % 60).toFixed(3) : 'no time'; }
 async function emailAdminAboutLines(env, subject, text) {
   try { await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text))); } catch (e) { /* the request is kept either way */ }
@@ -7308,13 +7336,75 @@ async function handleTrackLinesPropose(request, env) {
   if (!to.startLine || (sprint && !to.finishLine)) return json({ success: false, message: sprint ? 'Both the start and the finish line are needed.' : 'The start line is needed.' }, 400);
   if (!trackLinesMoved({ startLine: rec.startLine, finishLine: rec.finishLine }, to) && rec.startLine) return json({ success: false, message: 'The lines have not moved.' }, 400);
   var from = { startLine: rec.startLine || null, finishLine: rec.finishLine || null, time: rec.bestTime || null };
-  entry.proposal = { at: new Date().toISOString(), from: from, to: to };
-  await env.VOTES.put('track-line-access', JSON.stringify(list));
-  await emailAdminAboutLines(env, 'A map has been changed: accept or undo', subscriberLabel(entry.name, email) + ' has moved the lines on ' + trackSessionLabel(rec) + ', ' + (rec.date || '') + '. Nothing has changed yet.\n\n' +
+  // The pictures the member's browser drew, if they arrived: the old lines and the new ones.
+  var pics = [];
+  for (var w = 0; w < 2; w++) {
+    var which = w ? 'after' : 'before', bytes = await env.VOTES.get(lineImageKey(rec.id, which), 'arrayBuffer');
+    if (bytes) { var u8 = new Uint8Array(bytes), type = lineImageType(u8); if (type) pics.push({ which: which, cid: which + '-' + rec.id.slice(0, 8) + '@mt3uk.com', type: type, name: which + (type === 'image/png' ? '.png' : '.jpg'), bytes: u8 }); }
+  }
+  entry.proposal = { at: new Date().toISOString(), from: from, to: to, images: { before: pics.some(function (x) { return x.which === 'before'; }), after: pics.some(function (x) { return x.which === 'after'; }) } };
+  var label = trackSessionLabel(rec) + ', ' + (rec.date || ''), who = subscriberLabel(entry.name, email);
+  var requestUrl = MY_BUILDS_SITE_URL + '/admin.html#lines-' + rec.id, sessionUrl = MY_BUILDS_SITE_URL + '/track.html?s=' + rec.id;
+  var text = 'AWAITING YOUR APPROVAL\n\n' + who + ' has moved the lines on ' + label + '. Nothing has changed yet: accept it or undo it.\n\n' +
     'Start line\n  from: ' + trackLineText(from.startLine) + '\n  to:   ' + trackLineText(to.startLine) + '\n' + (sprint ? 'Finish line\n  from: ' + trackLineText(from.finishLine) + '\n  to:   ' + trackLineText(to.finishLine) + '\n' : '') +
     'Time\n  from: ' + trackTimeText(from.time) + '\n  to:   ' + trackTimeText(to.time) + ' (their figure, worked out again when you accept)\n\n' +
-    'Accept it or undo it on the Line editing panel:\n' + MY_BUILDS_SITE_URL + '/admin.html#lines-' + rec.id + '\n\nThe session:\n' + MY_BUILDS_SITE_URL + '/track.html?s=' + rec.id);
+    (pics.length ? 'The old and new lines are pictured in the HTML version of this email, and on the panel.\n\n' : '') +
+    'Accept it or undo it on the Line editing panel:\n' + requestUrl + '\n\nThe session:\n' + sessionUrl;
+  var subject = 'Map edit awaiting your approval: ' + label;
+  var sent = false;
+  try {
+    var td = 'style="padding:4px 10px;border-bottom:1px solid #e3e6ec;font-family:Arial,sans-serif;font-size:14px"';
+    var row = function (name, a2, b2) { return '<tr><td ' + td + '><b>' + name + '</b></td><td ' + td + '>' + htmlEscape(a2) + '</td><td ' + td + '>' + htmlEscape(b2) + '</td></tr>'; };
+    var html = '<div style="font-family:Arial,sans-serif;font-size:15px;color:#16233d;max-width:640px">' +
+      '<p style="margin:0 0 4px;font-size:12px;letter-spacing:.04em;color:#b8421f"><b>AWAITING YOUR APPROVAL</b></p>' +
+      '<h2 style="margin:0 0 8px;font-size:18px">' + htmlEscape(label) + '</h2>' +
+      '<p>' + htmlEscape(who) + ' has moved the ' + (sprint ? 'start and finish lines' : 'start line') + '. <b>Nothing has changed yet</b>: accept it or undo it.</p>' +
+      '<table cellspacing="0" style="border-collapse:collapse;margin:8px 0"><tr><td ' + td + '></td><td ' + td + '><b>From</b></td><td ' + td + '><b>To</b></td></tr>' +
+      row('Start line', trackLineText(from.startLine), trackLineText(to.startLine)) + (sprint ? row('Finish line', trackLineText(from.finishLine), trackLineText(to.finishLine)) : '') +
+      row('Time', trackTimeText(from.time), trackTimeText(to.time) + ' (their figure)') + '</table>' +
+      pics.map(function (x) { return '<p style="margin:12px 0 4px"><b>' + (x.which === 'before' ? 'Old lines' : 'New lines') + '</b></p><img src="cid:' + x.cid + '" alt="' + (x.which === 'before' ? 'The old lines on the map' : 'The new lines on the map') + '" style="max-width:100%;border:1px solid #e3e6ec;border-radius:6px">'; }).join('') +
+      '<p style="margin:16px 0"><a href="' + requestUrl + '" style="background:#e8562a;color:#ffffff;padding:10px 16px;border-radius:6px;text-decoration:none;font-weight:bold">Accept or undo</a></p>' +
+      '<p style="font-size:13px;color:#6b7385">The time is worked out again from the saved readings when you accept. <a href="' + sessionUrl + '">Open the session</a></p></div>';
+    await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, rawEmailWithImages(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text, html, pics)));
+    sent = true;
+  } catch (e) { /* the change is kept either way; the panel says if the email did not go */ }
+  if (!sent) entry.proposal.emailFailed = true;
+  await env.VOTES.put('track-line-access', JSON.stringify(list));
   return json({ success: true, state: 'granted', proposal: entry.proposal });
+}
+// The before and after pictures of a change (drawn in the member's browser), kept in KV for a month at most and
+// removed when the change is dealt with. JPEG or PNG, up to 1.5 MB.
+var LINE_IMAGE_MAX = 1500000;
+function lineImageKey(id, which) { return 'track-line-image:' + id + ':' + which; }
+function lineImageType(bytes) {
+  if (bytes.length > 4 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return 'image/jpeg';
+  if (bytes.length > 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) return 'image/png';
+  return '';
+}
+async function dropLineImages(env, id) {
+  await env.VOTES.delete(lineImageKey(id, 'before'));
+  await env.VOTES.delete(lineImageKey(id, 'after'));
+}
+async function handleTrackLinesImage(request, env) {
+  var params = new URL(request.url).searchParams, which = params.get('which');
+  if (which !== 'before' && which !== 'after') return json({ success: false, message: 'Unknown picture' }, 400);
+  var id = String(params.get('id') || '');
+  if (request.method === 'GET') {
+    // The admin looks at them on the Line editing panel.
+    if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+    var stored = /^[a-f0-9]{8,40}$/.test(id) ? await env.VOTES.get(lineImageKey(id, which), 'arrayBuffer') : null;
+    if (!stored) return json({ success: false, message: 'No picture' }, 404);
+    return new Response(stored, { status: 200, headers: { 'Content-Type': lineImageType(new Uint8Array(stored)) || 'application/octet-stream', 'Cache-Control': 'no-store', 'Access-Control-Allow-Origin': '*' } });
+  }
+  var got = await getOwnTrackSession(request, env, id);
+  if (got.error) return got.error;
+  var entry = (await getLineAccess(env)).filter(function (x) { return x.id === got.rec.id && x.status === 'granted'; })[0];
+  if (!entry) return json({ success: false, message: 'Ask MT3UK to let you edit this map first.' }, 403);
+  var buf = await request.arrayBuffer();
+  if (buf.byteLength > LINE_IMAGE_MAX) return json({ success: false, message: 'That picture is too big.' }, 413);
+  if (!lineImageType(new Uint8Array(buf))) return json({ success: false, message: 'That is not a picture.' }, 400);
+  await env.VOTES.put(lineImageKey(got.rec.id, which), buf, { expirationTtl: 60 * 60 * 24 * 30 });
+  return json({ success: true });
 }
 async function handleTrackLinesAdmin(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
@@ -7340,14 +7430,17 @@ async function handleTrackLinesAdmin(request, env) {
   } else if (action === 'undo') {
     if (!entry.proposal) return json({ success: false, message: 'There is no change waiting.' }, 400);
     entry.proposal = null;
+    await dropLineImages(env, entry.id);
     await emailMemberAboutLines(env, entry, 'Your map change was not used', 'Hello,\n\nMT3UK did not use the change you sent to the lines on your session, so it is as it was. You can send another if you like:\n\n' + url);
   } else if (action === 'accepted') {
     // The admin's browser has already saved the new timing through /track/admin/retime: this clears the change.
     if (!entry.proposal) return json({ success: false, message: 'There is no change waiting.' }, 400);
     entry.proposal = null;
+    await dropLineImages(env, entry.id);
     await emailMemberAboutLines(env, entry, 'Your map change was accepted', 'Hello,\n\nMT3UK accepted the change you sent to the lines on your session. The new time is on it now:\n\n' + url);
   } else if (action === 'revoke' || action === 'dismiss') {
     list = list.filter(function (x) { return x !== entry; });
+    await dropLineImages(env, entry.id);
   } else {
     return json({ success: false, message: 'Unknown action' }, 400);
   }
@@ -9257,7 +9350,7 @@ export default {
     // The member's own sessions need access (early preview): lists, saves,
     // changes, readings and deletes. Shared sessions and boards stay public.
     if ((url.pathname === '/track/sessions' || url.pathname === '/track/session/source' || url.pathname === '/track/courses' ||
-        url.pathname === '/track/lines/status' || url.pathname === '/track/lines/request' || url.pathname === '/track/lines/propose' ||
+        url.pathname === '/track/lines/status' || url.pathname === '/track/lines/request' || url.pathname === '/track/lines/propose' || (url.pathname === '/track/lines/image' && request.method === 'POST') ||
         (url.pathname === '/track/session' && request.method !== 'GET')) && request.method !== 'OPTIONS') {
       var noAccess = await trackAccessGate(request, env);
       if (noAccess) return noAccess;
@@ -9279,6 +9372,9 @@ export default {
     }
     if (url.pathname === '/track/lines/request' && request.method === 'POST') {
       return handleTrackLinesRequest(request, env);
+    }
+    if (url.pathname === '/track/lines/image' && (request.method === 'POST' || request.method === 'GET')) {
+      return handleTrackLinesImage(request, env);
     }
     if (url.pathname === '/track/lines/propose' && request.method === 'POST') {
       return handleTrackLinesPropose(request, env);

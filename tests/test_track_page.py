@@ -1820,7 +1820,7 @@ def test_play_and_rewind_the_compare_laps_at_different_speeds(page):
     expect(toggle).to_have_text("Play")
     expect(back).to_have_text("Rewind")
     expect(page.locator("#tp-speeds .chip.is-on")).to_have_text("x1")
-    expect(page.locator("#tp-speeds .chip")).to_have_text(["x0.5", "x1", "x2", "x5"])
+    expect(page.locator("#tp-speeds .chip")).to_have_text(["x0.25", "x0.5", "x1", "x2", "x5"])
     expect(clock).to_have_text(re.compile(r"^0:00\.0 / \d+:\d\d\.\d$"))
 
     def secs():
@@ -2231,6 +2231,7 @@ def test_g_force_lines_can_be_switched_on_and_off(page):
     expect(page.locator("#tp-gtoggles .chip.is-on")).to_have_text(["Cornering G"])
     charts, lines = page.locator("#tp-gforce svg"), page.locator("#tp-gforce path[stroke-width]")
     expect(charts).to_have_count(1)
+    expect(page.locator("#tp-gforce .tp-gtitle")).to_have_count(0)  # one chart needs no name beside the chip
     expect(lines).to_have_count(2)
     expect(page.locator("#tp-gforce path[stroke='#2a78d6']")).to_have_count(1)
     expect(page.locator("#tp-gforce path[stroke='#eb6834']")).to_have_count(1)
@@ -2252,6 +2253,8 @@ def test_g_force_lines_can_be_switched_on_and_off(page):
     toggles.nth(2).click()
     expect(charts).to_have_count(3)
     expect(lines).to_have_count(6)
+    # Stacked charts are each named in their corner, in the order they are drawn.
+    expect(page.locator("#tp-gforce .tp-gtitle")).to_have_text(["Acceleration G", "Cornering G", "Speed"])
     expect(page.locator("#tp-gforce path[stroke-dasharray]")).to_have_count(0)
     assert [c.bounding_box()["y"] for c in charts.all()] == sorted(c.bounding_box()["y"] for c in charts.all())
     expect(page.locator("#tp-gforce svg[data-g='acc'] text[text-anchor='middle']")).to_have_count(0)
@@ -2373,9 +2376,12 @@ def test_full_screen_map_on_a_phone(page):
         box = page.locator(sel).bounding_box()
         assert box and box["y"] >= 0 and box["y"] + box["height"] <= 390 and box["x"] + box["width"] <= 844, (sel, box)
     expect(page.locator("#tp-play-toggle")).to_be_visible()
-    # The play controls (bottom left) and the exit button (top right) do not sit on the numbers (top left).
-    play, met = page.locator("#tp-play").bounding_box(), page.locator("#tp-metrics").bounding_box()
-    assert met["y"] + met["height"] <= play["y"], (met, play)
+    # The speed and G figures sit at the top of the charts panel, not over the map where they hid the cars, under
+    # a row of column names.
+    gb0, met = page.locator("#tp-gbox").bounding_box(), page.locator("#tp-metrics").bounding_box()
+    assert met["x"] >= gb0["x"] - 1 and met["x"] + met["width"] <= 844, (met, gb0)
+    expect(page.locator("#tp-metrics .tp-mhead span")).to_have_text(["", "", "Speed", "Acl G", "Cor G"])
+    expect(page.locator("#tp-metrics .tp-mhead")).to_be_visible()
     # The colour switch and the exit button are apart, so one is not pressed for the other.
     sw, ex = page.locator("#tp-speedcol").bounding_box(), page.locator("#tp-full").bounding_box()
     assert ex["x"] - (sw["x"] + sw["width"]) >= 10, (sw, ex)
@@ -2390,7 +2396,7 @@ def test_full_screen_map_on_a_phone(page):
     ex, sh, met = page.locator("#tp-full").bounding_box(), page.locator("#tp-gshow").bounding_box(), page.locator("#tp-metrics").bounding_box()
     assert ex["x"] >= gb["x"] and ex["x"] + ex["width"] <= 844, (ex, gb)
     assert sh["x"] + sh["width"] <= page.locator("#tp-speedcol").bounding_box()["x"], sh
-    assert met["x"] + met["width"] <= mb["x"] + mb["width"] - 48, met
+    assert met["x"] >= mb["x"] + mb["width"] - 1, (met, mb)  # beside the map, not over it
     toggles = page.locator("#tp-gtoggles .chip")
     toggles.nth(0).click()
     toggles.nth(2).click()
@@ -3215,8 +3221,8 @@ def test_playback_buttons_are_compact_on_a_phone(page):
         expect(b).to_have_attribute("aria-label", name)
     expect(toggle).to_contain_text("Play")
     assert toggle.bounding_box()["width"] > 150
-    # The speed chips and Follow cars fit on one row.
-    ys = {round(c.bounding_box()["y"]) for c in page.locator(".tp-play .chip").all()}
+    # The five speed chips fit on one row; Follow cars may sit on the row below them.
+    ys = {round(c.bounding_box()["y"]) for c in page.locator("#tp-speeds .chip").all()}
     assert len(ys) == 1, ys
     assert overflow_width(page) <= 0
 
@@ -4031,3 +4037,33 @@ def test_a_refusal_is_still_explained_after_a_refresh(page):
     page.reload()
     expect(page.locator("#lineedit")).to_contain_text("Those readings are too big to keep")
     expect(page.locator("#settings")).to_contain_text("Reason: Those readings are too big to keep.")
+
+
+def test_the_session_map_zooms_in_far_enough_to_place_a_line(page):
+    """The zoom-in limit was 16 times the first view, too little to pinpoint a spot on a long lap; it is 40 now,
+    and the satellite tiles stay at their sharpest level and are enlarged beyond it."""
+    page.route("**/World_Imagery/**", sat_reply)
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    svg = page.locator("#tp-map2")
+    svg.scroll_into_view_if_needed()
+    zoom_in = svg.locator("xpath=..").locator(".tv-zoom-in")
+    width = lambda: float(svg.get_attribute("viewBox").split()[2])
+    start = width()
+    for _ in range(14):
+        zoom_in.click()
+    assert 25 < start / width() <= 40.5, (start, width())
+
+
+def test_playback_has_a_quarter_speed_that_runs_slower(page):
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    page.locator("#tp-speeds [data-speed='0.25']").click()
+    expect(page.locator("#tp-speeds .chip.is-on")).to_have_text("x0.25")
+    clock = page.locator("#tp-clock")
+    page.locator("#tp-play-toggle").click()
+    page.wait_for_timeout(1000)
+    page.locator("#tp-play-toggle").click()
+    m, s = clock.inner_text().split(" / ")[0].split(":")
+    played = int(m) * 60 + float(s)
+    assert 0.05 < played < 0.6, played  # a second at x0.25 is about a quarter of a second of the lap

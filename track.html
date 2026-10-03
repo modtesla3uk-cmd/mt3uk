@@ -187,6 +187,7 @@
   .tp-mrow { display: grid; grid-template-columns: auto minmax(0, 1fr) repeat(3, auto); align-items: center; gap: 4px 12px; font-size: 0.86rem; }
   .tp-mrow b { color: var(--ink); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.25; font-size: 0.82rem; }
   .tp-mkey { width: 12px; height: 12px; border-radius: 50%; }
+  .tp-mhead { display: none; }
   .tp-mv { display: grid; justify-items: end; min-width: 58px; }
   .tp-mv small { color: var(--steel); font-size: 0.72rem; }
   .tp-mv i { font-style: normal; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); }
@@ -274,6 +275,12 @@
     .tp-mapcard.is-full .tp-play .btn { min-height: 40px; }
     .tp-mapcard.is-full .tp-metrics { left: 6px; top: 46px; padding: 2px 8px; font-size: 0.78rem; }
     .tp-mapcard.is-full .tp-speedkey { top: 6px; left: 6px; }
+    /* With the charts on, the figures sit at the top of the charts panel (placeHead), under a row of column names,
+       so the cars are not hidden behind them. */
+    .tp-mapcard.is-full .tp-gbox .tp-metrics { position: static; margin: 2px 0 4px; padding: 0; background: none; font-size: 0.74rem; }
+    .tp-mapcard.is-full .tp-mhead { display: grid; grid-template-columns: auto minmax(0, 1fr) repeat(3, auto); gap: 4px 10px; color: var(--steel); font-size: 0.68rem; line-height: 1.1; }
+    .tp-mapcard.is-full .tp-mhead span:first-child { width: 12px; }
+    .tp-mapcard.is-full .tp-mhead span:nth-child(n+3) { min-width: 58px; text-align: right; }
   }
   .tp-clock { font-size: 0.82rem; font-variant-numeric: tabular-nums; color: var(--steel); white-space: nowrap; }
   .tp-boards { display: grid; gap: 10px; }
@@ -506,6 +513,7 @@
   .tv-zoom-btn:hover { background: #fff; border-color: var(--ink); }
   .tv-zoom-btn[hidden] { display: none; }
   .tv-chart text { font-family: var(--font-body); font-size: 12px; fill: #6b7385; font-variant-numeric: tabular-nums; }
+  .tv-chart text.tp-gtitle { font-size: 12px; font-weight: 600; fill: var(--ink); stroke: var(--paper); stroke-width: 3px; paint-order: stroke; pointer-events: none; }
   .tp-gg { max-width: 380px; margin: 0 auto; }
   .tv-tip { position: fixed; pointer-events: none; z-index: 50; background: #fff; color: var(--ink); border: 1px solid var(--hairline-strong); border-radius: var(--radius-sm); padding: 8px 10px; font-size: 0.8rem; box-shadow: 0 6px 20px rgba(22,35,61,.16); display: none; min-width: 140px; font-variant-numeric: tabular-nums; }
   .tv-tip b { display: block; margin-bottom: 2px; }
@@ -819,10 +827,10 @@
 </script>
 
 <script src="js/track-parse.js?v=20261104" defer></script>
-<script src="js/track-view.js?v=20261118" defer></script>
+<script src="js/track-view.js?v=20261125" defer></script>
 <script src="js/tyre-data.js"></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20261116" defer></script>
+<script src="js/track-page.js?v=20261123" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js" defer></script>
 <script src="js/signin-prompt.js" defer></script>

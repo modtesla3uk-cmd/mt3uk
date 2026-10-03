@@ -2172,7 +2172,7 @@
         '<div class="tp-grid"><div class="card tp-mapcard" id="tp-mapcard"><div class="tp-chart-head tp-map-head"><h3>Where you are</h3><button type="button" class="tp-switch tp-gswitch tp-speedsw" role="switch" id="tp-speedcol" aria-checked="' + cmpSpeed + '"><span>Colour by speed</span><span class="tp-track"></span></button><span class="tp-rotate-hint" id="tp-rotate-hint" role="img" aria-label="Turn your phone for a bigger map" title="Turn your phone for a bigger map">' + icon('rotate') + '</span><button type="button" class="btn btn-secondary btn-sm" id="tp-full" aria-label="Full screen map"></button></div>' +
         '<p class="tp-small tp-sync-note">Both laps at the same moment: the slower one trails by the time gap.</p>' +
         '<div class="tp-play" id="tp-play"><div class="tp-play-row"><div class="tp-play-btns"><button type="button" class="btn btn-secondary" id="tp-play-start" data-play="start" aria-label="Go back to the start"></button><button type="button" class="btn btn-secondary" id="tp-play-back" data-play="back"></button><button type="button" class="btn btn-primary" id="tp-play-toggle" data-play="toggle"></button></div>' +
-        '<div class="tp-chips" id="tp-speeds" role="group" aria-label="Playback speed">' + [['0.5', 'x0.5'], ['1', 'x1'], ['2', 'x2'], ['5', 'x5']].map(function (v) { return '<button type="button" class="chip" data-speed="' + v[0] + '">' + v[1] + '</button>'; }).join('') + '</div>' +
+        '<div class="tp-chips" id="tp-speeds" role="group" aria-label="Playback speed">' + [['0.25', 'x0.25'], ['0.5', 'x0.5'], ['1', 'x1'], ['2', 'x2'], ['5', 'x5']].map(function (v) { return '<button type="button" class="chip" data-speed="' + v[0] + '">' + v[1] + '</button>'; }).join('') + '</div>' +
         '<button type="button" class="chip is-on" id="tp-follow" aria-pressed="true" title="When the map is zoomed in, keep the cars in view">Follow cars</button></div>' +
         '</div>' +
         '<div class="tp-mapwrap" id="tp-mapwrap"><svg class="tv-chart" id="tp-map2" role="img" aria-label="Track map with both laps\' lines and positions"></svg>' +
@@ -2358,6 +2358,12 @@
     if (!card || !head) return;
     if (landFull() && !gHidden && row) { if (head.parentNode !== row) row.appendChild(head); }
     else if (head.parentNode !== card || card.firstChild !== head) card.insertBefore(head, card.firstChild);
+    // The speed and G figures sit at the top of the charts panel too, not over the map where they hid the cars.
+    var mbox = document.getElementById('tp-metrics'), gbox = document.getElementById('tp-gbox'), gf = document.getElementById('tp-gforce');
+    if (mbox && gbox && gf) {
+      if (landFull() && !gHidden) { if (mbox.parentNode !== gbox) gbox.insertBefore(mbox, gf); }
+      else if (mbox.parentNode !== card) card.insertBefore(mbox, gbox);
+    }
   }
   document.addEventListener('pointerdown', function (e) {
     var h = e.target.closest && e.target.closest('#tp-split');
@@ -2600,7 +2606,7 @@
         return '<div class="tp-mrow"><span class="tp-mkey" style="background:' + colour + '"></span><b>' + esc(label) + '</b>' +
           '<span class="tp-mv"><small>Speed</small><i data-m="' + id + '-v">-</i></span><span class="tp-mv"><small>Accel</small><i data-m="' + id + '-acc">-</i></span><span class="tp-mv"><small>Corner</small><i data-m="' + id + '-cor">-</i></span></div>';
       }
-      if (mbox) mbox.innerHTML = mrow('a', c1, A.label + ' (A)') + (A === B ? '' : mrow('b', c2, B.label + ' (B)')) + '<div class="tp-mgap" data-m="gap"></div>';
+      if (mbox) mbox.innerHTML = '<div class="tp-mhead" aria-hidden="true"><span></span><span></span><span>Speed</span><span>Acl G</span><span>Cor G</span></div>' + mrow('a', c1, A.label + ' (A)') + (A === B ? '' : mrow('b', c2, B.label + ' (B)')) + '<div class="tp-mgap" data-m="gap"></div>';
       function setM(id, v) { var el = mbox && mbox.querySelector('[data-m="' + id + '"]'); if (el) el.textContent = v; }
       function showMetrics(pa, pb, g) {
         var ra = at(ga, pa[0]), rb = at(gb, pb[0]);
@@ -2683,8 +2689,17 @@
         var H = defs.length === 1 ? base : cmpFull ? Math.max(70, Math.round(base * 1.25 / defs.length)) : Math.max(96, Math.round(base * 0.7));
         // A phone on its side in full screen: the charts share a panel beside the map, the height of the screen less
         // the switch, the chips and the slider.
-        if (cmpFull && window.innerWidth > window.innerHeight && window.innerHeight <= 560) H = Math.max(56, Math.floor((Math.max(120, window.innerHeight - 150) - (defs.length - 1) * 2) / defs.length));
+        if (cmpFull && window.innerWidth > window.innerHeight && window.innerHeight <= 560) {
+          // The room left in the panel once the chips, switches, figures, slider and clock have theirs (they wrap on a
+          // narrow screen, so they are measured rather than guessed).
+          var pbox = document.getElementById('tp-gbox'), used = 0;
+          if (pbox) [].forEach.call(pbox.children, function (c) { if (c.id !== 'tp-gforce' && c.offsetHeight) used += c.offsetHeight + 4; });
+          var room = pbox ? pbox.clientHeight - used - 10 : window.innerHeight - 150;
+          H = Math.max(48, Math.floor((room - (defs.length - 1) * 2) / defs.length));
+        }
         var xt = timeTicks(box.clientWidth || 600);
+        // Only the last chart has the time labels under it, so it has 20 more than the others and they plot as tall as it.
+        var Hn = Math.floor((H * defs.length - 20) / defs.length);
         defs.forEach(function (d, di) {
           var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
           svg.setAttribute('class', 'tv-chart tp-gchart');
@@ -2715,10 +2730,17 @@
           var spd = d[0] === 'spd';
           gls.push(V.line(svg, {
             // The time labels sit under the last chart only; the ones above share its axis.
-            H: H, x0: 0, x1: tEndG, y0: gy[0], y1: gy[gy.length - 1], xt: di === defs.length - 1 ? xt : [], xf: mss, yt: gy, zero: spd ? null : 0, yf: function (v) { return spd ? String(v) : v + ' g'; },
+            H: defs.length > 1 ? (di === defs.length - 1 ? Hn + 20 : Hn) : H, bottom: di === defs.length - 1 ? undefined : 8, x0: 0, x1: tEndG, y0: gy[0], y1: gy[gy.length - 1], xt: di === defs.length - 1 ? xt : [], xf: mss, yt: gy, zero: spd ? null : 0, yf: function (v) { return spd ? String(v) : v + ' g'; },
             // Moving over a chart moves playback to that moment, slider, cursors and all.
             series: series, tip: tip, onMove: function (t) { stopPlay(); pb.active = true; pb.t = t; renderAt(t); }, onLeave: leave
           }));
+          // With more than one chart showing, each is named in its top left corner, so it is clear which is which.
+          if (defs.length > 1) {
+            var ttl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            ttl.setAttribute('class', 'tp-gtitle'); ttl.setAttribute('x', 54); ttl.setAttribute('y', 26);
+            ttl.textContent = d[1];
+            svg.appendChild(ttl);
+          }
         });
         alignScrub();
         if (pb.active && pb.render) pb.render(pb.t);

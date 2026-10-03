@@ -433,7 +433,7 @@
   // Zoom and pan for a map: + / - / reset buttons, the mouse wheel, a pinch,
   // and dragging once zoomed in. It works on the SVG viewBox, so point()
   // keeps mapping taps to the right place. A drag that pans isn't a click.
-  var ZOOM_MAX = 16, ZOOM_MIN = 0.4, TRACK_WIDTH_M = 12;
+  var ZOOM_MAX = 40, ZOOM_MIN = 0.4, TRACK_WIDTH_M = 12;
   function zoomControls(svg, cfg) {
     var wrap = svg.parentNode;
     if (!wrap.classList.contains('tv-zoom-wrap')) {
@@ -448,8 +448,8 @@
     if (svg._zoomOff) { svg._zoomOff(); svg._zoomOff = null; }
     if (!cfg) return null;
     var W = cfg.W, H = cfg.H, vb = { x: 0, y: 0, w: W, h: H };
-    // A map that can zoom right out (the admin's) can also be panned well past the first view, in any zoom, so a
-    // spot beside the track can be reached to place a line there.
+    // A map that can zoom right out (the admin's) can also be panned a long way past the first view (hundreds of
+    // times its width, tens of kilometres), in any zoom, so any spot on a circuit can be reached to place a line there.
     var free = !!cfg.minZoom;
     function set() {
       svg.setAttribute('viewBox', vb.x + ' ' + vb.y + ' ' + vb.w + ' ' + vb.h);
@@ -466,7 +466,7 @@
       clamp(); set();
     }
     function clamp() {
-      if (free) { vb.x = Math.max(-5 * W, Math.min(6 * W - vb.w, vb.x)); vb.y = Math.max(-5 * H, Math.min(6 * H - vb.h, vb.y)); return; }
+      if (free) { vb.x = Math.max(-250 * W, Math.min(251 * W - vb.w, vb.x)); vb.y = Math.max(-250 * H, Math.min(251 * H - vb.h, vb.y)); return; }
       // Zoomed out past the whole track, the map sits in the middle of the extra room.
       vb.x = vb.w >= W ? (W - vb.w) / 2 : Math.max(0, Math.min(W - vb.w, vb.x));
       vb.y = vb.h >= H ? (H - vb.h) / 2 : Math.max(0, Math.min(H - vb.h, vb.y));
@@ -636,7 +636,7 @@
     var W = cfg.W || width(svg), H = cfg.H || 240;
     svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
     // cfg.y2 { y0, y1, yt, yf }: a second scale on the right, for series with axis: 2.
-    var m = { l: 46, r: cfg.y2 ? 46 : 12, t: 12, b: 28 };
+    var m = { l: 46, r: cfg.y2 ? 46 : 12, t: 12, b: cfg.bottom != null ? cfg.bottom : 28 };  // cfg.bottom: less room under a chart that has no time labels
     function X(v) { return m.l + (v - cfg.x0) / ((cfg.x1 - cfg.x0) || 1) * (W - m.l - m.r); }
     function Y(v) { return H - m.b - (v - cfg.y0) / ((cfg.y1 - cfg.y0) || 1) * (H - m.t - m.b); }
     function Y2(v) { return H - m.b - (v - cfg.y2.y0) / ((cfg.y2.y1 - cfg.y2.y0) || 1) * (H - m.t - m.b); }

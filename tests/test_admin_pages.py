@@ -831,16 +831,15 @@ def test_admin_sets_a_course_line_by_clicking_on_the_map_instead_of_typing_coord
     modal.locator(".tv-zoom-reset").click()
     assert abs(vb_w() - start_w) < 1
     # Zoomed in, the map can be dragged well past the first view, to reach a spot beside the track.
-    for _ in range(4):
-        modal.locator(".tv-zoom-in").click()
+    modal.locator(".tv-zoom-in").click()
     vb_x = lambda: float(page.locator("#tk-map-svg").get_attribute("viewBox").split()[0])
     sv = page.locator("#tk-map-svg").bounding_box()
-    for _ in range(12):
+    for _ in range(16):
         page.mouse.move(sv["x"] + sv["width"] * 0.2, sv["y"] + sv["height"] * 0.5)
         page.mouse.down()
         page.mouse.move(sv["x"] + sv["width"] * 0.9, sv["y"] + sv["height"] * 0.5, steps=4)
         page.mouse.up()
-    assert vb_x() < -5, vb_x()
+    assert vb_x() < -5.5 * start_w, (vb_x(), start_w)  # well past what the old limit (5 widths) allowed
     expect(modal.locator(".tv-zoom-reset")).to_be_visible()
     modal.locator(".tv-zoom-reset").click()
     assert abs(vb_w() - start_w) < 1 and abs(vb_x()) < 1

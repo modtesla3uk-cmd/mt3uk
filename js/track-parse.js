@@ -551,37 +551,47 @@
     return { date: d, time: m[4] ? m[4] + ':' + m[5] : '' };
   }
 
-  // A GPS fix can lose its lock for a second or two, usually in a tight corner or under cover, and
-  // report positions that slip back along the road while the car is still doing 50 mph or more (a
-  // spike in the line, and distances and crossings that go wrong). Such a reading, more than 1.5 m
-  // behind the last good one against the way the car was going (taken over the last 6 m or more),
-  // is moved onto the straight line between the good readings either side, by time. The times and
-  // speeds are not touched. A run of them over 3 s is left alone, as the car cannot really have gone
-  // backwards at speed for that long. Returns how many readings were moved.
+  // A GPS fix can lose its lock for a second or so, usually in a tight corner, and report positions that
+  // drift back along the road while the car is still moving (a spike in the line, and distances and
+  // crossings that go wrong). The drift can be slow, a metre a reading, so each reading is compared with
+  // the furthest point the car has reached along the way it was going (taken over the last 6 m or more),
+  // not with the reading before it. A reading more than 1.5 m behind that point, within 5 m of the
+  // line, when the speeds say the car has gone on at least 3 m since, is a glitch. When the car gets
+  // past the furthest point again, the readings between are moved onto the straight line between the
+  // good ones either side, by time. Times and speeds are not touched. A drift of 3 s or more is left
+  // alone, and so is one that ends well to one side (a real hairpin ends a car's width or more away,
+  // and the car then really is going the other way). Returns how many readings were moved.
   function repairGlitches(pts) {
     if (pts.length < 20) return 0;
-    var lat0 = pts[0].lat, kx = 111195 * Math.cos(lat0 * DEG), ky = 111195, fixed = 0;
-    function X(p) { return (p.lng - pts[0].lng) * kx; }
+    var lat0 = pts[0].lat, lng0 = pts[0].lng, kx = 111195 * Math.cos(lat0 * DEG), ky = 111195, fixed = 0;
+    function X(p) { return (p.lng - lng0) * kx; }
     function Y(p) { return (p.lat - lat0) * ky; }
-    var g = 0, anchor = 0;
+    var g = 0, anchor = 0, bad = false, went = 0;
     for (var i = 1; i < pts.length; i++) {
       var p = pts[i], q = pts[g];
-      if (p.v > 80) {
-        while (anchor < g && Math.hypot(X(q) - X(pts[anchor + 1]), Y(q) - Y(pts[anchor + 1])) >= 6) anchor++;
-        var dx = X(q) - X(pts[anchor]), dy = Y(q) - Y(pts[anchor]), L = Math.hypot(dx, dy);
-        if (L >= 6) {
-          var along = ((X(p) - X(q)) * dx + (Y(p) - Y(q)) * dy) / L;
-          if (along < -1.5 && p.t - q.t < 3) continue;
+      if (isFinite(p.v) && isFinite(pts[i - 1].v)) went += Math.max(0, (p.v + pts[i - 1].v) / 2) / 3.6 * Math.max(0, p.t - pts[i - 1].t);
+      while (anchor < g && Math.hypot(X(q) - X(pts[anchor + 1]), Y(q) - Y(pts[anchor + 1])) >= 6) anchor++;
+      var dx = X(q) - X(pts[anchor]), dy = Y(q) - Y(pts[anchor]), L = Math.hypot(dx, dy), along = 1;
+      if (L >= 6) {
+        var ex = X(p) - X(q), ey = Y(p) - Y(q);
+        along = (ex * dx + ey * dy) / L;
+        var side = Math.abs((ex * dy - ey * dx) / L);
+        if (along < -1.5) {
+          if (p.t - q.t >= 3) { g = i; bad = false; went = 0; continue; }
+          if (side <= 5 && went > 3) { bad = true; continue; }
         }
       }
-      // A good reading: the ones skipped since the last good one are moved onto the line to it.
-      for (var j = g + 1; j < i && p.t - q.t < 3; j++) {
-        var f = (pts[j].t - q.t) / ((p.t - q.t) || 1);
-        pts[j].lat = q.lat + (p.lat - q.lat) * f;
-        pts[j].lng = q.lng + (p.lng - q.lng) * f;
-        fixed++;
+      if (along <= 0 && L >= 6) continue;
+      // The car is past the furthest point again: the readings skipped since are moved onto the line to it.
+      if (bad && p.t - q.t < 3) {
+        for (var j = g + 1; j < i; j++) {
+          var f = (pts[j].t - q.t) / ((p.t - q.t) || 1);
+          pts[j].lat = q.lat + (p.lat - q.lat) * f;
+          pts[j].lng = q.lng + (p.lng - q.lng) * f;
+          fixed++;
+        }
       }
-      g = i;
+      g = i; bad = false; went = 0;
     }
     return fixed;
   }

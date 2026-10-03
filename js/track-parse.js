@@ -26,7 +26,9 @@
   // 4: the battery start and end keep two decimals, so rounding to a whole percent happens once (60.48 shows as 60, not 61).
   // 5: cornering g worked out from the GPS path has the same sign as RaceBox's and the car's own readings.
   // 6: GPS readings that slip back along the road at speed are moved onto the line between the good ones (repairGlitches).
-  var ANALYSIS_VERSION = 6;
+  // 7: a fix that freezes or creeps at speed and then jumps to catch up is mended too, and a drift is mended up to
+  //    where the fix catches up rather than to the first reading past it; readings are spaced by the speeds.
+  var ANALYSIS_VERSION = 7;
   var DEG = Math.PI / 180;
 
   function num(s) {
@@ -551,47 +553,70 @@
     return { date: d, time: m[4] ? m[4] + ':' + m[5] : '' };
   }
 
-  // A GPS fix can lose its lock for a second or so, usually in a tight corner, and report positions that
-  // drift back along the road while the car is still moving (a spike in the line, and distances and
-  // crossings that go wrong). The drift can be slow, a metre a reading, so each reading is compared with
-  // the furthest point the car has reached along the way it was going (taken over the last 6 m or more),
-  // not with the reading before it. A reading more than 1.5 m behind that point, within 5 m of the
-  // line, when the speeds say the car has gone on at least 3 m since, is a glitch. When the car gets
-  // past the furthest point again, the readings between are moved onto the straight line between the
-  // good ones either side, by time. Times and speeds are not touched. A drift of 3 s or more is left
-  // alone, and so is one that ends well to one side (a real hairpin ends a car's width or more away,
-  // and the car then really is going the other way). Returns how many readings were moved.
+  // A GPS fix can lose its lock for a few seconds, usually in a tight corner, while the car carries on.
+  // The position then drifts back along the road (a spike in the line, and distances and crossings that
+  // go wrong), or freezes, or creeps at half pace, and then jumps to catch up. All are mended the same
+  // way: once the fix is back where the speeds say the car is, the readings since the last good fix are
+  // put onto the straight line between that fix and this one, spaced by the distance the speeds give.
+  // Times and speeds are not touched. Returns how many readings were moved.
+  // A drift is spotted by comparing each reading with the furthest point the car had reached along the
+  // way it was going (taken over the last 6 m or more): one more than 1.5 m behind that point, within
+  // 5 m of the line, with the car over 20 km/h at both, when the speeds say it has gone on at least 3 m. A freeze is
+  // spotted when, over the last half second, the speeds say 6 m or more but the fix has moved under 40%
+  // of that (clean driving never gives under 60%). Either ends at the first reading at least 80% as far
+  // from the last good fix as the speeds say the car has gone. One that takes more than 5 s is left as
+  // it is: that is a lost signal, not a blip. A real hairpin is never a drift, as its far side is a car's
+  // width or more away from the line in.
   function repairGlitches(pts) {
     if (pts.length < 20) return 0;
     var lat0 = pts[0].lat, lng0 = pts[0].lng, kx = 111195 * Math.cos(lat0 * DEG), ky = 111195, fixed = 0;
     function X(p) { return (p.lng - lng0) * kx; }
     function Y(p) { return (p.lat - lat0) * ky; }
-    var g = 0, anchor = 0, bad = false, went = 0;
+    function dist(a, b) { return Math.hypot(X(a) - X(b), Y(a) - Y(b)); }
+    // How far the speeds say the car had gone by each reading.
+    var S = [0];
+    for (var k = 1; k < pts.length; k++) {
+      var va = pts[k - 1].v, vb = pts[k].v;
+      S[k] = S[k - 1] + (isFinite(va) && isFinite(vb) ? Math.max(0, (va + vb) / 2) / 3.6 * Math.max(0, pts[k].t - pts[k - 1].t) : 0);
+    }
+    function mend(g, i) {
+      var q = pts[g], p = pts[i], byS = S[i] - S[g] > 0;
+      for (var j = g + 1; j < i; j++) {
+        var f = byS ? (S[j] - S[g]) / (S[i] - S[g]) : (pts[j].t - q.t) / ((p.t - q.t) || 1);
+        pts[j].lat = q.lat + (p.lat - q.lat) * f;
+        pts[j].lng = q.lng + (p.lng - q.lng) * f;
+        fixed++;
+      }
+    }
+    var g = 0, anchor = 0, tail = 0, mode = '';
     for (var i = 1; i < pts.length; i++) {
       var p = pts[i], q = pts[g];
-      if (isFinite(p.v) && isFinite(pts[i - 1].v)) went += Math.max(0, (p.v + pts[i - 1].v) / 2) / 3.6 * Math.max(0, p.t - pts[i - 1].t);
-      while (anchor < g && Math.hypot(X(q) - X(pts[anchor + 1]), Y(q) - Y(pts[anchor + 1])) >= 6) anchor++;
-      var dx = X(q) - X(pts[anchor]), dy = Y(q) - Y(pts[anchor]), L = Math.hypot(dx, dy), along = 1;
+      if (p.t - q.t >= 5) { g = i; mode = ''; continue; }
+      var went = S[i] - S[g];
+      if (mode) {
+        if (dist(p, q) >= 0.8 * went) { mend(g, i); g = i; mode = ''; }
+        continue;
+      }
+      while (anchor < g && dist(q, pts[anchor + 1]) >= 6) anchor++;
+      var dx = X(q) - X(pts[anchor]), dy = Y(q) - Y(pts[anchor]), L = Math.hypot(dx, dy), along = 1, side = 0;
       if (L >= 6) {
         var ex = X(p) - X(q), ey = Y(p) - Y(q);
-        along = (ex * dx + ey * dy) / L;
-        var side = Math.abs((ex * dy - ey * dx) / L);
-        if (along < -1.5) {
-          if (p.t - q.t >= 3) { g = i; bad = false; went = 0; continue; }
-          if (side <= 5 && went > 3) { bad = true; continue; }
-        }
+        along = (ex * dx + ey * dy) / L; side = Math.abs((ex * dy - ey * dx) / L);
+        // (Both at speed: a car backing up to a start line and driving off is not a drift.)
+        if (along < -1.5 && side <= 5 && p.v > 20 && q.v > 20 && went > 3) { mode = 'drift'; continue; }
       }
-      if (along <= 0 && L >= 6) continue;
-      // The car is past the furthest point again: the readings skipped since are moved onto the line to it.
-      if (bad && p.t - q.t < 3) {
-        for (var j = g + 1; j < i; j++) {
-          var f = (pts[j].t - q.t) / ((p.t - q.t) || 1);
-          pts[j].lat = q.lat + (p.lat - q.lat) * f;
-          pts[j].lng = q.lng + (p.lng - q.lng) * f;
-          fixed++;
-        }
+      while (tail < i && p.t - pts[tail].t > 0.5) tail++;
+      var wentHalf = S[i] - S[tail];
+      // (Not from a standing start: wheels spinning at the launch would look like a frozen fix.)
+      if (p.v > 20 && pts[tail].v > 20 && wentHalf >= 6 && dist(p, pts[tail]) < 0.4 * wentHalf) {
+        // Back to the first reading at the spot the fix stuck on, so the whole stretch is spread out.
+        g = tail;
+        while (g > 0 && dist(pts[g - 1], pts[tail]) < 1 && pts[tail].t - pts[g - 1].t < 1) g--;
+        anchor = Math.min(anchor, g); mode = 'freeze'; continue;
       }
-      g = i; bad = false; went = 0;
+      // Not past the furthest point yet, and not turning away either: the furthest point stands.
+      if (L >= 6 && along <= 0 && side <= 5) continue;
+      g = i;
     }
     return fixed;
   }

@@ -579,41 +579,53 @@ ok(T.fmtLap(99.786) === '1:39.786' && T.niceDate('2026-05-28') === '28 May 2026'
   ok(rs.gDerived === false && rs.latMax > 0.3 && rs.latMax < 0.7 && rs.carData && rs.carData.soc && rs.carData.soc.end < rs.carData.soc.start + 0.01, 'the real pair gives the car\'s own g-forces (' + rs.latMax + ' g) and its battery figures');
 }
 
-// A GPS fix that slips back along the road at speed (a hairpin-like spike in the line) is moved onto the road.
+// GPS glitches. tests/fixtures/abingdon-glitches.csv is five columns of a real Track Mode sprint file, cut to
+// its three bad patches with the clean driving either side: the fix drifting 8 m back up the road in a tight
+// corner (and 33 rows the member picked out), creeping at half pace for 4 s and then jumping, and freezing
+// for a second at 80 mph. After reading, each is spread out along the road: no reading sits behind the last
+// 6 m of travel, and over any 0.8 s the fix has moved about as far as the speeds say. A real hairpin, a car
+// standing still and a clean straight are left alone.
 {
-  const lat0 = 51.693139, lng0 = -1.317314, kx = 111195 * Math.cos(lat0 * Math.PI / 180);
-  const path = []; let y = -300;
-  for (let i = 0; i < 40; i++) { path.push(y); y -= 5.5; }
-  const last = path[path.length - 1];
-  [8, 6, 4, 2.5].forEach(b => path.push(last + b));
-  y = last - 5.5; for (let i = 0; i < 30; i++) { path.push(y); y -= 5.5; }
-  const csv = 'Time (s),Latitude,Longitude,Speed (mph)\n' + path.map((py, i) => [(i * 0.2).toFixed(2), (lat0 + py / 111195).toFixed(7), (lng0 + 65 / kx).toFixed(7), 120].join(',')).join('\n');
-  const g = T.read(csv, 'glitch.csv');
-  const yy = g.points.map(p => (p.lat - lat0) * 111195);
-  let back = 0; for (let i = 1; i < yy.length; i++) if (yy[i] > yy[i - 1] + 0.05) back++;
-  ok(g.glitches === 4 && back === 0, 'positions that slip back at speed are moved onto the road (' + g.glitches + ' moved, ' + back + ' still going back)');
-  const clean = T.read('Time (s),Latitude,Longitude,Speed (mph)\n' + path.filter((_, i) => i < 40 || i >= 44).map((py, i) => [(i * 0.2).toFixed(2), (lat0 + py / 111195).toFixed(7), (lng0 + 65 / kx).toFixed(7), 120].join(',')).join('\n'), 'clean.csv');
-  ok(clean.glitches === 0, 'a clean run has nothing moved');
-}
-
-// Rows from a real Track Mode file where the GPS drifted about 8 m back up the road for a second in a tight
-// corner while the car carried on (low speed, a metre a reading): they are moved onto the road, and a real
-// hairpin and a car standing still are left alone.
-{
-  const R = [[39903,51.688021,-1.316343,38.4],[39904,51.688021,-1.316343,38.4],[39969,51.687996,-1.316337,41.7],[39969,51.687996,-1.316337,47.4],[40033,51.687971,-1.316332,47.4],[40039,51.687971,-1.316332,46.5],[40105,51.687971,-1.316332,41.4],[40106,51.687971,-1.316332,41.4],[40171,51.687976,-1.316333,30.3],[40202,51.687976,-1.316333,24.6],
-[40237,51.687981,-1.316335,24.6],[40238,51.687981,-1.316335,21.6],[40328,51.687987,-1.316337,20.7],[40357,51.687987,-1.316337,24.9],[40374,51.687987,-1.316337,22.8],[40434,51.687994,-1.316339,22.8],[40463,51.687994,-1.316339,25.8],[40494,51.687994,-1.316339,16.8],[40522,51.688001,-1.316343,16.8],[40523,51.688001,-1.316343,12.0],[40595,51.688001,-1.316343,5.7],[40595,51.688001,-1.316343,5.7],[40661,51.688009,-1.316347,5.1],[40689,51.688009,-1.316347,3.0],[40720,51.688018,-1.316352,3.0],[40749,51.688018,-1.316352,5.1],[40750,51.688018,-1.316352,5.1],[40811,51.688026,-1.316358,4.8],[40812,51.688026,-1.316358,7.8],[40866,51.688026,-1.316358,7.8],[40867,51.688026,-1.316358,8.7],[40892,51.688026,-1.316358,8.7],[40947,51.688035,-1.316365,10.2],[40973,51.688035,-1.316365,10.2],[40973,51.688035,-1.316365,9.9],[41002,51.688035,-1.316365,9.9],[41059,51.688045,-1.316374,13.8],[41086,51.688045,-1.316374,13.8],[41086,51.688045,-1.316374,16.8],[41142,51.687997,-1.316369,20.4],[41142,51.687997,-1.316369,20.4],[41168,51.687997,-1.316369,13.2],
-[41217,51.687949,-1.316364,13.2],[41238,51.687949,-1.316364,11.7],[41241,51.687949,-1.316364,11.7],[41270,51.687949,-1.316364,10.5],[41322,51.687901,-1.316361,10.5],[41346,51.687901,-1.316361,3.3],[41356,51.687901,-1.316361,3.3],[41410,51.687854,-1.316358,-0.6],[41434,51.687854,-1.316358,-0.3],[41435,51.687854,-1.316358,-0.3],[41462,51.687854,-1.316358,0],[41512,51.687808,-1.316357,0],[41538,51.687808,-1.316357,0],[41541,51.687808,-1.316357,0]];
-  const pre = []; for (let i = 40; i >= 1; i--) pre.push([39903 - i * 30, 51.688021 + i * 0.0000035, -1.316343 - i * 0.0000004, 38.4]);
-  const csv = 'Time (s),Latitude,Longitude,Speed (mph)\n' + pre.concat(R).map(r => [(r[0] / 1000).toFixed(3), r[1], r[2], r[3]].join(',')).join('\n');
-  const g = T.read(csv, 'drift.csv');
-  const ys = g.points.map(p => (p.lat - 51.688) * 111195);
-  let hi = -1e9, worst = 0; ys.forEach((y, i) => { if (i < 40) return; hi = Math.max(hi, -y); worst = Math.max(worst, hi + y); });
-  ok(g.glitches > 20 && worst < 0.5, 'a slow GPS drift back up the road is moved onto the road (' + g.glitches + ' moved, worst retreat ' + worst.toFixed(1) + ' m)');
-  const lat0 = 51.69, kx = 111195 * Math.cos(lat0 * Math.PI / 180), step = 0.3, path = [];
+  const gl = T.read(fs.readFileSync(ROOT + 'tests/fixtures/abingdon-glitches.csv', 'utf8'), 'abingdon-glitches.csv');
+  const P = gl.points, proj = T.projector(P[0].lat, P[0].lng), xy = P.map(p => proj.xy(p.lat, p.lng));
+  let back = 0, off = 0, windows = 0, anchor = 0;
+  for (let i = 1; i < P.length; i++) {
+    if (P[i].t - P[i - 1].t > 2) { anchor = i; continue; } // the gap between two patches
+    while (anchor < i - 1 && Math.hypot(xy[i - 1][0] - xy[anchor + 1][0], xy[i - 1][1] - xy[anchor + 1][1]) >= 6) anchor++;
+    const dx = xy[i - 1][0] - xy[anchor][0], dy = xy[i - 1][1] - xy[anchor][1], L = Math.hypot(dx, dy);
+    if (L >= 6 && P[i].v > 20 && ((xy[i][0] - xy[i - 1][0]) * dx + (xy[i][1] - xy[i - 1][1]) * dy) / L < -1.5) back++;
+  }
+  for (let k = 45; k < P.length; k += 45) {
+    if (P[k].t - P[k - 45].t > 2) continue;
+    let bySpeed = 0; for (let j = k - 44; j <= k; j++) bySpeed += (P[j].v + P[j - 1].v) / 2 / 3.6 * (P[j].t - P[j - 1].t);
+    const byFix = Math.hypot(xy[k][0] - xy[k - 45][0], xy[k][1] - xy[k - 45][1]);
+    windows++; if (Math.abs(bySpeed - byFix) > Math.max(8, 0.35 * bySpeed)) off++;
+  }
+  ok(gl.glitches >= 150 && gl.glitches <= 400, 'the three real glitches are mended (' + gl.glitches + ' readings moved)');
+  ok(back === 0 && off === 0, 'after mending no reading goes back up the road and the fix keeps pace with the speeds (' + back + ' back, ' + off + ' of ' + windows + ' windows off)');
+  // A fix that freezes on one spot for a second at 70 mph and then jumps to where the car really is.
+  const lat0 = 51.69, kx = 111195 * Math.cos(lat0 * Math.PI / 180), v = 70 / 2.23694, rows = [];
+  for (let i = 0; i < 200; i++) { const t = i / 40, y = -(i < 80 ? t * v : i < 120 ? 2 * v : t * v); rows.push([t.toFixed(3), (lat0 + y / 111195).toFixed(7), (-1.3).toFixed(7), 70].join(',')); }
+  const fz = T.read('Time (s),Latitude,Longitude,Speed (mph)\n' + rows.join('\n'), 'freeze.csv');
+  const ys = fz.points.map(p => (p.lat - lat0) * 111195), gaps = ys.slice(1).map((y, i) => ys[i] - y);
+  ok(fz.glitches >= 35 && Math.max(...gaps) < 1.2 && Math.min(...gaps) > 0.6, 'a fix frozen for a second at speed is spread evenly to where it jumped to (' + fz.glitches + ' moved, steps ' + Math.min(...gaps).toFixed(2) + ' to ' + Math.max(...gaps).toFixed(2) + ' m)');
+  const straight = rows.map((r, i) => { const t = i / 40; return [t.toFixed(3), (lat0 - t * v / 111195).toFixed(7), (-1.3).toFixed(7), 70].join(','); });
+  ok(T.read('Time (s),Latitude,Longitude,Speed (mph)\n' + straight.join('\n'), 'clean.csv').glitches === 0, 'a clean straight has nothing moved');
+  const step = 0.3, path = [];
   for (let i = 0; i < 90; i++) path.push([0, -i * step]);
   const y0 = -89 * step, Rd = 6;
   for (let a = 0; a <= Math.PI; a += step / Rd) path.push([Rd - Rd * Math.cos(a), y0 - Rd * Math.sin(a)]);
   const yEnd = path[path.length - 1][1]; for (let i = 1; i < 90; i++) path.push([2 * Rd, yEnd + i * step]);
   const hp = T.read('Time (s),Latitude,Longitude,Speed (mph)\n' + path.map((p, i) => [(i / 30).toFixed(3), (lat0 + p[1] / 111195).toFixed(7), (-1.3 + p[0] / kx).toFixed(7), 20].join(',')).join('\n'), 'hairpin.csv');
   ok(hp.glitches === 0, 'a real hairpin is not changed');
+  const still = []; for (let i = 0; i < 300; i++) still.push([(i / 30).toFixed(3), (lat0 + (Math.sin(i) * 1.5) / 111195).toFixed(7), (-1.3 + (Math.cos(i * 0.7) * 1.5) / kx).toFixed(7), i < 60 || i > 240 ? 15 : 0].join(','));
+  ok(T.read('Time (s),Latitude,Longitude,Speed (mph)\n' + still.join('\n'), 'still.csv').glitches === 0, 'a car standing still with the fix wandering is not changed');
+  // Backing up 3.5 m to a start line, then a 1 g launch past the spot the car had reached: not a drift.
+  const rev = []; let x = 0, vv = 0;
+  for (let i = 0; i < 400; i++) {
+    const t = i / 50;
+    if (t < 2) { vv = 5.5; x += vv / 50; } else if (t < 2.5) { vv = 0; } else if (t < 3.5) { vv = -3.3; x += vv / 50; } else if (t < 4) { vv = 0; } else { vv = Math.min(30, 9.81 * (t - 4)); x += vv / 50; }
+    rev.push([t.toFixed(3), (lat0 + x / 111195).toFixed(7), (-1.3).toFixed(7), (Math.abs(vv) * 2.23694).toFixed(1)].join(','));
+  }
+  ok(T.read('Time (s),Latitude,Longitude,Speed (mph)\n' + rev.join('\n'), 'reverse.csv').glitches === 0, 'backing up to a start line and launching is not changed');
 }

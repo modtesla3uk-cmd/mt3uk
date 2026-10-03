@@ -614,6 +614,8 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   const moved = { kind: 'sprint', name: 'Quick Course', organizer: 'A1', venueId: 'quick-course', layoutId: 'a1', startLine: [[51.3001, -0.8001], [51.3003, -0.8003]], finishLine: [[51.311, -0.811], [51.3112, -0.8112]], lapLength: 700, lat: 51.3, lng: -0.8 };
   r = await call('POST', '/track/admin/course', Object.assign({}, moved, { replace: true }), 'tok-a');
   ok(r.status === 401, 'replacing a course\'s lines needs the admin');
+  r = await call('POST', '/track/admin/course?key=secret', Object.assign({}, moved, { replace: true, startLine: [[51.3004, -0.8004], [51.3006, -0.8006]] }));
+  ok(r.status === 200 && r.body.library.venues.find(v => v.id === 'quick-course').layouts.find(l => l.id === 'a1').startLine[0][0] === 51.3004, 'the Line editing panel replaces a course\'s lines with the admin key too');
   r = await call('POST', '/track/admin/course', Object.assign({}, moved, { replace: true }), 'tok-a', { 'X-Admin-Viewer': tok });
   const ql = r.body.library && r.body.library.venues.find(v => v.id === 'quick-course').layouts.find(l => l.id === 'a1');
   ok(r.status === 200 && ql && ql.startLine[0][0] === 51.3001 && ql.finishLine[0][0] === 51.311 && ql.organizer === 'A1' && r.body.library.venues.filter(v => v.id === 'quick-course').length === 1, 'the admin replaces the lines of a course in place (' + (ql && ql.startLine[0][0]) + ', ' + (ql && ql.finishLine[0][0]) + ')');
@@ -800,6 +802,15 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   ok(x.status === 404, 'the viewer token is let in to read the readings (none kept here)');
   x = await call('POST', '/track/admin/retime', { id, session: Object.assign({}, fresh, { bestTime: fresh.bestTime }) }, undefined, { 'X-Admin-Viewer': tok });
   ok(x.status === 200 && stored('track-session:' + id).notes === 'keep me', 'the admin viewer token saves a session with new lines, keeping the member\'s details');
+  // The re-time list says which track and course each session is on, so one track's sessions can be re-timed together,
+  // and a session whose lines the admin accepted keeps that mark through a save.
+  x = await call('GET', '/track/admin/retime?key=secret');
+  const row3 = x.body.sessions.find(s => s.id === id);
+  ok(row3.venueId === 'thruxton' && row3.layoutId === 'main', 'the re-time list carries the track and course (' + row3.venueId + ', ' + row3.layoutId + ')');
+  x = await call('POST', '/track/admin/retime?key=secret', { id, session: Object.assign({}, fresh, { linesAccepted: true }) });
+  ok(x.status === 200 && stored('track-session:' + id).linesAccepted === true, 'the mark that the admin accepted this session\'s lines is kept');
+  x = await call('POST', '/track/admin/retime?key=secret', { id, session: fresh });
+  ok(x.status === 200 && stored('track-session:' + id).linesAccepted === undefined, 'and it is not added to other sessions');
   x = await call('POST', '/track/admin/retime?key=secret', { id: 'deadbeefdeadbeef', session: fresh });
   ok(x.status === 404, 'an unknown session is refused');
 }

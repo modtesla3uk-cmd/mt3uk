@@ -82,6 +82,110 @@
     modal.addEventListener('click', function (e) { if (e.target === modal || e.target.closest('[data-close-map]')) close(); });
   }
 
+  // Set a course's start or finish line on the satellite map, instead of typing coordinates: click one side of
+  // the road, then the other, drag either end to fine tune it, then Use this line. The two points go into the
+  // box as lat, lng, lat, lng, so the signs and the four numbers can't be wrong. The other line of the course
+  // (when it has one) is shown dashed for reference.
+  function pickLine(title, kind, input, centre, other, otherName) {
+    var T = window.MT3UKTrack, V = window.MT3UKTrackView;
+    if (!T || !V) { window.alert('The map is still loading. Try again in a moment.'); return; }
+    var cur = parseLine(input.value);
+    var mid = function (l) { return [(l[0][0] + l[1][0]) / 2, (l[0][1] + l[1][1]) / 2]; };
+    var first = cur ? mid(cur) : other ? mid(other) : centre;
+    if (!first || !isFinite(first[0]) || !isFinite(first[1])) { window.alert('Fill in the centre latitude and longitude of the track first, so the map knows where to open.'); return; }
+    var proj = T.projector(first[0], first[1]), colour = kind === 'finishLine' ? '#d33a2c' : '#1baf7a';
+    var reach = cur ? Math.max(60, Math.hypot.apply(null, proj.xy(cur[0][0], cur[0][1]).map(function (v, i) { return v - proj.xy(cur[1][0], cur[1][1])[i]; })) + 40) : 160;
+    var trace = [[0, 0, -reach, 0, 0, 0, 0], [2 * reach, 0, reach, 0, 0, 0, 0]];
+    var old = document.getElementById('tk-map-modal');
+    if (old) old.remove();
+    var modal = document.createElement('div');
+    modal.className = 'tk-map-modal'; modal.id = 'tk-map-modal';
+    modal.innerHTML = '<div class="tk-map-card" role="dialog" aria-modal="true" aria-label="' + esc(title) + '"><div class="tk-map-head"><h3>' + esc(title) + '</h3><button type="button" class="secondary iv-act" data-close-map>Cancel</button></div>' +
+      '<div class="tk-map-box" id="tk-map-box"><svg class="tv-chart" id="tk-map-svg" role="img" aria-label="' + esc(title) + '"></svg></div>' +
+      '<p class="tk-map-note" id="tk-pick-step"></p>' +
+      '<div class="iv-toolbar"><button type="button" id="tk-pick-use" disabled>Use this line</button><button type="button" class="secondary" id="tk-pick-clear">Clear</button></div></div>';
+    document.body.appendChild(modal);
+    var box = document.getElementById('tk-map-box'), svg = document.getElementById('tk-map-svg'), step = document.getElementById('tk-pick-step');
+    var m = V.map(svg, trace, { mono: true, fill: { w: box.clientWidth, h: box.clientHeight }, origin: first });
+    // The stretch only frames the view: it is not a road, so it is not drawn.
+    [].slice.call(svg.querySelectorAll('.tv-segs, .tv-bands')).forEach(function (g) { g.parentNode.removeChild(g); });
+    var ns = 'http://www.w3.org/2000/svg';
+    function el(tag, attrs, parent) { var e = document.createElementNS(ns, tag); Object.keys(attrs).forEach(function (k) { e.setAttribute(k, attrs[k]); }); (parent || svg).appendChild(e); return e; }
+    // The other line, for reference.
+    if (other) {
+      var oa = m.P.apply(null, proj.xy(other[0][0], other[0][1])), ob = m.P.apply(null, proj.xy(other[1][0], other[1][1]));
+      el('line', { x1: oa[0], y1: oa[1], x2: ob[0], y2: ob[1], stroke: '#ffffff', 'stroke-width': 5, 'vector-effect': 'non-scaling-stroke', 'pointer-events': 'none', opacity: 0.8 });
+      el('line', { x1: oa[0], y1: oa[1], x2: ob[0], y2: ob[1], stroke: kind === 'finishLine' ? '#1baf7a' : '#d33a2c', 'stroke-width': 2.5, 'stroke-dasharray': '6 4', 'vector-effect': 'non-scaling-stroke', 'pointer-events': 'none' });
+      var ot = m.marker((oa[0] + ob[0]) / 2, (oa[1] + ob[1]) / 2);
+      ot.g.setAttribute('pointer-events', 'none');
+      var tx = el('text', { x: 0, y: -14, 'text-anchor': 'middle', style: 'fill:#ffffff;stroke:#1a1a1a;stroke-width:3.5px;paint-order:stroke;font-size:13px;font-weight:700' }, ot.g);
+      tx.textContent = otherName;
+    }
+    var edge = el('line', { stroke: '#ffffff', 'stroke-width': 6, 'vector-effect': 'non-scaling-stroke', 'pointer-events': 'none', 'stroke-linecap': 'round', visibility: 'hidden' });
+    var core = el('line', { stroke: colour, 'stroke-width': 3, 'vector-effect': 'non-scaling-stroke', 'pointer-events': 'none', 'stroke-linecap': 'round', visibility: 'hidden' });
+    var ends = cur ? cur.map(function (p) { return proj.xy(p[0], p[1]); }) : [], marks = [];
+    function say() {
+      var n = ends.length;
+      if (n < 2) { step.textContent = n === 0 ? 'Zoom in on the road, then click one side of it where the ' + (kind === 'finishLine' ? 'finish' : 'start') + ' line goes.' : 'Now click the other side of the road.'; document.getElementById('tk-pick-use').disabled = true; return; }
+      var len = Math.hypot(ends[0][0] - ends[1][0], ends[0][1] - ends[1][1]);
+      step.textContent = 'The line is ' + Math.round(len) + ' m long. Drag either end to move it, then press Use this line. A line across a road is usually 10 to 40 m.';
+      document.getElementById('tk-pick-use').disabled = false;
+    }
+    function draw() {
+      if (ends.length < 2) { edge.setAttribute('visibility', 'hidden'); core.setAttribute('visibility', 'hidden'); return; }
+      var a = m.P(ends[0][0], ends[0][1]), b = m.P(ends[1][0], ends[1][1]);
+      [edge, core].forEach(function (l) { l.setAttribute('x1', a[0]); l.setAttribute('y1', a[1]); l.setAttribute('x2', b[0]); l.setAttribute('y2', b[1]); l.setAttribute('visibility', 'visible'); });
+    }
+    function place(i, xy) {
+      ends[i] = xy;
+      var p = m.P(xy[0], xy[1]);
+      if (!marks[i]) {
+        var mk = m.marker(p[0], p[1]);
+        el('circle', { cx: 0, cy: 0, r: 10, fill: colour, stroke: '#ffffff', 'stroke-width': 2.5 }, mk.g);
+        var t = el('text', { x: 0, y: 4, 'text-anchor': 'middle', style: 'fill:#ffffff;font-size:11px;font-weight:700' }, mk.g);
+        t.textContent = String(i + 1);
+        mk.g.setAttribute('class', 'tk-pick-end'); mk.g.style.cursor = 'grab';
+        mk.g.addEventListener('pointerdown', function (e) {
+          e.stopPropagation(); e.preventDefault();
+          try { mk.g.setPointerCapture(e.pointerId); } catch (err) { /* not capturable */ }
+          function mv(ev) { var q = V.point(svg, ev); place(i, m.unP(q.x, q.y)); }
+          function up() { mk.g.removeEventListener('pointermove', mv); mk.g.removeEventListener('pointerup', up); mk.g.removeEventListener('pointercancel', up); }
+          mk.g.addEventListener('pointermove', mv); mk.g.addEventListener('pointerup', up); mk.g.addEventListener('pointercancel', up);
+        });
+        marks[i] = mk;
+      } else m.moveMarker(marks[i], p[0], p[1]);
+      draw(); say();
+    }
+    ends.slice().forEach(function (xy, i) { place(i, xy); });
+    draw(); say();
+    // Only a quick, still, left-button click places an end: a drag pans the map.
+    var down = null;
+    svg.addEventListener('pointerdown', function (e) { down = { x: e.clientX, y: e.clientY, t: Date.now(), b: e.button }; });
+    svg.addEventListener('click', function (e) {
+      if (!down || down.b !== 0 || Date.now() - down.t > 600 || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 6) return;
+      if (e.target.closest && e.target.closest('.tk-pick-end')) return;
+      if (ends.length >= 2) return;
+      var q = V.point(svg, e);
+      place(ends.length, m.unP(q.x, q.y));
+    });
+    document.getElementById('tk-pick-clear').addEventListener('click', function () {
+      ends = []; marks.forEach(function (mk) { if (mk && mk.g.parentNode) mk.g.parentNode.removeChild(mk.g); }); marks = []; draw(); say();
+    });
+    document.getElementById('tk-pick-use').addEventListener('click', function () {
+      var len = Math.hypot(ends[0][0] - ends[1][0], ends[0][1] - ends[1][1]);
+      if ((len < 8 || len > 100) && !window.confirm('That line is ' + Math.round(len) + ' m long. A line across a road is usually 10 to 40 m. Use it anyway?')) return;
+      var ll = ends.map(function (xy) { return proj.ll(xy[0], xy[1]); });
+      input.value = [ll[0][0], ll[0][1], ll[1][0], ll[1][1]].map(function (v) { return v.toFixed(7); }).join(', ');
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      close();
+      note('The ' + (kind === 'finishLine' ? 'finish' : 'start') + ' line is set. Press Save track to keep it.', 'ok');
+    });
+    function close() { modal.remove(); document.removeEventListener('keydown', onKey); }
+    function onKey(e) { if (e.key === 'Escape') close(); }
+    document.addEventListener('keydown', onKey);
+    modal.addEventListener('click', function (e) { if (e.target === modal || e.target.closest('[data-close-map]')) close(); });
+  }
+
   function lineText(l) { return l && l.length === 2 ? [l[0][0], l[0][1], l[1][0], l[1][1]].join(', ') : ''; }
   function parseLine(t) {
     var n = String(t || '').split(/[\s,]+/).filter(Boolean).map(Number);
@@ -95,12 +199,22 @@
       var layouts = v.layouts || [];
       var ready = v.type === 'drag' ? 'Drag strip' : layouts.map(function (l) { return esc(l.name) + ': ' + (l.startLine ? 'start line' : '<span class="tk-miss">no start line</span>') + (v.type === 'sprint' ? (l.finishLine ? ', finish line' : ', <span class="tk-miss">no finish line</span>') : '') + (l.corners && l.corners.length ? ', ' + l.corners.length + ' corners' : '') + (l.sectors && l.sectors.length ? ', ' + l.sectors.length + ' sector lines' : ''); }).join('<br>');
       return '<tr><td><b>' + esc(v.name) + '</b>' + (changed[v.id] ? ' <span class="iv-sub">(changed here)</span>' : '') + (v.review ? '<span class="iv-sub tk-review">Added by a member, to review</span>' : '') + (v.check ? '<span class="iv-sub">Centre or lengths to check</span>' : '') + '</td><td>' + (v.type === 'drag' ? 'Drag strip' : v.type === 'sprint' ? (v.hill ? 'Hill climb' : 'Sprint') : 'Circuit (track day)') + '</td><td>' + (v.type === 'drag' ? '-' : layouts.length) + '</td><td class="iv-sub">' + ready + '</td>' +
-        '<td><div class="iv-actions">' + layouts.filter(function (l) { return l.startLine; }).map(function (l) { return '<button type="button" class="secondary iv-act" data-map="' + esc(v.id + ':' + l.id) + '">Map' + (layouts.length > 1 ? ': ' + esc(l.name) : '') + '</button>'; }).join('') + '<button type="button" class="secondary iv-act" data-edit="' + esc(v.id) + '">Edit</button><button type="button" class="danger iv-act" data-remove="' + esc(v.id) + '">Remove</button></div></td></tr>';
+        '<td><div class="iv-actions">' + layouts.filter(function (l) { return l.startLine; }).map(function (l) { return '<button type="button" class="secondary iv-act" data-map="' + esc(v.id + ':' + l.id) + '">Map' + (layouts.length > 1 ? ': ' + esc(l.name) : '') + '</button>'; }).join('') + '<button type="button" class="secondary iv-act" data-edit="' + esc(v.id) + '">Edit</button>' + (v.type === 'drag' ? '' : '<button type="button" class="secondary iv-act" data-check-course="' + esc(v.id) + '">Check sessions here</button><button type="button" class="secondary iv-act" data-retime-course="' + esc(v.id) + '">Re-time sessions here</button>') + '<button type="button" class="danger iv-act" data-remove="' + esc(v.id) + '">Remove</button></div></td></tr>';
     }).join('') + '</tbody></table><div class="iv-toolbar tk-top"><button type="button" class="secondary" data-new>Add a track</button></div>';
   }
 
   listEl.addEventListener('click', function (e) {
     var ed = e.target.closest('[data-edit]'), rm = e.target.closest('[data-remove]'), mp = e.target.closest('[data-map]');
+    var chk = e.target.closest('[data-check-course]'), rtc = e.target.closest('[data-retime-course]');
+    if (chk || rtc) {
+      var vid = (chk || rtc).getAttribute(chk ? 'data-check-course' : 'data-retime-course'), vn = library.venues.filter(function (v) { return v.id === vid; })[0];
+      if (!vn) return;
+      if (rtc && !window.confirm('Re-time every session at ' + vn.name + ' from its saved readings, on the track\'s lines as they are now? Their times, laps and figures will change. Run Check sessions here first to see what moves.')) return;
+      runRetime(!!rtc, { venueId: vid, name: vn.name });
+      var out = document.getElementById('tk-retime-note');
+      if (out && out.scrollIntoView) out.scrollIntoView({ block: 'nearest' });
+      return;
+    }
     if (mp) {
       var ids = mp.getAttribute('data-map').split(':'), mv = library.venues.filter(function (v) { return v.id === ids[0]; })[0];
       var ml = mv && (mv.layouts || []).filter(function (l) { return l.id === ids[1]; })[0];
@@ -126,7 +240,9 @@
       '<div class="tk-row"><label>Name<input type="text" data-l="name" value="' + esc(l.name) + '"></label><label>' + (sprint ? 'Course length (m)' : 'Lap length (m)') + '<input type="text" inputmode="numeric" data-l="length" value="' + esc(l.length || '') + '"></label></div>' +
       (sprint ? '<label>Organiser (for example B19): courses at one venue can differ<input type="text" data-l="organizer" value="' + esc(l.organizer || '') + '"></label>' : '') +
       '<label>Start line: two points, as lat, lng, lat, lng<input type="text" data-l="startLine" placeholder="51.2077017, -1.6088667, 51.2076237, -1.6091363" value="' + esc(lineText(l.startLine)) + '"></label>' +
-      (sprint ? '<label>Finish line: two points, as lat, lng, lat, lng<input type="text" data-l="finishLine" value="' + esc(lineText(l.finishLine)) + '"></label>' : '') +
+      '<div class="iv-toolbar"><button type="button" class="secondary" data-pick="startLine">Set the start line on the map</button></div>' +
+      (sprint ? '<label>Finish line: two points, as lat, lng, lat, lng<input type="text" data-l="finishLine" value="' + esc(lineText(l.finishLine)) + '"></label>' +
+        '<div class="iv-toolbar"><button type="button" class="secondary" data-pick="finishLine">Set the finish line on the map</button></div>' : '') +
       '<label>Sector lines, one per line (lat, lng, lat, lng)<textarea data-l="sectors" rows="2">' + esc((l.sectors || []).map(lineText).join('\n')) + '</textarea></label>' +
       '<label>Corners in order, one per line (Name, lat, lng)<textarea data-l="corners" rows="3" placeholder="Allard, 51.2094, -1.6093">' + esc((l.corners || []).map(function (c) { return c.name + ', ' + c.lat + ', ' + c.lng; }).join('\n')) + '</textarea></label>' +
       '<button type="button" class="danger iv-act" data-drop-layout="' + i + '">Remove layout</button></fieldset>';
@@ -174,6 +290,14 @@
     var drop = e.target.closest('[data-drop-layout]');
     if (drop) { var cur = readForm(); cur.layouts.splice(+drop.getAttribute('data-drop-layout'), 1); editing = Object.assign(editing, cur); return openForm(editing); }
     if (e.target.id === 'tk-corners') return fillCorners();
+    var pk = e.target.closest('[data-pick]');
+    if (pk) {
+      var kind = pk.getAttribute('data-pick'), fs = pk.closest('.tk-layout'), inputEl = fs.querySelector('[data-l="' + kind + '"]');
+      var otherKind = kind === 'startLine' ? 'finishLine' : 'startLine', otherEl = fs.querySelector('[data-l="' + otherKind + '"]');
+      var sprintForm = !!fs.querySelector('[data-l="finishLine"]');
+      return pickLine((kind === 'finishLine' ? 'Finish line' : 'Start line') + (fs.querySelector('[data-l="name"]').value ? ', ' + fs.querySelector('[data-l="name"]').value : ''), kind, inputEl,
+        [parseFloat(document.getElementById('tk-lat').value), parseFloat(document.getElementById('tk-lng').value)], sprintForm && otherEl ? parseLine(otherEl.value) : null, otherKind === 'finishLine' ? 'Finish' : 'Start');
+    }
     if (e.target.id === 'tk-save') {
       var v = readForm();
       if (!v.name || !isFinite(v.lat) || !isFinite(v.lng)) { note('A track needs a name and a centre.', 'error'); return; }
@@ -368,6 +492,8 @@
     if (old.organizer) o.organizer = old.organizer;
     if (old.finishCrossing) o.finishCrossing = old.finishCrossing;
     if (old.startLineFromMember && old.startLine) { o.startLine = old.startLine; if (old.finishLine) o.finishLine = old.finishLine; }
+    // Lines the admin accepted for this session stay, whatever the course's own lines are now.
+    if (old.linesAccepted && old.startLine) o.ownLines = true;
     return o;
   }
   // A best time that moves by more than this is held back for a look: Check sessions flags it and Re-time
@@ -398,6 +524,7 @@
         next.date = old.date; next.time = old.time || next.time;
         next.fileName = old.fileName;
         if (old.ignoreFinish === false) next.ignoreFinish = false;
+        if (old.linesAccepted) next.linesAccepted = true;
         if (!old.venueId) next.venueName = old.venue;
         var change = { id: row.id, venue: old.venue, date: old.date, type: old.type, from: old.type === 'drag' ? (old.runs && old.runs[0] && old.runs[0].s60) : old.bestTime, to: next.type === 'drag' ? (next.runs && next.runs[0] && next.runs[0].s60) : next.bestTime };
         change.big = isBig(change);
@@ -410,7 +537,9 @@
       });
     });
   }
-  function runRetime(apply) {
+  // only: { venueId, name } re-times every session at that track whatever its version, so a corrected start or
+  // finish line reaches the sessions already saved. Each one picks its own course there, from its organiser.
+  function runRetime(apply, only) {
     if (!key()) { retimeNote.textContent = 'Enter the admin key at the top of the page first.'; return; }
     if (!window.MT3UKTrack) { retimeNote.textContent = 'The timing code has not loaded yet.'; return; }
     var V = window.MT3UKTrack.ANALYSIS_VERSION;
@@ -418,10 +547,11 @@
     var allowBig = bigSwitch && bigSwitch.getAttribute('aria-checked') === 'true';
     retimeBtn.disabled = checkBtn.disabled = true;
     retimeList.innerHTML = '';
-    function say(t) { retimeNote.textContent = t; }
+    function say(t) { retimeNote.textContent = t; if (only && only.onSay) only.onSay(t); }
     function finish(msg) {
       say(msg);
       retimeBtn.disabled = checkBtn.disabled = false;
+      if (only && only.onDone) only.onDone(msg);
     }
     // Each line links to the session, which the admin can open read only to see whose it is.
     function line(t, id) {
@@ -441,7 +571,8 @@
           var todo = [];
           d.sessions.forEach(function (r) {
             seen++;
-            if (r.type === 'other' || r.version >= V) return;
+            if (r.type === 'other') return;
+            if (only) { if (r.venueId !== only.venueId) return; } else if (r.version >= V) return;
             old++;
             if (!r.hasSource) { noSource++; return; }
             todo.push(r);
@@ -462,7 +593,8 @@
           chain.then(function () {
             say((apply ? 'Working... ' : 'Checking... ') + seen + ' sessions looked at, ' + old + ' out of date.');
             if (!d.done) { page(d.cursor); return; }
-            var summary = seen + ' sessions looked at. ' + old + ' were timed with older code: ' + done + (apply ? ' re-timed' : ' can be re-timed') + ' (' + unchanged + ' came out the same), ' + held + ' held back for moving over 10%, ' + noSource + ' have no readings kept so the member needs to upload again, ' + failed + ' skipped.';
+            var lead = only ? old + ' sessions at ' + only.name + ' (of ' + seen + ' looked at): ' : seen + ' sessions looked at. ' + old + ' were timed with older code: ';
+            var summary = lead + done + (apply ? ' re-timed' : ' can be re-timed') + ' (' + unchanged + ' came out the same), ' + held + ' held back for moving over 10%, ' + noSource + ' have no readings kept so the member needs to upload again, ' + failed + ' skipped.';
             if (!apply) { finish(summary); return; }
             say(summary + ' Rebuilding the leaderboards...');
             var cars = 0;
@@ -481,6 +613,8 @@
       page('');
     }).catch(function () { finish('Could not load the track list.'); });
   }
+  // The Line editing panel starts a track's re-time when the admin accepts a member's edit of its map.
+  window.MT3UKTrackAdmin = { retimeTrack: function (venueId, name, onSay, onDone) { runRetime(true, { venueId: venueId, name: name, onSay: onSay, onDone: onDone }); } };
   var bigSwitch = document.getElementById('tk-retime-big');
   if (bigSwitch) bigSwitch.addEventListener('click', function () { bigSwitch.setAttribute('aria-checked', bigSwitch.getAttribute('aria-checked') === 'true' ? 'false' : 'true'); });
   if (checkBtn) checkBtn.addEventListener('click', function () { runRetime(false); });

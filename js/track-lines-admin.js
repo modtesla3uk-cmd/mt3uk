@@ -94,6 +94,27 @@
     return rd;
   }
   function getJson(path) { return fetch(url(path), { cache: 'no-store' }).then(function (r) { return r.json().catch(function () { return {}; }); }); }
+  // The course a session is on: the track in the library and the course there, from the session's own course,
+  // else its organiser, else the only course at the track. Nothing found means the session is on no listed course.
+  function findCourse(lib, old) {
+    var v = ((lib && lib.venues) || []).filter(function (x) { return x.id === old.venueId; })[0];
+    if (!v || v.type === 'drag') return null;
+    var ls = v.layouts || [], l = ls.filter(function (x) { return x.id === old.layoutId; })[0];
+    if (!l) {
+      var org = String(old.organizer || '').trim().toLowerCase();
+      l = org ? ls.filter(function (x) { return String(x.organizer || x.name || '').trim().toLowerCase() === org; })[0] : (ls.length === 1 ? ls[0] : null);
+    }
+    return l ? { venue: v, layout: l } : null;
+  }
+  function postJson(path, body) {
+    return fetch(url(path), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      .then(function (x) { return x.json().catch(function () { return {}; }).then(function (d) { if (!x.ok || !d.success) throw new Error(d.message || 'That did not work.'); return d; }); });
+  }
+  // Accept. On a listed course the member's lines become the course's official lines, the member's own session is
+  // re-timed on them, and every other session at the track is re-timed from its saved readings (a time that moves
+  // by over 10% is held back, as in Re-time sessions). A session on no listed course is changed on its own, and
+  // keeps its lines through later re-times (linesAccepted). Either way the time is worked out again from the
+  // readings here and shown first, never taken from the member.
   function accept(id) {
     var T = window.MT3UKTrack, r = rows.filter(function (x) { return x.id === id; })[0];
     if (!T || !r || !r.proposal) { note('The timing code has not loaded yet.', 'error'); return; }
@@ -108,25 +129,52 @@
         return x.arrayBuffer();
       }).then(readSource)
     ]).then(function (res) {
-      var old = res[2].session, src = res[3];
+      var old = res[2].session, src = res[3], sprint = old && old.type === 'sprint';
       if (!old || !src.p || !src.rd) throw new Error('Could not read the session.');
       var lib = T.mergeLibrary(res[0], res[1] && res[1].extra);
-      // The lines the member sent, and only those: the course's own lines are not used for this.
-      var opts = { type: old.type, ignoreFirstFinish: old.ignoreFinish !== false, ownLines: true, startLine: p.to.startLine };
-      if (old.type === 'sprint') opts.finishLine = p.to.finishLine;
-      if (old.rollout) opts.rollout = true;
-      if (old.organizer) opts.organizer = old.organizer;
-      if (old.finishCrossing) opts.finishCrossing = old.finishCrossing;
-      var next = T.analyse(restoreSource(src), lib, opts);
-      if ((next.problem || next.needsStartLine) && !(next.laps && next.laps.length)) throw new Error('Those lines give no ' + (old.type === 'sprint' ? 'run' : 'laps') + ' in the saved readings, so they cannot be accepted. Undo it.');
-      next.date = old.date; next.time = old.time || next.time; next.fileName = old.fileName;
-      if (old.ignoreFinish === false) next.ignoreFinish = false;
-      if (!old.venueId) next.venueName = old.venue;
-      var was = old.bestTime, now = next.bestTime;
-      if (!window.confirm('Accept this change?\n\n' + r.what + '\nTime: ' + timeText(was) + ' to ' + timeText(now) + (p.to.time && Math.abs(p.to.time - now) > 0.05 ? '\n(They saw ' + timeText(p.to.time) + ', but from the saved readings it works out as ' + timeText(now) + '.)' : '') + '\n\nThe session changes as soon as you accept.')) { note('Not accepted. It is still waiting.'); return; }
-      return fetch(url('/track/admin/retime'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: id, session: next }) })
-        .then(function (x) { return x.json().catch(function () { return {}; }).then(function (d) { if (!x.ok || !d.success) throw new Error(d.message || 'Could not save the session.'); }); })
-        .then(function () { return act({ action: 'accepted', id: id }, 'Accepted. The session is now ' + timeText(now) + '. Revoke their access when they are done.'); });
+      function options(extra) {
+        var o = { type: old.type, ignoreFirstFinish: old.ignoreFinish !== false };
+        if (old.rollout) o.rollout = true;
+        if (old.organizer) o.organizer = old.organizer;
+        if (old.finishCrossing) o.finishCrossing = old.finishCrossing;
+        return Object.assign(o, extra || {});
+      }
+      function carry(next) {
+        next.date = old.date; next.time = old.time || next.time; next.fileName = old.fileName;
+        if (old.ignoreFinish === false) next.ignoreFinish = false;
+        if (!old.venueId) next.venueName = old.venue;
+        return next;
+      }
+      // The lines the member sent, and only those: the course's own lines are not used for this preview.
+      var next = carry(T.analyse(restoreSource(src), lib, options({ ownLines: true, startLine: p.to.startLine, finishLine: sprint ? p.to.finishLine : undefined })));
+      if ((next.problem || next.needsStartLine) && !(next.laps && next.laps.length)) throw new Error('Those lines give no ' + (sprint ? 'run' : 'laps') + ' in the saved readings, so they cannot be accepted. Undo it.');
+      var course = findCourse(lib, old), was = old.bestTime, now = next.bestTime, name = course ? course.venue.name + (course.layout.name && course.layout.name !== course.venue.name ? ', ' + course.layout.name : '') : '';
+      var ask = 'Accept this change?\n\n' + r.what + '\nTime: ' + timeText(was) + ' to ' + timeText(now) + (p.to.time && Math.abs(p.to.time - now) > 0.05 ? '\n(They saw ' + timeText(p.to.time) + ', but from the saved readings it works out as ' + timeText(now) + '.)' : '') + '\n\n' +
+        (course ? 'This makes these the official ' + (sprint ? 'start and finish lines' : 'start line') + ' for ' + name + ', then re-times every other session at ' + course.venue.name + ' from its saved readings (a time that moves by over 10% is held back). That changes other members\' times and the leaderboards.\n\nIt all happens as soon as you accept.'
+          : 'This session is not on a listed course, so only it changes. It changes as soon as you accept.');
+      if (!window.confirm(ask)) { note('Not accepted. It is still waiting.'); return; }
+      if (!course) {
+        next.linesAccepted = true;
+        return postJson('/track/admin/retime', { id: id, session: next })
+          .then(function () { return act({ action: 'accepted', id: id }, 'Accepted. The session is now ' + timeText(now) + '. Revoke their access when they are done.'); });
+      }
+      note('Making these the official lines for ' + name + '...');
+      return postJson('/track/admin/course', { kind: sprint ? 'sprint' : 'circuit', name: course.venue.name, organizer: course.layout.organizer || old.organizer || '', venueId: course.venue.id, layoutId: course.layout.id, replace: true,
+        startLine: p.to.startLine, finishLine: sprint ? p.to.finishLine : null, lapLength: course.layout.length || 0, lat: course.venue.lat, lng: course.venue.lng })
+        .then(function (d) {
+          // The member's session first, now on the course's lines (which are theirs), so it is never held back.
+          var mine = carry(T.analyse(restoreSource(src), d.library, options()));
+          return postJson('/track/admin/retime', { id: id, session: mine }).then(function () { return mine; });
+        })
+        .then(function (mine) { return act({ action: 'accepted', id: id }, 'Accepted. The lines for ' + name + ' are updated and this session is ' + timeText(mine.bestTime) + '.').then(function () { return mine; }); })
+        .then(function () {
+          // The Tracks panel picks up the new lines, then every other session at the track is re-timed.
+          document.dispatchEvent(new Event('mt3uk-admin-refresh'));
+          if (!window.MT3UKTrackAdmin) { note('Accepted. The lines are updated: now press Re-time sessions here for ' + course.venue.name + ' on the Tracks panel.'); return; }
+          return new Promise(function (resolve) {
+            window.MT3UKTrackAdmin.retimeTrack(course.venue.id, course.venue.name, function (t) { note(t); }, function (msg) { note('Accepted. ' + msg + ' Revoke their access when they are done.'); resolve(); });
+          });
+        });
     }).catch(function (e) { note((e && e.message) || 'That did not work.', 'error'); });
   }
 

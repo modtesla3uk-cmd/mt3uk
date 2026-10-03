@@ -670,10 +670,12 @@ def test_admin_line_editing_panel_allows_shows_the_change_and_undoes_or_revokes(
     assert calls == [("grant", "s1"), ("undo", "s3"), ("revoke", "s2")]
 
 
-def test_admin_accepting_a_change_works_the_time_out_again_and_saves_it_after_a_yes(page):
-    """Accept does not trust the member's figure: the time is worked out again from the saved readings on the
-    new lines and shown before anything is saved. A no leaves it waiting; a yes saves the session, then clears it."""
-    fixture = (Path(__file__).resolve().parent / "fixtures" / "thruxton-trimmed.vbo").read_text(encoding="latin1")
+def _accept_setup(page, on_course):
+    """A member's change waiting on a Thruxton session, with the readings and the routes Accept uses."""
+    ok = {"Access-Control-Allow-Origin": "*"}
+    base = Path(__file__).resolve().parent
+    fixture = (base / "fixtures" / "thruxton-trimmed.vbo").read_text(encoding="latin1")
+    thruxton = next(v for v in json.loads((base.parent / "data" / "tracks.json").read_text(encoding="utf-8"))["venues"] if v["id"] == "thruxton")
     open_admin(page, "admin.html")
     page.wait_for_function("!!(window.MT3UKTrack && window.MT3UKTrack.analyse)")
     prep = page.evaluate("""(text) => {
@@ -684,49 +686,228 @@ def test_admin_accepting_a_change_works_the_time_out_again_and_saves_it_after_a_
     }""", fixture)
     line = prep["line"]
     assert line and len(line) == 2
-    session = {"id": "s9", "type": "track", "venue": "Thruxton", "venueId": "thruxton", "date": "2026-05-28", "time": "14:34", "bestTime": 102.0, "fileName": "f.vbo", "hasSource": True}
+    old = {"id": "s9", "type": "track", "venue": "Thruxton", "date": "2026-05-28", "time": "14:34", "bestTime": 102.0, "fileName": "f.vbo", "hasSource": True}
+    if on_course:
+        old.update({"venueId": "thruxton", "layoutId": "main"})
     state = {"requests": [{"id": "s9", "name": "Dee", "email": "d***@example.com", "note": "", "at": "2026-10-02T08:00:00Z", "status": "granted", "grantedAt": "2026-10-02T08:30:00Z", "what": "Thruxton, 2026-05-28", "type": "track", "best": 102.0,
                            "proposal": {"at": "2026-10-02T09:30:00Z", "from": {"startLine": [[51.2, -1.6], [51.2002, -1.6002]], "finishLine": None, "time": 102.0}, "to": {"startLine": line, "finishLine": None, "time": 50.0}}}]}
-    log = {"retime": None, "actions": []}
-    fulfil = lambda route, body, status=200: route.fulfill(status=status, content_type="application/json", body=json.dumps(body), headers={"Access-Control-Allow-Origin": "*"})
+    # The library once the course has the member's line.
+    moved = json.loads(json.dumps(thruxton))
+    moved["layouts"][0]["startLine"] = line
+    log = {"calls": [], "course": None, "retimes": [], "actions": [], "rebuilds": 0}
+    fulfil = lambda route, body: route.fulfill(status=200, content_type="application/json", body=json.dumps(body), headers=ok)
 
     def lines(route):
         if route.request.method == "POST":
             body = json.loads(route.request.post_data)
-            log["actions"].append(body["action"])
+            log["actions"].append(body["action"]); log["calls"].append("accepted")
             if body["action"] == "accepted":
                 state["requests"][0]["proposal"] = None
         fulfil(route, dict(state, success=True))
 
     def retime(route):
-        if route.request.method == "POST":
-            log["retime"] = json.loads(route.request.post_data)
+        req = route.request
+        if req.method == "POST":
+            body = json.loads(req.post_data)
+            log["retimes"].append(body); log["calls"].append("retime " + body["id"])
             fulfil(route, {"success": True})
+        elif "id=" in req.url:
+            sid = req.url.split("id=")[1].split("&")[0]
+            fulfil(route, {"success": True, "session": dict(old, id=sid)})
         else:
-            fulfil(route, {"success": True, "session": session})
+            rows = [{"id": "s9", "type": "track", "venue": "Thruxton", "venueId": "thruxton", "layoutId": "main", "date": "2026-05-28", "best": 102.0, "version": 7, "hasSource": True, "owner": "Dee"},
+                    {"id": "s8", "type": "track", "venue": "Thruxton", "venueId": "thruxton", "layoutId": "main", "date": "2026-05-29", "best": 101.0, "version": 7, "hasSource": True, "owner": "Eve"}]
+            fulfil(route, {"success": True, "sessions": rows, "done": True, "cursor": ""})
+
+    def course(route):
+        log["course"] = json.loads(route.request.post_data); log["calls"].append("course")
+        fulfil(route, {"success": True, "library": {"venues": [moved]}, "relinked": 0})
+
+    def rebuild(route):
+        log["rebuilds"] += 1; log["calls"].append("rebuild")
+        fulfil(route, {"success": True, "cars": 3, "done": True})
     page.route(LINES_API, lines)
     page.route("**/track/admin/retime/source**", lambda route: fulfil(route, prep["src"]))
     page.route(re.compile(r".*/track/admin/retime(\?.*)?$"), retime)
-    page.route("**/track/admin/tracks**", lambda route: fulfil(route, {"success": True, "extra": {"venues": []}}))
+    page.route("**/track/admin/course**", course)
+    page.route("**/track/boards/rebuild**", rebuild)
+    page.route("**/track/admin/tracks**", lambda route: fulfil(route, {"success": True, "extra": {"venues": [moved] if log["course"] else []}, "library": {"venues": [moved if log["course"] else thruxton]}}))
+    page.route("**/track/access/admin**", lambda route: fulfil(route, {"success": True, "open": False, "allowed": [], "pending": []}))
+    page.route("**/track/admin/requests**", lambda route: fulfil(route, {"success": True, "requests": []}))
     page.reload()
     page.locator("#lines-wrap summary").click()
+    return line, log
+
+
+def test_admin_accepting_a_change_updates_the_course_and_re_times_every_session_at_the_track(page):
+    """Accept on a session at a listed course: the time is worked out again from the saved readings (never the
+    member's figure) and shown with what else will change; a no leaves it waiting and changes nothing. A yes makes
+    the member's lines the course's official lines, re-times their session, then every other session at the track,
+    and rebuilds the leaderboards."""
+    line, log = _accept_setup(page, True)
     row = page.locator("#ln-list > table > tbody > tr").first
     expect(row).to_contain_text("The session has not changed yet")
-    # A no leaves the change waiting and saves nothing.
     seen = []
     page.once("dialog", lambda d: (seen.append(d.message), d.dismiss()))
     row.get_by_role("button", name="Accept").click()
     expect(page.locator("#ln-note")).to_contain_text("Not accepted. It is still waiting")
-    assert log["retime"] is None and log["actions"] == []
-    # It is the readings that decide the time, not the member's 50 seconds.
+    assert log["calls"] == [] and log["course"] is None
     assert "1:42.000 to 1:39.78" in seen[0] and "They saw 0:50.000" in seen[0], seen[0]
-    # A yes saves the session on the new line, then clears the change.
+    assert "official start line for Thruxton" in seen[0] and "re-times every other session at Thruxton" in seen[0] and "leaderboards" in seen[0], seen[0]
     page.once("dialog", lambda d: d.accept())
     row.get_by_role("button", name="Accept").click()
+    expect(page.locator("#ln-note")).to_contain_text("Leaderboards rebuilt (3 cars)", timeout=15000)
+    expect(page.locator("#ln-note")).to_contain_text("Accepted.")
+    # The course takes the member's line, in place.
+    c = log["course"]
+    assert c["replace"] is True and c["venueId"] == "thruxton" and c["layoutId"] == "main" and c["kind"] == "circuit" and c["finishLine"] is None
+    assert [round(v, 7) for pt in c["startLine"] for v in pt] == [round(v, 7) for pt in line for v in pt]
+    # Order: the course, then the member's own session (on the course's lines now), then the rest of the track.
+    assert log["calls"][:3] == ["course", "retime s9", "accepted"], log["calls"]
+    assert "retime s8" in log["calls"] and log["calls"][-1] == "rebuild" and log["rebuilds"] == 1
+    mine = log["retimes"][0]["session"]
+    assert abs(mine["bestTime"] - 99.786) < 0.02 and mine["date"] == "2026-05-28" and mine["fileName"] == "f.vbo" and not mine.get("linesAccepted")
+    assert all(abs(r["session"]["bestTime"] - 99.786) < 0.02 for r in log["retimes"])
+
+
+def test_admin_accepting_a_change_on_a_session_with_no_listed_course_changes_only_that_session(page):
+    line, log = _accept_setup(page, False)
+    row = page.locator("#ln-list > table > tbody > tr").first
+    seen = []
+    page.once("dialog", lambda d: (seen.append(d.message), d.accept()))
+    row.get_by_role("button", name="Accept").click()
     expect(page.locator("#ln-note")).to_contain_text("Accepted. The session is now 1:39.78")
-    saved = log["retime"]
-    assert saved["id"] == "s9" and abs(saved["session"]["bestTime"] - 99.786) < 0.02
-    assert saved["session"]["date"] == "2026-05-28" and saved["session"]["fileName"] == "f.vbo"
-    assert abs(saved["session"]["startLine"][0][0] - line[0][0]) < 1e-9
+    assert "not on a listed course, so only it changes" in seen[0], seen[0]
+    assert log["course"] is None and log["rebuilds"] == 0
+    assert [r["id"] for r in log["retimes"]] == ["s9"]
+    saved = log["retimes"][0]["session"]
+    assert abs(saved["bestTime"] - 99.786) < 0.02 and saved["linesAccepted"] is True
+    assert abs(saved["startLine"][0][0] - line[0][0]) < 1e-9
     assert log["actions"] == ["accepted"]
-    expect(page.locator("#ln-list")).to_contain_text("Waiting for them to change the map")
+
+
+def test_admin_sets_a_course_line_by_clicking_on_the_map_instead_of_typing_coordinates(page):
+    """Set the finish line on the satellite map: click each side of the road, drag an end, and the four numbers
+    go into the box (west longitudes negative) for Save track. The start line is shown for reference."""
+    ok = {"Access-Control-Allow-Origin": "*"}
+    venue = {"id": "abingdon-airfield", "name": "Abingdon Airfield", "type": "sprint", "lat": 51.6885, "lng": -1.3165, "radius": 1500,
+             "layouts": [{"id": "course", "name": "AMC LCS", "organizer": "AMC LCS", "length": 2250, "startLine": [[51.6926409, -1.3170275], [51.6926050, -1.3174584]], "finishLine": [[51.6897602, -1.3163671], [51.6897898, -1.3159349]]}]}
+    saved = []
+
+    def tracks(route):
+        if route.request.method == "PUT":
+            saved.append(json.loads(route.request.post_data))
+            route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "library": {"venues": [venue]}}), headers=ok)
+            return
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "extra": {"venues": [venue]}, "library": {"venues": [venue]}}), headers=ok)
+    open_admin(page, "admin.html")
+    page.route("**/server.arcgisonline.com/**", lambda r: r.fulfill(status=200, content_type="image/png", body=b""))
+    page.route("**/track/access/admin**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "open": False, "allowed": [], "pending": []}), headers=ok))
+    page.route("**/track/admin/requests**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "requests": []}), headers=ok))
+    page.route("**/track/admin/tracks**", tracks)
+    page.reload()
+    page.locator("#tracks-wrap summary").click()
+    page.get_by_role("button", name="Edit").first.click()
+    finish = page.locator('[data-l="finishLine"]')
+    start_before = page.locator('[data-l="startLine"]').input_value()
+    page.get_by_role("button", name="Set the finish line on the map").click()
+    modal = page.locator("#tk-map-modal")
+    expect(modal).to_be_visible()
+    expect(modal).to_contain_text("The line is")  # it opens on the line it already has
+    expect(modal.locator(".tk-pick-end")).to_have_count(2)
+    # Clear it and place a new one by clicking either side of a road.
+    modal.get_by_role("button", name="Clear").click()
+    expect(modal.locator(".tk-pick-end")).to_have_count(0)
+    expect(modal.locator("#tk-pick-step")).to_contain_text("click one side")
+    expect(modal.locator("#tk-pick-use")).to_be_disabled()
+    box = page.locator("#tk-map-svg").bounding_box()
+    page.mouse.click(box["x"] + box["width"] * 0.45, box["y"] + box["height"] * 0.5)
+    expect(modal.locator("#tk-pick-step")).to_contain_text("Now click the other side")
+    page.mouse.click(box["x"] + box["width"] * 0.55, box["y"] + box["height"] * 0.5)
+    expect(modal.locator(".tk-pick-end")).to_have_count(2)
+    expect(modal.locator("#tk-pick-step")).to_contain_text("m long")
+    # Drag an end.
+    end = modal.locator(".tk-pick-end").first.bounding_box()
+    page.mouse.move(end["x"] + end["width"] / 2, end["y"] + end["height"] / 2)
+    page.mouse.down()
+    page.mouse.move(end["x"] + end["width"] / 2 - 20, end["y"] + end["height"] / 2 + 10, steps=4)
+    page.mouse.up()
+    expect(modal.locator("#tk-pick-use")).to_be_enabled()
+    page.once("dialog", lambda d: d.accept())  # in case the line is outside 8 to 100 m
+    modal.get_by_role("button", name="Use this line").click()
+    expect(modal).to_have_count(0)
+    nums = [float(x) for x in finish.input_value().split(",")]
+    assert len(nums) == 4
+    assert all(51.68 < nums[i] < 51.70 for i in (0, 2)) and all(-1.32 < nums[i] < -1.31 for i in (1, 3)), nums
+    assert nums != [51.6897602, -1.3163671, 51.6897898, -1.3159349]
+    assert page.locator('[data-l="startLine"]').input_value() == start_before
+    page.get_by_role("button", name="Save track").click()
+    expect(page.locator("#tk-note")).to_contain_text("Saved")
+    line = saved[0]["venue"]["layouts"][0]["finishLine"]
+    assert [round(line[0][0], 7), round(line[0][1], 7), round(line[1][0], 7), round(line[1][1], 7)] == [round(n, 7) for n in nums]
+
+
+def test_admin_checks_then_re_times_every_session_at_one_track_from_its_saved_readings(page):
+    """After a track's lines are corrected, Check sessions here shows what would change for the sessions at that
+    one track (whatever their analysis version), and Re-time sessions here saves them and rebuilds the boards.
+    Sessions at other tracks are left alone, and one with no readings kept is reported."""
+    ok = {"Access-Control-Allow-Origin": "*"}
+    fixture = (Path(__file__).resolve().parent / "fixtures" / "thruxton-trimmed.vbo").read_text(encoding="latin1")
+    open_admin(page, "admin.html")
+    page.wait_for_function("!!(window.MT3UKTrack && window.MT3UKTrack.analyse)")
+    src = page.evaluate("""(text) => {
+      const T = window.MT3UKTrack, rd = T.read(text, 'f.vbo');
+      const meta = {}; Object.keys(rd).forEach(k => { if (k !== 'points') meta[k] = rd[k]; });
+      return { v: 1, rd: meta, p: rd.points.map(q => [q.t, q.lat, q.lng, q.v, isFinite(q.la) ? q.la : null, isFinite(q.lo) ? q.lo : null, isFinite(q.sats) ? q.sats : null, isFinite(q.temp) ? q.temp : null, q.run || 0]) };
+    }""", fixture)
+    thruxton = {"id": "thruxton", "name": "Thruxton", "type": "circuit", "lat": 51.2077, "lng": -1.6088, "radius": 2000, "layouts": [{"id": "main", "name": "Thruxton", "length": 3800, "startLine": [[51.2077017, -1.6088667], [51.2076237, -1.6091363]]}]}
+    other = {"id": "castle-combe", "name": "Castle Combe", "type": "circuit", "lat": 51.49, "lng": -2.21, "radius": 2000, "layouts": [{"id": "gp", "name": "GP", "length": 2200, "startLine": [[51.49, -2.21], [51.4902, -2.2102]]}]}
+    rows = [{"id": "r1", "type": "track", "venue": "Thruxton", "venueId": "thruxton", "layoutId": "main", "date": "2026-05-28", "best": 102.0, "version": 7, "hasSource": True, "owner": "Ann"},
+            {"id": "r2", "type": "track", "venue": "Thruxton", "venueId": "thruxton", "layoutId": "", "date": "2026-05-29", "best": 101.0, "version": 7, "hasSource": False, "owner": "Bob"},
+            {"id": "r3", "type": "track", "venue": "Castle Combe", "venueId": "castle-combe", "layoutId": "gp", "date": "2026-05-30", "best": 80.0, "version": 7, "hasSource": True, "owner": "Cat"}]
+    old = {"id": "r1", "type": "track", "venue": "Thruxton", "venueId": "thruxton", "date": "2026-05-28", "time": "14:34", "bestTime": 102.0, "fileName": "f.vbo", "layoutId": "main"}
+    seen = {"gets": [], "posts": [], "rebuilds": 0}
+    fulfil = lambda route, body: route.fulfill(status=200, content_type="application/json", body=json.dumps(body), headers=ok)
+
+    def retime(route):
+        req = route.request
+        if req.method == "POST":
+            seen["posts"].append(json.loads(req.post_data))
+            fulfil(route, {"success": True})
+        elif "id=" in req.url:
+            seen["gets"].append(req.url.split("id=")[1].split("&")[0])
+            fulfil(route, {"success": True, "session": old})
+        else:
+            fulfil(route, {"success": True, "sessions": rows, "done": True, "cursor": ""})
+
+    def rebuild(route):
+        seen["rebuilds"] += 1
+        fulfil(route, {"success": True, "cars": 2, "done": True})
+    page.route("**/track/access/admin**", lambda r: fulfil(r, {"success": True, "open": False, "allowed": [], "pending": []}))
+    page.route("**/track/admin/requests**", lambda r: fulfil(r, {"success": True, "requests": []}))
+    page.route("**/track/admin/tracks**", lambda r: fulfil(r, {"success": True, "extra": {"venues": []}, "library": {"venues": [thruxton, other]}}))
+    page.route("**/track/admin/retime**", retime)
+    page.route("**/track/admin/retime/source**", lambda r: fulfil(r, src))
+    page.route("**/track/boards/rebuild**", rebuild)
+    page.reload()
+    page.locator("#tracks-wrap summary").click()
+    row = page.locator("#tk-list tbody tr", has_text="Thruxton")
+    expect(row.get_by_role("button", name="Check sessions here")).to_be_visible()
+    expect(page.locator("#tk-list tbody tr", has_text="Castle Combe").get_by_role("button", name="Re-time sessions here")).to_be_visible()
+    # Check: shows what moves, saves nothing, and looks only at this track's sessions.
+    row.get_by_role("button", name="Check sessions here").click()
+    expect(page.locator("#tk-retime-note")).to_contain_text("2 sessions at Thruxton")
+    expect(page.locator("#tk-retime-note")).to_contain_text("1 have no readings kept")
+    expect(page.locator("#tk-retime-list")).to_contain_text("Thruxton, 2026-05-28 (track): 1:42.000 to 1:39.78")
+    assert seen["posts"] == [] and seen["gets"] == ["r1"], seen
+    # A no leaves everything as it was.
+    page.once("dialog", lambda d: d.dismiss())
+    row.get_by_role("button", name="Re-time sessions here").click()
+    page.wait_for_timeout(300)
+    assert seen["posts"] == []
+    # A yes saves the one that can be re-timed, then rebuilds the leaderboards.
+    page.once("dialog", lambda d: d.accept())
+    row.get_by_role("button", name="Re-time sessions here").click()
+    expect(page.locator("#tk-retime-note")).to_contain_text("Leaderboards rebuilt (2 cars)")
+    assert [p["id"] for p in seen["posts"]] == ["r1"] and abs(seen["posts"][0]["session"]["bestTime"] - 99.786) < 0.02
+    assert seen["posts"][0]["session"]["date"] == "2026-05-28" and "r3" not in seen["gets"] and seen["rebuilds"] == 1

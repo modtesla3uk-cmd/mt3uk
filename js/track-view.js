@@ -315,7 +315,7 @@
       return { x: v.x + (v.w - w) / 2, y: v.y + (v.h - h) / 2, w: w, h: h };
     }
     function edges() { edgeFor(edgeA, posA, posB); edgeFor(edgeB, posB, posA); }
-    return { vmin: vmin, vmax: vmax, placeA: function (p) { place(dotA, p); posA = p; follow(); edges(); }, placeB: function (p) { place(dotB, p); posB = p; follow(); edges(); }, setFollow: function (on) { following = !!on; if (on) { lastT = 0; follow(); edges(); } }, setGap: function (g) { gapS = g == null || !isFinite(g) ? null : g; }, prefetchSat: function () { if (sat) sat.prefetch(trace); }, P: P, marker: marker, zoom: zoom };
+    return { vmin: vmin, vmax: vmax, placeA: function (p) { place(dotA, p); posA = p; follow(); edges(); }, placeB: function (p) { place(dotB, p); posB = p; follow(); edges(); }, setFollow: function (on) { following = !!on; if (on) { lastT = 0; follow(); edges(); } }, setGap: function (g) { gapS = g == null || !isFinite(g) ? null : g; }, prefetchSat: function () { if (sat) sat.prefetch(trace); }, P: P, unP: function (px, py) { return [(px - ox) / s + x0, (H - oy - py) / s + y0]; }, marker: marker, moveMarker: moveMarker, zoom: zoom };
   }
 
   // ---------- Satellite ground ----------

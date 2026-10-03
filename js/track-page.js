@@ -1628,14 +1628,37 @@
     var wait = new Promise(function (resolve) { setTimeout(resolve, 20000); });
     return Promise.race([send, wait]);
   }
+  // A saved session's readings. They come back gzipped: the browser usually unzips them on the way in, but not
+  // always (a large file can arrive still zipped), and api() would then find no readings. So the bytes are
+  // read here and unzipped when they still start with the gzip marker, as the admin's Re-time does.
+  function fetchSource(id) {
+    var headers = {};
+    if (token()) headers['X-Session-Token'] = token();
+    return fetch(API + '/track/session/source?id=' + encodeURIComponent(id), { headers: headers, cache: 'no-store' }).then(function (r) {
+      return r.arrayBuffer().then(function (buf) {
+        var b = new Uint8Array(buf);
+        if (b.length > 2 && b[0] === 0x1f && b[1] === 0x8b) {
+          if (typeof DecompressionStream !== 'function') throw new Error('This browser cannot unzip your readings. Try another browser.');
+          return new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream('gzip'))).text().then(JSON.parse);
+        }
+        var d;
+        try { d = JSON.parse(new TextDecoder().decode(buf)); } catch (e) { d = {}; }
+        d.status = r.status;
+        return d;
+      });
+    });
+  }
+  function sourceError(src) {
+    return (src && src.message) || 'Could not load your readings' + (src && src.status && src.status !== 200 ? ' (the server said ' + src.status + ')' : '') + '. Try again, or ask MT3UK.';
+  }
   // Change a saved session's type: its readings come back from the worker and
   // go through the same screen as adding one (tap the line if the course is
   // new, then check the result and save).
   function startRetype(s, type) {
     status('Loading your readings...');
-    Promise.all([api('GET', '/track/session/source?id=' + encodeURIComponent(s.id)), getMine(), getLibrary(), isAdmin()]).then(function (r) {
+    Promise.all([fetchSource(s.id), getMine(), getLibrary(), isAdmin()]).then(function (r) {
       var src = r[0], m = r[1];
-      if (!src.p || !m) throw new Error((src && src.message) || 'Could not load your readings.');
+      if (!src.p || !m) throw new Error(sourceError(src));
       var car = m.cars.filter(function (c) { return c.id === s.carId; })[0] || m.cars[0];
       add = { car: car, cars: m.cars, lib: r[2], admin: r[3], rd: restoreSource(src), session: null, type: type, startLine: null, conditions: s.conditions || 'Dry', condTouched: true, privacy: s.privacy, street: false, tyres: s.tyres || '', tyre: tyreInit(s), temp: s.temp, tempSource: s.tempSource || '', weather: s.weather || null, notes: s.notes || '', date: s.date, time: s.time, venueName: s.venueId ? '' : s.venue, replaceId: s.id, files: null, list: null };
       analyse();
@@ -1666,7 +1689,7 @@
         '<p class="tp-small">Time from ' + esc(p.from.time ? V.fmtLap(p.from.time) : 'none') + ' to ' + esc(p.to.time ? V.fmtLap(p.to.time) : 'none') + ' on the new lines.</p>' +
         '<button type="button" class="btn btn-secondary" id="tp-line-edit">' + icon('pin') + 'Change it again</button>';
     } else {
-      h = '<p class="tp-sub">MT3UK has said you can edit this map. Move the ' + (sprint ? 'start and finish lines' : 'start line') + ', check the time and send the change. Nothing on this session changes until MT3UK approves it.</p>' +
+      h = '<p class="tp-sub">MT3UK has said you can edit this map. Move the ' + (sprint ? 'start and finish lines' : 'start line') + ', check the time and send the change. Nothing on this session changes until MT3UK approves it. If it does, the new lines can apply to every session at this track.</p>' +
         '<button type="button" class="btn btn-primary" id="tp-line-edit">' + icon('pin') + 'Edit the map</button>';
     }
     h += '<p class="tp-small tp-err" id="tp-line-note" role="status"></p>';
@@ -1692,9 +1715,9 @@
   // The saved readings come back and go through the same screen as adding a file, on the lines as they are now.
   function startLineEdit(s, note) {
     if (note) note.textContent = 'Loading your readings...';
-    Promise.all([api('GET', '/track/session/source?id=' + encodeURIComponent(s.id)), getMine(), getLibrary()]).then(function (r) {
+    Promise.all([fetchSource(s.id), getMine(), getLibrary()]).then(function (r) {
       var src = r[0], m = r[1];
-      if (!src.p || !m) throw new Error((src && src.message) || 'Could not load your readings.');
+      if (!src.p || !m) throw new Error(sourceError(src));
       var car = m.cars.filter(function (c) { return c.id === s.carId; })[0] || m.cars[0];
       add = { car: car, cars: m.cars, lib: r[2], admin: false, rd: restoreSource(src), session: null, type: s.type, startLine: s.startLine || null, finishLine: s.type === 'sprint' ? (s.finishLine || null) : null,
         editLines: true, confirmLines: false, lineEdit: true, organizer: s.organizer || '', ignoreFinish: s.ignoreFinish !== false, finishCross: s.finishCrossing || 0, rollout: !!s.rollout,
@@ -2821,9 +2844,9 @@
     if (!window.confirm('Split this into ' + s.runs + ' separate sessions? The merged session is replaced and your settings carry over.')) return;
     btn.disabled = true;
     status('Loading your readings...');
-    Promise.all([api('GET', '/track/session/source?id=' + encodeURIComponent(s.id)), getLibrary()]).then(function (r) {
+    Promise.all([fetchSource(s.id), getLibrary()]).then(function (r) {
       var src = r[0], lib = r[1];
-      if (!src.p) throw new Error((src && src.message) || 'Could not load your readings.');
+      if (!src.p) throw new Error(sourceError(src));
       var rd = restoreSource(src), groups = {}, order = [];
       rd.points.forEach(function (q) { var k = q.run || 1; if (!groups[k]) { groups[k] = []; order.push(k); } groups[k].push(q); });
       if (order.length < 2) throw new Error('This session is not several files.');

@@ -629,3 +629,14 @@ ok(T.fmtLap(99.786) === '1:39.786' && T.niceDate('2026-05-28') === '28 May 2026'
   }
   ok(T.read('Time (s),Latitude,Longitude,Speed (mph)\n' + rev.join('\n'), 'reverse.csv').glitches === 0, 'backing up to a start line and launching is not changed');
 }
+
+// ownLines (the admin moving or keeping a session's own lines): the lines given are used, not the course's.
+{
+  const rdT = T.read(vbo, 'RaceBox_Track_Session.vbo');
+  const course = T.analyse(rdT, lib);
+  const line = course.startLine.map(p => [p[0] + 0.00002, p[1]]);
+  const withCourse = T.analyse(rdT, lib, { type: 'track', startLine: line });
+  const own = T.analyse(rdT, lib, { type: 'track', startLine: line, ownLines: true });
+  ok(!withCourse.startLineFromMember && JSON.stringify(withCourse.startLine) === JSON.stringify(course.startLine), "the course's own line wins over a member's line");
+  ok(own.startLineFromMember === true && JSON.stringify(own.startLine) === JSON.stringify(line) && own.laps.length >= 1, 'with ownLines the line given is used instead (' + own.laps.length + ' laps)');
+}

@@ -6680,6 +6680,8 @@ function cleanTrackSession(s, library) {
     if (s.ignoreFinish === false) out.ignoreFinish = false;
   }
   out.startLineFromMember = !!s.startLineFromMember;
+  // The admin accepted the member's own lines for this session: a re-time keeps them, whatever the course's are.
+  if (s.linesAccepted) out.linesAccepted = true;
   // A course with official lines only takes sessions timed on them (within
   // 25 m): lines a member moved never reach its leaderboard.
   if (layout && layout.startLine) {
@@ -7759,7 +7761,7 @@ async function handleTrackAdminTracks(request, env) {
 // admin viewer token proves who they are; the new course is linked to their
 // own saved sessions the same way "Approve and add track" does it.
 async function handleTrackAdminCourse(request, env) {
-  if (!(await isAdminViewerToken(env, request.headers.get('X-Admin-Viewer')))) return json({ success: false, message: 'Unauthorised' }, 401);
+  if (!(await trackAdminOrViewer(request, env))) return json({ success: false, message: 'Unauthorised' }, 401);
   var email = await resolveSession(request, env);
   var body;
   try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
@@ -8003,7 +8005,7 @@ async function handleTrackAdminRetime(request, env) {
       } catch (e) { owners[carId] = ''; }
     }));
     var rows = recs.map(function (rec) {
-      return { id: rec.id, type: rec.type, venue: rec.venue || '', date: rec.date || '', best: rec.bestTime || null, version: rec.analysisVersion || 1, hasSource: !!rec.hasSource, street: !!rec.street, privacy: rec.privacy || 'private', owner: owners[rec.carId] || '' };
+      return { id: rec.id, type: rec.type, venue: rec.venue || '', date: rec.date || '', best: rec.bestTime || null, version: rec.analysisVersion || 1, hasSource: !!rec.hasSource, street: !!rec.street, privacy: rec.privacy || 'private', owner: owners[rec.carId] || '', venueId: rec.venueId || '', layoutId: rec.layoutId || '' };
     });
     return json({ success: true, sessions: rows, done: !!page.list_complete, cursor: page.list_complete ? '' : page.cursor });
   }

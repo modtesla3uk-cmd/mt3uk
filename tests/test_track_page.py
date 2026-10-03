@@ -73,6 +73,7 @@ class FakeWorker:
         self.lines_proposal = None
         self.line_requests = []
         self.line_proposals = []
+        self.raw_gzip_source = False
 
     def reply(self, route):
         req = route.request
@@ -142,6 +143,10 @@ class FakeWorker:
                 self.sessions[sid]["hasSource"] = True
         elif path == "/track/session/source" and req.method == "GET":
             sid = q.get("id", [""])[0]
+            if sid in self.sources and self.raw_gzip_source:
+                # Still zipped when it reaches the page, with no Content-Encoding to tell the browser.
+                route.fulfill(status=200, content_type="application/octet-stream", body=gzip.compress(json.dumps(self.sources[sid]).encode()), headers={"Access-Control-Allow-Origin": "*"})
+                return
             if sid in self.sources:
                 data = dict(self.sources[sid], success=True)
             else:
@@ -3900,3 +3905,29 @@ def test_the_edit_map_request_is_not_offered_without_saved_readings(page):
     save_fixture_session(page, fake)
     expect(page.locator("#settings")).to_be_visible()
     expect(page.locator("#lineedit")).to_have_count(0)
+
+
+def test_the_readings_load_when_they_arrive_still_zipped(page):
+    """A large saved session's readings can reach the page still gzipped (the browser did not unzip them). Editing
+    the map, changing the type and the like must still work."""
+    fake = FakeWorker()
+    save_fixture_session(page, fake)
+    fake.raw_gzip_source = True
+    fake.lines_status = "granted"
+    page.reload()
+    page.get_by_role("button", name="Edit the map").click()
+    expect(page.get_by_role("heading", name="Edit the map")).to_be_visible()
+    expect(page.locator("#tp-result")).to_contain_text("timed laps")
+    page.goto("/track.html?s=new1")
+    page.locator("#settings [data-retype] button[data-v='other']").click()
+    expect(page.get_by_role("heading", name="Change the type")).to_be_visible()
+
+
+def test_a_readings_failure_says_what_the_server_said(page):
+    fake = FakeWorker()
+    save_fixture_session(page, fake)
+    fake.lines_status = "granted"
+    fake.sources.pop("new1")
+    page.reload()
+    page.get_by_role("button", name="Edit the map").click()
+    expect(page.locator("#tp-line-note")).to_contain_text("No readings were kept for this session.")

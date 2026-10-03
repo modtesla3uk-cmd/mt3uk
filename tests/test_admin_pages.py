@@ -5,6 +5,7 @@ import gzip
 import json
 import re
 import subprocess
+from urllib.parse import parse_qs, urlparse
 
 import pytest
 from playwright.sync_api import expect
@@ -340,6 +341,39 @@ def test_the_bell_lists_early_access_requests_and_new_track_requests(page):
     expect(page.locator("#tracks-wrap")).to_have_attribute("open", "")
 
 
+def test_a_track_a_member_added_is_marked_for_review_and_marked_reviewed(page):
+    req = {"id": "r2", "kind": "circuit", "name": "Blyton Park", "from": "j***@example.com", "lat": 51.3, "lng": -0.7, "added": True, "venueId": "blyton-park", "layoutId": "course",
+           "startLine": [[51.3, -0.7], [51.3002, -0.7002]], "outline": [[51.3, -0.7], [51.305, -0.705]], "at": "2026-10-03T09:00:00Z"}
+    venue = {"id": "blyton-park", "name": "Blyton Park", "type": "circuit", "lat": 51.3, "lng": -0.7, "radius": 2000, "review": True, "layouts": [{"id": "course", "name": "Blyton Park", "length": 2400, "startLine": req["startLine"]}]}
+    posted = []
+    ok = {"Access-Control-Allow-Origin": "*"}
+
+    def requests(route):
+        if route.request.method == "POST":
+            posted.append(json.loads(route.request.post_data))
+            route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True}), headers=ok)
+            return
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "requests": [req]}), headers=ok)
+    open_admin(page, "admin.html")
+    page.route("**/track/access/admin**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "open": False, "allowed": [], "pending": []}), headers=ok))
+    page.route("**/track/admin/requests**", requests)
+    page.route("**/track/admin/tracks**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "extra": {"venues": [venue]}, "library": {"venues": [venue]}}), headers=ok))
+    page.reload()
+    page.locator("#tracks-wrap summary").click()
+    card = page.locator("#tk-requests .tk-req")
+    expect(card).to_have_class(re.compile(r"is-added"))
+    expect(card).to_contain_text("Added by the member and live now")
+    expect(card.get_by_role("button", name="Approve and add track")).to_have_count(0)
+    expect(card.get_by_role("button", name="Dismiss")).to_have_count(0)
+    expect(page.locator("#tk-list")).to_contain_text("Added by a member, to review")
+    expect(page.locator("#tracks-count")).to_have_text("(1 new)")
+    card.get_by_role("button", name="Mark reviewed").click()
+    expect(page.locator("#tk-note")).to_contain_text("Marked as reviewed")
+    assert posted == [{"id": "r2", "action": "approve"}]
+    expect(page.locator("#tk-requests")).to_contain_text("No new requests")
+    expect(page.locator("#tk-list")).not_to_contain_text("to review")
+
+
 def test_admin_can_open_a_map_of_a_requested_course_and_the_load_refreshes_everything(page):
     req = {"id": "r1", "kind": "sprint", "name": "Newfield Sprint", "organizer": "B19", "from": "j***@example.com", "lat": 51.2, "lng": -0.9,
            "startLine": [[51.2, -0.9], [51.2002, -0.9002]], "finishLine": [[51.21, -0.91], [51.2102, -0.9102]],
@@ -483,6 +517,48 @@ def test_admin_link_preview_pictures_rotate_and_are_drawn_from_sessions(page):
     expect(page.locator("#home-share-wrap .ts-preview")).to_be_visible()
     expect(page.locator("#home-share-wrap .ts-make")).to_be_enabled()
     assert "/share/home/admin/photo?file=" in fetched[0]
+
+
+def test_admin_renames_a_session_at_a_track_we_do_not_list(page):
+    cors = {"Access-Control-Allow-Origin": "*"}
+    renamed = []
+    sessions = [
+        {"id": "aaaa1111", "type": "track", "venue": "abingdon", "venueId": "", "layout": "", "date": "2026-09-20", "privacy": "private"},
+        {"id": "bbbb2222", "type": "track", "venue": "Thruxton", "venueId": "thruxton", "layout": "Main", "date": "2026-09-21", "privacy": "board"},
+    ]
+
+    def admin_sessions(route):
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "sessions": sessions, "views": []}), headers=cors)
+
+    def rename(route):
+        body = json.loads(route.request.post_data)
+        renamed.append((parse_qs(urlparse(route.request.url).query)["key"][0], body))
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "session": {"id": body["id"], "venue": body["venue"].title(), "layout": ""}}), headers=cors)
+
+    open_admin(page, "admin.html")
+    page.route("**/track/admin/sessions**", admin_sessions)
+    page.route("**/track/admin/session?**", rename)
+    page.locator("#member-sessions-wrap summary").click()
+    page.fill("#ms-email", "sam@example.com")
+    page.locator("#ms-find").click()
+    rows = page.locator("#ms-list tbody tr")
+    expect(rows).to_have_count(2)
+    # The unlisted one has a name box; the listed one shows where its name comes from.
+    box = rows.nth(0).locator(".ms-name")
+    expect(box).to_have_value("abingdon")
+    expect(rows.nth(1).locator(".ms-name")).to_have_count(0)
+    expect(rows.nth(1)).to_contain_text("Listed track")
+    box.fill("abingdon airfield")
+    box.press("Enter")
+    expect(page.locator("#ms-note")).to_contain_text("Renamed to Abingdon Airfield")
+    assert renamed == [("test-key", {"id": "aaaa1111", "venue": "abingdon airfield"})]
+    expect(rows.nth(0).locator("a")).to_have_text("Abingdon Airfield")
+    expect(box).to_have_value("Abingdon Airfield")
+    # A blank name is not sent.
+    box.fill("  ")
+    rows.nth(0).locator(".ms-save").click()
+    expect(page.locator("#ms-note")).to_contain_text("Enter the track name.")
+    assert len(renamed) == 1
 
 
 def test_admin_welcome_text_is_edited_and_reset(page):

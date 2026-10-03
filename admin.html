@@ -318,6 +318,11 @@
   }
   .iv-table input[type="date"] { color-scheme: light; max-width: 170px; }
   .iv-table textarea { min-height: 52px; resize: vertical; }
+  .ms-rename { display: flex; gap: 6px; align-items: center; min-width: 140px; }
+  .ms-rename input[type="text"] { margin-top: 0; min-width: 0; flex: 1 1 auto; }
+  .ms-rename .iv-act { padding: 5px 10px; font-size: 0.68rem; white-space: nowrap; flex: 0 0 auto; }
+  .ms-table .iv-sub { display: block; margin-top: 3px; }
+  @media (max-width: 780px) { .ms-table th:nth-child(4), .ms-table td:nth-child(4) { display: none; } }
   .iv-table input.changed, .iv-table textarea.changed { border-color: var(--orange); }
   .iv-review { border: 1px solid var(--orange); padding: 14px; margin-bottom: 14px; font-size: 0.78rem; }
   .iv-review h3 { margin: 0 0 10px; font-size: 0.85rem; }
@@ -471,6 +476,7 @@
   .tk-switch[aria-checked="true"] .tk-track { background: var(--orange); }
   .tk-switch[aria-checked="true"] .tk-track::after { transform: translateX(16px); }
   .tk-req { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .tk-req .tk-added, .tk-table .tk-review { display: block; color: #b8421f; }
   .tk-outline { width: 120px; height: 80px; flex: none; color: var(--orange); }
   #tk-board { margin-top: 10px; }
 </style>
@@ -722,7 +728,7 @@
     <div class="panel-wrap">
     <details class="collapsible" id="member-sessions-wrap">
       <summary><h3 class="panel-title">Member sessions</h3></summary>
-      <p class="iv-note">Find a member by email to open their sessions, even private ones. You get a read-only view without their notes, and each view is logged below. Members are told in the privacy page. Links open on this browser once you have entered the admin key.</p>
+      <p class="iv-note">Find a member by email to open their sessions, even private ones. You get a read-only view without their notes, and each view is logged below. Members are told in the privacy page. Links open on this browser once you have entered the admin key. A session at a track we do not list yet can be renamed here; one at a listed track takes its name from the Tracks panel.</p>
       <p class="iv-note" id="ms-note" role="status"></p>
       <div class="iv-toolbar"><input type="email" class="field" id="ms-email" placeholder="Member email" autocomplete="off"><button type="button" class="iv-act" id="ms-find">Find sessions</button></div>
       <div id="ms-list"></div>
@@ -2917,8 +2923,8 @@
 <script src="js/track-parse.js?v=20261102" defer></script>
 <script src="js/track-view.js?v=20261102" defer></script>
 <script src="js/track-access-admin.js" defer></script>
-<script src="js/track-member-admin.js" defer></script>
-<script src="js/track-admin.js?v=20261102" defer></script>
+<script src="js/track-member-admin.js?v=20261103" defer></script>
+<script src="js/track-admin.js?v=20261103" defer></script>
 <script src="js/track-share-card.js?v=20261102"></script>
 <script src="js/track-share-admin.js?v=20261103" defer></script>
 <script src="js/track-copy-admin.js?v=20261102" defer></script>

@@ -293,6 +293,9 @@
   .tp-car-one b { color: var(--ink); }
   .tp-field { display: grid; gap: 6px; margin-bottom: 14px; }
   .tp-field label, .tp-lbl { font-size: 0.82rem; font-weight: 600; color: var(--steel); }
+  .tp-field label .tp-req { font-weight: 400; }
+  .tp-err { color: #b8361a; font-size: 0.8rem; margin-top: 6px; }
+  .tp-field .field[aria-invalid="true"] { border-color: #b8361a; box-shadow: 0 0 0 2px rgba(184, 54, 26, 0.15); }
   .tp-f2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   @media (max-width: 420px) { .tp-f2 { grid-template-columns: 1fr; } }
   .tp-drop { border: 2px dashed var(--hairline-strong); border-radius: var(--radius); padding: 22px 16px; text-align: center; display: grid; gap: 8px; justify-items: center; cursor: pointer; }
@@ -818,7 +821,7 @@
 <script src="js/track-parse.js?v=20261102" defer></script>
 <script src="js/track-view.js?v=20261102" defer></script>
 <script src="js/tyre-data.js"></script>
-<script src="js/track-page.js?v=20261102" defer></script>
+<script src="js/track-page.js?v=20261103" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js" defer></script>
 <script src="js/signin-prompt.js" defer></script>

@@ -60,6 +60,8 @@ class FakeWorker:
         # The link preview picture set's version, for the share links.
         self.shareVersion = 0
         self.courses = []
+        self.courses_added = []
+        self.course_error = ""
         self.sources = {}
         self.boards = {}
         self.access = "approved"
@@ -183,6 +185,18 @@ class FakeWorker:
             data = {"success": True, "versions": {"track": self.shareVersion, "home": 0}}
         elif path == "/track/requests":
             self.requests.append(body)
+        elif path == "/track/courses":
+            self.courses_added.append(body)
+            if self.course_error:
+                status, data = 400, {"success": False, "message": self.course_error}
+            else:
+                lib = json.loads((ROOT / "data" / "tracks.json").read_text(encoding="utf-8"))
+                vid = re.sub(r"[^a-z0-9-]+", "-", body["name"].lower()).strip("-")
+                layout = {"id": "course", "name": body.get("organizer") or body["name"], "length": body.get("lapLength") or 0, "startLine": body["startLine"]}
+                if body["kind"] == "sprint":
+                    layout["finishLine"] = body["finishLine"]
+                lib["venues"].append({"id": vid, "name": body["name"], "type": "sprint" if body["kind"] == "sprint" else "circuit", "lat": body["lat"], "lng": body["lng"], "radius": 2000, "review": True, "layouts": [layout]})
+                data = {"success": True, "venueId": vid, "layoutId": "course", "relinked": 0, "library": lib}
         elif path == "/track/admin/course" and req.method == "POST" and not req.headers.get("x-admin-viewer"):
             status, data = 401, {"success": False, "message": "Unauthorised"}
         elif path == "/track/admin/course" and req.method == "POST":
@@ -791,6 +805,7 @@ def test_a_lap_in_a_file_with_no_time_stamps_is_timed(page):
     page.set_input_files("#tp-file", files=[{"name": "telemetry-v1-2024-02-23-15_10_30.csv", "mimeType": "text/csv", "buffer": lap}])
     expect(page.locator(".tp-file-list")).to_contain_text("No time stamps in this file")
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text(re.compile(r"1 timed lap, best 1:4[5-7]\.\d"))
+    page.fill("#tp-venue-name", "Test track")
     page.get_by_role("button", name="Save session").click()
     expect(page.locator(".tp-session-head")).to_be_visible()
     saved = fake.saved[0]["session"]
@@ -2493,6 +2508,99 @@ def test_nothing_is_filled_in_when_the_lookup_finds_nothing(page):
     assert len(seen) == 1
     expect(page.locator("#tp-name-src")).to_have_count(0)
     expect(page.locator("#tp-venue-name")).to_have_value("")
+
+
+def test_the_track_name_is_required_at_a_track_we_do_not_list(page):
+    """No name from the map and none typed: Save stops, points at the box and
+    nothing is sent. The member's own name then saves."""
+    page.route(re.compile(r".*/data/tracks\.json.*"), _unknown_track)
+    _overpass(page, [])
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    name = page.locator("#tp-venue-name")
+    expect(name).to_have_value("")
+    expect(name).to_have_attribute("required", "")
+    expect(page.locator("label[for='tp-venue-name']")).to_contain_text("(required)")
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator("#tp-name-err")).to_contain_text("Enter the name of the track")
+    expect(name).to_have_attribute("aria-invalid", "true")
+    expect(page.locator("#tp-status")).to_contain_text("Enter the track name first.")
+    assert fake.saved == [] and fake.requests == []
+    assert page.evaluate("document.activeElement.id") == "tp-venue-name"
+    name.fill("Abingdon Airfield")
+    expect(page.locator("#tp-name-err")).to_have_count(0)
+    expect(name).not_to_have_attribute("aria-invalid", "true")
+    page.get_by_role("button", name="Save session").click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
+    assert fake.saved[0]["venueName"] == "Abingdon Airfield"
+
+
+def test_a_member_can_add_a_new_track_now_instead_of_waiting_for_the_admin(page):
+    """Off by default the track is requested as before. Switched on, saving adds the
+    track with the member's start line, re-times the session on it and saves it on the
+    new course, so it reaches the leaderboard at once with no request."""
+    page.route(re.compile(r".*/data/tracks\.json.*"), _unknown_track)
+    _overpass(page, [{"type": "way", "tags": {"name": "Thruxton Circuit"}, "center": {"lat": 51.2100, "lon": -1.6050}}])
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-venue-name")).to_have_value("Thruxton Circuit")
+    box = page.locator("#tp-addnow-box")
+    expect(box).to_contain_text("Thruxton Circuit is not in the MT3UK track list yet")
+    sw = page.locator("#tp-addnow")
+    expect(sw).to_have_attribute("aria-checked", "false")
+    expect(sw).to_contain_text("MT3UK reviews the track afterwards")
+    sw.click()
+    expect(sw).to_have_attribute("aria-checked", "true")
+    expect(sw).to_contain_text("MT3UK will still review the track")
+    page.get_by_role("button", name="Save session").click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
+    assert len(fake.courses_added) == 1
+    added = fake.courses_added[0]
+    assert added["kind"] == "circuit" and added["name"] == "Thruxton Circuit" and added["startLine"] and added["lapLength"] > 1000 and len(added["outline"]) > 10
+    saved = fake.saved[0]["session"]
+    assert saved["venueId"] == "thruxton-circuit" and saved["layoutId"] == "course" and saved["venue"] == "Thruxton Circuit"
+    assert len(saved["laps"]) >= 2
+    # No request: the admin reviews the added track from the bell instead.
+    assert fake.requests == []
+    expect(page.locator(".tp-session-head h2")).to_contain_text("Thruxton Circuit")
+
+
+def test_a_track_that_cannot_be_added_stops_the_save_with_the_reason(page):
+    page.route(re.compile(r".*/data/tracks\.json.*"), _unknown_track)
+    _overpass(page, [{"type": "way", "tags": {"name": "Thruxton Circuit"}, "center": {"lat": 51.2100, "lon": -1.6050}}])
+    fake = FakeWorker()
+    fake.course_error = 'A track called "Thruxton" is already listed. Pick that track in the request or rename this one.'
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-venue-name")).to_have_value("Thruxton Circuit")
+    page.locator("#tp-addnow").click()
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator("#tp-status")).to_contain_text("already listed")
+    assert fake.saved == [] and len(fake.courses_added) == 1
+    expect(page.get_by_role("button", name="Save session")).to_be_enabled()
+
+
+def test_saving_without_times_also_needs_the_track_name(page, tmp_path):
+    no_line = tmp_path / "noline.vbo"
+    no_line.write_bytes(b"".join(l for l in FIXTURE.read_bytes().splitlines(True) if not l.startswith(b"Start ")))
+    page.route(re.compile(r".*/data/tracks\.json.*"), _without_start_line)
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(no_line))
+    page.locator("[data-type] [data-v='sprint']").click()
+    page.get_by_role("button", name="Save without times, tell MT3UK").click()
+    expect(page.locator("#tp-name-err")).to_be_visible()
+    assert fake.saved == [] and fake.requests == []
+    page.fill("#tp-venue-name", "Abingdon")
+    page.get_by_role("button", name="Save without times, tell MT3UK").click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
+    assert fake.saved[0]["session"]["pendingCourse"] == "Abingdon"
 
 
 def open_saved_session(page, fake):

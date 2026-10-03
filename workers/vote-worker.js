@@ -6496,6 +6496,8 @@ function cleanTrackVenue(v) {
   if (!id || !name || lat === null || lng === null) return null;
   var out = { id: id, name: name, type: ['drag', 'sprint'].indexOf(v.type) !== -1 ? v.type : 'circuit', lat: lat, lng: lng, radius: trackNum(v.radius, 200, 10000) || 2000 };
   if (v.check) out.check = true;
+  // Added by a member from the Add a session page, live straight away and waiting for the admin's review.
+  if (v.review) out.review = true;
   // A sprint-type venue that is a hill climb: the leaderboards list those on their own.
   if (out.type === 'sprint' && v.hill) out.hill = true;
   // Circuits have layouts; sprints and hill climbs have courses, each with
@@ -7037,6 +7039,9 @@ async function handleTrackSessionSave(request, env) {
   var library = await getTrackLibrary(env);
   var rec = cleanTrackSession(body.session, library);
   if (rec.error) return json({ success: false, message: rec.error }, 400);
+  // A track day or sprint at a venue we do not list needs its name: it is what the member's list, the admin's view
+  // and the request to add the track call it. Mapped drives keep their own words.
+  if (!rec.venueId && (rec.type === 'track' || rec.type === 'sprint') && !trackText(body.venueName, 60) && !trackText(body.session.venueName || body.session.venue, 60)) return json({ success: false, message: 'Enter the track name.' }, 400);
   rec.street = false;
   if (rec.type === 'drag' && !rec.atVenue) {
     // Street runs: admins only, and always private. Anyone else's run at a strip we don't list is
@@ -7165,7 +7170,27 @@ async function handleTrackAdminSessions(request, env) {
   if (!email) return json({ success: true, views: await getJsonKey(env, TRACK_ADMIN_VIEWS_KEY, []) });
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ success: false, message: 'That does not look like an email address.' }, 400);
   var list = await getJsonKey(env, 'track-index:' + (await ownerKey(email)), []);
-  return json({ success: true, sessions: list.map(function (s) { return { id: s.id, type: s.type, venue: s.venue, layout: s.layout || '', date: s.date, time: s.time || '', privacy: s.privacy, car: '', bestTime: s.bestTime || null, quarter: s.quarter || null }; }) });
+  return json({ success: true, sessions: list.map(function (s) { return { id: s.id, type: s.type, venue: s.venue, venueId: s.venueId || '', layout: s.layout || '', date: s.date, time: s.time || '', privacy: s.privacy, car: '', bestTime: s.bestTime || null, quarter: s.quarter || null }; }) });
+}
+
+// The admin renames a session at a track we do not list (a typo, or a name the member left vague). A session at a
+// listed track takes its name from the library, so that is renamed on the Tracks panel instead. The member's own
+// list and the car's shared list are rewritten with the new name.
+async function handleTrackAdminSessionRename(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var id = String((body && body.id) || '');
+  if (!/^[a-f0-9]{8,40}$/.test(id)) return json({ success: false, message: 'Session not found' }, 404);
+  var rec = await getTrackSession(env, id);
+  if (!rec) return json({ success: false, message: 'Session not found' }, 404);
+  if (rec.venueId) return json({ success: false, message: 'This session is at a listed track, so its name comes from the track list. Rename the track on the Tracks panel.' }, 400);
+  var name = trackText(body.venue, 60);
+  if (!name) return json({ success: false, message: 'Enter the track name.' }, 400);
+  rec.venue = name;
+  if (!(await putTrackSession(env, rec))) return json({ success: false, message: 'Could not save the session.' }, 413);
+  await putTrackIndexesFor(env, rec.owner, rec);
+  return json({ success: true, session: trackSummary(rec) });
 }
 
 async function handleTrackSessionUpdate(request, env) {
@@ -7465,9 +7490,9 @@ async function handleShareImage(request, env, slot) {
   var state = await getSharePictures(env, slot);
   if (state.items.length >= TRACK_SHARE_MAX_ITEMS) return json({ success: false, message: 'There are already ' + TRACK_SHARE_MAX_ITEMS + ' pictures. Delete one first.' }, 400);
   var id = randomToken().slice(0, 12), ext = file.type === 'image/png' ? '.png' : file.type === 'image/webp' ? '.webp' : '.jpg';
-  var key = SHARE_SLOTS[slot].prefix + id + ext;
-  await env.GALLERY_BUCKET.put(key, bytes, { httpMetadata: { contentType: file.type, cacheControl: 'public, max-age=31536000, immutable' } });
-  var item = { id: id, kind: form.get('kind') === 'photo' ? 'photo' : 'session', file: key, caption: trackText(form.get('caption'), 200), label: trackText(form.get('label'), 80), at: new Date().toISOString() };
+  var shareKey = SHARE_SLOTS[slot].prefix + id + ext;
+  await env.GALLERY_BUCKET.put(shareKey, bytes, { httpMetadata: { contentType: file.type, cacheControl: 'public, max-age=31536000, immutable' } });
+  var item = { id: id, kind: form.get('kind') === 'photo' ? 'photo' : 'session', file: shareKey, caption: trackText(form.get('caption'), 200), label: trackText(form.get('label'), 80), at: new Date().toISOString() };
   var sid = trackId(form.get('sessionId'));
   if (sid) item.sessionId = sid;
   state.items.push(item);
@@ -7526,6 +7551,53 @@ async function handleTrackRequest(request, env) {
     await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text)));
   } catch (e) { /* the request is saved */ }
   return json({ success: true });
+}
+
+// A member adds the track, course or layout themselves from the Add a session page, instead of waiting for the
+// admin: the same course "Approve and add track" would build from their lines, live at once and flagged for the
+// admin's review (the request stays in the Admin bell, marked as added). Behind the early preview gate like saves.
+async function handleTrackCourseAdd(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var sprint = body.kind === 'sprint';
+  var outline = cleanNumArrays(body.outline, 2).slice(0, 400).map(function (p) { return p.slice(0, 2); });
+  var req = {
+    id: randomToken().slice(0, 12), at: new Date().toISOString(), from: email, added: true,
+    kind: sprint ? 'sprint' : 'circuit', organizer: sprint ? trackText(body.organizer, 40) : '',
+    name: trackText(body.name, 60), note: 'Added by the member: check the lines',
+    venueId: trackId(body.venueId), layoutId: '', startLine: trackLine(body.startLine), finishLine: sprint ? trackLine(body.finishLine) : null, lapLength: trackNum(body.lapLength, 0, 30000),
+    lat: trackNum(body.lat, -90, 90), lng: trackNum(body.lng, -180, 180), outline: outline
+  };
+  if (req.lat === null && outline.length) { req.lat = outline[0][0]; req.lng = outline[0][1]; }
+  if (!req.name && !req.venueId) return json({ success: false, message: 'Enter the track name.' }, 400);
+  if (!req.startLine || (sprint && !req.finishLine)) return json({ success: false, message: sprint ? 'The course needs a start and a finish line first.' : 'The track needs a start line first.' }, 400);
+  if (req.lat === null) return json({ success: false, message: 'Where is it? The track needs a position.' }, 400);
+  var list = await getJsonKey(env, 'track-requests', []);
+  if (list.filter(function (r) { return r.from === email && !r.done; }).length >= 10) return json({ success: false, message: 'You already have tracks waiting for review. We\'ll get to them soon.' }, 429);
+  var added = await addTrackFromRequest(env, req, { review: true });
+  if (added.error) return json({ success: false, message: added.error }, 400);
+  req.venueId = added.venueId; req.layoutId = added.layoutId;
+  list.unshift(req);
+  await env.VOTES.put('track-requests', JSON.stringify(list.slice(0, 200)));
+  try {
+    var what = sprint ? 'sprint or hill climb course' : 'track';
+    var subject = 'New ' + what + ' added by a member: ' + req.name;
+    var text = subscriberLabel(await publicNameFor(env, email), email) + ' has added a ' + what + ' to the list from their session, so it is live and timing sessions now.\n\n' +
+      'Name: ' + req.name + '\n' + (req.organizer ? 'Organiser: ' + req.organizer + '\n' : '') + 'Position: ' + req.lat.toFixed(4) + ', ' + req.lng.toFixed(4) + '\n' +
+      '\nCheck its lines on the Tracks panel and mark it reviewed: ' + MY_BUILDS_SITE_URL + '/admin.html#grp-tracks';
+    await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text)));
+  } catch (e) { /* the track is added */ }
+  return json({ success: true, venueId: added.venueId, layoutId: added.layoutId, relinked: added.relinked, library: await getTrackLibrary(env) });
+}
+// The admin has looked at a member-added track: it is an ordinary listed track from here.
+async function clearTrackReview(env, venueId) {
+  var extra = await getJsonKey(env, 'track-library', { venues: [] });
+  var v = (extra.venues || []).find(function (x) { return x.id === venueId; });
+  if (!v || !v.review) return;
+  delete v.review;
+  await env.VOTES.put('track-library', JSON.stringify({ venues: extra.venues }));
 }
 
 async function handleTrackAdminTracks(request, env) {
@@ -7604,6 +7676,7 @@ async function handleTrackAdminRequests(request, env) {
   req.done = body.action === 'approve' || body.action === 'add' ? 'approved' : 'dismissed';
   req.doneAt = new Date().toISOString();
   await env.VOTES.put('track-requests', JSON.stringify(list));
+  if (req.added && req.venueId) await clearTrackReview(env, req.venueId);
   return json({ success: true, relinked: relinked, filled: filled, library: body.action === 'add' ? await getTrackLibrary(env) : undefined });
 }
 
@@ -7673,7 +7746,7 @@ async function relinkRequestsToVenue(env, venue) {
 // member marked (the start and finish lines, the length and the position),
 // then links that member's saved sessions for it to the new course so they
 // reach the leaderboard. Admin only, so the list() free reads here are fine.
-async function addTrackFromRequest(env, req) {
+async function addTrackFromRequest(env, req, opts) {
   if (req.kind === 'drag') return { error: 'Drag strips are added by hand: they need a venue radius.' };
   if (!req.startLine) return { error: 'This request has no start line to build a course from.' };
   var sprint = req.kind === 'sprint';
@@ -7722,6 +7795,7 @@ async function addTrackFromRequest(env, req) {
     var taken = (library.venues || []).find(function (v) { return v.id === venue.id; });
     if (taken) return { error: 'A track called "' + taken.name + '" is already listed. Pick that track in the request or rename this one.' };
   }
+  if (opts && opts.review) venue.review = true;
   var clean = cleanTrackVenue(venue);
   if (!clean) return { error: 'Could not build a track from this request.' };
   venues = venues.filter(function (x) { return x.id !== clean.id; });
@@ -9040,6 +9114,9 @@ export default {
     if (url.pathname === '/track/admin/sessions' && request.method === 'GET') {
       return handleTrackAdminSessions(request, env);
     }
+    if (url.pathname === '/track/admin/session' && request.method === 'POST') {
+      return handleTrackAdminSessionRename(request, env);
+    }
     if (url.pathname === '/track/admin/retime' && (request.method === 'GET' || request.method === 'POST')) {
       return handleTrackAdminRetime(request, env);
     }
@@ -9048,7 +9125,7 @@ export default {
     }
     // The member's own sessions need access (early preview): lists, saves,
     // changes, readings and deletes. Shared sessions and boards stay public.
-    if ((url.pathname === '/track/sessions' || url.pathname === '/track/session/source' ||
+    if ((url.pathname === '/track/sessions' || url.pathname === '/track/session/source' || url.pathname === '/track/courses' ||
         (url.pathname === '/track/session' && request.method !== 'GET')) && request.method !== 'OPTIONS') {
       var noAccess = await trackAccessGate(request, env);
       if (noAccess) return noAccess;
@@ -9119,6 +9196,9 @@ export default {
     }
     if (url.pathname === '/track/requests' && request.method === 'POST') {
       return handleTrackRequest(request, env);
+    }
+    if (url.pathname === '/track/courses' && request.method === 'POST') {
+      return handleTrackCourseAdd(request, env);
     }
     if (url.pathname === '/track/admin/tracks' && (request.method === 'GET' || request.method === 'PUT')) {
       return handleTrackAdminTracks(request, env);

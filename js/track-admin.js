@@ -94,7 +94,7 @@
     listEl.innerHTML = '<table class="iv-table tk-table"><thead><tr><th>Track</th><th>Type</th><th>Layouts</th><th>Set up</th><th></th></tr></thead><tbody>' + library.venues.map(function (v) {
       var layouts = v.layouts || [];
       var ready = v.type === 'drag' ? 'Drag strip' : layouts.map(function (l) { return esc(l.name) + ': ' + (l.startLine ? 'start line' : '<span class="tk-miss">no start line</span>') + (v.type === 'sprint' ? (l.finishLine ? ', finish line' : ', <span class="tk-miss">no finish line</span>') : '') + (l.corners && l.corners.length ? ', ' + l.corners.length + ' corners' : '') + (l.sectors && l.sectors.length ? ', ' + l.sectors.length + ' sector lines' : ''); }).join('<br>');
-      return '<tr><td><b>' + esc(v.name) + '</b>' + (changed[v.id] ? ' <span class="iv-sub">(changed here)</span>' : '') + (v.check ? '<span class="iv-sub">Centre or lengths to check</span>' : '') + '</td><td>' + (v.type === 'drag' ? 'Drag strip' : v.type === 'sprint' ? (v.hill ? 'Hill climb' : 'Sprint') : 'Circuit (track day)') + '</td><td>' + (v.type === 'drag' ? '-' : layouts.length) + '</td><td class="iv-sub">' + ready + '</td>' +
+      return '<tr><td><b>' + esc(v.name) + '</b>' + (changed[v.id] ? ' <span class="iv-sub">(changed here)</span>' : '') + (v.review ? '<span class="iv-sub tk-review">Added by a member, to review</span>' : '') + (v.check ? '<span class="iv-sub">Centre or lengths to check</span>' : '') + '</td><td>' + (v.type === 'drag' ? 'Drag strip' : v.type === 'sprint' ? (v.hill ? 'Hill climb' : 'Sprint') : 'Circuit (track day)') + '</td><td>' + (v.type === 'drag' ? '-' : layouts.length) + '</td><td class="iv-sub">' + ready + '</td>' +
         '<td><div class="iv-actions">' + layouts.filter(function (l) { return l.startLine; }).map(function (l) { return '<button type="button" class="secondary iv-act" data-map="' + esc(v.id + ':' + l.id) + '">Map' + (layouts.length > 1 ? ': ' + esc(l.name) : '') + '</button>'; }).join('') + '<button type="button" class="secondary iv-act" data-edit="' + esc(v.id) + '">Edit</button><button type="button" class="danger iv-act" data-remove="' + esc(v.id) + '">Remove</button></div></td></tr>';
     }).join('') + '</tbody></table><div class="iv-toolbar tk-top"><button type="button" class="secondary" data-new>Add a track</button></div>';
   }
@@ -219,10 +219,12 @@
     var open = list.filter(function (r) { return !r.done; });
     document.getElementById('tracks-count').textContent = open.length ? '(' + open.length + ' new)' : '';
     reqEl.innerHTML = open.length ? open.map(function (r) {
-      return '<div class="tk-req" data-id="' + esc(r.id) + '">' + outlineSvg(r.outline) + '<div><b>' + esc(r.name || 'Unnamed') + '</b> <span class="iv-sub">' + (r.kind === 'drag' ? 'Drag strip' : r.kind === 'sprint' ? 'Sprint or hill climb' : 'Circuit') + (r.venueId ? ', layout at ' + esc(r.venueId) : '') + (r.lapLength ? ', lap about ' + Math.round(r.lapLength) + ' m' : '') + ', from ' + esc(r.from) + ', ' + esc(String(r.at).slice(0, 10)) + '</span>' +
-        (r.note ? '<p class="iv-sub">' + esc(r.note) + '</p>' : '') +
+      return '<div class="tk-req' + (r.added ? ' is-added' : '') + '" data-id="' + esc(r.id) + '">' + outlineSvg(r.outline) + '<div><b>' + esc(r.name || 'Unnamed') + '</b> <span class="iv-sub">' + (r.kind === 'drag' ? 'Drag strip' : r.kind === 'sprint' ? 'Sprint or hill climb' : 'Circuit') + (r.venueId && !r.added ? ', layout at ' + esc(r.venueId) : '') + (r.lapLength ? ', lap about ' + Math.round(r.lapLength) + ' m' : '') + ', from ' + esc(r.from) + ', ' + esc(String(r.at).slice(0, 10)) + '</span>' +
+        (r.added ? '<p class="iv-sub tk-added">Added by the member and live now: check the lines on the map, then mark it reviewed.</p>' : r.note ? '<p class="iv-sub">' + esc(r.note) + '</p>' : '') +
         '<p class="iv-sub"><a href="https://www.google.com/maps?q=' + r.lat + ',' + r.lng + '" target="_blank" rel="noopener">See it on a map</a>' + (r.startLine ? ' &middot; start line ' + esc(lineText(r.startLine)) : '') + '</p>' +
-        '<div class="iv-actions">' + (r.startLine || (r.outline && r.outline.length > 1) ? '<button type="button" class="secondary iv-act" data-map-req="' + esc(r.id) + '">Open map</button>' : '') + (r.kind !== 'drag' && r.startLine && (r.kind !== 'sprint' || r.finishLine) ? '<button type="button" class="iv-act" data-add="' + esc(r.id) + '">Approve and add track</button>' : '') + '<button type="button" class="secondary iv-act" data-use="' + esc(r.id) + '">Set up by hand</button><button type="button" class="secondary iv-act" data-done="' + esc(r.id) + '">Dismiss</button></div></div></div>';
+        '<div class="iv-actions">' + (r.startLine || (r.outline && r.outline.length > 1) ? '<button type="button" class="secondary iv-act" data-map-req="' + esc(r.id) + '">Open map</button>' : '') +
+        (r.added ? '<button type="button" class="iv-act" data-reviewed="' + esc(r.id) + '">Mark reviewed</button>' : r.kind !== 'drag' && r.startLine && (r.kind !== 'sprint' || r.finishLine) ? '<button type="button" class="iv-act" data-add="' + esc(r.id) + '">Approve and add track</button>' : '') +
+        '<button type="button" class="secondary iv-act" data-use="' + esc(r.id) + '">' + (r.added ? 'Edit the track' : 'Set up by hand') + '</button>' + (r.added ? '' : '<button type="button" class="secondary iv-act" data-done="' + esc(r.id) + '">Dismiss</button>') + '</div></div></div>';
     }).join('') : '<p class="empty">No new requests.</p>';
     reqEl._list = list;
   }
@@ -247,6 +249,19 @@
       });
       return;
     }
+    var rev = e.target.closest('[data-reviewed]');
+    if (rev) {
+      var rid = rev.getAttribute('data-reviewed');
+      rev.disabled = true;
+      call('POST', '/track/admin/requests', { id: rid, action: 'approve' }).then(function (d) {
+        if (!d || !d.success) { rev.disabled = false; note((d && d.message) || 'Could not mark that reviewed.', 'error'); return; }
+        drawRequests(reqEl._list.map(function (x) { return x.id === rid ? Object.assign({}, x, { done: 'approved' }) : x; }));
+        library.venues.forEach(function (v) { if (v.id === (reqEl._list.filter(function (x) { return x.id === rid; })[0] || {}).venueId) delete v.review; });
+        drawList();
+        note('Marked as reviewed.', 'ok');
+      });
+      return;
+    }
     var use = e.target.closest('[data-use]'), done = e.target.closest('[data-done]');
     var id = (use || done || {}).getAttribute ? (use || done).getAttribute(use ? 'data-use' : 'data-done') : null;
     if (!id) return;
@@ -255,8 +270,13 @@
       var known = r.venueId && library.venues.filter(function (v) { return v.id === r.venueId; })[0];
       var v = known ? JSON.parse(JSON.stringify(known)) : { id: '', name: r.name || '', type: r.kind || 'circuit', lat: r.lat, lng: r.lng, radius: r.kind === 'circuit' ? 2000 : 1500, layouts: [] };
       editing = v;
-      if (v.type === 'circuit') v.layouts.push({ name: known ? 'New layout' : 'Full circuit', length: r.lapLength ? Math.round(r.lapLength) : '', startLine: r.startLine });
-      if (v.type === 'sprint') v.layouts.push({ name: known ? 'New course' : 'Course', length: r.lapLength ? Math.round(r.lapLength) : '', startLine: r.startLine, finishLine: r.finishLine });
+      // A track the member added is already live with their course on it: the form opens it as it is, and
+      // approving the request takes it off the review list, so the saved form must not put the flag back.
+      delete v.review;
+      if (!r.added) {
+        if (v.type === 'circuit') v.layouts.push({ name: known ? 'New layout' : 'Full circuit', length: r.lapLength ? Math.round(r.lapLength) : '', startLine: r.startLine });
+        if (v.type === 'sprint') v.layouts.push({ name: known ? 'New course' : 'Course', length: r.lapLength ? Math.round(r.lapLength) : '', startLine: r.startLine, finishLine: r.finishLine });
+      }
       openForm(v);
       call('POST', '/track/admin/requests', { id: id, action: 'approve' });
     } else {

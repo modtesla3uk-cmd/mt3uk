@@ -20,6 +20,10 @@
     return fetch(API + '/track/admin/sessions?key=' + encodeURIComponent(key()) + (email ? '&email=' + encodeURIComponent(email) : ''), { cache: 'no-store' })
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d.ok = r.ok; return d; }); });
   }
+  function rename(id, venue) {
+    return fetch(API + '/track/admin/session?key=' + encodeURIComponent(key()), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: id, venue: venue }) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d.ok = r.ok; return d; }); });
+  }
   function nice(iso) {
     var d = new Date(iso);
     return isNaN(d) ? '' : d.toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
@@ -42,12 +46,41 @@
       if (!d.ok) { note(d.message || 'Could not look that up.', 'error'); return; }
       var list = d.sessions || [];
       note(list.length ? list.length + ' session' + (list.length === 1 ? '' : 's') + '.' : 'No sessions for that email.', '');
-      listEl.innerHTML = list.length ? '<table class="iv-table"><thead><tr><th>Session</th><th>Date</th><th>Privacy</th></tr></thead><tbody>' + list.map(function (s) {
-        return '<tr><td><a href="track.html?s=' + esc(s.id) + '" target="_blank" rel="noopener">' + esc((s.venue || 'Session') + (s.layout ? ' ' + s.layout : '')) + '</a></td><td>' + esc(s.date || '') + '</td><td>' + esc(s.privacy || '') + '</td></tr>';
+      listEl.innerHTML = list.length ? '<table class="iv-table ms-table"><thead><tr><th>Session</th><th>Track name</th><th>Date</th><th>Privacy</th></tr></thead><tbody>' + list.map(function (s) {
+        // A session at a track we do not list is named by the member, so the admin can put it right here. One at a
+        // listed track takes its name from the track list.
+        var nameCell = s.venueId
+          ? esc(s.venue || '') + '<span class="iv-sub">Listed track</span>'
+          : '<div class="ms-rename"><input type="text" class="ms-name" data-id="' + esc(s.id) + '" value="' + esc(s.venue || '') + '" maxlength="60" aria-label="Track name"><button type="button" class="iv-act ms-save" data-id="' + esc(s.id) + '">Save</button></div>';
+        return '<tr data-id="' + esc(s.id) + '"><td><a href="track.html?s=' + esc(s.id) + '" target="_blank" rel="noopener">' + esc((s.venue || 'Session') + (s.layout ? ' ' + s.layout : '')) + '</a></td><td>' + nameCell + '</td><td>' + esc(s.date || '') + '</td><td>' + esc(s.privacy || '') + '</td></tr>';
       }).join('') + '</tbody></table>' : '';
       loadViews();
     });
   }
+  function saveName(btn) {
+    var id = btn.getAttribute('data-id'), row = btn.closest('tr'), input = row.querySelector('.ms-name'), venue = input.value.trim();
+    if (!venue) { note('Enter the track name.', 'error'); input.focus(); return; }
+    btn.disabled = true;
+    note('Saving...', '');
+    rename(id, venue).then(function (d) {
+      btn.disabled = false;
+      if (!d.ok || !d.success) { note(d.message || 'Could not rename that session.', 'error'); return; }
+      var saved = (d.session && d.session.venue) || venue;
+      input.value = saved;
+      row.querySelector('a').textContent = saved + ((d.session && d.session.layout) ? ' ' + d.session.layout : '');
+      note('Renamed to ' + saved + '. The member sees the new name in their list.', 'ok');
+    });
+  }
+  listEl.addEventListener('click', function (e) {
+    var btn = e.target.closest('.ms-save');
+    if (btn) saveName(btn);
+  });
+  listEl.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' || !e.target.classList.contains('ms-name')) return;
+    e.preventDefault();
+    var btn = e.target.closest('tr').querySelector('.ms-save');
+    if (btn) saveName(btn);
+  });
   findBtn.addEventListener('click', find);
   emailEl.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); find(); } });
   wrap.addEventListener('toggle', function () { if (wrap.open) loadViews(); });

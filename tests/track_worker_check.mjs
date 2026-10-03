@@ -152,6 +152,23 @@ ok(r.status === 413, 'an uncompressed upload over 6 MB is refused');
 const unknown = JSON.parse(JSON.stringify(session)); delete unknown.venueId; delete unknown.layoutId; unknown.venueName = 'My airfield';
 r = await call('POST', '/track/sessions', { carId: 'cara1', session: unknown, privacy: 'board', venueName: 'Old airfield' }, 'tok-a');
 ok(r.status === 200 && r.body.session.venue === 'Old airfield' && r.body.session.privacy === 'build', 'a track not in the list can be shared on the build but not on a board');
+const unknownId = r.body.session.id;
+{
+  // A track we do not list needs its name from the member.
+  const nameless = JSON.parse(JSON.stringify(unknown)); delete nameless.venueName; delete nameless.venue;
+  r = await call('POST', '/track/sessions', { carId: 'cara1', session: nameless }, 'tok-a');
+  ok(r.status === 400 && r.body.message === 'Enter the track name.', 'an unlisted track day with no name is refused ' + r.status);
+  const ns = JSON.parse(JSON.stringify(nameless)); ns.type = 'sprint';
+  r = await call('POST', '/track/sessions', { carId: 'cara1', session: ns }, 'tok-a');
+  ok(r.status === 400, 'an unlisted sprint with no name is refused too');
+  r = await call('POST', '/track/sessions', { carId: 'cara1', session: nameless, venueName: 'Typed in the box' }, 'tok-a');
+  ok(r.status === 200 && r.body.session.venue === 'Typed in the box', 'the name typed in the box is enough');
+  await call('DELETE', '/track/session?id=' + r.body.session.id, undefined, 'tok-a');
+  const drive = JSON.parse(JSON.stringify(nameless)); drive.type = 'other';
+  r = await call('POST', '/track/sessions', { carId: 'cara1', session: drive }, 'tok-a');
+  ok(r.status === 200 && r.body.session.venue === 'Drive', 'a mapped drive needs no name');
+  await call('DELETE', '/track/session?id=' + r.body.session.id, undefined, 'tok-a');
+}
 
 // Drag runs
 function dragCsv(lat, lng) {
@@ -542,6 +559,46 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   ok(r.status === 200 && nv2.layouts.length === 2 && nv2.layouts.some(l => l.id === 'cscc' && l.organizer === 'CSCC'), 'a second organiser adds a second course to the venue');
   await call('DELETE', '/track/session?id=' + spId, undefined, 'tok-a');
 }
+
+// A member adds a new track themselves from the Add a session page: live at once, flagged for review.
+{
+  const sl = [[51.30, -0.70], [51.3002, -0.7002]];
+  const nc = JSON.parse(JSON.stringify(session)); delete nc.venueId; delete nc.layoutId; nc.venueName = 'Blyton Park'; nc.startLine = sl; nc.startLineFromMember = true;
+  const course = { kind: 'circuit', name: 'Blyton Park', startLine: sl, lapLength: 2400, lat: 51.3, lng: -0.7, outline: [[51.3, -0.7], [51.301, -0.701]] };
+  r = await call('POST', '/track/courses', course);
+  ok(r.status === 401, 'adding a track needs a sign-in');
+  r = await call('POST', '/track/courses', Object.assign({}, course, { name: '' }), 'tok-a');
+  ok(r.status === 400 && r.body.message === 'Enter the track name.', 'a new track needs a name');
+  r = await call('POST', '/track/courses', Object.assign({}, course, { startLine: null }), 'tok-a');
+  ok(r.status === 400 && /start line/.test(r.body.message), 'and a start line');
+  r = await call('POST', '/track/courses', Object.assign({}, course, { kind: 'sprint' }), 'tok-a');
+  ok(r.status === 400 && /finish/.test(r.body.message), 'a sprint course needs a finish line too');
+  r = await call('POST', '/track/courses', course, 'tok-a');
+  ok(r.status === 200 && r.body.venueId === 'blyton-park' && r.body.layoutId === 'course', 'the member adds the track ' + JSON.stringify(r.body).slice(0, 160));
+  const bv = r.body.library.venues.find(v => v.id === 'blyton-park');
+  ok(bv && bv.review === true && bv.layouts[0].startLine && bv.layouts[0].length === 2400, 'it is in the list with the member\'s line as the official one, flagged for review');
+  r = await call('GET', '/track/tracks');
+  ok(r.body.extra.venues.some(v => v.id === 'blyton-park' && v.review), 'and everyone sees it');
+  let reqs = (await call('GET', '/track/admin/requests?key=secret')).body.requests;
+  const addedReq = reqs.find(x => x.name === 'Blyton Park');
+  ok(addedReq && addedReq.added === true && !addedReq.done && addedReq.venueId === 'blyton-park' && addedReq.layoutId === 'course', 'the Admin bell keeps it as a request marked added');
+  r = await call('POST', '/track/courses', course, 'tok-a');
+  ok(r.status === 400 && /already listed/.test(r.body.message), 'adding it twice is refused');
+  // The session saved after that is on the new course and its leaderboard.
+  nc.venueId = 'blyton-park'; nc.layoutId = 'course';
+  r = await call('POST', '/track/sessions', { carId: 'cara1', session: nc, privacy: 'board' }, 'tok-a');
+  ok(r.status === 200 && r.body.session.venueId === 'blyton-park' && r.body.session.layoutId === 'course' && r.body.session.venue === 'Blyton Park', 'a session saves on the new course ' + JSON.stringify(r.body).slice(0, 160));
+  const bb = await call('GET', '/track/board?venue=blyton-park&layout=course');
+  ok(bb.status === 200 && bb.body.entries.some(e => e.sessionId === r.body.session.id), 'and is on its leaderboard');
+  await call('DELETE', '/track/session?id=' + r.body.session.id, undefined, 'tok-a');
+  // The admin marks it reviewed: an ordinary listed track from then on.
+  r = await call('POST', '/track/admin/requests?key=secret', { id: addedReq.id, action: 'approve' });
+  ok(r.status === 200, 'the admin marks it reviewed');
+  r = await call('GET', '/track/admin/tracks?key=secret');
+  ok(!r.body.library.venues.find(v => v.id === 'blyton-park').review, 'the review flag is cleared');
+  reqs = (await call('GET', '/track/admin/requests?key=secret')).body.requests;
+  ok(reqs.find(x => x.id === addedReq.id).done === 'approved', 'and the request is done');
+}
 // The admin makes the lines they just set the official ones from the Add a session page.
 {
   const course = { kind: 'sprint', name: 'Quick Course', organizer: 'A1', startLine: [[51.3, -0.8], [51.3002, -0.8002]], finishLine: [[51.31, -0.81], [51.3102, -0.8102]], lapLength: 700, lat: 51.3, lng: -0.8 };
@@ -596,6 +653,26 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   ok(r.status === 200 && r.body.sessions.some(x => x.id === pid), 'admin lists a member\'s sessions');
   r = await call('GET', '/track/admin/sessions?key=secret');
   ok(r.status === 200 && r.body.views.length === 1, 'admin reads the view log');
+  // Renaming a session at a track we do not list.
+  r = await call('GET', '/track/admin/sessions?key=secret&email=' + encodeURIComponent(A));
+  const unl = r.body.sessions.find(x => x.id === unknownId);
+  ok(unl && unl.venueId === '' && r.body.sessions.find(x => x.id === pid).venueId === 'thruxton', 'the admin list says which sessions are at a listed track');
+  r = await call('POST', '/track/admin/session', { id: unknownId, venue: 'Abingdon Airfield' });
+  ok(r.status === 401, 'renaming needs the admin key');
+  r = await call('POST', '/track/admin/session?key=secret', { id: unknownId, venue: '  ' });
+  ok(r.status === 400, 'a blank name is refused');
+  r = await call('POST', '/track/admin/session?key=secret', { id: pid, venue: 'Not Thruxton' });
+  ok(r.status === 400 && /Tracks panel/.test(r.body.message), 'a session at a listed track is not renamed here');
+  r = await call('POST', '/track/admin/session?key=secret', { id: unknownId, venue: '  Abingdon Airfield  ' });
+  ok(r.status === 200 && r.body.session.venue === 'Abingdon Airfield', 'renamed and trimmed ' + JSON.stringify(r.body).slice(0, 120));
+  r = await call('GET', '/track/session?id=' + unknownId, undefined, 'tok-a');
+  ok(r.body.session.venue === 'Abingdon Airfield', 'the session carries the new name');
+  r = await call('GET', '/track/sessions', undefined, 'tok-a');
+  ok(r.body.sessions.find(x => x.id === unknownId).venue === 'Abingdon Airfield', 'and so does the member\'s list');
+  r = await call('GET', '/track/public?car=cara1');
+  ok(r.status === 200 && r.body.sessions.find(x => x.id === unknownId).venue === 'Abingdon Airfield', 'and the car\'s shared list');
+  r = await call('POST', '/track/admin/session?key=secret', { id: 'deadbeef00', venue: 'X' });
+  ok(r.status === 404, 'an unknown session is not found');
 }
 // A member leaving is taken off the early preview lists.
 kv.set('track-access', JSON.stringify({ open: false, allowed: [{ email: A }, { email: B }, { email: 'gone@example.com' }], pending: [{ email: 'gone@example.com' }] }));
@@ -643,7 +720,7 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   ok(Array.isArray(row.origin) && row.origin.length === 2 && row.origin.every(Number.isFinite), 'the list entry says where it was, so sessions at an unlisted track can be matched');
   // A lap's own Track Mode figures are kept with the session
   const lapSess = T.analyse(T.read(fs.readFileSync(ROOT + 'tests/fixtures/tesla-track-mode-no-timestamps-lap.csv', 'utf8'), 'telemetry-v1-2024-02-23-15_10_30.csv'), lib);
-  const lapSaved = await call('POST', '/track/sessions', { carId: 'cara1', session: lapSess }, 'tok-a');
+  const lapSaved = await call('POST', '/track/sessions', { carId: 'cara1', session: lapSess, venueName: 'Test track' }, 'tok-a');
   const lapGot = await call('GET', '/track/session?id=' + lapSaved.body.session.id, undefined, 'tok-a');
   const l0 = lapGot.body.session.laps && lapGot.body.session.laps[0];
   ok(l0 && l0.carData && l0.carData.soc && Number.isFinite(l0.carData.soc.start) && !('run' in l0.carData), 'a lap\'s own car figures are kept when the session is saved');

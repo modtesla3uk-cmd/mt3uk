@@ -7659,6 +7659,11 @@ async function relinkRequestsToVenue(env, venue) {
     var layout = (venue.layouts || []).find(function (l) {
       return r.kind === 'sprint' ? !!r.organizer && String(l.organizer || l.name).toLowerCase() === r.organizer.toLowerCase() : l.id === r.layoutId;
     });
+    // A sprint course renamed by hand (just "Course", no organiser): when it is the only one with no organiser, it is the one.
+    if (!layout && r.kind === 'sprint') {
+      var open = (venue.layouts || []).filter(function (l) { return !l.organizer; });
+      if (open.length === 1) layout = open[0];
+    }
     if (layout) total += await linkMemberSessions(env, r, venue, layout);
   }
   return total;

@@ -29,8 +29,17 @@
     return String(value || '').toLowerCase().replace(/(^|[\s-])([a-z])/g, function (m, a, b) { return a + b.toUpperCase(); });
   }
 
+  // The ISO week, stamped into every share link: chat apps keep the preview card they first made for an address,
+  // so a link that changes each week picks up the week's preview picture (see the Link preview picture panel on
+  // admin.html) rather than showing a stale card.
+  function isoWeek() {
+    var t = new Date(), d = new Date(Date.UTC(t.getFullYear(), t.getMonth(), t.getDate())), day = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - day);
+    var wk = Math.ceil(((d - Date.UTC(d.getUTCFullYear(), 0, 1)) / 86400000 + 1) / 7);
+    return d.getUTCFullYear() + '-W' + (wk < 10 ? '0' : '') + wk;
+  }
   function utm(channel, campaign) {
-    return 'utm_source=' + channel + '&utm_medium=share&utm_campaign=' + campaign;
+    return 'utm_source=' + channel + '&utm_medium=share&utm_campaign=' + campaign + '&w=' + isoWeek();
   }
 
   // What gets shared: the message, and the link for each channel.

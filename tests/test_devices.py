@@ -937,6 +937,8 @@ def test_share_buttons(device_page):
     page.locator("h1 .mt3uk-share-dot").click()
     url = shared_url(page)
     assert url and url.startswith("https://mt3uk.com/share/section/shop.html?") and "utm_campaign=page_shop" in url, "Page share: " + str(url)
+    # The week is in the link, so chat apps fetch a fresh preview card each week.
+    assert re.search(r"&w=\d{4}-W\d{2}$", url), url
 
     # My Garage photo viewer.
     page.mock_state["signed_in"] = True
@@ -948,7 +950,7 @@ def test_share_buttons(device_page):
     button.wait_for(state="visible", timeout=5000)
     button.click()
     url = shared_url(page)
-    assert url == "https://mt3uk.com/share/test-build.jpg.html?utm_source=" + url.split("utm_source=")[1].split("&")[0] + "&utm_medium=share&utm_campaign=garage_share", "My Garage share: " + str(url)
+    assert re.fullmatch(r"https://mt3uk\.com/share/test-build\.jpg\.html\?utm_source=[a-z_]+&utm_medium=share&utm_campaign=garage_share&w=\d{4}-W\d{2}", url), "My Garage share: " + str(url)
     assert page.errors == []
 
 

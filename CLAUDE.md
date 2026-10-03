@@ -76,6 +76,7 @@ Static site for the MT3UK modified Tesla community, live at https://mt3uk.com. I
 ## Track sessions: link preview picture
 
 - A shared Track Sessions link (`share/section/track.html`) previews with the picture set on the **Link preview picture** panel of `admin.html` (`js/track-share-admin.js`): a card drawn from a saved session (`js/track-share-card.js`, 1200 x 630, map, times and g chart) or an uploaded photo, each with a caption. The set is one KV key (`track-share`, `get()`), the pictures are in the bucket under `share/track/`, routes are `/share/track` (public) and `/share/track/admin`. With rotation on the week's picture is taken in turn; a change dispatches the sync workflow, which also runs every Monday, and `scripts/build_section_share_pages.py` (with `MT3UK_SHARE_LIVE=1`) stamps the week into the picture's address and uses the caption as the description. Without a picture the page's own `images/track-preview/share.jpg` is used.
+- The welcome card a signed-out visitor sees on `track.html` (heading, paragraph, tick list) is editable on the **Welcome text** panel of `admin.html` (`js/track-copy-admin.js`): one KV key (`track-copy`, `get()`), routes `/track/copy` (public) and `/track/copy/admin`. Blank fields keep the built-in words in `js/track-page.js`.
 
 ## Track sessions: leaderboards
 

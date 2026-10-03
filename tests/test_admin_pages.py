@@ -18,7 +18,7 @@ GROUPS = [
     ("grp-reports", "Reports", ["comments-wrap", "rphotos-wrap", "local-wrap"]),
     ("grp-members", "Members", ["subscribers-wrap", "members-msg-wrap"]),
     ("grp-interviews", "Owner interviews", ["interviews-wrap", "preview-wrap"]),
-    ("grp-tracks", "Track sessions", ["access-wrap", "member-sessions-wrap", "tracks-wrap", "share-wrap", "tyres-wrap"]),
+    ("grp-tracks", "Track sessions", ["access-wrap", "member-sessions-wrap", "tracks-wrap", "share-wrap", "copy-wrap", "tyres-wrap"]),
 ]
 
 
@@ -99,7 +99,7 @@ def test_admin_sub_menu_lists_the_sections_of_the_current_category(page):
     expect(page.locator('.admin-nav a[data-here="true"]')).to_have_text("Gallery and builds")
     # Choosing a category swaps the sub menu to that category's sections.
     page.locator('.admin-nav a[href="admin.html#grp-tracks"]').click()
-    expect(sub.locator("a")).to_have_text(["Early access", "Member sessions", "Tracks", "Link preview picture", "Tyres"])
+    expect(sub.locator("a")).to_have_text(["Early access", "Member sessions", "Tracks", "Link preview picture", "Welcome text", "Tyres"])
     expect(page.locator('.admin-nav a[data-here="true"]')).to_have_text("Track sessions")
     # Choosing a section opens its panel and scrolls to it.
     sub.locator("a", has_text="Tyres").click()
@@ -454,3 +454,35 @@ def test_admin_link_preview_pictures_rotate_and_are_drawn_from_sessions(page):
     expect(items).to_have_count(3)
     assert len(uploads) == 1 and b"image/jpeg" in uploads[0] and b'name="kind"' in uploads[0] and b"session" in uploads[0] and b"New one" in uploads[0] and b"aaaaaaaa01" in uploads[0]
     expect(page.locator("#ts-note")).to_contain_text("Saved.")
+
+
+def test_admin_welcome_text_is_edited_and_reset(page):
+    cors = {"Access-Control-Allow-Origin": "*"}
+    posted = []
+    stored = {"heading": "Lap times for every MT3UK car"}
+
+    def copy_admin(route):
+        if route.request.method == "POST":
+            body = json.loads(route.request.post_data)
+            posted.append(body)
+            stored.clear()
+            if not body.get("reset"):
+                stored.update({k: v for k, v in body.items() if v})
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "copy": dict(stored)}), headers=cors)
+
+    open_admin(page, "admin.html")
+    page.route("**/track/copy/admin**", copy_admin)
+    page.locator("#copy-wrap summary").click()
+    expect(page.locator("#tc-heading")).to_have_value("Lap times for every MT3UK car")
+    expect(page.locator("#tc-intro")).to_have_value("")
+    expect(page.locator("#tc-intro")).to_have_attribute("placeholder", re.compile(r"^Upload the file from your lap timer"))
+    page.locator("#tc-intro").fill("Bring your RaceBox file and see every lap.")
+    page.locator("#tc-bullets").fill("One\n\nTwo  \nThree")
+    page.locator("#tc-save").click()
+    expect(page.locator("#tc-note")).to_contain_text("Saved")
+    assert posted[-1] == {"heading": "Lap times for every MT3UK car", "intro": "Bring your RaceBox file and see every lap.", "bullets": ["One", "Two", "Three"]}
+    page.on("dialog", lambda d: d.accept())
+    page.locator("#tc-reset").click()
+    expect(page.locator("#tc-note")).to_contain_text("built-in")
+    assert posted[-1] == {"reset": True}
+    expect(page.locator("#tc-heading")).to_have_value("")

@@ -137,6 +137,12 @@
     });
   }
   var mine = null;
+  // The welcome card's text, as set on the admin page; nothing set means the built-in words.
+  var copy = null;
+  function getCopy() {
+    if (copy) return Promise.resolve(copy);
+    return api('GET', '/track/copy').then(function (d) { copy = (d && d.copy) || {}; return copy; }).catch(function () { return {}; });
+  }
   function getMine() {
     if (mine) return Promise.resolve(mine);
     if (!token()) return Promise.resolve(null);
@@ -406,13 +412,14 @@
   // ---------- Home ----------
   function showHome() {
     loading();
-    Promise.all([getMine(), getLibrary()]).then(function (r) {
-      var m = r[0];
+    Promise.all([getMine(), getLibrary(), getCopy()]).then(function (r) {
+      var m = r[0], c = r[2] || {};
       if (m && m.gate) return showGate();
       var h = '';
       if (!m) {
-        h += '<div class="card tp-intro"><h2>Your track days, mapped</h2><p>Upload the file from your lap timer (RaceBox, VBOX, Harry\'s LapTimer, TrackAddict, AiM and most phone apps) and see every lap drawn on the track, where you gained and lost time, and how your times changed as you modified the car.</p>' +
-          '<ul class="tp-ticks"><li>' + icon('check') + 'Laps, sectors and corners found for you</li><li>' + icon('check') + 'Compare any two laps, corner by corner</li><li>' + icon('check') + 'See what each mod in My Garage did to your times</li><li>' + icon('check') + 'Drag runs from the strip: 60 ft, 0 to 60, quarter mile</li><li>' + icon('check') + 'Private unless you choose to share</li></ul>' +
+        var bullets = c.bullets && c.bullets.length ? c.bullets : ['Laps, sectors and corners found for you', 'Compare any two laps, corner by corner', 'See what each mod in My Garage did to your times', 'Drag runs from the strip: 60 ft, 0 to 60, quarter mile', 'Private unless you choose to share'];
+        h += '<div class="card tp-intro"><h2>' + esc(c.heading || 'Your track days, mapped') + '</h2><p>' + esc(c.intro || 'Upload the file from your lap timer (RaceBox, VBOX, Harry\'s LapTimer, TrackAddict, AiM and most phone apps) and see every lap drawn on the track, where you gained and lost time, and how your times changed as you modified the car.') + '</p>' +
+          '<ul class="tp-ticks">' + bullets.map(function (b) { return '<li>' + icon('check') + esc(b) + '</li>'; }).join('') + '</ul>' +
           '<div class="tp-actions"><a class="btn btn-accent" href="signin.html?next=/track.html">Sign in to add a session</a><a class="btn btn-secondary" id="tp-boards-btn" href="leaderboards.html">' + icon('trophy') + 'Leaderboards</a></div></div>';
       } else if (!m.cars.length) {
         h += '<div class="card tp-intro"><h2>Add your car first</h2><p>Sessions belong to a car, so the times can be matched to its mods. Add your car with a photo in My Garage, then come back here.</p><a class="btn btn-accent" href="my-builds.html">Go to My Garage</a></div>';

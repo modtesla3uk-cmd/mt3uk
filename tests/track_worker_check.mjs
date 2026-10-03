@@ -688,6 +688,20 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   for (const x of [first, otherCar, otherTime]) if (x.body.session) await call('DELETE', '/track/session?id=' + x.body.session.id, undefined, 'tok-a');
 }
 
+// The welcome text on track.html: nothing set means the built-in words; the admin's words are cleaned and kept.
+{
+  let cp = await call('GET', '/track/copy');
+  ok(cp.status === 200 && cp.body.success && Object.keys(cp.body.copy).length === 0, 'no welcome text set: the page uses its own');
+  ok((await call('POST', '/track/copy/admin', { heading: 'x' })).status === 401, 'the welcome text needs the admin key');
+  cp = await call('POST', '/track/copy/admin?key=secret', { heading: 'Lap times for <every> car', intro: '  Bring your file.  ', bullets: ['One', '', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'] });
+  ok(cp.body.success && cp.body.copy.heading === 'Lap times for every car' && cp.body.copy.intro === 'Bring your file.' && cp.body.copy.bullets.length === 8 && cp.body.copy.bullets[1] === 'Two', 'the words are trimmed, angle brackets dropped, blanks dropped and the list kept to eight: ' + JSON.stringify(cp.body.copy).slice(0, 120));
+  ok((await call('GET', '/track/copy')).body.copy.heading === 'Lap times for every car', 'the page reads them');
+  cp = await call('POST', '/track/copy/admin?key=secret', { heading: '', intro: '', bullets: 'A\nB' });
+  ok(!cp.body.copy.heading && cp.body.copy.bullets.length === 2, 'blank fields fall back to the built-in words, a list may come as lines');
+  cp = await call('POST', '/track/copy/admin?key=secret', { reset: true });
+  ok(cp.body.success && Object.keys(cp.body.copy).length === 0 && !kv.has('track-copy'), 'reset clears the words');
+}
+
 // The Track sessions link preview picture: pictures in the bucket, one KV key, a week's pick.
 {
   let sp = await call('GET', '/share/track');

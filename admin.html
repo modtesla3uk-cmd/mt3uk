@@ -457,11 +457,12 @@
   .ts-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
   .ts-now { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: var(--radius-pill); background: var(--orange); color: #fff; font-size: 0.75rem; font-weight: 600; }
   .ts-cap { display: block; margin: 6px 0; font-size: 0.85rem; color: var(--steel); }
-  .ts-cap input, .ts-new input[type="text"], .ts-new select { display: block; width: 100%; margin-top: 4px; min-height: 44px; padding: 8px 10px; border: 1px solid var(--hairline-strong); border-radius: var(--radius-sm); font: inherit; color: var(--ink); background: #fff; }
+  .ts-cap input, .ts-new input[type="text"], .ts-new textarea, .ts-new select { display: block; width: 100%; margin-top: 4px; min-height: 44px; padding: 8px 10px; border: 1px solid var(--hairline-strong); border-radius: var(--radius-sm); font: inherit; color: var(--ink); background: #fff; }
   .ts-open { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; text-decoration: none; }
   .ts-new { display: grid; gap: 10px; }
   .ts-new > label { font-size: 0.85rem; color: var(--steel); }
   .ts-new input[type="file"] { display: block; margin-top: 4px; }
+  .ts-new textarea { min-height: 0; line-height: 1.45; resize: vertical; }
   .ts-preview { display: block; width: 100%; max-width: 600px; height: auto; border-radius: var(--radius-sm); border: 1px solid var(--hairline); }
   @media (max-width: 780px) { .ts-item { grid-template-columns: 1fr; } .ts-thumb { width: 100%; } }
   .tk-switch { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; background: none; border: 0; color: var(--ink); padding: 0 6px; }
@@ -758,6 +759,17 @@
         <p class="iv-note" id="ts-preview-note"></p>
         <label>Caption<input type="text" id="ts-caption" maxlength="200" placeholder="A line for the preview, for example: Thruxton, every lap mapped and timed"></label>
         <div class="iv-toolbar"><button type="button" class="secondary" id="ts-make" disabled>Save to the pictures</button></div>
+      </div>
+    </details>
+    <details class="collapsible" id="copy-wrap">
+      <summary><h3 class="panel-title">Welcome text</h3></summary>
+      <p class="iv-note">The card a visitor who is not signed in sees at the top of Track sessions: its heading, the paragraph and the tick list. Anything left blank keeps the built-in words.</p>
+      <p class="iv-note" id="tc-note" role="status"></p>
+      <div class="ts-new">
+        <label>Heading<input type="text" id="tc-heading" maxlength="80"></label>
+        <label>Paragraph<textarea id="tc-intro" rows="4" maxlength="600"></textarea></label>
+        <label>Tick list, one line each (up to 8)<textarea id="tc-bullets" rows="6"></textarea></label>
+        <div class="iv-toolbar"><button type="button" class="secondary" id="tc-save">Save</button><button type="button" class="secondary" id="tc-reset">Use the built-in words</button></div>
       </div>
     </details>
     </div>
@@ -2878,13 +2890,14 @@
 })();
 </script>
 <script src="js/admin-subnav.js" defer></script>
-<script src="js/track-parse.js?v=20261101" defer></script>
-<script src="js/track-view.js?v=20261101" defer></script>
+<script src="js/track-parse.js?v=20261102" defer></script>
+<script src="js/track-view.js?v=20261102" defer></script>
 <script src="js/track-access-admin.js" defer></script>
 <script src="js/track-member-admin.js" defer></script>
-<script src="js/track-admin.js?v=20261101" defer></script>
-<script src="js/track-share-card.js?v=20261101"></script>
-<script src="js/track-share-admin.js?v=20261101" defer></script>
+<script src="js/track-admin.js?v=20261102" defer></script>
+<script src="js/track-share-card.js?v=20261102"></script>
+<script src="js/track-share-admin.js?v=20261102" defer></script>
+<script src="js/track-copy-admin.js?v=20261102" defer></script>
 <script src="js/tyre-data.js" defer></script>
 <script src="js/tyre-admin.js" defer></script>
 </body>

@@ -7346,6 +7346,35 @@ async function handleTyresAdmin(request, env) {
   return json({ success: true, extra: library });
 }
 
+// ---------- Track Sessions welcome text ----------
+// The card a visitor who is not signed in sees on track.html (heading, intro and tick list), editable on the
+// Welcome text panel of admin.html. One KV key (track-copy), read with get(); empty means the page's built-in text.
+var TRACK_COPY_KEY = 'track-copy';
+function cleanTrackCopy(body) {
+  var out = {}, heading = trackText(body && body.heading, 80), intro = trackText(body && body.intro, 600);
+  if (heading) out.heading = heading;
+  if (intro) out.intro = intro;
+  var bullets = Array.isArray(body && body.bullets) ? body.bullets : String((body && body.bullets) || '').split(/\r?\n/);
+  bullets = bullets.map(function (b) { return trackText(b, 120); }).filter(Boolean).slice(0, 8);
+  if (bullets.length) out.bullets = bullets;
+  return out;
+}
+async function handleTrackCopyPublic(request, env) {
+  var res = json({ success: true, copy: await getJsonKey(env, TRACK_COPY_KEY, {}) });
+  res.headers.set('Cache-Control', 'public, max-age=120');
+  return res;
+}
+async function handleTrackCopyAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  if (request.method === 'GET') return json({ success: true, copy: await getJsonKey(env, TRACK_COPY_KEY, {}) });
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var copy = body && body.reset ? {} : cleanTrackCopy(body);
+  if (Object.keys(copy).length) await env.VOTES.put(TRACK_COPY_KEY, JSON.stringify(copy));
+  else await env.VOTES.delete(TRACK_COPY_KEY);
+  return json({ success: true, copy: copy });
+}
+
 // ---------- Track Sessions link preview picture ----------
 // The picture a shared Track Sessions link previews with. The admin saves pictures (a card drawn from a session, or
 // a photo) to the bucket under share/track/, each with a caption, in one KV key (track-share, read with get()):
@@ -8974,6 +9003,12 @@ export default {
     }
     if (url.pathname === '/track/counts' && request.method === 'GET') {
       return handleTrackCounts(request, env);
+    }
+    if (url.pathname === '/track/copy' && request.method === 'GET') {
+      return handleTrackCopyPublic(request, env);
+    }
+    if (url.pathname === '/track/copy/admin' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleTrackCopyAdmin(request, env);
     }
     if (url.pathname === '/share/track' && request.method === 'GET') {
       return handleTrackSharePublic(request, env);

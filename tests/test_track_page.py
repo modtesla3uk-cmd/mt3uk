@@ -55,6 +55,8 @@ class FakeWorker:
         self.requests = []
         # When on, the same file saved again is refused, as the worker does.
         self.dupes = False
+        # The admin's welcome words for the signed-out card, when set.
+        self.copy = None
         self.courses = []
         self.sources = {}
         self.boards = {}
@@ -173,6 +175,8 @@ class FakeWorker:
             data = {"success": True, "entries": custom if custom is not None else entries}
         elif path == "/track/public":
             data = {"success": True, "car": {"id": "car1", "name": CAR["name"], "model": "Model 3", "owner": "Rich"}, "mine": False, "sessions": [s for s in self.index if s.get("privacy") in ("build", "board")]}
+        elif path == "/track/copy":
+            data = {"success": True, "copy": self.copy or {}}
         elif path == "/track/requests":
             self.requests.append(body)
         elif path == "/track/admin/course" and req.method == "POST" and not req.headers.get("x-admin-viewer"):
@@ -553,6 +557,17 @@ def test_saving_a_session_shows_a_saved_message_with_a_way_back(page):
     expect(page).to_have_url(re.compile(r"/track\.html$"))
     expect(page.locator("#tp-saved")).to_have_count(0)
     expect(page.locator("#tp-sess-list")).to_be_visible()
+
+
+def test_the_welcome_card_takes_the_admins_words_when_set(page):
+    fake = FakeWorker()
+    fake.copy = {"heading": "Lap times for every MT3UK car", "bullets": ["One", "Two <b>x</b>"]}
+    open_page(page, fake, signed_in=False)
+    card = page.locator(".tp-intro")
+    expect(card.locator("h2")).to_have_text("Lap times for every MT3UK car")
+    # The paragraph was not set, so the built-in one stays; the list is the admin's, shown as text.
+    expect(card.locator("p").first).to_contain_text("Upload the file from your lap timer")
+    expect(card.locator(".tp-ticks li")).to_have_text(["One", "Two <b>x</b>"])
 
 
 def test_uploading_the_same_file_again_is_refused_and_says_which_session_it_is(page):

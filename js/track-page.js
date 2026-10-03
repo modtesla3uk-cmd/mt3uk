@@ -1777,7 +1777,8 @@
   // Choose a lap, or the whole session, for the figures below.
   function lapPickHtml(s) {
     var laps = (s.laps || []).filter(function (l) { return l.kind !== 'short' || l.n === lapSel; });
-    if (laps.length < 2) return '';
+    // One lap is still a choice: its figures against the whole session's, out and in laps included.
+    if (!laps.length) return '';
     var LWd = s.type === 'sprint' ? 'Run' : 'Lap';
     return '<div class="tp-field tp-lap-pick"><label for="tp-lap-pick">Figures for</label><select class="field" id="tp-lap-pick"><option value="">Whole session</option>' + laps.map(function (l) {
       return '<option value="' + l.n + '"' + (lapSel === l.n ? ' selected' : '') + '>' + esc(lapName(l, s) + ', ' + V.fmtLap(l.time) + (l.n === s.best ? ' (best)' : l.kind === 'in' ? ' (in ' + LWd.toLowerCase() + ')' : '')) + '</option>';

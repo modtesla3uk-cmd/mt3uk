@@ -186,8 +186,10 @@ r = await call('GET', '/track/public?car=carb1');
 ok(r.body.sessions.length === 1 && !r.body.sessions.some(s => s.street), 'street runs never public');
 
 // Track list and requests
+const reqMails = env.SEND_EMAIL.sent.length;
 r = await call('POST', '/track/requests', { name: 'Old airfield', startLine: [[53.1, -1.1], [53.1001, -1.1001]], outline: [[53.1, -1.1], [53.11, -1.11]], lapLength: 2100 }, 'tok-a');
 ok(r.status === 200, 'member asks for a new track');
+ok(env.SEND_EMAIL.sent.length === reqMails + 1 && /modtesla3uk@gmail\.com/.test(env.SEND_EMAIL.sent[reqMails]) && /New track request: Old airfield/.test(env.SEND_EMAIL.sent[reqMails]) && /admin\.html#grp-tracks/.test(env.SEND_EMAIL.sent[reqMails]), 'the admin is emailed about the new track');
 r = await call('GET', '/track/admin/requests');
 ok(r.status === 401, 'requests need the admin key');
 r = await call('GET', '/track/admin/requests?key=secret');
@@ -651,6 +653,22 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   const plain = await call('POST', '/track/sessions', { carId: 'cara1', session }, 'tok-a');
   const list2 = await call('GET', '/track/sessions', undefined, 'tok-a');
   ok(!('soc' in list2.body.sessions.find(x => x.id === plain.body.session.id)), 'a session with no battery figures has none');
+}
+
+// Reports email the admin too (the Admin bell only fills while admin.html is open).
+{
+  kv.set('comments:car-9.jpg', JSON.stringify([{ id: 'cm1', name: 'Sam', text: 'A rude <b>remark</b>', at: '2026-10-01T10:00:00Z' }]));
+  const before = env.SEND_EMAIL.sent.length;
+  r = await call('POST', '/comments/report', { file: 'car-9.jpg', id: 'cm1' }, 'tok-a');
+  const mail = env.SEND_EMAIL.sent.slice(before).join('\n');
+  ok(r.status === 200 && env.SEND_EMAIL.sent.length === before + 1 && /Reported comment on car-9\.jpg/.test(mail) && /Sam/.test(mail) && /A rude/.test(mail) && /admin\.html#grp-reports/.test(mail), 'a reported comment emails the admin with who said what');
+  r = await call('POST', '/comments/report', { file: 'car-9.jpg', id: 'cm1' }, 'tok-a');
+  ok(env.SEND_EMAIL.sent.length === before + 1, 'the same member reporting it again sends nothing more');
+  r = await call('POST', '/gallery/report', { file: 'car-9.jpg' }, undefined, { 'X-Voter-Id': 'visitor-0001' });
+  const pm = env.SEND_EMAIL.sent[before + 1] || '';
+  ok(r.status === 200 && env.SEND_EMAIL.sent.length === before + 2 && /Reported photo: car-9\.jpg/.test(pm) && /gallery\.html\?photo=car-9\.jpg/.test(pm), 'a reported photo emails the admin');
+  r = await call('POST', '/gallery/report', { file: 'car-9.jpg' }, undefined, { 'X-Voter-Id': 'visitor-0001' });
+  ok(env.SEND_EMAIL.sent.length === before + 2, 'the same visitor reporting it again sends nothing more');
 }
 
 // Leaving the site clears everything.

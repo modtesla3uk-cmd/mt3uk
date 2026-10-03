@@ -856,6 +856,24 @@ def test_a_lap_without_its_own_car_figures_says_so_and_shows_the_whole_session(p
     expect(page.locator("#car-data .tp-tile", has_text="Charge used")).to_contain_text("5%")
 
 
+def test_a_session_with_one_lap_still_offers_its_figures_against_the_whole_session(page):
+    """One complete lap (an out lap and an in lap either side): the whole session's
+    figures and the lap's own differ, so the picker is still shown."""
+    fake = FakeWorker(earlier=False)
+    rec = car_lap_session()
+    rec["laps"] = rec["laps"][:1]
+    rec["trace"]["laps"] = {"1": rec["trace"]["laps"]["1"]}
+    fake.sessions["lp1"] = rec
+    fake.index.append(summary(rec))
+    open_page(page, fake, path="/track.html?s=lp1")
+    pick = page.locator("#tp-lap-pick")
+    expect(pick).to_be_visible()
+    expect(pick.locator("option")).to_have_count(2)
+    pick.select_option("1")
+    expect(page.locator("#tp-headline .tp-tile").first).to_contain_text("Lap time")
+    expect(page.locator("#car-data .tp-tile", has_text="Charge used")).to_contain_text("2%")
+
+
 def test_the_leaderboard_has_a_my_sessions_button_back_to_your_sessions(page):
     fake = FakeWorker()
     open_page(page, fake, path="/leaderboards.html")

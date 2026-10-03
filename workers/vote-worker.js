@@ -3197,6 +3197,14 @@ async function handleCommentsPost(request, env, ctx) {
   return json({ success: true, comment: publicComment(comment, [], email) });
 }
 
+// A note to the admin about a report (best effort: the report is kept either way). The Admin bell only fills when
+// admin.html is open, so these would otherwise wait unseen.
+async function sendReportEmail(env, subject, text) {
+  try {
+    await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text + '\n\nReview it on the Reports panel: ' + MY_BUILDS_SITE_URL + '/admin.html#grp-reports')));
+  } catch (e) { /* the report is saved */ }
+}
+
 async function handleCommentReport(request, env, ctx) {
   var body;
   try {
@@ -3227,6 +3235,10 @@ async function handleCommentReport(request, env, ctx) {
       comment.hidden = true;
     }
     await saveComments(env, file, comments);
+    var n = comment.reports.length;
+    await sendReportEmail(env, 'Reported comment on ' + file + (n > 1 ? ' (' + n + ' reports)' : ''),
+      subscriberLabel(await publicNameFor(env, reporterEmail), reporterEmail) + ' reported a comment by ' + (comment.name || 'a member') + ' on ' + file + '.\n\n' +
+      '"' + String(comment.text || '').slice(0, 500) + '"' + (comment.hidden ? '\n\nIt has had ' + n + ' reports and is now hidden.' : ''));
   }
 
   return json({ success: true, reported: true });
@@ -3265,6 +3277,8 @@ async function handlePhotoReport(request, env) {
   if (reports.indexOf(voterId) === -1) {
     reports.push(voterId);
     await savePhotoReports(env, file, reports);
+    await sendReportEmail(env, 'Reported photo: ' + file + (reports.length > 1 ? ' (' + reports.length + ' reports)' : ''),
+      'A visitor reported the gallery photo ' + file + '.' + (reports.length >= PHOTO_REPORT_HIDE_THRESHOLD ? '\n\nIt has had ' + reports.length + ' reports and is now off the gallery, reel and voting.' : '') + '\n\n' + MY_BUILDS_SITE_URL + '/gallery.html?photo=' + encodeURIComponent(file));
 
     if (reports.length >= PHOTO_REPORT_HIDE_THRESHOLD) {
       var sidecarKey = 'gallery/' + file + '.json';
@@ -7343,6 +7357,16 @@ async function handleTrackRequest(request, env) {
   if (req.venueId && list.some(function (r) { return !r.done && r.venueId === req.venueId && (r.layoutId || '') === (req.layoutId || '') && (r.organizer || '') === (req.organizer || ''); })) return json({ success: true });
   list.unshift(req);
   await env.VOTES.put('track-requests', JSON.stringify(list.slice(0, 200)));
+  // A note to the admin, as for early access (best effort: the request is kept either way).
+  try {
+    var what = req.kind === 'drag' ? 'drag strip' : req.kind === 'sprint' ? 'sprint or hill climb course' : 'track';
+    var subject = 'New ' + what + ' request: ' + (req.name || 'unnamed');
+    var text = subscriberLabel(await publicNameFor(env, email), email) + ' has uploaded a session at a ' + what + ' MT3UK does not have yet.\n\n' +
+      'Name: ' + (req.name || 'not given') + '\n' + (req.organizer ? 'Organiser: ' + req.organizer + '\n' : '') + (req.note ? 'Note: ' + req.note + '\n' : '') +
+      (req.lat !== null ? 'Position: ' + req.lat.toFixed(4) + ', ' + req.lng.toFixed(4) + '\n' : '') +
+      '\nApprove and add it, or dismiss it, on the Tracks panel: ' + MY_BUILDS_SITE_URL + '/admin.html#grp-tracks';
+    await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text)));
+  } catch (e) { /* the request is saved */ }
   return json({ success: true });
 }
 

@@ -448,11 +448,14 @@
     if (svg._zoomOff) { svg._zoomOff(); svg._zoomOff = null; }
     if (!cfg) return null;
     var W = cfg.W, H = cfg.H, vb = { x: 0, y: 0, w: W, h: H };
+    // A map that can zoom right out (the admin's) can also be panned well past the first view, in any zoom, so a
+    // spot beside the track can be reached to place a line there.
+    var free = !!cfg.minZoom;
     function set() {
       svg.setAttribute('viewBox', vb.x + ' ' + vb.y + ' ' + vb.w + ' ' + vb.h);
       var kk = W / vb.w;
       svg.classList.toggle('is-zoomed', kk > 1.01);
-      reset.hidden = Math.abs(kk - 1) <= 0.01;
+      reset.hidden = Math.abs(kk - 1) <= 0.01 && Math.abs(vb.x) < 0.5 && Math.abs(vb.y) < 0.5;
       cfg.onZoom(kk);
     }
     function zoomAt(f, cx, cy) {
@@ -463,6 +466,7 @@
       clamp(); set();
     }
     function clamp() {
+      if (free) { vb.x = Math.max(-5 * W, Math.min(6 * W - vb.w, vb.x)); vb.y = Math.max(-5 * H, Math.min(6 * H - vb.h, vb.y)); return; }
       // Zoomed out past the whole track, the map sits in the middle of the extra room.
       vb.x = vb.w >= W ? (W - vb.w) / 2 : Math.max(0, Math.min(W - vb.w, vb.x));
       vb.y = vb.h >= H ? (H - vb.h) / 2 : Math.max(0, Math.min(H - vb.h, vb.y));
@@ -550,7 +554,7 @@
         e.preventDefault();
         return;
       }
-      if (vb.w >= W - 0.5) return;
+      if (!free && vb.w >= W - 0.5) return;
       var s0 = start.pts[e.pointerId];
       if (!s0) return;
       var mx = e.clientX - s0.x, my = e.clientY - s0.y;

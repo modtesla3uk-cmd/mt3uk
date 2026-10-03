@@ -149,17 +149,17 @@
   .sub-head { font-size: 0.72rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--steel); margin: 18px 0 10px; font-weight: 500; }
   .card-owner { font-size: 0.78rem; margin: 2px 0 4px; word-break: break-word; }
   .card-votes { color: var(--orange); font-weight: 700; }
-  .collapsible > summary, .subscriber-files-wrap > summary { cursor: pointer; list-style: none; }
-  .collapsible > summary::-webkit-details-marker, .subscriber-files-wrap > summary::-webkit-details-marker { display: none; }
-  .collapsible > summary .panel-title { display: inline-block; margin: 0; }
-  .collapsible > summary .panel-title::before, .subscriber-files-wrap > summary::before {
+  .collapsible > summary, .tk-fold > summary, .subscriber-files-wrap > summary { cursor: pointer; list-style: none; }
+  .collapsible > summary::-webkit-details-marker, .tk-fold > summary::-webkit-details-marker, .subscriber-files-wrap > summary::-webkit-details-marker { display: none; }
+  .collapsible > summary .panel-title, .tk-fold > summary .panel-title { display: inline-block; margin: 0; }
+  .collapsible > summary .panel-title::before, .tk-fold > summary .panel-title::before, .subscriber-files-wrap > summary::before {
     content: ""; display: inline-block; width: 18px; height: 18px; margin-right: 8px; vertical-align: -3px;
     background: var(--orange); transform: rotate(-90deg); transition: transform .15s ease;
     -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / contain no-repeat;
             mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / contain no-repeat;
   }
   .subscriber-files-wrap > summary::before { width: 14px; height: 14px; margin-right: 6px; vertical-align: -2px; }
-  .collapsible[open] > summary .panel-title::before, .subscriber-files-wrap[open] > summary::before { transform: none; }
+  .collapsible[open] > summary .panel-title::before, .tk-fold[open] > summary .panel-title::before, .subscriber-files-wrap[open] > summary::before { transform: none; }
   .collapsible[open] > summary { margin-bottom: 14px; }
   .summary-count { color: var(--steel); }
   .add-subscriber-row { display: flex; gap: 8px; margin-bottom: 18px; }
@@ -447,6 +447,12 @@
   .tk-table td { vertical-align: top; }
   .tk-miss { color: var(--orange); }
   .tk-top { margin-top: 10px; }
+  .tk-fold > summary { margin-top: 18px; }
+  .tk-fold[open] > summary { margin-bottom: 10px; }
+  .tk-filter { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; margin: 0 0 10px; }
+  .tk-filter label { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 150px; max-width: 280px; }
+  .tk-filter select { width: 100%; }
+  .tk-filter .tk-count { margin-left: auto; }
   .tk-form { border: 1px solid var(--orange); border-radius: var(--radius); padding: 14px; margin: 14px 0; display: grid; gap: 10px; }
   .tk-form label { display: grid; gap: 4px; font-size: 0.82rem; color: var(--steel); }
   .tk-form textarea { width: 100%; min-height: 60px; }
@@ -755,8 +761,10 @@
       <h3 class="sub-head">New track requests</h3>
       <div id="tk-requests"></div>
       <div class="tk-form" id="tk-form" hidden></div>
-      <h3 class="sub-head">Tracks</h3>
-      <div id="tk-list"></div>
+      <details class="tk-fold" id="tk-list-wrap" open>
+        <summary><h3 class="sub-head panel-title">Tracks <span class="summary-count" id="tk-list-count"></span></h3></summary>
+        <div id="tk-list"></div>
+      </details>
       <h3 class="sub-head">Leaderboards</h3>
       <p class="iv-note">Leaderboard places keep each car's best for every mix of conditions and tyres, and its track-relevant parts. Places made before that are brought up to date here: it goes through the cars a few at a time.</p>
       <div class="iv-toolbar"><button type="button" class="secondary" id="tk-rebuild">Rebuild all leaderboards</button><span class="iv-note" id="tk-rebuild-note" role="status"></span></div>
@@ -2946,11 +2954,11 @@
 </script>
 <script src="js/admin-subnav.js" defer></script>
 <script src="js/track-parse.js?v=20261104" defer></script>
-<script src="js/track-view.js?v=20261117" defer></script>
+<script src="js/track-view.js?v=20261118" defer></script>
 <script src="js/track-access-admin.js" defer></script>
 <script src="js/track-lines-admin.js?v=20261111" defer></script>
 <script src="js/track-member-admin.js?v=20261103" defer></script>
-<script src="js/track-admin.js?v=20261117" defer></script>
+<script src="js/track-admin.js?v=20261120" defer></script>
 <script src="js/track-share-card.js?v=20261102"></script>
 <script src="js/track-share-admin.js?v=20261105" defer></script>
 <script src="js/track-copy-admin.js?v=20261102" defer></script>

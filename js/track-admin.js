@@ -192,15 +192,43 @@
     return n.length === 4 && n.every(isFinite) ? [[n[0], n[1]], [n[2], n[3]]] : null;
   }
 
+  // The list can be narrowed to one track name and one type from the two drop-downs above it.
+  var tkFilter = { name: '', type: '' };
+  var KIND_NAMES = { circuit: 'Circuit', sprint: 'Sprint', hill: 'Hill climb', drag: 'Drag strip' };
+  function kindOf(v) { return v.type === 'drag' ? 'drag' : v.type === 'sprint' ? (v.hill ? 'hill' : 'sprint') : 'circuit'; }
+  function shownVenues() {
+    var kinds = Object.keys(KIND_NAMES);
+    return library.venues.filter(function (v) { return (!tkFilter.name || v.name === tkFilter.name) && (!tkFilter.type || kindOf(v) === tkFilter.type); })
+      .sort(function (a, b) { return String(a.name || '').localeCompare(String(b.name || ''), undefined, { sensitivity: 'base' }) || kinds.indexOf(kindOf(a)) - kinds.indexOf(kindOf(b)); });
+  }
+  function filterHtml() {
+    var names = [];
+    library.venues.forEach(function (v) { if (names.indexOf(v.name) < 0) names.push(v.name); });
+    names.sort(function (a, b) { return a.localeCompare(b); });
+    if (tkFilter.name && names.indexOf(tkFilter.name) < 0) tkFilter.name = '';
+    var shown = shownVenues().length;
+    return '<div class="tk-filter"><label>Track<select data-tk-filter="name"><option value="">All tracks</option>' + names.map(function (n) { return '<option value="' + esc(n) + '"' + (n === tkFilter.name ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('') + '</select></label>' +
+      '<label>Type<select data-tk-filter="type"><option value="">All types</option>' + Object.keys(KIND_NAMES).map(function (k) { return '<option value="' + k + '"' + (k === tkFilter.type ? ' selected' : '') + '>' + KIND_NAMES[k] + '</option>'; }).join('') + '</select></label>' +
+      '<span class="iv-sub tk-count">' + (shown === library.venues.length ? library.venues.length + ' tracks' : 'Showing ' + shown + ' of ' + library.venues.length) + '</span></div>';
+  }
+  listEl.addEventListener('change', function (e) {
+    var f = e.target.closest && e.target.closest('[data-tk-filter]');
+    if (!f) return;
+    tkFilter[f.getAttribute('data-tk-filter')] = f.value;
+    drawList();
+  });
+
   function drawList() {
     var changed = {};
     (extra.venues || []).forEach(function (v) { changed[v.id] = true; });
-    listEl.innerHTML = '<table class="iv-table tk-table"><thead><tr><th>Track</th><th>Type</th><th>Layouts</th><th>Set up</th><th></th></tr></thead><tbody>' + library.venues.map(function (v) {
+    var cnt = document.getElementById('tk-list-count');
+    if (cnt) cnt.textContent = '(' + (shownVenues().length === library.venues.length ? library.venues.length : shownVenues().length + ' of ' + library.venues.length) + ')';
+    listEl.innerHTML = filterHtml() + '<table class="iv-table tk-table"><thead><tr><th>Track</th><th>Type</th><th>Layouts</th><th>Set up</th><th></th></tr></thead><tbody>' + shownVenues().map(function (v) {
       var layouts = v.layouts || [];
       var ready = v.type === 'drag' ? 'Drag strip' : layouts.map(function (l) { return esc(l.name) + ': ' + (l.startLine ? 'start line' : '<span class="tk-miss">no start line</span>') + (v.type === 'sprint' ? (l.finishLine ? ', finish line' : ', <span class="tk-miss">no finish line</span>') : '') + (l.corners && l.corners.length ? ', ' + l.corners.length + ' corners' : '') + (l.sectors && l.sectors.length ? ', ' + l.sectors.length + ' sector lines' : ''); }).join('<br>');
       return '<tr><td><b>' + esc(v.name) + '</b>' + (changed[v.id] ? ' <span class="iv-sub">(changed here)</span>' : '') + (v.review ? '<span class="iv-sub tk-review">Added by a member, to review</span>' : '') + (v.check ? '<span class="iv-sub">Centre or lengths to check</span>' : '') + '</td><td>' + (v.type === 'drag' ? 'Drag strip' : v.type === 'sprint' ? (v.hill ? 'Hill climb' : 'Sprint') : 'Circuit (track day)') + '</td><td>' + (v.type === 'drag' ? '-' : layouts.length) + '</td><td class="iv-sub">' + ready + '</td>' +
         '<td><div class="iv-actions">' + layouts.filter(function (l) { return l.startLine; }).map(function (l) { return '<button type="button" class="secondary iv-act" data-map="' + esc(v.id + ':' + l.id) + '">Map' + (layouts.length > 1 ? ': ' + esc(l.name) : '') + '</button>'; }).join('') + '<button type="button" class="secondary iv-act" data-edit="' + esc(v.id) + '">Edit</button>' + (v.type === 'drag' ? '' : '<button type="button" class="secondary iv-act" data-check-course="' + esc(v.id) + '">Check sessions here</button><button type="button" class="secondary iv-act" data-retime-course="' + esc(v.id) + '">Re-time sessions here</button>') + '<button type="button" class="danger iv-act" data-remove="' + esc(v.id) + '">Remove</button></div></td></tr>';
-    }).join('') + '</tbody></table><div class="iv-toolbar tk-top"><button type="button" class="secondary" data-new>Add a track</button></div>';
+    }).join('') + (shownVenues().length ? '' : '<tr><td colspan="5" class="iv-sub">No tracks match.</td></tr>') + '</tbody></table><div class="iv-toolbar tk-top"><button type="button" class="secondary" data-new>Add a track</button></div>';
   }
 
   listEl.addEventListener('click', function (e) {

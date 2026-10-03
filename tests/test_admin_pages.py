@@ -124,7 +124,7 @@ def test_admin_can_rebuild_the_leaderboards_in_steps(page):
         route.fulfill(status=200, content_type="application/json", body=json.dumps(data), headers={"Access-Control-Allow-Origin": "*"})
     open_admin(page, "admin.html")
     page.route("**/track/boards/rebuild**", rebuild)
-    page.locator("#tracks-wrap summary").click()
+    page.locator("#tracks-wrap > summary").click()
     page.locator("#tk-rebuild").click()
     expect(page.locator("#tk-rebuild-note")).to_have_text("Done: 3 cars brought up to date.")
     assert len(calls) == 2 and "key=test-key" in calls[0] and "cursor=2" in calls[1]
@@ -176,7 +176,7 @@ def test_admin_check_sessions_counts_old_ones_and_saves_nothing(page):
     saved = []
     open_admin(page, "admin.html")
     _retime_mocks(page, saved)
-    page.locator("#tracks-wrap summary").click()
+    page.locator("#tracks-wrap > summary").click()
     page.locator("#tk-retime-check").click()
     note = page.locator("#tk-retime-note")
     expect(note).to_contain_text("3 sessions looked at")
@@ -193,7 +193,7 @@ def test_admin_retime_saves_the_new_timing_then_rebuilds_the_boards(page):
     open_admin(page, "admin.html")
     _retime_mocks(page, saved)
     page.on("dialog", lambda d: d.accept())
-    page.locator("#tracks-wrap summary").click()
+    page.locator("#tracks-wrap > summary").click()
     page.locator("#tk-retime").click()
     expect(page.locator("#tk-retime-note")).to_contain_text("Leaderboards rebuilt (4 cars)")
     assert len(saved) == 1 and saved[0]["id"] == "aaaaaaaa01"
@@ -206,7 +206,7 @@ def test_admin_retime_holds_back_a_best_time_that_moves_over_ten_percent(page):
     open_admin(page, "admin.html")
     _retime_mocks(page, saved, old_best=60.0)
     page.on("dialog", lambda d: d.accept())
-    page.locator("#tracks-wrap summary").click()
+    page.locator("#tracks-wrap > summary").click()
     page.locator("#tk-retime-check").click()
     expect(page.locator("#tk-retime-list li")).to_contain_text("held back unless you allow big changes")
     expect(page.locator("#tk-retime-note")).to_contain_text("1 held back for moving over 10%")
@@ -221,7 +221,7 @@ def test_admin_retime_saves_a_big_change_when_the_switch_is_on(page):
     open_admin(page, "admin.html")
     _retime_mocks(page, saved, old_best=60.0)
     page.on("dialog", lambda d: d.accept())
-    page.locator("#tracks-wrap summary").click()
+    page.locator("#tracks-wrap > summary").click()
     page.locator("#tk-retime-big").click()
     expect(page.locator("#tk-retime-big")).to_have_attribute("aria-checked", "true")
     page.locator("#tk-retime").click()
@@ -231,7 +231,7 @@ def test_admin_retime_saves_a_big_change_when_the_switch_is_on(page):
 
 def test_admin_track_type_has_sprint_and_hill_climb_as_separate_choices(page):
     open_admin(page, "admin.html")
-    page.locator("#tracks-wrap summary").click()
+    page.locator("#tracks-wrap > summary").click()
     page.locator("#tk-list [data-edit='shelsley-walsh']").click()
     select = page.locator("#tk-type")
     expect(select.locator("option")).to_have_text(["Circuit", "Drag strip", "Sprint", "Hill climb"])
@@ -360,7 +360,7 @@ def test_a_track_a_member_added_is_marked_for_review_and_marked_reviewed(page):
     page.route("**/track/admin/requests**", requests)
     page.route("**/track/admin/tracks**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "extra": {"venues": [venue]}, "library": {"venues": [venue]}}), headers=ok))
     page.reload()
-    page.locator("#tracks-wrap summary").click()
+    page.locator("#tracks-wrap > summary").click()
     card = page.locator("#tk-requests .tk-req")
     expect(card).to_have_class(re.compile(r"is-added"))
     expect(card).to_contain_text("Added by the member and live now")
@@ -390,7 +390,7 @@ def test_admin_can_open_a_map_of_a_requested_course_and_the_load_refreshes_every
     page.route("**/track/admin/requests**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "requests": [req]}), headers=ok))
     page.route("**/track/admin/tracks**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "extra": {"venues": []}, "library": {"venues": []}}), headers=ok))
     page.reload()
-    page.locator("#tracks-wrap summary").click()
+    page.locator("#tracks-wrap > summary").click()
     page.get_by_role("button", name="Open map").click()
     modal = page.locator("#tk-map-modal")
     expect(modal).to_be_visible()
@@ -813,7 +813,7 @@ def test_admin_sets_a_course_line_by_clicking_on_the_map_instead_of_typing_coord
     page.route("**/track/admin/requests**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "requests": []}), headers=ok))
     page.route("**/track/admin/tracks**", tracks)
     page.reload()
-    page.locator("#tracks-wrap summary").click()
+    page.locator("#tracks-wrap > summary").click()
     page.get_by_role("button", name="Edit").first.click()
     finish = page.locator('[data-l="finishLine"]')
     start_before = page.locator('[data-l="startLine"]').input_value()
@@ -830,6 +830,20 @@ def test_admin_sets_a_course_line_by_clicking_on_the_map_instead_of_typing_coord
     assert vb_w() / start_w > 50, (start_w, vb_w())
     modal.locator(".tv-zoom-reset").click()
     assert abs(vb_w() - start_w) < 1
+    # Zoomed in, the map can be dragged well past the first view, to reach a spot beside the track.
+    for _ in range(4):
+        modal.locator(".tv-zoom-in").click()
+    vb_x = lambda: float(page.locator("#tk-map-svg").get_attribute("viewBox").split()[0])
+    sv = page.locator("#tk-map-svg").bounding_box()
+    for _ in range(12):
+        page.mouse.move(sv["x"] + sv["width"] * 0.2, sv["y"] + sv["height"] * 0.5)
+        page.mouse.down()
+        page.mouse.move(sv["x"] + sv["width"] * 0.9, sv["y"] + sv["height"] * 0.5, steps=4)
+        page.mouse.up()
+    assert vb_x() < -5, vb_x()
+    expect(modal.locator(".tv-zoom-reset")).to_be_visible()
+    modal.locator(".tv-zoom-reset").click()
+    assert abs(vb_w() - start_w) < 1 and abs(vb_x()) < 1
     # Clear it and place a new one by clicking either side of a road.
     modal.get_by_role("button", name="Clear").click()
     expect(modal.locator(".tk-pick-end")).to_have_count(0)
@@ -905,7 +919,7 @@ def test_admin_checks_then_re_times_every_session_at_one_track_from_its_saved_re
     page.route("**/track/admin/retime/source**", lambda r: fulfil(r, src))
     page.route("**/track/boards/rebuild**", rebuild)
     page.reload()
-    page.locator("#tracks-wrap summary").click()
+    page.locator("#tracks-wrap > summary").click()
     row = page.locator("#tk-list tbody tr", has_text="Thruxton")
     expect(row.get_by_role("button", name="Check sessions here")).to_be_visible()
     expect(page.locator("#tk-list tbody tr", has_text="Castle Combe").get_by_role("button", name="Re-time sessions here")).to_be_visible()
@@ -977,3 +991,61 @@ def test_the_bell_lists_map_edit_requests_and_changes_waiting_for_approval(page)
     # Seen items stop counting until something new arrives.
     page.reload()
     expect(page.locator("#bell-badge")).to_be_hidden()
+
+
+def test_the_tracks_list_can_be_narrowed_by_track_name_and_by_type(page):
+    ok = {"Access-Control-Allow-Origin": "*"}
+    venues = [
+        {"id": "thruxton", "name": "Thruxton", "type": "circuit", "lat": 51.2, "lng": -1.6, "radius": 2000, "layouts": [{"id": "gp", "name": "Full", "length": 3800}]},
+        {"id": "abingdon", "name": "Abingdon Airfield", "type": "sprint", "lat": 51.68, "lng": -1.31, "radius": 1500, "layouts": [{"id": "c", "name": "AMC", "length": 2250}]},
+        {"id": "abingdon-td", "name": "Abingdon Airfield", "type": "circuit", "lat": 51.68, "lng": -1.31, "radius": 1500, "layouts": [{"id": "t", "name": "Track day", "length": 1200}]},
+        {"id": "shelsley", "name": "Shelsley Walsh", "type": "sprint", "hill": True, "lat": 52.27, "lng": -2.36, "radius": 800, "layouts": [{"id": "h", "name": "Hill", "length": 1000}]},
+        {"id": "santa-pod", "name": "Santa Pod", "type": "drag", "lat": 52.2, "lng": -0.6, "radius": 1000, "layouts": []},
+    ]
+    open_admin(page, "admin.html")
+    page.route("**/track/access/admin**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "open": False, "allowed": [], "pending": []}), headers=ok))
+    page.route("**/track/admin/requests**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "requests": []}), headers=ok))
+    page.route("**/track/admin/tracks**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "extra": {"venues": venues}, "library": {"venues": venues}}), headers=ok))
+    page.reload()
+    page.locator("#tracks-wrap > summary").click()
+    rows = page.locator("#tk-list tbody tr")
+    expect(rows).to_have_count(5)
+    expect(page.locator("#tk-list .tk-count")).to_have_text("5 tracks")
+    # In alphabetical order by name (a sprint before a track day at the same place is not guaranteed, but they sit together).
+    order = page.locator("#tk-list tbody tr td:first-child b").all_text_contents()
+    assert order == ["Abingdon Airfield", "Abingdon Airfield", "Santa Pod", "Shelsley Walsh", "Thruxton"], order
+    page.locator('[data-tk-filter="type"]').select_option("hill")
+    expect(rows).to_have_count(1)
+    expect(rows.first).to_contain_text("Shelsley Walsh")
+    expect(page.locator("#tk-list .tk-count")).to_have_text("Showing 1 of 5")
+    page.locator('[data-tk-filter="type"]').select_option("")
+    page.locator('[data-tk-filter="name"]').select_option("Abingdon Airfield")
+    expect(rows).to_have_count(2)  # the sprint and the track day share a name
+    page.locator('[data-tk-filter="type"]').select_option("circuit")
+    expect(rows).to_have_count(1)
+    expect(rows.first).to_contain_text("Track day")
+    page.locator('[data-tk-filter="type"]').select_option("drag")
+    expect(page.locator("#tk-list tbody")).to_contain_text("No tracks match.")
+    # The names in the drop-down are listed once each, in order.
+    names = page.locator('[data-tk-filter="name"] option').all_text_contents()
+    assert names == ["All tracks", "Abingdon Airfield", "Santa Pod", "Shelsley Walsh", "Thruxton"], names
+
+
+def test_the_tracks_list_can_be_collapsed_and_expanded(page):
+    ok = {"Access-Control-Allow-Origin": "*"}
+    venues = [{"id": "thruxton", "name": "Thruxton", "type": "circuit", "lat": 51.2, "lng": -1.6, "radius": 2000, "layouts": []},
+              {"id": "santa-pod", "name": "Santa Pod", "type": "drag", "lat": 52.2, "lng": -0.6, "radius": 1000, "layouts": []}]
+    open_admin(page, "admin.html")
+    page.route("**/track/access/admin**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "open": False, "allowed": [], "pending": []}), headers=ok))
+    page.route("**/track/admin/requests**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "requests": []}), headers=ok))
+    page.route("**/track/admin/tracks**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "extra": {"venues": venues}, "library": {"venues": venues}}), headers=ok))
+    page.reload()
+    page.locator("#tracks-wrap > summary").click()
+    expect(page.locator("#tk-list-wrap > summary")).to_contain_text("(2)")
+    expect(page.locator("#tk-list tbody tr")).to_have_count(2)
+    page.locator("#tk-list-wrap > summary").click()
+    expect(page.locator("#tk-list")).to_be_hidden()
+    page.locator("#tk-list-wrap > summary").click()
+    expect(page.locator("#tk-list tbody tr")).to_have_count(2)
+    page.locator('[data-tk-filter="type"]').select_option("drag")
+    expect(page.locator("#tk-list-wrap > summary")).to_contain_text("(1 of 2)")

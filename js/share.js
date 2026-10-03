@@ -38,8 +38,17 @@
     var wk = Math.ceil(((d - Date.UTC(d.getUTCFullYear(), 0, 1)) / 86400000 + 1) / 7);
     return d.getUTCFullYear() + '-W' + (wk < 10 ? '0' : '') + wk;
   }
-  function utm(channel, campaign) {
-    return 'utm_source=' + channel + '&utm_medium=share&utm_campaign=' + campaign + '&w=' + isoWeek();
+  // The preview picture sets' versions (the worker's /share/versions: the Track sessions page and the homepage,
+  // set on admin.html), read once a page has loaded: in those pages' links the version follows the week
+  // (w=2026-W40.3), so a change made on the admin page gives new links a new address at once. Nothing read means
+  // the week alone.
+  var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev', shareVersions = {}, SLOT_OF = { track: 'track', index: 'home' };
+  try {
+    fetch(API + '/share/versions').then(function (r) { return r.json(); }).then(function (d) { if (d && d.versions) shareVersions = d.versions; }).catch(function () {});
+  } catch (e) { /* no fetch: the week alone */ }
+  function utm(channel, campaign, stem) {
+    var v = SLOT_OF[stem] && shareVersions[SLOT_OF[stem]];
+    return 'utm_source=' + channel + '&utm_medium=share&utm_campaign=' + campaign + '&w=' + isoWeek() + (v > 0 ? '.' + v : '');
   }
 
   // What gets shared: the message, and the link for each channel.
@@ -70,7 +79,7 @@
         ? opts.title + (/MT3UK/.test(opts.title) ? ': ' : ' on MT3UK: ') + opts.intro
         : opts.title + ' on MT3UK, the UK’s modified Tesla community'),
       link: function (channel) {
-        return SITE + '/share/section/' + opts.stem + (opts.hash ? '--' + opts.hash : '') + '.html?' + utm(channel, opts.campaign);
+        return SITE + '/share/section/' + opts.stem + (opts.hash ? '--' + opts.hash : '') + '.html?' + utm(channel, opts.campaign, opts.stem);
       }
     };
   }

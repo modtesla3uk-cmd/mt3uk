@@ -14,7 +14,7 @@ from test_devices import overflow_width
 API_HOST = "late-darkness-ebc8.modtesla3uk.workers.dev"
 PAGES = ["admin.html", "events-admin.html", "device-checklist.html"]
 GROUPS = [
-    ("grp-gallery", "Gallery and builds", ["pending-wrap", "decided-wrap", "unclaimed-wrap", "votes-wrap"]),
+    ("grp-gallery", "Gallery and builds", ["pending-wrap", "decided-wrap", "unclaimed-wrap", "votes-wrap", "home-share-wrap"]),
     ("grp-reports", "Reports", ["comments-wrap", "rphotos-wrap", "local-wrap"]),
     ("grp-members", "Members", ["subscribers-wrap", "members-msg-wrap"]),
     ("grp-interviews", "Owner interviews", ["interviews-wrap", "preview-wrap"]),
@@ -95,7 +95,7 @@ def test_admin_sub_menu_lists_the_sections_of_the_current_category(page):
     sub = page.locator("#admin-subnav")
     # The first category is current at the top: its four panels are listed.
     expect(sub).to_be_visible()
-    assert sub.locator("a").all_inner_texts() == ["Pending claims", "Decided claims", "Unclaimed photos", "Build of the Week entries"]
+    assert sub.locator("a").all_inner_texts() == ["Pending claims", "Decided claims", "Unclaimed photos", "Build of the Week entries", "Homepage link picture"]
     expect(page.locator('.admin-nav a[data-here="true"]')).to_have_text("Gallery and builds")
     # Choosing a category swaps the sub menu to that category's sections.
     page.locator('.admin-nav a[href="admin.html#grp-tracks"]').click()
@@ -382,7 +382,7 @@ def _share_session():
 def test_admin_link_preview_pictures_rotate_and_are_drawn_from_sessions(page):
     cors = {"Access-Control-Allow-Origin": "*"}
     posted, uploads = [], []
-    state = {"success": True, "rotate": True, "current": "", "week": "2026-W40",
+    state = {"success": True, "rotate": True, "current": "", "week": "2026-W40", "version": 3,
              "items": [{"id": "p1", "kind": "session", "caption": "Thruxton in the dry", "label": "Thruxton, 2026-05-28", "sessionId": "aaaaaaaa01", "url": "https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/share/track/p1.jpg"},
                        {"id": "p2", "kind": "photo", "caption": "", "label": "Paddock", "sessionId": "", "url": "https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/share/track/p2.jpg"}]}
     state["pick"] = state["items"][1]
@@ -409,8 +409,8 @@ def test_admin_link_preview_pictures_rotate_and_are_drawn_from_sessions(page):
         if "id=" in route.request.url:
             body = {"success": True, "session": _share_session()}
         else:
-            body = {"success": True, "sessions": [{"id": "aaaaaaaa01", "type": "track", "venue": "Thruxton", "date": "2026-05-28", "best": 40.0, "version": 5, "hasSource": True},
-                                                   {"id": "aaaaaaaa02", "type": "other", "venue": "", "date": "2026-05-29", "best": None, "version": 5, "hasSource": True}], "done": True, "cursor": ""}
+            body = {"success": True, "sessions": [{"id": "aaaaaaaa01", "type": "track", "venue": "Thruxton", "date": "2026-05-28", "best": 40.0, "version": 5, "hasSource": True, "owner": "RichyRich", "privacy": "private"},
+                                                   {"id": "aaaaaaaa02", "type": "other", "venue": "", "date": "2026-05-29", "best": None, "version": 5, "hasSource": True, "owner": "Ann", "privacy": "board"}], "done": True, "cursor": ""}
         route.fulfill(status=200, content_type="application/json", body=json.dumps(body), headers=cors)
 
     open_admin(page, "admin.html")
@@ -420,40 +420,55 @@ def test_admin_link_preview_pictures_rotate_and_are_drawn_from_sessions(page):
     page.route("**/track/admin/retime**", retime)
     page.route("**/pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/**", lambda route: route.abort())
     page.locator("#share-wrap summary").click()
-    items = page.locator("#ts-list .ts-item")
+    items = page.locator("#share-wrap .ts-list .ts-item")
     expect(items).to_have_count(2)
-    expect(page.locator("#ts-rotate")).to_have_attribute("aria-checked", "true")
+    expect(page.locator("#share-wrap .ts-rotate")).to_have_attribute("aria-checked", "true")
     expect(items.nth(1)).to_have_class(re.compile("is-now"))
     expect(items.nth(1).locator(".ts-now")).to_have_text("This week")
     expect(items.nth(0).locator("input[data-caption]")).to_have_value("Thruxton in the dry")
     expect(items.nth(0).locator("a.ts-open")).to_have_attribute("href", "track.html?s=aaaaaaaa01")
+    # Share, on the picture showing: the page's link with the week and the set's version, and the caption as the message.
+    page.evaluate("window.__shared = []; navigator.share = function (d) { window.__shared.push(d); return Promise.resolve(); };")
+    expect(items.nth(0).get_by_role("button", name="Share")).to_have_count(0)
+    items.nth(1).get_by_role("button", name="Share").click()
+    shared = page.evaluate("window.__shared.pop()")
+    assert re.fullmatch(r"https://mt3uk\.com/share/section/track\.html\?utm_source=share_sheet&utm_medium=share&utm_campaign=page_track&w=\d{4}-W\d{2}\.3", shared["url"]), shared
+    assert shared["text"].startswith("Track sessions on MT3UK: ") and "lap timer file" in shared["text"], shared
     # A caption is saved as it is typed.
     items.nth(1).locator("input[data-caption]").fill("Our paddock")
     items.nth(1).locator("input[data-caption]").press("Tab")
-    expect(page.locator("#ts-note")).to_have_text("Caption saved.")
+    expect(page.locator("#share-wrap .ts-note")).to_have_text("Caption saved.")
     assert posted[-1] == {"action": "caption", "id": "p2", "caption": "Our paddock"}
     # Use this now: rotation goes off and that picture is the one.
     items.nth(0).get_by_role("button", name="Use this now").click()
-    expect(page.locator("#ts-rotate")).to_have_attribute("aria-checked", "false")
+    expect(page.locator("#share-wrap .ts-rotate")).to_have_attribute("aria-checked", "false")
     expect(items.nth(0).locator(".ts-now")).to_have_text("In use")
     assert posted[-1] == {"action": "use", "id": "p1"}
-    page.locator("#ts-rotate").click()
+    page.locator("#share-wrap .ts-rotate").click()
     assert posted[-1] == {"action": "rotate", "on": True}
     # Only sessions with laps are offered; choosing one draws the card, with its own figures on it.
-    options = page.locator("#ts-session option")
+    options = page.locator("#share-wrap .ts-session option")
     expect(options).to_have_count(2)
-    expect(options.nth(1)).to_have_text("Thruxton, 2026-05-28, 0:40.000")
-    page.locator("#ts-session").select_option("aaaaaaaa01")
-    expect(page.locator("#ts-make")).to_be_enabled()
-    expect(page.locator("#ts-preview")).to_be_visible()
-    drawn = page.evaluate("""() => { const c = document.getElementById('ts-preview'), d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+    expect(options.nth(1)).to_have_text("Thruxton, 2026-05-28, 0:40.000, RichyRich (private)")
+    page.locator("#share-wrap .ts-session").select_option("aaaaaaaa01")
+    expect(page.locator("#share-wrap .ts-make")).to_be_enabled()
+    expect(page.locator("#share-wrap .ts-preview")).to_be_visible()
+    drawn = page.evaluate("""() => { const c = document.querySelector('#share-wrap .ts-preview'), d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
       const seen = new Set(); for (let i = 0; i < d.length; i += 4 * 97) seen.add(d[i] + ',' + d[i + 1] + ',' + d[i + 2]); return { w: c.width, h: c.height, colours: seen.size }; }""")
     assert drawn["w"] == 1200 and drawn["h"] == 630 and drawn["colours"] > 40, drawn
-    page.locator("#ts-caption").fill("New one")
-    page.locator("#ts-make").click()
+    page.locator("#share-wrap .ts-caption").fill("New one")
+    page.locator("#share-wrap .ts-make").click()
     expect(items).to_have_count(3)
     assert len(uploads) == 1 and b"image/jpeg" in uploads[0] and b'name="kind"' in uploads[0] and b"session" in uploads[0] and b"New one" in uploads[0] and b"aaaaaaaa01" in uploads[0]
-    expect(page.locator("#ts-note")).to_contain_text("Saved.")
+    # The label names the track and day; whose session it was is not in anything saved or shared.
+    assert b"Thruxton, 2026-05-28" in uploads[0] and b"RichyRich" not in uploads[0]
+    expect(page.locator("#share-wrap .ts-note")).to_contain_text("Saved.")
+    # The homepage has a panel of its own on the same code, reading its own slot.
+    seen = []
+    page.route("**/share/home/admin**", lambda route: (seen.append(route.request.url), route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "slot": "home", "rotate": False, "current": "", "version": 0, "week": "2026-W40", "items": [], "pick": None}), headers=cors)))
+    page.locator("#home-share-wrap summary").click()
+    expect(page.locator("#home-share-wrap .ts-list")).to_contain_text("No pictures yet")
+    assert seen and "/share/home/admin" in seen[0]
 
 
 def test_admin_welcome_text_is_edited_and_reset(page):

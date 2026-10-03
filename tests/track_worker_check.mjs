@@ -613,6 +613,7 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   x = await call('GET', '/track/admin/retime?key=secret');
   const row = x.body.sessions.find(s => s.id === id);
   ok(x.status === 200 && row && row.version === 1 && x.body.done === true, 're-time lists sessions with their version (none counts as 1)');
+  ok(typeof row.owner === 'string' && row.owner.length > 0 && ['private', 'build', 'board'].includes(row.privacy), 'and whose each is, and whether it is private: ' + row.owner + ', ' + row.privacy);
   x = await call('GET', '/track/admin/retime?key=secret&id=' + id);
   ok(x.status === 200 && x.body.session.id === id, 're-time reads one session');
   x = await call('GET', '/track/admin/retime/source?key=secret&id=' + id);
@@ -717,9 +718,12 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   }
   ok((await upload({ kind: 'session' }, false)).status === 401, 'uploading a picture needs the admin key');
   let up = await upload({ kind: 'session', label: 'Thruxton, 2026-05-28', caption: 'Every lap mapped and timed', sessionId: 'abcdef1234' });
+  ok(sp.body.version === 0 && up.body.version === 1, 'the set has a version that counts changes, for the share links');
   ok(up.status === 200 && up.body.success && up.body.items.length === 1 && up.body.items[0].kind === 'session' && up.body.items[0].sessionId === 'abcdef1234' && up.body.items[0].caption === 'Every lap mapped and timed' && /r2\.dev\/share\/track\/[a-z0-9]+\.jpg$/i.test(up.body.items[0].url), 'a picture drawn from a session is saved to the bucket with its caption: ' + JSON.stringify(up.body).slice(0, 160));
   const id1 = up.body.items[0].id;
   ok(bucket.has('share/track/' + id1 + '.jpg'), 'the bytes are in the bucket under share/track/');
+  sp = await call('GET', '/share/track');
+  ok(sp.body.items.length === 1 && !('label' in sp.body.items[0]) && !('sessionId' in sp.body.items[0]) && !('label' in sp.body.pick) && sp.body.pick.url && sp.body.pick.caption === 'Every lap mapped and timed', 'the public list carries only each picture\'s address and caption, never whose session it was');
   const bad = new FormData(); bad.append('file', new Blob(['hello'], { type: 'text/plain' }), 'x.txt');
   const badR = await worker.fetch(new Request('https://w.test/share/track/admin/image?key=secret', { method: 'POST', body: bad }), env, { waitUntil() {} });
   ok(badR.status === 400, 'only a picture is accepted: ' + badR.status);
@@ -737,7 +741,18 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   ok((await call('POST', '/share/track/admin?key=secret', { action: 'nonsense' })).status === 400, 'an unknown action is refused');
   ad = await call('POST', '/share/track/admin?key=secret', { action: 'delete', id: id2 });
   ok(ad.body.items.length === 1 && ad.body.current === '' && ad.body.pick.id === id1 && !bucket.has('share/track/' + id2 + '.jpg'), 'deleting takes the picture out of the bucket and the set');
+  ok(ad.body.version === 6 && (await call('GET', '/share/track')).body.version === 6, 'every change moves the version on (two uploads, rotate, use, caption, delete)');
   await call('POST', '/share/track/admin?key=secret', { action: 'delete', id: id1 });
+  // The homepage has a slot of its own, kept apart, and the share buttons read every slot's version at once.
+  const hv = (await call('GET', '/share/versions')).body.versions;
+  ok(hv.track === 7 && hv.home === 0, 'every slot\'s version in one answer: ' + JSON.stringify(hv));
+  const hf = new FormData(); hf.append('file', jpeg, 'home.jpg'); hf.append('kind', 'photo'); hf.append('label', 'Meet');
+  const hr = await worker.fetch(new Request('https://w.test/share/home/admin/image?key=secret', { method: 'POST', body: hf }), env, { waitUntil() {} });
+  const hb = await hr.json();
+  ok(hr.status === 200 && hb.slot === 'home' && hb.items.length === 1 && bucket.has(hb.items[0].url.replace(/^.*r2\.dev\//, '')) && hb.items[0].url.includes('/share/home/'), 'a homepage picture goes under share/home/');
+  ok((await call('GET', '/share/track')).body.items.length === 0 && (await call('GET', '/share/home')).body.pick.id === hb.items[0].id, 'the two sets are kept apart');
+  ok((await call('GET', '/share/paddock')).status === 404 || (await call('GET', '/share/paddock')).status === 405 || !(await call('GET', '/share/paddock')).body.success, 'an unknown slot is not a set');
+  await call('POST', '/share/home/admin?key=secret', { action: 'delete', id: hb.items[0].id });
 }
 
 // Leaving the site clears everything.

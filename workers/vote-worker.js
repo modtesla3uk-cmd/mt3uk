@@ -7375,13 +7375,14 @@ async function handleTrackCopyAdmin(request, env) {
   return json({ success: true, copy: copy });
 }
 
-// ---------- Track Sessions link preview picture ----------
-// The picture a shared Track Sessions link previews with. The admin saves pictures (a card drawn from a session, or
-// a photo) to the bucket under share/track/, each with a caption, in one KV key (track-share, read with get()):
-// { rotate, current, items: [{ id, kind, file, caption, label, sessionId, at }] }. With rotation on, the week's
-// picture is taken in turn; off, it is the chosen one. The share page build reads /share/track and stamps the week
-// into the picture's address, so chat apps fetch a fresh preview each week.
-var TRACK_SHARE_KEY = 'track-share';
+// ---------- Link preview pictures ----------
+// The picture a shared link previews with, for the Track Sessions page (slot track) and the homepage (slot home).
+// The admin saves pictures (a card drawn from a session, or a photo) to the bucket under share/<slot>/, each with
+// a caption, in one KV key per slot read with get(): { rotate, current, version, items: [{ id, kind, file, caption,
+// label, sessionId, at }] }. With rotation on, the week's picture is taken in turn; off, it is the chosen one. The
+// share page build reads /share/<slot> and stamps the week into the picture's address; the share button puts the
+// version (every change counts one) in the link, so chat apps fetch a fresh preview card.
+var SHARE_SLOTS = { track: { key: 'track-share', prefix: 'share/track/' }, home: { key: 'home-share', prefix: 'share/home/' } };
 var TRACK_SHARE_MAX_BYTES = 400000;
 var TRACK_SHARE_MAX_ITEMS = 30;
 function trackShareWeek(d) {
@@ -7399,26 +7400,45 @@ function trackSharePick(state, now) {
   if (!state.rotate) return items.filter(function (i) { return i.id === state.current; })[0] || items[0];
   return items[trackShareWeek(now).n % items.length];
 }
-function trackShareView(state) {
+// The public view (the share page build and the share buttons) carries each picture's address and caption only;
+// the admin's view adds the label and which session a card was drawn from.
+function trackShareView(state, admin) {
   var now = new Date(), pick = trackSharePick(state, now);
-  function pub(i) { return { id: i.id, kind: i.kind, caption: i.caption || '', label: i.label || '', sessionId: i.sessionId || '', at: i.at, url: GALLERY_PUBLIC_BASE_URL + '/' + i.file }; }
-  return { rotate: !!state.rotate, current: state.current || '', week: trackShareWeek(now).label, items: (state.items || []).map(pub), pick: pick ? pub(pick) : null };
+  function pub(i) {
+    var o = { id: i.id, kind: i.kind, caption: i.caption || '', at: i.at, url: GALLERY_PUBLIC_BASE_URL + '/' + i.file };
+    if (admin) { o.label = i.label || ''; o.sessionId = i.sessionId || ''; }
+    return o;
+  }
+  return { rotate: !!state.rotate, current: state.current || '', version: state.version || 0, week: trackShareWeek(now).label, items: (state.items || []).map(pub), pick: pick ? pub(pick) : null };
 }
-async function getTrackShare(env) {
-  var state = await getJsonKey(env, TRACK_SHARE_KEY, {});
+async function getSharePictures(env, slot) {
+  var state = await getJsonKey(env, SHARE_SLOTS[slot].key, {});
   if (!state || typeof state !== 'object') state = {};
   if (!Array.isArray(state.items)) state.items = [];
   return state;
 }
-async function handleTrackSharePublic(request, env) {
-  var res = json(Object.assign({ success: true }, trackShareView(await getTrackShare(env))));
+async function putSharePictures(env, slot, state) {
+  state.version = (state.version || 0) + 1;
+  await env.VOTES.put(SHARE_SLOTS[slot].key, JSON.stringify(state));
+  await triggerManifestRebuild(env, 'track-share');
+}
+async function handleSharePublic(request, env, slot) {
+  var res = json(Object.assign({ success: true, slot: slot }, trackShareView(await getSharePictures(env, slot))));
   res.headers.set('Cache-Control', 'public, max-age=300');
   return res;
 }
-async function handleTrackShareAdmin(request, env) {
+// Every slot's version in one answer, for the share buttons (two keys, both read with get()).
+async function handleShareVersions(request, env) {
+  var out = {}, slots = Object.keys(SHARE_SLOTS);
+  for (var i = 0; i < slots.length; i++) out[slots[i]] = (await getSharePictures(env, slots[i])).version || 0;
+  var res = json({ success: true, versions: out });
+  res.headers.set('Cache-Control', 'public, max-age=300');
+  return res;
+}
+async function handleShareAdmin(request, env, slot) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
-  var state = await getTrackShare(env);
-  if (request.method === 'GET') return json(Object.assign({ success: true }, trackShareView(state)));
+  var state = await getSharePictures(env, slot);
+  if (request.method === 'GET') return json(Object.assign({ success: true, slot: slot }, trackShareView(state, true)));
   var body;
   try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
   var action = String((body && body.action) || ''), item = state.items.filter(function (i) { return i.id === body.id; })[0];
@@ -7430,11 +7450,10 @@ async function handleTrackShareAdmin(request, env) {
     if (state.current === item.id) state.current = '';
     try { await env.GALLERY_BUCKET.delete(item.file); } catch (e) { /* the record is what matters */ }
   } else return json({ success: false, message: 'Unknown action' }, 400);
-  await env.VOTES.put(TRACK_SHARE_KEY, JSON.stringify(state));
-  await triggerManifestRebuild(env, 'track-share');
-  return json(Object.assign({ success: true }, trackShareView(state)));
+  await putSharePictures(env, slot, state);
+  return json(Object.assign({ success: true, slot: slot }, trackShareView(state, true)));
 }
-async function handleTrackShareImage(request, env) {
+async function handleShareImage(request, env, slot) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
   var form;
   try { form = await request.formData(); } catch (e) { return json({ success: false, message: 'Send the picture as a form upload' }, 400); }
@@ -7443,18 +7462,17 @@ async function handleTrackShareImage(request, env) {
   if (!/^image\/(jpeg|png|webp)$/.test(file.type || '')) return json({ success: false, message: 'The picture must be a JPEG, PNG or WebP' }, 400);
   var bytes = await file.arrayBuffer();
   if (bytes.byteLength > TRACK_SHARE_MAX_BYTES) return json({ success: false, message: 'The picture must be under 400 KB: chat apps drop bigger previews' }, 413);
-  var state = await getTrackShare(env);
+  var state = await getSharePictures(env, slot);
   if (state.items.length >= TRACK_SHARE_MAX_ITEMS) return json({ success: false, message: 'There are already ' + TRACK_SHARE_MAX_ITEMS + ' pictures. Delete one first.' }, 400);
   var id = randomToken().slice(0, 12), ext = file.type === 'image/png' ? '.png' : file.type === 'image/webp' ? '.webp' : '.jpg';
-  var key = 'share/track/' + id + ext;
+  var key = SHARE_SLOTS[slot].prefix + id + ext;
   await env.GALLERY_BUCKET.put(key, bytes, { httpMetadata: { contentType: file.type, cacheControl: 'public, max-age=31536000, immutable' } });
   var item = { id: id, kind: form.get('kind') === 'photo' ? 'photo' : 'session', file: key, caption: trackText(form.get('caption'), 200), label: trackText(form.get('label'), 80), at: new Date().toISOString() };
   var sid = trackId(form.get('sessionId'));
   if (sid) item.sessionId = sid;
   state.items.push(item);
-  await env.VOTES.put(TRACK_SHARE_KEY, JSON.stringify(state));
-  await triggerManifestRebuild(env, 'track-share');
-  return json(Object.assign({ success: true, id: id }, trackShareView(state)));
+  await putSharePictures(env, slot, state);
+  return json(Object.assign({ success: true, slot: slot, id: id }, trackShareView(state, true)));
 }
 
 async function handleTrackTracks(request, env) {
@@ -7702,11 +7720,19 @@ async function handleTrackAdminRetime(request, env) {
       return found ? json({ success: true, session: found }) : json({ success: false, message: 'Session not found' }, 404);
     }
     var page = await env.VOTES.list({ prefix: 'track-session:', limit: TRACK_RETIME_PAGE, cursor: params.get('cursor') || undefined });
-    var rows = [];
+    var rows = [], owners = {};
+    // Whose each is, as members see them, so the admin's pickers can say (one lookup per car).
+    async function ownerOf(carId) {
+      if (!(carId in owners)) {
+        var car = await getCarRecord(env, carId), email = car ? await carOwnerEmail(env, car) : null;
+        owners[carId] = email ? (publicName(await getProfileRecord(env, email)) || 'MT3UK member') : 'MT3UK member';
+      }
+      return owners[carId];
+    }
     for (var i = 0; i < page.keys.length; i++) {
       var rec = await getTrackSession(env, page.keys[i].name.slice('track-session:'.length));
       if (!rec) continue;
-      rows.push({ id: rec.id, type: rec.type, venue: rec.venue || '', date: rec.date || '', best: rec.bestTime || null, version: rec.analysisVersion || 1, hasSource: !!rec.hasSource, street: !!rec.street });
+      rows.push({ id: rec.id, type: rec.type, venue: rec.venue || '', date: rec.date || '', best: rec.bestTime || null, version: rec.analysisVersion || 1, hasSource: !!rec.hasSource, street: !!rec.street, privacy: rec.privacy || 'private', owner: await ownerOf(rec.carId) });
     }
     return json({ success: true, sessions: rows, done: !!page.list_complete, cursor: page.list_complete ? '' : page.cursor });
   }
@@ -9010,14 +9036,14 @@ export default {
     if (url.pathname === '/track/copy/admin' && (request.method === 'GET' || request.method === 'POST')) {
       return handleTrackCopyAdmin(request, env);
     }
-    if (url.pathname === '/share/track' && request.method === 'GET') {
-      return handleTrackSharePublic(request, env);
+    if (url.pathname === '/share/versions' && request.method === 'GET') {
+      return handleShareVersions(request, env);
     }
-    if (url.pathname === '/share/track/admin' && (request.method === 'GET' || request.method === 'POST')) {
-      return handleTrackShareAdmin(request, env);
-    }
-    if (url.pathname === '/share/track/admin/image' && request.method === 'POST') {
-      return handleTrackShareImage(request, env);
+    var shareRoute = /^\/share\/(track|home)(\/admin(\/image)?)?$/.exec(url.pathname);
+    if (shareRoute) {
+      if (shareRoute[3] && request.method === 'POST') return handleShareImage(request, env, shareRoute[1]);
+      if (shareRoute[2] && !shareRoute[3] && (request.method === 'GET' || request.method === 'POST')) return handleShareAdmin(request, env, shareRoute[1]);
+      if (!shareRoute[2] && request.method === 'GET') return handleSharePublic(request, env, shareRoute[1]);
     }
     if (url.pathname === '/track/tracks' && request.method === 'GET') {
       return handleTrackTracks(request, env);

@@ -57,6 +57,8 @@ class FakeWorker:
         self.dupes = False
         # The admin's welcome words for the signed-out card, when set.
         self.copy = None
+        # The link preview picture set's version, for the share links.
+        self.shareVersion = 0
         self.courses = []
         self.sources = {}
         self.boards = {}
@@ -177,6 +179,8 @@ class FakeWorker:
             data = {"success": True, "car": {"id": "car1", "name": CAR["name"], "model": "Model 3", "owner": "Rich"}, "mine": False, "sessions": [s for s in self.index if s.get("privacy") in ("build", "board")]}
         elif path == "/track/copy":
             data = {"success": True, "copy": self.copy or {}}
+        elif path == "/share/versions":
+            data = {"success": True, "versions": {"track": self.shareVersion, "home": 0}}
         elif path == "/track/requests":
             self.requests.append(body)
         elif path == "/track/admin/course" and req.method == "POST" and not req.headers.get("x-admin-viewer"):
@@ -568,6 +572,21 @@ def test_the_welcome_card_takes_the_admins_words_when_set(page):
     # The paragraph was not set, so the built-in one stays; the list is the admin's, shown as text.
     expect(card.locator("p").first).to_contain_text("Upload the file from your lap timer")
     expect(card.locator(".tp-ticks li")).to_have_text(["One", "Two <b>x</b>"])
+
+
+def test_the_track_share_link_carries_the_week_and_the_picture_sets_version(page):
+    """A Track sessions share link ends with the ISO week and, when the admin has changed the preview pictures,
+    the set's version, so chat apps treat it as a new address and fetch a fresh card."""
+    fake = FakeWorker()
+    fake.shareVersion = 7
+    page.add_init_script("window.__shared = []; navigator.share = function (d) { window.__shared.push(d); return Promise.resolve(); };")
+    open_page(page, fake, signed_in=False)
+    page.wait_for_timeout(400)
+    page.locator("h1 .mt3uk-share-dot").click()
+    page.wait_for_timeout(300)
+    url = page.evaluate("() => window.__shared.length ? window.__shared.pop().url : (document.querySelector('.mt3uk-share-pop [data-channel=facebook]') ? new URL(document.querySelector('.mt3uk-share-pop [data-channel=facebook]').href).searchParams.get('u') : null)")
+    assert url and url.startswith("https://mt3uk.com/share/section/track.html?") and "utm_campaign=page_track" in url, url
+    assert re.search(r"&w=\d{4}-W\d{2}\.7$", url), url
 
 
 def test_uploading_the_same_file_again_is_refused_and_says_which_session_it_is(page):

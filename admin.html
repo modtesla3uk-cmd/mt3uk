@@ -536,6 +536,22 @@
       <h3 class="sub-head">Taken out of voting</h3>
       <div id="vote-removed"></div>
     </details>
+        <details class="collapsible" id="home-share-wrap" data-share-slot="home">
+      <summary><h3 class="panel-title">Homepage link picture</h3></summary>
+      <p class="iv-note">The picture a shared homepage link shows in WhatsApp, Facebook and the rest. Upload a photo, or draw a card from a saved track session, give it a caption, and either rotate through them a week at a time or pick one. With none saved the link keeps its usual picture. Previews update within a few minutes of a change; a link already sent in a chat keeps its old picture.</p>
+      <p class="iv-note ts-note" role="status"></p>
+      <div class="iv-toolbar"><button type="button" class="tk-switch ts-rotate" role="switch" aria-checked="false"><span class="tk-track"></span><span>A different picture each week</span></button></div>
+      <div class="ts-list"></div>
+      <h3 class="sub-head">Add a picture</h3>
+      <div class="ts-new">
+        <label>From a session<select class="ts-session"><option value="">Choose a session</option></select></label>
+        <label>Or a photo<input type="file" class="ts-photo" accept="image/*"></label>
+        <canvas class="ts-preview" width="1200" height="630" hidden aria-label="Preview of the picture"></canvas>
+        <p class="iv-note ts-preview-note"></p>
+        <label>Caption<input type="text" class="ts-caption" maxlength="200" placeholder="A line for the preview, for example: Thruxton, every lap mapped and timed"></label>
+        <div class="iv-toolbar"><button type="button" class="secondary ts-make" disabled>Save to the pictures</button></div>
+      </div>
+    </details>
     </div>
   </section>
 
@@ -745,20 +761,20 @@
       <select id="tk-board-pick" aria-label="Leaderboard"></select>
       <div id="tk-board"></div>
     </details>
-    <details class="collapsible" id="share-wrap">
+        <details class="collapsible" id="share-wrap" data-share-slot="track">
       <summary><h3 class="panel-title">Link preview picture</h3></summary>
-      <p class="iv-note">The picture a shared Track sessions link shows in WhatsApp, Facebook and the rest. Draw one from a saved session (its map, times and g chart) or upload a photo, give it a caption, and either rotate through them a week at a time or pick one. Previews update within a few minutes of a change; a link already sent in a chat may keep its old picture for a while.</p>
-      <p class="iv-note" id="ts-note" role="status"></p>
-      <div class="iv-toolbar"><button type="button" class="tk-switch" role="switch" id="ts-rotate" aria-checked="false"><span class="tk-track"></span><span>A different picture each week</span></button></div>
-      <div id="ts-list"></div>
+      <p class="iv-note">The picture a shared Track sessions link shows in WhatsApp, Facebook and the rest. Draw one from a saved session (its map, times and g chart) or upload a photo, give it a caption, and either rotate through them a week at a time or pick one. Previews update within a few minutes of a change; a link already sent in a chat keeps its old picture.</p>
+      <p class="iv-note ts-note" role="status"></p>
+      <div class="iv-toolbar"><button type="button" class="tk-switch ts-rotate" role="switch" aria-checked="false"><span class="tk-track"></span><span>A different picture each week</span></button></div>
+      <div class="ts-list"></div>
       <h3 class="sub-head">Add a picture</h3>
       <div class="ts-new">
-        <label>From a session<select id="ts-session"><option value="">Choose a session</option></select></label>
-        <label>Or a photo<input type="file" id="ts-photo" accept="image/*"></label>
-        <canvas id="ts-preview" class="ts-preview" width="1200" height="630" hidden aria-label="Preview of the picture"></canvas>
-        <p class="iv-note" id="ts-preview-note"></p>
-        <label>Caption<input type="text" id="ts-caption" maxlength="200" placeholder="A line for the preview, for example: Thruxton, every lap mapped and timed"></label>
-        <div class="iv-toolbar"><button type="button" class="secondary" id="ts-make" disabled>Save to the pictures</button></div>
+        <label>From a session<select class="ts-session"><option value="">Choose a session</option></select></label>
+        <label>Or a photo<input type="file" class="ts-photo" accept="image/*"></label>
+        <canvas class="ts-preview" width="1200" height="630" hidden aria-label="Preview of the picture"></canvas>
+        <p class="iv-note ts-preview-note"></p>
+        <label>Caption<input type="text" class="ts-caption" maxlength="200" placeholder="A line for the preview, for example: Thruxton, every lap mapped and timed"></label>
+        <div class="iv-toolbar"><button type="button" class="secondary ts-make" disabled>Save to the pictures</button></div>
       </div>
     </details>
     <details class="collapsible" id="copy-wrap">

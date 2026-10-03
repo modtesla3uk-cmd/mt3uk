@@ -53,18 +53,22 @@ DEFAULT_DESCRIPTION = "MT3UK, the UK's modified Tesla community."
 WORKER_URL = "https://late-darkness-ebc8.modtesla3uk.workers.dev"
 
 
-def track_share_live():
-    """The Track sessions link picture the admin has set (see the Link preview picture panel on admin.html), with
-    the ISO week stamped into its address so chat apps fetch a fresh preview each week, and its caption. Only when
+# Pages whose link picture the admin sets on admin.html (the Link preview picture panels), by the worker's slot.
+SHARE_SLOTS = {"track": "track", "index": "home"}
+
+
+def share_live(slot):
+    """The link picture the admin has set for a slot (see the Link preview picture panels on admin.html), with the
+    ISO week stamped into its address so chat apps fetch a fresh preview each week, and its caption. Only when
     MT3UK_SHARE_LIVE=1 (the sync workflow sets it): tests and local runs stay offline and use the page's own
     picture."""
     if os.environ.get("MT3UK_SHARE_LIVE") != "1":
         return None
     try:
-        with urllib.request.urlopen(WORKER_URL + "/share/track", timeout=15) as r:
+        with urllib.request.urlopen(WORKER_URL + "/share/" + slot, timeout=15) as r:
             d = json.load(r)
     except Exception as e:  # noqa: BLE001 - a missing picture must never stop the build
-        print("Track share picture not read (" + str(e) + "), using the page's own.")
+        print("Share picture for " + slot + " not read (" + str(e) + "), using the page's own.")
         return None
     pick = d.get("pick") if isinstance(d, dict) else None
     if not pick or not pick.get("url"):
@@ -324,8 +328,8 @@ def pages_to_write():
                 page_image, page_square = fallback
         target = page_url(page)
         live_caption = ""
-        if page == "track":
-            live = track_share_live()
+        if page in SHARE_SLOTS:
+            live = share_live(SHARE_SLOTS[page])
             if live:
                 page_image, page_square, live_caption = live["image"], False, live["caption"]
 

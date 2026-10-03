@@ -319,7 +319,13 @@
       <image:loc>https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/gallery/photo--by-matthew-king.jpeg</image:loc>
     </image:image>
     <image:image>
+      <image:loc>https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/gallery/photo-2.jpg</image:loc>
+    </image:image>
+    <image:image>
       <image:loc>https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/gallery/photo.jpg</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/gallery/photo.png</image:loc>
     </image:image>
     <image:image>
       <image:loc>https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/gallery/r2-upload-pipeline-test--by-richard-r2-test.jpg</image:loc>

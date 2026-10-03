@@ -16,12 +16,21 @@
       "address": "Houndshill House, Banbury Road, Ettington, Stratford-upon-Avon, CV37 7NS",
       "what3words": "///starter.minivans.doted",
       "location": "Caffeine & Machine The Hill, Ettington",
-      "image": "images/events/frunk-or-treat-uk/card.jpg",
-      "poster": "images/events/frunk-or-treat-uk/poster.jpg",
+      "image": "https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/events/frunk-or-treat-uk/dae5797750a74e8b.jpg",
+      "poster": "https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/events/frunk-or-treat-uk/86b17b8d21c845e9.jpg",
       "description": [
-        "Bring your EV, decorate your frunk for Halloween and meet other EV owners at Caffeine & Machine The Hill in Ettington.",
-        "Display your Halloween themed, decorated frunk, get to know other EV owners and have a great time.",
-        "Fancy dress is heavily encouraged. It is a family friendly event, modifications are not necessary, and all electric vehicles are welcome."
+        "🎃 FRUNK OR TREAT UK 🎃",
+        "Saturday 31 October 2026 2PM – 5PM Caffeine & Machine – The Hill, Stratford-upon-Avon CV37 7NS",
+        "ENTRY: £10 PER CAR Your £10 entry is fully redeemable against food, drink and shop purchases at Caffeine & Machine, so spend it while you’re there and it’s effectively free entry!",
+        "👻 WHAT IS FRUNK OR TREAT?",
+        "Frunk or Treat is something the EV community in the USA has been having fun with for years — and now SheDrivesElectric is bringing it to the UK! 🇬🇧⚡️",
+        "The idea is brilliantly simple: open your frunk (front trunk), decorate it for Halloween and put it on display! 🎃",
+        "If you don’t have a frunk but your car is a full EV then the boot will do 👻",
+        "Go spooky, funny, ridiculous, cute or completely over the top. Zombies, ghosts, aliens, vampires, pumpkins, monsters — anything goes.",
+        "And yes, leaving sweets/candy in your frunk for visitors is very much encouraged! 🍬🍭",
+        "🏆 BEST DRESSED FRUNK CONTEST!",
+        "We’ll also be choosing a Best Dressed Frunk — and the winner will receive a FREE SET OF CAR MATS from our awesome sponsor 3W Mats @3WAutoLifeUK! 🎉",
+        "So if you needed an excuse to go completely over the top with your Halloween frunk… this is it! 👻🎃"
       ],
       "highlights": [
         "A family friendly event",
@@ -64,8 +73,8 @@
         ]
       },
       "closing": "Fancy dress is heavily encouraged. See you there!",
-      "created": "2026-09-30",
-      "publish": "2026-09-30"
+      "publish": "2026-09-30",
+      "created": "2026-09-30"
     },
     {
       "slug": "race-of-remembrance-track-day-2026",

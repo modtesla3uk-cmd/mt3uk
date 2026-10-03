@@ -2292,7 +2292,7 @@
   .categories-grid.hp-cats .hp-cat { min-width: 0; }
   .categories-grid.hp-cats .category-card-content { flex-wrap: wrap; min-width: 0; row-gap: 6px; }
   .categories-grid.hp-cats .hp-cat-meta { overflow-wrap: anywhere; }
-  /* Seven tiles: two across on phones, three across on desktop, and the
+  /* Eight tiles: two across on phones, three across on desktop, and the
      last one runs the full width (the rule above). */
   @media (min-width: 900px) { .categories-grid.hp-cats { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
   .hp-new { font-style: normal; font-family: var(--font-body); font-size: 0.7rem; font-weight: 500; background: #c8431d; color: #ffffff; padding: 2px 6px; }
@@ -2356,6 +2356,25 @@
   .bf-only-note { border: 1px solid rgba(232,84,42,0.25); border-radius: var(--radius); background: #fdf3ef; }
   .bf-frame { border: 0; border-radius: 14px; }
   .bf-toast, .bf-new-toast { border-radius: var(--radius-pill); }
+  /* Full screen button (top left of the reel) and the full screen state. */
+  .bf-fs-btn {
+    position: absolute; top: 58px; left: 10px; z-index: 9;
+    width: 44px; height: 44px; padding: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 0; border-radius: 50%; cursor: pointer;
+    background: rgba(5,7,12,0.55); color: #fff;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .bf-fs-btn:hover { background: rgba(5,7,12,0.8); }
+  .bf-fs-btn .icon { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .bf-fs-btn .bf-fs-in, .bf-frame.bf-frame-full .bf-fs-btn .bf-fs-out { display: none; }
+  .bf-frame.bf-frame-full .bf-fs-btn .bf-fs-in { display: block; }
+  .bf-frame.bf-frame-full {
+    position: fixed; inset: 0; z-index: 10000;
+    width: 100vw; height: 100vh; height: 100dvh;
+    max-width: none; aspect-ratio: auto; margin: 0; border-radius: 0;
+  }
+  body.bf-fs-lock { overflow: hidden; }
   .botm-frame { border: 1px solid var(--hairline); border-radius: var(--radius); background: var(--white); }
   .botm-frame .botm-badge, .botm-frame .botm-voted-by { border-radius: var(--radius-pill); padding: 4px 11px; font-weight: 600; }
   .vote-frame { border: 0; gap: 10px; }
@@ -2530,7 +2549,7 @@
       '<button type="button" class="ix-skip" data-ix-close>Skip</button>' +
       '<div class="ix-stage">' +
         '<div class="ix-logo" role="img" aria-label="MT3UK"><span class="ix-mark"></span><span class="ix-line"></span></div>' +
-        '<p class="ix-tag ix-in"' + delay(0) + '>Community for <span>modified Teslas</span></p>' +
+        '<p class="ix-tag ix-in"' + delay(0) + '>Community for <span>modified EVs</span></p>' +
         '<p class="ix-sub ix-in"' + delay(0.2) + '>Free to join. Share your build, see everyone else\'s and meet other owners.</p>' +
         '<ul class="ix-finds">' + FINDS.map(function (f, n) {
           return '<li class="ix-in"' + delay(0.4 + n * 0.14) + '><a href="' + f[0] + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + f[1] + '"/></svg><b>' + f[2] + '</b><small>' + f[3] + '</small></a></li>';
@@ -3282,6 +3301,16 @@
           </div>
           <div class="hp-cat-meta">Map your laps and see who&rsquo;s quickest</div><svg class="hp-cat-grip" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="6" r="1.4"/><circle cx="15" cy="6" r="1.4"/><circle cx="9" cy="12" r="1.4"/><circle cx="15" cy="12" r="1.4"/><circle cx="9" cy="18" r="1.4"/><circle cx="15" cy="18" r="1.4"/></svg>
         </a>
+        <a href="#build-feed" class="category-card hp-cat" data-cat="reel">
+          <div class="hp-cat-top">
+            <div class="category-card-content">
+              <svg class="card-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="m10 8.5 5 3.5-5 3.5z"/></svg>
+              <span>Build Reel</span>
+            </div>
+            <svg class="card-chevron" viewBox="0 0 24 16" aria-hidden="true"><path d="M2 2l6 6-6 6" /><path d="M8 2l6 6-6 6" /><path d="M14 2l6 6-6 6" /></svg>
+          </div>
+          <div class="hp-cat-meta">Swipe through the latest member builds</div><svg class="hp-cat-grip" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="6" r="1.4"/><circle cx="15" cy="6" r="1.4"/><circle cx="9" cy="12" r="1.4"/><circle cx="15" cy="12" r="1.4"/><circle cx="9" cy="18" r="1.4"/><circle cx="15" cy="18" r="1.4"/></svg>
+        </a>
         <a href="shop.html" class="category-card hp-cat" data-cat="shop">
           <div class="hp-cat-top">
             <div class="category-card-content">
@@ -3476,6 +3505,10 @@
       <div class="bf-progress" id="bf-progress"></div>
       <button type="button" class="bf-post-nav bf-post-down" id="bf-post-down" aria-label="Next build" hidden><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
       <button type="button" class="bf-new-toast" id="bf-new-build-toast">New build added, click to view</button>
+      <button type="button" class="bf-fs-btn" id="bf-fs-btn" aria-label="Full screen" aria-pressed="false">
+        <svg class="icon bf-fs-out" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+        <svg class="icon bf-fs-in" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>
+      </button>
       <div class="bf-feed" id="bf-feed">
         <p class="mono" style="padding: 24px; color: var(--steel);">Loading builds…</p>
       </div>
@@ -3484,6 +3517,43 @@
         <span class="bf-autoscroll-label">Auto-scroll: Off</span>
       </button>
     </div>
+    <script>
+      // Full screen for the Build Reel. Uses the browser's full screen mode
+      // where it exists (not on iPhone), otherwise fills the window. The same
+      // button, or Esc, goes back.
+      (function () {
+        var frame = document.getElementById('build-feed-frame');
+        var btn = document.getElementById('bf-fs-btn');
+        var feed = document.getElementById('bf-feed');
+        if (!frame || !btn) return;
+        var isFull = false;
+        function keepPlace() {
+          var cur = feed.querySelector('.bf-in-view');
+          if (cur) requestAnimationFrame(function () { feed.scrollTop = cur.offsetTop; });
+        }
+        function set(on) {
+          if (on === isFull) return;
+          isFull = on;
+          frame.classList.toggle('bf-frame-full', on);
+          document.body.classList.toggle('bf-fs-lock', on);
+          btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+          btn.setAttribute('aria-label', on ? 'Exit full screen' : 'Full screen');
+          keepPlace();
+        }
+        btn.addEventListener('click', function () {
+          var on = !isFull;
+          set(on);
+          try {
+            if (on && frame.requestFullscreen) frame.requestFullscreen().catch(function () {});
+            else if (!on && document.fullscreenElement) document.exitFullscreen();
+          } catch (e) {}
+        });
+        document.addEventListener('fullscreenchange', function () {
+          if (!document.fullscreenElement) set(false);
+        });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') set(false); });
+      })();
+    </script>
     <div class="saved-builds-inline" id="saved-builds">
       <p class="saved-builds-label mono">Your saved builds</p>
       <div class="saved-builds-strip" id="saved-builds-strip"></div>

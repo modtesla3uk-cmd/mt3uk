@@ -891,6 +891,7 @@
     padding: 14px 16px 16px;
     font-family: 'IBM Plex Sans', sans-serif;
   }
+  .bf-bubble-hint { font-family: var(--font-body); font-size: 0.78rem; color: rgba(255,255,255,0.7); }
   .bf-bubble-head { display: flex; align-items: center; justify-content: space-between; margin: 0 0 10px; }
   .bf-bubble-title {
     font-family: 'IBM Plex Sans', sans-serif;
@@ -1189,7 +1190,7 @@
     max-height: 60%;
     overflow-y: auto;
   }
-  .bf-mods-panel.bf-mods-open { display: block; }
+  .bf-mods-panel.bf-mods-open { display: block; cursor: pointer; }
   .bf-mods-close {
     background: rgba(255,255,255,0.14); border: 0; border-radius: 50%;
     color: var(--white);
@@ -3870,7 +3871,7 @@
           '<div class="bf-mods-panel bf-bubble">' +
             '<div class="bf-bubble-head">' +
               '<p class="bf-bubble-title">Mods</p>' +
-              '<button type="button" class="bf-mods-close" aria-label="Close mods list"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' +
+              '<span class="bf-bubble-hint">Tap to close</span>' +
             '</div>' +
             '<ul></ul>' +
           '</div>' +
@@ -4711,13 +4712,18 @@
       });
     }
 
+    var closeModsOnMove = null;
+
     function wireInteractions() {
       var slides = Array.prototype.slice.call(feedEl.querySelectorAll('.bf-slide'));
       var dots = Array.prototype.slice.call(progressEl.querySelectorAll('.bf-dot-seg'));
       readLocalLists();
 
       function setActive(idx) {
-        slides.forEach(function (s, i) { s.classList.toggle('bf-in-view', i === idx); });
+        slides.forEach(function (s, i) {
+          s.classList.toggle('bf-in-view', i === idx);
+          if (i !== idx && closeModsOnMove) closeModsOnMove(s);
+        });
         if (slides[idx]) renderLikedBy(slides[idx]);
         dots.forEach(function (d, i) {
           d.classList.toggle('active', i === idx);
@@ -4890,6 +4896,22 @@
           btn.setAttribute('aria-pressed', open ? 'true' : 'false');
         });
       });
+
+      // The mods list closes with a tap anywhere on it (scrolling inside it
+      // does not count as a tap), or when the reel moves on to another build.
+      function closeMods(slide) {
+        var panel = slide.querySelector('.bf-mods-panel');
+        var btn = slide.querySelector('.bf-mods-btn');
+        if (panel) panel.classList.remove('bf-mods-open');
+        if (btn) btn.setAttribute('aria-pressed', 'false');
+      }
+      feedEl.querySelectorAll('.bf-mods-panel').forEach(function (panel) {
+        panel.addEventListener('click', function (e) {
+          e.stopPropagation();
+          closeMods(panel.closest('.bf-slide'));
+        });
+      });
+      closeModsOnMove = closeMods;
 
       feedEl.querySelectorAll('.bf-mods-close').forEach(function (closeBtn) {
         closeBtn.addEventListener('click', function (e) {
@@ -5137,8 +5159,15 @@
       history.replaceState(null, '', url.pathname + url.search + url.hash);
       var slide = Array.prototype.filter.call(feedEl.querySelectorAll('.bf-slide'), function (el) { return !!cellFor(el, file); })[0];
       if (!slide) {
-        // Not in the reel (hidden from it by its owner): open it in My Garage instead.
-        window.location.replace('my-builds.html?file=' + encodeURIComponent(file) + (commentId ? '&comment=' + encodeURIComponent(commentId) : ''));
+        // Not in the reel (hidden from it by its owner): open it in My Garage
+        // instead. If My Garage has just sent us here, it is not there either
+        // (a build added a moment ago is not in the list yet), so stay put
+        // rather than bouncing between the two pages.
+        if (linkParams.get('from') === 'garage') {
+          if (window.showBfToast) window.showBfToast('That build is not in the reel yet, try again in a minute');
+          return;
+        }
+        window.location.replace('my-builds.html?file=' + encodeURIComponent(file) + '&from=reel' + (commentId ? '&comment=' + encodeURIComponent(commentId) : ''));
         return;
       }
       if (slide.showPhoto) slide.showPhoto(file, false);

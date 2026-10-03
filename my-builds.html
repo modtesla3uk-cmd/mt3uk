@@ -3502,7 +3502,10 @@ document.addEventListener('DOMContentLoaded', function () {
       var car = carsData.filter(function (c) { return c.photos.some(function (p) { return p.file === file; }); })[0];
       if (!car) {
         // Someone else's photo (e.g. a reply to your comment): open it in the homepage build feed
-        window.location.href = 'index.html?photo=' + encodeURIComponent(file) +
+        // If the reel has just sent us here it does not have the photo either,
+        // so stop rather than bouncing between the two pages.
+        if (linkParams.get('from') === 'reel') return;
+        window.location.href = 'index.html?photo=' + encodeURIComponent(file) + '&from=garage' +
           (commentId ? '&comment=' + encodeURIComponent(commentId) : '') + '#build-feed';
         return;
       }

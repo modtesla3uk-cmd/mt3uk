@@ -55,29 +55,37 @@
   function load() {
     if (!key()) { say('Enter the admin key at the top of the page first.'); return; }
     say('Loading...');
-    Promise.all([call('GET', '/share/' + slot + '/admin'), loadSessions()]).then(function (r) {
-      if (!r[0].success) { say(r[0].message || 'Could not load the pictures.', true); return; }
-      state = r[0]; loaded = true; draw(); say(state.rotate ? 'A different picture each week (' + state.week + ').' : 'One picture, until you change it.');
+    // The pictures first, as soon as they come; the session picker fills in behind, a page at a time.
+    call('GET', '/share/' + slot + '/admin').then(function (d) {
+      if (!d.success) { say(d.message || 'Could not load the pictures.', true); return; }
+      state = d; loaded = true; draw(); say(state.rotate ? 'A different picture each week (' + state.week + ').' : 'One picture, until you change it.');
     }).catch(function () { say('Could not reach the server.', true); });
+    loadSessions();
   }
-  // Every saved session with laps, newest first, for the picker: the admin's re-time listing, a page at a time.
+  // Every saved session with laps, newest first, for the picker: the admin's re-time listing, a page at a time,
+  // the picker growing as each page arrives.
   function loadSessions() {
     sessions = [];
-    function page(cursor) {
-      return call('GET', '/track/admin/retime' + (cursor ? '?cursor=' + encodeURIComponent(cursor) : '')).then(function (d) {
-        if (!d.success) return;
-        (d.sessions || []).forEach(function (r) { if ((r.type === 'track' || r.type === 'sprint') && r.best && !r.street) sessions.push(r); });
-        if (!d.done && d.cursor && sessions.length < 400) return page(d.cursor);
-      });
-    }
-    return page('').then(function () {
-      sessions.sort(function (a, b) { return (b.date || '').localeCompare(a.date || ''); });
-      if (!pick) return;
-      pick.innerHTML = '<option value="">Choose a session</option>' + sessions.map(function (r) {
+    if (!pick) return Promise.resolve();
+    function drawPick(loading) {
+      var keep = pick.value;
+      pick.innerHTML = '<option value="">' + (loading ? 'Loading sessions (' + sessions.length + ' so far)...' : 'Choose a session') + '</option>' + sessions.map(function (r) {
         // Whose session it is, and whether it is private, so the admin knows what they are putting in a public picture.
         return '<option value="' + esc(r.id) + '">' + esc((r.venue || 'Unknown track') + ', ' + (r.date || '') + ', ' + window.MT3UKTrack.fmtLap(r.best) + (r.owner ? ', ' + r.owner : '') + (r.privacy === 'private' ? ' (private)' : '')) + '</option>';
       }).join('');
-    });
+      if (keep) pick.value = keep;
+    }
+    drawPick(true);
+    function page(cursor) {
+      return call('GET', '/track/admin/retime' + (cursor ? '?cursor=' + encodeURIComponent(cursor) : '')).then(function (d) {
+        if (!d.success) { if (previewNote && !sessions.length) previewNote.textContent = d.message || 'The session list could not be loaded.'; return; }
+        (d.sessions || []).forEach(function (r) { if ((r.type === 'track' || r.type === 'sprint') && r.best && !r.street) sessions.push(r); });
+        sessions.sort(function (a, b) { return (b.date || '').localeCompare(a.date || ''); });
+        drawPick(!d.done && d.cursor && sessions.length < 400);
+        if (!d.done && d.cursor && sessions.length < 400) return page(d.cursor);
+      });
+    }
+    return page('').then(function () { drawPick(false); }).catch(function () { drawPick(false); if (previewNote && !sessions.length) previewNote.textContent = 'The session list could not be loaded.'; });
   }
   function fitCanvas() { if (canvas) { canvas.style.aspectRatio = '1200 / 630'; canvas.hidden = false; } }
   function previewSession(id) {

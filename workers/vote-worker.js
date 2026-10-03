@@ -7720,20 +7720,19 @@ async function handleTrackAdminRetime(request, env) {
       return found ? json({ success: true, session: found }) : json({ success: false, message: 'Session not found' }, 404);
     }
     var page = await env.VOTES.list({ prefix: 'track-session:', limit: TRACK_RETIME_PAGE, cursor: params.get('cursor') || undefined });
-    var rows = [], owners = {};
-    // Whose each is, as members see them, so the admin's pickers can say (one lookup per car).
-    async function ownerOf(carId) {
-      if (!(carId in owners)) {
+    var recs = (await Promise.all(page.keys.map(function (k) { return getTrackSession(env, k.name.slice('track-session:'.length)); }))).filter(Boolean);
+    // Whose each is, as members see them, so the admin's pickers can say: one lookup per car, all at once, and a
+    // lookup that fails leaves the name blank rather than failing the page.
+    var owners = {};
+    await Promise.all(recs.map(function (r) { return r.carId; }).filter(function (c, i, a) { return c && a.indexOf(c) === i; }).map(async function (carId) {
+      try {
         var car = await getCarRecord(env, carId), email = car ? await carOwnerEmail(env, car) : null;
         owners[carId] = email ? (publicName(await getProfileRecord(env, email)) || 'MT3UK member') : 'MT3UK member';
-      }
-      return owners[carId];
-    }
-    for (var i = 0; i < page.keys.length; i++) {
-      var rec = await getTrackSession(env, page.keys[i].name.slice('track-session:'.length));
-      if (!rec) continue;
-      rows.push({ id: rec.id, type: rec.type, venue: rec.venue || '', date: rec.date || '', best: rec.bestTime || null, version: rec.analysisVersion || 1, hasSource: !!rec.hasSource, street: !!rec.street, privacy: rec.privacy || 'private', owner: await ownerOf(rec.carId) });
-    }
+      } catch (e) { owners[carId] = ''; }
+    }));
+    var rows = recs.map(function (rec) {
+      return { id: rec.id, type: rec.type, venue: rec.venue || '', date: rec.date || '', best: rec.bestTime || null, version: rec.analysisVersion || 1, hasSource: !!rec.hasSource, street: !!rec.street, privacy: rec.privacy || 'private', owner: owners[rec.carId] || '' };
+    });
     return json({ success: true, sessions: rows, done: !!page.list_complete, cursor: page.list_complete ? '' : page.cursor });
   }
   var body;

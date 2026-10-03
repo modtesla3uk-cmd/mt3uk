@@ -591,3 +591,16 @@ def test_admin_welcome_text_is_edited_and_reset(page):
     expect(page.locator("#tc-note")).to_contain_text("built-in")
     assert posted[-1] == {"reset": True}
     expect(page.locator("#tc-heading")).to_have_value("")
+
+
+def test_admin_sharing_panel_loads_once_the_admin_key_is_entered(page):
+    cors = {"Access-Control-Allow-Origin": "*"}
+    state = {"success": True, "slot": "track", "rotate": False, "current": "", "version": 0, "week": "2026-W40", "items": [], "pick": None}
+    page.route("**/%s/**" % API_HOST, lambda route: route.fulfill(status=200, content_type="application/json", body=json.dumps(state if "/share/track/admin" in route.request.url else {"success": True, "sessions": [{"id": "aaaaaaaa01", "type": "track", "venue": "Thruxton", "date": "2026-05-28", "best": 40.0, "owner": "Ann", "privacy": "board"}], "done": True, "cursor": ""}), headers=cors))
+    page.goto("/admin.html")
+    page.locator("#share-wrap summary").click()
+    expect(page.locator("#share-wrap .ts-note")).to_have_text("Enter the admin key at the top of the page first.")
+    # The key goes in and the page refreshes its panels: this one fills in without being closed and opened again.
+    page.evaluate("sessionStorage.setItem('mt3ukAdminKey', 'test-key'); document.dispatchEvent(new CustomEvent('mt3uk-admin-refresh'))")
+    expect(page.locator("#share-wrap .ts-list")).to_contain_text("No pictures yet")
+    expect(page.locator("#share-wrap .ts-session option")).to_have_count(2)

@@ -189,6 +189,10 @@
     }).catch(function () { say('Could not reach the server.', true); });
   }
   wrap.addEventListener('toggle', function () { if (wrap.open && !loaded) load(); });
+  // Also when the panel is already open as the page loads (a link to it, or the toggle fired before this script ran), and
+  // whenever the admin key is entered or the page refreshes, as the other panels do.
+  document.addEventListener('mt3uk-admin-refresh', function () { if (key()) load(); });
+  if (wrap.open && key()) load();
   if (rotate) rotate.addEventListener('click', function () {
     var on = rotate.getAttribute('aria-checked') !== 'true';
     act({ action: 'rotate', on: on }, function () { say(on ? 'A different picture each week.' : 'One picture, until you change it.'); });

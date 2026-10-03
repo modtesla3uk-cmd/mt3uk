@@ -1847,6 +1847,7 @@
         '</div>' +
         '<div class="tp-mapwrap" id="tp-mapwrap"><svg class="tv-chart" id="tp-map2" role="img" aria-label="Track map with both laps\' lines and positions"></svg>' +
         '<div class="tp-chart-foot tp-speedkey" id="tp-speedkey"' + (cmpSpeed ? '' : ' hidden') + '><span class="tp-ramp"><span id="tp-ramp-lo"></span><i></i><span id="tp-ramp-hi"></span></span><span>Lap A coloured by speed, lap B dashed. Numbers are the slowest corners.</span></div></div>' +
+        '<div class="tp-split" id="tp-split" role="separator" aria-orientation="vertical" aria-label="Drag to make the map bigger or smaller" title="Drag to make the map bigger or smaller"></div>' +
         '<div class="tp-metrics" id="tp-metrics" aria-live="off"></div>' +
         '<div class="tp-gbox" id="tp-gbox"><div class="tp-chart-head"><h3>G-force' + (s.gDerived ? ' (estimated)' : '') + ' and speed</h3><button type="button" class="tp-switch tp-gswitch" role="switch" id="tp-gshow" aria-checked="' + !gHidden + '"><span>Show</span><span class="tp-track"></span></button><div class="tp-chips" id="tp-gtoggles" role="group" aria-label="G-force lines to show">' + G_DEFS.map(function (d) { return '<button type="button" class="chip chip-sm' + (gShow[d[0]] ? ' is-on' : '') + '" data-g="' + d[0] + '" aria-pressed="' + !!gShow[d[0]] + '">' + d[1] + '</button>'; }).join('') + '</div></div>' +
         '<div class="tp-gcharts" id="tp-gforce"></div>' +
@@ -1998,6 +1999,48 @@
   // The whole G-force and speed chart can be hidden (remembered in this browser).
   var gHidden = false;
   try { gHidden = localStorage.getItem('mt3ukTrackChart') === 'off'; } catch (e) { /* storage blocked */ }
+  function setCharts(on) {
+    gHidden = !on;
+    var gs = document.getElementById('tp-gshow'), gbox = document.getElementById('tp-gbox'), mcard = document.getElementById('tp-mapcard');
+    if (gs) gs.setAttribute('aria-checked', String(on));
+    if (gbox) gbox.classList.toggle('is-off', gHidden);
+    // On a phone on its side in full screen, the charts have a panel beside the map; without them the map has it all.
+    if (mcard) mcard.classList.toggle('has-charts', on);
+    try { localStorage.setItem('mt3ukTrackChart', gHidden ? 'off' : 'on'); } catch (e) { /* storage blocked */ }
+    placeHead();
+    // Full screen: the map takes the room, so draw it to its new size.
+    if (cmpFull && view && view.s) drawCompare(view.s, true);
+    else if (cmpAlign) cmpAlign();
+  }
+  // A phone on its side in full screen: the map and the charts share the screen, split where the member drags the
+  // divider (remembered in this browser), the map having at least a third and at most most of it.
+  function landFull() { return cmpFull && window.innerWidth > window.innerHeight && window.innerHeight <= 560; }
+  var mapSplit = 60;
+  try { var ms = parseFloat(localStorage.getItem('mt3ukTrackSplit')); if (ms >= 30 && ms <= 85) mapSplit = ms; } catch (e) { /* storage blocked */ }
+  function applySplit() { var card = document.getElementById('tp-mapcard'); if (card) card.style.setProperty('--tp-map', mapSplit + '%'); }
+  // With the charts beside the map, the colour switch and Exit join the panel's top row, so they wrap with the chips
+  // however narrow the panel is dragged; otherwise the heading is back at the top of the card.
+  function placeHead() {
+    var card = document.getElementById('tp-mapcard'), head = card && card.querySelector('.tp-map-head'), row = document.querySelector('#tp-gbox .tp-chart-head');
+    if (!card || !head) return;
+    if (landFull() && !gHidden && row) { if (head.parentNode !== row) row.appendChild(head); }
+    else if (head.parentNode !== card || card.firstChild !== head) card.insertBefore(head, card.firstChild);
+  }
+  document.addEventListener('pointerdown', function (e) {
+    var h = e.target.closest && e.target.closest('#tp-split');
+    if (!h || !landFull()) return;
+    e.preventDefault();
+    try { h.setPointerCapture(e.pointerId); } catch (err) { /* not capturable */ }
+    h.classList.add('is-dragging');
+    function mv(ev) { mapSplit = Math.max(30, Math.min(85, Math.round(ev.clientX / window.innerWidth * 1000) / 10)); applySplit(); }
+    function up() {
+      h.removeEventListener('pointermove', mv); h.removeEventListener('pointerup', up); h.removeEventListener('pointercancel', up);
+      h.classList.remove('is-dragging');
+      try { localStorage.setItem('mt3ukTrackSplit', String(mapSplit)); } catch (err) { /* storage blocked */ }
+      if (view && view.s) drawCompare(view.s, true);
+    }
+    h.addEventListener('pointermove', mv); h.addEventListener('pointerup', up); h.addEventListener('pointercancel', up);
+  });
   var cmpFull = false, cmpDrawG = null, cmpAlign = null;
   // The map's lap A in speed colours (remembered in this browser).
   var cmpSpeed = true;
@@ -2110,6 +2153,7 @@
   function setFull(on) {
     cmpFull = !!on;
     fullUi();
+    placeHead();
     if (view && view.s && document.getElementById('tp-map2')) drawCompare(view.s, true);
     if (cmpFull) { var b = document.getElementById('tp-full'); if (b) b.focus({ preventScroll: true }); }
   }
@@ -2119,7 +2163,7 @@
   window.addEventListener('resize', function () {
     if (!cmpFull) return;
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(function () { if (cmpFull && view && view.s && document.getElementById('tp-map2')) drawCompare(view.s, true); }, 200);
+    resizeTimer = setTimeout(function () { placeHead(); if (cmpFull && view && view.s && document.getElementById('tp-map2')) drawCompare(view.s, true); }, 200);
   });
   // Whether a zoomed-in map keeps the cars in view. Dragging the map turns it off.
   var cmpMap = null;
@@ -2152,20 +2196,10 @@
       if (view && view.s) drawCompare(view.s, true);
     });
     var gs = document.getElementById('tp-gshow'), gbox = document.getElementById('tp-gbox'), mcard = document.getElementById('tp-mapcard');
-    // On a phone on its side in full screen, the charts have a panel beside the map; without them the map has it all.
-    function chartsClass() { if (mcard) mcard.classList.toggle('has-charts', !gHidden); }
     if (gbox) gbox.classList.toggle('is-off', gHidden);
-    chartsClass();
-    if (gs) gs.addEventListener('click', function () {
-      gHidden = !gHidden;
-      gs.setAttribute('aria-checked', String(!gHidden));
-      gbox.classList.toggle('is-off', gHidden);
-      chartsClass();
-      try { localStorage.setItem('mt3ukTrackChart', gHidden ? 'off' : 'on'); } catch (e) { /* storage blocked */ }
-      // Full screen: the map takes the room, so draw it to its new size.
-      if (cmpFull && view && view.s) drawCompare(view.s, true);
-      else if (cmpAlign) cmpAlign();
-    });
+    if (mcard) mcard.classList.toggle('has-charts', !gHidden);
+    applySplit();
+    if (gs) gs.addEventListener('click', function () { setCharts(gHidden); });
     var gt = document.getElementById('tp-gtoggles');
     if (gt) gt.addEventListener('click', function (e) {
       var b = e.target.closest('[data-g]');
@@ -2210,7 +2244,7 @@
         : (A === B ? [{ trace: A.trace, color: c1 }] : [{ trace: B.trace, color: c2 }, { trace: A.trace, color: c1 }]);
       // The whole session's laps underneath as the track's width.
       var band = Object.keys(s.trace.laps).map(function (k) { return s.trace.laps[k]; });
-      var mo = V.map(mapEl, A.trace, { fill: fill, mono: true, lines: lines, band: band, full: { on: function () { return cmpFull; }, toggle: function () { setFull(!cmpFull); } }, startLine: startLineXY(s), finishLine: s.type === 'sprint' ? startLineXY(s, s.finishLine) : null, corners: s.corners, origin: s.origin });
+      var mo = V.map(mapEl, A.trace, { fill: fill, mono: true, lines: lines, band: band, full: { on: function () { return cmpFull; }, toggle: function () { if (landFull()) setCharts(gHidden); else setFull(!cmpFull); }, state: function () { return landFull() ? (gHidden ? { on: false, label: 'Show the charts', path: 'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5' } : { on: true, label: 'Just the map', path: 'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5' }) : null; } }, startLine: startLineXY(s), finishLine: s.type === 'sprint' ? startLineXY(s, s.finishLine) : null, corners: s.corners, origin: s.origin });
       var lo = document.getElementById('tp-ramp-lo'), hi = document.getElementById('tp-ramp-hi');
       if (mo && lo && hi) { lo.textContent = V.fmtV(mo.vmin); hi.textContent = V.fmtV(mo.vmax); }
       cmpMap = mo;

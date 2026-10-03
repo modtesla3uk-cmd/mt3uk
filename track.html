@@ -192,6 +192,7 @@
   .tp-gbox { margin-top: 10px; }
   .tp-gbox .chip:not(.is-on) { opacity: 0.6; }
   .tp-gcharts { display: grid; gap: 2px; }
+  .tp-split { display: none; }
   .tp-gbox .tp-gswitch { width: auto; min-height: 44px; margin: 0 0 0 auto; gap: 8px; font-size: 0.85rem; color: var(--steel); flex: none; order: 3; }
   .tp-gbox .tp-chart-head { flex-wrap: wrap; align-items: center; column-gap: 10px; }
   .tp-gbox .tp-chart-head h3 { order: 1; }
@@ -240,18 +241,23 @@
     .tp-mapcard.is-full { padding: 0; }
     /* By id: a later rule gives the map box position: relative in full screen, and this one must win. */
     #tp-mapcard.is-full .tp-mapwrap { position: absolute; inset: 0; }
-    #tp-mapcard.is-full.has-charts .tp-mapwrap { right: 40%; }
+    #tp-mapcard.is-full.has-charts .tp-mapwrap { right: calc(100% - var(--tp-map, 60%)); }
+    /* The divider between the map and the charts: drag it to give the map more or less of the screen. */
+    .tp-mapcard.is-full.has-charts .tp-split { display: block; position: absolute; top: 0; bottom: 0; left: calc(var(--tp-map, 60%) - 9px); width: 18px; z-index: 4; cursor: col-resize; touch-action: none; }
+    .tp-mapcard.is-full.has-charts .tp-split::before { content: ""; position: absolute; left: 7px; top: 50%; width: 4px; height: 44px; margin-top: -22px; border-radius: 2px; background: #ffffff; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35); }
+    .tp-mapcard.is-full.has-charts .tp-split.is-dragging::before { background: var(--orange); }
     .tp-mapcard.is-full .tp-map-head, .tp-mapcard.is-full .tp-play, .tp-mapcard.is-full .tp-metrics { position: absolute; z-index: 2; margin: 0; border-radius: var(--radius-sm); background: rgba(255,255,255,.88); }
     .tp-mapcard.is-full .tp-map-head { top: 6px; right: 58px; width: auto; gap: 14px; padding: 0 4px 0 10px; }
     /* With the charts on, the colour switch and Exit sit in the panel's second row, beside the Show switch, so the
        map's top is left to the key, the numbers and the zoom buttons. */
-    .tp-mapcard.is-full.has-charts .tp-map-head { top: 38px; right: 6px; max-width: calc(40% - 100px); flex-wrap: wrap; justify-content: flex-end; gap: 10px; background: transparent; padding: 0; }
-    .tp-mapcard.is-full.has-charts .tp-map-head .tp-speedsw > span:first-child { display: inline; }
-    .tp-mapcard.is-full.has-charts #tp-full { font-size: 0; gap: 0; padding: 0 12px; }
-    .tp-mapcard.is-full.has-charts #tp-full .icon { width: 18px; height: 18px; }
-    .tp-mapcard.is-full.has-charts .tp-play { max-width: calc(60% - 12px); }
+    .tp-gbox .tp-chart-head .tp-map-head { display: contents; }
+    .tp-gbox .tp-chart-head .tp-speedsw { order: 4; margin-left: 10px; }
+    .tp-mapcard.is-full .tp-gbox .tp-chart-head .tp-map-head .tp-speedsw > span:first-child { display: inline; }
+    .tp-gbox .tp-chart-head #tp-full { order: 5; margin-left: 10px; font-size: 0; gap: 0; padding: 0 12px; }
+    .tp-gbox .tp-chart-head #tp-full .icon { width: 18px; height: 18px; }
+    .tp-mapcard.is-full.has-charts .tp-play { max-width: calc(var(--tp-map, 60%) - 12px); }
     .tp-mapcard.is-full .tp-mrow b { max-width: 150px; }
-    .tp-mapcard.is-full .tp-gbox { position: absolute; top: 0; right: 0; bottom: 0; width: 40%; margin: 0; padding: 4px 8px calc(4px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; overflow: hidden; background: var(--paper); border-left: 1px solid var(--hairline); }
+    .tp-mapcard.is-full .tp-gbox { position: absolute; top: 0; right: 0; bottom: 0; width: calc(100% - var(--tp-map, 60%)); margin: 0; padding: 4px 8px calc(4px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; overflow: hidden; background: var(--paper); border-left: 1px solid var(--hairline); }
     .tp-mapcard.is-full .tp-gbox .tp-chart-head { margin: 0; min-height: 0; }
     .tp-mapcard.is-full .tp-gbox .tp-chart-head h3 { display: none; }
     .tp-mapcard.is-full .tp-gbox .tp-gswitch { min-height: 32px; margin-left: 0; order: 3; }
@@ -807,10 +813,10 @@
   }
 </script>
 
-<script src="js/track-parse.js?v=20261031" defer></script>
-<script src="js/track-view.js?v=20261031" defer></script>
+<script src="js/track-parse.js?v=20261101" defer></script>
+<script src="js/track-view.js?v=20261101" defer></script>
 <script src="js/tyre-data.js"></script>
-<script src="js/track-page.js?v=20261031" defer></script>
+<script src="js/track-page.js?v=20261101" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js" defer></script>
 <script src="js/signin-prompt.js" defer></script>

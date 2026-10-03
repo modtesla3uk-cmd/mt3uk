@@ -2324,6 +2324,36 @@ def test_full_screen_map_on_a_phone(page):
     for svg in page.locator("#tp-gforce svg").all():
         b = svg.bounding_box()
         assert b["height"] >= 50 and b["y"] + b["height"] <= 390, b
+    # The map's own button now swaps between the map alone and the map with the charts; Exit stays in the panel.
+    mapBtn = page.locator("#tp-mapwrap .tv-zoom-full")
+    expect(mapBtn).to_have_attribute("aria-label", "Just the map")
+    mapBtn.click()
+    expect(page.locator("#tp-gforce")).to_be_hidden()
+    assert page.locator("#tp-map2").bounding_box()["width"] >= 830
+    expect(page.locator("#tp-mapwrap .tv-zoom-full")).to_have_attribute("aria-label", "Show the charts")
+    page.locator("#tp-mapwrap .tv-zoom-full").click()
+    expect(page.locator("#tp-gforce svg")).to_have_count(3)
+    assert 480 <= page.locator("#tp-map2").bounding_box()["width"] <= 530
+    # The divider between map and charts drags: the map takes three quarters of the screen, and it is remembered.
+    split = page.locator("#tp-split")
+    expect(split).to_be_visible()
+    sb = split.bounding_box()
+    page.mouse.move(sb["x"] + sb["width"] / 2, 200)
+    page.mouse.down()
+    page.mouse.move(700, 200, steps=5)
+    page.mouse.move(633, 200, steps=5)
+    page.mouse.up()
+    page.wait_for_timeout(300)
+    assert 615 <= page.locator("#tp-map2").bounding_box()["width"] <= 650, page.locator("#tp-map2").bounding_box()
+    assert page.locator("#tp-gbox").bounding_box()["x"] >= 620
+    page.reload()
+    page.locator("#tp-mapwrap .tv-zoom-full").click()
+    expect(page.locator("#tp-mapcard")).to_have_class(re.compile(r"is-full"))
+    assert 615 <= page.locator("#tp-map2").bounding_box()["width"] <= 650
+    page.evaluate("localStorage.removeItem('mt3ukTrackSplit')")
+    page.reload()
+    page.locator("#tp-mapwrap .tv-zoom-full").click()
+    expect(page.locator("#tp-mapcard")).to_have_class(re.compile(r"is-full"))
     # Charts off: the map has the whole screen, and the switch stays reachable to bring them back.
     page.locator("#tp-gshow").click()
     expect(page.locator("#tp-gforce")).to_be_hidden()

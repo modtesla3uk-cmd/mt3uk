@@ -480,10 +480,11 @@
     var reset = btn('tv-zoom-reset', 'Show the whole track', 'M12 3v4M12 17v4M3 12h4M17 12h4M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z');
     box.appendChild(plus); box.appendChild(minus); box.appendChild(reset);
     // Full screen, when the map has it (cfg.full: { on, toggle }): the page redraws the map on the change, so the
-    // button comes back showing the new state.
+    // button comes back showing the new state. cfg.full.state(), when given, says what the button is for just now
+    // ({ on, label, path }): on a phone on its side it swaps between the map alone and the map with the charts.
     if (cfg.full) {
-      var isFull = cfg.full.on();
-      var full = btn('tv-zoom-full', isFull ? 'Exit full screen' : 'Full screen map', isFull ? 'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5' : 'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');
+      var st = cfg.full.state && cfg.full.state(), isFull = st ? st.on : cfg.full.on();
+      var full = btn('tv-zoom-full', st ? st.label : isFull ? 'Exit full screen' : 'Full screen map', st ? st.path : isFull ? 'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5' : 'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');
       full.setAttribute('aria-pressed', String(isFull));
       box.appendChild(full);
       full.addEventListener('click', function () { cfg.full.toggle(); });

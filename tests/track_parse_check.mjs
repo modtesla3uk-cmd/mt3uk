@@ -568,6 +568,13 @@ ok(T.fmtLap(99.786) === '1:39.786' && T.niceDate('2026-05-28') === '28 May 2026'
   const tm = T.read(fs.readFileSync(ROOT + 'tests/fixtures/tesla-track-mode-drive-2026-10-02.csv', 'utf8'), 'telemetry-v1-2026-10-02-23_01_21.csv');
   const real = T.mergeSources(rb, tm);
   ok(real.rd && real.corr > 0.99 && Math.abs(real.shift) < 0.5, 'a real RaceBox and Track Mode pair line up (offset ' + (real.shift && real.shift.toFixed(2)) + ' s, match ' + (real.corr && real.corr.toFixed(4)) + ')');
+  // The g worked out from the GPX path turns the same way as the car's own readings, so a corner one way has one sign
+  // on both kinds of file (and on RaceBox's own charts).
+  {
+    const corrOf = (a, b) => { let n = 0, sa = 0, sb = 0; a.forEach((x, i) => { if (isFinite(x) && isFinite(b[i])) { sa += x; sb += b[i]; n++; } }); const ma = sa / n, mb = sb / n; let aa = 0, bb = 0, ab = 0; a.forEach((x, i) => { if (isFinite(x) && isFinite(b[i])) { aa += (x - ma) ** 2; bb += (b[i] - mb) ** 2; ab += (x - ma) * (b[i] - mb); } }); return ab / Math.sqrt(aa * bb); };
+    const latC = corrOf(rb.points.map(p => p.la), real.rd.points.map(p => p.la)), lonC = corrOf(rb.points.map(p => p.lo), real.rd.points.map(p => p.lo));
+    ok(latC > 0.9 && lonC > 0.85, 'g from the GPS path has the sign and shape of the car\'s own (cornering match ' + latC.toFixed(2) + ', braking ' + lonC.toFixed(2) + ')');
+  }
   const rs = T.analyse(real.rd, { venues: [] }, { type: 'other' });
   ok(rs.gDerived === false && rs.latMax > 0.3 && rs.latMax < 0.7 && rs.carData && rs.carData.soc && rs.carData.soc.end < rs.carData.soc.start + 0.01, 'the real pair gives the car\'s own g-forces (' + rs.latMax + ' g) and its battery figures');
 }

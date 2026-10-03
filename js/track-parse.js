@@ -24,7 +24,8 @@
   // 2: GPX Start waypoint, drag clock matched to RaceBox with the rollout on, out lap not numbered.
   // 3: each lap keeps the car's own figures for that lap (Track Mode files).
   // 4: the battery start and end keep two decimals, so rounding to a whole percent happens once (60.48 shows as 60, not 61).
-  var ANALYSIS_VERSION = 4;
+  // 5: cornering g worked out from the GPS path has the same sign as RaceBox's and the car's own readings.
+  var ANALYSIS_VERSION = 5;
   var DEG = Math.PI / 180;
 
   function num(s) {
@@ -592,7 +593,8 @@
         var dh = head[w] - head[u];
         while (dh > Math.PI) dh -= 2 * Math.PI;
         while (dh < -Math.PI) dh += 2 * Math.PI;
-        la.push(pts[z].v / 3.6 * dh / dtt / 9.81);
+        // Negative, so a corner one way has the same sign as RaceBox and Track Mode give it (checked against both).
+        la.push(-pts[z].v / 3.6 * dh / dtt / 9.81);
       }
       lo = smooth(lo, 2); la = smooth(la, 2);
       pts.forEach(function (p, j) { p.lo = lo[j]; p.la = la[j]; });

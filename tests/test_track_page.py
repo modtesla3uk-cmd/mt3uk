@@ -792,6 +792,38 @@ def test_sessions_of_one_track_day_can_be_compared_with_each_other_even_at_an_un
     assert any("14:00" in t and "1:31.200" in t for t in texts) and any("09:00" in t and "1:30.000" in t for t in texts), texts
 
 
+def test_a_lap_from_a_session_with_its_own_start_line_is_turned_to_start_on_this_one(page):
+    """Two sessions at a track with no official line each found their own. Compared,
+    the other session's lap is turned to start where this session's line is, so the
+    two laps line up round the circuit."""
+    fake = FakeWorker(earlier=False)
+    # A square 400 m a side, driven from (0, 0): speeds 100, 120, 140, 160 km/h at its corners.
+    loop = [[0, 0, 0, 0, 100, 0, 0], [400, 10, 400, 0, 120, 0, 0], [800, 20, 400, 400, 140, 0, 0], [1200, 30, 0, 400, 160, 0, 0], [1600, 40, 0, 0, 100, 0, 0]]
+    for sid, tm, line in (("v1", "11:00", [[51.00361859960196, -0.994290277653375], [51.00361859960196, -0.9943]]), ("v2", "14:00", [[51.0, -1.0], [51.0, -1.0001]])):
+        rec = day_session(sid, tm, 40.0, 1, venue="Unknown track")
+        rec.pop("venueId", None)
+        rec.pop("layoutId", None)
+        rec["origin"] = [51.0, -1.0]
+        rec["startLine"] = line
+        rec["autoLine"] = True
+        rec["trace"] = {"hz": 5, "laps": {"1": [list(r) for r in loop]}}
+        rec["best"] = 1
+        fake.sessions[sid] = dict(rec)
+        fake.index.append(dict(summary(rec), origin=rec["origin"]))
+    # v1's line is at the far corner (400, 400); v2's is at (0, 0), where both traces begin.
+    open_page(page, fake, path="/track.html?s=v1")
+    page.locator("#tp-cmp-b").select_option("x:v2")
+    expect(page.locator("#tp-speed path")).to_have_count(2)
+    page.locator("#tp-speed").scroll_into_view_if_needed()
+    box = page.locator("#tp-speed").bounding_box()
+    page.mouse.move(box["x"] + box["width"] * 0.12, box["y"] + box["height"] / 2)
+    tip = page.locator(".tv-tip")
+    # Early in the lap: A has left (0, 0) at 100 km/h (62 mph) and is building to 120; B, turned to start at v1's
+    # line, has left the far corner at 140 km/h (87 mph) and is building to 160, not sitting at its own line.
+    expect(tip).to_contain_text(re.compile(r"(6[2-9]|7[0-4]) mph"))
+    expect(tip).to_contain_text(re.compile(r"(8[7-9]|9[0-9]) mph"))
+
+
 def lap_row(d, t, v, la, lo):
     return [d, t, d * 0.1, 0, v, la, lo]
 
@@ -895,6 +927,34 @@ def test_the_figures_picker_lists_your_other_sessions_that_day_and_opens_one(pag
     page.locator("#tp-lap-pick").select_option("x:lp2")
     expect(page).to_have_url(re.compile(r"track\.html\?s=lp2"))
     expect(page.locator("#tp-day-place")).to_have_text("Session 3 of 3 that day")
+
+
+def test_the_track_mode_card_stays_open_from_one_session_to_the_next(page):
+    """Opened once, the Track Mode and Laps cards stay open on the next session
+    picked, and after a reload, instead of folding away each time."""
+    fake = FakeWorker(earlier=False)
+    rec = car_lap_session()
+    later = dict(rec, id="lp2", time="15:46", bestTime=86.063, laps=[dict(l) for l in rec["laps"]])
+    for r in (rec, later):
+        fake.sessions[r["id"]] = r
+        fake.index.append(summary(r))
+    open_page(page, fake, path="/track.html?s=lp1")
+    car, laps = page.locator("#car-data"), page.locator("#tp-laps")
+    expect(car).not_to_have_attribute("open", re.compile(".*"))
+    car.locator("summary").click()
+    laps.locator("summary").click()
+    expect(car).to_have_attribute("open", "")
+    page.locator("#tp-lap-pick").select_option("x:lp2")
+    expect(page).to_have_url(re.compile(r"track\.html\?s=lp2"))
+    expect(page.locator("#car-data")).to_have_attribute("open", "")
+    expect(page.locator("#tp-laps")).to_have_attribute("open", "")
+    page.reload()
+    expect(page.locator("#car-data")).to_have_attribute("open", "")
+    # Closed again, it stays closed.
+    page.locator("#car-data summary").click()
+    page.locator("#tp-lap-pick").select_option("x:lp1")
+    expect(page).to_have_url(re.compile(r"track\.html\?s=lp1"))
+    expect(page.locator("#car-data")).not_to_have_attribute("open", re.compile(".*"))
 
 
 def test_the_leaderboard_has_a_my_sessions_button_back_to_your_sessions(page):
@@ -2640,7 +2700,8 @@ def test_the_cars_own_data_is_picked_up_and_shown_on_the_session(page):
     expect(page.locator("#car-data")).to_have_attribute("open", "")
     page.reload()
     expect(page.locator("#car-data")).to_contain_text("515 psi")
-    page.locator("#car-data summary").click()
+    # Left open, it is open again after the reload.
+    expect(page.locator("#car-data")).to_have_attribute("open", "")
     page.locator("#car-data [data-press='bar']").click()
     expect(page.locator("#car-data")).to_contain_text("35.5 bar")
 

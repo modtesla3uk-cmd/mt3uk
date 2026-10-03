@@ -242,10 +242,12 @@
 
   // ---------- Routing ----------
   function params() { return new URL(location.href).searchParams; }
-  function go(q) {
+  function go(q, keepScroll) {
+    var y = window.scrollY || 0;
+    rememberCards();
     history.pushState(null, '', 'track.html' + (q ? '?' + q : ''));
     route();
-    window.scrollTo(0, 0);
+    window.scrollTo(0, keepScroll ? y : 0);
   }
   window.addEventListener('popstate', route);
   app.addEventListener('click', function (e) {
@@ -651,7 +653,7 @@
     var sel = e.target.closest && e.target.closest('#tp-lap-pick');
     if (!sel || !view || !view.s) return;
     // Another session that day: open it.
-    if (sel.value.slice(0, 2) === 'x:') { go('s=' + sel.value.slice(2)); return; }
+    if (sel.value.slice(0, 2) === 'x:') { go('s=' + sel.value.slice(2), true); return; }
     lapSel = sel.value ? parseInt(sel.value, 10) : null;
     lapSelFor = view.s.id;
     var box = document.getElementById('tp-headline');
@@ -1646,9 +1648,24 @@
   try { if (localStorage.getItem('mt3ukPressure') === 'psi') pressUnit = 'psi'; } catch (e) { /* storage blocked */ }
   function press(bar, dp) { return pressUnit === 'psi' ? Math.round(bar * PSI_PER_BAR) + '' : bar.toFixed(dp); }
   // Which of a day's sessions the tiles show ('all' for the whole day).
-  var carRun = 'all', carRunFor = null, carOpen = false;
+  // The Track Mode and Laps cards stay open or closed as last left, from one session to the next and between
+  // visits, so flicking through a day's sessions does not mean opening them each time.
+  var carRun = 'all', carRunFor = null, carOpen = false, lapsOpen = false;
+  try { carOpen = localStorage.getItem('mt3ukCarOpen') === '1'; lapsOpen = localStorage.getItem('mt3ukLapsOpen') === '1'; } catch (e) { /* storage blocked */ }
+  function rememberCard(id, key) {
+    var el = document.getElementById(id);
+    if (!el) return null;
+    try { localStorage.setItem(key, el.open ? '1' : '0'); } catch (err) { /* storage blocked */ }
+    return el.open;
+  }
+  // The toggle event comes a moment after the click, so a redraw straight after one reads the cards as they are.
+  function rememberCards() {
+    var c = rememberCard('car-data', 'mt3ukCarOpen'), l = rememberCard('tp-laps', 'mt3ukLapsOpen');
+    if (c !== null) carOpen = c;
+    if (l !== null) lapsOpen = l;
+  }
   document.addEventListener('toggle', function (e) {
-    if (e.target && e.target.id === 'car-data') carOpen = e.target.open;
+    if (e.target && (e.target.id === 'car-data' || e.target.id === 'tp-laps')) rememberCards();
   }, true);
   document.addEventListener('click', function (e) {
     var rb = e.target.closest && e.target.closest('#car-data [data-car-run]');
@@ -1688,7 +1705,7 @@
   function carDataHtml(s, lap) {
     var all = s.carData;
     if (!all) return '';
-    if (carRunFor !== s.id) { carRun = 'all'; carRunFor = s.id; carOpen = false; }
+    if (carRunFor !== s.id) { carRun = 'all'; carRunFor = s.id; }
     var lapCar = lap && lap.carData ? lap.carData : null;
     var runs = !lap && all.runs && all.runs.length > 1 ? all.runs : null, word = partWord(s.type);
     var picked = runs && carRun !== 'all' ? runs.filter(function (r) { return String(r.run) === carRun; })[0] : null;
@@ -1810,7 +1827,7 @@
     if (lapSelFor !== s.id) { lapSel = null; lapSelFor = s.id; }
     var h = lapPickHtml(s) + '<div id="tp-headline">' + headlineHtml(s) + '</div>';
     // The lap times, folded away until opened (shown after Compare laps).
-    var lapsHtml = '<details class="card tp-laps" id="tp-laps"><summary><h3>Laps</h3><span class="tp-small">' + laps.length + ' ' + (laps.length === 1 ? 'lap' : 'laps') + (best ? ', best ' + V.fmtLap(best.time) : '') + '</span>' + icon('chev') + '</summary><div class="tp-scroll"><table class="tp-table">' + lapTable(s) + '</table></div>' +
+    var lapsHtml = '<details class="card tp-laps" id="tp-laps"' + (lapsOpen ? ' open' : '') + '><summary><h3>Laps</h3><span class="tp-small">' + laps.length + ' ' + (laps.length === 1 ? 'lap' : 'laps') + (best ? ', best ' + V.fmtLap(best.time) : '') + '</span>' + icon('chev') + '</summary><div class="tp-scroll"><table class="tp-table">' + lapTable(s) + '</table></div>' +
       (s.sectorsByThirds ? '<p class="tp-small">Sectors are thirds of the lap until this track has its own sector points.</p>' : '') + '</details>';
     var spottedHtml = '<div class="tp-section"><h3>What we spotted</h3><div class="tp-notes">' + notesHtml(T.sessionNotes(s, V.fmtV, V.fmtD)) + '</div></div>';
     // One map: Compare laps' "Where you are", straight after the tiles.
@@ -1914,7 +1931,7 @@
         var mem = view.memberById && view.memberById[id];
         // Which lap this is, so A and B say where they came from.
         var lbl = mem ? memberName(mem) + ', best ' + LW.toLowerCase() + ', ' + shortDate(o.date) : (o.mine ? 'Your best ' : (o.ownerName ? o.ownerName + ', best ' : 'Best ')) + LW.toLowerCase() + ', ' + shortDate(o.date);
-        view.other[id] = tr ? { trace: tr, label: lbl, time: o.bestTime, origin: o.origin } : null;
+        view.other[id] = tr ? { trace: tr, label: lbl, time: o.bestTime, origin: o.origin, startLine: o.startLine } : null;
         return view.other[id];
       });
     }
@@ -1936,6 +1953,25 @@
     if (o.origin[0] === s.origin[0] && o.origin[1] === s.origin[1]) return o.trace;
     var from = T.projector(o.origin[0], o.origin[1]), to = T.projector(s.origin[0], s.origin[1]);
     return o.trace.map(function (p) { var ll = from.ll(p[2], p[3]), xy = to.xy(ll[0], ll[1]); var q = p.slice(); q[2] = xy[0]; q[3] = xy[1]; return q; });
+  }
+  // A lap from a session timed on a different start line (two sessions at a track with no official line each find
+  // their own) starts somewhere else round the circuit. A lap is a loop, so it is turned to start where this
+  // session's line is, with distance and time counted from there, and the two laps then line up.
+  function ontoLine(s, o) {
+    var line = startLineXY(s), tr = o.trace;
+    if (!line || !o.startLine || !tr || tr.length < 3) return o;
+    var mine = s.startLine && s.startLine.length === 2 && T.haversine({ lat: o.startLine[0][0], lng: o.startLine[0][1] }, { lat: s.startLine[0][0], lng: s.startLine[0][1] }) < 15;
+    if (mine) return o;
+    var mx = (line[0][0] + line[1][0]) / 2, my = (line[0][1] + line[1][1]) / 2, k = 0, kd = Infinity;
+    tr.forEach(function (p, i) { var d = Math.hypot(p[2] - mx, p[3] - my); if (d < kd) { kd = d; k = i; } });
+    if (k === 0 || k === tr.length - 1 || kd > 60) return o;
+    var D = tr[tr.length - 1][0], T0 = isFinite(o.time) ? o.time : tr[tr.length - 1][1], dk = tr[k][0], tk = tr[k][1];
+    function shift(p, dd, dt) { var q = p.slice(); q[0] = Math.round((p[0] + dd) * 10) / 10; q[1] = Math.round((p[1] + dt) * 100) / 100; return q; }
+    // From the line to the end of the lap, then the start of the lap up to the line (its first and last points are
+    // the same place, so one is dropped), closed by the line point again at the full distance and time.
+    var out = tr.slice(k).map(function (p) { return shift(p, -dk, -tk); }).concat(tr.slice(1, k).map(function (p) { return shift(p, D - dk, T0 - tk); }));
+    var end = tr[k].slice(); end[0] = D; end[1] = T0; out.push(end);
+    return Object.assign({}, o, { trace: out });
   }
   function drawTrackCharts(s) {
     if (!s.trace || !s.trace.laps) return;
@@ -2148,8 +2184,8 @@
       var A = r[0], B = r[1];
       if (!A || !B) return;
       // Another day's lap, moved onto this session's map.
-      if (A.origin) A = Object.assign({}, A, { trace: intoThis(s, A) });
-      if (B.origin) B = Object.assign({}, B, { trace: intoThis(s, B) });
+      if (A.origin) A = ontoLine(s, Object.assign({}, A, { trace: intoThis(s, A) }));
+      if (B.origin) B = view.b ? ontoLine(s, Object.assign({}, B, { trace: intoThis(s, B) })) : A;
       var c1 = RUN_COLORS[0], c2 = RUN_COLORS[1];
       document.getElementById('tp-key').innerHTML = '<span><i style="background:' + c1 + '"></i>' + esc(A.label) + ' (A)</span><span><i style="background:' + c2 + '"></i>' + esc(B.label) + ' (B)</span>';
       var at = V.traceAt;

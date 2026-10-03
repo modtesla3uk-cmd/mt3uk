@@ -18,7 +18,7 @@ GROUPS = [
     ("grp-reports", "Reports", ["comments-wrap", "rphotos-wrap", "local-wrap"]),
     ("grp-members", "Members", ["subscribers-wrap", "members-msg-wrap"]),
     ("grp-interviews", "Owner interviews", ["interviews-wrap", "preview-wrap"]),
-    ("grp-tracks", "Track sessions", ["access-wrap", "member-sessions-wrap", "tracks-wrap", "tyres-wrap"]),
+    ("grp-tracks", "Track sessions", ["access-wrap", "member-sessions-wrap", "tracks-wrap", "share-wrap", "tyres-wrap"]),
 ]
 
 
@@ -99,7 +99,7 @@ def test_admin_sub_menu_lists_the_sections_of_the_current_category(page):
     expect(page.locator('.admin-nav a[data-here="true"]')).to_have_text("Gallery and builds")
     # Choosing a category swaps the sub menu to that category's sections.
     page.locator('.admin-nav a[href="admin.html#grp-tracks"]').click()
-    expect(sub.locator("a")).to_have_text(["Early access", "Member sessions", "Tracks", "Tyres"])
+    expect(sub.locator("a")).to_have_text(["Early access", "Member sessions", "Tracks", "Link preview picture", "Tyres"])
     expect(page.locator('.admin-nav a[data-here="true"]')).to_have_text("Track sessions")
     # Choosing a section opens its panel and scrolls to it.
     sub.locator("a", has_text="Tyres").click()
@@ -367,3 +367,90 @@ def test_admin_can_open_a_map_of_a_requested_course_and_the_load_refreshes_every
     page.get_by_role("button", name="Refresh").click()
     page.wait_for_timeout(500)
     assert hits["access"] > before
+
+
+def _share_session():
+    """A saved session with everything the preview card draws: a square lap trace, corners, a start line and figures."""
+    loop = [[0, 0, 0, 0, 100, 0, 0], [400, 10, 400, 0, 120, 0.4, 0], [800, 20, 400, 400, 140, -0.6, 0], [1200, 30, 0, 400, 160, 0.5, 0], [1600, 40, 0, 0, 100, 0, 0]]
+    slower = [[r[0], r[1] * 1.05, r[2], r[3], r[4] - 5, r[5] * 0.8, r[6]] for r in loop]
+    return {"id": "aaaaaaaa01", "type": "track", "venue": "Thruxton", "layout": "Thruxton", "date": "2026-05-28", "time": "14:34", "best": 1, "bestTime": 40.0,
+            "laps": [{"n": 1, "time": 40.0, "kind": "timed"}, {"n": 2, "time": 42.0, "kind": "timed"}], "vmax": 160.0, "latMax": 0.6, "brakeMax": 0.9,
+            "origin": [51.0, -1.0], "startLine": [[51.0, -1.0], [51.0, -1.0001]], "corners": [{"n": 1, "x": 400, "y": 0}, {"n": 2, "x": 400, "y": 400}],
+            "trace": {"hz": 5, "laps": {"1": loop, "2": slower}}}
+
+
+def test_admin_link_preview_pictures_rotate_and_are_drawn_from_sessions(page):
+    cors = {"Access-Control-Allow-Origin": "*"}
+    posted, uploads = [], []
+    state = {"success": True, "rotate": True, "current": "", "week": "2026-W40",
+             "items": [{"id": "p1", "kind": "session", "caption": "Thruxton in the dry", "label": "Thruxton, 2026-05-28", "sessionId": "aaaaaaaa01", "url": "https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/share/track/p1.jpg"},
+                       {"id": "p2", "kind": "photo", "caption": "", "label": "Paddock", "sessionId": "", "url": "https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/share/track/p2.jpg"}]}
+    state["pick"] = state["items"][1]
+
+    def share_admin(route):
+        req = route.request
+        if req.method == "POST":
+            body = json.loads(req.post_data)
+            posted.append(body)
+            if body["action"] == "rotate":
+                state["rotate"] = body["on"]
+            if body["action"] == "caption":
+                next(i for i in state["items"] if i["id"] == body["id"])["caption"] = body["caption"]
+            if body["action"] == "use":
+                state["rotate"], state["current"], state["pick"] = False, body["id"], next(i for i in state["items"] if i["id"] == body["id"])
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(state), headers=cors)
+
+    def share_image(route):
+        uploads.append(route.request.post_data_buffer)
+        state["items"].append({"id": "p3", "kind": "session", "caption": "New one", "label": "Thruxton, 2026-05-28", "sessionId": "aaaaaaaa01", "url": "https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/share/track/p3.jpg"})
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(dict(state, id="p3")), headers=cors)
+
+    def retime(route):
+        if "id=" in route.request.url:
+            body = {"success": True, "session": _share_session()}
+        else:
+            body = {"success": True, "sessions": [{"id": "aaaaaaaa01", "type": "track", "venue": "Thruxton", "date": "2026-05-28", "best": 40.0, "version": 5, "hasSource": True},
+                                                   {"id": "aaaaaaaa02", "type": "other", "venue": "", "date": "2026-05-29", "best": None, "version": 5, "hasSource": True}], "done": True, "cursor": ""}
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(body), headers=cors)
+
+    open_admin(page, "admin.html")
+    # The later route wins, so the upload route goes on after the general one.
+    page.route("**/share/track/admin**", share_admin)
+    page.route("**/share/track/admin/image**", share_image)
+    page.route("**/track/admin/retime**", retime)
+    page.route("**/pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/**", lambda route: route.abort())
+    page.locator("#share-wrap summary").click()
+    items = page.locator("#ts-list .ts-item")
+    expect(items).to_have_count(2)
+    expect(page.locator("#ts-rotate")).to_have_attribute("aria-checked", "true")
+    expect(items.nth(1)).to_have_class(re.compile("is-now"))
+    expect(items.nth(1).locator(".ts-now")).to_have_text("This week")
+    expect(items.nth(0).locator("input[data-caption]")).to_have_value("Thruxton in the dry")
+    expect(items.nth(0).locator("a.ts-open")).to_have_attribute("href", "track.html?s=aaaaaaaa01")
+    # A caption is saved as it is typed.
+    items.nth(1).locator("input[data-caption]").fill("Our paddock")
+    items.nth(1).locator("input[data-caption]").press("Tab")
+    expect(page.locator("#ts-note")).to_have_text("Caption saved.")
+    assert posted[-1] == {"action": "caption", "id": "p2", "caption": "Our paddock"}
+    # Use this now: rotation goes off and that picture is the one.
+    items.nth(0).get_by_role("button", name="Use this now").click()
+    expect(page.locator("#ts-rotate")).to_have_attribute("aria-checked", "false")
+    expect(items.nth(0).locator(".ts-now")).to_have_text("In use")
+    assert posted[-1] == {"action": "use", "id": "p1"}
+    page.locator("#ts-rotate").click()
+    assert posted[-1] == {"action": "rotate", "on": True}
+    # Only sessions with laps are offered; choosing one draws the card, with its own figures on it.
+    options = page.locator("#ts-session option")
+    expect(options).to_have_count(2)
+    expect(options.nth(1)).to_have_text("Thruxton, 2026-05-28, 0:40.000")
+    page.locator("#ts-session").select_option("aaaaaaaa01")
+    expect(page.locator("#ts-make")).to_be_enabled()
+    expect(page.locator("#ts-preview")).to_be_visible()
+    drawn = page.evaluate("""() => { const c = document.getElementById('ts-preview'), d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+      const seen = new Set(); for (let i = 0; i < d.length; i += 4 * 97) seen.add(d[i] + ',' + d[i + 1] + ',' + d[i + 2]); return { w: c.width, h: c.height, colours: seen.size }; }""")
+    assert drawn["w"] == 1200 and drawn["h"] == 630 and drawn["colours"] > 40, drawn
+    page.locator("#ts-caption").fill("New one")
+    page.locator("#ts-make").click()
+    expect(items).to_have_count(3)
+    assert len(uploads) == 1 and b"image/jpeg" in uploads[0] and b'name="kind"' in uploads[0] and b"session" in uploads[0] and b"New one" in uploads[0] and b"aaaaaaaa01" in uploads[0]
+    expect(page.locator("#ts-note")).to_contain_text("Saved.")

@@ -33,8 +33,11 @@ workflow.
 """
 import html
 import json
+import os
 import re
 import sys
+import urllib.request
+from datetime import date
 from html.parser import HTMLParser
 from pathlib import Path
 
@@ -47,6 +50,27 @@ SITE_URL = "https://mt3uk.com"
 R2_BASE_URL = "https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev"
 DEFAULT_IMAGE = SITE_URL + "/images/MT3UK_RED_BLK_BG.png"
 DEFAULT_DESCRIPTION = "MT3UK, the UK's modified Tesla community."
+WORKER_URL = "https://late-darkness-ebc8.modtesla3uk.workers.dev"
+
+
+def track_share_live():
+    """The Track sessions link picture the admin has set (see the Link preview picture panel on admin.html), with
+    the ISO week stamped into its address so chat apps fetch a fresh preview each week, and its caption. Only when
+    MT3UK_SHARE_LIVE=1 (the sync workflow sets it): tests and local runs stay offline and use the page's own
+    picture."""
+    if os.environ.get("MT3UK_SHARE_LIVE") != "1":
+        return None
+    try:
+        with urllib.request.urlopen(WORKER_URL + "/share/track", timeout=15) as r:
+            d = json.load(r)
+    except Exception as e:  # noqa: BLE001 - a missing picture must never stop the build
+        print("Track share picture not read (" + str(e) + "), using the page's own.")
+        return None
+    pick = d.get("pick") if isinstance(d, dict) else None
+    if not pick or not pick.get("url"):
+        return None
+    year, week, _ = date.today().isocalendar()
+    return {"image": pick["url"] + "?w=%d-W%02d" % (year, week), "caption": (pick.get("caption") or "").strip()}
 # Sections filled in by the browser, so the page has no photo to find.
 LIVE_SECTIONS = {
     "build-of-the-day": "featured",
@@ -299,11 +323,16 @@ def pages_to_write():
             elif fallback:
                 page_image, page_square = fallback
         target = page_url(page)
+        live_caption = ""
+        if page == "track":
+            live = track_share_live()
+            if live:
+                page_image, page_square, live_caption = live["image"], False, live["caption"]
 
         # The page itself, from its main heading.
         h1 = next((n for n in root.walk() if isinstance(n, Node) and n.tag == "h1" and not n.inside("data-no-share")), None)
         title = heading_text(h1) if h1 else (meta(root, "og:title") or "MT3UK")
-        description = (intro_after(root, h1) if h1 else "") or shorten(meta(root, "description")) or DEFAULT_DESCRIPTION
+        description = live_caption or (intro_after(root, h1) if h1 else "") or shorten(meta(root, "description")) or DEFAULT_DESCRIPTION
         out[page + ".html"] = share_html(title, description, page_image, page_square, target, "")
 
         # Each section with a share button.

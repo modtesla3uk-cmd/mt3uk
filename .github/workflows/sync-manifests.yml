@@ -11,8 +11,11 @@ on:
       - "data/event-pages.json"
       - "images/events/**"
   repository_dispatch:
-    types: [gallery-submission]
+    types: [gallery-submission, track-share]
   workflow_dispatch: {}
+  # Mondays: the Track sessions link picture moves on a week (see the Link preview picture panel on admin.html).
+  schedule:
+    - cron: "20 6 * * 1"
 
 permissions:
   contents: write
@@ -49,6 +52,8 @@ jobs:
 
       - name: Regenerate page and section share pages
         run: python3 scripts/build_section_share_pages.py
+        env:
+          MT3UK_SHARE_LIVE: "1"
 
       - name: Regenerate event share pages and preview pictures
         run: python3 scripts/build_event_share_pages.py

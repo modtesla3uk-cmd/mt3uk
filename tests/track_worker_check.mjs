@@ -688,6 +688,44 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   for (const x of [first, otherCar, otherTime]) if (x.body.session) await call('DELETE', '/track/session?id=' + x.body.session.id, undefined, 'tok-a');
 }
 
+// The Track sessions link preview picture: pictures in the bucket, one KV key, a week's pick.
+{
+  let sp = await call('GET', '/share/track');
+  ok(sp.status === 200 && sp.body.success && sp.body.items.length === 0 && sp.body.pick === null && /^\d{4}-W\d{2}$/.test(sp.body.week), 'no pictures yet: the share page keeps its own');
+  ok((await call('GET', '/share/track/admin')).status === 401 && (await call('POST', '/share/track/admin', { action: 'rotate', on: true })).status === 401, 'the picture set needs the admin key');
+  const jpeg = new Blob([new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 16, 74, 70, 73, 70, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0xff, 0xd9])], { type: 'image/jpeg' });
+  async function upload(fields, keyed) {
+    const fd = new FormData();
+    fd.append('file', jpeg, 'share.jpg');
+    Object.keys(fields).forEach(k => fd.append(k, fields[k]));
+    const r = await worker.fetch(new Request('https://w.test/share/track/admin/image' + (keyed === false ? '' : '?key=secret'), { method: 'POST', body: fd }), env, { waitUntil() {} });
+    return { status: r.status, body: await r.json().catch(() => ({})) };
+  }
+  ok((await upload({ kind: 'session' }, false)).status === 401, 'uploading a picture needs the admin key');
+  let up = await upload({ kind: 'session', label: 'Thruxton, 2026-05-28', caption: 'Every lap mapped and timed', sessionId: 'abcdef1234' });
+  ok(up.status === 200 && up.body.success && up.body.items.length === 1 && up.body.items[0].kind === 'session' && up.body.items[0].sessionId === 'abcdef1234' && up.body.items[0].caption === 'Every lap mapped and timed' && /r2\.dev\/share\/track\/[a-z0-9]+\.jpg$/i.test(up.body.items[0].url), 'a picture drawn from a session is saved to the bucket with its caption: ' + JSON.stringify(up.body).slice(0, 160));
+  const id1 = up.body.items[0].id;
+  ok(bucket.has('share/track/' + id1 + '.jpg'), 'the bytes are in the bucket under share/track/');
+  const bad = new FormData(); bad.append('file', new Blob(['hello'], { type: 'text/plain' }), 'x.txt');
+  const badR = await worker.fetch(new Request('https://w.test/share/track/admin/image?key=secret', { method: 'POST', body: bad }), env, { waitUntil() {} });
+  ok(badR.status === 400, 'only a picture is accepted: ' + badR.status);
+  up = await upload({ kind: 'photo', label: 'Paddock' });
+  const id2 = up.body.items[1].id;
+  ok(up.body.items.length === 2 && up.body.items[1].kind === 'photo', 'a photo joins the set');
+  sp = await call('GET', '/share/track');
+  ok(sp.body.rotate === false && sp.body.pick && sp.body.pick.id === id1, 'with no rotation and nothing chosen, the first picture is the one');
+  let ad = await call('POST', '/share/track/admin?key=secret', { action: 'rotate', on: true });
+  ok(ad.body.rotate === true && ad.body.pick && [id1, id2].includes(ad.body.pick.id), 'rotation on: the week picks one of them in turn');
+  ad = await call('POST', '/share/track/admin?key=secret', { action: 'use', id: id2 });
+  ok(ad.body.rotate === false && ad.body.current === id2 && ad.body.pick.id === id2, 'Use this now picks one and turns rotation off');
+  ad = await call('POST', '/share/track/admin?key=secret', { action: 'caption', id: id2, caption: 'Our paddock at Snetterton' });
+  ok(ad.body.items[1].caption === 'Our paddock at Snetterton' && (await call('GET', '/share/track')).body.pick.caption === 'Our paddock at Snetterton', 'a caption is saved and shows on the pick');
+  ok((await call('POST', '/share/track/admin?key=secret', { action: 'nonsense' })).status === 400, 'an unknown action is refused');
+  ad = await call('POST', '/share/track/admin?key=secret', { action: 'delete', id: id2 });
+  ok(ad.body.items.length === 1 && ad.body.current === '' && ad.body.pick.id === id1 && !bucket.has('share/track/' + id2 + '.jpg'), 'deleting takes the picture out of the bucket and the set');
+  await call('POST', '/share/track/admin?key=secret', { action: 'delete', id: id1 });
+}
+
 // Leaving the site clears everything.
 await mod.deleteMemberAccount(env, A);
 ok(!kv.has('track-index:' + (await mod.ownerKey(A))) && ![...kv.keys()].some(k => k.startsWith('track-session:') && stored(k).carId === 'cara1') && !kv.has('track-public:cara1'), 'a member leaving removes their sessions');

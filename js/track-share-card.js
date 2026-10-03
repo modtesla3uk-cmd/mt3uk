@@ -7,7 +7,7 @@
 (function (root) {
   var W = 1200, H = 630, MAPW = 700;
   var RAMP = ['#5a189a', '#d6336c', '#c6f432'];
-  var INK = '#16233d', STEEL = '#6b7385', PAPER = '#f6f3ee', HAIR = 'rgba(22,35,61,.14)', GRID = 'rgba(22,35,61,.08)', MAPBG = '#2b2f26';
+  var INK = '#16233d', STEEL = '#6b7385', PAPER = '#f6f3ee', HAIR = 'rgba(22,35,61,.14)', GRID = 'rgba(22,35,61,.08)', MAPBG = '#ffffff';
   var BLUE = '#2a78d6', ORANGE = '#eb6834';
   var HEAD = '"Archivo Expanded", "Arial Black", Arial, sans-serif', BODY = '"IBM Plex Sans", Arial, sans-serif';
   function hex(h) { h = h.replace('#', ''); return [0, 2, 4].map(function (i) { return parseInt(h.substr(i, 2), 16); }); }
@@ -55,11 +55,11 @@
     c.lineCap = 'round'; c.lineJoin = 'round';
     all.forEach(function (lap) {
       if (lap === tr) return;
-      c.strokeStyle = 'rgba(255,255,255,.18)'; c.lineWidth = 9; c.beginPath();
+      c.strokeStyle = 'rgba(22,35,61,.13)'; c.lineWidth = 9; c.beginPath();
       lap.forEach(function (p, i) { var q = P(p[2], p[3]); if (i) c.lineTo(q[0], q[1]); else c.moveTo(q[0], q[1]); }); c.stroke();
     });
     var vs = tr.map(function (p) { return p[4]; }), vlo = Math.min.apply(null, vs), vhi = Math.max.apply(null, vs);
-    c.strokeStyle = 'rgba(255,255,255,.85)'; c.lineWidth = 10; c.beginPath();
+    c.strokeStyle = 'rgba(22,35,61,.9)'; c.lineWidth = 10; c.beginPath();
     tr.forEach(function (p, i) { var q = P(p[2], p[3]); if (i) c.lineTo(q[0], q[1]); else c.moveTo(q[0], q[1]); }); c.stroke();
     c.lineWidth = 5.5;
     for (var i = 1; i < tr.length; i++) {
@@ -71,13 +71,13 @@
       var proj = T.projector(s.origin[0], s.origin[1]), la = proj.xy(s.startLine[0][0], s.startLine[0][1]), lb = proj.xy(s.startLine[1][0], s.startLine[1][1]);
       var pa = P(la[0], la[1]), pb = P(lb[0], lb[1]), mx = (pa[0] + pb[0]) / 2, my = (pa[1] + pb[1]) / 2, dx = pb[0] - pa[0], dy = pb[1] - pa[1], len = Math.hypot(dx, dy) || 1;
       dx = dx / len * 16; dy = dy / len * 16;
-      c.strokeStyle = INK; c.lineWidth = 8; c.beginPath(); c.moveTo(mx - dx, my - dy); c.lineTo(mx + dx, my + dy); c.stroke();
-      c.strokeStyle = '#ffffff'; c.lineWidth = 4; c.beginPath(); c.moveTo(mx - dx, my - dy); c.lineTo(mx + dx, my + dy); c.stroke();
-      c.fillStyle = '#ffffff'; c.font = '700 15px ' + BODY; c.fillText('Start / finish', mx + 22, my + 5);
+      c.strokeStyle = '#ffffff'; c.lineWidth = 9; c.beginPath(); c.moveTo(mx - dx, my - dy); c.lineTo(mx + dx, my + dy); c.stroke();
+      c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); c.moveTo(mx - dx, my - dy); c.lineTo(mx + dx, my + dy); c.stroke();
+      c.fillStyle = INK; c.font = '700 15px ' + BODY; c.fillText('Start / finish', mx + 22, my + 5);
     }
     (s.corners || []).forEach(function (cn) {
       var q = P(cn.x, cn.y);
-      c.fillStyle = '#ffffff'; c.strokeStyle = 'rgba(22,35,61,.35)'; c.lineWidth = 1.5;
+      c.fillStyle = '#ffffff'; c.strokeStyle = INK; c.lineWidth = 2;
       c.beginPath(); c.arc(q[0], q[1], 13, 0, Math.PI * 2); c.fill(); c.stroke();
       c.fillStyle = INK; c.font = '700 13px ' + BODY; c.textAlign = 'center'; c.fillText(String(cn.n), q[0], q[1] + 4.5); c.textAlign = 'left';
     });
@@ -85,12 +85,13 @@
     function spd(v) { return Math.round(mph ? v / 1.609344 : v) + (mph ? ' mph' : ' km/h'); }
     c.font = '500 15px ' + BODY;
     var lo = spd(vlo), hi = spd(vhi), kw = c.measureText(lo).width + c.measureText(hi).width + 110 + 44;
-    c.fillStyle = 'rgba(255,255,255,.92)'; roundRect(c, 20, 20, kw, 34, 17); c.fill();
+    c.fillStyle = '#ffffff'; roundRect(c, 20, 20, kw, 34, 17); c.fill(); c.strokeStyle = HAIR; c.lineWidth = 1; c.stroke();
     c.fillStyle = STEEL; c.fillText(lo, 34, 42);
     var g = c.createLinearGradient(44 + c.measureText(lo).width, 0, 44 + c.measureText(lo).width + 110, 0);
     RAMP.forEach(function (col, i) { g.addColorStop(i / 2, col); });
     c.fillStyle = g; roundRect(c, 44 + c.measureText(lo).width, 33, 110, 8, 4); c.fill();
     c.fillStyle = STEEL; c.fillText(hi, 44 + c.measureText(lo).width + 122, 42);
+    c.fillStyle = HAIR; c.fillRect(MAPW - 1, 0, 1, H);
     // The panel.
     var px = MAPW + 36, pw = W - MAPW - 72;
     if (opts.wordmark && opts.wordmark.naturalWidth) { var wh = 34, ww = wh * opts.wordmark.naturalWidth / opts.wordmark.naturalHeight; c.drawImage(opts.wordmark, px, 34, ww, wh); }

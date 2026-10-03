@@ -7611,7 +7611,9 @@ async function linkMemberSessions(env, req, venue, layout) {
     if (!rec || rec.layoutId || rec.street) continue;
     var near = line && rec.startLine && trackDist(rec.startLine[0], line[0]) <= 60 && trackDist(rec.startLine[1], line[1]) <= 60;
     var same = trackText(rec.venue, 60).toLowerCase() === String(venue.name || '').toLowerCase();
-    if (!near && !same) continue;
+    // A renamed track still matches by place: the session started inside the venue's radius.
+    var inside = !!(rec.origin && rec.origin.length === 2 && venue.lat != null && trackDist([venue.lat, venue.lng], rec.origin) <= (venue.radius || 1500));
+    if (!near && !same && !inside) continue;
     if (req.organizer && rec.organizer && rec.organizer.toLowerCase() !== req.organizer.toLowerCase()) continue;
     rec.venueId = venue.id; rec.venue = venue.name; rec.layoutId = layout.id;
     rec.layout = layout.name;
@@ -7631,7 +7633,8 @@ async function relinkRequestsToVenue(env, venue) {
   for (var i = 0; i < list.length; i++) {
     var r = list[i];
     if (r.kind === 'drag' || !r.from || (r.venueId && r.venueId !== venue.id)) continue;
-    if (!r.venueId && trackText(r.name, 60).toLowerCase() !== String(venue.name || '').toLowerCase()) continue;
+    if (!r.venueId && trackText(r.name, 60).toLowerCase() !== String(venue.name || '').toLowerCase() &&
+      !(r.lat != null && r.lng != null && venue.lat != null && trackDist([venue.lat, venue.lng], [r.lat, r.lng]) <= (venue.radius || 1500))) continue;
     if ((r.kind === 'sprint') !== (venue.type === 'sprint')) continue;
     var layout = (venue.layouts || []).find(function (l) {
       return r.kind === 'sprint' ? !!r.organizer && String(l.organizer || l.name).toLowerCase() === r.organizer.toLowerCase() : l.id === r.layoutId;

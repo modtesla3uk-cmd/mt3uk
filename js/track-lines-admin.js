@@ -54,7 +54,7 @@
         ? '<button type="button" class="iv-act" data-grant="' + esc(r.id) + '">Allow</button><button type="button" class="secondary iv-act" data-dismiss="' + esc(r.id) + '">Decline</button>'
         : (r.proposal ? '<button type="button" class="iv-act" data-accept="' + esc(r.id) + '">Accept</button><button type="button" class="secondary iv-act" data-undo="' + esc(r.id) + '">Undo</button>' : '') +
           '<button type="button" class="danger iv-act" data-revoke="' + esc(r.id) + '">Revoke</button>';
-      return '<tr><td>' + esc(r.name ? r.name + ' ' : '') + '<span class="iv-sub">' + esc(r.email) + '</span></td>' +
+      return '<tr data-id="' + esc(r.id) + '"' + (r.id === targetId ? ' class="is-target"' : '') + '><td>' + esc(r.name ? r.name + ' ' : '') + '<span class="iv-sub">' + esc(r.email) + '</span></td>' +
         '<td><a href="track.html?s=' + encodeURIComponent(r.id) + '" target="_blank" rel="noopener">' + esc(r.what) + '</a></td><td>' + state + '</td>' +
         '<td><div class="iv-actions">' + actions + '</div></td></tr>';
     }).join('') + '</tbody></table>' : '<p class="empty">Nobody has asked to edit a map.</p>';
@@ -63,7 +63,7 @@
     if (!key()) { note('Enter the admin key above and press Load.', ''); return; }
     call('GET').then(function (d) {
       if (!d.ok || !d.success) { note(d.message || 'Could not load the list. Check the admin key.', 'error'); return; }
-      rows = d.requests || []; if (!keepNote) note(''); draw();
+      rows = d.requests || []; if (!keepNote) note(''); draw(); focusFromLink();
     }).catch(function () { note('Could not reach the server.', 'error'); });
   }
   function act(body, done) {
@@ -178,6 +178,23 @@
     }).catch(function (e) { note((e && e.message) || 'That did not work.', 'error'); });
   }
 
+  // The link in the email, admin.html#lines-<session id>, opens this panel and shows that request (also when the
+  // admin page is already open and only the end of the address changes).
+  // targetId stays marked through every redraw of the list; the scroll (or the note that it is gone) happens once.
+  var targetId = '', linkPending = false;
+  function focusFromLink() {
+    if (!linkPending) return;
+    linkPending = false;
+    var tr = targetId && listEl.querySelector('tr[data-id="' + targetId + '"]');
+    if (tr) tr.scrollIntoView({ block: 'center' }); else if (targetId) note('That request is not waiting any more: it may already have been dealt with.');
+  }
+  function applyHash() {
+    targetId = (/^#lines-([a-f0-9]{8,40})$/.exec(location.hash) || [])[1] || '';
+    linkPending = !!targetId;
+    if (!targetId && location.hash !== '#lines-wrap') return;
+    wrap.scrollIntoView({ block: 'start' });
+    if (wrap.open) load(); else wrap.open = true;
+  }
   wrap.addEventListener('toggle', function () { if (wrap.open) load(); });
   wrap.addEventListener('click', function (e) {
     var g = e.target.closest('[data-grant]'), d = e.target.closest('[data-dismiss]'), r = e.target.closest('[data-revoke]'), a = e.target.closest('[data-accept]'), u = e.target.closest('[data-undo]');
@@ -187,6 +204,8 @@
     else if (u && window.confirm('Undo this change? The session stays as it is and they keep their access.')) act({ action: 'undo', id: u.getAttribute('data-undo') }, 'Undone. The session was not changed.');
     else if (r && window.confirm('Switch off map editing for this session? Anything you have already accepted stays.')) act({ action: 'revoke', id: r.getAttribute('data-revoke') }, 'Switched off.');
   });
+  window.addEventListener('hashchange', applyHash);
+  applyHash();
   document.addEventListener('mt3uk-admin-refresh', function () { if (key()) load(); });
   // The count shows without opening the panel, once the key is known.
   if (key()) load();

@@ -645,6 +645,7 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   r = await call('POST', '/track/lines/request', { id: lid, note: 'The finish is in the wrong place' }, 'tok-a');
   ok(r.status === 200 && r.body.state === 'pending', 'the owner presses Request Edit Map');
   ok(env.SEND_EMAIL.sent.length === mails + 1 && /Request to edit a map/.test(env.SEND_EMAIL.sent[mails]) && /modtesla3uk@gmail\.com/.test(env.SEND_EMAIL.sent[mails]) && /wrong place/.test(env.SEND_EMAIL.sent[mails]), 'the admin is emailed about the request');
+  ok(new RegExp('https://mt3uk\\.com/admin\\.html#lines-' + lid).test(env.SEND_EMAIL.sent[mails]) && new RegExp('https://mt3uk\\.com/track\\.html\\?s=' + lid).test(env.SEND_EMAIL.sent[mails]), 'and the email links straight to the request on the admin page and to the session');
   r = await call('POST', '/track/lines/request', { id: lid }, 'tok-a');
   ok(r.status === 200 && r.body.state === 'pending' && stored('track-line-access').length === 1, 'asking again does not add another request');
   r = await call('POST', '/track/lines/propose', proposal(), 'tok-a');
@@ -671,7 +672,7 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   ok(r.status === 200 && r.body.proposal && r.body.proposal.to.time === 99.5, 'the member sends the moved lines');
   ok(startOf() === orig, 'and nothing on the session has changed');
   const note = env.SEND_EMAIL.sent[before] || '';
-  ok(env.SEND_EMAIL.sent.length === before + 1 && /accept or undo/.test(note) && /from: /.test(note) && /to:   /.test(note) && /1:39\.500/.test(note) && /admin\.html#grp-tracks/.test(note), 'the admin is emailed what the lines and time were and would be');
+  ok(env.SEND_EMAIL.sent.length === before + 1 && /accept or undo/.test(note) && /from: /.test(note) && /to:   /.test(note) && /1:39\.500/.test(note) && new RegExp('admin\\.html#lines-' + lid).test(note) && new RegExp('track\\.html\\?s=' + lid).test(note), 'the admin is emailed what the lines and time were and would be, with a link to the request and the session');
   r = await call('GET', '/track/lines/admin?key=secret');
   const row2 = r.body.requests.find(x => x.id === lid);
   ok(row2.status === 'granted' && row2.proposal && row2.proposal.from.startLine[0][0] === orig && Math.abs(row2.proposal.to.startLine[0][0] - (orig + 0.0003)) < 1e-9, 'the admin sees the change from and to');

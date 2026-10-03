@@ -7289,7 +7289,7 @@ async function handleTrackLinesRequest(request, env) {
   list.unshift({ id: rec.id, email: accessEmail(email), name: name, note: trackText(body.note, 300), at: new Date().toISOString(), status: 'pending' });
   await env.VOTES.put('track-line-access', JSON.stringify(list.slice(0, 300)));
   await emailAdminAboutLines(env, 'Request to edit a map', subscriberLabel(name, email) + ' has asked to edit the start and finish lines on a session: ' + trackSessionLabel(rec) + ', ' + (rec.date || '') + '.\n\n' +
-    (body.note ? 'Their note:\n' + trackText(body.note, 300) + '\n\n' : '') + 'Allow it, and revoke it when they are done, on the Line editing panel: ' + MY_BUILDS_SITE_URL + '/admin.html#grp-tracks');
+    (body.note ? 'Their note:\n' + trackText(body.note, 300) + '\n\n' : '') + 'Allow it, and revoke it when they are done, on the Line editing panel:\n' + MY_BUILDS_SITE_URL + '/admin.html#lines-' + rec.id + '\n\nThe session:\n' + MY_BUILDS_SITE_URL + '/track.html?s=' + rec.id);
   return json({ success: true, state: 'pending' });
 }
 // The member sends the lines they have moved. Nothing on the session changes: the admin accepts it or undoes it.
@@ -7313,7 +7313,7 @@ async function handleTrackLinesPropose(request, env) {
   await emailAdminAboutLines(env, 'A map has been changed: accept or undo', subscriberLabel(entry.name, email) + ' has moved the lines on ' + trackSessionLabel(rec) + ', ' + (rec.date || '') + '. Nothing has changed yet.\n\n' +
     'Start line\n  from: ' + trackLineText(from.startLine) + '\n  to:   ' + trackLineText(to.startLine) + '\n' + (sprint ? 'Finish line\n  from: ' + trackLineText(from.finishLine) + '\n  to:   ' + trackLineText(to.finishLine) + '\n' : '') +
     'Time\n  from: ' + trackTimeText(from.time) + '\n  to:   ' + trackTimeText(to.time) + ' (their figure, worked out again when you accept)\n\n' +
-    'Accept it or undo it on the Line editing panel: ' + MY_BUILDS_SITE_URL + '/admin.html#grp-tracks');
+    'Accept it or undo it on the Line editing panel:\n' + MY_BUILDS_SITE_URL + '/admin.html#lines-' + rec.id + '\n\nThe session:\n' + MY_BUILDS_SITE_URL + '/track.html?s=' + rec.id);
   return json({ success: true, state: 'granted', proposal: entry.proposal });
 }
 async function handleTrackLinesAdmin(request, env) {

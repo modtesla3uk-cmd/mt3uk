@@ -911,3 +911,25 @@ def test_admin_checks_then_re_times_every_session_at_one_track_from_its_saved_re
     expect(page.locator("#tk-retime-note")).to_contain_text("Leaderboards rebuilt (2 cars)")
     assert [p["id"] for p in seen["posts"]] == ["r1"] and abs(seen["posts"][0]["session"]["bestTime"] - 99.786) < 0.02
     assert seen["posts"][0]["session"]["date"] == "2026-05-28" and "r3" not in seen["gets"] and seen["rebuilds"] == 1
+
+
+def test_the_link_in_the_request_email_opens_the_line_editing_panel_at_that_request(page):
+    """admin.html#lines-<session id> opens the Line editing panel and marks that request; a request that is gone says so."""
+    ok = {"Access-Control-Allow-Origin": "*"}
+    rows = [{"id": "aaaaaaaa01", "name": "Ann", "email": "a***@example.com", "note": "", "at": "2026-10-01T09:00:00Z", "status": "pending", "grantedAt": "", "proposal": None, "what": "Thruxton, 2026-05-28", "type": "track", "best": 99.7},
+            {"id": "bbbbbbbb02", "name": "Bob", "email": "b***@example.com", "note": "", "at": "2026-10-01T10:00:00Z", "status": "pending", "grantedAt": "", "proposal": None, "what": "Brands Hatch, 2026-06-01", "type": "track", "best": 80.0}]
+    open_admin(page, "admin.html")
+    page.route(LINES_API, lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "requests": rows}), headers=ok))
+    page.goto("/admin.html#lines-bbbbbbbb02")
+    expect(page.locator("#lines-wrap")).to_have_attribute("open", "")
+    expect(page.locator("#ln-list tr.is-target")).to_have_count(1)
+    expect(page.locator("#ln-list tr.is-target")).to_contain_text("Brands Hatch")
+    expect(page.locator("#ln-list tr.is-target")).to_be_in_viewport()
+    # A fresh load of the address, as from the email, does the same.
+    page.reload()
+    expect(page.locator("#lines-wrap")).to_have_attribute("open", "")
+    expect(page.locator("#ln-list tr.is-target")).to_contain_text("Brands Hatch")
+    page.goto("/admin.html#lines-cccccccc03")
+    expect(page.locator("#lines-wrap")).to_have_attribute("open", "")
+    expect(page.locator("#ln-note")).to_contain_text("not waiting any more")
+    expect(page.locator("#ln-list tr.is-target")).to_have_count(0)

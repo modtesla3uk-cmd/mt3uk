@@ -7546,7 +7546,9 @@ async function handleTrackAdminTracks(request, env) {
     venues.push(v);
   }
   await env.VOTES.put('track-library', JSON.stringify({ venues: venues }));
-  return json({ success: true, library: await getTrackLibrary(env) });
+  var relinkedHand = 0;
+  if (!body.remove) { try { relinkedHand = await relinkRequestsToVenue(env, v); } catch (err) { /* the course is saved either way */ } }
+  return json({ success: true, relinked: relinkedHand, library: await getTrackLibrary(env) });
 }
 
 // The admin, from the Add a session page: makes the lines they just set the
@@ -7594,6 +7596,51 @@ async function handleTrackAdminRequests(request, env) {
   return json({ success: true, relinked: relinked, filled: filled, library: body.action === 'add' ? await getTrackLibrary(env) : undefined });
 }
 
+// Links a member's own saved sessions to a course: same kind, not on a course
+// yet, and either the same venue name or a start line within 60 m of the
+// request's. Returns how many were linked. Admin routes only.
+async function linkMemberSessions(env, req, venue, layout) {
+  var sprint = req.kind === 'sprint', relinked = 0, email = req.from;
+  if (!email || !layout) return 0;
+  var line = req.startLine || layout.startLine || null;
+  var index = await getJsonKey(env, 'track-index:' + (await ownerKey(email)), []);
+  for (var i = 0; i < index.length; i++) {
+    var e = index[i];
+    if (e.type !== (sprint ? 'sprint' : 'track') || e.layoutId) continue;
+    var rec = await getTrackSession(env, e.id);
+    if (!rec || rec.layoutId || rec.street) continue;
+    var near = line && rec.startLine && trackDist(rec.startLine[0], line[0]) <= 60 && trackDist(rec.startLine[1], line[1]) <= 60;
+    var same = trackText(rec.venue, 60).toLowerCase() === String(venue.name || '').toLowerCase();
+    if (!near && !same) continue;
+    if (req.organizer && rec.organizer && rec.organizer.toLowerCase() !== req.organizer.toLowerCase()) continue;
+    rec.venueId = venue.id; rec.venue = venue.name; rec.layoutId = layout.id;
+    rec.layout = layout.name;
+    if (!(await putTrackSession(env, rec))) continue;
+    await putTrackIndexes(env, email, rec);
+    relinked++;
+  }
+  return relinked;
+}
+
+// After the admin saves a course by hand: links the waiting or approved
+// requests' members' sessions to it (the course for a sprint request is the
+// one with the same organiser; for a circuit, the request's own layout).
+async function relinkRequestsToVenue(env, venue) {
+  var list = await getJsonKey(env, 'track-requests', []);
+  var total = 0;
+  for (var i = 0; i < list.length; i++) {
+    var r = list[i];
+    if (r.kind === 'drag' || !r.from || (r.venueId && r.venueId !== venue.id)) continue;
+    if (!r.venueId && trackText(r.name, 60).toLowerCase() !== String(venue.name || '').toLowerCase()) continue;
+    if ((r.kind === 'sprint') !== (venue.type === 'sprint')) continue;
+    var layout = (venue.layouts || []).find(function (l) {
+      return r.kind === 'sprint' ? !!r.organizer && String(l.organizer || l.name).toLowerCase() === r.organizer.toLowerCase() : l.id === r.layoutId;
+    });
+    if (layout) total += await linkMemberSessions(env, r, venue, layout);
+  }
+  return total;
+}
+
 // "Approve and add track": makes the circuit or sprint course from what the
 // member marked (the start and finish lines, the length and the position),
 // then links that member's saved sessions for it to the new course so they
@@ -7623,7 +7670,8 @@ async function addTrackFromRequest(env, req) {
       venues = venues.filter(function (x) { return x.id !== cleanV.id; });
       venues.push(cleanV);
       await env.VOTES.put('track-library', JSON.stringify({ venues: venues }));
-      return { venueId: cleanV.id, layoutId: req.layoutId, relinked: 0, filled: true };
+      var filledLayout = cleanV.layouts.find(function (l) { return l.id === req.layoutId; });
+      return { venueId: cleanV.id, layoutId: req.layoutId, relinked: await linkMemberSessions(env, req, cleanV, filledLayout), filled: true };
     }
   }
   var existing = req.venueId ? (library.venues || []).find(function (v) { return v.id === req.venueId; }) : null;
@@ -7652,25 +7700,7 @@ async function addTrackFromRequest(env, req) {
   venues.push(clean);
   await env.VOTES.put('track-library', JSON.stringify({ venues: venues }));
   var layoutId = clean.layouts[clean.layouts.length - 1].id;
-  // Link the member's own sessions: same kind, not on a course yet, and
-  // either the same name or a start line within 60 m of the marked one.
-  var relinked = 0, email = req.from;
-  var index = await getJsonKey(env, 'track-index:' + (await ownerKey(email)), []);
-  for (var i = 0; i < index.length; i++) {
-    var e = index[i];
-    if (e.type !== (sprint ? 'sprint' : 'track') || e.layoutId) continue;
-    var rec = await getTrackSession(env, e.id);
-    if (!rec || rec.layoutId || rec.street) continue;
-    var near = rec.startLine && trackDist(rec.startLine[0], req.startLine[0]) <= 60 && trackDist(rec.startLine[1], req.startLine[1]) <= 60;
-    var same = trackText(rec.venue, 60).toLowerCase() === clean.name.toLowerCase();
-    if (!near && !same) continue;
-    if (req.organizer && rec.organizer && rec.organizer.toLowerCase() !== req.organizer.toLowerCase()) continue;
-    rec.venueId = clean.id; rec.venue = clean.name; rec.layoutId = layoutId;
-    rec.layout = clean.layouts[clean.layouts.length - 1].name;
-    if (!(await putTrackSession(env, rec))) continue;
-    await putTrackIndexes(env, email, rec);
-    relinked++;
-  }
+  var relinked = await linkMemberSessions(env, req, clean, clean.layouts[clean.layouts.length - 1]);
   return { venueId: clean.id, layoutId: layoutId, relinked: relinked };
 }
 

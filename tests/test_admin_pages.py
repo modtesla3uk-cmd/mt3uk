@@ -14,11 +14,12 @@ from test_devices import overflow_width
 API_HOST = "late-darkness-ebc8.modtesla3uk.workers.dev"
 PAGES = ["admin.html", "events-admin.html", "device-checklist.html"]
 GROUPS = [
-    ("grp-gallery", "Gallery and builds", ["pending-wrap", "decided-wrap", "unclaimed-wrap", "votes-wrap", "home-share-wrap"]),
+    ("grp-gallery", "Gallery and builds", ["pending-wrap", "decided-wrap", "unclaimed-wrap", "votes-wrap"]),
     ("grp-reports", "Reports", ["comments-wrap", "rphotos-wrap", "local-wrap"]),
     ("grp-members", "Members", ["subscribers-wrap", "members-msg-wrap"]),
     ("grp-interviews", "Owner interviews", ["interviews-wrap", "preview-wrap"]),
-    ("grp-tracks", "Track sessions", ["access-wrap", "member-sessions-wrap", "tracks-wrap", "share-wrap", "copy-wrap", "tyres-wrap"]),
+    ("grp-tracks", "Track sessions", ["access-wrap", "member-sessions-wrap", "tracks-wrap", "copy-wrap", "tyres-wrap"]),
+    ("grp-sharing", "Sharing links", ["home-share-wrap", "share-wrap"]),
 ]
 
 
@@ -40,9 +41,9 @@ def test_the_admin_pages_are_light_and_share_one_navigation(page, name):
     assert luminance(page.evaluate("getComputedStyle(document.body).backgroundColor")) > 0.85
     assert luminance(page.evaluate("getComputedStyle(document.body).color")) < 0.3
     links = page.locator(".admin-nav a")
-    assert links.all_inner_texts() == ["Gallery and builds", "Reports", "Members", "Owner interviews", "Track sessions", "Events", "Device checks"]
+    assert links.all_inner_texts() == ["Gallery and builds", "Reports", "Members", "Owner interviews", "Track sessions", "Sharing links", "Events", "Device checks"]
     hrefs = [links.nth(i).get_attribute("href") for i in range(links.count())]
-    assert hrefs == ["admin.html#grp-gallery", "admin.html#grp-reports", "admin.html#grp-members", "admin.html#grp-interviews", "admin.html#grp-tracks", "events-admin.html", "device-checklist.html"]
+    assert hrefs == ["admin.html#grp-gallery", "admin.html#grp-reports", "admin.html#grp-members", "admin.html#grp-interviews", "admin.html#grp-tracks", "admin.html#grp-sharing", "events-admin.html", "device-checklist.html"]
     current = page.locator('.admin-nav a[aria-current="page"]')
     if name == "admin.html":
         expect(current).to_have_count(0)
@@ -95,11 +96,11 @@ def test_admin_sub_menu_lists_the_sections_of_the_current_category(page):
     sub = page.locator("#admin-subnav")
     # The first category is current at the top: its four panels are listed.
     expect(sub).to_be_visible()
-    assert sub.locator("a").all_inner_texts() == ["Pending claims", "Decided claims", "Unclaimed photos", "Build of the Week entries", "Homepage link picture"]
+    assert sub.locator("a").all_inner_texts() == ["Pending claims", "Decided claims", "Unclaimed photos", "Build of the Week entries"]
     expect(page.locator('.admin-nav a[data-here="true"]')).to_have_text("Gallery and builds")
     # Choosing a category swaps the sub menu to that category's sections.
     page.locator('.admin-nav a[href="admin.html#grp-tracks"]').click()
-    expect(sub.locator("a")).to_have_text(["Early access", "Member sessions", "Tracks", "Link preview picture", "Welcome text", "Tyres"])
+    expect(sub.locator("a")).to_have_text(["Early access", "Member sessions", "Tracks", "Welcome text", "Tyres"])
     expect(page.locator('.admin-nav a[data-here="true"]')).to_have_text("Track sessions")
     # Choosing a section opens its panel and scrolls to it.
     sub.locator("a", has_text="Tyres").click()
@@ -469,6 +470,19 @@ def test_admin_link_preview_pictures_rotate_and_are_drawn_from_sessions(page):
     page.locator("#home-share-wrap summary").click()
     expect(page.locator("#home-share-wrap .ts-list")).to_contain_text("No pictures yet")
     assert seen and "/share/home/admin" in seen[0]
+    # Its picker lists the build gallery's photos; choosing one fetches it through the worker and previews the crop.
+    import struct, zlib
+    def chunk(t, d): return struct.pack(">I", len(d)) + t + d + struct.pack(">I", zlib.crc32(t + d))
+    png = b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", 4, 2, 8, 2, 0, 0, 0)) + chunk(b"IDAT", zlib.compress(b"".join(b"\x00" + b"\x80\x40\x20" * 4 for _ in range(2)))) + chunk(b"IEND", b"")
+    fetched = []
+    page.route("**/share/home/admin/photo**", lambda route: (fetched.append(route.request.url), route.fulfill(status=200, content_type="image/png", body=png, headers=cors)))
+    options = page.locator("#home-share-wrap .ts-gallery option")
+    expect(options.nth(1)).to_be_attached()
+    assert options.count() > 1 and not page.locator("#share-wrap .ts-gallery").count()
+    page.locator("#home-share-wrap .ts-gallery").select_option(index=1)
+    expect(page.locator("#home-share-wrap .ts-preview")).to_be_visible()
+    expect(page.locator("#home-share-wrap .ts-make")).to_be_enabled()
+    assert "/share/home/admin/photo?file=" in fetched[0]
 
 
 def test_admin_welcome_text_is_edited_and_reset(page):

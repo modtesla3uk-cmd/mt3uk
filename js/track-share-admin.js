@@ -20,7 +20,7 @@
   var slot = wrap.getAttribute('data-share-slot'), q = function (c) { return wrap.querySelector('.' + c); };
   var note = q('ts-note'), list = q('ts-list'), rotate = q('ts-rotate');
   var pick = q('ts-session'), canvas = q('ts-preview'), makeBtn = q('ts-make');
-  var photoIn = q('ts-photo'), captionIn = q('ts-caption'), previewNote = q('ts-preview-note');
+  var gallerySel = q('ts-gallery'), photoIn = q('ts-photo'), captionIn = q('ts-caption'), previewNote = q('ts-preview-note');
   var state = null, sessions = [], previewFrom = null, loaded = false;
   function key() {
     var input = document.getElementById('admin-key');
@@ -58,7 +58,7 @@
     // The pictures first, as soon as they come; the session picker fills in behind, a page at a time.
     call('GET', '/share/' + slot + '/admin').then(function (d) {
       if (!d.success) { say(d.message || 'Could not load the pictures.', true); return; }
-      state = d; loaded = true; draw(); say(state.rotate ? 'A different picture each week (' + state.week + ').' : 'One picture, until you change it.');
+      state = d; loaded = true; draw(); loadGallery(); say(state.rotate ? 'A different picture each week (' + state.week + ').' : 'One picture, until you change it.');
     }).catch(function () { say('Could not reach the server.', true); });
     loadSessions();
   }
@@ -86,6 +86,47 @@
       });
     }
     return page('').then(function () { drawPick(false); }).catch(function () { drawPick(false); if (previewNote && !sessions.length) previewNote.textContent = 'The session list could not be loaded.'; });
+  }
+  // The build gallery's photos (the site's list plus any the worker has that the list does not yet), for panels with a picker.
+  function loadGallery() {
+    if (!gallerySel) return;
+    var base = fetch('images/gallery/manifest.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; });
+    var live = fetch(API + '/gallery/live', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) { return d && d.photos || []; }).catch(function () { return []; });
+    Promise.all([base, live]).then(function (r) {
+      var seen = {}, all = [];
+      r[1].concat(r[0]).forEach(function (p) { if (p && p.file && !seen[p.file] && /\.(jpe?g|png|webp)$/i.test(p.file)) { seen[p.file] = 1; all.push(p); } });
+      gallerySel.innerHTML = '<option value="">Choose a photo</option>' + all.map(function (p) {
+        return '<option value="' + esc(p.file) + '" data-label="' + esc(galleryLabel(p)) + '">' + esc(galleryLabel(p) + (p.name ? ', ' + p.name : '')) + '</option>';
+      }).join('');
+    });
+  }
+  // A name for the picture that carries no member's name: the caption, else the file name tidied.
+  function galleryLabel(p) {
+    var t = (p.caption || p.file.replace(/\.[a-z0-9]+$/i, '').replace(/[-_]+/g, ' ')).trim();
+    return t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
+  }
+  function previewGallery(file) {
+    previewFrom = null;
+    if (makeBtn) makeBtn.disabled = true;
+    if (!file) { if (canvas) canvas.hidden = true; return; }
+    if (previewNote) previewNote.textContent = 'Loading the photo...';
+    var label = ((gallerySel.options[gallerySel.selectedIndex] || {}).getAttribute('data-label') || file).slice(0, 80);
+    fetch(API + '/share/' + slot + '/admin/photo?file=' + encodeURIComponent(file) + '&key=' + encodeURIComponent(key()), { cache: 'no-store' }).then(function (r) {
+      if (!r.ok) throw new Error('Could not load that photo.');
+      return r.blob();
+    }).then(function (blob) {
+      var url = URL.createObjectURL(blob), img = new Image();
+      img.onload = function () {
+        URL.revokeObjectURL(url);
+        window.MT3UKTrackShareCard.photo(canvas, img);
+        fitCanvas();
+        previewFrom = { kind: 'photo', label: label };
+        if (makeBtn) makeBtn.disabled = false;
+        if (previewNote) previewNote.textContent = 'Cropped to the preview shape. Add a caption and save it.';
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); if (previewNote) previewNote.textContent = 'That file could not be read as a picture.'; };
+      img.src = url;
+    }).catch(function (e) { if (previewNote) previewNote.textContent = e.message || 'Could not load that photo.'; });
   }
   function fitCanvas() { if (canvas) { canvas.style.aspectRatio = '1200 / 630'; canvas.hidden = false; } }
   function previewSession(id) {
@@ -150,8 +191,9 @@
     var on = rotate.getAttribute('aria-checked') !== 'true';
     act({ action: 'rotate', on: on }, function () { say(on ? 'A different picture each week.' : 'One picture, until you change it.'); });
   });
-  if (pick) pick.addEventListener('change', function () { if (photoIn) photoIn.value = ''; previewSession(pick.value); });
-  if (photoIn) photoIn.addEventListener('change', function () { if (pick) pick.value = ''; previewPhoto(photoIn.files && photoIn.files[0]); });
+  if (pick) pick.addEventListener('change', function () { if (photoIn) photoIn.value = ''; if (gallerySel) gallerySel.value = ''; previewSession(pick.value); });
+  if (gallerySel) gallerySel.addEventListener('change', function () { if (photoIn) photoIn.value = ''; if (pick) pick.value = ''; previewGallery(gallerySel.value); });
+  if (photoIn) photoIn.addEventListener('change', function () { if (pick) pick.value = ''; if (gallerySel) gallerySel.value = ''; previewPhoto(photoIn.files && photoIn.files[0]); });
   if (makeBtn) makeBtn.addEventListener('click', save);
   // The link, with the week and the set's version, and the message the page's share button would send.
   function shareNow(it) {

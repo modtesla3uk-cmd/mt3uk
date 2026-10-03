@@ -7475,6 +7475,17 @@ async function handleShareImage(request, env, slot) {
   return json(Object.assign({ success: true, slot: slot, id: id }, trackShareView(state, true)));
 }
 
+// The admin picking a build gallery photo for a preview picture: the page draws it onto a canvas, so it comes through
+// here with open CORS headers rather than straight from the public bucket. One object read, admin only.
+async function handleShareGalleryPhoto(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var file = new URL(request.url).searchParams.get('file') || '';
+  if (!/^[^\/\\]+\.(jpe?g|png|webp)$/i.test(file)) return json({ success: false, message: 'Not a gallery photo' }, 400);
+  var obj = await env.GALLERY_BUCKET.get('gallery/' + file);
+  if (!obj) return json({ success: false, message: 'That photo is not in the gallery' }, 404);
+  return new Response(obj.body, { headers: { 'Content-Type': (obj.httpMetadata && obj.httpMetadata.contentType) || 'image/jpeg', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'private, max-age=300' } });
+}
+
 async function handleTrackTracks(request, env) {
   var res = json({ success: true, extra: await getJsonKey(env, 'track-library', { venues: [] }) });
   res.headers.set('Cache-Control', 'public, max-age=60');
@@ -9038,8 +9049,9 @@ export default {
     if (url.pathname === '/share/versions' && request.method === 'GET') {
       return handleShareVersions(request, env);
     }
-    var shareRoute = /^\/share\/(track|home)(\/admin(\/image)?)?$/.exec(url.pathname);
+    var shareRoute = /^\/share\/(track|home)(\/admin(\/image|\/photo)?)?$/.exec(url.pathname);
     if (shareRoute) {
+      if (shareRoute[3] === '/photo' && request.method === 'GET') return handleShareGalleryPhoto(request, env);
       if (shareRoute[3] && request.method === 'POST') return handleShareImage(request, env, shareRoute[1]);
       if (shareRoute[2] && !shareRoute[3] && (request.method === 'GET' || request.method === 'POST')) return handleShareAdmin(request, env, shareRoute[1]);
       if (!shareRoute[2] && request.method === 'GET') return handleSharePublic(request, env, shareRoute[1]);

@@ -500,6 +500,7 @@
     <li><a href="admin.html#grp-members">Members</a></li>
     <li><a href="admin.html#grp-interviews">Owner interviews</a></li>
     <li><a href="admin.html#grp-tracks">Track sessions</a></li>
+    <li><a href="admin.html#grp-sharing">Sharing links</a></li>
     <li class="nav-gap" aria-hidden="true"></li>
     <li><a href="events-admin.html">Events</a></li>
     <li><a href="device-checklist.html">Device checks</a></li>
@@ -535,22 +536,6 @@
       <div id="vote-entries"></div>
       <h3 class="sub-head">Taken out of voting</h3>
       <div id="vote-removed"></div>
-    </details>
-        <details class="collapsible" id="home-share-wrap" data-share-slot="home">
-      <summary><h3 class="panel-title">Homepage link picture</h3></summary>
-      <p class="iv-note">The picture a shared homepage link shows in WhatsApp, Facebook and the rest. Upload a photo, or draw a card from a saved track session, give it a caption, and either rotate through them a week at a time or pick one. With none saved the link keeps its usual picture. Previews update within a few minutes of a change; a link already sent in a chat keeps its old picture.</p>
-      <p class="iv-note ts-note" role="status"></p>
-      <div class="iv-toolbar"><button type="button" class="tk-switch ts-rotate" role="switch" aria-checked="false"><span class="tk-track"></span><span>A different picture each week</span></button></div>
-      <div class="ts-list"></div>
-      <h3 class="sub-head">Add a picture</h3>
-      <div class="ts-new">
-        <label>From a session<select class="ts-session"><option value="">Choose a session</option></select></label>
-        <label>Or a photo<input type="file" class="ts-photo" accept="image/*"></label>
-        <canvas class="ts-preview" width="1200" height="630" hidden aria-label="Preview of the picture"></canvas>
-        <p class="iv-note ts-preview-note"></p>
-        <label>Caption<input type="text" class="ts-caption" maxlength="200" placeholder="A line for the preview, for example: Thruxton, every lap mapped and timed"></label>
-        <div class="iv-toolbar"><button type="button" class="secondary ts-make" disabled>Save to the pictures</button></div>
-      </div>
     </details>
     </div>
   </section>
@@ -761,22 +746,6 @@
       <select id="tk-board-pick" aria-label="Leaderboard"></select>
       <div id="tk-board"></div>
     </details>
-        <details class="collapsible" id="share-wrap" data-share-slot="track">
-      <summary><h3 class="panel-title">Link preview picture</h3></summary>
-      <p class="iv-note">The picture a shared Track sessions link shows in WhatsApp, Facebook and the rest. Draw one from a saved session (its map, times and g chart) or upload a photo, give it a caption, and either rotate through them a week at a time or pick one. Previews update within a few minutes of a change; a link already sent in a chat keeps its old picture.</p>
-      <p class="iv-note ts-note" role="status"></p>
-      <div class="iv-toolbar"><button type="button" class="tk-switch ts-rotate" role="switch" aria-checked="false"><span class="tk-track"></span><span>A different picture each week</span></button></div>
-      <div class="ts-list"></div>
-      <h3 class="sub-head">Add a picture</h3>
-      <div class="ts-new">
-        <label>From a session<select class="ts-session"><option value="">Choose a session</option></select></label>
-        <label>Or a photo<input type="file" class="ts-photo" accept="image/*"></label>
-        <canvas class="ts-preview" width="1200" height="630" hidden aria-label="Preview of the picture"></canvas>
-        <p class="iv-note ts-preview-note"></p>
-        <label>Caption<input type="text" class="ts-caption" maxlength="200" placeholder="A line for the preview, for example: Thruxton, every lap mapped and timed"></label>
-        <div class="iv-toolbar"><button type="button" class="secondary ts-make" disabled>Save to the pictures</button></div>
-      </div>
-    </details>
     <details class="collapsible" id="copy-wrap">
       <summary><h3 class="panel-title">Welcome text</h3></summary>
       <p class="iv-note">The card a visitor who is not signed in sees at the top of Track sessions: its heading, the paragraph and the tick list. Anything left blank keeps the built-in words.</p>
@@ -799,6 +768,45 @@
       <div id="ty-list"></div>
       <h3 class="sub-head">Sizes</h3>
       <div id="ty-sizes"></div>
+    </details>
+    </div>
+  </section>
+
+  <section class="admin-group" id="grp-sharing" aria-labelledby="grp-sharing-h">
+    <div class="group-head"><h2 id="grp-sharing-h">Sharing links</h2><p>The picture a shared link shows in WhatsApp, Facebook and the rest, for the homepage and for Track sessions.</p></div>
+    <div class="panel-wrap">
+    <details class="collapsible" id="home-share-wrap" data-share-slot="home">
+      <summary><h3 class="panel-title">Homepage sharing</h3></summary>
+      <p class="iv-note">The picture a shared homepage link shows in WhatsApp, Facebook and the rest. Pick a photo from the build gallery, upload one, or draw a card from a saved track session, give it a caption, and either rotate through them a week at a time or pick one. With none saved the link keeps its usual picture. Previews update within a few minutes of a change; a link already sent in a chat keeps its old picture.</p>
+      <p class="iv-note ts-note" role="status"></p>
+      <div class="iv-toolbar"><button type="button" class="tk-switch ts-rotate" role="switch" aria-checked="false"><span class="tk-track"></span><span>A different picture each week</span></button></div>
+      <div class="ts-list"></div>
+      <h3 class="sub-head">Add a picture</h3>
+      <div class="ts-new">
+        <label>From the build gallery<select class="ts-gallery"><option value="">Choose a photo</option></select></label>
+        <label>From a session<select class="ts-session"><option value="">Choose a session</option></select></label>
+        <label>Or a photo<input type="file" class="ts-photo" accept="image/*"></label>
+        <canvas class="ts-preview" width="1200" height="630" hidden aria-label="Preview of the picture"></canvas>
+        <p class="iv-note ts-preview-note"></p>
+        <label>Caption<input type="text" class="ts-caption" maxlength="200" placeholder="A line for the preview, for example: Thruxton, every lap mapped and timed"></label>
+        <div class="iv-toolbar"><button type="button" class="secondary ts-make" disabled>Save to the pictures</button></div>
+      </div>
+    </details>
+    <details class="collapsible" id="share-wrap" data-share-slot="track">
+      <summary><h3 class="panel-title">Track sessions sharing</h3></summary>
+      <p class="iv-note">The picture a shared Track sessions link shows in WhatsApp, Facebook and the rest. Draw one from a saved session (its map, times and g chart) or upload a photo, give it a caption, and either rotate through them a week at a time or pick one. Previews update within a few minutes of a change; a link already sent in a chat keeps its old picture.</p>
+      <p class="iv-note ts-note" role="status"></p>
+      <div class="iv-toolbar"><button type="button" class="tk-switch ts-rotate" role="switch" aria-checked="false"><span class="tk-track"></span><span>A different picture each week</span></button></div>
+      <div class="ts-list"></div>
+      <h3 class="sub-head">Add a picture</h3>
+      <div class="ts-new">
+        <label>From a session<select class="ts-session"><option value="">Choose a session</option></select></label>
+        <label>Or a photo<input type="file" class="ts-photo" accept="image/*"></label>
+        <canvas class="ts-preview" width="1200" height="630" hidden aria-label="Preview of the picture"></canvas>
+        <p class="iv-note ts-preview-note"></p>
+        <label>Caption<input type="text" class="ts-caption" maxlength="200" placeholder="A line for the preview, for example: Thruxton, every lap mapped and timed"></label>
+        <div class="iv-toolbar"><button type="button" class="secondary ts-make" disabled>Save to the pictures</button></div>
+      </div>
     </details>
     </div>
   </section>

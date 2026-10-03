@@ -1726,7 +1726,7 @@
       t.push(['Charge used', pc(used), 'Of the battery, ' + pc(c.soc.start) + ' to ' + pc(c.soc.end)]);
     }
     if (c.power) t.push(['Peak power', Math.round(c.power.max) + ' kW', c.power.regen ? 'Regeneration up to ' + Math.round(c.power.regen) + ' kW' : '']);
-    if (c.brakePressure) t.push(['Hardest braking', press(c.brakePressure.max, 1) + ' ' + pressUnit, 'Peak brake pressure']);
+    if (c.brakePressure) t.push(['Hardest braking', press(c.brakePressure.max, 1) + ' ' + pressUnit, 'Peak master cylinder pressure, as the car reports it, not pedal force']);
     if (c.throttle) t.push(['Flat out', Math.round(c.throttle.full * 100) + '%', 'Of the time, throttle at 95% or more']);
     var z;
     if (c.batteryTemp) { z = heatZone(c.batteryTemp.max); t.push(['Battery temperature', 'Up to ' + pct(c.batteryTemp.max), 'Started at ' + pct(c.batteryTemp.start) + '. ' + z.text, 0, 'tp-heat ' + z.cls]); }

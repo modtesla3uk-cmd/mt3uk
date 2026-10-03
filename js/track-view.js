@@ -220,7 +220,7 @@
       hit.addEventListener('pointerleave', function () { place(dotA, null); hideTip(); });
     }
     var sat = satGround(svg, satG, opts.origin, P, s, x0, y0, H, oy, ox);
-    var zoom = zoomControls(svg, { W: W, H: H, sat: sat, full: opts.full, pts: trace.map(function (p) { return P(p[2], p[3]); }), onZoom: function (kk) {
+    var zoom = zoomControls(svg, { W: W, H: H, minZoom: opts.minZoom, sat: sat, full: opts.full, pts: trace.map(function (p) { return P(p[2], p[3]); }), onZoom: function (kk) {
       k = kk;
       bandWidth(kk);
       lineWidth(kk);
@@ -456,7 +456,7 @@
       cfg.onZoom(kk);
     }
     function zoomAt(f, cx, cy) {
-      var nw = Math.max(W / ZOOM_MAX, Math.min(W / ZOOM_MIN, vb.w / f)), nh = nw * H / W;
+      var nw = Math.max(W / ZOOM_MAX, Math.min(W / (cfg.minZoom || ZOOM_MIN), vb.w / f)), nh = nw * H / W;
       if (cx == null) { cx = vb.x + vb.w / 2; cy = vb.y + vb.h / 2; }
       vb.x = cx - (cx - vb.x) * nw / vb.w; vb.y = cy - (cy - vb.y) * nh / vb.h;
       vb.w = nw; vb.h = nh;

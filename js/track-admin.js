@@ -75,7 +75,7 @@
       '<p class="tk-map-note">' + esc(note || 'Green is the start line, red is the finish line. Zoom with the + button, the wheel or a pinch.') + '</p></div>';
     document.body.appendChild(modal);
     var box = document.getElementById('tk-map-box'), svg = document.getElementById('tk-map-svg');
-    V.map(svg, trace, { mono: true, fill: { w: box.clientWidth, h: box.clientHeight }, origin: first, startLine: lineXY(startLine), finishLine: finishLine && startLine ? lineXY(finishLine) : null });
+    V.map(svg, trace, { mono: true, minZoom: 0.01, fill: { w: box.clientWidth, h: box.clientHeight }, origin: first, startLine: lineXY(startLine), finishLine: finishLine && startLine ? lineXY(finishLine) : null });
     function close() { modal.remove(); document.removeEventListener('keydown', onKey); }
     function onKey(e) { if (e.key === 'Escape') close(); }
     document.addEventListener('keydown', onKey);
@@ -106,7 +106,7 @@
       '<div class="iv-toolbar"><button type="button" id="tk-pick-use" disabled>Use this line</button><button type="button" class="secondary" id="tk-pick-clear">Clear</button></div></div>';
     document.body.appendChild(modal);
     var box = document.getElementById('tk-map-box'), svg = document.getElementById('tk-map-svg'), step = document.getElementById('tk-pick-step');
-    var m = V.map(svg, trace, { mono: true, fill: { w: box.clientWidth, h: box.clientHeight }, origin: first });
+    var m = V.map(svg, trace, { mono: true, minZoom: 0.01, fill: { w: box.clientWidth, h: box.clientHeight }, origin: first });
     // The stretch only frames the view: it is not a road, so it is not drawn.
     [].slice.call(svg.querySelectorAll('.tv-segs, .tv-bands')).forEach(function (g) { g.parentNode.removeChild(g); });
     var ns = 'http://www.w3.org/2000/svg';

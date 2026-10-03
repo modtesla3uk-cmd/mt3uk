@@ -7170,7 +7170,7 @@ async function handleTrackSessionGet(request, env) {
   var out = Object.assign({}, rec);
   delete out.owner;
   if (!mine) delete out.notes;
-  if (!mine && !adminView) delete out.fileName;
+  if (!mine && !adminView) { delete out.fileName; delete out.readingsRefused; }
   out.mine = mine;
   if (adminView) out.adminView = true;
   var car = await getCarRecord(env, rec.carId);
@@ -7254,7 +7254,7 @@ async function handleTrackSessionUpdate(request, env) {
     next.owner = rec.owner;
     next.carId = rec.carId;
     next.createdAt = rec.createdAt;
-    ['privacy', 'conditions', 'tyres', 'tyreMake', 'tyreModel', 'tyreWidth', 'tyreProfile', 'tyreRim', 'temp', 'tempSource', 'weather', 'notes', 'hasSource'].forEach(function (k) { if (rec[k] !== undefined) next[k] = rec[k]; });
+    ['privacy', 'conditions', 'tyres', 'tyreMake', 'tyreModel', 'tyreWidth', 'tyreProfile', 'tyreRim', 'temp', 'tempSource', 'weather', 'notes', 'hasSource', 'readingsRefused'].forEach(function (k) { if (rec[k] !== undefined) next[k] = rec[k]; });
     rec = next;
     delete body.privacy;
   }
@@ -7456,18 +7456,41 @@ async function handleTrackSourceSave(request, env) {
   if (got.error) return got.error;
   var buf = await request.arrayBuffer();
   if (!isGzip(buf)) return json({ success: false, message: 'Send the readings gzipped.' }, 400);
-  if (buf.byteLength > TRACK_SOURCE_MAX_BYTES) return json({ success: false, message: 'Those readings are too big to keep (' + (buf.byteLength / 1e6).toFixed(1) + ' MB zipped, the limit is ' + (TRACK_SOURCE_MAX_BYTES / 1e6) + ' MB).' }, 413);
+  if (buf.byteLength > TRACK_SOURCE_MAX_BYTES) return await refuseTrackSource(env, got, buf.byteLength, 'Those readings are too big to keep (' + (buf.byteLength / 1e6).toFixed(1) + ' MB zipped, the limit is ' + (TRACK_SOURCE_MAX_BYTES / 1e6) + ' MB).');
   var src;
   try { src = JSON.parse(await gunzipText(buf, TRACK_SOURCE_UNZIPPED_MAX_BYTES)); } catch (e) {
-    return json({ success: false, message: e && e.message === 'too big' ? 'Those readings are too big to keep (over ' + (TRACK_SOURCE_UNZIPPED_MAX_BYTES / 1e6) + ' MB once unzipped).' : 'Invalid request body' }, e && e.message === 'too big' ? 413 : 400);
+    if (e && e.message === 'too big') return await refuseTrackSource(env, got, buf.byteLength, 'Those readings are too big to keep (over ' + (TRACK_SOURCE_UNZIPPED_MAX_BYTES / 1e6) + ' MB once unzipped).');
+    return json({ success: false, message: 'Invalid request body' }, 400);
   }
   var rows = src && src.v === 1 && src.rd && typeof src.rd === 'object' && Array.isArray(src.p) ? src.p : null;
-  if (!rows || rows.length < 10 || rows.length > 400000) return json({ success: false, message: 'Invalid readings' }, 400);
+  if (rows && rows.length > TRACK_SOURCE_MAX_ROWS) return await refuseTrackSource(env, got, buf.byteLength, 'Those readings are too long to keep (' + rows.length + ' readings, the limit is ' + TRACK_SOURCE_MAX_ROWS + ').');
+  if (!rows || rows.length < 10) return json({ success: false, message: 'Invalid readings' }, 400);
   var ends = [rows[0], rows[rows.length - 1]];
   if (!ends.every(function (r) { return Array.isArray(r) && r.length >= 3 && r.length <= 12 && isFinite(r[0]) && isFinite(r[1]) && isFinite(r[2]); })) return json({ success: false, message: 'Invalid readings' }, 400);
   await env.VOTES.put('track-source:' + got.rec.id, buf);
-  if (!got.rec.hasSource) { got.rec.hasSource = true; await putTrackSession(env, got.rec); }
+  if (!got.rec.hasSource || got.rec.readingsRefused) { got.rec.hasSource = true; delete got.rec.readingsRefused; await putTrackSession(env, got.rec); }
   return json({ success: true });
+}
+
+// Readings that are over a limit are refused, and the session keeps a note of it (so the member is still told
+// after a refresh) and the admin is emailed who tried it, with the size, so the limit can be looked at. The
+// emails stop after three tries on one session.
+var TRACK_SOURCE_MAX_ROWS = 400000;
+async function refuseTrackSource(env, got, zippedBytes, message) {
+  var rec = got.rec, tries = ((rec.readingsRefused && rec.readingsRefused.tries) || 0) + 1;
+  rec.readingsRefused = { at: new Date().toISOString(), message: message, zippedMB: Math.round(zippedBytes / 1e5) / 10, tries: tries };
+  await putTrackSession(env, rec);
+  if (tries <= 3) {
+    var name = (publicName(await getProfileRecord(env, got.email)) || '').slice(0, 60);
+    await emailAdminAboutLines(env, 'Readings too big to keep', subscriberLabel(name, got.email) + ' tried to keep the readings of a session and they were refused.\n\n' +
+      'Session: ' + trackSessionLabel(rec) + ', ' + (rec.date || '') + ' (' + (rec.type || '') + ')\n' +
+      (rec.fileName ? 'File: ' + rec.fileName + '\n' : '') +
+      'Why: ' + message + '\n' +
+      'Attempt: ' + tries + (tries === 3 ? ' (no more emails about this session)' : '') + '\n\n' +
+      'The limits are ' + (TRACK_SOURCE_MAX_BYTES / 1e6) + ' MB zipped, ' + (TRACK_SOURCE_UNZIPPED_MAX_BYTES / 1e6) + ' MB unzipped and ' + TRACK_SOURCE_MAX_ROWS + ' readings.\n\n' +
+      'The session:\n' + MY_BUILDS_SITE_URL + '/track.html?s=' + rec.id);
+  }
+  return json({ success: false, message: message }, 413);
 }
 
 // Back out as the stored gzip, which the browser unzips (Content-Encoding).
@@ -8126,7 +8149,7 @@ async function handleTrackAdminRetime(request, env) {
     if (old.unlisted || (!next.atVenue && !old.street)) next.unlisted = true;
     if (!old.street) delete next.outline;
   }
-  ['privacy', 'conditions', 'tyres', 'tyreMake', 'tyreModel', 'tyreWidth', 'tyreProfile', 'tyreRim', 'temp', 'tempSource', 'weather', 'notes', 'hasSource', 'fileName'].forEach(function (k) { if (old[k] !== undefined) next[k] = old[k]; });
+  ['privacy', 'conditions', 'tyres', 'tyreMake', 'tyreModel', 'tyreWidth', 'tyreProfile', 'tyreRim', 'temp', 'tempSource', 'weather', 'notes', 'hasSource', 'readingsRefused', 'fileName'].forEach(function (k) { if (old[k] !== undefined) next[k] = old[k]; });
   if (next.street || next.unlisted) next.privacy = 'private';
   if (next.privacy === 'board' && !trackBoardKey(next)) next.privacy = 'build';
   var oldBoard = trackBoardKey(old);

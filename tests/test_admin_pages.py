@@ -822,6 +822,14 @@ def test_admin_sets_a_course_line_by_clicking_on_the_map_instead_of_typing_coord
     expect(modal).to_be_visible()
     expect(modal).to_contain_text("The line is")  # it opens on the line it already has
     expect(modal.locator(".tk-pick-end")).to_have_count(2)
+    # The map zooms right out (well past 2.5 times), so the whole area around the track can be seen.
+    vb_w = lambda: float(page.locator("#tk-map-svg").get_attribute("viewBox").split()[2])
+    start_w = vb_w()
+    for _ in range(14):
+        modal.locator(".tv-zoom-out").click()
+    assert vb_w() / start_w > 50, (start_w, vb_w())
+    modal.locator(".tv-zoom-reset").click()
+    assert abs(vb_w() - start_w) < 1
     # Clear it and place a new one by clicking either side of a road.
     modal.get_by_role("button", name="Clear").click()
     expect(modal.locator(".tk-pick-end")).to_have_count(0)

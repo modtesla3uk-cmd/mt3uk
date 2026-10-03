@@ -1874,6 +1874,7 @@
     Promise.all([api('GET', '/track/session?id=' + encodeURIComponent(id)), getMine().catch(function () { return null; }), loadTyres()]).then(function (r) {
       var d = r[0];
       if (!d.success) return failed('This session isn\'t available. It may be private or removed.');
+      if (!d.session.hasSource && d.session.readingsRefused && !d.session.readingsMessage) d.session.readingsMessage = d.session.readingsRefused.message;
       view = { s: d.session, mine: r[1], a: d.session.best || 1, b: null, other: {}, members: [], memberById: {} };
       var timed = (d.session.laps || []).filter(function (l) { return l.kind !== 'short' && l.n !== view.a; }).sort(function (x, y) { return x.time - y.time; });
       view.b = timed[0] ? String(timed[0].n) : null;
@@ -2876,7 +2877,7 @@
     var limit = s.street ? 'street' : (s.type === 'drag' ? (s.atVenue ? '' : 'noboard') : (s.venueId && s.layoutId ? '' : 'noboard'));
     var typeBox = s.street ? '' : s.hasSource
       ? '<div class="tp-field"><span class="tp-lbl">Type</span><div class="tp-chips" data-retype>' + TYPES.map(function (t) { return '<button type="button" class="chip' + (s.type === t[0] ? ' is-on' : '') + '" data-v="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</div><p class="tp-small">Picked the wrong one? Choose another and we\'ll read your saved readings again as that type.</p></div>'
-      : '<p class="tp-src">' + icon('info') + '<span>This session was saved before we kept the readings (or they could not be kept), so its type can\'t be changed. Add the readings again, or add the file again as a new session.</span></p>' + (readingsSending[s.id] ? '' : readingsAgainHtml());
+      : '<p class="tp-src">' + icon('info') + '<span>This session was saved before we kept the readings (or they could not be kept), so its type can\'t be changed.' + (s.readingsMessage ? ' Reason: ' + esc(String(s.readingsMessage)) : '') + ' Add the readings again, or add the file again as a new session.</span></p>' + (readingsSending[s.id] ? '' : readingsAgainHtml());
     // Saved as several files merged into one: offer one session per file.
     var splitBox = s.hasSource && !s.street && (s.type === 'track' || s.type === 'sprint') && typeof s.runs === 'number' && s.runs > 1
       ? '<div class="tp-field"><span class="tp-lbl">Several files</span><p class="tp-src">' + icon('info') + '<span>This is ' + s.runs + ' files merged into one session. Split it to get one session for each file, grouped by day.</span></p><button type="button" class="btn btn-secondary btn-sm" id="tp-e-split">Split into ' + s.runs + ' sessions</button></div>' : '';

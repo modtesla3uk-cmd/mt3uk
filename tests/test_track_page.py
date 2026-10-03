@@ -142,6 +142,7 @@ class FakeWorker:
             sid = q.get("id", [""])[0]
             if self.fail_source:
                 status, data = 413, {"success": False, "message": "Those readings are too big to keep."}
+                self.sessions[sid]["readingsRefused"] = {"message": "Those readings are too big to keep.", "tries": 1}
             else:
                 self.sources[sid] = body
                 self.sessions[sid]["hasSource"] = True
@@ -4020,3 +4021,13 @@ def test_add_the_readings_again_refuses_a_different_file(page):
     page.locator("#lineedit [data-readings-file]").set_input_files(str(bad))
     expect(page.locator("#lineedit [data-readings-note]")).to_contain_text(re.compile(r"does not look like the file|could be read|do not recognise"))
     assert "new1" not in fake.sources
+
+
+def test_a_refusal_is_still_explained_after_a_refresh(page):
+    """The worker keeps a note of why readings were refused, so the reason is not lost when the page is reloaded."""
+    fake = FakeWorker()
+    fake.fail_source = True
+    save_fixture_session(page, fake)
+    page.reload()
+    expect(page.locator("#lineedit")).to_contain_text("Those readings are too big to keep")
+    expect(page.locator("#settings")).to_contain_text("Reason: Those readings are too big to keep.")

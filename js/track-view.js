@@ -134,16 +134,31 @@
       var t = Math.min(1, Math.max(0, (k - 1) / 3));
       return { edge: 4.5 - 1.5 * t, line: 2.5 - 0.75 * t, seg: (opts.mono ? 2.5 : 3) - (opts.mono ? 0.75 : 1) * t, alpha: 0.7 - 0.2 * t };
     }
+    // A GPS fix can hop backwards for a moment at speed (a few metres, then on again), which draws a
+    // spike in the line. A point that lies behind the last one kept, against the way the car was going,
+    // is left out of the drawn line (its time and distance are untouched). Slow points are kept as they are.
+    function despike(tr) {
+      var out = [], dx = 0, dy = 0;
+      tr.forEach(function (p, i) {
+        var q = out[out.length - 1];
+        if (q && p[4] > 20 && i < tr.length - 1 && dx * (p[2] - q[2]) + dy * (p[3] - q[3]) < 0) return;
+        if (q && (p[2] !== q[2] || p[3] !== q[3])) { dx = p[2] - q[2]; dy = p[3] - q[3]; }
+        out.push(p);
+      });
+      return out;
+    }
+
     (opts.lines || []).forEach(function (o) {
-      var pts = o.trace.map(function (p) { return P(p[2], p[3]).join(','); }).join(' ');
+      var dsTrace = despike(o.trace);
+      var pts = dsTrace.map(function (p) { return P(p[2], p[3]).join(','); }).join(' ');
       edgeEls.push(el('polyline', { 'class': 'tv-line-edge', points: pts, fill: 'none', stroke: 'rgba(255,255,255,.7)', 'stroke-width': 4.5, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, svg));
       // o.ramp: coloured by speed along the lap (the same colours as the key).
       if (o.ramp) {
         var rg = el('g', { 'class': 'tv-segs', 'stroke-width': linePx(1).seg }, svg);
         rampGs.push(rg);
-        for (var r = 1; r < o.trace.length; r++) {
-          var ra = P(o.trace[r - 1][2], o.trace[r - 1][3]), rb = P(o.trace[r][2], o.trace[r][3]);
-          el('line', { 'class': 'tv-speed', x1: ra[0], y1: ra[1], x2: rb[0], y2: rb[1], stroke: ramp((o.trace[r][4] - vmin) / ((vmax - vmin) || 1)), 'stroke-linecap': 'round' }, rg);
+        for (var r = 1; r < dsTrace.length; r++) {
+          var ra = P(dsTrace[r - 1][2], dsTrace[r - 1][3]), rb = P(dsTrace[r][2], dsTrace[r][3]);
+          el('line', { 'class': 'tv-speed', x1: ra[0], y1: ra[1], x2: rb[0], y2: rb[1], stroke: ramp((dsTrace[r][4] - vmin) / ((vmax - vmin) || 1)), 'stroke-linecap': 'round' }, rg);
         }
         return;
       }

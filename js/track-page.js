@@ -1620,7 +1620,12 @@
     var meta = {};
     Object.keys(rd).forEach(function (k) { if (k !== 'points') meta[k] = rd[k]; });
     function r(v, n) { return v == null || !isFinite(v) ? null : Math.round(v * n) / n; }
-    return { v: 1, rd: meta, p: rd.points.map(function (q) { return [r(q.t, 1000), r(q.lat, 1e7), r(q.lng, 1e7), r(q.v, 100), r(q.la, 1000), r(q.lo, 1000), r(q.sats, 1), r(q.temp, 10), q.run || 0]; }) };
+    // A reading with nothing in its last columns (no satellites, temperature or run) is sent without them: restoreSource reads a missing one as empty.
+    return { v: 1, rd: meta, p: rd.points.map(function (q) {
+      var row = [r(q.t, 1000), r(q.lat, 1e7), r(q.lng, 1e7), r(q.v, 100), r(q.la, 1000), r(q.lo, 1000), r(q.sats, 1), r(q.temp, 10), q.run || 0];
+      while (row.length > 4 && (row[row.length - 1] === null || row[row.length - 1] === 0)) row.pop();
+      return row;
+    }) };
   }
   function restoreSource(src) {
     var rd = Object.assign({}, src.rd);

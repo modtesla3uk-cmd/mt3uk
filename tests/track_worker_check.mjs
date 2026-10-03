@@ -343,6 +343,11 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   ok(res.status === 404, 'only the owner can keep readings: ' + res.status);
   res = await send('/track/session/source?id=' + sid, zlib.gzipSync(JSON.stringify({ v: 1, rd: {}, p: [[1, 2, 3]] })), 'tok-a');
   ok(res.status === 400, 'too few readings are refused: ' + res.status);
+  res = await send('/track/session/source?id=' + sid, zlib.gzipSync(JSON.stringify({ v: 1, rd: {}, pad: 'x'.repeat(23000000), p: src.p })), 'tok-a');
+  ok(res.status === 413 && /MB once unzipped/.test(JSON.parse(await res.text()).message), 'readings too big once unzipped are refused and say the limit: ' + res.status);
+  const trimmed = { v: 1, rd: meta, p: src.p.map(a => { const b = a.slice(); while (b.length > 4 && (b[b.length - 1] === null || b[b.length - 1] === 0)) b.pop(); return b; }) };
+  res = await send('/track/session/source?id=' + sid, zlib.gzipSync(JSON.stringify(trimmed)), 'tok-a');
+  ok(res.status === 200, 'readings with empty trailing columns left off are kept: ' + res.status);
   res = await send('/track/session/source?id=' + sid, zlib.gzipSync(JSON.stringify(src)), 'tok-a');
   ok(res.status === 200, 'readings kept: ' + res.status);
   r = await call('GET', '/track/session?id=' + sid, undefined, 'tok-a');

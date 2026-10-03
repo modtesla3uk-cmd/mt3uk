@@ -6426,8 +6426,8 @@ var TRACK_SESSION_MAX_BYTES = 1500000;
 // stored, and a session may be at most this big once unzipped.
 var TRACK_UNZIPPED_MAX_BYTES = 6000000;
 // The readings kept with a session so its type can be changed later.
-var TRACK_SOURCE_MAX_BYTES = 3000000;
-var TRACK_SOURCE_UNZIPPED_MAX_BYTES = 14000000;
+var TRACK_SOURCE_MAX_BYTES = 6000000;
+var TRACK_SOURCE_UNZIPPED_MAX_BYTES = 22000000;
 
 async function gzipText(text) {
   return new Response(new Blob([text]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer();
@@ -7456,10 +7456,10 @@ async function handleTrackSourceSave(request, env) {
   if (got.error) return got.error;
   var buf = await request.arrayBuffer();
   if (!isGzip(buf)) return json({ success: false, message: 'Send the readings gzipped.' }, 400);
-  if (buf.byteLength > TRACK_SOURCE_MAX_BYTES) return json({ success: false, message: 'Those readings are too big to keep.' }, 413);
+  if (buf.byteLength > TRACK_SOURCE_MAX_BYTES) return json({ success: false, message: 'Those readings are too big to keep (' + (buf.byteLength / 1e6).toFixed(1) + ' MB zipped, the limit is ' + (TRACK_SOURCE_MAX_BYTES / 1e6) + ' MB).' }, 413);
   var src;
   try { src = JSON.parse(await gunzipText(buf, TRACK_SOURCE_UNZIPPED_MAX_BYTES)); } catch (e) {
-    return json({ success: false, message: e && e.message === 'too big' ? 'Those readings are too big to keep.' : 'Invalid request body' }, e && e.message === 'too big' ? 413 : 400);
+    return json({ success: false, message: e && e.message === 'too big' ? 'Those readings are too big to keep (over ' + (TRACK_SOURCE_UNZIPPED_MAX_BYTES / 1e6) + ' MB once unzipped).' : 'Invalid request body' }, e && e.message === 'too big' ? 413 : 400);
   }
   var rows = src && src.v === 1 && src.rd && typeof src.rd === 'object' && Array.isArray(src.p) ? src.p : null;
   if (!rows || rows.length < 10 || rows.length > 400000) return json({ success: false, message: 'Invalid readings' }, 400);

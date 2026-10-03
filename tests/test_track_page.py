@@ -2136,6 +2136,9 @@ def test_g_force_lines_can_be_switched_on_and_off(page):
     expect(lines).to_have_count(6)
     expect(page.locator("#tp-gforce > path[stroke-dasharray='5 4']")).to_have_count(3)
     expect(page.locator("#tp-gnote")).to_contain_text("Solid line")
+    # Cornering keeps its sign: the g scale runs below zero as far as above it, as RaceBox draws it.
+    labels = [x.strip() for x in page.locator("#tp-gforce text[text-anchor='end']").all_text_contents()]
+    assert labels and labels[0].startswith("-") and labels[0][1:] == labels[-1], labels
     # Speed has its own scale on the right.
     expect(page.locator("#tp-gforce text[text-anchor='start']")).to_have_count(4)
     toggles.nth(0).click()
@@ -2166,7 +2169,7 @@ def test_numbers_under_the_map_follow_the_dots(page):
     page.locator("#tp-scrub").evaluate("el => { el.value = 30; el.dispatchEvent(new Event('input', {bubbles: true})); }")
     expect(page.locator('#tp-metrics [data-m="a-v"]')).to_have_text(re.compile(r"^\d+ mph$|^\d+\.\d mph$"))
     expect(page.locator('#tp-metrics [data-m="a-acc"]')).to_have_text(re.compile(r"^[+-]\d\.\d\d g$"))
-    expect(page.locator('#tp-metrics [data-m="a-cor"]')).to_have_text(re.compile(r"^\d\.\d\d g$"))
+    expect(page.locator('#tp-metrics [data-m="a-cor"]')).to_have_text(re.compile(r"^[+-]\d\.\d\d g$"))
     expect(page.locator('#tp-metrics [data-m="gap"]')).to_have_text(re.compile(r"^A is \d+\.\d\d s (ahead|behind)$"))
     first = page.locator('#tp-metrics [data-m="a-v"]').inner_text()
     page.locator("#tp-scrub").evaluate("el => { el.value = 60; el.dispatchEvent(new Event('input', {bubbles: true})); }")

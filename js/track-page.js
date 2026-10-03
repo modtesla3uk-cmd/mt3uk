@@ -2210,12 +2210,13 @@
       function smoothG(trace) {
         return trace.map(function (p, i) {
           var n = 0, ac = 0, co = 0;
-          for (var k = Math.max(0, i - 2); k <= Math.min(trace.length - 1, i + 2); k++) { ac += trace[k][6]; co += Math.abs(trace[k][5]); n++; }
+          // Cornering keeps its sign, one way positive and the other negative, as RaceBox draws it.
+          for (var k = Math.max(0, i - 2); k <= Math.min(trace.length - 1, i + 2); k++) { ac += trace[k][6]; co += trace[k][5]; n++; }
           return [p[0], ac / n, co / n];
         });
       }
       var ga = smoothG(A.trace), gb = A === B ? ga : smoothG(B.trace);
-      var fmtAcc = function (v) { return (v >= 0 ? '+' : '') + v.toFixed(2) + ' g'; }, fmtCor = function (v) { return v.toFixed(2) + ' g'; };
+      var fmtAcc = function (v) { return (v >= 0 ? '+' : '') + v.toFixed(2) + ' g'; }, fmtCor = fmtAcc;
       // The numbers under the map: each lap's speed and G-force where its dot is.
       var mbox = document.getElementById('tp-metrics');
       function mrow(id, colour, label) {
@@ -2311,7 +2312,8 @@
         });
         if (note) note.textContent = !defs.length ? 'Turn a line on to see it.' : A === B ? A.label : 'Solid line: ' + A.label + ' (A). Dashed line: ' + B.label + ' (B).';
         if (!defs.length) { gs.innerHTML = ''; gs.removeAttribute('viewBox'); gl = null; alignScrub(); return; }
-        var gy = V.nice(Math.floor(lo * 2) / 2, Math.ceil(hi * 2) / 2, 4);
+        // The g scale is even about zero, so a corner one way is drawn as big as the same corner the other way.
+        var gm = Math.ceil(Math.max(-lo, hi) * 2) / 2, gy = V.nice(-gm, gm, 4);
         gl = V.line(gs, {
           H: cmpFull ? 110 : 150, x0: 0, x1: tEndG, y0: gy[0], y1: gy[gy.length - 1], xt: timeTicks(gs.clientWidth || 600), xf: mss, yt: gy, zero: 0, yf: function (v) { return v + ' g'; },
           y2: spdOn ? { y0: 0, y1: sy[sy.length - 1], yt: sy, yf: function (v) { return String(v); } } : null,

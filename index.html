@@ -872,7 +872,10 @@
     cursor: pointer;
     padding: 0;
     touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
   }
+  .bf-like-hit:focus, .bf-like-hit:active { background: transparent; outline: none; }
   .bf-share-btn .bf-icon-share { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
   /* Mods and share pop-outs: frosted see-through bubbles. */
   .bf-bubble {
@@ -1456,6 +1459,8 @@
     font-size: 0.8rem;
     color: rgba(255,255,255,0.75);
   }
+
+
 
 
   .bf-autoscroll-toggle {
@@ -2375,6 +2380,52 @@
     max-width: none; aspect-ratio: auto; margin: 0; border-radius: 0;
   }
   body.bf-fs-lock { overflow: hidden; }
+  /* ---- Build Reel controls: one frosted, rounded look ---- */
+  .bf-top-left { top: 24px; left: 60px; flex-direction: row; }
+  .bf-recent-btn, .bf-autoscroll-toggle {
+    min-height: 40px; padding: 0 14px; gap: 7px;
+    border: 0; border-radius: var(--radius-pill);
+    background: rgba(14,18,28,0.5);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    font-family: var(--font-body); font-size: 0.82rem; font-weight: 500; letter-spacing: 0;
+  }
+  .bf-recent-btn svg { width: 15px; height: 15px; }
+  .bf-autoscroll-toggle { top: 24px; right: 12px; }
+  .bf-autoscroll-icon { width: 9px; height: 9px; }
+  .bf-fs-btn { top: 24px; left: 12px; width: 40px; height: 40px; background: rgba(14,18,28,0.5); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+  .bf-fs-btn .icon { width: 20px; height: 20px; }
+  .bf-post-nav {
+    width: 32px; height: 32px; right: 6px; border-radius: 50%;
+    background: rgba(14,18,28,0.5); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    filter: none; display: flex; align-items: center; justify-content: center;
+  }
+  .bf-post-nav[hidden] { display: none; }
+  /* Swiping up and down moves between builds only in full screen. On the
+     page the reel stays put, so the page scrolls past it (the arrows still work). */
+  .bf-feed { overflow-y: hidden; }
+  .bf-frame.bf-frame-full .bf-feed { overflow-y: scroll; }
+  .bf-post-up { top: 76px; }
+  .bf-post-down { bottom: 62px; }
+  .bf-progress { top: 116px; bottom: 100px; }
+  /* Action bar: roomy round touch targets, and nothing gets squeezed. */
+  .bf-bar-left { min-width: 0; }
+  .bf-bar-right { flex: none; }
+  .bf-rail-btn {
+    min-width: 44px; min-height: 44px; justify-content: center; border-radius: var(--radius-pill);
+    font-family: var(--font-body); font-weight: 500; transition: background 0.15s ease;
+  }
+  .bf-rail-btn:active { background: rgba(255,255,255,0.12); }
+  .bf-rail-btn svg { flex: none; }
+  .bf-rail-count { font-size: 0.88rem; font-weight: 500; }
+  /* Mods and share pop-outs: let the photo show through instead of a black slab. */
+  .bf-slide:has(.bf-mods-open) .bf-scrim-bottom,
+  .bf-slide:has(.bf-share-panel:not([hidden])) .bf-scrim-bottom { opacity: 0; }
+  .bf-slide:has(.bf-mods-open) .bf-caption,
+  .bf-slide:has(.bf-share-panel:not([hidden])) .bf-caption { opacity: 0; pointer-events: none; }
+  .bf-scrim-bottom { transition: opacity 0.2s ease; }
+  .bf-bubble { background: rgba(14,18,28,0.38); -webkit-backdrop-filter: blur(22px) saturate(150%); backdrop-filter: blur(22px) saturate(150%); box-shadow: 0 8px 24px rgba(0,0,0,0.22); }
+  .bf-frame.bf-frame-full .bf-bar { padding-bottom: env(safe-area-inset-bottom); height: calc(56px + env(safe-area-inset-bottom)); }
+
   .botm-frame { border: 1px solid var(--hairline); border-radius: var(--radius); background: var(--white); }
   .botm-frame .botm-badge, .botm-frame .botm-voted-by { border-radius: var(--radius-pill); padding: 4px 11px; font-weight: 600; }
   .vote-frame { border: 0; gap: 10px; }
@@ -3497,7 +3548,7 @@
         <span class="section-num">02 / Gallery feed</span>
         <h2>Swipe through the builds</h2>
       </div>
-      <p>Scroll through recent member builds. Likes, comment and you can bookmark your favourites, or sit back and let it play.</p>
+      <p>Scroll through recent member builds. Like, comment and bookmark your favourites, or sit back and let it play.</p>
     </div>
     <p class="bf-only-note" id="bf-only-note" hidden>Showing your builds only. <a href="index.html#build-feed">Show all builds</a></p>
     <div class="bf-frame" id="build-feed-frame">
@@ -3518,8 +3569,9 @@
       </button>
     </div>
     <script>
-      // Full screen for the Build Reel. Uses the browser's full screen mode
-      // where it exists (not on iPhone), otherwise fills the window. The same
+      // Full screen for the Build Reel. On a computer it uses the browser's
+      // full screen mode; on a phone or tablet it just fills the window, which
+      // keeps the browser's own "swipe to exit" notice out of the way. The same
       // button, or Esc, goes back.
       (function () {
         var frame = document.getElementById('build-feed-frame');
@@ -3544,7 +3596,7 @@
           var on = !isFull;
           set(on);
           try {
-            if (on && frame.requestFullscreen) frame.requestFullscreen().catch(function () {});
+            if (on && frame.requestFullscreen && matchMedia('(hover: hover) and (pointer: fine)').matches) frame.requestFullscreen().catch(function () {});
             else if (!on && document.fullscreenElement) document.exitFullscreen();
           } catch (e) {}
         });
@@ -3690,10 +3742,10 @@
     var DOUBLE_TAP_MS = 350;
     var VOTE_ENDPOINT = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
     var feedEl = document.getElementById('bf-feed');
+    var autoscrollBtn = document.getElementById('bf-autoscroll-toggle');
     var progressEl = document.getElementById('bf-progress');
     var postUp = document.getElementById('bf-post-up');
     var postDown = document.getElementById('bf-post-down');
-    var autoscrollBtn = document.getElementById('bf-autoscroll-toggle');
     if (!feedEl) return;
 
     // Likes, comment likes and comment reports are for signed-in members
@@ -3805,9 +3857,6 @@
               '<button type="button" class="bf-recent-btn" aria-label="Jump to most recent build">' +
                 '<svg viewBox="0 0 24 24"><path d="M12 5l-7 7h4v7h6v-7h4z"/></svg><span>Most recent</span>' +
               '</button>' : '') +
-            '<button type="button" class="bf-full-btn" aria-label="View the full image">' +
-              '<svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span>Full image</span>' +
-            '</button>' +
           '</div>' +
           (post.length > 1 ?
             '<button type="button" class="bf-car-nav bf-car-prev" aria-label="Previous photo" hidden><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>' +

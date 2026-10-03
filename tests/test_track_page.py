@@ -2155,10 +2155,14 @@ def test_g_force_lines_can_be_switched_on_and_off(page):
     expect(toggles).to_have_text(["Acceleration G", "Cornering G", "Speed"])
     expect(page.locator("#tp-gtoggles .chip.is-on")).to_have_count(3)
     lines = page.locator("#tp-gforce > path[stroke-width]")
-    # Three lines (acceleration, cornering, speed), each for lap A (solid) and lap B (dashed).
+    # Three lines (acceleration solid, cornering dashed, speed dotted), each for lap A (blue) and lap B (orange).
     expect(lines).to_have_count(6)
-    expect(page.locator("#tp-gforce > path[stroke-dasharray='5 4']")).to_have_count(3)
-    expect(page.locator("#tp-gnote")).to_contain_text("Solid line")
+    expect(page.locator("#tp-gforce > path[stroke-dasharray='5 4']")).to_have_count(2)
+    expect(page.locator("#tp-gforce > path[stroke-dasharray='2 3']")).to_have_count(2)
+    expect(page.locator("#tp-gforce > path[stroke='#2a78d6']")).to_have_count(3)
+    expect(page.locator("#tp-gforce > path[stroke='#eb6834']")).to_have_count(3)
+    expect(page.locator("#tp-gnote")).to_contain_text("Blue:")
+    expect(page.locator("#tp-gnote")).to_contain_text("Orange:")
     # Cornering keeps its sign: the g scale runs below zero as far as above it, as RaceBox draws it.
     labels = [x.strip() for x in page.locator("#tp-gforce text[text-anchor='end']").all_text_contents()]
     assert labels and labels[0].startswith("-") and labels[0][1:] == labels[-1], labels
@@ -2245,7 +2249,7 @@ def test_full_screen_map_on_a_phone(page):
     for sel in ("#tp-play-toggle", "#tp-metrics", "#tp-gforce"):
         box = page.locator(sel).bounding_box()
         assert box and box["y"] + box["height"] <= 845, (sel, box)
-    # A phone on its side: the map keeps most of the screen, nothing spills.
+    # A phone on its side: the map takes the whole screen, with the controls and numbers laid over it.
     page.set_viewport_size({"width": 844, "height": 390})
     page.wait_for_timeout(300)
     page.locator("#tp-full").click()
@@ -2253,8 +2257,14 @@ def test_full_screen_map_on_a_phone(page):
     expect(page.locator("#tp-mapcard")).to_have_class(re.compile(r"is-full"))
     assert overflow_width(page) <= 0
     mb = page.locator("#tp-map2").bounding_box()
-    assert mb["height"] > 120, mb
+    assert mb["height"] >= 380 and mb["width"] >= 830, mb
+    for sel in ("#tp-play-toggle", "#tp-metrics", "#tp-full", "#tp-speedcol"):
+        box = page.locator(sel).bounding_box()
+        assert box and box["y"] >= 0 and box["y"] + box["height"] <= 390 and box["x"] + box["width"] <= 844, (sel, box)
     expect(page.locator("#tp-play-toggle")).to_be_visible()
+    # The play controls (bottom left) and the exit button (top right) do not sit on the numbers (top left).
+    play, met = page.locator("#tp-play").bounding_box(), page.locator("#tp-metrics").bounding_box()
+    assert met["y"] + met["height"] <= play["y"], (met, play)
     page.locator("#tp-full").click()
     expect(page.locator("#tp-mapcard")).not_to_have_class(re.compile(r"is-full"))
 

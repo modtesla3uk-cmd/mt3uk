@@ -1846,7 +1846,7 @@
         '<div class="tp-mapwrap" id="tp-mapwrap"><svg class="tv-chart" id="tp-map2" role="img" aria-label="Track map with both laps\' lines and positions"></svg>' +
         '<div class="tp-chart-foot tp-speedkey" id="tp-speedkey"' + (cmpSpeed ? '' : ' hidden') + '><span class="tp-ramp"><span id="tp-ramp-lo"></span><i></i><span id="tp-ramp-hi"></span></span><span>Lap A coloured by speed, lap B dashed. Numbers are the slowest corners.</span></div></div>' +
         '<div class="tp-metrics" id="tp-metrics" aria-live="off"></div>' +
-        '<div class="tp-gbox" id="tp-gbox"><div class="tp-chart-head"><h3>G-force' + (s.gDerived ? ' (estimated)' : '') + ' and speed</h3><button type="button" class="tp-switch tp-gswitch" role="switch" id="tp-gshow" aria-checked="' + !gHidden + '"><span>Show</span><span class="tp-track"></span></button><div class="tp-chips" id="tp-gtoggles" role="group" aria-label="G-force lines to show">' + G_DEFS.map(function (d) { return '<button type="button" class="chip chip-sm is-on" data-g="' + d[0] + '" aria-pressed="true"><i class="tp-gkey" style="background:' + d[2] + '"></i>' + d[1] + '</button>'; }).join('') + '</div></div>' +
+        '<div class="tp-gbox" id="tp-gbox"><div class="tp-chart-head"><h3>G-force' + (s.gDerived ? ' (estimated)' : '') + ' and speed</h3><button type="button" class="tp-switch tp-gswitch" role="switch" id="tp-gshow" aria-checked="' + !gHidden + '"><span>Show</span><span class="tp-track"></span></button><div class="tp-chips" id="tp-gtoggles" role="group" aria-label="G-force lines to show">' + G_DEFS.map(function (d) { return '<button type="button" class="chip chip-sm is-on" data-g="' + d[0] + '" aria-pressed="true"><i class="tp-gkey tp-gkey-' + d[0] + '"></i>' + d[1] + '</button>'; }).join('') + '</div></div>' +
         '<svg class="tv-chart" id="tp-gforce" role="img" aria-label="Acceleration, cornering and speed over the lap for both laps"></svg>' +
         // The slider sits under the chart, lined up with its time axis.
         '<div class="tp-scrub-row"><div class="tp-scrub-track" id="tp-scrub-track"><div class="tp-ruler" id="tp-ruler" aria-hidden="true"></div><input type="range" id="tp-scrub" min="0" max="100" step="0.01" value="0" aria-label="Position in the lap"></div><span class="tp-clock" id="tp-clock">0:00.0</span></div>' +
@@ -1986,8 +1986,9 @@
     if (s.mine) drawOverTime(s);
   }
   // How the two laps are lined up on the "Where you are" map.
-  // Lines the G-force chart can show (key, label, colour).
-  var G_DEFS = [['acc', 'Acceleration G', '#1baf7a'], ['cor', 'Cornering G', '#7a3fc4'], ['spd', 'Speed', '#d99a00']];
+  // Lines the G-force chart can show (key, label, dash). Colour says whose lap it is, as on the map (blue A, orange B);
+  // the dash says which line: acceleration solid, cornering dashed, speed dotted.
+  var G_DEFS = [['acc', 'Acceleration G', null], ['cor', 'Cornering G', '5 4'], ['spd', 'Speed', '2 3']];
   var gShow = { acc: true, cor: true, spd: true };
   // The whole G-force and speed chart can be hidden (remembered in this browser).
   var gHidden = false;
@@ -2274,7 +2275,7 @@
         if (gShow.spd) h += V.row('Speed, A', V.fmtV(at(spA, x)[1]), c1) + (A === B ? '' : V.row('Speed, B', V.fmtV(at(spB, x)[1]), c2));
         return h;
       }
-      // The coloured G-force lines: solid for lap A, dashed for lap B, each
+      // The G-force lines: lap A in its blue and lap B in its orange, each line in its own dash, each
       // switched on or off with its chip.
       // The G-force and speed chart runs on time, like playback and the map: at
       // any point it shows both laps at the same moment, and its time axis is
@@ -2298,19 +2299,19 @@
         var defs = G_DEFS.filter(function (d) { return gShow[d[0]]; }), series = [], lo = 0, hi = 0.5;
         defs.filter(function (d) { return d[0] !== 'spd'; }).forEach(function (d) {
           var col = d[0] === 'acc' ? 1 : 2;
-          [[gaT, null], [gbT, '5 4']].forEach(function (lp, li) {
+          [gaT, gbT].forEach(function (lp, li) {
             if (li && A === B) return;
-            lp[0].forEach(function (r) { lo = Math.min(lo, r[col]); hi = Math.max(hi, r[col]); });
-            series.push({ color: d[2], width: 1.25, dash: lp[1], pts: lp[0].map(function (r) { return [r[0], r[col]]; }), at: function (x) { return at(lp[0], x)[col]; } });
+            lp.forEach(function (r) { lo = Math.min(lo, r[col]); hi = Math.max(hi, r[col]); });
+            series.push({ color: li ? c2 : c1, width: 1.25, dash: d[2], pts: lp.map(function (r) { return [r[0], r[col]]; }), at: function (x) { return at(lp, x)[col]; } });
           });
         });
         // Speed on its own scale, on the right.
         var spdOn = gShow.spd, sy = V.nice(0, vmax, 3);
-        if (spdOn) [[spA, null], [spB, '5 4']].forEach(function (lp, li) {
+        if (spdOn) [spA, spB].forEach(function (lp, li) {
           if (li && A === B) return;
-          series.push({ axis: 2, color: '#d99a00', width: 1.25, dash: lp[1], pts: lp[0], at: function (x) { return at(lp[0], x)[1]; } });
+          series.push({ axis: 2, color: li ? c2 : c1, width: 1.25, dash: G_DEFS[2][2], pts: lp, at: function (x) { return at(lp, x)[1]; } });
         });
-        if (note) note.textContent = !defs.length ? 'Turn a line on to see it.' : A === B ? A.label : 'Solid line: ' + A.label + ' (A). Dashed line: ' + B.label + ' (B).';
+        if (note) note.textContent = !defs.length ? 'Turn a line on to see it.' : A === B ? A.label : 'Blue: ' + A.label + ' (A). Orange: ' + B.label + ' (B).';
         if (!defs.length) { gs.innerHTML = ''; gs.removeAttribute('viewBox'); gl = null; alignScrub(); return; }
         // The g scale is even about zero, so a corner one way is drawn as big as the same corner the other way.
         var gm = Math.ceil(Math.max(-lo, hi) * 2) / 2, gy = V.nice(-gm, gm, 4);

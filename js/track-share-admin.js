@@ -66,10 +66,11 @@
   // the picker growing as each page arrives.
   function loadSessions() {
     sessions = [];
+    var scanned = 0, failure = '';
     if (!pick) return Promise.resolve();
     function drawPick(loading) {
       var keep = pick.value;
-      pick.innerHTML = '<option value="">' + (loading ? 'Loading sessions (' + sessions.length + ' so far)...' : 'Choose a session') + '</option>' + sessions.map(function (r) {
+      pick.innerHTML = '<option value="">' + (loading ? 'Loading sessions (' + sessions.length + ' so far)...' : sessions.length ? 'Choose a session' : failure || 'No sessions to pick (' + scanned + ' checked)') + '</option>' + sessions.map(function (r) {
         // Whose session it is, and whether it is private, so the admin knows what they are putting in a public picture.
         return '<option value="' + esc(r.id) + '">' + esc((r.venue || 'Unknown track') + ', ' + (r.date || '') + ', ' + window.MT3UKTrack.fmtLap(r.best) + (r.owner ? ', ' + r.owner : '') + (r.privacy === 'private' ? ' (private)' : '')) + '</option>';
       }).join('');
@@ -78,14 +79,15 @@
     drawPick(true);
     function page(cursor) {
       return call('GET', '/track/admin/retime' + (cursor ? '?cursor=' + encodeURIComponent(cursor) : '')).then(function (d) {
-        if (!d.success) { if (previewNote && !sessions.length) previewNote.textContent = d.message || 'The session list could not be loaded.'; return; }
+        if (!d.success) { failure = d.message || 'The session list could not be loaded.'; if (previewNote && !sessions.length) previewNote.textContent = failure; return; }
+        scanned += (d.sessions || []).length;
         (d.sessions || []).forEach(function (r) { if ((r.type === 'track' || r.type === 'sprint') && r.best && !r.street) sessions.push(r); });
         sessions.sort(function (a, b) { return (b.date || '').localeCompare(a.date || ''); });
         drawPick(!d.done && d.cursor && sessions.length < 400);
         if (!d.done && d.cursor && sessions.length < 400) return page(d.cursor);
       });
     }
-    return page('').then(function () { drawPick(false); }).catch(function () { drawPick(false); if (previewNote && !sessions.length) previewNote.textContent = 'The session list could not be loaded.'; });
+    return page('').then(function () { drawPick(false); }).catch(function () { failure = 'The session list could not be loaded.'; drawPick(false); if (previewNote && !sessions.length) previewNote.textContent = 'The session list could not be loaded.'; });
   }
   // The build gallery's photos (the site's list plus any the worker has that the list does not yet), for panels with a picker.
   function loadGallery() {

@@ -53,6 +53,8 @@ class FakeWorker:
         self.saved = []
         self.gzipped = False
         self.requests = []
+        # When on, the same file saved again is refused, as the worker does.
+        self.dupes = False
         self.courses = []
         self.sources = {}
         self.boards = {}
@@ -91,8 +93,9 @@ class FakeWorker:
             data = {"success": True, "sessions": self.index}
         elif path == "/track/sessions" and req.method == "POST":
             rec = dict(body["session"])
-            if False:
-                pass
+            twin = next((s for s in self.sessions.values() if self.dupes and rec.get("fileName") and s.get("fileName") == rec.get("fileName") and s.get("date") == rec.get("date") and s.get("time") == rec.get("time")), None)
+            if twin:
+                status, data = 409, {"success": False, "duplicate": True, "session": summary(twin), "message": "You already have this session: %s, %s at %s. Open it from your list instead." % (twin.get("venue"), twin["date"], twin["time"])}
             else:
                 rec.update({"id": "new%d" % (len(self.sessions) + 1), "carId": body["carId"], "privacy": "private" if body.get("street") else body.get("privacy", "private"),
                             "conditions": body.get("conditions"), "tyres": body.get("tyres"), "tyreMake": body.get("tyreMake"), "tyreModel": body.get("tyreModel"), "tyreWidth": body.get("tyreWidth"), "tyreProfile": body.get("tyreProfile"), "tyreRim": body.get("tyreRim"), "temp": body.get("temp"), "tempSource": body.get("tempSource"), "weather": body.get("weather"), "notes": body.get("notes"), "street": bool(body.get("street"))})
@@ -550,6 +553,26 @@ def test_saving_a_session_shows_a_saved_message_with_a_way_back(page):
     expect(page).to_have_url(re.compile(r"/track\.html$"))
     expect(page.locator("#tp-saved")).to_have_count(0)
     expect(page.locator("#tp-sess-list")).to_be_visible()
+
+
+def test_uploading_the_same_file_again_is_refused_and_says_which_session_it_is(page):
+    fake = FakeWorker()
+    fake.dupes = True
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator("#tp-saved")).to_be_visible()
+    page.goto("/track.html")
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    page.get_by_role("button", name="Save session").click()
+    status = page.locator("#tp-status")
+    expect(status).to_contain_text("You already have this session: Thruxton, 2026-05-28 at 14:34")
+    expect(status).to_have_class(re.compile("is-error"))
+    # Nothing was saved twice, and the button is live again for the member to go back.
+    assert len(fake.saved) == 1
+    expect(page.get_by_role("button", name="Save session")).to_be_enabled()
 
 
 def test_several_files_are_saved_as_a_session_each_grouped_by_day(page, tmp_path):

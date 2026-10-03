@@ -359,10 +359,18 @@
     return call('GET', '/track/admin/retime?id=' + encodeURIComponent(row.id)).then(function (d) {
       if (!d.success) throw new Error(d.message || 'Could not read the session.');
       var old = d.session;
-      return fetch(API + '/track/admin/retime/source?id=' + encodeURIComponent(row.id) + '&key=' + encodeURIComponent(key()), { cache: 'no-store' }).then(function (r) {
-        if (!r.ok) throw new Error('No readings kept.');
-        return r.arrayBuffer();
-      }).then(readSource).then(function (src) {
+      // The readings come as a gzip file. A transfer that fails once (a large file cut off) is tried again.
+      function getSource(tries) {
+        return fetch(API + '/track/admin/retime/source?id=' + encodeURIComponent(row.id) + '&key=' + encodeURIComponent(key()), { cache: 'no-store' }).then(function (r) {
+          if (r.status === 404) throw new Error('No readings kept.');
+          if (!r.ok) throw new Error('The readings could not be downloaded (' + r.status + ').');
+          return r.arrayBuffer();
+        }).catch(function (e) {
+          if (tries > 0 && !/readings kept/.test(e && e.message || '')) return getSource(tries - 1);
+          throw new Error(/readings/.test(e && e.message || '') ? e.message : 'The readings could not be downloaded.');
+        });
+      }
+      return getSource(1).then(readSource).then(function (src) {
         if (!src.p || !src.rd) throw new Error('No readings kept.');
         var next = T.analyse(restoreSource(src), lib, retimeOpts(old));
         if (next.problem && !(next.laps && next.laps.length) && !(next.runs && next.runs.length)) throw new Error(next.problem);
@@ -425,7 +433,8 @@
                 var same = c.from === c.to || (c.from != null && c.to != null && Math.abs(c.from - c.to) < 0.0005);
                 var text = c.venue + ', ' + c.date + ' (' + c.type + '): ' + fmtTime(c.from) + ' to ' + fmtTime(c.to);
                 if (c.big && (!apply || !allowBig)) { held++; line(text + (apply ? ' (over 10%, not saved)' : ' (over 10%, held back unless you allow big changes)'), c.id); return; }
-                if (same) unchanged++; else line(text, c.id);
+                // Every session saved is listed, so the admin can see what was touched; a check lists only what moves.
+                if (same) { unchanged++; if (apply) line(c.venue + ', ' + c.date + ' (' + c.type + '): ' + fmtTime(c.to) + ' (same time)', c.id); } else line(text, c.id);
                 done++;
               }).catch(function (e) { failed++; line(r.venue + ', ' + r.date + ': skipped (' + (e && e.message || 'error') + ')', r.id); });
             });

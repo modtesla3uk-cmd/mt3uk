@@ -333,6 +333,10 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   res = await send('/track/session/source?id=' + sid, undefined, 'tok-a', 'GET');
   const back = JSON.parse(zlib.gunzipSync(Buffer.from(await res.arrayBuffer())).toString());
   ok(res.status === 200 && res.headers.get('Content-Encoding') === 'gzip' && back.p.length === src.p.length && back.rd.format === rd.format, 'the owner gets the readings back');
+  // The admin's copy comes as a plain gzip file, not Content-Encoding, so nothing en route can re-encode it.
+  res = await send('/track/admin/retime/source?key=secret&id=' + sid, undefined, undefined, 'GET');
+  const adminBack = JSON.parse(zlib.gunzipSync(Buffer.from(await res.arrayBuffer())).toString());
+  ok(res.status === 200 && !res.headers.get('Content-Encoding') && res.headers.get('Content-Type') === 'application/gzip' && adminBack.p.length === src.p.length, 'the admin gets the readings as a gzip file to unzip');
   res = await send('/track/session/source?id=' + sid, undefined, 'tok-b', 'GET');
   ok(res.status === 404, 'others cannot read them: ' + res.status);
   res = await send('/track/session/source?id=' + sid, undefined, undefined, 'GET');
@@ -571,7 +575,8 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
 }
 // Admin read-only view of a private session, logged.
 {
-  const fileSession = JSON.parse(JSON.stringify(session)); fileSession.fileName = 'VBOX0016.vbo';
+  // Its own start time: a session with a file name that matches one already saved would be refused as a duplicate.
+  const fileSession = JSON.parse(JSON.stringify(session)); fileSession.fileName = 'VBOX0016.vbo'; fileSession.time = '09:09';
   r = await call('POST', '/track/sessions', { carId: 'cara1', session: fileSession, notes: 'Secret note', privacy: 'private' }, 'tok-a');
   const pid = r.body.session.id;
   r = await call('GET', '/track/session?id=' + pid);
@@ -669,6 +674,18 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   ok(r.status === 200 && env.SEND_EMAIL.sent.length === before + 2 && /Reported photo: car-9\.jpg/.test(pm) && /gallery\.html\?photo=car-9\.jpg/.test(pm), 'a reported photo emails the admin');
   r = await call('POST', '/gallery/report', { file: 'car-9.jpg' }, undefined, { 'X-Voter-Id': 'visitor-0001' });
   ok(env.SEND_EMAIL.sent.length === before + 2, 'the same visitor reporting it again sends nothing more');
+}
+
+// The same file saved twice is refused, pointing at the one already there.
+{
+  const up = Object.assign({}, session, { fileName: 'Thruxton 14-05.vbo', time: '09:21' });
+  const first = await call('POST', '/track/sessions', { carId: 'cara1', session: up }, 'tok-a');
+  const again = await call('POST', '/track/sessions', { carId: 'cara1', session: up }, 'tok-a');
+  ok(first.status === 200 && again.status === 409 && again.body.duplicate === true && again.body.session.id === first.body.session.id && /already have this session/.test(again.body.message), 'uploading the same file again is refused and names the session it already is');
+  const otherCar = await call('POST', '/track/sessions', { carId: 'cara2', session: up }, 'tok-a');
+  const otherTime = await call('POST', '/track/sessions', { carId: 'cara1', session: Object.assign({}, up, { time: '09:22' }) }, 'tok-a');
+  ok(otherCar.status !== 409 && otherTime.status === 200, 'another car or another start time is not a duplicate (' + otherCar.status + ', ' + otherTime.status + ')');
+  for (const x of [first, otherCar, otherTime]) if (x.body.session) await call('DELETE', '/track/session?id=' + x.body.session.id, undefined, 'tok-a');
 }
 
 // Leaving the site clears everything.

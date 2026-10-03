@@ -7049,9 +7049,25 @@ async function handleTrackSessionSave(request, env) {
   rec.createdAt = new Date().toISOString();
   applyTrackEdits(rec, body);
   if (rec.street || rec.unlisted) rec.privacy = 'private';
+  // The same file saved twice (an upload repeated) makes a duplicate: same car, day, start time and result. The
+  // member's own list is one key, read with get(). Only a page upload carries a file name, so other saves are not
+  // held up by this.
+  if (rec.fileName) {
+    var mine = await getJsonKey(env, 'track-index:' + rec.owner, []);
+    var twin = mine.filter(function (s) { return s.carId === rec.carId && s.type === rec.type && s.date === rec.date && (s.time || '') === (rec.time || '') && sameTrackResult(s, rec); })[0];
+    if (twin) return json({ success: false, duplicate: true, session: twin, message: 'You already have this session: ' + (twin.venue || 'the same place') + ', ' + twin.date + (twin.time ? ' at ' + twin.time : '') + '. Open it from your list instead.' }, 409);
+  }
   if (!(await putTrackSession(env, rec))) return tooBig;
   await putTrackIndexes(env, email, rec);
   return json({ success: true, session: trackSummary(rec) });
+}
+// Whether a listed session and a new one have the same result: the same laps and best time, or runs and 60 ft time.
+function sameTrackResult(s, rec) {
+  if (rec.type === 'drag') {
+    var runs = rec.runs || [], b60 = runs.slice().sort(function (a, b) { return a.s60 - b.s60; })[0];
+    return s.runs === runs.length && (!b60 || !isFinite(s.s60) || Math.abs(s.s60 - b60.s60) < 0.0005);
+  }
+  return s.laps === (rec.laps || []).length && ((s.bestTime == null && rec.bestTime == null) || (isFinite(s.bestTime) && isFinite(rec.bestTime) && Math.abs(s.bestTime - rec.bestTime) < 0.0005));
 }
 
 function composeTrackTyres(rec) {
@@ -7621,7 +7637,9 @@ async function handleTrackAdminRetimeSource(request, env) {
   if (!/^[a-f0-9]{8,40}$/.test(id)) return json({ success: false, message: 'Session not found' }, 404);
   var buf = await env.VOTES.get('track-source:' + id, 'arrayBuffer');
   if (!buf) return json({ success: false, message: 'No readings were kept for this session.' }, 404);
-  return new Response(buf, { status: 200, headers: { 'Content-Type': 'application/json', 'Content-Encoding': 'gzip', 'Cache-Control': 'no-store', 'Access-Control-Allow-Origin': '*' } });
+  // As a plain file of the stored gzip bytes, not Content-Encoding: nothing on the way can re-encode a large one
+  // and leave the browser unable to read it. The admin page unzips it itself.
+  return new Response(buf, { status: 200, headers: { 'Content-Type': 'application/gzip', 'Cache-Control': 'no-store', 'Access-Control-Allow-Origin': '*' } });
 }
 
 async function handleTrackBoardsRebuild(request, env) {

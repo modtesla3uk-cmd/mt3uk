@@ -650,6 +650,8 @@
   document.addEventListener('change', function (e) {
     var sel = e.target.closest && e.target.closest('#tp-lap-pick');
     if (!sel || !view || !view.s) return;
+    // Another session that day: open it.
+    if (sel.value.slice(0, 2) === 'x:') { go('s=' + sel.value.slice(2)); return; }
     lapSel = sel.value ? parseInt(sel.value, 10) : null;
     lapSelFor = view.s.id;
     var box = document.getElementById('tp-headline');
@@ -1700,7 +1702,12 @@
       : 'This ' + word + ', ' + niceDate(s.date) + (s.time ? ' at ' + s.time : '');
     if (s.carSource && s.carSource.name) from += '. The car\'s figures come from ' + s.carSource.name + ', lined up with the lap timer file' + (s.carSource.match ? ' (match ' + Number(s.carSource.match).toFixed(2) + ')' : '') + (s.carSource.g ? '. Speed and g-forces are the car\'s own, not worked out from GPS' : '') + '.';
     var t = [], pct = function (n) { return Math.round(n) + '%'; };
-    if (c.soc) t.push(['Charge used', Math.round(c.soc.start - c.soc.end) + '%', 'Of the battery, ' + c.soc.start.toFixed(0) + '% to ' + c.soc.end.toFixed(0) + '%']);
+    // Small figures (one lap uses 1 to 2%) keep a decimal, so 1.3% is not shown as 1%; bigger ones are whole numbers.
+    if (c.soc) {
+      var used = c.soc.start - c.soc.end, fine = Math.abs(used) < 10;
+      var pc = function (v) { return (fine ? Math.round(v * 10) / 10 : Math.round(v)) + '%'; };
+      t.push(['Charge used', pc(used), 'Of the battery, ' + pc(c.soc.start) + ' to ' + pc(c.soc.end)]);
+    }
     if (c.power) t.push(['Peak power', Math.round(c.power.max) + ' kW', c.power.regen ? 'Regeneration up to ' + Math.round(c.power.regen) + ' kW' : '']);
     if (c.brakePressure) t.push(['Hardest braking', press(c.brakePressure.max, 1) + ' ' + pressUnit, 'Peak brake pressure']);
     if (c.throttle) t.push(['Flat out', Math.round(c.throttle.full * 100) + '%', 'Of the time, throttle at 95% or more']);
@@ -1782,7 +1789,20 @@
     var LWd = s.type === 'sprint' ? 'Run' : 'Lap';
     return '<div class="tp-field tp-lap-pick"><label for="tp-lap-pick">Figures for</label><select class="field" id="tp-lap-pick"><option value="">Whole session</option>' + laps.map(function (l) {
       return '<option value="' + l.n + '"' + (lapSel === l.n ? ' selected' : '') + '>' + esc(lapName(l, s) + ', ' + V.fmtLap(l.time) + (l.n === s.best ? ' (best)' : l.kind === 'in' ? ' (in ' + LWd.toLowerCase() + ')' : '')) + '</option>';
-    }).join('') + '</select></div>';
+    }).join('') + dayOptions(s) + '</select></div>';
+  }
+  // Your other sessions at this track that day, numbered by time of day as the list is, so the day can be
+  // flicked through from here. Choosing one opens it.
+  function dayOptions(s) {
+    if (!s.mine || !view || !view.mine) return '';
+    var k = dayKey(s);
+    if (!k) return '';
+    var day = view.mine.sessions.filter(function (x) { return x.id === s.id || dayKey(x) === k; }).sort(byTime);
+    if (day.length < 2) return '';
+    return '<optgroup label="Your other sessions that day">' + day.map(function (o, i) {
+      if (o.id === s.id) return '';
+      return '<option value="x:' + esc(o.id) + '">' + esc('Session ' + (i + 1) + (o.time ? ', ' + o.time : '') + (o.bestTime ? ', ' + V.fmtLap(o.bestTime) : '')) + '</option>';
+    }).join('') + '</optgroup>';
   }
   function trackHtml(s) {
     var laps = s.laps || [];

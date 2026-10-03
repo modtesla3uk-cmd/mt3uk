@@ -874,6 +874,29 @@ def test_a_session_with_one_lap_still_offers_its_figures_against_the_whole_sessi
     expect(page.locator("#car-data .tp-tile", has_text="Charge used")).to_contain_text("2%")
 
 
+def test_the_figures_picker_lists_your_other_sessions_that_day_and_opens_one(page):
+    """Under the laps, the other sessions at the same track that day, numbered by
+    time of day as the list is. Choosing one opens it."""
+    fake = FakeWorker(earlier=False)
+    rec = car_lap_session()
+    later = dict(rec, id="lp2", time="15:46", bestTime=86.063, laps=[dict(l) for l in rec["laps"]])
+    earlier = dict(rec, id="lp0", time="10:51", bestTime=99.626, laps=[dict(l) for l in rec["laps"]])
+    other_day = dict(rec, id="lp9", date="2026-05-29", time="11:00")
+    for r in (rec, later, earlier, other_day):
+        fake.sessions[r["id"]] = r
+        fake.index.append(summary(r))
+    open_page(page, fake, path="/track.html?s=lp1")
+    group = page.locator("#tp-lap-pick optgroup")
+    expect(group).to_have_attribute("label", "Your other sessions that day")
+    opts = group.locator("option")
+    expect(opts).to_have_count(2)
+    expect(opts.nth(0)).to_have_text("Session 1, 10:51, 1:39.626")
+    expect(opts.nth(1)).to_have_text("Session 3, 15:46, 1:26.063")
+    page.locator("#tp-lap-pick").select_option("x:lp2")
+    expect(page).to_have_url(re.compile(r"track\.html\?s=lp2"))
+    expect(page.locator("#tp-day-place")).to_have_text("Session 3 of 3 that day")
+
+
 def test_the_leaderboard_has_a_my_sessions_button_back_to_your_sessions(page):
     fake = FakeWorker()
     open_page(page, fake, path="/leaderboards.html")
@@ -899,10 +922,16 @@ def test_the_battery_start_and_end_are_rounded_once(page):
     fake.sessions["lp1"] = rec
     fake.index.append(summary(rec))
     open_page(page, fake, path="/track.html?s=lp1")
-    # 62.72 and 60.48 show as 63% and 60%, as the car's own display would, and the charge used is 2%.
+    # Under 10% the figures keep a decimal (a lap uses 1 to 2%, so 1.3% must not read as 1%); the ends match.
     tile = page.locator("#car-data .tp-tile", has_text="Charge used")
-    expect(tile).to_contain_text("2%")
-    expect(tile).to_contain_text("63% to 60%")
+    expect(tile).to_contain_text("2.2%")
+    expect(tile).to_contain_text("62.7% to 60.5%")
+    # A whole day is shown in whole percentages, as the car does.
+    rec["carData"]["soc"] = {"start": 89.01, "end": 74.97}
+    page.reload()
+    tile = page.locator("#car-data .tp-tile", has_text="Charge used")
+    expect(tile).to_contain_text("14%")
+    expect(tile).to_contain_text("89% to 75%")
 
 
 def test_a_lap_timer_file_and_a_track_mode_file_from_one_session_are_joined(page):

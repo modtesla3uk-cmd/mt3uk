@@ -2364,17 +2364,8 @@
   .bf-only-note { border: 1px solid rgba(232,84,42,0.25); border-radius: var(--radius); background: #fdf3ef; }
   .bf-frame { border: 0; border-radius: 14px; }
   .bf-toast, .bf-new-toast { border-radius: var(--radius-pill); }
-  /* Full screen button (top left of the reel) and the full screen state. */
-  .bf-fs-btn {
-    position: absolute; top: 58px; left: 10px; z-index: 9;
-    width: 44px; height: 44px; padding: 0;
-    display: inline-flex; align-items: center; justify-content: center;
-    border: 0; border-radius: 50%; cursor: pointer;
-    background: rgba(5,7,12,0.55); color: #fff;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .bf-fs-btn:hover { background: rgba(5,7,12,0.8); }
-  .bf-fs-btn .icon { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  /* Full screen button (in the bar under each build, between Report and Save) and the full screen state. */
+  .bf-fs-btn .bf-icon-fs { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   .bf-fs-btn .bf-fs-in, .bf-frame.bf-frame-full .bf-fs-btn .bf-fs-out { display: none; }
   .bf-frame.bf-frame-full .bf-fs-btn .bf-fs-in { display: block; }
   .bf-frame.bf-frame-full {
@@ -2384,7 +2375,7 @@
   }
   body.bf-fs-lock { overflow: hidden; }
   /* ---- Build Reel controls: one frosted, rounded look ---- */
-  .bf-top-left { top: 24px; left: 60px; flex-direction: row; }
+  .bf-top-left { top: 24px; left: 12px; flex-direction: row; }
   .bf-recent-btn, .bf-autoscroll-toggle {
     min-height: 40px; padding: 0 14px; gap: 7px;
     border: 0; border-radius: var(--radius-pill);
@@ -2395,8 +2386,6 @@
   .bf-recent-btn svg { width: 15px; height: 15px; }
   .bf-autoscroll-toggle { top: 24px; right: 12px; }
   .bf-autoscroll-icon { width: 9px; height: 9px; }
-  .bf-fs-btn { top: 24px; left: 12px; width: 40px; height: 40px; background: rgba(14,18,28,0.5); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
-  .bf-fs-btn .icon { width: 20px; height: 20px; }
   .bf-post-nav {
     width: 32px; height: 32px; right: 6px; border-radius: 50%;
     background: rgba(14,18,28,0.5); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
@@ -2411,6 +2400,8 @@
   .bf-post-down { bottom: 62px; }
   .bf-progress { top: 116px; bottom: 100px; }
   /* Action bar: roomy round touch targets, and nothing gets squeezed. */
+  .bf-bar { grid-template-columns: auto 1fr auto; }
+  .bf-bar-mid { display: flex; justify-content: center; }
   .bf-bar-left { min-width: 0; }
   .bf-bar-right { flex: none; }
   .bf-rail-btn {
@@ -3559,10 +3550,6 @@
       <div class="bf-progress" id="bf-progress"></div>
       <button type="button" class="bf-post-nav bf-post-down" id="bf-post-down" aria-label="Next build" hidden><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
       <button type="button" class="bf-new-toast" id="bf-new-build-toast">New build added, click to view</button>
-      <button type="button" class="bf-fs-btn" id="bf-fs-btn" aria-label="Full screen" aria-pressed="false">
-        <svg class="icon bf-fs-out" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
-        <svg class="icon bf-fs-in" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>
-      </button>
       <div class="bf-feed" id="bf-feed">
         <p class="mono" style="padding: 24px; color: var(--steel);">Loading builds…</p>
       </div>
@@ -3578,9 +3565,8 @@
       // button, or Esc, goes back.
       (function () {
         var frame = document.getElementById('build-feed-frame');
-        var btn = document.getElementById('bf-fs-btn');
         var feed = document.getElementById('bf-feed');
-        if (!frame || !btn) return;
+        if (!frame || !feed) return;
         var isFull = false;
         function keepPlace() {
           var cur = feed.querySelector('.bf-in-view');
@@ -3591,11 +3577,14 @@
           isFull = on;
           frame.classList.toggle('bf-frame-full', on);
           document.body.classList.toggle('bf-fs-lock', on);
-          btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-          btn.setAttribute('aria-label', on ? 'Exit full screen' : 'Full screen');
+          frame.querySelectorAll('.bf-fs-btn').forEach(function (b) {
+            b.setAttribute('aria-pressed', on ? 'true' : 'false');
+            b.setAttribute('aria-label', on ? 'Exit full screen' : 'Full screen');
+          });
           keepPlace();
         }
-        btn.addEventListener('click', function () {
+        frame.addEventListener('click', function (e) {
+          if (!e.target.closest('.bf-fs-btn')) return;
           var on = !isFull;
           set(on);
           try {
@@ -3909,6 +3898,12 @@
             '</button>' +
             '<button class="bf-rail-btn bf-report-btn" aria-label="Report this image">' +
               iconSvg('bf-icon-report', 'M12 9v4M12 17h.01M10.29 3.86l-8.18 14.17A1.5 1.5 0 0 0 3.4 20.4h17.2a1.5 1.5 0 0 0 1.3-2.37L13.71 3.86a1.5 1.5 0 0 0-2.42 0z') +
+            '</button>' +
+          '</div>' +
+          '<div class="bf-bar-mid">' +
+            '<button type="button" class="bf-rail-btn bf-fs-btn" aria-label="Full screen" aria-pressed="false">' +
+              iconSvg('bf-icon-fs bf-fs-out', 'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5') +
+              iconSvg('bf-icon-fs bf-fs-in', 'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5') +
             '</button>' +
           '</div>' +
           '<div class="bf-bar-right">' +

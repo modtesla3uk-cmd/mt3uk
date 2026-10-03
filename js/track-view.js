@@ -30,7 +30,7 @@
   }
   function el(tag, attrs, parent) {
     var e = document.createElementNS(NS, tag);
-    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    for (var k in attrs) if (attrs[k] != null) e.setAttribute(k, attrs[k]);
     if (parent) parent.appendChild(e);
     return e;
   }
@@ -220,7 +220,7 @@
       hit.addEventListener('pointerleave', function () { place(dotA, null); hideTip(); });
     }
     var sat = satGround(svg, satG, opts.origin, P, s, x0, y0, H, oy, ox);
-    var zoom = zoomControls(svg, { W: W, H: H, sat: sat, pts: trace.map(function (p) { return P(p[2], p[3]); }), onZoom: function (kk) {
+    var zoom = zoomControls(svg, { W: W, H: H, sat: sat, full: opts.full, pts: trace.map(function (p) { return P(p[2], p[3]); }), onZoom: function (kk) {
       k = kk;
       bandWidth(kk);
       lineWidth(kk);
@@ -477,8 +477,17 @@
     box.className = 'tv-zoom-btns';
     var plus = btn('tv-zoom-in', 'Zoom in', 'M12 5v14M5 12h14');
     var minus = btn('tv-zoom-out', 'Zoom out', 'M5 12h14');
-    var reset = btn('tv-zoom-reset', 'Show the whole track', 'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');
+    var reset = btn('tv-zoom-reset', 'Show the whole track', 'M12 3v4M12 17v4M3 12h4M17 12h4M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z');
     box.appendChild(plus); box.appendChild(minus); box.appendChild(reset);
+    // Full screen, when the map has it (cfg.full: { on, toggle }): the page redraws the map on the change, so the
+    // button comes back showing the new state.
+    if (cfg.full) {
+      var isFull = cfg.full.on();
+      var full = btn('tv-zoom-full', isFull ? 'Exit full screen' : 'Full screen map', isFull ? 'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5' : 'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');
+      full.setAttribute('aria-pressed', String(isFull));
+      box.appendChild(full);
+      full.addEventListener('click', function () { cfg.full.toggle(); });
+    }
     wrap.appendChild(box);
     var oldCredit = wrap.querySelector('.tv-sat-credit');
     if (oldCredit) oldCredit.remove();
@@ -642,7 +651,7 @@
         var base = Y(cfg.zero || 0);
         el('path', { d: 'M' + X(sr.pts[0][0]) + ',' + base + ' ' + sr.pts.map(function (p) { return 'L' + X(p[0]).toFixed(1) + ',' + Y(p[1]).toFixed(1); }).join(' ') + ' L' + X(sr.pts[sr.pts.length - 1][0]) + ',' + base + 'Z', fill: sr.color, opacity: 0.12 }, svg);
       }
-      el('path', { d: sr.pts.map(function (p, i) { return (i ? 'L' : 'M') + X(p[0]).toFixed(1) + ',' + Y(p[1]).toFixed(1); }).join(' '), fill: 'none', stroke: sr.color, 'stroke-width': sr.width || 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round', 'stroke-dasharray': sr.dash || 'none' }, svg);
+      el('path', { d: sr.pts.map(function (p, i) { return (i ? 'L' : 'M') + X(p[0]).toFixed(1) + ',' + Y(p[1]).toFixed(1); }).join(' '), fill: 'none', stroke: sr.color, 'stroke-width': sr.width || 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round', 'stroke-dasharray': sr.dash || null }, svg);
     });
     var cross = el('line', { y1: m.t, y2: H - m.b, stroke: C.steel, 'stroke-width': 1, visibility: 'hidden' }, svg);
     var dots = cfg.series.map(function (sr) { return el('circle', { r: 4.5, fill: sr.color, stroke: C.card, 'stroke-width': 2, visibility: 'hidden' }, svg); });

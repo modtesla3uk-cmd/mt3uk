@@ -2153,31 +2153,49 @@ def test_g_force_lines_can_be_switched_on_and_off(page):
     save_thruxton_with_a_member_board(page, fake)
     toggles = page.locator("#tp-gtoggles .chip")
     expect(toggles).to_have_text(["Acceleration G", "Cornering G", "Speed"])
-    expect(page.locator("#tp-gtoggles .chip.is-on")).to_have_count(3)
-    lines = page.locator("#tp-gforce > path[stroke-width]")
-    # Three lines (acceleration solid, cornering dashed, speed dotted), each for lap A (blue) and lap B (orange).
-    expect(lines).to_have_count(6)
-    expect(page.locator("#tp-gforce > path[stroke-dasharray='5 4']")).to_have_count(2)
-    expect(page.locator("#tp-gforce > path[stroke-dasharray='2 3']")).to_have_count(2)
-    expect(page.locator("#tp-gforce > path[stroke='#2a78d6']")).to_have_count(3)
-    expect(page.locator("#tp-gforce > path[stroke='#eb6834']")).to_have_count(3)
+    # A session opens showing one measure, cornering: one chart, lap A blue and lap B orange, two dots, no dashes.
+    expect(page.locator("#tp-gtoggles .chip.is-on")).to_have_text(["Cornering G"])
+    charts, lines = page.locator("#tp-gforce svg"), page.locator("#tp-gforce path[stroke-width]")
+    expect(charts).to_have_count(1)
+    expect(lines).to_have_count(2)
+    expect(page.locator("#tp-gforce path[stroke='#2a78d6']")).to_have_count(1)
+    expect(page.locator("#tp-gforce path[stroke='#eb6834']")).to_have_count(1)
+    expect(page.locator("#tp-gforce path[stroke-dasharray]")).to_have_count(0)
+    expect(page.locator("#tp-gforce circle")).to_have_count(2)
     expect(page.locator("#tp-gnote")).to_contain_text("Blue:")
     expect(page.locator("#tp-gnote")).to_contain_text("Orange:")
     # Cornering keeps its sign: the g scale runs below zero as far as above it, as RaceBox draws it.
     labels = [x.strip() for x in page.locator("#tp-gforce text[text-anchor='end']").all_text_contents()]
     assert labels and labels[0].startswith("-") and labels[0][1:] == labels[-1], labels
-    # Speed has its own scale on the right.
-    expect(page.locator("#tp-gforce text[text-anchor='start']")).to_have_count(4)
-    toggles.nth(0).click()
-    expect(toggles.nth(0)).to_have_attribute("aria-pressed", "false")
-    expect(lines).to_have_count(4)
-    toggles.nth(2).click()
-    expect(lines).to_have_count(2)
     expect(page.locator("#tp-gforce text[text-anchor='start']")).to_have_count(0)
+    # More measures each get a chart of their own, stacked, the two cars in their colours on each; the time labels
+    # sit under the last one only.
+    toggles.nth(0).click()
+    expect(toggles.nth(0)).to_have_attribute("aria-pressed", "true")
+    expect(charts).to_have_count(2)
+    expect(lines).to_have_count(4)
+    expect(page.locator("#tp-gforce svg[data-g='acc'] path[stroke='#2a78d6']")).to_have_count(1)
+    toggles.nth(2).click()
+    expect(charts).to_have_count(3)
+    expect(lines).to_have_count(6)
+    expect(page.locator("#tp-gforce path[stroke-dasharray]")).to_have_count(0)
+    assert [c.bounding_box()["y"] for c in charts.all()] == sorted(c.bounding_box()["y"] for c in charts.all())
+    expect(page.locator("#tp-gforce svg[data-g='acc'] text[text-anchor='middle']")).to_have_count(0)
+    assert page.locator("#tp-gforce svg[data-g='spd'] text[text-anchor='middle']").count() > 2
+    # Speed takes a scale in the member's unit, with no g.
+    labels = [x.strip() for x in page.locator("#tp-gforce svg[data-g='spd'] text[text-anchor='end']").all_text_contents()]
+    assert labels and all(not l.endswith(" g") for l in labels) and labels[0] == "0", labels
+    toggles.nth(0).click()
     toggles.nth(1).click()
+    expect(charts).to_have_count(1)
+    expect(lines).to_have_count(2)
+    # Nothing on says so.
+    toggles.nth(2).click()
     expect(page.locator("#tp-gnote")).to_have_text("Turn a line on to see it.")
     expect(lines).to_have_count(0)
-    toggles.nth(1).click()
+    # Each session opens with cornering alone again.
+    page.reload()
+    expect(page.locator("#tp-gtoggles .chip.is-on")).to_have_text(["Cornering G"])
     expect(lines).to_have_count(2)
     # Hovering shows both laps' values.
     page.locator("#tp-gforce").scroll_into_view_if_needed()
@@ -2207,12 +2225,15 @@ def test_the_map_can_go_full_screen_with_the_numbers_along_the_bottom(page):
     fake = FakeWorker()
     save_thruxton_with_a_member_board(page, fake)
     page.locator("#tp-scrub").evaluate("el => { el.value = 30; el.dispatchEvent(new Event('input', {bubbles: true})); }")
-    full = page.locator("#tp-full")
-    expect(full).to_have_text("Full screen")
-    full.click()
+    # Full screen is switched on from the map's own button; the heading only has the way out.
+    full, mapFull = page.locator("#tp-full"), page.locator("#tp-mapwrap .tv-zoom-full")
+    expect(full).to_be_hidden()
+    expect(mapFull).to_have_attribute("aria-label", "Full screen map")
+    mapFull.click()
     card = page.locator("#tp-mapcard")
     expect(card).to_have_class(re.compile(r"is-full"))
     expect(full).to_have_text("Exit full screen")
+    expect(page.locator("#tp-mapwrap .tv-zoom-full")).to_have_attribute("aria-label", "Exit full screen")
     vp = page.viewport_size
     cb = card.bounding_box()
     assert cb["width"] >= vp["width"] - 1 and cb["height"] >= vp["height"] - 1, (cb, vp)
@@ -2232,7 +2253,7 @@ def test_the_map_can_go_full_screen_with_the_numbers_along_the_bottom(page):
     page.locator("#tp-play-toggle").click()
     page.keyboard.press("Escape")
     expect(card).not_to_have_class(re.compile(r"is-full"))
-    expect(full).to_have_text("Full screen")
+    expect(full).to_be_hidden()
     assert not page.evaluate("document.body.classList.contains('tp-noscroll')")
     assert float(page.locator("#tp-scrub").input_value()) > 30
 
@@ -2241,7 +2262,8 @@ def test_full_screen_map_on_a_phone(page):
     page.set_viewport_size({"width": 390, "height": 844})
     fake = FakeWorker()
     save_thruxton_with_a_member_board(page, fake)
-    page.locator("#tp-full").click()
+    expect(page.locator("#tp-rotate-hint")).to_be_hidden()
+    page.locator("#tp-mapwrap .tv-zoom-full").click()
     expect(page.locator("#tp-mapcard")).to_have_class(re.compile(r"is-full"))
     assert overflow_width(page) <= 0
     mb = page.locator("#tp-map2").bounding_box()
@@ -2249,15 +2271,30 @@ def test_full_screen_map_on_a_phone(page):
     for sel in ("#tp-play-toggle", "#tp-metrics", "#tp-gforce"):
         box = page.locator(sel).bounding_box()
         assert box and box["y"] + box["height"] <= 845, (sel, box)
+    # Upright, a hint to turn the phone; the chart gets a decent share of the screen.
+    expect(page.locator("#tp-rotate-hint")).to_be_visible()
+    assert page.locator("#tp-gforce").bounding_box()["height"] >= 160
+    # All three charts on: the stack is held back so the map keeps its room, and everything still fits the screen.
+    toggles = page.locator("#tp-gtoggles .chip")
+    toggles.nth(0).click()
+    toggles.nth(2).click()
+    expect(page.locator("#tp-gforce svg")).to_have_count(3)
+    mb = page.locator("#tp-map2").bounding_box()
+    assert mb["height"] >= 170, mb
+    gb = page.locator("#tp-gforce").bounding_box()
+    assert gb["height"] <= 250 and gb["y"] + gb["height"] <= 845, gb
+    toggles.nth(0).click()
+    toggles.nth(2).click()
     # A phone on its side: the map takes the whole screen, with the controls and numbers laid over it.
     page.set_viewport_size({"width": 844, "height": 390})
     page.wait_for_timeout(300)
     page.locator("#tp-full").click()
-    page.locator("#tp-full").click()
+    page.locator("#tp-mapwrap .tv-zoom-full").click()
     expect(page.locator("#tp-mapcard")).to_have_class(re.compile(r"is-full"))
+    expect(page.locator("#tp-rotate-hint")).to_be_hidden()
     assert overflow_width(page) <= 0
     mb = page.locator("#tp-map2").bounding_box()
-    assert mb["height"] >= 380 and mb["width"] >= 830, mb
+    assert mb["height"] >= 380 and mb["width"] >= 480, mb
     for sel in ("#tp-play-toggle", "#tp-metrics", "#tp-full", "#tp-speedcol"):
         box = page.locator(sel).bounding_box()
         assert box and box["y"] >= 0 and box["y"] + box["height"] <= 390 and box["x"] + box["width"] <= 844, (sel, box)
@@ -2265,6 +2302,40 @@ def test_full_screen_map_on_a_phone(page):
     # The play controls (bottom left) and the exit button (top right) do not sit on the numbers (top left).
     play, met = page.locator("#tp-play").bounding_box(), page.locator("#tp-metrics").bounding_box()
     assert met["y"] + met["height"] <= play["y"], (met, play)
+    # The colour switch and the exit button are apart, so one is not pressed for the other.
+    sw, ex = page.locator("#tp-speedcol").bounding_box(), page.locator("#tp-full").bounding_box()
+    assert ex["x"] - (sw["x"] + sw["width"]) >= 10, (sw, ex)
+    # The charts have a panel on the right, with the chips and the slider, beside a map that keeps most of the width.
+    expect(page.locator("#tp-gforce svg")).to_have_count(1)
+    expect(page.locator("#tp-gforce svg").first).to_be_visible()
+    expect(page.locator("#tp-scrub")).to_be_visible()
+    gb, mb = page.locator("#tp-gbox").bounding_box(), page.locator("#tp-map2").bounding_box()
+    assert gb["x"] >= mb["x"] + mb["width"] - 1 and gb["x"] + gb["width"] <= 844 and gb["y"] + gb["height"] <= 390, (gb, mb)
+    assert 480 <= mb["width"] <= 530, mb
+    # The colour switch and Exit move into the panel, beside the Show switch, clear of the numbers over the map.
+    ex, sh, met = page.locator("#tp-full").bounding_box(), page.locator("#tp-gshow").bounding_box(), page.locator("#tp-metrics").bounding_box()
+    assert ex["x"] >= gb["x"] and ex["x"] + ex["width"] <= 844, (ex, gb)
+    assert sh["x"] + sh["width"] <= page.locator("#tp-speedcol").bounding_box()["x"], sh
+    assert met["x"] + met["width"] <= mb["x"] + mb["width"] - 48, met
+    toggles = page.locator("#tp-gtoggles .chip")
+    toggles.nth(0).click()
+    toggles.nth(2).click()
+    expect(page.locator("#tp-gforce svg")).to_have_count(3)
+    for svg in page.locator("#tp-gforce svg").all():
+        b = svg.bounding_box()
+        assert b["height"] >= 50 and b["y"] + b["height"] <= 390, b
+    # Charts off: the map has the whole screen, and the switch stays reachable to bring them back.
+    page.locator("#tp-gshow").click()
+    expect(page.locator("#tp-gforce")).to_be_hidden()
+    expect(page.locator("#tp-scrub")).to_be_hidden()
+    assert page.locator("#tp-map2").bounding_box()["width"] >= 830
+    expect(page.locator("#tp-gshow")).to_be_visible()
+    sh, pl = page.locator("#tp-gshow").bounding_box(), page.locator("#tp-play").bounding_box()
+    assert sh["y"] + sh["height"] <= pl["y"], (sh, pl)
+    page.locator("#tp-gshow").click()
+    assert 480 <= page.locator("#tp-map2").bounding_box()["width"] <= 530
+    toggles.nth(0).click()
+    toggles.nth(2).click()
     page.locator("#tp-full").click()
     expect(page.locator("#tp-mapcard")).not_to_have_class(re.compile(r"is-full"))
 
@@ -2956,9 +3027,9 @@ def test_playback_buttons_are_compact_on_a_phone(page):
 def test_g_force_and_speed_chart_has_thin_lines_and_can_be_hidden(page):
     fake = FakeWorker()
     save_thruxton_with_a_member_board(page, fake)
-    lines = page.locator("#tp-gforce > path[stroke-width]")
-    expect(lines).to_have_count(6)
-    assert set(lines.evaluate_all("els => els.map(e => e.getAttribute('stroke-width'))")) == {"1.25"}
+    lines = page.locator("#tp-gforce path[stroke-width]")
+    expect(lines).to_have_count(2)
+    assert set(lines.evaluate_all("els => els.map(e => e.getAttribute('stroke-width'))")) == {"1.5"}
     switch = page.locator("#tp-gshow")
     expect(switch).to_have_attribute("aria-checked", "true")
     switch.click()
@@ -3000,7 +3071,7 @@ def test_the_off_screen_label_is_white_on_the_cars_colour(page):
 def test_the_chart_is_on_time_and_moving_over_it_moves_playback(page):
     fake = FakeWorker()
     save_thruxton_with_a_member_board(page, fake)
-    gs = page.locator("#tp-gforce")
+    gs = page.locator("#tp-gforce svg").first
     gs.scroll_into_view_if_needed()
     # The time axis is the ruler: minutes and seconds along the bottom.
     labels = gs.locator("text[text-anchor='middle']").evaluate_all("els => els.map(e => e.textContent)")
@@ -3009,7 +3080,8 @@ def test_the_chart_is_on_time_and_moving_over_it_moves_playback(page):
     # The slider sits under the chart, with its ends at the chart's axis.
     sb, gb = page.locator("#tp-scrub").bounding_box(), gs.bounding_box()
     assert sb["y"] > gb["y"] + gb["height"] - 4
-    assert sb["x"] > gb["x"] + 30 and sb["x"] + sb["width"] < gb["x"] + gb["width"] - 30, (sb, gb)
+    # Inside the chart's margins: the g scale on the left, and a narrow edge on the right (no second scale there now).
+    assert sb["x"] > gb["x"] + 30 and sb["x"] + sb["width"] < gb["x"] + gb["width"] - 8, (sb, gb)
     # Moving over the chart moves playback there: slider, clock and the line on the chart.
     page.mouse.move(gb["x"] + gb["width"] * 0.5, gb["y"] + gb["height"] * 0.4)
     page.mouse.move(gb["x"] + gb["width"] * 0.6, gb["y"] + gb["height"] * 0.4)

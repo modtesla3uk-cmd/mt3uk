@@ -30,6 +30,7 @@
     upload: '<path d="M12 15V3M7 8l5-5 5 5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/>',
     flag: '<path d="M4 21V4M4 4h12l-2 4 2 4H4"/>',
     expand: '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',
+    rotate: '<rect x="8" y="3" width="8" height="18" rx="1.5"/><path d="M3 9a9 9 0 0 1 2.5-4.5M3 9l2.5-.5M3 9l-.5-2.5M21 15a9 9 0 0 1-2.5 4.5M21 15l-2.5.5M21 15l.5 2.5"/>',
     start: '<path fill="currentColor" stroke="none" d="M5 4h2v16H5zM20 4.5v15a1 1 0 0 1-1.5.86L8 12.86a1 1 0 0 1 0-1.72l10.5-7.5A1 1 0 0 1 20 4.5Z"/>',
     play: '<path fill="currentColor" stroke="none" d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5Z"/>',
     pause: '<path fill="currentColor" stroke="none" d="M6 4h4v16H6zM14 4h4v16h-4z"/>',
@@ -1825,6 +1826,7 @@
     var laps = s.laps || [];
     var best = laps.filter(function (l) { return l.n === s.best; })[0];
     if (lapSelFor !== s.id) { lapSel = null; lapSelFor = s.id; }
+    gReset(s.id);
     var h = lapPickHtml(s) + '<div id="tp-headline">' + headlineHtml(s) + '</div>';
     // The lap times, folded away until opened (shown after Compare laps).
     var lapsHtml = '<details class="card tp-laps" id="tp-laps"' + (lapsOpen ? ' open' : '') + '><summary><h3>Laps</h3><span class="tp-small">' + laps.length + ' ' + (laps.length === 1 ? 'lap' : 'laps') + (best ? ', best ' + V.fmtLap(best.time) : '') + '</span>' + icon('chev') + '</summary><div class="tp-scroll"><table class="tp-table">' + lapTable(s) + '</table></div>' +
@@ -1837,7 +1839,7 @@
         '<div class="tp-grid tp-g-map"><div class="tp-grid"><div class="card tp-o-speed"><div class="tp-chart-head"><h3>Speed through the lap</h3><div class="tp-key" id="tp-key"></div></div><svg class="tv-chart" id="tp-speed" role="img" aria-label="Speed against distance for both laps"></svg>' +
         '<div class="tp-chart-head"><h3>Time gap</h3><span class="tp-small" id="tp-gap-cap"></span></div><svg class="tv-chart" id="tp-delta" role="img" aria-label="Running time gap between the laps"></svg></div>' +
         '<div class="card tp-o-corner"><h3>Corner by corner</h3><div class="tp-scroll"><table class="tp-table" id="tp-corners"></table></div></div></div>' +
-        '<div class="tp-grid"><div class="card tp-mapcard" id="tp-mapcard"><div class="tp-chart-head tp-map-head"><h3>Where you are</h3><button type="button" class="tp-switch tp-gswitch tp-speedsw" role="switch" id="tp-speedcol" aria-checked="' + cmpSpeed + '"><span>Colour by speed</span><span class="tp-track"></span></button><button type="button" class="btn btn-secondary btn-sm" id="tp-full" aria-label="Full screen map"></button></div>' +
+        '<div class="tp-grid"><div class="card tp-mapcard" id="tp-mapcard"><div class="tp-chart-head tp-map-head"><h3>Where you are</h3><button type="button" class="tp-switch tp-gswitch tp-speedsw" role="switch" id="tp-speedcol" aria-checked="' + cmpSpeed + '"><span>Colour by speed</span><span class="tp-track"></span></button><span class="tp-rotate-hint" id="tp-rotate-hint" role="img" aria-label="Turn your phone for a bigger map" title="Turn your phone for a bigger map">' + icon('rotate') + '</span><button type="button" class="btn btn-secondary btn-sm" id="tp-full" aria-label="Full screen map"></button></div>' +
         '<p class="tp-small tp-sync-note">Both laps at the same moment: the slower one trails by the time gap.</p>' +
         '<div class="tp-play" id="tp-play"><div class="tp-play-row"><div class="tp-play-btns"><button type="button" class="btn btn-secondary" id="tp-play-start" data-play="start" aria-label="Go back to the start"></button><button type="button" class="btn btn-secondary" id="tp-play-back" data-play="back"></button><button type="button" class="btn btn-primary" id="tp-play-toggle" data-play="toggle"></button></div>' +
         '<div class="tp-chips" id="tp-speeds" role="group" aria-label="Playback speed">' + [['0.5', 'x0.5'], ['1', 'x1'], ['2', 'x2'], ['5', 'x5']].map(function (v) { return '<button type="button" class="chip" data-speed="' + v[0] + '">' + v[1] + '</button>'; }).join('') + '</div>' +
@@ -1846,8 +1848,8 @@
         '<div class="tp-mapwrap" id="tp-mapwrap"><svg class="tv-chart" id="tp-map2" role="img" aria-label="Track map with both laps\' lines and positions"></svg>' +
         '<div class="tp-chart-foot tp-speedkey" id="tp-speedkey"' + (cmpSpeed ? '' : ' hidden') + '><span class="tp-ramp"><span id="tp-ramp-lo"></span><i></i><span id="tp-ramp-hi"></span></span><span>Lap A coloured by speed, lap B dashed. Numbers are the slowest corners.</span></div></div>' +
         '<div class="tp-metrics" id="tp-metrics" aria-live="off"></div>' +
-        '<div class="tp-gbox" id="tp-gbox"><div class="tp-chart-head"><h3>G-force' + (s.gDerived ? ' (estimated)' : '') + ' and speed</h3><button type="button" class="tp-switch tp-gswitch" role="switch" id="tp-gshow" aria-checked="' + !gHidden + '"><span>Show</span><span class="tp-track"></span></button><div class="tp-chips" id="tp-gtoggles" role="group" aria-label="G-force lines to show">' + G_DEFS.map(function (d) { return '<button type="button" class="chip chip-sm is-on" data-g="' + d[0] + '" aria-pressed="true"><i class="tp-gkey tp-gkey-' + d[0] + '"></i>' + d[1] + '</button>'; }).join('') + '</div></div>' +
-        '<svg class="tv-chart" id="tp-gforce" role="img" aria-label="Acceleration, cornering and speed over the lap for both laps"></svg>' +
+        '<div class="tp-gbox" id="tp-gbox"><div class="tp-chart-head"><h3>G-force' + (s.gDerived ? ' (estimated)' : '') + ' and speed</h3><button type="button" class="tp-switch tp-gswitch" role="switch" id="tp-gshow" aria-checked="' + !gHidden + '"><span>Show</span><span class="tp-track"></span></button><div class="tp-chips" id="tp-gtoggles" role="group" aria-label="G-force lines to show">' + G_DEFS.map(function (d) { return '<button type="button" class="chip chip-sm' + (gShow[d[0]] ? ' is-on' : '') + '" data-g="' + d[0] + '" aria-pressed="' + !!gShow[d[0]] + '">' + d[1] + '</button>'; }).join('') + '</div></div>' +
+        '<div class="tp-gcharts" id="tp-gforce"></div>' +
         // The slider sits under the chart, lined up with its time axis.
         '<div class="tp-scrub-row"><div class="tp-scrub-track" id="tp-scrub-track"><div class="tp-ruler" id="tp-ruler" aria-hidden="true"></div><input type="range" id="tp-scrub" min="0" max="100" step="0.01" value="0" aria-label="Position in the lap"></div><span class="tp-clock" id="tp-clock">0:00.0</span></div>' +
         '<p class="tp-small" id="tp-gnote"></p></div></div>' +
@@ -1986,10 +1988,13 @@
     if (s.mine) drawOverTime(s);
   }
   // How the two laps are lined up on the "Where you are" map.
-  // Lines the G-force chart can show (key, label, dash). Colour says whose lap it is, as on the map (blue A, orange B);
-  // the dash says which line: acceleration solid, cornering dashed, speed dotted.
-  var G_DEFS = [['acc', 'Acceleration G', null], ['cor', 'Cornering G', '5 4'], ['spd', 'Speed', '2 3']];
-  var gShow = { acc: true, cor: true, spd: true };
+  // What the G-force charts show (key, label). Each measure switched on gets a chart of its own, stacked, with lap A
+  // in its blue and lap B in its orange, as on the map, so colour always means the car. Each session opens showing
+  // one, cornering; more can be switched on with the chips.
+  var G_DEFS = [['acc', 'Acceleration G'], ['cor', 'Cornering G'], ['spd', 'Speed']];
+  var gShow = { acc: false, cor: true, spd: false }, gShowFor = null;
+  function gReset(id) { if (gShowFor !== id) { gShow = { acc: false, cor: true, spd: false }; gShowFor = id; } }
+
   // The whole G-force and speed chart can be hidden (remembered in this browser).
   var gHidden = false;
   try { gHidden = localStorage.getItem('mt3ukTrackChart') === 'off'; } catch (e) { /* storage blocked */ }
@@ -2146,12 +2151,16 @@
       try { localStorage.setItem('mt3ukTrackSpeedLine', cmpSpeed ? 'on' : 'off'); } catch (e) { /* storage blocked */ }
       if (view && view.s) drawCompare(view.s, true);
     });
-    var gs = document.getElementById('tp-gshow'), gbox = document.getElementById('tp-gbox');
+    var gs = document.getElementById('tp-gshow'), gbox = document.getElementById('tp-gbox'), mcard = document.getElementById('tp-mapcard');
+    // On a phone on its side in full screen, the charts have a panel beside the map; without them the map has it all.
+    function chartsClass() { if (mcard) mcard.classList.toggle('has-charts', !gHidden); }
     if (gbox) gbox.classList.toggle('is-off', gHidden);
+    chartsClass();
     if (gs) gs.addEventListener('click', function () {
       gHidden = !gHidden;
       gs.setAttribute('aria-checked', String(!gHidden));
       gbox.classList.toggle('is-off', gHidden);
+      chartsClass();
       try { localStorage.setItem('mt3ukTrackChart', gHidden ? 'off' : 'on'); } catch (e) { /* storage blocked */ }
       // Full screen: the map takes the room, so draw it to its new size.
       if (cmpFull && view && view.s) drawCompare(view.s, true);
@@ -2201,7 +2210,7 @@
         : (A === B ? [{ trace: A.trace, color: c1 }] : [{ trace: B.trace, color: c2 }, { trace: A.trace, color: c1 }]);
       // The whole session's laps underneath as the track's width.
       var band = Object.keys(s.trace.laps).map(function (k) { return s.trace.laps[k]; });
-      var mo = V.map(mapEl, A.trace, { fill: fill, mono: true, lines: lines, band: band, startLine: startLineXY(s), finishLine: s.type === 'sprint' ? startLineXY(s, s.finishLine) : null, corners: s.corners, origin: s.origin });
+      var mo = V.map(mapEl, A.trace, { fill: fill, mono: true, lines: lines, band: band, full: { on: function () { return cmpFull; }, toggle: function () { setFull(!cmpFull); } }, startLine: startLineXY(s), finishLine: s.type === 'sprint' ? startLineXY(s, s.finishLine) : null, corners: s.corners, origin: s.origin });
       var lo = document.getElementById('tp-ramp-lo'), hi = document.getElementById('tp-ramp-hi');
       if (mo && lo && hi) { lo.textContent = V.fmtV(mo.vmin); hi.textContent = V.fmtV(mo.vmax); }
       cmpMap = mo;
@@ -2231,7 +2240,7 @@
         setM('a-v', V.fmtV(pa[4])); setM('a-acc', fmtAcc(ra[1])); setM('a-cor', fmtCor(ra[2]));
         if (A !== B) { setM('b-v', V.fmtV(pb[4])); setM('b-acc', fmtAcc(rb[1])); setM('b-cor', fmtCor(rb[2])); setM('gap', 'A is ' + Math.abs(g).toFixed(2) + ' s ' + (g >= 0 ? 'ahead' : 'behind')); }
       }
-      function charts() { return [sp, dl, gl].filter(Boolean); }
+      function charts() { return [sp, dl].concat(gls).filter(Boolean); }
       // The quicker lap is at x and the other is wherever it was at that
       // elapsed time, so it trails by the time gap.
       function move(x) {
@@ -2259,7 +2268,7 @@
         var x = Math.min(dmax, Math.max(distAtTime(A.trace, t), distAtTime(B.trace, t)));
         move(x);
         [sp, dl].forEach(function (o) { if (o) o.show(x); });
-        if (gl) gl.show(Math.min(t, tEndG));
+        gls.forEach(function (g) { g.show(Math.min(t, tEndG)); });
         var sc = document.getElementById('tp-scrub'), ck = document.getElementById('tp-clock');
         if (sc) { sc.value = t; scrubFill(sc); }
         if (ck) ck.textContent = clock(t) + ' / ' + clock(pb.tEnd);
@@ -2275,8 +2284,8 @@
         if (gShow.spd) h += V.row('Speed, A', V.fmtV(at(spA, x)[1]), c1) + (A === B ? '' : V.row('Speed, B', V.fmtV(at(spB, x)[1]), c2));
         return h;
       }
-      // The G-force lines: lap A in its blue and lap B in its orange, each line in its own dash, each
-      // switched on or off with its chip.
+      // The charts: one for each measure switched on, stacked on a shared time axis, lap A in blue and lap B in
+      // orange. Moving over any of them moves the cursor on all, and playback with it.
       // The G-force and speed chart runs on time, like playback and the map: at
       // any point it shows both laps at the same moment, and its time axis is
       // the ruler for the slider underneath.
@@ -2292,34 +2301,57 @@
         return out;
       }
       function mss(v) { return Math.floor(v / 60) + ':' + ('0' + Math.round(v % 60)).slice(-2); }
-      var gl = null;
+      var gls = [];
       function drawG() {
-        var gs = document.getElementById('tp-gforce'), note = document.getElementById('tp-gnote');
-        if (!gs) return;
-        var defs = G_DEFS.filter(function (d) { return gShow[d[0]]; }), series = [], lo = 0, hi = 0.5;
-        defs.filter(function (d) { return d[0] !== 'spd'; }).forEach(function (d) {
-          var col = d[0] === 'acc' ? 1 : 2;
-          [gaT, gbT].forEach(function (lp, li) {
-            if (li && A === B) return;
-            lp.forEach(function (r) { lo = Math.min(lo, r[col]); hi = Math.max(hi, r[col]); });
-            series.push({ color: li ? c2 : c1, width: 1.25, dash: d[2], pts: lp.map(function (r) { return [r[0], r[col]]; }), at: function (x) { return at(lp, x)[col]; } });
-          });
-        });
-        // Speed on its own scale, on the right.
-        var spdOn = gShow.spd, sy = V.nice(0, vmax, 3);
-        if (spdOn) [spA, spB].forEach(function (lp, li) {
-          if (li && A === B) return;
-          series.push({ axis: 2, color: li ? c2 : c1, width: 1.25, dash: G_DEFS[2][2], pts: lp, at: function (x) { return at(lp, x)[1]; } });
-        });
+        var box = document.getElementById('tp-gforce'), note = document.getElementById('tp-gnote');
+        if (!box) return;
+        var defs = G_DEFS.filter(function (d) { return gShow[d[0]]; });
         if (note) note.textContent = !defs.length ? 'Turn a line on to see it.' : A === B ? A.label : 'Blue: ' + A.label + ' (A). Orange: ' + B.label + ' (B).';
-        if (!defs.length) { gs.innerHTML = ''; gs.removeAttribute('viewBox'); gl = null; alignScrub(); return; }
-        // The g scale is even about zero, so a corner one way is drawn as big as the same corner the other way.
-        var gm = Math.ceil(Math.max(-lo, hi) * 2) / 2, gy = V.nice(-gm, gm, 4);
-        gl = V.line(gs, {
-          H: cmpFull ? 110 : 150, x0: 0, x1: tEndG, y0: gy[0], y1: gy[gy.length - 1], xt: timeTicks(gs.clientWidth || 600), xf: mss, yt: gy, zero: 0, yf: function (v) { return v + ' g'; },
-          y2: spdOn ? { y0: 0, y1: sy[sy.length - 1], yt: sy, yf: function (v) { return String(v); } } : null,
-          // Moving over the chart moves playback to that moment, slider and all.
-          series: series, tip: tipG, onMove: function (t) { stopPlay(); pb.active = true; pb.t = t; renderAt(t); }, onLeave: leave
+        box.innerHTML = '';
+        gls = [];
+        if (!defs.length) { alignScrub(); return; }
+        // One chart has the full height (in full screen a share of a tall screen); stacked ones are shorter each. In
+        // full screen the stack as a whole is held to a quarter more than one chart, so the map keeps its room.
+        var base = cmpFull ? Math.max(110, Math.min(200, Math.round(window.innerHeight * 0.22))) : 150;
+        var H = defs.length === 1 ? base : cmpFull ? Math.max(70, Math.round(base * 1.25 / defs.length)) : Math.max(96, Math.round(base * 0.7));
+        // A phone on its side in full screen: the charts share a panel beside the map, the height of the screen less
+        // the switch, the chips and the slider.
+        if (cmpFull && window.innerWidth > window.innerHeight && window.innerHeight <= 560) H = Math.max(56, Math.floor((Math.max(120, window.innerHeight - 150) - (defs.length - 1) * 2) / defs.length));
+        var xt = timeTicks(box.clientWidth || 600);
+        defs.forEach(function (d, di) {
+          var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          svg.setAttribute('class', 'tv-chart tp-gchart');
+          svg.setAttribute('data-g', d[0]);
+          svg.setAttribute('role', 'img');
+          svg.setAttribute('aria-label', d[1] + ' over the lap for both laps');
+          box.appendChild(svg);
+          var series = [], gy, tip;
+          if (d[0] === 'spd') {
+            gy = V.nice(0, vmax, 4);
+            [spA, spB].forEach(function (lp, li) {
+              if (li && A === B) return;
+              series.push({ color: li ? c2 : c1, width: 1.5, pts: lp, at: function (x) { return at(lp, x)[1]; } });
+            });
+            tip = function (x) { return '<b>' + clock(x) + '</b>' + V.row('Speed, A', V.fmtV(at(spA, x)[1]), c1) + (A === B ? '' : V.row('Speed, B', V.fmtV(at(spB, x)[1]), c2)); };
+          } else {
+            var col = d[0] === 'acc' ? 1 : 2, lo = 0, hi = 0.5, fmt = col === 1 ? fmtAcc : fmtCor, word = col === 1 ? 'Accel' : 'Corner';
+            [gaT, gbT].forEach(function (lp, li) {
+              if (li && A === B) return;
+              lp.forEach(function (r) { lo = Math.min(lo, r[col]); hi = Math.max(hi, r[col]); });
+              series.push({ color: li ? c2 : c1, width: 1.5, pts: lp.map(function (r) { return [r[0], r[col]]; }), at: function (x) { return at(lp, x)[col]; } });
+            });
+            // The g scale is even about zero, so a corner one way is drawn as big as the same corner the other way.
+            var gm = Math.ceil(Math.max(-lo, hi) * 2) / 2;
+            gy = V.nice(-gm, gm, defs.length === 1 ? 4 : 2);
+            tip = function (x) { return '<b>' + clock(x) + '</b>' + V.row(word + ', A', fmt(at(gaT, x)[col]), c1) + (A === B ? '' : V.row(word + ', B', fmt(at(gbT, x)[col]), c2)); };
+          }
+          var spd = d[0] === 'spd';
+          gls.push(V.line(svg, {
+            // The time labels sit under the last chart only; the ones above share its axis.
+            H: H, x0: 0, x1: tEndG, y0: gy[0], y1: gy[gy.length - 1], xt: di === defs.length - 1 ? xt : [], xf: mss, yt: gy, zero: spd ? null : 0, yf: function (v) { return spd ? String(v) : v + ' g'; },
+            // Moving over a chart moves playback to that moment, slider, cursors and all.
+            series: series, tip: tip, onMove: function (t) { stopPlay(); pb.active = true; pb.t = t; renderAt(t); }, onLeave: leave
+          }));
         });
         alignScrub();
         if (pb.active && pb.render) pb.render(pb.t);
@@ -2328,7 +2360,7 @@
       cmpAlign = function () { alignScrub(); };
       // The slider's ends line up with the chart's time axis, so the chart is its ruler.
       function alignScrub() {
-        var tr = document.getElementById('tp-scrub-track'), gs = document.getElementById('tp-gforce'), box = document.getElementById('tp-gbox');
+        var tr = document.getElementById('tp-scrub-track'), gs = document.getElementById('tp-gforce'), box = document.getElementById('tp-gbox'), gl = gls[0];
         if (!tr) return;
         var on = gl && gl.plot && gs && box && !box.classList.contains('is-off') && gs.clientWidth;
         var k = on ? gs.clientWidth / gl.plot.W : 1;

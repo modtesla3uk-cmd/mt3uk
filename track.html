@@ -190,11 +190,8 @@
   .tp-mv i { font-style: normal; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); }
   .tp-mgap { color: var(--steel); font-size: 0.82rem; font-variant-numeric: tabular-nums; min-height: 1.2em; }
   .tp-gbox { margin-top: 10px; }
-  /* The chips' line samples: acceleration solid, cornering dashed, speed dotted, as the chart draws them. */
-  .tp-gkey { display: inline-block; width: 16px; height: 3px; border-radius: 2px; background: currentColor; }
-  .tp-gkey-cor { background: repeating-linear-gradient(90deg, currentColor 0 5px, transparent 5px 9px); border-radius: 0; }
-  .tp-gkey-spd { background: repeating-linear-gradient(90deg, currentColor 0 2px, transparent 2px 5px); border-radius: 0; }
   .tp-gbox .chip:not(.is-on) { opacity: 0.6; }
+  .tp-gcharts { display: grid; gap: 2px; }
   .tp-gbox .tp-gswitch { width: auto; min-height: 44px; margin: 0 0 0 auto; gap: 8px; font-size: 0.85rem; color: var(--steel); flex: none; order: 3; }
   .tp-gbox .tp-chart-head { flex-wrap: wrap; align-items: center; column-gap: 10px; }
   .tp-gbox .tp-chart-head h3 { order: 1; }
@@ -214,24 +211,60 @@
   .tp-mapcard.is-full .tp-mapwrap { order: 1; flex: 1 1 auto; min-height: 0; }
   .tp-mapcard.is-full .tv-zoom-wrap { height: 100%; }
   .tp-mapcard.is-full #tp-map2 { width: 100%; height: 100%; }
-  .tp-mapcard.is-full .tp-play { order: 2; margin: 8px 0 2px; gap: 6px; }
-  .tp-mapcard.is-full .tp-metrics { order: 3; margin: 6px 0 2px; }
+  .tp-mapcard.is-full .tp-play { order: 2; margin: 6px 0 0; gap: 6px; }
+  .tp-mapcard.is-full .tp-play .btn { min-height: 40px; }
+  .tp-mapcard.is-full .tp-play .chip { min-height: 36px; }
+  .tp-mapcard.is-full .tp-metrics { order: 3; margin: 4px 0 0; gap: 2px; }
+  /* The numbers on one line each, so the chart below gets the room. */
+  .tp-mapcard.is-full .tp-metrics .tp-mv small { display: none; }
+  .tp-mapcard.is-full .tp-mrow { gap: 4px 10px; }
+  .tp-mapcard.is-full .tp-mrow b { -webkit-line-clamp: 1; }
+  .tp-mapcard.is-full .tp-mgap { min-height: 0; }
+  /* On a phone, full screen keeps the heading to one line (just the switch) and drops the note under the chart, so
+     the map and the chart share the screen. */
+  @media (max-width: 780px) {
+    .tp-mapcard.is-full .tp-map-head { flex-wrap: nowrap; gap: 6px; }
+    .tp-mapcard.is-full .tp-map-head .tp-speedsw > span:first-child { display: none; }
+    .tp-mapcard.is-full .tp-map-head .tp-rotate-hint { margin-left: auto; }
+    .tp-mapcard.is-full .tp-map-head #tp-full { margin-left: 0; }
+    .tp-mapcard.is-full #tp-gnote { display: none; }
+    .tp-mapcard.is-full #tp-gtoggles .chip { min-height: 32px; padding: 0 9px; font-size: 0.78rem; }
+    .tp-mapcard.is-full .tp-gbox .tp-chart-head h3 { font-size: 0.95rem; }
+  }
   .tp-mapcard.is-full .tp-gbox { order: 4; margin-top: 4px; }
   .tp-mapcard.is-full .tp-gbox .tp-chart-head { margin-bottom: 2px; }
-  @media (max-height: 560px) { .tp-mapcard.is-full .tp-gbox, .tp-mapcard.is-full .tp-scrub-row { display: none; } }
-  /* A phone on its side: the map takes the whole screen and the controls, the key and the numbers sit on top of it. */
+  @media (max-height: 560px) and (orientation: portrait) { .tp-mapcard.is-full .tp-gbox, .tp-mapcard.is-full .tp-scrub-row { display: none; } }
+  /* A phone on its side: the map fills the screen with the controls, the key and the numbers on top of it, and the
+     charts in a panel on the right (the map has the whole screen when they are switched off). */
   @media (max-height: 560px) and (orientation: landscape) {
     .tp-mapcard.is-full { padding: 0; }
-    .tp-mapcard.is-full .tp-mapwrap { position: absolute; inset: 0; }
+    /* By id: a later rule gives the map box position: relative in full screen, and this one must win. */
+    #tp-mapcard.is-full .tp-mapwrap { position: absolute; inset: 0; }
+    #tp-mapcard.is-full.has-charts .tp-mapwrap { right: 40%; }
     .tp-mapcard.is-full .tp-map-head, .tp-mapcard.is-full .tp-play, .tp-mapcard.is-full .tp-metrics { position: absolute; z-index: 2; margin: 0; border-radius: var(--radius-sm); background: rgba(255,255,255,.88); }
-    .tp-mapcard.is-full .tp-map-head { top: 6px; right: 58px; width: auto; gap: 4px; padding: 0 4px; }
+    .tp-mapcard.is-full .tp-map-head { top: 6px; right: 58px; width: auto; gap: 14px; padding: 0 4px 0 10px; }
+    /* With the charts on, the colour switch and Exit sit in the panel's second row, beside the Show switch, so the
+       map's top is left to the key, the numbers and the zoom buttons. */
+    .tp-mapcard.is-full.has-charts .tp-map-head { top: 38px; right: 6px; max-width: calc(40% - 100px); flex-wrap: wrap; justify-content: flex-end; gap: 10px; background: transparent; padding: 0; }
+    .tp-mapcard.is-full.has-charts .tp-map-head .tp-speedsw > span:first-child { display: inline; }
+    .tp-mapcard.is-full.has-charts #tp-full { font-size: 0; gap: 0; padding: 0 12px; }
+    .tp-mapcard.is-full.has-charts #tp-full .icon { width: 18px; height: 18px; }
+    .tp-mapcard.is-full.has-charts .tp-play { max-width: calc(60% - 12px); }
+    .tp-mapcard.is-full .tp-mrow b { max-width: 150px; }
+    .tp-mapcard.is-full .tp-gbox { position: absolute; top: 0; right: 0; bottom: 0; width: 40%; margin: 0; padding: 4px 8px calc(4px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; overflow: hidden; background: var(--paper); border-left: 1px solid var(--hairline); }
+    .tp-mapcard.is-full .tp-gbox .tp-chart-head { margin: 0; min-height: 0; }
+    .tp-mapcard.is-full .tp-gbox .tp-chart-head h3 { display: none; }
+    .tp-mapcard.is-full .tp-gbox .tp-gswitch { min-height: 32px; margin-left: 0; order: 3; }
+    .tp-mapcard.is-full #tp-gtoggles { flex-basis: auto; order: 1; }
+    .tp-mapcard.is-full #tp-gtoggles .chip { min-height: 30px; padding: 0 8px; font-size: 0.76rem; }
+    .tp-mapcard.is-full #tp-gnote { display: none; }
+    .tp-mapcard.is-full .tp-gbox.is-off { top: 52px; bottom: auto; right: 58px; width: auto; padding: 2px 6px; border: 0; border-radius: var(--radius-sm); background: rgba(255,255,255,.88); }
+    .tp-mapcard.is-full .tp-gbox.is-off .tp-scrub-row, .tp-mapcard.is-full .tp-gbox.is-off .tp-clock { display: none; }
     .tp-mapcard.is-full .tp-map-head .tp-speedsw, .tp-mapcard.is-full .tp-map-head #tp-full { min-height: 40px; padding-top: 0; padding-bottom: 0; }
     .tp-mapcard.is-full .tp-map-head .tp-speedsw > span:first-child { display: none; }
     .tp-mapcard.is-full .tp-play { left: 6px; bottom: calc(6px + env(safe-area-inset-bottom)); right: auto; padding: 4px 6px; }
     .tp-mapcard.is-full .tp-play .btn { min-height: 40px; }
     .tp-mapcard.is-full .tp-metrics { left: 6px; top: 46px; padding: 2px 8px; font-size: 0.78rem; }
-    .tp-mapcard.is-full .tp-metrics .tp-mv small { display: none; }
-    .tp-mapcard.is-full .tp-metrics .tp-mrow { gap: 6px 10px; }
     .tp-mapcard.is-full .tp-speedkey { top: 6px; left: 6px; }
   }
   .tp-clock { font-size: 0.82rem; font-variant-numeric: tabular-nums; color: var(--steel); white-space: nowrap; }
@@ -361,6 +394,13 @@
   .tp-map-head .tp-speedsw { width: auto; min-height: 44px; margin: 0 0 0 auto; gap: 8px; font-size: 0.85rem; color: var(--steel); flex: none; }
   .tp-speedkey { margin-top: 6px; }
   .tp-speedkey[hidden] { display: none; }
+  /* Full screen is switched on from the map's own button; the one in the heading only shows the way out. */
+  .tp-mapcard:not(.is-full) #tp-full { display: none; }
+  .tp-mapcard:not(.is-full) .tp-map-head .tp-speedsw { margin-left: auto; }
+  /* A hint to turn the phone, only in full screen on an upright phone. */
+  .tp-rotate-hint { display: none; align-items: center; justify-content: center; width: 40px; height: 40px; color: var(--steel); }
+  .tp-rotate-hint .icon { width: 22px; height: 22px; }
+  @media (max-width: 780px) and (orientation: portrait) { .tp-mapcard.is-full .tp-rotate-hint { display: inline-flex; } }
   /* Full screen: no title, and just the colour key, so the map keeps its room */
   .tp-mapcard.is-full .tp-map-head h3 { display: none; }
   .tp-mapcard.is-full .tp-map-head .tp-speedsw { margin-left: 0; }
@@ -767,10 +807,10 @@
   }
 </script>
 
-<script src="js/track-parse.js?v=20261029" defer></script>
-<script src="js/track-view.js?v=20261029" defer></script>
+<script src="js/track-parse.js?v=20261031" defer></script>
+<script src="js/track-view.js?v=20261031" defer></script>
 <script src="js/tyre-data.js"></script>
-<script src="js/track-page.js?v=20261029" defer></script>
+<script src="js/track-page.js?v=20261031" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js" defer></script>
 <script src="js/signin-prompt.js" defer></script>

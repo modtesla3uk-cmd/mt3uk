@@ -3917,7 +3917,8 @@ def test_a_session_whose_readings_were_not_kept_says_so_and_why(page):
     expect(page.locator("#tp-saved")).to_contain_text("Your readings were not kept (Those readings are too big to keep)")
     box = page.locator("#lineedit")
     expect(box).to_contain_text("readings were not kept")
-    expect(box).to_contain_text("Add the file again as a new session")
+    expect(box).to_contain_text("add the file again as a new session")
+    expect(box.get_by_role("button", name="Add the readings again")).to_be_visible()
     expect(page.get_by_role("button", name="Request Edit Map")).to_have_count(0)
 
 
@@ -3994,3 +3995,28 @@ def test_the_line_picture_is_a_jpeg_of_the_lines_even_with_no_satellite_imagery(
       return { type: blob.type, size: blob.size, w: bmp.width, h: bmp.height };
     }""")
     assert out["type"] == "image/jpeg" and out["w"] == 1000 and out["h"] == 600 and out["size"] > 3000, out
+
+
+def test_add_the_readings_again_repairs_a_session_saved_without_them(page):
+    """A session whose readings were not kept gets them from the same file, with no duplicate session, and then the
+    Request Edit Map box and the type change work."""
+    fake = FakeWorker()
+    fake.fail_source = True
+    save_fixture_session(page, fake)
+    fake.fail_source = False
+    before = len(fake.sessions)
+    page.locator("#lineedit [data-readings-file]").set_input_files(str(FIXTURE))
+    expect(page.get_by_role("button", name="Request Edit Map")).to_be_visible()
+    assert "new1" in fake.sources and len(fake.sessions) == before
+    expect(page.locator("#settings [data-retype]")).to_have_count(1)
+
+
+def test_add_the_readings_again_refuses_a_different_file(page):
+    fake = FakeWorker()
+    fake.fail_source = True
+    save_fixture_session(page, fake)
+    fake.fail_source = False
+    bad = ROOT / "tests" / "fixtures" / "abingdon-glitches.csv"
+    page.locator("#lineedit [data-readings-file]").set_input_files(str(bad))
+    expect(page.locator("#lineedit [data-readings-note]")).to_contain_text(re.compile(r"does not look like the file|could be read|do not recognise"))
+    assert "new1" not in fake.sources

@@ -833,6 +833,35 @@
   function fileKey(rd, i) {
     return rd.startedAt || (rd.fileDate ? Date.parse(rd.fileDate + 'T' + (rd.fileTime || '00:00') + ':00Z') : 0) || i;
   }
+  // A lap timer's file and a Track Mode file from the same session: line them up by their speed and keep one
+  // session, timed by the lap timer and with the car's figures. A car file that will not line up reliably is
+  // saved on its own, and says why. Used by adding a file and by adding the readings again.
+  function joinCarFiles(good, mergeOff) {
+    var carFiles = good.filter(function (x) { return x.rd.format === 'CSV' && x.rd.points.some(function (p) { return p.ch; }); });
+    var timerFiles = good.filter(function (x) { return carFiles.indexOf(x) === -1; });
+    var joined = [];
+    if (carFiles.length && timerFiles.length) {
+      carFiles.forEach(function (c) {
+        var bestM = null, why = '';
+        timerFiles.forEach(function (t) {
+          if (t.merged) return;
+          var r = T.mergeSources(t.rd, c.rd);
+          if (r.rd && (!bestM || r.corr > bestM.r.corr)) bestM = { t: t, r: r };
+          else if (!r.rd && !why) why = r.reason;
+        });
+        c.noMerge = '';
+        if (bestM && !mergeOff) {
+          bestM.t.rd = Object.assign({}, bestM.r.rd, { carSource: Object.assign({}, bestM.r.rd.carSource, { name: c.f.name }) });
+          bestM.t.merged = { name: c.f.name, shift: bestM.r.shift, match: bestM.r.corr };
+          c.mergedInto = bestM.t.f.name;
+          joined.push(c);
+        } else if (bestM) c.noMerge = 'Joining is switched off.';
+        else c.noMerge = why || 'It did not line up with the other file.';
+      });
+      good = good.filter(function (x) { return joined.indexOf(x) === -1; });
+    }
+    return { good: good, joined: joined, canMerge: carFiles.length > 0 && timerFiles.length > 0 };
+  }
   function parseFile(mapping) {
     var a = add;
     a.pending = false;
@@ -868,33 +897,9 @@
       }
       good.forEach(function (x, i) { x.i = i; });
       good.sort(function (x, y) { return x.k - y.k || x.i - y.i; });
-      // A lap timer's file and a Track Mode file from the same session: line them up by their speed and keep one
-      // session, timed by the lap timer and with the car's figures. A car file that will not line up reliably is
-      // saved on its own, and says why.
-      var carFiles = good.filter(function (x) { return x.rd.format === 'CSV' && x.rd.points.some(function (p) { return p.ch; }); });
-      var timerFiles = good.filter(function (x) { return carFiles.indexOf(x) === -1; });
-      var joined = [];
-      if (carFiles.length && timerFiles.length) {
-        carFiles.forEach(function (c) {
-          var bestM = null, why = '';
-          timerFiles.forEach(function (t) {
-            if (t.merged) return;
-            var r = T.mergeSources(t.rd, c.rd);
-            if (r.rd && (!bestM || r.corr > bestM.r.corr)) bestM = { t: t, r: r };
-            else if (!r.rd && !why) why = r.reason;
-          });
-          c.noMerge = '';
-          if (bestM && !a.mergeOff) {
-            bestM.t.rd = Object.assign({}, bestM.r.rd, { carSource: Object.assign({}, bestM.r.rd.carSource, { name: c.f.name }) });
-            bestM.t.merged = { name: c.f.name, shift: bestM.r.shift, match: bestM.r.corr };
-            c.mergedInto = bestM.t.f.name;
-            joined.push(c);
-          } else if (bestM) c.noMerge = 'Joining is switched off.';
-          else c.noMerge = why || 'It did not line up with the other file.';
-        });
-        good = good.filter(function (x) { return joined.indexOf(x) === -1; });
-      }
-      a.canMerge = carFiles.length > 0 && timerFiles.length > 0;
+      var jr = joinCarFiles(good, a.mergeOff), joined = jr.joined;
+      good = jr.good;
+      a.canMerge = jr.canMerge;
       var rds = good.map(function (x) { return x.rd; });
       a.rd = T.combine(rds);
       a.list = good.concat(joined, bad);
@@ -1682,6 +1687,80 @@
     }).catch(function (e) { status((e && e.message) || 'Could not load your readings.', 'error'); });
   }
 
+  // ---------- Add the readings again ----------
+  // A session saved without its readings (an upload that failed, or a session from before we kept them) can be given
+  // them again from the same file, with no duplicate session: the file is read as when adding one, checked to be the
+  // same drive (the same place, length and distance), and sent to be kept with the session. After that its type can
+  // be changed and its map edited.
+  function readingsAgainHtml() {
+    return '<div class="tp-readings-again"><button type="button" class="btn btn-secondary btn-sm" data-readings-again>' + icon('upload') + 'Add the readings again</button>' +
+      '<input type="file" multiple accept=".vbo,.csv,.gpx,.txt,text/csv,application/gpx+xml" hidden data-readings-file>' +
+      '<p class="tp-small">Pick the same file this session was saved from (all of its files, if it was several).</p>' +
+      '<p class="tp-small tp-err" data-readings-note role="status"></p></div>';
+  }
+  function readTextFiles(list) {
+    var files = Array.prototype.slice.call(list, 0, 12), big = files.filter(function (f) { return f.size > 80 * 1024 * 1024; })[0];
+    if (big) return Promise.reject(new Error(big.name + ' is over 80 MB.'));
+    return Promise.all(files.map(function (file) {
+      return new Promise(function (resolve, reject) {
+        var reader = new FileReader();
+        reader.onload = function () { resolve({ name: file.name, text: String(reader.result || ''), modified: file.lastModified || 0 }); };
+        reader.onerror = function () { reject(new Error(file.name + ' could not be opened.')); };
+        reader.readAsText(file);
+      });
+    }));
+  }
+  // The files as one set of readings, read and joined as when adding a session.
+  function readingsFromFiles(read) {
+    var saved = {}, good = [];
+    try { saved = JSON.parse(localStorage.getItem(MAP_KEY) || '{}'); } catch (e) { saved = {}; }
+    read.forEach(function (f, i) {
+      try {
+        var one = T.read(f.text, f.name, null, f.modified);
+        if (one.needsMapping) {
+          var mp = saved[headerSig(one.needsMapping.headers)];
+          if (!mp) throw new Error(f.name + ': we do not recognise its columns. Add it once as a new session to teach us, then try again.');
+          one = T.read(f.text, f.name, mp, f.modified);
+        }
+        good.push({ f: f, rd: one, k: fileKey(one, i), i: i });
+      } catch (e) { if (/recognise its columns/.test(e.message)) throw e; /* a file that cannot be read is left out */ }
+    });
+    if (!good.length) throw new Error('None of those files could be read.');
+    good.sort(function (x, y) { return x.k - y.k || x.i - y.i; });
+    return T.combine(joinCarFiles(good, false).good.map(function (x) { return x.rd; }));
+  }
+  // Why a file is not the drive the session was saved from, or '' when it is.
+  function readingsMismatch(s, a) {
+    var off = [];
+    if (s.duration && a.duration && Math.abs(a.duration - s.duration) > 1.5) off.push('its length');
+    if (s.distance && a.distance && Math.abs(a.distance - s.distance) > Math.max(30, 0.03 * s.distance)) off.push('its distance');
+    if (s.origin && a.origin && s.origin.length === 2 && a.origin.length === 2 && T.haversine({ lat: s.origin[0], lng: s.origin[1] }, { lat: a.origin[0], lng: a.origin[1] }) > 3000) off.push('where it was');
+    return off.length ? 'That does not look like the file this session was saved from (' + off.join(' and ') + ' is different). Pick the same file again.' : '';
+  }
+  function addReadingsAgain(s, files, note) {
+    note('Reading ' + (files.length > 1 ? files.length + ' files' : files[0].name) + '...');
+    return Promise.all([readTextFiles(files), getLibrary()]).then(function (r) {
+      var rd = readingsFromFiles(r[0]), why = readingsMismatch(s, T.analyse(rd, r[1], { type: 'other' }));
+      if (why) throw new Error(why);
+      note('Sending your readings...');
+      return api('POST', '/track/session/source?id=' + encodeURIComponent(s.id), sourceOf(rd), true);
+    }).then(function (d) {
+      if (!d.success) throw new Error(d.message || 'The readings could not be kept.');
+      showSession(s.id);
+    }).catch(function (e) { note((e && e.message) || 'That did not work.'); throw e; });
+  }
+  function wireReadingsAgain() {
+    [].slice.call(document.querySelectorAll('.tp-readings-again')).forEach(function (box) {
+      var btn = box.querySelector('[data-readings-again]'), input = box.querySelector('[data-readings-file]'), noteEl = box.querySelector('[data-readings-note]');
+      btn.addEventListener('click', function () { input.click(); });
+      input.addEventListener('change', function () {
+        if (!input.files.length || !view) return;
+        btn.disabled = true;
+        addReadingsAgain(view.s, input.files, function (t) { noteEl.textContent = t; }).catch(function () { btn.disabled = false; input.value = ''; });
+      });
+    });
+  }
+
   // ---------- Editing a saved session's map ----------
   // Once saved, a session's start and finish lines are fixed so every time stays comparable. A member who finds
   // one in the wrong place presses Request Edit Map; MT3UK allows it for that one session; the member moves the
@@ -1691,8 +1770,8 @@
     // No readings kept (a session saved before we kept them, or a file too long to keep): say why there is no button.
     if (!s.hasSource) {
       var why = readingsSending[s.id] ? 'Your readings are still being sent. Keep this page open: the options for the lines appear when they have arrived.'
-        : 'This session\'s readings were not kept (' + (s.readingsMessage ? esc(String(s.readingsMessage).replace(/\.$/, '')) : 'a session saved before we kept them, or a file too long to keep') + '), so its lines cannot be edited. Add the file again as a new session to correct them.';
-      return '<div class="tp-section" id="lineedit"><div class="tp-head"><h2>Start and finish lines</h2></div><div class="card tp-fields"><p class="tp-src">' + icon('info') + '<span>' + why + '</span></p></div></div>';
+        : 'This session\'s readings were not kept (' + (s.readingsMessage ? esc(String(s.readingsMessage).replace(/\.$/, '')) : 'a session saved before we kept them, or a file too long to keep') + '), so its lines cannot be edited. Add the readings again below, or add the file again as a new session.';
+      return '<div class="tp-section" id="lineedit"><div class="tp-head"><h2>Start and finish lines</h2></div><div class="card tp-fields"><p class="tp-src">' + icon('info') + '<span>' + why + '</span></p>' + (readingsSending[s.id] ? '' : readingsAgainHtml()) + '</div></div>';
     }
     return '<div class="tp-section" id="lineedit"><div class="tp-head"><h2>Start and finish lines</h2></div><div class="card tp-fields" id="tp-lineedit"><p class="tp-sub">Checking...</p></div></div>';
   }
@@ -1830,6 +1909,7 @@
     if (s.type === 'sprint') runWords(app);
     if (s.mine) wireOwner(s);
     if (s.mine) wireLineEdit(s);
+    if (s.mine && !s.hasSource) wireReadingsAgain();
     if (!s.street && s.privacy !== 'private') {
       var what = s.type === 'drag' ? 'Drag run' : s.type === 'sprint' ? 'Sprint or hill climb run' : 'Track session', res = sessionResult(s);
       wireShare({ url: SITE_URL + 'track.html?s=' + encodeURIComponent(s.id), heading: 'Share this session', subject: trackName(s) + ' | MT3UK', campaign: 'track_session',
@@ -2791,7 +2871,7 @@
     var limit = s.street ? 'street' : (s.type === 'drag' ? (s.atVenue ? '' : 'noboard') : (s.venueId && s.layoutId ? '' : 'noboard'));
     var typeBox = s.street ? '' : s.hasSource
       ? '<div class="tp-field"><span class="tp-lbl">Type</span><div class="tp-chips" data-retype>' + TYPES.map(function (t) { return '<button type="button" class="chip' + (s.type === t[0] ? ' is-on' : '') + '" data-v="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</div><p class="tp-small">Picked the wrong one? Choose another and we\'ll read your saved readings again as that type.</p></div>'
-      : '<p class="tp-src">' + icon('info') + '<span>This session was saved before we kept the readings, so its type can\'t be changed. Add the file again to save it as a different type.</span></p>';
+      : '<p class="tp-src">' + icon('info') + '<span>This session was saved before we kept the readings (or they could not be kept), so its type can\'t be changed. Add the readings again, or add the file again as a new session.</span></p>' + (readingsSending[s.id] ? '' : readingsAgainHtml());
     // Saved as several files merged into one: offer one session per file.
     var splitBox = s.hasSource && !s.street && (s.type === 'track' || s.type === 'sprint') && typeof s.runs === 'number' && s.runs > 1
       ? '<div class="tp-field"><span class="tp-lbl">Several files</span><p class="tp-src">' + icon('info') + '<span>This is ' + s.runs + ' files merged into one session. Split it to get one session for each file, grouped by day.</span></p><button type="button" class="btn btn-secondary btn-sm" id="tp-e-split">Split into ' + s.runs + ' sessions</button></div>' : '';

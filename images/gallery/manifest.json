@@ -1,11 +1,29 @@
 [
   {
+    "file": "photo-3.jpg",
+    "caption": "PHOTO 3",
+    "name": "The_Colonel",
+    "votable": false,
+    "color": "Grey",
+    "added": "2026-10-03",
+    "group": "photo-3.jpg"
+  },
+  {
+    "file": "photo.jpg",
+    "caption": "PHOTO",
+    "name": "The_Colonel",
+    "votable": false,
+    "color": "Grey",
+    "added": "2026-10-03",
+    "group": "photo-3.jpg"
+  },
+  {
     "file": "photo-2.jpg",
     "caption": "PHOTO 2",
     "name": "The_Colonel",
     "color": "Grey",
     "added": "2026-10-03",
-    "group": "photo-2.jpg"
+    "group": "photo-3.jpg"
   },
   {
     "file": "viper-green-model-y-4.jpeg",
@@ -29,18 +47,6 @@
     "name": "Oleh &\u20b4\u201d^#%+$\u20ac><_|][",
     "added": "2026-10-02",
     "group": "viper-green-model-y-4.jpeg"
-  },
-  {
-    "file": "photo.jpg",
-    "caption": "PHOTO",
-    "name": "The_Colonel",
-    "mods": [
-      "OnAir air suspension kit. Full ambient lighting. Robot Hacker body and carbon fiber bonnet. Tinted rear windows and tinted lights. Milltek active exha"
-    ],
-    "votable": false,
-    "color": "Grey",
-    "added": "2026-10-02",
-    "group": "photo.jpg"
   },
   {
     "file": "photo--by-andy-greaves.jpeg",

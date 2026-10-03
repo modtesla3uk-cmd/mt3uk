@@ -56,7 +56,9 @@
         ? '<button type="button" class="iv-act" data-grant="' + esc(r.id) + '">Allow</button><button type="button" class="secondary iv-act" data-dismiss="' + esc(r.id) + '">Decline</button>'
         : (r.proposal ? '<button type="button" class="iv-act" data-accept="' + esc(r.id) + '">Accept</button><button type="button" class="secondary iv-act" data-undo="' + esc(r.id) + '">Undo</button>' : '') +
           '<button type="button" class="danger iv-act" data-revoke="' + esc(r.id) + '">Revoke</button>';
-      return '<tr data-id="' + esc(r.id) + '"' + (r.id === targetId ? ' class="is-target"' : '') + '><td>' + esc(r.name ? r.name + ' ' : '') + '<span class="iv-sub">' + esc(r.email) + '</span></td>' +
+      // For the notification bell: what this row is, and a key that changes when there is something new to see.
+      var rowState = r.status === 'pending' ? 'pending' : r.proposal ? 'changed' : 'allowed';
+      return '<tr data-id="' + esc(r.id) + '" data-state="' + rowState + '" data-key="' + esc(r.id + ':' + rowState + ':' + (r.proposal ? r.proposal.at : r.at)) + '"' + (r.id === targetId ? ' class="is-target"' : '') + '><td>' + esc(r.name ? r.name + ' ' : '') + '<span class="iv-sub">' + esc(r.email) + '</span></td>' +
         '<td><a href="track.html?s=' + encodeURIComponent(r.id) + '" target="_blank" rel="noopener">' + esc(r.what) + '</a></td><td>' + state + '</td>' +
         '<td><div class="iv-actions">' + actions + '</div></td></tr>';
     }).join('') + '</tbody></table>' : '<p class="empty">Nobody has asked to edit a map.</p>';

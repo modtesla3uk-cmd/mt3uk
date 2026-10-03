@@ -940,3 +940,32 @@ def test_the_link_in_the_request_email_opens_the_line_editing_panel_at_that_requ
     expect(page.locator("#lines-wrap")).to_have_attribute("open", "")
     expect(page.locator("#ln-note")).to_contain_text("not waiting any more")
     expect(page.locator("#ln-list tr.is-target")).to_have_count(0)
+
+
+def test_the_bell_lists_map_edit_requests_and_changes_waiting_for_approval(page):
+    """Requests to edit a map and changes sent back to approve show in the notification bell (counted, tagged New),
+    a request already allowed does not, and choosing one opens the Line editing panel at that request."""
+    ok = {"Access-Control-Allow-Origin": "*"}
+    line = [[51.1, -1.1], [51.1002, -1.0998]]
+    rows = [{"id": "aaaaaaaa01", "name": "Ann", "email": "a***@example.com", "note": "", "at": "2026-10-01T09:00:00Z", "status": "pending", "grantedAt": "", "proposal": None, "what": "Thruxton, 2026-05-28", "type": "track", "best": 99.7},
+            {"id": "bbbbbbbb02", "name": "Bob", "email": "b***@example.com", "note": "", "at": "2026-10-01T10:00:00Z", "status": "granted", "grantedAt": "2026-10-01T11:00:00Z", "proposal": None, "what": "Brands Hatch, 2026-06-01", "type": "track", "best": 80.0},
+            {"id": "cccccccc03", "name": "Cat", "email": "c***@example.com", "note": "", "at": "2026-10-01T12:00:00Z", "status": "granted", "grantedAt": "2026-10-01T13:00:00Z", "what": "Abingdon Airfield, AMC LCS, 2022-04-10", "type": "sprint", "best": 118.0,
+             "proposal": {"at": "2026-10-02T09:30:00Z", "from": {"startLine": line, "finishLine": line, "time": 118.0}, "to": {"startLine": line, "finishLine": line, "time": 120.1}}}]
+    open_admin(page, "admin.html")
+    page.route(LINES_API, lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "requests": rows}), headers=ok))
+    page.reload()
+    expect(page.locator("#bell-badge")).to_be_visible()
+    expect(page.locator("#bell-badge")).to_have_text("2")
+    page.locator("#bell-btn").click()
+    panel = page.locator("#bell-panel")
+    expect(panel).to_contain_text("Map edit requests (1)")
+    expect(panel).to_contain_text("Wants to edit the map on Thruxton, 2026-05-28")
+    expect(panel).to_contain_text("Map changes to approve (1)")
+    expect(panel).to_contain_text("Waiting for you to accept or undo")
+    expect(panel).not_to_contain_text("Brands Hatch")
+    panel.get_by_text("Waiting for you to accept or undo").click()
+    expect(page.locator("#lines-wrap")).to_have_attribute("open", "")
+    expect(page.locator("#ln-list tr[data-id='cccccccc03']")).to_be_in_viewport()
+    # Seen items stop counting until something new arrives.
+    page.reload()
+    expect(page.locator("#bell-badge")).to_be_hidden()

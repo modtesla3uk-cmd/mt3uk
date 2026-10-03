@@ -1921,6 +1921,18 @@
         sub: kind ? kind.textContent.trim() : 'Needs approving'
       });
     });
+    // Requests to edit a map, and changes sent back to approve, wait on the Line editing panel.
+    document.querySelectorAll('#ln-list > table > tbody > tr[data-state]').forEach(function (row) {
+      var state = row.getAttribute('data-state');
+      if (state === 'allowed') return;
+      var cells = row.querySelectorAll('td');
+      var who = cells[0] ? cells[0].textContent.trim() : 'A member', what = cells[1] ? cells[1].textContent.trim() : 'a session';
+      items.push({
+        id: 'lines:' + row.getAttribute('data-key'), group: state === 'changed' ? 'Map changes to approve' : 'Map edit requests', section: 'lines', el: row, img: '',
+        title: who,
+        sub: state === 'changed' ? 'Moved the lines on ' + what + '. Waiting for you to accept or undo' : 'Wants to edit the map on ' + what
+      });
+    });
     return items;
   }
 
@@ -2030,7 +2042,7 @@
   });
 
   var bellTimer = null;
-  [pendingEl, threadsEl, reportedEl, document.getElementById('ac-pending'), document.getElementById('tk-requests')].filter(Boolean).forEach(function (el) {
+  [pendingEl, threadsEl, reportedEl, document.getElementById('ac-pending'), document.getElementById('tk-requests'), document.getElementById('ln-list')].filter(Boolean).forEach(function (el) {
     new MutationObserver(function () {
       clearTimeout(bellTimer);
       bellTimer = setTimeout(renderBell, 100);
@@ -2936,7 +2948,7 @@
 <script src="js/track-parse.js?v=20261104" defer></script>
 <script src="js/track-view.js?v=20261106" defer></script>
 <script src="js/track-access-admin.js" defer></script>
-<script src="js/track-lines-admin.js?v=20261110" defer></script>
+<script src="js/track-lines-admin.js?v=20261111" defer></script>
 <script src="js/track-member-admin.js?v=20261103" defer></script>
 <script src="js/track-admin.js?v=20261108" defer></script>
 <script src="js/track-share-card.js?v=20261102"></script>

@@ -25,7 +25,8 @@
   // 3: each lap keeps the car's own figures for that lap (Track Mode files).
   // 4: the battery start and end keep two decimals, so rounding to a whole percent happens once (60.48 shows as 60, not 61).
   // 5: cornering g worked out from the GPS path has the same sign as RaceBox's and the car's own readings.
-  var ANALYSIS_VERSION = 5;
+  // 6: GPS readings that slip back along the road at speed are moved onto the line between the good ones (repairGlitches).
+  var ANALYSIS_VERSION = 6;
   var DEG = Math.PI / 180;
 
   function num(s) {
@@ -550,6 +551,41 @@
     return { date: d, time: m[4] ? m[4] + ':' + m[5] : '' };
   }
 
+  // A GPS fix can lose its lock for a second or two, usually in a tight corner or under cover, and
+  // report positions that slip back along the road while the car is still doing 50 mph or more (a
+  // spike in the line, and distances and crossings that go wrong). Such a reading, more than 1.5 m
+  // behind the last good one against the way the car was going (taken over the last 6 m or more),
+  // is moved onto the straight line between the good readings either side, by time. The times and
+  // speeds are not touched. A run of them over 3 s is left alone, as the car cannot really have gone
+  // backwards at speed for that long. Returns how many readings were moved.
+  function repairGlitches(pts) {
+    if (pts.length < 20) return 0;
+    var lat0 = pts[0].lat, kx = 111195 * Math.cos(lat0 * DEG), ky = 111195, fixed = 0;
+    function X(p) { return (p.lng - pts[0].lng) * kx; }
+    function Y(p) { return (p.lat - lat0) * ky; }
+    var g = 0, anchor = 0;
+    for (var i = 1; i < pts.length; i++) {
+      var p = pts[i], q = pts[g];
+      if (p.v > 80) {
+        while (anchor < g && Math.hypot(X(q) - X(pts[anchor + 1]), Y(q) - Y(pts[anchor + 1])) >= 6) anchor++;
+        var dx = X(q) - X(pts[anchor]), dy = Y(q) - Y(pts[anchor]), L = Math.hypot(dx, dy);
+        if (L >= 6) {
+          var along = ((X(p) - X(q)) * dx + (Y(p) - Y(q)) * dy) / L;
+          if (along < -1.5 && p.t - q.t < 3) continue;
+        }
+      }
+      // A good reading: the ones skipped since the last good one are moved onto the line to it.
+      for (var j = g + 1; j < i && p.t - q.t < 3; j++) {
+        var f = (pts[j].t - q.t) / ((p.t - q.t) || 1);
+        pts[j].lat = q.lat + (p.lat - q.lat) * f;
+        pts[j].lng = q.lng + (p.lng - q.lng) * f;
+        fixed++;
+      }
+      g = i;
+    }
+    return fixed;
+  }
+
   // Speeds in km/h and g worked out where the file has none, then smoothed.
   function finishPoints(out) {
     var pts = out.points;
@@ -579,6 +615,7 @@
       pts.forEach(function (p, j) { p.v = sm[j]; });
       out.speedDerived = true;
     }
+    out.glitches = repairGlitches(pts);
     var hasG = pts.filter(function (p) { return isFinite(p.la) && isFinite(p.lo); }).length > pts.length * 0.8;
     if (!hasG) {
       var head = [];

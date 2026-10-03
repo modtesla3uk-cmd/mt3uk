@@ -578,3 +578,20 @@ ok(T.fmtLap(99.786) === '1:39.786' && T.niceDate('2026-05-28') === '28 May 2026'
   const rs = T.analyse(real.rd, { venues: [] }, { type: 'other' });
   ok(rs.gDerived === false && rs.latMax > 0.3 && rs.latMax < 0.7 && rs.carData && rs.carData.soc && rs.carData.soc.end < rs.carData.soc.start + 0.01, 'the real pair gives the car\'s own g-forces (' + rs.latMax + ' g) and its battery figures');
 }
+
+// A GPS fix that slips back along the road at speed (a hairpin-like spike in the line) is moved onto the road.
+{
+  const lat0 = 51.693139, lng0 = -1.317314, kx = 111195 * Math.cos(lat0 * Math.PI / 180);
+  const path = []; let y = -300;
+  for (let i = 0; i < 40; i++) { path.push(y); y -= 5.5; }
+  const last = path[path.length - 1];
+  [8, 6, 4, 2.5].forEach(b => path.push(last + b));
+  y = last - 5.5; for (let i = 0; i < 30; i++) { path.push(y); y -= 5.5; }
+  const csv = 'Time (s),Latitude,Longitude,Speed (mph)\n' + path.map((py, i) => [(i * 0.2).toFixed(2), (lat0 + py / 111195).toFixed(7), (lng0 + 65 / kx).toFixed(7), 120].join(',')).join('\n');
+  const g = T.read(csv, 'glitch.csv');
+  const yy = g.points.map(p => (p.lat - lat0) * 111195);
+  let back = 0; for (let i = 1; i < yy.length; i++) if (yy[i] > yy[i - 1] + 0.05) back++;
+  ok(g.glitches === 4 && back === 0, 'positions that slip back at speed are moved onto the road (' + g.glitches + ' moved, ' + back + ' still going back)');
+  const clean = T.read('Time (s),Latitude,Longitude,Speed (mph)\n' + path.filter((_, i) => i < 40 || i >= 44).map((py, i) => [(i * 0.2).toFixed(2), (lat0 + py / 111195).toFixed(7), (lng0 + 65 / kx).toFixed(7), 120].join(',')).join('\n'), 'clean.csv');
+  ok(clean.glitches === 0, 'a clean run has nothing moved');
+}

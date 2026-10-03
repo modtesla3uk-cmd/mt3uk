@@ -47,6 +47,10 @@ def caption_from_filename(stem: str) -> str:
     # prefix/suffix above are stripped; that's not a real caption either.
     if all(not w or (w.isdigit() and len(w) >= 8) for w in words):
         return ""
+    # a blank caption makes the submission worker name the file "photo" (see
+    # slugify in workers/vote-worker.js); that placeholder is not a caption.
+    if [w.lower() for w in words if w] == ["photo"]:
+        return ""
     return " ".join(w.upper() for w in words if w)
 
 

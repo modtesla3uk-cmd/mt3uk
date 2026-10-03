@@ -105,6 +105,8 @@ function captionFromFilenameStem(stem) {
   var words = stem.split(/[-_]+/).filter(Boolean);
   var isRealCaption = words.some(function (w) { return !(/^\d{8,}$/.test(w)); });
   if (!isRealCaption) return '';
+  // A blank caption makes the upload name the file "photo" (see slugify): not a caption.
+  if (words.length === 1 && words[0].toLowerCase() === 'photo') return '';
   return words.map(function (w) { return w.toUpperCase(); }).join(' ');
 }
 

@@ -10,7 +10,6 @@
   },
   {
     "file": "photo.jpg",
-    "caption": "PHOTO",
     "name": "The_Colonel",
     "votable": false,
     "color": "Grey",
@@ -50,7 +49,6 @@
   },
   {
     "file": "photo--by-andy-greaves.jpeg",
-    "caption": "PHOTO",
     "name": "AndySV1K",
     "color": "White",
     "added": "2026-10-02",
@@ -66,7 +64,6 @@
   },
   {
     "file": "photo--by-matthew-king.jpeg",
-    "caption": "PHOTO",
     "name": "TeslaCat",
     "mods": [
       "Audio and tech: Speakers, Hanshow 4 extra speaker, Activates 4 extra",

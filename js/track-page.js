@@ -2057,6 +2057,9 @@
   // session's line is, with distance and time counted from there, and the two laps then line up.
   function ontoLine(s, o) {
     var line = startLineXY(s), tr = o.trace;
+    // Only laps are loops. A sprint or hill climb run goes from its start to its finish, so turning it round a
+    // point would draw a stray line back across the map and shift its times.
+    if (s.type === 'sprint' || s.pointToPoint || o.pointToPoint) return o;
     if (!line || !o.startLine || !tr || tr.length < 3) return o;
     var mine = s.startLine && s.startLine.length === 2 && T.haversine({ lat: o.startLine[0][0], lng: o.startLine[0][1] }, { lat: s.startLine[0][0], lng: s.startLine[0][1] }) < 15;
     if (mine) return o;

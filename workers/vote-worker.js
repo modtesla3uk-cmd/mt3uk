@@ -7540,7 +7540,18 @@ async function handleTrackAdminTracks(request, env) {
     venues = venues.filter(function (v) { return v.id !== rid; });
     venues.push({ id: rid, removed: true });
   } else {
-    var v = cleanTrackVenue(body.venue);
+    var bv = body.venue;
+    // A new entry whose name is already listed (the same place as a sprint, hill climb or track day) gets its own id
+    // instead of overwriting the other one.
+    if (bv && typeof bv === 'object' && !bv.id) {
+      var lib = await getTrackLibrary(env), baseId = trackId(bv.name);
+      if (baseId && lib.venues.some(function (x) { return x.id === baseId; })) {
+        var kindId = bv.type === 'sprint' ? (bv.hill ? 'hill-climb' : 'sprint') : bv.type === 'drag' ? 'drag' : 'circuit', nid = baseId + '-' + kindId, n = 2;
+        while (lib.venues.some(function (x) { return x.id === nid; })) nid = baseId + '-' + kindId + '-' + (n++);
+        bv = Object.assign({}, bv, { id: nid });
+      }
+    }
+    var v = cleanTrackVenue(bv);
     if (!v) return json({ success: false, message: 'A track needs a name and a centre (latitude and longitude).' }, 400);
     venues = venues.filter(function (x) { return x.id !== v.id; });
     venues.push(v);
@@ -7603,12 +7614,20 @@ async function linkMemberSessions(env, req, venue, layout) {
   var sprint = req.kind === 'sprint', relinked = 0, email = req.from;
   if (!email || !layout) return 0;
   var line = req.startLine || layout.startLine || null;
+  var lib = await getTrackLibrary(env);
+  // On a course that still exists. A session pointing at a course that was renamed or removed counts as unlinked.
+  function onCourse(x) {
+    if (!x.layoutId) return false;
+    var v = (lib.venues || []).find(function (vv) { return vv.id === x.venueId; });
+    return !!(v && (v.layouts || []).some(function (l) { return l.id === x.layoutId; }));
+  }
   var index = await getJsonKey(env, 'track-index:' + (await ownerKey(email)), []);
   for (var i = 0; i < index.length; i++) {
     var e = index[i];
-    if (e.type !== (sprint ? 'sprint' : 'track') || e.layoutId) continue;
+    if (e.type !== (sprint ? 'sprint' : 'track') || onCourse(e)) continue;
     var rec = await getTrackSession(env, e.id);
-    if (!rec || rec.layoutId || rec.street) continue;
+    if (!rec || onCourse(rec) || rec.street) continue;
+    var oldBoard = trackBoardKey(rec);
     var near = line && rec.startLine && trackDist(rec.startLine[0], line[0]) <= 60 && trackDist(rec.startLine[1], line[1]) <= 60;
     var same = trackText(rec.venue, 60).toLowerCase() === String(venue.name || '').toLowerCase();
     // A renamed track still matches by place: the session started inside the venue's radius.
@@ -7619,6 +7638,7 @@ async function linkMemberSessions(env, req, venue, layout) {
     rec.layout = layout.name;
     if (!(await putTrackSession(env, rec))) continue;
     await putTrackIndexes(env, email, rec);
+    if (oldBoard && oldBoard !== trackBoardKey(rec)) await refreshTrackBoard(env, oldBoard, rec.carId);
     relinked++;
   }
   return relinked;

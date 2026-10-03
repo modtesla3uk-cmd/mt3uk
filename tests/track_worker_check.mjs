@@ -608,6 +608,90 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   const qv = r.body.library && r.body.library.venues.find(v => v.id === 'quick-course');
   ok(r.status === 200 && qv && qv.type === 'sprint' && qv.layouts[0].id === 'a1' && qv.layouts[0].startLine && qv.layouts[0].finishLine && qv.layouts[0].organizer === 'A1', 'the admin makes a course official in one step');
 }
+// The admin moves an existing course's official lines on the map from a session: the course route replaces them
+// in place when asked to (replace + the layout), needing the admin.
+{
+  const moved = { kind: 'sprint', name: 'Quick Course', organizer: 'A1', venueId: 'quick-course', layoutId: 'a1', startLine: [[51.3001, -0.8001], [51.3003, -0.8003]], finishLine: [[51.311, -0.811], [51.3112, -0.8112]], lapLength: 700, lat: 51.3, lng: -0.8 };
+  r = await call('POST', '/track/admin/course', Object.assign({}, moved, { replace: true }), 'tok-a');
+  ok(r.status === 401, 'replacing a course\'s lines needs the admin');
+  r = await call('POST', '/track/admin/course', Object.assign({}, moved, { replace: true }), 'tok-a', { 'X-Admin-Viewer': tok });
+  const ql = r.body.library && r.body.library.venues.find(v => v.id === 'quick-course').layouts.find(l => l.id === 'a1');
+  ok(r.status === 200 && ql && ql.startLine[0][0] === 51.3001 && ql.finishLine[0][0] === 51.311 && ql.organizer === 'A1' && r.body.library.venues.filter(v => v.id === 'quick-course').length === 1, 'the admin replaces the lines of a course in place (' + (ql && ql.startLine[0][0]) + ', ' + (ql && ql.finishLine[0][0]) + ')');
+}
+// A member asks to edit the map, the admin allows it, the member sends moved lines, and nothing on the session changes until
+// the admin accepts (Undo throws it away). A member can never save moved lines themselves, granted or not.
+{
+  const saved = await call('POST', '/track/sessions', { carId: 'cara1', session, conditions: 'Dry', privacy: 'build', tyres: 'Test tyre' }, 'tok-a');
+  const lid = saved.body.session.id;
+  const startOf = () => stored('track-session:' + lid).startLine[0][0];
+  const orig = session.startLine[0][0];
+  const moved = (d = 0.0003) => { const c = JSON.parse(JSON.stringify(session)); c.startLine = c.startLine.map(p => [p[0] + d, p[1]]); return c; };
+  const proposal = (d = 0.0003, time = 99.5) => ({ id: lid, startLine: moved(d).startLine, time });
+  const mails = env.SEND_EMAIL.sent.length;
+  r = await call('PUT', '/track/session', { id: lid, session }, 'tok-a');
+  ok(r.status === 200, 'saving the session with its lines where they were is fine');
+  r = await call('PUT', '/track/session', { id: lid, session: moved() }, 'tok-a');
+  ok(r.status === 403 && r.body.needsLineAccess === true, 'a member saving moved lines is refused (' + r.status + ')');
+  r = await call('GET', '/track/lines/status?id=' + lid, undefined, 'tok-a');
+  ok(r.status === 200 && r.body.state === 'none' && r.body.proposal === null, 'no request yet');
+  r = await call('GET', '/track/lines/status?id=' + lid, undefined, 'tok-b');
+  ok(r.status !== 200, 'another member cannot see it');
+  r = await call('POST', '/track/lines/request', { id: lid }, 'tok-b');
+  ok(r.status !== 200, 'another member cannot ask for it');
+  r = await call('POST', '/track/lines/propose', proposal(), 'tok-a');
+  ok(r.status === 403, 'lines cannot be sent before the admin allows it');
+  r = await call('POST', '/track/lines/request', { id: lid, note: 'The finish is in the wrong place' }, 'tok-a');
+  ok(r.status === 200 && r.body.state === 'pending', 'the owner presses Request Edit Map');
+  ok(env.SEND_EMAIL.sent.length === mails + 1 && /Request to edit a map/.test(env.SEND_EMAIL.sent[mails]) && /modtesla3uk@gmail\.com/.test(env.SEND_EMAIL.sent[mails]) && /wrong place/.test(env.SEND_EMAIL.sent[mails]), 'the admin is emailed about the request');
+  r = await call('POST', '/track/lines/request', { id: lid }, 'tok-a');
+  ok(r.status === 200 && r.body.state === 'pending' && stored('track-line-access').length === 1, 'asking again does not add another request');
+  r = await call('POST', '/track/lines/propose', proposal(), 'tok-a');
+  ok(r.status === 403, 'still not allowed to send lines while it is only asked for');
+  r = await call('GET', '/track/lines/admin');
+  ok(r.status === 401, 'the list of requests needs the admin key');
+  r = await call('GET', '/track/lines/admin?key=secret');
+  const row = r.body.requests && r.body.requests.find(x => x.id === lid);
+  ok(r.status === 200 && row && row.status === 'pending' && row.proposal === null && row.note.includes('wrong place') && /^.\*\*\*@/.test(row.email) && row.what.includes('Thruxton'), 'the admin sees who asked for which map, with the member masked: ' + (row && row.email) + ', ' + (row && row.what));
+  r = await call('POST', '/track/lines/admin', { id: lid, action: 'grant' }, 'tok-a');
+  ok(r.status === 401, 'a member cannot allow it themselves');
+  r = await call('POST', '/track/lines/admin?key=secret', { id: lid, action: 'grant' });
+  ok(r.status === 200 && (await call('GET', '/track/lines/status?id=' + lid, undefined, 'tok-a')).body.state === 'granted', 'the admin allows it and the member sees that');
+  r = await call('PUT', '/track/session', { id: lid, session: moved() }, 'tok-a');
+  ok(r.status === 403 && startOf() === orig, 'even when allowed, saving moved lines directly is refused');
+  r = await call('POST', '/track/lines/propose', { id: lid, startLine: session.startLine, time: 99 }, 'tok-a');
+  ok(r.status === 400, 'lines that have not moved are not sent');
+  r = await call('POST', '/track/lines/propose', { id: lid, startLine: [[95, 0], [0, 0]], time: 99 }, 'tok-a');
+  ok(r.status === 400, 'lines that are not on the earth are refused');
+  r = await call('POST', '/track/lines/propose', proposal(), 'tok-b');
+  ok(r.status !== 200, 'another member cannot send lines for it');
+  const before = env.SEND_EMAIL.sent.length;
+  r = await call('POST', '/track/lines/propose', proposal(), 'tok-a');
+  ok(r.status === 200 && r.body.proposal && r.body.proposal.to.time === 99.5, 'the member sends the moved lines');
+  ok(startOf() === orig, 'and nothing on the session has changed');
+  const note = env.SEND_EMAIL.sent[before] || '';
+  ok(env.SEND_EMAIL.sent.length === before + 1 && /accept or undo/.test(note) && /from: /.test(note) && /to:   /.test(note) && /1:39\.500/.test(note) && /admin\.html#grp-tracks/.test(note), 'the admin is emailed what the lines and time were and would be');
+  r = await call('GET', '/track/lines/admin?key=secret');
+  const row2 = r.body.requests.find(x => x.id === lid);
+  ok(row2.status === 'granted' && row2.proposal && row2.proposal.from.startLine[0][0] === orig && Math.abs(row2.proposal.to.startLine[0][0] - (orig + 0.0003)) < 1e-9, 'the admin sees the change from and to');
+  r = await call('GET', '/track/lines/status?id=' + lid, undefined, 'tok-a');
+  ok(r.body.proposal && r.body.proposal.to.time === 99.5, 'and the member sees theirs is waiting');
+  r = await call('POST', '/track/lines/admin?key=secret', { id: lid, action: 'undo' });
+  ok(r.status === 200 && startOf() === orig && stored('track-line-access')[0].proposal === null && stored('track-line-access')[0].status === 'granted', 'undo throws the change away and leaves access on');
+  r = await call('POST', '/track/lines/admin?key=secret', { id: lid, action: 'undo' });
+  ok(r.status === 400, 'there is nothing to undo twice');
+  r = await call('POST', '/track/lines/propose', proposal(0.0006), 'tok-a');
+  ok(r.status === 200, 'the member can send another');
+  r = await call('POST', '/track/lines/admin?key=secret', { id: lid, action: 'accepted' });
+  ok(r.status === 200 && stored('track-line-access')[0].proposal === null, 'accepting clears the change (the admin page has saved the new timing)');
+  r = await call('POST', '/track/lines/admin?key=secret', { id: lid, action: 'revoke' });
+  ok(r.status === 200 && stored('track-line-access').length === 0, 'the admin revokes access to that map');
+  r = await call('POST', '/track/lines/propose', proposal(), 'tok-a');
+  ok(r.status === 403, 'after that no more lines can be sent');
+  r = await call('GET', '/track/lines/status?id=' + lid, undefined, 'tok-a');
+  ok(r.body.state === 'none', 'and the status is back to none');
+  r = await call('POST', '/track/lines/admin?key=secret', { id: 'nope', action: 'grant' });
+  ok(r.status === 404, 'an unknown request is refused');
+}
 // A layout with no official line: the first request fills it in, and one request per course waits.
 {
   const body = { kind: 'circuit', name: 'Silverstone', venueId: 'silverstone', layoutId: 'gp', startLine: [[52.0725, -1.0148], [52.0726, -1.0150]], lapLength: 5891, lat: 52.0725, lng: -1.0148 };
@@ -705,6 +789,17 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   ok(after.owner === stored('track-session:' + id).owner && after.carId === 'cara1' && after.notes === 'keep me' && after.tyres === 'Test tyre' && after.privacy === 'build', "the member's details and owner carry over");
   const idx = JSON.parse(kv.get('track-index:' + after.owner));
   ok(idx.some(s => s.id === id), 'the owner list still has it');
+  // The session page moves one session's lines with the admin viewer token, not the key: one session, never the list.
+  x = await call('GET', '/track/admin/retime?id=' + id, undefined, undefined, { 'X-Admin-Viewer': 'not-a-real-token-1234567' });
+  ok(x.status === 401, 'a made-up viewer token cannot read a session to re-time');
+  x = await call('GET', '/track/admin/retime?id=' + id, undefined, undefined, { 'X-Admin-Viewer': tok });
+  ok(x.status === 200 && x.body.session.id === id, 'the admin viewer token reads one session to re-time');
+  x = await call('GET', '/track/admin/retime', undefined, undefined, { 'X-Admin-Viewer': tok });
+  ok(x.status === 401, 'but the list of every session still needs the admin key');
+  x = await call('GET', '/track/admin/retime/source?id=' + id, undefined, undefined, { 'X-Admin-Viewer': tok });
+  ok(x.status === 404, 'the viewer token is let in to read the readings (none kept here)');
+  x = await call('POST', '/track/admin/retime', { id, session: Object.assign({}, fresh, { bestTime: fresh.bestTime }) }, undefined, { 'X-Admin-Viewer': tok });
+  ok(x.status === 200 && stored('track-session:' + id).notes === 'keep me', 'the admin viewer token saves a session with new lines, keeping the member\'s details');
   x = await call('POST', '/track/admin/retime?key=secret', { id: 'deadbeefdeadbeef', session: fresh });
   ok(x.status === 404, 'an unknown session is refused');
 }

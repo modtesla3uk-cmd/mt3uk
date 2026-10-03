@@ -7214,6 +7214,9 @@ async function handleTrackSessionUpdate(request, env) {
     if (rec.street) return json({ success: false, message: 'Street runs can\'t change type.' }, 400);
     var next = cleanTrackSession(body.session, await getTrackLibrary(env));
     if (next.error) return json({ success: false, message: next.error }, 400);
+    // A member never saves moved start or finish lines themselves: they send them for MT3UK to accept (a change of
+    // type does not move the lines).
+    if (next.type === rec.type && trackLinesMoved(rec, next)) return json({ success: false, needsLineAccess: true, message: 'Moved lines are sent to MT3UK to approve. Use Edit the map on this session\'s page.' }, 403);
     if (next.type === 'drag' && !next.atVenue) next.unlisted = true;
     next.street = false;
     if (next.type === 'drag') delete next.outline;
@@ -7231,6 +7234,123 @@ async function handleTrackSessionUpdate(request, env) {
   await putTrackIndexes(env, got.email, rec);
   if (oldBoard && oldBoard !== trackBoardKey(rec)) await refreshTrackBoard(env, oldBoard, rec.carId);
   return json({ success: true, session: trackSummary(rec) });
+}
+
+// ---- Moving a saved session's start and finish lines ----
+// A member never saves moved lines themselves. They press Request Edit Map on their session, the admin allows it
+// for that one session (Line editing panel of admin.html), the member moves the lines on the map and sends the
+// change, and nothing on the session changes until the admin accepts it (Undo throws it away). The admin then
+// revokes the access. One KV key, read with get(): track-line-access = [{ id (session), email, name, note, at,
+// status 'pending' | 'granted', grantedAt, proposal: { at, from: { startLine, finishLine, time }, to: { ... } } }].
+// Accepting is done by the admin's browser: it works the time out again from the saved readings with the new
+// lines (so a made-up time cannot be approved) and saves it through /track/admin/retime.
+async function getLineAccess(env) {
+  var list = await getJsonKey(env, 'track-line-access', []);
+  return Array.isArray(list) ? list : [];
+}
+function trackSessionLabel(rec) {
+  return (rec.venue || (rec.type === 'sprint' ? 'Sprint' : 'Track session')) + (rec.layout && rec.layout !== rec.venue ? ', ' + rec.layout : '');
+}
+function trackLinesMoved(a, b) {
+  function moved(x, y) { return !!(x && y && x.length === 2 && y.length === 2 && (trackDist(x[0], y[0]) > 1 || trackDist(x[1], y[1]) > 1)); }
+  return moved(a.startLine, b.startLine) || moved(a.finishLine, b.finishLine);
+}
+function trackLineText(l) { return l && l.length === 2 ? [l[0][0], l[0][1], l[1][0], l[1][1]].join(', ') : 'not set'; }
+function trackTimeText(t) { return t ? Math.floor(t / 60) + ':' + (t % 60 < 10 ? '0' : '') + (t % 60).toFixed(3) : 'no time'; }
+async function emailAdminAboutLines(env, subject, text) {
+  try { await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text))); } catch (e) { /* the request is kept either way */ }
+}
+async function emailMemberAboutLines(env, entry, subject, text) {
+  if (!entry || !entry.email) return;
+  try { await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, entry.email, rawEmail(MY_BUILDS_FROM_EMAIL, entry.email, subject, text))); } catch (e) { /* done either way */ }
+}
+async function handleTrackLinesStatus(request, env) {
+  var got = await getOwnTrackSession(request, env, String(new URL(request.url).searchParams.get('id') || ''));
+  if (got.error) return got.error;
+  var entry = (await getLineAccess(env)).filter(function (x) { return x.id === got.rec.id; })[0];
+  return json({ success: true, state: entry ? entry.status : 'none', proposal: entry && entry.proposal ? entry.proposal : null });
+}
+async function handleTrackLinesRequest(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var body = {};
+  try { body = await request.json(); } catch (e) { body = {}; }
+  var got = await getOwnTrackSession(request, env, String(body.id || ''));
+  if (got.error) return got.error;
+  var rec = got.rec;
+  if (rec.type !== 'sprint' && rec.type !== 'track') return json({ success: false, message: 'Only a sprint, hill climb or track day has start and finish lines.' }, 400);
+  var list = await getLineAccess(env);
+  var have = list.filter(function (x) { return x.id === rec.id; })[0];
+  if (have) return json({ success: true, state: have.status });
+  if (list.filter(function (x) { return x.email === accessEmail(email) && x.status === 'pending'; }).length >= 5) return json({ success: false, message: 'You already have requests waiting. We\'ll get to them soon.' }, 429);
+  var name = (publicName(await getProfileRecord(env, email)) || '').slice(0, 60);
+  list.unshift({ id: rec.id, email: accessEmail(email), name: name, note: trackText(body.note, 300), at: new Date().toISOString(), status: 'pending' });
+  await env.VOTES.put('track-line-access', JSON.stringify(list.slice(0, 300)));
+  await emailAdminAboutLines(env, 'Request to edit a map', subscriberLabel(name, email) + ' has asked to edit the start and finish lines on a session: ' + trackSessionLabel(rec) + ', ' + (rec.date || '') + '.\n\n' +
+    (body.note ? 'Their note:\n' + trackText(body.note, 300) + '\n\n' : '') + 'Allow it, and revoke it when they are done, on the Line editing panel: ' + MY_BUILDS_SITE_URL + '/admin.html#grp-tracks');
+  return json({ success: true, state: 'pending' });
+}
+// The member sends the lines they have moved. Nothing on the session changes: the admin accepts it or undoes it.
+async function handleTrackLinesPropose(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var got = await getOwnTrackSession(request, env, String(body.id || ''));
+  if (got.error) return got.error;
+  var rec = got.rec, list = await getLineAccess(env);
+  var entry = list.filter(function (x) { return x.id === rec.id && x.status === 'granted'; })[0];
+  if (!entry) return json({ success: false, message: 'Ask MT3UK to let you edit this map first.' }, 403);
+  var sprint = rec.type === 'sprint';
+  var to = { startLine: trackLine(body.startLine), finishLine: sprint ? trackLine(body.finishLine) : null, time: trackNum(body.time, 0, 100000) };
+  if (!to.startLine || (sprint && !to.finishLine)) return json({ success: false, message: sprint ? 'Both the start and the finish line are needed.' : 'The start line is needed.' }, 400);
+  if (!trackLinesMoved({ startLine: rec.startLine, finishLine: rec.finishLine }, to) && rec.startLine) return json({ success: false, message: 'The lines have not moved.' }, 400);
+  var from = { startLine: rec.startLine || null, finishLine: rec.finishLine || null, time: rec.bestTime || null };
+  entry.proposal = { at: new Date().toISOString(), from: from, to: to };
+  await env.VOTES.put('track-line-access', JSON.stringify(list));
+  await emailAdminAboutLines(env, 'A map has been changed: accept or undo', subscriberLabel(entry.name, email) + ' has moved the lines on ' + trackSessionLabel(rec) + ', ' + (rec.date || '') + '. Nothing has changed yet.\n\n' +
+    'Start line\n  from: ' + trackLineText(from.startLine) + '\n  to:   ' + trackLineText(to.startLine) + '\n' + (sprint ? 'Finish line\n  from: ' + trackLineText(from.finishLine) + '\n  to:   ' + trackLineText(to.finishLine) + '\n' : '') +
+    'Time\n  from: ' + trackTimeText(from.time) + '\n  to:   ' + trackTimeText(to.time) + ' (their figure, worked out again when you accept)\n\n' +
+    'Accept it or undo it on the Line editing panel: ' + MY_BUILDS_SITE_URL + '/admin.html#grp-tracks');
+  return json({ success: true, state: 'granted', proposal: entry.proposal });
+}
+async function handleTrackLinesAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var list = await getLineAccess(env);
+  if (request.method === 'GET') {
+    // A few entries at most, each one get(): no list().
+    var rows = await Promise.all(list.map(async function (x) {
+      var rec = await getTrackSession(env, x.id);
+      return { id: x.id, name: x.name || '', email: maskEmailForAdmin(x.email), note: x.note || '', at: x.at, status: x.status, grantedAt: x.grantedAt || '', proposal: x.proposal || null,
+        what: rec ? trackSessionLabel(rec) + ', ' + (rec.date || '') : 'a session that has gone', type: rec ? rec.type : '', best: rec && rec.bestTime ? rec.bestTime : null };
+    }));
+    return json({ success: true, requests: rows });
+  }
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var entry = list.filter(function (x) { return x.id === String(body.id || ''); })[0];
+  if (!entry) return json({ success: false, message: 'Request not found' }, 404);
+  var action = String(body.action || ''), url = MY_BUILDS_SITE_URL + '/track.html?s=' + entry.id;
+  if (action === 'grant') {
+    if (entry.status === 'granted') return json({ success: true });
+    entry.status = 'granted'; entry.grantedAt = new Date().toISOString();
+    if (body.notify !== false) await emailMemberAboutLines(env, entry, 'You can edit the map on your session', 'Hello,\n\nYou can now edit the start and finish lines on your session. Open it, press "Edit the map", move the lines, check the time and send the change. The map only changes once MT3UK has approved it.\n\n' + url);
+  } else if (action === 'undo') {
+    if (!entry.proposal) return json({ success: false, message: 'There is no change waiting.' }, 400);
+    entry.proposal = null;
+    await emailMemberAboutLines(env, entry, 'Your map change was not used', 'Hello,\n\nMT3UK did not use the change you sent to the lines on your session, so it is as it was. You can send another if you like:\n\n' + url);
+  } else if (action === 'accepted') {
+    // The admin's browser has already saved the new timing through /track/admin/retime: this clears the change.
+    if (!entry.proposal) return json({ success: false, message: 'There is no change waiting.' }, 400);
+    entry.proposal = null;
+    await emailMemberAboutLines(env, entry, 'Your map change was accepted', 'Hello,\n\nMT3UK accepted the change you sent to the lines on your session. The new time is on it now:\n\n' + url);
+  } else if (action === 'revoke' || action === 'dismiss') {
+    list = list.filter(function (x) { return x !== entry; });
+  } else {
+    return json({ success: false, message: 'Unknown action' }, 400);
+  }
+  await env.VOTES.put('track-line-access', JSON.stringify(list));
+  return json({ success: true });
 }
 
 // The readings behind a session, kept (gzipped, owner only) so the member can
@@ -7646,7 +7766,8 @@ async function handleTrackAdminCourse(request, env) {
   var kind = ['sprint'].indexOf(body.kind) !== -1 ? 'sprint' : 'circuit';
   var req = {
     kind: kind, name: trackText(body.name, 60), organizer: kind === 'sprint' ? trackText(body.organizer, 40) : '',
-    venueId: trackId(body.venueId), layoutId: '', startLine: trackLine(body.startLine), finishLine: kind === 'sprint' ? trackLine(body.finishLine) : null,
+    venueId: trackId(body.venueId), layoutId: body.replace ? trackId(body.layoutId) : '', replace: !!body.replace && !!body.layoutId,
+    startLine: trackLine(body.startLine), finishLine: kind === 'sprint' ? trackLine(body.finishLine) : null,
     lapLength: trackNum(body.lapLength, 0, 30000), lat: trackNum(body.lat, -90, 90), lng: trackNum(body.lng, -180, 180), from: email || ''
   };
   if (req.lat === null || req.lng === null) return json({ success: false, message: 'Where is it? The course needs a position.' }, 400);
@@ -7759,7 +7880,8 @@ async function addTrackFromRequest(env, req, opts) {
     var lv = (library.venues || []).find(function (v) { return v.id === req.venueId; });
     var ll = lv && (lv.layouts || []).find(function (l) { return l.id === req.layoutId; });
     if (ll) {
-      if (ll.startLine) return { error: 'That course already has official lines. Dismiss this request.' };
+      // req.replace: the admin moving a course's official lines on the map. A request never does.
+      if (ll.startLine && !req.replace) return { error: 'That course already has official lines. Dismiss this request.' };
       var upd = JSON.parse(JSON.stringify(lv));
       var ul = upd.layouts.find(function (l) { return l.id === req.layoutId; });
       ul.startLine = req.startLine;
@@ -7852,11 +7974,18 @@ var TRACK_REBUILD_CARS = 2;
 //   GET  /track/admin/retime/source?id=  its readings (gzipped)
 //   POST /track/admin/retime           { id, session } replaces the timing, keeps the member's details
 var TRACK_RETIME_PAGE = 20;
+// The admin key, or the admin viewer token the session page holds (the admin moving one session's lines on the map).
+async function trackAdminOrViewer(request, env) {
+  return eventsAdminAuthorised(request, env) || await isAdminViewerToken(env, request.headers.get('X-Admin-Viewer'));
+}
+
 async function handleTrackAdminRetime(request, env) {
-  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  if (!(await trackAdminOrViewer(request, env))) return json({ success: false, message: 'Unauthorised' }, 401);
   var params = new URL(request.url).searchParams;
   if (request.method === 'GET') {
     var one = params.get('id');
+    // The list of every session uses KV list(), so it stays on the admin key.
+    if (!one && !eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
     if (one) {
       if (!/^[a-f0-9]{8,40}$/.test(one)) return json({ success: false, message: 'Session not found' }, 404);
       var found = await getTrackSession(env, one);
@@ -7913,7 +8042,7 @@ async function handleTrackAdminRetime(request, env) {
 }
 
 async function handleTrackAdminRetimeSource(request, env) {
-  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  if (!(await trackAdminOrViewer(request, env))) return json({ success: false, message: 'Unauthorised' }, 401);
   var id = String(new URL(request.url).searchParams.get('id') || '');
   if (!/^[a-f0-9]{8,40}$/.test(id)) return json({ success: false, message: 'Session not found' }, 404);
   var buf = await env.VOTES.get('track-source:' + id, 'arrayBuffer');
@@ -9126,6 +9255,7 @@ export default {
     // The member's own sessions need access (early preview): lists, saves,
     // changes, readings and deletes. Shared sessions and boards stay public.
     if ((url.pathname === '/track/sessions' || url.pathname === '/track/session/source' || url.pathname === '/track/courses' ||
+        url.pathname === '/track/lines/status' || url.pathname === '/track/lines/request' || url.pathname === '/track/lines/propose' ||
         (url.pathname === '/track/session' && request.method !== 'GET')) && request.method !== 'OPTIONS') {
       var noAccess = await trackAccessGate(request, env);
       if (noAccess) return noAccess;
@@ -9141,6 +9271,18 @@ export default {
     }
     if (url.pathname === '/track/session' && request.method === 'PUT') {
       return handleTrackSessionUpdate(request, env);
+    }
+    if (url.pathname === '/track/lines/status' && request.method === 'GET') {
+      return handleTrackLinesStatus(request, env);
+    }
+    if (url.pathname === '/track/lines/request' && request.method === 'POST') {
+      return handleTrackLinesRequest(request, env);
+    }
+    if (url.pathname === '/track/lines/propose' && request.method === 'POST') {
+      return handleTrackLinesPropose(request, env);
+    }
+    if (url.pathname === '/track/lines/admin' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleTrackLinesAdmin(request, env);
     }
     if (url.pathname === '/tyres' && request.method === 'GET') {
       return handleTyresPublic(request, env);

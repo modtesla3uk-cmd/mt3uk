@@ -68,6 +68,11 @@ class FakeWorker:
         self.access_requests = []
         self.tyre_extra = {}
         self.fail_source = False
+        # Asking to edit a saved session's map: none, pending or granted, and the change a member has sent.
+        self.lines_status = "none"
+        self.lines_proposal = None
+        self.line_requests = []
+        self.line_proposals = []
 
     def reply(self, route):
         req = route.request
@@ -118,6 +123,16 @@ class FakeWorker:
                 status, data = 404, {"success": False}
         elif path == "/tyres" and req.method == "GET":
             data = {"success": True, "extra": self.tyre_extra}
+        elif path == "/track/lines/status" and req.method == "GET":
+            data = {"success": True, "state": self.lines_status, "proposal": self.lines_proposal}
+        elif path == "/track/lines/request" and req.method == "POST":
+            self.line_requests.append(body)
+            self.lines_status = "pending"
+            data = {"success": True, "state": "pending"}
+        elif path == "/track/lines/propose" and req.method == "POST":
+            self.line_proposals.append(body)
+            self.lines_proposal = {"at": "2026-10-03T12:00:00Z", "from": {"startLine": None, "finishLine": None, "time": 99.8}, "to": {"startLine": body["startLine"], "finishLine": body.get("finishLine"), "time": body.get("time")}}
+            data = {"success": True, "state": "granted", "proposal": self.lines_proposal}
         elif path == "/track/session/source" and req.method == "POST":
             sid = q.get("id", [""])[0]
             if self.fail_source:
@@ -3827,3 +3842,61 @@ def test_the_1_ft_rollout_switch_shortens_the_times_and_is_kept_with_the_run(pag
         assert fake.saved[0]["session"].get("rollout") is True
     finally:
         path.unlink()
+
+
+def save_fixture_session(page, fake):
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    page.get_by_role("button", name="Save session").click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
+
+
+def test_a_member_requests_to_edit_the_map_and_sends_a_change_for_approval(page):
+    """A saved session's lines are fixed. The member presses Request Edit Map (MT3UK is told); once MT3UK has
+    allowed it they edit the map and send the change, which waits for approval: the session itself is not saved."""
+    fake = FakeWorker()
+    save_fixture_session(page, fake)
+    box = page.locator("#tp-lineedit")
+    expect(box).to_contain_text("The lines are fixed once a session is saved")
+    page.fill("#tp-line-why", "The start is a bit early")
+    page.get_by_role("button", name="Request Edit Map").click()
+    expect(box).to_contain_text("Requested. MT3UK has been told")
+    assert fake.line_requests == [{"id": "new1", "note": "The start is a bit early"}]
+    # Allowed: the page offers the map.
+    fake.lines_status = "granted"
+    page.reload()
+    expect(box).to_contain_text("MT3UK has said you can edit this map")
+    page.get_by_role("button", name="Edit the map").click()
+    expect(page.get_by_role("heading", name="Edit the map")).to_be_visible()
+    expect(page.locator("[data-type]")).to_have_count(0)
+    page.locator("#tp-tap polyline").first.wait_for(state="attached")
+    page.get_by_role("button", name="Clear markers").click()
+    page.locator("#tp-tap").scroll_into_view_if_needed()
+    pt = page.evaluate("""() => {
+      const svg = document.getElementById('tp-tap'), vb = svg.viewBox.baseVal, r = svg.getBoundingClientRect();
+      const pts = svg.querySelector('polyline').getAttribute('points').split(' ').map(s => s.split(',').map(Number));
+      const p = pts[Math.floor(pts.length * 0.02)];
+      return [r.left + p[0] * r.width / vb.width, r.top + p[1] * r.height / vb.height];
+    }""")
+    page.mouse.click(pt[0], pt[1])
+    page.get_by_role("switch", name="Correct lines?").click()
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed lap")
+    page.get_by_role("button", name="Send for approval").click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
+    # What was sent: the new start line (two points) and the time on it. The saved session is untouched.
+    assert len(fake.line_proposals) == 1
+    sent = fake.line_proposals[0]
+    assert sent["id"] == "new1" and len(sent["startLine"]) == 2 and len(sent["startLine"][0]) == 2 and sent["finishLine"] is None and sent["time"] > 60
+    assert not getattr(fake, "replaced", []), "the session itself is not changed"
+    expect(box).to_contain_text("Your change is waiting for MT3UK to approve it")
+    expect(box.get_by_role("button", name="Change it again")).to_be_visible()
+
+
+def test_the_edit_map_request_is_not_offered_without_saved_readings(page):
+    fake = FakeWorker()
+    fake.fail_source = True
+    save_fixture_session(page, fake)
+    expect(page.locator("#settings")).to_be_visible()
+    expect(page.locator("#lineedit")).to_have_count(0)

@@ -715,9 +715,10 @@
     var h;
     if (a.replaceId) {
       // Changing a saved session's type: its saved readings are read again.
-      h = back('Back to the session', 's=' + a.replaceId) + '<div class="tp-head"><h2>Change the type</h2>' + unitsChip() + '</div>' +
+      h = back('Back to the session', 's=' + a.replaceId) + '<div class="tp-head"><h2>' + (a.lineEdit ? 'Edit the map' : 'Change the type') + '</h2>' + unitsChip() + '</div>' +
         '<div class="tp-add-grid"><div class="card"><p class="tp-car-one">Car: <b>' + esc(a.car.name) + '</b></p>' +
-        '<p class="tp-sub">Using the readings saved with this session. Pick the type below, check the result, then save.</p>' +
+        (a.lineEdit ? '<p class="tp-sub">Drag the start and finish markers to where they should be, press Done, and check the time. Then send the change. Your session stays as it is until MT3UK has approved it.</p>'
+          : '<p class="tp-sub">Using the readings saved with this session. Pick the type below, check the result, then save.</p>') +
         '<p class="tp-status" id="tp-status" role="status"></p></div><div id="tp-result"></div></div>';
       app.innerHTML = h;
       if (a.session) drawResult();
@@ -931,6 +932,8 @@
     if (a.finishCross) opts.finishCrossing = a.finishCross;
     if (a.organizer) opts.organizer = a.organizer;
     if (a.rollout) opts.rollout = true;
+    // Editing a saved session's map: the lines on the map, not the course's own.
+    if (a.lineEdit) opts.ownLines = true;
     return opts;
   }
   function analyse() {
@@ -1080,7 +1083,7 @@
     var a = add, s = a.session, box = document.getElementById('tp-result');
     if (!(s.needsStartLine || a.editLines) && a.tapFull) { a.tapFull = false; document.body.classList.remove('tp-noscroll'); }
     var h = '<div class="card tp-fields">';
-    h += '<div class="tp-field"><span class="tp-lbl">Type</span><div class="tp-chips" data-type>' + TYPES.map(function (t) { return '<button type="button" class="chip' + (s.type === t[0] ? ' is-on' : '') + '" data-v="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</div></div>';
+    if (!a.lineEdit) h += '<div class="tp-field"><span class="tp-lbl">Type</span><div class="tp-chips" data-type>' + TYPES.map(function (t) { return '<button type="button" class="chip' + (s.type === t[0] ? ' is-on' : '') + '" data-v="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</div></div>';
     // The track name and the date come first: they are the first things to check.
     var topDate = '';
     if (!a.replaceId) {
@@ -1148,7 +1151,9 @@
         h += '<button type="button" class="tp-switch" role="switch" aria-checked="' + !!a.rollout + '" id="tp-rollout"><span><b>1 ft rollout</b><br><small>Start the clock just after the car starts to move, where RaceBox\'s option puts it. Off times from the first movement.</small></span><span class="tp-track"></span></button>';
     }
     var saveable = s.type === 'drag' ? (s.runs || []).length : s.type === 'other' ? true : !s.needsStartLine && s.laps && s.laps.length;
-    if (saveable && a.replaceId) {
+    if (saveable && a.lineEdit) {
+      h += '<button type="button" class="btn btn-accent btn-block" id="tp-save">Send for approval</button><p class="tp-small">MT3UK checks the change before the map is updated. You will be emailed.</p>';
+    } else if (saveable && a.replaceId) {
       h += '<button type="button" class="btn btn-accent btn-block" id="tp-save">Save changes</button>';
     } else if (saveable) {
       h += '<div class="tp-field"><span class="tp-lbl">Conditions</span><div class="tp-chips" data-cond>' + ['Dry', 'Damp', 'Wet'].map(function (c) { return '<button type="button" class="chip' + (a.conditions === c ? ' is-on' : '') + '" data-v="' + c + '">' + c + '</button>'; }).join('') + '</div></div>' +
@@ -1289,7 +1294,7 @@
     if (st) st.addEventListener('click', function () { keep(); a.street = !a.street; if (a.street) a.privacy = 'private'; drawResult(); });
     wireTyres('tp-tyre');
     var save = document.getElementById('tp-save');
-    if (save) save.addEventListener('click', function () { keep(); var miss = missingName(); if (miss) { nameError(miss); return; } saveSession(save); });
+    if (save) save.addEventListener('click', function () { keep(); if (a.lineEdit) { sendLineChange(save); return; } var miss = missingName(); if (miss) { nameError(miss); return; } saveSession(save); });
     wireNameField();
     var req = document.getElementById('tp-req');
     if (req) req.addEventListener('click', function () {
@@ -1638,6 +1643,79 @@
     }).catch(function (e) { status((e && e.message) || 'Could not load your readings.', 'error'); });
   }
 
+  // ---------- Editing a saved session's map ----------
+  // Once saved, a session's start and finish lines are fixed so every time stays comparable. A member who finds
+  // one in the wrong place presses Request Edit Map; MT3UK allows it for that one session; the member moves the
+  // lines on the map and sends the change; and the session only changes once MT3UK has accepted it.
+  function lineEditHtml(s) {
+    if (!s.mine || s.street || !s.hasSource || (s.type !== 'sprint' && s.type !== 'track')) return '';
+    return '<div class="tp-section" id="lineedit"><div class="tp-head"><h2>Start and finish lines</h2></div><div class="card tp-fields" id="tp-lineedit"><p class="tp-sub">Checking...</p></div></div>';
+  }
+  function drawLineEdit(s, st) {
+    var box = document.getElementById('tp-lineedit');
+    if (!box) return;
+    var sprint = s.type === 'sprint', h = '', p = st && st.proposal;
+    if (!st || st.state === 'none') {
+      h = '<p class="tp-sub">The lines are fixed once a session is saved, so every ' + (sprint ? 'run' : 'lap') + ' stays comparable. If ' + (sprint ? 'the start or the finish is' : 'the start line is') + ' in the wrong place, ask MT3UK to let you edit this map.</p>' +
+        '<div class="tp-field"><label for="tp-line-why">What is wrong with the line' + (sprint ? 's' : '') + '? (optional)</label><input class="field" id="tp-line-why" maxlength="300" placeholder="For example, the finish is too early"></div>' +
+        '<button type="button" class="btn btn-secondary" id="tp-line-request">' + icon('pin') + 'Request Edit Map</button>';
+    } else if (st.state === 'pending') {
+      h = '<p class="tp-src">' + icon('info') + '<span>Requested. MT3UK has been told and will email you when you can edit this map.</span></p>';
+    } else if (p) {
+      h = '<p class="tp-src">' + icon('info') + '<span>Your change is waiting for MT3UK to approve it. The map and the time on this session stay as they are until then.</span></p>' +
+        '<p class="tp-small">Time from ' + esc(p.from.time ? V.fmtLap(p.from.time) : 'none') + ' to ' + esc(p.to.time ? V.fmtLap(p.to.time) : 'none') + ' on the new lines.</p>' +
+        '<button type="button" class="btn btn-secondary" id="tp-line-edit">' + icon('pin') + 'Change it again</button>';
+    } else {
+      h = '<p class="tp-sub">MT3UK has said you can edit this map. Move the ' + (sprint ? 'start and finish lines' : 'start line') + ', check the time and send the change. Nothing on this session changes until MT3UK approves it.</p>' +
+        '<button type="button" class="btn btn-primary" id="tp-line-edit">' + icon('pin') + 'Edit the map</button>';
+    }
+    h += '<p class="tp-small tp-err" id="tp-line-note" role="status"></p>';
+    box.innerHTML = h;
+    var note = document.getElementById('tp-line-note');
+    var req = document.getElementById('tp-line-request'), ed = document.getElementById('tp-line-edit');
+    if (req) req.addEventListener('click', function () {
+      req.disabled = true;
+      var why = document.getElementById('tp-line-why');
+      api('POST', '/track/lines/request', { id: s.id, note: why ? why.value.trim() : '' }).then(function (d) {
+        if (!d.success) { req.disabled = false; note.textContent = d.message || 'Could not send that.'; return; }
+        drawLineEdit(s, { state: d.state || 'pending', proposal: null });
+      }).catch(function () { req.disabled = false; note.textContent = 'Could not reach the server.'; });
+    });
+    if (ed) ed.addEventListener('click', function () { ed.disabled = true; startLineEdit(s, note); });
+  }
+  function wireLineEdit(s) {
+    if (!document.getElementById('tp-lineedit')) return;
+    api('GET', '/track/lines/status?id=' + encodeURIComponent(s.id)).then(function (d) {
+      if (view && view.s === s) drawLineEdit(s, d.success ? d : { state: 'none', proposal: null });
+    }).catch(function () { drawLineEdit(s, { state: 'none', proposal: null }); });
+  }
+  // The saved readings come back and go through the same screen as adding a file, on the lines as they are now.
+  function startLineEdit(s, note) {
+    if (note) note.textContent = 'Loading your readings...';
+    Promise.all([api('GET', '/track/session/source?id=' + encodeURIComponent(s.id)), getMine(), getLibrary()]).then(function (r) {
+      var src = r[0], m = r[1];
+      if (!src.p || !m) throw new Error((src && src.message) || 'Could not load your readings.');
+      var car = m.cars.filter(function (c) { return c.id === s.carId; })[0] || m.cars[0];
+      add = { car: car, cars: m.cars, lib: r[2], admin: false, rd: restoreSource(src), session: null, type: s.type, startLine: s.startLine || null, finishLine: s.type === 'sprint' ? (s.finishLine || null) : null,
+        editLines: true, confirmLines: false, lineEdit: true, organizer: s.organizer || '', ignoreFinish: s.ignoreFinish !== false, finishCross: s.finishCrossing || 0, rollout: !!s.rollout,
+        conditions: s.conditions || 'Dry', condTouched: true, privacy: s.privacy, street: false, tyres: s.tyres || '', tyre: tyreInit(s), temp: s.temp, tempSource: s.tempSource || '', weather: s.weather || null,
+        notes: s.notes || '', date: s.date, time: s.time, venueName: s.venueId ? '' : s.venue, replaceId: s.id, files: null, list: null };
+      analyse();
+      window.scrollTo(0, 0);
+    }).catch(function (e) { if (note) note.textContent = (e && e.message) || 'Could not load your readings.'; var b = document.getElementById('tp-line-edit'); if (b) b.disabled = false; });
+  }
+  // Send the moved lines to MT3UK. Nothing on the session changes yet.
+  function sendLineChange(btn) {
+    var a = add, s = a.session;
+    if (!s || s.needsStartLine || !s.startLine || (s.type === 'sprint' && !s.finishLine)) { status('Set both lines first.', 'error'); return; }
+    btn.disabled = true;
+    status('Sending...');
+    api('POST', '/track/lines/propose', { id: a.replaceId, startLine: s.startLine, finishLine: s.type === 'sprint' ? s.finishLine : null, time: s.bestTime || null }).then(function (d) {
+      if (!d.success) throw new Error(d.message || 'Could not send that.');
+      go('s=' + a.replaceId);
+    }).catch(function (e) { btn.disabled = false; status((e && e.message) || 'Could not send that.', 'error'); });
+  }
+
   // ---------- One session ----------
   var view = null;
   function showSession(id) {
@@ -1675,7 +1753,7 @@
     if (s.type === 'drag') h += dragHtml(s);
     else if (untimed) h += otherHtml(s);
     else h += trackHtml(s);
-    if (s.mine) h += ownerHtml(s);
+    if (s.mine) h += lineEditHtml(s) + ownerHtml(s);
     justSaved = null;
     app.innerHTML = h;
     if (s.type === 'drag') drawDragCharts(s);
@@ -1684,6 +1762,7 @@
     // Sprints and hill climbs have runs, not laps.
     if (s.type === 'sprint') runWords(app);
     if (s.mine) wireOwner(s);
+    if (s.mine) wireLineEdit(s);
     if (!s.street && s.privacy !== 'private') {
       var what = s.type === 'drag' ? 'Drag run' : s.type === 'sprint' ? 'Sprint or hill climb run' : 'Track session', res = sessionResult(s);
       wireShare({ url: SITE_URL + 'track.html?s=' + encodeURIComponent(s.id), heading: 'Share this session', subject: trackName(s) + ' | MT3UK', campaign: 'track_session',

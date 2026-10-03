@@ -981,7 +981,7 @@
     var layouts = venue && venue.layouts && venue.type === 'circuit' ? venue.layouts : [];
     var choice = null, minGap = 20;
     var candidates = [];
-    layouts.forEach(function (l) { if (l.startLine && l.startLine.length === 2) candidates.push({ layout: l, line: l.startLine, sectors: l.sectors || [] }); });
+    if (!opts.ownLines) layouts.forEach(function (l) { if (l.startLine && l.startLine.length === 2) candidates.push({ layout: l, line: l.startLine, sectors: l.sectors || [] }); });
     if (opts.startLine) candidates.push({ layout: null, line: opts.startLine, sectors: [], own: true });
     if (rd.startLine) candidates.push({ layout: null, line: rd.startLine, sectors: [], fromFile: true });
     function evalLine(c) {
@@ -1147,7 +1147,8 @@
     // The course's own lines come first. The member's lines are only used when
     // the course's give no runs (or it has none), so nobody can time a listed
     // course on lines they moved.
-    cands.filter(function (c) { return !c.own; }).forEach(evalCand);
+    // opts.ownLines (the admin moving a session's lines on the map): only the lines given are used, not the course's.
+    if (!opts.ownLines) cands.filter(function (c) { return !c.own; }).forEach(evalCand);
     if (!pick) cands.filter(function (c) { return c.own; }).forEach(evalCand);
     if (!pick) {
       session.laps = [];

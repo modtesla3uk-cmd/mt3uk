@@ -3,6 +3,7 @@ light look, one navigation shared by all three, and the panels in logical
 groups."""
 import gzip
 import json
+from pathlib import Path
 import re
 import subprocess
 from urllib.parse import parse_qs, urlparse
@@ -19,7 +20,7 @@ GROUPS = [
     ("grp-reports", "Reports", ["comments-wrap", "rphotos-wrap", "local-wrap"]),
     ("grp-members", "Members", ["subscribers-wrap", "members-msg-wrap"]),
     ("grp-interviews", "Owner interviews", ["interviews-wrap", "preview-wrap"]),
-    ("grp-tracks", "Track sessions", ["access-wrap", "member-sessions-wrap", "tracks-wrap", "copy-wrap", "tyres-wrap"]),
+    ("grp-tracks", "Track sessions", ["access-wrap", "lines-wrap", "member-sessions-wrap", "tracks-wrap", "copy-wrap", "tyres-wrap"]),
     ("grp-sharing", "Sharing links", ["home-share-wrap", "share-wrap"]),
 ]
 
@@ -101,7 +102,7 @@ def test_admin_sub_menu_lists_the_sections_of_the_current_category(page):
     expect(page.locator('.admin-nav a[data-here="true"]')).to_have_text("Gallery and builds")
     # Choosing a category swaps the sub menu to that category's sections.
     page.locator('.admin-nav a[href="admin.html#grp-tracks"]').click()
-    expect(sub.locator("a")).to_have_text(["Early access", "Member sessions", "Tracks", "Welcome text", "Tyres"])
+    expect(sub.locator("a")).to_have_text(["Early access", "Line editing", "Member sessions", "Tracks", "Welcome text", "Tyres"])
     expect(page.locator('.admin-nav a[data-here="true"]')).to_have_text("Track sessions")
     # Choosing a section opens its panel and scrolls to it.
     sub.locator("a", has_text="Tyres").click()
@@ -604,3 +605,128 @@ def test_admin_sharing_panel_loads_once_the_admin_key_is_entered(page):
     page.evaluate("sessionStorage.setItem('mt3ukAdminKey', 'test-key'); document.dispatchEvent(new CustomEvent('mt3uk-admin-refresh'))")
     expect(page.locator("#share-wrap .ts-list")).to_contain_text("No pictures yet")
     expect(page.locator("#share-wrap .ts-session option")).to_have_count(2)
+
+
+LINES_API = "**/track/lines/admin**"
+
+
+def test_admin_line_editing_panel_allows_shows_the_change_and_undoes_or_revokes(page):
+    """Members ask to edit a map; the admin allows it, sees who has access to which map and what they changed
+    (from and to), and can undo the change or revoke the access."""
+    line = lambda a, b: [[a, b], [round(a + 0.0002, 4), round(b + 0.0002, 4)]]
+    state = {"requests": [
+        {"id": "s1", "name": "Ann B", "email": "a***@example.com", "note": "The finish is early", "at": "2026-10-01T09:00:00Z", "status": "pending", "grantedAt": "", "proposal": None, "what": "Abingdon Airfield, AMC LCS, 2022-04-10", "type": "sprint", "best": 118.089},
+        {"id": "s2", "name": "Bob", "email": "b***@example.com", "note": "", "at": "2026-10-01T10:00:00Z", "status": "granted", "grantedAt": "2026-10-01T11:00:00Z", "proposal": None, "what": "Thruxton, 2026-05-28", "type": "track", "best": 99.786},
+        {"id": "s3", "name": "Cat", "email": "c***@example.com", "note": "", "at": "2026-10-01T12:00:00Z", "status": "granted", "grantedAt": "2026-10-01T13:00:00Z", "what": "Brands Hatch, 2026-06-01", "type": "track", "best": 99.8,
+         "proposal": {"at": "2026-10-02T09:30:00Z", "from": {"startLine": line(51.1, -1.1), "finishLine": None, "time": 99.8}, "to": {"startLine": line(51.1005, -1.1005), "finishLine": None, "time": 99.2}}},
+    ]}
+    calls = []
+
+    def lines(route):
+        req = route.request
+        if req.method == "POST":
+            body = json.loads(req.post_data)
+            calls.append((body["action"], body["id"]))
+            row = next(r for r in state["requests"] if r["id"] == body["id"])
+            if body["action"] == "grant":
+                row["status"], row["grantedAt"] = "granted", "2026-10-03T08:00:00Z"
+            elif body["action"] == "undo":
+                row["proposal"] = None
+            elif body["action"] == "revoke":
+                state["requests"].remove(row)
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(dict(state, success=True)), headers={"Access-Control-Allow-Origin": "*"})
+    open_admin(page, "admin.html")
+    page.route(LINES_API, lines)
+    page.reload()
+    # The count shows without opening the panel: a change to review comes first.
+    expect(page.locator("#lines-count")).to_have_text("1 to review")
+    page.locator("#lines-wrap summary").click()
+    rows = page.locator("#ln-list > table > tbody > tr")
+    expect(rows).to_have_count(3)
+    expect(rows.nth(0)).to_contain_text("Ann B")
+    expect(rows.nth(0)).to_contain_text("Abingdon Airfield, AMC LCS")
+    expect(rows.nth(0)).to_contain_text("The finish is early")
+    expect(rows.nth(1)).to_contain_text("Waiting for them to change the map")
+    # The change, from and to, and nothing has been saved yet.
+    expect(rows.nth(2)).to_contain_text("The session has not changed yet")
+    expect(rows.nth(2)).to_contain_text("Start line")
+    expect(rows.nth(2)).to_contain_text("51.1, -1.1, 51.1002, -1.0998")
+    expect(rows.nth(2)).to_contain_text("51.1005, -1.1005, 51.1007, -1.1003")
+    expect(rows.nth(2)).to_contain_text("1:39.800")
+    expect(rows.nth(2)).to_contain_text("1:39.200")
+    expect(rows.nth(2).get_by_role("button", name="Accept")).to_be_visible()
+    expect(rows.nth(1).get_by_role("button", name="Accept")).to_have_count(0)
+    rows.nth(0).get_by_role("button", name="Allow").click()
+    expect(page.locator("#ln-note")).to_contain_text("Allowed")
+    expect(rows.nth(0)).to_contain_text("Waiting for them to change the map")
+    page.once("dialog", lambda d: d.accept())
+    rows.nth(2).get_by_role("button", name="Undo").click()
+    expect(page.locator("#ln-note")).to_contain_text("Undone. The session was not changed")
+    expect(page.locator("#lines-count")).to_have_text("3 allowed")
+    expect(rows.nth(2).get_by_role("button", name="Accept")).to_have_count(0)
+    page.once("dialog", lambda d: d.accept())
+    rows.nth(1).get_by_role("button", name="Revoke").click()
+    expect(rows).to_have_count(2)
+    assert calls == [("grant", "s1"), ("undo", "s3"), ("revoke", "s2")]
+
+
+def test_admin_accepting_a_change_works_the_time_out_again_and_saves_it_after_a_yes(page):
+    """Accept does not trust the member's figure: the time is worked out again from the saved readings on the
+    new lines and shown before anything is saved. A no leaves it waiting; a yes saves the session, then clears it."""
+    fixture = (Path(__file__).resolve().parent / "fixtures" / "thruxton-trimmed.vbo").read_text(encoding="latin1")
+    open_admin(page, "admin.html")
+    page.wait_for_function("!!(window.MT3UKTrack && window.MT3UKTrack.analyse)")
+    prep = page.evaluate("""(text) => {
+      const T = window.MT3UKTrack, rd = T.read(text, 'f.vbo');
+      const meta = {}; Object.keys(rd).forEach(k => { if (k !== 'points') meta[k] = rd[k]; });
+      const p = rd.points.map(q => [q.t, q.lat, q.lng, q.v, isFinite(q.la) ? q.la : null, isFinite(q.lo) ? q.lo : null, isFinite(q.sats) ? q.sats : null, isFinite(q.temp) ? q.temp : null, q.run || 0]);
+      return { src: { v: 1, rd: meta, p: p }, line: rd.startLine };
+    }""", fixture)
+    line = prep["line"]
+    assert line and len(line) == 2
+    session = {"id": "s9", "type": "track", "venue": "Thruxton", "venueId": "thruxton", "date": "2026-05-28", "time": "14:34", "bestTime": 102.0, "fileName": "f.vbo", "hasSource": True}
+    state = {"requests": [{"id": "s9", "name": "Dee", "email": "d***@example.com", "note": "", "at": "2026-10-02T08:00:00Z", "status": "granted", "grantedAt": "2026-10-02T08:30:00Z", "what": "Thruxton, 2026-05-28", "type": "track", "best": 102.0,
+                           "proposal": {"at": "2026-10-02T09:30:00Z", "from": {"startLine": [[51.2, -1.6], [51.2002, -1.6002]], "finishLine": None, "time": 102.0}, "to": {"startLine": line, "finishLine": None, "time": 50.0}}}]}
+    log = {"retime": None, "actions": []}
+    fulfil = lambda route, body, status=200: route.fulfill(status=status, content_type="application/json", body=json.dumps(body), headers={"Access-Control-Allow-Origin": "*"})
+
+    def lines(route):
+        if route.request.method == "POST":
+            body = json.loads(route.request.post_data)
+            log["actions"].append(body["action"])
+            if body["action"] == "accepted":
+                state["requests"][0]["proposal"] = None
+        fulfil(route, dict(state, success=True))
+
+    def retime(route):
+        if route.request.method == "POST":
+            log["retime"] = json.loads(route.request.post_data)
+            fulfil(route, {"success": True})
+        else:
+            fulfil(route, {"success": True, "session": session})
+    page.route(LINES_API, lines)
+    page.route("**/track/admin/retime/source**", lambda route: fulfil(route, prep["src"]))
+    page.route(re.compile(r".*/track/admin/retime(\?.*)?$"), retime)
+    page.route("**/track/admin/tracks**", lambda route: fulfil(route, {"success": True, "extra": {"venues": []}}))
+    page.reload()
+    page.locator("#lines-wrap summary").click()
+    row = page.locator("#ln-list > table > tbody > tr").first
+    expect(row).to_contain_text("The session has not changed yet")
+    # A no leaves the change waiting and saves nothing.
+    seen = []
+    page.once("dialog", lambda d: (seen.append(d.message), d.dismiss()))
+    row.get_by_role("button", name="Accept").click()
+    expect(page.locator("#ln-note")).to_contain_text("Not accepted. It is still waiting")
+    assert log["retime"] is None and log["actions"] == []
+    # It is the readings that decide the time, not the member's 50 seconds.
+    assert "1:42.000 to 1:39.78" in seen[0] and "They saw 0:50.000" in seen[0], seen[0]
+    # A yes saves the session on the new line, then clears the change.
+    page.once("dialog", lambda d: d.accept())
+    row.get_by_role("button", name="Accept").click()
+    expect(page.locator("#ln-note")).to_contain_text("Accepted. The session is now 1:39.78")
+    saved = log["retime"]
+    assert saved["id"] == "s9" and abs(saved["session"]["bestTime"] - 99.786) < 0.02
+    assert saved["session"]["date"] == "2026-05-28" and saved["session"]["fileName"] == "f.vbo"
+    assert abs(saved["session"]["startLine"][0][0] - line[0][0]) < 1e-9
+    assert log["actions"] == ["accepted"]
+    expect(page.locator("#ln-list")).to_contain_text("Waiting for them to change the map")

@@ -726,6 +726,14 @@
     </details>
     </div>
     <div class="panel-wrap">
+    <details class="collapsible" id="lines-wrap">
+      <summary><h3 class="panel-title">Line editing <span class="summary-count" id="lines-count"></span></h3></summary>
+      <p class="iv-note">A member cannot move the start and finish lines on a session they have saved. They press <b>Request Edit Map</b> on the session and wait here. <b>Allow</b> lets them edit that one map (they are emailed). When they send a change you are emailed what the lines and time were and would be, and nothing on the session changes until you <b>Accept</b> it (the time is worked out again from the saved readings first) or <b>Undo</b> it. <b>Revoke</b> switches their editing off once they are done.</p>
+      <p class="iv-note" id="ln-note" role="status"></p>
+      <div id="ln-list"></div>
+    </details>
+    </div>
+    <div class="panel-wrap">
     <details class="collapsible" id="member-sessions-wrap">
       <summary><h3 class="panel-title">Member sessions</h3></summary>
       <p class="iv-note">Find a member by email to open their sessions, even private ones. You get a read-only view without their notes, and each view is logged below. Members are told in the privacy page. Links open on this browser once you have entered the admin key. A session at a track we do not list yet can be renamed here; one at a listed track takes its name from the Tracks panel.</p>
@@ -2920,9 +2928,10 @@
 })();
 </script>
 <script src="js/admin-subnav.js" defer></script>
-<script src="js/track-parse.js?v=20261102" defer></script>
-<script src="js/track-view.js?v=20261102" defer></script>
+<script src="js/track-parse.js?v=20261104" defer></script>
+<script src="js/track-view.js?v=20261104" defer></script>
 <script src="js/track-access-admin.js" defer></script>
+<script src="js/track-lines-admin.js?v=20261104" defer></script>
 <script src="js/track-member-admin.js?v=20261103" defer></script>
 <script src="js/track-admin.js?v=20261103" defer></script>
 <script src="js/track-share-card.js?v=20261102"></script>

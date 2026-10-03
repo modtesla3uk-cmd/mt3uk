@@ -3908,12 +3908,51 @@ def test_a_member_requests_to_edit_the_map_and_sends_a_change_for_approval(page)
     expect(box.get_by_role("button", name="Change it again")).to_be_visible()
 
 
-def test_the_edit_map_request_is_not_offered_without_saved_readings(page):
+def test_a_session_whose_readings_were_not_kept_says_so_and_why(page):
+    """Readings the worker refuses (a long file can be too big) are not silently lost: the saved banner and the lines
+    box say so, and there is no Request Edit Map button to press."""
     fake = FakeWorker()
     fake.fail_source = True
     save_fixture_session(page, fake)
-    expect(page.locator("#settings")).to_be_visible()
-    expect(page.locator("#lineedit")).to_have_count(0)
+    expect(page.locator("#tp-saved")).to_contain_text("Your readings were not kept (Those readings are too big to keep)")
+    box = page.locator("#lineedit")
+    expect(box).to_contain_text("readings were not kept")
+    expect(box).to_contain_text("Add the file again as a new session")
+    expect(page.get_by_role("button", name="Request Edit Map")).to_have_count(0)
+
+
+def test_readings_that_finish_uploading_after_the_page_moved_on_bring_the_edit_map_box_up(page):
+    """A slow upload (a phone on 5G) is not waited for beyond 20 seconds. The page shows the session as having no
+    readings at first, then brings it up to date when they arrive, so the member does not have to refresh."""
+    fake = FakeWorker()
+    held = []
+    page.clock.install()
+    open_page(page, fake)
+    # Hold the readings upload until the test lets it go.
+    def hold(route):
+        if route.request.method == "POST":
+            held.append(route)
+        else:
+            route.fallback()
+    page.route("**/track/session/source**", hold)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    page.get_by_role("button", name="Save session").click()
+    # Wait until the upload has started (the session is saved first), then let 21 seconds pass.
+    for _ in range(100):
+        if held:
+            break
+        page.wait_for_timeout(50)
+    assert held, "the readings upload should have started"
+    page.clock.run_for(21000)
+    expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
+    # While it is still going the page says to wait, rather than that they were lost.
+    expect(page.locator("#lineedit")).to_contain_text("Your readings are still being sent. Keep this page open")
+    expect(page.locator("#tp-saved")).to_contain_text("still being sent")
+    # The upload finishes: the page notices and shows the real box.
+    fake.reply(held[0])
+    expect(page.get_by_role("button", name="Request Edit Map")).to_be_visible(timeout=10000)
 
 
 def test_the_readings_load_when_they_arrive_still_zipped(page):

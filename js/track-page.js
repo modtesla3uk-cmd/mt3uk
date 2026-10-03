@@ -1532,7 +1532,7 @@
   // Several files: each is timed on its own and saved as its own session, with the settings chosen
   // above. A file that gives no laps or runs is left out and listed.
   function saveBatch(a, carId) {
-    var items = (a.list || []).filter(function (x) { return x.rd && !x.mergedInto; }), opts = analysisOpts(a), made = [], skipped = [], siblingLine = null;
+    var items = (a.list || []).filter(function (x) { return x.rd && !x.mergedInto; }), opts = analysisOpts(a), made = [], skipped = [], siblingLine = null, noReadings = [];
     // Files with real time stamps first: a file the car wrote with no time stamps may have no start line of its own,
     // so it borrows the one found on the files from the same upload.
     var ordered = items.filter(function (x) { return !x.rd.timeRebuilt; }).concat(items.filter(function (x) { return x.rd.timeRebuilt; }));
@@ -1557,13 +1557,13 @@
         return api('POST', '/track/sessions', body, true).then(function (d) {
           if (!d.success) { skipped.push({ name: x.f.name, reason: d.message || 'Could not save it.' }); return; }
           made.push(d.session.id);
-          return keepReadings(d.session.id, x.rd);
+          return keepReadings(d.session.id, x.rd).then(function (r) { if (r && r.kept === false) noReadings.push(x.f.name); });
         });
       });
     });
     return chain.then(function () {
       if (!made.length) throw new Error('None of those files could be saved. ' + (skipped[0] ? skipped[0].name + ': ' + skipped[0].reason : ''));
-      return { success: true, batch: made.length, ids: made, skipped: skipped };
+      return { success: true, batch: made.length, ids: made, skipped: skipped, noReadings: noReadings };
     });
   }
   function saveSession(btn) {
@@ -1592,13 +1592,17 @@
     }).then(function (d) {
       if (!d.success) throw new Error(d.message || 'Could not save the session.');
       mine = null; counts = null;
-      if (d.batch) { justSaved = { batch: d.batch, skipped: d.skipped || [], joined: (a.list || []).filter(function (x) { return x.merged; }).length }; go(''); return; }
+      if (d.batch) { justSaved = { batch: d.batch, skipped: d.skipped || [], noReadings: d.noReadings || [], joined: (a.list || []).filter(function (x) { return x.merged; }).length }; go(''); return; }
       justSaved = { files: (a.files || []).length || 1 };
       if (a.replaceId) { go('s=' + d.session.id); return; }
       // Keep the readings with the session, so its type can be changed later.
       // Best effort: a session without them still works.
       status('Keeping your readings...');
-      return keepReadings(d.session.id, a.rd).then(function () { go('s=' + d.session.id); });
+      return keepReadings(d.session.id, a.rd).then(function (r) {
+        if (r && r.kept === false) justSaved.readings = r.message;
+        if (r && r.kept === null) justSaved.sending = true;
+        go('s=' + d.session.id);
+      });
     }).catch(function (e) {
       btn.disabled = false;
       status(e.message || 'Could not save the session.', 'error');
@@ -1623,9 +1627,21 @@
     });
     return rd;
   }
+  // Resolves { kept: true }, { kept: false, message } (the worker refused them, or they could not be sent) or
+  // { kept: null } (still sending after 20 s: the page moves on, and brings the session up to date if they arrive).
+  // Ids whose readings are still being sent. Leaving the page (a refresh) stops the upload, so the page says to wait.
+  var readingsSending = {};
   function keepReadings(id, rd) {
-    var send = api('POST', '/track/session/source?id=' + encodeURIComponent(id), sourceOf(rd), true).catch(function () {});
-    var wait = new Promise(function (resolve) { setTimeout(resolve, 20000); });
+    readingsSending[id] = true;
+    var send = api('POST', '/track/session/source?id=' + encodeURIComponent(id), sourceOf(rd), true).then(function (d) {
+      delete readingsSending[id];
+      var out = d && d.success ? { kept: true } : { kept: false, message: (d && d.message) || 'They could not be sent.' };
+      if (view && view.s && view.s.id === id && !view.s.hasSource) {
+        if (out.kept) showSession(id); else { view.s.readingsMessage = out.message; drawSession(); }
+      }
+      return out;
+    }).catch(function () { delete readingsSending[id]; return { kept: false, message: 'They could not be sent.' }; });
+    var wait = new Promise(function (resolve) { setTimeout(function () { resolve({ kept: null }); }, 20000); });
     return Promise.race([send, wait]);
   }
   // A saved session's readings. They come back gzipped: the browser usually unzips them on the way in, but not
@@ -1671,7 +1687,13 @@
   // one in the wrong place presses Request Edit Map; MT3UK allows it for that one session; the member moves the
   // lines on the map and sends the change; and the session only changes once MT3UK has accepted it.
   function lineEditHtml(s) {
-    if (!s.mine || s.street || !s.hasSource || (s.type !== 'sprint' && s.type !== 'track')) return '';
+    if (!s.mine || s.street || (s.type !== 'sprint' && s.type !== 'track')) return '';
+    // No readings kept (a session saved before we kept them, or a file too long to keep): say why there is no button.
+    if (!s.hasSource) {
+      var why = readingsSending[s.id] ? 'Your readings are still being sent. Keep this page open: the options for the lines appear when they have arrived.'
+        : 'This session\'s readings were not kept (' + (s.readingsMessage ? esc(String(s.readingsMessage).replace(/\.$/, '')) : 'a session saved before we kept them, or a file too long to keep') + '), so its lines cannot be edited. Add the file again as a new session to correct them.';
+      return '<div class="tp-section" id="lineedit"><div class="tp-head"><h2>Start and finish lines</h2></div><div class="card tp-fields"><p class="tp-src">' + icon('info') + '<span>' + why + '</span></p></div></div>';
+    }
     return '<div class="tp-section" id="lineedit"><div class="tp-head"><h2>Start and finish lines</h2></div><div class="card tp-fields" id="tp-lineedit"><p class="tp-sub">Checking...</p></div></div>';
   }
   function drawLineEdit(s, st) {
@@ -1707,7 +1729,7 @@
     if (ed) ed.addEventListener('click', function () { ed.disabled = true; startLineEdit(s, note); });
   }
   function wireLineEdit(s) {
-    if (!document.getElementById('tp-lineedit')) return;
+    if (!document.getElementById('tp-lineedit') || !s.hasSource) return;
     api('GET', '/track/lines/status?id=' + encodeURIComponent(s.id)).then(function (d) {
       if (view && view.s === s) drawLineEdit(s, d.success ? d : { state: 'none', proposal: null });
     }).catch(function () { drawLineEdit(s, { state: 'none', proposal: null }); });
@@ -1825,12 +1847,15 @@
     if (j.text) return '<div class="tp-notice is-ok tp-saved" id="tp-saved" role="status">' + icon('check') + '<div><b>Done</b><br>' + esc(j.text) + '</div><button type="button" class="tp-saved-x" id="tp-saved-x" aria-label="Dismiss">' + icon('x') + '</button></div>';
     if (j.batch) {
       return '<div class="tp-notice is-ok tp-saved" id="tp-saved" role="status">' + icon('check') + '<div><b>Saved</b><br>' + (j.split ? 'Split into ' : '') + j.batch + ' session' + (j.batch === 1 ? '' : 's') + (j.split ? '.' : (j.joined ? ' saved. ' + j.joined + (j.joined === 1 ? ' has' : ' have') + ' the car\'s Track Mode data joined on.' : ' saved, one for each file.')) + ' They are grouped by day below.' +
+        (j.noReadings && j.noReadings.length ? '<br><span class="tp-small">The readings were not kept for ' + esc(j.noReadings.join(', ')) + ' (a long file can be too big), so their type and map lines cannot be changed later.</span>' : '') +
         (j.skipped && j.skipped.length ? '<br><span class="tp-small">' + j.skipped.length + ' file' + (j.skipped.length === 1 ? ' was' : 's were') + ' not saved: ' + esc(j.skipped.map(function (x) { return x.name + ' (' + x.reason + ')'; }).join('; ')) + '</span>' : '') + '</div>' +
         '<button type="button" class="tp-saved-x" id="tp-saved-x" aria-label="Dismiss">' + icon('x') + '</button></div>';
     }
     var many = j.files > 1;
     return '<div class="tp-notice is-ok tp-saved" id="tp-saved" role="status">' + icon('check') + '<div><b>Saved</b><br>' +
       (many ? 'Your ' + j.files + ' files were combined into one session. ' : 'Your session is saved. ') +
+      (j.sending ? '<br><span class="tp-small">Your readings are still being sent. Keep this page open until they have arrived: the options to change the type and the map lines appear then.</span><br>' : '') +
+      (j.readings ? '<br><span class="tp-small">Your readings were not kept (' + esc(String(j.readings).replace(/\.$/, '')) + '), so this session\'s type and map lines cannot be changed later. Add the file again if you need that.</span><br>' : '') +
       '<a class="tp-link" href="track.html" data-go="">Go back to Track sessions</a></div>' +
       '<button type="button" class="tp-saved-x" id="tp-saved-x" aria-label="Dismiss">' + icon('x') + '</button></div>';
   }

@@ -65,7 +65,9 @@ def share_live(slot):
     if os.environ.get("MT3UK_SHARE_LIVE") != "1":
         return None
     try:
-        with urllib.request.urlopen(WORKER_URL + "/share/" + slot, timeout=15) as r:
+        # Cloudflare refuses urllib's default User-Agent with a 403, so say who is asking.
+        request = urllib.request.Request(WORKER_URL + "/share/" + slot, headers={"User-Agent": "mt3uk-build"})
+        with urllib.request.urlopen(request, timeout=15) as r:
             d = json.load(r)
     except Exception as e:  # noqa: BLE001 - a missing picture must never stop the build
         print("Share picture for " + slot + " not read (" + str(e) + "), using the page's own.")

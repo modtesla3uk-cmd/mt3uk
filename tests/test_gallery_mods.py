@@ -1,13 +1,27 @@
 """The Full Gallery's mods list: a "Mods (N)" button in the photo viewer
 opens a frosted list over the photo, like the homepage reel, and the mods
 badge on a photo opens it straight away."""
+import json
+from pathlib import Path
+from urllib.parse import quote
+
 from test_devices import device_page, browsers, all_devices, overflow_width, diagnostics  # noqa: F401
+
+GALLERY_MANIFEST = Path(__file__).resolve().parent.parent / "images" / "gallery" / "manifest.json"
+
+
+def gallery_with_mods():
+    """The Gallery showing a few builds that list mods. The real manifest changes
+    as members upload, so the first page on a phone may hold none."""
+    photos = json.loads(GALLERY_MANIFEST.read_text(encoding="utf-8"))
+    files = [p["file"] for p in photos if p.get("mods") and p.get("gallery") is not False][:6]
+    return "/gallery.html?only=" + ",".join(quote(f) for f in files)
 
 
 @all_devices
 def test_mods_open_as_a_pop_up_list(device_page):
     page = device_page
-    page.goto("/gallery.html")
+    page.goto(gallery_with_mods())
     badge = page.locator("#gallery-grid .gallery-slot.filled .g-mods-badge").first
     badge.wait_for(timeout=10000)
     count = int(badge.inner_text().strip())
@@ -32,7 +46,7 @@ def test_mods_open_as_a_pop_up_list(device_page):
 
 
 def open_full_list(page):
-    page.goto("/gallery.html")
+    page.goto(gallery_with_mods())
     badge = page.locator("#gallery-grid .gallery-slot.filled .g-mods-badge").first
     badge.wait_for(timeout=10000)
     badge.click()

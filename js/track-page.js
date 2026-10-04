@@ -456,12 +456,37 @@
     h += '<div class="tp-actions"><a class="btn btn-accent" href="track.html?add=1&car=' + encodeURIComponent(car.id) + '" data-go="add=1&car=' + esc(encodeURIComponent(car.id)) + '">' + icon('upload') + 'Add a session</a>' +
       (car.virtual ? '' : '<a class="btn btn-secondary" href="track.html?car=' + encodeURIComponent(car.id) + '" data-go="car=' + esc(encodeURIComponent(car.id)) + '">What others see</a>') + '</div>';
     if (!list.length) h += '<div class="card tp-empty">' + icon('flag') + '<p>No sessions for ' + esc(car.name) + ' yet. Add the file from your lap timer to get started.</p></div>';
-    else h += trackFilterHtml(list) + '<div class="tp-list" id="tp-sess-list">' + sessionListHtml(list.filter(inTrackFilter), true, list) + '</div>';
+    else h += listToolsHtml(list) + trackFilterHtml(list) + '<div class="tp-list" id="tp-sess-list">' + shownListHtml(list) + '</div>';
     return h + '</div>';
   }
   // Filter the list by track name (only when there's more than one track).
   var trackFilter = '';
   function inTrackFilter(s) { return !trackFilter || trackName(s) === trackFilter; }
+  // Filter by kind of session (Track day, Drag, Sprint) and sort by newest, oldest or A to Z.
+  var typeFilter = '', sortMode = 'newest';
+  var TYPE_CHIPS = [['', 'All'], ['track', 'Track'], ['drag', 'Drag'], ['sprint', 'Sprint']];
+  var SORTS = [['newest', 'Newest'], ['oldest', 'Oldest'], ['az', 'A to Z']];
+  function inTypeFilter(s) { return !typeFilter || s.type === typeFilter; }
+  function whenOf(s) { return (s.date || '') + (s.time || ''); }
+  function sortedSessions(l) {
+    return l.slice().sort(function (x, y) {
+      if (sortMode === 'az') { var c = trackName(x).localeCompare(trackName(y)); if (c) return c; }
+      var a = whenOf(x), b = whenOf(y);
+      return a === b ? 0 : (a < b) === (sortMode === 'oldest') ? -1 : 1;
+    });
+  }
+  function shownListHtml(list) {
+    var rows = sortedSessions(list.filter(inTrackFilter).filter(inTypeFilter));
+    return rows.length ? sessionListHtml(rows, true, list) : '<div class="card tp-empty">' + icon('flag') + '<p>No sessions match this filter.</p></div>';
+  }
+  function listToolsHtml(list) {
+    if (list.length < 2) return '';
+    return '<div class="tp-tools"><div class="tp-types" id="tp-type-filter" role="group" aria-label="Show">' + TYPE_CHIPS.map(function (t) {
+      var n = t[0] ? list.filter(function (x) { return x.type === t[0]; }).length : list.length;
+      return '<button type="button" class="chip' + (t[0] === typeFilter ? ' is-on' : '') + '" data-type="' + t[0] + '" aria-pressed="' + (t[0] === typeFilter) + '">' + t[1] + ' (' + n + ')</button>';
+    }).join('') + '</div><div class="tp-field tp-sort"><label for="tp-sort">Sort by</label><select class="field" id="tp-sort">' +
+      SORTS.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === sortMode ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div></div>';
+  }
   function trackFilterHtml(list) {
     var names = {};
     list.forEach(function (x) { var n = trackName(x); names[n] = (names[n] || 0) + 1; });
@@ -515,11 +540,22 @@
     if (!car) return;
     var list = m.sessions.filter(function (x) { return x.carId === car.id; });
     var sel = document.getElementById('tp-track-filter');
-    if (sel) sel.addEventListener('change', function () {
-      trackFilter = sel.value;
-      document.getElementById('tp-sess-list').innerHTML = sessionListHtml(list.filter(inTrackFilter), true, list);
+    function redraw() {
+      document.getElementById('tp-sess-list').innerHTML = shownListHtml(list);
       applyRanks(list);
+    }
+    if (sel) sel.addEventListener('change', function () { trackFilter = sel.value; redraw(); });
+    var types = document.getElementById('tp-type-filter'), sortSel = document.getElementById('tp-sort');
+    if (types) types.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-type]');
+      if (!b) return;
+      typeFilter = b.getAttribute('data-type');
+      Array.prototype.forEach.call(types.querySelectorAll('[data-type]'), function (x) {
+        var on = x === b; x.classList.toggle('is-on', on); x.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+      redraw();
     });
+    if (sortSel) sortSel.addEventListener('change', function () { sortMode = sortSel.value; redraw(); });
     if (ranksFor !== car.id) { ranks = {}; ranksFor = car.id; }
     applyRanks(list);
     loadRanks(car.id, list).then(function (r) {

@@ -1727,6 +1727,32 @@ def test_sessions_can_be_filtered_by_track_name(page):
     expect(rows).to_have_count(3)
 
 
+def test_sessions_can_be_filtered_by_type_and_sorted(page):
+    fake = FakeWorker(earlier=False)
+    fake.index = [shared_session("a1", "thruxton", "Thruxton", "main", 100, "2026-04-03"),
+                  dict(shared_session("d1", "santa-pod", "Santa Pod", "strip", 0, "2026-04-02"), type="drag"),
+                  dict(shared_session("s1", "lydden", "Lydden Hill", "hill", 50, "2026-04-05"), type="sprint"),
+                  shared_session("b1", "brands", "Brands Hatch", "indy", 60, "2026-04-01")]
+    open_page(page, fake)
+    rows = page.locator("#tp-sess-list .tp-row")
+    chips = page.locator("#tp-type-filter .chip")
+    expect(chips).to_have_text(["All (4)", "Track (2)", "Drag (1)", "Sprint (1)"])
+    # Newest first by default.
+    expect(rows.locator("b")).to_have_text(["Lydden Hill", "Thruxton", "Santa Pod", "Brands Hatch"])
+    page.locator("#tp-sort").select_option("oldest")
+    expect(rows.locator("b")).to_have_text(["Brands Hatch", "Santa Pod", "Thruxton", "Lydden Hill"])
+    page.locator("#tp-sort").select_option("az")
+    expect(rows.locator("b")).to_have_text(["Brands Hatch", "Lydden Hill", "Santa Pod", "Thruxton"])
+    chips.nth(2).click()
+    expect(rows).to_have_count(1)
+    expect(rows.first).to_contain_text("Santa Pod")
+    expect(chips.nth(2)).to_have_attribute("aria-pressed", "true")
+    chips.nth(1).click()
+    expect(rows.locator("b")).to_have_text(["Brands Hatch", "Thruxton"])
+    chips.nth(0).click()
+    expect(rows).to_have_count(4)
+
+
 def test_no_filter_when_there_is_only_one_track(page):
     fake = FakeWorker(earlier=False)
     fake.index = [shared_session("a1", "thruxton", "Thruxton", "main", 100)]

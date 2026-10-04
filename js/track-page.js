@@ -36,6 +36,7 @@
     pause: '<path fill="currentColor" stroke="none" d="M6 4h4v16H6zM14 4h4v16h-4z"/>',
     rewind: '<path fill="currentColor" stroke="none" transform="translate(24 0) scale(-1 1)" d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5Z"/>',
     x: '<path d="M18 6 6 18M6 6l12 12"/>',
+    sliders: '<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
     corner: '<path d="M4 20c0-9 7-16 16-16"/><path d="M15 4h5v5"/>',
     sig: '<path d="M2 20h.01M7 20v-4M12 20v-8M17 20V8M22 4v16"/>',
     up: '<path d="m3 17 6-6 4 4 8-8"/><path d="M14 7h7v7"/>',
@@ -285,6 +286,21 @@
   function shortDate(d) {
     var n = niceDate(d || '');
     return String(d || '').slice(0, 4) === String(new Date().getFullYear()) ? n.replace(/ \d{4}$/, '') : n;
+  }
+  // Short forms for the A and B labels, so they fit a phone: 28/05 (the year only when it is not this one), a member as
+  // initials ("RR" for RichyRich) and "L5" for Lap 5, "R2 L3" for run 2, lap 3.
+  function dmy(d) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d || '');
+    if (!m) return d || '';
+    return m[3] + '/' + m[2] + (m[1] === String(new Date().getFullYear()) ? '' : '/' + m[1].slice(2));
+  }
+  function initials(name) {
+    name = String(name || '').trim();
+    if (!name || name === 'You') return name;
+    var words = name.split(/[\s_.\-]+/).filter(Boolean);
+    if (words.length < 2) words = name.match(/[A-Z][a-z0-9]*|[a-z0-9]+/g) || [name];
+    if (words.length < 2) return name.charAt(0).toUpperCase() + name.slice(1, 2).toLowerCase();
+    return words.slice(0, 3).map(function (w) { return w.charAt(0).toUpperCase(); }).join('');
   }
   function trackName(s) { return (s.venue || (s.type === 'sprint' ? 'Sprint' : s.type === 'drag' ? 'Drag run' : 'Track session')) + (s.layout && s.layout !== s.venue ? ', ' + s.layout : !s.layout && s.organizer ? ', ' + s.organizer : ''); }
   function privacyPill(p, street) {
@@ -2213,9 +2229,12 @@
         '</div>' +
         '<div class="tp-mapwrap" id="tp-mapwrap"><svg class="tv-chart" id="tp-map2" role="img" aria-label="Track map with both laps\' lines and positions"></svg>' +
         '<div class="tp-chart-foot tp-speedkey" id="tp-speedkey"' + (cmpSpeed ? '' : ' hidden') + '><span class="tp-ramp"><span id="tp-ramp-lo"></span><i></i><span id="tp-ramp-hi"></span></span><span>Lap A coloured by speed, lap B dashed. Numbers are the slowest corners.</span></div></div>' +
+        '<div class="tp-mopts" id="tp-mopts"><button type="button" class="tp-mopts-btn" id="tp-mopts-btn" aria-expanded="false" aria-controls="tp-mopts-card" aria-label="Map options">' + icon('sliders') + '</button>' +
+        '<div class="tp-mopts-card" id="tp-mopts-card" hidden><div class="tp-mopts-head"><span>Map options</span><button type="button" class="tp-mopts-x" id="tp-mopts-x" aria-label="Close map options">' + icon('x') + '</button></div>' +
+        '<div class="tp-mopts-body" id="tp-mopts-body"><button type="button" class="tp-switch tp-gswitch" role="switch" id="tp-carspeed" aria-checked="' + carSpeed + '"><span>Speed on cars</span><span class="tp-track"></span></button></div></div></div>' +
         '<div class="tp-split" id="tp-split" role="separator" aria-orientation="vertical" aria-label="Drag to make the map bigger or smaller" title="Drag to make the map bigger or smaller"></div>' +
         '<div class="tp-metrics" id="tp-metrics" aria-live="off"></div>' +
-        '<div class="tp-gbox" id="tp-gbox"><div class="tp-chart-head"><h3>G-force' + (s.gDerived ? ' (estimated)' : '') + ' and speed</h3><button type="button" class="tp-switch tp-gswitch" role="switch" id="tp-gshow" aria-checked="' + !gHidden + '"><span>Show</span><span class="tp-track"></span></button><div class="tp-chips" id="tp-gtoggles" role="group" aria-label="G-force lines to show">' + G_DEFS.map(function (d) { return '<button type="button" class="chip chip-sm' + (gShow[d[0]] ? ' is-on' : '') + '" data-g="' + d[0] + '" aria-pressed="' + !!gShow[d[0]] + '">' + d[1] + '</button>'; }).join('') + '</div></div>' +
+        '<div class="tp-gbox" id="tp-gbox"><div class="tp-chart-head"><h3>G-force' + (s.gDerived ? ' (estimated)' : '') + ' and speed</h3><button type="button" class="tp-switch tp-gswitch" role="switch" id="tp-gshow" aria-checked="' + !gHidden + '"><span>Show G-Forces</span><span class="tp-track"></span></button><div class="tp-chips" id="tp-gtoggles" role="group" aria-label="G-force lines to show">' + G_DEFS.map(function (d) { return '<button type="button" class="chip chip-sm' + (gShow[d[0]] ? ' is-on' : '') + '" data-g="' + d[0] + '" aria-pressed="' + !!gShow[d[0]] + '">' + d[1] + '</button>'; }).join('') + '</div></div>' +
         '<div class="tp-gcharts" id="tp-gforce"></div>' +
         // The slider sits under the chart, lined up with its time axis.
         '<div class="tp-scrub-row"><div class="tp-scrub-track" id="tp-scrub-track"><div class="tp-ruler" id="tp-ruler" aria-hidden="true"></div><input type="range" id="tp-scrub" min="0" max="100" step="0.01" value="0" aria-label="Position in the lap"></div><span class="tp-clock" id="tp-clock">0:00.0</span></div>' +
@@ -2232,6 +2251,7 @@
   // The out lap is not a numbered lap: Lap 1 is the first timed one after it.
   function lapNo(l, s) { return l.n - (s.laps || []).filter(function (x) { return x.kind === 'out' && x.n < l.n; }).length; }
   function lapName(l, s) { return l.kind === 'out' ? 'Out lap' : s.runs > 1 ? cap(partWord(s.type)) + ' ' + (l.run || 1) + ', lap ' + lapNo(l, s) : 'Lap ' + lapNo(l, s); }
+  function lapShort(l, s) { return l.kind === 'out' ? 'Out' : s.runs > 1 ? partWord(s.type).charAt(0).toUpperCase() + (l.run || 1) + ' L' + lapNo(l, s) : 'L' + lapNo(l, s); }
   function cap(w) { return w.charAt(0).toUpperCase() + w.slice(1); }
   function lapKind(l, s) {
     if (l.n === s.best) return '<span class="tp-badge">Best</span>';
@@ -2299,7 +2319,7 @@
         var tr = o && o.trace && o.trace.laps && o.trace.laps[o.best];
         var mem = view.memberById && view.memberById[id];
         // Which lap this is, so A and B say where they came from.
-        var lbl = mem ? memberName(mem) + ', best ' + LW.toLowerCase() + ', ' + shortDate(o.date) : (o.mine ? 'Your best ' : (o.ownerName ? o.ownerName + ', best ' : 'Best ')) + LW.toLowerCase() + ', ' + shortDate(o.date);
+        var lbl = (mem ? initials(mem.owner || 'A member') : o.mine ? 'You' : o.ownerName ? initials(o.ownerName) : 'Best') + ', best, ' + dmy(o.date);
         view.other[id] = tr ? { trace: tr, label: lbl, time: o.bestTime, origin: o.origin, startLine: o.startLine } : null;
         return view.other[id];
       });
@@ -2307,7 +2327,7 @@
     var l = (view.s.laps || []).filter(function (x) { return String(x.n) === String(v); })[0];
     // Whose lap it is, so A and B can't be mixed up: "You" for your own, otherwise the member's name.
     var who = view.s.mine ? 'You' : (view.s.ownerName || '');
-    return Promise.resolve(l ? { trace: view.s.trace.laps[l.n], label: (who ? who + ', ' : '') + lapName(l, view.s) + ', ' + shortDate(view.s.date), time: l.time } : null);
+    return Promise.resolve(l ? { trace: view.s.trace.laps[l.n], label: (who ? initials(who) + ', ' : '') + lapShort(l, view.s) + ', ' + dmy(view.s.date), time: l.time } : null);
   }
   function startLineXY(s, line) {
     line = line || s.startLine;
@@ -2400,10 +2420,15 @@
     var mbox = document.getElementById('tp-metrics'), gbox = document.getElementById('tp-gbox'), play = document.getElementById('tp-play'), gt = document.getElementById('tp-gtoggles');
     // The figures float over the map, with no box round them, so the controls stay small.
     if (mbox && gbox && mbox.parentNode !== card) card.insertBefore(mbox, gbox);
-    if (gt && play && row) {
-      if (landFull() && !gHidden) { if (gt.parentNode !== play) play.insertBefore(gt, mbox && mbox.parentNode === play ? mbox : null); }
-      else if (gt.parentNode !== row) row.appendChild(gt);
+    // On a phone on its side the colour switch sits in the Map options card on the left of the map; otherwise it is in
+    // the map's heading.
+    var sw = document.getElementById('tp-speedcol'), obody = document.getElementById('tp-mopts-body');
+    if (sw && obody) {
+      if (landFull()) { if (sw.parentNode !== obody) obody.insertBefore(sw, obody.firstChild); }
+      else if (sw.parentNode !== head) head.insertBefore(sw, head.querySelector('.tp-rotate-hint'));
     }
+    // The G-force pills stay in the charts panel's top row.
+    if (gt && row && gt.parentNode !== row) row.appendChild(gt);
   }
   document.addEventListener('pointerdown', function (e) {
     var h = e.target.closest && e.target.closest('#tp-split');
@@ -2424,6 +2449,9 @@
   // The map's lap A in speed colours (remembered in this browser).
   var cmpSpeed = true;
   try { cmpSpeed = localStorage.getItem('mt3ukTrackSpeedLine') !== 'off'; } catch (e) { /* storage blocked */ }
+  // The speed beside each car's dot (a phone on its side in full screen), on or off (remembered in this browser).
+  var carSpeed = true;
+  try { carSpeed = localStorage.getItem('mt3ukTrackCarSpeed') !== 'off'; } catch (e) { /* storage blocked */ }
   // The distance a lap had reached after t seconds.
   function distAtTime(trace, t) {
     var lo = 0, hi = trace.length - 1;
@@ -2574,6 +2602,18 @@
       try { localStorage.setItem('mt3ukTrackSpeedLine', cmpSpeed ? 'on' : 'off'); } catch (e) { /* storage blocked */ }
       if (view && view.s) drawCompare(view.s, true);
     });
+    // Map options: a small button on the left of the map opens a card with the two map switches (it starts closed).
+    var ob = document.getElementById('tp-mopts-btn'), oc = document.getElementById('tp-mopts-card'), ox = document.getElementById('tp-mopts-x'), cs = document.getElementById('tp-carspeed');
+    function openOpts(on) { if (oc) oc.hidden = !on; if (ob) { ob.hidden = on; ob.setAttribute('aria-expanded', String(on)); } }
+    if (ob) ob.addEventListener('click', function () { openOpts(true); });
+    if (ox) ox.addEventListener('click', function () { openOpts(false); if (ob) ob.focus(); });
+    function showCarSpeed() { var mc = document.getElementById('tp-mapcard'); if (mc) mc.setAttribute('data-carspeed', carSpeed ? 'on' : 'off'); if (cs) cs.setAttribute('aria-checked', String(carSpeed)); }
+    showCarSpeed();
+    if (cs) cs.addEventListener('click', function () {
+      carSpeed = !carSpeed;
+      showCarSpeed();
+      try { localStorage.setItem('mt3ukTrackCarSpeed', carSpeed ? 'on' : 'off'); } catch (e) { /* storage blocked */ }
+    });
     var gs = document.getElementById('tp-gshow'), gbox = document.getElementById('tp-gbox'), mcard = document.getElementById('tp-mapcard');
     if (gbox) gbox.classList.toggle('is-off', gHidden);
     if (mcard) mcard.classList.toggle('has-charts', !gHidden);
@@ -2651,6 +2691,8 @@
       function showMetrics(pa, pb, g) {
         var ra = at(ga, pa[0]), rb = at(gb, pb[0]);
         setM('a-v', V.fmtV(pa[4])); setM('a-acc', fmtAcc(ra[1])); setM('a-cor', fmtCor(ra[2]));
+        // The speed beside each car's dot (a phone on its side in full screen shows these instead of the figures).
+        if (mo && mo.setLabel) { mo.setLabel('a', V.fmtV(pa[4])); mo.setLabel('b', V.fmtV(pb[4])); }
         if (A !== B) { setM('b-v', V.fmtV(pb[4])); setM('b-acc', fmtAcc(rb[1])); setM('b-cor', fmtCor(rb[2])); setM('gap', 'A is ' + Math.abs(g).toFixed(2) + ' s ' + (g >= 0 ? 'ahead' : 'behind')); }
       }
       // Until a lap is played or scrubbed, the figures show where both laps start, not dashes.

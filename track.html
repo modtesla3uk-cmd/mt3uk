@@ -278,29 +278,26 @@
     .tp-mapcard.is-full .tp-map-head .tp-speedsw > span:first-child { display: none; }
     .tp-mapcard.is-full .tp-play { left: 6px; bottom: calc(6px + env(safe-area-inset-bottom)); right: auto; padding: 4px 6px; }
     .tp-mapcard.is-full .tp-play .btn { min-height: 40px; }
-    /* The speed and G figures float over the map with no box, white with a dark edge so they read on any map. */
-    .tp-mapcard.is-full .tp-metrics { left: 8px; top: 38px; padding: 0; background: none; font-size: 0.72rem; color: #fff; text-shadow: 0 0 3px rgba(0,0,0,.95), 0 1px 2px rgba(0,0,0,.9); pointer-events: none; }
-    .tp-mapcard.is-full .tp-metrics b, .tp-mapcard.is-full .tp-metrics .tp-mv i { color: #fff; }
+    /* The map's own full screen button is left out here: the Show G-Forces switch shows and hides the charts, and Exit
+       (in the panel) leaves full screen. Map options is a small button on the left of the map that opens a card with the
+       colour switch and the speed-on-cars switch (the labels beside the dots). */
+    #tp-mapcard.is-full .tv-zoom-full { display: none; }
+    .tp-mapcard.is-full .tp-mopts { display: block; position: absolute; left: 6px; top: 44px; z-index: 3; }
+    #tp-mapcard.is-full[data-carspeed="off"] .tv-dotlabel { display: none; }
+    /* The speed shows beside each car's dot on the map (.tv-dotlabel), so the figures block is left out. */
+    .tp-mapcard.is-full .tp-metrics { display: none; }
+    #tp-mapcard.is-full .tv-dotlabel { display: inline; }
     .tp-mapcard.is-full .tp-speedkey { top: 6px; left: 6px; }
-    /* With the charts on, the figures sit at the top of the charts panel (placeHead), under a row of column names,
-       so the cars are not hidden behind them. */
-    .tp-mapcard.is-full .tp-gbox .tp-metrics { position: static; margin: 2px 0 4px; padding: 0; background: none; font-size: 0.74rem; }
-    .tp-mapcard.is-full .tp-mhead { display: grid; grid-template-columns: auto minmax(0, 1fr) repeat(3, auto); gap: 2px 8px; color: rgba(255,255,255,.85); font-size: 0.62rem; line-height: 1.1; }
-    .tp-mapcard.is-full .tp-mhead span:first-child { width: 12px; }
-    .tp-mapcard.is-full .tp-mhead span:nth-child(n+3) { min-width: 52px; text-align: right; }
-    /* The car rows and the G-force pills sit in the controls on the left, under the playback buttons. */
-    .tp-mapcard.is-full .tp-play #tp-gtoggles { display: flex; flex-wrap: wrap; gap: 6px; }
-    .tp-mapcard.is-full .tp-play #tp-gtoggles .chip { min-height: 36px; padding: 0 10px; font-size: 0.8rem; }
-    /* Smaller controls, so they leave the map its room: Start and Rewind as icons, tighter buttons, chips and rows. */
-    .tp-mapcard.is-full .tp-play { gap: 4px; padding: 4px 6px; }
-    .tp-mapcard.is-full .tp-play .tp-play-row, .tp-mapcard.is-full .tp-play .tp-play-btns { gap: 4px; }
-    .tp-mapcard.is-full .tp-play #tp-play-start .tp-bl, .tp-mapcard.is-full .tp-play #tp-play-back .tp-bl, .tp-mapcard.is-full .tp-play #tp-play-toggle .tp-bl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-    .tp-mapcard.is-full .tp-play .tp-play-btns #tp-play-start, .tp-mapcard.is-full .tp-play .tp-play-btns #tp-play-back, .tp-mapcard.is-full .tp-play .tp-play-btns #tp-play-toggle { flex: none; width: 40px; padding: 0; }
-    .tp-mapcard.is-full .tp-play .btn { min-height: 32px; }
-    .tp-mapcard.is-full .tp-play .chip, .tp-mapcard.is-full .tp-play #tp-gtoggles .chip { min-height: 28px; min-width: 0; padding: 0 7px; font-size: 0.72rem; }
-    .tp-mapcard.is-full .tp-play #tp-follow { padding: 0 7px; }
-    .tp-mapcard.is-full .tp-play #tp-gtoggles { gap: 4px; }
   }
+  .tv-dotlabel { display: none; }
+  .tp-mopts { display: none; }
+  .tp-mopts-btn { width: 44px; height: 44px; display: grid; place-items: center; padding: 0; border: 1px solid var(--hairline-strong); border-radius: var(--radius); background: rgba(255,255,255,.95); color: var(--ink); box-shadow: 0 1px 6px rgba(0,0,0,.35); cursor: pointer; }
+  .tp-mopts-btn[hidden] { display: none; }
+  .tp-mopts-card { min-width: 210px; border: 1px solid var(--hairline-strong); border-radius: var(--radius); background: rgba(255,255,255,.96); box-shadow: 0 1px 6px rgba(0,0,0,.35); overflow: hidden; }
+  .tp-mopts-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 2px 4px 2px 12px; border-bottom: 1px solid var(--hairline); font-size: 0.85rem; font-weight: 600; color: var(--ink); }
+  .tp-mopts-x { width: 40px; height: 40px; display: grid; place-items: center; padding: 0; border: 0; background: none; color: var(--ink); cursor: pointer; }
+  .tp-mopts-body { display: grid; gap: 0; padding: 2px 12px 6px; }
+  .tp-mopts-body .tp-switch { width: 100%; min-height: 40px; margin: 0; justify-content: space-between; gap: 12px; font-size: 0.85rem; color: var(--ink); flex: none; }
   .tp-clock { font-size: 0.82rem; font-variant-numeric: tabular-nums; color: var(--steel); white-space: nowrap; }
   .tp-boards { display: grid; gap: 10px; }
   @media (min-width: 781px) { .tp-boards { grid-template-columns: 1fr 1fr; } }
@@ -493,7 +490,7 @@
   .tp-chart-head h3 { margin: 0; }
   .tp-chart-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 12px; font-size: 0.8rem; color: var(--steel); margin-top: 6px; }
   .tp-ramp { display: inline-flex; align-items: center; gap: 8px; }
-  .tp-ramp i { width: 110px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, #5a189a, #d6336c, #c6f432); }
+  .tp-ramp i { width: 110px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, #ffd83d, #f58a1f, #d7191c); }
   .tp-key { display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.8rem; color: var(--steel); }
   .tp-key i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
   .tp-key i.is-ring { width: 10px; height: 10px; border-radius: 50%; border: 2px solid #2a78d6; background: #fff; }
@@ -846,10 +843,10 @@
 </script>
 
 <script src="js/track-parse.js?v=20261104" defer></script>
-<script src="js/track-view.js?v=20261126" defer></script>
+<script src="js/track-view.js?v=20261128" defer></script>
 <script src="js/tyre-data.js"></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20261127" defer></script>
+<script src="js/track-page.js?v=20261130" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=5" defer></script>
 <script src="js/signin-prompt.js" defer></script>

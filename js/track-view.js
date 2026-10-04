@@ -12,7 +12,7 @@
 */
 (function () {
   var NS = 'http://www.w3.org/2000/svg';
-  var C = { s1: '#2a78d6', s2: '#eb6834', ink: '#16233d', steel: '#6b7385', grid: 'rgba(22,35,61,.08)', axis: 'rgba(22,35,61,.24)', card: '#ffffff', orange: '#e8542a', orangeInk: '#b8421f', rampLo: '#5a189a', rampMid: '#d6336c', rampHi: '#c6f432', hair: 'rgba(22,35,61,.12)' };
+  var C = { s1: '#2a78d6', s2: '#eb6834', ink: '#16233d', steel: '#6b7385', grid: 'rgba(22,35,61,.08)', axis: 'rgba(22,35,61,.24)', card: '#ffffff', orange: '#e8542a', orangeInk: '#b8421f', rampLo: '#ffd83d', rampMid: '#f58a1f', rampHi: '#d7191c', hair: 'rgba(22,35,61,.12)' };
   var units = { mph: true };
   try { units.mph = localStorage.getItem('mt3ukTrackUnits') !== 'kmh'; } catch (e) {}
 
@@ -193,13 +193,25 @@
       el('circle', { cx: 0, cy: 0, r: 11, fill: C.card, stroke: C.axis }, cm.g);
       text(cm.g, 0, 4.5, String(c.n), { 'text-anchor': 'middle', 'font-size': 12, 'font-weight': 700, fill: C.ink });
     });
-    function dot(color) {
+    // Each car's dot can carry a small label (its speed), shown by the page's CSS only where wanted (a phone on its
+    // side in full screen): lap B's up and to the left of its dot, lap A's down and to the right, so two cars close
+    // together do not cover each other.
+    function dot(color, side) {
       var dm = marker(0, 0);
       el('circle', { r: 7, fill: color, stroke: C.card, 'stroke-width': 2.5 }, dm.g);
+      var lg = el('g', { 'class': 'tv-dotlabel' }, dm.g);
+      var rect = el('rect', { y: side > 0 ? 9 : -29, height: 20, rx: 8, fill: color, stroke: '#ffffff', 'stroke-width': 1.5 }, lg);
+      var tx = text(lg, 0, side > 0 ? 23 : -15, '', { 'text-anchor': 'middle', 'font-size': 12, 'font-weight': 700, fill: '#ffffff' });
+      dm.label = function (s) {
+        var w = String(s).length * 7 + 14, x = side > 0 ? 10 : -10 - w;
+        tx.textContent = s; tx.style.fill = '#ffffff';
+        rect.setAttribute('width', w); rect.setAttribute('x', x);
+        tx.setAttribute('x', x + w / 2);
+      };
       dm.g.setAttribute('visibility', 'hidden');
       return dm;
     }
-    var dotB = dot(C.s2), dotA = dot(C.s1);
+    var dotB = dot(C.s2, -1), dotA = dot(C.s1, 1);
     function place(dm, p) {
       if (!p) { dm.g.setAttribute('visibility', 'hidden'); return; }
       var q = P(p[2], p[3]);
@@ -315,7 +327,7 @@
       return { x: v.x + (v.w - w) / 2, y: v.y + (v.h - h) / 2, w: w, h: h };
     }
     function edges() { edgeFor(edgeA, posA, posB); edgeFor(edgeB, posB, posA); }
-    return { vmin: vmin, vmax: vmax, placeA: function (p) { place(dotA, p); posA = p; follow(); edges(); }, placeB: function (p) { place(dotB, p); posB = p; follow(); edges(); }, setFollow: function (on) { following = !!on; if (on) { lastT = 0; follow(); edges(); } }, setGap: function (g) { gapS = g == null || !isFinite(g) ? null : g; }, prefetchSat: function () { if (sat) sat.prefetch(trace); }, P: P, unP: function (px, py) { return [(px - ox) / s + x0, (H - oy - py) / s + y0]; }, marker: marker, moveMarker: moveMarker, zoom: zoom };
+    return { vmin: vmin, vmax: vmax, setLabel: function (which, s) { (which === 'a' ? dotA : dotB).label(s); }, placeA: function (p) { place(dotA, p); posA = p; follow(); edges(); }, placeB: function (p) { place(dotB, p); posB = p; follow(); edges(); }, setFollow: function (on) { following = !!on; if (on) { lastT = 0; follow(); edges(); } }, setGap: function (g) { gapS = g == null || !isFinite(g) ? null : g; }, prefetchSat: function () { if (sat) sat.prefetch(trace); }, P: P, unP: function (px, py) { return [(px - ox) / s + x0, (H - oy - py) / s + y0]; }, marker: marker, moveMarker: moveMarker, zoom: zoom };
   }
 
   // ---------- Satellite ground ----------

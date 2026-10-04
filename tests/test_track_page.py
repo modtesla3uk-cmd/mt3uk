@@ -369,7 +369,7 @@ def test_add_a_session_from_the_racebox_file(page):
     page.locator("#tp-speed").scroll_into_view_if_needed()
     box = page.locator("#tp-speed").bounding_box()
     page.mouse.move(box["x"] + box["width"] * 0.3, box["y"] + box["height"] * 0.5)
-    expect(page.locator(".tv-tip")).to_contain_text("Lap 2")
+    expect(page.locator(".tv-tip")).to_contain_text("L2")
     expect(page.locator("#tp-corners tbody tr").first).to_be_visible()
     # Over time, with the coilovers fitted between the two sessions.
     expect(page.locator("#tp-timeline circle").first).to_be_attached()
@@ -1560,7 +1560,7 @@ def test_another_day_on_the_map(page):
     sel = page.locator("#tp-cmp-b")
     expect(sel.locator("option[value='x:new1']")).to_have_count(1)
     sel.select_option("x:new1")
-    expect(page.locator("#tp-key")).to_contain_text("Your best lap, 28 May (B)")
+    expect(page.locator("#tp-key")).to_contain_text("You, best, 28/05 (B)")
     expect(page.locator("#tp-map2 polyline.tv-line[stroke-dasharray]")).to_have_count(1)
     # There is only one map now.
     expect(page.locator("#tp-map")).to_have_count(0)
@@ -1839,7 +1839,7 @@ def test_compare_dots_show_each_lap_at_the_same_moment(page):
     fake = FakeWorker()
     save_thruxton_with_a_member_board(page, fake)
     page.locator("#tp-cmp-b").select_option("x:m1")
-    expect(page.locator("#tp-key")).to_contain_text("Ann, Blue Y, best lap, 28 May (B)")
+    expect(page.locator("#tp-key")).to_contain_text("An, best, 28/05 (B)")
     expect(page.locator("#tp-sync")).to_have_count(0)
     expect(page.locator(".tp-sync-note")).to_contain_text("slower one trails")
     page.locator("#tp-speed").scroll_into_view_if_needed()
@@ -1982,7 +1982,7 @@ def test_other_members_laps_can_be_compared_and_put_on_the_map(page):
     group = page.locator("#tp-cmp-b optgroup[label=\"Other members' best laps\"]")
     expect(group.locator("option")).to_have_text(["Ann, Blue Y, 1:49.800"])
     page.locator("#tp-cmp-b").select_option("x:m1")
-    expect(page.locator("#tp-key")).to_contain_text("Ann, Blue Y, best lap, 28 May (B)")
+    expect(page.locator("#tp-key")).to_contain_text("An, best, 28/05 (B)")
     expect(page.locator("#tp-gap-cap")).to_contain_text("A finishes")
     expect(page.locator("#tp-gap-cap")).to_contain_text("ahead")
     # Their lap is on the map as lap B.
@@ -2336,7 +2336,8 @@ def test_numbers_under_the_map_follow_the_dots(page):
     fake = FakeWorker()
     save_thruxton_with_a_member_board(page, fake)
     expect(page.locator("#tp-metrics .tp-mrow")).to_have_count(2)
-    expect(page.locator('#tp-metrics [data-m="a-v"]')).to_have_text("-")
+    # Before any play the figures show where both laps start, not dashes.
+    expect(page.locator('#tp-metrics [data-m="a-v"]')).to_have_text(re.compile(r"^\d+ mph$|^\d+\.\d mph$"))
     page.locator("#tp-scrub").evaluate("el => { el.value = 30; el.dispatchEvent(new Event('input', {bubbles: true})); }")
     expect(page.locator('#tp-metrics [data-m="a-v"]')).to_have_text(re.compile(r"^\d+ mph$|^\d+\.\d mph$"))
     expect(page.locator('#tp-metrics [data-m="a-acc"]')).to_have_text(re.compile(r"^[+-]\d\.\d\d g$"))
@@ -2421,19 +2422,39 @@ def test_full_screen_map_on_a_phone(page):
     assert overflow_width(page) <= 0
     mb = page.locator("#tp-map2").bounding_box()
     assert mb["height"] >= 380 and mb["width"] >= 480, mb
-    for sel in ("#tp-play-toggle", "#tp-metrics", "#tp-full", "#tp-speedcol"):
+    for sel in ("#tp-play-toggle", "#tp-full", "#tp-mopts-btn"):
         box = page.locator(sel).bounding_box()
         assert box and box["y"] >= 0 and box["y"] + box["height"] <= 390 and box["x"] + box["width"] <= 844, (sel, box)
     expect(page.locator("#tp-play-toggle")).to_be_visible()
     # The G-force pills sit with the playback controls on the left (as in portrait); the speed and G figures float over
     # the map under a row of column names, so the charts panel is left to the charts.
-    expect(page.locator("#tp-play #tp-metrics")).to_have_count(0)  # the figures float over the map, with no box
-    expect(page.locator("#tp-play #tp-gtoggles")).to_have_count(1)
-    expect(page.locator("#tp-metrics .tp-mhead span")).to_have_text(["", "", "Speed", "Acl G", "Cor G"])
-    expect(page.locator("#tp-metrics .tp-mhead")).to_be_visible()
-    # The colour switch and the exit button are apart, so one is not pressed for the other.
-    sw, ex = page.locator("#tp-speedcol").bounding_box(), page.locator("#tp-full").bounding_box()
-    assert ex["x"] - (sw["x"] + sw["width"]) >= 10, (sw, ex)
+    # The speed shows beside each car's dot on the map; the block of figures is left out.
+    expect(page.locator("#tp-metrics")).to_be_hidden()
+    page.locator("#tp-scrub").evaluate("el => { el.value = 30; el.dispatchEvent(new Event('input', {bubbles: true})); }")
+    labels = page.locator("#tp-map2 .tv-dotlabel text")
+    expect(labels).to_have_count(2)
+    expect(labels.first).to_be_visible()
+    expect(labels.first).to_have_text(re.compile(r"^\d+ mph$|^\d+\.\d mph$"))
+    expect(page.locator("#tp-gbox #tp-gtoggles")).to_have_count(1)
+    # Map options: a small button on the left of the map, closed to begin with, opens a card with the colour switch and
+    # the speed-on-cars switch (the labels beside the dots). The charts switch is named for what it shows, and the
+    # map's own full screen button is left out, so only Exit (in the charts panel) leaves full screen.
+    expect(page.locator("#tp-mopts-btn")).to_be_visible()
+    expect(page.locator("#tp-mopts-card")).to_be_hidden()
+    page.locator("#tp-mopts-btn").click()
+    expect(page.locator("#tp-mopts-card")).to_be_visible()
+    expect(page.locator("#tp-mopts-card #tp-speedcol")).to_be_visible()
+    expect(page.locator("#tp-mopts-card #tp-carspeed")).to_be_visible()
+    expect(labels.first).to_be_visible()
+    page.locator("#tp-carspeed").click()
+    expect(labels.first).to_be_hidden()
+    page.locator("#tp-carspeed").click()
+    expect(labels.first).to_be_visible()
+    page.locator("#tp-mopts-x").click()
+    expect(page.locator("#tp-mopts-card")).to_be_hidden()
+    expect(page.locator("#tp-mopts-btn")).to_be_visible()
+    expect(page.locator("#tp-gshow")).to_contain_text("Show G-Forces")
+    expect(page.locator("#tp-mapwrap .tv-zoom-full")).to_be_hidden()
     # The charts have a panel on the right, with the chips and the slider, beside a map that keeps most of the width.
     expect(page.locator("#tp-gforce svg")).to_have_count(1)
     expect(page.locator("#tp-gforce svg").first).to_be_visible()
@@ -2441,11 +2462,10 @@ def test_full_screen_map_on_a_phone(page):
     gb, mb = page.locator("#tp-gbox").bounding_box(), page.locator("#tp-map2").bounding_box()
     assert gb["x"] >= mb["x"] + mb["width"] - 1 and gb["x"] + gb["width"] <= 844 and gb["y"] + gb["height"] <= 390, (gb, mb)
     assert 480 <= mb["width"] <= 530, mb
-    # The colour switch and Exit move into the panel, beside the Show switch, clear of the numbers over the map.
-    ex, sh, met = page.locator("#tp-full").bounding_box(), page.locator("#tp-gshow").bounding_box(), page.locator("#tp-metrics").bounding_box()
+    # Exit sits in the panel, beside the Show G-Forces switch.
+    ex, sh = page.locator("#tp-full").bounding_box(), page.locator("#tp-gshow").bounding_box()
     assert ex["x"] >= gb["x"] and ex["x"] + ex["width"] <= 844, (ex, gb)
-    assert sh["x"] + sh["width"] <= page.locator("#tp-speedcol").bounding_box()["x"], sh
-    assert met["x"] + met["width"] <= gb["x"] + 1, (met, gb)  # with the controls, clear of the charts panel
+    assert sh["x"] + sh["width"] <= ex["x"], (sh, ex)
     toggles = page.locator("#tp-gtoggles .chip")
     toggles.nth(0).click()
     toggles.nth(2).click()
@@ -2453,14 +2473,11 @@ def test_full_screen_map_on_a_phone(page):
     for svg in page.locator("#tp-gforce svg").all():
         b = svg.bounding_box()
         assert b["height"] >= 50 and b["y"] + b["height"] <= 390, b
-    # The map's own button now swaps between the map alone and the map with the charts; Exit stays in the panel.
-    mapBtn = page.locator("#tp-mapwrap .tv-zoom-full")
-    expect(mapBtn).to_have_attribute("aria-label", "Just the map")
-    mapBtn.click()
+    # The Show G-Forces switch swaps between the map alone and the map with the charts.
+    page.locator("#tp-gshow").click()
     expect(page.locator("#tp-gforce")).to_be_hidden()
     assert page.locator("#tp-map2").bounding_box()["width"] >= 830
-    expect(page.locator("#tp-mapwrap .tv-zoom-full")).to_have_attribute("aria-label", "Show the charts")
-    page.locator("#tp-mapwrap .tv-zoom-full").click()
+    page.locator("#tp-gshow").click()
     expect(page.locator("#tp-gforce svg")).to_have_count(3)
     assert 480 <= page.locator("#tp-map2").bounding_box()["width"] <= 530
     # The divider between map and charts drags: the map takes three quarters of the screen, and it is remembered.
@@ -3301,15 +3318,15 @@ def test_compared_laps_say_which_session_and_day_they_are_from(page):
     save_thruxton_with_a_member_board(page, fake)
     key = page.locator("#tp-key")
     # Laps from this session carry its date.
-    expect(key).to_contain_text(re.compile(r"Lap \d, 28 May \(A\)"))
-    expect(key).to_contain_text(re.compile(r"Lap \d, 28 May \(B\)"))
-    expect(page.locator("#tp-metrics")).to_contain_text(re.compile(r"Lap \d, 28 May \(A\)"))
+    expect(key).to_contain_text(re.compile(r"L\d, 28/05 \(A\)"))
+    expect(key).to_contain_text(re.compile(r"L\d, 28/05 \(B\)"))
+    expect(page.locator("#tp-metrics")).to_contain_text(re.compile(r"L\d, 28/05 \(A\)"))
     # Your best on another day says so, with that day.
     earlier = member_session(fake.sessions["new1"])
     earlier["date"] = "2026-03-28"
     fake.sessions["earlier1"] = earlier
     page.locator("#tp-cmp-b").select_option("x:earlier1")
-    expect(key).to_contain_text("Your best lap, 28 Mar (B)")
+    expect(key).to_contain_text("You, best, 28/03 (B)")
 
 
 def test_the_off_screen_label_is_white_on_the_cars_colour(page):

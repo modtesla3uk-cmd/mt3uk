@@ -6,7 +6,7 @@
 */
 (function (root) {
   var W = 1200, H = 630, MAPW = 700;
-  var RAMP = ['#5a189a', '#d6336c', '#c6f432'];
+  var RAMP = ['#ffd83d', '#f58a1f', '#d7191c'];
   var INK = '#16233d', STEEL = '#6b7385', PAPER = '#f6f3ee', HAIR = 'rgba(22,35,61,.14)', GRID = 'rgba(22,35,61,.08)', MAPBG = '#ffffff';
   var BLUE = '#2a78d6', ORANGE = '#eb6834';
   var HEAD = '"Archivo Expanded", "Arial Black", Arial, sans-serif', BODY = '"IBM Plex Sans", Arial, sans-serif';

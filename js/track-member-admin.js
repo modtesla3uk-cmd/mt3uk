@@ -100,6 +100,7 @@
         h += d.onBoard ? '<p class="iv-note is-ok">On the ' + esc(d.tab) + ' leaderboard (' + d.entries + ' car' + (d.entries === 1 ? '' : 's') + ' on that board).</p>'
           : '<p class="iv-note is-error">Not shown as a row on the ' + esc(d.tab) + ' leaderboard' + (d.board ? '' : ' (it has no board to be on)') + '.</p>';
         if (d.reasons && d.reasons.length) h += '<ul class="iv-note" style="padding-left:18px">' + d.reasons.map(function (r) { return '<li>' + esc(r) + '</li>'; }).join('') + '</ul>';
+        if (d.repairable) h += '<div class="iv-toolbar"><button type="button" class="secondary iv-act" data-repair-session="' + esc(s.id) + '">Repair</button></div>';
         outEl.innerHTML = h;
       }).catch(function () { checkBtn.disabled = false; outEl.innerHTML = '<p class="iv-note is-error">Could not reach the server.</p>'; });
   }
@@ -109,11 +110,11 @@
     return fetch(API + path + (path.indexOf('?') < 0 ? '?' : '&') + 'key=' + encodeURIComponent(key()), { cache: 'no-store' })
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d.ok = r.ok; return d; }); });
   }
-  function repair(board, carId, btn) {
+  function repair(board, carId, btn, sessionId, done) {
     btn.disabled = true; btn.textContent = 'Working...';
-    return fetch(API + '/track/admin/boardrepair?key=' + encodeURIComponent(key()), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ board: board, carId: carId || undefined }) })
+    return fetch(API + '/track/admin/boardrepair?key=' + encodeURIComponent(key()), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ board: board || undefined, carId: carId || undefined, sessionId: sessionId || undefined }) })
       .then(function (r) { return r.json().catch(function () { return {}; }); })
-      .then(function (d) { if (d.success) problems(); else { btn.disabled = false; btn.textContent = 'Try again'; } })
+      .then(function (d) { if (d.success) (done || problems)(); else { btn.disabled = false; btn.textContent = d.message ? 'Failed: ' + d.message : 'Try again'; } })
       .catch(function () { btn.disabled = false; btn.textContent = 'Try again'; });
   }
   function problems() {
@@ -124,8 +125,8 @@
       var h = '<p class="iv-note">' + d.sessions + ' sessions from ' + d.members + ' members' + (d.more ? ' (the first 700 members)' : '') + ': ' + d.onBoard + ' on a board, ' + d.privateOrStreet + ' private, ' + d.other + ' of type Other, <b>' + d.problems.length + ' with a problem</b>' + (d.hiddenBoards.length ? ', <b>' + d.hiddenBoards.length + ' hidden board' + (d.hiddenBoards.length === 1 ? '' : 's') + '</b>' : '') + '.</p>';
       if (d.hiddenBoards.length) h += '<table class="iv-table"><thead><tr><th>Board the track list is not counting</th><th></th></tr></thead><tbody>' + d.hiddenBoards.map(function (b) { return '<tr><td>' + esc(b) + '</td><td><button type="button" class="secondary iv-act" data-repair="' + esc(b) + '">Repair</button></td></tr>'; }).join('') + '</tbody></table>';
       if (d.problems.length) h += '<table class="iv-table ms-table"><thead><tr><th>Session</th><th>Car</th><th>Why</th><th></th></tr></thead><tbody>' + d.problems.map(function (p) {
-        var fix = /no entry for this car yet/.test(p.reasons.join(' ')) && p.board;
-        return '<tr><td><a href="track.html?s=' + esc(p.id) + '" target="_blank" rel="noopener">' + esc((p.venue || 'No track') + (p.layout && p.layout !== p.venue ? ', ' + p.layout : '')) + '</a><br><span class="iv-sub">' + esc(p.type + ', ' + p.date + (p.bestTime ? ', ' + p.bestTime : '')) + '</span></td><td>' + esc(p.car) + '</td><td>' + p.reasons.map(function (t) { return esc(t); }).join('<br>') + '</td><td>' + (fix ? '<button type="button" class="secondary iv-act" data-repair="' + esc(p.board) + '" data-car="' + esc(p.carId) + '">Refresh board</button>' : '') + '</td></tr>';
+        var fix = /no entry for this car yet|shared list/.test(p.reasons.join(' ')) && p.board;
+        return '<tr><td><a href="track.html?s=' + esc(p.id) + '" target="_blank" rel="noopener">' + esc((p.venue || 'No track') + (p.layout && p.layout !== p.venue ? ', ' + p.layout : '')) + '</a><br><span class="iv-sub">' + esc(p.type + ', ' + p.date + (p.bestTime ? ', ' + p.bestTime : '')) + '</span></td><td>' + esc(p.car) + '</td><td>' + p.reasons.map(function (t) { return esc(t); }).join('<br>') + '</td><td>' + (fix ? '<button type="button" class="secondary iv-act" data-repair="' + esc(p.board) + '" data-car="' + esc(p.carId) + '" data-session="' + esc(p.id) + '">Repair</button>' : '') + '</td></tr>';
       }).join('') + '</tbody></table>';
       else if (!d.hiddenBoards.length) h += '<p class="iv-note is-ok">No problems found.</p>';
       probOut.innerHTML = h;
@@ -134,9 +135,13 @@
   probBtn.addEventListener('click', problems);
   probOut.addEventListener('click', function (e) {
     var b = e.target.closest('[data-repair]');
-    if (b) repair(b.getAttribute('data-repair'), b.getAttribute('data-car') || '', b);
+    if (b) repair(b.getAttribute('data-repair'), b.getAttribute('data-car') || '', b, b.getAttribute('data-session') || '');
   });
   checkBtn.addEventListener('click', check);
+  outEl.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-repair-session]');
+    if (b) repair('', '', b, b.getAttribute('data-repair-session'), check);
+  });
   idEl.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); check(); } });
   wrap.addEventListener('toggle', function () { if (wrap.open) loadViews(); });
 })();

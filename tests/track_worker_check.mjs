@@ -611,6 +611,20 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   let id3 = await mk({ venueId: '', layoutId: '', venueName: 'Somewhere new', venue: 'Somewhere new' }, 'board');
   r = await call('GET', '/track/admin/boardcheck?key=secret&id=' + id3);
   ok(r.body.board === '' && r.body.reasons.some(x => /not listed|No track was matched/.test(x)), 'an unlisted track says so: ' + JSON.stringify(r.body.reasons));
+  // A shared session that has dropped out of the car's shared list and the board is found, and Repair rebuilds both.
+  {
+    const bk = (await call('GET', '/track/admin/boardcheck?key=secret&id=' + id1)).body.board;
+    const savedPublic = kv.get('track-public:cara1'), savedBoard = kv.get(bk);
+    kv.set('track-public:cara1', '[]'); kv.set(bk, '[]');
+    r = await call('GET', '/track/admin/boardcheck?key=secret&id=' + id1);
+    ok(r.body.onBoard === false && r.body.repairable === true && r.body.reasons.some(x => /shared list does not have this session/.test(x)), 'a session missing from the car\'s shared list says so and can be repaired: ' + JSON.stringify(r.body.reasons).slice(0, 160));
+    r = await call('POST', '/track/admin/boardrepair?key=secret', { sessionId: id1 });
+    ok(r.status === 200 && r.body.refreshed >= 1, 'Repair from the session rebuilds the lists: ' + JSON.stringify(r.body));
+    r = await call('GET', '/track/admin/boardcheck?key=secret&id=' + id1);
+    ok(r.body.onBoard === true && r.body.repairable === false, 'and it is on the board again: ' + JSON.stringify(r.body.reasons));
+    r = await call('POST', '/track/admin/boardrepair?key=secret', { sessionId: 'ffffffffffffffffffff' });
+    ok(r.status === 404, 'an unknown session cannot be repaired');
+  }
   // The list of every problem: the unlisted shared one is in it with its reason; the one on the board and the private one are not.
   let id4 = await mk({}, 'private');
   r = await call('GET', '/track/admin/boardproblems');

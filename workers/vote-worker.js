@@ -8143,10 +8143,21 @@ async function handleTrackAdminBoardCheck(request, env) {
   var lib = await getTrackLibrary(env), key = trackBoardKey(rec);
   var entries = key ? await getJsonKey(env, key, []) : null;
   var why = trackBoardWhy(rec, lib, entries);
+  var reasons = why.reasons.slice(), repairable = false;
+  // The lists the board is built from: the member's list, and the car's shared list (what a board reads).
+  if (key && rec.privacy !== 'private' && !rec.street && !rec.offBoard) {
+    var shared = await getJsonKey(env, 'track-public:' + rec.carId, []);
+    var inShared = shared.find(function (x) { return x.id === rec.id; });
+    if (!inShared) { reasons.push('The car\'s shared list does not have this session, so a board cannot include it. Repair rebuilds the lists from the session.'); repairable = true; }
+    else if (trackBoardKey(inShared) !== key) { reasons.push('The car\'s shared list has this session under another board (' + (trackBoardKey(inShared) || 'none') + '). Repair rebuilds the lists from the session.'); repairable = true; }
+    var counts = await getJsonKey(env, 'track-board-counts', {});
+    if (entries && entries.length && !(counts[key] > 0)) { reasons.push('The board has cars but the track list is not counting it, so the venue shows as having no sessions. Repair puts the count back.'); repairable = true; }
+    if (why.fixable) repairable = true;
+  }
   return json({
     success: true,
     session: { id: rec.id, type: rec.type, hill: !!rec.hill, venue: rec.venue || '', venueId: rec.venueId || '', layout: rec.layout || '', layoutId: rec.layoutId || '', privacy: rec.privacy || '', date: rec.date || '', bestTime: rec.bestTime || null, car: rec.carId },
-    board: why.key || '', tab: why.tab, onBoard: why.onBoard, entries: entries ? entries.length : 0, reasons: why.reasons
+    board: why.key || '', tab: why.tab, onBoard: why.onBoard, entries: entries ? entries.length : 0, reasons: reasons, repairable: repairable
   });
 }
 
@@ -8158,7 +8169,7 @@ async function handleTrackAdminBoardProblems(request, env) {
   var lib = await getTrackLibrary(env);
   var idx = await env.VOTES.list({ prefix: 'track-index:', limit: 700 });
   var boards = {}, counts = await getJsonKey(env, 'track-board-counts', {});
-  var total = 0, privateN = 0, onBoardN = 0, other = 0, problems = [], carNames = {};
+  var total = 0, privateN = 0, onBoardN = 0, other = 0, problems = [], carNames = {}, sharedByCar = {};
   for (var i = 0; i < idx.keys.length; i++) {
     var sessions = await getJsonKey(env, idx.keys[i].name, []);
     for (var j = 0; j < sessions.length; j++) {
@@ -8172,6 +8183,9 @@ async function handleTrackAdminBoardProblems(request, env) {
       if (why.onBoard || (why.mine && !why.fixable)) { onBoardN++; continue; }
       if (!why.fixable) continue;
       if (!(s.carId in carNames)) { var cr = await getCarRecord(env, s.carId); carNames[s.carId] = (cr && cr.name) || 'a build'; }
+      // A session the car's shared list does not have cannot be on a board: say so (Repair rebuilds it).
+      if (key && !(s.carId in sharedByCar)) sharedByCar[s.carId] = await getJsonKey(env, 'track-public:' + s.carId, []);
+      if (key && !sharedByCar[s.carId].some(function (x) { return x.id === s.id; })) why.reasons.push('The car\'s shared list does not have this session, so a board cannot include it. Repair rebuilds the lists from the session.');
       problems.push({ id: s.id, carId: s.carId, board: why.key, car: carNames[s.carId], type: s.type === 'sprint' && why.tab === 'Hill climb' ? 'hill climb' : s.type, venue: s.venue || '', layout: s.layout || '', date: s.date || '', bestTime: s.bestTime || s.quarter || null, tab: why.tab, reasons: why.reasons.filter(function (t) { return !/Only me/.test(t); }) });
     }
   }
@@ -8187,7 +8201,17 @@ async function handleTrackAdminBoardRepair(request, env) {
   var body;
   try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
   var board = String((body && body.board) || '');
-  if (!/^((track|sprint)-board:[a-z0-9-]+:[a-z0-9-]+|drag-board:[a-z0-9-]+)$/.test(board)) return json({ success: false, message: 'Unknown board' }, 400);
+  // From a session: its own record is the truth, so the member's list, the car's shared list and the board are all
+  // written again from it (the board then follows what the record says it belongs on).
+  var sid = String((body && body.sessionId) || '');
+  if (/^[a-f0-9]{8,40}$/.test(sid)) {
+    var rec = await getTrackSession(env, sid);
+    if (!rec) return json({ success: false, message: 'No session with that id.' }, 404);
+    await putTrackIndexesFor(env, rec.owner, rec);
+    var key = trackBoardKey(rec);
+    if (key) board = key;
+  }
+  if (!/^((track|sprint)-board:[a-z0-9-]+:[a-z0-9-]+|drag-board:[a-z0-9-]+)$/.test(board)) return json({ success: false, message: sid ? 'That session does not belong on a board.' : 'Unknown board' }, 400);
   var cars = [];
   if (body.carId && /^[A-Za-z0-9_-]{1,80}$/.test(String(body.carId))) cars.push(String(body.carId));
   else (await getJsonKey(env, board, [])).forEach(function (e) { if (e.carId && cars.indexOf(e.carId) === -1) cars.push(e.carId); });

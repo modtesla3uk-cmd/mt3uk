@@ -1167,10 +1167,17 @@ def test_admin_can_see_every_leaderboard_problem_and_repair_a_hidden_board(page)
     expect(out).to_contain_text("1 hidden board")
     expect(out).to_contain_text("Somewhere new")
     expect(out).to_contain_text("No track was matched")
-    expect(out.get_by_role("button", name="Refresh board")).to_have_count(1)  # only where refreshing is the fix
-    out.get_by_role("button", name="Repair").click()
+    assert out.locator("button[data-session]").count() == 1  # only where rebuilding the session is the fix
+    out.locator("button[data-repair='track-board:abingdon-airfield-circuit:full']:not([data-session])").click()
     expect(out).not_to_contain_text("hidden board")
     assert state["repaired"] == [{"board": "track-board:abingdon-airfield-circuit:full"}], state["repaired"]
+    # A row with its session id repairs from the session.
+    out.locator("button[data-session]").click()
+    for _ in range(40):
+        if len(state["repaired"]) > 1:
+            break
+        page.wait_for_timeout(50)
+    assert state["repaired"][1] == {"board": "track-board:thruxton:main", "carId": "c2", "sessionId": "bbb222bbb222"}, state["repaired"]
 
 
 def test_the_bell_on_the_admin_home_page_counts_the_track_tasks_and_links_to_their_page(page):
@@ -1195,3 +1202,31 @@ def test_the_bell_on_the_admin_home_page_counts_the_track_tasks_and_links_to_the
     # An item leads to its panel on the Track admin page, which opens it.
     panel.locator(".bell-item", has_text="Chris").click()
     expect(page).to_have_url(re.compile(r"/track-admin\.html#lines-bbbbbbbb02$"))
+
+
+def test_the_single_session_check_offers_a_repair_that_rebuilds_from_the_session(page):
+    ok = {"Access-Control-Allow-Origin": "*"}
+    state = {"fixed": False, "posted": []}
+
+    def check(route):
+        body = {"success": True, "session": {"id": "e929bd773e1742e69b1f", "type": "track", "venue": "Abingdon Airfield Circuit", "layout": "Abingdon Airfield Circuit", "privacy": "board", "date": "2020-10-16", "bestTime": 74.562},
+                "board": "track-board:abingdon-airfield-circuit:full", "tab": "Track days", "onBoard": state["fixed"], "entries": 1 if state["fixed"] else 0,
+                "reasons": [] if state["fixed"] else ["The car's shared list does not have this session, so a board cannot include it. Repair rebuilds the lists from the session."], "repairable": not state["fixed"]}
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(body), headers=ok)
+
+    def repair(route):
+        state["posted"].append(json.loads(route.request.post_data))
+        state["fixed"] = True
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "refreshed": 1, "count": 1}), headers=ok)
+    open_admin(page, "track-admin.html")
+    page.route("**/track/admin/boardcheck**", check)
+    page.route("**/track/admin/boardrepair**", repair)
+    page.reload()
+    page.locator("#board-checks-wrap > summary").click()
+    page.locator("#ms-id").fill("https://mt3uk.com/track.html?s=e929bd773e1742e69b1f&utm_source=share_sheet")
+    page.locator("#ms-check").click()
+    out = page.locator("#ms-check-out")
+    expect(out).to_contain_text("shared list does not have this session")
+    out.get_by_role("button", name="Repair").click()
+    expect(out).to_contain_text("On the Track days leaderboard")
+    assert state["posted"] == [{"sessionId": "e929bd773e1742e69b1f"}], state["posted"]

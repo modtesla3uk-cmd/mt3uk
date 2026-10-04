@@ -873,6 +873,8 @@
   /* Tighter top of the page: the signed-in details sit close together, with
      "Change in Profile" as a link beside the name rather than a button. */
   .mb-signed-in { margin-bottom: 8px; }
+  /* The shared signed-in bar (js/account-bar.js) and the header bell replace this row; it stays in the page for the scripts that use it. */
+  .mb-signed-in { display: none; }
   .mb-name-row { margin: 0 auto 12px; gap: 4px 8px; }
   .mb-name-row .mb-signout-btn { min-height: 0; padding: 0; border: 0; background: none; color: var(--orange); font-size: 0.85rem; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
   .mb-name-row .mb-signout-btn:hover { background: none; color: var(--ink); }
@@ -3695,7 +3697,7 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 <script src="js/share.js" defer></script>
-<script src="js/account-bar.js?v=3" defer></script>
+<script src="js/account-bar.js?v=4" defer></script>
 <script src="js/signin-prompt.js" defer></script>
 <script src="js/notify-bell.js" defer></script>
 <script src="js/messenger.js" defer></script>

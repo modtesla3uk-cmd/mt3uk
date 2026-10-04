@@ -2425,10 +2425,10 @@ def test_full_screen_map_on_a_phone(page):
         box = page.locator(sel).bounding_box()
         assert box and box["y"] >= 0 and box["y"] + box["height"] <= 390 and box["x"] + box["width"] <= 844, (sel, box)
     expect(page.locator("#tp-play-toggle")).to_be_visible()
-    # The speed and G figures sit at the top of the charts panel, not over the map where they hid the cars, under
-    # a row of column names.
-    gb0, met = page.locator("#tp-gbox").bounding_box(), page.locator("#tp-metrics").bounding_box()
-    assert met["x"] >= gb0["x"] - 1 and met["x"] + met["width"] <= 844, (met, gb0)
+    # The speed and G figures and the G-force pills sit with the playback controls on the left (as in portrait),
+    # under a row of column names, so the charts panel is left to the charts.
+    expect(page.locator("#tp-play #tp-metrics")).to_have_count(1)
+    expect(page.locator("#tp-play #tp-gtoggles")).to_have_count(1)
     expect(page.locator("#tp-metrics .tp-mhead span")).to_have_text(["", "", "Speed", "Acl G", "Cor G"])
     expect(page.locator("#tp-metrics .tp-mhead")).to_be_visible()
     # The colour switch and the exit button are apart, so one is not pressed for the other.
@@ -2445,7 +2445,7 @@ def test_full_screen_map_on_a_phone(page):
     ex, sh, met = page.locator("#tp-full").bounding_box(), page.locator("#tp-gshow").bounding_box(), page.locator("#tp-metrics").bounding_box()
     assert ex["x"] >= gb["x"] and ex["x"] + ex["width"] <= 844, (ex, gb)
     assert sh["x"] + sh["width"] <= page.locator("#tp-speedcol").bounding_box()["x"], sh
-    assert met["x"] >= mb["x"] + mb["width"] - 1, (met, mb)  # beside the map, not over it
+    assert met["x"] + met["width"] <= gb["x"] + 1, (met, gb)  # with the controls, clear of the charts panel
     toggles = page.locator("#tp-gtoggles .chip")
     toggles.nth(0).click()
     toggles.nth(2).click()

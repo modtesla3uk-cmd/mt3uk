@@ -2395,10 +2395,16 @@
     if (landFull() && !gHidden && row) { if (head.parentNode !== row) row.appendChild(head); }
     else if (head.parentNode !== card || card.firstChild !== head) card.insertBefore(head, card.firstChild);
     // The speed and G figures sit at the top of the charts panel too, not over the map where they hid the cars.
-    var mbox = document.getElementById('tp-metrics'), gbox = document.getElementById('tp-gbox'), gf = document.getElementById('tp-gforce');
-    if (mbox && gbox && gf) {
-      if (landFull() && !gHidden) { if (mbox.parentNode !== gbox) gbox.insertBefore(mbox, gf); }
+    // The car rows and the G-force pills go with the playback controls on the left (as in portrait), leaving the
+    // panel on the right to the charts.
+    var mbox = document.getElementById('tp-metrics'), gbox = document.getElementById('tp-gbox'), play = document.getElementById('tp-play'), gt = document.getElementById('tp-gtoggles');
+    if (mbox && gbox && play) {
+      if (landFull() && !gHidden) { if (mbox.parentNode !== play) play.appendChild(mbox); }
       else if (mbox.parentNode !== card) card.insertBefore(mbox, gbox);
+    }
+    if (gt && play && row) {
+      if (landFull() && !gHidden) { if (gt.parentNode !== play) play.insertBefore(gt, mbox && mbox.parentNode === play ? mbox : null); }
+      else if (gt.parentNode !== row) row.appendChild(gt);
     }
   }
   document.addEventListener('pointerdown', function (e) {
@@ -2766,14 +2772,14 @@
           var spd = d[0] === 'spd';
           gls.push(V.line(svg, {
             // The time labels sit under the last chart only; the ones above share its axis.
-            H: defs.length > 1 ? (di === defs.length - 1 ? Hn + 20 : Hn) : H, bottom: di === defs.length - 1 ? undefined : 8, x0: 0, x1: tEndG, y0: gy[0], y1: gy[gy.length - 1], xt: di === defs.length - 1 ? xt : [], xf: mss, yt: gy, zero: spd ? null : 0, yf: function (v) { return spd ? String(v) : v + ' g'; },
+            H: defs.length > 1 ? (di === defs.length - 1 ? Hn + 20 : Hn) : H, top: defs.length > 1 ? 18 : undefined, bottom: di === defs.length - 1 ? undefined : 8, x0: 0, x1: tEndG, y0: gy[0], y1: gy[gy.length - 1], xt: di === defs.length - 1 ? xt : [], xf: mss, yt: gy, zero: spd ? null : 0, yf: function (v) { return spd ? String(v) : v + ' g'; },
             // Moving over a chart moves playback to that moment, slider, cursors and all.
             series: series, tip: tip, onMove: function (t) { stopPlay(); pb.active = true; pb.t = t; renderAt(t); }, onLeave: leave
           }));
           // With more than one chart showing, each is named in its top left corner, so it is clear which is which.
           if (defs.length > 1) {
             var ttl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            ttl.setAttribute('class', 'tp-gtitle'); ttl.setAttribute('x', 54); ttl.setAttribute('y', 26);
+            ttl.setAttribute('class', 'tp-gtitle'); ttl.setAttribute('x', 48); ttl.setAttribute('y', 13);
             ttl.textContent = d[1];
             svg.appendChild(ttl);
           }

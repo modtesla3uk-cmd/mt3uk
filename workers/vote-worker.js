@@ -4815,7 +4815,7 @@ function bytesFromBase64Url(str) {
 // find the member at sign-in. Challenges are one-use keys that expire in
 // 5 minutes. Signatures are checked here with WebCrypto (ES256 or RS256).
 var PASSKEY_RP_ID = 'mt3uk.com';
-var PASSKEY_ORIGINS = ['https://mt3uk.com', 'https://www.mt3uk.com'];
+var PASSKEY_ORIGINS = ['https://mt3uk.com', 'https://www.mt3uk.com', 'https://laps.mt3uk.com'];
 var PASSKEY_CHALLENGE_TTL = 300;
 var MAX_PASSKEYS = 10;
 

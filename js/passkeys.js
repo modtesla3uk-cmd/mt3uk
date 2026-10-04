@@ -44,7 +44,7 @@
     var name = err && err.name;
     if (name === 'NotAllowedError' || name === 'AbortError') return 'Cancelled, or no passkey was chosen.';
     if (name === 'InvalidStateError') return 'This device already has an MT3UK passkey.';
-    if (name === 'SecurityError') return 'Passkeys only work on mt3uk.com.';
+    if (name === 'SecurityError') return 'Passkeys only work on mt3uk.com and laps.mt3uk.com.';
     return (err && err.message) || 'Something went wrong, please try again.';
   }
 

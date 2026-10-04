@@ -204,7 +204,7 @@ def _retime_mocks(page, saved, old_best=99.9):
     cors = {"Access-Control-Allow-Origin": "*"}
     source = _retime_source()
     rows = [
-        {"id": "aaaaaaaa01", "type": "track", "venue": "Thruxton", "date": "2026-07-01", "best": 99.9, "version": 1, "hasSource": True},
+        {"id": "aaaaaaaa01", "type": "track", "venue": "Thruxton", "date": "2026-07-01", "best": 99.9, "version": 1, "hasSource": True, "owner": "Chris R"},
         {"id": "aaaaaaaa02", "type": "track", "venue": "Castle Combe", "date": "2026-07-02", "best": 80.1, "version": 1, "hasSource": False},
         {"id": "aaaaaaaa03", "type": "track", "venue": "Croft", "date": "2026-07-03", "best": 70.0, "version": 99, "hasSource": True},
     ]
@@ -242,6 +242,8 @@ def test_admin_check_sessions_counts_old_ones_and_saves_nothing(page):
     expect(page.locator("#tk-retime-list li")).to_have_count(1)
     # Each result links to the session, so the admin can open it and see whose it is.
     expect(page.locator("#tk-retime-list li a")).to_have_attribute("href", "track.html?s=aaaaaaaa01")
+    # And it says whose session it is.
+    expect(page.locator("#tk-retime-list li a")).to_contain_text("Chris R: Thruxton, 2026-07-01")
     assert saved == []
 
 

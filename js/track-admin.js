@@ -608,14 +608,15 @@
           var chain = Promise.resolve();
           todo.forEach(function (r) {
             chain = chain.then(function () {
+              var who = r.owner ? r.owner + ': ' : '';
               return retimeOne(r, apply, lib, allowBig).then(function (c) {
                 var same = c.from === c.to || (c.from != null && c.to != null && Math.abs(c.from - c.to) < 0.0005);
-                var text = c.venue + ', ' + c.date + ' (' + c.type + '): ' + fmtTime(c.from) + ' to ' + fmtTime(c.to);
+                var text = who + c.venue + ', ' + c.date + ' (' + c.type + '): ' + fmtTime(c.from) + ' to ' + fmtTime(c.to);
                 if (c.big && (!apply || !allowBig)) { held++; line(text + (apply ? ' (over 10%, not saved)' : ' (over 10%, held back unless you allow big changes)'), c.id); return; }
                 // Every session saved is listed, so the admin can see what was touched; a check lists only what moves.
-                if (same) { unchanged++; if (apply) line(c.venue + ', ' + c.date + ' (' + c.type + '): ' + fmtTime(c.to) + ' (same time)', c.id); } else line(text, c.id);
+                if (same) { unchanged++; if (apply) line(who + c.venue + ', ' + c.date + ' (' + c.type + '): ' + fmtTime(c.to) + ' (same time)', c.id); } else line(text, c.id);
                 done++;
-              }).catch(function (e) { failed++; line(r.venue + ', ' + r.date + ': skipped (' + (e && e.message || 'error') + ')', r.id); });
+              }).catch(function (e) { failed++; line(who + r.venue + ', ' + r.date + ': skipped (' + (e && e.message || 'error') + ')', r.id); });
             });
           });
           chain.then(function () {

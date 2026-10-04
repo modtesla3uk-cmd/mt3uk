@@ -428,6 +428,11 @@ def test_track_sessions_link_sits_with_gallery_on_the_car(device_page):
     link = page.locator('#mb-car-site-links [data-link="track"]')
     expect(link).to_be_visible()
     assert link.get_attribute("href") == "track.html?mycar=car-1"
+    expect(link.locator(".early-badge")).to_have_text("Early preview")
+    boards = page.locator('#mb-car-site-links [data-link="boards"]')
+    expect(boards).to_contain_text("Track Leaderboards")
+    expect(boards.locator(".mb-new")).to_have_text("NEW")
+    assert boards.get_attribute("href") == "leaderboards.html"
     # No longer a row in the Mods list.
     assert page.locator('#mb-mods-builder [data-mv-area="track"]').count() == 0
     assert overflow_width(page) <= 0

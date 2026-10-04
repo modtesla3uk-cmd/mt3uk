@@ -495,6 +495,7 @@
   .mb-site-links a:hover { background: var(--orange); border-color: var(--orange); color: var(--white); }
   .mb-site-links a[hidden] { display: none; }
   .mb-site-links a .icon { width: 16px; height: 16px; margin-right: 6px; }
+  .mb-site-links a .early-badge, .mb-site-links a .mb-new { margin-left: 8px; }
   #mb-car-selector-view .mb-site-links { margin: 0 0 16px; }
   .mb-car-name-status { flex-shrink: 0; }
   .mb-car-color-select { font-size: 0.72rem; color: var(--ink); border: 1px solid var(--line); background: var(--white); padding: 6px 8px; flex-shrink: 0; }
@@ -1361,7 +1362,7 @@ document.addEventListener('DOMContentLoaded', function () {
             <summary class="mb-upload-toggle-btn"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V4M4 4h12l-2 4 2 4H4"/></svg>Track your car?<svg class="icon mb-track-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
             <div class="mb-track-list">
               <a class="mb-track-item is-quiet" id="mb-track-btn" href="track.html"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V4M4 4h12l-2 4 2 4H4"/></svg><span><b>My Track Sessions <span class="early-badge">Early preview</span></b><small id="mb-track-sub">Add your first session from your lap timer</small></span></a>
-              <a class="mb-track-item" id="mb-boards-btn" href="leaderboards.html"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/></svg><span><b>Leaderboards</b><small>Rankings at each track</small></span></a>
+              <a class="mb-track-item" id="mb-boards-btn" href="leaderboards.html"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/></svg><span><b>Leaderboards <span class="mb-new">NEW</span></b><small>Rankings at each track</small></span></a>
             </div>
           </details>
         </div>
@@ -1487,7 +1488,8 @@ document.addEventListener('DOMContentLoaded', function () {
           <a href="index.html#build-feed" data-link="reel">Reel</a>
           <a href="index.html#vote-frame" data-link="vote">Voting</a>
           <a href="gallery.html" data-link="gallery">Gallery</a>
-          <a href="track.html" data-link="track"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V4M4 4h12l-2 4 2 4H4"/></svg>Track sessions</a>
+          <a href="track.html" data-link="track"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V4M4 4h12l-2 4 2 4H4"/></svg>Track sessions <span class="early-badge">Early preview</span></a>
+          <a href="leaderboards.html" data-link="boards"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/></svg>Track Leaderboards <span class="mb-new">NEW</span></a>
         </div>
 
         <div class="mb-vote-hint" id="mb-vote-hint"></div>

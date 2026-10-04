@@ -271,7 +271,7 @@ def test_signed_out_explains_and_lists_leaderboards(page):
     # Visitors can open the leaderboards too, on their own page.
     page.locator("#tp-boards-btn").click()
     expect(page).to_have_url(re.compile(r"leaderboards\.html$"))
-    expect(page.locator(".lb-hero h1")).to_have_text("Ranking")
+    expect(page.locator(".lb-hero h1")).to_have_text("Leaderboard")
     expect(page.locator(".tp-board-card").first).to_contain_text("Thruxton")
 
 

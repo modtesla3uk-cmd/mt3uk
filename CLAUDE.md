@@ -81,7 +81,7 @@ Static site for the MT3UK modified Tesla community, live at https://mt3uk.com. I
 
 ## Track sessions: leaderboards
 
-- `leaderboards.html` (headed **Ranking**) is drawn by `js/leaderboard-page.js`. The track list shows each venue's top three per layout from `/track/counts` (`counts` and `leaders`, both single KV keys, read with `get()`). A board page filters by model, conditions and tyre make or model.
+- `leaderboards.html` (headed **Leaderboard**) is drawn by `js/leaderboard-page.js`. The track list shows each venue's top three per layout from `/track/counts` (`counts` and `leaders`, both single KV keys, read with `get()`). A board page filters by model, conditions and tyre make or model.
 - Each board entry is a car's fastest, plus `bests`: its fastest for every mix of conditions and tyres, so a filter can rank each car by its best that matches. `mods` holds only track-relevant parts (`isTrackPart`, kept the same in `js/track-parse.js` and the worker, with a test). Entries made before `bests` existed still work (the page falls back to their one result and reads the tyres from the text).
 - **Rebuild all leaderboards** on the Tracks panel of `admin.html` (`POST /track/boards/rebuild`, admin key, a couple of cars per call) brings old entries up to date. It uses KV `list()`, which is fine for an admin-only route.
 

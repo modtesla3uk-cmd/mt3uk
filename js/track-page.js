@@ -231,7 +231,7 @@
       h += '</div></div>' +
         '<h3 class="tp-gate-see">See what it does</h3><p class="tp-small">Tap the picture to see it bigger. It uses example data.</p>' +
         '<div class="tp-gate-thumbs">' + PREVIEW_SHOTS.map(function (x, k) { return '<button type="button" class="tp-thumb" data-shot="' + k + '" aria-label="Open: ' + esc(x[4]) + '"><span class="tp-thumb-img"><img src="' + x[0] + '" alt="" width="' + x[2] + '" height="' + x[3] + '" loading="lazy"></span><span class="tp-thumb-cap">' + esc(x[4]) + '</span></button>'; }).join('') + '</div>' +
-        '<p class="tp-small">The <a href="leaderboards.html">Ranking</a> page is open to everyone to look at.</p></div>';
+        '<p class="tp-small">The <a href="leaderboards.html">Leaderboard</a> page is open to everyone to look at.</p></div>';
       app.innerHTML = h;
       app.querySelectorAll('[data-shot]').forEach(function (b) { b.addEventListener('click', function () { openShot(parseInt(b.getAttribute('data-shot'), 10), b); }); });
       var f = document.getElementById('tp-gate-form');

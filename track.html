@@ -340,7 +340,7 @@
     .tp-mapcard.is-full .tp-pn-size { display: block; position: absolute; right: 0; bottom: 0; width: 30px; height: 30px; cursor: nwse-resize; touch-action: none; pointer-events: auto; background: linear-gradient(135deg, transparent 55%, var(--hairline-strong) 55%, var(--hairline-strong) 63%, transparent 63%, transparent 75%, var(--hairline-strong) 75%, var(--hairline-strong) 83%, transparent 83%); border-bottom-right-radius: var(--radius-sm); }
     #tp-mapcard.is-full[data-pn="on"] .tp-play { left: var(--pn-x); top: var(--pn-y); bottom: auto; right: auto; width: var(--pn-w); max-width: none; box-sizing: border-box; }
     .tp-mapcard.is-full .tp-play .btn, .tp-mapcard.is-full .tp-play .chip { pointer-events: auto; }
-    .tp-mapcard.is-full .tp-mopts { display: block; position: absolute; left: 6px; top: 44px; z-index: 3; }
+    .tp-mapcard.is-full .tp-mopts { display: block; position: absolute; left: 6px; top: 44px; z-index: 5; }
     #tp-mapcard.is-full[data-carspeed="off"] .tv-dotlabel { display: none; }
     /* The speed shows beside each car's dot on the map (.tv-dotlabel), so the figures block is left out. */
     .tp-mapcard.is-full .tp-metrics { display: none; }
@@ -373,11 +373,16 @@
   .tp-pn-grip, .tp-pn-size { display: none; }
   .tp-mopts-btn { width: 44px; height: 44px; display: grid; place-items: center; padding: 0; border: 1px solid var(--hairline-strong); border-radius: var(--radius); background: rgba(255,255,255,.95); color: var(--ink); box-shadow: 0 1px 6px rgba(0,0,0,.35); cursor: pointer; }
   .tp-mopts-btn[hidden] { display: none; }
-  .tp-mopts-card { min-width: 250px; max-width: 78vw; border: 1px solid var(--hairline-strong); border-radius: var(--radius); background: rgba(255,255,255,.96); box-shadow: 0 1px 6px rgba(0,0,0,.35); overflow-x: hidden; overflow-y: auto; max-height: calc(100vh - 150px); }
-  .tp-mopts-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 2px 4px 2px 12px; border-bottom: 1px solid var(--hairline); font-size: 0.85rem; font-weight: 600; color: var(--ink); }
+  .tp-mopts-card { min-width: 250px; max-width: 78vw; border: 1px solid var(--hairline-strong); border-radius: var(--radius); background: rgba(255,255,255,.96); box-shadow: 0 1px 6px rgba(0,0,0,.35); overflow-x: hidden; overflow-y: auto; max-height: calc(100vh - 128px); }
+  .tp-mopts-head { display: flex; flex-direction: row-reverse; align-items: center; justify-content: flex-end; gap: 6px; padding: 2px 12px 2px 4px; border-bottom: 1px solid var(--hairline); font-size: 0.85rem; font-weight: 600; color: var(--ink); }
+  /* Lap A and Lap B side by side, so the whole card fits on a phone on its side. */
+  .tp-mapcard.is-full .tp-mopts-card:not([hidden]) { min-width: 400px; max-width: 70vw; }
+  .tp-mapcard.is-full .tp-mopts-body { display: grid; grid-template-columns: 1fr 1fr; column-gap: 8px; align-items: end; }
+  .tp-mapcard.is-full .tp-mopts-body > :not(.tp-field) { grid-column: 1 / -1; }
+  .tp-mapcard.is-full .tp-mopts-body .tp-field { min-width: 0; }
   .tp-mopts-x { width: 40px; height: 40px; display: grid; place-items: center; padding: 0; border: 0; background: none; color: var(--ink); cursor: pointer; }
   .tp-mopts-body { display: grid; gap: 0; padding: 2px 12px 6px; }
-  .tp-mopts-body .tp-switch { width: 100%; min-height: 40px; margin: 0; justify-content: space-between; gap: 12px; font-size: 0.85rem; color: var(--ink); flex: none; }
+  .tp-mopts-body .tp-switch { width: 100%; min-height: 36px; margin: 0; justify-content: space-between; gap: 12px; font-size: 0.85rem; color: var(--ink); flex: none; }
   .tp-clock { font-size: 0.82rem; font-variant-numeric: tabular-nums; color: var(--steel); white-space: nowrap; }
   .tp-boards { display: grid; gap: 10px; }
   @media (min-width: 781px) { .tp-boards { grid-template-columns: 1fr 1fr; } }

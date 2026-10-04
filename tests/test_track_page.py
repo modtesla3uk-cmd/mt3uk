@@ -170,6 +170,11 @@ class FakeWorker:
             for k in ("privacy", "conditions", "tyres", "tyreMake", "tyreModel", "tyreWidth", "tyreProfile", "tyreRim", "temp", "tempSource", "weather", "notes"):
                 if k in body:
                     rec[k] = body[k]
+            if "hill" in body:
+                if body["hill"]:
+                    rec["hill"] = True
+                else:
+                    rec.pop("hill", None)
             self.index = [summary(rec) if s["id"] == rec["id"] else s for s in self.index]
             data = {"success": True, "session": summary(rec)}
         elif path == "/track/session" and req.method == "DELETE":
@@ -1357,7 +1362,7 @@ def test_cars_are_separate_from_sessions(page):
     page.get_by_role("link", name="Add a session").click()
     page.set_input_files("#tp-file", str(FIXTURE))
     types = page.locator("[data-type] button")
-    expect(types).to_have_text(["Track day", "Drag run", "Sprint or hill climb", "Other"])
+    expect(types).to_have_text(["Track day", "Drag run", "Sprint", "Hill climb", "Other"])
     # Other: mapped and saved, never on a leaderboard.
     page.locator("[data-type] [data-v='other']").click()
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("aren't timed for a leaderboard")
@@ -4317,3 +4322,48 @@ def test_full_screen_has_lap_pickers(page):
     page.wait_for_timeout(400)
     page.locator("#tp-mopts-btn").click()
     expect(page.locator("#tp-mopts-body #tp-cmp-a")).to_be_visible()
+
+
+def test_a_place_named_for_a_hill_climb_is_listed_under_hill_climbs_even_without_the_flag(page):
+    """A sprint-type place that was added from a member's request starts without the hill flag; its name says hill
+    climb, so the leaderboard lists it under Hill climb, not Sprint."""
+    lib = {"venues": [
+        {"id": "curborough", "name": "Curborough", "type": "sprint", "lat": 52.7, "lng": -1.8, "radius": 1500, "layouts": [{"id": "c", "name": "Course", "length": 800}]},
+        {"id": "gurston", "name": "Gurston Down Hillclimb", "type": "sprint", "lat": 51.0, "lng": -1.9, "radius": 1500, "layouts": [{"id": "h", "name": "Hill", "length": 900}]},
+    ]}
+    page.route(re.compile(r".*/data/tracks\.json.*"), lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps(lib)))
+    open_page(page, FakeWorker(), "/leaderboards.html?type=sprint", signed_in=False)
+    expect(page.locator(".tp-board-card", has_text="Curborough")).to_have_count(1)
+    expect(page.locator(".tp-board-card", has_text="Gurston")).to_have_count(0)
+    page.locator(".lb-types a", has_text="Hill climb").click()
+    expect(page.locator(".tp-board-card", has_text="Gurston")).to_have_count(1)
+    expect(page.locator(".tp-board-card", has_text="Curborough")).to_have_count(0)
+
+
+def test_a_hill_climb_is_told_apart_from_a_sprint(page):
+    """Sprint and Hill climb are separate choices (the same timing underneath): the Add page and Session settings
+    show both, a session saved as a hill climb says so, and switching between them is one tap with nothing read
+    again."""
+    page.route(re.compile(r".*/data/tracks\.json.*"), _course(HILL_FINISH, 1500))
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    expect(page.locator("[data-type] button")).to_have_text(["Track day", "Drag run", "Sprint", "Hill climb", "Other"])
+    page.locator("[data-type] button[data-v='hill']").click()
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("Test Sprint")
+    expect(page.locator("[data-type] .chip.is-on")).to_have_text(["Hill climb"])
+    page.get_by_role("button", name="Save session").click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
+    assert fake.sessions["new1"]["type"] == "sprint" and fake.sessions["new1"].get("hill") is True, fake.sessions["new1"].get("hill")
+    expect(page.locator("#tp-kind")).to_have_text("Hill climb")
+    expect(page.locator("#settings [data-retype] .chip.is-on")).to_have_text(["Hill climb"])
+    # One tap to call it a sprint, and back.
+    page.locator("#settings [data-retype] button[data-v='sprint']").click()
+    expect(page.locator("#settings [data-retype] .chip.is-on")).to_have_text(["Sprint"])
+    assert not fake.sessions["new1"].get("hill")
+    expect(page.locator("#tp-kind")).to_have_text("Sprint")
+    page.locator("#settings [data-retype] button[data-v='hill']").click()
+    expect(page.locator("#settings [data-retype] .chip.is-on")).to_have_text(["Hill climb"])
+    assert fake.sessions["new1"].get("hill") is True

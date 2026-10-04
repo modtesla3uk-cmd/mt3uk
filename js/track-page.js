@@ -22,7 +22,21 @@
   var esc = V.esc;
   var RUN_COLORS = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#4a3aa7', '#e34948'];
   var TYPE_WORD = { drag: 'drag', sprint: 'sprint', other: 'other' };
-  var TYPES = [['track', 'Track day'], ['drag', 'Drag run'], ['sprint', 'Sprint or hill climb'], ['other', 'Other']];
+  var TYPES = [['track', 'Track day'], ['drag', 'Drag run'], ['sprint', 'Sprint'], ['hill', 'Hill climb'], ['other', 'Other']];
+  // Sprint and Hill climb are one type underneath (timed from a start line to a finish line); `hill` on the session says which.
+  // A place the track list marks as a hill climb makes it one whatever was picked.
+  function isHillSession(s, venues) {
+    if (!s || s.type !== 'sprint') return false;
+    if (s.hill) return true;
+    var v = s.venueId && venues && (venues.venues || venues).filter(function (x) { return x.id === s.venueId; })[0];
+    return !!v && T.isHill(v);
+  }
+  function typeChips(s, hill) {
+    return TYPES.map(function (t) {
+      var on = t[0] === 'hill' ? s.type === 'sprint' && hill : t[0] === 'sprint' ? s.type === 'sprint' && !hill : s.type === t[0];
+      return '<button type="button" class="chip' + (on ? ' is-on' : '') + '" data-v="' + t[0] + '">' + t[1] + '</button>';
+    }).join('');
+  }
   var ICON = {
     prev: '<path d="M15 5l-7 7 7 7"/>',
     next: '<path d="M9 5l7 7-7 7"/>',
@@ -312,7 +326,7 @@
     if (words.length < 2) return name.length > 14 ? name.slice(0, 13) + '\u2026' : name;
     return words[0].charAt(0).toUpperCase() + '. ' + words[words.length - 1];
   }
-  function trackName(s) { return (s.venue || (s.type === 'sprint' ? 'Sprint' : s.type === 'drag' ? 'Drag run' : 'Track session')) + (s.layout && s.layout !== s.venue ? ', ' + s.layout : !s.layout && s.organizer ? ', ' + s.organizer : ''); }
+  function trackName(s) { return (s.venue || (s.type === 'sprint' ? (s.hill ? 'Hill climb' : 'Sprint') : s.type === 'drag' ? 'Drag run' : 'Track session')) + (s.layout && s.layout !== s.venue ? ', ' + s.layout : !s.layout && s.organizer ? ', ' + s.organizer : ''); }
   function privacyPill(p, street) {
     if (street) return '<span class="tp-pill tp-pill-admin">' + icon('shield') + 'Street run, admin only</span>';
     if (p === 'board' || p === 'build') return '<span class="tp-pill">' + icon('eye') + 'Shared</span>';
@@ -1007,6 +1021,8 @@
     var a = add;
     var opts = analysisOpts(a);
     a.session = T.analyse(a.rd, a.lib, opts);
+    // A hill climb, as picked or as the track list has it.
+    if (a.session.type === 'sprint' && (a.hill || isHillSession(a.session, a.lib))) a.session.hill = true; else a.hill = false;
     // Kept so Re-time sessions can time it the same way later (on is the default).
     if (a.session.type === 'sprint' && a.ignoreFinish === false) a.session.ignoreFinish = false;
     // A date or start time the member typed wins over the file's.
@@ -1150,7 +1166,7 @@
     var a = add, s = a.session, box = document.getElementById('tp-result');
     if (!(s.needsStartLine || a.editLines) && a.tapFull) { a.tapFull = false; document.body.classList.remove('tp-noscroll'); }
     var h = '<div class="card tp-fields">';
-    if (!a.lineEdit) h += '<div class="tp-field"><span class="tp-lbl">Type</span><div class="tp-chips" data-type>' + TYPES.map(function (t) { return '<button type="button" class="chip' + (s.type === t[0] ? ' is-on' : '') + '" data-v="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</div></div>';
+    if (!a.lineEdit) h += '<div class="tp-field"><span class="tp-lbl">Type</span><div class="tp-chips" data-type>' + typeChips(s, isHillSession(s, a.lib) || !!a.hill) + '</div></div>';
     // The track name and the date come first: they are the first things to check.
     var topDate = '';
     if (!a.replaceId) {
@@ -1294,7 +1310,7 @@
         else a[k] = el.value.trim();
       });
     }
-    group('[data-type]', function (v) { keep(); if (v !== a.type) { a.type = v; a.startLine = null; a.finishLine = null; a.editLines = false; a.confirmLines = false; a.tapFull = false; a.tapAuto = false; analyse(); } });
+    group('[data-type]', function (v) { keep(); var hillPick = v === 'hill'; if (hillPick) v = 'sprint'; var hillChanged = v === 'sprint' && !!a.hill !== hillPick; a.hill = hillPick; if (hillChanged && v === a.type) { if (a.session) { if (hillPick) a.session.hill = true; else delete a.session.hill; } drawAdd(); return; } if (v !== a.type) { a.type = v; a.startLine = null; a.finishLine = null; a.editLines = false; a.confirmLines = false; a.tapFull = false; a.tapAuto = false; analyse(); } });
     ['tp-date', 'tp-time'].forEach(function (id) {
       var el = document.getElementById(id);
       if (!el) return;
@@ -1324,7 +1340,7 @@
       var s0 = a.session, nameEl = document.getElementById('tp-venue-name'), name = (nameEl && nameEl.value.trim()) || a.venueName || s0.venue || '';
       var o0 = s0.origin || [], ol = ((s0.trace && s0.trace.outline) || []).filter(function (_, i) { return i % 4 === 0; }).map(function (q) { return [q[0], q[1]]; });
       untimedBtn.disabled = true;
-      api('POST', '/track/requests', { kind: s0.type === 'sprint' ? 'sprint' : 'circuit', name: name, venueId: s0.venueId || '', organizer: s0.type === 'sprint' ? (a.organizer || '') : '', startLine: a.startLine || null, finishLine: a.finishLine || null, lat: o0[0], lng: o0[1], outline: ol, note: 'Saved without times: the course or its lines are not set up' }).catch(function () {});
+      api('POST', '/track/requests', { kind: s0.type === 'sprint' ? 'sprint' : 'circuit', hill: s0.type === 'sprint' && isHillSession(s0, a.lib), name: name, venueId: s0.venueId || '', organizer: s0.type === 'sprint' ? (a.organizer || '') : '', startLine: a.startLine || null, finishLine: a.finishLine || null, lat: o0[0], lng: o0[1], outline: ol, note: 'Saved without times: the course or its lines are not set up' }).catch(function () {});
       // Saved as a mapped drive. Changing its type to Sprint or Track day later times it.
       a.pendingCourse = name || 'this course'; a.venueName = name; a.type = 'other';
       analyse();
@@ -1335,7 +1351,7 @@
       keep();
       var s2 = a.session, nameEl = document.getElementById('tp-venue-name'), laps = (s2.laps || []).filter(function (l) { return l.n === s2.best; })[0];
       offBtn.disabled = true;
-      api('POST', '/track/admin/course', { kind: s2.type === 'sprint' ? 'sprint' : 'circuit', name: (nameEl && nameEl.value.trim()) || a.venueName || s2.venue || '', organizer: a.organizer || s2.organizer || '', venueId: s2.venueId || '', startLine: s2.startLine, finishLine: s2.finishLine || null, lapLength: laps && laps.dist ? laps.dist : 0, lat: s2.origin && s2.origin[0], lng: s2.origin && s2.origin[1] }).then(function (d) {
+      api('POST', '/track/admin/course', { kind: s2.type === 'sprint' ? 'sprint' : 'circuit', hill: s2.type === 'sprint' && isHillSession(s2, a.lib), name: (nameEl && nameEl.value.trim()) || a.venueName || s2.venue || '', organizer: a.organizer || s2.organizer || '', venueId: s2.venueId || '', startLine: s2.startLine, finishLine: s2.finishLine || null, lapLength: laps && laps.dist ? laps.dist : 0, lat: s2.origin && s2.origin[0], lng: s2.origin && s2.origin[1] }).then(function (d) {
         if (!d.success) { offBtn.disabled = false; status(d.message || 'Could not make that official.', 'error'); return; }
         // The course now exists: this file (and every other) is timed on its lines.
         a.lib = d.library; a.startLine = null; a.finishLine = null; a.editLines = false; a.confirmLines = false;
@@ -1569,7 +1585,7 @@
   function addCourseNow(a) {
     var s = a.session, tr = traceOutline(s), o = s.origin || [0, 0], name = a.venueName || s.venue || '';
     status('Adding ' + name + ' to the track list...');
-    return api('POST', '/track/courses', { kind: s.type === 'sprint' ? 'sprint' : 'circuit', name: name, venueId: s.venueId || '', organizer: s.type === 'sprint' ? (a.organizer || s.organizer || '') : '', startLine: s.startLine, finishLine: s.finishLine || null, lapLength: tr.lap ? tr.lap[tr.lap.length - 1][0] : null, lat: o[0], lng: o[1], outline: tr.out }).then(function (d) {
+    return api('POST', '/track/courses', { kind: s.type === 'sprint' ? 'sprint' : 'circuit', hill: s.type === 'sprint' && isHillSession(s, a.lib), name: name, venueId: s.venueId || '', organizer: s.type === 'sprint' ? (a.organizer || s.organizer || '') : '', startLine: s.startLine, finishLine: s.finishLine || null, lapLength: tr.lap ? tr.lap[tr.lap.length - 1][0] : null, lat: o[0], lng: o[1], outline: tr.out }).then(function (d) {
       if (!d.success) throw new Error(d.message || 'Could not add the track.');
       if (d.library) a.lib = d.library;
       // Timed again against the new course: its official lines are the ones just sent, so the laps are the same.
@@ -1594,7 +1610,7 @@
     var ownLine = s.layoutId && !s.officialLines && s.startLine && ((a.lib.venues || []).filter(function (vv) { return vv.id === s.venueId; })[0] || { layouts: [] }).layouts.filter(function (l) { return l.id === s.layoutId && !l.startLine; }).length;
     if (!(a.requestStart || ownLine || !s.layoutId)) return;
     var tr = traceOutline(s), out = tr.out, lap = tr.lap;
-    return api('POST', '/track/requests', { kind: s.type === 'sprint' ? 'sprint' : 'circuit', name: a.venueName || s.venue || '', venueId: s.venueId || '', layoutId: ownLine ? s.layoutId : '', organizer: s.type === 'sprint' ? (a.organizer || s.organizer || '') : '', startLine: s.startLine, finishLine: s.finishLine || null, lapLength: lap ? lap[lap.length - 1][0] : null, outline: out, note: s.type === 'sprint' ? (s.venueId ? 'Course not recognised' : 'New sprint or hill climb') : s.venueId ? 'Layout not recognised' : 'New track' }).catch(function () {});
+    return api('POST', '/track/requests', { kind: s.type === 'sprint' ? 'sprint' : 'circuit', hill: s.type === 'sprint' && isHillSession(s, a.lib), name: a.venueName || s.venue || '', venueId: s.venueId || '', layoutId: ownLine ? s.layoutId : '', organizer: s.type === 'sprint' ? (a.organizer || s.organizer || '') : '', startLine: s.startLine, finishLine: s.finishLine || null, lapLength: lap ? lap[lap.length - 1][0] : null, outline: out, note: s.type === 'sprint' ? (s.venueId ? 'Course not recognised' : 'New sprint or hill climb') : s.venueId ? 'Layout not recognised' : 'New track' }).catch(function () {});
   }
   // Several files: each is timed on its own and saved as its own session, with the settings chosen
   // above. A file that gives no laps or runs is left out and listed.
@@ -1742,13 +1758,13 @@
   // Change a saved session's type: its readings come back from the worker and
   // go through the same screen as adding one (tap the line if the course is
   // new, then check the result and save).
-  function startRetype(s, type) {
+  function startRetype(s, type, hill) {
     status('Loading your readings...');
     Promise.all([fetchSource(s.id), getMine(), getLibrary(), isAdmin()]).then(function (r) {
       var src = r[0], m = r[1];
       if (!src.p || !m) throw new Error(sourceError(src));
       var car = m.cars.filter(function (c) { return c.id === s.carId; })[0] || m.cars[0];
-      add = { car: car, cars: m.cars, lib: r[2], admin: r[3], rd: restoreSource(src), session: null, type: type, startLine: null, conditions: s.conditions || 'Dry', condTouched: true, privacy: s.privacy, street: false, tyres: s.tyres || '', tyre: tyreInit(s), temp: s.temp, tempSource: s.tempSource || '', weather: s.weather || null, notes: s.notes || '', date: s.date, time: s.time, venueName: s.venueId ? '' : s.venue, replaceId: s.id, files: null, list: null };
+      add = { car: car, cars: m.cars, lib: r[2], admin: r[3], rd: restoreSource(src), session: null, type: type, hill: !!hill, startLine: null, conditions: s.conditions || 'Dry', condTouched: true, privacy: s.privacy, street: false, tyres: s.tyres || '', tyre: tyreInit(s), temp: s.temp, tempSource: s.tempSource || '', weather: s.weather || null, notes: s.notes || '', date: s.date, time: s.time, venueName: s.venueId ? '' : s.venue, replaceId: s.id, files: null, list: null };
       analyse();
       window.scrollTo(0, 0);
     }).catch(function (e) { status((e && e.message) || 'Could not load your readings.', 'error'); });
@@ -1933,7 +1949,7 @@
   var view = null;
   function showSession(id) {
     loading();
-    Promise.all([api('GET', '/track/session?id=' + encodeURIComponent(id)), getMine().catch(function () { return null; }), loadTyres()]).then(function (r) {
+    Promise.all([api('GET', '/track/session?id=' + encodeURIComponent(id)), getMine().catch(function () { return null; }), loadTyres(), getLibrary().catch(function () { return null; })]).then(function (r) {
       var d = r[0];
       if (!d.success) return failed('This session isn\'t available. It may be private or removed.');
       if (!d.session.hasSource && d.session.readingsRefused && !d.session.readingsMessage) d.session.readingsMessage = d.session.readingsRefused.message;
@@ -1959,7 +1975,7 @@
     var place = s.mine && view.mine ? dayPlace(s, view.mine.sessions) : null;
     var h = (justSaved && s.mine ? savedHtml(justSaved) : '') + back(s.mine ? 'Your sessions' : 'Back', s.mine ? '' : (s.carId ? 'car=' + encodeURIComponent(s.carId) : ''));
     if (s.adminView) h += '<p class="tp-admin-banner" id="tp-admin-banner">' + icon('lock') + 'Admin view, read only. This is a private session and this view is logged. Notes are not shown.</p>';
-    h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '</h2>' + (s.ownerName ? '<p class="tp-by" id="tp-by">' + icon('user') + '<span>Session by <b>' + esc(s.ownerName) + '</b>' + (s.mine ? ' (you)' : '') + '</span></p>' : '') + '<p class="tp-sub">' + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (place ? ' &middot; <b id="tp-day-place">Session ' + place.n + ' of ' + place.of + ' that day</b>' : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + '</p>' + (s.fileName && (s.mine || s.adminView) ? '<p class="tp-small tp-filename" id="tp-filename">' + icon('file') + 'File: ' + esc(s.fileName) + '</p>' : '') + '</div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) + '<span id="tp-rank-slot"></span>' : '') + unitsChip() + (s.street || s.privacy === 'private' ? '' : shareDot('Share this session')) + '</div></div>';
+    h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '</h2>' + (s.ownerName ? '<p class="tp-by" id="tp-by">' + icon('user') + '<span>Session by <b>' + esc(s.ownerName) + '</b>' + (s.mine ? ' (you)' : '') + '</span></p>' : '') + '<p class="tp-sub">' + (s.type === 'sprint' ? '<b id="tp-kind">' + (isHillSession(s, library) ? 'Hill climb' : 'Sprint') + '</b> &middot; ' : '') + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (place ? ' &middot; <b id="tp-day-place">Session ' + place.n + ' of ' + place.of + ' that day</b>' : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + '</p>' + (s.fileName && (s.mine || s.adminView) ? '<p class="tp-small tp-filename" id="tp-filename">' + icon('file') + 'File: ' + esc(s.fileName) + '</p>' : '') + '</div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) + '<span id="tp-rank-slot"></span>' : '') + unitsChip() + (s.street || s.privacy === 'private' ? '' : shareDot('Share this session')) + '</div></div>';
     LW = s.type === 'sprint' ? 'Run' : 'Lap';
     // Timed with older code and no readings kept to work it out again: only uploading the file again updates it.
     if (s.mine && !s.hasSource && s.type !== 'other' && (s.analysisVersion || 1) < T.ANALYSIS_VERSION) h += '<p class="tp-notice" id="tp-old-version">' + icon('info') + '<span>Timed with an older version. Upload the file again to update the times.</span></p>';
@@ -1979,7 +1995,7 @@
     if (s.mine) wireLineEdit(s);
     if (s.mine && !s.hasSource) wireReadingsAgain();
     if (!s.street && s.privacy !== 'private') {
-      var what = s.type === 'drag' ? 'Drag run' : s.type === 'sprint' ? 'Sprint or hill climb run' : 'Track session', res = sessionResult(s);
+      var what = s.type === 'drag' ? 'Drag run' : s.type === 'sprint' ? (isHillSession(s, library) ? 'Hill climb run' : 'Sprint run') : 'Track session', res = sessionResult(s);
       wireShare({ url: SITE_URL + 'track.html?s=' + encodeURIComponent(s.id), heading: 'Share this session', subject: trackName(s) + ' | MT3UK', campaign: 'track_session',
         text: what + ' at ' + trackName(s) + (res ? ', ' + res + ',' : '') + ' on MT3UK' });
     }
@@ -3107,7 +3123,7 @@
   function ownerHtml(s) {
     var limit = s.street ? 'street' : (s.type === 'drag' ? (s.atVenue ? '' : 'noboard') : (s.venueId && s.layoutId ? '' : 'noboard'));
     var typeBox = s.street ? '' : s.hasSource
-      ? '<div class="tp-field"><span class="tp-lbl">Type</span><div class="tp-chips" data-retype>' + TYPES.map(function (t) { return '<button type="button" class="chip' + (s.type === t[0] ? ' is-on' : '') + '" data-v="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</div><p class="tp-small">Picked the wrong one? Choose another and we\'ll read your saved readings again as that type.</p></div>'
+      ? '<div class="tp-field"><span class="tp-lbl">Type</span><div class="tp-chips" data-retype>' + typeChips(s, isHillSession(s, library)) + '</div><p class="tp-small">Picked the wrong one? Choose another and we\'ll read your saved readings again as that type.</p></div>'
       : '<p class="tp-src">' + icon('info') + '<span>This session was saved before we kept the readings (or they could not be kept), so its type can\'t be changed.' + (s.readingsMessage ? ' Reason: ' + esc(String(s.readingsMessage)) : '') + ' Add the readings again, or add the file again as a new session.</span></p>' + (readingsSending[s.id] ? '' : readingsAgainHtml());
     // Saved as several files merged into one: offer one session per file.
     var splitBox = s.hasSource && !s.street && (s.type === 'track' || s.type === 'sprint') && typeof s.runs === 'number' && s.runs > 1
@@ -3151,8 +3167,21 @@
     group('[data-cond]', 'conditions');
     var rt = document.querySelector('#settings [data-retype]');
     if (rt) rt.addEventListener('click', function (e) {
-      var b = e.target.closest('button[data-v]');
-      if (b && b.getAttribute('data-v') !== s.type) startRetype(s, b.getAttribute('data-v'));
+      var b = e.target.closest('button[data-v]'), v = b && b.getAttribute('data-v');
+      if (!b) return;
+      // Sprint and Hill climb are the same type: only the label changes, so there is nothing to read again.
+      if ((v === 'sprint' || v === 'hill') && s.type === 'sprint') {
+        var wantHill = v === 'hill';
+        if (wantHill === isHillSession(s, library)) return;
+        api('PUT', '/track/session', { id: s.id, hill: wantHill }).then(function (d) {
+          if (!d.success) { status(d.message || 'Could not change it.', 'error'); return; }
+          if (wantHill) s.hill = true; else delete s.hill;
+          mine = null; counts = null;
+          drawSession(); status('Saved.', 'ok');
+        });
+        return;
+      }
+      if (v !== s.type) startRetype(s, v === 'hill' ? 'sprint' : v, v === 'hill');
     });
     // Any change to the settings below marks them unsaved, so Discard can ask before throwing them away.
     var dirty = false;

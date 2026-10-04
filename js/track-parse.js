@@ -936,6 +936,7 @@
     else if (rd.fileDate) { session.date = rd.fileDate; session.time = rd.fileTime || ''; session.dateFrom = rd.dateSrc || 'name'; }
     if (rd.airTemp != null) session.airTemp = rd.airTemp;
     if (venue) { session.venueId = venue.id; session.venue = venue.name; }
+    if (venue && type === 'sprint' && isHill(venue)) session.hill = true;
     var origin = venue ? [venue.lat, venue.lng] : [pts[0].lat, pts[0].lng];
     var proj = projector(origin[0], origin[1]);
     prepare(pts, proj);
@@ -1546,6 +1547,9 @@
     };
   }
 
+  // A sprint-type place that is a hill climb: flagged so by the admin, or named for one ("Gurston Down Hill Climb").
+  function isHill(v) { return !!v && v.type === 'sprint' && (!!v.hill || /hill\s*-?\s*climb/i.test(String(v.name || ''))); }
+
   function mergeLibrary(base, extra) {
     var list = venues(base).map(function (v) { return v; });
     venues(extra).forEach(function (v) {
@@ -1559,7 +1563,7 @@
 
   var api = {
     read: read, combine: combine, dateFromName: dateFromName, analyse: analyse, sessionNotes: sessionNotes, trendNotes: trendNotes, isTrackPart: isTrackPart, modImpact: modImpact, carData: carData, fileChannels: fileChannels, cornerGains: cornerGains,
-    traceAt: traceAt, findCorners: findCorners, mergeLibrary: mergeLibrary, fmtLap: fmtLap, niceDate: niceDate, ukDate: ukDate, ukTime: ukTime,
+    traceAt: traceAt, findCorners: findCorners, mergeLibrary: mergeLibrary, isHill: isHill, fmtLap: fmtLap, niceDate: niceDate, ukDate: ukDate, ukTime: ukTime,
     mergeSources: mergeSources, alignSpeeds: alignSpeeds, haversine: haversine, outline: outline, projector: projector, dragRuns: dragRuns, KMH_PER_MPH: KMH_PER_MPH, ANALYSIS_VERSION: ANALYSIS_VERSION
   };
   if (typeof module === 'object' && module.exports) module.exports = api;

@@ -204,7 +204,7 @@ ok(r.body.sessions.length === 1 && !r.body.sessions.some(s => s.street), 'street
 
 // Track list and requests
 const reqMails = env.SEND_EMAIL.sent.length;
-r = await call('POST', '/track/requests', { name: 'Old airfield', startLine: [[53.1, -1.1], [53.1001, -1.1001]], outline: [[53.1, -1.1], [53.11, -1.11]], lapLength: 2100 }, 'tok-a');
+r = await call('POST', '/track/requests', { name: 'Old airfield', startLine: [[53.1, -1.1], [53.1001, -1.1001]], outline: [[53.1, -1.1], [53.11, -1.11]], lapLength: 900 }, 'tok-a');
 ok(r.status === 200, 'member asks for a new track');
 ok(env.SEND_EMAIL.sent.length === reqMails + 1 && /modtesla3uk@gmail\.com/.test(env.SEND_EMAIL.sent[reqMails]) && /New track request: Old airfield/.test(env.SEND_EMAIL.sent[reqMails]) && /admin\.html#grp-tracks/.test(env.SEND_EMAIL.sent[reqMails]), 'the admin is emailed about the new track');
 r = await call('GET', '/track/admin/requests');
@@ -544,6 +544,73 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   ok(cases.every(([a, p]) => mod.isTrackPart(a, p) === T.isTrackPart(a, p)), 'the worker and the page agree on which parts matter on a track');
   await mod.saveCarRecord(env, { id: 'cara1', name: 'Arctic Three', photos: ['a1.jpg'], mods: ['KW V3 coilovers'] });
   for (const x of [s1, s2, s3, s4]) await call('DELETE', '/track/session?id=' + x.body.session.id, undefined, 'tok-a');
+}
+
+// A place listed as a sprint that also holds track days: its circuit is made, or filled in, beside the sprint.
+{
+  const sprintV = { name: 'Abingdon Airfield', type: 'sprint', lat: 51.6885, lng: -1.3165, radius: 1500, layouts: [{ name: 'AMC', length: 2250, organizer: 'AMC', startLine: [[51.6926, -1.317], [51.6926, -1.3175]], finishLine: [[51.6897, -1.3163], [51.6897, -1.3159]], sectors: [], corners: [] }] };
+  await call('PUT', '/track/admin/tracks?key=secret', { venue: sprintV });
+  const sl = [[51.6890, -1.3170], [51.6890, -1.3175]];
+  const td = JSON.parse(JSON.stringify(session)); td.type = 'track'; td.venueName = 'Abingdon Airfield'; td.startLine = sl; delete td.venueId; delete td.layoutId; delete td.venue;
+  r = await call('POST', '/track/sessions', { carId: 'cara1', session: td, privacy: 'board' }, 'tok-a');
+  ok(r.status === 200 && !r.body.session.layoutId, 'a track day at the sprint\'s place saves with no layout');
+  const tdId = r.body.session.id;
+  await call('POST', '/track/requests', { kind: 'circuit', name: 'Abingdon Airfield', startLine: sl, lapLength: 1200, lat: 51.689, lng: -1.3172 }, 'tok-a');
+  const rqs = (await call('GET', '/track/admin/requests?key=secret')).body.requests;
+  const rqA = rqs.find(x => x.name === 'Abingdon Airfield' && x.kind === 'circuit');
+  r = await call('POST', '/track/admin/requests?key=secret', { id: rqA.id, action: 'add' });
+  ok(r.status === 200 && r.body.relinked === 1, 'approving a track day beside a listed sprint works and links the session ' + JSON.stringify(r.body).slice(0, 200));
+  const cv = r.body.library.venues.find(v => v.type === 'circuit' && v.name === 'Abingdon Airfield');
+  ok(cv && cv.id === 'abingdon-airfield-circuit' && cv.layouts[0].startLine, 'it is its own circuit entry, beside the sprint: ' + (cv && cv.id));
+  ok(r.body.library.venues.find(v => v.id === 'abingdon-airfield').type === 'sprint', 'and the sprint is untouched');
+  const lk2 = stored('track-session:' + tdId);
+  ok(lk2.venueId === 'abingdon-airfield-circuit' && lk2.layoutId, 'the track day is on the circuit\'s layout');
+  // A second request from the same place joins that circuit (filling a layout with no line, not copying it).
+  const handV = { id: 'abingdon-airfield-circuit', name: 'Abingdon Airfield', type: 'circuit', lat: 51.6885, lng: -1.3165, radius: 1500, layouts: [{ id: 'short', name: 'Short', length: 1200, sectors: [], corners: [] }] };
+  await call('PUT', '/track/admin/tracks?key=secret', { venue: handV });
+  const td2 = JSON.parse(JSON.stringify(td)); delete td2.venueId; delete td2.layoutId;
+  r = await call('POST', '/track/sessions', { carId: 'cara1', session: td2, privacy: 'board' }, 'tok-a');
+  const td2Id = r.body.session.id;
+  await call('POST', '/track/requests', { kind: 'circuit', name: 'Abingdon Airfield', startLine: sl, lapLength: 1250, lat: 51.689, lng: -1.3172 }, 'tok-a');
+  const rqB = (await call('GET', '/track/admin/requests?key=secret')).body.requests.find(x => x.name === 'Abingdon Airfield' && x.kind === 'circuit' && !x.done);
+  r = await call('POST', '/track/admin/requests?key=secret', { id: rqB.id, action: 'add' });
+  const cv2 = r.body.library.venues.find(v => v.id === 'abingdon-airfield-circuit');
+  ok(r.status === 200 && cv2.layouts.length === 1 && cv2.layouts[0].id === 'short' && cv2.layouts[0].startLine, 'a layout listed by hand with no line is filled in, not copied: ' + JSON.stringify(r.body).slice(0, 160));
+  ok(stored('track-session:' + td2Id).layoutId === 'short', 'and the session joins it');
+  // A circuit added by hand takes a waiting request by lap length (it has no layout of its own to name).
+  const td3 = JSON.parse(JSON.stringify(td)); td3.venueName = 'Newtown Circuit'; delete td3.venueId; delete td3.layoutId; delete td3.venue;
+  r = await call('POST', '/track/sessions', { carId: 'cara1', session: td3, privacy: 'board' }, 'tok-a');
+  const td3Id = r.body.session.id;
+  await call('POST', '/track/requests', { kind: 'circuit', name: 'Newtown Circuit', startLine: sl, lapLength: 1500, lat: 51.3, lng: -1.0 }, 'tok-a');
+  r = await call('PUT', '/track/admin/tracks?key=secret', { venue: { name: 'Newtown Circuit', type: 'circuit', lat: 51.3, lng: -1.0, radius: 1500, layouts: [{ name: 'Main', length: 1480, startLine: sl, sectors: [], corners: [] }] } });
+  ok(r.status === 200 && r.body.relinked === 1 && stored('track-session:' + td3Id).layoutId === 'main', 'adding the circuit by hand links the waiting track day by lap length: ' + JSON.stringify(r.body).slice(0, 100));
+}
+
+// A new place whose name says hill climb is listed as a hill climb, so it is on that leaderboard tab.
+{
+  const sl = [[52.5, -2.0], [52.5002, -2.0002]], fl = [[52.51, -2.01], [52.5102, -2.0102]];
+  await call('POST', '/track/requests', { kind: 'sprint', name: 'Gurston Down Hill Climb', organizer: 'Club', startLine: sl, finishLine: fl, lapLength: 900, lat: 52.5, lng: -2.0 }, 'tok-a');
+  const hq = (await call('GET', '/track/admin/requests?key=secret')).body.requests.find(x => x.name === 'Gurston Down Hill Climb');
+  r = await call('POST', '/track/admin/requests?key=secret', { id: hq.id, action: 'add' });
+  const hv = r.body.library.venues.find(v => v.name === 'Gurston Down Hill Climb');
+  ok(r.status === 200 && hv && hv.type === 'sprint' && hv.hill === true, 'a new sprint-type place named for a hill climb is listed as a hill climb: ' + JSON.stringify(hv).slice(0, 100));
+  // A member's own pick (Hill climb rather than Sprint) is kept on the session and on the request, and made the track's flag.
+  const hs = JSON.parse(JSON.stringify(session)); hs.type = 'sprint'; hs.venueName = 'Shelsley Ridge'; hs.startLine = sl; hs.finishLine = fl; hs.hill = true; delete hs.venueId; delete hs.layoutId;
+  r = await call('POST', '/track/sessions', { carId: 'cara1', session: hs, privacy: 'build' }, 'tok-a');
+  const hsId = r.body.session.id;
+  ok(r.status === 200 && stored('track-session:' + hsId).hill === true, 'a hill climb session keeps its hill flag');
+  r = await call('PUT', '/track/session', { id: hsId, hill: false }, 'tok-a');
+  ok(r.status === 200 && !('hill' in stored('track-session:' + hsId)), 'a member can call it a sprint');
+  r = await call('PUT', '/track/session', { id: hsId, hill: true }, 'tok-a');
+  ok(r.status === 200 && stored('track-session:' + hsId).hill === true, 'and back to a hill climb');
+  const ts = JSON.parse(JSON.stringify(session)); ts.hill = true;
+  r = await call('POST', '/track/sessions', { carId: 'cara1', session: ts, privacy: 'build' }, 'tok-a');
+  ok(r.status === 200 && !('hill' in stored('track-session:' + r.body.session.id)), 'only a sprint-type session can be a hill climb');
+  await call('POST', '/track/requests', { kind: 'sprint', hill: true, name: 'Shelsley Ridge', organizer: 'Club', startLine: sl, finishLine: fl, lapLength: 900, lat: 52.3, lng: -2.1 }, 'tok-a');
+  const hq2 = (await call('GET', '/track/admin/requests?key=secret')).body.requests.find(x => x.name === 'Shelsley Ridge');
+  ok(hq2 && hq2.hill === true, 'the request says it is a hill climb');
+  r = await call('POST', '/track/admin/requests?key=secret', { id: hq2.id, action: 'add' });
+  ok(r.status === 200 && r.body.library.venues.find(v => v.name === 'Shelsley Ridge').hill === true && stored('track-session:' + hsId).venueId === 'shelsley-ridge', 'approving it lists a hill climb and links the session: ' + JSON.stringify(r.body).slice(0, 100));
 }
 
 // Approve and add track: the course is made from the member's markers and their sessions are linked.

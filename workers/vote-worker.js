@@ -6706,6 +6706,8 @@ function cleanTrackSession(s, library) {
     var org = trackText(s.organizer, 40);
     if (org) out.organizer = org;
     if (s.ignoreFinish === false) out.ignoreFinish = false;
+    // A hill climb rather than a sprint (the member's pick, or the track list's): both are timed start to finish.
+    if (s.hill) out.hill = true;
   }
   out.startLineFromMember = !!s.startLineFromMember;
   // The admin accepted the member's own lines for this session: a re-time keeps them, whatever the course's are.
@@ -7141,6 +7143,7 @@ function applyTrackEdits(rec, body) {
       delete rec.weather;
     }
   }
+  if ('hill' in body && rec.type === 'sprint') { if (body.hill) rec.hill = true; else delete rec.hill; }
   if ('notes' in body) rec.notes = trackText(body.notes, 500);
   if ('venueName' in body && !rec.venueId) rec.venue = trackText(body.venueName, 60) || rec.venue;
 }
@@ -7766,7 +7769,7 @@ async function handleTrackRequest(request, env) {
   var outline = cleanNumArrays(body.outline, 2).slice(0, 400).map(function (p) { return p.slice(0, 2); });
   var req = {
     id: randomToken().slice(0, 12), at: new Date().toISOString(), from: email,
-    kind: ['drag', 'sprint'].indexOf(body.kind) !== -1 ? body.kind : 'circuit',
+    kind: ['drag', 'sprint'].indexOf(body.kind) !== -1 ? body.kind : 'circuit', hill: body.kind === 'sprint' && !!body.hill,
     organizer: ['drag', 'sprint'].indexOf(body.kind) === 1 ? trackText(body.organizer, 40) : '',
     name: trackText(body.name, 60), note: trackText(body.note, 300),
     venueId: trackId(body.venueId), layoutId: trackId(body.layoutId), startLine: trackLine(body.startLine), finishLine: trackLine(body.finishLine), lapLength: trackNum(body.lapLength, 0, 30000),
@@ -7803,7 +7806,7 @@ async function handleTrackCourseAdd(request, env) {
   var outline = cleanNumArrays(body.outline, 2).slice(0, 400).map(function (p) { return p.slice(0, 2); });
   var req = {
     id: randomToken().slice(0, 12), at: new Date().toISOString(), from: email, added: true,
-    kind: sprint ? 'sprint' : 'circuit', organizer: sprint ? trackText(body.organizer, 40) : '',
+    kind: sprint ? 'sprint' : 'circuit', hill: sprint && !!body.hill, organizer: sprint ? trackText(body.organizer, 40) : '',
     name: trackText(body.name, 60), note: 'Added by the member: check the lines',
     venueId: trackId(body.venueId), layoutId: '', startLine: trackLine(body.startLine), finishLine: sprint ? trackLine(body.finishLine) : null, lapLength: trackNum(body.lapLength, 0, 30000),
     lat: trackNum(body.lat, -90, 90), lng: trackNum(body.lng, -180, 180), outline: outline
@@ -7883,7 +7886,7 @@ async function handleTrackAdminCourse(request, env) {
   try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
   var kind = ['sprint'].indexOf(body.kind) !== -1 ? 'sprint' : 'circuit';
   var req = {
-    kind: kind, name: trackText(body.name, 60), organizer: kind === 'sprint' ? trackText(body.organizer, 40) : '',
+    kind: kind, hill: kind === 'sprint' && !!body.hill, name: trackText(body.name, 60), organizer: kind === 'sprint' ? trackText(body.organizer, 40) : '',
     venueId: trackId(body.venueId), layoutId: body.replace ? trackId(body.layoutId) : '', replace: !!body.replace && !!body.layoutId,
     startLine: trackLine(body.startLine), finishLine: kind === 'sprint' ? trackLine(body.finishLine) : null,
     lapLength: trackNum(body.lapLength, 0, 30000), lat: trackNum(body.lat, -90, 90), lng: trackNum(body.lng, -180, 180), from: email || ''
@@ -7956,6 +7959,20 @@ async function linkMemberSessions(env, req, venue, layout) {
   return relinked;
 }
 
+// The layout of a circuit that a lap of this length belongs to (within 12%), or its only layout (within 35%). Null when none.
+function layoutByLength(layouts, length) {
+  layouts = layouts || [];
+  var best = null;
+  if (length > 0) layouts.forEach(function (l) {
+    var e = l.length ? Math.abs(length - l.length) / l.length : 1;
+    if (e < 0.12 && (!best || e < best.e)) best = { l: l, e: e };
+  });
+  if (best) return best.l;
+  // The only layout, unless the lap is clearly another length (over 35% out).
+  var only = layouts.length === 1 ? layouts[0] : null;
+  return only && (!(length > 0) || !only.length || Math.abs(length - only.length) / only.length <= 0.35) ? only : null;
+}
+
 // After the admin saves a course by hand: links the waiting or approved
 // requests' members' sessions to it (the course for a sprint request is the
 // one with the same organiser; for a circuit, the request's own layout).
@@ -7971,6 +7988,9 @@ async function relinkRequestsToVenue(env, venue) {
     var layout = (venue.layouts || []).find(function (l) {
       return r.kind === 'sprint' ? !!r.organizer && String(l.organizer || l.name).toLowerCase() === r.organizer.toLowerCase() : l.id === r.layoutId;
     });
+    // A track day at a place that was not listed has no layout of its own to name: the circuit just added by hand takes
+    // it by lap length (within 12%), or as its only layout.
+    if (!layout && r.kind !== 'sprint') layout = layoutByLength(venue.layouts, r.lapLength);
     // A sprint course renamed by hand (just "Course", no organiser): when it is the only one with no organiser, it is the one.
     if (!layout && r.kind === 'sprint') {
       var open = (venue.layouts || []).filter(function (l) { return !l.organizer; });
@@ -8018,22 +8038,49 @@ async function addTrackFromRequest(env, req, opts) {
   var existing = req.venueId ? (library.venues || []).find(function (v) { return v.id === req.venueId; }) : null;
   var wantType = sprint ? 'sprint' : 'circuit';
   if (existing && existing.type !== wantType) existing = null;
+  // A request with no track picked (it was made before the track was listed) joins the listed one of the same kind
+  // with its name, or that its position falls inside: a track day at a place that is also listed as a sprint joins
+  // the circuit, not the sprint.
+  if (!existing && !req.venueId && !(opts && opts.review)) {
+    var rname = trackText(req.name, 60).toLowerCase();
+    existing = (library.venues || []).find(function (v) {
+      return v.type === wantType && rname && String(v.name || '').toLowerCase() === rname &&
+        !(req.lat != null && req.lng != null && v.lat != null && trackDist([v.lat, v.lng], [req.lat, req.lng]) > Math.max(v.radius || 1500, 5000));
+    }) ||
+      (req.lat != null && req.lng != null ? (library.venues || []).find(function (v) { return v.type === wantType && v.lat != null && trackDist([v.lat, v.lng], [req.lat, req.lng]) <= (v.radius || 1500); }) : null) || null;
+  }
   var layout = { name: (sprint && req.organizer) || trackText(req.name, 60) || (sprint ? 'Course' : 'Layout'), length: req.lapLength || 0, startLine: req.startLine, sectors: [], corners: [] };
   if (sprint) { layout.finishLine = req.finishLine; if (req.organizer) layout.organizer = req.organizer; }
   var venue;
   if (existing) {
     venue = JSON.parse(JSON.stringify(existing));
     venue.layouts = (venue.layouts || []).slice();
-    var base = trackId(layout.name) || 'course', lid = base, n = 2;
-    while (venue.layouts.some(function (l) { return l.id === lid; })) lid = base + '-' + (n++);
-    layout.id = lid;
-    venue.layouts.push(layout);
+    // A layout listed by hand with no line yet (and the same length, or the only one) is filled in, not copied.
+    var fill = sprint ? (req.organizer ? venue.layouts.find(function (l) { return !l.startLine && String(l.organizer || l.name).toLowerCase() === req.organizer.toLowerCase(); }) : null)
+      : layoutByLength(venue.layouts.filter(function (l) { return !l.startLine; }), req.lapLength);
+    if (fill) {
+      fill.startLine = req.startLine;
+      if (sprint) fill.finishLine = req.finishLine;
+      if (!fill.length && req.lapLength) fill.length = Math.round(req.lapLength);
+      layout = fill;
+    } else {
+      var base = trackId(layout.name) || 'course', lid = base, n = 2;
+      while (venue.layouts.some(function (l) { return l.id === lid; })) lid = base + '-' + (n++);
+      layout.id = lid;
+      venue.layouts.push(layout);
+    }
   } else {
     layout.id = (sprint && trackId(req.organizer)) || 'course';
     venue = { id: trackId(req.name), name: trackText(req.name, 60), type: wantType, lat: req.lat, lng: req.lng, radius: sprint ? 1500 : 2000, layouts: [layout] };
+    // A sprint-type place named for a hill climb is listed as one (the admin can change it on the Tracks panel).
+    if (sprint && (req.hill || /hill\s*-?\s*climb/i.test(req.name || ''))) venue.hill = true;
     if (!venue.id || !venue.name) return { error: 'The request needs a name to make a track.' };
+    // The same place listed as another kind (a sprint and a track day) gets its own id, as when added by hand.
     var taken = (library.venues || []).find(function (v) { return v.id === venue.id; });
-    if (taken) return { error: 'A track called "' + taken.name + '" is already listed. Pick that track in the request or rename this one.' };
+    if (taken && taken.type === wantType) return { error: 'A track called "' + taken.name + '" is already listed. Pick that track in the request or rename this one.' };
+    var kindId = sprint ? 'sprint' : 'circuit', baseId = venue.id, nid = baseId, k = 1;
+    while ((library.venues || []).some(function (v) { return v.id === nid; })) { nid = baseId + '-' + kindId + (k > 1 ? '-' + k : ''); k++; }
+    venue.id = nid;
   }
   if (opts && opts.review) venue.review = true;
   var clean = cleanTrackVenue(venue);
@@ -8041,9 +8088,9 @@ async function addTrackFromRequest(env, req, opts) {
   venues = venues.filter(function (x) { return x.id !== clean.id; });
   venues.push(clean);
   await env.VOTES.put('track-library', JSON.stringify({ venues: venues }));
-  var layoutId = clean.layouts[clean.layouts.length - 1].id;
-  var relinked = await linkMemberSessions(env, req, clean, clean.layouts[clean.layouts.length - 1]);
-  return { venueId: clean.id, layoutId: layoutId, relinked: relinked };
+  var made = clean.layouts.find(function (l) { return l.id === layout.id; }) || clean.layouts[clean.layouts.length - 1];
+  var relinked = await linkMemberSessions(env, req, clean, made);
+  return { venueId: clean.id, layoutId: made.id, relinked: relinked };
 }
 
 function maskEmailForAdmin(email) {

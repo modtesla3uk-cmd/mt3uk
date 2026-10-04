@@ -3981,6 +3981,23 @@ def test_a_session_warns_when_a_faster_pass_crosses_the_lines_the_other_way_roun
     expect(box).to_contain_text("0:56.100")
 
 
+def test_the_refresh_button_loads_the_page_again_from_the_latest_version(page):
+    """Refresh is on the list of sessions and on a session. It fetches the page's own files again and reloads, so the
+    member sees what is live now, and the member stays on the same view."""
+    fake = FakeWorker()
+    save_fixture_session(page, fake)
+    expect(page.get_by_role("button", name="Refresh this page from the latest version")).to_be_visible()
+    seen = []
+    page.on("request", lambda r: seen.append(r.url))
+    page.get_by_role("button", name="Refresh this page from the latest version").click()
+    expect(page.locator("#tp-sid-text")).to_have_text("new1")
+    assert any(u.split("?")[0].endswith("/js/track-page.js") for u in seen), seen[:10]
+    assert any("/data/tracks.json" in u for u in seen)
+    assert "s=new1" in page.url
+    page.get_by_role("link", name="Your sessions").click()
+    expect(page.get_by_role("button", name="Refresh this page from the latest version")).to_be_visible()
+
+
 def test_the_session_id_is_shown_with_a_copy_button(page):
     """The owner sees the session id on their session, with a button that copies it."""
     page.context.grant_permissions(["clipboard-read", "clipboard-write"])

@@ -242,10 +242,8 @@
       '.mt3uk-account-bar p{margin:0;flex:1;min-width:0}' +
       '.mt3uk-account-bar strong{color:#fff;font-weight:600}' +
       '.mt3uk-account-bar .mt3uk-account-email{color:#b9c0cf;white-space:nowrap}' +
-      '.mt3uk-account-bar a,.mt3uk-account-bar button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 16px;box-sizing:border-box;color:#16233d;background:#fff;border:1px solid #fff;border-radius:var(--radius,10px);font:inherit;font-weight:600;line-height:1.2;cursor:pointer;text-decoration:none;transition:background-color .15s ease,border-color .15s ease}' +
-      '.mt3uk-account-bar a:hover,.mt3uk-account-bar button:hover{background:#eef0f4}' +
-      '.mt3uk-account-bar .mt3uk-account-signout{background:transparent;color:#fff;border-color:rgba(255,255,255,.45)}' +
-      '.mt3uk-account-bar .mt3uk-account-signout:hover{background:rgba(255,255,255,.12);border-color:#fff}' +
+      '.mt3uk-account-bar a,.mt3uk-account-bar button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 16px;box-sizing:border-box;color:#fff;background:transparent;border:1px solid rgba(255,255,255,.45);border-radius:var(--radius,10px);font:inherit;font-weight:600;line-height:1.2;cursor:pointer;text-decoration:none;transition:background-color .15s ease,border-color .15s ease}' +
+      '.mt3uk-account-bar a:hover,.mt3uk-account-bar button:hover{background:rgba(255,255,255,.12);border-color:#fff}' +
       '.mt3uk-account-bar .mt3uk-account-actions{display:flex;gap:10px;flex-wrap:wrap}';
     document.head.appendChild(style);
 

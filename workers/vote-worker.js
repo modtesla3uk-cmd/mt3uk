@@ -8145,13 +8145,15 @@ function trackBoardWhy(rec, lib, entries) {
     }
     if (venue && rec.type === 'track' && venue.type !== 'circuit') bad(venue.name + ' is listed as a ' + (venue.type === 'sprint' ? (venue.hill ? 'hill climb' : 'sprint') : venue.type) + ', not a circuit, so a track day there belongs to a circuit entry of its own.');
     if (venue && rec.type === 'sprint' && venue.type !== 'sprint') bad(venue.name + ' is listed as a circuit, so a sprint there belongs to a sprint entry of its own.');
+    // The member called it a hill climb, but the track is listed as a sprint, so it is on the Sprint leaderboard.
+    if (venue && rec.type === 'sprint' && venue.type === 'sprint' && rec.hill && !venue.hill && !/\bhill\s*-?\s*climb\b|\bhillclimb\b/i.test(venue.name || '')) bad('This session is a hill climb, but ' + venue.name + ' is listed as a sprint, so it is on the Sprint leaderboard. Repair marks the track as a hill climb.');
   }
   if (rec.privacy === 'private') reasons.push('Its sharing is "Only me", so it is not on any board. The member turns Shared on in Session settings.');
   if (rec.offBoard) reasons.push('It was taken off the leaderboard by the admin.');
   var score = rec.type === 'drag' ? rec.quarter : rec.bestTime;
   if (!score && rec.type !== 'other') bad('It has no timed ' + (rec.type === 'drag' ? 'quarter mile' : rec.type === 'sprint' ? 'run' : 'lap') + ', so there is nothing to rank.');
   var mine = entries ? entries.find(function (e) { return e.carId === rec.carId; }) : null;
-  var tab = rec.type === 'drag' ? 'Drag' : rec.type === 'sprint' ? ((venue && venue.hill) || rec.hill || /hill\s*-?\s*climb/i.test((venue && venue.name) || rec.venue || '') ? 'Hill climb' : 'Sprint') : 'Track days';
+  var tab = rec.type === 'drag' ? 'Drag' : rec.type === 'sprint' ? (venue ? (venue.hill || /hill\s*-?\s*climb|hillclimb/i.test(venue.name || '')) : (rec.hill || /hill\s*-?\s*climb|hillclimb/i.test(rec.venue || ''))) ? 'Hill climb' : 'Sprint' : 'Track days';
   var onBoard = !!(mine && mine.sessionId === rec.id);
   if (key && mine && !onBoard) reasons.push('Its car is on the board, but with another session (' + (mine.date || '') + ', ' + (mine.time || mine.quarter || '') + '): each car shows only its fastest. This session still counts in the car\'s number of sessions and its bests by conditions and tyres.');
   var shared = rec.privacy !== 'private' && !rec.street && !rec.offBoard;
@@ -8235,7 +8237,7 @@ async function handleTrackAdminBoardRepair(request, env) {
     if (!rec) return json({ success: false, message: 'No session with that id.' }, 404);
     // Its track or layout is gone from the list: join the one it looks like.
     var libR = await getTrackLibrary(env), vR = rec.venueId ? (libR.venues || []).find(function (v) { return v.id === rec.venueId; }) : null;
-    var relinked = '', relinkedMore = 0;
+    var relinked = '', relinkedMore = 0, madeHill = '';
     if ((rec.type === 'track' || rec.type === 'sprint') && rec.venueId && (!vR || (rec.layoutId && !(vR.layouts || []).some(function (l) { return l.id === rec.layoutId; })))) {
       var c = trackRelinkCandidate(libR, rec), goneVenueId = rec.venueId;
       if (c) {
@@ -8259,6 +8261,18 @@ async function handleTrackAdminBoardRepair(request, env) {
         }
       } else return json({ success: false, message: 'Its track is not in the list and none matches by name or place. Add the track on the Tracks panel first.' }, 400);
     }
+    // A hill climb at a track listed as a sprint: the track is marked as a hill climb, which moves its board to that tab.
+    var vH = rec.venueId ? (libR.venues || []).find(function (v) { return v.id === rec.venueId; }) : null;
+    if (rec.type === 'sprint' && rec.hill && vH && vH.type === 'sprint' && !vH.hill && !/\bhill\s*-?\s*climb\b|\bhillclimb\b/i.test(vH.name || '')) {
+      var extraH = await getJsonKey(env, 'track-library', { venues: [] });
+      var upd = cleanTrackVenue(Object.assign(JSON.parse(JSON.stringify(vH)), { hill: true }));
+      if (upd) {
+        var listH = (extraH.venues || []).filter(function (x) { return x.id !== upd.id; });
+        listH.push(upd);
+        await env.VOTES.put('track-library', JSON.stringify({ venues: listH }));
+        madeHill = vH.name;
+      }
+    }
     await putTrackIndexesFor(env, rec.owner, rec);
     var key = trackBoardKey(rec);
     if (key) board = key;
@@ -8270,7 +8284,7 @@ async function handleTrackAdminBoardRepair(request, env) {
   cars = cars.slice(0, 60);
   for (var i = 0; i < cars.length; i++) await refreshTrackBoard(env, board, cars[i]);
   var counts = await getJsonKey(env, 'track-board-counts', {});
-  return json({ success: true, refreshed: cars.length, count: counts[board] || 0, relinked: relinked || undefined, alsoRelinked: relinkedMore || undefined });
+  return json({ success: true, refreshed: cars.length, count: counts[board] || 0, relinked: relinked || undefined, alsoRelinked: relinkedMore || undefined, madeHill: madeHill || undefined });
 }
 
 async function handleTrackAdminBoardEntry(request, env) {

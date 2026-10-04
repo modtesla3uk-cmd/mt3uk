@@ -653,6 +653,21 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
     ok(!r.body.problems.some(x => x.id === g1 || x.id === g2), 'neither is a problem now');
     for (const x of [g1, g2]) await call('DELETE', '/track/session?id=' + x, undefined, 'tok-a');
   }
+  // A hill climb saved at a track the list has as a plain sprint sits on the Sprint leaderboard: the check says so and Repair marks the track.
+  {
+    const sl3 = [[52.3, -2.4], [52.3002, -2.4002]], fl3 = [[52.31, -2.41], [52.3102, -2.4102]];
+    await call('PUT', '/track/admin/tracks?key=secret', { venue: { name: 'Quarry Run', type: 'sprint', lat: 52.3, lng: -2.4, radius: 1500, layouts: [{ name: 'Full course', length: 900, sectors: [], corners: [] }] } });
+    const qv = (await call('GET', '/track/tracks')).body.extra.venues.find(v => v.name === 'Quarry Run');
+    const x = JSON.parse(JSON.stringify(session)); x.type = 'sprint'; x.venueId = qv.id; x.venue = 'Quarry Run'; x.layoutId = qv.layouts[0].id; x.layout = 'Full course'; x.startLine = sl3; x.finishLine = fl3; x.bestTime = 40.2; x.distance = 880; x.hill = true;
+    const qid = (await call('POST', '/track/sessions', { carId: 'cara1', session: x, privacy: 'board' }, 'tok-a')).body.session.id;
+    r = await call('GET', '/track/admin/boardcheck?key=secret&id=' + qid);
+    ok(r.body.tab === 'Sprint' && r.body.repairable === true && r.body.reasons.some(t => /is a hill climb, but Quarry Run is listed as a sprint/.test(t)), 'a hill climb at a track listed as a sprint is flagged: ' + JSON.stringify([r.body.tab, r.body.reasons]).slice(0, 220));
+    r = await call('POST', '/track/admin/boardrepair?key=secret', { sessionId: qid });
+    ok(r.status === 200 && r.body.madeHill === 'Quarry Run', 'Repair marks the track as a hill climb: ' + JSON.stringify(r.body));
+    r = await call('GET', '/track/admin/boardcheck?key=secret&id=' + qid);
+    ok(r.body.tab === 'Hill climb' && r.body.reasons.length === 0, 'and the session is a hill climb now: ' + JSON.stringify([r.body.tab, r.body.reasons]));
+    await call('DELETE', '/track/session?id=' + qid, undefined, 'tok-a');
+  }
   // The list of every problem: the unlisted shared one is in it with its reason; the one on the board and the private one are not.
   let id4 = await mk({}, 'private');
   r = await call('GET', '/track/admin/boardproblems');

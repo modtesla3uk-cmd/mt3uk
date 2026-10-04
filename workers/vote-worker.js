@@ -8101,6 +8101,25 @@ function maskEmailForAdmin(email) {
 // "Why is this session not on a leaderboard?" The reasons, in plain words, for a session (a full record, or a
 // summary from the member's list), given the track list and the board's entries (an array, or null when it has no
 // board). Used for one session (the admin pastes a link) and for the list of every problem.
+// A session whose track (or layout) is no longer in the track list: the listed track it most likely belongs to, and its
+// layout, by name (ignoring words like hill climb or circuit) or by where it was, and the layout by length or as
+// the only one. Null when there is no clear match.
+function trackRelinkCandidate(lib, rec) {
+  if (rec.type !== 'track' && rec.type !== 'sprint') return null;
+  var want = rec.type === 'sprint' ? 'sprint' : 'circuit';
+  function plain(n) { return String(n || '').toLowerCase().replace(/\bhill\s*-?\s*climb\b|\bhillclimb\b|\bhill\b|\bsprint\b|\bcircuit\b|\bairfield\b|\btrack day\b/g, '').replace(/[^a-z0-9]/g, ''); }
+  var name = plain(rec.venue), origin = rec.origin && rec.origin.length === 2 ? rec.origin : null;
+  var venues = (lib.venues || []).filter(function (v) { return v.type === want && (v.layouts || []).length; });
+  var venue = venues.find(function (v) { return name && plain(v.name) === name; }) ||
+    (origin ? venues.find(function (v) { return v.lat != null && trackDist([v.lat, v.lng], origin) <= Math.min(v.radius || 1500, 3000); }) : null);
+  if (!venue) return null;
+  var layouts = venue.layouts || [], layout = null;
+  if (rec.layoutId) layout = layouts.find(function (l) { return l.id === rec.layoutId; });
+  if (!layout && rec.organizer) layout = layouts.find(function (l) { return String(l.organizer || l.name).toLowerCase() === String(rec.organizer).toLowerCase(); });
+  if (!layout) layout = layoutByLength(layouts, rec.type === 'sprint' ? (rec.distance || 0) : 0);
+  return layout ? { venue: venue, layout: layout } : null;
+}
+
 function trackBoardWhy(rec, lib, entries) {
   var venue = rec.venueId ? (lib.venues || []).find(function (v) { return v.id === rec.venueId; }) : null;
   var layout = venue ? (venue.layouts || []).find(function (l) { return l.id === rec.layoutId; }) : null;
@@ -8115,9 +8134,15 @@ function trackBoardWhy(rec, lib, entries) {
     if (rec.unlisted) bad('The strip is not listed yet (a request is waiting on the Tracks panel).');
   } else if (rec.type !== 'other') {
     if (!rec.venueId) bad('No track was matched (it says "' + (rec.venue || 'no name') + '"). Its track is not listed, so a request is waiting on the Tracks panel: Approve and add track links it.');
-    else if (!venue) bad('Its track (' + rec.venueId + ') is no longer in the track list.');
+    else if (!venue) {
+      var cand = trackRelinkCandidate(lib, rec);
+      bad('Its track (' + rec.venueId + ') is no longer in the track list.' + (cand ? ' It looks like ' + cand.venue.name + ', ' + cand.layout.name + ': Repair links the session to it.' : ' No listed track matches its name or place, so it needs a track adding on the Tracks panel.'));
+    }
     if (rec.venueId && venue && !rec.layoutId) bad('No layout or course was matched at ' + venue.name + ' (the lap length or start line did not fit a listed one). A layout request is waiting on the Tracks panel.');
-    else if (rec.layoutId && venue && !layout) bad('Its layout (' + rec.layoutId + ') is no longer listed at ' + venue.name + '.');
+    else if (rec.layoutId && venue && !layout) {
+      var cand2 = trackRelinkCandidate(lib, rec);
+      bad('Its layout (' + rec.layoutId + ') is no longer listed at ' + venue.name + '.' + (cand2 ? ' It looks like ' + cand2.layout.name + ': Repair links the session to it.' : ''));
+    }
     if (venue && rec.type === 'track' && venue.type !== 'circuit') bad(venue.name + ' is listed as a ' + (venue.type === 'sprint' ? (venue.hill ? 'hill climb' : 'sprint') : venue.type) + ', not a circuit, so a track day there belongs to a circuit entry of its own.');
     if (venue && rec.type === 'sprint' && venue.type !== 'sprint') bad(venue.name + ' is listed as a circuit, so a sprint there belongs to a sprint entry of its own.');
   }
@@ -8180,7 +8205,8 @@ async function handleTrackAdminBoardProblems(request, env) {
       var key = trackBoardKey(s);
       if (key && !(key in boards)) boards[key] = await getJsonKey(env, key, []);
       var why = trackBoardWhy(s, lib, key ? boards[key] : null);
-      if (why.onBoard || (why.mine && !why.fixable)) { onBoardN++; continue; }
+      // On a board whose track is no longer listed still counts as a problem: the leaderboard cannot show it.
+      if (!why.fixable && (why.onBoard || why.mine)) { onBoardN++; continue; }
       if (!why.fixable) continue;
       if (!(s.carId in carNames)) { var cr = await getCarRecord(env, s.carId); carNames[s.carId] = (cr && cr.name) || 'a build'; }
       // A session the car's shared list does not have cannot be on a board: say so (Repair rebuilds it).
@@ -8207,6 +8233,32 @@ async function handleTrackAdminBoardRepair(request, env) {
   if (/^[a-f0-9]{8,40}$/.test(sid)) {
     var rec = await getTrackSession(env, sid);
     if (!rec) return json({ success: false, message: 'No session with that id.' }, 404);
+    // Its track or layout is gone from the list: join the one it looks like.
+    var libR = await getTrackLibrary(env), vR = rec.venueId ? (libR.venues || []).find(function (v) { return v.id === rec.venueId; }) : null;
+    var relinked = '', relinkedMore = 0;
+    if ((rec.type === 'track' || rec.type === 'sprint') && rec.venueId && (!vR || (rec.layoutId && !(vR.layouts || []).some(function (l) { return l.id === rec.layoutId; })))) {
+      var c = trackRelinkCandidate(libR, rec), goneVenueId = rec.venueId;
+      if (c) {
+        var oldBoard = trackBoardKey(rec);
+        rec.venueId = c.venue.id; rec.venue = c.venue.name; rec.layoutId = c.layout.id; rec.layout = c.layout.name;
+        if (!(await putTrackSession(env, rec))) return json({ success: false, message: 'Could not save the session.' }, 413);
+        relinked = c.venue.name + ', ' + c.layout.name;
+        if (oldBoard && oldBoard !== trackBoardKey(rec)) await refreshTrackBoard(env, oldBoard, rec.carId);
+        // The member's other sessions at that same gone track belong to the same place.
+        var others = (await getJsonKey(env, 'track-index:' + rec.owner, [])).filter(function (x) { return x.id !== rec.id && x.venueId === goneVenueId; }).slice(0, 100);
+        for (var oi = 0; oi < others.length; oi++) {
+          var r2 = await getTrackSession(env, others[oi].id);
+          var c2 = r2 ? trackRelinkCandidate(libR, r2) : null;
+          if (!r2 || !c2 || r2.venueId !== goneVenueId) continue;
+          var ob2 = trackBoardKey(r2);
+          r2.venueId = c2.venue.id; r2.venue = c2.venue.name; r2.layoutId = c2.layout.id; r2.layout = c2.layout.name;
+          if (!(await putTrackSession(env, r2))) continue;
+          await putTrackIndexesFor(env, r2.owner, r2);
+          if (ob2 && ob2 !== trackBoardKey(r2)) await refreshTrackBoard(env, ob2, r2.carId);
+          relinkedMore++;
+        }
+      } else return json({ success: false, message: 'Its track is not in the list and none matches by name or place. Add the track on the Tracks panel first.' }, 400);
+    }
     await putTrackIndexesFor(env, rec.owner, rec);
     var key = trackBoardKey(rec);
     if (key) board = key;
@@ -8218,7 +8270,7 @@ async function handleTrackAdminBoardRepair(request, env) {
   cars = cars.slice(0, 60);
   for (var i = 0; i < cars.length; i++) await refreshTrackBoard(env, board, cars[i]);
   var counts = await getJsonKey(env, 'track-board-counts', {});
-  return json({ success: true, refreshed: cars.length, count: counts[board] || 0 });
+  return json({ success: true, refreshed: cars.length, count: counts[board] || 0, relinked: relinked || undefined, alsoRelinked: relinkedMore || undefined });
 }
 
 async function handleTrackAdminBoardEntry(request, env) {

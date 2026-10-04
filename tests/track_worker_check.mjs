@@ -625,6 +625,34 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
     r = await call('POST', '/track/admin/boardrepair?key=secret', { sessionId: 'ffffffffffffffffffff' });
     ok(r.status === 404, 'an unknown session cannot be repaired');
   }
+  // A session at a track that has since gone from the list (renamed or re-added) is found, and Repair links it, and the
+  // member's other sessions there, to the track it looks like.
+  {
+    const sl2 = [[52.2, -2.3], [52.2002, -2.3002]], fl2 = [[52.21, -2.31], [52.2102, -2.3102]];
+    await call('PUT', '/track/admin/tracks?key=secret', { venue: { name: 'Gone Hill', type: 'sprint', hill: true, lat: 52.2, lng: -2.3, radius: 1500, layouts: [{ name: 'Hill', length: 900, sectors: [], corners: [] }] } });
+    const gv = (await call('GET', '/track/tracks')).body.extra.venues.find(v => v.name === 'Gone Hill');
+    const mkS = async (best) => {
+      const x = JSON.parse(JSON.stringify(session)); x.type = 'sprint'; x.venueId = gv.id; x.venue = 'Gone Hill'; x.layoutId = gv.layouts[0].id; x.layout = 'Hill'; x.startLine = sl2; x.finishLine = fl2; x.bestTime = best; x.distance = 880; x.hill = true;
+      const out = await call('POST', '/track/sessions', { carId: 'cara1', session: x, privacy: 'board' }, 'tok-a');
+      return out.body.session.id;
+    };
+    const g1 = await mkS(33.1), g2 = await mkS(33.7);
+    const oldBoard = (await call('GET', '/track/admin/boardcheck?key=secret&id=' + g1)).body.board;
+    ok(/^sprint-board:/.test(oldBoard), 'the sessions are on their track\'s board first: ' + oldBoard);
+    await call('PUT', '/track/admin/tracks?key=secret', { remove: gv.id });
+    await call('PUT', '/track/admin/tracks?key=secret', { venue: { name: 'Gone Hill Climb', type: 'sprint', hill: true, lat: 52.2, lng: -2.3, radius: 1500, layouts: [{ name: 'Hill climb', length: 914, sectors: [], corners: [] }] } });
+    r = await call('GET', '/track/admin/boardcheck?key=secret&id=' + g2);
+    ok(r.body.repairable === true && r.body.reasons.some(x => /no longer in the track list/.test(x) && /Gone Hill Climb, Hill climb/.test(x) && /Repair links/.test(x)), 'a session at a track that has gone says where it looks like it belongs: ' + JSON.stringify(r.body.reasons).slice(0, 220));
+    r = await call('GET', '/track/admin/boardproblems?key=secret');
+    ok(r.body.problems.some(x => x.id === g1) && r.body.problems.some(x => x.id === g2), 'both sessions are listed as problems, the faster one too although its car is on the old board');
+    r = await call('POST', '/track/admin/boardrepair?key=secret', { sessionId: g2 });
+    ok(r.status === 200 && /Gone Hill Climb/.test(r.body.relinked) && r.body.alsoRelinked === 1, 'Repair links the session and the member\'s other one there: ' + JSON.stringify(r.body));
+    r = await call('GET', '/track/admin/boardcheck?key=secret&id=' + g1);
+    ok(r.body.onBoard === true && /^sprint-board:gone-hill-climb:/.test(r.body.board) && r.body.tab === 'Hill climb' && r.body.reasons.length === 0, 'and the faster one is on the hill climb board: ' + JSON.stringify([r.body.board, r.body.tab, r.body.reasons]));
+    r = await call('GET', '/track/admin/boardproblems?key=secret');
+    ok(!r.body.problems.some(x => x.id === g1 || x.id === g2), 'neither is a problem now');
+    for (const x of [g1, g2]) await call('DELETE', '/track/session?id=' + x, undefined, 'tok-a');
+  }
   // The list of every problem: the unlisted shared one is in it with its reason; the one on the board and the private one are not.
   let id4 = await mk({}, 'private');
   r = await call('GET', '/track/admin/boardproblems');

@@ -1230,3 +1230,33 @@ def test_the_single_session_check_offers_a_repair_that_rebuilds_from_the_session
     out.get_by_role("button", name="Repair").click()
     expect(out).to_contain_text("On the Track days leaderboard")
     assert state["posted"] == [{"sessionId": "e929bd773e1742e69b1f"}], state["posted"]
+
+
+def test_a_session_at_a_track_that_has_gone_gets_a_repair_button_that_relinks_it(page):
+    ok = {"Access-Control-Allow-Origin": "*"}
+    posted = []
+    reason = "Its track (shelsley-walsh-hill-climb) is no longer in the track list. It looks like Shelsley Walsh, Hill climb: Repair links the session to it."
+
+    def problems(route):
+        body = {"success": True, "members": 3, "more": False, "sessions": 62, "privateOrStreet": 4, "other": 0, "onBoard": 57,
+                "problems": [{"id": "aaa111aaa111", "carId": "c1", "board": "sprint-board:shelsley-walsh-hill-climb:hill", "car": "Zaphod", "type": "hill climb", "venue": "Shelsley Walsh Hill Climb", "layout": "", "date": "2021-07-25", "bestTime": 33.712, "tab": "Hill climb", "reasons": [reason]}],
+                "hiddenBoards": []}
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(body), headers=ok)
+
+    def repair(route):
+        posted.append(json.loads(route.request.post_data))
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "refreshed": 1, "relinked": "Shelsley Walsh, Hill climb", "alsoRelinked": 1}), headers=ok)
+    open_admin(page, "track-admin.html")
+    page.route("**/track/admin/boardproblems**", problems)
+    page.route("**/track/admin/boardrepair**", repair)
+    page.reload()
+    page.locator("#board-checks-wrap > summary").click()
+    page.locator("#ms-problems").click()
+    out = page.locator("#ms-prob-out")
+    expect(out).to_contain_text("Repair links the session to it")
+    out.get_by_role("button", name="Repair").click()
+    for _ in range(40):
+        if posted:
+            break
+        page.wait_for_timeout(50)
+    assert posted == [{"board": "sprint-board:shelsley-walsh-hill-climb:hill", "carId": "c1", "sessionId": "aaa111aaa111"}], posted

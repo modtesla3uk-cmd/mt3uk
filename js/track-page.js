@@ -2094,7 +2094,7 @@
   function reverseHtml(s) {
     var r = s.reverseRun;
     if (!r || s.type !== 'sprint') return '';
-    return '<div class="tp-notice is-warn" id="tp-reverse">' + icon('warn') + '<div><b>The start and finish may be the wrong way round.</b><br>This is timed at up to ' + esc(V.fmtV(r.fwdPeak)) + ', but a faster pass (up to ' + esc(V.fmtV(r.peak)) + ', ' + esc(V.fmtLap(r.time)) + ') crosses the two lines the other way. If that is the ' + (isHillSession(s, library) ? 'climb' : 'run') + ', the start line should be where you set off and the finish where you stopped.</div></div>';
+    return '<div class="tp-notice is-warn" id="tp-reverse">' + icon('warn') + '<div><b>The start and finish may be the wrong way round.</b><br>This is timed at up to ' + esc(V.fmtV(r.fwdPeak)) + ', but a faster pass (up to ' + esc(V.fmtV(r.peak)) + ', ' + esc(V.fmtLap(r.time)) + ') crosses the two lines the other way. If that is the ' + (isHillSession(s, library) ? 'climb' : 'run') + ', ' + (s.officialLines ? 'the lines MT3UK has set for this course may be the wrong way round: please tell MT3UK.' : 'the start line should be where you set off and the finish at the end of the ' + (isHillSession(s, library) ? 'hill' : 'run') + '.') + '</div></div>';
   }
   // Other sessions without laps: the drive mapped, with its numbers.
   function otherHtml(s) {

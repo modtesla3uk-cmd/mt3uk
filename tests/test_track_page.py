@@ -3965,6 +3965,22 @@ def save_fixture_session(page, fake):
     expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
 
 
+def test_a_session_warns_when_a_faster_pass_crosses_the_lines_the_other_way_round(page):
+    """If the drive back down was timed instead of the climb, the session says the start and finish may be the wrong
+    way round. A session with no such note has no warning."""
+    fake = FakeWorker()
+    save_fixture_session(page, fake)
+    expect(page.locator("#tp-reverse")).to_have_count(0)
+    rec = fake.sessions["new1"]
+    rec["type"] = "sprint"
+    rec["reverseRun"] = {"peak": 154.3, "time": 56.1, "fwdPeak": 53.4}
+    page.reload()
+    box = page.locator("#tp-reverse")
+    expect(box).to_contain_text("The start and finish may be the wrong way round")
+    expect(box).to_contain_text("a faster pass")
+    expect(box).to_contain_text("0:56.100")
+
+
 def test_the_session_id_is_shown_with_a_copy_button(page):
     """The owner sees the session id on their session, with a button that copies it."""
     page.context.grant_permissions(["clipboard-read", "clipboard-write"])

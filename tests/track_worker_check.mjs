@@ -889,6 +889,17 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   r = await call('POST', '/track/lines/admin?key=secret', { id: 'nope', action: 'grant' });
   ok(r.status === 404, 'an unknown request is refused');
 }
+// A sprint or hill climb session keeps the note that a faster pass crosses its lines the other way round.
+{
+  const x = JSON.parse(JSON.stringify(session)); x.type = 'sprint'; x.finishLine = [[52.4, -2.5], [52.4002, -2.5002]]; x.reverseRun = { peak: 154.3, time: 56.1, fwdPeak: 53.4, junk: 'x' };
+  const saved = await call('POST', '/track/sessions', { carId: 'cara1', session: x, privacy: 'build', venueName: 'Somewhere' }, 'tok-a');
+  const kept = stored('track-session:' + saved.body.session.id);
+  ok(kept.reverseRun && kept.reverseRun.peak === 154.3 && kept.reverseRun.fwdPeak === 53.4 && kept.reverseRun.time === 56.1 && kept.reverseRun.junk === undefined, 'the reverse pass note is kept on a sprint: ' + JSON.stringify(kept.reverseRun));
+  const y = JSON.parse(JSON.stringify(session)); y.reverseRun = { peak: 154.3, time: 56.1, fwdPeak: 53.4 };
+  const saved2 = await call('POST', '/track/sessions', { carId: 'cara1', session: y, privacy: 'build' }, 'tok-a');
+  ok(stored('track-session:' + saved2.body.session.id).reverseRun === undefined, 'and is not kept on a track day');
+  for (const z of [saved, saved2]) await call('DELETE', '/track/session?id=' + z.body.session.id, undefined, 'tok-a');
+}
 // Renaming the track on a session at a track we do not list: the same steps as editing the map (ask, allow, send, accept).
 {
   const un = JSON.parse(JSON.stringify(session)); delete un.venueId; delete un.layoutId;

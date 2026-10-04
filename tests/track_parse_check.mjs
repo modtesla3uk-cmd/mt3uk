@@ -657,3 +657,20 @@ ok(T.fmtLap(99.786) === '1:39.786' && T.niceDate('2026-05-28') === '28 May 2026'
   ok(!withCourse.startLineFromMember && JSON.stringify(withCourse.startLine) === JSON.stringify(course.startLine), "the course's own line wins over a member's line");
   ok(own.startLineFromMember === true && JSON.stringify(own.startLine) === JSON.stringify(line) && own.laps.length >= 1, 'with ownLines the line given is used instead (' + own.laps.length + ' laps)');
 }
+
+// A hill climb whose start and finish are the wrong way round: the drive back down the same road is timed instead of the
+// climb, and the file says so (reverseRun). Trimmed from a real VBOX Sport file from Shelsley Walsh.
+{
+  const hrd = T.read(fs.readFileSync(ROOT + 'tests/fixtures/shelsley-climb-and-descent.vbo', 'latin1'), 'Shelsley_HillClimb.VBO');
+  const P = hrd.points;
+  const near2 = t => P.reduce((a, b) => Math.abs(b.t - t) < Math.abs(a.t - t) ? b : a);
+  const across = (p, q, w = 0.00012) => { const dx = q.lng - p.lng, dy = q.lat - p.lat, n = Math.hypot(dx, dy); const px = -dy / n, py = dx / n; return [[p.lat + py * w, p.lng + px * w], [p.lat - py * w, p.lng - px * w]]; };
+  // The climb: the car moves off at the bottom and stops at the top. Find those times from the speeds.
+  const fast = P.filter(p => p.v > 100), climbStart = fast[0].t - 4, climbEnd = fast[fast.length - 1].t + 20;
+  const right = T.analyse(hrd, { venues: [] }, { type: 'sprint', ownLines: true, startLine: across(near2(climbStart), near2(climbStart + 1)), finishLine: across(near2(climbEnd), near2(climbEnd - 1)) });
+  ok(right.bestTime && right.bestTime < 70 && !right.reverseRun, 'a climb timed the right way round is about a minute and is not flagged: ' + right.bestTime);
+  const wrong = T.analyse(hrd, { venues: [] }, { type: 'sprint', ownLines: true, startLine: across(near2(climbEnd), near2(climbEnd - 1)), finishLine: across(near2(climbStart), near2(climbStart + 1)) });
+  ok(wrong.bestTime && wrong.bestTime > 80, 'with the lines the wrong way round the drive back down is timed: ' + wrong.bestTime);
+  ok(wrong.reverseRun && wrong.reverseRun.peak > 140 && wrong.reverseRun.fwdPeak < 70 && wrong.reverseRun.time > 40 && wrong.reverseRun.time < 80, 'and the faster pass the other way is reported: ' + JSON.stringify(wrong.reverseRun));
+  ok(T.ANALYSIS_VERSION === 8, 'the analysis version moved on');
+}

@@ -1214,6 +1214,7 @@
         // A pass with a long stop in the middle is not a lap: this is probably a sprint or hill climb file.
         var lapTimes = (s.laps || []).filter(function (l) { return l.kind === 'timed'; }).map(function (l) { return l.time; });
         var gapLap = !isSprint && s.type === 'track' && (s.laps || []).some(function (l) { return l.kind === 'slow' && lapTimes.length && l.time > 3 * Math.min.apply(null, lapTimes); });
+        if (isSprint) h += reverseHtml(s);
         if (gapLap) h += '<div class="tp-notice is-warn">' + icon('warn') + '<div><b>The car stopped for a long time between passes.</b><br>That is not a lap, so it is left out. If these were sprint or hill climb runs, switch the type to time each run from the start to the finish. <button type="button" class="btn btn-secondary btn-sm" data-tap="sprint">Switch to Sprint</button> <button type="button" class="btn btn-secondary btn-sm" data-tap="hill">Switch to Hill climb</button></div></div>';
         if ((a.startLine || a.finishLine || s.startLine) && !s.officialLines && !s.autoLine) h += '<button type="button" class="btn btn-secondary btn-sm tp-move-lines" data-tap="edit">' + icon('pin') + 'Move ' + (isSprint ? 'start and finish' : 'the start line') + '</button>';
         h += sprintControlsHtml(a, s, isSprint);
@@ -2035,6 +2036,7 @@
     var untimed = s.type === 'other' && !(s.laps && s.laps.length);
     if (s.type === 'drag') h += dragHtml(s);
     else if (untimed) h += otherHtml(s);
+    else if (s.mine && s.reverseRun) h += reverseHtml(s) + trackHtml(s);
     else h += trackHtml(s);
     if (s.mine) h += lineEditHtml(s) + renameHtml(s) + ownerHtml(s);
     justSaved = null;
@@ -2086,6 +2088,13 @@
     list.forEach(function (n) {
       n.nodeValue = n.nodeValue.replace(/\bLaps\b/g, 'Runs').replace(/\blaps\b/g, 'runs').replace(/\bLap\b/g, 'Run').replace(/\blap\b/g, 'run');
     });
+  }
+  // The lines may be the wrong way round: a faster pass in the file crosses them finish first (the climb, when the
+  // drive back down is what got timed).
+  function reverseHtml(s) {
+    var r = s.reverseRun;
+    if (!r || s.type !== 'sprint') return '';
+    return '<div class="tp-notice is-warn" id="tp-reverse">' + icon('warn') + '<div><b>The start and finish may be the wrong way round.</b><br>This is timed at up to ' + esc(V.fmtV(r.fwdPeak)) + ', but a faster pass (up to ' + esc(V.fmtV(r.peak)) + ', ' + esc(V.fmtLap(r.time)) + ') crosses the two lines the other way. If that is the ' + (isHillSession(s, library) ? 'climb' : 'run') + ', the start line should be where you set off and the finish where you stopped.</div></div>';
   }
   // Other sessions without laps: the drive mapped, with its numbers.
   function otherHtml(s) {

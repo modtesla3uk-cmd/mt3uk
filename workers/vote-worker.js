@@ -6708,6 +6708,11 @@ function cleanTrackSession(s, library) {
     if (s.ignoreFinish === false) out.ignoreFinish = false;
     // A hill climb rather than a sprint (the member's pick, or the track list's): both are timed start to finish.
     if (s.hill) out.hill = true;
+    // A faster pass crosses the lines the other way round: the page warns that they may be the wrong way round.
+    if (s.reverseRun && typeof s.reverseRun === 'object') {
+      var rr = { peak: trackNum(s.reverseRun.peak, 0, 500), time: trackNum(s.reverseRun.time, 0, 100000), fwdPeak: trackNum(s.reverseRun.fwdPeak, 0, 500) };
+      if (rr.peak && rr.time && rr.fwdPeak) out.reverseRun = rr;
+    }
   }
   out.startLineFromMember = !!s.startLineFromMember;
   // The admin accepted the member's own lines for this session: a re-time keeps them, whatever the course's are.

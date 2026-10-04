@@ -28,7 +28,8 @@
   // 6: GPS readings that slip back along the road at speed are moved onto the line between the good ones (repairGlitches).
   // 7: a fix that freezes or creeps at speed and then jumps to catch up is mended too, and a drift is mended up to
   //    where the fix catches up rather than to the first reading past it; readings are spaced by the speeds.
-  var ANALYSIS_VERSION = 7;
+  // 8: a sprint or hill climb notes when a faster pass crosses its lines the other way round (reverseRun).
+  var ANALYSIS_VERSION = 8;
   var DEG = Math.PI / 180;
 
   function num(s) {
@@ -1197,6 +1198,23 @@
     session.finishLine = pick.c.finish;
     if (pick.c.own) session.startLineFromMember = true; else if (pick.c.layout) session.officialLines = true;
     if (pick.skipped) session.firstFinishIgnored = pick.skipped;
+    // The drive back down a hill retraces the climb, so the start and finish are easy to tap the wrong way round and the
+    // slow drive down gets timed instead of the climb. When the passes that cross the lines the other way round (the
+    // finish, then the start) are much faster than the ones timed, say so.
+    (function () {
+      function peak(a, b) { var m = 0; pts.forEach(function (p) { if (p.t >= a && p.t <= b && p.v > m) m = p.v; }); return m; }
+      var st = crossings(pts, proj, pick.c.start, 5), fi = crossings(pts, proj, pick.c.finish, 5);
+      var fwd = 0;
+      pick.pairs.forEach(function (pr) { fwd = Math.max(fwd, peak(pr[0].t, pr[1].t)); });
+      var rev = null;
+      fi.forEach(function (f) {
+        var x = st.filter(function (c) { return c.t > f.t + 3 && c.t - f.t < 900 && pts[c.i].run === pts[f.i].run; })[0];
+        if (!x) return;
+        var v = peak(f.t, x.t);
+        if (!rev || v > rev.peak) rev = { peak: v, time: x.t - f.t };
+      });
+      if (fwd > 0 && rev && rev.peak >= 1.3 * fwd && rev.peak - fwd >= 15) session.reverseRun = { peak: Math.round(rev.peak * 10) / 10, time: Math.round(rev.time * 1000) / 1000, fwdPeak: Math.round(fwd * 10) / 10 };
+    })();
     if (opts.finishCrossing >= 1) session.finishCrossing = Math.min(9, Math.round(opts.finishCrossing));
     if (pick.climb) session.pointToPoint = true;
     var laps = buildLaps(pts, null, null, pick.pairs);

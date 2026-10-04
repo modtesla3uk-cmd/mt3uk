@@ -173,12 +173,22 @@
   #tp-scrub::-moz-range-thumb { width: 4px; height: 26px; border: 0; border-radius: 2px; background: var(--ink); box-shadow: 0 0 0 2px #ffffff; }
   #tp-scrub:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; border-radius: 4px; }
   /* Phone: Start and Rewind as icon buttons, smaller speed chips */
-  @media (max-width: 559px) {
+  @media (max-width: 559px), (min-width: 781px) and (max-width: 1100px) {
     #tp-play-start .tp-bl, #tp-play-back .tp-bl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
     .tp-play-btns #tp-play-start, .tp-play-btns #tp-play-back { flex: none; width: 48px; padding: 0; }
     .tp-play .btn { min-height: 44px; }
     .tp-play .chip { min-width: 44px; padding: 0 10px; font-size: 0.82rem; }
     .tp-play { gap: 8px; }
+  }
+  /* A phone on its side (the page in two columns, so the map card is narrow): the controls fit the card, and each lap's
+     name has a line to itself above its figures. */
+  @media (min-width: 781px) and (max-width: 1100px) {
+    .tp-mapcard:not(.is-full) .tp-play-btns { width: 100%; }
+    .tp-mapcard:not(.is-full) .tp-play-btns #tp-play-toggle { flex: 1 1 0; min-width: 0; }
+    .tp-mapcard:not(.is-full) .tp-mrow { grid-template-columns: auto repeat(3, minmax(0, 1fr)); }
+    .tp-mapcard:not(.is-full) .tp-mrow b { grid-column: 2 / -1; -webkit-line-clamp: 1; }
+    .tp-mapcard:not(.is-full) .tp-mrow .tp-mv:nth-of-type(2) { grid-column: 2; }
+    .tp-mapcard:not(.is-full) .tp-mrow .tp-mv { text-align: right; }
   }
   /* Phones keep the order: speed chart, map, corner table. */
   @media (max-width: 780px) { .tp-g-map > .tp-grid { display: contents; } .tp-o-speed { order: 1; } .tp-mapcard { order: 2; } .tp-o-corner { order: 3; } }
@@ -214,6 +224,14 @@
   .tp-gbox.has-axis .tp-scrub-track { padding-top: 0; }
   /* Full screen: the map fills the screen, with the controls, numbers and G-force lines along the bottom. */
   body.tp-noscroll { overflow: hidden; }
+  /* Before full screen the map comes first and the playback controls sit below it, as they do in full screen. */
+  .tp-mapcard:not(.is-full) { display: flex; flex-direction: column; }
+  .tp-mapcard:not(.is-full) > * { order: 5; }
+  .tp-mapcard:not(.is-full) > .tp-map-head { order: 0; }
+  .tp-mapcard:not(.is-full) > .tp-sync-note { order: 1; }
+  .tp-mapcard:not(.is-full) > .tp-mapwrap { order: 2; }
+  .tp-mapcard:not(.is-full) > .tp-play { order: 3; margin: 10px 0 8px; }
+  .tp-mapcard:not(.is-full) > .tp-metrics { order: 4; }
   .tp-mapcard.is-full { position: fixed; inset: 0; z-index: 1100; display: flex; flex-direction: column; height: 100vh; height: 100dvh; margin: 0; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); border: 0; border-radius: 0; background: var(--paper, #f3f1ea); overflow: hidden; }
   .tp-mapcard.is-full .tp-map-head { order: 0; margin-bottom: 6px; }
   .tp-mapcard.is-full .tp-sync-note { display: none; }
@@ -278,10 +296,21 @@
     .tp-mapcard.is-full .tp-map-head .tp-speedsw > span:first-child { display: none; }
     .tp-mapcard.is-full .tp-play { left: 6px; bottom: calc(6px + env(safe-area-inset-bottom)); right: auto; padding: 4px 6px; }
     .tp-mapcard.is-full .tp-play .btn { min-height: 40px; }
-    /* The map's own full screen button is left out here: the Show G-Forces switch shows and hides the charts, and Exit
-       (in the panel) leaves full screen. Map options is a small button on the left of the map that opens a card with the
+    /* The map's own full screen button (top right) is the one way out of full screen here, and the Exit button is left out: the
+       Show G-Forces switch shows and hides the charts. Map options is a small button on the left of the map that opens a card with the
        colour switch and the speed-on-cars switch (the labels beside the dots). */
-    #tp-mapcard.is-full .tv-zoom-full { display: none; }
+    #tp-mapcard.is-full #tp-full { display: none; }
+    .tp-mapcard.is-full .tp-when { display: grid; gap: 2px; order: -1; padding-bottom: 4px; border-bottom: 1px solid var(--hairline); font-size: 0.78rem; color: var(--ink); }
+    .tp-mapcard.is-full .tp-wrow { display: flex; align-items: center; gap: 8px; }
+    .tp-mapcard.is-full .tp-wrow .tp-mkey { flex: none; }
+    .tp-mapcard.is-full .tp-wrow b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tp-mapcard.is-full .tp-wrow span[data-w] { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--steel); white-space: nowrap; }
+    /* The legend and the controls' empty gaps let a touch through, so the map can be panned from under them. */
+    .tp-mapcard.is-full .tp-speedkey { pointer-events: none; }
+    /* The playback speeds and Follow cars are smaller; Start, Rewind and Play keep their size, side by side. */
+    .tp-mapcard.is-full #tp-speeds .chip, .tp-mapcard.is-full #tp-follow { min-height: 30px; min-width: 0; padding: 0 9px; font-size: 0.75rem; }
+    .tp-mapcard.is-full .tp-play, .tp-mapcard.is-full .tp-play-row, .tp-mapcard.is-full .tp-when { pointer-events: none; }
+    .tp-mapcard.is-full .tp-play .btn, .tp-mapcard.is-full .tp-play .chip { pointer-events: auto; }
     .tp-mapcard.is-full .tp-mopts { display: block; position: absolute; left: 6px; top: 44px; z-index: 3; }
     #tp-mapcard.is-full[data-carspeed="off"] .tv-dotlabel { display: none; }
     /* The speed shows beside each car's dot on the map (.tv-dotlabel), so the figures block is left out. */
@@ -291,6 +320,7 @@
   }
   .tv-dotlabel { display: none; }
   .tp-mopts { display: none; }
+  .tp-when { display: none; }
   .tp-mopts-btn { width: 44px; height: 44px; display: grid; place-items: center; padding: 0; border: 1px solid var(--hairline-strong); border-radius: var(--radius); background: rgba(255,255,255,.95); color: var(--ink); box-shadow: 0 1px 6px rgba(0,0,0,.35); cursor: pointer; }
   .tp-mopts-btn[hidden] { display: none; }
   .tp-mopts-card { min-width: 210px; border: 1px solid var(--hairline-strong); border-radius: var(--radius); background: rgba(255,255,255,.96); box-shadow: 0 1px 6px rgba(0,0,0,.35); overflow: hidden; }
@@ -846,7 +876,7 @@
 <script src="js/track-view.js?v=20261128" defer></script>
 <script src="js/tyre-data.js"></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20261130" defer></script>
+<script src="js/track-page.js?v=20261135" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=5" defer></script>
 <script src="js/signin-prompt.js" defer></script>

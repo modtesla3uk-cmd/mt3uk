@@ -2226,6 +2226,7 @@
         '<div class="tp-play" id="tp-play"><div class="tp-play-row"><div class="tp-play-btns"><button type="button" class="btn btn-secondary" id="tp-play-start" data-play="start" aria-label="Go back to the start"></button><button type="button" class="btn btn-secondary" id="tp-play-back" data-play="back"></button><button type="button" class="btn btn-primary" id="tp-play-toggle" data-play="toggle"></button></div>' +
         '<div class="tp-chips" id="tp-speeds" role="group" aria-label="Playback speed">' + [['0.25', 'x0.25'], ['0.5', 'x0.5'], ['1', 'x1'], ['2', 'x2'], ['5', 'x5']].map(function (v) { return '<button type="button" class="chip" data-speed="' + v[0] + '">' + v[1] + '</button>'; }).join('') + '</div>' +
         '<button type="button" class="chip is-on" id="tp-follow" aria-pressed="true" title="When the map is zoomed in, keep the cars in view">Follow cars</button></div>' +
+        '<div class="tp-when" id="tp-when" aria-live="off"></div>' +
         '</div>' +
         '<div class="tp-mapwrap" id="tp-mapwrap"><svg class="tv-chart" id="tp-map2" role="img" aria-label="Track map with both laps\' lines and positions"></svg>' +
         '<div class="tp-chart-foot tp-speedkey" id="tp-speedkey"' + (cmpSpeed ? '' : ' hidden') + '><span class="tp-ramp"><span id="tp-ramp-lo"></span><i></i><span id="tp-ramp-hi"></span></span><span>Lap A coloured by speed, lap B dashed. Numbers are the slowest corners.</span></div></div>' +
@@ -2251,6 +2252,9 @@
   // The out lap is not a numbered lap: Lap 1 is the first timed one after it.
   function lapNo(l, s) { return l.n - (s.laps || []).filter(function (x) { return x.kind === 'out' && x.n < l.n; }).length; }
   function lapName(l, s) { return l.kind === 'out' ? 'Out lap' : s.runs > 1 ? cap(partWord(s.type)) + ' ' + (l.run || 1) + ', lap ' + lapNo(l, s) : 'Lap ' + lapNo(l, s); }
+  // Clock time of day: "14:34" to seconds, and seconds back to "14:36:12" (past midnight wraps round).
+  function clockSecs(t) { var m = /^(\d{1,2}):(\d{2})/.exec(t || ''); return m ? parseInt(m[1], 10) * 3600 + parseInt(m[2], 10) * 60 : null; }
+  function fmtClock(sec) { sec = Math.floor(((sec % 86400) + 86400) % 86400); return ('0' + Math.floor(sec / 3600)).slice(-2) + ':' + ('0' + Math.floor(sec % 3600 / 60)).slice(-2) + ':' + ('0' + sec % 60).slice(-2); }
   function lapShort(l, s) { return l.kind === 'out' ? 'Out' : s.runs > 1 ? partWord(s.type).charAt(0).toUpperCase() + (l.run || 1) + ' L' + lapNo(l, s) : 'L' + lapNo(l, s); }
   function cap(w) { return w.charAt(0).toUpperCase() + w.slice(1); }
   function lapKind(l, s) {
@@ -2320,14 +2324,15 @@
         var mem = view.memberById && view.memberById[id];
         // Which lap this is, so A and B say where they came from.
         var lbl = (mem ? initials(mem.owner || 'A member') : o.mine ? 'You' : o.ownerName ? initials(o.ownerName) : 'Best') + ', best, ' + dmy(o.date);
-        view.other[id] = tr ? { trace: tr, label: lbl, time: o.bestTime, origin: o.origin, startLine: o.startLine } : null;
+        var bl = (o.laps || []).filter(function (x) { return x.n === o.best; })[0];
+        view.other[id] = tr ? { trace: tr, label: lbl, time: o.bestTime, origin: o.origin, startLine: o.startLine, when: { date: o.date, base: clockSecs(o.time), start: (bl && bl.start) || 0 } } : null;
         return view.other[id];
       });
     }
     var l = (view.s.laps || []).filter(function (x) { return String(x.n) === String(v); })[0];
     // Whose lap it is, so A and B can't be mixed up: "You" for your own, otherwise the member's name.
     var who = view.s.mine ? 'You' : (view.s.ownerName || '');
-    return Promise.resolve(l ? { trace: view.s.trace.laps[l.n], label: (who ? initials(who) + ', ' : '') + lapShort(l, view.s) + ', ' + dmy(view.s.date), time: l.time } : null);
+    return Promise.resolve(l ? { trace: view.s.trace.laps[l.n], label: (who ? initials(who) + ', ' : '') + lapShort(l, view.s) + ', ' + dmy(view.s.date), time: l.time, when: { date: view.s.date, base: clockSecs(view.s.time), start: l.start || 0 } } : null);
   }
   function startLineXY(s, line) {
     line = line || s.startLine;
@@ -2663,7 +2668,7 @@
         : (A === B ? [{ trace: A.trace, color: c1 }] : [{ trace: B.trace, color: c2 }, { trace: A.trace, color: c1 }]);
       // The whole session's laps underneath as the track's width.
       var band = Object.keys(s.trace.laps).map(function (k) { return s.trace.laps[k]; });
-      var mo = V.map(mapEl, A.trace, { fill: fill, mono: true, lines: lines, band: band, full: { on: function () { return cmpFull; }, toggle: function () { if (landFull()) setCharts(gHidden); else setFull(!cmpFull); }, state: function () { return landFull() ? (gHidden ? { on: false, label: 'Show the charts', path: 'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5' } : { on: true, label: 'Just the map', path: 'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5' }) : null; } }, startLine: startLineXY(s), finishLine: s.type === 'sprint' ? startLineXY(s, s.finishLine) : null, corners: s.corners, origin: s.origin });
+      var mo = V.map(mapEl, A.trace, { fill: fill, mono: true, lines: lines, band: band, full: { on: function () { return cmpFull; }, toggle: function () { setFull(!cmpFull); }, state: function () { return null; } }, startLine: startLineXY(s), finishLine: s.type === 'sprint' ? startLineXY(s, s.finishLine) : null, corners: s.corners, origin: s.origin });
       var lo = document.getElementById('tp-ramp-lo'), hi = document.getElementById('tp-ramp-hi');
       if (mo && lo && hi) { lo.textContent = V.fmtV(mo.vmin); hi.textContent = V.fmtV(mo.vmax); }
       cmpMap = mo;
@@ -2687,10 +2692,20 @@
           '<span class="tp-mv"><small>Speed</small><i data-m="' + id + '-v">-</i></span><span class="tp-mv"><small>Accel</small><i data-m="' + id + '-acc">-</i></span><span class="tp-mv"><small>Corner</small><i data-m="' + id + '-cor">-</i></span></div>';
       }
       if (mbox) mbox.innerHTML = '<div class="tp-mhead" aria-hidden="true"><span></span><span></span><span>Speed</span><span>Acl G</span><span>Cor G</span></div>' + mrow('a', c1, A.label + ' (A)') + (A === B ? '' : mrow('b', c2, B.label + ' (B)')) + '<div class="tp-mgap" data-m="gap"></div>';
+      // Landscape full screen: who is who, with the date and the time of day at the playhead, at the foot of the controls.
+      var wbox = document.getElementById('tp-when');
+      function wrow(id, colour, a) { return '<div class="tp-wrow"><span class="tp-mkey" style="background:' + colour + '"></span><b>' + esc(a.label.replace(/, \d\d\/\d\d(\/\d\d)?$/, '')) + '</b><span data-w="' + id + '"></span></div>'; }
+      if (wbox) wbox.innerHTML = wrow('a', c1, A) + (A === B ? '' : wrow('b', c2, B));
+      function setW(id, car, p) {
+        var el = wbox && wbox.querySelector('[data-w="' + id + '"]'), w = car.when;
+        if (!el || !w) return;
+        el.textContent = dmy(w.date) + (w.base == null ? '' : ' ' + fmtClock(w.base + w.start + p[1]));
+      }
       function setM(id, v) { var el = mbox && mbox.querySelector('[data-m="' + id + '"]'); if (el) el.textContent = v; }
       function showMetrics(pa, pb, g) {
         var ra = at(ga, pa[0]), rb = at(gb, pb[0]);
         setM('a-v', V.fmtV(pa[4])); setM('a-acc', fmtAcc(ra[1])); setM('a-cor', fmtCor(ra[2]));
+        setW('a', A, pa); if (A !== B) setW('b', B, pb);
         // The speed beside each car's dot (a phone on its side in full screen shows these instead of the figures).
         if (mo && mo.setLabel) { mo.setLabel('a', V.fmtV(pa[4])); mo.setLabel('b', V.fmtV(pb[4])); }
         if (A !== B) { setM('b-v', V.fmtV(pb[4])); setM('b-acc', fmtAcc(rb[1])); setM('b-cor', fmtCor(rb[2])); setM('gap', 'A is ' + Math.abs(g).toFixed(2) + ' s ' + (g >= 0 ? 'ahead' : 'behind')); }

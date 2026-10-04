@@ -353,8 +353,8 @@ def test_add_a_session_from_the_racebox_file(page):
     assert page.evaluate("getComputedStyle(document.getElementById('tp-map2')).overflow") == "hidden"
     assert page.evaluate("getComputedStyle(document.getElementById('tp-gg')).overflow") == "hidden"
     expect(page.locator(".tp-gg").locator("xpath=../..").locator("h3")).to_contain_text("How much grip you used")
-    # Speed key runs red (slow) through amber to blue (fast), which shows on grass and tarmac.
-    expect(page.locator(".tp-ramp i").first).to_have_css("background-image", re.compile(r"rgb\(90, 24, 154\).*rgb\(214, 51, 108\).*rgb\(198, 244, 50\)"))
+    # Speed key runs yellow (slow) through amber to red (fast), which shows on grass and tarmac.
+    expect(page.locator(".tp-ramp i").first).to_have_css("background-image", re.compile(r"rgb\(255, 216, 61\).*rgb\(245, 138, 31\).*rgb\(215, 25, 28\)"))
     expect(page.locator("#tp-laps .tp-table tbody tr")).to_have_count(2)
     # Distances in miles with mph (the default), kilometres with km/h.
     expect(page.locator(".tp-tile").nth(4).locator(".v")).to_have_text(re.compile(r"^\d+\.\d mi$"))
@@ -2415,14 +2415,14 @@ def test_full_screen_map_on_a_phone(page):
     # A phone on its side: the map takes the whole screen, with the controls and numbers laid over it.
     page.set_viewport_size({"width": 844, "height": 390})
     page.wait_for_timeout(300)
-    page.locator("#tp-full").click()
+    page.locator("#tp-mapwrap .tv-zoom-full").click()
     page.locator("#tp-mapwrap .tv-zoom-full").click()
     expect(page.locator("#tp-mapcard")).to_have_class(re.compile(r"is-full"))
     expect(page.locator("#tp-rotate-hint")).to_be_hidden()
     assert overflow_width(page) <= 0
     mb = page.locator("#tp-map2").bounding_box()
     assert mb["height"] >= 380 and mb["width"] >= 480, mb
-    for sel in ("#tp-play-toggle", "#tp-full", "#tp-mopts-btn"):
+    for sel in ("#tp-play-toggle", "#tp-mapwrap .tv-zoom-full", "#tp-mopts-btn"):
         box = page.locator(sel).bounding_box()
         assert box and box["y"] >= 0 and box["y"] + box["height"] <= 390 and box["x"] + box["width"] <= 844, (sel, box)
     expect(page.locator("#tp-play-toggle")).to_be_visible()
@@ -2454,7 +2454,16 @@ def test_full_screen_map_on_a_phone(page):
     expect(page.locator("#tp-mopts-card")).to_be_hidden()
     expect(page.locator("#tp-mopts-btn")).to_be_visible()
     expect(page.locator("#tp-gshow")).to_contain_text("Show G-Forces")
-    expect(page.locator("#tp-mapwrap .tv-zoom-full")).to_be_hidden()
+    # Who is who, with the date and the time of day at the playhead, at the foot of the controls.
+    expect(page.locator("#tp-play #tp-when")).to_be_visible()
+    expect(page.locator("#tp-when .tp-wrow")).to_have_count(2)
+    expect(page.locator('#tp-when [data-w="a"]')).to_have_text(re.compile(r"^28/05 \d\d:\d\d:\d\d$"))
+    expect(page.locator("#tp-when .tp-wrow b").first).to_have_text("You, L2")
+    t0 = page.locator('#tp-when [data-w="a"]').inner_text()
+    page.locator("#tp-scrub").evaluate("el => { el.value = 60; el.dispatchEvent(new Event('input', {bubbles: true})); }")
+    expect(page.locator('#tp-when [data-w="a"]')).not_to_have_text(t0)
+    expect(page.locator("#tp-full")).to_be_hidden()
+    expect(page.locator("#tp-mapwrap .tv-zoom-full")).to_have_attribute("aria-label", "Exit full screen")
     # The charts have a panel on the right, with the chips and the slider, beside a map that keeps most of the width.
     expect(page.locator("#tp-gforce svg")).to_have_count(1)
     expect(page.locator("#tp-gforce svg").first).to_be_visible()
@@ -2462,10 +2471,9 @@ def test_full_screen_map_on_a_phone(page):
     gb, mb = page.locator("#tp-gbox").bounding_box(), page.locator("#tp-map2").bounding_box()
     assert gb["x"] >= mb["x"] + mb["width"] - 1 and gb["x"] + gb["width"] <= 844 and gb["y"] + gb["height"] <= 390, (gb, mb)
     assert 480 <= mb["width"] <= 530, mb
-    # Exit sits in the panel, beside the Show G-Forces switch.
-    ex, sh = page.locator("#tp-full").bounding_box(), page.locator("#tp-gshow").bounding_box()
-    assert ex["x"] >= gb["x"] and ex["x"] + ex["width"] <= 844, (ex, gb)
-    assert sh["x"] + sh["width"] <= ex["x"], (sh, ex)
+    # The charts panel has the Show G-Forces switch; leaving full screen is the map's own button, top right.
+    sh = page.locator("#tp-gshow").bounding_box()
+    assert sh["x"] >= gb["x"] and sh["x"] + sh["width"] <= 844, (sh, gb)
     toggles = page.locator("#tp-gtoggles .chip")
     toggles.nth(0).click()
     toggles.nth(2).click()
@@ -2512,7 +2520,7 @@ def test_full_screen_map_on_a_phone(page):
     assert 480 <= page.locator("#tp-map2").bounding_box()["width"] <= 530
     toggles.nth(0).click()
     toggles.nth(2).click()
-    page.locator("#tp-full").click()
+    page.locator("#tp-mapwrap .tv-zoom-full").click()
     expect(page.locator("#tp-mapcard")).not_to_have_class(re.compile(r"is-full"))
 
 

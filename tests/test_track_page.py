@@ -4141,3 +4141,35 @@ def test_playback_has_a_quarter_speed_that_runs_slower(page):
     m, s = clock.inner_text().split(" / ")[0].split(":")
     played = int(m) * 60 + float(s)
     assert 0.05 < played < 0.6, played  # a second at x0.25 is about a quarter of a second of the lap
+
+
+def test_a_touch_that_lands_on_a_tile_still_pans_the_zoomed_map(page, base_url):
+    # A finger lands on a satellite tile or a line, which a touch captures at once; handing the capture to the map
+    # used to end the drag after a few pixels, so the map hardly moved. Needs a real touch context.
+    ctx = page.context.browser.new_context(base_url=base_url, has_touch=True, is_mobile=True, viewport={"width": 390, "height": 844})
+    touch = ctx.new_page()
+    try:
+        save_thruxton_with_a_member_board(touch, FakeWorker())
+        cdp = ctx.new_cdp_session(touch)
+        touch.locator("#tp-mapwrap").scroll_into_view_if_needed()
+        zoom = touch.locator("#tp-mapwrap button[aria-label='Zoom in']")
+        zoom.click()
+        zoom.click()
+        if touch.locator("#tp-follow").get_attribute("aria-pressed") == "true":
+            touch.locator("#tp-follow").click()
+        touch.evaluate("""() => { const svg = document.getElementById('tp-map2'), vb = svg.viewBox.baseVal, r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          r.setAttribute('x', vb.x - 500); r.setAttribute('y', vb.y - 500); r.setAttribute('width', 2000); r.setAttribute('height', 2000); r.setAttribute('fill', '#223'); svg.insertBefore(r, svg.firstChild); }""")
+        corner = """() => { const t = [...document.querySelectorAll('#tp-map2 text')].find(e => e.textContent === '2'), r = t.getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; }"""
+        box = touch.locator("#tp-map2").bounding_box()
+        x, y = box["x"] + box["width"] / 2, box["y"] + box["height"] / 2
+        p0 = touch.evaluate(corner)
+        cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": x, "y": y}]})
+        for i in range(1, 13):
+            cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": x + 70 * i / 12, "y": y + 30 * i / 12}]})
+            touch.wait_for_timeout(16)
+        cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
+        touch.wait_for_timeout(200)
+        p1 = touch.evaluate(corner)
+        assert abs((p1[0] - p0[0]) - 70) < 4 and abs((p1[1] - p0[1]) - 30) < 4, (p0, p1)
+    finally:
+        ctx.close()

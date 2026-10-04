@@ -593,7 +593,9 @@
     svg.addEventListener('pointermove', onMove);
     svg.addEventListener('pointerup', onUp);
     svg.addEventListener('pointercancel', onUp);
-    svg.addEventListener('lostpointercapture', onUp);
+    // Only the map's own lost capture ends a drag: a finger lands on a tile or a line (which the touch captures at once),
+    // and taking the capture over to the map says so on that child, which would otherwise end the drag after a few pixels.
+    svg.addEventListener('lostpointercapture', function (e) { if (e.target === svg) onUp(e); });
     svg.addEventListener('click', onClick, true);
     // Any mouse button drags the map, so the right button's menu is kept out of the way.
     function noMenu(e) { e.preventDefault(); }

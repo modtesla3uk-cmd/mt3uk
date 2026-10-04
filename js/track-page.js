@@ -298,6 +298,11 @@
     if (!m) return d || '';
     return m[3] + '/' + m[2] + (m[1] === String(new Date().getFullYear()) ? '' : '/' + m[1].slice(2));
   }
+  // The same with the year always shown, for the date beside each car in the full screen controls.
+  function dmyYear(d) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d || '');
+    return m ? m[3] + '/' + m[2] + '/' + m[1].slice(2) : d || '';
+  }
   // A member as the first initial and last name ("A. Smith") when their public name is a first and last name; a nickname
   // (one word) is shown as it is. Only the name the member chose to show is ever used.
   function initials(name) {
@@ -2803,7 +2808,7 @@
       function setW(id, car, p) {
         var el = wbox && wbox.querySelector('[data-w="' + id + '"]'), w = car.when;
         if (!el || !w) return;
-        el.textContent = dmy(w.date) + (w.base == null ? '' : ' ' + fmtClock(w.base + w.start + p[1]));
+        el.textContent = dmyYear(w.date) + (w.base == null ? '' : ' ' + fmtClock(w.base + w.start + p[1]));
       }
       function setM(id, v) { var el = mbox && mbox.querySelector('[data-m="' + id + '"]'); if (el) el.textContent = v; }
       function showMetrics(pa, pb, g) {

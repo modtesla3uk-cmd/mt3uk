@@ -2459,7 +2459,7 @@ def test_full_screen_map_on_a_phone(page):
     # Who is who, with the date and the time of day at the playhead, at the foot of the controls.
     expect(page.locator("#tp-play #tp-when")).to_be_visible()
     expect(page.locator("#tp-when .tp-wrow")).to_have_count(2)
-    expect(page.locator('#tp-when [data-w="a"]')).to_have_text(re.compile(r"^28/05 \d\d:\d\d:\d\d$"))
+    expect(page.locator('#tp-when [data-w="a"]')).to_have_text(re.compile(r"^28/05/\d\d \d\d:\d\d:\d\d$"))
     expect(page.locator("#tp-when .tp-wrow b").first).to_have_text("You, L2")
     t0 = page.locator('#tp-when [data-w="a"]').inner_text()
     page.locator("#tp-scrub").evaluate("el => { el.value = 60; el.dispatchEvent(new Event('input', {bubbles: true})); }")

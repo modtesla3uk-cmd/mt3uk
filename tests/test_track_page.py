@@ -2482,7 +2482,7 @@ def test_full_screen_map_on_a_phone(page):
     expect(page.locator("#tp-gforce svg")).to_have_count(3)
     for svg in page.locator("#tp-gforce svg").all():
         b = svg.bounding_box()
-        assert b["height"] >= 50 and b["y"] + b["height"] <= 390, b
+        assert b["height"] >= 44 and b["y"] + b["height"] <= 390, b
     # The Show G-Forces switch swaps between the map alone and the map with the charts.
     page.locator("#tp-gshow").click()
     expect(page.locator("#tp-gforce")).to_be_hidden()
@@ -4199,7 +4199,16 @@ def test_landscape_full_screen_controls_float_move_resize_and_reset(page):
     expect(page.locator("#tp-mapcard")).to_have_class(re.compile(r"is-full"))
     panel = page.locator("#tp-play")
     start = panel.bounding_box()
-    assert start["x"] < 20 and start["y"] + start["height"] > 360  # resting at the bottom left
+    assert start["x"] < 20 and start["y"] + start["height"] > 360  # resting at the bottom
+    assert start["width"] > 844 - 24  # spanning the full width of the screen until it is moved
+    # Narrow it from the corner so there is room to move it sideways.
+    s0 = page.locator("#tp-pn-size").bounding_box()
+    page.mouse.move(s0["x"] + s0["width"] / 2, s0["y"] + s0["height"] / 2)
+    page.mouse.down()
+    page.mouse.move(s0["x"] + s0["width"] / 2 - 400, s0["y"] + s0["height"] / 2, steps=6)
+    page.mouse.up()
+    narrow = panel.bounding_box()
+    assert narrow["width"] < start["width"] - 300
     # The grip along the top moves the controls.
     g = page.locator("#tp-pn-grip").bounding_box()
     gx, gy = g["x"] + g["width"] / 2, g["y"] + g["height"] / 2
@@ -4208,7 +4217,7 @@ def test_landscape_full_screen_controls_float_move_resize_and_reset(page):
     page.mouse.move(gx + 150, gy - 120, steps=8)
     page.mouse.up()
     moved = panel.bounding_box()
-    assert abs(moved["x"] - start["x"] - 150) < 6 and abs(moved["y"] - start["y"] + 120) < 6, (start, moved)
+    assert abs(moved["x"] - narrow["x"] - 150) < 6 and abs(moved["y"] - narrow["y"] + 120) < 6, (narrow, moved)
     # The corner handle resizes the width.
     s = page.locator("#tp-pn-size").bounding_box()
     sx, sy = s["x"] + s["width"] / 2, s["y"] + s["height"] / 2
@@ -4243,8 +4252,14 @@ def test_landscape_controls_move_by_holding_anywhere_and_show_who_in_the_buttons
     # The drivers and their date and time are in the same row as the main buttons.
     play, who = page.locator("#tp-play-toggle").bounding_box(), page.locator("#tp-when").bounding_box()
     assert who["x"] > play["x"] + play["width"] and abs((who["y"] + who["height"] / 2) - (play["y"] + play["height"] / 2)) < play["height"], (play, who)
-    # Holding the panel anywhere that is not a button moves it, not just the grip.
+    # Holding the panel anywhere that is not a button moves it, not just the grip. (It starts full width, so narrow it first.)
     panel = page.locator("#tp-play")
+    s0 = page.locator("#tp-pn-size").bounding_box()
+    page.mouse.move(s0["x"] + s0["width"] / 2, s0["y"] + s0["height"] / 2)
+    page.mouse.down()
+    page.mouse.move(s0["x"] + s0["width"] / 2 - 300, s0["y"] + s0["height"] / 2, steps=6)
+    page.mouse.up()
+    who = page.locator("#tp-when").bounding_box()
     before = panel.bounding_box()
     x, y = who["x"] + who["width"] / 2, who["y"] + who["height"] / 2
     page.mouse.move(x, y)

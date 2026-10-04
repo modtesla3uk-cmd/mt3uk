@@ -298,7 +298,7 @@
     .tp-mapcard.is-full .tp-gbox .tp-chart-head .tp-map-head .tp-speedsw > span:first-child { display: inline; }
     .tp-gbox .tp-chart-head #tp-full { order: 5; margin-left: 10px; font-size: 0; gap: 0; padding: 0 12px; }
     .tp-gbox .tp-chart-head #tp-full .icon { width: 18px; height: 18px; }
-    .tp-mapcard.is-full.has-charts .tp-play { max-width: calc(var(--tp-map, 60%) - 12px); }
+    .tp-mapcard.is-full.has-charts .tp-play { max-width: none; }
     .tp-mapcard.is-full .tp-mrow b { max-width: 180px; }
     .tp-mapcard.is-full .tp-gbox { position: absolute; top: 0; right: 0; bottom: 0; width: calc(100% - var(--tp-map, 60%)); margin: 0; padding: 4px 8px calc(4px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; overflow: hidden; background: var(--paper); border-left: 1px solid var(--hairline); }
     .tp-mapcard.is-full .tp-gbox .tp-chart-head { margin: 0; min-height: 0; }
@@ -311,7 +311,9 @@
     .tp-mapcard.is-full .tp-gbox.is-off .tp-scrub-row, .tp-mapcard.is-full .tp-gbox.is-off .tp-clock { display: none; }
     .tp-mapcard.is-full .tp-map-head .tp-speedsw, .tp-mapcard.is-full .tp-map-head #tp-full { min-height: 40px; padding-top: 0; padding-bottom: 0; }
     .tp-mapcard.is-full .tp-map-head .tp-speedsw > span:first-child { display: none; }
-    .tp-mapcard.is-full .tp-play { left: 6px; bottom: calc(6px + env(safe-area-inset-bottom)); right: auto; padding: 4px 6px; }
+    /* Until it is moved, the controls span the full width of the screen, with the charts' time bar just above them. */
+    .tp-mapcard.is-full .tp-play { left: 6px; bottom: calc(6px + env(safe-area-inset-bottom)); right: 6px; padding: 4px 6px; box-sizing: border-box; }
+    #tp-mapcard.is-full.has-charts:not([data-pn="on"]) .tp-gbox { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
     .tp-mapcard.is-full .tp-play .btn { min-height: 40px; }
     /* The map's own full screen button (top right) is the one way out of full screen here, and the Exit button is left out: the
        Show G-Forces switch shows and hides the charts. Map options is a small button on the left of the map that opens a card with the
@@ -336,7 +338,7 @@
     .tp-mapcard.is-full .tp-pn-grip { display: flex; align-items: center; justify-content: center; gap: 5px; height: 18px; order: -2; margin: -2px 0 -2px; cursor: grab; touch-action: none; pointer-events: auto; }
     .tp-mapcard.is-full .tp-pn-grip i { width: 22px; height: 4px; border-radius: 2px; background: var(--hairline-strong); }
     .tp-mapcard.is-full .tp-pn-size { display: block; position: absolute; right: 0; bottom: 0; width: 30px; height: 30px; cursor: nwse-resize; touch-action: none; pointer-events: auto; background: linear-gradient(135deg, transparent 55%, var(--hairline-strong) 55%, var(--hairline-strong) 63%, transparent 63%, transparent 75%, var(--hairline-strong) 75%, var(--hairline-strong) 83%, transparent 83%); border-bottom-right-radius: var(--radius-sm); }
-    #tp-mapcard.is-full[data-pn="on"] .tp-play { left: var(--pn-x); top: var(--pn-y); bottom: auto; width: var(--pn-w); max-width: none; box-sizing: border-box; }
+    #tp-mapcard.is-full[data-pn="on"] .tp-play { left: var(--pn-x); top: var(--pn-y); bottom: auto; right: auto; width: var(--pn-w); max-width: none; box-sizing: border-box; }
     .tp-mapcard.is-full .tp-play .btn, .tp-mapcard.is-full .tp-play .chip { pointer-events: auto; }
     .tp-mapcard.is-full .tp-mopts { display: block; position: absolute; left: 6px; top: 44px; z-index: 3; }
     #tp-mapcard.is-full[data-carspeed="off"] .tv-dotlabel { display: none; }
@@ -926,7 +928,7 @@
 <script src="js/track-view.js?v=20261144" defer></script>
 <script src="js/tyre-data.js"></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20261144" defer></script>
+<script src="js/track-page.js?v=20261145" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=7" defer></script>
 <script src="js/signin-prompt.js" defer></script>

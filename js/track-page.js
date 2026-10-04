@@ -2897,7 +2897,8 @@
           // narrow screen, so they are measured rather than guessed).
           var pbox = document.getElementById('tp-gbox'), used = 0;
           if (pbox) [].forEach.call(pbox.children, function (c) { if (c.id !== 'tp-gforce' && c.offsetHeight) used += c.offsetHeight + 4; });
-          var room = pbox ? pbox.clientHeight - used - 10 : window.innerHeight - 150;
+          var pcs = pbox ? window.getComputedStyle(pbox) : null, pad = pcs ? (parseFloat(pcs.paddingTop) || 0) + (parseFloat(pcs.paddingBottom) || 0) : 0;
+          var room = pbox ? pbox.clientHeight - pad - used - 10 : window.innerHeight - 150;
           H = Math.max(48, Math.floor((room - (defs.length - 1) * 2) / defs.length));
         }
         var xt = timeTicks(box.clientWidth || 600);

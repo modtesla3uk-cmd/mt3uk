@@ -7053,6 +7053,24 @@ async function handleTrackSessionsList(request, env) {
   return json({ success: true, sessions: await getJsonKey(env, 'track-index:' + (await ownerKey(email)), []) });
 }
 
+// A hill climb saved at a track the list has as a plain sprint: the track is marked as a hill climb, which moves its
+// board to the Hill climb tab (the tab follows the track, not the session). Returns the track's name when it changed.
+// The admin is emailed, so a wrong choice by a member can be put back on the Tracks panel.
+async function markHillTrack(env, rec, library, who) {
+  if (!rec || rec.type !== 'sprint' || !rec.hill || !rec.venueId) return '';
+  var v = ((library && library.venues) || []).find(function (x) { return x.id === rec.venueId; });
+  if (!v || v.type !== 'sprint' || v.hill || /\bhill\s*-?\s*climb\b|\bhillclimb\b/i.test(v.name || '')) return '';
+  var upd = cleanTrackVenue(Object.assign(JSON.parse(JSON.stringify(v)), { hill: true }));
+  if (!upd) return '';
+  var extra = await getJsonKey(env, 'track-library', { venues: [] });
+  var list = (extra.venues || []).filter(function (x) { return x.id !== upd.id; });
+  list.push(upd);
+  await env.VOTES.put('track-library', JSON.stringify({ venues: list }));
+  v.hill = true;
+  if (who !== 'admin') await emailAdminAboutLines(env, 'Track marked as a hill climb: ' + v.name, v.name + ' was listed as a sprint. A session saved there as a hill climb has marked it as a hill climb, so its leaderboard is now on the Hill climb tab.\n\nIf that is wrong, set its Type back to Sprint on the Tracks panel: https://mt3uk.com/track-admin.html#grp-tracks');
+  return v.name;
+}
+
 async function handleTrackSessionSave(request, env) {
   var email = await resolveSession(request, env);
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
@@ -7098,6 +7116,7 @@ async function handleTrackSessionSave(request, env) {
   }
   if (!(await putTrackSession(env, rec))) return tooBig;
   await putTrackIndexes(env, email, rec);
+  await markHillTrack(env, rec, library);
   return json({ success: true, session: trackSummary(rec) });
 }
 // Whether a listed session and a new one have the same result: the same laps and best time, or runs and 60 ft time.
@@ -7266,6 +7285,7 @@ async function handleTrackSessionUpdate(request, env) {
   if (!(await putTrackSession(env, rec))) return json({ success: false, message: 'This session is too big to save. Try a shorter file.' }, 413);
   await putTrackIndexes(env, got.email, rec);
   if (oldBoard && oldBoard !== trackBoardKey(rec)) await refreshTrackBoard(env, oldBoard, rec.carId);
+  await markHillTrack(env, rec, await getTrackLibrary(env));
   return json({ success: true, session: trackSummary(rec) });
 }
 
@@ -7375,6 +7395,98 @@ async function handleTrackLinesPropose(request, env) {
   await env.VOTES.put('track-line-access', JSON.stringify(list));
   return json({ success: true, state: 'granted', proposal: entry.proposal });
 }
+// ---- Renaming the track on a saved session ----
+// A session at a track we do not list carries the name its member typed. The member cannot change it themselves:
+// they ask (Request rename), the admin allows it for that one session on the Line editing panel, the member sends
+// the new name, and nothing changes until the admin accepts it. The same steps as editing the map lines. One KV key,
+// read with get(): track-rename-access = [{ id (session), email, name, note, at, status 'pending' | 'granted',
+// grantedAt, proposal: { at, from, to } }]. A session at a listed track takes its name from the track list.
+async function getRenameAccess(env) {
+  var list = await getJsonKey(env, 'track-rename-access', []);
+  return Array.isArray(list) ? list : [];
+}
+async function handleTrackRenameStatus(request, env) {
+  var got = await getOwnTrackSession(request, env, String(new URL(request.url).searchParams.get('id') || ''));
+  if (got.error) return got.error;
+  var entry = (await getRenameAccess(env)).filter(function (x) { return x.id === got.rec.id; })[0];
+  return json({ success: true, state: entry ? entry.status : 'none', proposal: entry && entry.proposal ? entry.proposal : null });
+}
+async function handleTrackRenameRequest(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var body = {};
+  try { body = await request.json(); } catch (e) { body = {}; }
+  var got = await getOwnTrackSession(request, env, String(body.id || ''));
+  if (got.error) return got.error;
+  var rec = got.rec;
+  if (rec.street) return json({ success: false, message: 'Street runs cannot be renamed.' }, 400);
+  if (rec.venueId) return json({ success: false, message: 'This session is at a listed track, so its name comes from the track list.' }, 400);
+  var list = await getRenameAccess(env);
+  var have = list.filter(function (x) { return x.id === rec.id; })[0];
+  if (have) return json({ success: true, state: have.status });
+  if (list.filter(function (x) { return x.email === accessEmail(email) && x.status === 'pending'; }).length >= 5) return json({ success: false, message: 'You already have requests waiting. We\'ll get to them soon.' }, 429);
+  var name = (publicName(await getProfileRecord(env, email)) || '').slice(0, 60);
+  list.unshift({ id: rec.id, email: accessEmail(email), name: name, note: trackText(body.note, 300), at: new Date().toISOString(), status: 'pending' });
+  await env.VOTES.put('track-rename-access', JSON.stringify(list.slice(0, 300)));
+  await emailAdminAboutLines(env, 'Request to rename a track', subscriberLabel(name, email) + ' has asked to rename the track on a session: ' + trackSessionLabel(rec) + ', ' + (rec.date || '') + '.\n\n' +
+    (body.note ? 'Their note:\n' + trackText(body.note, 300) + '\n\n' : '') + 'Allow it on the Line editing panel:\n' + MY_BUILDS_SITE_URL + '/track-admin.html#lines-' + rec.id + '\n\nThe session:\n' + MY_BUILDS_SITE_URL + '/track.html?s=' + rec.id);
+  return json({ success: true, state: 'pending' });
+}
+// The member sends the new name. Nothing on the session changes: the admin accepts it or undoes it.
+async function handleTrackRenamePropose(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var got = await getOwnTrackSession(request, env, String(body.id || ''));
+  if (got.error) return got.error;
+  var rec = got.rec, list = await getRenameAccess(env);
+  var entry = list.filter(function (x) { return x.id === rec.id && x.status === 'granted'; })[0];
+  if (!entry) return json({ success: false, message: 'Ask MT3UK to let you rename this track first.' }, 403);
+  if (rec.venueId) return json({ success: false, message: 'This session is at a listed track, so its name comes from the track list.' }, 400);
+  var to = trackText(body.name, 60);
+  if (!to) return json({ success: false, message: 'Enter the track name.' }, 400);
+  if (to === (rec.venue || '')) return json({ success: false, message: 'That is the name it already has.' }, 400);
+  entry.proposal = { at: new Date().toISOString(), from: rec.venue || '', to: to };
+  var label = trackSessionLabel(rec) + ', ' + (rec.date || ''), requestUrl = MY_BUILDS_SITE_URL + '/track-admin.html#lines-' + rec.id;
+  await emailAdminAboutLines(env, 'Track rename awaiting your approval: ' + label, 'AWAITING YOUR APPROVAL\n\n' + subscriberLabel(entry.name, email) + ' wants to rename the track on ' + label + '. Nothing has changed yet: accept it or undo it.\n\n' +
+    'Track name\n  from: ' + (rec.venue || 'none') + '\n  to:   ' + to + '\n\nAccept it or undo it on the Line editing panel:\n' + requestUrl + '\n\nThe session:\n' + MY_BUILDS_SITE_URL + '/track.html?s=' + rec.id);
+  await env.VOTES.put('track-rename-access', JSON.stringify(list));
+  return json({ success: true, state: 'granted', proposal: entry.proposal });
+}
+// The admin's side of a rename (the same route as the line edits, with kind 'rename'). Accepting changes the session.
+async function handleTrackRenameAdmin(request, env, body) {
+  var list = await getRenameAccess(env);
+  var entry = list.filter(function (x) { return x.id === String(body.id || ''); })[0];
+  if (!entry) return json({ success: false, message: 'Request not found' }, 404);
+  var action = String(body.action || ''), url = MY_BUILDS_SITE_URL + '/track.html?s=' + entry.id;
+  if (action === 'grant') {
+    if (entry.status === 'granted') return json({ success: true });
+    entry.status = 'granted'; entry.grantedAt = new Date().toISOString();
+    if (body.notify !== false) await emailMemberAboutLines(env, entry, 'You can rename the track on your session', 'Hello,\n\nYou can now rename the track on your session. Open it, press "Rename the track", enter the name and send it. The name only changes once MT3UK has approved it.\n\n' + url);
+  } else if (action === 'undo') {
+    if (!entry.proposal) return json({ success: false, message: 'There is no change waiting.' }, 400);
+    entry.proposal = null;
+    await emailMemberAboutLines(env, entry, 'Your track name was not used', 'Hello,\n\nMT3UK did not use the track name you sent, so the session is as it was. You can send another if you like:\n\n' + url);
+  } else if (action === 'accepted') {
+    if (!entry.proposal) return json({ success: false, message: 'There is no change waiting.' }, 400);
+    var rec = await getTrackSession(env, entry.id);
+    if (!rec) return json({ success: false, message: 'That session has gone.' }, 404);
+    if (rec.venueId) return json({ success: false, message: 'This session is now at a listed track, so its name comes from the track list. Undo it.' }, 400);
+    rec.venue = entry.proposal.to;
+    if (!(await putTrackSession(env, rec))) return json({ success: false, message: 'Could not save the session.' }, 413);
+    await putTrackIndexesFor(env, rec.owner, rec);
+    entry.proposal = null;
+    await emailMemberAboutLines(env, entry, 'Your track name was accepted', 'Hello,\n\nMT3UK accepted the track name you sent. It is on your session now:\n\n' + url);
+  } else if (action === 'revoke' || action === 'dismiss') {
+    list = list.filter(function (x) { return x !== entry; });
+  } else {
+    return json({ success: false, message: 'Unknown action' }, 400);
+  }
+  await env.VOTES.put('track-rename-access', JSON.stringify(list));
+  return json({ success: true });
+}
+
 // The before and after pictures of a change (drawn in the member's browser), kept in KV for a month at most and
 // removed when the change is dealt with. JPEG or PNG, up to 1.5 MB.
 var LINE_IMAGE_MAX = 1500000;
@@ -7419,10 +7531,16 @@ async function handleTrackLinesAdmin(request, env) {
       return { id: x.id, name: x.name || '', email: maskEmailForAdmin(x.email), note: x.note || '', at: x.at, status: x.status, grantedAt: x.grantedAt || '', proposal: x.proposal || null,
         what: rec ? trackSessionLabel(rec) + ', ' + (rec.date || '') : 'a session that has gone', type: rec ? rec.type : '', best: rec && rec.bestTime ? rec.bestTime : null };
     }));
-    return json({ success: true, requests: rows });
+    var renames = await Promise.all((await getRenameAccess(env)).map(async function (x) {
+      var rec = await getTrackSession(env, x.id);
+      return { kind: 'rename', id: x.id, name: x.name || '', email: maskEmailForAdmin(x.email), note: x.note || '', at: x.at, status: x.status, grantedAt: x.grantedAt || '', proposal: x.proposal || null,
+        what: rec ? trackSessionLabel(rec) + ', ' + (rec.date || '') : 'a session that has gone', type: rec ? rec.type : '', current: rec ? rec.venue || '' : '' };
+    }));
+    return json({ success: true, requests: rows.concat(renames) });
   }
   var body;
   try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  if (body && body.kind === 'rename') return handleTrackRenameAdmin(request, env, body);
   var entry = list.filter(function (x) { return x.id === String(body.id || ''); })[0];
   if (!entry) return json({ success: false, message: 'Request not found' }, 404);
   var action = String(body.action || ''), url = MY_BUILDS_SITE_URL + '/track.html?s=' + entry.id;
@@ -8262,17 +8380,7 @@ async function handleTrackAdminBoardRepair(request, env) {
       } else return json({ success: false, message: 'Its track is not in the list and none matches by name or place. Add the track on the Tracks panel first.' }, 400);
     }
     // A hill climb at a track listed as a sprint: the track is marked as a hill climb, which moves its board to that tab.
-    var vH = rec.venueId ? (libR.venues || []).find(function (v) { return v.id === rec.venueId; }) : null;
-    if (rec.type === 'sprint' && rec.hill && vH && vH.type === 'sprint' && !vH.hill && !/\bhill\s*-?\s*climb\b|\bhillclimb\b/i.test(vH.name || '')) {
-      var extraH = await getJsonKey(env, 'track-library', { venues: [] });
-      var upd = cleanTrackVenue(Object.assign(JSON.parse(JSON.stringify(vH)), { hill: true }));
-      if (upd) {
-        var listH = (extraH.venues || []).filter(function (x) { return x.id !== upd.id; });
-        listH.push(upd);
-        await env.VOTES.put('track-library', JSON.stringify({ venues: listH }));
-        madeHill = vH.name;
-      }
-    }
+    madeHill = await markHillTrack(env, rec, libR, 'admin');
     await putTrackIndexesFor(env, rec.owner, rec);
     var key = trackBoardKey(rec);
     if (key) board = key;
@@ -9621,7 +9729,7 @@ export default {
     // The member's own sessions need access (early preview): lists, saves,
     // changes, readings and deletes. Shared sessions and boards stay public.
     if ((url.pathname === '/track/sessions' || url.pathname === '/track/session/source' || url.pathname === '/track/courses' ||
-        url.pathname === '/track/lines/status' || url.pathname === '/track/lines/request' || url.pathname === '/track/lines/propose' || (url.pathname === '/track/lines/image' && request.method === 'POST') ||
+        url.pathname === '/track/lines/status' || url.pathname === '/track/lines/request' || url.pathname === '/track/lines/propose' || url.pathname === '/track/rename/status' || url.pathname === '/track/rename/request' || url.pathname === '/track/rename/propose' || (url.pathname === '/track/lines/image' && request.method === 'POST') ||
         (url.pathname === '/track/session' && request.method !== 'GET')) && request.method !== 'OPTIONS') {
       var noAccess = await trackAccessGate(request, env);
       if (noAccess) return noAccess;
@@ -9638,6 +9746,9 @@ export default {
     if (url.pathname === '/track/session' && request.method === 'PUT') {
       return handleTrackSessionUpdate(request, env);
     }
+    if (url.pathname === '/track/rename/status' && request.method === 'GET') return handleTrackRenameStatus(request, env);
+    if (url.pathname === '/track/rename/request' && request.method === 'POST') return handleTrackRenameRequest(request, env);
+    if (url.pathname === '/track/rename/propose' && request.method === 'POST') return handleTrackRenamePropose(request, env);
     if (url.pathname === '/track/lines/status' && request.method === 'GET') {
       return handleTrackLinesStatus(request, env);
     }

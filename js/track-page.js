@@ -40,6 +40,7 @@
   var ICON = {
     prev: '<path d="M15 5l-7 7 7 7"/>',
     next: '<path d="M9 5l7 7-7 7"/>',
+    copy: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/>',
     file: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/>',
     upload: '<path d="M12 15V3M7 8l5-5 5 5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/>',
     flag: '<path d="M4 21V4M4 4h12l-2 4 2 4H4"/>',
@@ -1859,6 +1860,57 @@
     }
     return '<div class="tp-section" id="lineedit"><div class="tp-head"><h2>Start and finish lines</h2></div><div class="card tp-fields" id="tp-lineedit"><p class="tp-sub">Checking...</p></div></div>';
   }
+  // The track name on a session at a track we do not list: the same steps as the map (ask, allowed, send, approved).
+  function renameHtml(s) {
+    if (!s.mine || s.street || s.venueId || !s.venue) return '';
+    return '<div class="tp-section" id="rename"><div class="tp-head"><h2>Track name</h2></div><div class="card tp-fields" id="tp-rename"><p class="tp-sub">Checking...</p></div></div>';
+  }
+  function drawRename(s, st) {
+    var box = document.getElementById('tp-rename');
+    if (!box) return;
+    var h = '', p = st && st.proposal;
+    if (!st || st.state === 'none') {
+      h = '<p class="tp-sub">This track is not in the MT3UK track list, so it has the name you typed: <b>' + esc(s.venue) + '</b>. If it is wrong, ask MT3UK to let you rename it.</p>' +
+        '<div class="tp-field"><label for="tp-rename-why">What should it be called? (optional)</label><input class="field" id="tp-rename-why" maxlength="300" placeholder="For example, it is spelt Abingdon"></div>' +
+        '<button type="button" class="btn btn-secondary" id="tp-rename-request">' + icon('pin') + 'Request rename</button>';
+    } else if (st.state === 'pending') {
+      h = '<p class="tp-src">' + icon('info') + '<span>Requested. MT3UK has been told and will email you when you can rename this track.</span></p>';
+    } else if (p) {
+      h = '<p class="tp-src">' + icon('info') + '<span>Your new name is waiting for MT3UK to approve it. This session keeps its name until then.</span></p><p class="tp-small">From <b>' + esc(p.from || s.venue) + '</b> to <b>' + esc(p.to) + '</b>.</p>' +
+        '<button type="button" class="btn btn-secondary" id="tp-rename-edit">' + icon('pin') + 'Change it again</button>';
+    } else {
+      h = '<p class="tp-sub">MT3UK has said you can rename this track. Enter the name and send it. The name only changes once MT3UK has approved it.</p>' +
+        '<div class="tp-field"><label for="tp-rename-name">Track name</label><input class="field" id="tp-rename-name" maxlength="60" value="' + esc(s.venue) + '"></div>' +
+        '<button type="button" class="btn btn-primary" id="tp-rename-send">' + icon('pin') + 'Send for approval</button>';
+    }
+    h += '<p class="tp-small tp-err" id="tp-rename-note" role="status"></p>';
+    box.innerHTML = h;
+    var note = document.getElementById('tp-rename-note'), req = document.getElementById('tp-rename-request'), send = document.getElementById('tp-rename-send'), again = document.getElementById('tp-rename-edit');
+    if (req) req.addEventListener('click', function () {
+      req.disabled = true;
+      var why = document.getElementById('tp-rename-why');
+      api('POST', '/track/rename/request', { id: s.id, note: why ? why.value.trim() : '' }).then(function (d) {
+        if (!d.success) { req.disabled = false; note.textContent = d.message || 'Could not send that.'; return; }
+        drawRename(s, { state: d.state || 'pending', proposal: null });
+      }).catch(function () { req.disabled = false; note.textContent = 'Could not reach the server.'; });
+    });
+    if (again) again.addEventListener('click', function () { drawRename(s, { state: 'granted', proposal: null }); });
+    if (send) send.addEventListener('click', function () {
+      var name = document.getElementById('tp-rename-name').value.trim();
+      if (!name) { note.textContent = 'Enter the track name.'; return; }
+      send.disabled = true;
+      api('POST', '/track/rename/propose', { id: s.id, name: name }).then(function (d) {
+        if (!d.success) { send.disabled = false; note.textContent = d.message || 'Could not send that.'; return; }
+        drawRename(s, { state: 'granted', proposal: d.proposal });
+      }).catch(function () { send.disabled = false; note.textContent = 'Could not reach the server.'; });
+    });
+  }
+  function wireRename(s) {
+    if (!document.getElementById('tp-rename')) return;
+    api('GET', '/track/rename/status?id=' + encodeURIComponent(s.id)).then(function (d) {
+      if (view && view.s === s) drawRename(s, d.success ? d : { state: 'none', proposal: null });
+    }).catch(function () { drawRename(s, { state: 'none', proposal: null }); });
+  }
   function drawLineEdit(s, st) {
     var box = document.getElementById('tp-lineedit');
     if (!box) return;
@@ -1976,7 +2028,7 @@
     var place = s.mine && view.mine ? dayPlace(s, view.mine.sessions) : null;
     var h = (justSaved && s.mine ? savedHtml(justSaved) : '') + back(s.mine ? 'Your sessions' : 'Back', s.mine ? '' : (s.carId ? 'car=' + encodeURIComponent(s.carId) : ''));
     if (s.adminView) h += '<p class="tp-admin-banner" id="tp-admin-banner">' + icon('lock') + 'Admin view, read only. This is a private session and this view is logged. Notes are not shown.</p>';
-    h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '</h2>' + (s.ownerName ? '<p class="tp-by" id="tp-by">' + icon('user') + '<span>Session by <b>' + esc(s.ownerName) + '</b>' + (s.mine ? ' (you)' : '') + '</span></p>' : '') + '<p class="tp-sub">' + (s.type === 'sprint' ? '<b id="tp-kind">' + (isHillSession(s, library) ? 'Hill climb' : 'Sprint') + '</b> &middot; ' : '') + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (place ? ' &middot; <b id="tp-day-place">Session ' + place.n + ' of ' + place.of + ' that day</b>' : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + '</p>' + (s.fileName && (s.mine || s.adminView) ? '<p class="tp-small tp-filename" id="tp-filename">' + icon('file') + 'File: ' + esc(s.fileName) + '</p>' : '') + '</div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) + '<span id="tp-rank-slot"></span>' : '') + unitsChip() + (s.street || s.privacy === 'private' ? '' : shareDot('Share this session')) + '</div></div>';
+    h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '</h2>' + (s.ownerName ? '<p class="tp-by" id="tp-by">' + icon('user') + '<span>Session by <b>' + esc(s.ownerName) + '</b>' + (s.mine ? ' (you)' : '') + '</span></p>' : '') + '<p class="tp-sub">' + (s.type === 'sprint' ? '<b id="tp-kind">' + (isHillSession(s, library) ? 'Hill climb' : 'Sprint') + '</b> &middot; ' : '') + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (place ? ' &middot; <b id="tp-day-place">Session ' + place.n + ' of ' + place.of + ' that day</b>' : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + '</p>' + (s.fileName && (s.mine || s.adminView) ? '<p class="tp-small tp-filename" id="tp-filename">' + icon('file') + 'File: ' + esc(s.fileName) + '</p>' : '') + (s.mine || s.adminView ? '<p class="tp-small tp-sid" id="tp-sid">Session ID: <code id="tp-sid-text">' + esc(s.id) + '</code> <button type="button" class="btn btn-ghost btn-sm" id="tp-sid-copy" aria-label="Copy the session ID">' + icon('copy') + '<span>Copy</span></button></p>' : '') + '</div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) + '<span id="tp-rank-slot"></span>' : '') + unitsChip() + (s.street || s.privacy === 'private' ? '' : shareDot('Share this session')) + '</div></div>';
     LW = s.type === 'sprint' ? 'Run' : 'Lap';
     // Timed with older code and no readings kept to work it out again: only uploading the file again updates it.
     if (s.mine && !s.hasSource && s.type !== 'other' && (s.analysisVersion || 1) < T.ANALYSIS_VERSION) h += '<p class="tp-notice" id="tp-old-version">' + icon('info') + '<span>Timed with an older version. Upload the file again to update the times.</span></p>';
@@ -1984,7 +2036,7 @@
     if (s.type === 'drag') h += dragHtml(s);
     else if (untimed) h += otherHtml(s);
     else h += trackHtml(s);
-    if (s.mine) h += lineEditHtml(s) + ownerHtml(s);
+    if (s.mine) h += lineEditHtml(s) + renameHtml(s) + ownerHtml(s);
     justSaved = null;
     app.innerHTML = h;
     if (s.type === 'drag') drawDragCharts(s);
@@ -1993,7 +2045,10 @@
     // Sprints and hill climbs have runs, not laps.
     if (s.type === 'sprint') runWords(app);
     if (s.mine) wireOwner(s);
+    var sidBtn = document.getElementById('tp-sid-copy');
+    if (sidBtn) sidBtn.addEventListener('click', function () { copyText(s.id, sidBtn); });
     if (s.mine) wireLineEdit(s);
+    if (s.mine) wireRename(s);
     if (s.mine && !s.hasSource) wireReadingsAgain();
     if (!s.street && s.privacy !== 'private') {
       var what = s.type === 'drag' ? 'Drag run' : s.type === 'sprint' ? (isHillSession(s, library) ? 'Hill climb run' : 'Sprint run') : 'Track session', res = sessionResult(s);
@@ -3137,6 +3192,25 @@
       '<div class="tp-weather-row"><button type="button" class="btn btn-secondary btn-sm" id="tp-e-weather">Fill in from weather</button><p class="tp-src" id="tp-e-src">' + (s.tempSource === 'weather' && s.weather ? icon('info') + '<span>' + weatherNote(s.weather, s.venue) + '</span>' : s.tempSource === 'file' ? icon('info') + '<span>From the air temperature recorded in your file.</span>' : '') + '</p></div>' +
       '<div class="tp-field"><label for="tp-e-notes">Notes (only you see these)</label><input class="field" id="tp-e-notes" value="' + esc(s.notes || '') + '"></div>' +
       '<div class="tp-actions"><button type="button" class="btn btn-primary" id="tp-e-save">Save changes</button><button type="button" class="btn btn-secondary" id="tp-e-close">Close</button><button type="button" class="btn btn-ghost" id="tp-e-discard">Discard</button><button type="button" class="btn btn-danger" id="tp-e-del">' + icon('trash') + 'Delete</button></div><p class="tp-status" id="tp-status" role="status"></p></div></div>';
+  }
+  // Copy a piece of text, with the button saying so for a moment. Falls back to a hidden box on older browsers.
+  function copyText(text, btn) {
+    var label = btn.querySelector('span'), old = label ? label.textContent : '';
+    function done(ok) {
+      if (label) label.textContent = ok ? 'Copied' : 'Press and hold to copy';
+      setTimeout(function () { if (label) label.textContent = old; }, 1800);
+    }
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+      document.body.appendChild(ta); ta.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta);
+      done(ok);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { done(true); }, fallback);
+    else fallback();
   }
   function wireOwner(s) {
     var edit = { privacy: s.privacy, conditions: s.conditions, tempSource: s.tempSource || '', weather: s.weather || null, temp: s.temp };

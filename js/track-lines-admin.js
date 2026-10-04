@@ -45,23 +45,29 @@
       '<tr><td>Time</td><td>' + esc(timeText(p.from.time)) + '</td><td>' + esc(timeText(p.to.time)) + ' <span class="iv-sub">(their figure, worked out again when you accept)</span></td></tr></tbody></table>' +
       (p.images && (p.images.before || p.images.after) ? '<div class="ln-pics">' + pic('before', 'Old lines') + pic('after', 'New lines') + '</div>' : '');
   }
+  // A rename of the track on a session at an unlisted track: the same steps, but Accept changes the name on the worker.
+  function renameHtml(r) {
+    var p = r.proposal;
+    return '<div class="iv-sub">Changed ' + esc(when(p.at)) + '. The session has not changed yet.</div><table class="iv-table"><thead><tr><th></th><th>From</th><th>To</th></tr></thead><tbody><tr><td>Track name</td><td>' + esc(p.from || 'none') + '</td><td>' + esc(p.to) + '</td></tr></tbody></table>';
+  }
   function draw() {
     var changed = rows.filter(function (r) { return r.proposal; }).length, waiting = rows.filter(function (r) { return r.status === 'pending'; }).length;
     countEl.textContent = changed ? changed + ' to review' : waiting ? waiting + ' waiting' : (rows.length ? rows.length + ' allowed' : '');
     listEl.innerHTML = rows.length ? '<table class="iv-table"><thead><tr><th>Member</th><th>Map</th><th>Status</th><th></th></tr></thead><tbody>' + rows.map(function (r) {
+      var rn = r.kind === 'rename', kindAttr = rn ? ' data-kind="rename"' : '';
       var state = r.status === 'pending' ? 'Asked ' + esc(when(r.at)) + (r.note ? '<br><span class="iv-sub">' + esc(r.note) + '</span>' : '')
-        : r.proposal ? changeHtml(r)
-        : 'Allowed ' + esc(when(r.grantedAt)) + '<br><span class="iv-sub">Waiting for them to change the map.</span>';
+        : r.proposal ? (rn ? renameHtml(r) : changeHtml(r))
+        : 'Allowed ' + esc(when(r.grantedAt)) + '<br><span class="iv-sub">Waiting for them to ' + (rn ? 'rename the track.' : 'change the map.') + '</span>';
       var actions = r.status === 'pending'
-        ? '<button type="button" class="iv-act" data-grant="' + esc(r.id) + '">Allow</button><button type="button" class="secondary iv-act" data-dismiss="' + esc(r.id) + '">Decline</button>'
-        : (r.proposal ? '<button type="button" class="iv-act" data-accept="' + esc(r.id) + '">Accept</button><button type="button" class="secondary iv-act" data-undo="' + esc(r.id) + '">Undo</button>' : '') +
-          '<button type="button" class="danger iv-act" data-revoke="' + esc(r.id) + '">Revoke</button>';
+        ? '<button type="button" class="iv-act" data-grant="' + esc(r.id) + '"' + kindAttr + '>Allow</button><button type="button" class="secondary iv-act" data-dismiss="' + esc(r.id) + '"' + kindAttr + '>Decline</button>'
+        : (r.proposal ? '<button type="button" class="iv-act" data-accept="' + esc(r.id) + '"' + kindAttr + '>Accept</button><button type="button" class="secondary iv-act" data-undo="' + esc(r.id) + '"' + kindAttr + '>Undo</button>' : '') +
+          '<button type="button" class="danger iv-act" data-revoke="' + esc(r.id) + '"' + kindAttr + '>Revoke</button>';
       // For the notification bell: what this row is, and a key that changes when there is something new to see.
       var rowState = r.status === 'pending' ? 'pending' : r.proposal ? 'changed' : 'allowed';
-      return '<tr data-id="' + esc(r.id) + '" data-state="' + rowState + '" data-key="' + esc(r.id + ':' + rowState + ':' + (r.proposal ? r.proposal.at : r.at)) + '"' + (r.id === targetId ? ' class="is-target"' : '') + '><td>' + esc(r.name ? r.name + ' ' : '') + '<span class="iv-sub">' + esc(r.email) + '</span></td>' +
-        '<td><a href="track.html?s=' + encodeURIComponent(r.id) + '" target="_blank" rel="noopener">' + esc(r.what) + '</a></td><td>' + state + '</td>' +
+      return '<tr data-id="' + esc(r.id) + '" data-state="' + rowState + '" data-key="' + esc((rn ? 'rename:' : '') + r.id + ':' + rowState + ':' + (r.proposal ? r.proposal.at : r.at)) + '"' + (r.id === targetId ? ' class="is-target"' : '') + '><td>' + esc(r.name ? r.name + ' ' : '') + '<span class="iv-sub">' + esc(r.email) + '</span></td>' +
+        '<td><a href="track.html?s=' + encodeURIComponent(r.id) + '" target="_blank" rel="noopener">' + esc(r.what) + '</a>' + (rn ? '<br><span class="iv-sub">Rename the track</span>' : '') + '</td><td>' + state + '</td>' +
         '<td><div class="iv-actions">' + actions + '</div></td></tr>';
-    }).join('') + '</tbody></table>' : '<p class="empty">Nobody has asked to edit a map.</p>';
+    }).join('') + '</tbody></table>' : '<p class="empty">Nobody has asked to edit a map or rename a track.</p>';
   }
   function load(keepNote) {
     if (!key()) { note('Enter the admin key above and press Load.', ''); return; }
@@ -120,7 +126,7 @@
   // keeps its lines through later re-times (linesAccepted). Either way the time is worked out again from the
   // readings here and shown first, never taken from the member.
   function accept(id) {
-    var T = window.MT3UKTrack, r = rows.filter(function (x) { return x.id === id; })[0];
+    var T = window.MT3UKTrack, r = rows.filter(function (x) { return x.id === id && x.kind !== 'rename'; })[0];
     if (!T || !r || !r.proposal) { note('The timing code has not loaded yet.', 'error'); return; }
     var p = r.proposal;
     note('Working the time out again from the saved readings...');
@@ -202,11 +208,17 @@
   wrap.addEventListener('toggle', function () { if (wrap.open) load(); });
   wrap.addEventListener('click', function (e) {
     var g = e.target.closest('[data-grant]'), d = e.target.closest('[data-dismiss]'), r = e.target.closest('[data-revoke]'), a = e.target.closest('[data-accept]'), u = e.target.closest('[data-undo]');
-    if (g) act({ action: 'grant', id: g.getAttribute('data-grant') }, 'Allowed. They have been emailed.');
-    else if (d) act({ action: 'dismiss', id: d.getAttribute('data-dismiss') }, 'Declined.');
+    var btn = g || d || r || a || u, rn = !!(btn && btn.getAttribute('data-kind') === 'rename'), kind = rn ? { kind: 'rename' } : {};
+    function body(action, id) { return Object.assign({ action: action, id: id }, kind); }
+    if (g) act(body('grant', g.getAttribute('data-grant')), 'Allowed. They have been emailed.');
+    else if (d) act(body('dismiss', d.getAttribute('data-dismiss')), 'Declined.');
+    else if (a && rn) {
+      var row = rows.filter(function (x) { return x.id === a.getAttribute('data-accept') && x.kind === 'rename'; })[0];
+      if (row && window.confirm('Rename the track on this session?\n\n' + row.what + '\nFrom: ' + (row.proposal.from || 'none') + '\nTo: ' + row.proposal.to + '\n\nOnly this session changes. It changes as soon as you accept.')) act(body('accepted', row.id), 'Accepted. The track name is changed. Revoke their access when they are done.');
+    }
     else if (a) accept(a.getAttribute('data-accept'));
-    else if (u && window.confirm('Undo this change? The session stays as it is and they keep their access.')) act({ action: 'undo', id: u.getAttribute('data-undo') }, 'Undone. The session was not changed.');
-    else if (r && window.confirm('Switch off map editing for this session? Anything you have already accepted stays.')) act({ action: 'revoke', id: r.getAttribute('data-revoke') }, 'Switched off.');
+    else if (u && window.confirm('Undo this change? The session stays as it is and they keep their access.')) act(body('undo', u.getAttribute('data-undo')), 'Undone. The session was not changed.');
+    else if (r && window.confirm(rn ? 'Switch off renaming for this session? A name you have already accepted stays.' : 'Switch off map editing for this session? Anything you have already accepted stays.')) act(body('revoke', r.getAttribute('data-revoke')), 'Switched off.');
   });
   window.addEventListener('hashchange', applyHash);
   applyHash();

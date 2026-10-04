@@ -1375,8 +1375,9 @@
       lines.forEach(function (x) {
         var state = x.status === 'pending' ? 'pending' : x.proposal ? 'changed' : 'allowed';
         if (state === 'allowed') return;
-        items.push({ id: 'lines:' + x.id + ':' + state + ':' + (x.proposal ? x.proposal.at : x.at), group: state === 'changed' ? 'Map changes to approve' : 'Map edit requests', href: 'track-admin.html#lines-' + x.id, img: '',
-          title: x.name || x.email || 'A member', sub: state === 'changed' ? 'Moved the lines on ' + (x.what || 'a session') + '. Waiting for you to accept or undo' : 'Wants to edit the map on ' + (x.what || 'a session') });
+        var rn = x.kind === 'rename';
+        items.push({ id: 'lines:' + (rn ? 'rename:' : '') + x.id + ':' + state + ':' + (x.proposal ? x.proposal.at : x.at), group: rn ? (state === 'changed' ? 'Track renames to approve' : 'Track rename requests') : state === 'changed' ? 'Map changes to approve' : 'Map edit requests', href: 'track-admin.html#lines-' + x.id, img: '',
+          title: x.name || x.email || 'A member', sub: rn ? (state === 'changed' ? 'Sent a new track name for ' : 'Wants to rename the track on ') + (x.what || 'a session') : state === 'changed' ? 'Moved the lines on ' + (x.what || 'a session') + '. Waiting for you to accept or undo' : 'Wants to edit the map on ' + (x.what || 'a session') });
       });
       trackBell = items;
       renderBell();

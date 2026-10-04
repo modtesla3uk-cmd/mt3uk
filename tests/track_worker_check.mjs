@@ -660,6 +660,12 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
     const qv = (await call('GET', '/track/tracks')).body.extra.venues.find(v => v.name === 'Quarry Run');
     const x = JSON.parse(JSON.stringify(session)); x.type = 'sprint'; x.venueId = qv.id; x.venue = 'Quarry Run'; x.layoutId = qv.layouts[0].id; x.layout = 'Full course'; x.startLine = sl3; x.finishLine = fl3; x.bestTime = 40.2; x.distance = 880; x.hill = true;
     const qid = (await call('POST', '/track/sessions', { carId: 'cara1', session: x, privacy: 'board' }, 'tok-a')).body.session.id;
+    let qv2 = (await call('GET', '/track/tracks')).body.extra.venues.find(v => v.name === 'Quarry Run');
+    ok(qv2.hill === true, 'saving a hill climb at a track listed as a sprint marks the track as a hill climb: ' + JSON.stringify(qv2.hill));
+    r = await call('GET', '/track/admin/boardcheck?key=secret&id=' + qid);
+    ok(r.body.tab === 'Hill climb' && r.body.reasons.length === 0, 'and its session is on the Hill climb tab at once: ' + JSON.stringify([r.body.tab, r.body.reasons]));
+    // The admin puts it back as a sprint: the check finds the mismatch and Repair marks it again.
+    await call('PUT', '/track/admin/tracks?key=secret', { venue: Object.assign({}, qv2, { hill: false }) });
     r = await call('GET', '/track/admin/boardcheck?key=secret&id=' + qid);
     ok(r.body.tab === 'Sprint' && r.body.repairable === true && r.body.reasons.some(t => /is a hill climb, but Quarry Run is listed as a sprint/.test(t)), 'a hill climb at a track listed as a sprint is flagged: ' + JSON.stringify([r.body.tab, r.body.reasons]).slice(0, 220));
     r = await call('POST', '/track/admin/boardrepair?key=secret', { sessionId: qid });
@@ -882,6 +888,49 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   ok(r.body.state === 'none', 'and the status is back to none');
   r = await call('POST', '/track/lines/admin?key=secret', { id: 'nope', action: 'grant' });
   ok(r.status === 404, 'an unknown request is refused');
+}
+// Renaming the track on a session at a track we do not list: the same steps as editing the map (ask, allow, send, accept).
+{
+  const un = JSON.parse(JSON.stringify(session)); delete un.venueId; delete un.layoutId;
+  let r2 = await call('POST', '/track/sessions', { carId: 'cara1', session: un, privacy: 'build', venueName: 'Aerodrome' }, 'tok-a');
+  const rid = r2.body.session.id;
+  const listed = await call('POST', '/track/sessions', { carId: 'cara1', session, privacy: 'build' }, 'tok-a');
+  r = await call('POST', '/track/rename/request', { id: listed.body.session.id }, 'tok-a');
+  ok(r.status === 400 && /track list/.test(r.body.message), 'a session at a listed track cannot be renamed by the member');
+  await call('DELETE', '/track/session?id=' + listed.body.session.id, undefined, 'tok-a');
+  r = await call('POST', '/track/rename/request', { id: rid }, 'tok-b');
+  ok(r.status !== 200, 'another member cannot ask for it');
+  r = await call('GET', '/track/rename/status?id=' + rid, undefined, 'tok-a');
+  ok(r.body.state === 'none', 'no request yet');
+  r = await call('POST', '/track/rename/propose', { id: rid, name: 'Sneaky' }, 'tok-a');
+  ok(r.status === 403, 'a name cannot be sent before it is allowed');
+  let m0 = env.SEND_EMAIL.sent.length;
+  r = await call('POST', '/track/rename/request', { id: rid, note: 'Spelt it wrong' }, 'tok-a');
+  ok(r.status === 200 && r.body.state === 'pending' && env.SEND_EMAIL.sent.length === m0 + 1 && /rename a track/i.test(env.SEND_EMAIL.sent[m0]), 'asking is kept and the admin is emailed');
+  r = await call('GET', '/track/lines/admin?key=secret');
+  const rr = r.body.requests.find(x => x.id === rid && x.kind === 'rename');
+  ok(rr && rr.status === 'pending' && rr.current === 'Aerodrome', 'the admin sees it on the Line editing list as a rename');
+  r = await call('POST', '/track/lines/admin?key=secret', { kind: 'rename', id: rid, action: 'grant' });
+  ok(r.status === 200 && stored('track-rename-access')[0].status === 'granted', 'the admin allows it');
+  r = await call('POST', '/track/rename/propose', { id: rid, name: '' }, 'tok-a');
+  ok(r.status === 400, 'an empty name is refused');
+  r = await call('POST', '/track/rename/propose', { id: rid, name: 'Aerodrome' }, 'tok-a');
+  ok(r.status === 400, 'the same name is refused');
+  m0 = env.SEND_EMAIL.sent.length;
+  r = await call('POST', '/track/rename/propose', { id: rid, name: 'Newtown Aerodrome' }, 'tok-a');
+  ok(r.status === 200 && r.body.proposal.to === 'Newtown Aerodrome' && /awaiting your approval/i.test(env.SEND_EMAIL.sent[m0]) && /from: Aerodrome/.test(env.SEND_EMAIL.sent[m0]), 'the member sends the name and the admin is emailed from and to');
+  ok(stored('track-session:' + rid).venue === 'Aerodrome', 'nothing on the session has changed yet');
+  r = await call('POST', '/track/lines/admin?key=secret', { kind: 'rename', id: rid, action: 'undo' });
+  ok(r.status === 200 && stored('track-session:' + rid).venue === 'Aerodrome' && stored('track-rename-access')[0].proposal === null, 'undo leaves the name as it was');
+  await call('POST', '/track/rename/propose', { id: rid, name: 'Newtown Aerodrome' }, 'tok-a');
+  r = await call('POST', '/track/lines/admin?key=secret', { kind: 'rename', id: rid, action: 'accepted' });
+  ok(r.status === 200 && stored('track-session:' + rid).venue === 'Newtown Aerodrome', 'accepting renames the session');
+  ok(stored('track-index:' + stored('track-session:' + rid).owner).find(x => x.id === rid).venue === 'Newtown Aerodrome', 'and the member\'s list shows the new name');
+  r = await call('POST', '/track/lines/admin?key=secret', { kind: 'rename', id: rid, action: 'revoke' });
+  ok(r.status === 200 && stored('track-rename-access').length === 0, 'revoking switches it off');
+  r = await call('POST', '/track/rename/propose', { id: rid, name: 'Again' }, 'tok-a');
+  ok(r.status === 403, 'and no more names can be sent');
+  await call('DELETE', '/track/session?id=' + rid, undefined, 'tok-a');
 }
 // Pictures of a change: the old and new lines, drawn in the member's browser, come with it, show in the admin's email
 // (embedded) and on the panel, and go when the change is dealt with. They are optional: a change never waits on them.

@@ -139,10 +139,11 @@
       if (state === 'allowed') return;
       var cells = row.querySelectorAll('td');
       var who = cells[0] ? cells[0].textContent.trim() : 'A member', what = cells[1] ? cells[1].textContent.trim() : 'a session';
+      var rn = row.getAttribute('data-kind') === 'rename';
       items.push({
-        id: 'lines:' + row.getAttribute('data-key'), group: state === 'changed' ? 'Map changes to approve' : 'Map edit requests', section: 'lines', el: row, img: '',
+        id: 'lines:' + row.getAttribute('data-key'), group: rn ? (state === 'changed' ? 'Track renames to approve' : 'Track rename requests') : state === 'changed' ? 'Map changes to approve' : 'Map edit requests', section: 'lines', el: row, img: '',
         title: who,
-        sub: state === 'changed' ? 'Moved the lines on ' + what + '. Waiting for you to accept or undo' : 'Wants to edit the map on ' + what
+        sub: rn ? (state === 'changed' ? 'Sent a new track name for ' : 'Wants to rename the track on ') + what.replace(/Rename the track$/, '').trim() : state === 'changed' ? 'Moved the lines on ' + what + '. Waiting for you to accept or undo' : 'Wants to edit the map on ' + what
       });
     });
     return items;

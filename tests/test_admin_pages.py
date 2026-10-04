@@ -672,6 +672,46 @@ def test_admin_sharing_panel_loads_once_the_admin_key_is_entered(page):
 LINES_API = "**/track/lines/admin**"
 
 
+def test_admin_line_editing_panel_handles_a_track_rename_the_same_way(page):
+    """A rename request sits on the same panel: the admin allows it, sees the name from and to, and accepts it."""
+    state = {"requests": [
+        {"kind": "rename", "id": "r1", "name": "Dee", "email": "d***@example.com", "note": "Spelt wrong", "at": "2026-10-01T09:00:00Z", "status": "pending", "grantedAt": "", "proposal": None, "what": "Aerodrome, 2026-09-30", "type": "track", "current": "Aerodrome"},
+        {"kind": "rename", "id": "r2", "name": "Eve", "email": "e***@example.com", "note": "", "at": "2026-10-01T10:00:00Z", "status": "granted", "grantedAt": "2026-10-01T11:00:00Z", "what": "Aerodrome, 2026-09-29", "type": "track", "current": "Aerodrome",
+         "proposal": {"at": "2026-10-02T09:30:00Z", "from": "Aerodrome", "to": "Newtown Aerodrome"}},
+    ]}
+    calls = []
+
+    def lines(route):
+        req = route.request
+        if req.method == "POST":
+            body = json.loads(req.post_data)
+            calls.append((body.get("kind"), body["action"], body["id"]))
+            row = next(r for r in state["requests"] if r["id"] == body["id"])
+            if body["action"] == "grant":
+                row["status"], row["grantedAt"] = "granted", "2026-10-03T08:00:00Z"
+            elif body["action"] == "accepted":
+                row["proposal"] = None
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(dict(state, success=True)), headers={"Access-Control-Allow-Origin": "*"})
+    open_admin(page, "track-admin.html")
+    page.route(LINES_API, lines)
+    page.reload()
+    expect(page.locator("#lines-count")).to_have_text("1 to review")
+    page.locator("#lines-wrap summary").click()
+    rows = page.locator("#ln-list > table > tbody > tr")
+    expect(rows).to_have_count(2)
+    expect(rows.nth(0)).to_contain_text("Rename the track")
+    expect(rows.nth(0)).to_contain_text("Spelt wrong")
+    expect(rows.nth(1)).to_contain_text("Track name")
+    expect(rows.nth(1)).to_contain_text("Aerodrome")
+    expect(rows.nth(1)).to_contain_text("Newtown Aerodrome")
+    rows.nth(0).get_by_role("button", name="Allow").click()
+    expect(rows.nth(0)).to_contain_text("Waiting for them to rename the track")
+    page.once("dialog", lambda d: d.accept())
+    rows.nth(1).get_by_role("button", name="Accept").click()
+    expect(page.locator("#ln-note")).to_contain_text("The track name is changed")
+    assert calls == [("rename", "grant", "r1"), ("rename", "accepted", "r2")]
+
+
 def test_admin_line_editing_panel_allows_shows_the_change_and_undoes_or_revokes(page):
     """Members ask to edit a map; the admin allows it, sees who has access to which map and what they changed
     (from and to), and can undo the change or revoke the access."""

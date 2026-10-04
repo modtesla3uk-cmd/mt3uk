@@ -74,6 +74,11 @@ class FakeWorker:
         self.line_requests = []
         self.line_proposals = []
         self.line_images = []
+        # Asking to rename the track on a session at an unlisted track.
+        self.rename_status = "none"
+        self.rename_proposal = None
+        self.rename_requests = []
+        self.rename_proposals = []
         self.raw_gzip_source = False
 
     def reply(self, route):
@@ -131,6 +136,16 @@ class FakeWorker:
             self.line_requests.append(body)
             self.lines_status = "pending"
             data = {"success": True, "state": "pending"}
+        elif path == "/track/rename/status" and req.method == "GET":
+            data = {"success": True, "state": self.rename_status, "proposal": self.rename_proposal}
+        elif path == "/track/rename/request" and req.method == "POST":
+            self.rename_requests.append(body)
+            self.rename_status = "pending"
+            data = {"success": True, "state": "pending"}
+        elif path == "/track/rename/propose" and req.method == "POST":
+            self.rename_proposals.append(body)
+            self.rename_proposal = {"at": "2026-10-03T12:00:00Z", "from": "Aerodrome", "to": body["name"]}
+            data = {"success": True, "state": "granted", "proposal": self.rename_proposal}
         elif path == "/track/lines/image" and req.method == "POST":
             self.line_images.append((q.get("which", [""])[0], raw))
             data = {"success": True}
@@ -3948,6 +3963,47 @@ def save_fixture_session(page, fake):
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
     page.get_by_role("button", name="Save session").click()
     expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
+
+
+def test_the_session_id_is_shown_with_a_copy_button(page):
+    """The owner sees the session id on their session, with a button that copies it."""
+    page.context.grant_permissions(["clipboard-read", "clipboard-write"])
+    fake = FakeWorker()
+    save_fixture_session(page, fake)
+    expect(page.locator("#tp-sid-text")).to_have_text("new1")
+    page.get_by_role("button", name="Copy the session ID").click()
+    expect(page.locator("#tp-sid-copy")).to_contain_text("Copied")
+    assert page.evaluate("navigator.clipboard.readText()") == "new1"
+    page.set_viewport_size({"width": 390, "height": 800})
+    expect(page.locator("#tp-sid")).to_be_visible()
+    assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
+
+
+def test_a_member_requests_to_rename_an_unlisted_track_and_sends_the_name_for_approval(page):
+    """A session at a track we do not list has the name its member typed. They ask to rename it (MT3UK is told); once
+    allowed they send the new name, which waits for approval. A session at a listed track has no such box."""
+    fake = FakeWorker()
+    save_fixture_session(page, fake)
+    expect(page.locator("#rename")).to_have_count(0)
+    rec = fake.sessions["new1"]
+    rec.pop("venueId", None)
+    rec["venue"] = "Aerodrome"
+    page.reload()
+    box = page.locator("#tp-rename")
+    expect(box).to_contain_text("it has the name you typed: Aerodrome")
+    page.fill("#tp-rename-why", "Spelt wrong")
+    page.get_by_role("button", name="Request rename").click()
+    expect(box).to_contain_text("Requested. MT3UK has been told")
+    assert fake.rename_requests == [{"id": "new1", "note": "Spelt wrong"}]
+    fake.rename_status = "granted"
+    page.reload()
+    expect(box).to_contain_text("MT3UK has said you can rename this track")
+    page.fill("#tp-rename-name", "Newtown Aerodrome")
+    page.get_by_role("button", name="Send for approval").click()
+    expect(box).to_contain_text("waiting for MT3UK to approve it")
+    expect(box).to_contain_text("Newtown Aerodrome")
+    assert fake.rename_proposals == [{"id": "new1", "name": "Newtown Aerodrome"}]
+    expect(page.get_by_role("heading", name=re.compile("Aerodrome"))).to_have_count(1)
 
 
 def test_a_member_requests_to_edit_the_map_and_sends_a_change_for_approval(page):

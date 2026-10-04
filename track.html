@@ -264,7 +264,7 @@
     .tp-gbox .tp-chart-head #tp-full { order: 5; margin-left: 10px; font-size: 0; gap: 0; padding: 0 12px; }
     .tp-gbox .tp-chart-head #tp-full .icon { width: 18px; height: 18px; }
     .tp-mapcard.is-full.has-charts .tp-play { max-width: calc(var(--tp-map, 60%) - 12px); }
-    .tp-mapcard.is-full .tp-mrow b { max-width: 150px; }
+    .tp-mapcard.is-full .tp-mrow b { max-width: 180px; }
     .tp-mapcard.is-full .tp-gbox { position: absolute; top: 0; right: 0; bottom: 0; width: calc(100% - var(--tp-map, 60%)); margin: 0; padding: 4px 8px calc(4px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; overflow: hidden; background: var(--paper); border-left: 1px solid var(--hairline); }
     .tp-mapcard.is-full .tp-gbox .tp-chart-head { margin: 0; min-height: 0; }
     .tp-mapcard.is-full .tp-gbox .tp-chart-head h3 { display: none; }
@@ -278,19 +278,28 @@
     .tp-mapcard.is-full .tp-map-head .tp-speedsw > span:first-child { display: none; }
     .tp-mapcard.is-full .tp-play { left: 6px; bottom: calc(6px + env(safe-area-inset-bottom)); right: auto; padding: 4px 6px; }
     .tp-mapcard.is-full .tp-play .btn { min-height: 40px; }
-    .tp-mapcard.is-full .tp-metrics { left: 6px; top: 46px; padding: 2px 8px; font-size: 0.78rem; }
+    /* The speed and G figures float over the map with no box, white with a dark edge so they read on any map. */
+    .tp-mapcard.is-full .tp-metrics { left: 8px; top: 38px; padding: 0; background: none; font-size: 0.72rem; color: #fff; text-shadow: 0 0 3px rgba(0,0,0,.95), 0 1px 2px rgba(0,0,0,.9); pointer-events: none; }
+    .tp-mapcard.is-full .tp-metrics b, .tp-mapcard.is-full .tp-metrics .tp-mv i { color: #fff; }
     .tp-mapcard.is-full .tp-speedkey { top: 6px; left: 6px; }
     /* With the charts on, the figures sit at the top of the charts panel (placeHead), under a row of column names,
        so the cars are not hidden behind them. */
     .tp-mapcard.is-full .tp-gbox .tp-metrics { position: static; margin: 2px 0 4px; padding: 0; background: none; font-size: 0.74rem; }
-    .tp-mapcard.is-full .tp-mhead { display: grid; grid-template-columns: auto minmax(0, 1fr) repeat(3, auto); gap: 4px 10px; color: var(--steel); font-size: 0.68rem; line-height: 1.1; }
+    .tp-mapcard.is-full .tp-mhead { display: grid; grid-template-columns: auto minmax(0, 1fr) repeat(3, auto); gap: 2px 8px; color: rgba(255,255,255,.85); font-size: 0.62rem; line-height: 1.1; }
     .tp-mapcard.is-full .tp-mhead span:first-child { width: 12px; }
-    .tp-mapcard.is-full .tp-mhead span:nth-child(n+3) { min-width: 58px; text-align: right; }
+    .tp-mapcard.is-full .tp-mhead span:nth-child(n+3) { min-width: 52px; text-align: right; }
     /* The car rows and the G-force pills sit in the controls on the left, under the playback buttons. */
     .tp-mapcard.is-full .tp-play #tp-gtoggles { display: flex; flex-wrap: wrap; gap: 6px; }
     .tp-mapcard.is-full .tp-play #tp-gtoggles .chip { min-height: 36px; padding: 0 10px; font-size: 0.8rem; }
-    .tp-mapcard.is-full .tp-play .tp-metrics { position: static; margin: 0; padding: 0; background: none; font-size: 0.8rem; }
-    .tp-mapcard.is-full .tp-play .tp-mrow b { max-width: none; }
+    /* Smaller controls, so they leave the map its room: Start and Rewind as icons, tighter buttons, chips and rows. */
+    .tp-mapcard.is-full .tp-play { gap: 4px; padding: 4px 6px; }
+    .tp-mapcard.is-full .tp-play .tp-play-row, .tp-mapcard.is-full .tp-play .tp-play-btns { gap: 4px; }
+    .tp-mapcard.is-full .tp-play #tp-play-start .tp-bl, .tp-mapcard.is-full .tp-play #tp-play-back .tp-bl, .tp-mapcard.is-full .tp-play #tp-play-toggle .tp-bl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .tp-mapcard.is-full .tp-play .tp-play-btns #tp-play-start, .tp-mapcard.is-full .tp-play .tp-play-btns #tp-play-back, .tp-mapcard.is-full .tp-play .tp-play-btns #tp-play-toggle { flex: none; width: 40px; padding: 0; }
+    .tp-mapcard.is-full .tp-play .btn { min-height: 32px; }
+    .tp-mapcard.is-full .tp-play .chip, .tp-mapcard.is-full .tp-play #tp-gtoggles .chip { min-height: 28px; min-width: 0; padding: 0 7px; font-size: 0.72rem; }
+    .tp-mapcard.is-full .tp-play #tp-follow { padding: 0 7px; }
+    .tp-mapcard.is-full .tp-play #tp-gtoggles { gap: 4px; }
   }
   .tp-clock { font-size: 0.82rem; font-variant-numeric: tabular-nums; color: var(--steel); white-space: nowrap; }
   .tp-boards { display: grid; gap: 10px; }
@@ -840,7 +849,7 @@
 <script src="js/track-view.js?v=20261126" defer></script>
 <script src="js/tyre-data.js"></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20261126" defer></script>
+<script src="js/track-page.js?v=20261127" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=5" defer></script>
 <script src="js/signin-prompt.js" defer></script>

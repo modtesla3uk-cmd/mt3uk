@@ -2398,10 +2398,8 @@
     // The car rows and the G-force pills go with the playback controls on the left (as in portrait), leaving the
     // panel on the right to the charts.
     var mbox = document.getElementById('tp-metrics'), gbox = document.getElementById('tp-gbox'), play = document.getElementById('tp-play'), gt = document.getElementById('tp-gtoggles');
-    if (mbox && gbox && play) {
-      if (landFull() && !gHidden) { if (mbox.parentNode !== play) play.appendChild(mbox); }
-      else if (mbox.parentNode !== card) card.insertBefore(mbox, gbox);
-    }
+    // The figures float over the map, with no box round them, so the controls stay small.
+    if (mbox && gbox && mbox.parentNode !== card) card.insertBefore(mbox, gbox);
     if (gt && play && row) {
       if (landFull() && !gHidden) { if (gt.parentNode !== play) play.insertBefore(gt, mbox && mbox.parentNode === play ? mbox : null); }
       else if (gt.parentNode !== row) row.appendChild(gt);
@@ -2655,6 +2653,8 @@
         setM('a-v', V.fmtV(pa[4])); setM('a-acc', fmtAcc(ra[1])); setM('a-cor', fmtCor(ra[2]));
         if (A !== B) { setM('b-v', V.fmtV(pb[4])); setM('b-acc', fmtAcc(rb[1])); setM('b-cor', fmtCor(rb[2])); setM('gap', 'A is ' + Math.abs(g).toFixed(2) + ' s ' + (g >= 0 ? 'ahead' : 'behind')); }
       }
+      // Until a lap is played or scrubbed, the figures show where both laps start, not dashes.
+      try { var s0a = at(A.trace, 0), s0b = at(B.trace, 0); showMetrics(s0a, s0b, 0); setM('gap', ''); } catch (e) { /* the dashes stay */ }
       function charts() { return [sp, dl].concat(gls).filter(Boolean); }
       // The quicker lap is at x and the other is wherever it was at that
       // elapsed time, so it trails by the time gap.

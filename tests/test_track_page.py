@@ -2425,9 +2425,9 @@ def test_full_screen_map_on_a_phone(page):
         box = page.locator(sel).bounding_box()
         assert box and box["y"] >= 0 and box["y"] + box["height"] <= 390 and box["x"] + box["width"] <= 844, (sel, box)
     expect(page.locator("#tp-play-toggle")).to_be_visible()
-    # The speed and G figures and the G-force pills sit with the playback controls on the left (as in portrait),
-    # under a row of column names, so the charts panel is left to the charts.
-    expect(page.locator("#tp-play #tp-metrics")).to_have_count(1)
+    # The G-force pills sit with the playback controls on the left (as in portrait); the speed and G figures float over
+    # the map under a row of column names, so the charts panel is left to the charts.
+    expect(page.locator("#tp-play #tp-metrics")).to_have_count(0)  # the figures float over the map, with no box
     expect(page.locator("#tp-play #tp-gtoggles")).to_have_count(1)
     expect(page.locator("#tp-metrics .tp-mhead span")).to_have_text(["", "", "Speed", "Acl G", "Cor G"])
     expect(page.locator("#tp-metrics .tp-mhead")).to_be_visible()

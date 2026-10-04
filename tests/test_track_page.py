@@ -2217,6 +2217,45 @@ def test_sprints_can_ignore_the_first_finish_line_crossing(page):
 SHELSLEY_FIXTURE = ROOT / "tests" / "fixtures" / "shelsley-climb-and-descent.vbo"
 
 
+def test_the_line_figures_are_shown_in_full_and_the_map_keeps_its_zoom_when_a_marker_is_placed(page):
+    """Both ends of each line are shown as full latitude and longitude figures, with a Copy button, before the member
+    saves. Placing a marker while zoomed in does not send the map back to the whole view."""
+    def handler(route):
+        d = json.loads((ROOT / "data" / "tracks.json").read_text(encoding="utf-8"))
+        d["venues"] = [v for v in d["venues"] if v["id"] != "shelsley-walsh"]
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(d))
+    page.route(re.compile(r".*/data/tracks\.json.*"), handler)
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(SHELSLEY_FIXTURE))
+    page.locator("[data-type] button[data-v='sprint']").click()
+    page.locator("#tp-venue-name").fill("Shelsley test")
+    page.locator("#tp-tap").wait_for(state="attached", timeout=15000)
+    # Zoom in on the map, then place the first marker.
+    svg = page.locator("#tp-tap")
+    before = svg.get_attribute("viewBox")
+    page.locator("#tp-tapmap .tv-zoom-btns button").first.click()
+    page.locator("#tp-tapmap .tv-zoom-btns button").first.click()
+    zoomed = svg.get_attribute("viewBox")
+    assert zoomed != before
+    box = svg.bounding_box()
+    page.mouse.click(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+    expect(page.locator("#tp-tap .tp-tapmark")).to_have_count(1)
+    after = page.locator("#tp-tap").get_attribute("viewBox")
+    w = lambda v: float(v.split()[2])
+    assert w(after) < w(before) * 0.9, (before, zoomed, after)
+    # The second marker too, then the full figures of both lines.
+    box = svg.bounding_box()
+    page.mouse.click(box["x"] + box["width"] / 2 + 40, box["y"] + box["height"] / 2 + 10)
+    expect(page.locator("#tp-tap .tp-tapmark")).to_have_count(2)
+    figs = page.locator("#tp-figs")
+    expect(figs).to_contain_text("Start line")
+    expect(figs).to_contain_text("Finish line")
+    nums = [n.replace("\n", ", ") for n in figs.locator(".tp-fignum").all_inner_texts()]
+    assert len(nums) == 2 and all(re.fullmatch(r"-?\d+\.\d{7}(, -?\d+\.\d{7}){3}", n) for n in nums), nums
+    expect(figs.get_by_role("button", name=re.compile("Copy the"))).to_have_count(2)
+
+
 def test_a_hill_climb_can_start_its_clock_at_the_start_line(page):
     """By default a standing start is timed from the moment the car moves off. The Start the clock at the start line
     switch times from the line crossing instead, as a timing beam does, which is a little quicker."""
@@ -4100,6 +4139,12 @@ def test_a_member_requests_to_edit_the_map_and_sends_a_change_for_approval(page)
     page.mouse.click(pt[0], pt[1])
     page.get_by_role("switch", name="Correct lines?").click()
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed lap")
+    # The full figures of the old and the new line are on the screen before anything is sent.
+    figs = page.locator("#tp-figs")
+    expect(figs).to_contain_text("Before")
+    expect(figs).to_contain_text("After")
+    nums = [n.replace("\n", ", ") for n in figs.locator(".tp-fignum").all_inner_texts()]
+    assert len(nums) == 2 and nums[0] != nums[1] and all(re.fullmatch(r"-?\d+\.\d{7}(, -?\d+\.\d{7}){3}", n) for n in nums), nums
     page.get_by_role("button", name="Send for approval").click()
     # The pictures are drawn and sent first, then the change; the session page then says it is waiting.
     expect(box).to_contain_text("Your change is waiting for MT3UK to approve it", timeout=15000)

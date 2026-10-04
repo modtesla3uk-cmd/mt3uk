@@ -913,7 +913,7 @@
       add.files = read; add.list = null; add.rd = null; add.mergeOff = false;
       add.nameLooked = false;
       if (add.venueNameLooked) { add.venueName = ''; add.venueNameLooked = false; }
-      add.session = null; add.startLine = null; add.finishLine = null; add.editLines = false; add.tapFull = false; add.tapAuto = false; add.tapOutline = null; add.finishCross = 0; add.organizer = ''; add.rollout = false; add.startAtLine = false; add.confirmLines = false; add.type = null; add.date = null; add.time = null;
+      add.session = null; add.startLine = null; add.finishLine = null; add.editLines = false; add.tapFull = false; add.tapAuto = false; add.tapOutline = null; add.finishCross = 0; add.organizer = ''; add.rollout = false; add.startAtLine = false; add.tapMap = null; add.confirmLines = false; add.type = null; add.date = null; add.time = null;
       add.weatherKey = null; if (add.tempSource !== 'member') { add.temp = null; add.tempSource = ''; add.weather = null; }
       parseFile();
     }).catch(function (e) { status(e.message || 'That file could not be opened.', 'error'); });
@@ -1257,6 +1257,7 @@
     if (s.type === 'drag' && (s.runs || []).length) {
         h += '<button type="button" class="tp-switch" role="switch" aria-checked="' + !!a.rollout + '" id="tp-rollout"><span><b>1 ft rollout</b><br><small>Start the clock just after the car starts to move, where RaceBox\'s option puts it. Off times from the first movement.</small></span><span class="tp-track"></span></button>';
     }
+    h += lineFiguresHtml(a, s);
     var saveable = s.type === 'drag' ? (s.runs || []).length : s.type === 'other' ? true : !s.needsStartLine && s.laps && s.laps.length;
     if (saveable && a.lineEdit) {
       h += '<button type="button" class="btn btn-accent btn-block" id="tp-save">Send for approval</button><p class="tp-small">MT3UK checks the change before the map is updated. You will be emailed.</p>';
@@ -1354,6 +1355,7 @@
     group('[data-privacy]', function (v) { keep(); a.privacy = v; drawResult(); });
     var orgIn = document.getElementById('tp-organiser');
     if (orgIn) orgIn.addEventListener('change', function () { keep(); a.organizer = orgIn.value.trim().slice(0, 40); analyse(); });
+    document.querySelectorAll('[data-copy-line]').forEach(function (b) { b.addEventListener('click', function () { copyText(b.getAttribute('data-copy-line'), b); }); });
     var rollSw = document.getElementById('tp-rollout');
     if (rollSw) rollSw.addEventListener('click', function () { keep(); a.rollout = !a.rollout; analyse(); });
     var untimedBtn = document.getElementById('tp-save-untimed');
@@ -1423,6 +1425,28 @@
   // Unknown start line: the member taps their trace. Markers can be undone,
   // cleared or dragged along the track; a click only counts as a tap when the
   // map wasn't being dragged.
+  // The start and finish lines as the full latitude and longitude figures (both ends of each line, to 7 decimal places,
+  // about a centimetre), so they can be checked against another source before saving or sending for approval. When a
+  // saved session's map is being edited the old lines are shown beside the new ones.
+  function llText(l) { return l && l.length === 2 ? [l[0][0], l[0][1], l[1][0], l[1][1]].map(function (v) { return Number(v).toFixed(7); }).join(', ') : ''; }
+  function lineFiguresHtml(a, s) {
+    // What the member has set (or, with nothing set, the lines the course or file gave).
+    var st = a.startLine || s.startLine, fi = a.finishLine || s.finishLine;
+    if (!s || (s.type !== 'sprint' && s.type !== 'track') || !st) return '';
+    var sprint = s.type === 'sprint', o = a.lineEdit ? a.oldLines || {} : null;
+    var rows = [[sprint ? 'Start line' : 'Start and finish line', o ? o.startLine : null, st]];
+    if (sprint) rows.push(['Finish line', o ? o.finishLine : null, fi]);
+    function cell(label, l) {
+      var t = llText(l);
+      var ends = t ? t.split(', ') : [];
+      return '<div class="tp-fig"><span class="tp-lbl">' + label + '</span>' + (t ? '<span class="tp-fignum"><span>' + esc(ends[0] + ', ' + ends[1]) + '</span><span>' + esc(ends[2] + ', ' + ends[3]) + '</span></span> <button type="button" class="btn btn-ghost btn-sm" data-copy-line="' + esc(t) + '" aria-label="Copy the ' + esc(label.toLowerCase()) + '">' + icon('copy') + '<span>Copy</span></button>' : '<span class="tp-fignum">not set</span>') + '</div>';
+    }
+    return '<div class="tp-section tp-figs" id="tp-figs"><div class="tp-head"><h3>Line figures</h3></div><div class="card tp-fields">' +
+      '<p class="tp-small">Latitude and longitude of each end of the line, to 7 decimal places.</p>' +
+      rows.map(function (r) {
+        return '<div class="tp-figrow"><b>' + r[0] + '</b>' + (o ? cell('Before', r[1]) + cell('After', r[2]) : cell('Figures', r[2])) + '</div>';
+      }).join('') + '</div></div>';
+  }
   function drawTap() {
     var a = add, s = a.session, svg = document.getElementById('tp-tap'), wrap = document.getElementById('tp-tapmap');
     // A timed session keeps its laps, not the whole trace: read the trace again
@@ -1436,7 +1460,12 @@
     var trace = out.map(function (p) { var xy = proj.xy(p[0], p[1]); if (prev) d += Math.hypot(xy[0] - prev[0], xy[1] - prev[1]); prev = xy; return [d, 0, xy[0], xy[1], p[2], 0, 0]; });
     document.body.classList.toggle('tp-noscroll', !!a.tapFull);
     var fill = a.tapFull && wrap ? { w: wrap.clientWidth, h: wrap.clientHeight } : null;
+    // Placing or moving a marker redraws the page; the map carries on from the zoom and centre it had, so the member can
+    // see exactly where the line sits instead of being sent back to the whole map.
+    var kept = a.tapMap && a.tapMap.zoom && a.tapMap.zoom.frac ? a.tapMap.zoom.frac() : null;
     var m = V.map(svg, trace, { mono: true, ratio: 0.85, fill: fill, origin: [out[0][0], out[0][1]] });
+    a.tapMap = m;
+    if (kept && kept.k > 1.01 && m && m.zoom && m.zoom.restore) m.zoom.restore(kept);
     svg.style.cursor = 'crosshair';
     function nearest(px, py) {
       var bi = 0, bd = Infinity;

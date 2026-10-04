@@ -89,6 +89,12 @@
   .tp-units { flex: none; }
   .tp-refresh { flex: none; display: inline-flex; align-items: center; gap: 6px; }
   .tp-refresh .icon { width: 16px; height: 16px; }
+  .tp-figrow { display: grid; gap: 6px; padding: 10px 0; border-top: 1px solid var(--hairline); }
+  .tp-figrow:first-of-type { border-top: 0; }
+  .tp-fig { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+  .tp-fig .tp-lbl { flex: 0 0 4.2rem; }
+  .tp-fignum { display: flex; flex-direction: column; font-variant-numeric: tabular-nums; font-size: 0.9rem; color: var(--ink); }
+  .tp-fignum span { white-space: nowrap; }
   .card { padding: 16px; }
   .tp-intro { padding: 22px; display: grid; gap: 12px; justify-items: start; }
   .tp-intro p { color: var(--ink-2); max-width: 62ch; }
@@ -871,7 +877,7 @@
 <script src="js/track-view.js?v=20261144" defer></script>
 <script src="js/tyre-data.js"></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20261176" defer></script>
+<script src="js/track-page.js?v=20261177" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=7" defer></script>
 <script src="js/signin-prompt.js" defer></script>

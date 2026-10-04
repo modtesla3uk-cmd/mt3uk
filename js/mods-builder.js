@@ -173,6 +173,7 @@
         if (!d) { if (status) status.textContent = 'Could not start, please try again.'; return; }
         sortedNote = hadMods;
         if (!hadMods) { editing = 'wheels'; openRows.wheels = true; }
+        listOpen = true;
         render();
       });
     }
@@ -358,60 +359,34 @@
         (isOpen ? '<div class="mv-body">' + body + '</div>' : '') + '</div>';
     }
 
-    // Track sessions (track.html) for this car: the latest few, from
-    // opts.trackSessions(), which returns a promise of the member's list.
-    var tracks = null;
-    function loadTracks() {
-      if (tracks || !opts.trackSessions) return;
-      tracks = [];
-      opts.trackSessions().then(function (list) { tracks = list || []; render(); }).catch(function () {});
-    }
-    function carTracks() { return (tracks || []).filter(function (t) { return car && t.carId === car.id; }); }
-    function trackCount() {
-      var n = carTracks().length;
-      return n ? n + (n === 1 ? ' session' : ' sessions') : '';
-    }
-    function trackResult(t) {
-      if (t.type === 'drag') return t.quarter ? t.quarter.toFixed(2) + ' s, 1/4 mile' : (t.runs || 0) + ' runs';
-      if (!t.bestTime) return '';
-      var m = Math.floor(t.bestTime / 60), r = t.bestTime - m * 60;
-      return m + ':' + (r < 10 ? '0' : '') + r.toFixed(3);
-    }
-    function trackHtml() {
-      var list = carTracks();
-      var id = car && !car.virtual ? encodeURIComponent(car.id) : '';
-      var h = list.length ? '<div class="mbm-tracks">' + list.slice(0, 4).map(function (t) {
-        return '<a class="mbm-track" href="track.html?s=' + encodeURIComponent(t.id) + '"><span><b>' + esc(t.venue + (t.layout && t.layout !== t.venue ? ', ' + t.layout : '')) + '</b><small>' + esc(t.date || '') + (t.conditions ? ', ' + esc(t.conditions) : '') + '</small></span><span class="mbm-track-res">' + esc(trackResult(t)) + '</span></a>';
-      }).join('') + '</div>' : '<p class="mbm-hint">Upload the file from your lap timer (RaceBox, VBOX, Harry\'s LapTimer and others) to see your laps mapped and how your times change as you add mods.</p>';
-      return h + '<div class="mbm-row"><a class="btn btn-accent btn-sm" href="track.html?add=1' + (id ? '&car=' + id : '') + '">Add a session</a>' +
-        (list.length ? '<a class="btn btn-secondary btn-sm" href="track.html' + (id ? '?mycar=' + id : '') + '">All sessions</a>' : '') + '</div>';
-    }
-
     function plansHtml() {
       return '<p class="mbm-hint">Plans for further mods or changes.</p>' +
         '<div class="mbm-plan-list">' + plans.map(planHtml).join('') + '</div>' +
         '<div class="mbm-row"><button type="button" class="btn btn-secondary btn-sm" data-plan-add>' + ICON.plus + 'Add a plan</button><button type="button" class="btn btn-primary btn-sm" data-plans-save>Save plans</button><span class="mbm-saved" data-plans-saved role="status"></span></div>';
     }
 
+    // The Mods list starts folded away; the heading opens it.
+    var listOpen = false;
     function render() {
       if (!car) { root.innerHTML = ''; return; }
       if (!car.specs && !skipped(car.id)) { root.innerHTML = welcomeHtml(); return; }
-      loadTracks();
       var MV = window.MT3UKModsView;
       var view = car.view || [];
       var done = view.filter(function (a) { return a.status !== 'todo' && a.id !== 'mods'; }).length;
-      var h = '<div class="mbm-list-head"><div><h3>' + ICON.wrench + 'Mods list</h3><p class="mbm-hint">Tap an area to see what\'s in it, then Edit to change it.</p></div>' +
+      var h = '<div class="mbm-list-head"><div><button type="button" class="mbm-fold" data-list-toggle aria-expanded="' + listOpen + '"><h3>' + ICON.wrench + 'Mods list</h3>' + MV.icon('chev', 'mv-chev') + '</button>' +
+        (listOpen ? '<p class="mbm-hint">Tap an area to see what\'s in it, then Edit to change it.</p>' : '') + '</div>' +
         (car.specs ? '<div class="mbm-meter"><div class="mbm-meter-bar"><span style="width:' + Math.round(done / AREAS.length * 100) + '%"></span></div><span class="mbm-meter-text">' + done + ' of ' + AREAS.length + ' areas done</span></div>'
           : '<button type="button" class="btn btn-accent btn-sm" data-start>Build my mods list</button>') + '</div>';
-      if (sortedNote) h += '<p class="mbm-note">We\'ve put your existing mods into areas. Open each one to check it, and Edit to add sizes, dates and so on.</p>';
-      h += '<div class="mv-rows mv-two">' + MV.rows(view, { owner: true, open: openRows, editing: editing, editHtml: function (id) {
-        return areaHtml(AREAS.filter(function (x) { return x.id === id; })[0]);
-      } }) + '</div>';
+      if (listOpen) {
+        if (sortedNote) h += '<p class="mbm-note">We\'ve put your existing mods into areas. Open each one to check it, and Edit to add sizes, dates and so on.</p>';
+        h += '<div class="mv-rows mv-two">' + MV.rows(view, { owner: true, open: openRows, editing: editing, editHtml: function (id) {
+          return areaHtml(AREAS.filter(function (x) { return x.id === id; })[0]);
+        } }) + '</div>';
+      }
       var n = MV.publicCount(view);
       var galleryLink = car.photos && car.photos[0] ? 'gallery.html?photo=' + encodeURIComponent(car.photos[0].file || car.photos[0]) : 'gallery.html';
       h += '<div class="mv-rows">' +
         (car.specs ? extraRow('plans', 'What\'s next?', plans.length ? plans.length + (plans.length === 1 ? ' plan' : ' plans') : '', plansHtml()) : '') +
-        (opts.trackSessions ? extraRow('track', 'Track sessions', trackCount(), trackHtml(), 'flag', true) : '') +
         extraRow('public', 'What others see', n + (n === 1 ? ' mod' : ' mods'),
           (MV.publicList(view) || '<p class="mbm-hint">Nothing yet. Add your mods above and they show here.</p>') +
           '<div class="mbm-row"><a class="btn btn-secondary btn-sm" href="' + galleryLink + '">See it in the Gallery</a></div>', 'eye') +
@@ -516,6 +491,7 @@
     root.addEventListener('click', function (e) {
       var t = e.target;
       if (t.closest('[data-start]')) { start(); return; }
+      if (t.closest('[data-list-toggle]')) { listOpen = !listOpen; if (!listOpen && editing) cancelEdit(); render(); return; }
       if (t.closest('[data-skip]')) { setSkipped(car.id); render(); return; }
       var mvOpen = t.closest('[data-mv-open]');
       if (mvOpen) {

@@ -494,6 +494,7 @@
   .mb-site-links a { display: inline-flex; align-items: center; min-height: 36px; padding: 6px 14px; border: 1px solid var(--ink); border-radius: 999px; color: var(--ink); text-decoration: none; font-weight: 600; background: var(--white); }
   .mb-site-links a:hover { background: var(--orange); border-color: var(--orange); color: var(--white); }
   .mb-site-links a[hidden] { display: none; }
+  .mb-site-links a .icon { width: 16px; height: 16px; margin-right: 6px; }
   #mb-car-selector-view .mb-site-links { margin: 0 0 16px; }
   .mb-car-name-status { flex-shrink: 0; }
   .mb-car-color-select { font-size: 0.72rem; color: var(--ink); border: 1px solid var(--line); background: var(--white); padding: 6px 8px; flex-shrink: 0; }
@@ -731,6 +732,10 @@
   }
   .page-hero .back-link { margin-left: -10px; }
   .mb-back-btn { margin-left: -10px; }
+  /* Back to garage: a white button with an orange arrow, like the other back links. */
+  .mb-back-btn { margin-left: 0; min-height: 44px; padding: 10px 16px; background: #ffffff; border: 1px solid var(--hairline-strong); border-radius: var(--radius); font-size: 0.93rem; line-height: 1.2; transition: background-color .15s ease, border-color .15s ease; }
+  .mb-back-btn:hover { background: #ffffff; border-color: var(--ink); }
+  .mb-back-btn .icon { color: var(--orange); stroke-width: 2.4; }
   .page-hero .back-link:hover, .mb-back-btn:hover, .mb-car-view-link:hover { background: rgba(22,35,61,0.06); color: var(--ink); }
   .mb-vote-hint { border: 1px solid rgba(232,84,42,0.25); border-radius: var(--radius); background: #fdf3ef; }
   .mb-vote-hint { padding: 14px 16px; }
@@ -808,6 +813,13 @@
   .mb-car-tile:hover { border-color: var(--ink); }
   .mb-car-tile-count { font-size: 0.82rem; }
   .mb-car-tile-alert { border-radius: var(--radius-pill); padding: 2px 8px; }
+  /* The mods list progress under each car: desktop only, with bigger pictures. */
+  .mb-car-tile .mb-car-tile-mods { display: none; }
+  @media (min-width: 781px) {
+    .mb-car-grid { max-width: none; grid-template-columns: repeat(auto-fill, minmax(300px, 320px)); justify-content: center; }
+    .mb-car-tile .mb-car-tile-mods { display: grid; gap: 6px; padding: 0 12px 12px; }
+    .mb-car-tile-mods .mbm-meter-text { font-size: 0.82rem; color: var(--steel); }
+  }
   .mb-photo-thumb-wrap { border: 1px solid var(--hairline); border-radius: var(--radius); padding: 8px; gap: 8px; }
   .mb-photo-added { font-size: 0.8rem; }
   .mb-photo-default-badge { border-radius: var(--radius-pill); padding: 2px 9px; font-size: 0.74rem; font-weight: 600; }
@@ -882,7 +894,7 @@
   .mb-mods-next { display: flex; gap: 10px; align-items: flex-start; margin: 0 0 16px; padding: 12px 14px; border-radius: var(--radius-sm); background: #fdf3ef; font-size: 0.9rem; color: var(--ink-2, var(--ink)); }
   .mb-mods-next .icon { width: 18px; height: 18px; color: var(--orange); flex-shrink: 0; margin-top: 2px; }
   #mb-car-model-select, #mb-car-version-select, #mb-car-year-select { min-height: 36px; }
-  #mb-car-version-select:disabled { opacity: 0.6; }
+  .mb-car-color-select:disabled { opacity: 0.6; background: #eceef2; color: #6b7385; cursor: not-allowed; }
   /* Model, version and year stay together. */
   .mb-car-spec { display: inline-flex; flex-wrap: wrap; gap: 8px; align-items: center; }
   #mb-car-version-select { max-width: 220px; }
@@ -914,6 +926,10 @@
   .mbm-more-head .btn { min-height: 36px; }
   .mbm-list-head { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; justify-content: space-between; }
   .mbm-list-head > div:first-child { display: grid; gap: 2px; }
+  .mbm-fold { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0; border: 0; background: none; color: var(--ink); font: inherit; cursor: pointer; text-align: left; }
+  .mbm-fold h3 { margin: 0; }
+  .mbm-fold .mv-chev { width: 18px; height: 18px; color: var(--steel); transition: transform .2s; }
+  .mbm-fold[aria-expanded="true"] .mv-chev { transform: rotate(180deg); }
   .mbm-list-head .mbm-meter { flex: 1; min-width: 160px; max-width: 280px; }
   .mbm .mv-body .mbm-area { border: 0; background: none; }
   .mbm .mv-body .mbm-area-body { padding: 8px 0 0; border-top: 0; }
@@ -1471,6 +1487,7 @@ document.addEventListener('DOMContentLoaded', function () {
           <a href="index.html#build-feed" data-link="reel">Reel</a>
           <a href="index.html#vote-frame" data-link="vote">Voting</a>
           <a href="gallery.html" data-link="gallery">Gallery</a>
+          <a href="track.html" data-link="track"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V4M4 4h12l-2 4 2 4H4"/></svg>Track sessions</a>
         </div>
 
         <div class="mb-vote-hint" id="mb-vote-hint"></div>
@@ -1632,7 +1649,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <script src="js/passkeys.js"></script>
 <script src="js/mods-view.js"></script>
-<script src="js/mods-builder.js"></script>
+<script src="js/mods-builder.js?v=20261130"></script>
 <script>
   (function () {
     var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
@@ -1869,6 +1886,14 @@ document.addEventListener('DOMContentLoaded', function () {
       addCarToggleBtn.textContent = (opening ? '- ' : '+ ') + addCarLabel(cars);
     }
 
+    // The orange bar for the car's mods list, as on the car page: areas done out of all areas.
+    function modsMeterHtml(car) {
+      var total = (window.MT3UKModsBuilder && window.MT3UKModsBuilder.areas.length) || 9;
+      var done = car.specs ? (car.view || []).filter(function (a) { return a.status !== 'todo' && a.id !== 'mods'; }).length : 0;
+      return '<div class="mb-car-tile-mods mbm-meter"><div class="mbm-meter-bar"><span style="width:' + Math.round(done / total * 100) + '%"></span></div>' +
+        '<span class="mbm-meter-text">Mods list: ' + done + ' of ' + total + ' areas done</span></div>';
+    }
+
     function renderCarGrid(cars, alerts) {
       alerts = alerts || {};
       updateAddCarToggleLabel(cars);
@@ -1886,7 +1911,7 @@ document.addEventListener('DOMContentLoaded', function () {
           '<div class="mb-car-tile-body">' +
             '<span class="mb-car-tile-count mono">' + car.photos.length + ' photo' + (car.photos.length === 1 ? '' : 's') +
               (car.likeCount ? ' &middot; ' + car.likeCount + ' like' + (car.likeCount === 1 ? '' : 's') : '') + '</span>' +
-          '</div>' +
+          '</div>' + modsMeterHtml(car) +
           (alertCount ? '<span class="mb-car-tile-alert"><span class="mb-comment-alert"><span class="mb-comment-alert-icon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 7l9 6 9-6"></path></svg></span><span class="mb-comment-alert-count">' + alertCount + '</span></span></span>' : '') +
         '</button>';
       }).join('');
@@ -1916,7 +1941,9 @@ document.addEventListener('DOMContentLoaded', function () {
       gallery.href = 'gallery.html?only=' + encodeURIComponent(galleryFiles.join(','));
       var entryHere = voteEntry && photos.some(function (p) { return p.file === voteEntry.file; });
       vote.href = entryHere ? 'index.html?entry=' + encodeURIComponent(voteEntry.file) + '#vote-frame' : 'index.html#vote-how';
-      box.hidden = !photos.length;
+      var trackLink = box.querySelector('[data-link="track"]');
+      if (trackLink) trackLink.href = 'track.html' + (car && !car.virtual ? '?mycar=' + encodeURIComponent(car.id) : '');
+      box.hidden = !photos.length && !trackLink;
     }
 
     function updateSiteLinks() {
@@ -2556,27 +2583,45 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // One Edit for the car's details: name, colour, model, version and year are greyed out until
+    // Edit is pressed, then saved together with Save (or put back with Cancel).
     function showCarNameEdit(editing) {
       carNameText.hidden = editing;
       carNameEditBtn.hidden = editing;
       carNameInput.hidden = !editing;
       carNameSaveBtn.hidden = !editing;
       carNameCancelBtn.hidden = !editing;
+      applyCarLocks();
       if (editing) {
         carNameInput.focus();
         carNameInput.select();
       }
     }
+    function applyCarLocks() {
+      var on = !carNameInput.hidden;
+      carColorSelect.disabled = !on;
+      carModelSelect.disabled = !on;
+      carYearSelect.disabled = !on;
+      carVersionSelect.disabled = !on || !carModelSelect.value;
+    }
+    function fillCarFields(car) {
+      carNameInput.value = (car && car.name) || '';
+      carColorSelect.value = (car && car.color) || '';
+      drawCarModel(car);
+    }
+    function cancelCarEdit() {
+      fillCarFields(findCar(currentCarId));
+      showCarNameEdit(false);
+    }
 
     carNameEditBtn.addEventListener('click', function () {
-      var car = findCar(currentCarId);
-      carNameInput.value = (car && car.name) || '';
+      fillCarFields(findCar(currentCarId));
       showCarNameEdit(true);
     });
-    carNameCancelBtn.addEventListener('click', function () { showCarNameEdit(false); });
+    carNameCancelBtn.addEventListener('click', cancelCarEdit);
     carNameInput.addEventListener('keydown', function (e) {
       if (e.key === 'Enter') { e.preventDefault(); saveCarName(); }
-      if (e.key === 'Escape') { e.preventDefault(); showCarNameEdit(false); }
+      if (e.key === 'Escape') { e.preventDefault(); cancelCarEdit(); }
     });
     carNameSaveBtn.addEventListener('click', saveCarName);
 
@@ -2584,25 +2629,36 @@ document.addEventListener('DOMContentLoaded', function () {
       var name = carNameInput.value.trim();
       if (!currentCarId) return;
       if (!name) { setStatus(carNameStatus, 'Please enter a name', 'err'); return; }
-      var current = findCar(currentCarId);
-      if (current && current.name === name) { showCarNameEdit(false); return; }
+      var current = findCar(currentCarId) || {};
+      var model = carModelSelect.value, version = carVersionSelect.value, year = carYearSelect.value;
+      var fields = { name: name }, changed = name !== current.name;
+      if (carColorSelect.value && carColorSelect.value !== (current.color || '')) { fields.color = carColorSelect.value; changed = true; }
+      if (model !== (current.model || '')) { fields.model = model; fields.version = ''; changed = true; }
+      if (version !== (current.version || '') || fields.model !== undefined) { fields.version = version; changed = true; }
+      if (year !== String(current.year || '')) { fields.year = year; changed = true; }
+      if (!changed) { showCarNameEdit(false); return; }
       carNameSaveBtn.disabled = true;
       setStatus(carNameStatus, 'Saving…', '');
-      saveCarField(currentCarId, { name: name })
+      saveCarField(currentCarId, fields)
         .then(function (data) {
           carNameSaveBtn.disabled = false;
           if (data.success) {
             setStatus(carNameStatus, 'Saved', 'ok');
-            carNameText.textContent = name;
-            showCarNameEdit(false);
             if (data.car && data.car.id !== currentCarId) {
               currentCarId = data.car.id;
+              if (current) { current.id = data.car.id; current.virtual = false; }
             }
-            var car = findCar(currentCarId) || findCar(data.car && data.car.id);
-            if (car) car.name = name;
-            if (data.car) {
-              var idx = carsData.findIndex(function (c) { return c.id === (data.car.id === currentCarId ? currentCarId : c.id); });
+            var car = findCar(currentCarId) || current;
+            if (car) {
+              car.name = name;
+              if (fields.color !== undefined) car.color = fields.color;
+              if (fields.model !== undefined) car.model = fields.model;
+              if (fields.version !== undefined) car.version = fields.version;
+              if (fields.year !== undefined) car.year = parseInt(fields.year, 10) || '';
             }
+            carNameText.textContent = name;
+            fillCarFields(car);
+            showCarNameEdit(false);
             loadCars();
           } else {
             setStatus(carNameStatus, data.message || 'Could not save, try again', 'err');
@@ -2613,26 +2669,6 @@ document.addEventListener('DOMContentLoaded', function () {
           setStatus(carNameStatus, 'Could not save, try again', 'err');
         });
     }
-
-    carColorSelect.addEventListener('change', function () {
-      var color = carColorSelect.value;
-      if (!currentCarId) return;
-      var car = findCar(currentCarId);
-      carColorSelect.disabled = true;
-      saveCarField(currentCarId, { color: color })
-        .then(function (data) {
-          carColorSelect.disabled = false;
-          if (data.success) {
-            if (car) car.color = color;
-          } else {
-            carColorSelect.value = car ? (car.color || '') : '';
-          }
-        })
-        .catch(function () {
-          carColorSelect.disabled = false;
-          carColorSelect.value = car ? (car.color || '') : '';
-        });
-    });
 
     photoStrip.addEventListener('change', function (e) {
       var checkbox = e.target.closest('input[data-flag]');
@@ -2719,12 +2755,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // The mods builder (js/mods-builder.js): the "build your mods list"
     // card, the areas and the plans, saved on the car.
     var modsBuilder = window.MT3UKModsBuilder && window.MT3UKModsBuilder.mount(document.getElementById('mb-mods-builder'), {
-      // The member's track sessions (track.html), for the Track sessions row.
-      trackSessions: function () {
-        return fetch(API + '/track/sessions', { headers: { 'X-Session-Token': getSession() || '' }, cache: 'no-store' })
-          .then(function (res) { return res.ok ? res.json() : {}; })
-          .then(function (d) { return d.sessions || []; });
-      },
       save: function (fields) {
         var car = findCar(currentCarId);
         if (!car) return Promise.resolve({ success: false });
@@ -2769,34 +2799,14 @@ document.addEventListener('DOMContentLoaded', function () {
     function drawCarModel(car) {
       carModelSelect.value = (car && car.model) || '';
       carVersionSelect.innerHTML = MB.versionOptions((car && car.model) || '', (car && car.version) || '');
-      carVersionSelect.disabled = !(car && car.model);
+      applyCarLocks();
       carYearSelect.innerHTML = MB.yearOptions((car && car.year) || '');
     }
-    // Saves one of model, version or year; a new model clears the version.
-    function saveCarModel(sel, key) {
-      if (!currentCarId) return;
-      var car = findCar(currentCarId);
-      var fields = { name: car ? car.name : undefined };
-      fields[key] = sel.value;
-      if (key === 'model') fields.version = '';
-      sel.disabled = true;
-      saveCarField(currentCarId, fields)
-        .then(function (data) {
-          sel.disabled = false;
-          if (data.success) {
-            if (data.car && data.car.id !== currentCarId) { currentCarId = data.car.id; if (car) car.id = data.car.id; }
-            if (car) {
-              car[key] = key === 'year' ? (parseInt(sel.value, 10) || '') : sel.value;
-              if (key === 'model') car.version = '';
-            }
-          }
-          drawCarModel(car);
-        })
-        .catch(function () { sel.disabled = false; drawCarModel(car); });
-    }
-    carModelSelect.addEventListener('change', function () { saveCarModel(carModelSelect, 'model'); });
-    carVersionSelect.addEventListener('change', function () { saveCarModel(carVersionSelect, 'version'); });
-    carYearSelect.addEventListener('change', function () { saveCarModel(carYearSelect, 'year'); });
+    // Choosing another model offers that model's versions; nothing is saved until Save.
+    carModelSelect.addEventListener('change', function () {
+      carVersionSelect.innerHTML = MB.versionOptions(carModelSelect.value, '');
+      applyCarLocks();
+    });
 
     var imgLightbox = document.getElementById('mb-img-lightbox');
     var imgLightboxImg = document.getElementById('mb-img-lightbox-img');

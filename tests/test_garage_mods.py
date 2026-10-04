@@ -84,21 +84,40 @@ def test_other_cars_can_be_added_with_their_versions(device_page):
 def test_existing_car_gets_a_model_picker(device_page):
     page = device_page
     open_car(page)
+    # Greyed out until Edit is pressed, then saved together with Save.
+    assert page.locator("#mb-car-model-select").is_disabled()
+    assert page.locator("#mb-car-color-select").is_disabled()
+    assert page.locator("#mb-car-year-select").is_disabled()
+    page.locator("#mb-car-name-edit").click()
     page.select_option("#mb-car-model-select", "Model 3")
-    page.wait_for_function("document.getElementById('mb-car-model-select').disabled === false", timeout=5000)
+    page.locator("#mb-car-name-save").click()
+    page.wait_for_function("document.getElementById('mb-car-model-select').disabled === true", timeout=5000)
     assert any(line.startswith("PUT /my-builds/car") for line in page.api_log), page.api_log
     body = last_put(page)
     if body:
         assert body.get("model") == "Model 3"
     # Other cars are in the list too, grouped.
     assert page.locator("#mb-car-model-select optgroup").evaluate_all("els => els.map(e => e.label)") == ["Tesla", "Other cars"]
+    page.locator("#mb-car-name-edit").click()
     page.select_option("#mb-car-model-select", "Hyundai Ioniq 6 N")
-    page.wait_for_function("document.getElementById('mb-car-model-select').disabled === false", timeout=5000)
     assert "Ioniq 6 N" in page.locator("#mb-car-version-select option").all_inner_texts()
+    # Cancel puts it back and greys it out again.
+    page.locator("#mb-car-name-cancel").click()
+    assert page.locator("#mb-car-model-select").input_value() == "Model 3"
+    assert page.locator("#mb-car-model-select").is_disabled()
     assert page.errors == [], diagnostics(page)
 
 
+def expand(page):
+    """The Mods list starts folded away: open it."""
+    toggle = page.locator("#mb-mods-builder [data-list-toggle]")
+    toggle.wait_for(timeout=5000)
+    if toggle.get_attribute("aria-expanded") == "false":
+        toggle.click()
+
+
 def rows(page):
+    expand(page)
     return page.locator("#mb-mods-builder .mv-rows").first
 
 
@@ -108,6 +127,8 @@ def start(page):
 
 
 def open_row(page, area):
+    if area != "track":
+        expand(page)
     row = page.locator(f'#mb-mods-builder [data-mv-area="{area}"]')
     if "is-open" not in (row.get_attribute("class") or ""):
         row.locator("[data-mv-open]").click()
@@ -376,6 +397,8 @@ def test_version_and_year_next_to_the_model(device_page):
     page = device_page
     open_car(page)
     version = page.locator("#mb-car-version-select")
+    assert version.is_disabled(), "Press Edit first"
+    page.locator("#mb-car-name-edit").click()
     assert version.is_disabled(), "Pick the model first"
     page.select_option("#mb-car-model-select", "Model S")
     page.wait_for_function("!document.getElementById('mb-car-version-select').disabled", timeout=5000)
@@ -384,40 +407,46 @@ def test_version_and_year_next_to_the_model(device_page):
     version.select_option("P85D")
     page.wait_for_function("!document.getElementById('mb-car-version-select').disabled", timeout=5000)
     page.select_option("#mb-car-year-select", "2015")
-    page.wait_for_function("!document.getElementById('mb-car-year-select').disabled", timeout=5000)
     years = page.locator("#mb-car-year-select option").all_inner_texts()
     assert years[-1] == "2012"
+    page.locator("#mb-car-name-save").click()
+    page.wait_for_function("document.getElementById('mb-car-year-select').disabled === true", timeout=5000)
     body = last_put(page)
     if body:
-        assert body.get("year") == "2015"
-        puts = page.mock_state["car_puts"]
-        assert any(p.get("version") == "P85D" for p in puts)
-        assert any(p.get("model") == "Model S" and p.get("version") == "" for p in puts), "A new model clears the version"
+        assert body.get("model") == "Model S" and body.get("version") == "P85D" and body.get("year") == "2015", body
     assert overflow_width(page) <= 0
     assert page.errors == [], diagnostics(page)
 
 
 @all_devices
-def test_track_sessions_row_on_the_car(device_page):
+def test_track_sessions_link_sits_with_gallery_on_the_car(device_page):
     page = device_page
     page.mock_state["car_details"] = {"specs": {"brakes": {"status": "stock"}}, "mods": []}
-    page.mock_state["track_sessions"] = [
-        {"id": "s1", "carId": "car-1", "type": "track", "venue": "Thruxton", "layout": "Thruxton", "date": "2026-05-28", "conditions": "Dry", "bestTime": 99.786},
-        {"id": "s2", "carId": "other-car", "type": "track", "venue": "Snetterton", "layout": "Snetterton 300", "date": "2026-06-01", "bestTime": 130.5},
-    ]
     signed_in(page)
     page.goto("/my-builds.html")
     page.locator(".mb-car-tile").first.click(timeout=10000)
-    rows(page).wait_for(timeout=5000)
-    head = page.locator('#mb-mods-builder [data-mv-area="track"] .mv-row')
-    head.wait_for(timeout=5000)
-    assert "NEW" in head.inner_text() and "1 session" in head.inner_text()
-    row = open_row(page, "track")
-    assert "Thruxton" in row.inner_text() and "1:39.786" in row.inner_text() and "Snetterton" not in row.inner_text()
-    assert row.locator("a.mbm-track").get_attribute("href") == "track.html?s=s1"
-    assert row.get_by_role("link", name="Add a session").get_attribute("href") == "track.html?add=1&car=car-1"
+    link = page.locator('#mb-car-site-links [data-link="track"]')
+    expect(link).to_be_visible()
+    assert link.get_attribute("href") == "track.html?mycar=car-1"
+    # No longer a row in the Mods list.
+    assert page.locator('#mb-mods-builder [data-mv-area="track"]').count() == 0
     assert overflow_width(page) <= 0
     assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_mods_list_starts_folded_away(device_page):
+    page = device_page
+    page.mock_state["car_details"] = {"specs": {"brakes": {"status": "stock"}}, "mods": []}
+    signed_in(page)
+    page.goto("/my-builds.html")
+    page.locator(".mb-car-tile").first.click(timeout=10000)
+    toggle = page.locator("#mb-mods-builder [data-list-toggle]")
+    toggle.wait_for(timeout=5000)
+    assert toggle.get_attribute("aria-expanded") == "false"
+    assert page.locator('#mb-mods-builder [data-mv-area="brakes"]').count() == 0
+    toggle.click()
+    expect(page.locator('#mb-mods-builder [data-mv-area="brakes"]')).to_be_visible()
 
 
 @all_devices
@@ -466,3 +495,24 @@ def test_a_car_can_be_added_without_a_caption(device_page):
     if submits and submits[-1]:
         assert 'name="caption"' in submits[-1] and "No Caption Y" in submits[-1]
     assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_garage_tile_shows_mods_progress_on_desktop_and_back_is_a_button(device_page):
+    page = device_page
+    signed_in(page)
+    page.goto("/my-builds.html")
+    tile = page.locator(".mb-car-tile").first
+    tile.wait_for(timeout=10000)
+    meter = tile.locator(".mb-car-tile-mods")
+    if page.viewport_size["width"] > 780:
+        expect(meter).to_be_visible()
+        expect(meter).to_contain_text("areas done")
+        assert tile.locator(".mb-car-tile-thumb").bounding_box()["width"] >= 280
+    else:
+        expect(meter).to_be_hidden()
+    tile.click()
+    back = page.locator("#mb-car-back-btn")
+    expect(back).to_be_visible()
+    assert back.evaluate("e => getComputedStyle(e).borderTopWidth") == "1px"
+    assert back.bounding_box()["height"] >= 44

@@ -96,7 +96,7 @@
         checkBtn.disabled = false;
         if (!d.ok || !d.success) { outEl.innerHTML = '<p class="iv-note is-error">' + esc(d.message || 'Could not check it.') + '</p>'; return; }
         var s = d.session;
-        var h = '<p class="iv-note"><b>' + esc((s.venue || 'No track') + (s.layout ? ', ' + s.layout : '')) + '</b> (' + esc(s.type === 'sprint' && d.tab === 'Hill climb' ? 'hill climb' : s.type) + ', ' + esc(s.date) + (s.bestTime ? ', best ' + esc(s.bestTime) : '') + ', sharing: ' + esc(s.privacy || 'none') + ')</p>';
+        var h = '<p class="iv-note"><b>' + esc((s.venue || 'No track') + (s.layout && s.layout !== s.venue ? ', ' + s.layout : '')) + '</b> (' + esc(s.type === 'sprint' && d.tab === 'Hill climb' ? 'hill climb' : s.type) + ', ' + esc(s.date) + (s.bestTime ? ', best ' + esc(s.bestTime) : '') + ', sharing: ' + esc(s.privacy || 'none') + ')</p>';
         h += d.onBoard ? '<p class="iv-note is-ok">On the ' + esc(d.tab) + ' leaderboard (' + d.entries + ' car' + (d.entries === 1 ? '' : 's') + ' on that board).</p>'
           : '<p class="iv-note is-error">Not shown as a row on the ' + esc(d.tab) + ' leaderboard' + (d.board ? '' : ' (it has no board to be on)') + '.</p>';
         if (d.reasons && d.reasons.length) h += '<ul class="iv-note" style="padding-left:18px">' + d.reasons.map(function (r) { return '<li>' + esc(r) + '</li>'; }).join('') + '</ul>';

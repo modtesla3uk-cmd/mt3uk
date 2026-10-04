@@ -6980,7 +6980,7 @@ async function handleTrackAccessRequest(request, env) {
     var subject = 'Track Sessions early access request';
     var text = subscriberLabel(name, email) + ' has asked for early access to Track Sessions.\n\n' +
       (use ? 'Using: ' + use + '\n' : '') + (note ? 'Their note:\n' + note + '\n\n' : '\n') +
-      'Approve or decline: ' + MY_BUILDS_SITE_URL + '/admin.html#grp-tracks';
+      'Approve or decline: ' + MY_BUILDS_SITE_URL + '/track-admin.html#grp-access';
     await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text)));
   } catch (e) { /* the request is saved */ }
   return json({ success: true, access: 'pending' });
@@ -7320,7 +7320,7 @@ async function handleTrackLinesRequest(request, env) {
   list.unshift({ id: rec.id, email: accessEmail(email), name: name, note: trackText(body.note, 300), at: new Date().toISOString(), status: 'pending' });
   await env.VOTES.put('track-line-access', JSON.stringify(list.slice(0, 300)));
   await emailAdminAboutLines(env, 'Request to edit a map', subscriberLabel(name, email) + ' has asked to edit the start and finish lines on a session: ' + trackSessionLabel(rec) + ', ' + (rec.date || '') + '.\n\n' +
-    (body.note ? 'Their note:\n' + trackText(body.note, 300) + '\n\n' : '') + 'Allow it, and revoke it when they are done, on the Line editing panel:\n' + MY_BUILDS_SITE_URL + '/admin.html#lines-' + rec.id + '\n\nThe session:\n' + MY_BUILDS_SITE_URL + '/track.html?s=' + rec.id);
+    (body.note ? 'Their note:\n' + trackText(body.note, 300) + '\n\n' : '') + 'Allow it, and revoke it when they are done, on the Line editing panel:\n' + MY_BUILDS_SITE_URL + '/track-admin.html#lines-' + rec.id + '\n\nThe session:\n' + MY_BUILDS_SITE_URL + '/track.html?s=' + rec.id);
   return json({ success: true, state: 'pending' });
 }
 // The member sends the lines they have moved. Nothing on the session changes: the admin accepts it or undoes it.
@@ -7347,7 +7347,7 @@ async function handleTrackLinesPropose(request, env) {
   }
   entry.proposal = { at: new Date().toISOString(), from: from, to: to, images: { before: pics.some(function (x) { return x.which === 'before'; }), after: pics.some(function (x) { return x.which === 'after'; }) } };
   var label = trackSessionLabel(rec) + ', ' + (rec.date || ''), who = subscriberLabel(entry.name, email);
-  var requestUrl = MY_BUILDS_SITE_URL + '/admin.html#lines-' + rec.id, sessionUrl = MY_BUILDS_SITE_URL + '/track.html?s=' + rec.id;
+  var requestUrl = MY_BUILDS_SITE_URL + '/track-admin.html#lines-' + rec.id, sessionUrl = MY_BUILDS_SITE_URL + '/track.html?s=' + rec.id;
   var text = 'AWAITING YOUR APPROVAL\n\n' + who + ' has moved the lines on ' + label + '. Nothing has changed yet: accept it or undo it.\n\n' +
     'Start line\n  from: ' + trackLineText(from.startLine) + '\n  to:   ' + trackLineText(to.startLine) + '\n' + (sprint ? 'Finish line\n  from: ' + trackLineText(from.finishLine) + '\n  to:   ' + trackLineText(to.finishLine) + '\n' : '') +
     'Time\n  from: ' + trackTimeText(from.time) + '\n  to:   ' + trackTimeText(to.time) + ' (their figure, worked out again when you accept)\n\n' +
@@ -7788,7 +7788,7 @@ async function handleTrackRequest(request, env) {
     var text = subscriberLabel(await publicNameFor(env, email), email) + ' has uploaded a session at a ' + what + ' MT3UK does not have yet.\n\n' +
       'Name: ' + (req.name || 'not given') + '\n' + (req.organizer ? 'Organiser: ' + req.organizer + '\n' : '') + (req.note ? 'Note: ' + req.note + '\n' : '') +
       (req.lat !== null ? 'Position: ' + req.lat.toFixed(4) + ', ' + req.lng.toFixed(4) + '\n' : '') +
-      '\nApprove and add it, or dismiss it, on the Tracks panel: ' + MY_BUILDS_SITE_URL + '/admin.html#grp-tracks';
+      '\nApprove and add it, or dismiss it, on the Tracks panel: ' + MY_BUILDS_SITE_URL + '/track-admin.html#grp-tracks';
     await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text)));
   } catch (e) { /* the request is saved */ }
   return json({ success: true });
@@ -7827,7 +7827,7 @@ async function handleTrackCourseAdd(request, env) {
     var subject = 'New ' + what + ' added by a member: ' + req.name;
     var text = subscriberLabel(await publicNameFor(env, email), email) + ' has added a ' + what + ' to the list from their session, so it is live and timing sessions now.\n\n' +
       'Name: ' + req.name + '\n' + (req.organizer ? 'Organiser: ' + req.organizer + '\n' : '') + 'Position: ' + req.lat.toFixed(4) + ', ' + req.lng.toFixed(4) + '\n' +
-      '\nCheck its lines on the Tracks panel and mark it reviewed: ' + MY_BUILDS_SITE_URL + '/admin.html#grp-tracks';
+      '\nCheck its lines on the Tracks panel and mark it reviewed: ' + MY_BUILDS_SITE_URL + '/track-admin.html#grp-tracks';
     await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text)));
   } catch (e) { /* the track is added */ }
   return json({ success: true, venueId: added.venueId, layoutId: added.layoutId, relinked: added.relinked, library: await getTrackLibrary(env) });
@@ -8098,48 +8098,103 @@ function maskEmailForAdmin(email) {
   return m ? m[1] + '***' + m[3] : '';
 }
 
-// "Why is this session not on a leaderboard?": the admin pastes a session link or id and gets what the session
-// has (type, track, course, sharing), the board it belongs on, whether the car is on that board and with which
-// session, and the reasons in plain words. Admin key only; the board is one key, read with get().
+// "Why is this session not on a leaderboard?" The reasons, in plain words, for a session (a full record, or a
+// summary from the member's list), given the track list and the board's entries (an array, or null when it has no
+// board). Used for one session (the admin pastes a link) and for the list of every problem.
+function trackBoardWhy(rec, lib, entries) {
+  var venue = rec.venueId ? (lib.venues || []).find(function (v) { return v.id === rec.venueId; }) : null;
+  var layout = venue ? (venue.layouts || []).find(function (l) { return l.id === rec.layoutId; }) : null;
+  var key = trackBoardKey(rec), reasons = [], fixable = false;
+  function bad(t) { reasons.push(t); fixable = true; }
+  if (rec.type === 'other') reasons.push('Its type is Other, which is never on a leaderboard. The member can change the type in Session settings.');
+  if (rec.street) reasons.push('It is an admin street run, which is never on a leaderboard.');
+  if (rec.pendingCourse) bad('It was saved without times because its course ("' + rec.pendingCourse + '") is not listed yet. Approve the request on the Tracks panel.');
+  if (rec.type === 'drag') {
+    if (!rec.venueId) bad('No drag strip was matched.');
+    else if (!rec.atVenue) reasons.push('The run was not at the strip, so it is not on its board.');
+    if (rec.unlisted) bad('The strip is not listed yet (a request is waiting on the Tracks panel).');
+  } else if (rec.type !== 'other') {
+    if (!rec.venueId) bad('No track was matched (it says "' + (rec.venue || 'no name') + '"). Its track is not listed, so a request is waiting on the Tracks panel: Approve and add track links it.');
+    else if (!venue) bad('Its track (' + rec.venueId + ') is no longer in the track list.');
+    if (rec.venueId && venue && !rec.layoutId) bad('No layout or course was matched at ' + venue.name + ' (the lap length or start line did not fit a listed one). A layout request is waiting on the Tracks panel.');
+    else if (rec.layoutId && venue && !layout) bad('Its layout (' + rec.layoutId + ') is no longer listed at ' + venue.name + '.');
+    if (venue && rec.type === 'track' && venue.type !== 'circuit') bad(venue.name + ' is listed as a ' + (venue.type === 'sprint' ? (venue.hill ? 'hill climb' : 'sprint') : venue.type) + ', not a circuit, so a track day there belongs to a circuit entry of its own.');
+    if (venue && rec.type === 'sprint' && venue.type !== 'sprint') bad(venue.name + ' is listed as a circuit, so a sprint there belongs to a sprint entry of its own.');
+  }
+  if (rec.privacy === 'private') reasons.push('Its sharing is "Only me", so it is not on any board. The member turns Shared on in Session settings.');
+  if (rec.offBoard) reasons.push('It was taken off the leaderboard by the admin.');
+  var score = rec.type === 'drag' ? rec.quarter : rec.bestTime;
+  if (!score && rec.type !== 'other') bad('It has no timed ' + (rec.type === 'drag' ? 'quarter mile' : rec.type === 'sprint' ? 'run' : 'lap') + ', so there is nothing to rank.');
+  var mine = entries ? entries.find(function (e) { return e.carId === rec.carId; }) : null;
+  var tab = rec.type === 'drag' ? 'Drag' : rec.type === 'sprint' ? ((venue && venue.hill) || rec.hill || /hill\s*-?\s*climb/i.test((venue && venue.name) || rec.venue || '') ? 'Hill climb' : 'Sprint') : 'Track days';
+  var onBoard = !!(mine && mine.sessionId === rec.id);
+  if (key && mine && !onBoard) reasons.push('Its car is on the board, but with another session (' + (mine.date || '') + ', ' + (mine.time || mine.quarter || '') + '): each car shows only its fastest. This session still counts in the car\'s number of sessions and its bests by conditions and tyres.');
+  var shared = rec.privacy !== 'private' && !rec.street && !rec.offBoard;
+  if (key && shared && !mine && !fixable && score) { bad('Everything looks right, but the board has no entry for this car yet. Rebuild all leaderboards on the Tracks panel (or save the session again) to refresh it.'); }
+  return { key: key, tab: tab, reasons: reasons, onBoard: onBoard, fixable: fixable && shared, venue: venue, layout: layout, mine: mine || null };
+}
+
 async function handleTrackAdminBoardCheck(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
   var raw = String(new URL(request.url).searchParams.get('id') || '');
   var m = raw.match(/[?&]s=([a-f0-9]{8,40})/) || raw.match(/\b([a-f0-9]{8,40})\b/);
   var rec = m ? await getTrackSession(env, m[1]) : null;
   if (!rec) return json({ success: false, message: 'No session with that link or id.' }, 404);
-  var lib = await getTrackLibrary(env);
-  var venue = rec.venueId ? (lib.venues || []).find(function (v) { return v.id === rec.venueId; }) : null;
-  var layout = venue ? (venue.layouts || []).find(function (l) { return l.id === rec.layoutId; }) : null;
-  var key = trackBoardKey(rec), reasons = [];
-  if (rec.type === 'other') reasons.push('Its type is Other, which is never on a leaderboard. The member can change the type in Session settings.');
-  if (rec.street) reasons.push('It is an admin street run, which is never on a leaderboard.');
-  if (rec.pendingCourse) reasons.push('It was saved without times because its course ("' + rec.pendingCourse + '") is not listed yet. Approve the request on the Tracks panel.');
-  if (rec.type === 'drag') {
-    if (!rec.venueId) reasons.push('No drag strip was matched.');
-    else if (!rec.atVenue) reasons.push('The run was not at the strip, so it is not on its board.');
-    if (rec.unlisted) reasons.push('The strip is not listed yet (a request is waiting on the Tracks panel).');
-  } else if (rec.type !== 'other') {
-    if (!rec.venueId) reasons.push('No track was matched (it says "' + (rec.venue || 'no name') + '"). Its track is not listed, so a request is waiting on the Tracks panel: Approve and add track links it.');
-    else if (!venue) reasons.push('Its track (' + rec.venueId + ') is no longer in the track list.');
-    if (rec.venueId && venue && !rec.layoutId) reasons.push('No layout or course was matched at ' + venue.name + ' (the lap length or start line did not fit a listed one). A layout request is waiting on the Tracks panel.');
-    else if (rec.layoutId && venue && !layout) reasons.push('Its layout (' + rec.layoutId + ') is no longer listed at ' + venue.name + '.');
-    if (venue && rec.type === 'track' && venue.type !== 'circuit') reasons.push(venue.name + ' is listed as a ' + (venue.type === 'sprint' ? (venue.hill ? 'hill climb' : 'sprint') : venue.type) + ', not a circuit, so a track day there belongs to a circuit entry of its own.');
-    if (venue && rec.type === 'sprint' && venue.type !== 'sprint') reasons.push(venue.name + ' is listed as a circuit, so a sprint there belongs to a sprint entry of its own.');
-  }
-  if (rec.privacy === 'private') reasons.push('Its sharing is "Only me", so it is not on any board. The member turns Shared on in Session settings.');
-  if (rec.offBoard) reasons.push('It was taken off the leaderboard by the admin.');
-  var score = rec.type === 'drag' ? rec.quarter : rec.bestTime;
-  if (!score) reasons.push('It has no timed ' + (rec.type === 'drag' ? 'quarter mile' : rec.type === 'sprint' ? 'run' : 'lap') + ', so there is nothing to rank.');
-  var entries = key ? await getJsonKey(env, key, []) : [], mine = entries.find(function (e) { return e.carId === rec.carId; });
-  var tab = rec.type === 'drag' ? 'Drag' : rec.type === 'sprint' ? ((venue && venue.hill) || rec.hill || /hill\s*-?\s*climb/i.test((venue && venue.name) || rec.venue || '') ? 'Hill climb' : 'Sprint') : 'Track days';
-  var onBoard = !!(mine && mine.sessionId === rec.id);
-  if (key && mine && !onBoard) reasons.push('Its car is on the board, but with another session (' + (mine.date || '') + ', ' + (mine.time || mine.quarter || '') + '): each car shows only its fastest. This session still counts in the car\'s number of sessions and its bests by conditions and tyres.');
-  if (key && !mine && !reasons.length) reasons.push('Everything looks right, but the board has no entry for this car yet. Rebuild all leaderboards on the Tracks panel (or save the session again) to refresh it.');
+  var lib = await getTrackLibrary(env), key = trackBoardKey(rec);
+  var entries = key ? await getJsonKey(env, key, []) : null;
+  var why = trackBoardWhy(rec, lib, entries);
   return json({
     success: true,
     session: { id: rec.id, type: rec.type, hill: !!rec.hill, venue: rec.venue || '', venueId: rec.venueId || '', layout: rec.layout || '', layoutId: rec.layoutId || '', privacy: rec.privacy || '', date: rec.date || '', bestTime: rec.bestTime || null, car: rec.carId },
-    board: key || '', tab: tab, onBoard: onBoard, entries: entries.length, reasons: reasons
+    board: why.key || '', tab: why.tab, onBoard: why.onBoard, entries: entries ? entries.length : 0, reasons: why.reasons
   });
+}
+
+// Every session that was shared but is not on a leaderboard for a reason that can be fixed, with the reason, and every
+// board whose list entry is missing from the track list's counts. Admin only, so the list() over members is fine
+// (it reads each member's session list and each board once).
+async function handleTrackAdminBoardProblems(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var lib = await getTrackLibrary(env);
+  var idx = await env.VOTES.list({ prefix: 'track-index:', limit: 700 });
+  var boards = {}, counts = await getJsonKey(env, 'track-board-counts', {});
+  var total = 0, privateN = 0, onBoardN = 0, other = 0, problems = [], carNames = {};
+  for (var i = 0; i < idx.keys.length; i++) {
+    var sessions = await getJsonKey(env, idx.keys[i].name, []);
+    for (var j = 0; j < sessions.length; j++) {
+      var s = sessions[j];
+      total++;
+      if (s.privacy === 'private' || s.street) { privateN++; continue; }
+      if (s.type === 'other') { other++; continue; }
+      var key = trackBoardKey(s);
+      if (key && !(key in boards)) boards[key] = await getJsonKey(env, key, []);
+      var why = trackBoardWhy(s, lib, key ? boards[key] : null);
+      if (why.onBoard || (why.mine && !why.fixable)) { onBoardN++; continue; }
+      if (!why.fixable) continue;
+      if (!(s.carId in carNames)) { var cr = await getCarRecord(env, s.carId); carNames[s.carId] = (cr && cr.name) || 'a build'; }
+      problems.push({ id: s.id, carId: s.carId, board: why.key, car: carNames[s.carId], type: s.type === 'sprint' && why.tab === 'Hill climb' ? 'hill climb' : s.type, venue: s.venue || '', layout: s.layout || '', date: s.date || '', bestTime: s.bestTime || s.quarter || null, tab: why.tab, reasons: why.reasons.filter(function (t) { return !/Only me/.test(t); }) });
+    }
+  }
+  problems.sort(function (a, b) { return String(b.date).localeCompare(String(a.date)); });
+  // A board with entries that the track list does not count: its venue shows as "No sessions yet", hidden by default.
+  var hidden = Object.keys(boards).filter(function (k) { return boards[k].length && !(counts[k] > 0); }).map(function (k) { return k; });
+  return json({ success: true, members: idx.keys.length, more: !idx.list_complete, sessions: total, privateOrStreet: privateN, other: other, onBoard: onBoardN, problems: problems.slice(0, 200), hiddenBoards: hidden });
+}
+
+// Brings one board (and the track list's count and top three for it) up to date: for one car, or for every car on it.
+async function handleTrackAdminBoardRepair(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var board = String((body && body.board) || '');
+  if (!/^((track|sprint)-board:[a-z0-9-]+:[a-z0-9-]+|drag-board:[a-z0-9-]+)$/.test(board)) return json({ success: false, message: 'Unknown board' }, 400);
+  var cars = [];
+  if (body.carId && /^[A-Za-z0-9_-]{1,80}$/.test(String(body.carId))) cars.push(String(body.carId));
+  else (await getJsonKey(env, board, [])).forEach(function (e) { if (e.carId && cars.indexOf(e.carId) === -1) cars.push(e.carId); });
+  cars = cars.slice(0, 60);
+  for (var i = 0; i < cars.length; i++) await refreshTrackBoard(env, board, cars[i]);
+  var counts = await getJsonKey(env, 'track-board-counts', {});
+  return json({ success: true, refreshed: cars.length, count: counts[board] || 0 });
 }
 
 async function handleTrackAdminBoardEntry(request, env) {
@@ -9454,6 +9509,12 @@ export default {
     }
     if (url.pathname === '/track/admin/boardcheck' && request.method === 'GET') {
       return handleTrackAdminBoardCheck(request, env);
+    }
+    if (url.pathname === '/track/admin/boardrepair' && request.method === 'POST') {
+      return handleTrackAdminBoardRepair(request, env);
+    }
+    if (url.pathname === '/track/admin/boardproblems' && request.method === 'GET') {
+      return handleTrackAdminBoardProblems(request, env);
     }
     if (url.pathname === '/track/admin/sessions' && request.method === 'GET') {
       return handleTrackAdminSessions(request, env);

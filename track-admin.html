@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Track admin | MT3UK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="css/admin-page.css">
+<link rel="stylesheet" href="css/admin.css">
+<link rel="stylesheet" href="css/track-map.css">
+</head>
+<body>
+<header>
+  <div class="bell-wrap">
+    <button type="button" class="bell-btn" id="bell-btn" aria-label="Notifications" aria-expanded="false" aria-controls="bell-panel">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+      <span class="bell-badge" id="bell-badge" hidden></span>
+    </button>
+    <div class="bell-panel" id="bell-panel" role="dialog" aria-label="Notifications" hidden></div>
+  </div>
+  <h1>MT3UK Track admin</h1>
+  <div class="key-row">
+    <input type="password" id="admin-key" placeholder="Admin key" autocomplete="off">
+    <button id="load-btn" type="button">Load</button>
+    <button id="refresh-btn" type="button" class="secondary" aria-label="Refresh everything from the server">Refresh</button>
+  </div>
+</header>
+<main>
+  <ul class="admin-nav" aria-label="Track admin sections">
+    <li><a href="track-admin.html#grp-access">Access</a></li>
+    <li><a href="track-admin.html#grp-sessions">Members' sessions</a></li>
+    <li><a href="track-admin.html#grp-tracks">Tracks</a></li>
+    <li><a href="track-admin.html#grp-boards">Leaderboards</a></li>
+    <li><a href="track-admin.html#grp-content">Content</a></li>
+    <li class="nav-gap" aria-hidden="true"></li>
+    <li><a href="admin.html">Admin home</a></li>
+    <li><a href="events-admin.html">Events</a></li>
+    <li><a href="device-checklist.html">Device checks</a></li>
+  </ul>
+  <ul class="admin-subnav" id="admin-subnav" aria-label="Sections in this category" hidden></ul>
+  <p class="status" id="status"></p>
+
+  <section class="admin-group" id="grp-access" aria-labelledby="grp-access-h">
+    <div class="group-head"><h2 id="grp-access-h">Access</h2><p>Who can use Track sessions while it is an early preview.</p></div>
+    <div class="panel-wrap">
+    <details class="collapsible" id="access-wrap">
+      <summary><h3 class="panel-title">Early access <span class="summary-count" id="access-count"></span></h3></summary>
+      <p class="iv-note">Track Sessions is an early preview. Members ask for access on the page and wait here. Members who already had sessions before the preview keep using it. Shared sessions and the Ranking page stay open to everyone.</p>
+      <p class="iv-note" id="ac-note" role="status"></p>
+      <div class="iv-toolbar"><button type="button" class="tk-switch" role="switch" id="ac-open" aria-checked="false"><span class="tk-track"></span>Open to all members</button></div>
+      <h3 class="sub-head">Waiting for access</h3>
+      <div id="ac-pending"></div>
+      <h3 class="sub-head">Approved</h3>
+      <div class="iv-toolbar"><button type="button" class="secondary" id="ac-import">Add current testers</button><span class="iv-note" id="ac-import-note"></span></div>
+      <div id="ac-allowed"></div>
+      <h3 class="sub-head">Add someone</h3>
+      <form class="iv-toolbar" id="ac-add-form"><input type="email" id="ac-add-email" placeholder="Member's email" aria-label="Member's email" autocomplete="off"><button type="submit">Approve by email</button></form>
+    </details>
+    </div>
+  </section>
+
+  <section class="admin-group" id="grp-sessions" aria-labelledby="grp-sessions-h">
+    <div class="group-head"><h2 id="grp-sessions-h">Members' sessions</h2><p>Requests to edit a map, and finding a member's sessions.</p></div>
+    <div class="panel-wrap">
+    <details class="collapsible" id="lines-wrap">
+      <summary><h3 class="panel-title">Line editing <span class="summary-count" id="lines-count"></span></h3></summary>
+      <p class="iv-note">A member cannot move the start and finish lines on a session they have saved. They press <b>Request Edit Map</b> on the session and wait here. <b>Allow</b> lets them edit that one map (they are emailed). When they send a change you are emailed what the lines and time were and would be, and nothing changes until you <b>Accept</b> it or <b>Undo</b> it. Accepting works the time out again from the saved readings and shows you the result first. On a listed course it then makes the new lines the course's official lines and re-times every session at that track (a time that moves by over 10% is held back), so it changes other members' times too. <b>Revoke</b> switches their editing off once they are done.</p>
+      <p class="iv-note" id="ln-note" role="status"></p>
+      <div id="ln-list"></div>
+    </details>
+    <details class="collapsible" id="member-sessions-wrap">
+      <summary><h3 class="panel-title">Member sessions</h3></summary>
+      <p class="iv-note">Find a member by email to open their sessions, even private ones. You get a read-only view without their notes, and each view is logged below. Members are told in the privacy page. Links open on this browser once you have entered the admin key. A session at a track we do not list yet can be renamed here; one at a listed track takes its name from the Tracks panel.</p>
+      <p class="iv-note" id="ms-note" role="status"></p>
+      <div class="iv-toolbar"><input type="email" class="field" id="ms-email" placeholder="Member email" autocomplete="off"><button type="button" class="iv-act" id="ms-find">Find sessions</button></div>
+      <div id="ms-list"></div>
+      <h3 class="sub-head">Recent admin views</h3>
+      <div id="ms-views"></div>
+    </details>
+    </div>
+  </section>
+
+  <section class="admin-group" id="grp-tracks" aria-labelledby="grp-tracks-h">
+    <div class="group-head"><h2 id="grp-tracks-h">Tracks</h2><p>The tracks and drag strips Track sessions recognises, and members' requests for new ones.</p></div>
+    <div class="panel-wrap">
+    <details class="collapsible" id="tracks-wrap">
+      <summary><h3 class="panel-title">Tracks <span class="summary-count" id="tracks-count"></span></h3></summary>
+      <p class="iv-note">The tracks and drag strips that Track sessions recognises from a member's file. Most start without a start line: add one (or set up a member's request below) so laps are timed and the track gets a leaderboard. Changes apply to new uploads straight away.</p>
+      <p class="iv-note" id="tk-note" role="status"></p>
+      <h3 class="sub-head">New track requests</h3>
+      <div id="tk-requests"></div>
+      <div class="tk-form" id="tk-form" hidden></div>
+      <details class="tk-fold" id="tk-list-wrap" open>
+        <summary><h3 class="sub-head panel-title">Tracks <span class="summary-count" id="tk-list-count"></span></h3></summary>
+        <div id="tk-list"></div>
+      </details>
+    </details>
+    </div>
+  </section>
+
+  <section class="admin-group" id="grp-boards" aria-labelledby="grp-boards-h">
+    <div class="group-head"><h2 id="grp-boards-h">Leaderboards</h2><p>Why a session is not on a leaderboard, and rebuilding and re-timing them.</p></div>
+    <div class="panel-wrap">
+    <details class="collapsible" id="board-checks-wrap">
+      <summary><h3 class="panel-title">Problems and checks</h3></summary>
+      <p class="iv-note">Find out why a session is not on a leaderboard, one at a time or all at once.</p>
+      <h3 class="sub-head">One session</h3>
+      <p class="iv-note">Paste a session link or id. It says which board the session belongs on, whether its car is on it, and what is stopping it if not.</p>
+      <div class="iv-toolbar"><input type="text" class="field" id="ms-id" placeholder="Session link or id" autocomplete="off"><button type="button" class="iv-act" id="ms-check">Check</button></div>
+      <div id="ms-check-out" role="status"></div>
+      <h3 class="sub-head">All leaderboard problems</h3>
+      <p class="iv-note">Every shared session that is not on a leaderboard for a reason that can be fixed, and any board the track list is not counting, so it is hidden. Private sessions and cars shown with a faster session are not problems.</p>
+      <div class="iv-toolbar"><button type="button" class="iv-act" id="ms-problems">Find problems</button></div>
+      <div id="ms-prob-out" role="status"></div>
+    </details>
+    <details class="collapsible" id="boards-wrap">
+      <summary><h3 class="panel-title">Rebuild and re-time</h3></summary>
+      <p class="iv-note">Leaderboard places keep each car's best for every mix of conditions and tyres, and its track-relevant parts. Places made before that are brought up to date here: it goes through the cars a few at a time.</p>
+      <div class="iv-toolbar"><button type="button" class="secondary" id="tk-rebuild">Rebuild all leaderboards</button><span class="iv-note" id="tk-rebuild-note" role="status"></span></div>
+      <div class="iv-toolbar"><button type="button" class="secondary" id="tk-retime-check">Check sessions</button><button type="button" class="secondary" id="tk-retime">Re-time out of date sessions</button><button type="button" class="tk-switch" role="switch" id="tk-retime-big" aria-checked="false"><span class="tk-track"></span>Also re-time big changes (best time moves over 10%)</button><span class="iv-note" id="tk-retime-note" role="status"></span></div>
+      <ul class="iv-note" id="tk-retime-list" style="list-style:none;padding:0;margin:8px 0 0"></ul>
+      <select id="tk-board-pick" aria-label="Leaderboard"></select>
+      <div id="tk-board"></div>
+    </details>
+    </div>
+  </section>
+
+  <section class="admin-group" id="grp-content" aria-labelledby="grp-content-h">
+    <div class="group-head"><h2 id="grp-content-h">Content</h2><p>The words, tyres and shared-link picture that Track sessions shows.</p></div>
+    <div class="panel-wrap">
+    <details class="collapsible" id="copy-wrap">
+      <summary><h3 class="panel-title">Welcome text</h3></summary>
+      <p class="iv-note">The card a visitor who is not signed in sees at the top of Track sessions: its heading, the paragraph and the tick list. Anything left blank keeps the built-in words.</p>
+      <p class="iv-note" id="tc-note" role="status"></p>
+      <div class="ts-new">
+        <label>Heading<input type="text" id="tc-heading" maxlength="80"></label>
+        <label>Paragraph<textarea id="tc-intro" rows="4" maxlength="600"></textarea></label>
+        <label>Tick list, one line each (up to 8)<textarea id="tc-bullets" rows="6"></textarea></label>
+        <div class="iv-toolbar"><button type="button" class="secondary" id="tc-save">Save</button><button type="button" class="secondary" id="tc-reset">Use the built-in words</button></div>
+      </div>
+    </details>
+    <details class="collapsible" id="tyres-wrap">
+      <summary><h3 class="panel-title">Tyres <span class="summary-count" id="tyres-count"></span></h3></summary>
+      <p class="iv-note">The tyre makes and models offered in Track sessions. The Model box suggests a make's models and members can still type anything. data/tyres.json is the starting list; changes made here are stored by the worker on top of it and used straight away.</p>
+      <p class="iv-note" id="ty-note" role="status"></p>
+      <div class="tk-form" id="ty-form" hidden></div>
+      <h3 class="sub-head">Makes</h3>
+      <div id="ty-list"></div>
+      <h3 class="sub-head">Sizes</h3>
+      <div id="ty-sizes"></div>
+    </details>
+    <details class="collapsible" id="share-wrap" data-share-slot="track">
+      <summary><h3 class="panel-title">Track sessions sharing</h3></summary>
+      <p class="iv-note">The picture a shared Track sessions link shows in WhatsApp, Facebook and the rest. Draw one from a saved session (its map, times and g chart) or upload a photo, give it a caption, and either rotate through them a week at a time or pick one. Previews update within a few minutes of a change; a link already sent in a chat keeps its old picture.</p>
+      <p class="iv-note ts-note" role="status"></p>
+      <div class="iv-toolbar"><button type="button" class="tk-switch ts-rotate" role="switch" aria-checked="false"><span class="tk-track"></span><span>A different picture each week</span></button></div>
+      <div class="ts-list"></div>
+      <h3 class="sub-head">Add a picture</h3>
+      <div class="ts-new">
+        <label>From a session<select class="ts-session"><option value="">Choose a session</option></select></label>
+        <label>Or a photo<input type="file" class="ts-photo" accept="image/*"></label>
+        <canvas class="ts-preview" width="1200" height="630" hidden aria-label="Preview of the picture"></canvas>
+        <p class="iv-note ts-preview-note"></p>
+        <label>Caption<input type="text" class="ts-caption" maxlength="200" placeholder="A line for the preview, for example: Thruxton, every lap mapped and timed"></label>
+        <div class="iv-toolbar"><button type="button" class="secondary ts-make" disabled>Save to the pictures</button></div>
+      </div>
+    </details>
+    </div>
+  </section>
+
+</main>
+<script src="js/track-admin-page.js?v=20261160"></script>
+<script src="js/admin-subnav.js?v=20261160" defer></script>
+<script src="js/track-parse.js?v=20261150" defer></script>
+<script src="js/track-view.js?v=20261144" defer></script>
+<script src="js/track-access-admin.js" defer></script>
+<script src="js/track-lines-admin.js?v=20261111" defer></script>
+<script src="js/track-member-admin.js?v=20261154" defer></script>
+<script src="js/track-admin.js?v=20261150" defer></script>
+<script src="js/track-share-card.js?v=20261128"></script>
+<script src="js/track-share-admin.js?v=20261105" defer></script>
+<script src="js/track-copy-admin.js?v=20261102" defer></script>
+<script src="js/tyre-data.js" defer></script>
+<script src="js/tyre-admin.js" defer></script>
+</body>
+</html>

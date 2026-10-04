@@ -206,7 +206,7 @@ ok(r.body.sessions.length === 1 && !r.body.sessions.some(s => s.street), 'street
 const reqMails = env.SEND_EMAIL.sent.length;
 r = await call('POST', '/track/requests', { name: 'Old airfield', startLine: [[53.1, -1.1], [53.1001, -1.1001]], outline: [[53.1, -1.1], [53.11, -1.11]], lapLength: 900 }, 'tok-a');
 ok(r.status === 200, 'member asks for a new track');
-ok(env.SEND_EMAIL.sent.length === reqMails + 1 && /modtesla3uk@gmail\.com/.test(env.SEND_EMAIL.sent[reqMails]) && /New track request: Old airfield/.test(env.SEND_EMAIL.sent[reqMails]) && /admin\.html#grp-tracks/.test(env.SEND_EMAIL.sent[reqMails]), 'the admin is emailed about the new track');
+ok(env.SEND_EMAIL.sent.length === reqMails + 1 && /modtesla3uk@gmail\.com/.test(env.SEND_EMAIL.sent[reqMails]) && /New track request: Old airfield/.test(env.SEND_EMAIL.sent[reqMails]) && /track-admin\.html#grp-tracks/.test(env.SEND_EMAIL.sent[reqMails]), 'the admin is emailed about the new track');
 r = await call('GET', '/track/admin/requests');
 ok(r.status === 401, 'requests need the admin key');
 r = await call('GET', '/track/admin/requests?key=secret');
@@ -611,7 +611,27 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   let id3 = await mk({ venueId: '', layoutId: '', venueName: 'Somewhere new', venue: 'Somewhere new' }, 'board');
   r = await call('GET', '/track/admin/boardcheck?key=secret&id=' + id3);
   ok(r.body.board === '' && r.body.reasons.some(x => /not listed|No track was matched/.test(x)), 'an unlisted track says so: ' + JSON.stringify(r.body.reasons));
-  for (const x of [id1, id2, id3]) await call('DELETE', '/track/session?id=' + x, undefined, 'tok-a');
+  // The list of every problem: the unlisted shared one is in it with its reason; the one on the board and the private one are not.
+  let id4 = await mk({}, 'private');
+  r = await call('GET', '/track/admin/boardproblems');
+  ok(r.status === 401, 'the problem list needs the admin key');
+  r = await call('GET', '/track/admin/boardproblems?key=secret');
+  const pr = r.body.problems || [];
+  ok(r.status === 200 && pr.some(x => x.id === id3 && x.reasons.some(t => /No track was matched/.test(t))), 'a shared session at an unlisted track is listed with its reason: ' + JSON.stringify(pr.map(x => x.id)).slice(0, 120));
+  ok(!pr.some(x => x.id === id1 || x.id === id2 || x.id === id4), 'sessions on a board, behind a faster one of the car, or private are not listed as problems');
+  ok(typeof r.body.sessions === 'number' && r.body.sessions >= 4 && r.body.privateOrStreet >= 1 && Array.isArray(r.body.hiddenBoards), 'with the totals: ' + JSON.stringify([r.body.sessions, r.body.privateOrStreet, r.body.onBoard]));
+  // A board whose count is missing from the track list is found and repaired.
+  const boardKey = (await call('GET', '/track/admin/boardcheck?key=secret&id=' + id1)).body.board;
+  const cnt = JSON.parse(kv.get('track-board-counts') || '{}'); delete cnt[boardKey]; kv.set('track-board-counts', JSON.stringify(cnt));
+  r = await call('GET', '/track/admin/boardproblems?key=secret');
+  ok(r.body.hiddenBoards.includes(boardKey), 'a board with entries but no count is listed as hidden: ' + JSON.stringify(r.body.hiddenBoards));
+  r = await call('POST', '/track/admin/boardrepair?key=nope', { board: boardKey });
+  ok(r.status === 401, 'repairing needs the admin key');
+  r = await call('POST', '/track/admin/boardrepair?key=secret', { board: boardKey });
+  ok(r.status === 200 && r.body.refreshed >= 1 && r.body.count >= 1, 'repairing it puts the count back: ' + JSON.stringify(r.body));
+  r = await call('GET', '/track/admin/boardproblems?key=secret');
+  ok(!r.body.hiddenBoards.includes(boardKey), 'and it is no longer hidden');
+  for (const x of [id1, id2, id3, id4]) await call('DELETE', '/track/session?id=' + x, undefined, 'tok-a');
 }
 
 // A new place whose name says hill climb is listed as a hill climb, so it is on that leaderboard tab.
@@ -756,7 +776,7 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   r = await call('POST', '/track/lines/request', { id: lid, note: 'The finish is in the wrong place' }, 'tok-a');
   ok(r.status === 200 && r.body.state === 'pending', 'the owner presses Request Edit Map');
   ok(env.SEND_EMAIL.sent.length === mails + 1 && /Request to edit a map/.test(env.SEND_EMAIL.sent[mails]) && /modtesla3uk@gmail\.com/.test(env.SEND_EMAIL.sent[mails]) && /wrong place/.test(env.SEND_EMAIL.sent[mails]), 'the admin is emailed about the request');
-  ok(new RegExp('https://mt3uk\\.com/admin\\.html#lines-' + lid).test(env.SEND_EMAIL.sent[mails]) && new RegExp('https://mt3uk\\.com/track\\.html\\?s=' + lid).test(env.SEND_EMAIL.sent[mails]), 'and the email links straight to the request on the admin page and to the session');
+  ok(new RegExp('https://mt3uk\\.com/track-admin\\.html#lines-' + lid).test(env.SEND_EMAIL.sent[mails]) && new RegExp('https://mt3uk\\.com/track\\.html\\?s=' + lid).test(env.SEND_EMAIL.sent[mails]), 'and the email links straight to the request on the admin page and to the session');
   r = await call('POST', '/track/lines/request', { id: lid }, 'tok-a');
   ok(r.status === 200 && r.body.state === 'pending' && stored('track-line-access').length === 1, 'asking again does not add another request');
   r = await call('POST', '/track/lines/propose', proposal(), 'tok-a');
@@ -783,7 +803,7 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   ok(r.status === 200 && r.body.proposal && r.body.proposal.to.time === 99.5, 'the member sends the moved lines');
   ok(startOf() === orig, 'and nothing on the session has changed');
   const note = env.SEND_EMAIL.sent[before] || '';
-  ok(env.SEND_EMAIL.sent.length === before + 1 && /awaiting your approval/i.test(note) && /from: /.test(note) && /to:   /.test(note) && /1:39\.500/.test(note) && new RegExp('admin\\.html#lines-' + lid).test(note) && new RegExp('track\\.html\\?s=' + lid).test(note), 'the admin is emailed what the lines and time were and would be, with a link to the request and the session');
+  ok(env.SEND_EMAIL.sent.length === before + 1 && /awaiting your approval/i.test(note) && /from: /.test(note) && /to:   /.test(note) && /1:39\.500/.test(note) && new RegExp('track-admin\\.html#lines-' + lid).test(note) && new RegExp('track\\.html\\?s=' + lid).test(note), 'the admin is emailed what the lines and time were and would be, with a link to the request and the session');
   r = await call('GET', '/track/lines/admin?key=secret');
   const row2 = r.body.requests.find(x => x.id === lid);
   ok(row2.status === 'granted' && row2.proposal && row2.proposal.from.startLine[0][0] === orig && Math.abs(row2.proposal.to.startLine[0][0] - (orig + 0.0003)) < 1e-9, 'the admin sees the change from and to');
@@ -844,7 +864,7 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   ok(env.SEND_EMAIL.sent.length === before + 1 && /Subject: Map edit awaiting your approval: Thruxton/.test(mail) && /AWAITING YOUR APPROVAL/.test(mail), 'the admin is emailed that a change is awaiting approval');
   ok(/multipart\/related/.test(mail) && /multipart\/alternative/.test(mail) && /Content-Type: text\/plain/.test(mail) && /Content-Type: text\/html/.test(mail), 'with a text version and an HTML version');
   ok((mail.match(/Content-Type: image\/jpeg/g) || []).length === 2 && /Content-ID: <before-/.test(mail) && /Content-ID: <after-/.test(mail) && /src="cid:before-/.test(mail) && /src="cid:after-/.test(mail) && /\/9j\/4A/.test(mail), 'and both pictures embedded in it');
-  ok(new RegExp('admin\\.html#lines-' + lid).test(mail) && new RegExp('track\\.html\\?s=' + lid).test(mail), 'with the links to the request and the session');
+  ok(new RegExp('track-admin\\.html#lines-' + lid).test(mail) && new RegExp('track\\.html\\?s=' + lid).test(mail), 'with the links to the request and the session');
   r = await raw('GET', '/track/lines/image?id=' + lid + '&which=before');
   ok(r.status === 401, 'the pictures need the admin key to look at');
   r = await raw('GET', '/track/lines/image?key=secret&id=' + lid + '&which=after');

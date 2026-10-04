@@ -1,5 +1,5 @@
 /*
-  admin.html, Early access panel: who can use Track Sessions while it is an
+  track-admin.html, Early access panel: who can use Track Sessions while it is an
   early preview. Members ask on track.html; the requests wait here to be
   approved or declined. The list is one KV key (track-access) kept by the
   worker (/track/access/admin). "Open to all members" lets everyone in.

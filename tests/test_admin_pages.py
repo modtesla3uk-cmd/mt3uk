@@ -15,13 +15,21 @@ from test_devices import overflow_width
 
 API_HOST = "late-darkness-ebc8.modtesla3uk.workers.dev"
 PAGES = ["admin.html", "events-admin.html", "device-checklist.html"]
+ALL_PAGES = PAGES + ["track-admin.html"]
 GROUPS = [
     ("grp-gallery", "Gallery and builds", ["pending-wrap", "decided-wrap", "unclaimed-wrap", "votes-wrap"]),
     ("grp-reports", "Reports", ["comments-wrap", "rphotos-wrap", "local-wrap"]),
     ("grp-members", "Members", ["subscribers-wrap", "members-msg-wrap"]),
     ("grp-interviews", "Owner interviews", ["interviews-wrap", "preview-wrap"]),
-    ("grp-tracks", "Track sessions", ["access-wrap", "lines-wrap", "member-sessions-wrap", "tracks-wrap", "copy-wrap", "tyres-wrap"]),
-    ("grp-sharing", "Sharing links", ["home-share-wrap", "share-wrap"]),
+    ("grp-sharing", "Sharing links", ["home-share-wrap"]),
+]
+# The Track sessions tools have a page of their own, in five categories.
+TRACK_GROUPS = [
+    ("grp-access", "Access", ["access-wrap"]),
+    ("grp-sessions", "Members' sessions", ["lines-wrap", "member-sessions-wrap"]),
+    ("grp-tracks", "Tracks", ["tracks-wrap"]),
+    ("grp-boards", "Leaderboards", ["board-checks-wrap", "boards-wrap"]),
+    ("grp-content", "Content", ["copy-wrap", "tyres-wrap", "share-wrap"]),
 ]
 
 
@@ -45,7 +53,7 @@ def test_the_admin_pages_are_light_and_share_one_navigation(page, name):
     links = page.locator(".admin-nav a")
     assert links.all_inner_texts() == ["Gallery and builds", "Reports", "Members", "Owner interviews", "Track sessions", "Sharing links", "Events", "Device checks"]
     hrefs = [links.nth(i).get_attribute("href") for i in range(links.count())]
-    assert hrefs == ["admin.html#grp-gallery", "admin.html#grp-reports", "admin.html#grp-members", "admin.html#grp-interviews", "admin.html#grp-tracks", "admin.html#grp-sharing", "events-admin.html", "device-checklist.html"]
+    assert hrefs == ["admin.html#grp-gallery", "admin.html#grp-reports", "admin.html#grp-members", "admin.html#grp-interviews", "track-admin.html", "admin.html#grp-sharing", "events-admin.html", "device-checklist.html"]
     current = page.locator('.admin-nav a[aria-current="page"]')
     if name == "admin.html":
         expect(current).to_have_count(0)
@@ -64,10 +72,33 @@ def test_admin_panels_sit_in_logical_groups(page):
     # Every panel is in exactly one group, and each is a white card.
     assert page.locator("details.collapsible").count() == sum(len(g[2]) for g in GROUPS)
     assert page.locator("details.collapsible:not(.admin-group details)").count() == 0
-    assert luminance(page.evaluate("getComputedStyle(document.querySelector('#tyres-wrap')).backgroundColor")) > 0.95
+    assert luminance(page.evaluate("getComputedStyle(document.querySelector('#home-share-wrap')).backgroundColor")) > 0.95
     # The nav jumps to a group.
-    page.locator('.admin-nav a[href="admin.html#grp-tracks"]').click()
-    expect(page.locator("#grp-tracks .group-head h2")).to_be_in_viewport()
+    page.locator('.admin-nav a[href="admin.html#grp-sharing"]').click()
+    expect(page.locator("#grp-sharing .group-head h2")).to_be_in_viewport()
+
+
+def test_the_track_admin_page_has_its_own_categories(page):
+    open_admin(page, "track-admin.html")
+    expect(page.locator("h1")).to_have_text("MT3UK Track admin")
+    assert luminance(page.evaluate("getComputedStyle(document.body).backgroundColor")) > 0.85
+    links = page.locator(".admin-nav a")
+    assert links.all_inner_texts() == ["Access", "Members' sessions", "Tracks", "Leaderboards", "Content", "Admin home", "Events", "Device checks"]
+    heads = page.locator(".admin-group > .group-head h2").all_inner_texts()
+    assert heads == [g[1] for g in TRACK_GROUPS]
+    for gid, title, ids in TRACK_GROUPS:
+        inside = page.locator("#%s details.collapsible" % gid).evaluate_all("els => els.map(e => e.id)")
+        assert inside == ids, (gid, inside)
+        expect(page.locator("#%s .group-head p" % gid)).not_to_be_empty()
+    assert page.locator("details.collapsible").count() == sum(len(g[2]) for g in TRACK_GROUPS)
+    assert page.locator("details.collapsible:not(.admin-group details)").count() == 0
+    # The admin page no longer carries any of these panels, and its menu leads here.
+    page2 = page.context.new_page()
+    open_admin(page2, "admin.html")
+    for gid, title, ids in TRACK_GROUPS:
+        for pid in ids:
+            assert page2.locator("#" + pid).count() == 0, pid
+    assert page2.locator('.admin-nav a[href="track-admin.html"]').count() == 1
 
 
 def test_event_and_device_pages_are_grouped(page):
@@ -81,7 +112,7 @@ def test_event_and_device_pages_are_grouped(page):
     assert luminance(page2.evaluate("getComputedStyle(document.querySelector('.card')).backgroundColor")) > 0.95
 
 
-@pytest.mark.parametrize("name", PAGES)
+@pytest.mark.parametrize("name", ALL_PAGES)
 def test_admin_pages_fit_a_phone(page, name):
     page.set_viewport_size({"width": 390, "height": 844})
     open_admin(page, name)
@@ -101,17 +132,43 @@ def test_admin_sub_menu_lists_the_sections_of_the_current_category(page):
     assert sub.locator("a").all_inner_texts() == ["Pending claims", "Decided claims", "Unclaimed photos", "Build of the Week entries"]
     expect(page.locator('.admin-nav a[data-here="true"]')).to_have_text("Gallery and builds")
     # Choosing a category swaps the sub menu to that category's sections.
-    page.locator('.admin-nav a[href="admin.html#grp-tracks"]').click()
-    expect(sub.locator("a")).to_have_text(["Early access", "Line editing", "Member sessions", "Tracks", "Welcome text", "Tyres"])
-    expect(page.locator('.admin-nav a[data-here="true"]')).to_have_text("Track sessions")
+    page.locator('.admin-nav a[href="admin.html#grp-sharing"]').click()
+    expect(page.locator('.admin-nav a[data-here="true"]')).to_have_text("Sharing links")
     # Choosing a section opens its panel and scrolls to it.
-    sub.locator("a", has_text="Tyres").click()
-    expect(page.locator("#tyres-wrap")).to_have_attribute("open", "")
-    expect(page.locator("#tyres-wrap summary")).to_be_in_viewport()
+    page.locator('.admin-nav a[href="admin.html#grp-reports"]').click()
+    sub.locator("a", has_text="Reported comments").click()
+    expect(page.locator("#comments-wrap")).to_have_attribute("open", "")
+    expect(page.locator("#comments-wrap summary")).to_be_in_viewport()
     # The sub menu sits under the main menu, not over it.
     a = page.locator(".admin-nav").bounding_box()
     b = sub.bounding_box()
     assert b["y"] >= a["y"] + a["height"] - 1
+
+
+def test_the_track_admin_sub_menu_lists_the_sections_of_each_category(page):
+    open_admin(page, "track-admin.html")
+    sub = page.locator("#admin-subnav")
+    # Access has one panel, so no sub menu; the second category lists its two.
+    page.locator('.admin-nav a[href="track-admin.html#grp-sessions"]').click()
+    expect(sub.locator("a")).to_have_text(["Line editing", "Member sessions"])
+    expect(page.locator('.admin-nav a[data-here="true"]')).to_have_text("Members' sessions")
+    page.locator('.admin-nav a[href="track-admin.html#grp-content"]').click()
+    expect(sub.locator("a")).to_have_text(["Welcome text", "Tyres", "Track sessions sharing"])
+    sub.locator("a", has_text="Tyres").click()
+    expect(page.locator("#tyres-wrap")).to_have_attribute("open", "")
+    expect(page.locator("#tyres-wrap summary")).to_be_in_viewport()
+    a = page.locator(".admin-nav").bounding_box()
+    b = sub.bounding_box()
+    assert b["y"] >= a["y"] + a["height"] - 1
+
+
+def test_the_old_admin_addresses_for_the_track_panels_lead_to_the_new_page(page):
+    open_admin(page, "admin.html")
+    page.goto("/admin.html#lines-wrap")
+    expect(page).to_have_url(re.compile(r"/track-admin\.html#lines-wrap$"))
+    expect(page.locator("#lines-wrap")).to_have_attribute("open", "")
+    page.goto("/admin.html#grp-tracks")
+    expect(page).to_have_url(re.compile(r"/track-admin\.html#grp-tracks$"))
 
 
 def test_admin_can_rebuild_the_leaderboards_in_steps(page):
@@ -122,9 +179,9 @@ def test_admin_can_rebuild_the_leaderboards_in_steps(page):
         calls.append(url)
         data = {"success": True, "cars": 2, "done": False, "cursor": "2"} if "cursor=" not in url else {"success": True, "cars": 1, "done": True, "cursor": ""}
         route.fulfill(status=200, content_type="application/json", body=json.dumps(data), headers={"Access-Control-Allow-Origin": "*"})
-    open_admin(page, "admin.html")
+    open_admin(page, "track-admin.html")
     page.route("**/track/boards/rebuild**", rebuild)
-    page.locator("#tracks-wrap > summary").click()
+    page.locator("#boards-wrap > summary").click()
     page.locator("#tk-rebuild").click()
     expect(page.locator("#tk-rebuild-note")).to_have_text("Done: 3 cars brought up to date.")
     assert len(calls) == 2 and "key=test-key" in calls[0] and "cursor=2" in calls[1]
@@ -174,9 +231,9 @@ def _retime_mocks(page, saved, old_best=99.9):
 
 def test_admin_check_sessions_counts_old_ones_and_saves_nothing(page):
     saved = []
-    open_admin(page, "admin.html")
+    open_admin(page, "track-admin.html")
     _retime_mocks(page, saved)
-    page.locator("#tracks-wrap > summary").click()
+    page.locator("#boards-wrap > summary").click()
     page.locator("#tk-retime-check").click()
     note = page.locator("#tk-retime-note")
     expect(note).to_contain_text("3 sessions looked at")
@@ -190,10 +247,10 @@ def test_admin_check_sessions_counts_old_ones_and_saves_nothing(page):
 
 def test_admin_retime_saves_the_new_timing_then_rebuilds_the_boards(page):
     saved = []
-    open_admin(page, "admin.html")
+    open_admin(page, "track-admin.html")
     _retime_mocks(page, saved)
     page.on("dialog", lambda d: d.accept())
-    page.locator("#tracks-wrap > summary").click()
+    page.locator("#boards-wrap > summary").click()
     page.locator("#tk-retime").click()
     expect(page.locator("#tk-retime-note")).to_contain_text("Leaderboards rebuilt (4 cars)")
     assert len(saved) == 1 and saved[0]["id"] == "aaaaaaaa01"
@@ -203,10 +260,10 @@ def test_admin_retime_saves_the_new_timing_then_rebuilds_the_boards(page):
 
 def test_admin_retime_holds_back_a_best_time_that_moves_over_ten_percent(page):
     saved = []
-    open_admin(page, "admin.html")
+    open_admin(page, "track-admin.html")
     _retime_mocks(page, saved, old_best=60.0)
     page.on("dialog", lambda d: d.accept())
-    page.locator("#tracks-wrap > summary").click()
+    page.locator("#boards-wrap > summary").click()
     page.locator("#tk-retime-check").click()
     expect(page.locator("#tk-retime-list li")).to_contain_text("held back unless you allow big changes")
     expect(page.locator("#tk-retime-note")).to_contain_text("1 held back for moving over 10%")
@@ -218,10 +275,10 @@ def test_admin_retime_holds_back_a_best_time_that_moves_over_ten_percent(page):
 
 def test_admin_retime_saves_a_big_change_when_the_switch_is_on(page):
     saved = []
-    open_admin(page, "admin.html")
+    open_admin(page, "track-admin.html")
     _retime_mocks(page, saved, old_best=60.0)
     page.on("dialog", lambda d: d.accept())
-    page.locator("#tracks-wrap > summary").click()
+    page.locator("#boards-wrap > summary").click()
     page.locator("#tk-retime-big").click()
     expect(page.locator("#tk-retime-big")).to_have_attribute("aria-checked", "true")
     page.locator("#tk-retime").click()
@@ -230,7 +287,7 @@ def test_admin_retime_saves_a_big_change_when_the_switch_is_on(page):
 
 
 def test_admin_track_type_has_sprint_and_hill_climb_as_separate_choices(page):
-    open_admin(page, "admin.html")
+    open_admin(page, "track-admin.html")
     page.locator("#tracks-wrap > summary").click()
     page.locator("#tk-list [data-edit='shelsley-walsh']").click()
     select = page.locator("#tk-type")
@@ -263,7 +320,7 @@ def test_admin_early_access_panel_approves_declines_revokes_and_opens(page):
             elif body["action"] == "revoke":
                 state["allowed"] = [a for a in state["allowed"] if a["email"] != e]
         route.fulfill(status=200, content_type="application/json", body=json.dumps(dict(state, success=True)), headers={"Access-Control-Allow-Origin": "*"})
-    open_admin(page, "admin.html")
+    open_admin(page, "track-admin.html")
     page.route("**/track/access/admin**", access)
     page.reload()
     # The count shows without opening the panel.
@@ -308,7 +365,7 @@ def test_admin_can_add_the_current_testers_to_the_early_access_list(page):
                 route.fulfill(status=200, content_type="application/json", body=json.dumps(dict(state, success=True, found=1, added=[{"email": "john@example.com", "name": "John C"}])), headers={"Access-Control-Allow-Origin": "*"})
                 return
         route.fulfill(status=200, content_type="application/json", body=json.dumps(dict(state, success=True)), headers={"Access-Control-Allow-Origin": "*"})
-    open_admin(page, "admin.html")
+    open_admin(page, "track-admin.html")
     page.route("**/track/access/admin**", access)
     page.reload()
     page.locator("#access-wrap summary").click()
@@ -324,7 +381,7 @@ def test_admin_can_add_the_current_testers_to_the_early_access_list(page):
 def test_the_bell_lists_early_access_requests_and_new_track_requests(page):
     access = {"open": False, "allowed": [], "pending": [{"email": "ann@example.com", "name": "Ann B", "use": "RaceBox", "note": "", "at": "2026-10-01T09:00:00Z"}]}
     req = {"id": "r1", "kind": "sprint", "name": "Newfield Sprint", "from": "j***@example.com", "lat": 51.2, "lng": -0.9, "startLine": [[51.2, -0.9], [51.2002, -0.9002]], "finishLine": [[51.21, -0.91], [51.2102, -0.9102]], "outline": [], "at": "2026-10-02T09:00:00Z"}
-    open_admin(page, "admin.html")
+    open_admin(page, "track-admin.html")
     ok = {"Access-Control-Allow-Origin": "*"}
     page.route("**/track/access/admin**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps(dict(access, success=True)), headers=ok))
     page.route("**/track/admin/requests**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "requests": [req]}), headers=ok))
@@ -355,7 +412,7 @@ def test_a_track_a_member_added_is_marked_for_review_and_marked_reviewed(page):
             route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True}), headers=ok)
             return
         route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "requests": [req]}), headers=ok)
-    open_admin(page, "admin.html")
+    open_admin(page, "track-admin.html")
     page.route("**/track/access/admin**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "open": False, "allowed": [], "pending": []}), headers=ok))
     page.route("**/track/admin/requests**", requests)
     page.route("**/track/admin/tracks**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "extra": {"venues": [venue]}, "library": {"venues": [venue]}}), headers=ok))
@@ -385,7 +442,7 @@ def test_admin_can_open_a_map_of_a_requested_course_and_the_load_refreshes_every
     def access(route):
         hits["access"] += 1
         route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "open": False, "allowed": [], "pending": []}), headers=ok)
-    open_admin(page, "admin.html")
+    open_admin(page, "track-admin.html")
     page.route("**/track/access/admin**", access)
     page.route("**/track/admin/requests**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "requests": [req]}), headers=ok))
     page.route("**/track/admin/tracks**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "extra": {"venues": []}, "library": {"venues": []}}), headers=ok))
@@ -449,7 +506,7 @@ def test_admin_link_preview_pictures_rotate_and_are_drawn_from_sessions(page):
                                                    {"id": "aaaaaaaa02", "type": "other", "venue": "", "date": "2026-05-29", "best": None, "version": 5, "hasSource": True, "owner": "Ann", "privacy": "board"}], "done": True, "cursor": ""}
         route.fulfill(status=200, content_type="application/json", body=json.dumps(body), headers=cors)
 
-    open_admin(page, "admin.html")
+    open_admin(page, "track-admin.html")
     # The later route wins, so the upload route goes on after the general one.
     page.route("**/share/track/admin**", share_admin)
     page.route("**/share/track/admin/image**", share_image)
@@ -499,7 +556,12 @@ def test_admin_link_preview_pictures_rotate_and_are_drawn_from_sessions(page):
     # The label names the track and day; whose session it was is not in anything saved or shared.
     assert b"Thruxton, 2026-05-28" in uploads[0] and b"RichyRich" not in uploads[0]
     expect(page.locator("#share-wrap .ts-note")).to_contain_text("Saved.")
-    # The homepage has a panel of its own on the same code, reading its own slot.
+
+
+def test_the_homepage_link_picture_panel_reads_its_own_slot(page):
+    """The homepage has a panel of its own on the main admin page, on the same code as the Track sessions one."""
+    cors = {"Access-Control-Allow-Origin": "*"}
+    open_admin(page, "admin.html")
     seen = []
     page.route("**/share/home/admin**", lambda route: (seen.append(route.request.url), route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "slot": "home", "rotate": False, "current": "", "version": 0, "week": "2026-W40", "items": [], "pick": None}), headers=cors)))
     page.locator("#home-share-wrap summary").click()
@@ -536,7 +598,7 @@ def test_admin_renames_a_session_at_a_track_we_do_not_list(page):
         renamed.append((parse_qs(urlparse(route.request.url).query)["key"][0], body))
         route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "session": {"id": body["id"], "venue": body["venue"].title(), "layout": ""}}), headers=cors)
 
-    open_admin(page, "admin.html")
+    open_admin(page, "track-admin.html")
     page.route("**/track/admin/sessions**", admin_sessions)
     page.route("**/track/admin/session?**", rename)
     page.locator("#member-sessions-wrap summary").click()
@@ -576,7 +638,7 @@ def test_admin_welcome_text_is_edited_and_reset(page):
                 stored.update({k: v for k, v in body.items() if v})
         route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "copy": dict(stored)}), headers=cors)
 
-    open_admin(page, "admin.html")
+    open_admin(page, "track-admin.html")
     page.route("**/track/copy/admin**", copy_admin)
     page.locator("#copy-wrap summary").click()
     expect(page.locator("#tc-heading")).to_have_value("Lap times for every MT3UK car")
@@ -598,7 +660,7 @@ def test_admin_sharing_panel_loads_once_the_admin_key_is_entered(page):
     cors = {"Access-Control-Allow-Origin": "*"}
     state = {"success": True, "slot": "track", "rotate": False, "current": "", "version": 0, "week": "2026-W40", "items": [], "pick": None}
     page.route("**/%s/**" % API_HOST, lambda route: route.fulfill(status=200, content_type="application/json", body=json.dumps(state if "/share/track/admin" in route.request.url else {"success": True, "sessions": [{"id": "aaaaaaaa01", "type": "track", "venue": "Thruxton", "date": "2026-05-28", "best": 40.0, "owner": "Ann", "privacy": "board"}], "done": True, "cursor": ""}), headers=cors))
-    page.goto("/admin.html")
+    page.goto("/track-admin.html")
     page.locator("#share-wrap summary").click()
     expect(page.locator("#share-wrap .ts-note")).to_have_text("Enter the admin key at the top of the page first.")
     # The key goes in and the page refreshes its panels: this one fills in without being closed and opened again.
@@ -635,7 +697,7 @@ def test_admin_line_editing_panel_allows_shows_the_change_and_undoes_or_revokes(
             elif body["action"] == "revoke":
                 state["requests"].remove(row)
         route.fulfill(status=200, content_type="application/json", body=json.dumps(dict(state, success=True)), headers={"Access-Control-Allow-Origin": "*"})
-    open_admin(page, "admin.html")
+    open_admin(page, "track-admin.html")
     page.route(LINES_API, lines)
     page.reload()
     # The count shows without opening the panel: a change to review comes first.
@@ -683,7 +745,7 @@ def _accept_setup(page, on_course):
     base = Path(__file__).resolve().parent
     fixture = (base / "fixtures" / "thruxton-trimmed.vbo").read_text(encoding="latin1")
     thruxton = next(v for v in json.loads((base.parent / "data" / "tracks.json").read_text(encoding="utf-8"))["venues"] if v["id"] == "thruxton")
-    open_admin(page, "admin.html")
+    open_admin(page, "track-admin.html")
     page.wait_for_function("!!(window.MT3UKTrack && window.MT3UKTrack.analyse)")
     prep = page.evaluate("""(text) => {
       const T = window.MT3UKTrack, rd = T.read(text, 'f.vbo');
@@ -807,7 +869,7 @@ def test_admin_sets_a_course_line_by_clicking_on_the_map_instead_of_typing_coord
             route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "library": {"venues": [venue]}}), headers=ok)
             return
         route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "extra": {"venues": [venue]}, "library": {"venues": [venue]}}), headers=ok)
-    open_admin(page, "admin.html")
+    open_admin(page, "track-admin.html")
     page.route("**/server.arcgisonline.com/**", lambda r: r.fulfill(status=200, content_type="image/png", body=b""))
     page.route("**/track/access/admin**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "open": False, "allowed": [], "pending": []}), headers=ok))
     page.route("**/track/admin/requests**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "requests": []}), headers=ok))
@@ -881,7 +943,7 @@ def test_admin_checks_then_re_times_every_session_at_one_track_from_its_saved_re
     Sessions at other tracks are left alone, and one with no readings kept is reported."""
     ok = {"Access-Control-Allow-Origin": "*"}
     fixture = (Path(__file__).resolve().parent / "fixtures" / "thruxton-trimmed.vbo").read_text(encoding="latin1")
-    open_admin(page, "admin.html")
+    open_admin(page, "track-admin.html")
     page.wait_for_function("!!(window.MT3UKTrack && window.MT3UKTrack.analyse)")
     src = page.evaluate("""(text) => {
       const T = window.MT3UKTrack, rd = T.read(text, 'f.vbo');
@@ -946,9 +1008,9 @@ def test_the_link_in_the_request_email_opens_the_line_editing_panel_at_that_requ
     ok = {"Access-Control-Allow-Origin": "*"}
     rows = [{"id": "aaaaaaaa01", "name": "Ann", "email": "a***@example.com", "note": "", "at": "2026-10-01T09:00:00Z", "status": "pending", "grantedAt": "", "proposal": None, "what": "Thruxton, 2026-05-28", "type": "track", "best": 99.7},
             {"id": "bbbbbbbb02", "name": "Bob", "email": "b***@example.com", "note": "", "at": "2026-10-01T10:00:00Z", "status": "pending", "grantedAt": "", "proposal": None, "what": "Brands Hatch, 2026-06-01", "type": "track", "best": 80.0}]
-    open_admin(page, "admin.html")
+    open_admin(page, "track-admin.html")
     page.route(LINES_API, lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "requests": rows}), headers=ok))
-    page.goto("/admin.html#lines-bbbbbbbb02")
+    page.goto("/track-admin.html#lines-bbbbbbbb02")
     expect(page.locator("#lines-wrap")).to_have_attribute("open", "")
     expect(page.locator("#ln-list tr.is-target")).to_have_count(1)
     expect(page.locator("#ln-list tr.is-target")).to_contain_text("Brands Hatch")
@@ -957,7 +1019,7 @@ def test_the_link_in_the_request_email_opens_the_line_editing_panel_at_that_requ
     page.reload()
     expect(page.locator("#lines-wrap")).to_have_attribute("open", "")
     expect(page.locator("#ln-list tr.is-target")).to_contain_text("Brands Hatch")
-    page.goto("/admin.html#lines-cccccccc03")
+    page.goto("/track-admin.html#lines-cccccccc03")
     expect(page.locator("#lines-wrap")).to_have_attribute("open", "")
     expect(page.locator("#ln-note")).to_contain_text("not waiting any more")
     expect(page.locator("#ln-list tr.is-target")).to_have_count(0)
@@ -972,7 +1034,7 @@ def test_the_bell_lists_map_edit_requests_and_changes_waiting_for_approval(page)
             {"id": "bbbbbbbb02", "name": "Bob", "email": "b***@example.com", "note": "", "at": "2026-10-01T10:00:00Z", "status": "granted", "grantedAt": "2026-10-01T11:00:00Z", "proposal": None, "what": "Brands Hatch, 2026-06-01", "type": "track", "best": 80.0},
             {"id": "cccccccc03", "name": "Cat", "email": "c***@example.com", "note": "", "at": "2026-10-01T12:00:00Z", "status": "granted", "grantedAt": "2026-10-01T13:00:00Z", "what": "Abingdon Airfield, AMC LCS, 2022-04-10", "type": "sprint", "best": 118.0,
              "proposal": {"at": "2026-10-02T09:30:00Z", "from": {"startLine": line, "finishLine": line, "time": 118.0}, "to": {"startLine": line, "finishLine": line, "time": 120.1}}}]
-    open_admin(page, "admin.html")
+    open_admin(page, "track-admin.html")
     page.route(LINES_API, lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "requests": rows}), headers=ok))
     page.reload()
     expect(page.locator("#bell-badge")).to_be_visible()
@@ -1001,7 +1063,7 @@ def test_the_tracks_list_can_be_narrowed_by_track_name_and_by_type(page):
         {"id": "shelsley", "name": "Shelsley Walsh", "type": "sprint", "hill": True, "lat": 52.27, "lng": -2.36, "radius": 800, "layouts": [{"id": "h", "name": "Hill", "length": 1000}]},
         {"id": "santa-pod", "name": "Santa Pod", "type": "drag", "lat": 52.2, "lng": -0.6, "radius": 1000, "layouts": []},
     ]
-    open_admin(page, "admin.html")
+    open_admin(page, "track-admin.html")
     page.route("**/track/access/admin**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "open": False, "allowed": [], "pending": []}), headers=ok))
     page.route("**/track/admin/requests**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "requests": []}), headers=ok))
     page.route("**/track/admin/tracks**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "extra": {"venues": venues}, "library": {"venues": venues}}), headers=ok))
@@ -1034,7 +1096,7 @@ def test_the_tracks_list_can_be_collapsed_and_expanded(page):
     ok = {"Access-Control-Allow-Origin": "*"}
     venues = [{"id": "thruxton", "name": "Thruxton", "type": "circuit", "lat": 51.2, "lng": -1.6, "radius": 2000, "layouts": []},
               {"id": "santa-pod", "name": "Santa Pod", "type": "drag", "lat": 52.2, "lng": -0.6, "radius": 1000, "layouts": []}]
-    open_admin(page, "admin.html")
+    open_admin(page, "track-admin.html")
     page.route("**/track/access/admin**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "open": False, "allowed": [], "pending": []}), headers=ok))
     page.route("**/track/admin/requests**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "requests": []}), headers=ok))
     page.route("**/track/admin/tracks**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "extra": {"venues": venues}, "library": {"venues": venues}}), headers=ok))
@@ -1060,10 +1122,10 @@ def test_admin_can_ask_why_a_session_is_not_on_a_leaderboard(page):
                 "board": "track-board:abingdon-airfield-circuit:full", "tab": "Track days", "onBoard": False, "entries": 0,
                 "reasons": ["Its sharing is \"Only me\", so it is not on any board. The member turns Shared on in Session settings."]}
         route.fulfill(status=200, content_type="application/json", body=json.dumps(body), headers=ok)
-    open_admin(page, "admin.html")
+    open_admin(page, "track-admin.html")
     page.route("**/track/admin/boardcheck**", check)
     page.reload()
-    page.locator("#member-sessions-wrap > summary").click()
+    page.locator("#board-checks-wrap > summary").click()
     page.locator("#ms-id").fill("https://mt3uk.com/track.html?s=abc123abc123")
     page.locator("#ms-check").click()
     out = page.locator("#ms-check-out")
@@ -1074,3 +1136,62 @@ def test_admin_can_ask_why_a_session_is_not_on_a_leaderboard(page):
     page.locator("#ms-id").fill("")
     page.locator("#ms-check").click()
     expect(out).to_contain_text("Paste a session link or id first.")
+
+
+def test_admin_can_see_every_leaderboard_problem_and_repair_a_hidden_board(page):
+    ok = {"Access-Control-Allow-Origin": "*"}
+    state = {"hidden": ["track-board:abingdon-airfield-circuit:full"], "repaired": []}
+
+    def problems(route):
+        body = {"success": True, "members": 7, "more": False, "sessions": 40, "privateOrStreet": 12, "other": 2, "onBoard": 22,
+                "problems": [{"id": "aaa111aaa111", "carId": "c1", "board": "", "car": "Arctic Three", "type": "track", "venue": "Somewhere new", "layout": "", "date": "2026-10-01", "bestTime": 90.1, "tab": "Track days",
+                              "reasons": ["No track was matched (it says \"Somewhere new\"). Its track is not listed, so a request is waiting on the Tracks panel: Approve and add track links it."]},
+                             {"id": "bbb222bbb222", "carId": "c2", "board": "track-board:thruxton:main", "car": "Red Tesla", "type": "track", "venue": "Thruxton", "layout": "Thruxton", "date": "2026-09-30", "bestTime": 101.2, "tab": "Track days",
+                              "reasons": ["Everything looks right, but the board has no entry for this car yet. Rebuild all leaderboards on the Tracks panel (or save the session again) to refresh it."]}],
+                "hiddenBoards": list(state["hidden"])}
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(body), headers=ok)
+
+    def repair(route):
+        state["repaired"].append(json.loads(route.request.post_data))
+        state["hidden"] = []
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "refreshed": 1, "count": 1}), headers=ok)
+    open_admin(page, "track-admin.html")
+    page.route("**/track/admin/boardproblems**", problems)
+    page.route("**/track/admin/boardrepair**", repair)
+    page.reload()
+    page.locator("#board-checks-wrap > summary").click()
+    page.locator("#ms-problems").click()
+    out = page.locator("#ms-prob-out")
+    expect(out).to_contain_text("40 sessions from 7 members")
+    expect(out).to_contain_text("2 with a problem")
+    expect(out).to_contain_text("1 hidden board")
+    expect(out).to_contain_text("Somewhere new")
+    expect(out).to_contain_text("No track was matched")
+    expect(out.get_by_role("button", name="Refresh board")).to_have_count(1)  # only where refreshing is the fix
+    out.get_by_role("button", name="Repair").click()
+    expect(out).not_to_contain_text("hidden board")
+    assert state["repaired"] == [{"board": "track-board:abingdon-airfield-circuit:full"}], state["repaired"]
+
+
+def test_the_bell_on_the_admin_home_page_counts_the_track_tasks_and_links_to_their_page(page):
+    ok = {"Access-Control-Allow-Origin": "*"}
+
+    def reply(body):
+        return lambda route: route.fulfill(status=200, content_type="application/json", body=json.dumps(body), headers=ok)
+    open_admin(page, "admin.html")
+    page.route("**/track/access/admin**", reply({"success": True, "open": False, "allowed": [], "pending": [{"email": "sam@example.com", "name": "Sam", "at": "2026-10-01T10:00:00Z"}]}))
+    page.route("**/track/admin/requests**", reply({"success": True, "requests": [{"id": "r1", "name": "Old airfield", "kind": "circuit", "at": "2026-10-01T10:00:00Z"}, {"id": "r2", "name": "Done one", "done": "approved"}]}))
+    page.route("**/track/lines/admin**", reply({"success": True, "requests": [{"id": "bbbbbbbb02", "name": "Chris", "email": "c***@example.com", "status": "pending", "at": "2026-10-02T09:00:00Z", "what": "Abingdon, 2026-09-30"},
+                                                                          {"id": "cccccccc03", "name": "Dee", "status": "granted", "at": "2026-10-02T09:00:00Z", "proposal": {"at": "2026-10-03T09:00:00Z"}, "what": "Goodwood, 2026-09-29"}]}))
+    page.reload()
+    page.locator("#bell-btn").click()
+    panel = page.locator("#bell-panel")
+    expect(panel).to_contain_text("Early access requests (1)")
+    expect(panel).to_contain_text("New track requests (1)")
+    expect(panel).to_contain_text("Map edit requests (1)")
+    expect(panel).to_contain_text("Map changes to approve (1)")
+    expect(panel).to_contain_text("Old airfield")
+    expect(panel).not_to_contain_text("Done one")
+    # An item leads to its panel on the Track admin page, which opens it.
+    panel.locator(".bell-item", has_text="Chris").click()
+    expect(page).to_have_url(re.compile(r"/track-admin\.html#lines-bbbbbbbb02$"))

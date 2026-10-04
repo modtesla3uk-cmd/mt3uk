@@ -1253,7 +1253,7 @@ def test_phone_layout_has_no_sideways_scroll(page):
 def test_admin_tracks_panel_sets_up_a_requested_track(device_page):
     page = device_page
     page.add_init_script("sessionStorage.setItem('mt3ukAdminKey', 'test-key')")
-    page.goto("/admin.html")
+    page.goto("/track-admin.html")
     page.locator("#tracks-wrap > summary").click()
     req = page.locator("#tk-requests .tk-req")
     req.wait_for(timeout=10000)
@@ -2858,7 +2858,7 @@ def test_admin_tyres_panel_edits_makes_models_and_sizes(page):
         route.fulfill(status=200, content_type="application/json", body=json.dumps(body), headers={"Access-Control-Allow-Origin": "*"})
     page.route("**/%s/**" % API_HOST, api)
     page.add_init_script("sessionStorage.setItem('mt3ukAdminKey', 'test-key')")
-    page.goto("/admin.html")
+    page.goto("/track-admin.html")
     page.locator("#tyres-wrap > summary").click()
     expect(page.locator("#ty-list")).to_contain_text("Michelin")
     expect(page.locator("#tyres-count")).to_have_text(re.compile(r"^\(\d+ makes\)$"))

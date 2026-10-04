@@ -1,5 +1,5 @@
 /*
-  admin.html, Tyres panel: the tyre makes and models Track sessions offers.
+  track-admin.html, Tyres panel: the tyre makes and models Track sessions offers.
   data/tyres.json is the starting list; changes made here are stored by the
   worker (KV tyre-library, /tyres/admin) on top of it. Also the sizes for the
   Width, Profile and Diameter drop-downs.

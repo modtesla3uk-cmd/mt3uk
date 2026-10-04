@@ -1044,6 +1044,8 @@ def test_admin_notification_bell(device_page):
     page.goto("/admin.html")
     badge = page.locator("#bell-badge")
     badge.wait_for(state="visible", timeout=10000)
+    # The new track requests come from their own list, which loads a moment after the rest.
+    page.wait_for_function("document.getElementById('bell-badge').textContent === '4'", timeout=10000)
     assert badge.inner_text() == "4"
 
     # The bell lists a preview of each, and opening it marks them as seen.

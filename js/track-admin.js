@@ -1,5 +1,5 @@
 /*
-  admin.html, Tracks panel: the track list used by Track sessions
+  track-admin.html, Tracks panel: the track list used by Track sessions
   (track.html). data/tracks.json is the starting list; changes made here are
   stored by the worker (KV track-library, /track/admin/tracks) on top of it.
   Also members' "new track" requests and taking entries off a leaderboard.

@@ -1,5 +1,5 @@
 /*
-  Second menu row for admin.html: the sections inside the category being read.
+  Second menu row for admin.html and track-admin.html: the sections inside the category being read.
   It is built from the page, so a new panel appears here without any change.
   Choosing one opens the panel and scrolls to it. The menu above it stays as
   the list of categories, and the current one is marked.
@@ -8,6 +8,9 @@
   var nav = document.querySelector('.admin-nav');
   var sub = document.getElementById('admin-subnav');
   if (!nav || !sub) return;
+  // The page this menu is on (admin.html or track-admin.html), read from its own category links.
+  var firstLink = nav.querySelector('a[href*="#grp-"]');
+  var PAGE = firstLink ? firstLink.getAttribute('href').split('#')[0] : 'admin.html';
   var groups = [].slice.call(document.querySelectorAll('.admin-group'));
   var current = null;
 
@@ -31,7 +34,7 @@
     sub.hidden = panels.length < 2;
     panels.forEach(function (d) {
       var li = document.createElement('li'), a = document.createElement('a');
-      a.href = 'admin.html#' + d.id;
+      a.href = PAGE + '#' + d.id;
       a.textContent = titleOf(d);
       a.setAttribute('data-panel', d.id);
       li.appendChild(a);
@@ -41,8 +44,8 @@
   }
 
   function mark(group) {
-    [].slice.call(nav.querySelectorAll('a[href^="admin.html#grp-"]')).forEach(function (a) {
-      if (a.getAttribute('href') === 'admin.html#' + group.id) a.setAttribute('data-here', 'true'); else a.removeAttribute('data-here');
+    [].slice.call(nav.querySelectorAll('a[href^="' + PAGE + '#grp-"]')).forEach(function (a) {
+      if (a.getAttribute('href') === PAGE + '#' + group.id) a.setAttribute('data-here', 'true'); else a.removeAttribute('data-here');
     });
   }
 
@@ -55,7 +58,7 @@
   }
 
   nav.addEventListener('click', function (e) {
-    var a = e.target.closest && e.target.closest('a[href^="admin.html#grp-"]');
+    var a = e.target.closest && e.target.closest('a[href^="' + PAGE + '#grp-"]');
     var g = a && document.getElementById(a.getAttribute('href').split('#')[1]);
     if (g) { current = g; build(g); mark(g); }
   });
@@ -68,7 +71,7 @@
     if (!d) return;
     d.open = true;
     d.scrollIntoView({ block: 'start', behavior: 'smooth' });
-    if (history.replaceState) history.replaceState(null, '', 'admin.html#' + d.id);
+    if (history.replaceState) history.replaceState(null, '', PAGE + '#' + d.id);
   });
 
   var queued = false;

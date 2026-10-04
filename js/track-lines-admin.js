@@ -1,5 +1,5 @@
 /*
-  admin.html, Line editing panel: members who asked to edit the start and finish lines on a session they
+  track-admin.html, Line editing panel: members who asked to edit the start and finish lines on a session they
   saved. Allow switches it on for that one session (the member is emailed). They move the lines and send the
   change: nothing on the session changes until you Accept it, which works the time out again from the saved
   readings with the new lines and shows you the result before it is saved. Undo throws the change away, and
@@ -182,7 +182,7 @@
     }).catch(function (e) { note((e && e.message) || 'That did not work.', 'error'); });
   }
 
-  // The link in the email, admin.html#lines-<session id>, opens this panel and shows that request (also when the
+  // The link in the email, track-admin.html#lines-<session id>, opens this panel and shows that request (also when the
   // admin page is already open and only the end of the address changes).
   // targetId stays marked through every redraw of the list; the scroll (or the note that it is gone) happens once.
   var targetId = '', linkPending = false;

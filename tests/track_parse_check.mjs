@@ -278,7 +278,7 @@ ok(tn.some(n => /1 wet or damp session is shown but left out/.test(n.text)), 'we
 // Library: the admin's changes on top of the file.
 const merged = T.mergeLibrary(lib, { venues: [{ id: 'thruxton', removed: true }, { id: 'new-one', name: 'New', type: 'circuit', lat: 1, lng: 1, radius: 1000, layouts: [] }] });
 ok(!merged.venues.some(v => v.id === 'thruxton') && merged.venues.some(v => v.id === 'new-one') && merged.venues.length === lib.venues.length, 'library merge adds, replaces and removes');
-ok(T.fmtLap(99.786) === '1:39.786' && T.niceDate('2026-05-28') === '28 May 2026', 'formatting');
+ok(T.fmtLap(99.786) === '1:39.79' && T.niceDate('2026-05-28') === '28 May 2026', 'formatting');
 
 // Tesla Track Mode style CSV: elapsed time in milliseconds, a Lap column,
 // acceleration in m/s², and a track with no start line in the list.
@@ -673,16 +673,4 @@ ok(T.fmtLap(99.786) === '1:39.786' && T.niceDate('2026-05-28') === '28 May 2026'
   ok(wrong.bestTime && wrong.bestTime > 80, 'with the lines the wrong way round the drive back down is timed: ' + wrong.bestTime);
   ok(wrong.reverseRun && wrong.reverseRun.peak > 140 && wrong.reverseRun.fwdPeak < 70 && wrong.reverseRun.time > 40 && wrong.reverseRun.time < 80, 'and the faster pass the other way is reported: ' + JSON.stringify(wrong.reverseRun));
   ok(T.ANALYSIS_VERSION === 8, 'the analysis version moved on');
-}
-
-// Start the clock at the start line: a standing start is timed from the moment the car moves off unless this is on,
-// when it is timed from the line crossing, as a timing beam does. The same Shelsley file, lines 3 m past the launch.
-{
-  const hrd = T.read(fs.readFileSync(ROOT + 'tests/fixtures/shelsley-climb-and-descent.vbo', 'latin1'), 'Shelsley_HillClimb.VBO');
-  const S = [[52.2649137, -2.4096589], [52.2651245, -2.4095851]], F = [[52.2595784, -2.4134373], [52.2595488, -2.4137862]];
-  const base = { type: 'sprint', ownLines: true, startLine: S, finishLine: F, ignoreFirstFinish: true };
-  const off = T.analyse(hrd, { venues: [] }, base), on = T.analyse(hrd, { venues: [] }, Object.assign({ startAtLine: true }, base));
-  ok(off.laps.length === 1 && near(off.bestTime, 33.9, 0.1) && !off.startAtLine, 'a standing start is timed from the moment the car moves off by default: ' + off.bestTime);
-  ok(on.laps.length === 1 && near(on.bestTime, 33.05, 0.1) && on.startAtLine === true, 'with the clock at the start line it is timed from the crossing: ' + on.bestTime);
-  ok(on.bestTime < off.bestTime - 0.5, 'which is quicker by the distance the car rolled before the line');
 }

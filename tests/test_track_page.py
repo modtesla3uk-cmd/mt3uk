@@ -303,7 +303,7 @@ def test_add_a_session_from_the_racebox_file(page):
     page.set_input_files("#tp-file", str(FIXTURE))
     notice = page.locator("#tp-result .tp-notice.is-ok")
     expect(notice).to_contain_text("Thruxton")
-    expect(notice).to_contain_text(re.compile(r"2 timed laps, best 1:39\.78[56]"))
+    expect(notice).to_contain_text(re.compile(r"2 timed laps, best 1:39\.79"))
     # Air temperature filled in from Open-Meteo, and said so.
     expect(page.locator("#tp-temp")).to_have_value("19")
     expect(page.locator("#tp-temp-src")).to_contain_text("Open-Meteo weather for Thruxton at 14:00: 19°C, no rain")
@@ -312,7 +312,7 @@ def test_add_a_session_from_the_racebox_file(page):
     expect(page.locator("#tp-temp-src")).to_contain_text("wind 7 mph")
     page.fill("#tp-tyre-model", "Cup 2")
     page.locator(".tp-head [data-units]").click()
-    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text(re.compile(r"2 timed laps, best 1:39\.78[56]"))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text(re.compile(r"2 timed laps, best 1:39\.79"))
     expect(page.locator("#tp-temp-src")).to_contain_text("wind 12 km/h")
     expect(page.locator("#tp-tyre-model")).to_have_value("Cup 2")
     expect(page.locator("#tp-temp")).to_have_value("19")
@@ -333,7 +333,7 @@ def test_add_a_session_from_the_racebox_file(page):
     # The session page
     expect(page.locator(".tp-session-head h2")).to_have_text("Thruxton")
     expect(page.locator(".tp-session-head .tp-sub")).to_contain_text("19°C (Open-Meteo)")
-    expect(page.locator(".tp-tile.is-hero .v")).to_have_text(re.compile(r"1:39\.78[56]"))
+    expect(page.locator(".tp-tile.is-hero .v")).to_have_text(re.compile(r"1:39\.79"))
     # Which lap, without an "of" count that leaves out the out-lap.
     expect(page.locator(".tp-tile.is-hero .s")).to_have_text(re.compile(r"^Lap \d+$"))
     # Comparing laps: zoomed in, the map follows the car as the speed chart
@@ -412,7 +412,7 @@ def test_session_settings_and_leaderboard(page):
     row = page.locator(".lb-row")
     expect(row).to_have_count(1)
     expect(row).to_contain_text("Arctic Three")
-    expect(row).to_contain_text(re.compile(r"1:39\.78[56]"))
+    expect(row).to_contain_text(re.compile(r"1:39\.79"))
     page.locator("#lb-models [data-m='Model Y']").click()
     expect(page.locator(".tp-empty")).to_contain_text("Nobody on this board yet for the Model Y")
     # Make it private from the session page.
@@ -524,7 +524,7 @@ def test_sessions_at_the_same_track_on_the_same_day_are_grouped_by_time(page):
     expect(best).to_have_count(1)
     expect(best).to_contain_text("#2")
     expect(best).to_contain_text("11:29")
-    expect(best).to_contain_text("1:21.170")
+    expect(best).to_contain_text("1:21.17")
     expect(card.locator(".tp-daygroup-all")).to_be_hidden()
     # Opening it lists every session in time of day order, numbered by it, with the fastest marked.
     card.locator(".tp-daygroup-title").click()
@@ -906,7 +906,7 @@ def test_sessions_of_one_track_day_can_be_compared_with_each_other_even_at_an_un
     options = group.locator("option")
     expect(options).to_have_count(2)
     texts = options.all_inner_texts()
-    assert any("14:00" in t and "1:31.200" in t for t in texts) and any("09:00" in t and "1:30.000" in t for t in texts), texts
+    assert any("14:00" in t and "1:31.20" in t for t in texts) and any("09:00" in t and "1:30.00" in t for t in texts), texts
 
 
 def test_a_lap_from_a_session_with_its_own_start_line_is_turned_to_start_on_this_one(page):
@@ -974,13 +974,13 @@ def test_choosing_a_lap_updates_the_tiles_and_the_track_mode_figures(page):
     tiles = page.locator("#tp-headline .tp-tile")
     # Whole session to begin with: the best lap, and the day's charge.
     expect(tiles.first).to_contain_text("Best lap")
-    expect(tiles.first).to_contain_text("1:30.000")
+    expect(tiles.first).to_contain_text("1:30.00")
     expect(page.locator("#car-data .tp-tile", has_text="Charge used")).to_contain_text("5%")
     # Lap 2: its own time, how far off the best, its own top speed and grip, and its own charge.
     page.locator("#tp-lap-pick").select_option("2")
     expect(tiles.first).to_contain_text("Lap time")
-    expect(tiles.first).to_contain_text("1:31.500")
-    expect(tiles.first).to_contain_text("+1.500 s on your best lap")
+    expect(tiles.first).to_contain_text("1:31.50")
+    expect(tiles.first).to_contain_text("+1.50 s on your best lap")
     expect(page.locator("#headline-top, #tp-headline .tp-tile", has_text="Most grip used")).to_contain_text("1.10 g")
     expect(page.locator("#tp-headline .tp-tile", has_text="Top speed")).to_contain_text(re.compile(r"87|140"))
     expect(page.locator("#car-data .tp-tile", has_text="Charge used")).to_contain_text("3%")
@@ -1039,8 +1039,8 @@ def test_the_figures_picker_lists_your_other_sessions_that_day_and_opens_one(pag
     expect(group).to_have_attribute("label", "Your other sessions that day")
     opts = group.locator("option")
     expect(opts).to_have_count(2)
-    expect(opts.nth(0)).to_have_text("Session 1, 10:51, 1:39.626")
-    expect(opts.nth(1)).to_have_text("Session 3, 15:46, 1:26.063")
+    expect(opts.nth(0)).to_have_text("Session 1, 10:51, 1:39.63")
+    expect(opts.nth(1)).to_have_text("Session 3, 15:46, 1:26.06")
     page.locator("#tp-lap-pick").select_option("x:lp2")
     expect(page).to_have_url(re.compile(r"track\.html\?s=lp2"))
     expect(page.locator("#tp-day-place")).to_have_text("Session 3 of 3 that day")
@@ -1253,7 +1253,7 @@ def test_phone_layout_has_no_sideways_scroll(page):
     page.get_by_role("link", name="Add a session").click()
     page.set_input_files("#tp-file", str(FIXTURE))
     page.get_by_role("button", name="Save session").click()
-    expect(page.locator(".tp-tile.is-hero .v")).to_have_text(re.compile(r"1:39\.78[56]"))
+    expect(page.locator(".tp-tile.is-hero .v")).to_have_text(re.compile(r"1:39\.79"))
     wide = page.evaluate("document.documentElement.scrollWidth")
     assert wide <= 390, wide
     over = page.evaluate("""() => [...document.querySelectorAll('#tp-app *')].filter(e => {
@@ -1323,7 +1323,7 @@ def test_leaderboards_list_busy_tracks_first_with_counts(page):
     # The top three show on the card, with position, name and time, without opening the track.
     expect(first.locator(".lb-podium li").first).to_contain_text("Rich")
     expect(first.locator(".lb-podium li").first.locator(".lb-pos")).to_have_text("1")
-    expect(first.locator(".lb-podium li").first).to_contain_text("1:41.200")
+    expect(first.locator(".lb-podium li").first).to_contain_text("1:41.20")
     expect(first.locator(".lb-podium li").first.locator(".lb-date")).to_contain_text("2026")
     # Tracks with nothing yet are tucked away until asked for.
     expect(page.locator(".tp-board-card")).to_have_count(1)
@@ -1336,7 +1336,7 @@ def test_leaderboards_list_busy_tracks_first_with_counts(page):
     # Public view: each car's fastest, so one row for the one car.
     rows = page.locator(".lb-row")
     expect(rows).to_have_count(1)
-    expect(rows.first).to_contain_text("1:41.200")
+    expect(rows.first).to_contain_text("1:41.20")
     # Cars with nothing on this board are greyed.
     expect(page.locator("#lb-models .chip.is-empty")).to_have_count(6)
     expect(page.locator('#lb-models .chip[data-m="Model 3"]')).not_to_have_class(re.compile("is-empty"))
@@ -1522,7 +1522,7 @@ def test_an_older_session_from_several_files_keeps_its_runs(page):
     expect(page.locator(".tp-file-list li b")).to_have_text(["session-1.vbo", "session-2.vbo"])
     expect(page.locator(".tp-file-when").first).to_contain_text("recorded in the file")
     expect(page.locator(".tp-file > div > span")).to_contain_text("2 sessions")
-    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text(re.compile(r"4 timed laps, best 1:39\.78[56]"))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text(re.compile(r"4 timed laps, best 1:39\.79"))
     # An older session saved from several files keeps its runs: laps never span the gap between files.
     rec = seed_merged(fake)
     assert rec["runs"] == 2 and sorted({l["run"] for l in rec["laps"]}) == [1, 2]
@@ -1706,7 +1706,7 @@ def test_saving_keeps_the_readings_and_the_type_can_be_changed_after(page):
     expect(page.locator("#settings [data-retype] .chip.is-on")).to_have_text("Other")
     # Back to a track day: the laps come back from the saved readings.
     page.locator("#settings [data-retype] button[data-v='track']").click()
-    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text(re.compile(r"2 timed laps, best 1:39\.78[56]"))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text(re.compile(r"2 timed laps, best 1:39\.79"))
     page.get_by_role("button", name="Save changes").click()
     expect(page.locator("#settings [data-retype] .chip.is-on")).to_have_text("Track day")
     assert fake.sessions["new1"]["type"] == "track" and len(fake.sessions["new1"]["laps"]) == 2
@@ -2002,7 +2002,7 @@ def test_other_members_laps_can_be_compared_and_put_on_the_map(page):
     fake = FakeWorker()
     save_thruxton_with_a_member_board(page, fake)
     group = page.locator("#tp-cmp-b optgroup[label=\"Other members' best laps\"]")
-    expect(group.locator("option")).to_have_text(["Ann, Blue Y, 1:49.800"])
+    expect(group.locator("option")).to_have_text(["Ann, Blue Y, 1:49.80"])
     page.locator("#tp-cmp-b").select_option("x:m1")
     expect(page.locator("#tp-key")).to_contain_text("Ann, best, 28/05 (B)")
     expect(page.locator("#tp-gap-cap")).to_contain_text("A finishes")
@@ -2254,34 +2254,6 @@ def test_the_line_figures_are_shown_in_full_and_the_map_keeps_its_zoom_when_a_ma
     nums = [n.replace("\n", ", ") for n in figs.locator(".tp-fignum").all_inner_texts()]
     assert len(nums) == 2 and all(re.fullmatch(r"-?\d+\.\d{7}(, -?\d+\.\d{7}){3}", n) for n in nums), nums
     expect(figs.get_by_role("button", name=re.compile("Copy the"))).to_have_count(2)
-
-
-def test_a_hill_climb_can_start_its_clock_at_the_start_line(page):
-    """By default a standing start is timed from the moment the car moves off. The Start the clock at the start line
-    switch times from the line crossing instead, as a timing beam does, which is a little quicker."""
-    def handler(route):
-        d = json.loads((ROOT / "data" / "tracks.json").read_text(encoding="utf-8"))
-        d["venues"] = [v for v in d["venues"] if v["id"] != "shelsley-walsh"]
-        d["venues"].append({
-            "id": "test-hill", "name": "Test Hill", "type": "sprint", "hill": True, "lat": 52.262, "lng": -2.411, "radius": 2500,
-            "layouts": [{"id": "hill", "name": "Hill climb", "length": 914,
-                         "startLine": [[52.2649137, -2.4096589], [52.2651245, -2.4095851]], "finishLine": [[52.2595784, -2.4134373], [52.2595488, -2.4137862]]}],
-        })
-        route.fulfill(status=200, content_type="application/json", body=json.dumps(d))
-    page.route(re.compile(r".*/data/tracks\.json.*"), handler)
-    open_page(page, FakeWorker())
-    page.get_by_role("link", name="Add a session").click()
-    page.set_input_files("#tp-file", str(SHELSLEY_FIXTURE))
-    expect(page.locator("#tp-result .tp-notice")).to_be_visible(timeout=15000)
-    page.locator("[data-type] button[data-v='sprint']").click()
-    result = page.locator("#tp-result .tp-notice.is-ok")
-    expect(result).to_contain_text("Test Hill")
-    expect(result).to_contain_text("best 0:33.8")
-    switch = page.locator("#tp-start-at-line")
-    expect(switch).to_have_attribute("aria-checked", "false")
-    switch.click()
-    expect(page.locator("#tp-start-at-line")).to_have_attribute("aria-checked", "true")
-    expect(result).to_contain_text("best 0:33.0")
 
 
 def test_hill_climbs_keep_both_runs_with_the_ignore_switch_on(page):
@@ -3016,7 +2988,7 @@ def test_leaderboard_filters_rank_each_car_by_its_best_that_matches(page):
     expect(rows).to_have_count(3)
     expect(rows.first).to_contain_text("Ann's 3")
     expect(rows.first).to_contain_text("Fastest")
-    expect(rows.nth(1)).to_contain_text("+1.500 s")
+    expect(rows.nth(1)).to_contain_text("+1.50 s")
     # Tyres and the track parts are on the row, without opening anything.
     expect(rows.first).to_contain_text("Michelin Pilot Sport 4S, 245/35 R19")
     expect(rows.first.locator(".tp-modchip").first).to_have_text("Coilovers: KW V3")
@@ -3027,7 +2999,7 @@ def test_leaderboard_filters_rank_each_car_by_its_best_that_matches(page):
     page.locator("#lb-cond").select_option("Wet")
     expect(rows).to_have_count(1)
     expect(rows.first).to_contain_text("Ann's 3")
-    expect(rows.first).to_contain_text("1:39.000")
+    expect(rows.first).to_contain_text("1:39.00")
     expect(page.locator("#lb-cond")).to_be_focused()
     page.locator("#lb-cond").select_option("All")
     # Tyre make: each car's best on that make (Ann's only Kumho run was wet).
@@ -3035,7 +3007,7 @@ def test_leaderboard_filters_rank_each_car_by_its_best_that_matches(page):
     expect(rows).to_have_count(2)
     expect(rows.first).to_contain_text("Ben's Y")
     expect(rows.nth(1)).to_contain_text("Ann's 3")
-    expect(rows.nth(1)).to_contain_text("1:39.000")
+    expect(rows.nth(1)).to_contain_text("1:39.00")
     # Older entries are matched from their tyre text.
     page.locator("#lb-make").select_option("Michelin")
     expect(rows).to_have_count(2)
@@ -3232,10 +3204,10 @@ def test_what_each_mod_did_compares_before_and_after(page):
     row = card.locator("tbody tr")
     expect(row).to_have_count(1)
     expect(row).to_contain_text("Coilovers: KW V3")
-    expect(row).to_contain_text("1:42.470")
-    expect(row).to_contain_text(re.compile(r"1:39\.78[56]"))
+    expect(row).to_contain_text("1:42.47")
+    expect(row).to_contain_text(re.compile(r"1:39\.79"))
     expect(row.locator("td").nth(3)).to_have_class(re.compile("is-fast"))
-    expect(row.locator("td").nth(3)).to_contain_text(re.compile(r"-2\.68[0-9] s"))
+    expect(row.locator("td").nth(3)).to_contain_text(re.compile(r"-2\.69 s"))
     # The tyres are written two ways but are the same tyre, so there's no tyre warning.
     expect(row).not_to_contain_text("different tyres")
     expect(card).to_contain_text("treat it as a guide")
@@ -3563,7 +3535,7 @@ def test_track_mode_sits_under_the_best_lap_tiles_and_laps_are_folded(page):
     # The lap times are folded away, with a summary, and open on a tap.
     laps = page.locator("#tp-laps")
     expect(laps).not_to_have_attribute("open", "")
-    expect(laps.locator("summary")).to_contain_text(re.compile(r"Laps\s*\d+ laps, best 1:39\.78[56]"))
+    expect(laps.locator("summary")).to_contain_text(re.compile(r"Laps\s*\d+ laps, best 1:39\.79"))
     expect(laps.locator("table")).to_be_hidden()
     laps.locator("summary").click()
     expect(laps.locator("table")).to_be_visible()
@@ -4048,7 +4020,7 @@ def test_a_session_warns_when_a_faster_pass_crosses_the_lines_the_other_way_roun
     box = page.locator("#tp-reverse")
     expect(box).to_contain_text("The start and finish may be the wrong way round")
     expect(box).to_contain_text("a faster pass")
-    expect(box).to_contain_text("0:56.100")
+    expect(box).to_contain_text("0:56.10")
 
 
 def test_the_refresh_button_loads_the_page_again_from_the_latest_version(page):
@@ -4145,8 +4117,32 @@ def test_a_member_requests_to_edit_the_map_and_sends_a_change_for_approval(page)
     expect(figs).to_contain_text("After")
     nums = [n.replace("\n", ", ") for n in figs.locator(".tp-fignum").all_inner_texts()]
     assert len(nums) == 2 and nums[0] != nums[1] and all(re.fullmatch(r"-?\d+\.\d{7}(, -?\d+\.\d{7}){3}", n) for n in nums), nums
+    # Undo changes puts the old lines back: Before and After are the same, and there is nothing left to undo.
+    page.get_by_role("button", name="Undo changes").click()
+    nums = [n.replace("\n", ", ") for n in figs.locator(".tp-fignum").all_inner_texts()]
+    assert nums[0] == nums[1], nums
+    expect(page.get_by_role("button", name="Undo changes")).to_be_disabled()
+    # Move the line again, then send it.
+    page.get_by_role("button", name="Move the start line").click()
+    page.get_by_role("button", name="Clear markers").click()
+    page.wait_for_timeout(300)
+    page.locator("#tp-tap polyline").first.wait_for(state="attached")
+    page.locator("#tp-tap").scroll_into_view_if_needed()
+    pt = page.evaluate("""() => {
+      const svg = document.getElementById('tp-tap'), vb = svg.viewBox.baseVal, r = svg.getBoundingClientRect();
+      const pts = svg.querySelector('polyline').getAttribute('points').split(' ').map(s => s.split(',').map(Number));
+      const p = pts[Math.floor(pts.length * 0.02)];
+      return [r.left + p[0] * r.width / vb.width, r.top + p[1] * r.height / vb.height];
+    }""")
+    page.mouse.click(pt[0], pt[1])
+    page.get_by_role("switch", name="Correct lines?").click()
+    expect(page.get_by_role("button", name="Undo changes")).to_be_enabled()
     page.get_by_role("button", name="Send for approval").click()
-    # The pictures are drawn and sent first, then the change; the session page then says it is waiting.
+    # Recorded: the screen says so and offers Close, which goes back to the session. The session page then says it is waiting.
+    sent = page.locator("#tp-sent")
+    expect(sent).to_contain_text("Sent for approval", timeout=15000)
+    expect(page.get_by_role("button", name="Send for approval")).to_have_count(0)
+    page.get_by_role("button", name="Close").click()
     expect(box).to_contain_text("Your change is waiting for MT3UK to approve it", timeout=15000)
     expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
     # What was sent: the new start line (two points) and the time on it. The saved session is untouched.

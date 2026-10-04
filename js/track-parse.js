@@ -1134,9 +1134,9 @@
                 var launchIdx = 0;
                 while (launchIdx < pts.length - 1 && pts[launchIdx].t < seg[0]) launchIdx++;
                 if (x && x.t > seg[0] + 25) x = null;
-                if (!x && !opts.startAtLine && nearStart(pts[launchIdx])) x = { i: launchIdx, t: seg[0], d: pts[launchIdx].d };
+                if (!x && nearStart(pts[launchIdx])) x = { i: launchIdx, t: seg[0], d: pts[launchIdx].d };
               }
-              if (x && first && ei > 0 && !opts.startAtLine) {
+              if (x && first && ei > 0) {
                 // A standing start from at or just behind the line is timed from the moment the car moves
                 // off, not from the moment its front crosses a marker drawn some metres further on: where
                 // the marker sits (20 m on is two seconds) then does not change the time.
@@ -1198,8 +1198,6 @@
     session.finishLine = pick.c.finish;
     if (pick.c.own) session.startLineFromMember = true; else if (pick.c.layout) session.officialLines = true;
     if (pick.skipped) session.firstFinishIgnored = pick.skipped;
-    // The clock starts when the car crosses the start line, as a timing beam does, not when it moves off.
-    if (opts.startAtLine) session.startAtLine = true;
     // The drive back down a hill retraces the climb, so the start and finish are easy to tap the wrong way round and the
     // slow drive down gets timed instead of the climb. When the passes that cross the lines the other way round (the
     // finish, then the start) are much faster than the ones timed, say so.
@@ -1322,8 +1320,9 @@
 
   function fmtLap(s) {
     if (!isFinite(s)) return '';
-    var m = Math.floor(s / 60), r = s - m * 60;
-    return m + ':' + (r < 10 ? '0' : '') + r.toFixed(3);
+    // Hundredths of a second, rounded once so 59.996 reads 1:00.00 and never 0:60.00.
+    var cs = Math.round(s * 100 + 1e-7), m = Math.floor(cs / 6000), r = (cs - m * 6000) / 100;
+    return m + ':' + (r < 10 ? '0' : '') + r.toFixed(2);
   }
 
   // What we spotted in one session. speed(kmh) formats a speed in the

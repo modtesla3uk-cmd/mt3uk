@@ -866,7 +866,7 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   ok(r.status === 200 && r.body.proposal && r.body.proposal.to.time === 99.5, 'the member sends the moved lines');
   ok(startOf() === orig, 'and nothing on the session has changed');
   const note = env.SEND_EMAIL.sent[before] || '';
-  ok(env.SEND_EMAIL.sent.length === before + 1 && /awaiting your approval/i.test(note) && /from: /.test(note) && /to:   /.test(note) && /1:39\.500/.test(note) && new RegExp('track-admin\\.html#lines-' + lid).test(note) && new RegExp('track\\.html\\?s=' + lid).test(note), 'the admin is emailed what the lines and time were and would be, with a link to the request and the session');
+  ok(env.SEND_EMAIL.sent.length === before + 1 && /awaiting your approval/i.test(note) && /from: /.test(note) && /to:   /.test(note) && /1:39\.50/.test(note) && new RegExp('track-admin\\.html#lines-' + lid).test(note) && new RegExp('track\\.html\\?s=' + lid).test(note), 'the admin is emailed what the lines and time were and would be, with a link to the request and the session');
   r = await call('GET', '/track/lines/admin?key=secret');
   const row2 = r.body.requests.find(x => x.id === lid);
   ok(row2.status === 'granted' && row2.proposal && row2.proposal.from.startLine[0][0] === orig && Math.abs(row2.proposal.to.startLine[0][0] - (orig + 0.0003)) < 1e-9, 'the admin sees the change from and to');
@@ -899,16 +899,6 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   const saved2 = await call('POST', '/track/sessions', { carId: 'cara1', session: y, privacy: 'build' }, 'tok-a');
   ok(stored('track-session:' + saved2.body.session.id).reverseRun === undefined, 'and is not kept on a track day');
   for (const z of [saved, saved2]) await call('DELETE', '/track/session?id=' + z.body.session.id, undefined, 'tok-a');
-}
-// The start-the-clock-at-the-line setting is kept on a sprint and not on a track day, so a re-time uses it.
-{
-  const x = JSON.parse(JSON.stringify(session)); x.type = 'sprint'; x.finishLine = [[52.4, -2.5], [52.4002, -2.5002]]; x.startAtLine = true;
-  const a = await call('POST', '/track/sessions', { carId: 'cara1', session: x, privacy: 'build', venueName: 'Somewhere' }, 'tok-a');
-  ok(stored('track-session:' + a.body.session.id).startAtLine === true, 'a sprint keeps the start-at-the-line setting');
-  const y = JSON.parse(JSON.stringify(session)); y.startAtLine = true;
-  const b = await call('POST', '/track/sessions', { carId: 'cara1', session: y, privacy: 'build' }, 'tok-a');
-  ok(stored('track-session:' + b.body.session.id).startAtLine === undefined, 'a track day does not');
-  for (const z of [a, b]) await call('DELETE', '/track/session?id=' + z.body.session.id, undefined, 'tok-a');
 }
 // Renaming the track on a session at a track we do not list: the same steps as editing the map (ask, allow, send, accept).
 {

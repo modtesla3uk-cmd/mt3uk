@@ -1194,7 +1194,7 @@
       var bests = carData.track || [];
       trackBox.hidden = !bests.length;
       trackBox.innerHTML = bests.length ? '<b>Track</b>' + bests.map(function (t) {
-        var res = t.bestTime ? Math.floor(t.bestTime / 60) + ':' + ((t.bestTime % 60) < 10 ? '0' : '') + (t.bestTime % 60).toFixed(3) : t.quarter ? t.quarter.toFixed(2) + ' s, 1/4 mile' : '';
+        var res = t.bestTime ? (function (s) { var cs = Math.round(s * 100 + 1e-7), m = Math.floor(cs / 6000), r = (cs - m * 6000) / 100; return m + ':' + (r < 10 ? '0' : '') + r.toFixed(2); })(t.bestTime) : t.quarter ? t.quarter.toFixed(2) + ' s, 1/4 mile' : '';
         return '<a href="track.html?s=' + encodeURIComponent(t.id) + '"><span>' + carEsc(t.venue + (t.layout && t.layout !== t.venue ? ', ' + t.layout : '')) + '</span><span>' + carEsc(res) + '</span></a>';
       }).join('') + '<a class="lightbox-car-track-all" href="track.html?car=' + encodeURIComponent(carData.carId) + '">All shared sessions</a>' : '';
       carNote.hidden = !(carData.ownerName && !carData.canAsk && !carData.mine);

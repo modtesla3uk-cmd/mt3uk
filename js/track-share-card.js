@@ -15,7 +15,7 @@
     var s = RAMP.map(hex), u = Math.max(0, Math.min(1, t)) * 2, i = Math.min(1, Math.floor(u)), f = u - i;
     return 'rgb(' + s[i].map(function (v, j) { return Math.round(v + (s[i + 1][j] - v) * f); }).join(',') + ')';
   }
-  function fmtLap(t) { var m = Math.floor(t / 60), s = t - m * 60; return m + ':' + (s < 10 ? '0' : '') + s.toFixed(3); }
+  function fmtLap(t) { var cs = Math.round(t * 100 + 1e-7), m = Math.floor(cs / 6000), s = (cs - m * 6000) / 100; return m + ':' + (s < 10 ? '0' : '') + s.toFixed(2); }
   function niceDate(d) {
     var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d || '');
     if (!m) return d || '';

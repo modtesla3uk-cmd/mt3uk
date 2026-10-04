@@ -544,7 +544,7 @@ def test_admin_link_preview_pictures_rotate_and_are_drawn_from_sessions(page):
     # Only sessions with laps are offered; choosing one draws the card, with its own figures on it.
     options = page.locator("#share-wrap .ts-session option")
     expect(options).to_have_count(2)
-    expect(options.nth(1)).to_have_text("Thruxton, 2026-05-28, 0:40.000, RichyRich (private)")
+    expect(options.nth(1)).to_have_text("Thruxton, 2026-05-28, 0:40.00, RichyRich (private)")
     page.locator("#share-wrap .ts-session").select_option("aaaaaaaa01")
     expect(page.locator("#share-wrap .ts-make")).to_be_enabled()
     expect(page.locator("#share-wrap .ts-preview")).to_be_visible()
@@ -756,8 +756,8 @@ def test_admin_line_editing_panel_allows_shows_the_change_and_undoes_or_revokes(
     expect(rows.nth(2)).to_contain_text("Start line")
     expect(rows.nth(2)).to_contain_text("51.1, -1.1, 51.1002, -1.0998")
     expect(rows.nth(2)).to_contain_text("51.1005, -1.1005, 51.1007, -1.1003")
-    expect(rows.nth(2)).to_contain_text("1:39.800")
-    expect(rows.nth(2)).to_contain_text("1:39.200")
+    expect(rows.nth(2)).to_contain_text("1:39.80")
+    expect(rows.nth(2)).to_contain_text("1:39.20")
     expect(rows.nth(2).get_by_role("button", name="Accept")).to_be_visible()
     expect(rows.nth(1).get_by_role("button", name="Accept")).to_have_count(0)
     # The pictures of the old and the new lines, from the admin's picture route, and a warning when the email failed.
@@ -863,7 +863,7 @@ def test_admin_accepting_a_change_updates_the_course_and_re_times_every_session_
     row.get_by_role("button", name="Accept").click()
     expect(page.locator("#ln-note")).to_contain_text("Not accepted. It is still waiting")
     assert log["calls"] == [] and log["course"] is None
-    assert "1:42.000 to 1:39.78" in seen[0] and "They saw 0:50.000" in seen[0], seen[0]
+    assert "1:42.00 to 1:39.79" in seen[0] and "They saw 0:50.00" in seen[0], seen[0]
     assert "official start line for Thruxton" in seen[0] and "re-times every other session at Thruxton" in seen[0] and "leaderboards" in seen[0], seen[0]
     page.once("dialog", lambda d: d.accept())
     row.get_by_role("button", name="Accept").click()
@@ -887,7 +887,7 @@ def test_admin_accepting_a_change_on_a_session_with_no_listed_course_changes_onl
     seen = []
     page.once("dialog", lambda d: (seen.append(d.message), d.accept()))
     row.get_by_role("button", name="Accept").click()
-    expect(page.locator("#ln-note")).to_contain_text("Accepted. The session is now 1:39.78")
+    expect(page.locator("#ln-note")).to_contain_text("Accepted. The session is now 1:39.79")
     assert "not on a listed course, so only it changes" in seen[0], seen[0]
     assert log["course"] is None and log["rebuilds"] == 0
     assert [r["id"] for r in log["retimes"]] == ["s9"]
@@ -1030,7 +1030,7 @@ def test_admin_checks_then_re_times_every_session_at_one_track_from_its_saved_re
     row.get_by_role("button", name="Check sessions here").click()
     expect(page.locator("#tk-retime-note")).to_contain_text("2 sessions at Thruxton")
     expect(page.locator("#tk-retime-note")).to_contain_text("1 have no readings kept")
-    expect(page.locator("#tk-retime-list")).to_contain_text("Thruxton, 2026-05-28 (track): 1:42.000 to 1:39.78")
+    expect(page.locator("#tk-retime-list")).to_contain_text("Thruxton, 2026-05-28 (track): 1:42.00 to 1:39.79")
     assert seen["posts"] == [] and seen["gets"] == ["r1"], seen
     # A no leaves everything as it was.
     page.once("dialog", lambda d: d.dismiss())

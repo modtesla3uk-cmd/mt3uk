@@ -25,8 +25,9 @@
   function fmtD(m, dp) { return (m / distK()).toFixed(dp == null ? 1 : dp) + (units.mph ? ' mi' : ' km'); }
   function fmtLap(s) {
     if (s == null || !isFinite(s)) return '';
-    var m = Math.floor(s / 60), r = s - m * 60;
-    return m + ':' + (r < 10 ? '0' : '') + r.toFixed(3);
+    // Hundredths of a second, rounded once so 59.996 reads 1:00.00 and never 0:60.00.
+    var cs = Math.round(s * 100 + 1e-7), m = Math.floor(cs / 6000), r = (cs - m * 6000) / 100;
+    return m + ':' + (r < 10 ? '0' : '') + r.toFixed(2);
   }
   function el(tag, attrs, parent) {
     var e = document.createElementNS(NS, tag);

@@ -455,7 +455,7 @@
     fetch(API + path, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
       var entries = d.entries || [];
       boardEl.innerHTML = entries.length ? '<table class="iv-table"><tbody>' + entries.map(function (en, i) {
-        var res = en.time ? Math.floor(en.time / 60) + ':' + ((en.time % 60) < 10 ? '0' : '') + (en.time % 60).toFixed(3) : en.quarter ? en.quarter.toFixed(2) + ' s' : '';
+        var res = en.time ? window.MT3UKTrack.fmtLap(en.time) : en.quarter ? en.quarter.toFixed(2) + ' s' : '';
         return '<tr><td>' + (i + 1) + '</td><td>' + esc(en.car) + '<span class="iv-sub"> ' + esc(en.owner) + ', ' + esc(en.model) + '</span></td><td>' + res + '</td><td><a class="iv-sub" href="track.html?s=' + esc(en.sessionId) + '" target="_blank" rel="noopener">View</a></td><td><button type="button" class="danger iv-act" data-session="' + esc(en.sessionId) + '">Remove</button></td></tr>';
       }).join('') + '</tbody></table>' : '<p class="empty">Nobody on this board yet.</p>';
     });
@@ -517,7 +517,6 @@
   function retimeOpts(old) {
     var o = { type: old.type, ignoreFirstFinish: old.ignoreFinish !== false };
     if (old.rollout) o.rollout = true;
-    if (old.startAtLine) o.startAtLine = true;
     if (old.organizer) o.organizer = old.organizer;
     if (old.finishCrossing) o.finishCrossing = old.finishCrossing;
     if (old.startLineFromMember && old.startLine) { o.startLine = old.startLine; if (old.finishLine) o.finishLine = old.finishLine; }

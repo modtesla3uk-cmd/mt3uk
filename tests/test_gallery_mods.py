@@ -123,7 +123,7 @@ def test_full_list_shows_shared_track_bests(device_page):
     sheet = open_full_list(page)
     track = sheet.locator(".lightbox-car-track")
     assert track.is_visible()
-    assert "Thruxton" in track.inner_text() and "1:39.786" in track.inner_text()
+    assert "Thruxton" in track.inner_text() and "1:39.79" in track.inner_text()
     assert track.locator("a").first.get_attribute("href") == "track.html?s=s1"
     assert track.get_by_text("All shared sessions").get_attribute("href") == "track.html?car=car-1"
     assert overflow_width(page) <= 0

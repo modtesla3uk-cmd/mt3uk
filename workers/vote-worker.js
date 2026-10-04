@@ -6706,8 +6706,6 @@ function cleanTrackSession(s, library) {
     var org = trackText(s.organizer, 40);
     if (org) out.organizer = org;
     if (s.ignoreFinish === false) out.ignoreFinish = false;
-    // The clock starts at the start line (as a timing beam does), not when the car moves off.
-    if (s.startAtLine) out.startAtLine = true;
     // A hill climb rather than a sprint (the member's pick, or the track list's): both are timed start to finish.
     if (s.hill) out.hill = true;
     // A faster pass crosses the lines the other way round: the page warns that they may be the wrong way round.
@@ -7316,7 +7314,11 @@ function trackLinesMoved(a, b) {
   return moved(a.startLine, b.startLine) || moved(a.finishLine, b.finishLine);
 }
 function trackLineText(l) { return l && l.length === 2 ? [l[0][0], l[0][1], l[1][0], l[1][1]].map(function (v) { return Math.round(v * 1e7) / 1e7; }).join(', ') : 'not set'; }
-function trackTimeText(t) { return t ? Math.floor(t / 60) + ':' + (t % 60 < 10 ? '0' : '') + (t % 60).toFixed(3) : 'no time'; }
+function trackTimeText(t) {
+  if (!t) return 'no time';
+  var cs = Math.round(t * 100 + 1e-7), m = Math.floor(cs / 6000), r = (cs - m * 6000) / 100;
+  return m + ':' + (r < 10 ? '0' : '') + r.toFixed(2);
+}
 async function emailAdminAboutLines(env, subject, text) {
   try { await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text))); } catch (e) { /* the request is kept either way */ }
 }

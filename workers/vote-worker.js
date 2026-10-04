@@ -8150,6 +8150,9 @@ async function handleTrackAdminRetime(request, env) {
     if (!old.street) delete next.outline;
   }
   ['privacy', 'conditions', 'tyres', 'tyreMake', 'tyreModel', 'tyreWidth', 'tyreProfile', 'tyreRim', 'temp', 'tempSource', 'weather', 'notes', 'hasSource', 'readingsRefused', 'fileName'].forEach(function (k) { if (old[k] !== undefined) next[k] = old[k]; });
+  // The saved readings carry no car channels, so a re-time cannot work the Track Mode figures out again: keep the ones the upload made.
+  if (old.carData && !next.carData) next.carData = old.carData;
+  if (old.carSource && !next.carSource) next.carSource = old.carSource;
   if (next.street || next.unlisted) next.privacy = 'private';
   if (next.privacy === 'board' && !trackBoardKey(next)) next.privacy = 'build';
   var oldBoard = trackBoardKey(old);

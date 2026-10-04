@@ -43,6 +43,10 @@
     return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2;
   }
   function round(v, d) { var k = Math.pow(10, d || 0); return Math.round(v * k) / k; }
+  // The middle of three readings: one wild reading in a row of three is dropped.
+  function median3(x, y, z) { return x > y ? (y > z ? y : (x > z ? z : x)) : (x > z ? x : (y > z ? z : y)); }
+  // Brake pressure only counts as braking once the car is moving (it can sit high at a standstill), km/h.
+  var BRAKE_MIN_KMH = 10;
   function haversine(a, b) {
     var dLat = (b.lat - a.lat) * DEG, dLng = (b.lng - a.lng) * DEG;
     var h = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(a.lat * DEG) * Math.cos(b.lat * DEG) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
@@ -513,12 +517,29 @@
     // the car's own readings are better: its g-forces come from a sensor, not from differences of noisy positions.
     var useSpeed = !!timed.speedDerived && !car.speedDerived && car.points.some(function (p) { return isFinite(p.v); });
     var useG = !!timed.gDerived && !car.gDerived && car.points.some(function (p) { return isFinite(p.la) && isFinite(p.lo); });
+    // The car writes far more readings than the lap timer, so a point only takes the car's channels at its own moment and a
+    // short peak (power, brake pressure, slip) between two points would be lost. Each point also keeps the extremes of the
+    // car's readings since the point before (pk), and carData counts them.
+    var prevLo = -1;
     var pts = timed.points.map(function (p) {
       var tc = p.t - m.shift, q = Object.assign({}, p);
       if (tc < car.points[0].t - 0.5 || tc > car.points[car.points.length - 1].t + 0.5) return q;
       var lo = 0, hi = car.points.length - 1;
       while (lo < hi) { var mid2 = (lo + hi) >> 1; if (car.points[mid2].t < tc) lo = mid2 + 1; else hi = mid2; }
       var b = car.points[lo], a = car.points[Math.max(0, lo - 1)], f = b.t > a.t ? Math.max(0, Math.min(1, (tc - a.t) / (b.t - a.t))) : 0;
+      var pk = {};
+      for (var ki = prevLo >= 0 && prevLo <= lo ? prevLo : lo; ki <= lo; ki++) {
+        var kc = car.points[ki].ch;
+        if (!kc) continue;
+        if (isFinite(kc.pwr)) { if (!(pk.pwrMax >= kc.pwr)) pk.pwrMax = kc.pwr; if (!(pk.pwrMin <= kc.pwr)) pk.pwrMin = kc.pwr; }
+        if (isFinite(kc.bpr) && car.points[ki].v > BRAKE_MIN_KMH) {
+          var bp = ki > 0 && ki < car.points.length - 1 && car.points[ki - 1].ch && car.points[ki + 1].ch && isFinite(car.points[ki - 1].ch.bpr) && isFinite(car.points[ki + 1].ch.bpr) ? median3(car.points[ki - 1].ch.bpr, kc.bpr, car.points[ki + 1].ch.bpr) : kc.bpr;
+          if (!(pk.bprMax >= bp)) pk.bprMax = bp;
+        }
+        if (isFinite(kc.slp) && !(pk.slpMax >= kc.slp)) pk.slpMax = kc.slp;
+      }
+      prevLo = lo;
+      if (Object.keys(pk).length) q.pk = pk;
       function mix(x, y) { return isFinite(x) && isFinite(y) ? x + (y - x) * f : isFinite(y) ? y : x; }
       if (useSpeed) q.v = mix(a.v, b.v);
       if (useG) { q.la = mix(a.la, b.la); q.lo = mix(a.lo, b.lo); }
@@ -1447,7 +1468,7 @@
   // so far as a fraction of one, so a channel that never goes above 1.5 is
   // scaled to a percentage here.
   function carData(pts) {
-    var st = {}, n = 0, dt = 0, flat = 0, prevT = null;
+    var st = {}, n = 0, dt = 0, flat = 0, prevT = null, bprMoving = -Infinity;
     // Peak power in the first and last third of the file, at full throttle when
     // the file says so, to see whether the car held power back as it got hot.
     var tEnd = pts.length ? pts[pts.length - 1].t : 0, early = 0, late = 0;
@@ -1464,10 +1485,28 @@
           var a = st[k] || (st[k] = { first: v, last: v, min: v, max: v, nz: false });
           a.last = v; if (v < a.min) a.min = v; if (v > a.max) a.max = v; if (v !== 0) a.nz = true;
         });
+        // The extremes the lap timer's points skipped over when the car's file was joined on (mergeSources).
+        var pk = pts[i].pk;
+        // Hardest braking: only while moving, and a joined point already holds the car's own filtered peak (pk).
+        if (pk) { if (isFinite(pk.bprMax) && pk.bprMax > bprMoving) bprMoving = pk.bprMax; }
+        else if (isFinite(c.bpr) && pts[i].v > BRAKE_MIN_KMH) {
+          var bn = i > 0 && i < pts.length - 1 && pts[i - 1].ch && pts[i + 1].ch && isFinite(pts[i - 1].ch.bpr) && isFinite(pts[i + 1].ch.bpr) ? median3(pts[i - 1].ch.bpr, c.bpr, pts[i + 1].ch.bpr) : c.bpr;
+          if (bn > bprMoving) bprMoving = bn;
+        }
+        if (pk) {
+          [['pwr', pk.pwrMax], ['pwr', pk.pwrMin], ['slp', pk.slpMax]].forEach(function (e) {
+            var a = st[e[0]];
+            if (!a || !isFinite(e[1])) return;
+            if (e[1] > a.max) a.max = e[1];
+            if (e[1] < a.min) a.min = e[1];
+            if (e[1] !== 0) a.nz = true;
+          });
+        }
         if (isFinite(c.thr) && prevT !== null) { var step = Math.min(2, pts[i].t - prevT); if (step > 0) { dt += step; if (c.thr >= 95) flat += step; } }
         if (isFinite(c.pwr) && (!isFinite(c.thr) || c.thr >= 95)) {
-          if (pts[i].t < tEnd / 3) early = Math.max(early, c.pwr);
-          else if (pts[i].t > tEnd * 2 / 3) late = Math.max(late, c.pwr);
+          var pw = pk && isFinite(pk.pwrMax) ? Math.max(c.pwr, pk.pwrMax) : c.pwr;
+          if (pts[i].t < tEnd / 3) early = Math.max(early, pw);
+          else if (pts[i].t > tEnd * 2 / 3) late = Math.max(late, pw);
         }
       }
       prevT = pts[i].t;
@@ -1483,7 +1522,7 @@
       if (early > 0 && late > 0) { out.power.early = round(early, 0); out.power.late = round(late, 0); }
     }
     if ((a = on('thr', 'Throttle')) && dt > 0) out.throttle = { full: round(flat / dt, 2) };
-    if ((a = on('bpr', 'Brake pressure'))) out.brakePressure = { max: round(a.max, 1) };
+    if (on('bpr', 'Brake pressure') && bprMoving > 0) out.brakePressure = { max: round(bprMoving, 1) };
     if ((a = on('bat', 'Battery temperature'))) out.batteryTemp = { start: round(a.first * pct(a), 0), max: round(a.max * pct(a), 0) };
     if ((a = on('brk', 'Brake temperature'))) out.brakeTemp = { max: round(a.max * pct(a), 0) };
     if ((a = on('inv', 'Inverter temperature'))) out.inverterTemp = { max: round(a.max * pct(a), 0) };

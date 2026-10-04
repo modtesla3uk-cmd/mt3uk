@@ -575,6 +575,23 @@ ok(T.fmtLap(99.786) === '1:39.786' && T.niceDate('2026-05-28') === '28 May 2026'
     const latC = corrOf(rb.points.map(p => p.la), real.rd.points.map(p => p.la)), lonC = corrOf(rb.points.map(p => p.lo), real.rd.points.map(p => p.lo));
     ok(latC > 0.9 && lonC > 0.85, 'g from the GPS path has the sign and shape of the car\'s own (cornering match ' + latC.toFixed(2) + ', braking ' + lonC.toFixed(2) + ')');
   }
+  // The car file has far more readings than the lap timer's, so a short peak between two of its points must still count:
+  // the figures from the joined pair are the car file's own peaks (brake pressure 32.1 bar, power 243.6 kW, regen 79 kW).
+  {
+    const own = T.analyse(tm, { venues: [] }, { type: 'other' }).carData, joined = T.analyse(real.rd, { venues: [] }, { type: 'other' }).carData;
+    ok(joined.brakePressure.max === own.brakePressure.max && joined.power.max === own.power.max && joined.power.regen === own.power.regen && joined.slip.max === own.slip.max,
+      'a joined session keeps the car file\'s own peaks (' + joined.brakePressure.max + ' bar, ' + joined.power.max + ' kW, regen ' + joined.power.regen + ', slip ' + joined.slip.max + '; the car file says ' + own.brakePressure.max + ', ' + own.power.max + ', ' + own.power.regen + ', ' + own.slip.max + ')');
+  }
+  // Hardest braking only counts while moving, and one wild reading is not braking.
+  {
+    const mk = (spec) => spec.map((x, i) => ({ t: i * 0.1, v: x[0], ch: { bpr: x[1], soc: 50 } }));
+    const still = T.carData(mk([[0, 32], [0, 32], [0, 5], [50, 6], [50, 7], [50, 8]]));
+    ok(still.brakePressure.max === 8, 'a high brake pressure at a standstill is not the hardest braking (' + still.brakePressure.max + ')');
+    const blip = T.carData(mk([[50, 6], [50, 7], [50, 40], [50, 7], [50, 8], [50, 9], [50, 9]]));
+    ok(blip.brakePressure.max === 9, 'one wild reading is dropped (' + blip.brakePressure.max + ')');
+    const none = T.carData(mk([[0, 30], [0, 31], [0, 32], [0, 33]]));
+    ok(!none.brakePressure, 'no braking while moving gives no figure');
+  }
   const rs = T.analyse(real.rd, { venues: [] }, { type: 'other' });
   ok(rs.gDerived === false && rs.latMax > 0.3 && rs.latMax < 0.7 && rs.carData && rs.carData.soc && rs.carData.soc.end < rs.carData.soc.start + 0.01, 'the real pair gives the car\'s own g-forces (' + rs.latMax + ' g) and its battery figures');
 }

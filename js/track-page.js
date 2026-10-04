@@ -288,19 +288,20 @@
     return String(d || '').slice(0, 4) === String(new Date().getFullYear()) ? n.replace(/ \d{4}$/, '') : n;
   }
   // Short forms for the A and B labels, so they fit a phone: 28/05 (the year only when it is not this one), a member as
-  // initials ("RR" for RichyRich) and "L5" for Lap 5, "R2 L3" for run 2, lap 3.
+  // first initial and last name, and "L5" for Lap 5, "R2 L3" for run 2, lap 3.
   function dmy(d) {
     var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d || '');
     if (!m) return d || '';
     return m[3] + '/' + m[2] + (m[1] === String(new Date().getFullYear()) ? '' : '/' + m[1].slice(2));
   }
+  // A member as the first initial and last name ("A. Smith") when their public name is a first and last name; a nickname
+  // (one word) is shown as it is. Only the name the member chose to show is ever used.
   function initials(name) {
     name = String(name || '').trim();
     if (!name || name === 'You') return name;
-    var words = name.split(/[\s_.\-]+/).filter(Boolean);
-    if (words.length < 2) words = name.match(/[A-Z][a-z0-9]*|[a-z0-9]+/g) || [name];
-    if (words.length < 2) return name.charAt(0).toUpperCase() + name.slice(1, 2).toLowerCase();
-    return words.slice(0, 3).map(function (w) { return w.charAt(0).toUpperCase(); }).join('');
+    var words = name.split(/\s+/).filter(Boolean);
+    if (words.length < 2) return name.length > 14 ? name.slice(0, 13) + '\u2026' : name;
+    return words[0].charAt(0).toUpperCase() + '. ' + words[words.length - 1];
   }
   function trackName(s) { return (s.venue || (s.type === 'sprint' ? 'Sprint' : s.type === 'drag' ? 'Drag run' : 'Track session')) + (s.layout && s.layout !== s.venue ? ', ' + s.layout : !s.layout && s.organizer ? ', ' + s.organizer : ''); }
   function privacyPill(p, street) {

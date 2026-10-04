@@ -1839,7 +1839,7 @@ def test_compare_dots_show_each_lap_at_the_same_moment(page):
     fake = FakeWorker()
     save_thruxton_with_a_member_board(page, fake)
     page.locator("#tp-cmp-b").select_option("x:m1")
-    expect(page.locator("#tp-key")).to_contain_text("An, best, 28/05 (B)")
+    expect(page.locator("#tp-key")).to_contain_text("Ann, best, 28/05 (B)")
     expect(page.locator("#tp-sync")).to_have_count(0)
     expect(page.locator(".tp-sync-note")).to_contain_text("slower one trails")
     page.locator("#tp-speed").scroll_into_view_if_needed()
@@ -1982,7 +1982,7 @@ def test_other_members_laps_can_be_compared_and_put_on_the_map(page):
     group = page.locator("#tp-cmp-b optgroup[label=\"Other members' best laps\"]")
     expect(group.locator("option")).to_have_text(["Ann, Blue Y, 1:49.800"])
     page.locator("#tp-cmp-b").select_option("x:m1")
-    expect(page.locator("#tp-key")).to_contain_text("An, best, 28/05 (B)")
+    expect(page.locator("#tp-key")).to_contain_text("Ann, best, 28/05 (B)")
     expect(page.locator("#tp-gap-cap")).to_contain_text("A finishes")
     expect(page.locator("#tp-gap-cap")).to_contain_text("ahead")
     # Their lap is on the map as lap B.
@@ -4173,3 +4173,14 @@ def test_a_touch_that_lands_on_a_tile_still_pans_the_zoomed_map(page, base_url):
         assert abs((p1[0] - p0[0]) - 70) < 4 and abs((p1[1] - p0[1]) - 30) < 4, (p0, p1)
     finally:
         ctx.close()
+
+
+def test_another_members_lap_is_labelled_with_first_initial_and_last_name(page):
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    # A name shown as first and last name becomes "A. Smith"; a nickname (one word) is shown as it is.
+    fake.boards["/track/board:thruxton:main"][0].update(owner="Andy Smith")
+    page.reload()
+    page.locator("#tp-cmp-b").wait_for()
+    page.locator("#tp-cmp-b").select_option("x:m1")
+    expect(page.locator("#tp-key")).to_contain_text("A. Smith, best, 28/05 (B)")

@@ -4286,3 +4286,19 @@ def test_the_rotate_button_says_so_when_the_phone_cannot_lock_the_screen(page):
     page.locator("#tp-mapwrap .tv-zoom-full").click()
     page.locator("#tp-rotate-hint").click()
     expect(page.locator("#tp-rotate-toast")).to_have_text("Turn your phone sideways to use the bigger map.")
+
+
+def test_full_screen_has_lap_pickers(page):
+    """Lap A and Lap B can be switched from full screen, upright and on its side."""
+    page.set_viewport_size({"width": 390, "height": 844})
+    save_thruxton_with_a_member_board(page, FakeWorker())
+    page.locator("#tp-mapwrap .tv-zoom-full").click()
+    expect(page.locator("#tp-fs-laps #tp-cmp-b")).to_be_visible()
+    before = page.locator(".tp-mapcard").inner_text()
+    page.locator("#tp-cmp-b").select_option(index=1)
+    page.wait_for_timeout(400)
+    assert page.locator("#tp-cmp-b").input_value()
+    page.set_viewport_size({"width": 800, "height": 360})
+    page.wait_for_timeout(400)
+    page.locator("#tp-mopts-btn").click()
+    expect(page.locator("#tp-mopts-body #tp-cmp-a")).to_be_visible()

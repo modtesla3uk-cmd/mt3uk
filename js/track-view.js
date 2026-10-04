@@ -630,6 +630,12 @@
     return {
       zoomAt: zoomAt, centreOn: centreOn, busy: function () { return count() > 1 || dragged; }, k: function () { return W / vb.w; },
       view: function () { return { x: vb.x, y: vb.y, w: vb.w, h: vb.h }; },
+      // The zoom and centre as fractions of the map, so a redraw at another size can carry on from the same spot.
+      frac: function () { return { fx: (vb.x + vb.w / 2) / W, fy: (vb.y + vb.h / 2) / H, k: W / vb.w }; },
+      restore: function (f) {
+        var nw = Math.max(W / ZOOM_MAX, Math.min(W / (cfg.minZoom || ZOOM_MIN), W / f.k)), nh = nw * H / W;
+        vb = { x: f.fx * W - nw / 2, y: f.fy * H - nh / 2, w: nw, h: nh }; clamp(); set();
+      },
       // A finger or mouse button is down on the map.
       // (A touch with no news for over a second is taken to be over.)
       active: function () { return count() > 0 && Date.now() - lastEv < 1000; },

@@ -2238,6 +2238,7 @@
         '<div class="tp-mopts" id="tp-mopts"><button type="button" class="tp-mopts-btn" id="tp-mopts-btn" aria-expanded="false" aria-controls="tp-mopts-card" aria-label="Map options">' + icon('sliders') + '</button>' +
         '<div class="tp-mopts-card" id="tp-mopts-card" hidden><div class="tp-mopts-head"><span>Map options</span><button type="button" class="tp-mopts-x" id="tp-mopts-x" aria-label="Close map options">' + icon('x') + '</button></div>' +
         '<div class="tp-mopts-body" id="tp-mopts-body"><button type="button" class="tp-switch tp-gswitch" role="switch" id="tp-carspeed" aria-checked="' + carSpeed + '"><span>Speed on cars</span><span class="tp-track"></span></button><button type="button" class="btn btn-secondary btn-sm" id="tp-pn-reset">Reset the controls</button></div></div></div>' +
+        '<div class="tp-fs-laps" id="tp-fs-laps"></div>' +
         '<div class="tp-split" id="tp-split" role="separator" aria-orientation="vertical" aria-label="Drag to make the map bigger or smaller" title="Drag to make the map bigger or smaller"></div>' +
         '<div class="tp-metrics" id="tp-metrics" aria-live="off"></div>' +
         '<div class="tp-gbox" id="tp-gbox"><div class="tp-chart-head"><h3>G-force' + (s.gDerived ? ' (estimated)' : '') + ' and speed</h3><button type="button" class="tp-switch tp-gswitch" role="switch" id="tp-gshow" aria-checked="' + !gHidden + '"><span>Show G-Forces</span><span class="tp-track"></span></button><div class="tp-chips" id="tp-gtoggles" role="group" aria-label="G-force lines to show">' + G_DEFS.map(function (d) { return '<button type="button" class="chip chip-sm' + (gShow[d[0]] ? ' is-on' : '') + '" data-g="' + d[0] + '" aria-pressed="' + !!gShow[d[0]] + '">' + d[1] + '</button>'; }).join('') + '</div></div>' +
@@ -2438,6 +2439,15 @@
       else if (sw.parentNode !== head) head.insertBefore(sw, head.querySelector('.tp-rotate-hint'));
     }
     panelClamp();
+    // The Lap A and Lap B pickers come along into full screen: first in the Map options card on a phone on its side, in a
+    // row under the map when upright, and back in their own card on the page otherwise.
+    var la = document.getElementById('tp-cmp-a'), lb = document.getElementById('tp-cmp-b');
+    if (la && lb) {
+      var fa = la.parentNode, fb = lb.parentNode, home = document.querySelector('.tp-cmp-pick .tp-f2'), fsl = document.getElementById('tp-fs-laps');
+      if (landFull() && obody) { if (fa.parentNode !== obody || fb.parentNode !== obody) { obody.insertBefore(fb, obody.firstChild); obody.insertBefore(fa, obody.firstChild); } }
+      else if (cmpFull && fsl) { if (fa.parentNode !== fsl || fb.parentNode !== fsl) { fsl.appendChild(fa); fsl.appendChild(fb); } }
+      else if (home && (fa.parentNode !== home || fb.parentNode !== home)) { home.appendChild(fa); home.appendChild(fb); }
+    }
     // The G-force pills stay in the charts panel's top row.
     if (gt && row && gt.parentNode !== row) row.appendChild(gt);
   }
@@ -2739,6 +2749,8 @@
   function drawCompare(s, keep) {
     // Redrawing for full screen carries on from the same place in the lap.
     var resume = keep ? { t: pb.t, active: pb.active, playing: pb.playing, dir: pb.dir } : null;
+    // ...and from the same zoom and place on the map.
+    var zoomed = keep && cmpMap && cmpMap.zoom && cmpMap.zoom.frac ? cmpMap.zoom.frac() : null;
     Promise.all([lapTrace(view.a), lapTrace(view.b || view.a)]).then(function (r) {
       var A = r[0], B = r[1];
       if (!A || !B) return;
@@ -2763,6 +2775,7 @@
       var lo = document.getElementById('tp-ramp-lo'), hi = document.getElementById('tp-ramp-hi');
       if (mo && lo && hi) { lo.textContent = V.fmtV(mo.vmin); hi.textContent = V.fmtV(mo.vmax); }
       cmpMap = mo;
+      if (zoomed && mo && mo.zoom && mo.zoom.restore && zoomed.k > 1.01) mo.zoom.restore(zoomed);
       if (mo && mo.setFollow) mo.setFollow(cmpFollow);
       if (mo && mo.zoom && mo.zoom.onPan) mo.zoom.onPan(function () { if (cmpFollow) setFollow(false); });
       // Smoothed G-force rows [distance, acceleration, cornering] for each lap.

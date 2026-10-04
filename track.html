@@ -255,10 +255,10 @@
   .tp-mapcard.is-full .tp-mapwrap { order: 1; flex: 1 1 auto; min-height: 0; }
   .tp-mapcard.is-full .tv-zoom-wrap { height: 100%; }
   .tp-mapcard.is-full #tp-map2 { width: 100%; height: 100%; }
-  .tp-mapcard.is-full .tp-play { order: 2; margin: 6px 0 0; gap: 6px; }
+  .tp-mapcard.is-full .tp-play { order: 3; margin: 6px 0 0; gap: 6px; }
   .tp-mapcard.is-full .tp-play .btn { min-height: 40px; }
   .tp-mapcard.is-full .tp-play .chip { min-height: 36px; }
-  .tp-mapcard.is-full .tp-metrics { order: 3; margin: 4px 0 0; gap: 2px; }
+  .tp-mapcard.is-full .tp-metrics { order: 4; margin: 4px 0 0; gap: 2px; }
   /* The numbers on one line each, so the chart below gets the room. */
   .tp-mapcard.is-full .tp-metrics .tp-mv small { display: none; }
   .tp-mapcard.is-full .tp-mrow { gap: 4px 10px; }
@@ -275,7 +275,7 @@
     .tp-mapcard.is-full #tp-gtoggles .chip { min-height: 32px; padding: 0 9px; font-size: 0.78rem; }
     .tp-mapcard.is-full .tp-gbox .tp-chart-head h3 { font-size: 0.95rem; }
   }
-  .tp-mapcard.is-full .tp-gbox { order: 4; margin-top: 4px; }
+  .tp-mapcard.is-full .tp-gbox { order: 5; margin-top: 4px; }
   .tp-mapcard.is-full .tp-gbox .tp-chart-head { margin-bottom: 2px; }
   @media (max-height: 560px) and (orientation: portrait) { .tp-mapcard.is-full .tp-gbox, .tp-mapcard.is-full .tp-scrub-row { display: none; } }
   /* A phone on its side: the map fills the screen with the controls, the key and the numbers on top of it, and the
@@ -348,10 +348,30 @@
   .tv-dotlabel { display: none; }
   .tp-mopts { display: none; }
   .tp-when { display: none; }
+  /* Lap A and Lap B pickers in full screen: a row under the map when upright, the top of Map options when on its side. */
+  .tp-fs-laps { display: none; }
+  /* Laid over the foot of the map (above the imagery credit), so the map keeps its height. */  .tp-mapcard.is-full .tp-fs-laps { display: flex; order: 2; gap: 8px; position: relative; z-index: 6; margin: -62px 8px 22px; pointer-events: none; }
+  .tp-fs-laps .tp-field { pointer-events: auto; background: rgba(255,255,255,.92); border-radius: var(--radius-sm); padding: 3px 6px; }
+  .tp-fs-laps:empty { display: none !important; }
+  .tp-fs-laps .tp-field { flex: 1 1 0; min-width: 0; margin: 0; gap: 2px; }
+  .tp-fs-laps .tp-field .field, .tp-mopts-body .tp-field .field { min-height: 40px; padding-top: 4px; padding-bottom: 4px; font-size: 0.86rem; }
+  .tp-fs-laps label, .tp-mopts-body .tp-field label { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; margin: 0; }
+  .tp-fs-laps label[for="tp-cmp-a"]::before, .tp-mopts-body label[for="tp-cmp-a"]::before, .tp-fs-laps label[for="tp-cmp-b"]::before, .tp-mopts-body label[for="tp-cmp-b"]::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: #2a78d6; }
+  .tp-fs-laps label[for="tp-cmp-b"]::before, .tp-mopts-body label[for="tp-cmp-b"]::before { background: #eb6834; }
+  .tp-mopts-body .tp-field { margin: 4px 0 2px; }
+  .tp-fs-laps .tp-field { flex-direction: row; align-items: center; }
+  .tp-fs-laps .tp-field label { flex: 0 0 auto; }
+  .tp-fs-laps .tp-field .field { min-height: 34px; }
+  @media (max-width: 600px) {
+    .tp-fs-laps .tp-field label { font-size: 0; gap: 0; }
+    .tp-fs-laps .tp-field label::before { width: 12px; height: 12px; }
+    .tp-fs-laps .tp-field .field { font-size: 0.8rem; padding-left: 6px; padding-right: 4px; }
+  }
+
   .tp-pn-grip, .tp-pn-size { display: none; }
   .tp-mopts-btn { width: 44px; height: 44px; display: grid; place-items: center; padding: 0; border: 1px solid var(--hairline-strong); border-radius: var(--radius); background: rgba(255,255,255,.95); color: var(--ink); box-shadow: 0 1px 6px rgba(0,0,0,.35); cursor: pointer; }
   .tp-mopts-btn[hidden] { display: none; }
-  .tp-mopts-card { min-width: 210px; border: 1px solid var(--hairline-strong); border-radius: var(--radius); background: rgba(255,255,255,.96); box-shadow: 0 1px 6px rgba(0,0,0,.35); overflow: hidden; }
+  .tp-mopts-card { min-width: 250px; max-width: 78vw; border: 1px solid var(--hairline-strong); border-radius: var(--radius); background: rgba(255,255,255,.96); box-shadow: 0 1px 6px rgba(0,0,0,.35); overflow-x: hidden; overflow-y: auto; max-height: calc(100vh - 150px); }
   .tp-mopts-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 2px 4px 2px 12px; border-bottom: 1px solid var(--hairline); font-size: 0.85rem; font-weight: 600; color: var(--ink); }
   .tp-mopts-x { width: 40px; height: 40px; display: grid; place-items: center; padding: 0; border: 0; background: none; color: var(--ink); cursor: pointer; }
   .tp-mopts-body { display: grid; gap: 0; padding: 2px 12px 6px; }
@@ -903,10 +923,10 @@
 </script>
 
 <script src="js/track-parse.js?v=20261104" defer></script>
-<script src="js/track-view.js?v=20261129" defer></script>
+<script src="js/track-view.js?v=20261144" defer></script>
 <script src="js/tyre-data.js"></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20261142" defer></script>
+<script src="js/track-page.js?v=20261144" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=7" defer></script>
 <script src="js/signin-prompt.js" defer></script>

@@ -83,5 +83,27 @@
   });
   findBtn.addEventListener('click', find);
   emailEl.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); find(); } });
+
+  // Why a session is or is not on a leaderboard (/track/admin/boardcheck).
+  var idEl = document.getElementById('ms-id'), checkBtn = document.getElementById('ms-check'), outEl = document.getElementById('ms-check-out');
+  function check() {
+    var v = idEl.value.trim();
+    if (!v) { outEl.innerHTML = '<p class="iv-note is-error">Paste a session link or id first.</p>'; return; }
+    checkBtn.disabled = true; outEl.innerHTML = '<p class="iv-note">Checking...</p>';
+    fetch(API + '/track/admin/boardcheck?key=' + encodeURIComponent(key()) + '&id=' + encodeURIComponent(v), { cache: 'no-store' })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d.ok = r.ok; return d; }); })
+      .then(function (d) {
+        checkBtn.disabled = false;
+        if (!d.ok || !d.success) { outEl.innerHTML = '<p class="iv-note is-error">' + esc(d.message || 'Could not check it.') + '</p>'; return; }
+        var s = d.session;
+        var h = '<p class="iv-note"><b>' + esc((s.venue || 'No track') + (s.layout ? ', ' + s.layout : '')) + '</b> (' + esc(s.type === 'sprint' && d.tab === 'Hill climb' ? 'hill climb' : s.type) + ', ' + esc(s.date) + (s.bestTime ? ', best ' + esc(s.bestTime) : '') + ', sharing: ' + esc(s.privacy || 'none') + ')</p>';
+        h += d.onBoard ? '<p class="iv-note is-ok">On the ' + esc(d.tab) + ' leaderboard (' + d.entries + ' car' + (d.entries === 1 ? '' : 's') + ' on that board).</p>'
+          : '<p class="iv-note is-error">Not shown as a row on the ' + esc(d.tab) + ' leaderboard' + (d.board ? '' : ' (it has no board to be on)') + '.</p>';
+        if (d.reasons && d.reasons.length) h += '<ul class="iv-note" style="padding-left:18px">' + d.reasons.map(function (r) { return '<li>' + esc(r) + '</li>'; }).join('') + '</ul>';
+        outEl.innerHTML = h;
+      }).catch(function () { checkBtn.disabled = false; outEl.innerHTML = '<p class="iv-note is-error">Could not reach the server.</p>'; });
+  }
+  checkBtn.addEventListener('click', check);
+  idEl.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); check(); } });
   wrap.addEventListener('toggle', function () { if (wrap.open) loadViews(); });
 })();

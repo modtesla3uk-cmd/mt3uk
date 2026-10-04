@@ -586,6 +586,34 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   ok(r.status === 200 && r.body.relinked === 1 && stored('track-session:' + td3Id).layoutId === 'main', 'adding the circuit by hand links the waiting track day by lap length: ' + JSON.stringify(r.body).slice(0, 100));
 }
 
+// "Why is this session not on a leaderboard?"
+{
+  const mk = async (over, privacy) => {
+    const x = JSON.parse(JSON.stringify(session)); Object.assign(x, over || {});
+    const out = await call('POST', '/track/sessions', { carId: 'cara1', session: x, privacy: privacy || 'private' }, 'tok-a');
+    return out.body.session.id;
+  };
+  let id1 = await mk({ bestTime: 99.5 }, 'private');
+  r = await call('GET', '/track/admin/boardcheck?id=' + id1);
+  ok(r.status === 401, 'the board check needs the admin key');
+  r = await call('GET', '/track/admin/boardcheck?key=secret&id=ffffffffffffffffffff');
+  ok(r.status === 404, 'an unknown session is not found');
+  r = await call('GET', '/track/admin/boardcheck?key=secret&id=' + id1);
+  ok(r.status === 200 && r.body.onBoard === false && r.body.tab === 'Track days' && r.body.reasons.some(x => /Only me/.test(x)), 'a private session says its sharing is why: ' + JSON.stringify(r.body.reasons));
+  await call('PUT', '/track/session', { id: id1, privacy: 'board' }, 'tok-a');
+  r = await call('GET', '/track/admin/boardcheck?key=secret&id=' + encodeURIComponent('https://mt3uk.com/track.html?s=' + id1));
+  ok(r.body.onBoard === true && r.body.entries >= 1 && r.body.reasons.length === 0, 'shared, it is on the board (a full link works): ' + JSON.stringify(r.body).slice(0, 160));
+  // A slower one from the same car shares the board entry with the faster one.
+  let id2 = await mk({ bestTime: 120.5 }, 'board');
+  r = await call('GET', '/track/admin/boardcheck?key=secret&id=' + id2);
+  ok(r.body.onBoard === false && r.body.reasons.some(x => /only its fastest/.test(x)), 'a slower session of a car already on the board says each car shows its fastest: ' + JSON.stringify(r.body.reasons));
+  // Not matched to a track.
+  let id3 = await mk({ venueId: '', layoutId: '', venueName: 'Somewhere new', venue: 'Somewhere new' }, 'board');
+  r = await call('GET', '/track/admin/boardcheck?key=secret&id=' + id3);
+  ok(r.body.board === '' && r.body.reasons.some(x => /not listed|No track was matched/.test(x)), 'an unlisted track says so: ' + JSON.stringify(r.body.reasons));
+  for (const x of [id1, id2, id3]) await call('DELETE', '/track/session?id=' + x, undefined, 'tok-a');
+}
+
 // A new place whose name says hill climb is listed as a hill climb, so it is on that leaderboard tab.
 {
   const sl = [[52.5, -2.0], [52.5002, -2.0002]], fl = [[52.51, -2.01], [52.5102, -2.0102]];

@@ -1048,3 +1048,29 @@ def test_the_tracks_list_can_be_collapsed_and_expanded(page):
     expect(page.locator("#tk-list tbody tr")).to_have_count(2)
     page.locator('[data-tk-filter="type"]').select_option("drag")
     expect(page.locator("#tk-list-wrap > summary")).to_contain_text("(1 of 2)")
+
+
+def test_admin_can_ask_why_a_session_is_not_on_a_leaderboard(page):
+    ok = {"Access-Control-Allow-Origin": "*"}
+    asked = []
+
+    def check(route):
+        asked.append(route.request.url)
+        body = {"success": True, "session": {"id": "abc123abc123", "type": "track", "hill": False, "venue": "Abingdon Airfield Circuit", "venueId": "abingdon-airfield-circuit", "layout": "Full", "layoutId": "full", "privacy": "private", "date": "2020-10-16", "bestTime": 74.562, "car": "c1"},
+                "board": "track-board:abingdon-airfield-circuit:full", "tab": "Track days", "onBoard": False, "entries": 0,
+                "reasons": ["Its sharing is \"Only me\", so it is not on any board. The member turns Shared on in Session settings."]}
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(body), headers=ok)
+    open_admin(page, "admin.html")
+    page.route("**/track/admin/boardcheck**", check)
+    page.reload()
+    page.locator("#member-sessions-wrap > summary").click()
+    page.locator("#ms-id").fill("https://mt3uk.com/track.html?s=abc123abc123")
+    page.locator("#ms-check").click()
+    out = page.locator("#ms-check-out")
+    expect(out).to_contain_text("Abingdon Airfield Circuit, Full")
+    expect(out).to_contain_text("Not shown as a row on the Track days leaderboard")
+    expect(out).to_contain_text("Only me")
+    assert asked and "id=https%3A%2F%2Fmt3uk.com%2Ftrack.html%3Fs%3Dabc123abc123" in asked[0]
+    page.locator("#ms-id").fill("")
+    page.locator("#ms-check").click()
+    expect(out).to_contain_text("Paste a session link or id first.")

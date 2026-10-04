@@ -220,6 +220,19 @@
       .catch(function () {});
   }
 
+  // Back is one button on every page: it goes back to the page you came from when that was another page of this site,
+  // and to the page it links to (its parent) when you came from a shared link or a bookmark.
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a.back-link:not([data-go])');
+    if (!a || e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    var from = '';
+    try { from = document.referrer ? new URL(document.referrer).origin + new URL(document.referrer).pathname : ''; } catch (err) { /* no usable referrer */ }
+    if (from && from.indexOf(location.origin) === 0 && from !== location.origin + location.pathname && window.history.length > 1) {
+      e.preventDefault();
+      window.history.back();
+    }
+  });
+
   function run() {
     refreshSession();
     askNickname();
@@ -244,7 +257,9 @@
       '.mt3uk-account-bar .mt3uk-account-email{color:#b9c0cf;white-space:nowrap}' +
       '.mt3uk-account-bar a,.mt3uk-account-bar button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 16px;box-sizing:border-box;color:#fff;background:transparent;border:1px solid rgba(255,255,255,.45);border-radius:var(--radius,10px);font:inherit;font-weight:600;line-height:1.2;cursor:pointer;text-decoration:none;transition:background-color .15s ease,border-color .15s ease}' +
       '.mt3uk-account-bar a:hover,.mt3uk-account-bar button:hover{background:rgba(255,255,255,.12);border-color:#fff}' +
-      '.mt3uk-account-bar .mt3uk-account-actions{display:flex;gap:10px;flex-wrap:wrap}';
+      '.mt3uk-account-bar a[aria-current="page"]{background:rgba(255,255,255,.18);border-color:#fff}' +
+      '.mt3uk-account-bar .mt3uk-account-actions{display:flex;gap:10px;flex-wrap:wrap}' +
+      '@media(max-width:560px){.mt3uk-account-bar p{flex:1 0 100%}.mt3uk-account-bar .mt3uk-account-actions{flex:1 0 100%;gap:8px}.mt3uk-account-bar .mt3uk-account-actions>*{flex:1 1 0;padding-left:8px;padding-right:8px}}';
     document.head.appendChild(style);
 
     var first = read(FIRST_NAME_KEY);
@@ -257,7 +272,7 @@
         '<p>Signed in as ' + (first
           ? '<strong>' + esc(first) + '</strong>' + (masked ? ' <span class="mt3uk-account-email">&middot; ' + esc(masked) + '</span>' : '')
           : '<strong>' + esc(masked || 'a member') + '</strong>') + '</p>' +
-        '<span class="mt3uk-account-actions">' + (page === 'profile.html' ? '' : '<a href="profile.html">Profile</a>') + (page === 'my-builds.html' || page === 'track.html' ? '' : '<a href="my-builds.html">My Garage</a>') +
+        '<span class="mt3uk-account-actions"><a href="profile.html"' + (page === 'profile.html' ? ' aria-current="page"' : '') + '>Profile</a><a href="my-builds.html"' + (page === 'my-builds.html' ? ' aria-current="page"' : '') + '>My Garage</a>' +
         '<button type="button" class="mt3uk-account-signout">Sign out</button></span>' +
       '</div>';
     bar.querySelector('.mt3uk-account-signout').addEventListener('click', window.mt3ukSignOut);

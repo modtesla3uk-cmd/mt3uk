@@ -262,9 +262,12 @@
     var a = e.target.closest('a[data-go]');
     if (a && !e.metaKey && !e.ctrlKey) { e.preventDefault(); go(a.getAttribute('data-go')); }
   });
+  // The page's own Back (to the page before) is only on the list of sessions; a session or the Add page has its own Back.
+  function syncPageBack() { var b = document.querySelector('.page-hero .back-link'); if (b) b.hidden = !!location.search.replace(/^\?/, ''); }
   function route() {
     stopPlay();
-    if (cmpFull) { cmpFull = false; document.body.classList.remove('tp-noscroll'); }
+    syncPageBack();
+    if (cmpFull) { cmpFull = false; unlockOrientation(); document.body.classList.remove('tp-noscroll'); }
     V.hideTip();
     var p = params();
     // Sessions and builds have their own share button, so the page one steps aside.
@@ -279,8 +282,9 @@
     return showHome();
   }
   function loading(msg) { app.innerHTML = '<div class="tp-loading" role="status">' + esc(msg || 'Loading...') + '</div>'; }
-  function failed(msg) { app.innerHTML = '<div class="card tp-empty">' + icon('warn') + '<p>' + esc(msg) + '</p><a class="btn btn-secondary btn-sm" href="track.html" data-go="">Back to Track sessions</a></div>'; }
-  function back(label, q) { return '<a class="tp-back" href="track.html' + (q ? '?' + q : '') + '" data-go="' + esc(q || '') + '">' + icon('back') + esc(label) + '</a>'; }
+  function failed(msg) { app.innerHTML = '<div class="card tp-empty">' + icon('warn') + '<p>' + esc(msg) + '</p><a class="btn btn-secondary btn-sm" href="track.html" data-go="" aria-label="Back to Track sessions">Back</a></div>'; }
+  // Every Back is a button that just says Back; where it goes is in its name for a screen reader.
+  function back(label, q) { return '<a class="tp-back" href="track.html' + (q ? '?' + q : '') + '" data-go="' + esc(q || '') + '" aria-label="' + esc(/^back\b/i.test(label) ? label : 'Back to ' + label.charAt(0).toLowerCase() + label.slice(1)) + '">' + icon('back') + 'Back</a>'; }
   function niceDate(d) { return T.niceDate(d); }
   // "28 May", with the year only when it isn't this year.
   function shortDate(d) {
@@ -2222,12 +2226,12 @@
         '<div class="tp-grid tp-g-map"><div class="tp-grid"><div class="card tp-o-speed"><div class="tp-chart-head"><h3>Speed through the lap</h3><div class="tp-key" id="tp-key"></div></div><svg class="tv-chart" id="tp-speed" role="img" aria-label="Speed against distance for both laps"></svg>' +
         '<div class="tp-chart-head"><h3>Time gap</h3><span class="tp-small" id="tp-gap-cap"></span></div><svg class="tv-chart" id="tp-delta" role="img" aria-label="Running time gap between the laps"></svg></div>' +
         '<div class="card tp-o-corner"><h3>Corner by corner</h3><div class="tp-scroll"><table class="tp-table" id="tp-corners"></table></div></div></div>' +
-        '<div class="tp-grid"><div class="card tp-mapcard" id="tp-mapcard"><div class="tp-chart-head tp-map-head"><h3>Where you are</h3><button type="button" class="tp-switch tp-gswitch tp-speedsw" role="switch" id="tp-speedcol" aria-checked="' + cmpSpeed + '"><span>Colour by speed</span><span class="tp-track"></span></button><span class="tp-rotate-hint" id="tp-rotate-hint" role="img" aria-label="Turn your phone for a bigger map" title="Turn your phone for a bigger map">' + icon('rotate') + '</span><button type="button" class="btn btn-secondary btn-sm" id="tp-full" aria-label="Full screen map"></button></div>' +
+        '<div class="tp-grid"><div class="card tp-mapcard" id="tp-mapcard"><div class="tp-chart-head tp-map-head"><h3>Where you are</h3><button type="button" class="tp-switch tp-gswitch tp-speedsw" role="switch" id="tp-speedcol" aria-checked="' + cmpSpeed + '"><span>Colour by speed</span><span class="tp-track"></span></button><button type="button" class="tp-rotate-hint" id="tp-rotate-hint" aria-label="Turn the screen sideways for a bigger map" title="Turn the screen sideways for a bigger map">' + icon('rotate') + '</button><button type="button" class="btn btn-secondary btn-sm" id="tp-full" aria-label="Full screen map"></button></div>' +
         '<p class="tp-small tp-sync-note">Both laps at the same moment: the slower one trails by the time gap.</p>' +
-        '<div class="tp-play" id="tp-play"><div class="tp-pn-grip" id="tp-pn-grip" role="separator" aria-label="Drag to move the controls" title="Drag to move the controls"><i></i><i></i><i></i></div><div class="tp-play-row"><div class="tp-play-btns"><button type="button" class="btn btn-secondary" id="tp-play-start" data-play="start" aria-label="Go back to the start"></button><button type="button" class="btn btn-secondary" id="tp-play-back" data-play="back"></button><button type="button" class="btn btn-primary" id="tp-play-toggle" data-play="toggle"></button></div>' +
+        '<div class="tp-play" id="tp-play"><div class="tp-pn-grip" id="tp-pn-grip" role="separator" aria-label="Drag to move the controls" title="Drag to move the controls"><i></i><i></i><i></i></div><div class="tp-play-row"><div class="tp-play-btns"><button type="button" class="btn btn-secondary" id="tp-play-start" data-play="start" aria-label="Go back to the start"></button><button type="button" class="btn btn-secondary" id="tp-play-back" data-play="back"></button><button type="button" class="btn btn-primary" id="tp-play-toggle" data-play="toggle"></button></div><div class="tp-when" id="tp-when" aria-live="off"></div>' +
         '<div class="tp-chips" id="tp-speeds" role="group" aria-label="Playback speed">' + [['0.25', 'x0.25'], ['0.5', 'x0.5'], ['1', 'x1'], ['2', 'x2'], ['5', 'x5']].map(function (v) { return '<button type="button" class="chip" data-speed="' + v[0] + '">' + v[1] + '</button>'; }).join('') + '</div>' +
         '<button type="button" class="chip is-on" id="tp-follow" aria-pressed="true" title="When the map is zoomed in, keep the cars in view">Follow cars</button></div>' +
-        '<div class="tp-when" id="tp-when" aria-live="off"></div><div class="tp-pn-size" id="tp-pn-size" role="separator" aria-label="Drag to resize the controls" title="Drag to resize the controls"></div>' +
+        '<div class="tp-pn-size" id="tp-pn-size" role="separator" aria-label="Drag to resize the controls" title="Drag to resize the controls"></div>' +
         '</div>' +
         '<div class="tp-mapwrap" id="tp-mapwrap"><svg class="tv-chart" id="tp-map2" role="img" aria-label="Track map with both laps\' lines and positions"></svg>' +
         '<div class="tp-chart-foot tp-speedkey" id="tp-speedkey"' + (cmpSpeed ? '' : ' hidden') + '><span class="tp-ramp"><span id="tp-ramp-lo"></span><i></i><span id="tp-ramp-hi"></span></span><span>Lap A coloured by speed, lap B dashed. Numbers are the slowest corners.</span></div></div>' +
@@ -2606,8 +2610,40 @@
       b.setAttribute('aria-label', cmpFull ? 'Exit full screen' : 'Full screen map');
     }
   }
+  // The rotate button in portrait full screen turns the screen sideways: the browser only allows that in its own full
+  // screen, so it asks for that first. Where the phone or browser will not (an iPhone), it says to turn the phone.
+  function rotateToast(text) {
+    var old = document.getElementById('tp-rotate-toast');
+    if (old) old.remove();
+    var t = document.createElement('div');
+    t.id = 'tp-rotate-toast';
+    t.setAttribute('role', 'status');
+    t.textContent = text;
+    t.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:1300;max-width:86%;padding:10px 16px;border-radius:10px;background:#16233d;color:#fff;font:600 0.9rem/1.3 "IBM Plex Sans",sans-serif;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.4)';
+    document.body.appendChild(t);
+    setTimeout(function () { if (t.parentNode) t.remove(); }, 3500);
+  }
+  function lockLandscape() {
+    var so = window.screen && window.screen.orientation, el = document.documentElement;
+    var req = el.requestFullscreen || el.webkitRequestFullscreen;
+    function fail() {
+      rotateToast('Turn your phone sideways to use the bigger map.');
+      try { if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen(); } catch (e) { /* nothing to leave */ }
+    }
+    if (!so || !so.lock) { fail(); return; }
+    var p = null;
+    try { p = req ? req.call(el) : null; } catch (e) { p = null; }
+    Promise.resolve(p).then(function () { return so.lock('landscape'); }).catch(fail);
+  }
+  function unlockOrientation() {
+    try { if (window.screen && screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) { /* not locked */ }
+    try { if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen(); } catch (e) { /* not in full screen */ }
+  }
+  document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('#tp-rotate-hint')) lockLandscape(); });
+  document.addEventListener('fullscreenchange', function () { if (!document.fullscreenElement) { try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) { /* not locked */ } } });
   function setFull(on) {
     cmpFull = !!on;
+    if (!cmpFull) unlockOrientation();
     fullUi();
     placeHead();
     if (view && view.s && document.getElementById('tp-map2')) drawCompare(view.s, true);
@@ -2658,6 +2694,12 @@
     if (ox) ox.addEventListener('click', function () { openOpts(false); if (ob) ob.focus(); });
     var gr = document.getElementById('tp-pn-grip'), sz = document.getElementById('tp-pn-size'), rs = document.getElementById('tp-pn-reset');
     if (gr) gr.addEventListener('pointerdown', function (e) { panelStart(e, 'move'); });
+    // Hold anywhere on the panel that is not a button to move it, not only the grip.
+    var pnEl = document.getElementById('tp-play');
+    if (pnEl) pnEl.addEventListener('pointerdown', function (e) {
+      if (e.target.closest('button, a, input, select, #tp-pn-size, #tp-pn-grip')) return;
+      panelStart(e, 'move');
+    });
     if (sz) sz.addEventListener('pointerdown', function (e) { panelStart(e, 'size'); });
     if (rs) rs.addEventListener('click', function () { panel = null; panelSave(); panelApply(); });
     panelApply();

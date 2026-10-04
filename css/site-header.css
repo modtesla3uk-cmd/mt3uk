@@ -420,6 +420,7 @@ a.back-link, .page-hero a.back-link {
   text-decoration: none;
   transition: background-color .15s ease, border-color .15s ease;
 }
+a.back-link[hidden] { display: none; }
 a.back-link:hover, .page-hero a.back-link:hover { background: #ffffff; border-color: var(--ink); color: var(--ink); }
 a.back-link .icon, .page-hero a.back-link .icon { color: var(--orange); stroke-width: 2.4; }
 .btn-ghost { background: transparent; color: var(--ink); padding-inline: 10px; }

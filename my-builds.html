@@ -1163,7 +1163,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <section class="page-hero">
   <div class="wrap">
-    <a href="index.html" class="back-link"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back to MT3UK</a>
+    <a href="index.html" class="back-link" aria-label="Back to MT3UK"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</a>
     <span class="section-num mono">My builds</span>
     <h1>My Garage</h1>
     <p>Manage the build(s) you've submitted to the gallery: choose where they appear, or remove them.</p>
@@ -1442,7 +1442,7 @@ document.addEventListener('DOMContentLoaded', function () {
       <div id="mb-car-detail-view" class="mb-car-detail" style="display:none;">
         <span class="section-num mono">Manage car</span>
         <div class="mb-car-detail-header">
-          <button type="button" class="mb-back-btn" id="mb-car-back-btn"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back to garage</button>
+          <button type="button" class="mb-back-btn" id="mb-car-back-btn" aria-label="Back to garage"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</button>
           <div class="mb-car-name-row">
             <span class="mb-car-name-text" id="mb-car-name-text"></span>
             <button type="button" class="mb-car-name-btn" id="mb-car-name-edit"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</button>
@@ -1866,14 +1866,18 @@ document.addEventListener('DOMContentLoaded', function () {
       return null;
     }
 
+    // The page's own Back (to the page before) is only on the garage; a car has its own Back to the garage.
+    function pageBack(hide) { var b = document.querySelector('.page-hero .back-link'); if (b) b.hidden = hide; }
     function showSelector() {
       currentCarId = null;
+      pageBack(false);
       detailView.style.display = 'none';
       selectorView.style.display = 'block';
     }
 
     function showDetail(carId) {
       currentCarId = carId;
+      pageBack(true);
       selectorView.style.display = 'none';
       detailView.style.display = 'flex';
       renderCarDetail(findCar(carId));
@@ -3696,7 +3700,7 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 <script src="js/share.js" defer></script>
-<script src="js/account-bar.js?v=5" defer></script>
+<script src="js/account-bar.js?v=7" defer></script>
 <script src="js/signin-prompt.js" defer></script>
 <script src="js/notify-bell.js" defer></script>
 <script src="js/messenger.js" defer></script>

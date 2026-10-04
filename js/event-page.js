@@ -224,7 +224,7 @@
       esc(d.toLocaleDateString('en-GB', { month: 'short', timeZone: 'UTC' })) + '</span><span class="d">' + d.getUTCDate() + '</span><span class="y">' + d.getUTCFullYear() + '</span></div>' : '';
     var img = imageBlock(ev.heroImage || ev.image, 'ev-hero-img', { label: 'Hero image', size: '2100 x 900 (21:9). Crops to 4:3 on phones.' }, isDraft, ev.title || ev.name);
     return '<section class="ev-hero"><div class="wrap">' +
-      '<a href="index.html#events" class="back-link">' + ARROW_L + ' Back to Events</a>' +
+      '<a href="index.html#events" class="back-link" aria-label="Back to Events">' + ARROW_L + ' Back</a>' +
       '<div class="ev-hero-top">' + dateBlock + '<div class="ev-hero-text">' +
         '<span class="section-num mono">Events / ' + esc(text(ev.kind) || 'Meet') + '</span>' +
         '<h1>' + esc(ev.title || ev.name) + '</h1>' +

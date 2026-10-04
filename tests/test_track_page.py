@@ -1335,12 +1335,14 @@ def test_leaderboards_list_busy_tracks_first_with_counts(page):
     expect(page.locator(".tp-board-card", has_text="Curborough")).to_have_count(0)
     # A hill climb's board goes back to the hill climbs, a sprint's to the sprints.
     page.locator(".tp-board-card", has_text="Shelsley Walsh").locator(".lb-layout").first.click()
-    expect(page.locator(".tp-back")).to_have_text("All hill climbs")
+    expect(page.locator(".tp-back")).to_have_text("Back")
+    expect(page.locator(".tp-back")).to_have_attribute("aria-label", "Back to all hill climbs")
     page.locator(".tp-back").click()
     expect(page.locator(".lb-types a.is-on")).to_have_text("Hill climb")
     page.locator(".lb-types a", has_text="Sprint").click()
     page.locator(".tp-board-card", has_text="Curborough").locator(".lb-layout").first.click()
-    expect(page.locator(".tp-back")).to_have_text("All sprints")
+    expect(page.locator(".tp-back")).to_have_text("Back")
+    expect(page.locator(".tp-back")).to_have_attribute("aria-label", "Back to all sprints")
 
 
 def test_cars_are_separate_from_sessions(page):
@@ -4227,3 +4229,60 @@ def test_landscape_full_screen_controls_float_move_resize_and_reset(page):
     page.locator("#tp-pn-reset").click()
     back = panel.bounding_box()
     assert back["x"] < 20 and abs(back["width"] - start["width"]) < 6, (start, back)
+
+
+def test_landscape_controls_move_by_holding_anywhere_and_show_who_in_the_buttons_row(page):
+    page.set_viewport_size({"width": 390, "height": 844})
+    save_thruxton_with_a_member_board(page, FakeWorker())
+    page.locator("#tp-mapwrap .tv-zoom-full").click()
+    page.set_viewport_size({"width": 844, "height": 390})
+    page.wait_for_timeout(300)
+    page.locator("#tp-mapwrap .tv-zoom-full").click()
+    page.locator("#tp-mapwrap .tv-zoom-full").click()
+    expect(page.locator("#tp-mapcard")).to_have_class(re.compile(r"is-full"))
+    # The drivers and their date and time are in the same row as the main buttons.
+    play, who = page.locator("#tp-play-toggle").bounding_box(), page.locator("#tp-when").bounding_box()
+    assert who["x"] > play["x"] + play["width"] and abs((who["y"] + who["height"] / 2) - (play["y"] + play["height"] / 2)) < play["height"], (play, who)
+    # Holding the panel anywhere that is not a button moves it, not just the grip.
+    panel = page.locator("#tp-play")
+    before = panel.bounding_box()
+    x, y = who["x"] + who["width"] / 2, who["y"] + who["height"] / 2
+    page.mouse.move(x, y)
+    page.mouse.down()
+    page.mouse.move(x + 90, y - 100, steps=8)
+    page.mouse.up()
+    after = panel.bounding_box()
+    assert abs(after["x"] - before["x"] - 90) < 6 and abs(after["y"] - before["y"] + 100) < 6, (before, after)
+    # A button still works as a button: a press on Play starts the playback and does not move the panel.
+    page.locator("#tp-play-toggle").click()
+    assert abs(panel.bounding_box()["x"] - after["x"]) < 2
+
+
+def test_the_rotate_button_turns_the_screen_sideways_or_says_to_turn_the_phone(page):
+    page.set_viewport_size({"width": 390, "height": 844})
+    # A phone that can lock its screen: full screen is asked for, then landscape.
+    page.add_init_script("""
+      window.__lock = []; window.__unlock = 0;
+      Element.prototype.requestFullscreen = function () { window.__fs = true; return Promise.resolve(); };
+      Object.defineProperty(screen, 'orientation', { configurable: true, value: { lock: function (o) { window.__lock.push(o); return Promise.resolve(); }, unlock: function () { window.__unlock++; } } });
+    """)
+    save_thruxton_with_a_member_board(page, FakeWorker())
+    page.locator("#tp-mapwrap .tv-zoom-full").click()
+    rotate = page.locator("#tp-rotate-hint")
+    expect(rotate).to_be_visible()
+    expect(rotate).to_have_attribute("aria-label", "Turn the screen sideways for a bigger map")
+    rotate.click()
+    page.wait_for_function("window.__lock.length > 0")
+    assert page.evaluate("window.__lock") == ["landscape"] and page.evaluate("window.__fs") is True
+    # Leaving full screen lets the screen turn freely again.
+    page.locator("#tp-mapwrap .tv-zoom-full").click()
+    assert page.evaluate("window.__unlock") >= 1
+
+
+def test_the_rotate_button_says_so_when_the_phone_cannot_lock_the_screen(page):
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.add_init_script("Object.defineProperty(screen, 'orientation', { configurable: true, value: { lock: function () { return Promise.reject(new Error('no')); }, unlock: function () {} } });")
+    save_thruxton_with_a_member_board(page, FakeWorker())
+    page.locator("#tp-mapwrap .tv-zoom-full").click()
+    page.locator("#tp-rotate-hint").click()
+    expect(page.locator("#tp-rotate-toast")).to_have_text("Turn your phone sideways to use the bigger map.")

@@ -59,6 +59,8 @@
   });
   function unitsChip() { return '<button type="button" class="chip tp-units" data-units>' + (V.units.mph ? 'mph' : 'km/h') + '</button>'; }
 
+  // The page's own Back is only on the list; inside a board its own Back (to the list) is the one.
+  function syncPageBack() { var b = document.getElementById('lb-page-back'); if (b) b.hidden = !!document.querySelector('#' + app.id + ' .tp-back'); }
   function route() {
     V.hideTip();
     var p = params();
@@ -152,6 +154,7 @@
     h += '<p class="tp-small lb-note">Times are each car\'s fastest. Open a layout for the whole board and filters.</p>';
     h += ctaHtml();
     app.innerHTML = h;
+    syncPageBack();
     var sortSel = document.getElementById('lb-sort');
     if (sortSel) sortSel.addEventListener('change', function () { sortMode = sortSel.value; showList(type); });
     var btn = app.querySelector('[data-showall]');
@@ -249,7 +252,7 @@
         var what = type === 'drag' ? 'Each car\'s quickest quarter mile.' : type === 'sprint' ? 'Each car\'s fastest run.' : 'Each car\'s fastest lap.';
         var filtered = fCond !== 'All' || fMake !== 'All';
         var listType = type === 'sprint' && v && v.hill ? 'hill' : type;
-        var h = '<a class="tp-back back-link" href="leaderboards.html?type=' + listType + '" data-go="type=' + listType + '">' + icon('back') + 'All ' + KIND_NAME[listType] + '</a>' +
+        var h = '<a class="tp-back back-link" href="leaderboards.html?type=' + listType + '" data-go="type=' + listType + '" aria-label="Back to all ' + KIND_NAME[listType] + '">' + icon('back') + 'Back' + '</a>' +
           '<div class="tp-head"><div><h2>' + esc(title) + '</h2><p class="tp-sub">' + what + '</p></div></div>' +
           '<div class="lb-filters"><div class="lb-filter-top"><div class="tp-chips lb-models" id="lb-models">' + ['All'].concat(MODELS).map(function (m) { return '<button type="button" class="chip' + (m === boardModel ? ' is-on' : '') + (m !== 'All' && !entries.some(function (e) { return e.model === m; }) ? ' is-empty' : '') + '" data-m="' + m + '">' + (MODEL_SHORT[m] || m) + '</button>'; }).join('') + '</div>' + unitsChip() + '</div>' +
           (conds.length > 1 || makes.length ? '<div class="lb-selects">' +
@@ -265,6 +268,7 @@
         }
         h += ctaHtml();
         app.innerHTML = h;
+        syncPageBack();
         document.getElementById('lb-models').addEventListener('click', function (ev) {
           var b = ev.target.closest('[data-m]');
           if (b) { boardModel = b.getAttribute('data-m'); draw(); }

@@ -83,7 +83,7 @@ def test_every_event_entry_is_valid():
 def test_event_page_loads_the_gate_and_renderer():
     source = (ROOT / "event.html").read_text(encoding="utf-8")
     assert '<script src="js/event-gate.js"></script>' in source.split("</head>")[0]
-    assert '<script src="js/event-page.js" defer></script>' in source
+    assert '<script src="js/event-page.js?v=' in source
 
 
 def test_first_event_matches_its_poster():

@@ -83,8 +83,9 @@
   .tp-small { color: var(--steel); font-size: 0.8rem; margin-top: 8px; }
   .tp-link { display: inline-flex; align-items: center; gap: 4px; color: var(--ink); font-weight: 600; font-size: 0.9rem; }
   .tp-link:hover { color: var(--orange); }
-  .tp-back { display: inline-flex; align-items: center; gap: 6px; color: var(--steel); font-size: 0.88rem; margin-bottom: 14px; min-height: 32px; }
-  .tp-back:hover { color: var(--orange); }
+  .tp-back { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 10px 16px; margin-bottom: 14px; background: #ffffff; color: var(--ink); border: 1px solid var(--hairline-strong); border-radius: var(--radius); font-family: var(--font-body); font-size: 0.93rem; font-weight: 600; line-height: 1.2; text-decoration: none; }
+  .tp-back:hover { border-color: var(--ink); color: var(--ink); }
+  .tp-back .icon { width: 18px; height: 18px; color: var(--orange); stroke-width: 2.4; }
   .tp-units { flex: none; }
   .card { padding: 16px; }
   .tp-intro { padding: 22px; display: grid; gap: 12px; justify-items: start; }
@@ -132,6 +133,22 @@
   .tp-daygroup-no { min-width: 2.2em; font-weight: 700; color: var(--steel); font-variant-numeric: tabular-nums; }
   @media (max-width: 560px) { .tp-daygroup .tp-row-main { flex-basis: calc(100% - 96px); } .tp-daygroup-no { min-width: 1.8em; } }
   @media (max-width: 560px) { .tp-row { flex-wrap: wrap; } .tp-row-main { flex-basis: calc(100% - 40px); } .tp-row > .icon { order: 2; } .tp-row-res { order: 3; } .tp-pill { order: 4; } }
+  /* Smaller, tighter headings on a track session's rows and day cards, most of all on a phone. */
+  .tp-daygroup-head h3 { font-size: 0.98rem; line-height: 1.25; }
+  .tp-row-main b { font-size: 0.93rem; line-height: 1.3; }
+  @media (max-width: 560px) {
+    .tp-daygroup { padding: 10px; }
+    .tp-daygroup-head { gap: 0 8px; }
+    .tp-daygroup-head h3 { font-size: 0.9rem; }
+    .tp-daygroup-share { font-size: 0.8rem; gap: 6px; }
+    .tp-daygroup-charge { margin: 0 0 2px; }
+    .tp-daygroup-best { margin-top: 2px; gap: 4px; }
+    .tp-list { gap: 6px; }
+    .tp-row { min-height: 52px; padding: 8px 10px; gap: 6px 8px; }
+    .tp-row-main b { font-size: 0.88rem; }
+    .tp-row-main span { font-size: 0.78rem; }
+    .tp-row-res { font-size: 0.95rem; }
+  }
   .tp-admin-banner { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; padding: 10px 14px; border-radius: var(--radius); background: var(--paper-2); border: 1px solid var(--hairline-strong); font-size: 0.9rem; font-weight: 600; }
   .tp-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: var(--radius-pill); background: var(--paper-2); color: var(--ink); font-size: 0.76rem; font-weight: 600; white-space: nowrap; }
   .tp-pill .icon { width: 13px; height: 13px; }
@@ -300,7 +317,8 @@
        Show G-Forces switch shows and hides the charts. Map options is a small button on the left of the map that opens a card with the
        colour switch and the speed-on-cars switch (the labels beside the dots). */
     #tp-mapcard.is-full #tp-full { display: none; }
-    .tp-mapcard.is-full .tp-when { display: grid; gap: 2px; order: -1; padding-bottom: 4px; border-bottom: 1px solid var(--hairline); font-size: 0.78rem; color: var(--ink); }
+    /* Who is who, with the date and time of day, sits in the same row as the main buttons (and drops under them when the panel is narrow). */
+    .tp-mapcard.is-full .tp-when { display: grid; gap: 2px; flex: 1 1 170px; min-width: 0; padding: 0 0 0 4px; font-size: 0.76rem; color: var(--ink); align-content: center; }
     .tp-mapcard.is-full .tp-wrow { display: flex; align-items: center; gap: 8px; }
     .tp-mapcard.is-full .tp-wrow .tp-mkey { flex: none; }
     .tp-mapcard.is-full .tp-wrow b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -309,7 +327,9 @@
     .tp-mapcard.is-full .tp-speedkey { pointer-events: none; }
     /* The playback speeds and Follow cars are smaller; Start, Rewind and Play keep their size, side by side. */
     .tp-mapcard.is-full #tp-speeds .chip, .tp-mapcard.is-full #tp-follow { min-height: 30px; min-width: 0; padding: 0 9px; font-size: 0.75rem; }
-    .tp-mapcard.is-full .tp-play, .tp-mapcard.is-full .tp-play-row, .tp-mapcard.is-full .tp-when { pointer-events: none; }
+    /* The whole panel takes a touch (hold anywhere that is not a button to move it). */
+    .tp-mapcard.is-full .tp-play { pointer-events: auto; touch-action: none; cursor: grab; }
+    .tp-mapcard.is-full .tp-play .btn, .tp-mapcard.is-full .tp-play .chip { cursor: pointer; }
     /* The controls float: a grip along the top moves them, a handle in the corner resizes them, and the Map options card
        can put them back. Once moved they use the saved place and width instead of the bottom left corner. */
     .tp-mapcard.is-full .tp-play { z-index: 4; }
@@ -411,7 +431,8 @@
   .tp-tap { cursor: crosshair; margin-bottom: 14px; border: 1px solid var(--hairline); border-radius: var(--radius-sm); }
 
   /* A session */
-  .tp-session-head h2 { font-size: 1.35rem; }
+  .tp-session-head h2 { font-size: 1.2rem; }
+  @media (max-width: 560px) { .tp-session-head h2 { font-size: 1.05rem; } }
   .tp-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
   @media (min-width: 781px) { .tp-tiles { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
   .tp-tile { background: #fff; border: 1px solid var(--hairline); border-radius: var(--radius); padding: 12px 14px; min-width: 0; }
@@ -470,7 +491,8 @@
   .tp-mapcard:not(.is-full) #tp-full { display: none; }
   .tp-mapcard:not(.is-full) .tp-map-head .tp-speedsw { margin-left: auto; }
   /* A hint to turn the phone, only in full screen on an upright phone. */
-  .tp-rotate-hint { display: none; align-items: center; justify-content: center; width: 40px; height: 40px; color: var(--steel); }
+  .tp-rotate-hint { display: none; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; background: none; border: 0; border-radius: var(--radius-sm); color: var(--ink); cursor: pointer; }
+  .tp-rotate-hint:hover { background: rgba(22,35,61,0.06); }
   .tp-rotate-hint .icon { width: 22px; height: 22px; }
   @media (max-width: 780px) and (orientation: portrait) { .tp-mapcard.is-full .tp-rotate-hint { display: inline-flex; } }
   /* Full screen: no title, and just the colour key, so the map keeps its room */
@@ -725,7 +747,7 @@
 
 <section class="page-hero">
   <div class="wrap">
-    <a href="my-builds.html" class="back-link"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>My Garage</a>
+    <a href="my-builds.html" class="back-link" aria-label="Back to My Garage"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</a>
     <span class="early-badge early-badge-lg">Early preview</span>
     <h1>Track sessions</h1>
     <p>Your track days and drag runs from your lap timer file: every lap mapped, where you gained and lost time, and what your mods did to your times.</p>
@@ -884,9 +906,9 @@
 <script src="js/track-view.js?v=20261129" defer></script>
 <script src="js/tyre-data.js"></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20261138" defer></script>
+<script src="js/track-page.js?v=20261142" defer></script>
 <script src="js/share.js" defer></script>
-<script src="js/account-bar.js?v=5" defer></script>
+<script src="js/account-bar.js?v=7" defer></script>
 <script src="js/signin-prompt.js" defer></script>
 <script src="js/notify-bell.js" defer></script>
 <script src="js/messenger.js" defer></script>

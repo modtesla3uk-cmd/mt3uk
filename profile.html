@@ -251,8 +251,6 @@
   .pf-hint a { color: var(--orange); text-decoration: underline; }
   .pf-row { display: flex; flex-wrap: wrap; gap: 10px; }
   .pf-field-err input { border-color: var(--orange); }
-  .pf-garage p { color: var(--steel); margin-bottom: 16px; }
-  .pf-garage .si-btn { width: 100%; }
   .pf-link { display: inline-block; margin-top: 12px; background: none; border: 0; padding: 0; font: inherit; font-size: 0.9rem; color: var(--ink); text-decoration: underline; cursor: pointer; }
   .pf-link:hover { color: var(--orange); }
   /* Collapsible sections (Messages from MT3UK and friends, Your friends),
@@ -616,13 +614,6 @@
         </div>
 
         <div class="pf-side">
-          <div class="pf-card pf-garage">
-            <h2>My Garage</h2>
-            <p id="pf-builds">Add photos and mods of your car and it joins the gallery, the reel and the weekly vote.</p>
-            <a href="my-builds.html" class="si-btn si-btn-primary">Go to My Garage<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
-            <a href="#" class="pf-link" id="pf-builds-link" hidden>See your builds in the gallery</a>
-          </div>
-
           <div class="pf-card pf-app-card" id="app" hidden>
             <h2>The MT3UK app</h2>
             <p class="app-text">One tap to the build reel and your garage, full screen, and notifications switch on when you sign in there.</p>
@@ -914,13 +905,6 @@
       $('pf-first').value = profile.firstName;
       $('pf-last').value = profile.lastName;
       $('pf-nickname').value = profile.nickname;
-      var n = profile.builds.length;
-      $('pf-builds').textContent = n
-        ? 'You have ' + n + ' photo' + (n === 1 ? '' : 's') + ' in My Garage. Add more, edit mods or enter the weekly vote.'
-        : 'Add photos and mods of your car and it joins the gallery, the reel and the weekly vote.';
-      var link = $('pf-builds-link');
-      link.hidden = !n;
-      if (n) link.href = 'gallery.html?only=' + encodeURIComponent(profile.builds.join(','));
       $('pf-emails').checked = !profile.emailsOff;
       drawVisibility();
       if (profile.firstName) { try { localStorage.setItem(FIRST_NAME_KEY, profile.firstName); } catch (e) {} }
@@ -1148,7 +1132,7 @@
 </script>
 
 <script src="js/share.js" defer></script>
-<script src="js/account-bar.js?v=4" defer></script>
+<script src="js/account-bar.js?v=5" defer></script>
 <script src="js/signin-prompt.js" defer></script>
 <script src="js/notify-bell.js" defer></script>
 <script src="js/messenger.js" defer></script>

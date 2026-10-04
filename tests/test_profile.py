@@ -34,7 +34,7 @@ def test_profile_details_and_nickname(device_page):
     page.locator("#pf-app").wait_for(state="visible", timeout=5000)
     assert page.locator("#pf-name").inner_text() == "Test Member"
     assert page.locator("#pf-email").inner_text() == "member@example.com"
-    assert "my-builds.html" in page.locator(".pf-garage a.si-btn").get_attribute("href")
+    assert "my-builds.html" in page.locator(".mt3uk-account-bar a[href='my-builds.html']").get_attribute("href")
     assert overflow_width(page) <= 0
 
     page.click("#pf-edit")
@@ -524,9 +524,9 @@ def test_profile_has_notifications_app_email_alerts_and_unsubscribe(device_page)
     assert order.index("email-alerts") == order.index("visibility") + 1, order
     tabs = page.locator(".pf-tabs a").all_inner_texts()
     assert tabs == ["Details", "Visibility", "Security"], tabs
-    # My Garage appears once on Profile: its card, not the signed-in bar too.
-    assert page.locator(".mt3uk-account-bar a[href='my-builds.html']").count() == 0
-    assert page.locator(".pf-garage a[href='my-builds.html']").count() == 1
+    # My Garage is a button in the signed-in bar beside Sign out, with no card of its own.
+    assert page.locator(".mt3uk-account-bar a[href='my-builds.html']").count() == 1
+    assert page.locator(".pf-garage").count() == 0
     assert "always emailed" in alerts.inner_text()
     unsub = page.locator("#unsubscribe")
     assert unsub.locator("h2").inner_text() == "Unsubscribe"

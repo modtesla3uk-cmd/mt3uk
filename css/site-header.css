@@ -453,3 +453,12 @@ a.back-link .icon, .page-hero a.back-link .icon { color: var(--orange); stroke-w
 /* Early preview badge: a feature that is open to a few members while it is tested */
 .early-badge { display: inline-block; margin-left: 6px; padding: 2px 8px; border: 1px solid rgba(232, 84, 42, 0.35); border-radius: var(--radius-pill, 999px); background: #fff4ec; color: #b8421f; font-family: var(--font-body); font-size: 0.68rem; font-weight: 600; line-height: 1.35; white-space: nowrap; vertical-align: middle; letter-spacing: 0; text-transform: none; }
 .early-badge-lg { margin: 0 0 12px; padding: 3px 10px; font-size: 0.8rem; }
+
+/* Laps pages (track.html, leaderboards.html): a text wordmark, "Laps by MT3UK". */
+.laps-logo { align-items: baseline; gap: 8px; }
+.laps-logo-name { font-family: var(--font-head); font-size: 1.45rem; font-weight: 800; letter-spacing: -0.01em; line-height: 1; color: var(--ink); }
+.laps-logo-by { font-family: var(--font-body); font-size: 0.78rem; font-weight: 500; line-height: 1; color: var(--steel); }
+.logo.footer-logo.laps-logo .laps-logo-name { font-size: 1.15rem; }
+.nav-link-back .icon { width: 16px; height: 16px; }
+.footer-links a, .footer-inline-link { text-decoration: underline; text-underline-offset: 2px; }
+.laps-logo ~ .footer-links { margin-left: 14px; }

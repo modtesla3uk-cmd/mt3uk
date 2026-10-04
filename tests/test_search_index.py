@@ -52,6 +52,7 @@ def test_index_links_go_somewhere():
         if url.startswith("http"):
             continue
         path, _, anchor = url.partition("#")
+        path = path.partition("?")[0]  # a query such as track.html?add=1 still opens the page
         page = ROOT / path
         assert page.exists(), f"Search result {entry['title']!r} links to a missing page: {url}"
         if anchor and path not in SCRIPTED_PAGES:

@@ -7,6 +7,8 @@ of the header and footer. This script keeps them identical:
 
   - partials/header.html  the header, menu and search box
   - partials/footer.html  the footer
+  - partials/laps-header.html and laps-footer.html  the same for the Laps pages
+    (track.html and leaderboards.html, listed in LAPS_PAGES below)
   - css/site-header.css   the header and menu styles, linked from every page
 
 Edit those files, then run:
@@ -26,6 +28,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 HEADER = ROOT / "partials" / "header.html"
 FOOTER = ROOT / "partials" / "footer.html"
+# The Laps pages (lap times and leaderboards) have their own header and footer.
+LAPS_HEADER = ROOT / "partials" / "laps-header.html"
+LAPS_FOOTER = ROOT / "partials" / "laps-footer.html"
+LAPS_PAGES = ("track", "leaderboards")
 STYLESHEET = '<link rel="stylesheet" href="css/site-header.css">'
 
 # Every public page, and the menu link shown as active on it.
@@ -34,7 +40,7 @@ PAGES = {
     "gallery": "gallery.html",
     "my-builds": "my-builds.html",
     "track": "track.html",
-    "leaderboards": "index.html#track-days",
+    "leaderboards": "leaderboards.html",
     "signin": "signin.html",
     "profile": "profile.html",
     "privacy": "privacy.html",
@@ -71,11 +77,11 @@ def partial(path):
 
 
 def render_header(page):
-    html = partial(HEADER)
+    html = partial(LAPS_HEADER if page in LAPS_PAGES else HEADER)
     active = PAGES[page]
     html = re.sub(
         r'(<a href="' + re.escape(active) + r'" class=")([^"]*)(")',
-        lambda m: m.group(1) + m.group(2) + " active" + m.group(3),
+        lambda m: m.group(0) if "logo" in m.group(2).split() else m.group(1) + m.group(2) + " active" + m.group(3),
         html,
     )
     # Links to this page's own sections stay on the page.
@@ -84,7 +90,7 @@ def render_header(page):
 
 
 def render_footer(page):
-    return partial(FOOTER)
+    return partial(LAPS_FOOTER if page in LAPS_PAGES else FOOTER)
 
 
 def build(page):

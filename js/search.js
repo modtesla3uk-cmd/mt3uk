@@ -12,6 +12,9 @@
   if (!root || !toggle || !panel || !input || !results) return;
 
   var index = [];
+  // On the Laps pages (data-scope="laps") only the Laps pages come up.
+  var lapsOnly = root.getAttribute('data-scope') === 'laps';
+  function inScope(entry) { return !lapsOnly || /^(track|leaderboards)\.html/.test(entry.url || ''); }
 
   function escHtml(s) {
     return String(s).replace(/[&<>"']/g, function (c) {
@@ -94,6 +97,7 @@
       return;
     }
     var matches = index
+      .filter(inScope)
       .map(function (entry) { return { entry: entry, score: score(entry, q) }; })
       .filter(function (m) { return m.score > 0; })
       .sort(function (a, b) { return b.score - a.score; })

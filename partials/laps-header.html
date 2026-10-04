@@ -1,0 +1,28 @@
+<!-- Header for the Laps pages (track.html, leaderboards.html). Edit here, then run: python scripts/build_layout.py -->
+<header>
+  <nav>
+    <div class="nav-center">
+      <a href="track.html" class="logo laps-logo" aria-label="Laps by MT3UK"><span class="laps-logo-name">Laps</span><span class="laps-logo-by">by MT3UK</span></a>
+    <div class="navlinks" id="navlinks">
+      <a href="signin.html" class="nav-link-mobile">Sign Up / Sign In</a>
+      <a href="track.html" class="nav-link nav-link-track">Sessions <span class="early-badge">Early preview</span></a>
+      <a href="leaderboards.html" class="nav-link">Leaderboards</a>
+      <a href="track.html?add=1" class="nav-link">Add a session</a>
+      <a href="https://mt3uk.com/my-builds.html" class="nav-link nav-link-mybuilds">My Garage</a>
+      <a href="https://mt3uk.com/" class="nav-link nav-link-back"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Back to MT3UK</a>
+      </div>
+    </div>
+    <div class="nav-search" id="nav-search" data-scope="laps">
+      <button type="button" class="nav-search-toggle" id="nav-search-toggle" aria-expanded="false" aria-controls="nav-search-panel" aria-label="Search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      </button>
+      <div class="nav-search-panel" id="nav-search-panel">
+        <input type="text" id="nav-search-input" placeholder="Search Laps&hellip; e.g. Leaderboards, Add a session, Tyres" autocomplete="off">
+        <div class="nav-search-results" id="nav-search-results"></div>
+      </div>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navlinks">
+      <span class="hamburger-bar"></span><span class="hamburger-bar"></span><span class="hamburger-bar"></span>
+    </button>
+  </nav>
+</header>

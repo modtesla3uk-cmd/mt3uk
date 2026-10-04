@@ -1213,7 +1213,7 @@
         // A pass with a long stop in the middle is not a lap: this is probably a sprint or hill climb file.
         var lapTimes = (s.laps || []).filter(function (l) { return l.kind === 'timed'; }).map(function (l) { return l.time; });
         var gapLap = !isSprint && s.type === 'track' && (s.laps || []).some(function (l) { return l.kind === 'slow' && lapTimes.length && l.time > 3 * Math.min.apply(null, lapTimes); });
-        if (gapLap) h += '<div class="tp-notice is-warn">' + icon('warn') + '<div><b>The car stopped for a long time between passes.</b><br>That is not a lap, so it is left out. If these were sprint or hill climb runs, switch the type to time each run from the start to the finish. <button type="button" class="btn btn-secondary btn-sm" data-tap="sprint">Switch to Sprint or hill climb</button></div></div>';
+        if (gapLap) h += '<div class="tp-notice is-warn">' + icon('warn') + '<div><b>The car stopped for a long time between passes.</b><br>That is not a lap, so it is left out. If these were sprint or hill climb runs, switch the type to time each run from the start to the finish. <button type="button" class="btn btn-secondary btn-sm" data-tap="sprint">Switch to Sprint</button> <button type="button" class="btn btn-secondary btn-sm" data-tap="hill">Switch to Hill climb</button></div></div>';
         if ((a.startLine || a.finishLine || s.startLine) && !s.officialLines && !s.autoLine) h += '<button type="button" class="btn btn-secondary btn-sm tp-move-lines" data-tap="edit">' + icon('pin') + 'Move ' + (isSprint ? 'start and finish' : 'the start line') + '</button>';
         h += sprintControlsHtml(a, s, isSprint);
         h += addNowHtml(a, s, isSprint);
@@ -1359,8 +1359,9 @@
         status('Official lines saved. ' + d.relinked + ' of your saved sessions were linked to them.', 'ok');
       }).catch(function () { offBtn.disabled = false; status('Could not reach the server.', 'error'); });
     });
-    var hintBtn = document.querySelector('#tp-result .tp-notice [data-tap="sprint"]');
-    if (hintBtn) hintBtn.addEventListener('click', function () { keep(); a.type = 'sprint'; a.startLine = null; a.finishLine = null; a.editLines = false; a.confirmLines = false; a.tapFull = false; a.tapAuto = false; analyse(); });
+    [].slice.call(document.querySelectorAll('#tp-result .tp-notice [data-tap="sprint"], #tp-result .tp-notice [data-tap="hill"]')).forEach(function (hintBtn) {
+    hintBtn.addEventListener('click', function () { keep(); a.hill = hintBtn.getAttribute('data-tap') === 'hill'; a.type = 'sprint'; a.startLine = null; a.finishLine = null; a.editLines = false; a.confirmLines = false; a.tapFull = false; a.tapAuto = false; analyse(); });
+    });
     var useLast = document.getElementById('tp-use-last-tyres');
     if (useLast) useLast.addEventListener('click', function () { keep(); a.tyre = a.lastTyre; a.tyres = TY.compose(a.lastTyre); a.tyrePre = true; drawResult(); });
     var fcSel = document.getElementById('tp-finish-cross');

@@ -4367,3 +4367,33 @@ def test_a_hill_climb_is_told_apart_from_a_sprint(page):
     page.locator("#settings [data-retype] button[data-v='hill']").click()
     expect(page.locator("#settings [data-retype] .chip.is-on")).to_have_text(["Hill climb"])
     assert fake.sessions["new1"].get("hill") is True
+
+
+def test_a_long_stop_between_passes_offers_sprint_or_hill_climb_as_separate_choices(page, tmp_path):
+    """A pit stop in the middle of a track day file is not a lap. The notice offers Switch to Sprint and Switch to
+    Hill climb (they are separate choices now), and the Hill climb one picks that type."""
+    import datetime as dt
+    text = (ROOT / "tests" / "fixtures" / "racebox-castle-combe-gpx.gpx").read_text()
+    pts = re.findall(r"<trkpt [^>]*>.*?</trkpt>", text)
+    first, last = text.index(pts[0]), text.index(pts[-1]) + len(pts[-1])
+
+    def shift(p, sec):
+        m = re.search(r"<time>(.*?)Z</time>", p)
+        t = dt.datetime.strptime(m.group(1), "%Y-%m-%dT%H:%M:%S.%f") + dt.timedelta(seconds=sec)
+        return p.replace(m.group(0), "<time>" + t.strftime("%Y-%m-%dT%H:%M:%S.") + "%03d" % (t.microsecond // 1000) + "Z</time>")
+    cut, out = len(pts) // 2, []
+    for i, p in enumerate(pts):
+        if i == cut:
+            # Parked on the spot for several minutes, then off again.
+            out.extend(shift(pts[cut - 1], k) for k in range(1, 401))
+        out.append(shift(p, 400 if i >= cut else 0))
+    path = tmp_path / "pitstop.gpx"
+    path.write_text(text[:first] + "\n".join(out) + text[last:])
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(path))
+    notice = page.locator("#tp-result .tp-notice.is-warn", has_text="stopped for a long time")
+    expect(notice).to_be_visible()
+    expect(notice.get_by_role("button")).to_have_text(["Switch to Sprint", "Switch to Hill climb"])
+    notice.get_by_role("button", name="Switch to Hill climb").click()
+    expect(page.locator("[data-type] .chip.is-on")).to_have_text(["Hill climb"])

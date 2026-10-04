@@ -327,15 +327,17 @@ def test_admin_edit_form_is_filled_from_the_event_and_saves_it_back(device_page)
     assert page.input_value("#ep-title") == "Frunk or Treat UK"
     assert page.input_value("#ep-start-time") == "14:00" and page.input_value("#ep-w3w") == "starter.minivans.doted"
     assert page.input_value("#ep-slug") == "frunk-or-treat-uk" and page.eval_on_selector("#ep-slug", "e => e.readOnly")
-    assert page.input_value("#ep-description").count("\n\n") == 2
+    entry = next(e for e in json.loads((ROOT / "data" / "event-pages.json").read_text(encoding="utf-8"))["events"] if e["slug"] == "frunk-or-treat-uk")
+    paragraphs = entry["description"]
+    assert page.input_value("#ep-description").count("\n\n") == len(paragraphs) - 1
     assert page.locator("#slot-image img.img-thumb").count() == 1
     page.fill("#ep-tagline", "A new tagline")
     page.click("#ep-save")
     page.wait_for_function("document.getElementById('status').textContent.indexOf('Saved') === 0", timeout=5000)
     saved = page.mock_state["event_saved"]
     assert saved["tagline"] == "A new tagline" and saved["startDate"] == "2026-10-31" and saved["what3words"] == "starter.minivans.doted"
-    assert len(saved["description"]) == 3 and [s["title"] for s in saved["steps"]][0] == "Bring your EV"
-    assert saved["image"] == "images/events/frunk-or-treat-uk/card.jpg"
+    assert len(saved["description"]) == len(paragraphs) and [s["title"] for s in saved["steps"]][0] == entry["steps"][0]["title"]
+    assert saved["image"] == entry["image"]
 
 
 @ADMIN_ONLY

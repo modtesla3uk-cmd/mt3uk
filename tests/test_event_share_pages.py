@@ -24,7 +24,10 @@ def test_every_event_has_a_share_page_with_its_own_image_and_text():
     for ev in EVENTS:
         assert ev["slug"] + ".html" in pages, ev["slug"]
     frunk = pages["frunk-or-treat-uk.html"]
-    assert meta(frunk, "og:image") == "https://mt3uk.com/images/events/frunk-or-treat-uk/card.jpg"
+    entry = next(ev for ev in EVENTS if ev["slug"] == "frunk-or-treat-uk")
+    expected = builder.event_image(entry)
+    assert expected != builder.DEFAULT_IMAGE, "The event has a picture of its own"
+    assert meta(frunk, "og:image") == expected
     assert meta(frunk, "twitter:image") == meta(frunk, "og:image")
     assert "hero.jpg" not in frunk, "Not the main events image"
     assert meta(frunk, "og:title") == "Frunk or Treat UK – MT3UK Events"

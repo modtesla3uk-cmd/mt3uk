@@ -80,6 +80,14 @@
     return type === 'drag' ? 'drag=' + encodeURIComponent(venueId) : (type === 'sprint' ? 'sprint=' : 'board=') + encodeURIComponent(venueId + ':' + layoutId);
   }
   var showAll = false;
+  // How the track list is ordered: busiest first (the default), A to Z, or by when the newest top-three time was set.
+  var sortMode = 'busy';
+  var SORTS = [['busy', 'Most sessions'], ['az', 'A to Z'], ['newest', 'Newest'], ['oldest', 'Oldest']];
+  function latestOn(keys) {
+    var d = '';
+    keys.forEach(function (k) { (leaders[k] || []).forEach(function (l) { if (l.date && l.date > d) d = l.date; }); });
+    return d;
+  }
 
   // The top three at one board, shown on the track list so nobody has to open
   // each track to see who is quickest.
@@ -106,12 +114,24 @@
     var h = '<div class="tp-chips lb-types" role="tablist">' + TYPES.map(function (x) {
       return '<a class="chip' + (x[0] === t[0] ? ' is-on' : '') + '" role="tab" aria-selected="' + (x[0] === t[0]) + '" href="leaderboards.html?type=' + x[0] + '" data-go="type=' + x[0] + '">' + x[1] + '</a>';
     }).join('') + '</div>';
+    h = '<div class="lb-bar">' + h + '<label class="lb-sort"><span>Sort by</span><select class="field" id="lb-sort">' + SORTS.map(function (o) {
+      return '<option value="' + o[0] + '"' + (o[0] === sortMode ? ' selected' : '') + '>' + o[1] + '</option>';
+    }).join('') + '</select></label></div>';
     // Sprints and hill climbs share one kind of board; the venue's hill flag tells them apart.
     var bt = t[0] === 'hill' ? 'sprint' : t[0];
     var venues = library.venues.filter(function (v) { return v.type === t[2] && (t[0] === 'hill' ? !!v.hill : t[0] === 'sprint' ? !v.hill : true); }).map(function (v, i) {
       var total = t[0] === 'drag' ? (counts[boardKey('drag', v.id)] || 0) : (v.layouts || []).reduce(function (n, l) { return n + (counts[boardKey(bt, v.id, l.id)] || 0); }, 0);
-      return { v: v, total: total, i: i };
-    }).sort(function (a, b) { return b.total - a.total || a.i - b.i; });
+      var when = latestOn(t[0] === 'drag' ? [boardKey('drag', v.id)] : (v.layouts || []).map(function (l) { return boardKey(bt, v.id, l.id); }));
+      return { v: v, total: total, i: i, when: when };
+    }).sort(function (a, b) {
+      if (sortMode === 'az') return a.v.name.localeCompare(b.v.name);
+      if (sortMode === 'newest' || sortMode === 'oldest') {
+        // Tracks with no times yet go last either way.
+        if (!a.when !== !b.when) return a.when ? -1 : 1;
+        if (a.when !== b.when) return (a.when < b.when) === (sortMode === 'oldest') ? -1 : 1;
+      }
+      return b.total - a.total || a.i - b.i;
+    });
     var busy = venues.filter(function (x) { return x.total; }), quiet = venues.length - busy.length;
     var shown = showAll || !busy.length ? venues : busy;
     h += '<div class="tp-boards lb-venues">' + shown.map(function (x) {
@@ -132,6 +152,8 @@
     h += '<p class="tp-small lb-note">Times are each car\'s fastest. Open a layout for the whole board and filters.</p>';
     h += ctaHtml();
     app.innerHTML = h;
+    var sortSel = document.getElementById('lb-sort');
+    if (sortSel) sortSel.addEventListener('change', function () { sortMode = sortSel.value; showList(type); });
     var btn = app.querySelector('[data-showall]');
     if (btn) btn.addEventListener('click', function () { showAll = !showAll; showList(type); });
   }

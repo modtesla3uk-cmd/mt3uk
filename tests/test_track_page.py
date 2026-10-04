@@ -1272,6 +1272,24 @@ def test_admin_tracks_panel_sets_up_a_requested_track(device_page):
     assert page.errors == [], diagnostics(page)
 
 
+def test_leaderboard_track_list_can_be_sorted(page):
+    fake = FakeWorker()
+    fake.index = [dict(EARLIER, id="sh1", privacy="board", bestTime=101.2)]
+    fake.sessions = {}
+    open_page(page, fake, "/leaderboards.html", signed_in=False)
+    page.get_by_role("button", name=re.compile("Show all")).click()
+    names = page.locator(".tp-board-card .tp-board-name b")
+    sel = page.locator("#lb-sort")
+    expect(sel.locator("option")).to_have_text(["Most sessions", "A to Z", "Newest", "Oldest"])
+    sel.select_option("az")
+    texts = names.all_inner_texts()
+    assert len(texts) > 2 and texts == sorted(texts, key=str.casefold)
+    # Tracks with a time come before the empty ones, newest or oldest.
+    for mode in ("newest", "oldest"):
+        sel.select_option(mode)
+        expect(names.first).to_have_text("Thruxton")
+
+
 def test_leaderboards_list_busy_tracks_first_with_counts(page):
     fake = FakeWorker()
     shared = dict(EARLIER, id="sh1", privacy="build")

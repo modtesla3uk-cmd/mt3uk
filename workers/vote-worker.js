@@ -6706,6 +6706,8 @@ function cleanTrackSession(s, library) {
     var org = trackText(s.organizer, 40);
     if (org) out.organizer = org;
     if (s.ignoreFinish === false) out.ignoreFinish = false;
+    // The clock starts at the start line (as a timing beam does), not when the car moves off.
+    if (s.startAtLine) out.startAtLine = true;
     // A hill climb rather than a sprint (the member's pick, or the track list's): both are timed start to finish.
     if (s.hill) out.hill = true;
     // A faster pass crosses the lines the other way round: the page warns that they may be the wrong way round.

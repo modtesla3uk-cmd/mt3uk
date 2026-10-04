@@ -1134,9 +1134,9 @@
                 var launchIdx = 0;
                 while (launchIdx < pts.length - 1 && pts[launchIdx].t < seg[0]) launchIdx++;
                 if (x && x.t > seg[0] + 25) x = null;
-                if (!x && nearStart(pts[launchIdx])) x = { i: launchIdx, t: seg[0], d: pts[launchIdx].d };
+                if (!x && !opts.startAtLine && nearStart(pts[launchIdx])) x = { i: launchIdx, t: seg[0], d: pts[launchIdx].d };
               }
-              if (x && first && ei > 0) {
+              if (x && first && ei > 0 && !opts.startAtLine) {
                 // A standing start from at or just behind the line is timed from the moment the car moves
                 // off, not from the moment its front crosses a marker drawn some metres further on: where
                 // the marker sits (20 m on is two seconds) then does not change the time.
@@ -1198,6 +1198,8 @@
     session.finishLine = pick.c.finish;
     if (pick.c.own) session.startLineFromMember = true; else if (pick.c.layout) session.officialLines = true;
     if (pick.skipped) session.firstFinishIgnored = pick.skipped;
+    // The clock starts when the car crosses the start line, as a timing beam does, not when it moves off.
+    if (opts.startAtLine) session.startAtLine = true;
     // The drive back down a hill retraces the climb, so the start and finish are easy to tap the wrong way round and the
     // slow drive down gets timed instead of the climb. When the passes that cross the lines the other way round (the
     // finish, then the start) are much faster than the ones timed, say so.

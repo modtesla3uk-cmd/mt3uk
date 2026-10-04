@@ -145,6 +145,7 @@
       function options(extra) {
         var o = { type: old.type, ignoreFirstFinish: old.ignoreFinish !== false };
         if (old.rollout) o.rollout = true;
+        if (old.startAtLine) o.startAtLine = true;
         if (old.organizer) o.organizer = old.organizer;
         if (old.finishCrossing) o.finishCrossing = old.finishCrossing;
         return Object.assign(o, extra || {});

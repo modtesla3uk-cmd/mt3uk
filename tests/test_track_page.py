@@ -2214,6 +2214,37 @@ def test_sprints_can_ignore_the_first_finish_line_crossing(page):
     expect(page.locator("#tp-ignore-finish")).to_have_count(0)
 
 
+SHELSLEY_FIXTURE = ROOT / "tests" / "fixtures" / "shelsley-climb-and-descent.vbo"
+
+
+def test_a_hill_climb_can_start_its_clock_at_the_start_line(page):
+    """By default a standing start is timed from the moment the car moves off. The Start the clock at the start line
+    switch times from the line crossing instead, as a timing beam does, which is a little quicker."""
+    def handler(route):
+        d = json.loads((ROOT / "data" / "tracks.json").read_text(encoding="utf-8"))
+        d["venues"] = [v for v in d["venues"] if v["id"] != "shelsley-walsh"]
+        d["venues"].append({
+            "id": "test-hill", "name": "Test Hill", "type": "sprint", "hill": True, "lat": 52.262, "lng": -2.411, "radius": 2500,
+            "layouts": [{"id": "hill", "name": "Hill climb", "length": 914,
+                         "startLine": [[52.2649137, -2.4096589], [52.2651245, -2.4095851]], "finishLine": [[52.2595784, -2.4134373], [52.2595488, -2.4137862]]}],
+        })
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(d))
+    page.route(re.compile(r".*/data/tracks\.json.*"), handler)
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(SHELSLEY_FIXTURE))
+    expect(page.locator("#tp-result .tp-notice")).to_be_visible(timeout=15000)
+    page.locator("[data-type] button[data-v='sprint']").click()
+    result = page.locator("#tp-result .tp-notice.is-ok")
+    expect(result).to_contain_text("Test Hill")
+    expect(result).to_contain_text("best 0:33.8")
+    switch = page.locator("#tp-start-at-line")
+    expect(switch).to_have_attribute("aria-checked", "false")
+    switch.click()
+    expect(page.locator("#tp-start-at-line")).to_have_attribute("aria-checked", "true")
+    expect(result).to_contain_text("best 0:33.0")
+
+
 def test_hill_climbs_keep_both_runs_with_the_ignore_switch_on(page):
     """A hill climb crosses the finish once per run, so there is nothing to
     skip: both runs are timed, and the switch is there if it is needed."""

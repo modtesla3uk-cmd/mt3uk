@@ -517,6 +517,7 @@
   function retimeOpts(old) {
     var o = { type: old.type, ignoreFirstFinish: old.ignoreFinish !== false };
     if (old.rollout) o.rollout = true;
+    if (old.startAtLine) o.startAtLine = true;
     if (old.organizer) o.organizer = old.organizer;
     if (old.finishCrossing) o.finishCrossing = old.finishCrossing;
     if (old.startLineFromMember && old.startLine) { o.startLine = old.startLine; if (old.finishLine) o.finishLine = old.finishLine; }

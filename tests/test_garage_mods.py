@@ -503,19 +503,18 @@ def test_a_car_can_be_added_without_a_caption(device_page):
 
 
 @all_devices
-def test_garage_tile_shows_mods_progress_on_desktop_and_back_is_a_button(device_page):
+def test_garage_tile_shows_mods_progress_and_back_is_a_button(device_page):
     page = device_page
     signed_in(page)
     page.goto("/my-builds.html")
     tile = page.locator(".mb-car-tile").first
     tile.wait_for(timeout=10000)
     meter = tile.locator(".mb-car-tile-mods")
+    # The orange bar shows on phones and desktop; desktop also has bigger pictures.
+    expect(meter).to_be_visible()
+    expect(meter).to_contain_text("areas done")
     if page.viewport_size["width"] > 780:
-        expect(meter).to_be_visible()
-        expect(meter).to_contain_text("areas done")
         assert tile.locator(".mb-car-tile-thumb").bounding_box()["width"] >= 280
-    else:
-        expect(meter).to_be_hidden()
     tile.click()
     back = page.locator("#mb-car-back-btn")
     expect(back).to_be_visible()

@@ -814,12 +814,11 @@
   .mb-car-tile:hover { border-color: var(--ink); }
   .mb-car-tile-count { font-size: 0.82rem; }
   .mb-car-tile-alert { border-radius: var(--radius-pill); padding: 2px 8px; }
-  /* The mods list progress under each car: desktop only, with bigger pictures. */
-  .mb-car-tile .mb-car-tile-mods { display: none; }
+  /* The mods list progress under each car (the orange bar), on phones and desktop; desktop also has bigger pictures. */
+  .mb-car-tile .mb-car-tile-mods { display: grid; gap: 6px; padding: 0 12px 12px; }
+  .mb-car-tile-mods .mbm-meter-text { font-size: 0.82rem; color: var(--steel); }
   @media (min-width: 781px) {
     .mb-car-grid { max-width: none; grid-template-columns: repeat(auto-fill, minmax(300px, 320px)); justify-content: center; }
-    .mb-car-tile .mb-car-tile-mods { display: grid; gap: 6px; padding: 0 12px 12px; }
-    .mb-car-tile-mods .mbm-meter-text { font-size: 0.82rem; color: var(--steel); }
   }
   .mb-photo-thumb-wrap { border: 1px solid var(--hairline); border-radius: var(--radius); padding: 8px; gap: 8px; }
   .mb-photo-added { font-size: 0.8rem; }

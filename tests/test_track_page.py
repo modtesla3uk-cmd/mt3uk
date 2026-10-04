@@ -4184,3 +4184,46 @@ def test_another_members_lap_is_labelled_with_first_initial_and_last_name(page):
     page.locator("#tp-cmp-b").wait_for()
     page.locator("#tp-cmp-b").select_option("x:m1")
     expect(page.locator("#tp-key")).to_contain_text("A. Smith, best, 28/05 (B)")
+
+
+def test_landscape_full_screen_controls_float_move_resize_and_reset(page):
+    page.set_viewport_size({"width": 390, "height": 844})
+    save_thruxton_with_a_member_board(page, FakeWorker())
+    page.locator("#tp-mapwrap .tv-zoom-full").click()
+    page.set_viewport_size({"width": 844, "height": 390})
+    page.wait_for_timeout(300)
+    page.locator("#tp-mapwrap .tv-zoom-full").click()
+    page.locator("#tp-mapwrap .tv-zoom-full").click()
+    expect(page.locator("#tp-mapcard")).to_have_class(re.compile(r"is-full"))
+    panel = page.locator("#tp-play")
+    start = panel.bounding_box()
+    assert start["x"] < 20 and start["y"] + start["height"] > 360  # resting at the bottom left
+    # The grip along the top moves the controls.
+    g = page.locator("#tp-pn-grip").bounding_box()
+    gx, gy = g["x"] + g["width"] / 2, g["y"] + g["height"] / 2
+    page.mouse.move(gx, gy)
+    page.mouse.down()
+    page.mouse.move(gx + 150, gy - 120, steps=8)
+    page.mouse.up()
+    moved = panel.bounding_box()
+    assert abs(moved["x"] - start["x"] - 150) < 6 and abs(moved["y"] - start["y"] + 120) < 6, (start, moved)
+    # The corner handle resizes the width.
+    s = page.locator("#tp-pn-size").bounding_box()
+    sx, sy = s["x"] + s["width"] / 2, s["y"] + s["height"] / 2
+    page.mouse.move(sx, sy)
+    page.mouse.down()
+    page.mouse.move(sx - 100, sy, steps=6)
+    page.mouse.up()
+    resized = panel.bounding_box()
+    assert abs(resized["width"] - (moved["width"] - 100)) < 6, (moved, resized)
+    # Kept in this browser, and still on the screen after a reload.
+    page.reload()
+    page.locator("#tp-mapwrap .tv-zoom-full").click()
+    expect(page.locator("#tp-mapcard")).to_have_class(re.compile(r"is-full"))
+    again = panel.bounding_box()
+    assert abs(again["x"] - resized["x"]) < 6 and abs(again["width"] - resized["width"]) < 6, (resized, again)
+    # Map options puts them back at the bottom left.
+    page.locator("#tp-mopts-btn").click()
+    page.locator("#tp-pn-reset").click()
+    back = panel.bounding_box()
+    assert back["x"] < 20 and abs(back["width"] - start["width"]) < 6, (start, back)

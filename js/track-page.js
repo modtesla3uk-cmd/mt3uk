@@ -2224,16 +2224,16 @@
         '<div class="card tp-o-corner"><h3>Corner by corner</h3><div class="tp-scroll"><table class="tp-table" id="tp-corners"></table></div></div></div>' +
         '<div class="tp-grid"><div class="card tp-mapcard" id="tp-mapcard"><div class="tp-chart-head tp-map-head"><h3>Where you are</h3><button type="button" class="tp-switch tp-gswitch tp-speedsw" role="switch" id="tp-speedcol" aria-checked="' + cmpSpeed + '"><span>Colour by speed</span><span class="tp-track"></span></button><span class="tp-rotate-hint" id="tp-rotate-hint" role="img" aria-label="Turn your phone for a bigger map" title="Turn your phone for a bigger map">' + icon('rotate') + '</span><button type="button" class="btn btn-secondary btn-sm" id="tp-full" aria-label="Full screen map"></button></div>' +
         '<p class="tp-small tp-sync-note">Both laps at the same moment: the slower one trails by the time gap.</p>' +
-        '<div class="tp-play" id="tp-play"><div class="tp-play-row"><div class="tp-play-btns"><button type="button" class="btn btn-secondary" id="tp-play-start" data-play="start" aria-label="Go back to the start"></button><button type="button" class="btn btn-secondary" id="tp-play-back" data-play="back"></button><button type="button" class="btn btn-primary" id="tp-play-toggle" data-play="toggle"></button></div>' +
+        '<div class="tp-play" id="tp-play"><div class="tp-pn-grip" id="tp-pn-grip" role="separator" aria-label="Drag to move the controls" title="Drag to move the controls"><i></i><i></i><i></i></div><div class="tp-play-row"><div class="tp-play-btns"><button type="button" class="btn btn-secondary" id="tp-play-start" data-play="start" aria-label="Go back to the start"></button><button type="button" class="btn btn-secondary" id="tp-play-back" data-play="back"></button><button type="button" class="btn btn-primary" id="tp-play-toggle" data-play="toggle"></button></div>' +
         '<div class="tp-chips" id="tp-speeds" role="group" aria-label="Playback speed">' + [['0.25', 'x0.25'], ['0.5', 'x0.5'], ['1', 'x1'], ['2', 'x2'], ['5', 'x5']].map(function (v) { return '<button type="button" class="chip" data-speed="' + v[0] + '">' + v[1] + '</button>'; }).join('') + '</div>' +
         '<button type="button" class="chip is-on" id="tp-follow" aria-pressed="true" title="When the map is zoomed in, keep the cars in view">Follow cars</button></div>' +
-        '<div class="tp-when" id="tp-when" aria-live="off"></div>' +
+        '<div class="tp-when" id="tp-when" aria-live="off"></div><div class="tp-pn-size" id="tp-pn-size" role="separator" aria-label="Drag to resize the controls" title="Drag to resize the controls"></div>' +
         '</div>' +
         '<div class="tp-mapwrap" id="tp-mapwrap"><svg class="tv-chart" id="tp-map2" role="img" aria-label="Track map with both laps\' lines and positions"></svg>' +
         '<div class="tp-chart-foot tp-speedkey" id="tp-speedkey"' + (cmpSpeed ? '' : ' hidden') + '><span class="tp-ramp"><span id="tp-ramp-lo"></span><i></i><span id="tp-ramp-hi"></span></span><span>Lap A coloured by speed, lap B dashed. Numbers are the slowest corners.</span></div></div>' +
         '<div class="tp-mopts" id="tp-mopts"><button type="button" class="tp-mopts-btn" id="tp-mopts-btn" aria-expanded="false" aria-controls="tp-mopts-card" aria-label="Map options">' + icon('sliders') + '</button>' +
         '<div class="tp-mopts-card" id="tp-mopts-card" hidden><div class="tp-mopts-head"><span>Map options</span><button type="button" class="tp-mopts-x" id="tp-mopts-x" aria-label="Close map options">' + icon('x') + '</button></div>' +
-        '<div class="tp-mopts-body" id="tp-mopts-body"><button type="button" class="tp-switch tp-gswitch" role="switch" id="tp-carspeed" aria-checked="' + carSpeed + '"><span>Speed on cars</span><span class="tp-track"></span></button></div></div></div>' +
+        '<div class="tp-mopts-body" id="tp-mopts-body"><button type="button" class="tp-switch tp-gswitch" role="switch" id="tp-carspeed" aria-checked="' + carSpeed + '"><span>Speed on cars</span><span class="tp-track"></span></button><button type="button" class="btn btn-secondary btn-sm" id="tp-pn-reset">Reset the controls</button></div></div></div>' +
         '<div class="tp-split" id="tp-split" role="separator" aria-orientation="vertical" aria-label="Drag to make the map bigger or smaller" title="Drag to make the map bigger or smaller"></div>' +
         '<div class="tp-metrics" id="tp-metrics" aria-live="off"></div>' +
         '<div class="tp-gbox" id="tp-gbox"><div class="tp-chart-head"><h3>G-force' + (s.gDerived ? ' (estimated)' : '') + ' and speed</h3><button type="button" class="tp-switch tp-gswitch" role="switch" id="tp-gshow" aria-checked="' + !gHidden + '"><span>Show G-Forces</span><span class="tp-track"></span></button><div class="tp-chips" id="tp-gtoggles" role="group" aria-label="G-force lines to show">' + G_DEFS.map(function (d) { return '<button type="button" class="chip chip-sm' + (gShow[d[0]] ? ' is-on' : '') + '" data-g="' + d[0] + '" aria-pressed="' + !!gShow[d[0]] + '">' + d[1] + '</button>'; }).join('') + '</div></div>' +
@@ -2433,6 +2433,7 @@
       if (landFull()) { if (sw.parentNode !== obody) obody.insertBefore(sw, obody.firstChild); }
       else if (sw.parentNode !== head) head.insertBefore(sw, head.querySelector('.tp-rotate-hint'));
     }
+    panelClamp();
     // The G-force pills stay in the charts panel's top row.
     if (gt && row && gt.parentNode !== row) row.appendChild(gt);
   }
@@ -2458,6 +2459,48 @@
   // The speed beside each car's dot (a phone on its side in full screen), on or off (remembered in this browser).
   var carSpeed = true;
   try { carSpeed = localStorage.getItem('mt3ukTrackCarSpeed') !== 'off'; } catch (e) { /* storage blocked */ }
+  // The playback controls in landscape full screen float: moved by their top grip, resized by their corner, and the
+  // place and width are remembered in this browser ({ x, y, w } in pixels from the top left of the screen).
+  var panel = null;
+  try { var pj = JSON.parse(localStorage.getItem('mt3ukTrackPanel') || 'null'); if (pj && isFinite(pj.x) && isFinite(pj.y) && isFinite(pj.w)) panel = pj; } catch (e) { /* storage blocked */ }
+  function panelApply() {
+    var mc = document.getElementById('tp-mapcard');
+    if (!mc) return;
+    if (!panel) { mc.removeAttribute('data-pn'); mc.style.removeProperty('--pn-x'); mc.style.removeProperty('--pn-y'); mc.style.removeProperty('--pn-w'); return; }
+    mc.setAttribute('data-pn', 'on');
+    mc.style.setProperty('--pn-x', panel.x + 'px'); mc.style.setProperty('--pn-y', panel.y + 'px'); mc.style.setProperty('--pn-w', panel.w + 'px');
+  }
+  // Keeps the panel on the screen: its width fits, and a corner of it can always be reached.
+  function panelClamp() {
+    var mc = document.getElementById('tp-mapcard'), pn = document.getElementById('tp-play');
+    if (!panel || !mc || !pn || !landFull()) return;
+    var cw = mc.clientWidth, ch = mc.clientHeight;
+    panel.w = Math.max(260, Math.min(panel.w, cw - 8));
+    panel.x = Math.max(0, Math.min(panel.x, cw - panel.w));
+    panel.y = Math.max(0, Math.min(panel.y, ch - Math.min(pn.offsetHeight || 60, ch)));
+    panelApply();
+  }
+  function panelSave() { try { if (panel) localStorage.setItem('mt3ukTrackPanel', JSON.stringify(panel)); else localStorage.removeItem('mt3ukTrackPanel'); } catch (e) { /* storage blocked */ } }
+  function panelStart(e, mode) {
+    var mc = document.getElementById('tp-mapcard'), pn = document.getElementById('tp-play');
+    if (!mc || !pn || !landFull()) return;
+    e.preventDefault();
+    var cr = mc.getBoundingClientRect(), pr = pn.getBoundingClientRect(), h = e.currentTarget;
+    // The first drag takes the panel from its resting place to where it is now.
+    var from = panel || { x: pr.left - cr.left, y: pr.top - cr.top, w: pr.width };
+    var sx = e.clientX, sy = e.clientY;
+    try { h.setPointerCapture(e.pointerId); } catch (err) { /* not capturable */ }
+    function mv(ev) {
+      var dx = ev.clientX - sx, dy = ev.clientY - sy;
+      panel = mode === 'move' ? { x: from.x + dx, y: from.y + dy, w: from.w } : { x: from.x, y: from.y, w: from.w + dx };
+      panelClamp(); panelApply();
+    }
+    function up() {
+      h.removeEventListener('pointermove', mv); h.removeEventListener('pointerup', up); h.removeEventListener('pointercancel', up);
+      panelSave();
+    }
+    h.addEventListener('pointermove', mv); h.addEventListener('pointerup', up); h.addEventListener('pointercancel', up);
+  }
   // The distance a lap had reached after t seconds.
   function distAtTime(trace, t) {
     var lo = 0, hi = trace.length - 1;
@@ -2576,7 +2619,7 @@
   window.addEventListener('resize', function () {
     if (!cmpFull) return;
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(function () { placeHead(); if (cmpFull && view && view.s && document.getElementById('tp-map2')) drawCompare(view.s, true); }, 200);
+    resizeTimer = setTimeout(function () { panelClamp(); placeHead(); if (cmpFull && view && view.s && document.getElementById('tp-map2')) drawCompare(view.s, true); }, 200);
   });
   // Whether a zoomed-in map keeps the cars in view. Dragging the map turns it off.
   var cmpMap = null;
@@ -2613,6 +2656,11 @@
     function openOpts(on) { if (oc) oc.hidden = !on; if (ob) { ob.hidden = on; ob.setAttribute('aria-expanded', String(on)); } }
     if (ob) ob.addEventListener('click', function () { openOpts(true); });
     if (ox) ox.addEventListener('click', function () { openOpts(false); if (ob) ob.focus(); });
+    var gr = document.getElementById('tp-pn-grip'), sz = document.getElementById('tp-pn-size'), rs = document.getElementById('tp-pn-reset');
+    if (gr) gr.addEventListener('pointerdown', function (e) { panelStart(e, 'move'); });
+    if (sz) sz.addEventListener('pointerdown', function (e) { panelStart(e, 'size'); });
+    if (rs) rs.addEventListener('click', function () { panel = null; panelSave(); panelApply(); });
+    panelApply();
     function showCarSpeed() { var mc = document.getElementById('tp-mapcard'); if (mc) mc.setAttribute('data-carspeed', carSpeed ? 'on' : 'off'); if (cs) cs.setAttribute('aria-checked', String(carSpeed)); }
     showCarSpeed();
     if (cs) cs.addEventListener('click', function () {

@@ -310,6 +310,13 @@
     /* The playback speeds and Follow cars are smaller; Start, Rewind and Play keep their size, side by side. */
     .tp-mapcard.is-full #tp-speeds .chip, .tp-mapcard.is-full #tp-follow { min-height: 30px; min-width: 0; padding: 0 9px; font-size: 0.75rem; }
     .tp-mapcard.is-full .tp-play, .tp-mapcard.is-full .tp-play-row, .tp-mapcard.is-full .tp-when { pointer-events: none; }
+    /* The controls float: a grip along the top moves them, a handle in the corner resizes them, and the Map options card
+       can put them back. Once moved they use the saved place and width instead of the bottom left corner. */
+    .tp-mapcard.is-full .tp-play { z-index: 4; }
+    .tp-mapcard.is-full .tp-pn-grip { display: flex; align-items: center; justify-content: center; gap: 5px; height: 18px; order: -2; margin: -2px 0 -2px; cursor: grab; touch-action: none; pointer-events: auto; }
+    .tp-mapcard.is-full .tp-pn-grip i { width: 22px; height: 4px; border-radius: 2px; background: var(--hairline-strong); }
+    .tp-mapcard.is-full .tp-pn-size { display: block; position: absolute; right: 0; bottom: 0; width: 30px; height: 30px; cursor: nwse-resize; touch-action: none; pointer-events: auto; background: linear-gradient(135deg, transparent 55%, var(--hairline-strong) 55%, var(--hairline-strong) 63%, transparent 63%, transparent 75%, var(--hairline-strong) 75%, var(--hairline-strong) 83%, transparent 83%); border-bottom-right-radius: var(--radius-sm); }
+    #tp-mapcard.is-full[data-pn="on"] .tp-play { left: var(--pn-x); top: var(--pn-y); bottom: auto; width: var(--pn-w); max-width: none; box-sizing: border-box; }
     .tp-mapcard.is-full .tp-play .btn, .tp-mapcard.is-full .tp-play .chip { pointer-events: auto; }
     .tp-mapcard.is-full .tp-mopts { display: block; position: absolute; left: 6px; top: 44px; z-index: 3; }
     #tp-mapcard.is-full[data-carspeed="off"] .tv-dotlabel { display: none; }
@@ -321,6 +328,7 @@
   .tv-dotlabel { display: none; }
   .tp-mopts { display: none; }
   .tp-when { display: none; }
+  .tp-pn-grip, .tp-pn-size { display: none; }
   .tp-mopts-btn { width: 44px; height: 44px; display: grid; place-items: center; padding: 0; border: 1px solid var(--hairline-strong); border-radius: var(--radius); background: rgba(255,255,255,.95); color: var(--ink); box-shadow: 0 1px 6px rgba(0,0,0,.35); cursor: pointer; }
   .tp-mopts-btn[hidden] { display: none; }
   .tp-mopts-card { min-width: 210px; border: 1px solid var(--hairline-strong); border-radius: var(--radius); background: rgba(255,255,255,.96); box-shadow: 0 1px 6px rgba(0,0,0,.35); overflow: hidden; }
@@ -876,7 +884,7 @@
 <script src="js/track-view.js?v=20261129" defer></script>
 <script src="js/tyre-data.js"></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20261137" defer></script>
+<script src="js/track-page.js?v=20261138" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=5" defer></script>
 <script src="js/signin-prompt.js" defer></script>

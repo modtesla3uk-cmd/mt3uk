@@ -1304,6 +1304,7 @@ def test_leaderboards_list_busy_tracks_first_with_counts(page):
     expect(first.locator(".lb-podium li").first).to_contain_text("Rich")
     expect(first.locator(".lb-podium li").first.locator(".lb-pos")).to_have_text("1")
     expect(first.locator(".lb-podium li").first).to_contain_text("1:41.200")
+    expect(first.locator(".lb-podium li").first.locator(".lb-date")).to_contain_text("2026")
     # Tracks with nothing yet are tucked away until asked for.
     expect(page.locator(".tp-board-card")).to_have_count(1)
     page.get_by_role("button", name=re.compile("Show all")).click()
@@ -1316,6 +1317,10 @@ def test_leaderboards_list_busy_tracks_first_with_counts(page):
     rows = page.locator(".lb-row")
     expect(rows).to_have_count(1)
     expect(rows.first).to_contain_text("1:41.200")
+    # Cars with nothing on this board are greyed.
+    expect(page.locator("#lb-models .chip.is-empty")).to_have_count(6)
+    expect(page.locator('#lb-models .chip[data-m="Model 3"]')).not_to_have_class(re.compile("is-empty"))
+    expect(page.locator('#lb-models .chip[data-m="All"]')).not_to_have_class(re.compile("is-empty"))
     expect(page.locator(".tp-head .tp-sub")).to_contain_text("Each car's fastest lap.")
     # Drag and sprint have their own tabs.
     page.locator(".tp-back").click()

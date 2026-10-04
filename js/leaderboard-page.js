@@ -96,7 +96,7 @@
     if (!top.length) return '';
     return '<ol class="lb-podium">' + top.map(function (l, i) {
       var res = drag ? Number(l.quarter).toFixed(2) + ' s' : V.fmtLap(l.time);
-      return '<li class="lb-top' + (i + 1) + '"><span class="lb-pos">' + (i + 1) + '</span><span class="lb-who"><b>' + esc(l.owner || 'MT3UK member') + '</b><small>' + esc(l.car === 'MT3UK member build' && l.model ? l.model : l.car) + '</small></span><span class="lb-res">' + res + '</span></li>';
+      return '<li class="lb-top' + (i + 1) + '"><span class="lb-pos">' + (i + 1) + '</span><span class="lb-who"><b>' + esc(l.owner || 'MT3UK member') + '</b><small>' + esc(l.car === 'MT3UK member build' && l.model ? l.model : l.car) + '</small>' + (l.date ? '<small class="lb-date">' + esc(T.niceDate(l.date)) + '</small>' : '') + '</span><span class="lb-res">' + res + '</span></li>';
     }).join('') + '</ol>';
   }
 
@@ -249,9 +249,9 @@
         var what = type === 'drag' ? 'Each car\'s quickest quarter mile.' : type === 'sprint' ? 'Each car\'s fastest run.' : 'Each car\'s fastest lap.';
         var filtered = fCond !== 'All' || fMake !== 'All';
         var listType = type === 'sprint' && v && v.hill ? 'hill' : type;
-        var h = '<a class="tp-back" href="leaderboards.html?type=' + listType + '" data-go="type=' + listType + '">' + icon('back') + 'All ' + KIND_NAME[listType] + '</a>' +
+        var h = '<a class="tp-back back-link" href="leaderboards.html?type=' + listType + '" data-go="type=' + listType + '">' + icon('back') + 'All ' + KIND_NAME[listType] + '</a>' +
           '<div class="tp-head"><div><h2>' + esc(title) + '</h2><p class="tp-sub">' + what + '</p></div></div>' +
-          '<div class="lb-filters"><div class="lb-filter-top"><div class="tp-chips lb-models" id="lb-models">' + ['All'].concat(MODELS).map(function (m) { return '<button type="button" class="chip' + (m === boardModel ? ' is-on' : '') + '" data-m="' + m + '">' + (MODEL_SHORT[m] || m) + '</button>'; }).join('') + '</div>' + unitsChip() + '</div>' +
+          '<div class="lb-filters"><div class="lb-filter-top"><div class="tp-chips lb-models" id="lb-models">' + ['All'].concat(MODELS).map(function (m) { return '<button type="button" class="chip' + (m === boardModel ? ' is-on' : '') + (m !== 'All' && !entries.some(function (e) { return e.model === m; }) ? ' is-empty' : '') + '" data-m="' + m + '">' + (MODEL_SHORT[m] || m) + '</button>'; }).join('') + '</div>' + unitsChip() + '</div>' +
           (conds.length > 1 || makes.length ? '<div class="lb-selects">' +
             (conds.length > 1 ? '<label class="lb-sel"><span>Conditions</span><select class="field" id="lb-cond">' + options(conds, fCond, 'Any conditions') + '</select></label>' : '') +
             (makes.length ? '<label class="lb-sel"><span>Tyre make</span><select class="field" id="lb-make">' + options(makes, fMake, 'Any tyres') + '</select></label>' : '') +

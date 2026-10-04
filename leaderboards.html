@@ -270,6 +270,8 @@
   .lb-filter-top { display: flex; align-items: flex-start; gap: 10px; justify-content: space-between; }
   .lb-models { flex: 1; min-width: 0; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
   .lb-models .chip { flex: none; }
+  /* A car with nothing on this board yet: greyed, still pressable. */
+  .lb-models .chip.is-empty:not(.is-on) { background: #eceef2; color: #8a93a3; border-color: var(--hairline); font-weight: 500; }
   @media (min-width: 781px) { .lb-models { flex-wrap: wrap; overflow-x: visible; } }
   .lb-filter-top .tp-units { flex: none; }
   .lb-selects { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: end; }
@@ -561,7 +563,7 @@
 <script src="js/track-parse.js?v=20261104" defer></script>
 <script src="js/track-view.js?v=20261125" defer></script>
 <script src="js/tyre-data.js" defer></script>
-<script src="js/leaderboard-page.js?v=20261126" defer></script>
+<script src="js/leaderboard-page.js?v=20261129" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=2" defer></script>
 <script src="js/signin-prompt.js" defer></script>

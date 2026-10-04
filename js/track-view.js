@@ -636,7 +636,7 @@
     var W = cfg.W || width(svg), H = cfg.H || 240;
     svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
     // cfg.y2 { y0, y1, yt, yf }: a second scale on the right, for series with axis: 2.
-    var m = { l: 46, r: cfg.y2 ? 46 : 12, t: 12, b: cfg.bottom != null ? cfg.bottom : 28 };  // cfg.bottom: less room under a chart that has no time labels
+    var m = { l: 46, r: cfg.y2 ? 46 : 12, t: cfg.top != null ? cfg.top : 12, b: cfg.bottom != null ? cfg.bottom : 28 };  // cfg.bottom: less room under a chart that has no time labels
     function X(v) { return m.l + (v - cfg.x0) / ((cfg.x1 - cfg.x0) || 1) * (W - m.l - m.r); }
     function Y(v) { return H - m.b - (v - cfg.y0) / ((cfg.y1 - cfg.y0) || 1) * (H - m.t - m.b); }
     function Y2(v) { return H - m.b - (v - cfg.y2.y0) / ((cfg.y2.y1 - cfg.y2.y0) || 1) * (H - m.t - m.b); }

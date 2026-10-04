@@ -286,6 +286,11 @@
     .tp-mapcard.is-full .tp-mhead { display: grid; grid-template-columns: auto minmax(0, 1fr) repeat(3, auto); gap: 4px 10px; color: var(--steel); font-size: 0.68rem; line-height: 1.1; }
     .tp-mapcard.is-full .tp-mhead span:first-child { width: 12px; }
     .tp-mapcard.is-full .tp-mhead span:nth-child(n+3) { min-width: 58px; text-align: right; }
+    /* The car rows and the G-force pills sit in the controls on the left, under the playback buttons. */
+    .tp-mapcard.is-full .tp-play #tp-gtoggles { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tp-mapcard.is-full .tp-play #tp-gtoggles .chip { min-height: 36px; padding: 0 10px; font-size: 0.8rem; }
+    .tp-mapcard.is-full .tp-play .tp-metrics { position: static; margin: 0; padding: 0; background: none; font-size: 0.8rem; }
+    .tp-mapcard.is-full .tp-play .tp-mrow b { max-width: none; }
   }
   .tp-clock { font-size: 0.82rem; font-variant-numeric: tabular-nums; color: var(--steel); white-space: nowrap; }
   .tp-boards { display: grid; gap: 10px; }
@@ -832,10 +837,10 @@
 </script>
 
 <script src="js/track-parse.js?v=20261104" defer></script>
-<script src="js/track-view.js?v=20261125" defer></script>
+<script src="js/track-view.js?v=20261126" defer></script>
 <script src="js/tyre-data.js"></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20261124" defer></script>
+<script src="js/track-page.js?v=20261126" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=2" defer></script>
 <script src="js/signin-prompt.js" defer></script>

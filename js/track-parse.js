@@ -29,7 +29,8 @@
   // 7: a fix that freezes or creeps at speed and then jumps to catch up is mended too, and a drift is mended up to
   //    where the fix catches up rather than to the first reading past it; readings are spaced by the speeds.
   // 8: a sprint or hill climb notes when a faster pass crosses its lines the other way round (reverseRun).
-  var ANALYSIS_VERSION = 8;
+  // 9: a standing start in a sprint or hill climb is always timed from the first reading above 0.5 km/h, wherever the start line is.
+  var ANALYSIS_VERSION = 9;
   var DEG = Math.PI / 180;
 
   function num(s) {
@@ -1137,13 +1138,13 @@
                 if (!x && nearStart(pts[launchIdx])) x = { i: launchIdx, t: seg[0], d: pts[launchIdx].d };
               }
               if (x && first && ei > 0) {
-                // A standing start from at or just behind the line is timed from the moment the car moves
-                // off, not from the moment its front crosses a marker drawn some metres further on: where
-                // the marker sits (20 m on is two seconds) then does not change the time.
+                // A standing start is timed from the moment the car moves off (the first reading above 0.5 km/h
+                // after the stop, from the file's own time column), as a VBOX does, not from the moment it
+                // crosses the marker: the line only picks out the run, so where it sits does not change the time.
                 var k = 0;
                 while (k < pts.length - 1 && pts[k].t < seg[0]) k++;
                 while (k > 0 && pts[k - 1].v > 0.5) k--;
-                if (pts[k].t < x.t && x.t - pts[k].t < 8 && startDist(pts[k]) <= 40) x = { i: k, t: pts[k].t, d: pts[k].d };
+                x = { i: k, t: pts[k].t, d: pts[k].d };
               }
               first = false;
               if (!x) break;

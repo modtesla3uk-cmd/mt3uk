@@ -672,5 +672,23 @@ ok(T.fmtLap(99.786) === '1:39.79' && T.niceDate('2026-05-28') === '28 May 2026',
   const wrong = T.analyse(hrd, { venues: [] }, { type: 'sprint', ownLines: true, startLine: across(near2(climbEnd), near2(climbEnd - 1)), finishLine: across(near2(climbStart), near2(climbStart + 1)) });
   ok(wrong.bestTime && wrong.bestTime > 80, 'with the lines the wrong way round the drive back down is timed: ' + wrong.bestTime);
   ok(wrong.reverseRun && wrong.reverseRun.peak > 140 && wrong.reverseRun.fwdPeak < 70 && wrong.reverseRun.time > 40 && wrong.reverseRun.time < 80, 'and the faster pass the other way is reported: ' + JSON.stringify(wrong.reverseRun));
-  ok(T.ANALYSIS_VERSION === 8, 'the analysis version moved on');
+  ok(T.ANALYSIS_VERSION === 9, 'the analysis version moved on');
+}
+
+// A standing start is timed from the first reading above 0.5 km/h (the moment the car moves off), whatever the start
+// line is: only the finish line decides where the clock stops. The Shelsley file with the finish line from the VBOX time
+// of 33.05 s, and start lines at the launch, 3 m on and 60 m on.
+{
+  const hrd = T.read(fs.readFileSync(ROOT + 'tests/fixtures/shelsley-climb-and-descent.vbo', 'latin1'), 'Shelsley_HillClimb.VBO');
+  const F = [[52.2598990, -2.4135109], [52.2598692, -2.4138598]];
+  const P = hrd.points;
+  const up = P.find(p => p.v > 100).t; let k = P.findIndex(p => p.t >= up - 6); while (k > 0 && P[k - 1].v > 0.5) k--;
+  ok(near(P[k].v, 1.61, 0.01), 'the first reading above 0.5 km/h is the move-off reading (1.61 km/h)');
+  // Start lines 3 m and 60 m along the road from the move-off point.
+  const along = m => { let d = 0; for (let j = k + 1; j < P.length; j++) { d += T.haversine(P[j - 1], P[j]); if (d >= m) return { a: P[j - 1], b: P[j] }; } };
+  const across = (m, w = 0.00011) => { const s = along(m), dx = s.b.lng - s.a.lng, dy = s.b.lat - s.a.lat, n = Math.hypot(dx, dy), px = -dy / n, py = dx / n; return [[s.a.lat + py * w, s.a.lng + px * w], [s.a.lat - py * w, s.a.lng - px * w]]; };
+  for (const m of [3, 60, 100]) {
+    const r = T.analyse(hrd, { venues: [] }, { type: 'sprint', ownLines: true, startLine: across(m), finishLine: F, ignoreFirstFinish: true });
+    ok(r.laps.length === 1 && near(r.bestTime, 33.05, 0.06), 'a start line ' + m + ' m past the move-off point gives the same time (clock from the move-off): ' + r.bestTime);
+  }
 }

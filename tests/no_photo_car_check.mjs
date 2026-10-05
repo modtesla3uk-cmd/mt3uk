@@ -96,6 +96,15 @@ r = await call('GET', '/track/sessions', undefined, 'tok-a');
 ok((r.body.sessions || []).filter(x => x.carId === gt3).every(x => x.drive === 'RWD'), 'the sessions now carry RWD');
 r = await call('POST', '/track/admin/drive?key=secret', { carId: gt3, drive: '' });
 ok(r.body.success && r.body.drive === 'RWD' && r.body.set === false, 'cleared, the car goes back to what its model says (911 GT3: RWD)');
+// A default by model (the Vehicles panel): a 911 whose version does not say takes it, its sessions are stamped.
+r = await call('POST', '/track/admin/drive?key=secret', { make: 'Porsche', model: '911', drive: 'AWD' });
+ok(r.body.success && r.body.key === 'porsche|911' && r.body.vehicles === 1 && r.body.stamped === 2, 'a default for a model stamps the sessions of every vehicle of that model not set by hand');
+r = await call('GET', '/track/sessions', undefined, 'tok-a');
+ok((r.body.sessions || []).filter(x => x.carId === gt3).every(x => x.drive === 'AWD'), 'the sessions now carry AWD');
+ok((await garage()).find(x => x.id === gt3).drive === 'AWD', 'and My Garage shows it');
+r = await call('POST', '/track/admin/drive?key=secret', { make: 'Porsche', model: '911', drive: '' });
+ok(r.body.success && r.body.drive === '' && r.body.stamped === 2, 'clearing the default puts the rule back (RWD) and stamps again');
+ok((await garage()).find(x => x.id === gt3).drive === 'RWD', 'so the car is RWD again');
 r = await call('POST', '/track/boards/rebuild?key=secret');
 ok(r.body.success, 'the rebuild runs with the stamping in it');
 r = await call('GET', '/track/public?car=' + gt3, undefined, 'tok-a');

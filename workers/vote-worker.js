@@ -5372,19 +5372,27 @@ var FIXED_DRIVE = {
   'honda|civic type r': 'FWD', 'honda|s2000': 'RWD', 'toyota|gr86': 'RWD', 'toyota|gr yaris': 'AWD', 'toyota|supra': 'RWD',
   'subaru|brz': 'RWD', 'subaru|wrx sti': 'AWD', 'mazda|mx-5': 'RWD'
 };
-function driveFor(v) {
+// The make, model and version a vehicle's wheels are judged by, lowercased: older cars carry the make inside the
+// model (Hyundai Ioniq 5 N) or have none (a Tesla), and a model typed with its trim (911 GT3, Taycan 4S, Model 3
+// Performance) is a model and a version.
+function driveParts(v) {
   v = v || {};
-  if (v.vehicleType === 'bike') return '';
   var make = String(v.make || '').trim().toLowerCase(), model = String(v.model || '').trim().toLowerCase(), ver = String(v.version || '').trim().toLowerCase();
-  // Older cars carry the make inside the model (Hyundai Ioniq 5 N), and a Tesla had no make at all.
+  if (make && model.indexOf(make + ' ') === 0) model = model.slice(make.length + 1);
   if (!make) {
     var m = /^(hyundai|porsche|kia)\s+/.exec(model);
     if (m) { make = m[1]; model = model.slice(m[0].length); } else if (/^(model [3sxy]|cybertruck|roadster)\b/.test(model)) make = 'tesla';
   }
-  // A model typed with its trim (911 GT3, Taycan 4S, Model 3 Performance) is a model and a version.
   var m2 = /^(model [3sxy]|taycan|911|macan electric|cybertruck|ev6|ioniq [56])\s+(.+)$/.exec(model);
   if (m2 && !/^(gt|n)$/.test(m2[2])) { model = m2[1]; ver = (m2[2] + ' ' + ver).trim(); }
-  var text = model + ' ' + ver;
+  return { make: make, model: model, ver: ver, year: Number(v.year) || 0, bike: v.vehicleType === 'bike' };
+}
+// A model's key in the admin's defaults by model ('tesla|model 3').
+function driveModelKey(v) { var p = driveParts(v); return p.make + '|' + p.model; }
+// What the version (or the year) says about the wheels, or '' when it says nothing: the words in it (Long Range
+// AWD, Rear-Wheel Drive, xDrive, Dual Motor), a Tesla's or a Taycan's trim, a Polestar 2's or an NSX's year.
+function driveSaid(p) {
+  var make = p.make, model = p.model, ver = p.ver, text = model + ' ' + ver;
   if (/\b(awd|4wd|xdrive|4matic|4motion|quattro|dual[ -]motor|all-wheel|e-4orce|4drive|all4|4x4)\b/.test(text)) return 'AWD';
   if (/\b(rwd|rear[ -]wheel)\b/.test(text)) return 'RWD';
   if (/\b(fwd|front[ -]wheel)\b/.test(text)) return 'FWD';
@@ -5393,26 +5401,50 @@ function driveFor(v) {
     if (model === 'model s') return /^p?\d+d$|plaid|long range|performance|raven/.test(ver) ? 'AWD' : /^p?\d+\+?$/.test(ver) ? 'RWD' : '';
   }
   if (make === 'porsche') {
-    if (model === 'taycan') return !ver || ver === 'taycan' ? 'RWD' : /^(4|4s|gts|turbo)\b|cross turismo|sport turismo/.test(ver) ? 'AWD' : '';
-    if (model === 'macan electric') return /^(4|turbo)\b/.test(ver) ? 'AWD' : 'RWD';
-    if (model === '911') return /carrera 4|targa 4|turbo|dakar/.test(ver) ? 'AWD' : 'RWD';
+    if (model === 'taycan') return /^(4|4s|gts|turbo)\b|cross turismo|sport turismo/.test(ver) ? 'AWD' : '';
+    if (model === 'macan electric') return /^(4|turbo)\b/.test(ver) ? 'AWD' : '';
+    if (model === '911') return /carrera 4|targa 4|turbo|dakar/.test(ver) ? 'AWD' : '';
   }
   if (make === 'polestar') {
-    if (/single|standard range/.test(ver)) return model === '2' && v.year && Number(v.year) < 2024 ? 'FWD' : 'RWD';
+    if (/single|standard range/.test(ver)) return model === '2' && p.year && p.year < 2024 ? 'FWD' : 'RWD';
     if (model === '2') return /dual|performance/.test(ver) ? 'AWD' : '';
   }
   if (make === 'lucid' && /pure/.test(ver)) return 'RWD';
   if (make === 'mg' && model === 'cyberster' && /\bgt\b/.test(ver)) return 'AWD';
   if (make === 'mercedes-benz' && model === 'amg gt' && /4[ -]door/.test(ver)) return 'AWD';
   if (make === 'volkswagen' && model === 'id. buzz' && /gtx/.test(ver)) return 'AWD';
-  if (make === 'honda' && model === 'nsx') return v.year ? (Number(v.year) >= 2016 ? 'AWD' : 'RWD') : '';
-  return FIXED_DRIVE[make + '|' + model] || '';
+  if (make === 'honda' && model === 'nsx') return p.year ? (p.year >= 2016 ? 'AWD' : 'RWD') : '';
+  return '';
+}
+// What the model alone says: one built one way, or the usual one (a Taycan, Macan or 911 is RWD unless its trim says).
+function driveModel(p) {
+  if (p.make === 'porsche' && (p.model === 'taycan' || p.model === 'macan electric' || p.model === '911')) return 'RWD';
+  return FIXED_DRIVE[p.make + '|' + p.model] || '';
+}
+function driveFor(v) {
+  var p = driveParts(v);
+  if (p.bike) return '';
+  return driveSaid(p) || driveModel(p);
+}
+// The rule with the admin's defaults by model (set on the Vehicles panel, kept in the vehicle library as
+// { 'kia|ev6': 'RWD' }) laid on: what the version says still wins, else the model's default, else the model alone.
+function driveWith(v, defaults) {
+  var p = driveParts(v);
+  if (p.bike) return '';
+  var d = defaults ? defaults[p.make + '|' + p.model] : '';
+  return driveSaid(p) || (d && DRIVES.indexOf(d) !== -1 ? d : '') || driveModel(p);
 }
 
-// A car's driven wheels: what its owner set in My Garage, else what its make, model and version say.
-function carDrive(details) {
+// A car's driven wheels: what its owner (or the admin) set on the car, else what its make, model and version say,
+// with the admin's defaults by model (getVehicleDrives) laid on.
+function carDrive(details, defaults) {
   if (details && DRIVES.indexOf(details.drive) !== -1) return details.drive;
-  return driveFor(details || {});
+  return driveWith(details || {}, defaults);
+}
+// The admin's driven wheels by model, from the vehicle library (one key, get()).
+async function getVehicleDrives(env) {
+  var lib = await getJsonKey(env, VEHICLE_LIBRARY_KEY, {});
+  return lib && lib.drives && typeof lib.drives === 'object' ? lib.drives : {};
 }
 
 // The listed models that are not Teslas, with their make. Since October 2026 only Teslas go straight into the
@@ -6432,6 +6464,7 @@ async function handleMyBuildsGet(request, env) {
   var galleryAsks = groups.some(function (g) { return records[g.id] && records[g.id].garageOnly === true; })
     ? (await getJsonKey(env, GARAGE_GALLERY_KEY, { pending: [] })).pending || [] : [];
 
+  var drives = await getVehicleDrives(env);
   var cars = await Promise.all(groups.map(async function (g) {
     var record = records[g.id];
     var photos = await Promise.all(g.entries.map(async function (entry) {
@@ -6469,7 +6502,7 @@ async function handleMyBuildsGet(request, env) {
       color: color,
       make: (details && details.make) || '',
       vehicleType: (details && details.vehicleType) || '',
-      drive: carDrive(details),
+      drive: carDrive(details, drives),
       driveSet: !!(details && DRIVES.indexOf(details.drive) !== -1),
       garageOnly: !!(record && record.garageOnly === true),
       otherMake: !!((details && ((details.make && details.make !== 'Tesla') || NON_TESLA_MODELS[details.model])) || (record && (record.garageOnly === true || record.galleryApproved))),
@@ -7119,7 +7152,7 @@ async function refreshTrackBoard(env, boardKey, carId) {
       car: (record && record.name) || 'MT3UK member build', make: (details && details.make) || '', vehicleType: (details && details.vehicleType) || '', model: (details && details.model) || '', version: (details && details.version) || '', year: (details && details.year) || '',
       owner: ownerEmail ? (publicName(await getProfileRecord(env, ownerEmail)) || 'MT3UK member') : 'MT3UK member',
       photo: record && record.photos && record.photos[0] ? record.photos[0] : '',
-      drive: mine.drive || carDrive(details),
+      drive: mine.drive || carDrive(details, await getVehicleDrives(env)),
       mods: trackBoardMods(record, details),
       bests: trackBests(here.filter(function (s) { return !s.offBoard; }))
     };
@@ -7354,7 +7387,7 @@ async function handleTrackSessionSave(request, env) {
   var rec = cleanTrackSession(body.session, library);
   if (rec.error) return json({ success: false, message: rec.error }, 400);
   // The driven wheels, kept with the session as they were that day: the Add page's choice, else the car's.
-  rec.drive = DRIVES.indexOf(body.drive) !== -1 ? body.drive : carDrive(await getCarDetails(env, record.id));
+  rec.drive = DRIVES.indexOf(body.drive) !== -1 ? body.drive : carDrive(await getCarDetails(env, record.id), await getVehicleDrives(env));
   if (!rec.drive) delete rec.drive;
   // A track day or sprint at a venue we do not list needs its name: it is what the member's list, the admin's view
   // and the request to add the track call it. Mapped drives keep their own words.
@@ -7468,7 +7501,7 @@ async function handleTrackSessionGet(request, env) {
   var carDetails = car ? await getCarDetails(env, rec.carId) : null;
   if (carDetails && carDetails.vehicleType === 'bike') out.vehicleType = 'bike';
   // A session saved before the driven wheels were kept shows the car's.
-  if (!out.drive) { var dr = carDrive(carDetails); if (dr) out.drive = dr; }
+  if (!out.drive) { var dr = carDrive(carDetails, await getVehicleDrives(env)); if (dr) out.drive = dr; }
   // Whose it is, as other members see them (nickname or name), so a session opened from a leaderboard says who ran it.
   var ownerEmail = car ? await carOwnerEmail(env, car) : null;
   out.ownerName = ownerEmail ? (publicName(await getProfileRecord(env, ownerEmail)) || 'MT3UK member') : 'MT3UK member';
@@ -8026,7 +8059,7 @@ async function handleTrackPublic(request, env) {
   var viewer = request.headers.get('X-Session-Token') ? await resolveSession(request, env) : null;
   var res = json({
     success: true,
-    car: { id: carId, name: record.name || '', make: (details && details.make) || '', vehicleType: (details && details.vehicleType) || '', drive: carDrive(details), model: (details && details.model) || '', version: (details && details.version) || '', year: (details && details.year) || '', photo: (record.photos || [])[0] || '', owner: ownerEmail ? (publicName(await getProfileRecord(env, ownerEmail)) || 'MT3UK member') : '' },
+    car: { id: carId, name: record.name || '', make: (details && details.make) || '', vehicleType: (details && details.vehicleType) || '', drive: carDrive(details, await getVehicleDrives(env)), model: (details && details.model) || '', version: (details && details.version) || '', year: (details && details.year) || '', photo: (record.photos || [])[0] || '', owner: ownerEmail ? (publicName(await getProfileRecord(env, ownerEmail)) || 'MT3UK member') : '' },
     mine: !!viewer && viewer === ownerEmail,
     sessions: await getJsonKey(env, 'track-public:' + carId, [])
   });
@@ -8135,7 +8168,13 @@ function cleanVehicleLibrary(input) {
     });
     makes.push({ name: name, type: type, models: models });
   });
-  return { makes: makes };
+  // The driven wheels by model ('kia|ev6': 'RWD'), set on the Vehicles panel through /track/admin/drive.
+  var drives = {}, src = input.drives && typeof input.drives === 'object' ? input.drives : {};
+  Object.keys(src).slice(0, 600).forEach(function (k) {
+    var kk = String(k).trim().toLowerCase().slice(0, 100);
+    if (/^[^|]+\|[^|]+$/.test(kk) && DRIVES.indexOf(src[k]) !== -1) drives[kk] = src[k];
+  });
+  return { makes: makes, drives: drives };
 }
 
 async function handleVehiclesPublic(request, env) {
@@ -8150,6 +8189,8 @@ async function handleVehiclesAdmin(request, env) {
   var body;
   try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
   var library = cleanVehicleLibrary(body && body.library);
+  // A page that does not know the driven wheels by model must not wipe them.
+  if (!(body && body.library && body.library.drives)) library.drives = cleanVehicleLibrary(await getJsonKey(env, VEHICLE_LIBRARY_KEY, {})).drives;
   await env.VOTES.put(VEHICLE_LIBRARY_KEY, JSON.stringify(library));
   return json({ success: true, extra: library });
 }
@@ -8947,7 +8988,7 @@ async function handleTrackAdminRetimeSource(request, env) {
 async function stampCarDrive(env, carId, force) {
   var record = await getCarRecord(env, carId);
   if (!record) return 0;
-  var drive = carDrive(await getCarDetails(env, carId));
+  var drive = carDrive(await getCarDetails(env, carId), await getVehicleDrives(env));
   if (!drive) return 0;
   var owner = await carOwnerEmail(env, record);
   var oKey = owner ? 'track-index:' + (await ownerKey(owner)) : '';
@@ -8967,26 +9008,13 @@ async function stampCarDrive(env, carId, force) {
   return changed;
 }
 
-// Admin: every vehicle with sessions and the wheels it drives (GET), and setting them on one (POST), which stamps
-// its sessions and refreshes its board rows. list() over the members' session lists is fine here: admin only.
+// Admin: every vehicle with sessions and the wheels it drives (GET), setting them on one (POST with carId), or
+// setting a model's default (POST with make and model, from the Vehicles panel), which every vehicle of that model
+// not set by hand then takes. Either way the sessions are stamped and the board rows refreshed. list() over the
+// members' session lists is fine here: admin only.
 var TRACK_DRIVE_MAX_INDEXES = 700;
-async function handleTrackAdminDrive(request, env) {
-  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
-  if (request.method === 'POST') {
-    var body;
-    try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
-    var carId = String((body && body.carId) || '');
-    if (!/^[A-Za-z0-9_-]{1,80}$/.test(carId) || !(await getCarRecord(env, carId))) return json({ success: false, message: 'That vehicle was not found.' }, 404);
-    var details = (await getCarDetails(env, carId)) || {};
-    if (DRIVES.indexOf(body.drive) !== -1) details.drive = body.drive; else delete details.drive;
-    await saveCarDetails(env, carId, details);
-    var stamped = await stampCarDrive(env, carId, true);
-    var shared = await getJsonKey(env, 'track-public:' + carId, []), boards = {};
-    shared.forEach(function (s) { var k = trackBoardKey(s); if (k) boards[k] = true; });
-    var bk = Object.keys(boards);
-    for (var b = 0; b < bk.length; b++) await refreshTrackBoard(env, bk[b], carId);
-    return json({ success: true, drive: carDrive(details), set: DRIVES.indexOf(details.drive) !== -1, stamped: stamped, boards: bk.length });
-  }
+// Every vehicle that has sessions, with its record, details, owner and how many.
+async function trackDriveVehicles(env) {
   var counts = {}, cursor, seen = 0;
   do {
     var page = await env.VOTES.list({ prefix: 'track-index:', cursor: cursor, limit: 100 });
@@ -8997,15 +9025,58 @@ async function handleTrackAdminDrive(request, env) {
     }
     cursor = page.list_complete ? null : page.cursor;
   } while (cursor && seen < TRACK_DRIVE_MAX_INDEXES);
-  var rows = [], ids = Object.keys(counts);
+  var out = [], ids = Object.keys(counts);
   for (var c = 0; c < ids.length; c++) {
     var rec = await getCarRecord(env, ids[c]);
     if (!rec) continue;
-    var d = (await getCarDetails(env, ids[c])) || {};
-    var email = await carOwnerEmail(env, rec);
-    rows.push({ carId: ids[c], car: rec.name || '', owner: email ? (publicName(await getProfileRecord(env, email)) || '') : '', email: email || '',
+    out.push({ carId: ids[c], record: rec, details: (await getCarDetails(env, ids[c])) || {}, email: await carOwnerEmail(env, rec), sessions: counts[ids[c]] });
+  }
+  return out;
+}
+// Refreshes every board a car's shared sessions are on; how many.
+async function refreshCarBoards(env, carId) {
+  var shared = await getJsonKey(env, 'track-public:' + carId, []), boards = {};
+  shared.forEach(function (s) { var k = trackBoardKey(s); if (k) boards[k] = true; });
+  var bk = Object.keys(boards);
+  for (var b = 0; b < bk.length; b++) await refreshTrackBoard(env, bk[b], carId);
+  return bk.length;
+}
+async function handleTrackAdminDrive(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  if (request.method === 'POST') {
+    var body;
+    try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+    if (body && !body.carId && (body.make !== undefined || body.model !== undefined)) {
+      var mk = driveModelKey({ make: body.make, model: body.model });
+      if (!/^[^|]+\|[^|]+$/.test(mk) || mk.length > 100) return json({ success: false, message: 'A make and a model are needed.' }, 400);
+      var library = cleanVehicleLibrary(await getJsonKey(env, VEHICLE_LIBRARY_KEY, {}));
+      if (DRIVES.indexOf(body.drive) !== -1) library.drives[mk] = body.drive; else delete library.drives[mk];
+      await env.VOTES.put(VEHICLE_LIBRARY_KEY, JSON.stringify(library));
+      var all = await trackDriveVehicles(env), vehicles = 0, stampedAll = 0, boardsAll = 0;
+      for (var a = 0; a < all.length; a++) {
+        var d0 = all[a].details;
+        if (d0.vehicleType === 'bike' || DRIVES.indexOf(d0.drive) !== -1 || driveModelKey(d0) !== mk) continue;
+        vehicles++;
+        stampedAll += await stampCarDrive(env, all[a].carId, true);
+        boardsAll += await refreshCarBoards(env, all[a].carId);
+      }
+      return json({ success: true, key: mk, drive: library.drives[mk] || '', vehicles: vehicles, stamped: stampedAll, boards: boardsAll });
+    }
+    var carId = String((body && body.carId) || '');
+    if (!/^[A-Za-z0-9_-]{1,80}$/.test(carId) || !(await getCarRecord(env, carId))) return json({ success: false, message: 'That vehicle was not found.' }, 404);
+    var details = (await getCarDetails(env, carId)) || {};
+    if (DRIVES.indexOf(body.drive) !== -1) details.drive = body.drive; else delete details.drive;
+    await saveCarDetails(env, carId, details);
+    var stamped = await stampCarDrive(env, carId, true);
+    var boards = await refreshCarBoards(env, carId);
+    return json({ success: true, drive: carDrive(details, await getVehicleDrives(env)), set: DRIVES.indexOf(details.drive) !== -1, stamped: stamped, boards: boards });
+  }
+  var drives = await getVehicleDrives(env), rows = [], list = await trackDriveVehicles(env);
+  for (var c = 0; c < list.length; c++) {
+    var v = list[c], d = v.details, email = v.email;
+    rows.push({ carId: v.carId, car: v.record.name || '', owner: email ? (publicName(await getProfileRecord(env, email)) || '') : '', email: email || '',
       make: d.make || '', model: d.model || '', version: d.version || '', year: d.year || '', vehicleType: d.vehicleType || 'car',
-      drive: carDrive(d), set: DRIVES.indexOf(d.drive) !== -1, sessions: counts[ids[c]] });
+      drive: carDrive(d, drives), set: DRIVES.indexOf(d.drive) !== -1, sessions: v.sessions });
   }
   rows.sort(function (a, b) { return (a.drive ? 1 : 0) - (b.drive ? 1 : 0) || String(a.owner || a.email).localeCompare(String(b.owner || b.email)) || String(a.car).localeCompare(String(b.car)); });
   return json({ success: true, vehicles: rows });
@@ -10723,7 +10794,8 @@ export default {
       model: postedModel,
       vehicleType: (formData.get('vehicleType') || '').toString() || 'car',
       version: (formData.get('version') || '').toString(),
-      year: (formData.get('year') || '').toString()
+      year: (formData.get('year') || '').toString(),
+      drive: (formData.get('drive') || '').toString()
     }) : null;
     if (otherMake && (!otherModel.make || !otherModel.model)) {
       return json({ success: false, message: 'Please give the make and the model of your car.' }, 400);
@@ -10825,7 +10897,8 @@ export default {
         var submitModel = otherMake ? otherModel : cleanCarModel({
           model: (formData.get('model') || '').toString(),
           version: (formData.get('version') || '').toString(),
-          year: (formData.get('year') || '').toString()
+          year: (formData.get('year') || '').toString(),
+          drive: (formData.get('drive') || '').toString()
         });
         if (Object.keys(submitModel).length) {
           submitModel.updatedAt = new Date().toISOString();

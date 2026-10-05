@@ -4,6 +4,7 @@ routes, and a car's make, model and type saved with it. Cars saved before
 these existed have neither and must look and work as they did. The worker
 parts run in node (tests/vehicle_worker_check.mjs)."""
 import json
+import re
 import shutil
 import subprocess
 import tempfile
@@ -39,7 +40,7 @@ def test_the_worker_routes_and_a_cars_make_model_and_type():
         module = Path(tmp) / "worker.mjs"
         source = (ROOT / "workers" / "vote-worker.js").read_text(encoding="utf-8")
         source = source.replace("import { EmailMessage } from 'cloudflare:email';", "class EmailMessage { constructor(f, t, raw) { this.raw = raw; } }", 1)
-        source += "\nexport { putSidecar, saveCarRecord, cleanCarModel, driveFor };\n"
+        source += "\nexport { putSidecar, saveCarRecord, cleanCarModel, driveFor, carDrive, driveModelKey };\n"
         module.write_text(source, encoding="utf-8")
         result = subprocess.run(
             ["node", str(ROOT / "tests" / "vehicle_worker_check.mjs")],
@@ -104,6 +105,52 @@ def test_a_make_can_be_taken_off_and_bike_makes_are_kept_apart(page):
     expect(page.locator('#vh-list [data-remove="Tesla"]')).to_have_count(0)
 
 
+def test_the_vehicles_panel_shows_each_models_driven_wheels_and_sets_a_default(page):
+    posts = []
+
+    def drive_handler(route):
+        body = json.loads(route.request.post_data)
+        posts.append(body)
+        drive = body["drive"]
+        route.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"},
+                      body=json.dumps({"success": True, "key": "kia|ev9", "drive": drive, "vehicles": 2, "stamped": 5, "boards": 1}))
+    open_panel(page, {"makes": [{"name": "Zeekr", "type": "car", "models": ["001 FR"]}], "drives": {"kia|ev6": "AWD"}})
+    page.route("**/track/admin/drive**", drive_handler)
+    # Every listed model is known, or told from the version; the Zeekr added here is not.
+    expect(page.locator(".vh-drive-note")).to_contain_text("car models, driven wheels not known for 1")
+    zeekr = page.locator("#vh-list tr.vh-make", has_text="Zeekr").first
+    expect(zeekr.locator(".vh-model.is-target")).to_have_count(1)
+    expect(zeekr.locator(".vh-how")).to_have_text("not known")
+    tesla = page.locator("#vh-list tr.vh-make", has_text="Tesla").first
+    model3 = tesla.locator(".vh-model", has_text="Model 3")
+    # A model the rule tells from the version says so; one it knows shows the answer; neither is a target.
+    expect(model3.locator(".vh-how")).to_have_text("")
+    assert model3.locator(".vh-drive option").first.inner_text() == "From the version"
+    assert model3.locator(".vh-drive").input_value() == ""
+    assert tesla.locator(".vh-model", has_text="Model X").locator(".vh-drive option").first.inner_text() == "Worked out: AWD"
+    expect(tesla.locator(".vh-model.is-target")).to_have_count(0)
+    # A default already set shows as set here, with what the rule would have said.
+    kia = page.locator("#vh-list tr.vh-make", has_text="Kia").first
+    ev6 = kia.locator(".vh-model", has_text="EV6").filter(has_not_text="GT")
+    assert ev6.locator(".vh-drive").input_value() == "AWD"
+    expect(ev6.locator(".vh-how")).to_have_text("set here (worked out: RWD)")
+    # A bike make lists its models with no drop-down.
+    ducati = page.locator("#vh-list tr.vh-make", has_text="Ducati").first
+    expect(ducati.locator(".vh-model").first).to_be_visible()
+    expect(ducati.locator(".vh-drive")).to_have_count(0)
+    # Setting a default posts the make and model and reports what it changed.
+    kia.locator(".vh-model", has_text="EV9").locator(".vh-drive").select_option("AWD")
+    expect(page.locator("#vh-note")).to_contain_text("AWD is now the default for Kia EV9: 2 vehicles with sessions, 5 sessions stamped and 1 leaderboard refreshed")
+    assert posts == [{"make": "Kia", "model": "EV9", "drive": "AWD"}]
+    expect(kia.locator(".vh-model", has_text="EV9").locator(".vh-how")).to_have_text("set here (worked out: RWD)")
+    # The filter leaves only the models not known.
+    page.click("#vh-unknown-only")
+    expect(page.locator("#vh-list .vh-table")).to_have_class(re.compile("is-unknown-only"))
+    expect(model3).to_be_hidden()
+    expect(tesla).to_be_hidden()
+    expect(zeekr.locator(".vh-model.is-target")).to_be_visible()
+
+
 def test_the_leaderboard_shows_a_make_and_has_a_chip_for_a_model_it_does_not_list(page):
     """Cars saved before makes existed look exactly as they did; a car with a make shows it, and a model
     the board did not list before gets its own filter chip."""
@@ -154,13 +201,15 @@ def test_my_garage_keeps_a_model_it_does_not_list(device_page):
     assert page.locator("#mb-car-drive-select").input_value() == "AWD"
     select = page.locator("#mb-car-model-select")
     assert select.input_value() == "EV6 GT"
-    assert select.locator("option:checked").inner_text() == "Kia EV6 GT"
+    assert select.locator("option:checked").inner_text() == "EV6 GT"
+    assert page.locator("#mb-car-make-select").input_value() == "Kia"
     page.locator("#mb-car-name-edit").click()
     page.locator("#mb-car-name-save").click()
     page.wait_for_function("document.getElementById('mb-car-model-select').disabled === true", timeout=5000)
     assert not any("model" in put for put in page.mock_state.get("car_puts", [])), page.mock_state.get("car_puts")
     assert select.input_value() == "EV6 GT"
     page.locator("#mb-car-name-edit").click()
+    page.select_option("#mb-car-make-select", "Tesla")
     page.select_option("#mb-car-model-select", "Model 3")
     page.locator("#mb-car-name-save").click()
     page.wait_for_function("document.getElementById('mb-car-model-select').disabled === true", timeout=5000)

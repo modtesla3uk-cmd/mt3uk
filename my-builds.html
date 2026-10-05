@@ -907,14 +907,16 @@
   .mb-field-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .mb-mods-next { display: flex; gap: 10px; align-items: flex-start; margin: 0 0 16px; padding: 12px 14px; border-radius: var(--radius-sm); background: #fdf3ef; font-size: 0.9rem; color: var(--ink-2, var(--ink)); }
   .mb-mods-next .icon { width: 18px; height: 18px; color: var(--orange); flex-shrink: 0; margin-top: 2px; }
-  #mb-car-model-select, #mb-car-version-select, #mb-car-year-select, #mb-car-drive-select { min-height: 36px; }
+  #mb-car-make-select, #mb-car-model-select, #mb-car-version-select, #mb-car-year-select, #mb-car-drive-select { min-height: 36px; }
+  .mb-model-pick .chip[hidden], .mb-model-other { display: none; }
   .mb-car-color-select:disabled { opacity: 0.6; background: #eceef2; color: #6b7385; cursor: not-allowed; }
   /* Model, version and year stay together. */
   .mb-car-spec { display: inline-flex; flex-wrap: wrap; gap: 8px; align-items: center; }
   #mb-car-version-select { max-width: 220px; }
   @media (max-width: 780px) {
-    .mb-car-spec { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; width: 100%; }
-    .mb-car-spec #mb-car-version-select { max-width: none; width: 100%; }
+    .mb-car-spec { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); width: 100%; }
+    .mb-car-spec #mb-car-version-select { max-width: none; width: 100%; grid-column: 1 / -1; }
+    .mb-car-spec .mb-car-color-select { width: 100%; }
   }
 
   .mbm { display: grid; gap: 14px; }
@@ -1255,16 +1257,23 @@ document.addEventListener('DOMContentLoaded', function () {
             <input type="text" id="mb-submit-lastname" name="lastName" placeholder="e.g. Smith" autocomplete="family-name" maxlength="50" required>
           </div>
           <div class="mb-field">
+            <span class="mb-field-label" id="mb-submit-make-label">Make</span>
+            <div class="mb-model-pick" role="radiogroup" aria-labelledby="mb-submit-make-label" data-make-pick>
+            <label class="chip"><input type="radio" name="makePick" value="Tesla"> Tesla</label>
+            <label class="chip"><input type="radio" name="makePick" value="Hyundai"> Hyundai</label>
+            <label class="chip"><input type="radio" name="makePick" value="Porsche"> Porsche</label>
+            </div>
+          </div>
+          <div class="mb-field" data-model-field hidden>
             <span class="mb-field-label" id="mb-submit-model-label">Model</span>
             <div class="mb-model-pick" role="radiogroup" aria-labelledby="mb-submit-model-label">
-            <label class="chip"><input type="radio" name="model" value="Model 3"> Model 3</label>
-            <label class="chip"><input type="radio" name="model" value="Model Y"> Model Y</label>
-            <label class="chip"><input type="radio" name="model" value="Model S"> Model S</label>
-            <label class="chip"><input type="radio" name="model" value="Model X"> Model X</label>
-            <span class="mb-model-group">Other cars</span>
-            <label class="chip"><input type="radio" name="model" value="Hyundai Ioniq 5 N"> Ioniq 5 N</label>
-            <label class="chip"><input type="radio" name="model" value="Hyundai Ioniq 6 N"> Ioniq 6 N</label>
-            <label class="chip"><input type="radio" name="model" value="Porsche Taycan"> Taycan</label>
+            <label class="chip" data-make="Tesla"><input type="radio" name="model" value="Model 3"> Model 3</label>
+            <label class="chip" data-make="Tesla"><input type="radio" name="model" value="Model Y"> Model Y</label>
+            <label class="chip" data-make="Tesla"><input type="radio" name="model" value="Model S"> Model S</label>
+            <label class="chip" data-make="Tesla"><input type="radio" name="model" value="Model X"> Model X</label>
+            <label class="chip" data-make="Hyundai"><input type="radio" name="model" value="Hyundai Ioniq 5 N"> Ioniq 5 N</label>
+            <label class="chip" data-make="Hyundai"><input type="radio" name="model" value="Hyundai Ioniq 6 N"> Ioniq 6 N</label>
+            <label class="chip" data-make="Porsche"><input type="radio" name="model" value="Porsche Taycan"> Taycan</label>
             </div>
           </div>
           <div class="mb-field-pair">
@@ -1386,17 +1395,25 @@ document.addEventListener('DOMContentLoaded', function () {
           <p class="mb-field-hint">A car or bike of another make, including the Ioniq 5 N, Ioniq 6 N and Taycan, is kept in your garage instead.</p>
           <form id="mb-addcar-form">
             <div class="mb-field">
+              <span class="mb-field-label" id="mb-addcar-make-label">Make</span>
+              <div class="mb-model-pick" role="radiogroup" aria-labelledby="mb-addcar-make-label" data-make-pick>
+                <label class="chip"><input type="radio" name="makePick" value="Tesla"> Tesla</label>
+                <label class="chip"><input type="radio" name="makePick" value="Hyundai"> Hyundai</label>
+                <label class="chip"><input type="radio" name="makePick" value="Porsche"> Porsche</label>
+                <label class="chip"><input type="radio" name="makePick" value="__other__"> Another make</label>
+              </div>
+              <input type="radio" name="model" value="__other__" class="mb-model-other" hidden tabindex="-1" aria-hidden="true">
+            </div>
+            <div class="mb-field" data-model-field hidden>
               <span class="mb-field-label" id="mb-addcar-model-label">Model</span>
               <div class="mb-model-pick" role="radiogroup" aria-labelledby="mb-addcar-model-label">
-                <label class="chip"><input type="radio" name="model" value="Model 3"> Model 3</label>
-                <label class="chip"><input type="radio" name="model" value="Model Y"> Model Y</label>
-                <label class="chip"><input type="radio" name="model" value="Model S"> Model S</label>
-                <label class="chip"><input type="radio" name="model" value="Model X"> Model X</label>
-                <span class="mb-model-group">Other cars</span>
-                <label class="chip"><input type="radio" name="model" value="Hyundai Ioniq 5 N"> Ioniq 5 N</label>
-                <label class="chip"><input type="radio" name="model" value="Hyundai Ioniq 6 N"> Ioniq 6 N</label>
-                <label class="chip"><input type="radio" name="model" value="Porsche Taycan"> Taycan</label>
-                <label class="chip"><input type="radio" name="model" value="__other__"> Another make</label>
+                <label class="chip" data-make="Tesla"><input type="radio" name="model" value="Model 3"> Model 3</label>
+                <label class="chip" data-make="Tesla"><input type="radio" name="model" value="Model Y"> Model Y</label>
+                <label class="chip" data-make="Tesla"><input type="radio" name="model" value="Model S"> Model S</label>
+                <label class="chip" data-make="Tesla"><input type="radio" name="model" value="Model X"> Model X</label>
+                <label class="chip" data-make="Hyundai"><input type="radio" name="model" value="Hyundai Ioniq 5 N"> Ioniq 5 N</label>
+                <label class="chip" data-make="Hyundai"><input type="radio" name="model" value="Hyundai Ioniq 6 N"> Ioniq 6 N</label>
+                <label class="chip" data-make="Porsche"><input type="radio" name="model" value="Porsche Taycan"> Taycan</label>
               </div>
             </div>
             <div class="mb-other-make" id="mb-addcar-other" hidden>
@@ -1432,6 +1449,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 <label for="mb-addcar-year">Year (optional)</label>
                 <select id="mb-addcar-year" name="year" data-year-select><option value="">Choose</option></select>
               </div>
+            </div>
+            <div class="mb-field" id="mb-addcar-drive-field">
+              <label for="mb-addcar-drive">Driven wheels</label>
+              <select id="mb-addcar-drive" name="drive"><option value="">Not sure</option><option value="FWD">FWD</option><option value="RWD">RWD</option><option value="AWD">AWD</option></select>
+              <span class="mb-field-hint" id="mb-addcar-drive-hint">Filled in from the model once you pick it. Change it if it's wrong.</span>
             </div>
             <div class="mb-field">
               <label class="mono" for="mb-addcar-carname"><span data-vword-cap>Car</span> name</label>
@@ -1499,6 +1521,12 @@ document.addEventListener('DOMContentLoaded', function () {
             <option value="Other">Other</option>
           </select>
           <span class="mb-car-spec">
+          <select class="mb-car-color-select" id="mb-car-make-select" aria-label="Make">
+            <option value="">Make</option>
+            <option value="Tesla">Tesla</option>
+            <option value="Hyundai">Hyundai</option>
+            <option value="Porsche">Porsche</option>
+          </select>
           <select class="mb-car-color-select" id="mb-car-model-select" aria-label="Model">
             <option value="">Model</option>
             <optgroup label="Tesla">
@@ -1507,9 +1535,11 @@ document.addEventListener('DOMContentLoaded', function () {
               <option value="Model S">Model S</option>
               <option value="Model X">Model X</option>
             </optgroup>
-            <optgroup label="Other cars">
+            <optgroup label="Hyundai">
               <option value="Hyundai Ioniq 5 N">Ioniq 5 N</option>
               <option value="Hyundai Ioniq 6 N">Ioniq 6 N</option>
+            </optgroup>
+            <optgroup label="Porsche">
               <option value="Porsche Taycan">Taycan</option>
             </optgroup>
           </select>
@@ -1691,7 +1721,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <script src="js/passkeys.js?v=20261201"></script>
 <script src="js/mods-view.js"></script>
-<script src="js/vehicle-data.js?v=20261228"></script>
+<script src="js/vehicle-data.js?v=20261231"></script>
 <script src="js/mods-builder.js?v=20261130"></script>
 <script>
   (function () {
@@ -2587,6 +2617,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // firstName and lastName become the member's saved name; name is the
         // single "First Last" shown on the build.
         var submitData = new FormData(submitForm);
+        submitData.delete('makePick');
         submitData.set('firstName', firstName);
         submitData.set('lastName', lastName);
         submitData.set('name', firstName + ' ' + lastName);
@@ -2690,6 +2721,27 @@ document.addEventListener('DOMContentLoaded', function () {
       });
       addCarMake.addEventListener('input', fillOtherLists);
       addCarForm.addEventListener('reset', function () { setTimeout(showOtherMake, 0); });
+      // Driven wheels: worked out from the make, model, version and year picked (with the admin's defaults by
+      // model), shown for the member to change; a bike has none.
+      var addCarDrive = document.getElementById('mb-addcar-drive'), addCarDriveTouched = false;
+      var fillAddDrive = function () {
+        var V = window.MT3UKVehicles, bike = otherMakeChosen() && addCarType() === 'bike';
+        document.getElementById('mb-addcar-drive-field').hidden = bike;
+        if (addCarDriveTouched || !V) return;
+        var v = otherMakeChosen() ? { make: addCarMake.value.trim(), model: addCarOtherModel.value.trim(), vehicleType: addCarType() }
+          : { make: knownOtherMake() || 'Tesla', model: chosenModel(), version: document.getElementById('mb-addcar-version').value, year: document.getElementById('mb-addcar-year').value };
+        var set = function () { if (!addCarDriveTouched) addCarDrive.value = V.drive(v) || ''; };
+        set();
+        V.load().then(set);
+      };
+      addCarForm.addEventListener('change', function (e) {
+        if (e.target === addCarDrive) { addCarDriveTouched = true; return; }
+        if (e.target.name === 'model' || e.target.name === 'makePick') addCarDriveTouched = false;
+        fillAddDrive();
+      });
+      addCarOtherModel.addEventListener('input', fillAddDrive);
+      addCarMake.addEventListener('input', fillAddDrive);
+      addCarForm.addEventListener('reset', function () { addCarDriveTouched = false; setTimeout(fillAddDrive, 0); });
 
       addCarForm.addEventListener('submit', function (e) {
         e.preventDefault();
@@ -2704,6 +2756,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         var formData = new FormData(addCarForm);
         formData.append('email', myGarageEmail);
+        formData.delete('makePick');
+        if (otherMakeChosen() && addCarType() === 'bike') formData.delete('drive');
         var otherMake = otherMakeChosen() || !!knownOtherMake();
         if (otherMakeChosen()) {
           // Kept in the garage: the worker turns Gallery, Reel and Voting off for these photos.
@@ -2832,6 +2886,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function applyCarLocks() {
       var on = !carNameInput.hidden;
       carColorSelect.disabled = !on;
+      carMakeSelect.disabled = !on;
       carModelSelect.disabled = !on;
       carYearSelect.disabled = !on;
       if (carDriveSelect) carDriveSelect.disabled = !on;
@@ -2863,12 +2918,17 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!currentCarId) return;
       if (!name) { setStatus(carNameStatus, 'Please enter a name', 'err'); return; }
       var current = findCar(currentCarId) || {};
-      var model = carModelSelect.value, version = carVersionSelect.value, year = carYearSelect.value;
+      var model = carModelSelect.value, version = carVersionSelect.value, year = carYearSelect.value, make = carMakeSelect.value;
       var fields = { name: name }, changed = name !== current.name;
-      // Driven wheels: only a change is sent, so a car keeps following its make, model and version until its owner picks.
-      if (carDriveSelect && carDriveSelect.value !== (current.drive || '')) { fields.drive = carDriveSelect.value; changed = true; }
+      // Driven wheels: only the owner's own pick is sent, so a car keeps following its make, model and version otherwise.
+      if (carDriveSelect && carDriveTouched && carDriveSelect.value !== (current.drive || '')) { fields.drive = carDriveSelect.value; changed = true; }
       if (carColorSelect.value && carColorSelect.value !== (current.color || '')) { fields.color = carColorSelect.value; changed = true; }
-      if (model !== (current.model || '')) { fields.model = model; fields.version = ''; if (current.make) fields.make = ''; changed = true; }
+      if (model !== (current.model || '') || make !== makeOfCar(current)) {
+        fields.model = model; fields.version = ''; changed = true;
+        // A listed model carries its make (Tesla, or the Ioniq's and Taycan's inside the model); any other make is sent.
+        fields.make = MAKE_OF_MODEL[model] ? '' : make;
+        if (!fields.make && !current.make) delete fields.make;
+      }
       if (version !== (current.version || '') || fields.model !== undefined) { fields.version = version; changed = true; }
       if (year !== String(current.year || '')) { fields.year = year; changed = true; }
       if (!changed) { showCarNameEdit(false); return; }
@@ -3024,37 +3084,106 @@ document.addEventListener('DOMContentLoaded', function () {
       sel.innerHTML = MB.versionOptions('', '');
       var form = sel.closest('form');
       form.addEventListener('change', function (e) {
-        if (e.target.name === 'model') sel.innerHTML = MB.versionOptions(e.target.value, '');
+        if (e.target.name !== 'model' && e.target.name !== 'makePick') return;
+        var c = form.querySelector('input[name="model"]:checked');
+        sel.innerHTML = MB.versionOptions(c && c.value !== '__other__' ? c.value : '', '');
       });
       form.addEventListener('reset', function () { setTimeout(function () { sel.innerHTML = MB.versionOptions('', ''); }, 0); });
     });
 
+    // Make first, then Model: the Make chips show that make's model chips (a make with one model picks it),
+    // and Another make ticks the hidden "__other__" model, which the Add a vehicle form handles as before.
+    document.querySelectorAll('form [data-make-pick]').forEach(function (pick) {
+      var form = pick.closest('form'), field = form.querySelector('[data-model-field]');
+      function tick(radio) {
+        if (!radio) return;
+        radio.checked = true;
+        radio.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      function apply() {
+        var r = form.querySelector('input[name="makePick"]:checked'), make = r ? r.value : '';
+        var chips = field.querySelectorAll('.chip[data-make]'), shown = [];
+        chips.forEach(function (c) { var on = !!make && c.getAttribute('data-make') === make; c.hidden = !on; if (on) shown.push(c); });
+        field.hidden = !make || make === '__other__';
+        var checked = form.querySelector('input[name="model"]:checked');
+        if (checked && (checked.value === '__other__' ? make !== '__other__' : !shown.some(function (c) { return c.contains(checked); }))) {
+          checked.checked = false;
+          checked.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        if (make === '__other__') tick(form.querySelector('.mb-model-other'));
+        else if (shown.length === 1 && !shown[0].querySelector('input').checked) tick(shown[0].querySelector('input'));
+      }
+      pick.addEventListener('change', function (e) { if (e.target.name === 'makePick') apply(); });
+      form.addEventListener('reset', function () { setTimeout(apply, 0); });
+    });
+
+    var carMakeSelect = document.getElementById('mb-car-make-select');
     var carModelSelect = document.getElementById('mb-car-model-select');
     var carVersionSelect = document.getElementById('mb-car-version-select');
     var carYearSelect = document.getElementById('mb-car-year-select');
     var carDriveSelect = document.getElementById('mb-car-drive-select');
-    function drawCarModel(car) {
-      var model = (car && car.model) || '';
-      if (carDriveSelect) carDriveSelect.value = (car && car.drive) || '';
-      // A model that is not one of the listed ones (a car added with another make) still shows, and is kept when saving.
+    if (window.MT3UKVehicles) window.MT3UKVehicles.load();
+    var MAKE_OF_MODEL = { 'Model 3': 'Tesla', 'Model Y': 'Tesla', 'Model S': 'Tesla', 'Model X': 'Tesla', 'Hyundai Ioniq 5 N': 'Hyundai', 'Hyundai Ioniq 6 N': 'Hyundai', 'Porsche Taycan': 'Porsche' };
+    var carDriveTouched = false;
+    // The make a car shows: its own, else the one its listed model belongs to.
+    function makeOfCar(car) { return (car && car.make) || MAKE_OF_MODEL[(car && car.model) || ''] || ''; }
+    // The Model drop-down offers the chosen make's models: the listed ones, or for another make the vehicle
+    // list's (js/vehicle-data.js) plus the car's own, which is kept when saving.
+    function showMakeModels(make, keep) {
+      var V = window.MT3UKVehicles, listed = V && V.car && V.car[make] && make !== 'Tesla' && make !== 'Hyundai' && make !== 'Porsche' ? V.car[make] : [];
       Array.prototype.slice.call(carModelSelect.querySelectorAll('option[data-extra]')).forEach(function (o) { o.remove(); });
-      if (model && !Array.prototype.some.call(carModelSelect.options, function (o) { return o.value === model; })) {
+      Array.prototype.slice.call(carModelSelect.querySelectorAll('optgroup')).forEach(function (g) { g.hidden = g.label !== make; });
+      listed.concat(keep && listed.indexOf(keep) === -1 ? [keep] : []).forEach(function (m) {
+        if (Array.prototype.some.call(carModelSelect.options, function (o) { return o.value === m; })) return;
         var extra = document.createElement('option');
-        extra.value = model;
-        extra.textContent = (car.make && model.toLowerCase().indexOf(String(car.make).toLowerCase()) !== 0 ? car.make + ' ' : '') + model;
+        extra.value = m;
+        extra.textContent = m;
         extra.setAttribute('data-extra', '');
         carModelSelect.appendChild(extra);
+      });
+    }
+    function drawCarModel(car) {
+      var model = (car && car.model) || '', make = makeOfCar(car);
+      carDriveTouched = false;
+      Array.prototype.slice.call(carMakeSelect.querySelectorAll('option[data-extra]')).forEach(function (o) { o.remove(); });
+      if (make && !Array.prototype.some.call(carMakeSelect.options, function (o) { return o.value === make; })) {
+        var extraMake = document.createElement('option');
+        extraMake.value = make;
+        extraMake.textContent = make;
+        extraMake.setAttribute('data-extra', '');
+        carMakeSelect.appendChild(extraMake);
       }
+      carMakeSelect.value = make;
+      showMakeModels(make, model);
       carModelSelect.value = model;
       carVersionSelect.innerHTML = MB.versionOptions(model, (car && car.version) || '');
-      applyCarLocks();
       carYearSelect.innerHTML = MB.yearOptions((car && car.year) || '');
+      if (carDriveSelect) carDriveSelect.value = (car && car.drive) || '';
+      applyCarLocks();
     }
-    // Choosing another model offers that model's versions; nothing is saved until Save.
-    carModelSelect.addEventListener('change', function () {
-      carVersionSelect.innerHTML = MB.versionOptions(carModelSelect.value, '');
+    // Driven wheels follow the make, model, version and year picked, until the owner picks them.
+    function workOutCarDrive() {
+      var V = window.MT3UKVehicles;
+      if (!carDriveSelect || carDriveTouched || !V) return;
+      var current = findCar(currentCarId) || {};
+      carDriveSelect.value = V.drive({ make: carMakeSelect.value, model: carModelSelect.value, version: carVersionSelect.value, year: carYearSelect.value, vehicleType: current.vehicleType }) || '';
+    }
+    // Choosing another make offers its models; another model its versions; nothing is saved until Save.
+    carMakeSelect.addEventListener('change', function () {
+      showMakeModels(carMakeSelect.value, '');
+      carModelSelect.value = '';
+      carVersionSelect.innerHTML = MB.versionOptions('', '');
+      workOutCarDrive();
       applyCarLocks();
     });
+    carModelSelect.addEventListener('change', function () {
+      carVersionSelect.innerHTML = MB.versionOptions(carModelSelect.value, '');
+      workOutCarDrive();
+      applyCarLocks();
+    });
+    carVersionSelect.addEventListener('change', workOutCarDrive);
+    carYearSelect.addEventListener('change', workOutCarDrive);
+    if (carDriveSelect) carDriveSelect.addEventListener('change', function () { carDriveTouched = true; });
 
     var imgLightbox = document.getElementById('mb-img-lightbox');
     var imgLightboxImg = document.getElementById('mb-img-lightbox-img');

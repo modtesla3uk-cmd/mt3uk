@@ -515,6 +515,23 @@
 .alerts-row [hidden] { display: none; }
 
 /* Driven wheels panel (track-admin.html, js/track-drive-admin.js): a row for each vehicle with sessions. */
+/* Vehicles panel: each car model with its driven wheels and a Default drop-down. */
+.vh-drive-note { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.vh-count { display: block; margin-bottom: 4px; }
+.vh-models { list-style: none; margin: 0; padding: 0; }
+.vh-model { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; padding: 4px 6px; border-radius: var(--radius-sm, 8px); }
+.vh-model.is-target { background: #fff3d6; }
+.vh-model-name { min-width: 130px; }
+.vh-drive { min-height: 36px; }
+.vh-table.is-unknown-only .vh-model:not(.is-target), .vh-table.is-unknown-only tr.vh-all-known { display: none; }
+@media (max-width: 780px) {
+  .vh-table, .vh-table tbody, .vh-table tr.vh-make, .vh-table tr.vh-make > td { display: block; width: auto; min-width: 0; padding-left: 0; padding-right: 0; }
+  .vh-table tr.vh-make { padding: 10px 0; border-bottom: 1px solid var(--hairline, rgba(22,35,61,.12)); }
+  .vh-table tr.vh-make > td { padding-top: 2px; padding-bottom: 2px; border-bottom: 0; }
+  .vh-model { padding-left: 0; padding-right: 0; }
+  .vh-model-name { flex: 1 1 100%; min-width: 0; }
+  .vh-drive { width: 100%; max-width: 260px; min-height: 44px; font-size: 16px; }
+}
 #dw-list .dw-row.is-target > td { background: #fff3d6; }
 #dw-list .dw-pick { min-height: 40px; }
 #dw-list .dw-how { display: block; }

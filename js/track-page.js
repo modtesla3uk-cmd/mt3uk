@@ -2938,8 +2938,9 @@
       function smoothG(trace) {
         return trace.map(function (p, i) {
           var n = 0, ac = 0, co = 0;
-          // Cornering keeps its sign, one way positive and the other negative, as RaceBox draws it.
-          for (var k = Math.max(0, i - 2); k <= Math.min(trace.length - 1, i + 2); k++) { ac += trace[k][6]; co += trace[k][5]; n++; }
+          // Cornering keeps its sign, one way positive and the other negative, as RaceBox draws it. Three readings
+          // (about 0.4 s) are averaged, so a short peak still reaches close to its real height.
+          for (var k = Math.max(0, i - 1); k <= Math.min(trace.length - 1, i + 1); k++) { ac += trace[k][6]; co += trace[k][5]; n++; }
           return [p[0], ac / n, co / n];
         });
       }
@@ -3067,7 +3068,7 @@
           svg.setAttribute('role', 'img');
           svg.setAttribute('aria-label', d[1] + ' over the lap for both laps');
           box.appendChild(svg);
-          var series = [], gy, tip;
+          var series = [], gy, tip, underG;
           if (d[0] === 'spd') {
             gy = V.nice(0, vmax, 4);
             [spA, spB].forEach(function (lp, li) {
@@ -3082,6 +3083,40 @@
               lp.forEach(function (r) { lo = Math.min(lo, r[col]); hi = Math.max(hi, r[col]); });
               series.push({ color: li ? c2 : c1, width: 1.5, pts: lp.map(function (r) { return [r[0], r[col]]; }), at: function (x) { return at(lp, x)[col]; } });
             });
+            // The biggest figure of each lap, from its own readings (the same figure as the note below and the headline
+            // tiles), drawn as dashed lines so the peak is there to read even where the smoothed line does not reach it.
+            var peaks = [];
+            [[A, c1, 'A'], [B, c2, 'B']].forEach(function (lp, li) {
+              if (li && A === B) return;
+              // Each side on its own: acceleration and braking, or cornering one way and the other.
+              var up = 0, down = 0;
+              lp[0].trace.forEach(function (r) {
+                var v = (col === 1 ? r[6] : r[5]) || 0;
+                up = Math.max(up, v); down = Math.max(down, -v);
+              });
+              if (up > 0) peaks.push([up, lp[1], lp[2], col === 1 ? 'Max acceleration' : 'Max']);
+              if (down > 0) peaks.push([-down, lp[1], lp[2], col === 1 ? 'Max braking' : 'Max']);
+            });
+            peaks.forEach(function (pk) { lo = Math.min(lo, pk[0]); hi = Math.max(hi, pk[0]); });
+            // One label for each side of the chart, giving the figure for each lap (lap A and lap B when two are shown).
+            var sides = {};
+            peaks.forEach(function (pk) { var k = pk[0] < 0 ? 'lo' : 'hi'; (sides[k] = sides[k] || { v: pk[0], word: pk[3], parts: [] }).parts.push((A === B ? '' : pk[2] + ' ') + Math.abs(pk[0]).toFixed(2) + ' g'); sides[k].v = pk[0] < 0 ? Math.min(sides[k].v, pk[0]) : Math.max(sides[k].v, pk[0]); });
+            underG = function (sv, X, Y) {
+              var ns = 'http://www.w3.org/2000/svg';
+              peaks.forEach(function (pk) {
+                var ln = document.createElementNS(ns, 'line');
+                ln.setAttribute('class', 'tp-gmaxline'); ln.setAttribute('x1', X(0)); ln.setAttribute('x2', X(tEndG)); ln.setAttribute('y1', Y(pk[0])); ln.setAttribute('y2', Y(pk[0]));
+                ln.setAttribute('stroke', pk[1]); ln.setAttribute('stroke-width', 1); ln.setAttribute('stroke-dasharray', '4 4'); ln.setAttribute('opacity', '0.55'); ln.setAttribute('pointer-events', 'none');
+                sv.appendChild(ln);
+              });
+              Object.keys(sides).forEach(function (k) {
+                var sd = sides[k], tx = document.createElementNS(ns, 'text');
+                tx.setAttribute('class', 'tp-gmax'); tx.setAttribute('x', X(tEndG) - 4); tx.setAttribute('y', Y(sd.v) - 4); tx.setAttribute('text-anchor', 'end');
+                tx.setAttribute('style', 'fill:#5b6475;font-size:11px;font-weight:600'); tx.setAttribute('pointer-events', 'none');
+                tx.textContent = sd.word + ' ' + sd.parts.join(', ');
+                sv.appendChild(tx);
+              });
+            };
             // The g scale is even about zero, so a corner one way is drawn as big as the same corner the other way.
             var gm = Math.ceil(Math.max(-lo, hi) * 2) / 2;
             gy = V.nice(-gm, gm, defs.length === 1 ? 4 : 2);
@@ -3092,7 +3127,7 @@
             // The time labels sit under the last chart only; the ones above share its axis.
             H: defs.length > 1 ? (di === defs.length - 1 ? Hn + 20 : Hn) : H, top: defs.length > 1 ? 18 : undefined, bottom: di === defs.length - 1 ? undefined : 8, x0: 0, x1: tEndG, y0: gy[0], y1: gy[gy.length - 1], xt: di === defs.length - 1 ? xt : [], xf: mss, yt: gy, zero: spd ? null : 0, yf: function (v) { return spd ? String(v) : v + ' g'; },
             // Moving over a chart moves playback to that moment, slider, cursors and all.
-            series: series, tip: tip, onMove: function (t) { stopPlay(); pb.active = true; pb.t = t; renderAt(t); }, onLeave: leave
+            series: series, under: underG, tip: tip, onMove: function (t) { stopPlay(); pb.active = true; pb.t = t; renderAt(t); }, onLeave: leave
           }));
           // With more than one chart showing, each is named in its top left corner, so it is clear which is which.
           if (defs.length > 1) {

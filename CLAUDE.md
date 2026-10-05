@@ -105,6 +105,12 @@ Static site for the MT3UK modified Tesla community, live at https://mt3uk.com. I
   4. **Open the early preview:** decide when Laps opens to all members (the switch is on the Early access panel), and later whether people who are not MT3UK members can join.
   5. **Later:** separate leaderboards for bikes (board keys do not include the vehicle type), a Laps icon, and the final brand name (LapChamp has a trademark risk from PawChamp, UK00004171173).
 
+## Track sessions: new session alerts
+
+- **Every session a member saves is reported to the admin** (`noteNewTrackSession` in the worker, called at the end of `handleTrackSessionSave`, best effort): it goes on the **New sessions** panel of `track-admin.html` (Members' sessions group, `js/track-new-sessions-admin.js`; one KV key `track-new-sessions`, the latest 100, `get()`; routes `GET`/`POST /track/admin/new-sessions`, admin key, `clear: <id>` or `'all'`), is counted on that page's bell (group "New sessions", built from the panel's rows) and on the `admin.html` bell (`loadTrackBell`, linking to the panel), and is emailed through `sendAdminEmail` with the member, car, track, type, date, result, sharing, conditions and tyres, a link to the session on Laps and a link to the panel. **Clear** takes a session off the list (and bumps the stamp so the bells catch up).
+- **The New sessions switch** in the Notifications row of `track-admin.html` (`sessions` in the `admin-alerts` KV key, on by default, handled by `js/admin-alerts.js` when the element exists) turns the whole thing off: nothing is listed, counted or emailed. The Bell and Email switches still apply on top of it.
+- Tests: `tests/test_admin_pages.py` (`test_new_sessions_...`) and the block in `tests/track_worker_check.mjs`.
+
 ## Track sessions: early preview
 
 - Track Sessions is an **early preview**: members need access to use it. It has an "Early preview" badge (`.early-badge` in `css/site-header.css`) in the menu (`partials/header.html`), on the page, in My Garage and on the homepage tile. Remove those when it opens to everyone.

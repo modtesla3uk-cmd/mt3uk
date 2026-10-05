@@ -1392,8 +1392,14 @@
     function get(path) {
       return fetch(API + path + '?key=' + encodeURIComponent(key), { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
     }
-    return Promise.all([get('/track/access/admin'), get('/track/admin/requests'), get('/track/lines/admin'), get('/my-builds/admin/garage-gallery')]).then(function (r) {
+    return Promise.all([get('/track/access/admin'), get('/track/admin/requests'), get('/track/lines/admin'), get('/my-builds/admin/garage-gallery'), get('/track/admin/new-sessions')]).then(function (r) {
       var items = [];
+      // Sessions members have saved, until cleared on the New sessions panel of track-admin.html.
+      var fresh = r[4] && r[4].sessions ? r[4].sessions : [];
+      fresh.forEach(function (s) {
+        items.push({ id: 'session:' + s.id, group: 'New sessions', href: 'track-admin.html#new-sessions-wrap', img: '',
+          title: (s.name || s.email || 'A member') + ': ' + (s.venue || 'No track named'), sub: (s.kind || 'Session') + (s.car ? ', ' + s.car : '') + ', ' + (s.date || '') + (s.result ? '. ' + s.result : '') });
+      });
       var garageWrap = document.getElementById('garage-asks-wrap');
       var asks = r[3] && r[3].pending ? r[3].pending : [];
       asks.forEach(function (p) {

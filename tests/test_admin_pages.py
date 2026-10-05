@@ -26,7 +26,7 @@ GROUPS = [
 # The Track sessions tools have a page of their own, in five categories.
 TRACK_GROUPS = [
     ("grp-access", "Access", ["access-wrap"]),
-    ("grp-sessions", "Members' sessions", ["lines-wrap", "member-sessions-wrap"]),
+    ("grp-sessions", "Members' sessions", ["new-sessions-wrap", "lines-wrap", "member-sessions-wrap"]),
     ("grp-tracks", "Tracks", ["tracks-wrap"]),
     ("grp-boards", "Leaderboards", ["board-checks-wrap", "boards-wrap", "drive-wrap"]),
     ("grp-content", "Content", ["copy-wrap", "tyres-wrap", "vehicles-wrap", "share-wrap"]),
@@ -150,7 +150,7 @@ def test_the_track_admin_sub_menu_lists_the_sections_of_each_category(page):
     sub = page.locator("#admin-subnav")
     # Access has one panel, so no sub menu; the second category lists its two.
     page.locator('.admin-nav a[href="track-admin.html#grp-sessions"]').click()
-    expect(sub.locator("a")).to_have_text(["Line editing", "Member sessions"])
+    expect(sub.locator("a")).to_have_text(["New sessions", "Line editing", "Member sessions"])
     expect(page.locator('.admin-nav a[data-here="true"]')).to_have_text("Members' sessions")
     page.locator('.admin-nav a[href="track-admin.html#grp-content"]').click()
     expect(sub.locator("a")).to_have_text(["Welcome text", "Tyres", "Vehicles", "Track sessions sharing"])
@@ -399,6 +399,93 @@ def test_the_bell_lists_early_access_requests_and_new_track_requests(page):
     # Choosing one opens its panel.
     panel.get_by_text("Newfield Sprint").click()
     expect(page.locator("#tracks-wrap")).to_have_attribute("open", "")
+
+
+def test_new_sessions_are_listed_counted_on_the_bell_cleared_and_have_their_own_switch(page):
+    """A member's newly saved session waits on the New sessions panel of track-admin.html (the worker also emailed
+    it), is counted on the bell and opens the panel; Clear takes it off; the New sessions switch is its own."""
+    ok = {"Access-Control-Allow-Origin": "*"}
+    state = {"sessions": [
+        {"id": "abc123abc123", "at": "2026-10-04T10:15:00Z", "email": "ann@example.com", "name": "Ann B", "car": "Blue Y", "carId": "carb1",
+         "type": "track", "kind": "Track day", "venue": "Thruxton, Full circuit", "date": "2026-10-03", "time": "10:02", "privacy": "board", "result": "9 laps, best 1:31.20", "unlisted": False},
+        {"id": "def456def456", "at": "2026-10-04T09:00:00Z", "email": "kit@example.com", "name": "", "car": "Red 3", "carId": "car3",
+         "type": "sprint", "kind": "Hill climb", "venue": "Shelsley Walsh", "date": "2026-10-02", "time": "", "privacy": "private", "result": "3 runs, best 0:33.05", "unlisted": True},
+    ], "cleared": [], "alerts": {"bell": True, "email": True, "sessions": True}, "alert_posts": []}
+
+    def new_sessions(route):
+        if route.request.method == "POST":
+            body = json.loads(route.request.post_data)
+            state["cleared"].append(body["clear"])
+            state["sessions"] = [] if body["clear"] == "all" else [s for s in state["sessions"] if s["id"] != body["clear"]]
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "sessions": state["sessions"]}), headers=ok)
+
+    def alerts(route):
+        if route.request.method == "POST":
+            body = json.loads(route.request.post_data)
+            state["alert_posts"].append(body)
+            state["alerts"].update(body)
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "alerts": state["alerts"], "stamp": "1", "pushDevices": []}), headers=ok)
+    open_admin(page, "track-admin.html")
+    page.route("**/track/admin/new-sessions**", new_sessions)
+    page.route("**/admin/alerts**", alerts)
+    page.reload()
+    rows = page.locator("#ns-list tr[data-session]")
+    expect(rows).to_have_count(2)
+    expect(page.locator("#new-sessions-count")).to_have_text("(2)")
+    first = rows.first
+    expect(first).to_contain_text("Ann B")
+    expect(first).to_contain_text("ann@example.com")
+    expect(first).to_contain_text("Thruxton, Full circuit, 2026-10-03 at 10:02")
+    expect(first).to_contain_text("Track day, Blue Y")
+    expect(first).to_contain_text("9 laps, best 1:31.20")
+    expect(first).to_contain_text("board")
+    expect(first.locator("a")).to_have_attribute("href", "track.html?s=abc123abc123")
+    expect(rows.nth(1)).to_contain_text("kit@example.com")
+    expect(rows.nth(1)).to_contain_text("track not listed")
+    # Counted on the bell, and an item opens the panel.
+    expect(page.locator("#bell-badge")).to_have_text("2")
+    page.locator("#bell-btn").click()
+    panel = page.locator("#bell-panel")
+    expect(panel).to_contain_text("New sessions (2)")
+    expect(panel).to_contain_text("Ann B: Thruxton, Full circuit")
+    expect(panel).to_contain_text("Track day, Blue Y, 2026-10-03. 9 laps, best 1:31.20")
+    panel.locator(".bell-item", has_text="Ann B").click()
+    expect(page.locator("#new-sessions-wrap")).to_have_attribute("open", "")
+    # Clear takes one off the list and the bell.
+    first.locator(".ns-clear").click()
+    expect(rows).to_have_count(1)
+    assert state["cleared"] == ["abc123abc123"]
+    expect(page.locator("#new-sessions-count")).to_have_text("(1)")
+    page.on("dialog", lambda d: d.accept())
+    page.locator("#ns-clear-all").click()
+    expect(rows).to_have_count(0)
+    expect(page.locator("#ns-list")).to_contain_text("No new sessions")
+    assert state["cleared"] == ["abc123abc123", "all"]
+    expect(page.locator("#ns-clear-all")).to_be_hidden()
+    # The New sessions switch is its own, beside Bell and Email, and is kept by the worker.
+    sw = page.locator("#alerts-sessions")
+    expect(sw).to_have_attribute("aria-checked", "true")
+    sw.click()
+    expect(sw).to_have_attribute("aria-checked", "false")
+    expect(page.locator("#alerts-note")).to_contain_text("New sessions off")
+    assert state["alert_posts"] == [{"sessions": False}]
+    expect(page.locator("#alerts-bell")).to_have_attribute("aria-checked", "true")
+    expect(page.locator("#alerts-email")).to_have_attribute("aria-checked", "true")
+    page.reload()
+    expect(page.locator("#alerts-sessions")).to_have_attribute("aria-checked", "false")
+    # admin.html has no such switch, but its bell counts the new sessions too (a session not seen on either page,
+    # as the two pages share what the bell has shown) and sends the admin here.
+    page2 = page.context.new_page()
+    open_admin(page2, "admin.html")
+    page2.route("**/track/admin/new-sessions**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "sessions": [{"id": "fed987fed987", "name": "Ann B", "venue": "Thruxton", "kind": "Track day", "car": "Blue Y", "date": "2026-10-03", "result": "9 laps, best 1:31.20"}]}), headers=ok))
+    page2.reload()
+    assert page2.locator("#alerts-sessions").count() == 0
+    expect(page2.locator("#bell-badge")).to_have_text("1")
+    page2.locator("#bell-btn").click()
+    expect(page2.locator("#bell-panel")).to_contain_text("New sessions (1)")
+    page2.locator("#bell-panel .bell-item", has_text="Ann B").click()
+    page2.wait_for_url("**/track-admin.html#new-sessions-wrap")
+    expect(page2.locator("#new-sessions-wrap")).to_have_attribute("open", "")
 
 
 def test_a_track_a_member_added_is_marked_for_review_and_marked_reviewed(page):

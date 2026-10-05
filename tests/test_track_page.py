@@ -1113,6 +1113,44 @@ def test_the_track_mode_card_stays_open_from_one_session_to_the_next(page):
     expect(page.locator("#car-data")).not_to_have_attribute("open", re.compile(".*"))
 
 
+def test_the_leaderboard_hero_matches_the_sessions_page(page):
+    """The Leaderboard heading carries the trophy, the intro folds behind What is the Leaderboard? as on the Sessions
+    page, and the list and each board have the same Refresh button as My Sessions."""
+    fake = FakeWorker()
+    fake.boards = {"/track/board:thruxton:main": [board_row("car1", "a1", 100)]}
+    open_page(page, fake, path="/leaderboards.html")
+    expect(page.locator(".lb-hero h1")).to_have_text("Leaderboard")
+    expect(page.locator(".lb-hero h1 svg.lb-trophy")).to_have_count(1)
+    fold = page.locator("#lb-what")
+    expect(fold).not_to_have_attribute("open", re.compile(".*"))
+    expect(fold.locator("summary")).to_have_text("What is the Leaderboard?")
+    expect(fold.locator("p")).not_to_be_visible()
+    fold.locator("summary").click()
+    expect(fold.locator("p")).to_be_visible()
+    expect(fold.locator("p")).to_contain_text("Real times from modified cars on tracks, drag strips and hill climbs")
+    # Refresh on the list: fetches the page's own script again and reloads on the same view.
+    expect(page.locator(".tp-board-card").first).to_be_visible()
+    seen = []
+    page.on("request", lambda r: seen.append(r.url))
+    with page.expect_navigation():
+        page.get_by_role("button", name="Refresh this page from the latest version").click()
+    expect(page.locator(".tp-board-card").first).to_be_visible()
+    assert any(u.split("?")[0].endswith("/js/leaderboard-page.js") for u in seen), seen[:10]
+    # And on a board, where the trophy heading stays above.
+    page.locator(".tp-board-card", has_text="Thruxton").locator(".lb-layout").first.click()
+    expect(page.locator(".lb-row").first).to_be_visible()
+    expect(page.locator(".lb-hero h1 svg.lb-trophy")).to_be_visible()
+    expect(page.get_by_role("button", name="Refresh this page from the latest version")).to_be_visible()
+    url = page.url
+    with page.expect_navigation():
+        page.get_by_role("button", name="Refresh this page from the latest version").click()
+    expect(page.locator(".lb-row").first).to_be_visible()
+    assert page.url == url
+    page.set_viewport_size({"width": 390, "height": 844})
+    expect(page.get_by_role("button", name="Refresh this page from the latest version")).to_be_visible()
+    assert page.evaluate("document.documentElement.scrollWidth") <= 390
+
+
 def test_the_leaderboard_has_a_my_sessions_button_back_to_your_sessions(page):
     fake = FakeWorker()
     open_page(page, fake, path="/leaderboards.html")

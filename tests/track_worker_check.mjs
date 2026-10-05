@@ -1307,6 +1307,35 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   await call('POST', '/share/home/admin?key=secret', { action: 'delete', id: hb.items[0].id });
 }
 
+// New sessions: each save is listed for the admin and emailed, unless the New sessions switch is off.
+{
+  const before = env.SEND_EMAIL.sent.length;
+  r = await call('POST', '/track/sessions', { carId: 'cara1', session, privacy: 'board', conditions: 'dry', tyres: 'Michelin PS4S' }, 'tok-a');
+  ok(r.status === 200, 'a session is saved');
+  const nid = r.body.session.id;
+  const mail = env.SEND_EMAIL.sent.slice(before).join('\n');
+  ok(env.SEND_EMAIL.sent.length === before + 1 && /Subject: New session: Thruxton/.test(mail) && /Rich \(a@example\.com\) has saved a new session/.test(mail), 'the admin is emailed about the new session: ' + mail.split('\n').filter(l => /^Subject/.test(l)).join());
+  ok(/Car: Arctic Three/.test(mail) && /Type: Track day/.test(mail) && /Result: \d+ laps, best \d:\d\d\.\d\d/.test(mail) && /Sharing: board/.test(mail) && /Tyres: Michelin PS4S/.test(mail), 'with its details');
+  ok(mail.includes('/track.html?s=' + nid) && mail.includes('/track-admin.html#new-sessions-wrap'), 'and links to the session and the New sessions panel');
+  ok((await call('GET', '/track/admin/new-sessions')).status === 401, 'the list needs the admin key');
+  r = await call('GET', '/track/admin/new-sessions?key=secret');
+  ok(r.body.sessions.length >= 1 && r.body.sessions[0].id === nid && r.body.sessions[0].email === A && r.body.sessions[0].name === 'Rich' && r.body.sessions[0].car === 'Arctic Three' && r.body.sessions[0].kind === 'Track day' && r.body.sessions[0].venue.startsWith('Thruxton') && r.body.sessions[0].privacy === 'board', 'the admin lists it, newest first: ' + JSON.stringify(r.body.sessions[0]));
+  const listed = r.body.sessions.length;
+  r = await call('POST', '/track/admin/new-sessions?key=secret', { clear: nid });
+  ok(r.body.sessions.length === listed - 1 && !r.body.sessions.some(x => x.id === nid), 'Clear takes it off the list');
+  ok((await call('POST', '/track/admin/new-sessions?key=secret', { clear: 'nonsense' })).status === 400, 'clearing needs a session id or all');
+  r = await call('POST', '/track/admin/new-sessions?key=secret', { clear: 'all' });
+  ok(r.body.sessions.length === 0, 'Clear all empties it');
+  // The switch: off, nothing is listed or emailed; the other switches are untouched.
+  r = await call('POST', '/admin/alerts?key=secret', { sessions: false });
+  ok(r.body.alerts.sessions === false && r.body.alerts.email === true && r.body.alerts.bell === true, 'the New sessions switch is its own');
+  const quiet = env.SEND_EMAIL.sent.length;
+  r = await call('POST', '/track/sessions', { carId: 'cara1', session: Object.assign({}, session, { date: '2025-03-03' }) }, 'tok-a');
+  ok(r.status === 200 && env.SEND_EMAIL.sent.length === quiet && (await call('GET', '/track/admin/new-sessions?key=secret')).body.sessions.length === 0, 'switched off: the session is saved, nothing is listed or emailed');
+  r = await call('POST', '/admin/alerts?key=secret', { sessions: true });
+  ok((await call('GET', '/admin/alerts?key=secret')).body.alerts.sessions === true, 'and back on');
+}
+
 // Leaving the site clears everything.
 await mod.deleteMemberAccount(env, A);
 ok(!kv.has('track-index:' + (await mod.ownerKey(A))) && ![...kv.keys()].some(k => k.startsWith('track-session:') && stored(k).carId === 'cara1') && !kv.has('track-public:cara1'), 'a member leaving removes their sessions');

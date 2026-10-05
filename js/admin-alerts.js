@@ -1,7 +1,8 @@
 /*
   admin.html and track-admin.html: the Notifications switches at the top of the page. Bell shows or hides the
   notification bell; Email turns the emails to MT3UK about admin actions on or off (the worker checks it before
-  sending each one). It also keeps the bell up to date within seconds (see load()). Both are kept in one KV key through the worker's /admin/alerts route, so they are the same on
+  sending each one); New sessions (track-admin.html only) turns the note about each session a member saves on or
+  off (the list, the bell item and the email). It also keeps the bell up to date within seconds (see load()). Both are kept in one KV key through the worker's /admin/alerts route, so they are the same on
   every device, and both start on.
 */
 (function () {
@@ -9,6 +10,8 @@
   var row = document.getElementById('admin-alerts');
   if (!row) return;
   var bellSw = document.getElementById('alerts-bell'), emailSw = document.getElementById('alerts-email'), noteEl = document.getElementById('alerts-note');
+  // track-admin.html only: whether a member's newly saved session is listed, counted on the bell and emailed.
+  var sessionsSw = document.getElementById('alerts-sessions');
   var LOCAL = 'mt3ukAdminAlerts';
 
   function key() {
@@ -18,6 +21,7 @@
   function show(a) {
     bellSw.setAttribute('aria-checked', String(a.bell !== false));
     emailSw.setAttribute('aria-checked', String(a.email !== false));
+    if (sessionsSw) sessionsSw.setAttribute('aria-checked', String(a.sessions !== false));
     document.documentElement.classList.toggle('bell-off', a.bell === false);
     try { localStorage.setItem(LOCAL, JSON.stringify(a)); } catch (e) {}
   }
@@ -58,7 +62,9 @@
         sw.disabled = false;
         if (!d.ok || !d.success) { note(d.message || 'Could not save that. Check the admin key.'); return; }
         show(d.alerts || {});
-        note(field === 'bell' ? (on ? 'Bell on.' : 'Bell hidden.') : (on ? 'Emails on.' : 'Emails off: nothing is emailed to MT3UK about admin actions until you switch them back on.'));
+        note(field === 'bell' ? (on ? 'Bell on.' : 'Bell hidden.')
+          : field === 'sessions' ? (on ? 'New sessions on: each session a member saves is listed on the New sessions panel, counted on the bell and emailed.' : 'New sessions off: nothing is listed, counted or emailed about new sessions until you switch it back on.')
+          : (on ? 'Emails on.' : 'Emails off: nothing is emailed to MT3UK about admin actions until you switch them back on.'));
       }).catch(function () { sw.disabled = false; note('Could not reach the server.'); });
     });
   }
@@ -198,6 +204,7 @@
 
   flip(bellSw, 'bell');
   flip(emailSw, 'email');
+  if (sessionsSw) flip(sessionsSw, 'sessions');
   // Entering the key (Load) reads the switches straight away.
   document.addEventListener('mt3uk-admin-refresh', load);
   load();

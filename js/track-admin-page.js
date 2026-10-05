@@ -267,6 +267,10 @@
     if (!keyInput.value.trim() || document.hidden) return;
     document.dispatchEvent(new CustomEvent('mt3uk-admin-refresh'));
   }, 3 * 60 * 1000);
+  // And at once when js/admin-alerts.js sees that something new is waiting.
+  document.addEventListener('mt3uk-admin-changed', function () {
+    if (keyInput.value.trim()) document.dispatchEvent(new CustomEvent('mt3uk-admin-refresh'));
+  });
 
   if (savedKey) loadAll();
 })();

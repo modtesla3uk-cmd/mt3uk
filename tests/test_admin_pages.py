@@ -1355,3 +1355,23 @@ def test_the_notifications_switches_hide_the_bell_and_turn_emails_off(page, name
     expect(email_sw).to_have_attribute("aria-checked", "false")
     bell_sw.click()
     expect(page.locator(".bell-wrap")).to_be_visible()
+
+
+def test_the_bell_updates_as_soon_as_something_new_waits(page):
+    """js/admin-alerts.js checks the worker's stamp; when it changes the bell reloads at once, not in 3 minutes."""
+    ok = {"Access-Control-Allow-Origin": "*"}
+    state = {"stamp": "1", "asks": []}
+
+    def reply(fn):
+        return lambda route: route.fulfill(status=200, content_type="application/json", body=json.dumps(fn()), headers=ok)
+    open_admin(page, "admin.html")
+    page.route("**/admin/alerts**", reply(lambda: {"success": True, "alerts": {"bell": True, "email": True}, "stamp": state["stamp"]}))
+    page.route("**/my-builds/admin/garage-gallery**", reply(lambda: {"success": True, "pending": state["asks"]}))
+    page.reload()
+    page.wait_for_timeout(500)
+    expect(page.locator("#bell-badge")).to_be_hidden()
+    state["asks"] = [{"carId": "car-kia", "name": "Kit", "car": "Kit's EV6", "title": "Kia EV6 GT", "photos": [], "at": "2026-10-05T10:00:00Z"}]
+    state["stamp"] = "2"
+    # Coming back to the page checks at once (otherwise within 15 seconds).
+    page.evaluate("document.dispatchEvent(new Event('visibilitychange'))")
+    expect(page.locator("#bell-badge")).to_have_text("1", timeout=5000)

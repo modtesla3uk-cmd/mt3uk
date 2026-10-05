@@ -3207,14 +3207,21 @@ async function adminAlerts(env) {
   var v = await getJsonKey(env, ADMIN_ALERTS_KEY, {});
   return { bell: !(v && v.bell === false), email: !(v && v.email === false) };
 }
+// Something new waits for the admin: a stamp (one small KV key) that the admin pages check every few seconds, so
+// the bell updates straight away instead of on its next full reload.
+var ADMIN_STAMP_KEY = 'admin-alert-stamp';
+async function bumpAdminStamp(env) {
+  try { await env.VOTES.put(ADMIN_STAMP_KEY, String(Date.now())); } catch (e) { /* the bell catches up on its next full reload */ }
+}
 async function sendAdminEmail(env, raw) {
+  await bumpAdminStamp(env);
   if (!(await adminAlerts(env)).email) return;
   await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, raw));
 }
 async function handleAdminAlerts(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
   var now = await adminAlerts(env);
-  if (request.method === 'GET') return json({ success: true, alerts: now });
+  if (request.method === 'GET') return json({ success: true, alerts: now, stamp: (await env.VOTES.get(ADMIN_STAMP_KEY)) || '' });
   var body;
   try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
   if (body && typeof body.bell === 'boolean') now.bell = body.bell;
@@ -8731,7 +8738,10 @@ async function handleGarageGalleryRequest(request, env) {
     var held = await getJsonKey(env, GARAGE_GALLERY_KEY, { pending: [] });
     var before = (held.pending || []).length;
     held.pending = (held.pending || []).filter(function (r) { return r.carId !== carId; });
-    if (held.pending.length !== before) await env.VOTES.put(GARAGE_GALLERY_KEY, JSON.stringify(held));
+    if (held.pending.length !== before) {
+      await env.VOTES.put(GARAGE_GALLERY_KEY, JSON.stringify(held));
+      await bumpAdminStamp(env);
+    }
     return json({ success: true, asked: false });
   }
   if (record.garageOnly !== true) return json({ success: false, message: 'That car is already shown in the Gallery.' }, 400);

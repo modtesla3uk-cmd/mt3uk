@@ -267,3 +267,18 @@ r = await call('POST', '/admin/alerts?key=secret', { email: true, bell: false })
 ok(r.body.alerts.email === true && r.body.alerts.bell === false, 'and switched back on, with the bell hidden');
 await call('POST', '/my-builds/car/gallery-request', { carId: kia }, 'tok-a');
 ok(sent.length === 2, 'with Email on again, MT3UK is emailed');
+
+// ---- The stamp the admin pages check, so the bell updates within seconds ----
+r = await call('GET', '/admin/alerts?key=secret');
+const stampBefore = r.body.stamp;
+await new Promise(res => setTimeout(res, 5));
+await call('POST', '/my-builds/car/gallery-request', { carId: kia, cancel: true }, 'tok-a');
+r = await call('GET', '/admin/alerts?key=secret');
+const stampUndo = r.body.stamp;
+ok(stampUndo && stampUndo !== stampBefore, 'undoing a request changes the stamp');
+await new Promise(res => setTimeout(res, 5));
+await call('POST', '/admin/alerts?key=secret', { email: false });
+await call('POST', '/my-builds/car/gallery-request', { carId: kia }, 'tok-a');
+r = await call('GET', '/admin/alerts?key=secret');
+ok(r.body.stamp && r.body.stamp !== stampUndo, 'a new request changes the stamp, even with Email off');
+await call('POST', '/admin/alerts?key=secret', { email: true });

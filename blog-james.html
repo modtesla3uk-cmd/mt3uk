@@ -1201,6 +1201,23 @@
   .track-prep-eyebrow { font-size: 0.9rem; font-weight: 600; }
   /* A question next to a photo keeps its orange bar beside the text, not under the photo. */
   .interview-q { overflow: hidden; }
+  /* Long mod lists as a two-column table on wider screens; one column on phones. */
+  .mods-table { clear: both; }
+  @media (min-width: 781px) {
+    .interview .track-prep-list.mods-table {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+      border: 1px solid var(--hairline, rgba(22,35,61,0.16)); border-radius: var(--radius, 10px);
+      overflow: hidden; background: var(--white, #ffffff); margin-bottom: 22px;
+    }
+    .interview .track-prep-list.mods-table li {
+      margin: 0; padding: 11px 14px 11px 36px; font-size: 0.95rem; line-height: 1.45;
+      border-bottom: 1px solid var(--hairline, rgba(22,35,61,0.16));
+    }
+    .interview .track-prep-list.mods-table li:nth-child(odd) { border-right: 1px solid var(--hairline, rgba(22,35,61,0.16)); }
+    .interview .track-prep-list.mods-table li::before { left: 14px; top: 11px; }
+    .interview .track-prep-list.mods-table li:nth-last-child(1),
+    .interview .track-prep-list.mods-table li:nth-last-child(2):nth-child(odd) { border-bottom: 0; }
+  }
 </style>
 </head>
 <body>
@@ -1319,7 +1336,7 @@
       <h2 class="interview-q">What do you drive?</h2>
       <p>A 2020 Model 3 Performance in Pearl White.</p>
 
-      <figure class="interview-figure fig-full">
+      <figure class="interview-figure fig-right">
         <a href="images/blog/owner-interviews/james/front-three-quarter.jpg" class="interview-zoom" aria-label="View full size photo"><img src="images/blog/owner-interviews/james/front-three-quarter.jpg" alt="Front three-quarter view of James&rsquo;s white Model 3 Performance with a black bonnet decal, carbon-effect front intake covers and gloss black mirror covers, parked by railings" width="1500" height="1125" loading="lazy"></a>
         <figcaption>Roger: James&rsquo;s 2020 Model 3 Performance.</figcaption>
       </figure>
@@ -1334,6 +1351,10 @@
       <p>Afterwards, the grey one came up for sale at &pound;19,000, &pound;4,000 more than I&rsquo;d been told. Then, four months into owning mine, the dealer rang to ask if I was still interested in it! I let them know I&rsquo;d already got what I wanted elsewhere. I was happy with my purchase then, and I still am.</p>
 
       <h2 class="interview-q">Why did you start modifying?</h2>
+      <figure class="interview-figure fig-left">
+        <a href="images/blog/owner-interviews/james/rear-quarter.jpg" class="interview-zoom" aria-label="View full size photo"><img src="images/blog/owner-interviews/james/rear-quarter.jpg" alt="Close-up of the rear quarter of James&rsquo;s white Model 3, showing the gloss black rear quarter window louvre, a window wind deflector, an MT3UK window sticker and the gloss black spoiler" width="1600" height="1200" loading="lazy"></a>
+        <figcaption>Quarter window louvre, wind deflectors and an MT3UK sticker.</figcaption>
+      </figure>
       <p>I&rsquo;ve always modified my cars, within a budget. I see so many Teslas around, especially now I have one, and I want mine to stand out. I was buying mods before I even had the car, small things like Alcantara trim pieces and mats.</p>
       <p>I change a car&rsquo;s looks to suit my style, and I hope the younger me at the side of the road says &ldquo;wow&rdquo; as I drive by. The sky&rsquo;s the limit with mods, but I keep to a monthly budget, so small bits get added here and there. Don&rsquo;t get me wrong, I love the Tesla as it is, but it&rsquo;s a little bland. A few cheap stick-on parts from Temu or AliExpress and it looks better, in my opinion.</p>
 
@@ -1341,13 +1362,9 @@
       <p>If you can call it a mod, the 3W interior mats. I bought them second hand two months before I even had the car. They needed a clean, but &pound;50 for a full set, including the boot and frunk, was a bargain. The second, also bought months in advance, was the Alcantara dash trim.</p>
 
       <h2 class="interview-q">Talk us through your mods so far.</h2>
-      <figure class="interview-figure fig-right">
-        <a href="images/blog/owner-interviews/james/rear-quarter.jpg" class="interview-zoom" aria-label="View full size photo"><img src="images/blog/owner-interviews/james/rear-quarter.jpg" alt="Close-up of the rear quarter of James&rsquo;s white Model 3, showing the gloss black rear quarter window louvre, a window wind deflector, an MT3UK window sticker and the gloss black spoiler" width="1600" height="1200" loading="lazy"></a>
-        <figcaption>Quarter window louvre, wind deflectors and an MT3UK sticker.</figcaption>
-      </figure>
       <p>A lot of stick-on parts from Temu and AliExpress, and a few more besides.</p>
       <span class="track-prep-eyebrow">Exterior</span>
-      <ul class="track-prep-list">
+      <ul class="track-prep-list mods-table">
         <li>Gloss black rear spoiler, with decals over a manufacturing flaw</li>
         <li>Gloss black rear quarter window louvres</li>
         <li>Window wind deflectors with a custom Tesla logo</li>
@@ -1362,7 +1379,7 @@
         <li>A charge port cover, an Indalo man decal on the front (from Spain, in honour of my dad) and MT3UK decals on the rear windows and inside the boot lid</li>
       </ul>
       <span class="track-prep-eyebrow">Interior</span>
-      <ul class="track-prep-list">
+      <ul class="track-prep-list mods-table">
         <li>3W full rubber mats with a custom aluminium footrest</li>
         <li>Alcantara over the wood dash trim, the centre console and the steering wheel centre, with a custom black Tesla badge</li>
         <li>Carbon-effect steering wheel inserts, stalks, seat control covers, window switches, rear heater vent cover and front interior light cover</li>
@@ -1375,7 +1392,7 @@
         <li>A dash phone mount, which I&rsquo;ll swap for a screen mount</li>
       </ul>
       <span class="track-prep-eyebrow">Bought and waiting to go on</span>
-      <ul class="track-prep-list">
+      <ul class="track-prep-list mods-table">
         <li>Side decals and a front &ldquo;mouth&rdquo; decal</li>
         <li>Roof wind deflectors and wiper blade deflectors</li>
         <li>Rear diffuser fins, though I&rsquo;m thinking about a proper rear diffuser instead</li>
@@ -1383,7 +1400,7 @@
       </ul>
 
       <h2 class="interview-q">What&rsquo;s your favourite mod, and why?</h2>
-      <figure class="interview-figure fig-left">
+      <figure class="interview-figure fig-right">
         <a href="images/blog/owner-interviews/james/rear-spoiler.jpg" class="interview-zoom" aria-label="View full size photo"><img src="images/blog/owner-interviews/james/rear-spoiler.jpg" alt="Rear three-quarter view of James&rsquo;s white Model 3 with a large gloss black boot spoiler and spaced-out TESLA lettering" width="1500" height="1125" loading="lazy"></a>
         <figcaption>The gloss black spoiler, bigger than the standard Performance one.</figcaption>
       </figure>
@@ -1400,7 +1417,7 @@
       <p>After that, the &ldquo;Temu tat&rdquo; from any of the cheap websites. You can&rsquo;t go far wrong: it&rsquo;s cheap enough to replace or change if there&rsquo;s a problem later. I see people in other Tesla groups laughing at others for putting cheap mods on their cars. Most things are made in China, Teslas included, so embrace cheap, sometimes not tasteful mods, and be yourself.</p>
 
       <h2 class="interview-q">How do you use the car?</h2>
-      <figure class="interview-figure fig-right">
+      <figure class="interview-figure fig-left">
         <a href="images/blog/owner-interviews/james/alloygator-side.jpg" class="interview-zoom" aria-label="View full size photo"><img src="images/blog/owner-interviews/james/alloygator-side.jpg" alt="Side view of James&rsquo;s white Model 3 with white AlloyGator rim protectors and red brake calipers, parked outside the AlloyGator building" width="1600" height="1200" loading="lazy"></a>
         <figcaption>White AlloyGator rim protectors, at AlloyGator.</figcaption>
       </figure>
@@ -1422,7 +1439,7 @@
       <p>I haven&rsquo;t made it to a meet yet, and I&rsquo;ve not had much to do with the group so far, but everyone seems helpful when someone asks a question.</p>
 
       <h2 class="interview-q">What advice would you give someone about to modify their Tesla?</h2>
-      <figure class="interview-figure fig-left">
+      <figure class="interview-figure fig-right">
         <a href="images/blog/owner-interviews/james/front-low.jpg" class="interview-zoom" aria-label="View full size photo"><img src="images/blog/owner-interviews/james/front-low.jpg" alt="Low front three-quarter view of James&rsquo;s white Model 3 with carbon-effect front intake covers, red brake calipers, white rim protectors and a Ghost decal on the headlight" width="1600" height="1200" loading="lazy"></a>
         <figcaption>If you like it, do it.</figcaption>
       </figure>

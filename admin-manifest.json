@@ -6,7 +6,7 @@
   "lang": "en-GB",
   "dir": "ltr",
   "start_url": "/admin.html",
-  "scope": "/",
+  "scope": "/admin.html",
   "display": "standalone",
   "background_color": "#f3f1ea",
   "theme_color": "#16233d",
@@ -40,19 +40,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Track Admin",
-      "short_name": "Track Admin",
-      "url": "/track-admin.html",
-      "icons": [
-        {
-          "src": "images/site/icon-192.png",
-          "sizes": "192x192"
-        }
-      ]
     }
   ]
 }

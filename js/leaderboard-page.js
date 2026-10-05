@@ -25,6 +25,7 @@
   // What each kind of board is called in "All ..." links and buttons.
   var KIND_NAME = { track: 'tracks', drag: 'drag strips', sprint: 'sprints', hill: 'hill climbs' };
   var ICON = {
+    refresh: '<path d="M20 11a8 8 0 0 0-14.9-3M4 5v3.5h3.5"/><path d="M4 13a8 8 0 0 0 14.9 3M20 19v-3.5h-3.5"/>',
     trophy: '<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/>',
     back: '<path d="M19 12H5M12 19l-7-7 7-7"/>',
     chev: '<path d="m9 6 6 6-6 6"/>',
@@ -65,6 +66,22 @@
     if (e.target.closest('[data-units]')) { V.setMph(!V.units.mph); route(); }
   });
   function unitsChip() { return '<button type="button" class="chip tp-units" data-units>' + (V.units.mph ? 'mph' : 'km/h') + '</button>'; }
+  // Force refresh, as on the Sessions page: fetches the page's own scripts, styles and the track list afresh (past the
+  // browser's and the network's copies), clears the service worker's stored copies (never the worker itself, which also
+  // carries push notifications), then loads the page again.
+  function refreshChip() { return '<button type="button" class="chip tp-refresh" data-refresh aria-label="Refresh this page from the latest version" title="Refresh">' + icon('refresh') + '</button>'; }
+  app.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-refresh]');
+    if (!b || b.disabled) return;
+    b.disabled = true;
+    var urls = [].slice.call(document.querySelectorAll('script[src], link[rel="stylesheet"]')).map(function (el) { return el.src || el.href; })
+      .filter(function (u) { return u && u.indexOf(location.origin) === 0; });
+    urls.push(new URL('data/tracks.json', location.href).href);
+    var jobs = urls.map(function (u) { return fetch(u, { cache: 'reload' }).catch(function () {}); });
+    try { if (window.caches && caches.keys) jobs.push(caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return caches.delete(k); })); }).catch(function () {})); } catch (err) {}
+    try { if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) jobs.push(navigator.serviceWorker.getRegistrations().then(function (rs) { return Promise.all(rs.map(function (r) { return r.update(); })); }).catch(function () {})); } catch (err) {}
+    Promise.all(jobs).then(function () { location.reload(); });
+  });
 
   // The page's own Back is only on the list; inside a board its own Back (to the list) is the one.
   function syncPageBack() { var b = document.getElementById('lb-page-back'); if (b) b.hidden = !!document.querySelector('#' + app.id + ' .tp-back'); }
@@ -127,9 +144,9 @@
     var h = '<div class="tp-chips lb-types" role="tablist">' + TYPES.map(function (x) {
       return '<a class="chip' + (x[0] === t[0] ? ' is-on' : '') + '" role="tab" aria-selected="' + (x[0] === t[0]) + '" href="leaderboards.html?type=' + x[0] + '" data-go="type=' + x[0] + '">' + x[1] + '</a>';
     }).join('') + '</div>';
-    h = '<div class="lb-bar">' + h + '<label class="lb-sort"><span>Sort by</span><select class="field" id="lb-sort">' + SORTS.map(function (o) {
+    h = '<div class="lb-bar">' + h + '<div class="tp-head-side"><label class="lb-sort"><span>Sort by</span><select class="field" id="lb-sort">' + SORTS.map(function (o) {
       return '<option value="' + o[0] + '"' + (o[0] === sortMode ? ' selected' : '') + '>' + o[1] + '</option>';
-    }).join('') + '</select></label></div>';
+    }).join('') + '</select></label>' + refreshChip() + '</div></div>';
     // Sprints and hill climbs share one kind of board; the venue's hill flag tells them apart.
     var bt = t[0] === 'hill' ? 'sprint' : t[0];
     var venues = library.venues.filter(function (v) { return v.type === t[2] && (t[0] === 'hill' ? T.isHill(v) : t[0] === 'sprint' ? !T.isHill(v) : true); }).map(function (v, i) {
@@ -274,7 +291,7 @@
         var listType = type === 'sprint' && T.isHill(v) ? 'hill' : type;
         var h = '<a class="tp-back back-link" href="leaderboards.html?type=' + listType + '" data-go="type=' + listType + '" data-back aria-label="Back to all ' + KIND_NAME[listType] + '">' + icon('back') + 'Back' + '</a>' +
           '<div class="tp-head"><div><h2>' + esc(title) + '</h2><p class="tp-sub">' + what + '</p></div></div>' +
-          '<div class="lb-filters"><div class="lb-filter-top"><div class="tp-chips lb-models" id="lb-models">' + ['All'].concat(modelChips(entries)).map(function (m) { return '<button type="button" class="chip' + (m === boardModel ? ' is-on' : '') + (m !== 'All' && !entries.some(function (e) { return modelKey(e) === m; }) ? ' is-empty' : '') + '" data-m="' + m + '">' + (MODEL_SHORT[m] || m) + '</button>'; }).join('') + '</div>' + unitsChip() + '</div>' +
+          '<div class="lb-filters"><div class="lb-filter-top"><div class="tp-chips lb-models" id="lb-models">' + ['All'].concat(modelChips(entries)).map(function (m) { return '<button type="button" class="chip' + (m === boardModel ? ' is-on' : '') + (m !== 'All' && !entries.some(function (e) { return modelKey(e) === m; }) ? ' is-empty' : '') + '" data-m="' + m + '">' + (MODEL_SHORT[m] || m) + '</button>'; }).join('') + '</div><div class="tp-head-side">' + refreshChip() + unitsChip() + '</div></div>' +
           (conds.length > 1 || makes.length ? '<div class="lb-selects">' +
             (conds.length > 1 ? '<label class="lb-sel"><span>Conditions</span><select class="field" id="lb-cond">' + options(conds, fCond, 'Any conditions') + '</select></label>' : '') +
             (makes.length ? '<label class="lb-sel"><span>Tyre make</span><select class="field" id="lb-make">' + options(makes, fMake, 'Any tyres') + '</select></label>' : '') +

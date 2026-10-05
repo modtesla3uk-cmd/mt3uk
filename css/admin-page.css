@@ -519,6 +519,20 @@
 .alerts-row [hidden] { display: none; }
 
 /* Driven wheels panel (track-admin.html, js/track-drive-admin.js): a row for each vehicle with sessions. */
+/* Usage panel: tiles and the weekly bars. */
+.us-head { margin: 14px 0 6px; font-size: 0.95rem; }
+.us-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.us-tile { border: 1px solid var(--hairline, rgba(22,35,61,.12)); border-radius: var(--radius-sm, 8px); padding: 10px 12px; display: grid; gap: 2px; background: #fff; }
+.us-tile b { font-size: 1.4rem; line-height: 1.1; }
+.us-tile span { font-size: 0.85rem; }
+.us-weeks { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.us-weeks li { display: grid; grid-template-columns: 64px minmax(0, 1fr) 150px; gap: 8px; align-items: center; font-size: 0.85rem; }
+.us-bar { display: block; height: 14px; background: var(--hover, #eceef2); border-radius: 7px; overflow: hidden; }
+.us-bar i { display: block; height: 100%; background: var(--orange, #e8562a); border-radius: 7px; }
+@media (max-width: 780px) {
+  .us-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .us-weeks li { grid-template-columns: 54px minmax(0, 1fr) 110px; }
+}
 /* Vehicles panel: each model's variants on the Edit form. */
 .vh-variants-head { grid-column: 1 / -1; margin: 4px 0 0; font-weight: 600; }
 .vh-variants-wrap { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }

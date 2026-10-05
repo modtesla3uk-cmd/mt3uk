@@ -78,6 +78,12 @@
       <h3 class="sub-head">Add someone</h3>
       <form class="iv-toolbar" id="ac-add-form"><input type="email" id="ac-add-email" placeholder="Member's email" aria-label="Member's email" autocomplete="off"><button type="submit">Approve by email</button></form>
     </details>
+    <details class="collapsible" id="usage-wrap">
+      <summary><h3 class="panel-title">Usage</h3></summary>
+      <p class="iv-note">How Laps is being used: members with sessions, who is active and who comes back, sessions saved each week, how many are shared and keep their readings (and the storage they take), and the vehicles. For deciding whether a paid tier is worth building.</p>
+      <div class="iv-toolbar"><button type="button" class="secondary" id="us-load">Count again</button><span class="iv-note" id="us-note" role="status"></span></div>
+      <div id="us-out"></div>
+    </details>
     </div>
   </section>
 
@@ -218,6 +224,7 @@
 <script src="js/track-parse.js?v=20261188" defer></script>
 <script src="js/track-view.js?v=20261181" defer></script>
 <script src="js/track-access-admin.js" defer></script>
+<script src="js/track-usage-admin.js?v=20270101" defer></script>
 <script src="js/track-lines-admin.js?v=20261180" defer></script>
 <script src="js/track-member-admin.js?v=20261162" defer></script>
 <script src="js/track-new-sessions-admin.js?v=20261250" defer></script>

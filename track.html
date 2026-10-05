@@ -67,6 +67,12 @@
   .page-hero .back-link:hover { color: var(--orange); }
   .page-hero .eyebrow { display: block; font-size: 0.82rem; font-weight: 600; color: var(--steel); margin-bottom: 8px; }
   .page-hero h1 { margin-bottom: 12px; font-size: clamp(1.6rem, 4vw, 2.3rem); }
+  .tp-what { margin: 0; }
+  .tp-what summary { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; cursor: pointer; font-weight: 600; font-size: 0.92rem; color: var(--steel); list-style: none; }
+  .tp-what summary::-webkit-details-marker { display: none; }
+  .tp-what summary::after { content: ''; width: 7px; height: 7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg) translateY(-2px); }
+  .tp-what[open] summary::after { transform: rotate(-135deg); }
+  .tp-what p { margin: 4px 0 8px; }
   .tp-hero-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-bottom: 12px; }
   .tp-hero-row h1 { margin: 0; flex: 1 1 auto; min-width: 0; }
   .tp-lb-pill { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 999px; background: var(--ink); color: #fff; font-weight: 700; font-size: 0.92rem; white-space: nowrap; text-decoration: none; }
@@ -99,7 +105,7 @@
   .tp-back:hover { border-color: var(--ink); color: var(--ink); }
   .tp-back .icon { width: 18px; height: 18px; color: var(--orange); stroke-width: 2.4; }
   .tp-units { flex: none; }
-  .tp-refresh { flex: none; display: inline-flex; align-items: center; gap: 6px; }
+  .tp-refresh { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 44px; padding: 0; }
   .tp-refresh .icon { width: 16px; height: 16px; }
   .tp-figrow { display: grid; gap: 6px; padding: 10px 0; border-top: 1px solid var(--hairline); }
   .tp-figrow:first-of-type { border-top: 0; }
@@ -760,6 +766,7 @@
   .a2hs-banner .a2hs-close { padding: 0 4px; }
   .a2hs-banner .a2hs-close .icon { width: 20px; height: 20px; }
   @media (max-width: 480px) { .a2hs-banner { flex-direction: column; align-items: flex-start; } }
+  @media (max-width: 780px) { .page-hero { padding: 14px 0 6px; } .tp-hero-row { margin-bottom: 4px; } .tp-main { padding: 10px 0 48px; } .tp-section { margin-top: 14px; } .tp-head { margin-bottom: 6px; } .tp-actions { margin: 8px 0; } .tp-tools { margin: 8px 0 0; } .tp-vbox .tp-vcurrent { min-height: 44px; padding: 4px 12px; } }
 </style>
 
 </head>
@@ -798,7 +805,7 @@
     <a href="my-builds.html" class="back-link" aria-label="Back to My Garage"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</a><a href="laps.html" class="tp-play-intro" id="tp-play-intro"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m10 8.5 5 3.5-5 3.5Z"/></svg>Play intro</a>
     <span class="early-badge early-badge-lg">Early preview</span>
     <div class="tp-hero-row"><h1>My Sessions</h1><a class="tp-lb-pill" id="tp-lb-pill" href="leaderboards.html"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/></svg>Leaderboards</a></div>
-    <p>Your track days and drag runs from your lap timer file: every lap mapped, where you gained and lost time, and what your mods did to your times.</p>
+    <details class="tp-what"><summary>What are Sessions?</summary><p>Your track days and drag runs from your lap timer file: every lap mapped, where you gained and lost time, and what your mods did to your times.</p></details>
   </div>
 </section>
 
@@ -955,7 +962,7 @@
 <script src="js/tyre-data.js"></script>
 <script src="js/vehicle-data.js?v=20261231" defer></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20261230" defer></script>
+<script src="js/track-page.js?v=20270101" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=10" defer></script>
 <script src="js/signin-prompt.js" defer></script>

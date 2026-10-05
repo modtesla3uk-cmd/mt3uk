@@ -50,11 +50,18 @@
   }
 
   function params() { return new URL(location.href).searchParams; }
-  function go(q) { history.pushState(null, '', 'leaderboards.html' + (q ? '?' + q : '')); route(); window.scrollTo(0, 0); }
+  // As on track.html: each move pushes a history entry carrying its depth, so a board's Back steps back to the list it
+  // was opened from, and goes to the list (its parent) only when there is nothing to step back to (a shared link).
+  function backDepth() { var st = history.state; return st && typeof st.lbDepth === 'number' ? st.lbDepth : 0; }
+  function go(q) { history.pushState({ lbDepth: backDepth() + 1 }, '', 'leaderboards.html' + (q ? '?' + q : '')); route(); window.scrollTo(0, 0); }
   window.addEventListener('popstate', route);
   app.addEventListener('click', function (e) {
     var a = e.target.closest('a[data-go]');
-    if (a && !e.metaKey && !e.ctrlKey) { e.preventDefault(); go(a.getAttribute('data-go')); }
+    if (a && !e.metaKey && !e.ctrlKey) {
+      e.preventDefault();
+      if (a.hasAttribute('data-back') && backDepth() > 0) history.back();
+      else go(a.getAttribute('data-go'));
+    }
     if (e.target.closest('[data-units]')) { V.setMph(!V.units.mph); route(); }
   });
   function unitsChip() { return '<button type="button" class="chip tp-units" data-units>' + (V.units.mph ? 'mph' : 'km/h') + '</button>'; }
@@ -265,7 +272,7 @@
         var what = type === 'drag' ? 'Each car\'s quickest quarter mile.' : type === 'sprint' ? 'Each car\'s fastest run.' : 'Each car\'s fastest lap.';
         var filtered = fCond !== 'All' || fMake !== 'All';
         var listType = type === 'sprint' && T.isHill(v) ? 'hill' : type;
-        var h = '<a class="tp-back back-link" href="leaderboards.html?type=' + listType + '" data-go="type=' + listType + '" aria-label="Back to all ' + KIND_NAME[listType] + '">' + icon('back') + 'Back' + '</a>' +
+        var h = '<a class="tp-back back-link" href="leaderboards.html?type=' + listType + '" data-go="type=' + listType + '" data-back aria-label="Back to all ' + KIND_NAME[listType] + '">' + icon('back') + 'Back' + '</a>' +
           '<div class="tp-head"><div><h2>' + esc(title) + '</h2><p class="tp-sub">' + what + '</p></div></div>' +
           '<div class="lb-filters"><div class="lb-filter-top"><div class="tp-chips lb-models" id="lb-models">' + ['All'].concat(modelChips(entries)).map(function (m) { return '<button type="button" class="chip' + (m === boardModel ? ' is-on' : '') + (m !== 'All' && !entries.some(function (e) { return modelKey(e) === m; }) ? ' is-empty' : '') + '" data-m="' + m + '">' + (MODEL_SHORT[m] || m) + '</button>'; }).join('') + '</div>' + unitsChip() + '</div>' +
           (conds.length > 1 || makes.length ? '<div class="lb-selects">' +

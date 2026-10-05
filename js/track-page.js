@@ -272,17 +272,42 @@
 
   // ---------- Routing ----------
   function params() { return new URL(location.href).searchParams; }
-  function go(q, keepScroll) {
+  // Back steps back through the views this visit has moved through, so it returns to where the member came from (a
+  // leaderboard, a track's list of sessions, another session). Each go() pushes a history entry carrying its depth, and
+  // the page itself counts as one step when it was opened from another page of the site. With nothing to step back to
+  // (a shared link, a bookmark, a new tab) Back goes to the view's parent, the link it carries, instead.
+  function siteHost(h) {
+    var sites = window.MT3UK_SITES || { main: ['mt3uk.com', 'www.mt3uk.com'], laps: ['laps.mt3uk.com'] };
+    return h === location.hostname || (sites.main || []).indexOf(h) >= 0 || (sites.laps || []).indexOf(h) >= 0;
+  }
+  function fromSite() {
+    try {
+      if (!document.referrer || window.history.length < 2) return false;
+      var r = new URL(document.referrer);
+      return siteHost(r.hostname) && (r.pathname !== location.pathname || r.search !== location.search);
+    } catch (e) { return false; }
+  }
+  function backDepth() { var st = history.state; return st && typeof st.tpDepth === 'number' ? st.tpDepth : (fromSite() ? 1 : 0); }
+  // replace: the new view takes the place of the current one in the history, so Back (and the browser's back button)
+  // skip it: the Add page once its session is saved, a session once it is deleted.
+  function go(q, keepScroll, replace) {
     var y = window.scrollY || 0;
     rememberCards();
-    history.pushState(null, '', 'track.html' + (q ? '?' + q : ''));
+    history[replace ? 'replaceState' : 'pushState']({ tpDepth: backDepth() + (replace ? 0 : 1) }, '', 'track.html' + (q ? '?' + q : ''));
     route();
     window.scrollTo(0, keepScroll ? y : 0);
   }
+  // Back to the view before, or to q when there is none to go back to.
+  function goBack(q) { if (backDepth() > 0) history.back(); else go(q); }
   window.addEventListener('popstate', route);
   app.addEventListener('click', function (e) {
     var a = e.target.closest('a[data-go]');
-    if (a && !e.metaKey && !e.ctrlKey) { e.preventDefault(); go(a.getAttribute('data-go')); }
+    if (a && !e.metaKey && !e.ctrlKey) {
+      e.preventDefault();
+      if (a.getAttribute('data-back') === 'replace') go(a.getAttribute('data-go'), false, true);
+      else if (a.hasAttribute('data-back')) goBack(a.getAttribute('data-go'));
+      else go(a.getAttribute('data-go'));
+    }
   });
   // The page's own Back (to the page before) is only on the list of sessions; a session or the Add page has its own Back.
   function syncPageBack() { var b = document.querySelector('.page-hero .back-link'); if (b) b.hidden = !!location.search.replace(/^\?/, ''); }
@@ -322,9 +347,16 @@
       el.insertAdjacentHTML('beforeend', '<button type="button" class="btn btn-secondary btn-sm" data-refresh>' + icon('refresh') + '<span>Refresh</span></button>');
     }, SLOW_MS * 3);
   }
-  function failed(msg) { app.innerHTML = '<div class="card tp-empty">' + icon('warn') + '<p>' + esc(msg) + '</p><a class="btn btn-secondary btn-sm" href="track.html" data-go="" aria-label="Back to Track sessions">Back</a></div>'; }
-  // Every Back is a button that just says Back; where it goes is in its name for a screen reader.
-  function back(label, q) { return '<a class="tp-back" href="track.html' + (q ? '?' + q : '') + '" data-go="' + esc(q || '') + '" aria-label="' + esc(/^back\b/i.test(label) ? label : 'Back to ' + label.charAt(0).toLowerCase() + label.slice(1)) + '">' + icon('back') + 'Back</a>'; }
+  function failed(msg) { app.innerHTML = '<div class="card tp-empty">' + icon('warn') + '<p>' + esc(msg) + '</p><a class="btn btn-secondary btn-sm" href="track.html" data-go="" data-back aria-label="Back to Track sessions">Back</a></div>'; }
+  // Every Back is a button that just says Back; where it goes is in its name for a screen reader. It steps back to the
+  // view before (goBack); the link it carries is the view's parent, for when there is no view before. A screen drawn in
+  // place of a session (Change the type, Edit the map) has no history entry of its own, so its Back redraws the session
+  // in the same entry (replace) instead of stepping back past it.
+  function back(label, q, replace) {
+    // The name says where it goes: the parent view, or just Back when it steps back to the view before.
+    var name = !replace && backDepth() > 0 ? 'Back' : /^back\b/i.test(label) ? label : 'Back to ' + label.charAt(0).toLowerCase() + label.slice(1);
+    return '<a class="tp-back" href="track.html' + (q ? '?' + q : '') + '" data-go="' + esc(q || '') + '" data-back' + (replace ? '="replace"' : '') + ' aria-label="' + esc(name) + '">' + icon('back') + 'Back</a>';
+  }
   function niceDate(d) { return T.niceDate(d); }
   // "28 May", with the year only when it isn't this year.
   function shortDate(d) {
@@ -472,7 +504,7 @@
   // (past the browser's and the network's copies), clears the stored copies of the site's service worker (never the
   // worker itself, which also carries push notifications), then loads the page again, so what the member sees is what
   // is live now.
-  function refreshChip() { return '<button type="button" class="chip tp-refresh" data-refresh aria-label="Refresh this page from the latest version">' + icon('refresh') + '<span>Refresh</span></button>'; }
+  function refreshChip() { return '<button type="button" class="chip tp-refresh" data-refresh aria-label="Refresh this page from the latest version" title="Refresh">' + icon('refresh') + '</button>'; }
   app.addEventListener('click', function (e) {
     var b = e.target.closest('[data-refresh]');
     if (!b || b.disabled) return;
@@ -536,12 +568,9 @@
   // The heading row has the vehicle picked beside it (Change opens the list under the row, a row for each vehicle and then
   // Add a vehicle). With one vehicle the picked one is just shown, with an Add a vehicle button under it.
   function vehiclesHtml(m, car) {
-    var many = m.cars.length > 1, n = carSessionCount(m, car);
+    var n = carSessionCount(m, car);
     var cur = '<span class="tp-vtext"><b>' + esc(car.name) + '</b><span>' + n + ' session' + (n === 1 ? '' : 's') + '</span></span>';
-    var head = '<div class="tp-vhead"><h2>Your vehicles</h2>' + (many
-      ? '<button type="button" class="tp-car tp-vcurrent is-on" id="tp-vtoggle" aria-expanded="' + vehiclesOpen + '">' + cur + '<span class="tp-vchange">' + icon('chev') + '</span></button>'
-      : '<div class="tp-car tp-vcurrent is-on">' + cur + '</div>') + '</div>';
-    if (!many) return head + '<button type="button" class="btn btn-secondary btn-sm tp-vaddone" id="tp-car-add-open">' + icon('plus') + 'Add a vehicle</button>';
+    var head = '<div class="tp-vhead"><h2>Your vehicles</h2><button type="button" class="tp-car tp-vcurrent is-on" id="tp-vtoggle" aria-expanded="' + vehiclesOpen + '">' + cur + '<span class="tp-vchange">' + icon('chev') + '</span></button></div>';
     if (!vehiclesOpen) return head;
     return head + '<div class="card tp-vlist" role="radiogroup" aria-label="Your vehicles">' + m.cars.map(function (c) {
       var on = c.id === car.id, k = carSessionCount(m, c);
@@ -919,9 +948,9 @@
       box.innerHTML = vehiclesHtml(m, car);
     }
     box.addEventListener('click', function (e) {
-      if (e.target.closest('#tp-vtoggle')) { vehiclesOpen = true; draw(); return; }
+      if (e.target.closest('#tp-vtoggle')) { vehiclesOpen = !vehiclesOpen; draw(); return; }
       var add = e.target.closest('#tp-car-add-open'), wrap = document.getElementById('tp-car-add-wrap');
-      if (add && wrap) { wrap.hidden = false; add.hidden = true; var mk = document.getElementById('tp-addcar-make'); if (mk) mk.focus(); return; }
+      if (add && wrap) { wrap.hidden = false; vehiclesOpen = false; draw(); var mk = document.getElementById('tp-addcar-make'); if (mk) mk.focus(); return; }
       var b = e.target.closest('[data-car]');
       if (!b) return;
       var picked = b.getAttribute('data-car');
@@ -1036,7 +1065,7 @@
     var h;
     if (a.replaceId) {
       // Changing a saved session's type: its saved readings are read again.
-      h = back('Back to the session', 's=' + a.replaceId) + '<div class="tp-head"><h2>' + (a.lineEdit ? 'Edit the map' : 'Change the type') + '</h2>' + unitsChip() + '</div>' +
+      h = back('Back to the session', 's=' + a.replaceId, true) + '<div class="tp-head"><h2>' + (a.lineEdit ? 'Edit the map' : 'Change the type') + '</h2>' + unitsChip() + '</div>' +
         '<div class="tp-add-grid"><div class="card"><p class="tp-car-one">Car: <b>' + esc(a.car.name) + '</b></p>' +
         (a.lineEdit ? '<p class="tp-sub">Drag the start and finish markers to where they should be, press Done, and check the time. Then send the change. Your session stays as it is until MT3UK has approved it.</p>'
           : '<p class="tp-sub">Using the readings saved with this session. Pick the type below, check the result, then save.</p>') +
@@ -1590,7 +1619,7 @@
     var orgIn = document.getElementById('tp-organiser');
     if (orgIn) orgIn.addEventListener('change', function () { keep(); a.organizer = orgIn.value.trim().slice(0, 40); analyse(); });
     var sentClose = document.getElementById('tp-sent-close');
-    if (sentClose) sentClose.addEventListener('click', function () { go('s=' + a.replaceId); });
+    if (sentClose) sentClose.addEventListener('click', function () { go('s=' + a.replaceId, false, true); });
     var undoLines = document.getElementById('tp-undo-lines');
     if (undoLines) undoLines.addEventListener('click', function () {
       var o = a.oldLines || {};
@@ -1992,16 +2021,17 @@
     }).then(function (d) {
       if (!d.success) throw new Error(d.message || 'Could not save the session.');
       mine = null; counts = null;
-      if (d.batch) { justSaved = { batch: d.batch, skipped: d.skipped || [], noReadings: d.noReadings || [], joined: (a.list || []).filter(function (x) { return x.merged; }).length }; go(''); return; }
+      if (d.batch) { justSaved = { batch: d.batch, skipped: d.skipped || [], noReadings: d.noReadings || [], joined: (a.list || []).filter(function (x) { return x.merged; }).length }; go('', false, true); return; }
       justSaved = { files: (a.files || []).length || 1 };
-      if (a.replaceId) { go('s=' + d.session.id); return; }
+      // A changed session was edited in place of its own page, so that page is redrawn in the same history entry.
+      if (a.replaceId) { go('s=' + d.session.id, false, true); return; }
       // Keep the readings with the session, so its type can be changed later.
       // Best effort: a session without them still works.
       status('Keeping your readings...');
       return keepReadings(d.session.id, a.rd).then(function (r) {
         if (r && r.kept === false) justSaved.readings = r.message;
         if (r && r.kept === null) justSaved.sending = true;
-        go('s=' + d.session.id);
+        go('s=' + d.session.id, false, true);
       });
     }).catch(function (e) {
       btn.disabled = false;
@@ -3725,8 +3755,8 @@
         dirty = true;
       });
     });
-    // Back to Your sessions, as the Back link does.
-    function closeSession() { go(''); }
+    // Back to the view before (Your sessions when there is none), as the Back link does.
+    function closeSession() { goBack(''); }
     function saveSettings() {
       var t = document.getElementById('tp-e-temp').value.trim();
       var ty = tyrePayload(readTyre('tp-e-tyre'));
@@ -3759,7 +3789,7 @@
       api('DELETE', '/track/session?id=' + encodeURIComponent(s.id)).then(function (d) {
         if (!d.success) { status(d.message || 'Could not delete.', 'error'); return; }
         mine = null; counts = null;
-        go('');
+        go('', false, true);
       });
     });
   }
@@ -3818,7 +3848,7 @@
     }).then(function (n) {
       mine = null; counts = null;
       justSaved = { batch: n, split: true, skipped: [] };
-      go('');
+      go('', false, true);
     }).catch(function (e) {
       btn.disabled = false;
       status((e && e.message) || 'Could not split the session.', 'error');

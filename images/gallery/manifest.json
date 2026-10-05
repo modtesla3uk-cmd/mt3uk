@@ -1,22 +1,5 @@
 [
   {
-    "file": "photo--by-richard-hughes-chen.webp",
-    "name": "RichyRich",
-    "votable": false,
-    "gallery": false,
-    "reel": false,
-    "color": "Red",
-    "added": "2026-10-05",
-    "group": "photo--by-richard-hughes-chen.webp"
-  },
-  {
-    "file": "photo--by-aaron-barnard.jpg",
-    "name": "AaronB",
-    "color": "White",
-    "added": "2026-10-05",
-    "group": "photo--by-aaron-barnard.jpg"
-  },
-  {
     "file": "photo--by-richard-hughes-chen.jpg",
     "name": "RichyRich",
     "votable": false,
@@ -24,7 +7,24 @@
     "reel": false,
     "color": "White",
     "added": "2026-10-05",
-    "group": "photo--by-richard-hughes-chen.webp"
+    "group": "photo--by-richard-hughes-chen.jpg"
+  },
+  {
+    "file": "photo--by-richard-hughes-chen.webp",
+    "name": "RichyRich",
+    "votable": false,
+    "gallery": false,
+    "reel": false,
+    "color": "Red",
+    "added": "2026-10-05",
+    "group": "photo--by-richard-hughes-chen.jpg"
+  },
+  {
+    "file": "photo--by-aaron-barnard.jpg",
+    "name": "AaronB",
+    "color": "White",
+    "added": "2026-10-05",
+    "group": "photo--by-aaron-barnard.jpg"
   },
   {
     "file": "b-w--by-james-begley.jpeg",

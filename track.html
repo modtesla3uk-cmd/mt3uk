@@ -705,6 +705,16 @@
   .tp-src a { color: var(--ink); text-decoration: underline; }
   .tp-weather-row { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin: -4px 0 14px; }
   .tp-weather-row .tp-src { margin: 0; flex: 1; min-width: 200px; }
+
+  /* The install banner (same as the homepage's), with a line icon for its close button. */
+  .a2hs-banner { position: fixed; left: 16px; right: 16px; bottom: -120px; z-index: 300; display: flex; align-items: center; justify-content: space-between; gap: 16px; max-width: 480px; margin: 0 auto; background: var(--ink); color: var(--paper); border: 1px solid var(--orange); border-radius: var(--radius); padding: 14px 18px; font-family: var(--font-body); font-size: 0.85rem; transition: bottom .3s ease; }
+  .a2hs-banner.show { bottom: 16px; }
+  .a2hs-banner .a2hs-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .a2hs-banner .a2hs-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; font-family: var(--font-body); font-size: 0.8rem; font-weight: 600; cursor: pointer; border: none; background: transparent; color: var(--paper); }
+  .a2hs-banner .a2hs-install { background: var(--orange); color: var(--paper); padding: 8px 14px; border-radius: var(--radius-sm); }
+  .a2hs-banner .a2hs-close { padding: 0 4px; }
+  .a2hs-banner .a2hs-close .icon { width: 20px; height: 20px; }
+  @media (max-width: 480px) { .a2hs-banner { flex-direction: column; align-items: flex-start; } }
 </style>
 
 </head>

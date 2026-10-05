@@ -3,6 +3,7 @@ routes). A sign-in is kept per address, so a signed-in member following a link t
 one-time code in the link's #, which the page there swaps for its own sign-in. Here the two addresses are
 localhost (mt3uk.com) and 127.0.0.1 (laps.mt3uk.com), set through window.MT3UK_SITES."""
 import json
+import re
 import shutil
 import subprocess
 import tempfile
@@ -133,3 +134,33 @@ def test_links_to_the_laps_pages_go_to_laps_on_the_live_site(page):
     assert page.evaluate("window.mt3ukLapsUrl('track.html?mycar=c1')") == "https://laps.mt3uk.com/track.html?mycar=c1"
     page.goto(MAIN + "/my-builds.html")
     assert page.locator("#mb-boards-btn").get_attribute("href") == "https://laps.mt3uk.com/leaderboards.html"
+
+
+def test_back_on_laps_goes_to_the_page_before_not_the_homepage(page):
+    """The page Back on the Leaderboard (and Sessions) links to a page on mt3uk.com. It must still step back to the
+    page you came from on Laps, rather than the handover taking the click to the MT3UK homepage every time."""
+    setup(page)
+    page.goto(LAPS + "/track.html")
+    page.locator("#tp-lb-pill").click()
+    expect(page).to_have_url(LAPS + "/leaderboards.html")
+    page.locator("#lb-page-back").click()
+    expect(page).to_have_url(LAPS + "/track.html")
+    # Opened directly, it goes to its parent on mt3uk.com as before.
+    page.goto(LAPS + "/leaderboards.html")
+    page.locator("#lb-page-back").click()
+    expect(page).to_have_url(re.compile(r"^" + re.escape(MAIN) + r"/index\.html"))
+
+
+def test_back_on_my_garage_goes_to_laps_when_you_came_from_there(page):
+    """My Garage reached from Laps (through the handover, which reloads the page) goes Back to Laps: the other address
+    counts as this site, even though only its origin comes through as the referrer."""
+    setup(page)
+    sign_in(page, LAPS, "tok-laps")
+    page.goto(LAPS + "/track.html")
+    add_link(page, MAIN + "/my-builds.html")
+    page.locator("#go").click()
+    expect(page).to_have_url(MAIN + "/my-builds.html")
+    page.wait_for_function("localStorage.getItem('mt3ukMyBuildsSession') === 'tok-new'", timeout=10000)
+    page.wait_for_load_state("load")
+    page.locator("a.back-link").first.click()
+    expect(page).to_have_url(LAPS + "/track.html")

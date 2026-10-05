@@ -311,25 +311,39 @@
             if (r.d.firstName) localStorage.setItem(FIRST_NAME_KEY, r.d.firstName);
             else if (beforeEmail !== r.d.email) localStorage.removeItem(FIRST_NAME_KEY);
           } catch (e) { return; }
-          if (!before || beforeEmail !== r.d.email) location.reload();
+          if (!before || beforeEmail !== r.d.email) {
+            // After a reload the browser gives this page as its own referrer, so Back remembers the real one.
+            try { sessionStorage.setItem('mt3ukBackFrom', JSON.stringify({ page: location.pathname, from: document.referrer })); } catch (e) {}
+            location.reload();
+          }
         })
         .catch(function () {});
     }
     attempt();
   })();
 
-  // Back is one button on every page: it goes back to the page you came from when that was another page of this site,
-  // and to the page it links to (its parent) when you came from a shared link or a bookmark.
+  // Back is one button on every page: it goes back to the page you came from when that was another page of this site
+  // (on either address: mt3uk.com or laps.mt3uk.com, which only send their origin as the referrer across the two), and
+  // to the page it links to (its parent) when you came from a shared link, a bookmark or the sign-in page. It runs in
+  // the capture phase so it is first: on laps.mt3uk.com the parent link (the MT3UK homepage, My Garage) is on the other
+  // address, and the handover handler above would otherwise take the click and go there every time.
   document.addEventListener('click', function (e) {
     var a = e.target.closest && e.target.closest('a.back-link:not([data-go])');
     if (!a || e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-    var from = '';
-    try { from = document.referrer ? new URL(document.referrer).origin + new URL(document.referrer).pathname : ''; } catch (err) { /* no usable referrer */ }
-    if (from && from.indexOf(location.origin) === 0 && from !== location.origin + location.pathname && window.history.length > 1) {
+    var ref = document.referrer, from = null;
+    try {
+      var kept = JSON.parse(sessionStorage.getItem('mt3ukBackFrom') || 'null');
+      if (kept && kept.page === location.pathname && ref && new URL(ref).href === location.href) ref = kept.from;
+    } catch (err) { /* nothing kept */ }
+    try { from = ref ? new URL(ref) : null; } catch (err) { /* no usable referrer */ }
+    if (!from || window.history.length < 2) return;
+    var ours = from.origin === location.origin || (!!hereSite && !!siteOf(from.hostname));
+    var samePage = from.origin === location.origin && from.pathname === location.pathname;
+    if (ours && !samePage && from.pathname !== '/signin.html') {
       e.preventDefault();
       window.history.back();
     }
-  });
+  }, true);
 
   function run() {
     refreshSession();

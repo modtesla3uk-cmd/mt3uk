@@ -1400,3 +1400,49 @@ def test_each_admin_page_can_be_installed_as_its_own_app_with_push(page, name, m
     page.evaluate("document.dispatchEvent(new CustomEvent('mt3uk-admin-refresh'))")
     expect(push).to_be_visible(timeout=10000)
     expect(push).to_have_attribute("aria-checked", "false")
+
+
+def admin_site_setup(page):
+    """localhost plays mt3uk.com and 127.0.0.1 plays admin.mt3uk.com."""
+    from conftest import PORT
+    main, admin = "http://localhost:%d" % PORT, "http://127.0.0.1:%d" % PORT
+    page.add_init_script("window.MT3UK_ADMIN_SITE = { origin: '%s', main: ['localhost'], mainOrigin: '%s' };" % (admin, main))
+    page.route("**/admin/alerts**", lambda route: route.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"},
+                                                               body=json.dumps({"success": True, "alerts": {"bell": True, "email": True}, "stamp": "1", "pushDevices": []})))
+    return main, admin
+
+
+def test_install_from_mt3uk_goes_to_the_admin_address_and_links_there_come_back(page):
+    open_admin(page, "track-admin.html")
+    main, admin = admin_site_setup(page)
+    page.reload()
+    page.locator("#alerts-install").click()
+    page.wait_for_url(admin + "/track-admin.html#install", timeout=10000)
+    expect(page.locator("#alerts-note")).to_contain_text("Press Install Track Admin")
+    # On the admin address, a link to another page of the site goes to mt3uk.com; the admin pages stay.
+    page.evaluate("""() => { for (const [id, h] of [['to-site', 'gallery.html?photo=a.jpg'], ['to-admin', 'admin.html']]) {
+        const a = document.createElement('a'); a.id = id; a.href = h; a.textContent = id;
+        a.style.cssText = 'position:fixed;left:10px;z-index:99999;background:#fff;padding:12px;top:' + (id === 'to-site' ? 200 : 260) + 'px';
+        document.body.appendChild(a); } }""")
+    page.locator("#to-site").click()
+    page.wait_for_url(main + "/gallery.html?photo=a.jpg", timeout=10000)
+
+
+def test_the_key_can_be_remembered_on_this_device(page):
+    open_admin(page, "admin.html")
+    admin_site_setup(page)
+    page.reload()
+    keep = page.locator("#alerts-keep")
+    expect(keep).to_have_attribute("aria-checked", "false")
+    keep.click()
+    expect(keep).to_have_attribute("aria-checked", "true")
+    assert page.evaluate("localStorage.getItem('mt3ukAdminKeyKept')") == "test-key"
+    # A new visit (the installed app opening again) starts with no key in the tab, and gets the remembered one.
+    fresh = page.context.new_page()
+    fresh.route("**/%s/**" % API_HOST, lambda route: route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True}), headers={"Access-Control-Allow-Origin": "*"}))
+    fresh.goto(page.url)
+    expect(fresh.locator("#admin-key")).to_have_value("test-key")
+    fresh.close()
+    keep.click()
+    expect(keep).to_have_attribute("aria-checked", "false")
+    assert page.evaluate("localStorage.getItem('mt3ukAdminKeyKept')") is None

@@ -294,6 +294,7 @@
     document.body.setAttribute('data-tp-view', p.get('s') ? 'session' : p.get('car') && !p.get('add') ? 'car' : '');
     if (p.get('s')) return showSession(p.get('s'));
     if (p.get('add')) return showAdd(p.get('car'));
+    if (p.get('at')) return showTrackSessions(p.get('mycar'), p.get('at'));
     // The leaderboards have their own page now; old links still work.
     if (p.get('board')) { location.replace('leaderboards.html?board=' + encodeURIComponent(p.get('board'))); return; }
     if (p.get('drag')) { location.replace('leaderboards.html?drag=' + encodeURIComponent(p.get('drag'))); return; }
@@ -525,51 +526,41 @@
     h += '<div class="tp-actions"><a class="btn btn-accent" href="track.html?add=1&car=' + encodeURIComponent(car.id) + '" data-go="add=1&car=' + esc(encodeURIComponent(car.id)) + '">' + icon('upload') + 'Add a session</a>' +
       (car.virtual ? '' : '<a class="btn btn-secondary" href="track.html?car=' + encodeURIComponent(car.id) + '" data-go="car=' + esc(encodeURIComponent(car.id)) + '">What others see</a>') + '</div>';
     if (!list.length) h += '<div class="card tp-empty">' + icon('flag') + '<p>No sessions for ' + esc(car.name) + ' yet. Add the file from your lap timer to get started.</p></div>';
-    else h += listToolsHtml(list) + trackFilterHtml(list) + '<div class="tp-list" id="tp-sess-list">' + shownListHtml(list) + '</div>';
+    else h += trackToolsHtml(list) + '<div class="tp-list tp-tracklist" id="tp-sess-list">' + trackListHtml(list, car.id) + '</div>';
     return h + '</div>';
   }
-  // Filter the list by track name (only when there's more than one track).
-  var trackFilter = '';
-  function inTrackFilter(s) { return !trackFilter || trackName(s) === trackFilter; }
-  // Filter by kind of session (Track day, Drag, Sprint) and sort by newest, oldest or A to Z.
-  var typeFilter = '', sortMode = 'newest';
-  var TYPE_CHIPS = [['', 'All'], ['track', 'Track'], ['drag', 'Drag'], ['sprint', 'Sprint']];
-  var SORTS = [['newest', 'Newest'], ['oldest', 'Oldest'], ['az', 'A to Z']];
-  // How the list is grouped: by day (a day at one track), by circuit, or by kind of event. The choice is remembered.
-  var GROUPS = [['date', 'Date'], ['circuit', 'Circuit'], ['type', 'Event type']];
-  var groupMode = 'date';
-  try { var savedGroup = localStorage.getItem('mt3ukTrackGroup'); if (GROUPS.some(function (g) { return g[0] === savedGroup; })) groupMode = savedGroup; } catch (e) { /* storage blocked */ }
-  function inTypeFilter(s) { return !typeFilter || s.type === typeFilter; }
+  // The main screen is one line for each track, newest driven first (or A to Z, or most sessions). A line opens its own page
+  // with every session there (showTrackSessions), so a track is quick to find and the list stays short.
+  var sortMode = 'newest';
+  var SORTS = [['newest', 'Recently driven'], ['az', 'A to Z'], ['most', 'Most sessions']];
   function whenOf(s) { return (s.date || '') + (s.time || ''); }
-  function sortedSessions(l) {
-    return l.slice().sort(function (x, y) {
-      if (sortMode === 'az') { var c = trackName(x).localeCompare(trackName(y)); if (c) return c; }
-      var a = whenOf(x), b = whenOf(y);
-      return a === b ? 0 : (a < b) === (sortMode === 'oldest') ? -1 : 1;
+  function trackTitleOf(s) { return s.venue || (s.type === 'sprint' ? (s.hill ? 'Hill climb' : 'Sprint') : s.type === 'drag' ? 'Drag run' : 'Track session'); }
+  function trackKeyOf(s) { return s.venueId ? 'v:' + s.venueId : 'n:' + trackTitleOf(s).toLowerCase(); }
+  function trackEntries(list) {
+    var by = {}, out = [];
+    list.forEach(function (x) {
+      var k = trackKeyOf(x);
+      if (!by[k]) { by[k] = { key: k, name: trackTitleOf(x), n: 0, last: '' }; out.push(by[k]); }
+      by[k].n++;
+      if (whenOf(x) > by[k].last) by[k].last = whenOf(x);
+    });
+    return out.sort(function (a, b) {
+      if (sortMode === 'az') return a.name.localeCompare(b.name);
+      if (sortMode === 'most' && a.n !== b.n) return b.n - a.n;
+      return a.last === b.last ? a.name.localeCompare(b.name) : a.last < b.last ? 1 : -1;
     });
   }
-  function shownListHtml(list) {
-    var rows = sortedSessions(list.filter(inTrackFilter).filter(inTypeFilter));
-    return rows.length ? sessionListHtml(rows, true, list) : '<div class="card tp-empty">' + icon('flag') + '<p>No sessions match this filter.</p></div>';
-  }
-  function listToolsHtml(list) {
-    if (list.length < 2) return '';
-    return '<div class="tp-tools"><div class="tp-types" id="tp-type-filter" role="group" aria-label="Show">' + TYPE_CHIPS.map(function (t) {
-      var n = t[0] ? list.filter(function (x) { return x.type === t[0]; }).length : list.length;
-      return '<button type="button" class="chip' + (t[0] === typeFilter ? ' is-on' : '') + '" data-type="' + t[0] + '" aria-pressed="' + (t[0] === typeFilter) + '">' + t[1] + ' (' + n + ')</button>';
-    }).join('') + '</div><div class="tp-types tp-group-by" id="tp-group-by" role="group" aria-label="Group by"><span class="tp-lbl">Group by</span>' + GROUPS.map(function (g) {
-      return '<button type="button" class="chip' + (g[0] === groupMode ? ' is-on' : '') + '" data-group="' + g[0] + '" aria-pressed="' + (g[0] === groupMode) + '">' + g[1] + '</button>';
-    }).join('') + '</div><div class="tp-field tp-sort"><label for="tp-sort">Sort by</label><select class="field" id="tp-sort">' +
+  function trackToolsHtml(list) {
+    if (trackEntries(list).length < 2) return '';
+    return '<div class="tp-tools"><div class="tp-field tp-sort"><label for="tp-sort">Sort by</label><select class="field" id="tp-sort">' +
       SORTS.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === sortMode ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div></div>';
   }
-  function trackFilterHtml(list) {
-    var names = {};
-    list.forEach(function (x) { var n = trackName(x); names[n] = (names[n] || 0) + 1; });
-    var keys = Object.keys(names).sort(function (x, y) { return x.localeCompare(y); });
-    if (!names[trackFilter]) trackFilter = '';
-    if (keys.length < 2) return '';
-    return '<div class="tp-field tp-filter"><label for="tp-track-filter">Track</label><select class="field" id="tp-track-filter"><option value="">All tracks (' + list.length + ')</option>' +
-      keys.map(function (k) { return '<option value="' + esc(k) + '"' + (k === trackFilter ? ' selected' : '') + '>' + esc(k) + ' (' + names[k] + ')</option>'; }).join('') + '</select></div>';
+  function trackListHtml(list, carId) {
+    return trackEntries(list).map(function (t) {
+      var q = 'mycar=' + encodeURIComponent(carId) + '&at=' + encodeURIComponent(t.key);
+      var lastDay = niceDate(t.last.slice(0, 10));
+      return '<a class="tp-row tp-trackrow" href="track.html?' + esc(q) + '" data-go="' + esc(q) + '"><span class="tp-row-main"><b>' + esc(t.name) + '</b><span>' + t.n + ' session' + (t.n === 1 ? '' : 's') + ', last ' + esc(lastDay) + '</span></span>' + icon('chev') + '</a>';
+    }).join('');
   }
   // Where the car sits on the leaderboard: a trophy on the session that holds
   // its place. 1st is Platinum, 2nd Gold, 3rd Silver, then 4th, 5th and so on.
@@ -614,41 +605,37 @@
     var car = m.cars.filter(function (c) { return c.id === currentCar; })[0];
     if (!car) return;
     var list = m.sessions.filter(function (x) { return x.carId === car.id; });
-    var sel = document.getElementById('tp-track-filter');
-    function redraw() {
-      document.getElementById('tp-sess-list').innerHTML = shownListHtml(list);
-      applyRanks(list);
-    }
-    if (sel) sel.addEventListener('change', function () { trackFilter = sel.value; redraw(); });
-    var types = document.getElementById('tp-type-filter'), sortSel = document.getElementById('tp-sort');
-    if (types) types.addEventListener('click', function (e) {
-      var b = e.target.closest('[data-type]');
-      if (!b) return;
-      typeFilter = b.getAttribute('data-type');
-      Array.prototype.forEach.call(types.querySelectorAll('[data-type]'), function (x) {
-        var on = x === b; x.classList.toggle('is-on', on); x.setAttribute('aria-pressed', on ? 'true' : 'false');
+    var sortSel = document.getElementById('tp-sort');
+    if (sortSel) sortSel.addEventListener('change', function () {
+      sortMode = sortSel.value;
+      document.getElementById('tp-sess-list').innerHTML = trackListHtml(list, car.id);
+    });
+  }
+  // One track's page: every session there for the car, a day at a time, newest first. The trophies show here.
+  function showTrackSessions(carId, key) {
+    loading();
+    Promise.all([getMine(), getLibrary()]).then(function (r) {
+      var m = r[0];
+      if (!m) { location.href = 'signin.html?next=' + encodeURIComponent('/track.html'); return; }
+      if (m.gate) return showGate();
+      var car = m.cars.filter(function (c) { return c.id === carId; })[0];
+      if (!car) return showHome();
+      currentCar = car.id;
+      var all = m.sessions.filter(function (x) { return x.carId === car.id; });
+      var rows = all.filter(function (x) { return trackKeyOf(x) === key; }).sort(function (x, y) { return whenOf(x) < whenOf(y) ? 1 : whenOf(x) > whenOf(y) ? -1 : 0; });
+      if (!rows.length) return showHome();
+      var saved = justSaved && (justSaved.batch || justSaved.text) ? savedHtml(justSaved) : '';
+      justSaved = null;
+      app.innerHTML = saved + back('Track sessions', 'mycar=' + encodeURIComponent(car.id)) + '<div class="tp-head"><div><h2>' + esc(trackTitleOf(rows[0])) + '</h2><p class="tp-sub tp-for">' + esc(car.name) + ', ' + rows.length + ' session' + (rows.length === 1 ? '' : 's') + '</p></div>' + unitsChip() + '</div>' +
+        '<div class="tp-list" id="tp-sess-list">' + sessionListHtml(rows, true, all) + '</div>';
+      if (ranksFor !== car.id) { ranks = {}; ranksFor = car.id; }
+      applyRanks(rows);
+      loadRanks(car.id, rows).then(function (rk) {
+        if (ranksFor !== car.id || currentCar !== car.id) return;
+        ranks = rk;
+        applyRanks(rows);
       });
-      redraw();
-    });
-    if (sortSel) sortSel.addEventListener('change', function () { sortMode = sortSel.value; redraw(); });
-    var groupBy = document.getElementById('tp-group-by');
-    if (groupBy) groupBy.addEventListener('click', function (e) {
-      var b = e.target.closest('[data-group]');
-      if (!b) return;
-      groupMode = b.getAttribute('data-group');
-      try { localStorage.setItem('mt3ukTrackGroup', groupMode); } catch (err) { /* storage blocked */ }
-      Array.prototype.forEach.call(groupBy.querySelectorAll('[data-group]'), function (x) {
-        var on = x === b; x.classList.toggle('is-on', on); x.setAttribute('aria-pressed', on ? 'true' : 'false');
-      });
-      redraw();
-    });
-    if (ranksFor !== car.id) { ranks = {}; ranksFor = car.id; }
-    applyRanks(list);
-    loadRanks(car.id, list).then(function (r) {
-      if (ranksFor !== car.id || currentCar !== car.id) return;
-      ranks = r;
-      applyRanks(list);
-    });
+    }).catch(function () { failed('Your sessions could not be loaded. Check your connection and try again.'); });
   }
   function sessionRow(s) {
     return '<a class="tp-row" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '"><span class="tp-row-main"><b>' + esc(trackName(s)) + '</b><span>' + esc(niceDate(s.date)) + (s.conditions ? ', ' + esc(s.conditions) : '') + (TYPE_WORD[s.type] ? ', ' + TYPE_WORD[s.type] : '') + '</span></span>' +
@@ -691,13 +678,6 @@
     var txt = 'Charge used ' + sum(on) + '% on track' + (between.length ? ', ' + sum(between) + '% between runs' : '');
     return txt + (on.length < g.length ? ' (from ' + on.length + ' of ' + g.length + ' sessions)' : '');
   }
-  // A row inside a circuit or event type group: the day and time first (the track too when the group is not one track).
-  function groupRow(s, withTrack) {
-    var what = s.type === 'drag' ? (s.runs || 0) + ' run' + (s.runs === 1 ? '' : 's') : s.type === 'other' ? '' : (s.laps || 0) + (s.type === 'sprint' ? ' run' : ' lap') + (s.laps === 1 ? '' : 's');
-    return '<a class="tp-row" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '"><span class="tp-row-main"><b>' + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + '</b><span>' +
-      esc([withTrack ? trackName(s) : '', what, s.conditions].filter(Boolean).join(', ')) + '</span></span>' +
-      '<span class="tp-row-res">' + esc(sessionResult(s)) + '</span>' + (s.privacy !== undefined ? privacyPill(s.privacy, s.street) : '') + icon('chev') + '</a>';
-  }
   // The heading and the count of a group. With more than one session they open and close it; a group of one is just shown.
   function groupTitleHtml(text, label, open, many) {
     return many ? '<button type="button" class="tp-daygroup-title" data-day-toggle aria-expanded="' + (open ? 'true' : 'false') + '" aria-label="' + esc(label) + '"><h3>' + esc(text) + '</h3></button>'
@@ -707,37 +687,7 @@
     return many ? '<button type="button" class="tp-daygroup-count" data-day-toggle aria-expanded="' + (open ? 'true' : 'false') + '" aria-label="Show or hide the ' + n + ' sessions"><span class="tp-small">' + count + '</span>' + icon('chev') + '</button>'
       : '<span class="tp-daygroup-count"><span class="tp-small">' + count + '</span></span>';
   }
-  function eventTypeOf(s) {
-    if (s.street || s.type === 'other') return 'Drives and street runs';
-    if (s.type === 'drag') return 'Drag runs';
-    if (s.type === 'sprint') return isHillSession(s, library) ? 'Hill climbs' : 'Sprints';
-    return 'Track days';
-  }
-  var EVENT_ORDER = ['Track days', 'Sprints', 'Hill climbs', 'Drag runs', 'Drives and street runs'];
-  // The list in one card per circuit, or per kind of event. A card opens from its heading; with one card it starts open,
-  // and a closed circuit card shows its fastest session, as a day does.
-  function groupedListHtml(list, mode) {
-    var groups = {}, order = [];
-    list.forEach(function (s) {
-      var k = mode === 'type' ? eventTypeOf(s) : trackName(s);
-      if (!groups[k]) { groups[k] = []; order.push(k); }
-      groups[k].push(s);
-    });
-    if (mode === 'type') order.sort(function (a, b) { return EVENT_ORDER.indexOf(a) - EVENT_ORDER.indexOf(b); });
-    function score(x) { return x.type === 'drag' ? (x.quarter || (x.s60 ? 1000 + x.s60 : 0)) : x.bestTime || 0; }
-    return order.map(function (k) {
-      var g = groups[k], key = mode + ':' + k;
-      var fast = mode === 'circuit' && g.length > 1 ? g.filter(function (x) { return score(x) > 0; }).sort(function (a, b) { return score(a) - score(b); })[0] : null;
-      var many = g.length > 1, open = !many || (openDays[key] !== undefined ? openDays[key] : order.length === 1);
-      var count = g.length + ' session' + (many ? 's' : '');
-      return '<div class="card tp-daygroup" data-open="' + (open ? 'true' : 'false') + '" data-day="' + esc(key) + '">' +
-        '<div class="tp-daygroup-head">' + groupTitleHtml(k, k + ', ' + count, open, many) + groupCountHtml(count, g.length, open, many) + '</div>' +
-        (fast ? '<div class="tp-daygroup-best"><span class="tp-small tp-daygroup-label">Fastest session</span>' + groupRow(fast, false) + '</div>' : '') +
-        '<div class="tp-list tp-daygroup-all">' + g.map(function (x) { return groupRow(x, mode === 'type'); }).join('') + '</div></div>';
-    }).join('');
-  }
   function sessionListHtml(list, owner, all) {
-    if (groupMode === 'circuit' || groupMode === 'type') return groupedListHtml(list, groupMode);
     var groups = {}, order = [];
     list.forEach(function (s) {
       var k = dayKey(s) || 'one:' + s.id;
@@ -865,7 +815,7 @@
     chain.then(function () {
       mine = null; counts = null;
       justSaved = { text: failed ? failed + ' of the ' + ids.length + ' sessions for ' + what + ' could not be deleted. Try again.' : (ids.length === 1 ? 'Deleted the session (' + what + ').' : 'Deleted all ' + ids.length + ' sessions for this day (' + what + ').') };
-      showHome();
+      route();
     });
   });
   // The switch on a day's group: share every session that day at that track, or make them all Only me.
@@ -884,7 +834,7 @@
     chain.then(function () {
       mine = null; counts = null;
       justSaved = { text: failed ? failed + ' of the ' + ids.length + ' sessions at ' + what + ' could not be changed. Try again.' : (ids.length === 1 ? 'The session at ' + what + ' is now ' : 'All ' + ids.length + ' sessions at ' + what + ' are now ') + (share ? 'Shared' : 'Only me') + '.' };
-      showHome();
+      route();
     });
   });
   // Two files from one session (a lap timer's and the car's): join them, or save them separately.

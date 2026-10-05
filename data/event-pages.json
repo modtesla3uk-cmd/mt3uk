@@ -268,6 +268,18 @@
       "location": "The Motorist, Leeds",
       "image": "https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/events/the-motorist-car-meet/95424ef57fc24dab.jpg",
       "poster": "https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/events/the-motorist-car-meet/f46fabedcac94412.jpg",
+      "description": [
+        "Join Us for the Ultimate Tesla Meet at The Motorist, Leeds!",
+        "​Get ready to plug in and turn heads. We’re bringing together the region’s best EV community for a Tesla meet at Yorkshire’s premier automotive hub—The Motorist in Sherburn in Elmet, Leeds.",
+        "Whether you drive a daily-driven Model 3, a tuned Model Y, an iconic Model X, or a classic Model S, park up alongside fellow owners, chat builds, share track-day data, and enjoy a full morning surrounded by cutting-edge EV technology."
+      ],
+      "highlights": [
+        "Open to all",
+        "The Cybertruck",
+        "The Model S Plaid"
+      ],
+      "ctaUrl": "https://www.facebook.com/share/1E3kc3SWzd/",
+      "ctaLabel": "Confirm on MT3UK Facebook Group",
       "draft": true,
       "created": "2026-10-06"
     }

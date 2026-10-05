@@ -2335,6 +2335,28 @@ def test_satellite_tiles_keep_up_while_playing_zoomed_in(page):
     assert len(set(requests)) > 8, len(set(requests))
 
 
+def test_speed_is_written_above_the_cursor_not_drawn_as_a_chart(page):
+    """There is no Speed chart: the speed of each lap shows above the cursor on the top chart, and follows it."""
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    expect(page.locator("#tp-gtoggles .chip", has_text="Speed")).to_have_count(0)
+    expect(page.locator("#tp-gforce svg[data-g='spd']")).to_have_count(0)
+    speed = page.locator("#tp-gforce .tp-gspeed")
+    expect(speed).to_be_hidden()
+    svg = page.locator("#tp-gforce svg").first
+    svg.scroll_into_view_if_needed()
+    box = svg.bounding_box()
+    page.mouse.move(box["x"] + box["width"] * 0.4, box["y"] + box["height"] / 2)
+    expect(speed).to_be_visible()
+    first = speed.text_content()
+    assert re.fullmatch(r"\d+ mph(\s+\d+ mph)?", first.strip()), first
+    page.mouse.move(box["x"] + box["width"] * 0.8, box["y"] + box["height"] / 2)
+    assert speed.text_content() != first
+    # It sits above the plot, clear of the chart's own title row.
+    sb, tb = speed.bounding_box(), page.locator("#tp-gforce svg").first.bounding_box()
+    assert tb["y"] <= sb["y"] and sb["y"] + sb["height"] <= tb["y"] + 32, (sb, tb)
+
+
 def test_braking_g_has_its_own_chart_from_zero_up_with_its_max_line(page):
     """Braking G is the lengthways g below zero drawn upwards: its scale never goes below 0 g, it has a dashed line and a
     dot at the hardest stop, and the same figure is listed under the charts."""
@@ -2384,7 +2406,7 @@ def test_g_force_lines_can_be_switched_on_and_off(page):
     fake = FakeWorker()
     save_thruxton_with_a_member_board(page, fake)
     toggles = page.locator("#tp-gtoggles .chip")
-    expect(toggles).to_have_text(["Acceleration G", "Braking G", "Cornering G", "Speed"])
+    expect(toggles).to_have_text(["Acceleration G", "Braking G", "Cornering G"])
     # A session opens showing one measure, cornering: one chart, lap A blue and lap B orange, two dots, no dashes.
     expect(page.locator("#tp-gtoggles .chip.is-on")).to_have_text(["Cornering G"])
     charts, lines = page.locator("#tp-gforce svg"), page.locator("#tp-gforce path[stroke-width]")
@@ -2415,24 +2437,21 @@ def test_g_force_lines_can_be_switched_on_and_off(page):
     expect(charts).to_have_count(2)
     expect(lines).to_have_count(4)
     expect(page.locator("#tp-gforce svg[data-g='acc'] path[stroke='#2a78d6']")).to_have_count(1)
-    toggles.nth(3).click()
+    toggles.nth(1).click()
     expect(charts).to_have_count(3)
     expect(lines).to_have_count(6)
     # Stacked charts are each named in their corner, in the order they are drawn.
-    expect(page.locator("#tp-gforce .tp-gtitle")).to_have_text(["Acceleration G", "Cornering G", "Speed"])
+    expect(page.locator("#tp-gforce .tp-gtitle")).to_have_text(["Acceleration G", "Braking G", "Cornering G"])
     expect(page.locator("#tp-gforce path[stroke-dasharray]")).to_have_count(0)
     assert [c.bounding_box()["y"] for c in charts.all()] == sorted(c.bounding_box()["y"] for c in charts.all())
-    expect(page.locator("#tp-gforce svg[data-g='acc'] text[text-anchor='middle']")).to_have_count(0)
-    assert page.locator("#tp-gforce svg[data-g='spd'] text[text-anchor='middle']").count() > 2
-    # Speed takes a scale in the member's unit, with no g.
-    labels = [x.strip() for x in page.locator("#tp-gforce svg[data-g='spd'] text[text-anchor='end']").all_text_contents()]
-    assert labels and all(not l.endswith(" g") for l in labels) and labels[0] == "0", labels
+    expect(page.locator("#tp-gforce svg[data-g='acc'] text[text-anchor='middle']:not(.tp-gspeed)")).to_have_count(0)
+    assert page.locator("#tp-gforce svg[data-g='cor'] text[text-anchor='middle']:not(.tp-gspeed)").count() > 2
     toggles.nth(0).click()
-    toggles.nth(2).click()
+    toggles.nth(1).click()
     expect(charts).to_have_count(1)
     expect(lines).to_have_count(2)
     # Nothing on says so.
-    toggles.nth(3).click()
+    toggles.nth(2).click()
     expect(page.locator("#tp-gnote")).to_have_text("Turn a line on to see it.")
     expect(lines).to_have_count(0)
     # Each session opens with cornering alone again.
@@ -2520,14 +2539,14 @@ def test_full_screen_map_on_a_phone(page):
     # All three charts on: the stack is held back so the map keeps its room, and everything still fits the screen.
     toggles = page.locator("#tp-gtoggles .chip")
     toggles.nth(0).click()
-    toggles.nth(3).click()
+    toggles.nth(1).click()
     expect(page.locator("#tp-gforce svg")).to_have_count(3)
     mb = page.locator("#tp-map2").bounding_box()
     assert mb["height"] >= 170, mb
     gb = page.locator("#tp-gforce").bounding_box()
     assert gb["height"] <= 250 and gb["y"] + gb["height"] <= 845, gb
     toggles.nth(0).click()
-    toggles.nth(3).click()
+    toggles.nth(1).click()
     # A phone on its side: the map takes the whole screen, with the controls and numbers laid over it.
     page.set_viewport_size({"width": 844, "height": 390})
     page.wait_for_timeout(300)
@@ -2592,11 +2611,11 @@ def test_full_screen_map_on_a_phone(page):
     assert sh["x"] >= gb["x"] and sh["x"] + sh["width"] <= 844, (sh, gb)
     toggles = page.locator("#tp-gtoggles .chip")
     toggles.nth(0).click()
-    toggles.nth(3).click()
+    toggles.nth(1).click()
     expect(page.locator("#tp-gforce svg")).to_have_count(3)
     for svg in page.locator("#tp-gforce svg").all():
         b = svg.bounding_box()
-        assert b["height"] >= 44 and b["y"] + b["height"] <= 390, b
+        assert b["height"] >= 40 and b["y"] + b["height"] <= 390, b
     # The Show G-Forces switch swaps between the map alone and the map with the charts.
     page.locator("#tp-gshow").click()
     expect(page.locator("#tp-gforce")).to_be_hidden()
@@ -2635,7 +2654,7 @@ def test_full_screen_map_on_a_phone(page):
     page.locator("#tp-gshow").click()
     assert 480 <= page.locator("#tp-map2").bounding_box()["width"] <= 530
     toggles.nth(0).click()
-    toggles.nth(3).click()
+    toggles.nth(1).click()
     page.locator("#tp-mapwrap .tv-zoom-full").click()
     expect(page.locator("#tp-mapcard")).not_to_have_class(re.compile(r"is-full"))
 
@@ -3467,7 +3486,7 @@ def test_the_chart_is_on_time_and_moving_over_it_moves_playback(page):
     gs = page.locator("#tp-gforce svg").first
     gs.scroll_into_view_if_needed()
     # The time axis is the ruler: minutes and seconds along the bottom.
-    labels = gs.locator("text[text-anchor='middle']").evaluate_all("els => els.map(e => e.textContent)")
+    labels = gs.locator("text[text-anchor='middle']:not(.tp-gspeed)").evaluate_all("els => els.map(e => e.textContent)")
     assert labels[0] == "0:00" and all(re.match(r"^\d+:\d\d$", t) for t in labels), labels
     expect(page.locator("#tp-ruler")).to_be_hidden()
     # The slider sits under the chart, with its ends at the chart's axis.

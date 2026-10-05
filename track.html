@@ -247,6 +247,8 @@
   .tp-gbox.is-off #tp-gtoggles, .tp-gbox.is-off #tp-gforce, .tp-gbox.is-off #tp-gnote, .tp-gbox.is-off #tp-gpeaks { display: none; }
   .tp-gpeaks { margin: 6px 0 0; line-height: 1.5; }
   .tp-gpeaks .tp-gmax { white-space: nowrap; }
+  /* Full screen keeps the room for the map: the figures are in the chart's dashed lines and the note is hidden. */
+  .tp-mapcard.is-full #tp-gpeaks { display: none; }
   /* Under the chart, the slider lines up with the chart's time axis, which is its ruler. */
   .tp-gbox .tp-scrub-row { display: block; margin-top: -2px; }
   .tp-gbox .tp-clock { display: block; text-align: right; margin-top: 2px; }
@@ -879,7 +881,7 @@
 <script src="js/track-view.js?v=20261181" defer></script>
 <script src="js/tyre-data.js"></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20261192" defer></script>
+<script src="js/track-page.js?v=20261193" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=7" defer></script>
 <script src="js/signin-prompt.js" defer></script>

@@ -2548,9 +2548,9 @@
   // What the G-force charts show (key, label). Each measure switched on gets a chart of its own, stacked, with lap A
   // in its blue and lap B in its orange, as on the map, so colour always means the car. Each session opens showing
   // one, cornering; more can be switched on with the chips.
-  var G_DEFS = [['acc', 'Acceleration G'], ['brk', 'Braking G'], ['cor', 'Cornering G'], ['spd', 'Speed']];
-  var gShow = { acc: false, brk: false, cor: true, spd: false }, gShowFor = null;
-  function gReset(id) { if (gShowFor !== id) { gShow = { acc: false, brk: false, cor: true, spd: false }; gShowFor = id; } }
+  var G_DEFS = [['acc', 'Acceleration G'], ['brk', 'Braking G'], ['cor', 'Cornering G']];
+  var gShow = { acc: false, brk: false, cor: true }, gShowFor = null;
+  function gReset(id) { if (gShowFor !== id) { gShow = { acc: false, brk: false, cor: true }; gShowFor = id; } }
 
   // The whole G-force and speed chart can be hidden (remembered in this browser).
   var gHidden = false;
@@ -3019,7 +3019,6 @@
         if (gShow.acc) h += V.row('Accel, A', fmtAcc(ra[1]), c1) + (A === B ? '' : V.row('Accel, B', fmtAcc(rb[1]), c2));
         if (gShow.brk) h += V.row('Braking, A', fmtBrk(ra[1]), c1) + (A === B ? '' : V.row('Braking, B', fmtBrk(rb[1]), c2));
         if (gShow.cor) h += V.row('Corner, A', fmtCor(ra[2]), c1) + (A === B ? '' : V.row('Corner, B', fmtCor(rb[2]), c2));
-        if (gShow.spd) h += V.row('Speed, A', V.fmtV(at(spA, x)[1]), c1) + (A === B ? '' : V.row('Speed, B', V.fmtV(at(spB, x)[1]), c2));
         return h;
       }
       // The charts: one for each measure switched on, stacked on a shared time axis, lap A in blue and lap B in
@@ -3040,6 +3039,24 @@
       }
       function mss(v) { return Math.floor(v / 60) + ':' + ('0' + Math.round(v % 60)).slice(-2); }
       var gls = [];
+      // The speed of each lap, written above the cursor on the top chart (blue for lap A, orange for lap B), in the
+      // chart's top margin so it never covers a line. It shows and hides with the cursor.
+      function speedAtCursor(svg, gl, topM) {
+        var ns = 'http://www.w3.org/2000/svg', tx = document.createElementNS(ns, 'text'), show = gl.show, hide = gl.hide;
+        tx.setAttribute('class', 'tp-gspeed'); tx.setAttribute('text-anchor', 'middle'); tx.setAttribute('visibility', 'hidden'); tx.setAttribute('pointer-events', 'none');
+        tx.setAttribute('style', 'font-size:11px;font-weight:600;paint-order:stroke;stroke:#ffffff;stroke-width:3px;stroke-linejoin:round');
+        tx.setAttribute('y', topM - 6);
+        svg.appendChild(tx);
+        gl.show = function (x, e) {
+          show(x, e);
+          var a = V.fmtV(at(spA, x)[1]), b = A === B ? '' : V.fmtV(at(spB, x)[1]);
+          tx.innerHTML = '<tspan fill="' + c1 + '">' + esc(a) + '</tspan>' + (b ? '<tspan fill="#3d4658">  </tspan><tspan fill="' + c2 + '">' + esc(b) + '</tspan>' : '');
+          var half = (a.length + (b ? b.length + 2 : 0)) * 3.4;
+          tx.setAttribute('x', Math.max(gl.plot.l + half, Math.min(gl.plot.W - gl.plot.r - half, gl.X(x))));
+          tx.setAttribute('visibility', 'visible');
+        };
+        gl.hide = function () { hide(); tx.setAttribute('visibility', 'hidden'); };
+      }
       function drawG() {
         var box = document.getElementById('tp-gforce'), note = document.getElementById('tp-gnote');
         if (!box) return;
@@ -3067,7 +3084,7 @@
         }
         var xt = timeTicks(box.clientWidth || 600);
         // Only the last chart has the time labels under it, so it has 20 more than the others and they plot as tall as it.
-        var Hn = Math.floor((H * defs.length - 20) / defs.length);
+        var Hn = Math.floor((H * defs.length - 20 - 14) / defs.length);
         defs.forEach(function (d, di) {
           var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
           svg.setAttribute('class', 'tv-chart tp-gchart');
@@ -3076,14 +3093,7 @@
           svg.setAttribute('aria-label', d[1] + ' over the lap for both laps');
           box.appendChild(svg);
           var series = [], gy, tip, underG, topG, gX, gY;
-          if (d[0] === 'spd') {
-            gy = V.nice(0, vmax, 4);
-            [spA, spB].forEach(function (lp, li) {
-              if (li && A === B) return;
-              series.push({ color: li ? c2 : c1, width: 1.5, pts: lp, at: function (x) { return at(lp, x)[1]; } });
-            });
-            tip = function (x) { return '<b>' + clock(x) + '</b>' + V.row('Speed, A', V.fmtV(at(spA, x)[1]), c1) + (A === B ? '' : V.row('Speed, B', V.fmtV(at(spB, x)[1]), c2)); };
-          } else {
+          {
             // Braking G is the lengthways g below zero drawn upwards, from 0 to the hardest stop.
             var brk = d[0] === 'brk', col = d[0] === 'cor' ? 2 : 1, lo = 0, hi = 0.5, fmt = brk ? fmtBrk : col === 1 ? fmtAcc : fmtCor, word = brk ? 'Braking' : col === 1 ? 'Accel' : 'Corner';
             var val = function (r) { return brk ? Math.max(0, -r[1]) : r[col]; };
@@ -3148,13 +3158,16 @@
             gy = brk ? V.nice(0, Math.max(0.5, Math.ceil(hi * 4) / 4), defs.length === 1 ? 4 : 2) : V.nice(-gm, gm, defs.length === 1 ? 4 : 2);
             tip = function (x) { return '<b>' + clock(x) + '</b>' + V.row(word + ', A', fmt(nearRow(gaT, x)[col]), c1) + (A === B ? '' : V.row(word + ', B', fmt(nearRow(gbT, x)[col]), c2)); };
           }
-          var spd = d[0] === 'spd';
-          gls.push(V.line(svg, {
+          // The speed is not a chart: it is written above the cursor on the top chart (below), so the charts have the room.
+          var first = di === 0, topM = first ? (defs.length > 1 ? 32 : 24) : defs.length > 1 ? 18 : undefined;
+          var gl = V.line(svg, {
             // The time labels sit under the last chart only; the ones above share its axis.
-            H: defs.length > 1 ? (di === defs.length - 1 ? Hn + 20 : Hn) : H, top: defs.length > 1 ? 18 : undefined, bottom: di === defs.length - 1 ? undefined : 8, x0: 0, x1: tEndG, y0: gy[0], y1: gy[gy.length - 1], xt: di === defs.length - 1 ? xt : [], xf: mss, yt: gy, zero: spd ? null : 0, yf: function (v) { return spd ? String(v) : v + ' g'; },
+            H: defs.length > 1 ? Hn + (first ? 14 : 0) + (di === defs.length - 1 ? 20 : 0) : H, top: topM, bottom: di === defs.length - 1 ? undefined : 8, x0: 0, x1: tEndG, y0: gy[0], y1: gy[gy.length - 1], xt: di === defs.length - 1 ? xt : [], xf: mss, yt: gy, zero: 0, yf: function (v) { return v + ' g'; },
             // Moving over a chart moves playback to that moment, slider, cursors and all.
             series: series, under: underG, tip: tip, onMove: function (t) { stopPlay(); pb.active = true; pb.t = t; renderAt(t); }, onLeave: leave
-          }));
+          });
+          gls.push(gl);
+          if (first) speedAtCursor(svg, gl, topM);
           if (topG) topG(svg);
           // With more than one chart showing, each is named in its top left corner, so it is clear which is which.
           if (defs.length > 1) {

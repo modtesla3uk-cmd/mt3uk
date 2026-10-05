@@ -221,11 +221,11 @@
     var gap = i ? '+' + (r.s - lead).toFixed(2) + ' s' : 'Fastest';
     var mods = e.mods || [];
     var tyres = b.tyres || e.tyres;
-    var who = [e.owner, [e.year, titleOf(e), e.version].filter(Boolean).join(' ')].filter(Boolean).join(' · ');
+    var who = [e.owner ? e.car : '', [e.year, titleOf(e), e.version].filter(Boolean).join(' ')].filter(Boolean).join(' · ');
     var info = '<span class="lb-tyre' + (tyres ? '' : ' is-none') + '">' + (tyres ? esc(tyres) : 'Tyres not given') + '</span><span class="lb-date">' + esc(T.niceDate(b.date)) +
       (b.conditions ? ' · ' + esc(b.conditions) : '') + (drag && b.quarterSpeed ? ' · ' + V.fmtV(b.quarterSpeed) : '') + (e.sessions > 1 ? ' · ' + e.sessions + ' sessions' : '') + '</span>';
     return '<li class="lb-row' + (i < 3 ? ' lb-top' + (i + 1) : '') + '"><span class="lb-pos">' + (i + 1) + '</span>' +
-      '<div class="lb-car"><a class="lb-name" href="track.html?s=' + esc(b.sessionId) + '">' + esc(e.car) + '</a><small>' + esc(who) + '</small></div>' +
+      '<div class="lb-car"><a class="lb-name" href="track.html?s=' + esc(b.sessionId) + '">' + esc(e.owner || e.car) + '</a><small>' + esc(who) + '</small></div>' +
       '<div class="lb-time"><b>' + res + '</b><small>' + gap + '</small></div>' +
       '<div class="lb-info">' + info + '</div>' +
       (mods.length ? '<div class="lb-mods">' + mods.slice(0, 4).map(function (m) { return '<span class="tp-modchip">' + esc(m) + '</span>'; }).join('') + (mods.length > 4 ? '<span class="tp-modchip is-more">+' + (mods.length - 4) + ' more</span>' : '') + '</div>' : '') +

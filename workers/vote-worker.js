@@ -7384,6 +7384,9 @@ async function handleTrackSessionGet(request, env) {
   if (adminView) out.adminView = true;
   var car = await getCarRecord(env, rec.carId);
   out.car = car ? car.name : '';
+  // A bike's session says bike, not car, on its page.
+  var carDetails = car ? await getCarDetails(env, rec.carId) : null;
+  if (carDetails && carDetails.vehicleType === 'bike') out.vehicleType = 'bike';
   // Whose it is, as other members see them (nickname or name), so a session opened from a leaderboard says who ran it.
   var ownerEmail = car ? await carOwnerEmail(env, car) : null;
   out.ownerName = ownerEmail ? (publicName(await getProfileRecord(env, ownerEmail)) || 'MT3UK member') : 'MT3UK member';

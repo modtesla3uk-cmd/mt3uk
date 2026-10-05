@@ -1370,7 +1370,7 @@ document.addEventListener('DOMContentLoaded', function () {
       </div>
       <div id="mb-car-selector-view">
         <div class="mb-upload-toggle-row" id="build-upload">
-          <button type="button" class="mb-upload-toggle-btn" id="mb-addcar-toggle-btn">+ Add Car No.1</button>
+          <button type="button" class="mb-upload-toggle-btn" id="mb-addcar-toggle-btn">+ Add Vehicle No.1</button>
           <details class="mb-track-menu is-quiet" id="mb-track-menu">
             <summary class="mb-upload-toggle-btn"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V4M4 4h12l-2 4 2 4H4"/></svg>Track your car?<svg class="icon mb-track-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
             <div class="mb-track-list">
@@ -1381,7 +1381,7 @@ document.addEventListener('DOMContentLoaded', function () {
         </div>
 
         <div class="mb-upload-card" id="mb-addcar-card" style="display:none;">
-          <h2>Add a car</h2>
+          <h2>Add a vehicle</h2>
           <p>Give your car a name and add up to 3 photos. A Tesla goes live in the Gallery straight away.</p>
           <p class="mb-field-hint">A car or bike of another make, including the Ioniq 5 N, Ioniq 6 N and Taycan, is kept in your garage instead.</p>
           <form id="mb-addcar-form">
@@ -1400,7 +1400,7 @@ document.addEventListener('DOMContentLoaded', function () {
               </div>
             </div>
             <div class="mb-other-make" id="mb-addcar-other" hidden>
-              <p class="mb-other-note"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span><strong>Kept in your garage.</strong> The Gallery, the Reel and Build of the Week are for Teslas, so this car isn't shown there. You can still build its mods list and use it in Track sessions, and ask us to show it in the Gallery later.</span></p>
+              <p class="mb-other-note"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span><strong>Kept in your garage.</strong> The Gallery, the Reel and Build of the Week are for Teslas, so this <span data-vword>car</span> isn't shown there. You can still build its mods list and use it in Track sessions, and ask us to show it in the Gallery later.</span></p>
               <div class="mb-other-fields" id="mb-addcar-other-fields">
               <div class="mb-field">
                 <span class="mb-field-label" id="mb-addcar-type-label">Car or bike</span>
@@ -1434,11 +1434,11 @@ document.addEventListener('DOMContentLoaded', function () {
               </div>
             </div>
             <div class="mb-field">
-              <label class="mono" for="mb-addcar-carname">Car name</label>
+              <label class="mono" for="mb-addcar-carname"><span data-vword-cap>Car</span> name</label>
               <input type="text" id="mb-addcar-carname" name="carName" placeholder="Enter a name for this build" required>
             </div>
             <div class="mb-field">
-              <label class="mono" for="mb-addcar-color">Car colour</label>
+              <label class="mono" for="mb-addcar-color"><span data-vword-cap>Car</span> colour</label>
               <select id="mb-addcar-color" name="color" required>
                 <option value="" disabled selected>Select a colour</option>
                 <option value="Red">Red</option>
@@ -1455,7 +1455,7 @@ document.addEventListener('DOMContentLoaded', function () {
               <label class="mono" for="mb-addcar-caption">Caption (optional)</label>
               <input type="text" id="mb-addcar-caption" name="caption" placeholder="e.g. Viper Green Model Y">
             </div>
-            <p class="mb-mods-next"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9Z"/></svg><span><strong>Mods come next.</strong> Once your car is in the garage we'll help you build its mods list, one area at a time.</span></p>
+            <p class="mb-mods-next"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9Z"/></svg><span><strong>Mods come next.</strong> Once your <span data-vword>car</span> is in the garage we'll help you build its mods list, one area at a time.</span></p>
             <div class="mb-field">
               <label class="mono" for="mb-addcar-photo">Photos (up to 3)</label>
               <input type="file" id="mb-addcar-photo" name="photo" accept="image/*" multiple required>
@@ -1534,7 +1534,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         <div class="mbm" id="mb-mods-builder"></div>
 
-        <button type="button" class="mb-btn mb-add-photo-btn" id="mb-addphoto-toggle-btn">+ Add photo to this car</button>
+        <button type="button" class="mb-btn mb-add-photo-btn" id="mb-addphoto-toggle-btn">+ Add photo</button>
         <div class="mb-upload-card" id="mb-addphoto-card" style="display:none;">
           <h2>Add a photo</h2>
           <p>Add another photo to this car. It'll go live straight away, wherever you choose below.</p>
@@ -1924,7 +1924,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function addCarLabel(cars) {
-      return cars.length ? 'Add Another Car?' : 'Add Car No.1';
+      return cars.length ? 'Add Another Vehicle?' : 'Add Vehicle No.1';
     }
 
     function updateAddCarToggleLabel(cars) {
@@ -1944,7 +1944,7 @@ document.addEventListener('DOMContentLoaded', function () {
       alerts = alerts || {};
       updateAddCarToggleLabel(cars);
       if (!cars.length) {
-        carGrid.innerHTML = '<p class="mb-empty">No cars linked to this email yet. Use the "+ Add Car No.1" button above to add one, or check the bell above for any notifications.</p>';
+        carGrid.innerHTML = '<p class="mb-empty">No vehicles linked to this email yet. Use the "+ Add Vehicle No.1" button above to add one, or check the bell above for any notifications.</p>';
         return;
       }
       carGrid.innerHTML = cars.map(function (car) {
@@ -2023,10 +2023,13 @@ document.addEventListener('DOMContentLoaded', function () {
         .join('');
     }
 
+    // "car" or "bike", for the buttons and notes on a vehicle's page.
+    function vehicleWord(car) { return car && car.vehicleType === 'bike' ? 'bike' : 'car'; }
+
     function renderPhotoStrip(car) {
       // A car added without a photo (on the Laps pages): say so, and let it be removed while it has none.
       if (!(car.photos || []).length) {
-        photoStrip.innerHTML = '<div class="mb-nophoto"><p>No photos yet. Use <strong>+ Add photo to this car</strong> above to add one. Its mods list and Track sessions work without one.</p>' +
+        photoStrip.innerHTML = '<div class="mb-nophoto"><p>No photos yet. Use <strong>+ Add photo to this ' + vehicleWord(car) + '</strong> above to add one. Its mods list and Track sessions work without one.</p>' +
           '<button type="button" class="btn btn-danger btn-sm" id="mb-car-remove">Remove this car</button></div>';
         return;
       }
@@ -2083,7 +2086,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var photoCount = (car.photos || []).length;
       carPhotoCount.textContent = photoCount + (photoCount === 1 ? ' photo' : ' photos');
       addPhotoCard.style.display = 'none';
-      addPhotoToggleBtn.textContent = '+ Add photo to this car';
+      addPhotoToggleBtn.textContent = '+ Add photo to this ' + vehicleWord(car);
       // A car kept in the garage has no Gallery, Reel or Voting choice for a new photo.
       addPhotoCard.querySelector('.mb-toggles').hidden = !!car.garageOnly;
       document.getElementById('mb-upload-garage-note').hidden = !car.garageOnly;
@@ -2660,8 +2663,19 @@ document.addEventListener('DOMContentLoaded', function () {
             .map(function (m) { return '<option value="' + escapeHtml(m) + '">'; }).join('');
         });
       };
+      // The form's words follow Car or bike (name, colour, the notes and the examples).
+      var wordForType = function () {
+        var bike = otherMakeChosen() && addCarType() === 'bike';
+        addCarForm.querySelectorAll('[data-vword]').forEach(function (el) { el.textContent = bike ? 'bike' : 'car'; });
+        addCarForm.querySelectorAll('[data-vword-cap]').forEach(function (el) { el.textContent = bike ? 'Bike' : 'Car'; });
+        addCarMake.placeholder = bike ? 'e.g. Ducati' : 'e.g. Kia';
+        addCarOtherModel.placeholder = bike ? 'e.g. Panigale V4' : 'e.g. EV6 GT';
+        document.getElementById('mb-addcar-caption').placeholder = bike ? 'e.g. Red Panigale V4' : 'e.g. Viper Green Model Y';
+        if (!addCarSubmitBtn.disabled) addCarSubmitBtn.textContent = bike ? 'Add bike' : 'Add car';
+      };
       var showOtherMake = function () {
         var on = otherMakeChosen();
+        wordForType();
         addCarOther.hidden = !on && !knownOtherMake();
         document.getElementById('mb-addcar-other-fields').hidden = !on;
         addCarMake.required = on;
@@ -2671,7 +2685,7 @@ document.addEventListener('DOMContentLoaded', function () {
       };
       addCarForm.addEventListener('change', function (e) {
         if (e.target.name === 'model') showOtherMake();
-        if (e.target.name === 'vehicleType') fillOtherLists();
+        if (e.target.name === 'vehicleType') { fillOtherLists(); wordForType(); }
       });
       addCarMake.addEventListener('input', fillOtherLists);
       addCarForm.addEventListener('reset', function () { setTimeout(showOtherMake, 0); });
@@ -2711,9 +2725,10 @@ document.addEventListener('DOMContentLoaded', function () {
           .then(function (res) { return res.json(); })
           .then(function (json) {
             addCarSubmitBtn.disabled = false;
-            addCarSubmitBtn.textContent = 'Add car';
+            var addedBike = otherMakeChosen() && addCarType() === 'bike';
+            addCarSubmitBtn.textContent = addedBike ? 'Add bike' : 'Add car';
             if (json.success) {
-              setStatus(addCarStatus, otherMake ? 'Car added to your garage.' : 'Car added.', 'ok');
+              setStatus(addCarStatus, addedBike ? 'Bike added to your garage.' : otherMake ? 'Car added to your garage.' : 'Car added.', 'ok');
               if (json.voteNote) mbToast(json.voteNote);
               addCarForm.reset();
               addCarCard.style.display = 'none';
@@ -2727,7 +2742,7 @@ document.addEventListener('DOMContentLoaded', function () {
           })
           .catch(function () {
             addCarSubmitBtn.disabled = false;
-            addCarSubmitBtn.textContent = 'Add car';
+            addCarSubmitBtn.textContent = otherMakeChosen() && addCarType() === 'bike' ? 'Add bike' : 'Add car';
             setStatus(addCarStatus, 'Something went wrong, please try again.', 'err');
           });
       });
@@ -2737,7 +2752,7 @@ document.addEventListener('DOMContentLoaded', function () {
       addPhotoToggleBtn.addEventListener('click', function () {
         var opening = addPhotoCard.style.display === 'none';
         addPhotoCard.style.display = opening ? 'block' : 'none';
-        addPhotoToggleBtn.textContent = opening ? '- Add photo to this car' : '+ Add photo to this car';
+        addPhotoToggleBtn.textContent = (opening ? '- ' : '+ ') + 'Add photo to this ' + vehicleWord(findCar(currentCarId));
       });
     }
 
@@ -2786,7 +2801,7 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('mb-upload-reel').checked = true;
             document.getElementById('mb-upload-votable').checked = true;
             addPhotoCard.style.display = 'none';
-            addPhotoToggleBtn.textContent = '+ Add photo to this car';
+            addPhotoToggleBtn.textContent = '+ Add photo to this ' + vehicleWord(findCar(currentCarId));
             loadCars();
           } else {
             setStatus(uploadStatus, data.message || 'Could not upload, please try again.', 'err');

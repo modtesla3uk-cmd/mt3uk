@@ -59,7 +59,7 @@ def test_laps_adds_a_car_without_a_photo(page):
     fake = NoCarWorker()
     open_page(page, fake)
     form = page.locator("#tp-addcar")
-    expect(form).to_contain_text("Add your car")
+    expect(form).to_contain_text("Add your vehicle")
     expect(form).to_contain_text("No photo needed")
     # Make and model are needed; the makes and models are suggested from the list.
     page.locator("#tp-addcar-save").click()
@@ -77,6 +77,7 @@ def test_laps_adds_a_car_without_a_photo(page):
     # Another car can be added from Your cars, as a bike.
     page.locator("#tp-car-add-open").click()
     page.locator('[data-addcar-type="bike"]').click()
+    expect(page.locator("#tp-addcar-save")).to_have_text("Add bike")
     page.fill("#tp-addcar-make", "Ducati")
     page.fill("#tp-addcar-model", "Panigale V4")
     page.fill("#tp-addcar-name", "Track bike")
@@ -109,3 +110,28 @@ def test_my_garage_shows_a_car_without_a_photo_and_can_remove_it(device_page):
     assert any(line.startswith("POST /my-builds/car/remove") for line in page.api_log[before:]), page.api_log[before:]
     assert overflow_width(page) <= 0
     assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_a_bikes_page_says_bike(device_page):
+    page = device_page
+    page.mock_state["car_details"] = {"make": "Ducati", "model": "Panigale V4", "vehicleType": "bike", "garageOnly": True,
+                                      "photos": [{"file": "duc.jpg", "caption": "", "gallery": False, "reel": False, "votable": False}]}
+    signed_in(page)
+    page.goto("/my-builds.html")
+    expect(page.locator("#mb-addcar-toggle-btn")).to_contain_text("Add Another Vehicle?")
+    page.locator(".mb-car-tile").first.click(timeout=10000)
+    expect(page.locator("#mb-addphoto-toggle-btn")).to_have_text("+ Add photo to this bike")
+    assert page.errors == [], diagnostics(page)
+
+
+def test_a_bike_session_says_bike(page):
+    from test_track_page import save_thruxton_with_a_member_board
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    expect(page.locator("#tp-follow")).to_have_text("Follow cars")
+    for rec in fake.sessions.values():
+        rec["vehicleType"] = "bike"
+    page.reload()
+    expect(page.locator("#tp-follow")).to_have_text("Follow bikes")
+    expect(page.locator("#tp-follow")).to_have_attribute("title", "When the map is zoomed in, keep the bikes in view")

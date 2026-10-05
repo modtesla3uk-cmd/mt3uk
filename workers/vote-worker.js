@@ -8230,7 +8230,18 @@ function cleanVehicleLibrary(input) {
       var t = trackText(md, 60);
       if (t && !have[t.toLowerCase()]) { have[t.toLowerCase()] = true; models.push(t); }
     });
-    makes.push({ name: name, type: type, models: models });
+    // Each model's variants (versions), offered in My Garage's Version box.
+    var versions = {}, vsrc = m.versions && typeof m.versions === 'object' ? m.versions : {};
+    Object.keys(vsrc).slice(0, 400).forEach(function (md) {
+      var mk = trackText(md, 60), list = [], seenV = {};
+      if (!mk || !have[mk.toLowerCase()]) return;
+      (Array.isArray(vsrc[md]) ? vsrc[md] : []).slice(0, 60).forEach(function (v) {
+        var t = trackText(v, 60);
+        if (t && !seenV[t.toLowerCase()]) { seenV[t.toLowerCase()] = true; list.push(t); }
+      });
+      if (list.length) versions[mk] = list;
+    });
+    makes.push({ name: name, type: type, models: models, versions: versions });
   });
   // The driven wheels by model ('kia|ev6': 'RWD'), set on the Vehicles panel through /track/admin/drive.
   var drives = {}, src = input.drives && typeof input.drives === 'object' ? input.drives : {};

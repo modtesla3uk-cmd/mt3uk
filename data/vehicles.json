@@ -1,5 +1,5 @@
 {
-  "_note": "Vehicle makes and models for Track sessions and Laps. This is the starting list; changes made on the Vehicles panel of track-admin.html are stored by the worker (KV vehicle-library) on top of it. Each make has a type, car or bike (BMW and Honda exist as both). The Model box suggests a make's models but accepts anything typed.",
+  "_note": "Vehicle makes and models for Track sessions and Laps. This is the starting list; changes made on the Vehicles panel of track-admin.html are stored by the worker (KV vehicle-library) on top of it. Each make has a type, car or bike (BMW and Honda exist as both). The Model box suggests a make's models but accepts anything typed. A make can list each model's variants (versions) too, offered in My Garage's Version box; variants are edited on the same panel.",
   "makes": [
     {
       "name": "Tesla",
@@ -11,7 +11,70 @@
         "Model X",
         "Cybertruck",
         "Roadster"
-      ]
+      ],
+      "versions": {
+        "Model S": [
+          "60",
+          "60D",
+          "70",
+          "70D",
+          "75",
+          "75D",
+          "85",
+          "85D",
+          "P85",
+          "P85+",
+          "P85D",
+          "90D",
+          "P90D",
+          "100D",
+          "P100D",
+          "Long Range",
+          "Long Range Plus",
+          "Performance",
+          "Plaid",
+          "Dual Motor All-Wheel Drive"
+        ],
+        "Model X": [
+          "60D",
+          "70D",
+          "75D",
+          "90D",
+          "P90D",
+          "100D",
+          "P100D",
+          "Long Range",
+          "Long Range Plus",
+          "Performance",
+          "Plaid",
+          "Dual Motor All-Wheel Drive"
+        ],
+        "Model 3": [
+          "Standard Range",
+          "Standard Range Plus",
+          "Mid Range",
+          "Long Range RWD",
+          "Long Range AWD",
+          "Performance",
+          "Rear-Wheel Drive",
+          "Highland Rear-Wheel Drive",
+          "Highland Long Range RWD",
+          "Highland Long Range AWD",
+          "Highland Performance"
+        ],
+        "Model Y": [
+          "Standard Range",
+          "Rear-Wheel Drive",
+          "Long Range RWD",
+          "Long Range AWD",
+          "Performance",
+          "Juniper Standard",
+          "Juniper Rear-Wheel Drive",
+          "Juniper Long Range RWD",
+          "Juniper Long Range AWD",
+          "Juniper Performance"
+        ]
+      }
     },
     {
       "name": "Hyundai",
@@ -22,7 +85,15 @@
         "Ioniq 5",
         "Ioniq 6",
         "Kona N"
-      ]
+      ],
+      "versions": {
+        "Ioniq 5 N": [
+          "Ioniq 5 N"
+        ],
+        "Ioniq 6 N": [
+          "Ioniq 6 N"
+        ]
+      }
     },
     {
       "name": "Kia",
@@ -42,7 +113,24 @@
         "911",
         "718 Cayman",
         "718 Boxster"
-      ]
+      ],
+      "versions": {
+        "Taycan": [
+          "Taycan",
+          "4",
+          "4S",
+          "GTS",
+          "Turbo",
+          "Turbo S",
+          "Turbo GT",
+          "Turbo GT Weissach Package",
+          "4 Cross Turismo",
+          "4S Cross Turismo",
+          "Turbo Cross Turismo",
+          "Turbo S Cross Turismo",
+          "GTS Sport Turismo"
+        ]
+      }
     },
     {
       "name": "Polestar",

@@ -1721,8 +1721,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <script src="js/passkeys.js?v=20261201"></script>
 <script src="js/mods-view.js"></script>
-<script src="js/vehicle-data.js?v=20261231"></script>
-<script src="js/mods-builder.js?v=20261130"></script>
+<script src="js/vehicle-data.js?v=20270101"></script>
+<script src="js/mods-builder.js?v=20270101"></script>
 <script>
   (function () {
     var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
@@ -3156,7 +3156,7 @@ document.addEventListener('DOMContentLoaded', function () {
       carMakeSelect.value = make;
       showMakeModels(make, model);
       carModelSelect.value = model;
-      carVersionSelect.innerHTML = MB.versionOptions(model, (car && car.version) || '');
+      carVersionSelect.innerHTML = MB.versionOptions(model, (car && car.version) || '', make);
       carYearSelect.innerHTML = MB.yearOptions((car && car.year) || '');
       if (carDriveSelect) carDriveSelect.value = (car && car.drive) || '';
       applyCarLocks();
@@ -3177,7 +3177,7 @@ document.addEventListener('DOMContentLoaded', function () {
       applyCarLocks();
     });
     carModelSelect.addEventListener('change', function () {
-      carVersionSelect.innerHTML = MB.versionOptions(carModelSelect.value, '');
+      carVersionSelect.innerHTML = MB.versionOptions(carModelSelect.value, '', carMakeSelect.value);
       workOutCarDrive();
       applyCarLocks();
     });

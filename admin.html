@@ -27,6 +27,12 @@
     <button id="load-btn" type="button">Load</button>
     <button id="refresh-btn" type="button" class="secondary" aria-label="Refresh everything from the server">Refresh</button>
   </div>
+  <div class="alerts-row" id="admin-alerts" role="group" aria-label="Notifications">
+    <span class="alerts-label">Notifications</span>
+    <button type="button" class="tk-switch" id="alerts-bell" role="switch" aria-checked="true"><span class="tk-track"></span><span>Bell</span></button>
+    <button type="button" class="tk-switch" id="alerts-email" role="switch" aria-checked="true"><span class="tk-track"></span><span>Email</span></button>
+    <p class="alerts-note" id="alerts-note" aria-live="polite"></p>
+  </div>
 </header>
 <main>
   <ul class="admin-nav" aria-label="Admin sections">
@@ -1368,13 +1374,21 @@
   }
 
   // Early access requests, new track requests and map edit requests wait on track-admin.html. Their counts come from the
-  // same lists that page loads, and each item links to its panel there.
+  // same lists that page loads, and each item links to its panel there. Gallery requests for cars of another make
+  // wait on this page's Other makes panel, which the item opens.
   function loadTrackBell(key) {
     function get(path) {
       return fetch(API + path + '?key=' + encodeURIComponent(key), { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
     }
-    return Promise.all([get('/track/access/admin'), get('/track/admin/requests'), get('/track/lines/admin')]).then(function (r) {
+    return Promise.all([get('/track/access/admin'), get('/track/admin/requests'), get('/track/lines/admin'), get('/my-builds/admin/garage-gallery')]).then(function (r) {
       var items = [];
+      var garageWrap = document.getElementById('garage-asks-wrap');
+      var asks = r[3] && r[3].pending ? r[3].pending : [];
+      asks.forEach(function (p) {
+        items.push({ id: 'garage-ask:' + p.carId + ':' + p.at, group: 'Gallery requests (other makes)', section: 'garage-asks', el: garageWrap,
+          img: p.photos && p.photos[0] ? R2 + '/gallery/' + encodeURIComponent(p.photos[0]) : '',
+          title: (p.car || 'A car') + (p.title ? ', ' + p.title : ''), sub: (p.name || p.email || 'A member') + ' wants it in the Gallery' });
+      });
       var access = r[0] && r[0].pending ? r[0].pending : [];
       access.forEach(function (p) {
         items.push({ id: 'access:' + p.email, group: 'Early access requests', href: 'track-admin.html#access-wrap', img: '', title: p.name || p.email || 'A member', sub: 'Wants early access to Track sessions' });
@@ -1500,6 +1514,12 @@
   });
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && !bellPanel.hidden) { closeBell(); bellBtn.focus(); }
+  });
+
+  // A panel that changes what the bell counts (Other makes) asks for it to be brought up to date.
+  document.addEventListener('mt3uk-bell-refresh', function () {
+    var key = keyInput.value.trim();
+    if (key) loadTrackBell(key);
   });
 
   var bellTimer = null;
@@ -2407,7 +2427,8 @@
 })();
 </script>
 <script src="js/admin-subnav.js?v=20261160" defer></script>
-<script src="js/garage-asks-admin.js?v=20261207" defer></script>
+<script src="js/admin-alerts.js?v=20261209" defer></script>
+<script src="js/garage-asks-admin.js?v=20261208" defer></script>
 <script src="js/track-parse.js?v=20261188" defer></script>
 <script src="js/track-view.js?v=20261181" defer></script>
 <script src="js/track-share-card.js?v=20261181"></script>

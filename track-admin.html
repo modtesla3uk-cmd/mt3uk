@@ -27,6 +27,12 @@
     <button id="load-btn" type="button">Load</button>
     <button id="refresh-btn" type="button" class="secondary" aria-label="Refresh everything from the server">Refresh</button>
   </div>
+  <div class="alerts-row" id="admin-alerts" role="group" aria-label="Notifications">
+    <span class="alerts-label">Notifications</span>
+    <button type="button" class="tk-switch" id="alerts-bell" role="switch" aria-checked="true"><span class="tk-track"></span><span>Bell</span></button>
+    <button type="button" class="tk-switch" id="alerts-email" role="switch" aria-checked="true"><span class="tk-track"></span><span>Email</span></button>
+    <p class="alerts-note" id="alerts-note" aria-live="polite"></p>
+  </div>
 </header>
 <main>
   <ul class="admin-nav" aria-label="Track admin sections">
@@ -182,6 +188,7 @@
 </main>
 <script src="js/track-admin-page.js?v=20261170"></script>
 <script src="js/admin-subnav.js?v=20261160" defer></script>
+<script src="js/admin-alerts.js?v=20261209" defer></script>
 <script src="js/track-parse.js?v=20261188" defer></script>
 <script src="js/track-view.js?v=20261181" defer></script>
 <script src="js/track-access-admin.js" defer></script>

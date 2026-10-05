@@ -491,3 +491,9 @@
   .ga-row { flex-direction: column; }
   .ga-photo { width: 30vw; height: 22vw; }
 }
+/* The Notifications switches at the top of admin.html and track-admin.html (js/admin-alerts.js). */
+.alerts-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: 4px 0 8px; font-size: 0.9rem; }
+.alerts-row .alerts-label { color: var(--steel); font-weight: 600; }
+.alerts-note { flex-basis: 100%; margin: 0; color: var(--steel); font-size: 0.85rem; }
+.alerts-note:empty { display: none; }
+.bell-off .bell-wrap { display: none; }

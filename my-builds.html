@@ -2112,7 +2112,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (hereCar && hereCar.garageOnly) {
         voteHint.innerHTML = '<p><strong>Kept in your garage:</strong> this car isn\'t shown in the Gallery, the Reel or Build of the Week. You can still build its mods list and use it in Track sessions.</p>' +
           (hereCar.galleryAsked
-            ? '<p>You\'ve asked us to show it in the Gallery. We\'ll email you when it\'s decided.</p>'
+            ? '<p>You\'ve asked us to show it in the Gallery. We\'ll email you when it\'s decided. Changed your mind? You can undo the request.</p><button type="button" class="btn btn-secondary btn-sm" id="mb-gallery-undo">Undo the request</button>'
             : '<p>Would you like it in the Gallery? Ask us and we\'ll take a look.</p><button type="button" class="btn btn-secondary btn-sm" id="mb-gallery-ask">Ask to show it in the Gallery</button>');
         return;
       }
@@ -2173,6 +2173,30 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.disabled = false;
         btn.textContent = 'Ask to show it in the Gallery';
         mbToast(err.message || 'Could not send it, please try again.');
+      });
+    });
+
+    // Undo a Gallery request: it comes off MT3UK's list and the car simply stays in the garage.
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('#mb-gallery-undo');
+      if (!btn || !currentCarId) return;
+      if (!window.confirm('Undo your request to show this car in the Gallery?\n\nThe request is withdrawn and the car stays in your garage, as it is now. You can ask again later.')) return;
+      btn.disabled = true;
+      btn.textContent = 'Undoing…';
+      fetch(API + '/my-builds/car/gallery-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Session-Token': getSession() },
+        body: JSON.stringify({ carId: currentCarId, cancel: true })
+      }).then(function (res) { return res.json(); }).then(function (d) {
+        if (!d.success) throw new Error(d.message || 'Could not undo it, please try again.');
+        var car = findCar(currentCarId);
+        if (car) car.galleryAsked = false;
+        renderVoteHint();
+        mbToast('Request withdrawn: the car stays in your garage.');
+      }).catch(function (err) {
+        btn.disabled = false;
+        btn.textContent = 'Undo the request';
+        mbToast(err.message || 'Could not undo it, please try again.');
       });
     });
 

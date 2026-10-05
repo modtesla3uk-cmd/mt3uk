@@ -497,3 +497,5 @@
 .alerts-note { flex-basis: 100%; margin: 0; color: var(--steel); font-size: 0.85rem; }
 .alerts-note:empty { display: none; }
 .bell-off .bell-wrap { display: none; }
+.alerts-row .alerts-install { min-height: 44px; }
+.alerts-row [hidden] { display: none; }

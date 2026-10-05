@@ -1375,3 +1375,26 @@ def test_the_bell_updates_as_soon_as_something_new_waits(page):
     # Coming back to the page checks at once (otherwise within 15 seconds).
     page.evaluate("document.dispatchEvent(new Event('visibilitychange'))")
     expect(page.locator("#bell-badge")).to_have_text("1", timeout=5000)
+
+
+@pytest.mark.parametrize("name,manifest,title", [("admin.html", "admin-manifest.json", "Install Admin"), ("track-admin.html", "track-admin-manifest.json", "Install Track Admin")])
+def test_each_admin_page_can_be_installed_as_its_own_app_with_push(page, name, manifest, title):
+    data = json.loads((Path(__file__).resolve().parent.parent / manifest).read_text(encoding="utf-8"))
+    assert data["start_url"] == "/" + name and data["id"] != "/" and data["display"] == "standalone"
+    assert any(i["sizes"] == "512x512" for i in data["icons"]) and any(i["sizes"] == "192x192" for i in data["icons"])
+    open_admin(page, name)
+    page.route("**/admin/alerts**", lambda route: route.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"},
+                                                               body=json.dumps({"success": True, "alerts": {"bell": True, "email": True}, "stamp": "1", "pushDevices": []})))
+    page.reload()
+    assert page.locator('link[rel="manifest"]').get_attribute("href") == manifest
+    install = page.locator("#alerts-install")
+    expect(install).to_have_text(title)
+    expect(install).to_be_visible()
+    # Without the browser's own install prompt it says how.
+    install.click()
+    expect(page.locator("#alerts-note")).to_contain_text("Add to Home")
+    # Push on this device shows where the browser can do it, off until switched on here.
+    push = page.locator("#alerts-push")
+    page.evaluate("document.dispatchEvent(new CustomEvent('mt3uk-admin-refresh'))")
+    expect(push).to_be_visible(timeout=10000)
+    expect(push).to_have_attribute("aria-checked", "false")

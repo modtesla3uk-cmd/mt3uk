@@ -1,0 +1,58 @@
+{
+  "id": "/track-admin",
+  "name": "MT3UK Track Admin",
+  "short_name": "Track Admin",
+  "description": "MT3UK admin tools: requests, reports and approvals.",
+  "lang": "en-GB",
+  "dir": "ltr",
+  "start_url": "/track-admin.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f3f1ea",
+  "theme_color": "#16233d",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "images/site/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "images/site/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "images/site/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "images/site/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "images/site/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Admin",
+      "short_name": "Admin",
+      "url": "/admin.html",
+      "icons": [
+        {
+          "src": "images/site/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}

@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Track admin | MT3UK</title>
+<link rel="icon" type="image/png" sizes="32x32" href="images/site/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="images/site/apple-touch-icon.png">
+<link rel="manifest" href="track-admin-manifest.json">
+<meta name="theme-color" content="#16233d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Track Admin">
+<meta name="application-name" content="Track Admin">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
@@ -31,6 +39,8 @@
     <span class="alerts-label">Notifications</span>
     <button type="button" class="tk-switch" id="alerts-bell" role="switch" aria-checked="true"><span class="tk-track"></span><span>Bell</span></button>
     <button type="button" class="tk-switch" id="alerts-email" role="switch" aria-checked="true"><span class="tk-track"></span><span>Email</span></button>
+    <button type="button" class="tk-switch" id="alerts-push" role="switch" aria-checked="false" hidden><span class="tk-track"></span><span>Push on this device</span></button>
+    <button type="button" class="secondary alerts-install" id="alerts-install" hidden>Install Track Admin</button>
     <p class="alerts-note" id="alerts-note" aria-live="polite"></p>
   </div>
 </header>
@@ -188,7 +198,7 @@
 </main>
 <script src="js/track-admin-page.js?v=20261210"></script>
 <script src="js/admin-subnav.js?v=20261160" defer></script>
-<script src="js/admin-alerts.js?v=20261210" defer></script>
+<script src="js/admin-alerts.js?v=20261211" defer></script>
 <script src="js/track-parse.js?v=20261188" defer></script>
 <script src="js/track-view.js?v=20261181" defer></script>
 <script src="js/track-access-admin.js" defer></script>

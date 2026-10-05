@@ -84,6 +84,21 @@ r = await call('GET', '/track/sessions', undefined, 'tok-a');
 ok((r.body.sessions || []).some(x => x.carId === gt3 && x.drive === 'FWD'), 'and keeps that choice');
 r = await call('GET', '/track/public?car=' + gt3, undefined, 'tok-a');
 ok(r.body.car && r.body.car.drive === 'AWD', 'the public car page shows the car\'s driven wheels');
+// ---- The admin's Driven wheels panel ----
+r = await call('GET', '/track/admin/drive');
+ok(r.status === 401, 'the driven wheels list needs the admin key');
+r = await call('GET', '/track/admin/drive?key=secret');
+const dwRow = (r.body.vehicles || []).find(x => x.carId === gt3);
+ok(dwRow && dwRow.sessions === 2 && dwRow.drive === 'AWD' && dwRow.set === true && dwRow.owner === 'Pat', 'it lists the car with its sessions, its driven wheels and its owner');
+r = await call('POST', '/track/admin/drive?key=secret', { carId: gt3, drive: 'RWD' });
+ok(r.body.success && r.body.drive === 'RWD' && r.body.stamped === 1, 'the admin can set them, and the session that differed is stamped');
+r = await call('GET', '/track/sessions', undefined, 'tok-a');
+ok((r.body.sessions || []).filter(x => x.carId === gt3).every(x => x.drive === 'RWD'), 'the sessions now carry RWD');
+r = await call('POST', '/track/admin/drive?key=secret', { carId: gt3, drive: '' });
+ok(r.body.success && r.body.drive === 'RWD' && r.body.set === false, 'cleared, the car goes back to what its model says (911 GT3: RWD)');
+r = await call('POST', '/track/boards/rebuild?key=secret');
+ok(r.body.success, 'the rebuild runs with the stamping in it');
+r = await call('GET', '/track/public?car=' + gt3, undefined, 'tok-a');
 ok(r.body.success && r.body.mine === true && r.body.car.owner === 'Pat', 'its public page knows the owner without a photo');
 
 // Removing: only the owner's own photoless cars.

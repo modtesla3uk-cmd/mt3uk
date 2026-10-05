@@ -350,7 +350,7 @@
     }).join('');
   }
   // The round share button, top right of a public session or build page.
-  var SITE_URL = 'https://mt3uk.com/';
+  var SITE_URL = 'https://laps.mt3uk.com/';
   // A car's make and model together (js/vehicle-data.js); cars saved before makes existed have only a model.
   function titleOf(c) { return window.MT3UKVehicles ? window.MT3UKVehicles.title(c) : (c.model || ''); }
   function shareDot(label) {

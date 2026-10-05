@@ -6,6 +6,9 @@
 */
 (function () {
   var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
+  // From mt3uk.com/laps.html the buttons go to laps.mt3uk.com.
+  document.querySelectorAll('a[href^="track.html"], a[href^="leaderboards.html"], a[href^="signin.html"]').forEach(function (a) { a.setAttribute('data-laps', ''); });
+  if (window.mt3ukLapsLinks) window.mt3ukLapsLinks();
   function read(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }
   // Seen once: laps.mt3uk.com/ now opens Sessions in this browser (index.html), where Play intro brings this back.
   try { localStorage.setItem('mt3ukLapsIntroSeen', '1'); } catch (e) {}

@@ -231,6 +231,21 @@
   function siteOf(host) { return SITES.main.indexOf(host) !== -1 ? 'main' : SITES.laps.indexOf(host) !== -1 ? 'laps' : ''; }
   var hereSite = siteOf(location.hostname);
 
+  // Links to the Laps pages from mt3uk.com (the menu's Track Sessions and Leaderboards, My Garage's buttons and
+  // links, the homepage tile, site search) carry data-laps, and go to laps.mt3uk.com on the live site. On
+  // localhost and on laps.mt3uk.com itself they are left as they are. Old bookmarks of mt3uk.com/track.html keep
+  // working: there is no redirect. window.mt3ukLapsUrl does the same for an address built in a script.
+  window.mt3ukLapsUrl = function (href) {
+    if (hereSite !== 'main') return href;
+    try { var u = new URL(href, location.href); return u.origin === location.origin ? 'https://' + SITES.laps[0] + u.pathname + u.search + u.hash : href; } catch (e) { return href; }
+  };
+  function lapsLinks(root) {
+    if (hereSite !== 'main') return;
+    (root || document).querySelectorAll('a[data-laps]').forEach(function (a) { a.href = window.mt3ukLapsUrl(a.getAttribute('href')); });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { lapsLinks(); }); else lapsLinks();
+  window.mt3ukLapsLinks = lapsLinks;
+
   // Where a link really goes: on Laps, a page that is not a Laps page is on mt3uk.com.
   function handoverTarget(href) {
     var u;

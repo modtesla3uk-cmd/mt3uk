@@ -75,6 +75,7 @@ def test_laps_adds_a_car_without_a_photo(page):
     assert fake.added == [{"make": "Porsche", "model": "911 GT3", "year": "2019", "vehicleType": "car", "name": ""}]
     expect(page.get_by_role("link", name="Add a session", exact=True)).to_be_visible()
     # Another car can be added from Your cars, as a bike.
+    page.locator("#tp-vtoggle").click()
     page.locator("#tp-car-add-open").click()
     page.locator('[data-addcar-type="bike"]').click()
     expect(page.locator("#tp-addcar-save")).to_have_text("Add bike")

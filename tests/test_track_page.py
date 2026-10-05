@@ -1410,9 +1410,13 @@ def test_cars_are_separate_from_sessions(page):
     expect(cars).to_have_count(1)
     expect(cars.first).to_contain_text("Arctic Three")
     expect(cars.first).to_contain_text("1 session")
-    # One vehicle: no Change button, just an Add a vehicle button.
-    expect(page.locator("#tp-vtoggle")).to_have_count(0)
+    # Add a vehicle is at the bottom of the vehicle list, not on the page.
+    expect(page.locator("#tp-car-add-open")).to_have_count(0)
+    page.locator("#tp-vtoggle").click()
     expect(page.locator("#tp-car-add-open")).to_be_visible()
+    page.locator("#tp-vtoggle").click()
+    expect(page.locator("#tp-car-add-open")).to_have_count(0)
+    expect(page.locator(".tp-refresh")).to_have_text("")
     expect(page.locator(".tp-for")).to_have_text("Arctic Three")
     expect(page.locator(".tp-list .tp-row")).to_have_count(1)
     expect(page.locator(".tp-lb-pill")).to_have_attribute("href", "leaderboards.html")

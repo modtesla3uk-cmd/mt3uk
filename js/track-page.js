@@ -472,7 +472,7 @@
   // (past the browser's and the network's copies), clears the stored copies of the site's service worker (never the
   // worker itself, which also carries push notifications), then loads the page again, so what the member sees is what
   // is live now.
-  function refreshChip() { return '<button type="button" class="chip tp-refresh" data-refresh aria-label="Refresh this page from the latest version">' + icon('refresh') + '<span>Refresh</span></button>'; }
+  function refreshChip() { return '<button type="button" class="chip tp-refresh" data-refresh aria-label="Refresh this page from the latest version" title="Refresh">' + icon('refresh') + '</button>'; }
   app.addEventListener('click', function (e) {
     var b = e.target.closest('[data-refresh]');
     if (!b || b.disabled) return;
@@ -536,12 +536,9 @@
   // The heading row has the vehicle picked beside it (Change opens the list under the row, a row for each vehicle and then
   // Add a vehicle). With one vehicle the picked one is just shown, with an Add a vehicle button under it.
   function vehiclesHtml(m, car) {
-    var many = m.cars.length > 1, n = carSessionCount(m, car);
+    var n = carSessionCount(m, car);
     var cur = '<span class="tp-vtext"><b>' + esc(car.name) + '</b><span>' + n + ' session' + (n === 1 ? '' : 's') + '</span></span>';
-    var head = '<div class="tp-vhead"><h2>Your vehicles</h2>' + (many
-      ? '<button type="button" class="tp-car tp-vcurrent is-on" id="tp-vtoggle" aria-expanded="' + vehiclesOpen + '">' + cur + '<span class="tp-vchange">' + icon('chev') + '</span></button>'
-      : '<div class="tp-car tp-vcurrent is-on">' + cur + '</div>') + '</div>';
-    if (!many) return head + '<button type="button" class="btn btn-secondary btn-sm tp-vaddone" id="tp-car-add-open">' + icon('plus') + 'Add a vehicle</button>';
+    var head = '<div class="tp-vhead"><h2>Your vehicles</h2><button type="button" class="tp-car tp-vcurrent is-on" id="tp-vtoggle" aria-expanded="' + vehiclesOpen + '">' + cur + '<span class="tp-vchange">' + icon('chev') + '</span></button></div>';
     if (!vehiclesOpen) return head;
     return head + '<div class="card tp-vlist" role="radiogroup" aria-label="Your vehicles">' + m.cars.map(function (c) {
       var on = c.id === car.id, k = carSessionCount(m, c);
@@ -919,9 +916,9 @@
       box.innerHTML = vehiclesHtml(m, car);
     }
     box.addEventListener('click', function (e) {
-      if (e.target.closest('#tp-vtoggle')) { vehiclesOpen = true; draw(); return; }
+      if (e.target.closest('#tp-vtoggle')) { vehiclesOpen = !vehiclesOpen; draw(); return; }
       var add = e.target.closest('#tp-car-add-open'), wrap = document.getElementById('tp-car-add-wrap');
-      if (add && wrap) { wrap.hidden = false; add.hidden = true; var mk = document.getElementById('tp-addcar-make'); if (mk) mk.focus(); return; }
+      if (add && wrap) { wrap.hidden = false; vehiclesOpen = false; draw(); var mk = document.getElementById('tp-addcar-make'); if (mk) mk.focus(); return; }
       var b = e.target.closest('[data-car]');
       if (!b) return;
       var picked = b.getAttribute('data-car');

@@ -1381,6 +1381,8 @@ def test_the_bell_updates_as_soon_as_something_new_waits(page):
 def test_each_admin_page_can_be_installed_as_its_own_app_with_push(page, name, manifest, title):
     data = json.loads((Path(__file__).resolve().parent.parent / manifest).read_text(encoding="utf-8"))
     assert data["start_url"] == "/" + name and data["id"] != "/" and data["display"] == "standalone"
+    # Its own page only: with the whole site as its scope, Chrome offers to open the installed MT3UK app instead.
+    assert data["scope"] == "/" + name
     assert any(i["sizes"] == "512x512" for i in data["icons"]) and any(i["sizes"] == "192x192" for i in data["icons"])
     open_admin(page, name)
     page.route("**/admin/alerts**", lambda route: route.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"},

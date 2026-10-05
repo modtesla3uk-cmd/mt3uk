@@ -8941,6 +8941,76 @@ async function handleTrackAdminRetimeSource(request, env) {
   return new Response(buf, { status: 200, headers: { 'Content-Type': 'application/gzip', 'Cache-Control': 'no-store', 'Access-Control-Allow-Origin': '*' } });
 }
 
+// Driven wheels on a car's saved sessions: the car's current ones (carDrive) go on every session of the car that
+// has none, in its record, the owner's list and the car's shared list; with force, on every session (the admin set
+// them). Admin only: the rebuild and the Driven wheels panel call it.
+async function stampCarDrive(env, carId, force) {
+  var record = await getCarRecord(env, carId);
+  if (!record) return 0;
+  var drive = carDrive(await getCarDetails(env, carId));
+  if (!drive) return 0;
+  var owner = await carOwnerEmail(env, record);
+  var oKey = owner ? 'track-index:' + (await ownerKey(owner)) : '';
+  var index = oKey ? await getJsonKey(env, oKey, []) : [];
+  var changed = 0, touched = false;
+  for (var i = 0; i < index.length; i++) {
+    var s = index[i];
+    if (s.carId !== carId || s.drive === drive || (s.drive && !force)) continue;
+    var rec = await getTrackSession(env, s.id);
+    if (rec) { rec.drive = drive; await putTrackSession(env, rec); }
+    s.drive = drive; touched = true; changed++;
+  }
+  if (touched) await env.VOTES.put(oKey, JSON.stringify(index));
+  var pKey = 'track-public:' + carId, shared = await getJsonKey(env, pKey, []), pt = false;
+  shared.forEach(function (s) { if (s.drive !== drive && (!s.drive || force)) { s.drive = drive; pt = true; } });
+  if (pt) await env.VOTES.put(pKey, JSON.stringify(shared));
+  return changed;
+}
+
+// Admin: every vehicle with sessions and the wheels it drives (GET), and setting them on one (POST), which stamps
+// its sessions and refreshes its board rows. list() over the members' session lists is fine here: admin only.
+var TRACK_DRIVE_MAX_INDEXES = 700;
+async function handleTrackAdminDrive(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  if (request.method === 'POST') {
+    var body;
+    try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+    var carId = String((body && body.carId) || '');
+    if (!/^[A-Za-z0-9_-]{1,80}$/.test(carId) || !(await getCarRecord(env, carId))) return json({ success: false, message: 'That vehicle was not found.' }, 404);
+    var details = (await getCarDetails(env, carId)) || {};
+    if (DRIVES.indexOf(body.drive) !== -1) details.drive = body.drive; else delete details.drive;
+    await saveCarDetails(env, carId, details);
+    var stamped = await stampCarDrive(env, carId, true);
+    var shared = await getJsonKey(env, 'track-public:' + carId, []), boards = {};
+    shared.forEach(function (s) { var k = trackBoardKey(s); if (k) boards[k] = true; });
+    var bk = Object.keys(boards);
+    for (var b = 0; b < bk.length; b++) await refreshTrackBoard(env, bk[b], carId);
+    return json({ success: true, drive: carDrive(details), set: DRIVES.indexOf(details.drive) !== -1, stamped: stamped, boards: bk.length });
+  }
+  var counts = {}, cursor, seen = 0;
+  do {
+    var page = await env.VOTES.list({ prefix: 'track-index:', cursor: cursor, limit: 100 });
+    for (var i = 0; i < page.keys.length; i++) {
+      var index = await getJsonKey(env, page.keys[i].name, []);
+      index.forEach(function (s) { if (s.carId) counts[s.carId] = (counts[s.carId] || 0) + 1; });
+      seen++;
+    }
+    cursor = page.list_complete ? null : page.cursor;
+  } while (cursor && seen < TRACK_DRIVE_MAX_INDEXES);
+  var rows = [], ids = Object.keys(counts);
+  for (var c = 0; c < ids.length; c++) {
+    var rec = await getCarRecord(env, ids[c]);
+    if (!rec) continue;
+    var d = (await getCarDetails(env, ids[c])) || {};
+    var email = await carOwnerEmail(env, rec);
+    rows.push({ carId: ids[c], car: rec.name || '', owner: email ? (publicName(await getProfileRecord(env, email)) || '') : '', email: email || '',
+      make: d.make || '', model: d.model || '', version: d.version || '', year: d.year || '', vehicleType: d.vehicleType || 'car',
+      drive: carDrive(d), set: DRIVES.indexOf(d.drive) !== -1, sessions: counts[ids[c]] });
+  }
+  rows.sort(function (a, b) { return (a.drive ? 1 : 0) - (b.drive ? 1 : 0) || String(a.owner || a.email).localeCompare(String(b.owner || b.email)) || String(a.car).localeCompare(String(b.car)); });
+  return json({ success: true, vehicles: rows });
+}
+
 async function handleTrackBoardsRebuild(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
   var params = new URL(request.url).searchParams;
@@ -8949,6 +9019,8 @@ async function handleTrackBoardsRebuild(request, env) {
   var done = 0;
   for (var i = 0; i < page.keys.length; i++) {
     var carId = page.keys[i].name.slice('track-public:'.length);
+    // The car's driven wheels go on any of its sessions that have none, so the rows below carry them.
+    await stampCarDrive(env, carId, false);
     var shared = await getJsonKey(env, page.keys[i].name, []);
     var boards = {};
     shared.forEach(function (s) { var k = trackBoardKey(s); if (k) boards[k] = true; });
@@ -10493,6 +10565,9 @@ export default {
     }
     if (url.pathname === '/sprint/board' && request.method === 'GET') {
       return handleTrackBoard(request, env, 'sprint');
+    }
+    if (url.pathname === '/track/admin/drive' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleTrackAdminDrive(request, env);
     }
     if (url.pathname === '/track/boards/rebuild' && request.method === 'POST') {
       return handleTrackBoardsRebuild(request, env);

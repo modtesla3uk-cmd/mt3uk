@@ -513,3 +513,16 @@
 .bell-off .bell-wrap { display: none; }
 .alerts-row .alerts-install { min-height: 44px; }
 .alerts-row [hidden] { display: none; }
+
+/* Driven wheels panel (track-admin.html, js/track-drive-admin.js): a row for each vehicle with sessions. */
+#dw-list .dw-row.is-target > td { background: #fff3d6; }
+#dw-list .dw-pick { min-height: 40px; }
+#dw-list .dw-how { display: block; }
+#dw-list .dw-sess { display: none; }
+@media (max-width: 780px) {
+  #dw-list table, #dw-list tbody, #dw-list .dw-row, #dw-list .dw-row > td { display: block; width: auto; min-width: 0; padding-left: 0; padding-right: 0; }
+  #dw-list .dw-row { padding: 10px 8px; border-bottom: 1px solid var(--hairline, rgba(22,35,61,.12)); }
+  #dw-list .dw-row > td { padding-top: 2px; padding-bottom: 2px; }
+  #dw-list .dw-sess { display: inline; }
+  #dw-list .dw-pick { width: 100%; max-width: 260px; min-height: 44px; font-size: 16px; margin-top: 4px; }
+}

@@ -143,6 +143,12 @@
       <select id="tk-board-pick" aria-label="Leaderboard"></select>
       <div id="tk-board"></div>
     </details>
+    <details class="collapsible" id="drive-wrap">
+      <summary><h3 class="panel-title">Driven wheels</h3></summary>
+      <p class="iv-note">Every vehicle with sessions, and the wheels it drives (FWD, RWD or AWD) as worked out from its make, model and version, or as its owner set. Set or correct one here: it is saved to the vehicle, stamped on its sessions and put on its leaderboard rows. Vehicles we cannot tell come first.</p>
+      <div class="iv-toolbar"><button type="button" class="secondary" id="dw-load">Load vehicles</button><span class="iv-note" id="dw-note" role="status"></span></div>
+      <div id="dw-list"></div>
+    </details>
     </div>
   </section>
 
@@ -210,6 +216,7 @@
 <script src="js/track-share-card.js?v=20261181"></script>
 <script src="js/track-share-admin.js?v=20261105" defer></script>
 <script src="js/track-copy-admin.js?v=20261102" defer></script>
+<script src="js/track-drive-admin.js?v=20261230" defer></script>
 <script src="js/tyre-data.js" defer></script>
 <script src="js/tyre-admin.js" defer></script>
 <script src="js/vehicle-data.js?v=20261228" defer></script>

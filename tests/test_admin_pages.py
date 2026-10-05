@@ -28,7 +28,7 @@ TRACK_GROUPS = [
     ("grp-access", "Access", ["access-wrap"]),
     ("grp-sessions", "Members' sessions", ["lines-wrap", "member-sessions-wrap"]),
     ("grp-tracks", "Tracks", ["tracks-wrap"]),
-    ("grp-boards", "Leaderboards", ["board-checks-wrap", "boards-wrap"]),
+    ("grp-boards", "Leaderboards", ["board-checks-wrap", "boards-wrap", "drive-wrap"]),
     ("grp-content", "Content", ["copy-wrap", "tyres-wrap", "vehicles-wrap", "share-wrap"]),
 ]
 
@@ -1532,3 +1532,33 @@ def test_one_place_lists_its_circuit_sprint_and_hill_climb_together_and_adds_the
     page.locator("#tk-save").click()
     page.wait_for_timeout(300)
     assert saved and saved[0]["venue"]["id"] == "" and saved[0]["venue"]["type"] == "sprint" and saved[0]["venue"]["name"] == "Goodwood", saved
+
+
+def test_the_driven_wheels_panel_lists_vehicles_with_sessions_and_sets_one(page):
+    ok = {"Access-Control-Allow-Origin": "*"}
+    state = {"posts": []}
+    rows = [{"carId": "c2", "car": "Mystery 3", "owner": "Bob", "email": "b@example.com", "make": "", "model": "Model 3", "version": "", "year": 2020, "vehicleType": "car", "drive": "", "set": False, "sessions": 4},
+            {"carId": "c1", "car": "Arctic Three", "owner": "Ann", "email": "a@example.com", "make": "Tesla", "model": "Model 3", "version": "Performance", "year": 2021, "vehicleType": "car", "drive": "AWD", "set": False, "sessions": 2}]
+
+    def handler(route):
+        if route.request.method == "POST":
+            body = json.loads(route.request.post_data)
+            state["posts"].append(body)
+            return route.fulfill(status=200, content_type="application/json", headers=ok, body=json.dumps({"success": True, "drive": body["drive"], "set": bool(body["drive"]), "stamped": 4, "boards": 1}))
+        return route.fulfill(status=200, content_type="application/json", headers=ok, body=json.dumps({"success": True, "vehicles": rows}))
+    open_admin(page, "track-admin.html")
+    page.route("**/track/admin/drive**", handler)
+    page.locator("#drive-wrap > summary").click()
+    table = page.locator("#dw-list tbody tr")
+    expect(table).to_have_count(2)
+    # The one we cannot tell comes first, marked, with Not known chosen; the known one shows where it came from.
+    expect(table.first).to_contain_text("Mystery 3")
+    expect(table.first).to_have_class(re.compile("is-target"))
+    assert table.first.locator(".dw-pick").input_value() == ""
+    assert table.nth(1).locator(".dw-pick").input_value() == "AWD"
+    expect(table.nth(1)).to_contain_text("From the model")
+    table.first.locator(".dw-pick").select_option("RWD")
+    expect(page.locator("#dw-note")).to_contain_text("RWD saved: 4 sessions stamped and 1 leaderboard refreshed")
+    assert state["posts"] == [{"carId": "c2", "drive": "RWD"}]
+    expect(table.first).to_contain_text("Set by hand")
+    expect(table.first).not_to_have_class(re.compile("is-target"))

@@ -43,7 +43,7 @@ def test_add_a_car_asks_for_the_model_and_opens_the_new_car(device_page):
     years = page.locator("#mb-addcar-year option").all_inner_texts()
     assert years[1] == str(__import__("datetime").date.today().year) and years[-1] == "2012"
     # Versions follow the model picked, with no Cybertruck or Roadster.
-    assert form.locator(".mb-model-pick input").evaluate_all("els => els.map(e => e.value)") == ["Model 3", "Model Y", "Model S", "Model X", "Hyundai Ioniq 5 N", "Hyundai Ioniq 6 N", "Porsche Taycan"]
+    assert form.locator(".mb-model-pick input[name=model]").evaluate_all("els => els.map(e => e.value)") == ["Model 3", "Model Y", "Model S", "Model X", "Hyundai Ioniq 5 N", "Hyundai Ioniq 6 N", "Porsche Taycan", "__other__"]
     expect(form.locator(".mb-model-group")).to_have_text("Other cars")
     versions = page.locator("#mb-addcar-version option").all_inner_texts()
     assert "Juniper Performance" in versions and "Long Range AWD" in versions and "P100D" not in versions

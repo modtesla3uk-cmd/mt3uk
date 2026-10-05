@@ -3348,7 +3348,8 @@ async function handlePhotoReportsAdminDismiss(request, env) {
     var existingObj = await env.GALLERY_BUCKET.get(sidecarKey);
     if (existingObj) sidecar = await existingObj.json();
   } catch (e) {}
-  if (sidecar && (sidecar.gallery === false || sidecar.reel === false || sidecar.votable === false)) {
+  // A photo of a car kept in the garage was never shown, so it stays hidden.
+  if (sidecar && sidecar.garageOnly !== true && (sidecar.gallery === false || sidecar.reel === false || sidecar.votable === false)) {
     sidecar.gallery = true;
     sidecar.reel = true;
     sidecar.votable = true;
@@ -5204,6 +5205,9 @@ async function saveCarDetails(env, carId, details) {
 var CAR_MODELS = ['Model 3', 'Model Y', 'Model S', 'Model X', 'Hyundai Ioniq 5 N', 'Hyundai Ioniq 6 N', 'Porsche Taycan'];
 // A car (or bike) can also have a make and a vehicle type. Cars saved before these existed have neither, and count as cars.
 var VEHICLE_TYPES = ['car', 'bike'];
+// The listed models that are not Teslas, with their make. Since October 2026 only Teslas go straight into the
+// Gallery: these, like any other make, are kept in the owner's garage unless MT3UK shows them.
+var NON_TESLA_MODELS = { 'Hyundai Ioniq 5 N': 'Hyundai', 'Hyundai Ioniq 6 N': 'Hyundai', 'Porsche Taycan': 'Porsche' };
 
 // The areas of the mods builder (js/mods-builder.js has the labels and
 // choices). fields: text answers. kinds: bodywork's separate jobs.
@@ -6204,6 +6208,10 @@ async function handleMyBuildsGet(request, env) {
   }
   groups.sort(function (a, b) { return firstAdded(a) - firstAdded(b); });
 
+  // Cars kept in the garage (another make), and whether one has asked to be shown in the Gallery (one key).
+  var galleryAsks = groups.some(function (g) { return records[g.id] && records[g.id].garageOnly === true; })
+    ? (await getJsonKey(env, GARAGE_GALLERY_KEY, { pending: [] })).pending || [] : [];
+
   var cars = await Promise.all(groups.map(async function (g) {
     var record = records[g.id];
     var photos = await Promise.all(g.entries.map(async function (entry) {
@@ -6241,6 +6249,8 @@ async function handleMyBuildsGet(request, env) {
       color: color,
       make: (details && details.make) || '',
       vehicleType: (details && details.vehicleType) || '',
+      garageOnly: !!(record && record.garageOnly === true),
+      galleryAsked: !!(record && record.garageOnly === true && galleryAsks.some(function (r) { return r.carId === g.id; })),
       model: (details && details.model) || '',
       version: (details && details.version) || '',
       year: (details && details.year) || '',
@@ -6309,6 +6319,13 @@ async function handleMyBuildsUpdate(request, env) {
   // notifications, so this photo starts receiving them from here on.
   if (!sidecar.email) sidecar.email = email;
 
+  // A photo of a car kept in the garage (another make) stays out of the Gallery, the Reel and the vote
+  // until MT3UK approves the car (POST /my-builds/car/gallery-request); its other details can still change.
+  var garageOnly = sidecar.garageOnly === true;
+  if (garageOnly && body && (body.gallery === true || body.reel === true || body.votable === true || body.vote === 'enter')) {
+    return json({ success: false, garageOnly: true, message: GARAGE_ONLY_MESSAGE }, 403);
+  }
+
   // Voting on means "this is my entry in this week's Build of the Week
   // vote". Each member has one entry: entering a photo takes their other
   // entry out (losing its votes this week, which My Garage warns about
@@ -6354,7 +6371,7 @@ async function handleMyBuildsUpdate(request, env) {
     delete sidecar.votable;
   }
 
-  if (sidecar.gallery === false && sidecar.reel === false && sidecar.votable === false) {
+  if (!garageOnly && sidecar.gallery === false && sidecar.reel === false && sidecar.votable === false) {
     return json({ success: false, message: 'At least one of Gallery, Reel or Voting must stay on, otherwise the photo won’t be visible anywhere.' }, 400);
   }
 
@@ -8631,6 +8648,154 @@ async function deleteCarTrackData(env, carId) {
   for (var i = 0; i < keys.length; i++) await refreshTrackBoard(env, keys[i], carId);
 }
 
+// ---------- Cars kept in the garage (another make) ----------
+// A car of a make other than those the Gallery takes (My Garage's Add a car, "Another make") is kept in the
+// garage: its record and photos carry garageOnly, so the photos have Gallery, Reel and Voting off and cannot
+// be switched on. The member can ask for it to be shown; the request waits in one KV key (read with get())
+// for MT3UK to approve or decline on admin.html (Other makes panel).
+var GARAGE_GALLERY_KEY = 'garage-gallery-requests';
+var GARAGE_ONLY_MESSAGE = 'This car is kept in your garage, so its photos are not shown in the Gallery, the Reel or Build of the Week. You can ask MT3UK to show it, from the car’s page.';
+
+async function garageCarTitle(env, carId, record) {
+  var details = await getCarDetails(env, carId);
+  var make = (details && details.make) || '', model = (details && details.model) || '';
+  var title = make && model && model.toLowerCase().indexOf(make.toLowerCase()) !== 0 ? make + ' ' + model : (model || make);
+  return { title: title, type: (details && details.vehicleType) || 'car', name: (record && record.name) || '' };
+}
+
+async function handleGarageGalleryRequest(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var body = {};
+  try { body = await request.json(); } catch (e) { body = {}; }
+  var carId = String((body && body.carId) || '');
+  var record = carId ? await carBelongsTo(env, email, carId) : null;
+  if (!record) return json({ success: false, message: 'That car is not linked to your account' }, 403);
+  if (record.garageOnly !== true) return json({ success: false, message: 'That car is already shown in the Gallery.' }, 400);
+  var list = await getJsonKey(env, GARAGE_GALLERY_KEY, { pending: [] });
+  list.pending = list.pending || [];
+  if (list.pending.some(function (r) { return r.carId === carId; })) return json({ success: true, asked: true });
+  var t = await garageCarTitle(env, carId, record);
+  var name = (publicName(await getProfileRecord(env, email)) || '').slice(0, 60);
+  var note = trackText(body.note, 300);
+  list.pending.unshift({ carId: carId, email: accessEmail(email), name: name, car: t.name, title: t.title, type: t.type, photos: (record.photos || []).slice(0, 3), note: note, at: new Date().toISOString() });
+  list.pending = list.pending.slice(0, 300);
+  await env.VOTES.put(GARAGE_GALLERY_KEY, JSON.stringify(list));
+  // A note to the admin (best effort: the request is kept either way).
+  try {
+    var subject = 'Gallery request for a car of another make';
+    var text = subscriberLabel(name, email) + ' has asked for their car "' + (t.name || 'their car') + '"' + (t.title ? ' (' + t.title + ')' : '') +
+      ' to be shown in the Gallery, the Reel and Build of the Week. It is kept in their garage until then.\n\n' +
+      (note ? 'Their note:\n' + note + '\n\n' : '') + 'Approve or decline: ' + MY_BUILDS_SITE_URL + '/admin.html#garage-asks-wrap';
+    await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text)));
+  } catch (e) { /* the request is saved */ }
+  return json({ success: true, asked: true });
+}
+
+async function handleGarageGalleryAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var list = await getJsonKey(env, GARAGE_GALLERY_KEY, { pending: [] });
+  list.pending = list.pending || [];
+  if (request.method === 'GET') return json({ success: true, pending: list.pending });
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var carId = String((body && body.carId) || ''), action = String((body && body.action) || '');
+  var ask = list.pending.filter(function (r) { return r.carId === carId; })[0];
+  if (!ask) return json({ success: false, message: 'That request is not waiting any more.' }, 404);
+  if (action !== 'approve' && action !== 'decline') return json({ success: false, message: 'Unknown action' }, 400);
+  list.pending = list.pending.filter(function (r) { return r.carId !== carId; });
+  var record = await getCarRecord(env, carId);
+  if (action === 'approve' && record) {
+    // Shown from now on: the car and its photos lose garageOnly, and the photos go in the Gallery and the Reel.
+    // Voting stays off; the member can enter a photo in Build of the Week themselves, as for any car.
+    delete record.garageOnly;
+    record.galleryApproved = new Date().toISOString();
+    await saveCarRecord(env, record);
+    for (var i = 0; i < (record.photos || []).length; i++) {
+      var key = 'gallery/' + record.photos[i] + '.json';
+      var obj = await env.GALLERY_BUCKET.get(key);
+      if (!obj) continue;
+      var sidecar = await obj.json();
+      delete sidecar.garageOnly;
+      delete sidecar.gallery;
+      delete sidecar.reel;
+      sidecar.votable = false;
+      await putSidecar(env, key, sidecar);
+    }
+    await triggerManifestRebuild(env);
+  }
+  await env.VOTES.put(GARAGE_GALLERY_KEY, JSON.stringify(list));
+  var carName = ask.car || 'your car';
+  await sendMemberEmail(env, ask.email, action === 'approve' ? 'Your car is in the MT3UK Gallery' : 'About your MT3UK Gallery request',
+    action === 'approve'
+      ? 'Good news: ' + carName + ' is now shown in the MT3UK Gallery and the Reel. You can enter a photo in Build of the Week from My Garage whenever you like.\n\n' + MY_BUILDS_SITE_URL + '/my-builds.html'
+      : 'Thanks for asking to show ' + carName + ' in the MT3UK Gallery. The Gallery is for modified Teslas, so it stays in your garage, where you can still keep its mods list and use it in Track sessions.\n\n' + MY_BUILDS_SITE_URL + '/my-builds.html').catch(function () {});
+  return json({ success: true, pending: list.pending });
+}
+
+// Cars of another make that are still in the Gallery (added before only Teslas went in, for example an Ioniq
+// or a Taycan): GET lists them, POST { carId, action: 'garage' } keeps one in its owner's garage, as if it had
+// been added that way: out of the Gallery, the Reel and this week's vote, and the owner is emailed when email is
+// true (the panel's Email the owner switch). Admin only
+// and rarely used, so list() over the car details is fine here.
+async function handleOtherMakesAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  if (request.method === 'GET') {
+    var found = [], cursor, pages = 0;
+    do {
+      var page = await env.VOTES.list({ prefix: 'car-details:', limit: 1000, cursor: cursor });
+      for (var i = 0; i < page.keys.length; i++) {
+        var carId = page.keys[i].name.slice('car-details:'.length);
+        var details = await getJsonKey(env, page.keys[i].name, null);
+        if (!details) continue;
+        var make = details.make || NON_TESLA_MODELS[details.model] || '';
+        if (!make || make === 'Tesla') continue;
+        var record = await getCarRecord(env, carId);
+        if (!record || record.garageOnly === true || record.galleryApproved || !(record.photos || []).length) continue;
+        var owner = await carOwnerEmail(env, record);
+        var t = await garageCarTitle(env, carId, record);
+        found.push({ carId: carId, car: record.name || '', title: t.title || make, photos: record.photos.slice(0, 3), owner: owner ? (publicName(await getProfileRecord(env, owner)) || '') : '', email: owner || '' });
+      }
+      cursor = page.list_complete ? undefined : page.cursor; pages++;
+    } while (cursor && pages < 10);
+    return json({ success: true, cars: found });
+  }
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var id = String((body && body.carId) || '');
+  if (!body || body.action !== 'garage') return json({ success: false, message: 'Unknown action' }, 400);
+  var rec = id ? await getCarRecord(env, id) : null;
+  if (!rec) return json({ success: false, message: 'That car could not be found.' }, 404);
+  if (rec.garageOnly === true) return json({ success: true });
+  rec.garageOnly = true;
+  await saveCarRecord(env, rec);
+  // Its make and type, for a car saved before makes existed (an Ioniq or a Taycan).
+  var det = (await getCarDetails(env, id)) || {};
+  if (!det.make && NON_TESLA_MODELS[det.model]) { det.make = NON_TESLA_MODELS[det.model]; det.vehicleType = det.vehicleType || 'car'; await saveCarDetails(env, id, det); }
+  var week = voteWeekString(new Date());
+  for (var p = 0; p < (rec.photos || []).length; p++) {
+    var key = 'gallery/' + rec.photos[p] + '.json';
+    var obj = await env.GALLERY_BUCKET.get(key);
+    if (!obj) continue;
+    var sidecar = await obj.json();
+    sidecar.gallery = false;
+    sidecar.reel = false;
+    sidecar.votable = false;
+    sidecar.garageOnly = true;
+    await putSidecar(env, key, sidecar);
+    await env.VOTES.delete('votes:' + week + ':' + rec.photos[p]);
+  }
+  await triggerManifestRebuild(env);
+  var ownerEmail = body.email === true ? await carOwnerEmail(env, rec) : null;
+  if (ownerEmail) {
+    await sendMemberEmail(env, ownerEmail, 'Your car is now kept in your MT3UK garage',
+      'The MT3UK Gallery, Reel and Build of the Week are now for Teslas, so ' + (rec.name || 'your car') + ' is kept in your garage instead. ' +
+      'Nothing is lost: its photos and mods list are still there, it still works in Track sessions, and you can ask us to show it in the Gallery from the car\'s page.\n\n' +
+      MY_BUILDS_SITE_URL + '/my-builds.html').catch(function () {});
+  }
+  return json({ success: true });
+}
+
 async function handleMyBuildsCarUpdate(request, env) {
   var email = await resolveSession(request, env);
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
@@ -8802,6 +8967,16 @@ async function handleMyBuildsPhotoMove(request, env) {
     }
   }
 
+  // A photo of a car kept in the garage only moves to another such car (or a new one, which is kept in the
+  // garage too), and a Gallery photo never moves into one, so a move never shows a private photo by surprise.
+  var photoPrivate = sidecar.garageOnly === true;
+  var targetPrivate = targetCarId === 'new' ? photoPrivate : !!(targetRecord && targetRecord.garageOnly === true);
+  if (photoPrivate !== targetPrivate) {
+    return json({ success: false, message: photoPrivate
+      ? 'This photo is of a car kept in your garage, so it can only move to another car kept in your garage.'
+      : 'That car is kept in your garage, so a Gallery photo cannot move into it.' }, 400);
+  }
+
   // Detach from its current real car (if any) before attaching elsewhere.
   if (currentCarId) {
     var currentRecord = await getCarRecord(env, currentCarId);
@@ -8828,6 +9003,7 @@ async function handleMyBuildsPhotoMove(request, env) {
       color: '',
       createdAt: new Date().toISOString()
     };
+    if (photoPrivate) newRecord.garageOnly = true;
     await saveCarRecord(env, newRecord);
     await setSidecarCarId(env, file, resultCarId, email);
   } else if (targetCarId === LEGACY_VIRTUAL_CAR_ID) {
@@ -8872,6 +9048,10 @@ async function handleMyBuildsUpload(request, env) {
   var reel = formData.get('reel') === '1';
   var votable = formData.get('votable') === '1';
   var carId = (formData.get('carId') || '').toString();
+  // A car kept in the garage (another make) keeps its photos out of the Gallery, the Reel and the vote.
+  var uploadRecord = carId && carId.indexOf('virtual:') !== 0 ? await getCarRecord(env, carId) : null;
+  var garageOnlyCar = !!(uploadRecord && uploadRecord.garageOnly === true);
+  if (garageOnlyCar) { gallery = false; reel = false; votable = false; }
 
   if (!file || typeof file === 'string') {
     return json({ success: false, message: 'Photo is required' }, 400);
@@ -8895,7 +9075,7 @@ async function handleMyBuildsUpload(request, env) {
       votable = false;
     }
   }
-  if (!gallery && !reel && !votable) {
+  if (!garageOnlyCar && !gallery && !reel && !votable) {
     return json({ success: false, message: 'At least one of Gallery, Reel or Voting must stay on, otherwise the photo won’t be visible anywhere.' }, 400);
   }
 
@@ -8926,6 +9106,7 @@ async function handleMyBuildsUpload(request, env) {
     if (!gallery) sidecar.gallery = false;
     if (!reel) sidecar.reel = false;
     if (!votable) sidecar.votable = false;
+    if (garageOnlyCar) sidecar.garageOnly = true;
     await putSidecar(env, 'gallery/' + filename + '.json', sidecar);
 
     await addSubscriberFiles(env, email, [filename]);
@@ -9899,6 +10080,15 @@ export default {
     if (url.pathname === '/track/admin/board-entry' && request.method === 'DELETE') {
       return handleTrackAdminBoardEntry(request, env);
     }
+    if (url.pathname === '/my-builds/car/gallery-request' && request.method === 'POST') {
+      return handleGarageGalleryRequest(request, env);
+    }
+    if (url.pathname === '/my-builds/admin/other-makes' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleOtherMakesAdmin(request, env);
+    }
+    if (url.pathname === '/my-builds/admin/garage-gallery' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleGarageGalleryAdmin(request, env);
+    }
     if (url.pathname === '/my-builds/car' && request.method === 'PUT') {
       return handleMyBuildsCarUpdate(request, env);
     }
@@ -9981,6 +10171,22 @@ export default {
       : [];
     var color = (formData.get('color') || '').toString().trim().slice(0, 20);
     if (color && CAR_COLORS.indexOf(color) === -1) color = '';
+    // A car of another make (My Garage's Add a car, "Another make") is kept in the garage: its photos are not
+    // shown in the Gallery, the Reel or Build of the Week until MT3UK approves it. It needs a make and a model.
+    // The Ioniq 5 N, Ioniq 6 N and Taycan are other makes too, whichever form sent them.
+    var postedModel = (formData.get('model') || '').toString();
+    var knownOtherMake = Object.prototype.hasOwnProperty.call(NON_TESLA_MODELS, postedModel) ? NON_TESLA_MODELS[postedModel] : '';
+    var otherMake = !!carName && (formData.get('otherMake') === '1' || !!knownOtherMake);
+    var otherModel = otherMake ? cleanCarModel({
+      make: (formData.get('make') || '').toString() || knownOtherMake,
+      model: postedModel,
+      vehicleType: (formData.get('vehicleType') || '').toString() || 'car',
+      version: (formData.get('version') || '').toString(),
+      year: (formData.get('year') || '').toString()
+    }) : null;
+    if (otherMake && (!otherModel.make || !otherModel.model)) {
+      return json({ success: false, message: 'Please give the make and the model of your car.' }, 400);
+    }
     var files = formData.getAll('photo').filter(function (f) { return f && typeof f !== 'string'; });
 
     if (!files.length) {
@@ -10050,6 +10256,7 @@ export default {
         // only credited against the primary/voting shot.
         if (color) sidecar.color = color;
         if (!isPrimary || hasVoteEntry) sidecar.votable = false;
+        if (otherMake) { sidecar.gallery = false; sidecar.reel = false; sidecar.votable = false; sidecar.garageOnly = true; }
         await putSidecar(env, 'gallery/' + filename + '.json', sidecar);
 
         photoUrls.push(GALLERY_PUBLIC_BASE_URL + '/gallery/' + filename);
@@ -10063,7 +10270,7 @@ export default {
         var submittedFilenames = existingNames.slice(existingNames.length - photoUrls.length);
         var newCarId = randomToken();
         await Promise.all(submittedFilenames.map(function (f) { return setSidecarCarId(env, f, newCarId, email); }));
-        await saveCarRecord(env, {
+        var newCarRecord = {
           id: newCarId,
           email: email,
           name: carName,
@@ -10071,8 +10278,10 @@ export default {
           mods: mods,
           color: color,
           createdAt: new Date().toISOString()
-        });
-        var submitModel = cleanCarModel({
+        };
+        if (otherMake) newCarRecord.garageOnly = true;
+        await saveCarRecord(env, newCarRecord);
+        var submitModel = otherMake ? otherModel : cleanCarModel({
           model: (formData.get('model') || '').toString(),
           version: (formData.get('version') || '').toString(),
           year: (formData.get('year') || '').toString()
@@ -10093,11 +10302,12 @@ export default {
             method: 'POST',
             headers: ghHeaders,
             body: JSON.stringify({
-              title: 'Gallery submission: ' + (caption || carName || 'new build'),
+              title: (otherMake ? 'Garage only (another make): ' : 'Gallery submission: ') + (caption || carName || 'new build'),
               body: '**Caption:** ' + (caption || '(none)') + '\n**Submitted by:** ' + publicLabel(name, email) +
                 (mods.length ? '\n**Mods (on primary photo):** ' + mods.join(', ') : '') +
                 '\n\n' + photoUrls.map(function (u, idx) { return '![photo ' + (idx + 1) + '](' + u + ')'; }).join('\n\n') +
-                '\n\nThese photos are already live in the gallery' + (photoUrls.length > 1 ? ' (first one is the primary/voting entry)' : '') + '. Close this issue once reviewed, ' +
+                (otherMake ? '\n**Make and model:** ' + otherModel.make + ' ' + otherModel.model + '\n\nThis car is another make, so it is kept in the member\'s garage and is not shown in the gallery, the reel or the vote. They can ask for it to be shown from My Garage. Close this issue once reviewed, ' :
+                '\n\nThese photos are already live in the gallery' + (photoUrls.length > 1 ? ' (first one is the primary/voting entry)' : '') + '. Close this issue once reviewed, ') +
                 'or say the word to have any of them pulled from R2 and the manifest regenerated.'
             })
           }
@@ -10139,7 +10349,7 @@ export default {
 
       var submitResult = { success: true, photo_url: photoUrls[0], photo_urls: photoUrls };
       if (newCarId) submitResult.carId = newCarId;
-      if (hasVoteEntry) submitResult.voteNote = 'You already have a build in this week’s vote, so this one isn’t entered. You can switch your entry in My Garage.';
+      if (hasVoteEntry && !otherMake) submitResult.voteNote = 'You already have a build in this week’s vote, so this one isn’t entered. You can switch your entry in My Garage.';
       return json(submitResult);
     } catch (err) {
       return json({ success: false, message: err.message }, 500);

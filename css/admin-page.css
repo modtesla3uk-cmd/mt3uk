@@ -480,3 +480,14 @@
   #ln-list .ln-pic figcaption { font-size: 0.8rem; color: #6b7385; }
   .tk-outline { width: 120px; height: 80px; flex: none; color: var(--orange); }
   #tk-board { margin-top: 10px; }
+
+/* Other makes panel (js/garage-asks-admin.js): a car's photos beside who asked. */
+.ga-row { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-top: 1px solid var(--hairline, rgba(22, 35, 61, 0.16)); }
+.ga-row:first-child { border-top: 0; }
+.ga-photos { display: flex; gap: 6px; flex-shrink: 0; }
+.ga-photo { width: 88px; height: 66px; object-fit: cover; border-radius: var(--radius-sm, 8px); background: #e9ecf1; }
+.ga-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+@media (max-width: 780px) {
+  .ga-row { flex-direction: column; }
+  .ga-photo { width: 30vw; height: 22vw; }
+}

@@ -891,6 +891,14 @@
   .mb-model-pick input { position: absolute; opacity: 0; pointer-events: none; }
   .mb-model-pick .chip:has(input:checked) { background: var(--ink); border-color: var(--ink); color: #fff; }
   .mb-model-pick .chip:has(input:focus-visible) { box-shadow: var(--focus-ring); }
+  .mb-other-make { display: flex; flex-direction: column; gap: 12px; }
+  .mb-other-fields { display: flex; flex-direction: column; gap: 12px; }
+  .mb-other-make[hidden], .mb-other-fields[hidden], .mb-field[hidden], .mb-toggles[hidden] { display: none; }
+  .mb-other-note { display: flex; gap: 10px; align-items: flex-start; margin: 0; padding: 12px 14px; border: 1px solid var(--hairline); border-radius: var(--radius); background: #f6f7f9; font-family: var(--font-body); font-size: 0.88rem; line-height: 1.45; }
+  .mb-other-note .icon { margin-top: 2px; color: var(--steel); }
+  .mb-car-private { display: inline-flex; align-items: center; gap: 4px; align-self: flex-start; padding: 2px 8px; border: 1px solid var(--hairline-strong); border-radius: var(--radius-pill); font-family: var(--font-body); font-size: 0.72rem; color: var(--steel); }
+  .mb-car-private .icon { width: 12px; height: 12px; }
+  .mb-garage-hint .btn { margin-top: 10px; }
   .mb-model-group { grid-column: 1 / -1; font-size: 0.85rem; font-weight: 600; color: var(--steel); margin-top: 4px; }
   .mb-field-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .mb-mods-next { display: flex; gap: 10px; align-items: flex-start; margin: 0 0 16px; padding: 12px 14px; border-radius: var(--radius-sm); background: #fdf3ef; font-size: 0.9rem; color: var(--ink-2, var(--ink)); }
@@ -1231,7 +1239,7 @@ document.addEventListener('DOMContentLoaded', function () {
       <div class="mb-card mb-submit-card" id="mb-submit-card" style="display:none;">
         <h2>Submit your first build</h2>
         <p>Send us a shot of your build and a caption, and we'll get it added to the gallery and set you up with an account so you can manage it here.</p>
-        <p class="mb-field-hint">Your car must be a Tesla, a Hyundai Ioniq 5 N or 6 N, or a Porsche Taycan.</p>
+        <p class="mb-field-hint">A Tesla goes in the Gallery. An Ioniq 5 N, Ioniq 6 N or Taycan is kept in your garage, where you can still build its mods list and use it in Track sessions.</p>
         <form id="mb-submit-form">
           <input type="checkbox" name="botcheck" class="mb-hp-field" tabindex="-1" autocomplete="off">
           <div class="mb-field">
@@ -1370,8 +1378,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         <div class="mb-upload-card" id="mb-addcar-card" style="display:none;">
           <h2>Add a car</h2>
-          <p>Give your car a name and add up to 3 photos. They'll go live in the gallery straight away.</p>
-          <p class="mb-field-hint">Your car must be a Tesla, a Hyundai Ioniq 5 N or 6 N, or a Porsche Taycan.</p>
+          <p>Give your car a name and add up to 3 photos. A Tesla goes live in the Gallery straight away.</p>
+          <p class="mb-field-hint">A car or bike of another make, including the Ioniq 5 N, Ioniq 6 N and Taycan, is kept in your garage instead.</p>
           <form id="mb-addcar-form">
             <div class="mb-field">
               <span class="mb-field-label" id="mb-addcar-model-label">Model</span>
@@ -1384,6 +1392,31 @@ document.addEventListener('DOMContentLoaded', function () {
                 <label class="chip"><input type="radio" name="model" value="Hyundai Ioniq 5 N"> Ioniq 5 N</label>
                 <label class="chip"><input type="radio" name="model" value="Hyundai Ioniq 6 N"> Ioniq 6 N</label>
                 <label class="chip"><input type="radio" name="model" value="Porsche Taycan"> Taycan</label>
+                <label class="chip"><input type="radio" name="model" value="__other__"> Another make</label>
+              </div>
+            </div>
+            <div class="mb-other-make" id="mb-addcar-other" hidden>
+              <p class="mb-other-note"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span><strong>Kept in your garage.</strong> The Gallery, the Reel and Build of the Week are for Teslas, so this car isn't shown there. You can still build its mods list and use it in Track sessions, and ask us to show it in the Gallery later.</span></p>
+              <div class="mb-other-fields" id="mb-addcar-other-fields">
+              <div class="mb-field">
+                <span class="mb-field-label" id="mb-addcar-type-label">Car or bike</span>
+                <div class="mb-model-pick" role="radiogroup" aria-labelledby="mb-addcar-type-label">
+                  <label class="chip"><input type="radio" name="vehicleType" value="car" checked> Car</label>
+                  <label class="chip"><input type="radio" name="vehicleType" value="bike"> Bike</label>
+                </div>
+              </div>
+              <div class="mb-field-pair">
+                <div class="mb-field">
+                  <label for="mb-addcar-make">Make</label>
+                  <input type="text" id="mb-addcar-make" name="make" list="mb-addcar-makes" autocomplete="off" maxlength="40" placeholder="e.g. Kia">
+                  <datalist id="mb-addcar-makes"></datalist>
+                </div>
+                <div class="mb-field">
+                  <label for="mb-addcar-othermodel">Model</label>
+                  <input type="text" id="mb-addcar-othermodel" list="mb-addcar-othermodels" autocomplete="off" maxlength="50" placeholder="e.g. EV6 GT">
+                  <datalist id="mb-addcar-othermodels"></datalist>
+                </div>
+              </div>
               </div>
             </div>
             <div class="mb-field-pair">
@@ -1506,6 +1539,7 @@ document.addEventListener('DOMContentLoaded', function () {
               <label class="mono" for="mb-upload-caption">Caption (optional)</label>
               <input type="text" id="mb-upload-caption" name="caption" placeholder="e.g. Viper Green Model Y">
             </div>
+            <p class="mb-field-hint" id="mb-upload-garage-note" hidden>This car is kept in your garage, so the photo isn't shown in the Gallery, the Reel or Build of the Week.</p>
             <div class="mb-toggles">
               <label class="mb-toggle"><input type="checkbox" id="mb-upload-gallery" checked> Gallery</label>
               <label class="mb-toggle"><input type="checkbox" id="mb-upload-reel" checked> Reel</label>
@@ -1652,6 +1686,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <script src="js/passkeys.js?v=20261201"></script>
 <script src="js/mods-view.js"></script>
+<script src="js/vehicle-data.js?v=20261202"></script>
 <script src="js/mods-builder.js?v=20261130"></script>
 <script>
   (function () {
@@ -1916,6 +1951,7 @@ document.addEventListener('DOMContentLoaded', function () {
           '<div class="mb-car-tile-head"><span class="mb-car-tile-name">' + safeName + '</span></div>' +
           '<div class="mb-car-tile-thumb"><img src="' + window.MT3UK_R2_BASE + '/gallery/' + primary.file.replace(/&/g, '&amp;') + '" alt="' + safeName + '" loading="lazy"></div>' +
           '<div class="mb-car-tile-body">' +
+            (car.garageOnly ? '<span class="mb-car-private"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Garage only</span>' : '') +
             '<span class="mb-car-tile-count mono">' + car.photos.length + ' photo' + (car.photos.length === 1 ? '' : 's') +
               (car.likeCount ? ' &middot; ' + car.likeCount + ' like' + (car.likeCount === 1 ? '' : 's') : '') + '</span>' +
           '</div>' + modsMeterHtml(car) +
@@ -1948,6 +1984,7 @@ document.addEventListener('DOMContentLoaded', function () {
       gallery.href = 'gallery.html?only=' + encodeURIComponent(galleryFiles.join(','));
       var entryHere = voteEntry && photos.some(function (p) { return p.file === voteEntry.file; });
       vote.href = entryHere ? 'index.html?entry=' + encodeURIComponent(voteEntry.file) + '#vote-frame' : 'index.html#vote-how';
+      vote.hidden = !!(car && car.garageOnly);
       var trackLink = box.querySelector('[data-link="track"]');
       if (trackLink) trackLink.href = 'track.html' + (car && !car.virtual ? '?mycar=' + encodeURIComponent(car.id) : '');
       box.hidden = !photos.length && !trackLink;
@@ -1998,13 +2035,13 @@ document.addEventListener('DOMContentLoaded', function () {
           (p.added ? '<span class="mb-photo-added">Added ' + addedAgo(p.added) + '</span>' : '') +
           (isDefault ? '<span class="mb-photo-default-badge">Default</span>' : '') +
           '<button type="button" class="mb-photo-comments-hint">Click to view/reply to comments</button>' +
-          '<div class="mb-photo-toggles">' +
+          (car.garageOnly ? '' : '<div class="mb-photo-toggles">' +
             '<label class="mb-photo-toggle"><input type="checkbox" data-flag="gallery"' + (p.gallery ? ' checked' : '') + '> Gallery</label>' +
             '<label class="mb-photo-toggle"><input type="checkbox" data-flag="reel"' + (p.reel ? ' checked' : '') + '> Reel</label>' +
             (p.voteBlocked
               ? '<label class="mb-photo-toggle" title="Taken out of voting by MT3UK. You can enter a different photo."><input type="checkbox" data-flag="votable" disabled> Voting (removed)</label>'
               : '<label class="mb-photo-toggle" title="Your one entry in this week\'s Build of the Week vote"><input type="checkbox" data-flag="votable"' + (p.inVote ? ' checked' : '') + '> Voting</label>') +
-          '</div>' +
+          '</div>') +
           (isDefault ? '' : '<button type="button" class="mb-photo-default-btn">Make default</button>') +
           '<button type="button" class="mb-photo-move-btn">Move photo</button>' +
           '<button type="button" class="mb-photo-delete-btn">Delete</button>' +
@@ -2035,6 +2072,9 @@ document.addEventListener('DOMContentLoaded', function () {
       carPhotoCount.textContent = photoCount + (photoCount === 1 ? ' photo' : ' photos');
       addPhotoCard.style.display = 'none';
       addPhotoToggleBtn.textContent = '+ Add photo to this car';
+      // A car kept in the garage has no Gallery, Reel or Voting choice for a new photo.
+      addPhotoCard.querySelector('.mb-toggles').hidden = !!car.garageOnly;
+      document.getElementById('mb-upload-garage-note').hidden = !car.garageOnly;
       var primaryPhoto = (car.photos || [])[0];
       if (primaryPhoto) {
         carViewLink.dataset.file = primaryPhoto.file;
@@ -2067,6 +2107,15 @@ document.addEventListener('DOMContentLoaded', function () {
     var voteHint = document.getElementById('mb-vote-hint');
     function renderVoteHint() {
       if (!voteHint) return;
+      var hereCar = currentCarId ? findCar(currentCarId) : null;
+      voteHint.classList.toggle('mb-garage-hint', !!(hereCar && hereCar.garageOnly));
+      if (hereCar && hereCar.garageOnly) {
+        voteHint.innerHTML = '<p><strong>Kept in your garage:</strong> this car isn\'t shown in the Gallery, the Reel or Build of the Week. You can still build its mods list and use it in Track sessions.</p>' +
+          (hereCar.galleryAsked
+            ? '<p>You\'ve asked us to show it in the Gallery. We\'ll email you when it\'s decided.</p>'
+            : '<p>Would you like it in the Gallery? Ask us and we\'ll take a look.</p><button type="button" class="btn btn-secondary btn-sm" id="mb-gallery-ask">Ask to show it in the Gallery</button>');
+        return;
+      }
       var how = 'Photos are in the vote the week they\'re added and the week after. To enter an older photo, tick <strong>Voting</strong> on it. You can have one photo in the vote at a time. <a href="index.html#vote-how">How voting works</a>';
       if (voteEntry) {
         voteHint.innerHTML = '<p><strong>Build of the Week:</strong> your entry this week is ' + escapeHtml(voteTitle(voteEntry.caption) || 'your ticked photo') +
@@ -2075,6 +2124,28 @@ document.addEventListener('DOMContentLoaded', function () {
         voteHint.innerHTML = '<p><strong>Build of the Week:</strong> you don\'t have a build in this week\'s vote.</p><p>' + how + '</p>';
       }
     }
+
+    // Ask MT3UK to show a car kept in the garage in the Gallery (approved or declined on admin.html).
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('#mb-gallery-ask');
+      if (!btn || !currentCarId) return;
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
+      fetch(API + '/my-builds/car/gallery-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Session-Token': getSession() },
+        body: JSON.stringify({ carId: currentCarId })
+      }).then(function (res) { return res.json(); }).then(function (d) {
+        if (!d.success) throw new Error(d.message || 'Could not send it, please try again.');
+        var car = findCar(currentCarId);
+        if (car) car.galleryAsked = true;
+        renderVoteHint();
+      }).catch(function (err) {
+        btn.disabled = false;
+        btn.textContent = 'Ask to show it in the Gallery';
+        mbToast(err.message || 'Could not send it, please try again.');
+      });
+    });
 
     function saveCarField(carId, fields) {
       var token = getSession();
@@ -2482,6 +2553,44 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (addCarForm) {
+      // Another make: the car is kept in the garage (not in the Gallery, the Reel or Build of the Week), with its
+      // type, make and model suggested from the vehicle lists (js/vehicle-data.js); anything can be typed.
+      var addCarOther = document.getElementById('mb-addcar-other');
+      var addCarMake = document.getElementById('mb-addcar-make');
+      var addCarOtherModel = document.getElementById('mb-addcar-othermodel');
+      // The Ioniq and Taycan are other makes too, with their make known (and their versions offered as before).
+      var KNOWN_OTHER = { 'Hyundai Ioniq 5 N': 'Hyundai', 'Hyundai Ioniq 6 N': 'Hyundai', 'Porsche Taycan': 'Porsche' };
+      var chosenModel = function () { var r = addCarForm.querySelector('input[name="model"]:checked'); return r ? r.value : ''; };
+      var otherMakeChosen = function () { return chosenModel() === '__other__'; };
+      var knownOtherMake = function () { return KNOWN_OTHER[chosenModel()] || ''; };
+      var addCarType = function () { var r = addCarForm.querySelector('input[name="vehicleType"]:checked'); return r ? r.value : 'car'; };
+      var fillOtherLists = function () {
+        var V = window.MT3UKVehicles;
+        if (!V) return;
+        V.load().then(function () {
+          var makes = V[addCarType()] || {};
+          document.getElementById('mb-addcar-makes').innerHTML = Object.keys(makes).filter(function (m) { return m !== 'Tesla'; })
+            .map(function (m) { return '<option value="' + escapeHtml(m) + '">'; }).join('');
+          document.getElementById('mb-addcar-othermodels').innerHTML = (makes[addCarMake.value.trim()] || [])
+            .map(function (m) { return '<option value="' + escapeHtml(m) + '">'; }).join('');
+        });
+      };
+      var showOtherMake = function () {
+        var on = otherMakeChosen();
+        addCarOther.hidden = !on && !knownOtherMake();
+        document.getElementById('mb-addcar-other-fields').hidden = !on;
+        addCarMake.required = on;
+        addCarOtherModel.required = on;
+        document.getElementById('mb-addcar-version').closest('.mb-field').hidden = on;
+        if (on) fillOtherLists();
+      };
+      addCarForm.addEventListener('change', function (e) {
+        if (e.target.name === 'model') showOtherMake();
+        if (e.target.name === 'vehicleType') fillOtherLists();
+      });
+      addCarMake.addEventListener('input', fillOtherLists);
+      addCarForm.addEventListener('reset', function () { setTimeout(showOtherMake, 0); });
+
       addCarForm.addEventListener('submit', function (e) {
         e.preventDefault();
         setStatus(addCarStatus, '', '');
@@ -2495,6 +2604,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
         var formData = new FormData(addCarForm);
         formData.append('email', myGarageEmail);
+        var otherMake = otherMakeChosen() || !!knownOtherMake();
+        if (otherMakeChosen()) {
+          // Kept in the garage: the worker turns Gallery, Reel and Voting off for these photos.
+          formData.set('otherMake', '1');
+          formData.set('model', addCarOtherModel.value.trim());
+          formData.delete('version');
+        } else if (knownOtherMake()) {
+          formData.set('otherMake', '1');
+          formData.set('make', knownOtherMake());
+          formData.set('vehicleType', 'car');
+        } else {
+          formData.delete('make');
+          formData.delete('vehicleType');
+        }
 
         addCarSubmitBtn.disabled = true;
         addCarSubmitBtn.textContent = 'Adding…';
@@ -2505,7 +2628,7 @@ document.addEventListener('DOMContentLoaded', function () {
             addCarSubmitBtn.disabled = false;
             addCarSubmitBtn.textContent = 'Add car';
             if (json.success) {
-              setStatus(addCarStatus, 'Car added.', 'ok');
+              setStatus(addCarStatus, otherMake ? 'Car added to your garage.' : 'Car added.', 'ok');
               if (json.voteNote) mbToast(json.voteNote);
               addCarForm.reset();
               addCarCard.style.display = 'none';
@@ -2543,7 +2666,8 @@ document.addEventListener('DOMContentLoaded', function () {
       var galleryChecked = document.getElementById('mb-upload-gallery').checked;
       var reelChecked = document.getElementById('mb-upload-reel').checked;
       var votableChecked = document.getElementById('mb-upload-votable').checked;
-      if (!galleryChecked && !reelChecked && !votableChecked) {
+      var uploadCar = currentCarId ? findCar(currentCarId) : null;
+      if (!(uploadCar && uploadCar.garageOnly) && !galleryChecked && !reelChecked && !votableChecked) {
         setStatus(uploadStatus, 'Pick at least one of Gallery, Reel or Voting so the photo is visible somewhere.', 'err');
         return;
       }

@@ -809,7 +809,8 @@ def test_page_loads_fits_and_menu_opens(device_page, page_name):
 
     assert page.errors == [], f"Script errors on {page_name}: {page.errors}"
     assert overflow_width(page) <= 1, f"{page_name} is wider than the screen by {overflow_width(page)}px"
-    assert page.locator("header .logo img").is_visible()
+    # The Laps pages (track, leaderboards) have a text wordmark, "Laps by MT3UK", instead of the logo picture.
+    assert page.locator("header .logo img, header .logo .laps-logo-name").first.is_visible()
 
     hamburger = page.locator("#hamburger")
     if page.device_name in MOBILE:

@@ -73,6 +73,18 @@
       <div id="vote-removed"></div>
     </details>
     </div>
+    <div class="panel-wrap">
+    <details class="collapsible" id="garage-asks-wrap">
+      <summary><h3 class="panel-title">Other makes <span class="summary-count" id="garage-asks-count"></span></h3></summary>
+      <p class="card-meta">A car or bike of another make is kept in its owner's garage: it is not shown in the Gallery, the Reel or Build of the Week, but its owner can build its mods list and use it in Track sessions. When an owner asks for one to be shown, it waits here. Show in the Gallery puts its photos in the Gallery and the Reel (Voting stays off until the owner enters a photo); Keep in the garage leaves it as it is. Either way the owner is emailed.</p>
+      <p class="iv-note" id="ga-note" role="status"></p>
+      <div id="ga-list"></div>
+      <h3 class="sub-head">Other makes still in the Gallery</h3>
+      <p class="card-meta">Cars of another make added before only Teslas went in, such as an Ioniq or a Taycan. Keep in the garage takes one out of the Gallery, the Reel and this week's vote, as if it had been added that way. With Email the owner on, its owner is told why.</p>
+      <div class="iv-toolbar"><button type="button" class="secondary" id="ga-find">Find them</button><button type="button" class="tk-switch" id="ga-email" role="switch" aria-checked="true"><span class="tk-track"></span><span>Email the owner</span></button></div>
+      <div id="ga-old"></div>
+    </details>
+    </div>
   </section>
 
   <section class="admin-group" id="grp-reports" aria-labelledby="grp-reports-h">
@@ -2395,6 +2407,7 @@
 })();
 </script>
 <script src="js/admin-subnav.js?v=20261160" defer></script>
+<script src="js/garage-asks-admin.js?v=20261204" defer></script>
 <script src="js/track-parse.js?v=20261188" defer></script>
 <script src="js/track-view.js?v=20261181" defer></script>
 <script src="js/track-share-card.js?v=20261181"></script>

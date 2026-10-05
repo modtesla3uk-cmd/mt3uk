@@ -5,6 +5,7 @@ Scans images directory and creates a sitemap with all images and pages
 Run this before pushing to git: python generate_sitemap.py
 """
 
+import json
 import os
 import sys
 from datetime import datetime
@@ -26,6 +27,17 @@ R2_PREFIXES = {"gallery/": "gallery.html", "track-days/": "track-day-prep.html"}
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
 PAGES = ["index.html", "shop.html", "reviews.html", "contact.html", "signin.html", "privacy.html", "track.html", "leaderboards.html", "track-day-prep.html", "gallery.html", "blog.html", "blog-richard.html", "blog-john.html", "blog-kam.html", "blog-yusuf.html", "blog-ryan.html", "blog-sharad.html", "blog-romil.html", "blog-unicorn.html", "blog-john-track-day.html", "blog-sue.html"]
 
+def hidden_gallery_files():
+    """Photos kept out of the Gallery (a car of another make kept in a member's garage, or a
+    photo its owner or MT3UK switched off) are not listed for search engines. The manifest
+    (scripts/build_gallery_manifest.py, run just before this in the sync workflow) has the flags."""
+    try:
+        photos = json.loads(Path("images/gallery/manifest.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return set()
+    return {p.get("file") for p in photos if isinstance(p, dict) and p.get("gallery") is False}
+
+
 def get_all_images():
     """Scan the local site-image directory and the R2 bucket. Returns
     (local image URLs, {page: [R2 image URLs]})."""
@@ -45,9 +57,12 @@ def get_all_images():
                     images.append(f"{DOMAIN}/{url_path}")
 
     client = get_client()
+    hidden = hidden_gallery_files()
     for prefix, page in R2_PREFIXES.items():
         for obj in list_objects(client, prefix):
             key = obj["Key"]
+            if prefix == "gallery/" and key[len(prefix):] in hidden:
+                continue
             if Path(key).suffix.lower() in ALLOWED_EXTENSIONS:
                 page_images.setdefault(page, []).append(f"{PUBLIC_BASE_URL}/{quote(key)}")
 

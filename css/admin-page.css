@@ -436,6 +436,20 @@
   }
   .tk-table td { vertical-align: top; }
   .tk-miss { color: var(--orange); }
+  .tk-place > td:first-child { width: 22%; min-width: 150px; }
+  .tk-place > td:first-child .iv-sub { display: block; }
+  .tk-add { margin-top: 8px; }
+  .tk-kind { padding: 8px 0 10px 12px; border-left: 3px solid var(--hairline-strong, rgba(22,35,61,.24)); margin-bottom: 8px; }
+  .tk-kind:last-child { margin-bottom: 0; }
+  .tk-kind-head { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline; }
+  .tk-kind .tk-ready { margin: 4px 0 6px; }
+  @media (max-width: 780px) {
+    .tk-table thead { display: none; }
+    .tk-table, .tk-table tbody, .tk-table tr.tk-place, .tk-table tr.tk-place > td { display: block; width: auto; min-width: 0; }
+    .tk-place > td:first-child { width: auto; }
+    .tk-place > td { padding-left: 0; padding-right: 0; }
+    .tk-place { padding: 10px 0; border-bottom: 1px solid var(--hairline, rgba(22,35,61,.12)); }
+  }
   .tk-top { margin-top: 10px; }
   .tk-fold > summary { margin-top: 18px; }
   .tk-fold[open] > summary { margin-bottom: 10px; }

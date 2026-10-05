@@ -1112,20 +1112,24 @@ def test_the_tracks_list_can_be_narrowed_by_track_name_and_by_type(page):
     page.reload()
     page.locator("#tracks-wrap > summary").click()
     rows = page.locator("#tk-list tbody tr")
-    expect(rows).to_have_count(5)
-    expect(page.locator("#tk-list .tk-count")).to_have_text("5 tracks")
-    # In alphabetical order by name (a sprint before a track day at the same place is not guaranteed, but they sit together).
+    # The sprint and the track day at Abingdon are one place with two entries.
+    expect(rows).to_have_count(4)
+    expect(page.locator("#tk-list .tk-count")).to_have_text("4 tracks")
     order = page.locator("#tk-list tbody tr td:first-child b").all_text_contents()
-    assert order == ["Abingdon Airfield", "Abingdon Airfield", "Santa Pod", "Shelsley Walsh", "Thruxton"], order
+    assert order == ["Abingdon Airfield", "Santa Pod", "Shelsley Walsh", "Thruxton"], order
+    expect(rows.first.locator(".tk-kind")).to_have_count(2)
+    expect(rows.first.locator(".tk-kindname")).to_have_text(["Circuit (track day)", "Sprint"])
     page.locator('[data-tk-filter="type"]').select_option("hill")
     expect(rows).to_have_count(1)
     expect(rows.first).to_contain_text("Shelsley Walsh")
-    expect(page.locator("#tk-list .tk-count")).to_have_text("Showing 1 of 5")
+    expect(page.locator("#tk-list .tk-count")).to_have_text("Showing 1 of 4")
     page.locator('[data-tk-filter="type"]').select_option("")
     page.locator('[data-tk-filter="name"]').select_option("Abingdon Airfield")
-    expect(rows).to_have_count(2)  # the sprint and the track day share a name
+    expect(rows).to_have_count(1)  # the sprint and the track day share a place
+    expect(rows.first.locator(".tk-kind")).to_have_count(2)
     page.locator('[data-tk-filter="type"]').select_option("circuit")
     expect(rows).to_have_count(1)
+    expect(rows.first.locator(".tk-kind")).to_have_count(1)
     expect(rows.first).to_contain_text("Track day")
     page.locator('[data-tk-filter="type"]').select_option("drag")
     expect(page.locator("#tk-list tbody")).to_contain_text("No tracks match.")
@@ -1446,3 +1450,43 @@ def test_the_key_can_be_remembered_on_this_device(page):
     keep.click()
     expect(keep).to_have_attribute("aria-checked", "false")
     assert page.evaluate("localStorage.getItem('mt3ukAdminKeyKept')") is None
+
+
+def test_one_place_lists_its_circuit_sprint_and_hill_climb_together_and_adds_the_missing_kind(page):
+    ok = {"Access-Control-Allow-Origin": "*"}
+    venues = [
+        {"id": "goodwood", "name": "Goodwood", "type": "circuit", "lat": 50.859, "lng": -0.759, "radius": 2000, "layouts": [{"id": "main", "name": "Goodwood", "length": 3830}]},
+        {"id": "goodwood-motor-circuit", "name": "Goodwood Motor Circuit", "type": "sprint", "lat": 50.86, "lng": -0.76, "radius": 1500, "layouts": [{"id": "c", "name": "Course", "length": 2000}]},
+        {"id": "goodwood-hill", "name": "Goodwood Hill Climb", "type": "sprint", "hill": True, "lat": 50.89, "lng": -0.74, "radius": 800, "layouts": [{"id": "h", "name": "Hill", "length": 1900}]},
+        {"id": "goodwood-far", "name": "Goodwood", "type": "circuit", "lat": 53.0, "lng": -1.0, "radius": 1000, "layouts": []},
+    ]
+    saved = []
+    def tracks(route):
+        body = route.request.post_data_json if route.request.method == "PUT" else None
+        if body:
+            saved.append(body)
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "extra": {"venues": venues}, "library": {"venues": venues}}), headers=ok)
+    open_admin(page, "track-admin.html")
+    page.route("**/track/access/admin**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "open": False, "allowed": [], "pending": []}), headers=ok))
+    page.route("**/track/admin/requests**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "requests": []}), headers=ok))
+    page.route("**/track/admin/tracks**", tracks)
+    page.reload()
+    page.locator("#tracks-wrap > summary").click()
+    rows = page.locator("#tk-list tbody tr")
+    # Goodwood, Goodwood Motor Circuit and Goodwood Hill Climb (all within 5 km) are one place; a Goodwood far away is not.
+    expect(rows).to_have_count(2)
+    near = rows.first
+    expect(near.locator(".tk-kindname")).to_have_text(["Circuit (track day)", "Sprint", "Hill climb"])
+    expect(near).to_contain_text("listed as Goodwood Motor Circuit")
+    # It has all three kinds, so there is nothing to add; the far one can have a sprint and a hill climb added.
+    expect(near.locator("[data-add-kind]")).to_have_count(0)
+    far = rows.nth(1)
+    expect(far.locator("[data-add-kind]")).to_have_text(["Add sprint", "Add hill climb"])
+    far.locator("[data-add-kind='sprint']").click()
+    expect(page.locator("#tk-form, .tk-form").first).to_contain_text("Add a sprint to Goodwood")
+    expect(page.locator("#tk-name")).to_have_value("Goodwood")
+    expect(page.locator("#tk-type")).to_have_value("sprint")
+    expect(page.locator("#tk-lat")).to_have_value("53")
+    page.locator("#tk-save").click()
+    page.wait_for_timeout(300)
+    assert saved and saved[0]["venue"]["id"] == "" and saved[0]["venue"]["type"] == "sprint" and saved[0]["venue"]["name"] == "Goodwood", saved

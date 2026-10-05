@@ -1826,6 +1826,83 @@ def test_the_main_list_is_one_line_for_each_track_and_opens_that_tracks_page(pag
     assert page.evaluate("document.documentElement.scrollWidth") <= 390
 
 
+def find_fixture(fake):
+    rows = [
+        day_session("f1", "16:21", 137.6, 4, date="2026-07-21", venue="Snetterton", venue_id="snetterton"),
+        day_session("f2", "09:33", 145.5, 2, date="2026-07-21", venue="Snetterton", venue_id="snetterton"),
+        dict(day_session("f3", "14:46", 87.7, 4, date="2026-07-14"), conditions="Wet"),
+        day_session("f4", "10:00", 99.0, 4, date="2026-06-01", venue="Thruxton", venue_id="thruxton"),
+        day_session("f5", "11:00", 100.0, 3, date="2025-09-12", venue="Thruxton", venue_id="thruxton"),
+    ]
+    for r in rows:
+        fake.sessions[r["id"]] = dict(r)
+        fake.index.append(summary(r))
+
+
+def test_find_a_track_session_or_date_from_the_main_list(page):
+    fake = FakeWorker(earlier=False)
+    find_fixture(fake)
+    open_page(page, fake)
+    box = page.locator("#tp-find")
+    results = page.locator("#tp-sess-list a.tp-row[data-sid]")
+    expect(page.locator("#tp-sess-list a.tp-trackrow")).to_have_count(3)
+    # A track name: the matching sessions themselves, newest first, and the sort goes away.
+    box.fill("snett")
+    expect(results).to_have_count(2)
+    expect(page.locator(".tp-find-count")).to_have_text("2 sessions found")
+    expect(results.first).to_contain_text("Snetterton")
+    expect(page.locator("#tp-sort")).to_be_hidden()
+    # A date, typed any way.
+    for text, ids in (("21 jul", ["f1", "f2"]), ("21/07/2026", ["f1", "f2"]), ("2026-06-01", ["f4"]), ("14/7", ["f3"]), ("september 2025", ["f5"]), ("july", ["f1", "f2", "f3"])):
+        box.fill(text)
+        expect(results).to_have_count(len(ids))
+        assert [r for r in page.locator("#tp-sess-list a.tp-row[data-sid]").evaluate_all("els => els.map(e => e.dataset.sid)")] == ids, text
+    # Words together, and conditions.
+    box.fill("castle wet")
+    expect(results).to_have_count(1)
+    box.fill("thruxton 2025")
+    expect(results).to_have_count(1)
+    # Nothing found says what to try.
+    box.fill("zzz")
+    expect(page.locator("#tp-sess-list")).to_contain_text("No sessions match")
+    # Clear brings the track lines back.
+    page.get_by_role("button", name="Clear").click()
+    expect(box).to_have_value("")
+    expect(page.locator("#tp-sess-list a.tp-trackrow")).to_have_count(3)
+    expect(page.locator("#tp-sort")).to_be_visible()
+
+
+def test_find_sessions_between_two_dates(page):
+    fake = FakeWorker(earlier=False)
+    find_fixture(fake)
+    open_page(page, fake)
+    expect(page.locator("#tp-find-range")).to_be_hidden()
+    page.get_by_role("button", name="Between dates").click()
+    expect(page.locator("#tp-find-range")).to_be_visible()
+    results = page.locator("#tp-sess-list a.tp-row[data-sid]")
+    page.fill("#tp-find-from", "2026-06-01")
+    page.fill("#tp-find-to", "2026-07-14")
+    expect(results).to_have_count(2)
+    expect(page.locator(".tp-find-count")).to_have_text("2 sessions found")
+    # Only a start date: from then on.
+    page.fill("#tp-find-to", "")
+    expect(results).to_have_count(4)
+    # Dates the wrong way round are read the right way round.
+    page.fill("#tp-find-from", "2026-07-21")
+    page.fill("#tp-find-to", "2026-06-01")
+    expect(results).to_have_count(4)
+    # With words too.
+    page.fill("#tp-find", "thruxton")
+    expect(results).to_have_count(1)
+    page.get_by_role("button", name="Clear").click()
+    expect(page.locator("#tp-find-range")).to_be_hidden()
+    expect(page.locator("#tp-sess-list a.tp-trackrow")).to_have_count(3)
+    # Phone: no sideways scroll.
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.get_by_role("button", name="Between dates").click()
+    assert page.evaluate("document.documentElement.scrollWidth") <= 390
+
+
 def test_the_main_list_has_no_sort_when_there_is_only_one_track(page):
     fake = FakeWorker(earlier=False)
     fake.index = [shared_session("a1", "thruxton", "Thruxton", "main", 100)]

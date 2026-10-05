@@ -7645,7 +7645,7 @@ async function handleTrackSessionUpdate(request, env) {
     next.owner = rec.owner;
     next.carId = rec.carId;
     next.createdAt = rec.createdAt;
-    ['privacy', 'conditions', 'tyres', 'tyreMake', 'tyreModel', 'tyreWidth', 'tyreProfile', 'tyreRim', 'drive', 'temp', 'tempSource', 'weather', 'notes', 'hasSource', 'readingsRefused'].forEach(function (k) { if (rec[k] !== undefined) next[k] = rec[k]; });
+    ['privacy', 'conditions', 'tyres', 'tyreMake', 'tyreModel', 'tyreWidth', 'tyreProfile', 'tyreRim', 'drive', 'temp', 'tempSource', 'weather', 'notes', 'hasSource', 'sourceBytes', 'readingsRefused'].forEach(function (k) { if (rec[k] !== undefined) next[k] = rec[k]; });
     rec = next;
     delete body.privacy;
   }
@@ -8036,7 +8036,8 @@ async function handleTrackSourceSave(request, env) {
   var ends = [rows[0], rows[rows.length - 1]];
   if (!ends.every(function (r) { return Array.isArray(r) && r.length >= 3 && r.length <= 12 && isFinite(r[0]) && isFinite(r[1]) && isFinite(r[2]); })) return json({ success: false, message: 'Invalid readings' }, 400);
   await env.VOTES.put('track-source:' + got.rec.id, buf);
-  if (!got.rec.hasSource || got.rec.readingsRefused) { got.rec.hasSource = true; delete got.rec.readingsRefused; await putTrackSession(env, got.rec); }
+  // The size is kept on the session so the Usage panel can add up storage without reading the readings.
+  if (!got.rec.hasSource || got.rec.readingsRefused || got.rec.sourceBytes !== buf.byteLength) { got.rec.hasSource = true; got.rec.sourceBytes = buf.byteLength; delete got.rec.readingsRefused; await putTrackSession(env, got.rec); }
   return json({ success: true });
 }
 
@@ -9033,7 +9034,7 @@ async function handleTrackAdminRetime(request, env) {
     if (old.unlisted || (!next.atVenue && !old.street)) next.unlisted = true;
     if (!old.street) delete next.outline;
   }
-  ['privacy', 'conditions', 'tyres', 'tyreMake', 'tyreModel', 'tyreWidth', 'tyreProfile', 'tyreRim', 'drive', 'temp', 'tempSource', 'weather', 'notes', 'hasSource', 'readingsRefused', 'fileName'].forEach(function (k) { if (old[k] !== undefined) next[k] = old[k]; });
+  ['privacy', 'conditions', 'tyres', 'tyreMake', 'tyreModel', 'tyreWidth', 'tyreProfile', 'tyreRim', 'drive', 'temp', 'tempSource', 'weather', 'notes', 'hasSource', 'sourceBytes', 'readingsRefused', 'fileName'].forEach(function (k) { if (old[k] !== undefined) next[k] = old[k]; });
   // The saved readings carry no car channels, so a re-time cannot work the Track Mode figures out again: keep the ones the upload made.
   if (old.carData && !next.carData) next.carData = old.carData;
   if (old.carSource && !next.carSource) next.carSource = old.carSource;
@@ -9155,6 +9156,86 @@ async function handleTrackAdminDrive(request, env) {
   }
   rows.sort(function (a, b) { return (a.drive ? 1 : 0) - (b.drive ? 1 : 0) || String(a.owner || a.email).localeCompare(String(b.owner || b.email)) || String(a.car).localeCompare(String(b.car)); });
   return json({ success: true, vehicles: rows });
+}
+
+// Admin: how Laps is being used, for deciding on a paid tier. Members with sessions, who is active and who
+// comes back, sessions saved per week, how many are shared and keep readings, and the storage they take, from
+// the members' session lists (list(), fine for an admin route) and each session's record (createdAt, hasSource,
+// sourceBytes). Dates are when a session was saved, not driven.
+var TRACK_USAGE_MAX_SESSIONS = 3000;
+function isoWeekStart(d) {
+  var x = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  x.setUTCDate(x.getUTCDate() - ((x.getUTCDay() + 6) % 7));
+  return x;
+}
+async function handleTrackAdminUsage(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var access = await getTrackAccess(env);
+  var now = new Date(), day = 86400000;
+  var members = [], sessions = [], cursor, seen = 0;
+  do {
+    var page = await env.VOTES.list({ prefix: 'track-index:', cursor: cursor, limit: 100 });
+    for (var i = 0; i < page.keys.length; i++) {
+      var index = await getJsonKey(env, page.keys[i].name, []);
+      var m = { sessions: 0, first: null, last: null, months: {} };
+      for (var j = 0; j < index.length && sessions.length < TRACK_USAGE_MAX_SESSIONS; j++) {
+        var rec = index[j] && index[j].id ? await getTrackSession(env, index[j].id) : null;
+        if (!rec) continue;
+        var at = Date.parse(rec.createdAt || '') || Date.parse(rec.date || '') || 0;
+        sessions.push({ at: at, type: rec.type || 'other', privacy: rec.privacy || 'private', carId: rec.carId || '', hasSource: !!rec.hasSource, bytes: rec.sourceBytes || 0 });
+        m.sessions++;
+        if (at) {
+          if (!m.first || at < m.first) m.first = at;
+          if (!m.last || at > m.last) m.last = at;
+          m.months[new Date(at).toISOString().slice(0, 7)] = true;
+        }
+      }
+      if (m.sessions) members.push(m);
+      seen++;
+    }
+    cursor = page.list_complete ? null : page.cursor;
+  } while (cursor && seen < TRACK_DRIVE_MAX_INDEXES);
+  var since = function (days) { return now.getTime() - days * day; };
+  var weeks = [], w0 = isoWeekStart(now);
+  for (var k = 11; k >= 0; k--) {
+    var start = new Date(w0.getTime() - k * 7 * day);
+    weeks.push({ week: start.toISOString().slice(0, 10), start: start.getTime(), sessions: 0, members: {} });
+  }
+  var types = {}, shared = 0, withReadings = 0, bytes = 0, sized = 0, cars = {};
+  sessions.forEach(function (s) {
+    types[s.type] = (types[s.type] || 0) + 1;
+    if (s.privacy === 'board' || s.privacy === 'build') shared++;
+    if (s.hasSource) { withReadings++; if (s.bytes) { bytes += s.bytes; sized++; } }
+    if (s.carId) cars[s.carId] = (cars[s.carId] || 0) + 1;
+    for (var w = weeks.length - 1; w >= 0; w--) { if (s.at >= weeks[w].start) { weeks[w].sessions++; if (s.carId) weeks[w].members[s.carId] = true; break; } }
+  });
+  weeks.forEach(function (w) { w.cars = Object.keys(w.members).length; delete w.members; delete w.start; });
+  var makes = {}, bikes = 0, ids = Object.keys(cars);
+  for (var c = 0; c < ids.length; c++) {
+    var d = (await getCarDetails(env, ids[c])) || {};
+    if (d.vehicleType === 'bike') bikes++;
+    var mk = d.make || (/^(hyundai|porsche|kia)\s/i.test(d.model || '') ? String(d.model).split(' ')[0] : d.model ? 'Tesla' : 'Not set');
+    makes[mk] = (makes[mk] || 0) + 1;
+  }
+  var counts = await getJsonKey(env, 'track-board-counts', {});
+  return json({ success: true, at: now.toISOString(),
+    access: { open: !!access.open, approved: access.allowed.length, waiting: access.pending.length },
+    members: {
+      withSessions: members.length,
+      active30: members.filter(function (m) { return m.last >= since(30); }).length,
+      active90: members.filter(function (m) { return m.last >= since(90); }).length,
+      new30: members.filter(function (m) { return m.first >= since(30); }).length,
+      returning: members.filter(function (m) { return Object.keys(m.months).length >= 2; }).length,
+      oneSession: members.filter(function (m) { return m.sessions === 1; }).length
+    },
+    sessions: {
+      total: sessions.length, last30: sessions.filter(function (s) { return s.at >= since(30); }).length, last90: sessions.filter(function (s) { return s.at >= since(90); }).length,
+      shared: shared, withReadings: withReadings, readingsBytes: bytes, readingsSized: sized, byType: types, capped: sessions.length >= TRACK_USAGE_MAX_SESSIONS
+    },
+    weeks: weeks,
+    vehicles: { cars: ids.length, bikes: bikes, byMake: Object.keys(makes).sort(function (a, b) { return makes[b] - makes[a] || a.localeCompare(b); }).map(function (n) { return { make: n, cars: makes[n] }; }) },
+    boards: Object.keys(counts).filter(function (k) { return counts[k] > 0; }).length
+  });
 }
 
 async function handleTrackBoardsRebuild(request, env) {
@@ -10714,6 +10795,9 @@ export default {
     }
     if (url.pathname === '/sprint/board' && request.method === 'GET') {
       return handleTrackBoard(request, env, 'sprint');
+    }
+    if (url.pathname === '/track/admin/usage' && request.method === 'GET') {
+      return handleTrackAdminUsage(request, env);
     }
     if (url.pathname === '/track/admin/drive' && (request.method === 'GET' || request.method === 'POST')) {
       return handleTrackAdminDrive(request, env);

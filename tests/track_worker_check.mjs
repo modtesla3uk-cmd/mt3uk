@@ -363,6 +363,10 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   ok(res.status === 200, 'readings kept: ' + res.status);
   r = await call('GET', '/track/session?id=' + sid, undefined, 'tok-a');
   ok(r.body.session.hasSource === true, 'the session knows it has its readings');
+  {
+    const u = await call('GET', '/track/admin/usage?key=secret');
+    ok(u.body.sessions.withReadings >= 1 && u.body.sessions.readingsSized >= 1 && u.body.sessions.readingsBytes > 1000, 'usage: sessions that keep readings, with their size from sourceBytes (' + u.body.sessions.readingsBytes + ' bytes)');
+  }
   res = await send('/track/session/source?id=' + sid, undefined, 'tok-a', 'GET');
   const back = JSON.parse(zlib.gunzipSync(Buffer.from(await res.arrayBuffer())).toString());
   ok(res.status === 200 && res.headers.get('Content-Encoding') === 'gzip' && back.p.length === src.p.length && back.rd.format === rd.format, 'the owner gets the readings back');
@@ -1335,6 +1339,13 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   r = await call('POST', '/admin/alerts?key=secret', { sessions: true });
   ok((await call('GET', '/admin/alerts?key=secret')).body.alerts.sessions === true, 'and back on');
 }
+
+// ---- The Usage panel's counts ----
+r = await call('GET', '/track/admin/usage');
+ok(r.status === 401, 'the usage counts need the admin key');
+r = await call('GET', '/track/admin/usage?key=secret');
+ok(r.status === 200 && r.body.success && r.body.members.withSessions >= 1 && r.body.members.active30 === r.body.members.withSessions && r.body.sessions.total >= 2 && r.body.weeks.length === 12 && r.body.weeks[11].sessions === r.body.sessions.last30 && r.body.vehicles.cars >= 1 && typeof r.body.access.approved === 'number',
+  'usage: members with sessions, all active (saved just now), sessions in all and this week, vehicles and access (' + JSON.stringify(r.body).slice(0, 160) + ')');
 
 // Leaving the site clears everything.
 await mod.deleteMemberAccount(env, A);

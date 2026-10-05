@@ -111,6 +111,10 @@ Static site for the MT3UK modified Tesla community, live at https://mt3uk.com. I
 - **The New sessions switch** in the Notifications row of `track-admin.html` (`sessions` in the `admin-alerts` KV key, on by default, handled by `js/admin-alerts.js` when the element exists) turns the whole thing off: nothing is listed, counted or emailed. The Bell and Email switches still apply on top of it.
 - Tests: `tests/test_admin_pages.py` (`test_new_sessions_...`) and the block in `tests/track_worker_check.mjs`.
 
+## Track sessions: usage
+
+- The **Usage** panel on the Access group of `track-admin.html` (`js/track-usage-admin.js`, `GET /track/admin/usage`, admin key, `handleTrackAdminUsage`) is for deciding whether a paid tier is worth building: members with sessions, active in the last 30 and 90 days, new, came back (sessions in two or more months) and with only one session; sessions saved in all and in the last 30 and 90 days, shared, keeping readings and the storage they take (`sourceBytes`, kept on the session when readings are saved, so older sessions count as not sized), by type; sessions saved each week for 12 weeks with how many vehicles; vehicles by make; boards with entries; and the access list. It lists the members' session lists with `list()` and reads each session's record (up to 3,000), fine for an admin route. Dates are when a session was saved (`createdAt`), not driven. Tests: `tests/test_admin_pages.py` and `tests/track_worker_check.mjs`.
+
 ## Track sessions: early preview
 
 - Track Sessions is an **early preview**: members need access to use it. It has an "Early preview" badge (`.early-badge` in `css/site-header.css`) in the menu (`partials/header.html`), on the page, in My Garage and on the homepage tile. Remove those when it opens to everyone.

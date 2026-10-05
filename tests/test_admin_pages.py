@@ -25,7 +25,7 @@ GROUPS = [
 ]
 # The Track sessions tools have a page of their own, in five categories.
 TRACK_GROUPS = [
-    ("grp-access", "Access", ["access-wrap"]),
+    ("grp-access", "Access", ["access-wrap", "usage-wrap"]),
     ("grp-sessions", "Members' sessions", ["new-sessions-wrap", "lines-wrap", "member-sessions-wrap"]),
     ("grp-tracks", "Tracks", ["tracks-wrap"]),
     ("grp-boards", "Leaderboards", ["board-checks-wrap", "boards-wrap", "drive-wrap"]),
@@ -1619,6 +1619,41 @@ def test_one_place_lists_its_circuit_sprint_and_hill_climb_together_and_adds_the
     page.locator("#tk-save").click()
     page.wait_for_timeout(300)
     assert saved and saved[0]["venue"]["id"] == "" and saved[0]["venue"]["type"] == "sprint" and saved[0]["venue"]["name"] == "Goodwood", saved
+
+
+def test_the_usage_panel_counts_members_sessions_and_storage(page):
+    ok = {"Access-Control-Allow-Origin": "*"}
+    data = {"success": True, "at": "2026-10-05T22:00:00.000Z",
+            "access": {"open": False, "approved": 12, "waiting": 3},
+            "members": {"withSessions": 9, "active30": 4, "active90": 7, "new30": 2, "returning": 5, "oneSession": 3},
+            "sessions": {"total": 40, "last30": 11, "last90": 25, "shared": 30, "withReadings": 36, "readingsBytes": 72000000, "readingsSized": 24, "byType": {"track": 31, "sprint": 6, "drag": 3}, "capped": False},
+            "weeks": [{"week": "2026-07-20", "sessions": 0, "cars": 0}] * 10 + [{"week": "2026-09-28", "sessions": 6, "cars": 4}, {"week": "2026-10-05", "sessions": 3, "cars": 2}],
+            "vehicles": {"cars": 10, "bikes": 1, "byMake": [{"make": "Tesla", "cars": 8}, {"make": "Hyundai", "cars": 1}, {"make": "Ducati", "cars": 1}]},
+            "boards": 7}
+    open_admin(page, "track-admin.html")
+    page.route("**/track/admin/usage**", lambda route: route.fulfill(status=200, content_type="application/json", headers=ok, body=json.dumps(data)))
+    page.locator("#usage-wrap > summary").click()
+    members = page.locator("#us-members .us-tile")
+    expect(members).to_have_count(6)
+    expect(members.first).to_contain_text("9")
+    expect(members.first).to_contain_text("with sessions")
+    expect(members.nth(1)).to_contain_text("44% of them")
+    expect(page.locator("#usage-wrap")).to_contain_text("Access: 12 approved, 3 waiting")
+    sessions = page.locator("#us-sessions .us-tile")
+    expect(sessions.nth(3)).to_contain_text("75% on a build or a leaderboard")
+    expect(sessions.nth(5)).to_contain_text("72.0 MB")
+    expect(sessions.nth(5)).to_contain_text("about 3.0 MB a session, from 24 sized")
+    expect(page.locator("#usage-wrap")).to_contain_text("Drag runs: 3, Sprints and hill climbs: 6, Track days: 31. 7 leaderboards with entries.")
+    weeks = page.locator("#us-weeks li")
+    expect(weeks).to_have_count(12)
+    expect(weeks.nth(10)).to_contain_text("28 Sep")
+    expect(weeks.nth(10)).to_contain_text("6 from 4 vehicles")
+    assert weeks.nth(10).locator(".us-bar i").evaluate("el => el.style.width") == "100%"
+    assert weeks.nth(11).locator(".us-bar i").evaluate("el => el.style.width") == "50%"
+    expect(page.locator("#us-vehicles")).to_have_text("10 with sessions, 1 of them bikes: Tesla 8, Hyundai 1, Ducati 1.")
+    assert overflow_width(page) <= 0
+    page.set_viewport_size({"width": 390, "height": 844})
+    assert overflow_width(page) <= 0
 
 
 def test_the_driven_wheels_panel_lists_vehicles_with_sessions_and_sets_one(page):

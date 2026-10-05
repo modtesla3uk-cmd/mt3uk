@@ -3583,7 +3583,9 @@
       api('PUT', '/track/session', Object.assign({ id: s.id, privacy: edit.privacy, conditions: edit.conditions || '' }, ty, { temp: t === '' ? null : parseFloat(t), tempSource: t === '' ? '' : (edit.tempSource || 'member'), weather: edit.tempSource === 'weather' ? edit.weather : null, notes: document.getElementById('tp-e-notes').value })).then(function (d) {
         if (!d.success) { status(d.message || 'Could not save.', 'error'); return; }
         mine = null; counts = null;
-        Object.assign(view.s, { privacy: d.session.privacy, conditions: d.session.conditions, tyres: d.session.tyres, tyreMake: d.session.tyreMake, tyreModel: d.session.tyreModel, tyreWidth: d.session.tyreWidth, tyreProfile: d.session.tyreProfile, tyreRim: d.session.tyreRim, temp: d.session.temp, tempSource: d.session.tempSource, weather: d.session.weather, notes: document.getElementById('tp-e-notes').value });
+        // The worker's summary has the tyre make and model but not the size, so the size is what was just sent: without it the
+        // width, profile and diameter drop-downs came back empty after Save and looked unsaved.
+        Object.assign(view.s, { privacy: d.session.privacy, conditions: d.session.conditions, tyres: d.session.tyres, tyreMake: d.session.tyreMake, tyreModel: d.session.tyreModel, tyreWidth: ty.tyreWidth, tyreProfile: ty.tyreProfile, tyreRim: ty.tyreRim, temp: d.session.temp, tempSource: d.session.tempSource, weather: d.session.weather, notes: document.getElementById('tp-e-notes').value });
         dirty = false;
         getMine().then(function (m) { view.mine = m; drawSession(); status('Saved.', 'ok'); });
       });

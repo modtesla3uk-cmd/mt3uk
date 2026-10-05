@@ -759,4 +759,10 @@ ok(T.fmtLap(99.786) === '1:39.79' && T.niceDate('2026-05-28') === '28 May 2026',
   const auto = T.analyse(rd, both, {});
   ok(auto.type === 'track' && auto.venueId === 'castle-combe' && auto.laps.filter(l => l.kind === 'timed').length >= 3, 'laps round a circuit that is also listed as a sprint are timed as a track day (' + auto.type + ', ' + auto.venueId + ')');
   ok(T.analyse(rd, both, { type: 'sprint' }).type === 'sprint', 'a type the member picked is never changed');
+  // Two laps are enough, and a circuit listed with no lap lengths yet (a new place) is accepted on the laps alone.
+  const th = T.read(fs.readFileSync(ROOT + 'tests/fixtures/thruxton-trimmed.vbo', 'latin1'), 'f.vbo');
+  const tm = th.points[Math.floor(th.points.length / 2)];
+  const bare = { venues: [{ id: 'th-sprint', name: 'Thruxton Sprint', type: 'sprint', lat: tm.lat, lng: tm.lng, radius: 1500, layouts: [] }, { id: 'th-new', name: 'Thruxton', type: 'circuit', lat: tm.lat + 0.002, lng: tm.lng, radius: 2500, layouts: [] }] };
+  const two = T.analyse(th, bare, {});
+  ok(two.type === 'track' && two.venueId === 'th-new', 'two laps round a new circuit with no lap lengths are a track day, not a sprint (' + two.type + ', ' + two.venueId + ')');
 }

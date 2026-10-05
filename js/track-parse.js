@@ -952,13 +952,14 @@
       if (venue && venue.type === 'drag') type = 'drag';
       else if (venue && venue.type === 'sprint') {
         type = 'sprint';
-        // A place that is both a circuit and a sprint is listed once for each. When the file is plainly a day of laps
-        // round the circuit (three or more timed laps, each about the length of a listed layout), it is a track day.
+        // A place that is both a circuit and a sprint is listed once for each. When the file is plainly laps round the
+        // circuit (two or more timed laps, each about the length of a listed layout when the circuit has lengths), it is
+        // a track day.
         var circuit = findVenue(pts, library, 'circuit');
-        if (circuit && (circuit.layouts || []).length) {
+        if (circuit) {
           var lapped = analyse(rd, library, Object.assign({}, opts, { type: 'track' })), timed = (lapped.laps || []).filter(function (l) { return l.kind === 'timed'; });
-          var md = timed.length >= 3 ? median(timed.map(function (l) { return l.dist; })) : 0;
-          if (md && circuit.layouts.some(function (l) { return l.length && Math.abs(md - l.length) / l.length < 0.25; })) { type = 'track'; venue = circuit; }
+          var md = timed.length >= 2 ? median(timed.map(function (l) { return l.dist; })) : 0, sized = (circuit.layouts || []).filter(function (l) { return l.length; });
+          if (md && (!sized.length || sized.some(function (l) { return Math.abs(md - l.length) / l.length < 0.25; }))) { type = 'track'; venue = circuit; }
         }
       }
       else if (venue) type = 'track';

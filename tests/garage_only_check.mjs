@@ -110,6 +110,15 @@ r = await call('POST', '/my-builds/car/gallery-request', { carId: kia }, 'tok-a'
 ok(r.body.success && JSON.parse(kv.get('garage-gallery-requests')).pending.length === 1, 'asking twice keeps one request');
 cars = await garage();
 ok(cars.find(c => c.id === kia).galleryAsked === true, 'My Garage shows it has been asked');
+r = await call('POST', '/my-builds/car/gallery-request', { carId: kia, cancel: true }, 'tok-b');
+ok(r.status === 401 && JSON.parse(kv.get('garage-gallery-requests')).pending.length === 1, 'only the owner can undo the request');
+r = await call('POST', '/my-builds/car/gallery-request', { carId: kia, cancel: true }, 'tok-a');
+ok(r.body.success && r.body.asked === false && JSON.parse(kv.get('garage-gallery-requests')).pending.length === 0, 'the owner can undo the request, which takes it off the admin list');
+cars = await garage();
+k = cars.find(c => c.id === kia);
+ok(k.galleryAsked === false && k.garageOnly === true, 'after undoing, the car is still kept in the garage and can ask again');
+r = await call('POST', '/my-builds/car/gallery-request', { carId: kia, note: 'Track build' }, 'tok-a');
+ok(r.body.success && JSON.parse(kv.get('garage-gallery-requests')).pending.length === 1, 'and asking again puts it back on the list');
 r = await call('GET', '/my-builds/admin/garage-gallery');
 ok(r.status === 401, 'the requests need the admin key');
 r = await call('GET', '/my-builds/admin/garage-gallery?key=secret');
@@ -240,3 +249,21 @@ r = await call('POST', '/my-builds/car/gallery-request', { carId: kia }, 'tok-a'
 ok(r.body.success && r.body.asked, 'and the owner can ask for it to be shown again');
 r = await call('GET', '/my-builds/admin/other-makes?key=secret');
 ok(!(r.body.cars || []).some(c => c.carId === kia), 'it is off the public list');
+
+// ---- The admin's Notifications switches: Email off stops the emails to MT3UK, members are still emailed ----
+r = await call('GET', '/admin/alerts');
+ok(r.status === 401, 'the switches need the admin key');
+r = await call('GET', '/admin/alerts?key=secret');
+ok(r.body.alerts.bell === true && r.body.alerts.email === true, 'both start on');
+r = await call('POST', '/admin/alerts?key=secret', { email: false });
+ok(r.body.alerts.email === false && r.body.alerts.bell === true, 'Email can be switched off on its own');
+await call('POST', '/my-builds/car/gallery-request', { carId: kia, cancel: true }, 'tok-a');
+sent.length = 0;
+r = await call('POST', '/my-builds/car/gallery-request', { carId: kia }, 'tok-a');
+ok(r.body.success && sent.length === 0, 'with Email off, a request is kept but MT3UK is not emailed');
+r = await call('POST', '/my-builds/admin/garage-gallery?key=secret', { carId: kia, action: 'decline' });
+ok(r.body.success && sent.length === 1 && !/modtesla3uk@gmail\.com/.test(sent[0].split('\n').find(l => /^To:/i.test(l)) || ''), 'the owner is still emailed about the decision');
+r = await call('POST', '/admin/alerts?key=secret', { email: true, bell: false });
+ok(r.body.alerts.email === true && r.body.alerts.bell === false, 'and switched back on, with the bell hidden');
+await call('POST', '/my-builds/car/gallery-request', { carId: kia }, 'tok-a');
+ok(sent.length === 2, 'with Email on again, MT3UK is emailed');

@@ -60,6 +60,8 @@
     call('POST', { carId: carId, action: ok ? 'approve' : 'decline' }).then(function (d) {
       if (!d.ok || !d.success) { note(d.message || 'That did not work.', 'error'); (ok || no).disabled = false; return; }
       draw(d.pending || []);
+      // The bell counts these requests too: bring it up to date.
+      document.dispatchEvent(new CustomEvent('mt3uk-bell-refresh'));
       note(ok ? 'Made public: it is in the Gallery and the Reel. The owner has been emailed.' : 'Kept private in the owner\'s garage. The owner has been emailed.', 'ok');
     }).catch(function () { note('Could not reach the server.', 'error'); (ok || no).disabled = false; });
   });

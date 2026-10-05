@@ -116,6 +116,12 @@ def test_a_car_kept_in_the_garage_has_no_gallery_switches_and_can_ask_to_be_show
     expect(hint).to_contain_text("You've asked us to show it in the Gallery")
     assert any(line.startswith("POST /my-builds/car/gallery-request") for line in page.api_log[before:]), page.api_log[before:]
     assert overflow_width(page) <= 0
+    # Changed their mind: Undo withdraws the request and the Ask button comes back.
+    before = len(page.api_log)
+    page.once("dialog", lambda d: d.accept())
+    hint.get_by_role("button", name="Undo the request").click()
+    expect(hint.get_by_role("button", name="Ask to show it in the Gallery")).to_be_visible()
+    assert any(line.startswith("POST /my-builds/car/gallery-request") for line in page.api_log[before:]), page.api_log[before:]
     assert page.errors == [], diagnostics(page)
 
 

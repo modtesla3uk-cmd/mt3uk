@@ -1302,3 +1302,56 @@ def test_a_session_at_a_track_that_has_gone_gets_a_repair_button_that_relinks_it
             break
         page.wait_for_timeout(50)
     assert posted == [{"board": "sprint-board:shelsley-walsh-hill-climb:hill", "carId": "c1", "sessionId": "aaa111aaa111"}], posted
+
+
+def test_the_bell_lists_gallery_requests_for_cars_of_another_make(page):
+    """A member's request to show a car of another make in the Gallery shows in the bell, and the item opens the
+    Other makes panel on this page."""
+    ok = {"Access-Control-Allow-Origin": "*"}
+    asks = {"success": True, "pending": [{"carId": "car-kia", "email": "k***@example.com", "name": "Kit", "car": "Kit's EV6", "title": "Kia EV6 GT",
+                                           "type": "car", "photos": ["kia.jpg"], "at": "2026-10-04T10:00:00Z"}]}
+    open_admin(page, "admin.html")
+    page.route("**/my-builds/admin/garage-gallery**", lambda route: route.fulfill(status=200, content_type="application/json", body=json.dumps(asks), headers=ok))
+    page.reload()
+    expect(page.locator("#bell-badge")).to_be_visible()
+    page.locator("#bell-btn").click()
+    panel = page.locator("#bell-panel")
+    expect(panel).to_contain_text("Gallery requests (other makes) (1)")
+    expect(panel).to_contain_text("Kit's EV6, Kia EV6 GT")
+    expect(panel).to_contain_text("Kit wants it in the Gallery")
+    panel.locator(".bell-item", has_text="Kit").click()
+    expect(page.locator("#garage-asks-wrap")).to_have_attribute("open", "")
+    expect(page.locator("#ga-list")).to_contain_text("Kia EV6 GT")
+
+
+@pytest.mark.parametrize("name", ["admin.html", "track-admin.html"])
+def test_the_notifications_switches_hide_the_bell_and_turn_emails_off(page, name):
+    ok = {"Access-Control-Allow-Origin": "*"}
+    state = {"alerts": {"bell": True, "email": True}, "posts": []}
+
+    def alerts(route):
+        if route.request.method == "POST":
+            body = json.loads(route.request.post_data)
+            state["posts"].append(body)
+            state["alerts"].update(body)
+        return route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "alerts": state["alerts"]}), headers=ok)
+    open_admin(page, name)
+    page.route("**/admin/alerts**", alerts)
+    page.reload()
+    bell_sw, email_sw = page.locator("#alerts-bell"), page.locator("#alerts-email")
+    expect(bell_sw).to_have_attribute("aria-checked", "true")
+    expect(email_sw).to_have_attribute("aria-checked", "true")
+    expect(page.locator(".bell-wrap")).to_be_visible()
+    bell_sw.click()
+    expect(page.locator(".bell-wrap")).to_be_hidden()
+    expect(bell_sw).to_have_attribute("aria-checked", "false")
+    email_sw.click()
+    expect(email_sw).to_have_attribute("aria-checked", "false")
+    expect(page.locator("#alerts-note")).to_contain_text("Emails off")
+    assert state["posts"] == [{"bell": False}, {"email": False}], state["posts"]
+    # Kept by the worker, so a fresh load keeps the bell hidden.
+    page.reload()
+    expect(page.locator(".bell-wrap")).to_be_hidden()
+    expect(email_sw).to_have_attribute("aria-checked", "false")
+    bell_sw.click()
+    expect(page.locator(".bell-wrap")).to_be_visible()

@@ -38,6 +38,7 @@
     }).join('');
   }
   var ICON = {
+    plus: '<path d="M12 5v14M5 12h14"/>',
     prev: '<path d="M15 5l-7 7 7 7"/>',
     next: '<path d="M9 5l7 7-7 7"/>',
     copy: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/>',
@@ -485,7 +486,7 @@
           '<ul class="tp-ticks">' + bullets.map(function (b) { return '<li>' + icon('check') + esc(b) + '</li>'; }).join('') + '</ul>' +
           '<div class="tp-actions"><a class="btn btn-accent" href="signin.html?next=/track.html">Sign in to add a session</a><a class="btn btn-secondary" id="tp-boards-btn" href="leaderboards.html">' + icon('trophy') + 'Leaderboards</a></div></div>';
       } else if (!m.cars.length) {
-        h += '<div class="card tp-intro"><h2>Add your car first</h2><p>Sessions belong to a car, so the times can be matched to its mods. Add your car with a photo in My Garage, then come back here.</p><a class="btn btn-accent" href="my-builds.html">Go to My Garage</a></div>';
+        h += addCarHtml(true);
       } else {
         // Leaderboards first, above the cars. Faded until the member has a
         // session of their own to put on a board.
@@ -495,6 +496,7 @@
       // Sessions just saved from a batch: say so at the top.
       if (justSaved && (justSaved.batch || justSaved.text)) { h = savedHtml(justSaved) + h; justSaved = null; }
       app.innerHTML = h;
+      wireAddCar();
       wireCarChips(m);
       if (m && m.cars && m.cars.length) wireSessionList(m);
     }).catch(function () { failed('Track sessions could not be loaded. Check your connection and try again.'); });
@@ -514,7 +516,8 @@
       var n = m.sessions.filter(function (x) { return x.carId === c.id; }).length;
       return '<button type="button" class="tp-car' + (c.id === car.id ? ' is-on' : '') + '" data-car="' + esc(c.id) + '" aria-pressed="' + (c.id === car.id) + '"><b>' + esc(c.name) + '</b><span>' +
         esc([titleOf(c), c.version].filter(Boolean).join(' ') || 'Car') + ' &middot; ' + n + ' session' + (n === 1 ? '' : 's') + '</span></button>';
-    }).join('') + '</div></div>';
+    }).join('') + '<button type="button" class="tp-car tp-car-add" id="tp-car-add-open"><b>' + icon('plus') + 'Add a car</b><span>No photo needed</span></button></div>' +
+      '<div id="tp-car-add-wrap" hidden>' + addCarHtml(false) + '</div></div>';
     h += '<div class="tp-section"><div class="tp-head"><div><h2>Sessions</h2><p class="tp-sub tp-for">' + esc(car.name) + '</p></div>' + refreshChip() + unitsChip() + '</div>';
     h += '<div class="tp-actions"><a class="btn btn-accent" href="track.html?add=1&car=' + encodeURIComponent(car.id) + '" data-go="add=1&car=' + esc(encodeURIComponent(car.id)) + '">' + icon('upload') + 'Add a session</a>' +
       (car.virtual ? '' : '<a class="btn btn-secondary" href="track.html?car=' + encodeURIComponent(car.id) + '" data-go="car=' + esc(encodeURIComponent(car.id)) + '">What others see</a>') + '</div>';
@@ -699,6 +702,69 @@
         (drives.length ? '<span class="tp-small tp-daygroup-label tp-drives-label">Drives between runs (' + drives.length + ')</span>' + drives.map(sessionRow).join('') : '') +
         (owner ? '<button type="button" class="btn btn-danger btn-sm tp-daygroup-delete" data-day-delete data-ids="' + esc(g.concat(drives).map(function (x) { return x.id; }).join(',')) + '" data-label="' + esc(trackName(g[0])) + '" data-date="' + esc(niceDate(g[0].date)) + '">' + icon('trash') + 'Delete this day</button>' : '') + '</div></div>';
     }).join('');
+  }
+  // ---------- Add a car (no photo needed) ----------
+  // Sessions belong to a car. A car can be added here with just its make and model (POST /my-builds/car/new);
+  // photos can be added later in My Garage. A car of another make is kept in the garage, out of the Gallery.
+  function addCarHtml(first) {
+    return '<form class="card tp-intro tp-addcar" id="tp-addcar" novalidate>' +
+      '<h2>' + (first ? 'Add your car' : 'Add a car') + '</h2>' +
+      '<p>' + (first ? 'Sessions belong to a car, so your times can be matched to its mods. ' : '') + 'No photo needed: you can add photos later in My Garage.</p>' +
+      '<div class="tp-types" role="group" aria-label="Car or bike">' +
+        '<button type="button" class="chip is-on" data-addcar-type="car" aria-pressed="true">Car</button>' +
+        '<button type="button" class="chip" data-addcar-type="bike" aria-pressed="false">Bike</button></div>' +
+      '<div class="tp-addcar-grid">' +
+        '<div class="tp-field"><label for="tp-addcar-make">Make</label><input class="field" id="tp-addcar-make" list="tp-addcar-makes" autocomplete="off" placeholder="e.g. Tesla, Porsche"><datalist id="tp-addcar-makes"></datalist></div>' +
+        '<div class="tp-field"><label for="tp-addcar-model">Model</label><input class="field" id="tp-addcar-model" list="tp-addcar-models" autocomplete="off" placeholder="e.g. Model 3"><datalist id="tp-addcar-models"></datalist></div>' +
+        '<div class="tp-field"><label for="tp-addcar-year">Year (optional)</label><input class="field" id="tp-addcar-year" type="number" inputmode="numeric" min="1950" max="' + (new Date().getFullYear() + 1) + '" placeholder="e.g. 2022"></div>' +
+        '<div class="tp-field"><label for="tp-addcar-name">Name it (optional)</label><input class="field" id="tp-addcar-name" maxlength="150" placeholder="e.g. Track car"></div>' +
+      '</div>' +
+      '<p class="tp-addcar-msg" id="tp-addcar-msg" role="status"></p>' +
+      '<div class="tp-actions"><button type="submit" class="btn btn-accent" id="tp-addcar-save">Add car</button>' +
+        (first ? '' : '<button type="button" class="btn btn-secondary" id="tp-addcar-cancel">Cancel</button>') + '</div></form>';
+  }
+  function wireAddCar() {
+    var form = document.getElementById('tp-addcar');
+    if (!form) return;
+    var type = 'car';
+    var make = document.getElementById('tp-addcar-make'), model = document.getElementById('tp-addcar-model');
+    var msg = document.getElementById('tp-addcar-msg');
+    var open = document.getElementById('tp-car-add-open'), wrap = document.getElementById('tp-car-add-wrap');
+    if (open && wrap) open.addEventListener('click', function () { wrap.hidden = false; open.hidden = true; make.focus(); });
+    var cancel = document.getElementById('tp-addcar-cancel');
+    if (cancel) cancel.addEventListener('click', function () { wrap.hidden = true; open.hidden = false; });
+    function opts(list) { return list.map(function (v) { return '<option value="' + esc(v) + '"></option>'; }).join(''); }
+    function lists() {
+      var V2 = window.MT3UKVehicles, byMake = (V2 && V2[type]) || {};
+      document.getElementById('tp-addcar-makes').innerHTML = opts(Object.keys(byMake).sort(function (a, b) { return a.localeCompare(b); }));
+      var key = Object.keys(byMake).filter(function (k) { return k.toLowerCase() === make.value.trim().toLowerCase(); })[0];
+      document.getElementById('tp-addcar-models').innerHTML = opts(key ? byMake[key] : []);
+    }
+    if (window.MT3UKVehicles) window.MT3UKVehicles.load().then(lists);
+    make.addEventListener('input', lists);
+    form.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-addcar-type]');
+      if (!b) return;
+      type = b.getAttribute('data-addcar-type');
+      form.querySelectorAll('[data-addcar-type]').forEach(function (c) { var on = c === b; c.classList.toggle('is-on', on); c.setAttribute('aria-pressed', String(on)); });
+      lists();
+    });
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (!make.value.trim()) { msg.textContent = 'Choose or type the make.'; make.focus(); return; }
+      if (!model.value.trim()) { msg.textContent = 'Type the model.'; model.focus(); return; }
+      var btn = document.getElementById('tp-addcar-save');
+      btn.disabled = true;
+      msg.textContent = '';
+      api('POST', '/my-builds/car/new', { make: make.value.trim(), model: model.value.trim(), year: document.getElementById('tp-addcar-year').value, vehicleType: type, name: document.getElementById('tp-addcar-name').value.trim() }).then(function (d) {
+        btn.disabled = false;
+        if (!d.success) { msg.textContent = d.message || 'Could not add the car. Please try again.'; return; }
+        mine = null;
+        currentCar = d.car.id;
+        try { localStorage.setItem('mt3ukTrackCar', currentCar); } catch (er) {}
+        showHome();
+      }).catch(function () { btn.disabled = false; msg.textContent = 'Could not reach the server. Please try again.'; });
+    });
   }
   function wireCarChips(m) {
     var chips = document.getElementById('tp-cars');

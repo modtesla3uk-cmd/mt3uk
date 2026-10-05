@@ -666,6 +666,17 @@
   .tp-cmp-pick .tp-field { margin-bottom: 0; }
   .tp-fields .btn-block { margin-top: 4px; }
   /* Your cars, then the chosen car's sessions */
+  .tp-car-add { border-style: dashed; color: var(--ink-2); }
+  .tp-car-add b { display: inline-flex; align-items: center; gap: 6px; }
+  .tp-car-add[hidden] { display: none; }
+  .tp-addcar { margin-top: 10px; justify-items: stretch; }
+  .tp-addcar-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; }
+  .tp-addcar .tp-field { display: grid; gap: 4px; }
+  .tp-addcar label { font-size: 0.85rem; font-weight: 600; color: var(--ink); }
+  .tp-addcar .field { min-height: 44px; width: 100%; box-sizing: border-box; }
+  .tp-addcar-msg { min-height: 1.2em; margin: 0; color: #b8421f; font-weight: 600; font-size: 0.9rem; }
+  .tp-addcar-msg:empty { display: none; }
+  @media (max-width: 780px) { .tp-addcar-grid { grid-template-columns: 1fr; } }
   .tp-cars { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; }
   .tp-car { display: grid; gap: 2px; min-height: 64px; padding: 10px 14px; text-align: left; background: #fff; border: 1px solid var(--hairline-strong); border-radius: var(--radius); font: inherit; color: var(--ink); cursor: pointer; }
   .tp-car b { font-size: 0.95rem; overflow-wrap: anywhere; }
@@ -883,7 +894,7 @@
 <script src="js/tyre-data.js"></script>
 <script src="js/vehicle-data.js?v=20261202" defer></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20261202" defer></script>
+<script src="js/track-page.js?v=20261213" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=8" defer></script>
 <script src="js/signin-prompt.js" defer></script>

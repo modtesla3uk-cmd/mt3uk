@@ -459,6 +459,10 @@
   .mb-car-tile:hover { border-color: var(--orange); }
   .mb-car-tile-thumb { width: 100%; aspect-ratio: 4 / 3; overflow: hidden; background: var(--ink); }
   .mb-car-tile-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .mb-car-tile-nophoto { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background: var(--hover, #e9e6dc); color: var(--steel, #5b6475); font-size: 0.85rem; }
+  .mb-car-tile-nophoto .icon { width: 40px; height: 40px; }
+  .mb-nophoto { display: grid; gap: 10px; justify-items: start; padding: 14px 16px; border: 1px dashed var(--hairline-strong, #c9c4b6); border-radius: var(--radius, 10px); }
+  .mb-nophoto p { margin: 0; color: var(--steel, #5b6475); }
   .mb-car-tile-body { padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
   .mb-car-tile-head { padding: 10px 12px 8px; }
   .mb-car-tile-name { font-weight: 600; color: var(--ink); word-break: break-word; }
@@ -1949,7 +1953,9 @@ document.addEventListener('DOMContentLoaded', function () {
         var alertCount = alerts[car.id] || 0;
         return '<button type="button" class="mb-car-tile" data-car-id="' + car.id.replace(/"/g, '&quot;') + '">' +
           '<div class="mb-car-tile-head"><span class="mb-car-tile-name">' + safeName + '</span></div>' +
-          '<div class="mb-car-tile-thumb"><img src="' + window.MT3UK_R2_BASE + '/gallery/' + primary.file.replace(/&/g, '&amp;') + '" alt="' + safeName + '" loading="lazy"></div>' +
+          (primary
+            ? '<div class="mb-car-tile-thumb"><img src="' + window.MT3UK_R2_BASE + '/gallery/' + primary.file.replace(/&/g, '&amp;') + '" alt="' + safeName + '" loading="lazy"></div>'
+            : '<div class="mb-car-tile-thumb mb-car-tile-nophoto"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 17h14M6 17l1.5-5h9L18 17M7.5 12l1.5-4h6l1.5 4"/><circle cx="8" cy="17" r="2"/><circle cx="16" cy="17" r="2"/></svg>No photo yet</div>') +
           '<div class="mb-car-tile-body">' +
             (car.garageOnly ? '<span class="mb-car-private"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Garage only</span>' : '') +
             '<span class="mb-car-tile-count mono">' + car.photos.length + ' photo' + (car.photos.length === 1 ? '' : 's') +
@@ -2018,6 +2024,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function renderPhotoStrip(car) {
+      // A car added without a photo (on the Laps pages): say so, and let it be removed while it has none.
+      if (!(car.photos || []).length) {
+        photoStrip.innerHTML = '<div class="mb-nophoto"><p>No photos yet. Use <strong>+ Add photo to this car</strong> above to add one. Its mods list and Track sessions work without one.</p>' +
+          '<button type="button" class="btn btn-danger btn-sm" id="mb-car-remove">Remove this car</button></div>';
+        return;
+      }
       var ordered = orderPhotosByActivity(car);
       var defaultFile = car.photos[0] && car.photos[0].file;
       var moveOptions = otherCarOptionsHtml(car.id);
@@ -2151,6 +2163,26 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.disabled = false;
         btn.textContent = 'Make it private again';
         mbToast(err.message || 'Could not do that, please try again.');
+      });
+    });
+
+    // Remove a car added without a photo, with its Track sessions (POST /my-builds/car/remove).
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('#mb-car-remove');
+      if (!btn || !currentCarId) return;
+      if (!window.confirm('Remove this car?\n\nIts mods list and any Track sessions saved for it are deleted too. This can\'t be undone.')) return;
+      btn.disabled = true;
+      fetch(API + '/my-builds/car/remove', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Session-Token': getSession() },
+        body: JSON.stringify({ carId: currentCarId })
+      }).then(function (res) { return res.json(); }).then(function (d) {
+        if (!d.success) throw new Error(d.message || 'Could not remove it, please try again.');
+        mbToast('Car removed.');
+        location.href = 'my-builds.html';
+      }).catch(function (err) {
+        btn.disabled = false;
+        mbToast(err.message || 'Could not remove it, please try again.');
       });
     });
 

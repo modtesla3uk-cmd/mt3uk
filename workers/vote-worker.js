@@ -1060,6 +1060,9 @@ async function deleteMemberAccount(env, email) {
   var files = await getSubscriberFiles(env, email);
   await deleteMemberTrackData(env, email);
   for (var i = 0; i < files.length; i++) await deleteMemberPhoto(env, email, files[i]);
+  var noPhotoCars = await getMemberCars(env, email);
+  for (var c = 0; c < noPhotoCars.length; c++) await deleteCarRecord(env, noPhotoCars[c]);
+  await env.VOTES.delete(memberCarsKey(email));
 
   var fr = await getFriends(env, email);
   var others = fr.friends.concat(fr.incoming.map(function (r) { return r.email; }), fr.outgoing.map(function (r) { return r.email; }));
@@ -5255,7 +5258,67 @@ async function saveCarRecord(env, car) {
 async function deleteCarRecord(env, carId) {
   await env.GALLERY_BUCKET.delete(carRecordKey(carId));
   await env.VOTES.delete(carDetailsKey(carId));
+  await env.VOTES.delete(carOwnerKey(carId));
   await deleteCarTrackData(env, carId);
+}
+
+// Cars added without a photo (Laps: "Add your car"). A car is otherwise found from its photos, so a member's
+// photoless cars are listed in one KV key (memberCarsKey, read with get()), and each car's owner is kept in KV
+// (carOwnerKey), never in the public car record. Such a car keeps both even once it has photos, so deleting its
+// last photo leaves the car (and its Track sessions) in place.
+var MEMBER_CARS_MAX = 20;
+function memberCarsKey(email) { return 'member-cars:' + email; }
+function carOwnerKey(carId) { return 'car-owner:' + carId; }
+async function getMemberCars(env, email) {
+  var list = await getJsonKey(env, memberCarsKey(email), []);
+  return Array.isArray(list) ? list.filter(function (id) { return typeof id === 'string'; }) : [];
+}
+
+// POST /my-builds/car/new { make, model, year, vehicleType, name }: a car with no photo. A car of another make is
+// kept in the garage (garageOnly), as from My Garage; a Tesla's photos, once added, go in the Gallery as usual.
+async function handleMyBuildsCarNew(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var make = cleanModText(body && body.make, 40);
+  if (!make) return json({ success: false, message: 'Choose or type the make.' }, 400);
+  var details = cleanCarModel(Object.assign({}, body, { make: make }), make);
+  if (!details.model) return json({ success: false, message: 'Type the model.' }, 400);
+  details.make = make;
+  details.vehicleType = details.vehicleType || 'car';
+  var mine = await getMemberCars(env, email);
+  if (mine.length >= MEMBER_CARS_MAX) return json({ success: false, message: 'You have added the most cars we keep without a photo. Add a photo to one in My Garage, or remove one you no longer have.' }, 400);
+  var title = details.model.toLowerCase().indexOf(make.toLowerCase()) === 0 ? details.model : make + ' ' + details.model;
+  var name = cleanModText(body && body.name, 150) || title;
+  var tesla = make.toLowerCase() === 'tesla' && !NON_TESLA_MODELS[details.model];
+  if (tesla) details.make = 'Tesla';
+  var id = randomToken();
+  var record = { id: id, name: name, photos: [], mods: [], color: '', createdAt: new Date().toISOString(), noPhoto: true };
+  if (!tesla) record.garageOnly = true;
+  await saveCarRecord(env, record);
+  await saveCarDetails(env, id, details);
+  await env.VOTES.put(carOwnerKey(id), email);
+  mine.push(id);
+  await env.VOTES.put(memberCarsKey(email), JSON.stringify(mine));
+  return json({ success: true, car: { id: id, name: name, make: details.make, model: details.model, year: details.year || '', vehicleType: details.vehicleType, garageOnly: !tesla, photos: [] } });
+}
+
+// POST /my-builds/car/remove { carId }: removes a car added without a photo, while it has none, with its Track
+// sessions. A car with photos goes when its last photo is deleted, as before.
+async function handleMyBuildsCarRemove(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var carId = String((body && body.carId) || '');
+  var mine = await getMemberCars(env, email);
+  if (mine.indexOf(carId) === -1) return json({ success: false, message: 'That car is not linked to your account' }, 403);
+  var record = await getCarRecord(env, carId);
+  if (record && (record.photos || []).length) return json({ success: false, message: 'This car has photos: delete them in My Garage first.' }, 400);
+  await deleteCarRecord(env, carId);
+  await env.VOTES.put(memberCarsKey(email), JSON.stringify(mine.filter(function (id) { return id !== carId; })));
+  return json({ success: true });
 }
 
 // A car's model and its mods list, as built in My Garage. Kept in KV, not
@@ -5424,7 +5487,7 @@ function cleanCarModel(body, knownMake) {
   var version = cleanModText(body.version, 40);
   if (version) out.version = version;
   var year = parseInt(body.year, 10);
-  if (year >= 2008 && year <= new Date().getUTCFullYear() + 1) out.year = year;
+  if (year >= 1950 && year <= new Date().getUTCFullYear() + 1) out.year = year;
   return out;
 }
 
@@ -6227,6 +6290,11 @@ async function handleMyBuildsGet(request, env) {
 
   var entries = liveFiles.map(function (f) { return byFile[f]; });
   var groups = groupEntriesIntoCars(entries);
+  // Cars added without a photo (or whose photos have all been deleted) are listed too.
+  var noPhotoCars = await getMemberCars(env, email);
+  noPhotoCars.forEach(function (id) {
+    if (!groups.some(function (g) { return g.id === id; })) groups.push({ id: id, virtual: false, entries: [], noPhoto: true });
+  });
 
   // Photos showing an old name (from before a nickname or Visibility
   // change reached them) get the member's current name. Only happens when
@@ -6259,6 +6327,8 @@ async function handleMyBuildsGet(request, env) {
   await Promise.all(groups.map(async function (g) {
     if (!g.virtual) records[g.id] = await getCarRecord(env, g.id);
   }));
+  // A listed car whose record has gone (removed elsewhere) is left out.
+  groups = groups.filter(function (g) { return !g.noPhoto || records[g.id]; });
   groups.forEach(function (g) {
     var record = records[g.id];
     if (record && Array.isArray(record.photos) && record.photos.length) {
@@ -6281,7 +6351,8 @@ async function handleMyBuildsGet(request, env) {
   // Cars stay in the order they were first added (by their oldest photo),
   // so adding a photo doesn't reshuffle the garage.
   function firstAdded(g) {
-    return g.entries.reduce(function (min, e) { return Math.min(min, e.uploadedAt || 0); }, Infinity);
+    var made = records[g.id] && records[g.id].createdAt ? Date.parse(records[g.id].createdAt) || Infinity : Infinity;
+    return g.entries.reduce(function (min, e) { return Math.min(min, e.uploadedAt || 0); }, g.entries.length ? Infinity : made);
   }
   groups.sort(function (a, b) { return firstAdded(a) - firstAdded(b); });
 
@@ -6310,7 +6381,7 @@ async function handleMyBuildsGet(request, env) {
       };
     }));
     // A car without a saved record takes its details from its first photo.
-    var first = g.entries.reduce(function (o, e) { return (e.uploadedAt || 0) < (o.uploadedAt || 0) ? e : o; }, g.entries[0]);
+    var first = g.entries.reduce(function (o, e) { return (e.uploadedAt || 0) < (o.uploadedAt || 0) ? e : o; }, g.entries[0]) || {};
     var mods = record && Array.isArray(record.mods) ? record.mods : (first.mods || []);
     var color = record && record.color ? record.color : (first.color || '');
     var name = record ? record.name : (first.caption || 'MT3UK member build');
@@ -6938,6 +7009,8 @@ async function carBelongsTo(env, email, carId) {
   if (!record) return null;
   var files = await getSubscriberFiles(env, email);
   var mine = (record.photos || []).some(function (f) { return files.indexOf(f) !== -1; });
+  // Or a car the member added without a photo.
+  if (!mine) mine = (await getMemberCars(env, email)).indexOf(carId) !== -1;
   return mine ? record : null;
 }
 
@@ -7003,7 +7076,8 @@ async function refreshTrackBoard(env, boardKey, carId) {
 // The owner of a car record, from its first photo's owner.
 async function carOwnerEmail(env, record) {
   var file = record && record.photos && record.photos[0];
-  if (!file) return null;
+  // A car added without a photo has its owner kept in KV.
+  if (!file) return record && record.id ? (await env.VOTES.get(carOwnerKey(record.id))) || null : null;
   try {
     var obj = await env.GALLERY_BUCKET.get('gallery/' + file + '.json');
     var sidecar = obj ? await obj.json() : null;
@@ -9002,7 +9076,7 @@ async function handleMyBuildsCarUpdate(request, env) {
     currentPhotos = files.filter(function (f) { return byFile[f] && byFile[f].carId === carId; });
   }
 
-  if (!currentPhotos.length) {
+  if (!currentPhotos.length && (isVirtual || (await getMemberCars(env, email)).indexOf(carId) === -1)) {
     return json({ success: false, message: 'That car is not linked to your account' }, 403);
   }
 
@@ -9443,7 +9517,8 @@ async function deleteMemberPhoto(env, email, file) {
     var carRecordForDelete = await getCarRecord(env, carId);
     if (carRecordForDelete) {
       var remainingPhotos = (carRecordForDelete.photos || []).filter(function (f) { return f !== file; });
-      if (remainingPhotos.length) {
+      if (remainingPhotos.length || (await getMemberCars(env, email)).indexOf(carId) !== -1) {
+        // A car added without a photo stays, with its Track sessions, when its last photo goes.
         carRecordForDelete.photos = remainingPhotos;
         await saveCarRecord(env, carRecordForDelete);
       } else {
@@ -10277,6 +10352,12 @@ export default {
     }
     if (url.pathname === '/my-builds/admin/garage-gallery' && (request.method === 'GET' || request.method === 'POST')) {
       return handleGarageGalleryAdmin(request, env);
+    }
+    if (url.pathname === '/my-builds/car/new' && request.method === 'POST') {
+      return handleMyBuildsCarNew(request, env);
+    }
+    if (url.pathname === '/my-builds/car/remove' && request.method === 'POST') {
+      return handleMyBuildsCarRemove(request, env);
     }
     if (url.pathname === '/my-builds/car' && request.method === 'PUT') {
       return handleMyBuildsCarUpdate(request, env);

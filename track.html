@@ -67,6 +67,10 @@
   .page-hero .back-link:hover { color: var(--orange); }
   .page-hero .eyebrow { display: block; font-size: 0.82rem; font-weight: 600; color: var(--steel); margin-bottom: 8px; }
   .page-hero h1 { margin-bottom: 12px; font-size: clamp(1.6rem, 4vw, 2.3rem); }
+  /* Play intro: shows the Laps front page (laps.html) again. */
+  .tp-play-intro { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin: 0 10px 16px 14px; vertical-align: top; font-size: 0.88rem; font-weight: 600; color: var(--steel); }
+  .tp-play-intro:hover { color: var(--orange); }
+  .tp-play-intro .icon { width: 18px; height: 18px; color: var(--orange); }
   .page-hero p { color: var(--ink-2); max-width: 58ch; font-size: 1.02rem; }
   @media (max-width: 780px) { .page-hero { padding: 24px 0 20px; } .page-hero .back-link { margin-bottom: 10px; } }
   @media (min-width: 901px) {
@@ -736,7 +740,7 @@
 
 <section class="page-hero">
   <div class="wrap">
-    <a href="my-builds.html" class="back-link" aria-label="Back to My Garage"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</a>
+    <a href="my-builds.html" class="back-link" aria-label="Back to My Garage"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</a><a href="laps.html" class="tp-play-intro" id="tp-play-intro"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m10 8.5 5 3.5-5 3.5Z"/></svg>Play intro</a>
     <span class="early-badge early-badge-lg">Early preview</span>
     <h1>Track sessions</h1>
     <p>Your track days and drag runs from your lap timer file: every lap mapped, where you gained and lost time, and what your mods did to your times.</p>
@@ -898,7 +902,7 @@
 <script src="js/track-line-image.js?v=20261110" defer></script>
 <script src="js/track-page.js?v=20261224" defer></script>
 <script src="js/share.js" defer></script>
-<script src="js/account-bar.js?v=8" defer></script>
+<script src="js/account-bar.js?v=9" defer></script>
 <script src="js/signin-prompt.js" defer></script>
 <script src="js/notify-bell.js" defer></script>
 <script src="js/messenger.js" defer></script>

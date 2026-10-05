@@ -4,6 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script>
+  // laps.mt3uk.com/ is Laps, not this page (the two addresses serve the same files). Signed-in members go straight
+  // to their Sessions; anyone else sees the Laps front page (laps.html) once in each browser, then Sessions, where
+  // Play intro shows it again.
+  if (location.hostname === 'laps.mt3uk.com') {
+    var lapsGo = '/laps.html';
+    try { if (localStorage.getItem('mt3ukMyBuildsSession') || localStorage.getItem('mt3ukLapsIntroSeen')) lapsGo = '/track.html'; } catch (e) {}
+    location.replace(lapsGo + location.search + location.hash);
+  }
+</script>
+<script>
   // A refresh (including pull down to refresh) keeps you where you were:
   // drop any #section from the address so the browser doesn't jump to it.
   try {
@@ -6681,7 +6691,7 @@
 
 <script src="js/signin-prompt.js" defer></script>
 <script src="js/share.js" defer></script>
-<script src="js/account-bar.js?v=8" defer></script>
+<script src="js/account-bar.js?v=9" defer></script>
 <script src="js/search.js" defer></script>
 <script src="js/notify-bell.js" defer></script>
 <script src="js/messenger.js" defer></script>

@@ -1367,7 +1367,7 @@ def test_leaderboards_list_busy_tracks_first_with_counts(page):
 
 def test_cars_are_separate_from_sessions(page):
     open_page(page, FakeWorker())
-    cars = page.locator("#tp-cars .tp-car")
+    cars = page.locator("#tp-cars .tp-car[data-car]")
     expect(cars).to_have_count(1)
     expect(cars.first).to_contain_text("Arctic Three")
     expect(cars.first).to_contain_text("1 session")

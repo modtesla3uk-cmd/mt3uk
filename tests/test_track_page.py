@@ -2352,6 +2352,10 @@ def test_speed_is_written_above_the_cursor_not_drawn_as_a_chart(page):
     assert re.fullmatch(r"\d+ mph(\s+\d+ mph)?", first.strip()), first
     page.mouse.move(box["x"] + box["width"] * 0.8, box["y"] + box["height"] / 2)
     assert speed.text_content() != first
+    # It is the speed the map and the figures under it show for the same moment, in the same unit.
+    page.locator("#tp-scrub").evaluate("el => { el.value = 30; el.dispatchEvent(new Event('input', {bubbles: true})); }")
+    a_v = page.locator('#tp-metrics [data-m="a-v"]').inner_text()
+    assert a_v in speed.text_content(), (a_v, speed.text_content())
     # It sits above the plot, clear of the chart's own title row.
     sb, tb = speed.bounding_box(), page.locator("#tp-gforce svg").first.bounding_box()
     assert tb["y"] <= sb["y"] and sb["y"] + sb["height"] <= tb["y"] + 32, (sb, tb)

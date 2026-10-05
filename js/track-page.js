@@ -3028,7 +3028,7 @@
       // the ruler for the slider underneath.
       function onTime(trace, rows) { return trace.map(function (p, i) { return [p[1], rows[i][1], rows[i][2]]; }); }
       var gaT = onTime(A.trace, ga), gbT = A === B ? gaT : onTime(B.trace, gb);
-      var spA = A.trace.map(function (p) { return [p[1], V.spd(p[4])]; }), spB = A === B ? spA : B.trace.map(function (p) { return [p[1], V.spd(p[4])]; });
+      var spA = A.trace.map(function (p) { return [p[1], p[4]]; }), spB = A === B ? spA : B.trace.map(function (p) { return [p[1], p[4]]; });  // km/h: V.fmtV does the unit
       var tEndG = Math.max(A.trace[A.trace.length - 1][1], B.trace[B.trace.length - 1][1]);
       function timeTicks(fitPx) {
         var fit = Math.max(2, Math.floor(fitPx / 46));

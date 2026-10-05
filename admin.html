@@ -1530,8 +1530,9 @@
     }).observe(el, { childList: true, subtree: true });
   });
 
-  // Check for new items every few minutes while the page is open.
-  setInterval(function () {
+  // Check for new items every few minutes while the page is open, and at once when js/admin-alerts.js sees that
+  // something new is waiting.
+  function reloadBell() {
     var key = keyInput.value.trim();
     if (!key || document.hidden) return;
     loadClaims(key);
@@ -1539,7 +1540,9 @@
     loadReported(key);
     loadTrackBell(key);
     document.dispatchEvent(new CustomEvent('mt3uk-admin-refresh'));
-  }, 3 * 60 * 1000);
+  }
+  setInterval(reloadBell, 3 * 60 * 1000);
+  document.addEventListener('mt3uk-admin-changed', reloadBell);
 
   if (savedKey) loadAll(true);
 
@@ -2427,7 +2430,7 @@
 })();
 </script>
 <script src="js/admin-subnav.js?v=20261160" defer></script>
-<script src="js/admin-alerts.js?v=20261209" defer></script>
+<script src="js/admin-alerts.js?v=20261210" defer></script>
 <script src="js/garage-asks-admin.js?v=20261208" defer></script>
 <script src="js/track-parse.js?v=20261188" defer></script>
 <script src="js/track-view.js?v=20261181" defer></script>

@@ -1,7 +1,7 @@
 /*
   admin.html and track-admin.html: the Notifications switches at the top of the page. Bell shows or hides the
   notification bell; Email turns the emails to MT3UK about admin actions on or off (the worker checks it before
-  sending each one). Both are kept in one KV key through the worker's /admin/alerts route, so they are the same on
+  sending each one). It also keeps the bell up to date within seconds (see load()). Both are kept in one KV key through the worker's /admin/alerts route, so they are the same on
   every device, and both start on.
 */
 (function () {
@@ -31,10 +31,21 @@
     return fetch(API + '/admin/alerts?key=' + encodeURIComponent(key()), opts)
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d.ok = r.ok; return d; }); });
   }
+  // The worker's stamp changes whenever something new waits for the admin (a request, a report, a claim). It is
+  // checked every 15 seconds while the page is in view, and at once when the page comes back into view; a change
+  // tells the page to reload what the bell counts ('mt3uk-admin-changed').
+  var stamp = null;
   function load() {
     if (!key()) return;
-    call('GET').then(function (d) { if (d.ok && d.success && d.alerts) { show(d.alerts); note(''); } }).catch(function () {});
+    call('GET').then(function (d) {
+      if (!(d.ok && d.success && d.alerts)) return;
+      show(d.alerts);
+      if (stamp !== null && d.stamp !== stamp) document.dispatchEvent(new CustomEvent('mt3uk-admin-changed'));
+      stamp = d.stamp || '';
+    }).catch(function () {});
   }
+  setInterval(function () { if (!document.hidden) load(); }, 15 * 1000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) load(); });
   function flip(sw, field) {
     sw.addEventListener('click', function () {
       if (!key()) { note('Enter the admin key first.'); return; }
@@ -51,6 +62,7 @@
   }
   flip(bellSw, 'bell');
   flip(emailSw, 'email');
+  // Entering the key (Load) reads the switches straight away.
   document.addEventListener('mt3uk-admin-refresh', load);
   load();
 })();

@@ -950,7 +950,18 @@
     var venue = findVenue(pts, library, type === 'drag' ? 'drag' : type === 'track' ? 'circuit' : type === 'sprint' ? 'sprint' : null);
     if (!type) {
       if (venue && venue.type === 'drag') type = 'drag';
-      else if (venue && venue.type === 'sprint') type = 'sprint';
+      else if (venue && venue.type === 'sprint') {
+        type = 'sprint';
+        // A place that is both a circuit and a sprint is listed once for each. When the file is plainly laps round the
+        // circuit (two or more timed laps, each about the length of a listed layout when the circuit has lengths), it is
+        // a track day.
+        var circuit = findVenue(pts, library, 'circuit');
+        if (circuit) {
+          var lapped = analyse(rd, library, Object.assign({}, opts, { type: 'track' })), timed = (lapped.laps || []).filter(function (l) { return l.kind === 'timed'; });
+          var md = timed.length >= 2 ? median(timed.map(function (l) { return l.dist; })) : 0, sized = (circuit.layouts || []).filter(function (l) { return l.length; });
+          if (md && (!sized.length || sized.some(function (l) { return Math.abs(md - l.length) / l.length < 0.25; }))) { type = 'track'; venue = circuit; }
+        }
+      }
       else if (venue) type = 'track';
       // Only a known drag strip makes it a drag run. Anywhere else a standing start is as likely a
       // sprint or a hill climb, so the member picks the type.

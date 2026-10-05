@@ -294,6 +294,7 @@
     document.body.setAttribute('data-tp-view', p.get('s') ? 'session' : p.get('car') && !p.get('add') ? 'car' : '');
     if (p.get('s')) return showSession(p.get('s'));
     if (p.get('add')) return showAdd(p.get('car'));
+    if (p.get('at')) return showTrackSessions(p.get('mycar'), p.get('at'));
     // The leaderboards have their own page now; old links still work.
     if (p.get('board')) { location.replace('leaderboards.html?board=' + encodeURIComponent(p.get('board'))); return; }
     if (p.get('drag')) { location.replace('leaderboards.html?drag=' + encodeURIComponent(p.get('drag'))); return; }
@@ -525,45 +526,41 @@
     h += '<div class="tp-actions"><a class="btn btn-accent" href="track.html?add=1&car=' + encodeURIComponent(car.id) + '" data-go="add=1&car=' + esc(encodeURIComponent(car.id)) + '">' + icon('upload') + 'Add a session</a>' +
       (car.virtual ? '' : '<a class="btn btn-secondary" href="track.html?car=' + encodeURIComponent(car.id) + '" data-go="car=' + esc(encodeURIComponent(car.id)) + '">What others see</a>') + '</div>';
     if (!list.length) h += '<div class="card tp-empty">' + icon('flag') + '<p>No sessions for ' + esc(car.name) + ' yet. Add the file from your lap timer to get started.</p></div>';
-    else h += listToolsHtml(list) + trackFilterHtml(list) + '<div class="tp-list" id="tp-sess-list">' + shownListHtml(list) + '</div>';
+    else h += trackToolsHtml(list) + '<div class="tp-list tp-tracklist" id="tp-sess-list">' + trackListHtml(list, car.id) + '</div>';
     return h + '</div>';
   }
-  // Filter the list by track name (only when there's more than one track).
-  var trackFilter = '';
-  function inTrackFilter(s) { return !trackFilter || trackName(s) === trackFilter; }
-  // Filter by kind of session (Track day, Drag, Sprint) and sort by newest, oldest or A to Z.
-  var typeFilter = '', sortMode = 'newest';
-  var TYPE_CHIPS = [['', 'All'], ['track', 'Track'], ['drag', 'Drag'], ['sprint', 'Sprint']];
-  var SORTS = [['newest', 'Newest'], ['oldest', 'Oldest'], ['az', 'A to Z']];
-  function inTypeFilter(s) { return !typeFilter || s.type === typeFilter; }
+  // The main screen is one line for each track, newest driven first (or A to Z, or most sessions). A line opens its own page
+  // with every session there (showTrackSessions), so a track is quick to find and the list stays short.
+  var sortMode = 'newest';
+  var SORTS = [['newest', 'Recently driven'], ['az', 'A to Z'], ['most', 'Most sessions']];
   function whenOf(s) { return (s.date || '') + (s.time || ''); }
-  function sortedSessions(l) {
-    return l.slice().sort(function (x, y) {
-      if (sortMode === 'az') { var c = trackName(x).localeCompare(trackName(y)); if (c) return c; }
-      var a = whenOf(x), b = whenOf(y);
-      return a === b ? 0 : (a < b) === (sortMode === 'oldest') ? -1 : 1;
+  function trackTitleOf(s) { return s.venue || (s.type === 'sprint' ? (s.hill ? 'Hill climb' : 'Sprint') : s.type === 'drag' ? 'Drag run' : 'Track session'); }
+  function trackKeyOf(s) { return s.venueId ? 'v:' + s.venueId : 'n:' + trackTitleOf(s).toLowerCase(); }
+  function trackEntries(list) {
+    var by = {}, out = [];
+    list.forEach(function (x) {
+      var k = trackKeyOf(x);
+      if (!by[k]) { by[k] = { key: k, name: trackTitleOf(x), n: 0, last: '' }; out.push(by[k]); }
+      by[k].n++;
+      if (whenOf(x) > by[k].last) by[k].last = whenOf(x);
+    });
+    return out.sort(function (a, b) {
+      if (sortMode === 'az') return a.name.localeCompare(b.name);
+      if (sortMode === 'most' && a.n !== b.n) return b.n - a.n;
+      return a.last === b.last ? a.name.localeCompare(b.name) : a.last < b.last ? 1 : -1;
     });
   }
-  function shownListHtml(list) {
-    var rows = sortedSessions(list.filter(inTrackFilter).filter(inTypeFilter));
-    return rows.length ? sessionListHtml(rows, true, list) : '<div class="card tp-empty">' + icon('flag') + '<p>No sessions match this filter.</p></div>';
-  }
-  function listToolsHtml(list) {
-    if (list.length < 2) return '';
-    return '<div class="tp-tools"><div class="tp-types" id="tp-type-filter" role="group" aria-label="Show">' + TYPE_CHIPS.map(function (t) {
-      var n = t[0] ? list.filter(function (x) { return x.type === t[0]; }).length : list.length;
-      return '<button type="button" class="chip' + (t[0] === typeFilter ? ' is-on' : '') + '" data-type="' + t[0] + '" aria-pressed="' + (t[0] === typeFilter) + '">' + t[1] + ' (' + n + ')</button>';
-    }).join('') + '</div><div class="tp-field tp-sort"><label for="tp-sort">Sort by</label><select class="field" id="tp-sort">' +
+  function trackToolsHtml(list) {
+    if (trackEntries(list).length < 2) return '';
+    return '<div class="tp-tools"><div class="tp-field tp-sort"><label for="tp-sort">Sort by</label><select class="field" id="tp-sort">' +
       SORTS.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === sortMode ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div></div>';
   }
-  function trackFilterHtml(list) {
-    var names = {};
-    list.forEach(function (x) { var n = trackName(x); names[n] = (names[n] || 0) + 1; });
-    var keys = Object.keys(names).sort(function (x, y) { return x.localeCompare(y); });
-    if (!names[trackFilter]) trackFilter = '';
-    if (keys.length < 2) return '';
-    return '<div class="tp-field tp-filter"><label for="tp-track-filter">Track</label><select class="field" id="tp-track-filter"><option value="">All tracks (' + list.length + ')</option>' +
-      keys.map(function (k) { return '<option value="' + esc(k) + '"' + (k === trackFilter ? ' selected' : '') + '>' + esc(k) + ' (' + names[k] + ')</option>'; }).join('') + '</select></div>';
+  function trackListHtml(list, carId) {
+    return trackEntries(list).map(function (t) {
+      var q = 'mycar=' + encodeURIComponent(carId) + '&at=' + encodeURIComponent(t.key);
+      var lastDay = niceDate(t.last.slice(0, 10));
+      return '<a class="tp-row tp-trackrow" href="track.html?' + esc(q) + '" data-go="' + esc(q) + '"><span class="tp-row-main"><b>' + esc(t.name) + '</b><span>' + t.n + ' session' + (t.n === 1 ? '' : 's') + ', last ' + esc(lastDay) + '</span></span>' + icon('chev') + '</a>';
+    }).join('');
   }
   // Where the car sits on the leaderboard: a trophy on the session that holds
   // its place. 1st is Platinum, 2nd Gold, 3rd Silver, then 4th, 5th and so on.
@@ -608,30 +605,37 @@
     var car = m.cars.filter(function (c) { return c.id === currentCar; })[0];
     if (!car) return;
     var list = m.sessions.filter(function (x) { return x.carId === car.id; });
-    var sel = document.getElementById('tp-track-filter');
-    function redraw() {
-      document.getElementById('tp-sess-list').innerHTML = shownListHtml(list);
-      applyRanks(list);
-    }
-    if (sel) sel.addEventListener('change', function () { trackFilter = sel.value; redraw(); });
-    var types = document.getElementById('tp-type-filter'), sortSel = document.getElementById('tp-sort');
-    if (types) types.addEventListener('click', function (e) {
-      var b = e.target.closest('[data-type]');
-      if (!b) return;
-      typeFilter = b.getAttribute('data-type');
-      Array.prototype.forEach.call(types.querySelectorAll('[data-type]'), function (x) {
-        var on = x === b; x.classList.toggle('is-on', on); x.setAttribute('aria-pressed', on ? 'true' : 'false');
+    var sortSel = document.getElementById('tp-sort');
+    if (sortSel) sortSel.addEventListener('change', function () {
+      sortMode = sortSel.value;
+      document.getElementById('tp-sess-list').innerHTML = trackListHtml(list, car.id);
+    });
+  }
+  // One track's page: every session there for the car, a day at a time, newest first. The trophies show here.
+  function showTrackSessions(carId, key) {
+    loading();
+    Promise.all([getMine(), getLibrary()]).then(function (r) {
+      var m = r[0];
+      if (!m) { location.href = 'signin.html?next=' + encodeURIComponent('/track.html'); return; }
+      if (m.gate) return showGate();
+      var car = m.cars.filter(function (c) { return c.id === carId; })[0];
+      if (!car) return showHome();
+      currentCar = car.id;
+      var all = m.sessions.filter(function (x) { return x.carId === car.id; });
+      var rows = all.filter(function (x) { return trackKeyOf(x) === key; }).sort(function (x, y) { return whenOf(x) < whenOf(y) ? 1 : whenOf(x) > whenOf(y) ? -1 : 0; });
+      if (!rows.length) return showHome();
+      var saved = justSaved && (justSaved.batch || justSaved.text) ? savedHtml(justSaved) : '';
+      justSaved = null;
+      app.innerHTML = saved + back('Track sessions', 'mycar=' + encodeURIComponent(car.id)) + '<div class="tp-head"><div><h2>' + esc(trackTitleOf(rows[0])) + '</h2><p class="tp-sub tp-for">' + esc(car.name) + ', ' + rows.length + ' session' + (rows.length === 1 ? '' : 's') + '</p></div>' + unitsChip() + '</div>' +
+        '<div class="tp-list" id="tp-sess-list">' + sessionListHtml(rows, true, all) + '</div>';
+      if (ranksFor !== car.id) { ranks = {}; ranksFor = car.id; }
+      applyRanks(rows);
+      loadRanks(car.id, rows).then(function (rk) {
+        if (ranksFor !== car.id || currentCar !== car.id) return;
+        ranks = rk;
+        applyRanks(rows);
       });
-      redraw();
-    });
-    if (sortSel) sortSel.addEventListener('change', function () { sortMode = sortSel.value; redraw(); });
-    if (ranksFor !== car.id) { ranks = {}; ranksFor = car.id; }
-    applyRanks(list);
-    loadRanks(car.id, list).then(function (r) {
-      if (ranksFor !== car.id || currentCar !== car.id) return;
-      ranks = r;
-      applyRanks(list);
-    });
+    }).catch(function () { failed('Your sessions could not be loaded. Check your connection and try again.'); });
   }
   function sessionRow(s) {
     return '<a class="tp-row" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '"><span class="tp-row-main"><b>' + esc(trackName(s)) + '</b><span>' + esc(niceDate(s.date)) + (s.conditions ? ', ' + esc(s.conditions) : '') + (TYPE_WORD[s.type] ? ', ' + TYPE_WORD[s.type] : '') + '</span></span>' +
@@ -674,6 +678,15 @@
     var txt = 'Charge used ' + sum(on) + '% on track' + (between.length ? ', ' + sum(between) + '% between runs' : '');
     return txt + (on.length < g.length ? ' (from ' + on.length + ' of ' + g.length + ' sessions)' : '');
   }
+  // The heading and the count of a group. With more than one session they open and close it; a group of one is just shown.
+  function groupTitleHtml(text, label, open, many) {
+    return many ? '<button type="button" class="tp-daygroup-title" data-day-toggle aria-expanded="' + (open ? 'true' : 'false') + '" aria-label="' + esc(label) + '"><h3>' + esc(text) + '</h3></button>'
+      : '<div class="tp-daygroup-title"><h3>' + esc(text) + '</h3></div>';
+  }
+  function groupCountHtml(count, n, open, many) {
+    return many ? '<button type="button" class="tp-daygroup-count" data-day-toggle aria-expanded="' + (open ? 'true' : 'false') + '" aria-label="Show or hide the ' + n + ' sessions"><span class="tp-small">' + count + '</span>' + icon('chev') + '</button>'
+      : '<span class="tp-daygroup-count"><span class="tp-small">' + count + '</span></span>';
+  }
   function sessionListHtml(list, owner, all) {
     var groups = {}, order = [];
     list.forEach(function (s) {
@@ -687,23 +700,24 @@
     order.forEach(function (k) { var g0 = groups[k]; if (g0.length > 1 && !driveOwner[g0[0].date]) driveOwner[g0[0].date] = k; });
     return order.map(function (k) {
       var g = groups[k];
-      if (g.length < 2) return g[0].type === 'other' && driveOwner[g[0].date] ? '' : sessionRow(g[0]);
+      // A drive or street run (no track to group by) stays a plain row; a timed session on its own gets the same card as a day.
+      if (g.length < 2 && !dayKey(g[0])) return g[0].type === 'other' && driveOwner[g[0].date] ? '' : sessionRow(g[0]);
       g = g.slice().sort(byTime);
       var drives = driveOwner[g[0].date] === k ? (all || list).filter(function (x) { return x.type === 'other' && x.date === g[0].date; }).sort(byTime) : [];
       // The fastest of the day: the best lap or run, or for drag runs the quickest quarter mile (else 0 to 60).
       function score(x) { return x.type === 'drag' ? (x.quarter || (x.s60 ? 1000 + x.s60 : 0)) : x.bestTime || 0; }
       var fast = g.filter(function (x) { return score(x) > 0; }).sort(function (a, b) { return score(a) - score(b); })[0];
-      var key = k, open = openDays[key] || !fast;
+      var key = k, open = openDays[key] || !fast || g.length === 1, many = g.length > 1, count = g.length + ' session' + (many ? 's' : '');
       var best = fast && fast.type !== 'drag' ? V.fmtLap(fast.bestTime) : '';
       return '<div class="card tp-daygroup" data-open="' + (open ? 'true' : 'false') + '" data-day="' + esc(key) + '">' +
-        '<div class="tp-daygroup-head"><button type="button" class="tp-daygroup-title" data-day-toggle aria-expanded="' + (open ? 'true' : 'false') + '" aria-label="' + esc(niceDate(g[0].date) + ' on ' + trackName(g[0]) + ', ' + g.length + ' sessions') + '"><h3>' + esc(niceDate(g[0].date)) + ' on ' + esc(trackName(g[0])) + '</h3></button>' +
-        (owner ? '<button type="button" class="tp-daygroup-share" role="switch" data-day-share data-ids="' + esc(g.map(function (x) { return x.id; }).join(',')) + '" data-what="' + esc(niceDate(g[0].date) + ' at ' + trackName(g[0])) + '" aria-checked="' + (g.every(function (x) { return x.privacy && x.privacy !== 'private'; }) ? 'true' : 'false') + '" aria-label="Share all ' + g.length + ' sessions"><span>Shared</span><span class="tp-track"></span></button>' : '') +
-        '<button type="button" class="tp-daygroup-count" data-day-toggle aria-expanded="' + (open ? 'true' : 'false') + '" aria-label="Show or hide the ' + g.length + ' sessions"><span class="tp-small">' + g.length + ' sessions</span>' + icon('chev') + '</button></div>' +
+        '<div class="tp-daygroup-head">' + groupTitleHtml(niceDate(g[0].date) + ' on ' + trackName(g[0]), niceDate(g[0].date) + ' on ' + trackName(g[0]) + ', ' + count, open, many) +
+        (owner ? '<button type="button" class="tp-daygroup-share" role="switch" data-day-share data-ids="' + esc(g.map(function (x) { return x.id; }).join(',')) + '" data-what="' + esc(niceDate(g[0].date) + ' at ' + trackName(g[0])) + '" aria-checked="' + (g.every(function (x) { return x.privacy && x.privacy !== 'private'; }) ? 'true' : 'false') + '" aria-label="' + (many ? 'Share all ' + g.length + ' sessions' : 'Share this session') + '"><span>Shared</span><span class="tp-track"></span></button>' : '') +
+        groupCountHtml(count, g.length, open, many) + '</div>' +
         (dayCharge(g, drives) ? '<p class="tp-small tp-daygroup-charge">' + esc(dayCharge(g, drives)) + '</p>' : '') +
-        (fast ? '<div class="tp-daygroup-best"><span class="tp-small tp-daygroup-label">Fastest session of the day</span>' + dayRow(fast, g.indexOf(fast) + 1, false) + '</div>' : '') +
-        '<div class="tp-list tp-daygroup-all">' + g.map(function (x, i) { return dayRow(x, i + 1, x === fast); }).join('') +
+        (fast && many ? '<div class="tp-daygroup-best"><span class="tp-small tp-daygroup-label">Fastest session of the day</span>' + dayRow(fast, g.indexOf(fast) + 1, false) + '</div>' : '') +
+        '<div class="tp-list tp-daygroup-all">' + g.map(function (x, i) { return dayRow(x, i + 1, many && x === fast); }).join('') +
         (drives.length ? '<span class="tp-small tp-daygroup-label tp-drives-label">Drives between runs (' + drives.length + ')</span>' + drives.map(sessionRow).join('') : '') +
-        (owner ? '<button type="button" class="btn btn-danger btn-sm tp-daygroup-delete" data-day-delete data-ids="' + esc(g.concat(drives).map(function (x) { return x.id; }).join(',')) + '" data-label="' + esc(trackName(g[0])) + '" data-date="' + esc(niceDate(g[0].date)) + '">' + icon('trash') + 'Delete this day</button>' : '') + '</div></div>';
+        (owner ? '<button type="button" class="btn btn-danger btn-sm tp-daygroup-delete" data-day-delete data-ids="' + esc(g.concat(drives).map(function (x) { return x.id; }).join(',')) + '" data-label="' + esc(trackName(g[0])) + '" data-date="' + esc(niceDate(g[0].date)) + '">' + icon('trash') + (many ? 'Delete this day' : 'Delete this session') + '</button>' : '') + '</div></div>';
     }).join('');
   }
   // ---------- Add a car (no photo needed) ----------
@@ -792,7 +806,7 @@
     var b = e.target.closest && e.target.closest('[data-day-delete]');
     if (!b || b.disabled) return;
     var ids = b.getAttribute('data-ids').split(','), what = b.getAttribute('data-label') + ' - ' + b.getAttribute('data-date');
-    if (!window.confirm('Confirm delete?\n\nThis will delete all ' + ids.length + ' sessions for this day (' + what + '). This can\'t be undone.')) return;
+    if (!window.confirm('Confirm delete?\n\n' + (ids.length === 1 ? 'This will delete this session (' + what + ').' : 'This will delete all ' + ids.length + ' sessions for this day (' + what + ').') + ' This can\'t be undone.')) return;
     b.disabled = true;
     var chain = Promise.resolve(), failed = 0;
     ids.forEach(function (id) {
@@ -800,8 +814,8 @@
     });
     chain.then(function () {
       mine = null; counts = null;
-      justSaved = { text: failed ? failed + ' of the ' + ids.length + ' sessions for ' + what + ' could not be deleted. Try again.' : 'Deleted all ' + ids.length + ' sessions for this day (' + what + ').' };
-      showHome();
+      justSaved = { text: failed ? failed + ' of the ' + ids.length + ' sessions for ' + what + ' could not be deleted. Try again.' : (ids.length === 1 ? 'Deleted the session (' + what + ').' : 'Deleted all ' + ids.length + ' sessions for this day (' + what + ').') };
+      route();
     });
   });
   // The switch on a day's group: share every session that day at that track, or make them all Only me.
@@ -810,7 +824,7 @@
     if (!sw || sw.disabled) return;
     var ids = sw.getAttribute('data-ids').split(','), what = sw.getAttribute('data-what');
     var share = sw.getAttribute('aria-checked') !== 'true', value = share ? 'board' : 'private';
-    if (share && !window.confirm('Share all ' + ids.length + ' sessions at ' + what + '? Members will see them on your car\'s page, and on the track\'s leaderboard where it has one.')) return;
+    if (share && !window.confirm(ids.length === 1 ? 'Share this session at ' + what + '? Members will see it on your car\'s page, and on the track\'s leaderboard where it has one.' : 'Share all ' + ids.length + ' sessions at ' + what + '? Members will see them on your car\'s page, and on the track\'s leaderboard where it has one.')) return;
     sw.disabled = true;
     sw.setAttribute('aria-checked', share ? 'true' : 'false');
     var chain = Promise.resolve(), failed = 0;
@@ -819,8 +833,8 @@
     });
     chain.then(function () {
       mine = null; counts = null;
-      justSaved = { text: failed ? failed + ' of the ' + ids.length + ' sessions at ' + what + ' could not be changed. Try again.' : 'All ' + ids.length + ' sessions at ' + what + ' are now ' + (share ? 'Shared' : 'Only me') + '.' };
-      showHome();
+      justSaved = { text: failed ? failed + ' of the ' + ids.length + ' sessions at ' + what + ' could not be changed. Try again.' : (ids.length === 1 ? 'The session at ' + what + ' is now ' : 'All ' + ids.length + ' sessions at ' + what + ' are now ') + (share ? 'Shared' : 'Only me') + '.' };
+      route();
     });
   });
   // Two files from one session (a lap timer's and the car's): join them, or save them separately.
@@ -1314,7 +1328,9 @@
         var lapTimes = (s.laps || []).filter(function (l) { return l.kind === 'timed'; }).map(function (l) { return l.time; });
         var gapLap = !isSprint && s.type === 'track' && (s.laps || []).some(function (l) { return l.kind === 'slow' && lapTimes.length && l.time > 3 * Math.min.apply(null, lapTimes); });
         if (isSprint) h += reverseHtml(s);
-        if (gapLap) h += '<div class="tp-notice is-warn">' + icon('warn') + '<div><b>The ' + VW + ' stopped for a long time between passes.</b><br>That is not a lap, so it is left out. If these were sprint or hill climb runs, switch the type to time each run from the start to the finish. <button type="button" class="btn btn-secondary btn-sm" data-tap="sprint">Switch to Sprint</button> <button type="button" class="btn btn-secondary btn-sm" data-tap="hill">Switch to Hill climb</button></div></div>';
+        // A day of laps with the logger running between sessions (a VBOX does) is not a sprint file: the gaps are just left out.
+        if (gapLap && lapTimes.length >= 6) h += '<div class="tp-notice">' + icon('info') + '<div><b>The ' + VW + ' was parked between sessions.</b><br>The logger kept recording while it was stopped. Those gaps are not laps, so they are left out. Your ' + lapTimes.length + ' timed laps are not affected.</div></div>';
+        else if (gapLap) h += '<div class="tp-notice is-warn">' + icon('warn') + '<div><b>The ' + VW + ' stopped for a long time between passes.</b><br>That is not a lap, so it is left out. If these were sprint or hill climb runs, switch the type to time each run from the start to the finish. <button type="button" class="btn btn-secondary btn-sm" data-tap="sprint">Switch to Sprint</button> <button type="button" class="btn btn-secondary btn-sm" data-tap="hill">Switch to Hill climb</button></div></div>';
         if ((a.startLine || a.finishLine || s.startLine) && !s.officialLines && !s.autoLine) h += '<button type="button" class="btn btn-secondary btn-sm tp-move-lines" data-tap="edit">' + icon('pin') + 'Move ' + (isSprint ? 'start and finish' : 'the start line') + '</button>';
         h += sprintControlsHtml(a, s, isSprint);
         h += addNowHtml(a, s, isSprint);
@@ -1554,7 +1570,25 @@
     // Placing or moving a marker redraws the page; the map carries on from the zoom and centre it had, so the member can
     // see exactly where the line sits instead of being sent back to the whole map.
     var kept = a.tapMap && a.tapMap.zoom && a.tapMap.zoom.frac ? a.tapMap.zoom.frac() : null;
-    var m = V.map(svg, trace, { mono: true, ratio: 0.85, fill: fill, origin: [out[0][0], out[0][1]] });
+    // A session of many laps would be a tangle of lines, and a marker could only land on the nearest waypoint of any of
+    // them. With laps, only the fastest lap is drawn and placed on: one clean line, filled in to about a metre apart so a
+    // marker can sit anywhere along it, not just on a reading.
+    var bestRows = s.trace && s.trace.laps && s.best && s.trace.laps[s.best], best = null, gap = 0;
+    if (bestRows && bestRows.length > 10 && s.origin && s.origin.length === 2 && s.laps && s.laps.length > 1) {
+      var bp = T.projector(s.origin[0], s.origin[1]), raw = bestRows.map(function (r) { var ll = bp.ll(r[2], r[3]); return proj.xy(ll[0], ll[1]).concat(r[4]); }), len = 0;
+      for (var ri = 1; ri < raw.length; ri++) len += Math.hypot(raw[ri][0] - raw[ri - 1][0], raw[ri][1] - raw[ri - 1][1]);
+      gap = Math.max(1, len / 6000);
+      best = []; d = 0;
+      raw.forEach(function (q, ri) {
+        if (ri) {
+          var q0 = raw[ri - 1], seg = Math.hypot(q[0] - q0[0], q[1] - q0[1]), n = Math.max(1, Math.ceil(seg / gap));
+          for (var k = 1; k <= n; k++) best.push([d + seg * k / n, 0, q0[0] + (q[0] - q0[0]) * k / n, q0[1] + (q[1] - q0[1]) * k / n, q0[2] + (q[2] - q0[2]) * k / n, 0, 0]);
+          d += seg;
+        } else best.push([0, 0, q[0], q[1], q[2], 0, 0]);
+      });
+      trace = best;
+    }
+    var m = V.map(svg, trace, { mono: true, ratio: 0.85, fill: fill, origin: [out[0][0], out[0][1]], highlight: best });
     a.tapMap = m;
     if (kept && kept.k > 1.01 && m && m.zoom && m.zoom.restore) m.zoom.restore(kept);
     svg.style.cursor = 'crosshair';
@@ -1565,7 +1599,7 @@
     }
     // A line across the track at a point of the trace, and back again.
     function lineAt(bi) {
-      var p0 = trace[Math.max(0, bi - 3)], p1 = trace[Math.min(trace.length - 1, bi + 3)], c = trace[bi];
+      var K = gap ? Math.round(15 / gap) : 3, p0 = trace[Math.max(0, bi - K)], p1 = trace[Math.min(trace.length - 1, bi + K)], c = trace[bi];
       var dx = p1[2] - p0[2], dy = p1[3] - p0[3], L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L;
       return [proj.ll(c[2] + nx * 15, c[3] + ny * 15), proj.ll(c[2] - nx * 15, c[3] - ny * 15)];
     }
@@ -2050,26 +2084,31 @@
     return '<div class="tp-section" id="lineedit"><div class="tp-head"><h2>Start and finish lines</h2></div><div class="card tp-fields" id="tp-lineedit"><p class="tp-sub">Checking...</p></div></div>';
   }
   // The track name on a session at a track we do not list: the same steps as the map (ask, allowed, send, approved).
+  // At a track we do list, what can be wrong is the name of its layout ("Brands Hatch, New Layout"), which every session on
+  // that layout shares: a rename is asked for here and, once MT3UK approves it, changes for everyone.
+  function layoutRename(s) { return !!(s.venueId && s.layoutId && s.layout && s.type !== 'drag' && s.type !== 'other'); }
   function renameHtml(s) {
-    if (!s.mine || s.street || s.venueId || !s.venue) return '';
-    return '<div class="tp-section" id="rename"><div class="tp-head"><h2>Track name</h2></div><div class="card tp-fields" id="tp-rename"><p class="tp-sub">Checking...</p></div></div>';
+    if (!s.mine || s.street) return '';
+    if (s.venueId ? !layoutRename(s) : !s.venue) return '';
+    return '<div class="tp-section" id="rename"><div class="tp-head"><h2>' + (layoutRename(s) ? 'Layout name' : 'Track name') + '</h2></div><div class="card tp-fields" id="tp-rename"><p class="tp-sub">Checking...</p></div></div>';
   }
   function drawRename(s, st) {
     var box = document.getElementById('tp-rename');
     if (!box) return;
-    var h = '', p = st && st.proposal;
+    var h = '', p = st && st.proposal, lay = layoutRename(s), thing = lay ? 'layout' : 'track', cur = lay ? s.layout : s.venue;
     if (!st || st.state === 'none') {
-      h = '<p class="tp-sub">This track is not in the MT3UK track list, so it has the name you typed: <b>' + esc(s.venue) + '</b>. If it is wrong, ask MT3UK to let you rename it.</p>' +
-        '<div class="tp-field"><label for="tp-rename-why">What should it be called? (optional)</label><input class="field" id="tp-rename-why" maxlength="300" placeholder="For example, it is spelt Abingdon"></div>' +
+      h = (lay ? '<p class="tp-sub">This session is on the layout <b>' + esc(s.layout) + '</b> at ' + esc(s.venue) + '. Every session on that layout shares its name, so if it is wrong, ask MT3UK to let you suggest a new one. MT3UK checks it before it changes for everyone.</p>'
+        : '<p class="tp-sub">This track is not in the MT3UK track list, so it has the name you typed: <b>' + esc(s.venue) + '</b>. If it is wrong, ask MT3UK to let you rename it.</p>') +
+        '<div class="tp-field"><label for="tp-rename-why">What should it be called? (optional)</label><input class="field" id="tp-rename-why" maxlength="300" placeholder="' + (lay ? 'For example, Indy circuit' : 'For example, it is spelt Abingdon') + '"></div>' +
         '<button type="button" class="btn btn-secondary" id="tp-rename-request">' + icon('pin') + 'Request rename</button>';
     } else if (st.state === 'pending') {
-      h = '<p class="tp-src">' + icon('info') + '<span>Requested. MT3UK has been told and will email you when you can rename this track.</span></p>';
+      h = '<p class="tp-src">' + icon('info') + '<span>Requested. MT3UK has been told and will email you when you can rename this ' + thing + '.</span></p>';
     } else if (p) {
-      h = '<p class="tp-src">' + icon('info') + '<span>Your new name is waiting for MT3UK to approve it. This session keeps its name until then.</span></p><p class="tp-small">From <b>' + esc(p.from || s.venue) + '</b> to <b>' + esc(p.to) + '</b>.</p>' +
+      h = '<p class="tp-src">' + icon('info') + '<span>Your new name is waiting for MT3UK to approve it. ' + (lay ? 'The layout keeps its name until then.' : 'This session keeps its name until then.') + '</span></p><p class="tp-small">From <b>' + esc(p.from || cur) + '</b> to <b>' + esc(p.to) + '</b>.</p>' +
         '<button type="button" class="btn btn-secondary" id="tp-rename-edit">' + icon('pin') + 'Change it again</button>';
     } else {
-      h = '<p class="tp-sub">MT3UK has said you can rename this track. Enter the name and send it. The name only changes once MT3UK has approved it.</p>' +
-        '<div class="tp-field"><label for="tp-rename-name">Track name</label><input class="field" id="tp-rename-name" maxlength="60" value="' + esc(s.venue) + '"></div>' +
+      h = '<p class="tp-sub">MT3UK has said you can rename this ' + thing + '. Enter the name and send it. The name only changes once MT3UK has approved it' + (lay ? ', and then it changes for everyone with a session on this layout' : '') + '.</p>' +
+        '<div class="tp-field"><label for="tp-rename-name">' + (lay ? 'Layout name' : 'Track name') + '</label><input class="field" id="tp-rename-name" maxlength="60" value="' + esc(cur) + '"></div>' +
         '<button type="button" class="btn btn-primary" id="tp-rename-send">' + icon('pin') + 'Send for approval</button>';
     }
     h += '<p class="tp-small tp-err" id="tp-rename-note" role="status"></p>';
@@ -2086,7 +2125,7 @@
     if (again) again.addEventListener('click', function () { drawRename(s, { state: 'granted', proposal: null }); });
     if (send) send.addEventListener('click', function () {
       var name = document.getElementById('tp-rename-name').value.trim();
-      if (!name) { note.textContent = 'Enter the track name.'; return; }
+      if (!name) { note.textContent = lay ? 'Enter the layout name.' : 'Enter the track name.'; return; }
       send.disabled = true;
       api('POST', '/track/rename/propose', { id: s.id, name: name }).then(function (d) {
         if (!d.success) { send.disabled = false; note.textContent = d.message || 'Could not send that.'; return; }
@@ -3558,7 +3597,9 @@
       api('PUT', '/track/session', Object.assign({ id: s.id, privacy: edit.privacy, conditions: edit.conditions || '' }, ty, { temp: t === '' ? null : parseFloat(t), tempSource: t === '' ? '' : (edit.tempSource || 'member'), weather: edit.tempSource === 'weather' ? edit.weather : null, notes: document.getElementById('tp-e-notes').value })).then(function (d) {
         if (!d.success) { status(d.message || 'Could not save.', 'error'); return; }
         mine = null; counts = null;
-        Object.assign(view.s, { privacy: d.session.privacy, conditions: d.session.conditions, tyres: d.session.tyres, tyreMake: d.session.tyreMake, tyreModel: d.session.tyreModel, tyreWidth: d.session.tyreWidth, tyreProfile: d.session.tyreProfile, tyreRim: d.session.tyreRim, temp: d.session.temp, tempSource: d.session.tempSource, weather: d.session.weather, notes: document.getElementById('tp-e-notes').value });
+        // The worker's summary has the tyre make and model but not the size, so the size is what was just sent: without it the
+        // width, profile and diameter drop-downs came back empty after Save and looked unsaved.
+        Object.assign(view.s, { privacy: d.session.privacy, conditions: d.session.conditions, tyres: d.session.tyres, tyreMake: d.session.tyreMake, tyreModel: d.session.tyreModel, tyreWidth: ty.tyreWidth, tyreProfile: ty.tyreProfile, tyreRim: ty.tyreRim, temp: d.session.temp, tempSource: d.session.tempSource, weather: d.session.weather, notes: document.getElementById('tp-e-notes').value });
         dirty = false;
         getMine().then(function (m) { view.mine = m; drawSession(); status('Saved.', 'ok'); });
       });

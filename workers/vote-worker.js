@@ -7594,7 +7594,15 @@ async function handleTrackLinesPropose(request, env) {
 // they ask (Request rename), the admin allows it for that one session on the Line editing panel, the member sends
 // the new name, and nothing changes until the admin accepts it. The same steps as editing the map lines. One KV key,
 // read with get(): track-rename-access = [{ id (session), email, name, note, at, status 'pending' | 'granted',
-// grantedAt, proposal: { at, from, to } }]. A session at a listed track takes its name from the track list.
+// grantedAt, proposal: { at, from, to } }]. A session at a listed track takes its name from the track list, so there
+// the member asks to rename its layout (entry.target 'layout', with venueId and layoutId): accepting it renames the
+// layout in the track list and on every saved session at it (names only, nothing is re-timed), a page of sessions at a
+// time from the admin's browser ('apply'), because there can be many.
+function findListedLayout(lib, venueId, layoutId) {
+  var venue = ((lib && lib.venues) || []).filter(function (v) { return v.id === venueId; })[0];
+  var layout = venue && (venue.layouts || []).filter(function (l) { return l.id === layoutId; })[0];
+  return layout ? { venue: venue, layout: layout } : null;
+}
 async function getRenameAccess(env) {
   var list = await getJsonKey(env, 'track-rename-access', []);
   return Array.isArray(list) ? list : [];
@@ -7603,7 +7611,7 @@ async function handleTrackRenameStatus(request, env) {
   var got = await getOwnTrackSession(request, env, String(new URL(request.url).searchParams.get('id') || ''));
   if (got.error) return got.error;
   var entry = (await getRenameAccess(env)).filter(function (x) { return x.id === got.rec.id; })[0];
-  return json({ success: true, state: entry ? entry.status : 'none', proposal: entry && entry.proposal ? entry.proposal : null });
+  return json({ success: true, state: entry ? entry.status : 'none', target: entry && entry.target ? entry.target : '', proposal: entry && entry.proposal ? entry.proposal : null });
 }
 async function handleTrackRenameRequest(request, env) {
   var email = await resolveSession(request, env);
@@ -7614,17 +7622,23 @@ async function handleTrackRenameRequest(request, env) {
   if (got.error) return got.error;
   var rec = got.rec;
   if (rec.street) return json({ success: false, message: 'Street runs cannot be renamed.' }, 400);
-  if (rec.venueId) return json({ success: false, message: 'This session is at a listed track, so its name comes from the track list.' }, 400);
+  var listed = null;
+  if (rec.venueId) {
+    listed = findListedLayout(await getTrackLibrary(env), rec.venueId, rec.layoutId);
+    if (!listed) return json({ success: false, message: 'This session is at a listed track but not on a listed layout, so there is no layout name to change.' }, 400);
+  }
   var list = await getRenameAccess(env);
   var have = list.filter(function (x) { return x.id === rec.id; })[0];
   if (have) return json({ success: true, state: have.status });
   if (list.filter(function (x) { return x.email === accessEmail(email) && x.status === 'pending'; }).length >= 5) return json({ success: false, message: 'You already have requests waiting. We\'ll get to them soon.' }, 429);
   var name = (publicName(await getProfileRecord(env, email)) || '').slice(0, 60);
-  list.unshift({ id: rec.id, email: accessEmail(email), name: name, note: trackText(body.note, 300), at: new Date().toISOString(), status: 'pending' });
+  var fresh = { id: rec.id, email: accessEmail(email), name: name, note: trackText(body.note, 300), at: new Date().toISOString(), status: 'pending' };
+  if (listed) { fresh.target = 'layout'; fresh.venueId = rec.venueId; fresh.layoutId = rec.layoutId; }
+  list.unshift(fresh);
   await env.VOTES.put('track-rename-access', JSON.stringify(list.slice(0, 300)));
-  await emailAdminAboutLines(env, 'Request to rename a track', subscriberLabel(name, email) + ' has asked to rename the track on a session: ' + trackSessionLabel(rec) + ', ' + (rec.date || '') + '.\n\n' +
+  await emailAdminAboutLines(env, listed ? 'Request to rename a layout' : 'Request to rename a track', subscriberLabel(name, email) + ' has asked to rename ' + (listed ? 'the layout "' + listed.layout.name + '" at ' + listed.venue.name + ' (it would change for everyone with a session there)' : 'the track') + ' from a session: ' + trackSessionLabel(rec) + ', ' + (rec.date || '') + '.\n\n' +
     (body.note ? 'Their note:\n' + trackText(body.note, 300) + '\n\n' : '') + 'Allow it on the Line editing panel:\n' + MY_BUILDS_SITE_URL + '/track-admin.html#lines-' + rec.id + '\n\nThe session:\n' + MY_BUILDS_SITE_URL + '/track.html?s=' + rec.id);
-  return json({ success: true, state: 'pending' });
+  return json({ success: true, state: 'pending', target: listed ? 'layout' : '' });
 }
 // The member sends the new name. Nothing on the session changes: the admin accepts it or undoes it.
 async function handleTrackRenamePropose(request, env) {
@@ -7637,8 +7651,21 @@ async function handleTrackRenamePropose(request, env) {
   var rec = got.rec, list = await getRenameAccess(env);
   var entry = list.filter(function (x) { return x.id === rec.id && x.status === 'granted'; })[0];
   if (!entry) return json({ success: false, message: 'Ask MT3UK to let you rename this track first.' }, 403);
-  if (rec.venueId) return json({ success: false, message: 'This session is at a listed track, so its name comes from the track list.' }, 400);
   var to = trackText(body.name, 60);
+  if (entry.target === 'layout') {
+    var cur = findListedLayout(await getTrackLibrary(env), entry.venueId, entry.layoutId);
+    if (!cur) return json({ success: false, message: 'That layout is no longer in the track list. Ask MT3UK.' }, 400);
+    if (!to) return json({ success: false, message: 'Enter the layout name.' }, 400);
+    if (to === cur.layout.name) return json({ success: false, message: 'That is the name it already has.' }, 400);
+    if ((cur.venue.layouts || []).some(function (l) { return l.id !== cur.layout.id && String(l.name || '').toLowerCase() === to.toLowerCase(); })) return json({ success: false, message: 'Another layout at ' + cur.venue.name + ' already has that name.' }, 400);
+    entry.proposal = { at: new Date().toISOString(), from: cur.layout.name, to: to, target: 'layout' };
+    var llabel = trackSessionLabel(rec) + ', ' + (rec.date || ''), lurl = MY_BUILDS_SITE_URL + '/track-admin.html#lines-' + rec.id;
+    await emailAdminAboutLines(env, 'Layout rename awaiting your approval: ' + cur.venue.name, 'AWAITING YOUR APPROVAL\n\n' + subscriberLabel(entry.name, email) + ' wants to rename a layout at ' + cur.venue.name + ' (from the session ' + llabel + '). Nothing has changed yet. If you accept it, the layout is renamed in the track list and on every saved session at it, for everyone.\n\n' +
+      'Layout name\n  from: ' + cur.layout.name + '\n  to:   ' + to + '\n\nAccept it or undo it on the Line editing panel:\n' + lurl + '\n\nThe session:\n' + MY_BUILDS_SITE_URL + '/track.html?s=' + rec.id);
+    await env.VOTES.put('track-rename-access', JSON.stringify(list));
+    return json({ success: true, state: 'granted', proposal: entry.proposal });
+  }
+  if (rec.venueId) return json({ success: false, message: 'This session is at a listed track, so its name comes from the track list.' }, 400);
   if (!to) return json({ success: false, message: 'Enter the track name.' }, 400);
   if (to === (rec.venue || '')) return json({ success: false, message: 'That is the name it already has.' }, 400);
   entry.proposal = { at: new Date().toISOString(), from: rec.venue || '', to: to };
@@ -7647,6 +7674,16 @@ async function handleTrackRenamePropose(request, env) {
     'Track name\n  from: ' + (rec.venue || 'none') + '\n  to:   ' + to + '\n\nAccept it or undo it on the Line editing panel:\n' + requestUrl + '\n\nThe session:\n' + MY_BUILDS_SITE_URL + '/track.html?s=' + rec.id);
   await env.VOTES.put('track-rename-access', JSON.stringify(list));
   return json({ success: true, state: 'granted', proposal: entry.proposal });
+}
+// A layout renamed: the name on a session's summary in its owner's list and in its car's shared list. Board entries do
+// not carry a layout name, so no board is rebuilt.
+async function renameLayoutInIndexes(env, rec) {
+  var keys = ['track-index:' + rec.owner, 'track-public:' + rec.carId];
+  for (var i = 0; i < keys.length; i++) {
+    var list = await getJsonKey(env, keys[i], []), changed = false;
+    list.forEach(function (x) { if (x.id === rec.id && x.layout !== rec.layout) { x.layout = rec.layout; changed = true; } });
+    if (changed) await env.VOTES.put(keys[i], JSON.stringify(list));
+  }
 }
 // The admin's side of a rename (the same route as the line edits, with kind 'rename'). Accepting changes the session.
 async function handleTrackRenameAdmin(request, env, body) {
@@ -7657,11 +7694,48 @@ async function handleTrackRenameAdmin(request, env, body) {
   if (action === 'grant') {
     if (entry.status === 'granted') return json({ success: true });
     entry.status = 'granted'; entry.grantedAt = new Date().toISOString();
-    if (body.notify !== false) await emailMemberAboutLines(env, entry, 'You can rename the track on your session', 'Hello,\n\nYou can now rename the track on your session. Open it, press "Rename the track", enter the name and send it. The name only changes once MT3UK has approved it.\n\n' + url);
+    if (body.notify !== false) {
+      if (entry.target === 'layout') await emailMemberAboutLines(env, entry, 'You can rename the layout on your session', 'Hello,\n\nYou can now suggest a new name for the layout your session is on. Open it, press "Request rename" under Layout name, enter the name and send it. The name only changes once MT3UK has approved it, and then it changes for everyone with a session on that layout.\n\n' + url);
+      else await emailMemberAboutLines(env, entry, 'You can rename the track on your session', 'Hello,\n\nYou can now rename the track on your session. Open it, press "Rename the track", enter the name and send it. The name only changes once MT3UK has approved it.\n\n' + url);
+    }
   } else if (action === 'undo') {
     if (!entry.proposal) return json({ success: false, message: 'There is no change waiting.' }, 400);
     entry.proposal = null;
     await emailMemberAboutLines(env, entry, 'Your track name was not used', 'Hello,\n\nMT3UK did not use the track name you sent, so the session is as it was. You can send another if you like:\n\n' + url);
+  } else if (action === 'accepted' && entry.target === 'layout') {
+    // Step one: the layout is renamed in the track list. The saved sessions follow in pages ('apply').
+    if (!entry.proposal) return json({ success: false, message: 'There is no change waiting.' }, 400);
+    var lib = await getTrackLibrary(env), cur = findListedLayout(lib, entry.venueId, entry.layoutId);
+    if (!cur) return json({ success: false, message: 'That layout is no longer in the track list. Undo it.' }, 400);
+    if (cur.layout.name !== entry.proposal.to) {
+      if ((cur.venue.layouts || []).some(function (l) { return l.id !== cur.layout.id && String(l.name || '').toLowerCase() === entry.proposal.to.toLowerCase(); })) return json({ success: false, message: 'Another layout at ' + cur.venue.name + ' now has that name. Undo it.' }, 400);
+      var renamed = cleanTrackVenue(Object.assign({}, cur.venue, { layouts: (cur.venue.layouts || []).map(function (l) { return l.id === cur.layout.id ? Object.assign({}, l, { name: entry.proposal.to }) : l; }) }));
+      if (!renamed) return json({ success: false, message: 'Could not rename the layout.' }, 400);
+      var extra = await getJsonKey(env, 'track-library', { venues: [] });
+      var venuesNow = (extra.venues || []).filter(function (x) { return x.id !== renamed.id; });
+      venuesNow.push(renamed);
+      await env.VOTES.put('track-library', JSON.stringify({ venues: venuesNow }));
+    }
+    entry.proposal.applying = true;
+    await env.VOTES.put('track-rename-access', JSON.stringify(list));
+    return json({ success: true, more: true, cursor: '' });
+  } else if (action === 'apply' && entry.target === 'layout') {
+    // Step two, repeated by the admin's browser: one page of saved sessions at a time gets the new layout name.
+    if (!entry.proposal || !entry.proposal.applying) return json({ success: false, message: 'Accept the rename first.' }, 400);
+    var prefix = 'track-session:', page = await env.VOTES.list({ prefix: prefix, limit: 20, cursor: body.cursor || undefined }), changedNow = 0;
+    for (var ki = 0; ki < page.keys.length; ki++) {
+      var srec = await getTrackSession(env, page.keys[ki].name.slice(prefix.length));
+      if (!srec || srec.venueId !== entry.venueId || srec.layoutId !== entry.layoutId || srec.layout === entry.proposal.to) continue;
+      srec.layout = entry.proposal.to;
+      if (!(await putTrackSession(env, srec))) continue;
+      await renameLayoutInIndexes(env, srec);
+      changedNow++;
+    }
+    if (!page.list_complete) return json({ success: true, done: false, cursor: page.cursor, changed: changedNow });
+    entry.proposal = null;
+    await emailMemberAboutLines(env, entry, 'Your layout name was accepted', 'Hello,\n\nMT3UK accepted the layout name you sent. It is changed in the track list and on every session at that layout:\n\n' + url);
+    await env.VOTES.put('track-rename-access', JSON.stringify(list));
+    return json({ success: true, done: true, changed: changedNow });
   } else if (action === 'accepted') {
     if (!entry.proposal) return json({ success: false, message: 'There is no change waiting.' }, 400);
     var rec = await getTrackSession(env, entry.id);
@@ -7727,8 +7801,8 @@ async function handleTrackLinesAdmin(request, env) {
     }));
     var renames = await Promise.all((await getRenameAccess(env)).map(async function (x) {
       var rec = await getTrackSession(env, x.id);
-      return { kind: 'rename', id: x.id, name: x.name || '', email: maskEmailForAdmin(x.email), note: x.note || '', at: x.at, status: x.status, grantedAt: x.grantedAt || '', proposal: x.proposal || null,
-        what: rec ? trackSessionLabel(rec) + ', ' + (rec.date || '') : 'a session that has gone', type: rec ? rec.type : '', current: rec ? rec.venue || '' : '' };
+      return { kind: 'rename', target: x.target || '', id: x.id, name: x.name || '', email: maskEmailForAdmin(x.email), note: x.note || '', at: x.at, status: x.status, grantedAt: x.grantedAt || '', proposal: x.proposal || null,
+        what: rec ? trackSessionLabel(rec) + ', ' + (rec.date || '') : 'a session that has gone', type: rec ? rec.type : '', current: rec ? (x.target === 'layout' ? rec.layout || '' : rec.venue || '') : '' };
     }));
     return json({ success: true, requests: rows.concat(renames) });
   }

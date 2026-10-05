@@ -195,21 +195,52 @@
   // The list can be narrowed to one track name and one type from the two drop-downs above it.
   var tkFilter = { name: '', type: '' };
   var KIND_NAMES = { circuit: 'Circuit', sprint: 'Sprint', hill: 'Hill climb', drag: 'Drag strip' };
+  var KIND_LONG = { circuit: 'Circuit (track day)', sprint: 'Sprint', hill: 'Hill climb', drag: 'Drag strip' };
+  var KIND_ORDER = ['circuit', 'sprint', 'hill', 'drag'];
   function kindOf(v) { return v.type === 'drag' ? 'drag' : v.type === 'sprint' ? (window.MT3UKTrack.isHill(v) ? 'hill' : 'sprint') : 'circuit'; }
-  function shownVenues() {
-    var kinds = Object.keys(KIND_NAMES);
-    return library.venues.filter(function (v) { return (!tkFilter.name || v.name === tkFilter.name) && (!tkFilter.type || kindOf(v) === tkFilter.type); })
-      .sort(function (a, b) { return String(a.name || '').localeCompare(String(b.name || ''), undefined, { sensitivity: 'base' }) || kinds.indexOf(kindOf(a)) - kinds.indexOf(kindOf(b)); });
+  // A place used for more than one kind of event (a circuit, a sprint and a hill climb) is stored as one entry for each
+  // kind, because a file is matched and a leaderboard is kept by kind. They are listed here as one place: entries with the
+  // same name (once words such as circuit, sprint and hill climb are left off) within 5 km sit together under it, and so
+  // does an entry whose name starts with the place's name and is within 3 km (Goodwood Festival of Speed under Goodwood).
+  function placeKey(name) {
+    var k = String(name || '').toLowerCase().replace(/\b(motor\s+)?circuit\b|\bhill\s*-?\s*climb\b|\bhillclimb\b|\bsprint\b|\btrack\s*day\b/g, ' ').replace(/[^a-z0-9]+/g, ' ').trim();
+    return k || String(name || '').toLowerCase().trim();
+  }
+  function places() {
+    var out = [];
+    // Shortest names first, so a place exists before the longer names that start with it.
+    library.venues.map(function (v) { return { v: v, key: placeKey(v.name) }; }).sort(function (a, b) { return a.key.length - b.key.length; }).forEach(function (e) {
+      var v = e.v, g = null;
+      out.forEach(function (x) {
+        if (g) return;
+        var same = x.key === e.key, prefix = e.key.indexOf(x.key + ' ') === 0;
+        if (!same && !prefix) return;
+        var far = isFinite(v.lat) && isFinite(v.lng) && isFinite(x.lat) && isFinite(x.lng) && window.MT3UKTrack.haversine({ lat: x.lat, lng: x.lng }, { lat: v.lat, lng: v.lng }) > (same ? 5000 : 3000);
+        if (!far) g = x;
+      });
+      if (!g) { g = { key: e.key, name: v.name, lat: v.lat, lng: v.lng, radius: v.radius, entries: [] }; out.push(g); }
+      g.entries.push(v);
+      // The place goes by its shortest name (Goodwood, not Goodwood Motor Circuit).
+      if (String(v.name || '').length < String(g.name || '').length) g.name = v.name;
+    });
+    out.forEach(function (g) { g.entries.sort(function (a, b) { return KIND_ORDER.indexOf(kindOf(a)) - KIND_ORDER.indexOf(kindOf(b)); }); });
+    return out;
+  }
+  // The places that match the two drop-downs, each with only the entries of the type chosen.
+  function shownPlaces() {
+    return places().filter(function (g) { return !tkFilter.name || g.name === tkFilter.name; })
+      .map(function (g) { return Object.assign({}, g, { all: g.entries, entries: g.entries.filter(function (v) { return !tkFilter.type || kindOf(v) === tkFilter.type; }) }); })
+      .filter(function (g) { return g.entries.length; })
+      .sort(function (a, b) { return String(a.name || '').localeCompare(String(b.name || ''), undefined, { sensitivity: 'base' }); });
   }
   function filterHtml() {
-    var names = [];
-    library.venues.forEach(function (v) { if (names.indexOf(v.name) < 0) names.push(v.name); });
+    var all = places(), names = all.map(function (g) { return g.name; });
     names.sort(function (a, b) { return a.localeCompare(b); });
     if (tkFilter.name && names.indexOf(tkFilter.name) < 0) tkFilter.name = '';
-    var shown = shownVenues().length;
+    var shown = shownPlaces().length;
     return '<div class="tk-filter"><label>Track<select data-tk-filter="name"><option value="">All tracks</option>' + names.map(function (n) { return '<option value="' + esc(n) + '"' + (n === tkFilter.name ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('') + '</select></label>' +
       '<label>Type<select data-tk-filter="type"><option value="">All types</option>' + Object.keys(KIND_NAMES).map(function (k) { return '<option value="' + k + '"' + (k === tkFilter.type ? ' selected' : '') + '>' + KIND_NAMES[k] + '</option>'; }).join('') + '</select></label>' +
-      '<span class="iv-sub tk-count">' + (shown === library.venues.length ? library.venues.length + ' tracks' : 'Showing ' + shown + ' of ' + library.venues.length) + '</span></div>';
+      '<span class="iv-sub tk-count">' + (shown === all.length ? all.length + ' tracks' : 'Showing ' + shown + ' of ' + all.length) + '</span></div>';
   }
   listEl.addEventListener('change', function (e) {
     var f = e.target.closest && e.target.closest('[data-tk-filter]');
@@ -218,17 +249,34 @@
     drawList();
   });
 
+  function entryHtml(v, g, changed) {
+    var layouts = v.layouts || [], kind = kindOf(v);
+    var ready = v.type === 'drag' ? 'Drag strip' : layouts.map(function (l) { return esc(l.name) + ': ' + (l.startLine ? 'start line' : '<span class="tk-miss">no start line</span>') + (v.type === 'sprint' ? (l.finishLine ? ', finish line' : ', <span class="tk-miss">no finish line</span>') : '') + (l.corners && l.corners.length ? ', ' + l.corners.length + ' corners' : '') + (l.sectors && l.sectors.length ? ', ' + l.sectors.length + ' sector lines' : ''); }).join('<br>');
+    return '<div class="tk-kind" data-kind="' + kind + '"><div class="tk-kind-head"><b class="tk-kindname">' + KIND_LONG[kind] + '</b>' +
+      (v.name !== g.name ? ' <span class="iv-sub">listed as ' + esc(v.name) + '</span>' : '') +
+      (changed[v.id] ? ' <span class="iv-sub">(changed here)</span>' : '') + (v.review ? '<span class="iv-sub tk-review">Added by a member, to review</span>' : '') + (v.check ? '<span class="iv-sub">Centre or lengths to check</span>' : '') +
+      (v.type === 'drag' ? '' : ' <span class="iv-sub">' + layouts.length + (layouts.length === 1 ? (v.type === 'sprint' ? ' course' : ' layout') : (v.type === 'sprint' ? ' courses' : ' layouts')) + '</span>') + '</div>' +
+      (ready ? '<div class="iv-sub tk-ready">' + ready + '</div>' : '') +
+      '<div class="iv-actions">' + layouts.filter(function (l) { return l.startLine; }).map(function (l) { return '<button type="button" class="secondary iv-act" data-map="' + esc(v.id + ':' + l.id) + '">Map' + (layouts.length > 1 ? ': ' + esc(l.name) : '') + '</button>'; }).join('') + '<button type="button" class="secondary iv-act" data-edit="' + esc(v.id) + '">Edit</button>' + (v.type === 'drag' ? '' : '<button type="button" class="secondary iv-act" data-check-course="' + esc(v.id) + '">Check sessions here</button><button type="button" class="secondary iv-act" data-retime-course="' + esc(v.id) + '">Re-time sessions here</button>') + '<button type="button" class="danger iv-act" data-remove="' + esc(v.id) + '">Remove</button></div></div>';
+  }
+  // The kinds a place does not have yet: one button adds an entry for it, with the place's name and position filled in.
+  function addKindHtml(g) {
+    var have = {};
+    (g.all || g.entries).forEach(function (v) { have[kindOf(v)] = true; });
+    var first = g.entries[0];
+    return ['circuit', 'sprint', 'hill'].filter(function (k) { return !have[k]; }).map(function (k) {
+      return '<button type="button" class="secondary iv-act tk-addkind" data-add-kind="' + k + '" data-from="' + esc(first.id) + '">Add ' + KIND_NAMES[k].toLowerCase() + '</button>';
+    }).join('');
+  }
+
   function drawList() {
     var changed = {};
     (extra.venues || []).forEach(function (v) { changed[v.id] = true; });
-    var cnt = document.getElementById('tk-list-count');
-    if (cnt) cnt.textContent = '(' + (shownVenues().length === library.venues.length ? library.venues.length : shownVenues().length + ' of ' + library.venues.length) + ')';
-    listEl.innerHTML = filterHtml() + '<table class="iv-table tk-table"><thead><tr><th>Track</th><th>Type</th><th>Layouts</th><th>Set up</th><th></th></tr></thead><tbody>' + shownVenues().map(function (v) {
-      var layouts = v.layouts || [];
-      var ready = v.type === 'drag' ? 'Drag strip' : layouts.map(function (l) { return esc(l.name) + ': ' + (l.startLine ? 'start line' : '<span class="tk-miss">no start line</span>') + (v.type === 'sprint' ? (l.finishLine ? ', finish line' : ', <span class="tk-miss">no finish line</span>') : '') + (l.corners && l.corners.length ? ', ' + l.corners.length + ' corners' : '') + (l.sectors && l.sectors.length ? ', ' + l.sectors.length + ' sector lines' : ''); }).join('<br>');
-      return '<tr><td><b>' + esc(v.name) + '</b>' + (changed[v.id] ? ' <span class="iv-sub">(changed here)</span>' : '') + (v.review ? '<span class="iv-sub tk-review">Added by a member, to review</span>' : '') + (v.check ? '<span class="iv-sub">Centre or lengths to check</span>' : '') + '</td><td>' + (v.type === 'drag' ? 'Drag strip' : v.type === 'sprint' ? (window.MT3UKTrack.isHill(v) ? 'Hill climb' : 'Sprint') : 'Circuit (track day)') + '</td><td>' + (v.type === 'drag' ? '-' : layouts.length) + '</td><td class="iv-sub">' + ready + '</td>' +
-        '<td><div class="iv-actions">' + layouts.filter(function (l) { return l.startLine; }).map(function (l) { return '<button type="button" class="secondary iv-act" data-map="' + esc(v.id + ':' + l.id) + '">Map' + (layouts.length > 1 ? ': ' + esc(l.name) : '') + '</button>'; }).join('') + '<button type="button" class="secondary iv-act" data-edit="' + esc(v.id) + '">Edit</button>' + (v.type === 'drag' ? '' : '<button type="button" class="secondary iv-act" data-check-course="' + esc(v.id) + '">Check sessions here</button><button type="button" class="secondary iv-act" data-retime-course="' + esc(v.id) + '">Re-time sessions here</button>') + '<button type="button" class="danger iv-act" data-remove="' + esc(v.id) + '">Remove</button></div></td></tr>';
-    }).join('') + (shownVenues().length ? '' : '<tr><td colspan="5" class="iv-sub">No tracks match.</td></tr>') + '</tbody></table><div class="iv-toolbar tk-top"><button type="button" class="secondary" data-new>Add a track</button></div>';
+    var cnt = document.getElementById('tk-list-count'), all = places().length, shown = shownPlaces();
+    if (cnt) cnt.textContent = '(' + (shown.length === all ? all : shown.length + ' of ' + all) + ')';
+    listEl.innerHTML = filterHtml() + '<table class="iv-table tk-table"><thead><tr><th>Track</th><th>Circuits, sprints, hill climbs and drag strips</th></tr></thead><tbody>' + shown.map(function (g) {
+      return '<tr class="tk-place"><td><b>' + esc(g.name) + '</b>' + (g.entries.length > 1 ? '<span class="iv-sub">' + g.entries.length + ' entries</span>' : '') + '<div class="iv-actions tk-add">' + addKindHtml(g) + '</div></td><td>' + g.entries.map(function (v) { return entryHtml(v, g, changed); }).join('') + '</td></tr>';
+    }).join('') + (shown.length ? '' : '<tr><td colspan="2" class="iv-sub">No tracks match.</td></tr>') + '</tbody></table><div class="iv-toolbar tk-top"><button type="button" class="secondary" data-new>Add a track</button></div>';
   }
 
   listEl.addEventListener('click', function (e) {
@@ -248,6 +296,11 @@
       var ml = mv && (mv.layouts || []).filter(function (l) { return l.id === ids[1]; })[0];
       if (ml) openMap(mv.name + (ml.name && ml.name !== mv.name ? ', ' + ml.name : ''), null, ml.startLine, mv.type === 'sprint' ? ml.finishLine : null, 'The official lines for this course. The line between them is only a guide; the picture shows the real ground.');
       return;
+    }
+    var addk = e.target.closest('[data-add-kind]');
+    if (addk) {
+      var base = library.venues.filter(function (v) { return v.id === addk.getAttribute('data-from'); })[0], ak = addk.getAttribute('data-add-kind');
+      if (base) return openForm({ id: '', name: base.name, type: ak === 'circuit' ? 'circuit' : 'sprint', hill: ak === 'hill', lat: base.lat, lng: base.lng, radius: base.radius || 2000, layouts: [{ id: '', name: '', length: '' }] });
     }
     if (e.target.closest('[data-new]')) return openForm({ id: '', name: '', type: 'circuit', lat: '', lng: '', radius: 2000, layouts: [{ id: '', name: '', length: '' }] });
     if (ed) return openForm(JSON.parse(JSON.stringify(library.venues.filter(function (v) { return v.id === ed.getAttribute('data-edit'); })[0])));
@@ -279,10 +332,10 @@
   function openForm(v) {
     editing = v;
     formEl.hidden = false;
-    formEl.innerHTML = '<h3>' + (v.id ? 'Edit ' + esc(v.name) : 'Add a track') + '</h3>' +
+    formEl.innerHTML = '<h3>' + (v.id ? 'Edit ' + esc(v.name) : v.name ? 'Add a ' + (v.type === 'sprint' ? (window.MT3UKTrack.isHill(v) ? 'hill climb' : 'sprint') : v.type) + ' to ' + esc(v.name) : 'Add a track') + '</h3>' +
       '<div class="tk-row"><label>Name<input type="text" id="tk-name" value="' + esc(v.name) + '"></label><label>Type<select id="tk-type"><option value="circuit"' + (v.type === 'circuit' || !v.type ? ' selected' : '') + '>Circuit</option><option value="drag"' + (v.type === 'drag' ? ' selected' : '') + '>Drag strip</option><option value="sprint"' + (v.type === 'sprint' && !window.MT3UKTrack.isHill(v) ? ' selected' : '') + '>Sprint</option><option value="hill"' + (window.MT3UKTrack.isHill(v) ? ' selected' : '') + '>Hill climb</option></select></label></div>' +
       '<div class="tk-row"><label>Centre latitude<input type="text" inputmode="decimal" id="tk-lat" value="' + esc(v.lat) + '"></label><label>Centre longitude<input type="text" inputmode="decimal" id="tk-lng" value="' + esc(v.lng) + '"></label><label>Radius (m)<input type="text" inputmode="numeric" id="tk-radius" value="' + esc(v.radius || 2000) + '"></label></div>' +
-      '<p class="iv-note">A file is matched to this track when most of it is inside the radius. Layouts are told apart by lap length. A place used for more than one kind of event (a sprint and track days, say) needs one entry for each: add another track with the same name and the other type.</p>' +
+      '<p class="iv-note">A file is matched to this track when most of it is inside the radius. Layouts are told apart by lap length. A place used for more than one kind of event (a circuit, a sprint and a hill climb, say) is listed once, with an entry for each kind: use the Add circuit, Add sprint or Add hill climb button on the place.</p>' +
       '<div id="tk-layouts">' + (v.type === 'drag' ? '' : (v.layouts || []).map(layoutHtml).join('')) + '</div>' +
       (v.type === 'drag' ? '' : '<div class="iv-toolbar"><button type="button" class="secondary" id="tk-add-layout">' + (v.type === 'sprint' ? 'Add a course' : 'Add a layout') + '</button>' +
         '<label class="tk-from">Corners from a shared session<input type="text" id="tk-session" placeholder="Session link or id"></label><button type="button" class="secondary" id="tk-corners">Fill corners</button></div>') +

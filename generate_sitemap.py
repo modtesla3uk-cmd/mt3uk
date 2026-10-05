@@ -25,7 +25,7 @@ LOCAL_IMAGE_DIRS = ["images/site"]
 # <image:image> entries under the page that shows them instead.
 R2_PREFIXES = {"gallery/": "gallery.html", "track-days/": "track-day-prep.html"}
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
-PAGES = ["index.html", "shop.html", "reviews.html", "contact.html", "signin.html", "privacy.html", "track.html", "leaderboards.html", "track-day-prep.html", "gallery.html", "blog.html", "blog-richard.html", "blog-john.html", "blog-kam.html", "blog-yusuf.html", "blog-ryan.html", "blog-sharad.html", "blog-romil.html", "blog-unicorn.html", "blog-john-track-day.html", "blog-sue.html"]
+PAGES = ["index.html", "shop.html", "reviews.html", "contact.html", "signin.html", "privacy.html", "track.html", "leaderboards.html", "track-day-prep.html", "gallery.html", "blog.html", "blog-richard.html", "blog-john.html", "blog-kam.html", "blog-yusuf.html", "blog-ryan.html", "blog-sharad.html", "blog-romil.html", "blog-unicorn.html", "blog-john-track-day.html", "blog-sue.html", "blog-james.html"]
 
 def hidden_gallery_files():
     """Photos kept out of the Gallery (a car of another make kept in a member's garage, or a

@@ -31,7 +31,7 @@ EARLIER = {
 
 
 def summary(rec):
-    keys = ["id", "carId", "type", "venueId", "venue", "layoutId", "layout", "date", "time", "privacy", "conditions", "tyres", "temp", "tempSource", "weather", "vmax", "soc", "quality", "street", "atVenue"]
+    keys = ["id", "carId", "type", "venueId", "venue", "layoutId", "layout", "date", "time", "privacy", "conditions", "tyres", "temp", "tempSource", "weather", "vmax", "soc", "quality", "street", "atVenue", "tyreMake", "tyreModel"]
     out = {k: rec.get(k) for k in keys if k in rec}
     if rec.get("type") == "drag":
         runs = rec.get("runs") or []
@@ -511,6 +511,12 @@ def day_session(sid, time, best, laps, date="2026-07-14", venue="Castle Combe", 
             "privacy": "private", "conditions": "Dry", "bestTime": best, "laps": [{"n": i + 1, "time": best} for i in range(laps)], "vmax": 150}
 
 
+def into_track(page, name):
+    """From the main list (one line for each track) to that track's own page."""
+    page.locator("#tp-sess-list a.tp-trackrow", has_text=name).click()
+    expect(page.locator(".tp-head h2")).to_have_text(name)
+
+
 def test_sessions_at_the_same_track_on_the_same_day_are_grouped_by_time(page):
     fake = FakeWorker(earlier=False)
     day = [day_session("d21", "14:46", 87.71, 4), day_session("d12", "11:29", 81.17, 5), day_session("d07", "09:25", 89.17, 3)]
@@ -519,7 +525,8 @@ def test_sessions_at_the_same_track_on_the_same_day_are_grouped_by_time(page):
         fake.sessions[s["id"]] = dict(s)
         fake.index.append(summary(s))
     open_page(page, fake)
-    card = page.locator(".tp-daygroup")
+    into_track(page, "Castle Combe")
+    card = page.locator(".tp-daygroup", has_text="Castle Combe")
     expect(card).to_have_count(1)
     expect(card.locator("h3")).to_have_text("14 Jul 2026 on Castle Combe")
     expect(card.locator(".tp-daygroup-count .tp-small")).to_have_text("3 sessions")
@@ -550,9 +557,6 @@ def test_sessions_at_the_same_track_on_the_same_day_are_grouped_by_time(page):
     # It stays open when the list is drawn again (changing the track filter), and closes again from the heading.
     card.locator(".tp-daygroup-title").click()
     expect(card).to_have_attribute("data-open", "false")
-    # A session on its own stays a plain row.
-    expect(page.locator("#tp-sess-list > a.tp-row")).to_have_count(1)
-    expect(page.locator("#tp-sess-list > a.tp-row")).to_contain_text("Thruxton")
     # Opening one says where it falls in the day.
     card.locator(".tp-daygroup-title").click()
     rows.nth(1).click()
@@ -560,8 +564,26 @@ def test_sessions_at_the_same_track_on_the_same_day_are_grouped_by_time(page):
     # Phone: no sideways scroll.
     page.set_viewport_size({"width": 390, "height": 844})
     page.go_back()
-    expect(page.locator(".tp-daygroup")).to_be_visible()
+    expect(page.locator(".tp-daygroup").first).to_be_visible()
     assert page.evaluate("document.documentElement.scrollWidth") <= 390
+
+
+def test_a_session_on_its_own_gets_the_same_card_as_a_day(page):
+    fake = FakeWorker(earlier=False)
+    s = day_session("solo2", "10:00", 99.0, 4, date="2026-06-01", venue="Thruxton", venue_id="thruxton")
+    fake.sessions[s["id"]] = dict(s)
+    fake.index.append(summary(s))
+    open_page(page, fake)
+    into_track(page, "Thruxton")
+    solo = page.locator(".tp-daygroup")
+    expect(solo).to_have_count(1)
+    expect(solo.locator("h3")).to_have_text("1 Jun 2026 on Thruxton")
+    expect(solo.locator(".tp-daygroup-count .tp-small")).to_have_text("1 session")
+    expect(solo).to_have_attribute("data-open", "true")
+    expect(solo.locator(".tp-daygroup-best")).to_be_hidden()
+    expect(solo.locator(".tp-daygroup-all .tp-row")).to_have_count(1)
+    expect(solo.locator(".tp-fastest")).to_have_count(0)
+    expect(solo.get_by_role("button", name="Delete this session")).to_be_visible()
 
 
 def test_a_lone_session_has_no_day_number(page):
@@ -570,7 +592,9 @@ def test_a_lone_session_has_no_day_number(page):
     fake.sessions[s["id"]] = dict(s)
     fake.index.append(summary(s))
     open_page(page, fake)
-    expect(page.locator(".tp-daygroup")).to_have_count(0)
+    into_track(page, "Castle Combe")
+    expect(page.locator(".tp-daygroup")).to_have_count(1)
+    expect(page.locator(".tp-daygroup .tp-daygroup-count .tp-small")).to_have_text("1 session")
     page.locator("#tp-sess-list a.tp-row").first.click()
     expect(page.locator(".tp-session-head")).to_be_visible()
     expect(page.locator("#tp-day-place")).to_have_count(0)
@@ -690,7 +714,8 @@ def test_several_files_are_saved_as_a_session_each_grouped_by_day(page, tmp_path
     assert len(fake.saved) == 2
     assert sorted(x["session"]["fileName"] for x in fake.saved) == ["RaceBox Track Session one.vbo", "RaceBox Track Session two.vbo"]
     assert all(not x["session"].get("runs") or isinstance(x["session"]["runs"], list) for x in fake.saved)
-    # Each is its own session, grouped on the day.
+    # Each is its own session, grouped on the day at that track's page.
+    into_track(page, "Thruxton")
     expect(page.locator(".tp-daygroup")).to_have_count(1)
     expect(page.locator(".tp-daygroup-count .tp-small")).to_have_text("2 sessions")
 
@@ -702,6 +727,7 @@ def test_share_every_session_on_a_day_from_its_group(page):
         fake.sessions[sid] = dict(rec)
         fake.index.append(summary(rec))
     open_page(page, fake)
+    into_track(page, "Castle Combe")
     sw = page.locator("[data-day-share]")
     expect(sw).to_have_attribute("aria-checked", "false")
     # Turning it on asks first; Cancel changes nothing.
@@ -764,6 +790,7 @@ def test_a_merged_session_can_be_split_into_one_per_file(page):
     page.once("dialog", lambda d: d.accept())
     split.click()
     expect(page.locator("#tp-saved")).to_contain_text("Split into 2 sessions")
+    into_track(page, "Thruxton")
     # The merged one is gone and there is one session per file, with the settings carried over and each file's own time.
     assert "m1" not in fake.sessions and len(fake.sessions) == 2
     made = sorted(fake.sessions.values(), key=lambda x: x["time"])
@@ -812,6 +839,7 @@ def test_a_day_group_adds_up_the_charge_used_on_track_and_between_runs(page):
     fake.sessions["dr2"] = dict(dup)
     fake.index.append(summary(dup))
     open_page(page, fake)
+    into_track(page, "Castle Combe")
     expect(page.locator(".tp-daygroup-charge")).to_have_text("Charge used 25% on track, 2% between runs")
     # The drives are not listed on their own: they sit inside the day's group, opened from its heading.
     expect(page.locator("#tp-sess-list > a.tp-row")).to_have_count(0)
@@ -834,6 +862,7 @@ def test_a_day_group_without_battery_figures_shows_no_charge_line(page):
         fake.sessions[sid] = dict(rec)
         fake.index.append(summary(rec))
     open_page(page, fake)
+    into_track(page, "Castle Combe")
     expect(page.locator(".tp-daygroup")).to_have_count(1)
     expect(page.locator(".tp-daygroup-charge")).to_have_count(0)
 
@@ -846,6 +875,7 @@ def test_a_drive_with_no_day_group_is_listed_on_its_own(page):
     open_page(page, fake)
     expect(page.locator(".tp-daygroup")).to_have_count(0)
     expect(page.locator("#tp-sess-list > a.tp-row")).to_have_count(1)
+    expect(page.locator("#tp-sess-list > a.tp-row")).to_contain_text("Drive")
 
 
 def test_a_lap_in_a_file_with_no_time_stamps_is_timed(page):
@@ -876,20 +906,23 @@ def test_delete_a_whole_day_from_its_group(page):
     fake.sessions["keep1"] = dict(other)
     fake.index.append(summary(other))
     open_page(page, fake)
-    page.locator(".tp-daygroup-title").click()
+    into_track(page, "Castle Combe")
+    day = page.locator(".tp-daygroup", has_text="Castle Combe")
+    day.locator(".tp-daygroup-title").click()
     # It asks first, naming how many and which day; Cancel deletes nothing.
     messages = []
     page.once("dialog", lambda d: (messages.append(d.message), d.dismiss()))
-    page.locator("[data-day-delete]").click()
+    day.locator("[data-day-delete]").click()
     assert messages and "Confirm delete?" in messages[0] and "all 4 sessions for this day (Castle Combe - 14 Jul 2026)" in messages[0]
     assert len(fake.sessions) == 5
     # Accepting deletes the day and its drives, and nothing from another day.
     page.once("dialog", lambda d: d.accept())
-    page.locator("[data-day-delete]").click()
+    day.locator("[data-day-delete]").click()
     expect(page.locator("#tp-saved")).to_contain_text("Deleted all 4 sessions for this day (Castle Combe - 14 Jul 2026)")
     assert sorted(fake.sessions) == ["keep1"]
-    expect(page.locator(".tp-daygroup")).to_have_count(0)
-    expect(page.locator("#tp-sess-list > a.tp-row")).to_have_count(1)
+    # Nothing is left at Castle Combe, so it is back on the list, which has the Thruxton session.
+    expect(page.locator("#tp-sess-list a.tp-trackrow")).to_have_count(1)
+    expect(page.locator("#tp-sess-list a.tp-trackrow")).to_contain_text("Thruxton")
 
 
 def test_sessions_of_one_track_day_can_be_compared_with_each_other_even_at_an_unlisted_track(page):
@@ -1759,57 +1792,46 @@ def board_row(car_id, session_id, time):
     return {"carId": car_id, "sessionId": session_id, "car": "Car " + car_id, "model": "Model 3", "owner": "X", "time": time, "date": "2026-04-01", "conditions": "Dry", "mods": []}
 
 
-def test_sessions_can_be_filtered_by_track_name(page):
+def test_the_main_list_is_one_line_for_each_track_and_opens_that_tracks_page(page):
     fake = FakeWorker(earlier=False)
     fake.index = [shared_session("a1", "thruxton", "Thruxton", "main", 100, "2026-04-03"),
                   shared_session("a2", "thruxton", "Thruxton", "main", 101, "2026-04-02"),
-                  shared_session("b1", "brands", "Brands Hatch", "indy", 60, "2026-04-01", privacy="private")]
+                  dict(shared_session("b1", "brands", "Brands Hatch", "indy", 60, "2026-05-01", privacy="private"), layout="Indy"),
+                  dict(shared_session("b2", "brands", "Brands Hatch", "gp", 120, "2026-05-02"), layout="Grand Prix")]
     open_page(page, fake)
-    rows = page.locator("#tp-sess-list .tp-row")
-    expect(rows).to_have_count(3)
-    sel = page.locator("#tp-track-filter")
-    expect(sel.locator("option")).to_have_text(["All tracks (3)", "Brands Hatch (1)", "Thruxton (2)"])
-    sel.select_option("Brands Hatch")
-    expect(rows).to_have_count(1)
-    expect(rows.first).to_contain_text("Brands Hatch")
-    sel.select_option("Thruxton")
+    rows = page.locator("#tp-sess-list a.tp-trackrow")
+    # One line for each track, whatever the layout, with the count and the last day; nothing else to work out.
     expect(rows).to_have_count(2)
-    sel.select_option("")
-    expect(rows).to_have_count(3)
-
-
-def test_sessions_can_be_filtered_by_type_and_sorted(page):
-    fake = FakeWorker(earlier=False)
-    fake.index = [shared_session("a1", "thruxton", "Thruxton", "main", 100, "2026-04-03"),
-                  dict(shared_session("d1", "santa-pod", "Santa Pod", "strip", 0, "2026-04-02"), type="drag"),
-                  dict(shared_session("s1", "lydden", "Lydden Hill", "hill", 50, "2026-04-05"), type="sprint"),
-                  shared_session("b1", "brands", "Brands Hatch", "indy", 60, "2026-04-01")]
-    open_page(page, fake)
-    rows = page.locator("#tp-sess-list .tp-row")
-    chips = page.locator("#tp-type-filter .chip")
-    expect(chips).to_have_text(["All (4)", "Track (2)", "Drag (1)", "Sprint (1)"])
-    # Newest first by default.
-    expect(rows.locator("b")).to_have_text(["Lydden Hill", "Thruxton", "Santa Pod", "Brands Hatch"])
-    page.locator("#tp-sort").select_option("oldest")
-    expect(rows.locator("b")).to_have_text(["Brands Hatch", "Santa Pod", "Thruxton", "Lydden Hill"])
+    expect(rows.nth(0)).to_contain_text("Brands Hatch")
+    expect(rows.nth(0)).to_contain_text("2 sessions, last 2 May 2026")
+    expect(rows.nth(1)).to_contain_text("Thruxton")
+    expect(rows.nth(1)).to_contain_text("2 sessions, last 3 Apr 2026")
+    expect(page.locator("#tp-type-filter, #tp-track-filter, #tp-group-by")).to_have_count(0)
+    # Sort: recently driven, A to Z, most sessions.
     page.locator("#tp-sort").select_option("az")
-    expect(rows.locator("b")).to_have_text(["Brands Hatch", "Lydden Hill", "Santa Pod", "Thruxton"])
-    chips.nth(2).click()
-    expect(rows).to_have_count(1)
-    expect(rows.first).to_contain_text("Santa Pod")
-    expect(chips.nth(2)).to_have_attribute("aria-pressed", "true")
-    chips.nth(1).click()
     expect(rows.locator("b")).to_have_text(["Brands Hatch", "Thruxton"])
-    chips.nth(0).click()
-    expect(rows).to_have_count(4)
+    page.locator("#tp-sort").select_option("most")
+    expect(rows).to_have_count(2)
+    # A line opens that track's own page with every session there, a day at a time.
+    rows.filter(has_text="Brands Hatch").click()
+    expect(page.locator(".tp-head h2")).to_have_text("Brands Hatch")
+    expect(page.locator(".tp-head .tp-for")).to_contain_text("2 sessions")
+    expect(page.locator(".tp-daygroup")).to_have_count(2)
+    expect(page.locator(".tp-daygroup h3")).to_have_text(["2 May 2026 on Brands Hatch, Grand Prix", "1 May 2026 on Brands Hatch, Indy"])
+    # Back goes to the list.
+    page.locator(".tp-back").click()
+    expect(page.locator("#tp-sess-list a.tp-trackrow")).to_have_count(2)
+    # Phone: no sideways scroll.
+    page.set_viewport_size({"width": 390, "height": 844})
+    assert page.evaluate("document.documentElement.scrollWidth") <= 390
 
 
-def test_no_filter_when_there_is_only_one_track(page):
+def test_the_main_list_has_no_sort_when_there_is_only_one_track(page):
     fake = FakeWorker(earlier=False)
     fake.index = [shared_session("a1", "thruxton", "Thruxton", "main", 100)]
     open_page(page, fake)
-    expect(page.locator("#tp-sess-list .tp-row")).to_have_count(1)
-    expect(page.locator("#tp-track-filter")).to_have_count(0)
+    expect(page.locator("#tp-sess-list a.tp-trackrow")).to_have_count(1)
+    expect(page.locator("#tp-sort")).to_have_count(0)
 
 
 def test_trophies_show_where_the_car_ranks_on_each_leaderboard(page):
@@ -1830,22 +1852,30 @@ def test_trophies_show_where_the_car_ranks_on_each_leaderboard(page):
     }
     open_page(page, fake)
     badge = lambda sid: page.locator('#tp-sess-list .tp-row[data-sid="%s"] .tp-rank' % sid)
+    # The trophies show on each track's own page.
+    into_track(page, "Thruxton")
     expect(badge("a1")).to_have_text("Platinum 1st")
     expect(badge("a1")).to_have_class(re.compile(r"tp-rank-1"))
+    # Only the session holding the place; none on a private one.
+    expect(badge("a2")).to_have_count(0)
+    page.locator(".tp-back").click()
+    into_track(page, "Cadwell Park")
     expect(badge("c1")).to_have_text("Gold 2nd")
+    page.locator(".tp-back").click()
+    into_track(page, "Donington Park")
     expect(badge("d1")).to_have_text("Silver 3rd")
+    page.locator(".tp-back").click()
+    into_track(page, "Oulton Park")
     expect(badge("e1")).to_have_text("11th")
     expect(badge("e1")).to_have_class(re.compile(r"tp-rank-n"))
     expect(badge("e1")).to_have_attribute("title", "11th of 11 on the Oulton Park leaderboard")
-    # Only the session holding the place; none on a private one.
-    expect(badge("a2")).to_have_count(0)
+    page.locator(".tp-back").click()
+    into_track(page, "Brands Hatch")
     expect(badge("b1")).to_have_count(0)
-    # Still there after filtering and clearing the filter.
-    page.locator("#tp-track-filter").select_option("Cadwell Park")
-    expect(badge("c1")).to_have_text("Gold 2nd")
     # And on the session page.
     fake.sessions["a1"] = dict(fake.index[0], laps=[], trace={"laps": {}}, mine=True)
-    page.locator("#tp-track-filter").select_option("")
+    page.locator(".tp-back").click()
+    into_track(page, "Thruxton")
     page.locator('#tp-sess-list .tp-row[data-sid="a1"]').click()
     expect(page.locator("#tp-rank-slot .tp-rank")).to_have_text("Platinum 1st")
 
@@ -1855,6 +1885,7 @@ def test_a_car_not_on_the_board_gets_no_trophy(page):
     fake.index = [shared_session("a1", "thruxton", "Thruxton", "main", 100)]
     fake.boards = {"/track/board:thruxton:main": [board_row("o1", "x", 90)]}
     open_page(page, fake)
+    into_track(page, "Thruxton")
     expect(page.locator("#tp-sess-list .tp-row")).to_have_count(1)
     page.wait_for_timeout(500)
     expect(page.locator(".tp-rank")).to_have_count(0)
@@ -4173,10 +4204,11 @@ def test_the_session_id_is_shown_with_a_copy_button(page):
 
 def test_a_member_requests_to_rename_an_unlisted_track_and_sends_the_name_for_approval(page):
     """A session at a track we do not list has the name its member typed. They ask to rename it (MT3UK is told); once
-    allowed they send the new name, which waits for approval. A session at a listed track has no such box."""
+    allowed they send the new name, which waits for approval. A session at a listed track gets a Layout name box
+    instead (see the next test)."""
     fake = FakeWorker()
     save_fixture_session(page, fake)
-    expect(page.locator("#rename")).to_have_count(0)
+    expect(page.locator("#rename h2")).to_have_text("Layout name")
     rec = fake.sessions["new1"]
     rec.pop("venueId", None)
     rec["venue"] = "Aerodrome"
@@ -4196,6 +4228,34 @@ def test_a_member_requests_to_rename_an_unlisted_track_and_sends_the_name_for_ap
     expect(box).to_contain_text("Newtown Aerodrome")
     assert fake.rename_proposals == [{"id": "new1", "name": "Newtown Aerodrome"}]
     expect(page.get_by_role("heading", name=re.compile("Aerodrome"))).to_have_count(1)
+
+
+def test_a_member_requests_to_rename_the_layout_of_a_listed_track(page):
+    """At a listed track what can be wrong is the layout name ("Brands Hatch, New Layout"). It is shared by every session
+    on that layout, so the box says so; the steps are the same: ask, allowed, send, approved by MT3UK."""
+    fake = FakeWorker()
+    save_fixture_session(page, fake)
+    rec = fake.sessions["new1"]
+    rec["layout"] = "New Layout"
+    page.reload()
+    box = page.locator("#tp-rename")
+    expect(page.locator("#rename h2")).to_have_text("Layout name")
+    expect(box).to_contain_text("on the layout New Layout")
+    expect(box).to_contain_text("Every session on that layout shares its name")
+    page.fill("#tp-rename-why", "It is the Indy circuit")
+    page.get_by_role("button", name="Request rename").click()
+    expect(box).to_contain_text("will email you when you can rename this layout")
+    assert fake.rename_requests == [{"id": "new1", "note": "It is the Indy circuit"}]
+    fake.rename_status = "granted"
+    page.reload()
+    expect(box).to_contain_text("MT3UK has said you can rename this layout")
+    expect(box).to_contain_text("changes for everyone with a session on this layout")
+    expect(page.locator("#tp-rename-name")).to_have_value("New Layout")
+    page.fill("#tp-rename-name", "Indy Circuit")
+    page.get_by_role("button", name="Send for approval").click()
+    expect(box).to_contain_text("The layout keeps its name until then")
+    expect(box).to_contain_text("Indy Circuit")
+    assert fake.rename_proposals == [{"id": "new1", "name": "Indy Circuit"}]
 
 
 def test_a_member_requests_to_edit_the_map_and_sends_a_change_for_approval(page):
@@ -4677,6 +4737,34 @@ def test_a_long_stop_between_passes_offers_sprint_or_hill_climb_as_separate_choi
     expect(page.locator("[data-type] .chip.is-on")).to_have_text(["Hill climb"])
 
 
+def test_a_logger_left_running_between_sessions_is_explained_without_offering_sprint(page, tmp_path):
+    """A day of laps with the car parked (the logger still recording) for a long gap in the middle: the gap is left out,
+    the notice says so, and it does not suggest a sprint or hill climb."""
+    import datetime as dt
+    text = (ROOT / "tests" / "fixtures" / "racebox-castle-combe-gpx.gpx").read_text()
+    pts = re.findall(r"<trkpt [^>]*>.*?</trkpt>", text)
+    first, last = text.index(pts[0]), text.index(pts[-1]) + len(pts[-1])
+
+    def shift(p, sec):
+        m = re.search(r"<time>(.*?)Z</time>", p)
+        t = dt.datetime.strptime(m.group(1), "%Y-%m-%dT%H:%M:%S.%f") + dt.timedelta(seconds=sec)
+        return p.replace(m.group(0), "<time>" + t.strftime("%Y-%m-%dT%H:%M:%S.") + "%03d" % (t.microsecond // 1000) + "Z</time>")
+    t0 = dt.datetime.strptime(re.search(r"<time>(.*?)Z</time>", pts[0]).group(1), "%Y-%m-%dT%H:%M:%S.%f")
+    t1 = dt.datetime.strptime(re.search(r"<time>(.*?)Z</time>", pts[-1]).group(1), "%Y-%m-%dT%H:%M:%S.%f")
+    gap = (t1 - t0).total_seconds() + 1800
+    out = list(pts) + [shift(p, gap) for p in pts]
+    path = tmp_path / "two-sessions.gpx"
+    path.write_text(text[:first] + "\n".join(out) + text[last:])
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(path))
+    notice = page.locator("#tp-result .tp-notice", has_text="was parked between sessions")
+    expect(notice).to_be_visible()
+    expect(notice).to_contain_text("timed laps are not affected")
+    expect(notice.get_by_role("button")).to_have_count(0)
+    expect(page.locator("#tp-result .tp-notice", has_text="Switch to Sprint")).to_have_count(0)
+
+
 def test_the_track_mode_figures_can_be_refreshed_from_the_same_files(page):
     """A session saved with old figures gets new ones from the same car file: only the figures are sent, no new session."""
     fake = FakeWorker()
@@ -4697,3 +4785,35 @@ def test_the_track_mode_figures_can_be_refreshed_from_the_same_files(page):
     expect(page.locator("#car-data")).to_contain_text("35.5 bar")
     assert len(fake.car_updates) == 1 and len(fake.sessions) == before
     assert fake.car_updates[0]["carData"]["power"]["max"] == 250
+
+
+def test_the_line_picker_shows_only_the_fastest_lap_and_a_marker_sits_on_it(page):
+    """With laps, the picker draws the fastest lap as one clean line (not the whole drive, which could include the way to
+    the circuit) and a marker attaches to that line, not to a waypoint of some other lap."""
+    page.route(re.compile(r".*/data/tracks\.json.*"), _without_start_line)
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    page.locator('[data-tap="edit"]').click()
+    expect(page.locator("#tp-tap")).to_be_visible()
+    assert page.evaluate("document.querySelectorAll('#tp-tap polyline.tv-line').length") == 1, "one clean lap line"
+    # Only that lap is drawn: its readings, filled in to about a metre apart, and nothing else.
+    segs = page.evaluate("document.querySelectorAll('#tp-tap .tv-segs line').length")
+    best = page.evaluate("document.querySelector('#tp-tap polyline.tv-line').getAttribute('points').split(' ').length")
+    assert abs(segs - (best - 1)) <= 1 and best > 600, (segs, best)
+    page.get_by_role("button", name="Clear markers").click()
+    pt = _trace_point(page, 0.3)
+    # The clicked point in the map's own coordinates (the page may scroll when a marker is placed).
+    want = page.evaluate("""(pt) => {
+      const svg = document.getElementById('tp-tap'), vb = svg.viewBox.baseVal, r = svg.getBoundingClientRect();
+      return [vb.x + (pt[0] - r.left) * vb.width / r.width, vb.y + (pt[1] - r.top) * vb.height / r.height, vb.width / r.width];
+    }""", pt)
+    page.mouse.click(pt[0], pt[1])
+    expect(page.locator("#tp-tap .tp-tapmark")).to_have_count(1)
+    got = page.evaluate("""() => {
+      const m = document.querySelector('#tp-tap .tp-tapmark').getAttribute('transform').match(/translate\\(([-\\d.e]+)[ ,]([-\\d.e]+)\\)/);
+      return [Number(m[1]), Number(m[2])];
+    }""")
+    off = ((got[0] - want[0]) ** 2 + (got[1] - want[1]) ** 2) ** 0.5 / want[2]
+    assert off < 4, "the marker sits on the clicked point of the line (%.1f px off)" % off

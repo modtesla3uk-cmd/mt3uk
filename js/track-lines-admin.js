@@ -48,7 +48,7 @@
   // A rename of the track on a session at an unlisted track: the same steps, but Accept changes the name on the worker.
   function renameHtml(r) {
     var p = r.proposal;
-    return '<div class="iv-sub">Changed ' + esc(when(p.at)) + '. The session has not changed yet.</div><table class="iv-table"><thead><tr><th></th><th>From</th><th>To</th></tr></thead><tbody><tr><td>Track name</td><td>' + esc(p.from || 'none') + '</td><td>' + esc(p.to) + '</td></tr></tbody></table>';
+    return '<div class="iv-sub">Changed ' + esc(when(p.at)) + '. The session has not changed yet.</div><table class="iv-table"><thead><tr><th></th><th>From</th><th>To</th></tr></thead><tbody><tr><td>' + (r.target === 'layout' ? 'Layout name' : 'Track name') + '</td><td>' + esc(p.from || 'none') + '</td><td>' + esc(p.to) + '</td></tr></tbody></table>';
   }
   function draw() {
     var changed = rows.filter(function (r) { return r.proposal; }).length, waiting = rows.filter(function (r) { return r.status === 'pending'; }).length;
@@ -57,7 +57,7 @@
       var rn = r.kind === 'rename', kindAttr = rn ? ' data-kind="rename"' : '';
       var state = r.status === 'pending' ? 'Asked ' + esc(when(r.at)) + (r.note ? '<br><span class="iv-sub">' + esc(r.note) + '</span>' : '')
         : r.proposal ? (rn ? renameHtml(r) : changeHtml(r))
-        : 'Allowed ' + esc(when(r.grantedAt)) + '<br><span class="iv-sub">Waiting for them to ' + (rn ? 'rename the track.' : 'change the map.') + '</span>';
+        : 'Allowed ' + esc(when(r.grantedAt)) + '<br><span class="iv-sub">Waiting for them to ' + (rn ? (r.target === 'layout' ? 'rename the layout.' : 'rename the track.') : 'change the map.') + '</span>';
       var actions = r.status === 'pending'
         ? '<button type="button" class="iv-act" data-grant="' + esc(r.id) + '"' + kindAttr + '>Allow</button><button type="button" class="secondary iv-act" data-dismiss="' + esc(r.id) + '"' + kindAttr + '>Decline</button>'
         : (r.proposal ? '<button type="button" class="iv-act" data-accept="' + esc(r.id) + '"' + kindAttr + '>Accept</button><button type="button" class="secondary iv-act" data-undo="' + esc(r.id) + '"' + kindAttr + '>Undo</button>' : '') +
@@ -65,7 +65,7 @@
       // For the notification bell: what this row is, and a key that changes when there is something new to see.
       var rowState = r.status === 'pending' ? 'pending' : r.proposal ? 'changed' : 'allowed';
       return '<tr data-id="' + esc(r.id) + '" data-state="' + rowState + '" data-key="' + esc((rn ? 'rename:' : '') + r.id + ':' + rowState + ':' + (r.proposal ? r.proposal.at : r.at)) + '"' + (r.id === targetId ? ' class="is-target"' : '') + '><td>' + esc(r.name ? r.name + ' ' : '') + '<span class="iv-sub">' + esc(r.email) + '</span></td>' +
-        '<td><a href="track.html?s=' + encodeURIComponent(r.id) + '" target="_blank" rel="noopener">' + esc(r.what) + '</a>' + (rn ? '<br><span class="iv-sub">Rename the track</span>' : '') + '</td><td>' + state + '</td>' +
+        '<td><a href="track.html?s=' + encodeURIComponent(r.id) + '" target="_blank" rel="noopener">' + esc(r.what) + '</a>' + (rn ? '<br><span class="iv-sub">' + (r.target === 'layout' ? 'Rename the layout, for everyone' : 'Rename the track') + '</span>' : '') + '</td><td>' + state + '</td>' +
         '<td><div class="iv-actions">' + actions + '</div></td></tr>';
     }).join('') + '</tbody></table>' : '<p class="empty">Nobody has asked to edit a map or rename a track.</p>';
   }
@@ -205,6 +205,22 @@
     wrap.scrollIntoView({ block: 'start' });
     if (wrap.open) load(); else wrap.open = true;
   }
+  // A layout rename: the track list is changed first, then the saved sessions at the layout get the name a page at a time
+  // (there can be many), and the member is emailed at the end.
+  function applyLayoutRename(row) {
+    var changed = 0;
+    note('Renaming the layout in the track list...');
+    function step(cursor) {
+      return postJson('/track/lines/admin', { kind: 'rename', action: 'apply', id: row.id, cursor: cursor }).then(function (d) {
+        changed += d.changed || 0;
+        if (!d.done) { note('Renaming the layout on saved sessions... ' + changed + ' so far.'); return step(d.cursor); }
+        note('Done. The layout is renamed in the track list and on ' + changed + (changed === 1 ? ' saved session.' : ' saved sessions.') + ' The member has been emailed. Revoke their access when they are done.');
+        load(true);
+      });
+    }
+    postJson('/track/lines/admin', { kind: 'rename', action: 'accepted', id: row.id }).then(function () { return step(''); })
+      .catch(function (e) { note((e && e.message) || 'That did not work.', 'error'); load(true); });
+  }
   wrap.addEventListener('toggle', function () { if (wrap.open) load(); });
   wrap.addEventListener('click', function (e) {
     var g = e.target.closest('[data-grant]'), d = e.target.closest('[data-dismiss]'), r = e.target.closest('[data-revoke]'), a = e.target.closest('[data-accept]'), u = e.target.closest('[data-undo]');
@@ -214,7 +230,10 @@
     else if (d) act(body('dismiss', d.getAttribute('data-dismiss')), 'Declined.');
     else if (a && rn) {
       var row = rows.filter(function (x) { return x.id === a.getAttribute('data-accept') && x.kind === 'rename'; })[0];
-      if (row && window.confirm('Rename the track on this session?\n\n' + row.what + '\nFrom: ' + (row.proposal.from || 'none') + '\nTo: ' + row.proposal.to + '\n\nOnly this session changes. It changes as soon as you accept.')) act(body('accepted', row.id), 'Accepted. The track name is changed. Revoke their access when they are done.');
+      if (row && row.target === 'layout') {
+        if (window.confirm('Rename this layout for everyone?\n\n' + row.what + '\nFrom: ' + (row.proposal.from || 'none') + '\nTo: ' + row.proposal.to + '\n\nIt is renamed in the track list and on every saved session at the layout. Nothing is re-timed.')) applyLayoutRename(row);
+      }
+      else if (row && window.confirm('Rename the track on this session?\n\n' + row.what + '\nFrom: ' + (row.proposal.from || 'none') + '\nTo: ' + row.proposal.to + '\n\nOnly this session changes. It changes as soon as you accept.')) act(body('accepted', row.id), 'Accepted. The track name is changed. Revoke their access when they are done.');
     }
     else if (a) accept(a.getAttribute('data-accept'));
     else if (u && window.confirm('Undo this change? The session stays as it is and they keep their access.')) act(body('undo', u.getAttribute('data-undo')), 'Undone. The session was not changed.');

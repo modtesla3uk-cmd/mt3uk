@@ -181,6 +181,18 @@
       "image": "images/blog/owner-interviews/sue/frunk-open.jpg",
       "publish": "2027-04-15",
       "created": "2026-10-02"
+    },
+    {
+      "name": "James Begley",
+      "type": "standard",
+      "car": "Model 3 Performance",
+      "year": "2020",
+      "title": "Meet Roger: James’s Model 3 Performance, Modded on a Budget",
+      "excerpt": "A gloss black spoiler, louvres, carbon-effect trim and Alcantara, added a bit at a time on a monthly budget.",
+      "url": "blog-james.html",
+      "image": "images/blog/owner-interviews/james/front-three-quarter.jpg",
+      "created": "2026-10-05",
+      "draft": true
     }
   ]
 }

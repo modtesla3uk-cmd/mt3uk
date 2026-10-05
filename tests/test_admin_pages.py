@@ -714,6 +714,45 @@ def test_admin_line_editing_panel_handles_a_track_rename_the_same_way(page):
     assert calls == [("rename", "grant", "r1"), ("rename", "accepted", "r2")]
 
 
+def test_admin_accepts_a_layout_rename_which_updates_the_saved_sessions_a_page_at_a_time(page):
+    """A member asked to rename a layout. The confirm says it changes for everyone; accepting renames it in the track list
+    and then the saved sessions follow in pages until the worker says it is done."""
+    state = {"requests": [
+        {"kind": "rename", "target": "layout", "id": "l1", "name": "Sam", "email": "s***@example.com", "note": "", "at": "2026-10-01T10:00:00Z", "status": "granted", "grantedAt": "2026-10-01T11:00:00Z", "what": "Brands Hatch, New Layout, 2026-09-29", "type": "track", "current": "New Layout",
+         "proposal": {"at": "2026-10-02T09:30:00Z", "from": "New Layout", "to": "Indy Circuit", "target": "layout"}},
+    ]}
+    calls, dialogs = [], []
+
+    def lines(route):
+        req = route.request
+        if req.method == "POST":
+            body = json.loads(req.post_data)
+            calls.append((body.get("action"), body.get("cursor")))
+            if body["action"] == "accepted":
+                out = {"success": True, "more": True, "cursor": ""}
+            else:
+                n = sum(1 for c in calls if c[0] == "apply")
+                out = {"success": True, "done": n >= 3, "cursor": "c%d" % n, "changed": 4}
+                if n >= 3:
+                    state["requests"][0]["proposal"] = None
+            route.fulfill(status=200, content_type="application/json", body=json.dumps(out), headers={"Access-Control-Allow-Origin": "*"})
+            return
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(dict(state, success=True)), headers={"Access-Control-Allow-Origin": "*"})
+    open_admin(page, "track-admin.html")
+    page.route(LINES_API, lines)
+    page.reload()
+    page.locator("#lines-wrap summary").click()
+    row = page.locator("#ln-list > table > tbody > tr").first
+    expect(row).to_contain_text("Rename the layout, for everyone")
+    expect(row).to_contain_text("Layout name")
+    expect(row).to_contain_text("Indy Circuit")
+    page.once("dialog", lambda d: (dialogs.append(d.message), d.accept()))
+    row.get_by_role("button", name="Accept").click()
+    expect(page.locator("#ln-note")).to_contain_text("on 12 saved sessions")
+    assert "for everyone" in dialogs[0] and "Nothing is re-timed" in dialogs[0], dialogs
+    assert calls == [("accepted", None), ("apply", ""), ("apply", "c1"), ("apply", "c2")], calls
+
+
 def test_admin_line_editing_panel_allows_shows_the_change_and_undoes_or_revokes(page):
     """Members ask to edit a map; the admin allows it, sees who has access to which map and what they changed
     (from and to), and can undo the change or revoke the access."""
@@ -1112,20 +1151,24 @@ def test_the_tracks_list_can_be_narrowed_by_track_name_and_by_type(page):
     page.reload()
     page.locator("#tracks-wrap > summary").click()
     rows = page.locator("#tk-list tbody tr")
-    expect(rows).to_have_count(5)
-    expect(page.locator("#tk-list .tk-count")).to_have_text("5 tracks")
-    # In alphabetical order by name (a sprint before a track day at the same place is not guaranteed, but they sit together).
+    # The sprint and the track day at Abingdon are one place with two entries.
+    expect(rows).to_have_count(4)
+    expect(page.locator("#tk-list .tk-count")).to_have_text("4 tracks")
     order = page.locator("#tk-list tbody tr td:first-child b").all_text_contents()
-    assert order == ["Abingdon Airfield", "Abingdon Airfield", "Santa Pod", "Shelsley Walsh", "Thruxton"], order
+    assert order == ["Abingdon Airfield", "Santa Pod", "Shelsley Walsh", "Thruxton"], order
+    expect(rows.first.locator(".tk-kind")).to_have_count(2)
+    expect(rows.first.locator(".tk-kindname")).to_have_text(["Circuit (track day)", "Sprint"])
     page.locator('[data-tk-filter="type"]').select_option("hill")
     expect(rows).to_have_count(1)
     expect(rows.first).to_contain_text("Shelsley Walsh")
-    expect(page.locator("#tk-list .tk-count")).to_have_text("Showing 1 of 5")
+    expect(page.locator("#tk-list .tk-count")).to_have_text("Showing 1 of 4")
     page.locator('[data-tk-filter="type"]').select_option("")
     page.locator('[data-tk-filter="name"]').select_option("Abingdon Airfield")
-    expect(rows).to_have_count(2)  # the sprint and the track day share a name
+    expect(rows).to_have_count(1)  # the sprint and the track day share a place
+    expect(rows.first.locator(".tk-kind")).to_have_count(2)
     page.locator('[data-tk-filter="type"]').select_option("circuit")
     expect(rows).to_have_count(1)
+    expect(rows.first.locator(".tk-kind")).to_have_count(1)
     expect(rows.first).to_contain_text("Track day")
     page.locator('[data-tk-filter="type"]').select_option("drag")
     expect(page.locator("#tk-list tbody")).to_contain_text("No tracks match.")
@@ -1446,3 +1489,46 @@ def test_the_key_can_be_remembered_on_this_device(page):
     keep.click()
     expect(keep).to_have_attribute("aria-checked", "false")
     assert page.evaluate("localStorage.getItem('mt3ukAdminKeyKept')") is None
+
+
+def test_one_place_lists_its_circuit_sprint_and_hill_climb_together_and_adds_the_missing_kind(page):
+    ok = {"Access-Control-Allow-Origin": "*"}
+    venues = [
+        {"id": "goodwood", "name": "Goodwood", "type": "circuit", "lat": 50.859, "lng": -0.759, "radius": 2000, "layouts": [{"id": "main", "name": "Goodwood", "length": 3830}]},
+        {"id": "goodwood-motor-circuit", "name": "Goodwood Motor Circuit", "type": "sprint", "lat": 50.86, "lng": -0.76, "radius": 1500, "layouts": [{"id": "c", "name": "Course", "length": 2000}]},
+        {"id": "goodwood-hill", "name": "Goodwood Hill Climb", "type": "sprint", "hill": True, "lat": 50.89, "lng": -0.74, "radius": 800, "layouts": [{"id": "h", "name": "Hill", "length": 1900}]},
+        {"id": "goodwood-festival-of-speed", "name": "Goodwood Festival of Speed", "type": "sprint", "hill": True, "lat": 50.8688, "lng": -0.7367, "radius": 1200, "layouts": []},
+        {"id": "goodwood-far", "name": "Goodwood", "type": "circuit", "lat": 53.0, "lng": -1.0, "radius": 1000, "layouts": []},
+    ]
+    saved = []
+    def tracks(route):
+        body = route.request.post_data_json if route.request.method == "PUT" else None
+        if body:
+            saved.append(body)
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "extra": {"venues": venues}, "library": {"venues": venues}}), headers=ok)
+    open_admin(page, "track-admin.html")
+    page.route("**/track/access/admin**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "open": False, "allowed": [], "pending": []}), headers=ok))
+    page.route("**/track/admin/requests**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "requests": []}), headers=ok))
+    page.route("**/track/admin/tracks**", tracks)
+    page.reload()
+    page.locator("#tracks-wrap > summary").click()
+    rows = page.locator("#tk-list tbody tr")
+    # Goodwood, Goodwood Motor Circuit and Goodwood Hill Climb (all within 5 km) are one place; a Goodwood far away is not.
+    expect(rows).to_have_count(2)
+    near = rows.first
+    expect(near.locator(".tk-kindname")).to_have_text(["Circuit (track day)", "Sprint", "Hill climb", "Hill climb"])
+    expect(near).to_contain_text("listed as Goodwood Motor Circuit")
+    # A longer name that starts with the place's name, close by, is part of the place too.
+    expect(near).to_contain_text("listed as Goodwood Festival of Speed")
+    # It has all three kinds, so there is nothing to add; the far one can have a sprint and a hill climb added.
+    expect(near.locator("[data-add-kind]")).to_have_count(0)
+    far = rows.nth(1)
+    expect(far.locator("[data-add-kind]")).to_have_text(["Add sprint", "Add hill climb"])
+    far.locator("[data-add-kind='sprint']").click()
+    expect(page.locator("#tk-form, .tk-form").first).to_contain_text("Add a sprint to Goodwood")
+    expect(page.locator("#tk-name")).to_have_value("Goodwood")
+    expect(page.locator("#tk-type")).to_have_value("sprint")
+    expect(page.locator("#tk-lat")).to_have_value("53")
+    page.locator("#tk-save").click()
+    page.wait_for_timeout(300)
+    assert saved and saved[0]["venue"]["id"] == "" and saved[0]["venue"]["type"] == "sprint" and saved[0]["venue"]["name"] == "Goodwood", saved

@@ -7808,6 +7808,40 @@ async function refuseTrackSource(env, got, zippedBytes, message) {
   return json({ success: false, message: message }, 413);
 }
 
+// Refresh a saved session's Track Mode figures from the car file again (the member picks the same files; the page
+// reads them and sends only the summary). Replaces the session's carData and carSource, and each lap's own figures
+// by lap number and file, and changes nothing else.
+async function handleTrackCarUpdate(request, env) {
+  var got = await getOwnTrackSession(request, env, String(new URL(request.url).searchParams.get('id') || ''));
+  if (got.error) return got.error;
+  var text = await request.text(), body;
+  if (text.length > 400000) return json({ success: false, message: 'That is too big.' }, 413);
+  try { body = JSON.parse(text); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var car = body && cleanCarData(body.carData);
+  if (!car) return json({ success: false, message: 'There are no Track Mode figures in those files.' }, 400);
+  var rec = got.rec;
+  rec.carData = car;
+  if (body.carSource && typeof body.carSource === 'object') {
+    var cs = { name: trackText(body.carSource.name, 120) }, shift = trackNum(body.carSource.shift, -86400, 86400), match = trackNum(body.carSource.match, 0, 1);
+    if (shift !== null) cs.shift = shift;
+    if (match !== null) cs.match = match;
+    if (body.carSource.speed) cs.speed = true;
+    if (body.carSource.g) cs.g = true;
+    rec.carSource = cs;
+  } else delete rec.carSource;
+  var byLap = {};
+  (Array.isArray(body.laps) ? body.laps : []).slice(0, 300).forEach(function (l) {
+    var lc = l && l.carData && typeof l.carData === 'object' ? cleanCarData(Object.assign({}, l.carData, { run: 1 }), true) : null;
+    if (lc) { delete lc.run; if (Object.keys(lc).length) byLap[(trackNum(l.run, 1, 50) || 1) + ':' + trackNum(l.n, 1, 1000)] = lc; }
+  });
+  (rec.laps || []).forEach(function (l) {
+    var lc = byLap[(l.run || 1) + ':' + l.n];
+    if (lc) l.carData = lc; else delete l.carData;
+  });
+  if (!(await putTrackSession(env, rec))) return json({ success: false, message: 'This session is too big to save.' }, 413);
+  return json({ success: true });
+}
+
 // Back out as the stored gzip, which the browser unzips (Content-Encoding).
 async function handleTrackSourceGet(request, env) {
   var got = await getOwnTrackSession(request, env, String(new URL(request.url).searchParams.get('id') || ''));
@@ -10232,7 +10266,7 @@ export default {
     }
     // The member's own sessions need access (early preview): lists, saves,
     // changes, readings and deletes. Shared sessions and boards stay public.
-    if ((url.pathname === '/track/sessions' || url.pathname === '/track/session/source' || url.pathname === '/track/courses' ||
+    if ((url.pathname === '/track/sessions' || url.pathname === '/track/session/source' || url.pathname === '/track/session/car' || url.pathname === '/track/courses' ||
         url.pathname === '/track/lines/status' || url.pathname === '/track/lines/request' || url.pathname === '/track/lines/propose' || url.pathname === '/track/rename/status' || url.pathname === '/track/rename/request' || url.pathname === '/track/rename/propose' || (url.pathname === '/track/lines/image' && request.method === 'POST') ||
         (url.pathname === '/track/session' && request.method !== 'GET')) && request.method !== 'OPTIONS') {
       var noAccess = await trackAccessGate(request, env);
@@ -10285,6 +10319,9 @@ export default {
     }
     if (url.pathname === '/track/session/source' && request.method === 'GET') {
       return handleTrackSourceGet(request, env);
+    }
+    if (url.pathname === '/track/session/car' && request.method === 'POST') {
+      return handleTrackCarUpdate(request, env);
     }
     if (url.pathname === '/track/session' && request.method === 'DELETE') {
       return handleTrackSessionDelete(request, env);

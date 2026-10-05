@@ -727,7 +727,7 @@
     var dots = el('g', {}, svg);
     trace.forEach(function (p) {
       var x = Math.max(-1.3, Math.min(1.3, p[5])), y = Math.max(-1.3, Math.min(1.3, p[6]));
-      el('circle', { cx: cx + x * sc, cy: cy - y * sc, r: 2.2, fill: color || C.s1, 'fill-opacity': 0.45 }, dots);
+      el('circle', { cx: cx + x * sc, cy: cy + y * sc, r: 2.2, fill: color || C.s1, 'fill-opacity': 0.45 }, dots);
     });
     // Labels on top of the dots, dark and bold, kept the same size when
     // zoomed in (each is a group scaled back by the zoom).
@@ -743,8 +743,9 @@
     }
     label(cx + 0.5 * sc * 0.72, cy - 0.5 * sc * 0.72, '0.5 g', 'middle', true);
     label(cx + 1.0 * sc * 0.72, cy - 1.0 * sc * 0.72, '1.0 g', 'middle', true);
-    label(cx, cy - R - 4, 'Accelerating', 'middle');
-    label(cx, cy + R + 10, 'Braking', 'middle');
+    // Braking at the top and accelerating at the bottom, the way the g is felt (braking throws you forwards).
+    label(cx, cy - R - 4, 'Braking', 'middle');
+    label(cx, cy + R + 10, 'Accelerating', 'middle');
     label(cx - R + 4, cy - 14, 'Cornering', 'start');
     label(cx + R - 4, cy - 14, 'Cornering', 'end');
     zoomControls(svg, { W: W, H: H, pts: [[cx, cy]], onZoom: function (k) {

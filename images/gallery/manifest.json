@@ -1,5 +1,15 @@
 [
   {
+    "file": "photo--by-richard-hughes-chen.webp",
+    "name": "RichyRich",
+    "votable": false,
+    "gallery": false,
+    "reel": false,
+    "color": "Red",
+    "added": "2026-10-05",
+    "group": "photo--by-richard-hughes-chen.webp"
+  },
+  {
     "file": "photo--by-aaron-barnard.jpg",
     "name": "AaronB",
     "color": "White",
@@ -14,7 +24,7 @@
     "reel": false,
     "color": "White",
     "added": "2026-10-05",
-    "group": "photo--by-richard-hughes-chen.jpg"
+    "group": "photo--by-richard-hughes-chen.webp"
   },
   {
     "file": "b-w--by-james-begley.jpeg",

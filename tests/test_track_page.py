@@ -48,6 +48,7 @@ def summary(rec):
 class FakeWorker:
     def __init__(self, admin=False, earlier=True):
         self.sessions = {}
+        self.car_updates = []
         self.index = [dict(EARLIER)] if earlier else []
         self.admin = admin
         self.saved = []
@@ -161,6 +162,11 @@ class FakeWorker:
             else:
                 self.sources[sid] = body
                 self.sessions[sid]["hasSource"] = True
+        elif path == "/track/session/car" and req.method == "POST":
+            sid = q.get("id", [""])[0]
+            self.car_updates.append(body)
+            self.sessions[sid]["carData"] = body["carData"]
+            data = {"success": True}
         elif path == "/track/session/source" and req.method == "GET":
             sid = q.get("id", [""])[0]
             if sid in self.sources and self.raw_gzip_source:
@@ -4669,3 +4675,25 @@ def test_a_long_stop_between_passes_offers_sprint_or_hill_climb_as_separate_choi
     expect(notice.get_by_role("button")).to_have_text(["Switch to Sprint", "Switch to Hill climb"])
     notice.get_by_role("button", name="Switch to Hill climb").click()
     expect(page.locator("[data-type] .chip.is-on")).to_have_text(["Hill climb"])
+
+
+def test_the_track_mode_figures_can_be_refreshed_from_the_same_files(page):
+    """A session saved with old figures gets new ones from the same car file: only the figures are sent, no new session."""
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    csv = {"name": "telemetry-v1-2026-05-28-10_00_00.csv", "mimeType": "text/csv", "buffer": tesla_full_csv().encode()}
+    page.set_input_files("#tp-file", files=[csv])
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    page.get_by_role("button", name="Save session").click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
+    fake.sessions["new1"]["carData"]["brakePressure"] = {"max": 1.0}
+    page.reload()
+    card = page.locator("#car-data")
+    expect(card).to_contain_text("1.0 bar")
+    before = len(fake.sessions)
+    page.locator("#car-data").evaluate("el => el.open = true")
+    card.locator("[data-car-file]").set_input_files(files=[csv])
+    expect(page.locator("#car-data")).to_contain_text("35.5 bar")
+    assert len(fake.car_updates) == 1 and len(fake.sessions) == before
+    assert fake.car_updates[0]["carData"]["power"]["max"] == 250

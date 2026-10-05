@@ -366,6 +366,19 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   res = await send('/track/session/source?id=' + sid, undefined, 'tok-a', 'GET');
   const back = JSON.parse(zlib.gunzipSync(Buffer.from(await res.arrayBuffer())).toString());
   ok(res.status === 200 && res.headers.get('Content-Encoding') === 'gzip' && back.p.length === src.p.length && back.rd.format === rd.format, 'the owner gets the readings back');
+  // The member can refresh the Track Mode figures from the car file again: only the figures change.
+  {
+    const car = { soc: { start: 62.72, end: 60.48 }, power: { max: 244, regen: 79 }, brakePressure: { max: 8.4 }, found: ['State of charge', 'Power', 'Brake pressure'], empty: [], evil: { a: 1 } };
+    const before = (await call('GET', '/track/session?id=' + sid, undefined, 'tok-a')).body.session;
+    res = await send('/track/session/car?id=' + sid, JSON.stringify({ carData: car, carSource: { name: 'telemetry.csv', match: 0.99 }, laps: [{ n: 1, carData: { soc: { start: 62, end: 61 } } }] }), 'tok-b');
+    ok(res.status === 404, 'only the owner can refresh the Track Mode figures: ' + res.status);
+    res = await send('/track/session/car?id=' + sid, JSON.stringify({ carData: { evil: 1 } }), 'tok-a');
+    ok(res.status === 400, 'figures with nothing in them are refused: ' + res.status);
+    res = await send('/track/session/car?id=' + sid, JSON.stringify({ carData: car, carSource: { name: 'telemetry.csv', match: 0.99 }, laps: [{ n: 1, carData: { soc: { start: 62, end: 61 } } }] }), 'tok-a');
+    const after = (await call('GET', '/track/session?id=' + sid, undefined, 'tok-a')).body.session;
+    ok(res.status === 200 && after.carData.brakePressure.max === 8.4 && after.carData.power.regen === 79 && !('evil' in after.carData) && after.carSource.name === 'telemetry.csv', 'the figures are replaced, and only known ones kept');
+    ok(after.laps[0].carData && after.laps[0].carData.soc.end === 61 && after.bestTime === before.bestTime && after.notes === before.notes && after.laps.length === before.laps.length, 'the lap\'s own figures are replaced and nothing else on the session changes');
+  }
   // The admin's copy comes as a plain gzip file, not Content-Encoding, so nothing en route can re-encode it.
   res = await send('/track/admin/retime/source?key=secret&id=' + sid, undefined, undefined, 'GET');
   const adminBack = JSON.parse(zlib.gunzipSync(Buffer.from(await res.arrayBuffer())).toString());

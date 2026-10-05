@@ -1968,6 +1968,49 @@
       showSession(s.id);
     }).catch(function (e) { note((e && e.message) || 'That did not work.'); throw e; });
   }
+  // Refresh a saved session's Track Mode figures from the car file, with no new session: the same drive's files are
+  // picked again and read as when adding one, and only the summary of the car's figures is sent to replace the old.
+  function carAgainHtml() {
+    return '<div class="tp-car-again"><button type="button" class="btn btn-secondary btn-sm" data-car-again>' + icon('upload') + 'Refresh these figures from the file</button>' +
+      '<input type="file" multiple accept=".vbo,.csv,.gpx,.txt,text/csv,application/gpx+xml" hidden data-car-file>' +
+      '<p class="tp-small">Saved before we kept every peak? Pick the same files again (the car\'s file and the lap timer\'s, if you used both) to work out these figures again. Nothing else on the session changes and no new session is made.</p>' +
+      '<p class="tp-small tp-err" data-car-note role="status"></p></div>';
+  }
+  function refreshCarData(s, files, note) {
+    note('Reading ' + (files.length > 1 ? files.length + ' files' : files[0].name) + '...');
+    return Promise.all([readTextFiles(files), getLibrary()]).then(function (r) {
+      var rd = readingsFromFiles(r[0]), a = T.analyse(rd, r[1], { type: 'other' }), why = readingsMismatch(s, a);
+      if (why) throw new Error(why);
+      if (!a.carData) throw new Error('There are no Track Mode figures in those files. Pick the car\'s own file (telemetry-v1-....csv) as well.');
+      // Each lap's own figures, from the same timing the session has (its type, organiser and lines).
+      var laps = [];
+      try {
+        var o = { type: s.type, ignoreFirstFinish: s.ignoreFinish !== false };
+        if (s.rollout) o.rollout = true;
+        if (s.organizer) o.organizer = s.organizer;
+        if (s.finishCrossing) o.finishCrossing = s.finishCrossing;
+        if (s.startLineFromMember && s.startLine) { o.startLine = s.startLine; if (s.finishLine) o.finishLine = s.finishLine; }
+        if (s.linesAccepted && s.startLine) o.ownLines = true;
+        (T.analyse(rd, r[1], o).laps || []).forEach(function (l) { if (l.carData) laps.push({ n: l.n, run: l.run, carData: l.carData }); });
+      } catch (e) { laps = []; }
+      note('Saving the new figures...');
+      return api('POST', '/track/session/car?id=' + encodeURIComponent(s.id), { carData: a.carData, carSource: a.carSource || null, laps: laps });
+    }).then(function (d) {
+      if (!d.success) throw new Error(d.message || 'The figures could not be saved.');
+      showSession(s.id);
+    }).catch(function (e) { note((e && e.message) || 'That did not work.'); throw e; });
+  }
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest && e.target.closest('[data-car-again]');
+    if (btn) { var inp = btn.parentNode.querySelector('[data-car-file]'); if (inp) inp.click(); }
+  });
+  document.addEventListener('change', function (e) {
+    var input = e.target && e.target.matches && e.target.matches('[data-car-file]') ? e.target : null;
+    if (!input || !input.files.length || !view || !view.s) return;
+    var box = input.parentNode, btn = box.querySelector('[data-car-again]'), noteEl = box.querySelector('[data-car-note]');
+    btn.disabled = true;
+    refreshCarData(view.s, input.files, function (t) { noteEl.textContent = t; }).catch(function () { btn.disabled = false; input.value = ''; });
+  });
   function wireReadingsAgain() {
     [].slice.call(document.querySelectorAll('.tp-readings-again')).forEach(function (box) {
       var btn = box.querySelector('[data-readings-again]'), input = box.querySelector('[data-readings-file]'), noteEl = box.querySelector('[data-readings-note]');
@@ -2358,7 +2401,8 @@
       (t.length ? tiles(t) : '') +
       (held ? '<div class="tp-note tp-held" id="tp-held">' + icon('warn') + '<p>Power held back? Flat out, your peak power fell from ' + held.early + ' kW early in the session to ' + held.late + ' kW late on.<small>The car limits power as parts get hot. Compare with the temperatures above.</small></p></div>' : '') +
       '<p class="tp-small">Read from the file your car wrote. Temperatures are shown as a percentage, as the car reports them, not in degrees. Their colours follow the Track Mode zones as owners describe them (yellow from 70%, orange from 85%, red at 100%).' +
-      ((c.empty || []).length ? ' In the file but empty: ' + esc((c.empty || []).join(', ').toLowerCase()) + '.' : '') + '</p></details>';
+      ((c.empty || []).length ? ' In the file but empty: ' + esc((c.empty || []).join(', ').toLowerCase()) + '.' : '') + '</p>' +
+      (s.mine ? carAgainHtml() : '') + '</details>';
   }
   function tiles(list) {
     return '<div class="tp-tiles">' + list.map(function (t) { return '<div class="tp-tile' + (t[3] ? ' is-hero' : '') + (t[4] ? ' ' + t[4] : '') + '"><div class="k">' + esc(t[0]) + '</div><div class="v">' + esc(t[1]) + '</div><div class="s">' + esc(t[2] || '') + '</div></div>'; }).join('') + '</div>';

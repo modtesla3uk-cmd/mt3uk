@@ -40,6 +40,7 @@
     <span class="alerts-label">Notifications</span>
     <button type="button" class="tk-switch" id="alerts-bell" role="switch" aria-checked="true"><span class="tk-track"></span><span>Bell</span></button>
     <button type="button" class="tk-switch" id="alerts-email" role="switch" aria-checked="true"><span class="tk-track"></span><span>Email</span></button>
+    <button type="button" class="tk-switch" id="alerts-sessions" role="switch" aria-checked="true"><span class="tk-track"></span><span>New sessions</span></button>
     <button type="button" class="tk-switch" id="alerts-push" role="switch" aria-checked="false" hidden><span class="tk-track"></span><span>Push on this device</span></button>
     <button type="button" class="tk-switch" id="alerts-keep" role="switch" aria-checked="false"><span class="tk-track"></span><span>Remember the key on this device</span></button>
     <button type="button" class="secondary alerts-install" id="alerts-install" hidden>Install Track Admin</button>
@@ -81,8 +82,15 @@
   </section>
 
   <section class="admin-group" id="grp-sessions" aria-labelledby="grp-sessions-h">
-    <div class="group-head"><h2 id="grp-sessions-h">Members' sessions</h2><p>Requests to edit a map, and finding a member's sessions.</p></div>
+    <div class="group-head"><h2 id="grp-sessions-h">Members' sessions</h2><p>New sessions as they are saved, requests to edit a map, and finding a member's sessions.</p></div>
     <div class="panel-wrap">
+    <details class="collapsible" id="new-sessions-wrap">
+      <summary><h3 class="panel-title">New sessions <span class="summary-count" id="new-sessions-count"></span></h3></summary>
+      <p class="iv-note">Each session a member saves is listed here, counted on the bell and emailed to MT3UK, with its details and a link. The <b>New sessions</b> switch at the top turns all of that off (the Email switch still covers the email). <b>Clear</b> takes a session off the list once you have seen it.</p>
+      <p class="iv-note" id="ns-note" role="status"></p>
+      <div class="iv-toolbar"><button type="button" class="secondary iv-act" id="ns-clear-all" hidden>Clear all</button></div>
+      <div id="ns-list"></div>
+    </details>
     <details class="collapsible" id="lines-wrap">
       <summary><h3 class="panel-title">Line editing <span class="summary-count" id="lines-count"></span></h3></summary>
       <p class="iv-note">A member cannot move the start and finish lines on a session they have saved. They press <b>Request Edit Map</b> on the session and wait here. <b>Allow</b> lets them edit that one map (they are emailed). When they send a change you are emailed what the lines and time were and would be, and nothing changes until you <b>Accept</b> it or <b>Undo</b> it. Accepting works the time out again from the saved readings and shows you the result first. On a listed course it then makes the new lines the course's official lines and re-times every session at that track (a time that moves by over 10% is held back), so it changes other members' times too. <b>Revoke</b> switches their editing off once they are done.</p>
@@ -204,14 +212,15 @@
   </section>
 
 </main>
-<script src="js/track-admin-page.js?v=20261210"></script>
+<script src="js/track-admin-page.js?v=20261250"></script>
 <script src="js/admin-subnav.js?v=20261160" defer></script>
-<script src="js/admin-alerts.js?v=20261212" defer></script>
+<script src="js/admin-alerts.js?v=20261250" defer></script>
 <script src="js/track-parse.js?v=20261188" defer></script>
 <script src="js/track-view.js?v=20261181" defer></script>
 <script src="js/track-access-admin.js" defer></script>
 <script src="js/track-lines-admin.js?v=20261180" defer></script>
 <script src="js/track-member-admin.js?v=20261162" defer></script>
+<script src="js/track-new-sessions-admin.js?v=20261250" defer></script>
 <script src="js/track-admin.js?v=20261186" defer></script>
 <script src="js/track-share-card.js?v=20261181"></script>
 <script src="js/track-share-admin.js?v=20261105" defer></script>

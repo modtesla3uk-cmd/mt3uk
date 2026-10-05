@@ -313,6 +313,10 @@
   .ms-rename .iv-act { padding: 5px 10px; font-size: 0.68rem; white-space: nowrap; flex: 0 0 auto; }
   .ms-table .iv-sub { display: block; margin-top: 3px; }
   @media (max-width: 780px) { .ms-table th:nth-child(4), .ms-table td:nth-child(4) { display: none; } }
+  .iv-toolbar button[hidden] { display: none; }
+  .ns-table .iv-sub { display: block; margin-top: 3px; }
+  .ns-table .ns-clear { padding: 5px 10px; font-size: 0.68rem; white-space: nowrap; }
+  @media (max-width: 780px) { .ns-table th:nth-child(4), .ns-table td:nth-child(4), .ns-table th:nth-child(5), .ns-table td:nth-child(5) { display: none; } }
   .iv-table input.changed, .iv-table textarea.changed { border-color: var(--orange); }
   .iv-review { border: 1px solid var(--orange); padding: 14px; margin-bottom: 14px; font-size: 0.78rem; }
   .iv-review h3 { margin: 0 0 10px; font-size: 0.85rem; }

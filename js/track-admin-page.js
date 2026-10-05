@@ -8,8 +8,8 @@
     - the "admin viewer" token that lets the admin open private sessions and unpublished pages;
     - which panels are open (remembered in this browser, the same list admin.html keeps);
     - opening the panel a link points at (track-admin.html#lines-wrap, #tracks-wrap and the like);
-    - the notification bell, for what waits on this page: early access requests, new track requests, and map
-      edit requests and changes to approve. The bell on admin.html counts these too and links here.
+    - the notification bell, for what waits on this page: new sessions, early access requests, new track
+      requests, and map edit requests and changes to approve. The bell on admin.html counts these too and links here.
 */
 (function () {
   var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
@@ -115,6 +115,14 @@
 
   function collectBellItems() {
     var items = [];
+    // Sessions members have saved wait on the New sessions panel until cleared.
+    document.querySelectorAll('#ns-list [data-session]').forEach(function (row) {
+      items.push({
+        id: 'session:' + row.getAttribute('data-session'), group: 'New sessions', section: 'new-sessions', el: row, img: '',
+        title: row.getAttribute('data-title') || 'A new session',
+        sub: row.getAttribute('data-sub') || 'Saved by a member'
+      });
+    });
     // Early access requests and new-track requests wait in their own panels.
     document.querySelectorAll('#ac-pending [data-approve]').forEach(function (btn) {
       var row = btn.closest('tr'), email = btn.getAttribute('data-approve');
@@ -255,7 +263,7 @@
   });
 
   var bellTimer = null;
-  ['ac-pending', 'tk-requests', 'ln-list'].map(function (id) { return document.getElementById(id); }).filter(Boolean).forEach(function (el) {
+  ['ns-list', 'ac-pending', 'tk-requests', 'ln-list'].map(function (id) { return document.getElementById(id); }).filter(Boolean).forEach(function (el) {
     new MutationObserver(function () {
       clearTimeout(bellTimer);
       bellTimer = setTimeout(renderBell, 100);

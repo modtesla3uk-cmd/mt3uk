@@ -3142,9 +3142,11 @@ async function handleCommentsGet(request, env, ctx) {
 // read with get(): { bell, email }, both on unless switched off. Every email to MT3UK about something that needs an
 // admin action goes through sendAdminEmail, so the Email switch covers them all; the bell is hidden in the browser.
 var ADMIN_ALERTS_KEY = 'admin-alerts';
+// sessions: whether a member's newly saved Track session goes to the admin (the New sessions panel of
+// track-admin.html, its bell and an email), its own switch on that page so it can be quietened on its own.
 async function adminAlerts(env) {
   var v = await getJsonKey(env, ADMIN_ALERTS_KEY, {});
-  return { bell: !(v && v.bell === false), email: !(v && v.email === false) };
+  return { bell: !(v && v.bell === false), email: !(v && v.email === false), sessions: !(v && v.sessions === false) };
 }
 // Something new waits for the admin: a stamp (one small KV key) that the admin pages check every few seconds, so
 // the bell updates straight away instead of on its next full reload.
@@ -3186,6 +3188,7 @@ async function handleAdminAlerts(request, env) {
   }
   if (body && typeof body.bell === 'boolean') now.bell = body.bell;
   if (body && typeof body.email === 'boolean') now.email = body.email;
+  if (body && typeof body.sessions === 'boolean') now.sessions = body.sessions;
   await env.VOTES.put(ADMIN_ALERTS_KEY, JSON.stringify(now));
   return json({ success: true, alerts: now });
 }
@@ -7417,7 +7420,68 @@ async function handleTrackSessionSave(request, env) {
   if (!(await putTrackSession(env, rec))) return tooBig;
   await putTrackIndexes(env, email, rec);
   await markHillTrack(env, rec, library);
+  await noteNewTrackSession(env, email, rec, record);
   return json({ success: true, session: trackSummary(rec) });
+}
+
+// A member's newly saved session, for the admin: kept on the New sessions panel of track-admin.html (one KV key,
+// the latest 100, read with get(); the admin clears them) and emailed with the details and a link, unless the
+// New sessions switch on that page is off. Best effort: the session is saved either way.
+var TRACK_NEW_SESSIONS_KEY = 'track-new-sessions';
+function trackSessionResultText(rec) {
+  if (rec.type === 'drag') {
+    var runs = rec.runs || [];
+    var bq = runs.filter(function (r) { return r.quarter; }).sort(function (a, b) { return a.quarter - b.quarter; })[0];
+    var b60 = runs.filter(function (r) { return r.s60; }).sort(function (a, b) { return a.s60 - b.s60; })[0];
+    return runs.length + ' run' + (runs.length === 1 ? '' : 's') + (b60 ? ', best 0 to 60 ' + b60.s60.toFixed(2) + ' s' : '') + (bq ? ', best quarter ' + bq.quarter.toFixed(2) + ' s' : '');
+  }
+  var laps = (rec.laps || []).length;
+  if (rec.type === 'other') return 'mapped drive' + (laps ? ', ' + laps + ' lap' + (laps === 1 ? '' : 's') : '');
+  return laps + (rec.type === 'sprint' ? ' run' : ' lap') + (laps === 1 ? '' : 's') + (rec.bestTime ? ', best ' + trackTimeText(rec.bestTime) : ', no time');
+}
+function trackSessionKindText(rec) {
+  return rec.type === 'drag' ? 'Drag' : rec.type === 'sprint' ? (rec.hill ? 'Hill climb' : 'Sprint') : rec.type === 'track' ? 'Track day' : 'Drive';
+}
+async function noteNewTrackSession(env, email, rec, car) {
+  try {
+    if (!(await adminAlerts(env)).sessions) return;
+    var name = (publicName(await getProfileRecord(env, email)) || '').slice(0, 60);
+    var where = (rec.venue || 'No track named') + (rec.layout && rec.layout !== rec.venue ? ', ' + rec.layout : '');
+    var entry = {
+      id: rec.id, at: rec.createdAt, email: accessEmail(email), name: name, car: (car && car.name) || '', carId: rec.carId,
+      type: rec.type, kind: trackSessionKindText(rec), venue: where, date: rec.date, time: rec.time || '', privacy: rec.privacy,
+      result: trackSessionResultText(rec), unlisted: !rec.venueId && rec.type !== 'other'
+    };
+    var list = await getJsonKey(env, TRACK_NEW_SESSIONS_KEY, []);
+    list = [entry].concat(list.filter(function (x) { return x.id !== rec.id; })).slice(0, 100);
+    await env.VOTES.put(TRACK_NEW_SESSIONS_KEY, JSON.stringify(list));
+    var subject = 'New session: ' + where + ', ' + (name || 'a member');
+    var text = subscriberLabel(name, email) + ' has saved a new session.\n\n' +
+      'Track: ' + where + (entry.unlisted ? ' (not on the track list)' : '') + '\n' +
+      'Type: ' + entry.kind + '\n' +
+      'Car: ' + (entry.car || 'unknown') + '\n' +
+      'Date: ' + (rec.date || '') + (rec.time ? ' at ' + rec.time : '') + '\n' +
+      'Result: ' + entry.result + '\n' +
+      'Sharing: ' + (rec.privacy || 'private') + (rec.conditions ? '\nConditions: ' + rec.conditions : '') + (rec.tyres ? '\nTyres: ' + rec.tyres : '') + '\n\n' +
+      'The session:\n' + LAPS_SITE_URL + '/track.html?s=' + rec.id + '\n\n' +
+      'New sessions on Track admin:\n' + MY_BUILDS_SITE_URL + '/track-admin.html#new-sessions-wrap';
+    await sendAdminEmail(env, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text), subject, '/track-admin.html#new-sessions-wrap');
+  } catch (e) { /* the session is saved either way */ }
+}
+// Admin: the list of new sessions, and clearing one (or all) once seen. Clearing bumps the stamp so the bell on an
+// open admin page catches up.
+async function handleTrackAdminNewSessions(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var list = await getJsonKey(env, TRACK_NEW_SESSIONS_KEY, []);
+  if (request.method === 'GET') return json({ success: true, sessions: list });
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  if (body && body.clear === 'all') list = [];
+  else if (body && /^[a-f0-9]{8,40}$/.test(String(body.clear || ''))) list = list.filter(function (x) { return x.id !== body.clear; });
+  else return json({ success: false, message: 'Say which session to clear.' }, 400);
+  await env.VOTES.put(TRACK_NEW_SESSIONS_KEY, JSON.stringify(list));
+  await bumpAdminStamp(env);
+  return json({ success: true, sessions: list });
 }
 // Whether a listed session and a new one have the same result: the same laps and best time, or runs and 60 ft time.
 function sameTrackResult(s, rec) {
@@ -10553,6 +10617,9 @@ export default {
     }
     if (url.pathname === '/track/admin/sessions' && request.method === 'GET') {
       return handleTrackAdminSessions(request, env);
+    }
+    if (url.pathname === '/track/admin/new-sessions' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleTrackAdminNewSessions(request, env);
     }
     if (url.pathname === '/track/admin/session' && request.method === 'POST') {
       return handleTrackAdminSessionRename(request, env);

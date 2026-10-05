@@ -515,6 +515,12 @@
 .alerts-row [hidden] { display: none; }
 
 /* Driven wheels panel (track-admin.html, js/track-drive-admin.js): a row for each vehicle with sessions. */
+/* Vehicles panel: each model's variants on the Edit form. */
+.vh-variants-head { grid-column: 1 / -1; margin: 4px 0 0; font-weight: 600; }
+.vh-variants-wrap { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+.vh-variant { display: grid; gap: 4px; font-size: 0.85rem; }
+.vh-variant textarea { min-height: 64px; resize: vertical; font: inherit; }
+.vh-variants { margin-left: 4px; }
 /* Vehicles panel: each car model with its driven wheels and a Default drop-down. */
 .vh-drive-note { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
 .vh-count { display: block; margin-bottom: 4px; }

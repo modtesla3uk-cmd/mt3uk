@@ -106,6 +106,16 @@ ok(r.body.extra.drives['bmw|m3'] === 'AWD' && r.body.extra.makes.length === 1, '
 r = await call('PUT', '/vehicles/admin?key=secret', { library: { makes: [], drives: { 'BMW|M3': 'RWD', 'kia|ev6': 'AWD', 'bad': 'AWD', 'tesla|model 3': 'up' } } });
 ok(JSON.stringify(r.body.extra.drives) === '{"bmw|m3":"RWD","kia|ev6":"AWD"}', 'a save that carries them replaces them, keys lowercased and bad ones dropped');
 await call('PUT', '/vehicles/admin?key=secret', { library: { makes: [], drives: {} } });
+// ---- Variants (versions) by model ----
+r = await call('PUT', '/vehicles/admin?key=secret', { library: { makes: [
+  { name: 'Kia', type: 'car', models: ['EV6', 'EV9'], versions: { EV6: [' GT-Line ', 'GT-Line', 'gt-line', ''], Nope: ['x'], EV9: 'Air' } }] } });
+ok(JSON.stringify(r.body.extra.makes[0].versions) === '{"EV6":["GT-Line"]}', 'each model\'s variants are kept, trimmed and not repeated, and a list that is not a list is dropped');
+r = await call('GET', '/vehicles');
+ok(r.body.extra.makes[0].versions.EV6[0] === 'GT-Line', 'the variants are served with the library');
+let mv = V.merge({ makes: [{ name: 'Tesla', type: 'car', models: ['Model 3'], versions: { 'Model 3': ['Performance'] } }, { name: 'Kia', type: 'car', models: ['EV6'] }] }, r.body.extra);
+ok(mv.versions.car.Tesla['Model 3'][0] === 'Performance' && mv.versions.car.Kia.EV6[0] === 'GT-Line', 'merge: the variants come from the file and the admin\'s changes');
+V.versions = mv.versions;
+ok(V.versionsFor({ model: 'Model 3' })[0] === 'Performance' && V.versionsFor({ make: 'Kia', model: 'Kia EV6' })[0] === 'GT-Line' && V.versionsFor({ make: 'Kia', model: 'EV9' }).length === 0, 'versionsFor: by make and model, a make inside the model, and none for a model without any');
 kv.set('car-details:cara1', JSON.stringify({ make: 'Kia', model: 'EV6' }));
 r = await call('GET', '/my-builds', undefined, 'tok-a');
 ok(r.body.cars[0].drive === 'RWD' && r.body.cars[0].driveSet === false, 'a Kia EV6 is RWD by the rule');

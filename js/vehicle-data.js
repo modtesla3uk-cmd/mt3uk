@@ -6,7 +6,8 @@
   limits what can be typed.
 
   MT3UKVehicles.load()    -> promise; fills car and bike ({ make: [models] })
-  MT3UKVehicles.merge(base, extra) -> { car, bike } (the admin panel uses it too)
+  MT3UKVehicles.merge(base, extra) -> { car, bike, versions } (the admin panel uses it too)
+  MT3UKVehicles.versionsFor({ make, model }) -> the model's variants for the Version box (edited on the same panel)
   MT3UKVehicles.title({ make, model }) -> the name to show, "Kia EV6 GT"
   MT3UKVehicles.modelKey({ make, model }) -> what a leaderboard's model filter matches ("Model 3", "Kia EV6 GT")
   MT3UKVehicles.drive({ make, model, version, year }) -> 'FWD', 'RWD', 'AWD' or '', with the admin's defaults by
@@ -20,20 +21,46 @@
 
   // The manifest, then the admin's changes on top: a make is replaced by name
   // and type, or taken off ({ name, type, removed: true }).
+  // Each make can also list its models' variants (versions): { car: { Tesla: { 'Model 3': [...] } } } in
+  // out.versions. An admin entry without a versions list keeps the file's.
   function merge(base, extra) {
     base = base || {}; extra = extra || {};
-    var maps = { car: {}, bike: {} };
-    (base.makes || []).forEach(function (m) { if (m && m.name) maps[typeOf(m)][m.name] = (m.models || []).slice(); });
+    var maps = { car: {}, bike: {} }, vers = { car: {}, bike: {} };
+    function copyVersions(v) { var o = {}; Object.keys(v || {}).forEach(function (k) { o[k] = (v[k] || []).slice(); }); return o; }
+    (base.makes || []).forEach(function (m) { if (m && m.name) { maps[typeOf(m)][m.name] = (m.models || []).slice(); vers[typeOf(m)][m.name] = copyVersions(m.versions); } });
     (extra.makes || []).forEach(function (m) {
       if (!m || !m.name) return;
-      if (m.removed) delete maps[typeOf(m)][m.name]; else maps[typeOf(m)][m.name] = (m.models || []).slice();
+      if (m.removed) { delete maps[typeOf(m)][m.name]; delete vers[typeOf(m)][m.name]; return; }
+      maps[typeOf(m)][m.name] = (m.models || []).slice();
+      if (m.versions) vers[typeOf(m)][m.name] = copyVersions(m.versions);
     });
-    var out = {};
+    var out = { versions: { car: {}, bike: {} } };
     TYPES.forEach(function (t) {
       out[t] = {};
-      Object.keys(maps[t]).sort(function (a, b) { return a.toLowerCase().localeCompare(b.toLowerCase()); }).forEach(function (n) { out[t][n] = maps[t][n]; });
+      Object.keys(maps[t]).sort(function (a, b) { return a.toLowerCase().localeCompare(b.toLowerCase()); }).forEach(function (n) { out[t][n] = maps[t][n]; out.versions[t][n] = vers[t][n] || {}; });
     });
     return out;
+  }
+
+  // A model's variants, for the Version drop-down: by make and model, or by a model that carries its make
+  // ("Hyundai Ioniq 5 N", or a Tesla model with no make), from whichever list has it.
+  function versionsFor(v) {
+    v = v || {};
+    var make = String(v.make || '').trim(), model = String(v.model || '').trim();
+    if (make && model.toLowerCase().indexOf(make.toLowerCase() + ' ') === 0) model = model.slice(make.length + 1);
+    var types = v.vehicleType === 'bike' ? ['bike'] : ['car', 'bike'];
+    for (var i = 0; i < types.length; i++) {
+      var vt = api.versions[types[i]] || {};
+      if (make && vt[make] && vt[make][model]) return vt[make][model].slice();
+      if (!make) {
+        var names = Object.keys(vt);
+        for (var j = 0; j < names.length; j++) {
+          var rest = model.toLowerCase().indexOf(names[j].toLowerCase() + ' ') === 0 ? model.slice(names[j].length + 1) : model;
+          if (vt[names[j]][rest]) return vt[names[j]][rest].slice();
+        }
+      }
+    }
+    return [];
   }
 
   // The name to show for a vehicle. Cars saved before makes existed keep the make inside the model
@@ -147,14 +174,14 @@
     function get(url) { return fetch(url, { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }
     loading = Promise.all([get('data/vehicles.json'), get(API + '/vehicles')]).then(function (r) {
       var m = merge(r[0], r[1] && r[1].extra);
-      api.car = m.car; api.bike = m.bike;
+      api.car = m.car; api.bike = m.bike; api.versions = m.versions; api.loaded = true;
       api.drives = (r[1] && r[1].extra && r[1].extra.drives) || {};
       return api;
     });
     return loading;
   }
 
-  var api = { car: {}, bike: {}, drives: {}, merge: merge, load: load, title: title, modelKey: modelKey, DRIVES: DRIVES,
+  var api = { car: {}, bike: {}, versions: { car: {}, bike: {} }, drives: {}, loaded: false, merge: merge, load: load, title: title, modelKey: modelKey, versionsFor: versionsFor, DRIVES: DRIVES,
     drive: function (v, defaults) { return driveWith(v, defaults === undefined ? api.drives : defaults); }, driveRule: driveFor, driveKey: driveModelKey };
   root.MT3UKVehicles = api;
 })(typeof window !== 'undefined' ? window : globalThis);

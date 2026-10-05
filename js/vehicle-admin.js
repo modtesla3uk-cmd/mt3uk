@@ -2,7 +2,10 @@
   track-admin.html, Vehicles panel: the vehicle makes and models Track sessions and
   Laps offer. data/vehicles.json is the starting list; changes made here are
   stored by the worker (KV vehicle-library, /vehicles/admin) on top of it.
-  A make has a type, car or bike (BMW and Honda are both).
+  A make has a type, car or bike (BMW and Honda are both). Edit renames a make
+  (cars that already use the old name keep it), lists its models and, for each
+  model, its variants (versions, one on each line), offered in My Garage's
+  Version box.
   Each car model is listed with the wheels it drives (FWD, RWD or AWD) as the rule
   works out, and a Default drop-down: a default is kept in the library (drives) and
   set through /track/admin/drive, which stamps the sessions of every vehicle of that
@@ -81,27 +84,42 @@
     return { key: key, rule: rule, set: set, drive: set || rule || (varies ? 'version' : ''),
       how: set ? 'set here' + (rule ? ' (worked out: ' + rule + ')' : varies ? ' (else from the version)' : '') : rule ? 'worked out' : varies ? 'from the version' : 'not known' };
   }
+  function variantsOf(r, model) { return ((merged.versions[r.type] || {})[r.name] || {})[model] || []; }
+  function variantNote(r, model) {
+    var n = variantsOf(r, model).length;
+    return n ? '<span class="iv-sub vh-variants">' + n + ' variant' + (n === 1 ? '' : 's') + '</span>' : '';
+  }
   function modelHtml(r, model) {
-    if (r.type !== 'car') return '<li class="vh-model"><span class="vh-model-name">' + esc(model) + '</span></li>';
+    if (r.type !== 'car') return '<li class="vh-model"><span class="vh-model-name">' + esc(model) + '</span>' + variantNote(r, model) + '</li>';
     var d = driveOf(r.name, model);
     return '<li class="vh-model' + (d.drive ? '' : ' is-target') + '" data-make="' + esc(r.name) + '" data-model="' + esc(model) + '"><span class="vh-model-name">' + esc(model) + '</span>' +
       '<select class="vh-drive" aria-label="Driven wheels for ' + esc(r.name + ' ' + model) + '"><option value="">' + (d.rule ? 'Worked out: ' + d.rule : d.drive === 'version' ? 'From the version' : 'Not known') + '</option>' +
       DRIVES.map(function (x) { return '<option value="' + x + '"' + (d.set === x ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select>' +
-      '<span class="iv-sub vh-how">' + (d.set || !d.drive ? esc(d.how) : '') + '</span></li>';
+      '<span class="iv-sub vh-how">' + (d.set || !d.drive ? esc(d.how) : '') + '</span>' + variantNote(r, model) + '</li>';
   }
 
   function openForm(name, type) {
     var existing = name != null;
     var models = existing ? merged[type][name] : [];
+    var versions = existing ? (merged.versions[type] || {})[name] || {} : {};
     formEl.hidden = false;
     formEl.dataset.edit = existing ? name : '';
     formEl.dataset.type = existing ? type : '';
     formEl.innerHTML = '<h3>' + (existing ? 'Edit ' + esc(name) + ' (' + TYPE_NAME[type].toLowerCase() + ')' : 'Add a make') + '</h3>' +
-      '<label>Make<input type="text" id="vh-name" maxlength="40" value="' + esc(name || '') + '"' + (existing ? ' readonly' : '') + '></label>' +
+      '<label>Make<input type="text" id="vh-name" maxlength="40" value="' + esc(name || '') + '"></label>' +
+      (existing ? '<p class="iv-note">Renaming a make renames it on the list; cars that already use the old name keep it.</p>' : '') +
       '<label>Type<select class="field" id="vh-type"' + (existing ? ' disabled' : '') + '><option value="car"' + (type === 'car' || !existing ? ' selected' : '') + '>Car</option><option value="bike"' + (type === 'bike' ? ' selected' : '') + '>Bike</option></select></label>' +
       '<label>Models, one on each line<textarea id="vh-models" rows="8">' + esc(models.join('\n')) + '</textarea></label>' +
+      '<div class="vh-variants-wrap" id="vh-variants">' + variantsHtml(models, versions) + '</div>' +
+      '<p class="iv-note">Variants are the Version choices My Garage offers for a model (Performance, Long Range AWD). A model added above gets a box once the make is saved.</p>' +
       '<div class="iv-toolbar"><button type="button" id="vh-save">Save make</button><button type="button" class="secondary" id="vh-cancel">Cancel</button></div>';
     formEl.scrollIntoView({ block: 'nearest' });
+  }
+  function variantsHtml(models, versions) {
+    if (!models.length) return '';
+    return '<p class="vh-variants-head">Variants, one on each line</p>' + models.map(function (m) {
+      return '<label class="vh-variant">' + esc(m) + '<textarea data-versions-for="' + esc(m) + '" rows="3">' + esc((versions[m] || []).join('\n')) + '</textarea></label>';
+    }).join('');
   }
 
   function put() {
@@ -159,10 +177,19 @@
     var name = document.getElementById('vh-name').value.trim();
     var type = formEl.dataset.edit ? formEl.dataset.type : document.getElementById('vh-type').value;
     if (!name) { note('A make needs a name.', 'error'); return; }
-    var adding = !formEl.dataset.edit;
-    if (adding && merged[type][name]) { note(name + ' is already on the ' + type + ' list. Edit it instead.', 'error'); return; }
+    var was = formEl.dataset.edit || '', renaming = !!was && was !== name;
+    if ((!was || renaming) && merged[type][name]) { note(name + ' is already on the ' + type + ' list. Edit it instead.', 'error'); return; }
     var models = document.getElementById('vh-models').value.split('\n').map(function (m) { return m.trim(); }).filter(Boolean);
-    extra.makes = (extra.makes || []).filter(function (m) { return !same(m, name, type); }).concat([{ name: name, type: type, models: models }]);
+    // Each model's variants from its box; a model that is new to the list has none yet.
+    var versions = {};
+    formEl.querySelectorAll('[data-versions-for]').forEach(function (ta) {
+      var list = ta.value.split('\n').map(function (v) { return v.trim(); }).filter(Boolean);
+      if (list.length && models.indexOf(ta.getAttribute('data-versions-for')) !== -1) versions[ta.getAttribute('data-versions-for')] = list;
+    });
+    extra.makes = (extra.makes || []).filter(function (m) { return !same(m, name, type) && !(renaming && same(m, was, type)); });
+    // The old name goes: taken off the file's list, or simply dropped from the changes made here.
+    if (renaming && inFile(was, type)) extra.makes.push({ name: was, type: type, removed: true });
+    extra.makes.push({ name: name, type: type, models: models, versions: versions });
     put();
   });
 })();

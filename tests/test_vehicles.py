@@ -32,6 +32,13 @@ def test_the_starting_list_is_valid():
     assert {"Model 3", "Model Y", "Model S", "Model X"} <= set(cars["Tesla"])
     assert "Ioniq 5 N" in cars["Hyundai"] and "Ioniq 6 N" in cars["Hyundai"] and "Taycan" in cars["Porsche"]
     assert any(m["type"] == "bike" for m in data["makes"])
+    # The variants My Garage has always offered are in the file too, under their make and model.
+    versions = {m["name"]: m.get("versions", {}) for m in data["makes"] if m["type"] == "car"}
+    assert "Performance" in versions["Tesla"]["Model 3"] and "Plaid" in versions["Tesla"]["Model S"]
+    assert versions["Hyundai"]["Ioniq 5 N"] == ["Ioniq 5 N"] and "4S Cross Turismo" in versions["Porsche"]["Taycan"]
+    for make in data["makes"]:
+        for model, variants in make.get("versions", {}).items():
+            assert model in make["models"] and variants and len(set(variants)) == len(variants), (make["name"], model)
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="node is not installed here")
@@ -88,7 +95,7 @@ def test_the_vehicles_panel_lists_the_file_and_adds_a_make(page):
     page.fill("#vh-models", "001 FR\n7X")
     page.click("#vh-save")
     expect(page.locator("#vh-note")).to_contain_text("Saved")
-    assert state["puts"][-1]["makes"] == [{"name": "Zeekr", "type": "car", "models": ["001 FR", "7X"]}]
+    assert state["puts"][-1]["makes"] == [{"name": "Zeekr", "type": "car", "models": ["001 FR", "7X"], "versions": {}}]
     expect(page.locator("#vh-list tbody tr", has_text="Zeekr")).to_contain_text("changed here")
 
 
@@ -103,6 +110,35 @@ def test_a_make_can_be_taken_off_and_bike_makes_are_kept_apart(page):
     assert {"name": "Tesla", "type": "car", "removed": True} in makes
     assert any(m["name"] == "Honda" and m["type"] == "bike" for m in makes)
     expect(page.locator('#vh-list [data-remove="Tesla"]')).to_have_count(0)
+
+
+def test_edit_renames_a_make_and_sets_each_models_variants(page):
+    state = open_panel(page, {})
+    kia = page.locator("#vh-list tr.vh-make", has_text="Kia").first
+    expect(kia.locator(".vh-variants")).to_have_count(0)
+    # Tesla's variants from the file show in the list and on the form.
+    tesla = page.locator("#vh-list tr.vh-make", has_text="Tesla").first
+    expect(tesla.locator(".vh-model", has_text="Model 3").locator(".vh-variants")).to_have_text("11 variants")
+    kia.locator("[data-edit]").click()
+    form = page.locator("#vh-form")
+    assert form.locator("[data-versions-for]").evaluate_all("els => els.map(e => e.getAttribute('data-versions-for'))") == ["EV6 GT", "EV6", "EV9"]
+    assert form.locator('[data-versions-for="EV6"]').input_value() == ""
+    page.fill("#vh-name", "Kia Motors")
+    page.fill('[data-versions-for="EV6"]', "GT-Line\nGT-Line S\n")
+    page.fill('[data-versions-for="EV9"]', "Air")
+    page.click("#vh-save")
+    expect(page.locator("#vh-note")).to_contain_text("Saved")
+    makes = state["puts"][-1]["makes"]
+    assert {"name": "Kia", "type": "car", "removed": True} in makes
+    assert {"name": "Kia Motors", "type": "car", "models": ["EV6 GT", "EV6", "EV9"], "versions": {"EV6": ["GT-Line", "GT-Line S"], "EV9": ["Air"]}} in makes
+    rows = page.locator("#vh-list tr.vh-make")
+    expect(rows.filter(has_text="Kia Motors")).to_have_count(1)
+    assert rows.filter(has_text="Kia Motors").locator(".vh-model", has_text="EV6").filter(has_not_text="GT").locator(".vh-variants").inner_text() == "2 variants"
+    # A make with the new name already listed cannot be renamed onto it.
+    rows.filter(has_text="Kia Motors").locator("[data-edit]").click()
+    page.fill("#vh-name", "Tesla")
+    page.click("#vh-save")
+    expect(page.locator("#vh-note")).to_contain_text("already on the car list")
 
 
 def test_the_vehicles_panel_shows_each_models_driven_wheels_and_sets_a_default(page):

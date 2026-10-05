@@ -44,8 +44,9 @@
 
   // The Version drop-down's options for a model; a saved version that isn't
   // listed stays as an option.
-  function versionOptions(model, value) {
-    var list = (CAR_VERSIONS[model] || []).slice();
+  function versionOptions(model, value, make) {
+    var V = window.MT3UKVehicles;
+    var list = V && V.loaded ? V.versionsFor({ make: make, model: model }) : (CAR_VERSIONS[model] || []).slice();
     if (value && list.indexOf(value) === -1) list.push(value);
     return '<option value="">' + (model ? 'Version' : 'Pick the model first') + '</option>' +
       list.map(function (v) { return '<option' + (v === value ? ' selected' : '') + '>' + esc(v) + '</option>'; }).join('') +

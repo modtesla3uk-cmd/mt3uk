@@ -2335,6 +2335,32 @@ def test_satellite_tiles_keep_up_while_playing_zoomed_in(page):
     assert len(set(requests)) > 8, len(set(requests))
 
 
+def test_holding_on_the_cornering_chart_can_reach_the_max_figure(page):
+    """Sweeping a finger or mouse across the Cornering G chart reads recorded rows, so it reaches the figure in the Max
+    label instead of stopping short between two rows."""
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    label = page.locator("#tp-gforce .tp-gmax").first.text_content()
+    top = float(re.search(r"A (\d\.\d\d) g", label).group(1))
+    svg = page.locator("#tp-gforce svg").first
+    svg.scroll_into_view_if_needed()
+    box = svg.bounding_box()
+    seen = []
+    for i in range(0, 241):
+        page.mouse.move(box["x"] + 46 + (box["width"] - 58) * i / 240, box["y"] + box["height"] / 2)
+        tip = page.locator(".tv-tip")
+        if tip.count() and tip.first.is_visible():
+            m = re.search(r"Corner, A\s*([+-]?\d\.\d\d) g", tip.first.inner_text())
+            if m:
+                seen.append(abs(float(m.group(1))))
+    assert seen and max(seen) >= top - 0.005, (max(seen) if seen else None, top, label)
+    # Every reading is a recorded one (a row of the stored lap data), never a blend of two rows.
+    saved = fake.saved[0]["session"]
+    recorded = {round(abs(r[5]), 2) for r in saved["trace"]["laps"][str(saved["best"])]}
+    odd = [v for v in seen if not any(abs(v - r) < 0.0051 for r in recorded)]
+    assert not odd, odd[:5]
+
+
 def test_g_force_lines_can_be_switched_on_and_off(page):
     fake = FakeWorker()
     save_thruxton_with_a_member_board(page, fake)
@@ -2349,7 +2375,7 @@ def test_g_force_lines_can_be_switched_on_and_off(page):
     expect(page.locator("#tp-gforce path[stroke='#2a78d6']")).to_have_count(1)
     expect(page.locator("#tp-gforce path[stroke='#eb6834']")).to_have_count(1)
     expect(page.locator("#tp-gforce path[stroke-dasharray]")).to_have_count(0)
-    expect(page.locator("#tp-gforce circle")).to_have_count(2)
+    expect(page.locator("#tp-gforce circle:not(.tp-gpeak)")).to_have_count(2)
     expect(page.locator("#tp-gnote")).to_contain_text("Blue:")
     expect(page.locator("#tp-gnote")).to_contain_text("Orange:")
     # Cornering keeps its sign: the g scale runs below zero as far as above it, as RaceBox draws it.
@@ -2377,7 +2403,7 @@ def test_g_force_lines_can_be_switched_on_and_off(page):
     expect(page.locator("#tp-gforce .tp-gtitle")).to_have_text(["Acceleration G", "Cornering G", "Speed"])
     expect(page.locator("#tp-gforce path[stroke-dasharray]")).to_have_count(0)
     assert [c.bounding_box()["y"] for c in charts.all()] == sorted(c.bounding_box()["y"] for c in charts.all())
-    expect(page.locator("#tp-gforce svg[data-g='acc'] text[text-anchor='middle']")).to_have_count(0)
+    expect(page.locator("#tp-gforce svg[data-g='acc'] text[text-anchor='middle']:not(.tp-gmax)")).to_have_count(0)
     assert page.locator("#tp-gforce svg[data-g='spd'] text[text-anchor='middle']").count() > 2
     # Speed takes a scale in the member's unit, with no g.
     labels = [x.strip() for x in page.locator("#tp-gforce svg[data-g='spd'] text[text-anchor='end']").all_text_contents()]
@@ -3422,7 +3448,7 @@ def test_the_chart_is_on_time_and_moving_over_it_moves_playback(page):
     gs = page.locator("#tp-gforce svg").first
     gs.scroll_into_view_if_needed()
     # The time axis is the ruler: minutes and seconds along the bottom.
-    labels = gs.locator("text[text-anchor='middle']").evaluate_all("els => els.map(e => e.textContent)")
+    labels = gs.locator("text[text-anchor='middle']:not(.tp-gmax)").evaluate_all("els => els.map(e => e.textContent)")
     assert labels[0] == "0:00" and all(re.match(r"^\d+:\d\d$", t) for t in labels), labels
     expect(page.locator("#tp-ruler")).to_be_hidden()
     # The slider sits under the chart, with its ends at the chart's axis.

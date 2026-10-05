@@ -2941,6 +2941,14 @@
         return trace.map(function (p) { return [p[0], p[6], p[5]]; });
       }
       var ga = smoothG(A.trace), gb = A === B ? ga : smoothG(B.trace);
+      // Holding or hovering on a G chart reads the recorded row nearest the finger, not a blend of two rows: a blend
+      // can never reach a peak that sits on one row, so the reading would stop short of the Max label.
+      function nearRow(rows, x) {
+        var lo = 0, hi = rows.length - 1;
+        while (lo < hi) { var m = (lo + hi) >> 1; if (rows[m][0] < x) lo = m + 1; else hi = m; }
+        var p0 = rows[Math.max(0, lo - 1)], q0 = rows[lo];
+        return Math.abs(q0[0] - x) < Math.abs(p0[0] - x) ? q0 : p0;
+      }
       var fmtAcc = function (v) { return (v >= 0 ? '+' : '') + v.toFixed(2) + ' g'; }, fmtCor = fmtAcc;
       // The numbers under the map: each lap's speed and G-force where its dot is.
       var mbox = document.getElementById('tp-metrics');
@@ -2960,7 +2968,7 @@
       }
       function setM(id, v) { var el = mbox && mbox.querySelector('[data-m="' + id + '"]'); if (el) el.textContent = v; }
       function showMetrics(pa, pb, g) {
-        var ra = at(ga, pa[0]), rb = at(gb, pb[0]);
+        var ra = nearRow(ga, pa[0]), rb = nearRow(gb, pb[0]);
         setM('a-v', V.fmtV(pa[4])); setM('a-acc', fmtAcc(ra[1])); setM('a-cor', fmtCor(ra[2]));
         setW('a', A, pa); if (A !== B) setW('b', B, pb);
         // The speed beside each car's dot (a phone on its side in full screen shows these instead of the figures).
@@ -3007,7 +3015,7 @@
         return '<b>' + V.fmtD(x, 2) + '</b>' + V.row(A.label, V.fmtV(pa[4]), c1) + V.row(B.label, V.fmtV(pb[4]), c2) + V.row('A is', Math.abs(g).toFixed(2) + ' s ' + (g >= 0 ? 'ahead' : 'behind'));
       }
       function tipG(x) {
-        var ra = at(gaT, x), rb = at(gbT, x), h = '<b>' + clock(x) + '</b>';
+        var ra = nearRow(gaT, x), rb = nearRow(gbT, x), h = '<b>' + clock(x) + '</b>';
         if (gShow.acc) h += V.row('Accel, A', fmtAcc(ra[1]), c1) + (A === B ? '' : V.row('Accel, B', fmtAcc(rb[1]), c2));
         if (gShow.cor) h += V.row('Corner, A', fmtCor(ra[2]), c1) + (A === B ? '' : V.row('Corner, B', fmtCor(rb[2]), c2));
         if (gShow.spd) h += V.row('Speed, A', V.fmtV(at(spA, x)[1]), c1) + (A === B ? '' : V.row('Speed, B', V.fmtV(at(spB, x)[1]), c2));
@@ -3064,7 +3072,7 @@
           svg.setAttribute('role', 'img');
           svg.setAttribute('aria-label', d[1] + ' over the lap for both laps');
           box.appendChild(svg);
-          var series = [], gy, tip, underG;
+          var series = [], gy, tip, underG, topG, gX, gY;
           if (d[0] === 'spd') {
             gy = V.nice(0, vmax, 4);
             [spA, spB].forEach(function (lp, li) {
@@ -3077,33 +3085,38 @@
             [gaT, gbT].forEach(function (lp, li) {
               if (li && A === B) return;
               lp.forEach(function (r) { lo = Math.min(lo, r[col]); hi = Math.max(hi, r[col]); });
-              series.push({ color: li ? c2 : c1, width: 1.5, pts: lp.map(function (r) { return [r[0], r[col]]; }), at: function (x) { return at(lp, x)[col]; } });
+              series.push({ color: li ? c2 : c1, width: 1.5, pts: lp.map(function (r) { return [r[0], r[col]]; }), at: function (x) { return nearRow(lp, x)[col]; } });
             });
             // The biggest figure of each lap, from its own readings (the same figure as the note below and the headline
-            // tiles), drawn as dashed lines so the peak is there to read even where the smoothed line does not reach it.
+            // tiles): a dashed line across the chart, a dot where it happened, and one label beside that dot.
             var peaks = [];
             [[A, c1, 'A'], [B, c2, 'B']].forEach(function (lp, li) {
               if (li && A === B) return;
               // Each side on its own: acceleration and braking, or cornering one way and the other.
-              var up = 0, down = 0;
+              var up = 0, down = 0, tUp = 0, tDown = 0;
               lp[0].trace.forEach(function (r) {
                 var v = (col === 1 ? r[6] : r[5]) || 0;
-                up = Math.max(up, v); down = Math.max(down, -v);
+                if (v > up) { up = v; tUp = r[1]; }
+                if (-v > down) { down = -v; tDown = r[1]; }
               });
               if (col === 1) {
-                if (up > 0) peaks.push([up, lp[1], lp[2], 'Max acceleration']);
-                if (down > 0) peaks.push([-down, lp[1], lp[2], 'Max braking']);
+                if (up > 0) peaks.push([up, lp[1], lp[2], 'Max acceleration', tUp]);
+                if (down > 0) peaks.push([-down, lp[1], lp[2], 'Max braking', tDown]);
               } else {
                 // Cornering has one maximum, whichever way it was: the same figure as the note and the headline tiles.
-                var big = up >= down ? up : -down;
-                if (big) peaks.push([big, lp[1], lp[2], 'Max']);
+                if (up >= down) { if (up) peaks.push([up, lp[1], lp[2], 'Max', tUp]); } else peaks.push([-down, lp[1], lp[2], 'Max', tDown]);
               }
             });
             peaks.forEach(function (pk) { lo = Math.min(lo, pk[0]); hi = Math.max(hi, pk[0]); });
-            // One label for each side of the chart, giving the figure for each lap (lap A and lap B when two are shown).
+            // One label for each side of the chart, giving the figure for each lap (lap A and lap B when two are shown);
+            // it sits beside the first lap's dot.
             var sides = {};
-            peaks.forEach(function (pk) { var k = pk[0] < 0 ? 'lo' : 'hi'; (sides[k] = sides[k] || { v: pk[0], word: pk[3], parts: [] }).parts.push((A === B ? '' : pk[2] + ' ') + Math.abs(pk[0]).toFixed(2) + ' g'); sides[k].v = pk[0] < 0 ? Math.min(sides[k].v, pk[0]) : Math.max(sides[k].v, pk[0]); });
+            peaks.forEach(function (pk) {
+              var k = pk[0] < 0 ? 'lo' : 'hi', sd = sides[k] = sides[k] || { word: pk[3], parts: [], at: pk };
+              sd.parts.push((A === B ? '' : pk[2] + ' ') + Math.abs(pk[0]).toFixed(2) + ' g');
+            });
             underG = function (sv, X, Y) {
+              gX = X; gY = Y;
               var ns = 'http://www.w3.org/2000/svg';
               peaks.forEach(function (pk) {
                 var ln = document.createElementNS(ns, 'line');
@@ -3111,19 +3124,32 @@
                 ln.setAttribute('stroke', pk[1]); ln.setAttribute('stroke-width', 1); ln.setAttribute('stroke-dasharray', '4 4'); ln.setAttribute('opacity', '0.55'); ln.setAttribute('pointer-events', 'none');
                 sv.appendChild(ln);
               });
+            };
+            // Drawn after the chart, so the dots and labels sit over the lines.
+            topG = function (sv) {
+              if (!gX || !gY) return;
+              var ns = 'http://www.w3.org/2000/svg', top = gY(gy[gy.length - 1]), bottom = gY(gy[0]);
+              peaks.forEach(function (pk) {
+                var dot = document.createElementNS(ns, 'circle');
+                dot.setAttribute('class', 'tp-gpeak'); dot.setAttribute('cx', gX(pk[4])); dot.setAttribute('cy', gY(pk[0])); dot.setAttribute('r', 3.5);
+                dot.setAttribute('fill', pk[1]); dot.setAttribute('stroke', '#ffffff'); dot.setAttribute('stroke-width', 1.5); dot.setAttribute('pointer-events', 'none');
+                sv.appendChild(dot);
+              });
               Object.keys(sides).forEach(function (k) {
-                var sd = sides[k], tx = document.createElementNS(ns, 'text');
-                // The upper figure sits at the right and the lower at the left, where a lap's line is usually clear of them.
-                tx.setAttribute('class', 'tp-gmax'); tx.setAttribute('x', k === 'lo' ? X(0) + 4 : X(tEndG) - 4); tx.setAttribute('y', Y(sd.v) + (k === 'lo' && defs.length === 1 ? 13 : -4)); tx.setAttribute('text-anchor', k === 'lo' ? 'start' : 'end');
-                tx.setAttribute('style', 'fill:#5b6475;font-size:11px;font-weight:600;paint-order:stroke;stroke:#ffffff;stroke-width:3px;stroke-linejoin:round'); tx.setAttribute('pointer-events', 'none');
-                tx.textContent = sd.word + ' ' + sd.parts.join(', ');
+                var sd = sides[k], pk = sd.at, text = sd.word + ' ' + sd.parts.join(', '), half = text.length * 3.1, cy = gY(pk[0]);
+                // Beside its dot, on the side with room: above a peak, below a trough, unless that runs off the chart.
+                var above = pk[0] > 0 ? cy - 8 - 12 > top : !(cy + 8 + 12 < bottom);
+                var tx = document.createElementNS(ns, 'text');
+                tx.setAttribute('class', 'tp-gmax'); tx.setAttribute('x', Math.max(gX(0) + half + 3, Math.min(gX(tEndG) - half - 3, gX(pk[4])))); tx.setAttribute('y', above ? cy - 8 : cy + 17); tx.setAttribute('text-anchor', 'middle');
+                tx.setAttribute('style', 'fill:#3d4658;font-size:11px;font-weight:600;paint-order:stroke;stroke:#ffffff;stroke-width:3px;stroke-linejoin:round'); tx.setAttribute('pointer-events', 'none');
+                tx.textContent = text;
                 sv.appendChild(tx);
               });
             };
             // The g scale is even about zero, so a corner one way is drawn as big as the same corner the other way.
             var gm = Math.ceil(Math.max(-lo, hi) * 2) / 2;
             gy = V.nice(-gm, gm, defs.length === 1 ? 4 : 2);
-            tip = function (x) { return '<b>' + clock(x) + '</b>' + V.row(word + ', A', fmt(at(gaT, x)[col]), c1) + (A === B ? '' : V.row(word + ', B', fmt(at(gbT, x)[col]), c2)); };
+            tip = function (x) { return '<b>' + clock(x) + '</b>' + V.row(word + ', A', fmt(nearRow(gaT, x)[col]), c1) + (A === B ? '' : V.row(word + ', B', fmt(nearRow(gbT, x)[col]), c2)); };
           }
           var spd = d[0] === 'spd';
           gls.push(V.line(svg, {
@@ -3132,6 +3158,7 @@
             // Moving over a chart moves playback to that moment, slider, cursors and all.
             series: series, under: underG, tip: tip, onMove: function (t) { stopPlay(); pb.active = true; pb.t = t; renderAt(t); }, onLeave: leave
           }));
+          if (topG) topG(svg);
           // With more than one chart showing, each is named in its top left corner, so it is clear which is which.
           if (defs.length > 1) {
             var ttl = document.createElementNS('http://www.w3.org/2000/svg', 'text');

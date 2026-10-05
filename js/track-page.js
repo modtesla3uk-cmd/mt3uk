@@ -1554,7 +1554,13 @@
     // Placing or moving a marker redraws the page; the map carries on from the zoom and centre it had, so the member can
     // see exactly where the line sits instead of being sent back to the whole map.
     var kept = a.tapMap && a.tapMap.zoom && a.tapMap.zoom.frac ? a.tapMap.zoom.frac() : null;
-    var m = V.map(svg, trace, { mono: true, ratio: 0.85, fill: fill, origin: [out[0][0], out[0][1]] });
+    // A session of many laps would be a tangle: the fastest lap is drawn clean on top, the rest of the drive faint.
+    var bestRows = s.trace && s.trace.laps && s.best && s.trace.laps[s.best], best = null;
+    if (bestRows && bestRows.length > 10 && s.origin && s.origin.length === 2 && s.laps && s.laps.length > 1) {
+      var bp = T.projector(s.origin[0], s.origin[1]);
+      best = bestRows.map(function (r) { var ll = bp.ll(r[2], r[3]), xy = proj.xy(ll[0], ll[1]); return [r[0], r[1], xy[0], xy[1], r[4], 0, 0]; });
+    }
+    var m = V.map(svg, trace, { mono: true, ratio: 0.85, fill: fill, origin: [out[0][0], out[0][1]], faint: best ? 0.35 : 0, highlight: best });
     a.tapMap = m;
     if (kept && kept.k > 1.01 && m && m.zoom && m.zoom.restore) m.zoom.restore(kept);
     svg.style.cursor = 'crosshair';

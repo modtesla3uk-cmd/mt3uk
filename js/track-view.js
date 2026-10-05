@@ -157,6 +157,13 @@
       var a = P(trace[i - 1][2], trace[i - 1][3]), b = P(trace[i][2], trace[i][3]);
       el('line', { 'class': opts.mono ? 'tv-mono' : 'tv-speed', x1: a[0], y1: a[1], x2: b[0], y2: b[1], stroke: opts.mono ? C.steel : ramp((trace[i][4] - vmin) / ((vmax - vmin) || 1)), 'stroke-linecap': 'round' }, segG);
     }
+    // The line picker: the whole drive drawn faintly, and one lap (opts.highlight) clean on top of it.
+    if (opts.faint && segG) segG.setAttribute('opacity', opts.faint);
+    if (opts.highlight && opts.highlight.length > 1) {
+      var hp = opts.highlight.map(function (p) { return P(p[2], p[3]).join(','); }).join(' ');
+      edgeEls.push(el('polyline', { 'class': 'tv-line-edge', points: hp, fill: 'none', stroke: 'rgba(255,255,255,.7)', 'stroke-width': 4.5, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, svg));
+      lineEls.push(el('polyline', { 'class': 'tv-line', points: hp, fill: 'none', stroke: C.s2, 'stroke-width': 2.5, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, svg));
+    }
     function lineWidth(k) {
       var w = linePx(k);
       edgeEls.forEach(function (e) { e.setAttribute('stroke-width', w.edge); e.setAttribute('stroke', 'rgba(255,255,255,' + w.alpha.toFixed(2) + ')'); });

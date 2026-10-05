@@ -1,0 +1,165 @@
+"""Vehicle makes, models and types (a car or a bike): the starting list in
+data/vehicles.json, the Vehicles panel of track-admin.html, the worker's /vehicles
+routes, and a car's make, model and type saved with it. Cars saved before
+these existed have neither and must look and work as they did. The worker
+parts run in node (tests/vehicle_worker_check.mjs)."""
+import json
+import shutil
+import subprocess
+import tempfile
+from pathlib import Path
+
+import pytest
+from playwright.sync_api import expect
+
+ROOT = Path(__file__).resolve().parent.parent
+API_HOST = "late-darkness-ebc8.modtesla3uk.workers.dev"
+
+
+def test_the_starting_list_is_valid():
+    data = json.loads((ROOT / "data" / "vehicles.json").read_text(encoding="utf-8"))
+    seen = set()
+    for make in data["makes"]:
+        assert make["type"] in ("car", "bike"), make
+        key = (make["type"], make["name"].lower())
+        assert make["name"].strip() and key not in seen, make
+        seen.add(key)
+        assert make["models"] and len(set(m.lower() for m in make["models"])) == len(make["models"]), make
+        assert all(m.strip() for m in make["models"]), make
+    cars = {m["name"]: m["models"] for m in data["makes"] if m["type"] == "car"}
+    # Every model the garage has always offered is still on the list, under its make.
+    assert {"Model 3", "Model Y", "Model S", "Model X"} <= set(cars["Tesla"])
+    assert "Ioniq 5 N" in cars["Hyundai"] and "Ioniq 6 N" in cars["Hyundai"] and "Taycan" in cars["Porsche"]
+    assert any(m["type"] == "bike" for m in data["makes"])
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="node is not installed here")
+def test_the_worker_routes_and_a_cars_make_model_and_type():
+    with tempfile.TemporaryDirectory() as tmp:
+        module = Path(tmp) / "worker.mjs"
+        source = (ROOT / "workers" / "vote-worker.js").read_text(encoding="utf-8")
+        source = source.replace("import { EmailMessage } from 'cloudflare:email';", "class EmailMessage { constructor(f, t, raw) { this.raw = raw; } }", 1)
+        source += "\nexport { putSidecar, saveCarRecord, cleanCarModel };\n"
+        module.write_text(source, encoding="utf-8")
+        result = subprocess.run(
+            ["node", str(ROOT / "tests" / "vehicle_worker_check.mjs")],
+            env={"WORKER_MODULE": module.as_uri(), "PATH": "/usr/bin:/usr/local/bin:/bin", "TZ": "UTC"},
+            capture_output=True, text=True, timeout=120,
+        )
+    assert result.returncode == 0 and "FAIL" not in result.stdout, result.stdout + result.stderr
+    assert result.stdout.count("ok ") >= 29
+
+
+def open_panel(page, saved):
+    """The Vehicles panel on track-admin.html, with a mocked worker that keeps what is saved."""
+    state = {"extra": {}, "puts": []}
+
+    def handler(route):
+        req = route.request
+        headers = {"Access-Control-Allow-Origin": "*"}
+        if "/vehicles/admin" in req.url:
+            if req.method == "PUT":
+                body = json.loads(req.post_data)["library"]
+                state["puts"].append(body)
+                state["extra"] = body
+            return route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "extra": state["extra"]}), headers=headers)
+        return route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True}), headers=headers)
+
+    state["extra"] = saved
+    page.route("**/%s/**" % API_HOST, handler)
+    page.add_init_script("sessionStorage.setItem('mt3ukAdminKey', 'test-key')")
+    page.goto("/track-admin.html")
+    page.locator("#vehicles-wrap summary").click()
+    expect(page.locator("#vh-list table")).to_be_visible()
+    return state
+
+
+def test_the_vehicles_panel_lists_the_file_and_adds_a_make(page):
+    state = open_panel(page, {})
+    rows = page.locator("#vh-list tbody tr")
+    first_col = rows.locator("td:first-child b").all_inner_texts()
+    assert "Tesla" in first_col and "Ducati" in first_col
+    # BMW is in the file as a car and as a bike.
+    assert first_col.count("BMW") == 2
+    assert "makes)" in page.locator("#vehicles-count").inner_text()
+    page.locator("#vh-list [data-new]").click()
+    page.fill("#vh-name", "Zeekr")
+    page.fill("#vh-models", "001 FR\n7X")
+    page.click("#vh-save")
+    expect(page.locator("#vh-note")).to_contain_text("Saved")
+    assert state["puts"][-1]["makes"] == [{"name": "Zeekr", "type": "car", "models": ["001 FR", "7X"]}]
+    expect(page.locator("#vh-list tbody tr", has_text="Zeekr")).to_contain_text("changed here")
+
+
+def test_a_make_can_be_taken_off_and_bike_makes_are_kept_apart(page):
+    state = open_panel(page, {"makes": [{"name": "Honda", "type": "bike", "models": ["CBR600RR", "NC750"]}]})
+    # The bike Honda was changed here; the car Honda from the file is untouched.
+    expect(page.locator("#vh-list tbody tr", has_text="NC750")).to_have_count(1)
+    page.once("dialog", lambda d: d.accept())
+    page.locator('#vh-list [data-remove="Tesla"][data-type="car"]').click()
+    expect(page.locator("#vh-note")).to_contain_text("Saved")
+    makes = state["puts"][-1]["makes"]
+    assert {"name": "Tesla", "type": "car", "removed": True} in makes
+    assert any(m["name"] == "Honda" and m["type"] == "bike" for m in makes)
+    expect(page.locator('#vh-list [data-remove="Tesla"]')).to_have_count(0)
+
+
+def test_the_leaderboard_shows_a_make_and_has_a_chip_for_a_model_it_does_not_list(page):
+    """Cars saved before makes existed look exactly as they did; a car with a make shows it, and a model
+    the board did not list before gets its own filter chip."""
+    from test_track_page import FakeWorker, board_row, open_page
+
+    fake = FakeWorker(earlier=False)
+    old = board_row("a", "a1", 90.0)
+    old.update(owner="Ann", car="Ann's 3", model="Model 3", year=2021, version="Performance")
+    kia = board_row("k", "k1", 91.0)
+    kia.update(owner="Kit", car="Kit's EV6", make="Kia", model="EV6 GT", year=2024)
+    new_tesla = board_row("t", "t1", 92.0)
+    new_tesla.update(owner="Tom", car="Tom's Y", make="Tesla", model="Model Y", year=2023)
+    fake.boards = {"/track/board:thruxton:main": [old, kia, new_tesla]}
+    open_page(page, fake, "/leaderboards.html?board=thruxton:main", signed_in=False)
+    rows = page.locator(".lb-row")
+    expect(rows).to_have_count(3)
+    # The old-style car is unchanged; the Kia has its make in front.
+    expect(rows.first).to_contain_text("2021 Model 3 Performance")
+    expect(rows.nth(1)).to_contain_text("2024 Kia EV6 GT")
+    # A Tesla saved with a make still matches the Model Y chip, and the Kia has a chip of its own.
+    chips = page.locator("#lb-models .chip")
+    assert chips.all_inner_texts()[-1] == "Kia EV6 GT"
+    page.locator("#lb-models [data-m='Model Y']").click()
+    expect(rows).to_have_count(1)
+    expect(rows.first).to_contain_text("Tom")
+    page.locator("#lb-models [data-m='Kia EV6 GT']").click()
+    expect(rows).to_have_count(1)
+    expect(rows.first).to_contain_text("Kit")
+    page.locator("#lb-models [data-m='All']").click()
+    expect(rows).to_have_count(3)
+
+
+from test_devices import all_devices, device_page, browsers, diagnostics  # noqa: E402,F401
+from test_garage_mods import last_put, open_car  # noqa: E402
+
+
+@all_devices
+def test_my_garage_keeps_a_model_it_does_not_list(device_page):
+    """A car with a make and a typed model shows it in the model drop-down, saving the form with nothing
+    changed does not lose it, and choosing a listed model also clears the make."""
+    page = device_page
+    page.mock_state["car_details"] = {"make": "Kia", "model": "EV6 GT", "year": 2024, "vehicleType": "car"}
+    open_car(page)
+    select = page.locator("#mb-car-model-select")
+    assert select.input_value() == "EV6 GT"
+    assert select.locator("option:checked").inner_text() == "Kia EV6 GT"
+    page.locator("#mb-car-name-edit").click()
+    page.locator("#mb-car-name-save").click()
+    page.wait_for_function("document.getElementById('mb-car-model-select').disabled === true", timeout=5000)
+    assert not any("model" in put for put in page.mock_state.get("car_puts", [])), page.mock_state.get("car_puts")
+    assert select.input_value() == "EV6 GT"
+    page.locator("#mb-car-name-edit").click()
+    page.select_option("#mb-car-model-select", "Model 3")
+    page.locator("#mb-car-name-save").click()
+    page.wait_for_function("document.getElementById('mb-car-model-select').disabled === true", timeout=5000)
+    body = last_put(page)
+    assert body.get("model") == "Model 3" and body.get("make") == "", body
+    assert select.input_value() == "Model 3"
+    assert page.errors == [], diagnostics(page)

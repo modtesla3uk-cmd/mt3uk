@@ -732,5 +732,21 @@ ok(T.fmtLap(99.786) === '1:39.79' && T.niceDate('2026-05-28') === '28 May 2026',
   const peak = Math.max(...tr.map(r => Math.abs(r[5])));
   ok(near(peak, 1.27, 0.011), 'a short corner peak between kept readings reaches the trace: ' + peak.toFixed(2));
   ok(tr.every(r => Math.abs(r[5]) < 2), 'one wild reading is not a peak');
-  ok(T.ANALYSIS_VERSION === 11, 'the analysis version moved on again');
+  ok(T.ANALYSIS_VERSION >= 11, 'the analysis version moved on again');
+}
+
+// Hundredths of a g round half away from zero, as RaceBox does (-0.935 g of braking reads 0.94, not 0.93), and only a
+// glitch over 0.25 g from its neighbours is smoothed out of the peaks: real readings are kept as recorded.
+{
+  const grd = T.read(fs.readFileSync(ROOT + 'tests/fixtures/thruxton-trimmed.vbo', 'latin1'), 'x.vbo');
+  const base = T.analyse(grd, lib), L = base.laps.find(l => l.n === base.best), P = grd.points;
+  const edited = JSON.parse(JSON.stringify(grd));
+  const inLap = []; for (let i = 0; i < P.length; i++) if (P[i].t >= L.start && P[i].t <= L.start + L.time) inLap.push(i);
+  inLap.forEach(i => { edited.points[i].lo = 0.1; edited.points[i].la = 0.1; });
+  const mid = inLap[Math.floor(inLap.length / 2)];
+  [0, 1, 2, 3].forEach(d => { edited.points[mid + d].lo = -0.935; edited.points[mid + d].la = 1.264; });
+  const got = T.analyse(edited, lib), tr = got.trace.laps[got.best];
+  ok(Math.min(...tr.map(r => r[6])) === -0.94, 'braking of -0.935 g reads 0.94 on the chart: ' + Math.min(...tr.map(r => r[6])));
+  ok(Math.max(...tr.map(r => r[5])) === 1.26, 'a real 1.264 g reading is kept as recorded: ' + Math.max(...tr.map(r => r[5])));
+  ok(T.ANALYSIS_VERSION === 12, 'the analysis version moved on once more');
 }

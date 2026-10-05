@@ -3090,8 +3090,14 @@
                 var v = (col === 1 ? r[6] : r[5]) || 0;
                 up = Math.max(up, v); down = Math.max(down, -v);
               });
-              if (up > 0) peaks.push([up, lp[1], lp[2], col === 1 ? 'Max acceleration' : 'Max']);
-              if (down > 0) peaks.push([-down, lp[1], lp[2], col === 1 ? 'Max braking' : 'Max']);
+              if (col === 1) {
+                if (up > 0) peaks.push([up, lp[1], lp[2], 'Max acceleration']);
+                if (down > 0) peaks.push([-down, lp[1], lp[2], 'Max braking']);
+              } else {
+                // Cornering has one maximum, whichever way it was: the same figure as the note and the headline tiles.
+                var big = up >= down ? up : -down;
+                if (big) peaks.push([big, lp[1], lp[2], 'Max']);
+              }
             });
             peaks.forEach(function (pk) { lo = Math.min(lo, pk[0]); hi = Math.max(hi, pk[0]); });
             // One label for each side of the chart, giving the figure for each lap (lap A and lap B when two are shown).

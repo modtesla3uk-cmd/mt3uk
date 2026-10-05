@@ -32,7 +32,8 @@
   // 9: a standing start in a sprint or hill climb is always timed from the first reading above 0.5 km/h, wherever the start line is.
   // 10: a drag launch that reaches 30 mph but not 60 mph is listed as a run (it was dropped).
   // 11: a lap trace's g figures are the biggest of the readings in each step, so a 25 a second file keeps its real peaks.
-  var ANALYSIS_VERSION = 11;
+  // 12: only a glitch (over 0.25 g from its neighbours) is smoothed out of those peaks; real readings are kept as recorded.
+  var ANALYSIS_VERSION = 12;
   var DEG = Math.PI / 180;
 
   function num(s) {
@@ -813,9 +814,16 @@
     var out = [], step = 1 / (hz || 5), next = lap.start;
     // The g figures of each row are the biggest (either way) of the readings in its step, not just the one reading
     // that happens to start it: a file at 25 a second is kept at 5 a second, and the peak of a corner can fall between
-    // two kept readings. A single wild reading is not a peak (each is the middle of three in a row).
+    // two kept readings. A reading that sits more than 0.25 g away from the middle of it and its two neighbours is a
+    // glitch, not a peak, and is replaced by that middle value; every other reading is used exactly as recorded, so
+    // the peaks are the file's own (RaceBox's figures are the biggest recorded reading).
     function med3(x, y, z) { return x > y ? (y > z ? y : (x > z ? z : x)) : (x > z ? x : (y > z ? z : y)); }
-    function steady(key, m) { return med3(points[Math.max(0, m - 1)][key], points[m][key], points[Math.min(points.length - 1, m + 1)][key]); }
+    // Hundredths, half away from zero, so -0.935 g of braking reads 0.94 as it does in RaceBox (Math.round would give 0.93).
+    function roundAway(v) { return v < 0 ? -Math.round(-v * 100 + 1e-7) / 100 : Math.round(v * 100 + 1e-7) / 100; }
+    function steady(key, m) {
+      var v = points[m][key], md = med3(points[Math.max(0, m - 1)][key], v, points[Math.min(points.length - 1, m + 1)][key]);
+      return Math.abs(v - md) > 0.25 ? md : v;
+    }
     for (var k = lap.i0; k <= lap.i1 && k < points.length; k++) {
       var p = points[k];
       if (p.t + 1e-9 < next && k !== lap.i1) continue;
@@ -826,7 +834,7 @@
         if (Math.abs(la2) > Math.abs(la)) la = la2;
         if (Math.abs(lo2) > Math.abs(lo)) lo = lo2;
       }
-      out.push([round(p.d - lap.d0, 1), round(Math.max(0, p.t - lap.start), 2), round(p.x, 1), round(p.y, 1), round(p.v, 1), round(la, 2), round(lo, 2)]);
+      out.push([round(p.d - lap.d0, 1), round(Math.max(0, p.t - lap.start), 2), round(p.x, 1), round(p.y, 1), round(p.v, 1), roundAway(la), roundAway(lo)]);
     }
     var last = out[out.length - 1];
     if (last) { last[0] = lap.dist; last[1] = lap.time; }

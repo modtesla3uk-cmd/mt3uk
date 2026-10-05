@@ -1,5 +1,12 @@
 [
   {
+    "file": "photo--by-aaron-barnard.jpg",
+    "name": "AaronB",
+    "color": "White",
+    "added": "2026-10-05",
+    "group": "photo--by-aaron-barnard.jpg"
+  },
+  {
     "file": "photo--by-richard-hughes-chen.jpg",
     "name": "RichyRich",
     "votable": false,

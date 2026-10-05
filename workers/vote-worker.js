@@ -26,6 +26,8 @@ const MY_BUILDS_FROM_EMAIL = 'hello@mt3uk.com';
 const MY_BUILDS_LINK_TTL_SECONDS = 15 * 60;
 const BUILD_ASSIGNED_LINK_TTL_SECONDS = 7 * 24 * 60 * 60;
 const MY_BUILDS_SITE_URL = 'https://mt3uk.com';
+// The Laps pages (track.html, leaderboards.html) have their own address; links to them in emails use it.
+const LAPS_SITE_URL = 'https://laps.mt3uk.com';
 const SUBSCRIBERS_DIGEST_EMAIL = 'modtesla3uk@gmail.com';
 const MAX_COMMENT_LENGTH = 500;
 const MAX_COMMENTS_PER_FILE = 500;
@@ -3136,6 +3138,58 @@ async function handleCommentsGet(request, env, ctx) {
   return json({ success: true, file: file, voterId: voterId, comments: visible });
 }
 
+// Admin notifications: the switches at the top of admin.html and track-admin.html (js/admin-alerts.js). One KV key,
+// read with get(): { bell, email }, both on unless switched off. Every email to MT3UK about something that needs an
+// admin action goes through sendAdminEmail, so the Email switch covers them all; the bell is hidden in the browser.
+var ADMIN_ALERTS_KEY = 'admin-alerts';
+async function adminAlerts(env) {
+  var v = await getJsonKey(env, ADMIN_ALERTS_KEY, {});
+  return { bell: !(v && v.bell === false), email: !(v && v.email === false) };
+}
+// Something new waits for the admin: a stamp (one small KV key) that the admin pages check every few seconds, so
+// the bell updates straight away instead of on its next full reload.
+var ADMIN_STAMP_KEY = 'admin-alert-stamp';
+async function bumpAdminStamp(env) {
+  try { await env.VOTES.put(ADMIN_STAMP_KEY, String(Date.now())); } catch (e) { /* the bell catches up on its next full reload */ }
+}
+// Push notifications for the admin: the devices where Push is switched on (js/admin-alerts.js) are kept as the push
+// subscriptions of a pretend member, ADMIN_PUSH_ID (no @, so never a real email), so the members' push code sends them.
+var ADMIN_PUSH_ID = 'mt3uk-admin';
+async function sendAdminEmail(env, raw, subject, page) {
+  await bumpAdminStamp(env);
+  await sendPushToMember(env, ADMIN_PUSH_ID, { title: 'MT3UK Admin', body: String(subject || 'Something needs your attention'), url: page || '/admin.html' });
+  if (!(await adminAlerts(env)).email) return;
+  await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, raw));
+}
+async function handleAdminAlerts(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var now = await adminAlerts(env);
+  var devices = (await getPushSubscriptions(env, ADMIN_PUSH_ID)).map(function (s) { return s.endpoint; });
+  if (request.method === 'GET') return json({ success: true, alerts: now, stamp: (await env.VOTES.get(ADMIN_STAMP_KEY)) || '', pushDevices: devices });
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  // Push is per device: this device's subscription goes on or comes off the admin's list.
+  if (body && (body.subscribe || body.unsubscribe)) {
+    var subs = await getPushSubscriptions(env, ADMIN_PUSH_ID);
+    if (body.subscribe) {
+      if (!validPushSubscription(body.subscribe)) return json({ success: false, message: 'Invalid subscription' }, 400);
+      var sub = body.subscribe;
+      subs = subs.filter(function (s) { return s.endpoint !== sub.endpoint; });
+      subs.push({ endpoint: sub.endpoint, keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth }, addedAt: new Date().toISOString() });
+    } else {
+      subs = subs.filter(function (s) { return s.endpoint !== String(body.unsubscribe); });
+    }
+    subs = subs.slice(-MAX_PUSH_SUBSCRIPTIONS);
+    await env.VOTES.put('push:' + ADMIN_PUSH_ID, JSON.stringify(subs));
+    if (body.subscribe && body.test) await sendPushToMember(env, ADMIN_PUSH_ID, { title: 'MT3UK Admin', body: 'Push notifications are on for this device.', url: '/admin.html' });
+    return json({ success: true, alerts: now, pushDevices: subs.map(function (s) { return s.endpoint; }) });
+  }
+  if (body && typeof body.bell === 'boolean') now.bell = body.bell;
+  if (body && typeof body.email === 'boolean') now.email = body.email;
+  await env.VOTES.put(ADMIN_ALERTS_KEY, JSON.stringify(now));
+  return json({ success: true, alerts: now });
+}
+
 async function handleCommentsPost(request, env, ctx) {
   var body;
   try {
@@ -3200,58 +3254,6 @@ async function handleCommentsPost(request, env, ctx) {
   await notifyCommentRecipients(env, ctx, file, email, comment.name, text, parentComment && parentComment.email, comment.id);
 
   return json({ success: true, comment: publicComment(comment, [], email) });
-}
-
-// Admin notifications: the switches at the top of admin.html and track-admin.html (js/admin-alerts.js). One KV key,
-// read with get(): { bell, email }, both on unless switched off. Every email to MT3UK about something that needs an
-// admin action goes through sendAdminEmail, so the Email switch covers them all; the bell is hidden in the browser.
-var ADMIN_ALERTS_KEY = 'admin-alerts';
-async function adminAlerts(env) {
-  var v = await getJsonKey(env, ADMIN_ALERTS_KEY, {});
-  return { bell: !(v && v.bell === false), email: !(v && v.email === false) };
-}
-// Something new waits for the admin: a stamp (one small KV key) that the admin pages check every few seconds, so
-// the bell updates straight away instead of on its next full reload.
-var ADMIN_STAMP_KEY = 'admin-alert-stamp';
-async function bumpAdminStamp(env) {
-  try { await env.VOTES.put(ADMIN_STAMP_KEY, String(Date.now())); } catch (e) { /* the bell catches up on its next full reload */ }
-}
-// Push notifications for the admin: the devices where Push is switched on (js/admin-alerts.js) are kept as the push
-// subscriptions of a pretend member, ADMIN_PUSH_ID (no @, so never a real email), so the members' push code sends them.
-var ADMIN_PUSH_ID = 'mt3uk-admin';
-async function sendAdminEmail(env, raw, subject, page) {
-  await bumpAdminStamp(env);
-  await sendPushToMember(env, ADMIN_PUSH_ID, { title: 'MT3UK Admin', body: String(subject || 'Something needs your attention'), url: page || '/admin.html' });
-  if (!(await adminAlerts(env)).email) return;
-  await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, raw));
-}
-async function handleAdminAlerts(request, env) {
-  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
-  var now = await adminAlerts(env);
-  var devices = (await getPushSubscriptions(env, ADMIN_PUSH_ID)).map(function (s) { return s.endpoint; });
-  if (request.method === 'GET') return json({ success: true, alerts: now, stamp: (await env.VOTES.get(ADMIN_STAMP_KEY)) || '', pushDevices: devices });
-  var body;
-  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
-  // Push is per device: this device's subscription goes on or comes off the admin's list.
-  if (body && (body.subscribe || body.unsubscribe)) {
-    var subs = await getPushSubscriptions(env, ADMIN_PUSH_ID);
-    if (body.subscribe) {
-      if (!validPushSubscription(body.subscribe)) return json({ success: false, message: 'Invalid subscription' }, 400);
-      var sub = body.subscribe;
-      subs = subs.filter(function (s) { return s.endpoint !== sub.endpoint; });
-      subs.push({ endpoint: sub.endpoint, keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth }, addedAt: new Date().toISOString() });
-    } else {
-      subs = subs.filter(function (s) { return s.endpoint !== String(body.unsubscribe); });
-    }
-    subs = subs.slice(-MAX_PUSH_SUBSCRIPTIONS);
-    await env.VOTES.put('push:' + ADMIN_PUSH_ID, JSON.stringify(subs));
-    if (body.subscribe && body.test) await sendPushToMember(env, ADMIN_PUSH_ID, { title: 'MT3UK Admin', body: 'Push notifications are on for this device.', url: '/admin.html' });
-    return json({ success: true, alerts: now, pushDevices: subs.map(function (s) { return s.endpoint; }) });
-  }
-  if (body && typeof body.bell === 'boolean') now.bell = body.bell;
-  if (body && typeof body.email === 'boolean') now.email = body.email;
-  await env.VOTES.put(ADMIN_ALERTS_KEY, JSON.stringify(now));
-  return json({ success: true, alerts: now });
 }
 
 // A note to the admin about a report (best effort: the report is kept either way). The Admin bell only fills when
@@ -7220,7 +7222,7 @@ async function handleTrackAccessAdmin(request, env) {
       if (!a.allowed.some(function (x) { return x.email === e; })) a.allowed.push({ email: e, name: (wasPending && wasPending.name) || '', at: new Date().toISOString() });
       if (action === 'approve' && body.notify !== false) {
         try {
-          var text = 'Hello,\n\nYou now have early access to Track Sessions on MT3UK. Sign in and open Track Sessions to add your first session: ' + MY_BUILDS_SITE_URL + '/track.html\n\nIt is an early preview, so please tell us what works and what does not.';
+          var text = 'Hello,\n\nYou now have early access to Track Sessions on MT3UK. Sign in and open Track Sessions to add your first session: ' + LAPS_SITE_URL + '/track.html\n\nIt is an early preview, so please tell us what works and what does not.';
           await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, e, rawEmail(MY_BUILDS_FROM_EMAIL, e, 'You have early access to Track Sessions', text)));
         } catch (err) { /* approved either way */ }
       }
@@ -7534,7 +7536,7 @@ async function handleTrackLinesRequest(request, env) {
   list.unshift({ id: rec.id, email: accessEmail(email), name: name, note: trackText(body.note, 300), at: new Date().toISOString(), status: 'pending' });
   await env.VOTES.put('track-line-access', JSON.stringify(list.slice(0, 300)));
   await emailAdminAboutLines(env, 'Request to edit a map', subscriberLabel(name, email) + ' has asked to edit the start and finish lines on a session: ' + trackSessionLabel(rec) + ', ' + (rec.date || '') + '.\n\n' +
-    (body.note ? 'Their note:\n' + trackText(body.note, 300) + '\n\n' : '') + 'Allow it, and revoke it when they are done, on the Line editing panel:\n' + MY_BUILDS_SITE_URL + '/track-admin.html#lines-' + rec.id + '\n\nThe session:\n' + MY_BUILDS_SITE_URL + '/track.html?s=' + rec.id);
+    (body.note ? 'Their note:\n' + trackText(body.note, 300) + '\n\n' : '') + 'Allow it, and revoke it when they are done, on the Line editing panel:\n' + MY_BUILDS_SITE_URL + '/track-admin.html#lines-' + rec.id + '\n\nThe session:\n' + LAPS_SITE_URL + '/track.html?s=' + rec.id);
   return json({ success: true, state: 'pending' });
 }
 // The member sends the lines they have moved. Nothing on the session changes: the admin accepts it or undoes it.
@@ -7561,7 +7563,7 @@ async function handleTrackLinesPropose(request, env) {
   }
   entry.proposal = { at: new Date().toISOString(), from: from, to: to, images: { before: pics.some(function (x) { return x.which === 'before'; }), after: pics.some(function (x) { return x.which === 'after'; }) } };
   var label = trackSessionLabel(rec) + ', ' + (rec.date || ''), who = subscriberLabel(entry.name, email);
-  var requestUrl = MY_BUILDS_SITE_URL + '/track-admin.html#lines-' + rec.id, sessionUrl = MY_BUILDS_SITE_URL + '/track.html?s=' + rec.id;
+  var requestUrl = MY_BUILDS_SITE_URL + '/track-admin.html#lines-' + rec.id, sessionUrl = LAPS_SITE_URL + '/track.html?s=' + rec.id;
   var text = 'AWAITING YOUR APPROVAL\n\n' + who + ' has moved the lines on ' + label + '. Nothing has changed yet: accept it or undo it.\n\n' +
     'Start line\n  from: ' + trackLineText(from.startLine) + '\n  to:   ' + trackLineText(to.startLine) + '\n' + (sprint ? 'Finish line\n  from: ' + trackLineText(from.finishLine) + '\n  to:   ' + trackLineText(to.finishLine) + '\n' : '') +
     'Time\n  from: ' + trackTimeText(from.time) + '\n  to:   ' + trackTimeText(to.time) + ' (their figure, worked out again when you accept)\n\n' +
@@ -7637,7 +7639,7 @@ async function handleTrackRenameRequest(request, env) {
   list.unshift(fresh);
   await env.VOTES.put('track-rename-access', JSON.stringify(list.slice(0, 300)));
   await emailAdminAboutLines(env, listed ? 'Request to rename a layout' : 'Request to rename a track', subscriberLabel(name, email) + ' has asked to rename ' + (listed ? 'the layout "' + listed.layout.name + '" at ' + listed.venue.name + ' (it would change for everyone with a session there)' : 'the track') + ' from a session: ' + trackSessionLabel(rec) + ', ' + (rec.date || '') + '.\n\n' +
-    (body.note ? 'Their note:\n' + trackText(body.note, 300) + '\n\n' : '') + 'Allow it on the Line editing panel:\n' + MY_BUILDS_SITE_URL + '/track-admin.html#lines-' + rec.id + '\n\nThe session:\n' + MY_BUILDS_SITE_URL + '/track.html?s=' + rec.id);
+    (body.note ? 'Their note:\n' + trackText(body.note, 300) + '\n\n' : '') + 'Allow it on the Line editing panel:\n' + MY_BUILDS_SITE_URL + '/track-admin.html#lines-' + rec.id + '\n\nThe session:\n' + LAPS_SITE_URL + '/track.html?s=' + rec.id);
   return json({ success: true, state: 'pending', target: listed ? 'layout' : '' });
 }
 // The member sends the new name. Nothing on the session changes: the admin accepts it or undoes it.
@@ -7661,7 +7663,7 @@ async function handleTrackRenamePropose(request, env) {
     entry.proposal = { at: new Date().toISOString(), from: cur.layout.name, to: to, target: 'layout' };
     var llabel = trackSessionLabel(rec) + ', ' + (rec.date || ''), lurl = MY_BUILDS_SITE_URL + '/track-admin.html#lines-' + rec.id;
     await emailAdminAboutLines(env, 'Layout rename awaiting your approval: ' + cur.venue.name, 'AWAITING YOUR APPROVAL\n\n' + subscriberLabel(entry.name, email) + ' wants to rename a layout at ' + cur.venue.name + ' (from the session ' + llabel + '). Nothing has changed yet. If you accept it, the layout is renamed in the track list and on every saved session at it, for everyone.\n\n' +
-      'Layout name\n  from: ' + cur.layout.name + '\n  to:   ' + to + '\n\nAccept it or undo it on the Line editing panel:\n' + lurl + '\n\nThe session:\n' + MY_BUILDS_SITE_URL + '/track.html?s=' + rec.id);
+      'Layout name\n  from: ' + cur.layout.name + '\n  to:   ' + to + '\n\nAccept it or undo it on the Line editing panel:\n' + lurl + '\n\nThe session:\n' + LAPS_SITE_URL + '/track.html?s=' + rec.id);
     await env.VOTES.put('track-rename-access', JSON.stringify(list));
     return json({ success: true, state: 'granted', proposal: entry.proposal });
   }
@@ -7671,7 +7673,7 @@ async function handleTrackRenamePropose(request, env) {
   entry.proposal = { at: new Date().toISOString(), from: rec.venue || '', to: to };
   var label = trackSessionLabel(rec) + ', ' + (rec.date || ''), requestUrl = MY_BUILDS_SITE_URL + '/track-admin.html#lines-' + rec.id;
   await emailAdminAboutLines(env, 'Track rename awaiting your approval: ' + label, 'AWAITING YOUR APPROVAL\n\n' + subscriberLabel(entry.name, email) + ' wants to rename the track on ' + label + '. Nothing has changed yet: accept it or undo it.\n\n' +
-    'Track name\n  from: ' + (rec.venue || 'none') + '\n  to:   ' + to + '\n\nAccept it or undo it on the Line editing panel:\n' + requestUrl + '\n\nThe session:\n' + MY_BUILDS_SITE_URL + '/track.html?s=' + rec.id);
+    'Track name\n  from: ' + (rec.venue || 'none') + '\n  to:   ' + to + '\n\nAccept it or undo it on the Line editing panel:\n' + requestUrl + '\n\nThe session:\n' + LAPS_SITE_URL + '/track.html?s=' + rec.id);
   await env.VOTES.put('track-rename-access', JSON.stringify(list));
   return json({ success: true, state: 'granted', proposal: entry.proposal });
 }
@@ -7690,7 +7692,7 @@ async function handleTrackRenameAdmin(request, env, body) {
   var list = await getRenameAccess(env);
   var entry = list.filter(function (x) { return x.id === String(body.id || ''); })[0];
   if (!entry) return json({ success: false, message: 'Request not found' }, 404);
-  var action = String(body.action || ''), url = MY_BUILDS_SITE_URL + '/track.html?s=' + entry.id;
+  var action = String(body.action || ''), url = LAPS_SITE_URL + '/track.html?s=' + entry.id;
   if (action === 'grant') {
     if (entry.status === 'granted') return json({ success: true });
     entry.status = 'granted'; entry.grantedAt = new Date().toISOString();
@@ -7811,7 +7813,7 @@ async function handleTrackLinesAdmin(request, env) {
   if (body && body.kind === 'rename') return handleTrackRenameAdmin(request, env, body);
   var entry = list.filter(function (x) { return x.id === String(body.id || ''); })[0];
   if (!entry) return json({ success: false, message: 'Request not found' }, 404);
-  var action = String(body.action || ''), url = MY_BUILDS_SITE_URL + '/track.html?s=' + entry.id;
+  var action = String(body.action || ''), url = LAPS_SITE_URL + '/track.html?s=' + entry.id;
   if (action === 'grant') {
     if (entry.status === 'granted') return json({ success: true });
     entry.status = 'granted'; entry.grantedAt = new Date().toISOString();
@@ -7877,7 +7879,7 @@ async function refuseTrackSource(env, got, zippedBytes, message) {
       'Why: ' + message + '\n' +
       'Attempt: ' + tries + (tries === 3 ? ' (no more emails about this session)' : '') + '\n\n' +
       'The limits are ' + (TRACK_SOURCE_MAX_BYTES / 1e6) + ' MB zipped, ' + (TRACK_SOURCE_UNZIPPED_MAX_BYTES / 1e6) + ' MB unzipped and ' + TRACK_SOURCE_MAX_ROWS + ' readings.\n\n' +
-      'The session:\n' + MY_BUILDS_SITE_URL + '/track.html?s=' + rec.id);
+      'The session:\n' + LAPS_SITE_URL + '/track.html?s=' + rec.id);
   }
   return json({ success: false, message: message }, 413);
 }

@@ -111,3 +111,25 @@ def test_links_between_laps_pages_and_signed_out_links_need_no_code(page):
     page.locator("#go").click()
     page.wait_for_url(LAPS + "/track.html", timeout=10000)
     assert state["made"] == 0
+
+
+def test_links_to_the_laps_pages_go_to_laps_on_the_live_site(page):
+    """On mt3uk.com the menu's Track Sessions and Leaderboards, My Garage's buttons and the homepage tile open
+    laps.mt3uk.com (data-laps); on localhost, and on Laps itself, they stay as written."""
+    page.route("**/%s/**" % API_HOST, lambda r: r.fulfill(status=200, content_type="application/json", body='{"success": true}', headers={"Access-Control-Allow-Origin": "*"}))
+    # localhost is neither site, so the links stay as written.
+    page.goto(MAIN + "/my-builds.html")
+    assert page.locator("#mb-track-btn").get_attribute("href") == "track.html"
+    page.goto(MAIN + "/index.html")
+    assert page.locator('header a[href$="leaderboards.html"]').first.get_attribute("href") == "leaderboards.html"
+    # With localhost standing in for mt3uk.com, the same links are rewritten to the Laps address.
+    page.add_init_script("window.MT3UK_SITES = { main: ['localhost'], mainOrigin: '%s', laps: ['laps.mt3uk.com'] };" % MAIN)
+    page.goto(MAIN + "/index.html")
+    links = page.locator("a[data-laps]")
+    assert links.count() >= 3
+    for i in range(links.count()):
+        href = links.nth(i).get_attribute("href")
+        assert href.startswith("https://laps.mt3uk.com/"), href
+    assert page.evaluate("window.mt3ukLapsUrl('track.html?mycar=c1')") == "https://laps.mt3uk.com/track.html?mycar=c1"
+    page.goto(MAIN + "/my-builds.html")
+    assert page.locator("#mb-boards-btn").get_attribute("href") == "https://laps.mt3uk.com/leaderboards.html"

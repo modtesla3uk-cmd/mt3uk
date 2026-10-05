@@ -852,7 +852,7 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   r = await call('POST', '/track/lines/request', { id: lid, note: 'The finish is in the wrong place' }, 'tok-a');
   ok(r.status === 200 && r.body.state === 'pending', 'the owner presses Request Edit Map');
   ok(env.SEND_EMAIL.sent.length === mails + 1 && /Request to edit a map/.test(env.SEND_EMAIL.sent[mails]) && /modtesla3uk@gmail\.com/.test(env.SEND_EMAIL.sent[mails]) && /wrong place/.test(env.SEND_EMAIL.sent[mails]), 'the admin is emailed about the request');
-  ok(new RegExp('https://mt3uk\\.com/track-admin\\.html#lines-' + lid).test(env.SEND_EMAIL.sent[mails]) && new RegExp('https://mt3uk\\.com/track\\.html\\?s=' + lid).test(env.SEND_EMAIL.sent[mails]), 'and the email links straight to the request on the admin page and to the session');
+  ok(new RegExp('https://mt3uk\\.com/track-admin\\.html#lines-' + lid).test(env.SEND_EMAIL.sent[mails]) && new RegExp('https://laps\\.mt3uk\\.com/track\\.html\\?s=' + lid).test(env.SEND_EMAIL.sent[mails]), 'and the email links straight to the request on the admin page and to the session');
   r = await call('POST', '/track/lines/request', { id: lid }, 'tok-a');
   ok(r.status === 200 && r.body.state === 'pending' && stored('track-line-access').length === 1, 'asking again does not add another request');
   r = await call('POST', '/track/lines/propose', proposal(), 'tok-a');

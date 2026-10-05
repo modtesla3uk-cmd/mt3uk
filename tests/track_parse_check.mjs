@@ -750,3 +750,13 @@ ok(T.fmtLap(99.786) === '1:39.79' && T.niceDate('2026-05-28') === '28 May 2026',
   ok(Math.max(...tr.map(r => r[5])) === 1.26, 'a real 1.264 g reading is kept as recorded: ' + Math.max(...tr.map(r => r[5])));
   ok(T.ANALYSIS_VERSION === 12, 'the analysis version moved on once more');
 }
+
+// A place listed as both a circuit and a sprint: a day of laps round the circuit is a track day, not a sprint
+{
+  const rd = T.read(fs.readFileSync(ROOT + 'tests/fixtures/racebox-castle-combe-gpx.gpx', 'utf8'), 'RaceBox_Castle_Combe.gpx');
+  const mid = rd.points[Math.floor(rd.points.length / 2)];
+  const both = { venues: lib.venues.concat([{ id: 'castle-combe-sprint', name: 'Castle Combe Sprint', type: 'sprint', lat: mid.lat, lng: mid.lng, radius: 1500, layouts: [{ id: 'c', name: 'Course', length: 2000 }] }]) };
+  const auto = T.analyse(rd, both, {});
+  ok(auto.type === 'track' && auto.venueId === 'castle-combe' && auto.laps.filter(l => l.kind === 'timed').length >= 3, 'laps round a circuit that is also listed as a sprint are timed as a track day (' + auto.type + ', ' + auto.venueId + ')');
+  ok(T.analyse(rd, both, { type: 'sprint' }).type === 'sprint', 'a type the member picked is never changed');
+}

@@ -519,7 +519,7 @@ def test_sessions_at_the_same_track_on_the_same_day_are_grouped_by_time(page):
         fake.sessions[s["id"]] = dict(s)
         fake.index.append(summary(s))
     open_page(page, fake)
-    card = page.locator(".tp-daygroup")
+    card = page.locator(".tp-daygroup", has_text="Castle Combe")
     expect(card).to_have_count(1)
     expect(card.locator("h3")).to_have_text("14 Jul 2026 on Castle Combe")
     expect(card.locator(".tp-daygroup-count .tp-small")).to_have_text("3 sessions")
@@ -550,9 +550,16 @@ def test_sessions_at_the_same_track_on_the_same_day_are_grouped_by_time(page):
     # It stays open when the list is drawn again (changing the track filter), and closes again from the heading.
     card.locator(".tp-daygroup-title").click()
     expect(card).to_have_attribute("data-open", "false")
-    # A session on its own stays a plain row.
-    expect(page.locator("#tp-sess-list > a.tp-row")).to_have_count(1)
-    expect(page.locator("#tp-sess-list > a.tp-row")).to_contain_text("Thruxton")
+    # A session on its own gets the same card, open, with its one row and no "fastest of the day" block.
+    solo = page.locator(".tp-daygroup", has_text="Thruxton")
+    expect(solo).to_have_count(1)
+    expect(solo.locator("h3")).to_have_text("1 Jun 2026 on Thruxton")
+    expect(solo.locator(".tp-daygroup-count .tp-small")).to_have_text("1 session")
+    expect(solo).to_have_attribute("data-open", "true")
+    expect(solo.locator(".tp-daygroup-best")).to_be_hidden()
+    expect(solo.locator(".tp-daygroup-all .tp-row")).to_have_count(1)
+    expect(solo.locator(".tp-fastest")).to_have_count(0)
+    expect(solo.get_by_role("button", name="Delete this session")).to_be_visible()
     # Opening one says where it falls in the day.
     card.locator(".tp-daygroup-title").click()
     rows.nth(1).click()
@@ -560,7 +567,7 @@ def test_sessions_at_the_same_track_on_the_same_day_are_grouped_by_time(page):
     # Phone: no sideways scroll.
     page.set_viewport_size({"width": 390, "height": 844})
     page.go_back()
-    expect(page.locator(".tp-daygroup")).to_be_visible()
+    expect(page.locator(".tp-daygroup").first).to_be_visible()
     assert page.evaluate("document.documentElement.scrollWidth") <= 390
 
 
@@ -570,7 +577,8 @@ def test_a_lone_session_has_no_day_number(page):
     fake.sessions[s["id"]] = dict(s)
     fake.index.append(summary(s))
     open_page(page, fake)
-    expect(page.locator(".tp-daygroup")).to_have_count(0)
+    expect(page.locator(".tp-daygroup")).to_have_count(1)
+    expect(page.locator(".tp-daygroup .tp-daygroup-count .tp-small")).to_have_text("1 session")
     page.locator("#tp-sess-list a.tp-row").first.click()
     expect(page.locator(".tp-session-head")).to_be_visible()
     expect(page.locator("#tp-day-place")).to_have_count(0)
@@ -876,20 +884,22 @@ def test_delete_a_whole_day_from_its_group(page):
     fake.sessions["keep1"] = dict(other)
     fake.index.append(summary(other))
     open_page(page, fake)
-    page.locator(".tp-daygroup-title").click()
+    day = page.locator(".tp-daygroup", has_text="Castle Combe")
+    day.locator(".tp-daygroup-title").click()
     # It asks first, naming how many and which day; Cancel deletes nothing.
     messages = []
     page.once("dialog", lambda d: (messages.append(d.message), d.dismiss()))
-    page.locator("[data-day-delete]").click()
+    day.locator("[data-day-delete]").click()
     assert messages and "Confirm delete?" in messages[0] and "all 4 sessions for this day (Castle Combe - 14 Jul 2026)" in messages[0]
     assert len(fake.sessions) == 5
     # Accepting deletes the day and its drives, and nothing from another day.
     page.once("dialog", lambda d: d.accept())
-    page.locator("[data-day-delete]").click()
+    day.locator("[data-day-delete]").click()
     expect(page.locator("#tp-saved")).to_contain_text("Deleted all 4 sessions for this day (Castle Combe - 14 Jul 2026)")
     assert sorted(fake.sessions) == ["keep1"]
-    expect(page.locator(".tp-daygroup")).to_have_count(0)
-    expect(page.locator("#tp-sess-list > a.tp-row")).to_have_count(1)
+    # What is left is the Thruxton session, in its own card.
+    expect(page.locator(".tp-daygroup")).to_have_count(1)
+    expect(page.locator(".tp-daygroup")).to_contain_text("Thruxton")
 
 
 def test_sessions_of_one_track_day_can_be_compared_with_each_other_even_at_an_unlisted_track(page):
@@ -1771,7 +1781,7 @@ def test_sessions_can_be_filtered_by_track_name(page):
     expect(sel.locator("option")).to_have_text(["All tracks (3)", "Brands Hatch (1)", "Thruxton (2)"])
     sel.select_option("Brands Hatch")
     expect(rows).to_have_count(1)
-    expect(rows.first).to_contain_text("Brands Hatch")
+    expect(page.locator(".tp-daygroup").first).to_contain_text("Brands Hatch")
     sel.select_option("Thruxton")
     expect(rows).to_have_count(2)
     sel.select_option("")
@@ -1789,17 +1799,19 @@ def test_sessions_can_be_filtered_by_type_and_sorted(page):
     chips = page.locator("#tp-type-filter .chip")
     expect(chips).to_have_text(["All (4)", "Track (2)", "Drag (1)", "Sprint (1)"])
     # Newest first by default.
-    expect(rows.locator("b")).to_have_text(["Lydden Hill", "Thruxton", "Santa Pod", "Brands Hatch"])
+    titles = page.locator(".tp-daygroup h3")
+    names = lambda *n: [re.compile(x) for x in n]
+    expect(titles).to_have_text(names("Lydden Hill", "Thruxton", "Santa Pod", "Brands Hatch"))
     page.locator("#tp-sort").select_option("oldest")
-    expect(rows.locator("b")).to_have_text(["Brands Hatch", "Santa Pod", "Thruxton", "Lydden Hill"])
+    expect(titles).to_have_text(names("Brands Hatch", "Santa Pod", "Thruxton", "Lydden Hill"))
     page.locator("#tp-sort").select_option("az")
-    expect(rows.locator("b")).to_have_text(["Brands Hatch", "Lydden Hill", "Santa Pod", "Thruxton"])
+    expect(titles).to_have_text(names("Brands Hatch", "Lydden Hill", "Santa Pod", "Thruxton"))
     chips.nth(2).click()
     expect(rows).to_have_count(1)
-    expect(rows.first).to_contain_text("Santa Pod")
+    expect(titles.first).to_contain_text("Santa Pod")
     expect(chips.nth(2)).to_have_attribute("aria-pressed", "true")
     chips.nth(1).click()
-    expect(rows.locator("b")).to_have_text(["Brands Hatch", "Thruxton"])
+    expect(titles).to_have_text(names("Brands Hatch", "Thruxton"))
     chips.nth(0).click()
     expect(rows).to_have_count(4)
 
@@ -4786,3 +4798,51 @@ def test_the_line_picker_shows_only_the_fastest_lap_and_a_marker_sits_on_it(page
     }""")
     off = ((got[0] - want[0]) ** 2 + (got[1] - want[1]) ** 2) ** 0.5 / want[2]
     assert off < 4, "the marker sits on the clicked point of the line (%.1f px off)" % off
+
+
+def test_the_list_can_be_grouped_by_date_circuit_or_event_type(page):
+    fake = FakeWorker(earlier=False)
+    rows = [
+        day_session("c1", "09:00", 91.0, 4),
+        day_session("c2", "13:00", 88.5, 5, date="2026-07-15"),
+        day_session("t1", "10:00", 99.0, 4, date="2026-06-01", venue="Thruxton", venue_id="thruxton"),
+        dict(day_session("s1", "11:00", 33.7, 2, date="2026-05-01", venue="Shelsley Walsh", venue_id="shelsley"), type="sprint", hill=True),
+    ]
+    for r in rows:
+        fake.sessions[r["id"]] = dict(r)
+        fake.index.append(summary(r))
+    # the summary keeps hill on a sprint, as the list needs it to tell hill climbs from sprints
+    for r in fake.index:
+        if r["id"] == "s1":
+            r["hill"] = True
+    open_page(page, fake)
+    group = page.locator("#tp-group-by")
+    expect(group.locator(".chip")).to_have_text(["Date", "Circuit", "Event type"])
+    expect(group.locator(".chip.is-on")).to_have_text("Date")
+    # By date: a card for each day at a track, single sessions included.
+    expect(page.locator(".tp-daygroup h3")).to_have_text(["15 Jul 2026 on Castle Combe", "14 Jul 2026 on Castle Combe", "1 Jun 2026 on Thruxton", "1 May 2026 on Shelsley Walsh"])
+    # By circuit: one card for each place, with its sessions across days, and the fastest shown while it is closed.
+    group.get_by_role("button", name="Circuit").click()
+    expect(group.locator(".chip.is-on")).to_have_text("Circuit")
+    cards = page.locator(".tp-daygroup")
+    expect(cards.locator("h3")).to_have_text(["Castle Combe", "Thruxton", "Shelsley Walsh"])
+    cc = cards.first
+    expect(cc.locator(".tp-daygroup-count .tp-small")).to_have_text("2 sessions")
+    expect(cc).to_have_attribute("data-open", "false")
+    expect(cc.locator(".tp-daygroup-best")).to_contain_text("1:28.50")
+    cc.locator(".tp-daygroup-title").click()
+    expect(cc.locator(".tp-daygroup-all .tp-row")).to_have_count(2)
+    expect(cc.locator(".tp-daygroup-all .tp-row").first).to_contain_text("15 Jul 2026, 13:00")
+    # By event type: Track days, then Hill climbs.
+    group.get_by_role("button", name="Event type").click()
+    expect(page.locator(".tp-daygroup h3")).to_have_text(["Track days", "Hill climbs"])
+    track_days = page.locator(".tp-daygroup", has_text="Track days")
+    expect(track_days.locator(".tp-daygroup-count .tp-small")).to_have_text("3 sessions")
+    # The choice is remembered.
+    page.reload()
+    expect(page.locator("#tp-group-by .chip.is-on")).to_have_text("Event type")
+    page.locator("#tp-group-by").get_by_role("button", name="Date").click()
+    expect(page.locator(".tp-daygroup")).to_have_count(4)
+    # Phone: no sideways scroll.
+    page.set_viewport_size({"width": 390, "height": 844})
+    assert page.evaluate("document.documentElement.scrollWidth") <= 390

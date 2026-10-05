@@ -535,6 +535,10 @@
   var typeFilter = '', sortMode = 'newest';
   var TYPE_CHIPS = [['', 'All'], ['track', 'Track'], ['drag', 'Drag'], ['sprint', 'Sprint']];
   var SORTS = [['newest', 'Newest'], ['oldest', 'Oldest'], ['az', 'A to Z']];
+  // How the list is grouped: by day (a day at one track), by circuit, or by kind of event. The choice is remembered.
+  var GROUPS = [['date', 'Date'], ['circuit', 'Circuit'], ['type', 'Event type']];
+  var groupMode = 'date';
+  try { var savedGroup = localStorage.getItem('mt3ukTrackGroup'); if (GROUPS.some(function (g) { return g[0] === savedGroup; })) groupMode = savedGroup; } catch (e) { /* storage blocked */ }
   function inTypeFilter(s) { return !typeFilter || s.type === typeFilter; }
   function whenOf(s) { return (s.date || '') + (s.time || ''); }
   function sortedSessions(l) {
@@ -553,6 +557,8 @@
     return '<div class="tp-tools"><div class="tp-types" id="tp-type-filter" role="group" aria-label="Show">' + TYPE_CHIPS.map(function (t) {
       var n = t[0] ? list.filter(function (x) { return x.type === t[0]; }).length : list.length;
       return '<button type="button" class="chip' + (t[0] === typeFilter ? ' is-on' : '') + '" data-type="' + t[0] + '" aria-pressed="' + (t[0] === typeFilter) + '">' + t[1] + ' (' + n + ')</button>';
+    }).join('') + '</div><div class="tp-types tp-group-by" id="tp-group-by" role="group" aria-label="Group by"><span class="tp-lbl">Group by</span>' + GROUPS.map(function (g) {
+      return '<button type="button" class="chip' + (g[0] === groupMode ? ' is-on' : '') + '" data-group="' + g[0] + '" aria-pressed="' + (g[0] === groupMode) + '">' + g[1] + '</button>';
     }).join('') + '</div><div class="tp-field tp-sort"><label for="tp-sort">Sort by</label><select class="field" id="tp-sort">' +
       SORTS.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === sortMode ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div></div>';
   }
@@ -625,6 +631,17 @@
       redraw();
     });
     if (sortSel) sortSel.addEventListener('change', function () { sortMode = sortSel.value; redraw(); });
+    var groupBy = document.getElementById('tp-group-by');
+    if (groupBy) groupBy.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-group]');
+      if (!b) return;
+      groupMode = b.getAttribute('data-group');
+      try { localStorage.setItem('mt3ukTrackGroup', groupMode); } catch (err) { /* storage blocked */ }
+      Array.prototype.forEach.call(groupBy.querySelectorAll('[data-group]'), function (x) {
+        var on = x === b; x.classList.toggle('is-on', on); x.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+      redraw();
+    });
     if (ranksFor !== car.id) { ranks = {}; ranksFor = car.id; }
     applyRanks(list);
     loadRanks(car.id, list).then(function (r) {
@@ -674,7 +691,53 @@
     var txt = 'Charge used ' + sum(on) + '% on track' + (between.length ? ', ' + sum(between) + '% between runs' : '');
     return txt + (on.length < g.length ? ' (from ' + on.length + ' of ' + g.length + ' sessions)' : '');
   }
+  // A row inside a circuit or event type group: the day and time first (the track too when the group is not one track).
+  function groupRow(s, withTrack) {
+    var what = s.type === 'drag' ? (s.runs || 0) + ' run' + (s.runs === 1 ? '' : 's') : s.type === 'other' ? '' : (s.laps || 0) + (s.type === 'sprint' ? ' run' : ' lap') + (s.laps === 1 ? '' : 's');
+    return '<a class="tp-row" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '"><span class="tp-row-main"><b>' + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + '</b><span>' +
+      esc([withTrack ? trackName(s) : '', what, s.conditions].filter(Boolean).join(', ')) + '</span></span>' +
+      '<span class="tp-row-res">' + esc(sessionResult(s)) + '</span>' + (s.privacy !== undefined ? privacyPill(s.privacy, s.street) : '') + icon('chev') + '</a>';
+  }
+  // The heading and the count of a group. With more than one session they open and close it; a group of one is just shown.
+  function groupTitleHtml(text, label, open, many) {
+    return many ? '<button type="button" class="tp-daygroup-title" data-day-toggle aria-expanded="' + (open ? 'true' : 'false') + '" aria-label="' + esc(label) + '"><h3>' + esc(text) + '</h3></button>'
+      : '<div class="tp-daygroup-title"><h3>' + esc(text) + '</h3></div>';
+  }
+  function groupCountHtml(count, n, open, many) {
+    return many ? '<button type="button" class="tp-daygroup-count" data-day-toggle aria-expanded="' + (open ? 'true' : 'false') + '" aria-label="Show or hide the ' + n + ' sessions"><span class="tp-small">' + count + '</span>' + icon('chev') + '</button>'
+      : '<span class="tp-daygroup-count"><span class="tp-small">' + count + '</span></span>';
+  }
+  function eventTypeOf(s) {
+    if (s.street || s.type === 'other') return 'Drives and street runs';
+    if (s.type === 'drag') return 'Drag runs';
+    if (s.type === 'sprint') return isHillSession(s, library) ? 'Hill climbs' : 'Sprints';
+    return 'Track days';
+  }
+  var EVENT_ORDER = ['Track days', 'Sprints', 'Hill climbs', 'Drag runs', 'Drives and street runs'];
+  // The list in one card per circuit, or per kind of event. A card opens from its heading; with one card it starts open,
+  // and a closed circuit card shows its fastest session, as a day does.
+  function groupedListHtml(list, mode) {
+    var groups = {}, order = [];
+    list.forEach(function (s) {
+      var k = mode === 'type' ? eventTypeOf(s) : trackName(s);
+      if (!groups[k]) { groups[k] = []; order.push(k); }
+      groups[k].push(s);
+    });
+    if (mode === 'type') order.sort(function (a, b) { return EVENT_ORDER.indexOf(a) - EVENT_ORDER.indexOf(b); });
+    function score(x) { return x.type === 'drag' ? (x.quarter || (x.s60 ? 1000 + x.s60 : 0)) : x.bestTime || 0; }
+    return order.map(function (k) {
+      var g = groups[k], key = mode + ':' + k;
+      var fast = mode === 'circuit' && g.length > 1 ? g.filter(function (x) { return score(x) > 0; }).sort(function (a, b) { return score(a) - score(b); })[0] : null;
+      var many = g.length > 1, open = !many || (openDays[key] !== undefined ? openDays[key] : order.length === 1);
+      var count = g.length + ' session' + (many ? 's' : '');
+      return '<div class="card tp-daygroup" data-open="' + (open ? 'true' : 'false') + '" data-day="' + esc(key) + '">' +
+        '<div class="tp-daygroup-head">' + groupTitleHtml(k, k + ', ' + count, open, many) + groupCountHtml(count, g.length, open, many) + '</div>' +
+        (fast ? '<div class="tp-daygroup-best"><span class="tp-small tp-daygroup-label">Fastest session</span>' + groupRow(fast, false) + '</div>' : '') +
+        '<div class="tp-list tp-daygroup-all">' + g.map(function (x) { return groupRow(x, mode === 'type'); }).join('') + '</div></div>';
+    }).join('');
+  }
   function sessionListHtml(list, owner, all) {
+    if (groupMode === 'circuit' || groupMode === 'type') return groupedListHtml(list, groupMode);
     var groups = {}, order = [];
     list.forEach(function (s) {
       var k = dayKey(s) || 'one:' + s.id;
@@ -687,23 +750,24 @@
     order.forEach(function (k) { var g0 = groups[k]; if (g0.length > 1 && !driveOwner[g0[0].date]) driveOwner[g0[0].date] = k; });
     return order.map(function (k) {
       var g = groups[k];
-      if (g.length < 2) return g[0].type === 'other' && driveOwner[g[0].date] ? '' : sessionRow(g[0]);
+      // A drive or street run (no track to group by) stays a plain row; a timed session on its own gets the same card as a day.
+      if (g.length < 2 && !dayKey(g[0])) return g[0].type === 'other' && driveOwner[g[0].date] ? '' : sessionRow(g[0]);
       g = g.slice().sort(byTime);
       var drives = driveOwner[g[0].date] === k ? (all || list).filter(function (x) { return x.type === 'other' && x.date === g[0].date; }).sort(byTime) : [];
       // The fastest of the day: the best lap or run, or for drag runs the quickest quarter mile (else 0 to 60).
       function score(x) { return x.type === 'drag' ? (x.quarter || (x.s60 ? 1000 + x.s60 : 0)) : x.bestTime || 0; }
       var fast = g.filter(function (x) { return score(x) > 0; }).sort(function (a, b) { return score(a) - score(b); })[0];
-      var key = k, open = openDays[key] || !fast;
+      var key = k, open = openDays[key] || !fast || g.length === 1, many = g.length > 1, count = g.length + ' session' + (many ? 's' : '');
       var best = fast && fast.type !== 'drag' ? V.fmtLap(fast.bestTime) : '';
       return '<div class="card tp-daygroup" data-open="' + (open ? 'true' : 'false') + '" data-day="' + esc(key) + '">' +
-        '<div class="tp-daygroup-head"><button type="button" class="tp-daygroup-title" data-day-toggle aria-expanded="' + (open ? 'true' : 'false') + '" aria-label="' + esc(niceDate(g[0].date) + ' on ' + trackName(g[0]) + ', ' + g.length + ' sessions') + '"><h3>' + esc(niceDate(g[0].date)) + ' on ' + esc(trackName(g[0])) + '</h3></button>' +
-        (owner ? '<button type="button" class="tp-daygroup-share" role="switch" data-day-share data-ids="' + esc(g.map(function (x) { return x.id; }).join(',')) + '" data-what="' + esc(niceDate(g[0].date) + ' at ' + trackName(g[0])) + '" aria-checked="' + (g.every(function (x) { return x.privacy && x.privacy !== 'private'; }) ? 'true' : 'false') + '" aria-label="Share all ' + g.length + ' sessions"><span>Shared</span><span class="tp-track"></span></button>' : '') +
-        '<button type="button" class="tp-daygroup-count" data-day-toggle aria-expanded="' + (open ? 'true' : 'false') + '" aria-label="Show or hide the ' + g.length + ' sessions"><span class="tp-small">' + g.length + ' sessions</span>' + icon('chev') + '</button></div>' +
+        '<div class="tp-daygroup-head">' + groupTitleHtml(niceDate(g[0].date) + ' on ' + trackName(g[0]), niceDate(g[0].date) + ' on ' + trackName(g[0]) + ', ' + count, open, many) +
+        (owner ? '<button type="button" class="tp-daygroup-share" role="switch" data-day-share data-ids="' + esc(g.map(function (x) { return x.id; }).join(',')) + '" data-what="' + esc(niceDate(g[0].date) + ' at ' + trackName(g[0])) + '" aria-checked="' + (g.every(function (x) { return x.privacy && x.privacy !== 'private'; }) ? 'true' : 'false') + '" aria-label="' + (many ? 'Share all ' + g.length + ' sessions' : 'Share this session') + '"><span>Shared</span><span class="tp-track"></span></button>' : '') +
+        groupCountHtml(count, g.length, open, many) + '</div>' +
         (dayCharge(g, drives) ? '<p class="tp-small tp-daygroup-charge">' + esc(dayCharge(g, drives)) + '</p>' : '') +
-        (fast ? '<div class="tp-daygroup-best"><span class="tp-small tp-daygroup-label">Fastest session of the day</span>' + dayRow(fast, g.indexOf(fast) + 1, false) + '</div>' : '') +
-        '<div class="tp-list tp-daygroup-all">' + g.map(function (x, i) { return dayRow(x, i + 1, x === fast); }).join('') +
+        (fast && many ? '<div class="tp-daygroup-best"><span class="tp-small tp-daygroup-label">Fastest session of the day</span>' + dayRow(fast, g.indexOf(fast) + 1, false) + '</div>' : '') +
+        '<div class="tp-list tp-daygroup-all">' + g.map(function (x, i) { return dayRow(x, i + 1, many && x === fast); }).join('') +
         (drives.length ? '<span class="tp-small tp-daygroup-label tp-drives-label">Drives between runs (' + drives.length + ')</span>' + drives.map(sessionRow).join('') : '') +
-        (owner ? '<button type="button" class="btn btn-danger btn-sm tp-daygroup-delete" data-day-delete data-ids="' + esc(g.concat(drives).map(function (x) { return x.id; }).join(',')) + '" data-label="' + esc(trackName(g[0])) + '" data-date="' + esc(niceDate(g[0].date)) + '">' + icon('trash') + 'Delete this day</button>' : '') + '</div></div>';
+        (owner ? '<button type="button" class="btn btn-danger btn-sm tp-daygroup-delete" data-day-delete data-ids="' + esc(g.concat(drives).map(function (x) { return x.id; }).join(',')) + '" data-label="' + esc(trackName(g[0])) + '" data-date="' + esc(niceDate(g[0].date)) + '">' + icon('trash') + (many ? 'Delete this day' : 'Delete this session') + '</button>' : '') + '</div></div>';
     }).join('');
   }
   // ---------- Add a car (no photo needed) ----------
@@ -792,7 +856,7 @@
     var b = e.target.closest && e.target.closest('[data-day-delete]');
     if (!b || b.disabled) return;
     var ids = b.getAttribute('data-ids').split(','), what = b.getAttribute('data-label') + ' - ' + b.getAttribute('data-date');
-    if (!window.confirm('Confirm delete?\n\nThis will delete all ' + ids.length + ' sessions for this day (' + what + '). This can\'t be undone.')) return;
+    if (!window.confirm('Confirm delete?\n\n' + (ids.length === 1 ? 'This will delete this session (' + what + ').' : 'This will delete all ' + ids.length + ' sessions for this day (' + what + ').') + ' This can\'t be undone.')) return;
     b.disabled = true;
     var chain = Promise.resolve(), failed = 0;
     ids.forEach(function (id) {
@@ -800,7 +864,7 @@
     });
     chain.then(function () {
       mine = null; counts = null;
-      justSaved = { text: failed ? failed + ' of the ' + ids.length + ' sessions for ' + what + ' could not be deleted. Try again.' : 'Deleted all ' + ids.length + ' sessions for this day (' + what + ').' };
+      justSaved = { text: failed ? failed + ' of the ' + ids.length + ' sessions for ' + what + ' could not be deleted. Try again.' : (ids.length === 1 ? 'Deleted the session (' + what + ').' : 'Deleted all ' + ids.length + ' sessions for this day (' + what + ').') };
       showHome();
     });
   });
@@ -810,7 +874,7 @@
     if (!sw || sw.disabled) return;
     var ids = sw.getAttribute('data-ids').split(','), what = sw.getAttribute('data-what');
     var share = sw.getAttribute('aria-checked') !== 'true', value = share ? 'board' : 'private';
-    if (share && !window.confirm('Share all ' + ids.length + ' sessions at ' + what + '? Members will see them on your car\'s page, and on the track\'s leaderboard where it has one.')) return;
+    if (share && !window.confirm(ids.length === 1 ? 'Share this session at ' + what + '? Members will see it on your car\'s page, and on the track\'s leaderboard where it has one.' : 'Share all ' + ids.length + ' sessions at ' + what + '? Members will see them on your car\'s page, and on the track\'s leaderboard where it has one.')) return;
     sw.disabled = true;
     sw.setAttribute('aria-checked', share ? 'true' : 'false');
     var chain = Promise.resolve(), failed = 0;
@@ -819,7 +883,7 @@
     });
     chain.then(function () {
       mine = null; counts = null;
-      justSaved = { text: failed ? failed + ' of the ' + ids.length + ' sessions at ' + what + ' could not be changed. Try again.' : 'All ' + ids.length + ' sessions at ' + what + ' are now ' + (share ? 'Shared' : 'Only me') + '.' };
+      justSaved = { text: failed ? failed + ' of the ' + ids.length + ' sessions at ' + what + ' could not be changed. Try again.' : (ids.length === 1 ? 'The session at ' + what + ' is now ' : 'All ' + ids.length + ' sessions at ' + what + ' are now ') + (share ? 'Shared' : 'Only me') + '.' };
       showHome();
     });
   });

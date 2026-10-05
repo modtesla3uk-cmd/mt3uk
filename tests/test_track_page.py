@@ -4697,3 +4697,35 @@ def test_the_track_mode_figures_can_be_refreshed_from_the_same_files(page):
     expect(page.locator("#car-data")).to_contain_text("35.5 bar")
     assert len(fake.car_updates) == 1 and len(fake.sessions) == before
     assert fake.car_updates[0]["carData"]["power"]["max"] == 250
+
+
+def test_the_line_picker_shows_only_the_fastest_lap_and_a_marker_sits_on_it(page):
+    """With laps, the picker draws the fastest lap as one clean line (not the whole drive, which could include the way to
+    the circuit) and a marker attaches to that line, not to a waypoint of some other lap."""
+    page.route(re.compile(r".*/data/tracks\.json.*"), _without_start_line)
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    page.locator('[data-tap="edit"]').click()
+    expect(page.locator("#tp-tap")).to_be_visible()
+    assert page.evaluate("document.querySelectorAll('#tp-tap polyline.tv-line').length") == 1, "one clean lap line"
+    # Only that lap is drawn: its readings, filled in to about a metre apart, and nothing else.
+    segs = page.evaluate("document.querySelectorAll('#tp-tap .tv-segs line').length")
+    best = page.evaluate("document.querySelector('#tp-tap polyline.tv-line').getAttribute('points').split(' ').length")
+    assert abs(segs - (best - 1)) <= 1 and best > 600, (segs, best)
+    page.get_by_role("button", name="Clear markers").click()
+    pt = _trace_point(page, 0.3)
+    # The clicked point in the map's own coordinates (the page may scroll when a marker is placed).
+    want = page.evaluate("""(pt) => {
+      const svg = document.getElementById('tp-tap'), vb = svg.viewBox.baseVal, r = svg.getBoundingClientRect();
+      return [vb.x + (pt[0] - r.left) * vb.width / r.width, vb.y + (pt[1] - r.top) * vb.height / r.height, vb.width / r.width];
+    }""", pt)
+    page.mouse.click(pt[0], pt[1])
+    expect(page.locator("#tp-tap .tp-tapmark")).to_have_count(1)
+    got = page.evaluate("""() => {
+      const m = document.querySelector('#tp-tap .tp-tapmark').getAttribute('transform').match(/translate\\(([-\\d.e]+)[ ,]([-\\d.e]+)\\)/);
+      return [Number(m[1]), Number(m[2])];
+    }""")
+    off = ((got[0] - want[0]) ** 2 + (got[1] - want[1]) ** 2) ** 0.5 / want[2]
+    assert off < 4, "the marker sits on the clicked point of the line (%.1f px off)" % off

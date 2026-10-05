@@ -1554,13 +1554,25 @@
     // Placing or moving a marker redraws the page; the map carries on from the zoom and centre it had, so the member can
     // see exactly where the line sits instead of being sent back to the whole map.
     var kept = a.tapMap && a.tapMap.zoom && a.tapMap.zoom.frac ? a.tapMap.zoom.frac() : null;
-    // A session of many laps would be a tangle: the fastest lap is drawn clean on top, the rest of the drive faint.
-    var bestRows = s.trace && s.trace.laps && s.best && s.trace.laps[s.best], best = null;
+    // A session of many laps would be a tangle of lines, and a marker could only land on the nearest waypoint of any of
+    // them. With laps, only the fastest lap is drawn and placed on: one clean line, filled in to about a metre apart so a
+    // marker can sit anywhere along it, not just on a reading.
+    var bestRows = s.trace && s.trace.laps && s.best && s.trace.laps[s.best], best = null, gap = 0;
     if (bestRows && bestRows.length > 10 && s.origin && s.origin.length === 2 && s.laps && s.laps.length > 1) {
-      var bp = T.projector(s.origin[0], s.origin[1]);
-      best = bestRows.map(function (r) { var ll = bp.ll(r[2], r[3]), xy = proj.xy(ll[0], ll[1]); return [r[0], r[1], xy[0], xy[1], r[4], 0, 0]; });
+      var bp = T.projector(s.origin[0], s.origin[1]), raw = bestRows.map(function (r) { var ll = bp.ll(r[2], r[3]); return proj.xy(ll[0], ll[1]).concat(r[4]); }), len = 0;
+      for (var ri = 1; ri < raw.length; ri++) len += Math.hypot(raw[ri][0] - raw[ri - 1][0], raw[ri][1] - raw[ri - 1][1]);
+      gap = Math.max(1, len / 6000);
+      best = []; d = 0;
+      raw.forEach(function (q, ri) {
+        if (ri) {
+          var q0 = raw[ri - 1], seg = Math.hypot(q[0] - q0[0], q[1] - q0[1]), n = Math.max(1, Math.ceil(seg / gap));
+          for (var k = 1; k <= n; k++) best.push([d + seg * k / n, 0, q0[0] + (q[0] - q0[0]) * k / n, q0[1] + (q[1] - q0[1]) * k / n, q0[2] + (q[2] - q0[2]) * k / n, 0, 0]);
+          d += seg;
+        } else best.push([0, 0, q[0], q[1], q[2], 0, 0]);
+      });
+      trace = best;
     }
-    var m = V.map(svg, trace, { mono: true, ratio: 0.85, fill: fill, origin: [out[0][0], out[0][1]], faint: best ? 0.35 : 0, highlight: best });
+    var m = V.map(svg, trace, { mono: true, ratio: 0.85, fill: fill, origin: [out[0][0], out[0][1]], highlight: best });
     a.tapMap = m;
     if (kept && kept.k > 1.01 && m && m.zoom && m.zoom.restore) m.zoom.restore(kept);
     svg.style.cursor = 'crosshair';
@@ -1571,7 +1583,7 @@
     }
     // A line across the track at a point of the trace, and back again.
     function lineAt(bi) {
-      var p0 = trace[Math.max(0, bi - 3)], p1 = trace[Math.min(trace.length - 1, bi + 3)], c = trace[bi];
+      var K = gap ? Math.round(15 / gap) : 3, p0 = trace[Math.max(0, bi - K)], p1 = trace[Math.min(trace.length - 1, bi + K)], c = trace[bi];
       var dx = p1[2] - p0[2], dy = p1[3] - p0[3], L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L;
       return [proj.ll(c[2] + nx * 15, c[3] + ny * 15), proj.ll(c[2] - nx * 15, c[3] - ny * 15)];
     }

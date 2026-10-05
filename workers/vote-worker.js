@@ -8666,7 +8666,7 @@ async function garageCarTitle(env, carId, record) {
 // A car's photos as My Garage sees them: the member's own photos whose sidecar names this car. The car record
 // keeps its own list too, which can fall behind (an older car, or one changed before its list was), so ownership
 // and every action that hides or shows a car's photos go by both.
-async function memberCarPhotos(env, email, carId) {
+async function memberCarPhotos(env, email, carId, withFiles) {
   var files = await getSubscriberFiles(env, email), out = [];
   for (var i = 0; i < files.length && i < 300; i++) {
     try {
@@ -8675,7 +8675,7 @@ async function memberCarPhotos(env, email, carId) {
       if (sc && sc.carId === carId) out.push(files[i]);
     } catch (e) { /* a missing or unreadable sidecar is not this car's */ }
   }
-  return out;
+  return withFiles ? { photos: out, files: files } : out;
 }
 
 // Every photo of a car, for the admin actions: the record's list and any photo whose sidecar names the car.
@@ -8683,6 +8683,12 @@ async function memberCarPhotos(env, email, carId) {
 async function allCarPhotos(env, carId, record) {
   var files = ((record && record.photos) || []).slice();
   var listed = await listGalleryEntriesFromR2(env).catch(function () { return []; });
+  // A name the record still lists but whose photo is gone (deleted before) is dropped, when the listing worked.
+  if (listed.length) {
+    var live = {};
+    listed.forEach(function (p) { live[p.file] = true; });
+    files = files.filter(function (f) { return live[f]; });
+  }
   listed.forEach(function (p) { if (p.carId === carId && files.indexOf(p.file) === -1) files.push(p.file); });
   return files;
 }
@@ -8695,15 +8701,17 @@ async function handleGarageGalleryRequest(request, env) {
   var carId = String((body && body.carId) || '');
   var record = /^[A-Za-z0-9_-]{1,80}$/.test(carId) ? await getCarRecord(env, carId) : null;
   // Mine if My Garage shows it as mine (its photos name it), or its record lists one of my photos.
-  var carPhotos = record ? await memberCarPhotos(env, email, carId) : [];
+  var mineNow = record ? await memberCarPhotos(env, email, carId, true) : { photos: [], files: [] };
+  var carPhotos = mineNow.photos;
   if (!record || (!carPhotos.length && !(await carBelongsTo(env, email, carId)))) {
     return json({ success: false, message: 'That car is not linked to your account' }, 403);
   }
   if (record.garageOnly !== true) return json({ success: false, message: 'That car is already shown in the Gallery.' }, 400);
-  // Bring the record's list of photos up to date, so approving it shows every one.
-  var missing = carPhotos.filter(function (f) { return (record.photos || []).indexOf(f) === -1; });
-  if (missing.length) {
-    record.photos = (record.photos || []).concat(missing);
+  // Bring the record's list of photos up to date, so approving it shows every one: the car's photos as My Garage
+  // sees them, then any others it lists that are still the member's (a name for a photo that has gone is dropped).
+  var upToDate = carPhotos.concat((record.photos || []).filter(function (f) { return carPhotos.indexOf(f) === -1 && mineNow.files.indexOf(f) !== -1; }));
+  if (JSON.stringify(upToDate) !== JSON.stringify(record.photos || [])) {
+    record.photos = upToDate;
     await saveCarRecord(env, record);
   }
   var list = await getJsonKey(env, GARAGE_GALLERY_KEY, { pending: [] });

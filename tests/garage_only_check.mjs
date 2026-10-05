@@ -205,3 +205,17 @@ r = await call('POST', '/my-builds/car/gallery-request', { carId: kia }, 'tok-b'
 ok(r.status === 403, 'another member cannot ask about my car');
 r = await call('POST', '/my-builds/car/gallery-request', { carId: 'not a car' }, 'tok-a');
 ok(r.status === 403, 'nor about a car id that is not one');
+
+// ---- A record that lists a photo which has since gone (the 5 N case) ----
+r = await addCar({ carName: 'Ghost', caption: 'ghost ioniq', color: 'White', model: 'Hyundai Ioniq 5 N' });
+const ghost = r.body.carId;
+const ghostRec = JSON.parse(bucket.get('gallery/cars/' + ghost + '.json'));
+const realFile = ghostRec.photos[0];
+bucket.set('gallery/cars/' + ghost + '.json', JSON.stringify(Object.assign({}, ghostRec, { photos: ['deleted-long-ago.jpg'] })));
+r = await call('POST', '/my-builds/car/gallery-request', { carId: ghost }, 'tok-a');
+const ghostAsk = JSON.parse(kv.get('garage-gallery-requests')).pending.find(p => p.carId === ghost);
+ok(r.body.success && ghostAsk && ghostAsk.photos.indexOf('deleted-long-ago.jpg') === -1 && ghostAsk.photos.indexOf(realFile) !== -1, 'asking drops a photo the record still lists but which has gone, and keeps the real ones');
+ok(JSON.parse(bucket.get('gallery/cars/' + ghost + '.json')).photos.indexOf('deleted-long-ago.jpg') === -1, 'the record no longer lists it');
+bucket.set('gallery/cars/' + ghost + '.json', JSON.stringify(Object.assign({}, JSON.parse(bucket.get('gallery/cars/' + ghost + '.json')), { photos: ['deleted-long-ago.jpg', realFile] })));
+r = await call('POST', '/my-builds/admin/garage-gallery?key=secret', { carId: ghost, action: 'approve' });
+ok(r.body.success && JSON.parse(bucket.get('gallery/cars/' + ghost + '.json')).photos.slice().sort().join() === ghostRec.photos.slice().sort().join(), 'approving keeps only the photos that exist');

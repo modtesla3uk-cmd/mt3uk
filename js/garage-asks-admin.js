@@ -33,7 +33,7 @@
     countEl.textContent = pending.length ? '(' + pending.length + ' waiting)' : '';
     listEl.innerHTML = pending.length ? pending.map(function (p) {
       var photos = (p.photos || []).map(function (f) {
-        return '<img class="ga-photo" src="' + R2 + '/gallery/' + encodeURIComponent(f) + '" alt="" loading="lazy">';
+        return '<img class="ga-photo" src="' + R2 + '/gallery/' + encodeURIComponent(f) + '" alt="" loading="lazy" onerror="this.remove()">';
       }).join('');
       return '<div class="ga-row" data-car="' + esc(p.carId) + '"><div class="ga-photos">' + photos + '</div><div class="ga-text">' +
         '<b>' + esc(p.car || 'A car') + '</b>' + (p.title ? ' <span class="iv-sub">' + esc(p.title) + (p.type === 'bike' ? ', a bike' : '') + '</span>' : '') +
@@ -78,7 +78,7 @@
   function drawOld(cars) {
     oldEl.innerHTML = cars.length ? cars.map(function (c) {
       var photos = (c.photos || []).map(function (f) {
-        return '<img class="ga-photo" src="' + R2 + '/gallery/' + encodeURIComponent(f) + '" alt="" loading="lazy">';
+        return '<img class="ga-photo" src="' + R2 + '/gallery/' + encodeURIComponent(f) + '" alt="" loading="lazy" onerror="this.remove()">';
       }).join('');
       return '<div class="ga-row" data-car="' + esc(c.carId) + '"><div class="ga-photos">' + photos + '</div><div class="ga-text">' +
         '<b>' + esc(c.car || 'A car') + '</b> <span class="iv-sub">' + esc(c.title) + ', on public view in the Gallery and the Reel</span>' +

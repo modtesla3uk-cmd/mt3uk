@@ -174,6 +174,9 @@
   .tp-types { display: flex; flex-wrap: wrap; gap: 8px; }
   .tp-types .chip { min-height: 44px; }
   .tp-find { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin: 14px 0 0; }
+  .tp-find-btns { display: flex; align-items: center; gap: 8px; }
+  .tp-find-hint { margin: 6px 0 0; color: var(--steel); }
+  @media (max-width: 780px) { .tp-find { flex-direction: column; align-items: stretch; gap: 8px; } .tp-find-text { min-width: 0; } }
   .tp-find-text { flex: 1; min-width: 220px; }
   .tp-find .chip { min-height: 44px; }
   .tp-find-range { display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0 0; }
@@ -696,6 +699,26 @@
   .tp-car b { font-size: 0.95rem; overflow-wrap: anywhere; }
   .tp-car span { font-size: 0.8rem; color: var(--steel); }
   .tp-car.is-on { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+  .tp-vbox { display: block; }
+  .tp-vbox .tp-vcurrent { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 10px 14px; text-align: left; background: #fff; border: 1px solid var(--hairline-strong); border-radius: var(--radius); font: inherit; color: inherit; box-sizing: border-box; }
+  button.tp-vcurrent { cursor: pointer; }
+  .tp-car .tp-vtext { display: grid; gap: 2px; min-width: 0; font-size: 1rem; color: var(--ink); }
+  .tp-car .tp-vtext b { font-size: 0.95rem; overflow-wrap: anywhere; }
+  .tp-car .tp-vtext span { font-size: 0.8rem; color: var(--steel); }
+  .tp-car .tp-vchange { margin-left: auto; display: flex; align-items: center; gap: 4px; font-size: 0.85rem; font-weight: 600; color: var(--ink); white-space: nowrap; }
+  .tp-vchange .icon { width: 16px; height: 16px; transform: rotate(90deg); }
+  .tp-vlist { padding: 0; overflow: hidden; }
+  .tp-vbox .tp-vrow { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 10px 14px; background: none; border: 0; border-top: 1px solid var(--hairline); border-radius: 0; box-shadow: none; text-align: left; cursor: pointer; font: inherit; color: inherit; box-sizing: border-box; }
+  .tp-vbox .tp-vrow:first-child { border-top: 0; }
+  .tp-vbox .tp-vrow.is-on { background: #eef2f9; box-shadow: none; border-color: transparent; }
+  .tp-vdot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--hairline-strong); flex: none; box-sizing: border-box; }
+  .tp-vrow.is-on .tp-vdot { border-color: var(--ink); background: radial-gradient(var(--ink) 45%, #fff 50%); }
+  .tp-car .tp-vn { margin-left: auto; font-size: 0.8rem; font-weight: 600; color: var(--steel); white-space: nowrap; }
+  .tp-vadd { font-weight: 700; color: var(--ink); }
+  .tp-vadd .icon, .tp-vaddone .icon { width: 16px; height: 16px; }
+  .tp-vaddone { margin-top: 10px; }
+  .tp-vadd[hidden], .tp-vaddone[hidden] { display: none; }
+  .tp-row-car { display: block; font-weight: 600; color: var(--ink-2); }
   .tp-for { margin: 2px 0 0; font-weight: 600; color: var(--ink); }
   .tp-boards-link { display: flex; align-items: center; gap: 12px; min-height: 64px; margin-top: 30px; padding: 12px 16px; border-radius: var(--radius); background: var(--ink); color: #fff; }
   .tp-boards-link > .icon:first-child { color: #f58a68; width: 24px; height: 24px; }
@@ -918,7 +941,7 @@
 <script src="js/tyre-data.js"></script>
 <script src="js/vehicle-data.js?v=20261202" defer></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20261225" defer></script>
+<script src="js/track-page.js?v=20261226" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=10" defer></script>
 <script src="js/signin-prompt.js" defer></script>

@@ -155,8 +155,11 @@ kv.set('votes:2099-W01:ioniq.jpg', '3');
 r = await call('GET', '/my-builds/admin/other-makes');
 ok(r.status === 401, 'the list of other makes needs the admin key');
 r = await call('GET', '/my-builds/admin/other-makes?key=secret');
-ok(r.body.success && r.body.cars.length === 1 && r.body.cars[0].carId === 'old5n' && r.body.cars[0].title === 'Hyundai Ioniq 5 N' && r.body.cars[0].email === A,
-  'it lists only an other make still in the Gallery (not the Tesla, the approved Kia or the cars already kept in the garage)');
+const listed = r.body.cars || [];
+const old5 = listed.find(c => c.carId === 'old5n'), kiaListed = listed.find(c => c.carId === kia);
+ok(r.body.success && listed.length === 2 && old5 && old5.title === 'Hyundai Ioniq 5 N' && old5.email === A && !old5.approvedAt,
+  'it lists the other makes on public view (not the Tesla or the cars already kept in the garage)');
+ok(kiaListed && kiaListed.approvedAt, 'a car MT3UK made public is listed too, with the date it was made public');
 sent.length = 0;
 r = await call('POST', '/my-builds/admin/other-makes?key=secret', { carId: 'old5n', action: 'garage', email: true });
 ok(r.body.success, 'it can be kept in the garage');
@@ -166,7 +169,7 @@ ok(n.garageOnly === true && n.photos.every(p => !p.gallery && !p.reel && !p.vota
 ok(sidecar('ioniq.jpg').garageOnly === true, 'its photos are marked');
 ok(sent.length === 1 && /kept in your garage/.test(sent[0]), 'the owner is emailed');
 r = await call('GET', '/my-builds/admin/other-makes?key=secret');
-ok(r.body.cars.length === 0, 'and it is off the list');
+ok(r.body.cars.length === 1 && r.body.cars[0].carId === kia, 'and it is off the list');
 r = await call('POST', '/my-builds/admin/other-makes?key=secret', { carId: 'nope', action: 'garage' });
 ok(r.status === 404, 'an unknown car is refused');
 // With Email the owner off, the car is kept in the garage and nobody is emailed.
@@ -219,3 +222,21 @@ ok(JSON.parse(bucket.get('gallery/cars/' + ghost + '.json')).photos.indexOf('del
 bucket.set('gallery/cars/' + ghost + '.json', JSON.stringify(Object.assign({}, JSON.parse(bucket.get('gallery/cars/' + ghost + '.json')), { photos: ['deleted-long-ago.jpg', realFile] })));
 r = await call('POST', '/my-builds/admin/garage-gallery?key=secret', { carId: ghost, action: 'approve' });
 ok(r.body.success && JSON.parse(bucket.get('gallery/cars/' + ghost + '.json')).photos.slice().sort().join() === ghostRec.photos.slice().sort().join(), 'approving keeps only the photos that exist');
+
+// ---- The owner makes a public car of another make private again ----
+cars = await garage();
+ok(cars.find(c => c.id === kia).otherMake === true && cars.find(c => c.id === kia).garageOnly === false, 'My Garage knows the public Kia is another make');
+ok(cars.find(c => c.id === tesla).otherMake === false, 'and that the Tesla is not');
+r = await call('POST', '/my-builds/car/make-private', { carId: tesla }, 'tok-a');
+ok(r.status === 400, 'a Tesla cannot be made private this way');
+r = await call('POST', '/my-builds/car/make-private', { carId: kia }, 'tok-b');
+ok(r.status === 403, 'another member cannot make my car private');
+r = await call('POST', '/my-builds/car/make-private', { carId: kia }, 'tok-a');
+cars = await garage();
+const kk = cars.find(c => c.id === kia);
+ok(r.body.success && kk.garageOnly === true && kk.photos.every(p => !p.gallery && !p.reel && !p.votable), 'the owner can make it private again, out of the Gallery, the Reel and the vote');
+ok(kk.photos.every(p => sidecar(p.file).garageOnly === true) && !JSON.parse(bucket.get('gallery/cars/' + kia + '.json')).galleryApproved, 'its photos are marked again and it is no longer approved');
+r = await call('POST', '/my-builds/car/gallery-request', { carId: kia }, 'tok-a');
+ok(r.body.success && r.body.asked, 'and the owner can ask for it to be shown again');
+r = await call('GET', '/my-builds/admin/other-makes?key=secret');
+ok(!(r.body.cars || []).some(c => c.carId === kia), 'it is off the public list');

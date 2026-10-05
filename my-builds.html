@@ -2117,13 +2117,42 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
       var how = 'Photos are in the vote the week they\'re added and the week after. To enter an older photo, tick <strong>Voting</strong> on it. You can have one photo in the vote at a time. <a href="index.html#vote-how">How voting works</a>';
+      // A car of another make that MT3UK made public: its owner can make it private again.
+      var privateAgain = hereCar && hereCar.otherMake
+        ? '<p class="mb-private-again"><strong>This car is on public view</strong> in the Gallery and the Reel. You can make it private again: it stays in your garage with its photos, mods list and Track sessions.</p>' +
+          '<button type="button" class="btn btn-secondary btn-sm" id="mb-make-private">Make it private again</button>'
+        : '';
+      voteHint.classList.toggle('mb-garage-hint', !!privateAgain);
       if (voteEntry) {
         voteHint.innerHTML = '<p><strong>Build of the Week:</strong> your entry this week is ' + escapeHtml(voteTitle(voteEntry.caption) || 'your ticked photo') +
           ' (' + voteEntry.votes + ' vote' + (voteEntry.votes === 1 ? '' : 's') + ').</p><p>' + how + '</p>';
       } else {
         voteHint.innerHTML = '<p><strong>Build of the Week:</strong> you don\'t have a build in this week\'s vote.</p><p>' + how + '</p>';
       }
+      if (privateAgain) voteHint.innerHTML += privateAgain;
     }
+
+    // Make a public car of another make private again (no approval needed to go private).
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('#mb-make-private');
+      if (!btn || !currentCarId) return;
+      if (!window.confirm('Make this car private again?\n\nIts photos leave the Gallery, the Reel and this week\'s Build of the Week vote. Nothing is deleted: it stays in your garage with its photos, mods list and Track sessions. To show it again, you can ask us.')) return;
+      btn.disabled = true;
+      btn.textContent = 'Making it private…';
+      fetch(API + '/my-builds/car/make-private', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Session-Token': getSession() },
+        body: JSON.stringify({ carId: currentCarId })
+      }).then(function (res) { return res.json(); }).then(function (d) {
+        if (!d.success) throw new Error(d.message || 'Could not do that, please try again.');
+        mbToast('Done: this car is private again, in your garage only.');
+        loadCars();
+      }).catch(function (err) {
+        btn.disabled = false;
+        btn.textContent = 'Make it private again';
+        mbToast(err.message || 'Could not do that, please try again.');
+      });
+    });
 
     // Ask MT3UK to show a car kept in the garage in the Gallery (approved or declined on admin.html).
     document.addEventListener('click', function (e) {

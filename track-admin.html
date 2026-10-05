@@ -13,6 +13,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Track Admin">
 <meta name="application-name" content="Track Admin">
+<script src="js/admin-key-keep.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
@@ -40,6 +41,7 @@
     <button type="button" class="tk-switch" id="alerts-bell" role="switch" aria-checked="true"><span class="tk-track"></span><span>Bell</span></button>
     <button type="button" class="tk-switch" id="alerts-email" role="switch" aria-checked="true"><span class="tk-track"></span><span>Email</span></button>
     <button type="button" class="tk-switch" id="alerts-push" role="switch" aria-checked="false" hidden><span class="tk-track"></span><span>Push on this device</span></button>
+    <button type="button" class="tk-switch" id="alerts-keep" role="switch" aria-checked="false"><span class="tk-track"></span><span>Remember the key on this device</span></button>
     <button type="button" class="secondary alerts-install" id="alerts-install" hidden>Install Track Admin</button>
     <p class="alerts-note" id="alerts-note" aria-live="polite"></p>
   </div>
@@ -198,7 +200,7 @@
 </main>
 <script src="js/track-admin-page.js?v=20261210"></script>
 <script src="js/admin-subnav.js?v=20261160" defer></script>
-<script src="js/admin-alerts.js?v=20261211" defer></script>
+<script src="js/admin-alerts.js?v=20261212" defer></script>
 <script src="js/track-parse.js?v=20261188" defer></script>
 <script src="js/track-view.js?v=20261181" defer></script>
 <script src="js/track-access-admin.js" defer></script>

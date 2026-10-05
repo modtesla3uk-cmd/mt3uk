@@ -126,17 +126,65 @@
     if (e.data && e.data.type === 'mt3uk-push') load();
   });
 
+  // ---------- Remember the key on this device ----------
+  // Kept in this device's storage (js/admin-key-keep.js puts it back each time the page opens), so the installed
+  // app does not ask for it every time. Off unless switched on; switching it off forgets it.
+  var KEEP = 'mt3ukAdminKeyKept';
+  var keepSw = document.getElementById('alerts-keep');
+  function kept() { try { return localStorage.getItem(KEEP) || ''; } catch (e) { return ''; } }
+  if (keepSw) {
+    keepSw.setAttribute('aria-checked', String(!!kept()));
+    keepSw.addEventListener('click', function () {
+      var on = keepSw.getAttribute('aria-checked') !== 'true';
+      if (on && !key()) { note('Enter the admin key first.'); return; }
+      try { if (on) localStorage.setItem(KEEP, key()); else localStorage.removeItem(KEEP); } catch (e) { note('This browser will not keep it.'); return; }
+      keepSw.setAttribute('aria-checked', String(on));
+      note(on ? 'The key is remembered on this device. Anyone using it unlocked can open the admin pages.' : 'The key is no longer remembered here.');
+    });
+    // A new key entered later replaces the remembered one.
+    document.addEventListener('mt3uk-admin-refresh', function () { if (kept() && key() && key() !== kept()) { try { localStorage.setItem(KEEP, key()); } catch (e) {} } });
+  }
+
+  // ---------- The admin pages' own address: admin.mt3uk.com ----------
+  // On Android an installed MT3UK app claims every mt3uk.com page, so Chrome will not install the admin pages from
+  // there. They are installed from admin.mt3uk.com (the same files, on its own address), and there a link to any
+  // other page of the site goes back to mt3uk.com. Tests set window.MT3UK_ADMIN_SITE to a local address.
+  var ADMIN = window.MT3UK_ADMIN_SITE || { origin: 'https://admin.mt3uk.com', main: ['mt3uk.com', 'www.mt3uk.com'], mainOrigin: 'https://mt3uk.com' };
+  var onAdminSite = location.origin === ADMIN.origin;
+  var onMainSite = ADMIN.main.indexOf(location.hostname) !== -1;
+  var APP_PAGES = ['/admin.html', '/track-admin.html'];
+  if (onAdminSite) document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[href]');
+    if (!a || e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    var u;
+    try { u = new URL(a.getAttribute('href'), location.href); } catch (err) { return; }
+    if (u.origin !== location.origin || APP_PAGES.indexOf(u.pathname) !== -1) return;
+    e.preventDefault();
+    var to = ADMIN.mainOrigin + u.pathname + u.search + u.hash;
+    if (a.target === '_blank') window.open(to, '_blank', 'noopener'); else location.href = to;
+  });
+
   // ---------- Install this page as an app ----------
-  // Chrome and Edge install straight away; Safari and Firefox are told how. Hidden inside the installed app.
+  // From admin.mt3uk.com Chrome and Edge install straight away; Safari and Firefox are told how. From mt3uk.com the
+  // button goes to the same page on admin.mt3uk.com to install it there. Hidden inside the installed app.
   var installBtn = document.getElementById('alerts-install');
   var installed = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
   var installPrompt = null;
   var isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   if (installBtn && !installed) {
     installBtn.hidden = false;
+    if (onAdminSite && location.hash === '#install') note('Press ' + installBtn.textContent + ' to add it to your home screen.');
     window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); installPrompt = e; });
     window.addEventListener('appinstalled', function () { installBtn.hidden = true; note('Installed. Open it from your home screen or apps.'); });
     installBtn.addEventListener('click', function () {
+      if (onMainSite) {
+        note('Opening admin.mt3uk.com, where it installs as its own app...');
+        // Only go if that address answers: until it is set up in Cloudflare it would be a dead page.
+        fetch(ADMIN.origin + '/admin-manifest.json', { mode: 'no-cors', cache: 'no-store' }).then(function () {
+          location.href = ADMIN.origin + location.pathname + '#install';
+        }).catch(function () { note('admin.mt3uk.com is not set up yet: add it as a custom domain on the mt3uk Worker in Cloudflare.'); });
+        return;
+      }
       if (installPrompt) {
         installPrompt.prompt();
         installPrompt.userChoice.then(function () { installPrompt = null; }).catch(function () {});

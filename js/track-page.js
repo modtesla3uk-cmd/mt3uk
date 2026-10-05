@@ -155,6 +155,9 @@
     });
   }
   var mine = null;
+  // 'car' or 'bike': the vehicle of the session or Add page on show, for the words on it.
+  var VW = 'car';
+  function vwOf(c) { return c && c.vehicleType === 'bike' ? 'bike' : 'car'; }
   // The welcome card's text, as set on the admin page; nothing set means the built-in words.
   var copy = null;
   function getCopy() {
@@ -512,11 +515,11 @@
     var car = m.cars.filter(function (c) { return c.id === currentCar; })[0];
     var list = m.sessions.filter(function (s) { return s.carId === car.id; });
     // Your cars: pick one; its sessions are listed below.
-    var h = '<div class="tp-section"><div class="tp-head"><h2>Your cars</h2></div><div class="tp-cars" id="tp-cars">' + m.cars.map(function (c) {
+    var h = '<div class="tp-section"><div class="tp-head"><h2>Your vehicles</h2></div><div class="tp-cars" id="tp-cars">' + m.cars.map(function (c) {
       var n = m.sessions.filter(function (x) { return x.carId === c.id; }).length;
       return '<button type="button" class="tp-car' + (c.id === car.id ? ' is-on' : '') + '" data-car="' + esc(c.id) + '" aria-pressed="' + (c.id === car.id) + '"><b>' + esc(c.name) + '</b><span>' +
         esc([titleOf(c), c.version].filter(Boolean).join(' ') || 'Car') + ' &middot; ' + n + ' session' + (n === 1 ? '' : 's') + '</span></button>';
-    }).join('') + '<button type="button" class="tp-car tp-car-add" id="tp-car-add-open"><b>' + icon('plus') + 'Add a car</b><span>No photo needed</span></button></div>' +
+    }).join('') + '<button type="button" class="tp-car tp-car-add" id="tp-car-add-open"><b>' + icon('plus') + 'Add a vehicle</b><span>Car or bike, no photo needed</span></button></div>' +
       '<div id="tp-car-add-wrap" hidden>' + addCarHtml(false) + '</div></div>';
     h += '<div class="tp-section"><div class="tp-head"><div><h2>Sessions</h2><p class="tp-sub tp-for">' + esc(car.name) + '</p></div>' + refreshChip() + unitsChip() + '</div>';
     h += '<div class="tp-actions"><a class="btn btn-accent" href="track.html?add=1&car=' + encodeURIComponent(car.id) + '" data-go="add=1&car=' + esc(encodeURIComponent(car.id)) + '">' + icon('upload') + 'Add a session</a>' +
@@ -708,7 +711,7 @@
   // photos can be added later in My Garage. A car of another make is kept in the garage, out of the Gallery.
   function addCarHtml(first) {
     return '<form class="card tp-intro tp-addcar" id="tp-addcar" novalidate>' +
-      '<h2>' + (first ? 'Add your car' : 'Add a car') + '</h2>' +
+      '<h2>' + (first ? 'Add your vehicle' : 'Add a vehicle') + '</h2>' +
       '<p>' + (first ? 'Sessions belong to a car, so your times can be matched to its mods. ' : '') + 'No photo needed: you can add photos later in My Garage.</p>' +
       '<div class="tp-types" role="group" aria-label="Car or bike">' +
         '<button type="button" class="chip is-on" data-addcar-type="car" aria-pressed="true">Car</button>' +
@@ -747,6 +750,12 @@
       if (!b) return;
       type = b.getAttribute('data-addcar-type');
       form.querySelectorAll('[data-addcar-type]').forEach(function (c) { var on = c === b; c.classList.toggle('is-on', on); c.setAttribute('aria-pressed', String(on)); });
+      // The words follow Car or bike.
+      var bike = type === 'bike';
+      document.getElementById('tp-addcar-save').textContent = bike ? 'Add bike' : 'Add car';
+      make.placeholder = bike ? 'e.g. Ducati, Honda' : 'e.g. Tesla, Porsche';
+      model.placeholder = bike ? 'e.g. Panigale V4' : 'e.g. Model 3';
+      document.getElementById('tp-addcar-name').placeholder = bike ? 'e.g. Track bike' : 'e.g. Track car';
       lists();
     });
     form.addEventListener('submit', function (e) {
@@ -868,6 +877,7 @@
       if (m.gate) return showGate();
       if (!m.cars.length) return showHome();
       var car = m.cars.filter(function (c) { return c.id === carId; })[0] || m.cars[0];
+      VW = vwOf(car);
       add = { car: car, cars: m.cars, lib: r[1], admin: r[2], rd: null, session: null, type: null, startLine: null, conditions: 'Dry', privacy: 'private', street: false, file: null };
       var lt = lastTyre(m, car.id);
       // The tyres start empty; the car's last ones are offered with a button.
@@ -915,6 +925,7 @@
     var sel = document.getElementById('tp-car');
     if (sel) sel.addEventListener('change', function () {
       a.car = a.cars.filter(function (c) { return c.id === sel.value; })[0];
+      VW = vwOf(a.car);
       // Tyres follow the car chosen, until they have been changed by hand.
       a.lastTyre = lastTyre(mine, a.car.id) || null;
       if (a.tyrePre) { a.tyre = undefined; a.tyres = ''; a.tyrePre = false; }
@@ -1241,7 +1252,7 @@
   function sprintControlsHtml(a, s, isSprint) {
     var out = '';
     if (isSprint) out += '<button type="button" class="tp-switch" role="switch" aria-checked="' + (a.ignoreFinish !== false) + '" id="tp-ignore-finish"><span><b>Ignore the first time each run crosses the finish line</b><br><small>' + (s.firstFinishIgnored ? 'Skipped the first crossing on ' + s.firstFinishIgnored + ' run' + (s.firstFinishIgnored === 1 ? '' : 's') + ' in this file. Turn it off if a run is missing or ends too late.' : 'Only a run that crosses the finish line more than once has a crossing to skip. Turn this off if a run is missing.') + '</small></span><span class="tp-track"></span></button>';
-    if (isSprint) out += '<div class="tp-field"><label for="tp-finish-cross">Run ends on</label><select class="field" id="tp-finish-cross"><option value="">Automatic (see the switch above)</option>' + [1, 2, 3, 4, 5].map(function (n) { return '<option value="' + n + '"' + (a.finishCross === n ? ' selected' : '') + '>Crossing ' + n + ' of the finish line</option>'; }).join('') + '</select><p class="tp-small">If the car passes the finish line before the run really ends, choose which crossing finishes the timing. It counts from the start line.</p></div>';
+    if (isSprint) out += '<div class="tp-field"><label for="tp-finish-cross">Run ends on</label><select class="field" id="tp-finish-cross"><option value="">Automatic (see the switch above)</option>' + [1, 2, 3, 4, 5].map(function (n) { return '<option value="' + n + '"' + (a.finishCross === n ? ' selected' : '') + '>Crossing ' + n + ' of the finish line</option>'; }).join('') + '</select><p class="tp-small">If the ' + VW + ' passes the finish line before the run really ends, choose which crossing finishes the timing. It counts from the start line.</p></div>';
     return out;
   }
   // For the admin: which sprint courses the page knows near this file, and why none matched.
@@ -1303,7 +1314,7 @@
         var lapTimes = (s.laps || []).filter(function (l) { return l.kind === 'timed'; }).map(function (l) { return l.time; });
         var gapLap = !isSprint && s.type === 'track' && (s.laps || []).some(function (l) { return l.kind === 'slow' && lapTimes.length && l.time > 3 * Math.min.apply(null, lapTimes); });
         if (isSprint) h += reverseHtml(s);
-        if (gapLap) h += '<div class="tp-notice is-warn">' + icon('warn') + '<div><b>The car stopped for a long time between passes.</b><br>That is not a lap, so it is left out. If these were sprint or hill climb runs, switch the type to time each run from the start to the finish. <button type="button" class="btn btn-secondary btn-sm" data-tap="sprint">Switch to Sprint</button> <button type="button" class="btn btn-secondary btn-sm" data-tap="hill">Switch to Hill climb</button></div></div>';
+        if (gapLap) h += '<div class="tp-notice is-warn">' + icon('warn') + '<div><b>The ' + VW + ' stopped for a long time between passes.</b><br>That is not a lap, so it is left out. If these were sprint or hill climb runs, switch the type to time each run from the start to the finish. <button type="button" class="btn btn-secondary btn-sm" data-tap="sprint">Switch to Sprint</button> <button type="button" class="btn btn-secondary btn-sm" data-tap="hill">Switch to Hill climb</button></div></div>';
         if ((a.startLine || a.finishLine || s.startLine) && !s.officialLines && !s.autoLine) h += '<button type="button" class="btn btn-secondary btn-sm tp-move-lines" data-tap="edit">' + icon('pin') + 'Move ' + (isSprint ? 'start and finish' : 'the start line') + '</button>';
         h += sprintControlsHtml(a, s, isSprint);
         h += addNowHtml(a, s, isSprint);
@@ -1321,7 +1332,7 @@
       }
     }
     if (s.type === 'drag' && (s.runs || []).length) {
-        h += '<button type="button" class="tp-switch" role="switch" aria-checked="' + !!a.rollout + '" id="tp-rollout"><span><b>1 ft rollout</b><br><small>Start the clock just after the car starts to move, where RaceBox\'s option puts it. Off times from the first movement.</small></span><span class="tp-track"></span></button>';
+        h += '<button type="button" class="tp-switch" role="switch" aria-checked="' + !!a.rollout + '" id="tp-rollout"><span><b>1 ft rollout</b><br><small>Start the clock just after the ' + VW + ' starts to move, where RaceBox\'s option puts it. Off times from the first movement.</small></span><span class="tp-track"></span></button>';
     }
     h += lineFiguresHtml(a, s);
     var saveable = s.type === 'drag' ? (s.runs || []).length : s.type === 'other' ? true : !s.needsStartLine && s.laps && s.laps.length;
@@ -1338,7 +1349,7 @@
       h += '<button type="button" class="btn btn-accent btn-block" id="tp-save">Save changes</button>';
     } else if (saveable) {
       h += '<div class="tp-field"><span class="tp-lbl">Conditions</span><div class="tp-chips" data-cond>' + ['Dry', 'Damp', 'Wet'].map(function (c) { return '<button type="button" class="chip' + (a.conditions === c ? ' is-on' : '') + '" data-v="' + c + '">' + c + '</button>'; }).join('') + '</div></div>' +
-        tyreFields('tp-tyre', a.tyre) + (a.tyrePre && a.tyre ? '<p class="tp-small tp-tyre-note">Filled in from your last session with this car. Change it if it is different.</p>' : (a.lastTyre && !(a.tyre && (a.tyre.make || a.tyre.model || a.tyre.w)) ? '<p class="tp-small tp-tyre-note" id="tp-tyre-offer">Same tyres as last time (' + esc(TY.compose(a.lastTyre)) + ')? <button type="button" class="btn btn-secondary btn-sm" id="tp-use-last-tyres">Use previous tyres</button></p>' : '')) +
+        tyreFields('tp-tyre', a.tyre) + (a.tyrePre && a.tyre ? '<p class="tp-small tp-tyre-note">Filled in from your last session with this ' + VW + '. Change it if it is different.</p>' : (a.lastTyre && !(a.tyre && (a.tyre.make || a.tyre.model || a.tyre.w)) ? '<p class="tp-small tp-tyre-note" id="tp-tyre-offer">Same tyres as last time (' + esc(TY.compose(a.lastTyre)) + ')? <button type="button" class="btn btn-secondary btn-sm" id="tp-use-last-tyres">Use previous tyres</button></p>' : '')) +
         '<div class="tp-field"><label for="tp-temp">Air temperature (°C)</label><input class="field" id="tp-temp" inputmode="numeric" placeholder="18" value="' + esc(a.temp == null ? '' : a.temp) + '"></div>' +
         (a.tempSource === 'weather' && a.weather ? '<p class="tp-src" id="tp-temp-src">' + icon('info') + '<span>' + weatherNote(a.weather, s.venue) + (a.condTouched ? '' : ' Conditions set to match. Change them if the track was different.') + '</span></p>'
           : a.tempSource === 'file' ? '<p class="tp-src" id="tp-temp-src">' + icon('info') + '<span>From the air temperature recorded in your file.</span></p>' : '') +
@@ -1372,7 +1383,7 @@
   function privacyOptions(on, limit) {
     if (on === 'build') on = 'board';
     var opts = [['private', 'Only me', 'The default. Only you, and MT3UK\'s admin if you ask for help.'],
-      ['board', 'Shared', limit === 'noboard' ? 'Members see it on your car\'s page. This track has no leaderboard yet.' : 'Members see it on your car\'s page and on this track\'s leaderboard, with your car and mods.']];
+      ['board', 'Shared', limit === 'noboard' ? 'Members see it on your ' + VW + '\'s page. This track has no leaderboard yet.' : 'Members see it on your ' + VW + '\'s page and on this track\'s leaderboard, with your ' + VW + ' and mods.']];
     if (limit === 'street') opts = opts.slice(0, 1);
     return opts.map(function (o) {
       return '<button type="button" class="tp-opt' + (on === o[0] ? ' is-on' : '') + '" data-v="' + o[0] + '"><span class="tp-dot"></span><span><b>' + o[1] + '</b><span>' + o[2] + '</span></span></button>';
@@ -1900,6 +1911,7 @@
       var src = r[0], m = r[1];
       if (!src.p || !m) throw new Error(sourceError(src));
       var car = m.cars.filter(function (c) { return c.id === s.carId; })[0] || m.cars[0];
+      VW = vwOf(car);
       add = { car: car, cars: m.cars, lib: r[2], admin: r[3], rd: restoreSource(src), session: null, type: type, hill: !!hill, startLine: null, conditions: s.conditions || 'Dry', condTouched: true, privacy: s.privacy, street: false, tyres: s.tyres || '', tyre: tyreInit(s), temp: s.temp, tempSource: s.tempSource || '', weather: s.weather || null, notes: s.notes || '', date: s.date, time: s.time, venueName: s.venueId ? '' : s.venue, replaceId: s.id, files: null, list: null };
       analyse();
       window.scrollTo(0, 0);
@@ -2133,6 +2145,7 @@
       var src = r[0], m = r[1];
       if (!src.p || !m) throw new Error(sourceError(src));
       var car = m.cars.filter(function (c) { return c.id === s.carId; })[0] || m.cars[0];
+      VW = vwOf(car);
       add = { car: car, cars: m.cars, lib: r[2], admin: false, rd: restoreSource(src), session: null, type: s.type, startLine: s.startLine || null, finishLine: s.type === 'sprint' ? (s.finishLine || null) : null,
         editLines: true, confirmLines: false, lineEdit: true, organizer: s.organizer || '', ignoreFinish: s.ignoreFinish !== false, finishCross: s.finishCrossing || 0, rollout: !!s.rollout,
         conditions: s.conditions || 'Dry', condTouched: true, privacy: s.privacy, street: false, tyres: s.tyres || '', tyre: tyreInit(s), temp: s.temp, tempSource: s.tempSource || '', weather: s.weather || null,
@@ -2188,6 +2201,7 @@
       var d = r[0];
       if (!d.success) return failed('This session isn\'t available. It may be private or removed.');
       if (!d.session.hasSource && d.session.readingsRefused && !d.session.readingsMessage) d.session.readingsMessage = d.session.readingsRefused.message;
+      VW = d.session.vehicleType === 'bike' ? 'bike' : 'car';
       view = { s: d.session, mine: r[1], a: d.session.best || 1, b: null, other: {}, members: [], memberById: {} };
       var timed = (d.session.laps || []).filter(function (l) { return l.kind !== 'short' && l.n !== view.a; }).sort(function (x, y) { return x.time - y.time; });
       view.b = timed[0] ? String(timed[0].n) : null;
@@ -2498,7 +2512,7 @@
         '<p class="tp-small tp-sync-note">Both laps at the same moment: the slower one trails by the time gap.</p>' +
         '<div class="tp-play" id="tp-play"><div class="tp-pn-grip" id="tp-pn-grip" role="separator" aria-label="Drag to move the controls" title="Drag to move the controls"><i></i><i></i><i></i></div><div class="tp-play-row"><div class="tp-play-btns"><button type="button" class="btn btn-secondary" id="tp-play-start" data-play="start" aria-label="Go back to the start"></button><button type="button" class="btn btn-secondary" id="tp-play-back" data-play="back"></button><button type="button" class="btn btn-primary" id="tp-play-toggle" data-play="toggle"></button></div><div class="tp-when" id="tp-when" aria-live="off"></div>' +
         '<div class="tp-chips" id="tp-speeds" role="group" aria-label="Playback speed">' + [['0.25', 'x0.25'], ['0.5', 'x0.5'], ['1', 'x1'], ['2', 'x2'], ['5', 'x5']].map(function (v) { return '<button type="button" class="chip" data-speed="' + v[0] + '">' + v[1] + '</button>'; }).join('') + '</div>' +
-        '<button type="button" class="chip is-on" id="tp-follow" aria-pressed="true" title="When the map is zoomed in, keep the cars in view">Follow cars</button></div>' +
+        '<button type="button" class="chip is-on" id="tp-follow" aria-pressed="true" title="When the map is zoomed in, keep the ' + VW + 's in view">Follow ' + VW + 's</button></div>' +
         '<div class="tp-pn-size" id="tp-pn-size" role="separator" aria-label="Drag to resize the controls" title="Drag to resize the controls"></div>' +
         '</div>' +
         '<div class="tp-mapwrap" id="tp-mapwrap"><svg class="tv-chart" id="tp-map2" role="img" aria-label="Track map with both laps\' lines and positions"></svg>' +
@@ -2515,7 +2529,7 @@
         '<div class="tp-scrub-row"><div class="tp-scrub-track" id="tp-scrub-track"><div class="tp-ruler" id="tp-ruler" aria-hidden="true"></div><input type="range" id="tp-scrub" min="0" max="100" step="0.01" value="0" aria-label="Position in the lap"></div><span class="tp-clock" id="tp-clock">0:00.0</span></div>' +
         '<div class="tp-small tp-gpeaks" id="tp-gpeaks"></div><p class="tp-small" id="tp-gnote"></p></div></div>' +
         '</div></div>' +
-        '<div class="tp-grid tp-g2"><div class="card"><div class="tp-chart-head"><h3>How much grip you used, lap A' + (s.gDerived ? ' (estimated)' : '') + '</h3><span class="tp-small">Each dot is a moment on the lap. The further from the middle, the harder the car was working the tyres.</span></div><svg class="tv-chart tp-gg" id="tp-gg" role="img" aria-label="Sideways against lengthways g for lap A"></svg></div><div class="tp-notes" id="tp-cmp-notes"></div></div></div>';
+        '<div class="tp-grid tp-g2"><div class="card"><div class="tp-chart-head"><h3>How much grip you used, lap A' + (s.gDerived ? ' (estimated)' : '') + '</h3><span class="tp-small">Each dot is a moment on the lap. The further from the middle, the harder the ' + VW + ' was working the tyres.</span></div><svg class="tv-chart tp-gg" id="tp-gg" role="img" aria-label="Sideways against lengthways g for lap A"></svg></div><div class="tp-notes" id="tp-cmp-notes"></div></div></div>';
     }
     h += lapsHtml + spottedHtml;
     if (s.mine && s.venueId && s.layoutId) h += '<div class="tp-section" id="over-time"><div class="tp-head"><h2>' + esc(trackName(s)) + ' over time</h2></div><div id="tp-time"></div></div>';
@@ -3434,7 +3448,7 @@
     h += '<div class="tp-grid tp-g-map"><div class="card"><div class="tp-chart-head"><h3>Speed off the line</h3><div class="tp-key">' + runs.slice(0, 12).map(function (r, i) { return '<span><i style="background:' + RUN_COLORS[i] + '"></i>Run ' + (i + 1) + '</span>'; }).join('') + '</div></div><svg class="tv-chart" id="tp-drag" role="img" aria-label="Speed against time for each run"></svg></div>' +
       '<div class="card"><h3>Runs</h3><div class="tp-scroll"><table class="tp-table"><thead><tr><th>Run</th><th>60 ft</th><th>0-30</th><th>0-60</th><th>60-100</th><th>1/8</th><th>1/4</th><th>Trap</th></tr></thead><tbody>' +
       runs.map(function (r, i) { function f(v) { return v ? v.toFixed(2) : '-'; } return '<tr' + (r === bq ? ' class="is-best"' : '') + '><td>' + (i + 1) + '</td><td>' + f(r.ft60) + '</td><td>' + f(r.s30) + '</td><td>' + f(r.s60) + '</td><td>' + f(r.s60to100) + '</td><td>' + f(r.eighth) + '</td><td>' + f(r.quarter) + '</td><td>' + (r.quarterSpeed ? Math.round(V.spd(r.quarterSpeed)) : '-') + '</td></tr>'; }).join('') +
-      '</tbody></table></div><p class="tp-small">' + (s.rollout ? 'Timed with a 1 ft rollout: the clock starts just after the car begins to move, as RaceBox\'s rollout option does. Worked out from GPS speed.' : 'Times from the first movement, worked out from GPS speed. Strip timing lights and RaceBox\'s rollout option start the clock after about a foot of movement, so their times are usually a little quicker.') + '</p></div></div>';
+      '</tbody></table></div><p class="tp-small">' + (s.rollout ? 'Timed with a 1 ft rollout: the clock starts just after the ' + VW + ' begins to move, as RaceBox\'s rollout option does. Worked out from GPS speed.' : 'Times from the first movement, worked out from GPS speed. Strip timing lights and RaceBox\'s rollout option start the clock after about a foot of movement, so their times are usually a little quicker.') + '</p></div></div>';
     h += '<div class="tp-section"><h3>What we spotted</h3><div class="tp-notes">' + notesHtml(T.sessionNotes(s, V.fmtV, V.fmtD)) + '</div></div>';
     return h;
   }

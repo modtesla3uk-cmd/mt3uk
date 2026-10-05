@@ -31,7 +31,8 @@
   // 8: a sprint or hill climb notes when a faster pass crosses its lines the other way round (reverseRun).
   // 9: a standing start in a sprint or hill climb is always timed from the first reading above 0.5 km/h, wherever the start line is.
   // 10: a drag launch that reaches 30 mph but not 60 mph is listed as a run (it was dropped).
-  var ANALYSIS_VERSION = 10;
+  // 11: a lap trace's g figures are the biggest of the readings in each step, so a 25 a second file keeps its real peaks.
+  var ANALYSIS_VERSION = 11;
   var DEG = Math.PI / 180;
 
   function num(s) {
@@ -810,11 +811,22 @@
 
   function lapTrace(points, lap, hz) {
     var out = [], step = 1 / (hz || 5), next = lap.start;
+    // The g figures of each row are the biggest (either way) of the readings in its step, not just the one reading
+    // that happens to start it: a file at 25 a second is kept at 5 a second, and the peak of a corner can fall between
+    // two kept readings. A single wild reading is not a peak (each is the middle of three in a row).
+    function med3(x, y, z) { return x > y ? (y > z ? y : (x > z ? z : x)) : (x > z ? x : (y > z ? z : y)); }
+    function steady(key, m) { return med3(points[Math.max(0, m - 1)][key], points[m][key], points[Math.min(points.length - 1, m + 1)][key]); }
     for (var k = lap.i0; k <= lap.i1 && k < points.length; k++) {
       var p = points[k];
       if (p.t + 1e-9 < next && k !== lap.i1) continue;
       next = p.t + step;
-      out.push([round(p.d - lap.d0, 1), round(Math.max(0, p.t - lap.start), 2), round(p.x, 1), round(p.y, 1), round(p.v, 1), round(p.la, 2), round(p.lo, 2)]);
+      var la = steady('la', k), lo = steady('lo', k);
+      for (var m = k + 1; m <= lap.i1 && m < points.length && points[m].t < next - 1e-9; m++) {
+        var la2 = steady('la', m), lo2 = steady('lo', m);
+        if (Math.abs(la2) > Math.abs(la)) la = la2;
+        if (Math.abs(lo2) > Math.abs(lo)) lo = lo2;
+      }
+      out.push([round(p.d - lap.d0, 1), round(Math.max(0, p.t - lap.start), 2), round(p.x, 1), round(p.y, 1), round(p.v, 1), round(la, 2), round(lo, 2)]);
     }
     var last = out[out.length - 1];
     if (last) { last[0] = lap.dist; last[1] = lap.time; }

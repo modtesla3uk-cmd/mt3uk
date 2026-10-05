@@ -705,6 +705,32 @@ ok(T.fmtLap(99.786) === '1:39.79' && T.niceDate('2026-05-28') === '28 May 2026',
   ok(part.runs.length === 2, 'a launch that stops short of 60 mph is listed, the creeping is not: ' + part.runs.length);
   ok(part.runs[0].s30 && !part.runs[0].s60 && part.runs[0].ft60, 'the short launch has the figures it reached (60 ft, 0-30) and no 0-60');
   ok(part.runs[1].s60 && part.runs[1].s30, 'the full launch has 0-60 too');
-  ok(T.ANALYSIS_VERSION === 10, 'the analysis version moved on');
+  ok(T.ANALYSIS_VERSION >= 10, 'the analysis version moved on');
   ok(!T.sessionNotes(part).some(n => /NaN/.test(n.text)), 'the notes cope with a run that has no 0-60');
+}
+
+// The g figures of a lap trace are the biggest in each step, so a peak that falls between two kept readings is not
+// lost, and one wild reading is not a peak.
+{
+  const grd = T.read(fs.readFileSync(ROOT + 'tests/fixtures/thruxton-trimmed.vbo', 'latin1'), 'x.vbo');
+  const base = T.analyse(grd, lib), L = base.laps.find(l => l.n === base.best), P = grd.points;
+  const inLap = [];
+  for (let i = 0; i < P.length; i++) if (P[i].t >= L.start && P[i].t <= L.start + L.time) inLap.push(i);
+  // Make every reading a quiet 0.2 g, then put a 3-reading peak of 1.27 g and, elsewhere, one wild reading of 3 g.
+  const edited = JSON.parse(JSON.stringify(grd));
+  inLap.forEach(i => { edited.points[i].la = 0.2; });
+  // A two-reading peak on readings the trace does not keep (it keeps the first reading in each 0.2 s), so a trace that
+  // only took the kept readings would miss it.
+  const kept = new Set(); let nextT = L.start;
+  inLap.forEach(i => { if (P[i].t + 1e-9 >= nextT) { kept.add(i); nextT = P[i].t + 0.2; } });
+  let peakAt = -1;
+  for (let j = Math.floor(inLap.length / 2); j < inLap.length - 3; j++) if (!kept.has(inLap[j]) && !kept.has(inLap[j + 1])) { peakAt = inLap[j]; break; }
+  ok(peakAt > 0, 'found two readings the trace does not keep');
+  [0, 1].forEach(d => { edited.points[peakAt + d].la = -1.27; });
+  edited.points[inLap[10]].la = 3.0;
+  const got = T.analyse(edited, lib), tr = got.trace.laps[got.best];
+  const peak = Math.max(...tr.map(r => Math.abs(r[5])));
+  ok(near(peak, 1.27, 0.011), 'a short corner peak between kept readings reaches the trace: ' + peak.toFixed(2));
+  ok(tr.every(r => Math.abs(r[5]) < 2), 'one wild reading is not a peak');
+  ok(T.ANALYSIS_VERSION === 11, 'the analysis version moved on again');
 }

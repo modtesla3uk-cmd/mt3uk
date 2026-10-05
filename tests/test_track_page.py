@@ -99,7 +99,7 @@ class FakeWorker:
                 body = None
         status, data = 200, {"success": True}
         if path == "/my-builds":
-            data = {"success": True, "cars": [CAR]}
+            data = {"success": True, "cars": [CAR] + list(getattr(self, "extra_cars", []))}
         elif path == "/track/sessions" and req.method == "GET" and self.access != "approved":
             status, data = 403, {"success": False, "needsAccess": True}
         elif path == "/track/access" and req.method == "GET":
@@ -304,7 +304,7 @@ def test_signed_out_explains_and_lists_leaderboards(page):
 def test_add_a_session_from_the_racebox_file(page):
     fake = FakeWorker()
     open_page(page, fake)
-    expect(page.locator(".tp-boards-link")).to_have_attribute("href", "leaderboards.html")
+    expect(page.locator(".tp-lb-pill")).to_have_attribute("href", "leaderboards.html")
     page.get_by_role("link", name="Add a session").click()
     page.set_input_files("#tp-file", str(FIXTURE))
     notice = page.locator("#tp-result .tp-notice.is-ok")
@@ -1406,13 +1406,16 @@ def test_leaderboards_list_busy_tracks_first_with_counts(page):
 
 def test_cars_are_separate_from_sessions(page):
     open_page(page, FakeWorker())
-    cars = page.locator("#tp-cars .tp-car[data-car]")
+    cars = page.locator("#tp-cars .tp-vcurrent")
     expect(cars).to_have_count(1)
     expect(cars.first).to_contain_text("Arctic Three")
     expect(cars.first).to_contain_text("1 session")
+    # One vehicle: no Change button, just an Add a vehicle button.
+    expect(page.locator("#tp-vtoggle")).to_have_count(0)
+    expect(page.locator("#tp-car-add-open")).to_be_visible()
     expect(page.locator(".tp-for")).to_have_text("Arctic Three")
     expect(page.locator(".tp-list .tp-row")).to_have_count(1)
-    expect(page.locator(".tp-boards-link")).to_have_attribute("href", "leaderboards.html")
+    expect(page.locator(".tp-lb-pill")).to_have_attribute("href", "leaderboards.html")
     page.get_by_role("link", name="Add a session").click()
     page.set_input_files("#tp-file", str(FIXTURE))
     types = page.locator("[data-type] button")
@@ -1844,8 +1847,11 @@ def test_find_a_track_session_or_date_from_the_main_list(page):
     find_fixture(fake)
     open_page(page, fake)
     box = page.locator("#tp-find")
-    results = page.locator("#tp-sess-list a.tp-row[data-sid]")
+    results = page.locator("#tp-find-results a.tp-row[data-sid]")
     expect(page.locator("#tp-sess-list a.tp-trackrow")).to_have_count(3)
+    expect(page.locator("#tp-find-panel")).to_be_hidden()
+    page.locator("#tp-find-toggle").click()
+    expect(page.locator("#tp-find-panel")).to_be_visible()
     # A track name: the matching sessions themselves, newest first, and the sort goes away.
     box.fill("snett")
     expect(results).to_have_count(2)
@@ -1856,7 +1862,7 @@ def test_find_a_track_session_or_date_from_the_main_list(page):
     for text, ids in (("21 jul", ["f1", "f2"]), ("21/07/2026", ["f1", "f2"]), ("2026-06-01", ["f4"]), ("14/7", ["f3"]), ("september 2025", ["f5"]), ("july", ["f1", "f2", "f3"])):
         box.fill(text)
         expect(results).to_have_count(len(ids))
-        assert [r for r in page.locator("#tp-sess-list a.tp-row[data-sid]").evaluate_all("els => els.map(e => e.dataset.sid)")] == ids, text
+        assert [r for r in page.locator("#tp-find-results a.tp-row[data-sid]").evaluate_all("els => els.map(e => e.dataset.sid)")] == ids, text
     # Words together, and conditions.
     box.fill("castle wet")
     expect(results).to_have_count(1)
@@ -1864,7 +1870,7 @@ def test_find_a_track_session_or_date_from_the_main_list(page):
     expect(results).to_have_count(1)
     # Nothing found says what to try.
     box.fill("zzz")
-    expect(page.locator("#tp-sess-list")).to_contain_text("No sessions match")
+    expect(page.locator("#tp-find-results")).to_contain_text("No sessions match")
     # Clear brings the track lines back.
     page.get_by_role("button", name="Clear").click()
     expect(box).to_have_value("")
@@ -1872,14 +1878,64 @@ def test_find_a_track_session_or_date_from_the_main_list(page):
     expect(page.locator("#tp-sort")).to_be_visible()
 
 
+def test_vehicles_are_a_list_that_folds_and_the_search_covers_every_vehicle(page):
+    fake = FakeWorker(earlier=False)
+    fake.extra_cars = [dict(CAR, id="car2", name="Track Bike", model="Panigale V4"), dict(CAR, id="car3", name="Spare", model="Model 3")]
+    rows = [dict(day_session("m1", "10:00", 91.0, 4, date="2026-07-21", venue="Snetterton", venue_id="snetterton"), carId="car1"),
+            dict(day_session("m2", "11:00", 92.0, 4, date="2026-07-20", venue="Snetterton", venue_id="snetterton"), carId="car2"),
+            dict(day_session("m3", "12:00", 99.0, 4, date="2026-06-01", venue="Thruxton", venue_id="thruxton"), carId="car2")]
+    for r in rows:
+        fake.sessions[r["id"]] = dict(r)
+        fake.index.append(summary(r))
+    open_page(page, fake)
+    # Folded: the vehicle picked, with Change; the search and dates come first on the page.
+    cur = page.locator("#tp-cars .tp-vcurrent")
+    expect(cur).to_contain_text("Arctic Three")
+    expect(cur).to_contain_text("1 session")
+    expect(page.locator("#tp-cars .tp-car[data-car]")).to_have_count(0)
+    expect(page.locator("h1")).to_have_text("My Sessions")
+    head = page.locator("#tp-cars .tp-vhead")
+    expect(head.locator("h2")).to_be_visible()
+    expect(head.locator(".tp-vcurrent")).to_be_visible()
+    # Change opens the list, one row for each vehicle, and picking one folds it again.
+    page.locator("#tp-vtoggle").click()
+    rows_ = page.locator("#tp-cars .tp-vrow[data-car]")
+    expect(rows_).to_have_count(3)
+    expect(rows_.nth(0)).to_have_attribute("aria-checked", "true")
+    expect(page.locator("#tp-car-add-open")).to_be_visible()
+    rows_.filter(has_text="Track Bike").click()
+    expect(page.locator("#tp-cars .tp-vcurrent")).to_contain_text("Track Bike")
+    expect(page.locator("#tp-cars .tp-vcurrent")).to_contain_text("2 sessions")
+    expect(page.locator("#tp-vtoggle")).to_be_visible()
+    # The search looks through every vehicle and names the vehicle on each result.
+    page.locator("#tp-find-toggle").click()
+    expect(page.locator(".tp-find-hint")).to_have_text("Searches all your vehicles")
+    page.fill("#tp-find", "snetterton")
+    results = page.locator("#tp-find-results a.tp-row[data-sid]")
+    expect(results).to_have_count(2)
+    expect(results.nth(0).locator(".tp-row-car")).to_have_text("Arctic Three")
+    expect(results.nth(1).locator(".tp-row-car")).to_have_text("Track Bike")
+    expect(page.locator("#tp-tracks")).to_be_hidden()
+    # A vehicle's name is searchable too.
+    page.fill("#tp-find", "bike")
+    expect(results).to_have_count(2)
+    page.get_by_role("button", name="Clear").click()
+    expect(page.locator("#tp-tracks")).to_be_visible()
+    # Phone: no sideways scroll.
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.locator("#tp-vtoggle").click()
+    assert page.evaluate("document.documentElement.scrollWidth") <= 390
+
+
 def test_find_sessions_between_two_dates(page):
     fake = FakeWorker(earlier=False)
     find_fixture(fake)
     open_page(page, fake)
+    page.locator("#tp-find-toggle").click()
     expect(page.locator("#tp-find-range")).to_be_hidden()
     page.get_by_role("button", name="Between dates").click()
     expect(page.locator("#tp-find-range")).to_be_visible()
-    results = page.locator("#tp-sess-list a.tp-row[data-sid]")
+    results = page.locator("#tp-find-results a.tp-row[data-sid]")
     page.fill("#tp-find-from", "2026-06-01")
     page.fill("#tp-find-to", "2026-07-14")
     expect(results).to_have_count(2)

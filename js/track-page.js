@@ -69,6 +69,8 @@
     chev: '<path d="m9 6 6 6-6 6"/>',
     trash: '<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/>',
     user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/>',
+    search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+    calendar: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/>',
     pin: '<path d="M12 21s-7-6.3-7-12a7 7 0 0 1 14 0c0 5.7-7 12-7 12Z"/><circle cx="12" cy="9" r="2.5"/>'
   };
   function icon(n) { return '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">' + ICON[n] + '</svg>'; }
@@ -519,9 +521,8 @@
       } else {
         // Leaderboards first, above the cars. Faded until the member has a
         // session of their own to put on a board.
-        h += boardsLink(!m.sessions.length) + myCarsHtml(m);
+        h += myCarsHtml(m);
       }
-      if (!m || !m.cars.length) h += boardsLink(false);
       // Sessions just saved from a batch: say so at the top.
       if (justSaved && (justSaved.batch || justSaved.text)) { h = savedHtml(justSaved) + h; justSaved = null; }
       app.innerHTML = h;
@@ -530,28 +531,39 @@
       if (m && m.cars && m.cars.length) wireSessionList(m);
     }).catch(function () { failed('Track sessions could not be loaded. Check your connection and try again.'); });
   }
-  function boardsLink(quiet) {
-    return '<a class="tp-boards-link' + (quiet ? ' is-quiet' : '') + '" href="leaderboards.html">' + icon('trophy') + '<span><b>Leaderboards</b><span>' +
-      (quiet ? 'Add a session to get your car on the board' : 'Rankings at each track, drag strip, sprint and hill climb') + '</span></span>' + icon('chev') + '</a>';
+  var currentCar = null, vehiclesOpen = false;
+  function carSessionCount(m, c) { return m.sessions.filter(function (x) { return x.carId === c.id; }).length; }
+  // The heading row has the vehicle picked beside it (Change opens the list under the row, a row for each vehicle and then
+  // Add a vehicle). With one vehicle the picked one is just shown, with an Add a vehicle button under it.
+  function vehiclesHtml(m, car) {
+    var many = m.cars.length > 1, n = carSessionCount(m, car);
+    var cur = '<span class="tp-vtext"><b>' + esc(car.name) + '</b><span>' + n + ' session' + (n === 1 ? '' : 's') + '</span></span>';
+    var head = '<div class="tp-vhead"><h2>Your vehicles</h2>' + (many
+      ? '<button type="button" class="tp-car tp-vcurrent is-on" id="tp-vtoggle" aria-expanded="' + vehiclesOpen + '">' + cur + '<span class="tp-vchange">' + icon('chev') + '</span></button>'
+      : '<div class="tp-car tp-vcurrent is-on">' + cur + '</div>') + '</div>';
+    if (!many) return head + '<button type="button" class="btn btn-secondary btn-sm tp-vaddone" id="tp-car-add-open">' + icon('plus') + 'Add a vehicle</button>';
+    if (!vehiclesOpen) return head;
+    return head + '<div class="card tp-vlist" role="radiogroup" aria-label="Your vehicles">' + m.cars.map(function (c) {
+      var on = c.id === car.id, k = carSessionCount(m, c);
+      return '<button type="button" class="tp-car tp-vrow' + (on ? ' is-on' : '') + '" role="radio" aria-checked="' + on + '" data-car="' + esc(c.id) + '"><span class="tp-vdot"></span><span class="tp-vtext"><b>' + esc(c.name) + '</b><span>' + esc([titleOf(c), c.version].filter(Boolean).join(' ') || 'Car') + '</span></span><span class="tp-vn">' + k + ' session' + (k === 1 ? '' : 's') + '</span></button>';
+    }).join('') + '<button type="button" class="tp-vrow tp-vadd" id="tp-car-add-open">' + icon('plus') + 'Add a vehicle</button></div>';
   }
-  var currentCar = null;
   function myCarsHtml(m) {
     try { currentCar = currentCar || params().get('mycar') || localStorage.getItem('mt3ukTrackCar'); } catch (e) {}
     if (!m.cars.some(function (c) { return c.id === currentCar; })) currentCar = m.cars[0].id;
     var car = m.cars.filter(function (c) { return c.id === currentCar; })[0];
     var list = m.sessions.filter(function (s) { return s.carId === car.id; });
-    // Your cars: pick one; its sessions are listed below.
-    var h = '<div class="tp-section"><div class="tp-head"><h2>Your vehicles</h2></div><div class="tp-cars" id="tp-cars">' + m.cars.map(function (c) {
-      var n = m.sessions.filter(function (x) { return x.carId === c.id; }).length;
-      return '<button type="button" class="tp-car' + (c.id === car.id ? ' is-on' : '') + '" data-car="' + esc(c.id) + '" aria-pressed="' + (c.id === car.id) + '"><b>' + esc(c.name) + '</b><span>' +
-        esc([titleOf(c), c.version].filter(Boolean).join(' ') || 'Car') + ' &middot; ' + n + ' session' + (n === 1 ? '' : 's') + '</span></button>';
-    }).join('') + '<button type="button" class="tp-car tp-car-add" id="tp-car-add-open"><b>' + icon('plus') + 'Add a vehicle</b><span>Car or bike, no photo needed</span></button></div>' +
+    // Your vehicles: a list that folds away to the one picked. Its sessions are listed below.
+    var h = '<div class="tp-section tp-vehicles"><div class="tp-vbox" id="tp-cars">' + vehiclesHtml(m, car) + '</div>' +
       '<div id="tp-car-add-wrap" hidden>' + addCarHtml(false) + '</div></div>';
-    h += '<div class="tp-section"><div class="tp-head"><div><h2>Sessions</h2><p class="tp-sub tp-for">' + esc(car.name) + '</p></div>' + refreshChip() + unitsChip() + '</div>';
+    h += '<div class="tp-section"><div class="tp-head"><div><h2>Sessions</h2><p class="tp-sub tp-for">' + esc(car.name) + '</p></div>' + findToggleHtml(m) + refreshChip() + unitsChip() + '</div>';
     h += '<div class="tp-actions"><a class="btn btn-accent" href="track.html?add=1&car=' + encodeURIComponent(car.id) + '" data-go="add=1&car=' + esc(encodeURIComponent(car.id)) + '">' + icon('upload') + 'Add a session</a>' +
       (car.virtual ? '' : '<a class="btn btn-secondary" href="track.html?car=' + encodeURIComponent(car.id) + '" data-go="car=' + esc(encodeURIComponent(car.id)) + '">What others see</a>') + '</div>';
+    h += findPanelHtml(m);
+    h += '<div id="tp-tracks">';
     if (!list.length) h += '<div class="card tp-empty">' + icon('flag') + '<p>No sessions for ' + esc(car.name) + ' yet. Add the file from your lap timer to get started.</p></div>';
-    else h += trackToolsHtml(list) + '<div class="tp-list tp-tracklist" id="tp-sess-list">' + mainListHtml(list, car.id) + '</div>';
+    else h += trackToolsHtml(list) + '<div class="tp-list tp-tracklist" id="tp-sess-list">' + trackListHtml(list, car.id) + '</div>';
+    h += '</div><div id="tp-find-results"></div>';
     return h + '</div>';
   }
   // The main screen is one line for each track, newest driven first (or A to Z, or most sessions). A line opens its own page
@@ -577,7 +589,7 @@
   }
   // Find: words match the track, layout, date (typed any way: 21 Jul, 21/07/2026, July 2026, 2026-07-21), conditions, tyres
   // and kind of session, and two dates give a range. With either, the list shows the matching sessions themselves.
-  var findText = '', findFrom = '', findTo = '', findDates = false;
+  var findText = '', findFrom = '', findTo = '', findDates = false, findOpen = false, carNames = {};
   var MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
   function findActive() { return !!(findText.trim() || findFrom || findTo); }
   function sessionHaystack(x) {
@@ -586,7 +598,7 @@
       var day = +m[3], mon = +m[2], mname = MONTHS[mon - 1] || '';
       d = [x.date, niceDate(x.date), day + ' ' + mname + ' ' + m[1], mname, mname.slice(0, 3), m[1], m[3] + '/' + m[2] + '/' + m[1], day + '/' + mon + '/' + m[1], m[3] + '/' + m[2], day + '/' + mon];
     }
-    return [trackName(x), x.venue, x.layout, x.conditions, x.tyres, x.time, x.type === 'sprint' ? (x.hill ? 'hill climb hillclimb' : 'sprint') : x.type === 'drag' ? 'drag' : x.type === 'other' ? 'drive' : 'track day'].concat(d).join(' | ').toLowerCase();
+    return [trackName(x), x.venue, x.layout, x.conditions, x.tyres, x.time, carNames[x.carId] || '', x.type === 'sprint' ? (x.hill ? 'hill climb hillclimb' : 'sprint') : x.type === 'drag' ? 'drag' : x.type === 'other' ? 'drive' : 'track day'].concat(d).join(' | ').toLowerCase();
   }
   function matchesFind(x) {
     var from = findFrom, to = findTo;
@@ -599,27 +611,33 @@
     return words.every(function (w) { return hay.indexOf(w) !== -1; });
   }
   var FIND_MAX = 60;
-  function findResultsHtml(list) {
+  function findResultsHtml(list, manyCars) {
     var rows = list.filter(matchesFind).sort(function (a, b) { return whenOf(a) < whenOf(b) ? 1 : whenOf(a) > whenOf(b) ? -1 : 0; });
     if (!rows.length) return '<div class="card tp-empty">' + icon('flag') + '<p>No sessions match. Try fewer words, or a wider range of dates.</p></div>';
-    return '<p class="tp-small tp-find-count" role="status">' + rows.length + ' session' + (rows.length === 1 ? '' : 's') + ' found' + (rows.length > FIND_MAX ? ', showing the newest ' + FIND_MAX + '. Narrow the search to see the rest' : '') + '</p>' + rows.slice(0, FIND_MAX).map(sessionRow).join('');
+    return '<p class="tp-small tp-find-count" role="status">' + rows.length + ' session' + (rows.length === 1 ? '' : 's') + ' found' + (rows.length > FIND_MAX ? ', showing the newest ' + FIND_MAX + '. Narrow the search to see the rest' : '') + '</p>' +
+      '<div class="tp-list">' + rows.slice(0, FIND_MAX).map(function (x) { return sessionRow(x, manyCars ? carNames[x.carId] : ''); }).join('') + '</div>';
   }
+  // A magnifier in the Sessions row opens the search. It looks through every vehicle at once, and while it is used its
+  // results take the place of the track lines only: the vehicles and the Sessions buttons stay where they are.
+  function findToggleHtml(m) {
+    if (!m || !m.cars || !m.cars.length || m.sessions.length < 2) return '';
+    return '<button type="button" class="chip tp-find-toggle' + (findOpen || findActive() ? ' is-on' : '') + '" id="tp-find-toggle" aria-label="Search your sessions" aria-expanded="' + !!(findOpen || findActive()) + '">' + icon('search') + '</button>';
+  }
+  function findPanelHtml(m) {
+    if (!m || !m.cars || !m.cars.length || m.sessions.length < 2) return '';
+    var open = findOpen || findActive(), on = !!(findDates || findFrom || findTo);
+    return '<div class="tp-findpanel" id="tp-find-panel"' + (open ? '' : ' hidden') + '><div class="tp-find"><div class="tp-field tp-find-text"><input class="field" id="tp-find" type="search" autocomplete="off" aria-label="Find a track, session or date" placeholder="Search all vehicles: track, date, wet..." value="' + esc(findText) + '"></div>' +
+      '<button type="button" class="chip tp-find-cal' + (on ? ' is-on' : '') + '" id="tp-find-dates" aria-label="Between dates" aria-expanded="' + on + '">' + icon('calendar') + '</button></div>' +
+      '<div class="tp-find-range" id="tp-find-range"' + (on ? '' : ' hidden') + '><div class="tp-field"><label for="tp-find-from">From</label><input class="field" type="date" id="tp-find-from" value="' + esc(findFrom) + '"></div>' +
+      '<div class="tp-field"><label for="tp-find-to">To</label><input class="field" type="date" id="tp-find-to" value="' + esc(findTo) + '"></div></div>' +
+      '<div class="tp-find-bar"><span class="tp-small tp-find-hint">Searches all your vehicles</span><button type="button" class="btn btn-ghost btn-sm" id="tp-find-clear"' + (findActive() ? '' : ' hidden') + '>Clear</button></div></div>';
+  }
+  // The sort for the track lines of the vehicle picked.
   function trackToolsHtml(list) {
-    var tracks = trackEntries(list).length, h = '';
-    if (list.length >= 2) {
-      h += '<div class="tp-find"><div class="tp-field tp-find-text"><label for="tp-find">Find a track, session or date</label><input class="field" id="tp-find" type="search" autocomplete="off" placeholder="For example, Snetterton, wet, July 2026" value="' + esc(findText) + '"></div>' +
-        '<button type="button" class="chip' + (findDates || findFrom || findTo ? ' is-on' : '') + '" id="tp-find-dates" aria-expanded="' + !!(findDates || findFrom || findTo) + '">Between dates</button>' +
-        '<button type="button" class="btn btn-ghost btn-sm" id="tp-find-clear"' + (findActive() ? '' : ' hidden') + '>Clear</button></div>' +
-        '<div class="tp-find-range" id="tp-find-range"' + (findDates || findFrom || findTo ? '' : ' hidden') + '><div class="tp-field"><label for="tp-find-from">From</label><input class="field" type="date" id="tp-find-from" value="' + esc(findFrom) + '"></div>' +
-        '<div class="tp-field"><label for="tp-find-to">To</label><input class="field" type="date" id="tp-find-to" value="' + esc(findTo) + '"></div></div>';
-    }
-    if (tracks >= 2) {
-      h += '<div class="tp-tools"><div class="tp-field tp-sort"><label for="tp-sort">Sort by</label><select class="field" id="tp-sort">' +
-        SORTS.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === sortMode ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div></div>';
-    }
-    return h;
+    if (trackEntries(list).length < 2) return '';
+    return '<div class="tp-tools"><div class="tp-field tp-sort"><label for="tp-sort">Sort by</label><select class="field" id="tp-sort">' +
+      SORTS.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === sortMode ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div></div>';
   }
-  function mainListHtml(list, carId) { return findActive() ? findResultsHtml(list) : trackListHtml(list, carId); }
   function trackListHtml(list, carId) {
     return trackEntries(list).map(function (t) {
       var q = 'mycar=' + encodeURIComponent(carId) + '&at=' + encodeURIComponent(t.key);
@@ -670,16 +688,31 @@
     var car = m.cars.filter(function (c) { return c.id === currentCar; })[0];
     if (!car) return;
     var list = m.sessions.filter(function (x) { return x.carId === car.id; });
-    function redraw() {
-      document.getElementById('tp-sess-list').innerHTML = mainListHtml(list, car.id);
-      var clear = document.getElementById('tp-find-clear');
-      if (clear) clear.hidden = !findActive();
-      var sortBox = document.querySelector('.tp-tools');
-      if (sortBox) sortBox.hidden = findActive();
-    }
+    carNames = {};
+    m.cars.forEach(function (c) { carNames[c.id] = c.name; });
     var sortSel = document.getElementById('tp-sort');
-    if (sortSel) sortSel.addEventListener('change', function () { sortMode = sortSel.value; redraw(); });
+    if (sortSel) sortSel.addEventListener('change', function () {
+      sortMode = sortSel.value;
+      document.getElementById('tp-sess-list').innerHTML = trackListHtml(list, car.id);
+    });
+    // Find: the magnifier opens the search; while it is used the results sit in place of the track lines.
     var box = document.getElementById('tp-find'), from = document.getElementById('tp-find-from'), to = document.getElementById('tp-find-to'), range = document.getElementById('tp-find-range'), datesBtn = document.getElementById('tp-find-dates');
+    var toggle = document.getElementById('tp-find-toggle'), panel = document.getElementById('tp-find-panel');
+    function redraw() {
+      var res = document.getElementById('tp-find-results'), tracks = document.getElementById('tp-tracks'), clear = document.getElementById('tp-find-clear');
+      if (res) res.innerHTML = findActive() ? findResultsHtml(m.sessions, m.cars.length > 1) : '';
+      if (tracks) tracks.hidden = findActive();
+      if (clear) clear.hidden = !findActive();
+      if (toggle) toggle.classList.toggle('is-on', findOpen || findActive());
+    }
+    if (toggle) toggle.addEventListener('click', function () {
+      findOpen = panel.hidden;
+      panel.hidden = !findOpen;
+      toggle.setAttribute('aria-expanded', findOpen ? 'true' : 'false');
+      if (!findOpen && !findActive()) { /* closed with nothing in it */ }
+      if (findOpen && box) box.focus();
+      redraw();
+    });
     if (box) box.addEventListener('input', function () { findText = box.value; redraw(); });
     if (from) from.addEventListener('change', function () { findFrom = from.value; redraw(); });
     if (to) to.addEventListener('change', function () { findTo = to.value; redraw(); });
@@ -727,8 +760,8 @@
       });
     }).catch(function () { failed('Your sessions could not be loaded. Check your connection and try again.'); });
   }
-  function sessionRow(s) {
-    return '<a class="tp-row" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '"><span class="tp-row-main"><b>' + esc(trackName(s)) + '</b><span>' + esc(niceDate(s.date)) + (s.conditions ? ', ' + esc(s.conditions) : '') + (TYPE_WORD[s.type] ? ', ' + TYPE_WORD[s.type] : '') + '</span></span>' +
+  function sessionRow(s, carName) {
+    return '<a class="tp-row" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '"><span class="tp-row-main"><b>' + esc(trackName(s)) + '</b><span>' + esc(niceDate(s.date)) + (s.conditions ? ', ' + esc(s.conditions) : '') + (TYPE_WORD[s.type] ? ', ' + TYPE_WORD[s.type] : '') + '</span>' + (carName ? '<span class="tp-row-car">' + esc(carName) + '</span>' : '') + '</span>' +
       '<span class="tp-row-res">' + esc(sessionResult(s)) + '</span>' + (s.privacy !== undefined ? privacyPill(s.privacy, s.street) : '') + icon('chev') + '</a>';
   }
   // Sessions at the same track on the same day are grouped, in time of day order, and numbered by it:
@@ -836,10 +869,9 @@
     var type = 'car';
     var make = document.getElementById('tp-addcar-make'), model = document.getElementById('tp-addcar-model');
     var msg = document.getElementById('tp-addcar-msg');
-    var open = document.getElementById('tp-car-add-open'), wrap = document.getElementById('tp-car-add-wrap');
-    if (open && wrap) open.addEventListener('click', function () { wrap.hidden = false; open.hidden = true; make.focus(); });
+    var wrap = document.getElementById('tp-car-add-wrap');
     var cancel = document.getElementById('tp-addcar-cancel');
-    if (cancel) cancel.addEventListener('click', function () { wrap.hidden = true; open.hidden = false; });
+    if (cancel) cancel.addEventListener('click', function () { wrap.hidden = true; var open = document.getElementById('tp-car-add-open'); if (open) open.hidden = false; });
     function opts(list) { return list.map(function (v) { return '<option value="' + esc(v) + '"></option>'; }).join(''); }
     function lists() {
       var V2 = window.MT3UKVehicles, byMake = (V2 && V2[type]) || {};
@@ -880,12 +912,22 @@
     });
   }
   function wireCarChips(m) {
-    var chips = document.getElementById('tp-cars');
-    if (!chips) return;
-    chips.addEventListener('click', function (e) {
+    var box = document.getElementById('tp-cars');
+    if (!box) return;
+    function draw() {
+      var car = m.cars.filter(function (c) { return c.id === currentCar; })[0] || m.cars[0];
+      box.innerHTML = vehiclesHtml(m, car);
+    }
+    box.addEventListener('click', function (e) {
+      if (e.target.closest('#tp-vtoggle')) { vehiclesOpen = true; draw(); return; }
+      var add = e.target.closest('#tp-car-add-open'), wrap = document.getElementById('tp-car-add-wrap');
+      if (add && wrap) { wrap.hidden = false; add.hidden = true; var mk = document.getElementById('tp-addcar-make'); if (mk) mk.focus(); return; }
       var b = e.target.closest('[data-car]');
       if (!b) return;
-      currentCar = b.getAttribute('data-car');
+      var picked = b.getAttribute('data-car');
+      vehiclesOpen = false;
+      if (picked === currentCar) { draw(); return; }
+      currentCar = picked;
       try { localStorage.setItem('mt3ukTrackCar', currentCar); } catch (er) {}
       showHome();
     });

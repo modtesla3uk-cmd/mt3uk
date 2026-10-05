@@ -67,6 +67,11 @@
   .page-hero .back-link:hover { color: var(--orange); }
   .page-hero .eyebrow { display: block; font-size: 0.82rem; font-weight: 600; color: var(--steel); margin-bottom: 8px; }
   .page-hero h1 { margin-bottom: 12px; font-size: clamp(1.6rem, 4vw, 2.3rem); }
+  .tp-hero-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-bottom: 12px; }
+  .tp-hero-row h1 { margin: 0; flex: 1 1 auto; min-width: 0; }
+  .tp-lb-pill { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 999px; background: var(--ink); color: #fff; font-weight: 700; font-size: 0.92rem; white-space: nowrap; text-decoration: none; }
+  .tp-lb-pill .icon { width: 20px; height: 20px; color: #f58a68; }
+  .tp-lb-pill:hover { background: #22345a; color: #fff; }
   /* Play intro: shows the Laps front page (laps.html) again. */
   .tp-play-intro { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin: 0 10px 16px 14px; vertical-align: top; font-size: 0.88rem; font-weight: 600; color: var(--steel); }
   .tp-play-intro:hover { color: var(--orange); }
@@ -75,6 +80,8 @@
   @media (max-width: 780px) { .page-hero { padding: 24px 0 20px; } .page-hero .back-link { margin-bottom: 10px; } }
   @media (min-width: 901px) {
     .page-hero .wrap { text-align: center; }
+    .tp-hero-row { justify-content: center; }
+    .tp-hero-row h1 { flex: 0 1 auto; }
     .page-hero p { margin-left: auto; margin-right: auto; }
   }
 
@@ -173,9 +180,17 @@
   .tp-tools { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 16px; margin: 14px 0 0; }
   .tp-types { display: flex; flex-wrap: wrap; gap: 8px; }
   .tp-types .chip { min-height: 44px; }
-  .tp-find { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin: 14px 0 0; }
-  .tp-find-text { flex: 1; min-width: 220px; }
+  .tp-find { display: flex; align-items: stretch; gap: 8px; margin: 0; }
+  .tp-find-btns { display: flex; align-items: center; gap: 8px; }
+  .tp-find-hint { margin: 6px 0 0; color: var(--steel); }
+  .tp-find-text { flex: 1; min-width: 0; }
   .tp-find .chip { min-height: 44px; }
+  .tp-findpanel { margin: 10px 0 0; }
+  .tp-findpanel[hidden] { display: none; }
+  .tp-find-toggle, .tp-find-cal { width: 44px; padding: 0; justify-content: center; }
+  .tp-find-toggle .icon, .tp-find-cal .icon { width: 20px; height: 20px; }
+  .tp-find-bar { display: flex; align-items: center; justify-content: space-between; margin: 6px 0 0; min-height: 36px; }
+  .tp-find-bar .tp-find-hint { margin: 0; }
   .tp-find-range { display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0 0; }
   .tp-find-range .tp-field { width: 170px; }
   .tp-find-range[hidden], .tp-tools[hidden], .tp-find [hidden] { display: none; }
@@ -696,6 +711,28 @@
   .tp-car b { font-size: 0.95rem; overflow-wrap: anywhere; }
   .tp-car span { font-size: 0.8rem; color: var(--steel); }
   .tp-car.is-on { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+  .tp-vbox { display: block; }
+  .tp-vhead { display: flex; align-items: center; gap: 12px; }
+  .tp-vhead h2 { margin: 0; flex: none; }
+  .tp-vbox .tp-vcurrent { display: flex; align-items: center; gap: 10px; flex: 1 1 auto; min-width: 0; width: auto; min-height: 48px; padding: 6px 12px; text-align: left; background: #fff; border: 1px solid var(--hairline-strong); border-radius: var(--radius); font: inherit; color: inherit; box-sizing: border-box; }
+  .tp-vbox .tp-vlist { margin-top: 10px; }  button.tp-vcurrent { cursor: pointer; }
+  .tp-car .tp-vtext { display: grid; gap: 2px; min-width: 0; font-size: 1rem; color: var(--ink); }
+  .tp-car .tp-vtext b { font-size: 0.95rem; overflow-wrap: anywhere; }
+  .tp-car .tp-vtext span { font-size: 0.8rem; color: var(--steel); }
+  .tp-car .tp-vchange { margin-left: auto; display: flex; align-items: center; gap: 4px; font-size: 0.85rem; font-weight: 600; color: var(--ink); white-space: nowrap; }
+  .tp-vchange .icon { width: 16px; height: 16px; transform: rotate(90deg); }
+  .tp-vlist { padding: 0; overflow: hidden; }
+  .tp-vbox .tp-vrow { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 10px 14px; background: none; border: 0; border-top: 1px solid var(--hairline); border-radius: 0; box-shadow: none; text-align: left; cursor: pointer; font: inherit; color: inherit; box-sizing: border-box; }
+  .tp-vbox .tp-vrow:first-child { border-top: 0; }
+  .tp-vbox .tp-vrow.is-on { background: #eef2f9; box-shadow: none; border-color: transparent; }
+  .tp-vdot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--hairline-strong); flex: none; box-sizing: border-box; }
+  .tp-vrow.is-on .tp-vdot { border-color: var(--ink); background: radial-gradient(var(--ink) 45%, #fff 50%); }
+  .tp-car .tp-vn { margin-left: auto; font-size: 0.8rem; font-weight: 600; color: var(--steel); white-space: nowrap; }
+  .tp-vadd { font-weight: 700; color: var(--ink); }
+  .tp-vadd .icon, .tp-vaddone .icon { width: 16px; height: 16px; }
+  .tp-vaddone { margin-top: 10px; }
+  .tp-vadd[hidden], .tp-vaddone[hidden] { display: none; }
+  .tp-row-car { display: block; font-weight: 600; color: var(--ink-2); }
   .tp-for { margin: 2px 0 0; font-weight: 600; color: var(--ink); }
   .tp-boards-link { display: flex; align-items: center; gap: 12px; min-height: 64px; margin-top: 30px; padding: 12px 16px; border-radius: var(--radius); background: var(--ink); color: #fff; }
   .tp-boards-link > .icon:first-child { color: #f58a68; width: 24px; height: 24px; }
@@ -760,7 +797,7 @@
   <div class="wrap">
     <a href="my-builds.html" class="back-link" aria-label="Back to My Garage"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</a><a href="laps.html" class="tp-play-intro" id="tp-play-intro"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m10 8.5 5 3.5-5 3.5Z"/></svg>Play intro</a>
     <span class="early-badge early-badge-lg">Early preview</span>
-    <h1>Track sessions</h1>
+    <div class="tp-hero-row"><h1>My Sessions</h1><a class="tp-lb-pill" id="tp-lb-pill" href="leaderboards.html"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/></svg>Leaderboards</a></div>
     <p>Your track days and drag runs from your lap timer file: every lap mapped, where you gained and lost time, and what your mods did to your times.</p>
   </div>
 </section>
@@ -918,7 +955,7 @@
 <script src="js/tyre-data.js"></script>
 <script src="js/vehicle-data.js?v=20261228" defer></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20261228" defer></script>
+<script src="js/track-page.js?v=20261230" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=10" defer></script>
 <script src="js/signin-prompt.js" defer></script>

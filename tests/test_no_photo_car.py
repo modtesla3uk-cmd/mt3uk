@@ -82,6 +82,9 @@ def test_laps_adds_a_car_without_a_photo(page):
     page.fill("#tp-addcar-model", "Panigale V4")
     page.fill("#tp-addcar-name", "Track bike")
     page.locator("#tp-addcar-save").click()
+    # Two vehicles: the list is folded to the one picked, and Change opens it with a row for each.
+    expect(page.locator("#tp-vtoggle")).to_be_visible()
+    page.locator("#tp-vtoggle").click()
     page.wait_for_function("document.querySelectorAll('#tp-cars .tp-car[data-car]').length === 2", timeout=5000)
     assert fake.added[-1]["vehicleType"] == "bike" and fake.added[-1]["name"] == "Track bike"
 

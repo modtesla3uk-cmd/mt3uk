@@ -40,6 +40,8 @@
     call('GET').then(function (d) {
       if (!(d.ok && d.success && d.alerts)) return;
       show(d.alerts);
+      pushDevices = d.pushDevices || [];
+      showPush();
       if (stamp !== null && d.stamp !== stamp) document.dispatchEvent(new CustomEvent('mt3uk-admin-changed'));
       stamp = d.stamp || '';
     }).catch(function () {});
@@ -60,6 +62,92 @@
       }).catch(function () { sw.disabled = false; note('Could not reach the server.'); });
     });
   }
+  // ---------- Push on this device ----------
+  // The members' service worker (/sw.js) shows the notification; this device's push subscription is added to or
+  // taken off the admin's list on the worker. The browser's subscription itself is kept, because the same one
+  // carries this browser's member notifications. On an iPhone push only works in the installed app.
+  var pushSw = document.getElementById('alerts-push');
+  var canPush = !!(pushSw && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window);
+  var swReady = canPush ? navigator.serviceWorker.register('/sw.js').then(function () { return navigator.serviceWorker.ready; }).catch(function () { return null; }) : Promise.resolve(null);
+  var pushDevices = null;
+  function showPush() {
+    if (!canPush) return;
+    swReady.then(function (reg) {
+      if (!reg) return;
+      pushSw.hidden = false;
+      return reg.pushManager.getSubscription().then(function (sub) {
+        pushSw.setAttribute('aria-checked', String(!!(sub && pushDevices && pushDevices.indexOf(sub.endpoint) !== -1)));
+      });
+    }).catch(function () {});
+  }
+  function keyBytes(b64) {
+    var s = (b64 + '='.repeat((4 - b64.length % 4) % 4)).replace(/-/g, '+').replace(/_/g, '/');
+    var raw = atob(s), out = new Uint8Array(raw.length);
+    for (var i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+    return out;
+  }
+  if (pushSw) pushSw.addEventListener('click', function () {
+    if (!key()) { note('Enter the admin key first.'); return; }
+    var on = pushSw.getAttribute('aria-checked') !== 'true';
+    pushSw.disabled = true;
+    var done = function (msg) { pushSw.disabled = false; if (msg) note(msg); };
+    swReady.then(function (reg) {
+      if (!reg) throw new Error('Push notifications are not available in this browser.');
+      if (!on) {
+        return reg.pushManager.getSubscription().then(function (sub) {
+          return call('POST', { unsubscribe: sub ? sub.endpoint : '' });
+        }).then(function (d) {
+          if (!d.ok || !d.success) throw new Error(d.message || 'Could not save that.');
+          pushDevices = d.pushDevices || [];
+          pushSw.setAttribute('aria-checked', 'false');
+          done('Push is off on this device.');
+        });
+      }
+      return Notification.requestPermission().then(function (perm) {
+        if (perm !== 'granted') throw new Error('Notifications are blocked for this site. Allow them in the browser or phone settings, then try again.');
+        return reg.pushManager.getSubscription();
+      }).then(function (sub) {
+        if (sub) return sub;
+        return fetch(API + '/push/key', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (k) {
+          return reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(k.publicKey) });
+        });
+      }).then(function (sub) {
+        return call('POST', { subscribe: sub.toJSON(), test: true });
+      }).then(function (d) {
+        if (!d.ok || !d.success) throw new Error(d.message || 'Could not save that.');
+        pushDevices = d.pushDevices || [];
+        pushSw.setAttribute('aria-checked', 'true');
+        done('Push is on for this device. A test notification is on its way.');
+      });
+    }).catch(function (err) { done(err.message || 'Could not switch push on.'); });
+  });
+  // A push arriving while the page is open brings the bell up to date at once.
+  if (canPush) navigator.serviceWorker.addEventListener('message', function (e) {
+    if (e.data && e.data.type === 'mt3uk-push') load();
+  });
+
+  // ---------- Install this page as an app ----------
+  // Chrome and Edge install straight away; Safari and Firefox are told how. Hidden inside the installed app.
+  var installBtn = document.getElementById('alerts-install');
+  var installed = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+  var installPrompt = null;
+  var isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (installBtn && !installed) {
+    installBtn.hidden = false;
+    window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); installPrompt = e; });
+    window.addEventListener('appinstalled', function () { installBtn.hidden = true; note('Installed. Open it from your home screen or apps.'); });
+    installBtn.addEventListener('click', function () {
+      if (installPrompt) {
+        installPrompt.prompt();
+        installPrompt.userChoice.then(function () { installPrompt = null; }).catch(function () {});
+        return;
+      }
+      note(isIos
+        ? 'In Safari, tap the Share button, then Add to Home Screen. Push notifications on an iPhone work from the installed app: open it, then switch on Push on this device.'
+        : 'Use your browser\'s menu: Install page as app, Add to Home screen or Add to Dock.');
+    });
+  }
+
   flip(bellSw, 'bell');
   flip(emailSw, 'email');
   // Entering the key (Load) reads the switches straight away.

@@ -3213,17 +3213,38 @@ var ADMIN_STAMP_KEY = 'admin-alert-stamp';
 async function bumpAdminStamp(env) {
   try { await env.VOTES.put(ADMIN_STAMP_KEY, String(Date.now())); } catch (e) { /* the bell catches up on its next full reload */ }
 }
-async function sendAdminEmail(env, raw) {
+// Push notifications for the admin: the devices where Push is switched on (js/admin-alerts.js) are kept as the push
+// subscriptions of a pretend member, ADMIN_PUSH_ID (no @, so never a real email), so the members' push code sends them.
+var ADMIN_PUSH_ID = 'mt3uk-admin';
+async function sendAdminEmail(env, raw, subject, page) {
   await bumpAdminStamp(env);
+  await sendPushToMember(env, ADMIN_PUSH_ID, { title: 'MT3UK Admin', body: String(subject || 'Something needs your attention'), url: page || '/admin.html' });
   if (!(await adminAlerts(env)).email) return;
   await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, raw));
 }
 async function handleAdminAlerts(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
   var now = await adminAlerts(env);
-  if (request.method === 'GET') return json({ success: true, alerts: now, stamp: (await env.VOTES.get(ADMIN_STAMP_KEY)) || '' });
+  var devices = (await getPushSubscriptions(env, ADMIN_PUSH_ID)).map(function (s) { return s.endpoint; });
+  if (request.method === 'GET') return json({ success: true, alerts: now, stamp: (await env.VOTES.get(ADMIN_STAMP_KEY)) || '', pushDevices: devices });
   var body;
   try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  // Push is per device: this device's subscription goes on or comes off the admin's list.
+  if (body && (body.subscribe || body.unsubscribe)) {
+    var subs = await getPushSubscriptions(env, ADMIN_PUSH_ID);
+    if (body.subscribe) {
+      if (!validPushSubscription(body.subscribe)) return json({ success: false, message: 'Invalid subscription' }, 400);
+      var sub = body.subscribe;
+      subs = subs.filter(function (s) { return s.endpoint !== sub.endpoint; });
+      subs.push({ endpoint: sub.endpoint, keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth }, addedAt: new Date().toISOString() });
+    } else {
+      subs = subs.filter(function (s) { return s.endpoint !== String(body.unsubscribe); });
+    }
+    subs = subs.slice(-MAX_PUSH_SUBSCRIPTIONS);
+    await env.VOTES.put('push:' + ADMIN_PUSH_ID, JSON.stringify(subs));
+    if (body.subscribe && body.test) await sendPushToMember(env, ADMIN_PUSH_ID, { title: 'MT3UK Admin', body: 'Push notifications are on for this device.', url: '/admin.html' });
+    return json({ success: true, alerts: now, pushDevices: subs.map(function (s) { return s.endpoint; }) });
+  }
   if (body && typeof body.bell === 'boolean') now.bell = body.bell;
   if (body && typeof body.email === 'boolean') now.email = body.email;
   await env.VOTES.put(ADMIN_ALERTS_KEY, JSON.stringify(now));
@@ -3234,7 +3255,7 @@ async function handleAdminAlerts(request, env) {
 // admin.html is open, so these would otherwise wait unseen.
 async function sendReportEmail(env, subject, text) {
   try {
-    await sendAdminEmail(env, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text + '\n\nReview it on the Reports panel: ' + MY_BUILDS_SITE_URL + '/admin.html#grp-reports'));
+    await sendAdminEmail(env, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text + '\n\nReview it on the Reports panel: ' + MY_BUILDS_SITE_URL + '/admin.html#grp-reports'), subject, '/admin.html#grp-reports');
   } catch (e) { /* the report is saved */ }
 }
 
@@ -3462,7 +3483,7 @@ async function sendClaimRequestEmail(env, file, email, note, name, guest) {
     (note ? 'Their note:\n' + note + '\n\n' : '') +
     'Photo: ' + GALLERY_PUBLIC_BASE_URL + '/gallery/' + file + '\n\n' +
     'Review and approve/reject: ' + MY_BUILDS_SITE_URL + '/gallery-claims-admin.html';
-  await sendAdminEmail(env, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, body));
+  await sendAdminEmail(env, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, body), subject, '/admin.html');
 }
 
 // A photo is claimed either from a signed-in My Garage account, or by
@@ -7043,7 +7064,7 @@ async function handleTrackAccessRequest(request, env) {
     var text = subscriberLabel(name, email) + ' has asked for early access to Track Sessions.\n\n' +
       (use ? 'Using: ' + use + '\n' : '') + (note ? 'Their note:\n' + note + '\n\n' : '\n') +
       'Approve or decline: ' + MY_BUILDS_SITE_URL + '/track-admin.html#grp-access';
-    await sendAdminEmail(env, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text));
+    await sendAdminEmail(env, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text), subject, '/track-admin.html#access-wrap');
   } catch (e) { /* the request is saved */ }
   return json({ success: true, access: 'pending' });
 }
@@ -7377,7 +7398,7 @@ function trackTimeText(t) {
   return m + ':' + (r < 10 ? '0' : '') + r.toFixed(2);
 }
 async function emailAdminAboutLines(env, subject, text) {
-  try { await sendAdminEmail(env, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text)); } catch (e) { /* the request is kept either way */ }
+  try { await sendAdminEmail(env, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text), subject, '/track-admin.html'); } catch (e) { /* the request is kept either way */ }
 }
 async function emailMemberAboutLines(env, entry, subject, text) {
   if (!entry || !entry.email) return;
@@ -7454,7 +7475,7 @@ async function handleTrackLinesPropose(request, env) {
       pics.map(function (x) { return '<p style="margin:12px 0 4px"><b>' + (x.which === 'before' ? 'Old lines' : 'New lines') + '</b></p><img src="cid:' + x.cid + '" alt="' + (x.which === 'before' ? 'The old lines on the map' : 'The new lines on the map') + '" style="max-width:100%;border:1px solid #e3e6ec;border-radius:6px">'; }).join('') +
       '<p style="margin:16px 0"><a href="' + requestUrl + '" style="background:#e8562a;color:#ffffff;padding:10px 16px;border-radius:6px;text-decoration:none;font-weight:bold">Accept or undo</a></p>' +
       '<p style="font-size:13px;color:#6b7385">The time is worked out again from the saved readings when you accept. <a href="' + sessionUrl + '">Open the session</a></p></div>';
-    await sendAdminEmail(env, rawEmailWithImages(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text, html, pics));
+    await sendAdminEmail(env, rawEmailWithImages(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text, html, pics), subject, '/track-admin.html');
     sent = true;
   } catch (e) { /* the change is kept either way; the panel says if the email did not go */ }
   if (!sent) entry.proposal.emailFailed = true;
@@ -8013,7 +8034,7 @@ async function handleTrackRequest(request, env) {
       'Name: ' + (req.name || 'not given') + '\n' + (req.organizer ? 'Organiser: ' + req.organizer + '\n' : '') + (req.note ? 'Note: ' + req.note + '\n' : '') +
       (req.lat !== null ? 'Position: ' + req.lat.toFixed(4) + ', ' + req.lng.toFixed(4) + '\n' : '') +
       '\nApprove and add it, or dismiss it, on the Tracks panel: ' + MY_BUILDS_SITE_URL + '/track-admin.html#grp-tracks';
-    await sendAdminEmail(env, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text));
+    await sendAdminEmail(env, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text), subject, '/track-admin.html#tracks-wrap');
   } catch (e) { /* the request is saved */ }
   return json({ success: true });
 }
@@ -8052,7 +8073,7 @@ async function handleTrackCourseAdd(request, env) {
     var text = subscriberLabel(await publicNameFor(env, email), email) + ' has added a ' + what + ' to the list from their session, so it is live and timing sessions now.\n\n' +
       'Name: ' + req.name + '\n' + (req.organizer ? 'Organiser: ' + req.organizer + '\n' : '') + 'Position: ' + req.lat.toFixed(4) + ', ' + req.lng.toFixed(4) + '\n' +
       '\nCheck its lines on the Tracks panel and mark it reviewed: ' + MY_BUILDS_SITE_URL + '/track-admin.html#grp-tracks';
-    await sendAdminEmail(env, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text));
+    await sendAdminEmail(env, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text), subject, '/track-admin.html#tracks-wrap');
   } catch (e) { /* the track is added */ }
   return json({ success: true, venueId: added.venueId, layoutId: added.layoutId, relinked: added.relinked, library: await getTrackLibrary(env) });
 }
@@ -8767,7 +8788,7 @@ async function handleGarageGalleryRequest(request, env) {
     var text = subscriberLabel(name, email) + ' has asked for their car "' + (t.name || 'their car') + '"' + (t.title ? ' (' + t.title + ')' : '') +
       ' to be shown in the Gallery, the Reel and Build of the Week. It is kept in their garage until then.\n\n' +
       (note ? 'Their note:\n' + note + '\n\n' : '') + 'Approve or decline: ' + MY_BUILDS_SITE_URL + '/admin.html#garage-asks-wrap';
-    await sendAdminEmail(env, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text));
+    await sendAdminEmail(env, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text), subject, '/admin.html#garage-asks-wrap');
   } catch (e) { /* the request is saved */ }
   return json({ success: true, asked: true });
 }

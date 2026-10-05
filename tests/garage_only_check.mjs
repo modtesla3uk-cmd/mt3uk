@@ -282,3 +282,28 @@ await call('POST', '/my-builds/car/gallery-request', { carId: kia }, 'tok-a');
 r = await call('GET', '/admin/alerts?key=secret');
 ok(r.body.stamp && r.body.stamp !== stampUndo, 'a new request changes the stamp, even with Email off');
 await call('POST', '/admin/alerts?key=secret', { email: true });
+
+// ---- Push on this device for the admin ----
+const pushCalls = [];
+globalThis.fetch = async (url, init) => { pushCalls.push(String(url)); return new Response('{}', { status: 201 }); };
+const b64u = b => Buffer.from(b).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const uaKey = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveBits']);
+const device = { endpoint: 'https://push.example/admin-phone', keys: { p256dh: b64u(new Uint8Array(await crypto.subtle.exportKey('raw', uaKey.publicKey))), auth: b64u(crypto.getRandomValues(new Uint8Array(16))) } };
+r = await call('POST', '/admin/alerts', { subscribe: device });
+ok(r.status === 401, 'push for the admin needs the admin key');
+r = await call('POST', '/admin/alerts?key=secret', { subscribe: { endpoint: 'nope' } });
+ok(r.status === 400, 'a broken subscription is refused');
+r = await call('POST', '/admin/alerts?key=secret', { subscribe: device, test: true });
+ok(r.body.success && r.body.pushDevices.includes(device.endpoint) && pushCalls.includes(device.endpoint), 'a device can switch push on, and gets a test notification');
+r = await call('GET', '/admin/alerts?key=secret');
+ok(r.body.pushDevices.length === 1, 'the admin can see which devices have push on');
+pushCalls.length = 0;
+await call('POST', '/my-builds/car/gallery-request', { carId: kia, cancel: true }, 'tok-a');
+await call('POST', '/my-builds/car/gallery-request', { carId: kia }, 'tok-a');
+ok(pushCalls.includes(device.endpoint), 'something new for the admin is pushed to that device');
+r = await call('POST', '/admin/alerts?key=secret', { unsubscribe: device.endpoint });
+ok(r.body.success && r.body.pushDevices.length === 0, 'and push can be switched off again');
+pushCalls.length = 0;
+await call('POST', '/my-builds/car/gallery-request', { carId: kia, cancel: true }, 'tok-a');
+await call('POST', '/my-builds/car/gallery-request', { carId: kia }, 'tok-a');
+ok(!pushCalls.includes(device.endpoint), 'after which nothing is pushed to it');

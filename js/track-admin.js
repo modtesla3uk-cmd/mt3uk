@@ -200,22 +200,25 @@
   function kindOf(v) { return v.type === 'drag' ? 'drag' : v.type === 'sprint' ? (window.MT3UKTrack.isHill(v) ? 'hill' : 'sprint') : 'circuit'; }
   // A place used for more than one kind of event (a circuit, a sprint and a hill climb) is stored as one entry for each
   // kind, because a file is matched and a leaderboard is kept by kind. They are listed here as one place: entries with the
-  // same name, or the same name once words such as circuit, sprint and hill climb are left off and the centres are within
-  // 5 km, sit together under it.
+  // same name (once words such as circuit, sprint and hill climb are left off) within 5 km sit together under it, and so
+  // does an entry whose name starts with the place's name and is within 3 km (Goodwood Festival of Speed under Goodwood).
   function placeKey(name) {
     var k = String(name || '').toLowerCase().replace(/\b(motor\s+)?circuit\b|\bhill\s*-?\s*climb\b|\bhillclimb\b|\bsprint\b|\btrack\s*day\b/g, ' ').replace(/[^a-z0-9]+/g, ' ').trim();
     return k || String(name || '').toLowerCase().trim();
   }
   function places() {
     var out = [];
-    library.venues.forEach(function (v) {
-      var key = placeKey(v.name), g = null;
+    // Shortest names first, so a place exists before the longer names that start with it.
+    library.venues.map(function (v) { return { v: v, key: placeKey(v.name) }; }).sort(function (a, b) { return a.key.length - b.key.length; }).forEach(function (e) {
+      var v = e.v, g = null;
       out.forEach(function (x) {
-        if (g || x.key !== key) return;
-        var far = isFinite(v.lat) && isFinite(v.lng) && isFinite(x.lat) && isFinite(x.lng) && window.MT3UKTrack.haversine({ lat: x.lat, lng: x.lng }, { lat: v.lat, lng: v.lng }) > 5000;
+        if (g) return;
+        var same = x.key === e.key, prefix = e.key.indexOf(x.key + ' ') === 0;
+        if (!same && !prefix) return;
+        var far = isFinite(v.lat) && isFinite(v.lng) && isFinite(x.lat) && isFinite(x.lng) && window.MT3UKTrack.haversine({ lat: x.lat, lng: x.lng }, { lat: v.lat, lng: v.lng }) > (same ? 5000 : 3000);
         if (!far) g = x;
       });
-      if (!g) { g = { key: key, name: v.name, lat: v.lat, lng: v.lng, radius: v.radius, entries: [] }; out.push(g); }
+      if (!g) { g = { key: e.key, name: v.name, lat: v.lat, lng: v.lng, radius: v.radius, entries: [] }; out.push(g); }
       g.entries.push(v);
       // The place goes by its shortest name (Goodwood, not Goodwood Motor Circuit).
       if (String(v.name || '').length < String(g.name || '').length) g.name = v.name;

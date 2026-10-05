@@ -1497,6 +1497,7 @@ def test_one_place_lists_its_circuit_sprint_and_hill_climb_together_and_adds_the
         {"id": "goodwood", "name": "Goodwood", "type": "circuit", "lat": 50.859, "lng": -0.759, "radius": 2000, "layouts": [{"id": "main", "name": "Goodwood", "length": 3830}]},
         {"id": "goodwood-motor-circuit", "name": "Goodwood Motor Circuit", "type": "sprint", "lat": 50.86, "lng": -0.76, "radius": 1500, "layouts": [{"id": "c", "name": "Course", "length": 2000}]},
         {"id": "goodwood-hill", "name": "Goodwood Hill Climb", "type": "sprint", "hill": True, "lat": 50.89, "lng": -0.74, "radius": 800, "layouts": [{"id": "h", "name": "Hill", "length": 1900}]},
+        {"id": "goodwood-festival-of-speed", "name": "Goodwood Festival of Speed", "type": "sprint", "hill": True, "lat": 50.8688, "lng": -0.7367, "radius": 1200, "layouts": []},
         {"id": "goodwood-far", "name": "Goodwood", "type": "circuit", "lat": 53.0, "lng": -1.0, "radius": 1000, "layouts": []},
     ]
     saved = []
@@ -1515,8 +1516,10 @@ def test_one_place_lists_its_circuit_sprint_and_hill_climb_together_and_adds_the
     # Goodwood, Goodwood Motor Circuit and Goodwood Hill Climb (all within 5 km) are one place; a Goodwood far away is not.
     expect(rows).to_have_count(2)
     near = rows.first
-    expect(near.locator(".tk-kindname")).to_have_text(["Circuit (track day)", "Sprint", "Hill climb"])
+    expect(near.locator(".tk-kindname")).to_have_text(["Circuit (track day)", "Sprint", "Hill climb", "Hill climb"])
     expect(near).to_contain_text("listed as Goodwood Motor Circuit")
+    # A longer name that starts with the place's name, close by, is part of the place too.
+    expect(near).to_contain_text("listed as Goodwood Festival of Speed")
     # It has all three kinds, so there is nothing to add; the far one can have a sprint and a hill climb added.
     expect(near.locator("[data-add-kind]")).to_have_count(0)
     far = rows.nth(1)

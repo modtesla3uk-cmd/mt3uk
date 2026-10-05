@@ -99,7 +99,7 @@
       "layouts": [ { "id": "long", "name": "Long course", "length": 1127, "check": true }, { "id": "club", "name": "Club course", "length": 880, "check": true } ] },
     { "id": "gurston-down", "hill": true, "name": "Gurston Down", "type": "sprint", "lat": 51.0304, "lng": -1.9656, "radius": 1500, "check": true,
       "layouts": [ { "id": "hill", "name": "Hill climb", "length": 914, "check": true } ] },
-    { "id": "harewood", "hill": true, "name": "Harewood", "type": "sprint", "lat": 53.8912, "lng": -1.5061, "radius": 1500, "check": true,
+    { "id": "harewood", "hill": true, "name": "Harewood", "type": "sprint", "lat": 53.9057, "lng": -1.4914, "radius": 1500, "check": true,
       "layouts": [ { "id": "hill", "name": "Hill climb", "length": 1450, "check": true } ] },
     { "id": "curborough", "name": "Curborough", "type": "sprint", "lat": 52.7140, "lng": -1.8102, "radius": 1500, "check": true,
       "layouts": [ { "id": "sprint", "name": "Sprint course", "length": 1400, "check": true } ] },

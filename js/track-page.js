@@ -526,7 +526,7 @@
     h += '<div class="tp-actions"><a class="btn btn-accent" href="track.html?add=1&car=' + encodeURIComponent(car.id) + '" data-go="add=1&car=' + esc(encodeURIComponent(car.id)) + '">' + icon('upload') + 'Add a session</a>' +
       (car.virtual ? '' : '<a class="btn btn-secondary" href="track.html?car=' + encodeURIComponent(car.id) + '" data-go="car=' + esc(encodeURIComponent(car.id)) + '">What others see</a>') + '</div>';
     if (!list.length) h += '<div class="card tp-empty">' + icon('flag') + '<p>No sessions for ' + esc(car.name) + ' yet. Add the file from your lap timer to get started.</p></div>';
-    else h += trackToolsHtml(list) + '<div class="tp-list tp-tracklist" id="tp-sess-list">' + trackListHtml(list, car.id) + '</div>';
+    else h += trackToolsHtml(list) + '<div class="tp-list tp-tracklist" id="tp-sess-list">' + mainListHtml(list, car.id) + '</div>';
     return h + '</div>';
   }
   // The main screen is one line for each track, newest driven first (or A to Z, or most sessions). A line opens its own page
@@ -550,11 +550,51 @@
       return a.last === b.last ? a.name.localeCompare(b.name) : a.last < b.last ? 1 : -1;
     });
   }
-  function trackToolsHtml(list) {
-    if (trackEntries(list).length < 2) return '';
-    return '<div class="tp-tools"><div class="tp-field tp-sort"><label for="tp-sort">Sort by</label><select class="field" id="tp-sort">' +
-      SORTS.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === sortMode ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div></div>';
+  // Find: words match the track, layout, date (typed any way: 21 Jul, 21/07/2026, July 2026, 2026-07-21), conditions, tyres
+  // and kind of session, and two dates give a range. With either, the list shows the matching sessions themselves.
+  var findText = '', findFrom = '', findTo = '', findDates = false;
+  var MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+  function findActive() { return !!(findText.trim() || findFrom || findTo); }
+  function sessionHaystack(x) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(x.date || ''), d = [];
+    if (m) {
+      var day = +m[3], mon = +m[2], mname = MONTHS[mon - 1] || '';
+      d = [x.date, niceDate(x.date), day + ' ' + mname + ' ' + m[1], mname, mname.slice(0, 3), m[1], m[3] + '/' + m[2] + '/' + m[1], day + '/' + mon + '/' + m[1], m[3] + '/' + m[2], day + '/' + mon];
+    }
+    return [trackName(x), x.venue, x.layout, x.conditions, x.tyres, x.time, x.type === 'sprint' ? (x.hill ? 'hill climb hillclimb' : 'sprint') : x.type === 'drag' ? 'drag' : x.type === 'other' ? 'drive' : 'track day'].concat(d).join(' | ').toLowerCase();
   }
+  function matchesFind(x) {
+    var from = findFrom, to = findTo;
+    if (from && to && from > to) { var t = from; from = to; to = t; }
+    if (from && (x.date || '') < from) return false;
+    if (to && (x.date || '') > to) return false;
+    var words = findText.toLowerCase().split(/[\s,]+/).filter(Boolean);
+    if (!words.length) return true;
+    var hay = sessionHaystack(x);
+    return words.every(function (w) { return hay.indexOf(w) !== -1; });
+  }
+  var FIND_MAX = 60;
+  function findResultsHtml(list) {
+    var rows = list.filter(matchesFind).sort(function (a, b) { return whenOf(a) < whenOf(b) ? 1 : whenOf(a) > whenOf(b) ? -1 : 0; });
+    if (!rows.length) return '<div class="card tp-empty">' + icon('flag') + '<p>No sessions match. Try fewer words, or a wider range of dates.</p></div>';
+    return '<p class="tp-small tp-find-count" role="status">' + rows.length + ' session' + (rows.length === 1 ? '' : 's') + ' found' + (rows.length > FIND_MAX ? ', showing the newest ' + FIND_MAX + '. Narrow the search to see the rest' : '') + '</p>' + rows.slice(0, FIND_MAX).map(sessionRow).join('');
+  }
+  function trackToolsHtml(list) {
+    var tracks = trackEntries(list).length, h = '';
+    if (list.length >= 2) {
+      h += '<div class="tp-find"><div class="tp-field tp-find-text"><label for="tp-find">Find a track, session or date</label><input class="field" id="tp-find" type="search" autocomplete="off" placeholder="For example, Snetterton, wet, July 2026" value="' + esc(findText) + '"></div>' +
+        '<button type="button" class="chip' + (findDates || findFrom || findTo ? ' is-on' : '') + '" id="tp-find-dates" aria-expanded="' + !!(findDates || findFrom || findTo) + '">Between dates</button>' +
+        '<button type="button" class="btn btn-ghost btn-sm" id="tp-find-clear"' + (findActive() ? '' : ' hidden') + '>Clear</button></div>' +
+        '<div class="tp-find-range" id="tp-find-range"' + (findDates || findFrom || findTo ? '' : ' hidden') + '><div class="tp-field"><label for="tp-find-from">From</label><input class="field" type="date" id="tp-find-from" value="' + esc(findFrom) + '"></div>' +
+        '<div class="tp-field"><label for="tp-find-to">To</label><input class="field" type="date" id="tp-find-to" value="' + esc(findTo) + '"></div></div>';
+    }
+    if (tracks >= 2) {
+      h += '<div class="tp-tools"><div class="tp-field tp-sort"><label for="tp-sort">Sort by</label><select class="field" id="tp-sort">' +
+        SORTS.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === sortMode ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div></div>';
+    }
+    return h;
+  }
+  function mainListHtml(list, carId) { return findActive() ? findResultsHtml(list) : trackListHtml(list, carId); }
   function trackListHtml(list, carId) {
     return trackEntries(list).map(function (t) {
       var q = 'mycar=' + encodeURIComponent(carId) + '&at=' + encodeURIComponent(t.key);
@@ -605,11 +645,36 @@
     var car = m.cars.filter(function (c) { return c.id === currentCar; })[0];
     if (!car) return;
     var list = m.sessions.filter(function (x) { return x.carId === car.id; });
+    function redraw() {
+      document.getElementById('tp-sess-list').innerHTML = mainListHtml(list, car.id);
+      var clear = document.getElementById('tp-find-clear');
+      if (clear) clear.hidden = !findActive();
+      var sortBox = document.querySelector('.tp-tools');
+      if (sortBox) sortBox.hidden = findActive();
+    }
     var sortSel = document.getElementById('tp-sort');
-    if (sortSel) sortSel.addEventListener('change', function () {
-      sortMode = sortSel.value;
-      document.getElementById('tp-sess-list').innerHTML = trackListHtml(list, car.id);
+    if (sortSel) sortSel.addEventListener('change', function () { sortMode = sortSel.value; redraw(); });
+    var box = document.getElementById('tp-find'), from = document.getElementById('tp-find-from'), to = document.getElementById('tp-find-to'), range = document.getElementById('tp-find-range'), datesBtn = document.getElementById('tp-find-dates');
+    if (box) box.addEventListener('input', function () { findText = box.value; redraw(); });
+    if (from) from.addEventListener('change', function () { findFrom = from.value; redraw(); });
+    if (to) to.addEventListener('change', function () { findTo = to.value; redraw(); });
+    if (datesBtn) datesBtn.addEventListener('click', function () {
+      var open = range.hidden;
+      range.hidden = !open; findDates = open;
+      datesBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      datesBtn.classList.toggle('is-on', open || !!(findFrom || findTo));
+      if (open && from) from.focus();
     });
+    var clearBtn = document.getElementById('tp-find-clear');
+    if (clearBtn) clearBtn.addEventListener('click', function () {
+      findText = findFrom = findTo = ''; findDates = false;
+      if (box) box.value = ''; if (from) from.value = ''; if (to) to.value = '';
+      if (range) range.hidden = true;
+      if (datesBtn) { datesBtn.classList.remove('is-on'); datesBtn.setAttribute('aria-expanded', 'false'); }
+      redraw();
+      if (box) box.focus();
+    });
+    if (findActive()) redraw();
   }
   // One track's page: every session there for the car, a day at a time, newest first. The trophies show here.
   function showTrackSessions(carId, key) {

@@ -47,6 +47,7 @@ def test_add_a_car_of_another_make(device_page):
     expect(page.locator("#mb-addcar-other")).to_be_hidden()
     form.locator(".mb-model-pick .chip", has_text="Another make").click()
     expect(page.locator("#mb-addcar-other")).to_be_visible()
+    expect(form.locator("[data-model-field]")).to_be_hidden()
     expect(page.locator("#mb-addcar-other .mb-other-note")).to_contain_text("Kept in your garage")
     expect(page.locator("#mb-addcar-version")).to_be_hidden()
     # The makes on the list are suggested, Tesla is not (it has its own chips), and a bike's makes are its own.
@@ -56,6 +57,8 @@ def test_add_a_car_of_another_make(device_page):
     page.fill("#mb-addcar-make", "Kia")
     page.wait_for_function("[...document.querySelectorAll('#mb-addcar-othermodels option')].some(o => o.value === 'EV6 GT')", timeout=5000)
     page.fill("#mb-addcar-othermodel", "EV6 GT")
+    # The driven wheels are worked out from the typed make and model too.
+    expect(page.locator("#mb-addcar-drive")).to_have_value("AWD")
     page.fill("#mb-addcar-carname", "Kit")
     page.select_option("#mb-addcar-color", "Grey")
     page.set_input_files("#mb-addcar-photo", files=[{"name": "car.jpg", "mimeType": "image/jpeg", "buffer": b"\xff\xd8\xff\xd9"}])
@@ -88,10 +91,13 @@ def test_a_bike_lists_bike_makes(device_page):
     expect(page.locator("#mb-addcar-other .mb-other-note")).to_contain_text("this bike isn't shown")
     assert page.locator("#mb-addcar-caption").get_attribute("placeholder") == "e.g. Red Panigale V4"
     expect(page.locator("#mb-addcar-submit-btn")).to_have_text("Add bike")
+    expect(page.locator("#mb-addcar-drive-field")).to_be_hidden()
     page.locator("#mb-addcar-other .chip", has_text="Car").first.click()
+    expect(page.locator("#mb-addcar-drive-field")).to_be_visible()
     expect(page.locator('label[for="mb-addcar-carname"]')).to_have_text("Car name")
     expect(page.locator("#mb-addcar-submit-btn")).to_have_text("Add car")
     # The Tesla path is unchanged: picking a Tesla again hides the extra fields and needs no make.
+    form.locator("[data-make-pick] .chip", has_text="Tesla").click()
     form.locator(".mb-model-pick .chip", has_text="Model 3").click()
     expect(page.locator("#mb-addcar-other")).to_be_hidden()
     expect(page.locator("#mb-addcar-version")).to_be_visible()
@@ -179,6 +185,7 @@ def test_an_ioniq_or_taycan_is_kept_in_the_garage(device_page):
     page.goto("/my-builds.html")
     page.locator("#mb-addcar-toggle-btn").click(timeout=10000)
     form = page.locator("#mb-addcar-form")
+    form.locator("[data-make-pick] .chip", has_text="Hyundai").click()
     form.locator(".mb-model-pick .chip", has_text="Ioniq 5 N").click()
     expect(page.locator("#mb-addcar-other .mb-other-note")).to_be_visible()
     expect(page.locator("#mb-addcar-other-fields")).to_be_hidden()
@@ -196,6 +203,7 @@ def test_an_ioniq_or_taycan_is_kept_in_the_garage(device_page):
     # A Tesla is still not another make.
     page.goto("/my-builds.html")
     page.locator("#mb-addcar-toggle-btn").click(timeout=10000)
+    form.locator("[data-make-pick] .chip", has_text="Tesla").click()
     form.locator(".mb-model-pick .chip", has_text="Model Y").click()
     expect(page.locator("#mb-addcar-other")).to_be_hidden()
     assert page.errors == [], diagnostics(page)

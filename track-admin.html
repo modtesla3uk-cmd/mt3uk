@@ -145,7 +145,7 @@
     </details>
     <details class="collapsible" id="drive-wrap">
       <summary><h3 class="panel-title">Driven wheels</h3></summary>
-      <p class="iv-note">Every vehicle with sessions, and the wheels it drives (FWD, RWD or AWD) as worked out from its make, model and version, or as its owner set. Set or correct one here: it is saved to the vehicle, stamped on its sessions and put on its leaderboard rows. Vehicles we cannot tell come first.</p>
+      <p class="iv-note">Every vehicle with sessions, and the wheels it drives (FWD, RWD or AWD) as worked out from its make, model and version, or as its owner set. Set or correct one here: it is saved to the vehicle, stamped on its sessions and put on its leaderboard rows. Vehicles we cannot tell come first. A default for a whole model is set on the <a href="#vehicles-wrap">Vehicles panel</a>.</p>
       <div class="iv-toolbar"><button type="button" class="secondary" id="dw-load">Load vehicles</button><span class="iv-note" id="dw-note" role="status"></span></div>
       <div id="dw-list"></div>
     </details>
@@ -178,7 +178,7 @@
     </details>
     <details class="collapsible" id="vehicles-wrap">
       <summary><h3 class="panel-title">Vehicles <span class="summary-count" id="vehicles-count"></span></h3></summary>
-      <p class="iv-note">The vehicle makes and models offered when a car or bike is added. The Model box suggests a make's models and members can still type anything. data/vehicles.json is the starting list; changes made here are stored by the worker on top of it and used straight away. A make is a car or a bike, and the same name can be both.</p>
+      <p class="iv-note">The vehicle makes and models offered when a car or bike is added. The Model box suggests a make's models and members can still type anything. data/vehicles.json is the starting list; changes made here are stored by the worker on top of it and used straight away. A make is a car or a bike, and the same name can be both. Each car model shows the wheels it drives (FWD, RWD or AWD) as worked out from its name, and a Default drop-down: a default is what the model's vehicles take unless the version says otherwise (Long Range AWD, Taycan 4S, Carrera 4) or the vehicle was set by hand, and setting one stamps the sessions of every vehicle of that model and refreshes its leaderboard rows.</p>
       <p class="iv-note" id="vh-note" role="status"></p>
       <div class="tk-form" id="vh-form" hidden></div>
       <h3 class="sub-head">Makes</h3>
@@ -216,10 +216,10 @@
 <script src="js/track-share-card.js?v=20261181"></script>
 <script src="js/track-share-admin.js?v=20261105" defer></script>
 <script src="js/track-copy-admin.js?v=20261102" defer></script>
-<script src="js/track-drive-admin.js?v=20261230" defer></script>
+<script src="js/track-drive-admin.js?v=20261231" defer></script>
 <script src="js/tyre-data.js" defer></script>
 <script src="js/tyre-admin.js" defer></script>
-<script src="js/vehicle-data.js?v=20261228" defer></script>
-<script src="js/vehicle-admin.js?v=20261202" defer></script>
+<script src="js/vehicle-data.js?v=20261231" defer></script>
+<script src="js/vehicle-admin.js?v=20261231" defer></script>
 </body>
 </html>

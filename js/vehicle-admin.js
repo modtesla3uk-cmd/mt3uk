@@ -3,6 +3,10 @@
   Laps offer. data/vehicles.json is the starting list; changes made here are
   stored by the worker (KV vehicle-library, /vehicles/admin) on top of it.
   A make has a type, car or bike (BMW and Honda are both).
+  Each car model is listed with the wheels it drives (FWD, RWD or AWD) as the rule
+  works out, and a Default drop-down: a default is kept in the library (drives) and
+  set through /track/admin/drive, which stamps the sessions of every vehicle of that
+  model not set by hand and refreshes its leaderboard rows.
 */
 (function () {
   var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
@@ -10,7 +14,10 @@
   if (!wrap) return;
   var listEl = document.getElementById('vh-list'), formEl = document.getElementById('vh-form'), noteEl = document.getElementById('vh-note'), countEl = document.getElementById('vehicles-count');
   var TYPE_NAME = { car: 'Car', bike: 'Bike' };
-  var base = null, extra = null, merged = null;
+  var DRIVES = ['FWD', 'RWD', 'AWD'];
+  // Models the rule can only tell from the version (or the year).
+  var VARIES = { 'tesla|model 3': 1, 'tesla|model y': 1, 'tesla|model s': 1, 'polestar|2': 1, 'honda|nsx': 1 };
+  var base = null, extra = null, merged = null, unknownOnly = false;
 
   function key() {
     var input = document.getElementById('admin-key');
@@ -24,7 +31,7 @@
     return fetch(API + path + (path.indexOf('?') === -1 ? '?' : '&') + 'key=' + encodeURIComponent(key()), opts)
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d.ok = r.ok; return d; }); });
   }
-  function normal(e) { return { makes: (e && e.makes) || [] }; }
+  function normal(e) { return { makes: (e && e.makes) || [], drives: (e && e.drives) || {} }; }
   function typeOf(m) { return m && m.type === 'bike' ? 'bike' : 'car'; }
   function inFile(name, type) { return (base.makes || []).some(function (m) { return m.name === name && typeOf(m) === type; }); }
   function same(m, name, type) { return m.name === name && typeOf(m) === type; }
@@ -53,11 +60,34 @@
       Object.keys(merged[t]).forEach(function (n) { rows.push({ name: n, type: t, models: merged[t][n] }); });
     });
     countEl.textContent = '(' + rows.length + ' makes)';
-    listEl.innerHTML = '<table class="iv-table tk-table"><thead><tr><th>Make</th><th>Type</th><th>Models</th><th></th></tr></thead><tbody>' + rows.map(function (r) {
-      return '<tr><td><b>' + esc(r.name) + '</b>' + (changed[r.type + '|' + r.name] ? ' <span class="iv-sub">(changed here)</span>' : '') + '</td><td>' + TYPE_NAME[r.type] + '</td><td>' + r.models.length +
-        (r.models.length ? '<span class="iv-sub">' + esc(r.models.slice(0, 6).join(', ') + (r.models.length > 6 ? ', ...' : '')) + '</span>' : '') + '</td>' +
+    var models = 0, unknown = 0;
+    rows.forEach(function (r) { if (r.type !== 'car') return; r.models.forEach(function (m) { models++; if (!driveOf(r.name, m).drive) unknown++; }); });
+    listEl.innerHTML = '<p class="iv-note vh-drive-note">' + models + ' car model' + (models === 1 ? '' : 's') + ', driven wheels ' + (unknown ? 'not known for ' + unknown : 'known for all') + '. ' +
+      '<button type="button" class="tk-switch" role="switch" id="vh-unknown-only" aria-checked="' + unknownOnly + '"><span class="tk-track"></span>Only the ones not known</button></p>' +
+      '<table class="iv-table tk-table vh-table' + (unknownOnly ? ' is-unknown-only' : '') + '"><thead><tr><th>Make</th><th>Type</th><th>Models and driven wheels</th><th></th></tr></thead><tbody>' + rows.map(function (r) {
+      var items = r.models.map(function (m) { return modelHtml(r, m); }).join('');
+      var targets = r.type === 'car' && r.models.some(function (m) { return !driveOf(r.name, m).drive; });
+      return '<tr class="vh-make' + (targets ? '' : ' vh-all-known') + '"><td><b>' + esc(r.name) + '</b>' + (changed[r.type + '|' + r.name] ? ' <span class="iv-sub">(changed here)</span>' : '') + '</td><td>' + TYPE_NAME[r.type] + '</td><td>' +
+        '<span class="vh-count">' + r.models.length + ' model' + (r.models.length === 1 ? '' : 's') + '</span>' + (items ? '<ul class="vh-models">' + items + '</ul>' : '') + '</td>' +
         '<td><div class="iv-actions"><button type="button" class="secondary iv-act" data-edit="' + esc(r.name) + '" data-type="' + r.type + '">Edit</button><button type="button" class="danger iv-act" data-remove="' + esc(r.name) + '" data-type="' + r.type + '">Remove</button></div></td></tr>';
     }).join('') + '</tbody></table><div class="iv-toolbar tk-top"><button type="button" class="secondary" data-new>Add a make</button></div>';
+  }
+
+  // A car model's driven wheels: the rule's answer for the model alone, the admin's default if set, and what to say.
+  function driveOf(make, model) {
+    var V = window.MT3UKVehicles, v = { make: make, model: model };
+    var key = V.driveKey(v), rule = V.driveRule(v), set = (extra.drives || {})[key] || '';
+    var varies = !rule && VARIES[key];
+    return { key: key, rule: rule, set: set, drive: set || rule || (varies ? 'version' : ''),
+      how: set ? 'set here' + (rule ? ' (worked out: ' + rule + ')' : varies ? ' (else from the version)' : '') : rule ? 'worked out' : varies ? 'from the version' : 'not known' };
+  }
+  function modelHtml(r, model) {
+    if (r.type !== 'car') return '<li class="vh-model"><span class="vh-model-name">' + esc(model) + '</span></li>';
+    var d = driveOf(r.name, model);
+    return '<li class="vh-model' + (d.drive ? '' : ' is-target') + '" data-make="' + esc(r.name) + '" data-model="' + esc(model) + '"><span class="vh-model-name">' + esc(model) + '</span>' +
+      '<select class="vh-drive" aria-label="Driven wheels for ' + esc(r.name + ' ' + model) + '"><option value="">' + (d.rule ? 'Worked out: ' + d.rule : d.drive === 'version' ? 'From the version' : 'Not known') + '</option>' +
+      DRIVES.map(function (x) { return '<option value="' + x + '"' + (d.set === x ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select>' +
+      '<span class="iv-sub vh-how">' + (d.set || !d.drive ? esc(d.how) : '') + '</span></li>';
   }
 
   function openForm(name, type) {
@@ -84,8 +114,35 @@
     }).catch(function () { note('Could not save it.', 'error'); });
   }
 
+  listEl.addEventListener('change', function (e) {
+    var sel = e.target.closest('.vh-drive');
+    if (!sel) return;
+    var li = sel.closest('.vh-model'), make = li.getAttribute('data-make'), model = li.getAttribute('data-model');
+    sel.disabled = true;
+    note('Saving...');
+    call('POST', '/track/admin/drive', { make: make, model: model, drive: sel.value }).then(function (d) {
+      sel.disabled = false;
+      if (!d.ok || !d.success) { note(d.message || 'That did not work.', 'error'); return; }
+      extra.drives = extra.drives || {};
+      if (d.drive) extra.drives[d.key] = d.drive; else delete extra.drives[d.key];
+      var info = driveOf(make, model);
+      li.classList.toggle('is-target', !info.drive);
+      li.querySelector('.vh-how').textContent = info.set || !info.drive ? info.how : '';
+      var tr = li.closest('tr');
+      tr.classList.toggle('vh-all-known', !tr.querySelector('.vh-model.is-target'));
+      note((d.drive ? d.drive + ' is now the default for ' + make + ' ' + model : 'Default cleared for ' + make + ' ' + model) + ': ' + d.vehicles + ' vehicle' + (d.vehicles === 1 ? '' : 's') + ' with sessions, ' +
+        d.stamped + ' session' + (d.stamped === 1 ? '' : 's') + ' stamped' + (d.boards ? ' and ' + d.boards + ' leaderboard' + (d.boards === 1 ? '' : 's') + ' refreshed' : '') + '.', 'ok');
+      document.dispatchEvent(new CustomEvent('mt3uk-drive-changed'));
+    }).catch(function () { sel.disabled = false; note('Could not reach the server.', 'error'); });
+  });
   listEl.addEventListener('click', function (e) {
     var ed = e.target.closest('[data-edit]'), rm = e.target.closest('[data-remove]');
+    if (e.target.closest('#vh-unknown-only')) {
+      unknownOnly = !unknownOnly;
+      e.target.closest('#vh-unknown-only').setAttribute('aria-checked', String(unknownOnly));
+      listEl.querySelector('.vh-table').classList.toggle('is-unknown-only', unknownOnly);
+      return;
+    }
     if (e.target.closest('[data-new]')) return openForm(null);
     if (ed) return openForm(ed.getAttribute('data-edit'), ed.getAttribute('data-type'));
     if (rm) {

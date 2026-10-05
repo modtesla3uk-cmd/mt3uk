@@ -12,7 +12,8 @@ const kv = new Map();
 const bucket = new Map();
 const env = {
   ADMIN_KEY: 'secret',
-  VOTES: { get: async k => kv.has(k) ? kv.get(k) : null, put: async (k, v) => { kv.set(k, v); }, delete: async k => { kv.delete(k); } },
+  VOTES: { get: async k => kv.has(k) ? kv.get(k) : null, put: async (k, v) => { kv.set(k, v); }, delete: async k => { kv.delete(k); },
+    list: async ({ prefix = '' } = {}) => ({ keys: [...kv.keys()].filter(k => k.startsWith(prefix)).map(name => ({ name })), list_complete: true }) },
   GALLERY_BUCKET: {
     get: async k => bucket.has(k) ? { json: async () => JSON.parse(bucket.get(k)) } : null,
     put: async (k, v) => { bucket.set(k, typeof v === 'string' ? v : 'binary'); },
@@ -91,6 +92,35 @@ ok(makes[1].type === 'bike' && makes[2].removed === true && makes[3].type === 'c
 r = await call('GET', '/vehicles');
 ok(r.body.extra.makes.length === 4, 'the changes are served to everyone');
 
+// ---- Driven wheels by model: kept in the library, set through /track/admin/drive, never wiped by a makes save ----
+r = await call('POST', '/track/admin/drive?key=secret', { make: 'BMW', model: 'M3', drive: 'AWD' });
+ok(r.status === 200 && r.body.success && r.body.key === 'bmw|m3' && r.body.drive === 'AWD' && r.body.vehicles === 0, 'the admin sets a default for a model (no vehicle with sessions here)');
+r = await call('POST', '/track/admin/drive?key=secret', { make: 'Kia', model: 'EV6', drive: 'sideways' });
+ok(r.body.success && r.body.drive === '', 'a value that is not FWD, RWD or AWD clears it');
+r = await call('POST', '/track/admin/drive?key=secret', { make: '', model: 'M3', drive: 'AWD' });
+ok(r.status === 400, 'a make and a model are needed');
+r = await call('GET', '/vehicles');
+ok(JSON.stringify(r.body.extra.drives) === '{"bmw|m3":"AWD"}' && r.body.extra.makes.length === 4, 'the default is served with the library');
+r = await call('PUT', '/vehicles/admin?key=secret', { library: { makes: [{ name: 'Kia', type: 'car', models: ['EV6'] }] } });
+ok(r.body.extra.drives['bmw|m3'] === 'AWD' && r.body.extra.makes.length === 1, 'a makes save that does not carry the defaults keeps them');
+r = await call('PUT', '/vehicles/admin?key=secret', { library: { makes: [], drives: { 'BMW|M3': 'RWD', 'kia|ev6': 'AWD', 'bad': 'AWD', 'tesla|model 3': 'up' } } });
+ok(JSON.stringify(r.body.extra.drives) === '{"bmw|m3":"RWD","kia|ev6":"AWD"}', 'a save that carries them replaces them, keys lowercased and bad ones dropped');
+await call('PUT', '/vehicles/admin?key=secret', { library: { makes: [], drives: {} } });
+kv.set('car-details:cara1', JSON.stringify({ make: 'Kia', model: 'EV6' }));
+r = await call('GET', '/my-builds', undefined, 'tok-a');
+ok(r.body.cars[0].drive === 'RWD' && r.body.cars[0].driveSet === false, 'a Kia EV6 is RWD by the rule');
+await call('POST', '/track/admin/drive?key=secret', { make: 'Kia', model: 'EV6', drive: 'AWD' });
+r = await call('GET', '/my-builds', undefined, 'tok-a');
+ok(r.body.cars[0].drive === 'AWD' && r.body.cars[0].driveSet === false, 'with a default for the model, My Garage shows it (not as set by hand)');
+kv.set('car-details:cara1', JSON.stringify({ make: 'Kia', model: 'EV6', version: 'RWD Long Range' }));
+r = await call('GET', '/my-builds', undefined, 'tok-a');
+ok(r.body.cars[0].drive === 'RWD', 'a version that says otherwise still wins over the default');
+kv.set('car-details:cara1', JSON.stringify({ make: 'Kia', model: 'EV6', drive: 'FWD' }));
+r = await call('GET', '/my-builds', undefined, 'tok-a');
+ok(r.body.cars[0].drive === 'FWD' && r.body.cars[0].driveSet === true, 'and a car set by hand keeps its own');
+await call('POST', '/track/admin/drive?key=secret', { make: 'Kia', model: 'EV6', drive: '' });
+kv.set('car-details:cara1', JSON.stringify({ model: 'Model Y', version: 'Long Range AWD', year: 2022 }));
+
 // ---- js/vehicle-data.js ----
 const base = { makes: [
   { name: 'Tesla', type: 'car', models: ['Model 3', 'Model Y'] }, { name: 'BMW', type: 'car', models: ['M3'] }, { name: 'BMW', type: 'bike', models: ['S 1000 RR'] }, { name: 'Ducati', type: 'bike', models: ['Monster'] }] };
@@ -109,7 +139,7 @@ const DRIVE_CASES = [
   [{ model: 'Model 3', version: 'Standard Range Plus' }, 'RWD'], [{ model: 'Model 3', version: 'Rear-Wheel Drive' }, 'RWD'], [{ model: 'Model 3' }, ''],
   [{ make: 'Tesla', model: 'Model Y', version: 'Juniper Performance' }, 'AWD'], [{ model: 'Model Y', version: 'Juniper Rear-Wheel Drive' }, 'RWD'],
   [{ model: 'Model S', version: 'P85D' }, 'AWD'], [{ model: 'Model S', version: 'P85+' }, 'RWD'], [{ model: 'Model S', version: 'Plaid' }, 'AWD'], [{ model: 'Model X' }, 'AWD'],
-  [{ model: 'Hyundai Ioniq 5 N' }, 'AWD'], [{ make: 'Hyundai', model: 'Ioniq 6 N' }, 'AWD'], [{ make: 'Hyundai', model: 'Kona N' }, 'FWD'],
+  [{ model: 'Hyundai Ioniq 5 N' }, 'AWD'], [{ make: 'Hyundai', model: 'Hyundai Ioniq 5 N' }, 'AWD'], [{ make: 'Porsche', model: 'Porsche Taycan' }, 'RWD'], [{ make: 'Hyundai', model: 'Ioniq 6 N' }, 'AWD'], [{ make: 'Hyundai', model: 'Kona N' }, 'FWD'],
   [{ model: 'Porsche Taycan', version: 'Taycan' }, 'RWD'], [{ model: 'Porsche Taycan', version: '4S' }, 'AWD'], [{ make: 'Porsche', model: 'Taycan', version: 'Turbo S Cross Turismo' }, 'AWD'],
   [{ make: 'Porsche', model: '911', version: 'GT3' }, 'RWD'], [{ make: 'Porsche', model: '911', version: 'Carrera 4S' }, 'AWD'],
   [{ make: 'Kia', model: 'EV6 GT' }, 'AWD'], [{ make: 'Kia', model: 'EV6' }, 'RWD'], [{ make: 'BMW', model: 'M3', version: 'Competition xDrive' }, 'AWD'], [{ make: 'BMW', model: 'M2' }, 'RWD'],
@@ -125,4 +155,19 @@ DRIVE_CASES.forEach(([v, want]) => {
 });
 ok(agree, 'drive: the page and the worker give the same answer for every case');
 ok(right, 'drive: FWD, RWD and AWD are right for ' + DRIVE_CASES.length + ' cars and versions');
+const DEFAULTS = { 'tesla|model 3': 'RWD', 'porsche|taycan': 'AWD', 'porsche|911': 'AWD', 'zeekr|001 fr': 'AWD', 'ducati|panigale v4': 'AWD' };
+const DEFAULT_CASES = [
+  [{ model: 'Model 3' }, 'RWD'], [{ model: 'Model 3', version: 'Performance' }, 'AWD'], [{ model: 'Model 3 Long Range AWD' }, 'AWD'],
+  [{ model: 'Porsche Taycan', version: 'Taycan' }, 'AWD'], [{ make: 'Porsche', model: 'Taycan 4S' }, 'AWD'], [{ make: 'Porsche', model: '911', version: 'GT3' }, 'AWD'], [{ make: 'Porsche', model: '911 Carrera 4S' }, 'AWD'],
+  [{ make: 'Zeekr', model: '001 FR' }, 'AWD'], [{ make: 'Zeekr', model: '001 FR', version: 'RWD' }, 'RWD'], [{ make: 'Ducati', model: 'Panigale V4', vehicleType: 'bike' }, ''], [{ make: 'Kia', model: 'EV6' }, 'RWD'], [{ make: 'Kia', model: 'EV6', version: 'RWD Long Range' }, 'RWD'],
+];
+let agree2 = true, right2 = true;
+DEFAULT_CASES.forEach(([v, want]) => {
+  const a = V.drive(v, DEFAULTS), b = mod.carDrive(v, DEFAULTS);
+  if (a !== b) { agree2 = false; console.log('  differ', JSON.stringify(v), a, b); }
+  if (a !== want) { right2 = false; console.log('  wrong', JSON.stringify(v), 'got', a, 'want', want); }
+});
+ok(agree2, 'drive with defaults: the page and the worker agree');
+ok(right2, 'drive with defaults: a default fills in or replaces the model\'s answer, a telling version still wins, a bike has none');
+ok(V.driveKey({ model: 'Porsche Taycan 4S' }) === 'porsche|taycan' && mod.driveModelKey({ make: 'Kia', model: ' EV6 ' }) === 'kia|ev6', 'driveKey: a model\'s key drops the make inside it and a typed trim');
 ok(mod.cleanCarModel({ drive: 'AWD', make: 'Kia', model: 'EV6' }, '').drive === 'AWD' && mod.cleanCarModel({ drive: 'sideways' }).drive === undefined, 'cleanCarModel: a drive is kept only when it is FWD, RWD or AWD');

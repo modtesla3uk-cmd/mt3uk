@@ -61,4 +61,6 @@
     }).catch(function () { sel.disabled = false; note('Could not reach the server.', true); });
   });
   wrap.addEventListener('toggle', function () { if (wrap.open && !listEl.children.length) load(); });
+  // A default set by model on the Vehicles panel changes what these vehicles show.
+  document.addEventListener('mt3uk-drive-changed', function () { if (listEl.children.length) load(); });
 })();

@@ -8,7 +8,7 @@ REFRESHED = [
     "index.html", "gallery.html", "my-builds.html", "signin.html", "profile.html", "shop.html", "reviews.html",
     "contact.html", "privacy.html", "event.html", "events-admin.html", "offline.html", "chat.html",
     "track-day-prep.html", "track-day-on-the-day.html", "track-day-venues.html", "blog.html", "admin.html",
-    "track.html", "leaderboards.html",
+    "laps.html", "track.html", "leaderboards.html",
 ]
 # Every Owner Interview page too, including new ones copied from an old one.
 REFRESHED += sorted(p.name for p in ROOT.glob("blog-*.html"))

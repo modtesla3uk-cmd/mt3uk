@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Leaderboards - Laps by MT3UK</title>
-<meta name="description" content="Leaderboard: real lap times from modified cars at circuits, drag strips and hill climbs, from members' own lap timers.">
-<link rel="canonical" href="https://mt3uk.com/leaderboards.html">
+<title>Laps by MT3UK: lap times, track days and leaderboards</title>
+<meta name="description" content="Upload the file from your lap timer and see every lap mapped, compared and ranked. Track days, sprints, hill climbs and drag runs, for modified cars and bikes.">
+<link rel="canonical" href="https://laps.mt3uk.com/laps.html">
 <link rel="icon" type="image/x-icon" href="images/site/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="images/site/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="images/site/favicon-16.png">
@@ -17,14 +17,14 @@
 <meta name="apple-mobile-web-app-title" content="Laps">
 <meta name="application-name" content="Laps by MT3UK">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Leaderboards - Laps by MT3UK">
-<meta property="og:description" content="Leaderboard: real lap times from modified cars at circuits, drag strips and hill climbs, from members' own lap timers.">
-<meta property="og:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
-<meta property="og:url" content="https://mt3uk.com/leaderboards.html">
+<meta property="og:title" content="Laps by MT3UK: lap times, track days and leaderboards">
+<meta property="og:description" content="Upload the file from your lap timer and see every lap mapped, compared and ranked. Track days, sprints, hill climbs and drag runs, for modified cars and bikes.">
+<meta property="og:image" content="https://mt3uk.com/images/track-preview/share.jpg">
+<meta property="og:url" content="https://laps.mt3uk.com/laps.html">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Leaderboards - Laps by MT3UK">
-<meta name="twitter:description" content="Leaderboard: real lap times from modified cars at circuits, drag strips and hill climbs, from members' own lap timers.">
-<meta name="twitter:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
+<meta name="twitter:title" content="Laps by MT3UK: lap times, track days and leaderboards">
+<meta name="twitter:description" content="Upload the file from your lap timer and see every lap mapped, compared and ranked. Track days, sprints, hill climbs and drag runs, for modified cars and bikes.">
+<meta name="twitter:image" content="https://mt3uk.com/images/track-preview/share.jpg">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
 <link rel="stylesheet" href="css/site-header.css">
 <style>
@@ -306,6 +306,51 @@
     .lb-row { grid-template-columns: 40px minmax(0, 1.2fr) 110px minmax(0, 1.3fr) 20px; grid-template-areas: "pos car time info chev" ". mods mods mods ."; column-gap: 16px; padding: 14px 20px; }
     .lb-row > .icon { display: block; grid-area: chev; width: 18px; height: 18px; color: var(--steel); }
   }
+
+  /* ---------- LAPS FRONT PAGE ---------- */
+  .lh-hero { background: var(--ink); color: #fff; padding: 48px 0 52px; }
+  .lh-hero .wrap { display: grid; gap: 28px; align-items: center; }
+  @media (min-width: 900px) { .lh-hero .wrap { grid-template-columns: 1fr 1.05fr; } }
+  .lh-badge { display: table; margin-bottom: 14px; }
+  .lh-eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 0.86rem; font-weight: 600; color: #c9d1e3; margin-bottom: 12px; }
+  .lh-hero h1 { color: #fff; font-size: clamp(1.9rem, 5vw, 2.9rem); margin-bottom: 14px; }
+  .lh-hero p { color: #d3d8e2; font-size: 1.05rem; max-width: 52ch; }
+  .lh-hero .tp-actions { margin: 22px 0 10px; }
+  .lh-hero .btn-secondary { background: transparent; color: #fff; border-color: rgba(255,255,255,.5); }
+  .lh-hero .btn-secondary:hover { background: rgba(255,255,255,.1); border-color: #fff; }
+  .lh-note { font-size: 0.86rem; color: #aeb7cb; }
+  .lh-shot { border-radius: var(--radius); overflow: hidden; box-shadow: 0 18px 40px rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.12); }
+  .lh-shot img { width: 100%; height: auto; }
+  .lh-sec { padding: 44px 0 8px; }
+  .lh-sec > .wrap > h2 { font-size: clamp(1.25rem, 3vw, 1.6rem); margin-bottom: 6px; }
+  .lh-sec > .wrap > .lh-lead { color: var(--ink-2); max-width: 62ch; margin-bottom: 18px; }
+  @media (min-width: 900px) { .lh-sec > .wrap > h2, .lh-sec > .wrap > .lh-lead { text-align: center; margin-left: auto; margin-right: auto; } }
+  .lh-grid { display: grid; gap: 12px; }
+  @media (min-width: 640px) { .lh-grid { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 900px) { .lh-grid.lh-4 { grid-template-columns: repeat(4, 1fr); } .lh-grid.lh-3 { grid-template-columns: repeat(3, 1fr); } }
+  .lh-card { background: #fff; border: 1px solid var(--hairline); border-radius: var(--radius); padding: 18px; display: grid; gap: 8px; align-content: start; }
+  .lh-card .icon { width: 28px; height: 28px; color: var(--orange); }
+  .lh-card h3 { margin: 0; font-size: 1rem; }
+  .lh-card p { color: var(--ink-2); font-size: 0.93rem; }
+  .lh-timers { display: flex; flex-wrap: wrap; gap: 8px; }
+  .lh-timers span { display: inline-flex; align-items: center; min-height: 40px; padding: 6px 14px; background: #fff; border: 1px solid var(--hairline-strong); border-radius: var(--radius-pill); font-weight: 600; font-size: 0.9rem; color: var(--ink); }
+  @media (min-width: 900px) { .lh-timers { justify-content: center; } }
+  .lh-fast { display: grid; gap: 8px; }
+  @media (min-width: 781px) { .lh-fast { grid-template-columns: 1fr 1fr; } }
+  .lh-fast a { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 10px 14px; background: #fff; border: 1px solid var(--hairline); border-radius: var(--radius); }
+  .lh-fast a:hover { border-color: var(--hairline-strong); }
+  .lh-fast .lh-where { flex: 1; min-width: 0; display: grid; }
+  .lh-fast .lh-where b { color: var(--ink); overflow-wrap: anywhere; }
+  .lh-fast .lh-where span { font-size: 0.82rem; color: var(--steel); overflow-wrap: anywhere; }
+  .lh-fast .lh-time { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }
+  .lh-fast-empty { color: var(--steel); }
+  .lh-more { margin-top: 12px; }
+  @media (min-width: 900px) { .lh-more { text-align: center; } }
+  .lh-band { margin: 44px 0 0; background: #fff; border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); padding: 36px 0; }
+  .lh-band .wrap { display: grid; gap: 14px; justify-items: start; }
+  @media (min-width: 900px) { .lh-band .wrap { justify-items: center; text-align: center; } }
+  .lh-band p { color: var(--ink-2); max-width: 60ch; }
+  @media (max-width: 780px) { .lh-hero { padding: 30px 0 34px; } .lh-sec { padding-top: 32px; } }
 </style>
 
 </head>
@@ -318,7 +363,7 @@
     <div class="navlinks" id="navlinks">
       <a href="signin.html" class="nav-link-mobile">Sign Up / Sign In</a>
       <a href="track.html" class="nav-link nav-link-track">Sessions <span class="early-badge">Early preview</span></a>
-      <a href="leaderboards.html" class="nav-link active">Leaderboards</a>
+      <a href="leaderboards.html" class="nav-link">Leaderboards</a>
       <a href="track.html?add=1" class="nav-link">Add a session</a>
       <a href="https://mt3uk.com/my-builds.html" class="nav-link nav-link-mybuilds">My Garage</a>
       <a href="https://mt3uk.com/" class="nav-link nav-link-back"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Back to MT3UK</a>
@@ -339,19 +384,68 @@
   </nav>
 </header>
 
-<section class="page-hero lb-hero">
+<section class="lh-hero">
   <div class="wrap">
-    <a href="index.html" class="back-link" id="lb-page-back" aria-label="Back to MT3UK"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</a>
-    <h1>Leaderboard</h1>
-    <p>Real times from modified cars on tracks, drag strips and hill climbs, straight from members&rsquo; own lap timers. Every car&rsquo;s fastest, with the mods that got it there.</p>
-    <a href="track.html" class="btn btn-secondary lb-mine" id="lb-my-sessions"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>My Sessions</a>
+    <div>
+      <span class="early-badge early-badge-lg lh-badge">Early preview</span>
+      <span class="lh-eyebrow">Laps by MT3UK</span>
+      <h1>Every lap, mapped and measured.</h1>
+      <p>Upload the file from your lap timer and see every lap drawn on the track, where you gained and lost time, and how each change to your car or bike moved your times.</p>
+      <div class="tp-actions" id="lh-actions">
+        <a class="btn btn-accent" id="lh-start" href="signin.html?next=/track.html">Sign in to start</a>
+        <a class="btn btn-secondary" href="leaderboards.html">See the leaderboards</a>
+      </div>
+      <p class="lh-note" id="lh-note">Laps is in early preview. Sign in and ask for access to try it. Sessions are private until you choose to share them.</p>
+    </div>
+    <div class="lh-shot"><img src="images/track-preview/share.jpg" alt="A session on Laps: the lap drawn on the track map, the lap times and a g-force chart" width="1200" height="630"></div>
   </div>
 </section>
-
-<main class="tp-main">
-  <div class="wrap" id="lb-app">
-    <noscript><p>The leaderboards need JavaScript turned on.</p></noscript>
-  </div>
+<main>
+  <section class="lh-sec" id="what">
+    <div class="wrap">
+      <h2>What Laps does</h2>
+      <p class="lh-lead">Everything is worked out from the file your lap timer already makes.</p>
+      <div class="lh-grid lh-4">
+        <div class="lh-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9"/><path d="M12 7v5l3 2"/><path d="M3 4v5h5"/></svg><h3>Laps found for you</h3><p>Your laps, sectors and corners, ready as soon as the file is read. No lines to draw at a track we already know.</p></div>
+        <div class="lh-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19c4-10 12-10 16 0"/><path d="M4 15c4-6 12-6 16 0" stroke-dasharray="3 3"/></svg><h3>Compare any two laps</h3><p>Play two laps side by side on the map and see, corner by corner, where the time went.</p></div>
+        <div class="lh-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.5 4.6L3 17.1V21h3.9l6.2-6.2a4 4 0 0 0 4.6-5.5l-2.6 2.6-1.9-.5-.5-1.9Z"/></svg><h3>See what your mods did</h3><p>Your times sit beside the mods list in My Garage, so you can see what each change was worth.</p></div>
+        <div class="lh-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg><h3>Leaderboards at every track</h3><p>Share a session and your fastest goes on that track&rsquo;s board, with the tyres, the conditions and your mods.</p></div>
+      </div>
+    </div>
+  </section>
+  <section class="lh-sec" id="days">
+    <div class="wrap">
+      <h2>Every kind of day</h2>
+      <p class="lh-lead">Choose what you were doing and Laps times it the right way.</p>
+      <div class="lh-grid lh-3">
+        <div class="lh-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15c0-6 4-10 8-10s8 4 8 10-4 4-8 4-8 2-8-4z"/></svg><h3>Track days</h3><p>Every lap and sector timed, your best lap picked out, and any two laps ready to compare.</p></div>
+        <div class="lh-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20 10 8l4 6 3-4 4 10z"/></svg><h3>Sprints and hill climbs</h3><p>Start to finish, timed from the moment you move off, with each run listed.</p></div>
+        <div class="lh-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18h16"/><path d="M4 6h10l4 6-4 6"/></svg><h3>Drag runs</h3><p>0 to 30, 0 to 60, 60 to 100, eighth mile and quarter mile, for every launch.</p></div>
+      </div>
+    </div>
+  </section>
+  <section class="lh-sec" id="timers">
+    <div class="wrap">
+      <h2>Works with your lap timer</h2>
+      <p class="lh-lead">Export the session from your timer or app and upload the file. Most phone lap timer apps work too.</p>
+      <div class="lh-timers"><span>RaceBox</span><span>VBOX</span><span>AiM</span><span>Harry&rsquo;s LapTimer</span><span>TrackAddict</span><span>Tesla Track Mode</span></div>
+    </div>
+  </section>
+  <section class="lh-sec" id="fastest">
+    <div class="wrap">
+      <h2>Fastest right now</h2>
+      <p class="lh-lead">The quickest shared time at the busiest tracks, strips and hill climbs.</p>
+      <div class="lh-fast" id="lh-fast"><p class="lh-fast-empty">Loading the leaderboards&hellip;</p></div>
+      <p class="lh-more"><a class="btn btn-secondary" href="leaderboards.html">All leaderboards</a></p>
+    </div>
+  </section>
+  <section class="lh-band" id="any-make">
+    <div class="wrap">
+      <h2>Cars and bikes, any make</h2>
+      <p>Laps started with modified Teslas. Now any car or bike can join: add it with its make and model, no photo needed, and every session is kept private until you choose to share it.</p>
+      <div class="tp-actions"><a class="btn btn-accent" id="lh-start-2" href="signin.html?next=/track.html">Sign in to start</a><a class="btn btn-secondary" href="track.html">How it works</a></div>
+    </div>
+  </section>
 </main>
 
 <footer>
@@ -496,11 +590,7 @@
   }
 </script>
 
-<script src="js/track-parse.js?v=20261188" defer></script>
-<script src="js/track-view.js?v=20261182" defer></script>
-<script src="js/tyre-data.js" defer></script>
-<script src="js/vehicle-data.js?v=20261202" defer></script>
-<script src="js/leaderboard-page.js?v=20261205" defer></script>
+<script src="js/laps-home.js?v=20261218" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=9" defer></script>
 <script src="js/signin-prompt.js" defer></script>

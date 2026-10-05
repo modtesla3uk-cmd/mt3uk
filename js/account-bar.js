@@ -227,7 +227,7 @@
   // On laps.mt3uk.com only the Laps pages (and Sign in) stay there: a link to any other page of the site (Profile,
   // My Garage, the Gallery) goes to mt3uk.com, signed in. Tests set window.MT3UK_SITES to two local addresses.
   var SITES = window.MT3UK_SITES || { main: ['mt3uk.com', 'www.mt3uk.com'], mainOrigin: 'https://mt3uk.com', laps: ['laps.mt3uk.com'] };
-  var LAPS_PAGES = ['/track.html', '/leaderboards.html', '/signin.html'];
+  var LAPS_PAGES = ['/', '/laps.html', '/track.html', '/leaderboards.html', '/signin.html'];
   function siteOf(host) { return SITES.main.indexOf(host) !== -1 ? 'main' : SITES.laps.indexOf(host) !== -1 ? 'laps' : ''; }
   var hereSite = siteOf(location.hostname);
 

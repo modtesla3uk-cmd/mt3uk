@@ -252,6 +252,24 @@
       "ctaLabel": "Event on Javelin",
       "created": "2026-09-30",
       "publish": "2026-10-02"
+    },
+    {
+      "slug": "the-motorist-car-meet",
+      "name": "The Motorist Car Meet",
+      "title": "The Motorist Car Meet",
+      "tagline": "Special guests",
+      "organisers": "James Batty",
+      "kind": "Meet",
+      "startDate": "2026-11-21",
+      "startTime": "09:00",
+      "venue": "The Motorist",
+      "town": "Leeds",
+      "address": "New Lennerton Lane, Sherburn in Elmet, LS25 6JE",
+      "location": "The Motorist, Leeds",
+      "image": "https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/events/the-motorist-car-meet/95424ef57fc24dab.jpg",
+      "poster": "https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/events/the-motorist-car-meet/f46fabedcac94412.jpg",
+      "draft": true,
+      "created": "2026-10-06"
     }
   ]
 }

@@ -64,7 +64,11 @@
   function route() {
     V.hideTip();
     var p = params();
-    app.innerHTML = '<div class="tp-loading" role="status">Loading...</div>';
+    app.innerHTML = '<div class="tp-loading" id="lb-loading" role="status"><span class="tp-spinner" aria-hidden="true"></span><p>Loading the leaderboards...</p></div>';
+    setTimeout(function () {
+      var el = document.getElementById('lb-loading');
+      if (el) el.insertAdjacentHTML('beforeend', '<p class="tp-loading-slow">This is taking a little longer than usual.</p>');
+    }, window.MT3UK_SLOW_MS || 8000);
     load().then(function () {
       if (p.get('board')) return showBoard('track', p.get('board'));
       if (p.get('drag')) return showBoard('drag', p.get('drag'));
@@ -219,16 +223,16 @@
     var e = r.e, b = r.b, drag = type === 'drag';
     var res = drag ? r.s.toFixed(2) + ' s' : V.fmtLap(r.s);
     var gap = i ? '+' + (r.s - lead).toFixed(2) + ' s' : 'Fastest';
-    var mods = e.mods || [];
     var tyres = b.tyres || e.tyres;
     var who = [e.owner ? e.car : '', [e.year, titleOf(e), e.version].filter(Boolean).join(' ')].filter(Boolean).join(' · ');
-    var info = '<span class="lb-tyre' + (tyres ? '' : ' is-none') + '">' + (tyres ? esc(tyres) : 'Tyres not given') + '</span><span class="lb-date">' + esc(T.niceDate(b.date)) +
+    var drive = b.drive || e.drive;
+    var info = '<span class="lb-tyre' + (tyres ? '' : ' is-none') + '">' + (drive ? '<b class="lb-drive">' + esc(drive) + '</b> &middot; ' : '') + (tyres ? esc(tyres) : 'Tyres not given') + '</span><span class="lb-date">' + esc(T.niceDate(b.date)) +
       (b.conditions ? ' · ' + esc(b.conditions) : '') + (drag && b.quarterSpeed ? ' · ' + V.fmtV(b.quarterSpeed) : '') + (e.sessions > 1 ? ' · ' + e.sessions + ' sessions' : '') + '</span>';
     return '<li class="lb-row' + (i < 3 ? ' lb-top' + (i + 1) : '') + '"><span class="lb-pos">' + (i + 1) + '</span>' +
       '<div class="lb-car"><a class="lb-name" href="track.html?s=' + esc(b.sessionId) + '">' + esc(e.owner || e.car) + '</a><small>' + esc(who) + '</small></div>' +
       '<div class="lb-time"><b>' + res + '</b><small>' + gap + '</small></div>' +
       '<div class="lb-info">' + info + '</div>' +
-      (mods.length ? '<div class="lb-mods">' + mods.slice(0, 4).map(function (m) { return '<span class="tp-modchip">' + esc(m) + '</span>'; }).join('') + (mods.length > 4 ? '<span class="tp-modchip is-more">+' + (mods.length - 4) + ' more</span>' : '') + '</div>' : '') +
+      // The car's mods are kept on the entry (and shown on its session page), but a board row lists only the tyres for now.
       icon('chev') + '</li>';
   }
 
@@ -273,7 +277,7 @@
         else {
           h += '<p class="tp-small lb-count" role="status">' + shown.length + ' car' + (shown.length === 1 ? '' : 's') + (filtered ? ', each with its best that matches' : '') + '</p>' +
             '<div class="card lb-card"><ol class="lb-list">' + shown.map(function (r, i) { return rowHtml(r, i, shown[0].s, type); }).join('') + '</ol></div>' +
-            '<p class="tp-small lb-note">Mods are the parts that matter on track: wheels, tyres, suspension, brakes, performance, aero and weight saving. Open a car to see everything. Weather and tyres vary between days, so use the filters to compare like with like.</p>';
+            '<p class="tp-small lb-note">Each row shows the tyres the time was set on. Open a car to see its mods. Weather and tyres vary between days, so use the filters to compare like with like.</p>';
         }
         h += ctaHtml();
         app.innerHTML = h;

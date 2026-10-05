@@ -71,7 +71,19 @@ r = await call('POST', '/track/sessions', { carId: gt3, session: sess, privacy: 
 ok(r.status !== 403, 'a Track session can be saved for it (' + r.status + ' ' + (r.body.message || '') + ')');
 r = await call('POST', '/track/sessions', { carId: gt3, session: sess, privacy: 'private' }, 'tok-b');
 ok(r.status === 403, 'but not by another member');
+r = await call('GET', '/track/sessions', undefined, 'tok-a');
+const saved = (r.body.sessions || []).find(x => x.carId === gt3);
+ok(saved && saved.drive === 'RWD', 'the session carries the driven wheels worked out from the car (911 GT3: RWD)');
+r = await call('GET', '/track/session?id=' + saved.id, undefined, 'tok-a');
+ok(r.body.session && r.body.session.drive === 'RWD', 'and the session page gets it');
+r = await call('PUT', '/my-builds/car', { carId: gt3, drive: 'AWD' }, 'tok-a');
+ok(r.body.success && (await garage()).find(x => x.id === gt3).drive === 'AWD', 'the owner can set the driven wheels on the car');
+r = await call('POST', '/track/sessions', { carId: gt3, session: Object.assign({}, sess, { date: '2026-09-02' }), privacy: 'private', drive: 'FWD' }, 'tok-a');
+ok(r.status === 200, 'a session saved with its own choice is accepted');
+r = await call('GET', '/track/sessions', undefined, 'tok-a');
+ok((r.body.sessions || []).some(x => x.carId === gt3 && x.drive === 'FWD'), 'and keeps that choice');
 r = await call('GET', '/track/public?car=' + gt3, undefined, 'tok-a');
+ok(r.body.car && r.body.car.drive === 'AWD', 'the public car page shows the car\'s driven wheels');
 ok(r.body.success && r.body.mine === true && r.body.car.owner === 'Pat', 'its public page knows the owner without a photo');
 
 // Removing: only the owner's own photoless cars.

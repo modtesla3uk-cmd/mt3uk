@@ -102,3 +102,27 @@ ok(V.title({ model: 'Model 3' }) === 'Model 3' && V.title({ model: 'Hyundai Ioni
 ok(V.title({ make: 'Kia', model: 'EV6 GT' }) === 'Kia EV6 GT' && V.title({ make: 'Hyundai', model: 'Hyundai Ioniq 5 N' }) === 'Hyundai Ioniq 5 N', 'title: the make goes in front, unless the model starts with it');
 ok(V.title({ make: 'Ducati' }) === 'Ducati', 'title: a make alone is shown');
 ok(V.modelKey({ make: 'Tesla', model: 'Model 3' }) === 'Model 3' && V.modelKey({ model: 'Model 3' }) === 'Model 3' && V.modelKey({ make: 'Porsche', model: 'Taycan' }) === 'Porsche Taycan', 'modelKey: Tesla models match the leaderboard chips as before');
+
+// ---- Driven wheels: the page's rule and the worker's agree, and know the cars ----
+const DRIVE_CASES = [
+  [{ model: 'Model 3', version: 'Performance' }, 'AWD'], [{ model: 'Model 3', version: 'Long Range RWD' }, 'RWD'], [{ model: 'Model 3', version: 'Highland Long Range AWD' }, 'AWD'],
+  [{ model: 'Model 3', version: 'Standard Range Plus' }, 'RWD'], [{ model: 'Model 3', version: 'Rear-Wheel Drive' }, 'RWD'], [{ model: 'Model 3' }, ''],
+  [{ make: 'Tesla', model: 'Model Y', version: 'Juniper Performance' }, 'AWD'], [{ model: 'Model Y', version: 'Juniper Rear-Wheel Drive' }, 'RWD'],
+  [{ model: 'Model S', version: 'P85D' }, 'AWD'], [{ model: 'Model S', version: 'P85+' }, 'RWD'], [{ model: 'Model S', version: 'Plaid' }, 'AWD'], [{ model: 'Model X' }, 'AWD'],
+  [{ model: 'Hyundai Ioniq 5 N' }, 'AWD'], [{ make: 'Hyundai', model: 'Ioniq 6 N' }, 'AWD'], [{ make: 'Hyundai', model: 'Kona N' }, 'FWD'],
+  [{ model: 'Porsche Taycan', version: 'Taycan' }, 'RWD'], [{ model: 'Porsche Taycan', version: '4S' }, 'AWD'], [{ make: 'Porsche', model: 'Taycan', version: 'Turbo S Cross Turismo' }, 'AWD'],
+  [{ make: 'Porsche', model: '911', version: 'GT3' }, 'RWD'], [{ make: 'Porsche', model: '911', version: 'Carrera 4S' }, 'AWD'],
+  [{ make: 'Kia', model: 'EV6 GT' }, 'AWD'], [{ make: 'Kia', model: 'EV6' }, 'RWD'], [{ make: 'BMW', model: 'M3', version: 'Competition xDrive' }, 'AWD'], [{ make: 'BMW', model: 'M2' }, 'RWD'],
+  [{ make: 'Polestar', model: '2', version: 'Long range Single motor', year: 2022 }, 'FWD'], [{ make: 'Polestar', model: '2', version: 'Long range Single motor', year: 2024 }, 'RWD'], [{ make: 'Polestar', model: '2', version: 'Dual motor' }, 'AWD'],
+  [{ make: 'Honda', model: 'Civic Type R' }, 'FWD'], [{ make: 'Honda', model: 'NSX', year: 2017 }, 'AWD'], [{ make: 'Honda', model: 'NSX', year: 1995 }, 'RWD'],
+  [{ make: 'Ducati', model: 'Panigale V4', vehicleType: 'bike' }, ''], [{ make: 'Zeekr', model: '001 FR' }, ''], [{ make: 'Ford', model: 'Mustang Mach-E', version: 'AWD Extended Range' }, 'AWD'],
+];
+let agree = true, right = true;
+DRIVE_CASES.forEach(([v, want]) => {
+  const a = V.drive(v), b = mod.driveFor(v);
+  if (a !== b) { agree = false; console.log('  differ', JSON.stringify(v), a, b); }
+  if (a !== want) { right = false; console.log('  wrong', JSON.stringify(v), 'got', a, 'want', want); }
+});
+ok(agree, 'drive: the page and the worker give the same answer for every case');
+ok(right, 'drive: FWD, RWD and AWD are right for ' + DRIVE_CASES.length + ' cars and versions');
+ok(mod.cleanCarModel({ drive: 'AWD', make: 'Kia', model: 'EV6' }, '').drive === 'AWD' && mod.cleanCarModel({ drive: 'sideways' }).drive === undefined, 'cleanCarModel: a drive is kept only when it is FWD, RWD or AWD');

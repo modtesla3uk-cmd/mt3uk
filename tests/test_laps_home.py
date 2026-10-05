@@ -60,3 +60,34 @@ def test_play_intro_on_sessions_opens_the_front_page(page):
     link = page.locator("#tp-play-intro")
     expect(link).to_have_text("Play intro")
     assert link.get_attribute("href") == "laps.html"
+
+
+def test_the_hero_picture_comes_from_the_sharing_panel(page):
+    """The front page's picture is the current pick of the Track sessions sharing set, so the admin controls it;
+    with none set, the built-in picture stays."""
+    pick = {"success": True, "pick": {"url": "http://localhost:8123/images/track-preview/session-overview.jpg", "caption": "Thruxton, lap 3"}}
+    def handler(route):
+        body = pick if "/share/track" in route.request.url else {"success": True, "counts": {}, "leaders": {}}
+        route.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"}, body=json.dumps(body))
+    page.route("**/%s/**" % API_HOST, handler)
+    page.goto("/laps.html")
+    expect(page.locator("#lh-shot-img")).to_have_attribute("src", pick["pick"]["url"])
+    expect(page.locator("#lh-shot-img")).to_have_attribute("alt", "Thruxton, lap 3")
+    pick = {"success": True, "pick": None}
+    page.goto("/laps.html")
+    page.wait_for_timeout(400)
+    assert page.locator("#lh-shot-img").get_attribute("src").endswith("images/track-preview/share.jpg")
+
+
+def test_a_slow_sessions_page_shows_a_spinner_then_a_note_and_refresh(page):
+    """Sessions shows a spinner while it loads; when the worker is slow a note appears, then a Refresh button."""
+    from test_track_page import FakeWorker, open_page
+    fake = FakeWorker()
+    page.add_init_script("window.MT3UK_SLOW_MS = 300;")
+    open_page(page, fake)
+    # The garage never answers (this route is added after the fake worker's, so it is asked first).
+    page.route("**/%s/my-builds" % API_HOST, lambda route: None)
+    page.reload()
+    expect(page.locator("#tp-loading .tp-spinner")).to_be_visible()
+    expect(page.locator("#tp-loading-slow")).to_contain_text("taking a little longer", timeout=3000)
+    expect(page.locator("#tp-loading [data-refresh]")).to_be_visible(timeout=3000)

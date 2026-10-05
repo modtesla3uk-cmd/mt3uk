@@ -3234,9 +3234,10 @@ def test_leaderboard_filters_rank_each_car_by_its_best_that_matches(page):
     expect(rows.first).to_contain_text("Ann's 3")
     expect(rows.first).to_contain_text("Fastest")
     expect(rows.nth(1)).to_contain_text("+1.50 s")
-    # Tyres and the track parts are on the row, without opening anything.
+    # The tyres are on the row, without opening anything; the car's other mods are kept for its session page, not shown here.
     expect(rows.first).to_contain_text("Michelin Pilot Sport 4S, 245/35 R19")
-    expect(rows.first.locator(".tp-modchip").first).to_have_text("Coilovers: KW V3")
+    expect(rows.first.locator(".tp-modchip")).to_have_count(0)
+    expect(rows.first).not_to_contain_text("Coilovers")
     expect(rows.nth(1)).to_contain_text("Kumho Ecsta PS71")
     # The whole row opens the session through its name.
     expect(rows.first.locator("a.lb-name")).to_have_attribute("href", "track.html?s=a-dry")

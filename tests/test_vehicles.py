@@ -39,7 +39,7 @@ def test_the_worker_routes_and_a_cars_make_model_and_type():
         module = Path(tmp) / "worker.mjs"
         source = (ROOT / "workers" / "vote-worker.js").read_text(encoding="utf-8")
         source = source.replace("import { EmailMessage } from 'cloudflare:email';", "class EmailMessage { constructor(f, t, raw) { this.raw = raw; } }", 1)
-        source += "\nexport { putSidecar, saveCarRecord, cleanCarModel };\n"
+        source += "\nexport { putSidecar, saveCarRecord, cleanCarModel, driveFor };\n"
         module.write_text(source, encoding="utf-8")
         result = subprocess.run(
             ["node", str(ROOT / "tests" / "vehicle_worker_check.mjs")],
@@ -113,7 +113,7 @@ def test_the_leaderboard_shows_a_make_and_has_a_chip_for_a_model_it_does_not_lis
     old = board_row("a", "a1", 90.0)
     old.update(owner="Ann", car="Ann's 3", model="Model 3", year=2021, version="Performance")
     kia = board_row("k", "k1", 91.0)
-    kia.update(owner="Kit", car="Kit's EV6", make="Kia", model="EV6 GT", year=2024)
+    kia.update(owner="Kit", car="Kit's EV6", make="Kia", model="EV6 GT", year=2024, drive="AWD")
     new_tesla = board_row("t", "t1", 92.0)
     new_tesla.update(owner="Tom", car="Tom's Y", make="Tesla", model="Model Y", year=2023)
     fake.boards = {"/track/board:thruxton:main": [old, kia, new_tesla]}
@@ -123,6 +123,9 @@ def test_the_leaderboard_shows_a_make_and_has_a_chip_for_a_model_it_does_not_lis
     # The old-style car is unchanged; the Kia has its make in front.
     expect(rows.first).to_contain_text("2021 Model 3 Performance")
     expect(rows.nth(1)).to_contain_text("2024 Kia EV6 GT")
+    # The driven wheels sit with the tyres; a row without them shows none.
+    expect(rows.nth(1).locator(".lb-drive")).to_have_text("AWD")
+    expect(rows.first.locator(".lb-drive")).to_have_count(0)
     # A Tesla saved with a make still matches the Model Y chip, and the Kia has a chip of its own.
     chips = page.locator("#lb-models .chip")
     assert chips.all_inner_texts()[-1] == "Kia EV6 GT"
@@ -145,8 +148,10 @@ def test_my_garage_keeps_a_model_it_does_not_list(device_page):
     """A car with a make and a typed model shows it in the model drop-down, saving the form with nothing
     changed does not lose it, and choosing a listed model also clears the make."""
     page = device_page
-    page.mock_state["car_details"] = {"make": "Kia", "model": "EV6 GT", "year": 2024, "vehicleType": "car"}
+    page.mock_state["car_details"] = {"make": "Kia", "model": "EV6 GT", "year": 2024, "vehicleType": "car", "drive": "AWD"}
     open_car(page)
+    # Driven wheels show as the car's, and only a change is sent.
+    assert page.locator("#mb-car-drive-select").input_value() == "AWD"
     select = page.locator("#mb-car-model-select")
     assert select.input_value() == "EV6 GT"
     assert select.locator("option:checked").inner_text() == "Kia EV6 GT"
@@ -161,5 +166,24 @@ def test_my_garage_keeps_a_model_it_does_not_list(device_page):
     page.wait_for_function("document.getElementById('mb-car-model-select').disabled === true", timeout=5000)
     body = last_put(page)
     assert body.get("model") == "Model 3" and body.get("make") == "", body
+    assert "drive" not in body
+    page.locator("#mb-car-name-edit").click()
+    page.select_option("#mb-car-drive-select", "RWD")
+    page.locator("#mb-car-name-save").click()
+    page.wait_for_function("document.getElementById('mb-car-model-select').disabled === true", timeout=5000)
+    assert last_put(page).get("drive") == "RWD", last_put(page)
     assert select.input_value() == "Model 3"
     assert page.errors == [], diagnostics(page)
+
+
+def test_the_add_page_asks_which_wheels_drive_the_car_and_keeps_the_choice(page):
+    """The Add page's Driven wheels chips start as the car's; a choice goes with the session and back to the car."""
+    from test_track_page import FakeWorker, open_page, FIXTURE
+    fake = FakeWorker()
+    open_page(page, fake, "/track.html?add=1")
+    page.set_input_files("#tp-file", str(FIXTURE))
+    chips = page.locator("[data-drive] button")
+    expect(chips).to_have_text(["FWD", "RWD", "AWD"])
+    expect(page.locator("[data-drive] .is-on")).to_have_count(0)
+    page.locator("[data-drive] [data-v='AWD']").click()
+    expect(page.locator("[data-drive] .is-on")).to_have_text("AWD")

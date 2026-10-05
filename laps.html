@@ -351,6 +351,16 @@
   @media (min-width: 900px) { .lh-band .wrap { justify-items: center; text-align: center; } }
   .lh-band p { color: var(--ink-2); max-width: 60ch; }
   @media (max-width: 780px) { .lh-hero { padding: 30px 0 34px; } .lh-sec { padding-top: 32px; } }
+
+  /* The install banner (same as the homepage's), with a line icon for its close button. */
+  .a2hs-banner { position: fixed; left: 16px; right: 16px; bottom: -120px; z-index: 300; display: flex; align-items: center; justify-content: space-between; gap: 16px; max-width: 480px; margin: 0 auto; background: var(--ink); color: var(--paper); border: 1px solid var(--orange); border-radius: var(--radius); padding: 14px 18px; font-family: var(--font-body); font-size: 0.85rem; transition: bottom .3s ease; }
+  .a2hs-banner.show { bottom: 16px; }
+  .a2hs-banner .a2hs-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .a2hs-banner .a2hs-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; font-family: var(--font-body); font-size: 0.8rem; font-weight: 600; cursor: pointer; border: none; background: transparent; color: var(--paper); }
+  .a2hs-banner .a2hs-install { background: var(--orange); color: var(--paper); padding: 8px 14px; border-radius: var(--radius-sm); }
+  .a2hs-banner .a2hs-close { padding: 0 4px; }
+  .a2hs-banner .a2hs-close .icon { width: 20px; height: 20px; }
+  @media (max-width: 480px) { .a2hs-banner { flex-direction: column; align-items: flex-start; } }
 </style>
 
 </head>

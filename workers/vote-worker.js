@@ -5179,6 +5179,36 @@ async function resolveSession(request, env) {
   return info ? info.email : null;
 }
 
+// Sign-in handover between mt3uk.com and laps.mt3uk.com. A sign-in is kept in the browser per address, so a member
+// signed in on one would land signed out on the other. js/account-bar.js asks for a one-time code when a signed-in
+// member follows a link to the other address (POST /session/handover), puts it in the link's #, and the page there
+// swaps it for a sign-in of its own (POST /session/handover/redeem). A code is random, works once and lasts 2 minutes.
+var HANDOVER_TTL_SECONDS = 120;
+async function handleSessionHandover(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var body = {};
+  try { body = await request.json(); } catch (e) { body = {}; }
+  var code = randomToken();
+  var firstName = String((body && body.firstName) || '').replace(/[\u0000-\u001f]/g, '').trim().slice(0, 60);
+  await env.VOTES.put('session-handover:' + code, JSON.stringify({ email: email, firstName: firstName }), { expirationTtl: HANDOVER_TTL_SECONDS });
+  return json({ success: true, code: code });
+}
+async function handleSessionHandoverRedeem(request, env) {
+  var body = {};
+  try { body = await request.json(); } catch (e) { body = {}; }
+  var code = String((body && body.code) || '');
+  if (!/^[a-f0-9]{64}$/.test(code)) return json({ success: false, message: 'That link has run out. Please sign in.' }, 400);
+  var key = 'session-handover:' + code;
+  var raw = await env.VOTES.get(key);
+  if (!raw) return json({ success: false, message: 'That link has run out. Please sign in.' }, 404);
+  await env.VOTES.delete(key);
+  var held = {};
+  try { held = JSON.parse(raw) || {}; } catch (e) { held = {}; }
+  if (!held.email) return json({ success: false, message: 'That link has run out. Please sign in.' }, 404);
+  return json({ success: true, session: await createSession(env, held.email), email: held.email, firstName: held.firstName || '' });
+}
+
 // GET /session/refresh: a renewed sign-in (30 more days) once the current
 // one is a day old; 401 when it has run out or been signed out.
 async function handleSessionRefresh(request, env) {
@@ -10040,6 +10070,12 @@ export default {
     }
     if (url.pathname === '/my-builds/join' && request.method === 'POST') {
       return handleMyBuildsJoin(request, env);
+    }
+    if (url.pathname === '/session/handover' && request.method === 'POST') {
+      return handleSessionHandover(request, env);
+    }
+    if (url.pathname === '/session/handover/redeem' && request.method === 'POST') {
+      return handleSessionHandoverRedeem(request, env);
     }
     if (url.pathname === '/session/refresh' && request.method === 'GET') {
       return handleSessionRefresh(request, env);

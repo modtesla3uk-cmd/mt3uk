@@ -20,7 +20,7 @@
   var app = document.getElementById('tp-app');
   if (!app || !T || !V) return;
   var esc = V.esc;
-  var RUN_COLORS = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#4a3aa7', '#e34948'];
+  var RUN_COLORS = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#4a3aa7', '#e34948', '#2b9fb5', '#8a6d3b', '#9b59b6', '#5b6475'];
   var TYPE_WORD = { drag: 'drag', sprint: 'sprint', other: 'other' };
   var TYPES = [['track', 'Track day'], ['drag', 'Drag run'], ['sprint', 'Sprint'], ['hill', 'Hill climb'], ['other', 'Other']];
   // Sprint and Hill climb are one type underneath (timed from a start line to a finish line); `hill` on the session says which.
@@ -1296,8 +1296,8 @@
   }
   function bestRunLine(runs) {
     var q = runs.filter(function (r) { return r.quarter; }).sort(function (x, y) { return x.quarter - y.quarter; })[0];
-    var b = runs.slice().sort(function (x, y) { return x.s60 - y.s60; })[0];
-    return q ? 'Best quarter mile ' + q.quarter.toFixed(2) + ' s at ' + V.fmtV(q.quarterSpeed) + '.' : 'Best 0 to 60 mph ' + b.s60.toFixed(2) + ' s.';
+    var b = runs.filter(function (r) { return r.s60; }).sort(function (x, y) { return x.s60 - y.s60; })[0];
+    return q ? 'Best quarter mile ' + q.quarter.toFixed(2) + ' s at ' + V.fmtV(q.quarterSpeed) + '.' : b ? 'Best 0 to 60 mph ' + b.s60.toFixed(2) + ' s.' : runs.length + ' runs, none reached 60 mph.';
   }
   // Only me, or Shared (on the car's page and the track's leaderboard).
   // Older sessions saved as "build" count as Shared.
@@ -2934,15 +2934,11 @@
       if (zoomed && mo && mo.zoom && mo.zoom.restore && zoomed.k > 1.01) mo.zoom.restore(zoomed);
       if (mo && mo.setFollow) mo.setFollow(cmpFollow);
       if (mo && mo.zoom && mo.zoom.onPan) mo.zoom.onPan(function () { if (cmpFollow) setFollow(false); });
-      // Smoothed G-force rows [distance, acceleration, cornering] for each lap.
+      // G-force rows [distance, acceleration, cornering] for each lap, as recorded (not averaged), so the line
+      // reaches the same peaks as the headline figures and the Max labels. Cornering keeps its sign, one way
+      // positive and the other negative, as RaceBox draws it.
       function smoothG(trace) {
-        return trace.map(function (p, i) {
-          var n = 0, ac = 0, co = 0;
-          // Cornering keeps its sign, one way positive and the other negative, as RaceBox draws it. Three readings
-          // (about 0.4 s) are averaged, so a short peak still reaches close to its real height.
-          for (var k = Math.max(0, i - 1); k <= Math.min(trace.length - 1, i + 1); k++) { ac += trace[k][6]; co += trace[k][5]; n++; }
-          return [p[0], ac / n, co / n];
-        });
+        return trace.map(function (p) { return [p[0], p[6], p[5]]; });
       }
       var ga = smoothG(A.trace), gb = A === B ? ga : smoothG(B.trace);
       var fmtAcc = function (v) { return (v >= 0 ? '+' : '') + v.toFixed(2) + ' g'; }, fmtCor = fmtAcc;
@@ -3111,8 +3107,9 @@
               });
               Object.keys(sides).forEach(function (k) {
                 var sd = sides[k], tx = document.createElementNS(ns, 'text');
-                tx.setAttribute('class', 'tp-gmax'); tx.setAttribute('x', X(tEndG) - 4); tx.setAttribute('y', Y(sd.v) - 4); tx.setAttribute('text-anchor', 'end');
-                tx.setAttribute('style', 'fill:#5b6475;font-size:11px;font-weight:600'); tx.setAttribute('pointer-events', 'none');
+                // The upper figure sits at the right and the lower at the left, where a lap's line is usually clear of them.
+                tx.setAttribute('class', 'tp-gmax'); tx.setAttribute('x', k === 'lo' ? X(0) + 4 : X(tEndG) - 4); tx.setAttribute('y', Y(sd.v) + (k === 'lo' && defs.length === 1 ? 13 : -4)); tx.setAttribute('text-anchor', k === 'lo' ? 'start' : 'end');
+                tx.setAttribute('style', 'fill:#5b6475;font-size:11px;font-weight:600;paint-order:stroke;stroke:#ffffff;stroke-width:3px;stroke-linejoin:round'); tx.setAttribute('pointer-events', 'none');
                 tx.textContent = sd.word + ' ' + sd.parts.join(', ');
                 sv.appendChild(tx);
               });
@@ -3259,7 +3256,7 @@
   function dragHtml(s) {
     var runs = s.runs || [];
     var bq = runs.filter(function (r) { return r.quarter; }).sort(function (a, b) { return a.quarter - b.quarter; })[0];
-    var b60 = runs.slice().sort(function (a, b) { return a.s60 - b.s60; })[0];
+    var b60 = runs.filter(function (r) { return r.s60; }).sort(function (a, b) { return a.s60 - b.s60; })[0];
     var b30 = runs.filter(function (r) { return r.s30; }).sort(function (a, b) { return a.s30 - b.s30; })[0];
     var b8 = runs.filter(function (r) { return r.eighth; }).sort(function (a, b) { return a.eighth - b.eighth; })[0];
     var bmid = runs.filter(function (r) { return r.s60to100; }).sort(function (a, b) { return a.s60to100 - b.s60to100; })[0];
@@ -3277,7 +3274,7 @@
     h += carDataHtml(s);
     // Street runs (admin testing) also show where the drive went.
     if (s.street && (s.outline || (s.trace && s.trace.outline) || []).length > 1) h += '<div class="card"><div class="tp-chart-head"><h3>Your drive, coloured by speed</h3></div><svg class="tv-chart" id="tp-map" role="img" aria-label="The drive drawn from GPS, coloured by speed"></svg><div class="tp-chart-foot"><span class="tp-ramp"><span id="tp-ramp-lo"></span><i></i><span id="tp-ramp-hi"></span></span><span>Street runs are private and never on a leaderboard.</span></div></div>';
-    h += '<div class="tp-grid tp-g-map"><div class="card"><div class="tp-chart-head"><h3>Speed off the line</h3><div class="tp-key">' + runs.slice(0, 8).map(function (r, i) { return '<span><i style="background:' + RUN_COLORS[i] + '"></i>Run ' + (i + 1) + '</span>'; }).join('') + '</div></div><svg class="tv-chart" id="tp-drag" role="img" aria-label="Speed against time for each run"></svg></div>' +
+    h += '<div class="tp-grid tp-g-map"><div class="card"><div class="tp-chart-head"><h3>Speed off the line</h3><div class="tp-key">' + runs.slice(0, 12).map(function (r, i) { return '<span><i style="background:' + RUN_COLORS[i] + '"></i>Run ' + (i + 1) + '</span>'; }).join('') + '</div></div><svg class="tv-chart" id="tp-drag" role="img" aria-label="Speed against time for each run"></svg></div>' +
       '<div class="card"><h3>Runs</h3><div class="tp-scroll"><table class="tp-table"><thead><tr><th>Run</th><th>60 ft</th><th>0-30</th><th>0-60</th><th>60-100</th><th>1/8</th><th>1/4</th><th>Trap</th></tr></thead><tbody>' +
       runs.map(function (r, i) { function f(v) { return v ? v.toFixed(2) : '-'; } return '<tr' + (r === bq ? ' class="is-best"' : '') + '><td>' + (i + 1) + '</td><td>' + f(r.ft60) + '</td><td>' + f(r.s30) + '</td><td>' + f(r.s60) + '</td><td>' + f(r.s60to100) + '</td><td>' + f(r.eighth) + '</td><td>' + f(r.quarter) + '</td><td>' + (r.quarterSpeed ? Math.round(V.spd(r.quarterSpeed)) : '-') + '</td></tr>'; }).join('') +
       '</tbody></table></div><p class="tp-small">' + (s.rollout ? 'Timed with a 1 ft rollout: the clock starts just after the car begins to move, as RaceBox\'s rollout option does. Worked out from GPS speed.' : 'Times from the first movement, worked out from GPS speed. Strip timing lights and RaceBox\'s rollout option start the clock after about a foot of movement, so their times are usually a little quicker.') + '</p></div></div>';
@@ -3286,7 +3283,7 @@
   }
   function drawDragCharts(s) {
     var svg = document.getElementById('tp-drag');
-    if (svg && (s.runs || []).length) V.drag(svg, s.runs.slice(0, 8), RUN_COLORS);
+    if (svg && (s.runs || []).length) V.drag(svg, s.runs.slice(0, 12), RUN_COLORS);
     if (s.street && (s.outline || (s.trace && s.trace.outline) || []).length > 1 && document.getElementById('tp-map')) drawOtherCharts(s);
   }
 

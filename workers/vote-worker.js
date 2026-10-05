@@ -6589,7 +6589,7 @@ function cleanTrackRuns(runs) {
     var o = {};
     keys.forEach(function (k) { var n = Number(r && r[k]); if (r && r[k] != null && isFinite(n)) o[k] = n; });
     o.curve = cleanNumArrays(r && r.curve, 2).slice(0, 400);
-    return o.s60 ? o : null;
+    return o.s60 || o.s30 ? o : null;
   }).filter(Boolean);
 }
 
@@ -6755,7 +6755,7 @@ function trackSummary(rec) {
   if (rec.type === 'drag') {
     var runs = rec.runs || [];
     var bq = runs.filter(function (r) { return r.quarter; }).sort(function (a, b) { return a.quarter - b.quarter; })[0];
-    var b60 = runs.slice().sort(function (a, b) { return a.s60 - b.s60; })[0];
+    var b60 = runs.filter(function (r) { return r.s60; }).sort(function (a, b) { return a.s60 - b.s60; })[0];
     o.runs = runs.length;
     if (bq) { o.quarter = bq.quarter; o.quarterSpeed = bq.quarterSpeed; }
     if (b60) o.s60 = b60.s60;
@@ -7127,7 +7127,7 @@ async function handleTrackSessionSave(request, env) {
 // Whether a listed session and a new one have the same result: the same laps and best time, or runs and 60 ft time.
 function sameTrackResult(s, rec) {
   if (rec.type === 'drag') {
-    var runs = rec.runs || [], b60 = runs.slice().sort(function (a, b) { return a.s60 - b.s60; })[0];
+    var runs = rec.runs || [], b60 = runs.filter(function (r) { return r.s60; }).sort(function (a, b) { return a.s60 - b.s60; })[0];
     return s.runs === runs.length && (!b60 || !isFinite(s.s60) || Math.abs(s.s60 - b60.s60) < 0.0005);
   }
   return s.laps === (rec.laps || []).length && ((s.bestTime == null && rec.bestTime == null) || (isFinite(s.bestTime) && isFinite(rec.bestTime) && Math.abs(s.bestTime - rec.bestTime) < 0.0005));

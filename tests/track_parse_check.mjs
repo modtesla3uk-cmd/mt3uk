@@ -672,7 +672,7 @@ ok(T.fmtLap(99.786) === '1:39.79' && T.niceDate('2026-05-28') === '28 May 2026',
   const wrong = T.analyse(hrd, { venues: [] }, { type: 'sprint', ownLines: true, startLine: across(near2(climbEnd), near2(climbEnd - 1)), finishLine: across(near2(climbStart), near2(climbStart + 1)) });
   ok(wrong.bestTime && wrong.bestTime > 80, 'with the lines the wrong way round the drive back down is timed: ' + wrong.bestTime);
   ok(wrong.reverseRun && wrong.reverseRun.peak > 140 && wrong.reverseRun.fwdPeak < 70 && wrong.reverseRun.time > 40 && wrong.reverseRun.time < 80, 'and the faster pass the other way is reported: ' + JSON.stringify(wrong.reverseRun));
-  ok(T.ANALYSIS_VERSION === 9, 'the analysis version moved on');
+  ok(T.ANALYSIS_VERSION >= 9, 'the analysis version moved on');
 }
 
 // A standing start is timed from the first reading above 0.5 km/h (the moment the car moves off), whatever the start
@@ -691,4 +691,20 @@ ok(T.fmtLap(99.786) === '1:39.79' && T.niceDate('2026-05-28') === '28 May 2026',
     const r = T.analyse(hrd, { venues: [] }, { type: 'sprint', ownLines: true, startLine: across(m), finishLine: F, ignoreFirstFinish: true });
     ok(r.laps.length === 1 && near(r.bestTime, 33.05, 0.06), 'a start line ' + m + ' m past the move-off point gives the same time (clock from the move-off): ' + r.bestTime);
   }
+}
+
+// A launch that reaches 30 mph but not 60 mph is a run too, listed with the figures it reached; creeping about is not.
+{
+  const rows = ['time,latitude,longitude,speed (mph)'];
+  let x = 0;
+  const vAt = t => t < 4 ? 0 : t < 14 ? 45 * (t - 4) / 10 : t < 24 ? 45 * (24 - t) / 10 : t < 28 ? 0
+    : t < 48 ? 100 * (1 - Math.exp(-(t - 28) / 6)) : t < 58 ? 100 * (1 - Math.exp(-20 / 6)) * (58 - t) / 10 : t < 62 ? 0
+    : t < 66 ? 5 * (t - 62) / 4 : t < 70 ? 5 * (70 - t) / 4 : 0;
+  for (let i = 0; i <= 760; i++) { const t = i / 10, v = Math.max(0, vAt(t)); x += v * 0.44704 * 0.1; rows.push([t.toFixed(1), (51.5 + x / 110540).toFixed(7), (-0.12).toFixed(7), v.toFixed(2)].join(',')); }
+  const part = T.analyse(T.read(rows.join('\n'), 'two-launches.csv'), { venues: [] }, { type: 'drag' });
+  ok(part.runs.length === 2, 'a launch that stops short of 60 mph is listed, the creeping is not: ' + part.runs.length);
+  ok(part.runs[0].s30 && !part.runs[0].s60 && part.runs[0].ft60, 'the short launch has the figures it reached (60 ft, 0-30) and no 0-60');
+  ok(part.runs[1].s60 && part.runs[1].s30, 'the full launch has 0-60 too');
+  ok(T.ANALYSIS_VERSION === 10, 'the analysis version moved on');
+  ok(!T.sessionNotes(part).some(n => /NaN/.test(n.text)), 'the notes cope with a run that has no 0-60');
 }

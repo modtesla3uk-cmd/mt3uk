@@ -30,7 +30,8 @@
   //    where the fix catches up rather than to the first reading past it; readings are spaced by the speeds.
   // 8: a sprint or hill climb notes when a faster pass crosses its lines the other way round (reverseRun).
   // 9: a standing start in a sprint or hill climb is always timed from the first reading above 0.5 km/h, wherever the start line is.
-  var ANALYSIS_VERSION = 9;
+  // 10: a drag launch that reaches 30 mph but not 60 mph is listed as a run (it was dropped).
+  var ANALYSIS_VERSION = 10;
   var DEG = Math.PI / 180;
 
   function num(s) {
@@ -910,7 +911,9 @@
         if (q.v < vmax - 15 || out.quarter) { i = k; break; }
         if (k === points.length - 1) i = k;
       }
-      if (!out.s60) continue;
+      // A launch that gets to 30 mph is a run, even if it ends before 60 mph (a lift, a short strip, a stop): it is
+      // listed with the figures it reached, as RaceBox lists it. Creeping about is not.
+      if (!out.s30) continue;
       out.vmax = round(vmax, 1);
       if (out.s100 && out.s60) out.s60to100 = round(out.s100 - out.s60, 2);
       runs.push(out);
@@ -1336,7 +1339,7 @@
       var runs = s.runs || [];
       if (runs.length > 1) {
         var bq = runs.filter(function (r) { return r.quarter; }).sort(function (a, b) { return a.quarter - b.quarter; });
-        var b60 = runs.slice().sort(function (a, b) { return a.s60 - b.s60; });
+        var b60 = runs.filter(function (r) { return r.s60; }).sort(function (a, b) { return a.s60 - b.s60; });
         if (b60.length > 1 && b60[b60.length - 1].s60 - b60[0].s60 > 0.15) out.push({ icon: 'up', text: 'Your best launch was ' + (b60[b60.length - 1].s60 - b60[0].s60).toFixed(2) + ' s quicker to 60 mph than your slowest. 60 ft times: ' + runs.map(function (r) { return r.ft60 ? r.ft60.toFixed(2) : '-'; }).join(', ') + ' s.', small: 'Most of a quarter mile is won in the first 60 feet.' });
         if (bq.length) out.push({ icon: 'flag', text: 'Best quarter mile ' + bq[0].quarter.toFixed(2) + ' s at ' + speed(bq[0].quarterSpeed) + '.', small: '' });
       }

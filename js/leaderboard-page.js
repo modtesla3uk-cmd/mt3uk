@@ -209,7 +209,7 @@
   function rowHtml(r, i, lead, type) {
     var e = r.e, b = r.b, drag = type === 'drag';
     var res = drag ? r.s.toFixed(2) + ' s' : V.fmtLap(r.s);
-    var gap = i ? '+' + (r.s - lead).toFixed(drag ? 2 : 3) + ' s' : 'Fastest';
+    var gap = i ? '+' + (r.s - lead).toFixed(2) + ' s' : 'Fastest';
     var mods = e.mods || [];
     var tyres = b.tyres || e.tyres;
     var who = [e.owner, [e.year, e.model, e.version].filter(Boolean).join(' ')].filter(Boolean).join(' · ');

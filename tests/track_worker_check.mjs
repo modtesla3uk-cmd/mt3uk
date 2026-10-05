@@ -900,6 +900,17 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   ok(stored('track-session:' + saved2.body.session.id).reverseRun === undefined, 'and is not kept on a track day');
   for (const z of [saved, saved2]) await call('DELETE', '/track/session?id=' + z.body.session.id, undefined, 'tok-a');
 }
+// A drag launch that reaches 30 mph but not 60 mph is kept as a run (it was dropped), the one that reaches nothing is not.
+{
+  const run = (o) => Object.assign({ start: 1, lat: 51.5, lng: -0.12, curve: [[0, 0], [1, 10]] }, o);
+  const dragSess = JSON.parse(JSON.stringify(street));
+  dragSess.runs = [run({ s30: 4.1, ft60: 3.2 }), run({ ft60: 2.1, s30: 1.5, s60: 3.4 }), run({ start: 9 })];
+  const kept = await call('POST', '/track/sessions', { carId: 'carb1', session: dragSess }, 'tok-b');
+  const back = stored('track-session:' + kept.body.session.id);
+  ok(kept.status === 200 && back.runs.length === 2 && !back.runs[0].s60 && back.runs[0].s30 === 4.1 && back.runs[1].s60 === 3.4, 'a short launch is kept as a run, one with no figures is dropped: ' + JSON.stringify(back.runs.map(r => [r.s30, r.s60])));
+  ok(kept.body.session.s60 === 3.4, 'the summary takes the best 0-60 from the runs that have one');
+  await call('DELETE', '/track/session?id=' + kept.body.session.id, undefined, 'tok-b');
+}
 // Renaming the track on a session at a track we do not list: the same steps as editing the map (ask, allow, send, accept).
 {
   const un = JSON.parse(JSON.stringify(session)); delete un.venueId; delete un.layoutId;

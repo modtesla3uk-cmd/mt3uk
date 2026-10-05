@@ -2355,7 +2355,7 @@ def test_g_force_lines_can_be_switched_on_and_off(page):
     # Cornering keeps its sign: the g scale runs below zero as far as above it, as RaceBox draws it.
     labels = [x.strip() for x in page.locator("#tp-gforce text[text-anchor='end']:not(.tp-gmax)").all_text_contents()]
     assert labels and labels[0].startswith("-") and labels[0][1:] == labels[-1], labels
-    expect(page.locator("#tp-gforce text[text-anchor='start']")).to_have_count(0)
+    expect(page.locator("#tp-gforce text[text-anchor='start']:not(.tp-gmax)")).to_have_count(0)
     # The biggest cornering g of the lap is drawn as a dashed line and named, the same figure as the note below.
     maxes = [t.strip() for t in page.locator("#tp-gforce .tp-gmax").all_text_contents()]
     assert len(maxes) == 2 and all(re.fullmatch(r"Max (A \d\.\d\d g, B \d\.\d\d g|\d\.\d\d g)", t) for t in maxes), maxes
@@ -3982,6 +3982,42 @@ def test_drag_runs_show_0_to_30_and_have_a_1_ft_rollout_switch(page):
         expect(page.locator(".tp-tile .k", has_text="0 to 30 mph")).to_be_visible()
         expect(page.locator(".tp-table th", has_text="0-30")).to_be_visible()
         expect(page.locator(".tp-small", has_text="first movement").first).to_be_visible()
+    finally:
+        path.unlink()
+
+
+def test_a_launch_that_stops_short_of_60_mph_is_listed_as_a_run(page):
+    """A launch that reaches 30 mph but not 60 mph is a run, with a dash for the figures it did not reach. RaceBox lists
+    it; the site used to drop it."""
+    import math
+    rows, x = ["time,latitude,longitude,speed (mph)"], 0.0
+    def v_at(t):
+        if t < 4: return 0
+        if t < 14: return 45 * (t - 4) / 10
+        if t < 24: return 45 * (24 - t) / 10
+        if t < 28: return 0
+        if t < 48: return 100 * (1 - math.exp(-(t - 28) / 6))
+        if t < 58: return 100 * (1 - math.exp(-20 / 6)) * (58 - t) / 10
+        return 0
+    for i in range(0, 620):
+        t = i / 10; v = max(0.0, v_at(t)); x += v * 0.44704 * 0.1
+        rows.append("%.1f,%.7f,%.7f,%.2f" % (t, 51.5 + x / 110540, -0.12, v))
+    path = ROOT / "tests" / "fixtures" / "_tmp_two_launches.csv"
+    path.write_text("\n".join(rows), encoding="utf-8")
+    try:
+        fake = FakeWorker(admin=True)
+        open_page(page, fake, "/track.html?add=1&car=car1", admin=True)
+        page.set_input_files("#tp-file", str(path))
+        page.locator("[data-type] [data-v='drag']").click()
+        page.locator("#tp-street").click()
+        page.get_by_role("button", name="Save session").click()
+        expect(page.locator(".tp-tile .k", has_text="Runs")).to_be_visible()
+        rows_ = page.locator(".tp-table tbody tr")
+        expect(rows_).to_have_count(2)
+        cells = rows_.nth(0).locator("td").all_inner_texts()
+        assert cells[3] == "-" and cells[2] != "-", cells  # 0-30 reached, 0-60 not
+        assert rows_.nth(1).locator("td").all_inner_texts()[3] != "-"
+        assert len(fake.saved[0]["session"]["runs"]) == 2
     finally:
         path.unlink()
 

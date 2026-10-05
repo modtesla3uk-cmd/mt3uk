@@ -554,7 +554,7 @@
         if (old.ignoreFinish === false) next.ignoreFinish = false;
         if (old.linesAccepted) next.linesAccepted = true;
         if (!old.venueId) next.venueName = old.venue;
-        var change = { id: row.id, venue: old.venue, date: old.date, type: old.type, from: old.type === 'drag' ? (old.runs && old.runs[0] && old.runs[0].s60) : old.bestTime, to: next.type === 'drag' ? (next.runs && next.runs[0] && next.runs[0].s60) : next.bestTime };
+        var change = { id: row.id, venue: old.venue, date: old.date, type: old.type, from: old.type === 'drag' ? ((old.runs || []).filter(function (r) { return r.s60; })[0] || {}).s60 : old.bestTime, to: next.type === 'drag' ? ((next.runs || []).filter(function (r) { return r.s60; })[0] || {}).s60 : next.bestTime };
         change.big = isBig(change);
         if (!apply || (change.big && !allowBig)) return change;
         change.saved = true;

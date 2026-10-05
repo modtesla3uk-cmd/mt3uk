@@ -60,6 +60,7 @@ PAGES = {
     "blog-unicorn": "blog.html",
     "blog-john-track-day": "blog.html",
     "blog-sue": "blog.html",
+    "blog-james": "blog.html",
     "blog-ryan": "blog.html",
     "blog-sharad": "blog.html",
     "blog-mark": "blog.html",

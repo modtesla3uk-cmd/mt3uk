@@ -4173,10 +4173,11 @@ def test_the_session_id_is_shown_with_a_copy_button(page):
 
 def test_a_member_requests_to_rename_an_unlisted_track_and_sends_the_name_for_approval(page):
     """A session at a track we do not list has the name its member typed. They ask to rename it (MT3UK is told); once
-    allowed they send the new name, which waits for approval. A session at a listed track has no such box."""
+    allowed they send the new name, which waits for approval. A session at a listed track gets a Layout name box
+    instead (see the next test)."""
     fake = FakeWorker()
     save_fixture_session(page, fake)
-    expect(page.locator("#rename")).to_have_count(0)
+    expect(page.locator("#rename h2")).to_have_text("Layout name")
     rec = fake.sessions["new1"]
     rec.pop("venueId", None)
     rec["venue"] = "Aerodrome"
@@ -4196,6 +4197,34 @@ def test_a_member_requests_to_rename_an_unlisted_track_and_sends_the_name_for_ap
     expect(box).to_contain_text("Newtown Aerodrome")
     assert fake.rename_proposals == [{"id": "new1", "name": "Newtown Aerodrome"}]
     expect(page.get_by_role("heading", name=re.compile("Aerodrome"))).to_have_count(1)
+
+
+def test_a_member_requests_to_rename_the_layout_of_a_listed_track(page):
+    """At a listed track what can be wrong is the layout name ("Brands Hatch, New Layout"). It is shared by every session
+    on that layout, so the box says so; the steps are the same: ask, allowed, send, approved by MT3UK."""
+    fake = FakeWorker()
+    save_fixture_session(page, fake)
+    rec = fake.sessions["new1"]
+    rec["layout"] = "New Layout"
+    page.reload()
+    box = page.locator("#tp-rename")
+    expect(page.locator("#rename h2")).to_have_text("Layout name")
+    expect(box).to_contain_text("on the layout New Layout")
+    expect(box).to_contain_text("Every session on that layout shares its name")
+    page.fill("#tp-rename-why", "It is the Indy circuit")
+    page.get_by_role("button", name="Request rename").click()
+    expect(box).to_contain_text("will email you when you can rename this layout")
+    assert fake.rename_requests == [{"id": "new1", "note": "It is the Indy circuit"}]
+    fake.rename_status = "granted"
+    page.reload()
+    expect(box).to_contain_text("MT3UK has said you can rename this layout")
+    expect(box).to_contain_text("changes for everyone with a session on this layout")
+    expect(page.locator("#tp-rename-name")).to_have_value("New Layout")
+    page.fill("#tp-rename-name", "Indy Circuit")
+    page.get_by_role("button", name="Send for approval").click()
+    expect(box).to_contain_text("The layout keeps its name until then")
+    expect(box).to_contain_text("Indy Circuit")
+    assert fake.rename_proposals == [{"id": "new1", "name": "Indy Circuit"}]
 
 
 def test_a_member_requests_to_edit_the_map_and_sends_a_change_for_approval(page):
@@ -4675,6 +4704,34 @@ def test_a_long_stop_between_passes_offers_sprint_or_hill_climb_as_separate_choi
     expect(notice.get_by_role("button")).to_have_text(["Switch to Sprint", "Switch to Hill climb"])
     notice.get_by_role("button", name="Switch to Hill climb").click()
     expect(page.locator("[data-type] .chip.is-on")).to_have_text(["Hill climb"])
+
+
+def test_a_logger_left_running_between_sessions_is_explained_without_offering_sprint(page, tmp_path):
+    """A day of laps with the car parked (the logger still recording) for a long gap in the middle: the gap is left out,
+    the notice says so, and it does not suggest a sprint or hill climb."""
+    import datetime as dt
+    text = (ROOT / "tests" / "fixtures" / "racebox-castle-combe-gpx.gpx").read_text()
+    pts = re.findall(r"<trkpt [^>]*>.*?</trkpt>", text)
+    first, last = text.index(pts[0]), text.index(pts[-1]) + len(pts[-1])
+
+    def shift(p, sec):
+        m = re.search(r"<time>(.*?)Z</time>", p)
+        t = dt.datetime.strptime(m.group(1), "%Y-%m-%dT%H:%M:%S.%f") + dt.timedelta(seconds=sec)
+        return p.replace(m.group(0), "<time>" + t.strftime("%Y-%m-%dT%H:%M:%S.") + "%03d" % (t.microsecond // 1000) + "Z</time>")
+    t0 = dt.datetime.strptime(re.search(r"<time>(.*?)Z</time>", pts[0]).group(1), "%Y-%m-%dT%H:%M:%S.%f")
+    t1 = dt.datetime.strptime(re.search(r"<time>(.*?)Z</time>", pts[-1]).group(1), "%Y-%m-%dT%H:%M:%S.%f")
+    gap = (t1 - t0).total_seconds() + 1800
+    out = list(pts) + [shift(p, gap) for p in pts]
+    path = tmp_path / "two-sessions.gpx"
+    path.write_text(text[:first] + "\n".join(out) + text[last:])
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(path))
+    notice = page.locator("#tp-result .tp-notice", has_text="was parked between sessions")
+    expect(notice).to_be_visible()
+    expect(notice).to_contain_text("timed laps are not affected")
+    expect(notice.get_by_role("button")).to_have_count(0)
+    expect(page.locator("#tp-result .tp-notice", has_text="Switch to Sprint")).to_have_count(0)
 
 
 def test_the_track_mode_figures_can_be_refreshed_from_the_same_files(page):

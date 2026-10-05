@@ -714,6 +714,45 @@ def test_admin_line_editing_panel_handles_a_track_rename_the_same_way(page):
     assert calls == [("rename", "grant", "r1"), ("rename", "accepted", "r2")]
 
 
+def test_admin_accepts_a_layout_rename_which_updates_the_saved_sessions_a_page_at_a_time(page):
+    """A member asked to rename a layout. The confirm says it changes for everyone; accepting renames it in the track list
+    and then the saved sessions follow in pages until the worker says it is done."""
+    state = {"requests": [
+        {"kind": "rename", "target": "layout", "id": "l1", "name": "Sam", "email": "s***@example.com", "note": "", "at": "2026-10-01T10:00:00Z", "status": "granted", "grantedAt": "2026-10-01T11:00:00Z", "what": "Brands Hatch, New Layout, 2026-09-29", "type": "track", "current": "New Layout",
+         "proposal": {"at": "2026-10-02T09:30:00Z", "from": "New Layout", "to": "Indy Circuit", "target": "layout"}},
+    ]}
+    calls, dialogs = [], []
+
+    def lines(route):
+        req = route.request
+        if req.method == "POST":
+            body = json.loads(req.post_data)
+            calls.append((body.get("action"), body.get("cursor")))
+            if body["action"] == "accepted":
+                out = {"success": True, "more": True, "cursor": ""}
+            else:
+                n = sum(1 for c in calls if c[0] == "apply")
+                out = {"success": True, "done": n >= 3, "cursor": "c%d" % n, "changed": 4}
+                if n >= 3:
+                    state["requests"][0]["proposal"] = None
+            route.fulfill(status=200, content_type="application/json", body=json.dumps(out), headers={"Access-Control-Allow-Origin": "*"})
+            return
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(dict(state, success=True)), headers={"Access-Control-Allow-Origin": "*"})
+    open_admin(page, "track-admin.html")
+    page.route(LINES_API, lines)
+    page.reload()
+    page.locator("#lines-wrap summary").click()
+    row = page.locator("#ln-list > table > tbody > tr").first
+    expect(row).to_contain_text("Rename the layout, for everyone")
+    expect(row).to_contain_text("Layout name")
+    expect(row).to_contain_text("Indy Circuit")
+    page.once("dialog", lambda d: (dialogs.append(d.message), d.accept()))
+    row.get_by_role("button", name="Accept").click()
+    expect(page.locator("#ln-note")).to_contain_text("on 12 saved sessions")
+    assert "for everyone" in dialogs[0] and "Nothing is re-timed" in dialogs[0], dialogs
+    assert calls == [("accepted", None), ("apply", ""), ("apply", "c1"), ("apply", "c2")], calls
+
+
 def test_admin_line_editing_panel_allows_shows_the_change_and_undoes_or_revokes(page):
     """Members ask to edit a map; the admin allows it, sees who has access to which map and what they changed
     (from and to), and can undo the change or revoke the access."""

@@ -930,9 +930,41 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   let r2 = await call('POST', '/track/sessions', { carId: 'cara1', session: un, privacy: 'build', venueName: 'Aerodrome' }, 'tok-a');
   const rid = r2.body.session.id;
   const listed = await call('POST', '/track/sessions', { carId: 'cara1', session, privacy: 'build' }, 'tok-a');
-  r = await call('POST', '/track/rename/request', { id: listed.body.session.id }, 'tok-a');
-  ok(r.status === 400 && /track list/.test(r.body.message), 'a session at a listed track cannot be renamed by the member');
-  await call('DELETE', '/track/session?id=' + listed.body.session.id, undefined, 'tok-a');
+  // At a listed track it is the LAYOUT name that can be wrong ("Brands Hatch, New Layout"): the same steps, but accepting
+  // renames the layout in the track list and on every saved session at it, a page at a time, whoever owns them.
+  {
+    const lid = listed.body.session.id, other = await call('POST', '/track/sessions', { carId: 'carb1', session, privacy: 'build' }, 'tok-b'), oid = other.body.session.id;
+    const was = stored('track-session:' + lid).layout, venueId = stored('track-session:' + lid).venueId, layoutId = stored('track-session:' + lid).layoutId;
+    r = await call('POST', '/track/rename/request', { id: lid, note: 'Wrong name' }, 'tok-b');
+    ok(r.status === 404, 'only the owner can ask to rename a layout');
+    const m1 = env.SEND_EMAIL.sent.length;
+    r = await call('POST', '/track/rename/request', { id: lid, note: 'Wrong name' }, 'tok-a');
+    ok(r.status === 200 && r.body.state === 'pending' && r.body.target === 'layout' && env.SEND_EMAIL.sent.length === m1 + 1 && /rename a layout/i.test(env.SEND_EMAIL.sent[m1]), 'a member at a listed track can ask to rename its layout, and the admin is emailed');
+    r = await call('GET', '/track/lines/admin?key=secret');
+    const lr = r.body.requests.find(x => x.id === lid && x.kind === 'rename');
+    ok(lr && lr.target === 'layout' && lr.current === was, 'the admin sees it as a layout rename');
+    await call('POST', '/track/lines/admin?key=secret', { kind: 'rename', id: lid, action: 'grant' });
+    r = await call('POST', '/track/rename/propose', { id: lid, name: was }, 'tok-a');
+    ok(r.status === 400 && /already has/.test(r.body.message), 'the name it already has is refused');
+    r = await call('POST', '/track/rename/propose', { id: lid, name: 'Indy Circuit' }, 'tok-a');
+    ok(r.status === 200 && r.body.proposal.to === 'Indy Circuit' && r.body.proposal.from === was && /Layout rename awaiting/.test(env.SEND_EMAIL.sent[env.SEND_EMAIL.sent.length - 1]), 'a new layout name is sent for approval and the admin is emailed');
+    ok(stored('track-session:' + oid).layout === was, 'nothing has changed yet');
+    r = await call('POST', '/track/lines/admin?key=secret', { kind: 'rename', id: lid, action: 'apply', cursor: '' });
+    ok(r.status === 400, 'sessions are not touched before the rename is accepted');
+    r = await call('POST', '/track/lines/admin?key=secret', { kind: 'rename', id: lid, action: 'accepted' });
+    ok(r.status === 200 && r.body.more === true, 'accepting renames the layout in the track list first');
+    let cursor = '', pages = 0, changed = 0;
+    for (;;) { r = await call('POST', '/track/lines/admin?key=secret', { kind: 'rename', id: lid, action: 'apply', cursor }); pages++; changed += r.body.changed || 0; if (r.body.done || pages > 50) break; cursor = r.body.cursor; }
+    const lay = (stored('track-library').venues.find(v => v.id === venueId) || { layouts: [] }).layouts.find(l => l.id === layoutId);
+    ok(r.body.done === true && lay && lay.name === 'Indy Circuit', 'the layout is renamed in the track list');
+    ok(stored('track-session:' + lid).layout === 'Indy Circuit' && stored('track-session:' + oid).layout === 'Indy Circuit' && changed >= 2, 'and on every saved session at it, whoever owns it (' + changed + ' changed)');
+    ok(stored('track-index:' + stored('track-session:' + oid).owner).find(x => x.id === oid).layout === 'Indy Circuit', 'and in each owner\'s list');
+    ok(stored('track-session:' + oid).bestTime === session.bestTime && stored('track-session:' + oid).laps.length === session.laps.length, 'nothing else on a session changes');
+    ok(stored('track-rename-access').find(x => x.id === lid).proposal === null, 'the request is cleared when it is done');
+    await call('POST', '/track/lines/admin?key=secret', { kind: 'rename', id: lid, action: 'revoke' });
+    await call('DELETE', '/track/session?id=' + lid, undefined, 'tok-a');
+    await call('DELETE', '/track/session?id=' + oid, undefined, 'tok-b');
+  }
   r = await call('POST', '/track/rename/request', { id: rid }, 'tok-b');
   ok(r.status !== 200, 'another member cannot ask for it');
   r = await call('GET', '/track/rename/status?id=' + rid, undefined, 'tok-a');

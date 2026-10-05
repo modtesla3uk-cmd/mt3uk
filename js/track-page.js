@@ -1314,7 +1314,9 @@
         var lapTimes = (s.laps || []).filter(function (l) { return l.kind === 'timed'; }).map(function (l) { return l.time; });
         var gapLap = !isSprint && s.type === 'track' && (s.laps || []).some(function (l) { return l.kind === 'slow' && lapTimes.length && l.time > 3 * Math.min.apply(null, lapTimes); });
         if (isSprint) h += reverseHtml(s);
-        if (gapLap) h += '<div class="tp-notice is-warn">' + icon('warn') + '<div><b>The ' + VW + ' stopped for a long time between passes.</b><br>That is not a lap, so it is left out. If these were sprint or hill climb runs, switch the type to time each run from the start to the finish. <button type="button" class="btn btn-secondary btn-sm" data-tap="sprint">Switch to Sprint</button> <button type="button" class="btn btn-secondary btn-sm" data-tap="hill">Switch to Hill climb</button></div></div>';
+        // A day of laps with the logger running between sessions (a VBOX does) is not a sprint file: the gaps are just left out.
+        if (gapLap && lapTimes.length >= 6) h += '<div class="tp-notice">' + icon('info') + '<div><b>The ' + VW + ' was parked between sessions.</b><br>The logger kept recording while it was stopped. Those gaps are not laps, so they are left out. Your ' + lapTimes.length + ' timed laps are not affected.</div></div>';
+        else if (gapLap) h += '<div class="tp-notice is-warn">' + icon('warn') + '<div><b>The ' + VW + ' stopped for a long time between passes.</b><br>That is not a lap, so it is left out. If these were sprint or hill climb runs, switch the type to time each run from the start to the finish. <button type="button" class="btn btn-secondary btn-sm" data-tap="sprint">Switch to Sprint</button> <button type="button" class="btn btn-secondary btn-sm" data-tap="hill">Switch to Hill climb</button></div></div>';
         if ((a.startLine || a.finishLine || s.startLine) && !s.officialLines && !s.autoLine) h += '<button type="button" class="btn btn-secondary btn-sm tp-move-lines" data-tap="edit">' + icon('pin') + 'Move ' + (isSprint ? 'start and finish' : 'the start line') + '</button>';
         h += sprintControlsHtml(a, s, isSprint);
         h += addNowHtml(a, s, isSprint);
@@ -2068,26 +2070,31 @@
     return '<div class="tp-section" id="lineedit"><div class="tp-head"><h2>Start and finish lines</h2></div><div class="card tp-fields" id="tp-lineedit"><p class="tp-sub">Checking...</p></div></div>';
   }
   // The track name on a session at a track we do not list: the same steps as the map (ask, allowed, send, approved).
+  // At a track we do list, what can be wrong is the name of its layout ("Brands Hatch, New Layout"), which every session on
+  // that layout shares: a rename is asked for here and, once MT3UK approves it, changes for everyone.
+  function layoutRename(s) { return !!(s.venueId && s.layoutId && s.layout && s.type !== 'drag' && s.type !== 'other'); }
   function renameHtml(s) {
-    if (!s.mine || s.street || s.venueId || !s.venue) return '';
-    return '<div class="tp-section" id="rename"><div class="tp-head"><h2>Track name</h2></div><div class="card tp-fields" id="tp-rename"><p class="tp-sub">Checking...</p></div></div>';
+    if (!s.mine || s.street) return '';
+    if (s.venueId ? !layoutRename(s) : !s.venue) return '';
+    return '<div class="tp-section" id="rename"><div class="tp-head"><h2>' + (layoutRename(s) ? 'Layout name' : 'Track name') + '</h2></div><div class="card tp-fields" id="tp-rename"><p class="tp-sub">Checking...</p></div></div>';
   }
   function drawRename(s, st) {
     var box = document.getElementById('tp-rename');
     if (!box) return;
-    var h = '', p = st && st.proposal;
+    var h = '', p = st && st.proposal, lay = layoutRename(s), thing = lay ? 'layout' : 'track', cur = lay ? s.layout : s.venue;
     if (!st || st.state === 'none') {
-      h = '<p class="tp-sub">This track is not in the MT3UK track list, so it has the name you typed: <b>' + esc(s.venue) + '</b>. If it is wrong, ask MT3UK to let you rename it.</p>' +
-        '<div class="tp-field"><label for="tp-rename-why">What should it be called? (optional)</label><input class="field" id="tp-rename-why" maxlength="300" placeholder="For example, it is spelt Abingdon"></div>' +
+      h = (lay ? '<p class="tp-sub">This session is on the layout <b>' + esc(s.layout) + '</b> at ' + esc(s.venue) + '. Every session on that layout shares its name, so if it is wrong, ask MT3UK to let you suggest a new one. MT3UK checks it before it changes for everyone.</p>'
+        : '<p class="tp-sub">This track is not in the MT3UK track list, so it has the name you typed: <b>' + esc(s.venue) + '</b>. If it is wrong, ask MT3UK to let you rename it.</p>') +
+        '<div class="tp-field"><label for="tp-rename-why">What should it be called? (optional)</label><input class="field" id="tp-rename-why" maxlength="300" placeholder="' + (lay ? 'For example, Indy circuit' : 'For example, it is spelt Abingdon') + '"></div>' +
         '<button type="button" class="btn btn-secondary" id="tp-rename-request">' + icon('pin') + 'Request rename</button>';
     } else if (st.state === 'pending') {
-      h = '<p class="tp-src">' + icon('info') + '<span>Requested. MT3UK has been told and will email you when you can rename this track.</span></p>';
+      h = '<p class="tp-src">' + icon('info') + '<span>Requested. MT3UK has been told and will email you when you can rename this ' + thing + '.</span></p>';
     } else if (p) {
-      h = '<p class="tp-src">' + icon('info') + '<span>Your new name is waiting for MT3UK to approve it. This session keeps its name until then.</span></p><p class="tp-small">From <b>' + esc(p.from || s.venue) + '</b> to <b>' + esc(p.to) + '</b>.</p>' +
+      h = '<p class="tp-src">' + icon('info') + '<span>Your new name is waiting for MT3UK to approve it. ' + (lay ? 'The layout keeps its name until then.' : 'This session keeps its name until then.') + '</span></p><p class="tp-small">From <b>' + esc(p.from || cur) + '</b> to <b>' + esc(p.to) + '</b>.</p>' +
         '<button type="button" class="btn btn-secondary" id="tp-rename-edit">' + icon('pin') + 'Change it again</button>';
     } else {
-      h = '<p class="tp-sub">MT3UK has said you can rename this track. Enter the name and send it. The name only changes once MT3UK has approved it.</p>' +
-        '<div class="tp-field"><label for="tp-rename-name">Track name</label><input class="field" id="tp-rename-name" maxlength="60" value="' + esc(s.venue) + '"></div>' +
+      h = '<p class="tp-sub">MT3UK has said you can rename this ' + thing + '. Enter the name and send it. The name only changes once MT3UK has approved it' + (lay ? ', and then it changes for everyone with a session on this layout' : '') + '.</p>' +
+        '<div class="tp-field"><label for="tp-rename-name">' + (lay ? 'Layout name' : 'Track name') + '</label><input class="field" id="tp-rename-name" maxlength="60" value="' + esc(cur) + '"></div>' +
         '<button type="button" class="btn btn-primary" id="tp-rename-send">' + icon('pin') + 'Send for approval</button>';
     }
     h += '<p class="tp-small tp-err" id="tp-rename-note" role="status"></p>';
@@ -2104,7 +2111,7 @@
     if (again) again.addEventListener('click', function () { drawRename(s, { state: 'granted', proposal: null }); });
     if (send) send.addEventListener('click', function () {
       var name = document.getElementById('tp-rename-name').value.trim();
-      if (!name) { note.textContent = 'Enter the track name.'; return; }
+      if (!name) { note.textContent = lay ? 'Enter the layout name.' : 'Enter the track name.'; return; }
       send.disabled = true;
       api('POST', '/track/rename/propose', { id: s.id, name: name }).then(function (d) {
         if (!d.success) { send.disabled = false; note.textContent = d.message || 'Could not send that.'; return; }

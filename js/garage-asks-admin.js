@@ -39,8 +39,8 @@
         '<b>' + esc(p.car || 'A car') + '</b>' + (p.title ? ' <span class="iv-sub">' + esc(p.title) + (p.type === 'bike' ? ', a bike' : '') + '</span>' : '') +
         '<span class="iv-sub">' + esc(p.name ? p.name + ', ' : '') + esc(p.email) + ', asked ' + esc(when(p.at)) + '</span>' +
         (p.note ? '<span class="iv-sub">Note: ' + esc(p.note) + '</span>' : '') +
-        '<div class="iv-actions"><button type="button" class="iv-act" data-approve="' + esc(p.carId) + '">Show in the Gallery</button>' +
-        '<button type="button" class="secondary iv-act" data-decline="' + esc(p.carId) + '">Keep in the garage</button></div></div></div>';
+        '<div class="iv-actions"><button type="button" class="iv-act" data-approve="' + esc(p.carId) + '">Make public</button>' +
+        '<button type="button" class="secondary iv-act" data-decline="' + esc(p.carId) + '">Keep private</button></div></div></div>';
     }).join('') : '<p class="empty">Nobody is waiting.</p>';
   }
   function load() {
@@ -54,13 +54,13 @@
     var ok = e.target.closest('[data-approve]'), no = e.target.closest('[data-decline]');
     if (!ok && !no) return;
     var carId = (ok || no).getAttribute(ok ? 'data-approve' : 'data-decline');
-    if (ok && !window.confirm('Show this car in the Gallery and the Reel? The member is emailed.')) return;
-    if (no && !window.confirm('Keep this car in the garage? The member is emailed.')) return;
+    if (ok && !window.confirm('Make this car public? Its photos go in the Gallery and the Reel for everyone to see, and the owner is emailed.')) return;
+    if (no && !window.confirm('Keep this car private? It stays in the owner\'s garage only, and the owner is emailed.')) return;
     (ok || no).disabled = true;
     call('POST', { carId: carId, action: ok ? 'approve' : 'decline' }).then(function (d) {
       if (!d.ok || !d.success) { note(d.message || 'That did not work.', 'error'); (ok || no).disabled = false; return; }
       draw(d.pending || []);
-      note(ok ? 'Shown in the Gallery. The member has been emailed.' : 'Kept in the garage. The member has been emailed.', 'ok');
+      note(ok ? 'Made public: it is in the Gallery and the Reel. The owner has been emailed.' : 'Kept private in the owner\'s garage. The owner has been emailed.', 'ok');
     }).catch(function () { note('Could not reach the server.', 'error'); (ok || no).disabled = false; });
   });
   // Cars of another make still in the Gallery (from before only Teslas went in): found on request, because
@@ -81,10 +81,10 @@
         return '<img class="ga-photo" src="' + R2 + '/gallery/' + encodeURIComponent(f) + '" alt="" loading="lazy">';
       }).join('');
       return '<div class="ga-row" data-car="' + esc(c.carId) + '"><div class="ga-photos">' + photos + '</div><div class="ga-text">' +
-        '<b>' + esc(c.car || 'A car') + '</b> <span class="iv-sub">' + esc(c.title) + '</span>' +
+        '<b>' + esc(c.car || 'A car') + '</b> <span class="iv-sub">' + esc(c.title) + ', on public view in the Gallery and the Reel</span>' +
         '<span class="iv-sub">' + esc(c.owner ? c.owner + ', ' : '') + esc(c.email || 'owner not known') + '</span>' +
-        '<div class="iv-actions"><button type="button" class="secondary iv-act" data-garage="' + esc(c.carId) + '">Keep in the garage</button></div></div></div>';
-    }).join('') : '<p class="empty">No cars of another make are in the Gallery.</p>';
+        '<div class="iv-actions"><button type="button" class="secondary iv-act" data-garage="' + esc(c.carId) + '">Remove from public view</button></div></div></div>';
+    }).join('') : '<p class="empty">No cars of another make are on public view.</p>';
   }
   if (findBtn) findBtn.addEventListener('click', function () {
     if (!key()) { note('Enter the admin key above and press Load.', ''); return; }
@@ -100,14 +100,14 @@
     var btn = e.target.closest('[data-garage]');
     if (!btn) return;
     var tell = emailOn();
-    if (!window.confirm('Keep this car in its owner\'s garage? It leaves the Gallery, the Reel and this week\'s vote' + (tell ? ', and the owner is emailed.' : '. The owner is not emailed.'))) return;
+    if (!window.confirm('Remove this car from public view?\n\nIts photos leave the Gallery, the Reel and this week\'s vote, and its votes this week are cleared. Nothing is deleted: it stays in the owner\'s garage with its photos, mods list and Track sessions.\n\n' + (tell ? 'The owner is emailed to say why.' : 'The owner is not emailed.'))) return;
     btn.disabled = true;
     callOld('POST', { carId: btn.getAttribute('data-garage'), action: 'garage', email: tell }).then(function (d) {
       if (!d.ok || !d.success) { note(d.message || 'That did not work.', 'error'); btn.disabled = false; return; }
       var row = btn.closest('.ga-row');
       if (row) row.remove();
       if (!oldEl.querySelector('.ga-row')) drawOld([]);
-      note(tell ? 'Kept in the garage. The owner has been emailed.' : 'Kept in the garage. The owner was not emailed.', 'ok');
+      note(tell ? 'Removed from public view. It stays in the owner\'s garage, and the owner has been emailed.' : 'Removed from public view. It stays in the owner\'s garage, and the owner was not emailed.', 'ok');
     }).catch(function () { note('Could not reach the server.', 'error'); btn.disabled = false; });
   });
 

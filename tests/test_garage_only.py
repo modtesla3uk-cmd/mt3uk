@@ -147,11 +147,11 @@ def test_the_other_makes_panel_approves_and_declines(page):
     expect(rows.nth(1)).to_contain_text("a bike")
     expect(page.locator("#garage-asks-count")).to_have_text("(2 waiting)")
     page.once("dialog", lambda d: d.accept())
-    rows.first.get_by_role("button", name="Show in the Gallery").click()
+    rows.first.get_by_role("button", name="Make public").click()
     expect(rows).to_have_count(1)
     assert state["posts"][-1] == {"carId": "c1", "action": "approve"}
     page.once("dialog", lambda d: d.accept())
-    rows.first.get_by_role("button", name="Keep in the garage").click()
+    rows.first.get_by_role("button", name="Keep private").click()
     expect(page.locator("#ga-list")).to_contain_text("Nobody is waiting")
     assert state["posts"][-1] == {"carId": "c2", "action": "decline"}
 
@@ -212,14 +212,16 @@ def test_the_admin_can_keep_an_older_other_make_in_the_garage(page):
     expect(row).to_contain_text("Hyundai Ioniq 5 N")
     expect(row).to_contain_text("sam@example.com")
     page.once("dialog", lambda d: d.accept())
-    row.get_by_role("button", name="Keep in the garage").click()
-    expect(page.locator("#ga-old")).to_contain_text("No cars of another make are in the Gallery")
+    expect(row).to_contain_text("on public view")
+    row.get_by_role("button", name="Remove from public view").click()
+    expect(page.locator("#ga-note")).to_contain_text("Removed from public view")
+    expect(page.locator("#ga-old")).to_contain_text("No cars of another make are on public view")
     assert posts == [{"carId": "old5n", "action": "garage", "email": True}]
     # Email the owner can be switched off.
     page.locator("#ga-email").click()
     expect(page.locator("#ga-email")).to_have_attribute("aria-checked", "false")
     page.locator("#ga-find").click()
     page.once("dialog", lambda d: d.accept())
-    page.locator("#ga-old .ga-row").get_by_role("button", name="Keep in the garage").click()
+    page.locator("#ga-old .ga-row").get_by_role("button", name="Remove from public view").click()
     expect(page.locator("#ga-note")).to_contain_text("not emailed")
     assert posts[-1] == {"carId": "old5n", "action": "garage", "email": False}

@@ -8663,15 +8663,49 @@ async function garageCarTitle(env, carId, record) {
   return { title: title, type: (details && details.vehicleType) || 'car', name: (record && record.name) || '' };
 }
 
+// A car's photos as My Garage sees them: the member's own photos whose sidecar names this car. The car record
+// keeps its own list too, which can fall behind (an older car, or one changed before its list was), so ownership
+// and every action that hides or shows a car's photos go by both.
+async function memberCarPhotos(env, email, carId) {
+  var files = await getSubscriberFiles(env, email), out = [];
+  for (var i = 0; i < files.length && i < 300; i++) {
+    try {
+      var obj = await env.GALLERY_BUCKET.get('gallery/' + files[i] + '.json');
+      var sc = obj ? await obj.json() : null;
+      if (sc && sc.carId === carId) out.push(files[i]);
+    } catch (e) { /* a missing or unreadable sidecar is not this car's */ }
+  }
+  return out;
+}
+
+// Every photo of a car, for the admin actions: the record's list and any photo whose sidecar names the car.
+// Admin only, so the live listing (list()) is fine here.
+async function allCarPhotos(env, carId, record) {
+  var files = ((record && record.photos) || []).slice();
+  var listed = await listGalleryEntriesFromR2(env).catch(function () { return []; });
+  listed.forEach(function (p) { if (p.carId === carId && files.indexOf(p.file) === -1) files.push(p.file); });
+  return files;
+}
+
 async function handleGarageGalleryRequest(request, env) {
   var email = await resolveSession(request, env);
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
   var body = {};
   try { body = await request.json(); } catch (e) { body = {}; }
   var carId = String((body && body.carId) || '');
-  var record = carId ? await carBelongsTo(env, email, carId) : null;
-  if (!record) return json({ success: false, message: 'That car is not linked to your account' }, 403);
+  var record = /^[A-Za-z0-9_-]{1,80}$/.test(carId) ? await getCarRecord(env, carId) : null;
+  // Mine if My Garage shows it as mine (its photos name it), or its record lists one of my photos.
+  var carPhotos = record ? await memberCarPhotos(env, email, carId) : [];
+  if (!record || (!carPhotos.length && !(await carBelongsTo(env, email, carId)))) {
+    return json({ success: false, message: 'That car is not linked to your account' }, 403);
+  }
   if (record.garageOnly !== true) return json({ success: false, message: 'That car is already shown in the Gallery.' }, 400);
+  // Bring the record's list of photos up to date, so approving it shows every one.
+  var missing = carPhotos.filter(function (f) { return (record.photos || []).indexOf(f) === -1; });
+  if (missing.length) {
+    record.photos = (record.photos || []).concat(missing);
+    await saveCarRecord(env, record);
+  }
   var list = await getJsonKey(env, GARAGE_GALLERY_KEY, { pending: [] });
   list.pending = list.pending || [];
   if (list.pending.some(function (r) { return r.carId === carId; })) return json({ success: true, asked: true });
@@ -8710,9 +8744,11 @@ async function handleGarageGalleryAdmin(request, env) {
     // Voting stays off; the member can enter a photo in Build of the Week themselves, as for any car.
     delete record.garageOnly;
     record.galleryApproved = new Date().toISOString();
+    var shown = await allCarPhotos(env, carId, record);
+    record.photos = shown;
     await saveCarRecord(env, record);
-    for (var i = 0; i < (record.photos || []).length; i++) {
-      var key = 'gallery/' + record.photos[i] + '.json';
+    for (var i = 0; i < shown.length; i++) {
+      var key = 'gallery/' + shown[i] + '.json';
       var obj = await env.GALLERY_BUCKET.get(key);
       if (!obj) continue;
       var sidecar = await obj.json();
@@ -8741,6 +8777,11 @@ async function handleGarageGalleryAdmin(request, env) {
 async function handleOtherMakesAdmin(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
   if (request.method === 'GET') {
+    // Each car's photos, from the live listing as well as its record (see allCarPhotos).
+    var byCar = {};
+    (await listGalleryEntriesFromR2(env).catch(function () { return []; })).forEach(function (p) {
+      if (p.carId) (byCar[p.carId] = byCar[p.carId] || []).push(p.file);
+    });
     var found = [], cursor, pages = 0;
     do {
       var page = await env.VOTES.list({ prefix: 'car-details:', limit: 1000, cursor: cursor });
@@ -8751,10 +8792,13 @@ async function handleOtherMakesAdmin(request, env) {
         var make = details.make || NON_TESLA_MODELS[details.model] || '';
         if (!make || make === 'Tesla') continue;
         var record = await getCarRecord(env, carId);
-        if (!record || record.garageOnly === true || record.galleryApproved || !(record.photos || []).length) continue;
-        var owner = await carOwnerEmail(env, record);
+        if (!record || record.garageOnly === true || record.galleryApproved) continue;
+        var carFiles = (record.photos || []).slice();
+        (byCar[carId] || []).forEach(function (f) { if (carFiles.indexOf(f) === -1) carFiles.push(f); });
+        if (!carFiles.length) continue;
+        var owner = await carOwnerEmail(env, { photos: carFiles });
         var t = await garageCarTitle(env, carId, record);
-        found.push({ carId: carId, car: record.name || '', title: t.title || make, photos: record.photos.slice(0, 3), owner: owner ? (publicName(await getProfileRecord(env, owner)) || '') : '', email: owner || '' });
+        found.push({ carId: carId, car: record.name || '', title: t.title || make, photos: carFiles.slice(0, 3), owner: owner ? (publicName(await getProfileRecord(env, owner)) || '') : '', email: owner || '' });
       }
       cursor = page.list_complete ? undefined : page.cursor; pages++;
     } while (cursor && pages < 10);
@@ -8768,6 +8812,7 @@ async function handleOtherMakesAdmin(request, env) {
   if (!rec) return json({ success: false, message: 'That car could not be found.' }, 404);
   if (rec.garageOnly === true) return json({ success: true });
   rec.garageOnly = true;
+  rec.photos = await allCarPhotos(env, id, rec);
   await saveCarRecord(env, rec);
   // Its make and type, for a car saved before makes existed (an Ioniq or a Taycan).
   var det = (await getCarDetails(env, id)) || {};
@@ -8787,6 +8832,7 @@ async function handleOtherMakesAdmin(request, env) {
   }
   await triggerManifestRebuild(env);
   var ownerEmail = body.email === true ? await carOwnerEmail(env, rec) : null;
+  // (rec.photos is every photo of the car by now, so the owner is found from any of them.)
   if (ownerEmail) {
     await sendMemberEmail(env, ownerEmail, 'Your car is now kept in your MT3UK garage',
       'The MT3UK Gallery, Reel and Build of the Week are now for Teslas, so ' + (rec.name || 'your car') + ' is kept in your garage instead. ' +

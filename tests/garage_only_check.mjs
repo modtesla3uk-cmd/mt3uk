@@ -177,3 +177,31 @@ kv.set('car-details:oldtay', JSON.stringify({ model: 'Porsche Taycan' }));
 sent.length = 0;
 r = await call('POST', '/my-builds/admin/other-makes?key=secret', { carId: 'oldtay', action: 'garage', email: false });
 ok(r.body.success && sidecar('taycan-old.jpg').garageOnly === true && sent.length === 0, 'with the email switched off it is kept in the garage and the owner is not emailed');
+
+// ---- A car whose record's list of photos has fallen behind (as an older car's can) ----
+r = await addCar({ carName: 'Stale', caption: 'stale ioniq', color: 'White', model: 'Hyundai Ioniq 5 N', version: 'Ioniq 5 N' });
+const stale = r.body.carId;
+const staleRec = JSON.parse(bucket.get('gallery/cars/' + stale + '.json'));
+const staleFiles = staleRec.photos.slice();
+bucket.set('gallery/cars/' + stale + '.json', JSON.stringify(Object.assign({}, staleRec, { photos: [] })));
+cars = await garage();
+ok(cars.some(c => c.id === stale && c.garageOnly), 'My Garage still shows the car as the member\'s (its photos name it)');
+r = await call('POST', '/my-builds/car/gallery-request', { carId: stale }, 'tok-a');
+ok(r.body.success && r.body.asked, 'so asking to show it works too');
+ok(JSON.stringify(JSON.parse(bucket.get('gallery/cars/' + stale + '.json')).photos.sort()) === JSON.stringify(staleFiles.slice().sort()), 'and the record\'s list of photos is brought up to date');
+// The record falls behind again before MT3UK decides: approving still shows every photo.
+bucket.set('gallery/cars/' + stale + '.json', JSON.stringify(Object.assign({}, JSON.parse(bucket.get('gallery/cars/' + stale + '.json')), { photos: [] })));
+r = await call('POST', '/my-builds/admin/garage-gallery?key=secret', { carId: stale, action: 'approve' });
+ok(r.body.success && staleFiles.every(f => sidecar(f).gallery === undefined && sidecar(f).garageOnly === undefined), 'approving shows every photo of the car, whatever its record lists');
+// Removing a car from public view also finds every photo, and Find them lists a car whose record lists none.
+bucket.set('gallery/cars/' + stale + '.json', JSON.stringify(Object.assign({}, JSON.parse(bucket.get('gallery/cars/' + stale + '.json')), { photos: [], galleryApproved: undefined })));
+r = await call('GET', '/my-builds/admin/other-makes?key=secret');
+ok(r.body.cars.some(c => c.carId === stale && c.photos.length === staleFiles.length && c.email === A), 'Find them lists a car whose record lists no photos, with its photos and owner');
+r = await call('POST', '/my-builds/admin/other-makes?key=secret', { carId: stale, action: 'garage', email: false });
+ok(r.body.success && staleFiles.every(f => sidecar(f).gallery === false && sidecar(f).reel === false && sidecar(f).garageOnly === true), 'removing it from public view hides every photo of the car');
+// Someone else's car is still refused.
+kv.set('my-builds-session:tok-b', 'b@example.com');
+r = await call('POST', '/my-builds/car/gallery-request', { carId: kia }, 'tok-b');
+ok(r.status === 403, 'another member cannot ask about my car');
+r = await call('POST', '/my-builds/car/gallery-request', { carId: 'not a car' }, 'tok-a');
+ok(r.status === 403, 'nor about a car id that is not one');

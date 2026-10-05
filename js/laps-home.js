@@ -37,9 +37,20 @@
     return make && model && model.toLowerCase().indexOf(make.toLowerCase()) !== 0 ? make + ' ' + model : (model || make);
   }
 
+  function get(url) { return fetch(url, { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }
+  // The hero picture is the one set on the Track sessions sharing panel of track-admin.html (the current pick of
+  // the Track sessions set, /share/track), so the admin controls it; the built-in picture is only the start.
+  var shot = document.getElementById('lh-shot-img');
+  if (shot) get(API + '/share/track').then(function (d) {
+    var pick = d && d.success && d.pick;
+    if (!pick || !pick.url) return;
+    var img = new Image();
+    img.onload = function () { shot.src = pick.url; if (pick.caption) shot.alt = pick.caption; };
+    img.src = pick.url;
+  });
+
   var box = document.getElementById('lh-fast');
   if (!box) return;
-  function get(url) { return fetch(url, { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }
   Promise.all([get(API + '/track/counts'), get('data/tracks.json')]).then(function (r) {
     var counts = (r[0] && r[0].counts) || {}, leaders = (r[0] && r[0].leaders) || {};
     var venues = {};

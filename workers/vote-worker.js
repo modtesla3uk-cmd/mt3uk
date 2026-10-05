@@ -5347,6 +5347,74 @@ async function saveCarDetails(env, carId, details) {
 var CAR_MODELS = ['Model 3', 'Model Y', 'Model S', 'Model X', 'Hyundai Ioniq 5 N', 'Hyundai Ioniq 6 N', 'Porsche Taycan'];
 // A car (or bike) can also have a make and a vehicle type. Cars saved before these existed have neither, and count as cars.
 var VEHICLE_TYPES = ['car', 'bike'];
+
+// Which wheels are driven: 'FWD', 'RWD' or 'AWD', from the make, model and version, or '' when it cannot be told
+// (and for bikes). The version settles it where it says (Long Range AWD, Rear-Wheel Drive, 4S, xDrive, Dual Motor);
+// a model built one way only is known from its name. Kept the same in js/vehicle-data.js and the worker (a test
+// checks they agree).
+var DRIVES = ['FWD', 'RWD', 'AWD'];
+var FIXED_DRIVE = {
+  'tesla|model x': 'AWD', 'tesla|cybertruck': 'AWD', 'tesla|roadster': 'RWD',
+  'hyundai|ioniq 5 n': 'AWD', 'hyundai|ioniq 6 n': 'AWD', 'hyundai|ioniq 5': 'RWD', 'hyundai|ioniq 6': 'RWD', 'hyundai|kona n': 'FWD',
+  'kia|ev6 gt': 'AWD', 'kia|ev6': 'RWD', 'kia|ev9': 'RWD',
+  'porsche|718 cayman': 'RWD', 'porsche|718 boxster': 'RWD',
+  'polestar|3': 'AWD', 'polestar|4': 'AWD',
+  'bmw|i4 m50': 'AWD', 'bmw|ix m60': 'AWD', 'bmw|i5 m60': 'AWD', 'bmw|m2': 'RWD', 'bmw|m3': 'RWD', 'bmw|m4': 'RWD',
+  'audi|rs e-tron gt': 'AWD', 'audi|e-tron gt': 'AWD', 'audi|rs3': 'AWD', 'audi|rs6': 'AWD',
+  'mercedes-benz|eqe amg': 'AWD', 'mercedes-benz|eqs amg': 'AWD', 'mercedes-benz|amg gt': 'RWD',
+  'lotus|eletre': 'AWD', 'lotus|emeya': 'AWD', 'lotus|emira': 'RWD', 'lotus|elise': 'RWD', 'lotus|exige': 'RWD', 'lotus|evora': 'RWD',
+  'lucid|air': 'AWD', 'rimac|nevera': 'AWD', 'mg|cyberster': 'RWD', 'mg|mg4 xpower': 'AWD',
+  'ford|mustang mach-e': 'RWD', 'ford|mustang mach-e gt': 'AWD', 'ford|focus st': 'FWD', 'ford|fiesta st': 'FWD',
+  'volkswagen|id.3': 'RWD', 'volkswagen|id.4 gtx': 'AWD', 'volkswagen|id. buzz': 'RWD', 'volkswagen|golf r': 'AWD', 'volkswagen|golf gti': 'FWD',
+  'cupra|born': 'RWD', 'cupra|leon': 'FWD', 'mini|cooper se': 'FWD', 'mini|john cooper works': 'FWD',
+  'renault|megane e-tech': 'FWD', 'renault|clio': 'FWD', 'alpine|a110': 'RWD',
+  'nissan|ariya': 'FWD', 'nissan|leaf': 'FWD', 'nissan|gt-r': 'AWD',
+  'honda|civic type r': 'FWD', 'honda|s2000': 'RWD', 'toyota|gr86': 'RWD', 'toyota|gr yaris': 'AWD', 'toyota|supra': 'RWD',
+  'subaru|brz': 'RWD', 'subaru|wrx sti': 'AWD', 'mazda|mx-5': 'RWD'
+};
+function driveFor(v) {
+  v = v || {};
+  if (v.vehicleType === 'bike') return '';
+  var make = String(v.make || '').trim().toLowerCase(), model = String(v.model || '').trim().toLowerCase(), ver = String(v.version || '').trim().toLowerCase();
+  // Older cars carry the make inside the model (Hyundai Ioniq 5 N), and a Tesla had no make at all.
+  if (!make) {
+    var m = /^(hyundai|porsche|kia)\s+/.exec(model);
+    if (m) { make = m[1]; model = model.slice(m[0].length); } else if (/^(model [3sxy]|cybertruck|roadster)\b/.test(model)) make = 'tesla';
+  }
+  // A model typed with its trim (911 GT3, Taycan 4S, Model 3 Performance) is a model and a version.
+  var m2 = /^(model [3sxy]|taycan|911|macan electric|cybertruck|ev6|ioniq [56])\s+(.+)$/.exec(model);
+  if (m2 && !/^(gt|n)$/.test(m2[2])) { model = m2[1]; ver = (m2[2] + ' ' + ver).trim(); }
+  var text = model + ' ' + ver;
+  if (/\b(awd|4wd|xdrive|4matic|4motion|quattro|dual[ -]motor|all-wheel|e-4orce|4drive|all4|4x4)\b/.test(text)) return 'AWD';
+  if (/\b(rwd|rear[ -]wheel)\b/.test(text)) return 'RWD';
+  if (/\b(fwd|front[ -]wheel)\b/.test(text)) return 'FWD';
+  if (make === 'tesla') {
+    if (model === 'model 3' || model === 'model y') return /performance|long range/.test(ver) ? 'AWD' : /standard|mid range/.test(ver) ? 'RWD' : '';
+    if (model === 'model s') return /^p?\d+d$|plaid|long range|performance|raven/.test(ver) ? 'AWD' : /^p?\d+\+?$/.test(ver) ? 'RWD' : '';
+  }
+  if (make === 'porsche') {
+    if (model === 'taycan') return !ver || ver === 'taycan' ? 'RWD' : /^(4|4s|gts|turbo)\b|cross turismo|sport turismo/.test(ver) ? 'AWD' : '';
+    if (model === 'macan electric') return /^(4|turbo)\b/.test(ver) ? 'AWD' : 'RWD';
+    if (model === '911') return /carrera 4|targa 4|turbo|dakar/.test(ver) ? 'AWD' : 'RWD';
+  }
+  if (make === 'polestar') {
+    if (/single|standard range/.test(ver)) return model === '2' && v.year && Number(v.year) < 2024 ? 'FWD' : 'RWD';
+    if (model === '2') return /dual|performance/.test(ver) ? 'AWD' : '';
+  }
+  if (make === 'lucid' && /pure/.test(ver)) return 'RWD';
+  if (make === 'mg' && model === 'cyberster' && /\bgt\b/.test(ver)) return 'AWD';
+  if (make === 'mercedes-benz' && model === 'amg gt' && /4[ -]door/.test(ver)) return 'AWD';
+  if (make === 'volkswagen' && model === 'id. buzz' && /gtx/.test(ver)) return 'AWD';
+  if (make === 'honda' && model === 'nsx') return v.year ? (Number(v.year) >= 2016 ? 'AWD' : 'RWD') : '';
+  return FIXED_DRIVE[make + '|' + model] || '';
+}
+
+// A car's driven wheels: what its owner set in My Garage, else what its make, model and version say.
+function carDrive(details) {
+  if (details && DRIVES.indexOf(details.drive) !== -1) return details.drive;
+  return driveFor(details || {});
+}
+
 // The listed models that are not Teslas, with their make. Since October 2026 only Teslas go straight into the
 // Gallery: these, like any other make, are kept in the owner's garage unless MT3UK shows them.
 var NON_TESLA_MODELS = { 'Hyundai Ioniq 5 N': 'Hyundai', 'Hyundai Ioniq 6 N': 'Hyundai', 'Porsche Taycan': 'Porsche' };
@@ -5488,6 +5556,8 @@ function cleanCarModel(body, knownMake) {
   else if (make) { var typed = cleanModText(body.model, 50); if (typed) out.model = typed; }
   var version = cleanModText(body.version, 40);
   if (version) out.version = version;
+  // The driven wheels, set by the owner; an empty one goes back to what the car's make, model and version say.
+  if (DRIVES.indexOf(body.drive) !== -1) out.drive = body.drive;
   var year = parseInt(body.year, 10);
   if (year >= 1950 && year <= new Date().getUTCFullYear() + 1) out.year = year;
   return out;
@@ -6399,6 +6469,8 @@ async function handleMyBuildsGet(request, env) {
       color: color,
       make: (details && details.make) || '',
       vehicleType: (details && details.vehicleType) || '',
+      drive: carDrive(details),
+      driveSet: !!(details && DRIVES.indexOf(details.drive) !== -1),
       garageOnly: !!(record && record.garageOnly === true),
       otherMake: !!((details && ((details.make && details.make !== 'Tesla') || NON_TESLA_MODELS[details.model])) || (record && (record.garageOnly === true || record.galleryApproved))),
       galleryAsked: !!(record && record.garageOnly === true && galleryAsks.some(function (r) { return r.carId === g.id; })),
@@ -6929,6 +7001,7 @@ function trackSummary(rec) {
   if (rec.carData && rec.carData.soc && isFinite(rec.carData.soc.start) && isFinite(rec.carData.soc.end)) o.soc = [rec.carData.soc.start, rec.carData.soc.end];
   if (rec.tyreMake) o.tyreMake = rec.tyreMake;
   if (rec.tyreModel) o.tyreModel = rec.tyreModel;
+  if (rec.drive) o.drive = rec.drive;
   if (rec.street) o.street = true;
   if (rec.unlisted) o.unlisted = true;
   if (rec.offBoard) o.offBoard = true;
@@ -6991,6 +7064,7 @@ function trackBests(list) {
       var b = { sessionId: s.id, date: s.date, conditions: s.conditions || '', tyres: s.tyres || '' };
       if (s.tyreMake) b.tyreMake = s.tyreMake;
       if (s.tyreModel) b.tyreModel = s.tyreModel;
+      if (s.drive) b.drive = s.drive;
       if (s.type === 'drag') { b.quarter = s.quarter; b.quarterSpeed = s.quarterSpeed; b.s60 = s.s60; } else b.time = s.bestTime;
       return b;
     });
@@ -7045,6 +7119,7 @@ async function refreshTrackBoard(env, boardKey, carId) {
       car: (record && record.name) || 'MT3UK member build', make: (details && details.make) || '', vehicleType: (details && details.vehicleType) || '', model: (details && details.model) || '', version: (details && details.version) || '', year: (details && details.year) || '',
       owner: ownerEmail ? (publicName(await getProfileRecord(env, ownerEmail)) || 'MT3UK member') : 'MT3UK member',
       photo: record && record.photos && record.photos[0] ? record.photos[0] : '',
+      drive: mine.drive || carDrive(details),
       mods: trackBoardMods(record, details),
       bests: trackBests(here.filter(function (s) { return !s.offBoard; }))
     };
@@ -7278,6 +7353,9 @@ async function handleTrackSessionSave(request, env) {
   var library = await getTrackLibrary(env);
   var rec = cleanTrackSession(body.session, library);
   if (rec.error) return json({ success: false, message: rec.error }, 400);
+  // The driven wheels, kept with the session as they were that day: the Add page's choice, else the car's.
+  rec.drive = DRIVES.indexOf(body.drive) !== -1 ? body.drive : carDrive(await getCarDetails(env, record.id));
+  if (!rec.drive) delete rec.drive;
   // A track day or sprint at a venue we do not list needs its name: it is what the member's list, the admin's view
   // and the request to add the track call it. Mapped drives keep their own words.
   if (!rec.venueId && (rec.type === 'track' || rec.type === 'sprint') && !trackText(body.venueName, 60) && !trackText(body.session.venueName || body.session.venue, 60)) return json({ success: false, message: 'Enter the track name.' }, 400);
@@ -7389,6 +7467,8 @@ async function handleTrackSessionGet(request, env) {
   // A bike's session says bike, not car, on its page.
   var carDetails = car ? await getCarDetails(env, rec.carId) : null;
   if (carDetails && carDetails.vehicleType === 'bike') out.vehicleType = 'bike';
+  // A session saved before the driven wheels were kept shows the car's.
+  if (!out.drive) { var dr = carDrive(carDetails); if (dr) out.drive = dr; }
   // Whose it is, as other members see them (nickname or name), so a session opened from a leaderboard says who ran it.
   var ownerEmail = car ? await carOwnerEmail(env, car) : null;
   out.ownerName = ownerEmail ? (publicName(await getProfileRecord(env, ownerEmail)) || 'MT3UK member') : 'MT3UK member';
@@ -7468,7 +7548,7 @@ async function handleTrackSessionUpdate(request, env) {
     next.owner = rec.owner;
     next.carId = rec.carId;
     next.createdAt = rec.createdAt;
-    ['privacy', 'conditions', 'tyres', 'tyreMake', 'tyreModel', 'tyreWidth', 'tyreProfile', 'tyreRim', 'temp', 'tempSource', 'weather', 'notes', 'hasSource', 'readingsRefused'].forEach(function (k) { if (rec[k] !== undefined) next[k] = rec[k]; });
+    ['privacy', 'conditions', 'tyres', 'tyreMake', 'tyreModel', 'tyreWidth', 'tyreProfile', 'tyreRim', 'drive', 'temp', 'tempSource', 'weather', 'notes', 'hasSource', 'readingsRefused'].forEach(function (k) { if (rec[k] !== undefined) next[k] = rec[k]; });
     rec = next;
     delete body.privacy;
   }
@@ -7946,7 +8026,7 @@ async function handleTrackPublic(request, env) {
   var viewer = request.headers.get('X-Session-Token') ? await resolveSession(request, env) : null;
   var res = json({
     success: true,
-    car: { id: carId, name: record.name || '', make: (details && details.make) || '', vehicleType: (details && details.vehicleType) || '', model: (details && details.model) || '', version: (details && details.version) || '', year: (details && details.year) || '', photo: (record.photos || [])[0] || '', owner: ownerEmail ? (publicName(await getProfileRecord(env, ownerEmail)) || 'MT3UK member') : '' },
+    car: { id: carId, name: record.name || '', make: (details && details.make) || '', vehicleType: (details && details.vehicleType) || '', drive: carDrive(details), model: (details && details.model) || '', version: (details && details.version) || '', year: (details && details.year) || '', photo: (record.photos || [])[0] || '', owner: ownerEmail ? (publicName(await getProfileRecord(env, ownerEmail)) || 'MT3UK member') : '' },
     mine: !!viewer && viewer === ownerEmail,
     sessions: await getJsonKey(env, 'track-public:' + carId, [])
   });
@@ -8837,7 +8917,7 @@ async function handleTrackAdminRetime(request, env) {
     if (old.unlisted || (!next.atVenue && !old.street)) next.unlisted = true;
     if (!old.street) delete next.outline;
   }
-  ['privacy', 'conditions', 'tyres', 'tyreMake', 'tyreModel', 'tyreWidth', 'tyreProfile', 'tyreRim', 'temp', 'tempSource', 'weather', 'notes', 'hasSource', 'readingsRefused', 'fileName'].forEach(function (k) { if (old[k] !== undefined) next[k] = old[k]; });
+  ['privacy', 'conditions', 'tyres', 'tyreMake', 'tyreModel', 'tyreWidth', 'tyreProfile', 'tyreRim', 'drive', 'temp', 'tempSource', 'weather', 'notes', 'hasSource', 'readingsRefused', 'fileName'].forEach(function (k) { if (old[k] !== undefined) next[k] = old[k]; });
   // The saved readings carry no car channels, so a re-time cannot work the Track Mode figures out again: keep the ones the upload made.
   if (old.carData && !next.carData) next.carData = old.carData;
   if (old.carSource && !next.carSource) next.carSource = old.carSource;
@@ -9244,14 +9324,14 @@ async function handleMyBuildsCarUpdate(request, env) {
   // Model and the mods list from the builder (js/mods-builder.js). The
   // public mods list on every photo is made from the specs.
   var details = null;
-  var hasModel = body && ('model' in body || 'version' in body || 'year' in body || 'make' in body || 'vehicleType' in body);
+  var hasModel = body && ('model' in body || 'version' in body || 'year' in body || 'make' in body || 'vehicleType' in body || 'drive' in body);
   var hasSpecs = body && body.specs && typeof body.specs === 'object';
   if (hasModel || hasSpecs || (body && Array.isArray(body.plans))) {
     details = (await getCarDetails(env, realCarId)) || {};
     if (hasModel) {
       // Only the ones sent change; an empty one clears it.
       var model = cleanCarModel(body, details.make);
-      ['make', 'model', 'version', 'year', 'vehicleType'].forEach(function (k) {
+      ['make', 'model', 'version', 'year', 'vehicleType', 'drive'].forEach(function (k) {
         if (!(k in body)) return;
         if (model[k] !== undefined) details[k] = model[k];
         else delete details[k];

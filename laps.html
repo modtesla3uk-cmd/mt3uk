@@ -342,6 +342,7 @@
   .lh-fast .lh-where { flex: 1; min-width: 0; display: grid; }
   .lh-fast .lh-where b { color: var(--ink); overflow-wrap: anywhere; }
   .lh-fast .lh-where span { font-size: 0.82rem; color: var(--steel); overflow-wrap: anywhere; }
+  .lh-fast .tp-loading { grid-column: 1 / -1; padding: 24px 0; }
   .lh-fast .lh-time { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }
   .lh-fast-empty { color: var(--steel); }
   .lh-more { margin-top: 12px; }
@@ -407,7 +408,7 @@
       </div>
       <p class="lh-note" id="lh-note">Laps is in early preview. Sign in and ask for access to try it. Sessions are private until you choose to share them.</p>
     </div>
-    <div class="lh-shot"><img src="images/track-preview/share.jpg" alt="A session on Laps: the lap drawn on the track map, the lap times and a g-force chart" width="1200" height="630"></div>
+    <div class="lh-shot"><img id="lh-shot-img" src="images/track-preview/share.jpg" alt="A session on Laps: the lap drawn on the track map, the lap times and a g-force chart" width="1200" height="630"></div>
   </div>
 </section>
 <main>
@@ -445,7 +446,7 @@
     <div class="wrap">
       <h2>Fastest right now</h2>
       <p class="lh-lead">The quickest shared time at the busiest tracks, strips and hill climbs.</p>
-      <div class="lh-fast" id="lh-fast"><p class="lh-fast-empty">Loading the leaderboards&hellip;</p></div>
+      <div class="lh-fast" id="lh-fast"><div class="tp-loading" role="status"><span class="tp-spinner" aria-hidden="true"></span><p>Loading the leaderboards&hellip;</p></div></div>
       <p class="lh-more"><a class="btn btn-secondary" href="leaderboards.html">All leaderboards</a></p>
     </div>
   </section>
@@ -600,7 +601,7 @@
   }
 </script>
 
-<script src="js/laps-home.js?v=20261219" defer></script>
+<script src="js/laps-home.js?v=20261226" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=10" defer></script>
 <script src="js/signin-prompt.js" defer></script>

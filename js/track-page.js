@@ -233,7 +233,7 @@
     box.querySelector('[data-lb="close"]').focus();
   }
   function showGate() {
-    app.innerHTML = '<div class="tp-loading" role="status">Loading...</div>';
+    loading();
     api('GET', '/track/access').then(function (d) {
       var status = d.success && d.access ? d.access : 'none';
       var pending = status === 'pending';
@@ -302,7 +302,24 @@
     if (p.get('car')) return showCar(p.get('car'));
     return showHome();
   }
-  function loading(msg) { app.innerHTML = '<div class="tp-loading" role="status">' + esc(msg || 'Loading...') + '</div>'; }
+  // Loading: a spinner and a line, then a note when it is slow (the garage lists every photo, which can take a
+  // while on a slow connection) and a Refresh button when it is very slow. Tests shorten the waits (MT3UK_SLOW_MS).
+  var SLOW_MS = (window.MT3UK_SLOW_MS || 8000);
+  var loadingSeq = 0;
+  function loading(msg) {
+    var seq = ++loadingSeq;
+    app.innerHTML = '<div class="tp-loading" id="tp-loading" role="status"><span class="tp-spinner" aria-hidden="true"></span><p>' + esc(msg || 'Loading...') + '</p></div>';
+    setTimeout(function () {
+      var el = document.getElementById('tp-loading');
+      if (!el || seq !== loadingSeq) return;
+      el.insertAdjacentHTML('beforeend', '<p class="tp-loading-slow" id="tp-loading-slow">This is taking a little longer than usual. Your garage and sessions are being gathered.</p>');
+    }, SLOW_MS);
+    setTimeout(function () {
+      var el = document.getElementById('tp-loading');
+      if (!el || seq !== loadingSeq) return;
+      el.insertAdjacentHTML('beforeend', '<button type="button" class="btn btn-secondary btn-sm" data-refresh>' + icon('refresh') + '<span>Refresh</span></button>');
+    }, SLOW_MS * 3);
+  }
   function failed(msg) { app.innerHTML = '<div class="card tp-empty">' + icon('warn') + '<p>' + esc(msg) + '</p><a class="btn btn-secondary btn-sm" href="track.html" data-go="" aria-label="Back to Track sessions">Back</a></div>'; }
   // Every Back is a button that just says Back; where it goes is in its name for a screen reader.
   function back(label, q) { return '<a class="tp-back" href="track.html' + (q ? '?' + q : '') + '" data-go="' + esc(q || '') + '" aria-label="' + esc(/^back\b/i.test(label) ? label : 'Back to ' + label.charAt(0).toLowerCase() + label.slice(1)) + '">' + icon('back') + 'Back</a>'; }
@@ -400,6 +417,14 @@
       '<div class="tp-field"><label for="' + pre + '-p">Profile (%)</label><select class="field" id="' + pre + '-p">' + tyreOpts(TY.profiles, t.p, 'Profile') + '</select></div>' +
       '<div class="tp-field"><label for="' + pre + '-d">Diameter (in)</label><select class="field" id="' + pre + '-d">' + tyreOpts(TY.rims, t.d, 'Diameter') + '</select></div></div>' +
       '<p class="tp-src tp-tyre-preview" id="' + pre + '-preview"></p></div>';
+  }
+  // Driven wheels on the Add page: starts as the car's (set in My Garage, or from its make, model and version);
+  // a change here is saved with the session and back to the car.
+  function driveFields(a) {
+    var DR = (window.MT3UKVehicles && window.MT3UKVehicles.DRIVES) || ['FWD', 'RWD', 'AWD'];
+    return '<div class="tp-field"><span class="tp-lbl">Driven wheels</span><div class="tp-chips" data-drive>' + DR.map(function (d) {
+      return '<button type="button" class="chip' + (a.drive === d ? ' is-on' : '') + '" data-v="' + d + '" aria-pressed="' + (a.drive === d) + '">' + d + '</button>';
+    }).join('') + '</div>' + (a.drive ? '' : '<p class="tp-small">Pick which wheels drive the ' + VW + '. It is shown with the tyres on the leaderboard.</p>') + '</div>';
   }
   function readTyre(pre) {
     var mk = document.getElementById(pre + '-make');
@@ -957,7 +982,7 @@
       if (!m.cars.length) return showHome();
       var car = m.cars.filter(function (c) { return c.id === carId; })[0] || m.cars[0];
       VW = vwOf(car);
-      add = { car: car, cars: m.cars, lib: r[1], admin: r[2], rd: null, session: null, type: null, startLine: null, conditions: 'Dry', privacy: 'private', street: false, file: null };
+      add = { car: car, drive: (car && car.drive) || '', cars: m.cars, lib: r[1], admin: r[2], rd: null, session: null, type: null, startLine: null, conditions: 'Dry', privacy: 'private', street: false, file: null };
       var lt = lastTyre(m, car.id);
       // The tyres start empty; the car's last ones are offered with a button.
       add.lastTyre = lt || null;
@@ -1005,6 +1030,7 @@
     if (sel) sel.addEventListener('change', function () {
       a.car = a.cars.filter(function (c) { return c.id === sel.value; })[0];
       VW = vwOf(a.car);
+      a.drive = (a.car && a.car.drive) || '';
       // Tyres follow the car chosen, until they have been changed by hand.
       a.lastTyre = lastTyre(mine, a.car.id) || null;
       if (a.tyrePre) { a.tyre = undefined; a.tyres = ''; a.tyrePre = false; }
@@ -1431,7 +1457,7 @@
     } else if (saveable) {
       h += '<div class="tp-field"><span class="tp-lbl">Conditions</span><div class="tp-chips" data-cond>' + ['Dry', 'Damp', 'Wet'].map(function (c) { return '<button type="button" class="chip' + (a.conditions === c ? ' is-on' : '') + '" data-v="' + c + '">' + c + '</button>'; }).join('') + '</div></div>' +
         tyreFields('tp-tyre', a.tyre) + (a.tyrePre && a.tyre ? '<p class="tp-small tp-tyre-note">Filled in from your last session with this ' + VW + '. Change it if it is different.</p>' : (a.lastTyre && !(a.tyre && (a.tyre.make || a.tyre.model || a.tyre.w)) ? '<p class="tp-small tp-tyre-note" id="tp-tyre-offer">Same tyres as last time (' + esc(TY.compose(a.lastTyre)) + ')? <button type="button" class="btn btn-secondary btn-sm" id="tp-use-last-tyres">Use previous tyres</button></p>' : '')) +
-        '<div class="tp-field"><label for="tp-temp">Air temperature (°C)</label><input class="field" id="tp-temp" inputmode="numeric" placeholder="18" value="' + esc(a.temp == null ? '' : a.temp) + '"></div>' +
+        driveFields(a) + '<div class="tp-field"><label for="tp-temp">Air temperature (°C)</label><input class="field" id="tp-temp" inputmode="numeric" placeholder="18" value="' + esc(a.temp == null ? '' : a.temp) + '"></div>' +
         (a.tempSource === 'weather' && a.weather ? '<p class="tp-src" id="tp-temp-src">' + icon('info') + '<span>' + weatherNote(a.weather, s.venue) + (a.condTouched ? '' : ' Conditions set to match. Change them if the track was different.') + '</span></p>'
           : a.tempSource === 'file' ? '<p class="tp-src" id="tp-temp-src">' + icon('info') + '<span>From the air temperature recorded in your file.</span></p>' : '') +
         '<div class="tp-field"><label for="tp-notes">Notes (only you see these)</label><input class="field" id="tp-notes" placeholder="Pressures, set-up, traffic..." value="' + esc(a.notes || '') + '"></div>' +
@@ -1517,6 +1543,7 @@
       });
     });
     group('[data-cond]', function (v) { keep(); a.conditions = v; a.condTouched = true; drawResult(); });
+    group('[data-drive]', function (v) { a.drive = a.drive === v ? '' : v; document.querySelectorAll('[data-drive] button[data-v]').forEach(function (x) { var on = x.getAttribute('data-v') === a.drive; x.classList.toggle('is-on', on); x.setAttribute('aria-pressed', String(on)); }); });
     group('[data-privacy]', function (v) { keep(); a.privacy = v; drawResult(); });
     var orgIn = document.getElementById('tp-organiser');
     if (orgIn) orgIn.addEventListener('change', function () { keep(); a.organizer = orgIn.value.trim().slice(0, 40); analyse(); });
@@ -1792,7 +1819,7 @@
   }
   // What the worker is sent to save one session, with the settings chosen for the upload.
   function postBody(a, carId, sess) {
-    return { carId: carId, session: sess, conditions: a.conditions, tyres: a.tyres || '', tyreMake: (a.tyre && a.tyre.make) || '', tyreModel: (a.tyre && a.tyre.model) || '', tyreWidth: (a.tyre && a.tyre.w) || null, tyreProfile: (a.tyre && a.tyre.p) || null, tyreRim: (a.tyre && a.tyre.d) || null, temp: a.temp, tempSource: a.temp == null ? '' : (a.tempSource || 'member'), weather: a.tempSource === 'weather' ? a.weather : null, notes: a.notes || '', privacy: a.privacy, venueName: a.venueName || '', street: a.street, adminViewer: a.street ? adminViewerToken() : '' };
+    return { carId: carId, session: sess, drive: a.drive || '', conditions: a.conditions, tyres: a.tyres || '', tyreMake: (a.tyre && a.tyre.make) || '', tyreModel: (a.tyre && a.tyre.model) || '', tyreWidth: (a.tyre && a.tyre.w) || null, tyreProfile: (a.tyre && a.tyre.p) || null, tyreRim: (a.tyre && a.tyre.d) || null, temp: a.temp, tempSource: a.temp == null ? '' : (a.tempSource || 'member'), weather: a.tempSource === 'weather' ? a.weather : null, notes: a.notes || '', privacy: a.privacy, venueName: a.venueName || '', street: a.street, adminViewer: a.street ? adminViewerToken() : '' };
   }
   // A track, course or layout we do not list, with lines to time it by: the member can add it to the track list
   // themselves rather than wait for the admin. Their lines become its official ones, the session is timed on them
@@ -1912,6 +1939,8 @@
       ? api('PUT', '/my-builds/car', { carId: a.car.id }).then(function (d) { if (!d.success) throw new Error(d.message || 'Could not set up the car'); a.car.id = d.car.id; a.car.virtual = false; mine = null; counts = null; return d.car.id; })
       : Promise.resolve(a.car.id);
     carReady.then(function (carId) {
+      // A choice of driven wheels that differs from the car's is kept on the car for next time.
+      if (a.drive && a.car && a.drive !== a.car.drive) { a.car.drive = a.drive; mine = null; api('PUT', '/my-builds/car', { carId: carId, drive: a.drive }).catch(function () {}); }
       return (a.addNow && !a.replaceId && canAddNow(a, s) ? addCourseNow(a) : Promise.resolve(false)).then(function (added) {
         if (added) { s = a.session; status('Saving...'); } else requestCourse(a, s);
         if (a.replaceId) return api('PUT', '/track/session', { id: a.replaceId, session: s, venueName: a.venueName || '' }, true);
@@ -2011,7 +2040,7 @@
       if (!src.p || !m) throw new Error(sourceError(src));
       var car = m.cars.filter(function (c) { return c.id === s.carId; })[0] || m.cars[0];
       VW = vwOf(car);
-      add = { car: car, cars: m.cars, lib: r[2], admin: r[3], rd: restoreSource(src), session: null, type: type, hill: !!hill, startLine: null, conditions: s.conditions || 'Dry', condTouched: true, privacy: s.privacy, street: false, tyres: s.tyres || '', tyre: tyreInit(s), temp: s.temp, tempSource: s.tempSource || '', weather: s.weather || null, notes: s.notes || '', date: s.date, time: s.time, venueName: s.venueId ? '' : s.venue, replaceId: s.id, files: null, list: null };
+      add = { car: car, drive: (car && car.drive) || '', cars: m.cars, lib: r[2], admin: r[3], rd: restoreSource(src), session: null, type: type, hill: !!hill, startLine: null, conditions: s.conditions || 'Dry', condTouched: true, privacy: s.privacy, street: false, tyres: s.tyres || '', tyre: tyreInit(s), temp: s.temp, tempSource: s.tempSource || '', weather: s.weather || null, notes: s.notes || '', date: s.date, time: s.time, venueName: s.venueId ? '' : s.venue, replaceId: s.id, files: null, list: null };
       analyse();
       window.scrollTo(0, 0);
     }).catch(function (e) { status((e && e.message) || 'Could not load your readings.', 'error'); });
@@ -2250,7 +2279,7 @@
       if (!src.p || !m) throw new Error(sourceError(src));
       var car = m.cars.filter(function (c) { return c.id === s.carId; })[0] || m.cars[0];
       VW = vwOf(car);
-      add = { car: car, cars: m.cars, lib: r[2], admin: false, rd: restoreSource(src), session: null, type: s.type, startLine: s.startLine || null, finishLine: s.type === 'sprint' ? (s.finishLine || null) : null,
+      add = { car: car, drive: (car && car.drive) || '', cars: m.cars, lib: r[2], admin: false, rd: restoreSource(src), session: null, type: s.type, startLine: s.startLine || null, finishLine: s.type === 'sprint' ? (s.finishLine || null) : null,
         editLines: true, confirmLines: false, lineEdit: true, organizer: s.organizer || '', ignoreFinish: s.ignoreFinish !== false, finishCross: s.finishCrossing || 0, rollout: !!s.rollout,
         conditions: s.conditions || 'Dry', condTouched: true, privacy: s.privacy, street: false, tyres: s.tyres || '', tyre: tyreInit(s), temp: s.temp, tempSource: s.tempSource || '', weather: s.weather || null,
         notes: s.notes || '', date: s.date, time: s.time, venueName: s.venueId ? '' : s.venue, replaceId: s.id, files: null, list: null,
@@ -2328,7 +2357,7 @@
     var place = s.mine && view.mine ? dayPlace(s, view.mine.sessions) : null;
     var h = (justSaved && s.mine ? savedHtml(justSaved) : '') + back(s.mine ? 'Your sessions' : 'Back', s.mine ? '' : (s.carId ? 'car=' + encodeURIComponent(s.carId) : ''));
     if (s.adminView) h += '<p class="tp-admin-banner" id="tp-admin-banner">' + icon('lock') + 'Admin view, read only. This is a private session and this view is logged. Notes are not shown.</p>';
-    h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '</h2>' + (s.ownerName ? '<p class="tp-by" id="tp-by">' + icon('user') + '<span>Session by <b>' + esc(s.ownerName) + '</b>' + (s.mine ? ' (you)' : '') + '</span></p>' : '') + '<p class="tp-sub">' + (s.type === 'sprint' ? '<b id="tp-kind">' + (isHillSession(s, library) ? 'Hill climb' : 'Sprint') + '</b> &middot; ' : '') + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (place ? ' &middot; <b id="tp-day-place">Session ' + place.n + ' of ' + place.of + ' that day</b>' : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + '</p>' + (s.fileName && (s.mine || s.adminView) ? '<p class="tp-small tp-filename" id="tp-filename">' + icon('file') + 'File: ' + esc(s.fileName) + '</p>' : '') + (s.mine || s.adminView ? '<p class="tp-small tp-sid" id="tp-sid">Session ID: <code id="tp-sid-text">' + esc(s.id) + '</code> <button type="button" class="btn btn-ghost btn-sm" id="tp-sid-copy" aria-label="Copy the session ID">' + icon('copy') + '<span>Copy</span></button></p>' : '') + '</div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) + '<span id="tp-rank-slot"></span>' : '') + refreshChip() + unitsChip() + (s.street || s.privacy === 'private' ? '' : shareDot('Share this session')) + '</div></div>';
+    h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '</h2>' + (s.ownerName ? '<p class="tp-by" id="tp-by">' + icon('user') + '<span>Session by <b>' + esc(s.ownerName) + '</b>' + (s.mine ? ' (you)' : '') + '</span></p>' : '') + '<p class="tp-sub">' + (s.type === 'sprint' ? '<b id="tp-kind">' + (isHillSession(s, library) ? 'Hill climb' : 'Sprint') + '</b> &middot; ' : '') + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (place ? ' &middot; <b id="tp-day-place">Session ' + place.n + ' of ' + place.of + ' that day</b>' : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + (s.drive ? ' &middot; ' + esc(s.drive) : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + '</p>' + (s.fileName && (s.mine || s.adminView) ? '<p class="tp-small tp-filename" id="tp-filename">' + icon('file') + 'File: ' + esc(s.fileName) + '</p>' : '') + (s.mine || s.adminView ? '<p class="tp-small tp-sid" id="tp-sid">Session ID: <code id="tp-sid-text">' + esc(s.id) + '</code> <button type="button" class="btn btn-ghost btn-sm" id="tp-sid-copy" aria-label="Copy the session ID">' + icon('copy') + '<span>Copy</span></button></p>' : '') + '</div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) + '<span id="tp-rank-slot"></span>' : '') + refreshChip() + unitsChip() + (s.street || s.privacy === 'private' ? '' : shareDot('Share this session')) + '</div></div>';
     LW = s.type === 'sprint' ? 'Run' : 'Lap';
     // Timed with older code and no readings kept to work it out again: only uploading the file again updates it.
     if (s.mine && !s.hasSource && s.type !== 'other' && (s.analysisVersion || 1) < T.ANALYSIS_VERSION) h += '<p class="tp-notice" id="tp-old-version">' + icon('info') + '<span>Timed with an older version. Upload the file again to update the times.</span></p>';
@@ -3760,7 +3789,7 @@
     api('GET', '/track/public?car=' + encodeURIComponent(carId)).then(function (d) {
       if (!d.success) return failed('That build could not be found.');
       var c = d.car;
-      var h = back('Track sessions', '') + '<div class="tp-head"><div><h2>' + esc(c.name || 'MT3UK build') + '</h2><p class="tp-sub">' + esc([c.owner, [c.year, titleOf(c), c.version].filter(Boolean).join(' ')].filter(Boolean).join(' · ')) + '</p></div>' + '<div class="tp-head-side">' + refreshChip() + unitsChip() + shareDot('Share this build') + '</div></div>';
+      var h = back('Track sessions', '') + '<div class="tp-head"><div><h2>' + esc(c.name || 'MT3UK build') + '</h2><p class="tp-sub">' + esc([c.owner, [c.year, titleOf(c), c.version].filter(Boolean).join(' '), c.drive].filter(Boolean).join(' · ')) + '</p></div>' + '<div class="tp-head-side">' + refreshChip() + unitsChip() + shareDot('Share this build') + '</div></div>';
       if (d.mine) h += '<p class="tp-sub">This is what other members see. Only sessions you share show here.</p>';
       h += d.sessions.length ? '<div class="tp-list">' + sessionListHtml(d.sessions) + '</div>' : '<div class="card tp-empty">' + icon('flag') + '<p>No shared sessions yet.</p></div>';
       h += '<p class="tp-sub"><a href="gallery.html" class="tp-link">See the build in the Gallery' + icon('chev') + '</a></p>';

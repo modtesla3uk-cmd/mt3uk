@@ -907,7 +907,7 @@
   .mb-field-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .mb-mods-next { display: flex; gap: 10px; align-items: flex-start; margin: 0 0 16px; padding: 12px 14px; border-radius: var(--radius-sm); background: #fdf3ef; font-size: 0.9rem; color: var(--ink-2, var(--ink)); }
   .mb-mods-next .icon { width: 18px; height: 18px; color: var(--orange); flex-shrink: 0; margin-top: 2px; }
-  #mb-car-model-select, #mb-car-version-select, #mb-car-year-select { min-height: 36px; }
+  #mb-car-model-select, #mb-car-version-select, #mb-car-year-select, #mb-car-drive-select { min-height: 36px; }
   .mb-car-color-select:disabled { opacity: 0.6; background: #eceef2; color: #6b7385; cursor: not-allowed; }
   /* Model, version and year stay together. */
   .mb-car-spec { display: inline-flex; flex-wrap: wrap; gap: 8px; align-items: center; }
@@ -1515,6 +1515,7 @@ document.addEventListener('DOMContentLoaded', function () {
           </select>
           <select class="mb-car-color-select" id="mb-car-version-select" aria-label="Version"><option value="">Version</option></select>
           <select class="mb-car-color-select" id="mb-car-year-select" aria-label="Year"><option value="">Year</option></select>
+          <select class="mb-car-color-select" id="mb-car-drive-select" aria-label="Driven wheels"><option value="">Driven wheels</option><option value="FWD">FWD</option><option value="RWD">RWD</option><option value="AWD">AWD</option></select>
           </span>
           <span class="mb-car-photo-count mono" id="mb-car-photo-count"></span>
           <span class="mb-status mb-car-name-status" id="mb-car-name-status"></span>
@@ -1690,7 +1691,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <script src="js/passkeys.js?v=20261201"></script>
 <script src="js/mods-view.js"></script>
-<script src="js/vehicle-data.js?v=20261202"></script>
+<script src="js/vehicle-data.js?v=20261228"></script>
 <script src="js/mods-builder.js?v=20261130"></script>
 <script>
   (function () {
@@ -2833,6 +2834,7 @@ document.addEventListener('DOMContentLoaded', function () {
       carColorSelect.disabled = !on;
       carModelSelect.disabled = !on;
       carYearSelect.disabled = !on;
+      if (carDriveSelect) carDriveSelect.disabled = !on;
       carVersionSelect.disabled = !on || !carModelSelect.value;
     }
     function fillCarFields(car) {
@@ -2863,6 +2865,8 @@ document.addEventListener('DOMContentLoaded', function () {
       var current = findCar(currentCarId) || {};
       var model = carModelSelect.value, version = carVersionSelect.value, year = carYearSelect.value;
       var fields = { name: name }, changed = name !== current.name;
+      // Driven wheels: only a change is sent, so a car keeps following its make, model and version until its owner picks.
+      if (carDriveSelect && carDriveSelect.value !== (current.drive || '')) { fields.drive = carDriveSelect.value; changed = true; }
       if (carColorSelect.value && carColorSelect.value !== (current.color || '')) { fields.color = carColorSelect.value; changed = true; }
       if (model !== (current.model || '')) { fields.model = model; fields.version = ''; if (current.make) fields.make = ''; changed = true; }
       if (version !== (current.version || '') || fields.model !== undefined) { fields.version = version; changed = true; }
@@ -3028,8 +3032,10 @@ document.addEventListener('DOMContentLoaded', function () {
     var carModelSelect = document.getElementById('mb-car-model-select');
     var carVersionSelect = document.getElementById('mb-car-version-select');
     var carYearSelect = document.getElementById('mb-car-year-select');
+    var carDriveSelect = document.getElementById('mb-car-drive-select');
     function drawCarModel(car) {
       var model = (car && car.model) || '';
+      if (carDriveSelect) carDriveSelect.value = (car && car.drive) || '';
       // A model that is not one of the listed ones (a car added with another make) still shows, and is kept when saving.
       Array.prototype.slice.call(carModelSelect.querySelectorAll('option[data-extra]')).forEach(function (o) { o.remove(); });
       if (model && !Array.prototype.some.call(carModelSelect.options, function (o) { return o.value === model; })) {

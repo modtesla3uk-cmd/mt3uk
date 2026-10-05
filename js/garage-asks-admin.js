@@ -81,7 +81,8 @@
         return '<img class="ga-photo" src="' + R2 + '/gallery/' + encodeURIComponent(f) + '" alt="" loading="lazy" onerror="this.remove()">';
       }).join('');
       return '<div class="ga-row" data-car="' + esc(c.carId) + '"><div class="ga-photos">' + photos + '</div><div class="ga-text">' +
-        '<b>' + esc(c.car || 'A car') + '</b> <span class="iv-sub">' + esc(c.title) + ', on public view in the Gallery and the Reel</span>' +
+        '<b>' + esc(c.car || 'A car') + '</b> <span class="iv-sub">' + esc(c.title) + ', on public view in the Gallery and the Reel' +
+          (c.approvedAt ? ' (made public on ' + esc(when(c.approvedAt)) + ')' : '') + '</span>' +
         '<span class="iv-sub">' + esc(c.owner ? c.owner + ', ' : '') + esc(c.email || 'owner not known') + '</span>' +
         '<div class="iv-actions"><button type="button" class="secondary iv-act" data-garage="' + esc(c.carId) + '">Remove from public view</button></div></div></div>';
     }).join('') : '<p class="empty">No cars of another make are on public view.</p>';

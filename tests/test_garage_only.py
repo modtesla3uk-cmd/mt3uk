@@ -225,3 +225,53 @@ def test_the_admin_can_keep_an_older_other_make_in_the_garage(page):
     page.locator("#ga-old .ga-row").get_by_role("button", name="Remove from public view").click()
     expect(page.locator("#ga-note")).to_contain_text("not emailed")
     assert posts[-1] == {"carId": "old5n", "action": "garage", "email": False}
+
+
+@all_devices
+def test_the_owner_can_make_a_public_car_of_another_make_private_again(device_page):
+    page = device_page
+    page.mock_state["car_details"] = {"make": "Kia", "model": "EV6 GT", "vehicleType": "car", "garageOnly": False, "otherMake": True}
+    signed_in(page)
+    page.goto("/my-builds.html")
+    page.locator(".mb-car-tile").first.click(timeout=10000)
+    page.locator("#mb-mods-builder .mbm-welcome").wait_for(state="visible", timeout=5000)
+    hint = page.locator("#mb-vote-hint")
+    expect(hint).to_contain_text("This car is on public view")
+    before = len(page.api_log)
+    page.once("dialog", lambda d: d.accept())
+    hint.get_by_role("button", name="Make it private again").click()
+    for _ in range(20):
+        if any(line.startswith("POST /my-builds/car/make-private") for line in page.api_log[before:]):
+            break
+        page.wait_for_timeout(100)
+    assert any(line.startswith("POST /my-builds/car/make-private") for line in page.api_log[before:]), page.api_log[before:]
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_a_tesla_has_no_make_private_button(device_page):
+    page = device_page
+    signed_in(page)
+    page.goto("/my-builds.html")
+    page.locator(".mb-car-tile").first.click(timeout=10000)
+    page.locator("#mb-mods-builder .mbm-welcome").wait_for(state="visible", timeout=5000)
+    expect(page.locator("#mb-vote-hint")).to_contain_text("Build of the Week")
+    expect(page.locator("#mb-make-private")).to_have_count(0)
+
+
+def test_find_them_marks_a_car_that_was_made_public(page):
+    cars = [{"carId": "k1", "car": "Kit", "title": "Kia EV6 GT", "photos": [], "owner": "Kit", "email": "kit@example.com", "approvedAt": "2026-10-05T10:00:00Z"}]
+
+    def handler(route):
+        u = route.request.url
+        body = {"success": True, "cars": cars} if "other-makes" in u else ({"success": True, "pending": []} if "garage-gallery" in u else {"success": True})
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(body), headers={"Access-Control-Allow-Origin": "*"})
+
+    page.route("**/%s/**" % API_HOST, handler)
+    page.add_init_script("sessionStorage.setItem('mt3ukAdminKey', 'test-key')")
+    page.goto("/admin.html")
+    page.locator("#garage-asks-wrap summary").click()
+    page.locator("#ga-find").click()
+    row = page.locator("#ga-old .ga-row")
+    expect(row).to_contain_text("made public on 5 Oct 2026")
+    expect(row.get_by_role("button", name="Remove from public view")).to_be_visible()

@@ -1,0 +1,113 @@
+"""Sign-in handover between mt3uk.com and laps.mt3uk.com (js/account-bar.js and the worker's /session/handover
+routes). A sign-in is kept per address, so a signed-in member following a link to the other address carries a
+one-time code in the link's #, which the page there swaps for its own sign-in. Here the two addresses are
+localhost (mt3uk.com) and 127.0.0.1 (laps.mt3uk.com), set through window.MT3UK_SITES."""
+import json
+import shutil
+import subprocess
+import tempfile
+from pathlib import Path
+
+import pytest
+from playwright.sync_api import expect
+
+from conftest import PORT
+
+ROOT = Path(__file__).resolve().parent.parent
+API_HOST = "late-darkness-ebc8.modtesla3uk.workers.dev"
+MAIN = "http://localhost:%d" % PORT
+LAPS = "http://127.0.0.1:%d" % PORT
+CODE = "c" * 64
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="node is not installed here")
+def test_the_handover_routes_in_the_worker():
+    with tempfile.TemporaryDirectory() as tmp:
+        module = Path(tmp) / "worker.mjs"
+        source = (ROOT / "workers" / "vote-worker.js").read_text(encoding="utf-8")
+        source = source.replace("import { EmailMessage } from 'cloudflare:email';", "class EmailMessage { constructor(f, t, raw) { this.raw = raw; } }", 1)
+        module.write_text(source, encoding="utf-8")
+        result = subprocess.run(
+            ["node", str(ROOT / "tests" / "laps_handover_check.mjs")],
+            env={"WORKER_MODULE": module.as_uri(), "PATH": "/usr/bin:/usr/local/bin:/bin", "TZ": "UTC"},
+            capture_output=True, text=True, timeout=120,
+        )
+    assert result.returncode == 0 and "FAIL" not in result.stdout, result.stdout + result.stderr
+    assert result.stdout.count("ok ") >= 10
+
+
+def setup(page):
+    state = {"made": 0, "redeemed": []}
+
+    def handler(route):
+        req = route.request
+        headers = {"Access-Control-Allow-Origin": "*"}
+        if req.url.endswith("/session/handover") and req.method == "POST":
+            state["made"] += 1
+            assert req.headers.get("x-session-token") == "tok-main" or req.headers.get("x-session-token") == "tok-laps"
+            return route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "code": CODE}), headers=headers)
+        if req.url.endswith("/session/handover/redeem"):
+            state["redeemed"].append(json.loads(req.post_data)["code"])
+            return route.fulfill(status=200, content_type="application/json", headers=headers,
+                                 body=json.dumps({"success": True, "session": "tok-new", "email": "rich@example.com", "firstName": "Rich"}))
+        if req.method == "OPTIONS":
+            return route.fulfill(status=204, headers={**headers, "Access-Control-Allow-Headers": "Content-Type, X-Session-Token", "Access-Control-Allow-Methods": "GET, POST"})
+        return route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True}), headers=headers)
+
+    page.route("**/%s/**" % API_HOST, handler)
+    page.add_init_script("window.MT3UK_SITES = { main: ['localhost'], mainOrigin: '%s', laps: ['127.0.0.1'] };" % MAIN)
+    return state
+
+
+def sign_in(page, origin, token):
+    page.goto(origin + "/offline.html")
+    page.evaluate("t => { localStorage.setItem('mt3ukMyBuildsSession', t); localStorage.setItem('mt3ukMyBuildsEmail', 'rich@example.com'); }", token)
+
+
+def add_link(page, href):
+    page.evaluate("h => { const a = document.createElement('a'); a.id = 'go'; a.href = h; a.textContent = 'Go'; a.style.cssText = 'position:fixed;top:200px;left:20px;z-index:99999;padding:20px;background:#fff'; document.body.appendChild(a); }", href)
+
+
+def session_at(page):
+    return page.evaluate("localStorage.getItem('mt3ukMyBuildsSession')")
+
+
+def test_from_laps_to_another_page_of_the_site_arrives_signed_in(page):
+    state = setup(page)
+    sign_in(page, LAPS, "tok-laps")
+    page.goto(LAPS + "/leaderboards.html")
+    add_link(page, "gallery.html#top")
+    page.locator("#go").click()
+    page.wait_for_url(MAIN + "/gallery.html#top", timeout=10000)
+    page.wait_for_function("localStorage.getItem('mt3ukMyBuildsSession') === 'tok-new'", timeout=10000)
+    assert state["made"] == 1 and state["redeemed"] == [CODE]
+    assert "mt3uk-handover" not in page.url
+    assert page.evaluate("localStorage.getItem('mt3ukMyBuildsFirstName')") == "Rich"
+
+
+def test_from_mt3uk_to_laps_arrives_signed_in(page):
+    state = setup(page)
+    sign_in(page, MAIN, "tok-main")
+    page.goto(MAIN + "/gallery.html")
+    add_link(page, LAPS + "/track.html")
+    page.locator("#go").click()
+    page.wait_for_url(LAPS + "/track.html", timeout=10000)
+    page.wait_for_function("localStorage.getItem('mt3ukMyBuildsSession') === 'tok-new'", timeout=10000)
+    assert state["redeemed"] == [CODE]
+    # Signed in now, so the account bar shows on the Laps page.
+    expect(page.locator("#mt3uk-account-bar")).to_contain_text("Rich")
+
+
+def test_links_between_laps_pages_and_signed_out_links_need_no_code(page):
+    state = setup(page)
+    page.goto(LAPS + "/leaderboards.html")
+    add_link(page, "gallery.html")
+    page.locator("#go").click()
+    page.wait_for_url(MAIN + "/gallery.html", timeout=10000)
+    assert state["made"] == 0 and session_at(page) is None
+    sign_in(page, LAPS, "tok-laps")
+    page.goto(LAPS + "/leaderboards.html")
+    add_link(page, "track.html")
+    page.locator("#go").click()
+    page.wait_for_url(LAPS + "/track.html", timeout=10000)
+    assert state["made"] == 0

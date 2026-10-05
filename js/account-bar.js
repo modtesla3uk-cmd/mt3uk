@@ -220,6 +220,89 @@
       .catch(function () {});
   }
 
+  // ---------- Sign-in handover between mt3uk.com and laps.mt3uk.com ----------
+  // A sign-in is kept per address, so following a link from one to the other would land signed out. When a signed-in
+  // member follows such a link, the worker gives a one-time code (2 minutes, works once), which goes in the link's #
+  // as #mt3uk-handover=<code>, then :<the link's own #> if it had one. The page there swaps it for its own sign-in.
+  // On laps.mt3uk.com only the Laps pages (and Sign in) stay there: a link to any other page of the site (Profile,
+  // My Garage, the Gallery) goes to mt3uk.com, signed in. Tests set window.MT3UK_SITES to two local addresses.
+  var SITES = window.MT3UK_SITES || { main: ['mt3uk.com', 'www.mt3uk.com'], mainOrigin: 'https://mt3uk.com', laps: ['laps.mt3uk.com'] };
+  var LAPS_PAGES = ['/track.html', '/leaderboards.html', '/signin.html'];
+  function siteOf(host) { return SITES.main.indexOf(host) !== -1 ? 'main' : SITES.laps.indexOf(host) !== -1 ? 'laps' : ''; }
+  var hereSite = siteOf(location.hostname);
+
+  // Where a link really goes: on Laps, a page that is not a Laps page is on mt3uk.com.
+  function handoverTarget(href) {
+    var u;
+    try { u = new URL(href, location.href); } catch (e) { return null; }
+    if (!/^https?:$/.test(u.protocol) || !hereSite) return null;
+    if (hereSite === 'laps' && u.origin === location.origin && LAPS_PAGES.indexOf(u.pathname) === -1) {
+      var to = new URL(u.pathname + u.search + u.hash, SITES.mainOrigin);
+      return to;
+    }
+    var there = siteOf(u.hostname);
+    return there && there !== hereSite ? u : null;
+  }
+
+  function withCode(u, code) {
+    var own = u.hash ? u.hash.slice(1) : '';
+    u.hash = 'mt3uk-handover=' + code + (own ? ':' + own : '');
+    return u.href;
+  }
+
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[href]');
+    if (!a || e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    if (a.target && a.target !== '_self') return;
+    var to = handoverTarget(a.getAttribute('href'));
+    if (!to) return;
+    e.preventDefault();
+    var token = read(SESSION_KEY);
+    if (!token) { location.href = to.href; return; }
+    var gone = false;
+    function go(url) { if (gone) return; gone = true; location.href = url; }
+    // Never hold the member up: without an answer in 3 seconds the link opens as it is (signed out there).
+    var timer = setTimeout(function () { go(to.href); }, 3000);
+    fetch(API + '/session/handover', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Session-Token': token },
+      body: JSON.stringify({ firstName: read(FIRST_NAME_KEY) })
+    }).then(function (res) { return res.json(); }).then(function (d) {
+      clearTimeout(timer);
+      go(d && d.success && d.code ? withCode(to, d.code) : to.href);
+    }).catch(function () { clearTimeout(timer); go(to.href); });
+  });
+
+  // Arriving with a code: take it out of the address at once, then swap it for a sign-in here. Reloads when that
+  // signs the member in (or as someone else), so every part of the page sees it.
+  (function redeemHandover() {
+    var m = /^#mt3uk-handover=([a-f0-9]{64})(?::(.*))?$/.exec(location.hash);
+    if (!m) return;
+    var own = m[2] || '';
+    try { history.replaceState(history.state, '', location.pathname + location.search + (own ? '#' + own : '')); } catch (e) {}
+    var tries = 0;
+    function attempt() {
+      tries++;
+      fetch(API + '/session/handover/redeem', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: m[1] }) })
+        .then(function (res) { return res.json().then(function (d) { return { status: res.status, d: d }; }); })
+        .then(function (r) {
+          // A code made a moment ago can take a second to reach every Cloudflare server: try twice more.
+          if (r.status === 404 && tries < 3) { setTimeout(attempt, 800); return; }
+          if (!r.d || !r.d.success || !r.d.session) return;
+          var before = read(SESSION_KEY), beforeEmail = read(EMAIL_KEY);
+          try {
+            localStorage.setItem(SESSION_KEY, r.d.session);
+            localStorage.setItem(EMAIL_KEY, r.d.email || '');
+            if (r.d.firstName) localStorage.setItem(FIRST_NAME_KEY, r.d.firstName);
+            else if (beforeEmail !== r.d.email) localStorage.removeItem(FIRST_NAME_KEY);
+          } catch (e) { return; }
+          if (!before || beforeEmail !== r.d.email) location.reload();
+        })
+        .catch(function () {});
+    }
+    attempt();
+  })();
+
   // Back is one button on every page: it goes back to the page you came from when that was another page of this site,
   // and to the page it links to (its parent) when you came from a shared link or a bookmark.
   document.addEventListener('click', function (e) {

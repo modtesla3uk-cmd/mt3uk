@@ -87,6 +87,9 @@
   {
     "file": "photo--by-andy-greaves.jpeg",
     "name": "AndySV1K",
+    "votable": false,
+    "gallery": false,
+    "reel": false,
     "color": "White",
     "added": "2026-10-02",
     "group": "photo--by-andy-greaves.jpeg"

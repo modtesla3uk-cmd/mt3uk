@@ -143,10 +143,12 @@ def test_back_on_laps_goes_to_the_page_before_not_the_homepage(page):
     page.goto(LAPS + "/track.html")
     page.locator("#tp-lb-pill").click()
     expect(page).to_have_url(LAPS + "/leaderboards.html")
+    page.wait_for_load_state("load")
     page.locator("#lb-page-back").click()
     expect(page).to_have_url(LAPS + "/track.html")
     # Opened directly, it goes to its parent on mt3uk.com as before.
     page.goto(LAPS + "/leaderboards.html")
+    page.wait_for_load_state("load")
     page.locator("#lb-page-back").click()
     expect(page).to_have_url(re.compile(r"^" + re.escape(MAIN) + r"/index\.html"))
 

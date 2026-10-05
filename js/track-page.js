@@ -2401,7 +2401,7 @@
         '<div class="tp-gcharts" id="tp-gforce"></div>' +
         // The slider sits under the chart, lined up with its time axis.
         '<div class="tp-scrub-row"><div class="tp-scrub-track" id="tp-scrub-track"><div class="tp-ruler" id="tp-ruler" aria-hidden="true"></div><input type="range" id="tp-scrub" min="0" max="100" step="0.01" value="0" aria-label="Position in the lap"></div><span class="tp-clock" id="tp-clock">0:00.0</span></div>' +
-        '<p class="tp-small" id="tp-gnote"></p></div></div>' +
+        '<div class="tp-small tp-gpeaks" id="tp-gpeaks"></div><p class="tp-small" id="tp-gnote"></p></div></div>' +
         '</div></div>' +
         '<div class="tp-grid tp-g2"><div class="card"><div class="tp-chart-head"><h3>How much grip you used, lap A' + (s.gDerived ? ' (estimated)' : '') + '</h3><span class="tp-small">Each dot is a moment on the lap. The further from the middle, the harder the car was working the tyres.</span></div><svg class="tv-chart tp-gg" id="tp-gg" role="img" aria-label="Sideways against lengthways g for lap A"></svg></div><div class="tp-notes" id="tp-cmp-notes"></div></div></div>';
     }
@@ -2548,9 +2548,9 @@
   // What the G-force charts show (key, label). Each measure switched on gets a chart of its own, stacked, with lap A
   // in its blue and lap B in its orange, as on the map, so colour always means the car. Each session opens showing
   // one, cornering; more can be switched on with the chips.
-  var G_DEFS = [['acc', 'Acceleration G'], ['cor', 'Cornering G'], ['spd', 'Speed']];
-  var gShow = { acc: false, cor: true, spd: false }, gShowFor = null;
-  function gReset(id) { if (gShowFor !== id) { gShow = { acc: false, cor: true, spd: false }; gShowFor = id; } }
+  var G_DEFS = [['acc', 'Acceleration G'], ['brk', 'Braking G'], ['cor', 'Cornering G'], ['spd', 'Speed']];
+  var gShow = { acc: false, brk: false, cor: true, spd: false }, gShowFor = null;
+  function gReset(id) { if (gShowFor !== id) { gShow = { acc: false, brk: false, cor: true, spd: false }; gShowFor = id; } }
 
   // The whole G-force and speed chart can be hidden (remembered in this browser).
   var gHidden = false;
@@ -2949,7 +2949,7 @@
         var p0 = rows[Math.max(0, lo - 1)], q0 = rows[lo];
         return Math.abs(q0[0] - x) < Math.abs(p0[0] - x) ? q0 : p0;
       }
-      var fmtAcc = function (v) { return (v >= 0 ? '+' : '') + v.toFixed(2) + ' g'; }, fmtCor = fmtAcc;
+      var fmtAcc = function (v) { return (v >= 0 ? '+' : '') + v.toFixed(2) + ' g'; }, fmtCor = fmtAcc, fmtBrk = function (v) { return Math.max(0, -v).toFixed(2) + ' g'; };
       // The numbers under the map: each lap's speed and G-force where its dot is.
       var mbox = document.getElementById('tp-metrics');
       function mrow(id, colour, label) {
@@ -3017,6 +3017,7 @@
       function tipG(x) {
         var ra = nearRow(gaT, x), rb = nearRow(gbT, x), h = '<b>' + clock(x) + '</b>';
         if (gShow.acc) h += V.row('Accel, A', fmtAcc(ra[1]), c1) + (A === B ? '' : V.row('Accel, B', fmtAcc(rb[1]), c2));
+        if (gShow.brk) h += V.row('Braking, A', fmtBrk(ra[1]), c1) + (A === B ? '' : V.row('Braking, B', fmtBrk(rb[1]), c2));
         if (gShow.cor) h += V.row('Corner, A', fmtCor(ra[2]), c1) + (A === B ? '' : V.row('Corner, B', fmtCor(rb[2]), c2));
         if (gShow.spd) h += V.row('Speed, A', V.fmtV(at(spA, x)[1]), c1) + (A === B ? '' : V.row('Speed, B', V.fmtV(at(spB, x)[1]), c2));
         return h;
@@ -3046,6 +3047,8 @@
         if (note) note.textContent = !defs.length ? 'Turn a line on to see it.' : A === B ? A.label : 'Blue: ' + A.label + ' (A). Orange: ' + B.label + ' (B).';
         box.innerHTML = '';
         gls = [];
+        var peakLines = [], pkEl = document.getElementById('tp-gpeaks');
+        if (pkEl) pkEl.innerHTML = '';
         if (!defs.length) { alignScrub(); return; }
         // One chart has the full height (in full screen a share of a tall screen); stacked ones are shorter each. In
         // full screen the stack as a whole is held to a quarter more than one chart, so the map keeps its room.
@@ -3081,14 +3084,16 @@
             });
             tip = function (x) { return '<b>' + clock(x) + '</b>' + V.row('Speed, A', V.fmtV(at(spA, x)[1]), c1) + (A === B ? '' : V.row('Speed, B', V.fmtV(at(spB, x)[1]), c2)); };
           } else {
-            var col = d[0] === 'acc' ? 1 : 2, lo = 0, hi = 0.5, fmt = col === 1 ? fmtAcc : fmtCor, word = col === 1 ? 'Accel' : 'Corner';
+            // Braking G is the lengthways g below zero drawn upwards, from 0 to the hardest stop.
+            var brk = d[0] === 'brk', col = d[0] === 'cor' ? 2 : 1, lo = 0, hi = 0.5, fmt = brk ? fmtBrk : col === 1 ? fmtAcc : fmtCor, word = brk ? 'Braking' : col === 1 ? 'Accel' : 'Corner';
+            var val = function (r) { return brk ? Math.max(0, -r[1]) : r[col]; };
             [gaT, gbT].forEach(function (lp, li) {
               if (li && A === B) return;
-              lp.forEach(function (r) { lo = Math.min(lo, r[col]); hi = Math.max(hi, r[col]); });
-              series.push({ color: li ? c2 : c1, width: 1.5, pts: lp.map(function (r) { return [r[0], r[col]]; }), at: function (x) { return nearRow(lp, x)[col]; } });
+              lp.forEach(function (r) { lo = Math.min(lo, val(r)); hi = Math.max(hi, val(r)); });
+              series.push({ color: li ? c2 : c1, width: 1.5, pts: lp.map(function (r) { return [r[0], val(r)]; }), at: function (x) { return val(nearRow(lp, x)); } });
             });
             // The biggest figure of each lap, from its own readings (the same figure as the note below and the headline
-            // tiles): a dashed line across the chart, a dot where it happened, and one label beside that dot.
+            // tiles): a dashed line across the chart and a dot where it happened.
             var peaks = [];
             [[A, c1, 'A'], [B, c2, 'B']].forEach(function (lp, li) {
               if (li && A === B) return;
@@ -3099,7 +3104,9 @@
                 if (v > up) { up = v; tUp = r[1]; }
                 if (-v > down) { down = -v; tDown = r[1]; }
               });
-              if (col === 1) {
+              if (brk) {
+                if (down > 0) peaks.push([down, lp[1], lp[2], 'Max braking', tDown]);
+              } else if (col === 1) {
                 if (up > 0) peaks.push([up, lp[1], lp[2], 'Max acceleration', tUp]);
                 if (down > 0) peaks.push([-down, lp[1], lp[2], 'Max braking', tDown]);
               } else {
@@ -3108,8 +3115,7 @@
               }
             });
             peaks.forEach(function (pk) { lo = Math.min(lo, pk[0]); hi = Math.max(hi, pk[0]); });
-            // One label for each side of the chart, giving the figure for each lap (lap A and lap B when two are shown);
-            // it sits beside the first lap's dot.
+            // The words for each side of the chart, giving the figure for each lap (lap A and lap B when two are shown).
             var sides = {};
             peaks.forEach(function (pk) {
               var k = pk[0] < 0 ? 'lo' : 'hi', sd = sides[k] = sides[k] || { word: pk[3], parts: [], at: pk };
@@ -3125,30 +3131,21 @@
                 sv.appendChild(ln);
               });
             };
-            // Drawn after the chart, so the dots and labels sit over the lines.
+            // Drawn after the chart, so the dots sit over the lines. The figures are not drawn on the chart, where they
+            // landed on the traces: they are listed under the charts (#tp-gpeaks), in the same words.
             topG = function (sv) {
-              if (!gX || !gY) return;
-              var ns = 'http://www.w3.org/2000/svg', top = gY(gy[gy.length - 1]), bottom = gY(gy[0]);
+              var ns = 'http://www.w3.org/2000/svg';
               peaks.forEach(function (pk) {
                 var dot = document.createElementNS(ns, 'circle');
                 dot.setAttribute('class', 'tp-gpeak'); dot.setAttribute('cx', gX(pk[4])); dot.setAttribute('cy', gY(pk[0])); dot.setAttribute('r', 3.5);
                 dot.setAttribute('fill', pk[1]); dot.setAttribute('stroke', '#ffffff'); dot.setAttribute('stroke-width', 1.5); dot.setAttribute('pointer-events', 'none');
                 sv.appendChild(dot);
               });
-              Object.keys(sides).forEach(function (k) {
-                var sd = sides[k], pk = sd.at, text = sd.word + ' ' + sd.parts.join(', '), half = text.length * 3.1, cy = gY(pk[0]);
-                // Beside its dot, on the side with room: above a peak, below a trough, unless that runs off the chart.
-                var above = pk[0] > 0 ? cy - 8 - 12 > top : !(cy + 8 + 12 < bottom);
-                var tx = document.createElementNS(ns, 'text');
-                tx.setAttribute('class', 'tp-gmax'); tx.setAttribute('x', Math.max(gX(0) + half + 3, Math.min(gX(tEndG) - half - 3, gX(pk[4])))); tx.setAttribute('y', above ? cy - 8 : cy + 17); tx.setAttribute('text-anchor', 'middle');
-                tx.setAttribute('style', 'fill:#3d4658;font-size:11px;font-weight:600;paint-order:stroke;stroke:#ffffff;stroke-width:3px;stroke-linejoin:round'); tx.setAttribute('pointer-events', 'none');
-                tx.textContent = text;
-                sv.appendChild(tx);
-              });
             };
-            // The g scale is even about zero, so a corner one way is drawn as big as the same corner the other way.
+            peakLines.push({ title: d[1], items: Object.keys(sides).sort().map(function (k) { return sides[k].word + ' ' + sides[k].parts.join(', '); }) });
+            // The g scale is even about zero (Braking G runs from zero up), so a corner one way is drawn as big as the same corner the other way.
             var gm = Math.ceil(Math.max(-lo, hi) * 2) / 2;
-            gy = V.nice(-gm, gm, defs.length === 1 ? 4 : 2);
+            gy = brk ? V.nice(0, Math.max(0.5, Math.ceil(hi * 4) / 4), defs.length === 1 ? 4 : 2) : V.nice(-gm, gm, defs.length === 1 ? 4 : 2);
             tip = function (x) { return '<b>' + clock(x) + '</b>' + V.row(word + ', A', fmt(nearRow(gaT, x)[col]), c1) + (A === B ? '' : V.row(word + ', B', fmt(nearRow(gbT, x)[col]), c2)); };
           }
           var spd = d[0] === 'spd';
@@ -3167,6 +3164,8 @@
             svg.appendChild(ttl);
           }
         });
+        // The biggest figures, one line for each chart that has them.
+        if (pkEl) pkEl.innerHTML = peakLines.map(function (l) { return '<div><b>' + esc(l.title) + ':</b> ' + l.items.map(function (t) { return '<span class="tp-gmax">' + esc(t) + '</span>'; }).join('. ') + '.</div>'; }).join('');
         alignScrub();
         if (pb.active && pb.render) pb.render(pb.t);
       }

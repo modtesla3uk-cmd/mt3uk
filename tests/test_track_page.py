@@ -2335,12 +2335,31 @@ def test_satellite_tiles_keep_up_while_playing_zoomed_in(page):
     assert len(set(requests)) > 8, len(set(requests))
 
 
+def test_braking_g_has_its_own_chart_from_zero_up_with_its_max_line(page):
+    """Braking G is the lengthways g below zero drawn upwards: its scale never goes below 0 g, it has a dashed line and a
+    dot at the hardest stop, and the same figure is listed under the charts."""
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    page.locator("#tp-gtoggles .chip", has_text="Braking G").click()
+    chart = page.locator("#tp-gforce svg[data-g='brk']")
+    expect(chart).to_have_count(1)
+    labels = [x.strip() for x in chart.locator("text[text-anchor='end']").all_text_contents()]
+    assert labels and labels[0] == "0 g" and all(not l.startswith("-") for l in labels), labels
+    expect(chart.locator("line.tp-gmaxline")).not_to_have_count(0)
+    expect(chart.locator("circle.tp-gpeak")).not_to_have_count(0)
+    line = page.locator("#tp-gpeaks").inner_text()
+    assert re.search(r"Braking G: Max braking (A \d\.\d\d g, B \d\.\d\d g|\d\.\d\d g)", line), line
+    # The figure is the hardest braking in the note, as on the Acceleration chart.
+    big = max(float(m) for m in re.findall(r"(\d\.\d\d) g", line))
+    assert any(abs(big - float(m)) < 0.011 for m in re.findall(r"([\d.]+) g braking", page.locator("body").inner_text())), (big, line)
+
+
 def test_holding_on_the_cornering_chart_can_reach_the_max_figure(page):
     """Sweeping a finger or mouse across the Cornering G chart reads recorded rows, so it reaches the figure in the Max
     label instead of stopping short between two rows."""
     fake = FakeWorker()
     save_thruxton_with_a_member_board(page, fake)
-    label = page.locator("#tp-gforce .tp-gmax").first.text_content()
+    label = page.locator("#tp-gpeaks .tp-gmax").first.text_content()
     top = float(re.search(r"A (\d\.\d\d) g", label).group(1))
     svg = page.locator("#tp-gforce svg").first
     svg.scroll_into_view_if_needed()
@@ -2365,7 +2384,7 @@ def test_g_force_lines_can_be_switched_on_and_off(page):
     fake = FakeWorker()
     save_thruxton_with_a_member_board(page, fake)
     toggles = page.locator("#tp-gtoggles .chip")
-    expect(toggles).to_have_text(["Acceleration G", "Cornering G", "Speed"])
+    expect(toggles).to_have_text(["Acceleration G", "Braking G", "Cornering G", "Speed"])
     # A session opens showing one measure, cornering: one chart, lap A blue and lap B orange, two dots, no dashes.
     expect(page.locator("#tp-gtoggles .chip.is-on")).to_have_text(["Cornering G"])
     charts, lines = page.locator("#tp-gforce svg"), page.locator("#tp-gforce path[stroke-width]")
@@ -2379,11 +2398,11 @@ def test_g_force_lines_can_be_switched_on_and_off(page):
     expect(page.locator("#tp-gnote")).to_contain_text("Blue:")
     expect(page.locator("#tp-gnote")).to_contain_text("Orange:")
     # Cornering keeps its sign: the g scale runs below zero as far as above it, as RaceBox draws it.
-    labels = [x.strip() for x in page.locator("#tp-gforce text[text-anchor='end']:not(.tp-gmax)").all_text_contents()]
+    labels = [x.strip() for x in page.locator("#tp-gforce text[text-anchor='end']").all_text_contents()]
     assert labels and labels[0].startswith("-") and labels[0][1:] == labels[-1], labels
-    expect(page.locator("#tp-gforce text[text-anchor='start']:not(.tp-gmax)")).to_have_count(0)
+    expect(page.locator("#tp-gforce text[text-anchor='start']")).to_have_count(0)
     # The biggest cornering g of the lap is drawn as a dashed line and named, the same figure as the note below.
-    maxes = [t.strip() for t in page.locator("#tp-gforce .tp-gmax").all_text_contents()]
+    maxes = [t.strip() for t in page.locator("#tp-gpeaks .tp-gmax").all_text_contents()]
     # One maximum for cornering (whichever way it was), the same figure as the note below.
     assert 1 <= len(maxes) <= 2 and all(re.fullmatch(r"Max ((A \d\.\d\d g)?(, )?(B \d\.\d\d g)?|\d\.\d\d g)", t) for t in maxes), maxes
     expect(page.locator("#tp-gforce line.tp-gmaxline")).not_to_have_count(0)
@@ -2396,24 +2415,24 @@ def test_g_force_lines_can_be_switched_on_and_off(page):
     expect(charts).to_have_count(2)
     expect(lines).to_have_count(4)
     expect(page.locator("#tp-gforce svg[data-g='acc'] path[stroke='#2a78d6']")).to_have_count(1)
-    toggles.nth(2).click()
+    toggles.nth(3).click()
     expect(charts).to_have_count(3)
     expect(lines).to_have_count(6)
     # Stacked charts are each named in their corner, in the order they are drawn.
     expect(page.locator("#tp-gforce .tp-gtitle")).to_have_text(["Acceleration G", "Cornering G", "Speed"])
     expect(page.locator("#tp-gforce path[stroke-dasharray]")).to_have_count(0)
     assert [c.bounding_box()["y"] for c in charts.all()] == sorted(c.bounding_box()["y"] for c in charts.all())
-    expect(page.locator("#tp-gforce svg[data-g='acc'] text[text-anchor='middle']:not(.tp-gmax)")).to_have_count(0)
+    expect(page.locator("#tp-gforce svg[data-g='acc'] text[text-anchor='middle']")).to_have_count(0)
     assert page.locator("#tp-gforce svg[data-g='spd'] text[text-anchor='middle']").count() > 2
     # Speed takes a scale in the member's unit, with no g.
     labels = [x.strip() for x in page.locator("#tp-gforce svg[data-g='spd'] text[text-anchor='end']").all_text_contents()]
     assert labels and all(not l.endswith(" g") for l in labels) and labels[0] == "0", labels
     toggles.nth(0).click()
-    toggles.nth(1).click()
+    toggles.nth(2).click()
     expect(charts).to_have_count(1)
     expect(lines).to_have_count(2)
     # Nothing on says so.
-    toggles.nth(2).click()
+    toggles.nth(3).click()
     expect(page.locator("#tp-gnote")).to_have_text("Turn a line on to see it.")
     expect(lines).to_have_count(0)
     # Each session opens with cornering alone again.
@@ -2501,14 +2520,14 @@ def test_full_screen_map_on_a_phone(page):
     # All three charts on: the stack is held back so the map keeps its room, and everything still fits the screen.
     toggles = page.locator("#tp-gtoggles .chip")
     toggles.nth(0).click()
-    toggles.nth(2).click()
+    toggles.nth(3).click()
     expect(page.locator("#tp-gforce svg")).to_have_count(3)
     mb = page.locator("#tp-map2").bounding_box()
     assert mb["height"] >= 170, mb
     gb = page.locator("#tp-gforce").bounding_box()
     assert gb["height"] <= 250 and gb["y"] + gb["height"] <= 845, gb
     toggles.nth(0).click()
-    toggles.nth(2).click()
+    toggles.nth(3).click()
     # A phone on its side: the map takes the whole screen, with the controls and numbers laid over it.
     page.set_viewport_size({"width": 844, "height": 390})
     page.wait_for_timeout(300)
@@ -2573,7 +2592,7 @@ def test_full_screen_map_on_a_phone(page):
     assert sh["x"] >= gb["x"] and sh["x"] + sh["width"] <= 844, (sh, gb)
     toggles = page.locator("#tp-gtoggles .chip")
     toggles.nth(0).click()
-    toggles.nth(2).click()
+    toggles.nth(3).click()
     expect(page.locator("#tp-gforce svg")).to_have_count(3)
     for svg in page.locator("#tp-gforce svg").all():
         b = svg.bounding_box()
@@ -2616,7 +2635,7 @@ def test_full_screen_map_on_a_phone(page):
     page.locator("#tp-gshow").click()
     assert 480 <= page.locator("#tp-map2").bounding_box()["width"] <= 530
     toggles.nth(0).click()
-    toggles.nth(2).click()
+    toggles.nth(3).click()
     page.locator("#tp-mapwrap .tv-zoom-full").click()
     expect(page.locator("#tp-mapcard")).not_to_have_class(re.compile(r"is-full"))
 
@@ -3448,7 +3467,7 @@ def test_the_chart_is_on_time_and_moving_over_it_moves_playback(page):
     gs = page.locator("#tp-gforce svg").first
     gs.scroll_into_view_if_needed()
     # The time axis is the ruler: minutes and seconds along the bottom.
-    labels = gs.locator("text[text-anchor='middle']:not(.tp-gmax)").evaluate_all("els => els.map(e => e.textContent)")
+    labels = gs.locator("text[text-anchor='middle']").evaluate_all("els => els.map(e => e.textContent)")
     assert labels[0] == "0:00" and all(re.match(r"^\d+:\d\d$", t) for t in labels), labels
     expect(page.locator("#tp-ruler")).to_be_hidden()
     # The slider sits under the chart, with its ends at the chart's axis.

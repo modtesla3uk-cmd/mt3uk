@@ -244,7 +244,9 @@
   .tp-gbox .tp-chart-head h3 { order: 1; }
   .tp-gbox #tp-gtoggles { order: 2; }
   @media (max-width: 780px) { .tp-gbox .tp-gswitch { order: 2; } .tp-gbox #tp-gtoggles { order: 3; flex-basis: 100%; } }
-  .tp-gbox.is-off #tp-gtoggles, .tp-gbox.is-off #tp-gforce, .tp-gbox.is-off #tp-gnote { display: none; }
+  .tp-gbox.is-off #tp-gtoggles, .tp-gbox.is-off #tp-gforce, .tp-gbox.is-off #tp-gnote, .tp-gbox.is-off #tp-gpeaks { display: none; }
+  .tp-gpeaks { margin: 6px 0 0; line-height: 1.5; }
+  .tp-gpeaks .tp-gmax { white-space: nowrap; }
   /* Under the chart, the slider lines up with the chart's time axis, which is its ruler. */
   .tp-gbox .tp-scrub-row { display: block; margin-top: -2px; }
   .tp-gbox .tp-clock { display: block; text-align: right; margin-top: 2px; }
@@ -282,7 +284,7 @@
     .tp-mapcard.is-full .tp-map-head .tp-speedsw > span:first-child { display: none; }
     .tp-mapcard.is-full .tp-map-head .tp-rotate-hint { margin-left: auto; }
     .tp-mapcard.is-full .tp-map-head #tp-full { margin-left: 0; }
-    .tp-mapcard.is-full #tp-gnote { display: none; }
+    .tp-mapcard.is-full #tp-gnote, .tp-mapcard.is-full #tp-gpeaks { display: none; }
     .tp-mapcard.is-full #tp-gtoggles .chip { min-height: 32px; padding: 0 9px; font-size: 0.78rem; }
     .tp-mapcard.is-full .tp-gbox .tp-chart-head h3 { font-size: 0.95rem; }
   }
@@ -317,7 +319,7 @@
     .tp-mapcard.is-full .tp-gbox .tp-gswitch { min-height: 32px; margin-left: 0; order: 3; }
     .tp-mapcard.is-full #tp-gtoggles { flex-basis: auto; order: 1; }
     .tp-mapcard.is-full #tp-gtoggles .chip { min-height: 30px; padding: 0 8px; font-size: 0.76rem; }
-    .tp-mapcard.is-full #tp-gnote { display: none; }
+    .tp-mapcard.is-full #tp-gnote, .tp-mapcard.is-full #tp-gpeaks { display: none; }
     .tp-mapcard.is-full .tp-gbox.is-off { top: 52px; bottom: auto; right: 58px; width: auto; padding: 2px 6px; border: 0; border-radius: var(--radius-sm); background: rgba(255,255,255,.88); }
     .tp-mapcard.is-full .tp-gbox.is-off .tp-scrub-row, .tp-mapcard.is-full .tp-gbox.is-off .tp-clock { display: none; }
     .tp-mapcard.is-full .tp-map-head .tp-speedsw, .tp-mapcard.is-full .tp-map-head #tp-full { min-height: 40px; padding-top: 0; padding-bottom: 0; }
@@ -877,7 +879,7 @@
 <script src="js/track-view.js?v=20261181" defer></script>
 <script src="js/tyre-data.js"></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20261190" defer></script>
+<script src="js/track-page.js?v=20261192" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=7" defer></script>
 <script src="js/signin-prompt.js" defer></script>

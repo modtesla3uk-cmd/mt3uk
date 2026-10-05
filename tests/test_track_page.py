@@ -4322,7 +4322,7 @@ def test_the_refresh_button_loads_the_page_again_from_the_latest_version(page):
     assert any(u.split("?")[0].endswith("/js/track-page.js") for u in seen), seen[:10]
     assert any("/data/tracks.json" in u for u in seen)
     assert "s=new1" in page.url
-    page.get_by_role("link", name="Your sessions").click()
+    page.locator(".tp-back").click()
     expect(page.get_by_role("button", name="Refresh this page from the latest version")).to_be_visible()
 
 

@@ -2640,7 +2640,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var model = carModelSelect.value, version = carVersionSelect.value, year = carYearSelect.value;
       var fields = { name: name }, changed = name !== current.name;
       if (carColorSelect.value && carColorSelect.value !== (current.color || '')) { fields.color = carColorSelect.value; changed = true; }
-      if (model !== (current.model || '')) { fields.model = model; fields.version = ''; changed = true; }
+      if (model !== (current.model || '')) { fields.model = model; fields.version = ''; if (current.make) fields.make = ''; changed = true; }
       if (version !== (current.version || '') || fields.model !== undefined) { fields.version = version; changed = true; }
       if (year !== String(current.year || '')) { fields.year = year; changed = true; }
       if (!changed) { showCarNameEdit(false); return; }
@@ -2660,6 +2660,7 @@ document.addEventListener('DOMContentLoaded', function () {
               car.name = name;
               if (fields.color !== undefined) car.color = fields.color;
               if (fields.model !== undefined) car.model = fields.model;
+              if (fields.make !== undefined) car.make = fields.make;
               if (fields.version !== undefined) car.version = fields.version;
               if (fields.year !== undefined) car.year = parseInt(fields.year, 10) || '';
             }
@@ -2804,8 +2805,18 @@ document.addEventListener('DOMContentLoaded', function () {
     var carVersionSelect = document.getElementById('mb-car-version-select');
     var carYearSelect = document.getElementById('mb-car-year-select');
     function drawCarModel(car) {
-      carModelSelect.value = (car && car.model) || '';
-      carVersionSelect.innerHTML = MB.versionOptions((car && car.model) || '', (car && car.version) || '');
+      var model = (car && car.model) || '';
+      // A model that is not one of the listed ones (a car added with another make) still shows, and is kept when saving.
+      Array.prototype.slice.call(carModelSelect.querySelectorAll('option[data-extra]')).forEach(function (o) { o.remove(); });
+      if (model && !Array.prototype.some.call(carModelSelect.options, function (o) { return o.value === model; })) {
+        var extra = document.createElement('option');
+        extra.value = model;
+        extra.textContent = (car.make && model.toLowerCase().indexOf(String(car.make).toLowerCase()) !== 0 ? car.make + ' ' : '') + model;
+        extra.setAttribute('data-extra', '');
+        carModelSelect.appendChild(extra);
+      }
+      carModelSelect.value = model;
+      carVersionSelect.innerHTML = MB.versionOptions(model, (car && car.version) || '');
       applyCarLocks();
       carYearSelect.innerHTML = MB.yearOptions((car && car.year) || '');
     }

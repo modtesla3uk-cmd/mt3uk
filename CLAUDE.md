@@ -69,6 +69,14 @@ Static site for the MT3UK modified Tesla community, live at https://mt3uk.com. I
 - **Edit them on the Tyres panel of `track-admin.html`** rather than by hand. A change is stored in KV (`tyre-library`, `/tyres/admin`) on top of the file and is live straight away; the file is only the starting list. A make can be taken off the list, and a size list is only stored when it differs from the file's.
 - The Model box suggests a make's models but accepts anything typed. A session keeps the parts (`tyreMake`, `tyreModel`, `tyreWidth`, `tyreProfile`, `tyreRim`) and a built description in `tyres`, which is what the pages and leaderboards show. Older free-text entries are split into the parts when their settings are opened.
 
+## Vehicles: makes, models and type
+
+- The vehicle makes, their models and their type (car or bike) are in `data/vehicles.json`. `js/vehicle-data.js` loads it with the worker's changes on top (`/vehicles`), as for tyres. A make has a type, so BMW and Honda can be both. Edit them on the **Vehicles** panel of `track-admin.html` (Content group, `js/vehicle-admin.js`, KV `vehicle-library`, `/vehicles/admin`) rather than by hand.
+- A car's details (KV `car-details:<carId>`) can now hold `make`, `vehicleType` (`car` or `bike`) and a typed `model`, beside the old `model`, `version` and `year`. Cars saved before have no make or type and count as cars: nothing was migrated and none of their pages changed. `cleanCarModel` still drops an unlisted model when there is no make (the garage form sends only listed ones); with a make (sent now, or the car's existing one) any typed model is kept.
+- Display: `MT3UKVehicles.title` puts the make in front of the model unless the model already starts with it (older cars hold "Hyundai Ioniq 5 N"), and `modelKey` is what the leaderboard model chips match (Tesla models stay "Model 3"). A model the board does not list gets its own chip. My Garage keeps an unlisted model in its model drop-down so saving the form does not lose it, and choosing a listed model clears the make.
+- **Not built yet:** a car only exists because of its gallery photos (`groupEntriesIntoCars`, `carBelongsTo`), so there is still no way to add a car without a photo, and nothing sets `make` or `vehicleType` from a page yet. A light "add your car" screen for the Laps pages needs photoless cars in `handleMyBuildsGet` and `carBelongsTo` first. Bikes would need their own boards (board keys do not include the vehicle type).
+- Tests: `tests/test_vehicles.py` (and `tests/vehicle_worker_check.mjs`, the worker in node).
+
 ## Track sessions: early preview
 
 - Track Sessions is an **early preview**: members need access to use it. It has an "Early preview" badge (`.early-badge` in `css/site-header.css`) in the menu (`partials/header.html`), on the page, in My Garage and on the homepage tile. Remove those when it opens to everyone.

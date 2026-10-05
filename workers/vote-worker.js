@@ -5202,6 +5202,8 @@ async function saveCarDetails(env, carId, details) {
 }
 
 var CAR_MODELS = ['Model 3', 'Model Y', 'Model S', 'Model X', 'Hyundai Ioniq 5 N', 'Hyundai Ioniq 6 N', 'Porsche Taycan'];
+// A car (or bike) can also have a make and a vehicle type. Cars saved before these existed have neither, and count as cars.
+var VEHICLE_TYPES = ['car', 'bike'];
 
 // The areas of the mods builder (js/mods-builder.js has the labels and
 // choices). fields: text answers. kinds: bodywork's separate jobs.
@@ -5328,10 +5330,16 @@ function cleanPlans(input) {
   }).filter(Boolean).slice(0, 10);
 }
 
-function cleanCarModel(body) {
+// The model is one of the listed ones, or, for a vehicle with a make (sent now, or the make it already has),
+// any text typed in. With no make only the listed ones are kept, as before.
+function cleanCarModel(body, knownMake) {
   var out = {};
   if (!body || typeof body !== 'object') return out;
+  var make = 'make' in body ? cleanModText(body.make, 40) : cleanModText(knownMake, 40);
+  if (make && 'make' in body) out.make = make;
+  if (VEHICLE_TYPES.indexOf(body.vehicleType) !== -1) out.vehicleType = body.vehicleType;
   if (CAR_MODELS.indexOf(body.model) !== -1) out.model = body.model;
+  else if (make) { var typed = cleanModText(body.model, 50); if (typed) out.model = typed; }
   var version = cleanModText(body.version, 40);
   if (version) out.version = version;
   var year = parseInt(body.year, 10);
@@ -6231,6 +6239,8 @@ async function handleMyBuildsGet(request, env) {
       name: name,
       mods: mods,
       color: color,
+      make: (details && details.make) || '',
+      vehicleType: (details && details.vehicleType) || '',
       model: (details && details.model) || '',
       version: (details && details.version) || '',
       year: (details && details.year) || '',
@@ -6380,11 +6390,13 @@ async function handleCarPublic(request, env) {
   if (!sidecar) return json({ success: false, message: 'Not found' }, 404);
   var ownerEmail = await sidecarOwnerEmail(env, file, sidecar);
   var ownerProfile = ownerEmail ? await getProfileRecord(env, ownerEmail) : null;
-  var out = { success: true, file: file, name: '', model: '', version: '', year: '', ownerName: '', ownerId: '', canAsk: false, view: [] };
+  var out = { success: true, file: file, name: '', make: '', vehicleType: '', model: '', version: '', year: '', ownerName: '', ownerId: '', canAsk: false, view: [] };
   var record = sidecar.carId ? await getCarRecord(env, sidecar.carId) : null;
   var details = sidecar.carId ? await getCarDetails(env, sidecar.carId) : null;
   out.name = (record && record.name) || '';
   if (details) {
+    out.make = details.make || '';
+    out.vehicleType = details.vehicleType || '';
     out.model = details.model || '';
     out.version = details.version || '';
     out.year = details.year || '';
@@ -6860,7 +6872,7 @@ async function refreshTrackBoard(env, boardKey, carId) {
     var ownerEmail = record ? await carOwnerEmail(env, record) : null;
     var entry = {
       carId: carId, sessionId: mine.id, date: mine.date, conditions: mine.conditions || '', tyres: mine.tyres || '', sessions: here.length,
-      car: (record && record.name) || 'MT3UK member build', model: (details && details.model) || '', version: (details && details.version) || '', year: (details && details.year) || '',
+      car: (record && record.name) || 'MT3UK member build', make: (details && details.make) || '', vehicleType: (details && details.vehicleType) || '', model: (details && details.model) || '', version: (details && details.version) || '', year: (details && details.year) || '',
       owner: ownerEmail ? (publicName(await getProfileRecord(env, ownerEmail)) || 'MT3UK member') : 'MT3UK member',
       photo: record && record.photos && record.photos[0] ? record.photos[0] : '',
       mods: trackBoardMods(record, details),
@@ -6885,6 +6897,7 @@ async function refreshTrackBoard(env, boardKey, carId) {
   if (board.length) {
     leaders[boardKey] = board.slice(0, 3).map(function (e) {
       var l = { car: e.car, owner: e.owner, model: e.model || '', date: e.date };
+      if (e.make) l.make = e.make;
       if (e.time) l.time = e.time; else { l.quarter = e.quarter; l.quarterSpeed = e.quarterSpeed; }
       return l;
     });
@@ -7651,7 +7664,7 @@ async function handleTrackPublic(request, env) {
   var viewer = request.headers.get('X-Session-Token') ? await resolveSession(request, env) : null;
   var res = json({
     success: true,
-    car: { id: carId, name: record.name || '', model: (details && details.model) || '', version: (details && details.version) || '', year: (details && details.year) || '', photo: (record.photos || [])[0] || '', owner: ownerEmail ? (publicName(await getProfileRecord(env, ownerEmail)) || 'MT3UK member') : '' },
+    car: { id: carId, name: record.name || '', make: (details && details.make) || '', vehicleType: (details && details.vehicleType) || '', model: (details && details.model) || '', version: (details && details.version) || '', year: (details && details.year) || '', photo: (record.photos || [])[0] || '', owner: ownerEmail ? (publicName(await getProfileRecord(env, ownerEmail)) || 'MT3UK member') : '' },
     mine: !!viewer && viewer === ownerEmail,
     sessions: await getJsonKey(env, 'track-public:' + carId, [])
   });
@@ -7736,6 +7749,46 @@ async function handleTyresAdmin(request, env) {
   try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
   var library = cleanTyreLibrary(body && body.library);
   await env.VOTES.put(TYRE_LIBRARY_KEY, JSON.stringify(library));
+  return json({ success: true, extra: library });
+}
+
+// The vehicle makes and models: data/vehicles.json is the starting list and the admin's changes (the Vehicles
+// panel on admin.html) sit on top of it in one KV key, as for tyres. Everything is read with get() only.
+// A make has a type, car or bike (BMW and Honda are both), and its models.
+var VEHICLE_LIBRARY_KEY = 'vehicle-library';
+
+function cleanVehicleLibrary(input) {
+  input = input && typeof input === 'object' ? input : {};
+  var seen = {}, makes = [];
+  (Array.isArray(input.makes) ? input.makes : []).slice(0, 600).forEach(function (m) {
+    var name = trackText(m && m.name, 40);
+    var type = m && VEHICLE_TYPES.indexOf(m.type) !== -1 ? m.type : 'car';
+    if (!name || seen[type + '|' + name.toLowerCase()]) return;
+    seen[type + '|' + name.toLowerCase()] = true;
+    if (m.removed) { makes.push({ name: name, type: type, removed: true }); return; }
+    var models = [], have = {};
+    (Array.isArray(m.models) ? m.models : []).slice(0, 400).forEach(function (md) {
+      var t = trackText(md, 60);
+      if (t && !have[t.toLowerCase()]) { have[t.toLowerCase()] = true; models.push(t); }
+    });
+    makes.push({ name: name, type: type, models: models });
+  });
+  return { makes: makes };
+}
+
+async function handleVehiclesPublic(request, env) {
+  var res = json({ success: true, extra: await getJsonKey(env, VEHICLE_LIBRARY_KEY, {}) });
+  res.headers.set('Cache-Control', 'public, max-age=60');
+  return res;
+}
+
+async function handleVehiclesAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  if (request.method === 'GET') return json({ success: true, extra: await getJsonKey(env, VEHICLE_LIBRARY_KEY, {}) });
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var library = cleanVehicleLibrary(body && body.library);
+  await env.VOTES.put(VEHICLE_LIBRARY_KEY, JSON.stringify(library));
   return json({ success: true, extra: library });
 }
 
@@ -8662,14 +8715,14 @@ async function handleMyBuildsCarUpdate(request, env) {
   // Model and the mods list from the builder (js/mods-builder.js). The
   // public mods list on every photo is made from the specs.
   var details = null;
-  var hasModel = body && ('model' in body || 'version' in body || 'year' in body);
+  var hasModel = body && ('model' in body || 'version' in body || 'year' in body || 'make' in body || 'vehicleType' in body);
   var hasSpecs = body && body.specs && typeof body.specs === 'object';
   if (hasModel || hasSpecs || (body && Array.isArray(body.plans))) {
     details = (await getCarDetails(env, realCarId)) || {};
     if (hasModel) {
       // Only the ones sent change; an empty one clears it.
-      var model = cleanCarModel(body);
-      ['model', 'version', 'year'].forEach(function (k) {
+      var model = cleanCarModel(body, details.make);
+      ['make', 'model', 'version', 'year', 'vehicleType'].forEach(function (k) {
         if (!(k in body)) return;
         if (model[k] !== undefined) details[k] = model[k];
         else delete details[k];
@@ -8691,7 +8744,7 @@ async function handleMyBuildsCarUpdate(request, env) {
 
   var carOut = Object.assign({}, record);
   if (details) {
-    ['model', 'version', 'year', 'specs', 'plans'].forEach(function (k) { if (details[k] !== undefined) carOut[k] = details[k]; });
+    ['make', 'vehicleType', 'model', 'version', 'year', 'specs', 'plans'].forEach(function (k) { if (details[k] !== undefined) carOut[k] = details[k]; });
   }
   var viewDetails = details || (await getCarDetails(env, realCarId));
   carOut.view = specsToView(viewDetails && viewDetails.specs, true, record.mods);
@@ -9778,6 +9831,12 @@ export default {
     }
     if (url.pathname === '/tyres/admin' && (request.method === 'GET' || request.method === 'PUT')) {
       return handleTyresAdmin(request, env);
+    }
+    if (url.pathname === '/vehicles' && request.method === 'GET') {
+      return handleVehiclesPublic(request, env);
+    }
+    if (url.pathname === '/vehicles/admin' && (request.method === 'GET' || request.method === 'PUT')) {
+      return handleVehiclesAdmin(request, env);
     }
     if (url.pathname === '/track/session/source' && request.method === 'POST') {
       return handleTrackSourceSave(request, env);

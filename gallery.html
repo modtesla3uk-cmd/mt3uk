@@ -1219,7 +1219,9 @@
           // Everything upgraded starts open, so the list reads at a glance.
           (data.view || []).forEach(function (a) { if (a.status === 'up') carOpen[a.id] = true; });
           carSheet.querySelector('.lightbox-car-name').textContent = data.name || p.caption || 'Mods list';
-          carSheet.querySelector('.lightbox-car-sub').textContent = [[data.model, data.version].filter(Boolean).join(' '), data.year, data.ownerName ? 'by ' + data.ownerName : ''].filter(Boolean).join(' \u00b7 ');
+          // A car with a make shows it in front of the model (a model that already starts with it is left alone).
+          var carTitle = (data.make && data.model && data.model.toLowerCase().indexOf(String(data.make).toLowerCase()) !== 0) ? data.make + ' ' + data.model : (data.model || data.make || '');
+          carSheet.querySelector('.lightbox-car-sub').textContent = [[carTitle, data.version].filter(Boolean).join(' '), data.year, data.ownerName ? 'by ' + data.ownerName : ''].filter(Boolean).join(' \u00b7 ');
           drawCar();
         })
         .catch(function () { carRows.innerHTML = '<p class="lightbox-car-note">Could not load the mods list, please try again.</p>'; });

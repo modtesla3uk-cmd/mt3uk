@@ -1,0 +1,312 @@
+{
+  "_note": "Vehicle makes and models for Track sessions and Laps. This is the starting list; changes made on the Vehicles panel of track-admin.html are stored by the worker (KV vehicle-library) on top of it. Each make has a type, car or bike (BMW and Honda exist as both). The Model box suggests a make's models but accepts anything typed.",
+  "makes": [
+    {
+      "name": "Tesla",
+      "type": "car",
+      "models": [
+        "Model 3",
+        "Model Y",
+        "Model S",
+        "Model X",
+        "Cybertruck",
+        "Roadster"
+      ]
+    },
+    {
+      "name": "Hyundai",
+      "type": "car",
+      "models": [
+        "Ioniq 5 N",
+        "Ioniq 6 N",
+        "Ioniq 5",
+        "Ioniq 6",
+        "Kona N"
+      ]
+    },
+    {
+      "name": "Kia",
+      "type": "car",
+      "models": [
+        "EV6 GT",
+        "EV6",
+        "EV9"
+      ]
+    },
+    {
+      "name": "Porsche",
+      "type": "car",
+      "models": [
+        "Taycan",
+        "Macan Electric",
+        "911",
+        "718 Cayman",
+        "718 Boxster"
+      ]
+    },
+    {
+      "name": "Polestar",
+      "type": "car",
+      "models": [
+        "2",
+        "3",
+        "4"
+      ]
+    },
+    {
+      "name": "BMW",
+      "type": "car",
+      "models": [
+        "i4 M50",
+        "iX M60",
+        "i5 M60",
+        "M2",
+        "M3",
+        "M4"
+      ]
+    },
+    {
+      "name": "Audi",
+      "type": "car",
+      "models": [
+        "RS e-tron GT",
+        "e-tron GT",
+        "RS3",
+        "RS6"
+      ]
+    },
+    {
+      "name": "Mercedes-Benz",
+      "type": "car",
+      "models": [
+        "EQE AMG",
+        "EQS AMG",
+        "AMG GT"
+      ]
+    },
+    {
+      "name": "Lotus",
+      "type": "car",
+      "models": [
+        "Eletre",
+        "Emeya",
+        "Emira",
+        "Elise",
+        "Exige",
+        "Evora"
+      ]
+    },
+    {
+      "name": "Lucid",
+      "type": "car",
+      "models": [
+        "Air"
+      ]
+    },
+    {
+      "name": "Rimac",
+      "type": "car",
+      "models": [
+        "Nevera"
+      ]
+    },
+    {
+      "name": "MG",
+      "type": "car",
+      "models": [
+        "Cyberster",
+        "MG4 XPower"
+      ]
+    },
+    {
+      "name": "Ford",
+      "type": "car",
+      "models": [
+        "Mustang Mach-E",
+        "Mustang Mach-E GT",
+        "Focus ST",
+        "Fiesta ST"
+      ]
+    },
+    {
+      "name": "Volkswagen",
+      "type": "car",
+      "models": [
+        "ID.3",
+        "ID.4 GTX",
+        "ID. Buzz",
+        "Golf R",
+        "Golf GTI"
+      ]
+    },
+    {
+      "name": "Cupra",
+      "type": "car",
+      "models": [
+        "Born",
+        "Leon"
+      ]
+    },
+    {
+      "name": "Mini",
+      "type": "car",
+      "models": [
+        "Cooper SE",
+        "John Cooper Works"
+      ]
+    },
+    {
+      "name": "Renault",
+      "type": "car",
+      "models": [
+        "Megane E-Tech",
+        "Clio"
+      ]
+    },
+    {
+      "name": "Alpine",
+      "type": "car",
+      "models": [
+        "A110"
+      ]
+    },
+    {
+      "name": "Nissan",
+      "type": "car",
+      "models": [
+        "Ariya",
+        "Leaf",
+        "GT-R"
+      ]
+    },
+    {
+      "name": "Honda",
+      "type": "car",
+      "models": [
+        "Civic Type R",
+        "S2000",
+        "NSX"
+      ]
+    },
+    {
+      "name": "Toyota",
+      "type": "car",
+      "models": [
+        "GR86",
+        "GR Yaris",
+        "Supra"
+      ]
+    },
+    {
+      "name": "Subaru",
+      "type": "car",
+      "models": [
+        "BRZ",
+        "WRX STI"
+      ]
+    },
+    {
+      "name": "Mazda",
+      "type": "car",
+      "models": [
+        "MX-5"
+      ]
+    },
+    {
+      "name": "Ducati",
+      "type": "bike",
+      "models": [
+        "Panigale V4",
+        "Panigale V2",
+        "Streetfighter V4",
+        "Monster"
+      ]
+    },
+    {
+      "name": "Yamaha",
+      "type": "bike",
+      "models": [
+        "R1",
+        "R6",
+        "MT-09",
+        "MT-10"
+      ]
+    },
+    {
+      "name": "Honda",
+      "type": "bike",
+      "models": [
+        "CBR1000RR-R Fireblade",
+        "CBR600RR"
+      ]
+    },
+    {
+      "name": "Kawasaki",
+      "type": "bike",
+      "models": [
+        "ZX-10R",
+        "ZX-6R",
+        "Z900",
+        "Ninja H2"
+      ]
+    },
+    {
+      "name": "Suzuki",
+      "type": "bike",
+      "models": [
+        "GSX-R1000",
+        "GSX-R750",
+        "GSX-R600"
+      ]
+    },
+    {
+      "name": "BMW",
+      "type": "bike",
+      "models": [
+        "S 1000 RR",
+        "M 1000 RR"
+      ]
+    },
+    {
+      "name": "Triumph",
+      "type": "bike",
+      "models": [
+        "Daytona 765",
+        "Speed Triple 1200 RS",
+        "Street Triple 765"
+      ]
+    },
+    {
+      "name": "KTM",
+      "type": "bike",
+      "models": [
+        "1290 Super Duke R",
+        "RC 8C"
+      ]
+    },
+    {
+      "name": "Aprilia",
+      "type": "bike",
+      "models": [
+        "RSV4",
+        "Tuono V4"
+      ]
+    },
+    {
+      "name": "Zero",
+      "type": "bike",
+      "models": [
+        "SR/S",
+        "SR/F"
+      ]
+    },
+    {
+      "name": "Energica",
+      "type": "bike",
+      "models": [
+        "Ego",
+        "Experia"
+      ]
+    }
+  ]
+}

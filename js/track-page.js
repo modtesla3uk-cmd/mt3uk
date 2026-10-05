@@ -346,6 +346,8 @@
   }
   // The round share button, top right of a public session or build page.
   var SITE_URL = 'https://mt3uk.com/';
+  // A car's make and model together (js/vehicle-data.js); cars saved before makes existed have only a model.
+  function titleOf(c) { return window.MT3UKVehicles ? window.MT3UKVehicles.title(c) : (c.model || ''); }
   function shareDot(label) {
     return '<button type="button" class="mt3uk-share-dot tp-share-dot" data-tp-share aria-label="' + esc(label) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 3L10 14M21 3l-7 18-4-7-7-4z"/></svg></button>';
   }
@@ -511,7 +513,7 @@
     var h = '<div class="tp-section"><div class="tp-head"><h2>Your cars</h2></div><div class="tp-cars" id="tp-cars">' + m.cars.map(function (c) {
       var n = m.sessions.filter(function (x) { return x.carId === c.id; }).length;
       return '<button type="button" class="tp-car' + (c.id === car.id ? ' is-on' : '') + '" data-car="' + esc(c.id) + '" aria-pressed="' + (c.id === car.id) + '"><b>' + esc(c.name) + '</b><span>' +
-        esc([c.model, c.version].filter(Boolean).join(' ') || 'Car') + ' &middot; ' + n + ' session' + (n === 1 ? '' : 's') + '</span></button>';
+        esc([titleOf(c), c.version].filter(Boolean).join(' ') || 'Car') + ' &middot; ' + n + ' session' + (n === 1 ? '' : 's') + '</span></button>';
     }).join('') + '</div></div>';
     h += '<div class="tp-section"><div class="tp-head"><div><h2>Sessions</h2><p class="tp-sub tp-for">' + esc(car.name) + '</p></div>' + refreshChip() + unitsChip() + '</div>';
     h += '<div class="tp-actions"><a class="btn btn-accent" href="track.html?add=1&car=' + encodeURIComponent(car.id) + '" data-go="add=1&car=' + esc(encodeURIComponent(car.id)) + '">' + icon('upload') + 'Add a session</a>' +
@@ -3528,7 +3530,7 @@
     api('GET', '/track/public?car=' + encodeURIComponent(carId)).then(function (d) {
       if (!d.success) return failed('That build could not be found.');
       var c = d.car;
-      var h = back('Track sessions', '') + '<div class="tp-head"><div><h2>' + esc(c.name || 'MT3UK build') + '</h2><p class="tp-sub">' + esc([c.owner, [c.year, c.model, c.version].filter(Boolean).join(' ')].filter(Boolean).join(' · ')) + '</p></div>' + '<div class="tp-head-side">' + refreshChip() + unitsChip() + shareDot('Share this build') + '</div></div>';
+      var h = back('Track sessions', '') + '<div class="tp-head"><div><h2>' + esc(c.name || 'MT3UK build') + '</h2><p class="tp-sub">' + esc([c.owner, [c.year, titleOf(c), c.version].filter(Boolean).join(' ')].filter(Boolean).join(' · ')) + '</p></div>' + '<div class="tp-head-side">' + refreshChip() + unitsChip() + shareDot('Share this build') + '</div></div>';
       if (d.mine) h += '<p class="tp-sub">This is what other members see. Only sessions you share show here.</p>';
       h += d.sessions.length ? '<div class="tp-list">' + sessionListHtml(d.sessions) + '</div>' : '<div class="card tp-empty">' + icon('flag') + '<p>No shared sessions yet.</p></div>';
       h += '<p class="tp-sub"><a href="gallery.html" class="tp-link">See the build in the Gallery' + icon('chev') + '</a></p>';

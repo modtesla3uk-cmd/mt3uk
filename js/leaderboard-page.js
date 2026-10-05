@@ -167,6 +167,15 @@
 
   // ---- One board -------------------------------------------------------
   var boardModel = 'All', fCond = 'All', fMake = 'All', fTyre = 'All';
+  // A car's make and model as the filter and the board line see them (js/vehicle-data.js); cars saved before makes existed have only a model.
+  function modelKey(e) { return window.MT3UKVehicles ? window.MT3UKVehicles.modelKey(e) : (e.model || ''); }
+  function titleOf(e) { return window.MT3UKVehicles ? window.MT3UKVehicles.title(e) : (e.model || ''); }
+  // The listed models, then any others the board's cars have, so a car of another make still has its chip.
+  function modelChips(entries) {
+    var extra = [];
+    entries.forEach(function (e) { var k = modelKey(e); if (k && MODELS.indexOf(k) === -1 && extra.indexOf(k) === -1) extra.push(k); });
+    return MODELS.concat(extra.sort());
+  }
 
   function tyreParts(b) {
     if (b.tyreMake || b.tyreModel) return { make: b.tyreMake || '', model: b.tyreModel || '' };
@@ -188,7 +197,7 @@
   function rank(entries, type) {
     var out = [];
     entries.forEach(function (e) {
-      if (boardModel !== 'All' && e.model !== boardModel) return;
+      if (boardModel !== 'All' && modelKey(e) !== boardModel) return;
       var best = null;
       resultsOf(e, type).forEach(function (b) {
         if (fCond !== 'All' && condOf(b) !== fCond) return;
@@ -212,7 +221,7 @@
     var gap = i ? '+' + (r.s - lead).toFixed(2) + ' s' : 'Fastest';
     var mods = e.mods || [];
     var tyres = b.tyres || e.tyres;
-    var who = [e.owner, [e.year, e.model, e.version].filter(Boolean).join(' ')].filter(Boolean).join(' · ');
+    var who = [e.owner, [e.year, titleOf(e), e.version].filter(Boolean).join(' ')].filter(Boolean).join(' · ');
     var info = '<span class="lb-tyre' + (tyres ? '' : ' is-none') + '">' + (tyres ? esc(tyres) : 'Tyres not given') + '</span><span class="lb-date">' + esc(T.niceDate(b.date)) +
       (b.conditions ? ' · ' + esc(b.conditions) : '') + (drag && b.quarterSpeed ? ' · ' + V.fmtV(b.quarterSpeed) : '') + (e.sessions > 1 ? ' · ' + e.sessions + ' sessions' : '') + '</span>';
     return '<li class="lb-row' + (i < 3 ? ' lb-top' + (i + 1) : '') + '"><span class="lb-pos">' + (i + 1) + '</span>' +
@@ -254,7 +263,7 @@
         var listType = type === 'sprint' && T.isHill(v) ? 'hill' : type;
         var h = '<a class="tp-back back-link" href="leaderboards.html?type=' + listType + '" data-go="type=' + listType + '" aria-label="Back to all ' + KIND_NAME[listType] + '">' + icon('back') + 'Back' + '</a>' +
           '<div class="tp-head"><div><h2>' + esc(title) + '</h2><p class="tp-sub">' + what + '</p></div></div>' +
-          '<div class="lb-filters"><div class="lb-filter-top"><div class="tp-chips lb-models" id="lb-models">' + ['All'].concat(MODELS).map(function (m) { return '<button type="button" class="chip' + (m === boardModel ? ' is-on' : '') + (m !== 'All' && !entries.some(function (e) { return e.model === m; }) ? ' is-empty' : '') + '" data-m="' + m + '">' + (MODEL_SHORT[m] || m) + '</button>'; }).join('') + '</div>' + unitsChip() + '</div>' +
+          '<div class="lb-filters"><div class="lb-filter-top"><div class="tp-chips lb-models" id="lb-models">' + ['All'].concat(modelChips(entries)).map(function (m) { return '<button type="button" class="chip' + (m === boardModel ? ' is-on' : '') + (m !== 'All' && !entries.some(function (e) { return modelKey(e) === m; }) ? ' is-empty' : '') + '" data-m="' + m + '">' + (MODEL_SHORT[m] || m) + '</button>'; }).join('') + '</div>' + unitsChip() + '</div>' +
           (conds.length > 1 || makes.length ? '<div class="lb-selects">' +
             (conds.length > 1 ? '<label class="lb-sel"><span>Conditions</span><select class="field" id="lb-cond">' + options(conds, fCond, 'Any conditions') + '</select></label>' : '') +
             (makes.length ? '<label class="lb-sel"><span>Tyre make</span><select class="field" id="lb-make">' + options(makes, fMake, 'Any tyres') + '</select></label>' : '') +

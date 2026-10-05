@@ -129,7 +129,7 @@
   </section>
 
   <section class="admin-group" id="grp-content" aria-labelledby="grp-content-h">
-    <div class="group-head"><h2 id="grp-content-h">Content</h2><p>The words, tyres and shared-link picture that Track sessions shows.</p></div>
+    <div class="group-head"><h2 id="grp-content-h">Content</h2><p>The words, tyres, vehicles and shared-link picture that Track sessions shows.</p></div>
     <div class="panel-wrap">
     <details class="collapsible" id="copy-wrap">
       <summary><h3 class="panel-title">Welcome text</h3></summary>
@@ -151,6 +151,14 @@
       <div id="ty-list"></div>
       <h3 class="sub-head">Sizes</h3>
       <div id="ty-sizes"></div>
+    </details>
+    <details class="collapsible" id="vehicles-wrap">
+      <summary><h3 class="panel-title">Vehicles <span class="summary-count" id="vehicles-count"></span></h3></summary>
+      <p class="iv-note">The vehicle makes and models offered when a car or bike is added. The Model box suggests a make's models and members can still type anything. data/vehicles.json is the starting list; changes made here are stored by the worker on top of it and used straight away. A make is a car or a bike, and the same name can be both.</p>
+      <p class="iv-note" id="vh-note" role="status"></p>
+      <div class="tk-form" id="vh-form" hidden></div>
+      <h3 class="sub-head">Makes</h3>
+      <div id="vh-list"></div>
     </details>
     <details class="collapsible" id="share-wrap" data-share-slot="track">
       <summary><h3 class="panel-title">Track sessions sharing</h3></summary>
@@ -185,5 +193,7 @@
 <script src="js/track-copy-admin.js?v=20261102" defer></script>
 <script src="js/tyre-data.js" defer></script>
 <script src="js/tyre-admin.js" defer></script>
+<script src="js/vehicle-data.js?v=20261202" defer></script>
+<script src="js/vehicle-admin.js?v=20261202" defer></script>
 </body>
 </html>

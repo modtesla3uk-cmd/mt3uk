@@ -663,6 +663,41 @@ def test_the_welcome_card_takes_the_admins_words_when_set(page):
     expect(card.locator(".tp-ticks li")).to_have_text(["One", "Two <b>x</b>"])
 
 
+def test_the_upload_tip_shows_on_the_leaderboard_and_sessions_and_folds(page):
+    """The tip under the leaderboard chips and on the member's Sessions page: the built-in words, the admin's when
+    set, folded to its heading with the chevron (remembered in the browser), and hidden when switched off."""
+    fake = FakeWorker()
+    open_page(page, fake, "/leaderboards.html", signed_in=False)
+    tip = page.locator("#laps-tip")
+    expect(tip.locator(".laps-tip-head b")).to_have_text("Tip: the more you upload, the more the board tells you")
+    expect(tip.locator(".laps-tip-body")).to_be_visible()
+    expect(tip.locator(".laps-tip-body .btn")).to_have_attribute("href", "track.html?add=1")
+    # It sits under the chips, above the track cards.
+    assert page.locator("#lb-app > *").evaluate_all("els => els.findIndex(e => e.querySelector('#laps-tip')) < els.findIndex(e => e.classList.contains('lb-grid') || e.querySelector('.lb-venue'))")
+    tip.locator("[data-laps-tip-toggle]").click()
+    expect(tip).to_have_class(re.compile("is-closed"))
+    expect(tip.locator(".laps-tip-body")).to_be_hidden()
+    # Folded stays folded on the next page, and on Sessions too.
+    open_page(page, fake, "/leaderboards.html?board=thruxton:main", signed_in=False)
+    expect(page.locator("#laps-tip")).to_have_class(re.compile("is-closed"))
+    open_page(page, fake, "/track.html", signed_in=True)
+    tip = page.locator("#laps-tip")
+    expect(tip).to_have_class(re.compile("is-closed"))
+    tip.locator("[data-laps-tip-toggle]").click()
+    expect(tip.locator(".laps-tip-body")).to_be_visible()
+    # Sessions has its own Add a session button, so the tip there has none.
+    expect(tip.locator(".laps-tip-body .btn")).to_have_count(0)
+    # The admin's words, and the switch that hides it.
+    fake.copy = {"tipHeading": "Keep uploading", "tipText": "More <b>data</b>, better boards."}
+    open_page(page, fake, "/leaderboards.html", signed_in=False)
+    expect(page.locator("#laps-tip .laps-tip-head b")).to_have_text("Keep uploading")
+    expect(page.locator("#laps-tip .laps-tip-body p")).to_have_text("More <b>data</b>, better boards.")
+    fake.copy = {"tipOff": True}
+    open_page(page, fake, "/leaderboards.html", signed_in=False)
+    page.locator(".lb-venue").first.wait_for()
+    expect(page.locator("#laps-tip")).to_have_count(0)
+
+
 def test_the_track_share_link_carries_the_week_and_the_picture_sets_version(page):
     """A Track sessions share link ends with the ISO week and, when the admin has changed the preview pictures,
     the set's version, so chat apps treat it as a new address and fetch a fresh card."""

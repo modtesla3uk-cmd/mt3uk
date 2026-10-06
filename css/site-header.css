@@ -465,6 +465,18 @@ a.back-link .icon, .page-hero a.back-link .icon { color: var(--orange); stroke-w
 
 /* Loading placeholder on the Laps pages (js/track-page.js loading(), the leaderboards and the front page): a
    spinner and a line of text, a note after a few seconds when it is slow, and a Refresh button after longer. */
+/* The tip on Sessions and the Leaderboard (js/laps-tip.js): folds to its heading. */
+.laps-tip { margin: 14px 0 18px; padding: 0; background: #fff7ee; border-color: #f3cfae; overflow: hidden; }
+.laps-tip-head { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 10px 14px; border: 0; background: none; color: var(--ink); font: inherit; font-weight: 600; text-align: left; cursor: pointer; }
+.laps-tip-head:hover { background: rgba(232,86,42,.06); }
+.laps-tip-bulb { flex: none; width: 24px; height: 24px; color: var(--orange); }
+.laps-tip-head b { flex: 1 1 auto; }
+.laps-tip-chev { flex: none; width: 20px; height: 20px; color: var(--steel); transition: transform .15s; }
+.laps-tip.is-closed .laps-tip-chev { transform: rotate(-90deg); }
+.laps-tip-body { display: grid; gap: 8px; justify-items: start; padding: 0 14px 14px 48px; }
+.laps-tip-body[hidden] { display: none; }
+.laps-tip-body p { margin: 0; color: var(--steel); font-size: 0.9rem; max-width: 60ch; }
+@media (max-width: 780px) { .laps-tip-body { padding-left: 14px; } }
 .tp-loading { display: grid; justify-items: center; gap: 12px; }
 .tp-loading p { margin: 0; font-family: var(--font-body); font-size: 0.9rem; color: var(--steel); max-width: 44ch; }
 .tp-spinner { display: inline-block; width: 34px; height: 34px; border: 3px solid rgba(22, 35, 61, 0.15); border-top-color: var(--orange); border-radius: 50%; animation: tpSpin 0.8s linear infinite; }

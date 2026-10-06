@@ -146,7 +146,7 @@
     }).join('') + '</div>';
     h = '<div class="lb-bar">' + h + '<div class="tp-head-side"><label class="lb-sort"><span>Sort by</span><select class="field" id="lb-sort">' + SORTS.map(function (o) {
       return '<option value="' + o[0] + '"' + (o[0] === sortMode ? ' selected' : '') + '>' + o[1] + '</option>';
-    }).join('') + '</select></label>' + refreshChip() + '</div></div>';
+    }).join('') + '</select></label>' + refreshChip() + '</div></div>' + tipHtml();
     // Sprints and hill climbs share one kind of board; the venue's hill flag tells them apart.
     var bt = t[0] === 'hill' ? 'sprint' : t[0];
     var venues = library.venues.filter(function (v) { return v.type === t[2] && (t[0] === 'hill' ? T.isHill(v) : t[0] === 'sprint' ? !T.isHill(v) : true); }).map(function (v, i) {
@@ -182,6 +182,7 @@
     h += '<p class="tp-small lb-note">Times are each car\'s fastest. Open a layout for the whole board and filters.</p>';
     h += ctaHtml();
     app.innerHTML = h;
+    placeTip();
     syncPageBack();
     var sortSel = document.getElementById('lb-sort');
     if (sortSel) sortSel.addEventListener('change', function () { sortMode = sortSel.value; showList(type); });
@@ -189,6 +190,9 @@
     if (btn) btn.addEventListener('click', function () { showAll = !showAll; showList(type); });
   }
 
+  // The tip (js/laps-tip.js) goes under the chips; the page fills it after drawing.
+  function tipHtml() { return '<div data-laps-tip></div>'; }
+  function placeTip() { if (window.MT3UKLapsTip) window.MT3UKLapsTip.place(); }
   function ctaHtml() {
     return '<div class="card lb-cta"><div><b>Get your car on the board</b><p>Upload your lap timer file in Track Sessions and share it. Your fastest goes straight on, with your car and mods.</p></div><a class="btn btn-accent" href="track.html">' + icon('upload') + 'Add a session</a></div>';
   }
@@ -296,7 +300,7 @@
             (conds.length > 1 ? '<label class="lb-sel"><span>Conditions</span><select class="field" id="lb-cond">' + options(conds, fCond, 'Any conditions') + '</select></label>' : '') +
             (makes.length ? '<label class="lb-sel"><span>Tyre make</span><select class="field" id="lb-make">' + options(makes, fMake, 'Any tyres') + '</select></label>' : '') +
             (fMake !== 'All' && (tyresOf[fMake] || []).length ? '<label class="lb-sel"><span>Tyre model</span><select class="field" id="lb-tyre">' + options(tyresOf[fMake].slice().sort(), fTyre, 'Any ' + esc(fMake)) + '</select></label>' : '') +
-            (filtered ? '<button type="button" class="btn btn-ghost btn-sm" id="lb-clear">Clear filters</button>' : '') + '</div>' : '') + '</div>';
+            (filtered ? '<button type="button" class="btn btn-ghost btn-sm" id="lb-clear">Clear filters</button>' : '') + '</div>' : '') + '</div>' + tipHtml();
         if (!shown.length) h += '<div class="card tp-empty">' + icon('trophy') + '<p>' + (filtered ? 'Nobody matches these filters.' : 'Nobody on this board yet' + (boardModel === 'All' ? '' : ' for the ' + esc(boardModel)) + '. Be the first.') + '</p></div>';
         else {
           h += '<p class="tp-small lb-count" role="status">' + shown.length + ' car' + (shown.length === 1 ? '' : 's') + (filtered ? ', each with its best that matches' : '') + '</p>' +
@@ -305,6 +309,7 @@
         }
         h += ctaHtml();
         app.innerHTML = h;
+        placeTip();
         syncPageBack();
         document.getElementById('lb-models').addEventListener('click', function (ev) {
           var b = ev.target.closest('[data-m]');

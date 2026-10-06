@@ -7,12 +7,17 @@
   if (!wrap) return;
   var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
   var heading = document.getElementById('tc-heading'), intro = document.getElementById('tc-intro'), bullets = document.getElementById('tc-bullets');
+  var tipHeading = document.getElementById('tc-tip-heading'), tipText = document.getElementById('tc-tip-text'), tipOn = document.getElementById('tc-tip-on');
   var note = document.getElementById('tc-note'), saveBtn = document.getElementById('tc-save'), resetBtn = document.getElementById('tc-reset'), loaded = false;
   var BUILT_IN = {
     heading: 'Your track days, mapped',
     intro: 'Upload the file from your lap timer (RaceBox, VBOX, Harry\'s LapTimer, TrackAddict, AiM and most phone apps) and see every lap drawn on the track, where you gained and lost time, and how your times changed as you modified the car.',
-    bullets: ['Laps, sectors and corners found for you', 'Compare any two laps, corner by corner', 'See what each mod in My Garage did to your times', 'Drag runs from the strip: 60 ft, 0 to 60, quarter mile', 'Private unless you choose to share']
+    bullets: ['Laps, sectors and corners found for you', 'Compare any two laps, corner by corner', 'See what each mod in My Garage did to your times', 'Drag runs from the strip: 60 ft, 0 to 60, quarter mile', 'Private unless you choose to share'],
+    // The tip on Sessions and the Leaderboard (the same words as js/laps-tip.js).
+    tipHeading: 'Tip: the more you upload, the more the board tells you',
+    tipText: 'Every session you add is kept as your car\'s best for that mix of tyres and conditions, so the filters can compare like with like, and the board shows how you are coming on from day to day. Upload each track day, even the slow ones.'
   };
+  function tipShown() { return !tipOn || tipOn.getAttribute('aria-checked') === 'true'; }
   function key() {
     var input = document.getElementById('admin-key');
     return (input && input.value.trim()) || sessionStorage.getItem('mt3ukAdminKey') || '';
@@ -28,6 +33,9 @@
     c = c || {};
     heading.value = c.heading || ''; intro.value = c.intro || ''; bullets.value = (c.bullets || []).join('\n');
     heading.placeholder = BUILT_IN.heading; intro.placeholder = BUILT_IN.intro; bullets.placeholder = BUILT_IN.bullets.join('\n');
+    if (tipHeading) { tipHeading.value = c.tipHeading || ''; tipHeading.placeholder = BUILT_IN.tipHeading; }
+    if (tipText) { tipText.value = c.tipText || ''; tipText.placeholder = BUILT_IN.tipText; }
+    if (tipOn) tipOn.setAttribute('aria-checked', String(!c.tipOff));
     say(Object.keys(c).length ? 'Your own words are showing on the page.' : 'The built-in words are showing. Type to replace them; anything left blank keeps the built-in text.');
   }
   function load() {
@@ -40,12 +48,14 @@
   wrap.addEventListener('toggle', function () { if (wrap.open && !loaded) load(); });
   if (saveBtn) saveBtn.addEventListener('click', function () {
     saveBtn.disabled = true;
-    call('POST', '/track/copy/admin', { heading: heading.value.trim(), intro: intro.value.trim(), bullets: bullets.value.split(/\r?\n/).map(function (b) { return b.trim(); }).filter(Boolean) }).then(function (d) {
+    call('POST', '/track/copy/admin', { heading: heading.value.trim(), intro: intro.value.trim(), bullets: bullets.value.split(/\r?\n/).map(function (b) { return b.trim(); }).filter(Boolean),
+      tipHeading: tipHeading ? tipHeading.value.trim() : '', tipText: tipText ? tipText.value.trim() : '', tipOff: !tipShown() }).then(function (d) {
       saveBtn.disabled = false;
       if (!d.success) { say(d.message || 'Could not save it.', true); return; }
       fill(d.copy); say('Saved. The page shows it on its next load.');
     }).catch(function () { saveBtn.disabled = false; say('Could not reach the server.', true); });
   });
+  if (tipOn) tipOn.addEventListener('click', function () { tipOn.setAttribute('aria-checked', String(!tipShown())); });
   if (resetBtn) resetBtn.addEventListener('click', function () {
     if (!window.confirm('Go back to the built-in words?')) return;
     call('POST', '/track/copy/admin', { reset: true }).then(function (d) {

@@ -737,7 +737,15 @@ def test_admin_welcome_text_is_edited_and_reset(page):
     page.locator("#tc-bullets").fill("One\n\nTwo  \nThree")
     page.locator("#tc-save").click()
     expect(page.locator("#tc-note")).to_contain_text("Saved")
-    assert posted[-1] == {"heading": "Lap times for every MT3UK car", "intro": "Bring your RaceBox file and see every lap.", "bullets": ["One", "Two", "Three"]}
+    assert posted[-1] == {"heading": "Lap times for every MT3UK car", "intro": "Bring your RaceBox file and see every lap.", "bullets": ["One", "Two", "Three"], "tipHeading": "", "tipText": "", "tipOff": False}
+    # The tip on Sessions and the Leaderboard: its own words, and a switch to hide it.
+    expect(page.locator("#tc-tip-heading")).to_have_attribute("placeholder", re.compile(r"^Tip: the more you upload"))
+    page.locator("#tc-tip-heading").fill("Keep uploading")
+    page.locator("#tc-tip-on").click()
+    page.locator("#tc-save").click()
+    expect(page.locator("#tc-note")).to_contain_text("Saved")
+    assert posted[-1]["tipHeading"] == "Keep uploading" and posted[-1]["tipOff"] is True
+    expect(page.locator("#tc-tip-on")).to_have_attribute("aria-checked", "false")
     page.on("dialog", lambda d: d.accept())
     page.locator("#tc-reset").click()
     expect(page.locator("#tc-note")).to_contain_text("built-in")

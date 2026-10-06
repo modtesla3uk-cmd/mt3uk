@@ -8282,6 +8282,11 @@ function cleanTrackCopy(body) {
   var bullets = Array.isArray(body && body.bullets) ? body.bullets : String((body && body.bullets) || '').split(/\r?\n/);
   bullets = bullets.map(function (b) { return trackText(b, 120); }).filter(Boolean).slice(0, 8);
   if (bullets.length) out.bullets = bullets;
+  // The tip on Sessions and the Leaderboard (js/laps-tip.js): its heading and text, or hidden.
+  var tipHeading = trackText(body && body.tipHeading, 80), tipText = trackText(body && body.tipText, 400);
+  if (tipHeading) out.tipHeading = tipHeading;
+  if (tipText) out.tipText = tipText;
+  if (body && body.tipOff === true) out.tipOff = true;
   return out;
 }
 async function handleTrackCopyPublic(request, env) {

@@ -823,6 +823,7 @@
       "6 point racing harnesses",
       "Lap timer"
     ],
+    "color": "Black",
     "added": "2026-09-19",
     "group": "deviant-tesla-model-s.jpg"
   },
@@ -887,6 +888,7 @@
       "Lap timer"
     ],
     "votable": false,
+    "color": "Black",
     "added": "2026-09-18",
     "group": "deviant-model-s--by-myk-debbage.jpg"
   },
@@ -1494,6 +1496,7 @@
       "6 point racing harnesses",
       "Lap timer"
     ],
+    "color": "Black",
     "added": "2026-09-18",
     "group": "deviant-model-s--by-myk-debbage.jpg"
   },

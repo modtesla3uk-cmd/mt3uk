@@ -87,9 +87,9 @@ def test_the_vehicles_panel_lists_the_file_and_adds_a_make(page):
     state = open_panel(page, {})
     rows = page.locator("#vh-list tbody tr")
     first_col = rows.locator("td:first-child b").all_inner_texts()
-    assert "Tesla" in first_col and "Ducati" in first_col
-    # BMW is in the file as a car and as a bike.
-    assert first_col.count("BMW") == 2
+    assert "Tesla" in first_col and "Zero" in first_col
+    # The file lists electric vehicles only.
+    assert "Toyota" not in first_col and "Ducati" not in first_col
     assert "makes)" in page.locator("#vehicles-count").inner_text()
     page.locator("#vh-list [data-new]").click()
     page.fill("#vh-name", "Zeekr")
@@ -150,12 +150,12 @@ def test_a_removed_make_is_listed_and_can_be_restored(page):
     row = page.locator("#vh-list .vh-removed-row")
     expect(row).to_have_count(1)
     expect(row).to_contain_text("Hyundai")
-    expect(row).to_contain_text("9 models")
+    expect(row).to_contain_text("5 models")
     row.locator("[data-restore]").click()
     expect(page.locator("#vh-note")).to_contain_text("Hyundai is back")
     assert not any(m.get("removed") and m["name"] == "Hyundai" for m in state["puts"][-1]["makes"])
     hyundai = page.locator("#vh-list tr.vh-make", has_text="Hyundai").first
-    expect(hyundai).to_contain_text("9 models")
+    expect(hyundai).to_contain_text("5 models")
     expect(page.locator("#vh-list .vh-removed-row")).to_have_count(0)
     # A make added here is deleted for good, and the warning says so; it is not listed as removed.
     page.locator('#vh-list [data-remove="Zeekr"][data-type="car"]').click()
@@ -184,7 +184,7 @@ def test_use_the_built_in_list_drops_a_makes_changes(page):
     assert state["puts"][-1]["makes"] == []
     hyundai = page.locator("#vh-list tr.vh-make", has_text="Hyundai").first
     expect(hyundai).not_to_contain_text("changed here")
-    expect(hyundai).to_contain_text("9 models")
+    expect(hyundai).to_contain_text("5 models")
     expect(hyundai.locator('.vh-model[data-model="Ioniq 9"]')).to_contain_text("4 variants")
     page.locator('#vh-list [data-edit="Tesla"][data-type="car"]').click()
     expect(page.locator("#vh-reset")).to_have_count(0)
@@ -192,7 +192,7 @@ def test_use_the_built_in_list_drops_a_makes_changes(page):
 
 def test_a_make_can_be_taken_off_and_bike_makes_are_kept_apart(page):
     state = open_panel(page, {"makes": [{"name": "Honda", "type": "bike", "models": ["CBR600RR", "NC750"]}]})
-    # The bike Honda was changed here; the car Honda from the file is untouched.
+    # A bike make added here is listed beside the file's makes.
     expect(page.locator("#vh-list tbody tr", has_text="NC750")).to_have_count(1)
     page.once("dialog", lambda d: d.accept())
     page.locator('#vh-list [data-remove="Tesla"][data-type="car"]').click()
@@ -438,9 +438,9 @@ def test_the_vehicles_panel_shows_each_models_driven_wheels_and_sets_a_default(p
     assert ev6.locator(".vh-drive").input_value() == "AWD"
     expect(ev6.locator(".vh-how")).to_have_text("set here (worked out: RWD)")
     # A bike make lists its models with no drop-down.
-    ducati = page.locator("#vh-list tr.vh-make", has_text="Ducati").first
-    expect(ducati.locator(".vh-model").first).to_be_visible()
-    expect(ducati.locator(".vh-drive")).to_have_count(0)
+    zero = page.locator("#vh-list tr.vh-make", has_text="Zero").first
+    expect(zero.locator(".vh-model").first).to_be_visible()
+    expect(zero.locator(".vh-drive")).to_have_count(0)
     # Setting a default posts the make and model and reports what it changed.
     kia.locator(".vh-model", has_text="EV9").locator(".vh-drive").select_option("AWD")
     expect(page.locator("#vh-note")).to_contain_text("AWD is now the default for Kia EV9: 2 vehicles with sessions, 5 sessions stamped and 1 leaderboard refreshed")

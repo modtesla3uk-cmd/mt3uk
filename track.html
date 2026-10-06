@@ -81,12 +81,18 @@
   /* Play intro: shows the Laps front page (laps.html) again. */
   .tp-play-intro { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin: 0 10px 16px 14px; vertical-align: top; font-size: 0.88rem; font-weight: 600; color: var(--steel); }
   .tp-play-intro:hover { color: var(--orange); }
+  /* Back, Play intro and the Early preview badge: one evenly spaced row above the heading. */
+  .tp-hero-top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; margin-bottom: 16px; }
+  .page-hero .tp-hero-top .back-link, .tp-hero-top .tp-play-intro, .tp-hero-top .early-badge-lg { margin: 0; }
+  .tp-hero-top .tp-play-intro { padding: 0 4px; }
+  @media (max-width: 780px) { .tp-hero-top { gap: 8px 14px; margin-bottom: 12px; } }
   .tp-play-intro .icon { width: 18px; height: 18px; color: var(--orange); }
   .page-hero p { color: var(--ink-2); max-width: 58ch; font-size: 1.02rem; }
   @media (max-width: 780px) { .page-hero { padding: 24px 0 20px; } .page-hero .back-link { margin-bottom: 10px; } }
   @media (min-width: 901px) {
     .page-hero .wrap { text-align: center; }
     .tp-hero-row { justify-content: center; }
+    .tp-hero-top { justify-content: center; }
     .tp-hero-row h1 { flex: 0 1 auto; }
     .page-hero p { margin-left: auto; margin-right: auto; }
   }
@@ -185,6 +191,7 @@
   .tp-filter { max-width: 320px; margin: 14px 0; }
   .tp-tools { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 16px; margin: 14px 0 0; }
   .tp-types { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tp-types[hidden] { display: none; }
   .tp-types .chip { min-height: 44px; }
   .tp-find { display: flex; align-items: stretch; gap: 8px; margin: 0; }
   .tp-find-btns { display: flex; align-items: center; gap: 8px; }
@@ -805,8 +812,7 @@
 
 <section class="page-hero">
   <div class="wrap">
-    <a href="my-builds.html" class="back-link" aria-label="Back to My Garage"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</a><a href="laps.html" class="tp-play-intro" id="tp-play-intro"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m10 8.5 5 3.5-5 3.5Z"/></svg>Play intro</a>
-    <span class="early-badge early-badge-lg">Early preview</span>
+    <div class="tp-hero-top"><a href="my-builds.html" class="back-link" aria-label="Back to My Garage"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</a><a href="laps.html" class="tp-play-intro" id="tp-play-intro"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m10 8.5 5 3.5-5 3.5Z"/></svg>Play intro</a><span class="early-badge early-badge-lg">Early preview</span></div>
     <div class="tp-hero-row"><h1>My Sessions</h1><a class="tp-lb-pill" id="tp-lb-pill" href="leaderboards.html"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/></svg>Leaderboards</a></div>
     <details class="tp-what"><summary>What are Sessions?</summary><p>Your track days and drag runs from your lap timer file: every lap mapped, where you gained and lost time, and what your mods did to your times.</p></details>
   </div>
@@ -963,9 +969,9 @@
 <script src="js/track-parse.js?v=20270107" defer></script>
 <script src="js/track-view.js?v=20261183" defer></script>
 <script src="js/tyre-data.js"></script>
-<script src="js/vehicle-data.js?v=20270106" defer></script>
+<script src="js/vehicle-data.js?v=20270109" defer></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20270108" defer></script>
+<script src="js/track-page.js?v=20270110" defer></script>
 <script src="js/laps-tip.js?v=20270102" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=12" defer></script>

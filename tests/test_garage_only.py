@@ -54,7 +54,7 @@ def test_add_a_car_of_another_make(device_page):
     # Make and model are drop-downs: nothing can be typed, and the model waits for the make.
     page.wait_for_function("document.querySelectorAll('#mb-addcar-make option').length > 5", timeout=5000)
     makes = page.locator("#mb-addcar-make option").evaluate_all("els => els.map(e => e.value)")
-    assert "Kia" in makes and "Tesla" not in makes and "Ducati" not in makes
+    assert "Kia" in makes and "Tesla" not in makes and "Zero" not in makes
     assert page.locator("#mb-addcar-make").evaluate("el => el.tagName") == "SELECT"
     expect(page.locator("#mb-addcar-othermodel")).to_be_disabled()
     expect(page.locator("#mb-addcar-other")).to_contain_text("Make or model not on the list?")
@@ -80,25 +80,19 @@ def test_add_a_car_of_another_make(device_page):
 
 
 @all_devices
-def test_a_bike_lists_bike_makes(device_page):
+def test_bikes_are_not_offered_for_now(device_page):
+    """Laps is for cars only for now (October 2026): Another make has no Car or bike choice, and only car makes."""
     page = device_page
     signed_in(page)
     page.goto("/my-builds.html")
     page.locator("#mb-addcar-toggle-btn").click(timeout=10000)
     form = page.locator("#mb-addcar-form")
     form.locator(".mb-model-pick .chip", has_text="Another make").click()
-    page.locator("#mb-addcar-other .chip", has_text="Bike").click()
-    page.wait_for_function("[...document.querySelectorAll('#mb-addcar-make option')].some(o => o.value === 'Ducati')", timeout=5000)
+    expect(page.locator("#mb-addcar-other .chip", has_text="Bike")).to_be_hidden()
+    expect(page.locator("#mb-addcar-type-label")).to_be_hidden()
+    page.wait_for_function("[...document.querySelectorAll('#mb-addcar-make option')].some(o => o.value === 'Kia')", timeout=5000)
     makes = page.locator("#mb-addcar-make option").evaluate_all("els => els.map(e => e.value)")
-    assert "Kia" not in makes and "Honda" in makes
-    # A bike's form talks about a bike, not a car.
-    expect(page.locator('label[for="mb-addcar-carname"]')).to_have_text("Bike name")
-    expect(page.locator('label[for="mb-addcar-color"]')).to_have_text("Bike colour")
-    expect(page.locator("#mb-addcar-other .mb-other-note")).to_contain_text("this bike isn't shown")
-    assert page.locator("#mb-addcar-caption").get_attribute("placeholder") == "e.g. Red Panigale V4"
-    expect(page.locator("#mb-addcar-submit-btn")).to_have_text("Add bike")
-    expect(page.locator("#mb-addcar-drive-field")).to_be_hidden()
-    page.locator("#mb-addcar-other .chip", has_text="Car").first.click()
+    assert "Zero" not in makes and "Energica" not in makes
     expect(page.locator("#mb-addcar-drive-field")).to_be_visible()
     expect(page.locator('label[for="mb-addcar-carname"]')).to_have_text("Car name")
     expect(page.locator("#mb-addcar-submit-btn")).to_have_text("Add car")

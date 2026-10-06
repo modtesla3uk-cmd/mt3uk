@@ -5372,7 +5372,7 @@ var FIXED_DRIVE = {
   'ford|mustang mach-e': 'RWD', 'ford|mustang mach-e gt': 'AWD', 'ford|focus st': 'FWD', 'ford|fiesta st': 'FWD',
   'volkswagen|id.3': 'RWD', 'volkswagen|id.4 gtx': 'AWD', 'volkswagen|id. buzz': 'RWD', 'volkswagen|golf r': 'AWD', 'volkswagen|golf gti': 'FWD',
   'cupra|born': 'RWD', 'cupra|leon': 'FWD', 'mini|cooper se': 'FWD', 'mini|john cooper works': 'FWD',
-  'renault|megane e-tech': 'FWD', 'renault|clio': 'FWD', 'alpine|a110': 'RWD',
+  'renault|megane e-tech': 'FWD', 'renault|clio': 'FWD', 'alpine|a110': 'RWD', 'alpine|a290': 'FWD',
   'nissan|ariya': 'FWD', 'nissan|leaf': 'FWD', 'nissan|gt-r': 'AWD',
   'honda|civic type r': 'FWD', 'honda|s2000': 'RWD', 'toyota|gr86': 'RWD', 'toyota|gr yaris': 'AWD', 'toyota|supra': 'RWD',
   'subaru|brz': 'RWD', 'subaru|wrx sti': 'AWD', 'mazda|mx-5': 'RWD'

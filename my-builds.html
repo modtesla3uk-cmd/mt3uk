@@ -1390,7 +1390,7 @@ document.addEventListener('DOMContentLoaded', function () {
         <div class="mb-upload-card" id="mb-addcar-card" style="display:none;">
           <h2>Add a vehicle</h2>
           <p>Give your car a name and add up to 3 photos. A Tesla goes live in the Gallery straight away.</p>
-          <p class="mb-field-hint">A car or bike of another make, including a Hyundai or a Porsche, is kept in your garage instead.</p>
+          <p class="mb-field-hint">A car of another make, including a Hyundai or a Porsche, is kept in your garage instead.</p>
           <form id="mb-addcar-form">
             <div class="mb-field">
               <span class="mb-field-label" id="mb-addcar-make-label">Make</span>
@@ -1409,7 +1409,8 @@ document.addEventListener('DOMContentLoaded', function () {
             <div class="mb-other-make" id="mb-addcar-other" hidden>
               <p class="mb-other-note"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span><strong>Kept in your garage.</strong> The Gallery, the Reel and Build of the Week are for Teslas, so this <span data-vword>car</span> isn't shown there. You can still build its mods list and use it in Track sessions, and ask us to show it in the Gallery later.</span></p>
               <div class="mb-other-fields" id="mb-addcar-other-fields">
-              <div class="mb-field">
+              <!-- Car or bike: hidden while Laps is for cars only (October 2026); remove hidden to offer bikes again. -->
+              <div class="mb-field" hidden>
                 <span class="mb-field-label" id="mb-addcar-type-label">Car or bike</span>
                 <div class="mb-model-pick" role="radiogroup" aria-labelledby="mb-addcar-type-label">
                   <label class="chip"><input type="radio" name="vehicleType" value="car" checked> Car</label>
@@ -1700,7 +1701,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <script src="js/passkeys.js?v=20261201"></script>
 <script src="js/mods-view.js"></script>
-<script src="js/vehicle-data.js?v=20270106"></script>
+<script src="js/vehicle-data.js?v=20270109"></script>
 <script src="js/mods-builder.js?v=20270102"></script>
 <script>
   (function () {
@@ -2695,7 +2696,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var bike = otherMakeChosen() && addCarType() === 'bike';
         addCarForm.querySelectorAll('[data-vword]').forEach(function (el) { el.textContent = bike ? 'bike' : 'car'; });
         addCarForm.querySelectorAll('[data-vword-cap]').forEach(function (el) { el.textContent = bike ? 'Bike' : 'Car'; });
-        document.getElementById('mb-addcar-caption').placeholder = bike ? 'e.g. Red Panigale V4' : 'e.g. Viper Green Model Y';
+        document.getElementById('mb-addcar-caption').placeholder = bike ? 'e.g. Black Zero SR/F' : 'e.g. Viper Green Model Y';
         if (!addCarSubmitBtn.disabled) addCarSubmitBtn.textContent = bike ? 'Add bike' : 'Add car';
       };
       var showOtherMake = function () {

@@ -31,7 +31,7 @@ FOOTER = ROOT / "partials" / "footer.html"
 # The Laps pages (lap times and leaderboards) have their own header and footer.
 LAPS_HEADER = ROOT / "partials" / "laps-header.html"
 LAPS_FOOTER = ROOT / "partials" / "laps-footer.html"
-LAPS_PAGES = ("laps", "track", "leaderboards")
+LAPS_PAGES = ("laps", "track", "leaderboards", "laps-signin")
 STYLESHEET = '<link rel="stylesheet" href="css/site-header.css">'
 
 # Every public page, and the menu link shown as active on it.
@@ -43,6 +43,7 @@ PAGES = {
     "leaderboards": "leaderboards.html",
     "laps": "laps.html",
     "signin": "signin.html",
+    "laps-signin": "laps-signin.html",
     "profile": "profile.html",
     "privacy": "privacy.html",
     "shop": "shop.html",

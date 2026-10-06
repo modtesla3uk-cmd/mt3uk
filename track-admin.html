@@ -78,6 +78,21 @@
       <h3 class="sub-head">Add someone</h3>
       <form class="iv-toolbar" id="ac-add-form"><input type="email" id="ac-add-email" placeholder="Member's email" aria-label="Member's email" autocomplete="off"><button type="submit">Approve by email</button></form>
     </details>
+    <details class="collapsible" id="signin-wrap">
+      <summary><h3 class="panel-title">Sign-in and sign-up</h3></summary>
+      <p class="iv-note">How signing in and joining works on laps.mt3uk.com. A sign-in is kept per address, so the emailed link always comes back to laps.mt3uk.com when it was asked for there.</p>
+      <p class="iv-note" id="ls-note" role="status"></p>
+      <div class="iv-toolbar"><button type="button" class="tk-switch" role="switch" id="ls-separate" aria-checked="true"><span class="tk-track"></span>Laps has its own sign-in page and emails</button></div>
+      <p class="iv-note">On: Laps has its own Sign in page (laps-signin.html) and the emails come from Laps by MT3UK and talk about Laps. Off: Laps uses the MT3UK Sign Up / Sign In page and emails.</p>
+      <div class="iv-toolbar"><button type="button" class="tk-switch" role="switch" id="ls-mt3uk-too" aria-checked="true"><span class="tk-track"></span>New Laps sign-ups become MT3UK members too</button></div>
+      <p class="iv-note">On: joining on Laps makes an MT3UK member, who can also like and comment on mt3uk.com. Off: a Laps-only account, which signs in on Laps but not on mt3uk.com until they join MT3UK there. MT3UK members can always sign in to Laps with the same email. <span id="ls-count"></span></p>
+      <div class="ts-new" data-ls-separate-only>
+        <label>Sign-in email, opening line<textarea id="ls-signin-intro" rows="3" maxlength="400"></textarea></label>
+        <label>Welcome email (new sign-ups), opening line<textarea id="ls-join-intro" rows="3" maxlength="400"></textarea></label>
+        <p class="iv-note">The link, the 6-digit code and how long they last follow the opening line. Blank keeps the built-in words.</p>
+      </div>
+      <div class="iv-toolbar"><button type="button" class="secondary" id="ls-save">Save</button></div>
+    </details>
     <details class="collapsible" id="usage-wrap">
       <summary><h3 class="panel-title">Usage</h3></summary>
       <p class="iv-note">How Laps is being used: members with sessions, who is active and who comes back, sessions saved each week, how many are shared and keep their readings (and the storage they take), and the vehicles. For deciding whether a paid tier is worth building.</p>
@@ -235,6 +250,7 @@
 <script src="js/track-view.js?v=20261181" defer></script>
 <script src="js/track-access-admin.js" defer></script>
 <script src="js/track-usage-admin.js?v=20270101" defer></script>
+<script src="js/laps-signin-admin.js?v=20270104" defer></script>
 <script src="js/track-lines-admin.js?v=20261180" defer></script>
 <script src="js/track-member-admin.js?v=20261162" defer></script>
 <script src="js/track-new-sessions-admin.js?v=20261250" defer></script>

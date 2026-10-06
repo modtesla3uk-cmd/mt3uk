@@ -1,0 +1,117 @@
+// Run by tests/test_laps_signin.py: signing in and joining from mt3uk.com and from laps.mt3uk.com, for new people,
+// MT3UK members and Laps-only accounts, through the real worker with a fake KV store and a fake mailer, and the
+// admin's settings (/laps/signin/admin). WORKER_MODULE is a copy of the worker that node can load.
+const mod = await import(process.env.WORKER_MODULE);
+const worker = mod.default;
+const kv = new Map(), meta = new Map();
+const sent = [];
+const env = {
+  ADMIN_KEY: 'secret',
+  VOTES: {
+    get: async k => kv.has(k) ? kv.get(k) : null,
+    getWithMetadata: async k => ({ value: kv.has(k) ? kv.get(k) : null, metadata: meta.get(k) || null }),
+    put: async (k, v, o) => { kv.set(k, v); if (o && o.metadata) meta.set(k, o.metadata); },
+    delete: async k => { kv.delete(k); meta.delete(k); },
+    list: async ({ prefix = '' } = {}) => ({ keys: [...kv.keys()].filter(k => k.startsWith(prefix)).map(name => ({ name })), list_complete: true })
+  },
+  SEND_EMAIL: { send: async m => { sent.push(m.raw); } }
+};
+globalThis.fetch = async () => new Response('{}', { status: 200 });
+const ok = (c, m) => { if (!c) { console.log('FAIL', m); process.exitCode = 1; } else console.log('ok  ', m); };
+let ip = 0;
+const call = async (method, path, body) => {
+  const init = { method, headers: { 'CF-Connecting-IP': '10.0.0.' + (++ip) } };
+  if (body !== undefined) { init.headers['Content-Type'] = 'application/json'; init.body = JSON.stringify(body); }
+  const r = await worker.fetch(new Request('https://w.test' + path, init), env, { waitUntil() {} });
+  return { status: r.status, body: await r.json().catch(() => ({})) };
+};
+// The last email: who it is from, its subject, its link and its code.
+const mail = () => {
+  const raw = sent[sent.length - 1] || '';
+  const header = n => ((new RegExp('^' + n + ': (.*)$', 'm')).exec(raw) || [])[1] || '';
+  const body = raw.split('\r\n\r\n').slice(1).join('\r\n\r\n');
+  return { raw, from: header('From'), subject: header('Subject'), body, link: (/https:\/\/\S+token=\S+/.exec(body) || [''])[0], code: (/^\d{6}$/m.exec(body) || [''])[0] };
+};
+const tokenOf = link => new URL(link).searchParams.get('token');
+
+const M = 'member@example.com';
+kv.set('subscriber:' + M, '[]');
+
+// ---- An MT3UK member signing in on mt3uk.com: as before ----
+let r = await call('POST', '/my-builds/request-link', { email: M });
+let m = mail();
+ok(r.body.success && /MT3UK member/.test(r.body.message), 'mt3uk.com: the usual reply');
+ok(m.from === 'MT3UK <hello@mt3uk.com>' && /^Your MT3UK sign-in code: \d{6}$/.test(m.subject), 'mt3uk.com: the MT3UK email (' + m.subject + ')');
+ok(m.link.startsWith('https://mt3uk.com/my-builds.html?token='), 'mt3uk.com: the link goes to My Garage on mt3uk.com, as before');
+
+// ---- The same member signing in on Laps ----
+r = await call('POST', '/my-builds/request-link', { email: M, site: 'laps', next: '/track.html?add=1' });
+m = mail();
+ok(/Laps or MT3UK account/.test(r.body.message), 'Laps: the reply talks about Laps');
+ok(m.from === 'Laps by MT3UK <hello@mt3uk.com>' && /^Your Laps sign-in code: \d{6}$/.test(m.subject), 'Laps: from Laps by MT3UK, a Laps subject (' + m.subject + ')');
+ok(m.link.startsWith('https://laps.mt3uk.com/laps-signin.html?token=') && new URL(m.link).searchParams.get('next') === '/track.html?add=1', 'Laps: the link comes back to laps.mt3uk.com, to the page they were on (' + m.link + ')');
+ok(/sign in to Laps by MT3UK/.test(m.body) && !/My Garage/.test(m.body), 'Laps: the email talks about Laps, not My Garage');
+r = await call('GET', '/my-builds/session?token=' + tokenOf(m.link));
+ok(r.body.success && r.body.email === M && r.body.joined === '', 'Laps: the link signs the member in (not a new account)');
+r = await call('POST', '/my-builds/request-link', { email: M, site: 'laps', next: '/track.html' });
+m = mail();
+r = await call('POST', '/my-builds/verify-code', { email: M, code: m.code });
+ok(r.body.success && r.body.session, 'Laps: the code works too');
+for (const bad of ['/my-builds.html', 'https://evil.example/track.html', '//evil.example/track.html', '/track.html extra']) {
+  await call('POST', '/my-builds/request-link', { email: M, site: 'laps', next: bad });
+  ok(!new URL(mail().link).searchParams.has('next'), 'Laps: a page that is not a Laps page is not carried (' + bad + ')');
+}
+let before = sent.length;
+r = await call('POST', '/my-builds/request-link', { email: 'nobody@example.com', site: 'laps' });
+ok(r.body.success && sent.length === before, 'Laps: an unknown email gets the same reply and no email');
+
+// ---- Someone new joining on Laps, MT3UK membership on (the default) ----
+const N = 'new@example.com';
+r = await call('POST', '/my-builds/join', { email: N, firstName: 'Nia', lastName: 'Jones', site: 'laps', next: '/track.html' });
+m = mail();
+ok(r.body.success && /^Welcome to Laps by MT3UK: your code is \d{6}$/.test(m.subject) && m.from.startsWith('Laps by MT3UK'), 'Laps join: the Laps welcome email (' + m.subject + ')');
+ok(m.link.startsWith('https://laps.mt3uk.com/laps-signin.html?token=') && /works on MT3UK too/.test(m.body), 'Laps join: back to Laps, and says the account works on MT3UK too');
+r = await call('GET', '/my-builds/session?token=' + tokenOf(m.link));
+ok(r.body.success && r.body.joined === 'mt3uk' && kv.has('subscriber:' + N) && !kv.has('laps-account:' + N), 'Laps join: an MT3UK member is made');
+
+// ---- The admin's settings ----
+r = await call('GET', '/laps/signin/admin');
+ok(r.status === 401, 'the settings need the admin key');
+r = await call('GET', '/laps/signin');
+ok(r.body.success && r.body.separate === true, 'the public setting: Laps has its own sign-in to begin with');
+r = await call('POST', '/laps/signin/admin?key=secret', { separate: true, mt3ukToo: false, signinIntro: 'Hello <b>racer</b>, sign in here:', joinIntro: '' });
+ok(r.body.success && r.body.settings.mt3ukToo === false && r.body.settings.signinIntro === 'Hello  b racer /b , sign in here:' && r.body.lapsAccounts === 0, 'the admin saves them, the words cleaned (' + r.body.settings.signinIntro + ')');
+await call('POST', '/my-builds/request-link', { email: M, site: 'laps' });
+ok(mail().body.startsWith('Hello  b racer /b , sign in here:'), 'the admin\'s opening line starts the Laps sign-in email');
+
+// ---- Someone new joining on Laps with MT3UK membership off: a Laps-only account ----
+const L = 'laps@example.com';
+r = await call('POST', '/my-builds/join', { email: L, firstName: 'Lou', lastName: 'Reed', site: 'laps' });
+m = mail();
+ok(!/works on MT3UK too/.test(m.body) && /Thanks for joining Laps by MT3UK/.test(m.body), 'Laps-only join: the built-in welcome, without the MT3UK line');
+r = await call('POST', '/my-builds/verify-code', { email: L, code: m.code });
+ok(r.body.success && kv.has('laps-account:' + L) && !kv.has('subscriber:' + L), 'Laps-only join: a Laps account is made, not an MT3UK member');
+ok(JSON.parse(kv.get('profile:' + L) || '{}').firstName === 'Lou', 'Laps-only join: their name is kept');
+r = await call('GET', '/laps/signin/admin?key=secret');
+ok(r.body.lapsAccounts === 1, 'the panel counts the Laps-only account');
+before = sent.length;
+await call('POST', '/my-builds/request-link', { email: L, site: 'laps' });
+ok(sent.length === before + 1 && mail().link.includes('laps.mt3uk.com'), 'Laps-only: they can sign in on Laps');
+before = sent.length;
+await call('POST', '/my-builds/request-link', { email: L });
+ok(sent.length === before, 'Laps-only: not on mt3uk.com (no email sent)');
+kv.delete('join-cooldown:' + L); // a minute later
+await call('POST', '/my-builds/join', { email: L, firstName: 'Lou', lastName: 'Reed' });
+m = mail();
+ok(/Welcome to MT3UK/.test(m.subject) && m.link.startsWith('https://mt3uk.com/signin.html?token='), 'Laps-only: joining on mt3uk.com sends the MT3UK welcome');
+r = await call('GET', '/my-builds/session?token=' + tokenOf(m.link));
+ok(r.body.joined === 'mt3uk' && kv.has('subscriber:' + L) && !kv.has('laps-account:' + L), 'Laps-only: joining MT3UK makes them a full member');
+
+// ---- Separate Laps sign-in switched off: the MT3UK page and emails, still back to laps.mt3uk.com ----
+await call('POST', '/laps/signin/admin?key=secret', { separate: false, mt3ukToo: true });
+r = await call('GET', '/laps/signin');
+ok(r.body.separate === false, 'the public setting says so');
+await call('POST', '/my-builds/request-link', { email: M, site: 'laps', next: '/leaderboards.html' });
+m = mail();
+ok(m.from === 'MT3UK <hello@mt3uk.com>' && /MT3UK sign-in code/.test(m.subject), 'switched off: the MT3UK email');
+ok(m.link.startsWith('https://laps.mt3uk.com/signin.html?token=') && new URL(m.link).searchParams.get('next') === '/leaderboards.html', 'switched off: the link still comes back to laps.mt3uk.com (' + m.link + ')');

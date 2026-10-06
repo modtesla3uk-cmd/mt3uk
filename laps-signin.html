@@ -3,27 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sign Up / Sign In - MT3UK</title>
-<meta name="description" content="Join MT3UK free to like and comment on modified Tesla builds and owner interviews, or sign in to your account. Adding your own car is optional.">
-<link rel="canonical" href="https://mt3uk.com/signin.html">
+<title>Sign in - Laps by MT3UK</title>
+<meta name="description" content="Sign in to Laps by MT3UK, or join free, to add your track sessions and see where you rank on the leaderboards.">
+<link rel="canonical" href="https://laps.mt3uk.com/laps-signin.html">
 <link rel="icon" type="image/x-icon" href="images/site/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="images/site/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="images/site/favicon-16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="images/site/apple-touch-icon.png">
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="laps-manifest.json">
 <meta name="theme-color" content="#16233d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="MT3UK">
+<meta name="apple-mobile-web-app-title" content="Laps">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Join MT3UK free">
-<meta property="og:description" content="Join MT3UK free to like and comment on modified Tesla builds and owner interviews, or sign in to your account. Adding your own car is optional.">
-<meta property="og:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
-<meta property="og:url" content="https://mt3uk.com/signin.html">
+<meta property="og:title" content="Sign in to Laps by MT3UK">
+<meta property="og:description" content="Sign in to Laps by MT3UK, or join free, to add your track sessions and see where you rank on the leaderboards.">
+<meta property="og:image" content="https://mt3uk.com/images/track-preview/share.jpg">
+<meta property="og:url" content="https://laps.mt3uk.com/laps-signin.html">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Contact MT3UK">
-<meta name="twitter:description" content="Get in touch with MT3UK, the community for modified Tesla owners. Find us on Facebook, Instagram, or drop us an email.">
-<meta name="twitter:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
+<meta name="twitter:title" content="Sign in to Laps by MT3UK">
+<meta name="twitter:description" content="Sign in to Laps by MT3UK, or join free, to add your track sessions and see where you rank on the leaderboards.">
+<meta name="twitter:image" content="https://mt3uk.com/images/track-preview/share.jpg">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
 <link rel="stylesheet" href="css/site-header.css">
 <style>
@@ -316,7 +316,7 @@
   .pf-tab-garage .icon { width: 16px; height: 16px; }
 </style>
 </head>
-<body>
+<body data-signin-site="laps">
 
 <!-- Promo banner disabled: no active offer. Re-enable by removing this comment wrapper when a new promo is ready.
 <div class="promo-banner" id="promo-banner">
@@ -347,89 +347,22 @@
 <header>
   <nav>
     <div class="nav-center">
-      <a href="/" class="logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
+      <a href="track.html" class="logo laps-logo" aria-label="Laps by MT3UK"><span class="laps-logo-name">Laps</span><span class="laps-logo-by">by MT3UK</span></a>
     <div class="navlinks" id="navlinks">
-      <a href="signin.html" class="nav-link-mobile active">Sign Up / Sign In</a>
-      <div class="nav-item">
-        <a href="index.html#build-feed" class="nav-link">Gallery Feed</a>
-        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Gallery Feed submenu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
-        <div class="nav-dropdown">
-          <a href="index.html#build-of-the-day" class="nav-sublink nav-sublink-new">Build of the Week</a>
-          <a href="index.html#vote-frame" class="nav-sublink">Vote for Build</a>
-          <a href="gallery.html" class="nav-sublink">Full Gallery</a>
-        </div>
-      </div>
-      <a href="my-builds.html" class="nav-link nav-link-mybuilds">My Garage</a>
-      <a href="track.html" class="nav-link nav-link-track" data-laps>Track Sessions <span class="early-badge">Early preview</span></a>
-      <div class="nav-item">
-        <a href="profile.html" class="nav-link nav-link-profile">My Profile</a>
-        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle My Profile submenu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
-        <div class="nav-dropdown">
-          <a href="profile.html#messages" class="nav-sublink nav-sublink-new">Messages</a>
-          <a href="profile.html#friends" class="nav-sublink nav-sublink-new">Friends</a>
-          <a href="profile.html" class="nav-sublink">Settings</a>
-        </div>
-      </div>
-      <div class="nav-item">
-        <a href="shop.html" class="nav-link">Shop</a>
-        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Shop submenu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
-        <div class="nav-dropdown">
-          <a href="shop.html#merch" class="nav-sublink">Merch</a>
-          <div class="nav-item nav-subitem">
-            <a href="shop.html#parts" class="nav-sublink nav-sublink-new">Parts</a>
-            <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Parts submenu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
-            <div class="nav-dropdown">
-              <a href="shop.html#tevo" class="nav-sublink">Tevo Solutions</a>
-              <a href="shop.html#redline" class="nav-sublink">Redline Plates</a>
-              <a href="shop.html#evoffer" class="nav-sublink">EVOffer Sport Seats</a>
-              <a href="shop.html#offers" class="nav-sublink nav-sublink-offer">Offers</a>
-            </div>
-          </div>
-          <a href="reviews.html" class="nav-sublink">Customer Reviews</a>
-        </div>
-      </div>
-      <a href="index.html#events" class="nav-link">Events</a>
-      <div class="nav-item">
-        <a href="index.html#track-days" class="nav-link">Track Days</a>
-        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Track Days submenu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
-        <div class="nav-dropdown">
-          <a href="track-day-prep.html" class="nav-sublink">Prep</a>
-          <a href="track-day-on-the-day.html" class="nav-sublink nav-sublink-new">On The Day</a>
-          <a href="track-day-venues.html" class="nav-sublink">Venues</a>
-          <a href="leaderboards.html" class="nav-sublink nav-sublink-new" data-laps>Leaderboards</a>
-          <a href="track-day-prep.html#track-day-finder" class="nav-sublink">Track Day Finder</a>
-        </div>
-      </div>
-      <div class="nav-item">
-        <a href="blog.html" class="nav-link">Blog</a>
-        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Blog submenu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
-        <div class="nav-dropdown">
-          <a href="blog.html" class="nav-sublink nav-sublink-new">Owner Interviews</a>
-        </div>
-      </div>
-      <div class="nav-item">
-        <a href="index.html#about" class="nav-link">About</a>
-        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle About submenu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
-        <div class="nav-dropdown">
-          <a href="https://www.facebook.com/groups/mt3uk/" class="nav-sublink" target="_blank" rel="noopener">Our separate Facebook group</a>
-        </div>
-      </div>
-      <a href="index.html#faq" class="nav-link">FAQs</a>
-      <div class="nav-item">
-        <a href="contact.html" class="nav-link">Contact</a>
-        <button class="nav-dropdown-toggle" aria-expanded="false" aria-label="Toggle Contact submenu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
-        <div class="nav-dropdown">
-          <a href="https://ko-fi.com/mt3uk" class="nav-sublink" target="_blank" rel="noopener">Support Us</a>
-        </div>
-      </div>
+      <a href="signin.html" class="nav-link-mobile">Sign Up / Sign In</a>
+      <a href="track.html" class="nav-link nav-link-track">Sessions <span class="early-badge">Early preview</span></a>
+      <a href="leaderboards.html" class="nav-link">Leaderboards</a>
+      <a href="track.html?add=1" class="nav-link">Add a session</a>
+      <a href="https://mt3uk.com/my-builds.html" class="nav-link nav-link-mybuilds">My Garage</a>
+      <a href="https://mt3uk.com/" class="nav-link nav-link-back"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Back to MT3UK</a>
       </div>
     </div>
-    <div class="nav-search" id="nav-search">
+    <div class="nav-search" id="nav-search" data-scope="laps">
       <button type="button" class="nav-search-toggle" id="nav-search-toggle" aria-expanded="false" aria-controls="nav-search-panel" aria-label="Search">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
       </button>
       <div class="nav-search-panel" id="nav-search-panel">
-        <input type="text" id="nav-search-input" placeholder="Search&hellip; e.g. Gallery, Shop, Hoodies, Number Plates, Pads" autocomplete="off">
+        <input type="text" id="nav-search-input" placeholder="Search Laps&hellip; e.g. Leaderboards, Add a session, Tyres" autocomplete="off">
         <div class="nav-search-results" id="nav-search-results"></div>
       </div>
     </div>
@@ -441,10 +374,10 @@
 
 <section class="page-hero">
   <div class="wrap">
-    <a href="index.html" class="back-link" aria-label="Back to MT3UK"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</a>
-    <span class="section-num mono">Sign up / Sign in</span>
-    <h1>Join MT3UK free</h1>
-    <p>Members can like and comment on builds in the gallery and on the owner interviews. Adding your own car is optional.</p>
+    <a href="laps.html" class="back-link" aria-label="Back to Laps"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</a>
+    <span class="section-num mono">Sign in / Join</span>
+    <h1>Sign in to Laps</h1>
+    <p>Your track sessions, lap times and leaderboard places, all in one place. Already an MT3UK member? Use the same email.</p>
   </div>
 </section>
 
@@ -454,11 +387,11 @@
 
     <div class="si-signed-in" id="si-signed-in" hidden>
       <h2>You&rsquo;re signed in</h2>
-      <p id="si-signed-in-text">You can like and comment on builds and interviews.</p>
+      <p id="si-signed-in-text">You can add your track sessions and see the leaderboards.</p>
       <div class="si-actions">
-        <a href="index.html#build-feed" class="si-btn si-btn-primary">Browse the builds</a>
-        <a href="blog.html" class="si-btn">Read the interviews</a>
-        <a href="my-builds.html" class="si-btn">My Garage</a>
+        <a href="track.html" class="si-btn si-btn-primary">Your sessions</a>
+        <a href="track.html?add=1" class="si-btn">Add a session</a>
+        <a href="leaderboards.html" class="si-btn">Leaderboard</a>
         <button type="button" class="si-link" id="si-signout">Sign out</button>
       </div>
       <div class="si-passkey-offer" id="si-passkey-offer" hidden>
@@ -474,8 +407,8 @@
 
     <div class="si-grid" id="si-forms">
       <div class="si-card" id="si-signin">
-        <h2>Already a member? Sign in</h2>
-        <p>Enter your email and we&rsquo;ll send you a sign-in link and a 6-digit code.</p>
+        <h2>Already have an account? Sign in</h2>
+        <p>Enter your email and we&rsquo;ll send you a sign-in link and a 6-digit code. MT3UK members use the same email.</p>
         <form id="si-signin-form">
           <div class="si-field">
             <label for="si-signin-email">Email</label>
@@ -499,12 +432,12 @@
             <p>Each phone or computer needs its own passkey, unless it&rsquo;s saved to your iCloud Keychain or Google Password Manager.</p>
           </details>
         </div>
-        <p class="si-switch">Not a member yet? <a href="#si-join" id="si-to-join">Sign up free</a></p>
+        <p class="si-switch">New to Laps? <a href="#si-join" id="si-to-join">Join free</a></p>
       </div>
 
       <div class="si-card si-card-join" id="si-join">
-        <h2>New here? Join free</h2>
-        <p>Just your name and email. We&rsquo;ll send a link and a 6-digit code to finish joining. No photos needed.</p>
+        <h2>New to Laps? Join free</h2>
+        <p>Just your name and email. We&rsquo;ll send a link and a 6-digit code to finish joining, then you can add your car and your first session.</p>
         <form id="si-join-form">
           <input type="checkbox" name="botcheck" class="si-hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
           <div class="si-field">
@@ -528,7 +461,7 @@
 
     <form class="si-card si-code" id="si-code-form" hidden>
       <h2>Enter your code</h2>
-      <p>Open the email we&rsquo;ve just sent and tap the link, or type the 6-digit code here. Using the MT3UK app from your iPhone Home Screen? Use the code, as the link opens in Safari.</p>
+      <p>Open the email we&rsquo;ve just sent and tap the link, or type the 6-digit code here. Using the Laps app from your iPhone Home Screen? Use the code, as the link opens in Safari.</p>
       <p class="si-junk" id="si-junk">Can&rsquo;t see the email? Check your <strong>Junk</strong> or <strong>Spam</strong> folder, and mark it <strong>Not junk</strong> so the next one reaches your inbox. It comes from hello@mt3uk.com.</p>
       <div class="si-field">
         <label for="si-code-email">Email</label>
@@ -552,9 +485,9 @@
 
 <footer>
   <div class="wrap footer-row">
-    <a href="/" class="logo footer-logo"><img src="images/site/mt3uk-wordmark-dark.png" alt="MT3UK"></a>
-    <span class="footer-text">Modified Tesla community &middot; <span class="member-count"></span> members</span>
-    <span class="footer-links"><a href="privacy.html" style="text-decoration:underline;">Privacy</a> <a href="https://www.facebook.com/groups/mt3uk/" target="_blank" rel="noopener" style="text-decoration:underline;">Facebook group <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></a></span>
+    <a href="track.html" class="logo laps-logo footer-logo" aria-label="Laps by MT3UK"><span class="laps-logo-name">Laps</span><span class="laps-logo-by">by MT3UK</span></a>
+    <span class="footer-text">Lap times and leaderboards for modified and electric cars &middot; from the <a href="https://mt3uk.com/" class="footer-inline-link">MT3UK</a> community</span>
+    <span class="footer-links"><a href="privacy.html">Privacy</a> <a href="contact.html">Contact</a> <a href="https://mt3uk.com/">Back to MT3UK</a></span>
   </div>
 </footer>
 

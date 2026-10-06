@@ -49,7 +49,7 @@ OUT_DIR = ROOT / "share" / "section"
 SITE_URL = "https://mt3uk.com"
 # The Laps pages have their own address: their share pages send people there.
 LAPS_SITE_URL = "https://laps.mt3uk.com"
-LAPS_PAGES = ("laps", "track", "leaderboards")
+LAPS_PAGES = ("laps", "track", "leaderboards", "laps-signin")
 R2_BASE_URL = "https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev"
 DEFAULT_IMAGE = SITE_URL + "/images/MT3UK_RED_BLK_BG.png"
 DEFAULT_DESCRIPTION = "MT3UK, the UK's modified Tesla community."

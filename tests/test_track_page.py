@@ -436,6 +436,46 @@ def test_adding_a_layout_with_several_files_sends_no_second_request_and_times_ea
     assert all(x["session"].get("layoutId") == "wing-loop" for x in fake.saved), [x["session"].get("layoutId") for x in fake.saved]
 
 
+def test_more_sessions_can_be_added_to_a_day_from_the_day_and_from_a_session(page):
+    fake = FakeWorker(earlier=False)
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    page.get_by_role("button", name="Save session").click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
+    # From the session itself.
+    expect(page.locator("#settings [data-day-add]")).to_have_text("Add another session from this day")
+    page.go_back()
+    into_track(page, "Thruxton")
+    # From the day at the track.
+    page.locator(".tp-daygroup [data-day-add]").click()
+    expect(page).to_have_url(re.compile(r"add=1&car=car1&day=2026-05-28&layout=main"))
+    expect(page.locator("#tp-day-intro")).to_contain_text("Adding another session to")
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-day-hint")).to_contain_text("Adding a session to")
+    expect(page.locator("#tp-day-hint")).not_to_have_class(re.compile("is-warn"))
+    expect(page.locator("#tp-date")).to_have_value("2026-05-28")
+
+
+def test_a_session_added_to_a_day_starts_on_that_days_layout(page):
+    _thruxton_with_a_second_layout(page)
+    open_page(page, FakeWorker(earlier=False), path="/track.html?add=1&car=car1&day=2026-05-28&layout=short")
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-layout-field .chip.is-on")).to_have_text("Short Circuit")
+    expect(page.locator("#tp-result .tp-notice.is-ok").first).to_contain_text("Short Circuit")
+    # The member can still pick another layout.
+    page.locator("#tp-layout-field .chip").first.click()
+    expect(page.locator("#tp-layout-field .chip.is-on")).to_have_text("Thruxton")
+
+
+def test_a_file_from_another_day_keeps_its_own_date_and_says_so(page):
+    open_page(page, FakeWorker(earlier=False), path="/track.html?add=1&car=car1&day=2026-05-01")
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-day-hint")).to_have_class(re.compile("is-warn"))
+    expect(page.locator("#tp-day-hint")).to_contain_text("This file is from")
+    expect(page.locator("#tp-date")).to_have_value("2026-05-28")
+
+
 def test_add_a_session_from_the_racebox_file(page):
     fake = FakeWorker()
     open_page(page, fake)

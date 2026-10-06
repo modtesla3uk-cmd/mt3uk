@@ -873,8 +873,20 @@
         (fast && many ? '<div class="tp-daygroup-best"><span class="tp-small tp-daygroup-label">Fastest session of the day</span>' + dayRow(fast, g.indexOf(fast) + 1, false) + '</div>' : '') +
         '<div class="tp-list tp-daygroup-all">' + g.map(function (x, i) { return dayRow(x, i + 1, many && x === fast); }).join('') +
         (drives.length ? '<span class="tp-small tp-daygroup-label tp-drives-label">Drives between runs (' + drives.length + ')</span>' + drives.map(sessionRow).join('') : '') +
+        (owner ? addToDayButton(g[0], many) : '') +
         (owner ? '<button type="button" class="btn btn-danger btn-sm tp-daygroup-delete" data-day-delete data-ids="' + esc(g.concat(drives).map(function (x) { return x.id; }).join(',')) + '" data-label="' + esc(trackName(g[0])) + '" data-date="' + esc(niceDate(g[0].date)) + '">' + icon('trash') + (many ? 'Delete this day' : 'Delete this session') + '</button>' : '') + '</div></div>';
     }).join('');
+  }
+  // The Add a session page for another session on the same day (and the same layout): the day and the layout are only a
+  // starting point, the files still keep their own date when they have one.
+  function addToDayQuery(s) {
+    var q = 'add=1&car=' + encodeURIComponent(s.carId || '') + '&day=' + encodeURIComponent(s.date || '');
+    if (s.type === 'track' && s.layoutId) q += '&layout=' + encodeURIComponent(s.layoutId);
+    return q;
+  }
+  function addToDayButton(s, many) {
+    if (!s || !s.date || !s.carId) return '';
+    return '<a class="btn btn-secondary btn-sm tp-daygroup-add" href="track.html?' + esc(addToDayQuery(s)) + '" data-go="' + esc(addToDayQuery(s)) + '" data-day-add>' + icon('upload') + (many ? 'Add a session to this day' : 'Add another session from this day') + '</a>';
   }
   // ---------- Add a car (no photo needed) ----------
   // Sessions belong to a car. A car can be added here with just its make and model (POST /my-builds/car/new);
@@ -1065,6 +1077,9 @@
       var car = m.cars.filter(function (c) { return c.id === carId; })[0] || m.cars[0];
       VW = vwOf(car);
       add = { car: car, drive: (car && car.drive) || '', cars: m.cars, lib: r[1], admin: r[2], rd: null, session: null, type: null, startLine: null, conditions: 'Dry', privacy: 'private', street: false, file: null };
+      // Opened from a day (Add a session to this day): that day, and the layout of the sessions on it, to start from.
+      var hp = params(), hd = hp.get('day') || '';
+      if (/^\d{4}-\d{2}-\d{2}$/.test(hd) && hd <= ukToday()) { add.dayHint = hd; add.layoutHint = String(hp.get('layout') || '').slice(0, 60); add.layoutPick = add.layoutHint; }
       var lt = lastTyre(m, car.id);
       // The tyres start empty; the car's last ones are offered with a button.
       add.lastTyre = lt || null;
@@ -1087,6 +1102,7 @@
     }
     h = back('Track sessions', '') + '<div class="tp-head"><h2>Add a session</h2>' + unitsChip() + '</div>' +
       '<div class="tp-add-grid"><div class="card">' +
+      (a.dayHint ? '<p class="tp-sub" id="tp-day-intro">Adding another session to ' + esc(niceDate(a.dayHint)) + '. Pick its files below.</p>' : '') +
       (a.cars.length > 1 ? '<div class="tp-field"><label for="tp-car">Car</label><select class="field" id="tp-car">' + a.cars.map(function (c) { return '<option value="' + esc(c.id) + '"' + (c.id === a.car.id ? ' selected' : '') + '>' + esc(c.name) + '</option>'; }).join('') + '</select></div>' : '<p class="tp-car-one">Car: <b>' + esc(a.car.name) + '</b></p>') +
       '<label class="tp-drop" id="tp-drop">' + icon('upload') + '<b>Drop your files here, or choose them</b><small>One file, or all of a day\'s files together (they make one session). VBO, CSV or GPX. Works with RaceBox, VBOX, Harry\'s LapTimer, TrackAddict, AiM and most phone apps.</small><span class="btn btn-secondary btn-sm">Choose files</span><input type="file" id="tp-file" multiple accept=".vbo,.csv,.gpx,.txt,text/csv,application/gpx+xml" hidden></label>' +
       (a.files && a.files.length ? fileBox() : '') +
@@ -1181,7 +1197,7 @@
       if (add.venueNameLooked) { add.venueName = ''; add.venueNameLooked = false; }
       add.session = null; add.startLine = null; add.finishLine = null; add.editLines = false; add.tapFull = false; add.tapAuto = false; add.tapOutline = null; add.finishCross = 0; add.organizer = ''; add.rollout = false; add.tapMap = null; add.confirmLines = false; add.type = null; add.date = null; add.time = null;
       // Nothing about adding a layout carries over from the last file: the pick, its name and the add switch.
-      add.layoutPick = ''; add.layoutName = ''; add.addNow = false; add.addedLayout = false;
+      add.layoutPick = add.layoutHint || ''; add.layoutName = ''; add.addNow = false; add.addedLayout = false;
       add.weatherKey = null; if (add.tempSource !== 'member') { add.temp = null; add.tempSource = ''; add.weather = null; }
       parseFile();
     }).catch(function (e) { status(e.message || 'That file could not be opened.', 'error'); });
@@ -1312,12 +1328,19 @@
     var a = add;
     var opts = analysisOpts(a);
     a.session = T.analyse(a.rd, a.lib, opts);
+    // A layout that came from the day this session is being added to, but is not a layout of the track the file is at, is dropped.
+    if (a.layoutPick && a.layoutPick === a.layoutHint && !(a.session.venueId && venueLayouts(a, a.session).some(function (l) { return l.id === a.layoutPick; }))) {
+      a.layoutPick = '';
+      a.session = T.analyse(a.rd, a.lib, analysisOpts(a));
+    }
     // A hill climb, as picked or as the track list has it.
     if (a.session.type === 'sprint' && (a.hill || isHillSession(a.session, a.lib))) a.session.hill = true; else a.hill = false;
     // Kept so Re-time sessions can time it the same way later (on is the default).
     if (a.session.type === 'sprint' && a.ignoreFinish === false) a.session.ignoreFinish = false;
     // A date or start time the member typed wins over the file's.
     if (a.date) { a.session.date = a.date; a.session.dateFrom = 'member'; }
+    // Adding to a day: a file with no date of its own (or only the day it was saved on the device) goes on that day.
+    else if (a.dayHint && (!a.session.date || a.session.dateFrom === 'saved')) { a.session.date = a.dayHint; a.session.dateFrom = 'member'; }
     if (a.time) a.session.time = a.time;
     a.type = a.session.type;
     drawAdd();
@@ -1472,6 +1495,9 @@
     }
     if (!s.venueId && (s.type === 'track' || s.type === 'sprint')) h += '<div class="tp-field"><label for="tp-venue-name">Track name' + REQ + '</label><input class="field" id="tp-venue-name" data-name-req placeholder="For example, Blyton Park" value="' + esc(a.venueName || '') + '" required aria-required="true"></div>' + (a.venueNameLooked ? nameNote() : '');
     h += topDate;
+    if (a.dayHint && !a.replaceId) h += s.date === a.dayHint
+      ? '<p class="tp-src" id="tp-day-hint">' + icon('info') + '<span>Adding a session to ' + niceDate(a.dayHint) + '.' + (s.dateFrom === 'member' && !a.date ? ' Your file has no date of its own, so it is saved on that day.' : '') + '</span></p>'
+      : '<div class="tp-notice is-warn" id="tp-day-hint">' + icon('warn') + '<div>This file is from ' + niceDate(s.date) + ', not ' + niceDate(a.dayHint) + '. It is saved on its own day. Change the date above if that is not right.</div></div>';
     h += layoutFieldHtml(a, s);
     h += channelsHtml(a);
     var isSprint = s.type === 'sprint', word = isSprint ? 'run' : 'lap';
@@ -3779,7 +3805,8 @@
     // Saved as several files merged into one: offer one session per file.
     var splitBox = s.hasSource && !s.street && (s.type === 'track' || s.type === 'sprint') && typeof s.runs === 'number' && s.runs > 1
       ? '<div class="tp-field"><span class="tp-lbl">Several files</span><p class="tp-src">' + icon('info') + '<span>This is ' + s.runs + ' files merged into one session. Split it to get one session for each file, grouped by day.</span></p><button type="button" class="btn btn-secondary btn-sm" id="tp-e-split">Split into ' + s.runs + ' sessions</button></div>' : '';
-    return '<div class="tp-section" id="settings"><div class="tp-head"><h2>Session settings</h2></div><div class="card tp-fields">' + typeBox + relayoutBox + splitBox +
+    var addDayBox = !s.street && s.date && s.carId ? '<div class="tp-field">' + addToDayButton(s, false) + '</div>' : '';
+    return '<div class="tp-section" id="settings"><div class="tp-head"><h2>Session settings</h2></div><div class="card tp-fields">' + addDayBox + typeBox + relayoutBox + splitBox +
       '<div class="tp-field"><span class="tp-lbl">Who can see it</span><div class="tp-privacy" data-privacy>' + privacyOptions(s.privacy, limit) + '</div></div>' +
       '<div class="tp-field"><span class="tp-lbl">Conditions</span><div class="tp-chips" data-cond>' + ['Dry', 'Damp', 'Wet'].map(function (c) { return '<button type="button" class="chip' + (s.conditions === c ? ' is-on' : '') + '" data-v="' + c + '">' + c + '</button>'; }).join('') + '</div></div>' +
       tyreFields('tp-e-tyre', tyreInit(s)) +

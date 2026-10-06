@@ -893,6 +893,23 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   ok(r.status === 200, 'saving the session with its lines where they were is fine');
   r = await call('PUT', '/track/session', { id: lid, session: moved() }, 'tok-a');
   ok(r.status === 403 && r.body.needsLineAccess === true, 'a member saving moved lines is refused (' + r.status + ')');
+// Changing a saved session's layout moves its lines to that layout's official line, which is allowed; other moved lines are not.
+{
+  const lib0 = (await call('GET', '/track/admin/tracks?key=secret')).body.library.venues.find(v => v.id === session.venueId);
+  const withB = JSON.parse(JSON.stringify(lib0));
+  const lineB = moved(0.0003).startLine;
+  withB.layouts.push({ id: 'layout-b', name: 'Layout B', length: 3800, startLine: lineB });
+  await call('PUT', '/track/admin/tracks?key=secret', { venue: withB });
+  const toB = moved(0.0003); toB.layoutId = 'layout-b'; toB.layout = 'Layout B';
+  r = await call('PUT', '/track/session', { id: lid, session: toB }, 'tok-a');
+  ok(r.status === 200 && r.body.session.layoutId === 'layout-b', 'a member can change the layout of a saved session to one with its own official line ' + JSON.stringify(r.body).slice(0, 100));
+  const farB = moved(0.01); farB.layoutId = 'layout-b'; farB.layout = 'Layout B';
+  r = await call('PUT', '/track/session', { id: lid, session: farB }, 'tok-a');
+  ok(r.status === 403 && r.body.needsLineAccess === true, 'but not onto a line that is not the layout\'s official one');
+  r = await call('PUT', '/track/session', { id: lid, session }, 'tok-a');
+  ok(r.status === 200 && r.body.session.layoutId === session.layoutId, 'and back again');
+  await call('PUT', '/track/admin/tracks?key=secret', { venue: lib0 });
+}
   r = await call('GET', '/track/lines/status?id=' + lid, undefined, 'tok-a');
   ok(r.status === 200 && r.body.state === 'none' && r.body.proposal === null, 'no request yet');
   r = await call('GET', '/track/lines/status?id=' + lid, undefined, 'tok-b');

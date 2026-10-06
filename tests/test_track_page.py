@@ -1966,6 +1966,29 @@ def test_saving_keeps_the_readings_and_the_type_can_be_changed_after(page):
     assert fake.sessions["new1"]["type"] == "track" and len(fake.sessions["new1"]["laps"]) == 2
 
 
+def test_the_layout_of_a_saved_session_can_be_changed(page):
+    """On the session page the member can pick another layout of the circuit; the saved readings are timed on it again."""
+    _thruxton_with_a_second_layout(page)
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    page.get_by_role("button", name="Save session").click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
+    chips = page.locator("#tp-relayout [data-relayout] .chip")
+    expect(chips).to_have_text(["Thruxton", "Short Circuit"])
+    expect(page.locator("#tp-relayout .chip.is-on")).to_have_text("Thruxton")
+    chips.nth(1).click()
+    expect(page.get_by_role("heading", name="Change the layout")).to_be_visible()
+    expect(page.locator("#tp-layout-field .chip.is-on")).to_have_text("Short Circuit")
+    # Adding a different layout is for the Add page, not here.
+    expect(page.locator("#tp-layout-field [data-v='__new']")).to_have_count(0)
+    page.get_by_role("button", name="Save changes").click()
+    expect(page.get_by_role("heading", name="Session settings")).to_be_visible()
+    assert fake.replaced[-1]["session"]["layoutId"] == "short", fake.replaced
+    expect(page.locator("#tp-relayout .chip.is-on")).to_have_text("Short Circuit")
+
+
 def test_a_session_saved_without_readings_cannot_change_type(page):
     fake = FakeWorker()
     fake.fail_source = True

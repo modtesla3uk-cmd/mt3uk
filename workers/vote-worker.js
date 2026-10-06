@@ -7812,7 +7812,9 @@ async function handleTrackSessionUpdate(request, env) {
     if (next.error) return json({ success: false, message: next.error }, 400);
     // A member never saves moved start or finish lines themselves: they send them for MT3UK to accept (a change of
     // type does not move the lines).
-    if (next.type === rec.type && trackLinesMoved(rec, next)) return json({ success: false, needsLineAccess: true, message: 'Moved lines are sent to MT3UK to approve. Use Edit the map on this session\'s page.' }, 403);
+    // A change of layout puts the session on that layout's own official line, which is not a line the member moved.
+    var toLayout = next.layoutId && next.layoutId !== rec.layoutId && sessionOnOfficialLayout(next, await getTrackLibrary(env));
+    if (next.type === rec.type && !toLayout && trackLinesMoved(rec, next)) return json({ success: false, needsLineAccess: true, message: 'Moved lines are sent to MT3UK to approve. Use Edit the map on this session\'s page.' }, 403);
     if (next.type === 'drag' && !next.atVenue) next.unlisted = true;
     next.street = false;
     if (next.type === 'drag') delete next.outline;
@@ -7831,6 +7833,15 @@ async function handleTrackSessionUpdate(request, env) {
   if (oldBoard && oldBoard !== trackBoardKey(rec)) await refreshTrackBoard(env, oldBoard, rec.carId);
   await markHillTrack(env, rec, await getTrackLibrary(env));
   return json({ success: true, session: trackSummary(rec) });
+}
+
+// A session timed on the official start line (within 25 m) of the layout it is on.
+function sessionOnOfficialLayout(s, library) {
+  var v = (library.venues || []).find(function (x) { return x.id === s.venueId; });
+  var l = v && (v.layouts || []).find(function (x) { return x.id === s.layoutId; });
+  if (!l || !l.startLine || !s.startLine || s.startLine.length !== 2 || l.startLine.length !== 2) return false;
+  var mid = function (a) { return [(a[0][0] + a[1][0]) / 2, (a[0][1] + a[1][1]) / 2]; };
+  return trackDist(mid(s.startLine), mid(l.startLine)) <= 25;
 }
 
 // ---- Moving a saved session's start and finish lines ----

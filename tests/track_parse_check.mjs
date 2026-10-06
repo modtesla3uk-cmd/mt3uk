@@ -831,5 +831,8 @@ ok(T.fmtLap(99.786) === '1:39.79' && T.niceDate('2026-05-28') === '28 May 2026',
   const picked = T.analyse(cut(), lib, { layoutId: 'main' });
   ok(picked.layoutId === 'main' && picked.officialLines === true && picked.laps.length === 1 && Math.abs(picked.laps[0].time - (l1.time - 0.2)) < 1, 'a file that starts on the line of a layout the member picked is timed on that line (lap ' + (picked.laps[0] && picked.laps[0].time) + ' of ' + l1.time + ')');
   const unpicked = T.analyse(cut(), lib, {});
-  ok(!unpicked.officialLines, 'and with no pick the first lap is still not counted from the start of the file');
+  ok(unpicked.layoutId === 'main' && unpicked.officialLines === true && unpicked.laps.length === 1, 'and with no pick the same file goes on that layout too, so a re-time puts it there');
+  const lib8 = JSON.parse(JSON.stringify(lib)); lib8.venues.find(v => v.id === 'thruxton').layouts[0].length = 1000;
+  const wrongLen = T.analyse(cut(), lib8, {});
+  ok(!wrongLen.layoutId, 'but not when the lap is nowhere near that layout\'s length');
 }

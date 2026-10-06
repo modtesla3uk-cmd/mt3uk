@@ -1076,7 +1076,7 @@
     var h;
     if (a.replaceId) {
       // Changing a saved session's type: its saved readings are read again.
-      h = back('Back to the session', 's=' + a.replaceId, true) + '<div class="tp-head"><h2>' + (a.lineEdit ? 'Edit the map' : 'Change the type') + '</h2>' + unitsChip() + '</div>' +
+      h = back('Back to the session', 's=' + a.replaceId, true) + '<div class="tp-head"><h2>' + (a.lineEdit ? 'Edit the map' : a.relayout ? 'Change the layout' : 'Change the type') + '</h2>' + unitsChip() + '</div>' +
         '<div class="tp-add-grid"><div class="card"><p class="tp-car-one">Car: <b>' + esc(a.car.name) + '</b></p>' +
         (a.lineEdit ? '<p class="tp-sub">Drag the start and finish markers to where they should be, press Done, and check the time. Then send the change. Your session stays as it is until MT3UK has approved it.</p>'
           : '<p class="tp-sub">Using the readings saved with this session. Pick the type below, check the result, then save.</p>') +
@@ -1939,7 +1939,7 @@
     return v && v.type === 'circuit' ? (v.layouts || []) : [];
   }
   function layoutFieldHtml(a, s) {
-    if (a.lineEdit || a.replaceId || s.type !== 'track' || !s.venueId) return '';
+    if (a.lineEdit || (a.replaceId && !a.relayout) || s.type !== 'track' || !s.venueId) return '';
     var ls = venueLayouts(a, s);
     if (!ls.length) return '';
     var cur = a.layoutPick === '__new' ? '__new' : (a.layoutPick || s.layoutId || '');
@@ -1948,7 +1948,7 @@
       : 'Found from your file. If it is not right, pick another.';
     return '<div class="tp-field" id="tp-layout-field"><span class="tp-lbl">Layout at ' + esc(s.venue || 'this track') + '</span><div class="tp-chips" data-layout>' +
       ls.map(function (l) { return '<button type="button" class="chip' + (cur === l.id ? ' is-on' : '') + '" data-v="' + esc(l.id) + '" aria-pressed="' + (cur === l.id) + '">' + esc(l.name || l.id) + '</button>'; }).join('') +
-      '<button type="button" class="chip' + (cur === '__new' ? ' is-on' : '') + '" data-v="__new" aria-pressed="' + (cur === '__new') + '">A different layout</button></div><p class="tp-small">' + note + '</p></div>';
+      (a.replaceId ? '' : '<button type="button" class="chip' + (cur === '__new' ? ' is-on' : '') + '" data-v="__new" aria-pressed="' + (cur === '__new') + '">A different layout</button>') + '</div><p class="tp-small">' + note + '</p></div>';
   }
   // The start and finish line this session was timed on, on the map, so the member can see where it is before saving.
   function linePreviewHtml(a, s) {
@@ -2191,7 +2191,7 @@
   // Change a saved session's type: its readings come back from the worker and
   // go through the same screen as adding one (tap the line if the course is
   // new, then check the result and save).
-  function startRetype(s, type, hill) {
+  function startRetype(s, type, hill, layoutId) {
     status('Loading your readings...');
     Promise.all([fetchSource(s.id), getMine(), getLibrary(), isAdmin()]).then(function (r) {
       var src = r[0], m = r[1];
@@ -2199,6 +2199,7 @@
       var car = m.cars.filter(function (c) { return c.id === s.carId; })[0] || m.cars[0];
       VW = vwOf(car);
       add = { car: car, drive: (car && car.drive) || '', cars: m.cars, lib: r[2], admin: r[3], rd: restoreSource(src), session: null, type: type, hill: !!hill, startLine: null, conditions: s.conditions || 'Dry', condTouched: true, privacy: s.privacy, street: false, tyres: s.tyres || '', tyre: tyreInit(s), temp: s.temp, tempSource: s.tempSource || '', weather: s.weather || null, notes: s.notes || '', date: s.date, time: s.time, venueName: s.venueId ? '' : s.venue, replaceId: s.id, files: null, list: null };
+      add.layoutPick = layoutId || ''; add.relayout = !!layoutId;
       analyse();
       window.scrollTo(0, 0);
     }).catch(function (e) { status((e && e.message) || 'Could not load your readings.', 'error'); });
@@ -3761,10 +3762,18 @@
     var typeBox = s.street ? '' : s.hasSource
       ? '<div class="tp-field"><span class="tp-lbl">Type</span><div class="tp-chips" data-retype>' + typeChips(s, isHillSession(s, library)) + '</div><p class="tp-small">Picked the wrong one? Choose another and we\'ll read your saved readings again as that type.</p></div>'
       : '<p class="tp-src">' + icon('info') + '<span>This session was saved before we kept the readings (or they could not be kept), so its type can\'t be changed.' + (s.readingsMessage ? ' Reason: ' + esc(String(s.readingsMessage)) : '') + ' Add the readings again, or add the file again as a new session.</span></p>' + (readingsSending[s.id] ? '' : readingsAgainHtml());
+    // A track day at a listed circuit: the layout can be changed, timing the saved readings on the layout picked.
+    var relayoutBox = '';
+    if (s.hasSource && !s.street && s.type === 'track' && s.venueId) {
+      var rv = ((library && library.venues) || []).filter(function (x) { return x.id === s.venueId && x.type === 'circuit'; })[0], rls = (rv && rv.layouts) || [];
+      if (rls.length > 1 || (rls.length && !s.layoutId)) relayoutBox = '<div class="tp-field" id="tp-relayout"><span class="tp-lbl">Layout at ' + esc(s.venue || 'this track') + '</span><div class="tp-chips" data-relayout>' +
+        rls.map(function (l) { return '<button type="button" class="chip' + (s.layoutId === l.id ? ' is-on' : '') + '" data-v="' + esc(l.id) + '" aria-pressed="' + (s.layoutId === l.id) + '">' + esc(l.name || l.id) + '</button>'; }).join('') +
+        '</div><p class="tp-small">' + (s.layoutId ? 'Picked the wrong layout? Choose another and we\'ll time your saved readings on it.' : 'We could not tell which layout this was. Pick it and we\'ll time your saved readings on it.') + '</p></div>';
+    }
     // Saved as several files merged into one: offer one session per file.
     var splitBox = s.hasSource && !s.street && (s.type === 'track' || s.type === 'sprint') && typeof s.runs === 'number' && s.runs > 1
       ? '<div class="tp-field"><span class="tp-lbl">Several files</span><p class="tp-src">' + icon('info') + '<span>This is ' + s.runs + ' files merged into one session. Split it to get one session for each file, grouped by day.</span></p><button type="button" class="btn btn-secondary btn-sm" id="tp-e-split">Split into ' + s.runs + ' sessions</button></div>' : '';
-    return '<div class="tp-section" id="settings"><div class="tp-head"><h2>Session settings</h2></div><div class="card tp-fields">' + typeBox + splitBox +
+    return '<div class="tp-section" id="settings"><div class="tp-head"><h2>Session settings</h2></div><div class="card tp-fields">' + typeBox + relayoutBox + splitBox +
       '<div class="tp-field"><span class="tp-lbl">Who can see it</span><div class="tp-privacy" data-privacy>' + privacyOptions(s.privacy, limit) + '</div></div>' +
       '<div class="tp-field"><span class="tp-lbl">Conditions</span><div class="tp-chips" data-cond>' + ['Dry', 'Damp', 'Wet'].map(function (c) { return '<button type="button" class="chip' + (s.conditions === c ? ' is-on' : '') + '" data-v="' + c + '">' + c + '</button>'; }).join('') + '</div></div>' +
       tyreFields('tp-e-tyre', tyreInit(s)) +
@@ -3837,6 +3846,11 @@
         return;
       }
       if (v !== s.type) startRetype(s, v === 'hill' ? 'sprint' : v, v === 'hill');
+    });
+    var rl = document.querySelector('#settings [data-relayout]');
+    if (rl) rl.addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-v]');
+      if (b && b.getAttribute('data-v') !== s.layoutId) startRetype(s, 'track', false, b.getAttribute('data-v'));
     });
     // Any change to the settings below marks them unsaved, so Discard can ask before throwing them away.
     var dirty = false;

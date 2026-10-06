@@ -1052,7 +1052,8 @@
     if (opts.startLine) candidates.push({ layout: null, line: opts.startLine, sectors: [], own: true });
     if (rd.startLine) candidates.push({ layout: null, line: rd.startLine, sectors: [], fromFile: true });
     // A recording that starts or stops right on the line crosses it once, not twice, so the lap at that end is missed. For a
-    // layout the member picked, the file's first or last reading standing within 12 m of the line counts as that crossing.
+    // listed layout's line, the file's first or last reading standing within 12 m of it counts as that crossing (a layout
+    // not picked by the member must still match the lap length, so a start near some other layout's line does not count).
     function withEdgeCrossings(cr, line) {
       var a = proj.xy(line[0][0], line[0][1]), b = proj.xy(line[1][0], line[1][1]), dx = b[0] - a[0], dy = b[1] - a[1], L2 = dx * dx + dy * dy || 1;
       function near(p) { var t = Math.max(0, Math.min(1, ((p.x - a[0]) * dx + (p.y - a[1]) * dy) / L2)); return Math.hypot(p.x - (a[0] + dx * t), p.y - (a[1] + dy * t)) <= 12; }
@@ -1064,7 +1065,7 @@
     }
     function evalLine(c) {
       var cr = crossings(pts, proj, c.line, minGap);
-      if (cr.length < 2 && forced && c.layout === forced) cr = withEdgeCrossings(cr, c.line);
+      if (cr.length < 2 && c.layout) cr = withEdgeCrossings(cr, c.line);
       if (cr.length < 2) return;
       var laps = buildLaps(pts, cr);
       var med = median(laps.map(function (l) { return l.dist; }));

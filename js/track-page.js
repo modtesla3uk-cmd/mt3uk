@@ -1180,6 +1180,8 @@
       add.nameLooked = false;
       if (add.venueNameLooked) { add.venueName = ''; add.venueNameLooked = false; }
       add.session = null; add.startLine = null; add.finishLine = null; add.editLines = false; add.tapFull = false; add.tapAuto = false; add.tapOutline = null; add.finishCross = 0; add.organizer = ''; add.rollout = false; add.tapMap = null; add.confirmLines = false; add.type = null; add.date = null; add.time = null;
+      // Nothing about adding a layout carries over from the last file: the pick, its name and the add switch.
+      add.layoutPick = ''; add.layoutName = ''; add.addNow = false;
       add.weatherKey = null; if (add.tempSource !== 'member') { add.temp = null; add.tempSource = ''; add.weather = null; }
       parseFile();
     }).catch(function (e) { status(e.message || 'That file could not be opened.', 'error'); });
@@ -1512,7 +1514,8 @@
         h += addNowHtml(a, s, isSprint);
         h += linePreviewHtml(a, s);
         // The admin can make the lines just set the official ones, so the course is remembered for everyone.
-        if (a.admin && s.startLineFromMember && s.startLine && (isSprint ? s.finishLine : true)) h += '<div class="tp-notice is-admin" id="tp-official-box">' + icon('shield') + '<div>Admin: make these the official ' + (isSprint ? 'start and finish lines' : 'start line') + ' for this course, so every file uploaded there uses them. <button type="button" class="btn btn-secondary btn-sm" id="tp-make-official">Make official</button></div></div>';
+        // Not at a listed circuit with no layout picked: that would add a layout named after the circuit. There, Add this layout now asks for a name.
+        if (a.admin && s.startLineFromMember && s.startLine && (isSprint ? s.finishLine : !s.venueId || s.layoutId)) h += '<div class="tp-notice is-admin" id="tp-official-box">' + icon('shield') + '<div>Admin: make these the official ' + (isSprint ? 'start and finish lines' : 'start line') + ' for this course, so every file uploaded there uses them. <button type="button" class="btn btn-secondary btn-sm" id="tp-make-official">Make official</button></div></div>';
         if (s.venueId && !s.layoutId && !a.addNow) h += '<p class="tp-sub">We know ' + esc(s.venue) + ' but couldn\'t tell which layout this is, so it can\'t go on a leaderboard yet. We\'ve let the admin know.</p>';
       }
     } else {
@@ -1674,7 +1677,7 @@
       keep();
       var s2 = a.session, nameEl = document.getElementById('tp-venue-name'), laps = (s2.laps || []).filter(function (l) { return l.n === s2.best; })[0];
       offBtn.disabled = true;
-      api('POST', '/track/admin/course', { kind: s2.type === 'sprint' ? 'sprint' : 'circuit', hill: s2.type === 'sprint' && isHillSession(s2, a.lib), name: (nameEl && nameEl.value.trim()) || a.venueName || s2.venue || '', organizer: a.organizer || s2.organizer || '', venueId: s2.venueId || '', startLine: s2.startLine, finishLine: s2.finishLine || null, lapLength: laps && laps.dist ? laps.dist : 0, lat: s2.origin && s2.origin[0], lng: s2.origin && s2.origin[1] }).then(function (d) {
+      api('POST', '/track/admin/course', { kind: s2.type === 'sprint' ? 'sprint' : 'circuit', hill: s2.type === 'sprint' && isHillSession(s2, a.lib), name: (nameEl && nameEl.value.trim()) || a.venueName || s2.venue || '', organizer: a.organizer || s2.organizer || '', venueId: s2.venueId || '', layoutId: s2.type === 'sprint' ? '' : s2.layoutId || '', startLine: s2.startLine, finishLine: s2.finishLine || null, lapLength: laps && laps.dist ? laps.dist : 0, lat: s2.origin && s2.origin[0], lng: s2.origin && s2.origin[1] }).then(function (d) {
         if (!d.success) { offBtn.disabled = false; status(d.message || 'Could not make that official.', 'error'); return; }
         // The course now exists: this file (and every other) is timed on its lines.
         a.lib = d.library; a.startLine = null; a.finishLine = null; a.editLines = false; a.confirmLines = false;

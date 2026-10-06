@@ -8770,7 +8770,8 @@ async function handleTrackAdminCourse(request, env) {
   var kind = ['sprint'].indexOf(body.kind) !== -1 ? 'sprint' : 'circuit';
   var req = {
     kind: kind, hill: kind === 'sprint' && !!body.hill, name: trackText(body.name, 60), organizer: kind === 'sprint' ? trackText(body.organizer, 40) : '',
-    venueId: trackId(body.venueId), layoutId: body.replace ? trackId(body.layoutId) : '', replace: !!body.replace && !!body.layoutId,
+    // A layout given without replace is only filled in when it has no line yet (addTrackFromRequest refuses one that has).
+    venueId: trackId(body.venueId), layoutId: body.layoutId ? trackId(body.layoutId) : '', replace: !!body.replace && !!body.layoutId,
     startLine: trackLine(body.startLine), finishLine: kind === 'sprint' ? trackLine(body.finishLine) : null,
     lapLength: trackNum(body.lapLength, 0, 30000), lat: trackNum(body.lat, -90, 90), lng: trackNum(body.lng, -180, 180), from: email || ''
   };

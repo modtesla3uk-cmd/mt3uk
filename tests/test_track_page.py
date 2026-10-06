@@ -377,6 +377,22 @@ def test_a_different_layout_in_a_file_with_no_line_offers_the_line_found_to_conf
     expect(page.locator("#tp-addnow-box")).to_contain_text("This layout at Thruxton is not in the MT3UK track list yet")
 
 
+def test_adding_a_layout_does_not_carry_over_to_the_next_file(page):
+    """The layout pick, its name and the add switch belong to the file they were set for."""
+    _thruxton_with_a_second_layout(page)
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    page.locator("#tp-layout-field [data-v='__new']").click()
+    page.locator("#tp-addnow").click()
+    page.fill("#tp-layout-name", "Wing Loop")
+    expect(page.locator("#tp-addnow")).to_have_attribute("aria-checked", "true")
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-layout-field .chip.is-on")).to_have_text("Thruxton")
+    expect(page.locator("#tp-layout-name")).to_have_count(0)
+    expect(page.locator("#tp-addnow")).to_have_count(0)
+
+
 def test_add_a_session_from_the_racebox_file(page):
     fake = FakeWorker()
     open_page(page, fake)

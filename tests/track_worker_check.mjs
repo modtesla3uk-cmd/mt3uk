@@ -832,6 +832,16 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   const av2 = r.body.library && r.body.library.venues.find(v => v.id === 'abing-test');
   ok(r.status === 200 && r.body.layoutId === 'abing-test' && av2.layouts.length === 2 && av2.layouts.find(l => l.id === 'abing-test').startLine, 'a layout with no line and that very name is filled in');
 }
+// The admin's Make official on a session that is on a listed layout with no line fills that layout in; it adds none.
+{
+  await call('PUT', '/track/admin/tracks?key=secret', { venue: { id: 'fill-test', name: 'Fill Test', type: 'circuit', lat: 51.7, lng: -1.3, radius: 1500, layouts: [{ id: 'fill-layout', name: 'Fill Layout', length: 2000 }] } });
+  const body = { kind: 'circuit', name: 'Fill Test', venueId: 'fill-test', layoutId: 'fill-layout', startLine: [[51.7001, -1.3001], [51.7003, -1.3003]], lapLength: 2000, lat: 51.7, lng: -1.3 };
+  r = await call('POST', '/track/admin/course?key=secret', body);
+  const fv = r.body.library && r.body.library.venues.find(v => v.id === 'fill-test');
+  ok(r.status === 200 && r.body.layoutId === 'fill-layout' && fv.layouts.length === 1 && fv.layouts[0].startLine && fv.layouts[0].name === 'Fill Layout', 'Make official fills in the layout the session is on and adds no layout ' + JSON.stringify(r.body).slice(0, 120));
+  r = await call('POST', '/track/admin/course?key=secret', Object.assign({}, body, { startLine: [[51.7005, -1.3005], [51.7007, -1.3007]] }));
+  ok(r.status === 400 && /already has official lines/.test(r.body.message), 'and it will not overwrite a layout that has official lines without replace');
+}
 // The admin makes the lines they just set the official ones from the Add a session page.
 {
   const course = { kind: 'sprint', name: 'Quick Course', organizer: 'A1', startLine: [[51.3, -0.8], [51.3002, -0.8002]], finishLine: [[51.31, -0.81], [51.3102, -0.8102]], lapLength: 700, lat: 51.3, lng: -0.8 };

@@ -181,7 +181,11 @@
   }
 
   @media (min-width: 901px) {
+    .page-hero { padding: 26px 0 26px; }
     .page-hero .wrap { text-align: center; }
+    /* Back sits on the left, as on the other pages, with the title centred under it. */
+    .page-hero .wrap > .back-link { display: flex; width: max-content; margin: 0 0 6px; }
+    .page-hero h1 { margin-bottom: 10px; }
     .page-hero h1, .page-hero p { max-width: none; margin-left: auto; margin-right: auto; }
     .page-hero h1 { max-width: 40ch; }
     .page-hero p { max-width: 58ch; }
@@ -555,7 +559,6 @@
 <section class="page-hero" data-no-share>
   <div class="wrap">
     <a href="index.html" class="back-link" aria-label="Back to MT3UK"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</a>
-    <span class="section-num mono">My profile</span>
     <h1>Your profile</h1>
     <p>Your details, visibility, security and email choices. Only you can see this page. Messages and friends are in the chat window: tap the speech bubble at the top of any page.</p>
   </div>

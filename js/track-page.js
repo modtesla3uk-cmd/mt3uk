@@ -1638,6 +1638,8 @@
       // Never start from the lines of a listed layout: a new layout takes the file's own line or the one the member marks.
       a.startLine = null; a.finishLine = null;
       analyse();
+      // No line in the file: offer the one found from the trace (the main straight, usually) to confirm or move.
+      if (v === '__new' && a.session && a.session.needsStartLine && a.session.suggestedLine) { a.startLine = a.session.suggestedLine; linesChanged(); }
     });
     var orgIn = document.getElementById('tp-organiser');
     if (orgIn) orgIn.addEventListener('change', function () { keep(); a.organizer = orgIn.value.trim().slice(0, 40); analyse(); });
@@ -1935,7 +1937,7 @@
     var ls = venueLayouts(a, s);
     if (!ls.length) return '';
     var cur = a.layoutPick === '__new' ? '__new' : (a.layoutPick || s.layoutId || '');
-    var note = cur === '__new' ? (s.needsStartLine ? 'Tap where this layout starts and finishes on the map below. Then you can add it to the track list.' : 'Check the start line on the map below. Use Move the start line if it is not where this layout starts and finishes, then add it to the track list.')
+    var note = cur === '__new' ? (s.needsStartLine ? 'Tap where this layout starts and finishes on the map below. Then you can add it to the track list.' : a.confirmLines ? 'We found the line from your laps. Drag it to where this layout starts and finishes, then tick Correct lines.' : 'Check the start line on the map below. Use Move the start line if it is not where this layout starts and finishes, then add it to the track list.')
       : !cur ? 'We could not tell which layout this was from your file. Pick it here, or choose A different layout if it is not listed.'
       : 'Found from your file. If it is not right, pick another.';
     return '<div class="tp-field" id="tp-layout-field"><span class="tp-lbl">Layout at ' + esc(s.venue || 'this track') + '</span><div class="tp-chips" data-layout>' +

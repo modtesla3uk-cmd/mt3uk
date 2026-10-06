@@ -792,6 +792,7 @@ ok(T.fmtLap(99.786) === '1:39.79' && T.niceDate('2026-05-28') === '28 May 2026',
   const rd4 = T.read(vbo, 'RaceBox_Track_Session.vbo'); rd4.startLine = null;
   const c = T.analyse(rd4, lib3, { newLayout: true });
   ok(c.needsStartLine === true && !c.layoutId && /new layout|this layout/.test(c.problem), 'a different layout with no line from the file asks the member to mark one, not a guessed line');
+  ok(Array.isArray(c.suggestedLine) && c.suggestedLine.length === 2 && c.laps.length === 0, 'and offers the line found from the trace as a suggestion only, with no laps timed on it');
   const rd5 = T.read(vbo, 'RaceBox_Track_Session.vbo'); rd5.startLine = null;
   const d5 = T.analyse(rd5, lib3, {});
   ok(!d5.needsStartLine, 'a track day with no layout pick is still timed from the lap line it finds');

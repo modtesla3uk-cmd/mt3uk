@@ -1080,6 +1080,9 @@
     if (!choice) {
       session.laps = [];
       session.needsStartLine = true;
+      // A different layout with no line in the file: the busiest, fastest crossing of the trace is offered to the member
+      // to confirm or move (the main straight, usually), never taken as the new layout's line without them.
+      if (newLayout && type === 'track') { var sug = autoLapLine(pts, proj, minGap); if (sug) session.suggestedLine = sug.line; }
       session.trace = { outline: outline(pts) };
       session.problem = newLayout ? 'Tap where the start and finish line of this layout is on your trace. It becomes the line for the new layout.' : venue ? 'We know ' + venue.name + ' but not its start line yet. Tap where the start and finish line is on your trace.' : 'We don\'t know this track yet. Tap where the start and finish line is on your trace and we\'ll add the track.';
       return session;

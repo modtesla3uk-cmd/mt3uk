@@ -359,6 +359,24 @@ def test_a_member_can_add_a_different_layout_to_a_listed_circuit(page):
     assert fake.courses_added and fake.courses_added[0]["layoutName"] == "Wing Loop" and fake.courses_added[0]["venueId"] == "thruxton", fake.courses_added
 
 
+def test_a_different_layout_in_a_file_with_no_line_offers_the_line_found_to_confirm(page):
+    _thruxton_with_a_second_layout(page)
+    text = FIXTURE.read_bytes().decode("latin1")
+    import re as _re
+    text = _re.sub(r"\[laptiming\]\r?\n[^\r\n]*\r?\n", "", text)
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", files=[{"name": "RaceBox_Track_Session.vbo", "mimeType": "text/plain", "buffer": text.encode("latin1")}])
+    expect(page.locator("#tp-layout-field")).to_be_visible()
+    page.locator("#tp-layout-field [data-v='__new']").click()
+    # The line found from the laps is on the map with its markers, and has to be confirmed before it is used.
+    expect(page.locator("#tp-tap")).to_be_attached()
+    expect(page.locator(".tp-confirm")).to_be_visible()
+    expect(page.locator("#tp-layout-field")).to_contain_text("We found the line from your laps")
+    page.locator(".tp-confirm").click()
+    expect(page.locator("#tp-addnow-box")).to_contain_text("This layout at Thruxton is not in the MT3UK track list yet")
+
+
 def test_add_a_session_from_the_racebox_file(page):
     fake = FakeWorker()
     open_page(page, fake)

@@ -7073,6 +7073,13 @@ function isTrackPart(areaId, part) {
 }
 
 // The track-relevant parts of a build, as short lines for a leaderboard row.
+// The Tesla model a car's name gives away ("DEVIANT MODEL S" is a Model S), for a car whose details have
+// no make or model, so its board row still matches the model chip. Kept the same as js/vehicle-data.js.
+function modelInName(name) {
+  var m = /\bmodel\s*([3sxy])\b/i.exec(String(name || ''));
+  return m ? 'Model ' + m[1].toUpperCase() : '';
+}
+
 function trackBoardMods(record, details) {
   var out = [];
   specsToView(details && details.specs, false, (record && record.mods) || []).forEach(function (a) {
@@ -7152,7 +7159,7 @@ async function refreshTrackBoard(env, boardKey, carId) {
     var ownerEmail = record ? await carOwnerEmail(env, record) : null;
     var entry = {
       carId: carId, sessionId: mine.id, date: mine.date, conditions: mine.conditions || '', tyres: mine.tyres || '', sessions: here.length,
-      car: (record && record.name) || 'MT3UK member build', make: (details && details.make) || '', vehicleType: (details && details.vehicleType) || '', model: (details && details.model) || '', version: (details && details.version) || '', year: (details && details.year) || '',
+      car: (record && record.name) || 'MT3UK member build', make: (details && details.make) || '', vehicleType: (details && details.vehicleType) || '', model: (details && details.model) || (details && details.make ? '' : modelInName(record && record.name)), version: (details && details.version) || '', year: (details && details.year) || '',
       owner: ownerEmail ? (publicName(await getProfileRecord(env, ownerEmail)) || 'MT3UK member') : 'MT3UK member',
       photo: record && record.photos && record.photos[0] ? record.photos[0] : '',
       drive: mine.drive || carDrive(details, await getVehicleDrives(env)),
@@ -8242,7 +8249,20 @@ function cleanVehicleLibrary(input) {
       });
       if (list.length) versions[mk] = list;
     });
-    makes.push({ name: name, type: type, models: models, versions: versions });
+    // Each model's Version box rule: required (must be picked) and free (anything can be typed). Only a model
+    // with a rule set is kept.
+    var versionRules = {}, rsrc = m.versionRules && typeof m.versionRules === 'object' ? m.versionRules : {};
+    Object.keys(rsrc).slice(0, 400).forEach(function (md) {
+      var mk = trackText(md, 60), rule = rsrc[md] && typeof rsrc[md] === 'object' ? rsrc[md] : {};
+      if (!mk || !have[mk.toLowerCase()]) return;
+      var out = {};
+      if (rule.required === true) out.required = true;
+      if (rule.free === true) out.free = true;
+      if (Object.keys(out).length) versionRules[mk] = out;
+    });
+    var entry = { name: name, type: type, models: models, versions: versions };
+    if (m.versionRules && typeof m.versionRules === 'object') entry.versionRules = versionRules;
+    makes.push(entry);
   });
   // The driven wheels by model ('kia|ev6': 'RWD'), set on the Vehicles panel through /track/admin/drive.
   var drives = {}, src = input.drives && typeof input.drives === 'object' ? input.drives : {};
@@ -9122,6 +9142,73 @@ async function refreshCarBoards(env, carId) {
   for (var b = 0; b < bk.length; b++) await refreshTrackBoard(env, bk[b], carId);
   return bk.length;
 }
+// Admin: every car in My Garage with its settings (the Members' cars panel of track-admin.html). The records are
+// listed from the bucket (gallery/cars/) and the sessions counted from the members' session lists, fine for an
+// admin route. A change sets the car's make, model, version, year, type and driven wheels (any typed model is
+// allowed here), stamps the car's sessions and refreshes its leaderboard rows.
+var TRACK_ADMIN_CARS_MAX = 2000;
+async function trackSessionCounts(env) {
+  var counts = {}, cursor, seen = 0;
+  do {
+    var page = await env.VOTES.list({ prefix: 'track-index:', cursor: cursor, limit: 100 });
+    for (var i = 0; i < page.keys.length; i++) {
+      var index = await getJsonKey(env, page.keys[i].name, []);
+      index.forEach(function (s) { if (s.carId) counts[s.carId] = (counts[s.carId] || 0) + 1; });
+      seen++;
+    }
+    cursor = page.list_complete ? null : page.cursor;
+  } while (cursor && seen < TRACK_DRIVE_MAX_INDEXES);
+  return counts;
+}
+function adminCarRow(carId, record, details, drives, owner, email, sessions) {
+  details = details || {};
+  return { carId: carId, car: record.name || '', owner: owner, email: email || '', sessions: sessions || 0, photos: (record.photos || []).length,
+    garageOnly: record.garageOnly === true, make: details.make || '', model: details.model || '', version: details.version || '', year: details.year || '',
+    vehicleType: details.vehicleType || 'car', drive: carDrive(details, drives), set: DRIVES.indexOf(details.drive) !== -1 };
+}
+async function handleTrackAdminCars(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var drives = await getVehicleDrives(env);
+  if (request.method === 'POST') {
+    var body;
+    try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+    var carId = String((body && body.carId) || '');
+    var record = /^[A-Za-z0-9_-]{1,80}$/.test(carId) ? await getCarRecord(env, carId) : null;
+    if (!record) return json({ success: false, message: 'That car was not found.' }, 404);
+    var details = (await getCarDetails(env, carId)) || {};
+    var clean = cleanCarModel(body, details.make);
+    // The admin can type any model, with or without a make.
+    if ('model' in body && clean.model === undefined) { var typed = cleanModText(body.model, 50); if (typed) clean.model = typed; }
+    ['make', 'model', 'version', 'year', 'vehicleType', 'drive'].forEach(function (k) {
+      if (!(k in body)) return;
+      if (clean[k] !== undefined) details[k] = clean[k]; else delete details[k];
+    });
+    details.updatedAt = new Date().toISOString();
+    await saveCarDetails(env, carId, details);
+    var stamped = await stampCarDrive(env, carId, true);
+    var boards = await refreshCarBoards(env, carId);
+    var ownerEmail = await carOwnerEmail(env, record);
+    var row = adminCarRow(carId, record, details, drives, ownerEmail ? (publicName(await getProfileRecord(env, ownerEmail)) || '') : '', ownerEmail, 0);
+    return json({ success: true, car: row, stamped: stamped, boards: boards });
+  }
+  var counts = await trackSessionCounts(env), rows = [], cursor, seen = 0;
+  do {
+    var page = await env.GALLERY_BUCKET.list({ prefix: 'gallery/cars/', cursor: cursor });
+    for (var i = 0; i < page.objects.length && seen < TRACK_ADMIN_CARS_MAX; i++) {
+      var key = page.objects[i].key, id = key.slice('gallery/cars/'.length).replace(/\.json$/, '');
+      if (key.slice(-5) !== '.json' || !id) continue;
+      var rec = await getCarRecord(env, id);
+      if (!rec) continue;
+      seen++;
+      var em = await carOwnerEmail(env, rec);
+      rows.push(adminCarRow(id, rec, await getCarDetails(env, id), drives, em ? (publicName(await getProfileRecord(env, em)) || '') : '', em, counts[id] || 0));
+    }
+    cursor = page.truncated ? page.cursor : undefined;
+  } while (cursor && seen < TRACK_ADMIN_CARS_MAX);
+  rows.sort(function (a, b) { return String(a.owner || a.email || '~').localeCompare(String(b.owner || b.email || '~')) || String(a.car).localeCompare(String(b.car)); });
+  return json({ success: true, cars: rows });
+}
+
 async function handleTrackAdminDrive(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
   if (request.method === 'POST') {
@@ -10803,6 +10890,9 @@ export default {
     }
     if (url.pathname === '/track/admin/usage' && request.method === 'GET') {
       return handleTrackAdminUsage(request, env);
+    }
+    if (url.pathname === '/track/admin/cars' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleTrackAdminCars(request, env);
     }
     if (url.pathname === '/track/admin/drive' && (request.method === 'GET' || request.method === 'POST')) {
       return handleTrackAdminDrive(request, env);

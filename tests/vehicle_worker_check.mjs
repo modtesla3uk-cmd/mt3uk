@@ -19,7 +19,7 @@ const env = {
     put: async (k, v) => { bucket.set(k, typeof v === 'string' ? v : 'binary'); },
     delete: async k => { bucket.delete(k); },
     // The live photo listing the garage reads.
-    list: async ({ prefix = '' } = {}) => ({ objects: [...bucket.keys()].filter(k => k.startsWith(prefix) && k.indexOf('/cars/') === -1).map(key => ({ key, uploaded: new Date('2026-01-01T00:00:00Z') })), truncated: false })
+    list: async ({ prefix = '' } = {}) => ({ objects: [...bucket.keys()].filter(k => k.startsWith(prefix) && (prefix.indexOf('/cars/') !== -1 || k.indexOf('/cars/') === -1)).map(key => ({ key, uploaded: new Date('2026-01-01T00:00:00Z') })), truncated: false })
   },
   SEND_EMAIL: { sent: [], send: async function (m) { this.sent.push(m.raw); } }
 };
@@ -116,6 +116,17 @@ let mv = V.merge({ makes: [{ name: 'Tesla', type: 'car', models: ['Model 3'], ve
 ok(mv.versions.car.Tesla['Model 3'][0] === 'Performance' && mv.versions.car.Kia.EV6[0] === 'GT-Line', 'merge: the variants come from the file and the admin\'s changes');
 V.versions = mv.versions;
 ok(V.versionsFor({ model: 'Model 3' })[0] === 'Performance' && V.versionsFor({ make: 'Kia', model: 'Kia EV6' })[0] === 'GT-Line' && V.versionsFor({ make: 'Kia', model: 'EV9' }).length === 0, 'versionsFor: by make and model, a make inside the model, and none for a model without any');
+// ---- The Version box rule by model: required, free text ----
+r = await call('PUT', '/vehicles/admin?key=secret', { library: { makes: [
+  { name: 'Kia', type: 'car', models: ['EV6', 'EV9'], versions: { EV6: ['GT-Line'] }, versionRules: { EV6: { required: true, free: 'yes' }, EV9: { required: false }, Nope: { free: true } } }] } });
+ok(JSON.stringify(r.body.extra.makes[0].versionRules) === '{"EV6":{"required":true}}', 'each model\'s Version rule is kept, only when set, and only true counts');
+r = await call('PUT', '/vehicles/admin?key=secret', { library: { makes: [{ name: 'Kia', type: 'car', models: ['EV6'], versions: { EV6: ['GT-Line'] } }] } });
+ok(r.body.extra.makes[0].versionRules === undefined, 'a make saved without rules carries none (so the file\'s stand)');
+mv = V.merge({ makes: [{ name: 'Tesla', type: 'car', models: ['Model 3'], versionRules: { 'Model 3': { free: true } } }, { name: 'Kia', type: 'car', models: ['EV6', 'EV9'], versionRules: { EV6: { required: true }, EV9: { required: true } } }] },
+  { makes: [{ name: 'Kia', type: 'car', models: ['EV6', 'EV9'], versionRules: { EV9: { free: true } } }] });
+V.versionRules = mv.versionRules;
+ok(V.versionRule({ model: 'Model 3' }).free === true && V.versionRule({ model: 'Model 3' }).required === false && V.versionRule({ make: 'Kia', model: 'EV6' }).required === false && V.versionRule({ make: 'Kia', model: 'Kia EV9' }).free === true && V.versionRule({ make: 'Kia', model: 'EV9' }).required === false, 'versionRule: the file\'s rules, replaced by the admin\'s for a make saved with any, and both off unless set');
+await call('PUT', '/vehicles/admin?key=secret', { library: { makes: [{ name: 'Kia', type: 'car', models: ['EV6', 'EV9'], versions: { EV6: ['GT-Line'] } }] } });
 kv.set('car-details:cara1', JSON.stringify({ make: 'Kia', model: 'EV6' }));
 r = await call('GET', '/my-builds', undefined, 'tok-a');
 ok(r.body.cars[0].drive === 'RWD' && r.body.cars[0].driveSet === false, 'a Kia EV6 is RWD by the rule');
@@ -131,6 +142,21 @@ ok(r.body.cars[0].drive === 'FWD' && r.body.cars[0].driveSet === true, 'and a ca
 await call('POST', '/track/admin/drive?key=secret', { make: 'Kia', model: 'EV6', drive: '' });
 kv.set('car-details:cara1', JSON.stringify({ model: 'Model Y', version: 'Long Range AWD', year: 2022 }));
 
+// ---- Members' cars: the admin lists every car with its settings and changes them ----
+r = await call('GET', '/track/admin/cars');
+ok(r.status === 401, 'the members\' cars list needs the admin key');
+r = await call('GET', '/track/admin/cars?key=secret');
+let ac = (r.body.cars || []).find(c => c.carId === 'cara1');
+ok(r.status === 200 && ac && ac.car === 'Arctic Three' && ac.email === A && ac.owner && ac.model === 'Model Y' && ac.version === 'Long Range AWD' && ac.year === 2022 && ac.drive === 'AWD' && ac.set === false && ac.photos === 1 && ac.vehicleType === 'car', 'it lists the car with its owner and settings');
+r = await call('POST', '/track/admin/cars?key=secret', { carId: 'cara1', make: '', model: 'Model Q', version: 'Plaid', year: '2021', vehicleType: 'car', drive: 'RWD' });
+ok(r.status === 200 && r.body.car.model === 'Model Q' && r.body.car.version === 'Plaid' && r.body.car.year === 2021 && r.body.car.drive === 'RWD' && r.body.car.set === true, 'the admin can set any model, the version, year and driven wheels');
+ok(JSON.parse(kv.get('car-details:cara1')).model === 'Model Q' && JSON.parse(kv.get('car-details:cara1')).drive === 'RWD', 'and they are saved to the car');
+r = await call('POST', '/track/admin/cars?key=secret', { carId: 'cara1', drive: '' });
+ok(r.status === 200 && r.body.car.set === false && r.body.car.model === 'Model Q', 'only the settings sent change; clearing the driven wheels goes back to the model\'s');
+r = await call('POST', '/track/admin/cars?key=secret', { carId: 'nope', model: 'x' });
+ok(r.status === 404, 'a car that does not exist is refused');
+kv.set('car-details:cara1', JSON.stringify({ model: 'Model Y', version: 'Long Range AWD', year: 2022 }));
+
 // ---- js/vehicle-data.js ----
 const base = { makes: [
   { name: 'Tesla', type: 'car', models: ['Model 3', 'Model Y'] }, { name: 'BMW', type: 'car', models: ['M3'] }, { name: 'BMW', type: 'bike', models: ['S 1000 RR'] }, { name: 'Ducati', type: 'bike', models: ['Monster'] }] };
@@ -141,6 +167,7 @@ ok(!m.car.Tesla && m.car.BMW[0] === 'M3' && m.bike.BMW[0] === 'M 1000 RR' && m.c
 ok(V.title({ model: 'Model 3' }) === 'Model 3' && V.title({ model: 'Hyundai Ioniq 5 N' }) === 'Hyundai Ioniq 5 N', 'title: a car with no make shows its model, as before');
 ok(V.title({ make: 'Kia', model: 'EV6 GT' }) === 'Kia EV6 GT' && V.title({ make: 'Hyundai', model: 'Hyundai Ioniq 5 N' }) === 'Hyundai Ioniq 5 N', 'title: the make goes in front, unless the model starts with it');
 ok(V.title({ make: 'Ducati' }) === 'Ducati', 'title: a make alone is shown');
+ok(V.modelKey({ car: 'DEVIANT MODEL S' }) === 'Model S' && V.modelKey({ car: 'Deviant', model: 'Model 3' }) === 'Model 3' && V.modelKey({ car: 'My model 3' , make: 'Kia', model: 'EV6' }) === 'Kia EV6' && V.modelInName('model y, the daily') === 'Model Y' && V.modelInName('Modelling car') === '', 'modelKey: a car with no make or model takes the Tesla model its name gives away');
 ok(V.modelKey({ make: 'Tesla', model: 'Model 3' }) === 'Model 3' && V.modelKey({ model: 'Model 3' }) === 'Model 3' && V.modelKey({ make: 'Porsche', model: 'Taycan' }) === 'Porsche Taycan', 'modelKey: Tesla models match the leaderboard chips as before');
 
 // ---- Driven wheels: the page's rule and the worker's agree, and know the cars ----

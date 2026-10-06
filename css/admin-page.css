@@ -537,7 +537,10 @@
 .vh-variants-head { grid-column: 1 / -1; margin: 4px 0 0; font-weight: 600; }
 .vh-variants-wrap { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
 .vh-variant { display: grid; gap: 4px; font-size: 0.85rem; }
+.vh-variant label { display: grid; gap: 4px; }
 .vh-variant textarea { min-height: 64px; resize: vertical; font: inherit; }
+.vh-rules { display: flex; flex-wrap: wrap; gap: 0 10px; }
+.vh-rules .tk-switch { min-height: 36px; font-size: 0.82rem; }
 .vh-variants { margin-left: 4px; }
 /* Vehicles panel: each car model with its driven wheels and a Default drop-down. */
 .vh-drive-note { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
@@ -555,6 +558,24 @@
   .vh-model { padding-left: 0; padding-right: 0; }
   .vh-model-name { flex: 1 1 100%; min-width: 0; }
   .vh-drive { width: 100%; max-width: 260px; min-height: 44px; font-size: 16px; }
+}
+/* Members' cars panel. */
+#mc-list { overflow-x: auto; }
+#mc-list .mc-table td { vertical-align: top; }
+#mc-list .mc-table input, #mc-list .mc-table select { min-height: 36px; width: 100%; min-width: 120px; max-width: 180px; font: inherit; }
+#mc-list .mc-table .mc-type { min-width: 76px; }
+#mc-list .mc-table input[type="number"] { min-width: 76px; max-width: 90px; }
+#mc-list .mc-row.is-target > td { background: #fff3d6; }
+#mc-list .mc-row.is-changed > td { background: #fdf3ef; }
+#mc-list .mc-badge { display: inline-block; font-size: 0.68rem; padding: 1px 6px; border-radius: var(--radius-pill, 999px); background: #eceef2; color: #4a5468; margin-left: 4px; }
+#mc-filter { min-height: 40px; width: 100%; max-width: 320px; font: inherit; }
+@media (max-width: 780px) {
+  #mc-list .mc-table thead { display: none; }
+  #mc-list .mc-table, #mc-list .mc-table tbody, #mc-list .mc-table tr, #mc-list .mc-table td { display: block; width: auto; min-width: 0; }
+  #mc-list .mc-table tr { padding: 10px 0; border-bottom: 1px solid var(--hairline, rgba(22,35,61,.12)); }
+  #mc-list .mc-table td { padding: 3px 0; border-bottom: 0; }
+  #mc-list .mc-table td[data-label]::before { content: attr(data-label); display: block; font-size: 0.72rem; color: var(--steel); }
+  #mc-list .mc-table input, #mc-list .mc-table select { max-width: none; min-height: 44px; font-size: 16px; }
 }
 #dw-list .dw-row.is-target > td { background: #fff3d6; }
 #dw-list .dw-pick { min-height: 40px; }

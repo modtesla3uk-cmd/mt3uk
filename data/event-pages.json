@@ -252,6 +252,41 @@
       "ctaLabel": "Event on Javelin",
       "created": "2026-09-30",
       "publish": "2026-10-02"
+    },
+    {
+      "slug": "the-motorist-car-meet",
+      "name": "The Motorist Car Meet",
+      "title": "The Motorist Car Meet",
+      "tagline": "Special guests",
+      "organisers": "James Batty",
+      "kind": "Meet",
+      "startDate": "2026-11-21",
+      "endDate": "2026-11-21",
+      "startTime": "09:00",
+      "venue": "The Motorist",
+      "town": "Leeds",
+      "address": "New Lennerton Lane, Sherburn in Elmet, LS25 6JE",
+      "location": "The Motorist, Leeds",
+      "image": "https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/events/the-motorist-car-meet/95424ef57fc24dab.jpg",
+      "poster": "https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev/events/the-motorist-car-meet/f46fabedcac94412.jpg",
+      "description": [
+        "Join Us for the Ultimate Tesla Meet at The Motorist, Leeds!",
+        "​Get ready to plug in and turn heads. We’re bringing together the region’s best EV community for a Tesla meet at Yorkshire’s premier automotive hub.",
+        "Whether you drive a daily-driven Model 3, a tuned Model Y, an iconic Model X, or a classic Model S, park up alongside fellow owners, chat builds, share track-day data, and enjoy a full morning surrounded by cutting-edge EV technology.",
+        "Why The Motorist is Worth the Trip Set in the Yorkshire countryside just outside Leeds, The Motorist isn't just a parking lot, it’s the UK’s ultimate destination for motoring culture. Spacious 800+ Capacity Grounds: Purpose-built for high-volume meets with ample parking, wide bays, and smooth tarmac access. The Arnage & Driver's Lounge: Grab a top-tier breakfast, artisan coffee, or a proper hot meal at their famous onsite restaurant and café. The Store & Onsite Garage: Browse curated automotive merchandise, detailing supplies, and clothing, or inspect their fully equipped workshop and bodyshop. Great Community Vibe: Family- and dog-friendly with an inclusive, welcoming atmosphere for enthusiasts across all eras and powertrains."
+      ],
+      "highlights": [
+        "Open to all",
+        "Special Guest: The Cybertruck",
+        "Special Guest: The Model S Plaid",
+        "Spacious 800+ Capacity",
+        "Family- and dog-friendly"
+      ],
+      "entry": "Free to attend",
+      "ctaUrl": "https://www.facebook.com/share/1E3kc3SWzd/",
+      "ctaLabel": "Confirm on MT3UK Facebook Group",
+      "publish": "2026-10-06",
+      "created": "2026-10-06"
     }
   ]
 }

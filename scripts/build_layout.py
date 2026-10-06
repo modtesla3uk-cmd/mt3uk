@@ -32,6 +32,11 @@ FOOTER = ROOT / "partials" / "footer.html"
 LAPS_HEADER = ROOT / "partials" / "laps-header.html"
 LAPS_FOOTER = ROOT / "partials" / "laps-footer.html"
 LAPS_PAGES = ("laps", "track", "leaderboards", "laps-signin")
+# Shared pages: MT3UK pages that a Laps member also uses (Profile, My Garage). They keep the MT3UK header and footer,
+# and also carry the Laps ones in a <template>, which js/laps-shared.js swaps in on laps.mt3uk.com, so a member there
+# stays on Laps instead of being sent to mt3uk.com.
+SHARED_PAGES = ("profile", "my-builds")
+SHARED_SCRIPT = '<script src="js/laps-shared.js?v=20270201"></script>'
 STYLESHEET = '<link rel="stylesheet" href="css/site-header.css">'
 
 # Every public page, and the menu link shown as active on it.
@@ -96,12 +101,27 @@ def render_footer(page):
     return partial(LAPS_FOOTER if page in LAPS_PAGES else FOOTER)
 
 
+def render_laps_header(page):
+    """The Laps header for a shared page: its own link (My Garage) marked active."""
+    html = partial(LAPS_HEADER)
+    active = PAGES[page]
+    return re.sub(r'(<a href="' + re.escape(active) + r'" class=")([^"]*)(")', lambda m: m.group(1) + m.group(2) + " active" + m.group(3), html)
+
+
+SHARED_HEADER_RE = r'<header>.*?</header>(\n<template id="laps-header-tpl">.*?</template>\n<script src="js/laps-shared\.js[^"]*"></script>)?'
+SHARED_FOOTER_RE = r'<footer>.*?</footer>(\n<template id="laps-footer-tpl">.*?</template>)?'
+
+
 def build(page):
     """The page's HTML with the shared header, footer and stylesheet."""
     path = ROOT / (page + ".html")
     original = path.read_text(encoding="utf-8")
-    html = re.sub(r"<header>.*?</header>", lambda m: render_header(page), original, count=1, flags=re.S)
-    html = re.sub(r"<footer>.*?</footer>", lambda m: render_footer(page), html, count=1, flags=re.S)
+    if page in SHARED_PAGES:
+        html = re.sub(SHARED_HEADER_RE, lambda m: render_header(page) + '\n<template id="laps-header-tpl">' + render_laps_header(page) + '</template>\n' + SHARED_SCRIPT, original, count=1, flags=re.S)
+        html = re.sub(SHARED_FOOTER_RE, lambda m: render_footer(page) + '\n<template id="laps-footer-tpl">' + partial(LAPS_FOOTER) + '</template>', html, count=1, flags=re.S)
+    else:
+        html = re.sub(r"<header>.*?</header>", lambda m: render_header(page), original, count=1, flags=re.S)
+        html = re.sub(r"<footer>.*?</footer>", lambda m: render_footer(page), html, count=1, flags=re.S)
     if STYLESHEET not in html:
         html = html.replace("<style>", STYLESHEET + "\n<style>", 1)
     return original, html

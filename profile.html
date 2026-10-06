@@ -555,6 +555,34 @@
     </button>
   </nav>
 </header>
+<template id="laps-header-tpl"><header>
+  <nav>
+    <div class="nav-center">
+      <a href="track.html" class="logo laps-logo" aria-label="Laps by MT3UK"><span class="laps-logo-name">Laps</span><span class="laps-logo-by">by MT3UK</span></a>
+    <div class="navlinks" id="navlinks">
+      <a href="signin.html" class="nav-link-mobile">Sign Up / Sign In</a>
+      <a href="track.html" class="nav-link nav-link-track">Sessions <span class="early-badge">Early preview</span></a>
+      <a href="leaderboards.html" class="nav-link">Leaderboards</a>
+      <a href="track.html?add=1" class="nav-link">Add a session</a>
+      <a href="my-builds.html" class="nav-link nav-link-mybuilds">My Garage</a>
+      <a href="https://mt3uk.com/" class="nav-link nav-link-back"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Back to MT3UK</a>
+      </div>
+    </div>
+    <div class="nav-search" id="nav-search" data-scope="laps">
+      <button type="button" class="nav-search-toggle" id="nav-search-toggle" aria-expanded="false" aria-controls="nav-search-panel" aria-label="Search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      </button>
+      <div class="nav-search-panel" id="nav-search-panel">
+        <input type="text" id="nav-search-input" placeholder="Search Laps&hellip; e.g. Leaderboards, Add a session, Tyres" autocomplete="off">
+        <div class="nav-search-results" id="nav-search-results"></div>
+      </div>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navlinks">
+      <span class="hamburger-bar"></span><span class="hamburger-bar"></span><span class="hamburger-bar"></span>
+    </button>
+  </nav>
+</header></template>
+<script src="js/laps-shared.js?v=20270201"></script>
 
 <section class="page-hero" data-no-share>
   <div class="wrap">
@@ -701,6 +729,13 @@
     <span class="footer-links"><a href="privacy.html" style="text-decoration:underline;">Privacy</a> <a href="https://www.facebook.com/groups/mt3uk/" target="_blank" rel="noopener" style="text-decoration:underline;">Facebook group <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></a></span>
   </div>
 </footer>
+<template id="laps-footer-tpl"><footer>
+  <div class="wrap footer-row">
+    <a href="track.html" class="logo laps-logo footer-logo" aria-label="Laps by MT3UK"><span class="laps-logo-name">Laps</span><span class="laps-logo-by">by MT3UK</span></a>
+    <span class="footer-text">Lap times and leaderboards for modified and electric cars &middot; from the <a href="https://mt3uk.com/" class="footer-inline-link">MT3UK</a> community</span>
+    <span class="footer-links"><a href="privacy.html">Privacy</a> <a href="contact.html">Contact</a> <a href="https://mt3uk.com/">Back to MT3UK</a></span>
+  </div>
+</footer></template>
 
 <script>
   (function () {
@@ -1135,7 +1170,7 @@
 </script>
 
 <script src="js/share.js" defer></script>
-<script src="js/account-bar.js?v=12" defer></script>
+<script src="js/account-bar.js?v=13" defer></script>
 <script src="js/signin-prompt.js" defer></script>
 <script src="js/notify-bell.js" defer></script>
 <script src="js/messenger.js" defer></script>

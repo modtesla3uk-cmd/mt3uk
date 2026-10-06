@@ -350,13 +350,16 @@ def test_admin_can_draft_and_publish_interviews_now(device_page):
     table.locator("tbody tr").first.wait_for(timeout=5000)
     dialogs = []
     page.on("dialog", lambda d: (dialogs.append(d.message), d.accept()))
+    # The file may already hold drafts (an interview waiting for a date), so
+    # count rows rather than expecting the drafts table to start empty.
+    before = page.locator("#iv-drafts tbody tr").count()
     page.locator("#iv-list .iv-act[data-action=draft]").first.click()
-    page.locator("#iv-drafts tbody tr").first.wait_for(timeout=5000)
+    page.wait_for_function("document.querySelectorAll('#iv-drafts tbody tr').length === %d" % (before + 1), timeout=5000)
     assert "freed up" in dialogs[-1]
     assert page.mock_state["interview_actions"][-1][0] == "draft"
     # The draft can be published now, with an are-you-sure.
     page.locator("#iv-drafts .iv-act[data-action=publish-now]").first.click()
-    page.wait_for_function("!document.querySelector('#iv-drafts tbody tr')", timeout=5000)
+    page.wait_for_function("document.querySelectorAll('#iv-drafts tbody tr').length === %d" % before, timeout=5000)
     assert "Publish" in dialogs[-1] and "now" in dialogs[-1]
     assert page.mock_state["interview_actions"][-1][0] == "publish-now"
     assert page.errors == [], diagnostics(page)

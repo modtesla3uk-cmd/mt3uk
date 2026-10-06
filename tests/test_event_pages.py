@@ -289,7 +289,8 @@ def test_admin_can_preview_publish_draft_and_delete(device_page):
     assert "Draft" in frunk.inner_text() and "Frunk or Treat UK 2026" in frunk.inner_text()
     cadwell = page.locator('#ep-list .event-card[data-slug="cadwell-park-track-day-2026"]')
     assert cadwell.locator('[data-ep="share"]').count() == 0, "A draft has no Share button, only Copy link"
-    assert page.locator("#ep-list .event-card").count() == 4, "The three upcoming events have draft pages ready too"
+    total = len(events["events"])
+    assert page.locator("#ep-list .event-card").count() == total, "Every event in the file has a card, drafts included"
 
     with page.expect_popup() as popup_info:
         page.click('#ep-list [data-ep="preview"]')
@@ -312,7 +313,7 @@ def test_admin_can_preview_publish_draft_and_delete(device_page):
     page.wait_for_function("document.querySelector('#ep-list .event-card[data-slug=\"frunk-or-treat-uk\"] .event-id').textContent === 'Draft'", timeout=5000)
     page.once("dialog", lambda d: d.accept())
     frunk.locator('[data-ep="delete"]').click()
-    page.wait_for_function("document.querySelectorAll('#ep-list .event-card').length === 3", timeout=5000)
+    page.wait_for_function("document.querySelectorAll('#ep-list .event-card').length === %d" % (total - 1), timeout=5000)
     assert page.locator('#ep-list .event-card[data-slug="frunk-or-treat-uk"]').count() == 0
     assert page.mock_state["event_actions"] == ["publish-now", "draft", "delete"]
 

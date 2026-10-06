@@ -63,7 +63,8 @@ def test_index_links_go_somewhere():
 def test_every_interview_has_what_search_needs():
     interviews = json.loads((ROOT / "data" / "interviews.json").read_text(encoding="utf-8"))["interviews"]
     for iv in interviews:
-        for field in ("title", "url", "publish", "name"):
+        # A draft has no date yet and stays out of search until it is scheduled.
+        for field in ("title", "url", "name") + (() if iv.get("draft") else ("publish",)):
             assert iv.get(field), f"{iv.get('url')} has no {field}, so it can't be searched"
         assert (ROOT / iv["url"]).exists(), iv["url"]
 

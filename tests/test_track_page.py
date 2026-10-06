@@ -1363,19 +1363,24 @@ def test_the_leaderboard_hero_matches_the_sessions_page(page):
     assert page.evaluate("document.documentElement.scrollWidth") <= 390
 
 
-def test_the_leaderboard_has_a_my_sessions_button_back_to_your_sessions(page):
+def test_the_leaderboard_has_an_add_a_session_button_at_the_top(page):
     fake = FakeWorker()
     open_page(page, fake, path="/leaderboards.html")
-    button = page.locator("#lb-my-sessions")
-    expect(button).to_have_text("My Sessions")
-    assert button.bounding_box()["height"] >= 43
+    button = page.locator("#lb-add-session")
+    expect(button).to_have_text("Add a session")
+    assert button.bounding_box()["height"] >= 50
+    back = page.locator("#lb-page-back")
+    # On desktop the button, Back and the title share one row.
+    assert abs(button.bounding_box()["y"] + button.bounding_box()["height"] / 2 - (back.bounding_box()["y"] + back.bounding_box()["height"] / 2)) < 4
     button.click()
-    expect(page).to_have_url(re.compile(r"/track\.html$"))
-    expect(page.locator("#tp-sess-list")).to_be_visible()
-    # On a phone it fits with no sideways scroll.
-    page.goto("/leaderboards.html")
+    expect(page).to_have_url(re.compile(r"/track\.html\?add=1$"))
+    # On a phone it sits at the right of the Back row, above the title, with no sideways scroll.
     page.set_viewport_size({"width": 390, "height": 844})
-    expect(page.locator("#lb-my-sessions")).to_be_visible()
+    page.goto("/leaderboards.html")
+    button, back = page.locator("#lb-add-session"), page.locator("#lb-page-back")
+    expect(button).to_be_visible()
+    b, k, h = button.bounding_box(), back.bounding_box(), page.locator(".lb-hero h1").bounding_box()
+    assert abs(b["y"] - k["y"]) < 6 and b["x"] > k["x"] + k["width"] and h["y"] > b["y"] + b["height"] - 2
     assert page.evaluate("document.documentElement.scrollWidth") <= 390
 
 

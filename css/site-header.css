@@ -421,11 +421,17 @@ a.back-link, .page-hero a.back-link {
   transition: background-color .15s ease, border-color .15s ease;
 }
 a.back-link[hidden] { display: none; }
-/* Back sits on its own line at the left of a page's heading, never centred or beside the title, with the title
-   (centred on desktop) under it. */
+/* Desktop: Back sits at the left of the heading's top row with the title centred on the same row (the two side
+   columns are the same width, so the title stays in the middle of the page); everything else runs full width below.
+   On a phone Back stays on its own line above the title. */
 @media (min-width: 901px) {
-  .page-hero .wrap > a.back-link { display: flex; width: max-content; margin: 0 0 8px; }
+  .page-hero .wrap > a.back-link { display: flex; width: max-content; margin: 0; }
   .page-hero .wrap > a.back-link[hidden] { display: none; }
+  .page-hero .wrap:has(> a.back-link:not([hidden])) { display: grid; grid-template-columns: minmax(120px, 1fr) minmax(0, auto) minmax(120px, 1fr); column-gap: 16px; align-items: center; }
+  .page-hero .wrap:has(> a.back-link:not([hidden])) > * { grid-column: 1 / -1; }
+  .page-hero .wrap:has(> a.back-link:not([hidden])) > a.back-link { grid-column: 1; grid-row: 1; justify-self: start; }
+  .page-hero .wrap:has(> a.back-link:not([hidden])) > h1 { grid-column: 2; grid-row: 1; justify-self: center; margin-top: 0; margin-bottom: 0; }
+  .page-hero .wrap:has(> a.back-link:not([hidden])) > h1 + * { margin-top: 12px; }
 }
 a.back-link:hover, .page-hero a.back-link:hover { background: #ffffff; border-color: var(--ink); color: var(--ink); }
 a.back-link .icon, .page-hero a.back-link .icon { color: var(--orange); stroke-width: 2.4; }
@@ -465,6 +471,13 @@ a.back-link .icon, .page-hero a.back-link .icon { color: var(--orange); stroke-w
 .laps-logo-name { font-family: var(--font-head); font-size: 1.45rem; font-weight: 800; letter-spacing: -0.01em; line-height: 1; color: var(--ink); }
 .laps-logo-by { font-family: var(--font-body); font-size: 0.78rem; font-weight: 500; line-height: 1; color: var(--steel); }
 .logo.footer-logo.laps-logo .laps-logo-name { font-size: 1.15rem; }
+/* Play intro, beside the Laps logo on every Laps page (opens the Laps front page again). Just the icon on a phone. */
+.laps-intro { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin-left: -10px; padding: 0 6px; font-size: 0.86rem; font-weight: 600; color: var(--steel); text-decoration: none; white-space: nowrap; }
+.laps-intro:hover { color: var(--orange); }
+.laps-intro .icon { width: 18px; height: 18px; color: var(--orange); }
+@media (max-width: 780px) { .laps-intro { margin-left: -18px; min-width: 34px; padding: 0; justify-content: center; } .laps-intro span { display: none; } }
+/* The narrowest phones have no room for it beside the header icons. */
+@media (max-width: 359px) { .laps-intro { display: none; } }
 .nav-link-back .icon { width: 16px; height: 16px; }
 .footer-links a, .footer-inline-link { text-decoration: underline; text-underline-offset: 2px; }
 .laps-logo ~ .footer-links { margin-left: 14px; }

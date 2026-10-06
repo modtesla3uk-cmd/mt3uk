@@ -286,6 +286,9 @@
   .pf-app-steps li { margin: 4px 0; }
   .pf-app-steps .app-done { margin-top: 10px; background: none; border: 0; padding: 0; font: inherit; font-size: 0.85rem; color: var(--steel); text-decoration: underline; cursor: pointer; }
   .pf-side { display: grid; gap: 22px; min-width: 0; }
+  /* On laps.mt3uk.com (js/laps-shared.js marks the page laps-shared) the MT3UK app card is left out, and Your details takes the row. */
+  .laps-shared .pf-side { display: none; }
+  .laps-shared .pf-grid { grid-template-columns: minmax(0, 1fr); }
   .pf-sec + .pf-sec { margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(22, 35, 61, 0.2); }
   .pf-sec h3 { margin-top: 0; scroll-margin-top: 90px; }
   #passkeys, #signed-in-devices { scroll-margin-top: 90px; }
@@ -559,6 +562,7 @@
   <nav>
     <div class="nav-center">
       <a href="track.html" class="logo laps-logo" aria-label="Laps by MT3UK"><span class="laps-logo-name">Laps</span><span class="laps-logo-by">by MT3UK</span></a>
+      <a href="laps.html" class="laps-intro" id="tp-play-intro" aria-label="Play intro"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m10 8.5 5 3.5-5 3.5Z"/></svg><span>Play intro</span></a>
     <div class="navlinks" id="navlinks">
       <a href="signin.html" class="nav-link-mobile">Sign Up / Sign In</a>
       <a href="track.html" class="nav-link nav-link-track">Sessions <span class="early-badge">Early preview</span></a>

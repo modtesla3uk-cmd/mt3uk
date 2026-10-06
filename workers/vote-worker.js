@@ -5435,6 +5435,10 @@ function driveFor(v) {
 function driveWith(v, defaults) {
   var p = driveParts(v);
   if (p.bike) return '';
+  // A variant of its own (make|model|version) set on the Vehicles panel comes first, then what the version says,
+  // then the model's default, then the model alone.
+  var dv = defaults && p.ver ? defaults[p.make + '|' + p.model + '|' + p.ver] : '';
+  if (dv && DRIVES.indexOf(dv) !== -1) return dv;
   var d = defaults ? defaults[p.make + '|' + p.model] : '';
   return driveSaid(p) || (d && DRIVES.indexOf(d) !== -1 ? d : '') || driveModel(p);
 }
@@ -8269,9 +8273,18 @@ function cleanVehicleLibrary(input) {
   var drives = {}, src = input.drives && typeof input.drives === 'object' ? input.drives : {};
   Object.keys(src).slice(0, 600).forEach(function (k) {
     var kk = String(k).trim().toLowerCase().slice(0, 100);
-    if (/^[^|]+\|[^|]+$/.test(kk) && DRIVES.indexOf(src[k]) !== -1) drives[kk] = src[k];
+    // 'make|model' is a model's default, 'make|model|version' one variant's own.
+    if (/^[^|]+\|[^|]+(\|[^|]+)?$/.test(kk) && DRIVES.indexOf(src[k]) !== -1) drives[kk] = src[k];
   });
-  return { makes: makes, drives: drives };
+  // Makes hidden from members (still on the Vehicles panel, with their models and variants): { name, type } each.
+  var hiddenMakes = [], hseen = {};
+  (Array.isArray(input.hiddenMakes) ? input.hiddenMakes : []).slice(0, 600).forEach(function (h) {
+    var hn = trackText(h && h.name, 40), ht = h && VEHICLE_TYPES.indexOf(h.type) !== -1 ? h.type : 'car';
+    if (!hn || hseen[ht + '|' + hn.toLowerCase()]) return;
+    hseen[ht + '|' + hn.toLowerCase()] = true;
+    hiddenMakes.push({ name: hn, type: ht });
+  });
+  return { makes: makes, drives: drives, hiddenMakes: hiddenMakes };
 }
 
 async function handleVehiclesPublic(request, env) {
@@ -8286,10 +8299,32 @@ async function handleVehiclesAdmin(request, env) {
   var body;
   try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
   var library = cleanVehicleLibrary(body && body.library);
-  // A page that does not know the driven wheels by model must not wipe them.
-  if (!(body && body.library && body.library.drives)) library.drives = cleanVehicleLibrary(await getJsonKey(env, VEHICLE_LIBRARY_KEY, {})).drives;
+  var existing = cleanVehicleLibrary(await getJsonKey(env, VEHICLE_LIBRARY_KEY, {})), before = existing.drives;
+  // A page that does not know the driven wheels by model, or the hidden makes, must not wipe them.
+  if (!(body && body.library && body.library.drives)) library.drives = before;
+  if (!(body && body.library && body.library.hiddenMakes)) library.hiddenMakes = existing.hiddenMakes;
   await env.VOTES.put(VEHICLE_LIBRARY_KEY, JSON.stringify(library));
-  return json({ success: true, extra: library });
+  // A driven-wheels value that changed (a variant's, set in the make's Edit form) re-stamps the vehicles it
+  // reaches: their sessions and leaderboard rows (admin route, so the full listing is fine).
+  var changed = {}, any = false;
+  Object.keys(library.drives).concat(Object.keys(before)).forEach(function (k) { if (library.drives[k] !== before[k]) { changed[k] = true; any = true; } });
+  var restamped = any ? await restampDriveKeys(env, changed) : { vehicles: 0, stamped: 0, boards: 0 };
+  return json({ success: true, extra: library, restamped: restamped });
+}
+// Re-stamps the vehicles with sessions whose model or variant key is in `changed` (and whose wheels were not
+// set by hand): their sessions' driven wheels and their leaderboard rows.
+async function restampDriveKeys(env, changed) {
+  var all = await trackDriveVehicles(env), out = { vehicles: 0, stamped: 0, boards: 0 };
+  for (var a = 0; a < all.length; a++) {
+    var d0 = all[a].details;
+    if (d0.vehicleType === 'bike' || DRIVES.indexOf(d0.drive) !== -1) continue;
+    var p = driveParts(d0), k2 = p.make + '|' + p.model;
+    if (!changed[k2] && !(p.ver && changed[k2 + '|' + p.ver])) continue;
+    out.vehicles++;
+    out.stamped += await stampCarDrive(env, all[a].carId, true);
+    out.boards += await refreshCarBoards(env, all[a].carId);
+  }
+  return out;
 }
 
 // ---------- Track Sessions welcome text ----------

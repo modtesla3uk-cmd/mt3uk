@@ -178,19 +178,20 @@ def test_the_other_makes_panel_approves_and_declines(page):
 
 
 @all_devices
-def test_an_ioniq_or_taycan_is_kept_in_the_garage(device_page):
-    """Their chips stay (with their versions), but the car is sent as another make with its make filled in."""
+def test_a_hyundai_or_porsche_is_kept_in_the_garage(device_page):
+    """Their model chips come from the vehicle list (with their versions), and the car is sent as another make with
+    its make filled in, from the make picked."""
     page = device_page
     signed_in(page)
     page.goto("/my-builds.html")
     page.locator("#mb-addcar-toggle-btn").click(timeout=10000)
     form = page.locator("#mb-addcar-form")
     form.locator("[data-make-pick] .chip", has_text="Hyundai").click()
-    form.locator(".mb-model-pick .chip", has_text="Ioniq 5 N").click()
+    form.locator(".mb-model-pick .chip:visible", has_text="Ioniq 5").first.click()
     expect(page.locator("#mb-addcar-other .mb-other-note")).to_be_visible()
     expect(page.locator("#mb-addcar-other-fields")).to_be_hidden()
     expect(page.locator("#mb-addcar-version")).to_be_visible()
-    page.select_option("#mb-addcar-version", "Ioniq 5 N")
+    page.select_option("#mb-addcar-version", "N 84 kWh AWD")
     page.fill("#mb-addcar-carname", "Blue N")
     page.select_option("#mb-addcar-color", "Other")
     page.set_input_files("#mb-addcar-photo", files=[{"name": "car.jpg", "mimeType": "image/jpeg", "buffer": b"\xff\xd8\xff\xd9"}])
@@ -199,7 +200,7 @@ def test_an_ioniq_or_taycan_is_kept_in_the_garage(device_page):
     submits = page.mock_state.get("submits", [])
     if submits and submits[-1]:
         body = submits[-1]
-        assert 'name="otherMake"' in body and "Hyundai" in body and "Hyundai Ioniq 5 N" in body and 'name="version"' in body, body[:2000]
+        assert 'name="otherMake"' in body and 'name="make"' in body and "Hyundai" in body and "Ioniq 5" in body and "N 84 kWh AWD" in body, body[:2000]
     # A Tesla is still not another make.
     page.goto("/my-builds.html")
     page.locator("#mb-addcar-toggle-btn").click(timeout=10000)

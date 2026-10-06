@@ -49,9 +49,12 @@ def test_add_a_car_asks_for_the_model_and_opens_the_new_car(device_page):
     page.fill("#mb-addcar-caption", "Grey Model Y")
     years = page.locator("#mb-addcar-year option").all_inner_texts()
     assert years[1] == str(__import__("datetime").date.today().year) and years[-1] == "2012"
-    # Versions follow the model picked, with no Cybertruck or Roadster.
+    # Versions follow the model picked. The model chips are the vehicle list's (data/vehicles.json, edited on the
+    # Vehicles panel), with the N cars as variants of the Ioniq 5 and 6 and no Cybertruck or Roadster.
     assert form.locator("[data-make-pick] input").evaluate_all("els => els.map(e => e.value)") == ["Tesla", "Hyundai", "Porsche", "__other__"]
-    assert form.locator("[data-model-field] input[name=model]").evaluate_all("els => els.map(e => e.value)") == ["Model 3", "Model Y", "Model S", "Model X", "Hyundai Ioniq 5 N", "Hyundai Ioniq 6 N", "Porsche Taycan"]
+    values = form.locator("[data-model-field] input[name=model]").evaluate_all("els => els.map(e => e.value)")
+    assert values[:4] == ["Model 3", "Model Y", "Model S", "Model X"] and "Cybertruck" not in values and "Roadster" not in values
+    assert values[4:6] == ["Ioniq 5", "Ioniq 6"] and "Ioniq 5 N" not in values and "Taycan" in values
     versions = page.locator("#mb-addcar-version option").all_inner_texts()
     assert "Juniper Performance" in versions and "Long Range AWD" in versions and "P100D" not in versions
     page.select_option("#mb-addcar-version", "Long Range AWD")
@@ -71,16 +74,18 @@ def test_add_a_car_asks_for_the_model_and_opens_the_new_car(device_page):
 
 @all_devices
 def test_other_cars_can_be_added_with_their_versions(device_page):
-    """The Ioniq 5 N, Ioniq 6 N and Taycan are under Other cars, each with
-    its own versions."""
+    """A Hyundai or a Porsche is another make: its models are the vehicle list's, each with its own versions, and
+    the N cars are versions of the Ioniq 5 and 6."""
     page = device_page
     signed_in(page)
     page.goto("/my-builds.html")
     page.locator("#mb-addcar-toggle-btn").click(timeout=10000)
     form = page.locator("#mb-addcar-form")
-    # Porsche has one model, so Taycan is picked for them; a base Taycan is RWD, a 4S is AWD.
+    # Porsche's models are offered; a base Taycan is RWD, a 4S is AWD.
     form.locator("[data-make-pick] .chip", has_text="Porsche").click()
-    assert form.locator("input[name=model]:checked").get_attribute("value") == "Porsche Taycan"
+    assert form.locator("[data-model-field] .chip:visible").all_inner_texts()[0] == "Taycan"
+    form.locator(".mb-model-pick .chip:visible", has_text="Taycan").click()
+    assert form.locator("input[name=model]:checked").get_attribute("value") == "Taycan"
     expect(page.locator("#mb-addcar-drive")).to_have_value("RWD")
     versions = page.locator("#mb-addcar-version option").all_inner_texts()
     assert "Turbo S" in versions and "4S Cross Turismo" in versions and "Juniper Performance" not in versions
@@ -92,13 +97,85 @@ def test_other_cars_can_be_added_with_their_versions(device_page):
     expect(page.locator("#mb-addcar-drive")).to_have_value("RWD")
     form.locator("[data-make-pick] .chip", has_text="Hyundai").click()
     assert form.locator("input[name=model]:checked").count() == 0
-    assert form.locator("[data-model-field] .chip:visible").all_inner_texts() == ["Ioniq 5 N", "Ioniq 6 N"]
-    form.locator(".mb-model-pick .chip", has_text="Ioniq 5 N").click()
-    expect(page.locator("#mb-addcar-drive")).to_have_value("AWD")
+    chips = form.locator("[data-model-field] .chip:visible").all_inner_texts()
+    assert chips[:2] == ["Ioniq 5", "Ioniq 6"] and "Ioniq 9" in chips and "Ioniq 5 N" not in chips and "Taycan" not in chips
+    form.locator(".mb-model-pick .chip:visible", has_text="Ioniq 5").first.click()
+    assert form.locator("input[name=model]:checked").get_attribute("value") == "Ioniq 5"
     versions = page.locator("#mb-addcar-version option").all_inner_texts()
-    assert "Ioniq 5 N" in versions and "Turbo S" not in versions
-    page.select_option("#mb-addcar-version", "Ioniq 5 N")
+    assert "84 kWh AWD" in versions and "N 84 kWh AWD" in versions and "Turbo S" not in versions
+    # A base Ioniq 5 is RWD, its N variant AWD.
+    expect(page.locator("#mb-addcar-drive")).to_have_value("RWD")
+    page.select_option("#mb-addcar-version", "N 84 kWh AWD")
+    expect(page.locator("#mb-addcar-drive")).to_have_value("AWD")
     assert overflow_width(page) <= 0
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_a_model_changed_on_the_vehicles_panel_shows_in_the_garage(device_page):
+    """The model chips and the open car's Model drop-down are the vehicle list's: a Hyundai model added there shows
+    in both, a Porsche model taken off does not, and a variant is offered under its model."""
+    page = device_page
+    extra = {"makes": [
+        {"name": "Hyundai", "type": "car", "models": ["Ioniq 5", "Ioniq 7"], "versions": {"Ioniq 7": ["Long Range AWD", "Prestige RWD"]}},
+        {"name": "Porsche", "type": "car", "models": ["Taycan"]}]}
+    page.route(re.compile(r".*/vehicles(\?.*)?$"), lambda route: route.fulfill(
+        status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"}, body=json.dumps({"success": True, "extra": extra})))
+    signed_in(page)
+    page.goto("/my-builds.html")
+    page.wait_for_function("window.MT3UKVehicles && window.MT3UKVehicles.loaded", timeout=10000)
+    page.locator("#mb-addcar-toggle-btn").click(timeout=10000)
+    form = page.locator("#mb-addcar-form")
+    form.locator("[data-make-pick] .chip", has_text="Hyundai").click()
+    assert form.locator("[data-model-field] .chip:visible").all_inner_texts() == ["Ioniq 5", "Ioniq 7"]
+    form.locator(".mb-model-pick .chip:visible", has_text="Ioniq 7").click()
+    versions = page.locator("#mb-addcar-version option").all_inner_texts()
+    assert "Long Range AWD" in versions and "Prestige RWD" in versions
+    # Porsche has the one model now, so it is picked for the member.
+    form.locator("[data-make-pick] .chip", has_text="Porsche").click()
+    assert form.locator("[data-model-field] .chip:visible").all_inner_texts() == ["Taycan"]
+    assert form.locator("input[name=model]:checked").get_attribute("value") == "Taycan"
+    # The open car's Model drop-down offers the same.
+    page.goto("/my-builds.html")
+    page.wait_for_function("window.MT3UKVehicles && window.MT3UKVehicles.loaded", timeout=10000)
+    page.locator(".mb-car-tile").first.click(timeout=10000)
+    page.locator("#mb-mods-builder .mbm-welcome").wait_for(state="visible", timeout=5000)
+    page.locator("#mb-car-name-edit").click()
+    page.select_option("#mb-car-make-select", "Hyundai")
+    options = page.locator("#mb-car-model-select optgroup[label=Hyundai] option").evaluate_all("els => els.map(e => e.value)")
+    assert options == ["Ioniq 5", "Ioniq 7"]
+    page.select_option("#mb-car-model-select", "Ioniq 7")
+    assert "Prestige RWD" in page.locator("#mb-car-version-select option").all_inner_texts()
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_a_hidden_or_removed_make_is_not_offered_in_the_garage(device_page):
+    """Hiding Hyundai and removing Porsche on the Vehicles panel takes their Make chips and models away in My
+    Garage; Tesla is always offered, even if it is hidden or removed, and a car that already has a hidden make keeps it."""
+    page = device_page
+    extra = {"makes": [{"name": "Porsche", "type": "car", "removed": True}, {"name": "Tesla", "type": "car", "removed": True}],
+             "hiddenMakes": [{"name": "Hyundai", "type": "car"}, {"name": "Tesla", "type": "car"}]}
+    page.route(re.compile(r".*/vehicles(\?.*)?$"), lambda route: route.fulfill(
+        status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"}, body=json.dumps({"success": True, "extra": extra})))
+    signed_in(page)
+    page.goto("/my-builds.html")
+    page.wait_for_function("window.MT3UKVehicles && window.MT3UKVehicles.loaded", timeout=10000)
+    page.locator("#mb-addcar-toggle-btn").click(timeout=10000)
+    form = page.locator("#mb-addcar-form")
+    expect(form.locator('[data-make-pick] .chip', has_text="Hyundai")).to_be_hidden()
+    expect(form.locator('[data-make-pick] .chip', has_text="Porsche")).to_be_hidden()
+    expect(form.locator('[data-make-pick] .chip', has_text="Tesla")).to_be_visible()
+    expect(form.locator('[data-make-pick] .chip', has_text="Another make")).to_be_visible()
+    form.locator("[data-make-pick] .chip", has_text="Tesla").click()
+    assert form.locator("[data-model-field] .chip:visible").all_inner_texts() == ["Model 3", "Model Y", "Model S", "Model X"]
+    # The open car's Make drop-down does not offer them either.
+    page.goto("/my-builds.html")
+    page.wait_for_function("window.MT3UKVehicles && window.MT3UKVehicles.loaded", timeout=10000)
+    page.locator(".mb-car-tile").first.click(timeout=10000)
+    page.locator("#mb-mods-builder .mbm-welcome").wait_for(state="visible", timeout=5000)
+    hidden = page.locator("#mb-car-make-select option").evaluate_all("els => els.filter(e => e.hidden).map(e => e.value)")
+    assert hidden == ["Hyundai", "Porsche"]
     assert page.errors == [], diagnostics(page)
 
 
@@ -129,8 +206,9 @@ def test_existing_car_gets_a_model_picker(device_page):
     page.select_option("#mb-car-make-select", "Hyundai")
     assert page.locator("#mb-car-model-select").input_value() == ""
     assert page.locator("#mb-car-model-select optgroup:not([hidden])").evaluate_all("els => els.map(e => e.label)") == ["Hyundai"]
-    page.select_option("#mb-car-model-select", "Hyundai Ioniq 6 N")
-    assert "Ioniq 6 N" in page.locator("#mb-car-version-select option").all_inner_texts()
+    page.select_option("#mb-car-model-select", "Ioniq 6")
+    assert "N 84 kWh AWD" in page.locator("#mb-car-version-select option").all_inner_texts()
+    page.select_option("#mb-car-version-select", "N 84 kWh AWD")
     # The driven wheels follow the pick (an Ioniq 6 N is AWD) until the owner picks them.
     assert page.locator("#mb-car-drive-select").input_value() == "AWD"
     # Cancel puts it back and greys it out again.

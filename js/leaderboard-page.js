@@ -18,9 +18,9 @@
   var app = document.getElementById('lb-app');
   if (!app || !T || !V) return;
   var esc = V.esc;
-  var MODELS = ['Model 3', 'Model Y', 'Model S', 'Model X', 'Hyundai Ioniq 5 N', 'Hyundai Ioniq 6 N', 'Porsche Taycan'];
+  var MODELS = ['Model 3', 'Model Y', 'Model S', 'Model X', 'Hyundai Ioniq 5', 'Hyundai Ioniq 6', 'Porsche Taycan'];
   // Short names for the filter chips.
-  var MODEL_SHORT = { 'Hyundai Ioniq 5 N': 'Ioniq 5 N', 'Hyundai Ioniq 6 N': 'Ioniq 6 N', 'Porsche Taycan': 'Taycan' };
+  var MODEL_SHORT = { 'Hyundai Ioniq 5': 'Ioniq 5', 'Hyundai Ioniq 6': 'Ioniq 6', 'Hyundai Ioniq 5 N': 'Ioniq 5 N', 'Hyundai Ioniq 6 N': 'Ioniq 6 N', 'Porsche Taycan': 'Taycan' };
   var TYPES = [['track', 'Track days', 'circuit'], ['drag', 'Drag', 'drag'], ['sprint', 'Sprint', 'sprint'], ['hill', 'Hill climb', 'sprint']];
   // What each kind of board is called in "All ..." links and buttons.
   var KIND_NAME = { track: 'tracks', drag: 'drag strips', sprint: 'sprints', hill: 'hill climbs' };

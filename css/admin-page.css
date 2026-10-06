@@ -535,16 +535,39 @@
 }
 /* Vehicles panel: each model's variants on the Edit form. */
 .vh-variants-head { grid-column: 1 / -1; margin: 4px 0 0; font-weight: 600; }
-.vh-variants-wrap { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
-.vh-variant { display: grid; gap: 4px; font-size: 0.85rem; }
-.vh-variant label { display: grid; gap: 4px; }
-.vh-variant textarea { min-height: 64px; resize: vertical; font: inherit; }
+/* The Edit form: a block for each model, with a row for each of its variants. */
+.vh-mblocks { display: grid; gap: 12px; }
+.vh-mblock { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--hairline, rgba(22,35,61,.12)); border-radius: var(--radius-sm, 8px); background: #fff; }
+.vh-mhead, .vh-vrow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.vh-mhead .vh-mname { flex: 1 1 200px; min-height: 40px; font: inherit; font-weight: 600; }
+.vh-vrows { display: grid; gap: 6px; padding-left: 10px; border-left: 2px solid var(--hairline, rgba(22,35,61,.12)); }
+.vh-vrow .vh-vname { flex: 1 1 220px; min-height: 40px; font: inherit; }
+.vh-vrow .vh-vdrive { flex: 0 1 190px; min-height: 40px; font: inherit; }
+.vh-mblock .vh-vadd { justify-self: start; }
+@media (max-width: 780px) {
+  .vh-mhead .vh-mname { flex: 1 1 100%; min-height: 44px; font-size: 16px; }
+  /* A variant: its name and Remove on one line, the wheels it drives under them. */
+  .vh-vrow .vh-vname { order: 1; flex: 1 1 0; min-width: 0; min-height: 44px; font-size: 16px; }
+  .vh-vrow .vh-vremove { order: 2; flex: 0 0 auto; }
+  .vh-vrow .vh-vdrive { order: 3; flex: 1 1 100%; min-height: 44px; font-size: 16px; }
+  .vh-vrow { padding-bottom: 6px; border-bottom: 1px solid var(--hairline, rgba(22,35,61,.12)); }
+  .vh-mblock .iv-act { min-height: 44px; }
+}
 .vh-rules { display: flex; flex-wrap: wrap; gap: 0 10px; }
 .vh-rules .tk-switch { min-height: 36px; font-size: 0.82rem; }
 .vh-model .vh-rules { display: inline-flex; flex-wrap: wrap; gap: 0 6px; }
 #mc-list .mc-table .mc-make-typed, #mc-list .mc-table .mc-model-typed, #mc-list .mc-table .mc-version-typed { margin-top: 4px; }
 .vh-variants { margin-left: 4px; }
+.vh-vlist { flex: 1 1 100%; margin: 2px 0 4px 0; font-size: 0.85rem; }
+.vh-vlist summary { cursor: pointer; color: var(--steel); min-height: 28px; }
+.vh-vlist ul { list-style: none; margin: 4px 0 0; padding: 0 0 0 10px; border-left: 2px solid var(--hairline, rgba(22,35,61,.12)); display: grid; gap: 2px; }
+.vh-vlist li { display: flex; flex-wrap: wrap; gap: 2px 10px; }
+.vh-vlist .vh-vn { min-width: 150px; }
 /* Vehicles panel: each car model with its driven wheels and a Default drop-down. */
+.vh-badge { display: inline-block; font-size: 0.68rem; padding: 1px 6px; border-radius: var(--radius-pill, 999px); background: #eceef2; color: #4a5468; margin-left: 4px; }
+.vh-table tr.is-hidden > td:not(:last-child) { opacity: 0.6; }
+.vh-table .iv-actions { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
+.vh-removed { margin-top: 6px; }
 .vh-drive-note { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
 .vh-count { display: block; margin-bottom: 4px; }
 .vh-models { list-style: none; margin: 0; padding: 0; }

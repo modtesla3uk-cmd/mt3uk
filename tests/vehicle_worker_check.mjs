@@ -105,6 +105,24 @@ r = await call('PUT', '/vehicles/admin?key=secret', { library: { makes: [{ name:
 ok(r.body.extra.drives['bmw|m3'] === 'AWD' && r.body.extra.makes.length === 1, 'a makes save that does not carry the defaults keeps them');
 r = await call('PUT', '/vehicles/admin?key=secret', { library: { makes: [], drives: { 'BMW|M3': 'RWD', 'kia|ev6': 'AWD', 'bad': 'AWD', 'tesla|model 3': 'up' } } });
 ok(JSON.stringify(r.body.extra.drives) === '{"bmw|m3":"RWD","kia|ev6":"AWD"}', 'a save that carries them replaces them, keys lowercased and bad ones dropped');
+r = await call('PUT', '/vehicles/admin?key=secret', { library: { makes: [], drives: { 'Hyundai|Ioniq 5|N Line': 'AWD', 'a|b|c|d': 'AWD', 'hyundai|ioniq 5|x': 'up' } } });
+ok(JSON.stringify(r.body.extra.drives) === '{"hyundai|ioniq 5|n line":"AWD"}', 'a variant\'s own driven wheels (make|model|version) are kept, with four parts or a bad value dropped');
+// A car with sessions, a Hyundai Ioniq 5 N Line: saving the variant's wheels re-stamps its session.
+await mod.saveCarRecord(env, { id: 'carh', name: 'Blue Five', photos: ['h1.jpg'], mods: [] });
+await mod.putSidecar(env, 'gallery/h1.jpg.json', { email: A, carId: 'carh' });
+bucket.set('gallery/h1.jpg', 'binary');
+kv.set('car-details:carh', JSON.stringify({ make: 'Hyundai', model: 'Ioniq 5', version: 'N Line' }));
+const oKeyH = 'track-index:' + (await mod.ownerKey(A));
+kv.set(oKeyH, JSON.stringify([{ id: 'sh1', carId: 'carh' }]));
+await call('PUT', '/vehicles/admin?key=secret', { library: { makes: [], drives: {} } });
+r = await call('PUT', '/vehicles/admin?key=secret', { library: { makes: [], drives: { 'hyundai|ioniq 5|n line': 'AWD' } } });
+ok(r.status === 200 && r.body.restamped.vehicles === 1 && r.body.restamped.stamped === 1 && JSON.parse(kv.get(oKeyH))[0].drive === 'AWD', 'saving a variant\'s wheels re-stamps the sessions of the cars it reaches');
+r = await call('PUT', '/vehicles/admin?key=secret', { library: { makes: [{ name: 'Kia', type: 'car', models: ['EV6'] }], drives: { 'hyundai|ioniq 5|n line': 'AWD' } } });
+ok(r.body.restamped.vehicles === 0, 'a save that changes no wheels re-stamps nothing');
+kv.set('car-details:carh', JSON.stringify({ make: 'Hyundai', model: 'Ioniq 5', version: 'N Line', drive: 'FWD' }));
+r = await call('PUT', '/vehicles/admin?key=secret', { library: { makes: [], drives: { 'hyundai|ioniq 5|n line': 'RWD' } } });
+ok(r.body.restamped.vehicles === 0, 'a car whose wheels the owner set by hand is left alone');
+kv.delete('car-details:carh'); kv.delete(oKeyH); bucket.delete('gallery/cars/carh.json'); bucket.delete('gallery/h1.jpg'); bucket.delete('gallery/h1.jpg.json');
 await call('PUT', '/vehicles/admin?key=secret', { library: { makes: [], drives: {} } });
 // ---- Variants (versions) by model ----
 r = await call('PUT', '/vehicles/admin?key=secret', { library: { makes: [
@@ -166,6 +184,17 @@ r = await call('POST', '/track/admin/cars?key=secret', { carId: 'carz', action: 
 ok(r.status === 200 && r.body.removed === 'carz' && !bucket.has('gallery/cars/carz.json'), 'a stale record is removed');
 kv.set('car-details:cara1', JSON.stringify({ model: 'Model Y', version: 'Long Range AWD', year: 2022 }));
 
+// ---- Hidden makes: kept in the library, never wiped by a save that does not carry them ----
+r = await call('PUT', '/vehicles/admin?key=secret', { library: { makes: [], hiddenMakes: [{ name: ' Kia ', type: 'car' }, { name: 'kia', type: 'car' }, { name: 'Ducati', type: 'bike' }, { name: '', type: 'car' }, { name: 'Zero', type: 'boat' }] } });
+ok(JSON.stringify(r.body.extra.hiddenMakes) === '[{"name":"Kia","type":"car"},{"name":"Ducati","type":"bike"},{"name":"Zero","type":"car"}]', 'hidden makes are kept trimmed, once each, with a blank one dropped and an unknown type counting as a car');
+r = await call('PUT', '/vehicles/admin?key=secret', { library: { makes: [{ name: 'Kia', type: 'car', models: ['EV6'] }] } });
+ok(r.body.extra.hiddenMakes.length === 3 && r.body.extra.makes.length === 1, 'a save that does not carry the hidden makes keeps them');
+r = await call('GET', '/vehicles');
+ok(r.body.extra.hiddenMakes.length === 3, 'the hidden makes are served with the library');
+r = await call('PUT', '/vehicles/admin?key=secret', { library: { makes: [], hiddenMakes: [] } });
+ok(r.body.extra.hiddenMakes.length === 0, 'a save that carries an empty list shows them all again');
+await call('PUT', '/vehicles/admin?key=secret', { library: { makes: [], drives: {} } });
+
 // ---- js/vehicle-data.js ----
 const base = { makes: [
   { name: 'Tesla', type: 'car', models: ['Model 3', 'Model Y'] }, { name: 'BMW', type: 'car', models: ['M3'] }, { name: 'BMW', type: 'bike', models: ['S 1000 RR'] }, { name: 'Ducati', type: 'bike', models: ['Monster'] }] };
@@ -173,6 +202,11 @@ let m = V.merge(base, { makes: [] });
 ok(Object.keys(m.car).join() === 'BMW,Tesla' && Object.keys(m.bike).join() === 'BMW,Ducati', 'merge: cars and bikes are kept apart, in order, and BMW is both');
 m = V.merge(base, { makes: [{ name: 'Tesla', type: 'car', removed: true }, { name: 'BMW', type: 'bike', models: ['M 1000 RR'] }, { name: 'Kia', type: 'car', models: ['EV6'] }] });
 ok(!m.car.Tesla && m.car.BMW[0] === 'M3' && m.bike.BMW[0] === 'M 1000 RR' && m.car.Kia[0] === 'EV6', 'merge: a make is taken off or replaced by name and type, or added');
+const hideBase = { makes: [{ name: 'Kia', type: 'car', models: ['EV6'], versions: { EV6: ['GT'] } }, { name: 'Tesla', type: 'car', models: ['Model 3'] }, { name: 'Ducati', type: 'bike', models: ['Monster'] }] };
+let hm = V.merge(hideBase, { hiddenMakes: [{ name: 'kia', type: 'car' }, { name: 'Ducati', type: 'car' }] });
+ok(!hm.car.Kia && hm.car.Tesla && hm.bike.Ducati && !hm.versions.car.Kia && hm.hidden.car.Kia === true, 'merge: a hidden make is left out of the lists members pick from, whatever the case, and only for its own type');
+hm = V.merge(hideBase, { hiddenMakes: [{ name: 'Kia', type: 'car' }] }, { all: true });
+ok(hm.car.Kia[0] === 'EV6' && hm.versions.car.Kia.EV6[0] === 'GT' && hm.hidden.car.Kia === true && !hm.hidden.car.Tesla, 'merge with all: the panel still sees it, with its models and variants, marked hidden');
 ok(V.title({ model: 'Model 3' }) === 'Model 3' && V.title({ model: 'Hyundai Ioniq 5 N' }) === 'Hyundai Ioniq 5 N', 'title: a car with no make shows its model, as before');
 ok(V.title({ make: 'Kia', model: 'EV6 GT' }) === 'Kia EV6 GT' && V.title({ make: 'Hyundai', model: 'Hyundai Ioniq 5 N' }) === 'Hyundai Ioniq 5 N', 'title: the make goes in front, unless the model starts with it');
 ok(V.title({ make: 'Ducati' }) === 'Ducati', 'title: a make alone is shown');
@@ -186,6 +220,7 @@ const DRIVE_CASES = [
   [{ make: 'Tesla', model: 'Model Y', version: 'Juniper Performance' }, 'AWD'], [{ model: 'Model Y', version: 'Juniper Rear-Wheel Drive' }, 'RWD'],
   [{ model: 'Model S', version: 'P85D' }, 'AWD'], [{ model: 'Model S', version: 'P85+' }, 'RWD'], [{ model: 'Model S', version: 'Plaid' }, 'AWD'], [{ model: 'Model X' }, 'AWD'],
   [{ model: 'Hyundai Ioniq 5 N' }, 'AWD'], [{ make: 'Hyundai', model: 'Hyundai Ioniq 5 N' }, 'AWD'], [{ make: 'Porsche', model: 'Porsche Taycan' }, 'RWD'], [{ make: 'Hyundai', model: 'Ioniq 6 N' }, 'AWD'], [{ make: 'Hyundai', model: 'Kona N' }, 'FWD'],
+  [{ make: 'Hyundai', model: 'Ioniq 5', version: 'N 84 kWh AWD' }, 'AWD'], [{ make: 'Hyundai', model: 'Ioniq 6', version: 'N 84 kWh AWD' }, 'AWD'], [{ make: 'Hyundai', model: 'Ioniq 6', version: '53 kWh RWD' }, 'RWD'],
   [{ make: 'Hyundai', model: 'Ioniq 5', version: '84 kWh AWD' }, 'AWD'], [{ make: 'Hyundai', model: 'Ioniq 9', version: 'Long Range RWD' }, 'RWD'], [{ make: 'Hyundai', model: 'Ioniq 9', version: 'Performance AWD' }, 'AWD'],
   [{ make: 'Hyundai', model: 'i30 N', version: 'i30 N Performance' }, 'FWD'], [{ make: 'Hyundai', model: 'Kona Electric', version: '65 kWh' }, 'FWD'], [{ make: 'Hyundai', model: 'Inster' }, 'FWD'],
   [{ model: 'Porsche Taycan', version: 'Taycan' }, 'RWD'], [{ model: 'Porsche Taycan', version: '4S' }, 'AWD'], [{ make: 'Porsche', model: 'Taycan', version: 'Turbo S Cross Turismo' }, 'AWD'],
@@ -203,10 +238,13 @@ DRIVE_CASES.forEach(([v, want]) => {
 });
 ok(agree, 'drive: the page and the worker give the same answer for every case');
 ok(right, 'drive: FWD, RWD and AWD are right for ' + DRIVE_CASES.length + ' cars and versions');
-const DEFAULTS = { 'tesla|model 3': 'RWD', 'porsche|taycan': 'AWD', 'porsche|911': 'AWD', 'zeekr|001 fr': 'AWD', 'ducati|panigale v4': 'AWD' };
+const DEFAULTS = { 'tesla|model 3': 'RWD', 'porsche|taycan': 'AWD', 'porsche|911': 'AWD', 'zeekr|001 fr': 'AWD', 'ducati|panigale v4': 'AWD',
+  'hyundai|ioniq 5|n line': 'AWD', 'hyundai|ioniq 5|84 kwh awd': 'RWD', 'hyundai|kona electric|n line': 'AWD', 'tesla|model y|standard range': 'AWD' };
 const DEFAULT_CASES = [
   [{ model: 'Model 3' }, 'RWD'], [{ model: 'Model 3', version: 'Performance' }, 'AWD'], [{ model: 'Model 3 Long Range AWD' }, 'AWD'],
   [{ model: 'Porsche Taycan', version: 'Taycan' }, 'AWD'], [{ make: 'Porsche', model: 'Taycan 4S' }, 'AWD'], [{ make: 'Porsche', model: '911', version: 'GT3' }, 'AWD'], [{ make: 'Porsche', model: '911 Carrera 4S' }, 'AWD'],
+  [{ make: 'Hyundai', model: 'Ioniq 5', version: 'N Line' }, 'AWD'], [{ make: 'Hyundai', model: 'Ioniq 5', version: '84 kWh AWD' }, 'RWD'], [{ make: 'Hyundai', model: 'Ioniq 5', version: '58 kWh RWD' }, 'RWD'],
+  [{ make: 'Hyundai', model: 'Kona Electric', version: 'N Line' }, 'AWD'], [{ make: 'Hyundai', model: 'Kona Electric', version: '65 kWh' }, 'FWD'], [{ model: 'Model Y', version: 'Standard Range' }, 'AWD'],
   [{ make: 'Zeekr', model: '001 FR' }, 'AWD'], [{ make: 'Zeekr', model: '001 FR', version: 'RWD' }, 'RWD'], [{ make: 'Ducati', model: 'Panigale V4', vehicleType: 'bike' }, ''], [{ make: 'Kia', model: 'EV6' }, 'RWD'], [{ make: 'Kia', model: 'EV6', version: 'RWD Long Range' }, 'RWD'],
 ];
 let agree2 = true, right2 = true;
@@ -216,6 +254,7 @@ DEFAULT_CASES.forEach(([v, want]) => {
   if (a !== want) { right2 = false; console.log('  wrong', JSON.stringify(v), 'got', a, 'want', want); }
 });
 ok(agree2, 'drive with defaults: the page and the worker agree');
+ok(V.driveVariantKey({ make: 'Hyundai', model: 'Ioniq 5', version: ' N Line ' }) === 'hyundai|ioniq 5|n line' && V.driveVariantKey({ model: 'Model 3', version: 'Performance' }) === 'tesla|model 3|performance', 'driveVariantKey: a variant\'s key is make, model and version, lowercased');
 ok(right2, 'drive with defaults: a default fills in or replaces the model\'s answer, a telling version still wins, a bike has none');
 ok(V.driveKey({ model: 'Porsche Taycan 4S' }) === 'porsche|taycan' && mod.driveModelKey({ make: 'Kia', model: ' EV6 ' }) === 'kia|ev6', 'driveKey: a model\'s key drops the make inside it and a typed trim');
 ok(mod.cleanCarModel({ drive: 'AWD', make: 'Kia', model: 'EV6' }, '').drive === 'AWD' && mod.cleanCarModel({ drive: 'sideways' }).drive === undefined, 'cleanCarModel: a drive is kept only when it is FWD, RWD or AWD');

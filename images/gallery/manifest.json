@@ -813,6 +813,8 @@
       "Interior: Seats, Wheel or yoke, BB classics BB5",
       "Interior: Sparco F10-A steering wheel",
       "Interior: Full FIA/MSUK roll cage",
+      "Performance: Acceleration Boost, Cooling, Other, Hurricane Motorsport radiator, 800*450*80mm force cooled",
+      "Performance: Deviant Power Systems CPC001, custom power controller. Alters regen and power available",
       "Race door release"
     ],
     "added": "2026-09-19",
@@ -868,6 +870,8 @@
       "Interior: Seats, Wheel or yoke, BB classics BB5",
       "Interior: Sparco F10-A steering wheel",
       "Interior: Full FIA/MSUK roll cage",
+      "Performance: Acceleration Boost, Cooling, Other, Hurricane Motorsport radiator, 800*450*80mm force cooled",
+      "Performance: Deviant Power Systems CPC001, custom power controller. Alters regen and power available",
       "Race door release"
     ],
     "votable": false,
@@ -1468,6 +1472,9 @@
       "Interior: Seats, Wheel or yoke, BB classics BB5",
       "Interior: Sparco F10-A steering wheel",
       "Interior: Full FIA/MSUK roll cage",
+      "Performance: Acceleration Boost, Cooling, Other, Hurricane Motorsport radiator, 800*450*80mm force cooled",
+      "Performance: Deviant Power Systems CPC001, custom power controller. Alters regen and power available",
+      "Audio and tech: Speakers, JBL 8inch, upgraded from 6.5 to 8 inch speakers.",
       "Race door release"
     ],
     "added": "2026-09-18",

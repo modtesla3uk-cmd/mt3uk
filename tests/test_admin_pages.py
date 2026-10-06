@@ -1752,3 +1752,63 @@ def test_new_laps_sign_ups_are_listed_counted_on_the_bell_when_not_waiting_and_c
     page2.locator("#bell-panel .bell-item", has_text="Sam Lee").click()
     page2.wait_for_url("**/track-admin.html#signin-wrap")
     expect(page2.locator("#signin-wrap")).to_have_attribute("open", "")
+
+
+@pytest.mark.parametrize("name", ["admin.html", "track-admin.html"])
+def test_every_admin_panel_has_a_help_popover(page, name):
+    """A ? beside each panel title says what the panel and its options do. It never opens or closes the panel."""
+    open_admin(page, name)
+    panels = page.eval_on_selector_all("details.collapsible[id]", "els => els.map(e => e.id)")
+    assert len(panels) >= 13, panels
+    page.wait_for_selector(".help-btn")
+    for pid in panels:
+        assert page.locator('.help-btn[data-help-for="%s"]' % pid).count() == 1, "no help for " + pid
+    pid = panels[0]
+    panel = page.locator("#" + pid)
+    was_open = panel.evaluate("e => e.open")
+    btn = page.locator('.help-btn[data-help-for="%s"]' % pid)
+    btn.click()
+    pop = page.locator(".help-pop")
+    expect(pop).to_be_visible()
+    expect(pop.locator(".help-title")).not_to_be_empty()
+    assert panel.evaluate("e => e.open") == was_open, "the ? must not open or close its panel"
+    expect(btn).to_have_attribute("aria-expanded", "true")
+    # Esc closes it, and the focus goes back to the button.
+    page.keyboard.press("Escape")
+    expect(pop).to_be_hidden()
+    expect(btn).to_have_attribute("aria-expanded", "false")
+    # Another ? replaces it; a click elsewhere closes it.
+    page.locator('.help-btn[data-help-for="%s"]' % panels[1]).click()
+    expect(pop).to_be_visible()
+    page.locator("h1").first.click()
+    expect(pop).to_be_hidden()
+
+
+def test_the_track_admin_help_explains_the_rebuild_and_re_time_options(page):
+    open_admin(page, "track-admin.html")
+    page.wait_for_selector(".help-btn")
+    page.locator('.help-btn[data-help-for="boards-wrap"]').click()
+    pop = page.locator(".help-pop")
+    for term in ["Rebuild all leaderboards", "Check sessions", "Re-time out of date sessions", "Also re-time big changes"]:
+        expect(pop).to_contain_text(term)
+    page.keyboard.press("Escape")
+    # The controls that are not obvious have their own.
+    for cid in ["tk-rebuild", "tk-retime-check", "tk-retime", "tk-retime-big", "alerts-email", "ac-open"]:
+        assert page.locator('.help-btn[data-help-for="%s"]' % cid).count() == 1, cid
+    # The ? beside a control is inside its panel, so open the panel first.
+    page.locator("#boards-wrap > summary").click()
+    page.locator('.help-btn[data-help-for="tk-retime-big"]').click()
+    expect(pop).to_contain_text("more than 10%")
+
+
+def test_the_help_popover_fits_a_phone(page):
+    page.set_viewport_size({"width": 360, "height": 740})
+    open_admin(page, "track-admin.html")
+    page.wait_for_selector(".help-btn")
+    page.locator('.help-btn[data-help-for="vehicles-wrap"]').scroll_into_view_if_needed()
+    page.locator('.help-btn[data-help-for="vehicles-wrap"]').click()
+    box = page.locator(".help-pop").bounding_box()
+    assert box["x"] >= 0 and box["x"] + box["width"] <= 360 and box["y"] >= 0 and box["y"] + box["height"] <= 740, box
+    assert overflow_width(page) <= 0
+
+

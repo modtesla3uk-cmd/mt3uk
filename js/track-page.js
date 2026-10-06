@@ -1509,10 +1509,11 @@
         // A day of laps with the logger running between sessions (a VBOX does) is not a sprint file: the gaps are just left out.
         if (gapLap && lapTimes.length >= 6) h += '<div class="tp-notice">' + icon('info') + '<div><b>The ' + VW + ' was parked between sessions.</b><br>The logger kept recording while it was stopped. Those gaps are not laps, so they are left out. Your ' + lapTimes.length + ' timed laps are not affected.</div></div>';
         else if (gapLap) h += '<div class="tp-notice is-warn">' + icon('warn') + '<div><b>The ' + VW + ' stopped for a long time between passes.</b><br>That is not a lap, so it is left out. If these were sprint or hill climb runs, switch the type to time each run from the start to the finish. <button type="button" class="btn btn-secondary btn-sm" data-tap="sprint">Switch to Sprint</button> <button type="button" class="btn btn-secondary btn-sm" data-tap="hill">Switch to Hill climb</button></div></div>';
-        if ((a.startLine || a.finishLine || s.startLine) && !s.officialLines && !s.autoLine) h += '<button type="button" class="btn btn-secondary btn-sm tp-move-lines" data-tap="edit">' + icon('pin') + 'Move ' + (isSprint ? 'start and finish' : 'the start line') + '</button>';
+        if ((a.startLine || a.finishLine || s.startLine) && !s.officialLines && !s.autoLine && !s.lapsFromTrace) h += '<button type="button" class="btn btn-secondary btn-sm tp-move-lines" data-tap="edit">' + icon('pin') + 'Move ' + (isSprint ? 'start and finish' : 'the start line') + '</button>';
         h += sprintControlsHtml(a, s, isSprint);
         h += addNowHtml(a, s, isSprint);
         h += layoutGapHtml(a, s);
+        h += lapsFromTraceHtml(a, s);
         h += linePreviewHtml(a, s);
         // The admin can make the lines just set the official ones, so the course is remembered for everyone.
         // Not at a listed circuit with no layout picked: that would add a layout named after the circuit. There, Add this layout now asks for a name.
@@ -1954,7 +1955,7 @@
   function linePreviewHtml(a, s) {
     if (a.lineEdit || !s.startLine || !(s.laps && s.laps.length) || !(s.trace && s.trace.laps && s.trace.laps[s.best || s.laps[0].n])) return '';
     var sprint = s.type === 'sprint', what = sprint ? 'start and finish lines' : 'start and finish line';
-    var how = s.officialLines ? 'These are the lines MT3UK uses for this ' + (sprint ? 'course' : 'layout') + ', so times can be compared. If they look wrong, save the session, then use Request Edit Map on it and MT3UK will look.'
+    var how = s.lapsFromTrace ? 'This is the start/finish line of this ' + (sprint ? 'course' : 'layout') + '. Your laps were timed from a point on your trace, because the file has no lap from this line back to itself.' : s.officialLines ? 'These are the lines MT3UK uses for this ' + (sprint ? 'course' : 'layout') + ', so times can be compared. If they look wrong, save the session, then use Request Edit Map on it and MT3UK will look.'
       : s.autoLine ? 'No line is set for this track yet, so this one was found from your trace. Use Move the start line if it is not where you start and finish.'
       : 'Your own ' + what + '. Use Move if they are not right.';
     return '<div class="tp-field" id="tp-line-preview"><span class="tp-lbl">Your ' + what + '</span><div class="tp-tapmap"><svg class="tv-chart tp-tap" id="tp-line-map" role="img" aria-label="Your best ' + (sprint ? 'run' : 'lap') + ' with the ' + what + ' marked"></svg></div><p class="tp-small">' + how + '</p></div>';
@@ -1964,6 +1965,11 @@
     if (a.lineEdit || s.layoutLineGap == null) return '';
     return '<div class="tp-notice is-warn" id="tp-layout-gap">' + icon('warn') + '<div><b>This file does not cross the start line saved for ' + esc(s.layout || 'that layout') + '.</b><br>The closest your ' + VW + ' came to it was about ' + s.layoutLineGap + ' m. Either this was another layout, or the saved line is in the wrong place. ' +
       (s.layoutLineGap > 25 ? 'A session more than 25 m from a layout\'s saved line cannot go on its leaderboard, so MT3UK needs to check that line. ' : '') + 'Pick another layout above, or tell MT3UK.</div></div>';
+  }
+  // On the layout by its path: the file has no lap from the start/finish line back to itself.
+  function lapsFromTraceHtml(a, s) {
+    if (a.lineEdit || !s.lapsFromTrace) return '';
+    return '<div class="tp-notice" id="tp-laps-from-trace">' + icon('info') + '<div><b>Your file has no lap from the start/finish line back to itself.</b><br>It starts or stops part way round, so your laps were timed from a point on your trace. They are still full laps of ' + esc(s.layout || 'this layout') + '.</div></div>';
   }
   function drawLinePreview() {
     var a = add, s = a && a.session, svg = document.getElementById('tp-line-map');

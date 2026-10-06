@@ -1104,13 +1104,23 @@
       return session;
     }
     var layout = choice.c.layout || forced;
-    // A layout the member picked whose saved start line this file does not cross (so it was timed on another line): how far
-    // that line is from where the car drove, to tell them why it is not being timed on it.
-    var lineMissed = null;
-    if (forced && forced.startLine && forced.startLine.length === 2 && choice.c.layout !== forced) {
-      var fm = proj.xy((forced.startLine[0][0] + forced.startLine[1][0]) / 2, (forced.startLine[0][1] + forced.startLine[1][1]) / 2), md = Infinity;
+    // How near the car came to a layout's saved start line, in metres: a file that passes the line only once has no lap from
+    // the line back to itself (the logger started or stopped part way round), so it cannot be timed on that line.
+    function lineGapTo(l) {
+      var fm = proj.xy((l.startLine[0][0] + l.startLine[1][0]) / 2, (l.startLine[0][1] + l.startLine[1][1]) / 2), md = Infinity;
       for (var qi = 0; qi < pts.length; qi += 2) { var dd = Math.hypot(pts[qi].x - fm[0], pts[qi].y - fm[1]); if (dd < md) md = dd; }
-      lineMissed = Math.round(md);
+      return Math.round(md);
+    }
+    var lineMissed = null, fromTrace = false;
+    if (forced && forced.startLine && forced.startLine.length === 2 && choice.c.layout !== forced) lineMissed = lineGapTo(forced);
+    // Still the same layout: the car passed its line (within 15 m) and the laps are its length. The picked layout, or the
+    // only layout that fits, takes the session, the laps staying timed from the point on the trace they were found at.
+    if (!choice.c.layout && !newLayout && !opts.ownLines) {
+      var fitsByTrace = function (l) {
+        return l.startLine && l.startLine.length === 2 && lineGapTo(l) <= 15 && (l.length ? Math.abs(choice.med - l.length) / l.length <= 0.12 : l === forced);
+      };
+      var fit = forced ? (fitsByTrace(forced) ? forced : null) : (function () { var f = layouts.filter(fitsByTrace); return f.length === 1 ? f[0] : null; })();
+      if (fit) { layout = fit; fromTrace = true; }
     }
     if (!layout && layouts.length && !newLayout) {
       // A start line from the file or the member: match the layout by lap length.
@@ -1122,9 +1132,11 @@
       layout = layout && layout.l;
     }
     if (layout) { session.layoutId = layout.id; session.layout = layout.name; }
-    if (lineMissed !== null) session.layoutLineGap = lineMissed;
+    if (lineMissed !== null && !fromTrace) session.layoutLineGap = lineMissed;
     session.startLine = choice.c.line;
     if (choice.c.own) session.startLineFromMember = true; else if (choice.c.auto) session.autoLine = true; else if (choice.c.layout) session.officialLines = true;
+    // On the layout by its path: its own line is the line of record, and the laps say they were timed from the trace.
+    if (fromTrace) { session.lapsFromTrace = true; session.startLine = layout.startLine; delete session.autoLine; delete session.startLineFromMember; }
     var sectorCr = layout && layout.sectors && layout.sectors.length ? layout.sectors.map(function (s) { return crossings(pts, proj, s, minGap); }) : null;
     var laps = buildLaps(pts, choice.cr, sectorCr);
     return timedTail(session, pts, laps, layout, proj, origin);

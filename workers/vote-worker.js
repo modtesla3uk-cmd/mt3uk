@@ -7168,6 +7168,8 @@ function cleanTrackSession(s, library) {
   out.startLineFromMember = !!s.startLineFromMember;
   // The admin accepted the member's own lines for this session: a re-time keeps them, whatever the course's are.
   if (s.linesAccepted) out.linesAccepted = true;
+  // On its layout by the path of the drive: the file has no lap from the start line back to itself, so the laps were timed from a point on the trace.
+  if (s.lapsFromTrace) out.lapsFromTrace = true;
   // A course with official lines only takes sessions timed on them (within
   // 25 m): lines a member moved never reach its leaderboard.
   if (layout && layout.startLine) {

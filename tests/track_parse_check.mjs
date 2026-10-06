@@ -836,3 +836,20 @@ ok(T.fmtLap(99.786) === '1:39.79' && T.niceDate('2026-05-28') === '28 May 2026',
   const wrongLen = T.analyse(cut(), lib8, {});
   ok(!wrongLen.layoutId, 'but not when the lap is nowhere near that layout\'s length');
 }
+// A file with no lap from the line back to itself (it starts and stops part way round) still belongs to the layout it drove:
+// picked, or the only layout it fits, with the laps timed from the trace and the layout's line kept as the line of record.
+{
+  const full = T.analyse(T.read(vbo, 'RaceBox_Track_Session.vbo'), lib, {});
+  const l1 = full.laps[0], l2 = full.laps[1], official = lib.venues.find(v => v.id === 'thruxton').layouts[0].startLine;
+  const cut = () => { const r = T.read(vbo, 'RaceBox_Track_Session.vbo'); r.points = r.points.filter(p => p.t >= l1.start + 5 && p.t <= l1.start + l1.time + l2.time - 5); return r; };
+  const picked = T.analyse(cut(), lib, { layoutId: 'main' });
+  ok(picked.layoutId === 'main' && picked.lapsFromTrace === true && JSON.stringify(picked.startLine) === JSON.stringify(official) && !picked.autoLine && picked.laps.length >= 1 && picked.layoutLineGap === undefined, 'a picked layout takes a file that has no lap from its line back to itself, laps timed from the trace');
+  const found = T.analyse(cut(), lib, {});
+  ok(found.layoutId === 'main' && found.lapsFromTrace === true, 'and so does the only layout the drive fits when none is picked, so a re-time puts it there');
+  const libLen = JSON.parse(JSON.stringify(lib)); libLen.venues.find(v => v.id === 'thruxton').layouts[0].length = 1000;
+  const wrong = T.analyse(cut(), libLen, {});
+  ok(!wrong.layoutId && !wrong.lapsFromTrace, 'but not when the laps are nowhere near its length');
+  const libFar = JSON.parse(JSON.stringify(lib)); const tvf = libFar.venues.find(v => v.id === 'thruxton'); tvf.layouts[0].startLine = [[tvf.lat + 0.02, tvf.lng + 0.02], [tvf.lat + 0.0201, tvf.lng + 0.0201]];
+  const farRes = T.analyse(cut(), libFar, {});
+  ok(!farRes.lapsFromTrace && !farRes.layoutId, 'or when the car never passed its line');
+}

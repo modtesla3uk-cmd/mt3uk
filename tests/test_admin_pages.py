@@ -29,7 +29,7 @@ TRACK_GROUPS = [
     ("grp-sessions", "Members' sessions", ["new-sessions-wrap", "lines-wrap", "member-sessions-wrap"]),
     ("grp-tracks", "Tracks", ["tracks-wrap"]),
     ("grp-boards", "Leaderboards", ["board-checks-wrap", "boards-wrap", "drive-wrap"]),
-    ("grp-content", "Content", ["copy-wrap", "tyres-wrap", "vehicles-wrap", "share-wrap"]),
+    ("grp-content", "Content", ["copy-wrap", "tyres-wrap", "vehicles-wrap", "cars-wrap", "share-wrap"]),
 ]
 
 
@@ -153,7 +153,7 @@ def test_the_track_admin_sub_menu_lists_the_sections_of_each_category(page):
     expect(sub.locator("a")).to_have_text(["New sessions", "Line editing", "Member sessions"])
     expect(page.locator('.admin-nav a[data-here="true"]')).to_have_text("Members' sessions")
     page.locator('.admin-nav a[href="track-admin.html#grp-content"]').click()
-    expect(sub.locator("a")).to_have_text(["Welcome text", "Tyres", "Vehicles", "Track sessions sharing"])
+    expect(sub.locator("a")).to_have_text(["Welcome text", "Tyres", "Vehicles", "Members' cars", "Track sessions sharing"])
     sub.locator("a", has_text="Tyres").click()
     expect(page.locator("#tyres-wrap")).to_have_attribute("open", "")
     expect(page.locator("#tyres-wrap summary")).to_be_in_viewport()

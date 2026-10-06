@@ -913,6 +913,9 @@
   /* Model, version and year stay together. */
   .mb-car-spec { display: inline-flex; flex-wrap: wrap; gap: 8px; align-items: center; }
   #mb-car-version-select { max-width: 220px; }
+  /* The text box "Type it in" opens under a Version drop-down (a model whose rule allows free text). */
+  .mb-version-typed { display: block; width: 100%; margin-top: 6px; min-height: 36px; }
+  .mb-car-spec .mb-version-typed { width: auto; max-width: 220px; margin-top: 0; }
   @media (max-width: 780px) {
     .mb-car-spec { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); width: 100%; }
     .mb-car-spec #mb-car-version-select { max-width: none; width: 100%; grid-column: 1 / -1; }
@@ -1721,8 +1724,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <script src="js/passkeys.js?v=20261201"></script>
 <script src="js/mods-view.js"></script>
-<script src="js/vehicle-data.js?v=20270101"></script>
-<script src="js/mods-builder.js?v=20270101"></script>
+<script src="js/vehicle-data.js?v=20270103"></script>
+<script src="js/mods-builder.js?v=20270102"></script>
 <script>
   (function () {
     var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
@@ -2616,8 +2619,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // firstName and lastName become the member's saved name; name is the
         // single "First Last" shown on the build.
+        var submitVersion = document.getElementById('mb-submit-version');
+        if (submitVersion.required && !MB.versionValue(submitVersion)) return setStatus(submitStatus, 'Please pick the version.', 'err');
         var submitData = new FormData(submitForm);
         submitData.delete('makePick');
+        submitData.set('version', MB.versionValue(submitVersion));
         submitData.set('firstName', firstName);
         submitData.set('lastName', lastName);
         submitData.set('name', firstName + ' ' + lastName);
@@ -2713,6 +2719,7 @@ document.addEventListener('DOMContentLoaded', function () {
         addCarMake.required = on;
         addCarOtherModel.required = on;
         document.getElementById('mb-addcar-version').closest('.mb-field').hidden = on;
+        if (on) document.getElementById('mb-addcar-version').required = false;
         if (on) fillOtherLists();
       };
       addCarForm.addEventListener('change', function (e) {
@@ -2754,9 +2761,12 @@ document.addEventListener('DOMContentLoaded', function () {
           if (files[i].size > 10 * 1024 * 1024) return setStatus(addCarStatus, 'Each photo must be under 10MB.', 'err');
         }
 
+        var addCarVersion = document.getElementById('mb-addcar-version');
+        if (!otherMakeChosen() && addCarVersion.required && !MB.versionValue(addCarVersion)) return setStatus(addCarStatus, 'Please pick the version.', 'err');
         var formData = new FormData(addCarForm);
         formData.append('email', myGarageEmail);
         formData.delete('makePick');
+        formData.set('version', MB.versionValue(addCarVersion));
         if (otherMakeChosen() && addCarType() === 'bike') formData.delete('drive');
         var otherMake = otherMakeChosen() || !!knownOtherMake();
         if (otherMakeChosen()) {
@@ -2918,7 +2928,8 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!currentCarId) return;
       if (!name) { setStatus(carNameStatus, 'Please enter a name', 'err'); return; }
       var current = findCar(currentCarId) || {};
-      var model = carModelSelect.value, version = carVersionSelect.value, year = carYearSelect.value, make = carMakeSelect.value;
+      var model = carModelSelect.value, version = MB.versionValue(carVersionSelect), year = carYearSelect.value, make = carMakeSelect.value;
+      if (carVersionSelect.required && !version) { setStatus(carNameStatus, 'Please pick the version', 'err'); carVersionSelect.focus(); return; }
       var fields = { name: name }, changed = name !== current.name;
       // Driven wheels: only the owner's own pick is sent, so a car keeps following its make, model and version otherwise.
       if (carDriveSelect && carDriveTouched && carDriveSelect.value !== (current.drive || '')) { fields.drive = carDriveSelect.value; changed = true; }
@@ -3081,14 +3092,14 @@ document.addEventListener('DOMContentLoaded', function () {
       sel.innerHTML = MB.yearOptions('').replace('>Year<', '>Choose<');
     });
     document.querySelectorAll('select[data-version-select]').forEach(function (sel) {
-      sel.innerHTML = MB.versionOptions('', '');
+      MB.fillVersions(sel, '', '');
       var form = sel.closest('form');
       form.addEventListener('change', function (e) {
         if (e.target.name !== 'model' && e.target.name !== 'makePick') return;
         var c = form.querySelector('input[name="model"]:checked');
-        sel.innerHTML = MB.versionOptions(c && c.value !== '__other__' ? c.value : '', '');
+        MB.fillVersions(sel, c && c.value !== '__other__' ? c.value : '', '');
       });
-      form.addEventListener('reset', function () { setTimeout(function () { sel.innerHTML = MB.versionOptions('', ''); }, 0); });
+      form.addEventListener('reset', function () { setTimeout(function () { MB.fillVersions(sel, '', ''); }, 0); });
     });
 
     // Make first, then Model: the Make chips show that make's model chips (a make with one model picks it),
@@ -3156,7 +3167,7 @@ document.addEventListener('DOMContentLoaded', function () {
       carMakeSelect.value = make;
       showMakeModels(make, model);
       carModelSelect.value = model;
-      carVersionSelect.innerHTML = MB.versionOptions(model, (car && car.version) || '', make);
+      MB.fillVersions(carVersionSelect, model, (car && car.version) || '', make);
       carYearSelect.innerHTML = MB.yearOptions((car && car.year) || '');
       if (carDriveSelect) carDriveSelect.value = (car && car.drive) || '';
       applyCarLocks();
@@ -3172,12 +3183,12 @@ document.addEventListener('DOMContentLoaded', function () {
     carMakeSelect.addEventListener('change', function () {
       showMakeModels(carMakeSelect.value, '');
       carModelSelect.value = '';
-      carVersionSelect.innerHTML = MB.versionOptions('', '');
+      MB.fillVersions(carVersionSelect, '', '');
       workOutCarDrive();
       applyCarLocks();
     });
     carModelSelect.addEventListener('change', function () {
-      carVersionSelect.innerHTML = MB.versionOptions(carModelSelect.value, '', carMakeSelect.value);
+      MB.fillVersions(carVersionSelect, carModelSelect.value, '', carMakeSelect.value);
       workOutCarDrive();
       applyCarLocks();
     });

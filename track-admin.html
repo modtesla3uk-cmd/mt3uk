@@ -192,11 +192,17 @@
     </details>
     <details class="collapsible" id="vehicles-wrap">
       <summary><h3 class="panel-title">Vehicles <span class="summary-count" id="vehicles-count"></span></h3></summary>
-      <p class="iv-note">The vehicle makes and models offered when a car or bike is added. The Model box suggests a make's models and members can still type anything. data/vehicles.json is the starting list; changes made here are stored by the worker on top of it and used straight away. A make is a car or a bike, and the same name can be both. Edit renames a make, lists its models and, for each model, its variants (the Version choices in My Garage). Each car model shows the wheels it drives (FWD, RWD or AWD) as worked out from its name, and a Default drop-down: a default is what the model's vehicles take unless the version says otherwise (Long Range AWD, Taycan 4S, Carrera 4) or the vehicle was set by hand, and setting one stamps the sessions of every vehicle of that model and refreshes its leaderboard rows.</p>
+      <p class="iv-note">The vehicle makes and models offered when a car or bike is added. The Model box suggests a make's models and members can still type anything. data/vehicles.json is the starting list; changes made here are stored by the worker on top of it and used straight away. A make is a car or a bike, and the same name can be both. Edit renames a make, lists its models and, for each model, its variants (the Version choices in My Garage) and the Version box's rule: Required (the member must pick one; it is optional otherwise) and Free text (a Type it in choice lets them type any version). Each car model shows the wheels it drives (FWD, RWD or AWD) as worked out from its name, and a Default drop-down: a default is what the model's vehicles take unless the version says otherwise (Long Range AWD, Taycan 4S, Carrera 4) or the vehicle was set by hand, and setting one stamps the sessions of every vehicle of that model and refreshes its leaderboard rows.</p>
       <p class="iv-note" id="vh-note" role="status"></p>
       <div class="tk-form" id="vh-form" hidden></div>
       <h3 class="sub-head">Makes</h3>
       <div id="vh-list"></div>
+    </details>
+    <details class="collapsible" id="cars-wrap">
+      <summary><h3 class="panel-title">Members' cars <span class="summary-count" id="cars-count"></span></h3></summary>
+      <p class="iv-note">Every car and bike in members' garages with its settings: type, make, model, version, year and driven wheels, as the owner set them in My Garage. Check and change any of them here (any model can be typed): Save writes them to the car, stamps its sessions and refreshes its leaderboard rows, as if the owner had saved them. Cars with no model come first.</p>
+      <div class="iv-toolbar"><button type="button" class="secondary" id="mc-load">Load cars</button><input type="search" id="mc-filter" placeholder="Find an owner or car" aria-label="Find an owner or car"><span class="iv-note" id="mc-note" role="status"></span></div>
+      <div id="mc-list"></div>
     </details>
     <details class="collapsible" id="share-wrap" data-share-slot="track">
       <summary><h3 class="panel-title">Track sessions sharing</h3></summary>
@@ -235,7 +241,8 @@
 <script src="js/track-drive-admin.js?v=20261231" defer></script>
 <script src="js/tyre-data.js" defer></script>
 <script src="js/tyre-admin.js" defer></script>
-<script src="js/vehicle-data.js?v=20270101" defer></script>
-<script src="js/vehicle-admin.js?v=20270101" defer></script>
+<script src="js/vehicle-data.js?v=20270103" defer></script>
+<script src="js/vehicle-admin.js?v=20270102" defer></script>
+<script src="js/car-admin.js?v=20270102" defer></script>
 </body>
 </html>

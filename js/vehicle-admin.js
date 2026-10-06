@@ -5,7 +5,9 @@
   A make has a type, car or bike (BMW and Honda are both). Edit renames a make
   (cars that already use the old name keep it), lists its models and, for each
   model, its variants (versions, one on each line), offered in My Garage's
-  Version box.
+  Version box, with the box's rule for that model: Required (it must be picked)
+  and Free text (a "Type it in" choice lets the member type any version).
+  Both are off unless set (versionRules in the library).
   Each car model is listed with the wheels it drives (FWD, RWD or AWD) as the rule
   works out, and a Default drop-down: a default is kept in the library (drives) and
   set through /track/admin/drive, which stamps the sessions of every vehicle of that
@@ -85,9 +87,14 @@
       how: set ? 'set here' + (rule ? ' (worked out: ' + rule + ')' : varies ? ' (else from the version)' : '') : rule ? 'worked out' : varies ? 'from the version' : 'not known' };
   }
   function variantsOf(r, model) { return ((merged.versions[r.type] || {})[r.name] || {})[model] || []; }
+  function ruleOf(r, model) { return ((merged.versionRules[r.type] || {})[r.name] || {})[model] || {}; }
   function variantNote(r, model) {
-    var n = variantsOf(r, model).length;
-    return n ? '<span class="iv-sub vh-variants">' + n + ' variant' + (n === 1 ? '' : 's') + '</span>' : '';
+    var n = variantsOf(r, model).length, rule = ruleOf(r, model);
+    var words = [];
+    if (n) words.push(n + ' variant' + (n === 1 ? '' : 's'));
+    if (rule.required) words.push('version required');
+    if (rule.free) words.push('free text');
+    return words.length ? '<span class="iv-sub vh-variants">' + words.join(', ') + '</span>' : '';
   }
   function modelHtml(r, model) {
     if (r.type !== 'car') return '<li class="vh-model"><span class="vh-model-name">' + esc(model) + '</span>' + variantNote(r, model) + '</li>';
@@ -102,6 +109,7 @@
     var existing = name != null;
     var models = existing ? merged[type][name] : [];
     var versions = existing ? (merged.versions[type] || {})[name] || {} : {};
+    var rules = existing ? (merged.versionRules[type] || {})[name] || {} : {};
     formEl.hidden = false;
     formEl.dataset.edit = existing ? name : '';
     formEl.dataset.type = existing ? type : '';
@@ -110,15 +118,18 @@
       (existing ? '<p class="iv-note">Renaming a make renames it on the list; cars that already use the old name keep it.</p>' : '') +
       '<label>Type<select class="field" id="vh-type"' + (existing ? ' disabled' : '') + '><option value="car"' + (type === 'car' || !existing ? ' selected' : '') + '>Car</option><option value="bike"' + (type === 'bike' ? ' selected' : '') + '>Bike</option></select></label>' +
       '<label>Models, one on each line<textarea id="vh-models" rows="8">' + esc(models.join('\n')) + '</textarea></label>' +
-      '<div class="vh-variants-wrap" id="vh-variants">' + variantsHtml(models, versions) + '</div>' +
-      '<p class="iv-note">Variants are the Version choices My Garage offers for a model (Performance, Long Range AWD). A model added above gets a box once the make is saved.</p>' +
+      '<div class="vh-variants-wrap" id="vh-variants">' + variantsHtml(models, versions, rules) + '</div>' +
+      '<p class="iv-note">Variants are the Version choices My Garage offers for a model (Performance, Long Range AWD). A model added above gets a box once the make is saved. Under each box, <b>Required</b> makes the member pick a version (the box is otherwise optional) and <b>Free text</b> adds a Type it in choice so they can type any version.</p>' +
       '<div class="iv-toolbar"><button type="button" id="vh-save">Save make</button><button type="button" class="secondary" id="vh-cancel">Cancel</button></div>';
     formEl.scrollIntoView({ block: 'nearest' });
   }
-  function variantsHtml(models, versions) {
+  function variantsHtml(models, versions, rules) {
     if (!models.length) return '';
     return '<p class="vh-variants-head">Variants, one on each line</p>' + models.map(function (m) {
-      return '<label class="vh-variant">' + esc(m) + '<textarea data-versions-for="' + esc(m) + '" rows="3">' + esc((versions[m] || []).join('\n')) + '</textarea></label>';
+      var rule = (rules || {})[m] || {};
+      return '<div class="vh-variant" data-model="' + esc(m) + '"><label>' + esc(m) + '<textarea data-versions-for="' + esc(m) + '" rows="3">' + esc((versions[m] || []).join('\n')) + '</textarea></label>' +
+        '<div class="vh-rules"><button type="button" class="tk-switch vh-rule" role="switch" data-rule="required" aria-checked="' + !!rule.required + '"><span class="tk-track"></span>Required</button>' +
+        '<button type="button" class="tk-switch vh-rule" role="switch" data-rule="free" aria-checked="' + !!rule.free + '"><span class="tk-track"></span>Free text</button></div></div>';
     }).join('');
   }
 
@@ -172,6 +183,8 @@
     }
   });
   formEl.addEventListener('click', function (e) {
+    var sw = e.target.closest('.vh-rule');
+    if (sw) { sw.setAttribute('aria-checked', String(sw.getAttribute('aria-checked') !== 'true')); return; }
     if (e.target.id === 'vh-cancel') { formEl.hidden = true; return; }
     if (e.target.id !== 'vh-save') return;
     var name = document.getElementById('vh-name').value.trim();
@@ -189,7 +202,17 @@
     extra.makes = (extra.makes || []).filter(function (m) { return !same(m, name, type) && !(renaming && same(m, was, type)); });
     // The old name goes: taken off the file's list, or simply dropped from the changes made here.
     if (renaming && inFile(was, type)) extra.makes.push({ name: was, type: type, removed: true });
-    extra.makes.push({ name: name, type: type, models: models, versions: versions });
+    // Each model's Version box rule from its switches; only the ones set are kept.
+    var versionRules = {};
+    formEl.querySelectorAll('.vh-variant[data-model]').forEach(function (box) {
+      var m = box.getAttribute('data-model'), rule = {};
+      if (models.indexOf(m) === -1) return;
+      box.querySelectorAll('.vh-rule').forEach(function (b) { if (b.getAttribute('aria-checked') === 'true') rule[b.getAttribute('data-rule')] = true; });
+      if (Object.keys(rule).length) versionRules[m] = rule;
+    });
+    var entry = { name: name, type: type, models: models, versions: versions };
+    if (Object.keys(versionRules).length) entry.versionRules = versionRules;
+    extra.makes.push(entry);
     put();
   });
 })();

@@ -43,15 +43,60 @@
   var FIRST_CAR_YEAR = 2012;
 
   // The Version drop-down's options for a model; a saved version that isn't
-  // listed stays as an option.
+  // listed stays as an option. With the model's free text rule on (Vehicles panel
+  // of track-admin.html) there is a "Type it in" choice, which fillVersions wires.
+  var TYPED = '__typed__';
+  function versionRule(model, make) {
+    var V = window.MT3UKVehicles;
+    return V && V.loaded && model ? V.versionRule({ make: make, model: model }) : { required: false, free: false };
+  }
   function versionOptions(model, value, make) {
     var V = window.MT3UKVehicles;
     var list = V && V.loaded ? V.versionsFor({ make: make, model: model }) : (CAR_VERSIONS[model] || []).slice();
-    if (value && list.indexOf(value) === -1) list.push(value);
+    var rule = versionRule(model, make), typed = rule.free && value && value !== 'Other' && list.indexOf(value) === -1;
+    if (value && !typed && list.indexOf(value) === -1) list.push(value);
     return '<option value="">' + (model ? 'Version' : 'Pick the model first') + '</option>' +
       list.map(function (v) { return '<option' + (v === value ? ' selected' : '') + '>' + esc(v) + '</option>'; }).join('') +
-      (model ? '<option value="Other"' + (value === 'Other' ? ' selected' : '') + '>Other or not sure</option>' : '');
+      (model ? '<option value="Other"' + (value === 'Other' ? ' selected' : '') + '>Other or not sure</option>' : '') +
+      (rule.free ? '<option value="' + (typed ? esc(value) : TYPED) + '" data-typed' + (typed ? ' selected' : '') + '>Type it in</option>' : '');
   }
+  // Fills a Version <select> for a model and applies the model's rule: required
+  // marks the box (and its label), and free text adds a "Type it in" choice that
+  // opens a text box after the select; what is typed becomes that option's value,
+  // so select.value and a form's data carry the typed version.
+  function fillVersions(sel, model, value, make) {
+    sel.innerHTML = versionOptions(model, value, make);
+    var rule = versionRule(model, make);
+    sel.required = !!rule.required;
+    sel.classList.toggle('is-required', !!rule.required);
+    var label = sel.id ? document.querySelector('label[for="' + sel.id + '"]') : null;
+    if (label && /^Version/.test(label.textContent.trim())) label.textContent = rule.required ? 'Version' : 'Version (optional)';
+    if (!sel.dataset.versionWired) {
+      sel.dataset.versionWired = '1';
+      sel.addEventListener('change', function () { showTyped(sel); });
+    }
+    showTyped(sel, true);
+  }
+  function showTyped(sel, filling) {
+    var opt = sel.options[sel.selectedIndex], typed = opt && opt.hasAttribute('data-typed');
+    var box = sel.parentNode.querySelector('.mb-version-typed');
+    if (!typed) { if (box) box.remove(); return; }
+    if (!box) {
+      box = document.createElement('input');
+      box.type = 'text'; box.className = 'mb-version-typed'; box.maxLength = 40; box.placeholder = 'Type the version';
+      box.setAttribute('aria-label', 'Version, typed in');
+      box.addEventListener('input', function () {
+        var o = sel.querySelector('[data-typed]');
+        if (o) { o.value = box.value.trim() || TYPED; o.selected = true; }
+        sel.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      sel.insertAdjacentElement('afterend', box);
+    }
+    if (filling) box.value = opt.value === TYPED ? '' : opt.value;
+    if (!filling) box.focus();
+  }
+  // The version a Version <select> holds: nothing when "Type it in" is chosen but empty.
+  function versionValue(sel) { return sel.value === TYPED ? '' : sel.value; }
 
   // Years from this year back to 2012, newest first.
   function yearOptions(value) {
@@ -642,5 +687,5 @@
     };
   }
 
-  window.MT3UKModsBuilder = { mount: mount, areas: AREAS, sortMods: sortMods, versionOptions: versionOptions, yearOptions: yearOptions, versions: CAR_VERSIONS };
+  window.MT3UKModsBuilder = { mount: mount, areas: AREAS, sortMods: sortMods, versionOptions: versionOptions, fillVersions: fillVersions, versionValue: versionValue, versionRule: versionRule, yearOptions: yearOptions, versions: CAR_VERSIONS };
 })();

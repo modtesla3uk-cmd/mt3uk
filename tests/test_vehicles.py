@@ -141,6 +141,91 @@ def test_edit_renames_a_make_and_sets_each_models_variants(page):
     expect(page.locator("#vh-note")).to_contain_text("already on the car list")
 
 
+def test_edit_sets_a_models_version_rule(page):
+    """Under each model's variants box, Required and Free text set the rule for My Garage's Version box; only
+    the ones switched on are saved, and switching both off drops the rule."""
+    state = open_panel(page, {})
+    page.locator('#vh-list [data-edit="Tesla"][data-type="car"]').click()
+    box = page.locator('#vh-form .vh-variant[data-model="Model Y"]')
+    expect(box.locator('[data-rule="required"]')).to_have_attribute("aria-checked", "false")
+    box.locator('[data-rule="required"]').click()
+    box.locator('[data-rule="free"]').click()
+    page.click("#vh-save")
+    expect(page.locator("#vh-note")).to_contain_text("Saved")
+    tesla = [m for m in state["puts"][-1]["makes"] if m["name"] == "Tesla"][0]
+    assert tesla["versionRules"] == {"Model Y": {"required": True, "free": True}}
+    expect(page.locator('#vh-list .vh-model[data-model="Model Y"]')).to_contain_text("version required, free text")
+    expect(page.locator('#vh-list .vh-model[data-model="Model 3"]')).not_to_contain_text("required")
+    # Reopening shows them on; switching both off drops the rule from the save.
+    page.locator('#vh-list [data-edit="Tesla"][data-type="car"]').click()
+    box = page.locator('#vh-form .vh-variant[data-model="Model Y"]')
+    expect(box.locator('[data-rule="required"]')).to_have_attribute("aria-checked", "true")
+    box.locator('[data-rule="required"]').click()
+    box.locator('[data-rule="free"]').click()
+    page.click("#vh-save")
+    expect(page.locator("#vh-note")).to_contain_text("Saved")
+    tesla = [m for m in state["puts"][-1]["makes"] if m["name"] == "Tesla"][0]
+    assert "versionRules" not in tesla
+
+
+def test_the_members_cars_panel_lists_every_car_and_changes_one(page):
+    """The Members' cars panel lists every car in the garages with its settings, cars with no model first, and
+    Save sends the row's settings; the worker's answer redraws the row."""
+    state = {"posts": []}
+    cars = [
+        {"carId": "c1", "car": "DEVIANT MODEL S", "owner": "Myk", "email": "myk@example.com", "sessions": 3, "photos": 2, "garageOnly": False,
+         "make": "", "model": "", "version": "", "year": "", "vehicleType": "car", "drive": "", "set": False},
+        {"carId": "c2", "car": "Flash", "owner": "Aaron", "email": "aaron@example.com", "sessions": 1, "photos": 1, "garageOnly": True,
+         "make": "Kia", "model": "EV6 GT", "version": "", "year": 2024, "vehicleType": "car", "drive": "AWD", "set": False},
+    ]
+
+    def handler(route):
+        req = route.request
+        headers = {"Access-Control-Allow-Origin": "*"}
+        if "/track/admin/cars" in req.url:
+            if req.method == "POST":
+                body = json.loads(req.post_data)
+                state["posts"].append(body)
+                car = dict(cars[0], make=body["make"], model=body["model"], version=body["version"], year=int(body["year"]), drive="AWD", set=body["drive"] == "AWD")
+                return route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "car": car, "stamped": 3, "boards": 1}), headers=headers)
+            return route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "cars": cars}), headers=headers)
+        return route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "extra": {}}), headers=headers)
+
+    page.route("**/%s/**" % API_HOST, handler)
+    page.add_init_script("sessionStorage.setItem('mt3ukAdminKey', 'test-key')")
+    page.goto("/track-admin.html")
+    page.locator("#cars-wrap summary").click()
+    rows = page.locator("#mc-list tr.mc-row")
+    expect(rows).to_have_count(2)
+    expect(page.locator("#cars-count")).to_have_text("(2)")
+    first = rows.first
+    expect(first).to_have_class(re.compile("is-target"))
+    expect(first).to_contain_text("Myk")
+    expect(first).to_contain_text("no model")
+    expect(rows.nth(1).locator(".mc-badge")).to_have_text("Garage only")
+    assert rows.nth(1).locator(".mc-model").input_value() == "EV6 GT"
+    # The makes are suggested from the vehicle list, and the models follow the make typed.
+    assert "Tesla" in first.locator(".mc-make + datalist option").evaluate_all("els => els.map(e => e.value)")
+    first.locator(".mc-make").fill("Tesla")
+    assert "Model S" in first.locator(".mc-model + datalist option").evaluate_all("els => els.map(e => e.value)")
+    first.locator(".mc-model").fill("Model S")
+    assert "Plaid" in first.locator(".mc-version + datalist option").evaluate_all("els => els.map(e => e.value)")
+    first.locator(".mc-version").fill("Plaid")
+    first.locator(".mc-year").fill("2022")
+    first.locator(".mc-drive").select_option("AWD")
+    first.locator(".mc-save").click()
+    expect(page.locator("#mc-note")).to_contain_text("3 sessions stamped and 1 leaderboard refreshed")
+    assert state["posts"][-1] == {"carId": "c1", "vehicleType": "car", "make": "Tesla", "model": "Model S", "version": "Plaid", "year": "2022", "drive": "AWD"}
+    row = page.locator('#mc-list tr.mc-row[data-car="c1"]')
+    expect(row).not_to_have_class(re.compile("is-target"))
+    assert row.locator(".mc-model").input_value() == "Model S"
+    assert row.locator(".mc-drive").input_value() == "AWD"
+    # The filter box narrows the list by owner or car.
+    page.fill("#mc-filter", "aaron")
+    expect(rows).to_have_count(1)
+    expect(rows.first).to_contain_text("Flash")
+
+
 def test_the_vehicles_panel_shows_each_models_driven_wheels_and_sets_a_default(page):
     posts = []
 
@@ -199,10 +284,13 @@ def test_the_leaderboard_shows_a_make_and_has_a_chip_for_a_model_it_does_not_lis
     kia.update(owner="Kit", car="Kit's EV6", make="Kia", model="EV6 GT", year=2024, drive="AWD")
     new_tesla = board_row("t", "t1", 92.0)
     new_tesla.update(owner="Tom", car="Tom's Y", make="Tesla", model="Model Y", year=2023)
-    fake.boards = {"/track/board:thruxton:main": [old, kia, new_tesla]}
+    # A car whose record has no make or model, named for one: its name says it is a Model S.
+    named = board_row("s", "s1", 93.0)
+    named.update(owner="Myk", car="DEVIANT MODEL S", model="")
+    fake.boards = {"/track/board:thruxton:main": [old, kia, new_tesla, named]}
     open_page(page, fake, "/leaderboards.html?board=thruxton:main", signed_in=False)
     rows = page.locator(".lb-row")
-    expect(rows).to_have_count(3)
+    expect(rows).to_have_count(4)
     # The old-style car is unchanged; the Kia has its make in front.
     expect(rows.first).to_contain_text("2021 Model 3 Performance")
     expect(rows.nth(1)).to_contain_text("2024 Kia EV6 GT")
@@ -218,8 +306,14 @@ def test_the_leaderboard_shows_a_make_and_has_a_chip_for_a_model_it_does_not_lis
     page.locator("#lb-models [data-m='Kia EV6 GT']").click()
     expect(rows).to_have_count(1)
     expect(rows.first).to_contain_text("Kit")
+    # The Model S chip counts the car named for one, and lists it.
+    expect(page.locator("#lb-models [data-m='Model S']")).not_to_have_class(re.compile("is-empty"))
+    expect(page.locator("#lb-models [data-m='Model X']")).to_have_class(re.compile("is-empty"))
+    page.locator("#lb-models [data-m='Model S']").click()
+    expect(rows).to_have_count(1)
+    expect(rows.first).to_contain_text("Myk")
     page.locator("#lb-models [data-m='All']").click()
-    expect(rows).to_have_count(3)
+    expect(rows).to_have_count(4)
 
 
 from test_devices import all_devices, device_page, browsers, diagnostics  # noqa: E402,F401

@@ -5,6 +5,7 @@ from js/mods-view.js): the model on Add a car and on an existing car, the
 see". Dates and costs are the owner's only: the lists the worker makes are
 checked in tests/test_garage_mods_worker.py."""
 import json
+import re
 
 from test_devices import device_page, browsers, all_devices, overflow_width, diagnostics  # noqa: F401
 
@@ -422,6 +423,38 @@ def test_each_part_has_its_own_when_and_where(device_page):
         # The job with nothing but a date shows as "Nothing added yet" to the owner.
         assert "Nothing added yet" in open_row(page, "bodywork").inner_text()
     assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_a_models_version_rule_makes_it_required_or_lets_it_be_typed(device_page):
+    """A model's Version rule (Vehicles panel of track-admin.html): Required marks the box and its label, and Free
+    text adds Type it in, which opens a text box whose words become the version; a model with no rule is as before."""
+    page = device_page
+    extra = {"makes": [{"name": "Tesla", "type": "car", "models": ["Model 3", "Model Y", "Model S", "Model X"], "versionRules": {"Model Y": {"required": True, "free": True}}}]}
+    page.route(re.compile(r".*/vehicles(\?.*)?$"), lambda route: route.fulfill(
+        status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"}, body=json.dumps({"success": True, "extra": extra})))
+    signed_in(page)
+    page.goto("/my-builds.html")
+    page.locator("#mb-addcar-toggle-btn").click(timeout=10000)
+    form = page.locator("#mb-addcar-form")
+    form.locator("[data-make-pick] .chip", has_text="Tesla").click()
+    form.locator(".mb-model-pick .chip", has_text="Model Y").click()
+    version = page.locator("#mb-addcar-version")
+    expect(page.locator("label[for=mb-addcar-version]")).to_have_text("Version")
+    assert version.evaluate("el => el.required")
+    assert "Type it in" in version.locator("option").all_inner_texts()
+    version.select_option(label="Type it in")
+    typed = form.locator(".mb-version-typed")
+    expect(typed).to_be_visible()
+    typed.fill("Juniper Launch Series")
+    assert version.input_value() == "Juniper Launch Series"
+    # Picking a listed version closes the box; a model with no rule is optional, with nothing to type.
+    version.select_option("Long Range AWD")
+    expect(form.locator(".mb-version-typed")).to_have_count(0)
+    form.locator(".mb-model-pick .chip", has_text="Model 3").click()
+    expect(page.locator("label[for=mb-addcar-version]")).to_have_text("Version (optional)")
+    assert not version.evaluate("el => el.required")
+    assert "Type it in" not in version.locator("option").all_inner_texts()
 
 
 @all_devices

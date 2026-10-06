@@ -3616,6 +3616,27 @@ FOLLOW_HARNESS = """async ([steps]) => {
 }"""
 
 
+def test_map_labels_cannot_be_selected_when_the_map_is_dragged(page):
+    """Dragging a session map used to select the corner numbers, which showed as blue boxes."""
+    open_page(page, FakeWorker())
+    r = page.evaluate("""() => {
+      const V = window.MT3UKTrackView;
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      const host = document.createElement('div');
+      host.style.cssText = 'width:400px;height:420px;position:fixed;left:0;top:0;background:#fff;z-index:99999';
+      svg.setAttribute('class', 'tv-chart');
+      host.appendChild(svg); document.body.appendChild(host);
+      const trace = [];
+      for (let i = 0; i <= 300; i++) { const d = i * 5; trace.push([d, d / 40, d, 60 * Math.sin(d / 300), 40, 0, 0]); }
+      V.map(svg, trace, { mono: true, lines: [{ trace, color: '#2a78d6' }], corners: [{ n: 5, x: 300, y: 40, name: '' }, { n: 7, x: 900, y: 30, name: '' }] });
+      const texts = [...svg.querySelectorAll('text')].map(t => getComputedStyle(t).userSelect);
+      window.getSelection().selectAllChildren(host);
+      return { texts, svg: getComputedStyle(svg).userSelect, selected: window.getSelection().toString() };
+    }""")
+    assert r["texts"] and all(u == "none" for u in r["texts"]), r
+    assert r["svg"] == "none" and r["selected"] == "", r
+
+
 def test_follow_glides_between_both_cars_and_the_leader(page):
     open_page(page, FakeWorker())
     r = page.evaluate(FOLLOW_HARNESS, [[
@@ -3625,9 +3646,10 @@ def test_follow_glides_between_both_cars_and_the_leader(page):
         ["close again", 200, 190, 700, 1.2],
     ]])
     w = r["both"]["viewW"]
-    # Close together: centred between the two, both in view, no arrows.
+    # Close together: centred between the two, both in view. The car behind still carries its gap beside its dot;
+    # the leader has nothing.
     assert r["both"]["after"]["toMid"] < 0.5, r["both"]
-    assert r["both"]["edgeA"] is None and r["both"]["edgeB"] is None
+    assert r["both"]["edgeA"] is None and r["both"]["edgeB"] == "B, 1.9 s behind", r["both"]
     # The slower car drops back: the view glides to the leader, not one jump.
     assert r["apart"]["now"]["toLeader"] > 0.25 * w, r["apart"]
     assert r["apart"]["after"]["toLeader"] < 0.5, r["apart"]
@@ -3637,10 +3659,10 @@ def test_follow_glides_between_both_cars_and_the_leader(page):
     assert r["apart"]["edgeA"] is None
     # A gap just under the limit doesn't flick straight back to both.
     assert r["near the limit"]["after"]["toLeader"] < 0.5, r["near the limit"]
-    # Close again: back between the two, gliding, and the arrow goes.
+    # Close again: back between the two, gliding, and the arrow goes (the gap stays beside the car behind).
     assert r["close again"]["after"]["toMid"] < 0.5, r["close again"]
     assert r["close again"]["after"]["maxStep"] < 0.2 * w
-    assert r["close again"]["edgeB"] is None
+    assert r["close again"]["edgeB"] == "B, 1.2 s behind", r["close again"]
 
 
 def test_a_glide_finishes_while_playback_is_paused(page):

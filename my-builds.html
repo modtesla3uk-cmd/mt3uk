@@ -1248,7 +1248,7 @@ document.addEventListener('DOMContentLoaded', function () {
       <div class="mb-card mb-submit-card" id="mb-submit-card" style="display:none;">
         <h2>Submit your first build</h2>
         <p>Send us a shot of your build and a caption, and we'll get it added to the gallery and set you up with an account so you can manage it here.</p>
-        <p class="mb-field-hint">A Tesla goes in the Gallery. An Ioniq 5 N, Ioniq 6 N or Taycan is kept in your garage, where you can still build its mods list and use it in Track sessions.</p>
+        <p class="mb-field-hint">A Tesla goes in the Gallery. A Hyundai, a Porsche or any other make is kept in your garage, where you can still build its mods list and use it in Track sessions.</p>
         <form id="mb-submit-form">
           <input type="checkbox" name="botcheck" class="mb-hp-field" tabindex="-1" autocomplete="off">
           <div class="mb-field">
@@ -1269,15 +1269,7 @@ document.addEventListener('DOMContentLoaded', function () {
           </div>
           <div class="mb-field" data-model-field hidden>
             <span class="mb-field-label" id="mb-submit-model-label">Model</span>
-            <div class="mb-model-pick" role="radiogroup" aria-labelledby="mb-submit-model-label">
-            <label class="chip" data-make="Tesla"><input type="radio" name="model" value="Model 3"> Model 3</label>
-            <label class="chip" data-make="Tesla"><input type="radio" name="model" value="Model Y"> Model Y</label>
-            <label class="chip" data-make="Tesla"><input type="radio" name="model" value="Model S"> Model S</label>
-            <label class="chip" data-make="Tesla"><input type="radio" name="model" value="Model X"> Model X</label>
-            <label class="chip" data-make="Hyundai"><input type="radio" name="model" value="Hyundai Ioniq 5 N"> Ioniq 5 N</label>
-            <label class="chip" data-make="Hyundai"><input type="radio" name="model" value="Hyundai Ioniq 6 N"> Ioniq 6 N</label>
-            <label class="chip" data-make="Porsche"><input type="radio" name="model" value="Porsche Taycan"> Taycan</label>
-            </div>
+            <div class="mb-model-pick" role="radiogroup" aria-labelledby="mb-submit-model-label"></div>
           </div>
           <div class="mb-field-pair">
             <div class="mb-field">
@@ -1395,7 +1387,7 @@ document.addEventListener('DOMContentLoaded', function () {
         <div class="mb-upload-card" id="mb-addcar-card" style="display:none;">
           <h2>Add a vehicle</h2>
           <p>Give your car a name and add up to 3 photos. A Tesla goes live in the Gallery straight away.</p>
-          <p class="mb-field-hint">A car or bike of another make, including the Ioniq 5 N, Ioniq 6 N and Taycan, is kept in your garage instead.</p>
+          <p class="mb-field-hint">A car or bike of another make, including a Hyundai or a Porsche, is kept in your garage instead.</p>
           <form id="mb-addcar-form">
             <div class="mb-field">
               <span class="mb-field-label" id="mb-addcar-make-label">Make</span>
@@ -1409,15 +1401,7 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
             <div class="mb-field" data-model-field hidden>
               <span class="mb-field-label" id="mb-addcar-model-label">Model</span>
-              <div class="mb-model-pick" role="radiogroup" aria-labelledby="mb-addcar-model-label">
-                <label class="chip" data-make="Tesla"><input type="radio" name="model" value="Model 3"> Model 3</label>
-                <label class="chip" data-make="Tesla"><input type="radio" name="model" value="Model Y"> Model Y</label>
-                <label class="chip" data-make="Tesla"><input type="radio" name="model" value="Model S"> Model S</label>
-                <label class="chip" data-make="Tesla"><input type="radio" name="model" value="Model X"> Model X</label>
-                <label class="chip" data-make="Hyundai"><input type="radio" name="model" value="Hyundai Ioniq 5 N"> Ioniq 5 N</label>
-                <label class="chip" data-make="Hyundai"><input type="radio" name="model" value="Hyundai Ioniq 6 N"> Ioniq 6 N</label>
-                <label class="chip" data-make="Porsche"><input type="radio" name="model" value="Porsche Taycan"> Taycan</label>
-              </div>
+              <div class="mb-model-pick" role="radiogroup" aria-labelledby="mb-addcar-model-label"></div>
             </div>
             <div class="mb-other-make" id="mb-addcar-other" hidden>
               <p class="mb-other-note"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span><strong>Kept in your garage.</strong> The Gallery, the Reel and Build of the Week are for Teslas, so this <span data-vword>car</span> isn't shown there. You can still build its mods list and use it in Track sessions, and ask us to show it in the Gallery later.</span></p>
@@ -1532,19 +1516,9 @@ document.addEventListener('DOMContentLoaded', function () {
           </select>
           <select class="mb-car-color-select" id="mb-car-model-select" aria-label="Model">
             <option value="">Model</option>
-            <optgroup label="Tesla">
-              <option value="Model 3">Model 3</option>
-              <option value="Model Y">Model Y</option>
-              <option value="Model S">Model S</option>
-              <option value="Model X">Model X</option>
-            </optgroup>
-            <optgroup label="Hyundai">
-              <option value="Hyundai Ioniq 5 N">Ioniq 5 N</option>
-              <option value="Hyundai Ioniq 6 N">Ioniq 6 N</option>
-            </optgroup>
-            <optgroup label="Porsche">
-              <option value="Porsche Taycan">Taycan</option>
-            </optgroup>
+            <optgroup label="Tesla"></optgroup>
+            <optgroup label="Hyundai"></optgroup>
+            <optgroup label="Porsche"></optgroup>
           </select>
           <select class="mb-car-color-select" id="mb-car-version-select" aria-label="Version"><option value="">Version</option></select>
           <select class="mb-car-color-select" id="mb-car-year-select" aria-label="Year"><option value="">Year</option></select>
@@ -1724,7 +1698,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <script src="js/passkeys.js?v=20261201"></script>
 <script src="js/mods-view.js"></script>
-<script src="js/vehicle-data.js?v=20270103"></script>
+<script src="js/vehicle-data.js?v=20270106"></script>
 <script src="js/mods-builder.js?v=20270102"></script>
 <script>
   (function () {
@@ -2624,6 +2598,9 @@ document.addEventListener('DOMContentLoaded', function () {
         var submitData = new FormData(submitForm);
         submitData.delete('makePick');
         submitData.set('version', MB.versionValue(submitVersion));
+        // A Hyundai or a Porsche is kept in the garage: send its make, as Add a vehicle does.
+        var submitMake = chipMake(submitForm.querySelector('input[name="model"]:checked'));
+        if (submitMake && submitMake !== 'Tesla') { submitData.set('otherMake', '1'); submitData.set('make', submitMake); submitData.set('vehicleType', 'car'); }
         submitData.set('firstName', firstName);
         submitData.set('lastName', lastName);
         submitData.set('name', firstName + ' ' + lastName);
@@ -2684,11 +2661,11 @@ document.addEventListener('DOMContentLoaded', function () {
       var addCarOther = document.getElementById('mb-addcar-other');
       var addCarMake = document.getElementById('mb-addcar-make');
       var addCarOtherModel = document.getElementById('mb-addcar-othermodel');
-      // The Ioniq and Taycan are other makes too, with their make known (and their versions offered as before).
-      var KNOWN_OTHER = { 'Hyundai Ioniq 5 N': 'Hyundai', 'Hyundai Ioniq 6 N': 'Hyundai', 'Porsche Taycan': 'Porsche' };
+      // A Hyundai or a Porsche is another make too, with its make known from the chip picked (and its versions
+      // offered as for a Tesla): the model chips come from the vehicle list.
       var chosenModel = function () { var r = addCarForm.querySelector('input[name="model"]:checked'); return r ? r.value : ''; };
       var otherMakeChosen = function () { return chosenModel() === '__other__'; };
-      var knownOtherMake = function () { return KNOWN_OTHER[chosenModel()] || ''; };
+      var knownOtherMake = function () { var m = chipMake(addCarForm.querySelector('input[name="model"]:checked')); return m && m !== 'Tesla' ? m : ''; };
       var addCarType = function () { var r = addCarForm.querySelector('input[name="vehicleType"]:checked'); return r ? r.value : 'car'; };
       var fillOtherLists = function () {
         var V = window.MT3UKVehicles;
@@ -2936,7 +2913,8 @@ document.addEventListener('DOMContentLoaded', function () {
       if (carColorSelect.value && carColorSelect.value !== (current.color || '')) { fields.color = carColorSelect.value; changed = true; }
       if (model !== (current.model || '') || make !== makeOfCar(current)) {
         fields.model = model; fields.version = ''; changed = true;
-        // A listed model carries its make (Tesla, or the Ioniq's and Taycan's inside the model); any other make is sent.
+        // An older listed model carries its make (a Tesla, or the Ioniq 5 N and Taycan with it inside the name); any
+        // other model is sent with its make.
         fields.make = MAKE_OF_MODEL[model] ? '' : make;
         if (!fields.make && !current.make) delete fields.make;
       }
@@ -3091,15 +3069,65 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('select[data-year-select]').forEach(function (sel) {
       sel.innerHTML = MB.yearOptions('').replace('>Year<', '>Choose<');
     });
+    // The make a chip belongs to (its data-make), or '' for the hidden Another make radio.
+    function chipMake(radio) { var c = radio && radio.closest('.chip'); return c ? c.getAttribute('data-make') || '' : ''; }
+    function chosenChip(form) { var r = form.querySelector('input[name="model"]:checked'); return r && r.value !== '__other__' ? r : null; }
     document.querySelectorAll('select[data-version-select]').forEach(function (sel) {
       MB.fillVersions(sel, '', '');
       var form = sel.closest('form');
       form.addEventListener('change', function (e) {
         if (e.target.name !== 'model' && e.target.name !== 'makePick') return;
-        var c = form.querySelector('input[name="model"]:checked');
-        MB.fillVersions(sel, c && c.value !== '__other__' ? c.value : '', '');
+        var c = chosenChip(form);
+        MB.fillVersions(sel, c ? c.value : '', '', chipMake(c));
       });
       form.addEventListener('reset', function () { setTimeout(function () { MB.fillVersions(sel, '', ''); }, 0); });
+    });
+
+    // The model chips for the three makes with a chip of their own come from the vehicle list (js/vehicle-data.js,
+    // edited on the Vehicles panel of track-admin.html), so a model added, renamed or removed there shows here.
+    // These are what is shown until the list has loaded, or if it cannot be.
+    var CHIP_MAKES = ['Tesla', 'Hyundai', 'Porsche'];
+    var FALLBACK_MODELS = { Tesla: ['Model 3', 'Model Y', 'Model S', 'Model X'], Hyundai: ['Ioniq 5', 'Ioniq 6'], Porsche: ['Taycan'] };
+    var renderers = [];
+    // The vehicle list once it has loaded (an empty one means it could not be read, so the built-in models stand).
+    function vehicleLib() { var V = window.MT3UKVehicles; return V && V.loaded && V.car && Object.keys(V.car).length ? V.car : null; }
+    // The models a make shows: the list's. A make the admin hid or removed (Vehicles panel) shows none and its Make
+    // chip goes; Tesla is always offered, as the Gallery is for Teslas.
+    function modelsFor(make) {
+      var lib = vehicleLib();
+      if (!lib) return FALLBACK_MODELS[make] || [];
+      return lib[make] && lib[make].length ? lib[make] : (make === 'Tesla' ? FALLBACK_MODELS.Tesla : []);
+    }
+    function makeOffered(make) { var lib = vehicleLib(); return !lib || make === 'Tesla' || !!lib[make]; }
+    function syncMakeChips() {
+      document.querySelectorAll('form [data-make-pick] input[name="makePick"]').forEach(function (r) {
+        if (r.value === '__other__') return;
+        var chip = r.closest('.chip');
+        if (chip) chip.hidden = !makeOffered(r.value);
+        if (!makeOffered(r.value) && r.checked) { r.checked = false; r.dispatchEvent(new Event('change', { bubbles: true })); }
+      });
+    }
+    function renderModelChips() {
+      syncMakeChips();
+      document.querySelectorAll('form [data-model-field] .mb-model-pick').forEach(function (box) {
+        var form = box.closest('form'), keep = chosenChip(form);
+        keep = keep ? keep.value : '';
+        box.innerHTML = CHIP_MAKES.map(function (make) {
+          return modelsFor(make).map(function (m) {
+            return '<label class="chip" data-make="' + escapeHtml(make) + '"><input type="radio" name="model" value="' + escapeHtml(m) + '"' + (m === keep ? ' checked' : '') + '> ' + escapeHtml(m) + '</label>';
+          }).join('');
+        }).join('');
+      });
+      renderers.forEach(function (fn) { fn(); });
+    }
+    renderModelChips();
+    if (window.MT3UKVehicles) window.MT3UKVehicles.load().then(function () {
+      renderModelChips();
+      // A Version box still empty gets the model's versions now the list is here.
+      document.querySelectorAll('select[data-version-select]').forEach(function (sel) {
+        var c = chosenChip(sel.closest('form'));
+        if (c && !sel.value) MB.fillVersions(sel, c.value, '', chipMake(c));
+      });
     });
 
     // Make first, then Model: the Make chips show that make's model chips (a make with one model picks it),
@@ -3126,6 +3154,8 @@ document.addEventListener('DOMContentLoaded', function () {
       }
       pick.addEventListener('change', function (e) { if (e.target.name === 'makePick') apply(); });
       form.addEventListener('reset', function () { setTimeout(apply, 0); });
+      renderers.push(apply);
+      apply();
     });
 
     var carMakeSelect = document.getElementById('mb-car-make-select');
@@ -3140,8 +3170,31 @@ document.addEventListener('DOMContentLoaded', function () {
     function makeOfCar(car) { return (car && car.make) || MAKE_OF_MODEL[(car && car.model) || ''] || ''; }
     // The Model drop-down offers the chosen make's models: the listed ones, or for another make the vehicle
     // list's (js/vehicle-data.js) plus the car's own, which is kept when saving.
+    // The Tesla, Hyundai and Porsche groups hold the vehicle list's models (see renderModelChips); the list of any
+    // other make is added by showMakeModels.
+    function fillMakeGroups() {
+      var V = window.MT3UKVehicles;
+      Array.prototype.slice.call(carModelSelect.querySelectorAll('optgroup')).forEach(function (g) {
+        var models = modelsFor(g.label);
+        g.innerHTML = models.map(function (m) { return '<option value="' + escapeHtml(m) + '">' + escapeHtml(m) + '</option>'; }).join('');
+      });
+    }
+    // A make the admin hid or removed is not offered here either (a car that already has it keeps showing it).
+    function syncCarMakes() {
+      Array.prototype.slice.call(carMakeSelect.querySelectorAll('option')).forEach(function (o) {
+        if (o.value && !o.hasAttribute('data-extra')) o.hidden = !makeOffered(o.value);
+      });
+    }
+    fillMakeGroups();
+    syncCarMakes();
+    if (window.MT3UKVehicles) window.MT3UKVehicles.load().then(function () {
+      var now = carModelSelect.value;
+      fillMakeGroups();
+      carModelSelect.value = now;
+      syncCarMakes();
+    });
     function showMakeModels(make, keep) {
-      var V = window.MT3UKVehicles, listed = V && V.car && V.car[make] && make !== 'Tesla' && make !== 'Hyundai' && make !== 'Porsche' ? V.car[make] : [];
+      var V = window.MT3UKVehicles, listed = V && V.car && V.car[make] && CHIP_MAKES.indexOf(make) === -1 ? V.car[make] : [];
       Array.prototype.slice.call(carModelSelect.querySelectorAll('option[data-extra]')).forEach(function (o) { o.remove(); });
       Array.prototype.slice.call(carModelSelect.querySelectorAll('optgroup')).forEach(function (g) { g.hidden = g.label !== make; });
       listed.concat(keep && listed.indexOf(keep) === -1 ? [keep] : []).forEach(function (m) {

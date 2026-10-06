@@ -30,12 +30,13 @@ def test_the_starting_list_is_valid():
     cars = {m["name"]: m["models"] for m in data["makes"] if m["type"] == "car"}
     # Every model the garage has always offered is still on the list, under its make.
     assert {"Model 3", "Model Y", "Model S", "Model X"} <= set(cars["Tesla"])
-    assert "Ioniq 5 N" in cars["Hyundai"] and "Ioniq 6 N" in cars["Hyundai"] and "Taycan" in cars["Porsche"]
+    # The Ioniq 5 N and 6 N are variants of the Ioniq 5 and 6, not models of their own.
+    assert {"Ioniq 5", "Ioniq 6"} <= set(cars["Hyundai"]) and "Ioniq 5 N" not in cars["Hyundai"] and "Ioniq 6 N" not in cars["Hyundai"] and "Taycan" in cars["Porsche"]
     assert any(m["type"] == "bike" for m in data["makes"])
     # The variants My Garage has always offered are in the file too, under their make and model.
     versions = {m["name"]: m.get("versions", {}) for m in data["makes"] if m["type"] == "car"}
     assert "Performance" in versions["Tesla"]["Model 3"] and "Plaid" in versions["Tesla"]["Model S"]
-    assert versions["Hyundai"]["Ioniq 5 N"] == ["Ioniq 5 N"] and "4S Cross Turismo" in versions["Porsche"]["Taycan"]
+    assert "N 84 kWh AWD" in versions["Hyundai"]["Ioniq 5"] and "N 84 kWh AWD" in versions["Hyundai"]["Ioniq 6"] and "4S Cross Turismo" in versions["Porsche"]["Taycan"]
     for make in data["makes"]:
         for model, variants in make.get("versions", {}).items():
             assert model in make["models"] and variants and len(set(variants)) == len(variants), (make["name"], model)
@@ -47,7 +48,7 @@ def test_the_worker_routes_and_a_cars_make_model_and_type():
         module = Path(tmp) / "worker.mjs"
         source = (ROOT / "workers" / "vote-worker.js").read_text(encoding="utf-8")
         source = source.replace("import { EmailMessage } from 'cloudflare:email';", "class EmailMessage { constructor(f, t, raw) { this.raw = raw; } }", 1)
-        source += "\nexport { putSidecar, saveCarRecord, cleanCarModel, driveFor, carDrive, driveModelKey };\n"
+        source += "\nexport { putSidecar, saveCarRecord, cleanCarModel, driveFor, carDrive, driveModelKey, ownerKey };\n"
         module.write_text(source, encoding="utf-8")
         result = subprocess.run(
             ["node", str(ROOT / "tests" / "vehicle_worker_check.mjs")],
@@ -92,11 +93,101 @@ def test_the_vehicles_panel_lists_the_file_and_adds_a_make(page):
     assert "makes)" in page.locator("#vehicles-count").inner_text()
     page.locator("#vh-list [data-new]").click()
     page.fill("#vh-name", "Zeekr")
-    page.fill("#vh-models", "001 FR\n7X")
+    page.click("#vh-add-model")
+    page.locator("#vh-mblocks .vh-mname").last.fill("001 FR")
+    page.click("#vh-add-model")
+    page.locator("#vh-mblocks .vh-mname").last.fill("7X")
     page.click("#vh-save")
     expect(page.locator("#vh-note")).to_contain_text("Saved")
     assert state["puts"][-1]["makes"] == [{"name": "Zeekr", "type": "car", "models": ["001 FR", "7X"], "versions": {}}]
     expect(page.locator("#vh-list tbody tr", has_text="Zeekr")).to_contain_text("changed here")
+
+
+def test_a_make_can_be_hidden_and_shown_and_keeps_its_models(page):
+    """The Shown switch on a make hides it from members without losing its models or variants; Tesla's is fixed on."""
+    state = open_panel(page, {})
+    kia = page.locator("#vh-list tr.vh-make", has_text="Kia").first
+    expect(kia.locator(".vh-show")).to_have_attribute("aria-checked", "true")
+    expect(kia.locator(".vh-badge")).to_have_count(0)
+    kia.locator(".vh-show").click()
+    expect(page.locator("#vh-note")).to_contain_text("Kia is hidden from members")
+    assert state["puts"][-1]["hiddenMakes"] == [{"name": "Kia", "type": "car"}]
+    kia = page.locator("#vh-list tr.vh-make", has_text="Kia").first
+    expect(kia.locator(".vh-badge")).to_have_text("Hidden from members")
+    expect(kia.locator(".vh-show")).to_have_attribute("aria-checked", "false")
+    expect(kia).to_contain_text("3 models")
+    assert "hidden)" in page.locator("#vehicles-count").inner_text()
+    # Shown again.
+    kia.locator(".vh-show").click()
+    expect(page.locator("#vh-note")).to_contain_text("Kia is shown to members again")
+    assert state["puts"][-1]["hiddenMakes"] == []
+    # Tesla is always offered in My Garage, so its switch is on and cannot be switched off.
+    tesla = page.locator("#vh-list tr.vh-make", has_text="Tesla").first
+    expect(tesla.locator(".vh-show")).to_be_disabled()
+    # Renaming a hidden make keeps it hidden, under the new name.
+    page.locator("#vh-list tr.vh-make", has_text="Kia").first.locator(".vh-show").click()
+    expect(page.locator("#vh-note")).to_contain_text("hidden")
+    page.locator('#vh-list [data-edit="Kia"][data-type="car"]').click()
+    page.fill("#vh-name", "Kia Motors")
+    page.click("#vh-save")
+    expect(page.locator("#vh-note")).to_contain_text("Saved")
+    assert state["puts"][-1]["hiddenMakes"] == [{"name": "Kia Motors", "type": "car"}]
+
+
+def test_a_removed_make_is_listed_and_can_be_restored(page):
+    """Remove takes a make off the list; it is listed under Removed makes, and Restore brings back the built-in
+    entry with its models and variants. A make added here is deleted for good, with a warning that says so."""
+    state = open_panel(page, {"makes": [{"name": "Zeekr", "type": "car", "models": ["001"], "versions": {}}]})
+    expect(page.locator("#vh-list .vh-removed-row")).to_have_count(0)
+    expect(page.locator("#vh-list")).to_contain_text("No makes have been removed")
+    messages = []
+    page.on("dialog", lambda d: (messages.append(d.message), d.accept()))
+    page.locator('#vh-list [data-remove="Hyundai"][data-type="car"]').click()
+    expect(page.locator("#vh-note")).to_contain_text("Hyundai is removed")
+    assert "Removed makes" in messages[-1] and "hide it instead" in messages[-1]
+    assert {"name": "Hyundai", "type": "car", "removed": True} in state["puts"][-1]["makes"]
+    expect(page.locator('#vh-list tr.vh-make', has_text="Hyundai")).to_have_count(0)
+    row = page.locator("#vh-list .vh-removed-row")
+    expect(row).to_have_count(1)
+    expect(row).to_contain_text("Hyundai")
+    expect(row).to_contain_text("9 models")
+    row.locator("[data-restore]").click()
+    expect(page.locator("#vh-note")).to_contain_text("Hyundai is back")
+    assert not any(m.get("removed") and m["name"] == "Hyundai" for m in state["puts"][-1]["makes"])
+    hyundai = page.locator("#vh-list tr.vh-make", has_text="Hyundai").first
+    expect(hyundai).to_contain_text("9 models")
+    expect(page.locator("#vh-list .vh-removed-row")).to_have_count(0)
+    # A make added here is deleted for good, and the warning says so; it is not listed as removed.
+    page.locator('#vh-list [data-remove="Zeekr"][data-type="car"]').click()
+    expect(page.locator("#vh-note")).to_contain_text("Zeekr is removed")
+    assert "deletes it for good" in messages[-1]
+    expect(page.locator("#vh-list .vh-removed-row")).to_have_count(0)
+    # Removing a hidden make clears its hidden mark.
+    page.locator("#vh-list tr.vh-make", has_text="Kia").first.locator(".vh-show").click()
+    expect(page.locator("#vh-note")).to_contain_text("hidden")
+    page.locator('#vh-list [data-remove="Kia"][data-type="car"]').click()
+    expect(page.locator("#vh-note")).to_contain_text("Kia is removed")
+    assert state["puts"][-1]["hiddenMakes"] == []
+
+
+def test_use_the_built_in_list_drops_a_makes_changes(page):
+    """A make changed on the panel can go back to the file's list: the override is dropped, so the file's models
+    and variants show again. A make straight from the file has no such button."""
+    state = open_panel(page, {"makes": [{"name": "Hyundai", "type": "car", "models": ["Ioniq 5", "Kona N"], "versions": {"Ioniq 5": ["5N"]}}]})
+    hyundai = page.locator("#vh-list tr.vh-make", has_text="Hyundai").first
+    expect(hyundai).to_contain_text("changed here")
+    expect(hyundai).to_contain_text("2 models")
+    page.locator('#vh-list [data-edit="Hyundai"][data-type="car"]').click()
+    page.once("dialog", lambda d: d.accept())
+    page.click("#vh-reset")
+    expect(page.locator("#vh-note")).to_contain_text("Saved")
+    assert state["puts"][-1]["makes"] == []
+    hyundai = page.locator("#vh-list tr.vh-make", has_text="Hyundai").first
+    expect(hyundai).not_to_contain_text("changed here")
+    expect(hyundai).to_contain_text("9 models")
+    expect(hyundai.locator('.vh-model[data-model="Ioniq 9"]')).to_contain_text("4 variants")
+    page.locator('#vh-list [data-edit="Tesla"][data-type="car"]').click()
+    expect(page.locator("#vh-reset")).to_have_count(0)
 
 
 def test_a_make_can_be_taken_off_and_bike_makes_are_kept_apart(page):
@@ -116,16 +207,25 @@ def test_edit_renames_a_make_and_sets_each_models_variants(page):
     state = open_panel(page, {})
     kia = page.locator("#vh-list tr.vh-make", has_text="Kia").first
     expect(kia.locator(".vh-variants")).to_have_count(0)
-    # Tesla's variants from the file show in the list and on the form.
+    expect(kia.locator(".vh-vlist")).to_have_count(0)
+    # Tesla's variants from the file are listed under each model, folded, with the wheels each drives.
     tesla = page.locator("#vh-list tr.vh-make", has_text="Tesla").first
-    expect(tesla.locator(".vh-model", has_text="Model 3").locator(".vh-variants")).to_have_text("11 variants")
+    expect(tesla.locator(".vh-model", has_text="Model 3").locator(".vh-vlist summary")).to_have_text("11 variants")
+    tesla.locator(".vh-model", has_text="Model 3").locator(".vh-vlist summary").click()
+    expect(tesla.locator(".vh-model", has_text="Model 3").locator(".vh-vlist li", has_text="Performance").first).to_contain_text("AWD")
     kia.locator("[data-edit]").click()
     form = page.locator("#vh-form")
-    assert form.locator("[data-versions-for]").evaluate_all("els => els.map(e => e.getAttribute('data-versions-for'))") == ["EV6 GT", "EV6", "EV9"]
-    assert form.locator('[data-versions-for="EV6"]').input_value() == ""
+    assert form.locator(".vh-mname").evaluate_all("els => els.map(e => e.value)") == ["EV6 GT", "EV6", "EV9"]
+    assert form.locator(".vh-vname").count() == 0
     page.fill("#vh-name", "Kia Motors")
-    page.fill('[data-versions-for="EV6"]', "GT-Line\nGT-Line S\n")
-    page.fill('[data-versions-for="EV9"]', "Air")
+    ev6 = form.locator("[data-model-block]").nth(1)
+    ev6.locator(".vh-vadd").click()
+    ev6.locator(".vh-vname").last.fill("GT-Line")
+    ev6.locator(".vh-vadd").click()
+    ev6.locator(".vh-vname").last.fill("GT-Line S")
+    ev9 = form.locator("[data-model-block]").nth(2)
+    ev9.locator(".vh-vadd").click()
+    ev9.locator(".vh-vname").last.fill("Air")
     page.click("#vh-save")
     expect(page.locator("#vh-note")).to_contain_text("Saved")
     makes = state["puts"][-1]["makes"]
@@ -133,7 +233,7 @@ def test_edit_renames_a_make_and_sets_each_models_variants(page):
     assert {"name": "Kia Motors", "type": "car", "models": ["EV6 GT", "EV6", "EV9"], "versions": {"EV6": ["GT-Line", "GT-Line S"], "EV9": ["Air"]}} in makes
     rows = page.locator("#vh-list tr.vh-make")
     expect(rows.filter(has_text="Kia Motors")).to_have_count(1)
-    assert rows.filter(has_text="Kia Motors").locator(".vh-model", has_text="EV6").filter(has_not_text="GT").locator(".vh-variants").inner_text() == "2 variants"
+    assert rows.filter(has_text="Kia Motors").locator('.vh-model[data-model="EV6"] .vh-vlist summary').inner_text() == "2 variants"
     # A make with the new name already listed cannot be renamed onto it.
     rows.filter(has_text="Kia Motors").locator("[data-edit]").click()
     page.fill("#vh-name", "Tesla")
@@ -141,12 +241,68 @@ def test_edit_renames_a_make_and_sets_each_models_variants(page):
     expect(page.locator("#vh-note")).to_contain_text("already on the car list")
 
 
+def test_edit_changes_and_removes_models_and_variants_and_sets_a_variants_wheels(page):
+    """Every model and variant is a row that can be renamed or removed, and a variant has its own driven wheels:
+    left on Worked out it takes what its name says, otherwise FWD, RWD or AWD is saved for it (drives, make|model|version)."""
+    state = open_panel(page, {})
+    page.locator('#vh-list [data-edit="Hyundai"][data-type="car"]').click()
+    form = page.locator("#vh-form")
+    models = form.locator(".vh-mname").evaluate_all("els => els.map(e => e.value)")
+    # The N cars are variants of the Ioniq 5 and 6, not models of their own.
+    assert models[:2] == ["Ioniq 5", "Ioniq 6"] and "Ioniq 5 N" not in models
+    ioniq5 = form.locator("[data-model-block]").first
+    names = ioniq5.locator(".vh-vname").evaluate_all("els => els.map(e => e.value)")
+    assert names[:2] == ["58 kWh RWD", "63 kWh RWD"] and names[-1] == "N 84 kWh AWD" and len(names) == 12
+    # Each variant says what it works out as.
+    n_row = ioniq5.locator(".vh-vrow").last
+    assert n_row.locator(".vh-vdrive option").first.inner_text() == "Worked out: AWD"
+    assert ioniq5.locator(".vh-vrow").first.locator(".vh-vdrive option").first.inner_text() == "Worked out: RWD"
+    # Set one variant's wheels, rename another, remove a third, and remove a whole model.
+    ioniq5.locator(".vh-vrow", has=page.locator('input[value="N Line RWD"]')).locator(".vh-vdrive").select_option("AWD")
+    ioniq5.locator(".vh-vrow").first.locator(".vh-vname").fill("58 kWh Standard RWD")
+    ioniq5.locator(".vh-vrow").nth(1).locator(".vh-vremove").click()
+    assert ioniq5.locator(".vh-vrow").count() == 11
+    form.locator("[data-model-block]", has=page.locator('input[value="Inster"]')).locator(".vh-mremove").click()
+    page.click("#vh-save")
+    expect(page.locator("#vh-note")).to_contain_text("Saved")
+    saved = state["puts"][-1]
+    hyundai = [m for m in saved["makes"] if m["name"] == "Hyundai"][0]
+    assert "Inster" not in hyundai["models"] and "Inster" not in hyundai["versions"]
+    assert hyundai["versions"]["Ioniq 5"][0] == "58 kWh Standard RWD" and "63 kWh RWD" not in hyundai["versions"]["Ioniq 5"]
+    assert saved["drives"] == {"hyundai|ioniq 5|n line rwd": "AWD"}
+    expect(page.locator('#vh-list .vh-model[data-model="Ioniq 5"] .vh-vlist li', has_text="63 kWh RWD")).to_have_count(0)
+    page.locator('#vh-list .vh-model[data-model="Ioniq 5"] .vh-vlist summary').click()
+    expect(page.locator('#vh-list .vh-model[data-model="Ioniq 5"] .vh-vlist li', has_text="N Line RWD")).to_contain_text("AWD (set here)")
+    # Reopened, the set wheels show, and clearing them to Worked out drops the key.
+    page.locator('#vh-list [data-edit="Hyundai"][data-type="car"]').click()
+    row = page.locator("#vh-form [data-model-block]").first.locator(".vh-vrow", has=page.locator('input[value="N Line RWD"]'))
+    assert row.locator(".vh-vdrive").input_value() == "AWD"
+    row.locator(".vh-vdrive").select_option("")
+    page.click("#vh-save")
+    expect(page.locator("#vh-note")).to_contain_text("Saved")
+    assert state["puts"][-1]["drives"] == {}
+
+
+def test_saving_a_make_keeps_the_variant_wheels_of_other_makes(page):
+    state = open_panel(page, {"drives": {"porsche|taycan|4s": "RWD", "hyundai|ioniq 6|n line rwd": "AWD"}})
+    page.locator('#vh-list [data-edit="Hyundai"][data-type="car"]').click()
+    page.click("#vh-save")
+    expect(page.locator("#vh-note")).to_contain_text("Saved")
+    # The Hyundai variant's wheels come back from the form as they were shown, and the Porsche one is untouched.
+    assert state["puts"][-1]["drives"] == {"porsche|taycan|4s": "RWD", "hyundai|ioniq 6|n line rwd": "AWD"}
+    # A variant's own wheels show in the list, marked as set here.
+    page.locator('#vh-list [data-edit="Porsche"][data-type="car"]').click()
+    page.click("#vh-cancel")
+    page.locator('#vh-list .vh-model[data-model="Taycan"] .vh-vlist summary').click()
+    expect(page.locator('#vh-list .vh-model[data-model="Taycan"] .vh-vlist li', has_text="4S").first).to_contain_text("RWD (set here)")
+
+
 def test_edit_sets_a_models_version_rule(page):
     """Under each model's variants box, Required and Free text set the rule for My Garage's Version box; only
     the ones switched on are saved, and switching both off drops the rule."""
     state = open_panel(page, {})
     page.locator('#vh-list [data-edit="Tesla"][data-type="car"]').click()
-    box = page.locator('#vh-form .vh-variant[data-model="Model Y"]')
+    box = page.locator('#vh-form [data-model-block]', has=page.locator('input[value="Model Y"]'))
     expect(box.locator('[data-rule="required"]')).to_have_attribute("aria-checked", "false")
     box.locator('[data-rule="required"]').click()
     box.locator('[data-rule="free"]').click()
@@ -158,7 +314,7 @@ def test_edit_sets_a_models_version_rule(page):
     expect(page.locator('#vh-list .vh-model[data-model="Model 3"]')).not_to_contain_text("required")
     # Reopening shows them on; switching both off drops the rule from the save.
     page.locator('#vh-list [data-edit="Tesla"][data-type="car"]').click()
-    box = page.locator('#vh-form .vh-variant[data-model="Model Y"]')
+    box = page.locator('#vh-form [data-model-block]', has=page.locator('input[value="Model Y"]'))
     expect(box.locator('[data-rule="required"]')).to_have_attribute("aria-checked", "true")
     box.locator('[data-rule="required"]').click()
     box.locator('[data-rule="free"]').click()
@@ -166,6 +322,13 @@ def test_edit_sets_a_models_version_rule(page):
     expect(page.locator("#vh-note")).to_contain_text("Saved")
     tesla = [m for m in state["puts"][-1]["makes"] if m["name"] == "Tesla"][0]
     assert "versionRules" not in tesla
+    # The same switches sit on each model's row of the list and save at once.
+    row = page.locator('#vh-list .vh-model[data-model="Model S"]')
+    row.locator('.vh-rule-row[data-rule="free"]').click()
+    expect(page.locator("#vh-note")).to_contain_text("Saved")
+    tesla = [m for m in state["puts"][-1]["makes"] if m["name"] == "Tesla"][0]
+    assert tesla["versionRules"] == {"Model S": {"free": True}} and "Plaid" in tesla["versions"]["Model S"]
+    expect(page.locator('#vh-list .vh-model[data-model="Model S"] .vh-rule-row[data-rule="free"]')).to_have_attribute("aria-checked", "true")
 
 
 def test_the_members_cars_panel_lists_every_car_and_changes_one(page):
@@ -177,6 +340,8 @@ def test_the_members_cars_panel_lists_every_car_and_changes_one(page):
          "make": "", "model": "", "version": "", "year": "", "vehicleType": "car", "drive": "", "set": False},
         {"carId": "c2", "car": "Flash", "owner": "Aaron", "email": "aaron@example.com", "sessions": 1, "photos": 1, "garageOnly": True,
          "make": "Kia", "model": "EV6 GT", "version": "", "year": 2024, "vehicleType": "car", "drive": "AWD", "set": False},
+        {"carId": "c3", "car": "PROJECT 3 - OLD", "owner": "", "email": "", "sessions": 0, "photos": 2, "livePhotos": 0, "stale": True, "garageOnly": False,
+         "make": "", "model": "", "version": "", "year": "", "vehicleType": "car", "drive": "", "set": False},
     ]
 
     def handler(route):
@@ -186,6 +351,8 @@ def test_the_members_cars_panel_lists_every_car_and_changes_one(page):
             if req.method == "POST":
                 body = json.loads(req.post_data)
                 state["posts"].append(body)
+                if body.get("action") == "remove":
+                    return route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "removed": body["carId"]}), headers=headers)
                 car = dict(cars[0], make=body["make"], model=body["model"], version=body["version"], year=int(body["year"]), drive="AWD", set=body["drive"] == "AWD")
                 return route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "car": car, "stamped": 3, "boards": 1}), headers=headers)
             return route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "cars": cars}), headers=headers)
@@ -196,6 +363,17 @@ def test_the_members_cars_panel_lists_every_car_and_changes_one(page):
     page.goto("/track-admin.html")
     page.locator("#cars-wrap summary").click()
     rows = page.locator("#mc-list tr.mc-row")
+    expect(rows).to_have_count(3)
+    expect(page.locator("#cars-count")).to_have_text("(3)")
+    # A stale record (no owner, no live photos, no sessions) has only Remove, and goes when confirmed.
+    stale = page.locator("#mc-list tr.mc-row.is-stale")
+    expect(stale).to_have_count(1)
+    expect(stale).to_contain_text("Stale")
+    expect(stale.locator(".mc-save")).to_have_count(0)
+    page.once("dialog", lambda d: d.accept())
+    stale.locator(".mc-remove").click()
+    expect(page.locator("#mc-note")).to_contain_text("Removed this stale record")
+    assert state["posts"][-1] == {"carId": "c3", "action": "remove"}
     expect(rows).to_have_count(2)
     expect(page.locator("#cars-count")).to_have_text("(2)")
     first = rows.first
@@ -204,13 +382,15 @@ def test_the_members_cars_panel_lists_every_car_and_changes_one(page):
     expect(first).to_contain_text("no model")
     expect(rows.nth(1).locator(".mc-badge")).to_have_text("Garage only")
     assert rows.nth(1).locator(".mc-model").input_value() == "EV6 GT"
-    # The makes are suggested from the vehicle list, and the models follow the make typed.
-    assert "Tesla" in first.locator(".mc-make + datalist option").evaluate_all("els => els.map(e => e.value)")
-    first.locator(".mc-make").fill("Tesla")
-    assert "Model S" in first.locator(".mc-model + datalist option").evaluate_all("els => els.map(e => e.value)")
-    first.locator(".mc-model").fill("Model S")
-    assert "Plaid" in first.locator(".mc-version + datalist option").evaluate_all("els => els.map(e => e.value)")
-    first.locator(".mc-version").fill("Plaid")
+    # The drop-downs offer the vehicle list's makes, then the make's models, then the model's versions.
+    assert "Tesla" in first.locator(".mc-make option").evaluate_all("els => els.map(e => e.value)")
+    first.locator(".mc-make").select_option("Tesla")
+    assert "Model S" in first.locator(".mc-model option").evaluate_all("els => els.map(e => e.value)")
+    first.locator(".mc-model").select_option("Model S")
+    assert "Plaid" in first.locator(".mc-version option").evaluate_all("els => els.map(e => e.value)")
+    # Type it in opens a text box, and the typed words are what is sent.
+    first.locator(".mc-version").select_option(label="Type it in")
+    first.locator(".mc-version-typed").fill("Plaid")
     first.locator(".mc-year").fill("2022")
     first.locator(".mc-drive").select_option("AWD")
     first.locator(".mc-save").click()
@@ -219,6 +399,8 @@ def test_the_members_cars_panel_lists_every_car_and_changes_one(page):
     row = page.locator('#mc-list tr.mc-row[data-car="c1"]')
     expect(row).not_to_have_class(re.compile("is-target"))
     assert row.locator(".mc-model").input_value() == "Model S"
+    assert row.locator(".mc-version").input_value() == "Plaid"
+    expect(row.locator(".mc-version-typed")).to_have_count(0)
     assert row.locator(".mc-drive").input_value() == "AWD"
     # The filter box narrows the list by owner or car.
     page.fill("#mc-filter", "aaron")

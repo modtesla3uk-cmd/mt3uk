@@ -6,14 +6,16 @@
   limits what can be typed.
 
   MT3UKVehicles.load()    -> promise; fills car and bike ({ make: [models] })
-  MT3UKVehicles.merge(base, extra) -> { car, bike, versions } (the admin panel uses it too)
+  MT3UKVehicles.merge(base, extra, { all }) -> { car, bike, versions, versionRules, hidden } (the admin panel uses it too;
+    hidden makes are left out unless all is true)
   MT3UKVehicles.versionsFor({ make, model }) -> the model's variants for the Version box (edited on the same panel)
   MT3UKVehicles.versionRule({ make, model }) -> { required, free }: whether the Version box must be filled in and
     whether anything can be typed in it (set per model on the same panel; both off unless set)
   MT3UKVehicles.title({ make, model }) -> the name to show, "Kia EV6 GT"
   MT3UKVehicles.modelKey({ make, model }) -> what a leaderboard's model filter matches ("Model 3", "Kia EV6 GT")
   MT3UKVehicles.drive({ make, model, version, year }) -> 'FWD', 'RWD', 'AWD' or '', with the admin's defaults by
-    model (loaded with the library) laid on; driveRule(v) is the rule alone, driveKey(v) a model's key in the defaults
+    model (loaded with the library) laid on, and a variant's own wheels (set in a make's Edit form, key make|model|version)
+    ahead of both; driveRule(v) is the rule alone, driveKey(v) a model's key in the defaults, driveVariantKey(v) a variant's
 */
 (function (root) {
   var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
@@ -27,7 +29,10 @@
   // out.versions. An admin entry without a versions list keeps the file's.
   // Each make can also carry a rule for its models' Version box ({ 'Model 3': { required: true, free: true } }) in
   // out.versionRules, kept like the variants.
-  function merge(base, extra) {
+  // The admin can also hide a make ({ hiddenMakes: [{ name, type }] }): it stays on the Vehicles panel with its
+  // models and variants but is left out of the lists members pick from. merge(base, extra, { all: true }) keeps
+  // hidden makes in (the panel uses it); out.hidden says which they are.
+  function merge(base, extra, opts) {
     base = base || {}; extra = extra || {};
     var maps = { car: {}, bike: {} }, vers = { car: {}, bike: {} }, rules = { car: {}, bike: {} };
     function copyVersions(v) { var o = {}; Object.keys(v || {}).forEach(function (k) { o[k] = (v[k] || []).slice(); }); return o; }
@@ -40,10 +45,17 @@
       if (m.versions) vers[typeOf(m)][m.name] = copyVersions(m.versions);
       if (m.versionRules) rules[typeOf(m)][m.name] = copyRules(m.versionRules);
     });
-    var out = { versions: { car: {}, bike: {} }, versionRules: { car: {}, bike: {} } };
+    var hid = {};
+    (extra.hiddenMakes || []).forEach(function (h) { if (h && h.name) hid[typeOf(h) + '|' + String(h.name).toLowerCase()] = true; });
+    var out = { versions: { car: {}, bike: {} }, versionRules: { car: {}, bike: {} }, hidden: { car: {}, bike: {} } };
     TYPES.forEach(function (t) {
       out[t] = {};
-      Object.keys(maps[t]).sort(function (a, b) { return a.toLowerCase().localeCompare(b.toLowerCase()); }).forEach(function (n) { out[t][n] = maps[t][n]; out.versions[t][n] = vers[t][n] || {}; out.versionRules[t][n] = rules[t][n] || {}; });
+      Object.keys(maps[t]).sort(function (a, b) { return a.toLowerCase().localeCompare(b.toLowerCase()); }).forEach(function (n) {
+        var isHidden = !!hid[t + '|' + n.toLowerCase()];
+        if (isHidden) out.hidden[t][n] = true;
+        if (isHidden && !(opts && opts.all)) return;
+        out[t][n] = maps[t][n]; out.versions[t][n] = vers[t][n] || {}; out.versionRules[t][n] = rules[t][n] || {};
+      });
     });
     return out;
   }
@@ -109,7 +121,8 @@
   var DRIVES = ['FWD', 'RWD', 'AWD'];
   var FIXED_DRIVE = {
     'tesla|model x': 'AWD', 'tesla|cybertruck': 'AWD', 'tesla|roadster': 'RWD',
-    'hyundai|ioniq 5 n': 'AWD', 'hyundai|ioniq 6 n': 'AWD', 'hyundai|ioniq 5': 'RWD', 'hyundai|ioniq 6': 'RWD', 'hyundai|kona n': 'FWD',
+    'hyundai|ioniq 5 n': 'AWD', 'hyundai|ioniq 6 n': 'AWD', 'hyundai|ioniq 5': 'RWD', 'hyundai|ioniq 6': 'RWD', 'hyundai|ioniq 9': 'RWD', 'hyundai|kona n': 'FWD',
+    'hyundai|kona electric': 'FWD', 'hyundai|i20 n': 'FWD', 'hyundai|i30 n': 'FWD', 'hyundai|i30 fastback n': 'FWD', 'hyundai|inster': 'FWD',
     'kia|ev6 gt': 'AWD', 'kia|ev6': 'RWD', 'kia|ev9': 'RWD',
     'porsche|718 cayman': 'RWD', 'porsche|718 boxster': 'RWD',
     'polestar|3': 'AWD', 'polestar|4': 'AWD',
@@ -141,8 +154,9 @@
     if (m2 && !/^(gt|n)$/.test(m2[2])) { model = m2[1]; ver = (m2[2] + ' ' + ver).trim(); }
     return { make: make, model: model, ver: ver, year: Number(v.year) || 0, bike: v.vehicleType === 'bike' };
   }
-  // A model's key in the admin's defaults by model ('tesla|model 3').
+  // A model's key in the admin's defaults by model ('tesla|model 3'), and a variant's own ('tesla|model 3|performance').
   function driveModelKey(v) { var p = driveParts(v); return p.make + '|' + p.model; }
+  function driveVariantKey(v) { var p = driveParts(v); return p.make + '|' + p.model + '|' + p.ver; }
   // What the version (or the year) says about the wheels, or '' when it says nothing: the words in it (Long Range
   // AWD, Rear-Wheel Drive, xDrive, Dual Motor), a Tesla's or a Taycan's trim, a Polestar 2's or an NSX's year.
   function driveSaid(p) {
@@ -185,6 +199,10 @@
   function driveWith(v, defaults) {
     var p = driveParts(v);
     if (p.bike) return '';
+    // A variant of its own (make|model|version) comes first, then what the version says, then the model's default,
+    // then the model alone.
+    var dv = defaults && p.ver ? defaults[p.make + '|' + p.model + '|' + p.ver] : '';
+    if (dv && DRIVES.indexOf(dv) !== -1) return dv;
     var d = defaults ? defaults[p.make + '|' + p.model] : '';
     return driveSaid(p) || (d && DRIVES.indexOf(d) !== -1 ? d : '') || driveModel(p);
   }
@@ -203,6 +221,6 @@
   }
 
   var api = { car: {}, bike: {}, versions: { car: {}, bike: {} }, versionRules: { car: {}, bike: {} }, drives: {}, loaded: false, merge: merge, load: load, title: title, modelKey: modelKey, modelInName: modelInName, versionsFor: versionsFor, versionRule: versionRule, DRIVES: DRIVES,
-    drive: function (v, defaults) { return driveWith(v, defaults === undefined ? api.drives : defaults); }, driveRule: driveFor, driveKey: driveModelKey };
+    drive: function (v, defaults) { return driveWith(v, defaults === undefined ? api.drives : defaults); }, driveRule: driveFor, driveKey: driveModelKey, driveVariantKey: driveVariantKey };
   root.MT3UKVehicles = api;
 })(typeof window !== 'undefined' ? window : globalThis);

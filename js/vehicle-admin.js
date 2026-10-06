@@ -4,10 +4,16 @@
   stored by the worker (KV vehicle-library, /vehicles/admin) on top of it.
   A make has a type, car or bike (BMW and Honda are both). Edit renames a make
   (cars that already use the old name keep it), lists its models and, for each
-  model, its variants (versions, one on each line), offered in My Garage's
-  Version box, with the box's rule for that model: Required (it must be picked)
-  and Free text (a "Type it in" choice lets the member type any version).
-  Both are off unless set (versionRules in the library).
+  model, its variants (versions), offered in My Garage's Version box. Every
+  model is a block with its name, a Remove button, its variants (a row each:
+  name, driven wheels, Remove) and the Version box's rule for that model:
+  Required (it must be picked) and Free text (a "Type it in" choice lets the
+  member type any version); both are off unless set (versionRules).
+  A make can also be hidden (a Shown switch on its row; hiddenMakes in the library): it stays here with its models and
+  variants but members are not offered it. Remove takes a make off the list, and the Removed makes list below the table
+  has Restore, which brings back the built-in entry. A variant's
+  own driven wheels are kept in the library's drives (make|model|version) and
+  win over what its name says; a save re-stamps the cars they reach.
   Each car model is listed with the wheels it drives (FWD, RWD or AWD) as the rule
   works out, and a Default drop-down: a default is kept in the library (drives) and
   set through /track/admin/drive, which stamps the sessions of every vehicle of that
@@ -36,10 +42,18 @@
     return fetch(API + path + (path.indexOf('?') === -1 ? '?' : '&') + 'key=' + encodeURIComponent(key()), opts)
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d.ok = r.ok; return d; }); });
   }
-  function normal(e) { return { makes: (e && e.makes) || [], drives: (e && e.drives) || {} }; }
+  function normal(e) { return { makes: (e && e.makes) || [], drives: (e && e.drives) || {}, hiddenMakes: (e && e.hiddenMakes) || [] }; }
   function typeOf(m) { return m && m.type === 'bike' ? 'bike' : 'car'; }
   function inFile(name, type) { return (base.makes || []).some(function (m) { return m.name === name && typeOf(m) === type; }); }
   function same(m, name, type) { return m.name === name && typeOf(m) === type; }
+  // A hidden make stays here with its models and variants but is not offered to members. Tesla is always offered
+  // in My Garage (the Gallery is for Teslas), so it has no switch.
+  function isHidden(name, type) { return (extra.hiddenMakes || []).some(function (h) { return same(h, name, type); }); }
+  function unhide(name, type) { extra.hiddenMakes = (extra.hiddenMakes || []).filter(function (h) { return !same(h, name, type); }); }
+  function fileModels(name, type) {
+    var m = (base.makes || []).filter(function (x) { return same(x, name, type); })[0];
+    return m ? (m.models || []).length : 0;
+  }
 
   wrap.addEventListener('toggle', function () { if (wrap.open && !merged) load(); });
 
@@ -57,14 +71,15 @@
   }
 
   function refresh() {
-    merged = window.MT3UKVehicles.merge(base, extra);
+    merged = window.MT3UKVehicles.merge(base, extra, { all: true });
     var changed = {};
     (extra.makes || []).forEach(function (m) { changed[typeOf(m) + '|' + m.name] = true; });
     var rows = [];
     ['car', 'bike'].forEach(function (t) {
-      Object.keys(merged[t]).forEach(function (n) { rows.push({ name: n, type: t, models: merged[t][n] }); });
+      Object.keys(merged[t]).forEach(function (n) { rows.push({ name: n, type: t, models: merged[t][n], hidden: !!merged.hidden[t][n] }); });
     });
-    countEl.textContent = '(' + rows.length + ' makes)';
+    var hiddenCount = rows.filter(function (r) { return r.hidden; }).length;
+    countEl.textContent = '(' + rows.length + ' makes' + (hiddenCount ? ', ' + hiddenCount + ' hidden' : '') + ')';
     var models = 0, unknown = 0;
     rows.forEach(function (r) { if (r.type !== 'car') return; r.models.forEach(function (m) { models++; if (!driveOf(r.name, m).drive) unknown++; }); });
     listEl.innerHTML = '<p class="iv-note vh-drive-note">' + models + ' car model' + (models === 1 ? '' : 's') + ', driven wheels ' + (unknown ? 'not known for ' + unknown : 'known for all') + '. ' +
@@ -72,10 +87,26 @@
       '<table class="iv-table tk-table vh-table' + (unknownOnly ? ' is-unknown-only' : '') + '"><thead><tr><th>Make</th><th>Type</th><th>Models and driven wheels</th><th></th></tr></thead><tbody>' + rows.map(function (r) {
       var items = r.models.map(function (m) { return modelHtml(r, m); }).join('');
       var targets = r.type === 'car' && r.models.some(function (m) { return !driveOf(r.name, m).drive; });
-      return '<tr class="vh-make' + (targets ? '' : ' vh-all-known') + '"><td><b>' + esc(r.name) + '</b>' + (changed[r.type + '|' + r.name] ? ' <span class="iv-sub">(changed here)</span>' : '') + '</td><td>' + TYPE_NAME[r.type] + '</td><td>' +
+      var always = r.type === 'car' && r.name === 'Tesla';
+      return '<tr class="vh-make' + (targets ? '' : ' vh-all-known') + (r.hidden ? ' is-hidden' : '') + '"><td><b>' + esc(r.name) + '</b>' + (r.hidden ? ' <span class="vh-badge">Hidden from members</span>' : '') + (changed[r.type + '|' + r.name] ? ' <span class="iv-sub">(changed here)</span>' : '') + '</td><td>' + TYPE_NAME[r.type] + '</td><td>' +
         '<span class="vh-count">' + r.models.length + ' model' + (r.models.length === 1 ? '' : 's') + '</span>' + (items ? '<ul class="vh-models">' + items + '</ul>' : '') + '</td>' +
-        '<td><div class="iv-actions"><button type="button" class="secondary iv-act" data-edit="' + esc(r.name) + '" data-type="' + r.type + '">Edit</button><button type="button" class="danger iv-act" data-remove="' + esc(r.name) + '" data-type="' + r.type + '">Remove</button></div></td></tr>';
-    }).join('') + '</tbody></table><div class="iv-toolbar tk-top"><button type="button" class="secondary" data-new>Add a make</button></div>';
+        '<td><div class="iv-actions"><button type="button" class="secondary iv-act" data-edit="' + esc(r.name) + '" data-type="' + r.type + '">Edit</button><button type="button" class="danger iv-act" data-remove="' + esc(r.name) + '" data-type="' + r.type + '">Remove</button>' +
+        '<button type="button" class="tk-switch vh-show" role="switch" data-show="' + esc(r.name) + '" data-type="' + r.type + '" aria-checked="' + !r.hidden + '" aria-label="Show ' + esc(r.name) + ' to members"' +
+        (always ? ' disabled title="Tesla is always offered in My Garage"' : '') + '><span class="tk-track"></span>Shown</button></div></td></tr>';
+    }).join('') + '</tbody></table><div class="iv-toolbar tk-top"><button type="button" class="secondary" data-new>Add a make</button></div>' + removedHtml();
+  }
+
+  // Makes taken off the list: each can be restored, which brings back the built-in entry with its models and variants.
+  function removedHtml() {
+    var removed = (extra.makes || []).filter(function (m) { return m.removed; });
+    return '<h3 class="sub-head">Removed makes</h3>' + (removed.length
+      ? '<p class="iv-note">Makes taken off the list. Restore brings back the built-in entry with its models and variants (a make you renamed here is listed under its old name).</p>' +
+        '<table class="iv-table tk-table vh-removed"><thead><tr><th>Make</th><th>Type</th><th>Built-in list</th><th></th></tr></thead><tbody>' + removed.map(function (m) {
+          var n = fileModels(m.name, typeOf(m));
+          return '<tr class="vh-removed-row"><td><b>' + esc(m.name) + '</b></td><td>' + TYPE_NAME[typeOf(m)] + '</td><td>' + n + ' model' + (n === 1 ? '' : 's') + '</td>' +
+            '<td><button type="button" class="secondary iv-act" data-restore="' + esc(m.name) + '" data-type="' + typeOf(m) + '">Restore</button></td></tr>';
+        }).join('') + '</tbody></table>'
+      : '<p class="empty">No makes have been removed.</p>');
   }
 
   // A car model's driven wheels: the rule's answer for the model alone, the admin's default if set, and what to say.
@@ -88,21 +119,39 @@
   }
   function variantsOf(r, model) { return ((merged.versions[r.type] || {})[r.name] || {})[model] || []; }
   function ruleOf(r, model) { return ((merged.versionRules[r.type] || {})[r.name] || {})[model] || {}; }
+  // What a variant drives: its own value set here, else what the name and the model's default say.
+  function variantDrive(r, model, variant) {
+    var V = window.MT3UKVehicles, v = { make: r.name, model: model, version: variant };
+    var key = V.driveVariantKey(v), set = (extra.drives || {})[key] || '';
+    return { key: key, set: set, drive: set || V.drive(v, extra.drives) || '' };
+  }
   function variantNote(r, model) {
-    var n = variantsOf(r, model).length, rule = ruleOf(r, model);
-    var words = [];
-    if (n) words.push(n + ' variant' + (n === 1 ? '' : 's'));
+    var rule = ruleOf(r, model), words = [];
     if (rule.required) words.push('version required');
     if (rule.free) words.push('free text');
-    return words.length ? '<span class="iv-sub vh-variants">' + words.join(', ') + '</span>' : '';
+    var vs = variantsOf(r, model), list = '';
+    if (vs.length) {
+      list = '<details class="vh-vlist"><summary>' + vs.length + ' variant' + (vs.length === 1 ? '' : 's') + '</summary><ul>' + vs.map(function (x) {
+        var d = r.type === 'car' ? variantDrive(r, model, x) : null;
+        return '<li><span class="vh-vn">' + esc(x) + '</span>' + (d ? '<span class="iv-sub vh-vd">' + (d.drive ? esc(d.drive) + (d.set ? ' (set here)' : '') : 'not known') + '</span>' : '') + '</li>';
+      }).join('') + '</ul></details>';
+    }
+    return list + (words.length ? '<span class="iv-sub vh-variants">' + words.join(', ') + '</span>' : '');
+  }
+  // The Version box rule switches on a model's row (the same two as on the Edit form); a change saves at once.
+  function ruleSwitches(r, model) {
+    var rule = ruleOf(r, model);
+    return '<span class="vh-rules">' + [['required', 'Required'], ['free', 'Free text']].map(function (x) {
+      return '<button type="button" class="tk-switch vh-rule-row" role="switch" data-rule="' + x[0] + '" aria-checked="' + !!rule[x[0]] + '" aria-label="Version ' + x[1].toLowerCase() + ' for ' + esc(r.name + ' ' + model) + '"><span class="tk-track"></span>' + x[1] + '</button>';
+    }).join('') + '</span>';
   }
   function modelHtml(r, model) {
-    if (r.type !== 'car') return '<li class="vh-model"><span class="vh-model-name">' + esc(model) + '</span>' + variantNote(r, model) + '</li>';
+    if (r.type !== 'car') return '<li class="vh-model" data-make="' + esc(r.name) + '" data-model="' + esc(model) + '"><span class="vh-model-name">' + esc(model) + '</span>' + ruleSwitches(r, model) + variantNote(r, model) + '</li>';
     var d = driveOf(r.name, model);
     return '<li class="vh-model' + (d.drive ? '' : ' is-target') + '" data-make="' + esc(r.name) + '" data-model="' + esc(model) + '"><span class="vh-model-name">' + esc(model) + '</span>' +
       '<select class="vh-drive" aria-label="Driven wheels for ' + esc(r.name + ' ' + model) + '"><option value="">' + (d.rule ? 'Worked out: ' + d.rule : d.drive === 'version' ? 'From the version' : 'Not known') + '</option>' +
       DRIVES.map(function (x) { return '<option value="' + x + '"' + (d.set === x ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select>' +
-      '<span class="iv-sub vh-how">' + (d.set || !d.drive ? esc(d.how) : '') + '</span>' + variantNote(r, model) + '</li>';
+      '<span class="iv-sub vh-how">' + (d.set || !d.drive ? esc(d.how) : '') + '</span>' + ruleSwitches(r, model) + variantNote(r, model) + '</li>';
   }
 
   function openForm(name, type) {
@@ -110,6 +159,7 @@
     var models = existing ? merged[type][name] : [];
     var versions = existing ? (merged.versions[type] || {})[name] || {} : {};
     var rules = existing ? (merged.versionRules[type] || {})[name] || {} : {};
+    var changedHere = existing && inFile(name, type) && (extra.makes || []).some(function (m) { return same(m, name, type); });
     formEl.hidden = false;
     formEl.dataset.edit = existing ? name : '';
     formEl.dataset.type = existing ? type : '';
@@ -117,29 +167,61 @@
       '<label>Make<input type="text" id="vh-name" maxlength="40" value="' + esc(name || '') + '"></label>' +
       (existing ? '<p class="iv-note">Renaming a make renames it on the list; cars that already use the old name keep it.</p>' : '') +
       '<label>Type<select class="field" id="vh-type"' + (existing ? ' disabled' : '') + '><option value="car"' + (type === 'car' || !existing ? ' selected' : '') + '>Car</option><option value="bike"' + (type === 'bike' ? ' selected' : '') + '>Bike</option></select></label>' +
-      '<label>Models, one on each line<textarea id="vh-models" rows="8">' + esc(models.join('\n')) + '</textarea></label>' +
-      '<div class="vh-variants-wrap" id="vh-variants">' + variantsHtml(models, versions, rules) + '</div>' +
-      '<p class="iv-note">Variants are the Version choices My Garage offers for a model (Performance, Long Range AWD). A model added above gets a box once the make is saved. Under each box, <b>Required</b> makes the member pick a version (the box is otherwise optional) and <b>Free text</b> adds a Type it in choice so they can type any version.</p>' +
-      '<div class="iv-toolbar"><button type="button" id="vh-save">Save make</button><button type="button" class="secondary" id="vh-cancel">Cancel</button></div>';
+      '<p class="vh-variants-head">Models and their variants</p>' +
+      '<div class="vh-mblocks" id="vh-mblocks">' + models.map(function (m) { return modelBlock(m, versions[m] || [], rules[m] || {}, existing ? type : 'car', existing ? name : ''); }).join('') + '</div>' +
+      '<div class="iv-toolbar"><button type="button" class="secondary" id="vh-add-model">Add a model</button></div>' +
+      '<p class="iv-note">Each model is a block: change its name, remove it, and below it change or remove each variant (the Version choices My Garage offers, such as Performance or Long Range AWD) with the wheels it drives. A variant left on Worked out takes what its name says (AWD, RWD, 4S and so on) and the model\'s default; picking FWD, RWD or AWD sets that variant. <b>Required</b> makes the member pick a version (the box is otherwise optional) and <b>Free text</b> adds a Type it in choice so they can type any version.</p>' +
+      '<div class="iv-toolbar"><button type="button" id="vh-save">Save make</button><button type="button" class="secondary" id="vh-cancel">Cancel</button>' +
+      (changedHere ? '<button type="button" class="secondary" id="vh-reset">Use the built-in list</button>' : '') + '</div>' +
+      (changedHere ? '<p class="iv-note">This make was changed here. Use the built-in list throws those changes away (models, variants and rules) and shows the list in data/vehicles.json again.</p>' : '');
+    refreshWorked();
     formEl.scrollIntoView({ block: 'nearest' });
   }
-  function variantsHtml(models, versions, rules) {
-    if (!models.length) return '';
-    return '<p class="vh-variants-head">Variants, one on each line</p>' + models.map(function (m) {
-      var rule = (rules || {})[m] || {};
-      return '<div class="vh-variant" data-model="' + esc(m) + '"><label>' + esc(m) + '<textarea data-versions-for="' + esc(m) + '" rows="3">' + esc((versions[m] || []).join('\n')) + '</textarea></label>' +
-        '<div class="vh-rules"><button type="button" class="tk-switch vh-rule" role="switch" data-rule="required" aria-checked="' + !!rule.required + '"><span class="tk-track"></span>Required</button>' +
-        '<button type="button" class="tk-switch vh-rule" role="switch" data-rule="free" aria-checked="' + !!rule.free + '"><span class="tk-track"></span>Free text</button></div></div>';
-    }).join('');
+  // One model: its name, Remove, its variants (a row each) and the Version box rule.
+  function modelBlock(model, variants, rule, type, make) {
+    var V = window.MT3UKVehicles, drives = extra.drives || {};
+    return '<div class="vh-mblock" data-model-block><div class="vh-mhead"><input type="text" class="vh-mname" maxlength="60" value="' + esc(model) + '" placeholder="Model name" aria-label="Model name">' +
+      '<button type="button" class="danger iv-act vh-mremove" aria-label="Remove the model ' + esc(model) + '">Remove model</button></div>' +
+      '<div class="vh-vrows">' + variants.map(function (x) {
+        var set = type === 'car' && make && V ? drives[V.driveVariantKey({ make: make, model: model, version: x })] || '' : '';
+        return variantRow(x, set, type);
+      }).join('') + '</div>' +
+      '<button type="button" class="secondary iv-act vh-vadd">Add a variant</button>' +
+      '<div class="vh-rules"><button type="button" class="tk-switch vh-rule" role="switch" data-rule="required" aria-checked="' + !!rule.required + '"><span class="tk-track"></span>Required</button>' +
+      '<button type="button" class="tk-switch vh-rule" role="switch" data-rule="free" aria-checked="' + !!rule.free + '"><span class="tk-track"></span>Free text</button></div></div>';
+  }
+  // One variant: its name, the wheels it drives (a car's only; its first choice says what it works out as) and Remove.
+  function variantRow(name, set, type) {
+    return '<div class="vh-vrow"><input type="text" class="vh-vname" maxlength="60" value="' + esc(name) + '" placeholder="Variant name" aria-label="Variant name">' +
+      (type === 'bike' ? '' : '<select class="vh-vdrive" aria-label="Driven wheels for this variant"><option value="">Worked out</option>' +
+        DRIVES.map(function (x) { return '<option value="' + x + '"' + (set === x ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select>') +
+      '<button type="button" class="danger iv-act vh-vremove" aria-label="Remove the variant ' + esc(name) + '">Remove</button></div>';
+  }
+  // The first choice of each variant's wheels says what it works out as, for the make and model typed now.
+  function refreshWorked() {
+    var V = window.MT3UKVehicles, make = (document.getElementById('vh-name') || {}).value || '';
+    var defaults = {};
+    Object.keys(extra.drives || {}).forEach(function (k) { if (k.split('|').length === 2) defaults[k] = extra.drives[k]; });
+    formEl.querySelectorAll('[data-model-block]').forEach(function (b) {
+      var model = b.querySelector('.vh-mname').value.trim();
+      b.querySelectorAll('.vh-vrow').forEach(function (row) {
+        var sel = row.querySelector('.vh-vdrive');
+        if (!sel || !V) return;
+        var d = make.trim() && model ? V.drive({ make: make.trim(), model: model, version: row.querySelector('.vh-vname').value.trim() }, defaults) : '';
+        sel.options[0].textContent = d ? 'Worked out: ' + d : 'Worked out: not known';
+      });
+    });
   }
 
-  function put() {
+  function put(done) {
     call('PUT', '/vehicles/admin', { library: extra }).then(function (d) {
       if (!d.ok) { note(d.message || 'Could not save it.', 'error'); return; }
       extra = normal(d.extra);
       formEl.hidden = true;
       refresh();
-      note('Saved. Track sessions and Laps use it straight away.', 'ok');
+      var rs = d.restamped || {};
+      note('Saved. ' + (done ? done + ' ' : '') + 'Track sessions and Laps use it straight away.' + (rs.vehicles ? ' Driven wheels re-stamped on ' + rs.vehicles + ' vehicle' + (rs.vehicles === 1 ? '' : 's') + ' (' + rs.stamped + ' session' + (rs.stamped === 1 ? '' : 's') + (rs.boards ? ', ' + rs.boards + ' leaderboard' + (rs.boards === 1 ? '' : 's') + ' refreshed' : '') + ').' : ''), 'ok');
+      if (rs.vehicles) document.dispatchEvent(new CustomEvent('mt3uk-drive-changed'));
     }).catch(function () { note('Could not save it.', 'error'); });
   }
 
@@ -172,44 +254,138 @@
       listEl.querySelector('.vh-table').classList.toggle('is-unknown-only', unknownOnly);
       return;
     }
+    var rs = e.target.closest('.vh-rule-row');
+    if (rs) {
+      // Save the make as it is, with this one rule switched.
+      var li = rs.closest('.vh-model'), tr = li.closest('tr'), mk = li.getAttribute('data-make'), md = li.getAttribute('data-model');
+      var ty = tr.querySelector('[data-edit]').getAttribute('data-type');
+      var rules = {}, src = (merged.versionRules[ty] || {})[mk] || {};
+      Object.keys(src).forEach(function (m) { rules[m] = { required: !!src[m].required, free: !!src[m].free }; });
+      rules[md] = rules[md] || {};
+      rules[md][rs.getAttribute('data-rule')] = rs.getAttribute('aria-checked') !== 'true';
+      Object.keys(rules).forEach(function (m) { if (!rules[m].required) delete rules[m].required; if (!rules[m].free) delete rules[m].free; if (!Object.keys(rules[m]).length) delete rules[m]; });
+      extra.makes = (extra.makes || []).filter(function (m) { return !same(m, mk, ty); });
+      var entry = { name: mk, type: ty, models: merged[ty][mk].slice(), versions: (merged.versions[ty] || {})[mk] || {} };
+      if (Object.keys(rules).length) entry.versionRules = rules;
+      extra.makes.push(entry);
+      note('Saving...');
+      put();
+      return;
+    }
+    var sh = e.target.closest('.vh-show');
+    if (sh) {
+      if (sh.disabled) return;
+      var hn = sh.getAttribute('data-show'), ht = sh.getAttribute('data-type'), nowShown = sh.getAttribute('aria-checked') === 'true';
+      unhide(hn, ht);
+      if (nowShown) extra.hiddenMakes.push({ name: hn, type: ht });
+      note('Saving...');
+      put(nowShown ? hn + ' is hidden from members: its models and variants are kept here.' : hn + ' is shown to members again.');
+      return;
+    }
+    var rst = e.target.closest('[data-restore]');
+    if (rst) {
+      var qn = rst.getAttribute('data-restore'), qt = rst.getAttribute('data-type');
+      extra.makes = (extra.makes || []).filter(function (m) { return !(same(m, qn, qt) && m.removed); });
+      note('Saving...');
+      put(qn + ' is back, with the built-in models and variants.');
+      return;
+    }
     if (e.target.closest('[data-new]')) return openForm(null);
     if (ed) return openForm(ed.getAttribute('data-edit'), ed.getAttribute('data-type'));
     if (rm) {
       var name = rm.getAttribute('data-remove'), type = rm.getAttribute('data-type');
-      if (!window.confirm('Take ' + name + ' (' + type + ') off the list? Cars that already use it keep it.')) return;
+      var fromFile = inFile(name, type);
+      if (!window.confirm(fromFile
+        ? 'Remove ' + name + ' (' + type + ') from the list? Cars that already use it keep it, and you can bring it back from Removed makes below. To keep its models and variants and only stop members choosing it, hide it instead.'
+        : 'Remove ' + name + ' (' + type + ')? It was added here, so this deletes it for good. To keep its models and variants and only stop members choosing it, hide it instead.')) return;
       extra.makes = (extra.makes || []).filter(function (m) { return !same(m, name, type); });
-      if (inFile(name, type)) extra.makes.push({ name: name, type: type, removed: true });
-      put();
+      unhide(name, type);
+      if (fromFile) extra.makes.push({ name: name, type: type, removed: true });
+      put(name + ' is removed.');
+    }
+  });
+  formEl.addEventListener('input', function (e) {
+    if (e.target.classList.contains('vh-vname') || e.target.classList.contains('vh-mname') || e.target.id === 'vh-name') refreshWorked();
+  });
+  formEl.addEventListener('change', function (e) {
+    if (e.target.id === 'vh-type') {
+      // A bike has no driven wheels: its variants lose that choice (and gain it back for a car).
+      var tp = e.target.value;
+      formEl.querySelectorAll('.vh-vrow').forEach(function (row) {
+        var name = row.querySelector('.vh-vname').value;
+        row.outerHTML = variantRow(name, '', tp);
+      });
+      refreshWorked();
     }
   });
   formEl.addEventListener('click', function (e) {
     var sw = e.target.closest('.vh-rule');
     if (sw) { sw.setAttribute('aria-checked', String(sw.getAttribute('aria-checked') !== 'true')); return; }
+    var bikeForm = (formEl.dataset.edit ? formEl.dataset.type : (document.getElementById('vh-type') || {}).value) === 'bike';
+    if (e.target.closest('.vh-vremove')) { e.target.closest('.vh-vrow').remove(); return; }
+    if (e.target.closest('.vh-mremove')) { e.target.closest('[data-model-block]').remove(); return; }
+    var vadd = e.target.closest('.vh-vadd');
+    if (vadd) {
+      var rows = vadd.closest('[data-model-block]').querySelector('.vh-vrows');
+      rows.insertAdjacentHTML('beforeend', variantRow('', '', bikeForm ? 'bike' : 'car'));
+      refreshWorked();
+      rows.lastElementChild.querySelector('.vh-vname').focus();
+      return;
+    }
+    if (e.target.id === 'vh-add-model') {
+      var blocks = document.getElementById('vh-mblocks');
+      blocks.insertAdjacentHTML('beforeend', modelBlock('', [], {}, bikeForm ? 'bike' : 'car', ''));
+      blocks.lastElementChild.querySelector('.vh-mname').focus();
+      return;
+    }
     if (e.target.id === 'vh-cancel') { formEl.hidden = true; return; }
+    if (e.target.id === 'vh-reset') {
+      var rn = formEl.dataset.edit, rt = formEl.dataset.type;
+      if (!window.confirm('Go back to the built-in list for ' + rn + '? The models, variants and rules changed here are thrown away.')) return;
+      extra.makes = (extra.makes || []).filter(function (m) { return !same(m, rn, rt); });
+      put();
+      return;
+    }
     if (e.target.id !== 'vh-save') return;
     var name = document.getElementById('vh-name').value.trim();
     var type = formEl.dataset.edit ? formEl.dataset.type : document.getElementById('vh-type').value;
     if (!name) { note('A make needs a name.', 'error'); return; }
     var was = formEl.dataset.edit || '', renaming = !!was && was !== name;
     if ((!was || renaming) && merged[type][name]) { note(name + ' is already on the ' + type + ' list. Edit it instead.', 'error'); return; }
-    var models = document.getElementById('vh-models').value.split('\n').map(function (m) { return m.trim(); }).filter(Boolean);
-    // Each model's variants from its box; a model that is new to the list has none yet.
-    var versions = {};
-    formEl.querySelectorAll('[data-versions-for]').forEach(function (ta) {
-      var list = ta.value.split('\n').map(function (v) { return v.trim(); }).filter(Boolean);
-      if (list.length && models.indexOf(ta.getAttribute('data-versions-for')) !== -1) versions[ta.getAttribute('data-versions-for')] = list;
+    // The models, each with its variants, rule and the wheels set on a variant, from the blocks.
+    var models = [], versions = {}, versionRules = {}, variantDrives = {}, seenModel = {};
+    var V = window.MT3UKVehicles;
+    formEl.querySelectorAll('[data-model-block]').forEach(function (b) {
+      var m = b.querySelector('.vh-mname').value.trim();
+      if (!m || seenModel[m.toLowerCase()]) return;
+      seenModel[m.toLowerCase()] = true;
+      models.push(m);
+      var list = [], seenV = {};
+      b.querySelectorAll('.vh-vrow').forEach(function (row) {
+        var v = row.querySelector('.vh-vname').value.trim();
+        if (!v || seenV[v.toLowerCase()]) return;
+        seenV[v.toLowerCase()] = true;
+        list.push(v);
+        var sel = row.querySelector('.vh-vdrive');
+        if (sel && sel.value && type === 'car') variantDrives[V.driveVariantKey({ make: name, model: m, version: v })] = sel.value;
+      });
+      if (list.length) versions[m] = list;
+      var rule = {};
+      b.querySelectorAll('.vh-rule').forEach(function (sw) { if (sw.getAttribute('aria-checked') === 'true') rule[sw.getAttribute('data-rule')] = true; });
+      if (Object.keys(rule).length) versionRules[m] = rule;
     });
+    if (renaming && isHidden(was, type)) { unhide(was, type); extra.hiddenMakes.push({ name: name, type: type }); }
     extra.makes = (extra.makes || []).filter(function (m) { return !same(m, name, type) && !(renaming && same(m, was, type)); });
     // The old name goes: taken off the file's list, or simply dropped from the changes made here.
     if (renaming && inFile(was, type)) extra.makes.push({ name: was, type: type, removed: true });
-    // Each model's Version box rule from its switches; only the ones set are kept.
-    var versionRules = {};
-    formEl.querySelectorAll('.vh-variant[data-model]').forEach(function (box) {
-      var m = box.getAttribute('data-model'), rule = {};
-      if (models.indexOf(m) === -1) return;
-      box.querySelectorAll('.vh-rule').forEach(function (b) { if (b.getAttribute('aria-checked') === 'true') rule[b.getAttribute('data-rule')] = true; });
-      if (Object.keys(rule).length) versionRules[m] = rule;
+    // The wheels set on this make's variants are replaced by the ones in the form; other makes' stay.
+    var makePart = V.driveKey({ make: name, model: 'x' }).split('|')[0], drives = {};
+    Object.keys(extra.drives || {}).forEach(function (k) {
+      var parts = k.split('|');
+      if (!(parts.length === 3 && parts[0] === makePart)) drives[k] = extra.drives[k];
     });
+    Object.keys(variantDrives).forEach(function (k) { drives[k] = variantDrives[k]; });
+    extra.drives = drives;
     var entry = { name: name, type: type, models: models, versions: versions };
     if (Object.keys(versionRules).length) entry.versionRules = versionRules;
     extra.makes.push(entry);

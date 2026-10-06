@@ -767,3 +767,89 @@ ok(T.fmtLap(99.786) === '1:39.79' && T.niceDate('2026-05-28') === '28 May 2026',
   const two = T.analyse(th, bare, {});
   ok(two.type === 'track' && two.venueId === 'th-new', 'two laps round a new circuit with no lap lengths are a track day, not a sprint (' + two.type + ', ' + two.venueId + ')');
 }
+// Picking the layout: a listed layout the member names is used whatever its length, and "a different layout" leaves the listed ones out.
+{
+  const lib2 = JSON.parse(JSON.stringify(lib));
+  const tv = lib2.venues.find(v => v.id === 'thruxton');
+  tv.layouts.push({ id: 'short', name: 'Short Circuit', length: 1800, startLine: tv.layouts[0].startLine, sectors: [], corners: [] });
+  const rd2 = T.read(vbo, 'RaceBox_Track_Session.vbo');
+  let a0 = T.analyse(rd2, lib2, {});
+  ok(a0.layoutId === 'main', 'with no pick the layout comes from the lap length');
+  let a1 = T.analyse(T.read(vbo, 'RaceBox_Track_Session.vbo'), lib2, { layoutId: 'short' });
+  ok(a1.layoutId === 'short' && a1.layout === 'Short Circuit' && a1.officialLines === true && a1.laps.length === 2, 'a layout the member picks is used, whatever its listed length');
+  let a2 = T.analyse(T.read(vbo, 'RaceBox_Track_Session.vbo'), lib2, { newLayout: true });
+  ok(!a2.layoutId && a2.laps.length === 2 && !a2.officialLines, 'a different layout is timed on the member\'s own line and matches none of the listed ones');
+}
+// A layout with no length is not trusted over one whose length is known, and a different layout never takes a guessed line.
+{
+  const lib3 = JSON.parse(JSON.stringify(lib));
+  const tv3 = lib3.venues.find(v => v.id === 'thruxton');
+  const base = T.analyse(T.read(vbo, 'RaceBox_Track_Session.vbo'), lib3, {});
+  tv3.layouts[0].length = Math.round(base.laps[0].dist * 1.08);
+  tv3.layouts.unshift({ id: 'nolength', name: 'No length', startLine: tv3.layouts[0].startLine, sectors: [], corners: [] });
+  const b = T.analyse(T.read(vbo, 'RaceBox_Track_Session.vbo'), lib3, {});
+  ok(b.layoutId === 'main', 'a layout with no length does not beat one whose length is within 8% (' + b.layoutId + ')');
+  const rd4 = T.read(vbo, 'RaceBox_Track_Session.vbo'); rd4.startLine = null;
+  const c = T.analyse(rd4, lib3, { newLayout: true });
+  ok(c.needsStartLine === true && !c.layoutId && /new layout|this layout/.test(c.problem), 'a different layout with no line from the file asks the member to mark one, not a guessed line');
+  ok(Array.isArray(c.suggestedLine) && c.suggestedLine.length === 2 && c.laps.length === 0, 'and offers the line found from the trace as a suggestion only, with no laps timed on it');
+  const rd5 = T.read(vbo, 'RaceBox_Track_Session.vbo'); rd5.startLine = null;
+  const d5 = T.analyse(rd5, lib3, {});
+  ok(!d5.needsStartLine, 'a track day with no layout pick is still timed from the lap line it finds');
+}
+// A line the member marked is used even when the line in the file would give a lap more.
+{
+  const lib5 = JSON.parse(JSON.stringify(lib));
+  const rdA = T.read(vbo, 'RaceBox_Track_Session.vbo');
+  const fileRes = T.analyse(T.read(vbo, 'RaceBox_Track_Session.vbo'), lib5, { newLayout: true });
+  const pr = T.projector(rdA.points[0].lat, rdA.points[0].lng);
+  let found = null;
+  for (let i = 40; i < rdA.points.length - 40 && !found; i += 25) {
+    const p0 = pr.xy(rdA.points[i].lat, rdA.points[i].lng), p1 = pr.xy(rdA.points[i + 8].lat, rdA.points[i + 8].lng);
+    const dx = p1[0] - p0[0], dy = p1[1] - p0[1], L = Math.hypot(dx, dy) || 1, nx = -dy / L * 12, ny = dx / L * 12;
+    const line = [pr.ll(p0[0] + nx, p0[1] + ny), pr.ll(p0[0] - nx, p0[1] - ny)];
+    const r2 = T.analyse(T.read(vbo, 'RaceBox_Track_Session.vbo'), lib5, { newLayout: true, startLine: line });
+    if (r2.laps && r2.laps.length && r2.laps.length < fileRes.laps.length) found = { line, r2 };
+  }
+  ok(found && found.r2.startLineFromMember === true && JSON.stringify(found.r2.startLine) === JSON.stringify(found.line), 'the member\'s own line is used even when the file\'s line would time more laps');
+}
+// A picked layout whose saved line the file never crosses is timed on another line, and says how far away that line is.
+{
+  const lib6 = JSON.parse(JSON.stringify(lib));
+  const tv6 = lib6.venues.find(v => v.id === 'thruxton');
+  tv6.layouts.push({ id: 'far', name: 'Far Layout', length: 3790, startLine: [[tv6.lat + 0.02, tv6.lng + 0.02], [tv6.lat + 0.0201, tv6.lng + 0.0201]], sectors: [], corners: [] });
+  const f = T.analyse(T.read(vbo, 'RaceBox_Track_Session.vbo'), lib6, { layoutId: 'far' });
+  ok(f.layoutId === 'far' && f.layoutLineGap > 1000 && !f.officialLines, 'a picked layout whose saved line the file does not cross says how far that line is (' + f.layoutLineGap + ' m)');
+  const g = T.analyse(T.read(vbo, 'RaceBox_Track_Session.vbo'), lib6, {});
+  ok(g.layoutLineGap === undefined, 'and a layout that is crossed says nothing');
+}
+// A recording that starts right on the line crosses it once: for a layout the member picked, that start counts as the crossing.
+{
+  const full = T.analyse(T.read(vbo, 'RaceBox_Track_Session.vbo'), lib, {});
+  const l1 = full.laps[0];
+  const cut = () => { const r = T.read(vbo, 'RaceBox_Track_Session.vbo'); r.points = r.points.filter(p => p.t >= l1.start + 0.2 && p.t <= l1.start + l1.time + 0.5); return r; };
+  const picked = T.analyse(cut(), lib, { layoutId: 'main' });
+  ok(picked.layoutId === 'main' && picked.officialLines === true && picked.laps.length === 1 && Math.abs(picked.laps[0].time - (l1.time - 0.2)) < 1, 'a file that starts on the line of a layout the member picked is timed on that line (lap ' + (picked.laps[0] && picked.laps[0].time) + ' of ' + l1.time + ')');
+  const unpicked = T.analyse(cut(), lib, {});
+  ok(unpicked.layoutId === 'main' && unpicked.officialLines === true && unpicked.laps.length === 1, 'and with no pick the same file goes on that layout too, so a re-time puts it there');
+  const lib8 = JSON.parse(JSON.stringify(lib)); lib8.venues.find(v => v.id === 'thruxton').layouts[0].length = 1000;
+  const wrongLen = T.analyse(cut(), lib8, {});
+  ok(!wrongLen.layoutId, 'but not when the lap is nowhere near that layout\'s length');
+}
+// A file with no lap from the line back to itself (it starts and stops part way round) still belongs to the layout it drove:
+// picked, or the only layout it fits, with the laps timed from the trace and the layout's line kept as the line of record.
+{
+  const full = T.analyse(T.read(vbo, 'RaceBox_Track_Session.vbo'), lib, {});
+  const l1 = full.laps[0], l2 = full.laps[1], official = lib.venues.find(v => v.id === 'thruxton').layouts[0].startLine;
+  const cut = () => { const r = T.read(vbo, 'RaceBox_Track_Session.vbo'); r.points = r.points.filter(p => p.t >= l1.start + 5 && p.t <= l1.start + l1.time + l2.time - 5); return r; };
+  const picked = T.analyse(cut(), lib, { layoutId: 'main' });
+  ok(picked.layoutId === 'main' && picked.lapsFromTrace === true && JSON.stringify(picked.startLine) === JSON.stringify(official) && !picked.autoLine && picked.laps.length >= 1 && picked.layoutLineGap === undefined, 'a picked layout takes a file that has no lap from its line back to itself, laps timed from the trace');
+  const found = T.analyse(cut(), lib, {});
+  ok(found.layoutId === 'main' && found.lapsFromTrace === true, 'and so does the only layout the drive fits when none is picked, so a re-time puts it there');
+  const libLen = JSON.parse(JSON.stringify(lib)); libLen.venues.find(v => v.id === 'thruxton').layouts[0].length = 1000;
+  const wrong = T.analyse(cut(), libLen, {});
+  ok(!wrong.layoutId && !wrong.lapsFromTrace, 'but not when the laps are nowhere near its length');
+  const libFar = JSON.parse(JSON.stringify(lib)); const tvf = libFar.venues.find(v => v.id === 'thruxton'); tvf.layouts[0].startLine = [[tvf.lat + 0.02, tvf.lng + 0.02], [tvf.lat + 0.0201, tvf.lng + 0.0201]];
+  const farRes = T.analyse(cut(), libFar, {});
+  ok(!farRes.lapsFromTrace && !farRes.layoutId, 'or when the car never passed its line');
+}

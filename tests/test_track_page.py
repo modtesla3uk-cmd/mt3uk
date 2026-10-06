@@ -203,11 +203,13 @@ class FakeWorker:
             self.sessions.pop(sid, None)
             self.index = [s for s in self.index if s["id"] != sid]
         elif path == "/track/counts":
-            counts = {}
+            counts, cars = {}, {}
             for s in self.index:
                 if s.get("privacy") in ("build", "board") and s.get("venueId") and s.get("layoutId"):
                     k = "track-board:%s:%s" % (s["venueId"], s["layoutId"])
-                    counts[k] = counts.get(k, 0) + 1
+                    # One for each car, its fastest: what the board shows.
+                    cars.setdefault(k, set()).add(s.get("carId", "car1"))
+                    counts[k] = len(cars[k])
             leaders = {}
             for k in counts:
                 v, l = k.split(":")[1:3]
@@ -246,8 +248,15 @@ class FakeWorker:
                 layout = {"id": "course", "name": body.get("organizer") or body["name"], "length": body.get("lapLength") or 0, "startLine": body["startLine"]}
                 if body["kind"] == "sprint":
                     layout["finishLine"] = body["finishLine"]
-                lib["venues"].append({"id": vid, "name": body["name"], "type": "sprint" if body["kind"] == "sprint" else "circuit", "lat": body["lat"], "lng": body["lng"], "radius": 2000, "review": True, "layouts": [layout]})
-                data = {"success": True, "venueId": vid, "layoutId": "course", "relinked": 0, "library": lib}
+                existing = [v for v in lib["venues"] if v["id"] == body.get("venueId")]
+                if existing and body.get("layoutName"):
+                    # A layout added to a track that is already listed, named by the member.
+                    lid = re.sub(r"[^a-z0-9-]+", "-", body["layoutName"].lower()).strip("-")
+                    existing[0]["layouts"].append({"id": lid, "name": body["layoutName"], "length": body.get("lapLength") or 0, "startLine": body["startLine"]})
+                    data = {"success": True, "venueId": existing[0]["id"], "layoutId": lid, "relinked": 0, "library": lib}
+                else:
+                    lib["venues"].append({"id": vid, "name": body["name"], "type": "sprint" if body["kind"] == "sprint" else "circuit", "lat": body["lat"], "lng": body["lng"], "radius": 2000, "review": True, "layouts": [layout]})
+                    data = {"success": True, "venueId": vid, "layoutId": "course", "relinked": 0, "library": lib}
         elif path == "/track/admin/course" and req.method == "POST" and not req.headers.get("x-admin-viewer"):
             status, data = 401, {"success": False, "message": "Unauthorised"}
         elif path == "/track/admin/course" and req.method == "POST":
@@ -299,6 +308,174 @@ def test_signed_out_explains_and_lists_leaderboards(page):
     expect(page).to_have_url(re.compile(r"leaderboards\.html$"))
     expect(page.locator(".lb-hero h1")).to_have_text("Leaderboard")
     expect(page.locator(".tp-board-card").first).to_contain_text("Thruxton")
+
+
+def _thruxton_with_a_second_layout(page):
+    """The track list with a second Thruxton layout (same line, a different length), as Abingdon has two."""
+    def handler(route):
+        d = json.loads((ROOT / "data" / "tracks.json").read_text(encoding="utf-8"))
+        v = [x for x in d["venues"] if x["id"] == "thruxton"][0]
+        v["layouts"].append({"id": "short", "name": "Short Circuit", "length": 1800, "startLine": v["layouts"][0]["startLine"], "sectors": [], "corners": []})
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(d))
+    page.route(re.compile(r".*/data/tracks\.json.*"), handler)
+
+
+def test_the_member_can_pick_the_layout_and_sees_the_start_finish_line_before_saving(page):
+    _thruxton_with_a_second_layout(page)
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    chips = page.locator("#tp-layout-field [data-layout] .chip")
+    expect(chips).to_have_text(["Thruxton", "Short Circuit", "A different layout"])
+    # The layout found from the GPS is picked already.
+    expect(page.locator("#tp-layout-field .chip.is-on")).to_have_text("Thruxton")
+    # The start and finish line is on a map before saving, with the way to ask for a change.
+    expect(page.locator("#tp-line-map")).to_be_attached()
+    expect(page.locator("#tp-line-preview")).to_contain_text("Request Edit Map")
+    page.wait_for_function("() => document.querySelectorAll('#tp-line-map .tv-line, #tp-line-map line').length > 0")
+    # Picking the other listed layout times the session on it, whatever its listed length.
+    chips.nth(1).click()
+    expect(page.locator("#tp-layout-field .chip.is-on")).to_have_text("Short Circuit")
+    expect(page.locator("#tp-result .tp-notice.is-ok").first).to_contain_text("Short Circuit")
+    chips.nth(0).click()
+    expect(page.locator("#tp-result .tp-notice.is-ok").first).not_to_contain_text("Short Circuit")
+
+
+def test_a_member_can_add_a_different_layout_to_a_listed_circuit(page):
+    _thruxton_with_a_second_layout(page)
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    page.locator("#tp-layout-field [data-v='__new']").click()
+    # Never the lines of a listed layout: this file has its own line, so that is used and can be moved.
+    expect(page.locator("#tp-result .tp-notice.is-ok").first).not_to_contain_text("official")
+    expect(page.locator(".tp-move-lines")).to_be_visible()
+    expect(page.locator("#tp-addnow-box")).to_contain_text("This layout at Thruxton is not in the MT3UK track list yet")
+    page.locator("#tp-addnow").click()
+    # The new layout needs a name, which is asked for before saving.
+    expect(page.locator("#tp-layout-name")).to_be_visible()
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator("#tp-layout-name")).to_have_attribute("aria-invalid", "true")
+    assert fake.courses_added == []
+    page.fill("#tp-layout-name", "Wing Loop")
+    page.get_by_role("button", name="Save session").click()
+    page.wait_for_function("() => true")
+    for _ in range(50):
+        if fake.courses_added:
+            break
+        page.wait_for_timeout(100)
+    assert fake.courses_added and fake.courses_added[0]["layoutName"] == "Wing Loop" and fake.courses_added[0]["venueId"] == "thruxton", fake.courses_added
+
+
+def test_a_different_layout_in_a_file_with_no_line_offers_the_line_found_to_confirm(page):
+    _thruxton_with_a_second_layout(page)
+    text = FIXTURE.read_bytes().decode("latin1")
+    import re as _re
+    text = _re.sub(r"\[laptiming\]\r?\n[^\r\n]*\r?\n", "", text)
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", files=[{"name": "RaceBox_Track_Session.vbo", "mimeType": "text/plain", "buffer": text.encode("latin1")}])
+    expect(page.locator("#tp-layout-field")).to_be_visible()
+    page.locator("#tp-layout-field [data-v='__new']").click()
+    # The line found from the laps is on the map with its markers, and has to be confirmed before it is used.
+    expect(page.locator("#tp-tap")).to_be_attached()
+    expect(page.locator(".tp-confirm")).to_be_visible()
+    expect(page.locator("#tp-layout-field")).to_contain_text("We found the line from your laps")
+    page.locator(".tp-confirm").click()
+    expect(page.locator("#tp-addnow-box")).to_contain_text("This layout at Thruxton is not in the MT3UK track list yet")
+
+
+def test_adding_a_layout_does_not_carry_over_to_the_next_file(page):
+    """The layout pick, its name and the add switch belong to the file they were set for."""
+    _thruxton_with_a_second_layout(page)
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    page.locator("#tp-layout-field [data-v='__new']").click()
+    page.locator("#tp-addnow").click()
+    page.fill("#tp-layout-name", "Wing Loop")
+    expect(page.locator("#tp-addnow")).to_have_attribute("aria-checked", "true")
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-layout-field .chip.is-on")).to_have_text("Thruxton")
+    expect(page.locator("#tp-layout-name")).to_have_count(0)
+    expect(page.locator("#tp-addnow")).to_have_count(0)
+
+
+def test_a_new_layout_cannot_be_given_the_name_of_one_that_is_listed(page):
+    _thruxton_with_a_second_layout(page)
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    page.locator("#tp-layout-field [data-v='__new']").click()
+    page.locator("#tp-addnow").click()
+    page.fill("#tp-layout-name", "short circuit")
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator("#tp-layout-name")).to_have_attribute("aria-invalid", "true")
+    expect(page.locator("#tp-status")).to_contain_text("already listed")
+    assert fake.courses_added == []
+
+
+def test_adding_a_layout_with_several_files_sends_no_second_request_and_times_each_on_it(page, tmp_path):
+    """Several files re-time each one at save. With a layout just added, each is timed on it, and the admin is not sent a
+    second 'layout not recognised' request (approving that added a layout named after the circuit)."""
+    _thruxton_with_a_second_layout(page)
+    fake = FakeWorker(earlier=False)
+    open_page(page, fake)
+    a, b = tmp_path / "RaceBox Track Session one.vbo", tmp_path / "RaceBox Track Session two.vbo"
+    a.write_bytes(FIXTURE.read_bytes())
+    b.write_bytes(FIXTURE.read_bytes())
+    page.get_by_role("link", name="Add a session", exact=True).click()
+    page.set_input_files("#tp-file", [str(a), str(b)])
+    page.locator("#tp-layout-field [data-v='__new']").click()
+    page.locator("#tp-addnow").click()
+    page.fill("#tp-layout-name", "Wing Loop")
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator("#tp-saved")).to_contain_text("2 sessions saved")
+    assert len(fake.courses_added) == 1 and fake.courses_added[0]["layoutName"] == "Wing Loop", fake.courses_added
+    assert fake.requests == [], fake.requests
+    assert all(x["session"].get("layoutId") == "wing-loop" for x in fake.saved), [x["session"].get("layoutId") for x in fake.saved]
+
+
+def test_more_sessions_can_be_added_to_a_day_from_the_day_and_from_a_session(page):
+    fake = FakeWorker(earlier=False)
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    page.get_by_role("button", name="Save session").click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
+    # From the session itself.
+    expect(page.locator("#settings [data-day-add]")).to_have_text("Add another session from this day")
+    page.go_back()
+    into_track(page, "Thruxton")
+    # From the day at the track.
+    page.locator(".tp-daygroup [data-day-add]").click()
+    expect(page).to_have_url(re.compile(r"add=1&car=car1&day=2026-05-28&layout=main"))
+    expect(page.locator("#tp-day-intro")).to_contain_text("Adding another session to")
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-day-hint")).to_contain_text("Adding a session to")
+    expect(page.locator("#tp-day-hint")).not_to_have_class(re.compile("is-warn"))
+    expect(page.locator("#tp-date")).to_have_value("2026-05-28")
+
+
+def test_a_session_added_to_a_day_starts_on_that_days_layout(page):
+    _thruxton_with_a_second_layout(page)
+    open_page(page, FakeWorker(earlier=False), path="/track.html?add=1&car=car1&day=2026-05-28&layout=short")
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-layout-field .chip.is-on")).to_have_text("Short Circuit")
+    expect(page.locator("#tp-result .tp-notice.is-ok").first).to_contain_text("Short Circuit")
+    # The member can still pick another layout.
+    page.locator("#tp-layout-field .chip").first.click()
+    expect(page.locator("#tp-layout-field .chip.is-on")).to_have_text("Thruxton")
+
+
+def test_a_file_from_another_day_keeps_its_own_date_and_says_so(page):
+    open_page(page, FakeWorker(earlier=False), path="/track.html?add=1&car=car1&day=2026-05-01")
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-day-hint")).to_have_class(re.compile("is-warn"))
+    expect(page.locator("#tp-day-hint")).to_contain_text("This file is from")
+    expect(page.locator("#tp-date")).to_have_value("2026-05-28")
 
 
 def test_add_a_session_from_the_racebox_file(page):
@@ -1422,6 +1599,101 @@ def test_leaderboard_track_list_can_be_sorted(page):
         expect(names.first).to_have_text("Thruxton")
 
 
+def _two_busy_tracks(fake):
+    fake.index = [dict(EARLIER, id="sh1", privacy="board", bestTime=101.2), dict(day_session("sh2", "10:00", 90.0, 3), privacy="board")]
+    fake.sessions = {}
+
+
+def _venues(page):
+    return page.eval_on_selector_all(".lb-venues .lb-cardwrap[data-venue]", "els => els.map(e => e.dataset.venue)")
+
+
+def test_leaderboard_tracks_can_be_moved_hidden_and_the_layout_reset(page):
+    fake = FakeWorker()
+    _two_busy_tracks(fake)
+    open_page(page, fake, "/leaderboards.html", signed_in=False)
+    start = _venues(page)
+    assert sorted(start) == ["castle-combe", "thruxton"], start
+    # Hold a track and drag it above the other: the order is kept, as "My layout".
+    first = page.locator(".lb-cardwrap").nth(0).bounding_box()
+    second = page.locator(".lb-cardwrap").nth(1).bounding_box()
+    page.mouse.move(second["x"] + 40, second["y"] + 40)
+    page.mouse.down()
+    page.mouse.move(second["x"] + 40, second["y"] + 20, steps=3)
+    for step in range(1, 9):
+        page.mouse.move(first["x"] + 40, second["y"] + 20 + (first["y"] + 10 - second["y"] - 20) * step / 8)
+        page.wait_for_timeout(20)
+    page.mouse.up()
+    page.wait_for_timeout(150)
+    moved = _venues(page)
+    assert moved == list(reversed(start)), (start, moved)
+    expect(page).to_have_url(re.compile(r"/leaderboards\.html$"))
+    expect(page.locator("#lb-sort")).to_have_value("mine")
+    expect(page.locator("#lb-sort option").first).to_have_text("My layout")
+    # It is remembered.
+    page.reload()
+    assert _venues(page) == moved
+    # Hide one: it leaves the list, and can be shown again.
+    gone = moved[0]
+    page.locator('.lb-cardwrap[data-venue="%s"] [data-hide]' % gone).click()
+    assert _venues(page) == moved[1:]
+    expect(page.locator("[data-showhidden]")).to_have_text("Show 1 hidden track")
+    page.locator("[data-showhidden]").click()
+    expect(page.locator('.lb-cardwrap.is-hid[data-venue="%s"]' % gone)).to_be_visible()
+    page.locator('.lb-cardwrap.is-hid [data-hide]').click()
+    assert _venues(page)[0] == gone
+    # Reset puts the list back as it was.
+    page.locator('.lb-cardwrap[data-venue="%s"] [data-hide]' % gone).click()
+    page.locator("[data-resetlayout]").click()
+    assert _venues(page) == start
+    expect(page.locator("#lb-sort")).to_have_value("busy")
+    expect(page.locator("[data-resetlayout]")).to_have_count(0)
+
+
+def _board_entry(i):
+    return {"carId": "c%d" % i, "sessionId": "s%d" % i, "car": "Car %d" % i, "model": "Model 3", "owner": "Driver %d" % i, "time": 90.0 + i, "date": "2026-07-14", "conditions": "Dry", "tyres": "AD08R", "sessions": 1}
+
+
+def test_a_long_board_folds_everything_below_tenth_place_behind_an_arrow(page):
+    fake = FakeWorker()
+    fake.boards["/track/board:thruxton:main"] = [_board_entry(i) for i in range(12)]
+    open_page(page, fake, "/leaderboards.html?board=thruxton:main", signed_in=False)
+    expect(page.locator(".lb-row")).to_have_count(12)
+    visible = page.locator(".lb-row:visible")
+    expect(visible).to_have_count(10)
+    fold = page.locator("[data-fold]")
+    expect(fold).to_have_text("Show positions 11 to 12")
+    expect(fold).to_have_attribute("aria-expanded", "false")
+    fold.click()
+    expect(visible).to_have_count(12)
+    expect(fold).to_have_text("Hide positions 11 to 12")
+    fold.click()
+    expect(visible).to_have_count(10)
+
+
+def test_a_board_of_ten_or_fewer_has_no_arrow(page):
+    fake = FakeWorker()
+    fake.boards["/track/board:thruxton:main"] = [_board_entry(i) for i in range(10)]
+    open_page(page, fake, "/leaderboards.html?board=thruxton:main", signed_in=False)
+    expect(page.locator(".lb-row:visible")).to_have_count(10)
+    expect(page.locator("[data-fold]")).to_have_count(0)
+
+
+def test_leaderboard_list_fits_a_phone_with_the_hide_buttons(page):
+    page.set_viewport_size({"width": 360, "height": 740})
+    fake = FakeWorker()
+    _two_busy_tracks(fake)
+    open_page(page, fake, "/leaderboards.html", signed_in=False)
+    expect(page.locator(".lb-cardwrap").first).to_be_visible()
+    assert overflow_width(page) <= 0
+    box = page.locator(".lb-cardwrap").first.bounding_box()
+    hide = page.locator(".lb-hide").first.bounding_box()
+    assert hide["width"] >= 44 and hide["height"] >= 44 and hide["x"] + hide["width"] <= box["x"] + box["width"] + 1, (box, hide)
+    # The count is not covered by the hide button.
+    count = page.locator(".lb-cardwrap .tp-board-name .tp-small").first.bounding_box()
+    assert count["x"] + count["width"] <= hide["x"] + 1, (count, hide)
+
+
 def test_leaderboards_list_busy_tracks_first_with_counts(page):
     fake = FakeWorker()
     shared = dict(EARLIER, id="sh1", privacy="build")
@@ -1430,7 +1702,9 @@ def test_leaderboards_list_busy_tracks_first_with_counts(page):
     open_page(page, fake, "/leaderboards.html", signed_in=False)
     first = page.locator(".tp-board-card").first
     expect(first).to_contain_text("Thruxton")
-    expect(first).to_contain_text("2 sessions")
+    # One session for each car (its fastest), not every session the car has shared.
+    expect(first).to_contain_text("1 session")
+    expect(first).not_to_contain_text("2 sessions")
     expect(first).to_have_class(re.compile("is-busy"))
     # The top three show on the card, with position, name and time, without opening the track.
     expect(first.locator(".lb-podium li").first).to_contain_text("Rich")
@@ -1829,6 +2103,29 @@ def test_saving_keeps_the_readings_and_the_type_can_be_changed_after(page):
     page.get_by_role("button", name="Save changes").click()
     expect(page.locator("#settings [data-retype] .chip.is-on")).to_have_text("Track day")
     assert fake.sessions["new1"]["type"] == "track" and len(fake.sessions["new1"]["laps"]) == 2
+
+
+def test_the_layout_of_a_saved_session_can_be_changed(page):
+    """On the session page the member can pick another layout of the circuit; the saved readings are timed on it again."""
+    _thruxton_with_a_second_layout(page)
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    page.get_by_role("button", name="Save session").click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
+    chips = page.locator("#tp-relayout [data-relayout] .chip")
+    expect(chips).to_have_text(["Thruxton", "Short Circuit"])
+    expect(page.locator("#tp-relayout .chip.is-on")).to_have_text("Thruxton")
+    chips.nth(1).click()
+    expect(page.get_by_role("heading", name="Change the layout")).to_be_visible()
+    expect(page.locator("#tp-layout-field .chip.is-on")).to_have_text("Short Circuit")
+    # Adding a different layout is for the Add page, not here.
+    expect(page.locator("#tp-layout-field [data-v='__new']")).to_have_count(0)
+    page.get_by_role("button", name="Save changes").click()
+    expect(page.get_by_role("heading", name="Session settings")).to_be_visible()
+    assert fake.replaced[-1]["session"]["layoutId"] == "short", fake.replaced
+    expect(page.locator("#tp-relayout .chip.is-on")).to_have_text("Short Circuit")
 
 
 def test_a_session_saved_without_readings_cannot_change_type(page):
@@ -3616,6 +3913,27 @@ FOLLOW_HARNESS = """async ([steps]) => {
 }"""
 
 
+def test_map_labels_cannot_be_selected_when_the_map_is_dragged(page):
+    """Dragging a session map used to select the corner numbers, which showed as blue boxes."""
+    open_page(page, FakeWorker())
+    r = page.evaluate("""() => {
+      const V = window.MT3UKTrackView;
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      const host = document.createElement('div');
+      host.style.cssText = 'width:400px;height:420px;position:fixed;left:0;top:0;background:#fff;z-index:99999';
+      svg.setAttribute('class', 'tv-chart');
+      host.appendChild(svg); document.body.appendChild(host);
+      const trace = [];
+      for (let i = 0; i <= 300; i++) { const d = i * 5; trace.push([d, d / 40, d, 60 * Math.sin(d / 300), 40, 0, 0]); }
+      V.map(svg, trace, { mono: true, lines: [{ trace, color: '#2a78d6' }], corners: [{ n: 5, x: 300, y: 40, name: '' }, { n: 7, x: 900, y: 30, name: '' }] });
+      const texts = [...svg.querySelectorAll('text')].map(t => getComputedStyle(t).userSelect);
+      window.getSelection().selectAllChildren(host);
+      return { texts, svg: getComputedStyle(svg).userSelect, selected: window.getSelection().toString() };
+    }""")
+    assert r["texts"] and all(u == "none" for u in r["texts"]), r
+    assert r["svg"] == "none" and r["selected"] == "", r
+
+
 def test_follow_glides_between_both_cars_and_the_leader(page):
     open_page(page, FakeWorker())
     r = page.evaluate(FOLLOW_HARNESS, [[
@@ -3625,9 +3943,10 @@ def test_follow_glides_between_both_cars_and_the_leader(page):
         ["close again", 200, 190, 700, 1.2],
     ]])
     w = r["both"]["viewW"]
-    # Close together: centred between the two, both in view, no arrows.
+    # Close together: centred between the two, both in view. The car behind still carries its gap beside its dot;
+    # the leader has nothing.
     assert r["both"]["after"]["toMid"] < 0.5, r["both"]
-    assert r["both"]["edgeA"] is None and r["both"]["edgeB"] is None
+    assert r["both"]["edgeA"] is None and r["both"]["edgeB"] == "B, 1.9 s behind", r["both"]
     # The slower car drops back: the view glides to the leader, not one jump.
     assert r["apart"]["now"]["toLeader"] > 0.25 * w, r["apart"]
     assert r["apart"]["after"]["toLeader"] < 0.5, r["apart"]
@@ -3637,10 +3956,10 @@ def test_follow_glides_between_both_cars_and_the_leader(page):
     assert r["apart"]["edgeA"] is None
     # A gap just under the limit doesn't flick straight back to both.
     assert r["near the limit"]["after"]["toLeader"] < 0.5, r["near the limit"]
-    # Close again: back between the two, gliding, and the arrow goes.
+    # Close again: back between the two, gliding, and the arrow goes (the gap stays beside the car behind).
     assert r["close again"]["after"]["toMid"] < 0.5, r["close again"]
     assert r["close again"]["after"]["maxStep"] < 0.2 * w
-    assert r["close again"]["edgeB"] is None
+    assert r["close again"]["edgeB"] == "B, 1.2 s behind", r["close again"]
 
 
 def test_a_glide_finishes_while_playback_is_paused(page):

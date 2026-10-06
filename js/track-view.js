@@ -37,6 +37,8 @@
   }
   function text(parent, x, y, s, attrs) {
     var t = el('text', Object.assign({ x: x, y: y }, attrs || {}), parent);
+    // Dragging or double tapping a map must never select its labels (the corner numbers turned into blue boxes).
+    t.style.userSelect = 'none'; t.style.webkitUserSelect = 'none';
     t.textContent = s;
     return t;
   }
@@ -95,6 +97,7 @@
   function map(svg, trace, opts) {
     opts = opts || {};
     svg.innerHTML = '';
+    svg.style.userSelect = 'none'; svg.style.webkitUserSelect = 'none'; svg.style.webkitTouchCallout = 'none';
     // opts.fill: { w, h } to fill a box exactly (full screen), else a 640 wide map.
     var W = opts.fill ? Math.max(200, Math.round(opts.fill.w)) : Math.min(640, width(svg, 600)), H = opts.fill ? Math.max(160, Math.round(opts.fill.h)) : Math.round(W * (opts.ratio || (opts.tall ? 0.62 : 0.7)));
     svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
@@ -282,7 +285,8 @@
       zoom.centreOn(t[0], t[1]);
     }
     // A car off the edge of a zoomed-in map: an arrow in its colour at the
-    // edge, pointing to it, with the gap.
+    // edge, pointing to it, with the gap. The car that is behind keeps its gap
+    // beside its dot while it is in view too, so the gap is always on the map.
     var gapS = null;
     function edgeArrow(color, letter) {
       var m = marker(0, 0);
@@ -304,7 +308,22 @@
       var v = zoom && seen();
       // The same point for both (one lap only): one arrow is enough.
       var same = other && pos && other[2] === pos[2] && other[3] === pos[3] && m === edgeB;
-      if (!q || !v || !zoom || zoom.k() <= 1.01 || same || (q[0] >= v.x && q[0] <= v.x + v.w && q[1] >= v.y && q[1] <= v.y + v.h)) { m.g.setAttribute('visibility', 'hidden'); return; }
+      if (!q || !v || !zoom || same) { m.g.setAttribute('visibility', 'hidden'); return; }
+      var inView = zoom.k() <= 1.01 || (q[0] >= v.x && q[0] <= v.x + v.w && q[1] >= v.y && q[1] <= v.y + v.h);
+      var behind = gapS !== null && posA && posB && m.letter === (gapS >= 0 ? 'B' : 'A');
+      if (inView) {
+        if (!behind) { m.g.setAttribute('visibility', 'hidden'); return; }
+        // In view: no arrow, just the pill above the car's dot.
+        var gl = m.letter + ', ' + Math.abs(gapS).toFixed(1) + ' s behind', gw = gl.length * 7.2 + 16;
+        moveMarker(m, q[0], q[1]);
+        m.rot.setAttribute('visibility', 'hidden');
+        m.label.textContent = gl;
+        m.pill.setAttribute('x', (-gw / 2).toFixed(1)); m.pill.setAttribute('y', -36); m.pill.setAttribute('width', gw.toFixed(1));
+        m.label.setAttribute('x', 0); m.label.setAttribute('y', -21.5); m.label.setAttribute('text-anchor', 'middle');
+        m.g.setAttribute('visibility', 'visible');
+        return;
+      }
+      m.rot.setAttribute('visibility', 'visible');
       var cx = v.x + v.w / 2, cy = v.y + v.h / 2, dx = q[0] - cx, dy = q[1] - cy, pad = 18 / k;
       var sc = Math.min(dx ? (v.w / 2 - pad) / Math.abs(dx) : Infinity, dy ? (v.h / 2 - pad) / Math.abs(dy) : Infinity);
       moveMarker(m, cx + dx * sc, cy + dy * sc);

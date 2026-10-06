@@ -130,7 +130,7 @@ const id2 = r.body.session.id;
 r = await call('GET', '/track/board?venue=thruxton&layout=main');
 ok(r.body.entries.length === 1 && Math.abs(r.body.entries[0].time - 99.786) < 0.01 && r.body.entries[0].sessions === 2, 'one place per car, its fastest, with how many sessions it has here');
 r = await call('GET', '/track/counts');
-ok(r.body.counts['track-board:thruxton:main'] === 2, 'session count for the track list');
+ok(r.body.counts['track-board:thruxton:main'] === 1, 'the track list counts the board\'s sessions: one for each car, its fastest (the car has two shared)');
 r = await call('DELETE', '/track/session?id=' + id1, undefined, 'tok-b');
 ok(r.status === 404, 'others cannot delete it');
 r = await call('DELETE', '/track/session?id=' + id1, undefined, 'tok-a');
@@ -810,6 +810,54 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   reqs = (await call('GET', '/track/admin/requests?key=secret')).body.requests;
   ok(reqs.find(x => x.id === addedReq.id).done === 'approved', 'and the request is done');
 }
+// A member adds a different layout to a track that is already listed, and names it.
+{
+  const second = { kind: 'circuit', name: 'Blyton Park', venueId: 'blyton-park', layoutName: 'Short Loop', startLine: [[51.3005, -0.7005], [51.3007, -0.7007]], lapLength: 1500, lat: 51.3, lng: -0.7, outline: [[51.3, -0.7], [51.301, -0.701]] };
+  r = await call('POST', '/track/courses', second, 'tok-a');
+  const sv = r.body.library && r.body.library.venues.find(v => v.id === 'blyton-park');
+  ok(r.status === 200 && r.body.venueId === 'blyton-park' && r.body.layoutId === 'short-loop', 'a member adds a second layout to a listed track ' + JSON.stringify(r.body).slice(0, 120));
+  ok(sv && sv.layouts.length === 2 && sv.layouts.some(l => l.id === 'course') && sv.layouts.some(l => l.id === 'short-loop' && l.name === 'Short Loop' && l.length === 1500), 'it is named by the member and the first layout is untouched');
+  r = await call('POST', '/track/courses', Object.assign({}, second, { startLine: [[51.3010, -0.7010], [51.3012, -0.7012]], layoutName: '' }), 'tok-a');
+  ok(r.status === 200 && r.body.layoutId === 'blyton-park', 'with no layout name it is named for the track, as before');
+}
+// A named layout is never filled into the one line-less layout a track was listed with.
+{
+  await call('PUT', '/track/admin/tracks?key=secret', { venue: { id: 'abing-test', name: 'Abing Test', type: 'circuit', lat: 51.68, lng: -1.29, radius: 1500, layouts: [{ id: 'abing-test', name: 'Abing Test', length: 2000 }] } });
+  const named = { kind: 'circuit', name: 'Abing Test', venueId: 'abing-test', layoutName: 'Short Loop', startLine: [[51.6801, -1.2901], [51.6803, -1.2903]], lapLength: 1900, lat: 51.68, lng: -1.29, outline: [[51.68, -1.29], [51.681, -1.291]] };
+  r = await call('POST', '/track/courses', named, 'tok-a');
+  const av = r.body.library && r.body.library.venues.find(v => v.id === 'abing-test');
+  ok(r.status === 200 && r.body.layoutId === 'short-loop' && av && av.layouts.length === 2, 'a named layout is added beside the line-less one, not filled into it ' + JSON.stringify(r.body).slice(0, 140));
+  ok(av && av.layouts.find(l => l.id === 'abing-test' && !l.startLine && l.name === 'Abing Test') && av.layouts.find(l => l.id === 'short-loop' && l.name === 'Short Loop' && l.startLine), 'the first layout keeps its name and has no line; the new one has the member\'s name and line');
+  r = await call('POST', '/track/courses', Object.assign({}, named, { layoutName: 'Abing Test', startLine: [[51.6805, -1.2905], [51.6807, -1.2907]], lapLength: 2000 }), 'tok-a');
+  const av2 = r.body.library && r.body.library.venues.find(v => v.id === 'abing-test');
+  ok(r.status === 200 && r.body.layoutId === 'abing-test' && av2.layouts.length === 2 && av2.layouts.find(l => l.id === 'abing-test').startLine, 'a layout with no line and that very name is filled in');
+}
+// The admin's Make official on a session that is on a listed layout with no line fills that layout in; it adds none.
+{
+  await call('PUT', '/track/admin/tracks?key=secret', { venue: { id: 'fill-test', name: 'Fill Test', type: 'circuit', lat: 51.7, lng: -1.3, radius: 1500, layouts: [{ id: 'fill-layout', name: 'Fill Layout', length: 2000 }] } });
+  const body = { kind: 'circuit', name: 'Fill Test', venueId: 'fill-test', layoutId: 'fill-layout', startLine: [[51.7001, -1.3001], [51.7003, -1.3003]], lapLength: 2000, lat: 51.7, lng: -1.3 };
+  r = await call('POST', '/track/admin/course?key=secret', body);
+  const fv = r.body.library && r.body.library.venues.find(v => v.id === 'fill-test');
+  ok(r.status === 200 && r.body.layoutId === 'fill-layout' && fv.layouts.length === 1 && fv.layouts[0].startLine && fv.layouts[0].name === 'Fill Layout', 'Make official fills in the layout the session is on and adds no layout ' + JSON.stringify(r.body).slice(0, 120));
+  r = await call('POST', '/track/admin/course?key=secret', Object.assign({}, body, { startLine: [[51.7005, -1.3005], [51.7007, -1.3007]] }));
+  ok(r.status === 400 && /already has official lines/.test(r.body.message), 'and it will not overwrite a layout that has official lines without replace');
+}
+// A member who has just added a course themselves is not sent into the admin's list a second time for the same track.
+{
+  const before = (await call('GET', '/track/admin/requests?key=secret')).body.requests.length;
+  r = await call('POST', '/track/requests', { kind: 'circuit', name: 'Abing Test', venueId: 'abing-test', note: 'Layout not recognised', startLine: [[51.6801, -1.2901], [51.6803, -1.2903]], lapLength: 1900, lat: 51.68, lng: -1.29 }, 'tok-a');
+  const after = (await call('GET', '/track/admin/requests?key=secret')).body.requests.length;
+  ok(r.status === 200 && after === before, 'a request for a track the member just added themselves is not created a second time');
+}
+// A layout name that is already listed (with a line) is refused rather than added twice.
+{
+  const dup = { kind: 'circuit', name: 'Abing Test', venueId: 'abing-test', layoutName: 'short loop', startLine: [[51.6810, -1.2910], [51.6812, -1.2912]], lapLength: 1900, lat: 51.68, lng: -1.29, outline: [[51.68, -1.29], [51.681, -1.291]] };
+  r = await call('POST', '/track/courses', dup, 'tok-a');
+  ok(r.status === 400 && /already listed/.test(r.body.message), 'a layout name that is already listed is refused, not added a second time ' + JSON.stringify(r.body).slice(0, 120));
+  r = await call('GET', '/track/tracks');
+  const dv = r.body.extra.venues.find(v => v.id === 'abing-test');
+  ok(dv.layouts.length === 2, 'and the list still has two layouts');
+}
 // The admin makes the lines they just set the official ones from the Add a session page.
 {
   const course = { kind: 'sprint', name: 'Quick Course', organizer: 'A1', startLine: [[51.3, -0.8], [51.3002, -0.8002]], finishLine: [[51.31, -0.81], [51.3102, -0.8102]], lapLength: 700, lat: 51.3, lng: -0.8 };
@@ -845,6 +893,23 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   ok(r.status === 200, 'saving the session with its lines where they were is fine');
   r = await call('PUT', '/track/session', { id: lid, session: moved() }, 'tok-a');
   ok(r.status === 403 && r.body.needsLineAccess === true, 'a member saving moved lines is refused (' + r.status + ')');
+// Changing a saved session's layout moves its lines to that layout's official line, which is allowed; other moved lines are not.
+{
+  const lib0 = (await call('GET', '/track/admin/tracks?key=secret')).body.library.venues.find(v => v.id === session.venueId);
+  const withB = JSON.parse(JSON.stringify(lib0));
+  const lineB = moved(0.0003).startLine;
+  withB.layouts.push({ id: 'layout-b', name: 'Layout B', length: 3800, startLine: lineB });
+  await call('PUT', '/track/admin/tracks?key=secret', { venue: withB });
+  const toB = moved(0.0003); toB.layoutId = 'layout-b'; toB.layout = 'Layout B';
+  r = await call('PUT', '/track/session', { id: lid, session: toB }, 'tok-a');
+  ok(r.status === 200 && r.body.session.layoutId === 'layout-b', 'a member can change the layout of a saved session to one with its own official line ' + JSON.stringify(r.body).slice(0, 100));
+  const farB = moved(0.01); farB.layoutId = 'layout-b'; farB.layout = 'Layout B';
+  r = await call('PUT', '/track/session', { id: lid, session: farB }, 'tok-a');
+  ok(r.status === 403 && r.body.needsLineAccess === true, 'but not onto a line that is not the layout\'s official one');
+  r = await call('PUT', '/track/session', { id: lid, session }, 'tok-a');
+  ok(r.status === 200 && r.body.session.layoutId === session.layoutId, 'and back again');
+  await call('PUT', '/track/admin/tracks?key=secret', { venue: lib0 });
+}
   r = await call('GET', '/track/lines/status?id=' + lid, undefined, 'tok-a');
   ok(r.status === 200 && r.body.state === 'none' && r.body.proposal === null, 'no request yet');
   r = await call('GET', '/track/lines/status?id=' + lid, undefined, 'tok-b');

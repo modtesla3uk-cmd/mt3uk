@@ -1043,28 +1043,51 @@
 
     // Which start line: the layout's, else the one in the file, else the member's.
     var layouts = venue && venue.layouts && venue.type === 'circuit' ? venue.layouts : [];
+    // The member can say which layout it was (opts.layoutId: that one is used, whatever its length) or that it was
+    // none of those listed (opts.newLayout: only their own line is used, so the layout can be added).
+    var forced = opts.layoutId ? layouts.filter(function (l) { return l.id === opts.layoutId; })[0] || null : null, newLayout = !!opts.newLayout && !forced;
     var choice = null, minGap = 20;
     var candidates = [];
-    if (!opts.ownLines) layouts.forEach(function (l) { if (l.startLine && l.startLine.length === 2) candidates.push({ layout: l, line: l.startLine, sectors: l.sectors || [] }); });
+    if (!opts.ownLines && !newLayout) layouts.forEach(function (l) { if (forced && l !== forced) return; if (l.startLine && l.startLine.length === 2) candidates.push({ layout: l, line: l.startLine, sectors: l.sectors || [] }); });
     if (opts.startLine) candidates.push({ layout: null, line: opts.startLine, sectors: [], own: true });
     if (rd.startLine) candidates.push({ layout: null, line: rd.startLine, sectors: [], fromFile: true });
+    // A recording that starts or stops right on the line crosses it once, not twice, so the lap at that end is missed. For a
+    // listed layout's line, the file's first or last reading standing within 12 m of it counts as that crossing (a layout
+    // not picked by the member must still match the lap length, so a start near some other layout's line does not count).
+    function withEdgeCrossings(cr, line) {
+      var a = proj.xy(line[0][0], line[0][1]), b = proj.xy(line[1][0], line[1][1]), dx = b[0] - a[0], dy = b[1] - a[1], L2 = dx * dx + dy * dy || 1;
+      function near(p) { var t = Math.max(0, Math.min(1, ((p.x - a[0]) * dx + (p.y - a[1]) * dy) / L2)); return Math.hypot(p.x - (a[0] + dx * t), p.y - (a[1] + dy * t)) <= 12; }
+      function at(p, k) { return { i: k, t: p.t, d: p.d, x: p.x, y: p.y, v: p.v, la: p.la || 0, lo: p.lo || 0 }; }
+      var first = pts[0], last = pts[pts.length - 1], out = cr.slice();
+      if (near(first) && (!out.length || out[0].t - first.t > minGap)) out.unshift(at(first, 1));
+      else if (near(last) && (!out.length || last.t - out[out.length - 1].t > minGap)) out.push(at(last, pts.length - 1));
+      return out;
+    }
     function evalLine(c) {
       var cr = crossings(pts, proj, c.line, minGap);
+      if (cr.length < 2 && c.layout) cr = withEdgeCrossings(cr, c.line);
       if (cr.length < 2) return;
       var laps = buildLaps(pts, cr);
       var med = median(laps.map(function (l) { return l.dist; }));
-      var lengthScore = c.layout && c.layout.length ? Math.abs(med - c.layout.length) / c.layout.length : 0.05;
-      if (c.layout && lengthScore > 0.12) return;
+      // A listed layout with no length is not trusted over one whose length is known: it counts as the worst fit that is
+      // still accepted, so it only wins when no layout's length says otherwise.
+      var lengthScore = c.layout ? (c.layout.length ? Math.abs(med - c.layout.length) / c.layout.length : 0.12) : 0.05;
+      if (c.layout && lengthScore > 0.12 && !forced) return;
       var score = laps.length - lengthScore * 10 + (c.layout ? 1 : 0);
       if (!choice || score > choice.score) choice = { c: c, cr: cr, score: score, med: med };
     }
     // A listed layout's own start line wins; the file's or the member's line is only a fallback.
     candidates.filter(function (c) { return c.layout; }).forEach(evalLine);
-    if (!choice) candidates.filter(function (c) { return !c.layout; }).forEach(evalLine);
+    // The member's own line comes before the one in the file: it is the one they marked, and it must not lose to the file's
+    // line because that happens to give a lap more.
+    if (!choice) candidates.filter(function (c) { return !c.layout && c.own; }).forEach(evalLine);
+    if (!choice) candidates.filter(function (c) { return !c.layout && !c.own; }).forEach(evalLine);
     // A track day needs no start line from the member: with none from the
     // track, the file or the member, the lap line is found from the trace (the
     // place on it that the car crosses most often, and fastest).
-    if (!choice && type === 'track') {
+    // A different layout (newLayout) is never given a line from the trace: it becomes the official line of a new
+    // layout, so it is the file's own line or one the member marks, not a guess.
+    if (!choice && type === 'track' && !newLayout) {
       var auto = autoLapLine(pts, proj, minGap);
       if (auto) choice = { c: { layout: null, line: auto.line, sectors: [], auto: true }, cr: auto.cr, score: auto.cr.length, med: median(buildLaps(pts, auto.cr).map(function (l) { return l.dist; })) };
     }
@@ -1073,12 +1096,33 @@
     if (!choice) {
       session.laps = [];
       session.needsStartLine = true;
+      // A different layout with no line in the file: the busiest, fastest crossing of the trace is offered to the member
+      // to confirm or move (the main straight, usually), never taken as the new layout's line without them.
+      if (newLayout && type === 'track') { var sug = autoLapLine(pts, proj, minGap); if (sug) session.suggestedLine = sug.line; }
       session.trace = { outline: outline(pts) };
-      session.problem = venue ? 'We know ' + venue.name + ' but not its start line yet. Tap where the start and finish line is on your trace.' : 'We don\'t know this track yet. Tap where the start and finish line is on your trace and we\'ll add the track.';
+      session.problem = newLayout ? 'Tap where the start and finish line of this layout is on your trace. It becomes the line for the new layout.' : venue ? 'We know ' + venue.name + ' but not its start line yet. Tap where the start and finish line is on your trace.' : 'We don\'t know this track yet. Tap where the start and finish line is on your trace and we\'ll add the track.';
       return session;
     }
-    var layout = choice.c.layout;
-    if (!layout && layouts.length) {
+    var layout = choice.c.layout || forced;
+    // How near the car came to a layout's saved start line, in metres: a file that passes the line only once has no lap from
+    // the line back to itself (the logger started or stopped part way round), so it cannot be timed on that line.
+    function lineGapTo(l) {
+      var fm = proj.xy((l.startLine[0][0] + l.startLine[1][0]) / 2, (l.startLine[0][1] + l.startLine[1][1]) / 2), md = Infinity;
+      for (var qi = 0; qi < pts.length; qi += 2) { var dd = Math.hypot(pts[qi].x - fm[0], pts[qi].y - fm[1]); if (dd < md) md = dd; }
+      return Math.round(md);
+    }
+    var lineMissed = null, fromTrace = false;
+    if (forced && forced.startLine && forced.startLine.length === 2 && choice.c.layout !== forced) lineMissed = lineGapTo(forced);
+    // Still the same layout: the car passed its line (within 15 m) and the laps are its length. The picked layout, or the
+    // only layout that fits, takes the session, the laps staying timed from the point on the trace they were found at.
+    if (!choice.c.layout && !newLayout && !opts.ownLines) {
+      var fitsByTrace = function (l) {
+        return l.startLine && l.startLine.length === 2 && lineGapTo(l) <= 15 && (l.length ? Math.abs(choice.med - l.length) / l.length <= 0.12 : l === forced);
+      };
+      var fit = forced ? (fitsByTrace(forced) ? forced : null) : (function () { var f = layouts.filter(fitsByTrace); return f.length === 1 ? f[0] : null; })();
+      if (fit) { layout = fit; fromTrace = true; }
+    }
+    if (!layout && layouts.length && !newLayout) {
       // A start line from the file or the member: match the layout by lap length.
       layout = layouts.reduce(function (best, l) {
         if (l.startLine) return best;
@@ -1088,8 +1132,11 @@
       layout = layout && layout.l;
     }
     if (layout) { session.layoutId = layout.id; session.layout = layout.name; }
+    if (lineMissed !== null && !fromTrace) session.layoutLineGap = lineMissed;
     session.startLine = choice.c.line;
     if (choice.c.own) session.startLineFromMember = true; else if (choice.c.auto) session.autoLine = true; else if (choice.c.layout) session.officialLines = true;
+    // On the layout by its path: its own line is the line of record, and the laps say they were timed from the trace.
+    if (fromTrace) { session.lapsFromTrace = true; session.startLine = layout.startLine; delete session.autoLine; delete session.startLineFromMember; }
     var sectorCr = layout && layout.sectors && layout.sectors.length ? layout.sectors.map(function (s) { return crossings(pts, proj, s, minGap); }) : null;
     var laps = buildLaps(pts, choice.cr, sectorCr);
     return timedTail(session, pts, laps, layout, proj, origin);

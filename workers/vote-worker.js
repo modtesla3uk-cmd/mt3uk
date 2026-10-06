@@ -7168,6 +7168,8 @@ function cleanTrackSession(s, library) {
   out.startLineFromMember = !!s.startLineFromMember;
   // The admin accepted the member's own lines for this session: a re-time keeps them, whatever the course's are.
   if (s.linesAccepted) out.linesAccepted = true;
+  // On its layout by the path of the drive: the file has no lap from the start line back to itself, so the laps were timed from a point on the trace.
+  if (s.lapsFromTrace) out.lapsFromTrace = true;
   // A course with official lines only takes sessions timed on them (within
   // 25 m): lines a member moved never reach its leaderboard.
   if (layout && layout.startLine) {
@@ -7338,9 +7340,9 @@ async function refreshTrackBoard(env, boardKey, carId) {
   board.sort(function (a, b) { return (a.time || a.quarter) - (b.time || b.quarter); });
   board = board.slice(0, TRACK_BOARD_MAX);
   await env.VOTES.put(boardKey, JSON.stringify(board));
-  // Shared sessions per board, for the list of tracks (one key).
+  // The sessions on each board, for the list of tracks (one key): one for each car, its fastest, which is what the board shows.
   var counts = await getJsonKey(env, 'track-board-counts', {});
-  var total = board.reduce(function (n, e) { return n + (e.sessions || 1); }, 0);
+  var total = board.length;
   if (total) counts[boardKey] = total; else delete counts[boardKey];
   await env.VOTES.put('track-board-counts', JSON.stringify(counts));
   // The top three on each board, so the track list can show them (one key).
@@ -7812,7 +7814,9 @@ async function handleTrackSessionUpdate(request, env) {
     if (next.error) return json({ success: false, message: next.error }, 400);
     // A member never saves moved start or finish lines themselves: they send them for MT3UK to accept (a change of
     // type does not move the lines).
-    if (next.type === rec.type && trackLinesMoved(rec, next)) return json({ success: false, needsLineAccess: true, message: 'Moved lines are sent to MT3UK to approve. Use Edit the map on this session\'s page.' }, 403);
+    // A change of layout puts the session on that layout's own official line, which is not a line the member moved.
+    var toLayout = next.layoutId && next.layoutId !== rec.layoutId && sessionOnOfficialLayout(next, await getTrackLibrary(env));
+    if (next.type === rec.type && !toLayout && trackLinesMoved(rec, next)) return json({ success: false, needsLineAccess: true, message: 'Moved lines are sent to MT3UK to approve. Use Edit the map on this session\'s page.' }, 403);
     if (next.type === 'drag' && !next.atVenue) next.unlisted = true;
     next.street = false;
     if (next.type === 'drag') delete next.outline;
@@ -7831,6 +7835,15 @@ async function handleTrackSessionUpdate(request, env) {
   if (oldBoard && oldBoard !== trackBoardKey(rec)) await refreshTrackBoard(env, oldBoard, rec.carId);
   await markHillTrack(env, rec, await getTrackLibrary(env));
   return json({ success: true, session: trackSummary(rec) });
+}
+
+// A session timed on the official start line (within 25 m) of the layout it is on.
+function sessionOnOfficialLayout(s, library) {
+  var v = (library.venues || []).find(function (x) { return x.id === s.venueId; });
+  var l = v && (v.layouts || []).find(function (x) { return x.id === s.layoutId; });
+  if (!l || !l.startLine || !s.startLine || s.startLine.length !== 2 || l.startLine.length !== 2) return false;
+  var mid = function (a) { return [(a[0][0] + a[1][0]) / 2, (a[0][1] + a[1][1]) / 2]; };
+  return trackDist(mid(s.startLine), mid(l.startLine)) <= 25;
 }
 
 // ---- Moving a saved session's start and finish lines ----
@@ -8660,6 +8673,8 @@ async function handleTrackRequest(request, env) {
   };
   if (req.lat === null && outline.length) { req.lat = outline[0][0]; req.lng = outline[0][1]; }
   if (req.lat === null) return json({ success: false, message: 'Where is it? The request needs a position.' }, 400);
+  // A member who has just added a course themselves (live now) is not asked about it a second time.
+  if (req.venueId && list.some(function (r) { return r.from === email && r.added && r.venueId === req.venueId && Date.now() - Date.parse(r.at) < 6 * 3600 * 1000; })) return json({ success: true });
   // One waiting request per course is enough.
   if (req.venueId && list.some(function (r) { return !r.done && r.venueId === req.venueId && (r.layoutId || '') === (req.layoutId || '') && (r.organizer || '') === (req.organizer || ''); })) return json({ success: true });
   list.unshift(req);
@@ -8690,7 +8705,7 @@ async function handleTrackCourseAdd(request, env) {
   var req = {
     id: randomToken().slice(0, 12), at: new Date().toISOString(), from: email, added: true,
     kind: sprint ? 'sprint' : 'circuit', hill: sprint && !!body.hill, organizer: sprint ? trackText(body.organizer, 40) : '',
-    name: trackText(body.name, 60), note: 'Added by the member: check the lines',
+    name: trackText(body.name, 60), layoutName: sprint ? '' : trackText(body.layoutName, 40), note: 'Added by the member: check the lines',
     venueId: trackId(body.venueId), layoutId: '', startLine: trackLine(body.startLine), finishLine: sprint ? trackLine(body.finishLine) : null, lapLength: trackNum(body.lapLength, 0, 30000),
     lat: trackNum(body.lat, -90, 90), lng: trackNum(body.lng, -180, 180), outline: outline
   };
@@ -8770,7 +8785,8 @@ async function handleTrackAdminCourse(request, env) {
   var kind = ['sprint'].indexOf(body.kind) !== -1 ? 'sprint' : 'circuit';
   var req = {
     kind: kind, hill: kind === 'sprint' && !!body.hill, name: trackText(body.name, 60), organizer: kind === 'sprint' ? trackText(body.organizer, 40) : '',
-    venueId: trackId(body.venueId), layoutId: body.replace ? trackId(body.layoutId) : '', replace: !!body.replace && !!body.layoutId,
+    // A layout given without replace is only filled in when it has no line yet (addTrackFromRequest refuses one that has).
+    venueId: trackId(body.venueId), layoutId: body.layoutId ? trackId(body.layoutId) : '', replace: !!body.replace && !!body.layoutId,
     startLine: trackLine(body.startLine), finishLine: kind === 'sprint' ? trackLine(body.finishLine) : null,
     lapLength: trackNum(body.lapLength, 0, 30000), lat: trackNum(body.lat, -90, 90), lng: trackNum(body.lng, -180, 180), from: email || ''
   };
@@ -8932,14 +8948,22 @@ async function addTrackFromRequest(env, req, opts) {
     }) ||
       (req.lat != null && req.lng != null ? (library.venues || []).find(function (v) { return v.type === wantType && v.lat != null && trackDist([v.lat, v.lng], [req.lat, req.lng]) <= (v.radius || 1500); }) : null) || null;
   }
-  var layout = { name: (sprint && req.organizer) || trackText(req.name, 60) || (sprint ? 'Course' : 'Layout'), length: req.lapLength || 0, startLine: req.startLine, sectors: [], corners: [] };
+  // A layout added to a listed track by a member is named by them (Abingdon, "Short Circuit"), not for the track.
+  var layout = { name: (sprint && req.organizer) || (!sprint && trackText(req.layoutName, 40)) || trackText(req.name, 60) || (sprint ? 'Course' : 'Layout'), length: req.lapLength || 0, startLine: req.startLine, sectors: [], corners: [] };
   if (sprint) { layout.finishLine = req.finishLine; if (req.organizer) layout.organizer = req.organizer; }
   var venue;
   if (existing) {
     venue = JSON.parse(JSON.stringify(existing));
     venue.layouts = (venue.layouts || []).slice();
     // A layout listed by hand with no line yet (and the same length, or the only one) is filled in, not copied.
+    // A member who named the layout (a different layout at a listed track) never fills one in by length: only a layout
+    // with no line and that very name is filled, otherwise theirs is a new layout beside the others.
+    var wantName = !sprint ? trackText(req.layoutName, 40).toLowerCase() : '';
+    // A layout of that name that already has a line is not added again: the member picks it instead.
+    var sameName = wantName ? venue.layouts.find(function (l) { return l.startLine && String(l.name || '').toLowerCase() === wantName; }) : null;
+    if (sameName) return { error: 'A layout called "' + sameName.name + '" is already listed at ' + venue.name + '. Pick it in the Layout row instead, or give this one a different name.' };
     var fill = sprint ? (req.organizer ? venue.layouts.find(function (l) { return !l.startLine && String(l.organizer || l.name).toLowerCase() === req.organizer.toLowerCase(); }) : null)
+      : wantName ? venue.layouts.find(function (l) { return !l.startLine && String(l.name || '').toLowerCase() === wantName; }) || null
       : layoutByLength(venue.layouts.filter(function (l) { return !l.startLine; }), req.lapLength);
     if (fill) {
       fill.startLine = req.startLine;

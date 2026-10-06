@@ -224,10 +224,11 @@
   // A sign-in is kept per address, so following a link from one to the other would land signed out. When a signed-in
   // member follows such a link, the worker gives a one-time code (2 minutes, works once), which goes in the link's #
   // as #mt3uk-handover=<code>, then :<the link's own #> if it had one. The page there swaps it for its own sign-in.
-  // On laps.mt3uk.com only the Laps pages (and Sign in) stay there: a link to any other page of the site (Profile,
-  // My Garage, the Gallery) goes to mt3uk.com, signed in. Tests set window.MT3UK_SITES to two local addresses.
+  // On laps.mt3uk.com only the Laps pages, Sign in, Profile and My Garage stay there: a link to any other page of the
+  // site (the Gallery, the Shop) goes to mt3uk.com, signed in. Tests set window.MT3UK_SITES to two local addresses.
   var SITES = window.MT3UK_SITES || { main: ['mt3uk.com', 'www.mt3uk.com'], mainOrigin: 'https://mt3uk.com', laps: ['laps.mt3uk.com'] };
-  var LAPS_PAGES = ['/', '/laps.html', '/track.html', '/leaderboards.html', '/signin.html', '/laps-signin.html'];
+  // Profile and My Garage are shared: on laps.mt3uk.com they stay there and show the Laps header (js/laps-shared.js).
+  var LAPS_PAGES = ['/', '/laps.html', '/track.html', '/leaderboards.html', '/signin.html', '/laps-signin.html', '/profile.html', '/my-builds.html'];
   function siteOf(host) { return SITES.main.indexOf(host) !== -1 ? 'main' : SITES.laps.indexOf(host) !== -1 ? 'laps' : ''; }
   var hereSite = siteOf(location.hostname);
 

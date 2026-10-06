@@ -166,3 +166,34 @@ def test_back_on_my_garage_goes_to_laps_when_you_came_from_there(page):
     page.wait_for_load_state("load")
     page.locator("a.back-link").first.click()
     expect(page).to_have_url(LAPS + "/track.html")
+
+
+def test_profile_and_my_garage_stay_on_laps_with_the_laps_header(page):
+    """Profile and My Garage are shared pages: opened from laps.mt3uk.com they stay there (no handover) and show the
+    Laps header, footer and name (js/laps-shared.js); on mt3uk.com they keep the MT3UK ones."""
+    state = setup(page)
+    sign_in(page, LAPS, "tok-laps")
+    page.goto(LAPS + "/track.html")
+    page.locator("#mt3uk-account-bar a", has_text="My Garage").click()
+    page.wait_for_url(LAPS + "/my-builds.html", timeout=10000)
+    assert state["made"] == 0 and session_at(page) == "tok-laps"
+    expect(page.locator("header .laps-logo")).to_have_count(1)
+    expect(page.locator("header .nav-link-mybuilds")).to_have_class(re.compile(r"\bactive\b"))
+    expect(page.locator("footer .laps-logo")).to_have_count(1)
+    assert page.locator("#laps-header-tpl").count() == 1 and page.locator("header").count() == 1
+    assert page.title() == "My Garage - Laps by MT3UK"
+    assert page.locator('link[rel="manifest"]').get_attribute("href") == "laps-manifest.json"
+    page.locator("#mt3uk-account-bar a", has_text="Profile").click()
+    page.wait_for_url(LAPS + "/profile.html", timeout=10000)
+    assert state["made"] == 0
+    expect(page.locator("header .laps-logo")).to_have_count(1)
+    assert page.title() == "My Profile - Laps by MT3UK"
+    # The Gallery is not shared: it still goes to mt3uk.com, signed in.
+    add_link(page, "gallery.html")
+    page.locator("#go").click()
+    page.wait_for_url(MAIN + "/gallery.html", timeout=10000)
+    assert state["made"] == 1
+    # On mt3uk.com the same pages keep the MT3UK header.
+    page.goto(MAIN + "/profile.html")
+    expect(page.locator("header .laps-logo")).to_have_count(0)
+    assert page.title() == "My Profile - MT3UK"

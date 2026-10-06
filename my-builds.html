@@ -822,7 +822,13 @@
   .mb-car-tile .mb-car-tile-mods { display: grid; gap: 6px; padding: 0 12px 12px; }
   .mb-car-tile-mods .mbm-meter-text { font-size: 0.82rem; color: var(--steel); }
   @media (min-width: 781px) {
-    .mb-car-grid { max-width: none; grid-template-columns: repeat(auto-fill, minmax(300px, 320px)); justify-content: center; }
+    .mb-car-grid { max-width: none; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+  }
+  /* Desktop: the garage uses the page's full width (the same edges as Back and the header), not a 720px column. */
+  @media (min-width: 901px) {
+    .mb-signed-in, .mb-name-row, .mb-upload-toggle-row, .mb-upload-card, .mb-grid, .mb-car-detail,
+    body #mb-car-selector-view .mb-site-links { max-width: none; }
+    .page-hero p { max-width: 80ch; }
   }
   .mb-photo-thumb-wrap { border: 1px solid var(--hairline); border-radius: var(--radius); padding: 8px; gap: 8px; }
   .mb-photo-added { font-size: 0.8rem; }

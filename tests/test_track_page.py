@@ -1363,24 +1363,34 @@ def test_the_leaderboard_hero_matches_the_sessions_page(page):
     assert page.evaluate("document.documentElement.scrollWidth") <= 390
 
 
-def test_the_leaderboard_has_an_add_a_session_button_at_the_top(page):
+def test_the_leaderboard_has_my_sessions_at_the_top_and_add_a_session_below(page):
     fake = FakeWorker()
     open_page(page, fake, path="/leaderboards.html")
-    button = page.locator("#lb-add-session")
-    expect(button).to_have_text("Add a session")
-    assert button.bounding_box()["height"] >= 50
-    back = page.locator("#lb-page-back")
-    # On desktop the button, Back and the title share one row.
-    assert abs(button.bounding_box()["y"] + button.bounding_box()["height"] / 2 - (back.bounding_box()["y"] + back.bounding_box()["height"] / 2)) < 4
-    button.click()
+    mine, add = page.locator("#lb-my-sessions"), page.locator("#lb-add-session")
+    expect(mine).to_have_text("My Sessions")
+    expect(mine).to_have_attribute("href", "track.html")
+    expect(add).to_have_text("Add a session")
+    assert mine.bounding_box()["height"] >= 50 and add.bounding_box()["height"] >= 44
+    back, title = page.locator("#lb-page-back"), page.locator(".lb-hero h1")
+    # On desktop My Sessions, Back and the title share one row, and Add a session sits below the title.
+    assert abs(mine.bounding_box()["y"] + mine.bounding_box()["height"] / 2 - (back.bounding_box()["y"] + back.bounding_box()["height"] / 2)) < 4
+    assert add.bounding_box()["y"] > title.bounding_box()["y"] + title.bounding_box()["height"] - 2
+    # The share button sits right after the title.
+    dot = page.locator(".lb-hero h1 .mt3uk-share-dot")
+    expect(dot).to_be_visible()
+    add.click()
     expect(page).to_have_url(re.compile(r"/track\.html\?add=1$"))
-    # On a phone it sits at the right of the Back row, above the title, with no sideways scroll.
+    # On a phone My Sessions sits at the right of the Back row, above the title; Add a session is under the title,
+    # and the share button is beside the title rather than at the far right.
     page.set_viewport_size({"width": 390, "height": 844})
     page.goto("/leaderboards.html")
-    button, back = page.locator("#lb-add-session"), page.locator("#lb-page-back")
-    expect(button).to_be_visible()
-    b, k, h = button.bounding_box(), back.bounding_box(), page.locator(".lb-hero h1").bounding_box()
+    mine, add, back = page.locator("#lb-my-sessions"), page.locator("#lb-add-session"), page.locator("#lb-page-back")
+    expect(mine).to_be_visible()
+    b, k, h = mine.bounding_box(), back.bounding_box(), page.locator(".lb-hero h1").bounding_box()
     assert abs(b["y"] - k["y"]) < 6 and b["x"] > k["x"] + k["width"] and h["y"] > b["y"] + b["height"] - 2
+    assert add.bounding_box()["y"] > h["y"] + h["height"] - 2
+    d = page.locator(".lb-hero h1 .mt3uk-share-dot").bounding_box()
+    assert d["x"] < 330 and abs(d["y"] + d["height"] / 2 - (h["y"] + h["height"] / 2)) < 12
     assert page.evaluate("document.documentElement.scrollWidth") <= 390
 
 

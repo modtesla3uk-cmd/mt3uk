@@ -27,6 +27,7 @@ ok(near(s.possible, s.bestSectors.reduce((a, b) => a + b, 0), 0.01) && s.possibl
 ok(s.corners.length >= 5 && s.corners.every(c => c.lat && c.lng && c.v > 30), 'corners found with positions');
 ok(near(s.vmax, 202.8, 0.5) && s.brakeMax > 0.9 && s.latMax > 0.8, 'top speed and peak g from the file');
 ok(s.trace.laps[2].length > 400 && s.trace.laps[2][s.trace.laps[2].length - 1][1] === s.laps[1].time, 'trimmed trace for each lap ends at the lap time');
+ok(Object.values(s.trace.laps).every(t => t[0][0] === 0 && t[0][1] === 0 && t[1][1] > 0 && t[1][1] <= 0.5), 'each lap trace starts on the line, at time 0, before its first reading');
 ok(JSON.stringify(s).length < 200000, 'session is small enough to save');
 const g = T.cornerGains(s.trace.laps[2], s.trace.laps[1], s.corners);
 ok(g.length === s.corners.length && g.reduce((a, c) => a + c.gain, 0) > 0.5, 'corner gains of the best lap over the other');
@@ -748,7 +749,7 @@ ok(T.fmtLap(99.786) === '1:39.79' && T.niceDate('2026-05-28') === '28 May 2026',
   const got = T.analyse(edited, lib), tr = got.trace.laps[got.best];
   ok(Math.min(...tr.map(r => r[6])) === -0.94, 'braking of -0.935 g reads 0.94 on the chart: ' + Math.min(...tr.map(r => r[6])));
   ok(Math.max(...tr.map(r => r[5])) === 1.26, 'a real 1.264 g reading is kept as recorded: ' + Math.max(...tr.map(r => r[5])));
-  ok(T.ANALYSIS_VERSION === 12, 'the analysis version moved on once more');
+  ok(T.ANALYSIS_VERSION === 13, 'the analysis version moved on once more');
 }
 
 // A place listed as both a circuit and a sprint: a day of laps round the circuit is a track day, not a sprint

@@ -33,7 +33,8 @@
   // 10: a drag launch that reaches 30 mph but not 60 mph is listed as a run (it was dropped).
   // 11: a lap trace's g figures are the biggest of the readings in each step, so a 25 a second file keeps its real peaks.
   // 12: only a glitch (over 0.25 g from its neighbours) is smoothed out of those peaks; real readings are kept as recorded.
-  var ANALYSIS_VERSION = 12;
+  // 13: a lap's trace starts and ends exactly on the start line (the interpolated crossing), not on the first reading after it.
+  var ANALYSIS_VERSION = 13;
   var DEG = Math.PI / 180;
 
   function num(s) {
@@ -751,7 +752,9 @@
       if ((d1 <= 0) !== (d2 <= 0) && (d3 <= 0) !== (d4 <= 0)) {
         var f = d1 / (d1 - d2);
         var t = p.t + f * (q.t - p.t), d = p.d + f * (q.d - p.d);
-        if (!out.length || t - out[out.length - 1].t > minGap) out.push({ i: i, t: t, d: d });
+        // Where the car was on the line itself, so a lap's trace can start and end exactly there.
+        var g = function (k) { return p[k] + f * (q[k] - p[k]); };
+        if (!out.length || t - out[out.length - 1].t > minGap) out.push({ i: i, t: t, d: d, x: g('x'), y: g('y'), v: g('v'), la: g('la') || 0, lo: g('lo') || 0 });
       }
     }
     return out;
@@ -779,7 +782,7 @@
       if (points[s.i].run !== points[Math.max(s.i, e.i - 1)].run) continue;
       var vmax = 0, vmin = Infinity;
       for (var k = s.i; k < e.i; k++) { vmax = Math.max(vmax, points[k].v); vmin = Math.min(vmin, points[k].v); }
-      var lap = { n: laps.length + 1, run: points[s.i].run || undefined, start: s.t, time: round(e.t - s.t, 3), dist: Math.round(e.d - s.d), vmax: round(vmax, 1), vmin: round(vmin, 1), i0: s.i, i1: e.i, d0: s.d };
+      var lap = { n: laps.length + 1, run: points[s.i].run || undefined, start: s.t, time: round(e.t - s.t, 3), dist: Math.round(e.d - s.d), vmax: round(vmax, 1), vmin: round(vmin, 1), i0: s.i, i1: e.i, d0: s.d, c0: s, c1: e };
       if (sectorCr && sectorCr.length) {
         var marks = [s.t];
         sectorCr.forEach(function (sc) { var c = sc.filter(function (x) { return x.t > s.t && x.t < e.t; })[0]; marks.push(c ? c.t : NaN); });
@@ -811,7 +814,7 @@
   }
 
   function lapTrace(points, lap, hz) {
-    var out = [], step = 1 / (hz || 5), next = lap.start;
+    var out = [], step = 1 / (hz || 5), next = lap.start, c0 = lap.c0, c1 = lap.c1;
     // The g figures of each row are the biggest (either way) of the readings in its step, not just the one reading
     // that happens to start it: a file at 25 a second is kept at 5 a second, and the peak of a corner can fall between
     // two kept readings. A reading that sits more than 0.25 g away from the middle of it and its two neighbours is a
@@ -824,20 +827,23 @@
       var v = points[m][key], md = med3(points[Math.max(0, m - 1)][key], v, points[Math.min(points.length - 1, m + 1)][key]);
       return Math.abs(v - md) > 0.25 ? md : v;
     }
-    for (var k = lap.i0; k <= lap.i1 && k < points.length; k++) {
+    // The lap begins and ends on the line itself, not on the first reading after it.
+    if (c0 && c0.x != null) { out.push([0, 0, round(c0.x, 1), round(c0.y, 1), round(c0.v, 1), roundAway(c0.la), roundAway(c0.lo)]); next = lap.start + step; }
+    for (var k = lap.i0; k < lap.i1 && k < points.length; k++) {
       var p = points[k];
-      if (p.t + 1e-9 < next && k !== lap.i1) continue;
+      if (p.t + 1e-9 < next) continue;
       next = p.t + step;
       var la = steady('la', k), lo = steady('lo', k);
-      for (var m = k + 1; m <= lap.i1 && m < points.length && points[m].t < next - 1e-9; m++) {
+      for (var m = k + 1; m < lap.i1 && m < points.length && points[m].t < next - 1e-9; m++) {
         var la2 = steady('la', m), lo2 = steady('lo', m);
         if (Math.abs(la2) > Math.abs(la)) la = la2;
         if (Math.abs(lo2) > Math.abs(lo)) lo = lo2;
       }
       out.push([round(p.d - lap.d0, 1), round(Math.max(0, p.t - lap.start), 2), round(p.x, 1), round(p.y, 1), round(p.v, 1), roundAway(la), roundAway(lo)]);
     }
-    var last = out[out.length - 1];
-    if (last) { last[0] = lap.dist; last[1] = lap.time; }
+    var q = points[Math.min(lap.i1, points.length - 1)];
+    if (c1 && c1.x != null) out.push([lap.dist, lap.time, round(c1.x, 1), round(c1.y, 1), round(c1.v, 1), roundAway(c1.la), roundAway(c1.lo)]);
+    else if (q) out.push([lap.dist, lap.time, round(q.x, 1), round(q.y, 1), round(q.v, 1), roundAway(q.la), roundAway(q.lo)]);
     return out;
   }
 

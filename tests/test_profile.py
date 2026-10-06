@@ -262,7 +262,8 @@ def test_nickname_prompt_can_wait_until_later(device_page):
 
 
 @all_devices
-def test_joining_with_a_code_asks_for_a_nickname(device_page):
+def test_joining_with_a_code_does_not_ask_for_a_nickname(device_page):
+    """A new member's nickname is their first initial and last name, made by the worker, so Sign up no longer asks."""
     page = device_page
     page.goto("/signin.html")
     page.fill("#si-join-first", "Test")
@@ -276,7 +277,9 @@ def test_joining_with_a_code_asks_for_a_nickname(device_page):
         page.click("#si-code-btn")
         page.wait_for_timeout(400)
     page.locator("#si-signed-in").wait_for(state="visible", timeout=5000)
-    page.locator("#mt3uk-nick-prompt").wait_for(state="visible", timeout=5000)
+    page.wait_for_timeout(500)
+    assert page.locator("#mt3uk-nick-prompt").count() == 0
+    assert page.evaluate("localStorage.getItem('mt3ukAskNickname')") is None
     assert page.errors == [], diagnostics(page)
 
 

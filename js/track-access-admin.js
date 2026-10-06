@@ -37,7 +37,7 @@
     importNote.textContent = s.imported ? 'Done on ' + when(s.imported) + '. Access now follows this list, so Revoke works for everyone.' : 'Until you do this, anyone who already has sessions keeps access automatically and cannot be revoked.';
     countEl.textContent = s.pending.length ? s.pending.length + ' waiting' : (s.open ? 'open to all' : s.allowed.length + ' approved');
     pendEl.innerHTML = s.pending.length ? '<table class="iv-table"><thead><tr><th>Member</th><th>Using</th><th>Note</th><th>Asked</th><th></th></tr></thead><tbody>' + s.pending.map(function (p) {
-      return '<tr><td>' + esc(p.name ? p.name + ' ' : '') + '<span class="iv-sub">' + esc(p.email) + '</span></td><td>' + esc(p.use || '') + '</td><td>' + esc(p.note || '') + '</td><td>' + esc(when(p.at)) + '</td>' +
+      return '<tr><td>' + esc(p.name ? p.name + ' ' : '') + '<span class="iv-sub">' + esc(p.email) + '</span></td><td>' + esc(p.use || '') + '</td><td>' + (p.signedUp ? '<span class="iv-sub">Joined on Laps, asked for them</span>' : '') + esc(p.note || '') + '</td><td>' + esc(when(p.at)) + '</td>' +
         '<td><div class="iv-actions"><button type="button" class="iv-act" data-approve="' + esc(p.email) + '">Approve</button><button type="button" class="secondary iv-act" data-deny="' + esc(p.email) + '">Decline</button></div></td></tr>';
     }).join('') + '</tbody></table>' : '<p class="empty">Nobody is waiting.</p>';
     allowEl.innerHTML = s.allowed.length ? '<table class="iv-table"><tbody>' + s.allowed.map(function (a) {

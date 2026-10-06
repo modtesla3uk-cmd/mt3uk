@@ -6188,7 +6188,7 @@ function cleanLapsIntro(v) { return String(v || '').replace(/[\u0000-\u0009\u000
 
 async function handleLapsSigninPublic(request, env) {
   var c = await getLapsSignin(env);
-  var res = json({ success: true, separate: c.separate });
+  var res = json({ success: true, separate: c.separate, preview: !(await getTrackAccess(env)).open });
   res.headers.set('Cache-Control', 'public, max-age=60');
   return res;
 }
@@ -6236,6 +6236,7 @@ async function issueSignInLink(env, email, page, joining, from) {
   var token = randomToken();
   await env.VOTES.put('my-builds-link:' + token, email, { expirationTtl: MY_BUILDS_LINK_TTL_SECONDS });
   var laps = from.site === 'laps' ? await getLapsSignin(env) : null;
+  if (laps) laps.preview = !(await getTrackAccess(env)).open;
   var link = laps
     ? LAPS_SITE_URL + '/' + (laps.separate ? 'laps-signin.html' : 'signin.html') + '?token=' + token + (from.next ? '&next=' + encodeURIComponent(from.next) : '')
     : MY_BUILDS_SITE_URL + '/' + page + '?token=' + token;
@@ -6262,6 +6263,7 @@ async function sendLapsSignInEmail(env, toEmail, link, code, joining, laps) {
   var intro = joining ? (laps.joinIntro || LAPS_JOIN_INTRO) : (laps.signinIntro || LAPS_SIGNIN_INTRO);
   var body = intro + '\n\n' + link +
     '\n\nOr enter this code on the Laps sign-in page (in the Laps app from your Home Screen, use the code):\n\n' + code +
+    (joining && laps.preview ? '\n\nLaps is in early preview. Once you have joined we will put you on the early access list, and email you as soon as you are in.' : '') +
     (joining && laps.mt3ukToo ? '\n\nYour account works on MT3UK too, where you can like and comment on member builds and owner interviews.' : '') +
     '\n\nThis link and code expire in 15 minutes and can only be used once. If you did not ' + (joining ? 'ask to join' : 'request this') + ', you can ignore this email.';
   var message = new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail('Laps by MT3UK <' + MY_BUILDS_FROM_EMAIL + '>', toEmail, subject, body));
@@ -6323,18 +6325,46 @@ async function completePendingJoin(env, email) {
   try { pending = JSON.parse(raw) || {}; } catch (e) {}
   var first = cleanNamePart(pending.firstName);
   var last = cleanNamePart(pending.lastName);
+  var made = 'mt3uk';
   if (pending.lapsOnly) {
     if ((await env.VOTES.get(lapsAccountKey(email))) !== null) return '';
     await env.VOTES.put(lapsAccountKey(email), JSON.stringify({ since: new Date().toISOString() }));
-    if (first && last && !(await getProfile(env, email))) await saveProfile(env, email, first, last);
-    return 'laps';
+    made = 'laps';
+  } else {
+    await env.VOTES.put('subscriber:' + email, JSON.stringify([]));
+    await markSubscriberSince(env, email);
+    // Joining MT3UK makes a Laps-only account a full member.
+    await env.VOTES.delete(lapsAccountKey(email));
   }
-  await env.VOTES.put('subscriber:' + email, JSON.stringify([]));
-  await markSubscriberSince(env, email);
-  // Joining MT3UK makes a Laps-only account a full member.
-  await env.VOTES.delete(lapsAccountKey(email));
   if (first && last && !(await getProfile(env, email))) await saveProfile(env, email, first, last);
-  return 'mt3uk';
+  // Every new member's nickname is their first initial and last name (RHughes-Chen, with a number after it if that
+  // is taken), so they are not asked for one; they can change it in their Profile.
+  try {
+    if (first && last && !(await getProfileRecord(env, email)).nickname) {
+      var nick = await initialNickname(env, first, last);
+      if (nick) await setNickname(env, email, nick);
+    }
+  } catch (e) { /* they can choose one in their Profile */ }
+  // Someone joining on Laps while it is an early preview is put on the early access list (the admin is told) rather
+  // than having to ask on Sessions. Joining on mt3uk.com asks for nothing.
+  if (pending.site === 'laps') {
+    try { await addTrackAccessRequest(env, email, '', '', true); } catch (e) { /* they can ask on Sessions */ }
+  }
+  return made;
+}
+// "R" + "Hughes-Chen" = "RHughes-Chen": only the characters a nickname may have, at least 3 and at most 20, and a
+// number after it (2, 3 ...) when another member has it.
+async function initialNickname(env, first, last) {
+  var base = (String(first).trim().charAt(0) + String(last).trim()).replace(/[^A-Za-z0-9_.-]/g, '').replace(/^[^A-Za-z0-9]+/, '').slice(0, 20);
+  if (!base) return '';
+  if (base.length < 3) base = (base + '123').slice(0, 3);
+  var map = await getNicknames(env);
+  for (var n = 1; n < 100; n++) {
+    var suffix = n === 1 ? '' : String(n);
+    var nick = base.slice(0, 20 - suffix.length) + suffix;
+    if (cleanNickname(nick) && !map[nick.toLowerCase()]) return nick;
+  }
+  return '';
 }
 
 async function sendJoinEmail(env, toEmail, link, code) {
@@ -6398,9 +6428,9 @@ async function handleMyBuildsVerifyCode(request, env) {
 
   await env.VOTES.delete(key);
   if (record.token) await env.VOTES.delete('my-builds-link:' + record.token);
-  await completePendingJoin(env, email);
+  var joined = await completePendingJoin(env, email);
   var session = await createSession(env, email);
-  return json({ success: true, session: session, email: email });
+  return json({ success: true, session: session, email: email, joined: joined, access: joined ? await trackAccessStatus(env, email) : undefined });
 }
 
 async function handleMyBuildsSession(request, env) {
@@ -6416,7 +6446,7 @@ async function handleMyBuildsSession(request, env) {
 
   var session = await createSession(env, email);
 
-  return json({ success: true, session: session, email: email, joined: joined });
+  return json({ success: true, session: session, email: email, joined: joined, access: joined ? await trackAccessStatus(env, email) : undefined });
 }
 
 async function handleMyBuildsGet(request, env) {
@@ -7368,25 +7398,30 @@ async function handleTrackAccessRequest(request, env) {
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
   var body = {};
   try { body = await request.json(); } catch (e) { body = {}; }
+  var status = await addTrackAccessRequest(env, email, trackText(body.use, 40), trackText(body.note, 300), false);
+  return json({ success: true, access: status });
+}
+// Puts a member on the early access waiting list and tells the admin (a bell item on the Early access panel and an
+// email through sendAdminEmail). Used by the Sessions request form and, with signedUp, by joining on Laps, which asks
+// for access for them. Says where they now stand: 'approved', or 'pending'.
+async function addTrackAccessRequest(env, email, use, note, signedUp) {
   var status = await trackAccessStatus(env, email);
-  if (status === 'approved') return json({ success: true, access: status });
-  if (status === 'pending') return json({ success: true, access: status });
+  if (status === 'approved' || status === 'pending') return status;
   var a = await getTrackAccess(env);
   var profile = await getProfileRecord(env, email);
   var name = (publicName(profile) || '').slice(0, 60);
-  var note = trackText(body.note, 300), use = trackText(body.use, 40);
-  a.pending.unshift({ email: accessEmail(email), name: name, use: use, note: note, at: new Date().toISOString() });
+  a.pending.unshift({ email: accessEmail(email), name: name, use: use || '', note: note || '', at: new Date().toISOString(), signedUp: !!signedUp });
   a.pending = a.pending.slice(0, 300);
   await putTrackAccess(env, a);
   // A note to the admin (best effort: the request is kept either way).
   try {
-    var subject = 'Track Sessions early access request';
-    var text = subscriberLabel(name, email) + ' has asked for early access to Track Sessions.\n\n' +
+    var subject = signedUp ? 'New Laps sign-up waiting for early access' : 'Track Sessions early access request';
+    var text = subscriberLabel(name, email) + (signedUp ? ' has just joined Laps, and has been put on the early access list.\n\n' : ' has asked for early access to Track Sessions.\n\n') +
       (use ? 'Using: ' + use + '\n' : '') + (note ? 'Their note:\n' + note + '\n\n' : '\n') +
       'Approve or decline: ' + MY_BUILDS_SITE_URL + '/track-admin.html#grp-access';
     await sendAdminEmail(env, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text), subject, '/track-admin.html#access-wrap');
   } catch (e) { /* the request is saved */ }
-  return json({ success: true, access: 'pending' });
+  return 'pending';
 }
 async function handleTrackAccessAdmin(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);

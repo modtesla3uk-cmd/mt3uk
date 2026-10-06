@@ -45,12 +45,12 @@ def mock(page, separate=True):
         url = req.url
         data = {"success": True}
         if "/laps/signin" in url:
-            data = {"success": True, "separate": state["separate"]}
+            data = {"success": True, "separate": state["separate"], "preview": state.get("preview", True)}
         elif req.method == "POST" and ("/my-builds/request-link" in url or "/my-builds/join" in url):
             state["posts"].append({"path": url.split(API_HOST)[1].split("?")[0], "body": json.loads(req.post_data)})
             data = {"success": True, "message": "Check your email."}
         elif "/my-builds/session" in url:
-            data = {"success": True, "session": "sess-1", "email": "member@example.com", "joined": ""}
+            data = state.get("session") or {"success": True, "session": "sess-1", "email": "member@example.com", "joined": ""}
         route.fulfill(status=200, content_type="application/json", body=json.dumps(data), headers=headers)
     page.route("**/%s/**" % API_HOST, handler)
     return state
@@ -91,8 +91,36 @@ def test_without_a_page_to_go_back_to_the_signed_in_card_offers_laps(page):
     expect(page.locator("#si-signed-in-text")).to_contain_text("track sessions")
 
 
+def test_joining_laps_in_early_preview_says_so_and_welcomes_onto_the_list(page):
+    state = mock(page)
+    page.goto(LAPS + "/laps-signin.html")
+    join = page.locator("#si-join")
+    expect(join.locator("h2")).to_have_text("New to Laps? Join the early preview")
+    expect(join.locator("h2 + p")).to_contain_text("put you on the early access list straight away")
+    expect(page.locator("#si-join-btn")).to_have_text("Join the early preview")
+    # The emailed link of a new Laps member: welcome onto the list, and no nickname prompt (the worker made one).
+    state["session"] = {"success": True, "session": "sess-2", "email": "new@example.com", "joined": "mt3uk", "access": "pending"}
+    page.goto(LAPS + "/laps-signin.html?token=abc")
+    expect(page.locator("#si-welcome")).to_have_text("Welcome to Laps! You\u2019re on the early access list, and we\u2019ll email you as soon as you\u2019re in.")
+    assert page.evaluate("localStorage.getItem('mt3ukAskNickname')") is None
+
+
+def test_with_laps_open_the_join_card_is_the_plain_one(page):
+    state = mock(page)
+    state["preview"] = False
+    page.goto(LAPS + "/laps-signin.html")
+    expect(page.locator("#si-join h2")).to_have_text("New to Laps? Join free")
+    expect(page.locator("#si-join-btn")).to_have_text("Join free")
+
+
 def test_the_mt3uk_sign_in_page_is_unchanged(page):
     state = mock(page)
+    # A new member is not asked for a nickname (the worker made one from their name).
+    state["session"] = {"success": True, "session": "sess-3", "email": "main@example.com", "joined": "mt3uk"}
+    page.goto(MAIN + "/signin.html?token=abc")
+    expect(page.locator("#si-welcome")).to_have_text("Welcome to MT3UK! You\u2019re in.")
+    assert page.evaluate("localStorage.getItem('mt3ukAskNickname')") is None
+    page.evaluate("localStorage.clear()")
     page.goto(MAIN + "/signin.html")
     expect(page.locator("h1")).to_have_text("Join MT3UK free")
     page.fill("#si-signin-email", "member@example.com")

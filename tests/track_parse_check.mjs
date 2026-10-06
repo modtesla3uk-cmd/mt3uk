@@ -823,3 +823,13 @@ ok(T.fmtLap(99.786) === '1:39.79' && T.niceDate('2026-05-28') === '28 May 2026',
   const g = T.analyse(T.read(vbo, 'RaceBox_Track_Session.vbo'), lib6, {});
   ok(g.layoutLineGap === undefined, 'and a layout that is crossed says nothing');
 }
+// A recording that starts right on the line crosses it once: for a layout the member picked, that start counts as the crossing.
+{
+  const full = T.analyse(T.read(vbo, 'RaceBox_Track_Session.vbo'), lib, {});
+  const l1 = full.laps[0];
+  const cut = () => { const r = T.read(vbo, 'RaceBox_Track_Session.vbo'); r.points = r.points.filter(p => p.t >= l1.start + 0.2 && p.t <= l1.start + l1.time + 0.5); return r; };
+  const picked = T.analyse(cut(), lib, { layoutId: 'main' });
+  ok(picked.layoutId === 'main' && picked.officialLines === true && picked.laps.length === 1 && Math.abs(picked.laps[0].time - (l1.time - 0.2)) < 1, 'a file that starts on the line of a layout the member picked is timed on that line (lap ' + (picked.laps[0] && picked.laps[0].time) + ' of ' + l1.time + ')');
+  const unpicked = T.analyse(cut(), lib, {});
+  ok(!unpicked.officialLines, 'and with no pick the first lap is still not counted from the start of the file');
+}

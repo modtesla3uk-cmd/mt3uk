@@ -84,7 +84,13 @@
         "Ioniq 6 N",
         "Ioniq 5",
         "Ioniq 6",
-        "Kona N"
+        "Ioniq 9",
+        "Kona Electric",
+        "Kona N",
+        "i20 N",
+        "i30 N",
+        "i30 Fastback N",
+        "Inster"
       ],
       "versions": {
         "Ioniq 5 N": [
@@ -92,6 +98,60 @@
         ],
         "Ioniq 6 N": [
           "Ioniq 6 N"
+        ],
+        "Ioniq 5": [
+          "58 kWh RWD",
+          "63 kWh RWD",
+          "73 kWh RWD",
+          "73 kWh AWD",
+          "77 kWh RWD",
+          "77 kWh AWD",
+          "84 kWh RWD",
+          "84 kWh AWD",
+          "N Line RWD",
+          "N Line AWD",
+          "N Line S AWD"
+        ],
+        "Ioniq 6": [
+          "53 kWh RWD",
+          "77 kWh RWD",
+          "77 kWh AWD",
+          "84 kWh RWD",
+          "84 kWh AWD",
+          "N Line RWD",
+          "N Line AWD"
+        ],
+        "Ioniq 9": [
+          "Long Range RWD",
+          "Long Range AWD",
+          "Performance AWD",
+          "Calligraphy AWD"
+        ],
+        "Kona Electric": [
+          "39 kWh",
+          "64 kWh",
+          "48 kWh",
+          "65 kWh",
+          "N Line"
+        ],
+        "Kona N": [
+          "Kona N"
+        ],
+        "i20 N": [
+          "i20 N"
+        ],
+        "i30 N": [
+          "i30 N",
+          "i30 N Performance"
+        ],
+        "i30 Fastback N": [
+          "i30 Fastback N",
+          "i30 Fastback N Performance"
+        ],
+        "Inster": [
+          "42 kWh",
+          "49 kWh",
+          "Cross"
         ]
       }
     },

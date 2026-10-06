@@ -5358,7 +5358,8 @@ var VEHICLE_TYPES = ['car', 'bike'];
 var DRIVES = ['FWD', 'RWD', 'AWD'];
 var FIXED_DRIVE = {
   'tesla|model x': 'AWD', 'tesla|cybertruck': 'AWD', 'tesla|roadster': 'RWD',
-  'hyundai|ioniq 5 n': 'AWD', 'hyundai|ioniq 6 n': 'AWD', 'hyundai|ioniq 5': 'RWD', 'hyundai|ioniq 6': 'RWD', 'hyundai|kona n': 'FWD',
+  'hyundai|ioniq 5 n': 'AWD', 'hyundai|ioniq 6 n': 'AWD', 'hyundai|ioniq 5': 'RWD', 'hyundai|ioniq 6': 'RWD', 'hyundai|ioniq 9': 'RWD', 'hyundai|kona n': 'FWD',
+  'hyundai|kona electric': 'FWD', 'hyundai|i20 n': 'FWD', 'hyundai|i30 n': 'FWD', 'hyundai|i30 fastback n': 'FWD', 'hyundai|inster': 'FWD',
   'kia|ev6 gt': 'AWD', 'kia|ev6': 'RWD', 'kia|ev9': 'RWD',
   'porsche|718 cayman': 'RWD', 'porsche|718 boxster': 'RWD',
   'polestar|3': 'AWD', 'polestar|4': 'AWD',
@@ -9160,9 +9161,13 @@ async function trackSessionCounts(env) {
   } while (cursor && seen < TRACK_DRIVE_MAX_INDEXES);
   return counts;
 }
-function adminCarRow(carId, record, details, drives, owner, email, sessions) {
+// A record is stale when nothing holds it any more: no owner can be found (its photos are gone or now belong to
+// another car), no live photo names it and it has no sessions. The admin can remove those.
+function carRecordStale(email, livePhotos, sessions) { return !email && !livePhotos && !sessions; }
+function adminCarRow(carId, record, details, drives, owner, email, sessions, livePhotos) {
   details = details || {};
   return { carId: carId, car: record.name || '', owner: owner, email: email || '', sessions: sessions || 0, photos: (record.photos || []).length,
+    livePhotos: livePhotos || 0, stale: carRecordStale(email, livePhotos, sessions),
     garageOnly: record.garageOnly === true, make: details.make || '', model: details.model || '', version: details.version || '', year: details.year || '',
     vehicleType: details.vehicleType || 'car', drive: carDrive(details, drives), set: DRIVES.indexOf(details.drive) !== -1 };
 }
@@ -9175,6 +9180,14 @@ async function handleTrackAdminCars(request, env) {
     var carId = String((body && body.carId) || '');
     var record = /^[A-Za-z0-9_-]{1,80}$/.test(carId) ? await getCarRecord(env, carId) : null;
     if (!record) return json({ success: false, message: 'That car was not found.' }, 404);
+    if (body.action === 'remove') {
+      var own = await carOwnerEmail(env, record), live = 0;
+      (await listGalleryEntriesFromR2(env).catch(function () { return []; })).forEach(function (p) { if (p.carId === carId) live++; });
+      var cnt = (await trackSessionCounts(env))[carId] || 0;
+      if (!carRecordStale(own, live, cnt)) return json({ success: false, message: 'That car is not stale: it has an owner, live photos or sessions.' }, 400);
+      await deleteCarRecord(env, carId);
+      return json({ success: true, removed: carId });
+    }
     var details = (await getCarDetails(env, carId)) || {};
     var clean = cleanCarModel(body, details.make);
     // The admin can type any model, with or without a make.
@@ -9188,10 +9201,13 @@ async function handleTrackAdminCars(request, env) {
     var stamped = await stampCarDrive(env, carId, true);
     var boards = await refreshCarBoards(env, carId);
     var ownerEmail = await carOwnerEmail(env, record);
-    var row = adminCarRow(carId, record, details, drives, ownerEmail ? (publicName(await getProfileRecord(env, ownerEmail)) || '') : '', ownerEmail, 0);
+    var row = adminCarRow(carId, record, details, drives, ownerEmail ? (publicName(await getProfileRecord(env, ownerEmail)) || '') : '', ownerEmail, 0, 1);
     return json({ success: true, car: row, stamped: stamped, boards: boards });
   }
   var counts = await trackSessionCounts(env), rows = [], cursor, seen = 0;
+  // The live photos naming each car, to tell a stale record from a live one.
+  var liveByCar = {};
+  (await listGalleryEntriesFromR2(env).catch(function () { return []; })).forEach(function (p) { if (p.carId) liveByCar[p.carId] = (liveByCar[p.carId] || 0) + 1; });
   do {
     var page = await env.GALLERY_BUCKET.list({ prefix: 'gallery/cars/', cursor: cursor });
     for (var i = 0; i < page.objects.length && seen < TRACK_ADMIN_CARS_MAX; i++) {
@@ -9201,7 +9217,7 @@ async function handleTrackAdminCars(request, env) {
       if (!rec) continue;
       seen++;
       var em = await carOwnerEmail(env, rec);
-      rows.push(adminCarRow(id, rec, await getCarDetails(env, id), drives, em ? (publicName(await getProfileRecord(env, em)) || '') : '', em, counts[id] || 0));
+      rows.push(adminCarRow(id, rec, await getCarDetails(env, id), drives, em ? (publicName(await getProfileRecord(env, em)) || '') : '', em, counts[id] || 0, liveByCar[id] || 0));
     }
     cursor = page.truncated ? page.cursor : undefined;
   } while (cursor && seen < TRACK_ADMIN_CARS_MAX);

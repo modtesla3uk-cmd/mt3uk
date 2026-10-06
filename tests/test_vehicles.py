@@ -99,6 +99,26 @@ def test_the_vehicles_panel_lists_the_file_and_adds_a_make(page):
     expect(page.locator("#vh-list tbody tr", has_text="Zeekr")).to_contain_text("changed here")
 
 
+def test_use_the_built_in_list_drops_a_makes_changes(page):
+    """A make changed on the panel can go back to the file's list: the override is dropped, so the file's models
+    and variants show again. A make straight from the file has no such button."""
+    state = open_panel(page, {"makes": [{"name": "Hyundai", "type": "car", "models": ["Ioniq 5", "Kona N"], "versions": {"Ioniq 5": ["5N"]}}]})
+    hyundai = page.locator("#vh-list tr.vh-make", has_text="Hyundai").first
+    expect(hyundai).to_contain_text("changed here")
+    expect(hyundai).to_contain_text("2 models")
+    page.locator('#vh-list [data-edit="Hyundai"][data-type="car"]').click()
+    page.once("dialog", lambda d: d.accept())
+    page.click("#vh-reset")
+    expect(page.locator("#vh-note")).to_contain_text("Saved")
+    assert state["puts"][-1]["makes"] == []
+    hyundai = page.locator("#vh-list tr.vh-make", has_text="Hyundai").first
+    expect(hyundai).not_to_contain_text("changed here")
+    expect(hyundai).to_contain_text("11 models")
+    expect(hyundai.locator('.vh-model[data-model="Ioniq 9"]')).to_contain_text("4 variants")
+    page.locator('#vh-list [data-edit="Tesla"][data-type="car"]').click()
+    expect(page.locator("#vh-reset")).to_have_count(0)
+
+
 def test_a_make_can_be_taken_off_and_bike_makes_are_kept_apart(page):
     state = open_panel(page, {"makes": [{"name": "Honda", "type": "bike", "models": ["CBR600RR", "NC750"]}]})
     # The bike Honda was changed here; the car Honda from the file is untouched.
@@ -184,6 +204,8 @@ def test_the_members_cars_panel_lists_every_car_and_changes_one(page):
          "make": "", "model": "", "version": "", "year": "", "vehicleType": "car", "drive": "", "set": False},
         {"carId": "c2", "car": "Flash", "owner": "Aaron", "email": "aaron@example.com", "sessions": 1, "photos": 1, "garageOnly": True,
          "make": "Kia", "model": "EV6 GT", "version": "", "year": 2024, "vehicleType": "car", "drive": "AWD", "set": False},
+        {"carId": "c3", "car": "PROJECT 3 - OLD", "owner": "", "email": "", "sessions": 0, "photos": 2, "livePhotos": 0, "stale": True, "garageOnly": False,
+         "make": "", "model": "", "version": "", "year": "", "vehicleType": "car", "drive": "", "set": False},
     ]
 
     def handler(route):
@@ -193,6 +215,8 @@ def test_the_members_cars_panel_lists_every_car_and_changes_one(page):
             if req.method == "POST":
                 body = json.loads(req.post_data)
                 state["posts"].append(body)
+                if body.get("action") == "remove":
+                    return route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "removed": body["carId"]}), headers=headers)
                 car = dict(cars[0], make=body["make"], model=body["model"], version=body["version"], year=int(body["year"]), drive="AWD", set=body["drive"] == "AWD")
                 return route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "car": car, "stamped": 3, "boards": 1}), headers=headers)
             return route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "cars": cars}), headers=headers)
@@ -203,6 +227,17 @@ def test_the_members_cars_panel_lists_every_car_and_changes_one(page):
     page.goto("/track-admin.html")
     page.locator("#cars-wrap summary").click()
     rows = page.locator("#mc-list tr.mc-row")
+    expect(rows).to_have_count(3)
+    expect(page.locator("#cars-count")).to_have_text("(3)")
+    # A stale record (no owner, no live photos, no sessions) has only Remove, and goes when confirmed.
+    stale = page.locator("#mc-list tr.mc-row.is-stale")
+    expect(stale).to_have_count(1)
+    expect(stale).to_contain_text("Stale")
+    expect(stale.locator(".mc-save")).to_have_count(0)
+    page.once("dialog", lambda d: d.accept())
+    stale.locator(".mc-remove").click()
+    expect(page.locator("#mc-note")).to_contain_text("Removed this stale record")
+    assert state["posts"][-1] == {"carId": "c3", "action": "remove"}
     expect(rows).to_have_count(2)
     expect(page.locator("#cars-count")).to_have_text("(2)")
     first = rows.first

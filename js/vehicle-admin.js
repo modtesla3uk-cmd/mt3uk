@@ -127,7 +127,9 @@
       '<label>Models, one on each line<textarea id="vh-models" rows="8">' + esc(models.join('\n')) + '</textarea></label>' +
       '<div class="vh-variants-wrap" id="vh-variants">' + variantsHtml(models, versions, rules) + '</div>' +
       '<p class="iv-note">Variants are the Version choices My Garage offers for a model (Performance, Long Range AWD). A model added above gets a box once the make is saved. Under each box, <b>Required</b> makes the member pick a version (the box is otherwise optional) and <b>Free text</b> adds a Type it in choice so they can type any version.</p>' +
-      '<div class="iv-toolbar"><button type="button" id="vh-save">Save make</button><button type="button" class="secondary" id="vh-cancel">Cancel</button></div>';
+      '<div class="iv-toolbar"><button type="button" id="vh-save">Save make</button><button type="button" class="secondary" id="vh-cancel">Cancel</button>' +
+      (existing && inFile(name, type) && (extra.makes || []).some(function (m) { return same(m, name, type); }) ? '<button type="button" class="secondary" id="vh-reset">Use the built-in list</button>' : '') + '</div>' +
+      (existing && inFile(name, type) && (extra.makes || []).some(function (m) { return same(m, name, type); }) ? '<p class="iv-note">This make was changed here. Use the built-in list throws those changes away (models, variants and rules) and shows the list in data/vehicles.json again.</p>' : '');
     formEl.scrollIntoView({ block: 'nearest' });
   }
   function variantsHtml(models, versions, rules) {
@@ -211,6 +213,13 @@
     var sw = e.target.closest('.vh-rule');
     if (sw) { sw.setAttribute('aria-checked', String(sw.getAttribute('aria-checked') !== 'true')); return; }
     if (e.target.id === 'vh-cancel') { formEl.hidden = true; return; }
+    if (e.target.id === 'vh-reset') {
+      var rn = formEl.dataset.edit, rt = formEl.dataset.type;
+      if (!window.confirm('Go back to the built-in list for ' + rn + '? The models, variants and rules changed here are thrown away.')) return;
+      extra.makes = (extra.makes || []).filter(function (m) { return !same(m, rn, rt); });
+      put();
+      return;
+    }
     if (e.target.id !== 'vh-save') return;
     var name = document.getElementById('vh-name').value.trim();
     var type = formEl.dataset.edit ? formEl.dataset.type : document.getElementById('vh-type').value;

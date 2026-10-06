@@ -50,6 +50,13 @@
     }).join('') + '<option value="' + OTHER + '">Type it in</option></select>';
   }
   function rowHtml(c) {
+    if (c.stale) {
+      // Nothing holds this record: no owner, no live photo names it and no sessions. Only Remove.
+      return '<tr class="mc-row is-stale" data-car="' + esc(c.carId) + '"><td data-label="Owner">Owner not known</td>' +
+        '<td data-label="Car" colspan="7"><b>' + esc(c.car || 'A vehicle') + '</b><span class="mc-badge">Stale</span><span class="iv-sub">' +
+        (c.photos ? 'Its ' + c.photos + ' photo' + (c.photos === 1 ? ' has' : 's have') + ' been deleted or moved to another car' : 'No photos') + ', no sessions. Safe to remove.</span></td>' +
+        '<td><button type="button" class="danger iv-act mc-remove">Remove</button></td></tr>';
+    }
     return '<tr class="mc-row' + (c.model ? '' : ' is-target') + '" data-car="' + esc(c.carId) + '">' +
       '<td data-label="Owner">' + esc(c.owner || c.email || 'Owner not known') + (c.owner && c.email ? '<span class="iv-sub">' + esc(c.email) + '</span>' : '') + '</td>' +
       '<td data-label="Car"><b>' + esc(c.car || 'A vehicle') + '</b>' + (c.garageOnly ? '<span class="mc-badge">Garage only</span>' : '') +
@@ -90,7 +97,9 @@
   function draw() {
     var q = filterEl.value.trim().toLowerCase(), shown = cars.filter(function (c) { return matches(c, q); });
     countEl.textContent = cars.length ? '(' + cars.length + ')' : '';
-    listEl.innerHTML = cars.length ? '<p class="iv-note">' + cars.length + ' vehicle' + (cars.length === 1 ? '' : 's') + (q ? ', ' + shown.length + ' shown' : '') + ', ' + cars.filter(function (c) { return !c.model; }).length + ' with no model.</p>' +
+    var stale = cars.filter(function (c) { return c.stale; }).length;
+    listEl.innerHTML = cars.length ? '<p class="iv-note">' + cars.length + ' vehicle' + (cars.length === 1 ? '' : 's') + (q ? ', ' + shown.length + ' shown' : '') + ', ' + cars.filter(function (c) { return !c.model && !c.stale; }).length + ' with no model' +
+      (stale ? ', ' + stale + ' stale (no owner, no live photos, no sessions). <button type="button" class="secondary iv-act" id="mc-remove-stale">Remove all stale</button>' : '.') + '</p>' +
       '<table class="iv-table tk-table mc-table"><thead><tr><th>Owner</th><th>Car</th><th>Type</th><th>Make</th><th>Model</th><th>Version</th><th>Year</th><th>Driven wheels</th><th></th></tr></thead><tbody>' +
       shown.map(rowHtml).join('') + '</tbody></table>' : '<p class="empty">No cars yet.</p>';
   }
@@ -131,7 +140,24 @@
       refill(row, 'mc-version', 'Version', versionsOf({ make: picked(row, 'mc-make'), model: picked(row, 'mc-model'), vehicleType: row.querySelector('.mc-type').value }), '', 'Not set');
     }
   });
+  function removeCar(carId) {
+    return call('POST', { carId: carId, action: 'remove' }).then(function (d) {
+      if (!d.ok || !d.success) throw new Error(d.message || 'That did not work.');
+      cars = cars.filter(function (c) { return c.carId !== carId; });
+    });
+  }
   listEl.addEventListener('click', function (e) {
+    var rm = e.target.closest('.mc-remove'), all = e.target.closest('#mc-remove-stale');
+    if (rm || all) {
+      var ids = all ? cars.filter(function (c) { return c.stale; }).map(function (c) { return c.carId; }) : [rm.closest('tr').getAttribute('data-car')];
+      var what = all ? ids.length + ' stale record' + (ids.length === 1 ? '' : 's') : 'this stale record';
+      if (!window.confirm('Remove ' + what + '? Nothing else is deleted: a stale record has no owner, no live photos and no sessions.')) return;
+      note('Removing...');
+      var chain = Promise.resolve();
+      ids.forEach(function (id) { chain = chain.then(function () { return removeCar(id); }); });
+      chain.then(function () { draw(); note('Removed ' + what + '.'); }).catch(function (err) { draw(); note(err.message || 'Could not reach the server.', true); });
+      return;
+    }
     var btn = e.target.closest('.mc-save');
     if (!btn) return;
     var row = btn.closest('tr'), carId = row.getAttribute('data-car'), c = findCar(carId) || {};

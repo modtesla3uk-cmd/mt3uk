@@ -569,6 +569,7 @@
 #mc-list .mc-table input[type="number"] { min-width: 76px; max-width: 90px; }
 #mc-list .mc-row.is-target > td { background: #fff3d6; }
 #mc-list .mc-row.is-changed > td { background: #fdf3ef; }
+#mc-list .mc-row.is-stale > td { background: #f3f4f7; color: #4a5468; }
 #mc-list .mc-badge { display: inline-block; font-size: 0.68rem; padding: 1px 6px; border-radius: var(--radius-pill, 999px); background: #eceef2; color: #4a5468; margin-left: 4px; }
 #mc-filter { min-height: 40px; width: 100%; max-width: 320px; font: inherit; }
 @media (max-width: 780px) {

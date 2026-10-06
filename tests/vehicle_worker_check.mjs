@@ -155,6 +155,15 @@ r = await call('POST', '/track/admin/cars?key=secret', { carId: 'cara1', drive: 
 ok(r.status === 200 && r.body.car.set === false && r.body.car.model === 'Model Q', 'only the settings sent change; clearing the driven wheels goes back to the model\'s');
 r = await call('POST', '/track/admin/cars?key=secret', { carId: 'nope', model: 'x' });
 ok(r.status === 404, 'a car that does not exist is refused');
+// A stale record: its photos are gone, so no owner, no live photo and no sessions.
+await mod.saveCarRecord(env, { id: 'carz', name: 'Old Project', photos: ['gone.jpg'], mods: [] });
+r = await call('GET', '/track/admin/cars?key=secret');
+let stale = r.body.cars.find(c => c.carId === 'carz'), liveRow = r.body.cars.find(c => c.carId === 'cara1');
+ok(stale && stale.stale === true && stale.photos === 1 && stale.livePhotos === 0 && liveRow.stale === false && liveRow.livePhotos === 1, 'a record whose photos are gone is marked stale; a live car is not');
+r = await call('POST', '/track/admin/cars?key=secret', { carId: 'cara1', action: 'remove' });
+ok(r.status === 400, 'a live car cannot be removed this way');
+r = await call('POST', '/track/admin/cars?key=secret', { carId: 'carz', action: 'remove' });
+ok(r.status === 200 && r.body.removed === 'carz' && !bucket.has('gallery/cars/carz.json'), 'a stale record is removed');
 kv.set('car-details:cara1', JSON.stringify({ model: 'Model Y', version: 'Long Range AWD', year: 2022 }));
 
 // ---- js/vehicle-data.js ----
@@ -177,6 +186,8 @@ const DRIVE_CASES = [
   [{ make: 'Tesla', model: 'Model Y', version: 'Juniper Performance' }, 'AWD'], [{ model: 'Model Y', version: 'Juniper Rear-Wheel Drive' }, 'RWD'],
   [{ model: 'Model S', version: 'P85D' }, 'AWD'], [{ model: 'Model S', version: 'P85+' }, 'RWD'], [{ model: 'Model S', version: 'Plaid' }, 'AWD'], [{ model: 'Model X' }, 'AWD'],
   [{ model: 'Hyundai Ioniq 5 N' }, 'AWD'], [{ make: 'Hyundai', model: 'Hyundai Ioniq 5 N' }, 'AWD'], [{ make: 'Porsche', model: 'Porsche Taycan' }, 'RWD'], [{ make: 'Hyundai', model: 'Ioniq 6 N' }, 'AWD'], [{ make: 'Hyundai', model: 'Kona N' }, 'FWD'],
+  [{ make: 'Hyundai', model: 'Ioniq 5', version: '84 kWh AWD' }, 'AWD'], [{ make: 'Hyundai', model: 'Ioniq 9', version: 'Long Range RWD' }, 'RWD'], [{ make: 'Hyundai', model: 'Ioniq 9', version: 'Performance AWD' }, 'AWD'],
+  [{ make: 'Hyundai', model: 'i30 N', version: 'i30 N Performance' }, 'FWD'], [{ make: 'Hyundai', model: 'Kona Electric', version: '65 kWh' }, 'FWD'], [{ make: 'Hyundai', model: 'Inster' }, 'FWD'],
   [{ model: 'Porsche Taycan', version: 'Taycan' }, 'RWD'], [{ model: 'Porsche Taycan', version: '4S' }, 'AWD'], [{ make: 'Porsche', model: 'Taycan', version: 'Turbo S Cross Turismo' }, 'AWD'],
   [{ make: 'Porsche', model: '911', version: 'GT3' }, 'RWD'], [{ make: 'Porsche', model: '911', version: 'Carrera 4S' }, 'AWD'],
   [{ make: 'Kia', model: 'EV6 GT' }, 'AWD'], [{ make: 'Kia', model: 'EV6' }, 'RWD'], [{ make: 'BMW', model: 'M3', version: 'Competition xDrive' }, 'AWD'], [{ make: 'BMW', model: 'M2' }, 'RWD'],

@@ -109,7 +109,8 @@
   var DRIVES = ['FWD', 'RWD', 'AWD'];
   var FIXED_DRIVE = {
     'tesla|model x': 'AWD', 'tesla|cybertruck': 'AWD', 'tesla|roadster': 'RWD',
-    'hyundai|ioniq 5 n': 'AWD', 'hyundai|ioniq 6 n': 'AWD', 'hyundai|ioniq 5': 'RWD', 'hyundai|ioniq 6': 'RWD', 'hyundai|kona n': 'FWD',
+    'hyundai|ioniq 5 n': 'AWD', 'hyundai|ioniq 6 n': 'AWD', 'hyundai|ioniq 5': 'RWD', 'hyundai|ioniq 6': 'RWD', 'hyundai|ioniq 9': 'RWD', 'hyundai|kona n': 'FWD',
+    'hyundai|kona electric': 'FWD', 'hyundai|i20 n': 'FWD', 'hyundai|i30 n': 'FWD', 'hyundai|i30 fastback n': 'FWD', 'hyundai|inster': 'FWD',
     'kia|ev6 gt': 'AWD', 'kia|ev6': 'RWD', 'kia|ev9': 'RWD',
     'porsche|718 cayman': 'RWD', 'porsche|718 boxster': 'RWD',
     'polestar|3': 'AWD', 'polestar|4': 'AWD',

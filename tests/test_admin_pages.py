@@ -1692,3 +1692,63 @@ def test_the_driven_wheels_panel_lists_vehicles_with_sessions_and_sets_one(page)
     assert state["posts"] == [{"carId": "c2", "drive": "RWD"}]
     expect(table.first).to_contain_text("Set by hand")
     expect(table.first).not_to_have_class(re.compile("is-target"))
+
+
+def test_new_laps_sign_ups_are_listed_counted_on_the_bell_when_not_waiting_and_cleared(page):
+    """Everyone who joins on Laps is listed on the Sign-in and sign-up panel of track-admin.html. One already waiting
+    for early access is counted there, not twice; any other is counted on the bell (on admin.html too) and opens
+    the panel. Clear takes one off the list."""
+    ok = {"Access-Control-Allow-Origin": "*"}
+    state = {"signups": [
+        {"email": "ola@example.com", "name": "Ola Open", "at": "2026-10-06T12:30:00Z", "account": "mt3uk", "waiting": False},
+        {"email": "nia@example.com", "name": "Nia Jones", "at": "2026-10-06T11:00:00Z", "account": "laps", "waiting": True},
+    ], "cleared": []}
+
+    def signups(route):
+        if route.request.method == "POST":
+            body = json.loads(route.request.post_data)
+            state["cleared"].append(body["clear"])
+            state["signups"] = [] if body["clear"] == "all" else [s for s in state["signups"] if s["email"] != body["clear"]]
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "signups": state["signups"]}), headers=ok)
+    open_admin(page, "track-admin.html")
+    page.route("**/laps/signups/admin**", signups)
+    page.reload()
+    rows = page.locator("#lsu-list tr[data-signup]")
+    expect(rows).to_have_count(2)
+    expect(page.locator("#signups-count")).to_have_text("(2 new)")
+    expect(rows.first).to_contain_text("Ola Open")
+    expect(rows.first).to_contain_text("ola@example.com")
+    expect(rows.first).to_contain_text("MT3UK member too")
+    expect(rows.first).to_contain_text("Already in")
+    expect(rows.nth(1)).to_contain_text("Laps only")
+    expect(rows.nth(1)).to_contain_text("Put on the early access list")
+    expect(page.locator("#bell-badge")).to_have_text("1")
+    page.locator("#bell-btn").click()
+    panel = page.locator("#bell-panel")
+    expect(panel).to_contain_text("New Laps sign-ups (1)")
+    expect(panel).to_contain_text("Joined on Laps, MT3UK member too")
+    expect(panel).not_to_contain_text("Nia Jones")
+    panel.locator(".bell-item", has_text="Ola Open").click()
+    expect(page.locator("#signin-wrap")).to_have_attribute("open", "")
+    rows.first.locator(".lsu-clear").click()
+    expect(rows).to_have_count(1)
+    assert state["cleared"] == ["ola@example.com"]
+    expect(page.locator("#signups-count")).to_have_text("(1 new)")
+    page.on("dialog", lambda d: d.accept())
+    page.locator("#lsu-clear-all").click()
+    expect(page.locator("#lsu-list")).to_contain_text("No new Laps sign-ups")
+    assert state["cleared"] == ["ola@example.com", "all"]
+    # admin.html's bell counts it too and sends the admin to the panel.
+    page2 = page.context.new_page()
+    open_admin(page2, "admin.html")
+    page2.route("**/laps/signups/admin**", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "signups": [
+        {"email": "sam@example.com", "name": "Sam Lee", "at": "2026-10-06T13:00:00Z", "account": "laps", "waiting": False},
+        {"email": "nia@example.com", "name": "Nia Jones", "at": "2026-10-06T11:00:00Z", "account": "mt3uk", "waiting": True}]}), headers=ok))
+    page2.reload()
+    expect(page2.locator("#bell-badge")).to_have_text("1")
+    page2.locator("#bell-btn").click()
+    expect(page2.locator("#bell-panel")).to_contain_text("New Laps sign-ups (1)")
+    expect(page2.locator("#bell-panel")).to_contain_text("Joined on Laps, Laps-only account")
+    page2.locator("#bell-panel .bell-item", has_text="Sam Lee").click()
+    page2.wait_for_url("**/track-admin.html#signin-wrap")
+    expect(page2.locator("#signin-wrap")).to_have_attribute("open", "")

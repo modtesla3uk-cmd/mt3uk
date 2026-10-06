@@ -123,6 +123,15 @@
         sub: row.getAttribute('data-sub') || 'Saved by a member'
       });
     });
+    // People who joined on Laps once Early access is open to all (ones still waiting for it are counted there).
+    document.querySelectorAll('#lsu-list [data-signup]').forEach(function (row) {
+      if (row.getAttribute('data-waiting') === 'true') return;
+      items.push({
+        id: 'laps-signup:' + row.getAttribute('data-signup'), group: 'New Laps sign-ups', section: 'signin', el: row, img: '',
+        title: row.getAttribute('data-title') || 'A new member',
+        sub: row.getAttribute('data-sub') || 'Joined on Laps'
+      });
+    });
     // Early access requests and new-track requests wait in their own panels.
     document.querySelectorAll('#ac-pending [data-approve]').forEach(function (btn) {
       var row = btn.closest('tr'), email = btn.getAttribute('data-approve');
@@ -263,7 +272,7 @@
   });
 
   var bellTimer = null;
-  ['ns-list', 'ac-pending', 'tk-requests', 'ln-list'].map(function (id) { return document.getElementById(id); }).filter(Boolean).forEach(function (el) {
+  ['ns-list', 'lsu-list', 'ac-pending', 'tk-requests', 'ln-list'].map(function (id) { return document.getElementById(id); }).filter(Boolean).forEach(function (el) {
     new MutationObserver(function () {
       clearTimeout(bellTimer);
       bellTimer = setTimeout(renderBell, 100);

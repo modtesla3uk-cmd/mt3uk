@@ -7340,9 +7340,9 @@ async function refreshTrackBoard(env, boardKey, carId) {
   board.sort(function (a, b) { return (a.time || a.quarter) - (b.time || b.quarter); });
   board = board.slice(0, TRACK_BOARD_MAX);
   await env.VOTES.put(boardKey, JSON.stringify(board));
-  // Shared sessions per board, for the list of tracks (one key).
+  // The sessions on each board, for the list of tracks (one key): one for each car, its fastest, which is what the board shows.
   var counts = await getJsonKey(env, 'track-board-counts', {});
-  var total = board.reduce(function (n, e) { return n + (e.sessions || 1); }, 0);
+  var total = board.length;
   if (total) counts[boardKey] = total; else delete counts[boardKey];
   await env.VOTES.put('track-board-counts', JSON.stringify(counts));
   // The top three on each board, so the track list can show them (one key).

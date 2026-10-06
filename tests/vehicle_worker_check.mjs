@@ -225,7 +225,7 @@ const DRIVE_CASES = [
   [{ make: 'Hyundai', model: 'i30 N', version: 'i30 N Performance' }, 'FWD'], [{ make: 'Hyundai', model: 'Kona Electric', version: '65 kWh' }, 'FWD'], [{ make: 'Hyundai', model: 'Inster' }, 'FWD'],
   [{ model: 'Porsche Taycan', version: 'Taycan' }, 'RWD'], [{ model: 'Porsche Taycan', version: '4S' }, 'AWD'], [{ make: 'Porsche', model: 'Taycan', version: 'Turbo S Cross Turismo' }, 'AWD'],
   [{ make: 'Porsche', model: '911', version: 'GT3' }, 'RWD'], [{ make: 'Porsche', model: '911', version: 'Carrera 4S' }, 'AWD'],
-  [{ make: 'Kia', model: 'EV6 GT' }, 'AWD'], [{ make: 'Kia', model: 'EV6' }, 'RWD'], [{ make: 'BMW', model: 'M3', version: 'Competition xDrive' }, 'AWD'], [{ make: 'BMW', model: 'M2' }, 'RWD'],
+  [{ make: 'Kia', model: 'EV6 GT' }, 'AWD'], [{ make: 'Alpine', model: 'A290' }, 'FWD'], [{ make: 'Kia', model: 'EV6' }, 'RWD'], [{ make: 'BMW', model: 'M3', version: 'Competition xDrive' }, 'AWD'], [{ make: 'BMW', model: 'M2' }, 'RWD'],
   [{ make: 'Polestar', model: '2', version: 'Long range Single motor', year: 2022 }, 'FWD'], [{ make: 'Polestar', model: '2', version: 'Long range Single motor', year: 2024 }, 'RWD'], [{ make: 'Polestar', model: '2', version: 'Dual motor' }, 'AWD'],
   [{ make: 'Honda', model: 'Civic Type R' }, 'FWD'], [{ make: 'Honda', model: 'NSX', year: 2017 }, 'AWD'], [{ make: 'Honda', model: 'NSX', year: 1995 }, 'RWD'],
   [{ make: 'Ducati', model: 'Panigale V4', vehicleType: 'bike' }, ''], [{ make: 'Zeekr', model: '001 FR' }, ''], [{ make: 'Ford', model: 'Mustang Mach-E', version: 'AWD Extended Range' }, 'AWD'],

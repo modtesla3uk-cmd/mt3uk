@@ -1,5 +1,5 @@
 {
-  "_note": "Vehicle makes and models for Track sessions and Laps. This is the starting list; changes made on the Vehicles panel of track-admin.html are stored by the worker (KV vehicle-library) on top of it. Each make has a type, car or bike (BMW and Honda exist as both). The Model box suggests a make's models but accepts anything typed. A make can list each model's variants (versions) too, offered in My Garage's Version box; variants are edited on the same panel.",
+  "_note": "Vehicle makes and models for Track sessions and Laps: electric vehicles only. This is the starting list; changes made on the Vehicles panel of track-admin.html are stored by the worker (KV vehicle-library) on top of it, and a make changed there keeps its own list of models. Each make has a type, car or bike. Members pick the make and model from drop-downs. A make can list each model's variants (versions) too, offered in My Garage's Version box; variants are edited on the same panel.",
   "makes": [
     {
       "name": "Tesla",
@@ -82,10 +82,6 @@
         "Ioniq 6",
         "Ioniq 9",
         "Kona Electric",
-        "Kona N",
-        "i20 N",
-        "i30 N",
-        "i30 Fastback N",
         "Inster"
       ],
       "versions": {
@@ -126,20 +122,6 @@
           "65 kWh",
           "N Line"
         ],
-        "Kona N": [
-          "Kona N"
-        ],
-        "i20 N": [
-          "i20 N"
-        ],
-        "i30 N": [
-          "i30 N",
-          "i30 N Performance"
-        ],
-        "i30 Fastback N": [
-          "i30 Fastback N",
-          "i30 Fastback N Performance"
-        ],
         "Inster": [
           "42 kWh",
           "49 kWh",
@@ -161,10 +143,7 @@
       "type": "car",
       "models": [
         "Taycan",
-        "Macan Electric",
-        "911",
-        "718 Cayman",
-        "718 Boxster"
+        "Macan Electric"
       ],
       "versions": {
         "Taycan": [
@@ -199,10 +178,7 @@
       "models": [
         "i4 M50",
         "iX M60",
-        "i5 M60",
-        "M2",
-        "M3",
-        "M4"
+        "i5 M60"
       ]
     },
     {
@@ -210,9 +186,7 @@
       "type": "car",
       "models": [
         "RS e-tron GT",
-        "e-tron GT",
-        "RS3",
-        "RS6"
+        "e-tron GT"
       ]
     },
     {
@@ -220,8 +194,7 @@
       "type": "car",
       "models": [
         "EQE AMG",
-        "EQS AMG",
-        "AMG GT"
+        "EQS AMG"
       ]
     },
     {
@@ -229,11 +202,7 @@
       "type": "car",
       "models": [
         "Eletre",
-        "Emeya",
-        "Emira",
-        "Elise",
-        "Exige",
-        "Evora"
+        "Emeya"
       ]
     },
     {
@@ -263,9 +232,7 @@
       "type": "car",
       "models": [
         "Mustang Mach-E",
-        "Mustang Mach-E GT",
-        "Focus ST",
-        "Fiesta ST"
+        "Mustang Mach-E GT"
       ]
     },
     {
@@ -274,40 +241,35 @@
       "models": [
         "ID.3",
         "ID.4 GTX",
-        "ID. Buzz",
-        "Golf R",
-        "Golf GTI"
+        "ID. Buzz"
       ]
     },
     {
       "name": "Cupra",
       "type": "car",
       "models": [
-        "Born",
-        "Leon"
+        "Born"
       ]
     },
     {
       "name": "Mini",
       "type": "car",
       "models": [
-        "Cooper SE",
-        "John Cooper Works"
+        "Cooper SE"
       ]
     },
     {
       "name": "Renault",
       "type": "car",
       "models": [
-        "Megane E-Tech",
-        "Clio"
+        "Megane E-Tech"
       ]
     },
     {
       "name": "Alpine",
       "type": "car",
       "models": [
-        "A110"
+        "A290"
       ]
     },
     {
@@ -315,121 +277,7 @@
       "type": "car",
       "models": [
         "Ariya",
-        "Leaf",
-        "GT-R"
-      ]
-    },
-    {
-      "name": "Honda",
-      "type": "car",
-      "models": [
-        "Civic Type R",
-        "S2000",
-        "NSX"
-      ]
-    },
-    {
-      "name": "Toyota",
-      "type": "car",
-      "models": [
-        "GR86",
-        "GR Yaris",
-        "Supra"
-      ]
-    },
-    {
-      "name": "Subaru",
-      "type": "car",
-      "models": [
-        "BRZ",
-        "WRX STI"
-      ]
-    },
-    {
-      "name": "Mazda",
-      "type": "car",
-      "models": [
-        "MX-5"
-      ]
-    },
-    {
-      "name": "Ducati",
-      "type": "bike",
-      "models": [
-        "Panigale V4",
-        "Panigale V2",
-        "Streetfighter V4",
-        "Monster"
-      ]
-    },
-    {
-      "name": "Yamaha",
-      "type": "bike",
-      "models": [
-        "R1",
-        "R6",
-        "MT-09",
-        "MT-10"
-      ]
-    },
-    {
-      "name": "Honda",
-      "type": "bike",
-      "models": [
-        "CBR1000RR-R Fireblade",
-        "CBR600RR"
-      ]
-    },
-    {
-      "name": "Kawasaki",
-      "type": "bike",
-      "models": [
-        "ZX-10R",
-        "ZX-6R",
-        "Z900",
-        "Ninja H2"
-      ]
-    },
-    {
-      "name": "Suzuki",
-      "type": "bike",
-      "models": [
-        "GSX-R1000",
-        "GSX-R750",
-        "GSX-R600"
-      ]
-    },
-    {
-      "name": "BMW",
-      "type": "bike",
-      "models": [
-        "S 1000 RR",
-        "M 1000 RR"
-      ]
-    },
-    {
-      "name": "Triumph",
-      "type": "bike",
-      "models": [
-        "Daytona 765",
-        "Speed Triple 1200 RS",
-        "Street Triple 765"
-      ]
-    },
-    {
-      "name": "KTM",
-      "type": "bike",
-      "models": [
-        "1290 Super Duke R",
-        "RC 8C"
-      ]
-    },
-    {
-      "name": "Aprilia",
-      "type": "bike",
-      "models": [
-        "RSV4",
-        "Tuono V4"
+        "Leaf"
       ]
     },
     {

@@ -59,7 +59,9 @@ def test_laps_adds_a_car_without_a_photo(page):
     fake = NoCarWorker()
     open_page(page, fake)
     form = page.locator("#tp-addcar")
-    expect(form).to_contain_text("Add your vehicle")
+    expect(form).to_contain_text("Add your car")
+    # Cars only for now: the Car or bike choice is hidden.
+    expect(page.locator('[data-addcar-type="bike"]')).to_be_hidden()
     expect(form).to_contain_text("No photo needed")
     # Make and model are needed, and are picked from the vehicle list: drop-downs, nothing typed.
     page.wait_for_function("document.querySelectorAll('#tp-addcar-make option').length > 5", timeout=5000)
@@ -73,29 +75,28 @@ def test_laps_adds_a_car_without_a_photo(page):
     assert page.locator('#tp-addcar-model option[value="Taycan"]').count() == 1
     page.locator("#tp-addcar-save").click()
     expect(page.locator("#tp-addcar-msg")).to_have_text("Choose the model.")
-    page.select_option("#tp-addcar-model", "911")
+    page.select_option("#tp-addcar-model", "Taycan")
     page.fill("#tp-addcar-year", "2019")
     page.locator("#tp-addcar-save").click()
     # The new car is chosen, ready for its first session.
-    expect(page.locator("#tp-cars .tp-car.is-on")).to_contain_text("Porsche 911")
-    assert fake.added == [{"make": "Porsche", "model": "911", "year": "2019", "vehicleType": "car", "name": ""}]
+    expect(page.locator("#tp-cars .tp-car.is-on")).to_contain_text("Porsche Taycan")
+    assert fake.added == [{"make": "Porsche", "model": "Taycan", "year": "2019", "vehicleType": "car", "name": ""}]
     expect(page.get_by_role("link", name="Add a session", exact=True)).to_be_visible()
-    # Another car can be added from Your cars, as a bike.
+    # Another car can be added from Your cars; no bike makes are offered.
     page.locator("#tp-vtoggle").click()
     page.locator("#tp-car-add-open").click()
-    page.locator('[data-addcar-type="bike"]').click()
-    expect(page.locator("#tp-addcar-save")).to_have_text("Add bike")
-    page.wait_for_function("[...document.querySelectorAll('#tp-addcar-make option')].some(o => o.value === 'Ducati')", timeout=5000)
-    assert page.locator('#tp-addcar-make option[value="Kia"]').count() == 0
-    page.select_option("#tp-addcar-make", "Ducati")
-    page.select_option("#tp-addcar-model", "Panigale V4")
-    page.fill("#tp-addcar-name", "Track bike")
+    expect(page.locator("#tp-addcar-save")).to_have_text("Add car")
+    page.wait_for_function("[...document.querySelectorAll('#tp-addcar-make option')].some(o => o.value === 'Kia')", timeout=5000)
+    assert page.locator('#tp-addcar-make option[value="Zero"]').count() == 0
+    page.select_option("#tp-addcar-make", "Kia")
+    page.select_option("#tp-addcar-model", "EV6 GT")
+    page.fill("#tp-addcar-name", "Track car")
     page.locator("#tp-addcar-save").click()
     # Two vehicles: the list is folded to the one picked, and Change opens it with a row for each.
     expect(page.locator("#tp-vtoggle")).to_be_visible()
     page.locator("#tp-vtoggle").click()
     page.wait_for_function("document.querySelectorAll('#tp-cars .tp-car[data-car]').length === 2", timeout=5000)
-    assert fake.added[-1]["vehicleType"] == "bike" and fake.added[-1]["name"] == "Track bike"
+    assert fake.added[-1]["vehicleType"] == "car" and fake.added[-1]["name"] == "Track car"
 
 
 from test_devices import all_devices, device_page, browsers, diagnostics  # noqa: E402,F401

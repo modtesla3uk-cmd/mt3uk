@@ -893,9 +893,10 @@
   // photos can be added later in My Garage. A car of another make is kept in the garage, out of the Gallery.
   function addCarHtml(first) {
     return '<form class="card tp-intro tp-addcar" id="tp-addcar" novalidate>' +
-      '<h2>' + (first ? 'Add your vehicle' : 'Add a vehicle') + '</h2>' +
+      '<h2>' + (first ? 'Add your car' : 'Add a car') + '</h2>' +
       '<p>' + (first ? 'Sessions belong to a car, so your times can be matched to its mods. ' : '') + 'No photo needed: you can add photos later in My Garage.</p>' +
-      '<div class="tp-types" role="group" aria-label="Car or bike">' +
+      // Car or bike: hidden while Laps is for cars only (October 2026); drop hidden to offer bikes again.
+      '<div class="tp-types" role="group" aria-label="Car or bike" hidden>' +
         '<button type="button" class="chip is-on" data-addcar-type="car" aria-pressed="true">Car</button>' +
         '<button type="button" class="chip" data-addcar-type="bike" aria-pressed="false">Bike</button></div>' +
       '<div class="tp-addcar-grid">' +

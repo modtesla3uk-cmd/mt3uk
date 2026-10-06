@@ -3,6 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+  // laps.mt3uk.com/ is sent here by a redirect rule on Cloudflare (a 301, so search engines index this page as the
+  // Laps front page), with ?start added. Arriving that way, a signed-in member, or anyone who has seen this page
+  // before, goes on to Sessions, as index.html does for laps.mt3uk.com/ without the rule. Any other visit (Play
+  // intro, a shared section, a search result) stays here. ?start is taken out of the address.
+  (function () {
+    var q = new URLSearchParams(location.search);
+    if (!q.has('start')) return;
+    q.delete('start');
+    var rest = (q.toString() ? '?' + q : '') + location.hash;
+    var go = false;
+    try { go = !!(localStorage.getItem('mt3ukMyBuildsSession') || localStorage.getItem('mt3ukLapsIntroSeen')); } catch (e) {}
+    if (go) location.replace('/track.html' + rest);
+    else history.replaceState(null, '', location.pathname + rest);
+  })();
+</script>
 <title>Laps by MT3UK: lap times, track days and leaderboards</title>
 <meta name="description" content="Upload the file from your lap timer and see every lap mapped, compared and ranked. Track days, sprints, hill climbs and drag runs, for modified EVs.">
 <link rel="canonical" href="https://laps.mt3uk.com/laps.html">
@@ -20,11 +36,45 @@
 <meta property="og:title" content="Laps by MT3UK: lap times, track days and leaderboards">
 <meta property="og:description" content="Upload the file from your lap timer and see every lap mapped, compared and ranked. Track days, sprints, hill climbs and drag runs, for modified EVs.">
 <meta property="og:image" content="https://mt3uk.com/images/track-preview/share.jpg">
+<meta property="og:site_name" content="Laps by MT3UK">
 <meta property="og:url" content="https://laps.mt3uk.com/laps.html">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Laps by MT3UK: lap times, track days and leaderboards">
 <meta name="twitter:description" content="Upload the file from your lap timer and see every lap mapped, compared and ranked. Track days, sprints, hill climbs and drag runs, for modified EVs.">
 <meta name="twitter:image" content="https://mt3uk.com/images/track-preview/share.jpg">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://laps.mt3uk.com/#website",
+      "name": "Laps by MT3UK",
+      "alternateName": ["Laps", "MT3UK Laps"],
+      "url": "https://laps.mt3uk.com/",
+      "inLanguage": "en-GB",
+      "publisher": { "@id": "https://mt3uk.com/#organization" }
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://mt3uk.com/#organization",
+      "name": "MT3UK",
+      "url": "https://mt3uk.com/",
+      "logo": "https://mt3uk.com/images/MT3UK_RED_BLK_BG.png"
+    },
+    {
+      "@type": "WebApplication",
+      "name": "Laps by MT3UK",
+      "url": "https://laps.mt3uk.com/laps.html",
+      "applicationCategory": "SportsApplication",
+      "operatingSystem": "Any (web browser)",
+      "description": "Upload the file from your lap timer (RaceBox, VBOX and others) and see every lap mapped, compared and ranked on the leaderboards. Track days, sprints, hill climbs and drag runs, for modified EVs.",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "GBP" },
+      "publisher": { "@id": "https://mt3uk.com/#organization" }
+    }
+  ]
+}
+</script>
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
 <link rel="stylesheet" href="css/site-header.css">
 <style>

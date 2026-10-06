@@ -25,7 +25,36 @@ LOCAL_IMAGE_DIRS = ["images/site"]
 # <image:image> entries under the page that shows them instead.
 R2_PREFIXES = {"gallery/": "gallery.html", "track-days/": "track-day-prep.html"}
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
-PAGES = ["index.html", "shop.html", "reviews.html", "contact.html", "signin.html", "privacy.html", "track.html", "leaderboards.html", "track-day-prep.html", "gallery.html", "blog.html", "blog-richard.html", "blog-john.html", "blog-kam.html", "blog-yusuf.html", "blog-ryan.html", "blog-sharad.html", "blog-romil.html", "blog-unicorn.html", "blog-john-track-day.html", "blog-sue.html", "blog-james.html"]
+PAGES = ["index.html", "shop.html", "reviews.html", "contact.html", "signin.html", "privacy.html", "track-day-prep.html", "gallery.html", "blog.html", "blog-richard.html", "blog-john.html", "blog-kam.html", "blog-yusuf.html", "blog-ryan.html", "blog-sharad.html", "blog-romil.html", "blog-unicorn.html", "blog-john-track-day.html", "blog-sue.html", "blog-james.html"]
+
+# The Laps pages (track sessions and the leaderboards) belong to laps.mt3uk.com, where their canonical
+# address is, so they get their own sitemap there (robots.txt names both). Both addresses serve the same files.
+LAPS_DOMAIN = "https://laps.mt3uk.com"
+LAPS_OUTPUT_FILE = "sitemap-laps.xml"
+LAPS_PAGES = ["laps.html", "track.html", "leaderboards.html"]
+
+
+def generate_laps_sitemap():
+    """Write sitemap-laps.xml: the Laps pages on laps.mt3uk.com, the front page first."""
+    current_date = datetime.now().strftime("%Y-%m-%d")
+    xml_lines = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ]
+    for i, page in enumerate(LAPS_PAGES):
+        xml_lines.extend([
+            '  <url>',
+            f'    <loc>{LAPS_DOMAIN}/{page}</loc>',
+            f'    <lastmod>{current_date}</lastmod>',
+            '    <changefreq>daily</changefreq>',
+            f'    <priority>{"1.0" if i == 0 else "0.9"}</priority>',
+            '  </url>',
+        ])
+    xml_lines.append('</urlset>')
+    with open(LAPS_OUTPUT_FILE, 'w', encoding='utf-8') as f:
+        f.write('\n'.join(xml_lines))
+    print(f"Sitemap generated: {LAPS_OUTPUT_FILE} ({len(LAPS_PAGES)} pages)")
+
 
 def hidden_gallery_files():
     """Photos kept out of the Gallery (a car of another make kept in a member's garage, or a
@@ -138,4 +167,5 @@ def generate_sitemap():
     print(f"   Total URLs: {len(images) + len(PAGES)}")
 
 if __name__ == "__main__":
+    generate_laps_sitemap()
     generate_sitemap()

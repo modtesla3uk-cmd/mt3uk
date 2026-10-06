@@ -1250,6 +1250,10 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   let cp = await call('GET', '/track/copy');
   ok(cp.status === 200 && cp.body.success && Object.keys(cp.body.copy).length === 0, 'no welcome text set: the page uses its own');
   ok((await call('POST', '/track/copy/admin', { heading: 'x' })).status === 401, 'the welcome text needs the admin key');
+  cp = await call('POST', '/track/copy/admin?key=secret', { tipHeading: ' Keep   uploading ', tipText: 'More data.', tipOff: true });
+  ok(cp.body.copy.tipHeading === 'Keep uploading' && cp.body.copy.tipText === 'More data.' && cp.body.copy.tipOff === true && !('heading' in cp.body.copy), 'the tip\'s heading, text and switch are kept, cleaned');
+  cp = await call('POST', '/track/copy/admin?key=secret', { tipHeading: 'Keep uploading', tipOff: 'yes' });
+  ok(cp.body.copy.tipOff === undefined, 'the tip is only hidden by a real true');
   cp = await call('POST', '/track/copy/admin?key=secret', { heading: 'Lap times for <every> car', intro: '  Bring your file.  ', bullets: ['One', '', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'] });
   ok(cp.body.success && cp.body.copy.heading === 'Lap times for every car' && cp.body.copy.intro === 'Bring your file.' && cp.body.copy.bullets.length === 8 && cp.body.copy.bullets[1] === 'Two', 'the words are trimmed, angle brackets dropped, blanks dropped and the list kept to eight: ' + JSON.stringify(cp.body.copy).slice(0, 120));
   ok((await call('GET', '/track/copy')).body.copy.heading === 'Lap times for every car', 'the page reads them');

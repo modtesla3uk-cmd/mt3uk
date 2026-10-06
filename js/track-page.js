@@ -558,6 +558,7 @@
       // Sessions just saved from a batch: say so at the top.
       if (justSaved && (justSaved.batch || justSaved.text)) { h = savedHtml(justSaved) + h; justSaved = null; }
       app.innerHTML = h;
+      if (window.MT3UKLapsTip) window.MT3UKLapsTip.place();
       wireAddCar();
       wireCarChips(m);
       if (m && m.cars && m.cars.length) wireSessionList(m);
@@ -588,6 +589,7 @@
     h += '<div class="tp-section"><div class="tp-head"><div><h2>Sessions</h2><p class="tp-sub tp-for">' + esc(car.name) + '</p></div>' + findToggleHtml(m) + refreshChip() + unitsChip() + '</div>';
     h += '<div class="tp-actions"><a class="btn btn-accent" href="track.html?add=1&car=' + encodeURIComponent(car.id) + '" data-go="add=1&car=' + esc(encodeURIComponent(car.id)) + '">' + icon('upload') + 'Add a session</a>' +
       (car.virtual ? '' : '<a class="btn btn-secondary" href="track.html?car=' + encodeURIComponent(car.id) + '" data-go="car=' + esc(encodeURIComponent(car.id)) + '">What others see</a>') + '</div>';
+    h += '<div data-laps-tip="plain"></div>';
     h += findPanelHtml(m);
     h += '<div id="tp-tracks">';
     if (!list.length) h += '<div class="card tp-empty">' + icon('flag') + '<p>No sessions for ' + esc(car.name) + ' yet. Add the file from your lap timer to get started.</p></div>';

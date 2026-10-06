@@ -171,12 +171,16 @@
     <div class="panel-wrap">
     <details class="collapsible" id="copy-wrap">
       <summary><h3 class="panel-title">Welcome text</h3></summary>
-      <p class="iv-note">The card a visitor who is not signed in sees at the top of Track sessions: its heading, the paragraph and the tick list. Anything left blank keeps the built-in words.</p>
+      <p class="iv-note">The card a visitor who is not signed in sees at the top of Track sessions: its heading, the paragraph and the tick list, and the tip shown on Sessions and the Leaderboard. Anything left blank keeps the built-in words.</p>
       <p class="iv-note" id="tc-note" role="status"></p>
       <div class="ts-new">
         <label>Heading<input type="text" id="tc-heading" maxlength="80"></label>
         <label>Paragraph<textarea id="tc-intro" rows="4" maxlength="600"></textarea></label>
         <label>Tick list, one line each (up to 8)<textarea id="tc-bullets" rows="6"></textarea></label>
+        <h3 class="sub-head">Tip on Sessions and the Leaderboard</h3>
+        <div class="iv-toolbar"><button type="button" class="tk-switch" role="switch" id="tc-tip-on" aria-checked="true"><span class="tk-track"></span>Show the tip</button></div>
+        <label>Tip heading<input type="text" id="tc-tip-heading" maxlength="80"></label>
+        <label>Tip text<textarea id="tc-tip-text" rows="4" maxlength="400"></textarea></label>
         <div class="iv-toolbar"><button type="button" class="secondary" id="tc-save">Save</button><button type="button" class="secondary" id="tc-reset">Use the built-in words</button></div>
       </div>
     </details>
@@ -237,7 +241,7 @@
 <script src="js/track-admin.js?v=20261186" defer></script>
 <script src="js/track-share-card.js?v=20261181"></script>
 <script src="js/track-share-admin.js?v=20261105" defer></script>
-<script src="js/track-copy-admin.js?v=20261102" defer></script>
+<script src="js/track-copy-admin.js?v=20270102" defer></script>
 <script src="js/track-drive-admin.js?v=20261231" defer></script>
 <script src="js/tyre-data.js" defer></script>
 <script src="js/tyre-admin.js" defer></script>

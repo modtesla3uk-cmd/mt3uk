@@ -37,8 +37,8 @@ def test_a_car_of_another_make_is_kept_in_the_garage_in_the_worker():
 
 @all_devices
 def test_add_a_car_of_another_make(device_page):
-    """Another make shows Car or bike, Make and Model (suggested from data/vehicles.json, anything can be
-    typed) in place of Version, and says the car is kept in the garage. The worker is told it is another make."""
+    """Another make shows Car or bike, Make and Model (drop-downs from data/vehicles.json, nothing typed) in
+    place of Version, and says the car is kept in the garage. The worker is told it is another make."""
     page = device_page
     signed_in(page)
     page.goto("/my-builds.html")
@@ -50,14 +50,20 @@ def test_add_a_car_of_another_make(device_page):
     expect(form.locator("[data-model-field]")).to_be_hidden()
     expect(page.locator("#mb-addcar-other .mb-other-note")).to_contain_text("Kept in your garage")
     expect(page.locator("#mb-addcar-version")).to_be_hidden()
-    # The makes on the list are suggested, Tesla is not (it has its own chips), and a bike's makes are its own.
-    page.wait_for_function("document.querySelectorAll('#mb-addcar-makes option').length > 5", timeout=5000)
-    makes = page.locator("#mb-addcar-makes option").evaluate_all("els => els.map(e => e.value)")
+    # The makes on the list are offered, Tesla is not (it has its own chips), and a bike's makes are its own.
+    # Make and model are drop-downs: nothing can be typed, and the model waits for the make.
+    page.wait_for_function("document.querySelectorAll('#mb-addcar-make option').length > 5", timeout=5000)
+    makes = page.locator("#mb-addcar-make option").evaluate_all("els => els.map(e => e.value)")
     assert "Kia" in makes and "Tesla" not in makes and "Ducati" not in makes
-    page.fill("#mb-addcar-make", "Kia")
-    page.wait_for_function("[...document.querySelectorAll('#mb-addcar-othermodels option')].some(o => o.value === 'EV6 GT')", timeout=5000)
-    page.fill("#mb-addcar-othermodel", "EV6 GT")
-    # The driven wheels are worked out from the typed make and model too.
+    assert page.locator("#mb-addcar-make").evaluate("el => el.tagName") == "SELECT"
+    expect(page.locator("#mb-addcar-othermodel")).to_be_disabled()
+    expect(page.locator("#mb-addcar-other")).to_contain_text("Make or model not on the list?")
+    page.select_option("#mb-addcar-make", "Kia")
+    expect(page.locator("#mb-addcar-othermodel")).to_be_enabled()
+    models = page.locator("#mb-addcar-othermodel option").evaluate_all("els => els.map(e => e.value)")
+    assert models == ["", "EV6 GT", "EV6", "EV9"], models
+    page.select_option("#mb-addcar-othermodel", "EV6 GT")
+    # The driven wheels are worked out from the make and model picked too.
     expect(page.locator("#mb-addcar-drive")).to_have_value("AWD")
     page.fill("#mb-addcar-carname", "Kit")
     page.select_option("#mb-addcar-color", "Grey")
@@ -82,8 +88,8 @@ def test_a_bike_lists_bike_makes(device_page):
     form = page.locator("#mb-addcar-form")
     form.locator(".mb-model-pick .chip", has_text="Another make").click()
     page.locator("#mb-addcar-other .chip", has_text="Bike").click()
-    page.wait_for_function("[...document.querySelectorAll('#mb-addcar-makes option')].some(o => o.value === 'Ducati')", timeout=5000)
-    makes = page.locator("#mb-addcar-makes option").evaluate_all("els => els.map(e => e.value)")
+    page.wait_for_function("[...document.querySelectorAll('#mb-addcar-make option')].some(o => o.value === 'Ducati')", timeout=5000)
+    makes = page.locator("#mb-addcar-make option").evaluate_all("els => els.map(e => e.value)")
     assert "Kia" not in makes and "Honda" in makes
     # A bike's form talks about a bike, not a car.
     expect(page.locator('label[for="mb-addcar-carname"]')).to_have_text("Bike name")

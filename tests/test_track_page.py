@@ -339,9 +339,9 @@ def test_a_member_can_add_a_different_layout_to_a_listed_circuit(page):
     page.get_by_role("link", name="Add a session").click()
     page.set_input_files("#tp-file", str(FIXTURE))
     page.locator("#tp-layout-field [data-v='__new']").click()
-    # Their own start line, on the map, to move.
-    page.locator("#tp-tap").wait_for(state="attached", timeout=15000)
-    page.locator("[data-tap='done']").click()
+    # Never the lines of a listed layout: this file has its own line, so that is used and can be moved.
+    expect(page.locator("#tp-result .tp-notice.is-ok").first).not_to_contain_text("official")
+    expect(page.locator(".tp-move-lines")).to_be_visible()
     expect(page.locator("#tp-addnow-box")).to_contain_text("This layout at Thruxton is not in the MT3UK track list yet")
     page.locator("#tp-addnow").click()
     # The new layout needs a name, which is asked for before saving.

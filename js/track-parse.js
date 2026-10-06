@@ -1056,7 +1056,9 @@
       if (cr.length < 2) return;
       var laps = buildLaps(pts, cr);
       var med = median(laps.map(function (l) { return l.dist; }));
-      var lengthScore = c.layout && c.layout.length ? Math.abs(med - c.layout.length) / c.layout.length : 0.05;
+      // A listed layout with no length is not trusted over one whose length is known: it counts as the worst fit that is
+      // still accepted, so it only wins when no layout's length says otherwise.
+      var lengthScore = c.layout ? (c.layout.length ? Math.abs(med - c.layout.length) / c.layout.length : 0.12) : 0.05;
       if (c.layout && lengthScore > 0.12 && !forced) return;
       var score = laps.length - lengthScore * 10 + (c.layout ? 1 : 0);
       if (!choice || score > choice.score) choice = { c: c, cr: cr, score: score, med: med };
@@ -1067,7 +1069,9 @@
     // A track day needs no start line from the member: with none from the
     // track, the file or the member, the lap line is found from the trace (the
     // place on it that the car crosses most often, and fastest).
-    if (!choice && type === 'track') {
+    // A different layout (newLayout) is never given a line from the trace: it becomes the official line of a new
+    // layout, so it is the file's own line or one the member marks, not a guess.
+    if (!choice && type === 'track' && !newLayout) {
       var auto = autoLapLine(pts, proj, minGap);
       if (auto) choice = { c: { layout: null, line: auto.line, sectors: [], auto: true }, cr: auto.cr, score: auto.cr.length, med: median(buildLaps(pts, auto.cr).map(function (l) { return l.dist; })) };
     }
@@ -1077,7 +1081,7 @@
       session.laps = [];
       session.needsStartLine = true;
       session.trace = { outline: outline(pts) };
-      session.problem = venue ? 'We know ' + venue.name + ' but not its start line yet. Tap where the start and finish line is on your trace.' : 'We don\'t know this track yet. Tap where the start and finish line is on your trace and we\'ll add the track.';
+      session.problem = newLayout ? 'Tap where the start and finish line of this layout is on your trace. It becomes the line for the new layout.' : venue ? 'We know ' + venue.name + ' but not its start line yet. Tap where the start and finish line is on your trace.' : 'We don\'t know this track yet. Tap where the start and finish line is on your trace and we\'ll add the track.';
       return session;
     }
     var layout = choice.c.layout || forced;

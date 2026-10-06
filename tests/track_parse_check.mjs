@@ -780,3 +780,19 @@ ok(T.fmtLap(99.786) === '1:39.79' && T.niceDate('2026-05-28') === '28 May 2026',
   let a2 = T.analyse(T.read(vbo, 'RaceBox_Track_Session.vbo'), lib2, { newLayout: true });
   ok(!a2.layoutId && a2.laps.length === 2 && !a2.officialLines, 'a different layout is timed on the member\'s own line and matches none of the listed ones');
 }
+// A layout with no length is not trusted over one whose length is known, and a different layout never takes a guessed line.
+{
+  const lib3 = JSON.parse(JSON.stringify(lib));
+  const tv3 = lib3.venues.find(v => v.id === 'thruxton');
+  const base = T.analyse(T.read(vbo, 'RaceBox_Track_Session.vbo'), lib3, {});
+  tv3.layouts[0].length = Math.round(base.laps[0].dist * 1.08);
+  tv3.layouts.unshift({ id: 'nolength', name: 'No length', startLine: tv3.layouts[0].startLine, sectors: [], corners: [] });
+  const b = T.analyse(T.read(vbo, 'RaceBox_Track_Session.vbo'), lib3, {});
+  ok(b.layoutId === 'main', 'a layout with no length does not beat one whose length is within 8% (' + b.layoutId + ')');
+  const rd4 = T.read(vbo, 'RaceBox_Track_Session.vbo'); rd4.startLine = null;
+  const c = T.analyse(rd4, lib3, { newLayout: true });
+  ok(c.needsStartLine === true && !c.layoutId && /new layout|this layout/.test(c.problem), 'a different layout with no line from the file asks the member to mark one, not a guessed line');
+  const rd5 = T.read(vbo, 'RaceBox_Track_Session.vbo'); rd5.startLine = null;
+  const d5 = T.analyse(rd5, lib3, {});
+  ok(!d5.needsStartLine, 'a track day with no layout pick is still timed from the lap line it finds');
+}

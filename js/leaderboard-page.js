@@ -30,7 +30,9 @@
     back: '<path d="M19 12H5M12 19l-7-7 7-7"/>',
     chev: '<path d="m9 6 6 6-6 6"/>',
     upload: '<path d="M12 15V3M7 8l5-5 5 5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/>',
-    warn: '<path d="M12 3 2 21h20Z"/><path d="M12 10v4M12 17h.01"/>'
+    warn: '<path d="M12 3 2 21h20Z"/><path d="M12 10v4M12 17h.01"/>',
+    eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',
+    eyeoff: '<path d="M3 3l18 18"/><path d="M10.6 6.1A9.8 9.8 0 0 1 12 6c6.5 0 10 6 10 6a17 17 0 0 1-3.2 4M6.6 6.7A16 16 0 0 0 2 12s3.5 6 10 6a9.7 9.7 0 0 0 4.1-.9"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>'
   };
   function icon(n) { return '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">' + ICON[n] + '</svg>'; }
   function getJson(url) { return fetch(url, { cache: 'no-store' }).then(function (r) { return r.json(); }); }
@@ -109,10 +111,22 @@
   function boardQuery(type, venueId, layoutId) {
     return type === 'drag' ? 'drag=' + encodeURIComponent(venueId) : (type === 'sprint' ? 'sprint=' : 'board=') + encodeURIComponent(venueId + ':' + layoutId);
   }
-  var showAll = false;
+  var showAll = false, showHidden = false;
   // How the track list is ordered: busiest first (the default), A to Z, or by when the newest top-three time was set.
-  var sortMode = 'busy';
+  // "My layout" is the order the member moved the tracks into, kept in this browser (like the homepage tiles).
+  var sortMode = 'busy', sortChosen = false;
   var SORTS = [['busy', 'Most sessions'], ['az', 'A to Z'], ['newest', 'Newest'], ['oldest', 'Oldest']];
+  var ORDER_KEY = 'mt3ukLapsBoardOrder', HIDE_KEY = 'mt3ukLapsBoardHidden';
+  function readJson(k, d) { try { var v = JSON.parse(localStorage.getItem(k) || 'null'); return v == null ? d : v; } catch (e) { return d; } }
+  function writeJson(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* not kept */ } }
+  function savedOrder(type) { var o = readJson(ORDER_KEY, {}); return o && Array.isArray(o[type]) && o[type].length ? o[type] : null; }
+  function saveOrder(type, ids) { var o = readJson(ORDER_KEY, {}) || {}; if (ids && ids.length) o[type] = ids; else delete o[type]; writeJson(ORDER_KEY, Object.keys(o).length ? o : null); }
+  function hiddenIds() { var h = readJson(HIDE_KEY, []); return Array.isArray(h) ? h : []; }
+  function setHidden(id, on) {
+    var h = hiddenIds().filter(function (x) { return x !== id; });
+    if (on) h.push(id);
+    writeJson(HIDE_KEY, h.length ? h : null);
+  }
   function latestOn(keys) {
     var d = '';
     keys.forEach(function (k) { (leaders[k] || []).forEach(function (l) { if (l.date && l.date > d) d = l.date; }); });
@@ -144,8 +158,11 @@
     var h = '<div class="tp-chips lb-types" role="tablist">' + TYPES.map(function (x) {
       return '<a class="chip' + (x[0] === t[0] ? ' is-on' : '') + '" role="tab" aria-selected="' + (x[0] === t[0]) + '" href="leaderboards.html?type=' + x[0] + '" data-go="type=' + x[0] + '">' + x[1] + '</a>';
     }).join('') + '</div>';
-    h = '<div class="lb-bar">' + h + '<div class="tp-head-side"><label class="lb-sort"><span>Sort by</span><select class="field" id="lb-sort">' + SORTS.map(function (o) {
-      return '<option value="' + o[0] + '"' + (o[0] === sortMode ? ' selected' : '') + '>' + o[1] + '</option>';
+    // The order the member moved the tracks into, when there is one for this kind of track, is the one to start from.
+    var mine = savedOrder(t[0]), mode = sortMode === 'mine' && !mine ? 'busy' : sortMode;
+    if (!sortChosen && mine) mode = 'mine';
+    h = '<div class="lb-bar">' + h + '<div class="tp-head-side"><label class="lb-sort"><span>Sort by</span><select class="field" id="lb-sort">' + (mine ? [['mine', 'My layout']] : []).concat(SORTS).map(function (o) {
+      return '<option value="' + o[0] + '"' + (o[0] === mode ? ' selected' : '') + '>' + o[1] + '</option>';
     }).join('') + '</select></label>' + refreshChip() + '</div></div>' + tipHtml();
     // Sprints and hill climbs share one kind of board; the venue's hill flag tells them apart.
     var bt = t[0] === 'hill' ? 'sprint' : t[0];
@@ -154,40 +171,159 @@
       var when = latestOn(t[0] === 'drag' ? [boardKey('drag', v.id)] : (v.layouts || []).map(function (l) { return boardKey(bt, v.id, l.id); }));
       return { v: v, total: total, i: i, when: when };
     }).sort(function (a, b) {
-      if (sortMode === 'az') return a.v.name.localeCompare(b.v.name);
-      if (sortMode === 'newest' || sortMode === 'oldest') {
+      if (mode === 'mine') {
+        // The tracks moved into place first, in that order; any the member has not placed follow, busiest first.
+        var ia = mine.indexOf(a.v.id), ib = mine.indexOf(b.v.id);
+        if ((ia < 0) !== (ib < 0)) return ia < 0 ? 1 : -1;
+        if (ia >= 0) return ia - ib;
+      }
+      if (mode === 'az') return a.v.name.localeCompare(b.v.name);
+      if (mode === 'newest' || mode === 'oldest') {
         // Tracks with no times yet go last either way.
         if (!a.when !== !b.when) return a.when ? -1 : 1;
-        if (a.when !== b.when) return (a.when < b.when) === (sortMode === 'oldest') ? -1 : 1;
+        if (a.when !== b.when) return (a.when < b.when) === (mode === 'oldest') ? -1 : 1;
       }
       return b.total - a.total || a.i - b.i;
     });
+    var hidden = hiddenIds(), hiddenCount = venues.filter(function (x) { return hidden.indexOf(x.v.id) !== -1; }).length;
     var busy = venues.filter(function (x) { return x.total; }), quiet = venues.length - busy.length;
-    var shown = showAll || !busy.length ? venues : busy;
+    var shown = (showAll || !busy.length ? venues : busy).filter(function (x) { return showHidden || hidden.indexOf(x.v.id) === -1; });
+    // A track card with the button that hides it (or, among the hidden ones, shows it again).
+    function wrap(v, card) {
+      var hid = hidden.indexOf(v.id) !== -1;
+      return '<div class="lb-cardwrap' + (hid ? ' is-hid' : '') + '" data-venue="' + esc(v.id) + '">' + card +
+        '<button type="button" class="lb-hide" data-hide="' + esc(v.id) + '" aria-label="' + (hid ? 'Show ' : 'Hide ') + esc(v.name) + (hid ? ' in the list again' : ' from the list') + '" title="' + (hid ? 'Show this track again' : 'Hide this track') + '">' + icon(hid ? 'eye' : 'eyeoff') + '</button></div>';
+    }
     h += '<div class="tp-boards lb-venues">' + shown.map(function (x) {
       var v = x.v;
       if (t[0] === 'drag') {
         var q = boardQuery('drag', v.id), key = boardKey('drag', v.id);
-        return '<a class="tp-board-card lb-venue' + (x.total ? ' is-busy' : '') + '" href="leaderboards.html?' + q + '" data-go="' + esc(q) + '"><div class="tp-board-name"><b>' + esc(v.name) + '</b>' +
+        return wrap(v, '<a class="tp-board-card lb-venue' + (x.total ? ' is-busy' : '') + '" href="leaderboards.html?' + q + '" data-go="' + esc(q) + '"><div class="tp-board-name"><b>' + esc(v.name) + '</b>' +
           (x.total ? '<span class="tp-small">' + x.total + ' run' + (x.total === 1 ? '' : 's') + '</span>' : '<span class="tp-small">No runs yet</span>') + '</div>' +
-          (x.total ? podium(key, true) : '') + '<span class="tp-small lb-what">Quickest quarter mile per car</span></a>';
+          (x.total ? podium(key, true) : '') + '<span class="tp-small lb-what">Quickest quarter mile per car</span></a>');
       }
       var layouts = v.layouts || [], active = layouts.filter(function (l) { return counts[boardKey(bt, v.id, l.id)]; }), idle = layouts.filter(function (l) { return !counts[boardKey(bt, v.id, l.id)]; });
-      return '<div class="tp-board-card lb-venue' + (x.total ? ' is-busy' : '') + '"><div class="tp-board-name"><b>' + esc(v.name) + '</b>' +
+      return wrap(v, '<div class="tp-board-card lb-venue' + (x.total ? ' is-busy' : '') + '"><div class="tp-board-name"><b>' + esc(v.name) + '</b>' +
         (x.total ? '<span class="tp-small">' + x.total + ' session' + (x.total === 1 ? '' : 's') + '</span>' : '') + '</div>' +
         active.map(function (l) { return layoutBlock(bt, v, l); }).join('') +
-        (idle.length ? (active.length ? '<p class="tp-small lb-idle">No sessions yet: ' + idle.map(function (l) { return esc(l.name); }).join(', ') + '</p>' : idle.map(function (l) { return layoutBlock(bt, v, l); }).join('')) : '') + '</div>';
+        (idle.length ? (active.length ? '<p class="tp-small lb-idle">No sessions yet: ' + idle.map(function (l) { return esc(l.name); }).join(', ') + '</p>' : idle.map(function (l) { return layoutBlock(bt, v, l); }).join('')) : '') + '</div>');
     }).join('') + '</div>';
     if (busy.length && quiet) h += '<p class="lb-more"><button type="button" class="btn btn-secondary btn-sm" data-showall>' + (showAll ? 'Only show ' + KIND_NAME[t[0]] + ' with sessions' : 'Show all ' + venues.length + ' (' + quiet + ' with no sessions yet)') + '</button></p>';
+    // Moving and hiding tracks: kept in this browser, so the list is the member's own.
+    h += '<p class="tp-small lb-arrange" id="lb-arrange">Hold a track and drag it to move it, or use the eye to hide it. This is kept on this device.' +
+      (hiddenCount ? ' <button type="button" class="btn btn-ghost btn-sm" data-showhidden>' + (showHidden ? 'Hide the ' + hiddenCount + ' hidden again' : 'Show ' + hiddenCount + ' hidden track' + (hiddenCount === 1 ? '' : 's')) + '</button>' : '') +
+      (mine || hiddenCount ? ' <button type="button" class="btn btn-ghost btn-sm" data-resetlayout>Reset layout</button>' : '') + '</p>';
     h += '<p class="tp-small lb-note">Times are each car\'s fastest. Open a layout for the whole board and filters.</p>';
     h += ctaHtml();
     app.innerHTML = h;
     placeTip();
     syncPageBack();
     var sortSel = document.getElementById('lb-sort');
-    if (sortSel) sortSel.addEventListener('change', function () { sortMode = sortSel.value; showList(type); });
+    if (sortSel) sortSel.addEventListener('change', function () { sortMode = sortSel.value; sortChosen = true; showList(type); });
     var btn = app.querySelector('[data-showall]');
     if (btn) btn.addEventListener('click', function () { showAll = !showAll; showList(type); });
+    var grid = app.querySelector('.lb-venues');
+    if (grid) {
+      grid.addEventListener('click', function (e) {
+        var hb = e.target.closest('[data-hide]');
+        if (!hb) return;
+        e.preventDefault(); e.stopPropagation();
+        var id = hb.getAttribute('data-hide');
+        setHidden(id, hiddenIds().indexOf(id) === -1);
+        showList(type);
+      });
+      arrange(grid, function (ids) {
+        // The order just made, then any the member had placed that are not on screen now (hidden or with no sessions).
+        var keep = (savedOrder(t[0]) || []).filter(function (id) { return ids.indexOf(id) === -1; });
+        saveOrder(t[0], ids.concat(keep));
+        sortMode = 'mine'; sortChosen = true;
+        showList(type);
+      });
+    }
+    var sh = app.querySelector('[data-showhidden]');
+    if (sh) sh.addEventListener('click', function () { showHidden = !showHidden; showList(type); });
+    var rs = app.querySelector('[data-resetlayout]');
+    if (rs) rs.addEventListener('click', function () {
+      saveOrder(t[0], null);
+      var mineIds = venues.map(function (x) { return x.v.id; });
+      var left = hiddenIds().filter(function (id) { return mineIds.indexOf(id) === -1; });
+      writeJson(HIDE_KEY, left.length ? left : null);
+      sortMode = 'busy'; sortChosen = false; showHidden = false;
+      showList(type);
+    });
+  }
+
+  // Hold a track card, then drag it to move it (a mouse can drag straight away); on drop the new order is handed to done(ids).
+  // The same way the homepage tiles move. A drag never opens the card it ends on.
+  var dragArmed = false;
+  function arrange(grid, done) {
+    var HOLD_MS = 350, TOL = 8, holdTimer = null, start = null, tile = null, dragging = false, placeholder = null, offset = null, suppress = false, mouse = false;
+    function clearHold() { clearTimeout(holdTimer); holdTimer = null; if (tile && !dragging) tile.classList.remove('is-holding'); }
+    function begin() {
+      dragging = true;
+      var r = tile.getBoundingClientRect();
+      offset = { x: start.x - r.left, y: start.y - r.top };
+      placeholder = document.createElement('div');
+      placeholder.className = 'lb-placeholder';
+      placeholder.style.minHeight = r.height + 'px';
+      grid.insertBefore(placeholder, tile);
+      tile.classList.remove('is-holding'); tile.classList.add('is-dragging');
+      tile.style.width = r.width + 'px'; tile.style.height = r.height + 'px'; tile.style.left = r.left + 'px'; tile.style.top = r.top + 'px';
+      document.body.appendChild(tile);
+      if (navigator.vibrate) { try { navigator.vibrate(15); } catch (e) { /* no vibration */ } }
+    }
+    function moveTo(x, y) {
+      tile.style.left = (x - offset.x) + 'px'; tile.style.top = (y - offset.y) + 'px';
+      var under = document.elementFromPoint(x, y), target = under && under.closest('.lb-cardwrap');
+      if (!target || target === tile || !grid.contains(target)) return;
+      var r = target.getBoundingClientRect(), after = y > r.top + r.height / 2 && (x > r.left + r.width / 2 || y > r.top + r.height * 0.75);
+      grid.insertBefore(placeholder, after ? target.nextSibling : target);
+      if (y < 60) window.scrollBy(0, -12); else if (y > window.innerHeight - 60) window.scrollBy(0, 12);
+    }
+    function end() {
+      var ids = null;
+      if (dragging) {
+        grid.insertBefore(tile, placeholder); placeholder.remove();
+        tile.classList.remove('is-dragging'); tile.style.width = tile.style.height = tile.style.left = tile.style.top = '';
+        suppress = true; setTimeout(function () { suppress = false; }, 400);
+        ids = [].slice.call(grid.querySelectorAll('.lb-cardwrap')).map(function (w) { return w.getAttribute('data-venue'); });
+      }
+      clearHold();
+      tile = null; start = null; dragging = false; placeholder = null;
+      if (ids) done(ids);
+    }
+    grid.addEventListener('pointerdown', function (e) {
+      if (e.button !== 0 || e.target.closest('[data-hide]')) return;
+      var t = e.target.closest('.lb-cardwrap');
+      if (!t) return;
+      tile = t; start = { x: e.clientX, y: e.clientY }; mouse = e.pointerType === 'mouse';
+      tile.classList.add('is-holding');
+      holdTimer = setTimeout(begin, HOLD_MS);
+    });
+    grid.addEventListener('contextmenu', function (e) { if (e.target.closest('.lb-cardwrap')) e.preventDefault(); });
+    grid.addEventListener('dragstart', function (e) { e.preventDefault(); });
+    // The page-wide listeners are put on once: they act on whichever list is drawn.
+    if (dragArmed) { arrange.current = { move: onMove, up: end, touch: onTouch, suppressed: function () { return suppress; }, clearSuppress: function () { suppress = false; } }; return; }
+    dragArmed = true;
+    function onMove(e) {
+      if (!tile) return;
+      if (dragging) { e.preventDefault(); moveTo(e.clientX, e.clientY); return; }
+      if (Math.abs(e.clientX - start.x) > TOL || Math.abs(e.clientY - start.y) > TOL) {
+        // With a mouse, pressing and moving drags at once; on a touch screen, moving first means scrolling.
+        if (mouse) { clearTimeout(holdTimer); holdTimer = null; begin(); moveTo(e.clientX, e.clientY); return; }
+        clearHold(); tile = null;
+      }
+    }
+    function onTouch(e) { if (!dragging) return; e.preventDefault(); var p = e.touches[0]; if (p) moveTo(p.clientX, p.clientY); }
+    arrange.current = { move: onMove, up: end, touch: onTouch, suppressed: function () { return suppress; }, clearSuppress: function () { suppress = false; } };
+    document.addEventListener('pointermove', function (e) { if (arrange.current) arrange.current.move(e); });
+    document.addEventListener('touchmove', function (e) { if (arrange.current) arrange.current.touch(e); }, { passive: false });
+    document.addEventListener('touchend', function () { if (arrange.current) arrange.current.up(); });
+    document.addEventListener('pointerup', function () { if (arrange.current) arrange.current.up(); });
+    document.addEventListener('pointercancel', function () { if (arrange.current) arrange.current.up(); });
+    document.addEventListener('click', function (e) {
+      if (arrange.current && arrange.current.suppressed() && e.target.closest('.lb-cardwrap')) { e.preventDefault(); e.stopPropagation(); arrange.current.clearSuppress(); }
+    }, true);
   }
 
   // The tip (js/laps-tip.js) goes under the chips; the page fills it after drawing.
@@ -264,6 +400,12 @@
       icon('chev') + '</li>';
   }
 
+  // The label on the arrow that folds the places below the first ten.
+  function foldLabel(total, open) {
+    var n = total - 10;
+    return (open ? 'Hide ' : 'Show ') + (n === 1 ? 'position 11' : 'positions 11 to ' + total);
+  }
+
   function showBoard(type, q) {
     var venueId = q.split(':')[0], layoutId = q.split(':')[1] || '';
     var v = library.venues.filter(function (x) { return x.id === venueId; })[0];
@@ -271,6 +413,8 @@
     var title = v ? v.name + (l && l.name !== v.name ? ', ' + l.name : '') : venueId;
     var path = type === 'drag' ? '/drag/board?venue=' + encodeURIComponent(venueId) : (type === 'sprint' ? '/sprint/board?venue=' : '/track/board?venue=') + encodeURIComponent(venueId) + '&layout=' + encodeURIComponent(layoutId);
     fCond = 'All'; fMake = 'All'; fTyre = 'All';
+    // From the 11th place on, the rows are folded away behind an arrow, so a long board stays short.
+    var FOLD = 10, foldOpen = false;
     getJson(API + path).then(function (d) {
       var entries = d.entries || [];
       // What is there to filter by, from every car's results.
@@ -304,7 +448,11 @@
         if (!shown.length) h += '<div class="card tp-empty">' + icon('trophy') + '<p>' + (filtered ? 'Nobody matches these filters.' : 'Nobody on this board yet' + (boardModel === 'All' ? '' : ' for the ' + esc(boardModel)) + '. Be the first.') + '</p></div>';
         else {
           h += '<p class="tp-small lb-count" role="status">' + shown.length + ' car' + (shown.length === 1 ? '' : 's') + (filtered ? ', each with its best that matches' : '') + '</p>' +
-            '<div class="card lb-card"><ol class="lb-list">' + shown.map(function (r, i) { return rowHtml(r, i, shown[0].s, type); }).join('') + '</ol></div>' +
+            '<div class="card lb-card"><ol class="lb-list" data-open="' + foldOpen + '">' + shown.map(function (r, i) {
+              var row = rowHtml(r, i, shown[0].s, type);
+              if (i >= FOLD) row = row.replace('<li class="lb-row', '<li class="lb-row lb-extra');
+              return (i === FOLD ? '<li class="lb-fold"><button type="button" class="lb-fold-btn" data-fold aria-expanded="' + foldOpen + '">' + icon('chev') + '<span>' + foldLabel(shown.length, foldOpen) + '</span></button></li>' : '') + row;
+            }).join('') + '</ol></div>' +
             '<p class="tp-small lb-note">Each row shows the tyres the time was set on. Open a car to see its mods. Weather and tyres vary between days, so use the filters to compare like with like.</p>';
         }
         h += ctaHtml();
@@ -321,6 +469,13 @@
         on('lb-tyre', function (x) { fTyre = x; });
         var clear = document.getElementById('lb-clear');
         if (clear) clear.addEventListener('click', function () { fCond = 'All'; fMake = 'All'; fTyre = 'All'; draw(); });
+        var fold = document.querySelector('[data-fold]');
+        if (fold) fold.addEventListener('click', function () {
+          foldOpen = !foldOpen;
+          fold.setAttribute('aria-expanded', String(foldOpen));
+          fold.querySelector('span').textContent = foldLabel(shown.length, foldOpen);
+          fold.closest('.lb-list').setAttribute('data-open', String(foldOpen));
+        });
         if (focus) { var f = document.getElementById(focus); if (f) f.focus(); }
       }
       draw();

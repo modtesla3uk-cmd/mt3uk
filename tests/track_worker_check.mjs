@@ -130,7 +130,7 @@ const id2 = r.body.session.id;
 r = await call('GET', '/track/board?venue=thruxton&layout=main');
 ok(r.body.entries.length === 1 && Math.abs(r.body.entries[0].time - 99.786) < 0.01 && r.body.entries[0].sessions === 2, 'one place per car, its fastest, with how many sessions it has here');
 r = await call('GET', '/track/counts');
-ok(r.body.counts['track-board:thruxton:main'] === 2, 'session count for the track list');
+ok(r.body.counts['track-board:thruxton:main'] === 1, 'the track list counts the board\'s sessions: one for each car, its fastest (the car has two shared)');
 r = await call('DELETE', '/track/session?id=' + id1, undefined, 'tok-b');
 ok(r.status === 404, 'others cannot delete it');
 r = await call('DELETE', '/track/session?id=' + id1, undefined, 'tok-a');

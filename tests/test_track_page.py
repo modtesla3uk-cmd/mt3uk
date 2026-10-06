@@ -203,11 +203,13 @@ class FakeWorker:
             self.sessions.pop(sid, None)
             self.index = [s for s in self.index if s["id"] != sid]
         elif path == "/track/counts":
-            counts = {}
+            counts, cars = {}, {}
             for s in self.index:
                 if s.get("privacy") in ("build", "board") and s.get("venueId") and s.get("layoutId"):
                     k = "track-board:%s:%s" % (s["venueId"], s["layoutId"])
-                    counts[k] = counts.get(k, 0) + 1
+                    # One for each car, its fastest: what the board shows.
+                    cars.setdefault(k, set()).add(s.get("carId", "car1"))
+                    counts[k] = len(cars[k])
             leaders = {}
             for k in counts:
                 v, l = k.split(":")[1:3]
@@ -1597,6 +1599,101 @@ def test_leaderboard_track_list_can_be_sorted(page):
         expect(names.first).to_have_text("Thruxton")
 
 
+def _two_busy_tracks(fake):
+    fake.index = [dict(EARLIER, id="sh1", privacy="board", bestTime=101.2), dict(day_session("sh2", "10:00", 90.0, 3), privacy="board")]
+    fake.sessions = {}
+
+
+def _venues(page):
+    return page.eval_on_selector_all(".lb-venues .lb-cardwrap[data-venue]", "els => els.map(e => e.dataset.venue)")
+
+
+def test_leaderboard_tracks_can_be_moved_hidden_and_the_layout_reset(page):
+    fake = FakeWorker()
+    _two_busy_tracks(fake)
+    open_page(page, fake, "/leaderboards.html", signed_in=False)
+    start = _venues(page)
+    assert sorted(start) == ["castle-combe", "thruxton"], start
+    # Hold a track and drag it above the other: the order is kept, as "My layout".
+    first = page.locator(".lb-cardwrap").nth(0).bounding_box()
+    second = page.locator(".lb-cardwrap").nth(1).bounding_box()
+    page.mouse.move(second["x"] + 40, second["y"] + 40)
+    page.mouse.down()
+    page.mouse.move(second["x"] + 40, second["y"] + 20, steps=3)
+    for step in range(1, 9):
+        page.mouse.move(first["x"] + 40, second["y"] + 20 + (first["y"] + 10 - second["y"] - 20) * step / 8)
+        page.wait_for_timeout(20)
+    page.mouse.up()
+    page.wait_for_timeout(150)
+    moved = _venues(page)
+    assert moved == list(reversed(start)), (start, moved)
+    expect(page).to_have_url(re.compile(r"/leaderboards\.html$"))
+    expect(page.locator("#lb-sort")).to_have_value("mine")
+    expect(page.locator("#lb-sort option").first).to_have_text("My layout")
+    # It is remembered.
+    page.reload()
+    assert _venues(page) == moved
+    # Hide one: it leaves the list, and can be shown again.
+    gone = moved[0]
+    page.locator('.lb-cardwrap[data-venue="%s"] [data-hide]' % gone).click()
+    assert _venues(page) == moved[1:]
+    expect(page.locator("[data-showhidden]")).to_have_text("Show 1 hidden track")
+    page.locator("[data-showhidden]").click()
+    expect(page.locator('.lb-cardwrap.is-hid[data-venue="%s"]' % gone)).to_be_visible()
+    page.locator('.lb-cardwrap.is-hid [data-hide]').click()
+    assert _venues(page)[0] == gone
+    # Reset puts the list back as it was.
+    page.locator('.lb-cardwrap[data-venue="%s"] [data-hide]' % gone).click()
+    page.locator("[data-resetlayout]").click()
+    assert _venues(page) == start
+    expect(page.locator("#lb-sort")).to_have_value("busy")
+    expect(page.locator("[data-resetlayout]")).to_have_count(0)
+
+
+def _board_entry(i):
+    return {"carId": "c%d" % i, "sessionId": "s%d" % i, "car": "Car %d" % i, "model": "Model 3", "owner": "Driver %d" % i, "time": 90.0 + i, "date": "2026-07-14", "conditions": "Dry", "tyres": "AD08R", "sessions": 1}
+
+
+def test_a_long_board_folds_everything_below_tenth_place_behind_an_arrow(page):
+    fake = FakeWorker()
+    fake.boards["/track/board:thruxton:main"] = [_board_entry(i) for i in range(12)]
+    open_page(page, fake, "/leaderboards.html?board=thruxton:main", signed_in=False)
+    expect(page.locator(".lb-row")).to_have_count(12)
+    visible = page.locator(".lb-row:visible")
+    expect(visible).to_have_count(10)
+    fold = page.locator("[data-fold]")
+    expect(fold).to_have_text("Show positions 11 to 12")
+    expect(fold).to_have_attribute("aria-expanded", "false")
+    fold.click()
+    expect(visible).to_have_count(12)
+    expect(fold).to_have_text("Hide positions 11 to 12")
+    fold.click()
+    expect(visible).to_have_count(10)
+
+
+def test_a_board_of_ten_or_fewer_has_no_arrow(page):
+    fake = FakeWorker()
+    fake.boards["/track/board:thruxton:main"] = [_board_entry(i) for i in range(10)]
+    open_page(page, fake, "/leaderboards.html?board=thruxton:main", signed_in=False)
+    expect(page.locator(".lb-row:visible")).to_have_count(10)
+    expect(page.locator("[data-fold]")).to_have_count(0)
+
+
+def test_leaderboard_list_fits_a_phone_with_the_hide_buttons(page):
+    page.set_viewport_size({"width": 360, "height": 740})
+    fake = FakeWorker()
+    _two_busy_tracks(fake)
+    open_page(page, fake, "/leaderboards.html", signed_in=False)
+    expect(page.locator(".lb-cardwrap").first).to_be_visible()
+    assert overflow_width(page) <= 0
+    box = page.locator(".lb-cardwrap").first.bounding_box()
+    hide = page.locator(".lb-hide").first.bounding_box()
+    assert hide["width"] >= 44 and hide["height"] >= 44 and hide["x"] + hide["width"] <= box["x"] + box["width"] + 1, (box, hide)
+    # The count is not covered by the hide button.
+    count = page.locator(".lb-cardwrap .tp-board-name .tp-small").first.bounding_box()
+    assert count["x"] + count["width"] <= hide["x"] + 1, (count, hide)
+
+
 def test_leaderboards_list_busy_tracks_first_with_counts(page):
     fake = FakeWorker()
     shared = dict(EARLIER, id="sh1", privacy="build")
@@ -1605,7 +1702,9 @@ def test_leaderboards_list_busy_tracks_first_with_counts(page):
     open_page(page, fake, "/leaderboards.html", signed_in=False)
     first = page.locator(".tp-board-card").first
     expect(first).to_contain_text("Thruxton")
-    expect(first).to_contain_text("2 sessions")
+    # One session for each car (its fastest), not every session the car has shared.
+    expect(first).to_contain_text("1 session")
+    expect(first).not_to_contain_text("2 sessions")
     expect(first).to_have_class(re.compile("is-busy"))
     # The top three show on the card, with position, name and time, without opening the track.
     expect(first.locator(".lb-podium li").first).to_contain_text("Rich")

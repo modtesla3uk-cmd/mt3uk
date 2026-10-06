@@ -285,6 +285,24 @@
   .lb-res { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); }
   .lb-idle { margin: 0; }
   .lb-more { margin: 14px 0 0; }
+  /* Moving and hiding tracks in the list (like the homepage tiles): a hold lifts a card, a drag moves it. */
+  .lb-cardwrap { position: relative; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+  .lb-cardwrap > .tp-board-card, .lb-cardwrap > a.tp-board-card { height: 100%; box-sizing: border-box; }
+  .lb-cardwrap .tp-board-name { padding-right: 44px; }
+  .lb-hide { position: absolute; top: 4px; right: 4px; width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--steel); cursor: pointer; }
+  .lb-hide:hover, .lb-hide:focus-visible { background: var(--hairline); color: var(--ink); }
+  .lb-hide .icon { width: 20px; height: 20px; }
+  .lb-cardwrap.is-hid { opacity: 0.55; }
+  .lb-cardwrap.is-holding { transform: translateY(-3px) scale(1.02); box-shadow: 0 14px 30px -10px rgba(22, 35, 61, 0.35); transition: transform 0.15s ease, box-shadow 0.15s ease; z-index: 2; }
+  .lb-cardwrap.is-dragging { position: fixed; z-index: 60; margin: 0; pointer-events: none; transform: scale(1.03) rotate(-1deg); box-shadow: 0 16px 34px rgba(22, 35, 61, 0.3); background: var(--paper, #fff); border-radius: var(--radius); transition: none; }
+  .lb-placeholder { border: 2px dashed var(--orange); background: rgba(232, 84, 42, 0.06); border-radius: var(--radius); }
+  .lb-arrange { margin: 14px 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; color: var(--steel); }
+  /* A long board: the places below the first ten are folded behind an arrow. */
+  .lb-fold { list-style: none; }
+  .lb-fold-btn { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; min-height: 44px; border: 0; background: transparent; color: var(--ink); font: inherit; font-weight: 600; cursor: pointer; }
+  .lb-fold-btn .icon { width: 18px; height: 18px; transform: rotate(90deg); transition: transform 0.15s; }
+  .lb-list[data-open="true"] .lb-fold-btn .icon { transform: rotate(-90deg); }
+  .lb-list[data-open="false"] .lb-extra { display: none; }
   .lb-what { margin: 0; }
   /* One board */
   .lb-filters { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; margin: 0 0 14px; }
@@ -529,7 +547,7 @@
 <script src="js/track-view.js?v=20270110" defer></script>
 <script src="js/tyre-data.js" defer></script>
 <script src="js/vehicle-data.js?v=20270106" defer></script>
-<script src="js/leaderboard-page.js?v=20270103" defer></script>
+<script src="js/leaderboard-page.js?v=20270124" defer></script>
 <script src="js/laps-tip.js?v=20270102" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=12" defer></script>

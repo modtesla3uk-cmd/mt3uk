@@ -3800,6 +3800,79 @@ def test_a_file_without_the_cars_channels_has_no_car_data_card(page):
     expect(page.locator("#car-data")).to_have_count(0)
 
 
+def _library_admin(page, path):
+    store = {"extra": {}}
+    puts = []
+
+    def api(route):
+        req = route.request
+        p = urlparse(req.url).path
+        if p == path and req.method == "GET":
+            body = {"success": True, "extra": store["extra"]}
+        elif p == path and req.method == "PUT":
+            lib = json.loads(req.post_data)["library"]
+            puts.append(lib)
+            store["extra"] = lib
+            body = {"success": True, "extra": lib}
+        else:
+            body = {"success": True}
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(body), headers={"Access-Control-Allow-Origin": "*"})
+    page.route("**/%s/**" % API_HOST, api)
+    page.add_init_script("sessionStorage.setItem('mt3ukAdminKey', 'test-key')")
+    page.goto("/track-admin.html")
+    return puts
+
+
+def test_admin_tyres_maker_data(page):
+    puts = _library_admin(page, "/tyres/admin")
+    page.locator("#tyres-wrap > summary").click()
+    expect(page.locator("#ty-list")).to_contain_text("Michelin")
+    page.locator('[data-info="Michelin"]').click()
+    row = page.locator('.ty-info-row[data-model="Pilot Sport 4S"]')
+    row.locator('[data-f="category"]').select_option("Performance road")
+    row.locator('[data-f="wetGrip"]').select_option("A")
+    row.locator('[data-f="noise"]').fill("71")
+    row.locator('[data-f="ev"]').select_option("Yes")
+    page.get_by_role("button", name="Save maker data").click()
+    expect(page.locator("#ty-note")).to_have_text("Saved. Track sessions use it straight away.")
+    assert puts[-1]["info"] == {"Michelin|Pilot Sport 4S": {"category": "Performance road", "wetGrip": "A", "noise": 71, "ev": True}}
+    # Opening it again shows what was saved.
+    page.locator('[data-info="Michelin"]').click()
+    expect(page.locator('.ty-info-row[data-model="Pilot Sport 4S"] [data-f="wetGrip"]')).to_have_value("A")
+
+
+def test_admin_brake_pads_panel(page):
+    puts = _library_admin(page, "/pads/admin")
+    page.locator("#pads-wrap > summary").click()
+    expect(page.locator("#pd-list")).to_contain_text("Pagid")
+    expect(page.locator("#pd-list tbody tr").first).to_contain_text("Original equipment")
+    expect(page.locator("#pd-list")).to_contain_text("No maker data yet")
+    # Fill in a compound's maker data.
+    page.locator('[data-edit="Pagid"]').click()
+    assert page.locator("#pd-name").get_attribute("readonly") is not None
+    row = page.locator("#pd-rows [data-row]").filter(has=page.locator('[data-f="name"][value="RSL29"]'))
+    row.locator('[data-f="use"]').select_option("Track day")
+    row.locator('[data-f="mu"]').fill("0.50")
+    row.locator('[data-f="tempMin"]').fill("100")
+    row.locator('[data-f="tempMax"]').fill("650")
+    page.get_by_role("button", name="Save make").click()
+    expect(page.locator("#pd-note")).to_have_text("Saved. Track sessions use it straight away.")
+    pagid = next(m for m in puts[-1]["makes"] if m["name"] == "Pagid")
+    assert {"name": "RSL29", "use": "Track day", "mu": "0.50", "tempMin": 100, "tempMax": 650} in pagid["compounds"]
+    expect(page.locator("#pd-list tr", has_text="Pagid")).to_contain_text("Track day, \u03bc 0.50, 100 to 650\u00b0C")
+    # Add a make, then take one off.
+    page.get_by_role("button", name="Add a make").click()
+    page.fill("#pd-name", "Acme Pads")
+    page.locator('#pd-rows [data-f="name"]').fill("Race 1")
+    page.get_by_role("button", name="Save make").click()
+    expect(page.locator("#pd-list")).to_contain_text("Acme Pads")
+    assert {"name": "Acme Pads", "compounds": [{"name": "Race 1"}]} in puts[-1]["makes"]
+    page.once("dialog", lambda d: d.accept())
+    page.locator('[data-remove="EBC"]').click()
+    expect(page.locator("#pd-list")).not_to_contain_text("Greenstuff")
+    assert {"name": "EBC", "removed": True} in puts[-1]["makes"]
+
+
 def test_tyres_start_empty_and_the_last_ones_can_be_loaded(page):
     fake = FakeWorker()
     fake.index = [dict(EARLIER, tyres="Michelin Pilot Sport 4S, 245/35 R19")]
@@ -5362,3 +5435,104 @@ def test_the_line_picker_shows_only_the_fastest_lap_and_a_marker_sits_on_it(page
     }""")
     off = ((got[0] - want[0]) ** 2 + (got[1] - want[1]) ** 2) ** 0.5 / want[2]
     assert off < 4, "the marker sits on the clicked point of the line (%.1f px off)" % off
+
+
+def test_pads_start_from_my_garage_and_are_saved_with_the_session(page):
+    """Brake pads on the Add page: filled in from the car's brakes in My Garage (Pagid RSL29), front and rear the same
+    until Same pads on the rear is switched off, the maker's figures shown, and saved with the session."""
+    fake = FakeWorker()
+    car = dict(CAR, specs={"brakes": {"status": "up", "fields": {"frontPads": "Pagid RSL29", "rearPads": "Pagid RSL29"}}})
+    open_page(page, fake)
+    page.route("**/%s/pads" % API_HOST, lambda route: route.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"},
+               body=json.dumps({"success": True, "extra": {"makes": [{"name": "Pagid", "compounds": [{"name": "RS29"}, {"name": "RSL29", "use": "Track day", "mu": "0.50", "tempMin": 100, "tempMax": 650}]}]}})))
+    page.route("**/%s/my-builds" % API_HOST, lambda route: route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "cars": [car]}), headers={"Access-Control-Allow-Origin": "*"}))
+    page.reload()
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
+    expect(page.locator("#tp-pad-front-make")).to_have_value("Pagid")
+    expect(page.locator("#tp-pad-front-comp")).to_have_value("RSL29")
+    expect(page.locator(".tp-pads")).to_contain_text("Filled in from")
+    expect(page.locator("#tp-pad-front-maker")).to_have_text("Maker's figures: Track day, μ 0.50, 100 to 650°C")
+    expect(page.locator('[data-pad-side="rear"]')).to_be_hidden()
+    # Different pads on the rear.
+    page.locator("#tp-pad-same").click()
+    expect(page.locator('[data-pad-side="rear"]')).to_be_visible()
+    page.select_option("#tp-pad-rear-comp", "RS29")
+    # Kept through a redraw (the units switch).
+    page.locator(".tp-head [data-units]").click()
+    expect(page.locator("#tp-pad-rear-comp")).to_have_value("RS29")
+    page.get_by_role("button", name="Save session").click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
+    saved = fake.saved[0]
+    assert (saved["padFrontMake"], saved["padFrontCompound"], saved["padRearMake"], saved["padRearCompound"]) == ("Pagid", "RSL29", "Pagid", "RS29"), saved
+
+
+def _compare_board():
+    """Four cars at Thruxton: one on two tyres (and two sets of pads), with temperatures and braking."""
+    def best(sid, t, tyre_make, tyre_model, pads, pad_make, pad_comp, temp, brake_g, brake_temp=None, date="2026-04-01", cond="Dry"):
+        b = {"sessionId": sid, "date": date, "conditions": cond, "tyres": tyre_make + " " + tyre_model, "tyreMake": tyre_make, "tyreModel": tyre_model,
+             "drive": "AWD", "time": t, "temp": temp, "pads": pads, "padMake": pad_make, "padCompound": pad_comp, "brakeG": brake_g}
+        if brake_temp:
+            b["brakeTemp"] = brake_temp
+        return b
+    def entry(cid, owner, bests):
+        return dict(board_row(cid, bests[0]["sessionId"], min(b["time"] for b in bests)), owner=owner, make="Tesla", drive="AWD", bests=bests)
+    return [
+        entry("c1", "Ann", [best("s1", 95.9, "Michelin", "Pilot Sport Cup 2 R", "Pagid RSL29", "Pagid", "RSL29", 18, 1.21, 690, "2026-07-01"),
+                            best("s2", 98.0, "Michelin", "Pilot Sport 4S", "Original equipment pads", "Original equipment", "Standard pads", 16, 1.05, None, "2026-05-01")]),
+        entry("c2", "Bob", [best("s3", 96.6, "Michelin", "Pilot Sport Cup 2 R", "Pagid RSL29", "Pagid", "RSL29", 22, 1.18)]),
+        entry("c3", "Cat", [best("s4", 98.4, "Michelin", "Pilot Sport 4S", "Original equipment pads", "Original equipment", "Standard pads", 8, 1.02)]),
+        entry("c4", "Dan", [best("s5", 99.7, "Goodyear", "Eagle F1 SuperSport", "Original equipment pads", "Original equipment", "Standard pads", 12, 1.0, None, "2026-06-01", "Wet")]),
+    ]
+
+
+def test_compare_tyres_and_pads_on_a_board(page):
+    """A board's Compare tyres view groups each car's best by tyre (best, typical, how far off the quickest, Few cars),
+    with the same car on two tyres below; the conditions and temperature filters narrow it. Compare pads does the same
+    for pads, with braking g, brake temperature and the maker's figures, warning when a pad ran hotter than its range."""
+    fake = FakeWorker()
+    fake.boards = {"/track/board:thruxton:main": _compare_board()}
+    open_page(page, fake, path="/leaderboards.html")
+    page.route("**/%s/pads" % API_HOST, lambda route: route.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"},
+               body=json.dumps({"success": True, "extra": {"makes": [{"name": "Pagid", "compounds": [{"name": "RSL29", "use": "Track day", "tempMin": 100, "tempMax": 650}]}]}})))
+    page.reload()
+    page.locator(".tp-board-card", has_text="Thruxton").locator(".lb-layout").first.click()
+    expect(page.locator(".lb-row").first).to_be_visible()
+    page.locator('#lb-views [data-view="tyres"]').click()
+    rows = page.locator("#lb-cmp .lb-cmp-row")
+    expect(rows).to_have_count(3)
+    expect(rows.nth(0)).to_contain_text("Michelin Pilot Sport Cup 2 R")
+    expect(rows.nth(0)).to_contain_text("2 cars")
+    expect(rows.nth(0)).to_contain_text("Few cars")
+    expect(rows.nth(0)).to_contain_text("Quickest")
+    expect(rows.nth(1)).to_contain_text("Michelin Pilot Sport 4S")
+    expect(rows.nth(1)).to_contain_text("+2.10 s")
+    same = page.locator("#lb-cmp-same .lb-pair")
+    expect(same).to_have_count(1)
+    expect(same.first).to_contain_text("Ann")
+    expect(same.first).to_contain_text("2.10 s quicker")
+    expect(same.first).to_contain_text("on Michelin Pilot Sport Cup 2 R")
+    # Dry only: the Goodyear (wet) goes.
+    page.select_option("#lb-cond", "Dry")
+    expect(rows).to_have_count(2)
+    # Under 10 C: only Cat's Pilot Sport 4S.
+    page.select_option("#lb-temp", "cold")
+    expect(rows).to_have_count(1)
+    expect(rows.nth(0)).to_contain_text("Pilot Sport 4S")
+    page.get_by_role("button", name="Clear filters").click()
+    # Compare pads.
+    page.locator('#lb-views [data-view="pads"]').click()
+    expect(rows).to_have_count(2)
+    expect(rows.nth(0)).to_contain_text("Pagid RSL29")
+    expect(rows.nth(0)).to_contain_text("Maker's figures: Track day, 100 to 650°C")
+    expect(rows.nth(0)).to_contain_text("1.21 g")
+    expect(rows.nth(0)).to_contain_text("690°C")
+    expect(rows.nth(0).locator(".lb-cmp-warn")).to_contain_text("Hotter than the pads' working range (650°C)")
+    expect(page.locator("#lb-cmp-same .lb-pair").first).to_contain_text("on Pagid RSL29")
+    # Back to the leaderboard.
+    page.locator('#lb-views [data-view="board"]').click()
+    expect(page.locator(".lb-row").first).to_be_visible()
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.locator('#lb-views [data-view="pads"]').click()
+    assert page.evaluate("document.documentElement.scrollWidth") <= 390

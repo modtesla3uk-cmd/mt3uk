@@ -327,6 +327,68 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   await call('DELETE', '/track/session?id=' + tid, undefined, 'tok-a');
 }
 
+// Tyre maker data, kept by "Make|Model" with the tyre list.
+{
+  r = await call('PUT', '/tyres/admin?key=secret', { library: { makes: [], info: {
+    'Michelin|Pilot Sport 4S': { category: 'Performance road', wetGrip: 'A', rolling: 'C', noise: 71.4, ev: true, notes: ' Good <b>wet</b> ', extra: 1 },
+    'Kumho|Ecsta': { category: 'Space tyre', wetGrip: 'F', noise: 200, ev: 'yes' },
+    'NoBar': { category: 'Road' }
+  } } });
+  const inf = r.body.extra.info;
+  ok(r.status === 200 && JSON.stringify(inf) === JSON.stringify({ 'Michelin|Pilot Sport 4S': { category: 'Performance road', wetGrip: 'A', rolling: 'C', noise: 71, ev: true, notes: 'Good b wet /b' } }), 'tyre maker data is cleaned and nonsense dropped: ' + JSON.stringify(inf));
+  r = await call('GET', '/tyres');
+  ok(r.body.extra.info['Michelin|Pilot Sport 4S'].wetGrip === 'A', 'and served with the tyre list');
+  await call('PUT', '/tyres/admin?key=secret', { library: { makes: [] } });
+}
+
+// The brake pad list: public, and the admin's changes on top of data/pads.json.
+{
+  r = await call('GET', '/pads');
+  ok(r.status === 200 && r.body.success && Object.keys(r.body.extra).length === 0, 'no changes to the pad list to start with');
+  r = await call('GET', '/pads/admin');
+  ok(r.status === 401, 'the admin pad list needs the key');
+  r = await call('PUT', '/pads/admin?key=wrong', { library: { makes: [] } });
+  ok(r.status === 401, 'and so does saving it');
+  r = await call('PUT', '/pads/admin?key=secret', { library: { makes: [
+    { name: 'Pagid', compounds: [
+      { name: 'RSL29', use: 'Track day', mu: '0.50', tempMin: 100, tempMax: 650, notes: 'Smooth <i>release</i>' },
+      { name: 'rsl29', use: 'Track day' },
+      { name: 'RS29', use: 'Spaceship', tempMin: -5, tempMax: 9999 },
+      { name: '' }
+    ] },
+    { name: 'EBC', removed: true },
+    { name: 'pagid', compounds: [] }
+  ] } });
+  const pm = r.body.extra.makes;
+  ok(r.status === 200 && pm.length === 2 && pm[0].compounds.length === 2, 'pad makes cleaned, a repeated make or compound dropped: ' + JSON.stringify(pm));
+  ok(JSON.stringify(pm[0].compounds[0]) === JSON.stringify({ name: 'RSL29', use: 'Track day', mu: '0.50', tempMin: 100, tempMax: 650, notes: 'Smooth i release /i' }), 'a compound keeps its maker data: ' + JSON.stringify(pm[0].compounds[0]));
+  ok(JSON.stringify(pm[0].compounds[1]) === '{"name":"RS29"}', 'an unknown use or a silly temperature is dropped');
+  ok(pm[1].name === 'EBC' && pm[1].removed === true && !('compounds' in pm[1]), 'a make can be taken off');
+  r = await call('GET', '/pads');
+  ok(r.body.extra.makes.length === 2, 'the public list serves the changes');
+  await call('PUT', '/pads/admin?key=secret', { library: { makes: [] } });
+}
+
+// Brake pads on a session: front and rear, the description built from them.
+{
+  r = await call('POST', '/track/sessions', { carId: 'cara1', session, padFrontMake: 'Pagid', padFrontCompound: 'RSL29', padRearMake: 'Pagid', padRearCompound: 'RS29' }, 'tok-a');
+  const pid = r.body.session.id;
+  ok(r.body.session.pads === 'Front: Pagid RSL29, rear: Pagid RS29', 'different pads front and rear: ' + r.body.session.pads);
+  r = await call('PUT', '/track/session', { id: pid, padFrontMake: 'Pagid', padFrontCompound: 'RSL29', padRearMake: 'Pagid', padRearCompound: 'RSL29' }, 'tok-a');
+  ok(r.body.session.pads === 'Pagid RSL29', 'the same pads both ends are named once');
+  r = await call('PUT', '/track/session', { id: pid, notes: 'pads stay' }, 'tok-a');
+  ok(r.body.session.pads === 'Pagid RSL29' && r.body.session.padRearCompound === 'RSL29', 'a change of something else keeps them');
+  r = await call('GET', '/track/sessions', undefined, 'tok-a');
+  ok(r.body.sessions.find(x => x.id === pid).pads === 'Pagid RSL29', 'the summary has the pads');
+  r = await call('PUT', '/track/session', { id: pid, padFrontMake: 'Original equipment', padFrontCompound: 'Standard pads', padRearMake: 'Original equipment', padRearCompound: 'Standard pads' }, 'tok-a');
+  ok(r.body.session.pads === 'Original equipment pads', 'the car\'s own pads');
+  r = await call('PUT', '/track/session', { id: pid, padFrontMake: 'X<b>', padFrontCompound: '', padRearMake: '', padRearCompound: '' }, 'tok-a');
+  ok(r.body.session.pads === 'X b' && !('padRearMake' in r.body.session), 'markup cleaned, empty parts not kept: ' + r.body.session.pads);
+  r = await call('PUT', '/track/session', { id: pid, padFrontMake: '', padFrontCompound: '', padRearMake: '', padRearCompound: '' }, 'tok-a');
+  ok(!r.body.session.pads && !('padFrontMake' in r.body.session), 'cleared');
+  await call('DELETE', '/track/session?id=' + pid, undefined, 'tok-a');
+}
+
 // Keeping a session's readings so its type can be changed later.
 {
   const text = fs.readFileSync(ROOT + 'tests/fixtures/thruxton-trimmed.vbo', 'latin1');
@@ -535,6 +597,14 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   ok(b.filter(x => x.carId === 'cara1').length === 1 && Math.abs(e.time - 99.0) < 0.01 && e.tyreMake === 'Michelin' && e.tyreModel === 'Pilot Sport 4S' && e.tyres === 'Michelin Pilot Sport 4S, 245/35 R19', 'the entry names the tyres of its best');
   ok(e.bests.length === 3 && e.bests[0].time === 99 && e.bests.map(x => x.conditions + ':' + x.tyreMake).join() === 'Dry:Michelin,Dry:Kumho,Wet:Kumho', 'a best for each mix of conditions and tyres: ' + JSON.stringify(e.bests.map(x => [x.conditions, x.tyreMake, x.time])));
   ok(e.bests.every(x => x.sessionId && x.date), 'each best opens its session');
+  {
+    const x = JSON.parse(JSON.stringify(session)); x.bestTime = 98.0;
+    const sp = await call('POST', '/track/sessions', { carId: 'cara1', session: x, privacy: 'board', conditions: 'Dry', tyreMake: 'Michelin', tyreModel: 'Pilot Sport 4S', tyreWidth: 245, tyreProfile: 35, tyreRim: 19, temp: 14, padFrontMake: 'Pagid', padFrontCompound: 'RSL29' }, 'tok-a');
+    const ep = (await call('GET', '/track/board?venue=thruxton&layout=main')).body.entries.find(y => y.carId === 'cara1');
+    const bp = ep.bests.find(y => y.pads === 'Pagid RSL29');
+    ok(ep.bests.length === 4 && bp && bp.padMake === 'Pagid' && bp.padCompound === 'RSL29' && bp.temp === 14 && ep.bests.filter(y => y.tyreMake === 'Michelin' && y.conditions === 'Dry').length === 2, 'pads make their own best, with the temperature: ' + JSON.stringify(ep.bests.map(y => [y.conditions, y.tyreMake, y.pads, y.time])));
+    await call('DELETE', '/track/session?id=' + sp.body.session.id, undefined, 'tok-a');
+  }
   ok(JSON.stringify(e.mods) === JSON.stringify(['KW V3 coilovers', 'Carbon seats, saves 12 kg', 'Front splitter']), 'only track parts, weight savings kept: ' + JSON.stringify(e.mods));
   r = await call('GET', '/track/counts');
   const lead = r.body.leaders['track-board:thruxton:main'];

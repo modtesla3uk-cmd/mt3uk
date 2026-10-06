@@ -23,7 +23,7 @@
     return fetch(API + path + (path.indexOf('?') === -1 ? '?' : '&') + 'key=' + encodeURIComponent(key()), opts)
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d.ok = r.ok; return d; }); });
   }
-  function normal(e) { e = e || {}; return { makes: e.makes || [], widths: e.widths, profiles: e.profiles, rims: e.rims }; }
+  function normal(e) { e = e || {}; return { makes: e.makes || [], info: e.info || {}, widths: e.widths, profiles: e.profiles, rims: e.rims }; }
   function inFile(name) { return (base.makes || []).some(function (m) { return m.name === name; }); }
 
   wrap.addEventListener('toggle', function () { if (wrap.open && !merged) load(); });
@@ -49,8 +49,9 @@
     (extra.makes || []).forEach(function (m) { changed[m.name] = true; });
     listEl.innerHTML = '<table class="iv-table tk-table"><thead><tr><th>Make</th><th>Models</th><th></th></tr></thead><tbody>' + names.map(function (n) {
       var models = merged.makes[n];
-      return '<tr><td><b>' + esc(n) + '</b>' + (changed[n] ? ' <span class="iv-sub">(changed here)</span>' : '') + '</td><td>' + models.length + (models.length ? '<span class="iv-sub">' + esc(models.slice(0, 4).join(', ')) + (models.length > 4 ? ', ...' : '') + '</span>' : '') + '</td>' +
-        '<td><div class="iv-actions"><button type="button" class="secondary iv-act" data-edit="' + esc(n) + '">Edit</button><button type="button" class="danger iv-act" data-remove="' + esc(n) + '">Remove</button></div></td></tr>';
+      var withData = models.filter(function (md) { return merged.info[n + '|' + md]; }).length;
+      return '<tr><td><b>' + esc(n) + '</b>' + (changed[n] ? ' <span class="iv-sub">(changed here)</span>' : '') + '</td><td>' + models.length + (models.length ? '<span class="iv-sub">' + esc(models.slice(0, 4).join(', ')) + (models.length > 4 ? ', ...' : '') + '</span>' : '') + (models.length ? '<span class="iv-sub">Maker data for ' + withData + ' of ' + models.length + '</span>' : '') + '</td>' +
+        '<td><div class="iv-actions"><button type="button" class="secondary iv-act" data-edit="' + esc(n) + '">Edit</button>' + (models.length ? '<button type="button" class="secondary iv-act" data-info="' + esc(n) + '">Maker data</button>' : '') + '<button type="button" class="danger iv-act" data-remove="' + esc(n) + '">Remove</button></div></td></tr>';
     }).join('') + '</tbody></table><div class="iv-toolbar tk-top"><button type="button" class="secondary" data-new>Add a make</button></div>';
     sizesEl.innerHTML = '<div class="tk-form"><p class="iv-note">The drop-down choices, separated by commas. Widths are in millimetres, profiles in per cent and diameters in inches.</p>' +
       [['widths', 'Widths (mm)'], ['profiles', 'Profiles (%)'], ['rims', 'Diameters (in)']].map(function (f) {
@@ -71,6 +72,48 @@
     formEl.scrollIntoView({ block: 'nearest' });
   }
 
+  // What each model's maker publishes: its category, the UK/EU tyre label's wet grip and rolling resistance (A to E)
+  // and noise (dB), whether it is EV rated, and notes. Shown as the maker's figures in Compare tyres.
+  function sel(f, v, opts, blank) {
+    return '<select data-f="' + f + '"><option value="">' + (blank || 'Not set') + '</option>' + opts.map(function (o) { return '<option' + (o === v ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('') + '</select>';
+  }
+  function openInfo(make) {
+    var cats = window.MT3UKTyres.CATEGORIES, grades = ['A', 'B', 'C', 'D', 'E'];
+    formEl.hidden = false;
+    formEl.dataset.infoMake = make; formEl.dataset.edit = '';
+    formEl.innerHTML = '<h3>Maker data: ' + esc(make) + '</h3>' +
+      '<p class="iv-note">For each model, what its maker publishes and the UK/EU tyre label shows. Leave anything you are not sure of as Not set: members see these marked as the maker\'s figures, beside what Laps has measured.</p>' +
+      merged.makes[make].map(function (md) {
+        var i = merged.info[make + '|' + md] || {};
+        return '<div class="ty-info-row" data-model="' + esc(md) + '"><b class="ty-info-name">' + esc(md) + '</b>' +
+          '<label>Category' + sel('category', i.category, cats) + '</label>' +
+          '<label>Wet grip' + sel('wetGrip', i.wetGrip, grades) + '</label>' +
+          '<label>Rolling resistance' + sel('rolling', i.rolling, grades) + '</label>' +
+          '<label>Noise (dB)<input type="number" data-f="noise" min="50" max="90" value="' + esc(i.noise || '') + '"></label>' +
+          '<label>EV rated' + sel('ev', i.ev ? 'Yes' : '', ['Yes']) + '</label>' +
+          '<label class="ty-info-notes">Notes<input type="text" data-f="notes" maxlength="200" value="' + esc(i.notes || '') + '"></label></div>';
+      }).join('') +
+      '<div class="iv-toolbar"><button type="button" id="ty-save-info">Save maker data</button><button type="button" class="secondary" id="ty-cancel">Cancel</button></div>';
+    formEl.scrollIntoView({ block: 'nearest' });
+  }
+  function saveInfo() {
+    var make = formEl.dataset.infoMake;
+    var info = Object.assign({}, extra.info || {});
+    formEl.querySelectorAll('.ty-info-row').forEach(function (row) {
+      var k = make + '|' + row.getAttribute('data-model'), o = {};
+      row.querySelectorAll('[data-f]').forEach(function (el) {
+        var f = el.getAttribute('data-f'), v = el.value.trim();
+        if (!v) return;
+        if (f === 'ev') o.ev = v === 'Yes';
+        else if (f === 'noise') o.noise = Number(v);
+        else o[f] = v;
+      });
+      if (Object.keys(o).length) info[k] = o; else delete info[k];
+    });
+    extra.info = info;
+    put();
+  }
+
   function put(done) {
     call('PUT', '/tyres/admin', { library: extra }).then(function (d) {
       if (!d.ok) { note(d.message || 'Could not save it.', 'error'); return; }
@@ -89,6 +132,8 @@
     var ed = e.target.closest('[data-edit]'), rm = e.target.closest('[data-remove]');
     if (e.target.closest('[data-new]')) return openForm(null);
     if (ed) return openForm(ed.getAttribute('data-edit'));
+    var inf = e.target.closest('[data-info]');
+    if (inf) return openInfo(inf.getAttribute('data-info'));
     if (rm) {
       var name = rm.getAttribute('data-remove');
       if (!window.confirm('Take ' + name + ' off the list? Sessions that already use it keep it.')) return;
@@ -99,6 +144,7 @@
   });
   formEl.addEventListener('click', function (e) {
     if (e.target.id === 'ty-cancel') { formEl.hidden = true; return; }
+    if (e.target.id === 'ty-save-info') return saveInfo();
     if (e.target.id !== 'ty-save') return;
     var name = document.getElementById('ty-name').value.trim();
     if (!name) { note('A make needs a name.', 'error'); return; }

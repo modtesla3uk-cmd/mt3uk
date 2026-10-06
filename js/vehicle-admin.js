@@ -42,7 +42,7 @@
     return fetch(API + path + (path.indexOf('?') === -1 ? '?' : '&') + 'key=' + encodeURIComponent(key()), opts)
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d.ok = r.ok; return d; }); });
   }
-  function normal(e) { return { makes: (e && e.makes) || [], drives: (e && e.drives) || {}, hiddenMakes: (e && e.hiddenMakes) || [] }; }
+  function normal(e) { return { makes: (e && e.makes) || [], drives: (e && e.drives) || {}, weights: (e && e.weights) || {}, hiddenMakes: (e && e.hiddenMakes) || [] }; }
   function typeOf(m) { return m && m.type === 'bike' ? 'bike' : 'car'; }
   function inFile(name, type) { return (base.makes || []).some(function (m) { return m.name === name && typeOf(m) === type; }); }
   function same(m, name, type) { return m.name === name && typeOf(m) === type; }
@@ -178,21 +178,30 @@
     formEl.scrollIntoView({ block: 'nearest' });
   }
   // One model: its name, Remove, its variants (a row each) and the Version box rule.
+  // A kerb weight (kg, the maker's figure) for the model, and for a variant that differs from it: Compare tyres and
+  // Compare pads group cars by it. Kept in the library's weights under the same keys as the driven wheels.
+  function weightOf(make, model, version) {
+    var V = window.MT3UKVehicles, w = extra.weights || {};
+    if (!V || !make || !model) return '';
+    return (version ? w[V.driveVariantKey({ make: make, model: model, version: version })] : w[V.driveKey({ make: make, model: model })]) || '';
+  }
   function modelBlock(model, variants, rule, type, make) {
     var V = window.MT3UKVehicles, drives = extra.drives || {};
     return '<div class="vh-mblock" data-model-block><div class="vh-mhead"><input type="text" class="vh-mname" maxlength="60" value="' + esc(model) + '" placeholder="Model name" aria-label="Model name">' +
+      '<label class="vh-weight">Kerb weight (kg)<input type="number" class="vh-mweight" min="300" max="4000" value="' + esc(weightOf(make, model)) + '" placeholder="e.g. 1850"></label>' +
       '<button type="button" class="danger iv-act vh-mremove" aria-label="Remove the model ' + esc(model) + '">Remove model</button></div>' +
       '<div class="vh-vrows">' + variants.map(function (x) {
         var set = type === 'car' && make && V ? drives[V.driveVariantKey({ make: make, model: model, version: x })] || '' : '';
-        return variantRow(x, set, type);
+        return variantRow(x, set, type, weightOf(make, model, x));
       }).join('') + '</div>' +
       '<button type="button" class="secondary iv-act vh-vadd">Add a variant</button>' +
       '<div class="vh-rules"><button type="button" class="tk-switch vh-rule" role="switch" data-rule="required" aria-checked="' + !!rule.required + '"><span class="tk-track"></span>Required</button>' +
       '<button type="button" class="tk-switch vh-rule" role="switch" data-rule="free" aria-checked="' + !!rule.free + '"><span class="tk-track"></span>Free text</button></div></div>';
   }
   // One variant: its name, the wheels it drives (a car's only; its first choice says what it works out as) and Remove.
-  function variantRow(name, set, type) {
+  function variantRow(name, set, type, weight) {
     return '<div class="vh-vrow"><input type="text" class="vh-vname" maxlength="60" value="' + esc(name) + '" placeholder="Variant name" aria-label="Variant name">' +
+      '<input type="number" class="vh-vweight" min="300" max="4000" value="' + esc(weight || '') + '" placeholder="Weight (kg)" aria-label="Kerb weight for this variant, if it differs from the model\'s">' +
       (type === 'bike' ? '' : '<select class="vh-vdrive" aria-label="Driven wheels for this variant"><option value="">Worked out</option>' +
         DRIVES.map(function (x) { return '<option value="' + x + '"' + (set === x ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select>') +
       '<button type="button" class="danger iv-act vh-vremove" aria-label="Remove the variant ' + esc(name) + '">Remove</button></div>';
@@ -313,7 +322,7 @@
       var tp = e.target.value;
       formEl.querySelectorAll('.vh-vrow').forEach(function (row) {
         var name = row.querySelector('.vh-vname').value;
-        row.outerHTML = variantRow(name, '', tp);
+        row.outerHTML = variantRow(name, '', tp, row.querySelector('.vh-vweight').value);
       });
       refreshWorked();
     }
@@ -353,13 +362,15 @@
     var was = formEl.dataset.edit || '', renaming = !!was && was !== name;
     if ((!was || renaming) && merged[type][name]) { note(name + ' is already on the ' + type + ' list. Edit it instead.', 'error'); return; }
     // The models, each with its variants, rule and the wheels set on a variant, from the blocks.
-    var models = [], versions = {}, versionRules = {}, variantDrives = {}, seenModel = {};
+    var models = [], versions = {}, versionRules = {}, variantDrives = {}, seenModel = {}, makeWeights = {};
     var V = window.MT3UKVehicles;
     formEl.querySelectorAll('[data-model-block]').forEach(function (b) {
       var m = b.querySelector('.vh-mname').value.trim();
       if (!m || seenModel[m.toLowerCase()]) return;
       seenModel[m.toLowerCase()] = true;
       models.push(m);
+      var mw = parseInt(b.querySelector('.vh-mweight').value, 10);
+      if (mw >= 300 && mw <= 4000) makeWeights[V.driveKey({ make: name, model: m })] = mw;
       var list = [], seenV = {};
       b.querySelectorAll('.vh-vrow').forEach(function (row) {
         var v = row.querySelector('.vh-vname').value.trim();
@@ -368,6 +379,8 @@
         list.push(v);
         var sel = row.querySelector('.vh-vdrive');
         if (sel && sel.value && type === 'car') variantDrives[V.driveVariantKey({ make: name, model: m, version: v })] = sel.value;
+        var vw = parseInt(row.querySelector('.vh-vweight').value, 10);
+        if (vw >= 300 && vw <= 4000) makeWeights[V.driveVariantKey({ make: name, model: m, version: v })] = vw;
       });
       if (list.length) versions[m] = list;
       var rule = {};
@@ -386,6 +399,11 @@
     });
     Object.keys(variantDrives).forEach(function (k) { drives[k] = variantDrives[k]; });
     extra.drives = drives;
+    // This make's weights are replaced by the ones in the form (and a renamed make's old ones dropped).
+    var weights = {}, wasPart = was ? V.driveKey({ make: was, model: 'x' }).split('|')[0] : '';
+    Object.keys(extra.weights || {}).forEach(function (k) { var p0 = k.split('|')[0]; if (p0 !== makePart && p0 !== wasPart) weights[k] = extra.weights[k]; });
+    Object.keys(makeWeights).forEach(function (k) { weights[k] = makeWeights[k]; });
+    extra.weights = weights;
     var entry = { name: name, type: type, models: models, versions: versions };
     if (Object.keys(versionRules).length) entry.versionRules = versionRules;
     extra.makes.push(entry);

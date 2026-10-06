@@ -242,6 +242,13 @@
       ['Taking a make off', 'A make can be taken off the list.'],
       ['Sizes', 'A size list is only stored when it differs from the file\'s.']
     ] },
+    'pads-wrap': { t: 'Brake pads', p: 'The brake pad makes and compounds members pick on the Add page, with what each maker publishes about a compound.', i: [
+      ['Starting list', 'data/pads.json. Changes made here are stored on top of it and are live straight away.'],
+      ['Maker data', 'Use, friction level (\u03bc) and working temperature range. Leave a figure blank rather than guess it: members see it marked as the maker\'s figures, beside what Laps has measured.'],
+      ['Original equipment', 'The car\'s own pads, for a member who has not changed them.'],
+      ['Removing', 'Taking a make off the list does not change sessions that already use it.'],
+      ['Use the built-in list', 'Drops your changes to a make that is in the file.']
+    ] },
     'vehicles-wrap': { t: 'Vehicles', p: 'The makes and models offered when a car or bike is added, with their variants and driven wheels.', i: [
       ['Make type', 'A make is a car or a bike, and the same name can be both.'],
       ['Edit', 'Renames a make and lists its models. For each model: its variants (the Version choices in My Garage) and each one\'s own driven wheels, plus Remove model and Add a model.'],

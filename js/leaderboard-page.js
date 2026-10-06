@@ -44,7 +44,9 @@
       getJson('data/tracks.json').catch(function () { return { venues: [] }; }),
       getJson(API + '/track/tracks').catch(function () { return {}; }),
       getJson(API + '/track/counts').catch(function () { return {}; }),
-      window.MT3UKTyres ? window.MT3UKTyres.load().catch(function () {}) : null
+      window.MT3UKTyres ? window.MT3UKTyres.load().catch(function () {}) : null,
+      window.MT3UKPads ? window.MT3UKPads.load().catch(function () {}) : null,
+      window.MT3UKVehicles ? window.MT3UKVehicles.load().catch(function () {}) : null
     ]).then(function (r) {
       library = T.mergeLibrary(r[0], r[1] && r[1].extra);
       counts = (r[2] && r[2].counts) || {};
@@ -335,6 +337,14 @@
 
   // ---- One board -------------------------------------------------------
   var boardModel = 'All', fCond = 'All', fMake = 'All', fTyre = 'All';
+  // Compare tyres and Compare pads: which view is on show, and their extra filters.
+  var viewMode = 'board', fDrive = 'All', fTemp = 'All', fWeight = 'All';
+  var TEMPS = [['cold', 'Under 10\u00b0C'], ['mild', '10 to 20\u00b0C'], ['warm', 'Over 20\u00b0C']];
+  var WEIGHTS = [['light', 'Under 1,800 kg'], ['mid', '1,800 to 2,100 kg'], ['heavy', 'Over 2,100 kg']];
+  function tempBand(t) { return typeof t !== 'number' ? '' : t < 10 ? 'cold' : t <= 20 ? 'mild' : 'warm'; }
+  function weightOf(e) { return window.MT3UKVehicles && window.MT3UKVehicles.weight ? window.MT3UKVehicles.weight(e) : null; }
+  function weightBand(w) { return !w ? '' : w < 1800 ? 'light' : w <= 2100 ? 'mid' : 'heavy'; }
+  function labelOf(list, k) { for (var i = 0; i < list.length; i++) if (list[i][0] === k) return list[i][1]; return k; }
   // A car's make and model as the filter and the board line see them (js/vehicle-data.js); cars saved before makes existed have only a model.
   function modelKey(e) { return window.MT3UKVehicles ? window.MT3UKVehicles.modelKey(e) : (e.model || ''); }
   function titleOf(e) { return window.MT3UKVehicles ? window.MT3UKVehicles.title(e) : (e.model || ''); }
@@ -406,13 +416,107 @@
     return (open ? 'Hide ' : 'Show ') + (n === 1 ? 'position 11' : 'positions 11 to ' + total);
   }
 
+  // ---------- Compare tyres and Compare pads ----------
+  // From the same board entries: each car's best on each tyre (or pads) that matches the filters, so each car counts
+  // once per tyre. A group's best, its typical (middle) time and how far off the quickest it is; then the same car on
+  // two tyres, the fairest comparison. Small numbers are flagged rather than hidden.
+  function matchCompare(e, b, type) {
+    if (fCond !== 'All' && condOf(b) !== fCond) return false;
+    if (fDrive !== 'All' && (b.drive || e.drive || '') !== fDrive) return false;
+    if (fTemp !== 'All' && tempBand(b.temp) !== fTemp) return false;
+    if (fWeight !== 'All' && weightBand(weightOf(e)) !== fWeight) return false;
+    if (viewMode === 'pads') {
+      var tp = tyreParts(b);
+      if (fMake !== 'All' && tp.make !== fMake) return false;
+      if (fTyre !== 'All' && tp.model !== fTyre) return false;
+    }
+    return !!scoreOf(b, type);
+  }
+  function tyreKeyOf(b) { var tp = tyreParts(b); return tp.make && tp.model ? tp.make + '|' + tp.model : ''; }
+  function padKeyOf(b) { return b.pads || ''; }
+  function groupResults(entries, type, keyOf) {
+    var groups = {}, perCar = [];
+    entries.forEach(function (e) {
+      if (boardModel !== 'All' && modelKey(e) !== boardModel) return;
+      var mine = {};
+      resultsOf(e, type).forEach(function (b) {
+        if (!matchCompare(e, b, type)) return;
+        var k = keyOf(b);
+        if (k && (!mine[k] || scoreOf(b, type) < scoreOf(mine[k], type))) mine[k] = b;
+      });
+      var keys = Object.keys(mine);
+      keys.forEach(function (k) { (groups[k] = groups[k] || { key: k, cars: [] }).cars.push({ e: e, b: mine[k], s: scoreOf(mine[k], type) }); });
+      if (keys.length > 1) perCar.push({ e: e, list: keys.map(function (k) { return { key: k, b: mine[k], s: scoreOf(mine[k], type) }; }).sort(function (x, y) { return x.s - y.s; }) });
+    });
+    var list = Object.keys(groups).map(function (k) {
+      var g = groups[k], times = g.cars.map(function (c) { return c.s; }).sort(function (x, y) { return x - y; });
+      g.best = times[0];
+      g.typical = times.length % 2 ? times[(times.length - 1) / 2] : (times[times.length / 2 - 1] + times[times.length / 2]) / 2;
+      g.brakeG = Math.max.apply(null, g.cars.map(function (c) { return c.b.brakeG || 0; }));
+      g.brakeTemp = Math.max.apply(null, g.cars.map(function (c) { return c.b.brakeTemp || 0; }));
+      g.sample = g.cars[0].b;
+      return g;
+    }).sort(function (a, b) { return a.best - b.best; });
+    return { groups: list, perCar: perCar };
+  }
+  function fmtRes(t, type) { return type === 'drag' ? t.toFixed(2) + ' s' : V.fmtLap(t); }
+  function tyreLabel(key) { return key.replace('|', ' '); }
+  function compareHtml(entries, type) {
+    var pads = viewMode === 'pads', TY = window.MT3UKTyres, PD = window.MT3UKPads;
+    var res = groupResults(entries, type, pads ? padKeyOf : tyreKeyOf), groups = res.groups;
+    var who = [boardModel === 'All' ? 'every car' : 'the ' + (MODEL_SHORT[boardModel] || boardModel), fDrive !== 'All' ? fDrive : '', fCond !== 'All' ? 'in the ' + fCond.toLowerCase() : '', fTemp !== 'All' ? labelOf(TEMPS, fTemp).toLowerCase() : '', fWeight !== 'All' ? labelOf(WEIGHTS, fWeight).toLowerCase() : ''].filter(Boolean).join(', ');
+    var h = '<section class="card lb-cmp" id="lb-cmp"><h3>' + (pads ? 'Brake pads' : 'Tyres') + ' on ' + esc(who) + '</h3>' +
+      '<p class="tp-small">Each car counts once for each ' + (pads ? 'set of pads' : 'tyre') + ', with its best time on ' + (pads ? 'them' : 'it') + '. Typical is the middle time of those cars.' + (pads ? ' Braking is the hardest stop measured; brake temperature comes from Tesla Track Mode files.' : '') + '</p>';
+    if (!groups.length) {
+      h += '<p class="lb-cmp-empty">' + (pads ? 'No sessions here say which pads they were run on yet. Pads are saved with each session on the Add page.' : 'No sessions here match these filters with their tyres given.') + '</p></section>';
+      return h;
+    }
+    var quickest = groups[0].best;
+    h += '<div class="lb-cmp-list' + (pads ? ' is-pads' : '') + '">' + groups.map(function (g, i) {
+      var maker = '', title = '';
+      if (pads) {
+        var b = g.sample, info = PD && b.padMake ? PD.info(b.padMake, b.padCompound) : null;
+        maker = PD ? PD.makerLine(info) : '';
+        title = g.key;
+        var hot = info && info.tempMax && g.brakeTemp > info.tempMax;
+      } else {
+        var parts = g.key.split('|'), ti = TY && TY.info ? TY.info(parts[0], parts[1]) : null;
+        maker = TY && TY.makerLine ? TY.makerLine(ti) : '';
+        title = tyreLabel(g.key);
+      }
+      return '<div class="lb-cmp-row">' +
+        '<div class="lb-cmp-name"><b>' + esc(title) + '</b>' + (maker ? '<small>Maker\'s figures: ' + esc(maker) + '</small>' : '') + '</div>' +
+        '<div class="lb-cmp-n">' + g.cars.length + ' car' + (g.cars.length === 1 ? '' : 's') + (g.cars.length < 3 ? '<span class="lb-few">Few cars</span>' : '') + '</div>' +
+        '<div class="lb-cmp-t"><small>Best</small><b>' + fmtRes(g.best, type) + '</b></div>' +
+        '<div class="lb-cmp-t"><small>Typical</small><b>' + fmtRes(g.typical, type) + '</b></div>' +
+        (pads ? '<div class="lb-cmp-t"><small>Braking</small><b>' + (g.brakeG ? g.brakeG.toFixed(2) + ' g' : '&ndash;') + '</b></div>' +
+          '<div class="lb-cmp-t"><small>Brake temp</small><b' + (hot ? ' class="lb-hot"' : '') + '>' + (g.brakeTemp ? Math.round(g.brakeTemp) + '°C' : '&ndash;') + '</b></div>' : '') +
+        '<div class="lb-cmp-gap' + (i ? '' : ' is-quickest') + '">' + (i ? '+' + (g.best - quickest).toFixed(2) + ' s' : 'Quickest') + '</div>' +
+        (pads && hot ? '<p class="lb-cmp-warn">Hotter than the pads\' working range (' + esc(String(info.tempMax)) + '°C).</p>' : '') +
+        '</div>';
+    }).join('') + '</div>';
+    var fewest = groups.reduce(function (n, g) { return n + g.cars.length; }, 0);
+    h += '<p class="tp-small lb-cmp-note">' + fewest + ' result' + (fewest === 1 ? '' : 's') + ' from ' + new Set(groups.reduce(function (a, g) { return a.concat(g.cars.map(function (c) { return c.e.carId; })); }, [])).size + ' cars. With few cars a comparison is a guide only: drivers, weather and track temperature differ.</p></section>';
+    // The same car on two (or more): its quickest against its slowest.
+    var pairs = res.perCar;
+    h += '<section class="card lb-cmp" id="lb-cmp-same"><h3>Same car, different ' + (pads ? 'pads' : 'tyres') + '</h3><p class="tp-small">The fairest comparison: the same car and driver here on both.</p>';
+    if (!pairs.length) h += '<p class="lb-cmp-empty">No car here has been run on more than one ' + (pads ? 'set of pads' : 'tyre') + ' with these filters yet.</p>';
+    else h += pairs.map(function (p) {
+      var fast = p.list[0], slow = p.list[p.list.length - 1];
+      var name = function (k) { return pads ? k : tyreLabel(k); };
+      return '<div class="lb-pair"><div class="lb-pair-who"><b>' + esc(p.e.owner || p.e.car) + '</b><small>' + esc(name(slow.key)) + ' ' + fmtRes(slow.s, type) + ' (' + esc(T.niceDate(slow.b.date)) + '), ' + esc(name(fast.key)) + ' ' + fmtRes(fast.s, type) + ' (' + esc(T.niceDate(fast.b.date)) + ')</small></div>' +
+        '<div class="lb-pair-res"><b>' + (slow.s - fast.s).toFixed(2) + ' s quicker</b><small>on ' + esc(name(fast.key)) + '</small></div></div>';
+    }).join('');
+    return h + '</section>';
+  }
+
   function showBoard(type, q) {
     var venueId = q.split(':')[0], layoutId = q.split(':')[1] || '';
     var v = library.venues.filter(function (x) { return x.id === venueId; })[0];
     var l = v && v.layouts ? v.layouts.filter(function (x) { return x.id === layoutId; })[0] : null;
     var title = v ? v.name + (l && l.name !== v.name ? ', ' + l.name : '') : venueId;
     var path = type === 'drag' ? '/drag/board?venue=' + encodeURIComponent(venueId) : (type === 'sprint' ? '/sprint/board?venue=' : '/track/board?venue=') + encodeURIComponent(venueId) + '&layout=' + encodeURIComponent(layoutId);
-    fCond = 'All'; fMake = 'All'; fTyre = 'All';
+    fCond = 'All'; fMake = 'All'; fTyre = 'All'; fDrive = 'All'; fTemp = 'All'; fWeight = 'All'; viewMode = 'board';
     // From the 11th place on, the rows are folded away behind an arrow, so a long board stays short.
     var FOLD = 10, foldOpen = false;
     getJson(API + path).then(function (d) {
@@ -435,17 +539,24 @@
       function draw(focus) {
         var shown = rank(entries, type);
         var what = type === 'drag' ? 'Each car\'s quickest quarter mile.' : type === 'sprint' ? 'Each car\'s fastest run.' : 'Each car\'s fastest lap.';
-        var filtered = fCond !== 'All' || fMake !== 'All';
+        var filtered = fCond !== 'All' || fMake !== 'All' || fDrive !== 'All' || fTemp !== 'All' || fWeight !== 'All';
+        var cmp = viewMode !== 'board', anyWeight = entries.some(function (e) { return weightOf(e); });
+        var views = [['board', 'Leaderboard'], ['tyres', 'Compare tyres']].concat(type === 'drag' ? [] : [['pads', 'Compare pads']]);
         var listType = type === 'sprint' && T.isHill(v) ? 'hill' : type;
         var h = '<a class="tp-back back-link" href="leaderboards.html?type=' + listType + '" data-go="type=' + listType + '" data-back aria-label="Back to all ' + KIND_NAME[listType] + '">' + icon('back') + 'Back' + '</a>' +
           '<div class="tp-head"><div><h2>' + esc(title) + '</h2><p class="tp-sub">' + what + '</p></div></div>' +
+          '<div class="tp-chips lb-views" id="lb-views" role="tablist">' + views.map(function (x) { return '<button type="button" class="chip' + (viewMode === x[0] ? ' is-on' : '') + '" role="tab" aria-selected="' + (viewMode === x[0]) + '" data-view="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div>' +
           '<div class="lb-filters"><div class="lb-filter-top"><div class="tp-chips lb-models" id="lb-models">' + ['All'].concat(modelChips(entries)).map(function (m) { return '<button type="button" class="chip' + (m === boardModel ? ' is-on' : '') + (m !== 'All' && !entries.some(function (e) { return modelKey(e) === m; }) ? ' is-empty' : '') + '" data-m="' + m + '">' + (MODEL_SHORT[m] || m) + '</button>'; }).join('') + '</div><div class="tp-head-side">' + refreshChip() + unitsChip() + '</div></div>' +
-          (conds.length > 1 || makes.length ? '<div class="lb-selects">' +
-            (conds.length > 1 ? '<label class="lb-sel"><span>Conditions</span><select class="field" id="lb-cond">' + options(conds, fCond, 'Any conditions') + '</select></label>' : '') +
-            (makes.length ? '<label class="lb-sel"><span>Tyre make</span><select class="field" id="lb-make">' + options(makes, fMake, 'Any tyres') + '</select></label>' : '') +
-            (fMake !== 'All' && (tyresOf[fMake] || []).length ? '<label class="lb-sel"><span>Tyre model</span><select class="field" id="lb-tyre">' + options(tyresOf[fMake].slice().sort(), fTyre, 'Any ' + esc(fMake)) + '</select></label>' : '') +
+          (conds.length > 1 || makes.length || cmp ? '<div class="lb-selects">' +
+            (conds.length > 1 || cmp ? '<label class="lb-sel"><span>Conditions</span><select class="field" id="lb-cond">' + options(conds, fCond, 'Any conditions') + '</select></label>' : '') +
+            (cmp ? '<label class="lb-sel"><span>Driven wheels</span><select class="field" id="lb-drive">' + options(['FWD', 'RWD', 'AWD'], fDrive, 'Any') + '</select></label>' +
+              '<label class="lb-sel"><span>Air temperature</span><select class="field" id="lb-temp"><option value="All">Any</option>' + TEMPS.map(function (x) { return '<option value="' + x[0] + '"' + (fTemp === x[0] ? ' selected' : '') + '>' + x[1] + '</option>'; }).join('') + '</select></label>' +
+              (anyWeight ? '<label class="lb-sel"><span>Kerb weight</span><select class="field" id="lb-weight"><option value="All">Any</option>' + WEIGHTS.map(function (x) { return '<option value="' + x[0] + '"' + (fWeight === x[0] ? ' selected' : '') + '>' + x[1] + '</option>'; }).join('') + '</select></label>' : '') : '') +
+            (makes.length && viewMode !== 'tyres' ? '<label class="lb-sel"><span>Tyre make</span><select class="field" id="lb-make">' + options(makes, fMake, 'Any tyres') + '</select></label>' : '') +
+            (fMake !== 'All' && viewMode !== 'tyres' && (tyresOf[fMake] || []).length ? '<label class="lb-sel"><span>Tyre model</span><select class="field" id="lb-tyre">' + options(tyresOf[fMake].slice().sort(), fTyre, 'Any ' + esc(fMake)) + '</select></label>' : '') +
             (filtered ? '<button type="button" class="btn btn-ghost btn-sm" id="lb-clear">Clear filters</button>' : '') + '</div>' : '') + '</div>' + tipHtml();
-        if (!shown.length) h += '<div class="card tp-empty">' + icon('trophy') + '<p>' + (filtered ? 'Nobody matches these filters.' : 'Nobody on this board yet' + (boardModel === 'All' ? '' : ' for the ' + esc(boardModel)) + '. Be the first.') + '</p></div>';
+        if (cmp) h += compareHtml(entries, type);
+        else if (!shown.length) h += '<div class="card tp-empty">' + icon('trophy') + '<p>' + (filtered ? 'Nobody matches these filters.' : 'Nobody on this board yet' + (boardModel === 'All' ? '' : ' for the ' + esc(boardModel)) + '. Be the first.') + '</p></div>';
         else {
           h += '<p class="tp-small lb-count" role="status">' + shown.length + ' car' + (shown.length === 1 ? '' : 's') + (filtered ? ', each with its best that matches' : '') + '</p>' +
             '<div class="card lb-card"><ol class="lb-list" data-open="' + foldOpen + '">' + shown.map(function (r, i) {
@@ -467,8 +578,15 @@
         on('lb-cond', function (x) { fCond = x; });
         on('lb-make', function (x) { fMake = x; fTyre = 'All'; });
         on('lb-tyre', function (x) { fTyre = x; });
+        on('lb-drive', function (x) { fDrive = x; });
+        on('lb-temp', function (x) { fTemp = x; });
+        on('lb-weight', function (x) { fWeight = x; });
+        document.getElementById('lb-views').addEventListener('click', function (ev) {
+          var vb = ev.target.closest('[data-view]');
+          if (vb && vb.getAttribute('data-view') !== viewMode) { viewMode = vb.getAttribute('data-view'); if (viewMode === 'tyres') { fMake = 'All'; fTyre = 'All'; } draw(); }
+        });
         var clear = document.getElementById('lb-clear');
-        if (clear) clear.addEventListener('click', function () { fCond = 'All'; fMake = 'All'; fTyre = 'All'; draw(); });
+        if (clear) clear.addEventListener('click', function () { fCond = 'All'; fMake = 'All'; fTyre = 'All'; fDrive = 'All'; fTemp = 'All'; fWeight = 'All'; draw(); });
         var fold = document.querySelector('[data-fold]');
         if (fold) fold.addEventListener('click', function () {
           foldOpen = !foldOpen;

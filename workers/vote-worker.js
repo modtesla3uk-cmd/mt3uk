@@ -7203,6 +7203,11 @@ function trackSummary(rec) {
   if (rec.tyreMake) o.tyreMake = rec.tyreMake;
   if (rec.tyreModel) o.tyreModel = rec.tyreModel;
   if (rec.drive) o.drive = rec.drive;
+  // Brake pads and how hard and hot the brakes worked, for Compare pads.
+  if (rec.pads) o.pads = rec.pads;
+  ['padFrontMake', 'padFrontCompound', 'padRearMake', 'padRearCompound'].forEach(function (k) { if (rec[k]) o[k] = rec[k]; });
+  if (isFinite(rec.brakeMax) && rec.brakeMax > 0) o.brakeG = rec.brakeMax;
+  if (rec.carData && rec.carData.brakeTemp && isFinite(rec.carData.brakeTemp.max)) o.brakeTemp = rec.carData.brakeTemp.max;
   if (rec.street) o.street = true;
   if (rec.unlisted) o.unlisted = true;
   if (rec.offBoard) o.offBoard = true;
@@ -7259,11 +7264,11 @@ function trackBoardMods(record, details) {
 
 // Each car's fastest here for every mix of conditions and tyres, so a board
 // can be filtered ("Dry, Michelin") and still rank each car fairly.
-var TRACK_BESTS_MAX = 12;
+var TRACK_BESTS_MAX = 16;
 function trackBests(list) {
   var by = {};
   list.forEach(function (s) {
-    var k = (s.conditions || '') + '|' + String(s.tyres || '').toLowerCase();
+    var k = (s.conditions || '') + '|' + String(s.tyres || '').toLowerCase() + '|' + String(s.pads || '').toLowerCase();
     if (!by[k] || trackScore(s) < trackScore(by[k])) by[k] = s;
   });
   return Object.keys(by).map(function (k) { return by[k]; })
@@ -7273,6 +7278,12 @@ function trackBests(list) {
       if (s.tyreMake) b.tyreMake = s.tyreMake;
       if (s.tyreModel) b.tyreModel = s.tyreModel;
       if (s.drive) b.drive = s.drive;
+      if (typeof s.temp === 'number' && isFinite(s.temp)) b.temp = s.temp;
+      if (s.pads) b.pads = s.pads;
+      if (s.padFrontMake) b.padMake = s.padFrontMake;
+      if (s.padFrontCompound) b.padCompound = s.padFrontCompound;
+      if (s.brakeG) b.brakeG = s.brakeG;
+      if (s.brakeTemp) b.brakeTemp = s.brakeTemp;
       if (s.type === 'drag') { b.quarter = s.quarter; b.quarterSpeed = s.quarterSpeed; b.s60 = s.s60; } else b.time = s.bestTime;
       return b;
     });
@@ -7669,6 +7680,18 @@ function sameTrackResult(s, rec) {
   return s.laps === (rec.laps || []).length && ((s.bestTime == null && rec.bestTime == null) || (isFinite(s.bestTime) && isFinite(rec.bestTime) && Math.abs(s.bestTime - rec.bestTime) < 0.0005));
 }
 
+function composeTrackPads(rec) {
+  function one(make, compound) {
+    if (!make && !compound) return '';
+    if (make === 'Original equipment') return 'Original equipment pads';
+    return [make, compound].filter(Boolean).join(' ');
+  }
+  var f = one(rec.padFrontMake, rec.padFrontCompound), r = one(rec.padRearMake, rec.padRearCompound);
+  if (!f && !r) return '';
+  if (f === r || !r) return trackText(f, 80);
+  if (!f) return trackText('Rear: ' + r, 80);
+  return trackText('Front: ' + f + ', rear: ' + r, 80);
+}
 function composeTrackTyres(rec) {
   var name = [rec.tyreMake, rec.tyreModel].filter(Boolean).join(' ');
   var size = rec.tyreWidth && rec.tyreProfile && rec.tyreRim ? rec.tyreWidth + '/' + rec.tyreProfile + ' R' + rec.tyreRim : '';
@@ -7691,6 +7714,16 @@ function applyTrackEdits(rec, body) {
     if (tw && tp && td) { rec.tyreWidth = Math.round(tw); rec.tyreProfile = Math.round(tp); rec.tyreRim = Math.round(td); }
     rec.tyres = composeTrackTyres(rec);
   } else if ('tyres' in body) rec.tyres = trackText(body.tyres, 80);
+  // Brake pads, front and rear (make and compound from the pad list, or the car's original pads), saved with the
+  // session so a later change of pads does not rewrite it. The description is built from them.
+  if ('padFrontMake' in body || 'padFrontCompound' in body || 'padRearMake' in body || 'padRearCompound' in body) {
+    ['padFrontMake', 'padFrontCompound', 'padRearMake', 'padRearCompound'].forEach(function (k) {
+      var v = trackText(body[k], 40);
+      if (v) rec[k] = v; else delete rec[k];
+    });
+    rec.pads = composeTrackPads(rec);
+    if (!rec.pads) delete rec.pads;
+  }
   if ('temp' in body) rec.temp = trackNum(body.temp, -30, 50);
   // Where the temperature came from: the logger's file, Open-Meteo weather
   // (shown with credit to Open-Meteo), or typed by the member.
@@ -7824,7 +7857,7 @@ async function handleTrackSessionUpdate(request, env) {
     next.owner = rec.owner;
     next.carId = rec.carId;
     next.createdAt = rec.createdAt;
-    ['privacy', 'conditions', 'tyres', 'tyreMake', 'tyreModel', 'tyreWidth', 'tyreProfile', 'tyreRim', 'drive', 'temp', 'tempSource', 'weather', 'notes', 'hasSource', 'sourceBytes', 'readingsRefused'].forEach(function (k) { if (rec[k] !== undefined) next[k] = rec[k]; });
+    ['privacy', 'conditions', 'tyres', 'tyreMake', 'tyreModel', 'tyreWidth', 'tyreProfile', 'tyreRim', 'drive', 'temp', 'tempSource', 'weather', 'notes', 'hasSource', 'sourceBytes', 'readingsRefused', 'pads', 'padFrontMake', 'padFrontCompound', 'padRearMake', 'padRearCompound'].forEach(function (k) { if (rec[k] !== undefined) next[k] = rec[k]; });
     rec = next;
     delete body.privacy;
   }
@@ -8351,6 +8384,7 @@ async function handleTrackBoard(request, env, drag) {
 // admin's changes (the Tyres panel on admin.html) sit on top of it in one KV key.
 // Everything is read with get() only.
 var TYRE_LIBRARY_KEY = 'tyre-library';
+var TYRE_CATEGORIES = ['Road', 'Performance road', 'Track day', 'Semi-slick', 'R-compound', 'All-season', 'Winter'];
 
 function cleanTyreSizes(list, lo, hi) {
   var out = [];
@@ -8377,6 +8411,25 @@ function cleanTyreLibrary(input) {
     makes.push({ name: name, models: models });
   });
   var out = { makes: makes };
+  // What the maker publishes about each model, by "Make|Model": category, the UK/EU label's wet grip and rolling
+  // resistance (A to E) and noise (dB), EV rated, and notes.
+  var info = {}, n = 0;
+  Object.keys(input.info && typeof input.info === 'object' ? input.info : {}).forEach(function (k) {
+    if (n >= 3000) return;
+    var key = trackText(k, 110), v = input.info[k];
+    if (!key || key.indexOf('|') < 1 || !v || typeof v !== 'object') return;
+    var o = {};
+    if (TYRE_CATEGORIES.indexOf(v.category) !== -1) o.category = v.category;
+    if (/^[A-E]$/.test(v.wetGrip || '')) o.wetGrip = v.wetGrip;
+    if (/^[A-E]$/.test(v.rolling || '')) o.rolling = v.rolling;
+    var dB = trackNum(v.noise, 50, 90);
+    if (dB !== null) o.noise = Math.round(dB);
+    if (v.ev === true) o.ev = true;
+    var notes = trackText(v.notes, 200);
+    if (notes) o.notes = notes;
+    if (Object.keys(o).length) { info[key] = o; n++; }
+  });
+  if (n) out.info = info;
   var w = cleanTyreSizes(input.widths, 100, 500), p = cleanTyreSizes(input.profiles, 15, 100), r = cleanTyreSizes(input.rims, 10, 30);
   if (w.length) out.widths = w;
   if (p.length) out.profiles = p;
@@ -8397,6 +8450,57 @@ async function handleTyresAdmin(request, env) {
   try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
   var library = cleanTyreLibrary(body && body.library);
   await env.VOTES.put(TYRE_LIBRARY_KEY, JSON.stringify(library));
+  return json({ success: true, extra: library });
+}
+
+// Brake pads: data/pads.json is the starting list (makes and their compounds, with what each maker publishes) and
+// the admin's changes (the Brake pads panel of track-admin.html) sit on top of it in one KV key, as for tyres.
+// Everything is read with get() only.
+var PAD_LIBRARY_KEY = 'pad-library';
+var PAD_USES = ['Road', 'Fast road', 'Track day', 'Endurance', 'Race'];
+function cleanPadCompound(c) {
+  var name = trackText(c && c.name, 40);
+  if (!name) return null;
+  var o = { name: name };
+  if (PAD_USES.indexOf(c.use) !== -1) o.use = c.use;
+  var mu = trackText(c.mu, 20);
+  if (mu) o.mu = mu;
+  var lo = trackNum(c.tempMin, 0, 1500), hi = trackNum(c.tempMax, 0, 1500);
+  if (lo !== null) o.tempMin = Math.round(lo);
+  if (hi !== null) o.tempMax = Math.round(hi);
+  var notes = trackText(c.notes, 200);
+  if (notes) o.notes = notes;
+  return o;
+}
+function cleanPadLibrary(input) {
+  input = input && typeof input === 'object' ? input : {};
+  var seen = {}, makes = [];
+  (Array.isArray(input.makes) ? input.makes : []).slice(0, 200).forEach(function (m) {
+    var name = trackText(m && m.name, 40);
+    if (!name || seen[name.toLowerCase()]) return;
+    seen[name.toLowerCase()] = true;
+    if (m.removed) { makes.push({ name: name, removed: true }); return; }
+    var compounds = [], have = {};
+    (Array.isArray(m.compounds) ? m.compounds : []).slice(0, 100).forEach(function (c) {
+      var o = cleanPadCompound(c);
+      if (o && !have[o.name.toLowerCase()]) { have[o.name.toLowerCase()] = true; compounds.push(o); }
+    });
+    makes.push({ name: name, compounds: compounds });
+  });
+  return { makes: makes };
+}
+async function handlePadsPublic(request, env) {
+  var res = json({ success: true, extra: await getJsonKey(env, PAD_LIBRARY_KEY, {}) });
+  res.headers.set('Cache-Control', 'public, max-age=60');
+  return res;
+}
+async function handlePadsAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  if (request.method === 'GET') return json({ success: true, extra: await getJsonKey(env, PAD_LIBRARY_KEY, {}) });
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var library = cleanPadLibrary(body && body.library);
+  await env.VOTES.put(PAD_LIBRARY_KEY, JSON.stringify(library));
   return json({ success: true, extra: library });
 }
 
@@ -8460,7 +8564,14 @@ function cleanVehicleLibrary(input) {
     hseen[ht + '|' + hn.toLowerCase()] = true;
     hiddenMakes.push({ name: hn, type: ht });
   });
-  return { makes: makes, drives: drives, hiddenMakes: hiddenMakes };
+  // Kerb weights in kg (the maker's figure), set in a make's Edit form: 'make|model' for a model, 'make|model|version'
+  // for a variant that differs. Compare tyres and Compare pads group cars by them.
+  var weights = {}, wsrc = input.weights && typeof input.weights === 'object' ? input.weights : {};
+  Object.keys(wsrc).slice(0, 3000).forEach(function (k) {
+    var kk = String(k).trim().toLowerCase().slice(0, 100), n = trackNum(wsrc[k], 300, 4000);
+    if (/^[^|]+\|[^|]+(\|[^|]+)?$/.test(kk) && n !== null) weights[kk] = Math.round(n);
+  });
+  return { makes: makes, drives: drives, weights: weights, hiddenMakes: hiddenMakes };
 }
 
 async function handleVehiclesPublic(request, env) {
@@ -8479,6 +8590,7 @@ async function handleVehiclesAdmin(request, env) {
   // A page that does not know the driven wheels by model, or the hidden makes, must not wipe them.
   if (!(body && body.library && body.library.drives)) library.drives = before;
   if (!(body && body.library && body.library.hiddenMakes)) library.hiddenMakes = existing.hiddenMakes;
+  if (!(body && body.library && body.library.weights)) library.weights = existing.weights;
   await env.VOTES.put(VEHICLE_LIBRARY_KEY, JSON.stringify(library));
   // A driven-wheels value that changed (a variant's, set in the make's Edit form) re-stamps the vehicles it
   // reaches: their sessions and leaderboard rows (admin route, so the full listing is fine).
@@ -9282,7 +9394,7 @@ async function handleTrackAdminRetime(request, env) {
     if (old.unlisted || (!next.atVenue && !old.street)) next.unlisted = true;
     if (!old.street) delete next.outline;
   }
-  ['privacy', 'conditions', 'tyres', 'tyreMake', 'tyreModel', 'tyreWidth', 'tyreProfile', 'tyreRim', 'drive', 'temp', 'tempSource', 'weather', 'notes', 'hasSource', 'sourceBytes', 'readingsRefused', 'fileName'].forEach(function (k) { if (old[k] !== undefined) next[k] = old[k]; });
+  ['privacy', 'conditions', 'tyres', 'tyreMake', 'tyreModel', 'tyreWidth', 'tyreProfile', 'tyreRim', 'drive', 'temp', 'tempSource', 'weather', 'notes', 'hasSource', 'sourceBytes', 'readingsRefused', 'fileName', 'pads', 'padFrontMake', 'padFrontCompound', 'padRearMake', 'padRearCompound'].forEach(function (k) { if (old[k] !== undefined) next[k] = old[k]; });
   // The saved readings carry no car channels, so a re-time cannot work the Track Mode figures out again: keep the ones the upload made.
   if (old.carData && !next.carData) next.carData = old.carData;
   if (old.carSource && !next.carSource) next.carSource = old.carSource;
@@ -11098,6 +11210,12 @@ export default {
     }
     if (url.pathname === '/track/lines/admin' && (request.method === 'GET' || request.method === 'POST')) {
       return handleTrackLinesAdmin(request, env);
+    }
+    if (url.pathname === '/pads' && request.method === 'GET') {
+      return handlePadsPublic(request, env);
+    }
+    if (url.pathname === '/pads/admin' && (request.method === 'GET' || request.method === 'PUT')) {
+      return handlePadsAdmin(request, env);
     }
     if (url.pathname === '/tyres' && request.method === 'GET') {
       return handleTyresPublic(request, env);

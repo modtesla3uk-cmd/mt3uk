@@ -81,6 +81,10 @@ const access = () => JSON.parse(kv.get('track-access') || '{}');
 const waiting = e => (access().pending || []).find(x => x.email === e);
 ok(waiting(N) && waiting(N).signedUp === true && r.body.access === 'pending', 'Laps join: they are put on the early access list, and the page is told');
 ok(sent.slice(adminBefore).some(raw => /Subject: New Laps sign-up waiting for early access/.test(raw)), 'Laps join: the admin is told');
+const signups = () => JSON.parse(kv.get('laps-signups') || '[]');
+const signup = e => signups().find(x => x.email === e);
+ok(signup(N) && signup(N).waiting === true && signup(N).account === 'mt3uk' && signup(N).name === 'Nia Jones', 'Laps join: listed under New Laps sign-ups, waiting for early access');
+ok(!sent.slice(adminBefore).some(raw => /Subject: New Laps sign-up: /.test(raw)), 'Laps join: no second email while the early access request covers it');
 // Another N Jones gets NJones2; a short name is padded to three characters.
 await call('POST', '/my-builds/join', { email: 'nat@example.com', firstName: 'Nat', lastName: 'Jones', site: 'laps' });
 await call('GET', '/my-builds/session?token=' + tokenOf(mail().link));
@@ -93,6 +97,7 @@ await call('POST', '/my-builds/join', { email: 'main@example.com', firstName: 'M
 r = await call('GET', '/my-builds/session?token=' + tokenOf(mail().link));
 ok(r.body.joined === 'mt3uk' && !waiting('main@example.com'), 'mt3uk.com join: no early access request');
 ok(profileOf('main@example.com').nickname === 'MMain', 'mt3uk.com join: the nickname is their first initial and last name too (' + profileOf('main@example.com').nickname + ')');
+ok(!signup('main@example.com'), 'mt3uk.com join: not listed as a Laps sign-up');
 
 // ---- The admin's settings ----
 r = await call('GET', '/laps/signin/admin');
@@ -112,6 +117,7 @@ ok(!/works on MT3UK too/.test(m.body) && /Thanks for joining Laps by MT3UK/.test
 r = await call('POST', '/my-builds/verify-code', { email: L, code: m.code });
 ok(r.body.success && kv.has('laps-account:' + L) && !kv.has('subscriber:' + L), 'Laps-only join: a Laps account is made, not an MT3UK member');
 ok(JSON.parse(kv.get('profile:' + L) || '{}').firstName === 'Lou', 'Laps-only join: their name is kept');
+ok(signup(L) && signup(L).account === 'laps', 'Laps-only join: listed as a Laps-only account');
 r = await call('GET', '/laps/signin/admin?key=secret');
 ok(r.body.lapsAccounts === 1, 'the panel counts the Laps-only account');
 before = sent.length;
@@ -136,6 +142,16 @@ m = mail();
 ok(!/early preview/.test(m.body), 'open: the welcome has no early preview line');
 r = await call('GET', '/my-builds/session?token=' + tokenOf(m.link));
 ok(r.body.access === 'approved' && !waiting('open@example.com'), 'open: they are in straight away, with no request');
+ok(signup('open@example.com') && signup('open@example.com').waiting === false && signups()[0].email === 'open@example.com', 'open: listed first, not waiting');
+ok(sent.some(raw => /Subject: New Laps sign-up: Ola Open/.test(raw) && /track-admin\.html#signin-wrap/.test(raw)), 'open: the admin is emailed the new sign-up');
+r = await call('GET', '/laps/signups/admin');
+ok(r.status === 401, 'the sign-ups list needs the admin key');
+r = await call('GET', '/laps/signups/admin?key=secret');
+ok(r.body.success && r.body.signups.length === signups().length && r.body.signups.length >= 4, 'the admin reads the list (' + r.body.signups.length + ')');
+r = await call('POST', '/laps/signups/admin?key=secret', { clear: 'OPEN@example.com' });
+ok(r.body.success && !signup('open@example.com') && signup(N), 'Clear takes one off the list');
+r = await call('POST', '/laps/signups/admin?key=secret', { clear: 'all' });
+ok(r.body.success && signups().length === 0 && kv.has('subscriber:' + N), 'Clear all empties it, the accounts kept');
 kv.set('track-access', JSON.stringify(Object.assign(access(), { open: false })));
 
 // ---- Separate Laps sign-in switched off: the MT3UK page and emails, still back to laps.mt3uk.com ----

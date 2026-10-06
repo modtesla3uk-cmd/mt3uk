@@ -79,7 +79,7 @@
       <form class="iv-toolbar" id="ac-add-form"><input type="email" id="ac-add-email" placeholder="Member's email" aria-label="Member's email" autocomplete="off"><button type="submit">Approve by email</button></form>
     </details>
     <details class="collapsible" id="signin-wrap">
-      <summary><h3 class="panel-title">Sign-in and sign-up</h3></summary>
+      <summary><h3 class="panel-title">Sign-in and sign-up <span class="summary-count" id="signups-count"></span></h3></summary>
       <p class="iv-note">How signing in and joining works on laps.mt3uk.com. A sign-in is kept per address, so the emailed link always comes back to laps.mt3uk.com when it was asked for there.</p>
       <p class="iv-note" id="ls-note" role="status"></p>
       <div class="iv-toolbar"><button type="button" class="tk-switch" role="switch" id="ls-separate" aria-checked="true"><span class="tk-track"></span>Laps has its own sign-in page and emails</button></div>
@@ -92,6 +92,11 @@
         <p class="iv-note">The link, the 6-digit code and how long they last follow the opening line. Blank keeps the built-in words.</p>
       </div>
       <div class="iv-toolbar"><button type="button" class="secondary" id="ls-save">Save</button></div>
+      <h4 class="ls-sub">New Laps sign-ups</h4>
+      <p class="iv-note">Everyone who joins on laps.mt3uk.com, newest first (the latest 100), with whether they became an MT3UK member or have a Laps-only account. While Laps is an early preview each one also waits on the Early access panel, which has its bell item and email. Once Early access is open to all, each new sign-up is counted on the bell and emailed to MT3UK instead. <b>Clear</b> takes one off this list; their account is not changed.</p>
+      <p class="iv-note" id="lsu-note" role="status"></p>
+      <div class="iv-toolbar"><button type="button" class="secondary iv-act" id="lsu-clear-all" hidden>Clear all</button></div>
+      <div id="lsu-list"></div>
     </details>
     <details class="collapsible" id="usage-wrap">
       <summary><h3 class="panel-title">Usage</h3></summary>
@@ -243,7 +248,7 @@
   </section>
 
 </main>
-<script src="js/track-admin-page.js?v=20261250"></script>
+<script src="js/track-admin-page.js?v=20270107"></script>
 <script src="js/admin-subnav.js?v=20261160" defer></script>
 <script src="js/admin-alerts.js?v=20261250" defer></script>
 <script src="js/track-parse.js?v=20261188" defer></script>
@@ -251,6 +256,7 @@
 <script src="js/track-access-admin.js?v=20270105" defer></script>
 <script src="js/track-usage-admin.js?v=20270101" defer></script>
 <script src="js/laps-signin-admin.js?v=20270104" defer></script>
+<script src="js/laps-signups-admin.js?v=20270107" defer></script>
 <script src="js/track-lines-admin.js?v=20261180" defer></script>
 <script src="js/track-member-admin.js?v=20261162" defer></script>
 <script src="js/track-new-sessions-admin.js?v=20261250" defer></script>

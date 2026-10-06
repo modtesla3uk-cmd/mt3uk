@@ -615,3 +615,8 @@
   #dw-list .dw-pick { width: 100%; max-width: 260px; min-height: 44px; font-size: 16px; margin-top: 4px; }
 }
 .ts-new[hidden], [data-ls-separate-only][hidden] { display: none; }
+/* Sign-in and sign-up panel: the New Laps sign-ups list under the settings. */
+.ls-sub { font-family: var(--font-head); font-size: 1rem; margin: 22px 0 6px; padding-top: 16px; border-top: 1px solid var(--hairline, #ddd); }
+.lsu-table .iv-sub { display: block; margin-top: 3px; word-break: break-all; }
+.lsu-table .lsu-clear { padding: 5px 10px; font-size: 0.68rem; white-space: nowrap; }
+@media (max-width: 780px) { .lsu-table th:nth-child(1), .lsu-table td:nth-child(1), .lsu-table th:nth-child(4), .lsu-table td:nth-child(4) { display: none; } }

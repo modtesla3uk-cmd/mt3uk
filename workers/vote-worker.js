@@ -6348,9 +6348,46 @@ async function completePendingJoin(env, email) {
   // Someone joining on Laps while it is an early preview is put on the early access list (the admin is told) rather
   // than having to ask on Sessions. Joining on mt3uk.com asks for nothing.
   if (pending.site === 'laps') {
-    try { await addTrackAccessRequest(env, email, '', '', true); } catch (e) { /* they can ask on Sessions */ }
+    var waiting = false;
+    try { waiting = (await addTrackAccessRequest(env, email, '', '', true)) === 'pending'; } catch (e) { /* they can ask on Sessions */ }
+    await noteLapsSignup(env, email, first, last, made, waiting);
   }
   return made;
+}
+
+// Everyone who joins on Laps, for the admin: the New Laps sign-ups list on the Sign-in and sign-up panel of
+// track-admin.html (one KV key, the latest 100, read with get(); the admin clears them). One waiting for early access
+// already has its bell item and email from that request, so it is only listed; any other (Early access open to all)
+// is counted on the bell and emailed here. Best effort: the account is made either way.
+var LAPS_SIGNUPS_KEY = 'laps-signups';
+async function noteLapsSignup(env, email, first, last, made, waiting) {
+  try {
+    var e = accessEmail(email);
+    var entry = { email: e, name: [first, last].filter(Boolean).join(' ').slice(0, 80), at: new Date().toISOString(), account: made, waiting: !!waiting };
+    var list = await getJsonKey(env, LAPS_SIGNUPS_KEY, []);
+    list = [entry].concat(list.filter(function (x) { return x.email !== e; })).slice(0, 100);
+    await env.VOTES.put(LAPS_SIGNUPS_KEY, JSON.stringify(list));
+    if (waiting) { await bumpAdminStamp(env); return; }
+    var subject = 'New Laps sign-up: ' + (entry.name || e);
+    var text = subscriberLabel(entry.name, e) + ' has just joined Laps.\n\n' +
+      'Account: ' + (made === 'laps' ? 'Laps only (signs in on Laps, not on mt3uk.com)' : 'MT3UK member (signs in on Laps and mt3uk.com)') + '\n\n' +
+      'New Laps sign-ups on Track admin:\n' + MY_BUILDS_SITE_URL + '/track-admin.html#signin-wrap';
+    await sendAdminEmail(env, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text), subject, '/track-admin.html#signin-wrap');
+  } catch (err) { /* the account is made either way */ }
+}
+async function handleLapsSignupsAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var list = await getJsonKey(env, LAPS_SIGNUPS_KEY, []);
+  if (request.method === 'GET') return json({ success: true, signups: list });
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var c = String((body && body.clear) || '');
+  if (c === 'all') list = [];
+  else if (c) list = list.filter(function (x) { return x.email !== accessEmail(c); });
+  else return json({ success: false, message: 'Say which sign-up to clear.' }, 400);
+  await env.VOTES.put(LAPS_SIGNUPS_KEY, JSON.stringify(list));
+  await bumpAdminStamp(env);
+  return json({ success: true, signups: list });
 }
 // "R" + "Hughes-Chen" = "RHughes-Chen": only the characters a nickname may have, at least 3 and at most 20, and a
 // number after it (2, 3 ...) when another member has it.
@@ -10906,6 +10943,9 @@ export default {
     }
     if (url.pathname === '/laps/signin' && request.method === 'GET') {
       return handleLapsSigninPublic(request, env);
+    }
+    if (url.pathname === '/laps/signups/admin' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleLapsSignupsAdmin(request, env);
     }
     if (url.pathname === '/laps/signin/admin' && (request.method === 'GET' || request.method === 'POST')) {
       return handleLapsSigninAdmin(request, env);

@@ -1512,6 +1512,7 @@
         if ((a.startLine || a.finishLine || s.startLine) && !s.officialLines && !s.autoLine) h += '<button type="button" class="btn btn-secondary btn-sm tp-move-lines" data-tap="edit">' + icon('pin') + 'Move ' + (isSprint ? 'start and finish' : 'the start line') + '</button>';
         h += sprintControlsHtml(a, s, isSprint);
         h += addNowHtml(a, s, isSprint);
+        h += layoutGapHtml(a, s);
         h += linePreviewHtml(a, s);
         // The admin can make the lines just set the official ones, so the course is remembered for everyone.
         // Not at a listed circuit with no layout picked: that would add a layout named after the circuit. There, Add this layout now asks for a name.
@@ -1710,6 +1711,8 @@
       var miss = missingName(); if (miss) { nameError(miss); return; }
       // Adding a new layout to a listed circuit needs its name.
       var ln = document.getElementById('tp-layout-name');
+      var taken = a.addNow && ln && a.layoutName && venueLayouts(a, a.session).filter(function (l) { return l.startLine && String(l.name || '').trim().toLowerCase() === a.layoutName.toLowerCase(); })[0];
+      if (taken) { ln.setAttribute('aria-invalid', 'true'); status('A layout called ' + taken.name + ' is already listed. Pick it in the Layout row, or give this one a different name.', 'error'); ln.scrollIntoView({ block: 'center' }); ln.focus(); return; }
       if (a.addNow && ln && !a.layoutName) { ln.setAttribute('aria-invalid', 'true'); status('Enter the name of the layout first.', 'error'); ln.scrollIntoView({ block: 'center' }); ln.focus(); return; }
       saveSession(save);
     });
@@ -1955,6 +1958,12 @@
       : s.autoLine ? 'No line is set for this track yet, so this one was found from your trace. Use Move the start line if it is not where you start and finish.'
       : 'Your own ' + what + '. Use Move if they are not right.';
     return '<div class="tp-field" id="tp-line-preview"><span class="tp-lbl">Your ' + what + '</span><div class="tp-tapmap"><svg class="tv-chart tp-tap" id="tp-line-map" role="img" aria-label="Your best ' + (sprint ? 'run' : 'lap') + ' with the ' + what + ' marked"></svg></div><p class="tp-small">' + how + '</p></div>';
+  }
+  // A layout picked whose saved start line the file does not cross: why it is not timed on that line.
+  function layoutGapHtml(a, s) {
+    if (a.lineEdit || s.layoutLineGap == null) return '';
+    return '<div class="tp-notice is-warn" id="tp-layout-gap">' + icon('warn') + '<div><b>This file does not cross the start line saved for ' + esc(s.layout || 'that layout') + '.</b><br>The closest your ' + VW + ' came to it was about ' + s.layoutLineGap + ' m. Either this was another layout, or the saved line is in the wrong place. ' +
+      (s.layoutLineGap > 25 ? 'A session more than 25 m from a layout\'s saved line cannot go on its leaderboard, so MT3UK needs to check that line. ' : '') + 'Pick another layout above, or tell MT3UK.</div></div>';
   }
   function drawLinePreview() {
     var a = add, s = a && a.session, svg = document.getElementById('tp-line-map');

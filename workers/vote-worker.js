@@ -8944,6 +8944,9 @@ async function addTrackFromRequest(env, req, opts) {
     // A member who named the layout (a different layout at a listed track) never fills one in by length: only a layout
     // with no line and that very name is filled, otherwise theirs is a new layout beside the others.
     var wantName = !sprint ? trackText(req.layoutName, 40).toLowerCase() : '';
+    // A layout of that name that already has a line is not added again: the member picks it instead.
+    var sameName = wantName ? venue.layouts.find(function (l) { return l.startLine && String(l.name || '').toLowerCase() === wantName; }) : null;
+    if (sameName) return { error: 'A layout called "' + sameName.name + '" is already listed at ' + venue.name + '. Pick it in the Layout row instead, or give this one a different name.' };
     var fill = sprint ? (req.organizer ? venue.layouts.find(function (l) { return !l.startLine && String(l.organizer || l.name).toLowerCase() === req.organizer.toLowerCase(); }) : null)
       : wantName ? venue.layouts.find(function (l) { return !l.startLine && String(l.name || '').toLowerCase() === wantName; }) || null
       : layoutByLength(venue.layouts.filter(function (l) { return !l.startLine; }), req.lapLength);

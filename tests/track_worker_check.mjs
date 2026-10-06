@@ -842,6 +842,15 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   r = await call('POST', '/track/admin/course?key=secret', Object.assign({}, body, { startLine: [[51.7005, -1.3005], [51.7007, -1.3007]] }));
   ok(r.status === 400 && /already has official lines/.test(r.body.message), 'and it will not overwrite a layout that has official lines without replace');
 }
+// A layout name that is already listed (with a line) is refused rather than added twice.
+{
+  const dup = { kind: 'circuit', name: 'Abing Test', venueId: 'abing-test', layoutName: 'short loop', startLine: [[51.6810, -1.2910], [51.6812, -1.2912]], lapLength: 1900, lat: 51.68, lng: -1.29, outline: [[51.68, -1.29], [51.681, -1.291]] };
+  r = await call('POST', '/track/courses', dup, 'tok-a');
+  ok(r.status === 400 && /already listed/.test(r.body.message), 'a layout name that is already listed is refused, not added a second time ' + JSON.stringify(r.body).slice(0, 120));
+  r = await call('GET', '/track/tracks');
+  const dv = r.body.extra.venues.find(v => v.id === 'abing-test');
+  ok(dv.layouts.length === 2, 'and the list still has two layouts');
+}
 // The admin makes the lines they just set the official ones from the Add a session page.
 {
   const course = { kind: 'sprint', name: 'Quick Course', organizer: 'A1', startLine: [[51.3, -0.8], [51.3002, -0.8002]], finishLine: [[51.31, -0.81], [51.3102, -0.8102]], lapLength: 700, lat: 51.3, lng: -0.8 };

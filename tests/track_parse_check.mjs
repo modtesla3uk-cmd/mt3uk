@@ -813,3 +813,13 @@ ok(T.fmtLap(99.786) === '1:39.79' && T.niceDate('2026-05-28') === '28 May 2026',
   }
   ok(found && found.r2.startLineFromMember === true && JSON.stringify(found.r2.startLine) === JSON.stringify(found.line), 'the member\'s own line is used even when the file\'s line would time more laps');
 }
+// A picked layout whose saved line the file never crosses is timed on another line, and says how far away that line is.
+{
+  const lib6 = JSON.parse(JSON.stringify(lib));
+  const tv6 = lib6.venues.find(v => v.id === 'thruxton');
+  tv6.layouts.push({ id: 'far', name: 'Far Layout', length: 3790, startLine: [[tv6.lat + 0.02, tv6.lng + 0.02], [tv6.lat + 0.0201, tv6.lng + 0.0201]], sectors: [], corners: [] });
+  const f = T.analyse(T.read(vbo, 'RaceBox_Track_Session.vbo'), lib6, { layoutId: 'far' });
+  ok(f.layoutId === 'far' && f.layoutLineGap > 1000 && !f.officialLines, 'a picked layout whose saved line the file does not cross says how far that line is (' + f.layoutLineGap + ' m)');
+  const g = T.analyse(T.read(vbo, 'RaceBox_Track_Session.vbo'), lib6, {});
+  ok(g.layoutLineGap === undefined, 'and a layout that is crossed says nothing');
+}

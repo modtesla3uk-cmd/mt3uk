@@ -393,6 +393,21 @@ def test_adding_a_layout_does_not_carry_over_to_the_next_file(page):
     expect(page.locator("#tp-addnow")).to_have_count(0)
 
 
+def test_a_new_layout_cannot_be_given_the_name_of_one_that_is_listed(page):
+    _thruxton_with_a_second_layout(page)
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    page.locator("#tp-layout-field [data-v='__new']").click()
+    page.locator("#tp-addnow").click()
+    page.fill("#tp-layout-name", "short circuit")
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator("#tp-layout-name")).to_have_attribute("aria-invalid", "true")
+    expect(page.locator("#tp-status")).to_contain_text("already listed")
+    assert fake.courses_added == []
+
+
 def test_add_a_session_from_the_racebox_file(page):
     fake = FakeWorker()
     open_page(page, fake)

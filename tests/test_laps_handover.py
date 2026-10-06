@@ -188,6 +188,8 @@ def test_profile_and_my_garage_stay_on_laps_with_the_laps_header(page):
     assert state["made"] == 0
     expect(page.locator("header .laps-logo")).to_have_count(1)
     assert page.title() == "My Profile - Laps by MT3UK"
+    # The MT3UK app card is left out on Laps.
+    expect(page.locator("#app")).to_be_hidden()
     # The Gallery is not shared: it still goes to mt3uk.com, signed in.
     add_link(page, "gallery.html")
     page.locator("#go").click()
@@ -197,3 +199,4 @@ def test_profile_and_my_garage_stay_on_laps_with_the_laps_header(page):
     page.goto(MAIN + "/profile.html")
     expect(page.locator("header .laps-logo")).to_have_count(0)
     assert page.title() == "My Profile - MT3UK"
+    assert page.locator(".pf-side").evaluate("el => getComputedStyle(el).display") != "none"

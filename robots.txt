@@ -11,3 +11,4 @@ Crawl-delay: 1
 
 # Sitemap location
 Sitemap: https://mt3uk.com/sitemap.xml
+Sitemap: https://laps.mt3uk.com/sitemap-laps.xml

@@ -54,6 +54,22 @@ def test_the_homepage_sends_laps_visitors_to_the_laps_front_page():
     assert "localStorage.getItem('mt3ukMyBuildsSession') || localStorage.getItem('mt3ukLapsIntroSeen')" in head and "'/track.html'" in head
 
 
+def test_the_redirect_from_the_laps_address_goes_on_to_sessions_once_seen(page):
+    # laps.mt3uk.com/ is redirected to laps.html?start. The first time, the front page shows, without ?start.
+    page.route("**/%s/**" % API_HOST, lambda r: r.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"},
+                                                         body=json.dumps(COUNTS if "/track/counts" in r.request.url else {"success": True})))
+    page.goto("/laps.html?start&utm_source=x#what")
+    expect(page.locator("#lh-start")).to_have_text("Sign in to start")
+    assert page.evaluate("location.search + location.hash") == "?utm_source=x#what"
+    # Seen before: on to Sessions, keeping the rest of the address.
+    page.goto("/laps.html?start")
+    page.wait_for_url("**/track.html")
+    # Opened any other way (Play intro, a shared section), it stays.
+    page.goto("/laps.html")
+    expect(page.locator("#lh-start")).to_be_visible()
+    assert page.url.endswith("/laps.html")
+
+
 def test_play_intro_on_sessions_opens_the_front_page(page):
     from test_track_page import FakeWorker, open_page
     open_page(page, FakeWorker())

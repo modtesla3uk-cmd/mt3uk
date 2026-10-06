@@ -810,6 +810,16 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   reqs = (await call('GET', '/track/admin/requests?key=secret')).body.requests;
   ok(reqs.find(x => x.id === addedReq.id).done === 'approved', 'and the request is done');
 }
+// A member adds a different layout to a track that is already listed, and names it.
+{
+  const second = { kind: 'circuit', name: 'Blyton Park', venueId: 'blyton-park', layoutName: 'Short Loop', startLine: [[51.3005, -0.7005], [51.3007, -0.7007]], lapLength: 1500, lat: 51.3, lng: -0.7, outline: [[51.3, -0.7], [51.301, -0.701]] };
+  r = await call('POST', '/track/courses', second, 'tok-a');
+  const sv = r.body.library && r.body.library.venues.find(v => v.id === 'blyton-park');
+  ok(r.status === 200 && r.body.venueId === 'blyton-park' && r.body.layoutId === 'short-loop', 'a member adds a second layout to a listed track ' + JSON.stringify(r.body).slice(0, 120));
+  ok(sv && sv.layouts.length === 2 && sv.layouts.some(l => l.id === 'course') && sv.layouts.some(l => l.id === 'short-loop' && l.name === 'Short Loop' && l.length === 1500), 'it is named by the member and the first layout is untouched');
+  r = await call('POST', '/track/courses', Object.assign({}, second, { startLine: [[51.3010, -0.7010], [51.3012, -0.7012]], layoutName: '' }), 'tok-a');
+  ok(r.status === 200 && r.body.layoutId === 'blyton-park', 'with no layout name it is named for the track, as before');
+}
 // The admin makes the lines they just set the official ones from the Add a session page.
 {
   const course = { kind: 'sprint', name: 'Quick Course', organizer: 'A1', startLine: [[51.3, -0.8], [51.3002, -0.8002]], finishLine: [[51.31, -0.81], [51.3102, -0.8102]], lapLength: 700, lat: 51.3, lng: -0.8 };

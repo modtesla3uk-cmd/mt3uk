@@ -1043,9 +1043,12 @@
 
     // Which start line: the layout's, else the one in the file, else the member's.
     var layouts = venue && venue.layouts && venue.type === 'circuit' ? venue.layouts : [];
+    // The member can say which layout it was (opts.layoutId: that one is used, whatever its length) or that it was
+    // none of those listed (opts.newLayout: only their own line is used, so the layout can be added).
+    var forced = opts.layoutId ? layouts.filter(function (l) { return l.id === opts.layoutId; })[0] || null : null, newLayout = !!opts.newLayout && !forced;
     var choice = null, minGap = 20;
     var candidates = [];
-    if (!opts.ownLines) layouts.forEach(function (l) { if (l.startLine && l.startLine.length === 2) candidates.push({ layout: l, line: l.startLine, sectors: l.sectors || [] }); });
+    if (!opts.ownLines && !newLayout) layouts.forEach(function (l) { if (forced && l !== forced) return; if (l.startLine && l.startLine.length === 2) candidates.push({ layout: l, line: l.startLine, sectors: l.sectors || [] }); });
     if (opts.startLine) candidates.push({ layout: null, line: opts.startLine, sectors: [], own: true });
     if (rd.startLine) candidates.push({ layout: null, line: rd.startLine, sectors: [], fromFile: true });
     function evalLine(c) {
@@ -1054,7 +1057,7 @@
       var laps = buildLaps(pts, cr);
       var med = median(laps.map(function (l) { return l.dist; }));
       var lengthScore = c.layout && c.layout.length ? Math.abs(med - c.layout.length) / c.layout.length : 0.05;
-      if (c.layout && lengthScore > 0.12) return;
+      if (c.layout && lengthScore > 0.12 && !forced) return;
       var score = laps.length - lengthScore * 10 + (c.layout ? 1 : 0);
       if (!choice || score > choice.score) choice = { c: c, cr: cr, score: score, med: med };
     }
@@ -1077,8 +1080,8 @@
       session.problem = venue ? 'We know ' + venue.name + ' but not its start line yet. Tap where the start and finish line is on your trace.' : 'We don\'t know this track yet. Tap where the start and finish line is on your trace and we\'ll add the track.';
       return session;
     }
-    var layout = choice.c.layout;
-    if (!layout && layouts.length) {
+    var layout = choice.c.layout || forced;
+    if (!layout && layouts.length && !newLayout) {
       // A start line from the file or the member: match the layout by lap length.
       layout = layouts.reduce(function (best, l) {
         if (l.startLine) return best;

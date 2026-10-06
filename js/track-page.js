@@ -1300,6 +1300,8 @@
     if (a.finishCross) opts.finishCrossing = a.finishCross;
     if (a.organizer) opts.organizer = a.organizer;
     if (a.rollout) opts.rollout = true;
+    // Which layout of a listed circuit it was: one of its own, or one we do not list yet.
+    if (a.layoutPick === '__new') opts.newLayout = true; else if (a.layoutPick) opts.layoutId = a.layoutPick;
     // Editing a saved session's map: the lines on the map, not the course's own.
     if (a.lineEdit) opts.ownLines = true;
     return opts;
@@ -1468,6 +1470,7 @@
     }
     if (!s.venueId && (s.type === 'track' || s.type === 'sprint')) h += '<div class="tp-field"><label for="tp-venue-name">Track name' + REQ + '</label><input class="field" id="tp-venue-name" data-name-req placeholder="For example, Blyton Park" value="' + esc(a.venueName || '') + '" required aria-required="true"></div>' + (a.venueNameLooked ? nameNote() : '');
     h += topDate;
+    h += layoutFieldHtml(a, s);
     h += channelsHtml(a);
     var isSprint = s.type === 'sprint', word = isSprint ? 'run' : 'lap';
     if (isSprint) {
@@ -1507,6 +1510,7 @@
         if ((a.startLine || a.finishLine || s.startLine) && !s.officialLines && !s.autoLine) h += '<button type="button" class="btn btn-secondary btn-sm tp-move-lines" data-tap="edit">' + icon('pin') + 'Move ' + (isSprint ? 'start and finish' : 'the start line') + '</button>';
         h += sprintControlsHtml(a, s, isSprint);
         h += addNowHtml(a, s, isSprint);
+        h += linePreviewHtml(a, s);
         // The admin can make the lines just set the official ones, so the course is remembered for everyone.
         if (a.admin && s.startLineFromMember && s.startLine && (isSprint ? s.finishLine : true)) h += '<div class="tp-notice is-admin" id="tp-official-box">' + icon('shield') + '<div>Admin: make these the official ' + (isSprint ? 'start and finish lines' : 'start line') + ' for this course, so every file uploaded there uses them. <button type="button" class="btn btn-secondary btn-sm" id="tp-make-official">Make official</button></div></div>';
         if (s.venueId && !s.layoutId && !a.addNow) h += '<p class="tp-sub">We know ' + esc(s.venue) + ' but couldn\'t tell which layout this is, so it can\'t go on a leaderboard yet. We\'ve let the admin know.</p>';
@@ -1554,7 +1558,7 @@
     h += '</div>';
     box.innerHTML = h;
     wireResult();
-    if (s.needsStartLine || a.editLines) drawTap();
+    if (s.needsStartLine || a.editLines) drawTap(); else drawLinePreview();
     var mv = box.querySelector('[data-tap="edit"]');
     if (mv) mv.addEventListener('click', function () {
       // Lines that came from the file or a known course become markers to move.
@@ -1596,7 +1600,7 @@
     function keep() {
       var ty = readTyre('tp-tyre');
       if (ty) { var nt2 = TY.compose(ty); if (a.tyrePre && nt2 !== a.tyres) a.tyrePre = false; a.tyre = ty; a.tyres = nt2; }
-      ['temp', 'notes', 'venue-name'].forEach(function (k) {
+      ['temp', 'notes', 'venue-name', 'layout-name'].forEach(function (k) {
         var el = document.getElementById('tp-' + k);
         if (!el) return;
         if (k === 'temp') {
@@ -1604,6 +1608,7 @@
           if (tv !== a.temp) { a.tempSource = tv == null ? '' : 'member'; a.weather = null; }
           a.temp = tv;
         }
+        else if (k === 'layout-name') a.layoutName = el.value.trim().slice(0, 40);
         else if (k === 'venue-name') { a.venueName = el.value.trim(); if (a.venueNameLooked && a.venueName !== a.lookedName) a.venueNameLooked = false; }
         else a[k] = el.value.trim();
       });
@@ -1627,6 +1632,16 @@
     group('[data-cond]', function (v) { keep(); a.conditions = v; a.condTouched = true; drawResult(); });
     group('[data-drive]', function (v) { a.drive = a.drive === v ? '' : v; document.querySelectorAll('[data-drive] button[data-v]').forEach(function (x) { var on = x.getAttribute('data-v') === a.drive; x.classList.toggle('is-on', on); x.setAttribute('aria-pressed', String(on)); }); });
     group('[data-privacy]', function (v) { keep(); a.privacy = v; drawResult(); });
+    group('[data-layout]', function (v) {
+      keep();
+      a.layoutPick = v; a.layoutName = v === '__new' ? a.layoutName : ''; a.addNow = false; a.editLines = false; a.confirmLines = false; a.tapFull = false;
+      if (v === '__new') {
+        // Their own line: start from where the file's trace crosses the line it was timed on, then they move it.
+        var cur0 = a.session || {};
+        a.startLine = cur0.startLine || null; a.finishLine = null; a.editLines = !!a.startLine;
+      } else { a.startLine = null; a.finishLine = null; }
+      analyse();
+    });
     var orgIn = document.getElementById('tp-organiser');
     if (orgIn) orgIn.addEventListener('change', function () { keep(); a.organizer = orgIn.value.trim().slice(0, 40); analyse(); });
     var sentClose = document.getElementById('tp-sent-close');
@@ -1687,7 +1702,15 @@
     if (st) st.addEventListener('click', function () { keep(); a.street = !a.street; if (a.street) a.privacy = 'private'; drawResult(); });
     wireTyres('tp-tyre');
     var save = document.getElementById('tp-save');
-    if (save) save.addEventListener('click', function () { keep(); if (a.lineEdit) { sendLineChange(save); return; } var miss = missingName(); if (miss) { nameError(miss); return; } saveSession(save); });
+    if (save) save.addEventListener('click', function () {
+      keep();
+      if (a.lineEdit) { sendLineChange(save); return; }
+      var miss = missingName(); if (miss) { nameError(miss); return; }
+      // Adding a new layout to a listed circuit needs its name.
+      var ln = document.getElementById('tp-layout-name');
+      if (a.addNow && ln && !a.layoutName) { ln.setAttribute('aria-invalid', 'true'); status('Enter the name of the layout first.', 'error'); ln.scrollIntoView({ block: 'center' }); ln.focus(); return; }
+      saveSession(save);
+    });
     wireNameField();
     var req = document.getElementById('tp-req');
     if (req) req.addEventListener('click', function () {
@@ -1903,6 +1926,41 @@
   function postBody(a, carId, sess) {
     return { carId: carId, session: sess, drive: a.drive || '', conditions: a.conditions, tyres: a.tyres || '', tyreMake: (a.tyre && a.tyre.make) || '', tyreModel: (a.tyre && a.tyre.model) || '', tyreWidth: (a.tyre && a.tyre.w) || null, tyreProfile: (a.tyre && a.tyre.p) || null, tyreRim: (a.tyre && a.tyre.d) || null, temp: a.temp, tempSource: a.temp == null ? '' : (a.tempSource || 'member'), weather: a.tempSource === 'weather' ? a.weather : null, notes: a.notes || '', privacy: a.privacy, venueName: a.venueName || '', street: a.street, adminViewer: a.street ? adminViewerToken() : '' };
   }
+  // The layouts of the circuit this session is at, to pick from. The one found from the GPS is picked already; a
+  // member whose layout was not found (or wrongly found) picks it, or says it is a different one, which is then added
+  // from their own start line.
+  function venueLayouts(a, s) {
+    var v = s.venueId && ((a.lib && a.lib.venues) || []).filter(function (x) { return x.id === s.venueId; })[0];
+    return v && v.type === 'circuit' ? (v.layouts || []) : [];
+  }
+  function layoutFieldHtml(a, s) {
+    if (a.lineEdit || a.replaceId || s.type !== 'track' || !s.venueId) return '';
+    var ls = venueLayouts(a, s);
+    if (!ls.length) return '';
+    var cur = a.layoutPick === '__new' ? '__new' : (a.layoutPick || s.layoutId || '');
+    var note = cur === '__new' ? 'Mark where this layout starts and finishes on the map below. Then you can add it to the track list.'
+      : !cur ? 'We could not tell which layout this was from your file. Pick it here, or choose A different layout if it is not listed.'
+      : 'Found from your file. If it is not right, pick another.';
+    return '<div class="tp-field" id="tp-layout-field"><span class="tp-lbl">Layout at ' + esc(s.venue || 'this track') + '</span><div class="tp-chips" data-layout>' +
+      ls.map(function (l) { return '<button type="button" class="chip' + (cur === l.id ? ' is-on' : '') + '" data-v="' + esc(l.id) + '" aria-pressed="' + (cur === l.id) + '">' + esc(l.name || l.id) + '</button>'; }).join('') +
+      '<button type="button" class="chip' + (cur === '__new' ? ' is-on' : '') + '" data-v="__new" aria-pressed="' + (cur === '__new') + '">A different layout</button></div><p class="tp-small">' + note + '</p></div>';
+  }
+  // The start and finish line this session was timed on, on the map, so the member can see where it is before saving.
+  function linePreviewHtml(a, s) {
+    if (a.lineEdit || !s.startLine || !(s.laps && s.laps.length) || !(s.trace && s.trace.laps && s.trace.laps[s.best || s.laps[0].n])) return '';
+    var sprint = s.type === 'sprint', what = sprint ? 'start and finish lines' : 'start and finish line';
+    var how = s.officialLines ? 'These are the lines MT3UK uses for this ' + (sprint ? 'course' : 'layout') + ', so times can be compared. If they look wrong, save the session, then use Request Edit Map on it and MT3UK will look.'
+      : s.autoLine ? 'No line is set for this track yet, so this one was found from your trace. Use Move the start line if it is not where you start and finish.'
+      : 'Your own ' + what + '. Use Move if they are not right.';
+    return '<div class="tp-field" id="tp-line-preview"><span class="tp-lbl">Your ' + what + '</span><div class="tp-tapmap"><svg class="tv-chart tp-tap" id="tp-line-map" role="img" aria-label="Your best ' + (sprint ? 'run' : 'lap') + ' with the ' + what + ' marked"></svg></div><p class="tp-small">' + how + '</p></div>';
+  }
+  function drawLinePreview() {
+    var a = add, s = a && a.session, svg = document.getElementById('tp-line-map');
+    if (!svg || !s) return;
+    var tr = s.trace && s.trace.laps && s.trace.laps[s.best || (s.laps[0] && s.laps[0].n)];
+    if (!tr || !tr.length) return;
+    V.map(svg, tr, { mono: true, ratio: 0.7, origin: s.origin, lines: [{ trace: tr, color: '#2a78d6' }], startLine: startLineXY(s), finishLine: s.type === 'sprint' ? startLineXY(s, s.finishLine) : null });
+  }
   // A track, course or layout we do not list, with lines to time it by: the member can add it to the track list
   // themselves rather than wait for the admin. Their lines become its official ones, the session is timed on them
   // and goes on the new leaderboard at once, and the track is flagged for the admin's review (the Admin bell keeps
@@ -1914,7 +1972,8 @@
     if ((s.type !== 'track' && s.type !== 'sprint') || s.layoutId || s.needsStartLine || !s.startLine || (isSprint && !s.finishLine)) return '';
     var what = isSprint ? 'course' : s.venueId ? 'layout' : 'track', name = a.venueName || s.venue || ('this ' + what);
     var lines = isSprint ? 'start and finish lines' : 'start line';
-    return '<div class="tp-notice is-warn" id="tp-addnow-box">' + icon('pin') + '<div><b>' + (s.venueId ? 'This layout at ' + esc(s.venue) + ' is not in the MT3UK track list yet.' : (a.venueName || s.venue ? esc(name) : 'This ' + what) + ' is not in the MT3UK track list yet.') + '</b><br>' +
+    var layoutBox = !isSprint && s.venueId && a.addNow ? '<div class="tp-field"><label for="tp-layout-name">Layout name' + REQ + '</label><input class="field" id="tp-layout-name" data-layout-req maxlength="40" placeholder="For example, Short Circuit" value="' + esc(a.layoutName || '') + '" required aria-required="true"></div>' : '';
+    return layoutBox + '<div class="tp-notice is-warn" id="tp-addnow-box">' + icon('pin') + '<div><b>' + (s.venueId ? 'This layout at ' + esc(s.venue) + ' is not in the MT3UK track list yet.' : (a.venueName || s.venue ? esc(name) : 'This ' + what) + ' is not in the MT3UK track list yet.') + '</b><br>' +
       'Normally MT3UK checks the ' + lines + ' and adds the ' + what + ', and your session joins its leaderboard then. You can add it now instead.</div></div>' +
       '<button type="button" class="tp-switch" role="switch" aria-checked="' + (a.addNow ? 'true' : 'false') + '" id="tp-addnow"><span><b>Add this ' + what + ' now</b><br><small>' +
       (a.addNow ? 'Saving adds ' + esc(name) + ' to the list with your ' + lines + ' as its official ' + (isSprint ? 'lines' : 'line') + ', times this session on ' + (isSprint ? 'them' : 'it') + ' and puts it on the leaderboard straight away. MT3UK will still review the ' + what + ' and may adjust the ' + lines + '.'
@@ -1940,11 +1999,13 @@
   function addCourseNow(a) {
     var s = a.session, tr = traceOutline(s), o = s.origin || [0, 0], name = a.venueName || s.venue || '';
     status('Adding ' + name + ' to the track list...');
-    return api('POST', '/track/courses', { kind: s.type === 'sprint' ? 'sprint' : 'circuit', hill: s.type === 'sprint' && isHillSession(s, a.lib), name: name, venueId: s.venueId || '', organizer: s.type === 'sprint' ? (a.organizer || s.organizer || '') : '', startLine: s.startLine, finishLine: s.finishLine || null, lapLength: tr.lap ? tr.lap[tr.lap.length - 1][0] : null, lat: o[0], lng: o[1], outline: tr.out }).then(function (d) {
+    return api('POST', '/track/courses', { kind: s.type === 'sprint' ? 'sprint' : 'circuit', hill: s.type === 'sprint' && isHillSession(s, a.lib), name: name, venueId: s.venueId || '', organizer: s.type === 'sprint' ? (a.organizer || s.organizer || '') : '', layoutName: s.type === 'sprint' ? '' : (a.layoutName || ''), startLine: s.startLine, finishLine: s.finishLine || null, lapLength: tr.lap ? tr.lap[tr.lap.length - 1][0] : null, lat: o[0], lng: o[1], outline: tr.out }).then(function (d) {
       if (!d.success) throw new Error(d.message || 'Could not add the track.');
       if (d.library) a.lib = d.library;
       // Timed again against the new course: its official lines are the ones just sent, so the laps are the same.
-      var next = T.analyse(a.rd, a.lib, analysisOpts(a));
+      var again = analysisOpts(a);
+      if (d.layoutId) { delete again.newLayout; again.layoutId = d.layoutId; }
+      var next = T.analyse(a.rd, a.lib, again);
       if (a.date) { next.date = a.date; next.dateFrom = 'member'; }
       if (a.time) next.time = a.time;
       if (!next.layoutId && d.venueId && d.layoutId) {

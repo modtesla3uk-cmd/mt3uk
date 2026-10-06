@@ -767,3 +767,16 @@ ok(T.fmtLap(99.786) === '1:39.79' && T.niceDate('2026-05-28') === '28 May 2026',
   const two = T.analyse(th, bare, {});
   ok(two.type === 'track' && two.venueId === 'th-new', 'two laps round a new circuit with no lap lengths are a track day, not a sprint (' + two.type + ', ' + two.venueId + ')');
 }
+// Picking the layout: a listed layout the member names is used whatever its length, and "a different layout" leaves the listed ones out.
+{
+  const lib2 = JSON.parse(JSON.stringify(lib));
+  const tv = lib2.venues.find(v => v.id === 'thruxton');
+  tv.layouts.push({ id: 'short', name: 'Short Circuit', length: 1800, startLine: tv.layouts[0].startLine, sectors: [], corners: [] });
+  const rd2 = T.read(vbo, 'RaceBox_Track_Session.vbo');
+  let a0 = T.analyse(rd2, lib2, {});
+  ok(a0.layoutId === 'main', 'with no pick the layout comes from the lap length');
+  let a1 = T.analyse(T.read(vbo, 'RaceBox_Track_Session.vbo'), lib2, { layoutId: 'short' });
+  ok(a1.layoutId === 'short' && a1.layout === 'Short Circuit' && a1.officialLines === true && a1.laps.length === 2, 'a layout the member picks is used, whatever its listed length');
+  let a2 = T.analyse(T.read(vbo, 'RaceBox_Track_Session.vbo'), lib2, { newLayout: true });
+  ok(!a2.layoutId && a2.laps.length === 2 && !a2.officialLines, 'a different layout is timed on the member\'s own line and matches none of the listed ones');
+}

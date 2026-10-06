@@ -8690,7 +8690,7 @@ async function handleTrackCourseAdd(request, env) {
   var req = {
     id: randomToken().slice(0, 12), at: new Date().toISOString(), from: email, added: true,
     kind: sprint ? 'sprint' : 'circuit', hill: sprint && !!body.hill, organizer: sprint ? trackText(body.organizer, 40) : '',
-    name: trackText(body.name, 60), note: 'Added by the member: check the lines',
+    name: trackText(body.name, 60), layoutName: sprint ? '' : trackText(body.layoutName, 40), note: 'Added by the member: check the lines',
     venueId: trackId(body.venueId), layoutId: '', startLine: trackLine(body.startLine), finishLine: sprint ? trackLine(body.finishLine) : null, lapLength: trackNum(body.lapLength, 0, 30000),
     lat: trackNum(body.lat, -90, 90), lng: trackNum(body.lng, -180, 180), outline: outline
   };
@@ -8932,7 +8932,8 @@ async function addTrackFromRequest(env, req, opts) {
     }) ||
       (req.lat != null && req.lng != null ? (library.venues || []).find(function (v) { return v.type === wantType && v.lat != null && trackDist([v.lat, v.lng], [req.lat, req.lng]) <= (v.radius || 1500); }) : null) || null;
   }
-  var layout = { name: (sprint && req.organizer) || trackText(req.name, 60) || (sprint ? 'Course' : 'Layout'), length: req.lapLength || 0, startLine: req.startLine, sectors: [], corners: [] };
+  // A layout added to a listed track by a member is named by them (Abingdon, "Short Circuit"), not for the track.
+  var layout = { name: (sprint && req.organizer) || (!sprint && trackText(req.layoutName, 40)) || trackText(req.name, 60) || (sprint ? 'Course' : 'Layout'), length: req.lapLength || 0, startLine: req.startLine, sectors: [], corners: [] };
   if (sprint) { layout.finishLine = req.finishLine; if (req.organizer) layout.organizer = req.organizer; }
   var venue;
   if (existing) {

@@ -301,6 +301,64 @@ def test_signed_out_explains_and_lists_leaderboards(page):
     expect(page.locator(".tp-board-card").first).to_contain_text("Thruxton")
 
 
+def _thruxton_with_a_second_layout(page):
+    """The track list with a second Thruxton layout (same line, a different length), as Abingdon has two."""
+    def handler(route):
+        d = json.loads((ROOT / "data" / "tracks.json").read_text(encoding="utf-8"))
+        v = [x for x in d["venues"] if x["id"] == "thruxton"][0]
+        v["layouts"].append({"id": "short", "name": "Short Circuit", "length": 1800, "startLine": v["layouts"][0]["startLine"], "sectors": [], "corners": []})
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(d))
+    page.route(re.compile(r".*/data/tracks\.json.*"), handler)
+
+
+def test_the_member_can_pick_the_layout_and_sees_the_start_finish_line_before_saving(page):
+    _thruxton_with_a_second_layout(page)
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    chips = page.locator("#tp-layout-field [data-layout] .chip")
+    expect(chips).to_have_text(["Thruxton", "Short Circuit", "A different layout"])
+    # The layout found from the GPS is picked already.
+    expect(page.locator("#tp-layout-field .chip.is-on")).to_have_text("Thruxton")
+    # The start and finish line is on a map before saving, with the way to ask for a change.
+    expect(page.locator("#tp-line-map")).to_be_attached()
+    expect(page.locator("#tp-line-preview")).to_contain_text("Request Edit Map")
+    page.wait_for_function("() => document.querySelectorAll('#tp-line-map .tv-line, #tp-line-map line').length > 0")
+    # Picking the other listed layout times the session on it, whatever its listed length.
+    chips.nth(1).click()
+    expect(page.locator("#tp-layout-field .chip.is-on")).to_have_text("Short Circuit")
+    expect(page.locator("#tp-result .tp-notice.is-ok").first).to_contain_text("Short Circuit")
+    chips.nth(0).click()
+    expect(page.locator("#tp-result .tp-notice.is-ok").first).not_to_contain_text("Short Circuit")
+
+
+def test_a_member_can_add_a_different_layout_to_a_listed_circuit(page):
+    _thruxton_with_a_second_layout(page)
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    page.locator("#tp-layout-field [data-v='__new']").click()
+    # Their own start line, on the map, to move.
+    page.locator("#tp-tap").wait_for(state="attached", timeout=15000)
+    page.locator("[data-tap='done']").click()
+    expect(page.locator("#tp-addnow-box")).to_contain_text("This layout at Thruxton is not in the MT3UK track list yet")
+    page.locator("#tp-addnow").click()
+    # The new layout needs a name, which is asked for before saving.
+    expect(page.locator("#tp-layout-name")).to_be_visible()
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator("#tp-layout-name")).to_have_attribute("aria-invalid", "true")
+    assert fake.courses_added == []
+    page.fill("#tp-layout-name", "Wing Loop")
+    page.get_by_role("button", name="Save session").click()
+    page.wait_for_function("() => true")
+    for _ in range(50):
+        if fake.courses_added:
+            break
+        page.wait_for_timeout(100)
+    assert fake.courses_added and fake.courses_added[0]["layoutName"] == "Wing Loop" and fake.courses_added[0]["venueId"] == "thruxton", fake.courses_added
+
+
 def test_add_a_session_from_the_racebox_file(page):
     fake = FakeWorker()
     open_page(page, fake)

@@ -166,6 +166,13 @@ def test_edit_sets_a_models_version_rule(page):
     expect(page.locator("#vh-note")).to_contain_text("Saved")
     tesla = [m for m in state["puts"][-1]["makes"] if m["name"] == "Tesla"][0]
     assert "versionRules" not in tesla
+    # The same switches sit on each model's row of the list and save at once.
+    row = page.locator('#vh-list .vh-model[data-model="Model S"]')
+    row.locator('.vh-rule-row[data-rule="free"]').click()
+    expect(page.locator("#vh-note")).to_contain_text("Saved")
+    tesla = [m for m in state["puts"][-1]["makes"] if m["name"] == "Tesla"][0]
+    assert tesla["versionRules"] == {"Model S": {"free": True}} and "Plaid" in tesla["versions"]["Model S"]
+    expect(page.locator('#vh-list .vh-model[data-model="Model S"] .vh-rule-row[data-rule="free"]')).to_have_attribute("aria-checked", "true")
 
 
 def test_the_members_cars_panel_lists_every_car_and_changes_one(page):
@@ -204,13 +211,15 @@ def test_the_members_cars_panel_lists_every_car_and_changes_one(page):
     expect(first).to_contain_text("no model")
     expect(rows.nth(1).locator(".mc-badge")).to_have_text("Garage only")
     assert rows.nth(1).locator(".mc-model").input_value() == "EV6 GT"
-    # The makes are suggested from the vehicle list, and the models follow the make typed.
-    assert "Tesla" in first.locator(".mc-make + datalist option").evaluate_all("els => els.map(e => e.value)")
-    first.locator(".mc-make").fill("Tesla")
-    assert "Model S" in first.locator(".mc-model + datalist option").evaluate_all("els => els.map(e => e.value)")
-    first.locator(".mc-model").fill("Model S")
-    assert "Plaid" in first.locator(".mc-version + datalist option").evaluate_all("els => els.map(e => e.value)")
-    first.locator(".mc-version").fill("Plaid")
+    # The drop-downs offer the vehicle list's makes, then the make's models, then the model's versions.
+    assert "Tesla" in first.locator(".mc-make option").evaluate_all("els => els.map(e => e.value)")
+    first.locator(".mc-make").select_option("Tesla")
+    assert "Model S" in first.locator(".mc-model option").evaluate_all("els => els.map(e => e.value)")
+    first.locator(".mc-model").select_option("Model S")
+    assert "Plaid" in first.locator(".mc-version option").evaluate_all("els => els.map(e => e.value)")
+    # Type it in opens a text box, and the typed words are what is sent.
+    first.locator(".mc-version").select_option(label="Type it in")
+    first.locator(".mc-version-typed").fill("Plaid")
     first.locator(".mc-year").fill("2022")
     first.locator(".mc-drive").select_option("AWD")
     first.locator(".mc-save").click()
@@ -219,6 +228,8 @@ def test_the_members_cars_panel_lists_every_car_and_changes_one(page):
     row = page.locator('#mc-list tr.mc-row[data-car="c1"]')
     expect(row).not_to_have_class(re.compile("is-target"))
     assert row.locator(".mc-model").input_value() == "Model S"
+    assert row.locator(".mc-version").input_value() == "Plaid"
+    expect(row.locator(".mc-version-typed")).to_have_count(0)
     assert row.locator(".mc-drive").input_value() == "AWD"
     # The filter box narrows the list by owner or car.
     page.fill("#mc-filter", "aaron")

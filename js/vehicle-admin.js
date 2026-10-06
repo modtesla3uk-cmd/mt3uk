@@ -96,13 +96,20 @@
     if (rule.free) words.push('free text');
     return words.length ? '<span class="iv-sub vh-variants">' + words.join(', ') + '</span>' : '';
   }
+  // The Version box rule switches on a model's row (the same two as on the Edit form); a change saves at once.
+  function ruleSwitches(r, model) {
+    var rule = ruleOf(r, model);
+    return '<span class="vh-rules">' + [['required', 'Required'], ['free', 'Free text']].map(function (x) {
+      return '<button type="button" class="tk-switch vh-rule-row" role="switch" data-rule="' + x[0] + '" aria-checked="' + !!rule[x[0]] + '" aria-label="Version ' + x[1].toLowerCase() + ' for ' + esc(r.name + ' ' + model) + '"><span class="tk-track"></span>' + x[1] + '</button>';
+    }).join('') + '</span>';
+  }
   function modelHtml(r, model) {
-    if (r.type !== 'car') return '<li class="vh-model"><span class="vh-model-name">' + esc(model) + '</span>' + variantNote(r, model) + '</li>';
+    if (r.type !== 'car') return '<li class="vh-model" data-make="' + esc(r.name) + '" data-model="' + esc(model) + '"><span class="vh-model-name">' + esc(model) + '</span>' + ruleSwitches(r, model) + variantNote(r, model) + '</li>';
     var d = driveOf(r.name, model);
     return '<li class="vh-model' + (d.drive ? '' : ' is-target') + '" data-make="' + esc(r.name) + '" data-model="' + esc(model) + '"><span class="vh-model-name">' + esc(model) + '</span>' +
       '<select class="vh-drive" aria-label="Driven wheels for ' + esc(r.name + ' ' + model) + '"><option value="">' + (d.rule ? 'Worked out: ' + d.rule : d.drive === 'version' ? 'From the version' : 'Not known') + '</option>' +
       DRIVES.map(function (x) { return '<option value="' + x + '"' + (d.set === x ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select>' +
-      '<span class="iv-sub vh-how">' + (d.set || !d.drive ? esc(d.how) : '') + '</span>' + variantNote(r, model) + '</li>';
+      '<span class="iv-sub vh-how">' + (d.set || !d.drive ? esc(d.how) : '') + '</span>' + ruleSwitches(r, model) + variantNote(r, model) + '</li>';
   }
 
   function openForm(name, type) {
@@ -170,6 +177,24 @@
       unknownOnly = !unknownOnly;
       e.target.closest('#vh-unknown-only').setAttribute('aria-checked', String(unknownOnly));
       listEl.querySelector('.vh-table').classList.toggle('is-unknown-only', unknownOnly);
+      return;
+    }
+    var rs = e.target.closest('.vh-rule-row');
+    if (rs) {
+      // Save the make as it is, with this one rule switched.
+      var li = rs.closest('.vh-model'), tr = li.closest('tr'), mk = li.getAttribute('data-make'), md = li.getAttribute('data-model');
+      var ty = tr.querySelector('[data-edit]').getAttribute('data-type');
+      var rules = {}, src = (merged.versionRules[ty] || {})[mk] || {};
+      Object.keys(src).forEach(function (m) { rules[m] = { required: !!src[m].required, free: !!src[m].free }; });
+      rules[md] = rules[md] || {};
+      rules[md][rs.getAttribute('data-rule')] = rs.getAttribute('aria-checked') !== 'true';
+      Object.keys(rules).forEach(function (m) { if (!rules[m].required) delete rules[m].required; if (!rules[m].free) delete rules[m].free; if (!Object.keys(rules[m]).length) delete rules[m]; });
+      extra.makes = (extra.makes || []).filter(function (m) { return !same(m, mk, ty); });
+      var entry = { name: mk, type: ty, models: merged[ty][mk].slice(), versions: (merged.versions[ty] || {})[mk] || {} };
+      if (Object.keys(rules).length) entry.versionRules = rules;
+      extra.makes.push(entry);
+      note('Saving...');
+      put();
       return;
     }
     if (e.target.closest('[data-new]')) return openForm(null);

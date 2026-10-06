@@ -541,6 +541,8 @@
 .vh-variant textarea { min-height: 64px; resize: vertical; font: inherit; }
 .vh-rules { display: flex; flex-wrap: wrap; gap: 0 10px; }
 .vh-rules .tk-switch { min-height: 36px; font-size: 0.82rem; }
+.vh-model .vh-rules { display: inline-flex; flex-wrap: wrap; gap: 0 6px; }
+#mc-list .mc-table .mc-make-typed, #mc-list .mc-table .mc-model-typed, #mc-list .mc-table .mc-version-typed { margin-top: 4px; }
 .vh-variants { margin-left: 4px; }
 /* Vehicles panel: each car model with its driven wheels and a Default drop-down. */
 .vh-drive-note { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }

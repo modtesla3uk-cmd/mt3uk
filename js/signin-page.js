@@ -9,6 +9,9 @@
 */
 (function () {
   var SITE = document.body.getAttribute('data-signin-site') === 'laps' ? 'laps' : 'main';
+  // While Laps is an early preview (/laps/signin preview), joining on Laps puts the new member on the early access
+  // list: the join card says so, and the welcome says they are on the list.
+  var PREVIEW = false;
   if (SITE !== 'laps') { start(); return; }
   var started = false;
   function go() { if (!started) { started = true; start(); } }
@@ -19,6 +22,7 @@
     .then(function (d) {
       if (started) return;
       if (d && d.success && d.separate === false) { started = true; location.replace('signin.html' + location.search + location.hash); return; }
+      PREVIEW = !!(d && d.preview);
       go();
     }).catch(go);
 
@@ -60,8 +64,8 @@
       write(SESSION_KEY, session);
       write(EMAIL_KEY, email);
       var joinName = read(JOIN_NAME_KEY);
-      // New members are asked for a nickname (js/account-bar.js).
-      if (joined || joinName) write('mt3ukAskNickname', '1');
+      // New members are not asked for a nickname: the worker gives them one from their name (first initial and last
+      // name), which they can change in their Profile.
       if (joinName && !read(FIRST_NAME_KEY)) write(FIRST_NAME_KEY, joinName);
       try { localStorage.removeItem(JOIN_NAME_KEY); } catch (e) {}
       if (goToPendingNext()) return;
@@ -135,6 +139,18 @@
       $('si-passkey-offer').hidden = true;
     });
 
+    function welcomeText(access) {
+      if (SITE !== 'laps') return 'Welcome to MT3UK! You’re in.';
+      return access === 'pending' ? 'Welcome to Laps! You’re on the early access list, and we’ll email you as soon as you’re in.' : 'Welcome to Laps! You’re in.';
+    }
+    // The Laps join card while Laps is an early preview.
+    if (SITE === 'laps' && PREVIEW && $('si-join')) {
+      $('si-join').querySelector('h2').textContent = 'New to Laps? Join the early preview';
+      $('si-join').querySelector('h2 + p').textContent = 'Laps is in early preview. Join with your name and email, and we’ll put you on the early access list straight away and email you as soon as you’re in.';
+      $('si-join-btn').textContent = 'Join the early preview';
+    }
+    var JOIN_LABEL = $('si-join-btn').textContent;
+
     function showSignedIn() {
       offerPasskey();
       $('si-forms').hidden = true;
@@ -180,12 +196,12 @@
       post('/my-builds/join', Object.assign({
         firstName: f.elements.firstName.value, lastName: f.elements.lastName.value, email: email, botcheck: f.elements.botcheck.checked
       }, from())).then(function (r) {
-        btn.disabled = false; btn.textContent = 'Join free';
+        btn.disabled = false; btn.textContent = JOIN_LABEL;
         if (!r.ok || !r.data.success) { setStatus($('si-join-status'), r.data.message || 'Something went wrong, please try again.', 'err'); return; }
         setStatus($('si-join-status'), r.data.message, 'ok');
         showCode(email);
       }).catch(function () {
-        btn.disabled = false; btn.textContent = 'Join free';
+        btn.disabled = false; btn.textContent = JOIN_LABEL;
         setStatus($('si-join-status'), 'Something went wrong, please try again.', 'err');
       });
     });
@@ -220,7 +236,8 @@
         btn.disabled = false;
         if (!r.data.success) { setStatus($('si-code-status'), r.data.message || 'That code did not work.', 'err'); return; }
         setStatus($('si-code-status'), '', '');
-        signedIn(r.data.session, r.data.email);
+        if (r.data.joined) { $('si-welcome').hidden = false; $('si-welcome').textContent = welcomeText(r.data.access); }
+        signedIn(r.data.session, r.data.email, !!r.data.joined);
       }).catch(function () {
         btn.disabled = false;
         setStatus($('si-code-status'), 'Something went wrong, please try again.', 'err');
@@ -243,7 +260,7 @@
           if (data.success) {
             // A new account says welcome; a member signing in with a link (from Laps) is just signed in.
             var joined = data.joined !== undefined ? !!data.joined : true;
-            $('si-welcome').textContent = joined ? (SITE === 'laps' ? 'Welcome to Laps! You’re in.' : 'Welcome to MT3UK! You’re in.') : 'You’re signed in.';
+            $('si-welcome').textContent = joined ? welcomeText(data.access) : 'You’re signed in.';
             signedIn(data.session, data.email, joined);
           } else {
             $('si-welcome').textContent = (data.message || 'That link is invalid or has expired.') + ' Sign in below to get a new one.';

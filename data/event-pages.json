@@ -261,6 +261,7 @@
       "organisers": "James Batty",
       "kind": "Meet",
       "startDate": "2026-11-21",
+      "endDate": "2026-11-21",
       "startTime": "09:00",
       "venue": "The Motorist",
       "town": "Leeds",
@@ -281,6 +282,7 @@
         "Spacious 800+ Capacity",
         "Family- and dog-friendly"
       ],
+      "entry": "Free to attend",
       "ctaUrl": "https://www.facebook.com/share/1E3kc3SWzd/",
       "ctaLabel": "Confirm on MT3UK Facebook Group",
       "publish": "2026-10-06",

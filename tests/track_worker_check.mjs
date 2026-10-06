@@ -842,6 +842,13 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   r = await call('POST', '/track/admin/course?key=secret', Object.assign({}, body, { startLine: [[51.7005, -1.3005], [51.7007, -1.3007]] }));
   ok(r.status === 400 && /already has official lines/.test(r.body.message), 'and it will not overwrite a layout that has official lines without replace');
 }
+// A member who has just added a course themselves is not sent into the admin's list a second time for the same track.
+{
+  const before = (await call('GET', '/track/admin/requests?key=secret')).body.requests.length;
+  r = await call('POST', '/track/requests', { kind: 'circuit', name: 'Abing Test', venueId: 'abing-test', note: 'Layout not recognised', startLine: [[51.6801, -1.2901], [51.6803, -1.2903]], lapLength: 1900, lat: 51.68, lng: -1.29 }, 'tok-a');
+  const after = (await call('GET', '/track/admin/requests?key=secret')).body.requests.length;
+  ok(r.status === 200 && after === before, 'a request for a track the member just added themselves is not created a second time');
+}
 // A layout name that is already listed (with a line) is refused rather than added twice.
 {
   const dup = { kind: 'circuit', name: 'Abing Test', venueId: 'abing-test', layoutName: 'short loop', startLine: [[51.6810, -1.2910], [51.6812, -1.2912]], lapLength: 1900, lat: 51.68, lng: -1.29, outline: [[51.68, -1.29], [51.681, -1.291]] };

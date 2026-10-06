@@ -246,8 +246,15 @@ class FakeWorker:
                 layout = {"id": "course", "name": body.get("organizer") or body["name"], "length": body.get("lapLength") or 0, "startLine": body["startLine"]}
                 if body["kind"] == "sprint":
                     layout["finishLine"] = body["finishLine"]
-                lib["venues"].append({"id": vid, "name": body["name"], "type": "sprint" if body["kind"] == "sprint" else "circuit", "lat": body["lat"], "lng": body["lng"], "radius": 2000, "review": True, "layouts": [layout]})
-                data = {"success": True, "venueId": vid, "layoutId": "course", "relinked": 0, "library": lib}
+                existing = [v for v in lib["venues"] if v["id"] == body.get("venueId")]
+                if existing and body.get("layoutName"):
+                    # A layout added to a track that is already listed, named by the member.
+                    lid = re.sub(r"[^a-z0-9-]+", "-", body["layoutName"].lower()).strip("-")
+                    existing[0]["layouts"].append({"id": lid, "name": body["layoutName"], "length": body.get("lapLength") or 0, "startLine": body["startLine"]})
+                    data = {"success": True, "venueId": existing[0]["id"], "layoutId": lid, "relinked": 0, "library": lib}
+                else:
+                    lib["venues"].append({"id": vid, "name": body["name"], "type": "sprint" if body["kind"] == "sprint" else "circuit", "lat": body["lat"], "lng": body["lng"], "radius": 2000, "review": True, "layouts": [layout]})
+                    data = {"success": True, "venueId": vid, "layoutId": "course", "relinked": 0, "library": lib}
         elif path == "/track/admin/course" and req.method == "POST" and not req.headers.get("x-admin-viewer"):
             status, data = 401, {"success": False, "message": "Unauthorised"}
         elif path == "/track/admin/course" and req.method == "POST":
@@ -406,6 +413,27 @@ def test_a_new_layout_cannot_be_given_the_name_of_one_that_is_listed(page):
     expect(page.locator("#tp-layout-name")).to_have_attribute("aria-invalid", "true")
     expect(page.locator("#tp-status")).to_contain_text("already listed")
     assert fake.courses_added == []
+
+
+def test_adding_a_layout_with_several_files_sends_no_second_request_and_times_each_on_it(page, tmp_path):
+    """Several files re-time each one at save. With a layout just added, each is timed on it, and the admin is not sent a
+    second 'layout not recognised' request (approving that added a layout named after the circuit)."""
+    _thruxton_with_a_second_layout(page)
+    fake = FakeWorker(earlier=False)
+    open_page(page, fake)
+    a, b = tmp_path / "RaceBox Track Session one.vbo", tmp_path / "RaceBox Track Session two.vbo"
+    a.write_bytes(FIXTURE.read_bytes())
+    b.write_bytes(FIXTURE.read_bytes())
+    page.get_by_role("link", name="Add a session", exact=True).click()
+    page.set_input_files("#tp-file", [str(a), str(b)])
+    page.locator("#tp-layout-field [data-v='__new']").click()
+    page.locator("#tp-addnow").click()
+    page.fill("#tp-layout-name", "Wing Loop")
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator("#tp-saved")).to_contain_text("2 sessions saved")
+    assert len(fake.courses_added) == 1 and fake.courses_added[0]["layoutName"] == "Wing Loop", fake.courses_added
+    assert fake.requests == [], fake.requests
+    assert all(x["session"].get("layoutId") == "wing-loop" for x in fake.saved), [x["session"].get("layoutId") for x in fake.saved]
 
 
 def test_add_a_session_from_the_racebox_file(page):

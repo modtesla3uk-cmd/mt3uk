@@ -8660,6 +8660,8 @@ async function handleTrackRequest(request, env) {
   };
   if (req.lat === null && outline.length) { req.lat = outline[0][0]; req.lng = outline[0][1]; }
   if (req.lat === null) return json({ success: false, message: 'Where is it? The request needs a position.' }, 400);
+  // A member who has just added a course themselves (live now) is not asked about it a second time.
+  if (req.venueId && list.some(function (r) { return r.from === email && r.added && r.venueId === req.venueId && Date.now() - Date.parse(r.at) < 6 * 3600 * 1000; })) return json({ success: true });
   // One waiting request per course is enough.
   if (req.venueId && list.some(function (r) { return !r.done && r.venueId === req.venueId && (r.layoutId || '') === (req.layoutId || '') && (r.organizer || '') === (req.organizer || ''); })) return json({ success: true });
   list.unshift(req);

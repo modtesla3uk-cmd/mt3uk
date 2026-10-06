@@ -1181,7 +1181,7 @@
       if (add.venueNameLooked) { add.venueName = ''; add.venueNameLooked = false; }
       add.session = null; add.startLine = null; add.finishLine = null; add.editLines = false; add.tapFull = false; add.tapAuto = false; add.tapOutline = null; add.finishCross = 0; add.organizer = ''; add.rollout = false; add.tapMap = null; add.confirmLines = false; add.type = null; add.date = null; add.time = null;
       // Nothing about adding a layout carries over from the last file: the pick, its name and the add switch.
-      add.layoutPick = ''; add.layoutName = ''; add.addNow = false;
+      add.layoutPick = ''; add.layoutName = ''; add.addNow = false; add.addedLayout = false;
       add.weatherKey = null; if (add.tempSource !== 'member') { add.temp = null; add.tempSource = ''; add.weather = null; }
       parseFile();
     }).catch(function (e) { status(e.message || 'That file could not be opened.', 'error'); });
@@ -2014,8 +2014,10 @@
       if (!d.success) throw new Error(d.message || 'Could not add the track.');
       if (d.library) a.lib = d.library;
       // Timed again against the new course: its official lines are the ones just sent, so the laps are the same.
+      // The layout now exists: from here every file is timed on it (not as a different layout again), and the admin is not
+      // sent a second request for it.
+      if (d.layoutId) { a.layoutPick = d.layoutId; a.addNow = false; a.addedLayout = true; }
       var again = analysisOpts(a);
-      if (d.layoutId) { delete again.newLayout; again.layoutId = d.layoutId; }
       var next = T.analyse(a.rd, a.lib, again);
       if (a.date) { next.date = a.date; next.dateFrom = 'member'; }
       if (a.time) next.time = a.time;
@@ -2034,6 +2036,7 @@
   // find their own lap line, so this cannot wait for the member to tap one.
   function requestCourse(a, s) {
     if (s.type !== 'track' && s.type !== 'sprint') return;
+    if (a.addedLayout) return;
     var ownLine = s.layoutId && !s.officialLines && s.startLine && ((a.lib.venues || []).filter(function (vv) { return vv.id === s.venueId; })[0] || { layouts: [] }).layouts.filter(function (l) { return l.id === s.layoutId && !l.startLine; }).length;
     if (!(a.requestStart || ownLine || !s.layoutId)) return;
     var tr = traceOutline(s), out = tr.out, lap = tr.lap;

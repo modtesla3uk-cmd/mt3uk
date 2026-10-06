@@ -799,6 +799,9 @@
     "mods": [
       "Wheels: Bola FLS, 20in, 10J, ET30(F) ET25(R), Satin black, Flow formed",
       "Tyres: Continental SportContact 7, 295/30r20",
+      "Suspension: BC Racing YB04 coilovers, 60mm drop",
+      "Coilover settings (road): rebound 28 front, 25 rear; compression 28 front, 25 rear",
+      "Coilover settings (track): rebound 28 front, 25 rear; compression 28 front, 25 rear",
       "Race door release"
     ],
     "added": "2026-09-19",
@@ -840,6 +843,9 @@
     "mods": [
       "Wheels: Bola FLS, 20in, 10J, ET30(F) ET25(R), Satin black, Flow formed",
       "Tyres: Continental SportContact 7, 295/30r20",
+      "Suspension: BC Racing YB04 coilovers, 60mm drop",
+      "Coilover settings (road): rebound 28 front, 25 rear; compression 28 front, 25 rear",
+      "Coilover settings (track): rebound 28 front, 25 rear; compression 28 front, 25 rear",
       "Race door release"
     ],
     "votable": false,
@@ -1426,6 +1432,9 @@
     "mods": [
       "Wheels: Bola FLS, 20in, 10J, ET30(F) ET25(R), Satin black, Flow formed",
       "Tyres: Continental SportContact 7, 295/30r20",
+      "Suspension: BC Racing YB04 coilovers, 60mm drop",
+      "Coilover settings (road): rebound 28 front, 25 rear; compression 28 front, 25 rear",
+      "Coilover settings (track): rebound 28 front, 25 rear; compression 28 front, 25 rear",
       "Race door release"
     ],
     "added": "2026-09-18",

@@ -61,26 +61,34 @@ def test_laps_adds_a_car_without_a_photo(page):
     form = page.locator("#tp-addcar")
     expect(form).to_contain_text("Add your vehicle")
     expect(form).to_contain_text("No photo needed")
-    # Make and model are needed; the makes and models are suggested from the list.
+    # Make and model are needed, and are picked from the vehicle list: drop-downs, nothing typed.
+    page.wait_for_function("document.querySelectorAll('#tp-addcar-make option').length > 5", timeout=5000)
+    assert page.locator("#tp-addcar-make").evaluate("el => el.tagName") == "SELECT"
+    expect(page.locator("#tp-addcar-model")).to_be_disabled()
+    expect(form).to_contain_text("Make or model not on the list?")
     page.locator("#tp-addcar-save").click()
-    expect(page.locator("#tp-addcar-msg")).to_have_text("Choose or type the make.")
-    page.fill("#tp-addcar-make", "Porsche")
-    page.wait_for_function("document.querySelectorAll('#tp-addcar-models option').length > 0", timeout=5000)
-    assert page.locator('#tp-addcar-models option[value="Taycan"]').count() == 1
-    page.fill("#tp-addcar-model", "911 GT3")
+    expect(page.locator("#tp-addcar-msg")).to_have_text("Choose the make.")
+    page.select_option("#tp-addcar-make", "Porsche")
+    expect(page.locator("#tp-addcar-model")).to_be_enabled()
+    assert page.locator('#tp-addcar-model option[value="Taycan"]').count() == 1
+    page.locator("#tp-addcar-save").click()
+    expect(page.locator("#tp-addcar-msg")).to_have_text("Choose the model.")
+    page.select_option("#tp-addcar-model", "911")
     page.fill("#tp-addcar-year", "2019")
     page.locator("#tp-addcar-save").click()
     # The new car is chosen, ready for its first session.
-    expect(page.locator("#tp-cars .tp-car.is-on")).to_contain_text("Porsche 911 GT3")
-    assert fake.added == [{"make": "Porsche", "model": "911 GT3", "year": "2019", "vehicleType": "car", "name": ""}]
+    expect(page.locator("#tp-cars .tp-car.is-on")).to_contain_text("Porsche 911")
+    assert fake.added == [{"make": "Porsche", "model": "911", "year": "2019", "vehicleType": "car", "name": ""}]
     expect(page.get_by_role("link", name="Add a session", exact=True)).to_be_visible()
     # Another car can be added from Your cars, as a bike.
     page.locator("#tp-vtoggle").click()
     page.locator("#tp-car-add-open").click()
     page.locator('[data-addcar-type="bike"]').click()
     expect(page.locator("#tp-addcar-save")).to_have_text("Add bike")
-    page.fill("#tp-addcar-make", "Ducati")
-    page.fill("#tp-addcar-model", "Panigale V4")
+    page.wait_for_function("[...document.querySelectorAll('#tp-addcar-make option')].some(o => o.value === 'Ducati')", timeout=5000)
+    assert page.locator('#tp-addcar-make option[value="Kia"]').count() == 0
+    page.select_option("#tp-addcar-make", "Ducati")
+    page.select_option("#tp-addcar-model", "Panigale V4")
     page.fill("#tp-addcar-name", "Track bike")
     page.locator("#tp-addcar-save").click()
     # Two vehicles: the list is folded to the one picked, and Change opens it with a row for each.

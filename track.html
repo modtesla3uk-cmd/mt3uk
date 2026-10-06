@@ -711,6 +711,9 @@
   .tp-addcar .field { min-height: 44px; width: 100%; box-sizing: border-box; }
   .tp-addcar-msg { min-height: 1.2em; margin: 0; color: #b8421f; font-weight: 600; font-size: 0.9rem; }
   .tp-addcar-msg:empty { display: none; }
+  .tp-addcar-missing { margin: 0; }
+  .tp-addcar-missing a { color: var(--ink); text-decoration: underline; font-weight: 600; }
+  .tp-addcar select.field:disabled { opacity: 0.6; }
   @media (max-width: 780px) { .tp-addcar-grid { grid-template-columns: 1fr; } }
   .tp-cars { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; }
   .tp-car { display: grid; gap: 2px; min-height: 64px; padding: 10px 14px; text-align: left; background: #fff; border: 1px solid var(--hairline-strong); border-radius: var(--radius); font: inherit; color: var(--ink); cursor: pointer; }
@@ -962,7 +965,7 @@
 <script src="js/tyre-data.js"></script>
 <script src="js/vehicle-data.js?v=20270106" defer></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20270104" defer></script>
+<script src="js/track-page.js?v=20270108" defer></script>
 <script src="js/laps-tip.js?v=20270102" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=12" defer></script>

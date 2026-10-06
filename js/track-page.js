@@ -887,11 +887,12 @@
         '<button type="button" class="chip is-on" data-addcar-type="car" aria-pressed="true">Car</button>' +
         '<button type="button" class="chip" data-addcar-type="bike" aria-pressed="false">Bike</button></div>' +
       '<div class="tp-addcar-grid">' +
-        '<div class="tp-field"><label for="tp-addcar-make">Make</label><input class="field" id="tp-addcar-make" list="tp-addcar-makes" autocomplete="off" placeholder="e.g. Tesla, Porsche"><datalist id="tp-addcar-makes"></datalist></div>' +
-        '<div class="tp-field"><label for="tp-addcar-model">Model</label><input class="field" id="tp-addcar-model" list="tp-addcar-models" autocomplete="off" placeholder="e.g. Model 3"><datalist id="tp-addcar-models"></datalist></div>' +
+        '<div class="tp-field"><label for="tp-addcar-make">Make</label><select class="field" id="tp-addcar-make"><option value="">Loading the makes</option></select></div>' +
+        '<div class="tp-field"><label for="tp-addcar-model">Model</label><select class="field" id="tp-addcar-model" disabled><option value="">Choose the make first</option></select></div>' +
         '<div class="tp-field"><label for="tp-addcar-year">Year (optional)</label><input class="field" id="tp-addcar-year" type="number" inputmode="numeric" min="1950" max="' + (new Date().getFullYear() + 1) + '" placeholder="e.g. 2022"></div>' +
         '<div class="tp-field"><label for="tp-addcar-name">Name it (optional)</label><input class="field" id="tp-addcar-name" maxlength="150" placeholder="e.g. Track car"></div>' +
       '</div>' +
+      '<p class="tp-small tp-addcar-missing">Make or model not on the list? <a href="contact.html">Tell us</a> and we\u2019ll add it.</p>' +
       '<p class="tp-addcar-msg" id="tp-addcar-msg" role="status"></p>' +
       '<div class="tp-actions"><button type="submit" class="btn btn-accent" id="tp-addcar-save">Add car</button>' +
         (first ? '' : '<button type="button" class="btn btn-secondary" id="tp-addcar-cancel">Cancel</button>') + '</div></form>';
@@ -905,15 +906,23 @@
     var wrap = document.getElementById('tp-car-add-wrap');
     var cancel = document.getElementById('tp-addcar-cancel');
     if (cancel) cancel.addEventListener('click', function () { wrap.hidden = true; var open = document.getElementById('tp-car-add-open'); if (open) open.hidden = false; });
-    function opts(list) { return list.map(function (v) { return '<option value="' + esc(v) + '"></option>'; }).join(''); }
+    // Make and model are picked from the vehicle list (the Vehicles panel of track-admin.html), never typed, so
+    // every vehicle is named the same way on the boards. Each drop-down keeps its choice while it is filled again.
+    function opts(list, first, keep) {
+      return '<option value="">' + esc(first) + '</option>' + list.map(function (v) { return '<option value="' + esc(v) + '"' + (v === keep ? ' selected' : '') + '>' + esc(v) + '</option>'; }).join('');
+    }
+    function models() {
+      var byMake = (window.MT3UKVehicles && window.MT3UKVehicles[type]) || {}, list = make.value ? byMake[make.value] || [] : [];
+      model.innerHTML = opts(list, make.value ? 'Choose the model' : 'Choose the make first', model.value);
+      model.disabled = !make.value;
+    }
     function lists() {
       var V2 = window.MT3UKVehicles, byMake = (V2 && V2[type]) || {};
-      document.getElementById('tp-addcar-makes').innerHTML = opts(Object.keys(byMake).sort(function (a, b) { return a.localeCompare(b); }));
-      var key = Object.keys(byMake).filter(function (k) { return k.toLowerCase() === make.value.trim().toLowerCase(); })[0];
-      document.getElementById('tp-addcar-models').innerHTML = opts(key ? byMake[key] : []);
+      make.innerHTML = opts(Object.keys(byMake).sort(function (a, b) { return a.localeCompare(b); }), V2 && V2.loaded === false ? 'Loading the makes' : 'Choose the make', make.value);
+      models();
     }
-    if (window.MT3UKVehicles) window.MT3UKVehicles.load().then(lists);
-    make.addEventListener('input', lists);
+    if (window.MT3UKVehicles) window.MT3UKVehicles.load().then(lists, lists);
+    make.addEventListener('change', models);
     form.addEventListener('click', function (e) {
       var b = e.target.closest('[data-addcar-type]');
       if (!b) return;
@@ -922,15 +931,13 @@
       // The words follow Car or bike.
       var bike = type === 'bike';
       document.getElementById('tp-addcar-save').textContent = bike ? 'Add bike' : 'Add car';
-      make.placeholder = bike ? 'e.g. Ducati, Honda' : 'e.g. Tesla, Porsche';
-      model.placeholder = bike ? 'e.g. Panigale V4' : 'e.g. Model 3';
       document.getElementById('tp-addcar-name').placeholder = bike ? 'e.g. Track bike' : 'e.g. Track car';
       lists();
     });
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-      if (!make.value.trim()) { msg.textContent = 'Choose or type the make.'; make.focus(); return; }
-      if (!model.value.trim()) { msg.textContent = 'Type the model.'; model.focus(); return; }
+      if (!make.value) { msg.textContent = 'Choose the make.'; make.focus(); return; }
+      if (!model.value) { msg.textContent = 'Choose the model.'; model.focus(); return; }
       var btn = document.getElementById('tp-addcar-save');
       btn.disabled = true;
       msg.textContent = '';

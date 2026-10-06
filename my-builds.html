@@ -897,6 +897,9 @@
   .mb-model-pick .chip:has(input:focus-visible) { box-shadow: var(--focus-ring); }
   .mb-other-make { display: flex; flex-direction: column; gap: 12px; }
   .mb-other-fields { display: flex; flex-direction: column; gap: 12px; }
+  .mb-other-missing { margin: 0; font-size: 0.9rem; color: var(--steel, #555); }
+  .mb-other-missing a { color: var(--ink); text-decoration: underline; font-weight: 600; }
+  #mb-addcar-othermodel:disabled { opacity: 0.6; }
   .mb-other-make[hidden], .mb-other-fields[hidden], .mb-field[hidden], .mb-toggles[hidden] { display: none; }
   .mb-other-note { display: flex; gap: 10px; align-items: flex-start; margin: 0; padding: 12px 14px; border: 1px solid var(--hairline); border-radius: var(--radius); background: #f6f7f9; font-family: var(--font-body); font-size: 0.88rem; line-height: 1.45; }
   .mb-other-note .icon { margin-top: 2px; color: var(--steel); }
@@ -1416,15 +1419,14 @@ document.addEventListener('DOMContentLoaded', function () {
               <div class="mb-field-pair">
                 <div class="mb-field">
                   <label for="mb-addcar-make">Make</label>
-                  <input type="text" id="mb-addcar-make" name="make" list="mb-addcar-makes" autocomplete="off" maxlength="40" placeholder="e.g. Kia">
-                  <datalist id="mb-addcar-makes"></datalist>
+                  <select id="mb-addcar-make" name="make"><option value="">Choose the make</option></select>
                 </div>
                 <div class="mb-field">
                   <label for="mb-addcar-othermodel">Model</label>
-                  <input type="text" id="mb-addcar-othermodel" list="mb-addcar-othermodels" autocomplete="off" maxlength="50" placeholder="e.g. EV6 GT">
-                  <datalist id="mb-addcar-othermodels"></datalist>
+                  <select id="mb-addcar-othermodel" disabled><option value="">Choose the make first</option></select>
                 </div>
               </div>
+              <p class="mb-other-missing">Make or model not on the list? <a href="contact.html">Tell us</a> and we&rsquo;ll add it.</p>
               </div>
             </div>
             <div class="mb-field-pair">
@@ -2657,7 +2659,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (addCarForm) {
       // Another make: the car is kept in the garage (not in the Gallery, the Reel or Build of the Week), with its
-      // type, make and model suggested from the vehicle lists (js/vehicle-data.js); anything can be typed.
+      // type, make and model picked from the vehicle lists (js/vehicle-data.js, the Vehicles panel); nothing is typed.
       var addCarOther = document.getElementById('mb-addcar-other');
       var addCarMake = document.getElementById('mb-addcar-make');
       var addCarOtherModel = document.getElementById('mb-addcar-othermodel');
@@ -2667,15 +2669,25 @@ document.addEventListener('DOMContentLoaded', function () {
       var otherMakeChosen = function () { return chosenModel() === '__other__'; };
       var knownOtherMake = function () { var m = chipMake(addCarForm.querySelector('input[name="model"]:checked')); return m && m !== 'Tesla' ? m : ''; };
       var addCarType = function () { var r = addCarForm.querySelector('input[name="vehicleType"]:checked'); return r ? r.value : 'car'; };
+      // Each drop-down keeps its choice while it is filled again (a make another type has not is dropped).
+      var pickOptions = function (list, first, keep) {
+        return '<option value="">' + escapeHtml(first) + '</option>' + list.map(function (m) {
+          return '<option value="' + escapeHtml(m) + '"' + (m === keep ? ' selected' : '') + '>' + escapeHtml(m) + '</option>';
+        }).join('');
+      };
+      var fillOtherModels = function () {
+        var V = window.MT3UKVehicles, makes = (V && V[addCarType()]) || {};
+        addCarOtherModel.innerHTML = pickOptions(addCarMake.value ? makes[addCarMake.value] || [] : [], addCarMake.value ? 'Choose the model' : 'Choose the make first', addCarOtherModel.value);
+        addCarOtherModel.disabled = !addCarMake.value;
+      };
       var fillOtherLists = function () {
         var V = window.MT3UKVehicles;
         if (!V) return;
         V.load().then(function () {
           var makes = V[addCarType()] || {};
-          document.getElementById('mb-addcar-makes').innerHTML = Object.keys(makes).filter(function (m) { return m !== 'Tesla'; })
-            .map(function (m) { return '<option value="' + escapeHtml(m) + '">'; }).join('');
-          document.getElementById('mb-addcar-othermodels').innerHTML = (makes[addCarMake.value.trim()] || [])
-            .map(function (m) { return '<option value="' + escapeHtml(m) + '">'; }).join('');
+          addCarMake.innerHTML = pickOptions(Object.keys(makes).filter(function (m) { return m !== 'Tesla'; })
+            .sort(function (a, b) { return a.localeCompare(b); }), 'Choose the make', addCarMake.value);
+          fillOtherModels();
         });
       };
       // The form's words follow Car or bike (name, colour, the notes and the examples).
@@ -2683,8 +2695,6 @@ document.addEventListener('DOMContentLoaded', function () {
         var bike = otherMakeChosen() && addCarType() === 'bike';
         addCarForm.querySelectorAll('[data-vword]').forEach(function (el) { el.textContent = bike ? 'bike' : 'car'; });
         addCarForm.querySelectorAll('[data-vword-cap]').forEach(function (el) { el.textContent = bike ? 'Bike' : 'Car'; });
-        addCarMake.placeholder = bike ? 'e.g. Ducati' : 'e.g. Kia';
-        addCarOtherModel.placeholder = bike ? 'e.g. Panigale V4' : 'e.g. EV6 GT';
         document.getElementById('mb-addcar-caption').placeholder = bike ? 'e.g. Red Panigale V4' : 'e.g. Viper Green Model Y';
         if (!addCarSubmitBtn.disabled) addCarSubmitBtn.textContent = bike ? 'Add bike' : 'Add car';
       };
@@ -2703,7 +2713,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (e.target.name === 'model') showOtherMake();
         if (e.target.name === 'vehicleType') { fillOtherLists(); wordForType(); }
       });
-      addCarMake.addEventListener('input', fillOtherLists);
+      addCarMake.addEventListener('change', fillOtherModels);
       addCarForm.addEventListener('reset', function () { setTimeout(showOtherMake, 0); });
       // Driven wheels: worked out from the make, model, version and year picked (with the admin's defaults by
       // model), shown for the member to change; a bike has none.
@@ -2723,8 +2733,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (e.target.name === 'model' || e.target.name === 'makePick') addCarDriveTouched = false;
         fillAddDrive();
       });
-      addCarOtherModel.addEventListener('input', fillAddDrive);
-      addCarMake.addEventListener('input', fillAddDrive);
       addCarForm.addEventListener('reset', function () { addCarDriveTouched = false; setTimeout(fillAddDrive, 0); });
 
       addCarForm.addEventListener('submit', function (e) {
@@ -2738,6 +2746,8 @@ document.addEventListener('DOMContentLoaded', function () {
           if (files[i].size > 10 * 1024 * 1024) return setStatus(addCarStatus, 'Each photo must be under 10MB.', 'err');
         }
 
+        if (otherMakeChosen() && !addCarMake.value) return setStatus(addCarStatus, 'Please choose the make.', 'err');
+        if (otherMakeChosen() && !addCarOtherModel.value) return setStatus(addCarStatus, 'Please choose the model.', 'err');
         var addCarVersion = document.getElementById('mb-addcar-version');
         if (!otherMakeChosen() && addCarVersion.required && !MB.versionValue(addCarVersion)) return setStatus(addCarStatus, 'Please pick the version.', 'err');
         var formData = new FormData(addCarForm);

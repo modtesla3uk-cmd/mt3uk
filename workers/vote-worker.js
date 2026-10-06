@@ -8940,7 +8940,11 @@ async function addTrackFromRequest(env, req, opts) {
     venue = JSON.parse(JSON.stringify(existing));
     venue.layouts = (venue.layouts || []).slice();
     // A layout listed by hand with no line yet (and the same length, or the only one) is filled in, not copied.
+    // A member who named the layout (a different layout at a listed track) never fills one in by length: only a layout
+    // with no line and that very name is filled, otherwise theirs is a new layout beside the others.
+    var wantName = !sprint ? trackText(req.layoutName, 40).toLowerCase() : '';
     var fill = sprint ? (req.organizer ? venue.layouts.find(function (l) { return !l.startLine && String(l.organizer || l.name).toLowerCase() === req.organizer.toLowerCase(); }) : null)
+      : wantName ? venue.layouts.find(function (l) { return !l.startLine && String(l.name || '').toLowerCase() === wantName; }) || null
       : layoutByLength(venue.layouts.filter(function (l) { return !l.startLine; }), req.lapLength);
     if (fill) {
       fill.startLine = req.startLine;

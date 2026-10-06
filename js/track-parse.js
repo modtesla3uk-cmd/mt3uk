@@ -1065,7 +1065,10 @@
     }
     // A listed layout's own start line wins; the file's or the member's line is only a fallback.
     candidates.filter(function (c) { return c.layout; }).forEach(evalLine);
-    if (!choice) candidates.filter(function (c) { return !c.layout; }).forEach(evalLine);
+    // The member's own line comes before the one in the file: it is the one they marked, and it must not lose to the file's
+    // line because that happens to give a lap more.
+    if (!choice) candidates.filter(function (c) { return !c.layout && c.own; }).forEach(evalLine);
+    if (!choice) candidates.filter(function (c) { return !c.layout && !c.own; }).forEach(evalLine);
     // A track day needs no start line from the member: with none from the
     // track, the file or the member, the lap line is found from the trace (the
     // place on it that the car crosses most often, and fastest).

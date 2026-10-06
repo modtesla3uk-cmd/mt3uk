@@ -797,3 +797,19 @@ ok(T.fmtLap(99.786) === '1:39.79' && T.niceDate('2026-05-28') === '28 May 2026',
   const d5 = T.analyse(rd5, lib3, {});
   ok(!d5.needsStartLine, 'a track day with no layout pick is still timed from the lap line it finds');
 }
+// A line the member marked is used even when the line in the file would give a lap more.
+{
+  const lib5 = JSON.parse(JSON.stringify(lib));
+  const rdA = T.read(vbo, 'RaceBox_Track_Session.vbo');
+  const fileRes = T.analyse(T.read(vbo, 'RaceBox_Track_Session.vbo'), lib5, { newLayout: true });
+  const pr = T.projector(rdA.points[0].lat, rdA.points[0].lng);
+  let found = null;
+  for (let i = 40; i < rdA.points.length - 40 && !found; i += 25) {
+    const p0 = pr.xy(rdA.points[i].lat, rdA.points[i].lng), p1 = pr.xy(rdA.points[i + 8].lat, rdA.points[i + 8].lng);
+    const dx = p1[0] - p0[0], dy = p1[1] - p0[1], L = Math.hypot(dx, dy) || 1, nx = -dy / L * 12, ny = dx / L * 12;
+    const line = [pr.ll(p0[0] + nx, p0[1] + ny), pr.ll(p0[0] - nx, p0[1] - ny)];
+    const r2 = T.analyse(T.read(vbo, 'RaceBox_Track_Session.vbo'), lib5, { newLayout: true, startLine: line });
+    if (r2.laps && r2.laps.length && r2.laps.length < fileRes.laps.length) found = { line, r2 };
+  }
+  ok(found && found.r2.startLineFromMember === true && JSON.stringify(found.r2.startLine) === JSON.stringify(found.line), 'the member\'s own line is used even when the file\'s line would time more laps');
+}

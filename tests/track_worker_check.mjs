@@ -820,6 +820,18 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   r = await call('POST', '/track/courses', Object.assign({}, second, { startLine: [[51.3010, -0.7010], [51.3012, -0.7012]], layoutName: '' }), 'tok-a');
   ok(r.status === 200 && r.body.layoutId === 'blyton-park', 'with no layout name it is named for the track, as before');
 }
+// A named layout is never filled into the one line-less layout a track was listed with.
+{
+  await call('PUT', '/track/admin/tracks?key=secret', { venue: { id: 'abing-test', name: 'Abing Test', type: 'circuit', lat: 51.68, lng: -1.29, radius: 1500, layouts: [{ id: 'abing-test', name: 'Abing Test', length: 2000 }] } });
+  const named = { kind: 'circuit', name: 'Abing Test', venueId: 'abing-test', layoutName: 'Short Loop', startLine: [[51.6801, -1.2901], [51.6803, -1.2903]], lapLength: 1900, lat: 51.68, lng: -1.29, outline: [[51.68, -1.29], [51.681, -1.291]] };
+  r = await call('POST', '/track/courses', named, 'tok-a');
+  const av = r.body.library && r.body.library.venues.find(v => v.id === 'abing-test');
+  ok(r.status === 200 && r.body.layoutId === 'short-loop' && av && av.layouts.length === 2, 'a named layout is added beside the line-less one, not filled into it ' + JSON.stringify(r.body).slice(0, 140));
+  ok(av && av.layouts.find(l => l.id === 'abing-test' && !l.startLine && l.name === 'Abing Test') && av.layouts.find(l => l.id === 'short-loop' && l.name === 'Short Loop' && l.startLine), 'the first layout keeps its name and has no line; the new one has the member\'s name and line');
+  r = await call('POST', '/track/courses', Object.assign({}, named, { layoutName: 'Abing Test', startLine: [[51.6805, -1.2905], [51.6807, -1.2907]], lapLength: 2000 }), 'tok-a');
+  const av2 = r.body.library && r.body.library.venues.find(v => v.id === 'abing-test');
+  ok(r.status === 200 && r.body.layoutId === 'abing-test' && av2.layouts.length === 2 && av2.layouts.find(l => l.id === 'abing-test').startLine, 'a layout with no line and that very name is filled in');
+}
 // The admin makes the lines they just set the official ones from the Add a session page.
 {
   const course = { kind: 'sprint', name: 'Quick Course', organizer: 'A1', startLine: [[51.3, -0.8], [51.3002, -0.8002]], finishLine: [[51.31, -0.81], [51.3102, -0.8102]], lapLength: 700, lat: 51.3, lng: -0.8 };

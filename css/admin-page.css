@@ -620,3 +620,21 @@
 .lsu-table .iv-sub { display: block; margin-top: 3px; word-break: break-all; }
 .lsu-table .lsu-clear { padding: 5px 10px; font-size: 0.68rem; white-space: nowrap; }
 @media (max-width: 780px) { .lsu-table th:nth-child(1), .lsu-table td:nth-child(1), .lsu-table th:nth-child(4), .lsu-table td:nth-child(4) { display: none; } }
+
+  /* The ? beside a panel title or a control, and the popover it opens (js/admin-help.js). */
+  button.help-btn { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; min-width: 26px; min-height: 26px; box-sizing: border-box; line-height: 1; margin: 0 0 0 8px; padding: 0; vertical-align: middle; border: 1px solid var(--line-strong); border-radius: 50%; background: var(--card); color: var(--steel); cursor: pointer; flex: 0 0 auto; position: relative; }
+  button.help-btn::before { content: ""; position: absolute; inset: -9px; }
+  button.help-btn:hover, button.help-btn:focus-visible, button.help-btn[aria-expanded="true"] { background: var(--card); border-color: var(--orange); color: var(--orange); opacity: 1; }
+  .help-btn .icon { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+  summary.has-help { display: flex; align-items: center; gap: 8px; }
+  summary.has-help .help-btn { margin-left: auto; }
+  .help-pop { position: fixed; z-index: 90; box-sizing: border-box; width: 380px; max-width: calc(100vw - 16px); max-height: min(72vh, 540px); overflow: auto; padding: 14px 16px 14px; background: var(--card); color: var(--ink); border: 1px solid var(--line-strong); border-radius: 12px; box-shadow: 0 12px 32px rgba(22, 35, 61, 0.22); font-size: 0.78rem; line-height: 1.5; text-transform: none; letter-spacing: 0; }
+  .help-pop[hidden] { display: none; }
+  .help-title { margin: 0 28px 6px 0; font-size: 0.9rem; color: var(--ink); text-transform: none; letter-spacing: 0; }
+  .help-lead { margin: 0 0 8px; color: var(--ink); }
+  .help-list { margin: 0; }
+  .help-list dt { margin: 10px 0 2px; font-weight: 700; color: var(--ink); }
+  .help-list dd { margin: 0; color: var(--steel); }
+  button.help-close { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; min-width: 28px; min-height: 28px; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--steel); cursor: pointer; }
+  button.help-close:hover, button.help-close:focus-visible { background: var(--hover); color: var(--ink); opacity: 1; }
+  .help-close .icon { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }

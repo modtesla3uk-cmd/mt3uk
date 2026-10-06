@@ -638,3 +638,22 @@
   button.help-close { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; min-width: 28px; min-height: 28px; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--steel); cursor: pointer; }
   button.help-close:hover, button.help-close:focus-visible { background: var(--hover); color: var(--ink); opacity: 1; }
   .help-close .icon { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+/* Brake pads panel: each compound on its own line with its maker data; the edit form's rows wrap on a phone. */
+.pd-table .pd-comp { display: block; margin: 0 0 4px; }
+.pd-table .pd-line { display: inline; }
+.pd-table .pd-none { font-style: italic; }
+.pd-row { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 0.8fr) minmax(0, 0.7fr) minmax(0, 0.7fr) minmax(0, 2fr) auto; gap: 8px; align-items: end; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.pd-row label { display: grid; gap: 4px; font-size: 0.8rem; }
+@media (max-width: 780px) { .pd-row { grid-template-columns: 1fr 1fr; } .pd-row .pd-notes { grid-column: 1 / -1; } }
+/* Tyres panel, Maker data: one row per model. */
+.ty-info-row { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.3fr) minmax(0, 0.95fr) minmax(0, 1fr) minmax(0, 0.8fr) minmax(0, 0.95fr) minmax(0, 1.4fr); gap: 8px; align-items: end; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.ty-info-row label { display: grid; gap: 4px; font-size: 0.8rem; }
+.ty-info-name { align-self: center; }
+@media (max-width: 780px) { .ty-info-row { grid-template-columns: 1fr 1fr; } .ty-info-row .ty-info-name, .ty-info-row .ty-info-notes { grid-column: 1 / -1; } }
+.pd-row input, .pd-row select, .ty-info-row input, .ty-info-row select { width: 100%; min-width: 0; box-sizing: border-box; min-height: 38px; }
+.ty-info-row label, .pd-row label { min-width: 0; }
+/* Vehicles panel: kerb weight beside a model's name, and on a variant that differs. */
+.vh-weight { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--steel); }
+.vh-weight .vh-mweight { width: 110px; min-height: 40px; font: inherit; }
+.vh-vrow .vh-vweight { flex: 0 1 120px; min-height: 40px; font: inherit; }
+@media (max-width: 780px) { .vh-vrow .vh-vweight { order: 4; flex: 1 1 100%; min-height: 44px; font-size: 16px; } .vh-weight { flex: 1 1 100%; } .vh-weight .vh-mweight { flex: 1; min-height: 44px; font-size: 16px; } }

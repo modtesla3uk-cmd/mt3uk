@@ -1,0 +1,15 @@
+{
+  "_note": "Brake pads for Track sessions (the Add page's Brake pads drop-downs, Compare pads on the leaderboard). Makes with their compounds, and for each compound what its maker publishes: its intended use, its friction level (mu) and its working temperature range in degrees C. Leave a figure out rather than guess it. Edit them on the Brake pads panel of track-admin.html, which stores its changes on top of this file.",
+  "uses": ["Road", "Fast road", "Track day", "Endurance", "Race"],
+  "makes": [
+    { "name": "Original equipment", "compounds": [{ "name": "Standard pads", "use": "Road" }] },
+    { "name": "Carbotech", "compounds": [{ "name": "XP8" }, { "name": "XP10" }, { "name": "XP12" }] },
+    { "name": "EBC", "compounds": [{ "name": "Greenstuff" }, { "name": "Redstuff" }, { "name": "Yellowstuff" }, { "name": "Bluestuff" }] },
+    { "name": "Endless", "compounds": [{ "name": "ME20" }, { "name": "MX72" }] },
+    { "name": "Ferodo", "compounds": [{ "name": "DS2500" }, { "name": "DS1.11" }, { "name": "DS3.12" }, { "name": "DSUNO" }] },
+    { "name": "Hawk", "compounds": [{ "name": "HP+" }, { "name": "DTC-60" }, { "name": "DTC-70" }] },
+    { "name": "Mintex", "compounds": [{ "name": "M1144" }, { "name": "M1155" }] },
+    { "name": "Pagid", "compounds": [{ "name": "RS29" }, { "name": "RSL19" }, { "name": "RSL29" }] },
+    { "name": "Performance Friction", "compounds": [{ "name": "08" }, { "name": "11" }] }
+  ]
+}

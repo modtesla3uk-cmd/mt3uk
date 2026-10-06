@@ -350,6 +350,39 @@
   @media (min-width: 781px) { .lb-selects { grid-template-columns: repeat(3, minmax(0, 220px)) auto; } }
   .lb-sel { display: grid; gap: 4px; font-size: 0.8rem; color: var(--steel); }
   .lb-sel .field { min-height: 44px; }
+  /* Compare tyres and Compare pads */
+  .lb-views { margin: 0 0 12px; }
+  .lb-views .chip { min-height: 44px; }
+  @media (min-width: 781px) { .lb-selects:has(#lb-drive) { grid-template-columns: repeat(4, minmax(0, 200px)) auto; } }
+  .lb-cmp { padding: 16px 18px; margin: 0 0 14px; }
+  .lb-cmp h3 { margin: 0 0 4px; font-size: 1.08rem; }
+  .lb-cmp > .tp-small { margin: 0 0 10px; }
+  .lb-cmp-list { display: grid; }
+  .lb-cmp-row { display: grid; grid-template-columns: minmax(0, 2.4fr) 0.9fr repeat(var(--cols, 2), minmax(0, 0.9fr)) 0.9fr; gap: 6px 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--hairline); }
+  .lb-cmp-list.is-pads .lb-cmp-row { --cols: 4; }
+  .lb-cmp-row:last-child { border-bottom: 0; }
+  .lb-cmp-name { display: grid; gap: 2px; min-width: 0; }
+  .lb-cmp-name small, .lb-cmp-t small, .lb-pair small { color: var(--steel); font-size: 0.78rem; }
+  .lb-cmp-t { display: grid; }
+  .lb-cmp-t b, .lb-cmp-gap { font-variant-numeric: tabular-nums; }
+  .lb-cmp-gap { font-weight: 700; color: var(--steel); text-align: right; }
+  .lb-cmp-gap.is-quickest { color: #1c8a4b; }
+  .lb-few { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: #fdf0e3; color: #b8421f; font-size: 0.72rem; font-weight: 600; }
+  .lb-hot { color: #b8421f; }
+  .lb-cmp-warn { grid-column: 1 / -1; margin: 0; color: #b8421f; font-size: 0.82rem; }
+  .lb-cmp-empty { margin: 4px 0; color: var(--steel); }
+  .lb-cmp-note { margin: 10px 0 0; }
+  .lb-pair { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 14px; padding: 10px 0; border-bottom: 1px solid var(--hairline); }
+  .lb-pair:last-child { border-bottom: 0; }
+  .lb-pair-who { display: grid; gap: 2px; min-width: 0; }
+  .lb-pair-res { display: grid; text-align: right; }
+  .lb-pair-res b { color: #1c8a4b; font-variant-numeric: tabular-nums; }
+  @media (max-width: 780px) {
+    .lb-cmp-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .lb-cmp-name { grid-column: 1 / -1; }
+    .lb-cmp-n { grid-column: 1 / -1; color: var(--steel); font-size: 0.85rem; }
+    .lb-cmp-gap { text-align: left; }
+  }
   .lb-count { margin: 0 0 8px; }
   .lb-card { padding: 4px 0; }
   .lb-list { list-style: none; margin: 0; padding: 0; }
@@ -579,9 +612,10 @@
 
 <script src="js/track-parse.js?v=20270121" defer></script>
 <script src="js/track-view.js?v=20270110" defer></script>
-<script src="js/tyre-data.js" defer></script>
-<script src="js/vehicle-data.js?v=20270109" defer></script>
-<script src="js/leaderboard-page.js?v=20270124" defer></script>
+<script src="js/tyre-data.js?v=20270210" defer></script>
+<script src="js/pad-data.js?v=20270210" defer></script>
+<script src="js/vehicle-data.js?v=20270210" defer></script>
+<script src="js/leaderboard-page.js?v=20270210" defer></script>
 <script src="js/laps-tip.js?v=20270102" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=13" defer></script>

@@ -502,6 +502,90 @@
     });
     preview();
   }
+  // Brake pads: front and rear, each a make and a compound from the pad list (data/pads.json and the admin's changes,
+  // js/pad-data.js), with Same pads on the rear (on unless the two differ). The Add page fills them in from the car's
+  // brakes in My Garage; what is picked is saved with the session only, never back to the garage.
+  var PD = window.MT3UKPads;
+  function loadPads() { return PD ? PD.load().catch(function () {}) : Promise.resolve(); }
+  function padInit(s) {
+    s = s || {};
+    var p = { fm: s.padFrontMake || '', fc: s.padFrontCompound || '', rm: s.padRearMake || '', rc: s.padRearCompound || '' };
+    p.same = !(p.rm || p.rc) || (p.rm === p.fm && p.rc === p.fc);
+    return p;
+  }
+  // The car's pads from its My Garage brakes ("Pagid RSL29" in Front pads), as far as the pad list knows them.
+  function carPads(car) {
+    var f = car && car.specs && car.specs.brakes && car.specs.brakes.fields;
+    if (!PD || !f) return null;
+    var fr = PD.parse(f.frontPads || f.pads || ''), rr = PD.parse(f.rearPads || f.frontPads || f.pads || '');
+    if (!fr.make && !rr.make) return null;
+    var p = { fm: fr.make, fc: fr.compound, rm: rr.make, rc: rr.compound };
+    p.same = p.rm === p.fm && p.rc === p.fc;
+    return p;
+  }
+  function padSelects(pre, side, make, compound, off) {
+    var known = !!(make && PD.makes[make]);
+    var makeOpts = '<option value="">Not set</option>' + Object.keys(PD.makes).map(function (m) { return '<option value="' + esc(m) + '"' + (m === make ? ' selected' : '') + '>' + esc(m) + '</option>'; }).join('') +
+      (make && !known ? '<option value="' + esc(make) + '" selected>' + esc(make) + '</option>' : '');
+    var comps = known ? PD.compounds(make) : (compound ? [compound] : []);
+    if (compound && comps.indexOf(compound) === -1) comps = comps.concat([compound]);
+    var compOpts = '<option value="">' + (make ? 'Choose the compound' : 'Choose the make first') + '</option>' + comps.map(function (c) { return '<option value="' + esc(c) + '"' + (c === compound ? ' selected' : '') + '>' + esc(c) + '</option>'; }).join('');
+    var label = side === 'front' ? 'Front pads' : 'Rear pads';
+    return '<div class="tp-f2 tp-pad-row" data-pad-side="' + side + '"' + (off ? ' hidden' : '') + '>' +
+      '<div class="tp-field"><label for="' + pre + '-' + side + '-make">' + label + ', make</label><select class="field" id="' + pre + '-' + side + '-make">' + makeOpts + '</select></div>' +
+      '<div class="tp-field"><label for="' + pre + '-' + side + '-comp">' + label + ', compound</label><select class="field" id="' + pre + '-' + side + '-comp"' + (make ? '' : ' disabled') + '>' + compOpts + '</select></div>' +
+      '<p class="tp-small tp-pad-maker" id="' + pre + '-' + side + '-maker"></p></div>';
+  }
+  function padFields(pre, p, note) {
+    if (!PD) return '';
+    p = p || { same: true };
+    return '<div class="tp-pads"><span class="tp-lbl">Brake pads</span>' + (note ? '<p class="tp-src">' + icon('info') + '<span>' + note + '</span></p>' : '') +
+      padSelects(pre, 'front', p.fm, p.fc, false) +
+      '<button type="button" class="tp-switch tp-pad-same" role="switch" id="' + pre + '-same" aria-checked="' + (p.same !== false) + '"><span>Same pads on the rear</span><span class="tp-track"></span></button>' +
+      padSelects(pre, 'rear', p.same !== false ? p.fm : p.rm, p.same !== false ? p.fc : p.rc, p.same !== false) +
+      '<p class="tp-small">Not on the list? <a href="contact.html">Tell us</a> and we&rsquo;ll add it.</p></div>';
+  }
+  function readPads(pre) {
+    var fm = document.getElementById(pre + '-front-make');
+    if (!fm || !PD) return null;
+    function v(id) { var el = document.getElementById(pre + '-' + id); return el ? el.value : ''; }
+    var same = document.getElementById(pre + '-same').getAttribute('aria-checked') === 'true';
+    var p = { fm: v('front-make'), fc: v('front-comp') };
+    p.rm = same ? p.fm : v('rear-make'); p.rc = same ? p.fc : v('rear-comp'); p.same = same;
+    return p;
+  }
+  function padPayload(p) {
+    p = p || {};
+    return { padFrontMake: p.fm || '', padFrontCompound: p.fc || '', padRearMake: p.rm || '', padRearCompound: p.rc || '' };
+  }
+  function wirePads(pre) {
+    if (!PD || !document.getElementById(pre + '-front-make')) return;
+    function maker(side) {
+      var m = document.getElementById(pre + '-' + side + '-make').value, c = document.getElementById(pre + '-' + side + '-comp').value;
+      var line = PD.makerLine(PD.info(m, c)), el = document.getElementById(pre + '-' + side + '-maker');
+      if (el) el.textContent = line ? "Maker's figures: " + line : '';
+    }
+    ['front', 'rear'].forEach(function (side) {
+      var mk = document.getElementById(pre + '-' + side + '-make'), cp = document.getElementById(pre + '-' + side + '-comp');
+      mk.addEventListener('change', function () {
+        var list = PD.compounds(mk.value);
+        cp.innerHTML = '<option value="">' + (mk.value ? 'Choose the compound' : 'Choose the make first') + '</option>' + list.map(function (c) { return '<option value="' + esc(c) + '">' + esc(c) + '</option>'; }).join('');
+        // A make with one compound (the car's original pads) is picked for them.
+        if (list.length === 1) cp.value = list[0];
+        cp.disabled = !mk.value;
+        maker(side);
+      });
+      cp.addEventListener('change', function () { maker(side); });
+      maker(side);
+    });
+    var same = document.getElementById(pre + '-same');
+    same.addEventListener('click', function () {
+      var on = same.getAttribute('aria-checked') !== 'true';
+      same.setAttribute('aria-checked', String(on));
+      var rear = document.querySelector('[data-pad-side="rear"]');
+      if (rear) rear.hidden = on;
+    });
+  }
   // Force refresh: for a page that looks out of date. Fetches the page's own scripts, styles and the track list afresh
   // (past the browser's and the network's copies), clears the stored copies of the site's service worker (never the
   // worker itself, which also carries push notifications), then loads the page again, so what the member sees is what
@@ -529,6 +613,7 @@
     // everything chosen or typed so far.
     if (params().get('add') && add && add.session && document.getElementById('tp-result')) {
       var ty = readTyre('tp-tyre'); if (ty) { var nt = TY.compose(ty); if (add.tyrePre && nt !== add.tyres) add.tyrePre = false; add.tyre = ty; add.tyres = nt; }
+      var pd0 = readPads('tp-pad'); if (pd0) add.pads = pd0;
       var ne = document.getElementById('tp-notes'); if (ne) add.notes = ne.value.trim();
       var te = document.getElementById('tp-temp');
       if (te) { var tv = te.value.trim() === '' ? null : parseFloat(te.value); if (tv !== add.temp) { add.temp = tv; add.tempSource = tv == null ? '' : 'member'; add.weather = null; } }
@@ -1070,7 +1155,7 @@
   function showAdd(carId) {
     if (!token()) { location.href = signInUrl('/track.html?add=1'); return; }
     loading();
-    Promise.all([getMine(), getLibrary(), isAdmin(), loadTyres()]).then(function (r) {
+    Promise.all([getMine(), getLibrary(), isAdmin(), loadTyres(), loadPads()]).then(function (r) {
       var m = r[0];
       if (!m) { location.href = signInUrl('/track.html?add=1'); return; }
       if (m.gate) return showGate();
@@ -1084,6 +1169,9 @@
       var lt = lastTyre(m, car.id);
       // The tyres start empty; the car's last ones are offered with a button.
       add.lastTyre = lt || null;
+      // The pads start as the car's brakes in My Garage.
+      var cp = carPads(car);
+      add.pads = cp || { same: true }; add.padsFromCar = !!cp;
       drawAdd();
     }).catch(function () { failed('Could not load your cars. Check your connection and try again.'); });
   }
@@ -1575,6 +1663,7 @@
     } else if (saveable) {
       h += '<div class="tp-field"><span class="tp-lbl">Conditions</span><div class="tp-chips" data-cond>' + ['Dry', 'Damp', 'Wet'].map(function (c) { return '<button type="button" class="chip' + (a.conditions === c ? ' is-on' : '') + '" data-v="' + c + '">' + c + '</button>'; }).join('') + '</div></div>' +
         tyreFields('tp-tyre', a.tyre) + (a.tyrePre && a.tyre ? '<p class="tp-small tp-tyre-note">Filled in from your last session with this ' + VW + '. Change it if it is different.</p>' : (a.lastTyre && !(a.tyre && (a.tyre.make || a.tyre.model || a.tyre.w)) ? '<p class="tp-small tp-tyre-note" id="tp-tyre-offer">Same tyres as last time (' + esc(TY.compose(a.lastTyre)) + ')? <button type="button" class="btn btn-secondary btn-sm" id="tp-use-last-tyres">Use previous tyres</button></p>' : '')) +
+        padFields('tp-pad', a.pads, a.padsFromCar ? 'Filled in from ' + esc(a.car ? a.car.name : 'your car') + ' in My Garage. Change them if you ran something different on this day; your garage is not changed.' : '') +
         driveFields(a) + '<div class="tp-field"><label for="tp-temp">Air temperature (°C)</label><input class="field" id="tp-temp" inputmode="numeric" placeholder="18" value="' + esc(a.temp == null ? '' : a.temp) + '"></div>' +
         (a.tempSource === 'weather' && a.weather ? '<p class="tp-src" id="tp-temp-src">' + icon('info') + '<span>' + weatherNote(a.weather, s.venue) + (a.condTouched ? '' : ' Conditions set to match. Change them if the track was different.') + '</span></p>'
           : a.tempSource === 'file' ? '<p class="tp-src" id="tp-temp-src">' + icon('info') + '<span>From the air temperature recorded in your file.</span></p>' : '') +
@@ -1630,6 +1719,7 @@
       if (g) g.addEventListener('click', function (e) { var b = e.target.closest('button[data-v]'); if (b && !b.disabled) fn(b.getAttribute('data-v')); });
     }
     function keep() {
+      var pd = readPads('tp-pad'); if (pd) { a.pads = pd; }
       var ty = readTyre('tp-tyre');
       if (ty) { var nt2 = TY.compose(ty); if (a.tyrePre && nt2 !== a.tyres) a.tyrePre = false; a.tyre = ty; a.tyres = nt2; }
       ['temp', 'notes', 'venue-name', 'layout-name'].forEach(function (k) {
@@ -1732,6 +1822,7 @@
     var st = document.getElementById('tp-street');
     if (st) st.addEventListener('click', function () { keep(); a.street = !a.street; if (a.street) a.privacy = 'private'; drawResult(); });
     wireTyres('tp-tyre');
+    wirePads('tp-pad');
     var save = document.getElementById('tp-save');
     if (save) save.addEventListener('click', function () {
       keep();
@@ -1957,7 +2048,7 @@
   }
   // What the worker is sent to save one session, with the settings chosen for the upload.
   function postBody(a, carId, sess) {
-    return { carId: carId, session: sess, drive: a.drive || '', conditions: a.conditions, tyres: a.tyres || '', tyreMake: (a.tyre && a.tyre.make) || '', tyreModel: (a.tyre && a.tyre.model) || '', tyreWidth: (a.tyre && a.tyre.w) || null, tyreProfile: (a.tyre && a.tyre.p) || null, tyreRim: (a.tyre && a.tyre.d) || null, temp: a.temp, tempSource: a.temp == null ? '' : (a.tempSource || 'member'), weather: a.tempSource === 'weather' ? a.weather : null, notes: a.notes || '', privacy: a.privacy, venueName: a.venueName || '', street: a.street, adminViewer: a.street ? adminViewerToken() : '' };
+    return Object.assign(padPayload(a.pads), { carId: carId, session: sess, drive: a.drive || '', conditions: a.conditions, tyres: a.tyres || '', tyreMake: (a.tyre && a.tyre.make) || '', tyreModel: (a.tyre && a.tyre.model) || '', tyreWidth: (a.tyre && a.tyre.w) || null, tyreProfile: (a.tyre && a.tyre.p) || null, tyreRim: (a.tyre && a.tyre.d) || null, temp: a.temp, tempSource: a.temp == null ? '' : (a.tempSource || 'member'), weather: a.tempSource === 'weather' ? a.weather : null, notes: a.notes || '', privacy: a.privacy, venueName: a.venueName || '', street: a.street, adminViewer: a.street ? adminViewerToken() : '' });
   }
   // The layouts of the circuit this session is at, to pick from. The one found from the GPS is picked already; a
   // member whose layout was not found (or wrongly found) picks it, or says it is a different one, which is then added
@@ -2231,7 +2322,7 @@
       if (!src.p || !m) throw new Error(sourceError(src));
       var car = m.cars.filter(function (c) { return c.id === s.carId; })[0] || m.cars[0];
       VW = vwOf(car);
-      add = { car: car, drive: (car && car.drive) || '', cars: m.cars, lib: r[2], admin: r[3], rd: restoreSource(src), session: null, type: type, hill: !!hill, startLine: null, conditions: s.conditions || 'Dry', condTouched: true, privacy: s.privacy, street: false, tyres: s.tyres || '', tyre: tyreInit(s), temp: s.temp, tempSource: s.tempSource || '', weather: s.weather || null, notes: s.notes || '', date: s.date, time: s.time, venueName: s.venueId ? '' : s.venue, replaceId: s.id, files: null, list: null };
+      add = { car: car, drive: (car && car.drive) || '', cars: m.cars, lib: r[2], admin: r[3], rd: restoreSource(src), session: null, type: type, hill: !!hill, startLine: null, conditions: s.conditions || 'Dry', condTouched: true, privacy: s.privacy, street: false, tyres: s.tyres || '', tyre: tyreInit(s), pads: padInit(s), temp: s.temp, tempSource: s.tempSource || '', weather: s.weather || null, notes: s.notes || '', date: s.date, time: s.time, venueName: s.venueId ? '' : s.venue, replaceId: s.id, files: null, list: null };
       add.layoutPick = layoutId || ''; add.relayout = !!layoutId;
       analyse();
       window.scrollTo(0, 0);
@@ -2473,7 +2564,7 @@
       VW = vwOf(car);
       add = { car: car, drive: (car && car.drive) || '', cars: m.cars, lib: r[2], admin: false, rd: restoreSource(src), session: null, type: s.type, startLine: s.startLine || null, finishLine: s.type === 'sprint' ? (s.finishLine || null) : null,
         editLines: true, confirmLines: false, lineEdit: true, organizer: s.organizer || '', ignoreFinish: s.ignoreFinish !== false, finishCross: s.finishCrossing || 0, rollout: !!s.rollout,
-        conditions: s.conditions || 'Dry', condTouched: true, privacy: s.privacy, street: false, tyres: s.tyres || '', tyre: tyreInit(s), temp: s.temp, tempSource: s.tempSource || '', weather: s.weather || null,
+        conditions: s.conditions || 'Dry', condTouched: true, privacy: s.privacy, street: false, tyres: s.tyres || '', tyre: tyreInit(s), pads: padInit(s), temp: s.temp, tempSource: s.tempSource || '', weather: s.weather || null,
         notes: s.notes || '', date: s.date, time: s.time, venueName: s.venueId ? '' : s.venue, replaceId: s.id, files: null, list: null,
         oldLines: { startLine: s.startLine || null, finishLine: s.type === 'sprint' ? (s.finishLine || null) : null, time: s.bestTime || null } };
       analyse();
@@ -2529,7 +2620,7 @@
   var view = null;
   function showSession(id) {
     loading();
-    Promise.all([api('GET', '/track/session?id=' + encodeURIComponent(id)), getMine().catch(function () { return null; }), loadTyres(), getLibrary().catch(function () { return null; })]).then(function (r) {
+    Promise.all([api('GET', '/track/session?id=' + encodeURIComponent(id)), getMine().catch(function () { return null; }), loadTyres(), getLibrary().catch(function () { return null; }), loadPads()]).then(function (r) {
       var d = r[0];
       if (!d.success) return failed('This session isn\'t available. It may be private or removed.');
       if (!d.session.hasSource && d.session.readingsRefused && !d.session.readingsMessage) d.session.readingsMessage = d.session.readingsRefused.message;
@@ -2556,7 +2647,7 @@
     var place = s.mine && view.mine ? dayPlace(s, view.mine.sessions) : null;
     var h = (justSaved && s.mine ? savedHtml(justSaved) : '') + back(s.mine ? 'Your sessions' : 'Back', s.mine ? '' : (s.carId ? 'car=' + encodeURIComponent(s.carId) : ''));
     if (s.adminView) h += '<p class="tp-admin-banner" id="tp-admin-banner">' + icon('lock') + 'Admin view, read only. This is a private session and this view is logged. Notes are not shown.</p>';
-    h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '</h2>' + (s.ownerName ? '<p class="tp-by" id="tp-by">' + icon('user') + '<span>Session by <b>' + esc(s.ownerName) + '</b>' + (s.mine ? ' (you)' : '') + '</span></p>' : '') + '<p class="tp-sub">' + (s.type === 'sprint' ? '<b id="tp-kind">' + (isHillSession(s, library) ? 'Hill climb' : 'Sprint') + '</b> &middot; ' : '') + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (place ? ' &middot; <b id="tp-day-place">Session ' + place.n + ' of ' + place.of + ' that day</b>' : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + (s.drive ? ' &middot; ' + esc(s.drive) : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + '</p>' + (s.fileName && (s.mine || s.adminView) ? '<p class="tp-small tp-filename" id="tp-filename">' + icon('file') + 'File: ' + esc(s.fileName) + '</p>' : '') + (s.mine || s.adminView ? '<p class="tp-small tp-sid" id="tp-sid">Session ID: <code id="tp-sid-text">' + esc(s.id) + '</code> <button type="button" class="btn btn-ghost btn-sm" id="tp-sid-copy" aria-label="Copy the session ID">' + icon('copy') + '<span>Copy</span></button></p>' : '') + '</div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) + '<span id="tp-rank-slot"></span>' : '') + refreshChip() + unitsChip() + (s.street || s.privacy === 'private' ? '' : shareDot('Share this session')) + '</div></div>';
+    h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '</h2>' + (s.ownerName ? '<p class="tp-by" id="tp-by">' + icon('user') + '<span>Session by <b>' + esc(s.ownerName) + '</b>' + (s.mine ? ' (you)' : '') + '</span></p>' : '') + '<p class="tp-sub">' + (s.type === 'sprint' ? '<b id="tp-kind">' + (isHillSession(s, library) ? 'Hill climb' : 'Sprint') + '</b> &middot; ' : '') + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (place ? ' &middot; <b id="tp-day-place">Session ' + place.n + ' of ' + place.of + ' that day</b>' : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + (s.drive ? ' &middot; ' + esc(s.drive) : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + (s.pads ? ' &middot; <span id="tp-pads-line">Pads: ' + esc(s.pads) + '</span>' : '') + '</p>' + (s.fileName && (s.mine || s.adminView) ? '<p class="tp-small tp-filename" id="tp-filename">' + icon('file') + 'File: ' + esc(s.fileName) + '</p>' : '') + (s.mine || s.adminView ? '<p class="tp-small tp-sid" id="tp-sid">Session ID: <code id="tp-sid-text">' + esc(s.id) + '</code> <button type="button" class="btn btn-ghost btn-sm" id="tp-sid-copy" aria-label="Copy the session ID">' + icon('copy') + '<span>Copy</span></button></p>' : '') + '</div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) + '<span id="tp-rank-slot"></span>' : '') + refreshChip() + unitsChip() + (s.street || s.privacy === 'private' ? '' : shareDot('Share this session')) + '</div></div>';
     LW = s.type === 'sprint' ? 'Run' : 'Lap';
     // Timed with older code and no readings kept to work it out again: only uploading the file again updates it.
     if (s.mine && !s.hasSource && s.type !== 'other' && (s.analysisVersion || 1) < T.ANALYSIS_VERSION) h += '<p class="tp-notice" id="tp-old-version">' + icon('info') + '<span>Timed with an older version. Upload the file again to update the times.</span></p>';
@@ -3810,7 +3901,7 @@
     return '<div class="tp-section" id="settings"><div class="tp-head"><h2>Session settings</h2></div><div class="card tp-fields">' + addDayBox + typeBox + relayoutBox + splitBox +
       '<div class="tp-field"><span class="tp-lbl">Who can see it</span><div class="tp-privacy" data-privacy>' + privacyOptions(s.privacy, limit) + '</div></div>' +
       '<div class="tp-field"><span class="tp-lbl">Conditions</span><div class="tp-chips" data-cond>' + ['Dry', 'Damp', 'Wet'].map(function (c) { return '<button type="button" class="chip' + (s.conditions === c ? ' is-on' : '') + '" data-v="' + c + '">' + c + '</button>'; }).join('') + '</div></div>' +
-      tyreFields('tp-e-tyre', tyreInit(s)) +
+      tyreFields('tp-e-tyre', tyreInit(s)) + padFields('tp-e-pad', padInit(s), '') +
       '<div class="tp-field"><label for="tp-e-temp">Air temperature (°C)</label><input class="field" id="tp-e-temp" inputmode="numeric" value="' + esc(s.temp == null ? '' : s.temp) + '"></div>' +
       '<div class="tp-weather-row"><button type="button" class="btn btn-secondary btn-sm" id="tp-e-weather">Fill in from weather</button><p class="tp-src" id="tp-e-src">' + (s.tempSource === 'weather' && s.weather ? icon('info') + '<span>' + weatherNote(s.weather, s.venue) + '</span>' : s.tempSource === 'file' ? icon('info') + '<span>From the air temperature recorded in your file.</span>' : '') + '</p></div>' +
       '<div class="tp-field"><label for="tp-e-notes">Notes (only you see these)</label><input class="field" id="tp-e-notes" value="' + esc(s.notes || '') + '"></div>' +
@@ -3838,6 +3929,7 @@
   function wireOwner(s) {
     var edit = { privacy: s.privacy, conditions: s.conditions, tempSource: s.tempSource || '', weather: s.weather || null, temp: s.temp };
     wireTyres('tp-e-tyre');
+    wirePads('tp-e-pad');
     var tempEl = document.getElementById('tp-e-temp');
     tempEl.addEventListener('input', function () { edit.tempSource = tempEl.value.trim() === '' ? '' : 'member'; edit.weather = null; document.getElementById('tp-e-src').innerHTML = ''; });
     document.getElementById('tp-e-weather').addEventListener('click', function () {
@@ -3900,13 +3992,13 @@
     function closeSession() { goBack(''); }
     function saveSettings() {
       var t = document.getElementById('tp-e-temp').value.trim();
-      var ty = tyrePayload(readTyre('tp-e-tyre'));
-      api('PUT', '/track/session', Object.assign({ id: s.id, privacy: edit.privacy, conditions: edit.conditions || '' }, ty, { temp: t === '' ? null : parseFloat(t), tempSource: t === '' ? '' : (edit.tempSource || 'member'), weather: edit.tempSource === 'weather' ? edit.weather : null, notes: document.getElementById('tp-e-notes').value })).then(function (d) {
+      var ty = tyrePayload(readTyre('tp-e-tyre')), pd = padPayload(readPads('tp-e-pad'));
+      api('PUT', '/track/session', Object.assign({ id: s.id, privacy: edit.privacy, conditions: edit.conditions || '' }, ty, pd, { temp: t === '' ? null : parseFloat(t), tempSource: t === '' ? '' : (edit.tempSource || 'member'), weather: edit.tempSource === 'weather' ? edit.weather : null, notes: document.getElementById('tp-e-notes').value })).then(function (d) {
         if (!d.success) { status(d.message || 'Could not save.', 'error'); return; }
         mine = null; counts = null;
         // The worker's summary has the tyre make and model but not the size, so the size is what was just sent: without it the
         // width, profile and diameter drop-downs came back empty after Save and looked unsaved.
-        Object.assign(view.s, { privacy: d.session.privacy, conditions: d.session.conditions, tyres: d.session.tyres, tyreMake: d.session.tyreMake, tyreModel: d.session.tyreModel, tyreWidth: ty.tyreWidth, tyreProfile: ty.tyreProfile, tyreRim: ty.tyreRim, temp: d.session.temp, tempSource: d.session.tempSource, weather: d.session.weather, notes: document.getElementById('tp-e-notes').value });
+        Object.assign(view.s, { privacy: d.session.privacy, conditions: d.session.conditions, tyres: d.session.tyres, tyreMake: d.session.tyreMake, tyreModel: d.session.tyreModel, tyreWidth: ty.tyreWidth, tyreProfile: ty.tyreProfile, tyreRim: ty.tyreRim, pads: d.session.pads || '', padFrontMake: pd.padFrontMake, padFrontCompound: pd.padFrontCompound, padRearMake: pd.padRearMake, padRearCompound: pd.padRearCompound, temp: d.session.temp, tempSource: d.session.tempSource, weather: d.session.weather, notes: document.getElementById('tp-e-notes').value });
         dirty = false;
         getMine().then(function (m) { view.mine = m; drawSession(); status('Saved.', 'ok'); });
       });
@@ -3955,7 +4047,7 @@
       if (s.organizer) opts.organizer = s.organizer;
       if (s.finishCrossing) opts.finishCrossing = s.finishCrossing;
       if (s.startLineFromMember && s.startLine) { opts.startLine = s.startLine; if (s.finishLine) opts.finishLine = s.finishLine; }
-      var settings = { conditions: s.conditions || '', tyres: s.tyres || '', tyre: tyreInit(s), temp: s.temp, tempSource: s.tempSource || '', weather: s.weather || null, notes: s.notes || '', privacy: s.privacy, venueName: s.venueId ? '' : s.venue, street: false };
+      var settings = { conditions: s.conditions || '', tyres: s.tyres || '', tyre: tyreInit(s), pads: padInit(s), temp: s.temp, tempSource: s.tempSource || '', weather: s.weather || null, notes: s.notes || '', privacy: s.privacy, venueName: s.venueId ? '' : s.venue, street: false };
       var made = [], skipped = [], chain = Promise.resolve();
       order.forEach(function (k, i) {
         chain = chain.then(function () {

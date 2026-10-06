@@ -215,12 +215,15 @@
       var m = merge(r[0], r[1] && r[1].extra);
       api.car = m.car; api.bike = m.bike; api.versions = m.versions; api.versionRules = m.versionRules; api.loaded = true;
       api.drives = (r[1] && r[1].extra && r[1].extra.drives) || {};
+      api.weights = Object.assign({}, (r[0] && r[0].weights) || {}, (r[1] && r[1].extra && r[1].extra.weights) || {});
       return api;
     });
     return loading;
   }
 
   var api = { car: {}, bike: {}, versions: { car: {}, bike: {} }, versionRules: { car: {}, bike: {} }, drives: {}, loaded: false, merge: merge, load: load, title: title, modelKey: modelKey, modelInName: modelInName, versionsFor: versionsFor, versionRule: versionRule, DRIVES: DRIVES,
-    drive: function (v, defaults) { return driveWith(v, defaults === undefined ? api.drives : defaults); }, driveRule: driveFor, driveKey: driveModelKey, driveVariantKey: driveVariantKey };
+    drive: function (v, defaults) { return driveWith(v, defaults === undefined ? api.drives : defaults); }, driveRule: driveFor, driveKey: driveModelKey, driveVariantKey: driveVariantKey,
+    // The kerb weight (kg) of a vehicle: its variant's, else its model's, from the Vehicles panel; null when not set.
+    weights: {}, weight: function (v) { var w = api.weights || {}; return w[driveVariantKey(v)] || w[driveModelKey(v)] || null; } };
   root.MT3UKVehicles = api;
 })(typeof window !== 'undefined' ? window : globalThis);

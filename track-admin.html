@@ -214,6 +214,13 @@
       <h3 class="sub-head">Sizes</h3>
       <div id="ty-sizes"></div>
     </details>
+    <details class="collapsible" id="pads-wrap">
+      <summary><h3 class="panel-title">Brake pads <span class="summary-count" id="pads-count"></span></h3></summary>
+      <p class="iv-note">The brake pad makes and compounds members pick from on the Add page, and for each compound what its maker publishes: its use, friction level (μ) and working temperature range. Compare pads on the leaderboard shows these as the maker's figures beside what Laps has measured. data/pads.json is the starting list; changes made here are stored by the worker on top of it and used straight away.</p>
+      <p class="iv-note" id="pd-note" role="status"></p>
+      <div class="tk-form" id="pd-form" hidden></div>
+      <div id="pd-list"></div>
+    </details>
     <details class="collapsible" id="vehicles-wrap">
       <summary><h3 class="panel-title">Vehicles <span class="summary-count" id="vehicles-count"></span></h3></summary>
       <p class="iv-note">The vehicle makes and models offered when a car or bike is added. The Model box suggests a make's models and members can still type anything. data/vehicles.json is the starting list; changes made here are stored by the worker on top of it and used straight away. A make is a car or a bike, and the same name can be both. Edit renames a make, lists its models and, for each model, its variants (the Version choices in My Garage). Each model's row below also has the Version box's rule, saved as soon as it is switched: Required (the member must pick one; it is optional otherwise) and Free text (a Type it in choice lets them type any version). Each car model shows the wheels it drives (FWD, RWD or AWD) as worked out from its name, and a Default drop-down: a default is what the model's vehicles take unless the version says otherwise (Long Range AWD, Taycan 4S, Carrera 4) or the vehicle was set by hand, and setting one stamps the sessions of every vehicle of that model and refreshes its leaderboard rows.</p>
@@ -250,7 +257,7 @@
 </main>
 <script src="js/track-admin-page.js?v=20270107"></script>
 <script src="js/admin-subnav.js?v=20261160" defer></script>
-<script src="js/admin-help.js?v=20270125" defer></script>
+<script src="js/admin-help.js?v=20270210" defer></script>
 <script src="js/admin-alerts.js?v=20261250" defer></script>
 <script src="js/track-parse.js?v=20270121" defer></script>
 <script src="js/track-view.js?v=20270110" defer></script>
@@ -266,10 +273,12 @@
 <script src="js/track-share-admin.js?v=20261105" defer></script>
 <script src="js/track-copy-admin.js?v=20270102" defer></script>
 <script src="js/track-drive-admin.js?v=20261231" defer></script>
-<script src="js/tyre-data.js" defer></script>
-<script src="js/tyre-admin.js" defer></script>
-<script src="js/vehicle-data.js?v=20270109" defer></script>
-<script src="js/vehicle-admin.js?v=20270106" defer></script>
+<script src="js/tyre-data.js?v=20270210" defer></script>
+<script src="js/tyre-admin.js?v=20270210" defer></script>
+<script src="js/pad-data.js?v=20270210" defer></script>
+<script src="js/pad-admin.js?v=20270210" defer></script>
+<script src="js/vehicle-data.js?v=20270210" defer></script>
+<script src="js/vehicle-admin.js?v=20270210" defer></script>
 <script src="js/car-admin.js?v=20270104" defer></script>
 </body>
 </html>

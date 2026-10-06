@@ -8,6 +8,9 @@
   MT3UKTyres.merge(base, extra) -> { makes, widths, profiles, rims } (the admin panel uses it too)
   MT3UKTyres.compose({ make, model, w, p, d }) -> the description
   MT3UKTyres.parse(text) -> { make, model, w, p, d } from an older free-text entry
+  MT3UKTyres.info(make, model) -> what the maker publishes about a model ({ category, wetGrip, rolling, noise, ev,
+                                  notes }), or null; kept under "Make|Model" in the file's and the admin's info
+  MT3UKTyres.makerLine(info)   -> "Track day, wet grip B, EV rated" (only what is known)
 */
 (function (root) {
   var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
@@ -34,10 +37,14 @@
       if (!m || !m.name) return;
       if (m.removed) delete map[m.name]; else map[m.name] = (m.models || []).slice();
     });
+    // Maker data by "Make|Model": the file's, with the admin's on top (an admin entry replaces the file's).
+    var info = {};
+    [base.info, extra.info].forEach(function (src) { Object.keys(src || {}).forEach(function (k) { if (src[k] && typeof src[k] === 'object') info[k] = src[k]; }); });
     var makes = {};
     Object.keys(map).sort(function (a, b) { return a.toLowerCase().localeCompare(b.toLowerCase()); }).forEach(function (n) { makes[n] = map[n]; });
     return {
       makes: makes,
+      info: info,
       widths: numbers(extra.widths && extra.widths.length ? extra.widths : base.widths, DEFAULTS.widths),
       profiles: numbers(extra.profiles && extra.profiles.length ? extra.profiles : base.profiles, DEFAULTS.profiles),
       rims: numbers(extra.rims && extra.rims.length ? extra.rims : base.rims, DEFAULTS.rims)
@@ -81,12 +88,24 @@
     function get(url) { return fetch(url, { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }
     loading = Promise.all([get('data/tyres.json'), get(API + '/tyres')]).then(function (r) {
       var m = merge(r[0], r[1] && r[1].extra);
-      api.makes = m.makes; api.widths = m.widths; api.profiles = m.profiles; api.rims = m.rims;
+      api.makes = m.makes; api.info_ = m.info; api.widths = m.widths; api.profiles = m.profiles; api.rims = m.rims;
       return api;
     });
     return loading;
   }
 
-  var api = { makes: {}, widths: DEFAULTS.widths, profiles: DEFAULTS.profiles, rims: DEFAULTS.rims, merge: merge, load: load, compose: compose, parse: parse };
+  var CATEGORIES = ['Road', 'Performance road', 'Track day', 'Semi-slick', 'R-compound', 'All-season', 'Winter'];
+  function info(make, model) { var i = api.info_[make + '|' + model]; return i || null; }
+  function makerLine(i) {
+    if (!i) return '';
+    var parts = [];
+    if (i.category) parts.push(i.category);
+    if (i.wetGrip) parts.push('wet grip ' + i.wetGrip);
+    if (i.rolling) parts.push('rolling resistance ' + i.rolling);
+    if (i.noise) parts.push(i.noise + ' dB');
+    if (i.ev) parts.push('EV rated');
+    return parts.join(', ');
+  }
+  var api = { makes: {}, info_: {}, widths: DEFAULTS.widths, profiles: DEFAULTS.profiles, rims: DEFAULTS.rims, CATEGORIES: CATEGORIES, merge: merge, load: load, compose: compose, parse: parse, info: info, makerLine: makerLine };
   root.MT3UKTyres = api;
 })(typeof window !== 'undefined' ? window : globalThis);

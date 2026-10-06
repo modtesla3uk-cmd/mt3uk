@@ -124,6 +124,14 @@ r = await call('PUT', '/vehicles/admin?key=secret', { library: { makes: [], driv
 ok(r.body.restamped.vehicles === 0, 'a car whose wheels the owner set by hand is left alone');
 kv.delete('car-details:carh'); kv.delete(oKeyH); bucket.delete('gallery/cars/carh.json'); bucket.delete('gallery/h1.jpg'); bucket.delete('gallery/h1.jpg.json');
 await call('PUT', '/vehicles/admin?key=secret', { library: { makes: [], drives: {} } });
+// ---- Kerb weights ----
+r = await call('PUT', '/vehicles/admin?key=secret', { library: { makes: [], weights: { 'Tesla|Model 3': 1847.6, 'tesla|model 3|performance': '1919', 'kia|ev6': 50, 'bad': 1800, 'a|b|c|d': 1800 } } });
+ok(JSON.stringify(r.body.extra.weights) === '{"tesla|model 3":1848,"tesla|model 3|performance":1919}', 'kerb weights kept by model or variant, lowercased, sensible ones only: ' + JSON.stringify(r.body.extra.weights));
+r = await call('PUT', '/vehicles/admin?key=secret', { library: { makes: [{ name: 'Kia', type: 'car', models: ['EV6'] }] } });
+ok(r.body.extra.weights['tesla|model 3'] === 1848, 'a save that does not carry the weights keeps them');
+r = await call('GET', '/vehicles');
+ok(r.body.extra.weights['tesla|model 3|performance'] === 1919, 'and they are served with the library');
+await call('PUT', '/vehicles/admin?key=secret', { library: { makes: [], weights: {} } });
 // ---- Variants (versions) by model ----
 r = await call('PUT', '/vehicles/admin?key=secret', { library: { makes: [
   { name: 'Kia', type: 'car', models: ['EV6', 'EV9'], versions: { EV6: [' GT-Line ', 'GT-Line', 'gt-line', ''], Nope: ['x'], EV9: 'Air' } }] } });

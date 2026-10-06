@@ -2378,7 +2378,14 @@
     if (!LI) return Promise.resolve([null, null]);
     var set = function (st, fi) { return [st ? { line: st, kind: 'start', label: sprint ? 'Start' : 'Start / finish' } : null, sprint && fi ? { line: fi, kind: 'finish', label: 'Finish' } : null].filter(Boolean); };
     if (!a.tapOutline) a.tapOutline = T.outline(a.rd.points);
-    var base = { frame: [].concat(o.startLine || [], o.finishLine || [], s.startLine || [], sprint ? s.finishLine || [] : []), outline: a.tapOutline.map(function (p) { return [p[0], p[1]]; }) };
+    // As on the map the member moved the lines on: a session of many laps shows only its fastest lap, not every lap
+    // joined into one tangle.
+    var bestRows = s.trace && s.trace.laps && s.best && s.trace.laps[s.best], outline;
+    if (bestRows && bestRows.length > 10 && s.origin && s.origin.length === 2 && s.laps && s.laps.length > 1) {
+      var bp = T.projector(s.origin[0], s.origin[1]);
+      outline = bestRows.map(function (r) { return bp.ll(r[2], r[3]); });
+    } else outline = a.tapOutline.map(function (p) { return [p[0], p[1]]; });
+    var base = { frame: [].concat(o.startLine || [], o.finishLine || [], s.startLine || [], sprint ? s.finishLine || [] : []), outline: outline };
     var make = function (title, time, lines) { return LI.make(Object.assign({ title: title, subtitle: time ? 'Time ' + V.fmtLap(time) : '', lines: lines }, base)).catch(function () { return null; }); };
     return Promise.all([make('Old lines', o.time, set(o.startLine, o.finishLine)), make('New lines', s.bestTime, set(s.startLine, s.finishLine))]);
   }

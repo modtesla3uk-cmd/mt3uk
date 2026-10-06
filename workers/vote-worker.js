@@ -1065,6 +1065,7 @@ async function deleteMemberAccount(env, email) {
   var noPhotoCars = await getMemberCars(env, email);
   for (var c = 0; c < noPhotoCars.length; c++) await deleteCarRecord(env, noPhotoCars[c]);
   await env.VOTES.delete(memberCarsKey(email));
+  await env.VOTES.delete(lapsAccountKey(email));
 
   var fr = await getFriends(env, email);
   var others = fr.friends.concat(fr.incoming.map(function (r) { return r.email; }), fr.outgoing.map(function (r) { return r.email; }));
@@ -4281,7 +4282,7 @@ function encodeHeaderText(value) {
 // sign, and no MT3UK email asks people to reply.
 function rawEmail(from, to, subject, bodyText, extraHeaders) {
   var lines = [
-    'From: MT3UK <' + from + '>',
+    'From: ' + (/</.test(from) ? from : 'MT3UK <' + from + '>'),
     'To: ' + to,
     'Subject: ' + encodeHeaderText(subject),
     'Date: ' + new Date().toUTCString(),
@@ -4304,7 +4305,7 @@ function bytesToBase64(bytes) {
 function rawEmailWithImages(from, to, subject, bodyText, bodyHtml, images) {
   var id = crypto.randomUUID().replace(/-/g, ''), rel = 'rel-' + id, alt = 'alt-' + id;
   var lines = [
-    'From: MT3UK <' + from + '>', 'To: ' + to, 'Subject: ' + encodeHeaderText(subject), 'Date: ' + new Date().toUTCString(),
+    'From: ' + (/</.test(from) ? from : 'MT3UK <' + from + '>'), 'To: ' + to, 'Subject: ' + encodeHeaderText(subject), 'Date: ' + new Date().toUTCString(),
     'Message-ID: <' + crypto.randomUUID() + '@mt3uk.com>', 'MIME-Version: 1.0',
     'Content-Type: multipart/related; boundary="' + rel + '"', '',
     '--' + rel, 'Content-Type: multipart/alternative; boundary="' + alt + '"', '',
@@ -6149,20 +6150,77 @@ async function handleMyBuildsRequestLink(request, env) {
     return json({ success: false, message: 'Please enter a valid email' }, 400);
   }
 
-  if (await hasMemberAccess(env, email)) {
-    await issueSignInLink(env, email, 'my-builds.html', false);
+  var from = signInSite(body);
+  if (await hasMemberAccess(env, email, from.site)) {
+    await issueSignInLink(env, email, 'my-builds.html', false, from);
   }
 
   // Always return the same message, whether or not that email is a member,
   // so this endpoint can't be used to check who has joined.
-  return json({ success: true, message: "If that email belongs to an MT3UK member, we've sent a sign-in link and code. New here? Join free instead." });
+  return json({ success: true, message: from.site === 'laps'
+    ? "If that email has a Laps or MT3UK account, we've sent a sign-in link and code. New here? Join free instead."
+    : "If that email belongs to an MT3UK member, we've sent a sign-in link and code. New here? Join free instead." });
+}
+
+// ---------- Laps sign-in (laps.mt3uk.com) ----------
+// A sign-in is kept per address, so the emailed link must bring the member back to the address they asked from.
+// laps-signin.html (and the Laps pages' links to it) sends site: 'laps' and the Laps page to return to (next). The
+// admin's settings, one KV key (laps-signin, get()), set on the Sign-in and sign-up panel of track-admin.html:
+//   separate   (default on)  Laps has its own sign-in page and emails; off, the shared MT3UK page and emails, though
+//                            the link still comes back to laps.mt3uk.com.
+//   mt3ukToo   (default on)  someone joining on Laps becomes an MT3UK member too; off, a Laps-only account
+//                            (laps-account:<email>), which signs in on Laps but not on mt3uk.com until they join there.
+//   signinIntro, joinIntro   the opening line of the Laps sign-in and welcome emails; blank keeps the built-in words.
+var LAPS_SIGNIN_KEY = 'laps-signin';
+var LAPS_NEXT_RE = /^\/(track|leaderboards|laps)\.html([?#][^\s]*)?$/;
+async function getLapsSignin(env) {
+  var c = await getJsonKey(env, LAPS_SIGNIN_KEY, {});
+  return { separate: c.separate !== false, mt3ukToo: c.mt3ukToo !== false, signinIntro: c.signinIntro || '', joinIntro: c.joinIntro || '' };
+}
+// Where a sign-in or join request came from: { site: 'laps' | 'main', next: a Laps page or '' }.
+function signInSite(body) {
+  var site = body && body.site === 'laps' ? 'laps' : 'main';
+  var next = String((body && body.next) || '').slice(0, 300);
+  return { site: site, next: site === 'laps' && LAPS_NEXT_RE.test(next) ? next : '' };
+}
+function lapsAccountKey(email) { return 'laps-account:' + email; }
+function cleanLapsIntro(v) { return String(v || '').replace(/[\u0000-\u0009\u000b-\u001f<>]/g, ' ').trim().slice(0, 400); }
+
+async function handleLapsSigninPublic(request, env) {
+  var c = await getLapsSignin(env);
+  var res = json({ success: true, separate: c.separate });
+  res.headers.set('Cache-Control', 'public, max-age=60');
+  return res;
+}
+async function handleLapsSigninAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  if (request.method === 'POST') {
+    var body;
+    try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+    await env.VOTES.put(LAPS_SIGNIN_KEY, JSON.stringify({
+      separate: !!body && body.separate !== false,
+      mt3ukToo: !!body && body.mt3ukToo !== false,
+      signinIntro: cleanLapsIntro(body && body.signinIntro),
+      joinIntro: cleanLapsIntro(body && body.joinIntro)
+    }));
+  }
+  // How many Laps-only accounts there are: list() is fine, this is an admin route.
+  var count = 0, cursor;
+  do {
+    var page = await env.VOTES.list({ prefix: 'laps-account:', cursor: cursor, limit: 1000 });
+    count += page.keys.length;
+    cursor = page.list_complete ? null : page.cursor;
+  } while (cursor);
+  return json({ success: true, settings: await getLapsSignin(env), lapsAccounts: count });
 }
 
 // Members are anyone with a subscriber record (with or without builds, as
 // people can join just to like and comment), plus anyone who has commented
 // and had a reply, so they have somewhere to read that notification.
-async function hasMemberAccess(env, email) {
+// On Laps a Laps-only account (joined on Laps while MT3UK membership was switched off) can sign in too.
+async function hasMemberAccess(env, email, site) {
   if ((await env.VOTES.get('subscriber:' + email)) !== null) return true;
+  if (site === 'laps' && (await env.VOTES.get(lapsAccountKey(email))) !== null) return true;
   var notifications = await getNotifications(env, email);
   return notifications.length > 0;
 }
@@ -6171,10 +6229,16 @@ async function hasMemberAccess(env, email) {
 // Home Screen app on iPhone: it keeps its own sign-in, separate from
 // Safari, and links in emails always open in Safari, so the code is typed
 // into the app instead.
-async function issueSignInLink(env, email, page, joining) {
+// From Laps (from.site 'laps') the link comes back to laps.mt3uk.com: to the Laps sign-in page, or to the shared one
+// there when the admin has switched the separate Laps sign-in off, with the Laps page to go on to.
+async function issueSignInLink(env, email, page, joining, from) {
+  from = from || { site: 'main', next: '' };
   var token = randomToken();
   await env.VOTES.put('my-builds-link:' + token, email, { expirationTtl: MY_BUILDS_LINK_TTL_SECONDS });
-  var link = MY_BUILDS_SITE_URL + '/' + page + '?token=' + token;
+  var laps = from.site === 'laps' ? await getLapsSignin(env) : null;
+  var link = laps
+    ? LAPS_SITE_URL + '/' + (laps.separate ? 'laps-signin.html' : 'signin.html') + '?token=' + token + (from.next ? '&next=' + encodeURIComponent(from.next) : '')
+    : MY_BUILDS_SITE_URL + '/' + page + '?token=' + token;
   var code = signInCode();
   var codeExpires = Math.floor(Date.now() / 1000) + MY_BUILDS_LINK_TTL_SECONDS;
   await env.VOTES.put(signInCodeKey(email), JSON.stringify({ code: code, token: token, tries: 0 }), {
@@ -6182,11 +6246,26 @@ async function issueSignInLink(env, email, page, joining) {
     metadata: { expires: codeExpires }
   });
   try {
-    if (joining) await sendJoinEmail(env, email, link, code);
+    if (laps && laps.separate) await sendLapsSignInEmail(env, email, link, code, joining, laps);
+    else if (joining) await sendJoinEmail(env, email, link, code);
     else await sendMyBuildsLinkEmail(env, email, link, null, code);
   } catch (err) {
     console.log('Sign-in link email failed:', err.message);
   }
+}
+
+// The Laps sign-in and welcome emails, from "Laps by MT3UK". The admin can change the opening line of each.
+var LAPS_SIGNIN_INTRO = 'Click the link below to sign in to Laps by MT3UK, where you can add your track sessions and see the leaderboards:';
+var LAPS_JOIN_INTRO = 'Thanks for joining Laps by MT3UK. Click the link below to finish joining, then add your car and your first track session:';
+async function sendLapsSignInEmail(env, toEmail, link, code, joining, laps) {
+  var subject = joining ? 'Welcome to Laps by MT3UK: your code is ' + code : 'Your Laps sign-in code: ' + code;
+  var intro = joining ? (laps.joinIntro || LAPS_JOIN_INTRO) : (laps.signinIntro || LAPS_SIGNIN_INTRO);
+  var body = intro + '\n\n' + link +
+    '\n\nOr enter this code on the Laps sign-in page (in the Laps app from your Home Screen, use the code):\n\n' + code +
+    (joining && laps.mt3ukToo ? '\n\nYour account works on MT3UK too, where you can like and comment on member builds and owner interviews.' : '') +
+    '\n\nThis link and code expire in 15 minutes and can only be used once. If you did not ' + (joining ? 'ask to join' : 'request this') + ', you can ignore this email.';
+  var message = new EmailMessage(MY_BUILDS_FROM_EMAIL, toEmail, rawEmail('Laps by MT3UK <' + MY_BUILDS_FROM_EMAIL + '>', toEmail, subject, body));
+  await env.SEND_EMAIL.send(message);
 }
 
 // ---------- Join (no photos needed) ----------
@@ -6222,28 +6301,40 @@ async function handleMyBuildsJoin(request, env) {
   await env.VOTES.put(ipKey, String(ipCount + 1), { expirationTtl: 3600 });
   await env.VOTES.put(cooldownKey, '1', { expirationTtl: 60 });
 
-  if (await hasMemberAccess(env, email)) {
-    await issueSignInLink(env, email, 'my-builds.html', false);
+  var from = signInSite(body);
+  if (await hasMemberAccess(env, email, from.site)) {
+    await issueSignInLink(env, email, 'my-builds.html', false, from);
     return reply;
   }
-  await env.VOTES.put('pending-join:' + email, JSON.stringify({ firstName: firstName, lastName: lastName }), { expirationTtl: PENDING_JOIN_TTL_SECONDS });
-  await issueSignInLink(env, email, 'signin.html', true);
+  var lapsOnly = from.site === 'laps' && !(await getLapsSignin(env)).mt3ukToo;
+  await env.VOTES.put('pending-join:' + email, JSON.stringify({ firstName: firstName, lastName: lastName, site: from.site, lapsOnly: lapsOnly }), { expirationTtl: PENDING_JOIN_TTL_SECONDS });
+  await issueSignInLink(env, email, 'signin.html', true, from);
   return reply;
 }
 
-// Turns a confirmed join into a member (no builds yet) with their name.
+// Turns a confirmed join into a member (no builds yet) with their name, or, for a Laps sign-up while the admin has
+// MT3UK membership switched off, a Laps-only account. Says which it made: 'mt3uk', 'laps', or '' when nothing new.
 async function completePendingJoin(env, email) {
   var raw = await env.VOTES.get('pending-join:' + email);
-  if (!raw) return;
+  if (!raw) return '';
   await env.VOTES.delete('pending-join:' + email);
-  if ((await env.VOTES.get('subscriber:' + email)) !== null) return;
+  if ((await env.VOTES.get('subscriber:' + email)) !== null) return '';
   var pending = {};
   try { pending = JSON.parse(raw) || {}; } catch (e) {}
-  await env.VOTES.put('subscriber:' + email, JSON.stringify([]));
-  await markSubscriberSince(env, email);
   var first = cleanNamePart(pending.firstName);
   var last = cleanNamePart(pending.lastName);
+  if (pending.lapsOnly) {
+    if ((await env.VOTES.get(lapsAccountKey(email))) !== null) return '';
+    await env.VOTES.put(lapsAccountKey(email), JSON.stringify({ since: new Date().toISOString() }));
+    if (first && last && !(await getProfile(env, email))) await saveProfile(env, email, first, last);
+    return 'laps';
+  }
+  await env.VOTES.put('subscriber:' + email, JSON.stringify([]));
+  await markSubscriberSince(env, email);
+  // Joining MT3UK makes a Laps-only account a full member.
+  await env.VOTES.delete(lapsAccountKey(email));
   if (first && last && !(await getProfile(env, email))) await saveProfile(env, email, first, last);
+  return 'mt3uk';
 }
 
 async function sendJoinEmail(env, toEmail, link, code) {
@@ -6321,11 +6412,11 @@ async function handleMyBuildsSession(request, env) {
   await env.VOTES.delete('my-builds-link:' + token);
   // The link has been used, so its matching code can't be.
   await env.VOTES.delete(signInCodeKey(email));
-  await completePendingJoin(env, email);
+  var joined = await completePendingJoin(env, email);
 
   var session = await createSession(env, email);
 
-  return json({ success: true, session: session, email: email });
+  return json({ success: true, session: session, email: email, joined: joined });
 }
 
 async function handleMyBuildsGet(request, env) {
@@ -10777,6 +10868,12 @@ export default {
     }
     if (url.pathname === '/my-builds/request-link' && request.method === 'POST') {
       return handleMyBuildsRequestLink(request, env);
+    }
+    if (url.pathname === '/laps/signin' && request.method === 'GET') {
+      return handleLapsSigninPublic(request, env);
+    }
+    if (url.pathname === '/laps/signin/admin' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleLapsSigninAdmin(request, env);
     }
     if (url.pathname === '/my-builds/join' && request.method === 'POST') {
       return handleMyBuildsJoin(request, env);

@@ -614,3 +614,4 @@
   #dw-list .dw-sess { display: inline; }
   #dw-list .dw-pick { width: 100%; max-width: 260px; min-height: 44px; font-size: 16px; margin-top: 4px; }
 }
+.ts-new[hidden], [data-ls-separate-only][hidden] { display: none; }

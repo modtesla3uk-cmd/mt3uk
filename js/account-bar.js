@@ -227,9 +227,25 @@
   // On laps.mt3uk.com only the Laps pages (and Sign in) stay there: a link to any other page of the site (Profile,
   // My Garage, the Gallery) goes to mt3uk.com, signed in. Tests set window.MT3UK_SITES to two local addresses.
   var SITES = window.MT3UK_SITES || { main: ['mt3uk.com', 'www.mt3uk.com'], mainOrigin: 'https://mt3uk.com', laps: ['laps.mt3uk.com'] };
-  var LAPS_PAGES = ['/', '/laps.html', '/track.html', '/leaderboards.html', '/signin.html'];
+  var LAPS_PAGES = ['/', '/laps.html', '/track.html', '/leaderboards.html', '/signin.html', '/laps-signin.html'];
   function siteOf(host) { return SITES.main.indexOf(host) !== -1 ? 'main' : SITES.laps.indexOf(host) !== -1 ? 'laps' : ''; }
   var hereSite = siteOf(location.hostname);
+
+  // Sign in on laps.mt3uk.com is the Laps one (laps-signin.html): its emailed link comes back here, signed in on this
+  // address, with Laps words. Every Sign in link on a page here (the menu, the bell, the prompts, the Laps pages'
+  // buttons) is sent there when it is followed; window.mt3ukSignInUrl(next) gives the address for a script. With the
+  // admin's separate Laps sign-in switched off, laps-signin.html passes visitors on to signin.html.
+  window.mt3ukSignInUrl = function (next) {
+    return (hereSite === 'laps' ? 'laps-signin.html' : 'signin.html') + (next ? '?next=' + encodeURIComponent(next) : '');
+  };
+  document.addEventListener('click', function (e) {
+    if (hereSite !== 'laps') return;
+    var a = e.target.closest && e.target.closest('a[href]');
+    if (!a) return;
+    var u;
+    try { u = new URL(a.getAttribute('href'), location.href); } catch (err) { return; }
+    if (u.origin === location.origin && u.pathname === '/signin.html') a.setAttribute('href', '/laps-signin.html' + u.search + u.hash);
+  }, true);
 
   // Links to the Laps pages from mt3uk.com (the menu's Track Sessions and Leaderboards, My Garage's buttons and
   // links, the homepage tile, site search) carry data-laps, and go to laps.mt3uk.com on the live site. On
@@ -339,7 +355,7 @@
     if (!from || window.history.length < 2) return;
     var ours = from.origin === location.origin || (!!hereSite && !!siteOf(from.hostname));
     var samePage = from.origin === location.origin && from.pathname === location.pathname;
-    if (ours && !samePage && from.pathname !== '/signin.html') {
+    if (ours && !samePage && from.pathname !== '/signin.html' && from.pathname !== '/laps-signin.html') {
       e.preventDefault();
       window.history.back();
     }
@@ -356,7 +372,7 @@
     }
 
     var page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
-    if (!signedIn || page === '' || page === 'index.html' || page === 'signin.html') return;
+    if (!signedIn || page === '' || page === 'index.html' || page === 'signin.html' || page === 'laps-signin.html') return;
     var header = document.querySelector('header');
     if (!header || document.getElementById('mt3uk-account-bar')) return;
 

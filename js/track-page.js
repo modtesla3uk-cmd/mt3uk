@@ -162,6 +162,8 @@
   function vwOf(c) { return c && c.vehicleType === 'bike' ? 'bike' : 'car'; }
   // The welcome card's text, as set on the admin page; nothing set means the built-in words.
   var copy = null;
+  // Sign in: the Laps one on laps.mt3uk.com (js/account-bar.js), the MT3UK one elsewhere.
+  function signInUrl(next) { return window.mt3ukSignInUrl ? window.mt3ukSignInUrl(next) : 'signin.html?next=' + encodeURIComponent(next); }
   function getCopy() {
     if (copy) return Promise.resolve(copy);
     return api('GET', '/track/copy').then(function (d) { copy = (d && d.copy) || {}; return copy; }).catch(function () { return {}; });
@@ -770,7 +772,7 @@
     loading();
     Promise.all([getMine(), getLibrary()]).then(function (r) {
       var m = r[0];
-      if (!m) { location.href = 'signin.html?next=' + encodeURIComponent('/track.html'); return; }
+      if (!m) { location.href = signInUrl('/track.html'); return; }
       if (m.gate) return showGate();
       var car = m.cars.filter(function (c) { return c.id === carId; })[0];
       if (!car) return showHome();
@@ -1046,11 +1048,11 @@
     ['Something else', 'Any CSV or GPX with a time, latitude, longitude and ideally speed. If the columns are not recognised you can pick them yourself.']
   ];
   function showAdd(carId) {
-    if (!token()) { location.href = 'signin.html?next=' + encodeURIComponent('/track.html?add=1'); return; }
+    if (!token()) { location.href = signInUrl('/track.html?add=1'); return; }
     loading();
     Promise.all([getMine(), getLibrary(), isAdmin(), loadTyres()]).then(function (r) {
       var m = r[0];
-      if (!m) { location.href = 'signin.html?next=' + encodeURIComponent('/track.html?add=1'); return; }
+      if (!m) { location.href = signInUrl('/track.html?add=1'); return; }
       if (m.gate) return showGate();
       if (!m.cars.length) return showHome();
       var car = m.cars.filter(function (c) { return c.id === carId; })[0] || m.cars[0];

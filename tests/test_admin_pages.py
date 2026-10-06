@@ -25,7 +25,7 @@ GROUPS = [
 ]
 # The Track sessions tools have a page of their own, in five categories.
 TRACK_GROUPS = [
-    ("grp-access", "Access", ["access-wrap", "usage-wrap"]),
+    ("grp-access", "Access", ["access-wrap", "signin-wrap", "usage-wrap"]),
     ("grp-sessions", "Members' sessions", ["new-sessions-wrap", "lines-wrap", "member-sessions-wrap"]),
     ("grp-tracks", "Tracks", ["tracks-wrap"]),
     ("grp-boards", "Leaderboards", ["board-checks-wrap", "boards-wrap", "drive-wrap"]),

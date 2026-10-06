@@ -14,7 +14,7 @@
   var index = [];
   // On the Laps pages (data-scope="laps") only the Laps pages come up.
   var lapsOnly = root.getAttribute('data-scope') === 'laps';
-  function inScope(entry) { return !lapsOnly || /^(laps|track|leaderboards)\.html/.test(entry.url || ''); }
+  function inScope(entry) { return !lapsOnly || /^(laps|laps-signin|track|leaderboards)\.html/.test(entry.url || ''); }
   // From mt3uk.com a Laps page opens on laps.mt3uk.com (js/account-bar.js decides whether this is mt3uk.com).
   function resultUrl(url) { return /^(laps|track|leaderboards)\.html/.test(url || '') && window.mt3ukLapsUrl ? window.mt3ukLapsUrl(url) : url; }
 

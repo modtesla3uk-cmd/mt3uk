@@ -227,6 +227,27 @@ def test_the_leaderboard_invites_members_without_early_access_to_join(page):
     expect(page.locator("#lb-preview")).to_contain_text("Ask for a place")
 
 
+def test_a_visitor_to_the_leaderboard_sees_join_the_early_preview_the_size_of_my_sessions(page):
+    """Signed out: Join the early preview (to the Laps sign-up) is the same size as My Sessions on desktop, the
+    note no longer asks them to join a list, and What is the Leaderboard? says what is there once the preview ends."""
+    def reply(r):
+        body = COUNTS if "/track/counts" in r.request.url else {"success": True}
+        r.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"}, body=json.dumps(body))
+    page.route("**/%s/**" % API_HOST, reply)
+    page.set_viewport_size({"width": 1280, "height": 900})
+    page.goto("/leaderboards.html?type=track")
+    join = page.locator("#lb-add-session")
+    expect(join).to_have_text("Join the early preview")
+    expect(join).to_have_attribute("href", "laps-signin.html")
+    expect(page.locator("#lb-preview")).to_have_text("Early preview. Anyone can browse the leaderboards. Adding your own laps is open to early testers while we finish Laps.")
+    mine, j = page.locator("#lb-my-sessions").bounding_box(), join.bounding_box()
+    assert abs(mine["width"] - j["width"]) < 1 and abs(mine["height"] - j["height"]) < 1, (mine, j)
+    assert not join.evaluate("e => e.scrollWidth > e.clientWidth")
+    page.locator("#lb-what summary").click()
+    expect(page.locator("#lb-what .tp-what-list li")).to_have_count(4)
+    expect(page.locator("#lb-what")).to_contain_text("once the preview ends, every member can upload a session")
+
+
 def test_the_admins_own_early_preview_note_is_used(page):
     def reply(r):
         url = r.request.url

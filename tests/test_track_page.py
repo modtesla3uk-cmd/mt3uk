@@ -1540,7 +1540,7 @@ def test_the_leaderboard_hero_matches_the_sessions_page(page):
     expect(fold.locator("p")).not_to_be_visible()
     fold.locator("summary").click()
     expect(fold.locator("p")).to_be_visible()
-    expect(fold.locator("p")).to_contain_text("Real times from modified cars on tracks, drag strips and hill climbs")
+    expect(fold.locator("p")).to_contain_text("Real times from EVs on tracks, drag strips and hill climbs")
     # Refresh on the list: fetches the page's own script again and reloads on the same view.
     expect(page.locator(".tp-board-card").first).to_be_visible()
     seen = []

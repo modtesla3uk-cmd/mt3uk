@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Leaderboard: lap times by track and car - Laps by MT3UK</title>
-<meta name="description" content="The Laps by MT3UK leaderboard: real lap times from modified EVs at UK circuits, sprints, hill climbs and drag strips, from members' own lap timers. Filter by model, tyres and conditions.">
+<meta name="description" content="The Laps by MT3UK leaderboard: real lap times from EVs at UK circuits, sprints, hill climbs and drag strips, from members' own lap timers. Filter by model, tyres and conditions.">
 <link rel="canonical" href="https://laps.mt3uk.com/leaderboards.html">
 <link rel="icon" type="image/svg+xml" href="images/laps/favicon.svg">
 <link rel="icon" type="image/x-icon" href="images/laps/favicon.ico">
@@ -19,7 +19,7 @@
 <meta name="application-name" content="Laps by MT3UK">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Leaderboard: lap times by track and car - Laps by MT3UK">
-<meta property="og:description" content="The Laps by MT3UK leaderboard: real lap times from modified EVs at UK circuits, sprints, hill climbs and drag strips, from members' own lap timers. Filter by model, tyres and conditions.">
+<meta property="og:description" content="The Laps by MT3UK leaderboard: real lap times from EVs at UK circuits, sprints, hill climbs and drag strips, from members' own lap timers. Filter by model, tyres and conditions.">
 <meta property="og:image" content="https://mt3uk.com/images/track-preview/share.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -27,7 +27,7 @@
 <meta property="og:url" content="https://laps.mt3uk.com/leaderboards.html">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Leaderboard: lap times by track and car - Laps by MT3UK">
-<meta name="twitter:description" content="The Laps by MT3UK leaderboard: real lap times from modified EVs at UK circuits, sprints, hill climbs and drag strips, from members' own lap timers. Filter by model, tyres and conditions.">
+<meta name="twitter:description" content="The Laps by MT3UK leaderboard: real lap times from EVs at UK circuits, sprints, hill climbs and drag strips, from members' own lap timers. Filter by model, tyres and conditions.">
 <meta name="twitter:image" content="https://mt3uk.com/images/track-preview/share.jpg">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
 <link rel="stylesheet" href="css/site-header.css">
@@ -79,6 +79,10 @@
   .tp-what summary::after { content: ''; width: 7px; height: 7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg) translateY(-2px); }
   .tp-what[open] summary::after { transform: rotate(-135deg); }
   .tp-what p { margin: 4px 0 8px; }
+  .tp-what-body { max-width: 66ch; margin: 4px auto 10px; text-align: left; }
+  .page-hero .tp-what .tp-what-body p { max-width: none; margin: 0 0 8px; }
+  .tp-what-list { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 0.95rem; color: #d3d8e2; }
+  .tp-what-list b { color: #fff; }
   .tp-hero-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-bottom: 12px; }
   .tp-hero-row h1 { margin: 0; flex: 1 1 auto; min-width: 0; }
   .tp-lb-pill { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 999px; background: var(--ink); color: #fff; font-weight: 700; font-size: 0.92rem; white-space: nowrap; text-decoration: none; }
@@ -295,6 +299,9 @@
   @media (min-width: 901px) {
     .page-hero .tp-hero-row .tp-lb-pill { min-width: 214px; }
     .page-hero .tp-hero-actions { grid-column: 3; grid-row: 2; justify-self: end; margin-top: 12px; }
+    /* Join the early preview (a visitor's Add a session) is the same size as My Sessions above it. */
+    .lb-hero .tp-hero-actions .tp-lb-pill.is-preview { width: 214px; min-width: 0; padding: 0 12px; font-size: 0.92rem; gap: 6px; }
+    .lb-hero .tp-hero-actions .tp-lb-pill.is-preview .icon { width: 18px; height: 18px; }
     /* The bulb goes on its own line under Add a session, so Add a session lines up with My Sessions. */
     .lb-hero .tp-hero-actions { flex-direction: column; align-items: flex-end; }
     .page-hero .tp-what { grid-row: 3; }
@@ -515,7 +522,7 @@
   <div class="wrap">
     <div class="tp-hero-top"><a href="index.html" class="back-link" id="lb-page-back" aria-label="Back to MT3UK"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</a></div>
     <div class="tp-hero-row"><h1><svg class="icon lb-trophy" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/></svg>Leaderboard</h1><a href="track.html" class="tp-lb-pill tp-round" id="lb-my-sessions" aria-label="My Sessions" title="My Sessions"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M10 2h4"/></svg>My Sessions</a><div class="tp-hero-actions lb-actions"><a href="track.html?add=1" class="tp-lb-pill lb-add" id="lb-add-session" data-laps-add aria-label="Add a session" title="Add a session"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Add a session</span></a><div data-laps-tip="bulb"></div></div></div>
-    <details class="tp-what" id="lb-what"><summary>What is the Leaderboard?</summary><p>Real times from modified cars on tracks, drag strips and hill climbs, straight from members&rsquo; own lap timers. Every car&rsquo;s fastest, with the mods that got it there.</p></details>
+    <details class="tp-what" id="lb-what"><summary>What is the Leaderboard?</summary><div class="tp-what-body"><p>Real times from EVs on tracks, drag strips and hill climbs, straight from members&rsquo; own lap timers. Every car&rsquo;s fastest, with the tyres, pads and setup behind it.</p><ul class="tp-what-list"><li><b>A board for every track.</b> Track days, sprints, hill climbs and drag strips, each layout on its own, with the fastest lap, run or quarter mile for every car.</li><li><b>Open a time to see the lap.</b> Every row opens the session: the lap on the satellite map, speed, braking and cornering g, and the car&rsquo;s tyres, pads and setup.</li><li><b>Compare like with like.</b> Filter by model, conditions, driven wheels, tyres or kerb weight, or switch to Compare tyres and Compare pads to see what works best at each track.</li><li><b>Anyone can look.</b> The boards are open to everyone. Adding your own laps is for early testers while we finish Laps; once the preview ends, every member can upload a session from their lap timer and go straight on the board.</li></ul></div></details>
   </div>
 </section>
 
@@ -680,7 +687,7 @@
 <script src="js/share.js" defer></script>
 <script src="js/laps-logo.js?v=1" defer></script>
 <script src="js/account-bar.js?v=15" defer></script>
-<script src="js/laps-strip.js?v=5" defer></script>
+<script src="js/laps-strip.js?v=6" defer></script>
 <script src="js/signin-prompt.js" defer></script>
 <script src="js/notify-bell.js?v=2" defer></script>
 <script src="js/messenger.js" defer></script>

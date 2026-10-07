@@ -20,7 +20,7 @@
     tipHeading: 'Tip: the more you upload, the more the board tells you',
     tipText: 'Every session you add is kept as your car\'s best for that mix of tyres and conditions, so the filters can compare like with like, and the board shows how you are coming on from day to day. Upload each track day, even the slow ones.',
     // The early preview note (the same words as js/laps-strip.js).
-    previewOut: 'Anyone can browse the leaderboards. Adding your own laps is open to early testers while we finish Laps. Join the list for a place.',
+    previewOut: 'Anyone can browse the leaderboards. Adding your own laps is open to early testers while we finish Laps.',
     previewNone: 'Anyone can browse the leaderboards. Adding your own laps is open to early testers while we finish Laps. Ask for a place and we\u2019ll let you know.',
     previewPending: 'We\u2019ll email you as soon as your place is ready. Until then, have a look round the leaderboards.'
   };

@@ -70,7 +70,7 @@
   }
   var SPARK = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9Z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8Z"/></svg>';
   var NOTES = {
-    out: 'Anyone can browse the leaderboards. Adding your own laps is open to early testers while we finish Laps. Join the list for a place.',
+    out: 'Anyone can browse the leaderboards. Adding your own laps is open to early testers while we finish Laps.',
     none: 'Anyone can browse the leaderboards. Adding your own laps is open to early testers while we finish Laps. Ask for a place and we\u2019ll let you know.',
     pending: 'We\u2019ll email you as soon as your place is ready. Until then, have a look round the leaderboards.'
   };

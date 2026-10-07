@@ -943,6 +943,31 @@ async function unreadCounts(env, email, profile) {
   return { broadcasts: broadcasts, direct: direct, requests: fr.incoming.length };
 }
 
+// Admin, one-off: give every member who has a first and last name but no nickname (and did not clear it) the
+// automatic one, first initial and last name, as new members get. Lists the profile records, fine for an admin route.
+async function handleProfileAdminNicknames(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var out = { given: 0, had: 0, noName: 0, cleared: 0, total: 0, examples: [] }, cursor;
+  do {
+    var page = await env.VOTES.list({ prefix: 'profile:', limit: 1000, cursor: cursor });
+    for (var i = 0; i < page.keys.length; i++) {
+      var email = page.keys[i].name.slice('profile:'.length);
+      var profile = await getProfileRecord(env, email);
+      out.total++;
+      if (profile.nickname) { out.had++; continue; }
+      if (profile.nicknameCleared) { out.cleared++; continue; }
+      if (!profile.firstName || !profile.lastName) { out.noName++; continue; }
+      var auto = await initialNickname(env, profile.firstName, profile.lastName);
+      if (!auto) { out.noName++; continue; }
+      await setNickname(env, email, auto);
+      out.given++;
+      if (out.examples.length < 10) out.examples.push(auto);
+    }
+    cursor = page.list_complete ? undefined : page.cursor;
+  } while (cursor);
+  return json(Object.assign({ success: true }, out));
+}
+
 async function handleProfileGet(request, env) {
   var email = await resolveSession(request, env);
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
@@ -11073,6 +11098,7 @@ export default {
     if (url.pathname === '/profile/search' && request.method === 'GET') {
       return handleProfileSearch(request, env);
     }
+    if (url.pathname === '/profile/admin/nicknames' && request.method === 'POST') return handleProfileAdminNicknames(request, env);
     if (url.pathname === '/profile/friends' && request.method === 'POST') {
       return handleProfileFriends(request, env, ctx);
     }

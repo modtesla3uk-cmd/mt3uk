@@ -1922,3 +1922,26 @@ def test_the_help_popover_fits_a_phone(page):
     assert overflow_width(page) <= 0
 
 
+
+
+def test_admin_gives_nicknames_to_members_without_one(page):
+    """The Subscribers panel's one-off button asks the worker to give the automatic nickname to members without one
+    and says how many it gave."""
+    calls = []
+
+    def api(route):
+        req = route.request
+        if urlparse(req.url).path == "/profile/admin/nicknames":
+            calls.append(req.method)
+            body = {"success": True, "given": 3, "had": 40, "noName": 2, "cleared": 1, "total": 46, "examples": ["RHughes", "ABrown", "CDavies"]}
+        else:
+            body = {"success": True}
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(body), headers={"Access-Control-Allow-Origin": "*"})
+    page.route("**/%s/**" % API_HOST, api)
+    page.add_init_script("sessionStorage.setItem('mt3ukAdminKey', 'test-key')")
+    page.goto("/admin.html")
+    page.locator("#subscribers-wrap > summary").click()
+    page.once("dialog", lambda d: d.accept())
+    page.locator("#nick-fill-btn").click()
+    expect(page.locator("#nick-fill-status")).to_have_text("Done: 3 members given a nickname (RHughes, ABrown, CDavies), 40 already had one, 2 with no name to make one from, 1 cleared theirs, 46 in all.")
+    assert calls == ["POST"]

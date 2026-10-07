@@ -7,7 +7,15 @@ const kv = new Map();
 const bucket = new Map();
 const env = {
   ADMIN_KEY: 'secret',
-  VOTES: { get: async k => kv.has(k) ? kv.get(k) : null, put: async (k, v) => { kv.set(k, v); }, delete: async k => { kv.delete(k); } },
+  VOTES: { get: async k => kv.has(k) ? kv.get(k) : null, put: async (k, v) => { kv.set(k, v); }, delete: async k => { kv.delete(k); },
+    // Like KV list(): keys by prefix, a page at a time, in name order.
+    list: async ({ prefix = '', limit = 1000, cursor } = {}) => {
+      const all = [...kv.keys()].filter(k => k.startsWith(prefix)).sort();
+      const from = cursor ? parseInt(cursor, 10) : 0;
+      const keys = all.slice(from, from + limit).map(name => ({ name }));
+      const more = from + limit < all.length;
+      return { keys, list_complete: !more, cursor: more ? String(from + limit) : undefined };
+    } },
   GALLERY_BUCKET: {
     get: async k => bucket.has(k) ? { json: async () => JSON.parse(bucket.get(k)) } : null,
     put: async (k, v) => { bucket.set(k, typeof v === 'string' ? v : 'binary'); },
@@ -90,3 +98,18 @@ ok(r.status === 400 && /3 to 20/.test(r.body.message), 'a nickname that is not v
 kv.set('nicknames', JSON.stringify({ rich: OWNER }));
 r = await call('POST', '/profile/friends', { action: 'request', nickname: 'Rich' }, 'tok-asker');
 ok(r.status === 200 && r.body.success, 'a member with a name but no nickname can ask to be friends: ' + r.status + ' ' + (r.body.message || ''));
+
+// The admin's one-off: every member with a name but no nickname gets the automatic one; cleared ones are left.
+kv.set('profile:' + ASKER, JSON.stringify({ firstName: 'Ann', lastName: 'B', nicknameCleared: true }));
+kv.set('profile:' + OWNER, JSON.stringify({ firstName: 'Rich', lastName: 'H' }));
+kv.set('profile:old@example.com', JSON.stringify({ firstName: 'Olga', lastName: 'Dubois-Smith' }));
+kv.set('profile:noname@example.com', JSON.stringify({}));
+kv.set('nicknames', JSON.stringify({}));
+r = await call('POST', '/profile/admin/nicknames');
+ok(r.status === 401, 'the one-off needs the admin key');
+r = await call('POST', '/profile/admin/nicknames?key=secret');
+ok(r.status === 200 && r.body.given === 2 && r.body.cleared === 1 && r.body.noName === 1 && r.body.total === 4, 'it gives nicknames to members with a name and none: ' + JSON.stringify(r.body));
+ok(JSON.parse(kv.get('profile:' + OWNER)).nickname === 'RH1' && JSON.parse(kv.get('profile:old@example.com')).nickname === 'ODubois-Smith' && !JSON.parse(kv.get('profile:' + ASKER)).nickname, 'first initial and last name, and a cleared one is left alone');
+ok(JSON.parse(kv.get('nicknames'))['odubois-smith'] === 'old@example.com', 'and the nickname index knows them');
+r = await call('POST', '/profile/admin/nicknames?key=secret');
+ok(r.body.given === 0 && r.body.had === 2, 'running it again gives none');

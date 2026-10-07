@@ -3846,7 +3846,8 @@ def test_admin_brake_pads_panel(page):
     page.locator("#pads-wrap > summary").click()
     expect(page.locator("#pd-list")).to_contain_text("Pagid")
     expect(page.locator("#pd-list tbody tr").first).to_contain_text("Original equipment")
-    expect(page.locator("#pd-list")).to_contain_text("No maker data yet")
+    # The maker's figures from data/pads.json.
+    expect(page.locator("#pd-list tr", has_text="Ferodo")).to_contain_text("DS2500 Track day, \u03bc 0.41, 0 to 500\u00b0C")
     # Fill in a compound's maker data.
     page.locator('[data-edit="Pagid"]').click()
     assert page.locator("#pd-name").get_attribute("readonly") is not None
@@ -3858,7 +3859,8 @@ def test_admin_brake_pads_panel(page):
     page.get_by_role("button", name="Save make").click()
     expect(page.locator("#pd-note")).to_have_text("Saved. Track sessions use it straight away.")
     pagid = next(m for m in puts[-1]["makes"] if m["name"] == "Pagid")
-    assert {"name": "RSL29", "use": "Track day", "mu": "0.50", "tempMin": 100, "tempMax": 650} in pagid["compounds"]
+    rsl = next(c for c in pagid["compounds"] if c["name"] == "RSL29")
+    assert {k: rsl.get(k) for k in ("use", "mu", "tempMin", "tempMax")} == {"use": "Track day", "mu": "0.50", "tempMin": 100, "tempMax": 650}
     expect(page.locator("#pd-list tr", has_text="Pagid")).to_contain_text("Track day, \u03bc 0.50, 100 to 650\u00b0C")
     # Add a make, then take one off.
     page.get_by_role("button", name="Add a make").click()

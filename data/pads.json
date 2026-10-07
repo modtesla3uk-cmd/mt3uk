@@ -1,15 +1,48 @@
 {
-  "_note": "Brake pads for Track sessions (the Add page's Brake pads drop-downs, Compare pads on the leaderboard). Makes with their compounds, and for each compound what its maker publishes: its intended use, its friction level (mu) and its working temperature range in degrees C. Leave a figure out rather than guess it. Edit them on the Brake pads panel of track-admin.html, which stores its changes on top of this file.",
+  "_note": "Brake pads for Track sessions (the Add page's Brake pads drop-downs, Compare pads on the leaderboard). Makes with their compounds, and for each compound what its maker publishes: its intended use, its friction level (mu) and its working temperature range in degrees C. Leave a figure out rather than guess it. Edit them on the Brake pads panel of track-admin.html, which stores its changes on top of this file. Each compound's source is the page its figures came from.",
   "uses": ["Road", "Fast road", "Track day", "Endurance", "Race"],
   "makes": [
-    { "name": "Original equipment", "compounds": [{ "name": "Standard pads", "use": "Road" }] },
-    { "name": "Carbotech", "compounds": [{ "name": "XP8" }, { "name": "XP10" }, { "name": "XP12" }] },
-    { "name": "EBC", "compounds": [{ "name": "Greenstuff" }, { "name": "Redstuff" }, { "name": "Yellowstuff" }, { "name": "Bluestuff" }] },
-    { "name": "Endless", "compounds": [{ "name": "ME20" }, { "name": "MX72" }] },
-    { "name": "Ferodo", "compounds": [{ "name": "DS2500" }, { "name": "DS1.11" }, { "name": "DS3.12" }, { "name": "DSUNO" }] },
-    { "name": "Hawk", "compounds": [{ "name": "HP+" }, { "name": "DTC-60" }, { "name": "DTC-70" }] },
-    { "name": "Mintex", "compounds": [{ "name": "M1144" }, { "name": "M1155" }] },
-    { "name": "Pagid", "compounds": [{ "name": "RS29" }, { "name": "RSL19" }, { "name": "RSL29" }] },
-    { "name": "Performance Friction", "compounds": [{ "name": "08" }, { "name": "11" }] }
+    { "name": "Original equipment", "compounds": [
+      {"name": "Standard pads", "use": "Road"}
+    ] },
+    { "name": "Carbotech", "compounds": [
+      {"name": "XP8", "use": "Track day", "tempMin": 95, "tempMax": 675, "notes": "High torque, good initial bite at race temperatures, very high fade resistance, kind to discs; maker says ideal for track days", "source": "https://ctbrakes.com/table_dynamic/xp8/"},
+      {"name": "XP10", "use": "Race", "tempMax": 800, "notes": "Very strong initial bite and high friction, very kind to discs", "source": "https://ctbrakes.com/table_dynamic/xp10/"},
+      {"name": "XP12", "use": "Race", "tempMin": 120, "tempMax": 1010, "notes": "More bite, torque and fade resistance than XP10, good release and modulation; harder on discs than XP10", "source": "https://ctbrakes.com/table_dynamic/xp12/"}
+    ] },
+    { "name": "EBC", "compounds": [
+      {"name": "Greenstuff", "use": "Road", "notes": "Street pad with more friction and fade resistance than standard, ECE R90 approved", "source": "https://www.ebcbrakes.com/products/ebc-greenstuff-brake-pads/"},
+      {"name": "Redstuff", "use": "Fast road", "mu": "0.5", "notes": "Copper-free ceramic sport pad, very low dust and long life; a road pad, not for track use", "source": "https://www.ebcbrakes.com/products/ebc-redstuff-ceramic-brake-pads/"},
+      {"name": "Yellowstuff", "use": "Fast road", "mu": "0.5", "notes": "High friction fast road pad; long bedding-in, so EBC does not recommend it for track use", "source": "https://www.ebcbrakes.com/products/ebc-yellowstuff-fast-street-pads/"},
+      {"name": "Bluestuff", "use": "Track day", "mu": "0.52", "tempMin": 0, "tempMax": 550, "notes": "Figures for Bluestuff NDX; track day and sprint pad with road manners, short bedding-in", "source": "https://www.ebcbrakes.com/products/ebc-bluestuff-ndx-super-street-trackday-brake-pads/"}
+    ] },
+    { "name": "Endless", "compounds": [
+      {"name": "ME20", "use": "Race", "tempMin": 150, "tempMax": 800, "notes": "Semi-metallic sprint race pad, stable when hot, low wear", "source": "https://endlessusa.com/products/brake-pad-racing-compound"},
+      {"name": "MX72", "use": "Track day", "mu": "0.37 to 0.47", "tempMin": 50, "tempMax": 700, "notes": "Ceramic carbon metal pad for fast driving and circuit use, works from low temperatures", "source": "https://endless-sport.co.jp/products/brake_pad/MX72.html"}
+    ] },
+    { "name": "Ferodo", "compounds": [
+      {"name": "DS2500", "use": "Track day", "mu": "0.41", "tempMin": 0, "tempMax": 500, "notes": "For track days, light race use and the rear axle on GT cars", "source": "https://www.ferodoracing.com/products/car-racing/brake-pads/DS2500"},
+      {"name": "DS1.11", "use": "Endurance", "mu": "0.46", "tempMin": 200, "tempMax": 750, "notes": "Heavy duty endurance pad, long life and very kind to discs", "source": "https://www.ferodoracing.com/products/car-racing/brake-pads/DS1.11"},
+      {"name": "DS3.12", "use": "Race", "tempMin": 300, "tempMax": 850, "notes": "High friction and initial bite; GT and heavy duty use, sprint and medium length races", "source": "https://www.ferodoracing.com/products/car-racing/brake-pads/DS3.12"},
+      {"name": "DSUNO", "use": "Endurance", "mu": "0.48", "tempMin": 200, "tempMax": 750, "notes": "Heavy duty semi-endurance pad, very controllable, kind to discs, long life", "source": "https://www.ferodoracing.com/products/car-racing/brake-pads/DSUNO"}
+    ] },
+    { "name": "Hawk", "compounds": [
+      {"name": "HP+", "use": "Fast road", "tempMin": 40, "tempMax": 425, "notes": "Crossover road and race pad for low to mid temperatures, smooth torque", "source": "https://www.hawkperformance.com/hp-plus"},
+      {"name": "DTC-60", "use": "Race", "tempMin": 205, "tempMax": 870, "notes": "For very high deceleration, good release and torque control, low disc wear", "source": "https://www.hawkperformance.com/dtc-60"},
+      {"name": "DTC-70", "use": "Race", "tempMin": 205, "tempMax": 870, "notes": "Very high torque and aggressive initial bite, good modulation and release", "source": "https://www.hawkperformance.com/dtc-70"}
+    ] },
+    { "name": "Mintex", "compounds": [
+      {"name": "M1144", "use": "Track day", "notes": "Medium torque, excellent low temperature performance; track days, hill climbs and club motorsport", "source": "https://mintex.com/racing/compounds/"},
+      {"name": "M1155", "use": "Race", "notes": "Track and rally pad, medium friction, positive modulation and high fade resistance", "source": "https://compbrake.com/?p=97481"}
+    ] },
+    { "name": "Pagid", "compounds": [
+      {"name": "RS29", "use": "Endurance", "notes": "Classic yellow compound, now sold as RSL 29", "source": "https://www.ogracing.com/products/pagid-u-4927-yellow-racing-pad-rs29-compound"},
+      {"name": "RSL19", "use": "Endurance", "notes": "Low metallic, medium friction, stable over a broad range; GT3 rear or lighter GT and touring car front", "source": "https://www.pagidracing.com/racing-brake-pads-products/rsl-19"},
+      {"name": "RSL29", "use": "Endurance", "notes": "Low metallic, medium friction, very good modulation and release; club racing, track days and GT endurance", "source": "https://www.pagidracing.com/racing-brake-pads-products/rsl-29"}
+    ] },
+    { "name": "Performance Friction", "compounds": [
+      {"name": "08", "use": "Endurance", "notes": "Endurance pad for high temperatures, smooth bite, very long wearing, low disc wear", "source": "https://pfc.parts/motorsports/pad-compounds/08-compound-2/"},
+      {"name": "11", "use": "Race", "notes": "Sprint and medium distance pad: smooth bite, friction rising with temperature, good release", "source": "https://pfc.parts/motorsports/pad-compounds/11-compound-2/"}
+    ] }
   ]
 }

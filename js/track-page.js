@@ -956,7 +956,7 @@
   }
   // The sort for the track lines of the vehicle picked.
   // Filters by logger, tyres and pads (listFilters), kept while the page lives. A filter's drop-down lists every value
-  // the member's sessions carry, with how many; while any filter is on the tree is drawn fully open (filterOpenAll)
+  // the member's sessions carry, with how many; while any filter is on the tracks and layouts are drawn open (filterOpenAll) down to the days
   // so the matching sessions are in view, with a line saying how many of the sessions match and a Clear chip.
   var FILTERS = [['logger', 'Logger', 'All loggers'], ['tyres', 'Tyres', 'All tyres'], ['pads', 'Pads', 'All pads']];
   var listFilters = { logger: '', tyres: '', pads: '' }, filterOpenAll = false;
@@ -1263,7 +1263,7 @@
       // The fastest of the day: the best lap or run, or for drag runs the quickest quarter mile (else 0 to 60).
       function score(x) { return x.type === 'drag' ? (x.quarter || (x.s60 ? 1000 + x.s60 : 0)) : x.bestTime || 0; }
       var fast = g.filter(function (x) { return score(x) > 0; }).sort(function (a, b) { return score(a) - score(b); })[0];
-      var key = k, open = filterOpenAll || openDays[key] || !fast || g.length === 1, many = g.length > 1, count = g.length + ' session' + (many ? 's' : '');
+      var key = k, open = openDays[key] || !fast || g.length === 1, many = g.length > 1, count = g.length + ' session' + (many ? 's' : '');
       var best = fast && fast.type !== 'drag' ? V.fmtLap(fast.bestTime) : '';
       return '<div class="card tp-daygroup" data-open="' + (open ? 'true' : 'false') + '" data-day="' + esc(key) + '">' +
         '<div class="tp-daygroup-head">' + groupTitleHtml(niceDate(g[0].date) + ' on ' + trackName(g[0]), niceDate(g[0].date) + ' on ' + trackName(g[0]) + ', ' + count, open, many) +

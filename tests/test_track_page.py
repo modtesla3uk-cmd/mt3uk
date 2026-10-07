@@ -1098,6 +1098,17 @@ def test_the_sessions_list_can_be_filtered_by_logger_tyres_and_pads(page):
     expect(page.locator("#tp-sess-list .tp-row[data-sid]")).to_have_count(1)
     expect(page.locator("#tp-sess-list .tp-row[data-sid]")).to_be_visible()
     expect(page.locator('#tp-sess-list .tp-row[data-sid="f2"]')).to_have_count(1)
+    # The tracks and layouts are open down to the days; a day with several matching sessions stays closed.
+    expect(page.locator("#tp-sess-list .tp-daygroup").first).to_be_visible()
+    # Several matching sessions on one day: the day card stays closed (the day and its fastest), not fully expanded.
+    page.locator("#tp-filter-logger").select_option("")
+    page.locator("#tp-filter-tyres").select_option("Michelin Pilot Sport 4S")
+    expect(page.locator("#tp-sess-list .tp-daygroup")).to_have_count(1)
+    expect(page.locator("#tp-sess-list .tp-daygroup")).to_have_attribute("data-open", "false")
+    expect(page.locator("#tp-sess-list .tp-daygroup-all")).to_be_hidden()
+    expect(page.locator("#tp-sess-list .tp-daygroup-best .tp-row")).to_be_visible()
+    page.locator("#tp-filter-tyres").select_option("")
+    page.locator("#tp-filter-logger").select_option("VBOX")
     # Two filters together.
     page.locator("#tp-filter-logger").select_option("RaceBox")
     page.locator("#tp-filter-pads").select_option("Pagid RSL29")

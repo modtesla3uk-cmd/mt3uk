@@ -36,6 +36,18 @@
     c.fillStyle = STEEL; c.font = '400 12px ' + BODY; c.fillText(ellipsize(c, s, w - 26), x + 14, y + 74);
   }
   // mph unless opts.unit is 'kmh'. opts.wordmark is a loaded Image. Throws when the session has no lap trace.
+  // The Laps mark, a lap timer (a ring one lap from the line), drawn at x, y with the given size (its 64 unit box).
+  function lapsMark(c, x, y, size) {
+    var k = size / 64;
+    c.save(); c.translate(x, y); c.scale(k, k);
+    c.fillStyle = INK; roundRect(c, 27, 3, 10, 6, 2); c.fill();
+    c.lineWidth = 7; c.lineCap = 'round';
+    c.strokeStyle = 'rgba(22,35,61,.22)'; c.beginPath(); c.arc(32, 36, 21, 0, Math.PI * 2); c.stroke();
+    c.strokeStyle = ORANGE; c.beginPath(); c.arc(32, 36, 21, -Math.PI / 2, Math.PI, false); c.stroke();
+    c.strokeStyle = INK; c.lineWidth = 5; c.beginPath(); c.moveTo(32, 36); c.lineTo(43, 25); c.stroke();
+    c.fillStyle = INK; c.beginPath(); c.arc(32, 36, 3.4, 0, Math.PI * 2); c.fill();
+    c.restore();
+  }
   function draw(canvas, s, opts) {
     opts = opts || {};
     var mph = opts.unit !== 'kmh', T = root.MT3UKTrack;
@@ -96,8 +108,11 @@
     // (kind of day, conditions and temperature, tyres, pads, driven wheels, logger), the three tiles, the lap times
     // and, in the room left, the cornering g chart. Nothing that is not on the session is drawn.
     var px = MAPW + 32, pw = W - MAPW - 64, meta = { chips: [], lapTimes: 0, chart: false };
-    if (opts.wordmark && opts.wordmark.naturalWidth) { var wh = 30, ww = wh * opts.wordmark.naturalWidth / opts.wordmark.naturalHeight; c.drawImage(opts.wordmark, px, 28, ww, wh); }
-    c.fillStyle = STEEL; c.font = '600 14px ' + BODY; c.textAlign = 'right'; c.fillText('Laps by MT3UK', W - 32, 48); c.textAlign = 'left';
+    // The Laps lockup: the lap timer mark, Laps and by MT3UK.
+    if (root.MT3UKLapsLogo) root.MT3UKLapsLogo.draw(c, px, 22, 38, opts.logo || root.MT3UKLapsLogo.current(), INK); else lapsMark(c, px, 22, 38);
+    c.fillStyle = INK; c.font = '800 24px ' + HEAD; c.fillText('Laps', px + 48, 52);
+    var lapsW = c.measureText('Laps').width;
+    c.fillStyle = STEEL; c.font = '500 13px ' + BODY; c.fillText('by MT3UK', px + 48 + lapsW + 10, 52);
     var title = (s.venue || 'Track session') + (s.layout && s.layout !== s.venue ? ', ' + s.layout : !s.layout && s.organizer ? ', ' + s.organizer : '');
     c.fillStyle = INK; c.font = '800 28px ' + HEAD;
     var words = title.split(' '), lines = [''], li = 0;

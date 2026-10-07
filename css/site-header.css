@@ -471,7 +471,11 @@ a.back-link .icon, .page-hero a.back-link .icon { color: var(--orange); stroke-w
 .early-badge-lg { margin: 0 0 12px; padding: 3px 10px; font-size: 0.8rem; }
 
 /* Laps pages (track.html, leaderboards.html): a text wordmark, "Laps by MT3UK". */
-.laps-logo { align-items: baseline; gap: 8px; }
+.laps-logo { align-items: center; gap: 8px; }
+/* The Laps mark: a lap timer (a ring one lap from the line). Ink parts follow the text colour, the arc is the brand orange. */
+.laps-logo-mark { flex: none; width: 30px; height: 30px; color: var(--ink); }
+.logo.footer-logo.laps-logo .laps-logo-mark { width: 24px; height: 24px; }
+.laps-logo-by { align-self: flex-end; padding-bottom: 3px; }
 /* "Early preview" in small writing above the Laps logo in the header (partials/laps-header.html). Take it off when Laps opens to everyone. */
 .laps-logo:has(> .laps-logo-early) { position: relative; }
 .laps-logo-early { position: absolute; left: 0; bottom: 100%; margin-bottom: 3px; white-space: nowrap; font-family: var(--font-body); font-size: 0.66rem; font-weight: 600; line-height: 1; color: var(--orange); }

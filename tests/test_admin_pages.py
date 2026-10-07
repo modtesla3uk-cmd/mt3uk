@@ -913,6 +913,38 @@ def test_the_share_card_shows_the_car_its_kit_the_lap_times_and_opens_full_scree
     expect(page.locator(".ts-light")).to_have_count(0)
 
 
+def test_admin_laps_logo_panel_picks_one_of_four_marks(page):
+    """The Laps logo panel shows the four marks (each on light, dark and as an app icon), marks the one in use, and
+    Use this logo saves the pick."""
+    cors = {"Access-Control-Allow-Origin": "*"}
+    state = {"logo": "timer"}
+    posted = []
+
+    def logo_admin(route):
+        req = route.request
+        if req.method == "POST":
+            body = json.loads(req.post_data or "{}")
+            posted.append(body)
+            state["logo"] = body["logo"]
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "logo": state["logo"], "choices": ["timer", "loop", "ramp", "chevron"]}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/laps/logo/admin**", logo_admin)
+    page.locator("#logo-wrap summary").click()
+    opts = page.locator("#ll-grid .ll-opt")
+    expect(opts).to_have_count(4)
+    expect(opts.locator("b")).to_have_text(["Lap timer (in use)", "Lap loop", "Speed-ramp L", "Double chevron"])
+    expect(opts.first).to_have_attribute("aria-pressed", "true")
+    expect(page.locator("#ll-save")).to_be_disabled()
+    page.locator(".ll-opt[data-logo='ramp']").click()
+    expect(page.locator("#ll-save")).to_be_enabled()
+    expect(page.locator("#ll-note")).to_contain_text("Not in use yet")
+    page.locator("#ll-save").click()
+    expect(page.locator(".ll-opt[data-logo='ramp'] b")).to_have_text("Speed-ramp L (in use)")
+    assert posted == [{"logo": "ramp"}], posted
+    expect(page.locator("#ll-save")).to_be_disabled()
+
+
 LINES_API = "**/track/lines/admin**"
 
 

@@ -1471,6 +1471,20 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   await call('POST', '/admin/alerts?key=secret', { email: true });
 }
 
+// The Laps logo: one of four marks, kept in one KV key, public to read and admin to change.
+{
+  let lg = await call('GET', '/laps/logo');
+  ok(lg.status === 200 && lg.body.success && lg.body.logo === 'timer' && lg.body.choices.length === 4, 'the logo starts as the lap timer');
+  ok((await call('POST', '/laps/logo/admin', { logo: 'loop' })).status === 401, 'the logo needs the admin key');
+  ok((await call('POST', '/laps/logo/admin?key=secret', { logo: 'gold-star' })).status === 400, 'an unknown logo is refused');
+  lg = await call('POST', '/laps/logo/admin?key=secret', { logo: 'ramp' });
+  ok(lg.body.success && lg.body.logo === 'ramp', 'the admin chooses the speed-ramp L');
+  ok((await call('GET', '/laps/logo')).body.logo === 'ramp', 'every page reads it');
+  ok((await call('GET', '/laps/logo/admin?key=secret')).body.logo === 'ramp', 'the admin panel reads it');
+  await call('POST', '/laps/logo/admin?key=secret', { logo: 'timer' });
+  ok((await call('GET', '/laps/logo')).body.logo === 'timer', 'choosing the lap timer clears it');
+}
+
 // The Laps announcement on Sessions: one line, shown when on, a new id when the words change.
 {
   let ln = await call('GET', '/laps/news');

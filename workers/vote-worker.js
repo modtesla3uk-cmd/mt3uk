@@ -8823,6 +8823,31 @@ async function handleLapsNewsAdmin(request, env) {
   return json({ success: true, news: news });
 }
 
+// ---------- Laps logo ----------
+// Which mark the Laps header, footer, favicon and sharing card use: one of four, chosen on the Laps logo panel of
+// track-admin.html (js/laps-logo.js holds the marks). One KV key, read with get().
+var LAPS_LOGO_KEY = 'laps-logo', LAPS_LOGO_IDS = ['timer', 'loop', 'ramp', 'chevron'];
+function cleanLapsLogo(body) {
+  var id = String((body && (body.logo || body.id)) || '').trim();
+  return LAPS_LOGO_IDS.indexOf(id) !== -1 ? id : 'timer';
+}
+async function handleLapsLogoPublic(request, env) {
+  var d = await getJsonKey(env, LAPS_LOGO_KEY, {});
+  var res = json({ success: true, logo: cleanLapsLogo(d), choices: LAPS_LOGO_IDS });
+  res.headers.set('Cache-Control', 'public, max-age=60');
+  return res;
+}
+async function handleLapsLogoAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  if (request.method === 'GET') return json({ success: true, logo: cleanLapsLogo(await getJsonKey(env, LAPS_LOGO_KEY, {})), choices: LAPS_LOGO_IDS });
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var id = String((body && (body.logo || body.id)) || '').trim();
+  if (LAPS_LOGO_IDS.indexOf(id) === -1) return json({ success: false, message: 'Choose one of the four logos.' }, 400);
+  if (id === 'timer') await env.VOTES.delete(LAPS_LOGO_KEY); else await env.VOTES.put(LAPS_LOGO_KEY, JSON.stringify({ logo: id, at: Date.now() }));
+  return json({ success: true, logo: id, choices: LAPS_LOGO_IDS });
+}
+
 // ---------- Laps front page panels ----------
 // The sections of laps.html (Fastest right now, What Laps does, Every kind of day, Works with your lap timer, EVs any
 // make), editable on the Laps panels panel of track-admin.html: each one's heading, intro line, cards (title and text)
@@ -11551,6 +11576,12 @@ export default {
     }
     if (url.pathname === '/laps/news/admin' && (request.method === 'GET' || request.method === 'POST')) {
       return handleLapsNewsAdmin(request, env);
+    }
+    if (url.pathname === '/laps/logo' && request.method === 'GET') {
+      return handleLapsLogoPublic(request, env);
+    }
+    if (url.pathname === '/laps/logo/admin' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleLapsLogoAdmin(request, env);
     }
     if (url.pathname === '/laps/panels' && request.method === 'GET') {
       return handleLapsPanelsPublic(request, env);

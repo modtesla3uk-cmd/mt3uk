@@ -683,3 +683,17 @@
 .rt-outcome { border: 1px solid var(--hairline-strong); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 10px; font-size: 0.9rem; }
 .rt-outcome ul { margin: 6px 0 0; padding-left: 18px; }
 .rt-warn { color: var(--orange); font-weight: 600; }
+
+/* Laps logo panel: the four marks to choose from, each on light and dark and as an app icon. */
+.ll-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; margin: 10px 0; }
+.ll-opt { display: flex; flex-direction: column; gap: 8px; align-items: stretch; text-align: left; padding: 12px; border: 2px solid var(--hairline); border-radius: var(--radius); background: #fff; cursor: pointer; font: inherit; color: inherit; }
+.ll-opt:hover { border-color: var(--hairline-strong); }
+.ll-opt, .ll-opt.is-on, .ll-opt:hover, .ll-opt[aria-pressed="true"] { background: #fff; color: var(--ink); }
+.ll-opt.is-on, .ll-opt[aria-pressed="true"] { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(232, 84, 42, 0.15); }
+.ll-opt .ll-about { color: var(--steel); }
+.ll-opt b em { font-style: normal; font-weight: 500; color: var(--steel); }
+.ll-row { display: flex; gap: 8px; align-items: center; flex-wrap: nowrap; }
+.ll-lock { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: var(--radius-sm); border: 1px solid var(--hairline); }
+.ll-name { font-family: var(--font-head); font-weight: 800; font-size: 1.15rem; }
+.ll-app { display: inline-flex; align-items: center; justify-content: center; width: 52px; height: 52px; border-radius: 13px; }
+.ll-about { color: var(--steel); font-size: 0.86rem; }

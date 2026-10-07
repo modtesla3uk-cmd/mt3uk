@@ -325,18 +325,15 @@
     pageBack.hidden = !!location.search.replace(/^\?/, '');
   }
   // A view's own Back goes to the list it came from, which on a session can be two or three steps from My Sessions,
-  // so a My Sessions button (#tp-home) sits beside it whenever Back goes somewhere else.
+  // so a My Sessions button (#tp-home) sits beside it on every view but the list.
   function moveViewBack() {
     var inner = app.querySelector('.tp-back');
     if (!inner || !heroTop || !pageBack) return;
     [].slice.call(heroTop.querySelectorAll('.tp-back, .tp-home')).forEach(function (x) { x.remove(); });
     inner.classList.add('back-link');
     heroTop.insertBefore(inner, pageBack);
-    // Back steps to the view before when there is one (goBack), so only a Back with nowhere to step back to and
-    // the list as its target already goes there.
-    if (inner.getAttribute('data-go') || backDepth() > 0) {
-      inner.insertAdjacentHTML('afterend', '<a class="back-link tp-home" id="tp-home" href="track.html" data-go="" aria-label="My Sessions" title="My Sessions">' + icon('sessions') + 'My Sessions</a>');
-    }
+    // On every view but the list itself, whatever Back does (it steps back one view at a time).
+    inner.insertAdjacentHTML('afterend', '<a class="back-link tp-home" id="tp-home" href="track.html" data-go="" aria-label="My Sessions" title="My Sessions">' + icon('sessions') + 'My Sessions</a>');
     pageBack.hidden = true;
   }
   if (heroTop) {

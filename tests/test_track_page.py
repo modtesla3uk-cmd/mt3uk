@@ -1942,16 +1942,19 @@ def test_leaderboards_list_busy_tracks_first_with_counts(page):
 
 
 def test_a_session_has_a_my_sessions_button_beside_back(page):
-    """On a session (or any view whose Back goes somewhere other than the list) a My Sessions button sits beside
-    Back in the heading (#tp-home, moveViewBack in js/track-page.js), so the list is one tap away. On the list
-    itself there is none."""
+    """On a session (or any other view) a My Sessions button sits beside Back in the heading (#tp-home,
+    moveViewBack in js/track-page.js), so the list is one tap away. On the list itself there is none."""
     fake = FakeWorker()
     open_page(page, fake)
     page.get_by_role("link", name="Add a session").click()
     page.set_input_files("#tp-file", str(FIXTURE))
     page.get_by_role("button", name="Save session").click()
     expect(page.locator(".tp-session-head")).to_be_visible()
-    # Opened from the list (or any view deeper in), Back steps back one view, so the button is there.
+    expect(page.locator(".page-hero #tp-home")).to_be_visible()
+    # Opened straight from a link too.
+    page.goto("/track.html?s=new1")
+    expect(page.locator(".page-hero #tp-home")).to_be_visible()
+    # And from the list.
     page.goto("/track.html")
     page.locator("#tp-sess-list a.tp-trackrow").first.click()
     page.locator("#tp-sess-list a.tp-row[data-sid]").first.click()

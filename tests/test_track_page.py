@@ -5082,7 +5082,9 @@ def test_the_early_preview_badge_is_on_the_menu_the_page_and_the_garage(page):
     expect(page.locator("header .laps-logo .laps-logo-early")).to_have_text("Early preview")
     expect(page.locator(".page-hero .early-badge")).to_have_count(0)
     early, name = page.locator(".laps-logo-early").bounding_box(), page.locator("header .laps-logo-name").bounding_box()
-    assert early["y"] + early["height"] <= name["y"] + 1 and abs(early["x"] - name["x"]) < 2
+    mark = page.locator("header .laps-logo-mark").bounding_box()
+    # It sits above the whole logo: level with the mark's left edge, which now starts the logo.
+    assert early["y"] + early["height"] <= name["y"] + 1 and abs(early["x"] - mark["x"]) < 2
     page.goto("/index.html")
     expect(page.locator(".hp-cat[data-cat='sessions'] .early-badge")).to_have_text("Early preview")
     page.goto("/my-builds.html")
@@ -6285,3 +6287,84 @@ def test_the_session_board_packs_its_tiles_with_no_empty_blocks(page):
     page.set_viewport_size({"width": 390, "height": 800})
     page.wait_for_timeout(300)
     assert page.evaluate("[...document.querySelectorAll('#tp-board > [data-tile]')].every(t => Math.abs(t.getBoundingClientRect().width - document.getElementById('tp-board').getBoundingClientRect().width) < 2)")
+
+
+def _day_of_three(fake):
+    for sid, t, best in (("g1", "09:25", 89.1), ("g2", "11:29", 81.1), ("g3", "14:46", 87.7)):
+        rec = day_session(sid, t, best, 3)
+        fake.sessions[sid] = dict(rec)
+        fake.index.append(summary(rec))
+
+
+def test_a_session_has_a_skip_to_section_list_and_an_exit_button_and_the_map_is_called_map(page):
+    """At the top of a session: Skip to section (only the sections that session has) and Exit session on the right,
+    which goes back to the list. The compare map's heading is Map, not Where you are."""
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    expect(page.locator("#tp-session-bar")).to_be_visible()
+    texts = [t.strip() for t in page.locator("#tp-skip option").all_text_contents()]
+    assert texts[0] == "Choose a section" and "Map" in texts and "Session settings" in texts and "Laps" in texts and "G-force and speed" in texts, texts
+    expect(page.locator("#tp-mapcard h3").first).to_have_text("Map")
+    expect(page.locator("body")).not_to_contain_text("Where you are")
+    page.select_option("#tp-skip", label="Session settings")
+    expect(page.locator("#tp-skip")).to_have_value("")
+    page.wait_for_function("document.querySelector('#settings').getBoundingClientRect().top < window.innerHeight")
+    page.locator("#tp-exit").click()
+    expect(page.locator("#tp-sess-list")).to_be_visible()
+
+
+def test_the_grip_tile_is_wide_enough_to_close_the_gap_beside_it(page):
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    page.set_viewport_size({"width": 1280, "height": 900})
+    page.wait_for_timeout(400)
+    grip, mapcard = page.locator("[data-tile='grip']").bounding_box(), page.locator("[data-tile='map']").bounding_box()
+    assert abs(grip["y"] - mapcard["y"]) < 2000 and mapcard["x"] - (grip["x"] + grip["width"]) < 40, (grip, mapcard)
+
+
+def test_the_sessions_list_under_the_trend_is_short_until_opened(page):
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+    base = fake.sessions["new1"]
+    for i in range(6):
+        rec = dict(base, id="x%d" % i, date="2026-0%d-1%d" % (i + 1, i), bestTime=99.0 - i)
+        fake.sessions[rec["id"]] = rec
+        fake.index.append(summary(rec))
+    page.goto("/track.html?s=new1")
+    tile = page.locator("[data-tile='overtime-table']")
+    tile.wait_for()
+    rows = page.locator("[data-tile='overtime-table'] tbody tr")
+    total = rows.count()
+    assert total > 4
+    assert page.locator("[data-tile='overtime-table'] tbody tr:visible").count() == 4
+    page.locator("#tp-sess-more").click()
+    assert page.locator("[data-tile='overtime-table'] tbody tr:visible").count() == total
+    expect(page.locator("#tp-sess-more")).to_have_text("Show fewer sessions")
+    page.locator("#tp-sess-more").click()
+    assert page.locator("[data-tile='overtime-table'] tbody tr:visible").count() == 4
+
+
+def test_changing_a_sessions_settings_offers_the_same_for_the_rest_of_the_day(page):
+    """After Save in Session settings, when the conditions, tyres, brake pads, logger or weather changed and the track has
+    other sessions that day, it asks whether to apply the same to them. No leaves them; yes changes only what changed."""
+    fake = FakeWorker(earlier=False)
+    _day_of_three(fake)
+    for v in fake.sessions.values():
+        v["logger"] = "RaceBox"
+    fake.index[:] = [summary(dict(v)) for v in fake.sessions.values()]
+    open_page(page, fake, "/track.html?s=g2")
+    page.locator("#settings [data-cond] button[data-v='Wet'], #settings button[data-v='Wet']").first.click()
+    messages = []
+    page.once("dialog", lambda d: (messages.append(d.message), d.dismiss()))
+    page.locator("#tp-e-save").click()
+    expect(page.locator("#tp-status, .tp-status").first).to_contain_text("Saved")
+    assert messages and "conditions" in messages[0] and "other 2 sessions" in messages[0], messages
+    assert fake.sessions["g2"]["conditions"] == "Wet" and fake.sessions["g1"]["conditions"] == "Dry" and fake.sessions["g3"]["conditions"] == "Dry"
+    # Change the conditions again and say yes: the other two follow, and only the conditions are sent.
+    page.locator("#settings button[data-v='Damp']").first.click()
+    page.once("dialog", lambda d: d.accept())
+    page.locator("#tp-e-save").click()
+    page.wait_for_function("window.__x = 1; true")
+    page.wait_for_timeout(800)
+    assert fake.sessions["g1"]["conditions"] == "Damp" and fake.sessions["g3"]["conditions"] == "Damp", fake.sessions
+    assert all(v["logger"] == "RaceBox" for v in fake.sessions.values())

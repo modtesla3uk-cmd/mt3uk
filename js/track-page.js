@@ -3155,6 +3155,62 @@
       });
     }).catch(function (err) { if (window.console) console.error(err); failed('This session could not be loaded. Check your connection and try again.'); });
   }
+  // Skip to section: lists the sections this session page has and scrolls to the one chosen.
+  var SKIP_TO = [['#tp-headline', 'Best lap and headline times'], ['#compare', 'Compare laps'], ['#tp-mapcard', 'Map'], ['#tp-gbox', 'G-force and speed'], ['[data-tile="corners"]', 'Corner by corner'],
+    ['[data-tile="grip"]', 'How much grip you used'], ['[data-tile="cmpnotes"]', 'What the laps say'], ['#tp-laps', 'Laps'], ['[data-tile="spotted"]', 'What we spotted'], ['#over-time', 'Over time'],
+    ['#tp-impact', 'What each mod did'], ['#lineedit', 'Start and finish lines'], ['#settings', 'Session settings']];
+  function wireSkip(s) {
+    var sel = document.getElementById('tp-skip');
+    if (!sel) return;
+    SKIP_TO.forEach(function (x) {
+      if (!document.querySelector(x[0])) return;
+      var o = document.createElement('option'); o.value = x[0]; o.textContent = x[1]; sel.appendChild(o);
+    });
+    // Sprints, drag runs and drives have a few sections of their own: any section heading on the page is offered as well.
+    if (sel.options.length < 3) [].forEach.call(document.querySelectorAll('#app .tp-section[id], #app details[id]'), function (el) {
+      var h = el.querySelector('h2, h3, summary h3'); if (!h || sel.querySelector('option[value="#' + el.id + '"]')) return;
+      var o = document.createElement('option'); o.value = '#' + el.id; o.textContent = h.textContent.trim(); sel.appendChild(o);
+    });
+    sel.addEventListener('change', function () {
+      var el = sel.value && document.querySelector(sel.value);
+      sel.value = '';
+      if (!el) return;
+      if (el.tagName === 'DETAILS') el.open = true;
+      var inner = el.closest && el.closest('details'); if (inner) inner.open = true;
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+  // After Session settings is saved: when the conditions, tyres, brake pads, logger or weather changed and there are other sessions
+  // at the same track that day, offer the same change for each of them (only what changed is sent).
+  function offerDay(m, s, was, saved, ty, pd, edit) {
+    var key = dayKey(s), others = key ? ((m && m.sessions) || []).filter(function (x) { return x.id !== s.id && dayKey(x) === key; }) : [];
+    if (!others.length) return;
+    var send = {}, names = [];
+    if ((saved.conditions || '') !== was.conditions && saved.conditions) { send.conditions = saved.conditions; names.push('conditions'); }
+    if ((saved.tyres || '') !== was.tyres && saved.tyres) { Object.assign(send, ty); names.push('tyres'); }
+    if ((saved.pads || '') !== was.pads && saved.pads) { Object.assign(send, pd); names.push('brake pads'); }
+    if ((saved.logger || view.s.logger || '') !== was.logger && view.s.logger) { send.logger = view.s.logger; names.push('logger'); }
+    if (saved.temp != null && String(saved.temp) !== was.temp) {
+      send.temp = saved.temp; send.tempSource = saved.tempSource || 'member';
+      if (send.tempSource === 'weather' && saved.weather) send.weather = saved.weather;
+      names.push(saved.tempSource === 'weather' ? 'weather' : 'air temperature');
+    }
+    if (!names.length) return;
+    var list = names.length > 1 ? names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1] : names[0];
+    var many = others.length > 1 ? 'the other ' + others.length + ' sessions' : 'the other session';
+    if (!window.confirm('You changed the ' + list + '. Apply the same to ' + many + ' at ' + trackName(s) + ' on ' + niceDate(s.date) + ' too?')) return;
+    status('Applying to ' + many + '...', '');
+    var chain = Promise.resolve(), failed = 0;
+    others.forEach(function (x) {
+      chain = chain.then(function () { return api('PUT', '/track/session', Object.assign({ id: x.id }, send)).then(function (r) { if (!r.success) failed++; }).catch(function () { failed++; }); });
+    });
+    chain.then(function () {
+      mine = null; counts = null;
+      return getMine().then(function (mm) { view.mine = mm; });
+    }).then(function () {
+      status(failed ? failed + ' of ' + others.length + ' sessions could not be changed. Try again.' : 'Saved, and applied to ' + many + ' that day.', failed ? 'error' : 'ok');
+    });
+  }
   function drawSession() {
     var s = view.s;
     // Add a session stays in the page heading on the owner's own session, for the same car.
@@ -3164,6 +3220,9 @@
     var place = s.mine && view.mine ? dayPlace(s, view.mine.sessions) : null;
     var h = (justSaved && s.mine ? savedHtml(justSaved) : '') + back(s.mine ? 'Your sessions' : 'Back', s.mine ? '' : (s.carId ? 'car=' + encodeURIComponent(s.carId) : ''));
     if (s.adminView) h += '<p class="tp-admin-banner" id="tp-admin-banner">' + icon('lock') + 'Admin view, read only. This is a private session and this view is logged. Notes are not shown.</p>';
+    // Skip to a section (filled in once the page is drawn, from the sections it has) and Exit session, at the top.
+    h += '<div class="tp-session-bar" id="tp-session-bar"><label class="tp-skip"><span>Skip to</span><select class="field" id="tp-skip" aria-label="Skip to section"><option value="">Choose a section</option></select></label>' +
+      '<a class="btn btn-secondary btn-sm tp-exit" id="tp-exit" href="track.html' + (!s.mine && s.carId ? '?car=' + encodeURIComponent(s.carId) : '') + '" data-go="' + (!s.mine && s.carId ? 'car=' + esc(encodeURIComponent(s.carId)) : '') + '">' + icon('x') + 'Exit session</a></div>';
     h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '</h2>' + (s.ownerName ? '<p class="tp-by" id="tp-by">' + icon('user') + '<span>Session by <b>' + esc(s.ownerName) + '</b>' + (s.mine ? ' (you)' : '') + '</span></p>' : '') + '<p class="tp-sub">' + (s.type === 'sprint' ? '<b id="tp-kind">' + (isHillSession(s, library) ? 'Hill climb' : 'Sprint') + '</b> &middot; ' : '') + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (place ? ' &middot; <b id="tp-day-place">Session ' + place.n + ' of ' + place.of + ' that day</b>' : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + (s.drive ? ' &middot; ' + esc(s.drive) : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + (s.pads ? ' &middot; <span id="tp-pads-line">Pads: ' + esc(s.pads) + '</span>' : '') + (s.logger ? ' &middot; <span id="tp-logger-line">Logger: ' + esc(s.logger) + '</span>' : '') + '</p>' + publicNoteHtml(s.publicNote) + launchLine(s) + (s.fileName && (s.mine || s.adminView) ? '<p class="tp-small tp-filename" id="tp-filename">' + icon('file') + 'File: ' + esc(s.fileName) + '</p>' : '') + (s.mine || s.adminView ? '<p class="tp-small tp-sid" id="tp-sid">Session ID: <code id="tp-sid-text">' + esc(s.id) + '</code> <button type="button" class="btn btn-ghost btn-sm" id="tp-sid-copy" aria-label="Copy the session ID">' + icon('copy') + '<span>Copy</span></button></p>' : '') + '</div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) + '<span id="tp-rank-slot"></span>' : '') + refreshChip() + unitsChip() + (s.street || s.privacy === 'private' ? '' : shareDot('Share this session')) + '</div></div>';
     LW = s.type === 'sprint' ? 'Run' : 'Lap';
     // Timed with older code and no readings kept to work it out again: only uploading the file again updates it.
@@ -3179,6 +3238,7 @@
     if (boardOpen) { h += '</div>'; boardOpen = false; }
     justSaved = null;
     app.innerHTML = h;
+    wireSkip(s);
     if (s.type === 'drag') drawDragCharts(s);
     else if (untimed) drawOtherCharts(s);
     else drawTrackCharts(s);
@@ -3445,13 +3505,13 @@
     var lapsHtml = '<details class="card tp-laps" id="tp-laps" data-tile="laps"' + (lapsOpen ? ' open' : '') + '><summary>' + '<h3>Laps</h3><span class="tp-small">' + laps.length + ' ' + (laps.length === 1 ? 'lap' : 'laps') + (best ? ', best ' + V.fmtLap(best.time) : '') + '</span>' + icon('chev') + '</summary><div class="tp-scroll"><table class="tp-table">' + lapTable(s) + '</table></div>' +
       (s.sectorsByThirds ? '<p class="tp-small">Sectors are thirds of the lap until this track has its own sector points.</p>' : '') + '</details>';
     var spottedHtml = '<div class="tp-section" data-tile="spotted"><div class="tp-chart-head">' + '<h3>What we spotted</h3></div><div class="tp-notes">' + notesHtml(T.sessionNotes(s, V.fmtV, V.fmtD)) + '</div></div>';
-    // One map: Compare laps' "Where you are", straight after the tiles.
+    // One map: Compare laps' Map, straight after the tiles.
     if (s.trace && s.trace.laps && Object.keys(s.trace.laps).length) {
       h += '<div class="tp-section" id="compare"><div class="tp-head"><h2>Compare laps</h2></div><p class="tp-sub">Pick two laps. Press Play, or move along a chart, to see where both are at the same moment. The slower lap trails by the time gap.</p>' +
         '<div class="card tp-cmp-pick"><div class="tp-f2"><div class="tp-field"><label for="tp-cmp-a">Lap A</label><select class="field" id="tp-cmp-a">' + lapOptions(view.a) + '</select></div><div class="tp-field"><label for="tp-cmp-b">Lap B</label><select class="field" id="tp-cmp-b">' + lapOptions(view.b) + '</select></div></div></div>' +
         '</div><div class="tp-board" id="tp-board"><div class="card tp-o-speed" data-tile="speed"><div class="tp-chart-head">' + '<h3>Speed through the lap</h3><div class="tp-key" id="tp-key"></div></div><svg class="tv-chart" id="tp-speed" role="img" aria-label="Speed against distance for both laps"></svg>' +
         '<div class="tp-chart-head"><h3>Time gap</h3><span class="tp-small" id="tp-gap-cap"></span></div><svg class="tv-chart" id="tp-delta" role="img" aria-label="Running time gap between the laps"></svg>' + '</div>' +
-        '<div class="card tp-mapcard" id="tp-mapcard" data-tile="map"><div class="tp-chart-head tp-map-head">' + '<h3>Where you are</h3><button type="button" class="tp-switch tp-gswitch tp-speedsw" role="switch" id="tp-speedcol" aria-checked="' + cmpSpeed + '"><span>Colour by speed</span><span class="tp-track"></span></button><button type="button" class="tp-rotate-hint" id="tp-rotate-hint" aria-label="Turn the screen sideways for a bigger map" title="Turn the screen sideways for a bigger map">' + icon('rotate') + '</button><button type="button" class="btn btn-secondary btn-sm" id="tp-full" aria-label="Full screen map"></button></div>' +
+        '<div class="card tp-mapcard" id="tp-mapcard" data-tile="map"><div class="tp-chart-head tp-map-head">' + '<h3>Map</h3><button type="button" class="tp-switch tp-gswitch tp-speedsw" role="switch" id="tp-speedcol" aria-checked="' + cmpSpeed + '"><span>Colour by speed</span><span class="tp-track"></span></button><button type="button" class="tp-rotate-hint" id="tp-rotate-hint" aria-label="Turn the screen sideways for a bigger map" title="Turn the screen sideways for a bigger map">' + icon('rotate') + '</button><button type="button" class="btn btn-secondary btn-sm" id="tp-full" aria-label="Full screen map"></button></div>' +
         '<p class="tp-small tp-sync-note">Both laps at the same moment: the slower one trails by the time gap.</p>' +
         '<div class="tp-play" id="tp-play"><div class="tp-pn-grip" id="tp-pn-grip" role="separator" aria-label="Drag to move the controls" title="Drag to move the controls"><i></i><i></i><i></i></div><div class="tp-play-row"><div class="tp-play-btns"><button type="button" class="btn btn-secondary" id="tp-play-start" data-play="start" aria-label="Go back to the start"></button><button type="button" class="btn btn-secondary" id="tp-play-back" data-play="back"></button><button type="button" class="btn btn-primary" id="tp-play-toggle" data-play="toggle"></button></div><div class="tp-when" id="tp-when" aria-live="off"></div>' +
         '<div class="tp-chips" id="tp-speeds" role="group" aria-label="Playback speed">' + [['0.25', 'x0.25'], ['0.5', 'x0.5'], ['1', 'x1'], ['2', 'x2'], ['5', 'x5']].map(function (v) { return '<button type="button" class="chip" data-speed="' + v[0] + '">' + v[1] + '</button>'; }).join('') + '</div>' +
@@ -3616,7 +3676,7 @@
     }
     if (s.mine) drawOverTime(s);
   }
-  // How the two laps are lined up on the "Where you are" map.
+  // How the two laps are lined up on the Map.
   // What the G-force charts show (key, label). Each measure switched on gets a chart of its own, stacked, with lap A
   // in its blue and lap B in its orange, as on the map, so colour always means the car. Each session opens showing
   // one, cornering; more can be switched on with the chips.
@@ -3631,7 +3691,7 @@
   // Everything from Compare laps down is a tile ([data-tile]) in one 12-column board (#tp-board, .tp-board), each as
   // wide as its --span (DEFAULT_SPAN; full width on a phone). Nothing is moved or resized by the member.
   var boardOpen = false;
-  var DEFAULT_SPAN = { speed: 7, map: 5, corners: 7, grip: 5, cmpnotes: 12, laps: 12, spotted: 12, overtime: 12, 'overtime-notes': 6, 'overtime-table': 6, 'overtime-mods': 12, lineedit: 6, rename: 6, settings: 12, adminlayout: 12 };
+  var DEFAULT_SPAN = { speed: 7, map: 5, corners: 7, grip: 7, cmpnotes: 12, laps: 12, spotted: 12, overtime: 12, 'overtime-notes': 6, 'overtime-table': 6, 'overtime-mods': 12, lineedit: 6, rename: 6, settings: 12, adminlayout: 12 };
   var MAP_BASE = 380;
   // Packing: the grid's rows are 1px tall and each tile spans as many as its own height (plus the gap), measured
   // (ResizeObserver, redraws, a window resize), so the next tile starts straight under the one above it instead of
@@ -4382,6 +4442,8 @@
     if (r.skipped.length) h += '<p class="tp-small">Not compared (' + r.skipped.map(function (x) { return esc(x.labels.join(', ') + ': ' + x.why); }).join('; ') + ').</p>';
     return h + '<p class="tp-small">Your best dry time before and after each part, at this track. Weather, tyres and driving change between days, so treat it as a guide.</p></div>';
   }
+  // The Sessions list under the best lap chart shows only the latest few until opened, so it is no taller than What the trend says.
+  var timeAll = false, SHORT_ROWS = 4;
   function drawOverTime(s) {
     var box = document.getElementById('tp-time'), tile = box && box.closest('[data-tile]'), b = board();
     if (!box || !view.mine) return;
@@ -4393,16 +4455,19 @@
     var mods = carMods(s.carId).filter(function (m) { return m.date >= dates[0].slice(0, 7) && m.date <= dates[dates.length - 1]; });
     box.innerHTML = '<div class="card"><div class="tp-chart-head"><h3>Best lap per session</h3><div class="tp-key"><span><i style="background:' + RUN_COLORS[0] + '"></i>Dry</span><span><i class="is-ring"></i>Wet or damp (left out of the trend)</span><span class="is-mod"><i class="is-dash"></i>Mod fitted</span></div></div><svg class="tv-chart" id="tp-timeline" role="img" aria-label="Best lap at this track for each session, faster is higher"></svg>' + '<p class="tp-small">Higher up is faster. Tap a point to open that session.</p></div>';
     var after = '<div class="card" data-tile="overtime-notes"><div class="tp-chart-head">' + '<h3>What the trend says</h3></div><div class="tp-notes">' + notesHtml(T.trendNotes(list.map(function (o) { return { date: o.date, bestTime: o.bestTime, conditions: o.conditions || 'Dry', tyres: o.tyres, temp: o.temp }; }), mods)) + '</div></div>' +
-      '<div class="card" data-tile="overtime-table"><div class="tp-chart-head">' + '<h3>Sessions</h3></div><div class="tp-scroll"><table class="tp-table"><thead><tr><th>Date</th><th>Best</th><th>Change</th><th>Conditions</th></tr></thead><tbody>' +
+      '<div class="card' + (timeAll ? '' : ' is-short') + '" data-tile="overtime-table" id="tp-sessions-tile"><div class="tp-chart-head">' + '<h3>Sessions</h3></div><div class="tp-scroll"><table class="tp-table"><thead><tr><th>Date</th><th>Best</th><th>Change</th><th>Conditions</th></tr></thead><tbody>' +
       list.slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; }).map(function (o, i, arr) {
         var prev = arr.slice(0, i).filter(function (p) { return (p.conditions || 'Dry') === 'Dry'; }).pop();
         var ch = (o.conditions || 'Dry') === 'Dry' && prev ? o.bestTime - prev.bestTime : null;
         return '<tr' + (o.id === s.id ? ' class="is-best"' : '') + '><td><a href="track.html?s=' + esc(o.id) + '" data-go="s=' + esc(o.id) + '">' + esc(niceDate(o.date)) + '</a></td><td>' + V.fmtLap(o.bestTime) + '</td><td>' + (ch === null ? '' : (ch > 0 ? '+' : '') + ch.toFixed(2)) + '</td><td>' + esc(o.conditions || '') + (o.temp != null ? ', ' + o.temp + '°C' : '') + '</td></tr>';
-      }).join('') + '</tbody></table></div></div>' + impactHtml(list, s);
+      }).join('') + '</tbody></table></div>' +
+      (list.length > SHORT_ROWS ? '<button type="button" class="btn btn-secondary btn-sm tp-sess-more" id="tp-sess-more" aria-expanded="' + timeAll + '">' + (timeAll ? 'Show fewer sessions' : 'Show all ' + list.length + ' sessions') + '</button>' : '') + '</div>' + impactHtml(list, s);
     // The extra tiles go on the board after the chart's tile (or into the section when there is no board).
     if (tile && b) tile.insertAdjacentHTML('afterend', after); else box.insertAdjacentHTML('beforeend', after);
     timelineData = { list: list, mods: mods, s: s };
     drawTimeline();
+    var more = document.getElementById('tp-sess-more');
+    if (more) more.addEventListener('click', function () { timeAll = !timeAll; drawOverTime(s); });
     applyLayout();
   }
   // The best lap chart, drawn again at its chosen height (the grip bar under it).
@@ -4644,6 +4709,8 @@
     function closeSession() { goBack(''); }
     function saveSettings() {
       var t = document.getElementById('tp-e-temp').value.trim();
+      // What each setting was, so we can tell what changed and offer the same change to the rest of the day.
+      var was = { conditions: view.s.conditions || '', tyres: view.s.tyres || '', pads: view.s.pads || '', logger: view.s.logger || '', temp: view.s.temp == null ? '' : String(view.s.temp) };
       var ty = tyrePayload(readTyre('tp-e-tyre')), pd = padPayload(readPads('tp-e-pad'));
       api('PUT', '/track/session', Object.assign({ id: s.id, privacy: edit.privacy, conditions: edit.conditions || '' }, ty, pd, { temp: t === '' ? null : parseFloat(t), tempSource: t === '' ? '' : (edit.tempSource || 'member'), weather: edit.tempSource === 'weather' ? edit.weather : null, notes: document.getElementById('tp-e-notes').value, publicNote: document.getElementById('tp-e-public-note').value.trim(), logger: loggerValue('tp-e-logger') })).then(function (d) {
         if (!d.success) { status(d.message || 'Could not save.', 'error'); return; }
@@ -4658,7 +4725,10 @@
         if (pl) pl.remove();
         document.querySelector('.tp-session-head .tp-sub').insertAdjacentHTML('afterend', publicNoteHtml(view.s.publicNote));
         dirty = false;
-        getMine().then(function (m) { view.mine = m; drawSession(); status('Saved.', 'ok'); });
+        getMine().then(function (m) {
+          view.mine = m; drawSession(); status('Saved.', 'ok');
+          offerDay(m, s, was, d.session, ty, pd, edit);
+        });
       });
     }
     document.getElementById('tp-e-save').addEventListener('click', saveSettings);

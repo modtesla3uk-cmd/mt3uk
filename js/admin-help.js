@@ -248,6 +248,11 @@
       ['Save', 'New words or a new link show again to members who closed the last one.'],
       ['Remove', 'Takes it away.']
     ] },
+    'logo-wrap': { t: 'Laps logo', p: 'The mark beside Laps in the header and footer, the browser tab icon, the iPhone home-screen icon and the sharing card.', i: [
+      ['Pick a mark', 'Lap timer, Loop, Ramp or Chevron, each shown on light, on dark and as an app icon.'],
+      ['Use this logo', 'Saves the choice. Pages pick it up on their next load (within a minute or two). Lap timer is the default.'],
+      ['Installed Android app', 'Its icon comes from a fixed file and only follows a new choice after the app manifest is changed in a commit.']
+    ] },
     'panels-wrap': { t: 'Laps panels', p: 'The sections of the Laps front page, and where each one shows.', i: [
       ['Front page, Sessions, Leaderboard', 'Where the section shows. Sessions and the Leaderboard show it under the list, to signed-in members only.'],
       ['Heading, intro line, cards and chips', 'Your words in place of the front page\'s own. Anything left blank keeps them.'],

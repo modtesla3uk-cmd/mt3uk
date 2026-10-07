@@ -6417,8 +6417,18 @@ def test_the_sessions_tree_steps_down_one_arrow_at_a_time_with_compact_dates(pag
     expect(day.locator(".tp-daygroup-best")).to_be_hidden()
     expect(day.locator("[data-day-edit]")).to_be_hidden()
     day.locator(".tp-daygroup-title[data-day-toggle]").click()
+    # An open date shows only its fastest session; its arrow lists them all, and Show only the fastest goes back.
     expect(day.locator("[data-day-edit]")).to_be_visible()
+    expect(day.locator(".tp-daygroup-best .tp-row")).to_be_visible()
+    expect(day.locator(".tp-daygroup-all")).to_be_hidden()
+    day.locator("[data-day-all]").click()
     expect(day.locator(".tp-daygroup-all")).to_be_visible()
+    expect(day.locator(".tp-daygroup-all .tp-row")).to_have_count(3)
+    expect(day.locator(".tp-daygroup-best")).to_be_hidden()
+    day.locator(".tp-daygroup-less").click()
+    expect(day.locator(".tp-daygroup-all")).to_be_hidden()
+    expect(day.locator(".tp-daygroup-best .tp-row")).to_be_visible()
+    expect(day).to_have_attribute("data-open", "true")
 
 
 

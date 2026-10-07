@@ -896,7 +896,7 @@
       var tk = trackKeyOf(x);
       openTracks[tk] = true;
       openLayouts[tk + '|' + layoutKeyOf(x)] = true;
-      if (dayKey(x)) openDays[dayKey(x)] = true;
+      if (dayKey(x)) { openDays[dayKey(x)] = true; allDays[dayKey(x)] = true; }
     });
     if (saved.length) storeListOpen();
   }
@@ -1242,16 +1242,18 @@
   }
   // A session's row in its day: the time, what it was, the result and whether it is shared, on one line. The fastest
   // row of a closed day (expand) is a link plus a chevron button that opens the whole day.
-  function dayRow(s, n, fastest, expand) {
+  function dayRow(s, n, fastest, expand, tile) {
     var inner = '<span class="tp-daygroup-no">#' + n + '</span><span class="tp-row-main"><b>' + (s.time ? esc(s.time) : 'Time not known') + '</b><span>' +
       esc([s.type === 'drag' ? (s.runs || 0) + ' run' + (s.runs === 1 ? '' : 's') : (s.laps || 0) + (s.type === 'sprint' ? ' run' : ' lap') + (s.laps === 1 ? '' : 's'), s.conditions, s.pads].filter(Boolean).join(', ')) + (fastest ? ' <b class="tp-fastest">Fastest</b>' : '') + '</span></span>' +
       '<span class="tp-row-res">' + esc(sessionResult(s)) + '</span>' + (s.privacy !== undefined ? privacyPill(s.privacy, s.street) : '');
     if (expand) return '<div class="tp-row tp-dayfast" data-sid="' + esc(s.id) + '"><a class="tp-row-link" href="track.html?s=' + esc(s.id) + '" data-go="s=' + esc(s.id) + '">' + inner + '</a>' +
-      '<button type="button" class="tp-day-expand" data-day-toggle aria-expanded="false" aria-label="Show all ' + expand + ' sessions of this day">' + icon('chev') + '</button></div>';
+      '<button type="button" class="tp-day-expand" ' + (tile ? 'data-day-all' : 'data-day-toggle') + ' aria-expanded="false" aria-label="Show all ' + expand + ' sessions of this day">' + icon('chev') + '</button></div>';
     return '<a class="tp-row" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '">' + inner + icon('chev') + '</a>';
   }
   // The list as rows, with a day at one track in a card of its own when it has two or more sessions.
   var openDays = {};
+  // In the Sessions tree an open date shows its fastest session; its arrow then lists every session (allDays).
+  var allDays = {};
   // The battery used in one session, in points of charge (Track Mode files carry it).
   function chargeUsed(x) { return x.soc && x.soc.length === 2 ? Math.max(0, x.soc[0] - x.soc[1]) : null; }
   // A day's charge: on track, and on drives that day between the runs, from the sessions that have it.
@@ -1299,15 +1301,15 @@
       var fast = g.filter(function (x) { return score(x) > 0; }).sort(function (a, b) { return score(a) - score(b); })[0];
       var key = k, many = g.length > 1, open = tile ? !!openDays[key] : (openDays[key] || !fast || g.length === 1), count = g.length + ' session' + (many ? 's' : '');
       var best = fast && fast.type !== 'drag' ? V.fmtLap(fast.bestTime) : '';
-      return '<div class="card tp-daygroup' + (tile ? ' tp-day-tile' : '') + '" data-open="' + (open ? 'true' : 'false') + '" data-many="' + (many ? 'true' : 'false') + '" data-day="' + esc(key) + '">' +
+      return '<div class="card tp-daygroup' + (tile ? ' tp-day-tile' : '') + '"' + (tile ? ' data-all="' + (allDays[key] ? 'true' : 'false') + '"' : '') + ' data-open="' + (open ? 'true' : 'false') + '" data-many="' + (many ? 'true' : 'false') + '" data-day="' + esc(key) + '">' +
         '<div class="tp-daygroup-head">' + groupTitleHtml(niceDate(g[0].date) + ' on ' + trackName(g[0]), niceDate(g[0].date) + ' on ' + trackName(g[0]) + ', ' + count, open, many || tile, count + (best ? (many ? ', fastest ' : ', ') + best : '')) +
         (owner ? '<button type="button" class="tp-daygroup-share" role="switch" data-day-share data-ids="' + esc(g.map(function (x) { return x.id; }).join(',')) + '" data-what="' + esc(niceDate(g[0].date) + ' at ' + trackName(g[0])) + '" aria-checked="' + (g.every(function (x) { return x.privacy && x.privacy !== 'private'; }) ? 'true' : 'false') + '" aria-label="' + (many ? 'Share all ' + g.length + ' sessions' : 'Share this session') + '"><span>Shared</span><span class="tp-track"></span></button>' : '') +
         groupCountHtml(count, g.length, open, many) +
         (tile ? '<button type="button" class="tp-day-arrow" data-day-toggle aria-expanded="' + (open ? 'true' : 'false') + '" aria-label="' + (open ? 'Hide' : 'Show') + ' the ' + count + ' on ' + esc(niceDate(g[0].date)) + '">' + icon('chev') + '</button>' : '') + '</div>' +
         (dayCharge(g, drives) ? '<p class="tp-small tp-daygroup-charge">' + esc(dayCharge(g, drives)) + '</p>' : '') +
-        (fast && many ? '<div class="tp-daygroup-best"><span class="tp-small tp-daygroup-label">Fastest session of the day, <span class="tp-daygroup-count"><span class="tp-small">' + count + '</span></span></span>' + dayRow(fast, g.indexOf(fast) + 1, false, g.length) + '</div>' : '') +
+        (fast && many ? '<div class="tp-daygroup-best"><span class="tp-small tp-daygroup-label">Fastest session of the day, <span class="tp-daygroup-count"><span class="tp-small">' + count + '</span></span></span>' + dayRow(fast, g.indexOf(fast) + 1, false, g.length, tile) + '</div>' : '') +
         '<div class="tp-list tp-daygroup-all">' + g.map(function (x, i) { return dayRow(x, i + 1, many && x === fast); }).join('') +
-        (fast && many ? '<button type="button" class="tp-daygroup-less" data-day-toggle aria-expanded="true">Show only the fastest of the ' + count + icon('chev') + '</button>' : '') +
+        (fast && many ? '<button type="button" class="tp-daygroup-less" ' + (tile ? 'data-day-fast' : 'data-day-toggle') + ' aria-expanded="true">Show only the fastest of the ' + count + icon('chev') + '</button>' : '') +
         (drives.length ? '<span class="tp-small tp-daygroup-label tp-drives-label">Drives between runs (' + drives.length + ')</span>' + drives.map(sessionRow).join('') : '') +
         (owner ? addToDayButton(g[0], many) : '') +
         (owner ? '<button type="button" class="btn btn-danger btn-sm tp-daygroup-delete" data-day-delete data-ids="' + esc(g.concat(drives).map(function (x) { return x.id; }).join(',')) + '" data-label="' + esc(trackName(g[0])) + '" data-date="' + esc(niceDate(g[0].date)) + '">' + icon('trash') + (many ? 'Delete this day' : 'Delete this session') + '</button>' : '') + '</div>' + (owner ? dayEditButton(g) : '') + '</div>';
@@ -1431,7 +1433,7 @@
         justSaved = { text: failed ? failed + ' of the ' + ids.length + ' sessions at ' + what + ' could not be changed. Try again.' : (ids.length === 1 ? 'The session at ' + what + ' is updated.' : 'All ' + ids.length + ' sessions at ' + what + ' are updated.') };
         // The list redraws; stay on the day that was changed, open, rather than going back to the top.
         var dkey = box && box.getAttribute('data-day');
-        if (dkey) { openDays[dkey] = true; storeListOpen(); focusDay(dkey); }
+        if (dkey) { openDays[dkey] = true; allDays[dkey] = true; storeListOpen(); focusDay(dkey); }
         route();
       });
     });
@@ -1594,6 +1596,14 @@
   document.addEventListener('click', function (e) {
     var x = e.target.closest && e.target.closest('#tp-saved-x');
     if (x && x.closest('#tp-saved')) x.closest('#tp-saved').remove();
+  });
+  // In the Sessions tree: the arrow beside the fastest session lists every session of that date, and Show only the fastest goes back.
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-day-all], [data-day-fast]');
+    if (!b) return;
+    var box = b.closest('.tp-daygroup'), all = b.hasAttribute('data-day-all');
+    box.setAttribute('data-all', all ? 'true' : 'false');
+    allDays[box.getAttribute('data-day')] = all;
   });
   // A day's group opens and closes from its heading, and stays as chosen when the list is drawn again.
   document.addEventListener('click', function (e) {

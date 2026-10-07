@@ -871,6 +871,10 @@
   .tp-day-tile[data-open="false"] > :not(.tp-daygroup-head) { display: none; }
   .tp-day-tile[data-open="false"] .tp-daygroup-share { display: none; }
   .tp-day-tile .tp-daygroup-title { min-height: 46px; }
+  /* An open date shows only its fastest session; the arrow beside it lists them all, and Show only the fastest goes back. */
+  .tp-day-tile[data-many="true"][data-open="true"][data-all="false"] .tp-daygroup-all { display: none; }
+  .tp-day-tile[data-many="true"][data-open="true"][data-all="false"] .tp-daygroup-best { display: grid; }
+  .tp-day-tile[data-many="true"][data-all="true"] .tp-daygroup-best { display: none; }
   .tp-day-tile[data-open="false"] .tp-daygroup-count { display: none; }
   .tp-day-tile .tp-day-titles h3 { font-size: 0.9rem; }
   .tp-sess-more { margin-top: 10px; }
@@ -1174,7 +1178,7 @@
 <script src="js/pad-data.js?v=20270210"></script>
 <script src="js/vehicle-data.js?v=20270210" defer></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20270242" defer></script>
+<script src="js/track-page.js?v=20270243" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20270104" defer></script>
 <script src="js/share.js" defer></script>

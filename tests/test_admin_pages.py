@@ -19,7 +19,7 @@ ALL_PAGES = PAGES + ["track-admin.html"]
 GROUPS = [
     ("grp-gallery", "Gallery and builds", ["pending-wrap", "decided-wrap", "unclaimed-wrap", "votes-wrap", "garage-asks-wrap"]),
     ("grp-reports", "Reports", ["comments-wrap", "rphotos-wrap", "local-wrap"]),
-    ("grp-members", "Members", ["subscribers-wrap", "members-msg-wrap"]),
+    ("grp-members", "Members", ["subscribers-wrap", "members-msg-wrap", "passkey-nudge-wrap"]),
     ("grp-interviews", "Owner interviews", ["interviews-wrap", "preview-wrap"]),
     ("grp-sharing", "Sharing links", ["home-share-wrap"]),
 ]

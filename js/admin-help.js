@@ -100,6 +100,11 @@
       ['Remove from inboxes', 'Takes the message out of everyone\'s Profile inbox. Emails already sent cannot be unsent.'],
       ['Reported friend messages', 'Members can report a message a friend sent. Remove deletes that message. Block also stops the sender messaging anyone until you unblock them.']
     ] },
+    'passkey-nudge-wrap': { t: 'Passkey reminders', p: 'Reminds every member without a passkey to set one up, once each: a bell notification linking to Set up a passkey in their Profile, a push to their devices, and an email if ticked. Count first to see how many it will reach.', i: [
+      ['Count members without a passkey', 'Says how many would be reminded, sending nothing.'],
+      ['Send the reminder', 'The bell item and push go to each of them, after a confirm. Later presses only reach members who have joined since.'],
+      ['Also send it by email', 'Emails it too. Members who have turned emails off are skipped.']
+    ] },
     'bc-test-btn': { t: 'Send test', p: 'Emails this title and message to the one address typed in, marked [Test], using the way chosen in the drop-down. Nothing is saved or sent to anyone else.' },
 
     // ---------------------------------------------------------------- admin.html: owner interviews

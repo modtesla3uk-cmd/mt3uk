@@ -281,9 +281,15 @@
   .pf-app-steps li { margin: 4px 0; }
   .pf-app-steps .app-done { margin-top: 10px; background: none; border: 0; padding: 0; font: inherit; font-size: 0.85rem; color: var(--steel); text-decoration: underline; cursor: pointer; }
   .pf-side { display: grid; gap: 22px; min-width: 0; }
-  /* On laps.mt3uk.com (js/laps-shared.js marks the page laps-shared) the MT3UK app card is left out, and Your details takes the row. */
-  .laps-shared .pf-side { display: none; }
-  .laps-shared .pf-grid { grid-template-columns: minmax(0, 1fr); }
+  /* Set up a passkey, beside Your details (and above the app card). Once
+     the member has one it says so and links to the Passkeys list. On
+     laps.mt3uk.com (js/laps-shared.js marks the page laps-shared) both
+     side cards show too, the app card for the Laps app. */
+  .pf-passkey-card { border-top: 4px solid var(--orange); }
+  .pf-passkey-card p { color: var(--steel); margin-bottom: 16px; }
+  .pf-passkey-card .si-btn { width: 100%; }
+  .pf-passkey-card .pf-link { margin-top: 0; }
+  .pf-passkey-card.is-set h2::after { content: ' \2713'; color: #1c8a4b; }
   .pf-sec + .pf-sec { margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(22, 35, 61, 0.2); }
   .pf-sec h3 { margin-top: 0; scroll-margin-top: 90px; }
   #passkeys, #signed-in-devices { scroll-margin-top: 90px; }
@@ -634,6 +640,13 @@
         </div>
 
         <div class="pf-side">
+          <div class="pf-card pf-passkey-card" id="passkey-setup">
+            <h2 id="pf-pk-title">Set up a passkey</h2>
+            <p id="pf-pk-text">Sign in with your face, fingerprint or screen lock instead of waiting for an email code.</p>
+            <button type="button" class="si-btn si-btn-primary" id="pf-pk-setup">Set up a passkey on this device</button>
+            <a class="pf-link" id="pf-pk-manage" href="#passkeys" hidden>Manage your passkeys</a>
+            <p class="si-status" id="pf-pk-status" role="status"></p>
+          </div>
           <div class="pf-card pf-app-card" id="app" hidden>
             <h2>The MT3UK app</h2>
             <p class="app-text">One tap to the build reel and your garage, full screen, and notifications switch on when you sign in there.</p>
@@ -1013,9 +1026,28 @@
       saveVisibility({ modQuestionsOff: !$('pf-mod-questions').checked }, drawVisibility);
     });
 
+    // On Laps the app card installs the Laps app (js/laps-shared.js swaps the manifest).
+    if (document.documentElement.classList.contains('laps-shared')) {
+      $('app').querySelector('h2').textContent = 'The Laps app';
+      $('app').querySelector('.app-text').textContent = 'One tap to your sessions and the leaderboards, full screen, and notifications switch on when you sign in there.';
+    }
+
     // ---------- Passkeys ----------
     var PK = window.mt3ukPasskeys;
+    // The Set up a passkey card beside Your details.
+    var pkCard = $('passkey-setup');
+    function drawPasskeyCard(list) {
+      var has = list.length > 0;
+      pkCard.classList.toggle('is-set', has);
+      $('pf-pk-title').textContent = has ? 'Passkey set up' : 'Set up a passkey';
+      $('pf-pk-text').textContent = has
+        ? (list.length === 1 ? 'You sign in with your face, fingerprint or screen lock. Add one on each phone or computer you use.' : 'You have ' + list.length + ' passkeys. Add one on each phone or computer you use.')
+        : 'Sign in with your face, fingerprint or screen lock instead of waiting for an email code.';
+      $('pf-pk-setup').textContent = has ? 'Add a passkey on this device' : 'Set up a passkey on this device';
+      $('pf-pk-manage').hidden = !has;
+    }
     function drawPasskeys(list) {
+      drawPasskeyCard(list);
       $('pf-passkeys').innerHTML = list.length ? list.map(function (k) {
         var used = k.lastUsed ? 'Last used ' + when(k.lastUsed) : 'Added ' + when(k.created);
         return '<li><div class="pf-who"><strong>' + esc(k.name) + '</strong><span>' + esc(used) + '</span></div>' +
@@ -1029,20 +1061,24 @@
     if (!PK || !PK.supported()) {
       $('pf-passkey-add').hidden = true;
       $('pf-passkey-unsupported').hidden = false;
+      $('pf-pk-setup').hidden = true;
+      $('pf-pk-text').textContent = 'This browser can\u2019t use passkeys. Try Safari on iPhone or iPad, or Chrome or Edge on Android and computers.';
     }
-    $('pf-passkey-add').addEventListener('click', function () {
-      var btn = this;
+    // Both buttons add a passkey; each reports under itself.
+    function addPasskey(btn, statusEl) {
       btn.disabled = true;
-      status($('pf-passkey-status'), 'Follow the prompt on your device…');
+      status(statusEl, 'Follow the prompt on your device…');
       PK.register(session()).then(function (data) {
         btn.disabled = false;
         drawPasskeys(data.passkeys || []);
-        status($('pf-passkey-status'), 'Passkey added. Next time choose Sign in with a passkey.', 'ok');
+        status(statusEl, 'Passkey added. Next time choose Sign in with a passkey.', 'ok');
       }).catch(function (err) {
         btn.disabled = false;
-        status($('pf-passkey-status'), err.message, 'err');
+        status(statusEl, err.message, 'err');
       });
-    });
+    }
+    $('pf-passkey-add').addEventListener('click', function () { addPasskey(this, $('pf-passkey-status')); });
+    $('pf-pk-setup').addEventListener('click', function () { addPasskey(this, $('pf-pk-status')); });
     $('pf-passkeys').addEventListener('click', function (e) {
       var btn = e.target.closest('.pf-passkey-remove');
       if (!btn || !window.confirm('Remove this passkey? You can still sign in with an email code, and add it again later.')) return;

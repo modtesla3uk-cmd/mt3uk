@@ -188,8 +188,11 @@ def test_profile_and_my_garage_stay_on_laps_with_the_laps_header(page):
     assert state["made"] == 0
     expect(page.locator("header .laps-logo")).to_have_count(1)
     assert page.title() == "My Profile - Laps by MT3UK"
-    # The MT3UK app card is left out on Laps.
-    expect(page.locator("#app")).to_be_hidden()
+    # Set up a passkey sits beside Your details on Laps too, and the app card offers the Laps app (this
+    # member has no nickname yet, so the cards wait behind the nickname gate: checked by their markup).
+    assert page.locator("#passkey-setup").count() == 1
+    assert page.evaluate("getComputedStyle(document.querySelector('.pf-side')).display") != "none"
+    assert page.locator("#app h2").text_content() == "The Laps app"
     # The Gallery is not shared: it still goes to mt3uk.com, signed in.
     add_link(page, "gallery.html")
     page.locator("#go").click()

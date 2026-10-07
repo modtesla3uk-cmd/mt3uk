@@ -1681,6 +1681,48 @@ async function handleAdminBroadcastEmail(request, env) {
   return json({ success: true, sent: sent, skipped: skipped, already: already, emailedTotal: emailed.length, cursor: page.list_complete ? null : page.cursor });
 }
 
+// Passkey reminders: "Set up a passkey" to every member who has none, a
+// batch per call (the admin page calls again with `cursor` until done),
+// each member once (one KV key, PASSKEY_NUDGED_KEY, get()). It goes on
+// their bell (link to the Set up a passkey card in Profile) and as a push
+// to their devices; with `email: true` an email too (members with emails
+// off are skipped). `dry: true` only counts. Admin only and rarely used, so
+// list() is fine here.
+var PASSKEY_NUDGED_KEY = 'passkey-nudged';
+var PASSKEY_NUDGE_LINK = 'profile.html#passkey-setup';
+var PASSKEY_NUDGE_TEXT = 'Set up a passkey and sign in with your face, fingerprint or screen lock, with no email code to wait for.';
+async function handleAdminPasskeyNudge(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorized' }, 401);
+  var body;
+  try { body = await request.json(); } catch (e) { body = {}; }
+  body = body || {};
+  var dry = !!body.dry;
+  var page = await env.VOTES.list({ prefix: 'subscriber:', cursor: body.cursor || undefined, limit: BROADCAST_EMAIL_BATCH });
+  var nudged = await getJsonKey(env, PASSKEY_NUDGED_KEY, []);
+  if (!Array.isArray(nudged)) nudged = [];
+  var sent = 0, already = 0, havePasskey = 0, emailed = 0, changed = false;
+  for (var i = 0; i < page.keys.length; i++) {
+    var to = page.keys[i].name.slice('subscriber:'.length);
+    if ((await getPasskeys(env, to)).length) { havePasskey++; continue; }
+    if (nudged.indexOf(to) !== -1) { already++; continue; }
+    if (dry) { sent++; continue; }
+    await addNotification(env, to, { type: 'passkey', link: PASSKEY_NUDGE_LINK, fromName: 'MT3UK', text: PASSKEY_NUDGE_TEXT, createdAt: new Date().toISOString() });
+    await sendPushToMember(env, to, { title: 'Set up a passkey', body: 'Sign in to MT3UK with your face, fingerprint or screen lock. Set it up in your Profile.', url: '/' + PASSKEY_NUDGE_LINK });
+    if (body.email) {
+      var ok = await sendMemberEmail(env, to, 'Set up a passkey for MT3UK',
+        'You can now sign in to MT3UK and Laps with a passkey: your face, fingerprint or the screen lock on your phone or computer, with no email code to wait for.\n\n' +
+        'Set one up in your Profile (Set up a passkey, beside your name):\n\n' + PROFILE_URL + '#passkey-setup\n\n' +
+        'Only a public key is stored, never your face or fingerprint. Add one on each phone or computer you use.');
+      if (ok) emailed++;
+    }
+    nudged.push(to);
+    changed = true;
+    sent++;
+  }
+  if (changed) await env.VOTES.put(PASSKEY_NUDGED_KEY, JSON.stringify(nudged));
+  return json({ success: true, dry: dry, sent: sent, already: already, havePasskey: havePasskey, emailed: emailed, nudgedTotal: nudged.length, cursor: page.list_complete ? null : page.cursor });
+}
+
 // The photo in a reported message, for the admin page.
 async function handleAdminDmPhoto(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorized' }, 401);
@@ -11163,6 +11205,9 @@ export default {
     }
     if (url.pathname === '/admin/broadcasts/email' && request.method === 'POST') {
       return handleAdminBroadcastEmail(request, env);
+    }
+    if (url.pathname === '/admin/passkeys/nudge' && request.method === 'POST') {
+      return handleAdminPasskeyNudge(request, env);
     }
     if (url.pathname === '/admin/dm-reports' && request.method === 'POST') {
       return handleAdminDmReports(request, env);

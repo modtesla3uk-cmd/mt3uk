@@ -187,6 +187,18 @@
       <div id="dm-list"></div>
     </details>
     </div>
+    <div class="panel-wrap">
+    <details class="collapsible" id="passkey-nudge-wrap">
+      <summary><h3 class="panel-title">Passkey reminders <span class="summary-count" id="pk-nudge-count"></span></h3></summary>
+      <p class="iv-note">Reminds every member who has no passkey yet to set one up: a bell notification linking to <strong>Set up a passkey</strong> in their Profile, and a push to their devices. Each member is reminded once, so pressing it again only reaches members who have joined since. Tick <strong>Also send it by email</strong> to email it too (members who have turned emails off are skipped).</p>
+      <div class="bc-row">
+        <button type="button" class="secondary" id="pk-nudge-check">Count members without a passkey</button>
+        <button type="button" id="pk-nudge-send">Send the reminder</button>
+        <label class="bc-email"><input type="checkbox" id="pk-nudge-email"> Also send it by email</label>
+      </div>
+      <p class="iv-note" id="pk-nudge-note" role="status"></p>
+    </details>
+    </div>
   </section>
 
   <section class="admin-group" id="grp-interviews" aria-labelledby="grp-interviews-h">
@@ -2462,6 +2474,7 @@
 <script src="js/admin-alerts.js?v=20261212" defer></script>
 <script src="js/garage-asks-admin.js?v=20261208" defer></script>
 <script src="js/nickname-fill-admin.js?v=20270212" defer></script>
+<script src="js/passkey-nudge-admin.js?v=20261007" defer></script>
 <script src="js/track-parse.js?v=20270128" defer></script>
 <script src="js/track-view.js?v=20270110" defer></script>
 <script src="js/track-share-card.js?v=20261181"></script>

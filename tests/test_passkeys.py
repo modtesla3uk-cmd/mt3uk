@@ -187,6 +187,79 @@ def test_profile_lists_adds_and_removes_passkeys(device_page):
     assert page.errors == [], diagnostics(page)
 
 
+@all_devices
+def test_set_up_a_passkey_card_beside_your_details(device_page):
+    """Profile has a Set up a passkey card beside Your details (above the app
+    card). Its button adds a passkey; once the member has one the card says
+    so and links to the Passkeys list under Security."""
+    page = device_page
+    signed_in(page)
+    page.add_init_script(FAKE_AUTHENTICATOR)
+    page.goto("/profile.html")
+    page.locator("#pf-app").wait_for(state="visible", timeout=5000)
+    card = page.locator("#passkey-setup")
+    card.wait_for(state="visible", timeout=5000)
+    assert page.evaluate("[...document.querySelectorAll('.pf-side > .pf-card')].map(e => e.id)") == ["passkey-setup", "app"]
+    assert page.evaluate("document.querySelector('.pf-grid > .pf-card').id") == "details"
+    page.wait_for_function("document.getElementById('pf-passkeys').textContent.indexOf('No passkeys yet') !== -1", timeout=5000)
+    assert card.locator("h2").inner_text() == "Set up a passkey"
+    assert card.locator("#pf-pk-manage").is_hidden()
+    assert overflow_width(page) <= 0
+    page.click("#pf-pk-setup")
+    page.wait_for_function("document.getElementById('pf-pk-status').textContent.indexOf('Passkey added') !== -1", timeout=5000)
+    assert card.locator("h2").inner_text() == "Passkey set up"
+    assert card.locator("#pf-pk-manage").is_visible() and card.locator("#pf-pk-manage").get_attribute("href") == "#passkeys"
+    assert "Add a passkey on this device" in card.locator("#pf-pk-setup").inner_text()
+    assert page.locator("#passkeys .pf-passkey-remove").count() == 1, "The Security list shows it too"
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_admin_reminds_members_without_a_passkey(device_page):
+    """The Passkey reminders panel on admin.html counts the members without
+    a passkey, then sends each a reminder, a batch at a time."""
+    page = device_page
+    page.add_init_script("sessionStorage.setItem('mt3ukAdminKey', 'test-key')")
+    page.goto("/admin.html")
+    page.locator("#passkey-nudge-wrap > summary").click()
+    page.click("#pk-nudge-check")
+    page.wait_for_function("document.getElementById('pk-nudge-note').textContent.indexOf('3 members without a passkey would be reminded') !== -1", timeout=5000)
+    assert "6 members already have a passkey, 1 reminded before" in page.locator("#pk-nudge-note").inner_text()
+    assert "(3 without)" in page.locator("#pk-nudge-count").inner_text()
+    calls = page.mock_state["nudge_calls"]
+    assert [c["dry"] for c in calls] == [True, True] and calls[1]["cursor"] == "more", "Counts through every batch, sending nothing"
+    page.check("#pk-nudge-email")
+    page.once("dialog", lambda d: d.accept())
+    page.click("#pk-nudge-send")
+    page.wait_for_function("document.getElementById('pk-nudge-note').textContent.indexOf('Reminded 3 members, 3 by email') !== -1", timeout=5000)
+    assert [(c["dry"], c["email"]) for c in page.mock_state["nudge_calls"][2:]] == [(False, True), (False, True)]
+    assert overflow_width(page) <= 0
+    assert page.errors == [], diagnostics(page)
+
+
+def test_the_worker_reminds_each_member_without_a_passkey_once():
+    import shutil
+    import subprocess
+    import tempfile
+    from pathlib import Path
+    if shutil.which("node") is None:
+        import pytest
+        pytest.skip("node is not installed here")
+    root = Path(__file__).resolve().parent.parent
+    with tempfile.TemporaryDirectory() as tmp:
+        module = Path(tmp) / "worker.mjs"
+        source = (root / "workers" / "vote-worker.js").read_text(encoding="utf-8")
+        source = source.replace("import { EmailMessage } from 'cloudflare:email';", "class EmailMessage { constructor(f, t, raw) { this.raw = raw; } }", 1)
+        module.write_text(source, encoding="utf-8")
+        result = subprocess.run(
+            ["node", str(root / "tests" / "passkey_nudge_check.mjs")],
+            env={"WORKER_MODULE": module.as_uri(), "PATH": "/usr/bin:/usr/local/bin:/bin", "TZ": "UTC"},
+            capture_output=True, text=True, timeout=120,
+        )
+    assert result.returncode == 0 and "FAIL" not in result.stdout, result.stdout + result.stderr
+    assert result.stdout.count("ok ") >= 8
+
+
 def test_code_emails_come_with_a_check_junk_hint():
     from pathlib import Path
     root = Path(__file__).resolve().parent.parent

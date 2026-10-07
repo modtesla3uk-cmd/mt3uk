@@ -3171,6 +3171,19 @@ async function sendAdminEmail(env, raw, subject, page) {
   if (!(await adminAlerts(env)).email) return;
   await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, raw));
 }
+// The daily changes email (.github/workflows/daily-changes-email.yml, written by scripts/daily_changes.py): what was
+// pushed to the site that day, to MT3UK. Admin key only. It is a report Richard asked for, not an admin action, so it
+// does not push or move the bell, but the Email switch still stops it.
+async function handleAdminDailySummary(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var subject = trackText(body && body.subject, 150), text = String((body && body.text) || '').slice(0, 20000);
+  if (!subject || !text.trim()) return json({ success: false, message: 'Nothing to send' }, 400);
+  if (!(await adminAlerts(env)).email) return json({ success: true, sent: false, message: 'The Email switch is off' });
+  await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text)));
+  return json({ success: true, sent: true });
+}
 async function handleAdminAlerts(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
   var now = await adminAlerts(env);
@@ -7194,6 +7207,8 @@ function cleanTrackSession(s, library) {
   if (s.linesAccepted) out.linesAccepted = true;
   // On its layout by the path of the drive: the file has no lap from the start line back to itself, so the laps were timed from a point on the trace.
   if (s.lapsFromTrace) out.lapsFromTrace = true;
+  // The member picked this layout themselves: only they change it (the admin's re-time and repairs leave it).
+  if (s.layoutPicked && out.layoutId) out.layoutPicked = true;
   // A course with official lines only takes sessions timed on them (within
   // 25 m): lines a member moved never reach its leaderboard.
   if (layout && layout.startLine) {
@@ -8657,6 +8672,12 @@ function cleanTrackCopy(body) {
   if (tipHeading) out.tipHeading = tipHeading;
   if (tipText) out.tipText = tipText;
   if (body && body.tipOff === true) out.tipOff = true;
+  // The early preview note on the Laps strips and the Leaderboard (js/laps-strip.js): one for a visitor who is
+  // signed out, one for a member who has not asked, one for a member waiting.
+  ['previewOut', 'previewNone', 'previewPending'].forEach(function (k) {
+    var v = trackText(body && body[k], 300);
+    if (v) out[k] = v;
+  });
   return out;
 }
 async function handleTrackCopyPublic(request, env) {
@@ -8673,6 +8694,87 @@ async function handleTrackCopyAdmin(request, env) {
   if (Object.keys(copy).length) await env.VOTES.put(TRACK_COPY_KEY, JSON.stringify(copy));
   else await env.VOTES.delete(TRACK_COPY_KEY);
   return json({ success: true, copy: copy });
+}
+
+// ---------- Laps announcement ----------
+// One line the admin writes on the Announcement panel of track-admin.html, shown at the top of a member's Sessions
+// until they close it (a new announcement shows again). One KV key (laps-news), read with get(): { id, text, link,
+// linkText, on }. The id changes when the words or the link change, so members who closed the last one see it.
+var LAPS_NEWS_KEY = 'laps-news';
+function cleanLapsNews(body, old) {
+  var text = trackText(body && body.text, 200), linkText = trackText(body && body.linkText, 40);
+  var link = String((body && body.link) || '').trim().slice(0, 300);
+  if (link && !/^(https:\/\/|[a-z0-9][a-z0-9._-]*\.html([?#][^\s<>"]*)?$)/i.test(link)) link = '';
+  var out = { text: text, link: link, linkText: link ? (linkText || 'Find out more') : '', on: !!(body && body.on) && !!text };
+  var same = old && old.text === out.text && old.link === out.link && old.linkText === out.linkText;
+  out.id = same && old.id ? old.id : (text ? String(Date.now()) : '');
+  return out;
+}
+async function handleLapsNewsPublic(request, env) {
+  var n = await getJsonKey(env, LAPS_NEWS_KEY, {});
+  var res = json({ success: true, news: n && n.on && n.text ? { id: n.id, text: n.text, link: n.link, linkText: n.linkText } : null });
+  res.headers.set('Cache-Control', 'public, max-age=120');
+  return res;
+}
+async function handleLapsNewsAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var old = await getJsonKey(env, LAPS_NEWS_KEY, {});
+  if (request.method === 'GET') return json({ success: true, news: old });
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  if (body && body.clear) { await env.VOTES.delete(LAPS_NEWS_KEY); return json({ success: true, news: {} }); }
+  var news = cleanLapsNews(body, old);
+  if (!news.text) { await env.VOTES.delete(LAPS_NEWS_KEY); return json({ success: true, news: {} }); }
+  await env.VOTES.put(LAPS_NEWS_KEY, JSON.stringify(news));
+  return json({ success: true, news: news });
+}
+
+// ---------- Laps front page panels ----------
+// The sections of laps.html (Fastest right now, What Laps does, Every kind of day, Works with your lap timer, EVs any
+// make), editable on the Laps panels panel of track-admin.html: each one's heading, intro line, cards (title and text)
+// or chips, and where it shows (the front page, and for signed-in members Sessions and the Leaderboard). One KV key
+// (laps-panels), read with get(); a field left blank keeps the page's own words (laps.html is the built-in copy).
+var LAPS_PANELS_KEY = 'laps-panels';
+var LAPS_PANEL_IDS = ['fastest', 'what', 'days', 'timers', 'any-make'];
+var LAPS_PANEL_PLACES = { front: true, sessions: false, leaderboard: false };
+function cleanLapsPanels(body) {
+  var src = (body && body.panels) || {}, out = {};
+  LAPS_PANEL_IDS.forEach(function (id) {
+    var p = src[id];
+    if (!p || typeof p !== 'object') return;
+    var o = {}, heading = trackText(p.heading, 80), lead = trackText(p.lead, 400);
+    if (heading) o.heading = heading;
+    if (lead) o.lead = lead;
+    if (Array.isArray(p.cards)) {
+      var cards = p.cards.slice(0, 6).map(function (c) { return { title: trackText(c && c.title, 60), text: trackText(c && c.text, 300) }; });
+      if (cards.some(function (c) { return c.title || c.text; })) o.cards = cards;
+    }
+    var items = Array.isArray(p.items) ? p.items : String(p.items || '').split(/\r?\n/);
+    items = items.map(function (x) { return trackText(x, 40); }).filter(Boolean).slice(0, 12);
+    if (items.length) o.items = items;
+    var show = {};
+    Object.keys(LAPS_PANEL_PLACES).forEach(function (k) {
+      if (p.show && typeof p.show[k] === 'boolean' && p.show[k] !== LAPS_PANEL_PLACES[k]) show[k] = p.show[k];
+    });
+    if (Object.keys(show).length) o.show = show;
+    if (Object.keys(o).length) out[id] = o;
+  });
+  return out;
+}
+async function handleLapsPanelsPublic(request, env) {
+  var res = json({ success: true, panels: await getJsonKey(env, LAPS_PANELS_KEY, {}) });
+  res.headers.set('Cache-Control', 'public, max-age=120');
+  return res;
+}
+async function handleLapsPanelsAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  if (request.method === 'GET') return json({ success: true, panels: await getJsonKey(env, LAPS_PANELS_KEY, {}) });
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var panels = body && body.reset ? {} : cleanLapsPanels(body);
+  if (Object.keys(panels).length) await env.VOTES.put(LAPS_PANELS_KEY, JSON.stringify(panels));
+  else await env.VOTES.delete(LAPS_PANELS_KEY);
+  return json({ success: true, panels: panels });
 }
 
 // ---------- Link preview pictures ----------
@@ -9416,6 +9518,11 @@ async function handleTrackAdminRetime(request, env) {
   next.createdAt = old.createdAt;
   // Street runs and runs at an unlisted strip stay private and off every board.
   next.street = !!old.street;
+  // A layout the member picked is theirs to change: an admin re-time never moves the session to another one.
+  if (old.layoutPicked) {
+    if ((next.layoutId || '') !== (old.layoutId || '')) return json({ success: false, message: 'The member chose this layout (' + (old.layout || old.layoutId) + '), so only they can change it.' }, 409);
+    next.layoutPicked = true;
+  } else delete next.layoutPicked;
   if (next.type === 'drag') {
     if (old.unlisted || (!next.atVenue && !old.street)) next.unlisted = true;
     if (!old.street) delete next.outline;
@@ -9531,6 +9638,27 @@ function adminCarRow(carId, record, details, drives, owner, email, sessions, liv
     garageOnly: record.garageOnly === true, make: details.make || '', model: details.model || '', version: details.version || '', year: details.year || '',
     vehicleType: details.vehicleType || 'car', drive: carDrive(details, drives), set: DRIVES.indexOf(details.drive) !== -1,
     weight: details.weight || '', pads: carPadsText(details) };
+}
+// Every Gallery photo's car's best shared time at each track, keyed by photo file, for the photo share pages
+// (scripts/build_share_pages.py, run by the sync workflow with the admin key): { "09-model-3.jpg": [bests] }.
+// Admin only, so its list() over the cars' shared lists is fine.
+async function handleTrackAdminPhotoBests(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var out = {}, cars = 0, cursor;
+  do {
+    var page = await env.VOTES.list({ prefix: 'track-public:', limit: 1000, cursor: cursor });
+    for (var i = 0; i < page.keys.length; i++) {
+      var carId = page.keys[i].name.slice('track-public:'.length);
+      var bests = await trackBestsForCar(env, carId);
+      if (!bests.length) continue;
+      var record = await getCarRecord(env, carId);
+      if (!record || record.garageOnly) continue;
+      cars++;
+      (record.photos || []).forEach(function (f) { if (f) out[f] = bests; });
+    }
+    cursor = page.list_complete ? null : page.cursor;
+  } while (cursor);
+  return json({ success: true, cars: cars, bests: out });
 }
 async function handleTrackAdminCars(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
@@ -11286,6 +11414,9 @@ export default {
     if (url.pathname === '/track/admin/cars' && (request.method === 'GET' || request.method === 'POST')) {
       return handleTrackAdminCars(request, env);
     }
+    if (url.pathname === '/track/admin/photo-bests' && request.method === 'GET') {
+      return handleTrackAdminPhotoBests(request, env);
+    }
     if (url.pathname === '/track/admin/drive' && (request.method === 'GET' || request.method === 'POST')) {
       return handleTrackAdminDrive(request, env);
     }
@@ -11294,6 +11425,21 @@ export default {
     }
     if (url.pathname === '/track/counts' && request.method === 'GET') {
       return handleTrackCounts(request, env);
+    }
+    if (url.pathname === '/admin/daily-summary' && request.method === 'POST') {
+      return handleAdminDailySummary(request, env);
+    }
+    if (url.pathname === '/laps/news' && request.method === 'GET') {
+      return handleLapsNewsPublic(request, env);
+    }
+    if (url.pathname === '/laps/news/admin' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleLapsNewsAdmin(request, env);
+    }
+    if (url.pathname === '/laps/panels' && request.method === 'GET') {
+      return handleLapsPanelsPublic(request, env);
+    }
+    if (url.pathname === '/laps/panels/admin' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleLapsPanelsAdmin(request, env);
     }
     if (url.pathname === '/track/copy' && request.method === 'GET') {
       return handleTrackCopyPublic(request, env);

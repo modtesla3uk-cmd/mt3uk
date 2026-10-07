@@ -1,5 +1,13 @@
 [
   {
+    "file": "photo--by-lord-hc.jpg",
+    "name": "LORD HC",
+    "color": "Red",
+    "unclaimed": true,
+    "added": "2026-10-07",
+    "group": "photo--by-lord-hc.jpg"
+  },
+  {
     "file": "photo--by-jeevan-dhaliwal.jpg",
     "name": "JDhaliwal",
     "color": "Silver",
@@ -156,7 +164,7 @@
   {
     "file": "test-caption--by-rhc-lord.jpg",
     "caption": "TEST CAPTION",
-    "name": "LORDY",
+    "name": "LHC",
     "votable": false,
     "reel": false,
     "color": "White",

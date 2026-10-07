@@ -24,13 +24,15 @@
   function closed() { try { return localStorage.getItem(KEY) === 'closed'; } catch (e) { return false; } }
   // plain: without the Add a session button (Sessions has its own right above).
   var BULB = '<svg class="icon laps-tip-bulb" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.3 1 2.1h5c0-.8.4-1.6 1-2.1A6 6 0 0 0 12 3Z"/></svg>';
-  function bulbHtml() {
-    var heading = esc(copy.tipHeading || BUILT_IN.heading);
+  // fast: Sessions' bulb, which also carries Fastest right now (js/laps-panels.js), so it stays when the tip is off.
+  function bulbHtml(fast) {
+    var heading = esc(copy.tipOff ? 'Fastest right now' : (copy.tipHeading || BUILT_IN.heading));
     return '<div class="laps-tip laps-tip-bulbmode is-closed" id="laps-tip" role="note">' +
       '<button type="button" class="laps-tip-bulbbtn" data-laps-tip-toggle aria-expanded="false" aria-controls="laps-tip-body" aria-label="' + heading + '" title="Tip">' + BULB + '</button>' +
-      '<div class="laps-tip-body laps-tip-pop" id="laps-tip-body" hidden><b>' + heading + '</b><p>' + esc(copy.tipText || BUILT_IN.text) + '</p></div></div>';
+      '<div class="laps-tip-body laps-tip-pop" id="laps-tip-body" hidden>' + (copy.tipOff ? '' : '<div class="laps-tip-words"><b>' + heading + '</b><p>' + esc(copy.tipText || BUILT_IN.text) + '</p></div>') + '</div></div>';
   }
   function html(plain) {
+    if (plain === 'bulb-fast' && copy) return bulbHtml(true);
     if (!copy || copy.tipOff) return '';
     if (plain === 'bulb') return bulbHtml();
     var isClosed = closed();
@@ -46,8 +48,15 @@
   // Fills every placeholder on the page (after a page draws, so a redraw can call it again).
   function place() {
     var slots = document.querySelectorAll('[data-laps-tip]');
-    if (!slots.length) return;
-    load().then(function () { document.querySelectorAll('[data-laps-tip]').forEach(function (el) { var mode = el.getAttribute('data-laps-tip'); el.innerHTML = html(mode === 'bulb' ? 'bulb' : mode === 'plain'); }); });
+    if (!slots.length) return Promise.resolve();
+    return load().then(function () {
+      document.querySelectorAll('[data-laps-tip]').forEach(function (el) {
+        var mode = el.getAttribute('data-laps-tip');
+        el.innerHTML = html(mode === 'bulb' || mode === 'bulb-fast' ? mode : mode === 'plain');
+        // Sessions: Fastest right now at the top of the bulb's box, and the bulb lit when a leader has changed.
+        if (mode === 'bulb-fast' && window.MT3UKLapsPanels) window.MT3UKLapsPanels.fastBulb(el.querySelector('.laps-tip-bulbbtn'), el.querySelector('.laps-tip-pop'));
+      });
+    });
   }
   document.addEventListener('click', function (e) {
     var b = e.target.closest('[data-laps-tip-toggle]');

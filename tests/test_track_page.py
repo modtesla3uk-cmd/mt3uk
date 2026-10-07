@@ -58,6 +58,10 @@ class FakeWorker:
         self.dupes = False
         # The admin's welcome words for the signed-out card, when set.
         self.copy = None
+        # The Laps front page panels (/laps/panels) and, when set, what /track/counts answers.
+        self.panels = None
+        self.news = None
+        self.counts = None
         # The link preview picture set's version, for the share links.
         self.shareVersion = 0
         self.public_car = {}
@@ -203,6 +207,12 @@ class FakeWorker:
             sid = q.get("id", [""])[0]
             self.sessions.pop(sid, None)
             self.index = [s for s in self.index if s["id"] != sid]
+        elif path == "/laps/news":
+            data = {"success": True, "news": self.news}
+        elif path == "/laps/panels":
+            data = {"success": True, "panels": self.panels or {}}
+        elif path == "/track/counts" and self.counts is not None:
+            data = self.counts
         elif path == "/track/counts":
             counts, cars = {}, {}
             for s in self.index:
@@ -842,8 +852,8 @@ def test_the_welcome_card_takes_the_admins_words_when_set(page):
 
 
 def test_the_upload_tip_shows_on_the_leaderboard_and_sessions_and_folds(page):
-    """On the Leaderboard the tip is a light bulb in the blue heading, beside Add a session, that opens the tip
-    under it; on the member's Sessions page it is the card that folds to its heading (remembered in the browser).
+    """On the Leaderboard and the member's Sessions page the tip is a light bulb in the navy heading, by Add a
+    session, that opens the tip under it.
     The admin's words show when set, and the switch hides it."""
     fake = FakeWorker()
     open_page(page, fake, "/leaderboards.html", signed_in=False)
@@ -866,15 +876,15 @@ def test_the_upload_tip_shows_on_the_leaderboard_and_sessions_and_folds(page):
     expect(tip.locator(".laps-tip-body .btn")).to_have_count(0)
     bulb.click()
     expect(tip.locator(".laps-tip-body")).to_be_hidden()
-    # Sessions keeps the card, which folds and is remembered.
+    # Sessions has the same bulb, beside its Add a session in the heading.
     open_page(page, fake, "/track.html", signed_in=True)
-    tip = page.locator("#laps-tip")
+    tip = page.locator(".page-hero #laps-tip")
+    expect(tip.locator(".laps-tip-bulbbtn")).to_be_visible()
+    expect(page.locator("#tp-app #laps-tip")).to_have_count(0)
+    expect(tip.locator(".laps-tip-body")).to_be_hidden()
+    tip.locator(".laps-tip-bulbbtn").click()
     expect(tip.locator(".laps-tip-body")).to_be_visible()
     expect(tip.locator(".laps-tip-body .btn")).to_have_count(0)
-    tip.locator("[data-laps-tip-toggle]").click()
-    expect(tip).to_have_class(re.compile("is-closed"))
-    open_page(page, fake, "/track.html", signed_in=True)
-    expect(page.locator("#laps-tip")).to_have_class(re.compile("is-closed"))
     # The admin's words, and the switch that hides it.
     fake.copy = {"tipHeading": "Keep uploading", "tipText": "More <b>data</b>, better boards."}
     open_page(page, fake, "/leaderboards.html", signed_in=False)
@@ -1412,6 +1422,138 @@ def test_the_leaderboard_has_my_sessions_at_the_top_and_add_a_session_under_it(p
     assert page.evaluate("document.documentElement.scrollWidth") <= 390
 
 
+def test_what_are_sessions_starts_open_for_a_member_with_no_sessions(page):
+    """What are Sessions? lists what Laps does (tyres and pads among it); it starts open until the member has a session."""
+    open_page(page, FakeWorker(earlier=False), "/track.html", signed_in=True)
+    what = page.locator(".page-hero .tp-what")
+    expect(what).to_have_attribute("open", "")
+    expect(what.locator(".tp-what-list li")).to_have_count(5)
+    expect(what).to_contain_text("Tyres and brake pads")
+    open_page(page, FakeWorker(), "/track.html", signed_in=True)
+    page.locator("#tp-hero-add").wait_for()
+    expect(page.locator(".page-hero .tp-what")).not_to_have_attribute("open", "")
+
+
+LAPS_COUNTS = {"success": True, "counts": {"track-board:thruxton:main": 4, "drag-board:santa-pod": 2},
+               "leaders": {"track-board:thruxton:main": [{"car": "Arctic Three", "owner": "Rich", "model": "Model 3", "time": 81.42}],
+                           "drag-board:santa-pod": [{"car": "Venom", "owner": "Kit", "model": "Model S", "quarter": 10.84}]}}
+
+
+def test_the_sessions_bulb_shows_fastest_right_now_and_lights_up_when_a_leader_changes(page):
+    """The light bulb on Sessions opens Fastest right now above the tip, and is lit while a leader has changed since
+    the member last opened it; a new leader is marked New."""
+    fake = FakeWorker()
+    fake.counts = LAPS_COUNTS
+    open_page(page, fake, "/track.html", signed_in=True)
+    bulb = page.locator(".page-hero .laps-tip-bulbbtn")
+    expect(bulb).to_have_class(re.compile("is-lit"))
+    bulb.click()
+    pop = page.locator(".page-hero .laps-tip-pop")
+    expect(pop.locator(".lh-fast-pop a").first).to_contain_text("Thruxton")
+    expect(pop.locator(".lh-fast-pop a").first).to_contain_text("1:21.42")
+    expect(pop.locator(".laps-tip-words")).to_contain_text("Tip: the more you upload")
+    expect(bulb).not_to_have_class(re.compile("is-lit"))
+    # Seen: next time it is not lit, until a leader changes, which is marked New.
+    open_page(page, fake, "/track.html", signed_in=True)
+    page.locator(".page-hero .lh-fast-pop").wait_for(state="attached")
+    expect(page.locator(".page-hero .laps-tip-bulbbtn")).not_to_have_class(re.compile("is-lit"))
+    fake.counts = json.loads(json.dumps(LAPS_COUNTS))
+    fake.counts["leaders"]["track-board:thruxton:main"] = [{"car": "Venom", "owner": "Kit", "model": "Model S", "time": 79.9}]
+    open_page(page, fake, "/track.html", signed_in=True)
+    bulb = page.locator(".page-hero .laps-tip-bulbbtn")
+    expect(bulb).to_have_class(re.compile("is-lit"))
+    bulb.click()
+    expect(page.locator(".page-hero .lh-fast-pop a").first.locator(".lh-new")).to_have_text("New")
+    expect(page.locator(".page-hero .lh-fast-pop a").nth(1).locator(".lh-new")).to_have_count(0)
+
+
+def test_front_page_panels_chosen_for_sessions_and_the_leaderboard_show_for_members(page):
+    """A front page section the admin chose for Sessions (or the Leaderboard) is drawn under the list for a signed-in
+    member, with the admin's words, and never on a session's own page."""
+    fake = FakeWorker()
+    fake.counts = LAPS_COUNTS
+    fake.panels = {"what": {"heading": "What Laps does for you", "show": {"sessions": True}}, "fastest": {"show": {"leaderboard": True}}}
+    open_page(page, fake, "/track.html", signed_in=True)
+    slot = page.locator("[data-laps-panels='sessions']")
+    expect(slot).to_be_visible()
+    expect(slot.locator("h2")).to_have_text(["What Laps does for you"])
+    expect(slot.locator(".lh-card")).to_have_count(4)
+    expect(slot.locator(".mt3uk-share-dot")).to_have_count(0)
+    page.locator("#tp-hero-add").click()
+    expect(slot).to_be_hidden()
+    open_page(page, fake, "/leaderboards.html", signed_in=True)
+    lb = page.locator("[data-laps-panels='leaderboard']")
+    expect(lb).to_be_visible()
+    expect(lb.locator("h2")).to_have_text(["Fastest right now"])
+    expect(lb.locator(".lh-fast a").first).to_contain_text("Thruxton")
+    # Inside a board it is not shown.
+    page.locator(".lb-cardwrap a, .lb-strip, .lb-venue a").first.click()
+    expect(lb).to_be_hidden()
+
+
+def test_front_page_panels_are_not_shown_to_visitors_who_are_signed_out(page):
+    fake = FakeWorker()
+    fake.counts = LAPS_COUNTS
+    fake.panels = {"fastest": {"show": {"leaderboard": True}}}
+    open_page(page, fake, "/leaderboards.html", signed_in=False)
+    page.locator(".lb-venue").first.wait_for()
+    page.wait_for_timeout(300)
+    expect(page.locator("[data-laps-panels='leaderboard']")).to_be_hidden()
+
+
+def test_since_you_were_last_here_shows_what_changed_on_the_members_boards(page):
+    """The first visit only takes a look at the member's boards; the next shows what changed (a car moved down or up,
+    new cars on a board), each linking to its board, until it is closed."""
+    fake = FakeWorker()
+    fake.index[0]["privacy"] = "board"
+    mine = {"carId": "car1", "sessionId": "earlier1", "car": "Arctic Three", "model": "Model 3", "owner": "Rich", "time": 102.47, "date": "2026-03-28"}
+    fake.boards["/track/board:thruxton:main"] = [dict(_board_entry(0), time=100.0), mine]
+    open_page(page, fake, "/track.html", signed_in=True)
+    page.locator("#tp-hero-add").wait_for()
+    page.wait_for_function("localStorage.getItem('mt3ukLapsSince') !== null")
+    expect(page.locator("#tp-since")).to_be_hidden()
+    # Two quicker cars join: Arctic Three drops from 2nd to 4th.
+    fake.boards["/track/board:thruxton:main"] = [dict(_board_entry(0), time=100.0), dict(_board_entry(1), time=101.0), dict(_board_entry(2), time=102.0), mine]
+    open_page(page, fake, "/track.html", signed_in=True)
+    since = page.locator("#tp-since")
+    expect(since).to_be_visible()
+    expect(since).to_contain_text("Since you were last here")
+    expect(since.locator("li")).to_have_text(["Arctic Three dropped to 4th at Thruxton"])
+    assert since.locator("li a").get_attribute("href") == "leaderboards.html?board=thruxton%3Amain"
+    # Still there next time until it is closed; closed, it is gone until something else changes.
+    open_page(page, fake, "/track.html", signed_in=True)
+    expect(page.locator("#tp-since")).to_be_visible()
+    page.locator("[data-since-close]").click()
+    expect(page.locator("#tp-since")).to_be_hidden()
+    open_page(page, fake, "/track.html", signed_in=True)
+    page.locator("#tp-hero-add").wait_for()
+    page.wait_for_timeout(400)
+    expect(page.locator("#tp-since")).to_be_hidden()
+    # A new car behind it: no move, but a new car on the board.
+    fake.boards["/track/board:thruxton:main"].append(dict(_board_entry(5), time=110.0))
+    open_page(page, fake, "/track.html", signed_in=True)
+    expect(page.locator("#tp-since li")).to_have_text(["1 new car on the board at Thruxton"])
+
+
+def test_the_announcement_shows_on_sessions_until_it_is_closed(page):
+    fake = FakeWorker()
+    fake.news = {"id": "1", "text": "New: Compare tyres and pads on every board", "link": "leaderboards.html", "linkText": "Have a look"}
+    open_page(page, fake, "/track.html", signed_in=True)
+    news = page.locator("#tp-news")
+    expect(news).to_contain_text("New: Compare tyres and pads on every board")
+    expect(news.get_by_role("link", name="Have a look")).to_have_attribute("href", "leaderboards.html")
+    page.locator("[data-news-close]").click()
+    expect(news).to_be_hidden()
+    open_page(page, fake, "/track.html", signed_in=True)
+    page.locator("#tp-hero-add").wait_for()
+    page.wait_for_timeout(300)
+    expect(page.locator("#tp-news")).to_be_hidden()
+    # A new announcement shows again.
+    fake.news = {"id": "2", "text": "New: Since you were last here", "link": "", "linkText": ""}
+    open_page(page, fake, "/track.html", signed_in=True)
+    expect(page.locator("#tp-news")).to_have_text("New: Since you were last here")
+
+
 def test_sessions_has_add_a_session_under_leaderboards(page):
     """On the member's list of sessions Add a session is in the heading, under Leaderboards and the same size; it opens
     the Add page for the vehicle picked, and is not shown on a session's own page."""
@@ -1797,6 +1939,34 @@ def test_leaderboards_list_busy_tracks_first_with_counts(page):
     page.locator(".tp-board-card", has_text="Curborough").locator(".lb-layout").first.click()
     expect(page.locator(".tp-back")).to_have_text("Back")
     expect(page.locator(".tp-back")).to_have_attribute("aria-label", "Back to all sprints")
+
+
+def test_a_session_has_a_my_sessions_button_beside_back(page):
+    """On a session (or any other view) a My Sessions button sits beside Back in the heading (#tp-home,
+    moveViewBack in js/track-page.js), so the list is one tap away. On the list itself there is none."""
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator(".tp-session-head")).to_be_visible()
+    expect(page.locator(".page-hero #tp-home")).to_be_visible()
+    # Opened straight from a link too.
+    page.goto("/track.html?s=new1")
+    expect(page.locator(".page-hero #tp-home")).to_be_visible()
+    # And from the list.
+    page.goto("/track.html")
+    page.locator("#tp-sess-list a.tp-trackrow").first.click()
+    page.locator("#tp-sess-list a.tp-row[data-sid]").first.click()
+    expect(page.locator(".tp-session-head")).to_be_visible()
+    home = page.locator(".page-hero #tp-home")
+    expect(home).to_be_visible()
+    expect(home).to_have_attribute("aria-label", "My Sessions")
+    expect(page.locator(".page-hero .tp-back")).to_be_visible()
+    home.click()
+    expect(page).to_have_url(re.compile(r"track\.html$"))
+    expect(page.locator("#tp-sess-list a.tp-trackrow").first).to_be_visible()
+    expect(page.locator(".page-hero #tp-home")).to_have_count(0)
 
 
 def test_cars_are_separate_from_sessions(page):

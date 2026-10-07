@@ -1,0 +1,31 @@
+/* The Track Days guides (track-day-venues.html, track-day-prep.html, track-day-on-the-day.html): short cards, chips
+   and folding rows, so each page reads at a glance with the detail one tap away. */
+.tg-lead { color: var(--ink-2); margin: 0 0 14px; }
+.tg-cards { display: grid; gap: 10px; margin: 12px 0 22px; }
+@media (min-width: 560px) { .tg-cards { grid-template-columns: 1fr 1fr; } }
+.tg-card { background: #fff; border: 1px solid var(--hairline); border-radius: var(--radius); padding: 12px 14px; display: grid; gap: 4px; align-content: start; break-inside: avoid; }
+.tg-card b { color: var(--ink); }
+.tg-card p { margin: 0; color: var(--ink-2); font-size: 0.93rem; }
+.tg-tests { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 12px; font-size: 0.86rem; color: var(--steel); }
+.tg-tests b { display: inline-flex; align-items: center; min-height: 28px; padding: 3px 11px; border-radius: var(--radius-pill); background: #fff1e8; color: #a8401c; font-weight: 600; font-size: 0.82rem; }
+.tg-folds { display: grid; gap: 8px; margin: 12px 0 22px; }
+.tg-fold { background: #fff; border: 1px solid var(--hairline); border-radius: var(--radius); break-inside: avoid; }
+.tg-fold summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 48px; padding: 8px 14px; cursor: pointer; font-weight: 600; color: var(--ink); list-style: none; }
+.tg-fold summary::-webkit-details-marker { display: none; }
+.tg-fold summary::after { content: ''; flex: none; width: 8px; height: 8px; border-right: 2px solid var(--steel); border-bottom: 2px solid var(--steel); transform: rotate(45deg) translateY(-2px); }
+.tg-fold[open] summary::after { transform: rotate(-135deg); }
+.tg-fold summary span { font-weight: 400; font-size: 0.86rem; color: var(--steel); margin-left: auto; margin-right: 6px; }
+.tg-fold > div { padding: 0 14px 12px; display: grid; gap: 8px; }
+.tg-fold p { margin: 0; color: var(--ink-2); font-size: 0.93rem; }
+/* The Laps card: record your day, upload it afterwards. */
+.tg-laps { margin: 14px 0 24px; padding: 16px; border-radius: var(--radius); background: #16233d; color: #d3d8e2; display: grid; gap: 10px; break-inside: avoid; }
+.tg-laps b { color: #fff; font-size: 1.02rem; }
+.tg-laps p { margin: 0; color: #d3d8e2; font-size: 0.93rem; }
+.tg-laps .tg-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.tg-laps .btn-secondary { background: transparent; color: #fff; border-color: rgba(255,255,255,.5); }
+.tg-laps .btn-secondary:hover { background: rgba(255,255,255,.1); color: #fff; }
+.tg-next { display: grid; gap: 8px; margin: 10px 0 0; }
+.tg-next a { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 52px; padding: 10px 14px; background: #fff; border: 1px solid var(--hairline); border-radius: var(--radius); color: var(--ink); text-decoration: none; font-weight: 600; break-inside: avoid; }
+.tg-next-t { display: grid; gap: 2px; }
+.tg-next-t span { font-weight: 400; font-size: 0.86rem; color: var(--steel); }
+.tg-next a::after { content: ''; flex: none; width: 8px; height: 8px; border-right: 2px solid var(--steel); border-top: 2px solid var(--steel); transform: rotate(45deg); }

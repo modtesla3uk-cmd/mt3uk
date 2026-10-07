@@ -17,6 +17,8 @@
 <meta name="apple-mobile-web-app-title" content="MT3UK">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
 <link rel="stylesheet" href="css/site-header.css">
+<link rel="stylesheet" href="css/track-guides.css?v=1">
+<link rel="stylesheet" href="css/laps-strip.css?v=2">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 
@@ -1217,7 +1219,7 @@
   <div class="wrap">
     <a href="index.html#track-days" class="back-link" aria-label="Back to Track Days"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</a>
     <h1>Track Day Venues: What to Expect</h1>
-    <p>The circuits members turn up to most, and the ones you'll see cars from in the <a href="index.html#track-days" class="inline-link">Track Days gallery</a>. Each one loads your Tesla differently, so it's worth knowing what you're driving into before you book.</p>
+    <p>The circuits members go to most, and the ones in the <a href="index.html#track-days" class="inline-link">Track Days gallery</a>. Each tests your car differently, so it&rsquo;s worth knowing what you&rsquo;re driving into before you book.</p>
   </div>
 </section>
 
@@ -1230,32 +1232,48 @@
         <div class="spec-row"><span>Location</span><span>Norfolk</span></div>
         <div class="spec-row"><span>Layout</span><span>Snetterton 300, around 2.97 miles</span></div>
         <div class="spec-row"><span>Character</span><span>Former WWII airfield, fast and flowing</span></div>
+        <div class="spec-row"><span>Charging</span><span>None on site, Superchargers 20 minutes away</span></div>
       </div>
-      <p>Snetterton's 300 layout is one of the longest in the UK and built around the Bentley Straight, a long full-throttle run that ends in a hard braking zone into the Bomb Hole. It's a brake and cooling test as much as a handling one: expect sustained high speed followed by repeated heavy stops, which is exactly where stock pads, fluid and thermal management start to show their limits.</p>
+      <div class="tg-tests">Tests <b>Brakes</b><b>Cooling</b></div>
+      <p>One of the longest UK layouts, built around the Bentley Straight: a long full-throttle run into a hard stop at the Bomb Hole. Sustained speed then repeated heavy braking is where stock pads, fluid and cooling give up first.</p>
+      <div data-laps-venue="snetterton"></div>
 
       <h3 id="venue-thruxton">Thruxton</h3>
       <div class="specs" style="margin: 14px 0 14px;">
         <div class="spec-row"><span>Location</span><span>Hampshire</span></div>
         <div class="spec-row"><span>Layout</span><span>Around 2.4 miles</span></div>
         <div class="spec-row"><span>Character</span><span>Widely rated the fastest permanent circuit in the UK</span></div>
+        <div class="spec-row"><span>Charging</span><span>None on site, Superchargers under 15 minutes away</span></div>
       </div>
-      <p>Another ex-airfield circuit, Thruxton is defined by long, sweeping, high-speed corners like Campbell and Club rather than hard braking zones. Average speeds are high and sustained, so this one leans hard on suspension geometry and tyre grip under prolonged lateral load. It's a good gauge of how your alignment and tyre choice hold up once cornering forces stay high for several seconds at a time, not just a single apex.</p>
+      <div class="tg-tests">Tests <b>Tyres</b><b>Alignment</b></div>
+      <p>Long, high-speed corners like Campbell and Club, and few hard stops. A test of your alignment and tyres when cornering loads stay high for several seconds at a time.</p>
+      <div data-laps-venue="thruxton"></div>
 
       <h3 id="venue-cadwell-park">Cadwell Park</h3>
       <div class="specs" style="margin: 14px 0 14px;">
         <div class="spec-row"><span>Location</span><span>Lincolnshire</span></div>
         <div class="spec-row"><span>Layout</span><span>Around 2.2 miles</span></div>
         <div class="spec-row"><span>Character</span><span>Nicknamed the "Mini Nürburgring"</span></div>
+        <div class="spec-row"><span>Charging</span><span>None on site, fast chargers 10 minutes away</span></div>
       </div>
-      <p>Cadwell Park is the opposite of the other two: tight, twisty and hilly, with blind crests and elevation changes through sections like the Mountain. It rewards precise, technical driving over outright speed, and punishes soft suspension and worn brakes on the tighter hairpins. If Snetterton and Thruxton test sustained speed, Cadwell tests how your car settles and recovers between quick direction changes.</p>
+      <div class="tg-tests">Tests <b>Suspension</b><b>Brakes</b></div>
+      <p>Tight, twisty and hilly, with blind crests and the climb through the Mountain. It rewards precise driving over outright speed, and punishes soft suspension and worn brakes on the hairpins.</p>
+      <div data-laps-venue="cadwell-park"></div>
 
       <h3 id="venue-castle-combe">Castle Combe</h3>
       <div class="specs" style="margin: 14px 0 14px;">
         <div class="spec-row"><span>Location</span><span>Wiltshire</span></div>
         <div class="spec-row"><span>Layout</span><span>Around 1.85 miles</span></div>
         <div class="spec-row"><span>Character</span><span>Another ex-airfield circuit, flat and deceptively fast</span></div>
+        <div class="spec-row"><span>Charging</span><span>7kW chargers on site, Superchargers under 15 minutes away</span></div>
       </div>
-      <p>Castle Combe is short, but its flat, wide-open layout keeps average speeds high with very little let-up, from the fast Avon Rise into Quarry Corner. There's less hard braking than Snetterton and fewer direction changes than Cadwell, so the biggest load here is sustained cornering grip and tyre temperature over a short, quick lap rather than one single punishing zone. It's also notoriously bumpy in places, which is a good stress test for suspension bushings and anything already on its way out.</p>
+      <div class="tg-tests">Tests <b>Tyres</b><b>Suspension</b></div>
+      <p>Short, flat and fast, from Avon Rise into Quarry Corner, with little let-up. Expect sustained cornering grip and tyre heat rather than one big braking zone, and bumps that find out tired suspension bushings.</p>
+      <div data-laps-venue="castle-combe"></div>
+
+      <h3 id="more-on-laps">More tracks on Laps</h3>
+      <p>Members&rsquo; fastest times at the other tracks, sprints, hill climbs and drag strips on Laps by MT3UK.</p>
+      <div data-laps-more></div>
 
     </div>
   </div>
@@ -1328,6 +1346,7 @@
     }
   </script>
 
+<script src="js/laps-strip.js?v=5" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=14" defer></script>
 <script src="js/signin-prompt.js" defer></script>

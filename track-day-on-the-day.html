@@ -17,6 +17,8 @@
 <meta name="apple-mobile-web-app-title" content="MT3UK">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
 <link rel="stylesheet" href="css/site-header.css">
+<link rel="stylesheet" href="css/laps-strip.css?v=2">
+<link rel="stylesheet" href="css/track-guides.css?v=1">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 
@@ -355,8 +357,8 @@
     .charge-row { grid-template-columns: 1fr; gap: 4px; }
     .charge-row-head { display: none; }
     .charge-row:not(.charge-row-head) span:first-child { font-size: 0.85rem; letter-spacing: 0.02em; }
-    .charge-row:not(.charge-row-head) span:nth-child(2)::before { content: "On-site charging: "; color: var(--steel); font-weight: 400; }
-    .charge-row:not(.charge-row-head) span:nth-child(3)::before { content: "Nearest Fast/Superchargers: "; color: var(--steel); font-weight: 400; }
+    .charge-row:not(.charge-row-head) span:nth-child(2)::before { content: "On site: "; color: var(--steel); font-weight: 400; }
+    .charge-row:not(.charge-row-head) span:nth-child(3)::before { content: "Nearest fast charging: "; color: var(--steel); font-weight: 400; }
   }
 
   .page-hero {
@@ -1239,7 +1241,7 @@
   <div class="wrap">
     <a href="index.html#track-days" class="back-link" aria-label="Back to Track Days"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</a>
     <h1>On The Day: Insurance, Charging and What to Expect</h1>
-    <p>Car sorted? Read the <a href="track-day-prep.html" class="inline-link">Track Day Prep guide</a> first if not. This is what matters once you've booked: cover, breakdowns, your arrival checklist, and where to charge.</p>
+    <p>Car sorted? If not, read <a href="track-day-prep.html" class="inline-link">Track Day Prep</a> first. This is what matters once you&rsquo;ve booked.</p>
   </div>
 </section>
 
@@ -1247,49 +1249,47 @@
   <div class="wrap">
     <div class="track-prep">
 
-      <span class="track-prep-eyebrow" style="margin-top: 0;">Insurance and When Things Go Wrong</span>
-      <p>Track day insurance isn't required to drive, but no cover means no claim if something goes wrong. Worth a quick quote before you book, especially if you'd otherwise be covering repair or recovery costs yourself.</p>
-      <ul class="track-prep-list">
-        <li><strong>On-track breakdown.</strong> Check Tow Mode before you need it, not after. Knowing where it is in the menu beforehand saves a stressful scramble mid-session, and it changes how the car behaves under tow. Ask the recovery crew to take it slow.</li>
-        <li><strong>Off-track breakdown.</strong> Carry a 12V jump pack. If the 12V system has gone to sleep, that's what wakes the car up and opens the frunk.</li>
-      </ul>
-
-      <span class="track-prep-eyebrow">On The Day</span>
+      <span class="track-prep-eyebrow" style="margin-top: 0;">Arrival Checklist</span>
       <div class="specs" style="margin-top: 14px;">
-        <div class="spec-row"><span>Charge</span><span>Arrive at max charge, know your nearest supercharger before you set off</span></div>
-        <div class="spec-row"><span>ON-SITE POWER</span><span>Check for on-site chargers and cable needs, see Charging &amp; Superchargers below</span></div>
-        <div class="spec-row"><span>Driver profile</span><span>Set a track-specific seating position and save it as its own profile</span></div>
-        <div class="spec-row"><span>Clear the car</span><span>Remove loose items and suction-cup mounts before your first session</span></div>
-        <div class="spec-row"><span>Reserve</span><span>Leave enough charge to reach a supercharger</span></div>
-        <div class="spec-row"><span>Chill mode</span><span>Switch it on for more laps before derating kicks in, handy while you're still learning a new track</span></div>
-        <div class="spec-row"><span>Tyre pressures</span><span>Track running heats tyres fast, bleed down if hot pressures climb too high between sessions, and carry a pump to reinflate for the drive home</span></div>
+        <div class="spec-row"><span>Charge</span><span>Arrive full, and know your nearest Supercharger</span></div>
+        <div class="spec-row"><span>Reserve</span><span>Keep enough charge to reach it afterwards</span></div>
+        <div class="spec-row"><span>Driver profile</span><span>Save a track seating position as its own profile</span></div>
+        <div class="spec-row"><span>Clear the car</span><span>Loose items and suction-cup mounts out before your first session</span></div>
+        <div class="spec-row"><span>Chill mode</span><span>More laps before derating, handy while learning a track</span></div>
+        <div class="spec-row"><span>Tyre pressures</span><span>Bleed down if hot pressures climb, and carry a pump for the drive home</span></div>
       </div>
 
-      <span class="track-prep-eyebrow">Charging and Superchargers</span>
-      <p>Most UK circuits have a fast charger or Supercharger nearby, but plan your route before you leave home rather than counting on trickle charging from the paddock.</p>
-      <div class="specs" style="margin-top: 14px;">
-        <div class="charge-row charge-row-head"><span>Circuit</span><span>On-site charging</span><span>Nearest Fast/Superchargers</span></div>
-        <div class="charge-row"><span>ABINGDON</span><span>None</span><span>Superchargers under 15 minutes away</span></div>
-        <div class="charge-row"><span>CADWELL PARK</span><span>None</span><span>Fast chargers 10 minutes away</span></div>
-        <div class="charge-row"><span>CASTLE COMBE</span><span>7kW chargers on site</span><span>Superchargers under 15 minutes away</span></div>
-        <div class="charge-row"><span>SILVERSTONE</span><span>24 general chargers on site, 7 to 22kW</span><span>Fast chargers 15 minute away</span></div>
-        <div class="charge-row"><span>SNETTERTON</span><span>None</span><span>Superchargers 20 minutes away</span></div>
-        <div class="charge-row"><span>THRUXTON</span><span>None</span><span>Superchargers under 15 minutes away</span></div>
-      
-	</div>
-      <p>That's what we've confirmed so far. If you've charged at or near a circuit we haven't listed, let us know in the <a href="https://www.facebook.com/groups/mt3uk/" class="inline-link" target="_blank" rel="noopener">Facebook group</a> so we can build this into a proper circuit-by-circuit table: nearest supercharger, distance, and what's on site.</p>
+      <span class="track-prep-eyebrow">Insurance and Breakdowns</span>
+      <div class="tg-cards">
+        <div class="tg-card"><b>Insurance</b><p>Not required to drive, but without it there's no claim if something goes wrong. Get a quote before you book.</p></div>
+        <div class="tg-card"><b>On track</b><p>Know where Tow Mode is before you need it, and ask the recovery crew to take it slowly.</p></div>
+        <div class="tg-card"><b>Off track</b><p>Carry a 12V jump pack: it wakes the car and opens the frunk if the 12V system has gone to sleep.</p></div>
+      </div>
 
-      <span class="track-prep-eyebrow">Practice: Sims and Racing Games</span>
-      <p>Assetto Corsa is the community's reference for learning UK layouts before you drive them for real, and Assetto Corsa Competizione's British GT Pack officially covers Brands Hatch, Donington, Oulton Park and Snetterton. Use a wheel and pedals rather than a controller: brake feel and modulation is most of what you're trying to build.</p>
+      <span class="track-prep-eyebrow">Charging</span>
+      <p>Plan your charge before you leave home rather than counting on the paddock.</p>
+      <div class="specs" style="margin-top: 14px;">
+        <div class="charge-row charge-row-head"><span>Circuit</span><span>On site</span><span>Nearest fast charging</span></div>
+        <div class="charge-row"><span>Abingdon</span><span>None</span><span>Superchargers under 15 minutes away</span></div>
+        <div class="charge-row"><span>Cadwell Park</span><span>None</span><span>Fast chargers 10 minutes away</span></div>
+        <div class="charge-row"><span>Castle Combe</span><span>7kW chargers</span><span>Superchargers under 15 minutes away</span></div>
+        <div class="charge-row"><span>Silverstone</span><span>24 chargers, 7 to 22kW</span><span>Fast chargers 15 minutes away</span></div>
+        <div class="charge-row"><span>Snetterton</span><span>None</span><span>Superchargers 20 minutes away</span></div>
+        <div class="charge-row"><span>Thruxton</span><span>None</span><span>Superchargers under 15 minutes away</span></div>
+      </div>
+      <p style="margin-top: 12px;">Charged at a circuit we haven't listed? Tell us in the <a href="https://www.facebook.com/groups/mt3uk/" class="inline-link" target="_blank" rel="noopener">Facebook group</a>.</p>
+
+      <div class="tg-laps" id="after-the-day">
+        <b>After the day: put it on Laps</b>
+        <p>Upload the file from your lap timer to see every lap mapped, compare your laps corner by corner, and put your fastest on that track's leaderboard.</p><p class="laps-preview-note" data-laps-preview hidden></p>
+        <div class="tg-actions"><a class="btn btn-accent btn-sm" href="track.html?add=1" data-laps data-laps-add>Add a session</a><a class="btn btn-secondary btn-sm" href="laps.html" data-laps>How Laps works</a></div>
+      </div>
+
+      <span class="track-prep-eyebrow">Practice First</span>
+      <p>Assetto Corsa is the community's favourite for learning UK layouts, and Assetto Corsa Competizione's British GT Pack covers Brands Hatch, Donington, Oulton Park and Snetterton. Use a wheel and pedals: brake feel is most of what you're learning.</p>
 
       <span class="track-prep-eyebrow">Help Us Build This Out</span>
-      <p>We are continuing to build this guide out and as cars develop and we will update advice accordingly and we take advice from our members too. If any of this is you, post it in the<a href="https://www.facebook.com/groups/mt3uk/" class="inline-link" target="_blank" rel="noopener"> Facebook group</a> and we'll update accordingly:</p>
-      <ul class="track-prep-list">
-        <li><strong>Track day car mods.</strong> Real-world results on suspension, cooling upgrades and weight reduction for track use, not just the parts list.</li>
-        <li><strong>Car development over time.</strong> How your car and approach changed as you did more track days: lap goals, event types, what you'd do differently.</li>
-        <li><strong>Wheel and pedal setups.</strong> What you run for sim practice, force feedback settings, and favourite circuit DLC.</li>
-        <li><strong>Track guides from members.</strong> Your circuit, the best nearby supercharger, standout corners, and what you wish you'd known on your first lap.</li>
-      </ul>
+      <p>Your track mods with real results, how your car changed over the seasons, your sim setup, or a guide to your favourite circuit: post it in the <a href="https://www.facebook.com/groups/mt3uk/" class="inline-link" target="_blank" rel="noopener">Facebook group</a> and we'll add the best to these guides.</p>
 
     </div>
   </div>
@@ -1362,6 +1362,7 @@
     }
   </script>
 
+<script src="js/laps-strip.js?v=5" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=14" defer></script>
 <script src="js/signin-prompt.js" defer></script>

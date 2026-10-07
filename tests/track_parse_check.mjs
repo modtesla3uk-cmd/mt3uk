@@ -797,6 +797,27 @@ ok(T.fmtLap(99.786) === '1:39.79' && T.niceDate('2026-05-28') === '28 May 2026',
   const d5 = T.analyse(rd5, lib3, {});
   ok(!d5.needsStartLine, 'a track day with no layout pick is still timed from the lap line it finds');
 }
+// Two layouts on the same line: the lap length decides, a lap more or fewer cannot, and a saved session being re-timed keeps its layout.
+{
+  const lib4 = JSON.parse(JSON.stringify(lib));
+  const tv4 = lib4.venues.find(v => v.id === 'thruxton');
+  const base4 = T.analyse(T.read(vbo, 'RaceBox_Track_Session.vbo'), lib4, {});
+  const real = base4.laps[0].dist;
+  tv4.layouts[0].length = Math.round(real * 1.1);
+  tv4.layouts.push({ id: 'closer', name: 'Closer fit', length: Math.round(real * 1.01), startLine: tv4.layouts[0].startLine, sectors: [], corners: [] });
+  const w = T.analyse(T.read(vbo, 'RaceBox_Track_Session.vbo'), lib4, {});
+  ok(w.layoutId === 'closer', 'of two layouts that fit, the one whose length is closer wins (' + w.layoutId + ')');
+  const k = T.analyse(T.read(vbo, 'RaceBox_Track_Session.vbo'), lib4, { keepLayoutId: 'main' });
+  ok(k.layoutId === 'main', 'a re-time keeps the session on its own layout while that layout still fits (' + k.layoutId + ')');
+}
+// A layout the member picked is flagged, and one found from the lap is not.
+{
+  const lib5 = JSON.parse(JSON.stringify(lib));
+  const picked = T.analyse(T.read(vbo, 'RaceBox_Track_Session.vbo'), lib5, { layoutId: 'main' });
+  ok(picked.layoutId === 'main' && picked.layoutPicked === true, 'a layout the member picks is marked as picked by them');
+  const auto = T.analyse(T.read(vbo, 'RaceBox_Track_Session.vbo'), lib5, {});
+  ok(auto.layoutId === 'main' && !auto.layoutPicked, 'a layout worked out from the lap is not marked');
+}
 // A line the member marked is used even when the line in the file would give a lap more.
 {
   const lib5 = JSON.parse(JSON.stringify(lib));

@@ -122,6 +122,10 @@ r = await call('GET', '/track/board?venue=thruxton&layout=main');
 ok(r.body.entries.length === 1 && r.body.entries[0].owner === 'Rich' && r.body.entries[0].model === 'Model 3' && r.body.entries[0].mods[0] === 'KW V3 coilovers' && Math.abs(r.body.entries[0].time - 99.786) < 0.01, 'on the leaderboard with the car and mods');
 r = await call('GET', '/cars/public?file=a1.jpg');
 ok(r.body.carId === 'cara1' && r.body.track.length === 1 && r.body.track[0].venue === 'Thruxton', 'the Gallery list gets the shared best');
+// The photo share pages' times (scripts/build_share_pages.py): every photo's car's bests, by file, admin only.
+ok((await call('GET', '/track/admin/photo-bests')).status === 401, 'the photo bests need the admin key');
+r = await call('GET', '/track/admin/photo-bests?key=secret');
+ok(r.body.success && r.body.cars === 1 && r.body.bests['a1.jpg'] && r.body.bests['a1.jpg'][0].venue === 'Thruxton' && Math.abs(r.body.bests['a1.jpg'][0].bestTime - 99.786) < 0.01 && !r.body.bests['b1.jpg'], 'the photo bests are keyed by photo file: ' + JSON.stringify(r.body).slice(0, 160));
 
 // A slower session doesn't replace the best; deleting the best brings the other back.
 const slow = JSON.parse(JSON.stringify(session)); slow.bestTime = 101.5;
@@ -1334,6 +1338,12 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   ok(x.status === 200 && stored('track-session:' + id).linesAccepted === true, 'the mark that the admin accepted this session\'s lines is kept');
   x = await call('POST', '/track/admin/retime?key=secret', { id, session: fresh });
   ok(x.status === 200 && stored('track-session:' + id).linesAccepted === undefined, 'and it is not added to other sessions');
+  // A layout the member picked is theirs to change: an admin re-time cannot move the session to another one.
+  { const rec = stored('track-session:' + id); rec.layoutPicked = true; kv.set('track-session:' + id, JSON.stringify(rec)); }
+  x = await call('POST', '/track/admin/retime?key=secret', { id, session: Object.assign({}, fresh, { layoutId: 'other-layout', layout: 'Other' }) });
+  ok(x.status === 409 && /only they can change it/.test(x.body.message) && stored('track-session:' + id).layoutId === 'main', 'an admin re-time cannot move a session off the layout its member picked');
+  x = await call('POST', '/track/admin/retime?key=secret', { id, session: fresh });
+  ok(x.status === 200 && stored('track-session:' + id).layoutPicked === true, 'a re-time on the same layout is saved and the mark stays');
   x = await call('POST', '/track/admin/retime?key=secret', { id: 'deadbeefdeadbeef', session: fresh });
   ok(x.status === 404, 'an unknown session is refused');
 }
@@ -1402,6 +1412,8 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   ok((await call('POST', '/track/copy/admin', { heading: 'x' })).status === 401, 'the welcome text needs the admin key');
   cp = await call('POST', '/track/copy/admin?key=secret', { tipHeading: ' Keep   uploading ', tipText: 'More data.', tipOff: true });
   ok(cp.body.copy.tipHeading === 'Keep uploading' && cp.body.copy.tipText === 'More data.' && cp.body.copy.tipOff === true && !('heading' in cp.body.copy), 'the tip\'s heading, text and switch are kept, cleaned');
+  cp = await call('POST', '/track/copy/admin?key=secret', { previewOut: '  Testers <only> for now. ', previewPending: 'Soon.', previewNone: '' });
+  ok(cp.body.copy.previewOut === 'Testers only for now.' && cp.body.copy.previewPending === 'Soon.' && !('previewNone' in cp.body.copy), 'the early preview notes are kept, cleaned, blanks dropped');
   cp = await call('POST', '/track/copy/admin?key=secret', { tipHeading: 'Keep uploading', tipOff: 'yes' });
   ok(cp.body.copy.tipOff === undefined, 'the tip is only hidden by a real true');
   cp = await call('POST', '/track/copy/admin?key=secret', { heading: 'Lap times for <every> car', intro: '  Bring your file.  ', bullets: ['One', '', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'] });
@@ -1411,6 +1423,61 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   ok(!cp.body.copy.heading && cp.body.copy.bullets.length === 2, 'blank fields fall back to the built-in words, a list may come as lines');
   cp = await call('POST', '/track/copy/admin?key=secret', { reset: true });
   ok(cp.body.success && Object.keys(cp.body.copy).length === 0 && !kv.has('track-copy'), 'reset clears the words');
+}
+
+// The daily changes email: admin key only, sent to MT3UK, stopped by the Email switch.
+{
+  ok((await call('POST', '/admin/daily-summary', { subject: 'x', text: 'y' })).status === 401, 'the daily email needs the admin key');
+  ok((await call('POST', '/admin/daily-summary?key=secret', { subject: 'x', text: '  ' })).status === 400, 'an empty email is refused');
+  const before = env.SEND_EMAIL.sent.length;
+  const r = await call('POST', '/admin/daily-summary?key=secret', { subject: 'MT3UK and Laps: changes on 7 October 2026', text: 'Hi Richard,\n\n- Laps: the announcement\n\nYOUR NEXT STEPS\n- Write one' });
+  const mail = env.SEND_EMAIL.sent[env.SEND_EMAIL.sent.length - 1];
+  ok(r.body.sent === true && env.SEND_EMAIL.sent.length === before + 1 && /To: modtesla3uk@gmail\.com/.test(mail) && /changes on 7 October 2026/.test(mail) && /YOUR NEXT STEPS/.test(mail), 'the summary is emailed to MT3UK');
+  await call('POST', '/admin/alerts?key=secret', { email: false });
+  const off = await call('POST', '/admin/daily-summary?key=secret', { subject: 'x', text: 'y' });
+  ok(off.body.sent === false && env.SEND_EMAIL.sent.length === before + 1, 'with the Email switch off nothing is sent');
+  await call('POST', '/admin/alerts?key=secret', { email: true });
+}
+
+// The Laps announcement on Sessions: one line, shown when on, a new id when the words change.
+{
+  let ln = await call('GET', '/laps/news');
+  ok(ln.status === 200 && ln.body.success && ln.body.news === null, 'no announcement: nothing to show');
+  ok((await call('POST', '/laps/news/admin', { text: 'x', on: true })).status === 401, 'the announcement needs the admin key');
+  ln = await call('POST', '/laps/news/admin?key=secret', { text: ' New: <Compare> pads ', link: 'leaderboards.html', linkText: '', on: true });
+  const first = ln.body.news;
+  ok(first.text === 'New: Compare pads' && first.link === 'leaderboards.html' && first.linkText === 'Find out more' && first.on === true && first.id, 'cleaned, with a link and its default words: ' + JSON.stringify(first));
+  ok((await call('GET', '/laps/news')).body.news.text === 'New: Compare pads', 'Sessions reads it');
+  ln = await call('POST', '/laps/news/admin?key=secret', { text: 'New: Compare pads', link: 'leaderboards.html', on: true });
+  ok(ln.body.news.id === first.id, 'the same words keep the same id, so a closed one stays closed');
+  await new Promise(r => setTimeout(r, 5));
+  ln = await call('POST', '/laps/news/admin?key=secret', { text: 'New: Since you were last here', link: 'javascript:alert(1)', on: true });
+  ok(ln.body.news.id !== first.id && ln.body.news.link === '' && ln.body.news.linkText === '', 'new words get a new id; a link that is not a page or https is dropped');
+  ln = await call('POST', '/laps/news/admin?key=secret', { text: 'Hidden for now', on: false });
+  ok((await call('GET', '/laps/news')).body.news === null, 'switched off, members see nothing');
+  ln = await call('POST', '/laps/news/admin?key=secret', { clear: true });
+  ok(ln.body.success && !kv.has('laps-news'), 'clear removes it');
+}
+
+// The Laps front page panels: words and where each shows, in one KV key; blank keeps the page's own.
+{
+  let lp = await call('GET', '/laps/panels');
+  ok(lp.status === 200 && lp.body.success && Object.keys(lp.body.panels).length === 0, 'no panels set: the page uses its own');
+  ok((await call('POST', '/laps/panels/admin', { panels: {} })).status === 401, 'the panels need the admin key');
+  lp = await call('POST', '/laps/panels/admin?key=secret', { panels: {
+    fastest: { heading: ' Quickest   now ', show: { front: true, sessions: true, leaderboard: 'yes' } },
+    what: { cards: [{ title: 'Laps <found>', text: '' }, { title: '', text: '' }], lead: '' },
+    timers: { items: 'RaceBox\n\nVBOX' },
+    nope: { heading: 'x' },
+    days: { show: { front: false } }
+  } });
+  const ps = lp.body.panels;
+  ok(lp.body.success && ps.fastest.heading === 'Quickest now' && ps.fastest.show.sessions === true && !('front' in ps.fastest.show) && !('leaderboard' in ps.fastest.show), 'a heading is cleaned and only real changes of place are kept: ' + JSON.stringify(ps.fastest));
+  ok(ps.what.cards[0].title === 'Laps found' && ps.what.cards.length === 2 && !ps.what.lead, 'cards are kept by position, angle brackets dropped');
+  ok(ps.timers.items.length === 2 && !ps.nope && ps.days.show.front === false, 'chips come as lines, unknown panels are dropped, a panel can leave the front page');
+  ok((await call('GET', '/laps/panels')).body.panels.fastest.heading === 'Quickest now', 'the pages read them');
+  lp = await call('POST', '/laps/panels/admin?key=secret', { reset: true });
+  ok(lp.body.success && !kv.has('laps-panels'), 'reset clears them');
 }
 
 // The Track sessions link preview picture: pictures in the bucket, one KV key, a week's pick.

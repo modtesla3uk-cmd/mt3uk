@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="css/admin-page.css?v=20270125">
+<link rel="stylesheet" href="css/admin-page.css?v=20270128">
 <link rel="stylesheet" href="css/admin.css">
 <link rel="stylesheet" href="css/track-map.css">
 </head>
@@ -174,6 +174,7 @@
       <div class="iv-toolbar"><button type="button" class="secondary" id="tk-rebuild">Rebuild all leaderboards</button><span class="iv-note" id="tk-rebuild-note" role="status"></span></div>
       <div class="iv-toolbar"><button type="button" class="secondary" id="tk-retime-check">Check sessions</button><button type="button" class="secondary" id="tk-retime">Re-time out of date sessions</button><button type="button" class="tk-switch" role="switch" id="tk-retime-big" aria-checked="false"><span class="tk-track"></span>Also re-time big changes (best time moves over 10%)</button><span class="iv-note" id="tk-retime-note" role="status"></span></div>
       <ul class="iv-note" id="tk-retime-list" style="list-style:none;padding:0;margin:8px 0 0"></ul>
+      <div id="tk-retime-picks" class="rt-picks"></div>
       <select id="tk-board-pick" aria-label="Leaderboard"></select>
       <div id="tk-board"></div>
     </details>
@@ -201,8 +202,32 @@
         <div class="iv-toolbar"><button type="button" class="tk-switch" role="switch" id="tc-tip-on" aria-checked="true"><span class="tk-track"></span>Show the tip</button></div>
         <label>Tip heading<input type="text" id="tc-tip-heading" maxlength="80"></label>
         <label>Tip text<textarea id="tc-tip-text" rows="4" maxlength="400"></textarea></label>
+        <h3 class="sub-head">Early preview note</h3>
+        <p class="iv-note">Shown on the Laps strips (the Track Days pages, the Gallery) and above the Leaderboard to anyone without early access, while Laps is an early preview. Blank keeps the built-in words.</p>
+        <label>For a visitor who is signed out<textarea id="tc-preview-out" rows="3" maxlength="300"></textarea></label>
+        <label>For a member who has not asked yet<textarea id="tc-preview-none" rows="3" maxlength="300"></textarea></label>
+        <label>For a member on the waiting list<textarea id="tc-preview-pending" rows="3" maxlength="300"></textarea></label>
         <div class="iv-toolbar"><button type="button" class="secondary" id="tc-save">Save</button><button type="button" class="secondary" id="tc-reset">Use the built-in words</button></div>
       </div>
+    </details>
+    <details class="collapsible" id="news-wrap">
+      <summary><h3 class="panel-title">Announcement</h3></summary>
+      <p class="iv-note">One line at the top of every member's Sessions, with an optional link, until they close it. Change the words or the link and it shows again to everyone.</p>
+      <p class="iv-note" id="an-note" role="status"></p>
+      <div class="ts-new">
+        <div class="iv-toolbar"><button type="button" class="tk-switch" role="switch" id="an-on" aria-checked="false"><span class="tk-track"></span>Show it on Sessions</button></div>
+        <label>Announcement (one line)<input type="text" id="an-text" maxlength="200" placeholder="New: Compare tyres and pads on every board"></label>
+        <label>Link (optional: a page such as leaderboards.html, or an https:// address)<input type="text" id="an-link" maxlength="300"></label>
+        <label>Link words<input type="text" id="an-link-text" maxlength="40" placeholder="Find out more"></label>
+        <div class="iv-toolbar"><button type="button" class="secondary" id="an-save">Save</button><button type="button" class="secondary" id="an-clear">Remove</button></div>
+      </div>
+    </details>
+    <details class="collapsible" id="panels-wrap">
+      <summary><h3 class="panel-title">Laps panels</h3></summary>
+      <p class="iv-note">The sections of the Laps front page (laps.html): Fastest right now, What Laps does, Every kind of day, Works with your lap timer and EVs, any make. Change any heading, intro line, card or chip, and choose where each one shows: the front page, and for signed-in members under the list on Sessions and under the track list on the Leaderboard. Anything left blank keeps the front page's own words.</p>
+      <p class="iv-note" id="lpn-note" role="status"></p>
+      <div class="ts-new" id="lpn-list"></div>
+      <div class="iv-toolbar"><button type="button" class="secondary" id="lpn-save">Save</button><button type="button" class="secondary" id="lpn-reset">Use the front page's own words</button></div>
     </details>
     <details class="collapsible" id="tyres-wrap">
       <summary><h3 class="panel-title">Tyres <span class="summary-count" id="tyres-count"></span></h3></summary>
@@ -257,9 +282,9 @@
 </main>
 <script src="js/track-admin-page.js?v=20270107"></script>
 <script src="js/admin-subnav.js?v=20261160" defer></script>
-<script src="js/admin-help.js?v=20270210" defer></script>
+<script src="js/admin-help.js?v=20270212" defer></script>
 <script src="js/admin-alerts.js?v=20261250" defer></script>
-<script src="js/track-parse.js?v=20270121" defer></script>
+<script src="js/track-parse.js?v=20270128" defer></script>
 <script src="js/track-view.js?v=20270110" defer></script>
 <script src="js/track-access-admin.js?v=20270105" defer></script>
 <script src="js/track-usage-admin.js?v=20270101" defer></script>
@@ -268,10 +293,12 @@
 <script src="js/track-lines-admin.js?v=20261180" defer></script>
 <script src="js/track-member-admin.js?v=20261162" defer></script>
 <script src="js/track-new-sessions-admin.js?v=20261250" defer></script>
-<script src="js/track-admin.js?v=20261186" defer></script>
+<script src="js/track-admin.js?v=20270128" defer></script>
 <script src="js/track-share-card.js?v=20261181"></script>
 <script src="js/track-share-admin.js?v=20261105" defer></script>
-<script src="js/track-copy-admin.js?v=20270102" defer></script>
+<script src="js/track-copy-admin.js?v=20270219" defer></script>
+<script src="js/laps-panels-admin.js?v=1" defer></script>
+<script src="js/laps-news-admin.js?v=1" defer></script>
 <script src="js/track-drive-admin.js?v=20261231" defer></script>
 <script src="js/tyre-data.js?v=20270210" defer></script>
 <script src="js/tyre-admin.js?v=20270210" defer></script>

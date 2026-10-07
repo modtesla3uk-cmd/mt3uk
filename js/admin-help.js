@@ -230,12 +230,24 @@
     // ---------------------------------------------------------------- track-admin.html: content
     'copy-wrap': { t: 'Welcome text', p: 'What a visitor who is not signed in sees at the top of Track Sessions, and the upload tip.', i: [
       ['Heading, paragraph and tick list', 'Anything left blank keeps the built-in words.'],
-      ['Show the tip', 'On: the upload tip shows under Add a session and on the Leaderboard. Members can fold it, but never hide it for good.'],
+      ['Show the tip', 'On: the light bulb in the heading of Sessions and the Leaderboard opens the upload tip.'],
       ['Tip heading and text', 'Blank keeps the built-in words.'],
       ['Save', 'Keeps your wording.'],
       ['Use the built-in words', 'Clears your wording so the built-in text is used.']
     ] },
-    'tc-tip-on': { t: 'Show the tip', p: 'On: the upload tip shows under Add a session and on the Leaderboard. Members can fold it to its heading but cannot hide it for good. Off: the tip is not shown anywhere.' },
+    'tc-tip-on': { t: 'Show the tip', p: 'On: the light bulb by Add a session, in the heading of Sessions and the Leaderboard, opens the upload tip. Off: the tip is not shown (on Sessions the bulb stays for Fastest right now).' },
+    'news-wrap': { t: 'Announcement', p: 'One line at the top of every member\'s Sessions, until they close it.', i: [
+      ['Show it on Sessions', 'On: members see it. Off: it is kept but not shown.'],
+      ['Link', 'Optional: a page of the site, such as leaderboards.html, or an https:// address.'],
+      ['Save', 'New words or a new link show again to members who closed the last one.'],
+      ['Remove', 'Takes it away.']
+    ] },
+    'panels-wrap': { t: 'Laps panels', p: 'The sections of the Laps front page, and where each one shows.', i: [
+      ['Front page, Sessions, Leaderboard', 'Where the section shows. Sessions and the Leaderboard show it under the list, to signed-in members only.'],
+      ['Heading, intro line, cards and chips', 'Your words in place of the front page\'s own. Anything left blank keeps them.'],
+      ['Save', 'Keeps your changes. The pages show them on their next load, within two minutes.'],
+      ['Use the front page\'s own words', 'Clears every change, and every section goes back to the front page only.']
+    ] },
     'tyres-wrap': { t: 'Tyres', p: 'The tyre makes, their models and the Width, Profile and Diameter choices offered in Track sessions.', i: [
       ['Starting list', 'data/tyres.json. Changes made here are stored on top of it and are live straight away.'],
       ['Model box', 'It suggests a make\'s models, but members can still type anything.'],

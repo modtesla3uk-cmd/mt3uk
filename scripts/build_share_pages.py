@@ -22,6 +22,13 @@ photo.
 Reads images/gallery/manifest.json, so run it after build_gallery_manifest.py.
 It runs automatically in the "Sync gallery and track days manifests"
 workflow.
+
+With VOTE_ADMIN_KEY set (the workflow passes it), the car's best shared time
+at each track on Laps is read from the worker (GET /track/admin/photo-bests,
+keyed by photo file) and put at the front of the page's description and on
+the page itself ("Fastest lap at Thruxton: 1:21.42"), linking to the session
+on Laps. Without it, or if the worker cannot be reached, the pages are
+written without a time.
 """
 import html
 import io
@@ -45,6 +52,51 @@ SITE_URL = "https://mt3uk.com"
 # script doesn't need boto3.
 R2_BASE_URL = "https://pub-818c4c87bd6e40b7afe697d8b72fe4e3.r2.dev"
 DEFAULT_DESCRIPTION = "A member build on MT3UK, the UK's modified Tesla community."
+WORKER_URL = os.environ.get("MT3UK_WORKER_URL", "https://late-darkness-ebc8.modtesla3uk.workers.dev")
+LAPS_URL = "https://laps.mt3uk.com"
+
+
+def photo_bests() -> dict:
+    """Each photo's car's best shared time at each track, from the worker, or
+    {} without the admin key or if it cannot be read."""
+    key = os.environ.get("VOTE_ADMIN_KEY", "").strip()
+    if not key:
+        return {}
+    import urllib.parse
+    import urllib.request
+
+    try:
+        with urllib.request.urlopen(WORKER_URL + "/track/admin/photo-bests?key=" + urllib.parse.quote(key), timeout=60) as r:
+            data = json.loads(r.read().decode("utf-8"))
+        return data.get("bests") or {} if data.get("success") else {}
+    except Exception as err:
+        print(f"Could not read the Laps times: {err}")
+        return {}
+
+
+def lap_time(seconds) -> str:
+    cs = int(round(float(seconds) * 100 + 1e-7))
+    m, r = divmod(cs, 6000)
+    return f"{m}:{r // 100:02d}.{r % 100:02d}" if m else f"{r / 100:.2f} s"
+
+
+def best_line(bests: list) -> tuple:
+    """The quickest kind of result to lead with: a lap, else a run, else a
+    quarter mile. Returns (text, session id) or ("", "")."""
+    laps = [b for b in bests or [] if b.get("type") == "track" and b.get("bestTime")]
+    runs = [b for b in bests or [] if b.get("type") == "sprint" and b.get("bestTime")]
+    drags = [b for b in bests or [] if b.get("type") == "drag" and b.get("quarter")]
+    if laps:
+        b = min(laps, key=lambda x: x["bestTime"])
+        return f"Fastest lap at {b.get('venue', '')}: {lap_time(b['bestTime'])}", b.get("id", "")
+    if runs:
+        b = min(runs, key=lambda x: x["bestTime"])
+        where = b.get("venue", "") + (", " + b["layout"] if b.get("layout") and b["layout"] != b.get("venue") else "")
+        return f"Best run at {where}: {lap_time(b['bestTime'])}", b.get("id", "")
+    if drags:
+        b = min(drags, key=lambda x: x["quarter"])
+        return f"Quarter mile at {b.get('venue', '')}: {float(b['quarter']):.2f} s", b.get("id", "")
+    return "", ""
 
 
 def title_case(value: str) -> str:
@@ -94,7 +146,7 @@ def build_previews(files: list) -> None:
             print(f"Could not make a preview for {file}: {err}")
 
 
-def page_html(photo: dict) -> str:
+def page_html(photo: dict, bests: list = None) -> str:
     file = photo["file"]
     caption = title_case(photo.get("caption", ""))
     name = title_case(photo.get("name", ""))
@@ -104,6 +156,15 @@ def page_html(photo: dict) -> str:
         title = name + "'s build" if name else "Member build"
     mods = [str(m) for m in photo.get("mods") or []]
     description = ("Mods: " + ", ".join(mods[:8]) + ("..." if len(mods) > 8 else "")) if mods else DEFAULT_DESCRIPTION
+    fastest, session_id = best_line(bests)
+    if fastest:
+        description = fastest + " (Laps by MT3UK). " + description
+    laps_line = (
+        f"""<p><a href="{html.escape(LAPS_URL + '/track.html?s=' + session_id, quote=True)}">{html.escape(fastest)} on Laps by MT3UK</a></p>
+"""
+        if fastest and session_id
+        else ""
+    )
     has_preview = (PREVIEW_DIR / (file + ".jpg")).exists()
     image = SITE_URL + "/share/preview/" + file + ".jpg" if has_preview else R2_BASE_URL + "/gallery/" + file
     image_size = (
@@ -149,7 +210,7 @@ def page_html(photo: dict) -> str:
 <body>
 <p><img src="{e(R2_BASE_URL + "/gallery/" + file)}" alt="{e(title)}"></p>
 <p>{e(title)}</p>
-<p><a href="{e(reel_url)}">See this build on MT3UK</a></p>
+{laps_line}<p><a href="{e(reel_url)}">See this build on MT3UK</a></p>
 </body>
 </html>
 """
@@ -159,11 +220,12 @@ def main():
     photos = [p for p in json.loads(MANIFEST_PATH.read_text()) if p.get("reel") is not False]
     SHARE_DIR.mkdir(exist_ok=True)
     build_previews([p["file"] for p in photos])
+    bests = photo_bests()
     wanted = set()
     for photo in photos:
         path = SHARE_DIR / (photo["file"] + ".html")
         wanted.add(path.name)
-        content = page_html(photo)
+        content = page_html(photo, bests.get(photo["file"]))
         if not path.exists() or path.read_text() != content:
             path.write_text(content)
     for old in SHARE_DIR.glob("*.html"):

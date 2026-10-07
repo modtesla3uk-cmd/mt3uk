@@ -664,3 +664,45 @@ def test_garage_tile_shows_mods_progress_and_back_is_a_button(device_page):
     expect(back).to_be_visible()
     assert back.evaluate("e => getComputedStyle(e).borderTopWidth") == "1px"
     assert back.bounding_box()["height"] >= 44
+
+
+@all_devices
+def test_the_open_car_shows_its_laps_strip(device_page):
+    """The open car on Laps (js/laps-strip.js, data-laps-car): the member's own sessions for that car, the best at
+    each track with private ones marked, All sessions and Add your session for this car."""
+    page = device_page
+    page.mock_state["track_sessions"] = [
+        {"id": "s1", "carId": "car-1", "type": "track", "venue": "Thruxton", "layout": "Thruxton", "venueId": "thruxton", "layoutId": "main", "date": "2026-09-14", "bestTime": 81.42, "privacy": "board"},
+        {"id": "s2", "carId": "car-1", "type": "track", "venue": "Thruxton", "layout": "Thruxton", "venueId": "thruxton", "layoutId": "main", "date": "2026-08-01", "bestTime": 83.9, "privacy": "board"},
+        {"id": "s3", "carId": "car-1", "type": "sprint", "venue": "Lydden Hill", "layout": "B19", "venueId": "lydden", "layoutId": "b19", "date": "2026-07-19", "bestTime": 52.07, "privacy": "private"},
+        {"id": "s4", "carId": "car-9", "type": "track", "venue": "Donington", "venueId": "donington", "layoutId": "gp", "date": "2026-07-01", "bestTime": 100, "privacy": "board"},
+    ]
+    open_car(page)
+    strip = page.locator("#mb-car-laps")
+    expect(strip).to_be_visible()
+    expect(strip.locator(".ls-head b")).to_have_text("Test Model 3 on Laps")
+    rows = strip.locator(".ls-rows a")
+    expect(rows).to_have_count(2)
+    expect(rows.first).to_contain_text("Thruxton")
+    expect(rows.first).to_contain_text("1:21.42")
+    expect(rows.nth(1)).to_contain_text("Lydden Hill, B19")
+    expect(rows.nth(1)).to_contain_text("Only me")
+    expect(rows.nth(1)).to_contain_text("52.07 s")
+    assert rows.first.get_attribute("href") == "track.html?s=s1"
+    expect(strip.get_by_role("link", name="All sessions")).to_have_attribute("href", "track.html?mycar=car-1")
+    # The mock gives no early access, so Add your session is Join the early preview (to Sessions).
+    expect(strip.get_by_role("link", name="Join the early preview")).to_have_attribute("href", "track.html")
+    assert overflow_width(page) <= 0
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_a_car_with_no_sessions_is_invited_to_laps(device_page):
+    page = device_page
+    page.mock_state["track_sessions"] = []
+    open_car(page)
+    strip = page.locator("#mb-car-laps")
+    expect(strip).to_be_visible()
+    expect(strip.locator(".ls-empty")).to_contain_text("No sessions for this car yet")
+    expect(strip.locator(".ls-rows")).to_have_count(0)
+    assert page.errors == [], diagnostics(page)

@@ -1,0 +1,55 @@
+name: Daily changes email
+
+# Each evening, emails Richard (modtesla3uk@gmail.com, through the worker's /admin/daily-summary) what was pushed
+# to main in the last 24 hours, with "Your next steps" and "My suggested next steps" from the commit messages'
+# "Next:" and "Suggest:" lines and how the day's test runs went. No changes (bot syncs aside), no email.
+# scripts/daily_changes.py writes it.
+
+on:
+  schedule:
+    # 16:49 UTC: 17:49 in British Summer Time, 16:49 in winter.
+    - cron: '49 16 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  email:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: How the day's test runs went
+        id: tests
+        run: |
+          since=$(date -u -d '24 hours ago' +%Y-%m-%dT%H:%M:%SZ)
+          runs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/tests.yml/runs?branch=main&created=>${since}&per_page=50" \
+            --jq '[.workflow_runs[] | select(.status == "completed") | .conclusion]' 2>/dev/null || echo '[]')
+          total=$(echo "$runs" | jq 'length')
+          failed=$(echo "$runs" | jq '[.[] | select(. != "success")] | length')
+          link="https://github.com/${GITHUB_REPOSITORY}/actions/workflows/tests.yml"
+          if [ "$total" = "0" ]; then msg="";
+          elif [ "$failed" = "0" ]; then msg="The tests passed on all $total of today's runs: $link";
+          else msg="$failed of today's $total test runs did not pass. Have a look: $link"; fi
+          echo "result=$msg" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Write the summary
+        run: python3 scripts/daily_changes.py > summary.json
+        env:
+          TESTS_RESULT: ${{ steps.tests.outputs.result }}
+      - name: Email it
+        run: |
+          if [ ! -s summary.json ]; then echo "No changes today, so no email." >> "$GITHUB_STEP_SUMMARY"; exit 0; fi
+          response=$(curl -s -X POST -H 'Content-Type: application/json' --data @summary.json \
+            "https://late-darkness-ebc8.modtesla3uk.workers.dev/admin/daily-summary?key=$ADMIN_KEY")
+          if [ "$(echo "$response" | jq -r '.success')" != "true" ]; then
+            echo "$response" | jq -r '.message // "Could not send the email"' >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          echo "Emailed: $(jq -r .subject summary.json)" >> "$GITHUB_STEP_SUMMARY"
+        env:
+          ADMIN_KEY: ${{ secrets.VOTE_ADMIN_KEY }}

@@ -60,13 +60,16 @@
   function backDepth() { var st = history.state; return st && typeof st.lbDepth === 'number' ? st.lbDepth : 0; }
   function go(q) { history.pushState({ lbDepth: backDepth() + 1 }, '', 'leaderboards.html' + (q ? '?' + q : '')); route(); window.scrollTo(0, 0); }
   window.addEventListener('popstate', route);
-  app.addEventListener('click', function (e) {
+  function goLink(e) {
     var a = e.target.closest('a[data-go]');
     if (a && !e.metaKey && !e.ctrlKey) {
       e.preventDefault();
       if (a.hasAttribute('data-back') && backDepth() > 0) history.back();
       else go(a.getAttribute('data-go'));
     }
+  }
+  app.addEventListener('click', function (e) {
+    goLink(e);
     if (e.target.closest('[data-units]')) { V.setMph(!V.units.mph); route(); }
   });
   function unitsChip() { return '<button type="button" class="chip tp-units" data-units>' + (V.units.mph ? 'mph' : 'km/h') + '</button>'; }
@@ -87,10 +90,21 @@
     Promise.all(jobs).then(function () { location.reload(); });
   });
 
-  // The page's own Back is only on the list; inside a board its own Back (to the list) is the one.
-  function syncPageBack() { var b = document.getElementById('lb-page-back'); if (b) b.hidden = !!document.querySelector('#' + app.id + ' .tp-back'); }
+  // The page's own Back is only on the list; inside a board its own Back (to the list) takes its place in the heading,
+  // so Back is always the same button in the same place (round on a phone).
+  var heroTop = document.querySelector('.lb-hero .tp-hero-top');
+  if (heroTop) heroTop.addEventListener('click', goLink);
+  function syncPageBack() {
+    var b = document.getElementById('lb-page-back');
+    if (!b || !heroTop) return;
+    [].slice.call(heroTop.querySelectorAll('.tp-back')).forEach(function (x) { x.remove(); });
+    var inner = app.querySelector('.tp-back');
+    b.hidden = !!inner;
+    if (inner) heroTop.insertBefore(inner, b);
+  }
   function route() {
     V.hideTip();
+    if (window.MT3UKLapsPanels) window.MT3UKLapsPanels.show(false);
     var p = params();
     app.innerHTML = '<div class="tp-loading" id="lb-loading" role="status"><span class="tp-spinner" aria-hidden="true"></span><p>Loading the leaderboards...</p></div>';
     setTimeout(function () {
@@ -220,6 +234,8 @@
     app.innerHTML = h;
     placeTip();
     syncPageBack();
+    // The front page panels the admin chose for the Leaderboard, under the track list (js/laps-panels.js).
+    if (window.MT3UKLapsPanels) window.MT3UKLapsPanels.show(true);
     var sortSel = document.getElementById('lb-sort');
     if (sortSel) sortSel.addEventListener('change', function () { sortMode = sortSel.value; sortChosen = true; showList(type); });
     var btn = app.querySelector('[data-showall]');

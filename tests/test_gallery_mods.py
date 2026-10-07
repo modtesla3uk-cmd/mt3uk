@@ -4,6 +4,7 @@ badge on a photo opens it straight away."""
 import json
 from pathlib import Path
 from urllib.parse import quote
+from playwright.sync_api import expect
 
 from test_devices import device_page, browsers, all_devices, overflow_width, diagnostics  # noqa: F401
 
@@ -126,5 +127,43 @@ def test_full_list_shows_shared_track_bests(device_page):
     assert "Thruxton" in track.inner_text() and "1:39.79" in track.inner_text()
     assert track.locator("a").first.get_attribute("href") == "track.html?s=s1"
     assert track.get_by_text("All shared sessions").get_attribute("href") == "track.html?car=car-1"
+    # Drawn as a Laps strip: the car's name on Laps, the kind of result, and What is Laps? for a visitor.
+    assert "Test Model 3 on Laps" in track.inner_text() and "Best lap" in track.inner_text()
+    assert track.get_by_text("What is Laps?").get_attribute("href") == "laps.html"
+    assert track.locator("[data-laps-add]").count() == 0
     assert overflow_width(page) <= 0
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_full_list_asks_the_owner_to_add_a_session(device_page):
+    page = device_page
+    page.mock_state["car_public"] = {
+        "success": True, "file": "test-build.jpg", "carId": "car-1", "name": "Test Model 3", "ownerName": "Richard", "canAsk": False, "mine": True,
+        "view": [{"id": "suspension", "label": "Suspension", "status": "up", "parts": [{"kind": "", "what": "KW V3"}]}],
+        "track": [],
+    }
+    sheet = open_full_list(page)
+    track = sheet.locator(".lightbox-car-track")
+    assert track.is_visible()
+    assert "No shared times for this car yet" in track.inner_text()
+    # Signed out in this test, so Add your session becomes Join the early preview, with a note (js/laps-strip.js).
+    expect(track.get_by_role("link", name="Join the early preview")).to_have_attribute("href", "laps-signin.html")
+    expect(track.locator("[data-laps-preview]")).to_contain_text("Early preview")
+    expect(track.locator(".ls-head .early-badge")).to_have_text("Early preview")
+    assert overflow_width(page) <= 0
+    assert page.errors == [], diagnostics(page)
+
+
+@all_devices
+def test_full_list_hides_laps_for_a_car_with_no_times(device_page):
+    page = device_page
+    page.mock_state["car_public"] = {
+        "success": True, "file": "test-build.jpg", "carId": "car-1", "name": "Test Model 3", "ownerName": "Richard", "canAsk": False,
+        "view": [{"id": "suspension", "label": "Suspension", "status": "up", "parts": [{"kind": "", "what": "KW V3"}]}],
+        "track": [],
+    }
+    sheet = open_full_list(page)
+    expect(sheet.locator(".lightbox-car-rows")).to_contain_text("KW V3")
+    assert sheet.locator(".lightbox-car-track").is_hidden()
     assert page.errors == [], diagnostics(page)

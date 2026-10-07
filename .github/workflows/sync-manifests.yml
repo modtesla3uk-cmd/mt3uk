@@ -49,6 +49,8 @@ jobs:
 
       - name: Regenerate reel share pages
         run: python3 scripts/build_share_pages.py
+        env:
+          VOTE_ADMIN_KEY: ${{ secrets.VOTE_ADMIN_KEY }}
 
       - name: Regenerate page and section share pages
         run: python3 scripts/build_section_share_pages.py

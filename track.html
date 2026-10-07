@@ -30,6 +30,7 @@
 <meta name="twitter:image" content="https://mt3uk.com/images/track-preview/share.jpg">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
 <link rel="stylesheet" href="css/site-header.css">
+<link rel="stylesheet" href="css/laps-panels.css?v=1">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 
@@ -83,6 +84,7 @@
   /* Back, Play intro and the Early preview badge: one evenly spaced row above the heading. */
   .tp-hero-top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; margin-bottom: 16px; }
   .page-hero .tp-hero-top .back-link, .tp-hero-top .early-badge-lg { margin: 0; }
+  .page-hero .tp-hero-top .tp-home .icon { color: #f58a68; }
   @media (max-width: 780px) { .tp-hero-top { gap: 8px 14px; margin-bottom: 12px; } }
   .page-hero p { color: var(--ink-2); max-width: 58ch; font-size: 1.02rem; }
   @media (max-width: 780px) { .page-hero { padding: 24px 0 20px; } .page-hero .back-link { margin-bottom: 10px; } }
@@ -237,6 +239,27 @@
   .tp-head-side .tp-rank { margin-top: 0; }
   .tp-head-side .tp-share-dot { float: none; margin: 0; top: 0; width: 36px; height: 36px; }
   body[data-tp-view="session"] .page-hero .mt3uk-share-dot, body[data-tp-view="car"] .page-hero .mt3uk-share-dot { display: none; }
+  /* The announcement (drawNews in js/track-page.js), above Since you were last here: navy, one line and a close. */
+  .tp-news { margin: 14px 0 0; padding: 10px 6px 10px 14px; background: #16233d; border-color: #16233d; color: #fff; display: flex; align-items: center; gap: 8px; }
+  .tp-news[hidden] { display: none; }
+  .tp-news p { flex: 1; margin: 0; display: flex; gap: 10px; align-items: flex-start; color: #fff; }
+  .tp-news p .icon { flex: none; width: 18px; height: 18px; margin-top: 2px; color: #ffd27a; }
+  .tp-news a { color: #ffd27a; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+  .tp-news .tp-since-close { margin: 0; color: #c9d1e3; }
+  /* Since you were last here (drawSince in js/track-page.js): changes on the member's boards, at the top of the list. */
+  .tp-since { margin: 14px 0 0; padding: 10px 14px 12px; background: #fff7ee; border-color: #f3cfae; display: grid; gap: 6px; }
+  .tp-since[hidden] { display: none; }
+  .tp-since-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .tp-since-head b { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); }
+  .tp-since-head b .icon { width: 18px; height: 18px; color: var(--orange); }
+  .tp-since-close { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin: -8px -10px -8px 0; border: 0; background: none; color: var(--steel); cursor: pointer; }
+  .tp-since-close .icon { width: 18px; height: 18px; }
+  .tp-since ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+  .tp-since li a { display: flex; align-items: center; gap: 10px; min-height: 40px; color: var(--ink); text-decoration: underline; text-decoration-color: var(--hairline-strong); text-underline-offset: 3px; }
+  .tp-since li a::before { content: ''; flex: none; width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; }
+  .tp-since li.is-down a::before { border-top: 8px solid #c0392b; }
+  .tp-since li.is-up a::before { border-bottom: 8px solid #2e8b57; }
+  .tp-since .tp-small { margin: 0; }
   /* The navy heading, the same as the Leaderboard's (.lb-hero in leaderboards.html). */
   .tp-dark-hero { background: #16233d; border-bottom: 0; }
   .tp-dark-hero h1 { color: #ffffff; }
@@ -246,8 +269,24 @@
   .tp-dark-hero .tp-lb-pill:hover { background: #eef1f6; color: var(--ink); }
   .tp-dark-hero .tp-what summary { color: #b9c0cf; }
   .tp-dark-hero .tp-what p { color: #d3d8e2; }
+  /* What are Sessions?: an intro line and a list of what Laps does, left-aligned in a centred block. */
+  .tp-what-body { max-width: 66ch; margin: 4px auto 10px; text-align: left; }
+  .page-hero .tp-what .tp-what-body p { max-width: none; margin: 0 0 8px; }
+  .tp-what-list { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 0.95rem; }
+  .tp-dark-hero .tp-what-list { color: #d3d8e2; }
+  .tp-dark-hero .tp-what-list b { color: #fff; }
   /* Add a session sits under Leaderboards on the list of sessions, the same size and orange, as on the Leaderboard. */
-  .tp-hero-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+  .tp-hero-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; position: relative; }
+  /* The tip: a light bulb beside Add a session that opens the tip in a box under it, over the page, as on the Leaderboard. */
+  .tp-hero-actions [data-laps-tip], .tp-hero-actions .laps-tip-bulbmode { display: contents; }
+  .tp-dark-hero .laps-tip-bulbbtn { display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; padding: 0; border: 1px solid rgba(255,255,255,.45); border-radius: 50%; background: transparent; color: #ffd27a; cursor: pointer; }
+  .tp-dark-hero .laps-tip-bulbbtn:hover, .tp-dark-hero .laps-tip-bulbbtn[aria-expanded="true"] { background: rgba(255,255,255,.14); border-color: #fff; }
+  .tp-dark-hero .laps-tip-bulbbtn .laps-tip-bulb { width: 24px; height: 24px; color: inherit; }
+  .tp-dark-hero .laps-tip-pop { position: absolute; top: calc(100% + 10px); right: 0; z-index: 30; width: min(440px, calc(100vw - 32px)); display: grid; gap: 4px; padding: 14px 16px; border: 1px solid rgba(255,255,255,.22); border-radius: var(--radius); background: #22324f; box-shadow: 0 12px 30px rgba(0,0,0,.35); text-align: left; }
+  .tp-dark-hero .laps-tip-pop[hidden] { display: none; }
+  .tp-dark-hero .laps-tip-pop b { color: #fff; }
+  .tp-dark-hero .laps-tip-pop p { margin: 0; color: #d3d8e2; font-size: 0.92rem; }
+  @media (min-width: 901px) { .tp-dark-hero .tp-hero-actions { flex-direction: column; align-items: flex-end; } }
   .tp-hero-actions[hidden] { display: none; }
   .page-hero .tp-hero-row .tp-lb-pill { min-width: 176px; justify-content: center; }
   .page-hero .tp-lb-pill.tp-add-pill { background: var(--orange); color: #fff; }
@@ -885,8 +924,8 @@
 <section class="page-hero tp-dark-hero">
   <div class="wrap">
     <div class="tp-hero-top"><a href="my-builds.html" class="back-link" aria-label="Back to My Garage"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</a></div>
-    <div class="tp-hero-row"><h1>My Sessions</h1><a class="tp-lb-pill tp-round" id="tp-lb-pill" href="leaderboards.html" aria-label="Leaderboards" title="Leaderboards"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/></svg>Leaderboards</a><div class="tp-hero-actions" id="tp-hero-actions" hidden><a class="tp-lb-pill tp-add-pill" id="tp-hero-add" href="track.html?add=1"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 21h14"/></svg>Add a session</a></div></div>
-    <details class="tp-what"><summary>What are Sessions?</summary><p>Your track days and drag runs from your lap timer file: every lap mapped, where you gained and lost time, and what your mods did to your times.</p></details>
+    <div class="tp-hero-row"><h1>My Sessions</h1><a class="tp-lb-pill tp-round" id="tp-lb-pill" href="leaderboards.html" aria-label="Leaderboards" title="Leaderboards"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/></svg>Leaderboards</a><div class="tp-hero-actions" id="tp-hero-actions" hidden><a class="tp-lb-pill tp-add-pill" id="tp-hero-add" href="track.html?add=1"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 21h14"/></svg>Add a session</a><div data-laps-tip="bulb-fast"></div></div></div>
+    <details class="tp-what"><summary>What are Sessions?</summary><div class="tp-what-body"><p>Your track days, sprints, hill climbs and drag runs from your lap timer file (RaceBox, VBOX, AiM, Harry&rsquo;s LapTimer, TrackAddict and most phone apps). Upload it and Laps does the rest.</p><ul class="tp-what-list"><li><b>Every lap mapped.</b> Compare any two laps on the satellite map, with speed, acceleration, braking and cornering g, and see where you gained or lost time, corner by corner.</li><li><b>Tyres and brake pads.</b> Record the tyres and pads you ran on each session, from their make and model lists. Laps keeps them with your times, beside the makers&rsquo; own figures: wet grip, noise and EV rating for tyres, and the working temperature range for pads.</li><li><b>Compare tyres and pads.</b> On the Leaderboard, see which tyres and pads are quickest at each track, with the best and typical times, peak braking g and brake temperatures, and a warning when pads ran hotter than their range.</li><li><b>Your car and its mods.</b> Sessions are linked to your car in My Garage, so its mods, kerb weight and driven wheels sit beside your times, and you can see what each change did.</li><li><b>The Leaderboard.</b> Share a session to put your car on the board for that track, or keep it to yourself. Filter by model, conditions, driven wheels, air temperature and weight.</li></ul></div></details>
   </div>
 </section>
 
@@ -894,6 +933,7 @@
   <div class="wrap" id="tp-app">
     <noscript><p>Track sessions needs JavaScript turned on.</p></noscript>
   </div>
+  <div class="laps-panels" data-laps-panels="sessions" data-no-share hidden></div>
 </main>
 
 <footer>
@@ -1038,14 +1078,15 @@
   }
 </script>
 
-<script src="js/track-parse.js?v=20270121" defer></script>
+<script src="js/track-parse.js?v=20270128" defer></script>
 <script src="js/track-view.js?v=20270110" defer></script>
 <script src="js/tyre-data.js?v=20270210"></script>
 <script src="js/pad-data.js?v=20270210"></script>
 <script src="js/vehicle-data.js?v=20270210" defer></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20270212" defer></script>
-<script src="js/laps-tip.js?v=20270103" defer></script>
+<script src="js/track-page.js?v=20270220" defer></script>
+<script src="js/laps-panels.js?v=1" defer></script>
+<script src="js/laps-tip.js?v=20270104" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=14" defer></script>
 <script src="js/signin-prompt.js" defer></script>

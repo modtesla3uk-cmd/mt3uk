@@ -29,7 +29,7 @@ TRACK_GROUPS = [
     ("grp-sessions", "Members' sessions", ["new-sessions-wrap", "lines-wrap", "member-sessions-wrap"]),
     ("grp-tracks", "Tracks", ["tracks-wrap"]),
     ("grp-boards", "Leaderboards", ["board-checks-wrap", "boards-wrap", "drive-wrap"]),
-    ("grp-content", "Content", ["copy-wrap", "tyres-wrap", "pads-wrap", "vehicles-wrap", "cars-wrap", "share-wrap"]),
+    ("grp-content", "Content", ["copy-wrap", "news-wrap", "panels-wrap", "tyres-wrap", "pads-wrap", "vehicles-wrap", "cars-wrap", "share-wrap"]),
 ]
 
 
@@ -153,7 +153,7 @@ def test_the_track_admin_sub_menu_lists_the_sections_of_each_category(page):
     expect(sub.locator("a")).to_have_text(["New sessions", "Line editing", "Member sessions"])
     expect(page.locator('.admin-nav a[data-here="true"]')).to_have_text("Members' sessions")
     page.locator('.admin-nav a[href="track-admin.html#grp-content"]').click()
-    expect(sub.locator("a")).to_have_text(["Welcome text", "Tyres", "Brake pads", "Vehicles", "Members' cars", "Track sessions sharing"])
+    expect(sub.locator("a")).to_have_text(["Welcome text", "Announcement", "Laps panels", "Tyres", "Brake pads", "Vehicles", "Members' cars", "Track sessions sharing"])
     sub.locator("a", has_text="Tyres").click()
     expect(page.locator("#tyres-wrap")).to_have_attribute("open", "")
     expect(page.locator("#tyres-wrap summary")).to_be_in_viewport()
@@ -182,6 +182,7 @@ def test_admin_can_rebuild_the_leaderboards_in_steps(page):
     open_admin(page, "track-admin.html")
     page.route("**/track/boards/rebuild**", rebuild)
     page.locator("#boards-wrap > summary").click()
+    page.once("dialog", lambda d: d.accept())
     page.locator("#tk-rebuild").click()
     expect(page.locator("#tk-rebuild-note")).to_have_text("Done: 3 cars brought up to date.")
     assert len(calls) == 2 and "key=test-key" in calls[0] and "cursor=2" in calls[1]
@@ -200,7 +201,7 @@ def _retime_source():
     return subprocess.run(["node", "-e", script], capture_output=True, text=True, check=True, cwd=".").stdout
 
 
-def _retime_mocks(page, saved, old_best=99.9):
+def _retime_mocks(page, saved, old_best=99.9, extra_rows=()):
     cors = {"Access-Control-Allow-Origin": "*"}
     source = _retime_source()
     rows = [
@@ -208,6 +209,7 @@ def _retime_mocks(page, saved, old_best=99.9):
         {"id": "aaaaaaaa02", "type": "track", "venue": "Castle Combe", "date": "2026-07-02", "best": 80.1, "version": 1, "hasSource": False},
         {"id": "aaaaaaaa03", "type": "track", "venue": "Croft", "date": "2026-07-03", "best": 70.0, "version": 99, "hasSource": True},
     ]
+    rows += list(extra_rows)
     old = {"id": "aaaaaaaa01", "type": "track", "venue": "Thruxton", "date": "2026-07-01", "time": "10:00", "bestTime": old_best}
 
     def retime(route):
@@ -239,21 +241,48 @@ def test_admin_check_sessions_counts_old_ones_and_saves_nothing(page):
     expect(note).to_contain_text("3 sessions looked at")
     expect(note).to_contain_text("2 were timed with older code")
     expect(note).to_contain_text("1 have no readings kept")
-    expect(page.locator("#tk-retime-list li")).to_have_count(1)
-    # Each result links to the session, so the admin can open it and see whose it is.
-    expect(page.locator("#tk-retime-list li a")).to_have_attribute("href", "track.html?s=aaaaaaaa01")
-    # And it says whose session it is.
-    expect(page.locator("#tk-retime-list li a")).to_contain_text("Chris R: Thruxton, 2026-07-01")
+    # What would change is listed under the member and the course, each with a switch, and links to the session.
+    expect(page.locator("#tk-retime-picks .rt-member")).to_contain_text("Chris R")
+    expect(page.locator("#tk-retime-picks .rt-course")).to_contain_text("Thruxton")
+    expect(page.locator("#tk-retime-picks .rt-row a")).to_have_attribute("href", "track.html?s=aaaaaaaa01")
+    expect(page.locator("#tk-retime-picks .rt-row a")).to_contain_text("2026-07-01")
     assert saved == []
 
 
-def test_admin_retime_saves_the_new_timing_then_rebuilds_the_boards(page):
+def test_admin_check_sessions_lets_you_switch_sessions_off_and_re_times_only_the_rest(page):
+    saved = []
+    open_admin(page, "track-admin.html")
+    extra = [{"id": "aaaaaaaa04", "type": "track", "venue": "Thruxton", "date": "2026-07-04", "best": 99.9, "version": 1, "hasSource": True, "owner": "Dana K"}]
+    _retime_mocks(page, saved, extra_rows=extra)
+    page.on("dialog", lambda d: d.accept())
+    page.locator("#boards-wrap > summary").click()
+    page.locator("#tk-retime-check").click()
+    expect(page.locator("#tk-retime-picks .rt-member")).to_have_count(2)
+    # Anything else that would change besides the time is spelt out, such as the course.
+    expect(page.locator("#tk-retime-picks .rt-row").first).to_contain_text("Course:")
+    go = page.locator("#tk-retime-selected")
+    expect(go).to_have_text("Re-time selected (2)")
+    # Switching a member off leaves them out.
+    page.locator('#tk-retime-picks [data-pick-group="member"][data-who="Dana K"]').click()
+    expect(go).to_have_text("Re-time selected (1)")
+    go.click()
+    expect(page.locator("#tk-retime-note")).to_contain_text("Leaderboards rebuilt (4 cars)")
+    assert [x["id"] for x in saved] == ["aaaaaaaa01"], saved
+
+
+def test_admin_retime_shows_the_outcome_first_and_saves_only_when_selected_is_pressed(page):
     saved = []
     open_admin(page, "track-admin.html")
     _retime_mocks(page, saved)
     page.on("dialog", lambda d: d.accept())
     page.locator("#boards-wrap > summary").click()
+    # The Re-time button only works things out: nothing is saved, and the outcome is spelt out.
     page.locator("#tk-retime").click()
+    expect(page.locator("#tk-retime-outcome")).to_contain_text("If you press Re-time selected")
+    expect(page.locator("#tk-retime-outcome")).to_contain_text("will move to another course or track")
+    expect(page.locator("#tk-retime-outcome")).to_contain_text("every leaderboard is rebuilt")
+    assert saved == []
+    page.locator("#tk-retime-selected").click()
     expect(page.locator("#tk-retime-note")).to_contain_text("Leaderboards rebuilt (4 cars)")
     assert len(saved) == 1 and saved[0]["id"] == "aaaaaaaa01"
     s = saved[0]["session"]
@@ -267,11 +296,10 @@ def test_admin_retime_holds_back_a_best_time_that_moves_over_ten_percent(page):
     page.on("dialog", lambda d: d.accept())
     page.locator("#boards-wrap > summary").click()
     page.locator("#tk-retime-check").click()
-    expect(page.locator("#tk-retime-list li")).to_contain_text("held back unless you allow big changes")
+    expect(page.locator("#tk-retime-picks .rt-row")).to_contain_text("off unless you allow big changes")
+    expect(page.locator("#tk-retime-picks .rt-row [data-pick]")).to_have_attribute("aria-checked", "false")
     expect(page.locator("#tk-retime-note")).to_contain_text("1 held back for moving over 10%")
-    page.locator("#tk-retime").click()
-    expect(page.locator("#tk-retime-note")).to_contain_text("Leaderboards rebuilt")
-    expect(page.locator("#tk-retime-list li")).to_contain_text("not saved")
+    expect(page.locator("#tk-retime-outcome")).to_contain_text("Nothing is switched on")
     assert saved == []
 
 
@@ -284,6 +312,7 @@ def test_admin_retime_saves_a_big_change_when_the_switch_is_on(page):
     page.locator("#tk-retime-big").click()
     expect(page.locator("#tk-retime-big")).to_have_attribute("aria-checked", "true")
     page.locator("#tk-retime").click()
+    page.locator("#tk-retime-selected").click()
     expect(page.locator("#tk-retime-note")).to_contain_text("Leaderboards rebuilt")
     assert len(saved) == 1 and saved[0]["id"] == "aaaaaaaa01"
 
@@ -737,7 +766,15 @@ def test_admin_welcome_text_is_edited_and_reset(page):
     page.locator("#tc-bullets").fill("One\n\nTwo  \nThree")
     page.locator("#tc-save").click()
     expect(page.locator("#tc-note")).to_contain_text("Saved")
-    assert posted[-1] == {"heading": "Lap times for every MT3UK car", "intro": "Bring your RaceBox file and see every lap.", "bullets": ["One", "Two", "Three"], "tipHeading": "", "tipText": "", "tipOff": False}
+    assert posted[-1] == {"heading": "Lap times for every MT3UK car", "intro": "Bring your RaceBox file and see every lap.", "bullets": ["One", "Two", "Three"], "tipHeading": "", "tipText": "", "tipOff": False,
+                          "previewOut": "", "previewNone": "", "previewPending": ""}
+    # The early preview note: three boxes, the built-in words as placeholders.
+    expect(page.locator("#tc-preview-out")).to_have_attribute("placeholder", re.compile(r"^Anyone can browse the leaderboards"))
+    expect(page.locator("#tc-preview-pending")).to_have_attribute("placeholder", re.compile(r"as soon as your place is ready"))
+    page.locator("#tc-preview-out").fill("Testers only for now. Join the list.")
+    page.locator("#tc-save").click()
+    expect(page.locator("#tc-note")).to_contain_text("Saved")
+    assert posted[-1]["previewOut"] == "Testers only for now. Join the list."
     # The tip on Sessions and the Leaderboard: its own words, and a switch to hide it.
     expect(page.locator("#tc-tip-heading")).to_have_attribute("placeholder", re.compile(r"^Tip: the more you upload"))
     page.locator("#tc-tip-heading").fill("Keep uploading")
@@ -751,6 +788,76 @@ def test_admin_welcome_text_is_edited_and_reset(page):
     expect(page.locator("#tc-note")).to_contain_text("built-in")
     assert posted[-1] == {"reset": True}
     expect(page.locator("#tc-heading")).to_have_value("")
+
+
+def test_admin_announcement_for_sessions(page):
+    cors = {"Access-Control-Allow-Origin": "*"}
+    stored, posted = {}, []
+
+    def news_admin(route):
+        if route.request.method == "POST":
+            body = json.loads(route.request.post_data)
+            posted.append(body)
+            stored.clear()
+            if not body.get("clear"):
+                stored.update({"id": "9", "text": body["text"], "link": "", "linkText": "", "on": body["on"]})
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "news": dict(stored)}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/laps/news/admin**", news_admin)
+    page.locator("#news-wrap summary").click()
+    expect(page.locator("#an-note")).to_contain_text("No announcement")
+    page.locator("#an-text").fill("New: Compare pads")
+    page.locator("#an-link").fill("javascript:alert(1)")
+    page.locator("#an-on").click()
+    page.locator("#an-save").click()
+    assert posted[-1] == {"text": "New: Compare pads", "link": "javascript:alert(1)", "linkText": "", "on": True}
+    # The worker dropped the link, and the panel says so.
+    expect(page.locator("#an-note")).to_contain_text("the link was left off")
+    expect(page.locator("#an-on")).to_have_attribute("aria-checked", "true")
+    page.on("dialog", lambda d: d.accept())
+    page.locator("#an-clear").click()
+    expect(page.locator("#an-note")).to_contain_text("Removed")
+    assert posted[-1] == {"clear": True}
+
+
+def test_admin_laps_panels_edit_the_front_page_sections_and_where_they_show(page):
+    cors = {"Access-Control-Allow-Origin": "*"}
+    stored, posted = {"fastest": {"show": {"sessions": True}}}, []
+
+    def panels_admin(route):
+        if route.request.method == "POST":
+            body = json.loads(route.request.post_data)
+            posted.append(body)
+            stored.clear()
+            if not body.get("reset"):
+                stored.update(body["panels"])
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "panels": dict(stored)}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/laps/panels/admin**", panels_admin)
+    page.locator("#panels-wrap summary").click()
+    panels = page.locator("#lpn-list .lpn-panel")
+    expect(panels).to_have_count(5)
+    expect(panels.first.locator("legend")).to_have_text("Fastest right now")
+    fast = panels.first
+    expect(fast.locator("[data-place='sessions']")).to_have_attribute("aria-checked", "true")
+    expect(fast.locator("[data-place='front']")).to_have_attribute("aria-checked", "true")
+    what = page.locator("#lpn-list .lpn-panel[data-id='what']")
+    expect(what.locator("[data-f='heading']")).to_have_attribute("placeholder", "What Laps does")
+    expect(what.locator("[data-card]")).to_have_count(8)
+    what.locator("[data-f='heading']").fill("What Laps does for you")
+    what.locator("[data-place='leaderboard']").click()
+    page.locator("#lpn-list .lpn-panel[data-id='timers'] [data-f='items']").fill("RaceBox\n\nVBOX")
+    page.locator("#lpn-save").click()
+    expect(page.locator("#lpn-note")).to_contain_text("Saved")
+    sent = posted[-1]["panels"]
+    assert sent["what"]["heading"] == "What Laps does for you" and sent["what"]["show"] == {"front": True, "sessions": False, "leaderboard": True}
+    assert sent["timers"]["items"] == ["RaceBox", "VBOX"] and sent["fastest"]["show"]["sessions"] is True
+    page.on("dialog", lambda d: d.accept())
+    page.locator("#lpn-reset").click()
+    expect(page.locator("#lpn-note")).to_contain_text("own words")
+    assert posted[-1] == {"reset": True}
 
 
 def test_admin_sharing_panel_loads_once_the_admin_key_is_entered(page):
@@ -1164,16 +1271,19 @@ def test_admin_checks_then_re_times_every_session_at_one_track_from_its_saved_re
     row.get_by_role("button", name="Check sessions here").click()
     expect(page.locator("#tk-retime-note")).to_contain_text("2 sessions at Thruxton")
     expect(page.locator("#tk-retime-note")).to_contain_text("1 have no readings kept")
-    expect(page.locator("#tk-retime-list")).to_contain_text("Thruxton, 2026-05-28 (track): 1:42.00 to 1:39.79")
+    expect(page.locator("#tk-retime-picks")).to_contain_text("2026-05-28 (track): 1:42.00 to 1:39.79")
     assert seen["posts"] == [] and seen["gets"] == ["r1"], seen
-    # A no leaves everything as it was.
-    page.once("dialog", lambda d: d.dismiss())
+    # Re-time here only shows what each session would become: nothing is saved until Re-time selected, after a yes.
     row.get_by_role("button", name="Re-time sessions here").click()
+    expect(page.locator("#tk-retime-outcome")).to_contain_text("If you press Re-time selected")
+    assert seen["posts"] == []
+    page.once("dialog", lambda d: d.dismiss())
+    page.locator("#tk-retime-selected").click()
     page.wait_for_timeout(300)
     assert seen["posts"] == []
     # A yes saves the one that can be re-timed, then rebuilds the leaderboards.
     page.once("dialog", lambda d: d.accept())
-    row.get_by_role("button", name="Re-time sessions here").click()
+    page.locator("#tk-retime-selected").click()
     expect(page.locator("#tk-retime-note")).to_contain_text("Leaderboards rebuilt (2 cars)")
     assert [p["id"] for p in seen["posts"]] == ["r1"] and abs(seen["posts"][0]["session"]["bestTime"] - 99.786) < 0.02
     assert seen["posts"][0]["session"]["date"] == "2026-05-28" and "r3" not in seen["gets"] and seen["rebuilds"] == 1

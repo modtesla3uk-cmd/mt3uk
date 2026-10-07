@@ -40,32 +40,5 @@
     img.src = pick.url;
   });
 
-  // The session picture: a tap opens it big over the page, the next tap (or Escape) shuts it.
-  // Full screen where the browser allows it (and sideways on a phone, so the wide picture fills the screen); the
-  // overlay on its own otherwise.
-  function shutLight() {
-    var open = document.querySelector('.lh-light');
-    if (!open) return;
-    open.remove();
-    try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) {}
-    if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(function () {});
-  }
-  document.addEventListener('click', function (e) {
-    if (document.querySelector('.lh-light')) { shutLight(); return; }
-    var img = e.target.closest && e.target.closest('.lh-shot img');
-    if (!img) return;
-    var box = document.createElement('div');
-    box.className = 'lh-light'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-label', 'The session picture, full screen. Tap to close');
-    var big = document.createElement('img'); big.src = img.src; big.alt = img.alt;
-    box.appendChild(big); document.body.appendChild(box);
-    var req = box.requestFullscreen || box.webkitRequestFullscreen;
-    if (req) {
-      var p = req.call(box);
-      if (p && p.then) p.then(function () { try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(function () {}); } catch (e) {} }).catch(function () {});
-    }
-  });
-  document.addEventListener('fullscreenchange', function () { if (!document.fullscreenElement) { var open = document.querySelector('.lh-light'); if (open) open.remove(); } });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') shutLight(); });
-
   // Fastest right now and the admin's words for each section: js/laps-panels.js.
 })();

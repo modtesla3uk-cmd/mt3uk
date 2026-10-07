@@ -18,7 +18,7 @@
   function get(url) { return fetch(url, { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }
   function signedIn() { try { return !!localStorage.getItem('mt3ukMyBuildsSession'); } catch (e) { return false; } }
   var PLACES = { front: true, sessions: false, leaderboard: false };
-  function shownOn(p, place) { return p && p.show && typeof p.show[place] === 'boolean' ? p.show[place] : PLACES[place]; }
+  function shownOn(p, place, sec) { return p && p.show && typeof p.show[place] === 'boolean' ? p.show[place] : (place === 'front' && sec && sec.hasAttribute('data-front-off') ? false : PLACES[place]); }
 
   var panelsP = null;
   function panels() { if (!panelsP) panelsP = get(API + '/laps/panels').then(function (d) { return (d && d.panels) || {}; }); return panelsP; }
@@ -129,7 +129,7 @@
       secs.forEach(function (sec) {
         var p = ps[sec.getAttribute('data-panel')];
         apply(sec, p);
-        if (!shownOn(p, 'front')) sec.hidden = true;
+        if (!shownOn(p, 'front', sec)) sec.hidden = true;
       });
     });
   }

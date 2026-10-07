@@ -374,20 +374,8 @@
   .lh-shot { border-radius: var(--radius); overflow: hidden; box-shadow: 0 18px 40px rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.12); }
   .lh-shot img { width: 100%; height: auto; }
   /* Any EV, any make: in the hero, so it is seen on the first screen (the EVs band lower down says more). */
-  .lh-evs { display: grid; gap: 8px; margin: 4px 0 12px; }
-  .lh-hero .lh-evs p { font-size: 0.95rem; margin: 0; }
-  /* The session picture opens big on a tap (and shuts on the next, or Escape). */
-  .lh-shot img { cursor: zoom-in; }
-  .lh-light { position: fixed; inset: 0; z-index: 3000; display: flex; align-items: center; justify-content: center; padding: 12px; background: rgba(10, 14, 24, 0.92); cursor: zoom-out; }
-  .lh-light img { max-width: 100%; max-height: 100%; width: auto; height: auto; border-radius: var(--radius); box-shadow: 0 10px 40px rgba(0,0,0,.5); }
-  .lh-light:fullscreen { padding: 0; background: #0a0e18; }
-  .lh-light:fullscreen img { border-radius: 0; box-shadow: none; }
+  .lh-hero .lh-evs { font-size: 0.95rem; margin: 4px 0 12px; max-width: 34em; }
   .lh-evs b { color: #fff; }
-  /* The makes are plain words, not buttons: nothing here is clickable. */
-  .lh-makes { display: flex; flex-wrap: wrap; gap: 4px 0; color: #fff; font-size: 0.92rem; font-weight: 600; }
-  .lh-makes span { display: inline-flex; align-items: center; }
-  .lh-makes span + span::before { content: "\00b7"; margin: 0 8px; color: #8d97ad; font-weight: 400; }
-  .lh-makes span:last-child { color: #c9d1e3; font-weight: 500; }
   /* On a phone the track picture moves down, under Fastest right now, so the hero is the words and buttons. */
   .lh-shot-low { display: none; }
   @media (max-width: 780px) { .lh-hero { padding: 26px 0 28px; } .lh-hero .lh-shot { display: none; } .lh-shot-low { display: block; padding-top: 28px; } }
@@ -444,7 +432,7 @@
         <a class="btn btn-accent" id="lh-start" href="signin.html?next=/track.html">Sign in to start</a>
         <a class="btn btn-secondary" href="leaderboards.html">See the leaderboards</a>
       </div>
-      <div class="lh-evs"><p><b>Any EV, any make.</b> Pick its make and model, no photo needed.</p><div class="lh-makes"><span>Tesla</span><span>Hyundai</span><span>Kia</span><span>Porsche</span><span>Polestar</span><span>BMW</span><span>and more</span></div></div>
+      <p class="lh-evs"><b>Any EV, any make.</b> Tesla, Hyundai, Kia, Porsche, Polestar, BMW and more. Pick its make and model, no photo needed.</p>
       <p class="lh-note" id="lh-note">Laps is in early preview. Sign in and ask for access to try it. Sessions are private until you choose to share them.</p>
     </div>
     <div class="lh-shot"><img id="lh-shot-img" src="images/track-preview/share.jpg" alt="A session on Laps: the lap drawn on the track map, the lap times and a g-force chart" width="1200" height="630"></div>
@@ -470,7 +458,21 @@
       <div class="lh-timers"><span>RaceBox</span><span>VBOX</span><span>AiM</span><span>Harry&rsquo;s LapTimer</span><span>TrackAddict</span><span>Tesla Track Mode</span></div>
     </div>
   </section>
-  <section class="lh-sec" id="fastest" data-panel="fastest">
+  <section class="lh-sec" id="trackmode" data-panel="trackmode">
+    <div class="wrap">
+      <h2>Tesla Track Mode, analysed</h2>
+      <p class="lh-lead">Save the telemetry from Track Mode to a USB drive and add the file. Laps reads the laps and the car&rsquo;s own data together, so you see what the car was doing, not only where it was.</p>
+      <div class="lh-grid lh-3">
+        <div class="lh-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="8" width="16" height="9" rx="2"/><path d="M21 11v3M8 11l-1 3h3l-1 3"/></svg><h3>Charge used</h3><p>Points of charge used over the session and each lap.</p></div>
+        <div class="lh-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3 5 14h6l-1 7 8-11h-6z"/></svg><h3>Power</h3><p>Power out and regen, lined up with where you were on the track.</p></div>
+        <div class="lh-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg><h3>Brake pressure</h3><p>How hard and how long you braked, corner by corner.</p></div>
+        <div class="lh-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14V5a2 2 0 0 1 4 0v9a4 4 0 1 1-4 0z"/></svg><h3>Temperatures</h3><p>Motor, battery, brakes and more, so you see when the car runs hot.</p></div>
+        <div class="lh-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4v3M12 17v3M4 12h3M17 12h3"/></svg><h3>Tyre pressures</h3><p>Each tyre's pressure through the session, front and rear.</p></div>
+        <div class="lh-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17c4-1 4-6 8-6s4 5 8 6"/><path d="M4 21h16"/></svg><h3>Slip</h3><p>Where the car slid, from the car's own wheel data.</p></div>
+      </div>
+    </div>
+  </section>
+  <section class="lh-sec" id="fastest" data-panel="fastest" data-front-off>
     <div class="wrap">
       <h2>Fastest right now</h2>
       <p class="lh-lead">The quickest shared time at the busiest tracks, strips and hill climbs.</p>
@@ -634,8 +636,8 @@
   }
 </script>
 
-<script src="js/laps-panels.js?v=3" defer></script>
-<script src="js/laps-home.js?v=20270104" defer></script>
+<script src="js/laps-panels.js?v=4" defer></script>
+<script src="js/laps-home.js?v=20270105" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/laps-logo.js?v=1" defer></script>
 <script src="js/account-bar.js?v=15" defer></script>

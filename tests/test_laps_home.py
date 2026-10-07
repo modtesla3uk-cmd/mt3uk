@@ -113,30 +113,33 @@ def test_a_slow_sessions_page_shows_a_spinner_then_a_note_and_refresh(page):
     expect(page.locator("#tp-loading [data-refresh]")).to_be_visible(timeout=3000)
 
 
-def test_what_laps_does_comes_first_then_the_lap_timers_then_fastest_right_now_and_no_evs_band(page):
+def test_what_laps_does_comes_first_then_the_lap_timers_then_track_mode_and_no_evs_band(page):
     """Under the hero (which ends with Sessions are private until you choose to share them) comes What Laps does, then
-    Works with your lap timer, then Fastest right now; the EVs band at the foot is gone, the hero already says Any EV,
+    Works with your lap timer, then Tesla Track Mode (Fastest right now stays in the file but is off the front page);
+    the EVs band at the foot is gone, the hero already says Any EV,
     any make."""
     open_home(page)
     ids = page.evaluate("[...document.querySelectorAll('main > section')].map(s => s.id)")
-    assert ids[:3] == ["what", "timers", "fastest"] and "any-make" not in ids, ids
+    assert ids[:4] == ["what", "timers", "trackmode", "fastest"] and "any-make" not in ids, ids
     expect(page.locator(".lh-hero .lh-evs")).to_contain_text("Any EV, any make")
-    page.locator("#lh-fast a").first.wait_for()
+    page.locator("#lh-fast a").first.wait_for(state="attached")
     expect(page.locator("main .mt3uk-share-dot")).to_have_count(0)
 
 
-def test_the_session_picture_opens_big_on_a_tap_and_shuts_on_the_next(page):
+def test_the_session_picture_does_not_open_full_screen_on_a_tap(page):
     open_home(page)
     page.locator("#lh-shot-img").click()
-    light = page.locator(".lh-light")
-    expect(light).to_be_visible()
-    expect(light.locator("img")).to_have_attribute("src", re.compile(r"share\.jpg"))
-    light.click()
     expect(page.locator(".lh-light")).to_have_count(0)
-    page.locator("#lh-shot-img").click()
-    expect(page.locator(".lh-light")).to_be_visible()
-    page.keyboard.press("Escape")
-    expect(page.locator(".lh-light")).to_have_count(0)
+
+
+def test_track_mode_has_its_own_section_and_fastest_right_now_is_off_the_front_page(page):
+    open_home(page)
+    expect(page.locator("#trackmode")).to_be_visible()
+    expect(page.locator("#trackmode h2")).to_contain_text("Tesla Track Mode")
+    expect(page.locator("#trackmode .lh-card")).to_have_count(6)
+    expect(page.locator("#fastest")).to_be_hidden()
+    expect(page.locator(".lh-hero .lh-evs")).to_contain_text("Tesla, Hyundai, Kia, Porsche, Polestar, BMW and more")
+    expect(page.locator(".lh-makes")).to_have_count(0)
 
 
 def test_the_admins_words_and_places_are_used_on_the_front_page(page):

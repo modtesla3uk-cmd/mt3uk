@@ -33,6 +33,7 @@
       return [].slice.call(doc.querySelectorAll('main [data-panel]')).map(function (sec) {
         return {
           id: sec.getAttribute('data-panel'),
+          frontOff: sec.hasAttribute('data-front-off'),
           heading: text(sec.querySelector('h2')),
           lead: text(sec.querySelector('.lh-lead') || sec.querySelector('.wrap > p:not(.lh-more)')),
           cards: [].slice.call(sec.querySelectorAll('.lh-card')).map(function (c) { return { title: text(c.querySelector('h3')), text: text(c.querySelector('p')) }; }),
@@ -47,7 +48,7 @@
       var p = ps[d.id] || {}, show = p.show || {};
       return '<fieldset class="lpn-panel" data-id="' + esc(d.id) + '"><legend>' + esc(d.heading) + '</legend>' +
         '<div class="iv-toolbar lpn-places">' + PLACES.map(function (pl) {
-          var on = typeof show[pl[0]] === 'boolean' ? show[pl[0]] : pl[2];
+          var on = typeof show[pl[0]] === 'boolean' ? show[pl[0]] : (pl[0] === 'front' && d.frontOff ? false : pl[2]);
           return '<button type="button" class="tk-switch" role="switch" data-place="' + pl[0] + '" aria-checked="' + on + '"><span class="tk-track"></span>' + pl[1] + '</button>';
         }).join('') + '</div>' +
         '<label>Heading<input type="text" data-f="heading" maxlength="80" value="' + esc(p.heading || '') + '" placeholder="' + esc(d.heading) + '"></label>' +

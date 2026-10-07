@@ -13,11 +13,11 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Track Admin">
 <meta name="application-name" content="Track Admin">
-<script src="js/admin-key-keep.js"></script>
+<script src="js/admin-key-keep.js?v=2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="css/admin-page.css?v=20270128">
+<link rel="stylesheet" href="css/admin-page.css?v=20270131">
 <link rel="stylesheet" href="css/admin.css">
 <link rel="stylesheet" href="css/track-map.css">
 </head>
@@ -222,6 +222,13 @@
         <div class="iv-toolbar"><button type="button" class="secondary" id="an-save">Save</button><button type="button" class="secondary" id="an-clear">Remove</button></div>
       </div>
     </details>
+    <details class="collapsible" id="logo-wrap">
+      <summary><h3 class="panel-title">Laps logo</h3></summary>
+      <p class="iv-note">Pick the mark for Laps by MT3UK. It changes the header and footer on every Laps page, the browser tab icon, the home screen icon on an iPhone and the sharing picture drawn from a session. The installed app icon on an Android phone is built into the app and follows after a rebuild.</p>
+      <p class="iv-note" id="ll-note" role="status"></p>
+      <div class="ll-grid" id="ll-grid"></div>
+      <div class="iv-toolbar"><button type="button" class="secondary" id="ll-save" disabled>Use this logo</button></div>
+    </details>
     <details class="collapsible" id="panels-wrap">
       <summary><h3 class="panel-title">Laps panels</h3></summary>
       <p class="iv-note">The sections of the Laps front page (laps.html): Fastest right now, What Laps does, Every kind of day, Works with your lap timer and EVs, any make. Change any heading, intro line, card or chip, and choose where each one shows: the front page, and for signed-in members under the list on Sessions and under the track list on the Leaderboard. Anything left blank keeps the front page's own words.</p>
@@ -262,7 +269,7 @@
     </details>
     <details class="collapsible" id="share-wrap" data-share-slot="track">
       <summary><h3 class="panel-title">Track sessions sharing</h3></summary>
-      <p class="iv-note">The picture a shared Track sessions link shows in WhatsApp, Facebook and the rest. Draw one from a saved session (its map, times and g chart) or upload a photo, give it a caption, and either rotate through them a week at a time or pick one. Previews update within a few minutes of a change; a link already sent in a chat keeps its old picture.</p>
+      <p class="iv-note">The picture a shared Track sessions link shows in WhatsApp, Facebook and the rest. Draw one from a saved session (its map, the car and its kit, the times and the g chart; tap the preview to see it full screen) or upload a photo, give it a caption, and either rotate through them a week at a time or pick one. Previews update within a few minutes of a change; a link already sent in a chat keeps its old picture.</p>
       <p class="iv-note ts-note" role="status"></p>
       <div class="iv-toolbar"><button type="button" class="tk-switch ts-rotate" role="switch" aria-checked="false"><span class="tk-track"></span><span>A different picture each week</span></button></div>
       <div class="ts-list"></div>
@@ -280,12 +287,12 @@
   </section>
 
 </main>
-<script src="js/track-admin-page.js?v=20270107"></script>
+<script src="js/track-admin-page.js?v=20270108"></script>
 <script src="js/admin-subnav.js?v=20261160" defer></script>
-<script src="js/admin-help.js?v=20270212" defer></script>
-<script src="js/admin-alerts.js?v=20261250" defer></script>
-<script src="js/track-parse.js?v=20270128" defer></script>
-<script src="js/track-view.js?v=20270110" defer></script>
+<script src="js/admin-help.js?v=20270213" defer></script>
+<script src="js/admin-alerts.js?v=20261251" defer></script>
+<script src="js/track-parse.js?v=20270129" defer></script>
+<script src="js/track-view.js?v=20270115" defer></script>
 <script src="js/track-access-admin.js?v=20270105" defer></script>
 <script src="js/track-usage-admin.js?v=20270101" defer></script>
 <script src="js/laps-signin-admin.js?v=20270104" defer></script>
@@ -294,11 +301,13 @@
 <script src="js/track-member-admin.js?v=20261162" defer></script>
 <script src="js/track-new-sessions-admin.js?v=20261250" defer></script>
 <script src="js/track-admin.js?v=20270128" defer></script>
-<script src="js/track-share-card.js?v=20261181"></script>
-<script src="js/track-share-admin.js?v=20261105" defer></script>
+<script src="js/laps-logo.js?v=1"></script>
+<script src="js/track-share-card.js?v=20261185"></script>
+<script src="js/track-share-admin.js?v=20261106" defer></script>
 <script src="js/track-copy-admin.js?v=20270219" defer></script>
-<script src="js/laps-panels-admin.js?v=1" defer></script>
+<script src="js/laps-panels-admin.js?v=2" defer></script>
 <script src="js/laps-news-admin.js?v=1" defer></script>
+<script src="js/laps-logo-admin.js?v=1" defer></script>
 <script src="js/track-drive-admin.js?v=20261231" defer></script>
 <script src="js/tyre-data.js?v=20270210" defer></script>
 <script src="js/tyre-admin.js?v=20270210" defer></script>

@@ -1681,6 +1681,48 @@ async function handleAdminBroadcastEmail(request, env) {
   return json({ success: true, sent: sent, skipped: skipped, already: already, emailedTotal: emailed.length, cursor: page.list_complete ? null : page.cursor });
 }
 
+// Passkey reminders: "Set up a passkey" to every member who has none, a
+// batch per call (the admin page calls again with `cursor` until done),
+// each member once (one KV key, PASSKEY_NUDGED_KEY, get()). It goes on
+// their bell (link to the Set up a passkey card in Profile) and as a push
+// to their devices; with `email: true` an email too (members with emails
+// off are skipped). `dry: true` only counts. Admin only and rarely used, so
+// list() is fine here.
+var PASSKEY_NUDGED_KEY = 'passkey-nudged';
+var PASSKEY_NUDGE_LINK = 'profile.html#passkey-setup';
+var PASSKEY_NUDGE_TEXT = 'Set up a passkey and sign in with your face, fingerprint or screen lock, with no email code to wait for.';
+async function handleAdminPasskeyNudge(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorized' }, 401);
+  var body;
+  try { body = await request.json(); } catch (e) { body = {}; }
+  body = body || {};
+  var dry = !!body.dry;
+  var page = await env.VOTES.list({ prefix: 'subscriber:', cursor: body.cursor || undefined, limit: BROADCAST_EMAIL_BATCH });
+  var nudged = await getJsonKey(env, PASSKEY_NUDGED_KEY, []);
+  if (!Array.isArray(nudged)) nudged = [];
+  var sent = 0, already = 0, havePasskey = 0, emailed = 0, changed = false;
+  for (var i = 0; i < page.keys.length; i++) {
+    var to = page.keys[i].name.slice('subscriber:'.length);
+    if ((await getPasskeys(env, to)).length) { havePasskey++; continue; }
+    if (nudged.indexOf(to) !== -1) { already++; continue; }
+    if (dry) { sent++; continue; }
+    await addNotification(env, to, { type: 'passkey', link: PASSKEY_NUDGE_LINK, fromName: 'MT3UK', text: PASSKEY_NUDGE_TEXT, createdAt: new Date().toISOString() });
+    await sendPushToMember(env, to, { title: 'Set up a passkey', body: 'Sign in to MT3UK with your face, fingerprint or screen lock. Set it up in your Profile.', url: '/' + PASSKEY_NUDGE_LINK });
+    if (body.email) {
+      var ok = await sendMemberEmail(env, to, 'Set up a passkey for MT3UK',
+        'You can now sign in to MT3UK and Laps with a passkey: your face, fingerprint or the screen lock on your phone or computer, with no email code to wait for.\n\n' +
+        'Set one up in your Profile (Set up a passkey, beside your name):\n\n' + PROFILE_URL + '#passkey-setup\n\n' +
+        'Only a public key is stored, never your face or fingerprint. Add one on each phone or computer you use.');
+      if (ok) emailed++;
+    }
+    nudged.push(to);
+    changed = true;
+    sent++;
+  }
+  if (changed) await env.VOTES.put(PASSKEY_NUDGED_KEY, JSON.stringify(nudged));
+  return json({ success: true, dry: dry, sent: sent, already: already, havePasskey: havePasskey, emailed: emailed, nudgedTotal: nudged.length, cursor: page.list_complete ? null : page.cursor });
+}
+
 // The photo in a reported message, for the admin page.
 async function handleAdminDmPhoto(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorized' }, 401);
@@ -5237,15 +5279,20 @@ async function resolveSession(request, env) {
 // signed in on one would land signed out on the other. js/account-bar.js asks for a one-time code when a signed-in
 // member follows a link to the other address (POST /session/handover), puts it in the link's #, and the page there
 // swaps it for a sign-in of its own (POST /session/handover/redeem). A code is random, works once and lasts 2 minutes.
+// The admin viewer token (X-Admin-Viewer, kept per address too) is carried the same way, with or without a sign-in,
+// so the admin can open a private session on any address (mt3uk.com, laps.mt3uk.com, admin.mt3uk.com) once the key
+// has been entered on one; the code gives the same token back after checking it is still good.
 var HANDOVER_TTL_SECONDS = 120;
 async function handleSessionHandover(request, env) {
   var email = await resolveSession(request, env);
-  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var viewer = String(request.headers.get('X-Admin-Viewer') || '');
+  var adminViewer = viewer && (await isAdminViewerToken(env, viewer)) ? viewer : '';
+  if (!email && !adminViewer) return json({ success: false, message: 'Please sign in again' }, 401);
   var body = {};
   try { body = await request.json(); } catch (e) { body = {}; }
   var code = randomToken();
   var firstName = String((body && body.firstName) || '').replace(/[\u0000-\u001f]/g, '').trim().slice(0, 60);
-  await env.VOTES.put('session-handover:' + code, JSON.stringify({ email: email, firstName: firstName }), { expirationTtl: HANDOVER_TTL_SECONDS });
+  await env.VOTES.put('session-handover:' + code, JSON.stringify({ email: email || '', firstName: firstName, adminViewer: adminViewer }), { expirationTtl: HANDOVER_TTL_SECONDS });
   return json({ success: true, code: code });
 }
 async function handleSessionHandoverRedeem(request, env) {
@@ -5259,8 +5306,16 @@ async function handleSessionHandoverRedeem(request, env) {
   await env.VOTES.delete(key);
   var held = {};
   try { held = JSON.parse(raw) || {}; } catch (e) { held = {}; }
-  if (!held.email) return json({ success: false, message: 'That link has run out. Please sign in.' }, 404);
-  return json({ success: true, session: await createSession(env, held.email), email: held.email, firstName: held.firstName || '' });
+  if (!held.email && !held.adminViewer) return json({ success: false, message: 'That link has run out. Please sign in.' }, 404);
+  var out = { success: true };
+  if (held.email) { out.session = await createSession(env, held.email); out.email = held.email; out.firstName = held.firstName || ''; }
+  if (held.adminViewer && (await isAdminViewerToken(env, held.adminViewer))) {
+    var av = {};
+    try { av = JSON.parse(await env.VOTES.get('admin-viewer:' + held.adminViewer)) || {}; } catch (e) { av = {}; }
+    out.adminViewer = { token: held.adminViewer, expires: av.expires || 0 };
+  }
+  if (!out.session && !out.adminViewer) return json({ success: false, message: 'That link has run out. Please sign in.' }, 404);
+  return json(out);
 }
 
 // GET /session/refresh: a renewed sign-in (30 more days) once the current
@@ -7222,6 +7277,11 @@ function cleanTrackSession(s, library) {
     // A hill climb rather than a sprint (the member's pick, or the track list's): both are timed start to finish.
     if (s.hill) out.hill = true;
     // A faster pass crosses the lines the other way round: the page warns that they may be the wrong way round.
+    // Which signal started the clock on a standing start: the accelerometer (g) or the speed, and the lead in seconds.
+    if (s.launch && typeof s.launch === 'object' && (s.launch.from === 'g' || s.launch.from === 'speed')) {
+      var ld = trackNum(s.launch.lead, 0, 10);
+      out.launch = { from: s.launch.from, lead: ld == null ? 0 : ld };
+    }
     if (s.reverseRun && typeof s.reverseRun === 'object') {
       var rr = { peak: trackNum(s.reverseRun.peak, 0, 500), time: trackNum(s.reverseRun.time, 0, 100000), fwdPeak: trackNum(s.reverseRun.fwdPeak, 0, 500) };
       if (rr.peak && rr.time && rr.fwdPeak) out.reverseRun = rr;
@@ -7234,6 +7294,10 @@ function cleanTrackSession(s, library) {
   if (s.lapsFromTrace) out.lapsFromTrace = true;
   // The member picked this layout themselves: only they change it (the admin's re-time and repairs leave it).
   if (s.layoutPicked && out.layoutId) out.layoutPicked = true;
+  // MT3UK changed the layout at the member's request: when, who asked, and what it was before.
+  if (s.layoutByAdmin && typeof s.layoutByAdmin === 'object' && s.layoutByAdmin.at && out.layoutId) {
+    out.layoutByAdmin = { at: trackText(s.layoutByAdmin.at, 40), note: trackText(s.layoutByAdmin.note, 200), from: trackText(s.layoutByAdmin.from, 60) };
+  }
   // A course with official lines only takes sessions timed on them (within
   // 25 m): lines a member moved never reach its leaderboard.
   if (layout && layout.startLine) {
@@ -7260,6 +7324,7 @@ function trackSummary(rec) {
     vmax: rec.vmax || 0, quality: rec.quality
   };
   if (rec.organizer) o.organizer = rec.organizer;
+  if (rec.logger) o.logger = rec.logger;
   // Where it was, to about 100 m: sessions at a track we do not list yet are matched to each other by place.
   if (rec.origin && rec.origin.length === 2 && isFinite(rec.origin[0]) && isFinite(rec.origin[1])) o.origin = [Math.round(rec.origin[0] * 1000) / 1000, Math.round(rec.origin[1] * 1000) / 1000];
   // Battery at the start and end (Track Mode files), so a day's group can add up the charge used.
@@ -7804,6 +7869,10 @@ function applyTrackEdits(rec, body) {
   }
   if ('hill' in body && rec.type === 'sprint') { if (body.hill) rec.hill = true; else delete rec.hill; }
   if ('notes' in body) rec.notes = trackText(body.notes, 500);
+  // A second note, one sentence, everyone who can open the session sees at the top (the private notes stay the owner's).
+  if ('publicNote' in body) { var pn = trackText(body.publicNote, 140); if (pn) rec.publicNote = pn; else delete rec.publicNote; }
+  // The logger or app that recorded it (shown to everyone).
+  if ('logger' in body) { var lg = trackText(body.logger, 40); if (lg) rec.logger = lg; else delete rec.logger; }
   if ('venueName' in body && !rec.venueId) rec.venue = trackText(body.venueName, 60) || rec.venue;
 }
 
@@ -7923,7 +7992,7 @@ async function handleTrackSessionUpdate(request, env) {
     next.owner = rec.owner;
     next.carId = rec.carId;
     next.createdAt = rec.createdAt;
-    ['privacy', 'conditions', 'tyres', 'tyreMake', 'tyreModel', 'tyreWidth', 'tyreProfile', 'tyreRim', 'drive', 'temp', 'tempSource', 'weather', 'notes', 'hasSource', 'sourceBytes', 'readingsRefused', 'pads', 'padFrontMake', 'padFrontCompound', 'padRearMake', 'padRearCompound'].forEach(function (k) { if (rec[k] !== undefined) next[k] = rec[k]; });
+    ['privacy', 'conditions', 'tyres', 'tyreMake', 'tyreModel', 'tyreWidth', 'tyreProfile', 'tyreRim', 'drive', 'temp', 'tempSource', 'weather', 'notes', 'publicNote', 'logger', 'hasSource', 'sourceBytes', 'readingsRefused', 'pads', 'padFrontMake', 'padFrontCompound', 'padRearMake', 'padRearCompound'].forEach(function (k) { if (rec[k] !== undefined) next[k] = rec[k]; });
     rec = next;
     delete body.privacy;
   }
@@ -8754,13 +8823,38 @@ async function handleLapsNewsAdmin(request, env) {
   return json({ success: true, news: news });
 }
 
+// ---------- Laps logo ----------
+// Which mark the Laps header, footer, favicon and sharing card use: one of four, chosen on the Laps logo panel of
+// track-admin.html (js/laps-logo.js holds the marks). One KV key, read with get().
+var LAPS_LOGO_KEY = 'laps-logo', LAPS_LOGO_IDS = ['timer', 'loop', 'ramp', 'chevron'];
+function cleanLapsLogo(body) {
+  var id = String((body && (body.logo || body.id)) || '').trim();
+  return LAPS_LOGO_IDS.indexOf(id) !== -1 ? id : 'timer';
+}
+async function handleLapsLogoPublic(request, env) {
+  var d = await getJsonKey(env, LAPS_LOGO_KEY, {});
+  var res = json({ success: true, logo: cleanLapsLogo(d), choices: LAPS_LOGO_IDS });
+  res.headers.set('Cache-Control', 'public, max-age=60');
+  return res;
+}
+async function handleLapsLogoAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  if (request.method === 'GET') return json({ success: true, logo: cleanLapsLogo(await getJsonKey(env, LAPS_LOGO_KEY, {})), choices: LAPS_LOGO_IDS });
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var id = String((body && (body.logo || body.id)) || '').trim();
+  if (LAPS_LOGO_IDS.indexOf(id) === -1) return json({ success: false, message: 'Choose one of the four logos.' }, 400);
+  if (id === 'timer') await env.VOTES.delete(LAPS_LOGO_KEY); else await env.VOTES.put(LAPS_LOGO_KEY, JSON.stringify({ logo: id, at: Date.now() }));
+  return json({ success: true, logo: id, choices: LAPS_LOGO_IDS });
+}
+
 // ---------- Laps front page panels ----------
 // The sections of laps.html (Fastest right now, What Laps does, Every kind of day, Works with your lap timer, EVs any
 // make), editable on the Laps panels panel of track-admin.html: each one's heading, intro line, cards (title and text)
 // or chips, and where it shows (the front page, and for signed-in members Sessions and the Leaderboard). One KV key
 // (laps-panels), read with get(); a field left blank keeps the page's own words (laps.html is the built-in copy).
 var LAPS_PANELS_KEY = 'laps-panels';
-var LAPS_PANEL_IDS = ['fastest', 'what', 'days', 'timers', 'any-make'];
+var LAPS_PANEL_IDS = ['fastest', 'what', 'days', 'timers'];
 var LAPS_PANEL_PLACES = { front: true, sessions: false, leaderboard: false };
 function cleanLapsPanels(body) {
   var src = (body && body.panels) || {}, out = {};
@@ -9543,16 +9637,23 @@ async function handleTrackAdminRetime(request, env) {
   next.createdAt = old.createdAt;
   // Street runs and runs at an unlisted strip stay private and off every board.
   next.street = !!old.street;
-  // A layout the member picked is theirs to change: an admin re-time never moves the session to another one.
-  if (old.layoutPicked) {
-    if ((next.layoutId || '') !== (old.layoutId || '')) return json({ success: false, message: 'The member chose this layout (' + (old.layout || old.layoutId) + '), so only they can change it.' }, 409);
+  // A layout the member picked is theirs to change: an admin re-time never moves the session to another one. The one
+  // way through is the Layout (admin) box on the session page, which says who asked (memberAsked): the move is then
+  // recorded on the session, counts as the member's own pick from here on, and the member is emailed.
+  var asked = trackText(body.memberAsked, 200), movedLayout = (next.layoutId || '') !== (old.layoutId || '');
+  if (movedLayout && asked) {
     next.layoutPicked = true;
-  } else delete next.layoutPicked;
+    next.layoutByAdmin = { at: new Date().toISOString(), note: asked, from: old.layout || '' };
+  } else if (old.layoutPicked) {
+    if (movedLayout) return json({ success: false, message: 'The member chose this layout (' + (old.layout || old.layoutId) + '), so only they can change it. If they have asked you to, use the Layout (admin) box on the session page.' }, 409);
+    next.layoutPicked = true;
+    if (old.layoutByAdmin) next.layoutByAdmin = old.layoutByAdmin;
+  } else { delete next.layoutPicked; if (old.layoutByAdmin) next.layoutByAdmin = old.layoutByAdmin; }
   if (next.type === 'drag') {
     if (old.unlisted || (!next.atVenue && !old.street)) next.unlisted = true;
     if (!old.street) delete next.outline;
   }
-  ['privacy', 'conditions', 'tyres', 'tyreMake', 'tyreModel', 'tyreWidth', 'tyreProfile', 'tyreRim', 'drive', 'temp', 'tempSource', 'weather', 'notes', 'hasSource', 'sourceBytes', 'readingsRefused', 'fileName', 'pads', 'padFrontMake', 'padFrontCompound', 'padRearMake', 'padRearCompound'].forEach(function (k) { if (old[k] !== undefined) next[k] = old[k]; });
+  ['privacy', 'conditions', 'tyres', 'tyreMake', 'tyreModel', 'tyreWidth', 'tyreProfile', 'tyreRim', 'drive', 'temp', 'tempSource', 'weather', 'notes', 'publicNote', 'logger', 'hasSource', 'sourceBytes', 'readingsRefused', 'fileName', 'pads', 'padFrontMake', 'padFrontCompound', 'padRearMake', 'padRearCompound'].forEach(function (k) { if (old[k] !== undefined) next[k] = old[k]; });
   // The saved readings carry no car channels, so a re-time cannot work the Track Mode figures out again: keep the ones the upload made.
   if (old.carData && !next.carData) next.carData = old.carData;
   if (old.carSource && !next.carSource) next.carSource = old.carSource;
@@ -9562,7 +9663,19 @@ async function handleTrackAdminRetime(request, env) {
   if (!(await putTrackSession(env, next))) return json({ success: false, message: 'This session is too big to save.' }, 413);
   await putTrackIndexesFor(env, old.owner, next);
   if (oldBoard && oldBoard !== trackBoardKey(next)) await refreshTrackBoard(env, oldBoard, next.carId);
+  if (movedLayout && asked) await emailLayoutChanged(env, old, next, asked);
   return json({ success: true, session: trackSummary(next) });
+}
+
+// Tells the member that MT3UK moved their session to another layout, as they asked. Best effort.
+async function emailLayoutChanged(env, old, next, asked) {
+  try {
+    var car = await getCarRecord(env, next.carId), email = car ? await carOwnerEmail(env, car) : null;
+    if (!email) return;
+    var when = next.date ? ' on ' + next.date : '';
+    await sendMemberEmail(env, email, 'Your Laps session is now on ' + (next.layout || 'another layout'),
+      'Hi,\n\nAs you asked (' + asked + '), MT3UK has changed your session at ' + (next.venue || 'the track') + when + ' from ' + (old.layout || 'no layout') + ' to ' + (next.layout || next.layoutId) + '. Its laps were timed again on that layout\'s start line' + (next.bestTime ? ', and its best lap is now ' + trackTimeText(next.bestTime) : '') + '.\n\nThe layout is now yours: nothing MT3UK does will move it again. You can change it yourself in Session settings.\n\n' + LAPS_SITE_URL + '/track.html?s=' + next.id + '\n\nLaps by MT3UK');
+  } catch (e) { console.log('Layout email failed:', e.message); }
 }
 
 async function handleTrackAdminRetimeSource(request, env) {
@@ -11141,6 +11254,9 @@ export default {
     if (url.pathname === '/admin/broadcasts/email' && request.method === 'POST') {
       return handleAdminBroadcastEmail(request, env);
     }
+    if (url.pathname === '/admin/passkeys/nudge' && request.method === 'POST') {
+      return handleAdminPasskeyNudge(request, env);
+    }
     if (url.pathname === '/admin/dm-reports' && request.method === 'POST') {
       return handleAdminDmReports(request, env);
     }
@@ -11460,6 +11576,12 @@ export default {
     }
     if (url.pathname === '/laps/news/admin' && (request.method === 'GET' || request.method === 'POST')) {
       return handleLapsNewsAdmin(request, env);
+    }
+    if (url.pathname === '/laps/logo' && request.method === 'GET') {
+      return handleLapsLogoPublic(request, env);
+    }
+    if (url.pathname === '/laps/logo/admin' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleLapsLogoAdmin(request, env);
     }
     if (url.pathname === '/laps/panels' && request.method === 'GET') {
       return handleLapsPanelsPublic(request, env);

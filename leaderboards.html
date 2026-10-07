@@ -6,10 +6,11 @@
 <title>Leaderboard: lap times by track and car - Laps by MT3UK</title>
 <meta name="description" content="The Laps by MT3UK leaderboard: real lap times from modified EVs at UK circuits, sprints, hill climbs and drag strips, from members' own lap timers. Filter by model, tyres and conditions.">
 <link rel="canonical" href="https://laps.mt3uk.com/leaderboards.html">
-<link rel="icon" type="image/x-icon" href="images/site/favicon.ico">
-<link rel="icon" type="image/png" sizes="32x32" href="images/site/favicon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="images/site/favicon-16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="images/site/apple-touch-icon.png">
+<link rel="icon" type="image/svg+xml" href="images/laps/favicon.svg">
+<link rel="icon" type="image/x-icon" href="images/laps/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="images/laps/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="images/laps/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="images/laps/apple-touch-icon.png">
 <link rel="manifest" href="laps-manifest.json">
 <meta name="theme-color" content="#16233d">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -323,11 +324,15 @@
     .page-hero .tp-hero-row .tp-lb-pill.tp-round .icon { width: 22px; height: 22px; }
     .page-hero .tp-hero-actions { grid-column: 3; grid-row: 1; margin-top: 0; gap: 8px; }
     .page-hero .tp-hero-actions .tp-lb-pill { min-width: 0; min-height: 44px; padding: 0 16px; font-size: 0.92rem; }
+    /* Add a session is a round orange plus on a phone, as on Sessions (not once the early preview gate has reworded it). */
+    .page-hero .tp-hero-actions .tp-lb-pill.lb-add:not(.is-preview) { width: 44px; height: 44px; padding: 0; gap: 0; border-radius: 50%; font-size: 0; }
+    .page-hero .tp-hero-actions .tp-lb-pill.lb-add:not(.is-preview) .icon { width: 24px; height: 24px; }
+    .page-hero .tp-hero-actions .tp-lb-pill.lb-add:not(.is-preview) span { display: none; }
     .page-hero .tp-hero-row h1 { grid-column: 1 / -1; grid-row: 2; margin: 12px 0 0; }
     .page-hero .tp-what { grid-column: 1 / -1; grid-row: 3; }
     .tp-hero-actions .laps-tip-bulbbtn { width: 44px; height: 44px; }
   }
-  @media (max-width: 400px) { .page-hero .tp-hero-actions .tp-lb-pill .icon { display: none; } .page-hero .tp-hero-actions .tp-lb-pill { padding: 0 14px; } }
+  @media (max-width: 400px) { .page-hero .tp-hero-actions .tp-lb-pill.is-preview .icon { display: none; } .page-hero .tp-hero-actions .tp-lb-pill.is-preview { padding: 0 14px; } }
   /* On a phone the title and the What is...? link are centred. */
   @media (max-width: 780px) {
     .page-hero .tp-hero-row h1 { justify-self: center; }
@@ -480,7 +485,7 @@
 <header>
   <nav>
     <div class="nav-center">
-      <a href="track.html" class="logo laps-logo" aria-label="Laps by MT3UK, early preview"><span class="laps-logo-early" aria-hidden="true">Early preview</span><span class="laps-logo-name">Laps</span><span class="laps-logo-by">by MT3UK</span></a>
+      <a href="track.html" class="logo laps-logo" aria-label="Laps by MT3UK, early preview"><span class="laps-logo-early" aria-hidden="true">Early preview</span><svg class="laps-logo-mark" viewBox="0 0 64 64" aria-hidden="true"><rect x="27" y="3" width="10" height="6" rx="2" fill="currentColor"/><circle cx="32" cy="36" r="21" fill="none" stroke="currentColor" stroke-opacity=".22" stroke-width="7"/><path d="M32 15A21 21 0 1 1 11 36" fill="none" stroke="#e8542a" stroke-width="7" stroke-linecap="round"/><path d="M32 36 43 25" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><circle cx="32" cy="36" r="3.4" fill="currentColor"/></svg><span class="laps-logo-name">Laps</span><span class="laps-logo-by">by MT3UK</span></a>
       <a href="laps.html" class="laps-intro" id="tp-play-intro" aria-label="Play intro"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m10 8.5 5 3.5-5 3.5Z"/></svg><span>Play intro</span></a>
     <div class="navlinks" id="navlinks">
       <a href="signin.html" class="nav-link-mobile">Sign Up / Sign In</a>
@@ -509,7 +514,7 @@
 <section class="page-hero lb-hero">
   <div class="wrap">
     <div class="tp-hero-top"><a href="index.html" class="back-link" id="lb-page-back" aria-label="Back to MT3UK"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</a></div>
-    <div class="tp-hero-row"><h1><svg class="icon lb-trophy" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/></svg>Leaderboard</h1><a href="track.html" class="tp-lb-pill tp-round" id="lb-my-sessions" aria-label="My Sessions" title="My Sessions"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M10 2h4"/></svg>My Sessions</a><div class="tp-hero-actions lb-actions"><a href="track.html?add=1" class="tp-lb-pill lb-add" id="lb-add-session" data-laps-add><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 21h14"/></svg>Add a session</a><div data-laps-tip="bulb"></div></div></div>
+    <div class="tp-hero-row"><h1><svg class="icon lb-trophy" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/></svg>Leaderboard</h1><a href="track.html" class="tp-lb-pill tp-round" id="lb-my-sessions" aria-label="My Sessions" title="My Sessions"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M10 2h4"/></svg>My Sessions</a><div class="tp-hero-actions lb-actions"><a href="track.html?add=1" class="tp-lb-pill lb-add" id="lb-add-session" data-laps-add aria-label="Add a session" title="Add a session"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Add a session</span></a><div data-laps-tip="bulb"></div></div></div>
     <details class="tp-what" id="lb-what"><summary>What is the Leaderboard?</summary><p>Real times from modified cars on tracks, drag strips and hill climbs, straight from members&rsquo; own lap timers. Every car&rsquo;s fastest, with the mods that got it there.</p></details>
   </div>
 </section>
@@ -524,7 +529,7 @@
 
 <footer>
   <div class="wrap footer-row">
-    <a href="track.html" class="logo laps-logo footer-logo" aria-label="Laps by MT3UK"><span class="laps-logo-name">Laps</span><span class="laps-logo-by">by MT3UK</span></a>
+    <a href="track.html" class="logo laps-logo footer-logo" aria-label="Laps by MT3UK"><svg class="laps-logo-mark" viewBox="0 0 64 64" aria-hidden="true"><rect x="27" y="3" width="10" height="6" rx="2" fill="currentColor"/><circle cx="32" cy="36" r="21" fill="none" stroke="currentColor" stroke-opacity=".22" stroke-width="7"/><path d="M32 15A21 21 0 1 1 11 36" fill="none" stroke="#e8542a" stroke-width="7" stroke-linecap="round"/><path d="M32 36 43 25" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><circle cx="32" cy="36" r="3.4" fill="currentColor"/></svg><span class="laps-logo-name">Laps</span><span class="laps-logo-by">by MT3UK</span></a>
     <span class="footer-text">Lap times and leaderboards for modified and electric cars &middot; from the <a href="https://mt3uk.com/" class="footer-inline-link">MT3UK</a> community</span>
     <span class="footer-links"><a href="privacy.html">Privacy</a> <a href="contact.html">Contact</a> <a href="https://mt3uk.com/">Back to MT3UK</a></span>
   </div>
@@ -664,16 +669,17 @@
   }
 </script>
 
-<script src="js/track-parse.js?v=20270128" defer></script>
-<script src="js/track-view.js?v=20270110" defer></script>
+<script src="js/track-parse.js?v=20270129" defer></script>
+<script src="js/track-view.js?v=20270115" defer></script>
 <script src="js/tyre-data.js?v=20270210" defer></script>
 <script src="js/pad-data.js?v=20270210" defer></script>
 <script src="js/vehicle-data.js?v=20270210" defer></script>
 <script src="js/leaderboard-page.js?v=20270214" defer></script>
-<script src="js/laps-panels.js?v=1" defer></script>
+<script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20270104" defer></script>
 <script src="js/share.js" defer></script>
-<script src="js/account-bar.js?v=14" defer></script>
+<script src="js/laps-logo.js?v=1" defer></script>
+<script src="js/account-bar.js?v=15" defer></script>
 <script src="js/laps-strip.js?v=5" defer></script>
 <script src="js/signin-prompt.js" defer></script>
 <script src="js/notify-bell.js?v=2" defer></script>

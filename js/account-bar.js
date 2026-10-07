@@ -277,6 +277,11 @@
     return there && there !== hereSite ? u : null;
   }
 
+  // The admin viewer token (the admin key entered on an admin page, kept per address) goes with the sign-in.
+  var ADMIN_VIEWER_KEY = 'mt3ukAdminViewer';
+  function adminViewer() {
+    try { var v = JSON.parse(localStorage.getItem(ADMIN_VIEWER_KEY) || 'null'); return v && v.token && v.expires > Date.now() ? v : null; } catch (e) { return null; }
+  }
   function withCode(u, code) {
     var own = u.hash ? u.hash.slice(1) : '';
     u.hash = 'mt3uk-handover=' + code + (own ? ':' + own : '');
@@ -290,15 +295,18 @@
     var to = handoverTarget(a.getAttribute('href'));
     if (!to) return;
     e.preventDefault();
-    var token = read(SESSION_KEY);
-    if (!token) { location.href = to.href; return; }
+    var token = read(SESSION_KEY), av = adminViewer();
+    if (!token && !av) { location.href = to.href; return; }
     var gone = false;
     function go(url) { if (gone) return; gone = true; location.href = url; }
     // Never hold the member up: without an answer in 3 seconds the link opens as it is (signed out there).
     var timer = setTimeout(function () { go(to.href); }, 3000);
+    var headers = { 'Content-Type': 'application/json' };
+    if (token) headers['X-Session-Token'] = token;
+    if (av) headers['X-Admin-Viewer'] = av.token;
     fetch(API + '/session/handover', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Session-Token': token },
+      headers: headers,
       body: JSON.stringify({ firstName: read(FIRST_NAME_KEY) })
     }).then(function (res) { return res.json(); }).then(function (d) {
       clearTimeout(timer);
@@ -321,15 +329,23 @@
         .then(function (r) {
           // A code made a moment ago can take a second to reach every Cloudflare server: try twice more.
           if (r.status === 404 && tries < 3) { setTimeout(attempt, 800); return; }
-          if (!r.d || !r.d.success || !r.d.session) return;
-          var before = read(SESSION_KEY), beforeEmail = read(EMAIL_KEY);
+          if (!r.d || !r.d.success || (!r.d.session && !r.d.adminViewer)) return;
+          var before = read(SESSION_KEY), beforeEmail = read(EMAIL_KEY), changed = false;
           try {
-            localStorage.setItem(SESSION_KEY, r.d.session);
-            localStorage.setItem(EMAIL_KEY, r.d.email || '');
-            if (r.d.firstName) localStorage.setItem(FIRST_NAME_KEY, r.d.firstName);
-            else if (beforeEmail !== r.d.email) localStorage.removeItem(FIRST_NAME_KEY);
+            if (r.d.session) {
+              localStorage.setItem(SESSION_KEY, r.d.session);
+              localStorage.setItem(EMAIL_KEY, r.d.email || '');
+              if (r.d.firstName) localStorage.setItem(FIRST_NAME_KEY, r.d.firstName);
+              else if (beforeEmail !== r.d.email) localStorage.removeItem(FIRST_NAME_KEY);
+              changed = !before || beforeEmail !== r.d.email;
+            }
+            // The admin viewer token, so a private session opens here too.
+            if (r.d.adminViewer && r.d.adminViewer.token) {
+              var had = adminViewer();
+              if (!had || had.token !== r.d.adminViewer.token) { localStorage.setItem(ADMIN_VIEWER_KEY, JSON.stringify(r.d.adminViewer)); changed = true; }
+            }
           } catch (e) { return; }
-          if (!before || beforeEmail !== r.d.email) {
+          if (changed) {
             // After a reload the browser gives this page as its own referrer, so Back remembers the real one.
             try { sessionStorage.setItem('mt3ukBackFrom', JSON.stringify({ page: location.pathname, from: document.referrer })); } catch (e) {}
             location.reload();

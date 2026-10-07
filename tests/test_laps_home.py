@@ -1,3 +1,4 @@
+import re
 """The Laps front page (laps.html, what laps.mt3uk.com/ opens): the hero's buttons for signed-out and signed-in
 visitors, and Fastest right now from /track/counts."""
 import json
@@ -112,12 +113,33 @@ def test_a_slow_sessions_page_shows_a_spinner_then_a_note_and_refresh(page):
     expect(page.locator("#tp-loading [data-refresh]")).to_be_visible(timeout=3000)
 
 
-def test_fastest_right_now_comes_first_and_the_sections_have_no_share_buttons(page):
+def test_what_laps_does_comes_first_then_the_lap_timers_then_track_mode_and_no_evs_band(page):
+    """Under the hero (which ends with Sessions are private until you choose to share them) comes What Laps does, then
+    Works with your lap timer, then Tesla Track Mode (Fastest right now stays in the file but is off the front page);
+    the EVs band at the foot is gone, the hero already says Any EV,
+    any make."""
     open_home(page)
     ids = page.evaluate("[...document.querySelectorAll('main > section')].map(s => s.id)")
-    assert ids[0] == "fastest", ids
-    page.locator("#lh-fast a").first.wait_for()
+    assert ids[:4] == ["what", "timers", "trackmode", "fastest"] and "any-make" not in ids, ids
+    expect(page.locator(".lh-hero .lh-evs")).to_contain_text("Any EV, any make")
+    page.locator("#lh-fast a").first.wait_for(state="attached")
     expect(page.locator("main .mt3uk-share-dot")).to_have_count(0)
+
+
+def test_the_session_picture_does_not_open_full_screen_on_a_tap(page):
+    open_home(page)
+    page.locator("#lh-shot-img").click()
+    expect(page.locator(".lh-light")).to_have_count(0)
+
+
+def test_track_mode_has_its_own_section_and_fastest_right_now_is_off_the_front_page(page):
+    open_home(page)
+    expect(page.locator("#trackmode")).to_be_visible()
+    expect(page.locator("#trackmode h2")).to_contain_text("Tesla Track Mode")
+    expect(page.locator("#trackmode .lh-card")).to_have_count(6)
+    expect(page.locator("#fastest")).to_be_hidden()
+    expect(page.locator(".lh-hero .lh-evs")).to_contain_text("Tesla, Hyundai, Kia, Porsche, Polestar, BMW and more")
+    expect(page.locator(".lh-makes")).to_have_count(0)
 
 
 def test_the_admins_words_and_places_are_used_on_the_front_page(page):
@@ -179,6 +201,11 @@ def test_members_with_early_access_are_asked_to_add_their_session(page):
     page.goto("/leaderboards.html")
     expect(page.locator("#lb-add-session")).to_have_text("Add a session")
     expect(page.locator("#lb-preview")).to_be_hidden()
+    # On a phone it is a round plus, as on Sessions.
+    page.set_viewport_size({"width": 390, "height": 800})
+    b = page.locator("#lb-add-session").bounding_box()
+    assert abs(b["width"] - 44) < 2 and abs(b["height"] - 44) < 2, b
+    expect(page.locator("#lb-add-session span")).to_be_hidden()
 
 
 def test_members_waiting_for_early_access_are_told_they_are_on_the_list(page):

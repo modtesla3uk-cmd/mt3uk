@@ -5,7 +5,7 @@
   bucket. A photo can be fitted to the same size instead.
 */
 (function (root) {
-  var W = 1200, H = 630, MAPW = 700;
+  var W = 1200, H = 630, MAPW = 640;
   var RAMP = ['#ffd83d', '#f58a1f', '#d7191c'];
   var INK = '#16233d', STEEL = '#6b7385', PAPER = '#f6f3ee', HAIR = 'rgba(22,35,61,.14)', GRID = 'rgba(22,35,61,.08)', MAPBG = '#ffffff';
   var BLUE = '#2a78d6', ORANGE = '#eb6834';
@@ -36,6 +36,18 @@
     c.fillStyle = STEEL; c.font = '400 12px ' + BODY; c.fillText(ellipsize(c, s, w - 26), x + 14, y + 74);
   }
   // mph unless opts.unit is 'kmh'. opts.wordmark is a loaded Image. Throws when the session has no lap trace.
+  // The Laps mark, a lap timer (a ring one lap from the line), drawn at x, y with the given size (its 64 unit box).
+  function lapsMark(c, x, y, size) {
+    var k = size / 64;
+    c.save(); c.translate(x, y); c.scale(k, k);
+    c.fillStyle = INK; roundRect(c, 27, 3, 10, 6, 2); c.fill();
+    c.lineWidth = 7; c.lineCap = 'round';
+    c.strokeStyle = 'rgba(22,35,61,.22)'; c.beginPath(); c.arc(32, 36, 21, 0, Math.PI * 2); c.stroke();
+    c.strokeStyle = ORANGE; c.beginPath(); c.arc(32, 36, 21, -Math.PI / 2, Math.PI, false); c.stroke();
+    c.strokeStyle = INK; c.lineWidth = 5; c.beginPath(); c.moveTo(32, 36); c.lineTo(43, 25); c.stroke();
+    c.fillStyle = INK; c.beginPath(); c.arc(32, 36, 3.4, 0, Math.PI * 2); c.fill();
+    c.restore();
+  }
   function draw(canvas, s, opts) {
     opts = opts || {};
     var mph = opts.unit !== 'kmh', T = root.MT3UKTrack;
@@ -92,27 +104,70 @@
     c.fillStyle = g; roundRect(c, 44 + c.measureText(lo).width, 33, 110, 8, 4); c.fill();
     c.fillStyle = STEEL; c.fillText(hi, 44 + c.measureText(lo).width + 122, 42);
     c.fillStyle = HAIR; c.fillRect(MAPW - 1, 0, 1, H);
-    // The panel.
-    var px = MAPW + 36, pw = W - MAPW - 72;
-    if (opts.wordmark && opts.wordmark.naturalWidth) { var wh = 34, ww = wh * opts.wordmark.naturalWidth / opts.wordmark.naturalHeight; c.drawImage(opts.wordmark, px, 34, ww, wh); }
-    c.fillStyle = STEEL; c.font = '600 14px ' + BODY; c.textAlign = 'right'; c.fillText('Track sessions', W - 36, 56); c.textAlign = 'left';
-    var title = (s.venue || 'Track session') + (s.layout && s.layout !== s.venue ? ', ' + s.layout : '');
-    c.fillStyle = INK; c.font = '800 32px ' + HEAD;
+    // The panel: the wordmark and Laps by MT3UK, the track, a line for the day, chips for the car and its kit
+    // (kind of day, conditions and temperature, tyres, pads, driven wheels, logger), the three tiles, the lap times
+    // and, in the room left, the cornering g chart. Nothing that is not on the session is drawn.
+    var px = MAPW + 32, pw = W - MAPW - 64, meta = { chips: [], lapTimes: 0, chart: false };
+    // The Laps lockup: the lap timer mark, Laps and by MT3UK.
+    if (root.MT3UKLapsLogo) root.MT3UKLapsLogo.draw(c, px, 22, 38, opts.logo || root.MT3UKLapsLogo.current(), INK); else lapsMark(c, px, 22, 38);
+    c.fillStyle = INK; c.font = '800 24px ' + HEAD; c.fillText('Laps', px + 48, 52);
+    var lapsW = c.measureText('Laps').width;
+    c.fillStyle = STEEL; c.font = '500 13px ' + BODY; c.fillText('by MT3UK', px + 48 + lapsW + 10, 52);
+    var title = (s.venue || 'Track session') + (s.layout && s.layout !== s.venue ? ', ' + s.layout : !s.layout && s.organizer ? ', ' + s.organizer : '');
+    c.fillStyle = INK; c.font = '800 28px ' + HEAD;
     var words = title.split(' '), lines = [''], li = 0;
     words.forEach(function (w) { var t = (lines[li] ? lines[li] + ' ' : '') + w; if (c.measureText(t).width > pw && lines[li]) { lines.push(w); li++; } else lines[li] = t; });
     lines = lines.slice(0, 2);
-    lines.forEach(function (l, i) { c.fillText(ellipsize(c, l, pw), px, 116 + i * 38); });
-    var ty = 116 + lines.length * 38;
-    var timed = (s.laps || []).filter(function (l) { return l.kind === 'timed'; }).length, best = (s.laps || []).filter(function (l) { return l.n === s.best; })[0];
-    c.fillStyle = STEEL; c.font = '400 16px ' + BODY;
-    c.fillText(ellipsize(c, niceDate(s.date) + (s.time ? ', ' + s.time : '') + '. ' + (s.laps || []).length + ' laps, ' + timed + ' timed. Every lap mapped, timed and compared.', pw), px, ty + 2);
+    lines.forEach(function (l, i) { c.fillText(ellipsize(c, l, pw), px, 96 + i * 34); });
+    var y = 96 + (lines.length - 1) * 34 + 24;
+    var timed = (s.laps || []).filter(function (l) { return l.kind === 'timed'; }), best = (s.laps || []).filter(function (l) { return l.n === s.best; })[0];
+    var isDrag = s.type === 'drag', isSprint = s.type === 'sprint', runWord = isSprint ? 'run' : 'lap';
+    var dayLine = [niceDate(s.date) + (s.time ? ', ' + s.time : ''), (s.laps || []).length ? (s.laps || []).length + ' ' + runWord + ((s.laps || []).length === 1 ? '' : 's') + (timed.length !== (s.laps || []).length ? ', ' + timed.length + ' timed' : '') : '',
+      [s.conditions, s.temp != null ? Math.round(s.temp) + '°C' : ''].filter(Boolean).join(', ')].filter(Boolean).join(' · ');
+    c.fillStyle = STEEL; c.font = '400 15px ' + BODY; c.fillText(ellipsize(c, dayLine, pw), px, y);
+    y += 14;
+    // Chips: what the session says about the car and the day.
+    var kind = isDrag ? 'Drag runs' : isSprint ? (s.hill ? 'Hill climb' : 'Sprint') : s.type === 'other' ? 'Drive' : 'Track day';
+    var chips = [[s.car || opts.car, 'car'], [kind, 'kind'], [s.tyres, 'tyres'], [s.pads, 'pads'], [s.drive, 'drive'], [s.logger ? 'Logger: ' + s.logger : '', 'logger']].filter(function (ch) { return ch[0]; });
+    var cx = px, rowH = 26, rows = 1;
+    c.font = '600 12px ' + BODY;
+    chips.forEach(function (ch) {
+      var text = ellipsize(c, String(ch[0]), pw - 24), wd = c.measureText(text).width + 20;
+      if (cx + wd > px + pw && cx > px) { if (rows === 2) return; rows++; cx = px; y += rowH + 6; }
+      c.fillStyle = ch[1] === 'car' ? INK : '#ffffff'; roundRect(c, cx, y, wd, rowH, 13); c.fill();
+      if (ch[1] !== 'car') { c.strokeStyle = HAIR; c.lineWidth = 1; c.stroke(); }
+      c.fillStyle = ch[1] === 'car' ? '#ffffff' : INK; c.fillText(text, cx + 10, y + 17);
+      meta.chips.push(text);
+      cx += wd + 8;
+    });
+    if (chips.length) y += rowH + 12;
     // Tiles.
-    var tw = (pw - 20) / 3, tyy = ty + 26;
-    tile(c, px, tyy, tw, 88, 'Best lap', best ? fmtLap(best.time) : '-', best ? 'Lap ' + s.best + ' of ' + (s.laps || []).length : '');
-    tile(c, px + tw + 10, tyy, tw, 88, 'Top speed', s.vmax ? spd(s.vmax) : '-', 'This session');
-    tile(c, px + 2 * (tw + 10), tyy, tw, 88, 'Most grip', s.latMax ? s.latMax.toFixed(2) + ' g' : '-', s.brakeMax ? 'Braking ' + s.brakeMax.toFixed(2) + ' g' : '');
+    var tw = (pw - 20) / 3, tyy = y;
+    var bestVal = best ? (isDrag ? (best.quarter ? best.quarter.toFixed(2) + ' s' : best.s60 ? best.s60.toFixed(2) + ' s' : '-') : fmtLap(best.time)) : '-';
+    tile(c, px, tyy, tw, 84, isDrag ? (best && best.quarter ? 'Quarter mile' : '0 to 60') : isSprint ? 'Best run' : 'Best lap', bestVal, best ? (isSprint ? 'Run' : 'Lap') + ' ' + s.best + ' of ' + (s.laps || []).length : '');
+    tile(c, px + tw + 10, tyy, tw, 84, 'Top speed', s.vmax ? spd(s.vmax) : '-', 'This session');
+    tile(c, px + 2 * (tw + 10), tyy, tw, 84, 'Most grip', s.latMax ? s.latMax.toFixed(2) + ' g' : '-', s.brakeMax ? 'Braking ' + s.brakeMax.toFixed(2) + ' g' : '');
+    y = tyy + 84 + 12;
+    // Lap times: each timed lap in order, the best in orange, up to 8.
+    var shown = timed.slice(0, 8);
+    if (shown.length > 1 && !isDrag) {
+      c.fillStyle = STEEL; c.font = '600 12px ' + BODY; c.fillText((isSprint ? 'Run' : 'Lap') + ' times', px, y + 12);
+      var lw = (pw - (shown.length - 1) * 6) / shown.length, ly = y + 20;
+      shown.forEach(function (l, i) {
+        var lx = px + i * (lw + 6), isBest = l.n === s.best;
+        c.fillStyle = isBest ? ORANGE : '#ffffff'; roundRect(c, lx, ly, lw, 40, 8); c.fill();
+        if (!isBest) { c.strokeStyle = HAIR; c.lineWidth = 1; c.stroke(); }
+        c.fillStyle = isBest ? '#ffffff' : INK; c.font = '700 ' + (shown.length > 6 ? 12 : 13) + 'px ' + BODY; c.textAlign = 'center';
+        c.fillText(ellipsize(c, fmtLap(l.time), lw - 8), lx + lw / 2, ly + 18);
+        c.fillStyle = isBest ? 'rgba(255,255,255,.85)' : STEEL; c.font = '500 10px ' + BODY; c.fillText((isSprint ? 'Run ' : 'Lap ') + l.n, lx + lw / 2, ly + 32); c.textAlign = 'left';
+      });
+      meta.lapTimes = shown.length;
+      y = ly + 40 + 12;
+    }
     // Chart: cornering g of the best lap and the next best, in the cars' blue and orange.
-    var cy = tyy + 100, ch = H - cy - 30;
+    var cy = y, ch = H - cy - 24;
+    if (ch < 96) { meta.chart = false; return meta; }
+    meta.chart = true;
     c.fillStyle = '#ffffff'; roundRect(c, px, cy, pw, ch, 10); c.fill(); c.strokeStyle = HAIR; c.lineWidth = 1; c.stroke();
     var other = (s.laps || []).filter(function (l) { return l.kind === 'timed' && l.n !== s.best; }).sort(function (a, b) { return a.time - b.time; })[0];
     var trB = other && s.trace.laps[other.n];
@@ -138,7 +193,7 @@
       c.strokeStyle = pair[1]; c.lineWidth = 1.8; c.beginPath();
       pair[0].forEach(function (p, i) { if (i) c.lineTo(X(p[0]), Y(p[1])); else c.moveTo(X(p[0]), Y(p[1])); }); c.stroke();
     });
-    return canvas;
+    return meta;
   }
   // A photo fitted to the size, cropped to fill.
   function photo(canvas, img) {

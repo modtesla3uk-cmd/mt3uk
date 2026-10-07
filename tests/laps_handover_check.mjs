@@ -16,9 +16,10 @@ const env = {
 globalThis.fetch = async () => new Response('{}', { status: 200 });
 const ok = (c, m) => { if (!c) { console.log('FAIL', m); process.exitCode = 1; } else console.log('ok  ', m); };
 kv.set('my-builds-session:tok-a', 'a@example.com');
-const call = async (method, path, body, token) => {
+const call = async (method, path, body, token, viewer) => {
   const init = { method, headers: {} };
   if (token) init.headers['X-Session-Token'] = token;
+  if (viewer) init.headers['X-Admin-Viewer'] = viewer;
   if (body !== undefined) { init.headers['Content-Type'] = 'application/json'; init.body = JSON.stringify(body); }
   const r = await worker.fetch(new Request('https://w.test' + path, init), env, { waitUntil() {} });
   return { status: r.status, body: await r.json().catch(() => ({})) };
@@ -45,3 +46,20 @@ ok(r.status === 404, 'a code works only once');
 r = await call('POST', '/session/sign-out-all', undefined, session);
 r = await call('POST', '/session/handover', {}, session);
 ok(r.status === 401, 'after Sign out of all devices the old sign-in cannot make a code');
+
+// The admin viewer token goes across too, with or without a sign-in.
+r = await call('POST', '/session/handover', {}, undefined, 'not-a-real-viewer-token');
+ok(r.status === 401, 'a made-up admin viewer token makes no code');
+const viewer = (await call('POST', '/admin/viewer-token?key=secret', {})).body.token;
+r = await call('POST', '/session/handover', {}, undefined, viewer);
+ok(r.body.success && r.body.code, 'the admin viewer token alone makes a code');
+r = await call('POST', '/session/handover/redeem', { code: r.body.code });
+ok(r.body.success && !r.body.session && r.body.adminViewer && r.body.adminViewer.token === viewer && r.body.adminViewer.expires > Date.now(), 'the code gives the admin viewer token back, and no sign-in: ' + JSON.stringify(r.body));
+kv.set('my-builds-session:tok-c', 'c@example.com');
+r = await call('POST', '/session/handover', { firstName: 'Rich' }, 'tok-c', viewer);
+r = await call('POST', '/session/handover/redeem', { code: r.body.code });
+ok(r.body.success && r.body.session && r.body.email === 'c@example.com' && r.body.adminViewer && r.body.adminViewer.token === viewer, 'a sign-in and the admin viewer token go across together');
+kv.delete('admin-viewer:' + viewer);
+r = await call('POST', '/session/handover', {}, 'tok-c', viewer);
+r = await call('POST', '/session/handover/redeem', { code: r.body.code });
+ok(r.body.success && r.body.session && !r.body.adminViewer, 'an admin viewer token that has stopped working is left out');

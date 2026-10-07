@@ -360,6 +360,18 @@ def api_reply(url, method, post_data, state):
         return {"success": True}
     if path.startswith("/passkey/"):
         return passkey_reply(path, post_data, state)
+    if path == "/admin/passkeys/nudge":
+        # The Passkey reminders panel (js/passkey-nudge-admin.js): two
+        # batches, then done. Each call is logged with dry and email.
+        try:
+            body = json.loads(post_data or "{}")
+        except ValueError:
+            body = {}
+        calls = state.setdefault("nudge_calls", [])
+        calls.append({"dry": bool(body.get("dry")), "email": bool(body.get("email")), "cursor": body.get("cursor")})
+        first = not body.get("cursor")
+        return {"success": True, "dry": bool(body.get("dry")), "sent": 2 if first else 1, "already": 1 if first else 0, "havePasskey": 3,
+                "emailed": (2 if first else 1) if body.get("email") and not body.get("dry") else 0, "cursor": "more" if first else None}
     if path.startswith("/push/"):
         state.setdefault("push_calls", []).append(path)
         if path == "/push/key":

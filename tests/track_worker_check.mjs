@@ -382,6 +382,22 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   ok(r.body.session.pads === 'Pagid RSL29', 'the same pads both ends are named once');
   r = await call('PUT', '/track/session', { id: pid, notes: 'pads stay' }, 'tok-a');
   ok(r.body.session.pads === 'Pagid RSL29' && r.body.session.padRearCompound === 'RSL29', 'a change of something else keeps them');
+  // A public note beside the private notes: everyone who opens the session sees it, the private notes stay the owner's.
+  r = await call('PUT', '/track/session', { id: pid, publicNote: ' Red flag <b>mid</b> session ', privacy: 'board' }, 'tok-a');
+  r = await call('GET', '/track/session?id=' + pid, undefined, 'tok-a');
+  ok(r.status === 200 && r.body.session.publicNote === 'Red flag b mid /b session' && r.body.session.notes === 'pads stay', 'the public note is saved and cleaned: ' + JSON.stringify(r.body.session.publicNote));
+  r = await call('GET', '/track/session?id=' + pid, undefined, 'tok-b');
+  ok(r.status === 200 && r.body.session.publicNote === 'Red flag b mid /b session' && !('notes' in r.body.session), 'another member sees the public note and not the private notes');
+  // The logger that recorded it: kept, cleaned, in the summary and shown to everyone.
+  r = await call('PUT', '/track/session', { id: pid, logger: ' RaceBox <i>Mini</i> ' }, 'tok-a');
+  ok(r.status === 200 && r.body.session.logger === 'RaceBox i Mini /i', 'the logger is saved and cleaned: ' + JSON.stringify(r.body.session.logger));
+  r = await call('GET', '/track/session?id=' + pid, undefined, 'tok-b');
+  ok(r.status === 200 && r.body.session.logger === 'RaceBox i Mini /i', 'another member sees the logger');
+  r = await call('GET', '/track/sessions', undefined, 'tok-a');
+  ok(r.body.sessions.find(x => x.id === pid).logger === 'RaceBox i Mini /i', 'the summary has the logger');
+  r = await call('PUT', '/track/session', { id: pid, publicNote: '' }, 'tok-a');
+  r = await call('GET', '/track/session?id=' + pid, undefined, 'tok-a');
+  ok(r.status === 200 && !('publicNote' in r.body.session), 'an emptied public note is dropped');
   r = await call('GET', '/track/sessions', undefined, 'tok-a');
   ok(r.body.sessions.find(x => x.id === pid).pads === 'Pagid RSL29', 'the summary has the pads');
   r = await call('PUT', '/track/session', { id: pid, padFrontMake: 'Original equipment', padFrontCompound: 'Standard pads', padRearMake: 'Original equipment', padRearCompound: 'Standard pads' }, 'tok-a');
@@ -1344,6 +1360,22 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   ok(x.status === 409 && /only they can change it/.test(x.body.message) && stored('track-session:' + id).layoutId === 'main', 'an admin re-time cannot move a session off the layout its member picked');
   x = await call('POST', '/track/admin/retime?key=secret', { id, session: fresh });
   ok(x.status === 200 && stored('track-session:' + id).layoutPicked === true, 'a re-time on the same layout is saved and the mark stays');
+  // The one way through: the admin says who asked (memberAsked). The move is saved, recorded on the session, counts as
+  // the member's pick, and the member is emailed.
+  { const before = env.SEND_EMAIL.sent.length;
+    const lib2 = JSON.parse(JSON.stringify(lib)); lib2.venues.find(v => v.id === 'thruxton').layouts.push({ id: 'short', name: 'Short Circuit', length: 3800 });
+    kv.set('track-library', JSON.stringify({ venues: [lib2.venues.find(v => v.id === 'thruxton')] }));
+    x = await call('POST', '/track/admin/retime?key=secret', { id, session: Object.assign({}, fresh, { layoutId: 'short', layout: 'Short Circuit' }), memberAsked: 'John, by email on 7 Oct' });
+    const moved = stored('track-session:' + id);
+    ok(x.status === 200 && moved.layoutId === 'short' && moved.layoutPicked === true && moved.layoutByAdmin && moved.layoutByAdmin.note === 'John, by email on 7 Oct' && moved.layoutByAdmin.from === 'Indy Circuit', 'with memberAsked the admin can move it, and the move is recorded as the member\'s pick (' + x.status + ')');
+    ok(env.SEND_EMAIL.sent.length === before + 1 && /now on Short Circuit/.test(env.SEND_EMAIL.sent[before]) && /John, by email on 7 Oct/.test(env.SEND_EMAIL.sent[before]), 'and the member is emailed about the change');
+    x = await call('POST', '/track/admin/retime?key=secret', { id, session: Object.assign({}, fresh, { layoutId: 'short', layout: 'Short Circuit' }) });
+    ok(x.status === 200 && stored('track-session:' + id).layoutByAdmin.note === 'John, by email on 7 Oct', 'a later re-time on the same layout keeps the record');
+    x = await call('POST', '/track/admin/retime?key=secret', { id, session: fresh });
+    ok(x.status === 409, 'and still cannot move it back without the member asking');
+    x = await call('POST', '/track/admin/retime?key=secret', { id, session: fresh, memberAsked: 'John again' });
+    ok(x.status === 200 && stored('track-session:' + id).layoutId === 'main', 'a second ask moves it again');
+    kv.delete('track-library'); }
   x = await call('POST', '/track/admin/retime?key=secret', { id: 'deadbeefdeadbeef', session: fresh });
   ok(x.status === 404, 'an unknown session is refused');
 }
@@ -1437,6 +1469,20 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   const off = await call('POST', '/admin/daily-summary?key=secret', { subject: 'x', text: 'y' });
   ok(off.body.sent === false && env.SEND_EMAIL.sent.length === before + 1, 'with the Email switch off nothing is sent');
   await call('POST', '/admin/alerts?key=secret', { email: true });
+}
+
+// The Laps logo: one of four marks, kept in one KV key, public to read and admin to change.
+{
+  let lg = await call('GET', '/laps/logo');
+  ok(lg.status === 200 && lg.body.success && lg.body.logo === 'timer' && lg.body.choices.length === 4, 'the logo starts as the lap timer');
+  ok((await call('POST', '/laps/logo/admin', { logo: 'loop' })).status === 401, 'the logo needs the admin key');
+  ok((await call('POST', '/laps/logo/admin?key=secret', { logo: 'gold-star' })).status === 400, 'an unknown logo is refused');
+  lg = await call('POST', '/laps/logo/admin?key=secret', { logo: 'ramp' });
+  ok(lg.body.success && lg.body.logo === 'ramp', 'the admin chooses the speed-ramp L');
+  ok((await call('GET', '/laps/logo')).body.logo === 'ramp', 'every page reads it');
+  ok((await call('GET', '/laps/logo/admin?key=secret')).body.logo === 'ramp', 'the admin panel reads it');
+  await call('POST', '/laps/logo/admin?key=secret', { logo: 'timer' });
+  ok((await call('GET', '/laps/logo')).body.logo === 'timer', 'choosing the lap timer clears it');
 }
 
 // The Laps announcement on Sessions: one line, shown when on, a new id when the words change.
@@ -1559,6 +1605,19 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   ok(r.status === 200 && env.SEND_EMAIL.sent.length === quiet && (await call('GET', '/track/admin/new-sessions?key=secret')).body.sessions.length === 0, 'switched off: the session is saved, nothing is listed or emailed');
   r = await call('POST', '/admin/alerts?key=secret', { sessions: true });
   ok((await call('GET', '/admin/alerts?key=secret')).body.alerts.sessions === true, 'and back on');
+}
+
+// Which signal started a standing start's clock (launch) is kept on a saved session.
+{
+  const withLaunch = JSON.parse(JSON.stringify(session)); withLaunch.type = 'sprint'; withLaunch.launch = { from: 'g', lead: 0.28 };
+  const rr = await call('POST', '/track/sessions', { carId: 'cara1', session: withLaunch }, 'tok-a');
+  const kept = rr.status === 200 && stored('track-session:' + rr.body.session.id);
+  ok(kept && kept.launch && kept.launch.from === 'g' && kept.launch.lead === 0.28, 'launch (accelerometer, 0.28 s ahead) is kept on the saved session (' + rr.status + ')');
+  const bad = JSON.parse(JSON.stringify(session)); bad.launch = { from: 'guess', lead: 99 };
+  const rb = await call('POST', '/track/sessions', { carId: 'cara1', session: bad }, 'tok-a');
+  ok(rb.status === 200 && !stored('track-session:' + rb.body.session.id).launch, 'a made-up launch is dropped');
+  if (kept) await call('DELETE', '/track/session?id=' + rr.body.session.id, undefined, 'tok-a');
+  if (rb.status === 200) await call('DELETE', '/track/session?id=' + rb.body.session.id, undefined, 'tok-a');
 }
 
 // ---- The Usage panel's counts ----

@@ -482,7 +482,12 @@
   .ts-new > label { font-size: 0.85rem; color: var(--steel); }
   .ts-new input[type="file"] { display: block; margin-top: 4px; }
   .ts-new textarea { min-height: 0; line-height: 1.45; resize: vertical; }
-  .ts-preview { display: block; width: 100%; max-width: 600px; height: auto; border-radius: var(--radius-sm); border: 1px solid var(--hairline); }
+  .ts-preview { display: block; width: 100%; max-width: 600px; height: auto; border-radius: var(--radius-sm); border: 1px solid var(--hairline); cursor: zoom-in; }
+  .ts-thumb { cursor: zoom-in; }
+  .ts-light { position: fixed; inset: 0; z-index: 3000; display: flex; align-items: center; justify-content: center; padding: 12px; background: rgba(10, 14, 24, 0.92); cursor: zoom-out; }
+  .ts-light img { max-width: 100%; max-height: 100%; width: auto; height: auto; border-radius: var(--radius-sm); }
+  .ts-light:fullscreen { padding: 0; background: #0a0e18; }
+  .ts-light:fullscreen img { border-radius: 0; }
   @media (max-width: 780px) { .ts-item { grid-template-columns: 1fr; } .ts-thumb { width: 100%; } }
   .tk-switch { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; background: none; border: 0; color: var(--ink); padding: 0 6px; }
   .tk-track { width: 42px; height: 26px; border-radius: 13px; background: var(--line-strong); position: relative; }
@@ -678,3 +683,17 @@
 .rt-outcome { border: 1px solid var(--hairline-strong); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 10px; font-size: 0.9rem; }
 .rt-outcome ul { margin: 6px 0 0; padding-left: 18px; }
 .rt-warn { color: var(--orange); font-weight: 600; }
+
+/* Laps logo panel: the four marks to choose from, each on light and dark and as an app icon. */
+.ll-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; margin: 10px 0; }
+.ll-opt { display: flex; flex-direction: column; gap: 8px; align-items: stretch; text-align: left; padding: 12px; border: 2px solid var(--hairline); border-radius: var(--radius); background: #fff; cursor: pointer; font: inherit; color: inherit; }
+.ll-opt:hover { border-color: var(--hairline-strong); }
+.ll-opt, .ll-opt.is-on, .ll-opt:hover, .ll-opt[aria-pressed="true"] { background: #fff; color: var(--ink); }
+.ll-opt.is-on, .ll-opt[aria-pressed="true"] { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(232, 84, 42, 0.15); }
+.ll-opt .ll-about { color: var(--steel); }
+.ll-opt b em { font-style: normal; font-weight: 500; color: var(--steel); }
+.ll-row { display: flex; gap: 8px; align-items: center; flex-wrap: nowrap; }
+.ll-lock { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: var(--radius-sm); border: 1px solid var(--hairline); }
+.ll-name { font-family: var(--font-head); font-weight: 800; font-size: 1.15rem; }
+.ll-app { display: inline-flex; align-items: center; justify-content: center; width: 52px; height: 52px; border-radius: 13px; }
+.ll-about { color: var(--steel); font-size: 0.86rem; }

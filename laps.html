@@ -22,10 +22,11 @@
 <title>Laps by MT3UK: lap times, track days and leaderboards</title>
 <meta name="description" content="Upload the file from your lap timer and see every lap mapped, compared and ranked. Track days, sprints, hill climbs and drag runs, for modified EVs.">
 <link rel="canonical" href="https://laps.mt3uk.com/laps.html">
-<link rel="icon" type="image/x-icon" href="images/site/favicon.ico">
-<link rel="icon" type="image/png" sizes="32x32" href="images/site/favicon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="images/site/favicon-16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="images/site/apple-touch-icon.png">
+<link rel="icon" type="image/svg+xml" href="images/laps/favicon.svg">
+<link rel="icon" type="image/x-icon" href="images/laps/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="images/laps/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="images/laps/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="images/laps/apple-touch-icon.png">
 <link rel="manifest" href="laps-manifest.json">
 <meta name="theme-color" content="#16233d">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -373,12 +374,8 @@
   .lh-shot { border-radius: var(--radius); overflow: hidden; box-shadow: 0 18px 40px rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.12); }
   .lh-shot img { width: 100%; height: auto; }
   /* Any EV, any make: in the hero, so it is seen on the first screen (the EVs band lower down says more). */
-  .lh-evs { display: grid; gap: 8px; margin: 4px 0 12px; }
-  .lh-hero .lh-evs p { font-size: 0.95rem; margin: 0; }
+  .lh-hero .lh-evs { font-size: 0.95rem; margin: 4px 0 12px; max-width: 34em; }
   .lh-evs b { color: #fff; }
-  .lh-makes { display: flex; flex-wrap: wrap; gap: 6px; }
-  .lh-makes span { display: inline-flex; align-items: center; min-height: 30px; padding: 4px 12px; border: 1px solid rgba(255,255,255,.3); border-radius: var(--radius-pill); color: #fff; font-size: 0.84rem; font-weight: 600; }
-  .lh-makes span:last-child { border-style: dashed; color: #c9d1e3; }
   /* On a phone the track picture moves down, under Fastest right now, so the hero is the words and buttons. */
   .lh-shot-low { display: none; }
   @media (max-width: 780px) { .lh-hero { padding: 26px 0 28px; } .lh-hero .lh-shot { display: none; } .lh-shot-low { display: block; padding-top: 28px; } }
@@ -400,7 +397,7 @@
 <header>
   <nav>
     <div class="nav-center">
-      <a href="track.html" class="logo laps-logo" aria-label="Laps by MT3UK, early preview"><span class="laps-logo-early" aria-hidden="true">Early preview</span><span class="laps-logo-name">Laps</span><span class="laps-logo-by">by MT3UK</span></a>
+      <a href="track.html" class="logo laps-logo" aria-label="Laps by MT3UK, early preview"><span class="laps-logo-early" aria-hidden="true">Early preview</span><svg class="laps-logo-mark" viewBox="0 0 64 64" aria-hidden="true"><rect x="27" y="3" width="10" height="6" rx="2" fill="currentColor"/><circle cx="32" cy="36" r="21" fill="none" stroke="currentColor" stroke-opacity=".22" stroke-width="7"/><path d="M32 15A21 21 0 1 1 11 36" fill="none" stroke="#e8542a" stroke-width="7" stroke-linecap="round"/><path d="M32 36 43 25" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><circle cx="32" cy="36" r="3.4" fill="currentColor"/></svg><span class="laps-logo-name">Laps</span><span class="laps-logo-by">by MT3UK</span></a>
       <a href="laps.html" class="laps-intro active" id="tp-play-intro" aria-label="Play intro"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m10 8.5 5 3.5-5 3.5Z"/></svg><span>Play intro</span></a>
     <div class="navlinks" id="navlinks">
       <a href="signin.html" class="nav-link-mobile">Sign Up / Sign In</a>
@@ -435,22 +432,13 @@
         <a class="btn btn-accent" id="lh-start" href="signin.html?next=/track.html">Sign in to start</a>
         <a class="btn btn-secondary" href="leaderboards.html">See the leaderboards</a>
       </div>
-      <div class="lh-evs"><p><b>Any EV, any make.</b> Pick its make and model, no photo needed.</p><div class="lh-makes"><span>Tesla</span><span>Hyundai</span><span>Kia</span><span>Porsche</span><span>Polestar</span><span>BMW</span><span>and more</span></div></div>
+      <p class="lh-evs"><b>Any EV, any make.</b> Tesla, Hyundai, Kia, Porsche, Polestar, BMW and more. Pick its make and model, no photo needed.</p>
       <p class="lh-note" id="lh-note">Laps is in early preview. Sign in and ask for access to try it. Sessions are private until you choose to share them.</p>
     </div>
     <div class="lh-shot"><img id="lh-shot-img" src="images/track-preview/share.jpg" alt="A session on Laps: the lap drawn on the track map, the lap times and a g-force chart" width="1200" height="630"></div>
   </div>
 </section>
 <main data-no-share>
-  <section class="lh-sec" id="fastest" data-panel="fastest">
-    <div class="wrap">
-      <h2>Fastest right now</h2>
-      <p class="lh-lead">The quickest shared time at the busiest tracks, strips and hill climbs.</p>
-      <div class="lh-fast" id="lh-fast" data-lh-fast><div class="tp-loading" role="status"><span class="tp-spinner" aria-hidden="true"></span><p>Loading the leaderboards&hellip;</p></div></div>
-      <p class="lh-more"><a class="btn btn-secondary" href="leaderboards.html">All leaderboards</a></p>
-    </div>
-  </section>
-  <div class="wrap lh-shot-low"><div class="lh-shot"><img class="lh-shot-copy" src="images/track-preview/share.jpg" alt="A session on Laps: the lap drawn on the track map, the lap times and a g-force chart" width="1200" height="630"></div></div>
   <section class="lh-sec" id="what" data-panel="what">
     <div class="wrap">
       <h2>What Laps does</h2>
@@ -463,6 +451,36 @@
       </div>
     </div>
   </section>
+  <section class="lh-sec" id="timers" data-panel="timers">
+    <div class="wrap">
+      <h2>Works with your lap timer</h2>
+      <p class="lh-lead">Export the session from your timer or app and upload the file. Most phone lap timer apps work too.</p>
+      <div class="lh-timers"><span>RaceBox</span><span>VBOX</span><span>AiM</span><span>Harry&rsquo;s LapTimer</span><span>TrackAddict</span><span>Tesla Track Mode</span></div>
+    </div>
+  </section>
+  <section class="lh-sec" id="trackmode" data-panel="trackmode">
+    <div class="wrap">
+      <h2>Tesla Track Mode, analysed</h2>
+      <p class="lh-lead">Save the telemetry from Track Mode to a USB drive and add the file. Laps reads the laps and the car&rsquo;s own data together, so you see what the car was doing, not only where it was.</p>
+      <div class="lh-grid lh-3">
+        <div class="lh-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="8" width="16" height="9" rx="2"/><path d="M21 11v3M8 11l-1 3h3l-1 3"/></svg><h3>Charge used</h3><p>Points of charge used over the session and each lap.</p></div>
+        <div class="lh-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3 5 14h6l-1 7 8-11h-6z"/></svg><h3>Power</h3><p>Power out and regen, lined up with where you were on the track.</p></div>
+        <div class="lh-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg><h3>Brake pressure</h3><p>How hard and how long you braked, corner by corner.</p></div>
+        <div class="lh-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14V5a2 2 0 0 1 4 0v9a4 4 0 1 1-4 0z"/></svg><h3>Temperatures</h3><p>Motor, battery, brakes and more, so you see when the car runs hot.</p></div>
+        <div class="lh-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4v3M12 17v3M4 12h3M17 12h3"/></svg><h3>Tyre pressures</h3><p>Each tyre's pressure through the session, front and rear.</p></div>
+        <div class="lh-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17c4-1 4-6 8-6s4 5 8 6"/><path d="M4 21h16"/></svg><h3>Slip</h3><p>Where the car slid, from the car's own wheel data.</p></div>
+      </div>
+    </div>
+  </section>
+  <section class="lh-sec" id="fastest" data-panel="fastest" data-front-off>
+    <div class="wrap">
+      <h2>Fastest right now</h2>
+      <p class="lh-lead">The quickest shared time at the busiest tracks, strips and hill climbs.</p>
+      <div class="lh-fast" id="lh-fast" data-lh-fast><div class="tp-loading" role="status"><span class="tp-spinner" aria-hidden="true"></span><p>Loading the leaderboards&hellip;</p></div></div>
+      <p class="lh-more"><a class="btn btn-secondary" href="leaderboards.html">All leaderboards</a></p>
+    </div>
+  </section>
+  <div class="wrap lh-shot-low"><div class="lh-shot"><img class="lh-shot-copy" src="images/track-preview/share.jpg" alt="A session on Laps: the lap drawn on the track map, the lap times and a g-force chart" width="1200" height="630"></div></div>
   <section class="lh-sec" id="days" data-panel="days">
     <div class="wrap">
       <h2>Every kind of day</h2>
@@ -474,25 +492,11 @@
       </div>
     </div>
   </section>
-  <section class="lh-sec" id="timers" data-panel="timers">
-    <div class="wrap">
-      <h2>Works with your lap timer</h2>
-      <p class="lh-lead">Export the session from your timer or app and upload the file. Most phone lap timer apps work too.</p>
-      <div class="lh-timers"><span>RaceBox</span><span>VBOX</span><span>AiM</span><span>Harry&rsquo;s LapTimer</span><span>TrackAddict</span><span>Tesla Track Mode</span></div>
-    </div>
-  </section>
-  <section class="lh-band" id="any-make" data-panel="any-make">
-    <div class="wrap">
-      <h2>EVs, any make</h2>
-      <p>Laps started with modified Teslas. Now any EV can join: pick its make and model, no photo needed, and every session is kept private until you choose to share it.</p>
-      <div class="tp-actions"><a class="btn btn-accent" id="lh-start-2" href="signin.html?next=/track.html">Sign in to start</a><a class="btn btn-secondary" href="track.html">How it works</a></div>
-    </div>
-  </section>
 </main>
 
 <footer>
   <div class="wrap footer-row">
-    <a href="track.html" class="logo laps-logo footer-logo" aria-label="Laps by MT3UK"><span class="laps-logo-name">Laps</span><span class="laps-logo-by">by MT3UK</span></a>
+    <a href="track.html" class="logo laps-logo footer-logo" aria-label="Laps by MT3UK"><svg class="laps-logo-mark" viewBox="0 0 64 64" aria-hidden="true"><rect x="27" y="3" width="10" height="6" rx="2" fill="currentColor"/><circle cx="32" cy="36" r="21" fill="none" stroke="currentColor" stroke-opacity=".22" stroke-width="7"/><path d="M32 15A21 21 0 1 1 11 36" fill="none" stroke="#e8542a" stroke-width="7" stroke-linecap="round"/><path d="M32 36 43 25" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><circle cx="32" cy="36" r="3.4" fill="currentColor"/></svg><span class="laps-logo-name">Laps</span><span class="laps-logo-by">by MT3UK</span></a>
     <span class="footer-text">Lap times and leaderboards for modified and electric cars &middot; from the <a href="https://mt3uk.com/" class="footer-inline-link">MT3UK</a> community</span>
     <span class="footer-links"><a href="privacy.html">Privacy</a> <a href="contact.html">Contact</a> <a href="https://mt3uk.com/">Back to MT3UK</a></span>
   </div>
@@ -632,10 +636,11 @@
   }
 </script>
 
-<script src="js/laps-panels.js?v=1" defer></script>
-<script src="js/laps-home.js?v=20270102" defer></script>
+<script src="js/laps-panels.js?v=4" defer></script>
+<script src="js/laps-home.js?v=20270105" defer></script>
 <script src="js/share.js" defer></script>
-<script src="js/account-bar.js?v=14" defer></script>
+<script src="js/laps-logo.js?v=1" defer></script>
+<script src="js/account-bar.js?v=15" defer></script>
 <script src="js/signin-prompt.js" defer></script>
 <script src="js/notify-bell.js?v=2" defer></script>
 <script src="js/messenger.js" defer></script>

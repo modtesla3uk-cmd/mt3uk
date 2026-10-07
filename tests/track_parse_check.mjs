@@ -694,6 +694,39 @@ ok(T.fmtLap(99.786) === '1:39.79' && T.niceDate('2026-05-28') === '28 May 2026',
   }
 }
 
+// A standing start starts the clock from the recorded accelerometer or the speed, whichever moves first (version 14):
+// a logger whose speed column lags the car (Tesla Track Mode) is timed from the g launch, so the time does not shrink.
+{
+  const hrd = T.read(fs.readFileSync(ROOT + 'tests/fixtures/shelsley-climb-and-descent.vbo', 'latin1'), 'Shelsley_HillClimb.VBO');
+  const F = [[52.2598990, -2.4135109], [52.2598692, -2.4138598]];
+  const P = hrd.points;
+  const up = P.find(p => p.v > 100).t; let k = P.findIndex(p => p.t >= up - 6); while (k > 0 && P[k - 1].v > 0.5) k--;
+  const along = m => { let d = 0; for (let j = k + 1; j < P.length; j++) { d += T.haversine(P[j - 1], P[j]); if (d >= m) return { a: P[j - 1], b: P[j] }; } };
+  const across = (m, w = 0.00011) => { const s = along(m), dx = s.b.lng - s.a.lng, dy = s.b.lat - s.a.lat, n = Math.hypot(dx, dy), px = -dy / n, py = dx / n; return [[s.a.lat + py * w, s.a.lng + px * w], [s.a.lat - py * w, s.a.lng - px * w]]; };
+  const opts = { type: 'sprint', ownLines: true, startLine: across(3), finishLine: F, ignoreFirstFinish: true };
+  const base = T.analyse(hrd, { venues: [] }, opts);
+  ok(base.launch && base.launch.from === 'speed' && base.launch.lead === 0 && near(base.bestTime, 33.05, 0.06), 'on the VBOX file the g and the speed rise on the same reading, so the clock still starts from the speed: ' + base.bestTime + ' ' + JSON.stringify(base.launch));
+  ok(T.ANALYSIS_VERSION >= 14, 'the analysis version moved on');
+  // The same file with its speed column 0.3 s late: every reading takes the speed of the one 0.3 s before it.
+  function lagged(rd, lag) {
+    const c = JSON.parse(JSON.stringify(rd));
+    const v = rd.points.map(p => p.v);
+    c.points.forEach((p, j) => { let i = j; while (i > 0 && rd.points[i].t > p.t - lag) i--; p.v = v[i]; });
+    return c;
+  }
+  const lag = T.analyse(lagged(hrd, 0.3), { venues: [] }, opts);
+  ok(lag.launch && lag.launch.from === 'g' && near(lag.launch.lead, 0.3, 0.11), 'with the speed 0.3 s late the accelerometer starts the clock, 0.3 s ahead of the speed: ' + JSON.stringify(lag.launch));
+  ok(near(lag.bestTime, base.bestTime, 0.05), 'so the time is the same as with a true speed column: ' + lag.bestTime + ' against ' + base.bestTime);
+  // g worked out from the speed lags just the same, so it is not used: the clock starts from the late speed.
+  const derived = lagged(hrd, 0.3); derived.gDerived = true;
+  const der = T.analyse(derived, { venues: [] }, opts);
+  ok(der.launch && der.launch.from === 'speed' && der.bestTime < base.bestTime - 0.2 && der.bestTime > base.bestTime - 0.6, 'a file whose g was worked out from its speed is still timed from the late speed, so its time shrinks: ' + der.bestTime + ' ' + JSON.stringify(der.launch));
+  // A hill start sits on a slope: a constant g while standing is the level, not a launch.
+  const slope = lagged(hrd, 0.3); slope.points.forEach(p => { if (isFinite(p.lo)) p.lo += 0.12; });
+  const sl = T.analyse(slope, { venues: [] }, opts);
+  ok(sl.launch && sl.launch.from === 'g' && near(sl.launch.lead, lag.launch.lead, 0.01) && near(sl.bestTime, base.bestTime, 0.05), 'a slope\'s standing g does not fire the launch early: ' + JSON.stringify(sl.launch) + ' ' + sl.bestTime);
+}
+
 // A launch that reaches 30 mph but not 60 mph is a run too, listed with the figures it reached; creeping about is not.
 {
   const rows = ['time,latitude,longitude,speed (mph)'];
@@ -749,7 +782,7 @@ ok(T.fmtLap(99.786) === '1:39.79' && T.niceDate('2026-05-28') === '28 May 2026',
   const got = T.analyse(edited, lib), tr = got.trace.laps[got.best];
   ok(Math.min(...tr.map(r => r[6])) === -0.94, 'braking of -0.935 g reads 0.94 on the chart: ' + Math.min(...tr.map(r => r[6])));
   ok(Math.max(...tr.map(r => r[5])) === 1.26, 'a real 1.264 g reading is kept as recorded: ' + Math.max(...tr.map(r => r[5])));
-  ok(T.ANALYSIS_VERSION === 13, 'the analysis version moved on once more');
+  ok(T.ANALYSIS_VERSION >= 13, 'the analysis version moved on once more');
 }
 
 // A place listed as both a circuit and a sprint: a day of laps round the circuit is a track day, not a sprint

@@ -45,14 +45,14 @@ def setup(page):
         headers = {"Access-Control-Allow-Origin": "*"}
         if req.url.endswith("/session/handover") and req.method == "POST":
             state["made"] += 1
-            assert req.headers.get("x-session-token") == "tok-main" or req.headers.get("x-session-token") == "tok-laps"
+            assert req.headers.get("x-session-token") in ("tok-main", "tok-laps") or req.headers.get("x-admin-viewer") == "viewer-tok"
             return route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "code": CODE}), headers=headers)
         if req.url.endswith("/session/handover/redeem"):
             state["redeemed"].append(json.loads(req.post_data)["code"])
             return route.fulfill(status=200, content_type="application/json", headers=headers,
                                  body=json.dumps({"success": True, "session": "tok-new", "email": "rich@example.com", "firstName": "Rich"}))
         if req.method == "OPTIONS":
-            return route.fulfill(status=204, headers={**headers, "Access-Control-Allow-Headers": "Content-Type, X-Session-Token", "Access-Control-Allow-Methods": "GET, POST"})
+            return route.fulfill(status=204, headers={**headers, "Access-Control-Allow-Headers": "Content-Type, X-Session-Token, X-Admin-Viewer", "Access-Control-Allow-Methods": "GET, POST"})
         return route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True}), headers=headers)
 
     page.route("**/%s/**" % API_HOST, handler)
@@ -97,6 +97,24 @@ def test_from_mt3uk_to_laps_arrives_signed_in(page):
     assert state["redeemed"] == [CODE]
     # Signed in now, so the account bar shows on the Laps page.
     expect(page.locator("#mt3uk-account-bar")).to_contain_text("Rich")
+
+
+def test_the_admin_viewer_token_goes_across_with_or_without_a_sign_in(page):
+    """The admin viewer token (the key entered on an admin page, kept per address) is carried by the same code, so a
+    private session opens on the other address without the key being entered there."""
+    state = setup(page)
+    expires = 4102444800000
+    page.route("**/session/handover/redeem", lambda route: route.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"},
+                                                                         body=json.dumps({"success": True, "adminViewer": {"token": "viewer-tok", "expires": expires}})))
+    page.goto(MAIN + "/offline.html")
+    page.evaluate("e => localStorage.setItem('mt3ukAdminViewer', JSON.stringify({ token: 'viewer-tok', expires: e }))", expires)
+    page.goto(MAIN + "/gallery.html")
+    add_link(page, LAPS + "/track.html?s=abc")
+    page.locator("#go").click()
+    page.wait_for_url(LAPS + "/track.html?s=abc", timeout=10000)
+    page.wait_for_function("JSON.parse(localStorage.getItem('mt3ukAdminViewer') || '{}').token === 'viewer-tok'", timeout=10000)
+    assert state["made"] == 1
+    assert session_at(page) is None
 
 
 def test_links_between_laps_pages_and_signed_out_links_need_no_code(page):
@@ -188,13 +206,19 @@ def test_profile_and_my_garage_stay_on_laps_with_the_laps_header(page):
     assert state["made"] == 0
     expect(page.locator("header .laps-logo")).to_have_count(1)
     assert page.title() == "My Profile - Laps by MT3UK"
-    # The MT3UK app card is left out on Laps.
-    expect(page.locator("#app")).to_be_hidden()
+    # Set up a passkey sits beside Your details on Laps too, and the app card offers the Laps app (this
+    # member has no nickname yet, so the cards wait behind the nickname gate: checked by their markup).
+    assert page.locator("#passkey-setup").count() == 1
+    assert page.evaluate("getComputedStyle(document.querySelector('.pf-side')).display") != "none"
+    assert page.locator("#app h2").text_content() == "The Laps app"
     # The Gallery is not shared: it still goes to mt3uk.com, signed in.
     add_link(page, "gallery.html")
     page.locator("#go").click()
     page.wait_for_url(MAIN + "/gallery.html", timeout=10000)
     assert state["made"] == 1
+    # The code is swapped for a sign-in and the page reloads itself: wait for that before moving on, or the reload
+    # can land after the next goto and put the Gallery back.
+    page.wait_for_function("localStorage.getItem('mt3ukMyBuildsSession') === 'tok-new' && document.referrer.indexOf('gallery.html') !== -1", timeout=10000)
     # On mt3uk.com the same pages keep the MT3UK header.
     page.goto(MAIN + "/profile.html")
     expect(page.locator("header .laps-logo")).to_have_count(0)

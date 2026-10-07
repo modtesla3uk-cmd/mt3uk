@@ -18,7 +18,7 @@
   function get(url) { return fetch(url, { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }
   function signedIn() { try { return !!localStorage.getItem('mt3ukMyBuildsSession'); } catch (e) { return false; } }
   var PLACES = { front: true, sessions: false, leaderboard: false };
-  function shownOn(p, place) { return p && p.show && typeof p.show[place] === 'boolean' ? p.show[place] : PLACES[place]; }
+  function shownOn(p, place, sec) { return p && p.show && typeof p.show[place] === 'boolean' ? p.show[place] : (place === 'front' && sec && sec.hasAttribute('data-front-off') ? false : PLACES[place]); }
 
   var panelsP = null;
   function panels() { if (!panelsP) panelsP = get(API + '/laps/panels').then(function (d) { return (d && d.panels) || {}; }); return panelsP; }
@@ -72,14 +72,22 @@
         var href = 'leaderboards.html?' + (drag ? 'drag=' + encodeURIComponent(parts[1]) : (kind === 'sprint-board' ? 'sprint=' : 'board=') + encodeURIComponent(parts[1] + ':' + parts[2]));
         var top = leaders[k][0];
         var res = drag ? Number(top.quarter).toFixed(2) + ' s' : lapTime(top.time);
-        return { key: k + '|' + res + '|' + (top.owner || ''), n: counts[k] || 0, where: where, href: href, who: top.owner || 'MT3UK member',
+        // The board and its leading time only: a leader's nickname or car name can change without the lead changing.
+        return { key: k + '|' + res, n: counts[k] || 0, where: where, href: href, who: top.owner || 'MT3UK member',
           car: top.car === 'MT3UK member build' && top.model ? title(top) : (top.car || title(top)), res: res,
           what: drag ? 'Quarter mile' : kind === 'sprint-board' ? 'Sprint' : 'Lap' };
       }).filter(Boolean).sort(function (a, b) { return b.n - a.n; }).slice(0, 6);
     });
     return fastP;
   }
-  function seen() { try { return JSON.parse(localStorage.getItem(SEEN) || 'null'); } catch (e) { return null; } }
+  // The list from the last look. Keys saved before October 2026 carried the leader's name as a third part: it is
+  // dropped, so the change of format does not mark every board New once.
+  function seen() {
+    try {
+      var list = JSON.parse(localStorage.getItem(SEEN) || 'null');
+      return Array.isArray(list) ? list.map(function (k) { return String(k).split('|').slice(0, 2).join('|'); }) : null;
+    } catch (e) { return null; }
+  }
   function rowHtml(x, isNew) {
     return '<a href="' + esc(x.href) + '"><span class="lh-where"><b>' + esc(x.where) + (isNew ? ' <span class="lh-new">New</span>' : '') + '</b><span>' + esc(x.who) + (x.car ? ', ' + esc(x.car) : '') + ' &middot; ' + esc(x.what) + '</span></span><span class="lh-time">' + esc(x.res) + '</span></a>';
   }
@@ -121,7 +129,7 @@
       secs.forEach(function (sec) {
         var p = ps[sec.getAttribute('data-panel')];
         apply(sec, p);
-        if (!shownOn(p, 'front')) sec.hidden = true;
+        if (!shownOn(p, 'front', sec)) sec.hidden = true;
       });
     });
   }

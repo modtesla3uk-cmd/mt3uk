@@ -19,7 +19,7 @@ ALL_PAGES = PAGES + ["track-admin.html"]
 GROUPS = [
     ("grp-gallery", "Gallery and builds", ["pending-wrap", "decided-wrap", "unclaimed-wrap", "votes-wrap", "garage-asks-wrap"]),
     ("grp-reports", "Reports", ["comments-wrap", "rphotos-wrap", "local-wrap"]),
-    ("grp-members", "Members", ["subscribers-wrap", "members-msg-wrap"]),
+    ("grp-members", "Members", ["subscribers-wrap", "members-msg-wrap", "passkey-nudge-wrap"]),
     ("grp-interviews", "Owner interviews", ["interviews-wrap", "preview-wrap"]),
     ("grp-sharing", "Sharing links", ["home-share-wrap"]),
 ]
@@ -29,7 +29,7 @@ TRACK_GROUPS = [
     ("grp-sessions", "Members' sessions", ["new-sessions-wrap", "lines-wrap", "member-sessions-wrap"]),
     ("grp-tracks", "Tracks", ["tracks-wrap"]),
     ("grp-boards", "Leaderboards", ["board-checks-wrap", "boards-wrap", "drive-wrap"]),
-    ("grp-content", "Content", ["copy-wrap", "news-wrap", "panels-wrap", "tyres-wrap", "pads-wrap", "vehicles-wrap", "cars-wrap", "share-wrap"]),
+    ("grp-content", "Content", ["copy-wrap", "news-wrap", "logo-wrap", "panels-wrap", "tyres-wrap", "pads-wrap", "vehicles-wrap", "cars-wrap", "share-wrap"]),
 ]
 
 
@@ -153,7 +153,7 @@ def test_the_track_admin_sub_menu_lists_the_sections_of_each_category(page):
     expect(sub.locator("a")).to_have_text(["New sessions", "Line editing", "Member sessions"])
     expect(page.locator('.admin-nav a[data-here="true"]')).to_have_text("Members' sessions")
     page.locator('.admin-nav a[href="track-admin.html#grp-content"]').click()
-    expect(sub.locator("a")).to_have_text(["Welcome text", "Announcement", "Laps panels", "Tyres", "Brake pads", "Vehicles", "Members' cars", "Track sessions sharing"])
+    expect(sub.locator("a")).to_have_text(["Welcome text", "Announcement", "Laps logo", "Laps panels", "Tyres", "Brake pads", "Vehicles", "Members' cars", "Track sessions sharing"])
     sub.locator("a", has_text="Tyres").click()
     expect(page.locator("#tyres-wrap")).to_have_attribute("open", "")
     expect(page.locator("#tyres-wrap summary")).to_be_in_viewport()
@@ -772,6 +772,8 @@ def test_admin_welcome_text_is_edited_and_reset(page):
     expect(page.locator("#tc-preview-out")).to_have_attribute("placeholder", re.compile(r"^Anyone can browse the leaderboards"))
     expect(page.locator("#tc-preview-pending")).to_have_attribute("placeholder", re.compile(r"as soon as your place is ready"))
     page.locator("#tc-preview-out").fill("Testers only for now. Join the list.")
+    # The note still says Saved from the save before, so it is cleared first and the check waits for the new one.
+    page.evaluate("document.getElementById('tc-note').textContent = ''")
     page.locator("#tc-save").click()
     expect(page.locator("#tc-note")).to_contain_text("Saved")
     assert posted[-1]["previewOut"] == "Testers only for now. Join the list."
@@ -779,6 +781,7 @@ def test_admin_welcome_text_is_edited_and_reset(page):
     expect(page.locator("#tc-tip-heading")).to_have_attribute("placeholder", re.compile(r"^Tip: the more you upload"))
     page.locator("#tc-tip-heading").fill("Keep uploading")
     page.locator("#tc-tip-on").click()
+    page.evaluate("document.getElementById('tc-note').textContent = ''")
     page.locator("#tc-save").click()
     expect(page.locator("#tc-note")).to_contain_text("Saved")
     assert posted[-1]["tipHeading"] == "Keep uploading" and posted[-1]["tipOff"] is True
@@ -839,10 +842,11 @@ def test_admin_laps_panels_edit_the_front_page_sections_and_where_they_show(page
     page.locator("#panels-wrap summary").click()
     panels = page.locator("#lpn-list .lpn-panel")
     expect(panels).to_have_count(5)
-    expect(panels.first.locator("legend")).to_have_text("Fastest right now")
-    fast = panels.first
+    expect(panels.first.locator("legend")).to_have_text("What Laps does")
+    fast = page.locator("#lpn-list .lpn-panel[data-id='fastest']")
+    expect(fast.locator("legend")).to_have_text("Fastest right now")
     expect(fast.locator("[data-place='sessions']")).to_have_attribute("aria-checked", "true")
-    expect(fast.locator("[data-place='front']")).to_have_attribute("aria-checked", "true")
+    expect(fast.locator("[data-place='front']")).to_have_attribute("aria-checked", "false")  # off the front page by default
     what = page.locator("#lpn-list .lpn-panel[data-id='what']")
     expect(what.locator("[data-f='heading']")).to_have_attribute("placeholder", "What Laps does")
     expect(what.locator("[data-card]")).to_have_count(8)
@@ -871,6 +875,74 @@ def test_admin_sharing_panel_loads_once_the_admin_key_is_entered(page):
     page.evaluate("sessionStorage.setItem('mt3ukAdminKey', 'test-key'); document.dispatchEvent(new CustomEvent('mt3uk-admin-refresh'))")
     expect(page.locator("#share-wrap .ts-list")).to_contain_text("No pictures yet")
     expect(page.locator("#share-wrap .ts-session option")).to_have_count(2)
+
+
+def test_the_share_card_shows_the_car_its_kit_the_lap_times_and_opens_full_screen(page):
+    """The picture drawn from a session (Track sessions sharing) carries the car, the kind of day, conditions and
+    temperature, tyres, pads, driven wheels and logger as chips, the three tiles, the lap times and the g chart. The
+    preview opens over the page on a tap and shuts on the next."""
+    open_admin(page, "track-admin.html")
+    r = page.evaluate("""async () => {
+      const T = window.MT3UKTrack, C = window.MT3UKTrackShareCard;
+      const txt = await (await fetch('/tests/fixtures/thruxton-trimmed.vbo')).text();
+      const lib = await (await fetch('/data/tracks.json')).json();
+      const s = T.analyse(T.read(txt, 'thruxton.vbo'), lib, {});
+      Object.assign(s, { date: '2026-07-21', time: '09:36', conditions: 'Dry', temp: 19, tyres: 'Michelin Pilot Sport 4S, 245/35 R19', pads: 'Pagid RSL29', drive: 'AWD', logger: 'RaceBox', car: 'Arctic Three' });
+      const cv = document.querySelector('.ts-preview');
+      const m = C.draw(cv, s, {});
+      cv.hidden = false;
+      return { chips: m.chips, lapTimes: m.lapTimes, chart: m.chart, w: cv.width, h: cv.height };
+    }""")
+    assert r["w"] == 1200 and r["h"] == 630
+    assert r["chips"] == ["Arctic Three", "Track day", "Michelin Pilot Sport 4S, 245/35 R19", "Pagid RSL29", "AWD", "Logger: RaceBox"], r
+    assert r["lapTimes"] == 2 and r["chart"] is True, r
+    # A session with none of that draws only what it has.
+    r2 = page.evaluate("""async () => {
+      const T = window.MT3UKTrack, C = window.MT3UKTrackShareCard;
+      const txt = await (await fetch('/tests/fixtures/thruxton-trimmed.vbo')).text();
+      const lib = await (await fetch('/data/tracks.json')).json();
+      const s = T.analyse(T.read(txt, 'thruxton.vbo'), lib, {});
+      return C.draw(document.createElement('canvas'), s, {}).chips;
+    }""")
+    assert r2 == ["Track day"], r2
+    # Tap the preview: full screen (or the overlay alone where the browser will not go full screen); tap again to shut.
+    page.locator("#share-wrap summary").click()
+    page.locator(".ts-preview").click()
+    expect(page.locator(".ts-light img")).to_be_visible()
+    page.locator(".ts-light").click()
+    expect(page.locator(".ts-light")).to_have_count(0)
+
+
+def test_admin_laps_logo_panel_picks_one_of_four_marks(page):
+    """The Laps logo panel shows the four marks (each on light, dark and as an app icon), marks the one in use, and
+    Use this logo saves the pick."""
+    cors = {"Access-Control-Allow-Origin": "*"}
+    state = {"logo": "timer"}
+    posted = []
+
+    def logo_admin(route):
+        req = route.request
+        if req.method == "POST":
+            body = json.loads(req.post_data or "{}")
+            posted.append(body)
+            state["logo"] = body["logo"]
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "logo": state["logo"], "choices": ["timer", "loop", "ramp", "chevron"]}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/laps/logo/admin**", logo_admin)
+    page.locator("#logo-wrap summary").click()
+    opts = page.locator("#ll-grid .ll-opt")
+    expect(opts).to_have_count(4)
+    expect(opts.locator("b")).to_have_text(["Lap timer (in use)", "Lap loop", "Speed-ramp L", "Double chevron"])
+    expect(opts.first).to_have_attribute("aria-pressed", "true")
+    expect(page.locator("#ll-save")).to_be_disabled()
+    page.locator(".ll-opt[data-logo='ramp']").click()
+    expect(page.locator("#ll-save")).to_be_enabled()
+    expect(page.locator("#ll-note")).to_contain_text("Not in use yet")
+    page.locator("#ll-save").click()
+    expect(page.locator(".ll-opt[data-logo='ramp'] b")).to_have_text("Speed-ramp L (in use)")
+    assert posted == [{"logo": "ramp"}], posted
+    expect(page.locator("#ll-save")).to_be_disabled()
 
 
 LINES_API = "**/track/lines/admin**"
@@ -1654,7 +1726,7 @@ def admin_site_setup(page):
     """localhost plays mt3uk.com and 127.0.0.1 plays admin.mt3uk.com."""
     from conftest import PORT
     main, admin = "http://localhost:%d" % PORT, "http://127.0.0.1:%d" % PORT
-    page.add_init_script("window.MT3UK_ADMIN_SITE = { origin: '%s', main: ['localhost'], mainOrigin: '%s' };" % (admin, main))
+    page.add_init_script("window.MT3UK_ADMIN_SITE = { origin: '%s', main: ['localhost'], mainOrigin: '%s', laps: 'http://laps.localhost:%d' };" % (admin, main, PORT))
     page.route("**/admin/alerts**", lambda route: route.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"},
                                                                body=json.dumps({"success": True, "alerts": {"bell": True, "email": True}, "stamp": "1", "pushDevices": []})))
     return main, admin
@@ -1674,6 +1746,55 @@ def test_install_from_mt3uk_goes_to_the_admin_address_and_links_there_come_back(
         document.body.appendChild(a); } }""")
     page.locator("#to-site").click()
     page.wait_for_url(main + "/gallery.html?photo=a.jpg", timeout=10000)
+
+
+def test_a_session_opened_from_an_admin_page_goes_to_laps(page):
+    """A link to a Laps page (a member's session, the Leaderboard) from the admin pages goes to laps.mt3uk.com, from
+    admin.mt3uk.com and from mt3uk.com alike, so the pages after it are Laps pages. Other links behave as before."""
+    from conftest import PORT
+    open_admin(page, "track-admin.html")
+    main, admin = admin_site_setup(page)
+    page.reload()
+    laps = "http://laps.localhost:%d" % PORT
+    page.route(laps + "/**", lambda route: route.fulfill(status=200, content_type="text/html", body="<title>laps</title>"))
+    add = """() => { for (const [id, h] of [['to-session', 'track.html?s=abc'], ['to-board', 'leaderboards.html?board=thruxton:main'], ['to-gallery', 'gallery.html']]) {
+        const a = document.createElement('a'); a.id = id; a.href = h; a.textContent = id;
+        a.style.cssText = 'position:fixed;left:10px;z-index:99999;background:#fff;padding:12px;top:' + (id === 'to-session' ? 200 : id === 'to-board' ? 260 : 320) + 'px';
+        document.body.appendChild(a); } }"""
+    # From mt3uk.com: a session goes to Laps, the Gallery stays on mt3uk.com.
+    page.evaluate(add)
+    page.locator("#to-session").click()
+    page.wait_for_url(laps + "/track.html?s=abc", timeout=10000)
+    # With the admin key entered here, the admin viewer token goes along as a one-time code in the link's #, so the
+    # private session opens there without the key.
+    code = "c" * 64
+    cors = {"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Content-Type, X-Session-Token, X-Admin-Viewer", "Access-Control-Allow-Methods": "GET, POST"}
+
+    def answer(body):
+        return lambda route: route.fulfill(status=204, headers=cors) if route.request.method == "OPTIONS" else route.fulfill(status=200, content_type="application/json", headers=cors, body=json.dumps(body))
+    page.route("**/session/handover", answer({"success": True, "code": code}))
+    page.route("**/session/handover/redeem", answer({"success": True, "adminViewer": {"token": "viewer-two", "expires": 4102444800000}}))
+    page.route("**/admin/viewer-token**", answer({"success": True, "token": "viewer-tok", "expires": 4102444800000}))
+    page.goto(main + "/track-admin.html")
+    page.wait_for_function("JSON.parse(localStorage.getItem('mt3ukAdminViewer') || '{}').token === 'viewer-tok'", timeout=10000)
+    page.evaluate(add)
+    page.locator("#to-session").click()
+    page.wait_for_url(laps + "/track.html?s=abc#mt3uk-handover=" + code, timeout=10000)
+    # And an admin page arriving with a code takes it out of the address and redeems it. (The page also asks for a
+    # token of its own with the kept key; without the mock above that answer carries no token and is ignored.)
+    page.unroute("**/admin/viewer-token**")
+    page.goto(admin + "/track-admin.html#mt3uk-handover=" + code + ":install")
+    page.wait_for_url(admin + "/track-admin.html#install", timeout=10000)
+    page.wait_for_function("JSON.parse(localStorage.getItem('mt3ukAdminViewer') || '{}').token === 'viewer-two'", timeout=20000)
+    page.goto(main + "/track-admin.html")
+    page.evaluate(add)
+    page.locator("#to-gallery").click()
+    page.wait_for_url(main + "/gallery.html", timeout=10000)
+    # From admin.mt3uk.com too.
+    page.goto(admin + "/track-admin.html")
+    page.evaluate(add)
+    page.locator("#to-board").click()
+    page.wait_for_url(laps + "/leaderboards.html?board=thruxton:main#mt3uk-handover=" + code, timeout=10000)
 
 
 def test_the_key_can_be_remembered_on_this_device(page):

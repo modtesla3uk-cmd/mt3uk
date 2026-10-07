@@ -154,21 +154,83 @@
   // ---------- The admin pages' own address: admin.mt3uk.com ----------
   // On Android an installed MT3UK app claims every mt3uk.com page, so Chrome will not install the admin pages from
   // there. They are installed from admin.mt3uk.com (the same files, on its own address), and there a link to any
-  // other page of the site goes back to mt3uk.com. Tests set window.MT3UK_ADMIN_SITE to a local address.
+  // other page of the site goes back to mt3uk.com, except that a link to a Laps page (a member's session, the
+  // Leaderboard) goes to laps.mt3uk.com, from the admin pages on mt3uk.com too, so the pages after it are Laps pages.
+  // Tests set window.MT3UK_ADMIN_SITE to local addresses.
   var ADMIN = window.MT3UK_ADMIN_SITE || { origin: 'https://admin.mt3uk.com', main: ['mt3uk.com', 'www.mt3uk.com'], mainOrigin: 'https://mt3uk.com' };
+  var LAPS_ORIGIN = ADMIN.laps || 'https://laps.mt3uk.com';
   var onAdminSite = location.origin === ADMIN.origin;
   var onMainSite = ADMIN.main.indexOf(location.hostname) !== -1;
   var APP_PAGES = ['/admin.html', '/track-admin.html'];
-  if (onAdminSite) document.addEventListener('click', function (e) {
+  var LAPS_PAGES = ['/track.html', '/leaderboards.html', '/laps.html', '/laps-signin.html'];
+  // A link that leaves this address carries the admin viewer token (and the member's sign-in, if any) as a one-time
+  // code in its # (the worker's /session/handover, as js/account-bar.js does for a sign-in), so a private session
+  // opens there without entering the key again. Without an answer in 3 seconds the link opens as it is.
+  var SESSION_KEY = 'mt3ukMyBuildsSession', ADMIN_VIEWER_KEY = 'mt3ukAdminViewer';
+  function stored(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }
+  function adminViewer() {
+    try { var v = JSON.parse(stored(ADMIN_VIEWER_KEY) || 'null'); return v && v.token && v.expires > Date.now() ? v : null; } catch (e) { return null; }
+  }
+  function withHandover(to, cb) {
+    var token = stored(SESSION_KEY), av = adminViewer();
+    if (!token && !av) return cb(to);
+    var gone = false;
+    function go(url) { if (gone) return; gone = true; cb(url); }
+    var timer = setTimeout(function () { go(to); }, 3000);
+    var headers = { 'Content-Type': 'application/json' };
+    if (token) headers['X-Session-Token'] = token;
+    if (av) headers['X-Admin-Viewer'] = av.token;
+    fetch(API + '/session/handover', { method: 'POST', headers: headers, body: JSON.stringify({ firstName: stored('mt3ukMyBuildsFirstName') }) })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        clearTimeout(timer);
+        if (!d || !d.success || !d.code) return go(to);
+        var u = new URL(to), own = u.hash ? u.hash.slice(1) : '';
+        u.hash = 'mt3uk-handover=' + d.code + (own ? ':' + own : '');
+        go(u.href);
+      })
+      .catch(function () { clearTimeout(timer); go(to); });
+  }
+  if (onAdminSite || onMainSite) document.addEventListener('click', function (e) {
     var a = e.target.closest && e.target.closest('a[href]');
     if (!a || e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     var u;
     try { u = new URL(a.getAttribute('href'), location.href); } catch (err) { return; }
     if (u.origin !== location.origin || APP_PAGES.indexOf(u.pathname) !== -1) return;
+    var laps = LAPS_PAGES.indexOf(u.pathname) !== -1;
+    if (!laps && !onAdminSite) return;
     e.preventDefault();
-    var to = ADMIN.mainOrigin + u.pathname + u.search + u.hash;
-    if (a.target === '_blank') window.open(to, '_blank', 'noopener'); else location.href = to;
+    var to = (laps ? LAPS_ORIGIN : ADMIN.mainOrigin) + u.pathname + u.search + u.hash;
+    if (a.target === '_blank') {
+      // The new tab is opened on the click itself, so the browser does not block it as a pop-up, and sent on once the code is here.
+      var w = window.open('about:blank', '_blank');
+      if (w) { try { w.opener = null; } catch (err) {} }
+      withHandover(to, function (url) { if (w) w.location.href = url; else location.href = url; });
+    } else withHandover(to, function (url) { location.href = url; });
   });
+  // Arriving with a code (js/admin-key-keep.js took it out of the address at load): swap it for the sign-in and the
+  // admin viewer token here. The admin pages work from the key, so nothing reloads.
+  (function redeem() {
+    var code = window.MT3UK_HANDOVER_CODE;
+    if (!code) return;
+    window.MT3UK_HANDOVER_CODE = '';
+    var tries = 0;
+    function attempt() {
+      tries++;
+      fetch(API + '/session/handover/redeem', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: code }) })
+        .then(function (res) { return res.json().then(function (d) { return { status: res.status, d: d }; }); })
+        .then(function (r) {
+          if (r.status === 404 && tries < 3) { setTimeout(attempt, 800); return; }
+          if (!r.d || !r.d.success) return;
+          try {
+            if (r.d.session) { localStorage.setItem(SESSION_KEY, r.d.session); localStorage.setItem('mt3ukMyBuildsEmail', r.d.email || ''); if (r.d.firstName) localStorage.setItem('mt3ukMyBuildsFirstName', r.d.firstName); }
+            if (r.d.adminViewer && r.d.adminViewer.token) localStorage.setItem(ADMIN_VIEWER_KEY, JSON.stringify(r.d.adminViewer));
+          } catch (e) {}
+        })
+        .catch(function () {});
+    }
+    attempt();
+  })();
 
   // ---------- Install this page as an app ----------
   // From admin.mt3uk.com Chrome and Edge install straight away; Safari and Firefox are told how. From mt3uk.com the

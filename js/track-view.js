@@ -206,19 +206,23 @@
     });
     // Each car's dot can carry a small label (its speed), shown by the page's CSS only where wanted (a phone on its
     // side in full screen): lap B's up and to the left of its dot, lap A's down and to the right, so two cars close
-    // together do not cover each other.
+    // together do not cover each other. Near the edge of the map the label flips to the other side of the dot
+    // (dm.hx, dm.vy), so it is never cut off; the gap tag takes the side away from it (dm.vy).
     function dot(color, side) {
       var dm = marker(0, 0);
       el('circle', { r: 7, fill: color, stroke: C.card, 'stroke-width': 2.5 }, dm.g);
       var lg = el('g', { 'class': 'tv-dotlabel' }, dm.g);
-      var rect = el('rect', { y: side > 0 ? 9 : -29, height: 20, rx: 8, fill: color, stroke: '#ffffff', 'stroke-width': 1.5 }, lg);
-      var tx = text(lg, 0, side > 0 ? 23 : -15, '', { 'text-anchor': 'middle', 'font-size': 12, 'font-weight': 700, fill: '#ffffff' });
-      dm.label = function (s) {
-        var w = String(s).length * 7 + 14, x = side > 0 ? 10 : -10 - w;
-        tx.textContent = s; tx.style.fill = '#ffffff';
-        rect.setAttribute('width', w); rect.setAttribute('x', x);
-        tx.setAttribute('x', x + w / 2);
+      var rect = el('rect', { height: 20, rx: 8, fill: color, stroke: '#ffffff', 'stroke-width': 1.5 }, lg);
+      var tx = text(lg, 0, 0, '', { 'text-anchor': 'middle', 'font-size': 12, 'font-weight': 700, fill: '#ffffff' });
+      dm.side = side; dm.hx = side; dm.vy = side; dm.txt = '';
+      dm.width = function () { return String(dm.txt).length * 7 + 14; };
+      dm.layout = function () {
+        var w = dm.width(), x = dm.hx > 0 ? 10 : -10 - w, y = dm.vy > 0 ? 9 : -29;
+        rect.setAttribute('width', w); rect.setAttribute('x', x); rect.setAttribute('y', y);
+        tx.setAttribute('x', x + w / 2); tx.setAttribute('y', y + 14);
       };
+      dm.label = function (s) { dm.txt = s; tx.textContent = s; tx.style.fill = '#ffffff'; dm.layout(); };
+      dm.layout();
       dm.g.setAttribute('visibility', 'hidden');
       return dm;
     }
@@ -227,6 +231,14 @@
       if (!p) { dm.g.setAttribute('visibility', 'hidden'); return; }
       var q = P(p[2], p[3]);
       moveMarker(dm, q[0], q[1]);
+      // Keep the speed label on the map: flip it to the other side of the dot when its own side would be cut off.
+      var v = zoom && seen();
+      if (v) {
+        var w = (dm.width() + 12) / k, h = 31 / k, hx = dm.side, vy = dm.side;
+        if (hx > 0 && q[0] + w > v.x + v.w) hx = -1; else if (hx < 0 && q[0] - w < v.x) hx = 1;
+        if (vy < 0 && q[1] - h < v.y) vy = 1; else if (vy > 0 && q[1] + h > v.y + v.h) vy = -1;
+        if (hx !== dm.hx || vy !== dm.vy) { dm.hx = hx; dm.vy = vy; dm.layout(); }
+      }
       dm.g.setAttribute('visibility', 'visible');
     }
     if (!opts.mono) {
@@ -292,9 +304,10 @@
       var m = marker(0, 0);
       m.rot = el('g', {}, m.g);
       el('path', { d: 'M-2 -8 L12 0 L-2 8 Z', fill: color, stroke: C.card, 'stroke-width': 2, 'stroke-linejoin': 'round' }, m.rot);
-      m.pill = el('rect', { rx: 10, ry: 10, height: 20, fill: color, stroke: C.card, 'stroke-width': 1.5 }, m.g);
+      // A small, soft-cornered, faded tag: the gap is a side note, and a bold pill distracted from the cars.
+      m.pill = el('rect', { rx: 5, ry: 5, height: 18, fill: color, 'fill-opacity': 0.72, stroke: C.card, 'stroke-opacity': 0.8, 'stroke-width': 1 }, m.g);
       // style, not fill: the page's chart text colour would otherwise win.
-      m.label = text(m.g, 0, 0, letter, { style: 'fill:#ffffff;font-size:13px;font-weight:700' });
+      m.label = text(m.g, 0, 0, letter, { style: 'fill:#ffffff;font-size:11px;font-weight:600' });
       m.letter = letter;
       m.g.setAttribute('class', 'tv-edge');
       m.g.setAttribute('pointer-events', 'none');
@@ -308,24 +321,32 @@
       var v = zoom && seen();
       // The same point for both (one lap only): one arrow is enough.
       var same = other && pos && other[2] === pos[2] && other[3] === pos[3] && m === edgeB;
-      if (!q || !v || !zoom || same) { m.g.setAttribute('visibility', 'hidden'); return; }
+      // SVG visibility is inherited but a child set to visible still shows under a hidden parent, so the arrow is
+      // hidden with the group too, or a car that came back into view left a stray triangle where it last pointed.
+      function hide() { m.g.setAttribute('visibility', 'hidden'); m.rot.setAttribute('visibility', 'hidden'); }
+      if (!q || !v || !zoom || same) { hide(); return; }
       var inView = zoom.k() <= 1.01 || (q[0] >= v.x && q[0] <= v.x + v.w && q[1] >= v.y && q[1] <= v.y + v.h);
       var behind = gapS !== null && posA && posB && m.letter === (gapS >= 0 ? 'B' : 'A');
       if (inView) {
-        if (!behind) { m.g.setAttribute('visibility', 'hidden'); return; }
-        // In view: no arrow, just the pill above the car's dot.
-        var gl = m.letter + ', ' + Math.abs(gapS).toFixed(1) + ' s behind', gw = gl.length * 7.2 + 16;
+        if (!behind) { hide(); return; }
+        // In view: no arrow, just a short pill ("A +0.3 s": the full "behind" wording covered the other car's speed
+        // when the cars were close) by the car's dot, on the side away from its speed label (lap B's speed sits up
+        // and to the left of its dot, lap A's down and to the right), so neither covers the other.
+        var dmOwn = m.letter === 'B' ? dotB : dotA, gl = m.letter + ' +' + Math.abs(gapS).toFixed(1) + ' s', gw = gl.length * 6.4 + 12, py0 = dmOwn.vy < 0 ? 12 : -32;
         moveMarker(m, q[0], q[1]);
         m.rot.setAttribute('visibility', 'hidden');
         m.label.textContent = gl;
-        m.pill.setAttribute('x', (-gw / 2).toFixed(1)); m.pill.setAttribute('y', -36); m.pill.setAttribute('width', gw.toFixed(1));
-        m.label.setAttribute('x', 0); m.label.setAttribute('y', -21.5); m.label.setAttribute('text-anchor', 'middle');
+        m.pill.setAttribute('x', (-gw / 2).toFixed(1)); m.pill.setAttribute('y', py0); m.pill.setAttribute('width', gw.toFixed(1));
+        m.label.setAttribute('x', 0); m.label.setAttribute('y', py0 + 13); m.label.setAttribute('text-anchor', 'middle');
         m.g.setAttribute('visibility', 'visible');
         return;
       }
       m.rot.setAttribute('visibility', 'visible');
-      var cx = v.x + v.w / 2, cy = v.y + v.h / 2, dx = q[0] - cx, dy = q[1] - cy, pad = 18 / k;
-      var sc = Math.min(dx ? (v.w / 2 - pad) / Math.abs(dx) : Infinity, dy ? (v.h / 2 - pad) / Math.abs(dy) : Infinity);
+      var cx = v.x + v.w / 2, cy = v.y + v.h / 2, dx = q[0] - cx, dy = q[1] - cy;
+      // In full screen the speed key, the zoom buttons and the play bar sit over the map's edges: keep out from under them.
+      var fullOn = !!(opts.full && opts.full.on && opts.full.on()), pad = { t: fullOn ? 64 : 18, r: fullOn ? 100 : 18, b: fullOn ? 150 : 18, l: 18 };
+      var padX = (dx > 0 ? pad.r : pad.l) / k, padY = (dy > 0 ? pad.b : pad.t) / k;
+      var sc = Math.min(dx ? (v.w / 2 - padX) / Math.abs(dx) : Infinity, dy ? (v.h / 2 - padY) / Math.abs(dy) : Infinity);
       moveMarker(m, cx + dx * sc, cy + dy * sc);
       m.rot.setAttribute('transform', 'rotate(' + (Math.atan2(dy, dx) * 180 / Math.PI).toFixed(1) + ')');
       // The label sits inside the map, away from the edge the arrow points at.
@@ -337,11 +358,11 @@
       m.label.textContent = lbl;
       var horiz = Math.abs(dx) * v.h >= Math.abs(dy) * v.w;
       // A pill beside the arrow, on the side away from the edge.
-      var tw = lbl.length * 7.2 + 16;
-      var px = horiz ? (dx > 0 ? -12 - tw : 12) : -tw / 2, py = horiz ? -10 : (dy > 0 ? -36 : 16);
+      var tw = lbl.length * 6.4 + 12;
+      var px = horiz ? (dx > 0 ? -12 - tw : 12) : -tw / 2, py = horiz ? -9 : (dy > 0 ? -32 : 14);
       m.pill.setAttribute('x', px.toFixed(1)); m.pill.setAttribute('y', py); m.pill.setAttribute('width', tw.toFixed(1));
       m.label.setAttribute('x', (px + tw / 2).toFixed(1));
-      m.label.setAttribute('y', py + 14.5);
+      m.label.setAttribute('y', py + 13);
       m.label.setAttribute('text-anchor', 'middle');
       m.g.setAttribute('visibility', 'visible');
     }
@@ -782,9 +803,9 @@
 
   // ---------- Best lap per session ----------
   // points [{ date, time, wet, mine, label }], mods [{ date 'YYYY-MM', label }]
-  function timeline(svg, points, mods) {
+  function timeline(svg, points, mods, opts) {
     svg.innerHTML = '';
-    var W = width(svg, 900), H = 300;
+    var W = width(svg, 900), H = (opts && opts.H) || 300;
     svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
     if (!points.length) return;
     var m = { l: 56, r: 20, t: 36, b: 30 };

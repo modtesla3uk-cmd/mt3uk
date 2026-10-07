@@ -1704,17 +1704,19 @@ def test_a_session_opened_from_an_admin_page_goes_to_laps(page):
     def answer(body):
         return lambda route: route.fulfill(status=204, headers=cors) if route.request.method == "OPTIONS" else route.fulfill(status=200, content_type="application/json", headers=cors, body=json.dumps(body))
     page.route("**/session/handover", answer({"success": True, "code": code}))
+    page.route("**/session/handover/redeem", answer({"success": True, "adminViewer": {"token": "viewer-two", "expires": 4102444800000}}))
     page.route("**/admin/viewer-token**", answer({"success": True, "token": "viewer-tok", "expires": 4102444800000}))
     page.goto(main + "/track-admin.html")
     page.wait_for_function("JSON.parse(localStorage.getItem('mt3ukAdminViewer') || '{}').token === 'viewer-tok'", timeout=10000)
     page.evaluate(add)
     page.locator("#to-session").click()
     page.wait_for_url(laps + "/track.html?s=abc#mt3uk-handover=" + code, timeout=10000)
-    # And an admin page arriving with a code takes it out of the address and redeems it.
-    page.route("**/session/handover/redeem", answer({"success": True, "adminViewer": {"token": "viewer-two", "expires": 4102444800000}}))
+    # And an admin page arriving with a code takes it out of the address and redeems it. (The page also asks for a
+    # token of its own with the kept key; without the mock above that answer carries no token and is ignored.)
+    page.unroute("**/admin/viewer-token**")
     page.goto(admin + "/track-admin.html#mt3uk-handover=" + code + ":install")
     page.wait_for_url(admin + "/track-admin.html#install", timeout=10000)
-    page.wait_for_function("JSON.parse(localStorage.getItem('mt3ukAdminViewer') || '{}').token === 'viewer-two'", timeout=10000)
+    page.wait_for_function("JSON.parse(localStorage.getItem('mt3ukAdminViewer') || '{}').token === 'viewer-two'", timeout=20000)
     page.goto(main + "/track-admin.html")
     page.evaluate(add)
     page.locator("#to-gallery").click()

@@ -72,7 +72,7 @@
       if (ok) return;
       return fetch(API + '/admin/viewer-token?key=' + encodeURIComponent(adminKey), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
         .then(function (r) { return r.json(); })
-        .then(function (d) { if (d && d.success) { try { localStorage.setItem('mt3ukAdminViewer', JSON.stringify({ token: d.token, expires: d.expires })); } catch (e) {} } });
+        .then(function (d) { if (d && d.success && d.token) { try { localStorage.setItem('mt3ukAdminViewer', JSON.stringify({ token: d.token, expires: d.expires })); } catch (e) {} } });
     }).catch(function () {});
   }
 

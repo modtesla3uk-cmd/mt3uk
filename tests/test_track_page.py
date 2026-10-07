@@ -610,7 +610,7 @@ def test_add_a_session_from_the_racebox_file(page):
     # Over time, with the coilovers fitted between the two sessions.
     expect(page.locator("#tp-timeline circle").first).to_be_attached()
     expect(page.locator("#tp-timeline")).to_contain_text("Coilovers: KW V3")
-    expect(page.locator("#over-time .tp-notes")).to_contain_text("after Coilovers: KW V3 was fitted")
+    expect(page.locator('[data-tile="overtime-notes"] .tp-notes')).to_contain_text("after Coilovers: KW V3 was fitted")
     # Compare with the earlier day is offered.
     expect(page.locator("#tp-cmp-b optgroup")).to_have_attribute("label", "Your other sessions at this track")
 
@@ -2540,14 +2540,19 @@ def test_the_main_list_is_one_line_for_each_track_and_opens_that_tracks_page(pag
 
 def test_a_tracks_chevron_drops_down_its_layouts_and_one_opens_only_those_sessions(page):
     fake = FakeWorker(earlier=False)
-    fake.index = [shared_session("a1", "thruxton", "Thruxton", "main", 100, "2026-04-03"),
-                  dict(shared_session("b1", "brands", "Brands Hatch", "indy", 60, "2026-05-01", privacy="private"), layout="Indy"),
-                  dict(shared_session("b2", "brands", "Brands Hatch", "gp", 120, "2026-05-02"), layout="Grand Prix"),
-                  dict(shared_session("b3", "brands", "Brands Hatch", "indy", 61, "2026-03-09"), layout="Indy"),
-                  dict(shared_session("b4", "brands", "Brands Hatch", "", 0, "2026-02-01"), layout="", type="drag", layoutId="")]
+    # Full records, so a session can be opened from the list and come back to it.
+    for sid, lid, lay, date, best, extra in (("a1", "main", "Thruxton", "2026-04-03", 100.0, {}),
+                                             ("b1", "indy", "Indy", "2026-05-01", 60.0, {"privacy": "private"}),
+                                             ("b2", "gp", "Grand Prix", "2026-05-02", 120.0, {}),
+                                             ("b3", "indy", "Indy", "2026-03-09", 61.0, {}),
+                                             ("b4", "", "", "2026-02-01", 0, {"type": "drag", "runs": []})):
+        venue, vid = ("Thruxton", "thruxton") if sid == "a1" else ("Brands Hatch", "brands")
+        r = dict(day_session(sid, "10:00", best, 4, date=date, venue=venue, venue_id=vid), layoutId=lid, layout=lay, **extra)
+        fake.sessions[sid] = dict(r)
+        fake.index.append(summary(r))
     open_page(page, fake)
     brands = page.locator("#tp-sess-list .tp-trackwrap", has_text="Brands Hatch")
-    layouts = brands.locator(".tp-layouts a.tp-layoutrow")
+    layouts = brands.locator(".tp-layouts button.tp-layoutrow")
     # Folded until the chevron is pressed.
     expect(brands.locator(".tp-layouts")).to_be_hidden()
     toggle = brands.locator("[data-track-toggle]")
@@ -2563,14 +2568,24 @@ def test_a_tracks_chevron_drops_down_its_layouts_and_one_opens_only_those_sessio
     expect(brands.locator(".tp-layouts")).to_be_visible()
     # Thruxton's stays folded.
     expect(page.locator("#tp-sess-list .tp-trackwrap", has_text="Thruxton").locator(".tp-layouts")).to_be_hidden()
-    # A layout opens the track's page with only the sessions on it, named in the heading.
+    # A layout drops down its own sessions, the same day groups as the track's page, without leaving the list.
+    indy = brands.locator(".tp-layoutwrap", has_text="Indy")
+    expect(indy.locator(".tp-layout-sessions")).to_be_hidden()
     layouts.filter(has_text="Indy").click()
-    expect(page).to_have_url(re.compile(r"track\.html\?mycar=.*&at=.*&lay="))
-    expect(page.locator(".tp-head h2")).to_have_text("Brands Hatch, Indy")
-    expect(page.locator(".tp-head .tp-for")).to_contain_text("2 sessions")
-    expect(page.locator("#tp-sess-list a.tp-row[data-sid]")).to_have_count(2)
-    # Back goes to the list, and the track line itself still opens every session there.
+    expect(page).to_have_url(re.compile(r"track\.html$"))
+    expect(indy.locator(".tp-layout-sessions")).to_be_visible()
+    expect(indy.locator(".tp-layout-sessions a.tp-row[data-sid]")).to_have_count(2)
+    expect(indy.locator(".tp-layout-sessions .tp-daygroup")).to_have_count(2)
+    # A session opens from there, and Back finds the list as it was left: Brands Hatch and Indy still open.
+    indy.locator('a.tp-row[data-sid="b1"]').click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s=b1$"))
     page.locator(".tp-back").click()
+    expect(page).to_have_url(re.compile(r"track\.html$"))
+    brands = page.locator("#tp-sess-list .tp-trackwrap", has_text="Brands Hatch")
+    expect(brands.locator(".tp-layouts")).to_be_visible()
+    expect(brands.locator(".tp-layoutwrap", has_text="Indy").locator(".tp-layout-sessions")).to_be_visible()
+    expect(brands.locator(".tp-layoutwrap", has_text="Grand Prix").locator(".tp-layout-sessions")).to_be_hidden()
+    # The track line itself still opens every session there on its own page.
     page.locator("#tp-sess-list a.tp-trackrow", has_text="Brands Hatch").click()
     expect(page.locator(".tp-head h2")).to_have_text("Brands Hatch")
     expect(page.locator(".tp-head .tp-for")).to_contain_text("4 sessions")
@@ -2981,6 +2996,7 @@ def test_zoomed_in_playback_follows_the_cars_until_you_turn_following_off(page):
         .some(p => p[0] > vb.x && p[0] < vb.x + vb.width && p[1] > vb.y && p[1] < vb.y + vb.height);
     }""")
     # Dragging the map by hand turns following off, so it can be explored.
+    page.locator("#tp-map2").scroll_into_view_if_needed()
     box = page.locator("#tp-map2").bounding_box()
     page.mouse.move(box["x"] + box["width"] * 0.5, box["y"] + box["height"] * 0.5)
     page.mouse.down()
@@ -6072,7 +6088,7 @@ def test_the_compare_panels_can_be_moved_by_their_handles(page):
         assert k in first, k
     assert page.locator("#tp-board > [data-tile] > [data-size]").count() == len(first)
     assert page.locator("#tp-board [data-move]").count() == len(first)
-    assert span("speed") == "7" and span("map") == "5" and span("settings") == "12"
+    assert span("speed") == "7" and span("map") == "5" and span("settings") == "12" and span("overtime") == "12"
     assert page.locator('[data-resize="timeline"]').count() == 1
     # Drag the grip chart in front of Corner by corner (they share a row): the tile lands where the marker was.
     handle = page.locator('[data-tile="grip"] [data-move]')

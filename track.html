@@ -240,9 +240,13 @@
   .tp-track-toggle[aria-expanded="true"] .icon { transform: rotate(90deg); }
   .tp-layouts { display: grid; gap: 6px; margin: 6px 0 2px 18px; padding-left: 12px; border-left: 2px solid var(--hairline-strong); }
   .tp-layouts[hidden] { display: none; }
-  .tp-layoutrow { min-height: 46px; padding: 6px 12px; background: var(--paper-2); }
+  .tp-layoutrow { width: 100%; min-height: 46px; padding: 6px 12px; background: var(--paper-2); font: inherit; text-align: left; cursor: pointer; }
   .tp-layoutrow .tp-row-main b { font-size: 0.9rem; }
-  @media (max-width: 780px) { .tp-layouts { margin-left: 10px; padding-left: 8px; } }
+  .tp-layoutrow > .icon { transition: transform 0.15s; }
+  .tp-layoutrow[aria-expanded="true"] > .icon { transform: rotate(90deg); }
+  .tp-layout-sessions { display: grid; gap: 8px; margin: 6px 0 4px; padding-left: 10px; border-left: 2px solid var(--hairline); }
+  .tp-layout-sessions[hidden] { display: none; }
+  @media (max-width: 780px) { .tp-layouts { margin-left: 10px; padding-left: 8px; } .tp-layout-sessions { padding-left: 6px; } }
   .tp-tracklist { gap: 8px; }
   .tp-sort { width: 180px; }
   @media (max-width: 780px) { .tp-sort { width: 100%; } }
@@ -1127,7 +1131,7 @@
 <script src="js/pad-data.js?v=20270210"></script>
 <script src="js/vehicle-data.js?v=20270210" defer></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20270224" defer></script>
+<script src="js/track-page.js?v=20270225" defer></script>
 <script src="js/laps-panels.js?v=3" defer></script>
 <script src="js/laps-tip.js?v=20270104" defer></script>
 <script src="js/share.js" defer></script>

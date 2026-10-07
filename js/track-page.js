@@ -957,17 +957,24 @@
     });
     return out.sort(function (a, b) { return a.last === b.last ? a.name.localeCompare(b.name) : a.last < b.last ? 1 : -1; });
   }
-  var openTracks = {};
+  // The list is a tree: a track's chevron drops down its layouts, and a layout's row drops down its sessions (the same
+  // day groups as the track's page), so every session is reached without leaving the list. What is open is kept for
+  // the browser session (sessionStorage mt3ukLapsListOpen), so coming back from a session finds the list as it was.
+  var LIST_OPEN = 'mt3ukLapsListOpen', openTracks = {}, openLayouts = {};
+  try { var lo = JSON.parse(sessionStorage.getItem(LIST_OPEN) || 'null'); if (lo) { openTracks = lo.tracks || {}; openLayouts = lo.layouts || {}; } } catch (e) {}
+  function storeListOpen() { try { sessionStorage.setItem(LIST_OPEN, JSON.stringify({ tracks: openTracks, layouts: openLayouts })); } catch (e) {} }
   function trackListHtml(list, carId) {
     return trackEntries(list).map(function (t) {
       var q = 'mycar=' + encodeURIComponent(carId) + '&at=' + encodeURIComponent(t.key);
       var lastDay = niceDate(t.last.slice(0, 10)), open = !!openTracks[t.key];
-      var lays = layoutEntries(list.filter(function (x) { return trackKeyOf(x) === t.key; }));
+      var here = list.filter(function (x) { return trackKeyOf(x) === t.key; }), lays = layoutEntries(here);
       return '<div class="tp-trackwrap" data-track="' + esc(t.key) + '"><a class="tp-row tp-trackrow" href="track.html?' + esc(q) + '" data-go="' + esc(q) + '"><span class="tp-row-main"><b>' + esc(t.name) + '</b><span>' + t.n + ' session' + (t.n === 1 ? '' : 's') + ', last ' + esc(lastDay) + '</span></span></a>' +
         '<button type="button" class="tp-track-toggle" data-track-toggle="' + esc(t.key) + '" aria-expanded="' + open + '" aria-label="' + (open ? 'Hide' : 'Show') + ' the layouts at ' + esc(t.name) + '">' + icon('chev') + '</button>' +
         '<div class="tp-layouts"' + (open ? '' : ' hidden') + '>' + lays.map(function (l) {
-          var lq = q + '&lay=' + encodeURIComponent(l.key);
-          return '<a class="tp-row tp-layoutrow" href="track.html?' + esc(lq) + '" data-go="' + esc(lq) + '"><span class="tp-row-main"><b>' + esc(l.name) + '</b><span>' + l.n + ' session' + (l.n === 1 ? '' : 's') + ', last ' + esc(niceDate(l.last.slice(0, 10))) + '</span></span>' + icon('chev') + '</a>';
+          var lk = t.key + '|' + l.key, lopen = !!openLayouts[lk];
+          var rows = here.filter(function (x) { return layoutKeyOf(x) === l.key; }).sort(function (x, y) { return whenOf(x) < whenOf(y) ? 1 : whenOf(x) > whenOf(y) ? -1 : 0; });
+          return '<div class="tp-layoutwrap"><button type="button" class="tp-row tp-layoutrow" data-layout-toggle="' + esc(lk) + '" aria-expanded="' + lopen + '"><span class="tp-row-main"><b>' + esc(l.name) + '</b><span>' + l.n + ' session' + (l.n === 1 ? '' : 's') + ', last ' + esc(niceDate(l.last.slice(0, 10))) + '</span></span>' + icon('chev') + '</button>' +
+            '<div class="tp-layout-sessions"' + (lopen ? '' : ' hidden') + '>' + sessionListHtml(rows, true, list) + '</div></div>';
         }).join('') + '</div></div>';
     }).join('');
   }
@@ -976,13 +983,20 @@
     if (!box || box.getAttribute('data-toggles')) return;
     box.setAttribute('data-toggles', '1');
     box.addEventListener('click', function (e) {
-      var b = e.target.closest('[data-track-toggle]');
-      if (!b) return;
-      var k = b.getAttribute('data-track-toggle'), wrap = b.closest('.tp-trackwrap'), lays = wrap && wrap.querySelector('.tp-layouts');
-      openTracks[k] = !openTracks[k];
-      b.setAttribute('aria-expanded', openTracks[k] ? 'true' : 'false');
-      b.setAttribute('aria-label', b.getAttribute('aria-label').replace(openTracks[k] ? 'Show' : 'Hide', openTracks[k] ? 'Hide' : 'Show'));
-      if (lays) lays.hidden = !openTracks[k];
+      var b = e.target.closest('[data-track-toggle]'), lb = e.target.closest('[data-layout-toggle]');
+      if (b) {
+        var k = b.getAttribute('data-track-toggle'), wrap = b.closest('.tp-trackwrap'), lays = wrap && wrap.querySelector('.tp-layouts');
+        openTracks[k] = !openTracks[k];
+        b.setAttribute('aria-expanded', openTracks[k] ? 'true' : 'false');
+        b.setAttribute('aria-label', b.getAttribute('aria-label').replace(openTracks[k] ? 'Show' : 'Hide', openTracks[k] ? 'Hide' : 'Show'));
+        if (lays) lays.hidden = !openTracks[k];
+      } else if (lb) {
+        var lk = lb.getAttribute('data-layout-toggle'), lw = lb.closest('.tp-layoutwrap'), sess = lw && lw.querySelector('.tp-layout-sessions');
+        openLayouts[lk] = !openLayouts[lk];
+        lb.setAttribute('aria-expanded', openLayouts[lk] ? 'true' : 'false');
+        if (sess) sess.hidden = !openLayouts[lk];
+      } else return;
+      storeListOpen();
     });
   }
   // Where the car sits on the leaderboard: a trophy on the session that holds
@@ -1034,8 +1048,13 @@
     if (sortSel) sortSel.addEventListener('change', function () {
       sortMode = sortSel.value;
       document.getElementById('tp-sess-list').innerHTML = trackListHtml(list, car.id);
+      applyRanks(list);
     });
     wireTrackToggles();
+    // The trophies on the sessions listed under the layouts, as on a track's page.
+    if (ranksFor !== car.id) { ranks = {}; ranksFor = car.id; }
+    applyRanks(list);
+    loadRanks(car.id, list).then(function (rk) { if (ranksFor !== car.id || currentCar !== car.id) return; ranks = rk; applyRanks(list); });
     // Find: the magnifier opens the search; while it is used the results sit in place of the track lines.
     var box = document.getElementById('tp-find'), from = document.getElementById('tp-find-from'), to = document.getElementById('tp-find-to'), range = document.getElementById('tp-find-range'), datesBtn = document.getElementById('tp-find-dates');
     var toggle = document.getElementById('tp-find-toggle'), panel = document.getElementById('tp-find-panel');
@@ -2925,7 +2944,7 @@
         view.members.forEach(function (e) { view.memberById[e.sessionId] = e; });
         drawSession();
       });
-    }).catch(function () { failed('This session could not be loaded. Check your connection and try again.'); });
+    }).catch(function (err) { if (window.console) console.error(err); failed('This session could not be loaded. Check your connection and try again.'); });
   }
   function drawSession() {
     var s = view.s;
@@ -3451,8 +3470,8 @@
   // (3 to 12) and up or down to change its height: the chart tiles scale their charts (sizeOf), the others get a fixed
   // height that scrolls inside. A double tap on it puts that tile back. On a phone every tile is full width and the
   // order and heights still apply. The layout is kept per browser (localStorage mt3ukLapsLayout: order, span, height).
-  var LAYOUT_KEY = 'mt3ukLapsLayout', defaultOrder = null;
-  var DEFAULT_SPAN = { speed: 7, map: 5, corners: 7, grip: 5, cmpnotes: 12, laps: 12, spotted: 12, overtime: 7, 'overtime-notes': 5, 'overtime-table': 7, 'overtime-mods': 5, lineedit: 6, rename: 6, settings: 12, adminlayout: 12 };
+  var LAYOUT_KEY = 'mt3ukLapsLayout', defaultOrder = null, boardOpen = false;
+  var DEFAULT_SPAN = { speed: 7, map: 5, corners: 7, grip: 5, cmpnotes: 12, laps: 12, spotted: 12, overtime: 12, 'overtime-notes': 6, 'overtime-table': 6, 'overtime-mods': 12, lineedit: 6, rename: 6, settings: 12, adminlayout: 12 };
   // Tiles whose height is a chart drawn to size (the key in sizeOf), not a box that scrolls.
   var CHART_TILE = { speed: 'speed', map: 'map', overtime: 'timeline' };
   var MAP_BASE = 380;

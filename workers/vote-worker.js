@@ -3164,6 +3164,19 @@ async function sendAdminEmail(env, raw, subject, page) {
   if (!(await adminAlerts(env)).email) return;
   await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, raw));
 }
+// The daily changes email (.github/workflows/daily-changes-email.yml, written by scripts/daily_changes.py): what was
+// pushed to the site that day, to MT3UK. Admin key only. It is a report Richard asked for, not an admin action, so it
+// does not push or move the bell, but the Email switch still stops it.
+async function handleAdminDailySummary(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var subject = trackText(body && body.subject, 150), text = String((body && body.text) || '').slice(0, 20000);
+  if (!subject || !text.trim()) return json({ success: false, message: 'Nothing to send' }, 400);
+  if (!(await adminAlerts(env)).email) return json({ success: true, sent: false, message: 'The Email switch is off' });
+  await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, rawEmail(MY_BUILDS_FROM_EMAIL, SUBSCRIBERS_DIGEST_EMAIL, subject, text)));
+  return json({ success: true, sent: true });
+}
 async function handleAdminAlerts(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
   var now = await adminAlerts(env);
@@ -11368,6 +11381,9 @@ export default {
     }
     if (url.pathname === '/track/counts' && request.method === 'GET') {
       return handleTrackCounts(request, env);
+    }
+    if (url.pathname === '/admin/daily-summary' && request.method === 'POST') {
+      return handleAdminDailySummary(request, env);
     }
     if (url.pathname === '/laps/news' && request.method === 'GET') {
       return handleLapsNewsPublic(request, env);

@@ -1413,6 +1413,20 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   ok(cp.body.success && Object.keys(cp.body.copy).length === 0 && !kv.has('track-copy'), 'reset clears the words');
 }
 
+// The daily changes email: admin key only, sent to MT3UK, stopped by the Email switch.
+{
+  ok((await call('POST', '/admin/daily-summary', { subject: 'x', text: 'y' })).status === 401, 'the daily email needs the admin key');
+  ok((await call('POST', '/admin/daily-summary?key=secret', { subject: 'x', text: '  ' })).status === 400, 'an empty email is refused');
+  const before = env.SEND_EMAIL.sent.length;
+  const r = await call('POST', '/admin/daily-summary?key=secret', { subject: 'MT3UK and Laps: changes on 7 October 2026', text: 'Hi Richard,\n\n- Laps: the announcement\n\nYOUR NEXT STEPS\n- Write one' });
+  const mail = env.SEND_EMAIL.sent[env.SEND_EMAIL.sent.length - 1];
+  ok(r.body.sent === true && env.SEND_EMAIL.sent.length === before + 1 && /To: modtesla3uk@gmail\.com/.test(mail) && /changes on 7 October 2026/.test(mail) && /YOUR NEXT STEPS/.test(mail), 'the summary is emailed to MT3UK');
+  await call('POST', '/admin/alerts?key=secret', { email: false });
+  const off = await call('POST', '/admin/daily-summary?key=secret', { subject: 'x', text: 'y' });
+  ok(off.body.sent === false && env.SEND_EMAIL.sent.length === before + 1, 'with the Email switch off nothing is sent');
+  await call('POST', '/admin/alerts?key=secret', { email: true });
+}
+
 // The Laps announcement on Sessions: one line, shown when on, a new id when the words change.
 {
   let ln = await call('GET', '/laps/news');

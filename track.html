@@ -176,8 +176,21 @@
   .tp-daygroup-share[aria-checked="true"] .tp-track { background: var(--orange); }
   .tp-daygroup-share[aria-checked="true"] .tp-track::after { transform: translateX(18px); }
   .tp-daygroup-share:disabled { opacity: 0.6; cursor: wait; }
-  .tp-daygroup-count .icon { color: var(--steel); transition: transform 0.15s; }
-  .tp-daygroup[data-open="true"] .tp-daygroup-count .icon { transform: rotate(90deg); }
+  .tp-daygroup-best .tp-daygroup-count { display: inline; }
+  .tp-dayfast { padding-right: 4px; }
+  .tp-dayfast .tp-row-link { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; color: inherit; text-decoration: none; }
+  .tp-day-expand { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 44px; height: 44px; margin: -6px -4px -6px 0; padding: 0; border: 0; border-radius: 50%; background: var(--paper-2); color: var(--ink); cursor: pointer; }
+  .tp-day-expand .icon { transform: rotate(90deg); }
+  .tp-day-expand:hover, .tp-day-expand:focus-visible { background: var(--hairline-strong); }
+  .tp-daygroup-less { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; margin: 2px 0 0; padding: 0 10px 0 4px; border: 0; border-radius: var(--radius-pill); background: none; color: var(--steel); font: inherit; font-size: 0.84rem; font-weight: 600; cursor: pointer; }
+  .tp-daygroup-less .icon { transform: rotate(-90deg); }
+  .tp-daygroup-less:hover, .tp-daygroup-less:focus-visible { color: var(--ink); background: var(--paper-2); }
+  /* A day's rows keep the result and the Shared pill on the time's line (never wrapped under it), so a day is short. */
+  .tp-daygroup .tp-row { flex-wrap: nowrap; min-height: 52px; padding: 8px 12px; }
+  .tp-daygroup .tp-row-main { display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; flex-basis: auto; }
+  .tp-daygroup .tp-row-main .tp-rank { margin-top: 0; }
+  .tp-daygroup .tp-row-res { white-space: nowrap; }
+  .tp-daygroup .tp-row > .icon { order: 5; }
   .tp-daygroup-charge { margin: 2px 0 4px; color: var(--steel); }
   .tp-daygroup-best { display: grid; gap: 6px; margin-top: 6px; }
   .tp-daygroup-label { color: var(--steel); }
@@ -188,7 +201,19 @@
   .tp-daygroup[data-open="true"] .tp-daygroup-best { display: none; }
   .tp-row-main b.tp-fastest { margin-left: 4px; padding: 1px 8px; border-radius: var(--radius-pill); background: var(--ok-bg); color: var(--ok-ink); font-size: 0.74rem; font-weight: 600; }
   .tp-daygroup-no { min-width: 2.2em; font-weight: 700; color: var(--steel); font-variant-numeric: tabular-nums; }
-  @media (max-width: 560px) { .tp-daygroup .tp-row-main { flex-basis: calc(100% - 96px); } .tp-daygroup-no { min-width: 1.8em; } }
+  /* Phones: a day's row is tight (the tree indents it), so the Shared pill is its icon alone and the badges shrink. */
+  @media (max-width: 560px) {
+    .tp-daygroup-no { min-width: 1.4em; }
+    .tp-daygroup .tp-row { gap: 5px; padding: 6px 6px 6px 8px; }
+    .tp-dayfast .tp-row-link { gap: 5px; }
+    .tp-daygroup .tp-row-main { gap: 0 6px; }
+    .tp-daygroup .tp-row-main b { font-size: 0.9rem; }
+    .tp-daygroup .tp-row-main > span { font-size: 0.76rem; }
+    .tp-daygroup .tp-pill { padding: 5px; font-size: 0; gap: 0; }
+    .tp-daygroup .tp-pill .icon { width: 15px; height: 15px; }
+    .tp-daygroup .tp-row-main .tp-rank { padding: 1px 7px 1px 5px; font-size: 0.72rem; }
+    .tp-day-expand { width: 40px; height: 40px; margin-right: -2px; }
+  }
   @media (max-width: 560px) { .tp-row { flex-wrap: wrap; } .tp-row-main { flex-basis: calc(100% - 40px); } .tp-row > .icon { order: 2; } .tp-row-res { order: 3; } .tp-pill { order: 4; } }
   /* Smaller, tighter headings on a track session's rows and day cards, most of all on a phone. */
   .tp-daygroup-head h3 { font-size: 0.98rem; line-height: 1.25; }
@@ -238,13 +263,14 @@
   .tp-track-toggle:hover { background: var(--paper-2); color: var(--ink); }
   .tp-track-toggle .icon { transition: transform 0.15s; }
   .tp-track-toggle[aria-expanded="true"] .icon { transform: rotate(90deg); }
-  .tp-layouts { display: grid; gap: 6px; margin: 6px 0 2px 18px; padding-left: 12px; border-left: 2px solid var(--hairline-strong); }
+  .tp-layouts { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; margin: 6px 0 2px 18px; padding-left: 12px; border-left: 2px solid var(--hairline-strong); }
+  .tp-layoutwrap, .tp-trackwrap { min-width: 0; }
   .tp-layouts[hidden] { display: none; }
   .tp-layoutrow { width: 100%; min-height: 46px; padding: 6px 12px; background: var(--paper-2); font: inherit; text-align: left; cursor: pointer; }
   .tp-layoutrow .tp-row-main b { font-size: 0.9rem; }
   .tp-layoutrow > .icon { transition: transform 0.15s; }
   .tp-layoutrow[aria-expanded="true"] > .icon { transform: rotate(90deg); }
-  .tp-layout-sessions { display: grid; gap: 8px; margin: 6px 0 4px; padding-left: 10px; border-left: 2px solid var(--hairline); }
+  .tp-layout-sessions { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin: 6px 0 4px; padding-left: 10px; border-left: 2px solid var(--hairline); }
   .tp-layout-sessions[hidden] { display: none; }
   @media (max-width: 780px) { .tp-layouts { margin-left: 10px; padding-left: 8px; } .tp-layout-sessions { padding-left: 6px; } }
   .tp-tracklist { gap: 8px; }
@@ -331,12 +357,14 @@
     .page-hero .tp-hero-row .tp-lb-pill.tp-round { grid-column: 2; grid-row: 1; justify-self: end; align-self: center; width: 44px; min-width: 0; height: 44px; min-height: 44px; padding: 0; gap: 0; border-radius: 50%; font-size: 0; }
     .page-hero .tp-hero-row .tp-lb-pill.tp-round .icon { width: 22px; height: 22px; }
     .page-hero .tp-hero-actions { grid-column: 3; grid-row: 1; margin-top: 0; gap: 8px; }
-    .page-hero .tp-hero-actions .tp-lb-pill { min-width: 0; min-height: 44px; padding: 0 16px; font-size: 0.92rem; }
+    /* Add a session is a round orange plus on a phone. */
+    .page-hero .tp-hero-actions .tp-lb-pill { width: 44px; min-width: 0; height: 44px; min-height: 44px; padding: 0; gap: 0; border-radius: 50%; font-size: 0; }
+    .page-hero .tp-hero-actions .tp-lb-pill .icon { width: 24px; height: 24px; }
+    .page-hero .tp-hero-actions .tp-lb-pill span { display: none; }
     .page-hero .tp-hero-row h1 { grid-column: 1 / -1; grid-row: 2; margin: 12px 0 0; }
     .page-hero .tp-what { grid-column: 1 / -1; grid-row: 3; }
     .tp-hero-actions .laps-tip-bulbbtn { width: 44px; height: 44px; }
   }
-  @media (max-width: 400px) { .page-hero .tp-hero-actions .tp-lb-pill .icon { display: none; } .page-hero .tp-hero-actions .tp-lb-pill { padding: 0 14px; } }
   /* On a phone the list's title (with its share button just after it) and the What are...? link are centred, as on the Leaderboard. */
   @media (max-width: 780px) {
     body[data-tp-view=""] .page-hero .tp-hero-row h1 { justify-self: center; }
@@ -948,7 +976,7 @@
 <section class="page-hero tp-dark-hero">
   <div class="wrap">
     <div class="tp-hero-top"><a href="my-builds.html" class="back-link" aria-label="Back to My Garage"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</a></div>
-    <div class="tp-hero-row"><h1>My Sessions</h1><a class="tp-lb-pill tp-round" id="tp-lb-pill" href="leaderboards.html" aria-label="Leaderboards" title="Leaderboards"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/></svg>Leaderboards</a><div class="tp-hero-actions" id="tp-hero-actions" hidden><a class="tp-lb-pill tp-add-pill" id="tp-hero-add" href="track.html?add=1"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 21h14"/></svg>Add a session</a><div data-laps-tip="bulb-fast"></div></div></div>
+    <div class="tp-hero-row"><h1>My Sessions</h1><a class="tp-lb-pill tp-round" id="tp-lb-pill" href="leaderboards.html" aria-label="Leaderboards" title="Leaderboards"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/></svg>Leaderboards</a><div class="tp-hero-actions" id="tp-hero-actions" hidden><a class="tp-lb-pill tp-add-pill" id="tp-hero-add" href="track.html?add=1" aria-label="Add a session" title="Add a session"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Add a session</span></a><div data-laps-tip="bulb-fast"></div></div></div>
     <details class="tp-what"><summary>What are Sessions?</summary><div class="tp-what-body"><p>Your track days, sprints, hill climbs and drag runs from your lap timer file (RaceBox, VBOX, AiM, Harry&rsquo;s LapTimer, TrackAddict and most phone apps). Upload it and Laps does the rest.</p><ul class="tp-what-list"><li><b>Every lap mapped.</b> Compare any two laps on the satellite map, with speed, acceleration, braking and cornering g, and see where you gained or lost time, corner by corner.</li><li><b>Tyres and brake pads.</b> Record the tyres and pads you ran on each session, from their make and model lists. Laps keeps them with your times, beside the makers&rsquo; own figures: wet grip, noise and EV rating for tyres, and the working temperature range for pads.</li><li><b>Compare tyres and pads.</b> On the Leaderboard, see which tyres and pads are quickest at each track, with the best and typical times, peak braking g and brake temperatures, and a warning when pads ran hotter than their range.</li><li><b>Your car and its mods.</b> Sessions are linked to your car in My Garage, so its mods, kerb weight and driven wheels sit beside your times, and you can see what each change did.</li><li><b>The Leaderboard.</b> Share a session to put your car on the board for that track, or keep it to yourself. Filter by model, conditions, driven wheels, air temperature and weight.</li></ul></div></details>
   </div>
 </section>
@@ -1103,12 +1131,12 @@
 </script>
 
 <script src="js/track-parse.js?v=20270129" defer></script>
-<script src="js/track-view.js?v=20270113" defer></script>
+<script src="js/track-view.js?v=20270114" defer></script>
 <script src="js/tyre-data.js?v=20270210"></script>
 <script src="js/pad-data.js?v=20270210"></script>
 <script src="js/vehicle-data.js?v=20270210" defer></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20270228" defer></script>
+<script src="js/track-page.js?v=20270229" defer></script>
 <script src="js/laps-panels.js?v=3" defer></script>
 <script src="js/laps-tip.js?v=20270104" defer></script>
 <script src="js/share.js" defer></script>

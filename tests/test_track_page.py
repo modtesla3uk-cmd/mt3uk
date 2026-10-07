@@ -781,15 +781,19 @@ def test_sessions_at_the_same_track_on_the_same_day_are_grouped_by_time(page):
     expect(card.locator(".tp-daygroup-count .tp-small")).to_have_text("3 sessions")
     # Collapsed: only the fastest session of the day shows, with its place in the day.
     expect(card).to_have_attribute("data-open", "false")
-    expect(card.locator(".tp-daygroup-label")).to_have_text("Fastest session of the day")
+    expect(card.locator(".tp-daygroup-label")).to_contain_text("Fastest session of the day")
     best = card.locator(".tp-daygroup-best .tp-row")
     expect(best).to_have_count(1)
     expect(best).to_contain_text("#2")
     expect(best).to_contain_text("11:29")
     expect(best).to_contain_text("1:21.17")
     expect(card.locator(".tp-daygroup-all")).to_be_hidden()
-    # Opening it lists every session in time of day order, numbered by it, with the fastest marked.
-    card.locator(".tp-daygroup-title").click()
+    # The result and the Shared pill sit on the time's line, not under it; the count is not a button at the top.
+    tb, rb = best.locator(".tp-row-main b").first.bounding_box(), best.locator(".tp-row-res").bounding_box()
+    assert abs((tb["y"] + tb["height"] / 2) - (rb["y"] + rb["height"] / 2)) < 8, (tb, rb)
+    expect(card.locator("button.tp-daygroup-count")).to_have_count(0)
+    # The chevron on the fastest row opens the day: every session in time of day order, numbered, the fastest marked.
+    best.locator(".tp-day-expand").click()
     expect(card).to_have_attribute("data-open", "true")
     expect(card.locator(".tp-daygroup-best")).to_be_hidden()
     rows = card.locator(".tp-daygroup-all .tp-row")
@@ -1641,6 +1645,16 @@ def test_sessions_has_add_a_session_under_leaderboards(page):
     add.click()
     expect(page).to_have_url(re.compile(r"/track\.html\?add=1&car="))
     expect(page.locator("#tp-hero-actions")).to_be_hidden()
+    # On the owner's own session it is there too, for that car; on a phone it is a round plus.
+    own = day_session("own1", "10:00", 95.0, 4)
+    fake.sessions["own1"] = dict(own, carId="car1")
+    page.goto("/track.html?s=own1")
+    expect(page.locator("#tp-hero-add")).to_be_visible()
+    assert "car=" in page.locator("#tp-hero-add").get_attribute("href")
+    page.set_viewport_size({"width": 390, "height": 800})
+    b = page.locator("#tp-hero-add").bounding_box()
+    assert abs(b["width"] - 44) < 2 and abs(b["height"] - 44) < 2, b
+    expect(page.locator("#tp-hero-add span")).to_be_hidden()
 
 
 def test_the_battery_start_and_end_are_rounded_once(page):
@@ -4447,6 +4461,42 @@ def test_map_labels_cannot_be_selected_when_the_map_is_dragged(page):
     }""")
     assert r["texts"] and all(u == "none" for u in r["texts"]), r
     assert r["svg"] == "none" and r["selected"] == "", r
+
+
+def test_a_cars_speed_label_flips_away_from_the_map_edge_and_the_gap_tag_is_small(page):
+    """In full screen on a phone each car's speed sits beside its dot. At the right edge lap A's label (normally to the
+    right) flips to the left, and at the left edge lap B's (normally to the left) flips to the right, so neither is cut
+    off. The gap tag by the car behind is a small faded soft-cornered tag on the side away from the speed label."""
+    open_page(page, FakeWorker())
+    r = page.evaluate("""() => {
+      const V = window.MT3UKTrackView;
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      const host = document.createElement('div');
+      host.style.cssText = 'width:600px;height:300px;position:fixed;left:0;top:0;background:#fff;z-index:99999';
+      svg.setAttribute('class', 'tv-chart');
+      host.appendChild(svg); document.body.appendChild(host);
+      const trace = [];
+      for (let i = 0; i <= 200; i++) { const d = i * 5; trace.push([d, d / 40, d, 20 * Math.sin(d / 300), 40, 0, 0]); }
+      const mo = V.map(svg, trace, { mono: true, lines: [{ trace, color: '#2a78d6' }, { trace, color: '#e8622a' }] });
+      mo.setLabel('a', '74 mph'); mo.setLabel('b', '71 mph');
+      const lab = l => { const g = [...svg.querySelectorAll('g.tv-dotlabel')][l]; const r = g.querySelector('rect'); return { x: +r.getAttribute('x'), y: +r.getAttribute('y') }; };
+      const edge = letter => { const g = [...svg.querySelectorAll('g.tv-edge')].find(x => x.querySelector('text').textContent.startsWith(letter)); const r = g.querySelector('rect'); return { vis: g.getAttribute('visibility'), y: +r.getAttribute('y'), h: +r.getAttribute('height'), rx: +r.getAttribute('rx'), op: +r.getAttribute('fill-opacity'), text: g.querySelector('text').textContent }; };
+      const out = {};
+      mo.setGap(2.0);
+      mo.placeA(trace[100]); mo.placeB(trace[90]);
+      out.mid = { a: lab(1), b: lab(0), edgeB: edge('B') };
+      mo.placeA(trace[200]); mo.placeB(trace[0]);
+      out.ends = { a: lab(1), b: lab(0) };
+      return out;
+    }""")
+    # Mid-map: A's label to the right and below its dot, B's to the left and above; B (behind) carries a small tag below.
+    assert r["mid"]["a"]["x"] > 0 and r["mid"]["a"]["y"] > 0, r["mid"]
+    assert r["mid"]["b"]["x"] < 0 and r["mid"]["b"]["y"] < 0, r["mid"]
+    e = r["mid"]["edgeB"]
+    assert e["vis"] == "visible" and e["text"] == "B +2.0 s" and e["y"] > 8 and e["h"] <= 18 and e["rx"] <= 6 and e["op"] < 1, e
+    # At the ends: A at the right edge flips to the left, B at the left edge flips to the right.
+    assert r["ends"]["a"]["x"] < 0, r["ends"]
+    assert r["ends"]["b"]["x"] > 0, r["ends"]
 
 
 def test_follow_glides_between_both_cars_and_the_leader(page):

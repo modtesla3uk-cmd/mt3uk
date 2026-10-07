@@ -204,6 +204,18 @@
         <div class="iv-toolbar"><button type="button" class="secondary" id="tc-save">Save</button><button type="button" class="secondary" id="tc-reset">Use the built-in words</button></div>
       </div>
     </details>
+    <details class="collapsible" id="news-wrap">
+      <summary><h3 class="panel-title">Announcement</h3></summary>
+      <p class="iv-note">One line at the top of every member's Sessions, with an optional link, until they close it. Change the words or the link and it shows again to everyone.</p>
+      <p class="iv-note" id="an-note" role="status"></p>
+      <div class="ts-new">
+        <div class="iv-toolbar"><button type="button" class="tk-switch" role="switch" id="an-on" aria-checked="false"><span class="tk-track"></span>Show it on Sessions</button></div>
+        <label>Announcement (one line)<input type="text" id="an-text" maxlength="200" placeholder="New: Compare tyres and pads on every board"></label>
+        <label>Link (optional: a page such as leaderboards.html, or an https:// address)<input type="text" id="an-link" maxlength="300"></label>
+        <label>Link words<input type="text" id="an-link-text" maxlength="40" placeholder="Find out more"></label>
+        <div class="iv-toolbar"><button type="button" class="secondary" id="an-save">Save</button><button type="button" class="secondary" id="an-clear">Remove</button></div>
+      </div>
+    </details>
     <details class="collapsible" id="panels-wrap">
       <summary><h3 class="panel-title">Laps panels</h3></summary>
       <p class="iv-note">The sections of the Laps front page (laps.html): Fastest right now, What Laps does, Every kind of day, Works with your lap timer and EVs, any make. Change any heading, intro line, card or chip, and choose where each one shows: the front page, and for signed-in members under the list on Sessions and under the track list on the Leaderboard. Anything left blank keeps the front page's own words.</p>
@@ -264,7 +276,7 @@
 </main>
 <script src="js/track-admin-page.js?v=20270107"></script>
 <script src="js/admin-subnav.js?v=20261160" defer></script>
-<script src="js/admin-help.js?v=20270211" defer></script>
+<script src="js/admin-help.js?v=20270212" defer></script>
 <script src="js/admin-alerts.js?v=20261250" defer></script>
 <script src="js/track-parse.js?v=20270121" defer></script>
 <script src="js/track-view.js?v=20270110" defer></script>
@@ -280,6 +292,7 @@
 <script src="js/track-share-admin.js?v=20261105" defer></script>
 <script src="js/track-copy-admin.js?v=20270102" defer></script>
 <script src="js/laps-panels-admin.js?v=1" defer></script>
+<script src="js/laps-news-admin.js?v=1" defer></script>
 <script src="js/track-drive-admin.js?v=20261231" defer></script>
 <script src="js/tyre-data.js?v=20270210" defer></script>
 <script src="js/tyre-admin.js?v=20270210" defer></script>

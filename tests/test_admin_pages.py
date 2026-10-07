@@ -29,7 +29,7 @@ TRACK_GROUPS = [
     ("grp-sessions", "Members' sessions", ["new-sessions-wrap", "lines-wrap", "member-sessions-wrap"]),
     ("grp-tracks", "Tracks", ["tracks-wrap"]),
     ("grp-boards", "Leaderboards", ["board-checks-wrap", "boards-wrap", "drive-wrap"]),
-    ("grp-content", "Content", ["copy-wrap", "panels-wrap", "tyres-wrap", "pads-wrap", "vehicles-wrap", "cars-wrap", "share-wrap"]),
+    ("grp-content", "Content", ["copy-wrap", "news-wrap", "panels-wrap", "tyres-wrap", "pads-wrap", "vehicles-wrap", "cars-wrap", "share-wrap"]),
 ]
 
 
@@ -153,7 +153,7 @@ def test_the_track_admin_sub_menu_lists_the_sections_of_each_category(page):
     expect(sub.locator("a")).to_have_text(["New sessions", "Line editing", "Member sessions"])
     expect(page.locator('.admin-nav a[data-here="true"]')).to_have_text("Members' sessions")
     page.locator('.admin-nav a[href="track-admin.html#grp-content"]').click()
-    expect(sub.locator("a")).to_have_text(["Welcome text", "Laps panels", "Tyres", "Brake pads", "Vehicles", "Members' cars", "Track sessions sharing"])
+    expect(sub.locator("a")).to_have_text(["Welcome text", "Announcement", "Laps panels", "Tyres", "Brake pads", "Vehicles", "Members' cars", "Track sessions sharing"])
     sub.locator("a", has_text="Tyres").click()
     expect(page.locator("#tyres-wrap")).to_have_attribute("open", "")
     expect(page.locator("#tyres-wrap summary")).to_be_in_viewport()
@@ -751,6 +751,37 @@ def test_admin_welcome_text_is_edited_and_reset(page):
     expect(page.locator("#tc-note")).to_contain_text("built-in")
     assert posted[-1] == {"reset": True}
     expect(page.locator("#tc-heading")).to_have_value("")
+
+
+def test_admin_announcement_for_sessions(page):
+    cors = {"Access-Control-Allow-Origin": "*"}
+    stored, posted = {}, []
+
+    def news_admin(route):
+        if route.request.method == "POST":
+            body = json.loads(route.request.post_data)
+            posted.append(body)
+            stored.clear()
+            if not body.get("clear"):
+                stored.update({"id": "9", "text": body["text"], "link": "", "linkText": "", "on": body["on"]})
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "news": dict(stored)}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/laps/news/admin**", news_admin)
+    page.locator("#news-wrap summary").click()
+    expect(page.locator("#an-note")).to_contain_text("No announcement")
+    page.locator("#an-text").fill("New: Compare pads")
+    page.locator("#an-link").fill("javascript:alert(1)")
+    page.locator("#an-on").click()
+    page.locator("#an-save").click()
+    assert posted[-1] == {"text": "New: Compare pads", "link": "javascript:alert(1)", "linkText": "", "on": True}
+    # The worker dropped the link, and the panel says so.
+    expect(page.locator("#an-note")).to_contain_text("the link was left off")
+    expect(page.locator("#an-on")).to_have_attribute("aria-checked", "true")
+    page.on("dialog", lambda d: d.accept())
+    page.locator("#an-clear").click()
+    expect(page.locator("#an-note")).to_contain_text("Removed")
+    assert posted[-1] == {"clear": True}
 
 
 def test_admin_laps_panels_edit_the_front_page_sections_and_where_they_show(page):

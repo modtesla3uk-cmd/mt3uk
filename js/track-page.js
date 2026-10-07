@@ -700,7 +700,7 @@
       // A member with no sessions yet sees What are Sessions? open, so they see what Laps does.
       var what = document.querySelector('.page-hero .tp-what');
       if (what && m && !(m.sessions || []).length) what.open = true;
-      if (m && m.cars && m.cars.length) drawSince(m);
+      if (m && m.cars && m.cars.length) { drawNews(); drawSince(m); }
       // The front page panels the admin chose for Sessions, under the list (js/laps-panels.js).
       if (window.MT3UKLapsPanels && m) window.MT3UKLapsPanels.show(true);
       if (window.MT3UKLapsTip) window.MT3UKLapsTip.place();
@@ -723,6 +723,28 @@
       return '<button type="button" class="tp-car tp-vrow' + (on ? ' is-on' : '') + '" role="radio" aria-checked="' + on + '" data-car="' + esc(c.id) + '"><span class="tp-vdot"></span><span class="tp-vtext"><b>' + esc(c.name) + '</b><span>' + esc([titleOf(c), c.version].filter(Boolean).join(' ') || 'Car') + '</span></span><span class="tp-vn">' + k + ' session' + (k === 1 ? '' : 's') + '</span></button>';
     }).join('') + '<button type="button" class="tp-vrow tp-vadd" id="tp-car-add-open">' + icon('plus') + 'Add a vehicle</button></div>';
   }
+  // ---------- The announcement ----------
+  // One line the admin writes on the Announcement panel of track-admin.html (/laps/news), at the top of the member's
+  // list of sessions until they close it or follow its link; a new announcement (a new id) shows again.
+  var NEWS_SEEN = 'mt3ukLapsNewsSeen';
+  function drawNews() {
+    api('GET', '/laps/news').then(function (d) {
+      var n = d && d.news, box = document.getElementById('tp-news');
+      if (!n || !n.text || !box) return;
+      var seen = '';
+      try { seen = localStorage.getItem(NEWS_SEEN) || ''; } catch (e) {}
+      if (seen === n.id) return;
+      function done() { try { localStorage.setItem(NEWS_SEEN, n.id); } catch (e) {} }
+      box.innerHTML = '<p>' + icon('flag') + '<span>' + esc(n.text) + (n.link ? ' <a href="' + esc(n.link) + '"' + (/^https:/.test(n.link) ? ' target="_blank" rel="noopener"' : '') + '>' + esc(n.linkText || 'Find out more') + '</a>' : '') + '</span></p>' +
+        '<button type="button" class="tp-since-close" data-news-close aria-label="Close this announcement">' + icon('x') + '</button>';
+      box.hidden = false;
+      box.addEventListener('click', function (e) {
+        if (e.target.closest('[data-news-close]')) { done(); box.hidden = true; }
+        else if (e.target.closest('a')) done();
+      });
+    }).catch(function () {});
+  }
+
   // ---------- Since you were last here ----------
   // At the top of the member's list of sessions: what has changed on the boards their cars are on since they last
   // looked (a car moved up or down, new cars on the board). Each visit reads those boards (the public /track/board,
@@ -819,7 +841,7 @@
     var car = m.cars.filter(function (c) { return c.id === currentCar; })[0];
     var list = m.sessions.filter(function (s) { return s.carId === car.id; });
     // Your vehicles: a list that folds away to the one picked. Its sessions are listed below.
-    var h = '<div class="card tp-since" id="tp-since" role="status" hidden></div>' + '<div class="tp-section tp-vehicles"><div class="tp-vbox" id="tp-cars">' + vehiclesHtml(m, car) + '</div>' +
+    var h = '<div class="card tp-news" id="tp-news" role="status" hidden></div><div class="card tp-since" id="tp-since" role="status" hidden></div>' + '<div class="tp-section tp-vehicles"><div class="tp-vbox" id="tp-cars">' + vehiclesHtml(m, car) + '</div>' +
       '<div id="tp-car-add-wrap" hidden>' + addCarHtml(false) + '</div></div>';
     h += '<div class="tp-section"><div class="tp-head"><div><h2>Sessions</h2><p class="tp-sub tp-for">' + esc(car.name) + '</p></div>' + findToggleHtml(m) + refreshChip() + unitsChip() + '</div>';
     // Add a session is in the page heading, under Leaderboards (heroAdd); What others see stays here.

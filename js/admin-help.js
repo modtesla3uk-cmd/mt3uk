@@ -236,6 +236,12 @@
       ['Use the built-in words', 'Clears your wording so the built-in text is used.']
     ] },
     'tc-tip-on': { t: 'Show the tip', p: 'On: the light bulb by Add a session, in the heading of Sessions and the Leaderboard, opens the upload tip. Off: the tip is not shown (on Sessions the bulb stays for Fastest right now).' },
+    'news-wrap': { t: 'Announcement', p: 'One line at the top of every member\'s Sessions, until they close it.', i: [
+      ['Show it on Sessions', 'On: members see it. Off: it is kept but not shown.'],
+      ['Link', 'Optional: a page of the site, such as leaderboards.html, or an https:// address.'],
+      ['Save', 'New words or a new link show again to members who closed the last one.'],
+      ['Remove', 'Takes it away.']
+    ] },
     'panels-wrap': { t: 'Laps panels', p: 'The sections of the Laps front page, and where each one shows.', i: [
       ['Front page, Sessions, Leaderboard', 'Where the section shows. Sessions and the Leaderboard show it under the list, to signed-in members only.'],
       ['Heading, intro line, cards and chips', 'Your words in place of the front page\'s own. Anything left blank keeps them.'],

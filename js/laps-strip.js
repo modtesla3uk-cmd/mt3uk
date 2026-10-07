@@ -5,13 +5,45 @@
     to be the first.
   - <div data-laps-more></div>: the other tracks, strips and hill climbs with times on Laps (busiest first, at most
     12), leaving out the ones the page already shows with data-laps-venue, each linking to its board.
+  - [data-laps-fast-line] (the homepage Sessions tile's grey line): "Fastest at Thruxton: 1:21.42, Rich", the leader
+    of the busiest board, in place of its own words (kept when there are no times).
+  - [data-laps-add] (any Add a session link): while Laps is an early preview, a visitor who is signed out or has not
+    been given early access (GET /track/access) sees How Laps works (laps.html) in its place.
   From /track/counts (two single KV keys on the worker) and data/tracks.json. The links carry data-laps, so on
   mt3uk.com js/account-bar.js sends them to laps.mt3uk.com, signed in. If the data cannot be read, nothing shows.
   Styles: css/laps-strip.css.
 */
 (function () {
   var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
-  var spots = document.querySelectorAll('[data-laps-venue], [data-laps-more]');
+  var spots = document.querySelectorAll('[data-laps-venue], [data-laps-more], [data-laps-fast-line]');
+  // Add a session, only for members with early access; anyone else is shown How Laps works.
+  var accessP = null;
+  function canAdd() {
+    if (accessP) return accessP;
+    var tok = '';
+    try { tok = localStorage.getItem('mt3ukMyBuildsSession') || ''; } catch (e) {}
+    if (!tok) return (accessP = Promise.resolve(false));
+    var kept = '';
+    try { kept = sessionStorage.getItem('mt3ukLapsAccess') || ''; } catch (e) {}
+    if (kept) return (accessP = Promise.resolve(kept === 'approved'));
+    accessP = fetch(API + '/track/access', { headers: { 'X-Session-Token': tok }, cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+        var a = (d && d.access) || '';
+        try { if (a) sessionStorage.setItem('mt3ukLapsAccess', a); } catch (e) {}
+        return a === 'approved';
+      }).catch(function () { return false; });
+    return accessP;
+  }
+  function gateAdds(root) {
+    var links = (root || document).querySelectorAll('[data-laps-add]');
+    if (!links.length) return;
+    canAdd().then(function (ok) {
+      if (ok) return;
+      links.forEach(function (a) { a.href = 'laps.html'; a.textContent = 'How Laps works'; a.removeAttribute('data-laps-add'); });
+      if (window.mt3ukLapsLinks) window.mt3ukLapsLinks();
+    });
+  }
+  gateAdds(document);
   if (!spots.length) return;
   function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function get(url) { return fetch(url, { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }
@@ -56,7 +88,7 @@
       shown[id] = true;
       if (!v) return;
       var here = boards.filter(function (b) { return b.venue.id === id; }).sort(function (a, b) { return b.n - a.n; });
-      var add = '<a class="btn btn-accent btn-sm" href="track.html?add=1" data-laps>' + icon('upload') + 'Add your session</a>';
+      var add = '<a class="btn btn-accent btn-sm" href="track.html?add=1" data-laps data-laps-add>' + icon('upload') + 'Add your session</a>';
       var html = '<div class="ls-head">' + icon('trophy') + '<b>' + esc(v.name) + ' on Laps</b></div>';
       if (here.length) {
         html += '<ul class="ls-rows">' + here.map(function (b) {
@@ -82,6 +114,12 @@
           (carOf(b.top) ? ', ' + esc(carOf(b.top)) : '') + ' &middot; fastest ' + esc(what(b)) + '</span></span><span class="ls-time">' + esc(result(b)) + '</span>' + icon('chev') + '</a></li>';
       }).join('') + '</ul><p class="ls-actions"><a class="btn btn-secondary btn-sm" href="leaderboards.html" data-laps>All leaderboards</a></p>';
     });
+    document.querySelectorAll('[data-laps-fast-line]').forEach(function (el) {
+      var top = boards.slice().sort(function (a, b) { return b.n - a.n; })[0];
+      if (!top) return;
+      el.textContent = 'Fastest at ' + top.venue.name + ': ' + result(top) + ', ' + (top.top.owner || 'MT3UK member');
+    });
+    gateAdds(document);
     if (window.mt3ukLapsLinks) window.mt3ukLapsLinks();
   });
 })();

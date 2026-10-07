@@ -60,6 +60,7 @@ class FakeWorker:
         self.copy = None
         # The Laps front page panels (/laps/panels) and, when set, what /track/counts answers.
         self.panels = None
+        self.news = None
         self.counts = None
         # The link preview picture set's version, for the share links.
         self.shareVersion = 0
@@ -206,6 +207,8 @@ class FakeWorker:
             sid = q.get("id", [""])[0]
             self.sessions.pop(sid, None)
             self.index = [s for s in self.index if s["id"] != sid]
+        elif path == "/laps/news":
+            data = {"success": True, "news": self.news}
         elif path == "/laps/panels":
             data = {"success": True, "panels": self.panels or {}}
         elif path == "/track/counts" and self.counts is not None:
@@ -1530,6 +1533,25 @@ def test_since_you_were_last_here_shows_what_changed_on_the_members_boards(page)
     fake.boards["/track/board:thruxton:main"].append(dict(_board_entry(5), time=110.0))
     open_page(page, fake, "/track.html", signed_in=True)
     expect(page.locator("#tp-since li")).to_have_text(["1 new car on the board at Thruxton"])
+
+
+def test_the_announcement_shows_on_sessions_until_it_is_closed(page):
+    fake = FakeWorker()
+    fake.news = {"id": "1", "text": "New: Compare tyres and pads on every board", "link": "leaderboards.html", "linkText": "Have a look"}
+    open_page(page, fake, "/track.html", signed_in=True)
+    news = page.locator("#tp-news")
+    expect(news).to_contain_text("New: Compare tyres and pads on every board")
+    expect(news.get_by_role("link", name="Have a look")).to_have_attribute("href", "leaderboards.html")
+    page.locator("[data-news-close]").click()
+    expect(news).to_be_hidden()
+    open_page(page, fake, "/track.html", signed_in=True)
+    page.locator("#tp-hero-add").wait_for()
+    page.wait_for_timeout(300)
+    expect(page.locator("#tp-news")).to_be_hidden()
+    # A new announcement shows again.
+    fake.news = {"id": "2", "text": "New: Since you were last here", "link": "", "linkText": ""}
+    open_page(page, fake, "/track.html", signed_in=True)
+    expect(page.locator("#tp-news")).to_have_text("New: Since you were last here")
 
 
 def test_sessions_has_add_a_session_under_leaderboards(page):

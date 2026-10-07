@@ -1413,6 +1413,26 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   ok(cp.body.success && Object.keys(cp.body.copy).length === 0 && !kv.has('track-copy'), 'reset clears the words');
 }
 
+// The Laps announcement on Sessions: one line, shown when on, a new id when the words change.
+{
+  let ln = await call('GET', '/laps/news');
+  ok(ln.status === 200 && ln.body.success && ln.body.news === null, 'no announcement: nothing to show');
+  ok((await call('POST', '/laps/news/admin', { text: 'x', on: true })).status === 401, 'the announcement needs the admin key');
+  ln = await call('POST', '/laps/news/admin?key=secret', { text: ' New: <Compare> pads ', link: 'leaderboards.html', linkText: '', on: true });
+  const first = ln.body.news;
+  ok(first.text === 'New: Compare pads' && first.link === 'leaderboards.html' && first.linkText === 'Find out more' && first.on === true && first.id, 'cleaned, with a link and its default words: ' + JSON.stringify(first));
+  ok((await call('GET', '/laps/news')).body.news.text === 'New: Compare pads', 'Sessions reads it');
+  ln = await call('POST', '/laps/news/admin?key=secret', { text: 'New: Compare pads', link: 'leaderboards.html', on: true });
+  ok(ln.body.news.id === first.id, 'the same words keep the same id, so a closed one stays closed');
+  await new Promise(r => setTimeout(r, 5));
+  ln = await call('POST', '/laps/news/admin?key=secret', { text: 'New: Since you were last here', link: 'javascript:alert(1)', on: true });
+  ok(ln.body.news.id !== first.id && ln.body.news.link === '' && ln.body.news.linkText === '', 'new words get a new id; a link that is not a page or https is dropped');
+  ln = await call('POST', '/laps/news/admin?key=secret', { text: 'Hidden for now', on: false });
+  ok((await call('GET', '/laps/news')).body.news === null, 'switched off, members see nothing');
+  ln = await call('POST', '/laps/news/admin?key=secret', { clear: true });
+  ok(ln.body.success && !kv.has('laps-news'), 'clear removes it');
+}
+
 // The Laps front page panels: words and where each shows, in one KV key; blank keeps the page's own.
 {
   let lp = await call('GET', '/laps/panels');

@@ -238,6 +238,13 @@
   .tp-head-side .tp-rank { margin-top: 0; }
   .tp-head-side .tp-share-dot { float: none; margin: 0; top: 0; width: 36px; height: 36px; }
   body[data-tp-view="session"] .page-hero .mt3uk-share-dot, body[data-tp-view="car"] .page-hero .mt3uk-share-dot { display: none; }
+  /* The announcement (drawNews in js/track-page.js), above Since you were last here: navy, one line and a close. */
+  .tp-news { margin: 14px 0 0; padding: 10px 6px 10px 14px; background: #16233d; border-color: #16233d; color: #fff; display: flex; align-items: center; gap: 8px; }
+  .tp-news[hidden] { display: none; }
+  .tp-news p { flex: 1; margin: 0; display: flex; gap: 10px; align-items: flex-start; color: #fff; }
+  .tp-news p .icon { flex: none; width: 18px; height: 18px; margin-top: 2px; color: #ffd27a; }
+  .tp-news a { color: #ffd27a; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+  .tp-news .tp-since-close { margin: 0; color: #c9d1e3; }
   /* Since you were last here (drawSince in js/track-page.js): changes on the member's boards, at the top of the list. */
   .tp-since { margin: 14px 0 0; padding: 10px 14px 12px; background: #fff7ee; border-color: #f3cfae; display: grid; gap: 6px; }
   .tp-since[hidden] { display: none; }
@@ -1076,7 +1083,7 @@
 <script src="js/pad-data.js?v=20270210"></script>
 <script src="js/vehicle-data.js?v=20270210" defer></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20270217" defer></script>
+<script src="js/track-page.js?v=20270218" defer></script>
 <script src="js/laps-panels.js?v=1" defer></script>
 <script src="js/laps-tip.js?v=20270104" defer></script>
 <script src="js/share.js" defer></script>

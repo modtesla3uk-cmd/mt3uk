@@ -8668,6 +8668,39 @@ async function handleTrackCopyAdmin(request, env) {
   return json({ success: true, copy: copy });
 }
 
+// ---------- Laps announcement ----------
+// One line the admin writes on the Announcement panel of track-admin.html, shown at the top of a member's Sessions
+// until they close it (a new announcement shows again). One KV key (laps-news), read with get(): { id, text, link,
+// linkText, on }. The id changes when the words or the link change, so members who closed the last one see it.
+var LAPS_NEWS_KEY = 'laps-news';
+function cleanLapsNews(body, old) {
+  var text = trackText(body && body.text, 200), linkText = trackText(body && body.linkText, 40);
+  var link = String((body && body.link) || '').trim().slice(0, 300);
+  if (link && !/^(https:\/\/|[a-z0-9][a-z0-9._-]*\.html([?#][^\s<>"]*)?$)/i.test(link)) link = '';
+  var out = { text: text, link: link, linkText: link ? (linkText || 'Find out more') : '', on: !!(body && body.on) && !!text };
+  var same = old && old.text === out.text && old.link === out.link && old.linkText === out.linkText;
+  out.id = same && old.id ? old.id : (text ? String(Date.now()) : '');
+  return out;
+}
+async function handleLapsNewsPublic(request, env) {
+  var n = await getJsonKey(env, LAPS_NEWS_KEY, {});
+  var res = json({ success: true, news: n && n.on && n.text ? { id: n.id, text: n.text, link: n.link, linkText: n.linkText } : null });
+  res.headers.set('Cache-Control', 'public, max-age=120');
+  return res;
+}
+async function handleLapsNewsAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var old = await getJsonKey(env, LAPS_NEWS_KEY, {});
+  if (request.method === 'GET') return json({ success: true, news: old });
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  if (body && body.clear) { await env.VOTES.delete(LAPS_NEWS_KEY); return json({ success: true, news: {} }); }
+  var news = cleanLapsNews(body, old);
+  if (!news.text) { await env.VOTES.delete(LAPS_NEWS_KEY); return json({ success: true, news: {} }); }
+  await env.VOTES.put(LAPS_NEWS_KEY, JSON.stringify(news));
+  return json({ success: true, news: news });
+}
+
 // ---------- Laps front page panels ----------
 // The sections of laps.html (Fastest right now, What Laps does, Every kind of day, Works with your lap timer, EVs any
 // make), editable on the Laps panels panel of track-admin.html: each one's heading, intro line, cards (title and text)
@@ -11335,6 +11368,12 @@ export default {
     }
     if (url.pathname === '/track/counts' && request.method === 'GET') {
       return handleTrackCounts(request, env);
+    }
+    if (url.pathname === '/laps/news' && request.method === 'GET') {
+      return handleLapsNewsPublic(request, env);
+    }
+    if (url.pathname === '/laps/news/admin' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleLapsNewsAdmin(request, env);
     }
     if (url.pathname === '/laps/panels' && request.method === 'GET') {
       return handleLapsPanelsPublic(request, env);

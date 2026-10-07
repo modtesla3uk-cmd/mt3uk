@@ -144,7 +144,9 @@ def test_the_track_day_venues_page_shows_each_tracks_laps_times_and_more_tracks(
     expect(thruxton.locator(".ls-rows a")).to_contain_text("1:21.42")
     expect(thruxton.locator(".ls-rows a")).to_contain_text("Rich, Arctic Three")
     assert thruxton.locator(".ls-rows a").get_attribute("href") == "leaderboards.html?board=thruxton%3Amain"
-    expect(thruxton.get_by_role("link", name="Add your session")).to_have_attribute("href", "track.html?add=1")
+    # Signed out (or without early access) the invitation is How Laps works, not Add your session.
+    expect(thruxton.get_by_role("link", name="How Laps works")).to_have_attribute("href", "laps.html")
+    expect(thruxton.get_by_role("link", name="Add your session")).to_have_count(0)
     # Nothing shared at Snetterton yet: an invitation to be the first.
     expect(page.locator("[data-laps-venue='snetterton'] .ls-empty")).to_contain_text("be the first")
     # More tracks on Laps: the other boards, not the venues already on the page.
@@ -152,4 +154,36 @@ def test_the_track_day_venues_page_shows_each_tracks_laps_times_and_more_tracks(
     expect(more).to_have_count(1)
     expect(more.first).to_contain_text("Santa Pod")
     expect(more.first).to_contain_text("10.84 s")
+
+
+def answer_with_access(page, access):
+    def reply(r):
+        url = r.request.url
+        body = COUNTS if "/track/counts" in url else {"success": True, "access": access} if "/track/access" in url else {"success": True}
+        r.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"}, body=json.dumps(body))
+    page.route("**/%s/**" % API_HOST, reply)
+    page.add_init_script("localStorage.setItem('mt3ukMyBuildsSession', 'tok'); localStorage.setItem('mt3ukMyBuildsEmail', 'a@example.com')")
+
+
+def test_members_with_early_access_are_asked_to_add_their_session(page):
+    answer_with_access(page, "approved")
+    page.goto("/track-day-venues.html")
+    expect(page.locator("[data-laps-venue='thruxton']").get_by_role("link", name="Add your session")).to_have_attribute("href", "track.html?add=1")
+    page.goto("/track-day-on-the-day.html")
+    expect(page.locator("#after-the-day").get_by_role("link", name="Add a session")).to_be_visible()
+
+
+def test_members_waiting_for_early_access_see_how_laps_works(page):
+    answer_with_access(page, "pending")
+    page.goto("/track-day-on-the-day.html")
+    card = page.locator("#after-the-day")
+    expect(card.get_by_role("link", name="How Laps works")).to_have_count(2)
+    expect(card.get_by_role("link", name="Add a session")).to_have_count(0)
+
+
+def test_the_homepage_sessions_tile_shows_the_fastest_time_on_laps(page):
+    page.route("**/%s/**" % API_HOST, lambda r: r.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"},
+                                                         body=json.dumps(COUNTS if "/track/counts" in r.request.url else {"success": True})))
+    page.goto("/index.html")
+    expect(page.locator(".hp-cat[data-cat='sessions'] [data-laps-fast-line]")).to_have_text("Fastest at Thruxton: 1:21.42, Rich")
 

@@ -817,8 +817,8 @@ async function setNickname(env, email, nickname) {
   if (nickname) map[nickname.toLowerCase()] = email;
   await env.VOTES.put(NICKNAMES_KEY, JSON.stringify(map));
   var oldNickname = profile.nickname || '';
-  if (nickname) profile.nickname = nickname;
-  else delete profile.nickname;
+  if (nickname) { profile.nickname = nickname; delete profile.nicknameCleared; }
+  else { delete profile.nickname; profile.nicknameCleared = true; }
   await putProfileRecord(env, email, profile);
   await syncMemberName(env, email, oldNickname);
   return '';
@@ -947,6 +947,12 @@ async function handleProfileGet(request, env) {
   var email = await resolveSession(request, env);
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
   var profile = await getProfileRecord(env, email);
+  // A member from before nicknames were given automatically (first initial and last name, as for new members)
+  // gets one the first time their profile is opened, unless they cleared it themselves.
+  if (!profile.nickname && !profile.nicknameCleared && profile.firstName && profile.lastName) {
+    var auto = await initialNickname(env, profile.firstName, profile.lastName);
+    if (auto) { await setNickname(env, email, auto); profile = await getProfileRecord(env, email); }
+  }
   var files = await getSubscriberFiles(env, email);
   var fr = await getFriends(env, email);
   var friends = await Promise.all(fr.friends.map(function (e) { return memberCard(env, e, true); }));
@@ -983,9 +989,10 @@ async function handleProfileUpdate(request, env) {
   var nameChanged = false;
 
   if ('nickname' in body) {
-    // A nickname is required: friends find members by it.
+    // A nickname is optional (since October 2026): an empty one clears it and the member goes by their full name.
+    // Anything else must be a valid nickname.
     var nickname = cleanNickname(body.nickname);
-    if (!nickname) return json({ success: false, message: 'Please choose a nickname: 3 to 20 letters or numbers (you can use _ . -), starting with a letter or number.' }, 400);
+    if (!nickname && String(body.nickname || '').trim()) return json({ success: false, message: 'Nicknames are 3 to 20 letters or numbers (you can use _ . -), starting with a letter or number.' }, 400);
     var current = (await getProfileRecord(env, email)).nickname || '';
     if (nickname !== current) {
       var err = await setNickname(env, email, nickname);
@@ -1172,7 +1179,7 @@ async function handleProfileFriends(request, env, ctx) {
 
   if (action === 'request') {
     var myProfile = await getProfileRecord(env, email);
-    if (!myProfile.nickname) return json({ success: false, message: 'Choose a nickname first, so friends can see who you are.' }, 400);
+    if (!publicName(myProfile)) return json({ success: false, message: 'Add your name or a nickname to your profile first, so friends can see who you are.' }, 400);
     var nick = cleanNickname(body.nickname);
     other = nick ? (await getNicknames(env))[nick.toLowerCase()] : null;
     if (!other || other === email) return json({ success: false, message: 'No member has that nickname.' }, 404);

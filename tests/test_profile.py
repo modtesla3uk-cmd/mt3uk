@@ -334,38 +334,40 @@ def test_my_garage_signed_out_goes_straight_to_sign_in(device_page):
 
 
 @all_devices
-def test_profile_asks_for_a_nickname_first(device_page):
-    """Friends find each other by nickname, so Profile needs one."""
+def test_profile_opens_without_a_nickname(device_page):
+    """A nickname is optional: Profile opens without one, says the full name is shown instead, and one can be
+    added in Edit."""
     page = device_page
     signed_in(page)
     page.mock_state["start_nickname"] = ""
     page.goto("/profile.html")
-    gate = page.locator("#pf-nick-gate")
-    gate.wait_for(state="visible", timeout=5000)
-    assert page.locator("#pf-app").is_hidden(), "The rest of Profile waits for a nickname"
-    page.fill("#pf-gate-nick", "a")
-    page.click("#pf-nick-gate button[type=submit]")
-    assert "3 to 20" in page.locator("#pf-gate-status").inner_text()
-    page.fill("#pf-gate-nick", "GreenKnight")
-    page.click("#pf-nick-gate button[type=submit]")
     page.locator("#pf-app").wait_for(state="visible", timeout=5000)
-    assert gate.is_hidden()
-    assert page.locator("#pf-nick").inner_text() == "GreenKnight"
+    assert page.locator("#pf-nick-gate").count() == 0
+    assert page.locator("#pf-nick").inner_text() == "Not set (your full name is shown)"
+    page.click("#pf-edit")
+    page.fill("#pf-nickname", "a")
+    page.click("#pf-form button[type=submit]")
+    assert "3 to 20" in page.locator("#pf-details-status").inner_text()
+    page.fill("#pf-nickname", "GreenKnight")
+    page.click("#pf-form button[type=submit]")
+    page.wait_for_function("document.getElementById('pf-nick').textContent === 'GreenKnight'", timeout=5000)
     assert overflow_width(page) <= 0
     assert page.errors == [], diagnostics(page)
 
 
 @all_devices
-def test_nickname_cannot_be_cleared(device_page):
+def test_nickname_can_be_cleared(device_page):
+    """Clearing the nickname saves, and the full name is shown instead."""
     page = device_page
     signed_in(page)
     page.goto("/profile.html")
     page.locator("#pf-app").wait_for(state="visible", timeout=5000)
     page.click("#pf-edit")
     page.fill("#pf-nickname", "")
+    page.mock_state["fallback_body"] = {"nickname": ""}
     page.click("#pf-form button[type=submit]")
-    assert "nickname" in page.locator("#pf-details-status").inner_text().lower()
-    assert page.locator("#pf-form").is_visible()
+    page.wait_for_function("document.getElementById('pf-nick').textContent.indexOf('Not set') === 0", timeout=5000)
+    assert page.locator("#pf-form").is_hidden()
 
 
 @all_devices

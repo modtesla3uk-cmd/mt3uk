@@ -7234,6 +7234,10 @@ function cleanTrackSession(s, library) {
   if (s.lapsFromTrace) out.lapsFromTrace = true;
   // The member picked this layout themselves: only they change it (the admin's re-time and repairs leave it).
   if (s.layoutPicked && out.layoutId) out.layoutPicked = true;
+  // MT3UK changed the layout at the member's request: when, who asked, and what it was before.
+  if (s.layoutByAdmin && typeof s.layoutByAdmin === 'object' && s.layoutByAdmin.at && out.layoutId) {
+    out.layoutByAdmin = { at: trackText(s.layoutByAdmin.at, 40), note: trackText(s.layoutByAdmin.note, 200), from: trackText(s.layoutByAdmin.from, 60) };
+  }
   // A course with official lines only takes sessions timed on them (within
   // 25 m): lines a member moved never reach its leaderboard.
   if (layout && layout.startLine) {
@@ -9543,11 +9547,18 @@ async function handleTrackAdminRetime(request, env) {
   next.createdAt = old.createdAt;
   // Street runs and runs at an unlisted strip stay private and off every board.
   next.street = !!old.street;
-  // A layout the member picked is theirs to change: an admin re-time never moves the session to another one.
-  if (old.layoutPicked) {
-    if ((next.layoutId || '') !== (old.layoutId || '')) return json({ success: false, message: 'The member chose this layout (' + (old.layout || old.layoutId) + '), so only they can change it.' }, 409);
+  // A layout the member picked is theirs to change: an admin re-time never moves the session to another one. The one
+  // way through is the Layout (admin) box on the session page, which says who asked (memberAsked): the move is then
+  // recorded on the session, counts as the member's own pick from here on, and the member is emailed.
+  var asked = trackText(body.memberAsked, 200), movedLayout = (next.layoutId || '') !== (old.layoutId || '');
+  if (movedLayout && asked) {
     next.layoutPicked = true;
-  } else delete next.layoutPicked;
+    next.layoutByAdmin = { at: new Date().toISOString(), note: asked, from: old.layout || '' };
+  } else if (old.layoutPicked) {
+    if (movedLayout) return json({ success: false, message: 'The member chose this layout (' + (old.layout || old.layoutId) + '), so only they can change it. If they have asked you to, use the Layout (admin) box on the session page.' }, 409);
+    next.layoutPicked = true;
+    if (old.layoutByAdmin) next.layoutByAdmin = old.layoutByAdmin;
+  } else { delete next.layoutPicked; if (old.layoutByAdmin) next.layoutByAdmin = old.layoutByAdmin; }
   if (next.type === 'drag') {
     if (old.unlisted || (!next.atVenue && !old.street)) next.unlisted = true;
     if (!old.street) delete next.outline;
@@ -9562,7 +9573,19 @@ async function handleTrackAdminRetime(request, env) {
   if (!(await putTrackSession(env, next))) return json({ success: false, message: 'This session is too big to save.' }, 413);
   await putTrackIndexesFor(env, old.owner, next);
   if (oldBoard && oldBoard !== trackBoardKey(next)) await refreshTrackBoard(env, oldBoard, next.carId);
+  if (movedLayout && asked) await emailLayoutChanged(env, old, next, asked);
   return json({ success: true, session: trackSummary(next) });
+}
+
+// Tells the member that MT3UK moved their session to another layout, as they asked. Best effort.
+async function emailLayoutChanged(env, old, next, asked) {
+  try {
+    var car = await getCarRecord(env, next.carId), email = car ? await carOwnerEmail(env, car) : null;
+    if (!email) return;
+    var when = next.date ? ' on ' + next.date : '';
+    await sendMemberEmail(env, email, 'Your Laps session is now on ' + (next.layout || 'another layout'),
+      'Hi,\n\nAs you asked (' + asked + '), MT3UK has changed your session at ' + (next.venue || 'the track') + when + ' from ' + (old.layout || 'no layout') + ' to ' + (next.layout || next.layoutId) + '. Its laps were timed again on that layout\'s start line' + (next.bestTime ? ', and its best lap is now ' + trackTimeText(next.bestTime) : '') + '.\n\nThe layout is now yours: nothing MT3UK does will move it again. You can change it yourself in Session settings.\n\n' + LAPS_SITE_URL + '/track.html?s=' + next.id + '\n\nLaps by MT3UK');
+  } catch (e) { console.log('Layout email failed:', e.message); }
 }
 
 async function handleTrackAdminRetimeSource(request, env) {

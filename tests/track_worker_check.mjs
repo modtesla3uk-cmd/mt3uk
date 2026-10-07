@@ -1344,6 +1344,22 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   ok(x.status === 409 && /only they can change it/.test(x.body.message) && stored('track-session:' + id).layoutId === 'main', 'an admin re-time cannot move a session off the layout its member picked');
   x = await call('POST', '/track/admin/retime?key=secret', { id, session: fresh });
   ok(x.status === 200 && stored('track-session:' + id).layoutPicked === true, 'a re-time on the same layout is saved and the mark stays');
+  // The one way through: the admin says who asked (memberAsked). The move is saved, recorded on the session, counts as
+  // the member's pick, and the member is emailed.
+  { const before = env.SEND_EMAIL.sent.length;
+    const lib2 = JSON.parse(JSON.stringify(lib)); lib2.venues.find(v => v.id === 'thruxton').layouts.push({ id: 'short', name: 'Short Circuit', length: 3800 });
+    kv.set('track-library', JSON.stringify({ venues: [lib2.venues.find(v => v.id === 'thruxton')] }));
+    x = await call('POST', '/track/admin/retime?key=secret', { id, session: Object.assign({}, fresh, { layoutId: 'short', layout: 'Short Circuit' }), memberAsked: 'John, by email on 7 Oct' });
+    const moved = stored('track-session:' + id);
+    ok(x.status === 200 && moved.layoutId === 'short' && moved.layoutPicked === true && moved.layoutByAdmin && moved.layoutByAdmin.note === 'John, by email on 7 Oct' && moved.layoutByAdmin.from === 'Indy Circuit', 'with memberAsked the admin can move it, and the move is recorded as the member\'s pick (' + x.status + ')');
+    ok(env.SEND_EMAIL.sent.length === before + 1 && /now on Short Circuit/.test(env.SEND_EMAIL.sent[before]) && /John, by email on 7 Oct/.test(env.SEND_EMAIL.sent[before]), 'and the member is emailed about the change');
+    x = await call('POST', '/track/admin/retime?key=secret', { id, session: Object.assign({}, fresh, { layoutId: 'short', layout: 'Short Circuit' }) });
+    ok(x.status === 200 && stored('track-session:' + id).layoutByAdmin.note === 'John, by email on 7 Oct', 'a later re-time on the same layout keeps the record');
+    x = await call('POST', '/track/admin/retime?key=secret', { id, session: fresh });
+    ok(x.status === 409, 'and still cannot move it back without the member asking');
+    x = await call('POST', '/track/admin/retime?key=secret', { id, session: fresh, memberAsked: 'John again' });
+    ok(x.status === 200 && stored('track-session:' + id).layoutId === 'main', 'a second ask moves it again');
+    kv.delete('track-library'); }
   x = await call('POST', '/track/admin/retime?key=secret', { id: 'deadbeefdeadbeef', session: fresh });
   ok(x.status === 404, 'an unknown session is refused');
 }

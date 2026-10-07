@@ -127,10 +127,32 @@ class FakeWorker:
                 self.saved.append(body)
                 self.index.insert(0, summary(rec))
                 data = {"success": True, "session": summary(rec)}
+        elif path == "/track/admin/retime/source" and req.method == "GET":
+            sid = q.get("id", [""])[0]
+            if sid in self.sources and req.headers.get("x-admin-viewer") == "admintoken1234567890":
+                data = dict(self.sources[sid], success=True)
+            else:
+                status, data = 404, {"success": False, "message": "No readings were kept for this session."}
+        elif path == "/track/admin/retime" and req.method == "POST":
+            if req.headers.get("x-admin-viewer") != "admintoken1234567890":
+                status, data = 401, {"success": False}
+            else:
+                old = self.sessions[body["id"]]
+                rec = dict(body["session"])
+                for k in ("id", "carId", "privacy", "conditions", "tyres", "notes", "hasSource"):
+                    rec[k] = old.get(k)
+                if body.get("memberAsked") and rec.get("layoutId") != old.get("layoutId"):
+                    rec["layoutPicked"] = True
+                    rec["layoutByAdmin"] = {"at": "2026-10-07T10:00:00Z", "note": body["memberAsked"], "from": old.get("layout", "")}
+                self.sessions[old["id"]] = rec
+                self.admin_retimed = getattr(self, "admin_retimed", []) + [body]
+                data = {"success": True, "session": summary(rec)}
         elif path == "/track/session" and req.method == "GET":
             sid = q.get("id", [""])[0]
             rec = self.sessions.get(sid)
-            if rec:
+            if rec and getattr(self, "admin_view", False):
+                data = {"success": True, "session": dict(rec, mine=False, adminView=True, car=CAR["name"], ownerName=rec.get("ownerName", "John Chambers"))}
+            elif rec:
                 data = {"success": True, "session": dict(rec, mine=True, car=CAR["name"], ownerName=rec.get("ownerName", "Rich"))}
             else:
                 status, data = 404, {"success": False}
@@ -2344,6 +2366,47 @@ def test_the_layout_of_a_saved_session_can_be_changed(page):
     expect(page.get_by_role("heading", name="Session settings")).to_be_visible()
     assert fake.replaced[-1]["session"]["layoutId"] == "short", fake.replaced
     expect(page.locator("#tp-relayout .chip.is-on")).to_have_text("Short Circuit")
+
+
+def test_the_admin_can_change_a_members_layout_only_by_saying_who_asked(page):
+    """On the admin view of a member's track day, a Layout (admin) box times the readings on the layout picked, needs a
+    note of who asked, shows the result first, and saves through the admin route with that note."""
+    _thruxton_with_a_second_layout(page)
+    fake = FakeWorker()
+    open_page(page, fake, admin=True)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    page.get_by_role("button", name="Save session").click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
+    # Now as the admin looking at someone else's session.
+    fake.admin_view = True
+    page.reload()
+    expect(page.locator("#tp-admin-banner")).to_be_visible()
+    expect(page.locator("#settings")).to_have_count(0)
+    box = page.locator("#tp-admin-layout")
+    expect(box).to_contain_text("Only change this when the member has asked")
+    chips = box.locator("[data-admin-relayout] .chip")
+    expect(chips).to_have_text(["Thruxton", "Short Circuit"])
+    go = page.locator("#tp-admin-layout-go")
+    expect(go).to_be_disabled()
+    # A different layout alone is not enough: who asked is required.
+    chips.nth(1).click()
+    expect(go).to_be_disabled()
+    page.fill("#tp-admin-layout-note", "John Chambers, by email on 7 Oct")
+    expect(go).to_be_enabled()
+    # The result is shown before anything is saved, and a no saves nothing.
+    seen = []
+    page.once("dialog", lambda d: (seen.append(d.message), d.dismiss()))
+    go.click()
+    expect(page.locator("#tp-admin-layout-note-out")).to_have_text("Nothing changed.")
+    assert "Short Circuit" in seen[0] and "Best lap" in seen[0] and "emailed" in seen[0], seen
+    assert not getattr(fake, "admin_retimed", [])
+    page.once("dialog", lambda d: d.accept())
+    go.click()
+    expect(page.locator("#tp-admin-layout")).to_contain_text("MT3UK set the layout to Short Circuit")
+    sent = fake.admin_retimed[-1]
+    assert sent["memberAsked"] == "John Chambers, by email on 7 Oct" and sent["session"]["layoutId"] == "short" and sent["session"]["layoutPicked"] is True
+    expect(page.locator("#tp-admin-layout [data-admin-relayout] .chip.is-on")).to_have_text("Short Circuit")
 
 
 def test_a_session_saved_without_readings_cannot_change_type(page):

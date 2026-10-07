@@ -2833,6 +2833,7 @@
     else if (s.mine && s.reverseRun) h += reverseHtml(s) + trackHtml(s);
     else h += trackHtml(s);
     if (s.mine) h += lineEditHtml(s) + renameHtml(s) + ownerHtml(s);
+    else if (s.adminView) h += adminLayoutHtml(s);
     justSaved = null;
     app.innerHTML = h;
     if (s.type === 'drag') drawDragCharts(s);
@@ -2841,6 +2842,7 @@
     // Sprints and hill climbs have runs, not laps.
     if (s.type === 'sprint') runWords(app);
     if (s.mine) wireOwner(s);
+    else if (s.adminView) wireAdminLayout(s);
     var sidBtn = document.getElementById('tp-sid-copy');
     if (sidBtn) sidBtn.addEventListener('click', function () { copyText(s.id, sidBtn); });
     if (s.mine) wireLineEdit(s);
@@ -4068,7 +4070,7 @@
       var rv = ((library && library.venues) || []).filter(function (x) { return x.id === s.venueId && x.type === 'circuit'; })[0], rls = (rv && rv.layouts) || [];
       if (rls.length > 1 || (rls.length && !s.layoutId)) relayoutBox = '<div class="tp-field" id="tp-relayout"><span class="tp-lbl">Layout at ' + esc(s.venue || 'this track') + '</span><div class="tp-chips" data-relayout>' +
         rls.map(function (l) { return '<button type="button" class="chip' + (s.layoutId === l.id ? ' is-on' : '') + '" data-v="' + esc(l.id) + '" aria-pressed="' + (s.layoutId === l.id) + '">' + esc(l.name || l.id) + '</button>'; }).join('') +
-        '</div><p class="tp-small">' + (s.layoutId ? 'Picked the wrong layout? Choose another and we\'ll time your saved readings on it.' : 'We could not tell which layout this was. Pick it and we\'ll time your saved readings on it.') + '</p></div>';
+        '</div><p class="tp-small">' + (s.layoutId ? 'Picked the wrong layout? Choose another and we\'ll time your saved readings on it.' : 'We could not tell which layout this was. Pick it and we\'ll time your saved readings on it.') + layoutByAdminNote(s) + '</p></div>';
     }
     // Saved as several files merged into one: offer one session per file.
     var splitBox = s.hasSource && !s.street && (s.type === 'track' || s.type === 'sprint') && typeof s.runs === 'number' && s.runs > 1
@@ -4101,6 +4103,82 @@
     }
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { done(true); }, fallback);
     else fallback();
+  }
+  // "MT3UK moved it at your request": shown to the owner and the admin once the admin has changed a session's layout.
+  function layoutByAdminNote(s) {
+    var b = s.layoutByAdmin;
+    if (!b || !b.at) return '';
+    return ' <span class="tp-layout-byadmin">MT3UK set the layout to ' + esc(s.layout || '') + ' on ' + esc(niceDate(String(b.at).slice(0, 10))) + (b.from ? ' (it was ' + esc(b.from) + ')' : '') + ', as asked' + (b.note ? ': ' + esc(b.note) : '') + '.</span>';
+  }
+  // Admin view of a member's track day: the layout can be changed for them, only when they have asked. The admin
+  // says who asked and how, the saved readings are timed on the layout picked, the result is shown before anything
+  // is saved, and the member is emailed. The session is then marked as the member's own pick, so no re-time moves it.
+  function adminLayoutHtml(s) {
+    if (s.type !== 'track' || !s.venueId || !s.hasSource || s.street) return '';
+    var rv = ((library && library.venues) || []).filter(function (x) { return x.id === s.venueId && x.type === 'circuit'; })[0], rls = (rv && rv.layouts) || [];
+    if (rls.length < 2) return '';
+    return '<div class="tp-section" id="tp-admin-layout"><div class="tp-head"><h2>Layout (admin)</h2></div><div class="card tp-fields">' +
+      '<p class="tp-small">' + icon('lock') + ' Only change this when the member has asked. It is their session: the chips below time their saved readings on the layout picked, show the result, and email them.' + layoutByAdminNote(s) + (s.layoutPicked && !(s.layoutByAdmin && s.layoutByAdmin.at) ? ' <b>The member picked the current layout themselves.</b>' : '') + '</p>' +
+      '<div class="tp-field"><span class="tp-lbl">Layout at ' + esc(s.venue || 'this track') + '</span><div class="tp-chips" data-admin-relayout>' +
+      rls.map(function (l) { return '<button type="button" class="chip' + (s.layoutId === l.id ? ' is-on' : '') + '" data-v="' + esc(l.id) + '" aria-pressed="' + (s.layoutId === l.id) + '">' + esc(l.name || l.id) + '</button>'; }).join('') + '</div></div>' +
+      '<label class="tp-field"><span class="tp-lbl">Who asked, and where (required)</span><input class="field" id="tp-admin-layout-note" maxlength="200" placeholder="John Chambers, by email on 7 Oct: both sessions were on Old Hairpin"></label>' +
+      '<div class="tp-actions"><button type="button" class="btn btn-primary" id="tp-admin-layout-go" disabled>Change the layout, as the member asked</button></div>' +
+      '<p class="tp-small tp-err" id="tp-admin-layout-note-out" role="status"></p></div></div>';
+  }
+  function fetchAdminSource(id) {
+    var headers = {};
+    if (adminViewerToken()) headers['X-Admin-Viewer'] = adminViewerToken();
+    return fetch(API + '/track/admin/retime/source?id=' + encodeURIComponent(id), { headers: headers, cache: 'no-store' }).then(function (r) {
+      if (r.status === 404) throw new Error('No readings were kept for this session, so its layout cannot be changed here.');
+      if (!r.ok) throw new Error('The readings could not be read (' + r.status + ').');
+      return r.arrayBuffer();
+    }).then(function (buf) {
+      var b = new Uint8Array(buf);
+      if (b.length > 2 && b[0] === 0x1f && b[1] === 0x8b) {
+        if (typeof DecompressionStream !== 'function') throw new Error('This browser cannot unzip the readings.');
+        return new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream('gzip'))).text().then(JSON.parse);
+      }
+      return JSON.parse(new TextDecoder().decode(buf));
+    });
+  }
+  function wireAdminLayout(s) {
+    var box = document.getElementById('tp-admin-layout');
+    if (!box) return;
+    var chips = box.querySelector('[data-admin-relayout]'), note = document.getElementById('tp-admin-layout-note'), goBtn = document.getElementById('tp-admin-layout-go'), out = document.getElementById('tp-admin-layout-note-out');
+    var pick = s.layoutId || '';
+    function sync() { goBtn.disabled = !(pick && pick !== (s.layoutId || '') && note.value.trim().length >= 3); }
+    chips.addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-v]');
+      if (!b) return;
+      pick = b.getAttribute('data-v');
+      chips.querySelectorAll('.chip').forEach(function (c) { var on = c === b; c.classList.toggle('is-on', on); c.setAttribute('aria-pressed', on); });
+      sync();
+    });
+    note.addEventListener('input', sync);
+    goBtn.addEventListener('click', function () {
+      var rv = library.venues.filter(function (x) { return x.id === s.venueId; })[0], target = ((rv && rv.layouts) || []).filter(function (l) { return l.id === pick; })[0];
+      if (!target) return;
+      out.textContent = 'Reading the saved readings...';
+      goBtn.disabled = true;
+      fetchAdminSource(s.id).then(function (src) {
+        if (!src.p || !src.rd) throw new Error('No readings were kept for this session.');
+        var opts = { type: 'track', layoutId: pick, ignoreFirstFinish: s.ignoreFinish !== false };
+        if (s.organizer) opts.organizer = s.organizer;
+        if (s.startLineFromMember && s.startLine) opts.startLine = s.startLine;
+        var next = T.analyse(restoreSource(src), library, opts);
+        if (!(next.laps && next.laps.length) || next.layoutId !== pick) throw new Error('The readings give no laps on ' + (target.name || pick) + (next.problem ? ': ' + next.problem : '.'));
+        var words = 'Change this session to ' + (target.name || pick) + ' for ' + (s.ownerName || 'the member') + '?\n\nBest lap: ' + (s.bestTime ? V.fmtLap(s.bestTime) : '-') + ' now, ' + (next.bestTime ? V.fmtLap(next.bestTime) : '-') + ' after.\nLaps: ' + ((s.laps || []).length) + ' now, ' + next.laps.length + ' after.\n\nThey will be emailed, and the layout then counts as their own pick, so no re-time moves it.';
+        if (!window.confirm(words)) { out.textContent = 'Nothing changed.'; sync(); return; }
+        next.date = s.date; next.time = s.time || next.time; next.fileName = s.fileName;
+        if (s.ignoreFinish === false) next.ignoreFinish = false;
+        next.layoutPicked = true;
+        return api('POST', '/track/admin/retime', { id: s.id, session: next, memberAsked: note.value.trim() }, true).then(function (d) {
+          if (!d.success) throw new Error(d.message || 'Could not save it.');
+          status('Layout changed to ' + (target.name || pick) + '. The member has been emailed.', 'ok');
+          go('s=' + s.id, false, true);
+        });
+      }).catch(function (e) { out.textContent = (e && e.message) || 'Could not change it.'; sync(); });
+    });
   }
   function wireOwner(s) {
     var edit = { privacy: s.privacy, conditions: s.conditions, tempSource: s.tempSource || '', weather: s.weather || null, temp: s.temp };

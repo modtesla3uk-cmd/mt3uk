@@ -243,6 +243,11 @@
   .tp-pill-admin { background: #fdf3ef; color: #b8421f; }
   .tp-filter { max-width: 320px; margin: 14px 0; }
   .tp-tools { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 16px; margin: 14px 0 0; }
+  .tp-filters { display: flex; flex-wrap: wrap; gap: 8px 10px; }
+  .tp-filters .tp-field { min-width: 150px; max-width: 220px; }
+  .tp-filter-note { display: flex; align-items: center; gap: 10px; margin: 8px 0 0; color: var(--steel); }
+  .tp-filter-note .chip { min-height: 32px; }
+  @media (max-width: 560px) { .tp-filters { width: 100%; } .tp-filters .tp-field { flex: 1 1 45%; min-width: 0; max-width: none; } }
   .tp-types { display: flex; flex-wrap: wrap; gap: 8px; }
   .tp-types[hidden] { display: none; }
   .tp-types .chip { min-height: 44px; }
@@ -1141,7 +1146,7 @@
 <script src="js/pad-data.js?v=20270210"></script>
 <script src="js/vehicle-data.js?v=20270210" defer></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20270232" defer></script>
+<script src="js/track-page.js?v=20270234" defer></script>
 <script src="js/laps-panels.js?v=3" defer></script>
 <script src="js/laps-tip.js?v=20270104" defer></script>
 <script src="js/share.js" defer></script>

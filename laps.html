@@ -382,9 +382,11 @@
   .lh-light:fullscreen { padding: 0; background: #0a0e18; }
   .lh-light:fullscreen img { border-radius: 0; box-shadow: none; }
   .lh-evs b { color: #fff; }
-  .lh-makes { display: flex; flex-wrap: wrap; gap: 6px; }
-  .lh-makes span { display: inline-flex; align-items: center; min-height: 30px; padding: 4px 12px; border: 1px solid rgba(255,255,255,.3); border-radius: var(--radius-pill); color: #fff; font-size: 0.84rem; font-weight: 600; }
-  .lh-makes span:last-child { border-style: dashed; color: #c9d1e3; }
+  /* The makes are plain words, not buttons: nothing here is clickable. */
+  .lh-makes { display: flex; flex-wrap: wrap; gap: 4px 0; color: #fff; font-size: 0.92rem; font-weight: 600; }
+  .lh-makes span { display: inline-flex; align-items: center; }
+  .lh-makes span + span::before { content: "\00b7"; margin: 0 8px; color: #8d97ad; font-weight: 400; }
+  .lh-makes span:last-child { color: #c9d1e3; font-weight: 500; }
   /* On a phone the track picture moves down, under Fastest right now, so the hero is the words and buttons. */
   .lh-shot-low { display: none; }
   @media (max-width: 780px) { .lh-hero { padding: 26px 0 28px; } .lh-hero .lh-shot { display: none; } .lh-shot-low { display: block; padding-top: 28px; } }

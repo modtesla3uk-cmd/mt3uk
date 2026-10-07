@@ -31,7 +31,7 @@ EARLIER = {
 
 
 def summary(rec):
-    keys = ["id", "carId", "type", "venueId", "venue", "layoutId", "layout", "date", "time", "privacy", "conditions", "tyres", "temp", "tempSource", "weather", "vmax", "soc", "quality", "logger", "street", "atVenue", "origin", "tyreMake", "tyreModel"]
+    keys = ["id", "carId", "type", "venueId", "venue", "layoutId", "layout", "date", "time", "privacy", "conditions", "tyres", "temp", "tempSource", "weather", "vmax", "soc", "quality", "logger", "pads", "street", "atVenue", "origin", "tyreMake", "tyreModel"]
     out = {k: rec.get(k) for k in keys if k in rec}
     if rec.get("type") == "drag":
         runs = rec.get("runs") or []
@@ -1069,6 +1069,46 @@ def test_edit_every_session_on_a_day_at_once(page):
     expect(page.locator("#tp-saved")).to_contain_text("are updated")
     expect(page.locator("#tp-dayedit")).to_have_count(0)
     assert all(v.get("tyreMake") == "Michelin" and v.get("tyreModel") == "Pilot Sport 4S" and v["conditions"] == "Wet" for v in fake.sessions.values()), fake.sessions
+
+
+def test_the_sessions_list_can_be_filtered_by_logger_tyres_and_pads(page):
+    """Drop-downs beside Sort by filter the member's sessions by the logger, the tyres and the pads they carry, each
+    value with its count. While a filter is on every track, layout and day is open, so the matching sessions are in
+    view, a line says how many match, and Clear puts the whole list back."""
+    fake = FakeWorker(earlier=False)
+    specs = [("f1", "Thruxton", "thruxton", "2026-05-01", "RaceBox", "Michelin Pilot Sport 4S", "Pagid RSL29"),
+             ("f2", "Thruxton", "thruxton", "2026-05-01", "VBOX", "Michelin Pilot Sport 4S", "Original equipment pads"),
+             ("f3", "Castle Combe", "castle-combe", "2026-06-02", "RaceBox", "Nankang CR-S", "Pagid RSL29")]
+    for sid, venue, vid, date, logger, tyres, pads in specs:
+        r = dict(day_session(sid, "10:00", 95.0, 3, date=date, venue=venue, venue_id=vid), logger=logger, tyres=tyres, pads=pads)
+        fake.sessions[sid] = dict(r)
+        fake.index.append(summary(r))
+    open_page(page, fake)
+    logger = page.locator("#tp-filter-logger")
+    expect(logger.locator("option")).to_have_text(["All loggers", "RaceBox (2)", "VBOX (1)"])
+    expect(page.locator("#tp-filter-tyres option")).to_have_text(["All tyres", "Michelin Pilot Sport 4S (2)", "Nankang CR-S (1)"])
+    expect(page.locator("#tp-filter-pads option")).to_have_text(["All pads", "Original equipment pads (1)", "Pagid RSL29 (2)"])
+    expect(page.locator("#tp-sess-list .tp-trackwrap")).to_have_count(2)
+    expect(page.locator("#tp-sess-list .tp-layouts").first).to_be_hidden()
+    # By logger: the two RaceBox sessions, both tracks open down to the rows.
+    logger.select_option("VBOX")
+    expect(page.locator("#tp-filter-note")).to_contain_text("Showing 1 of 3 sessions")
+    expect(page.locator("#tp-sess-list .tp-trackwrap")).to_have_count(1)
+    expect(page.locator("#tp-sess-list .tp-row[data-sid]")).to_have_count(1)
+    expect(page.locator("#tp-sess-list .tp-row[data-sid]")).to_be_visible()
+    expect(page.locator('#tp-sess-list .tp-row[data-sid="f2"]')).to_have_count(1)
+    # Two filters together.
+    page.locator("#tp-filter-logger").select_option("RaceBox")
+    page.locator("#tp-filter-pads").select_option("Pagid RSL29")
+    expect(page.locator("#tp-filter-note")).to_contain_text("Showing 2 of 3 sessions")
+    expect(page.locator("#tp-sess-list .tp-row[data-sid]")).to_have_count(2)
+    page.locator("#tp-filter-tyres").select_option("Nankang CR-S")
+    expect(page.locator("#tp-filter-note")).to_contain_text("Showing 1 of 3 sessions")
+    # Clear puts everything back, folded.
+    page.locator("#tp-filter-clear").click()
+    expect(page.locator("#tp-filter-note")).to_have_count(0)
+    expect(page.locator("#tp-sess-list .tp-trackwrap")).to_have_count(2)
+    expect(page.locator("#tp-sess-list .tp-layouts").first).to_be_hidden()
 
 
 def test_share_every_session_on_a_day_from_its_group(page):
@@ -2642,17 +2682,22 @@ def test_a_tracks_chevron_drops_down_its_layouts_and_one_opens_only_those_sessio
     expect(indy.locator(".tp-layout-sessions")).to_be_visible()
     expect(indy.locator(".tp-layout-sessions a.tp-row[data-sid]")).to_have_count(2)
     expect(indy.locator(".tp-layout-sessions .tp-daygroup")).to_have_count(2)
-    # A session opens from there, and Back brings the list back folded (every track, layout and day shut again).
+    # A session opens from there, and Back (the button, or the browser's own) finds the list as it was left: Brands
+    # Hatch and Indy still open. Only a full refresh of the page folds it.
     indy.locator('a.tp-row[data-sid="b1"]').click()
     expect(page).to_have_url(re.compile(r"track\.html\?s=b1$"))
     page.locator(".tp-back").click()
     expect(page).to_have_url(re.compile(r"track\.html$"))
     brands = page.locator("#tp-sess-list .tp-trackwrap", has_text="Brands Hatch")
-    expect(brands.locator(".tp-layouts")).to_be_hidden()
-    expect(brands.locator("[data-track-toggle]")).to_have_attribute("aria-expanded", "false")
-    # A refresh folds it too.
-    brands.locator("[data-track-toggle]").click()
     expect(brands.locator(".tp-layouts")).to_be_visible()
+    expect(brands.locator(".tp-layoutwrap", has_text="Indy").locator(".tp-layout-sessions")).to_be_visible()
+    expect(brands.locator(".tp-layoutwrap", has_text="Grand Prix").locator(".tp-layout-sessions")).to_be_hidden()
+    brands.locator(".tp-layoutwrap", has_text="Indy").locator('a.tp-row[data-sid="b1"]').click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s=b1$"))
+    page.go_back()
+    expect(page).to_have_url(re.compile(r"track\.html$"))
+    brands = page.locator("#tp-sess-list .tp-trackwrap", has_text="Brands Hatch")
+    expect(brands.locator(".tp-layoutwrap", has_text="Indy").locator(".tp-layout-sessions")).to_be_visible()
     page.reload()
     expect(page.locator("#tp-sess-list .tp-trackwrap", has_text="Brands Hatch").locator(".tp-layouts")).to_be_hidden()
     # The track line itself still opens every session there on its own page.

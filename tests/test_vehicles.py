@@ -188,6 +188,10 @@ def test_use_the_built_in_list_drops_a_makes_changes(page):
     expect(hyundai.locator('.vh-model[data-model="Ioniq 9"]')).to_contain_text("4 variants")
     page.locator('#vh-list [data-edit="Tesla"][data-type="car"]').click()
     expect(page.locator("#vh-reset")).to_have_count(0)
+    # The kerb weight boxes show the file's figures (data/vehicles.json) until the admin changes them.
+    m3 = page.locator('#vh-form [data-model-block]', has=page.locator('.vh-mname[value="Model 3"]'))
+    assert m3.locator(".vh-mweight").input_value() == "1765"
+    assert m3.locator(".vh-vrow", has=page.locator('input[value="Performance"]')).locator(".vh-vweight").input_value() == "1845"
 
 
 def test_a_make_can_be_taken_off_and_bike_makes_are_kept_apart(page):

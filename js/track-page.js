@@ -696,6 +696,9 @@
       if (justSaved && (justSaved.batch || justSaved.text)) { h = savedHtml(justSaved) + h; justSaved = null; }
       app.innerHTML = h;
       heroAdd();
+      // A member with no sessions yet sees What are Sessions? open, so they see what Laps does.
+      var what = document.querySelector('.page-hero .tp-what');
+      if (what && m && !(m.sessions || []).length) what.open = true;
       if (window.MT3UKLapsTip) window.MT3UKLapsTip.place();
       wireAddCar();
       wireCarChips(m);

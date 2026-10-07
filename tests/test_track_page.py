@@ -1412,6 +1412,18 @@ def test_the_leaderboard_has_my_sessions_at_the_top_and_add_a_session_under_it(p
     assert page.evaluate("document.documentElement.scrollWidth") <= 390
 
 
+def test_what_are_sessions_starts_open_for_a_member_with_no_sessions(page):
+    """What are Sessions? lists what Laps does (tyres and pads among it); it starts open until the member has a session."""
+    open_page(page, FakeWorker(earlier=False), "/track.html", signed_in=True)
+    what = page.locator(".page-hero .tp-what")
+    expect(what).to_have_attribute("open", "")
+    expect(what.locator(".tp-what-list li")).to_have_count(5)
+    expect(what).to_contain_text("Tyres and brake pads")
+    open_page(page, FakeWorker(), "/track.html", signed_in=True)
+    page.locator("#tp-hero-add").wait_for()
+    expect(page.locator(".page-hero .tp-what")).not_to_have_attribute("open", "")
+
+
 def test_sessions_has_add_a_session_under_leaderboards(page):
     """On the member's list of sessions Add a session is in the heading, under Leaderboards and the same size; it opens
     the Add page for the vehicle picked, and is not shown on a session's own page."""

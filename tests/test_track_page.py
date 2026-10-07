@@ -1107,7 +1107,8 @@ def test_the_sessions_list_can_be_filtered_by_logger_tyres_and_pads(page):
     expect(page.locator("#tp-filter-note")).to_contain_text("Showing 1 of 3 sessions")
     expect(page.locator("#tp-sess-list .tp-trackwrap")).to_have_count(1)
     expect(page.locator("#tp-sess-list .tp-row[data-sid]")).to_have_count(1)
-    expect(page.locator("#tp-sess-list .tp-row[data-sid]")).to_be_visible()
+    expect(page.locator("#tp-sess-list .tp-daygroup").first).to_be_visible()
+    expect(page.locator("#tp-sess-list .tp-day-sub").first).to_contain_text("1 session")
     expect(page.locator('#tp-sess-list .tp-row[data-sid="f2"]')).to_have_count(1)
     # The tracks and layouts are open down to the days; a day with several matching sessions stays closed.
     expect(page.locator("#tp-sess-list .tp-daygroup").first).to_be_visible()
@@ -1117,7 +1118,7 @@ def test_the_sessions_list_can_be_filtered_by_logger_tyres_and_pads(page):
     expect(page.locator("#tp-sess-list .tp-daygroup")).to_have_count(1)
     expect(page.locator("#tp-sess-list .tp-daygroup")).to_have_attribute("data-open", "false")
     expect(page.locator("#tp-sess-list .tp-daygroup-all")).to_be_hidden()
-    expect(page.locator("#tp-sess-list .tp-daygroup-best .tp-row")).to_be_visible()
+    expect(page.locator("#tp-sess-list .tp-day-sub")).to_contain_text("fastest")
     page.locator("#tp-filter-tyres").select_option("")
     page.locator("#tp-filter-logger").select_option("VBOX")
     # Two filters together.
@@ -2708,18 +2709,17 @@ def test_a_tracks_chevron_drops_down_its_layouts_and_one_opens_only_those_sessio
     # Thruxton's stays folded.
     expect(page.locator("#tp-sess-list .tp-trackwrap", has_text="Thruxton").locator(".tp-layouts")).to_be_hidden()
     # A layout drops down its own sessions, the same day groups as the track's page, without leaving the list.
-    # Opening the track opened its layouts too, so the dates are already listed; a layout can still be folded on its own.
     indy = brands.locator(".tp-layoutwrap", has_text="Indy")
-    expect(indy.locator(".tp-layout-sessions")).to_be_visible()
-    layouts.filter(has_text="Indy").click()
-    expect(page).to_have_url(re.compile(r"track\.html$"))
     expect(indy.locator(".tp-layout-sessions")).to_be_hidden()
     layouts.filter(has_text="Indy").click()
+    expect(page).to_have_url(re.compile(r"track\.html$"))
     expect(indy.locator(".tp-layout-sessions")).to_be_visible()
     expect(indy.locator(".tp-layout-sessions a.tp-row[data-sid]")).to_have_count(2)
     expect(indy.locator(".tp-layout-sessions .tp-daygroup")).to_have_count(2)
     # A session opens from there, and Back (the button, or the browser's own) finds the list as it was left: Brands
     # Hatch and Indy still open. Only a full refresh of the page folds it.
+    # Each date is a compact tile; its own arrow opens it.
+    indy.locator(".tp-daygroup", has_text="1 May 2026").locator(".tp-daygroup-title").click()
     indy.locator('a.tp-row[data-sid="b1"]').click()
     expect(page).to_have_url(re.compile(r"track\.html\?s=b1$"))
     page.locator(".tp-back").click()
@@ -2727,7 +2727,7 @@ def test_a_tracks_chevron_drops_down_its_layouts_and_one_opens_only_those_sessio
     brands = page.locator("#tp-sess-list .tp-trackwrap", has_text="Brands Hatch")
     expect(brands.locator(".tp-layouts")).to_be_visible()
     expect(brands.locator(".tp-layoutwrap", has_text="Indy").locator(".tp-layout-sessions")).to_be_visible()
-    expect(brands.locator(".tp-layoutwrap", has_text="Grand Prix").locator(".tp-layout-sessions")).to_be_visible()
+    expect(brands.locator(".tp-layoutwrap", has_text="Grand Prix").locator(".tp-layout-sessions")).to_be_hidden()
     brands.locator(".tp-layoutwrap", has_text="Indy").locator('a.tp-row[data-sid="b1"]').click()
     expect(page).to_have_url(re.compile(r"track\.html\?s=b1$"))
     page.go_back()
@@ -6401,19 +6401,25 @@ def _many_days(fake, extra_days=10):
         fake.index.append(summary(rec))
 
 
-def test_opening_a_track_opens_its_layouts_and_dates(page):
-    """One tap on a track's chevron drops down its layouts and, under each, the dates (a card for each day), instead of
-    stopping at the layout row until that is opened too."""
+def test_the_sessions_tree_steps_down_one_arrow_at_a_time_with_compact_dates(page):
+    """Track, then layout, then date, each opened by its own arrow. A closed date is one compact row (date, how many
+    sessions and the fastest, a chevron), not a full card; the date's arrow opens the card."""
     fake = FakeWorker(earlier=False)
     _many_days(fake, 4)
     open_page(page, fake)
     wrap = page.locator("#tp-sess-list .tp-trackwrap", has_text="Castle Combe")
     wrap.locator("[data-track-toggle]").click()
-    expect(wrap.locator(".tp-layout-sessions")).to_be_visible()
-    assert wrap.locator(".tp-daygroup:visible").count() == 5
-    # The layout can still be folded on its own.
-    wrap.locator("[data-layout-toggle]").click()
+    expect(wrap.locator(".tp-layouts")).to_be_visible()
     expect(wrap.locator(".tp-layout-sessions")).to_be_hidden()
+    wrap.locator("[data-layout-toggle]").click()
+    day = wrap.locator(".tp-daygroup", has_text="14 Jul 2026")
+    expect(day.locator(".tp-day-sub")).to_have_text("3 sessions, fastest 1:21.10")
+    expect(day.locator(".tp-daygroup-best")).to_be_hidden()
+    expect(day.locator("[data-day-edit]")).to_be_hidden()
+    day.locator(".tp-daygroup-title[data-day-toggle]").click()
+    expect(day.locator("[data-day-edit]")).to_be_visible()
+    expect(day.locator(".tp-daygroup-all")).to_be_visible()
+
 
 
 def test_a_bulk_edit_stays_on_the_day_that_was_changed(page):
@@ -6425,8 +6431,10 @@ def test_a_bulk_edit_stays_on_the_day_that_was_changed(page):
     page.set_viewport_size({"width": 1100, "height": 700})
     wrap = page.locator("#tp-sess-list .tp-trackwrap", has_text="Castle Combe")
     wrap.locator("[data-track-toggle]").click()
+    wrap.locator("[data-layout-toggle]").click()
     day = wrap.locator(".tp-daygroup", has_text="14 Jul 2026")
     day.scroll_into_view_if_needed()
+    day.locator(".tp-daygroup-title[data-day-toggle]").click()
     day.locator("[data-day-edit]").click()
     page.locator("#tp-dayedit [data-cond] button[data-v='Wet']").click()
     page.locator("[data-day-edit-apply]").click()

@@ -131,3 +131,25 @@ def test_the_admins_words_and_places_are_used_on_the_front_page(page):
     expect(page.locator("#timers .lh-timers span")).to_have_text(["RaceBox", "VBOX"])
     expect(page.locator("#days")).to_be_hidden()
 
+
+def test_the_track_day_venues_page_shows_each_tracks_laps_times_and_more_tracks(page):
+    """js/laps-strip.js on track-day-venues.html: each venue's boards on Laps (fastest, who, how many cars) with
+    See the leaderboard and Add your session, an invitation where nothing is shared yet, and the other tracks."""
+    page.route("**/%s/**" % API_HOST, lambda r: r.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"},
+                                                         body=json.dumps(COUNTS if "/track/counts" in r.request.url else {"success": True})))
+    page.goto("/track-day-venues.html")
+    thruxton = page.locator("[data-laps-venue='thruxton']")
+    expect(thruxton.locator(".ls-head")).to_have_text("Thruxton on Laps")
+    expect(thruxton.locator(".ls-rows a")).to_have_count(1)
+    expect(thruxton.locator(".ls-rows a")).to_contain_text("1:21.42")
+    expect(thruxton.locator(".ls-rows a")).to_contain_text("Rich, Arctic Three")
+    assert thruxton.locator(".ls-rows a").get_attribute("href") == "leaderboards.html?board=thruxton%3Amain"
+    expect(thruxton.get_by_role("link", name="Add your session")).to_have_attribute("href", "track.html?add=1")
+    # Nothing shared at Snetterton yet: an invitation to be the first.
+    expect(page.locator("[data-laps-venue='snetterton'] .ls-empty")).to_contain_text("be the first")
+    # More tracks on Laps: the other boards, not the venues already on the page.
+    more = page.locator("[data-laps-more] .ls-rows a")
+    expect(more).to_have_count(1)
+    expect(more.first).to_contain_text("Santa Pod")
+    expect(more.first).to_contain_text("10.84 s")
+

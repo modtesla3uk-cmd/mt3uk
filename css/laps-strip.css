@@ -1,0 +1,17 @@
+/* Laps strips on MT3UK pages (js/laps-strip.js): a track's live Laps data, and More tracks on Laps. */
+.laps-strip { margin: 16px 0 34px; padding: 14px 16px 16px; background: #fff; border: 1px solid var(--hairline); border-left: 4px solid #16233d; border-radius: var(--radius); display: grid; gap: 10px; font-family: var(--font-body); }
+.ls-head { display: flex; align-items: center; gap: 8px; color: var(--ink); }
+.ls-head .icon { width: 20px; height: 20px; color: var(--orange); }
+.ls-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.ls-rows a { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 10px 8px 12px; border: 1px solid var(--hairline); border-radius: var(--radius-sm); background: #f8f7f3; color: var(--ink); text-decoration: none; }
+.ls-rows a:hover { border-color: var(--hairline-strong); }
+.ls-where { flex: 1; min-width: 0; display: grid; }
+.ls-where b { overflow-wrap: anywhere; }
+.ls-where span { font-size: 0.82rem; color: var(--steel); overflow-wrap: anywhere; }
+.ls-time { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ls-rows a > .icon { width: 18px; height: 18px; color: var(--steel); flex: none; }
+.ls-empty { margin: 0; color: var(--ink-2); font-size: 0.93rem; }
+.ls-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 0; }
+.ls-actions .btn .icon { width: 16px; height: 16px; }
+.laps-more { margin: 10px 0 0; display: grid; gap: 10px; }
+.laps-more[hidden] { display: none; }

@@ -5001,6 +5001,61 @@ def test_a_sprint_asks_who_organised_it_and_keeps_the_answer(page):
     expect(page.locator("#tp-organiser")).to_have_value("B19")
 
 
+SHELSLEY_START = [[52.264945, -2.4098672], [52.2651634, -2.4098402]]
+SHELSLEY_FINISH = [[52.2598990, -2.4135109], [52.2598692, -2.4138598]]
+
+
+def _shelsley_with_an_organiser(page):
+    """The track list with Shelsley Walsh's course run by MAC, with its start and finish lines set."""
+    def handler(route):
+        d = json.loads((ROOT / "data" / "tracks.json").read_text(encoding="utf-8"))
+        v = [x for x in d["venues"] if x["id"] == "shelsley-walsh"][0]
+        v["layouts"] = [{"id": "hill", "name": "Shelsley Walsh", "organizer": "MAC", "startLine": SHELSLEY_START, "finishLine": SHELSLEY_FINISH}]
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(d))
+    page.route(re.compile(r".*/data/tracks\.json.*"), handler)
+
+
+def test_a_known_venue_lists_its_organisers_and_a_new_one_can_use_an_existing_courses_lines(page):
+    """At a listed sprint venue the Organiser box is a drop-down of the organisers it already has. Add a new organiser
+    opens a name box and a choice of start and finish lines: the same as an existing course (the run is timed at once
+    on them) or Set them on the map. Typing a new name no longer sends the member straight to the map."""
+    _shelsley_with_an_organiser(page)
+    open_page(page, FakeWorker())
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(SHELSLEY_FIXTURE))
+    page.locator("[data-type] button[data-v='sprint']").click()
+    org = page.locator("select#tp-organiser")
+    expect(org).to_be_visible()
+    assert org.locator("option").all_text_contents() == ["Choose an organiser", "MAC", "Add a new organiser"]
+    expect(page.locator("#tp-organiser-new")).to_have_count(0)
+    # The listed organiser: timed on the course's own lines.
+    org.select_option("MAC")
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("33.0")
+    # A new organiser: a name box and the lines choice, starting on the existing course's lines.
+    org.select_option("__new")
+    expect(page.locator("#tp-organiser-new")).to_be_visible()
+    lines = page.locator("select#tp-org-lines")
+    expect(lines).to_have_value("hill")
+    assert lines.locator("option").all_text_contents() == ["Same as MAC", "Set them on the map"]
+    page.locator("#tp-organiser-new").fill("B19")
+    page.locator("#tp-organiser-new").press("Tab")
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("33.0")
+    expect(page.locator("#tp-tap")).to_have_count(0)
+    expect(page.locator("select#tp-organiser")).to_have_value("__new")
+    expect(page.locator("#tp-organiser-new")).to_have_value("B19")
+    # Set them on the map: the map picker asks for the lines, and the name is kept.
+    lines.select_option("")
+    expect(page.locator("#tp-tap-step")).to_have_text("Tap the start line, then the finish line.")
+    expect(page.locator("#tp-organiser-new")).to_have_value("B19")
+    # Back to the course's lines, saved with the new organiser.
+    page.locator("select#tp-org-lines").select_option("hill")
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("33.0")
+    page.locator("#tp-logger").select_option("Dragy")
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator(".tp-session-head h2")).to_have_text("Shelsley Walsh, B19")
+    expect(page.locator("#tp-kind")).to_have_text("Hill climb")
+
+
 def test_the_session_page_shows_the_name_of_the_file_it_came_from(page):
     open_page(page, FakeWorker())
     page.get_by_role("link", name="Add a session").click()

@@ -1531,7 +1531,7 @@
       if (!add.loggerTouched) add.logger = loggerGuess(read) || add.lastLogger || '';
       add.nameLooked = false;
       if (add.venueNameLooked) { add.venueName = ''; add.venueNameLooked = false; }
-      add.session = null; add.startLine = null; add.finishLine = null; add.editLines = false; add.tapFull = false; add.tapAuto = false; add.tapOutline = null; add.finishCross = 0; add.organizer = ''; add.rollout = false; add.tapMap = null; add.confirmLines = false; add.type = null; add.date = null; add.time = null;
+      add.session = null; add.startLine = null; add.finishLine = null; add.editLines = false; add.tapFull = false; add.tapAuto = false; add.tapOutline = null; add.finishCross = 0; add.organizer = ''; add.orgNew = false; add.orgFrom = null; add.rollout = false; add.tapMap = null; add.confirmLines = false; add.type = null; add.date = null; add.time = null;
       // Nothing about adding a layout carries over from the last file: the pick, its name and the add switch.
       add.layoutPick = add.layoutHint || ''; add.layoutName = ''; add.addNow = false; add.addedLayout = false;
       add.weatherKey = null; if (add.tempSource !== 'member') { add.temp = null; add.tempSource = ''; add.weather = null; }
@@ -1889,10 +1889,37 @@
     h += channelsHtml(a);
     var isSprint = s.type === 'sprint', word = isSprint ? 'run' : 'lap';
     if (isSprint) {
-      // Who ran the event: courses at one venue can have different start and finish lines.
-      var orgs = {};
-      ((a.lib && a.lib.venues) || []).forEach(function (vv) { if (vv.type === 'sprint' && (!s.venueId || vv.id === s.venueId)) (vv.layouts || []).forEach(function (l) { var o = l.organizer || ''; if (o) orgs[o] = 1; }); });
-      h += '<div class="tp-field"><label for="tp-organiser">Organiser</label><input class="field" id="tp-organiser" list="tp-organisers" autocomplete="off" placeholder="For example, B19" value="' + esc(a.organizer || s.organizer || '') + '"><datalist id="tp-organisers">' + Object.keys(orgs).map(function (o) { return '<option value="' + esc(o) + '"></option>'; }).join('') + '</datalist><p class="tp-small">Who ran the sprint. Courses at one venue can have different start and finish lines, so this keeps results comparable.</p></div>';
+      // Who ran the event: courses at one venue can have different start and finish lines. At a listed venue the
+      // organisers it already has are a drop-down (typing a new name used to send the member straight to the map);
+      // Add a new organiser opens a name box and, when the venue has courses with lines, a choice of which course's
+      // start and finish to use, so a new organiser on a known course is timed at once.
+      var orgs = [], courses = [];
+      ((a.lib && a.lib.venues) || []).forEach(function (vv) {
+        if (vv.type !== 'sprint' || (s.venueId ? vv.id !== s.venueId : true)) return;
+        (vv.layouts || []).forEach(function (l) {
+          var o = String(l.organizer || '').trim();
+          if (o && orgs.indexOf(o) === -1) orgs.push(o);
+          if (l.startLine && l.finishLine) courses.push({ id: l.id, name: o || l.name || 'the listed course', start: l.startLine, finish: l.finishLine });
+        });
+      });
+      var cur = a.organizer || s.organizer || '', help = '<p class="tp-small">Who ran the sprint. Courses at one venue can have different start and finish lines, so this keeps results comparable.</p>';
+      if (s.venueId && (orgs.length || courses.length)) {
+        var isNew = !!a.orgNew || (cur && orgs.indexOf(cur) === -1);
+        h += '<div class="tp-field"><label for="tp-organiser">Organiser</label><select class="field" id="tp-organiser"><option value=""' + (!isNew && !cur ? ' selected' : '') + '>Choose an organiser</option>' +
+          orgs.map(function (o) { return '<option value="' + esc(o) + '"' + (!isNew && o === cur ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('') +
+          '<option value="__new"' + (isNew ? ' selected' : '') + '>Add a new organiser</option></select>' + help + '</div>';
+        if (isNew) {
+          h += '<div class="tp-field"><label for="tp-organiser-new">New organiser</label><input class="field" id="tp-organiser-new" autocomplete="off" maxlength="40" placeholder="For example, B19" value="' + esc(cur) + '"></div>';
+          if (courses.length) {
+            var from = a.orgFrom === undefined || a.orgFrom === null ? courses[0].id : a.orgFrom;
+            h += '<div class="tp-field"><label for="tp-org-lines">Start and finish lines</label><select class="field" id="tp-org-lines">' +
+              courses.map(function (c) { return '<option value="' + esc(c.id) + '"' + (from === c.id ? ' selected' : '') + '>Same as ' + esc(c.name) + '</option>'; }).join('') +
+              '<option value=""' + (from === '' ? ' selected' : '') + '>Set them on the map</option></select><p class="tp-small">A new organiser usually runs the same course: use its lines and MT3UK will add the course. Pick Set them on the map if theirs differ.</p></div>';
+          }
+        }
+      } else {
+        h += '<div class="tp-field"><label for="tp-organiser">Organiser</label><input class="field" id="tp-organiser" list="tp-organisers" autocomplete="off" placeholder="For example, B19" value="' + esc(cur) + '"><datalist id="tp-organisers">' + orgs.map(function (o) { return '<option value="' + esc(o) + '"></option>'; }).join('') + '</datalist>' + help + '</div>';
+      }
     }
     if (s.type === 'other') {
       h += '<div class="tp-notice is-ok">' + icon('check') + '<div><b>' + esc(s.venue || 'Your drive') + '</b><br>Mapped with your top speed and grip. Other sessions aren\'t timed for a leaderboard.' + (s.laps && s.laps.length ? ' ' + s.laps.length + ' laps found too.' : '') + '</div></div>' +
@@ -2066,8 +2093,28 @@
       // No line in the file: offer the one found from the trace (the main straight, usually) to confirm or move.
       if (v === '__new' && a.session && a.session.needsStartLine && a.session.suggestedLine) { a.startLine = a.session.suggestedLine; linesChanged(); }
     });
-    var orgIn = document.getElementById('tp-organiser');
-    if (orgIn) orgIn.addEventListener('change', function () { keep(); a.organizer = orgIn.value.trim().slice(0, 40); analyse(); });
+    var orgIn = document.getElementById('tp-organiser'), orgNew = document.getElementById('tp-organiser-new'), orgLines = document.getElementById('tp-org-lines');
+    // A new organiser on a known course: start from that course's lines (copied, so the parser times the run on the
+    // member's own lines and the course is requested with them); Set them on the map clears them for the map picker.
+    function orgLinesFrom() {
+      var id = a.orgFrom, c = null;
+      if (id) ((a.lib && a.lib.venues) || []).forEach(function (vv) { if (vv.id === (a.session && a.session.venueId)) (vv.layouts || []).forEach(function (l) { if (l.id === id && l.startLine && l.finishLine) c = l; }); });
+      a.startLine = c ? JSON.parse(JSON.stringify(c.startLine)) : null;
+      a.finishLine = c ? JSON.parse(JSON.stringify(c.finishLine)) : null;
+      a.confirmLines = false; a.editLines = false;
+    }
+    if (orgIn && orgIn.tagName === 'SELECT') orgIn.addEventListener('change', function () {
+      keep();
+      if (orgIn.value === '__new') { a.orgNew = true; a.organizer = ''; if (a.orgFrom === undefined || a.orgFrom === null) a.orgFrom = null; a.startLine = null; a.finishLine = null; drawAdd(); var nn = document.getElementById('tp-organiser-new'); if (nn) nn.focus(); return; }
+      a.orgNew = false; a.orgFrom = null; a.organizer = orgIn.value.trim().slice(0, 40); a.startLine = null; a.finishLine = null; analyse();
+    });
+    else if (orgIn) orgIn.addEventListener('change', function () { keep(); a.organizer = orgIn.value.trim().slice(0, 40); analyse(); });
+    if (orgNew) orgNew.addEventListener('change', function () {
+      keep(); a.organizer = orgNew.value.trim().slice(0, 40);
+      if (orgLines && (a.orgFrom === undefined || a.orgFrom === null)) a.orgFrom = orgLines.value;
+      orgLinesFrom(); analyse();
+    });
+    if (orgLines) orgLines.addEventListener('change', function () { keep(); a.orgFrom = orgLines.value; orgLinesFrom(); analyse(); });
     var sentClose = document.getElementById('tp-sent-close');
     if (sentClose) sentClose.addEventListener('click', function () { go('s=' + a.replaceId, false, true); });
     var undoLines = document.getElementById('tp-undo-lines');

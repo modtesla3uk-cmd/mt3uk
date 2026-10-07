@@ -842,7 +842,7 @@ def test_admin_laps_panels_edit_the_front_page_sections_and_where_they_show(page
     page.locator("#panels-wrap summary").click()
     panels = page.locator("#lpn-list .lpn-panel")
     expect(panels).to_have_count(4)
-    expect(panels.first.locator("legend")).to_have_text("Works with your lap timer")
+    expect(panels.first.locator("legend")).to_have_text("What Laps does")
     fast = page.locator("#lpn-list .lpn-panel[data-id='fastest']")
     expect(fast.locator("legend")).to_have_text("Fastest right now")
     expect(fast.locator("[data-place='sessions']")).to_have_attribute("aria-checked", "true")

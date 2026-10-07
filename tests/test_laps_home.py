@@ -113,12 +113,13 @@ def test_a_slow_sessions_page_shows_a_spinner_then_a_note_and_refresh(page):
     expect(page.locator("#tp-loading [data-refresh]")).to_be_visible(timeout=3000)
 
 
-def test_works_with_your_lap_timer_comes_first_then_fastest_right_now_and_no_evs_band(page):
-    """Under the hero (which ends with Sessions are private until you choose to share them) comes Works with your lap
-    timer, then Fastest right now; the EVs band at the foot is gone, the hero already says Any EV, any make."""
+def test_what_laps_does_comes_first_then_the_lap_timers_then_fastest_right_now_and_no_evs_band(page):
+    """Under the hero (which ends with Sessions are private until you choose to share them) comes What Laps does, then
+    Works with your lap timer, then Fastest right now; the EVs band at the foot is gone, the hero already says Any EV,
+    any make."""
     open_home(page)
     ids = page.evaluate("[...document.querySelectorAll('main > section')].map(s => s.id)")
-    assert ids[:2] == ["timers", "fastest"] and "any-make" not in ids, ids
+    assert ids[:3] == ["what", "timers", "fastest"] and "any-make" not in ids, ids
     expect(page.locator(".lh-hero .lh-evs")).to_contain_text("Any EV, any make")
     page.locator("#lh-fast a").first.wait_for()
     expect(page.locator("main .mt3uk-share-dot")).to_have_count(0)

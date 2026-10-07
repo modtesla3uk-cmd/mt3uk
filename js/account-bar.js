@@ -4,7 +4,8 @@
   - The orange "Sign Up / Sign In" menu button is for visitors only, so it's
     hidden for signed-in members (My Garage is already in the menu).
   - Signed-in members get a slim "Signed in as <first name> · ri•••@example.com"
-    bar under the header, with My Garage and Sign out. The homepage shows this
+    bar under the header, with My Garage and Sign out (not on a phone, where the header's icons do the job, except
+    on Profile so Sign out is still there). The homepage shows this
     in its hero box instead, and My Garage and Sign Up / Sign In have their
     own, so none of them get the bar.
   - window.mt3ukSignOut() signs out on this device and reloads the page.
@@ -388,13 +389,14 @@
       '.mt3uk-account-bar a:hover,.mt3uk-account-bar button:hover{background:rgba(255,255,255,.12);border-color:#fff}' +
       '.mt3uk-account-bar a[aria-current="page"]{background:rgba(255,255,255,.18);border-color:#fff}' +
       '.mt3uk-account-bar .mt3uk-account-actions{display:flex;gap:10px;flex-wrap:wrap}' +
+      '@media(max-width:780px){.mt3uk-account-bar:not(.is-kept){display:none}}' +
       '@media(max-width:560px){.mt3uk-account-bar p{flex:1 0 100%}.mt3uk-account-bar .mt3uk-account-actions{flex:1 0 100%;gap:8px}.mt3uk-account-bar .mt3uk-account-actions>*{flex:1 1 0;padding-left:8px;padding-right:8px}}';
     document.head.appendChild(style);
 
     var first = read(FIRST_NAME_KEY);
     var masked = maskEmail(read(EMAIL_KEY));
     var bar = document.createElement('div');
-    bar.className = 'mt3uk-account-bar';
+    bar.className = 'mt3uk-account-bar' + (page === 'profile.html' ? ' is-kept' : '');
     bar.id = 'mt3uk-account-bar';
     bar.innerHTML =
       '<div class="mt3uk-account-bar-inner">' +

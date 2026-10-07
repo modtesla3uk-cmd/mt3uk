@@ -32,6 +32,20 @@
   }
   search.parentNode.insertBefore(profileLink, search);
 
+  // A garage icon after it goes to My Garage (or Sign In first). Relative, so on laps.mt3uk.com it stays there.
+  var garageLink = document.createElement('a');
+  garageLink.className = 'nav-profile nav-garage';
+  garageLink.id = 'nav-garage';
+  garageLink.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21V9l9-5 9 5v12"/><path d="M7 21v-8h10v8M7 17h10"/></svg>';
+  function setGarageLink() {
+    var signedIn = !!session();
+    garageLink.href = signedIn ? 'my-builds.html' : 'signin.html?next=' + encodeURIComponent('/my-builds.html');
+    garageLink.setAttribute('aria-label', signedIn ? 'My Garage' : 'Sign in to My Garage');
+    garageLink.title = 'My Garage';
+    if (/(^|\/)my-builds\.html$/i.test(location.pathname)) garageLink.setAttribute('aria-current', 'page');
+  }
+  search.parentNode.insertBefore(garageLink, search);
+
   var btn = wrap.querySelector('#nav-bell-btn');
   var count = wrap.querySelector('#nav-bell-count');
   var panel = wrap.querySelector('#nav-bell-panel');
@@ -43,6 +57,7 @@
   }
 
   setProfileLink();
+  setGarageLink();
 
   function esc(v) {
     return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {

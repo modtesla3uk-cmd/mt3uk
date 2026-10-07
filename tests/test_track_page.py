@@ -482,7 +482,7 @@ def test_a_file_from_another_day_keeps_its_own_date_and_says_so(page):
 def test_add_a_session_from_the_racebox_file(page):
     fake = FakeWorker()
     open_page(page, fake)
-    expect(page.locator(".tp-lb-pill")).to_have_attribute("href", "leaderboards.html")
+    expect(page.locator("#tp-lb-pill")).to_have_attribute("href", "leaderboards.html")
     page.get_by_role("link", name="Add a session").click()
     page.set_input_files("#tp-file", str(FIXTURE))
     notice = page.locator("#tp-result .tp-notice.is-ok")
@@ -842,33 +842,44 @@ def test_the_welcome_card_takes_the_admins_words_when_set(page):
 
 
 def test_the_upload_tip_shows_on_the_leaderboard_and_sessions_and_folds(page):
-    """The tip under the leaderboard chips and on the member's Sessions page: the built-in words, the admin's when
-    set, folded to its heading with the chevron (remembered in the browser), and hidden when switched off."""
+    """On the Leaderboard the tip is a light bulb in the blue heading, beside Add a session, that opens the tip
+    under it; on the member's Sessions page it is the card that folds to its heading (remembered in the browser).
+    The admin's words show when set, and the switch hides it."""
     fake = FakeWorker()
     open_page(page, fake, "/leaderboards.html", signed_in=False)
-    tip = page.locator("#laps-tip")
-    expect(tip.locator(".laps-tip-head b")).to_have_text("Tip: the more you upload, the more the board tells you")
-    expect(tip.locator(".laps-tip-body")).to_be_visible()
-    expect(tip.locator(".laps-tip-body .btn")).to_have_attribute("href", "track.html?add=1")
-    # It sits under the chips, above the track cards.
-    assert page.locator("#lb-app > *").evaluate_all("els => els.findIndex(e => e.querySelector('#laps-tip')) < els.findIndex(e => e.classList.contains('lb-grid') || e.querySelector('.lb-venue'))")
-    tip.locator("[data-laps-tip-toggle]").click()
-    expect(tip).to_have_class(re.compile("is-closed"))
+    tip = page.locator(".lb-hero #laps-tip")
+    bulb = tip.locator(".laps-tip-bulbbtn")
+    expect(bulb).to_be_visible()
+    expect(bulb).to_have_attribute("aria-label", "Tip: the more you upload, the more the board tells you")
+    expect(page.locator("#lb-app #laps-tip")).to_have_count(0)
+    # It starts shut, just the bulb, beside Add a session.
     expect(tip.locator(".laps-tip-body")).to_be_hidden()
-    # Folded stays folded on the next page, and on Sessions too.
-    open_page(page, fake, "/leaderboards.html?board=thruxton:main", signed_in=False)
-    expect(page.locator("#laps-tip")).to_have_class(re.compile("is-closed"))
+    a, k = page.locator("#lb-add-session").bounding_box(), bulb.bounding_box()
+    # On desktop it sits under Add a session, at the right, so Add a session lines up with My Sessions.
+    assert k["y"] >= a["y"] + a["height"] and abs((k["x"] + k["width"]) - (a["x"] + a["width"])) < 2
+    bulb.click()
+    expect(bulb).to_have_attribute("aria-expanded", "true")
+    expect(tip.locator(".laps-tip-body b")).to_have_text("Tip: the more you upload, the more the board tells you")
+    expect(tip.locator(".laps-tip-body")).to_be_visible()
+    assert tip.locator(".laps-tip-body").bounding_box()["y"] > k["y"] + k["height"] - 2
+    # Add a session is right beside it, so the tip has no button of its own.
+    expect(tip.locator(".laps-tip-body .btn")).to_have_count(0)
+    bulb.click()
+    expect(tip.locator(".laps-tip-body")).to_be_hidden()
+    # Sessions keeps the card, which folds and is remembered.
     open_page(page, fake, "/track.html", signed_in=True)
     tip = page.locator("#laps-tip")
-    expect(tip).to_have_class(re.compile("is-closed"))
-    tip.locator("[data-laps-tip-toggle]").click()
     expect(tip.locator(".laps-tip-body")).to_be_visible()
-    # Sessions has its own Add a session button, so the tip there has none.
     expect(tip.locator(".laps-tip-body .btn")).to_have_count(0)
+    tip.locator("[data-laps-tip-toggle]").click()
+    expect(tip).to_have_class(re.compile("is-closed"))
+    open_page(page, fake, "/track.html", signed_in=True)
+    expect(page.locator("#laps-tip")).to_have_class(re.compile("is-closed"))
     # The admin's words, and the switch that hides it.
     fake.copy = {"tipHeading": "Keep uploading", "tipText": "More <b>data</b>, better boards."}
     open_page(page, fake, "/leaderboards.html", signed_in=False)
-    expect(page.locator("#laps-tip .laps-tip-head b")).to_have_text("Keep uploading")
+    page.locator("#laps-tip .laps-tip-bulbbtn").click()
+    expect(page.locator("#laps-tip .laps-tip-body b")).to_have_text("Keep uploading")
     expect(page.locator("#laps-tip .laps-tip-body p")).to_have_text("More <b>data</b>, better boards.")
     fake.copy = {"tipOff": True}
     open_page(page, fake, "/leaderboards.html", signed_in=False)
@@ -1364,35 +1375,56 @@ def test_the_leaderboard_hero_matches_the_sessions_page(page):
     assert page.evaluate("document.documentElement.scrollWidth") <= 390
 
 
-def test_the_leaderboard_has_my_sessions_at_the_top_and_add_a_session_below(page):
+def test_the_leaderboard_has_my_sessions_at_the_top_and_add_a_session_under_it(page):
     fake = FakeWorker()
     open_page(page, fake, path="/leaderboards.html")
     mine, add = page.locator("#lb-my-sessions"), page.locator("#lb-add-session")
     expect(mine).to_have_text("My Sessions")
     expect(mine).to_have_attribute("href", "track.html")
     expect(add).to_have_text("Add a session")
-    assert mine.bounding_box()["height"] >= 50 and add.bounding_box()["height"] >= 44
-    back, title = page.locator("#lb-page-back"), page.locator(".lb-hero h1")
-    # On desktop My Sessions, Back and the title share one row, and Add a session sits below the title.
-    assert abs(mine.bounding_box()["y"] + mine.bounding_box()["height"] / 2 - (back.bounding_box()["y"] + back.bounding_box()["height"] / 2)) < 4
-    assert add.bounding_box()["y"] > title.bounding_box()["y"] + title.bounding_box()["height"] - 2
-    # The share button sits right after the title.
-    dot = page.locator(".lb-hero h1 .mt3uk-share-dot")
-    expect(dot).to_be_visible()
+    m, a = mine.bounding_box(), add.bounding_box()
+    # The same size on desktop, Add a session under My Sessions at the right.
+    assert m["height"] >= 50 and abs(m["height"] - a["height"]) < 1 and abs(m["width"] - a["width"]) < 1, (m, a)
+    assert a["y"] >= m["y"] + m["height"] and a["x"] + a["width"] > m["x"] + m["width"] / 2
+    back = page.locator("#lb-page-back").bounding_box()
+    # My Sessions, Back and the title share the top row.
+    assert abs(m["y"] + m["height"] / 2 - (back["y"] + back["height"] / 2)) < 4
+    expect(page.locator(".lb-hero h1 .mt3uk-share-dot")).to_be_visible()
     add.click()
     expect(page).to_have_url(re.compile(r"/track\.html\?add=1$"))
-    # On a phone My Sessions sits at the right of the Back row, above the title; Add a session is under the title,
-    # and the share button is beside the title rather than at the far right.
+    # On a phone Back and My Sessions are round icon buttons on one row with Add a session and the bulb, above the
+    # centred title, with the share button just after the title.
     page.set_viewport_size({"width": 390, "height": 844})
     page.goto("/leaderboards.html")
     mine, add, back = page.locator("#lb-my-sessions"), page.locator("#lb-add-session"), page.locator("#lb-page-back")
     expect(mine).to_be_visible()
-    b, k, h = mine.bounding_box(), back.bounding_box(), page.locator(".lb-hero h1").bounding_box()
-    assert abs(b["y"] - k["y"]) < 6 and b["x"] > k["x"] + k["width"] and h["y"] > b["y"] + b["height"] - 2
-    assert add.bounding_box()["y"] > h["y"] + h["height"] - 2
+    b, k, h, a = mine.bounding_box(), back.bounding_box(), page.locator(".lb-hero h1").bounding_box(), add.bounding_box()
+    assert k["width"] <= 46 and b["width"] <= 46 and abs(b["width"] - b["height"]) < 1, (k, b)
+    expect(mine).to_have_attribute("aria-label", "My Sessions")
+    bulb = page.locator(".lb-hero .laps-tip-bulbbtn").bounding_box()
+    centre = lambda r: r["y"] + r["height"] / 2
+    assert abs(centre(b) - centre(k)) < 3 and abs(centre(a) - centre(k)) < 3 and abs(centre(bulb) - centre(k)) < 3
+    assert k["x"] + k["width"] < b["x"] < a["x"] < bulb["x"] and bulb["x"] + bulb["width"] <= 375
+    assert h["y"] >= a["y"] + a["height"] - 2
+    assert abs((h["x"] + h["width"] / 2) - 195) < 12, h
     d = page.locator(".lb-hero h1 .mt3uk-share-dot").bounding_box()
     assert d["x"] < 330 and abs(d["y"] + d["height"] / 2 - (h["y"] + h["height"] / 2)) < 12
     assert page.evaluate("document.documentElement.scrollWidth") <= 390
+
+
+def test_sessions_has_add_a_session_under_leaderboards(page):
+    """On the member's list of sessions Add a session is in the heading, under Leaderboards and the same size; it opens
+    the Add page for the vehicle picked, and is not shown on a session's own page."""
+    fake = FakeWorker()
+    open_page(page, fake, "/track.html", signed_in=True)
+    add, lb = page.locator("#tp-hero-add"), page.locator("#tp-lb-pill")
+    expect(add).to_be_visible()
+    a, l = add.bounding_box(), lb.bounding_box()
+    assert abs(a["height"] - l["height"]) < 1 and abs(a["width"] - l["width"]) < 1 and a["y"] >= l["y"] + l["height"], (a, l)
+    expect(page.locator("#tp-app").get_by_role("link", name="Add a session", exact=True)).to_have_count(0)
+    add.click()
+    expect(page).to_have_url(re.compile(r"/track\.html\?add=1&car="))
+    expect(page.locator("#tp-hero-actions")).to_be_hidden()
 
 
 def test_the_battery_start_and_end_are_rounded_once(page):
@@ -1782,7 +1814,7 @@ def test_cars_are_separate_from_sessions(page):
     expect(page.locator(".tp-refresh")).to_have_text("")
     expect(page.locator(".tp-for")).to_have_text("Arctic Three")
     expect(page.locator(".tp-list .tp-row")).to_have_count(1)
-    expect(page.locator(".tp-lb-pill")).to_have_attribute("href", "leaderboards.html")
+    expect(page.locator("#tp-lb-pill")).to_have_attribute("href", "leaderboards.html")
     page.get_by_role("link", name="Add a session").click()
     page.set_input_files("#tp-file", str(FIXTURE))
     types = page.locator("[data-type] button")
@@ -4501,7 +4533,11 @@ def test_approved_members_get_the_tool_and_adding_a_session_is_gated_too(page):
 def test_the_early_preview_badge_is_on_the_menu_the_page_and_the_garage(page):
     page.goto("/track.html")
     expect(page.locator("nav .nav-link-track .early-badge").first).to_have_text("Early preview")
-    expect(page.locator(".page-hero .early-badge")).to_have_text("Early preview")
+    # On the Laps pages it is small writing above the Laps logo, not a badge in the heading.
+    expect(page.locator("header .laps-logo .laps-logo-early")).to_have_text("Early preview")
+    expect(page.locator(".page-hero .early-badge")).to_have_count(0)
+    early, name = page.locator(".laps-logo-early").bounding_box(), page.locator("header .laps-logo-name").bounding_box()
+    assert early["y"] + early["height"] <= name["y"] + 1 and abs(early["x"] - name["x"]) < 2
     page.goto("/index.html")
     expect(page.locator(".hp-cat[data-cat='sessions'] .early-badge")).to_have_text("Early preview")
     page.goto("/my-builds.html")

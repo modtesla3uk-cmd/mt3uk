@@ -313,9 +313,31 @@
   });
   // The page's own Back (to the page before) is only on the list of sessions; a session or the Add page has its own Back.
   function syncPageBack() { var b = document.querySelector('.page-hero .back-link'); if (b) b.hidden = !!location.search.replace(/^\?/, ''); }
+  // Add a session in the page heading (track.html), under Leaderboards: shown on the member's list of sessions only,
+  // for the vehicle picked there.
+  var heroAddCar = null;
+  function heroAdd() {
+    var box = document.getElementById('tp-hero-actions'), a = document.getElementById('tp-hero-add');
+    if (!box || !a) return;
+    box.hidden = !heroAddCar;
+    if (!heroAddCar) return;
+    var q = 'add=1&car=' + encodeURIComponent(heroAddCar);
+    a.href = 'track.html?' + q;
+    a.setAttribute('data-go', q);
+  }
+  (function () {
+    var a = document.getElementById('tp-hero-add');
+    if (a) a.addEventListener('click', function (e) {
+      if (e.metaKey || e.ctrlKey || !a.getAttribute('data-go')) return;
+      e.preventDefault();
+      go(a.getAttribute('data-go'));
+    });
+  })();
   function route() {
     stopPlay();
     syncPageBack();
+    heroAddCar = null;
+    heroAdd();
     if (cmpFull) { cmpFull = false; unlockOrientation(); document.body.classList.remove('tp-noscroll'); }
     V.hideTip();
     var p = params();
@@ -645,6 +667,7 @@
       // Sessions just saved from a batch: say so at the top.
       if (justSaved && (justSaved.batch || justSaved.text)) { h = savedHtml(justSaved) + h; justSaved = null; }
       app.innerHTML = h;
+      heroAdd();
       if (window.MT3UKLapsTip) window.MT3UKLapsTip.place();
       wireAddCar();
       wireCarChips(m);
@@ -674,8 +697,9 @@
     var h = '<div class="tp-section tp-vehicles"><div class="tp-vbox" id="tp-cars">' + vehiclesHtml(m, car) + '</div>' +
       '<div id="tp-car-add-wrap" hidden>' + addCarHtml(false) + '</div></div>';
     h += '<div class="tp-section"><div class="tp-head"><div><h2>Sessions</h2><p class="tp-sub tp-for">' + esc(car.name) + '</p></div>' + findToggleHtml(m) + refreshChip() + unitsChip() + '</div>';
-    h += '<div class="tp-actions"><a class="btn btn-accent" href="track.html?add=1&car=' + encodeURIComponent(car.id) + '" data-go="add=1&car=' + esc(encodeURIComponent(car.id)) + '">' + icon('upload') + 'Add a session</a>' +
-      (car.virtual ? '' : '<a class="btn btn-secondary" href="track.html?car=' + encodeURIComponent(car.id) + '" data-go="car=' + esc(encodeURIComponent(car.id)) + '">What others see</a>') + '</div>';
+    // Add a session is in the page heading, under Leaderboards (heroAdd); What others see stays here.
+    heroAddCar = car.id;
+    if (!car.virtual) h += '<div class="tp-actions"><a class="btn btn-secondary" href="track.html?car=' + encodeURIComponent(car.id) + '" data-go="car=' + esc(encodeURIComponent(car.id)) + '">What others see</a></div>';
     h += '<div data-laps-tip="plain"></div>';
     h += findPanelHtml(m);
     h += '<div id="tp-tracks">';

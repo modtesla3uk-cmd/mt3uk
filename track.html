@@ -247,7 +247,17 @@
   .tp-dark-hero .tp-what summary { color: #b9c0cf; }
   .tp-dark-hero .tp-what p { color: #d3d8e2; }
   /* Add a session sits under Leaderboards on the list of sessions, the same size and orange, as on the Leaderboard. */
-  .tp-hero-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+  .tp-hero-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; position: relative; }
+  /* The tip: a light bulb beside Add a session that opens the tip in a box under it, over the page, as on the Leaderboard. */
+  .tp-hero-actions [data-laps-tip], .tp-hero-actions .laps-tip-bulbmode { display: contents; }
+  .tp-dark-hero .laps-tip-bulbbtn { display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; padding: 0; border: 1px solid rgba(255,255,255,.45); border-radius: 50%; background: transparent; color: #ffd27a; cursor: pointer; }
+  .tp-dark-hero .laps-tip-bulbbtn:hover, .tp-dark-hero .laps-tip-bulbbtn[aria-expanded="true"] { background: rgba(255,255,255,.14); border-color: #fff; }
+  .tp-dark-hero .laps-tip-bulbbtn .laps-tip-bulb { width: 24px; height: 24px; color: inherit; }
+  .tp-dark-hero .laps-tip-pop { position: absolute; top: calc(100% + 10px); right: 0; z-index: 30; width: min(440px, calc(100vw - 32px)); display: grid; gap: 4px; padding: 14px 16px; border: 1px solid rgba(255,255,255,.22); border-radius: var(--radius); background: #22324f; box-shadow: 0 12px 30px rgba(0,0,0,.35); text-align: left; }
+  .tp-dark-hero .laps-tip-pop[hidden] { display: none; }
+  .tp-dark-hero .laps-tip-pop b { color: #fff; }
+  .tp-dark-hero .laps-tip-pop p { margin: 0; color: #d3d8e2; font-size: 0.92rem; }
+  @media (min-width: 901px) { .tp-dark-hero .tp-hero-actions { flex-direction: column; align-items: flex-end; } }
   .tp-hero-actions[hidden] { display: none; }
   .page-hero .tp-hero-row .tp-lb-pill { min-width: 176px; justify-content: center; }
   .page-hero .tp-lb-pill.tp-add-pill { background: var(--orange); color: #fff; }
@@ -885,7 +895,7 @@
 <section class="page-hero tp-dark-hero">
   <div class="wrap">
     <div class="tp-hero-top"><a href="my-builds.html" class="back-link" aria-label="Back to My Garage"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</a></div>
-    <div class="tp-hero-row"><h1>My Sessions</h1><a class="tp-lb-pill tp-round" id="tp-lb-pill" href="leaderboards.html" aria-label="Leaderboards" title="Leaderboards"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/></svg>Leaderboards</a><div class="tp-hero-actions" id="tp-hero-actions" hidden><a class="tp-lb-pill tp-add-pill" id="tp-hero-add" href="track.html?add=1"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 21h14"/></svg>Add a session</a></div></div>
+    <div class="tp-hero-row"><h1>My Sessions</h1><a class="tp-lb-pill tp-round" id="tp-lb-pill" href="leaderboards.html" aria-label="Leaderboards" title="Leaderboards"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/></svg>Leaderboards</a><div class="tp-hero-actions" id="tp-hero-actions" hidden><a class="tp-lb-pill tp-add-pill" id="tp-hero-add" href="track.html?add=1"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 21h14"/></svg>Add a session</a><div data-laps-tip="bulb"></div></div></div>
     <details class="tp-what"><summary>What are Sessions?</summary><p>Your track days and drag runs from your lap timer file: every lap mapped, where you gained and lost time, and what your mods did to your times.</p></details>
   </div>
 </section>
@@ -1044,7 +1054,7 @@
 <script src="js/pad-data.js?v=20270210"></script>
 <script src="js/vehicle-data.js?v=20270210" defer></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20270212" defer></script>
+<script src="js/track-page.js?v=20270214" defer></script>
 <script src="js/laps-tip.js?v=20270103" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=14" defer></script>

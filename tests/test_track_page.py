@@ -842,8 +842,8 @@ def test_the_welcome_card_takes_the_admins_words_when_set(page):
 
 
 def test_the_upload_tip_shows_on_the_leaderboard_and_sessions_and_folds(page):
-    """On the Leaderboard the tip is a light bulb in the blue heading, beside Add a session, that opens the tip
-    under it; on the member's Sessions page it is the card that folds to its heading (remembered in the browser).
+    """On the Leaderboard and the member's Sessions page the tip is a light bulb in the navy heading, by Add a
+    session, that opens the tip under it.
     The admin's words show when set, and the switch hides it."""
     fake = FakeWorker()
     open_page(page, fake, "/leaderboards.html", signed_in=False)
@@ -866,15 +866,15 @@ def test_the_upload_tip_shows_on_the_leaderboard_and_sessions_and_folds(page):
     expect(tip.locator(".laps-tip-body .btn")).to_have_count(0)
     bulb.click()
     expect(tip.locator(".laps-tip-body")).to_be_hidden()
-    # Sessions keeps the card, which folds and is remembered.
+    # Sessions has the same bulb, beside its Add a session in the heading.
     open_page(page, fake, "/track.html", signed_in=True)
-    tip = page.locator("#laps-tip")
+    tip = page.locator(".page-hero #laps-tip")
+    expect(tip.locator(".laps-tip-bulbbtn")).to_be_visible()
+    expect(page.locator("#tp-app #laps-tip")).to_have_count(0)
+    expect(tip.locator(".laps-tip-body")).to_be_hidden()
+    tip.locator(".laps-tip-bulbbtn").click()
     expect(tip.locator(".laps-tip-body")).to_be_visible()
     expect(tip.locator(".laps-tip-body .btn")).to_have_count(0)
-    tip.locator("[data-laps-tip-toggle]").click()
-    expect(tip).to_have_class(re.compile("is-closed"))
-    open_page(page, fake, "/track.html", signed_in=True)
-    expect(page.locator("#laps-tip")).to_have_class(re.compile("is-closed"))
     # The admin's words, and the switch that hides it.
     fake.copy = {"tipHeading": "Keep uploading", "tipText": "More <b>data</b>, better boards."}
     open_page(page, fake, "/leaderboards.html", signed_in=False)

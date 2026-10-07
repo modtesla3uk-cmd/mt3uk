@@ -312,7 +312,35 @@
     }
   });
   // The page's own Back (to the page before) is only on the list of sessions; a session or the Add page has its own Back.
-  function syncPageBack() { var b = document.querySelector('.page-hero .back-link'); if (b) b.hidden = !!location.search.replace(/^\?/, ''); }
+  // A view's own Back (to the list it came from) takes the place of the page's Back in the heading, so Back is always
+  // the same button in the same place (round on a phone). Moved whenever the view is drawn.
+  var heroTop = document.querySelector('.page-hero .tp-hero-top');
+  var pageBack = heroTop && heroTop.querySelector('.back-link:not(.tp-back)');
+  // Each new view starts with the page's Back (hidden off the list of sessions, as before); a view that draws its own
+  // Back has it moved into the heading in its place.
+  function syncPageBack() {
+    if (!heroTop || !pageBack) return;
+    [].slice.call(heroTop.querySelectorAll('.tp-back')).forEach(function (x) { x.remove(); });
+    pageBack.hidden = !!location.search.replace(/^\?/, '');
+  }
+  function moveViewBack() {
+    var inner = app.querySelector('.tp-back');
+    if (!inner || !heroTop || !pageBack) return;
+    [].slice.call(heroTop.querySelectorAll('.tp-back')).forEach(function (x) { x.remove(); });
+    inner.classList.add('back-link');
+    heroTop.insertBefore(inner, pageBack);
+    pageBack.hidden = true;
+  }
+  if (heroTop) {
+    heroTop.addEventListener('click', function (e) {
+      var a = e.target.closest('a.tp-back[data-go]');
+      if (!a || e.metaKey || e.ctrlKey) return;
+      e.preventDefault();
+      if (a.getAttribute('data-back') === 'replace') go(a.getAttribute('data-go'), false, true);
+      else goBack(a.getAttribute('data-go'));
+    });
+    if (window.MutationObserver) new MutationObserver(moveViewBack).observe(app, { childList: true, subtree: true });
+  }
   // Add a session in the page heading (track.html), under Leaderboards: shown on the member's list of sessions only,
   // for the vehicle picked there.
   var heroAddCar = null;
@@ -700,7 +728,6 @@
     // Add a session is in the page heading, under Leaderboards (heroAdd); What others see stays here.
     heroAddCar = car.id;
     if (!car.virtual) h += '<div class="tp-actions"><a class="btn btn-secondary" href="track.html?car=' + encodeURIComponent(car.id) + '" data-go="car=' + esc(encodeURIComponent(car.id)) + '">What others see</a></div>';
-    h += '<div data-laps-tip="plain"></div>';
     h += findPanelHtml(m);
     h += '<div id="tp-tracks">';
     if (!list.length) h += '<div class="card tp-empty">' + icon('flag') + '<p>No sessions for ' + esc(car.name) + ' yet. Add the file from your lap timer to get started.</p></div>';

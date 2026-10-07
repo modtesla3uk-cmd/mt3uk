@@ -165,7 +165,7 @@
     if (!sortChosen && mine) mode = 'mine';
     h = '<div class="lb-bar">' + h + '<div class="tp-head-side"><label class="lb-sort"><span>Sort by</span><select class="field" id="lb-sort">' + (mine ? [['mine', 'My layout']] : []).concat(SORTS).map(function (o) {
       return '<option value="' + o[0] + '"' + (o[0] === mode ? ' selected' : '') + '>' + o[1] + '</option>';
-    }).join('') + '</select></label>' + refreshChip() + '</div></div>' + tipHtml();
+    }).join('') + '</select></label>' + refreshChip() + '</div></div>';
     // Sprints and hill climbs share one kind of board; the venue's hill flag tells them apart.
     var bt = t[0] === 'hill' ? 'sprint' : t[0];
     var venues = library.venues.filter(function (v) { return v.type === t[2] && (t[0] === 'hill' ? T.isHill(v) : t[0] === 'sprint' ? !T.isHill(v) : true); }).map(function (v, i) {
@@ -328,8 +328,7 @@
     }, true);
   }
 
-  // The tip (js/laps-tip.js) goes under the chips; the page fills it after drawing.
-  function tipHtml() { return '<div data-laps-tip></div>'; }
+  // The tip (js/laps-tip.js) is a light bulb in the blue heading (leaderboards.html); the page fills it after drawing.
   function placeTip() { if (window.MT3UKLapsTip) window.MT3UKLapsTip.place(); }
   function ctaHtml() {
     return '<div class="card lb-cta"><div><b>Get your car on the board</b><p>Upload your lap timer file in Track Sessions and share it. Your fastest goes straight on, with your car and mods.</p></div><a class="btn btn-accent" href="track.html">' + icon('upload') + 'Add a session</a></div>';
@@ -555,7 +554,7 @@
               (anyWeight ? '<label class="lb-sel"><span>Kerb weight</span><select class="field" id="lb-weight"><option value="All">Any</option>' + WEIGHTS.map(function (x) { return '<option value="' + x[0] + '"' + (fWeight === x[0] ? ' selected' : '') + '>' + x[1] + '</option>'; }).join('') + '</select></label>' : '') : '') +
             (makes.length && viewMode !== 'tyres' ? '<label class="lb-sel"><span>Tyre make</span><select class="field" id="lb-make">' + options(makes, fMake, 'Any tyres') + '</select></label>' : '') +
             (fMake !== 'All' && viewMode !== 'tyres' && (tyresOf[fMake] || []).length ? '<label class="lb-sel"><span>Tyre model</span><select class="field" id="lb-tyre">' + options(tyresOf[fMake].slice().sort(), fTyre, 'Any ' + esc(fMake)) + '</select></label>' : '') +
-            (filtered ? '<button type="button" class="btn btn-ghost btn-sm" id="lb-clear">Clear filters</button>' : '') + '</div>' : '') + '</div>' + tipHtml();
+            (filtered ? '<button type="button" class="btn btn-ghost btn-sm" id="lb-clear">Clear filters</button>' : '') + '</div>' : '') + '</div>';
         if (cmp) h += compareHtml(entries, type);
         else if (!shown.length) h += '<div class="card tp-empty">' + icon('trophy') + '<p>' + (filtered ? 'Nobody matches these filters.' : 'Nobody on this board yet' + (boardModel === 'All' ? '' : ' for the ' + esc(boardModel)) + '. Be the first.') + '</p></div>';
         else {

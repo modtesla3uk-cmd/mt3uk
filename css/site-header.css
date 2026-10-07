@@ -304,6 +304,10 @@ nav {
 /* Person icon next to the bell: goes to My Profile. */
 .nav-profile { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 34px; color: var(--ink); text-decoration: none; }
 .nav-profile:hover { opacity: 0.65; }
+/* The garage icon (My Garage) shares its look. On a narrow phone the header keeps a 16px side gutter, so it still fits with the garage icon. */
+@media (max-width: 400px) { nav { padding-left: 16px; padding-right: 16px; } }
+/* No search on the Laps pages: the menu has the few pages there are. The box stays in the page (the bell and the icons are placed by it). */
+.nav-search[data-scope="laps"] { display: none; }
 .nav-profile svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .nav-bell-btn svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .nav-bell-count {
@@ -468,6 +472,9 @@ a.back-link .icon, .page-hero a.back-link .icon { color: var(--orange); stroke-w
 
 /* Laps pages (track.html, leaderboards.html): a text wordmark, "Laps by MT3UK". */
 .laps-logo { align-items: baseline; gap: 8px; }
+/* "Early preview" in small writing above the Laps logo in the header (partials/laps-header.html). Take it off when Laps opens to everyone. */
+.laps-logo:has(> .laps-logo-early) { position: relative; }
+.laps-logo-early { position: absolute; left: 0; bottom: 100%; margin-bottom: 3px; white-space: nowrap; font-family: var(--font-body); font-size: 0.66rem; font-weight: 600; line-height: 1; color: var(--orange); }
 .laps-logo-name { font-family: var(--font-head); font-size: 1.45rem; font-weight: 800; letter-spacing: -0.01em; line-height: 1; color: var(--ink); }
 .laps-logo-by { font-family: var(--font-body); font-size: 0.78rem; font-weight: 500; line-height: 1; color: var(--steel); }
 .logo.footer-logo.laps-logo .laps-logo-name { font-size: 1.15rem; }

@@ -181,9 +181,11 @@
   // A kerb weight (kg, the maker's figure) for the model, and for a variant that differs from it: Compare tyres and
   // Compare pads group cars by it. Kept in the library's weights under the same keys as the driven wheels.
   function weightOf(make, model, version) {
-    var V = window.MT3UKVehicles, w = extra.weights || {};
+    var V = window.MT3UKVehicles;
     if (!V || !make || !model) return '';
-    return (version ? w[V.driveVariantKey({ make: make, model: model, version: version })] : w[V.driveKey({ make: make, model: model })]) || '';
+    var k = version ? V.driveVariantKey({ make: make, model: model, version: version }) : V.driveKey({ make: make, model: model });
+    // The admin's figure, else the file's (data/vehicles.json).
+    return (extra.weights || {})[k] || ((base && base.weights) || {})[k] || '';
   }
   function modelBlock(model, variants, rule, type, make) {
     var V = window.MT3UKVehicles, drives = extra.drives || {};

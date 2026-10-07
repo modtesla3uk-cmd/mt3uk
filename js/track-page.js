@@ -2761,9 +2761,9 @@
     if (!s.hasSource) {
       var why = readingsSending[s.id] ? 'Your readings are still being sent. Keep this page open: the options for the lines appear when they have arrived.'
         : 'This session\'s readings were not kept (' + (s.readingsMessage ? esc(String(s.readingsMessage).replace(/\.$/, '')) : 'a session saved before we kept them, or a file too long to keep') + '), so its lines cannot be edited. Add the readings again below, or add the file again as a new session.';
-      return '<div class="tp-section" id="lineedit" data-tile="lineedit"><div class="tp-head">' + moveHtml('Start and finish lines') + '<h2>Start and finish lines</h2></div><div class="card tp-fields"><p class="tp-src">' + icon('info') + '<span>' + why + '</span></p>' + (readingsSending[s.id] ? '' : readingsAgainHtml()) + '</div></div>';
+      return '<div class="tp-section" id="lineedit" data-tile="lineedit"><div class="tp-head">' + '<h2>Start and finish lines</h2></div><div class="card tp-fields"><p class="tp-src">' + icon('info') + '<span>' + why + '</span></p>' + (readingsSending[s.id] ? '' : readingsAgainHtml()) + '</div></div>';
     }
-    return '<div class="tp-section" id="lineedit" data-tile="lineedit"><div class="tp-head">' + moveHtml('Start and finish lines') + '<h2>Start and finish lines</h2></div><div class="card tp-fields" id="tp-lineedit"><p class="tp-sub">Checking...</p></div></div>';
+    return '<div class="tp-section" id="lineedit" data-tile="lineedit"><div class="tp-head">' + '<h2>Start and finish lines</h2></div><div class="card tp-fields" id="tp-lineedit"><p class="tp-sub">Checking...</p></div></div>';
   }
   // The track name on a session at a track we do not list: the same steps as the map (ask, allowed, send, approved).
   // At a track we do list, what can be wrong is the name of its layout ("Brands Hatch, New Layout"), which every session on
@@ -2772,7 +2772,7 @@
   function renameHtml(s) {
     if (!s.mine || s.street) return '';
     if (s.venueId ? !layoutRename(s) : !s.venue) return '';
-    return '<div class="tp-section" id="rename" data-tile="rename"><div class="tp-head">' + moveHtml('Track name') + '<h2>' + (layoutRename(s) ? 'Layout name' : 'Track name') + '</h2></div><div class="card tp-fields" id="tp-rename"><p class="tp-sub">Checking...</p></div></div>';
+    return '<div class="tp-section" id="rename" data-tile="rename"><div class="tp-head">' + '<h2>' + (layoutRename(s) ? 'Layout name' : 'Track name') + '</h2></div><div class="card tp-fields" id="tp-rename"><p class="tp-sub">Checking...</p></div></div>';
   }
   function drawRename(s, st) {
     var box = document.getElementById('tp-rename');
@@ -3230,16 +3230,16 @@
     gReset(s.id);
     var h = lapPickHtml(s) + '<div id="tp-headline">' + headlineHtml(s) + '</div>';
     // The lap times, folded away until opened (shown after Compare laps).
-    var lapsHtml = '<details class="card tp-laps" id="tp-laps" data-tile="laps"' + (lapsOpen ? ' open' : '') + '><summary>' + moveHtml('Laps') + '<h3>Laps</h3><span class="tp-small">' + laps.length + ' ' + (laps.length === 1 ? 'lap' : 'laps') + (best ? ', best ' + V.fmtLap(best.time) : '') + '</span>' + icon('chev') + '</summary><div class="tp-scroll"><table class="tp-table">' + lapTable(s) + '</table></div>' +
+    var lapsHtml = '<details class="card tp-laps" id="tp-laps" data-tile="laps"' + (lapsOpen ? ' open' : '') + '><summary>' + '<h3>Laps</h3><span class="tp-small">' + laps.length + ' ' + (laps.length === 1 ? 'lap' : 'laps') + (best ? ', best ' + V.fmtLap(best.time) : '') + '</span>' + icon('chev') + '</summary><div class="tp-scroll"><table class="tp-table">' + lapTable(s) + '</table></div>' +
       (s.sectorsByThirds ? '<p class="tp-small">Sectors are thirds of the lap until this track has its own sector points.</p>' : '') + '</details>';
-    var spottedHtml = '<div class="tp-section" data-tile="spotted"><div class="tp-chart-head">' + moveHtml('What we spotted') + '<h3>What we spotted</h3></div><div class="tp-notes">' + notesHtml(T.sessionNotes(s, V.fmtV, V.fmtD)) + '</div></div>';
+    var spottedHtml = '<div class="tp-section" data-tile="spotted"><div class="tp-chart-head">' + '<h3>What we spotted</h3></div><div class="tp-notes">' + notesHtml(T.sessionNotes(s, V.fmtV, V.fmtD)) + '</div></div>';
     // One map: Compare laps' "Where you are", straight after the tiles.
     if (s.trace && s.trace.laps && Object.keys(s.trace.laps).length) {
       h += '<div class="tp-section" id="compare"><div class="tp-head"><h2>Compare laps</h2></div><p class="tp-sub">Pick two laps. Press Play, or move along a chart, to see where both are at the same moment. The slower lap trails by the time gap.</p>' +
         '<div class="card tp-cmp-pick"><div class="tp-f2"><div class="tp-field"><label for="tp-cmp-a">Lap A</label><select class="field" id="tp-cmp-a">' + lapOptions(view.a) + '</select></div><div class="tp-field"><label for="tp-cmp-b">Lap B</label><select class="field" id="tp-cmp-b">' + lapOptions(view.b) + '</select></div></div></div>' +
-        '</div><div class="tp-board" id="tp-board"><div class="card tp-o-speed" data-tile="speed"><div class="tp-chart-head">' + moveHtml('Speed and time gap') + '<h3>Speed through the lap</h3><div class="tp-key" id="tp-key"></div></div><svg class="tv-chart" id="tp-speed" role="img" aria-label="Speed against distance for both laps"></svg>' +
-        '<div class="tp-chart-head"><h3>Time gap</h3><span class="tp-small" id="tp-gap-cap"></span></div><svg class="tv-chart" id="tp-delta" role="img" aria-label="Running time gap between the laps"></svg>' + resizeHtml('speed', 'speed and time gap charts') + '</div>' +
-        '<div class="card tp-mapcard" id="tp-mapcard" data-tile="map"><div class="tp-chart-head tp-map-head">' + moveHtml('Map') + '<h3>Where you are</h3><button type="button" class="tp-switch tp-gswitch tp-speedsw" role="switch" id="tp-speedcol" aria-checked="' + cmpSpeed + '"><span>Colour by speed</span><span class="tp-track"></span></button><button type="button" class="tp-rotate-hint" id="tp-rotate-hint" aria-label="Turn the screen sideways for a bigger map" title="Turn the screen sideways for a bigger map">' + icon('rotate') + '</button><button type="button" class="btn btn-secondary btn-sm" id="tp-full" aria-label="Full screen map"></button></div>' +
+        '</div><div class="tp-board" id="tp-board"><div class="card tp-o-speed" data-tile="speed"><div class="tp-chart-head">' + '<h3>Speed through the lap</h3><div class="tp-key" id="tp-key"></div></div><svg class="tv-chart" id="tp-speed" role="img" aria-label="Speed against distance for both laps"></svg>' +
+        '<div class="tp-chart-head"><h3>Time gap</h3><span class="tp-small" id="tp-gap-cap"></span></div><svg class="tv-chart" id="tp-delta" role="img" aria-label="Running time gap between the laps"></svg>' + '</div>' +
+        '<div class="card tp-mapcard" id="tp-mapcard" data-tile="map"><div class="tp-chart-head tp-map-head">' + '<h3>Where you are</h3><button type="button" class="tp-switch tp-gswitch tp-speedsw" role="switch" id="tp-speedcol" aria-checked="' + cmpSpeed + '"><span>Colour by speed</span><span class="tp-track"></span></button><button type="button" class="tp-rotate-hint" id="tp-rotate-hint" aria-label="Turn the screen sideways for a bigger map" title="Turn the screen sideways for a bigger map">' + icon('rotate') + '</button><button type="button" class="btn btn-secondary btn-sm" id="tp-full" aria-label="Full screen map"></button></div>' +
         '<p class="tp-small tp-sync-note">Both laps at the same moment: the slower one trails by the time gap.</p>' +
         '<div class="tp-play" id="tp-play"><div class="tp-pn-grip" id="tp-pn-grip" role="separator" aria-label="Drag to move the controls" title="Drag to move the controls"><i></i><i></i><i></i></div><div class="tp-play-row"><div class="tp-play-btns"><button type="button" class="btn btn-secondary" id="tp-play-start" data-play="start" aria-label="Go back to the start"></button><button type="button" class="btn btn-secondary" id="tp-play-back" data-play="back"></button><button type="button" class="btn btn-primary" id="tp-play-toggle" data-play="toggle"></button></div><div class="tp-when" id="tp-when" aria-live="off"></div>' +
         '<div class="tp-chips" id="tp-speeds" role="group" aria-label="Playback speed">' + [['0.25', 'x0.25'], ['0.5', 'x0.5'], ['1', 'x1'], ['2', 'x2'], ['5', 'x5']].map(function (v) { return '<button type="button" class="chip" data-speed="' + v[0] + '">' + v[1] + '</button>'; }).join('') + '</div>' +
@@ -3247,7 +3247,7 @@
         '<div class="tp-pn-size" id="tp-pn-size" role="separator" aria-label="Drag to resize the controls" title="Drag to resize the controls"></div>' +
         '</div>' +
         '<div class="tp-mapwrap" id="tp-mapwrap"><svg class="tv-chart" id="tp-map2" role="img" aria-label="Track map with both laps\' lines and positions"></svg>' +
-        resizeHtml('map', 'map') + '<div class="tp-chart-foot tp-speedkey" id="tp-speedkey"' + (cmpSpeed ? '' : ' hidden') + '><span class="tp-ramp"><span id="tp-ramp-lo"></span><i></i><span id="tp-ramp-hi"></span></span><span>Lap A coloured by speed, lap B dashed. Numbers are the slowest corners.</span></div></div>' +
+        '<div class="tp-chart-foot tp-speedkey" id="tp-speedkey"' + (cmpSpeed ? '' : ' hidden') + '><span class="tp-ramp"><span id="tp-ramp-lo"></span><i></i><span id="tp-ramp-hi"></span></span><span>Lap A coloured by speed, lap B dashed. Numbers are the slowest corners.</span></div></div>' +
         '<div class="tp-mopts" id="tp-mopts"><button type="button" class="tp-mopts-btn" id="tp-mopts-btn" aria-expanded="false" aria-controls="tp-mopts-card" aria-label="Map options">' + icon('sliders') + '</button>' +
         '<div class="tp-mopts-card" id="tp-mopts-card" hidden><div class="tp-mopts-head"><span>Map options</span><button type="button" class="tp-mopts-x" id="tp-mopts-x" aria-label="Close map options">' + icon('x') + '</button></div>' +
         '<div class="tp-mopts-body" id="tp-mopts-body"><button type="button" class="tp-switch tp-gswitch" role="switch" id="tp-carspeed" aria-checked="' + carSpeed + '"><span>Speed on cars</span><span class="tp-track"></span></button><button type="button" class="btn btn-secondary btn-sm" id="tp-pn-reset">Reset the controls</button></div></div></div>' +
@@ -3255,17 +3255,17 @@
         '<div class="tp-split" id="tp-split" role="separator" aria-orientation="vertical" aria-label="Drag to make the map bigger or smaller" title="Drag to make the map bigger or smaller"></div>' +
         '<div class="tp-metrics" id="tp-metrics" aria-live="off"></div>' +
         '<div class="tp-gbox" id="tp-gbox"><div class="tp-chart-head"><h3>G-force' + (s.gDerived ? ' (estimated)' : '') + ' and speed</h3><button type="button" class="tp-switch tp-gswitch" role="switch" id="tp-gshow" aria-checked="' + !gHidden + '"><span>Show G-Forces</span><span class="tp-track"></span></button><div class="tp-chips" id="tp-gtoggles" role="group" aria-label="G-force lines to show">' + G_DEFS.map(function (d) { return '<button type="button" class="chip chip-sm' + (gShow[d[0]] ? ' is-on' : '') + '" data-g="' + d[0] + '" aria-pressed="' + !!gShow[d[0]] + '">' + d[1] + '</button>'; }).join('') + '</div></div>' +
-        '<div class="tp-gcharts" id="tp-gforce"></div>' + resizeHtml('g', 'G-force charts') +
+        '<div class="tp-gcharts" id="tp-gforce"></div>' +
         // The slider sits under the chart, lined up with its time axis.
         '<div class="tp-scrub-row"><div class="tp-scrub-track" id="tp-scrub-track"><div class="tp-ruler" id="tp-ruler" aria-hidden="true"></div><input type="range" id="tp-scrub" min="0" max="100" step="0.01" value="0" aria-label="Position in the lap"></div><span class="tp-clock" id="tp-clock">0:00.0</span></div>' +
         '<div class="tp-small tp-gpeaks" id="tp-gpeaks"></div><p class="tp-small" id="tp-gnote"></p></div></div>' +
-        '<div class="card tp-o-corner" data-tile="corners"><div class="tp-chart-head">' + moveHtml('Corner by corner') + '<h3>Corner by corner</h3></div><div class="tp-scroll"><table class="tp-table" id="tp-corners"></table></div></div>' +
-        '<div class="card" data-tile="grip"><div class="tp-chart-head">' + moveHtml('Grip') + '<h3>How much grip you used, lap A' + (s.gDerived ? ' (estimated)' : '') + '</h3><span class="tp-small">Each dot is a moment on the lap. The further from the middle, the harder the ' + VW + ' was working the tyres.</span></div><svg class="tv-chart tp-gg" id="tp-gg" role="img" aria-label="Sideways against lengthways g for lap A"></svg></div>' +
-        '<div class="card" data-tile="cmpnotes"><div class="tp-chart-head">' + moveHtml('What the laps say') + '<h3>What the laps say</h3></div><div class="tp-notes" id="tp-cmp-notes"></div></div>';
+        '<div class="card tp-o-corner" data-tile="corners"><div class="tp-chart-head">' + '<h3>Corner by corner</h3></div><div class="tp-scroll"><table class="tp-table" id="tp-corners"></table></div></div>' +
+        '<div class="card" data-tile="grip"><div class="tp-chart-head">' + '<h3>How much grip you used, lap A' + (s.gDerived ? ' (estimated)' : '') + '</h3><span class="tp-small">Each dot is a moment on the lap. The further from the middle, the harder the ' + VW + ' was working the tyres.</span></div><svg class="tv-chart tp-gg" id="tp-gg" role="img" aria-label="Sideways against lengthways g for lap A"></svg></div>' +
+        '<div class="card" data-tile="cmpnotes"><div class="tp-chart-head">' + '<h3>What the laps say</h3></div><div class="tp-notes" id="tp-cmp-notes"></div></div>';
       boardOpen = true;
     }
     h += lapsHtml + spottedHtml;
-    if (s.mine && s.venueId && s.layoutId) h += '<div class="tp-section" id="over-time" data-tile="overtime"><div class="tp-head">' + moveHtml('Over time') + '<h2>' + esc(trackName(s)) + ' over time</h2></div><div id="tp-time"></div></div>';
+    if (s.mine && s.venueId && s.layoutId) h += '<div class="tp-section" id="over-time" data-tile="overtime"><div class="tp-head">' + '<h2>' + esc(trackName(s)) + ' over time</h2></div><div id="tp-time"></div></div>';
     return h;
   }
   // "Lap 5", or "Session 2, lap 5" on a day made from several files
@@ -3396,7 +3396,6 @@
     pb.render = null;
     var sa = document.getElementById('tp-cmp-a'), sb = document.getElementById('tp-cmp-b');
     wirePlay();
-    wireResize();
     applyLayout();
     if (sa) {
       sa.addEventListener('change', function () { view.a = sa.value; drawCompare(s); });
@@ -3416,64 +3415,11 @@
   // The whole G-force and speed chart can be hidden (remembered in this browser).
   var gHidden = false;
   try { gHidden = localStorage.getItem('mt3ukTrackChart') === 'off'; } catch (e) { /* storage blocked */ }
-  // ---------- Resizable panels ----------
-  // A grip bar under the speed and time gap charts, the map and the G-force charts (data-resize="speed", "map", "g").
-  // Dragging it (or the arrow keys on it) scales that panel's height, kept per browser (localStorage mt3ukLapsSizes,
-  // a factor per panel, 0.5 to 3); a double tap puts it back. Not in full screen, which has its own split.
-  var SIZES_KEY = 'mt3ukLapsSizes', sizes = {};
-  try { sizes = JSON.parse(localStorage.getItem(SIZES_KEY) || '{}') || {}; } catch (e) { sizes = {}; }
-  function sizeOf(k) { var f = Number(sizes[k]); return f >= 0.5 && f <= 3 ? f : 1; }
-  function setSize(k, f) {
-    f = Math.max(0.5, Math.min(3, Math.round(f * 100) / 100));
-    if (f === 1) delete sizes[k]; else sizes[k] = f;
-    try { localStorage.setItem(SIZES_KEY, JSON.stringify(sizes)); } catch (e) {}
-  }
-  function resizeHtml(k, what) { return '<div class="tp-resize" data-resize="' + k + '" role="separator" aria-orientation="horizontal" tabindex="0" aria-label="Drag to resize the ' + what + '" title="Drag to resize the ' + what + '. Double tap to put it back"><i></i></div>'; }
-  var resizeTick = null;
-  function redrawSized() {
-    if (resizeTick) return;
-    resizeTick = requestAnimationFrame(function () { resizeTick = null; if (view && view.s && document.getElementById('tp-map2')) drawCompare(view.s, true); drawTimeline(); packBoard(); });
-  }
-  function wireResize(root) {
-    (root || document).querySelectorAll('[data-resize]').forEach(function (h) {
-      var k = h.getAttribute('data-resize'), y0 = 0, f0 = 1, base = 0;
-      // The panel's rendered height when the drag starts, so a drag of its own height doubles it.
-      function panelHeight() { var card = h.parentNode, svg = card && card.querySelector('svg.tv-chart'); return svg ? Math.max(60, svg.getBoundingClientRect().height) : 240; }
-      h.addEventListener('pointerdown', function (e) {
-        if (cmpFull) return;
-        y0 = e.clientY; f0 = sizeOf(k); base = panelHeight() / f0;
-        h.setPointerCapture(e.pointerId); h.classList.add('is-dragging'); e.preventDefault();
-      });
-      h.addEventListener('pointermove', function (e) {
-        if (!h.classList.contains('is-dragging')) return;
-        setSize(k, f0 + (e.clientY - y0) / base);
-        redrawSized();
-      });
-      function done() { h.classList.remove('is-dragging'); }
-      h.addEventListener('pointerup', done); h.addEventListener('pointercancel', done);
-      h.addEventListener('dblclick', function () { setSize(k, 1); redrawSized(); });
-      h.addEventListener('keydown', function (e) {
-        var step = e.key === 'ArrowDown' || e.key === 'ArrowRight' ? 0.1 : e.key === 'ArrowUp' || e.key === 'ArrowLeft' ? -0.1 : e.key === 'Home' ? null : 0;
-        if (step === 0) return;
-        e.preventDefault();
-        setSize(k, step === null ? 1 : sizeOf(k) + step);
-        redrawSized();
-      });
-    });
-  }
-  // ---------- Movable and resizable panels (the board) ----------
-  // Everything from Compare laps down is a tile ([data-tile]) in one 12-column board (#tp-board, .tp-board). Each tile
-  // has a grip handle in its heading (moveHtml, [data-move]): dragging it moves a landing marker (.tp-landing) and the
-  // tile goes there on release (moving the handle's own tile mid-drag would release the pointer capture); the arrow
-  // keys move it earlier or later, - and + make it narrower or wider, Home puts every tile back. A corner handle
-  // (.tp-size, [data-size]) at the bottom right of each tile is dragged sideways to change its width in columns
-  // (3 to 12) and up or down to change its height: the chart tiles scale their charts (sizeOf), the others get a fixed
-  // height that scrolls inside. A double tap on it puts that tile back. On a phone every tile is full width and the
-  // order and heights still apply. The layout is kept per browser (localStorage mt3ukLapsLayout: order, span, height).
-  var LAYOUT_KEY = 'mt3ukLapsLayout', defaultOrder = null, boardOpen = false;
+  // ---------- The board ----------
+  // Everything from Compare laps down is a tile ([data-tile]) in one 12-column board (#tp-board, .tp-board), each as
+  // wide as its --span (DEFAULT_SPAN; full width on a phone). Nothing is moved or resized by the member.
+  var boardOpen = false;
   var DEFAULT_SPAN = { speed: 7, map: 5, corners: 7, grip: 5, cmpnotes: 12, laps: 12, spotted: 12, overtime: 12, 'overtime-notes': 6, 'overtime-table': 6, 'overtime-mods': 12, lineedit: 6, rename: 6, settings: 12, adminlayout: 12 };
-  // Tiles whose height is a chart drawn to size (the key in sizeOf), not a box that scrolls.
-  var CHART_TILE = { speed: 'speed', map: 'map', overtime: 'timeline' };
   var MAP_BASE = 380;
   // Packing: the grid's rows are 1px tall and each tile spans as many as its own height (plus the gap), measured
   // (ResizeObserver, redraws, a window resize), so the next tile starts straight under the one above it instead of
@@ -3482,165 +3428,25 @@
   function packBoard() {
     var b = board();
     if (!b) return;
-    [].forEach.call(b.querySelectorAll(':scope > [data-tile], :scope > .tp-landing'), function (t) {
+    [].forEach.call(b.querySelectorAll(':scope > [data-tile]'), function (t) {
       var h = t.getBoundingClientRect().height;
       t.style.setProperty('--rows', Math.max(1, Math.ceil(h) + BOARD_GAP));
     });
   }
   function packSoon() { if (packTick) return; packTick = requestAnimationFrame(function () { packTick = null; packBoard(); }); }
   window.addEventListener('resize', packSoon);
-  function moveHtml(what) { return '<button type="button" class="tp-move" data-move aria-label="Move the ' + what + ' panel: drag it, or use the arrow keys" title="Drag to move this panel. Arrow keys move it, - and + change its width, Home puts every panel back">' + icon('grip') + '</button>'; }
   function board() { return document.getElementById('tp-board'); }
   function tilesOf(b) { return b ? [].slice.call(b.querySelectorAll(':scope > [data-tile]')) : []; }
   function keyOf(t) { return t.getAttribute('data-tile'); }
-  function loadLayout() {
-    try { var l = JSON.parse(localStorage.getItem(LAYOUT_KEY) || 'null'); return l && typeof l === 'object' ? l : {}; } catch (e) { return {}; }
-  }
-  function saveLayout(l) { try { if (l) localStorage.setItem(LAYOUT_KEY, JSON.stringify(l)); else localStorage.removeItem(LAYOUT_KEY); } catch (e) {} }
-  function spanOf(t) { return Math.max(3, Math.min(12, parseInt(t.style.getPropertyValue('--span'), 10) || DEFAULT_SPAN[keyOf(t)] || 12)); }
-  function setSpan(t, n) { t.style.setProperty('--span', Math.max(3, Math.min(12, Math.round(n)))); }
-  function setHeight(t, px) {
-    px = px ? Math.max(120, Math.round(px)) : 0;
-    t.style.height = px ? px + 'px' : '';
-    t.classList.toggle('has-height', !!px);
-  }
-  // Writes the layout as it stands (order, widths, fixed heights) to the browser.
-  function storeLayout() {
-    var b = board();
-    if (!b) return;
-    var l = { order: [], span: {}, height: {} };
-    tilesOf(b).forEach(function (t) {
-      var k = keyOf(t);
-      l.order.push(k);
-      if (spanOf(t) !== (DEFAULT_SPAN[k] || 12)) l.span[k] = spanOf(t);
-      if (t.classList.contains('has-height')) l.height[k] = parseInt(t.style.height, 10);
-    });
-    saveLayout(l);
-  }
-  // Puts the tiles in the saved order (a tile the saved order does not know stays after the one before it), with their
-  // saved widths and heights; with nothing saved, the built-in widths. Run after every draw that adds tiles.
-  // A list of keys, with the tiles it does not know slotted in after the tile that comes before them on the board.
-  function withNewTiles(order, have) {
-    var out = order.slice();
-    have.forEach(function (t, i) {
-      var k = keyOf(t);
-      if (out.indexOf(k) !== -1) return;
-      var prev = i ? keyOf(have[i - 1]) : null, at = prev ? out.indexOf(prev) : -1;
-      out.splice(at + 1, 0, k);
-    });
-    return out;
-  }
+  // Gives each tile its width and watches it for packing, after every draw that adds tiles.
   function applyLayout() {
     var b = board();
     if (!b) return;
-    var have = tilesOf(b), keys = have.map(keyOf);
-    // The built-in order, taking in tiles drawn later (the over time tiles) where they first appeared.
-    defaultOrder = withNewTiles(defaultOrder || [], have);
-    var l = loadLayout();
-    if (l.order && l.order.length) {
-      var want = withNewTiles(l.order.filter(function (k) { return keys.indexOf(k) !== -1; }), have);
-      want.forEach(function (k) { b.appendChild(have.filter(function (t) { return keyOf(t) === k; })[0]); });
-    }
     tilesOf(b).forEach(function (t) {
-      var k = keyOf(t);
-      setSpan(t, (l.span && l.span[k]) || DEFAULT_SPAN[k] || 12);
-      setHeight(t, l.height && l.height[k]);
-      if (!t.querySelector(':scope > [data-size]')) t.insertAdjacentHTML('beforeend', '<div class="tp-size" data-size role="separator" aria-label="Drag to resize this panel" title="Drag sideways for the width, up or down for the height. Double tap to put it back"></div>');
+      t.style.setProperty('--span', DEFAULT_SPAN[keyOf(t)] || 12);
       if (window.ResizeObserver) { if (!packWatch) packWatch = new ResizeObserver(packSoon); if (!t.getAttribute('data-packed')) { t.setAttribute('data-packed', '1'); packWatch.observe(t); } }
     });
-    wireMove(); wireSize();
     packBoard();
-  }
-  function resetLayout() {
-    var b = board();
-    if (!b || !defaultOrder) return;
-    defaultOrder.forEach(function (k) { var t = b.querySelector(':scope > [data-tile="' + k + '"]'); if (t) b.appendChild(t); });
-    saveLayout(null);
-    tilesOf(b).forEach(function (t) { setSpan(t, DEFAULT_SPAN[keyOf(t)] || 12); setHeight(t, 0); });
-    packSoon();
-  }
-  // Where a dragged tile lands next to the tile under the pointer: before it when the pointer is towards its top left.
-  function beforeOf(el, e) { var r = el.getBoundingClientRect(); return (e.clientX - r.left) / r.width + (e.clientY - r.top) / r.height < 1; }
-  function underPointer(e, skip, mark) {
-    var list = document.elementsFromPoint ? document.elementsFromPoint(e.clientX, e.clientY) : [document.elementFromPoint(e.clientX, e.clientY)];
-    return list.filter(function (el) { return el && !skip.contains(el) && el !== mark; })[0];
-  }
-  function edgeScroll(e) { if (e.clientY < 90) window.scrollBy(0, -14); else if (e.clientY > window.innerHeight - 70) window.scrollBy(0, 14); }
-  function wireMove() {
-    var b = board();
-    if (!b) return;
-    b.querySelectorAll('[data-move]').forEach(function (h) {
-      var tile = h.closest('[data-tile]'), dragging = false, marker = null;
-      if (!tile || h.getAttribute('data-wired')) return;
-      h.setAttribute('data-wired', '1');
-      // In a Laps summary the handle must not fold the list.
-      h.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); });
-      h.addEventListener('pointerdown', function (e) {
-        if (cmpFull) return;
-        e.preventDefault(); dragging = true;
-        marker = document.createElement('div'); marker.className = 'tp-landing'; marker.style.setProperty('--span', spanOf(tile));
-        h.setPointerCapture(e.pointerId); tile.classList.add('is-moving'); document.body.classList.add('is-dragging');
-      });
-      h.addEventListener('pointermove', function (e) {
-        if (!dragging) return;
-        edgeScroll(e);
-        var under = underPointer(e, tile, marker), other = under && under.closest('[data-tile]');
-        if (other && other !== tile && other.parentNode === b) { b.insertBefore(marker, beforeOf(other, e) ? other : other.nextSibling); packSoon(); }
-      });
-      function done() {
-        if (!dragging) return;
-        dragging = false; tile.classList.remove('is-moving'); document.body.classList.remove('is-dragging');
-        if (marker && marker.parentNode) { b.insertBefore(tile, marker); marker.remove(); storeLayout(); redrawSized(); }
-        marker = null; packSoon();
-      }
-      h.addEventListener('pointerup', done); h.addEventListener('pointercancel', done);
-      h.addEventListener('keydown', function (e) {
-        if (cmpFull) return;
-        var k = e.key;
-        if ((k === 'ArrowUp' || k === 'ArrowLeft') && tile.previousElementSibling) b.insertBefore(tile, tile.previousElementSibling);
-        else if ((k === 'ArrowDown' || k === 'ArrowRight') && tile.nextElementSibling) b.insertBefore(tile.nextElementSibling, tile);
-        else if (k === '-' || k === '_') setSpan(tile, spanOf(tile) - 1);
-        else if (k === '+' || k === '=') setSpan(tile, spanOf(tile) + 1);
-        else if (k === 'Home') { resetLayout(); redrawSized(); h.focus(); e.preventDefault(); return; }
-        else return;
-        e.preventDefault();
-        storeLayout(); redrawSized(); h.focus();
-      });
-    });
-  }
-  // The corner handle: sideways changes the width in columns, up or down the height.
-  function wireSize() {
-    var b = board();
-    if (!b) return;
-    b.querySelectorAll('[data-size]').forEach(function (h) {
-      var tile = h.closest('[data-tile]');
-      if (!tile || h.getAttribute('data-wired')) return;
-      h.setAttribute('data-wired', '1');
-      var k = keyOf(tile), chart = CHART_TILE[k], x0 = 0, y0 = 0, span0 = 12, h0 = 0, f0 = 1, base = 0, colW = 1, dragging = false;
-      h.addEventListener('pointerdown', function (e) {
-        if (cmpFull) return;
-        e.preventDefault(); dragging = true;
-        x0 = e.clientX; y0 = e.clientY; span0 = spanOf(tile); h0 = tile.getBoundingClientRect().height;
-        colW = (b.getBoundingClientRect().width + 14) / 12;
-        if (chart) { f0 = sizeOf(chart); var svg = tile.querySelector('svg.tv-chart'); base = Math.max(60, svg ? svg.getBoundingClientRect().height : 240) / f0; }
-        h.setPointerCapture(e.pointerId); tile.classList.add('is-sizing'); document.body.classList.add('is-dragging');
-      });
-      h.addEventListener('pointermove', function (e) {
-        if (!dragging) return;
-        if (window.innerWidth > 780) setSpan(tile, span0 + (e.clientX - x0) / colW);
-        var dy = e.clientY - y0;
-        if (chart) setSize(chart, f0 + dy / base);
-        else if (k !== 'grip' && Math.abs(dy) > 6) setHeight(tile, h0 + dy);
-        redrawSized();
-      });
-      function done() {
-        if (!dragging) return;
-        dragging = false; tile.classList.remove('is-sizing'); document.body.classList.remove('is-dragging');
-        storeLayout(); redrawSized();
-      }
-      h.addEventListener('pointerup', done); h.addEventListener('pointercancel', done);
-      h.addEventListener('dblclick', function () { setSpan(tile, DEFAULT_SPAN[k] || 12); setHeight(tile, 0); if (chart) setSize(chart, 1); storeLayout(); redrawSized(); });
-    });
   }
   function setCharts(on) {
     gHidden = !on;
@@ -4014,7 +3820,7 @@
         : (A === B ? [{ trace: A.trace, color: c1 }] : [{ trace: B.trace, color: c2 }, { trace: A.trace, color: c1 }]);
       // The whole session's laps underneath as the track's width.
       var band = Object.keys(s.trace.laps).map(function (k) { return s.trace.laps[k]; });
-      var mo = V.map(mapEl, A.trace, { fill: fill, ratio: fill ? undefined : (MAP_BASE * sizeOf('map')) / Math.max(200, mapBox ? mapBox.clientWidth : 600), mono: true, lines: lines, band: band, full: { on: function () { return cmpFull; }, toggle: function () { setFull(!cmpFull); }, state: function () { return null; } }, startLine: startLineXY(s), finishLine: s.type === 'sprint' ? startLineXY(s, s.finishLine) : null, corners: s.corners, origin: s.origin });
+      var mo = V.map(mapEl, A.trace, { fill: fill, ratio: fill ? undefined : MAP_BASE / Math.max(200, mapBox ? mapBox.clientWidth : 600), mono: true, lines: lines, band: band, full: { on: function () { return cmpFull; }, toggle: function () { setFull(!cmpFull); }, state: function () { return null; } }, startLine: startLineXY(s), finishLine: s.type === 'sprint' ? startLineXY(s, s.finishLine) : null, corners: s.corners, origin: s.origin });
       var lo = document.getElementById('tp-ramp-lo'), hi = document.getElementById('tp-ramp-hi');
       if (mo && lo && hi) { lo.textContent = V.fmtV(mo.vmin); hi.textContent = V.fmtV(mo.vmax); }
       cmpMap = mo;
@@ -4158,7 +3964,6 @@
         // full screen the stack as a whole is held to a quarter more than one chart, so the map keeps its room.
         var base = cmpFull ? Math.max(110, Math.min(200, Math.round(window.innerHeight * 0.22))) : 150;
         var H = defs.length === 1 ? base : cmpFull ? Math.max(70, Math.round(base * 1.25 / defs.length)) : Math.max(96, Math.round(base * 0.7));
-        if (!cmpFull) H = Math.round(H * sizeOf('g'));
         // A phone on its side in full screen: the charts share a panel beside the map, the height of the screen less
         // the switch, the chips and the slider.
         if (cmpFull && window.innerWidth > window.innerHeight && window.innerHeight <= 560) {
@@ -4285,7 +4090,7 @@
       }
       var sp, dl;
       sp = V.line(document.getElementById('tp-speed'), {
-        H: Math.round(240 * sizeOf('speed')), x0: 0, x1: dmax, y0: 0, y1: yt[yt.length - 1], xt: xt, xf: xf, yt: yt,
+        H: 240, x0: 0, x1: dmax, y0: 0, y1: yt[yt.length - 1], xt: xt, xf: xf, yt: yt,
         series: [{ color: c2, pts: B.trace.map(function (p) { return [p[0], V.spd(p[4])]; }), at: function (x) { return V.spd(at(B.trace, x)[4]); } }, { color: c1, pts: A.trace.map(function (p) { return [p[0], V.spd(p[4])]; }), at: function (x) { return V.spd(at(A.trace, x)[4]); } }],
         under: function (svg, X) { (s.corners || []).forEach(function (c) { var t = document.createElementNS('http://www.w3.org/2000/svg', 'text'); t.setAttribute('x', X(c.d)); t.setAttribute('y', 22); t.setAttribute('text-anchor', 'middle'); t.setAttribute('font-weight', '700'); t.textContent = c.n; svg.appendChild(t); }); },
         tip: tipF, onMove: function (x) { userHover(); var w = move(x); dl.show(x); if (gl) gl.show(w); }, onLeave: leave
@@ -4295,7 +4100,7 @@
       var gmin = Math.min.apply(null, dp.map(function (p) { return p[1]; })), gmax = Math.max.apply(null, dp.map(function (p) { return p[1]; }));
       var gyt = V.nice(Math.min(0, gmin), Math.max(0.5, gmax), 4);
       dl = V.line(document.getElementById('tp-delta'), {
-        H: Math.round(150 * sizeOf('speed')), x0: 0, x1: dmax, y0: gyt[0], y1: gyt[gyt.length - 1], xt: xt, xf: xf, yt: gyt, zero: 0, yf: function (v) { return (v > 0 ? '+' : '') + v + ' s'; },
+        H: 150, x0: 0, x1: dmax, y0: gyt[0], y1: gyt[gyt.length - 1], xt: xt, xf: xf, yt: gyt, zero: 0, yf: function (v) { return (v > 0 ? '+' : '') + v + ' s'; },
         series: [{ color: c1, area: true, pts: dp, at: function (x) { return at(B.trace, x)[1] - at(A.trace, x)[1]; } }], tip: tipF, onMove: function (x) { userHover(); var w = move(x); sp.show(x); if (gl) gl.show(w); }, onLeave: leave
       });
       // Hovering a chart takes over from playback.
@@ -4351,7 +4156,7 @@
   // so the card says what it could not account for.
   function impactHtml(list, s) {
     var mods = carMods(s.carId).map(function (m) { return { label: m.label, year: m.year, month: m.monthKnown ? m.month : null }; });
-    var head = '<div class="card tp-impact" id="tp-impact" data-tile="overtime-mods"><div class="tp-chart-head">' + moveHtml('What each mod did') + '<h3>What each mod did</h3></div>';
+    var head = '<div class="card tp-impact" id="tp-impact" data-tile="overtime-mods"><div class="tp-chart-head">' + '<h3>What each mod did</h3></div>';
     if (!mods.length) return head + '<p class="tp-small">Add when you fitted your wheels, tyres, suspension, brakes, aero and performance parts on your build (the Fitted date) and this compares your best dry time here before and after each one.</p></div>';
     var r = T.modImpact(list.map(function (o) { return { id: o.id, date: o.date, bestTime: o.bestTime, conditions: o.conditions, temp: o.temp, tyres: o.tyres }; }), mods);
     var h = head;
@@ -4374,9 +4179,9 @@
     if (list.length < 2) { box.innerHTML = '<div class="card tp-empty">' + icon('up') + '<p>Add another session here to see your times over time, with the mods you fitted in between marked from My Garage.</p></div>'; return; }
     var dates = list.map(function (o) { return o.date.slice(0, 7); }).sort();
     var mods = carMods(s.carId).filter(function (m) { return m.date >= dates[0].slice(0, 7) && m.date <= dates[dates.length - 1]; });
-    box.innerHTML = '<div class="card"><div class="tp-chart-head"><h3>Best lap per session</h3><div class="tp-key"><span><i style="background:' + RUN_COLORS[0] + '"></i>Dry</span><span><i class="is-ring"></i>Wet or damp (left out of the trend)</span><span class="is-mod"><i class="is-dash"></i>Mod fitted</span></div></div><svg class="tv-chart" id="tp-timeline" role="img" aria-label="Best lap at this track for each session, faster is higher"></svg>' + resizeHtml('timeline', 'best lap chart') + '<p class="tp-small">Higher up is faster. Tap a point to open that session.</p></div>';
-    var after = '<div class="card" data-tile="overtime-notes"><div class="tp-chart-head">' + moveHtml('What the trend says') + '<h3>What the trend says</h3></div><div class="tp-notes">' + notesHtml(T.trendNotes(list.map(function (o) { return { date: o.date, bestTime: o.bestTime, conditions: o.conditions || 'Dry', tyres: o.tyres, temp: o.temp }; }), mods)) + '</div></div>' +
-      '<div class="card" data-tile="overtime-table"><div class="tp-chart-head">' + moveHtml('Sessions') + '<h3>Sessions</h3></div><div class="tp-scroll"><table class="tp-table"><thead><tr><th>Date</th><th>Best</th><th>Change</th><th>Conditions</th></tr></thead><tbody>' +
+    box.innerHTML = '<div class="card"><div class="tp-chart-head"><h3>Best lap per session</h3><div class="tp-key"><span><i style="background:' + RUN_COLORS[0] + '"></i>Dry</span><span><i class="is-ring"></i>Wet or damp (left out of the trend)</span><span class="is-mod"><i class="is-dash"></i>Mod fitted</span></div></div><svg class="tv-chart" id="tp-timeline" role="img" aria-label="Best lap at this track for each session, faster is higher"></svg>' + '<p class="tp-small">Higher up is faster. Tap a point to open that session.</p></div>';
+    var after = '<div class="card" data-tile="overtime-notes"><div class="tp-chart-head">' + '<h3>What the trend says</h3></div><div class="tp-notes">' + notesHtml(T.trendNotes(list.map(function (o) { return { date: o.date, bestTime: o.bestTime, conditions: o.conditions || 'Dry', tyres: o.tyres, temp: o.temp }; }), mods)) + '</div></div>' +
+      '<div class="card" data-tile="overtime-table"><div class="tp-chart-head">' + '<h3>Sessions</h3></div><div class="tp-scroll"><table class="tp-table"><thead><tr><th>Date</th><th>Best</th><th>Change</th><th>Conditions</th></tr></thead><tbody>' +
       list.slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; }).map(function (o, i, arr) {
         var prev = arr.slice(0, i).filter(function (p) { return (p.conditions || 'Dry') === 'Dry'; }).pop();
         var ch = (o.conditions || 'Dry') === 'Dry' && prev ? o.bestTime - prev.bestTime : null;
@@ -4386,7 +4191,6 @@
     if (tile && b) tile.insertAdjacentHTML('afterend', after); else box.insertAdjacentHTML('beforeend', after);
     timelineData = { list: list, mods: mods, s: s };
     drawTimeline();
-    wireResize(box);
     applyLayout();
   }
   // The best lap chart, drawn again at its chosen height (the grip bar under it).
@@ -4396,7 +4200,7 @@
     if (!svg || !d) return;
     V.timeline(svg, d.list.map(function (o) {
       return { date: o.date, time: o.bestTime, wet: (o.conditions || 'Dry') !== 'Dry', mine: o.id === d.s.id, label: niceDate(o.date), conditions: o.conditions, temp: o.temp, onClick: function () { go('s=' + o.id); } };
-    }), d.mods, { H: Math.round(300 * sizeOf('timeline')) });
+    }), d.mods, { H: 300 });
   }
 
   function dragHtml(s) {
@@ -4456,7 +4260,7 @@
     var splitBox = s.hasSource && !s.street && (s.type === 'track' || s.type === 'sprint') && typeof s.runs === 'number' && s.runs > 1
       ? '<div class="tp-field"><span class="tp-lbl">Several files</span><p class="tp-src">' + icon('info') + '<span>This is ' + s.runs + ' files merged into one session. Split it to get one session for each file, grouped by day.</span></p><button type="button" class="btn btn-secondary btn-sm" id="tp-e-split">Split into ' + s.runs + ' sessions</button></div>' : '';
     var addDayBox = !s.street && s.date && s.carId ? '<div class="tp-field">' + addToDayButton(s, false) + '</div>' : '';
-    return '<div class="tp-section" id="settings" data-tile="settings"><div class="tp-head">' + moveHtml('Session settings') + '<h2>Session settings</h2></div><div class="card tp-fields">' + addDayBox + typeBox + relayoutBox + splitBox +
+    return '<div class="tp-section" id="settings" data-tile="settings"><div class="tp-head">' + '<h2>Session settings</h2></div><div class="card tp-fields">' + addDayBox + typeBox + relayoutBox + splitBox +
       '<div class="tp-field"><span class="tp-lbl">Who can see it</span><div class="tp-privacy" data-privacy>' + privacyOptions(s.privacy, limit) + '</div></div>' +
       '<div class="tp-field"><span class="tp-lbl">Conditions</span><div class="tp-chips" data-cond>' + ['Dry', 'Damp', 'Wet'].map(function (c) { return '<button type="button" class="chip' + (s.conditions === c ? ' is-on' : '') + '" data-v="' + c + '">' + c + '</button>'; }).join('') + '</div></div>' +
       tyreFields('tp-e-tyre', tyreInit(s)) + padFields('tp-e-pad', padInit(s), '') + loggerFields('tp-e-logger', s.logger || '', false) +
@@ -4498,7 +4302,7 @@
     if (s.type !== 'track' || !s.venueId || !s.hasSource || s.street) return '';
     var rv = ((library && library.venues) || []).filter(function (x) { return x.id === s.venueId && x.type === 'circuit'; })[0], rls = (rv && rv.layouts) || [];
     if (rls.length < 2) return '';
-    return '<div class="tp-section" id="tp-admin-layout" data-tile="adminlayout"><div class="tp-head">' + moveHtml('Layout (admin)') + '<h2>Layout (admin)</h2></div><div class="card tp-fields">' +
+    return '<div class="tp-section" id="tp-admin-layout" data-tile="adminlayout"><div class="tp-head">' + '<h2>Layout (admin)</h2></div><div class="card tp-fields">' +
       '<p class="tp-small">' + icon('lock') + ' Only change this when the member has asked. It is their session: the chips below time their saved readings on the layout picked, show the result, and email them.' + layoutByAdminNote(s) + (s.layoutPicked && !(s.layoutByAdmin && s.layoutByAdmin.at) ? ' <b>The member picked the current layout themselves.</b>' : '') + '</p>' +
       '<div class="tp-field"><span class="tp-lbl">Layout at ' + esc(s.venue || 'this track') + '</span><div class="tp-chips" data-admin-relayout>' +
       rls.map(function (l) { return '<button type="button" class="chip' + (s.layoutId === l.id ? ' is-on' : '') + '" data-v="' + esc(l.id) + '" aria-pressed="' + (s.layoutId === l.id) + '">' + esc(l.name || l.id) + '</button>'; }).join('') + '</div></div>' +

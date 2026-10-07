@@ -384,29 +384,13 @@
     .tp-mapcard:not(.is-full) .tp-mrow .tp-mv { text-align: right; }
   }
   /* Phones keep the order: speed chart, map, corner table. */
-  /* The board: every panel from Compare laps down in one 12-column grid, each tile as wide as its --span, moved by the
-     grip handle in its heading and sized by the corner handle. */
+  /* The board: every panel from Compare laps down in one 12-column grid, each tile as wide as its --span and as tall
+     as its own content (1px rows, --rows set by packBoard), so there are no empty blocks. */
   .tp-board { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); grid-auto-rows: 1px; column-gap: 14px; row-gap: 0; align-items: start; margin-top: 14px; }
   .tp-board > [data-tile] { grid-column: span var(--span, 12); grid-row-end: span var(--rows, 1); min-width: 0; margin: 0; position: relative; box-sizing: border-box; }
-  .tp-board > [data-tile].has-height { overflow: auto; }
   .tp-board > .tp-section { margin-top: 0; }
-  .tp-board > [data-tile].is-sizing { outline: 2px dashed var(--orange); outline-offset: 2px; }
-  .tp-size { position: sticky; bottom: 0; display: block; width: 26px; height: 26px; margin: -22px 0 -4px auto; cursor: nwse-resize; touch-action: none; z-index: 3; border-bottom-right-radius: var(--radius); background: linear-gradient(135deg, transparent 50%, var(--hairline-strong) 50%, var(--hairline-strong) 60%, transparent 60%, transparent 72%, var(--hairline-strong) 72%, var(--hairline-strong) 82%, transparent 82%); opacity: 0.75; }
-  .tp-size:hover { opacity: 1; }
-  .tp-landing { grid-column: span var(--span, 12); grid-row-end: span var(--rows, 78); height: 64px; box-sizing: border-box; border: 2px dashed var(--orange); border-radius: var(--radius); background: #fdf3ef; }
-  .tp-mapcard.is-full .tp-size { display: none; }
-  @media (max-width: 780px) { .tp-board > [data-tile], .tp-landing { grid-column: span 12 !important; } }
-  /* The grip handle in each panel's heading (drag, or the arrow keys). */
-  .tp-move { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 32px; height: 32px; margin: -4px 2px -4px -6px; padding: 0; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--steel); cursor: grab; touch-action: none; }
-  .tp-move .icon { width: 18px; height: 18px; fill: currentColor; stroke: none; }
-  .tp-move:hover, .tp-move:focus-visible { background: var(--paper-2); color: var(--ink); }
-  .tp-move:focus-visible { outline: 2px solid var(--orange); outline-offset: -2px; }
-  [data-tile].is-moving { opacity: 0.7; outline: 2px dashed var(--orange); outline-offset: 2px; }
-  body.is-dragging { user-select: none; }
+  @media (max-width: 780px) { .tp-board > [data-tile] { grid-column: span 12 !important; } }
   .tp-board > .tp-section .tp-head { margin-bottom: 6px; }
-  .tp-laps summary .tp-move { margin-left: -2px; }
-  .tp-head .tp-move { align-self: center; }
-  .tp-mapcard.is-full .tp-move { display: none; }
   .tp-field[hidden] { display: none; }
   .tp-f3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
   .tp-tyres { display: block; margin-bottom: 14px; }
@@ -426,11 +410,6 @@
   .tp-gbox .chip:not(.is-on) { opacity: 0.6; }
   .tp-gcharts { display: grid; gap: 2px; }
   /* The grip bar under a resizable panel (speed and time gap charts, map, G-force charts). */
-  .tp-resize { display: flex; align-items: center; justify-content: center; height: 22px; margin: 2px 0 -4px; border-radius: var(--radius-sm); cursor: ns-resize; touch-action: none; user-select: none; }
-  .tp-resize i { width: 44px; height: 5px; border-radius: 3px; background: var(--hairline-strong); transition: background 0.15s, width 0.15s; }
-  .tp-resize:hover i, .tp-resize:focus-visible i, .tp-resize.is-dragging i { width: 64px; background: var(--steel); }
-  .tp-resize:focus-visible { outline: 2px solid var(--orange); outline-offset: -2px; }
-  .tp-mapcard.is-full .tp-resize { display: none; }
   .tp-split { display: none; }
   .tp-gbox .tp-gswitch { width: auto; min-height: 44px; margin: 0 0 0 auto; gap: 8px; font-size: 0.85rem; color: var(--steel); flex: none; order: 3; }
   .tp-gbox .tp-chart-head { flex-wrap: wrap; align-items: center; column-gap: 10px; }
@@ -759,8 +738,6 @@
   .tp-tapbox.is-full .tp-tapmap { flex: 1 1 auto; min-height: 0; }
   .tp-tapbox.is-full .tv-zoom-wrap { height: 100%; }
   .tp-tapbox.is-full #tp-tap { width: 100%; height: 100%; }
-  .tp-move-lines { margin: 0 0 12px; }
-  .tp-move-lines .icon { width: 16px; height: 16px; }
   #car-data { margin-bottom: 18px; }
   .tp-cardata summary { display: flex; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; list-style: none; }
   .tp-cardata summary::-webkit-details-marker { display: none; }
@@ -1126,12 +1103,12 @@
 </script>
 
 <script src="js/track-parse.js?v=20270129" defer></script>
-<script src="js/track-view.js?v=20270112" defer></script>
+<script src="js/track-view.js?v=20270113" defer></script>
 <script src="js/tyre-data.js?v=20270210"></script>
 <script src="js/pad-data.js?v=20270210"></script>
 <script src="js/vehicle-data.js?v=20270210" defer></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20270226" defer></script>
+<script src="js/track-page.js?v=20270227" defer></script>
 <script src="js/laps-panels.js?v=3" defer></script>
 <script src="js/laps-tip.js?v=20270104" defer></script>
 <script src="js/share.js" defer></script>

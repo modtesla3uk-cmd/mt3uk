@@ -313,9 +313,10 @@
       var behind = gapS !== null && posA && posB && m.letter === (gapS >= 0 ? 'B' : 'A');
       if (inView) {
         if (!behind) { m.g.setAttribute('visibility', 'hidden'); return; }
-        // In view: no arrow, just the pill by the car's dot, on the side away from its speed label (lap B's speed
-        // sits up and to the left of its dot, lap A's down and to the right), so neither covers the other.
-        var gl = m.letter + ', ' + Math.abs(gapS).toFixed(1) + ' s behind', gw = gl.length * 7.2 + 16, py0 = m.letter === 'B' ? 12 : -36;
+        // In view: no arrow, just a short pill ("A +0.3 s": the full "behind" wording covered the other car's speed
+        // when the cars were close) by the car's dot, on the side away from its speed label (lap B's speed sits up
+        // and to the left of its dot, lap A's down and to the right), so neither covers the other.
+        var gl = m.letter + ' +' + Math.abs(gapS).toFixed(1) + ' s', gw = gl.length * 7.2 + 16, py0 = m.letter === 'B' ? 12 : -36;
         moveMarker(m, q[0], q[1]);
         m.rot.setAttribute('visibility', 'hidden');
         m.label.textContent = gl;

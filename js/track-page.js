@@ -961,17 +961,19 @@
   var FILTERS = [['logger', 'Logger', 'All loggers'], ['tyres', 'Tyres', 'All tyres'], ['pads', 'Pads', 'All pads']];
   var listFilters = { logger: '', tyres: '', pads: '' }, filterOpenAll = false;
   function filtersOn() { return FILTERS.some(function (f) { return !!listFilters[f[0]]; }); }
+  var NOT_SET = '__none';
   function filteredList(list) {
-    return list.filter(function (x) { return FILTERS.every(function (f) { return !listFilters[f[0]] || (x[f[0]] || '') === listFilters[f[0]]; }); });
+    return list.filter(function (x) { return FILTERS.every(function (f) { var want = listFilters[f[0]], v = x[f[0]] || ''; return !want || (want === NOT_SET ? !v : v === want); }); });
   }
   function filterSelectHtml(f, list) {
-    var counts = {};
-    list.forEach(function (x) { var v = x[f[0]] || ''; if (v) counts[v] = (counts[v] || 0) + 1; });
+    var counts = {}, none = 0;
+    list.forEach(function (x) { var v = x[f[0]] || ''; if (v) counts[v] = (counts[v] || 0) + 1; else none++; });
     var vals = Object.keys(counts).sort(function (a, b) { return a.localeCompare(b); });
-    if (vals.length < 2 && !listFilters[f[0]]) return '';
-    if (listFilters[f[0]] && vals.indexOf(listFilters[f[0]]) === -1) vals.push(listFilters[f[0]]);
+    if (listFilters[f[0]] && listFilters[f[0]] !== NOT_SET && vals.indexOf(listFilters[f[0]]) === -1) vals.push(listFilters[f[0]]);
+    // Always shown, so a logger, tyre or pad is never hard to find: sessions without one are a choice of their own.
     return '<div class="tp-field tp-filter"><label for="tp-filter-' + f[0] + '">' + f[1] + '</label><select class="field" id="tp-filter-' + f[0] + '" data-filter="' + f[0] + '"><option value="">' + f[2] + '</option>' +
-      vals.map(function (v) { return '<option value="' + esc(v) + '"' + (v === listFilters[f[0]] ? ' selected' : '') + '>' + esc(v) + (counts[v] ? ' (' + counts[v] + ')' : '') + '</option>'; }).join('') + '</select></div>';
+      vals.map(function (v) { return '<option value="' + esc(v) + '"' + (v === listFilters[f[0]] ? ' selected' : '') + '>' + esc(v) + (counts[v] ? ' (' + counts[v] + ')' : '') + '</option>'; }).join('') +
+      (none ? '<option value="' + NOT_SET + '"' + (listFilters[f[0]] === NOT_SET ? ' selected' : '') + '>Not set (' + none + ')</option>' : '') + '</select></div>';
   }
   function filterNoteHtml(list) {
     if (!filtersOn()) return '';
@@ -979,7 +981,7 @@
     return '<p class="tp-small tp-filter-note" id="tp-filter-note">' + (n ? 'Showing ' + n + ' of ' + list.length + ' sessions' : 'No sessions match') + ' <button type="button" class="chip" id="tp-filter-clear">Clear</button></p>';
   }
   function trackToolsHtml(list) {
-    var filters = FILTERS.map(function (f) { return filterSelectHtml(f, list); }).join('');
+    var filters = list.length ? FILTERS.map(function (f) { return filterSelectHtml(f, list); }).join('') : '';
     if (trackEntries(list).length < 2 && !filters) return '';
     return '<div class="tp-tools">' + (trackEntries(list).length > 1 ? '<div class="tp-field tp-sort"><label for="tp-sort">Sort by</label><select class="field" id="tp-sort">' +
       SORTS.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === sortMode ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div>' : '') +

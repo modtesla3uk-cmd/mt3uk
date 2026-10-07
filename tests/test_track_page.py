@@ -1085,6 +1085,7 @@ def test_the_sessions_list_can_be_filtered_by_logger_tyres_and_pads(page):
         fake.index.append(summary(r))
     open_page(page, fake)
     logger = page.locator("#tp-filter-logger")
+    # Always shown, even with one value or none, and sessions without one are a choice of their own.
     expect(logger.locator("option")).to_have_text(["All loggers", "RaceBox (2)", "VBOX (1)"])
     expect(page.locator("#tp-filter-tyres option")).to_have_text(["All tyres", "Michelin Pilot Sport 4S (2)", "Nankang CR-S (1)"])
     expect(page.locator("#tp-filter-pads option")).to_have_text(["All pads", "Original equipment pads (1)", "Pagid RSL29 (2)"])
@@ -1104,6 +1105,16 @@ def test_the_sessions_list_can_be_filtered_by_logger_tyres_and_pads(page):
     expect(page.locator("#tp-sess-list .tp-row[data-sid]")).to_have_count(2)
     page.locator("#tp-filter-tyres").select_option("Nankang CR-S")
     expect(page.locator("#tp-filter-note")).to_contain_text("Showing 1 of 3 sessions")
+    # Sessions with no logger are found under Not set.
+    page.locator("#tp-filter-clear").click()
+    fake.sessions["f3"].pop("logger"); fake.index = [dict(x, logger=None) if x["id"] == "f3" else x for x in fake.index]
+    page.reload()
+    expect(page.locator("#tp-filter-logger option")).to_have_text(["All loggers", "RaceBox (1)", "VBOX (1)", "Not set (1)"])
+    page.locator("#tp-filter-logger").select_option("__none")
+    expect(page.locator("#tp-filter-note")).to_contain_text("Showing 1 of 3 sessions")
+    expect(page.locator('#tp-sess-list .tp-row[data-sid="f3"]')).to_have_count(1)
+    page.locator("#tp-filter-clear").click()
+    page.locator("#tp-filter-logger").select_option("RaceBox")
     # Clear puts everything back, folded.
     page.locator("#tp-filter-clear").click()
     expect(page.locator("#tp-filter-note")).to_have_count(0)

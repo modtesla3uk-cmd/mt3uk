@@ -552,7 +552,7 @@ def test_my_garage_keeps_a_model_it_does_not_list(device_page):
     page.select_option("#mb-car-make-select", "Tesla")
     page.select_option("#mb-car-model-select", "Model 3")
     page.select_option("#mb-car-version-select", "Performance")
-    expect(weight).to_have_attribute("placeholder", re.compile(r"maker \d+ kg"))
+    expect(weight).to_have_attribute("placeholder", re.compile(r"Kerb weight \d+ kg \(maker\)"))
     weight.fill("1790")
     page.locator("#mb-car-name-save").click()
     page.wait_for_function("document.getElementById('mb-car-model-select').disabled === true", timeout=5000)

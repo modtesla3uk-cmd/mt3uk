@@ -1654,7 +1654,7 @@ def admin_site_setup(page):
     """localhost plays mt3uk.com and 127.0.0.1 plays admin.mt3uk.com."""
     from conftest import PORT
     main, admin = "http://localhost:%d" % PORT, "http://127.0.0.1:%d" % PORT
-    page.add_init_script("window.MT3UK_ADMIN_SITE = { origin: '%s', main: ['localhost'], mainOrigin: '%s' };" % (admin, main))
+    page.add_init_script("window.MT3UK_ADMIN_SITE = { origin: '%s', main: ['localhost'], mainOrigin: '%s', laps: 'http://laps.localhost:%d' };" % (admin, main, PORT))
     page.route("**/admin/alerts**", lambda route: route.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"},
                                                                body=json.dumps({"success": True, "alerts": {"bell": True, "email": True}, "stamp": "1", "pushDevices": []})))
     return main, admin
@@ -1674,6 +1674,53 @@ def test_install_from_mt3uk_goes_to_the_admin_address_and_links_there_come_back(
         document.body.appendChild(a); } }""")
     page.locator("#to-site").click()
     page.wait_for_url(main + "/gallery.html?photo=a.jpg", timeout=10000)
+
+
+def test_a_session_opened_from_an_admin_page_goes_to_laps(page):
+    """A link to a Laps page (a member's session, the Leaderboard) from the admin pages goes to laps.mt3uk.com, from
+    admin.mt3uk.com and from mt3uk.com alike, so the pages after it are Laps pages. Other links behave as before."""
+    from conftest import PORT
+    open_admin(page, "track-admin.html")
+    main, admin = admin_site_setup(page)
+    page.reload()
+    laps = "http://laps.localhost:%d" % PORT
+    page.route(laps + "/**", lambda route: route.fulfill(status=200, content_type="text/html", body="<title>laps</title>"))
+    add = """() => { for (const [id, h] of [['to-session', 'track.html?s=abc'], ['to-board', 'leaderboards.html?board=thruxton:main'], ['to-gallery', 'gallery.html']]) {
+        const a = document.createElement('a'); a.id = id; a.href = h; a.textContent = id;
+        a.style.cssText = 'position:fixed;left:10px;z-index:99999;background:#fff;padding:12px;top:' + (id === 'to-session' ? 200 : id === 'to-board' ? 260 : 320) + 'px';
+        document.body.appendChild(a); } }"""
+    # From mt3uk.com: a session goes to Laps, the Gallery stays on mt3uk.com.
+    page.evaluate(add)
+    page.locator("#to-session").click()
+    page.wait_for_url(laps + "/track.html?s=abc", timeout=10000)
+    # With the admin key entered here, the admin viewer token goes along as a one-time code in the link's #, so the
+    # private session opens there without the key.
+    code = "c" * 64
+    cors = {"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Content-Type, X-Session-Token, X-Admin-Viewer", "Access-Control-Allow-Methods": "GET, POST"}
+
+    def answer(body):
+        return lambda route: route.fulfill(status=204, headers=cors) if route.request.method == "OPTIONS" else route.fulfill(status=200, content_type="application/json", headers=cors, body=json.dumps(body))
+    page.route("**/session/handover", answer({"success": True, "code": code}))
+    page.route("**/admin/viewer-token**", answer({"success": True, "token": "viewer-tok", "expires": 4102444800000}))
+    page.goto(main + "/track-admin.html")
+    page.wait_for_function("JSON.parse(localStorage.getItem('mt3ukAdminViewer') || '{}').token === 'viewer-tok'", timeout=10000)
+    page.evaluate(add)
+    page.locator("#to-session").click()
+    page.wait_for_url(laps + "/track.html?s=abc#mt3uk-handover=" + code, timeout=10000)
+    # And an admin page arriving with a code takes it out of the address and redeems it.
+    page.route("**/session/handover/redeem", answer({"success": True, "adminViewer": {"token": "viewer-two", "expires": 4102444800000}}))
+    page.goto(admin + "/track-admin.html#mt3uk-handover=" + code + ":install")
+    page.wait_for_url(admin + "/track-admin.html#install", timeout=10000)
+    page.wait_for_function("JSON.parse(localStorage.getItem('mt3ukAdminViewer') || '{}').token === 'viewer-two'", timeout=10000)
+    page.goto(main + "/track-admin.html")
+    page.evaluate(add)
+    page.locator("#to-gallery").click()
+    page.wait_for_url(main + "/gallery.html", timeout=10000)
+    # From admin.mt3uk.com too.
+    page.goto(admin + "/track-admin.html")
+    page.evaluate(add)
+    page.locator("#to-board").click()
+    page.wait_for_url(laps + "/leaderboards.html?board=thruxton:main#mt3uk-handover=" + code, timeout=10000)
 
 
 def test_the_key_can_be_remembered_on_this_device(page):

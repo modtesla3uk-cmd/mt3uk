@@ -72,7 +72,8 @@
         var href = 'leaderboards.html?' + (drag ? 'drag=' + encodeURIComponent(parts[1]) : (kind === 'sprint-board' ? 'sprint=' : 'board=') + encodeURIComponent(parts[1] + ':' + parts[2]));
         var top = leaders[k][0];
         var res = drag ? Number(top.quarter).toFixed(2) + ' s' : lapTime(top.time);
-        return { key: k + '|' + res + '|' + (top.owner || ''), n: counts[k] || 0, where: where, href: href, who: top.owner || 'MT3UK member',
+        // The board and its leading time only: a leader's nickname or car name can change without the lead changing.
+        return { key: k + '|' + res, n: counts[k] || 0, where: where, href: href, who: top.owner || 'MT3UK member',
           car: top.car === 'MT3UK member build' && top.model ? title(top) : (top.car || title(top)), res: res,
           what: drag ? 'Quarter mile' : kind === 'sprint-board' ? 'Sprint' : 'Lap' };
       }).filter(Boolean).sort(function (a, b) { return b.n - a.n; }).slice(0, 6);

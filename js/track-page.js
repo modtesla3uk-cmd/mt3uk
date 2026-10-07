@@ -380,7 +380,7 @@
     document.body.setAttribute('data-tp-view', p.get('s') ? 'session' : p.get('car') && !p.get('add') ? 'car' : '');
     if (p.get('s')) return showSession(p.get('s'));
     if (p.get('add')) return showAdd(p.get('car'));
-    if (p.get('at')) return showTrackSessions(p.get('mycar'), p.get('at'));
+    if (p.get('at')) return showTrackSessions(p.get('mycar'), p.get('at'), p.get('lay') || '');
     // The leaderboards have their own page now; old links still work.
     if (p.get('board')) { location.replace('leaderboards.html?board=' + encodeURIComponent(p.get('board'))); return; }
     if (p.get('drag')) { location.replace('leaderboards.html?drag=' + encodeURIComponent(p.get('drag'))); return; }
@@ -443,6 +443,9 @@
     if (words.length < 2) return name.length > 14 ? name.slice(0, 13) + '\u2026' : name;
     return words[0].charAt(0).toUpperCase() + '. ' + words[words.length - 1];
   }
+  // The public note under the session heading: a second note the owner writes for everyone who opens the session.
+  var PUBLIC_NOTE_MAX = 140;
+  function publicNoteHtml(note) { return note ? '<p class="tp-public-note" id="tp-public-note-line">' + icon('info') + '<span>' + esc(note) + '</span></p>' : ''; }
   function trackName(s) { return (s.venue || (s.type === 'sprint' ? (s.hill ? 'Hill climb' : 'Sprint') : s.type === 'drag' ? 'Drag run' : 'Track session')) + (s.layout && s.layout !== s.venue ? ', ' + s.layout : !s.layout && s.organizer ? ', ' + s.organizer : ''); }
   function privacyPill(p, street) {
     if (street) return '<span class="tp-pill tp-pill-admin">' + icon('shield') + 'Street run, admin only</span>';
@@ -672,6 +675,7 @@
       var ty = readTyre('tp-tyre'); if (ty) { var nt = TY.compose(ty); if (add.tyrePre && nt !== add.tyres) add.tyrePre = false; add.tyre = ty; add.tyres = nt; }
       var pd0 = readPads('tp-pad'); if (pd0) add.pads = pd0;
       var ne = document.getElementById('tp-notes'); if (ne) add.notes = ne.value.trim();
+      var pe = document.getElementById('tp-public-note'); if (pe) add.publicNote = pe.value.trim();
       var te = document.getElementById('tp-temp');
       if (te) { var tv = te.value.trim() === '' ? null : parseFloat(te.value); if (tv !== add.temp) { add.temp = tv; add.tempSource = tv == null ? '' : 'member'; add.weather = null; } }
       drawAdd();
@@ -932,12 +936,53 @@
     return '<div class="tp-tools"><div class="tp-field tp-sort"><label for="tp-sort">Sort by</label><select class="field" id="tp-sort">' +
       SORTS.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === sortMode ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div></div>';
   }
+  // The layouts and events at one track: each layout (or a sprint's organiser, or the kind of session when there is
+  // neither) once, with its count and last day. The track line's chevron drops them down (openTracks keeps them open
+  // through a redraw), and a layout line opens the track's page showing only the sessions on that layout.
+  var KIND_WORD = { drag: 'Drag runs', sprint: 'Sprint', other: 'Drives', track: 'Track days' };
+  function layoutTitleOf(s) {
+    if (s.layout && s.layout !== s.venue) return s.layout;
+    if (s.organizer) return s.organizer;
+    return s.type === 'sprint' && s.hill ? 'Hill climb' : KIND_WORD[s.type] || KIND_WORD.track;
+  }
+  function layoutKeyOf(s) { return s.layoutId ? 'l:' + s.layoutId : 'n:' + layoutTitleOf(s).toLowerCase(); }
+  function layoutEntries(list) {
+    var by = {}, out = [];
+    list.forEach(function (x) {
+      var k = layoutKeyOf(x);
+      if (!by[k]) { by[k] = { key: k, name: layoutTitleOf(x), n: 0, last: '' }; out.push(by[k]); }
+      by[k].n++;
+      if (whenOf(x) > by[k].last) by[k].last = whenOf(x);
+    });
+    return out.sort(function (a, b) { return a.last === b.last ? a.name.localeCompare(b.name) : a.last < b.last ? 1 : -1; });
+  }
+  var openTracks = {};
   function trackListHtml(list, carId) {
     return trackEntries(list).map(function (t) {
       var q = 'mycar=' + encodeURIComponent(carId) + '&at=' + encodeURIComponent(t.key);
-      var lastDay = niceDate(t.last.slice(0, 10));
-      return '<a class="tp-row tp-trackrow" href="track.html?' + esc(q) + '" data-go="' + esc(q) + '"><span class="tp-row-main"><b>' + esc(t.name) + '</b><span>' + t.n + ' session' + (t.n === 1 ? '' : 's') + ', last ' + esc(lastDay) + '</span></span>' + icon('chev') + '</a>';
+      var lastDay = niceDate(t.last.slice(0, 10)), open = !!openTracks[t.key];
+      var lays = layoutEntries(list.filter(function (x) { return trackKeyOf(x) === t.key; }));
+      return '<div class="tp-trackwrap" data-track="' + esc(t.key) + '"><a class="tp-row tp-trackrow" href="track.html?' + esc(q) + '" data-go="' + esc(q) + '"><span class="tp-row-main"><b>' + esc(t.name) + '</b><span>' + t.n + ' session' + (t.n === 1 ? '' : 's') + ', last ' + esc(lastDay) + '</span></span></a>' +
+        '<button type="button" class="tp-track-toggle" data-track-toggle="' + esc(t.key) + '" aria-expanded="' + open + '" aria-label="' + (open ? 'Hide' : 'Show') + ' the layouts at ' + esc(t.name) + '">' + icon('chev') + '</button>' +
+        '<div class="tp-layouts"' + (open ? '' : ' hidden') + '>' + lays.map(function (l) {
+          var lq = q + '&lay=' + encodeURIComponent(l.key);
+          return '<a class="tp-row tp-layoutrow" href="track.html?' + esc(lq) + '" data-go="' + esc(lq) + '"><span class="tp-row-main"><b>' + esc(l.name) + '</b><span>' + l.n + ' session' + (l.n === 1 ? '' : 's') + ', last ' + esc(niceDate(l.last.slice(0, 10))) + '</span></span>' + icon('chev') + '</a>';
+        }).join('') + '</div></div>';
     }).join('');
+  }
+  function wireTrackToggles() {
+    var box = document.getElementById('tp-sess-list');
+    if (!box || box.getAttribute('data-toggles')) return;
+    box.setAttribute('data-toggles', '1');
+    box.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-track-toggle]');
+      if (!b) return;
+      var k = b.getAttribute('data-track-toggle'), wrap = b.closest('.tp-trackwrap'), lays = wrap && wrap.querySelector('.tp-layouts');
+      openTracks[k] = !openTracks[k];
+      b.setAttribute('aria-expanded', openTracks[k] ? 'true' : 'false');
+      b.setAttribute('aria-label', b.getAttribute('aria-label').replace(openTracks[k] ? 'Show' : 'Hide', openTracks[k] ? 'Hide' : 'Show'));
+      if (lays) lays.hidden = !openTracks[k];
+    });
   }
   // Where the car sits on the leaderboard: a trophy on the session that holds
   // its place. 1st is Platinum, 2nd Gold, 3rd Silver, then 4th, 5th and so on.
@@ -989,6 +1034,7 @@
       sortMode = sortSel.value;
       document.getElementById('tp-sess-list').innerHTML = trackListHtml(list, car.id);
     });
+    wireTrackToggles();
     // Find: the magnifier opens the search; while it is used the results sit in place of the track lines.
     var box = document.getElementById('tp-find'), from = document.getElementById('tp-find-from'), to = document.getElementById('tp-find-to'), range = document.getElementById('tp-find-range'), datesBtn = document.getElementById('tp-find-dates');
     var toggle = document.getElementById('tp-find-toggle'), panel = document.getElementById('tp-find-panel');
@@ -1029,7 +1075,7 @@
     if (findActive()) redraw();
   }
   // One track's page: every session there for the car, a day at a time, newest first. The trophies show here.
-  function showTrackSessions(carId, key) {
+  function showTrackSessions(carId, key, lay) {
     loading();
     Promise.all([getMine(), getLibrary()]).then(function (r) {
       var m = r[0];
@@ -1039,11 +1085,13 @@
       if (!car) return showHome();
       currentCar = car.id;
       var all = m.sessions.filter(function (x) { return x.carId === car.id; });
-      var rows = all.filter(function (x) { return trackKeyOf(x) === key; }).sort(function (x, y) { return whenOf(x) < whenOf(y) ? 1 : whenOf(x) > whenOf(y) ? -1 : 0; });
+      var rows = all.filter(function (x) { return trackKeyOf(x) === key && (!lay || layoutKeyOf(x) === lay); }).sort(function (x, y) { return whenOf(x) < whenOf(y) ? 1 : whenOf(x) > whenOf(y) ? -1 : 0; });
       if (!rows.length) return showHome();
       var saved = justSaved && (justSaved.batch || justSaved.text) ? savedHtml(justSaved) : '';
       justSaved = null;
-      app.innerHTML = saved + back('Track sessions', 'mycar=' + encodeURIComponent(car.id)) + '<div class="tp-head"><div><h2>' + esc(trackTitleOf(rows[0])) + '</h2><p class="tp-sub tp-for">' + esc(car.name) + ', ' + rows.length + ' session' + (rows.length === 1 ? '' : 's') + '</p></div>' + unitsChip() + '</div>' +
+      // One layout picked from the track's drop-down: the heading names it, and the page shows only those sessions.
+      var title = trackTitleOf(rows[0]) + (lay ? ', ' + layoutTitleOf(rows[0]) : '');
+      app.innerHTML = saved + back('Track sessions', 'mycar=' + encodeURIComponent(car.id)) + '<div class="tp-head"><div><h2>' + esc(title) + '</h2><p class="tp-sub tp-for">' + esc(car.name) + ', ' + rows.length + ' session' + (rows.length === 1 ? '' : 's') + '</p></div>' + unitsChip() + '</div>' +
         '<div class="tp-list" id="tp-sess-list">' + sessionListHtml(rows, true, all) + '</div>';
       if (ranksFor !== car.id) { ranks = {}; ranksFor = car.id; }
       applyRanks(rows);
@@ -1345,6 +1393,7 @@
       var lt = lastTyre(m, car.id);
       // The tyres start empty; the car's last ones are offered with a button.
       add.lastTyre = lt || null;
+      add.lastLogger = lastLogger(m);
       // The pads start as the car's brakes in My Garage.
       var cp = carPads(car);
       add.pads = cp || { same: true }; add.padsFromCar = !!cp;
@@ -1458,6 +1507,8 @@
       });
     })).then(function (read) {
       add.files = read; add.list = null; add.rd = null; add.mergeOff = false;
+      // The logger: guessed from the file names, else the member's last one, else the member picks.
+      if (!add.loggerTouched) add.logger = loggerGuess(read) || add.lastLogger || '';
       add.nameLooked = false;
       if (add.venueNameLooked) { add.venueName = ''; add.venueNameLooked = false; }
       add.session = null; add.startLine = null; add.finishLine = null; add.editLines = false; add.tapFull = false; add.tapAuto = false; add.tapOutline = null; add.finishCross = 0; add.organizer = ''; add.rollout = false; add.tapMap = null; add.confirmLines = false; add.type = null; add.date = null; add.time = null;
@@ -1672,6 +1723,57 @@
   // what their list, the request to add it and the admin's view call it. Saving stops on an empty box and points at
   // it. A mapped drive (Other) can be saved without a place.
   var REQ = ' <span class="tp-req">(required)</span>';
+  // ---------- The logger used ----------
+  // Every session says which logger or app recorded it (required on the Add page, shown to everyone on the session).
+  // The popular ones are listed; Other takes a typed name. The pick is guessed from the file, else it is the member's
+  // last one.
+  var LOGGERS = ['RaceBox', 'VBOX (Racelogic)', 'Tesla Track Mode', "Harry's LapTimer", 'TrackAddict', 'RaceChrono', 'AiM Solo', 'Garmin Catalyst', 'Dragy'];
+  var LOGGER_MAX = 40;
+  function loggerGuess(files) {
+    var names = (files || []).map(function (f) { return String((f.f || f).name || ''); }).join(' ').toLowerCase();
+    if (/racebox/.test(names)) return 'RaceBox';
+    if (/telemetry-v1-|track.?mode/.test(names)) return 'Tesla Track Mode';
+    if (/harry|\bhlt\b/.test(names)) return "Harry's LapTimer";
+    if (/trackaddict/.test(names)) return 'TrackAddict';
+    if (/racechrono/.test(names)) return 'RaceChrono';
+    if (/\baim\b|solo/.test(names)) return 'AiM Solo';
+    if (/garmin|catalyst/.test(names)) return 'Garmin Catalyst';
+    if (/dragy/.test(names)) return 'Dragy';
+    if (/\.vbo$|\.vbo\b/.test(names)) return 'VBOX (Racelogic)';
+    return '';
+  }
+  // The member's most recent session that names its logger.
+  function lastLogger(m) {
+    var list = ((m && m.sessions) || []).filter(function (x) { return x.logger; })
+      .sort(function (x, y) { return (y.date + (y.time || '')) < (x.date + (x.time || '')) ? -1 : 1; });
+    return list.length ? list[0].logger : '';
+  }
+  // The select and the Other box, for the Add page (id tp-logger) and Session settings (tp-e-logger).
+  function loggerFields(id, value, required) {
+    var other = !!value && LOGGERS.indexOf(value) === -1;
+    return '<div class="tp-field"><label for="' + id + '">Logger or app used' + (required ? REQ : '') + '</label><select class="field" id="' + id + '" data-logger' + (required ? ' required aria-required="true"' : '') + '>' +
+      '<option value="">Choose the logger</option>' + LOGGERS.map(function (l) { return '<option value="' + esc(l) + '"' + (l === value ? ' selected' : '') + '>' + esc(l) + '</option>'; }).join('') +
+      '<option value="__other"' + (other ? ' selected' : '') + '>Other (type it in)</option></select>' +
+      '<input class="field tp-logger-other" id="' + id + '-other" maxlength="' + LOGGER_MAX + '" placeholder="Name of the logger or app" aria-label="Name of the logger or app" value="' + esc(other ? value : '') + '"' + (other ? '' : ' hidden') + '></div>';
+  }
+  function loggerValue(id) {
+    var sel = document.getElementById(id), oth = document.getElementById(id + '-other');
+    if (!sel) return '';
+    return sel.value === '__other' ? String((oth && oth.value) || '').trim().slice(0, LOGGER_MAX) : sel.value;
+  }
+  // The Other box shows when Other is picked; wired once per form.
+  function wireLogger(id) {
+    var sel = document.getElementById(id), oth = document.getElementById(id + '-other');
+    if (!sel || !oth) return;
+    sel.addEventListener('change', function () { oth.hidden = sel.value !== '__other'; if (!oth.hidden) oth.focus(); });
+  }
+  function loggerError(id) {
+    var sel = document.getElementById(id), oth = document.getElementById(id + '-other'), el = sel && sel.value === '__other' ? oth : sel;
+    if (!el) return;
+    el.setAttribute('aria-invalid', 'true');
+    status('Say which logger or app recorded this session first.', 'error');
+    el.scrollIntoView({ block: 'center' }); el.focus();
+  }
   function missingName() {
     var el = document.querySelector('#tp-result input[data-name-req]');
     return el && !el.value.trim() ? el : null;
@@ -1837,13 +1939,15 @@
     } else if (saveable && a.replaceId) {
       h += '<button type="button" class="btn btn-accent btn-block" id="tp-save">Save changes</button>';
     } else if (saveable) {
-      h += '<div class="tp-field"><span class="tp-lbl">Conditions</span><div class="tp-chips" data-cond>' + ['Dry', 'Damp', 'Wet'].map(function (c) { return '<button type="button" class="chip' + (a.conditions === c ? ' is-on' : '') + '" data-v="' + c + '">' + c + '</button>'; }).join('') + '</div></div>' +
+      h += loggerFields('tp-logger', a.logger || '', true) +
+        '<div class="tp-field"><span class="tp-lbl">Conditions</span><div class="tp-chips" data-cond>' + ['Dry', 'Damp', 'Wet'].map(function (c) { return '<button type="button" class="chip' + (a.conditions === c ? ' is-on' : '') + '" data-v="' + c + '">' + c + '</button>'; }).join('') + '</div></div>' +
         tyreFields('tp-tyre', a.tyre) + (a.tyrePre && a.tyre ? '<p class="tp-small tp-tyre-note">Filled in from your last session with this ' + VW + '. Change it if it is different.</p>' : (a.lastTyre && !(a.tyre && (a.tyre.make || a.tyre.model || a.tyre.w)) ? '<p class="tp-small tp-tyre-note" id="tp-tyre-offer">Same tyres as last time (' + esc(TY.compose(a.lastTyre)) + ')? <button type="button" class="btn btn-secondary btn-sm" id="tp-use-last-tyres">Use previous tyres</button></p>' : '')) +
         padFields('tp-pad', a.pads, a.padsFromCar ? 'Filled in from ' + esc(a.car ? a.car.name : 'your car') + ' in My Garage. Change them if you ran something different on this day; your garage is not changed.' : '') +
         driveFields(a) + '<div class="tp-field"><label for="tp-temp">Air temperature (°C)</label><input class="field" id="tp-temp" inputmode="numeric" placeholder="18" value="' + esc(a.temp == null ? '' : a.temp) + '"></div>' +
         (a.tempSource === 'weather' && a.weather ? '<p class="tp-src" id="tp-temp-src">' + icon('info') + '<span>' + weatherNote(a.weather, s.venue) + (a.condTouched ? '' : ' Conditions set to match. Change them if the track was different.') + '</span></p>'
           : a.tempSource === 'file' ? '<p class="tp-src" id="tp-temp-src">' + icon('info') + '<span>From the air temperature recorded in your file.</span></p>' : '') +
-        '<div class="tp-field"><label for="tp-notes">Notes (only you see these)</label><input class="field" id="tp-notes" placeholder="Pressures, set-up, traffic..." value="' + esc(a.notes || '') + '"></div>' +
+        '<div class="tp-field"><label for="tp-notes">Private notes (only you see these)</label><input class="field" id="tp-notes" placeholder="Pressures, set-up, traffic..." value="' + esc(a.notes || '') + '"></div>' +
+        '<div class="tp-field"><label for="tp-public-note">Public note (one sentence, shown at the top of the session to everyone who opens it)</label><input class="field" id="tp-public-note" maxlength="' + PUBLIC_NOTE_MAX + '" placeholder="Red flag mid-session, new tyres, first time here..." value="' + esc(a.publicNote || '') + '"></div>' +
         '<div class="tp-field"><span class="tp-lbl">Who can see it</span><div class="tp-privacy" data-privacy>' + privacyOptions(a.privacy, a.street || (s.type === 'drag' && !s.atVenue) ? 'street' : canBoard() ? '' : 'noboard') + '</div></div>' +
         (s.type === 'drag' && !s.atVenue && !a.street ? '<div class="tp-field"><label for="tp-req-name">Which drag strip were you at?' + REQ + '</label><input class="field" id="tp-req-name" data-name-req placeholder="Name of the venue" value="' + esc(a.venueName || '') + '" required aria-required="true"><p class="tp-small">You can save it now. It stays private and off every leaderboard until the strip is added, and MT3UK is told about it.</p></div>' : '') +
         '<button type="button" class="btn btn-accent btn-block" id="tp-save">Save session</button>';
@@ -1896,9 +2000,10 @@
     }
     function keep() {
       var pd = readPads('tp-pad'); if (pd) { a.pads = pd; }
+      if (document.getElementById('tp-logger')) { var lgv = loggerValue('tp-logger'); if (lgv !== (a.logger || '')) a.loggerTouched = true; a.logger = lgv; }
       var ty = readTyre('tp-tyre');
       if (ty) { var nt2 = TY.compose(ty); if (a.tyrePre && nt2 !== a.tyres) a.tyrePre = false; a.tyre = ty; a.tyres = nt2; }
-      ['temp', 'notes', 'venue-name', 'layout-name'].forEach(function (k) {
+      ['temp', 'notes', 'public-note', 'venue-name', 'layout-name'].forEach(function (k) {
         var el = document.getElementById('tp-' + k);
         if (!el) return;
         if (k === 'temp') {
@@ -1907,6 +2012,7 @@
           a.temp = tv;
         }
         else if (k === 'layout-name') a.layoutName = el.value.trim().slice(0, 40);
+        else if (k === 'public-note') a.publicNote = el.value.trim().slice(0, PUBLIC_NOTE_MAX);
         else if (k === 'venue-name') { a.venueName = el.value.trim(); if (a.venueNameLooked && a.venueName !== a.lookedName) a.venueNameLooked = false; }
         else a[k] = el.value.trim();
       });
@@ -1928,6 +2034,7 @@
       });
     });
     group('[data-cond]', function (v) { keep(); a.conditions = v; a.condTouched = true; drawResult(); });
+    wireLogger('tp-logger');
     group('[data-drive]', function (v) { a.drive = a.drive === v ? '' : v; document.querySelectorAll('[data-drive] button[data-v]').forEach(function (x) { var on = x.getAttribute('data-v') === a.drive; x.classList.toggle('is-on', on); x.setAttribute('aria-pressed', String(on)); }); });
     group('[data-privacy]', function (v) { keep(); a.privacy = v; drawResult(); });
     group('[data-layout]', function (v) {
@@ -1958,6 +2065,7 @@
       keep();
       var miss0 = missingName();
       if (miss0) { nameError(miss0); return; }
+      if (document.getElementById('tp-logger') && !loggerValue('tp-logger')) { loggerError('tp-logger'); return; }
       var s0 = a.session, nameEl = document.getElementById('tp-venue-name'), name = (nameEl && nameEl.value.trim()) || a.venueName || s0.venue || '';
       var o0 = s0.origin || [], ol = ((s0.trace && s0.trace.outline) || []).filter(function (_, i) { return i % 4 === 0; }).map(function (q) { return [q[0], q[1]]; });
       untimedBtn.disabled = true;
@@ -2004,6 +2112,7 @@
       keep();
       if (a.lineEdit) { sendLineChange(save); return; }
       var miss = missingName(); if (miss) { nameError(miss); return; }
+      if (document.getElementById('tp-logger') && !loggerValue('tp-logger')) { loggerError('tp-logger'); return; }
       // Adding a new layout to a listed circuit needs its name.
       var ln = document.getElementById('tp-layout-name');
       var taken = a.addNow && ln && a.layoutName && venueLayouts(a, a.session).filter(function (l) { return l.startLine && String(l.name || '').trim().toLowerCase() === a.layoutName.toLowerCase(); })[0];
@@ -2224,7 +2333,7 @@
   }
   // What the worker is sent to save one session, with the settings chosen for the upload.
   function postBody(a, carId, sess) {
-    return Object.assign(padPayload(a.pads), { carId: carId, session: sess, drive: a.drive || '', conditions: a.conditions, tyres: a.tyres || '', tyreMake: (a.tyre && a.tyre.make) || '', tyreModel: (a.tyre && a.tyre.model) || '', tyreWidth: (a.tyre && a.tyre.w) || null, tyreProfile: (a.tyre && a.tyre.p) || null, tyreRim: (a.tyre && a.tyre.d) || null, temp: a.temp, tempSource: a.temp == null ? '' : (a.tempSource || 'member'), weather: a.tempSource === 'weather' ? a.weather : null, notes: a.notes || '', privacy: a.privacy, venueName: a.venueName || '', street: a.street, adminViewer: a.street ? adminViewerToken() : '' });
+    return Object.assign(padPayload(a.pads), { carId: carId, session: sess, drive: a.drive || '', conditions: a.conditions, tyres: a.tyres || '', tyreMake: (a.tyre && a.tyre.make) || '', tyreModel: (a.tyre && a.tyre.model) || '', tyreWidth: (a.tyre && a.tyre.w) || null, tyreProfile: (a.tyre && a.tyre.p) || null, tyreRim: (a.tyre && a.tyre.d) || null, temp: a.temp, tempSource: a.temp == null ? '' : (a.tempSource || 'member'), weather: a.tempSource === 'weather' ? a.weather : null, notes: a.notes || '', publicNote: a.publicNote || '', logger: a.logger || '', privacy: a.privacy, venueName: a.venueName || '', street: a.street, adminViewer: a.street ? adminViewerToken() : '' });
   }
   // The layouts of the circuit this session is at, to pick from. The one found from the GPS is picked already; a
   // member whose layout was not found (or wrongly found) picks it, or says it is a different one, which is then added
@@ -2498,7 +2607,7 @@
       if (!src.p || !m) throw new Error(sourceError(src));
       var car = m.cars.filter(function (c) { return c.id === s.carId; })[0] || m.cars[0];
       VW = vwOf(car);
-      add = { car: car, drive: (car && car.drive) || '', cars: m.cars, lib: r[2], admin: r[3], rd: restoreSource(src), session: null, type: type, hill: !!hill, startLine: null, conditions: s.conditions || 'Dry', condTouched: true, privacy: s.privacy, street: false, tyres: s.tyres || '', tyre: tyreInit(s), pads: padInit(s), temp: s.temp, tempSource: s.tempSource || '', weather: s.weather || null, notes: s.notes || '', date: s.date, time: s.time, venueName: s.venueId ? '' : s.venue, replaceId: s.id, files: null, list: null };
+      add = { car: car, drive: (car && car.drive) || '', cars: m.cars, lib: r[2], admin: r[3], rd: restoreSource(src), session: null, type: type, hill: !!hill, startLine: null, conditions: s.conditions || 'Dry', condTouched: true, privacy: s.privacy, street: false, tyres: s.tyres || '', tyre: tyreInit(s), pads: padInit(s), temp: s.temp, tempSource: s.tempSource || '', weather: s.weather || null, notes: s.notes || '', publicNote: s.publicNote || '', logger: s.logger || '', loggerTouched: !!s.logger, date: s.date, time: s.time, venueName: s.venueId ? '' : s.venue, replaceId: s.id, files: null, list: null };
       add.layoutPick = layoutId || ''; add.relayout = !!layoutId;
       analyse();
       window.scrollTo(0, 0);
@@ -2741,7 +2850,7 @@
       add = { car: car, drive: (car && car.drive) || '', cars: m.cars, lib: r[2], admin: false, rd: restoreSource(src), session: null, type: s.type, startLine: s.startLine || null, finishLine: s.type === 'sprint' ? (s.finishLine || null) : null,
         editLines: true, confirmLines: false, lineEdit: true, organizer: s.organizer || '', ignoreFinish: s.ignoreFinish !== false, finishCross: s.finishCrossing || 0, rollout: !!s.rollout,
         conditions: s.conditions || 'Dry', condTouched: true, privacy: s.privacy, street: false, tyres: s.tyres || '', tyre: tyreInit(s), pads: padInit(s), temp: s.temp, tempSource: s.tempSource || '', weather: s.weather || null,
-        notes: s.notes || '', date: s.date, time: s.time, venueName: s.venueId ? '' : s.venue, replaceId: s.id, files: null, list: null,
+        notes: s.notes || '', publicNote: s.publicNote || '', logger: s.logger || '', loggerTouched: !!s.logger, date: s.date, time: s.time, venueName: s.venueId ? '' : s.venue, replaceId: s.id, files: null, list: null,
         oldLines: { startLine: s.startLine || null, finishLine: s.type === 'sprint' ? (s.finishLine || null) : null, time: s.bestTime || null } };
       analyse();
       window.scrollTo(0, 0);
@@ -2823,7 +2932,7 @@
     var place = s.mine && view.mine ? dayPlace(s, view.mine.sessions) : null;
     var h = (justSaved && s.mine ? savedHtml(justSaved) : '') + back(s.mine ? 'Your sessions' : 'Back', s.mine ? '' : (s.carId ? 'car=' + encodeURIComponent(s.carId) : ''));
     if (s.adminView) h += '<p class="tp-admin-banner" id="tp-admin-banner">' + icon('lock') + 'Admin view, read only. This is a private session and this view is logged. Notes are not shown.</p>';
-    h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '</h2>' + (s.ownerName ? '<p class="tp-by" id="tp-by">' + icon('user') + '<span>Session by <b>' + esc(s.ownerName) + '</b>' + (s.mine ? ' (you)' : '') + '</span></p>' : '') + '<p class="tp-sub">' + (s.type === 'sprint' ? '<b id="tp-kind">' + (isHillSession(s, library) ? 'Hill climb' : 'Sprint') + '</b> &middot; ' : '') + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (place ? ' &middot; <b id="tp-day-place">Session ' + place.n + ' of ' + place.of + ' that day</b>' : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + (s.drive ? ' &middot; ' + esc(s.drive) : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + (s.pads ? ' &middot; <span id="tp-pads-line">Pads: ' + esc(s.pads) + '</span>' : '') + '</p>' + (s.fileName && (s.mine || s.adminView) ? '<p class="tp-small tp-filename" id="tp-filename">' + icon('file') + 'File: ' + esc(s.fileName) + '</p>' : '') + (s.mine || s.adminView ? '<p class="tp-small tp-sid" id="tp-sid">Session ID: <code id="tp-sid-text">' + esc(s.id) + '</code> <button type="button" class="btn btn-ghost btn-sm" id="tp-sid-copy" aria-label="Copy the session ID">' + icon('copy') + '<span>Copy</span></button></p>' : '') + '</div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) + '<span id="tp-rank-slot"></span>' : '') + refreshChip() + unitsChip() + (s.street || s.privacy === 'private' ? '' : shareDot('Share this session')) + '</div></div>';
+    h += '<div class="tp-head tp-session-head"><div><h2>' + esc(trackName(s)) + '</h2>' + (s.ownerName ? '<p class="tp-by" id="tp-by">' + icon('user') + '<span>Session by <b>' + esc(s.ownerName) + '</b>' + (s.mine ? ' (you)' : '') + '</span></p>' : '') + '<p class="tp-sub">' + (s.type === 'sprint' ? '<b id="tp-kind">' + (isHillSession(s, library) ? 'Hill climb' : 'Sprint') + '</b> &middot; ' : '') + esc(niceDate(s.date)) + (s.time ? ', ' + esc(s.time) : '') + (place ? ' &middot; <b id="tp-day-place">Session ' + place.n + ' of ' + place.of + ' that day</b>' : '') + (s.car ? ' &middot; ' + esc(s.car) : '') + (s.conditions ? ' &middot; ' + esc(s.conditions) : '') + (s.temp != null ? ', ' + esc(s.temp) + '°C' + (s.tempSource === 'weather' ? ' (Open-Meteo)' : s.tempSource === 'file' ? ' (from file)' : '') : '') + (s.drive ? ' &middot; ' + esc(s.drive) : '') + (s.tyres ? ' &middot; ' + esc(s.tyres) : '') + (s.pads ? ' &middot; <span id="tp-pads-line">Pads: ' + esc(s.pads) + '</span>' : '') + (s.logger ? ' &middot; <span id="tp-logger-line">Logger: ' + esc(s.logger) + '</span>' : '') + '</p>' + publicNoteHtml(s.publicNote) + (s.fileName && (s.mine || s.adminView) ? '<p class="tp-small tp-filename" id="tp-filename">' + icon('file') + 'File: ' + esc(s.fileName) + '</p>' : '') + (s.mine || s.adminView ? '<p class="tp-small tp-sid" id="tp-sid">Session ID: <code id="tp-sid-text">' + esc(s.id) + '</code> <button type="button" class="btn btn-ghost btn-sm" id="tp-sid-copy" aria-label="Copy the session ID">' + icon('copy') + '<span>Copy</span></button></p>' : '') + '</div><div class="tp-head-side">' + (s.mine ? privacyPill(s.privacy, s.street) + '<span id="tp-rank-slot"></span>' : '') + refreshChip() + unitsChip() + (s.street || s.privacy === 'private' ? '' : shareDot('Share this session')) + '</div></div>';
     LW = s.type === 'sprint' ? 'Run' : 'Lap';
     // Timed with older code and no readings kept to work it out again: only uploading the file again updates it.
     if (s.mine && !s.hasSource && s.type !== 'other' && (s.analysisVersion || 1) < T.ANALYSIS_VERSION) h += '<p class="tp-notice" id="tp-old-version">' + icon('info') + '<span>Timed with an older version. Upload the file again to update the times.</span></p>';
@@ -3107,7 +3216,7 @@
       h += '<div class="tp-section" id="compare"><div class="tp-head"><h2>Compare laps</h2></div><p class="tp-sub">Pick two laps. Press Play, or move along a chart, to see where both are at the same moment. The slower lap trails by the time gap.</p>' +
         '<div class="card tp-cmp-pick"><div class="tp-f2"><div class="tp-field"><label for="tp-cmp-a">Lap A</label><select class="field" id="tp-cmp-a">' + lapOptions(view.a) + '</select></div><div class="tp-field"><label for="tp-cmp-b">Lap B</label><select class="field" id="tp-cmp-b">' + lapOptions(view.b) + '</select></div></div></div>' +
         '<div class="tp-grid tp-g-map"><div class="tp-grid"><div class="card tp-o-speed"><div class="tp-chart-head"><h3>Speed through the lap</h3><div class="tp-key" id="tp-key"></div></div><svg class="tv-chart" id="tp-speed" role="img" aria-label="Speed against distance for both laps"></svg>' +
-        '<div class="tp-chart-head"><h3>Time gap</h3><span class="tp-small" id="tp-gap-cap"></span></div><svg class="tv-chart" id="tp-delta" role="img" aria-label="Running time gap between the laps"></svg></div>' +
+        '<div class="tp-chart-head"><h3>Time gap</h3><span class="tp-small" id="tp-gap-cap"></span></div><svg class="tv-chart" id="tp-delta" role="img" aria-label="Running time gap between the laps"></svg>' + resizeHtml('speed', 'speed and time gap charts') + '</div>' +
         '<div class="card tp-o-corner"><h3>Corner by corner</h3><div class="tp-scroll"><table class="tp-table" id="tp-corners"></table></div></div></div>' +
         '<div class="tp-grid"><div class="card tp-mapcard" id="tp-mapcard"><div class="tp-chart-head tp-map-head"><h3>Where you are</h3><button type="button" class="tp-switch tp-gswitch tp-speedsw" role="switch" id="tp-speedcol" aria-checked="' + cmpSpeed + '"><span>Colour by speed</span><span class="tp-track"></span></button><button type="button" class="tp-rotate-hint" id="tp-rotate-hint" aria-label="Turn the screen sideways for a bigger map" title="Turn the screen sideways for a bigger map">' + icon('rotate') + '</button><button type="button" class="btn btn-secondary btn-sm" id="tp-full" aria-label="Full screen map"></button></div>' +
         '<p class="tp-small tp-sync-note">Both laps at the same moment: the slower one trails by the time gap.</p>' +
@@ -3117,7 +3226,7 @@
         '<div class="tp-pn-size" id="tp-pn-size" role="separator" aria-label="Drag to resize the controls" title="Drag to resize the controls"></div>' +
         '</div>' +
         '<div class="tp-mapwrap" id="tp-mapwrap"><svg class="tv-chart" id="tp-map2" role="img" aria-label="Track map with both laps\' lines and positions"></svg>' +
-        '<div class="tp-chart-foot tp-speedkey" id="tp-speedkey"' + (cmpSpeed ? '' : ' hidden') + '><span class="tp-ramp"><span id="tp-ramp-lo"></span><i></i><span id="tp-ramp-hi"></span></span><span>Lap A coloured by speed, lap B dashed. Numbers are the slowest corners.</span></div></div>' +
+        resizeHtml('map', 'map') + '<div class="tp-chart-foot tp-speedkey" id="tp-speedkey"' + (cmpSpeed ? '' : ' hidden') + '><span class="tp-ramp"><span id="tp-ramp-lo"></span><i></i><span id="tp-ramp-hi"></span></span><span>Lap A coloured by speed, lap B dashed. Numbers are the slowest corners.</span></div></div>' +
         '<div class="tp-mopts" id="tp-mopts"><button type="button" class="tp-mopts-btn" id="tp-mopts-btn" aria-expanded="false" aria-controls="tp-mopts-card" aria-label="Map options">' + icon('sliders') + '</button>' +
         '<div class="tp-mopts-card" id="tp-mopts-card" hidden><div class="tp-mopts-head"><span>Map options</span><button type="button" class="tp-mopts-x" id="tp-mopts-x" aria-label="Close map options">' + icon('x') + '</button></div>' +
         '<div class="tp-mopts-body" id="tp-mopts-body"><button type="button" class="tp-switch tp-gswitch" role="switch" id="tp-carspeed" aria-checked="' + carSpeed + '"><span>Speed on cars</span><span class="tp-track"></span></button><button type="button" class="btn btn-secondary btn-sm" id="tp-pn-reset">Reset the controls</button></div></div></div>' +
@@ -3125,7 +3234,7 @@
         '<div class="tp-split" id="tp-split" role="separator" aria-orientation="vertical" aria-label="Drag to make the map bigger or smaller" title="Drag to make the map bigger or smaller"></div>' +
         '<div class="tp-metrics" id="tp-metrics" aria-live="off"></div>' +
         '<div class="tp-gbox" id="tp-gbox"><div class="tp-chart-head"><h3>G-force' + (s.gDerived ? ' (estimated)' : '') + ' and speed</h3><button type="button" class="tp-switch tp-gswitch" role="switch" id="tp-gshow" aria-checked="' + !gHidden + '"><span>Show G-Forces</span><span class="tp-track"></span></button><div class="tp-chips" id="tp-gtoggles" role="group" aria-label="G-force lines to show">' + G_DEFS.map(function (d) { return '<button type="button" class="chip chip-sm' + (gShow[d[0]] ? ' is-on' : '') + '" data-g="' + d[0] + '" aria-pressed="' + !!gShow[d[0]] + '">' + d[1] + '</button>'; }).join('') + '</div></div>' +
-        '<div class="tp-gcharts" id="tp-gforce"></div>' +
+        '<div class="tp-gcharts" id="tp-gforce"></div>' + resizeHtml('g', 'G-force charts') +
         // The slider sits under the chart, lined up with its time axis.
         '<div class="tp-scrub-row"><div class="tp-scrub-track" id="tp-scrub-track"><div class="tp-ruler" id="tp-ruler" aria-hidden="true"></div><input type="range" id="tp-scrub" min="0" max="100" step="0.01" value="0" aria-label="Position in the lap"></div><span class="tp-clock" id="tp-clock">0:00.0</span></div>' +
         '<div class="tp-small tp-gpeaks" id="tp-gpeaks"></div><p class="tp-small" id="tp-gnote"></p></div></div>' +
@@ -3264,6 +3373,7 @@
     pb.render = null;
     var sa = document.getElementById('tp-cmp-a'), sb = document.getElementById('tp-cmp-b');
     wirePlay();
+    wireResize();
     if (sa) {
       sa.addEventListener('change', function () { view.a = sa.value; drawCompare(s); });
       sb.addEventListener('change', function () { view.b = sb.value; drawCompare(s); });
@@ -3282,6 +3392,51 @@
   // The whole G-force and speed chart can be hidden (remembered in this browser).
   var gHidden = false;
   try { gHidden = localStorage.getItem('mt3ukTrackChart') === 'off'; } catch (e) { /* storage blocked */ }
+  // ---------- Resizable panels ----------
+  // A grip bar under the speed and time gap charts, the map and the G-force charts (data-resize="speed", "map", "g").
+  // Dragging it (or the arrow keys on it) scales that panel's height, kept per browser (localStorage mt3ukLapsSizes,
+  // a factor per panel, 0.5 to 3); a double tap puts it back. Not in full screen, which has its own split.
+  var SIZES_KEY = 'mt3ukLapsSizes', sizes = {};
+  try { sizes = JSON.parse(localStorage.getItem(SIZES_KEY) || '{}') || {}; } catch (e) { sizes = {}; }
+  function sizeOf(k) { var f = Number(sizes[k]); return f >= 0.5 && f <= 3 ? f : 1; }
+  function setSize(k, f) {
+    f = Math.max(0.5, Math.min(3, Math.round(f * 100) / 100));
+    if (f === 1) delete sizes[k]; else sizes[k] = f;
+    try { localStorage.setItem(SIZES_KEY, JSON.stringify(sizes)); } catch (e) {}
+  }
+  function resizeHtml(k, what) { return '<div class="tp-resize" data-resize="' + k + '" role="separator" aria-orientation="horizontal" tabindex="0" aria-label="Drag to resize the ' + what + '" title="Drag to resize the ' + what + '. Double tap to put it back"><i></i></div>'; }
+  var resizeTick = null;
+  function redrawSized() {
+    if (resizeTick) return;
+    resizeTick = requestAnimationFrame(function () { resizeTick = null; if (view && view.s && document.getElementById('tp-map2')) drawCompare(view.s, true); });
+  }
+  function wireResize(root) {
+    (root || document).querySelectorAll('[data-resize]').forEach(function (h) {
+      var k = h.getAttribute('data-resize'), y0 = 0, f0 = 1, base = 0;
+      // The panel's rendered height when the drag starts, so a drag of its own height doubles it.
+      function panelHeight() { var card = h.parentNode, svg = card && card.querySelector('svg.tv-chart'); return svg ? Math.max(60, svg.getBoundingClientRect().height) : 240; }
+      h.addEventListener('pointerdown', function (e) {
+        if (cmpFull) return;
+        y0 = e.clientY; f0 = sizeOf(k); base = panelHeight() / f0;
+        h.setPointerCapture(e.pointerId); h.classList.add('is-dragging'); e.preventDefault();
+      });
+      h.addEventListener('pointermove', function (e) {
+        if (!h.classList.contains('is-dragging')) return;
+        setSize(k, f0 + (e.clientY - y0) / base);
+        redrawSized();
+      });
+      function done() { h.classList.remove('is-dragging'); }
+      h.addEventListener('pointerup', done); h.addEventListener('pointercancel', done);
+      h.addEventListener('dblclick', function () { setSize(k, 1); redrawSized(); });
+      h.addEventListener('keydown', function (e) {
+        var step = e.key === 'ArrowDown' || e.key === 'ArrowRight' ? 0.1 : e.key === 'ArrowUp' || e.key === 'ArrowLeft' ? -0.1 : e.key === 'Home' ? null : 0;
+        if (step === 0) return;
+        e.preventDefault();
+        setSize(k, step === null ? 1 : sizeOf(k) + step);
+        redrawSized();
+      });
+    });
+  }
   function setCharts(on) {
     gHidden = !on;
     var gs = document.getElementById('tp-gshow'), gbox = document.getElementById('tp-gbox'), mcard = document.getElementById('tp-mapcard');
@@ -3654,7 +3809,7 @@
         : (A === B ? [{ trace: A.trace, color: c1 }] : [{ trace: B.trace, color: c2 }, { trace: A.trace, color: c1 }]);
       // The whole session's laps underneath as the track's width.
       var band = Object.keys(s.trace.laps).map(function (k) { return s.trace.laps[k]; });
-      var mo = V.map(mapEl, A.trace, { fill: fill, mono: true, lines: lines, band: band, full: { on: function () { return cmpFull; }, toggle: function () { setFull(!cmpFull); }, state: function () { return null; } }, startLine: startLineXY(s), finishLine: s.type === 'sprint' ? startLineXY(s, s.finishLine) : null, corners: s.corners, origin: s.origin });
+      var mo = V.map(mapEl, A.trace, { fill: fill, ratio: fill ? undefined : 0.7 * sizeOf('map'), mono: true, lines: lines, band: band, full: { on: function () { return cmpFull; }, toggle: function () { setFull(!cmpFull); }, state: function () { return null; } }, startLine: startLineXY(s), finishLine: s.type === 'sprint' ? startLineXY(s, s.finishLine) : null, corners: s.corners, origin: s.origin });
       var lo = document.getElementById('tp-ramp-lo'), hi = document.getElementById('tp-ramp-hi');
       if (mo && lo && hi) { lo.textContent = V.fmtV(mo.vmin); hi.textContent = V.fmtV(mo.vmax); }
       cmpMap = mo;
@@ -3798,6 +3953,7 @@
         // full screen the stack as a whole is held to a quarter more than one chart, so the map keeps its room.
         var base = cmpFull ? Math.max(110, Math.min(200, Math.round(window.innerHeight * 0.22))) : 150;
         var H = defs.length === 1 ? base : cmpFull ? Math.max(70, Math.round(base * 1.25 / defs.length)) : Math.max(96, Math.round(base * 0.7));
+        if (!cmpFull) H = Math.round(H * sizeOf('g'));
         // A phone on its side in full screen: the charts share a panel beside the map, the height of the screen less
         // the switch, the chips and the slider.
         if (cmpFull && window.innerWidth > window.innerHeight && window.innerHeight <= 560) {
@@ -3924,7 +4080,7 @@
       }
       var sp, dl;
       sp = V.line(document.getElementById('tp-speed'), {
-        H: 240, x0: 0, x1: dmax, y0: 0, y1: yt[yt.length - 1], xt: xt, xf: xf, yt: yt,
+        H: Math.round(240 * sizeOf('speed')), x0: 0, x1: dmax, y0: 0, y1: yt[yt.length - 1], xt: xt, xf: xf, yt: yt,
         series: [{ color: c2, pts: B.trace.map(function (p) { return [p[0], V.spd(p[4])]; }), at: function (x) { return V.spd(at(B.trace, x)[4]); } }, { color: c1, pts: A.trace.map(function (p) { return [p[0], V.spd(p[4])]; }), at: function (x) { return V.spd(at(A.trace, x)[4]); } }],
         under: function (svg, X) { (s.corners || []).forEach(function (c) { var t = document.createElementNS('http://www.w3.org/2000/svg', 'text'); t.setAttribute('x', X(c.d)); t.setAttribute('y', 22); t.setAttribute('text-anchor', 'middle'); t.setAttribute('font-weight', '700'); t.textContent = c.n; svg.appendChild(t); }); },
         tip: tipF, onMove: function (x) { userHover(); var w = move(x); dl.show(x); if (gl) gl.show(w); }, onLeave: leave
@@ -3934,7 +4090,7 @@
       var gmin = Math.min.apply(null, dp.map(function (p) { return p[1]; })), gmax = Math.max.apply(null, dp.map(function (p) { return p[1]; }));
       var gyt = V.nice(Math.min(0, gmin), Math.max(0.5, gmax), 4);
       dl = V.line(document.getElementById('tp-delta'), {
-        H: 150, x0: 0, x1: dmax, y0: gyt[0], y1: gyt[gyt.length - 1], xt: xt, xf: xf, yt: gyt, zero: 0, yf: function (v) { return (v > 0 ? '+' : '') + v + ' s'; },
+        H: Math.round(150 * sizeOf('speed')), x0: 0, x1: dmax, y0: gyt[0], y1: gyt[gyt.length - 1], xt: xt, xf: xf, yt: gyt, zero: 0, yf: function (v) { return (v > 0 ? '+' : '') + v + ' s'; },
         series: [{ color: c1, area: true, pts: dp, at: function (x) { return at(B.trace, x)[1] - at(A.trace, x)[1]; } }], tip: tipF, onMove: function (x) { userHover(); var w = move(x); sp.show(x); if (gl) gl.show(w); }, onLeave: leave
       });
       // Hovering a chart takes over from playback.
@@ -4079,10 +4235,11 @@
     return '<div class="tp-section" id="settings"><div class="tp-head"><h2>Session settings</h2></div><div class="card tp-fields">' + addDayBox + typeBox + relayoutBox + splitBox +
       '<div class="tp-field"><span class="tp-lbl">Who can see it</span><div class="tp-privacy" data-privacy>' + privacyOptions(s.privacy, limit) + '</div></div>' +
       '<div class="tp-field"><span class="tp-lbl">Conditions</span><div class="tp-chips" data-cond>' + ['Dry', 'Damp', 'Wet'].map(function (c) { return '<button type="button" class="chip' + (s.conditions === c ? ' is-on' : '') + '" data-v="' + c + '">' + c + '</button>'; }).join('') + '</div></div>' +
-      tyreFields('tp-e-tyre', tyreInit(s)) + padFields('tp-e-pad', padInit(s), '') +
+      tyreFields('tp-e-tyre', tyreInit(s)) + padFields('tp-e-pad', padInit(s), '') + loggerFields('tp-e-logger', s.logger || '', false) +
       '<div class="tp-field"><label for="tp-e-temp">Air temperature (°C)</label><input class="field" id="tp-e-temp" inputmode="numeric" value="' + esc(s.temp == null ? '' : s.temp) + '"></div>' +
       '<div class="tp-weather-row"><button type="button" class="btn btn-secondary btn-sm" id="tp-e-weather">Fill in from weather</button><p class="tp-src" id="tp-e-src">' + (s.tempSource === 'weather' && s.weather ? icon('info') + '<span>' + weatherNote(s.weather, s.venue) + '</span>' : s.tempSource === 'file' ? icon('info') + '<span>From the air temperature recorded in your file.</span>' : '') + '</p></div>' +
-      '<div class="tp-field"><label for="tp-e-notes">Notes (only you see these)</label><input class="field" id="tp-e-notes" value="' + esc(s.notes || '') + '"></div>' +
+      '<div class="tp-field"><label for="tp-e-notes">Private notes (only you see these)</label><input class="field" id="tp-e-notes" value="' + esc(s.notes || '') + '"></div>' +
+      '<div class="tp-field"><label for="tp-e-public-note">Public note (one sentence, shown at the top of the session to everyone who opens it)</label><input class="field" id="tp-e-public-note" maxlength="' + PUBLIC_NOTE_MAX + '" placeholder="Red flag mid-session, new tyres, first time here..." value="' + esc(s.publicNote || '') + '"></div>' +
       '<div class="tp-actions"><button type="button" class="btn btn-primary" id="tp-e-save">Save changes</button><button type="button" class="btn btn-secondary" id="tp-e-close">Close</button><button type="button" class="btn btn-ghost" id="tp-e-discard">Discard</button><button type="button" class="btn btn-danger" id="tp-e-del">' + icon('trash') + 'Delete</button></div><p class="tp-status" id="tp-status" role="status"></p></div></div>';
   }
   // Copy a piece of text, with the button saying so for a moment. Falls back to a hidden box on older browsers.
@@ -4209,6 +4366,7 @@
     }
     group('[data-privacy]', 'privacy');
     group('[data-cond]', 'conditions');
+    wireLogger('tp-e-logger');
     var rt = document.querySelector('#settings [data-retype]');
     if (rt) rt.addEventListener('click', function (e) {
       var b = e.target.closest('button[data-v]'), v = b && b.getAttribute('data-v');
@@ -4247,12 +4405,18 @@
     function saveSettings() {
       var t = document.getElementById('tp-e-temp').value.trim();
       var ty = tyrePayload(readTyre('tp-e-tyre')), pd = padPayload(readPads('tp-e-pad'));
-      api('PUT', '/track/session', Object.assign({ id: s.id, privacy: edit.privacy, conditions: edit.conditions || '' }, ty, pd, { temp: t === '' ? null : parseFloat(t), tempSource: t === '' ? '' : (edit.tempSource || 'member'), weather: edit.tempSource === 'weather' ? edit.weather : null, notes: document.getElementById('tp-e-notes').value })).then(function (d) {
+      api('PUT', '/track/session', Object.assign({ id: s.id, privacy: edit.privacy, conditions: edit.conditions || '' }, ty, pd, { temp: t === '' ? null : parseFloat(t), tempSource: t === '' ? '' : (edit.tempSource || 'member'), weather: edit.tempSource === 'weather' ? edit.weather : null, notes: document.getElementById('tp-e-notes').value, publicNote: document.getElementById('tp-e-public-note').value.trim(), logger: loggerValue('tp-e-logger') })).then(function (d) {
         if (!d.success) { status(d.message || 'Could not save.', 'error'); return; }
         mine = null; counts = null;
         // The worker's summary has the tyre make and model but not the size, so the size is what was just sent: without it the
         // width, profile and diameter drop-downs came back empty after Save and looked unsaved.
-        Object.assign(view.s, { privacy: d.session.privacy, conditions: d.session.conditions, tyres: d.session.tyres, tyreMake: d.session.tyreMake, tyreModel: d.session.tyreModel, tyreWidth: ty.tyreWidth, tyreProfile: ty.tyreProfile, tyreRim: ty.tyreRim, pads: d.session.pads || '', padFrontMake: pd.padFrontMake, padFrontCompound: pd.padFrontCompound, padRearMake: pd.padRearMake, padRearCompound: pd.padRearCompound, temp: d.session.temp, tempSource: d.session.tempSource, weather: d.session.weather, notes: document.getElementById('tp-e-notes').value });
+        Object.assign(view.s, { privacy: d.session.privacy, conditions: d.session.conditions, tyres: d.session.tyres, tyreMake: d.session.tyreMake, tyreModel: d.session.tyreModel, tyreWidth: ty.tyreWidth, tyreProfile: ty.tyreProfile, tyreRim: ty.tyreRim, pads: d.session.pads || '', padFrontMake: pd.padFrontMake, padFrontCompound: pd.padFrontCompound, padRearMake: pd.padRearMake, padRearCompound: pd.padRearCompound, temp: d.session.temp, tempSource: d.session.tempSource, weather: d.session.weather, notes: document.getElementById('tp-e-notes').value, publicNote: document.getElementById('tp-e-public-note').value.trim(), logger: loggerValue('tp-e-logger') });
+        var ll = document.getElementById('tp-logger-line'), sub = document.querySelector('.tp-session-head .tp-sub');
+        if (ll) ll.previousSibling && ll.previousSibling.nodeType === 3 && ll.previousSibling.remove(), ll.remove();
+        if (view.s.logger && sub) sub.insertAdjacentHTML('beforeend', ' &middot; <span id="tp-logger-line">Logger: ' + esc(view.s.logger) + '</span>');
+        var pl = document.getElementById('tp-public-note-line');
+        if (pl) pl.remove();
+        document.querySelector('.tp-session-head .tp-sub').insertAdjacentHTML('afterend', publicNoteHtml(view.s.publicNote));
         dirty = false;
         getMine().then(function (m) { view.mine = m; drawSession(); status('Saved.', 'ok'); });
       });
@@ -4301,7 +4465,7 @@
       if (s.organizer) opts.organizer = s.organizer;
       if (s.finishCrossing) opts.finishCrossing = s.finishCrossing;
       if (s.startLineFromMember && s.startLine) { opts.startLine = s.startLine; if (s.finishLine) opts.finishLine = s.finishLine; }
-      var settings = { conditions: s.conditions || '', tyres: s.tyres || '', tyre: tyreInit(s), pads: padInit(s), temp: s.temp, tempSource: s.tempSource || '', weather: s.weather || null, notes: s.notes || '', privacy: s.privacy, venueName: s.venueId ? '' : s.venue, street: false };
+      var settings = { conditions: s.conditions || '', tyres: s.tyres || '', tyre: tyreInit(s), pads: padInit(s), temp: s.temp, tempSource: s.tempSource || '', weather: s.weather || null, notes: s.notes || '', publicNote: s.publicNote || '', logger: s.logger || '', privacy: s.privacy, venueName: s.venueId ? '' : s.venue, street: false };
       var made = [], skipped = [], chain = Promise.resolve();
       order.forEach(function (k, i) {
         chain = chain.then(function () {

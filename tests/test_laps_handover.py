@@ -45,14 +45,14 @@ def setup(page):
         headers = {"Access-Control-Allow-Origin": "*"}
         if req.url.endswith("/session/handover") and req.method == "POST":
             state["made"] += 1
-            assert req.headers.get("x-session-token") == "tok-main" or req.headers.get("x-session-token") == "tok-laps"
+            assert req.headers.get("x-session-token") in ("tok-main", "tok-laps") or req.headers.get("x-admin-viewer") == "viewer-tok"
             return route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "code": CODE}), headers=headers)
         if req.url.endswith("/session/handover/redeem"):
             state["redeemed"].append(json.loads(req.post_data)["code"])
             return route.fulfill(status=200, content_type="application/json", headers=headers,
                                  body=json.dumps({"success": True, "session": "tok-new", "email": "rich@example.com", "firstName": "Rich"}))
         if req.method == "OPTIONS":
-            return route.fulfill(status=204, headers={**headers, "Access-Control-Allow-Headers": "Content-Type, X-Session-Token", "Access-Control-Allow-Methods": "GET, POST"})
+            return route.fulfill(status=204, headers={**headers, "Access-Control-Allow-Headers": "Content-Type, X-Session-Token, X-Admin-Viewer", "Access-Control-Allow-Methods": "GET, POST"})
         return route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True}), headers=headers)
 
     page.route("**/%s/**" % API_HOST, handler)
@@ -97,6 +97,24 @@ def test_from_mt3uk_to_laps_arrives_signed_in(page):
     assert state["redeemed"] == [CODE]
     # Signed in now, so the account bar shows on the Laps page.
     expect(page.locator("#mt3uk-account-bar")).to_contain_text("Rich")
+
+
+def test_the_admin_viewer_token_goes_across_with_or_without_a_sign_in(page):
+    """The admin viewer token (the key entered on an admin page, kept per address) is carried by the same code, so a
+    private session opens on the other address without the key being entered there."""
+    state = setup(page)
+    expires = 4102444800000
+    page.route("**/session/handover/redeem", lambda route: route.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"},
+                                                                         body=json.dumps({"success": True, "adminViewer": {"token": "viewer-tok", "expires": expires}})))
+    page.goto(MAIN + "/offline.html")
+    page.evaluate("e => localStorage.setItem('mt3ukAdminViewer', JSON.stringify({ token: 'viewer-tok', expires: e }))", expires)
+    page.goto(MAIN + "/gallery.html")
+    add_link(page, LAPS + "/track.html?s=abc")
+    page.locator("#go").click()
+    page.wait_for_url(LAPS + "/track.html?s=abc", timeout=10000)
+    page.wait_for_function("JSON.parse(localStorage.getItem('mt3ukAdminViewer') || '{}').token === 'viewer-tok'", timeout=10000)
+    assert state["made"] == 1
+    assert session_at(page) is None
 
 
 def test_links_between_laps_pages_and_signed_out_links_need_no_code(page):

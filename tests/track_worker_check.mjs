@@ -382,6 +382,22 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   ok(r.body.session.pads === 'Pagid RSL29', 'the same pads both ends are named once');
   r = await call('PUT', '/track/session', { id: pid, notes: 'pads stay' }, 'tok-a');
   ok(r.body.session.pads === 'Pagid RSL29' && r.body.session.padRearCompound === 'RSL29', 'a change of something else keeps them');
+  // A public note beside the private notes: everyone who opens the session sees it, the private notes stay the owner's.
+  r = await call('PUT', '/track/session', { id: pid, publicNote: ' Red flag <b>mid</b> session ', privacy: 'board' }, 'tok-a');
+  r = await call('GET', '/track/session?id=' + pid, undefined, 'tok-a');
+  ok(r.status === 200 && r.body.session.publicNote === 'Red flag b mid /b session' && r.body.session.notes === 'pads stay', 'the public note is saved and cleaned: ' + JSON.stringify(r.body.session.publicNote));
+  r = await call('GET', '/track/session?id=' + pid, undefined, 'tok-b');
+  ok(r.status === 200 && r.body.session.publicNote === 'Red flag b mid /b session' && !('notes' in r.body.session), 'another member sees the public note and not the private notes');
+  // The logger that recorded it: kept, cleaned, in the summary and shown to everyone.
+  r = await call('PUT', '/track/session', { id: pid, logger: ' RaceBox <i>Mini</i> ' }, 'tok-a');
+  ok(r.status === 200 && r.body.session.logger === 'RaceBox i Mini /i', 'the logger is saved and cleaned: ' + JSON.stringify(r.body.session.logger));
+  r = await call('GET', '/track/session?id=' + pid, undefined, 'tok-b');
+  ok(r.status === 200 && r.body.session.logger === 'RaceBox i Mini /i', 'another member sees the logger');
+  r = await call('GET', '/track/sessions', undefined, 'tok-a');
+  ok(r.body.sessions.find(x => x.id === pid).logger === 'RaceBox i Mini /i', 'the summary has the logger');
+  r = await call('PUT', '/track/session', { id: pid, publicNote: '' }, 'tok-a');
+  r = await call('GET', '/track/session?id=' + pid, undefined, 'tok-a');
+  ok(r.status === 200 && !('publicNote' in r.body.session), 'an emptied public note is dropped');
   r = await call('GET', '/track/sessions', undefined, 'tok-a');
   ok(r.body.sessions.find(x => x.id === pid).pads === 'Pagid RSL29', 'the summary has the pads');
   r = await call('PUT', '/track/session', { id: pid, padFrontMake: 'Original equipment', padFrontCompound: 'Standard pads', padRearMake: 'Original equipment', padRearCompound: 'Standard pads' }, 'tok-a');

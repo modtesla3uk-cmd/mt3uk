@@ -5279,15 +5279,20 @@ async function resolveSession(request, env) {
 // signed in on one would land signed out on the other. js/account-bar.js asks for a one-time code when a signed-in
 // member follows a link to the other address (POST /session/handover), puts it in the link's #, and the page there
 // swaps it for a sign-in of its own (POST /session/handover/redeem). A code is random, works once and lasts 2 minutes.
+// The admin viewer token (X-Admin-Viewer, kept per address too) is carried the same way, with or without a sign-in,
+// so the admin can open a private session on any address (mt3uk.com, laps.mt3uk.com, admin.mt3uk.com) once the key
+// has been entered on one; the code gives the same token back after checking it is still good.
 var HANDOVER_TTL_SECONDS = 120;
 async function handleSessionHandover(request, env) {
   var email = await resolveSession(request, env);
-  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var viewer = String(request.headers.get('X-Admin-Viewer') || '');
+  var adminViewer = viewer && (await isAdminViewerToken(env, viewer)) ? viewer : '';
+  if (!email && !adminViewer) return json({ success: false, message: 'Please sign in again' }, 401);
   var body = {};
   try { body = await request.json(); } catch (e) { body = {}; }
   var code = randomToken();
   var firstName = String((body && body.firstName) || '').replace(/[\u0000-\u001f]/g, '').trim().slice(0, 60);
-  await env.VOTES.put('session-handover:' + code, JSON.stringify({ email: email, firstName: firstName }), { expirationTtl: HANDOVER_TTL_SECONDS });
+  await env.VOTES.put('session-handover:' + code, JSON.stringify({ email: email || '', firstName: firstName, adminViewer: adminViewer }), { expirationTtl: HANDOVER_TTL_SECONDS });
   return json({ success: true, code: code });
 }
 async function handleSessionHandoverRedeem(request, env) {
@@ -5301,8 +5306,16 @@ async function handleSessionHandoverRedeem(request, env) {
   await env.VOTES.delete(key);
   var held = {};
   try { held = JSON.parse(raw) || {}; } catch (e) { held = {}; }
-  if (!held.email) return json({ success: false, message: 'That link has run out. Please sign in.' }, 404);
-  return json({ success: true, session: await createSession(env, held.email), email: held.email, firstName: held.firstName || '' });
+  if (!held.email && !held.adminViewer) return json({ success: false, message: 'That link has run out. Please sign in.' }, 404);
+  var out = { success: true };
+  if (held.email) { out.session = await createSession(env, held.email); out.email = held.email; out.firstName = held.firstName || ''; }
+  if (held.adminViewer && (await isAdminViewerToken(env, held.adminViewer))) {
+    var av = {};
+    try { av = JSON.parse(await env.VOTES.get('admin-viewer:' + held.adminViewer)) || {}; } catch (e) { av = {}; }
+    out.adminViewer = { token: held.adminViewer, expires: av.expires || 0 };
+  }
+  if (!out.session && !out.adminViewer) return json({ success: false, message: 'That link has run out. Please sign in.' }, 404);
+  return json(out);
 }
 
 // GET /session/refresh: a renewed sign-in (30 more days) once the current
@@ -7306,6 +7319,7 @@ function trackSummary(rec) {
     vmax: rec.vmax || 0, quality: rec.quality
   };
   if (rec.organizer) o.organizer = rec.organizer;
+  if (rec.logger) o.logger = rec.logger;
   // Where it was, to about 100 m: sessions at a track we do not list yet are matched to each other by place.
   if (rec.origin && rec.origin.length === 2 && isFinite(rec.origin[0]) && isFinite(rec.origin[1])) o.origin = [Math.round(rec.origin[0] * 1000) / 1000, Math.round(rec.origin[1] * 1000) / 1000];
   // Battery at the start and end (Track Mode files), so a day's group can add up the charge used.
@@ -7850,6 +7864,10 @@ function applyTrackEdits(rec, body) {
   }
   if ('hill' in body && rec.type === 'sprint') { if (body.hill) rec.hill = true; else delete rec.hill; }
   if ('notes' in body) rec.notes = trackText(body.notes, 500);
+  // A second note, one sentence, everyone who can open the session sees at the top (the private notes stay the owner's).
+  if ('publicNote' in body) { var pn = trackText(body.publicNote, 140); if (pn) rec.publicNote = pn; else delete rec.publicNote; }
+  // The logger or app that recorded it (shown to everyone).
+  if ('logger' in body) { var lg = trackText(body.logger, 40); if (lg) rec.logger = lg; else delete rec.logger; }
   if ('venueName' in body && !rec.venueId) rec.venue = trackText(body.venueName, 60) || rec.venue;
 }
 
@@ -7969,7 +7987,7 @@ async function handleTrackSessionUpdate(request, env) {
     next.owner = rec.owner;
     next.carId = rec.carId;
     next.createdAt = rec.createdAt;
-    ['privacy', 'conditions', 'tyres', 'tyreMake', 'tyreModel', 'tyreWidth', 'tyreProfile', 'tyreRim', 'drive', 'temp', 'tempSource', 'weather', 'notes', 'hasSource', 'sourceBytes', 'readingsRefused', 'pads', 'padFrontMake', 'padFrontCompound', 'padRearMake', 'padRearCompound'].forEach(function (k) { if (rec[k] !== undefined) next[k] = rec[k]; });
+    ['privacy', 'conditions', 'tyres', 'tyreMake', 'tyreModel', 'tyreWidth', 'tyreProfile', 'tyreRim', 'drive', 'temp', 'tempSource', 'weather', 'notes', 'publicNote', 'logger', 'hasSource', 'sourceBytes', 'readingsRefused', 'pads', 'padFrontMake', 'padFrontCompound', 'padRearMake', 'padRearCompound'].forEach(function (k) { if (rec[k] !== undefined) next[k] = rec[k]; });
     rec = next;
     delete body.privacy;
   }
@@ -9605,7 +9623,7 @@ async function handleTrackAdminRetime(request, env) {
     if (old.unlisted || (!next.atVenue && !old.street)) next.unlisted = true;
     if (!old.street) delete next.outline;
   }
-  ['privacy', 'conditions', 'tyres', 'tyreMake', 'tyreModel', 'tyreWidth', 'tyreProfile', 'tyreRim', 'drive', 'temp', 'tempSource', 'weather', 'notes', 'hasSource', 'sourceBytes', 'readingsRefused', 'fileName', 'pads', 'padFrontMake', 'padFrontCompound', 'padRearMake', 'padRearCompound'].forEach(function (k) { if (old[k] !== undefined) next[k] = old[k]; });
+  ['privacy', 'conditions', 'tyres', 'tyreMake', 'tyreModel', 'tyreWidth', 'tyreProfile', 'tyreRim', 'drive', 'temp', 'tempSource', 'weather', 'notes', 'publicNote', 'logger', 'hasSource', 'sourceBytes', 'readingsRefused', 'fileName', 'pads', 'padFrontMake', 'padFrontCompound', 'padRearMake', 'padRearCompound'].forEach(function (k) { if (old[k] !== undefined) next[k] = old[k]; });
   // The saved readings carry no car channels, so a re-time cannot work the Track Mode figures out again: keep the ones the upload made.
   if (old.carData && !next.carData) next.carData = old.carData;
   if (old.carSource && !next.carSource) next.carSource = old.carSource;

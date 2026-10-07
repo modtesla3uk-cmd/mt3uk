@@ -15,3 +15,9 @@
 .ls-actions .btn .icon { width: 16px; height: 16px; }
 .laps-more { margin: 10px 0 0; display: grid; gap: 10px; }
 .laps-more[hidden] { display: none; }
+/* The early preview note and Join the early preview (js/laps-strip.js, [data-laps-preview], .is-preview). */
+.laps-preview-note { margin: 0; padding: 10px 12px; border-left: 3px solid var(--orange); border-radius: var(--radius-sm, 8px); background: #fff4ec; color: var(--ink); font-family: var(--font-body); font-size: 0.9rem; line-height: 1.45; }
+.laps-preview-note[hidden] { display: none; }
+.ls-head .early-badge { margin-left: 0; }
+.laps-preview-note b { color: #b8421f; }
+.is-preview .icon { width: 16px; height: 16px; }

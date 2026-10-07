@@ -139,13 +139,16 @@ def test_the_track_day_venues_page_shows_each_tracks_laps_times_and_more_tracks(
                                                          body=json.dumps(COUNTS if "/track/counts" in r.request.url else {"success": True})))
     page.goto("/track-day-venues.html")
     thruxton = page.locator("[data-laps-venue='thruxton']")
-    expect(thruxton.locator(".ls-head")).to_have_text("Thruxton on Laps")
+    expect(thruxton.locator(".ls-head b")).to_have_text("Thruxton on Laps")
     expect(thruxton.locator(".ls-rows a")).to_have_count(1)
     expect(thruxton.locator(".ls-rows a")).to_contain_text("1:21.42")
     expect(thruxton.locator(".ls-rows a")).to_contain_text("Rich, Arctic Three")
     assert thruxton.locator(".ls-rows a").get_attribute("href") == "leaderboards.html?board=thruxton%3Amain"
-    # Signed out (or without early access) the invitation is How Laps works, not Add your session.
-    expect(thruxton.get_by_role("link", name="How Laps works")).to_have_attribute("href", "laps.html")
+    # Laps is an early preview: the heading says so and, signed out, the invitation is to join it, with a note on
+    # what the preview is, not Add your session.
+    expect(thruxton.locator(".ls-head .early-badge")).to_have_text("Early preview")
+    expect(thruxton.get_by_role("link", name="Join the early preview")).to_have_attribute("href", "laps-signin.html")
+    expect(thruxton.locator("[data-laps-preview]")).to_contain_text("Anyone can browse the leaderboards")
     expect(thruxton.get_by_role("link", name="Add your session")).to_have_count(0)
     # Nothing shared at Snetterton yet: an invitation to be the first.
     expect(page.locator("[data-laps-venue='snetterton'] .ls-empty")).to_contain_text("be the first")
@@ -168,17 +171,46 @@ def answer_with_access(page, access):
 def test_members_with_early_access_are_asked_to_add_their_session(page):
     answer_with_access(page, "approved")
     page.goto("/track-day-venues.html")
-    expect(page.locator("[data-laps-venue='thruxton']").get_by_role("link", name="Add your session")).to_have_attribute("href", "track.html?add=1")
+    thruxton = page.locator("[data-laps-venue='thruxton']")
+    expect(thruxton.get_by_role("link", name="Add your session")).to_have_attribute("href", "track.html?add=1")
+    expect(thruxton.locator("[data-laps-preview]")).to_be_hidden()
     page.goto("/track-day-on-the-day.html")
     expect(page.locator("#after-the-day").get_by_role("link", name="Add a session")).to_be_visible()
+    page.goto("/leaderboards.html")
+    expect(page.locator("#lb-add-session")).to_have_text("Add a session")
+    expect(page.locator("#lb-preview")).to_be_hidden()
 
 
-def test_members_waiting_for_early_access_see_how_laps_works(page):
+def test_members_waiting_for_early_access_are_told_they_are_on_the_list(page):
     answer_with_access(page, "pending")
     page.goto("/track-day-on-the-day.html")
     card = page.locator("#after-the-day")
-    expect(card.get_by_role("link", name="How Laps works")).to_have_count(2)
+    expect(card.get_by_role("link", name="You’re on the list")).to_have_attribute("href", "track.html")
+    expect(card.locator("[data-laps-preview]")).to_contain_text("on the early preview list")
     expect(card.get_by_role("link", name="Add a session")).to_have_count(0)
+
+
+def test_the_leaderboard_invites_members_without_early_access_to_join(page):
+    """leaderboards.html is open to everyone; adding a session is for early testers, so a member who has not asked
+    sees Join the early preview (to Sessions and its request form) and a note on what the preview is."""
+    answer_with_access(page, "none")
+    page.goto("/leaderboards.html")
+    expect(page.locator("#lb-add-session")).to_have_text("Join the early preview")
+    expect(page.locator("#lb-add-session")).to_have_attribute("href", "track.html")
+    expect(page.locator("#lb-preview")).to_contain_text("Ask for a place")
+
+
+def test_nothing_is_said_about_the_preview_once_laps_is_open_to_all(page):
+    def reply(r):
+        url = r.request.url
+        body = COUNTS if "/track/counts" in url else {"success": True, "preview": False} if "/laps/signin" in url else {"success": True, "access": "none"}
+        r.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"}, body=json.dumps(body))
+    page.route("**/%s/**" % API_HOST, reply)
+    page.goto("/track-day-venues.html")
+    thruxton = page.locator("[data-laps-venue='thruxton']")
+    expect(thruxton.get_by_role("link", name="Add your session")).to_be_visible()
+    expect(thruxton.locator("[data-laps-preview]")).to_be_hidden()
+    expect(thruxton.locator(".early-badge")).to_have_count(0)
 
 
 def test_the_homepage_sessions_tile_shows_the_fastest_time_on_laps(page):

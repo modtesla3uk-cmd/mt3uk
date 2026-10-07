@@ -7,8 +7,11 @@
     12), leaving out the ones the page already shows with data-laps-venue, each linking to its board.
   - [data-laps-fast-line] (the homepage Sessions tile's grey line): "Fastest at Thruxton: 1:21.42, Rich", the leader
     of the busiest board, in place of its own words (kept when there are no times).
-  - [data-laps-add] (any Add a session link): while Laps is an early preview, a visitor who is signed out or has not
-    been given early access (GET /track/access) sees How Laps works (laps.html) in its place.
+  - [data-laps-preview]: a short note on what the early preview is, for anyone without early access (hidden
+    otherwise). Strips carry one, and their heading gets an "Early preview" tag while Laps is a preview.
+  - [data-laps-add] (any Add a session link; a page that draws one later, such as the Gallery's car sheet, calls
+    window.MT3UKLapsStrip.gateAdds(itsBox)): while Laps is an early preview, a visitor who is signed out or has not
+    been given early access (GET /track/access) sees Join the early preview (or You're on the list) in its place.
   From /track/counts (two single KV keys on the worker) and data/tracks.json. The links carry data-laps, so on
   mt3uk.com js/account-bar.js sends them to laps.mt3uk.com, signed in. If the data cannot be read, nothing shows.
   Styles: css/laps-strip.css.
@@ -16,33 +19,77 @@
 (function () {
   var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
   var spots = document.querySelectorAll('[data-laps-venue], [data-laps-more], [data-laps-fast-line]');
-  // Add a session, only for members with early access; anyone else is shown How Laps works.
-  var accessP = null;
-  function canAdd() {
-    if (accessP) return accessP;
+  // Where the viewer stands with the early preview: 'open' (Laps is open to all, nothing to say), 'approved',
+  // 'pending', 'none' (signed in, not asked) or 'out' (signed out). /laps/signin says whether it is still a preview
+  // (public); /track/access where a signed-in member stands. Both kept for the browser session.
+  var stateP = null;
+  function kept(k) { try { return sessionStorage.getItem(k) || ''; } catch (e) { return ''; } }
+  function keep(k, v) { try { if (v) sessionStorage.setItem(k, v); } catch (e) {} }
+  function previewOn() {
+    var k = kept('mt3ukLapsPreview');
+    if (k) return Promise.resolve(k === 'yes');
+    return fetch(API + '/laps/signin', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+      var on = !(d && d.preview === false);
+      keep('mt3ukLapsPreview', on ? 'yes' : 'no');
+      return on;
+    }).catch(function () { return true; });
+  }
+  function access() {
     var tok = '';
     try { tok = localStorage.getItem('mt3ukMyBuildsSession') || ''; } catch (e) {}
-    if (!tok) return (accessP = Promise.resolve(false));
-    var kept = '';
-    try { kept = sessionStorage.getItem('mt3ukLapsAccess') || ''; } catch (e) {}
-    if (kept) return (accessP = Promise.resolve(kept === 'approved'));
-    accessP = fetch(API + '/track/access', { headers: { 'X-Session-Token': tok }, cache: 'no-store' })
+    if (!tok) return Promise.resolve('out');
+    var k = kept('mt3ukLapsAccess');
+    if (k) return Promise.resolve(k);
+    return fetch(API + '/track/access', { headers: { 'X-Session-Token': tok }, cache: 'no-store' })
       .then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
-        var a = (d && d.access) || '';
-        try { if (a) sessionStorage.setItem('mt3ukLapsAccess', a); } catch (e) {}
-        return a === 'approved';
-      }).catch(function () { return false; });
-    return accessP;
+        var a = (d && d.access) || 'none';
+        keep('mt3ukLapsAccess', a);
+        return a;
+      }).catch(function () { return 'none'; });
   }
+  function previewState() {
+    if (stateP) return stateP;
+    stateP = Promise.all([previewOn(), access()]).then(function (r) { return r[1] === 'approved' ? 'approved' : r[0] ? r[1] : 'open'; });
+    return stateP;
+  }
+  var SPARK = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9Z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8Z"/></svg>';
+  var NOTES = {
+    out: '<b>Early preview.</b> Anyone can browse the leaderboards. Adding your own laps is open to early testers while we finish Laps. Join the list for a place.',
+    none: '<b>Early preview.</b> Anyone can browse the leaderboards. Adding your own laps is open to early testers while we finish Laps. Ask for a place and we\u2019ll let you know.',
+    pending: '<b>You\u2019re on the early preview list.</b> We\u2019ll email you as soon as your place is ready. Until then, have a look round the leaderboards.'
+  };
+  // Add a session links ([data-laps-add]) and the early preview notes ([data-laps-preview]). A member with early
+  // access (or everyone, once Laps is open) gets Add a session and no note. Anyone else gets Join the early preview
+  // (signed out: the Laps sign-up, which puts them on the list; signed in: Sessions, with its request form), or,
+  // already waiting, You're on the list, and a short note saying what the preview is.
   function gateAdds(root) {
-    var links = (root || document).querySelectorAll('[data-laps-add]');
-    if (!links.length) return;
-    canAdd().then(function (ok) {
-      if (ok) return;
-      links.forEach(function (a) { a.href = 'laps.html'; a.textContent = 'How Laps works'; a.removeAttribute('data-laps-add'); });
+    root = root || document;
+    var links = root.querySelectorAll('[data-laps-add]'), notes = root.querySelectorAll('[data-laps-preview]');
+    if (!links.length && !notes.length) return;
+    previewState().then(function (st) {
+      var shut = st !== 'open' && st !== 'approved';
+      notes.forEach(function (n) { n.hidden = !shut; if (shut) n.innerHTML = NOTES[st] || NOTES.none; });
+      if (!shut) return;
+      links.forEach(function (a) {
+        a.href = st === 'out' ? 'laps-signin.html' : 'track.html';
+        a.innerHTML = SPARK + (st === 'pending' ? 'You\u2019re on the list' : 'Join the early preview');
+        a.classList.add('is-preview');
+        if (st === 'pending' && a.classList.contains('btn-accent')) { a.classList.remove('btn-accent'); a.classList.add('btn-secondary'); }
+        a.removeAttribute('data-laps-add');
+      });
       if (window.mt3ukLapsLinks) window.mt3ukLapsLinks();
     });
   }
+  // The "Early preview" tag after a strip's heading, while Laps is a preview.
+  function tagHeads(root) {
+    previewOn().then(function (on) {
+      if (!on) return;
+      (root || document).querySelectorAll('.ls-head b').forEach(function (b) {
+        if (!b.parentNode.querySelector('.early-badge')) b.insertAdjacentHTML('afterend', '<span class="early-badge">Early preview</span>');
+      });
+    });
+  }
+  window.MT3UKLapsStrip = { gateAdds: gateAdds, tagHeads: tagHeads, state: previewState };
   gateAdds(document);
   if (!spots.length) return;
   function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -96,9 +143,9 @@
           return '<li><a href="' + esc(boardHref(b.kind, id, b.layoutId)) + '" data-laps><span class="ls-where"><b>' + esc(name) + '</b><span>' + esc(b.top.owner || 'MT3UK member') +
             (carOf(b.top) ? ', ' + esc(carOf(b.top)) : '') + ' &middot; ' + b.n + ' car' + (b.n === 1 ? '' : 's') + '</span></span><span class="ls-time">' + esc(result(b)) + '</span>' + icon('chev') + '</a></li>';
         }).join('') + '</ul>';
-        html += '<div class="ls-actions"><a class="btn btn-secondary btn-sm" href="' + esc(boardHref(here[0].kind, id, here[0].layoutId)) + '" data-laps>See the leaderboard</a>' + add + '</div>';
+        html += '<p class="laps-preview-note" data-laps-preview hidden></p><div class="ls-actions"><a class="btn btn-secondary btn-sm" href="' + esc(boardHref(here[0].kind, id, here[0].layoutId)) + '" data-laps>See the leaderboard</a>' + add + '</div>';
       } else {
-        html += '<p class="ls-empty">No shared times here yet. Upload your lap timer file and be the first on the board.</p><div class="ls-actions">' + add + '</div>';
+        html += '<p class="ls-empty">No shared times here yet. Upload your lap timer file and be the first on the board.</p><p class="laps-preview-note" data-laps-preview hidden></p><div class="ls-actions">' + add + '</div>';
       }
       el.classList.add('laps-strip');
       el.innerHTML = html;
@@ -120,6 +167,7 @@
       el.textContent = 'Fastest at ' + top.venue.name + ': ' + result(top) + ', ' + (top.top.owner || 'MT3UK member');
     });
     gateAdds(document);
+    tagHeads(document);
     if (window.mt3ukLapsLinks) window.mt3ukLapsLinks();
   });
 })();

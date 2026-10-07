@@ -846,7 +846,23 @@
       });
     });
   }
+  // After saving several files the list opens to them under the Saved message: their car is the one picked, and their
+  // track, layout and day are dropped down, so the sessions added are in view rather than a closed tree.
+  function openToSaved(m) {
+    var ids = justSaved && justSaved.ids;
+    if (!ids || !ids.length) return;
+    var saved = m.sessions.filter(function (x) { return ids.indexOf(x.id) !== -1; });
+    saved.forEach(function (x) {
+      if (x.carId) currentCar = x.carId;
+      var tk = trackKeyOf(x);
+      openTracks[tk] = true;
+      openLayouts[tk + '|' + layoutKeyOf(x)] = true;
+      if (dayKey(x)) openDays[dayKey(x)] = true;
+    });
+    if (saved.length) storeListOpen();
+  }
   function myCarsHtml(m) {
+    openToSaved(m);
     try { currentCar = currentCar || params().get('mycar') || localStorage.getItem('mt3ukTrackCar'); } catch (e) {}
     if (!m.cars.some(function (c) { return c.id === currentCar; })) currentCar = m.cars[0].id;
     var car = m.cars.filter(function (c) { return c.id === currentCar; })[0];
@@ -1208,7 +1224,7 @@
         (fast && many ? '<button type="button" class="tp-daygroup-less" data-day-toggle aria-expanded="true">' + icon('chev') + 'Show only the fastest of the ' + count + '</button>' : '') +
         (drives.length ? '<span class="tp-small tp-daygroup-label tp-drives-label">Drives between runs (' + drives.length + ')</span>' + drives.map(sessionRow).join('') : '') +
         (owner ? addToDayButton(g[0], many) : '') +
-        (owner ? '<button type="button" class="btn btn-danger btn-sm tp-daygroup-delete" data-day-delete data-ids="' + esc(g.concat(drives).map(function (x) { return x.id; }).join(',')) + '" data-label="' + esc(trackName(g[0])) + '" data-date="' + esc(niceDate(g[0].date)) + '">' + icon('trash') + (many ? 'Delete this day' : 'Delete this session') + '</button>' : '') + '</div></div>';
+        (owner ? '<button type="button" class="btn btn-danger btn-sm tp-daygroup-delete" data-day-delete data-ids="' + esc(g.concat(drives).map(function (x) { return x.id; }).join(',')) + '" data-label="' + esc(trackName(g[0])) + '" data-date="' + esc(niceDate(g[0].date)) + '">' + icon('trash') + (many ? 'Delete this day' : 'Delete this session') + '</button>' : '') + '</div>' + (owner ? dayEditButton(g) : '') + '</div>';
     }).join('');
   }
   // The Add a session page for another session on the same day (and the same layout): the day and the layout are only a
@@ -1222,6 +1238,73 @@
     if (!s || !s.date || !s.carId) return '';
     return '<a class="btn btn-secondary btn-sm tp-daygroup-add" href="track.html?' + esc(addToDayQuery(s)) + '" data-go="' + esc(addToDayQuery(s)) + '" data-day-add>' + icon('upload') + (many ? 'Add a session to this day' : 'Add another session from this day') + '</a>';
   }
+  // Edit all the sessions of a day at once (the owner): conditions, air temperature, tyres, brake pads and the logger,
+  // for when they were left off or set wrong on every file of the day. Anything left blank stays as it is on each session.
+  function dayEditButton(g) {
+    var many = g.length > 1;
+    return '<button type="button" class="btn btn-secondary btn-sm tp-daygroup-edit" data-day-edit data-ids="' + esc(g.map(function (x) { return x.id; }).join(',')) + '" data-what="' + esc(niceDate(g[0].date) + ' at ' + trackName(g[0])) + '">' + icon('sliders') + (many ? 'Edit all ' + g.length + ' sessions' : 'Edit the session') + '</button>';
+  }
+  function dayEditHtml(n, what) {
+    return '<div class="card tp-fields tp-dayedit" id="tp-dayedit"><h3>' + (n > 1 ? 'Edit all ' + n + ' sessions' : 'Edit the session') + ' on ' + esc(what) + '</h3>' +
+      '<p class="tp-small">Only what you set here changes; anything left blank stays as it is on each session.</p>' +
+      '<div class="tp-field"><span class="tp-lbl">Conditions</span><div class="tp-chips" data-cond>' + ['Dry', 'Damp', 'Wet'].map(function (c) { return '<button type="button" class="chip" data-v="' + c + '" aria-pressed="false">' + c + '</button>'; }).join('') + '</div></div>' +
+      '<div class="tp-field"><label for="tp-de-temp">Air temperature (°C)</label><input class="field" id="tp-de-temp" inputmode="numeric" placeholder="Leave as it is"></div>' +
+      '<button type="button" class="tp-switch" role="switch" id="tp-de-tyres-on" aria-checked="false"><span>Change the tyres</span><span class="tp-track"></span></button>' +
+      '<div id="tp-de-tyres" hidden>' + tyreFields('tp-de-tyre', {}) + '</div>' +
+      '<button type="button" class="tp-switch" role="switch" id="tp-de-pads-on" aria-checked="false"><span>Change the brake pads</span><span class="tp-track"></span></button>' +
+      '<div id="tp-de-pads" hidden>' + padFields('tp-de-pad', { same: true }) + '</div>' +
+      loggerFields('tp-de-logger', '', false).replace('Choose the logger', 'Leave as it is') +
+      '<div class="tp-actions"><button type="button" class="btn btn-primary" data-day-edit-apply>' + icon('check') + 'Apply to ' + (n > 1 ? 'all ' + n + ' sessions' : 'the session') + '</button><button type="button" class="btn btn-ghost" data-day-edit-cancel>Cancel</button></div><p class="tp-status" id="tp-de-status" role="status"></p></div>';
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-day-edit]');
+    if (!b) return;
+    var box = b.closest('.tp-daygroup'), ids = b.getAttribute('data-ids').split(','), what = b.getAttribute('data-what');
+    var old = document.getElementById('tp-dayedit');
+    if (old) old.remove();
+    // The tyre and pad lists are loaded on demand (the list page does not need them until now).
+    Promise.all([loadTyres(), loadPads()]).catch(function () {}).then(function () {
+    if (!document.body.contains(b)) return;
+    b.insertAdjacentHTML('afterend', dayEditHtml(ids.length, what));
+    var form = document.getElementById('tp-dayedit');
+    form.setAttribute('data-ids', ids.join(',')); form.setAttribute('data-what', what);
+    wireTyres('tp-de-tyre'); wirePads('tp-de-pad'); wireLogger('tp-de-logger');
+    form.querySelector('[data-cond]').addEventListener('click', function (ev) {
+      var c = ev.target.closest('button[data-v]');
+      if (!c) return;
+      var on = c.getAttribute('aria-pressed') !== 'true';
+      form.querySelectorAll('[data-cond] button').forEach(function (x) { x.classList.remove('is-on'); x.setAttribute('aria-pressed', 'false'); });
+      if (on) { c.classList.add('is-on'); c.setAttribute('aria-pressed', 'true'); }
+    });
+    ['tyres', 'pads'].forEach(function (k) {
+      var sw = document.getElementById('tp-de-' + k + '-on'), fields = document.getElementById('tp-de-' + k);
+      sw.addEventListener('click', function () { var on = sw.getAttribute('aria-checked') !== 'true'; sw.setAttribute('aria-checked', on ? 'true' : 'false'); fields.hidden = !on; });
+    });
+    form.querySelector('[data-day-edit-cancel]').addEventListener('click', function () { form.remove(); });
+    form.querySelector('[data-day-edit-apply]').addEventListener('click', function () {
+      var body = {}, cond = form.querySelector('[data-cond] button.is-on'), t = document.getElementById('tp-de-temp').value.trim(), lg = loggerValue('tp-de-logger');
+      if (cond) body.conditions = cond.getAttribute('data-v');
+      if (t !== '' && isFinite(parseFloat(t))) { body.temp = parseFloat(t); body.tempSource = 'member'; }
+      if (document.getElementById('tp-de-tyres-on').getAttribute('aria-checked') === 'true') Object.assign(body, tyrePayload(readTyre('tp-de-tyre')));
+      if (document.getElementById('tp-de-pads-on').getAttribute('aria-checked') === 'true') Object.assign(body, padPayload(readPads('tp-de-pad')));
+      if (lg) body.logger = lg;
+      var st = document.getElementById('tp-de-status');
+      if (!Object.keys(body).length) { st.textContent = 'Set at least one thing to change first.'; st.className = 'tp-status is-error'; return; }
+      var btn = form.querySelector('[data-day-edit-apply]');
+      btn.disabled = true; st.textContent = 'Saving...'; st.className = 'tp-status';
+      var chain = Promise.resolve(), failed = 0;
+      ids.forEach(function (id) {
+        chain = chain.then(function () { return api('PUT', '/track/session', Object.assign({ id: id }, body)).then(function (d) { if (!d.success) failed++; }).catch(function () { failed++; }); });
+      });
+      chain.then(function () {
+        mine = null; counts = null;
+        justSaved = { text: failed ? failed + ' of the ' + ids.length + ' sessions at ' + what + ' could not be changed. Try again.' : (ids.length === 1 ? 'The session at ' + what + ' is updated.' : 'All ' + ids.length + ' sessions at ' + what + ' are updated.') };
+        route();
+      });
+    });
+    form.scrollIntoView({ block: 'nearest' });
+    });
+  });
   // ---------- Add a car (no photo needed) ----------
   // Sessions belong to a car. A car can be added here with just its make and model (POST /my-builds/car/new);
   // photos can be added later in My Garage. A car of another make is kept in the garage, out of the Gallery.
@@ -2588,7 +2671,7 @@
     }).then(function (d) {
       if (!d.success) throw new Error(d.message || 'Could not save the session.');
       mine = null; counts = null;
-      if (d.batch) { justSaved = { batch: d.batch, skipped: d.skipped || [], noReadings: d.noReadings || [], joined: (a.list || []).filter(function (x) { return x.merged; }).length }; go('', false, true); return; }
+      if (d.batch) { justSaved = { batch: d.batch, ids: d.ids || [], skipped: d.skipped || [], noReadings: d.noReadings || [], joined: (a.list || []).filter(function (x) { return x.merged; }).length }; go('', false, true); return; }
       justSaved = { files: (a.files || []).length || 1 };
       // A changed session was edited in place of its own page, so that page is redrawn in the same history entry.
       if (a.replaceId) { go('s=' + d.session.id, false, true); return; }
@@ -4577,11 +4660,11 @@
             throw new Error(skipped.length + ' of the files could not be made into a session (' + skipped[0].name + ': ' + skipped[0].reason + '). Nothing was changed.');
           });
         }
-        return api('DELETE', '/track/session?id=' + encodeURIComponent(s.id)).then(function () { return made.length; });
+        return api('DELETE', '/track/session?id=' + encodeURIComponent(s.id)).then(function () { return made; });
       });
-    }).then(function (n) {
+    }).then(function (ids) {
       mine = null; counts = null;
-      justSaved = { batch: n, split: true, skipped: [] };
+      justSaved = { batch: ids.length, ids: ids, split: true, skipped: [] };
       go('', false, true);
     }).catch(function (e) {
       btn.disabled = false;

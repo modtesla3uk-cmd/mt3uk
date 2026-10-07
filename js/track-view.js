@@ -321,11 +321,14 @@
       var v = zoom && seen();
       // The same point for both (one lap only): one arrow is enough.
       var same = other && pos && other[2] === pos[2] && other[3] === pos[3] && m === edgeB;
-      if (!q || !v || !zoom || same) { m.g.setAttribute('visibility', 'hidden'); return; }
+      // SVG visibility is inherited but a child set to visible still shows under a hidden parent, so the arrow is
+      // hidden with the group too, or a car that came back into view left a stray triangle where it last pointed.
+      function hide() { m.g.setAttribute('visibility', 'hidden'); m.rot.setAttribute('visibility', 'hidden'); }
+      if (!q || !v || !zoom || same) { hide(); return; }
       var inView = zoom.k() <= 1.01 || (q[0] >= v.x && q[0] <= v.x + v.w && q[1] >= v.y && q[1] <= v.y + v.h);
       var behind = gapS !== null && posA && posB && m.letter === (gapS >= 0 ? 'B' : 'A');
       if (inView) {
-        if (!behind) { m.g.setAttribute('visibility', 'hidden'); return; }
+        if (!behind) { hide(); return; }
         // In view: no arrow, just a short pill ("A +0.3 s": the full "behind" wording covered the other car's speed
         // when the cars were close) by the car's dot, on the side away from its speed label (lap B's speed sits up
         // and to the left of its dot, lap A's down and to the right), so neither covers the other.

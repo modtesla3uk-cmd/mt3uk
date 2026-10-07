@@ -1010,6 +1010,11 @@ def test_several_files_are_saved_as_a_session_each_grouped_by_day(page, tmp_path
     # Back on the list, with a message that says how many were saved.
     saved = page.locator("#tp-saved")
     expect(saved).to_contain_text("2 sessions saved, one for each file")
+    # The list is open to them: the track, its layout and the day dropped down, both sessions in view.
+    expect(page.locator("#tp-sess-list .tp-daygroup")).to_have_count(1)
+    expect(page.locator("#tp-sess-list .tp-daygroup")).to_have_attribute("data-open", "true")
+    expect(page.locator("#tp-sess-list .tp-daygroup-all .tp-row")).to_have_count(2)
+    expect(page.locator("#tp-sess-list .tp-daygroup-all .tp-row").first).to_be_visible()
     assert len(fake.saved) == 2
     assert sorted(x["session"]["fileName"] for x in fake.saved) == ["RaceBox Track Session one.vbo", "RaceBox Track Session two.vbo"]
     assert all(not x["session"].get("runs") or isinstance(x["session"]["runs"], list) for x in fake.saved)
@@ -1017,6 +1022,47 @@ def test_several_files_are_saved_as_a_session_each_grouped_by_day(page, tmp_path
     into_track(page, "Thruxton")
     expect(page.locator(".tp-daygroup")).to_have_count(1)
     expect(page.locator(".tp-daygroup-count .tp-small")).to_have_text("2 sessions")
+
+
+def test_edit_every_session_on_a_day_at_once(page):
+    """A day's card has Edit all N sessions: a form for the conditions, the air temperature, the tyres, the brake pads and
+    the logger that applies to every session of that day, for when they were left off or set wrong on each file. Anything
+    left blank stays as it is."""
+    fake = FakeWorker(earlier=False)
+    for sid, t, best in (("g1", "09:25", 89.1), ("g2", "11:29", 81.1), ("g3", "14:46", 87.7)):
+        rec = day_session(sid, t, best, 3)
+        rec["tyres"] = "Old tyres"
+        fake.sessions[sid] = dict(rec)
+        fake.index.append(summary(rec))
+    open_page(page, fake)
+    into_track(page, "Castle Combe")
+    page.locator("[data-day-edit]").click()
+    form = page.locator("#tp-dayedit")
+    expect(form).to_be_visible()
+    expect(form.locator("h3")).to_contain_text("Edit all 3 sessions")
+    # Nothing set: it says so and changes nothing.
+    form.locator("[data-day-edit-apply]").click()
+    expect(page.locator("#tp-de-status")).to_contain_text("Set at least one thing")
+    assert all(v["conditions"] == "Dry" for v in fake.sessions.values())
+    # Wet, 12 degrees and the logger, tyres left alone.
+    form.locator("[data-cond] button[data-v='Wet']").click()
+    page.fill("#tp-de-temp", "12")
+    page.select_option("#tp-de-logger", "RaceBox")
+    form.locator("[data-day-edit-apply]").click()
+    expect(page.locator("#tp-saved")).to_contain_text("All 3 sessions at 14 Jul 2026 at Castle Combe are updated")
+    assert all(v["conditions"] == "Wet" and v["temp"] == 12 and v["logger"] == "RaceBox" and v["tyres"] == "Old tyres" for v in fake.sessions.values()), fake.sessions
+    expect(page.locator("#tp-dayedit")).to_have_count(0)
+    # The tyres only change when the switch is on.
+    page.locator("[data-day-edit]").click()
+    page.locator("#tp-de-tyres-on").click()
+    expect(page.locator("#tp-de-tyres")).to_be_visible()
+    page.select_option("#tp-de-tyre-make", "Michelin")
+    page.fill("#tp-de-tyre-model", "Pilot Sport 4S")
+    page.locator("#tp-saved-x").click()
+    page.locator("[data-day-edit-apply]").click()
+    expect(page.locator("#tp-saved")).to_contain_text("are updated")
+    expect(page.locator("#tp-dayedit")).to_have_count(0)
+    assert all(v.get("tyreMake") == "Michelin" and v.get("tyreModel") == "Pilot Sport 4S" and v["conditions"] == "Wet" for v in fake.sessions.values()), fake.sessions
 
 
 def test_share_every_session_on_a_day_from_its_group(page):

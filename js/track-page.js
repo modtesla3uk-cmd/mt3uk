@@ -871,6 +871,22 @@
   }
   // After saving several files the list opens to them under the Saved message: their car is the one picked, and their
   // track, layout and day are dropped down, so the sessions added are in view rather than a closed tree.
+  // After the list redraws (a bulk edit), the day that was changed is scrolled to the middle of the screen and flashed.
+  var pendingDay = null, pendingTimer = null;
+  function focusDay(key) {
+    pendingDay = key; clearTimeout(pendingTimer);
+    pendingTimer = setTimeout(function () { pendingDay = null; }, 15000);
+  }
+  function showPendingDay() {
+    if (!pendingDay) return;
+    var el = [].filter.call(app.querySelectorAll('.tp-daygroup[data-day]'), function (x) { return x.getAttribute('data-day') === pendingDay; })[0];
+    if (!el) return;
+    pendingDay = null; clearTimeout(pendingTimer);
+    el.scrollIntoView({ block: 'center' });
+    el.classList.add('is-flash');
+    setTimeout(function () { el.classList.remove('is-flash'); }, 2200);
+  }
+  if (window.MutationObserver) new MutationObserver(showPendingDay).observe(app, { childList: true, subtree: true });
   function openToSaved(m) {
     var ids = justSaved && justSaved.ids;
     if (!ids || !ids.length) return;
@@ -1060,6 +1076,11 @@
         b.setAttribute('aria-expanded', openTracks[k] ? 'true' : 'false');
         b.setAttribute('aria-label', b.getAttribute('aria-label').replace(openTracks[k] ? 'Show' : 'Hide', openTracks[k] ? 'Hide' : 'Show'));
         if (lays) lays.hidden = !openTracks[k];
+        // Opening a track also opens its layouts, so the dates are listed straight away (a layout can still be folded by itself).
+        if (openTracks[k] && wrap) [].forEach.call(wrap.querySelectorAll('[data-layout-toggle]'), function (lbtn) {
+          var lkey = lbtn.getAttribute('data-layout-toggle'), lwrap = lbtn.closest('.tp-layoutwrap'), ls = lwrap && lwrap.querySelector('.tp-layout-sessions');
+          openLayouts[lkey] = true; lbtn.setAttribute('aria-expanded', 'true'); if (ls) ls.hidden = false;
+        });
       } else if (lb) {
         var lk = lb.getAttribute('data-layout-toggle'), lw = lb.closest('.tp-layoutwrap'), sess = lw && lw.querySelector('.tp-layout-sessions');
         openLayouts[lk] = !openLayouts[lk];
@@ -1410,6 +1431,9 @@
       chain.then(function () {
         mine = null; counts = null;
         justSaved = { text: failed ? failed + ' of the ' + ids.length + ' sessions at ' + what + ' could not be changed. Try again.' : (ids.length === 1 ? 'The session at ' + what + ' is updated.' : 'All ' + ids.length + ' sessions at ' + what + ' are updated.') };
+        // The list redraws; stay on the day that was changed, open, rather than going back to the top.
+        var dkey = box && box.getAttribute('data-day');
+        if (dkey) { openDays[dkey] = true; storeListOpen(); focusDay(dkey); }
         route();
       });
     });
@@ -3220,37 +3244,6 @@
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   }
-  // After Session settings is saved: when the conditions, tyres, brake pads, logger or weather changed and there are other sessions
-  // at the same track that day, offer the same change for each of them (only what changed is sent).
-  function offerDay(m, s, was, saved, ty, pd, edit) {
-    var key = dayKey(s), others = key ? ((m && m.sessions) || []).filter(function (x) { return x.id !== s.id && dayKey(x) === key; }) : [];
-    if (!others.length) return;
-    var send = {}, names = [];
-    if ((saved.conditions || '') !== was.conditions && saved.conditions) { send.conditions = saved.conditions; names.push('conditions'); }
-    if ((saved.tyres || '') !== was.tyres && saved.tyres) { Object.assign(send, ty); names.push('tyres'); }
-    if ((saved.pads || '') !== was.pads && saved.pads) { Object.assign(send, pd); names.push('brake pads'); }
-    if ((saved.logger || view.s.logger || '') !== was.logger && view.s.logger) { send.logger = view.s.logger; names.push('logger'); }
-    if (saved.temp != null && String(saved.temp) !== was.temp) {
-      send.temp = saved.temp; send.tempSource = saved.tempSource || 'member';
-      if (send.tempSource === 'weather' && saved.weather) send.weather = saved.weather;
-      names.push(saved.tempSource === 'weather' ? 'weather' : 'air temperature');
-    }
-    if (!names.length) return;
-    var list = names.length > 1 ? names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1] : names[0];
-    var many = others.length > 1 ? 'the other ' + others.length + ' sessions' : 'the other session';
-    if (!window.confirm('You changed the ' + list + '. Apply the same to ' + many + ' at ' + trackName(s) + ' on ' + niceDate(s.date) + ' too?')) return;
-    status('Applying to ' + many + '...', '');
-    var chain = Promise.resolve(), failed = 0;
-    others.forEach(function (x) {
-      chain = chain.then(function () { return api('PUT', '/track/session', Object.assign({ id: x.id }, send)).then(function (r) { if (!r.success) failed++; }).catch(function () { failed++; }); });
-    });
-    chain.then(function () {
-      mine = null; counts = null;
-      return getMine().then(function (mm) { view.mine = mm; });
-    }).then(function () {
-      status(failed ? failed + ' of ' + others.length + ' sessions could not be changed. Try again.' : 'Saved, and applied to ' + many + ' that day.', failed ? 'error' : 'ok');
-    });
-  }
   function drawSession() {
     var s = view.s;
     // Add a session stays in the page heading on the owner's own session, for the same car.
@@ -4749,8 +4742,6 @@
     function closeSession() { goBack(''); }
     function saveSettings() {
       var t = document.getElementById('tp-e-temp').value.trim();
-      // What each setting was, so we can tell what changed and offer the same change to the rest of the day.
-      var was = { conditions: view.s.conditions || '', tyres: view.s.tyres || '', pads: view.s.pads || '', logger: view.s.logger || '', temp: view.s.temp == null ? '' : String(view.s.temp) };
       var ty = tyrePayload(readTyre('tp-e-tyre')), pd = padPayload(readPads('tp-e-pad'));
       api('PUT', '/track/session', Object.assign({ id: s.id, privacy: edit.privacy, conditions: edit.conditions || '' }, ty, pd, { temp: t === '' ? null : parseFloat(t), tempSource: t === '' ? '' : (edit.tempSource || 'member'), weather: edit.tempSource === 'weather' ? edit.weather : null, notes: document.getElementById('tp-e-notes').value, publicNote: document.getElementById('tp-e-public-note').value.trim(), logger: loggerValue('tp-e-logger') })).then(function (d) {
         if (!d.success) { status(d.message || 'Could not save.', 'error'); return; }
@@ -4765,10 +4756,7 @@
         if (pl) pl.remove();
         document.querySelector('.tp-session-head .tp-sub').insertAdjacentHTML('afterend', publicNoteHtml(view.s.publicNote));
         dirty = false;
-        getMine().then(function (m) {
-          view.mine = m; drawSession(); status('Saved.', 'ok');
-          offerDay(m, s, was, d.session, ty, pd, edit);
-        });
+        getMine().then(function (m) { view.mine = m; drawSession(); status('Saved.', 'ok'); });
       });
     }
     document.getElementById('tp-e-save').addEventListener('click', saveSettings);

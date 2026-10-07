@@ -2708,10 +2708,13 @@ def test_a_tracks_chevron_drops_down_its_layouts_and_one_opens_only_those_sessio
     # Thruxton's stays folded.
     expect(page.locator("#tp-sess-list .tp-trackwrap", has_text="Thruxton").locator(".tp-layouts")).to_be_hidden()
     # A layout drops down its own sessions, the same day groups as the track's page, without leaving the list.
+    # Opening the track opened its layouts too, so the dates are already listed; a layout can still be folded on its own.
     indy = brands.locator(".tp-layoutwrap", has_text="Indy")
-    expect(indy.locator(".tp-layout-sessions")).to_be_hidden()
+    expect(indy.locator(".tp-layout-sessions")).to_be_visible()
     layouts.filter(has_text="Indy").click()
     expect(page).to_have_url(re.compile(r"track\.html$"))
+    expect(indy.locator(".tp-layout-sessions")).to_be_hidden()
+    layouts.filter(has_text="Indy").click()
     expect(indy.locator(".tp-layout-sessions")).to_be_visible()
     expect(indy.locator(".tp-layout-sessions a.tp-row[data-sid]")).to_have_count(2)
     expect(indy.locator(".tp-layout-sessions .tp-daygroup")).to_have_count(2)
@@ -2724,7 +2727,7 @@ def test_a_tracks_chevron_drops_down_its_layouts_and_one_opens_only_those_sessio
     brands = page.locator("#tp-sess-list .tp-trackwrap", has_text="Brands Hatch")
     expect(brands.locator(".tp-layouts")).to_be_visible()
     expect(brands.locator(".tp-layoutwrap", has_text="Indy").locator(".tp-layout-sessions")).to_be_visible()
-    expect(brands.locator(".tp-layoutwrap", has_text="Grand Prix").locator(".tp-layout-sessions")).to_be_hidden()
+    expect(brands.locator(".tp-layoutwrap", has_text="Grand Prix").locator(".tp-layout-sessions")).to_be_visible()
     brands.locator(".tp-layoutwrap", has_text="Indy").locator('a.tp-row[data-sid="b1"]').click()
     expect(page).to_have_url(re.compile(r"track\.html\?s=b1$"))
     page.go_back()
@@ -6356,32 +6359,6 @@ def test_the_sessions_list_under_the_trend_is_short_until_opened(page):
     assert page.locator("[data-tile='overtime-table'] tbody tr:visible").count() == 4
 
 
-def test_changing_a_sessions_settings_offers_the_same_for_the_rest_of_the_day(page):
-    """After Save in Session settings, when the conditions, tyres, brake pads, logger or weather changed and the track has
-    other sessions that day, it asks whether to apply the same to them. No leaves them; yes changes only what changed."""
-    fake = FakeWorker(earlier=False)
-    _day_of_three(fake)
-    for v in fake.sessions.values():
-        v["logger"] = "RaceBox"
-    fake.index[:] = [summary(dict(v)) for v in fake.sessions.values()]
-    open_page(page, fake, "/track.html?s=g2")
-    page.locator("#settings [data-cond] button[data-v='Wet'], #settings button[data-v='Wet']").first.click()
-    messages = []
-    page.once("dialog", lambda d: (messages.append(d.message), d.dismiss()))
-    page.locator("#tp-e-save").click()
-    expect(page.locator("#tp-status, .tp-status").first).to_contain_text("Saved")
-    assert messages and "conditions" in messages[0] and "other 2 sessions" in messages[0], messages
-    assert fake.sessions["g2"]["conditions"] == "Wet" and fake.sessions["g1"]["conditions"] == "Dry" and fake.sessions["g3"]["conditions"] == "Dry"
-    # Change the conditions again and say yes: the other two follow, and only the conditions are sent.
-    page.locator("#settings button[data-v='Damp']").first.click()
-    page.once("dialog", lambda d: d.accept())
-    page.locator("#tp-e-save").click()
-    page.wait_for_function("window.__x = 1; true")
-    page.wait_for_timeout(800)
-    assert fake.sessions["g1"]["conditions"] == "Damp" and fake.sessions["g3"]["conditions"] == "Damp", fake.sessions
-    assert all(v["logger"] == "RaceBox" for v in fake.sessions.values())
-
-
 def test_the_bulk_edit_can_use_the_previous_tyres_and_brake_pads(page):
     """Edit all N sessions offers the car's last tyres and brake pads from before that day: one tap fills the fields in and
     switches the change on, then Apply puts them on every session of the day."""
@@ -6411,3 +6388,50 @@ def test_the_bulk_edit_can_use_the_previous_tyres_and_brake_pads(page):
         v = fake.sessions[sid]
         assert v.get("tyreMake") == "Michelin" and v.get("tyreModel") == "Pilot Sport 4S" and v.get("tyreWidth") == 245, v
         assert v.get("padFrontMake") == "Pagid" and v.get("padFrontCompound") == "RSL29", v
+
+
+def _many_days(fake, extra_days=10):
+    for n in range(extra_days):
+        rec = day_session("a%d" % n, "10:00", 90.0 + n, 3, date="2026-05-%02d" % (n + 1))
+        fake.sessions[rec["id"]] = dict(rec)
+        fake.index.append(summary(rec))
+    for sid, t, best in (("g1", "09:25", 89.1), ("g2", "11:29", 81.1), ("g3", "14:46", 87.7)):
+        rec = day_session(sid, t, best, 3)
+        fake.sessions[sid] = dict(rec)
+        fake.index.append(summary(rec))
+
+
+def test_opening_a_track_opens_its_layouts_and_dates(page):
+    """One tap on a track's chevron drops down its layouts and, under each, the dates (a card for each day), instead of
+    stopping at the layout row until that is opened too."""
+    fake = FakeWorker(earlier=False)
+    _many_days(fake, 4)
+    open_page(page, fake)
+    wrap = page.locator("#tp-sess-list .tp-trackwrap", has_text="Castle Combe")
+    wrap.locator("[data-track-toggle]").click()
+    expect(wrap.locator(".tp-layout-sessions")).to_be_visible()
+    assert wrap.locator(".tp-daygroup:visible").count() == 5
+    # The layout can still be folded on its own.
+    wrap.locator("[data-layout-toggle]").click()
+    expect(wrap.locator(".tp-layout-sessions")).to_be_hidden()
+
+
+def test_a_bulk_edit_stays_on_the_day_that_was_changed(page):
+    """After Apply the list redraws, but the page stays on the day that was edited (open, in view) instead of jumping back
+    to the top."""
+    fake = FakeWorker(earlier=False)
+    _many_days(fake, 12)
+    open_page(page, fake)
+    page.set_viewport_size({"width": 1100, "height": 700})
+    wrap = page.locator("#tp-sess-list .tp-trackwrap", has_text="Castle Combe")
+    wrap.locator("[data-track-toggle]").click()
+    day = wrap.locator(".tp-daygroup", has_text="14 Jul 2026")
+    day.scroll_into_view_if_needed()
+    day.locator("[data-day-edit]").click()
+    page.locator("#tp-dayedit [data-cond] button[data-v='Wet']").click()
+    page.locator("[data-day-edit-apply]").click()
+    expect(page.locator("#tp-saved")).to_contain_text("are updated")
+    page.wait_for_timeout(600)
+    top = page.evaluate("(() => { const d = [...document.querySelectorAll('.tp-daygroup')].find(x => x.textContent.includes('14 Jul 2026')); const r = d.getBoundingClientRect(); return [r.top, r.bottom, innerHeight, scrollY]; })()")
+    assert top[3] > 200 and top[0] < top[2] and top[1] > 0, top
+    assert all(v["conditions"] == "Wet" for k, v in fake.sessions.items() if k.startswith("g"))

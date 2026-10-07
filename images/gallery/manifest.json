@@ -1,8 +1,9 @@
 [
   {
     "file": "photo--by-lord-hc.jpg",
-    "name": "LHC",
+    "name": "LORD HC",
     "color": "Red",
+    "unclaimed": true,
     "added": "2026-10-07",
     "group": "photo--by-lord-hc.jpg"
   },

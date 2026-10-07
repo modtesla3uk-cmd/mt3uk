@@ -482,7 +482,12 @@
   .ts-new > label { font-size: 0.85rem; color: var(--steel); }
   .ts-new input[type="file"] { display: block; margin-top: 4px; }
   .ts-new textarea { min-height: 0; line-height: 1.45; resize: vertical; }
-  .ts-preview { display: block; width: 100%; max-width: 600px; height: auto; border-radius: var(--radius-sm); border: 1px solid var(--hairline); }
+  .ts-preview { display: block; width: 100%; max-width: 600px; height: auto; border-radius: var(--radius-sm); border: 1px solid var(--hairline); cursor: zoom-in; }
+  .ts-thumb { cursor: zoom-in; }
+  .ts-light { position: fixed; inset: 0; z-index: 3000; display: flex; align-items: center; justify-content: center; padding: 12px; background: rgba(10, 14, 24, 0.92); cursor: zoom-out; }
+  .ts-light img { max-width: 100%; max-height: 100%; width: auto; height: auto; border-radius: var(--radius-sm); }
+  .ts-light:fullscreen { padding: 0; background: #0a0e18; }
+  .ts-light:fullscreen img { border-radius: 0; }
   @media (max-width: 780px) { .ts-item { grid-template-columns: 1fr; } .ts-thumb { width: 100%; } }
   .tk-switch { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; background: none; border: 0; color: var(--ink); padding: 0 6px; }
   .tk-track { width: 42px; height: 26px; border-radius: 13px; background: var(--line-strong); position: relative; }

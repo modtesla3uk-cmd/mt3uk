@@ -379,6 +379,8 @@
   .lh-shot img { cursor: zoom-in; }
   .lh-light { position: fixed; inset: 0; z-index: 3000; display: flex; align-items: center; justify-content: center; padding: 12px; background: rgba(10, 14, 24, 0.92); cursor: zoom-out; }
   .lh-light img { max-width: 100%; max-height: 100%; width: auto; height: auto; border-radius: var(--radius); box-shadow: 0 10px 40px rgba(0,0,0,.5); }
+  .lh-light:fullscreen { padding: 0; background: #0a0e18; }
+  .lh-light:fullscreen img { border-radius: 0; box-shadow: none; }
   .lh-evs b { color: #fff; }
   .lh-makes { display: flex; flex-wrap: wrap; gap: 6px; }
   .lh-makes span { display: inline-flex; align-items: center; min-height: 30px; padding: 4px 12px; border: 1px solid rgba(255,255,255,.3); border-radius: var(--radius-pill); color: #fff; font-size: 0.84rem; font-weight: 600; }
@@ -630,7 +632,7 @@
 </script>
 
 <script src="js/laps-panels.js?v=3" defer></script>
-<script src="js/laps-home.js?v=20270103" defer></script>
+<script src="js/laps-home.js?v=20270104" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=15" defer></script>
 <script src="js/signin-prompt.js" defer></script>

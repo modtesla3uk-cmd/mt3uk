@@ -131,6 +131,29 @@
     }).catch(function (e) { if (previewNote) previewNote.textContent = e.message || 'Could not load that photo.'; });
   }
   function fitCanvas() { if (canvas) { canvas.style.aspectRatio = '1200 / 630'; canvas.hidden = false; } }
+  // The preview, and any saved picture, opens full screen on a tap; the next tap (or Escape) shuts it.
+  function shutLight() {
+    var open = document.querySelector('.ts-light');
+    if (!open) return;
+    open.remove();
+    if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(function () {});
+  }
+  function openLight(src, alt) {
+    var box = document.createElement('div');
+    box.className = 'ts-light'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-label', 'The picture, full screen. Tap to close');
+    var big = document.createElement('img'); big.src = src; big.alt = alt || '';
+    box.appendChild(big); document.body.appendChild(box);
+    var req = box.requestFullscreen || box.webkitRequestFullscreen;
+    if (req) { var p = req.call(box); if (p && p.catch) p.catch(function () {}); }
+  }
+  document.addEventListener('click', function (e) {
+    if (document.querySelector('.ts-light')) { shutLight(); return; }
+    var t = e.target;
+    if (canvas && t === canvas && !canvas.hidden) openLight(canvas.toDataURL('image/jpeg', 0.92), 'The preview');
+    else if (t.closest && t.closest('.ts-thumb')) openLight(t.closest('.ts-thumb').src, 'A saved picture');
+  });
+  document.addEventListener('fullscreenchange', function () { if (!document.fullscreenElement) { var open = document.querySelector('.ts-light'); if (open) open.remove(); } });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') shutLight(); });
   function previewSession(id) {
     previewFrom = null;
     if (makeBtn) makeBtn.disabled = true;

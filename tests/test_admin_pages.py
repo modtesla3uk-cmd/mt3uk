@@ -877,6 +877,42 @@ def test_admin_sharing_panel_loads_once_the_admin_key_is_entered(page):
     expect(page.locator("#share-wrap .ts-session option")).to_have_count(2)
 
 
+def test_the_share_card_shows_the_car_its_kit_the_lap_times_and_opens_full_screen(page):
+    """The picture drawn from a session (Track sessions sharing) carries the car, the kind of day, conditions and
+    temperature, tyres, pads, driven wheels and logger as chips, the three tiles, the lap times and the g chart. The
+    preview opens over the page on a tap and shuts on the next."""
+    open_admin(page, "track-admin.html")
+    r = page.evaluate("""async () => {
+      const T = window.MT3UKTrack, C = window.MT3UKTrackShareCard;
+      const txt = await (await fetch('/tests/fixtures/thruxton-trimmed.vbo')).text();
+      const lib = await (await fetch('/data/tracks.json')).json();
+      const s = T.analyse(T.read(txt, 'thruxton.vbo'), lib, {});
+      Object.assign(s, { date: '2026-07-21', time: '09:36', conditions: 'Dry', temp: 19, tyres: 'Michelin Pilot Sport 4S, 245/35 R19', pads: 'Pagid RSL29', drive: 'AWD', logger: 'RaceBox', car: 'Arctic Three' });
+      const cv = document.querySelector('.ts-preview');
+      const m = C.draw(cv, s, {});
+      cv.hidden = false;
+      return { chips: m.chips, lapTimes: m.lapTimes, chart: m.chart, w: cv.width, h: cv.height };
+    }""")
+    assert r["w"] == 1200 and r["h"] == 630
+    assert r["chips"] == ["Arctic Three", "Track day", "Michelin Pilot Sport 4S, 245/35 R19", "Pagid RSL29", "AWD", "Logger: RaceBox"], r
+    assert r["lapTimes"] == 2 and r["chart"] is True, r
+    # A session with none of that draws only what it has.
+    r2 = page.evaluate("""async () => {
+      const T = window.MT3UKTrack, C = window.MT3UKTrackShareCard;
+      const txt = await (await fetch('/tests/fixtures/thruxton-trimmed.vbo')).text();
+      const lib = await (await fetch('/data/tracks.json')).json();
+      const s = T.analyse(T.read(txt, 'thruxton.vbo'), lib, {});
+      return C.draw(document.createElement('canvas'), s, {}).chips;
+    }""")
+    assert r2 == ["Track day"], r2
+    # Tap the preview: full screen (or the overlay alone where the browser will not go full screen); tap again to shut.
+    page.locator("#share-wrap summary").click()
+    page.locator(".ts-preview").click()
+    expect(page.locator(".ts-light img")).to_be_visible()
+    page.locator(".ts-light").click()
+    expect(page.locator(".ts-light")).to_have_count(0)
+
+
 LINES_API = "**/track/lines/admin**"
 
 

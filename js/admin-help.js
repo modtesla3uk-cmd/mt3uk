@@ -91,6 +91,7 @@
     ] },
     'send-digest-btn': { t: 'Send subscribers email now', p: 'Sends the list of members to modtesla3uk@gmail.com right now, after a confirm. The same email goes out every day at 8pm on its own.' },
     'add-subscriber-btn': { t: 'Add subscriber', p: 'Adds a member from the first name, last name and email in the boxes, without them having to sign up. They can sign in with an emailed link.' },
+    'subscribers-wrap-nicknames': { t: 'Give nicknames to members without one', p: 'A one-off on the Subscribers panel: every member with a first and last name but no nickname gets first initial and last name, as new members do. Members who cleared their nickname are left alone. Safe to press again: it only gives to those still without one.', i: [] },
     'members-msg-wrap': { t: 'Messages to subscribers', p: 'Write to every member. A message always goes to their Profile inbox and the bell shows it to them as unread.', i: [
       ['Also send it by email', 'Emails it too. Members who have turned emails off are skipped.'],
       ['Send message', 'Sends it to every member, after a confirm.'],

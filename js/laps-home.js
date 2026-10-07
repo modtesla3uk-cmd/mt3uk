@@ -33,7 +33,10 @@
     var pick = d && d.success && d.pick;
     if (!pick || !pick.url) return;
     var img = new Image();
-    img.onload = function () { shot.src = pick.url; if (pick.caption) shot.alt = pick.caption; };
+    img.onload = function () {
+      // The hero's picture, and its copy under Fastest right now on a phone.
+      [shot].concat([].slice.call(document.querySelectorAll('.lh-shot-copy'))).forEach(function (el) { el.src = pick.url; if (pick.caption) el.alt = pick.caption; });
+    };
     img.src = pick.url;
   });
 

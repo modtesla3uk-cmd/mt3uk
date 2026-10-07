@@ -372,7 +372,16 @@
   .lh-note { font-size: 0.86rem; color: #aeb7cb; }
   .lh-shot { border-radius: var(--radius); overflow: hidden; box-shadow: 0 18px 40px rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.12); }
   .lh-shot img { width: 100%; height: auto; }
-  @media (max-width: 780px) { .lh-hero { padding: 30px 0 34px; } }
+  /* Any EV, any make: in the hero, so it is seen on the first screen (the EVs band lower down says more). */
+  .lh-evs { display: grid; gap: 8px; margin: 4px 0 12px; }
+  .lh-hero .lh-evs p { font-size: 0.95rem; margin: 0; }
+  .lh-evs b { color: #fff; }
+  .lh-makes { display: flex; flex-wrap: wrap; gap: 6px; }
+  .lh-makes span { display: inline-flex; align-items: center; min-height: 30px; padding: 4px 12px; border: 1px solid rgba(255,255,255,.3); border-radius: var(--radius-pill); color: #fff; font-size: 0.84rem; font-weight: 600; }
+  .lh-makes span:last-child { border-style: dashed; color: #c9d1e3; }
+  /* On a phone the track picture moves down, under Fastest right now, so the hero is the words and buttons. */
+  .lh-shot-low { display: none; }
+  @media (max-width: 780px) { .lh-hero { padding: 26px 0 28px; } .lh-hero .lh-shot { display: none; } .lh-shot-low { display: block; padding-top: 28px; } }
 
   /* The install banner (same as the homepage's), with a line icon for its close button. */
   .a2hs-banner { position: fixed; left: 16px; right: 16px; bottom: -120px; z-index: 300; display: flex; align-items: center; justify-content: space-between; gap: 16px; max-width: 480px; margin: 0 auto; background: var(--ink); color: var(--paper); border: 1px solid var(--orange); border-radius: var(--radius); padding: 14px 18px; font-family: var(--font-body); font-size: 0.85rem; transition: bottom .3s ease; }
@@ -420,14 +429,13 @@
 <section class="lh-hero">
   <div class="wrap">
     <div>
-      <span class="early-badge early-badge-lg lh-badge">Early preview</span>
-      <span class="lh-eyebrow">Laps by MT3UK</span>
       <h1>Every lap, mapped and measured.</h1>
       <p>Upload the file from your lap timer and see every lap drawn on the track, where you gained and lost time, and how each change to your car moved your times.</p>
       <div class="tp-actions" id="lh-actions">
         <a class="btn btn-accent" id="lh-start" href="signin.html?next=/track.html">Sign in to start</a>
         <a class="btn btn-secondary" href="leaderboards.html">See the leaderboards</a>
       </div>
+      <div class="lh-evs"><p><b>Any EV, any make.</b> Pick its make and model, no photo needed.</p><div class="lh-makes"><span>Tesla</span><span>Hyundai</span><span>Kia</span><span>Porsche</span><span>Polestar</span><span>BMW</span><span>and more</span></div></div>
       <p class="lh-note" id="lh-note">Laps is in early preview. Sign in and ask for access to try it. Sessions are private until you choose to share them.</p>
     </div>
     <div class="lh-shot"><img id="lh-shot-img" src="images/track-preview/share.jpg" alt="A session on Laps: the lap drawn on the track map, the lap times and a g-force chart" width="1200" height="630"></div>
@@ -442,6 +450,7 @@
       <p class="lh-more"><a class="btn btn-secondary" href="leaderboards.html">All leaderboards</a></p>
     </div>
   </section>
+  <div class="wrap lh-shot-low"><div class="lh-shot"><img class="lh-shot-copy" src="images/track-preview/share.jpg" alt="A session on Laps: the lap drawn on the track map, the lap times and a g-force chart" width="1200" height="630"></div></div>
   <section class="lh-sec" id="what" data-panel="what">
     <div class="wrap">
       <h2>What Laps does</h2>
@@ -624,7 +633,7 @@
 </script>
 
 <script src="js/laps-panels.js?v=1" defer></script>
-<script src="js/laps-home.js?v=20270101" defer></script>
+<script src="js/laps-home.js?v=20270102" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=14" defer></script>
 <script src="js/signin-prompt.js" defer></script>

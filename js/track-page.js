@@ -700,6 +700,7 @@
       // A member with no sessions yet sees What are Sessions? open, so they see what Laps does.
       var what = document.querySelector('.page-hero .tp-what');
       if (what && m && !(m.sessions || []).length) what.open = true;
+      if (m && m.cars && m.cars.length) drawSince(m);
       // The front page panels the admin chose for Sessions, under the list (js/laps-panels.js).
       if (window.MT3UKLapsPanels && m) window.MT3UKLapsPanels.show(true);
       if (window.MT3UKLapsTip) window.MT3UKLapsTip.place();
@@ -722,13 +723,103 @@
       return '<button type="button" class="tp-car tp-vrow' + (on ? ' is-on' : '') + '" role="radio" aria-checked="' + on + '" data-car="' + esc(c.id) + '"><span class="tp-vdot"></span><span class="tp-vtext"><b>' + esc(c.name) + '</b><span>' + esc([titleOf(c), c.version].filter(Boolean).join(' ') || 'Car') + '</span></span><span class="tp-vn">' + k + ' session' + (k === 1 ? '' : 's') + '</span></button>';
     }).join('') + '<button type="button" class="tp-vrow tp-vadd" id="tp-car-add-open">' + icon('plus') + 'Add a vehicle</button></div>';
   }
+  // ---------- Since you were last here ----------
+  // At the top of the member's list of sessions: what has changed on the boards their cars are on since they last
+  // looked (a car moved up or down, new cars on the board). Each visit reads those boards (the public /track/board,
+  // /sprint/board and /drag/board, at most 12) and compares them with the last look, kept in this browser per member
+  // (localStorage mt3ukLapsSince). The first visit only takes the look; the line shows when something has changed,
+  // and the look is moved on when the member closes it or opens one of its boards.
+  var SINCE_KEY = 'mt3ukLapsSince';
+  function sinceStore() { try { return JSON.parse(localStorage.getItem(SINCE_KEY) || '{}') || {}; } catch (e) { return {}; } }
+  function sinceWho() { try { return (localStorage.getItem('mt3ukMyBuildsEmail') || 'me').toLowerCase(); } catch (e) { return 'me'; } }
+  function sinceSave(snap) { var all = sinceStore(); all[sinceWho()] = snap; try { localStorage.setItem(SINCE_KEY, JSON.stringify(all)); } catch (e) {} }
+  function ordinal(n) { var t = n % 100, u = n % 10; return n + (t > 10 && t < 14 ? 'th' : u === 1 ? 'st' : u === 2 ? 'nd' : u === 3 ? 'rd' : 'th'); }
+  function sinceBoards(m) {
+    var out = {};
+    (m.sessions || []).forEach(function (x) {
+      if ((x.privacy !== 'board' && x.privacy !== 'build') || !x.venueId) return;
+      var type = x.type === 'drag' ? 'drag' : x.type === 'sprint' ? 'sprint' : x.type === 'track' || !x.type ? 'track' : '';
+      if (!type || (type !== 'drag' && !x.layoutId)) return;
+      var key = type === 'drag' ? 'drag-board:' + x.venueId : (type === 'sprint' ? 'sprint-board:' : 'track-board:') + x.venueId + ':' + x.layoutId;
+      var b = out[key] || (out[key] = { key: key, type: type, venueId: x.venueId, layoutId: x.layoutId || '', cars: {}, last: '' });
+      b.cars[x.carId || 'car'] = true;
+      if ((x.date || '') > b.last) b.last = x.date || '';
+    });
+    return Object.keys(out).map(function (k) { return out[k]; }).sort(function (a, b) { return a.last < b.last ? 1 : -1; }).slice(0, 12);
+  }
+  function sinceLook(boards) {
+    return Promise.all(boards.map(function (b) {
+      var path = b.type === 'drag' ? '/drag/board?venue=' + encodeURIComponent(b.venueId) : (b.type === 'sprint' ? '/sprint/board?venue=' : '/track/board?venue=') + encodeURIComponent(b.venueId) + '&layout=' + encodeURIComponent(b.layoutId);
+      return api('GET', path).then(function (d) {
+        var entries = ((d && d.entries) || []).filter(function (e) { return Number(b.type === 'drag' ? e.quarter : e.time) > 0; })
+          .sort(function (x, y) { return Number(b.type === 'drag' ? x.quarter : x.time) - Number(b.type === 'drag' ? y.quarter : y.time); });
+        var pos = {};
+        entries.forEach(function (e, i) { if (b.cars[e.carId]) pos[e.carId] = i + 1; });
+        return { key: b.key, n: entries.length, pos: pos };
+      }).catch(function () { return null; });
+    })).then(function (rows) {
+      var snap = {};
+      rows.forEach(function (r) { if (r) snap[r.key] = { n: r.n, pos: r.pos }; });
+      return snap;
+    });
+  }
+  function sinceWhere(b) {
+    var v = library && (library.venues || []).filter(function (x) { return x.id === b.venueId; })[0];
+    var l = v && (v.layouts || []).filter(function (x) { return x.id === b.layoutId; })[0];
+    return v ? v.name + (b.type !== 'drag' && l && l.name && l.name !== v.name ? ', ' + l.name : '') : b.venueId;
+  }
+  function sinceChanges(m, boards, was, now) {
+    var out = [];
+    boards.forEach(function (b) {
+      var a = was[b.key], z = now[b.key];
+      if (!a || !z) return;
+      var href = 'leaderboards.html?' + (b.type === 'drag' ? 'drag=' + encodeURIComponent(b.venueId) : (b.type === 'sprint' ? 'sprint=' : 'board=') + encodeURIComponent(b.venueId + ':' + b.layoutId));
+      var where = sinceWhere(b), said = false;
+      Object.keys(z.pos).forEach(function (carId) {
+        var from = (a.pos || {})[carId], to = z.pos[carId];
+        if (!from || from === to) return;
+        var car = (m.cars.filter(function (c) { return c.id === carId; })[0] || {}).name || 'Your car';
+        out.push({ down: to > from, href: href, text: car + (to > from ? ' dropped to ' : ' moved up to ') + ordinal(to) + ' at ' + where });
+        said = true;
+      });
+      var more = z.n - (a.n || 0);
+      if (more > 0 && !said) out.push({ href: href, text: more + ' new car' + (more === 1 ? '' : 's') + ' on the board at ' + where });
+    });
+    // Drops first: they are the ones a member wants to know about.
+    return out.sort(function (x, y) { return (y.down ? 1 : 0) - (x.down ? 1 : 0); });
+  }
+  function drawSince(m) {
+    var box = document.getElementById('tp-since');
+    var boards = sinceBoards(m);
+    if (!box || !boards.length) return;
+    var was = sinceStore()[sinceWho()];
+    Promise.all([sinceLook(boards), getLibrary().catch(function () { return null; })]).then(function (r) {
+      var now = r[0];
+      if (!Object.keys(now).length) return;
+      if (!was) { sinceSave(now); return; }
+      var list = sinceChanges(m, boards, was, now);
+      if (!list.length) { sinceSave(now); return; }
+      box = document.getElementById('tp-since');
+      if (!box) return;
+      var shown = list.slice(0, 4);
+      box.innerHTML = '<div class="tp-since-head"><b>' + icon('flag') + 'Since you were last here</b><button type="button" class="tp-since-close" data-since-close aria-label="Close, I have seen these">' + icon('x') + '</button></div>' +
+        '<ul>' + shown.map(function (x) { return '<li class="' + (x.down ? 'is-down' : 'is-up') + '"><a href="' + esc(x.href) + '" data-laps>' + esc(x.text) + '</a></li>'; }).join('') + '</ul>' +
+        (list.length > shown.length ? '<p class="tp-small">And ' + (list.length - shown.length) + ' more on the Leaderboard.</p>' : '');
+      box.hidden = false;
+      if (window.mt3ukLapsLinks) window.mt3ukLapsLinks();
+      box.addEventListener('click', function (e) {
+        if (e.target.closest('[data-since-close]')) { sinceSave(now); box.hidden = true; }
+        else if (e.target.closest('a')) sinceSave(now);
+      });
+    });
+  }
   function myCarsHtml(m) {
     try { currentCar = currentCar || params().get('mycar') || localStorage.getItem('mt3ukTrackCar'); } catch (e) {}
     if (!m.cars.some(function (c) { return c.id === currentCar; })) currentCar = m.cars[0].id;
     var car = m.cars.filter(function (c) { return c.id === currentCar; })[0];
     var list = m.sessions.filter(function (s) { return s.carId === car.id; });
     // Your vehicles: a list that folds away to the one picked. Its sessions are listed below.
-    var h = '<div class="tp-section tp-vehicles"><div class="tp-vbox" id="tp-cars">' + vehiclesHtml(m, car) + '</div>' +
+    var h = '<div class="card tp-since" id="tp-since" role="status" hidden></div>' + '<div class="tp-section tp-vehicles"><div class="tp-vbox" id="tp-cars">' + vehiclesHtml(m, car) + '</div>' +
       '<div id="tp-car-add-wrap" hidden>' + addCarHtml(false) + '</div></div>';
     h += '<div class="tp-section"><div class="tp-head"><div><h2>Sessions</h2><p class="tp-sub tp-for">' + esc(car.name) + '</p></div>' + findToggleHtml(m) + refreshChip() + unitsChip() + '</div>';
     // Add a session is in the page heading, under Leaderboards (heroAdd); What others see stays here.

@@ -238,6 +238,20 @@
   .tp-head-side .tp-rank { margin-top: 0; }
   .tp-head-side .tp-share-dot { float: none; margin: 0; top: 0; width: 36px; height: 36px; }
   body[data-tp-view="session"] .page-hero .mt3uk-share-dot, body[data-tp-view="car"] .page-hero .mt3uk-share-dot { display: none; }
+  /* Since you were last here (drawSince in js/track-page.js): changes on the member's boards, at the top of the list. */
+  .tp-since { margin: 14px 0 0; padding: 10px 14px 12px; background: #fff7ee; border-color: #f3cfae; display: grid; gap: 6px; }
+  .tp-since[hidden] { display: none; }
+  .tp-since-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .tp-since-head b { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); }
+  .tp-since-head b .icon { width: 18px; height: 18px; color: var(--orange); }
+  .tp-since-close { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin: -8px -10px -8px 0; border: 0; background: none; color: var(--steel); cursor: pointer; }
+  .tp-since-close .icon { width: 18px; height: 18px; }
+  .tp-since ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+  .tp-since li a { display: flex; align-items: center; gap: 10px; min-height: 40px; color: var(--ink); text-decoration: underline; text-decoration-color: var(--hairline-strong); text-underline-offset: 3px; }
+  .tp-since li a::before { content: ''; flex: none; width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; }
+  .tp-since li.is-down a::before { border-top: 8px solid #c0392b; }
+  .tp-since li.is-up a::before { border-bottom: 8px solid #2e8b57; }
+  .tp-since .tp-small { margin: 0; }
   /* The navy heading, the same as the Leaderboard's (.lb-hero in leaderboards.html). */
   .tp-dark-hero { background: #16233d; border-bottom: 0; }
   .tp-dark-hero h1 { color: #ffffff; }
@@ -1062,7 +1076,7 @@
 <script src="js/pad-data.js?v=20270210"></script>
 <script src="js/vehicle-data.js?v=20270210" defer></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20270216" defer></script>
+<script src="js/track-page.js?v=20270217" defer></script>
 <script src="js/laps-panels.js?v=1" defer></script>
 <script src="js/laps-tip.js?v=20270104" defer></script>
 <script src="js/share.js" defer></script>

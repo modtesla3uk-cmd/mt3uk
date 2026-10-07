@@ -1498,6 +1498,40 @@ def test_front_page_panels_are_not_shown_to_visitors_who_are_signed_out(page):
     expect(page.locator("[data-laps-panels='leaderboard']")).to_be_hidden()
 
 
+def test_since_you_were_last_here_shows_what_changed_on_the_members_boards(page):
+    """The first visit only takes a look at the member's boards; the next shows what changed (a car moved down or up,
+    new cars on a board), each linking to its board, until it is closed."""
+    fake = FakeWorker()
+    fake.index[0]["privacy"] = "board"
+    mine = {"carId": "car1", "sessionId": "earlier1", "car": "Arctic Three", "model": "Model 3", "owner": "Rich", "time": 102.47, "date": "2026-03-28"}
+    fake.boards["/track/board:thruxton:main"] = [dict(_board_entry(0), time=100.0), mine]
+    open_page(page, fake, "/track.html", signed_in=True)
+    page.locator("#tp-hero-add").wait_for()
+    page.wait_for_function("localStorage.getItem('mt3ukLapsSince') !== null")
+    expect(page.locator("#tp-since")).to_be_hidden()
+    # Two quicker cars join: Arctic Three drops from 2nd to 4th.
+    fake.boards["/track/board:thruxton:main"] = [dict(_board_entry(0), time=100.0), dict(_board_entry(1), time=101.0), dict(_board_entry(2), time=102.0), mine]
+    open_page(page, fake, "/track.html", signed_in=True)
+    since = page.locator("#tp-since")
+    expect(since).to_be_visible()
+    expect(since).to_contain_text("Since you were last here")
+    expect(since.locator("li")).to_have_text(["Arctic Three dropped to 4th at Thruxton"])
+    assert since.locator("li a").get_attribute("href") == "leaderboards.html?board=thruxton%3Amain"
+    # Still there next time until it is closed; closed, it is gone until something else changes.
+    open_page(page, fake, "/track.html", signed_in=True)
+    expect(page.locator("#tp-since")).to_be_visible()
+    page.locator("[data-since-close]").click()
+    expect(page.locator("#tp-since")).to_be_hidden()
+    open_page(page, fake, "/track.html", signed_in=True)
+    page.locator("#tp-hero-add").wait_for()
+    page.wait_for_timeout(400)
+    expect(page.locator("#tp-since")).to_be_hidden()
+    # A new car behind it: no move, but a new car on the board.
+    fake.boards["/track/board:thruxton:main"].append(dict(_board_entry(5), time=110.0))
+    open_page(page, fake, "/track.html", signed_in=True)
+    expect(page.locator("#tp-since li")).to_have_text(["1 new car on the board at Thruxton"])
+
+
 def test_sessions_has_add_a_session_under_leaderboards(page):
     """On the member's list of sessions Add a session is in the heading, under Leaderboards and the same size; it opens
     the Add page for the vehicle picked, and is not shown on a session's own page."""

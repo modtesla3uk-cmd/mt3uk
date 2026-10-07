@@ -7200,6 +7200,8 @@ function cleanTrackSession(s, library) {
   if (s.linesAccepted) out.linesAccepted = true;
   // On its layout by the path of the drive: the file has no lap from the start line back to itself, so the laps were timed from a point on the trace.
   if (s.lapsFromTrace) out.lapsFromTrace = true;
+  // The member picked this layout themselves: only they change it (the admin's re-time and repairs leave it).
+  if (s.layoutPicked && out.layoutId) out.layoutPicked = true;
   // A course with official lines only takes sessions timed on them (within
   // 25 m): lines a member moved never reach its leaderboard.
   if (layout && layout.startLine) {
@@ -9509,6 +9511,11 @@ async function handleTrackAdminRetime(request, env) {
   next.createdAt = old.createdAt;
   // Street runs and runs at an unlisted strip stay private and off every board.
   next.street = !!old.street;
+  // A layout the member picked is theirs to change: an admin re-time never moves the session to another one.
+  if (old.layoutPicked) {
+    if ((next.layoutId || '') !== (old.layoutId || '')) return json({ success: false, message: 'The member chose this layout (' + (old.layout || old.layoutId) + '), so only they can change it.' }, 409);
+    next.layoutPicked = true;
+  } else delete next.layoutPicked;
   if (next.type === 'drag') {
     if (old.unlisted || (!next.atVenue && !old.street)) next.unlisted = true;
     if (!old.street) delete next.outline;

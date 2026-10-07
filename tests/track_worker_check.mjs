@@ -1338,6 +1338,12 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   ok(x.status === 200 && stored('track-session:' + id).linesAccepted === true, 'the mark that the admin accepted this session\'s lines is kept');
   x = await call('POST', '/track/admin/retime?key=secret', { id, session: fresh });
   ok(x.status === 200 && stored('track-session:' + id).linesAccepted === undefined, 'and it is not added to other sessions');
+  // A layout the member picked is theirs to change: an admin re-time cannot move the session to another one.
+  { const rec = stored('track-session:' + id); rec.layoutPicked = true; kv.set('track-session:' + id, JSON.stringify(rec)); }
+  x = await call('POST', '/track/admin/retime?key=secret', { id, session: Object.assign({}, fresh, { layoutId: 'other-layout', layout: 'Other' }) });
+  ok(x.status === 409 && /only they can change it/.test(x.body.message) && stored('track-session:' + id).layoutId === 'main', 'an admin re-time cannot move a session off the layout its member picked');
+  x = await call('POST', '/track/admin/retime?key=secret', { id, session: fresh });
+  ok(x.status === 200 && stored('track-session:' + id).layoutPicked === true, 'a re-time on the same layout is saved and the mark stays');
   x = await call('POST', '/track/admin/retime?key=secret', { id: 'deadbeefdeadbeef', session: fresh });
   ok(x.status === 404, 'an unknown session is refused');
 }

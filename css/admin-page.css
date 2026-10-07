@@ -675,3 +675,6 @@
 .rt-row { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; font-size: 0.9rem; }
 .rt-other { flex-basis: 100%; padding-left: 58px; font-size: 0.82rem; color: var(--steel); }
 @media (max-width: 780px) { .rt-course { margin-left: 4px; } .rt-rows { padding-left: 4px; } }
+.rt-outcome { border: 1px solid var(--hairline-strong); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 10px; font-size: 0.9rem; }
+.rt-outcome ul { margin: 6px 0 0; padding-left: 18px; }
+.rt-warn { color: var(--orange); font-weight: 600; }

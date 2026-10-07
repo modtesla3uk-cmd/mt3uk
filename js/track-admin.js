@@ -285,8 +285,7 @@
     if (chk || rtc) {
       var vid = (chk || rtc).getAttribute(chk ? 'data-check-course' : 'data-retime-course'), vn = library.venues.filter(function (v) { return v.id === vid; })[0];
       if (!vn) return;
-      if (rtc && !window.confirm('Re-time every session at ' + vn.name + ' from its saved readings, on the track\'s lines as they are now? Their times, laps and figures will change. Run Check sessions here first to see what moves.')) return;
-      runRetime(!!rtc, { venueId: vid, name: vn.name });
+      runRetime(false, { venueId: vid, name: vn.name });
       var out = document.getElementById('tk-retime-note');
       if (out && out.scrollIntoView) out.scrollIntoView({ block: 'nearest' });
       return;
@@ -525,6 +524,7 @@
   // Brings every leaderboard place up to date, a few cars at a time.
   var rebuildBtn = document.getElementById('tk-rebuild'), rebuildNote = document.getElementById('tk-rebuild-note');
   if (rebuildBtn) rebuildBtn.addEventListener('click', function () {
+    if (!window.confirm('Rebuild every leaderboard? Each board is worked out again from the members\' fastest saved sessions, so places and counts can change. No session\'s time, course or settings is changed.')) return;
     var cars = 0;
     rebuildBtn.disabled = true;
     function step(cursor) {
@@ -571,6 +571,10 @@
     var o = { type: old.type, ignoreFirstFinish: old.ignoreFinish !== false };
     if (old.rollout) o.rollout = true;
     if (old.organizer) o.organizer = old.organizer;
+    // A re-time never moves a session to another layout or course by itself: it stays while its lines still fit.
+    if (old.layoutId && !old.linesAccepted) o.keepLayoutId = old.layoutId;
+    // A layout the member picked is used as it is, whatever its length.
+    if (old.layoutPicked && old.layoutId) o.layoutId = old.layoutId;
     if (old.finishCrossing) o.finishCrossing = old.finishCrossing;
     if (old.startLineFromMember && old.startLine) { o.startLine = old.startLine; if (old.finishLine) o.finishLine = old.finishLine; }
     // Lines the admin accepted for this session stay, whatever the course's own lines are now.
@@ -625,6 +629,7 @@
         // The member's details and the date they typed carry over.
         next.date = old.date; next.time = old.time || next.time;
         next.fileName = old.fileName;
+        if (old.layoutPicked) next.layoutPicked = true; else delete next.layoutPicked;
         if (old.ignoreFinish === false) next.ignoreFinish = false;
         if (old.linesAccepted) next.linesAccepted = true;
         if (!old.venueId) next.venueName = old.venue;
@@ -661,21 +666,28 @@
       Object.keys(groups[who]).sort().forEach(function (course) {
         html += '<div class="rt-course"><div class="rt-head"><button type="button" class="tk-switch" role="switch" aria-checked="true" data-pick-group="course" data-who="' + esc(who) + '" data-course="' + esc(course) + '" aria-label="Include all at ' + esc(course) + '"><span class="tk-track"></span></button><span>' + esc(course) + '</span></div><ul class="rt-rows">';
         groups[who][course].sort(function (a, b) { return String(a.date).localeCompare(String(b.date)) || String(a.time).localeCompare(String(b.time)); }).forEach(function (c) {
-          var notes = (c.other || []).slice();
+          var notes = (c.other || []).slice(), moves = notes.some(function (t) { return /^(Course|Track):/.test(t); });
           if (c.big) notes.push('over 10%, off unless you allow big changes');
           html += '<li class="rt-row" data-who="' + esc(who) + '" data-course="' + esc(course) + '"><button type="button" class="tk-switch" role="switch" aria-checked="' + (c.on ? 'true' : 'false') + '" data-pick="' + c.n + '" aria-label="Include ' + esc(c.date) + '"><span class="tk-track"></span></button>' +
             '<a href="track.html?s=' + encodeURIComponent(c.id) + '" target="_blank" rel="noopener">' + esc(c.date) + ' (' + esc(c.type) + '): ' + esc(fmtTime(c.from)) + ' to ' + esc(fmtTime(c.to)) + '</a>' +
-            (notes.length ? '<span class="rt-other">' + notes.map(esc).join('; ') + '</span>' : '') + '</li>';
+            (notes.length ? '<span class="rt-other' + (moves ? ' rt-warn' : '') + '">' + notes.map(esc).join('; ') + '</span>' : '') + '</li>';
         });
         html += '</ul></div>';
       });
       html += '</section>';
     });
-    box.innerHTML = '<div class="rt-bar"><button type="button" class="btn btn-primary btn-sm" id="tk-retime-selected"></button><button type="button" class="btn btn-secondary btn-sm" data-pick-all="1">Include all</button><button type="button" class="btn btn-secondary btn-sm" data-pick-all="0">Include none</button></div>' + html;
+    box.innerHTML = '<div class="rt-outcome" id="tk-retime-outcome" role="status"></div><div class="rt-bar"><button type="button" class="btn btn-primary btn-sm" id="tk-retime-selected"></button><button type="button" class="btn btn-secondary btn-sm" data-pick-all="1">Include all</button><button type="button" class="btn btn-secondary btn-sm" data-pick-all="0">Include none</button></div>' + html;
     var go = box.querySelector('#tk-retime-selected');
     function sync() {
       var n = staged.filter(function (c) { return c.on; }).length;
       go.textContent = 'Re-time selected (' + n + ')';
+      // What pressing the button will do, in plain words, before anything is saved.
+      var on = staged.filter(function (c) { return c.on; });
+      var timeMoves = on.filter(function (c) { return !(c.from === c.to || (c.from != null && c.to != null && Math.abs(c.from - c.to) < 0.0005)); }).length;
+      var courseMoves = on.filter(function (c) { return (c.other || []).some(function (t) { return /^(Course|Track):/.test(t); }); });
+      var flagsOnly = on.length - timeMoves - courseMoves.length;
+      var out = box.querySelector('#tk-retime-outcome');
+      out.innerHTML = '<strong>' + (n ? 'If you press Re-time selected:' : 'Nothing is switched on, so nothing will be saved.') + '</strong>' + (n ? '<ul><li>' + n + ' session' + (n === 1 ? '' : 's') + ' will be saved again from their readings.</li><li>' + timeMoves + ' will get a different best time.</li><li class="' + (courseMoves.length ? 'rt-warn' : '') + '">' + (courseMoves.length ? courseMoves.length + ' will move to another course or track (listed below as Course or Track).' : 'None will move to another course or track.') + '</li><li>' + Math.max(0, flagsOnly) + ' keep their time and course and only change small details.</li><li>Then every leaderboard is rebuilt from the members\' fastest saved sessions, so places can change. Switched-off sessions are left exactly as they are.</li></ul>' : '');
       go.disabled = !n;
       box.querySelectorAll('[data-pick]').forEach(function (b) { b.setAttribute('aria-checked', staged[+b.getAttribute('data-pick')].on ? 'true' : 'false'); });
       box.querySelectorAll('[data-pick-group]').forEach(function (b) {
@@ -717,6 +729,9 @@
       }
     };
     sync();
+    // The list sits in the Rebuild and re-time panel: open it, so a check started from the Tracks panel is seen.
+    for (var d = box.closest('details'); d; d = d.parentElement && d.parentElement.closest('details')) d.open = true;
+    if (box.scrollIntoView) box.scrollIntoView({ block: 'nearest' });
   }
   // only: { venueId, name } re-times every session at that track whatever its version, so a corrected start or
   // finish line reaches the sessions already saved. Each one picks its own course there, from its organiser.
@@ -813,8 +828,7 @@
   var bigSwitch = document.getElementById('tk-retime-big');
   if (bigSwitch) bigSwitch.addEventListener('click', function () { bigSwitch.setAttribute('aria-checked', bigSwitch.getAttribute('aria-checked') === 'true' ? 'false' : 'true'); });
   if (checkBtn) checkBtn.addEventListener('click', function () { runRetime(false); });
-  if (retimeBtn) retimeBtn.addEventListener('click', function () {
-    if (!window.confirm('Re-time every session that was timed with older code? Their times will change. Run Check sessions first to see what moves.')) return;
-    runRetime(true);
-  });
+  // Re-time never saves at once: it works every session out again and lists what each would become, and nothing is
+  // saved until Re-time selected is pressed on that list.
+  if (retimeBtn) retimeBtn.addEventListener('click', function () { runRetime(false); });
 })();

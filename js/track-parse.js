@@ -1073,7 +1073,11 @@
       // still accepted, so it only wins when no layout's length says otherwise.
       var lengthScore = c.layout ? (c.layout.length ? Math.abs(med - c.layout.length) / c.layout.length : 0.12) : 0.05;
       if (c.layout && lengthScore > 0.12 && !forced) return;
-      var score = laps.length - lengthScore * 10 + (c.layout ? 1 : 0);
+      // Which layout it was is decided by how well the lap length fits (a lap or two more or fewer cannot outweigh that),
+      // the lap count only separating layouts that fit equally. A saved session being re-timed (opts.keepLayoutId) stays on
+      // its own layout while that layout still fits, so a re-time never moves it by itself.
+      var score = -lengthScore * 100 + Math.min(laps.length, 20) * 0.05 + (c.layout ? 1 : 0);
+      if (c.layout && opts.keepLayoutId && c.layout.id === opts.keepLayoutId) score += 1000;
       if (!choice || score > choice.score) choice = { c: c, cr: cr, score: score, med: med };
     }
     // A listed layout's own start line wins; the file's or the member's line is only a fallback.
@@ -1132,6 +1136,8 @@
       layout = layout && layout.l;
     }
     if (layout) { session.layoutId = layout.id; session.layout = layout.name; }
+    // The member named this layout, so it is theirs to change: a re-time or an admin never moves it (layoutPicked).
+    if (layout && forced && layout === forced) session.layoutPicked = true;
     if (lineMissed !== null && !fromTrace) session.layoutLineGap = lineMissed;
     session.startLine = choice.c.line;
     if (choice.c.own) session.startLineFromMember = true; else if (choice.c.auto) session.autoLine = true; else if (choice.c.layout) session.officialLines = true;
@@ -1253,7 +1259,9 @@
           if (skipped) pairs = pairUp(kept);
         }
       }
-      if (pairs.length && (!pick || pairs.length > pick.pairs.length)) pick = { c: c, pairs: pairs, skipped: skipped, climb: climb };
+      // A saved session being re-timed (opts.keepLayoutId) stays on its own course while that course's lines still give runs.
+      var keeps = !!(opts.keepLayoutId && c.layout && c.layout.id === opts.keepLayoutId), held = !!(pick && opts.keepLayoutId && pick.c.layout && pick.c.layout.id === opts.keepLayoutId);
+      if (pairs.length && !held && (!pick || keeps || pairs.length > pick.pairs.length)) pick = { c: c, pairs: pairs, skipped: skipped, climb: climb };
     }
     // The course's own lines come first. The member's lines are only used when
     // the course's give no runs (or it has none), so nobody can time a listed

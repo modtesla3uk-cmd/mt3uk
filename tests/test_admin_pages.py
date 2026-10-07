@@ -182,6 +182,7 @@ def test_admin_can_rebuild_the_leaderboards_in_steps(page):
     open_admin(page, "track-admin.html")
     page.route("**/track/boards/rebuild**", rebuild)
     page.locator("#boards-wrap > summary").click()
+    page.once("dialog", lambda d: d.accept())
     page.locator("#tk-rebuild").click()
     expect(page.locator("#tk-rebuild-note")).to_have_text("Done: 3 cars brought up to date.")
     assert len(calls) == 2 and "key=test-key" in calls[0] and "cursor=2" in calls[1]
@@ -269,13 +270,19 @@ def test_admin_check_sessions_lets_you_switch_sessions_off_and_re_times_only_the
     assert [x["id"] for x in saved] == ["aaaaaaaa01"], saved
 
 
-def test_admin_retime_saves_the_new_timing_then_rebuilds_the_boards(page):
+def test_admin_retime_shows_the_outcome_first_and_saves_only_when_selected_is_pressed(page):
     saved = []
     open_admin(page, "track-admin.html")
     _retime_mocks(page, saved)
     page.on("dialog", lambda d: d.accept())
     page.locator("#boards-wrap > summary").click()
+    # The Re-time button only works things out: nothing is saved, and the outcome is spelt out.
     page.locator("#tk-retime").click()
+    expect(page.locator("#tk-retime-outcome")).to_contain_text("If you press Re-time selected")
+    expect(page.locator("#tk-retime-outcome")).to_contain_text("will move to another course or track")
+    expect(page.locator("#tk-retime-outcome")).to_contain_text("every leaderboard is rebuilt")
+    assert saved == []
+    page.locator("#tk-retime-selected").click()
     expect(page.locator("#tk-retime-note")).to_contain_text("Leaderboards rebuilt (4 cars)")
     assert len(saved) == 1 and saved[0]["id"] == "aaaaaaaa01"
     s = saved[0]["session"]
@@ -292,9 +299,7 @@ def test_admin_retime_holds_back_a_best_time_that_moves_over_ten_percent(page):
     expect(page.locator("#tk-retime-picks .rt-row")).to_contain_text("off unless you allow big changes")
     expect(page.locator("#tk-retime-picks .rt-row [data-pick]")).to_have_attribute("aria-checked", "false")
     expect(page.locator("#tk-retime-note")).to_contain_text("1 held back for moving over 10%")
-    page.locator("#tk-retime").click()
-    expect(page.locator("#tk-retime-note")).to_contain_text("Leaderboards rebuilt")
-    expect(page.locator("#tk-retime-list li")).to_contain_text("not saved")
+    expect(page.locator("#tk-retime-outcome")).to_contain_text("Nothing is switched on")
     assert saved == []
 
 
@@ -307,6 +312,7 @@ def test_admin_retime_saves_a_big_change_when_the_switch_is_on(page):
     page.locator("#tk-retime-big").click()
     expect(page.locator("#tk-retime-big")).to_have_attribute("aria-checked", "true")
     page.locator("#tk-retime").click()
+    page.locator("#tk-retime-selected").click()
     expect(page.locator("#tk-retime-note")).to_contain_text("Leaderboards rebuilt")
     assert len(saved) == 1 and saved[0]["id"] == "aaaaaaaa01"
 
@@ -1267,14 +1273,17 @@ def test_admin_checks_then_re_times_every_session_at_one_track_from_its_saved_re
     expect(page.locator("#tk-retime-note")).to_contain_text("1 have no readings kept")
     expect(page.locator("#tk-retime-picks")).to_contain_text("2026-05-28 (track): 1:42.00 to 1:39.79")
     assert seen["posts"] == [] and seen["gets"] == ["r1"], seen
-    # A no leaves everything as it was.
-    page.once("dialog", lambda d: d.dismiss())
+    # Re-time here only shows what each session would become: nothing is saved until Re-time selected, after a yes.
     row.get_by_role("button", name="Re-time sessions here").click()
+    expect(page.locator("#tk-retime-outcome")).to_contain_text("If you press Re-time selected")
+    assert seen["posts"] == []
+    page.once("dialog", lambda d: d.dismiss())
+    page.locator("#tk-retime-selected").click()
     page.wait_for_timeout(300)
     assert seen["posts"] == []
     # A yes saves the one that can be re-timed, then rebuilds the leaderboards.
     page.once("dialog", lambda d: d.accept())
-    row.get_by_role("button", name="Re-time sessions here").click()
+    page.locator("#tk-retime-selected").click()
     expect(page.locator("#tk-retime-note")).to_contain_text("Leaderboards rebuilt (2 cars)")
     assert [p["id"] for p in seen["posts"]] == ["r1"] and abs(seen["posts"][0]["session"]["bestTime"] - 99.786) < 0.02
     assert seen["posts"][0]["session"]["date"] == "2026-05-28" and "r3" not in seen["gets"] and seen["rebuilds"] == 1

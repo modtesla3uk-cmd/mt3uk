@@ -380,19 +380,26 @@
     .tp-mapcard:not(.is-full) .tp-mrow .tp-mv { text-align: right; }
   }
   /* Phones keep the order: speed chart, map, corner table. */
-  @media (max-width: 780px) { .tp-g-map > .tp-grid { display: contents; } body:not(.has-order) .tp-o-speed { order: 1; } body:not(.has-order) .tp-mapcard { order: 2; } body:not(.has-order) .tp-o-corner { order: 3; } }
-  /* Movable panels: a grip handle in each panel's heading (drag, or the arrow keys). */
+  /* The board: every panel from Compare laps down in one 12-column grid, each tile as wide as its --span, moved by the
+     grip handle in its heading and sized by the corner handle. */
+  .tp-board { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; align-items: start; margin-top: 14px; }
+  .tp-board > [data-tile] { grid-column: span var(--span, 12); min-width: 0; margin: 0; position: relative; box-sizing: border-box; }
+  .tp-board > [data-tile].has-height { overflow: auto; }
+  .tp-board > .tp-section { margin-top: 0; }
+  .tp-board > [data-tile].is-sizing { outline: 2px dashed var(--orange); outline-offset: 2px; }
+  .tp-size { position: sticky; bottom: 0; display: block; width: 26px; height: 26px; margin: -22px 0 -4px auto; cursor: nwse-resize; touch-action: none; z-index: 3; border-bottom-right-radius: var(--radius); background: linear-gradient(135deg, transparent 50%, var(--hairline-strong) 50%, var(--hairline-strong) 60%, transparent 60%, transparent 72%, var(--hairline-strong) 72%, var(--hairline-strong) 82%, transparent 82%); opacity: 0.75; }
+  .tp-size:hover { opacity: 1; }
+  .tp-landing { grid-column: span var(--span, 12); min-height: 64px; border: 2px dashed var(--orange); border-radius: var(--radius); background: #fdf3ef; }
+  .tp-mapcard.is-full .tp-size { display: none; }
+  @media (max-width: 780px) { .tp-board { gap: 10px; } .tp-board > [data-tile], .tp-landing { grid-column: span 12 !important; } }
+  /* The grip handle in each panel's heading (drag, or the arrow keys). */
   .tp-move { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 32px; height: 32px; margin: -4px 2px -4px -6px; padding: 0; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--steel); cursor: grab; touch-action: none; }
   .tp-move .icon { width: 18px; height: 18px; fill: currentColor; stroke: none; }
   .tp-move:hover, .tp-move:focus-visible { background: var(--paper-2); color: var(--ink); }
   .tp-move:focus-visible { outline: 2px solid var(--orange); outline-offset: -2px; }
   [data-tile].is-moving { opacity: 0.7; outline: 2px dashed var(--orange); outline-offset: 2px; }
-  body.is-dragging .tp-cmp-col { min-height: 56px; border-radius: var(--radius); outline: 1px dashed var(--hairline-strong); outline-offset: 4px; }
   body.is-dragging { user-select: none; }
-  .tp-drop { height: 6px; margin: 4px 0; border-radius: 3px; background: var(--orange); }
-  .tp-cmp-wide > .tp-g2 { margin-top: 14px; }
-  .tp-cmp-col:not(.tp-cmp-wide) > .tp-section { margin-top: 0; }
-  .tp-cmp-col:not(.tp-cmp-wide) > .tp-section .tp-head { margin-bottom: 6px; }
+  .tp-board > .tp-section .tp-head { margin-bottom: 6px; }
   .tp-laps summary .tp-move { margin-left: -2px; }
   .tp-head .tp-move { align-self: center; }
   .tp-mapcard.is-full .tp-move { display: none; }
@@ -776,7 +783,7 @@
   .tp-car-from .icon { width: 16px; height: 16px; color: var(--steel); flex: none; }
   .tp-grid { display: grid; gap: 14px; margin-bottom: 14px; }
   .tp-grid > * { min-width: 0; }
-  @media (min-width: 781px) { .tp-g-map { grid-template-columns: 1.25fr 1fr; align-items: start; } .tp-g2 { grid-template-columns: 1fr 1fr; align-items: start; } .tp-cmp-col:not(.tp-cmp-wide) .tp-g2 { grid-template-columns: 1fr; } }
+  @media (min-width: 781px) { .tp-g-map { grid-template-columns: 1.25fr 1fr; align-items: start; } .tp-g2 { grid-template-columns: 1fr 1fr; align-items: start; } }
   .tp-chart-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 12px; margin: 4px 0 8px; }
   .tp-chart-head h3 { margin: 0; }
   .tp-chart-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 12px; font-size: 0.8rem; color: var(--steel); margin-top: 6px; }

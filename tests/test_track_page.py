@@ -6055,56 +6055,96 @@ def test_every_session_says_which_logger_recorded_it(page, tmp_path):
 
 
 def test_the_compare_panels_can_be_moved_by_their_handles(page):
-    """Each Compare laps panel has a grip handle: dragging it moves the panel up or down or into another column, the
-    arrow keys do the same, Home puts them back, and the order is kept per browser. Hidden in full screen."""
+    """Every panel from Compare laps down is a tile on a 12-column board with a grip handle: dragging it moves the tile,
+    the arrow keys move it, - and + change its width, Home puts everything back, and the layout is kept per browser.
+    A corner handle resizes a tile: sideways for the width, up or down for the height. Hidden in full screen."""
     fake = FakeWorker()
     save_thruxton_with_a_member_board(page, fake)
 
     def order():
-        return page.evaluate("""() => Object.fromEntries([...document.querySelectorAll('#tp-app [data-col]')].map(c => [c.dataset.col, [...c.querySelectorAll(':scope > [data-tile]')].map(t => t.dataset.tile)]))""")
+        return page.evaluate("[...document.querySelectorAll('#tp-board > [data-tile]')].map(t => t.dataset.tile)")
+
+    def span(key):
+        return page.evaluate("k => getComputedStyle(document.querySelector('#tp-board > [data-tile=\"' + k + '\"]')).getPropertyValue('--span').trim()", key)
     first = order()
-    assert first["left"] == ["speed", "corners"] and first["right"] == ["map"]
-    # Everything after the columns is in the full-width row: the grip chart, Laps, What we spotted, over time, the
-    # line and name requests and Session settings, each with a handle.
-    assert first["wide"][:3] == ["grip", "laps", "spotted"] and "settings" in first["wide"] and "overtime" in first["wide"]
-    assert page.locator("#tp-app [data-move]").count() == len(first["left"]) + len(first["right"]) + len(first["wide"])
+    assert first[:5] == ["speed", "map", "corners", "grip", "cmpnotes"]
+    for k in ("laps", "spotted", "overtime", "overtime-notes", "overtime-table", "overtime-mods", "lineedit", "rename", "settings"):
+        assert k in first, k
+    assert page.locator("#tp-board > [data-tile] > [data-size]").count() == len(first)
+    assert page.locator("#tp-board [data-move]").count() == len(first)
+    assert span("speed") == "7" and span("map") == "5" and span("settings") == "12"
     assert page.locator('[data-resize="timeline"]').count() == 1
-    # Drag Corner by corner above the speed charts: the handle at the foot of the screen, the speed panel above it.
-    handle = page.locator('[data-tile="corners"] [data-move]')
+    # Drag the grip chart in front of Corner by corner (they share a row): the tile lands where the marker was.
+    handle = page.locator('[data-tile="grip"] [data-move]')
     handle.scroll_into_view_if_needed()
-    page.evaluate("y => window.scrollTo({ top: window.scrollY + y - 100, behavior: 'instant' })", page.locator('[data-tile="speed"]').bounding_box()["y"])
+    page.evaluate("y => window.scrollTo({ top: window.scrollY + y - 100, behavior: 'instant' })", page.locator('[data-tile="corners"]').bounding_box()["y"])
     page.wait_for_timeout(100)
     hb = handle.bounding_box()
-    target = page.locator('[data-tile="speed"]').bounding_box()
-    drop_y = target["y"] + 30
-    assert 90 < drop_y < target["y"] + target["height"] / 2 and hb["y"] < page.viewport_size["height"], (hb, target)
+    target = page.locator('[data-tile="corners"]').bounding_box()
+    assert 0 < hb["y"] < page.viewport_size["height"], (hb, target)
     page.mouse.move(hb["x"] + hb["width"] / 2, hb["y"] + hb["height"] / 2)
     page.mouse.down()
-    page.mouse.move(target["x"] + target["width"] / 2, drop_y, steps=6)
+    page.mouse.move(target["x"] + 30, target["y"] + 30, steps=6)
     page.mouse.up()
-    assert order()["left"] == ["corners", "speed"]
+    assert order()[:4] == ["speed", "map", "grip", "corners"]
     # Kept for next time.
     page.reload()
     page.locator("#tp-speed path, #tp-speed polyline").first.wait_for()
-    assert order()["left"] == ["corners", "speed"]
-    # The arrow keys: right moves a panel to the next column, Home puts everything back.
+    assert order()[:4] == ["speed", "map", "grip", "corners"]
+    # The keys: arrows move, - and + change the width, Home puts everything back.
     sh = page.locator('[data-tile="speed"] [data-move]')
     sh.focus()
-    page.keyboard.press("ArrowRight")
-    assert order()["left"] == ["corners"] and order()["right"] == ["map", "speed"]
+    page.keyboard.press("ArrowDown")
+    assert order()[:2] == ["map", "speed"]
     page.keyboard.press("ArrowUp")
-    assert order()["right"] == ["speed", "map"]
-    # Session settings can come up into a column too, and the Laps handle does not fold the list.
-    page.locator('[data-tile="settings"] [data-move]').focus()
-    page.keyboard.press("ArrowLeft")
-    assert order()["right"] == ["speed", "map", "settings"]
+    assert order()[:2] == ["speed", "map"]
+    page.keyboard.press("-")
+    page.keyboard.press("-")
+    assert span("speed") == "5"
+    page.keyboard.press("+")
+    assert span("speed") == "6"
+    # The corner handle: a drag to the right widens, a drag up gives a box its own height that scrolls.
+    ch = page.locator('[data-tile="corners"] [data-size]')
+    ch.scroll_into_view_if_needed()
+    cb = ch.bounding_box()
+    before = page.locator('[data-tile="corners"]').bounding_box()
+    page.mouse.move(cb["x"] + 13, cb["y"] + 13)
+    page.mouse.down()
+    page.mouse.move(cb["x"] + 13 + before["width"] * 0.5, cb["y"] + 13 - 120, steps=6)
+    page.mouse.up()
+    assert int(span("corners")) >= 10
+    after = page.locator('[data-tile="corners"]')
+    expect(after).to_have_class(re.compile("has-height"))
+    assert after.bounding_box()["height"] < before["height"] - 60
+    assert page.evaluate("getComputedStyle(document.querySelector('[data-tile=corners]')).overflowY") == "auto"
+    layout = json.loads(page.evaluate("localStorage.getItem('mt3ukLapsLayout')"))
+    assert layout["span"]["corners"] >= 10 and layout["height"]["corners"] > 100 and layout["order"][:3] == ["speed", "map", "grip"]
+    # The map's height does not follow its width: widened to the full row it stays the same height.
+    mh = page.locator("#tp-map2").bounding_box()["height"]
+    page.locator('[data-tile="map"] [data-move]').focus()
+    for _ in range(7):
+        page.keyboard.press("+")
+    assert span("map") == "12"
+    page.wait_for_timeout(200)
+    assert abs(page.locator("#tp-map2").bounding_box()["height"] - mh) < 4
+    # Home puts every tile back, and the Laps handle does not fold the list.
     was_open = page.locator("#tp-laps").evaluate("el => el.open")
     page.locator('[data-tile="laps"] [data-move]').click()
     assert page.locator("#tp-laps").evaluate("el => el.open") == was_open
+    sh.focus()
     page.keyboard.press("Home")
-    assert order() == first
-    assert page.evaluate("localStorage.getItem('mt3ukLapsOrder')") is None
-    # Phone: no sideways scroll with a moved panel.
-    page.keyboard.press("ArrowRight")
+    assert order() == first and span("speed") == "7" and span("map") == "5"
+    expect(page.locator('[data-tile="corners"]')).not_to_have_class(re.compile("has-height"))
+    assert page.evaluate("localStorage.getItem('mt3ukLapsLayout')") is None
+    # Phone: every tile is full width, no sideways scroll.
+    page.locator('[data-tile="speed"] [data-move]').focus()
+    page.keyboard.press("-")
     page.set_viewport_size({"width": 390, "height": 844})
     assert page.evaluate("document.documentElement.scrollWidth") <= 390
+    assert page.evaluate("document.querySelector('[data-tile=speed]').getBoundingClientRect().width") > 340
+    # The handles go in full screen.
+    page.set_viewport_size({"width": 1280, "height": 720})
+    page.locator("#tp-mapwrap .tv-zoom-full").click()
+    expect(page.locator("#tp-mapcard")).to_have_class(re.compile(r"is-full"))
+    expect(page.locator('[data-tile="map"] [data-move]')).to_be_hidden()
+    expect(page.locator('[data-tile="map"] > [data-size]')).to_be_hidden()

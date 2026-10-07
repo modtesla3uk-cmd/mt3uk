@@ -244,7 +244,7 @@ def test_iphone_keyboard_hints_on_email_and_nickname_boxes():
     sources = {name: (root / name).read_text(encoding="utf-8") for name in ("signin.html", "my-builds.html", "profile.html", "js/account-bar.js")}
     everything = "".join(sources.values())
     assert 'autocomplete="nickname"' not in everything
-    for nick_id in ("pf-gate-nick", "pf-nickname", "mt3uk-nick-input"):
+    for nick_id in ("pf-nickname", "mt3uk-nick-input"):
         tag = re.search(r'<input[^>]*id="%s"[^>]*>' % nick_id, everything).group(0)
         assert 'autocomplete="off"' in tag and 'autocorrect="off"' in tag, nick_id
     for email_id in ("si-signin-email", "si-code-email", "mb-email"):

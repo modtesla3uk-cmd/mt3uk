@@ -116,6 +116,8 @@ def test_event_page_draws_everything_the_entry_has(device_page):
     assert page.locator(".ph").count() == 0, "No placeholders once the images are there"
     assert page.title() == "Test Meet Title – MT3UK Events"
     assert page.locator('script[type="application/ld+json"]').count() == 1
+    canon = page.locator('link[rel="canonical"]')
+    assert canon.count() == 1 and canon.get_attribute("href") == "https://mt3uk.com/event.html?e=test-meet", "Each event is its own page for Google"
     assert page.errors == []
     assert overflow_width(page) <= 0
 
@@ -141,6 +143,7 @@ def test_a_draft_shows_striped_image_placeholders(device_page):
     page.locator(".ph").first.wait_for(state="visible", timeout=5000)
     assert "Hero image" in page.locator(".ph").first.inner_text()
     assert page.locator('meta[name="robots"][content*="noindex"]').count() == 1
+    assert page.locator('link[rel="canonical"]').count() == 0, "A draft names no canonical address"
 
 
 @all_devices

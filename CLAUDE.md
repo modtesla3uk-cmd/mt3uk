@@ -53,7 +53,7 @@ Static site for the MT3UK modified Tesla community, live at https://mt3uk.com. I
 - Each interview is a root-level `blog-<slug>.html` page. Its images live in `images/blog/owner-interviews/<slug>/`.
 - For a new interview:
   - add its entry to `interviews.json`
-  - add the page to `PAGES` in `generate_sitemap.py`
+  - nothing to add to the sitemap: `generate_sitemap.py` lists an interview (and a published event page, `event.html?e=<slug>`) from its data file once its publish date has come, as the gated page shows only its code card before then; the sync workflow runs it on each push of an HTML or data file and every Monday
   - add the page to `PAGES` in `scripts/build_layout.py` (active link `blog.html`), then run the script to give it the shared header and footer
   - run `python scripts/build_interview_search.py` so its mods are searchable
   - add the comments block: `<div class="ic" id="comments" data-thread="<slug>">` with `js/interview-comments.js`

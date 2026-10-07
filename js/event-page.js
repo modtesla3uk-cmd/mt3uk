@@ -315,7 +315,13 @@
     document.title = title;
     var desc = text(ev.tagline) || (list(ev.description)[0] || '');
     setMeta('meta[name="description"]', 'content', desc);
-    setMeta('link[rel="canonical"]', 'href', 'https://mt3uk.com/event.html?e=' + slug);
+    // event.html carries no canonical of its own (Google read a fixed bare event.html as the main
+    // copy of every event), so a published event adds its own address here.
+    if (!isDraft) {
+      var canon = document.querySelector('link[rel="canonical"]');
+      if (!canon) { canon = document.createElement('link'); canon.rel = 'canonical'; document.head.appendChild(canon); }
+      canon.href = 'https://mt3uk.com/event.html?e=' + encodeURIComponent(slug);
+    }
     setMeta('meta[property="og:title"]', 'content', title);
     setMeta('meta[property="og:description"]', 'content', desc);
     var img = safeUrl(ev.heroImage || ev.image);

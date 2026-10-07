@@ -6,10 +6,11 @@
 <script src="js/event-gate.js"></script>
 <!-- EVENT PAGE. One page for every event: event.html?e=<slug>. Each event is an entry in
      data/event-pages.json, made and edited on events-admin.html (Event pages), and js/event-page.js
-     draws it. The title and meta tags below are the fallback, and are replaced from the entry. -->
+     draws it. The title and meta tags below are the fallback, and are replaced from the entry. There is
+     no canonical tag here: one naming bare event.html made Google treat every event as a copy of it,
+     so js/event-page.js adds event.html?e=<slug> for a published event. -->
 <meta name="description" content="MT3UK events: meets, shows and track days for modified Tesla owners.">
 <title>Event – MT3UK Events</title>
-<link rel="canonical" href="https://mt3uk.com/event.html">
 <meta property="og:title" content="Event – MT3UK Events">
 <meta property="og:description" content="MT3UK events: meets, shows and track days for modified Tesla owners.">
 <meta property="og:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
@@ -513,7 +514,7 @@
     }
   </script>
 
-<script src="js/event-page.js?v=20261139" defer></script>
+<script src="js/event-page.js?v=20261140" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=15" defer></script>
 <script src="js/signin-prompt.js" defer></script>

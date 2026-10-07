@@ -772,6 +772,8 @@ def test_admin_welcome_text_is_edited_and_reset(page):
     expect(page.locator("#tc-preview-out")).to_have_attribute("placeholder", re.compile(r"^Anyone can browse the leaderboards"))
     expect(page.locator("#tc-preview-pending")).to_have_attribute("placeholder", re.compile(r"as soon as your place is ready"))
     page.locator("#tc-preview-out").fill("Testers only for now. Join the list.")
+    # The note still says Saved from the save before, so it is cleared first and the check waits for the new one.
+    page.evaluate("document.getElementById('tc-note').textContent = ''")
     page.locator("#tc-save").click()
     expect(page.locator("#tc-note")).to_contain_text("Saved")
     assert posted[-1]["previewOut"] == "Testers only for now. Join the list."
@@ -779,6 +781,7 @@ def test_admin_welcome_text_is_edited_and_reset(page):
     expect(page.locator("#tc-tip-heading")).to_have_attribute("placeholder", re.compile(r"^Tip: the more you upload"))
     page.locator("#tc-tip-heading").fill("Keep uploading")
     page.locator("#tc-tip-on").click()
+    page.evaluate("document.getElementById('tc-note').textContent = ''")
     page.locator("#tc-save").click()
     expect(page.locator("#tc-note")).to_contain_text("Saved")
     assert posted[-1]["tipHeading"] == "Keep uploading" and posted[-1]["tipOff"] is True

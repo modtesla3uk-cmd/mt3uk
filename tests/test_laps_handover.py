@@ -216,6 +216,9 @@ def test_profile_and_my_garage_stay_on_laps_with_the_laps_header(page):
     page.locator("#go").click()
     page.wait_for_url(MAIN + "/gallery.html", timeout=10000)
     assert state["made"] == 1
+    # The code is swapped for a sign-in and the page reloads itself: wait for that before moving on, or the reload
+    # can land after the next goto and put the Gallery back.
+    page.wait_for_function("localStorage.getItem('mt3ukMyBuildsSession') === 'tok-new' && document.referrer.indexOf('gallery.html') !== -1", timeout=10000)
     # On mt3uk.com the same pages keep the MT3UK header.
     page.goto(MAIN + "/profile.html")
     expect(page.locator("header .laps-logo")).to_have_count(0)

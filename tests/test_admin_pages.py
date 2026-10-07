@@ -200,7 +200,7 @@ def _retime_source():
     return subprocess.run(["node", "-e", script], capture_output=True, text=True, check=True, cwd=".").stdout
 
 
-def _retime_mocks(page, saved, old_best=99.9):
+def _retime_mocks(page, saved, old_best=99.9, extra_rows=()):
     cors = {"Access-Control-Allow-Origin": "*"}
     source = _retime_source()
     rows = [
@@ -208,6 +208,7 @@ def _retime_mocks(page, saved, old_best=99.9):
         {"id": "aaaaaaaa02", "type": "track", "venue": "Castle Combe", "date": "2026-07-02", "best": 80.1, "version": 1, "hasSource": False},
         {"id": "aaaaaaaa03", "type": "track", "venue": "Croft", "date": "2026-07-03", "best": 70.0, "version": 99, "hasSource": True},
     ]
+    rows += list(extra_rows)
     old = {"id": "aaaaaaaa01", "type": "track", "venue": "Thruxton", "date": "2026-07-01", "time": "10:00", "bestTime": old_best}
 
     def retime(route):
@@ -239,12 +240,33 @@ def test_admin_check_sessions_counts_old_ones_and_saves_nothing(page):
     expect(note).to_contain_text("3 sessions looked at")
     expect(note).to_contain_text("2 were timed with older code")
     expect(note).to_contain_text("1 have no readings kept")
-    expect(page.locator("#tk-retime-list li")).to_have_count(1)
-    # Each result links to the session, so the admin can open it and see whose it is.
-    expect(page.locator("#tk-retime-list li a")).to_have_attribute("href", "track.html?s=aaaaaaaa01")
-    # And it says whose session it is.
-    expect(page.locator("#tk-retime-list li a")).to_contain_text("Chris R: Thruxton, 2026-07-01")
+    # What would change is listed under the member and the course, each with a switch, and links to the session.
+    expect(page.locator("#tk-retime-picks .rt-member")).to_contain_text("Chris R")
+    expect(page.locator("#tk-retime-picks .rt-course")).to_contain_text("Thruxton")
+    expect(page.locator("#tk-retime-picks .rt-row a")).to_have_attribute("href", "track.html?s=aaaaaaaa01")
+    expect(page.locator("#tk-retime-picks .rt-row a")).to_contain_text("2026-07-01")
     assert saved == []
+
+
+def test_admin_check_sessions_lets_you_switch_sessions_off_and_re_times_only_the_rest(page):
+    saved = []
+    open_admin(page, "track-admin.html")
+    extra = [{"id": "aaaaaaaa04", "type": "track", "venue": "Thruxton", "date": "2026-07-04", "best": 99.9, "version": 1, "hasSource": True, "owner": "Dana K"}]
+    _retime_mocks(page, saved, extra_rows=extra)
+    page.on("dialog", lambda d: d.accept())
+    page.locator("#boards-wrap > summary").click()
+    page.locator("#tk-retime-check").click()
+    expect(page.locator("#tk-retime-picks .rt-member")).to_have_count(2)
+    # Anything else that would change besides the time is spelt out, such as the course.
+    expect(page.locator("#tk-retime-picks .rt-row").first).to_contain_text("Course:")
+    go = page.locator("#tk-retime-selected")
+    expect(go).to_have_text("Re-time selected (2)")
+    # Switching a member off leaves them out.
+    page.locator('#tk-retime-picks [data-pick-group="member"][data-who="Dana K"]').click()
+    expect(go).to_have_text("Re-time selected (1)")
+    go.click()
+    expect(page.locator("#tk-retime-note")).to_contain_text("Leaderboards rebuilt (4 cars)")
+    assert [x["id"] for x in saved] == ["aaaaaaaa01"], saved
 
 
 def test_admin_retime_saves_the_new_timing_then_rebuilds_the_boards(page):
@@ -267,7 +289,8 @@ def test_admin_retime_holds_back_a_best_time_that_moves_over_ten_percent(page):
     page.on("dialog", lambda d: d.accept())
     page.locator("#boards-wrap > summary").click()
     page.locator("#tk-retime-check").click()
-    expect(page.locator("#tk-retime-list li")).to_contain_text("held back unless you allow big changes")
+    expect(page.locator("#tk-retime-picks .rt-row")).to_contain_text("off unless you allow big changes")
+    expect(page.locator("#tk-retime-picks .rt-row [data-pick]")).to_have_attribute("aria-checked", "false")
     expect(page.locator("#tk-retime-note")).to_contain_text("1 held back for moving over 10%")
     page.locator("#tk-retime").click()
     expect(page.locator("#tk-retime-note")).to_contain_text("Leaderboards rebuilt")
@@ -1234,7 +1257,7 @@ def test_admin_checks_then_re_times_every_session_at_one_track_from_its_saved_re
     row.get_by_role("button", name="Check sessions here").click()
     expect(page.locator("#tk-retime-note")).to_contain_text("2 sessions at Thruxton")
     expect(page.locator("#tk-retime-note")).to_contain_text("1 have no readings kept")
-    expect(page.locator("#tk-retime-list")).to_contain_text("Thruxton, 2026-05-28 (track): 1:42.00 to 1:39.79")
+    expect(page.locator("#tk-retime-picks")).to_contain_text("2026-05-28 (track): 1:42.00 to 1:39.79")
     assert seen["posts"] == [] and seen["gets"] == ["r1"], seen
     # A no leaves everything as it was.
     page.once("dialog", lambda d: d.dismiss())

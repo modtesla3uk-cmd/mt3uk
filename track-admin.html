@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="css/admin-page.css?v=20270125">
+<link rel="stylesheet" href="css/admin-page.css?v=20270126">
 <link rel="stylesheet" href="css/admin.css">
 <link rel="stylesheet" href="css/track-map.css">
 </head>
@@ -204,6 +204,13 @@
         <div class="iv-toolbar"><button type="button" class="secondary" id="tc-save">Save</button><button type="button" class="secondary" id="tc-reset">Use the built-in words</button></div>
       </div>
     </details>
+    <details class="collapsible" id="panels-wrap">
+      <summary><h3 class="panel-title">Laps panels</h3></summary>
+      <p class="iv-note">The sections of the Laps front page (laps.html): Fastest right now, What Laps does, Every kind of day, Works with your lap timer and EVs, any make. Change any heading, intro line, card or chip, and choose where each one shows: the front page, and for signed-in members under the list on Sessions and under the track list on the Leaderboard. Anything left blank keeps the front page's own words.</p>
+      <p class="iv-note" id="lpn-note" role="status"></p>
+      <div class="ts-new" id="lpn-list"></div>
+      <div class="iv-toolbar"><button type="button" class="secondary" id="lpn-save">Save</button><button type="button" class="secondary" id="lpn-reset">Use the front page's own words</button></div>
+    </details>
     <details class="collapsible" id="tyres-wrap">
       <summary><h3 class="panel-title">Tyres <span class="summary-count" id="tyres-count"></span></h3></summary>
       <p class="iv-note">The tyre makes and models offered in Track sessions. The Model box suggests a make's models and members can still type anything. data/tyres.json is the starting list; changes made here are stored by the worker on top of it and used straight away.</p>
@@ -257,7 +264,7 @@
 </main>
 <script src="js/track-admin-page.js?v=20270107"></script>
 <script src="js/admin-subnav.js?v=20261160" defer></script>
-<script src="js/admin-help.js?v=20270210" defer></script>
+<script src="js/admin-help.js?v=20270211" defer></script>
 <script src="js/admin-alerts.js?v=20261250" defer></script>
 <script src="js/track-parse.js?v=20270121" defer></script>
 <script src="js/track-view.js?v=20270110" defer></script>
@@ -272,6 +279,7 @@
 <script src="js/track-share-card.js?v=20261181"></script>
 <script src="js/track-share-admin.js?v=20261105" defer></script>
 <script src="js/track-copy-admin.js?v=20270102" defer></script>
+<script src="js/laps-panels-admin.js?v=1" defer></script>
 <script src="js/track-drive-admin.js?v=20261231" defer></script>
 <script src="js/tyre-data.js?v=20270210" defer></script>
 <script src="js/tyre-admin.js?v=20270210" defer></script>

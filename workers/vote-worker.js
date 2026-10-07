@@ -8668,6 +8668,54 @@ async function handleTrackCopyAdmin(request, env) {
   return json({ success: true, copy: copy });
 }
 
+// ---------- Laps front page panels ----------
+// The sections of laps.html (Fastest right now, What Laps does, Every kind of day, Works with your lap timer, EVs any
+// make), editable on the Laps panels panel of track-admin.html: each one's heading, intro line, cards (title and text)
+// or chips, and where it shows (the front page, and for signed-in members Sessions and the Leaderboard). One KV key
+// (laps-panels), read with get(); a field left blank keeps the page's own words (laps.html is the built-in copy).
+var LAPS_PANELS_KEY = 'laps-panels';
+var LAPS_PANEL_IDS = ['fastest', 'what', 'days', 'timers', 'any-make'];
+var LAPS_PANEL_PLACES = { front: true, sessions: false, leaderboard: false };
+function cleanLapsPanels(body) {
+  var src = (body && body.panels) || {}, out = {};
+  LAPS_PANEL_IDS.forEach(function (id) {
+    var p = src[id];
+    if (!p || typeof p !== 'object') return;
+    var o = {}, heading = trackText(p.heading, 80), lead = trackText(p.lead, 400);
+    if (heading) o.heading = heading;
+    if (lead) o.lead = lead;
+    if (Array.isArray(p.cards)) {
+      var cards = p.cards.slice(0, 6).map(function (c) { return { title: trackText(c && c.title, 60), text: trackText(c && c.text, 300) }; });
+      if (cards.some(function (c) { return c.title || c.text; })) o.cards = cards;
+    }
+    var items = Array.isArray(p.items) ? p.items : String(p.items || '').split(/\r?\n/);
+    items = items.map(function (x) { return trackText(x, 40); }).filter(Boolean).slice(0, 12);
+    if (items.length) o.items = items;
+    var show = {};
+    Object.keys(LAPS_PANEL_PLACES).forEach(function (k) {
+      if (p.show && typeof p.show[k] === 'boolean' && p.show[k] !== LAPS_PANEL_PLACES[k]) show[k] = p.show[k];
+    });
+    if (Object.keys(show).length) o.show = show;
+    if (Object.keys(o).length) out[id] = o;
+  });
+  return out;
+}
+async function handleLapsPanelsPublic(request, env) {
+  var res = json({ success: true, panels: await getJsonKey(env, LAPS_PANELS_KEY, {}) });
+  res.headers.set('Cache-Control', 'public, max-age=120');
+  return res;
+}
+async function handleLapsPanelsAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  if (request.method === 'GET') return json({ success: true, panels: await getJsonKey(env, LAPS_PANELS_KEY, {}) });
+  var body;
+  try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var panels = body && body.reset ? {} : cleanLapsPanels(body);
+  if (Object.keys(panels).length) await env.VOTES.put(LAPS_PANELS_KEY, JSON.stringify(panels));
+  else await env.VOTES.delete(LAPS_PANELS_KEY);
+  return json({ success: true, panels: panels });
+}
+
 // ---------- Link preview pictures ----------
 // The picture a shared link previews with, for the Track Sessions page (slot track) and the homepage (slot home).
 // The admin saves pictures (a card drawn from a session, or a photo) to the bucket under share/<slot>/, each with
@@ -11287,6 +11335,12 @@ export default {
     }
     if (url.pathname === '/track/counts' && request.method === 'GET') {
       return handleTrackCounts(request, env);
+    }
+    if (url.pathname === '/laps/panels' && request.method === 'GET') {
+      return handleLapsPanelsPublic(request, env);
+    }
+    if (url.pathname === '/laps/panels/admin' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleLapsPanelsAdmin(request, env);
     }
     if (url.pathname === '/track/copy' && request.method === 'GET') {
       return handleTrackCopyPublic(request, env);

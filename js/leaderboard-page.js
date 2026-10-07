@@ -104,6 +104,7 @@
   }
   function route() {
     V.hideTip();
+    if (window.MT3UKLapsPanels) window.MT3UKLapsPanels.show(false);
     var p = params();
     app.innerHTML = '<div class="tp-loading" id="lb-loading" role="status"><span class="tp-spinner" aria-hidden="true"></span><p>Loading the leaderboards...</p></div>';
     setTimeout(function () {
@@ -233,6 +234,8 @@
     app.innerHTML = h;
     placeTip();
     syncPageBack();
+    // The front page panels the admin chose for the Leaderboard, under the track list (js/laps-panels.js).
+    if (window.MT3UKLapsPanels) window.MT3UKLapsPanels.show(true);
     var sortSel = document.getElementById('lb-sort');
     if (sortSel) sortSel.addEventListener('change', function () { sortMode = sortSel.value; sortChosen = true; showList(type); });
     var btn = app.querySelector('[data-showall]');

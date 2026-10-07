@@ -29,7 +29,7 @@ TRACK_GROUPS = [
     ("grp-sessions", "Members' sessions", ["new-sessions-wrap", "lines-wrap", "member-sessions-wrap"]),
     ("grp-tracks", "Tracks", ["tracks-wrap"]),
     ("grp-boards", "Leaderboards", ["board-checks-wrap", "boards-wrap", "drive-wrap"]),
-    ("grp-content", "Content", ["copy-wrap", "tyres-wrap", "pads-wrap", "vehicles-wrap", "cars-wrap", "share-wrap"]),
+    ("grp-content", "Content", ["copy-wrap", "panels-wrap", "tyres-wrap", "pads-wrap", "vehicles-wrap", "cars-wrap", "share-wrap"]),
 ]
 
 
@@ -153,7 +153,7 @@ def test_the_track_admin_sub_menu_lists_the_sections_of_each_category(page):
     expect(sub.locator("a")).to_have_text(["New sessions", "Line editing", "Member sessions"])
     expect(page.locator('.admin-nav a[data-here="true"]')).to_have_text("Members' sessions")
     page.locator('.admin-nav a[href="track-admin.html#grp-content"]').click()
-    expect(sub.locator("a")).to_have_text(["Welcome text", "Tyres", "Brake pads", "Vehicles", "Members' cars", "Track sessions sharing"])
+    expect(sub.locator("a")).to_have_text(["Welcome text", "Laps panels", "Tyres", "Brake pads", "Vehicles", "Members' cars", "Track sessions sharing"])
     sub.locator("a", has_text="Tyres").click()
     expect(page.locator("#tyres-wrap")).to_have_attribute("open", "")
     expect(page.locator("#tyres-wrap summary")).to_be_in_viewport()
@@ -751,6 +751,45 @@ def test_admin_welcome_text_is_edited_and_reset(page):
     expect(page.locator("#tc-note")).to_contain_text("built-in")
     assert posted[-1] == {"reset": True}
     expect(page.locator("#tc-heading")).to_have_value("")
+
+
+def test_admin_laps_panels_edit_the_front_page_sections_and_where_they_show(page):
+    cors = {"Access-Control-Allow-Origin": "*"}
+    stored, posted = {"fastest": {"show": {"sessions": True}}}, []
+
+    def panels_admin(route):
+        if route.request.method == "POST":
+            body = json.loads(route.request.post_data)
+            posted.append(body)
+            stored.clear()
+            if not body.get("reset"):
+                stored.update(body["panels"])
+        route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "panels": dict(stored)}), headers=cors)
+
+    open_admin(page, "track-admin.html")
+    page.route("**/laps/panels/admin**", panels_admin)
+    page.locator("#panels-wrap summary").click()
+    panels = page.locator("#lpn-list .lpn-panel")
+    expect(panels).to_have_count(5)
+    expect(panels.first.locator("legend")).to_have_text("Fastest right now")
+    fast = panels.first
+    expect(fast.locator("[data-place='sessions']")).to_have_attribute("aria-checked", "true")
+    expect(fast.locator("[data-place='front']")).to_have_attribute("aria-checked", "true")
+    what = page.locator("#lpn-list .lpn-panel[data-id='what']")
+    expect(what.locator("[data-f='heading']")).to_have_attribute("placeholder", "What Laps does")
+    expect(what.locator("[data-card]")).to_have_count(8)
+    what.locator("[data-f='heading']").fill("What Laps does for you")
+    what.locator("[data-place='leaderboard']").click()
+    page.locator("#lpn-list .lpn-panel[data-id='timers'] [data-f='items']").fill("RaceBox\n\nVBOX")
+    page.locator("#lpn-save").click()
+    expect(page.locator("#lpn-note")).to_contain_text("Saved")
+    sent = posted[-1]["panels"]
+    assert sent["what"]["heading"] == "What Laps does for you" and sent["what"]["show"] == {"front": True, "sessions": False, "leaderboard": True}
+    assert sent["timers"]["items"] == ["RaceBox", "VBOX"] and sent["fastest"]["show"]["sessions"] is True
+    page.on("dialog", lambda d: d.accept())
+    page.locator("#lpn-reset").click()
+    expect(page.locator("#lpn-note")).to_contain_text("own words")
+    assert posted[-1] == {"reset": True}
 
 
 def test_admin_sharing_panel_loads_once_the_admin_key_is_entered(page):

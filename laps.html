@@ -77,6 +77,7 @@
 </script>
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
 <link rel="stylesheet" href="css/site-header.css">
+<link rel="stylesheet" href="css/laps-panels.css?v=1">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 
@@ -371,37 +372,7 @@
   .lh-note { font-size: 0.86rem; color: #aeb7cb; }
   .lh-shot { border-radius: var(--radius); overflow: hidden; box-shadow: 0 18px 40px rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.12); }
   .lh-shot img { width: 100%; height: auto; }
-  .lh-sec { padding: 44px 0 8px; }
-  .lh-sec > .wrap > h2 { font-size: clamp(1.25rem, 3vw, 1.6rem); margin-bottom: 6px; }
-  .lh-sec > .wrap > .lh-lead { color: var(--ink-2); max-width: 62ch; margin-bottom: 18px; }
-  @media (min-width: 900px) { .lh-sec > .wrap > h2, .lh-sec > .wrap > .lh-lead { text-align: center; margin-left: auto; margin-right: auto; } }
-  .lh-grid { display: grid; gap: 12px; }
-  @media (min-width: 640px) { .lh-grid { grid-template-columns: 1fr 1fr; } }
-  @media (min-width: 900px) { .lh-grid.lh-4 { grid-template-columns: repeat(4, 1fr); } .lh-grid.lh-3 { grid-template-columns: repeat(3, 1fr); } }
-  .lh-card { background: #fff; border: 1px solid var(--hairline); border-radius: var(--radius); padding: 18px; display: grid; gap: 8px; align-content: start; }
-  .lh-card .icon { width: 28px; height: 28px; color: var(--orange); }
-  .lh-card h3 { margin: 0; font-size: 1rem; }
-  .lh-card p { color: var(--ink-2); font-size: 0.93rem; }
-  .lh-timers { display: flex; flex-wrap: wrap; gap: 8px; }
-  .lh-timers span { display: inline-flex; align-items: center; min-height: 40px; padding: 6px 14px; background: #fff; border: 1px solid var(--hairline-strong); border-radius: var(--radius-pill); font-weight: 600; font-size: 0.9rem; color: var(--ink); }
-  @media (min-width: 900px) { .lh-timers { justify-content: center; } }
-  .lh-fast { display: grid; gap: 8px; }
-  @media (min-width: 781px) { .lh-fast { grid-template-columns: 1fr 1fr; } }
-  .lh-fast a { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 10px 14px; background: #fff; border: 1px solid var(--hairline); border-radius: var(--radius); }
-  .lh-fast a:hover { border-color: var(--hairline-strong); }
-  .lh-fast .lh-where { flex: 1; min-width: 0; display: grid; }
-  .lh-fast .lh-where b { color: var(--ink); overflow-wrap: anywhere; }
-  .lh-fast .lh-where span { font-size: 0.82rem; color: var(--steel); overflow-wrap: anywhere; }
-  .lh-fast .tp-loading { grid-column: 1 / -1; padding: 24px 0; }
-  .lh-fast .lh-time { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }
-  .lh-fast-empty { color: var(--steel); }
-  .lh-more { margin-top: 12px; }
-  @media (min-width: 900px) { .lh-more { text-align: center; } }
-  .lh-band { margin: 44px 0 0; background: #fff; border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); padding: 36px 0; }
-  .lh-band .wrap { display: grid; gap: 14px; justify-items: start; }
-  @media (min-width: 900px) { .lh-band .wrap { justify-items: center; text-align: center; } }
-  .lh-band p { color: var(--ink-2); max-width: 60ch; }
-  @media (max-width: 780px) { .lh-hero { padding: 30px 0 34px; } .lh-sec { padding-top: 32px; } }
+  @media (max-width: 780px) { .lh-hero { padding: 30px 0 34px; } }
 
   /* The install banner (same as the homepage's), with a line icon for its close button. */
   .a2hs-banner { position: fixed; left: 16px; right: 16px; bottom: -120px; z-index: 300; display: flex; align-items: center; justify-content: space-between; gap: 16px; max-width: 480px; margin: 0 auto; background: var(--ink); color: var(--paper); border: 1px solid var(--orange); border-radius: var(--radius); padding: 14px 18px; font-family: var(--font-body); font-size: 0.85rem; transition: bottom .3s ease; }
@@ -462,8 +433,16 @@
     <div class="lh-shot"><img id="lh-shot-img" src="images/track-preview/share.jpg" alt="A session on Laps: the lap drawn on the track map, the lap times and a g-force chart" width="1200" height="630"></div>
   </div>
 </section>
-<main>
-  <section class="lh-sec" id="what">
+<main data-no-share>
+  <section class="lh-sec" id="fastest" data-panel="fastest">
+    <div class="wrap">
+      <h2>Fastest right now</h2>
+      <p class="lh-lead">The quickest shared time at the busiest tracks, strips and hill climbs.</p>
+      <div class="lh-fast" id="lh-fast" data-lh-fast><div class="tp-loading" role="status"><span class="tp-spinner" aria-hidden="true"></span><p>Loading the leaderboards&hellip;</p></div></div>
+      <p class="lh-more"><a class="btn btn-secondary" href="leaderboards.html">All leaderboards</a></p>
+    </div>
+  </section>
+  <section class="lh-sec" id="what" data-panel="what">
     <div class="wrap">
       <h2>What Laps does</h2>
       <p class="lh-lead">Everything is worked out from the file your lap timer already makes.</p>
@@ -475,7 +454,7 @@
       </div>
     </div>
   </section>
-  <section class="lh-sec" id="days">
+  <section class="lh-sec" id="days" data-panel="days">
     <div class="wrap">
       <h2>Every kind of day</h2>
       <p class="lh-lead">Choose what you were doing and Laps times it the right way.</p>
@@ -486,22 +465,14 @@
       </div>
     </div>
   </section>
-  <section class="lh-sec" id="timers">
+  <section class="lh-sec" id="timers" data-panel="timers">
     <div class="wrap">
       <h2>Works with your lap timer</h2>
       <p class="lh-lead">Export the session from your timer or app and upload the file. Most phone lap timer apps work too.</p>
       <div class="lh-timers"><span>RaceBox</span><span>VBOX</span><span>AiM</span><span>Harry&rsquo;s LapTimer</span><span>TrackAddict</span><span>Tesla Track Mode</span></div>
     </div>
   </section>
-  <section class="lh-sec" id="fastest">
-    <div class="wrap">
-      <h2>Fastest right now</h2>
-      <p class="lh-lead">The quickest shared time at the busiest tracks, strips and hill climbs.</p>
-      <div class="lh-fast" id="lh-fast"><div class="tp-loading" role="status"><span class="tp-spinner" aria-hidden="true"></span><p>Loading the leaderboards&hellip;</p></div></div>
-      <p class="lh-more"><a class="btn btn-secondary" href="leaderboards.html">All leaderboards</a></p>
-    </div>
-  </section>
-  <section class="lh-band" id="any-make">
+  <section class="lh-band" id="any-make" data-panel="any-make">
     <div class="wrap">
       <h2>EVs, any make</h2>
       <p>Laps started with modified Teslas. Now any EV can join: pick its make and model, no photo needed, and every session is kept private until you choose to share it.</p>
@@ -652,7 +623,8 @@
   }
 </script>
 
-<script src="js/laps-home.js?v=20261226" defer></script>
+<script src="js/laps-panels.js?v=1" defer></script>
+<script src="js/laps-home.js?v=20270101" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=14" defer></script>
 <script src="js/signin-prompt.js" defer></script>

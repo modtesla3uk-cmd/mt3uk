@@ -58,6 +58,9 @@ class FakeWorker:
         self.dupes = False
         # The admin's welcome words for the signed-out card, when set.
         self.copy = None
+        # The Laps front page panels (/laps/panels) and, when set, what /track/counts answers.
+        self.panels = None
+        self.counts = None
         # The link preview picture set's version, for the share links.
         self.shareVersion = 0
         self.public_car = {}
@@ -203,6 +206,10 @@ class FakeWorker:
             sid = q.get("id", [""])[0]
             self.sessions.pop(sid, None)
             self.index = [s for s in self.index if s["id"] != sid]
+        elif path == "/laps/panels":
+            data = {"success": True, "panels": self.panels or {}}
+        elif path == "/track/counts" and self.counts is not None:
+            data = self.counts
         elif path == "/track/counts":
             counts, cars = {}, {}
             for s in self.index:
@@ -1422,6 +1429,73 @@ def test_what_are_sessions_starts_open_for_a_member_with_no_sessions(page):
     open_page(page, FakeWorker(), "/track.html", signed_in=True)
     page.locator("#tp-hero-add").wait_for()
     expect(page.locator(".page-hero .tp-what")).not_to_have_attribute("open", "")
+
+
+LAPS_COUNTS = {"success": True, "counts": {"track-board:thruxton:main": 4, "drag-board:santa-pod": 2},
+               "leaders": {"track-board:thruxton:main": [{"car": "Arctic Three", "owner": "Rich", "model": "Model 3", "time": 81.42}],
+                           "drag-board:santa-pod": [{"car": "Venom", "owner": "Kit", "model": "Model S", "quarter": 10.84}]}}
+
+
+def test_the_sessions_bulb_shows_fastest_right_now_and_lights_up_when_a_leader_changes(page):
+    """The light bulb on Sessions opens Fastest right now above the tip, and is lit while a leader has changed since
+    the member last opened it; a new leader is marked New."""
+    fake = FakeWorker()
+    fake.counts = LAPS_COUNTS
+    open_page(page, fake, "/track.html", signed_in=True)
+    bulb = page.locator(".page-hero .laps-tip-bulbbtn")
+    expect(bulb).to_have_class(re.compile("is-lit"))
+    bulb.click()
+    pop = page.locator(".page-hero .laps-tip-pop")
+    expect(pop.locator(".lh-fast-pop a").first).to_contain_text("Thruxton")
+    expect(pop.locator(".lh-fast-pop a").first).to_contain_text("1:21.42")
+    expect(pop.locator(".laps-tip-words")).to_contain_text("Tip: the more you upload")
+    expect(bulb).not_to_have_class(re.compile("is-lit"))
+    # Seen: next time it is not lit, until a leader changes, which is marked New.
+    open_page(page, fake, "/track.html", signed_in=True)
+    page.locator(".page-hero .lh-fast-pop").wait_for(state="attached")
+    expect(page.locator(".page-hero .laps-tip-bulbbtn")).not_to_have_class(re.compile("is-lit"))
+    fake.counts = json.loads(json.dumps(LAPS_COUNTS))
+    fake.counts["leaders"]["track-board:thruxton:main"] = [{"car": "Venom", "owner": "Kit", "model": "Model S", "time": 79.9}]
+    open_page(page, fake, "/track.html", signed_in=True)
+    bulb = page.locator(".page-hero .laps-tip-bulbbtn")
+    expect(bulb).to_have_class(re.compile("is-lit"))
+    bulb.click()
+    expect(page.locator(".page-hero .lh-fast-pop a").first.locator(".lh-new")).to_have_text("New")
+    expect(page.locator(".page-hero .lh-fast-pop a").nth(1).locator(".lh-new")).to_have_count(0)
+
+
+def test_front_page_panels_chosen_for_sessions_and_the_leaderboard_show_for_members(page):
+    """A front page section the admin chose for Sessions (or the Leaderboard) is drawn under the list for a signed-in
+    member, with the admin's words, and never on a session's own page."""
+    fake = FakeWorker()
+    fake.counts = LAPS_COUNTS
+    fake.panels = {"what": {"heading": "What Laps does for you", "show": {"sessions": True}}, "fastest": {"show": {"leaderboard": True}}}
+    open_page(page, fake, "/track.html", signed_in=True)
+    slot = page.locator("[data-laps-panels='sessions']")
+    expect(slot).to_be_visible()
+    expect(slot.locator("h2")).to_have_text(["What Laps does for you"])
+    expect(slot.locator(".lh-card")).to_have_count(4)
+    expect(slot.locator(".mt3uk-share-dot")).to_have_count(0)
+    page.locator("#tp-hero-add").click()
+    expect(slot).to_be_hidden()
+    open_page(page, fake, "/leaderboards.html", signed_in=True)
+    lb = page.locator("[data-laps-panels='leaderboard']")
+    expect(lb).to_be_visible()
+    expect(lb.locator("h2")).to_have_text(["Fastest right now"])
+    expect(lb.locator(".lh-fast a").first).to_contain_text("Thruxton")
+    # Inside a board it is not shown.
+    page.locator(".lb-cardwrap a, .lb-strip, .lb-venue a").first.click()
+    expect(lb).to_be_hidden()
+
+
+def test_front_page_panels_are_not_shown_to_visitors_who_are_signed_out(page):
+    fake = FakeWorker()
+    fake.counts = LAPS_COUNTS
+    fake.panels = {"fastest": {"show": {"leaderboard": True}}}
+    open_page(page, fake, "/leaderboards.html", signed_in=False)
+    page.locator(".lb-venue").first.wait_for()
+    page.wait_for_timeout(300)
+    expect(page.locator("[data-laps-panels='leaderboard']")).to_be_hidden()
 
 
 def test_sessions_has_add_a_session_under_leaderboards(page):

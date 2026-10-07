@@ -1413,6 +1413,27 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   ok(cp.body.success && Object.keys(cp.body.copy).length === 0 && !kv.has('track-copy'), 'reset clears the words');
 }
 
+// The Laps front page panels: words and where each shows, in one KV key; blank keeps the page's own.
+{
+  let lp = await call('GET', '/laps/panels');
+  ok(lp.status === 200 && lp.body.success && Object.keys(lp.body.panels).length === 0, 'no panels set: the page uses its own');
+  ok((await call('POST', '/laps/panels/admin', { panels: {} })).status === 401, 'the panels need the admin key');
+  lp = await call('POST', '/laps/panels/admin?key=secret', { panels: {
+    fastest: { heading: ' Quickest   now ', show: { front: true, sessions: true, leaderboard: 'yes' } },
+    what: { cards: [{ title: 'Laps <found>', text: '' }, { title: '', text: '' }], lead: '' },
+    timers: { items: 'RaceBox\n\nVBOX' },
+    nope: { heading: 'x' },
+    days: { show: { front: false } }
+  } });
+  const ps = lp.body.panels;
+  ok(lp.body.success && ps.fastest.heading === 'Quickest now' && ps.fastest.show.sessions === true && !('front' in ps.fastest.show) && !('leaderboard' in ps.fastest.show), 'a heading is cleaned and only real changes of place are kept: ' + JSON.stringify(ps.fastest));
+  ok(ps.what.cards[0].title === 'Laps found' && ps.what.cards.length === 2 && !ps.what.lead, 'cards are kept by position, angle brackets dropped');
+  ok(ps.timers.items.length === 2 && !ps.nope && ps.days.show.front === false, 'chips come as lines, unknown panels are dropped, a panel can leave the front page');
+  ok((await call('GET', '/laps/panels')).body.panels.fastest.heading === 'Quickest now', 'the pages read them');
+  lp = await call('POST', '/laps/panels/admin?key=secret', { reset: true });
+  ok(lp.body.success && !kv.has('laps-panels'), 'reset clears them');
+}
+
 // The Track sessions link preview picture: pictures in the bucket, one KV key, a week's pick.
 {
   let sp = await call('GET', '/share/track');

@@ -657,3 +657,9 @@
 .vh-weight .vh-mweight { width: 110px; min-height: 40px; font: inherit; }
 .vh-vrow .vh-vweight { flex: 0 1 120px; min-height: 40px; font: inherit; }
 @media (max-width: 780px) { .vh-vrow .vh-vweight { order: 4; flex: 1 1 100%; min-height: 44px; font-size: 16px; } .vh-weight { flex: 1 1 100%; } .vh-weight .vh-mweight { flex: 1; min-height: 44px; font-size: 16px; } }
+  /* Laps panels (track-admin.html, js/laps-panels-admin.js): one box per front page section. */
+  .lpn-panel { border: 1px solid var(--hairline); border-radius: var(--radius); padding: 12px 14px; margin: 0 0 4px; display: grid; gap: 10px; }
+  .lpn-panel legend { font-weight: 700; padding: 0 6px; }
+  .lpn-panel label { font-size: 0.85rem; color: var(--steel); }
+  .lpn-panel input[type="text"], .lpn-panel textarea { display: block; width: 100%; margin-top: 4px; min-height: 44px; padding: 8px 10px; border: 1px solid var(--hairline-strong); border-radius: var(--radius-sm); font: inherit; color: var(--ink); background: #fff; }
+  .lpn-card { display: grid; gap: 8px; padding-left: 10px; border-left: 3px solid var(--hairline); }

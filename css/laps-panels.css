@@ -1,0 +1,52 @@
+/* The Laps front page sections (laps.html), also shown on Sessions and the Leaderboard when chosen on the Laps
+   panels panel of track-admin.html (js/laps-panels.js). */
+  .lh-sec { padding: 44px 0 8px; }
+  .lh-sec > .wrap > h2 { font-size: clamp(1.25rem, 3vw, 1.6rem); margin-bottom: 6px; }
+  .lh-sec > .wrap > .lh-lead { color: var(--ink-2); max-width: 62ch; margin-bottom: 18px; }
+  @media (min-width: 900px) { .lh-sec > .wrap > h2, .lh-sec > .wrap > .lh-lead { text-align: center; margin-left: auto; margin-right: auto; } }
+  .lh-grid { display: grid; gap: 12px; }
+  @media (min-width: 640px) { .lh-grid { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 900px) { .lh-grid.lh-4 { grid-template-columns: repeat(4, 1fr); } .lh-grid.lh-3 { grid-template-columns: repeat(3, 1fr); } }
+  .lh-card { background: #fff; border: 1px solid var(--hairline); border-radius: var(--radius); padding: 18px; display: grid; gap: 8px; align-content: start; }
+  .lh-card .icon { width: 28px; height: 28px; color: var(--orange); }
+  .lh-card h3 { margin: 0; font-size: 1rem; }
+  .lh-card p { color: var(--ink-2); font-size: 0.93rem; }
+  .lh-timers { display: flex; flex-wrap: wrap; gap: 8px; }
+  .lh-timers span { display: inline-flex; align-items: center; min-height: 40px; padding: 6px 14px; background: #fff; border: 1px solid var(--hairline-strong); border-radius: var(--radius-pill); font-weight: 600; font-size: 0.9rem; color: var(--ink); }
+  @media (min-width: 900px) { .lh-timers { justify-content: center; } }
+  .lh-fast { display: grid; gap: 8px; }
+  @media (min-width: 781px) { .lh-fast { grid-template-columns: 1fr 1fr; } }
+  .lh-fast a { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 10px 14px; background: #fff; border: 1px solid var(--hairline); border-radius: var(--radius); }
+  .lh-fast a:hover { border-color: var(--hairline-strong); }
+  .lh-fast .lh-where { flex: 1; min-width: 0; display: grid; }
+  .lh-fast .lh-where b { color: var(--ink); overflow-wrap: anywhere; }
+  .lh-fast .lh-where span { font-size: 0.82rem; color: var(--steel); overflow-wrap: anywhere; }
+  .lh-fast .tp-loading { grid-column: 1 / -1; padding: 24px 0; }
+  .lh-fast .lh-time { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }
+  .lh-fast-empty { color: var(--steel); }
+  .lh-more { margin-top: 12px; }
+  @media (min-width: 900px) { .lh-more { text-align: center; } }
+  .lh-band { margin: 44px 0 0; background: #fff; border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); padding: 36px 0; }
+  .lh-band .wrap { display: grid; gap: 14px; justify-items: start; }
+  @media (min-width: 900px) { .lh-band .wrap { justify-items: center; text-align: center; } }
+  .lh-band p { color: var(--ink-2); max-width: 60ch; }
+@media (max-width: 780px) { .lh-sec { padding-top: 32px; } }
+/* On Sessions and the Leaderboard: the chosen panels under the page, for signed-in members. */
+.laps-panels { padding-bottom: 36px; }
+.laps-panels[hidden] { display: none; }
+.laps-panels .lh-band { margin-top: 36px; }
+/* Sessions: the light bulb's box starts with Fastest right now (js/laps-panels.js fastBulb), and the bulb lights up
+   while a leader has changed since the member last opened it. */
+.laps-tip-pop:has(.lh-fast-pop) { max-height: min(560px, 75vh); overflow-y: auto; }
+.lh-fast-pop { display: grid; gap: 8px; padding-bottom: 12px; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,.18); }
+.lh-fast-pop:last-child { border-bottom: 0; padding-bottom: 0; margin-bottom: 0; }
+.lh-fast-pop > b { color: #fff; }
+.lh-fast-pop .lh-fast { grid-template-columns: 1fr; gap: 6px; }
+.lh-fast-pop .lh-fast a { min-height: 44px; padding: 6px 10px; background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.15); text-decoration: none; }
+.lh-fast-pop .lh-fast a:hover { border-color: rgba(255,255,255,.4); }
+.lh-fast-pop .lh-where b, .lh-fast-pop .lh-time { color: #fff; }
+.lh-fast-pop .lh-where span { color: #b9c0cf; }
+.lh-fast-all { justify-self: start; color: #ffd27a; font-weight: 600; font-size: 0.9rem; }
+.lh-new { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: var(--radius-pill); background: var(--orange); color: #fff; font-size: 0.7rem; font-weight: 700; vertical-align: 1px; }
+.laps-tip-bulbbtn.is-lit { position: relative; background: #ffd27a !important; color: #16233d !important; border-color: #ffd27a !important; box-shadow: 0 0 0 4px rgba(255,210,122,.25), 0 0 18px rgba(255,210,122,.55); }
+.laps-tip-bulbbtn.is-lit::after { content: ''; position: absolute; top: 1px; right: 1px; width: 10px; height: 10px; border-radius: 50%; background: var(--orange); border: 2px solid #16233d; }

@@ -366,6 +366,7 @@
     syncPageBack();
     heroAddCar = null;
     heroAdd();
+    if (window.MT3UKLapsPanels) window.MT3UKLapsPanels.show(false);
     if (cmpFull) { cmpFull = false; unlockOrientation(); document.body.classList.remove('tp-noscroll'); }
     V.hideTip();
     var p = params();
@@ -699,6 +700,8 @@
       // A member with no sessions yet sees What are Sessions? open, so they see what Laps does.
       var what = document.querySelector('.page-hero .tp-what');
       if (what && m && !(m.sessions || []).length) what.open = true;
+      // The front page panels the admin chose for Sessions, under the list (js/laps-panels.js).
+      if (window.MT3UKLapsPanels && m) window.MT3UKLapsPanels.show(true);
       if (window.MT3UKLapsTip) window.MT3UKLapsTip.place();
       wireAddCar();
       wireCarChips(m);

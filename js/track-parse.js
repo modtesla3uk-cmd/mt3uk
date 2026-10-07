@@ -34,7 +34,13 @@
   // 11: a lap trace's g figures are the biggest of the readings in each step, so a 25 a second file keeps its real peaks.
   // 12: only a glitch (over 0.25 g from its neighbours) is smoothed out of those peaks; real readings are kept as recorded.
   // 13: a lap's trace starts and ends exactly on the start line (the interpolated crossing), not on the first reading after it.
-  var ANALYSIS_VERSION = 13;
+  // 14: a standing start in a sprint or hill climb starts the clock from the accelerometer or the speed, whichever moves first.
+  var ANALYSIS_VERSION = 14;
+  // A standing start (sprints and hill climbs): the clock starts when the car moves off. The speed column of some
+  // loggers (Tesla Track Mode) lags the car, so the recorded lengthways g is read too, and the clock starts from
+  // whichever moved first. The g launch is LAUNCH_G above the standing level (a hill start sits on a slope), held for
+  // LAUNCH_HOLD readings in a row, within LAUNCH_LOOK seconds before the speed rose. The speed threshold is 0.5 km/h.
+  var LAUNCH_G = 0.15, LAUNCH_HOLD = 2, LAUNCH_LOOK = 3;
   var DEG = Math.PI / 180;
 
   function num(s) {
@@ -1237,7 +1243,10 @@
                 var k = 0;
                 while (k < pts.length - 1 && pts[k].t < seg[0]) k++;
                 while (k > 0 && pts[k - 1].v > 0.5) k--;
-                x = { i: k, t: pts[k].t, d: pts[k].d };
+                // The recorded accelerometer may see the launch before the speed column does: the earlier of the two.
+                var launch = { from: 'speed', lead: 0 }, kg = launchFromG(pts, rd, stopAt[ei - 1][0], k);
+                if (kg != null && kg < k) { launch = { from: 'g', lead: round(pts[k].t - pts[kg].t, 2) }; k = kg; }
+                x = { i: k, t: pts[k].t, d: pts[k].d, launch: launch };
               }
               first = false;
               if (!x) break;
@@ -1314,7 +1323,34 @@
     if (opts.finishCrossing >= 1) session.finishCrossing = Math.min(9, Math.round(opts.finishCrossing));
     if (pick.climb) session.pointToPoint = true;
     var laps = buildLaps(pts, null, null, pick.pairs);
+    // Which signal started the clock on the best run (a standing start only): the accelerometer or the speed.
+    var bestLap = laps.filter(function (l) { return l.kind === 'timed'; }).reduce(function (b, l) { return !b || l.time < b.time ? l : b; }, null);
+    var bestPair = bestLap && pick.pairs.filter(function (pr) { return pr[0].t === bestLap.start; })[0];
+    if (bestPair && bestPair[0].launch) session.launch = bestPair[0].launch;
     return timedTail(session, pts, laps, layout, proj, origin);
+  }
+
+  // The reading where the recorded lengthways g says the car launched, or null. pts[k] is where the speed rose above
+  // 0.5 km/h and stopFrom when the stop began. The standing level is the median g over the stop (a hill start sits on
+  // a slope, so it is not 0), and the launch is the first reading within LAUNCH_LOOK seconds before k that is LAUNCH_G
+  // over it for LAUNCH_HOLD readings in a row. A file whose g was worked out from its speed (gDerived) lags just the
+  // same, so it gives nothing here.
+  function launchFromG(pts, rd, stopFrom, k) {
+    if (!rd || rd.gDerived || k <= 0) return null;
+    var tk = pts[k].t, base = [], j;
+    for (j = k - 1; j >= 0 && pts[j].t >= stopFrom && pts[j].t >= tk - 6; j--) if (pts[j].t <= tk - 1.5 && isFinite(pts[j].lo)) base.push(pts[j].lo);
+    if (base.length < 3) { base = []; for (j = k - 1; j >= 0 && pts[j].t >= stopFrom; j--) if (isFinite(pts[j].lo)) base.push(pts[j].lo); }
+    if (base.length < 3) return null;
+    base.sort(function (a, b) { return a - b; });
+    var level = base[Math.floor(base.length / 2)];
+    var from = k;
+    while (from > 0 && pts[from - 1].t >= stopFrom && pts[from - 1].t >= tk - LAUNCH_LOOK) from--;
+    for (j = from; j < k; j++) {
+      var held = 0;
+      for (var h = j; h < pts.length && held < LAUNCH_HOLD; h++) { if (isFinite(pts[h].lo) && pts[h].lo - level >= LAUNCH_G) held++; else break; }
+      if (held >= LAUNCH_HOLD) return j;
+    }
+    return null;
   }
 
   // Bests, sectors, traces and corners for laps or sprint runs.

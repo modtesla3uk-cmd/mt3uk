@@ -1593,6 +1593,19 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   ok((await call('GET', '/admin/alerts?key=secret')).body.alerts.sessions === true, 'and back on');
 }
 
+// Which signal started a standing start's clock (launch) is kept on a saved session.
+{
+  const withLaunch = JSON.parse(JSON.stringify(session)); withLaunch.type = 'sprint'; withLaunch.launch = { from: 'g', lead: 0.28 };
+  const rr = await call('POST', '/track/sessions', { carId: 'cara1', session: withLaunch }, 'tok-a');
+  const kept = rr.status === 200 && stored('track-session:' + rr.body.session.id);
+  ok(kept && kept.launch && kept.launch.from === 'g' && kept.launch.lead === 0.28, 'launch (accelerometer, 0.28 s ahead) is kept on the saved session (' + rr.status + ')');
+  const bad = JSON.parse(JSON.stringify(session)); bad.launch = { from: 'guess', lead: 99 };
+  const rb = await call('POST', '/track/sessions', { carId: 'cara1', session: bad }, 'tok-a');
+  ok(rb.status === 200 && !stored('track-session:' + rb.body.session.id).launch, 'a made-up launch is dropped');
+  if (kept) await call('DELETE', '/track/session?id=' + rr.body.session.id, undefined, 'tok-a');
+  if (rb.status === 200) await call('DELETE', '/track/session?id=' + rb.body.session.id, undefined, 'tok-a');
+}
+
 // ---- The Usage panel's counts ----
 r = await call('GET', '/track/admin/usage');
 ok(r.status === 401, 'the usage counts need the admin key');

@@ -3212,6 +3212,27 @@ def test_hill_climbs_keep_both_runs_with_the_ignore_switch_on(page):
     expect(page.locator("#tp-ignore-finish")).to_be_visible()
 
 
+def test_a_sprint_says_which_signal_started_its_clock(page):
+    """A standing start's session page says whether the accelerometer or the speed started the clock on the best run."""
+    page.route(re.compile(r".*/data/tracks\.json.*"), _course(HILL_FINISH, 1500))
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    page.locator("[data-type] button[data-v='sprint']").click()
+    expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("2 timed runs")
+    page.get_by_role("button", name="Save session").click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
+    # Rolling laps in this file: no standing start, so nothing is said.
+    expect(page.locator("#tp-launch")).to_have_count(0)
+    fake.sessions["new1"]["launch"] = {"from": "g", "lead": 0.27}
+    page.reload()
+    expect(page.locator("#tp-launch")).to_have_text(re.compile(r"Clock started from the accelerometer, 0\.27 s before the speed rose"))
+    fake.sessions["new1"]["launch"] = {"from": "speed", "lead": 0}
+    page.reload()
+    expect(page.locator("#tp-launch")).to_contain_text("Clock started from the speed")
+
+
 def test_go_back_to_the_start_during_playback(page):
     fake = FakeWorker()
     open_page(page, fake)

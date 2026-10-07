@@ -879,7 +879,7 @@
     }).catch(function () { failed('Your sessions could not be loaded. Check your connection and try again.'); });
   }
   function sessionRow(s, carName) {
-    return '<a class="tp-row" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '"><span class="tp-row-main"><b>' + esc(trackName(s)) + '</b><span>' + esc(niceDate(s.date)) + (s.conditions ? ', ' + esc(s.conditions) : '') + (TYPE_WORD[s.type] ? ', ' + TYPE_WORD[s.type] : '') + '</span>' + (carName ? '<span class="tp-row-car">' + esc(carName) + '</span>' : '') + '</span>' +
+    return '<a class="tp-row" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '"><span class="tp-row-main"><b>' + esc(trackName(s)) + '</b><span>' + esc(niceDate(s.date)) + (s.conditions ? ', ' + esc(s.conditions) : '') + (TYPE_WORD[s.type] ? ', ' + TYPE_WORD[s.type] : '') + (s.pads ? ', ' + esc(s.pads) : '') + '</span>' + (carName ? '<span class="tp-row-car">' + esc(carName) + '</span>' : '') + '</span>' +
       '<span class="tp-row-res">' + esc(sessionResult(s)) + '</span>' + (s.privacy !== undefined ? privacyPill(s.privacy, s.street) : '') + icon('chev') + '</a>';
   }
   // Sessions at the same track on the same day are grouped, in time of day order, and numbered by it:
@@ -899,7 +899,7 @@
   }
   function dayRow(s, n, fastest) {
     return '<a class="tp-row" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '"><span class="tp-daygroup-no">#' + n + '</span><span class="tp-row-main"><b>' + (s.time ? esc(s.time) : 'Time not known') + '</b><span>' +
-      esc([s.type === 'drag' ? (s.runs || 0) + ' run' + (s.runs === 1 ? '' : 's') : (s.laps || 0) + (s.type === 'sprint' ? ' run' : ' lap') + (s.laps === 1 ? '' : 's'), s.conditions].filter(Boolean).join(', ')) + (fastest ? ' <b class="tp-fastest">Fastest</b>' : '') + '</span></span>' +
+      esc([s.type === 'drag' ? (s.runs || 0) + ' run' + (s.runs === 1 ? '' : 's') : (s.laps || 0) + (s.type === 'sprint' ? ' run' : ' lap') + (s.laps === 1 ? '' : 's'), s.conditions, s.pads].filter(Boolean).join(', ')) + (fastest ? ' <b class="tp-fastest">Fastest</b>' : '') + '</span></span>' +
       '<span class="tp-row-res">' + esc(sessionResult(s)) + '</span>' + (s.privacy !== undefined ? privacyPill(s.privacy, s.street) : '') + icon('chev') + '</a>';
   }
   // The list as rows, with a day at one track in a card of its own when it has two or more sessions.
@@ -4089,12 +4089,24 @@
   }
 
   // ---------- A build's shared sessions ----------
+  // Kerb weight (the owner's figure, else the vehicle list's for the model and version) and the pads fitted, from
+  // the car's mods in My Garage.
+  function carKitHtml(c) {
+    var V = window.MT3UKVehicles, lib = V && V.weight ? V.weight(c) : null;
+    var parts = [];
+    if (c.weight) parts.push('Kerb weight ' + Number(c.weight).toLocaleString('en-GB') + ' kg (owner\'s figure)');
+    else if (lib) parts.push('Kerb weight ' + Number(lib).toLocaleString('en-GB') + ' kg (maker\'s figure)');
+    if (c.pads) parts.push('Pads: ' + c.pads);
+    return parts.length ? '<p class="tp-sub" id="tp-car-kit">' + esc(parts.join(' · ')) + '</p>' : '';
+  }
   function showCar(carId) {
     loading();
-    api('GET', '/track/public?car=' + encodeURIComponent(carId)).then(function (d) {
+    var V = window.MT3UKVehicles;
+    Promise.all([api('GET', '/track/public?car=' + encodeURIComponent(carId)), V && V.load ? V.load().catch(function () {}) : null]).then(function (r) {
+      var d = r[0];
       if (!d.success) return failed('That build could not be found.');
       var c = d.car;
-      var h = back('Track sessions', '') + '<div class="tp-head"><div><h2>' + esc(c.name || 'MT3UK build') + '</h2><p class="tp-sub">' + esc([c.owner, [c.year, titleOf(c), c.version].filter(Boolean).join(' '), c.drive].filter(Boolean).join(' · ')) + '</p></div>' + '<div class="tp-head-side">' + refreshChip() + unitsChip() + shareDot('Share this build') + '</div></div>';
+      var h = back('Track sessions', '') + '<div class="tp-head"><div><h2>' + esc(c.name || 'MT3UK build') + '</h2><p class="tp-sub">' + esc([c.owner, [c.year, titleOf(c), c.version].filter(Boolean).join(' '), c.drive].filter(Boolean).join(' · ')) + '</p>' + carKitHtml(c) + '</div>' + '<div class="tp-head-side">' + refreshChip() + unitsChip() + shareDot('Share this build') + '</div></div>';
       if (d.mine) h += '<p class="tp-sub">This is what other members see. Only sessions you share show here.</p>';
       h += d.sessions.length ? '<div class="tp-list">' + sessionListHtml(d.sessions) + '</div>' : '<div class="card tp-empty">' + icon('flag') + '<p>No shared sessions yet.</p></div>';
       h += '<p class="tp-sub"><a href="gallery.html" class="tp-link">See the build in the Gallery' + icon('chev') + '</a></p>';

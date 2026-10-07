@@ -342,7 +342,8 @@
   var TEMPS = [['cold', 'Under 10\u00b0C'], ['mild', '10 to 20\u00b0C'], ['warm', 'Over 20\u00b0C']];
   var WEIGHTS = [['light', 'Under 1,800 kg'], ['mid', '1,800 to 2,100 kg'], ['heavy', 'Over 2,100 kg']];
   function tempBand(t) { return typeof t !== 'number' ? '' : t < 10 ? 'cold' : t <= 20 ? 'mild' : 'warm'; }
-  function weightOf(e) { return window.MT3UKVehicles && window.MT3UKVehicles.weight ? window.MT3UKVehicles.weight(e) : null; }
+  // The car's own kerb weight (set by the owner in My Garage or by the admin), else the vehicle list's for its model and version.
+  function weightOf(e) { return (e && e.weight) || (window.MT3UKVehicles && window.MT3UKVehicles.weight ? window.MT3UKVehicles.weight(e) : null); }
   function weightBand(w) { return !w ? '' : w < 1800 ? 'light' : w <= 2100 ? 'mid' : 'heavy'; }
   function labelOf(list, k) { for (var i = 0; i < list.length; i++) if (list[i][0] === k) return list[i][1]; return k; }
   // A car's make and model as the filter and the board line see them (js/vehicle-data.js); cars saved before makes existed have only a model.

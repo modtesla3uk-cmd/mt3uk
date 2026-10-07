@@ -916,7 +916,8 @@
   .mb-field-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .mb-mods-next { display: flex; gap: 10px; align-items: flex-start; margin: 0 0 16px; padding: 12px 14px; border-radius: var(--radius-sm); background: #fdf3ef; font-size: 0.9rem; color: var(--ink-2, var(--ink)); }
   .mb-mods-next .icon { width: 18px; height: 18px; color: var(--orange); flex-shrink: 0; margin-top: 2px; }
-  #mb-car-make-select, #mb-car-model-select, #mb-car-version-select, #mb-car-year-select, #mb-car-drive-select { min-height: 36px; }
+  #mb-car-make-select, #mb-car-model-select, #mb-car-version-select, #mb-car-year-select, #mb-car-drive-select, #mb-car-weight { min-height: 36px; }
+  #mb-car-weight { width: 150px; }
   .mb-model-pick .chip[hidden], .mb-model-other { display: none; }
   .mb-car-color-select:disabled { opacity: 0.6; background: #eceef2; color: #6b7385; cursor: not-allowed; }
   /* Model, version and year stay together. */
@@ -1560,6 +1561,7 @@ document.addEventListener('DOMContentLoaded', function () {
           <select class="mb-car-color-select" id="mb-car-version-select" aria-label="Version"><option value="">Version</option></select>
           <select class="mb-car-color-select" id="mb-car-year-select" aria-label="Year"><option value="">Year</option></select>
           <select class="mb-car-color-select" id="mb-car-drive-select" aria-label="Driven wheels"><option value="">Driven wheels</option><option value="FWD">FWD</option><option value="RWD">RWD</option><option value="AWD">AWD</option></select>
+          <input type="number" class="mb-car-color-select" id="mb-car-weight" min="300" max="4000" step="5" placeholder="Kerb weight (kg)" aria-label="Kerb weight in kg" title="Kerb weight in kg: leave it blank to use the maker's figure for the model and version">
           </span>
           <span class="mb-car-photo-count mono" id="mb-car-photo-count"></span>
           <span class="mb-status mb-car-name-status" id="mb-car-name-status"></span>
@@ -2972,6 +2974,7 @@ document.addEventListener('DOMContentLoaded', function () {
       }
       if (version !== (current.version || '') || fields.model !== undefined) { fields.version = version; changed = true; }
       if (year !== String(current.year || '')) { fields.year = year; changed = true; }
+      if (carWeightInput && carWeightInput.value.trim() !== String(current.weight || '')) { fields.weight = carWeightInput.value.trim(); changed = true; }
       if (!changed) { showCarNameEdit(false); return; }
       carNameSaveBtn.disabled = true;
       setStatus(carNameStatus, 'Saving…', '');
@@ -3215,6 +3218,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var carVersionSelect = document.getElementById('mb-car-version-select');
     var carYearSelect = document.getElementById('mb-car-year-select');
     var carDriveSelect = document.getElementById('mb-car-drive-select');
+    var carWeightInput = document.getElementById('mb-car-weight');
     if (window.MT3UKVehicles) window.MT3UKVehicles.load();
     var MAKE_OF_MODEL = { 'Model 3': 'Tesla', 'Model Y': 'Tesla', 'Model S': 'Tesla', 'Model X': 'Tesla', 'Hyundai Ioniq 5 N': 'Hyundai', 'Hyundai Ioniq 6 N': 'Hyundai', 'Porsche Taycan': 'Porsche' };
     var carDriveTouched = false;
@@ -3275,7 +3279,18 @@ document.addEventListener('DOMContentLoaded', function () {
       MB.fillVersions(carVersionSelect, model, (car && car.version) || '', make);
       carYearSelect.innerHTML = MB.yearOptions((car && car.year) || '');
       if (carDriveSelect) carDriveSelect.value = (car && car.drive) || '';
+      if (carWeightInput) carWeightInput.value = (car && car.weight) || '';
+      showCarWeightHint();
       applyCarLocks();
+    }
+    // The Kerb weight box offers the vehicle list's figure for the make, model and version picked; the owner's own
+    // figure (a stripped car, say) is only sent when typed.
+    function showCarWeightHint() {
+      var V = window.MT3UKVehicles;
+      if (!carWeightInput) return;
+      var current = findCar(currentCarId) || {};
+      var lib = V && V.weight ? V.weight({ make: carMakeSelect.value, model: carModelSelect.value, version: carVersionSelect.value, vehicleType: current.vehicleType }) : null;
+      carWeightInput.placeholder = lib ? 'Kerb weight: maker ' + lib + ' kg' : 'Kerb weight (kg)';
     }
     // Driven wheels follow the make, model, version and year picked, until the owner picks them.
     function workOutCarDrive() {
@@ -3299,6 +3314,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     carVersionSelect.addEventListener('change', workOutCarDrive);
     carYearSelect.addEventListener('change', workOutCarDrive);
+    [carMakeSelect, carModelSelect, carVersionSelect].forEach(function (el) { el.addEventListener('change', showCarWeightHint); });
     if (carDriveSelect) carDriveSelect.addEventListener('change', function () { carDriveTouched = true; });
 
     var imgLightbox = document.getElementById('mb-img-lightbox');

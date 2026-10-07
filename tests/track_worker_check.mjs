@@ -1268,6 +1268,21 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   r = await call('POST', '/track/admin/session?key=secret', { id: 'deadbeef00', venue: 'X' });
   ok(r.status === 404, 'an unknown session is not found');
 }
+// A car's page carries its kerb weight (the owner's figure) and the pads fitted, and so does its board row.
+{
+  const d0 = JSON.parse(kv.get('car-details:cara1'));
+  kv.set('car-details:cara1', JSON.stringify(Object.assign({}, d0, { weight: 1850, specs: { brakes: { status: 'up', fields: { frontPads: 'Pagid RSL29', rearPads: 'Pagid RSL29' } } } })));
+  r = await call('GET', '/track/public?car=cara1');
+  ok(r.status === 200 && r.body.car.weight === 1850 && r.body.car.pads === 'Pagid RSL29', 'the car page has the weight and the pads: ' + JSON.stringify([r.body.car.weight, r.body.car.pads]));
+  r = await call('POST', '/track/sessions', { carId: 'cara1', session, privacy: 'board', conditions: 'Dry' }, 'tok-a');
+  const wid = r.body.session.id;
+  const we = (await call('GET', '/track/board?venue=thruxton&layout=main')).body.entries.find(x => x.carId === 'cara1');
+  ok(we && we.weight === 1850, 'the board entry carries the kerb weight for the Compare weight filter');
+  await call('DELETE', '/track/session?id=' + wid, undefined, 'tok-a');
+  kv.set('car-details:cara1', JSON.stringify(d0));
+  r = await call('GET', '/track/public?car=cara1');
+  ok(r.body.car.weight === '' && r.body.car.pads === '', 'blank without them');
+}
 // A member leaving is taken off the early preview lists.
 kv.set('track-access', JSON.stringify({ open: false, allowed: [{ email: A }, { email: B }, { email: 'gone@example.com' }], pending: [{ email: 'gone@example.com' }] }));
 await mod.deleteMemberAccount(env, 'gone@example.com');

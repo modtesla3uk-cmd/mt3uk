@@ -339,7 +339,7 @@ def test_the_members_cars_panel_lists_every_car_and_changes_one(page):
         {"carId": "c1", "car": "DEVIANT MODEL S", "owner": "Myk", "email": "myk@example.com", "sessions": 3, "photos": 2, "garageOnly": False,
          "make": "", "model": "", "version": "", "year": "", "vehicleType": "car", "drive": "", "set": False},
         {"carId": "c2", "car": "Flash", "owner": "Aaron", "email": "aaron@example.com", "sessions": 1, "photos": 1, "garageOnly": True,
-         "make": "Kia", "model": "EV6 GT", "version": "", "year": 2024, "vehicleType": "car", "drive": "AWD", "set": False},
+         "make": "Kia", "model": "EV6 GT", "version": "", "year": 2024, "vehicleType": "car", "drive": "AWD", "set": False, "weight": 2200, "pads": "Pagid RSL29"},
         {"carId": "c3", "car": "PROJECT 3 - OLD", "owner": "", "email": "", "sessions": 0, "photos": 2, "livePhotos": 0, "stale": True, "garageOnly": False,
          "make": "", "model": "", "version": "", "year": "", "vehicleType": "car", "drive": "", "set": False},
     ]
@@ -382,6 +382,10 @@ def test_the_members_cars_panel_lists_every_car_and_changes_one(page):
     expect(first).to_contain_text("no model")
     expect(rows.nth(1).locator(".mc-badge")).to_have_text("Garage only")
     assert rows.nth(1).locator(".mc-model").input_value() == "EV6 GT"
+    # Kerb weight (the car's own, else the vehicle list's as the placeholder) and the pads fitted.
+    assert rows.nth(1).locator(".mc-weight").input_value() == "2200"
+    expect(rows.nth(1).locator('[data-label="Pads"]')).to_have_text("Pagid RSL29")
+    expect(first.locator('[data-label="Pads"]')).to_contain_text("Not set")
     # The drop-downs offer the vehicle list's makes, then the make's models, then the model's versions.
     assert "Tesla" in first.locator(".mc-make option").evaluate_all("els => els.map(e => e.value)")
     first.locator(".mc-make").select_option("Tesla")
@@ -393,9 +397,11 @@ def test_the_members_cars_panel_lists_every_car_and_changes_one(page):
     first.locator(".mc-version-typed").fill("Plaid")
     first.locator(".mc-year").fill("2022")
     first.locator(".mc-drive").select_option("AWD")
+    expect(first.locator(".mc-weight")).to_have_attribute("placeholder", "Not known")
+    first.locator(".mc-weight").fill("2150")
     first.locator(".mc-save").click()
     expect(page.locator("#mc-note")).to_contain_text("3 sessions stamped and 1 leaderboard refreshed")
-    assert state["posts"][-1] == {"carId": "c1", "vehicleType": "car", "make": "Tesla", "model": "Model S", "version": "Plaid", "year": "2022", "drive": "AWD"}
+    assert state["posts"][-1] == {"carId": "c1", "vehicleType": "car", "make": "Tesla", "model": "Model S", "version": "Plaid", "year": "2022", "drive": "AWD", "weight": "2150"}
     row = page.locator('#mc-list tr.mc-row[data-car="c1"]')
     expect(row).not_to_have_class(re.compile("is-target"))
     assert row.locator(".mc-model").input_value() == "Model S"
@@ -534,6 +540,19 @@ def test_my_garage_keeps_a_model_it_does_not_list(device_page):
     page.wait_for_function("document.getElementById('mb-car-model-select').disabled === true", timeout=5000)
     assert last_put(page).get("drive") == "RWD", last_put(page)
     assert select.input_value() == "Model 3"
+    # The Kerb weight box offers the vehicle list's figure for the model and version picked, and only a typed
+    # figure is sent.
+    page.locator("#mb-car-name-edit").click()
+    weight = page.locator("#mb-car-weight")
+    assert weight.input_value() == ""
+    page.select_option("#mb-car-make-select", "Tesla")
+    page.select_option("#mb-car-model-select", "Model 3")
+    page.select_option("#mb-car-version-select", "Performance")
+    expect(weight).to_have_attribute("placeholder", re.compile(r"maker \d+ kg"))
+    weight.fill("1790")
+    page.locator("#mb-car-name-save").click()
+    page.wait_for_function("document.getElementById('mb-car-model-select').disabled === true", timeout=5000)
+    assert last_put(page).get("weight") == "1790", last_put(page)
     assert page.errors == [], diagnostics(page)
 
 

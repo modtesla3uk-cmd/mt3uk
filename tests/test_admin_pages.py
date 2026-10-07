@@ -760,7 +760,15 @@ def test_admin_welcome_text_is_edited_and_reset(page):
     page.locator("#tc-bullets").fill("One\n\nTwo  \nThree")
     page.locator("#tc-save").click()
     expect(page.locator("#tc-note")).to_contain_text("Saved")
-    assert posted[-1] == {"heading": "Lap times for every MT3UK car", "intro": "Bring your RaceBox file and see every lap.", "bullets": ["One", "Two", "Three"], "tipHeading": "", "tipText": "", "tipOff": False}
+    assert posted[-1] == {"heading": "Lap times for every MT3UK car", "intro": "Bring your RaceBox file and see every lap.", "bullets": ["One", "Two", "Three"], "tipHeading": "", "tipText": "", "tipOff": False,
+                          "previewOut": "", "previewNone": "", "previewPending": ""}
+    # The early preview note: three boxes, the built-in words as placeholders.
+    expect(page.locator("#tc-preview-out")).to_have_attribute("placeholder", re.compile(r"^Anyone can browse the leaderboards"))
+    expect(page.locator("#tc-preview-pending")).to_have_attribute("placeholder", re.compile(r"as soon as your place is ready"))
+    page.locator("#tc-preview-out").fill("Testers only for now. Join the list.")
+    page.locator("#tc-save").click()
+    expect(page.locator("#tc-note")).to_contain_text("Saved")
+    assert posted[-1]["previewOut"] == "Testers only for now. Join the list."
     # The tip on Sessions and the Leaderboard: its own words, and a switch to hide it.
     expect(page.locator("#tc-tip-heading")).to_have_attribute("placeholder", re.compile(r"^Tip: the more you upload"))
     page.locator("#tc-tip-heading").fill("Keep uploading")

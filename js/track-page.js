@@ -66,6 +66,7 @@
     eye: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',
     trophy: '<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/>',
     back: '<path d="M19 12H5M12 19l-7-7 7-7"/>',
+    sessions: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M10 2h4"/>',
     chev: '<path d="m9 6 6 6-6 6"/>',
     trash: '<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/>',
     user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/>',
@@ -320,23 +321,31 @@
   // Back has it moved into the heading in its place.
   function syncPageBack() {
     if (!heroTop || !pageBack) return;
-    [].slice.call(heroTop.querySelectorAll('.tp-back')).forEach(function (x) { x.remove(); });
+    [].slice.call(heroTop.querySelectorAll('.tp-back, .tp-home')).forEach(function (x) { x.remove(); });
     pageBack.hidden = !!location.search.replace(/^\?/, '');
   }
+  // A view's own Back goes to the list it came from, which on a session can be two or three steps from My Sessions,
+  // so a My Sessions button (#tp-home) sits beside it whenever Back goes somewhere else.
   function moveViewBack() {
     var inner = app.querySelector('.tp-back');
     if (!inner || !heroTop || !pageBack) return;
-    [].slice.call(heroTop.querySelectorAll('.tp-back')).forEach(function (x) { x.remove(); });
+    [].slice.call(heroTop.querySelectorAll('.tp-back, .tp-home')).forEach(function (x) { x.remove(); });
     inner.classList.add('back-link');
     heroTop.insertBefore(inner, pageBack);
+    // Back steps to the view before when there is one (goBack), so only a Back with nowhere to step back to and
+    // the list as its target already goes there.
+    if (inner.getAttribute('data-go') || backDepth() > 0) {
+      inner.insertAdjacentHTML('afterend', '<a class="back-link tp-home" id="tp-home" href="track.html" data-go="" aria-label="My Sessions" title="My Sessions">' + icon('sessions') + 'My Sessions</a>');
+    }
     pageBack.hidden = true;
   }
   if (heroTop) {
     heroTop.addEventListener('click', function (e) {
-      var a = e.target.closest('a.tp-back[data-go]');
+      var a = e.target.closest('a.tp-back[data-go], a.tp-home');
       if (!a || e.metaKey || e.ctrlKey) return;
       e.preventDefault();
-      if (a.getAttribute('data-back') === 'replace') go(a.getAttribute('data-go'), false, true);
+      if (a.classList.contains('tp-home')) go('');
+      else if (a.getAttribute('data-back') === 'replace') go(a.getAttribute('data-go'), false, true);
       else goBack(a.getAttribute('data-go'));
     });
     if (window.MutationObserver) new MutationObserver(moveViewBack).observe(app, { childList: true, subtree: true });

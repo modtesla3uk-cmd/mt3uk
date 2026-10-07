@@ -200,6 +200,16 @@ def test_the_leaderboard_invites_members_without_early_access_to_join(page):
     expect(page.locator("#lb-preview")).to_contain_text("Ask for a place")
 
 
+def test_the_admins_own_early_preview_note_is_used(page):
+    def reply(r):
+        url = r.request.url
+        body = COUNTS if "/track/counts" in url else {"success": True, "copy": {"previewOut": "Testers only for now. Join the list."}} if "/track/copy" in url else {"success": True}
+        r.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"}, body=json.dumps(body))
+    page.route("**/%s/**" % API_HOST, reply)
+    page.goto("/track-day-venues.html")
+    expect(page.locator("[data-laps-venue='thruxton'] [data-laps-preview]")).to_have_text("Early preview. Testers only for now. Join the list.")
+
+
 def test_nothing_is_said_about_the_preview_once_laps_is_open_to_all(page):
     def reply(r):
         url = r.request.url

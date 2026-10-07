@@ -122,6 +122,10 @@ r = await call('GET', '/track/board?venue=thruxton&layout=main');
 ok(r.body.entries.length === 1 && r.body.entries[0].owner === 'Rich' && r.body.entries[0].model === 'Model 3' && r.body.entries[0].mods[0] === 'KW V3 coilovers' && Math.abs(r.body.entries[0].time - 99.786) < 0.01, 'on the leaderboard with the car and mods');
 r = await call('GET', '/cars/public?file=a1.jpg');
 ok(r.body.carId === 'cara1' && r.body.track.length === 1 && r.body.track[0].venue === 'Thruxton', 'the Gallery list gets the shared best');
+// The photo share pages' times (scripts/build_share_pages.py): every photo's car's bests, by file, admin only.
+ok((await call('GET', '/track/admin/photo-bests')).status === 401, 'the photo bests need the admin key');
+r = await call('GET', '/track/admin/photo-bests?key=secret');
+ok(r.body.success && r.body.cars === 1 && r.body.bests['a1.jpg'] && r.body.bests['a1.jpg'][0].venue === 'Thruxton' && Math.abs(r.body.bests['a1.jpg'][0].bestTime - 99.786) < 0.01 && !r.body.bests['b1.jpg'], 'the photo bests are keyed by photo file: ' + JSON.stringify(r.body).slice(0, 160));
 
 // A slower session doesn't replace the best; deleting the best brings the other back.
 const slow = JSON.parse(JSON.stringify(session)); slow.bestTime = 101.5;
@@ -1402,6 +1406,8 @@ ok(!JSON.stringify(stored('track-access')).includes('gone@example.com') && store
   ok((await call('POST', '/track/copy/admin', { heading: 'x' })).status === 401, 'the welcome text needs the admin key');
   cp = await call('POST', '/track/copy/admin?key=secret', { tipHeading: ' Keep   uploading ', tipText: 'More data.', tipOff: true });
   ok(cp.body.copy.tipHeading === 'Keep uploading' && cp.body.copy.tipText === 'More data.' && cp.body.copy.tipOff === true && !('heading' in cp.body.copy), 'the tip\'s heading, text and switch are kept, cleaned');
+  cp = await call('POST', '/track/copy/admin?key=secret', { previewOut: '  Testers <only> for now. ', previewPending: 'Soon.', previewNone: '' });
+  ok(cp.body.copy.previewOut === 'Testers only for now.' && cp.body.copy.previewPending === 'Soon.' && !('previewNone' in cp.body.copy), 'the early preview notes are kept, cleaned, blanks dropped');
   cp = await call('POST', '/track/copy/admin?key=secret', { tipHeading: 'Keep uploading', tipOff: 'yes' });
   ok(cp.body.copy.tipOff === undefined, 'the tip is only hidden by a real true');
   cp = await call('POST', '/track/copy/admin?key=secret', { heading: 'Lap times for <every> car', intro: '  Bring your file.  ', bullets: ['One', '', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'] });

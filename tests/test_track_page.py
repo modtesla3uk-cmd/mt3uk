@@ -1941,6 +1941,31 @@ def test_leaderboards_list_busy_tracks_first_with_counts(page):
     expect(page.locator(".tp-back")).to_have_attribute("aria-label", "Back to all sprints")
 
 
+def test_a_session_has_a_my_sessions_button_beside_back(page):
+    """On a session (or any view whose Back goes somewhere other than the list) a My Sessions button sits beside
+    Back in the heading (#tp-home, moveViewBack in js/track-page.js), so the list is one tap away. On the list
+    itself there is none."""
+    fake = FakeWorker()
+    open_page(page, fake)
+    page.get_by_role("link", name="Add a session").click()
+    page.set_input_files("#tp-file", str(FIXTURE))
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator(".tp-session-head")).to_be_visible()
+    # Opened from the list (or any view deeper in), Back steps back one view, so the button is there.
+    page.goto("/track.html")
+    page.locator("#tp-sess-list a.tp-trackrow").first.click()
+    page.locator("#tp-sess-list a.tp-row[data-sid]").first.click()
+    expect(page.locator(".tp-session-head")).to_be_visible()
+    home = page.locator(".page-hero #tp-home")
+    expect(home).to_be_visible()
+    expect(home).to_have_attribute("aria-label", "My Sessions")
+    expect(page.locator(".page-hero .tp-back")).to_be_visible()
+    home.click()
+    expect(page).to_have_url(re.compile(r"track\.html$"))
+    expect(page.locator("#tp-sess-list a.tp-trackrow").first).to_be_visible()
+    expect(page.locator(".page-hero #tp-home")).to_have_count(0)
+
+
 def test_cars_are_separate_from_sessions(page):
     open_page(page, FakeWorker())
     cars = page.locator("#tp-cars .tp-vcurrent")

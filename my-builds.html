@@ -27,6 +27,7 @@
 <meta name="robots" content="noindex">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
 <link rel="stylesheet" href="css/site-header.css">
+<link rel="stylesheet" href="css/laps-strip.css?v=2">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 
@@ -501,6 +502,8 @@
   .mb-site-links a .icon { width: 16px; height: 16px; margin-right: 6px; }
   .mb-site-links a .early-badge, .mb-site-links a .mb-new { margin-left: 8px; }
   #mb-car-selector-view .mb-site-links { margin: 0 0 16px; }
+  .mb-car-laps.laps-strip { margin: 0; }
+  .mb-car-laps[hidden] { display: none; }
   .mb-car-name-status { flex-shrink: 0; }
   .mb-car-color-select { font-size: 0.72rem; color: var(--ink); border: 1px solid var(--line); background: var(--white); padding: 6px 8px; flex-shrink: 0; }
   .mb-car-photo-count { font-size: 0.72rem; color: var(--steel); flex-shrink: 0; }
@@ -1578,6 +1581,7 @@ document.addEventListener('DOMContentLoaded', function () {
           <a href="leaderboards.html" data-link="boards" data-laps><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/></svg>Track Leaderboards <span class="mb-new">NEW</span></a>
         </div>
 
+        <div class="mb-car-laps" id="mb-car-laps" hidden></div>
         <div class="mb-vote-hint" id="mb-vote-hint"></div>
 
         <div class="mbm" id="mb-mods-builder"></div>
@@ -2081,6 +2085,20 @@ document.addEventListener('DOMContentLoaded', function () {
     // "car" or "bike", for the buttons and notes on a vehicle's page.
     function vehicleWord(car) { return car && car.vehicleType === 'bike' ? 'bike' : 'car'; }
 
+    // The open car on Laps (js/laps-strip.js): its best at each track from the member's own sessions, with
+    // Add your session for this car. A car that is only a form (virtual) has none.
+    function renderCarLaps(car) {
+      var box = document.getElementById('mb-car-laps');
+      if (!box) return;
+      if (!car || car.virtual) { box.hidden = true; box.removeAttribute('data-laps-car'); return; }
+      box.setAttribute('data-laps-car', car.id);
+      box.setAttribute('data-laps-name', car.name || 'MT3UK member build');
+      box.setAttribute('data-laps-word', vehicleWord(car));
+      box.setAttribute('data-laps-mine', '');
+      // Drawn now, or by js/laps-strip.js when it loads (it draws every [data-laps-car] it finds).
+      if (window.MT3UKLapsStrip) window.MT3UKLapsStrip.car(box);
+    }
+
     function renderPhotoStrip(car) {
       // A car added without a photo (on the Laps pages): say so, and let it be removed while it has none.
       if (!(car.photos || []).length) {
@@ -2134,6 +2152,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function renderCarDetail(car) {
       if (!car) return;
+      renderCarLaps(car);
       carNameInput.value = car.name || '';
       carNameText.textContent = car.name || 'MT3UK member build';
       showCarNameEdit(false);
@@ -4204,6 +4223,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=14" defer></script>
+<script src="js/laps-strip.js?v=5" defer></script>
 <script src="js/signin-prompt.js" defer></script>
 <script src="js/notify-bell.js?v=2" defer></script>
 <script src="js/messenger.js" defer></script>

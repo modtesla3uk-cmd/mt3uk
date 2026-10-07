@@ -8663,6 +8663,12 @@ function cleanTrackCopy(body) {
   if (tipHeading) out.tipHeading = tipHeading;
   if (tipText) out.tipText = tipText;
   if (body && body.tipOff === true) out.tipOff = true;
+  // The early preview note on the Laps strips and the Leaderboard (js/laps-strip.js): one for a visitor who is
+  // signed out, one for a member who has not asked, one for a member waiting.
+  ['previewOut', 'previewNone', 'previewPending'].forEach(function (k) {
+    var v = trackText(body && body[k], 300);
+    if (v) out[k] = v;
+  });
   return out;
 }
 async function handleTrackCopyPublic(request, env) {
@@ -9618,6 +9624,27 @@ function adminCarRow(carId, record, details, drives, owner, email, sessions, liv
     garageOnly: record.garageOnly === true, make: details.make || '', model: details.model || '', version: details.version || '', year: details.year || '',
     vehicleType: details.vehicleType || 'car', drive: carDrive(details, drives), set: DRIVES.indexOf(details.drive) !== -1,
     weight: details.weight || '', pads: carPadsText(details) };
+}
+// Every Gallery photo's car's best shared time at each track, keyed by photo file, for the photo share pages
+// (scripts/build_share_pages.py, run by the sync workflow with the admin key): { "09-model-3.jpg": [bests] }.
+// Admin only, so its list() over the cars' shared lists is fine.
+async function handleTrackAdminPhotoBests(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var out = {}, cars = 0, cursor;
+  do {
+    var page = await env.VOTES.list({ prefix: 'track-public:', limit: 1000, cursor: cursor });
+    for (var i = 0; i < page.keys.length; i++) {
+      var carId = page.keys[i].name.slice('track-public:'.length);
+      var bests = await trackBestsForCar(env, carId);
+      if (!bests.length) continue;
+      var record = await getCarRecord(env, carId);
+      if (!record || record.garageOnly) continue;
+      cars++;
+      (record.photos || []).forEach(function (f) { if (f) out[f] = bests; });
+    }
+    cursor = page.list_complete ? null : page.cursor;
+  } while (cursor);
+  return json({ success: true, cars: cars, bests: out });
 }
 async function handleTrackAdminCars(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
@@ -11372,6 +11399,9 @@ export default {
     }
     if (url.pathname === '/track/admin/cars' && (request.method === 'GET' || request.method === 'POST')) {
       return handleTrackAdminCars(request, env);
+    }
+    if (url.pathname === '/track/admin/photo-bests' && request.method === 'GET') {
+      return handleTrackAdminPhotoBests(request, env);
     }
     if (url.pathname === '/track/admin/drive' && (request.method === 'GET' || request.method === 'POST')) {
       return handleTrackAdminDrive(request, env);

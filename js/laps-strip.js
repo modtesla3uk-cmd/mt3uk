@@ -7,6 +7,10 @@
     12), leaving out the ones the page already shows with data-laps-venue, each linking to its board.
   - [data-laps-fast-line] (the homepage Sessions tile's grey line): "Fastest at Thruxton: 1:21.42, Rich", the leader
     of the busiest board, in place of its own words (kept when there are no times).
+  - <div data-laps-car="<carId>" data-laps-name="<car>"></div>: that car on Laps (My Garage's open car; also
+    MT3UKLapsStrip.car(el) to draw or redraw one). With data-laps-mine, the owner's own list (/track/sessions, every
+    session, the private ones marked "Only me") is used; otherwise, or if that cannot be read, the car's shared
+    sessions (/track/public). The best per track, linking to the session, then All sessions and Add your session.
   - [data-laps-preview]: a short note on what the early preview is, for anyone without early access (hidden
     otherwise). Strips carry one, and their heading gets an "Early preview" tag while Laps is a preview.
   - [data-laps-add] (any Add a session link; a page that draws one later, such as the Gallery's car sheet, calls
@@ -18,6 +22,7 @@
 */
 (function () {
   var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
+  function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   var spots = document.querySelectorAll('[data-laps-venue], [data-laps-more], [data-laps-fast-line]');
   // Where the viewer stands with the early preview: 'open' (Laps is open to all, nothing to say), 'approved',
   // 'pending', 'none' (signed in, not asked) or 'out' (signed out). /laps/signin says whether it is still a preview
@@ -52,11 +57,22 @@
     stateP = Promise.all([previewOn(), access()]).then(function (r) { return r[1] === 'approved' ? 'approved' : r[0] ? r[1] : 'open'; });
     return stateP;
   }
+  // The admin's own words for the note (the Welcome text panel of track-admin.html, /track/copy: previewOut,
+  // previewNone, previewPending), over the built-in ones.
+  var copyP = null;
+  function noteWords(st) {
+    if (!copyP) copyP = fetch(API + '/track/copy', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) { return (d && d.copy) || {}; }).catch(function () { return {}; });
+    return copyP.then(function (c) {
+      var own = c['preview' + st.charAt(0).toUpperCase() + st.slice(1)];
+      var lead = st === 'pending' ? 'You\u2019re on the early preview list.' : 'Early preview.';
+      return '<b>' + esc(lead) + '</b> ' + (own ? esc(own) : NOTES[st] || NOTES.none);
+    });
+  }
   var SPARK = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9Z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8Z"/></svg>';
   var NOTES = {
-    out: '<b>Early preview.</b> Anyone can browse the leaderboards. Adding your own laps is open to early testers while we finish Laps. Join the list for a place.',
-    none: '<b>Early preview.</b> Anyone can browse the leaderboards. Adding your own laps is open to early testers while we finish Laps. Ask for a place and we\u2019ll let you know.',
-    pending: '<b>You\u2019re on the early preview list.</b> We\u2019ll email you as soon as your place is ready. Until then, have a look round the leaderboards.'
+    out: 'Anyone can browse the leaderboards. Adding your own laps is open to early testers while we finish Laps. Join the list for a place.',
+    none: 'Anyone can browse the leaderboards. Adding your own laps is open to early testers while we finish Laps. Ask for a place and we\u2019ll let you know.',
+    pending: 'We\u2019ll email you as soon as your place is ready. Until then, have a look round the leaderboards.'
   };
   // Add a session links ([data-laps-add]) and the early preview notes ([data-laps-preview]). A member with early
   // access (or everyone, once Laps is open) gets Add a session and no note. Anyone else gets Join the early preview
@@ -68,8 +84,9 @@
     if (!links.length && !notes.length) return;
     previewState().then(function (st) {
       var shut = st !== 'open' && st !== 'approved';
-      notes.forEach(function (n) { n.hidden = !shut; if (shut) n.innerHTML = NOTES[st] || NOTES.none; });
+      notes.forEach(function (n) { n.hidden = !shut; });
       if (!shut) return;
+      if (notes.length) noteWords(st).then(function (html) { notes.forEach(function (n) { n.innerHTML = html; }); });
       links.forEach(function (a) {
         a.href = st === 'out' ? 'laps-signin.html' : 'track.html';
         a.innerHTML = SPARK + (st === 'pending' ? 'You\u2019re on the list' : 'Join the early preview');
@@ -89,23 +106,75 @@
       });
     });
   }
-  window.MT3UKLapsStrip = { gateAdds: gateAdds, tagHeads: tagHeads, state: previewState };
-  gateAdds(document);
-  if (!spots.length) return;
-  function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-  function get(url) { return fetch(url, { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }
-  var ICON = {
-    trophy: '<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/>',
-    upload: '<path d="M12 15V3M7 8l5-5 5 5M5 21h14"/>',
-    chev: '<path d="m9 6 6 6-6 6"/>'
-  };
-  function icon(n) { return '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">' + ICON[n] + '</svg>'; }
+  // ---- A car on Laps ----
   function lapTime(s) {
     s = Number(s);
     if (!(s > 0)) return '';
     var m = Math.floor(s / 60), r = s - m * 60;
     return m ? m + ':' + (r < 10 ? '0' : '') + r.toFixed(2) : r.toFixed(2) + ' s';
   }
+  function get(url, headers) { return fetch(url, { cache: 'no-store', headers: headers || {} }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }
+  var ICON = {
+    trophy: '<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/>',
+    upload: '<path d="M12 15V3M7 8l5-5 5 5M5 21h14"/>',
+    chev: '<path d="m9 6 6 6-6 6"/>'
+  };
+  function icon(n) { return '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">' + ICON[n] + '</svg>'; }
+  function carSessions(carId, mine) {
+    var tok = '';
+    try { tok = localStorage.getItem('mt3ukMyBuildsSession') || ''; } catch (e) {}
+    var own = mine && tok ? get(API + '/track/sessions', { 'X-Session-Token': tok }).then(function (d) {
+      return d && d.success && Array.isArray(d.sessions) ? d.sessions.filter(function (s) { return s.carId === carId; }) : null;
+    }) : Promise.resolve(null);
+    return own.then(function (list) {
+      if (list) return list;
+      return get(API + '/track/public?car=' + encodeURIComponent(carId)).then(function (d) { return d && d.success ? (d.sessions || []) : null; });
+    });
+  }
+  function drawCar(el) {
+    var carId = el.getAttribute('data-laps-car'), name = el.getAttribute('data-laps-name') || 'This car', mine = el.hasAttribute('data-laps-mine');
+    if (!carId) { el.hidden = true; return Promise.resolve(); }
+    var stamp = String(Date.now());
+    el.setAttribute('data-laps-stamp', stamp);
+    return carSessions(carId, mine).then(function (list) {
+      if (el.getAttribute('data-laps-stamp') !== stamp) return;
+      if (!list) { el.hidden = true; return; }
+      var best = {};
+      list.forEach(function (s) {
+        if (s.street || (s.type !== 'drag' && s.type !== 'track' && s.type !== 'sprint')) return;
+        var score = s.type === 'drag' ? s.quarter : s.bestTime;
+        if (!(score > 0)) return;
+        var k = s.type === 'drag' ? 'drag:' + (s.venueId || s.venue) : s.type + ':' + (s.venueId || s.venue) + ':' + (s.layoutId || '');
+        if (!best[k] || score < (best[k].type === 'drag' ? best[k].quarter : best[k].bestTime)) best[k] = s;
+      });
+      var rows = Object.keys(best).map(function (k) { return best[k]; }).sort(function (a, b) { return String(b.date || '').localeCompare(String(a.date || '')); });
+      var add = '<a class="btn btn-accent btn-sm" href="track.html?add=1&car=' + encodeURIComponent(carId) + '" data-laps data-laps-add>' + icon('upload') + 'Add your session</a>';
+      var all = '<a class="btn btn-secondary btn-sm" href="track.html?' + (mine ? 'mycar=' : 'car=') + encodeURIComponent(carId) + '" data-laps>' + (mine ? 'All sessions' : 'All shared sessions') + '</a>';
+      var html = '<div class="ls-head">' + icon('trophy') + '<b>' + esc(name) + ' on Laps</b></div>';
+      if (rows.length) {
+        html += '<ul class="ls-rows">' + rows.map(function (t) {
+          var res = t.type === 'drag' ? Number(t.quarter).toFixed(2) + ' s' : lapTime(t.bestTime);
+          var what = t.type === 'drag' ? 'Quarter mile' : t.type === 'sprint' ? 'Best run' : 'Best lap';
+          var when = '';
+          if (t.date) { var d = new Date(t.date + 'T12:00:00'); if (!isNaN(d)) when = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); }
+          var sub = what + (when ? ' \u00b7 ' + when : '') + (mine && t.privacy === 'private' ? ' \u00b7 Only me' : '');
+          return '<li><a href="track.html?s=' + encodeURIComponent(t.id) + '" data-laps><span class="ls-where"><b>' + esc(t.venue + (t.layout && t.layout !== t.venue ? ', ' + t.layout : '')) + '</b><span>' + esc(sub) + '</span></span><span class="ls-time">' + esc(res) + '</span>' + icon('chev') + '</a></li>';
+        }).join('') + '</ul>' + (mine ? '<p class="laps-preview-note" data-laps-preview hidden></p>' : '') + '<div class="ls-actions">' + all + (mine ? add : '<a class="btn btn-ghost btn-sm" href="laps.html" data-laps>What is Laps?</a>') + '</div>';
+      } else if (mine) {
+        html += '<p class="ls-empty">No sessions for this ' + (el.getAttribute('data-laps-word') || 'car') + ' yet. Upload your lap timer file from a track day, sprint or drag strip and it shows here, with your best at each track.</p><p class="laps-preview-note" data-laps-preview hidden></p><div class="ls-actions">' + add + '</div>';
+      } else { el.hidden = true; el.innerHTML = ''; return; }
+      el.classList.add('laps-strip');
+      el.innerHTML = html;
+      el.hidden = false;
+      gateAdds(el);
+      tagHeads(el);
+      if (window.mt3ukLapsLinks) window.mt3ukLapsLinks();
+    });
+  }
+  window.MT3UKLapsStrip = { gateAdds: gateAdds, tagHeads: tagHeads, state: previewState, car: drawCar };
+  gateAdds(document);
+  document.querySelectorAll('[data-laps-car]').forEach(drawCar);
+  if (!spots.length) return;
   function carOf(c) {
     var make = c.make || '', model = c.model || '';
     var t = make && model && model.toLowerCase().indexOf(make.toLowerCase()) !== 0 ? make + ' ' + model : (model || make);

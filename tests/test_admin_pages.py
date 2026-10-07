@@ -841,9 +841,10 @@ def test_admin_laps_panels_edit_the_front_page_sections_and_where_they_show(page
     page.route("**/laps/panels/admin**", panels_admin)
     page.locator("#panels-wrap summary").click()
     panels = page.locator("#lpn-list .lpn-panel")
-    expect(panels).to_have_count(5)
-    expect(panels.first.locator("legend")).to_have_text("Fastest right now")
-    fast = panels.first
+    expect(panels).to_have_count(4)
+    expect(panels.first.locator("legend")).to_have_text("Works with your lap timer")
+    fast = page.locator("#lpn-list .lpn-panel[data-id='fastest']")
+    expect(fast.locator("legend")).to_have_text("Fastest right now")
     expect(fast.locator("[data-place='sessions']")).to_have_attribute("aria-checked", "true")
     expect(fast.locator("[data-place='front']")).to_have_attribute("aria-checked", "true")
     what = page.locator("#lpn-list .lpn-panel[data-id='what']")

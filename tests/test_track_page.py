@@ -31,7 +31,7 @@ EARLIER = {
 
 
 def summary(rec):
-    keys = ["id", "carId", "type", "venueId", "venue", "layoutId", "layout", "date", "time", "privacy", "conditions", "tyres", "temp", "tempSource", "weather", "vmax", "soc", "quality", "logger", "street", "atVenue", "tyreMake", "tyreModel"]
+    keys = ["id", "carId", "type", "venueId", "venue", "layoutId", "layout", "date", "time", "privacy", "conditions", "tyres", "temp", "tempSource", "weather", "vmax", "soc", "quality", "logger", "street", "atVenue", "origin", "tyreMake", "tyreModel"]
     out = {k: rec.get(k) for k in keys if k in rec}
     if rec.get("type") == "drag":
         runs = rec.get("runs") or []
@@ -1032,6 +1032,7 @@ def test_edit_every_session_on_a_day_at_once(page):
     for sid, t, best in (("g1", "09:25", 89.1), ("g2", "11:29", 81.1), ("g3", "14:46", 87.7)):
         rec = day_session(sid, t, best, 3)
         rec["tyres"] = "Old tyres"
+        rec["origin"] = [51.492, -2.215]
         fake.sessions[sid] = dict(rec)
         fake.index.append(summary(rec))
     open_page(page, fake)
@@ -1044,7 +1045,12 @@ def test_edit_every_session_on_a_day_at_once(page):
     form.locator("[data-day-edit-apply]").click()
     expect(page.locator("#tp-de-status")).to_contain_text("Set at least one thing")
     assert all(v["conditions"] == "Dry" for v in fake.sessions.values())
-    # Wet, 12 degrees and the logger, tyres left alone.
+    # Fill in from weather: the temperature and the conditions from Open-Meteo for the track that day.
+    form.get_by_role("button", name="Fill in from weather").click()
+    expect(page.locator("#tp-de-temp")).to_have_value("19")
+    expect(page.locator("#tp-de-src")).to_contain_text("Open-Meteo")
+    expect(form.locator("[data-cond] button.is-on")).to_have_attribute("data-v", "Dry")
+    # Then Wet, 12 degrees and the logger by hand, tyres left alone.
     form.locator("[data-cond] button[data-v='Wet']").click()
     page.fill("#tp-de-temp", "12")
     page.select_option("#tp-de-logger", "RaceBox")
@@ -2636,15 +2642,19 @@ def test_a_tracks_chevron_drops_down_its_layouts_and_one_opens_only_those_sessio
     expect(indy.locator(".tp-layout-sessions")).to_be_visible()
     expect(indy.locator(".tp-layout-sessions a.tp-row[data-sid]")).to_have_count(2)
     expect(indy.locator(".tp-layout-sessions .tp-daygroup")).to_have_count(2)
-    # A session opens from there, and Back finds the list as it was left: Brands Hatch and Indy still open.
+    # A session opens from there, and Back brings the list back folded (every track, layout and day shut again).
     indy.locator('a.tp-row[data-sid="b1"]').click()
     expect(page).to_have_url(re.compile(r"track\.html\?s=b1$"))
     page.locator(".tp-back").click()
     expect(page).to_have_url(re.compile(r"track\.html$"))
     brands = page.locator("#tp-sess-list .tp-trackwrap", has_text="Brands Hatch")
+    expect(brands.locator(".tp-layouts")).to_be_hidden()
+    expect(brands.locator("[data-track-toggle]")).to_have_attribute("aria-expanded", "false")
+    # A refresh folds it too.
+    brands.locator("[data-track-toggle]").click()
     expect(brands.locator(".tp-layouts")).to_be_visible()
-    expect(brands.locator(".tp-layoutwrap", has_text="Indy").locator(".tp-layout-sessions")).to_be_visible()
-    expect(brands.locator(".tp-layoutwrap", has_text="Grand Prix").locator(".tp-layout-sessions")).to_be_hidden()
+    page.reload()
+    expect(page.locator("#tp-sess-list .tp-trackwrap", has_text="Brands Hatch").locator(".tp-layouts")).to_be_hidden()
     # The track line itself still opens every session there on its own page.
     page.locator("#tp-sess-list a.tp-trackrow", has_text="Brands Hatch").click()
     expect(page.locator(".tp-head h2")).to_have_text("Brands Hatch")

@@ -862,6 +862,7 @@
     if (saved.length) storeListOpen();
   }
   function myCarsHtml(m) {
+    foldList();
     openToSaved(m);
     try { currentCar = currentCar || params().get('mycar') || localStorage.getItem('mt3ukTrackCar'); } catch (e) {}
     if (!m.cars.some(function (c) { return c.id === currentCar; })) currentCar = m.cars[0].id;
@@ -976,9 +977,11 @@
   // The list is a tree: a track's chevron drops down its layouts, and a layout's row drops down its sessions (the same
   // day groups as the track's page), so every session is reached without leaving the list. What is open is kept for
   // the browser session (sessionStorage mt3ukLapsListOpen), so coming back from a session finds the list as it was.
-  var LIST_OPEN = 'mt3ukLapsListOpen', openTracks = {}, openLayouts = {};
-  try { var lo = JSON.parse(sessionStorage.getItem(LIST_OPEN) || 'null'); if (lo) { openTracks = lo.tracks || {}; openLayouts = lo.layouts || {}; } } catch (e) {}
-  function storeListOpen() { try { sessionStorage.setItem(LIST_OPEN, JSON.stringify({ tracks: openTracks, layouts: openLayouts })); } catch (e) {} }
+  // What is open lives only while the list is on screen: a refresh, or coming back to the list from a session, folds
+  // every track, layout and day again (foldList), except the sessions just saved (openToSaved).
+  var openTracks = {}, openLayouts = {};
+  function storeListOpen() {}
+  function foldList() { openTracks = {}; openLayouts = {}; openDays = {}; }
   function trackListHtml(list, carId) {
     return trackEntries(list).map(function (t) {
       var q = 'mycar=' + encodeURIComponent(carId) + '&at=' + encodeURIComponent(t.key);
@@ -1249,6 +1252,7 @@
       '<p class="tp-small">Only what you set here changes; anything left blank stays as it is on each session.</p>' +
       '<div class="tp-field"><span class="tp-lbl">Conditions</span><div class="tp-chips" data-cond>' + ['Dry', 'Damp', 'Wet'].map(function (c) { return '<button type="button" class="chip" data-v="' + c + '" aria-pressed="false">' + c + '</button>'; }).join('') + '</div></div>' +
       '<div class="tp-field"><label for="tp-de-temp">Air temperature (°C)</label><input class="field" id="tp-de-temp" inputmode="numeric" placeholder="Leave as it is"></div>' +
+      '<div class="tp-weather-row"><button type="button" class="btn btn-secondary btn-sm" id="tp-de-weather">Fill in from weather</button><p class="tp-src" id="tp-de-src"></p></div>' +
       '<button type="button" class="tp-switch" role="switch" id="tp-de-tyres-on" aria-checked="false"><span>Change the tyres</span><span class="tp-track"></span></button>' +
       '<div id="tp-de-tyres" hidden>' + tyreFields('tp-de-tyre', {}) + '</div>' +
       '<button type="button" class="tp-switch" role="switch" id="tp-de-pads-on" aria-checked="false"><span>Change the brake pads</span><span class="tp-track"></span></button>' +
@@ -1281,10 +1285,29 @@
       sw.addEventListener('click', function () { var on = sw.getAttribute('aria-checked') !== 'true'; sw.setAttribute('aria-checked', on ? 'true' : 'false'); fields.hidden = !on; });
     });
     form.querySelector('[data-day-edit-cancel]').addEventListener('click', function () { form.remove(); });
+    // The weather at the track that day (Open-Meteo, the earliest session's time): fills the temperature and the conditions.
+    var dayWeather = null, tempEl = document.getElementById('tp-de-temp');
+    tempEl.addEventListener('input', function () { dayWeather = null; document.getElementById('tp-de-src').innerHTML = ''; });
+    document.getElementById('tp-de-weather').addEventListener('click', function () {
+      var src = document.getElementById('tp-de-src');
+      src.textContent = 'Looking up the weather...';
+      getMine().then(function (m) {
+        var day = ((m && m.sessions) || []).filter(function (x) { return ids.indexOf(x.id) !== -1 && x.origin; }).sort(byTime)[0];
+        if (!day) return null;
+        return lookupWeather(day.origin, day.date, day.time).then(function (w) { return w && { w: w, s: day }; });
+      }).then(function (r) {
+        if (!r) { src.textContent = 'No weather found for that day and place.'; return; }
+        dayWeather = r.w;
+        tempEl.value = r.w.temp;
+        var c = weatherConditions(r.w);
+        form.querySelectorAll('[data-cond] button').forEach(function (x) { var on = x.getAttribute('data-v') === c; x.classList.toggle('is-on', on); x.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+        src.innerHTML = icon('info') + '<span>' + weatherNote(r.w, r.s.venue) + ' Conditions set to match. Apply to keep it.</span>';
+      });
+    });
     form.querySelector('[data-day-edit-apply]').addEventListener('click', function () {
       var body = {}, cond = form.querySelector('[data-cond] button.is-on'), t = document.getElementById('tp-de-temp').value.trim(), lg = loggerValue('tp-de-logger');
       if (cond) body.conditions = cond.getAttribute('data-v');
-      if (t !== '' && isFinite(parseFloat(t))) { body.temp = parseFloat(t); body.tempSource = 'member'; }
+      if (t !== '' && isFinite(parseFloat(t))) { body.temp = parseFloat(t); body.tempSource = dayWeather && parseFloat(t) === dayWeather.temp ? 'weather' : 'member'; if (body.tempSource === 'weather') body.weather = dayWeather; }
       if (document.getElementById('tp-de-tyres-on').getAttribute('aria-checked') === 'true') Object.assign(body, tyrePayload(readTyre('tp-de-tyre')));
       if (document.getElementById('tp-de-pads-on').getAttribute('aria-checked') === 'true') Object.assign(body, padPayload(readPads('tp-de-pad')));
       if (lg) body.logger = lg;

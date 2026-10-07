@@ -8829,7 +8829,7 @@ async function handleLapsNewsAdmin(request, env) {
 // or chips, and where it shows (the front page, and for signed-in members Sessions and the Leaderboard). One KV key
 // (laps-panels), read with get(); a field left blank keeps the page's own words (laps.html is the built-in copy).
 var LAPS_PANELS_KEY = 'laps-panels';
-var LAPS_PANEL_IDS = ['fastest', 'what', 'days', 'timers', 'any-make'];
+var LAPS_PANEL_IDS = ['fastest', 'what', 'days', 'timers'];
 var LAPS_PANEL_PLACES = { front: true, sessions: false, leaderboard: false };
 function cleanLapsPanels(body) {
   var src = (body && body.panels) || {}, out = {};

@@ -40,5 +40,18 @@
     img.src = pick.url;
   });
 
+  // The session picture: a tap opens it big over the page, the next tap (or Escape) shuts it.
+  document.addEventListener('click', function (e) {
+    var open = document.querySelector('.lh-light');
+    if (open) { open.remove(); return; }
+    var img = e.target.closest && e.target.closest('.lh-shot img');
+    if (!img) return;
+    var box = document.createElement('div');
+    box.className = 'lh-light'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-label', 'The session picture, bigger. Tap to close');
+    var big = document.createElement('img'); big.src = img.src; big.alt = img.alt;
+    box.appendChild(big); document.body.appendChild(box);
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { var open = document.querySelector('.lh-light'); if (open) open.remove(); } });
+
   // Fastest right now and the admin's words for each section: js/laps-panels.js.
 })();

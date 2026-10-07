@@ -375,6 +375,10 @@
   /* Any EV, any make: in the hero, so it is seen on the first screen (the EVs band lower down says more). */
   .lh-evs { display: grid; gap: 8px; margin: 4px 0 12px; }
   .lh-hero .lh-evs p { font-size: 0.95rem; margin: 0; }
+  /* The session picture opens big on a tap (and shuts on the next, or Escape). */
+  .lh-shot img { cursor: zoom-in; }
+  .lh-light { position: fixed; inset: 0; z-index: 3000; display: flex; align-items: center; justify-content: center; padding: 12px; background: rgba(10, 14, 24, 0.92); cursor: zoom-out; }
+  .lh-light img { max-width: 100%; max-height: 100%; width: auto; height: auto; border-radius: var(--radius); box-shadow: 0 10px 40px rgba(0,0,0,.5); }
   .lh-evs b { color: #fff; }
   .lh-makes { display: flex; flex-wrap: wrap; gap: 6px; }
   .lh-makes span { display: inline-flex; align-items: center; min-height: 30px; padding: 4px 12px; border: 1px solid rgba(255,255,255,.3); border-radius: var(--radius-pill); color: #fff; font-size: 0.84rem; font-weight: 600; }
@@ -442,6 +446,13 @@
   </div>
 </section>
 <main data-no-share>
+  <section class="lh-sec" id="timers" data-panel="timers">
+    <div class="wrap">
+      <h2>Works with your lap timer</h2>
+      <p class="lh-lead">Export the session from your timer or app and upload the file. Most phone lap timer apps work too.</p>
+      <div class="lh-timers"><span>RaceBox</span><span>VBOX</span><span>AiM</span><span>Harry&rsquo;s LapTimer</span><span>TrackAddict</span><span>Tesla Track Mode</span></div>
+    </div>
+  </section>
   <section class="lh-sec" id="fastest" data-panel="fastest">
     <div class="wrap">
       <h2>Fastest right now</h2>
@@ -472,20 +483,6 @@
         <div class="lh-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20 10 8l4 6 3-4 4 10z"/></svg><h3>Sprints and hill climbs</h3><p>Start to finish, timed from the moment you move off, with each run listed.</p></div>
         <div class="lh-card"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18h16"/><path d="M4 6h10l4 6-4 6"/></svg><h3>Drag runs</h3><p>0 to 30, 0 to 60, 60 to 100, eighth mile and quarter mile, for every launch.</p></div>
       </div>
-    </div>
-  </section>
-  <section class="lh-sec" id="timers" data-panel="timers">
-    <div class="wrap">
-      <h2>Works with your lap timer</h2>
-      <p class="lh-lead">Export the session from your timer or app and upload the file. Most phone lap timer apps work too.</p>
-      <div class="lh-timers"><span>RaceBox</span><span>VBOX</span><span>AiM</span><span>Harry&rsquo;s LapTimer</span><span>TrackAddict</span><span>Tesla Track Mode</span></div>
-    </div>
-  </section>
-  <section class="lh-band" id="any-make" data-panel="any-make">
-    <div class="wrap">
-      <h2>EVs, any make</h2>
-      <p>Laps started with modified Teslas. Now any EV can join: pick its make and model, no photo needed, and every session is kept private until you choose to share it.</p>
-      <div class="tp-actions"><a class="btn btn-accent" id="lh-start-2" href="signin.html?next=/track.html">Sign in to start</a><a class="btn btn-secondary" href="track.html">How it works</a></div>
     </div>
   </section>
 </main>
@@ -633,7 +630,7 @@
 </script>
 
 <script src="js/laps-panels.js?v=3" defer></script>
-<script src="js/laps-home.js?v=20270102" defer></script>
+<script src="js/laps-home.js?v=20270103" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=15" defer></script>
 <script src="js/signin-prompt.js" defer></script>

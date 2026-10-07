@@ -504,7 +504,15 @@
   function tyreOpts(list, sel, label, unit) {
     return '<option value="">' + label + '</option>' + list.map(function (v) { return '<option value="' + v + '"' + (String(sel) === String(v) ? ' selected' : '') + '>' + v + (unit || '') + '</option>'; }).join('');
   }
-  function tyreModels(make) { return ((TY && TY.makes[make]) || []).map(function (m) { return '<option value="' + esc(m) + '"></option>'; }).join(''); }
+  function tyreModelList(make) { return (TY && Object.prototype.hasOwnProperty.call(TY.makes, make) && TY.makes[make]) || []; }
+  // The Model drop-down for a make from the tyre list: Choose the model, each model, then Other model (type it in), which
+  // opens the text box (an unlisted tyre can still be typed). Without a listed make the text box is all there is.
+  function tyreModelPick(make, model) {
+    var list = tyreModelList(make);
+    if (!list.length) return '';
+    return '<option value="">Choose the model</option>' + list.map(function (m) { return '<option value="' + esc(m) + '"' + (m === model ? ' selected' : '') + '>' + esc(m) + '</option>'; }).join('') +
+      '<option value="__other"' + (model && list.indexOf(model) === -1 ? ' selected' : '') + '>Other model, type it in</option>';
+  }
   function tyreFields(pre, t) {
     if (!TY) return '';
     t = t || {};
@@ -513,7 +521,10 @@
       '<div class="tp-f2"><div class="tp-field"><label for="' + pre + '-make">Make</label><select class="field" id="' + pre + '-make"><option value="">Not set</option>' +
         Object.keys(TY.makes).map(function (m) { return '<option value="' + esc(m) + '"' + (known && t.make === m ? ' selected' : '') + '>' + esc(m) + '</option>'; }).join('') +
         '<option value="__other"' + (other ? ' selected' : '') + '>Other make</option></select></div>' +
-      '<div class="tp-field"><label for="' + pre + '-model">Model</label><input class="field" id="' + pre + '-model" list="' + pre + '-models" autocomplete="off" placeholder="For example, Pilot Sport 4S" value="' + esc(t.model || '') + '"><datalist id="' + pre + '-models">' + tyreModels(known ? t.make : '') + '</datalist></div></div>' +
+      '<div class="tp-field"><label for="' + pre + '-model-pick">Model</label>' +
+        '<select class="field" id="' + pre + '-model-pick"' + (known && tyreModelList(t.make).length ? '' : ' hidden') + '>' + tyreModelPick(known ? t.make : '', t.model || '') + '</select>' +
+        '<input class="field" id="' + pre + '-model" autocomplete="off" aria-label="Tyre model" placeholder="Type the model, for example Pilot Sport 4S" value="' + esc(t.model || '') + '"' +
+          (known && tyreModelList(t.make).length && (!t.model || tyreModelList(t.make).indexOf(t.model) !== -1) ? ' hidden' : '') + '></div></div>' +
       '<div class="tp-field" id="' + pre + '-other-wrap"' + (other ? '' : ' hidden') + '><label for="' + pre + '-make-other">Make</label><input class="field" id="' + pre + '-make-other" value="' + esc(other ? t.make : '') + '"></div>' +
       '<div class="tp-f3"><div class="tp-field"><label for="' + pre + '-w">Width (mm)</label><select class="field" id="' + pre + '-w">' + tyreOpts(TY.widths, t.w, 'Width') + '</select></div>' +
       '<div class="tp-field"><label for="' + pre + '-p">Profile (%)</label><select class="field" id="' + pre + '-p">' + tyreOpts(TY.profiles, t.p, 'Profile') + '</select></div>' +
@@ -552,16 +563,21 @@
     mk.addEventListener('change', function () {
       var wrap = document.getElementById(pre + '-other-wrap');
       if (wrap) wrap.hidden = mk.value !== '__other';
-      var dl = document.getElementById(pre + '-models');
-      if (dl) dl.innerHTML = tyreModels(mk.value);
-      // A different make has different models, so the old one goes.
-      var md = document.getElementById(pre + '-model');
+      // A different make has different models, so the old one goes and the drop-down is filled for the new make.
+      var md = document.getElementById(pre + '-model'), pick = document.getElementById(pre + '-model-pick');
       if (md) md.value = '';
+      var opts = tyreModelPick(mk.value, '');
+      if (pick) { pick.innerHTML = opts; pick.hidden = !opts; }
+      if (md) md.hidden = !!opts;
       preview();
     });
-    // The list of models drops down as soon as the empty box is tapped.
-    var mdl = document.getElementById(pre + '-model');
-    if (mdl) mdl.addEventListener('focus', function () { if (!mdl.value && typeof mdl.showPicker === 'function') { try { mdl.showPicker(); } catch (e) { /* not allowed here */ } } });
+    // Choosing a listed model fills the text box behind it; Other model opens the box to type one.
+    var mdl = document.getElementById(pre + '-model'), mpick = document.getElementById(pre + '-model-pick');
+    if (mpick && mdl) mpick.addEventListener('change', function () {
+      if (mpick.value === '__other') { mdl.value = ''; mdl.hidden = false; mdl.focus(); }
+      else { mdl.value = mpick.value; mdl.hidden = true; }
+      preview();
+    });
     ['model', 'make-other', 'w', 'p', 'd'].forEach(function (k) {
       var el = document.getElementById(pre + '-' + k);
       if (el) { el.addEventListener('input', preview); el.addEventListener('change', preview); }
@@ -1295,6 +1311,18 @@
     var many = g.length > 1;
     return '<button type="button" class="btn btn-secondary btn-sm tp-daygroup-edit" data-day-edit data-ids="' + esc(g.map(function (x) { return x.id; }).join(',')) + '" data-what="' + esc(niceDate(g[0].date) + ' at ' + trackName(g[0])) + '">' + icon('sliders') + (many ? 'Edit all ' + g.length + ' sessions' : 'Edit the session') + '</button>';
   }
+  // The tyres and brake pads from the car's last session before the earliest of these sessions, if it had any.
+  function previousKit(m, ids) {
+    var all = (m && m.sessions) || [], day = all.filter(function (x) { return ids.indexOf(x.id) !== -1; }).sort(byTime);
+    if (!day.length) return {};
+    var first = day[0], cutoff = first.date + (first.time || '');
+    var before = all.filter(function (x) { return x.carId === first.carId && ids.indexOf(x.id) === -1 && (x.date + (x.time || '')) < cutoff; })
+      .sort(function (x, y) { return (y.date + (y.time || '')) < (x.date + (x.time || '')) ? -1 : 1; });
+    var tyreSess = before.filter(function (x) { return x.tyres; })[0], padSess = before.filter(function (x) { return x.pads || x.padFrontMake; })[0], out = {};
+    if (tyreSess && TY) { var t = TY.parse(tyreSess.tyres); if (t.make || t.model || t.w) out.tyre = t; }
+    if (padSess && PD) out.pads = { fields: padInit(padSess), text: padSess.pads || '' };
+    return out;
+  }
   function dayEditHtml(n, what) {
     return '<div class="card tp-fields tp-dayedit" id="tp-dayedit"><h3>' + (n > 1 ? 'Edit all ' + n + ' sessions' : 'Edit the session') + ' on ' + esc(what) + '</h3>' +
       '<p class="tp-small">Only what you set here changes; anything left blank stays as it is on each session.</p>' +
@@ -1315,12 +1343,24 @@
     var old = document.getElementById('tp-dayedit');
     if (old) old.remove();
     // The tyre and pad lists are loaded on demand (the list page does not need them until now).
-    Promise.all([loadTyres(), loadPads()]).catch(function () {}).then(function () {
+    Promise.all([loadTyres(), loadPads(), getMine()]).catch(function () {}).then(function (res) {
     if (!document.body.contains(b)) return;
     b.insertAdjacentHTML('afterend', dayEditHtml(ids.length, what));
     var form = document.getElementById('tp-dayedit');
     form.setAttribute('data-ids', ids.join(',')); form.setAttribute('data-what', what);
     wireTyres('tp-de-tyre'); wirePads('tp-de-pad'); wireLogger('tp-de-logger');
+    // Same tyres or pads as the car's last session before this day: one tap fills them in and switches the change on.
+    var prev = previousKit(res && res[2], ids);
+    [['tyres', prev.tyre, function (t) { return TY ? TY.compose(t) : ''; }, function (t) { return tyreFields('tp-de-tyre', t); }, function () { wireTyres('tp-de-tyre'); }],
+     ['pads', prev.pads, function (p) { return p.text; }, function (p) { return padFields('tp-de-pad', p.fields); }, function () { wirePads('tp-de-pad'); }]].forEach(function (k) {
+      if (!k[1]) return;
+      var sw = document.getElementById('tp-de-' + k[0] + '-on'), fields = document.getElementById('tp-de-' + k[0]);
+      sw.insertAdjacentHTML('afterend', '<p class="tp-small tp-tyre-note" id="tp-de-prev-' + k[0] + '">Same ' + (k[0] === 'tyres' ? 'tyres' : 'brake pads') + ' as last time (' + esc(k[2](k[1])) + ')? <button type="button" class="btn btn-secondary btn-sm" id="tp-de-use-' + k[0] + '">Use previous ' + (k[0] === 'tyres' ? 'tyres' : 'brake pads') + '</button></p>');
+      document.getElementById('tp-de-use-' + k[0]).addEventListener('click', function () {
+        fields.innerHTML = k[3](k[1]); k[4]();
+        sw.setAttribute('aria-checked', 'true'); fields.hidden = false;
+      });
+    });
     form.querySelector('[data-cond]').addEventListener('click', function (ev) {
       var c = ev.target.closest('button[data-v]');
       if (!c) return;
@@ -3691,7 +3731,7 @@
   // Everything from Compare laps down is a tile ([data-tile]) in one 12-column board (#tp-board, .tp-board), each as
   // wide as its --span (DEFAULT_SPAN; full width on a phone). Nothing is moved or resized by the member.
   var boardOpen = false;
-  var DEFAULT_SPAN = { speed: 7, map: 5, corners: 7, grip: 7, cmpnotes: 12, laps: 12, spotted: 12, overtime: 12, 'overtime-notes': 6, 'overtime-table': 6, 'overtime-mods': 12, lineedit: 6, rename: 6, settings: 12, adminlayout: 12 };
+  var DEFAULT_SPAN = { speed: 6, map: 6, corners: 6, grip: 6, cmpnotes: 12, laps: 12, spotted: 12, overtime: 12, 'overtime-notes': 6, 'overtime-table': 6, 'overtime-mods': 12, lineedit: 6, rename: 6, settings: 12, adminlayout: 12 };
   var MAP_BASE = 380;
   // Packing: the grid's rows are 1px tall and each tile spans as many as its own height (plus the gap), measured
   // (ResizeObserver, redraws, a window resize), so the next tile starts straight under the one above it instead of

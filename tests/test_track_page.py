@@ -31,7 +31,7 @@ EARLIER = {
 
 
 def summary(rec):
-    keys = ["id", "carId", "type", "venueId", "venue", "layoutId", "layout", "date", "time", "privacy", "conditions", "tyres", "temp", "tempSource", "weather", "vmax", "soc", "quality", "logger", "pads", "street", "atVenue", "origin", "tyreMake", "tyreModel"]
+    keys = ["id", "carId", "type", "venueId", "venue", "layoutId", "layout", "date", "time", "privacy", "conditions", "tyres", "temp", "tempSource", "weather", "vmax", "soc", "quality", "logger", "pads", "padFrontMake", "padFrontCompound", "padRearMake", "padRearCompound", "street", "atVenue", "origin", "tyreMake", "tyreModel"]
     out = {k: rec.get(k) for k in keys if k in rec}
     if rec.get("type") == "drag":
         runs = rec.get("runs") or []
@@ -215,7 +215,7 @@ class FakeWorker:
             data = {"success": True, "session": summary(rec)}
         elif path == "/track/session" and req.method == "PUT":
             rec = self.sessions[body["id"]]
-            for k in ("privacy", "conditions", "tyres", "tyreMake", "tyreModel", "tyreWidth", "tyreProfile", "tyreRim", "temp", "tempSource", "weather", "notes", "publicNote", "logger"):
+            for k in ("privacy", "conditions", "tyres", "tyreMake", "tyreModel", "tyreWidth", "tyreProfile", "tyreRim", "padFrontMake", "padFrontCompound", "padRearMake", "padRearCompound", "pads", "temp", "tempSource", "weather", "notes", "publicNote", "logger"):
                 if k in body:
                     rec[k] = body[k]
             if "hill" in body:
@@ -526,7 +526,7 @@ def test_add_a_session_from_the_racebox_file(page):
     expect(page.locator("#tp-temp-src a")).to_have_attribute("href", "https://open-meteo.com/")
     # Wind in the chosen unit, and switching units keeps the upload.
     expect(page.locator("#tp-temp-src")).to_contain_text("wind 7 mph")
-    page.fill("#tp-tyre-model", "Cup 2")
+    tyre_model(page, "tp-tyre", "Cup 2")
     page.locator(".tp-head [data-units]").click()
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text(re.compile(r"2 timed laps, best 1:39\.79"))
     expect(page.locator("#tp-temp-src")).to_contain_text("wind 12 km/h")
@@ -535,7 +535,7 @@ def test_add_a_session_from_the_racebox_file(page):
     page.locator(".tp-head [data-units]").click()
     expect(page.locator("#tp-temp-src")).to_contain_text("wind 7 mph")
     expect(page.locator("[data-cond] [data-v='Dry']")).to_have_class(re.compile("is-on"))
-    page.fill("#tp-tyre-model", "Pilot Sport 4S")
+    tyre_model(page, "tp-tyre", "Pilot Sport 4S")
     page.locator("[data-privacy] [data-v='board']").click()
     page.get_by_role("button", name="Save session").click()
     expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
@@ -753,6 +753,17 @@ def test_a_public_note_is_shown_to_everyone_and_the_private_notes_only_to_the_ow
     expect(page.locator("#tp-public-note-line")).to_have_text("First time here")
     expect(page.locator("#tp-e-notes, #tp-e-public-note")).to_have_count(0)
     expect(page.locator("#tp-app, main").first).not_to_contain_text("pressures 38 cold")
+
+
+def tyre_model(page, pre, model):
+    """The tyre Model is a drop-down of the make's models with Other model, type it in: pick the model, or choose Other and type it."""
+    pick = page.locator("#%s-model-pick" % pre)
+    if pick.is_visible():
+        if model in pick.locator("option").evaluate_all("els => els.map(e => e.value)"):
+            pick.select_option(model)
+            return
+        pick.select_option("__other")
+    page.fill("#%s-model" % pre, model)
 
 
 def day_session(sid, time, best, laps, date="2026-07-14", venue="Castle Combe", venue_id="castle-combe"):
@@ -1063,7 +1074,7 @@ def test_edit_every_session_on_a_day_at_once(page):
     page.locator("#tp-de-tyres-on").click()
     expect(page.locator("#tp-de-tyres")).to_be_visible()
     page.select_option("#tp-de-tyre-make", "Michelin")
-    page.fill("#tp-de-tyre-model", "Pilot Sport 4S")
+    tyre_model(page, "tp-de-tyre", "Pilot Sport 4S")
     page.locator("#tp-saved-x").click()
     page.locator("[data-day-edit-apply]").click()
     expect(page.locator("#tp-saved")).to_contain_text("are updated")
@@ -2498,7 +2509,7 @@ def test_saving_keeps_the_readings_and_the_type_can_be_changed_after(page):
     page.set_input_files("#tp-file", str(FIXTURE))
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
     page.get_by_role("button", name="Use previous tyres").click()
-    page.fill("#tp-tyre-model", "AD08R")
+    tyre_model(page, "tp-tyre", "AD08R")
     page.fill("#tp-notes", "keep me")
     page.get_by_role("button", name="Save session").click()
     expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
@@ -3986,19 +3997,20 @@ def test_tyres_make_model_and_size_in_session_settings(page):
     assert page.locator("#tp-e-tyre-d option").all_inner_texts()[0] == "Diameter" and "19" in page.locator("#tp-e-tyre-d option").all_inner_texts()
     # The model suggestions follow the make.
     page.select_option("#tp-e-tyre-make", "Michelin")
-    models = page.locator("#tp-e-tyre-models option").evaluate_all("els => els.map(e => e.value)")
+    models = page.locator("#tp-e-tyre-model-pick option").evaluate_all("els => els.map(e => e.value)")
+    assert models[0] == "" and models[-1] == "__other" and page.locator("#tp-e-tyre-model-pick").is_visible()
     assert "Pilot Sport 4S" in models and "P Zero" not in models
     page.select_option("#tp-e-tyre-make", "Pirelli")
-    assert "P Zero Trofeo R" in page.locator("#tp-e-tyre-models option").evaluate_all("els => els.map(e => e.value)")
+    assert "P Zero Trofeo R" in page.locator("#tp-e-tyre-model-pick option").evaluate_all("els => els.map(e => e.value)")
     # Any make or model can still be typed.
     page.select_option("#tp-e-tyre-make", "__other")
     expect(page.locator("#tp-e-tyre-other-wrap")).to_be_visible()
     page.fill("#tp-e-tyre-make-other", "Hoosier")
-    page.fill("#tp-e-tyre-model", "R7")
+    tyre_model(page, "tp-e-tyre", "R7")
     expect(page.locator("#tp-e-tyre-preview")).to_have_text("Saved as: Hoosier R7")
     page.select_option("#tp-e-tyre-make", "Michelin")
     expect(page.locator("#tp-e-tyre-other-wrap")).to_be_hidden()
-    page.fill("#tp-e-tyre-model", "Pilot Sport 4S")
+    tyre_model(page, "tp-e-tyre", "Pilot Sport 4S")
     page.select_option("#tp-e-tyre-w", "245")
     expect(page.locator("#tp-e-tyre-preview")).to_contain_text("Pick the width, profile and diameter")
     page.select_option("#tp-e-tyre-p", "35")
@@ -4043,7 +4055,7 @@ def test_tyres_when_adding_a_session(page):
     page.set_input_files("#tp-file", str(FIXTURE))
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
     page.select_option("#tp-tyre-make", "Yokohama")
-    page.fill("#tp-tyre-model", "Advan Neova AD09")
+    tyre_model(page, "tp-tyre", "Advan Neova AD09")
     page.select_option("#tp-tyre-w", "265")
     page.select_option("#tp-tyre-p", "35")
     page.select_option("#tp-tyre-d", "19")
@@ -4071,9 +4083,9 @@ def test_tyre_choices_come_from_the_manifest_with_the_admin_changes_on_top(page)
     assert page.locator("#tp-e-tyre-p option").all_inner_texts() == ["Profile", "40", "45"]
     assert page.locator("#tp-e-tyre-d option").all_inner_texts() == ["Diameter", "17"]
     page.select_option("#tp-e-tyre-make", "Acme")
-    assert page.locator("#tp-e-tyre-models option").evaluate_all("els => els.map(e => e.value)") == ["Rocket 2"]
+    assert page.locator("#tp-e-tyre-model-pick option").evaluate_all("els => els.map(e => e.value)") == ["", "Rocket 2", "__other"]
     page.select_option("#tp-e-tyre-make", "Bolt")
-    assert page.locator("#tp-e-tyre-models option").evaluate_all("els => els.map(e => e.value)") == ["B1", "B2"]
+    assert page.locator("#tp-e-tyre-model-pick option").evaluate_all("els => els.map(e => e.value)") == ["", "B1", "B2", "__other"]
 
 
 def test_the_shipped_manifest_lists_the_makes(page):
@@ -4451,7 +4463,7 @@ def test_tyres_start_empty_and_the_last_ones_can_be_loaded(page):
     expect(page.locator("#tp-tyre-model")).to_have_value("Pilot Sport 4S")
     expect(page.locator(".tp-tyre-note")).to_contain_text("Filled in from your last session")
     # Changing them is allowed, and the note goes once they are different.
-    page.fill("#tp-tyre-model", "Cup 2")
+    tyre_model(page, "tp-tyre", "Cup 2")
     page.locator(".tp-head [data-units]").click()
     expect(page.locator("#tp-tyre-model")).to_have_value("Cup 2")
     expect(page.locator(".tp-tyre-note")).to_have_count(0)
@@ -5135,7 +5147,7 @@ def test_changing_the_tyre_make_clears_the_model(page):
     makes = page.evaluate("[...document.querySelectorAll('#tp-tyre-make option')].map(o => o.value).filter(v => v && v !== '__other')")
     assert len(makes) >= 2
     page.select_option("#tp-tyre-make", makes[0])
-    page.fill("#tp-tyre-model", "Something typed")
+    tyre_model(page, "tp-tyre", "Something typed")
     page.select_option("#tp-tyre-make", makes[1])
     expect(page.locator("#tp-tyre-model")).to_have_value("")
 
@@ -6269,7 +6281,7 @@ def test_the_session_board_packs_its_tiles_with_no_empty_blocks(page):
     assert first[:5] == ["speed", "map", "corners", "grip", "cmpnotes"]
     for k in ("laps", "spotted", "overtime", "overtime-notes", "overtime-table", "overtime-mods", "lineedit", "rename", "settings"):
         assert k in first, k
-    assert span("speed") == "7" and span("map") == "5" and span("settings") == "12" and span("overtime") == "12"
+    assert span("speed") == "6" and span("map") == "6" and span("settings") == "12" and span("overtime") == "12"
     assert page.locator("[data-move], [data-size], [data-resize]").count() == 0
     # Packed: Corner by corner starts straight under the speed charts, not under the taller map beside them.
     sb = page.locator('[data-tile="speed"]').bounding_box()
@@ -6368,3 +6380,34 @@ def test_changing_a_sessions_settings_offers_the_same_for_the_rest_of_the_day(pa
     page.wait_for_timeout(800)
     assert fake.sessions["g1"]["conditions"] == "Damp" and fake.sessions["g3"]["conditions"] == "Damp", fake.sessions
     assert all(v["logger"] == "RaceBox" for v in fake.sessions.values())
+
+
+def test_the_bulk_edit_can_use_the_previous_tyres_and_brake_pads(page):
+    """Edit all N sessions offers the car's last tyres and brake pads from before that day: one tap fills the fields in and
+    switches the change on, then Apply puts them on every session of the day."""
+    fake = FakeWorker(earlier=False)
+    earlier = dict(day_session("p1", "10:00", 95.0, 3, date="2026-06-01", venue="Thruxton", venue_id="thruxton"), tyres="Michelin Pilot Sport 4S, 245/35 R19",
+                   tyreMake="Michelin", tyreModel="Pilot Sport 4S", pads="Pagid RSL29", padFrontMake="Pagid", padFrontCompound="RSL29")
+    fake.sessions["p1"] = dict(earlier)
+    fake.index.append(summary(earlier))
+    _day_of_three(fake)
+    open_page(page, fake)
+    into_track(page, "Castle Combe")
+    page.locator("[data-day-edit]").click()
+    expect(page.locator("#tp-de-prev-tyres")).to_contain_text("Michelin Pilot Sport 4S, 245/35 R19")
+    expect(page.locator("#tp-de-prev-pads")).to_contain_text("Pagid RSL29")
+    page.locator("#tp-de-use-tyres").click()
+    expect(page.locator("#tp-de-tyres")).to_be_visible()
+    expect(page.locator("#tp-de-tyre-make")).to_have_value("Michelin")
+    expect(page.locator("#tp-de-tyre-model-pick")).to_have_value("Pilot Sport 4S")
+    expect(page.locator("#tp-de-tyre-w")).to_have_value("245")
+    page.locator("#tp-de-use-pads").click()
+    expect(page.locator("#tp-de-pads")).to_be_visible()
+    expect(page.locator("#tp-de-pad-front-make")).to_have_value("Pagid")
+    expect(page.locator("#tp-de-pad-front-comp")).to_have_value("RSL29")
+    page.locator("[data-day-edit-apply]").click()
+    expect(page.locator("#tp-saved")).to_contain_text("are updated")
+    for sid in ("g1", "g2", "g3"):
+        v = fake.sessions[sid]
+        assert v.get("tyreMake") == "Michelin" and v.get("tyreModel") == "Pilot Sport 4S" and v.get("tyreWidth") == 245, v
+        assert v.get("padFrontMake") == "Pagid" and v.get("padFrontCompound") == "RSL29", v

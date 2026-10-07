@@ -602,21 +602,20 @@ def test_track_sessions_button_on_the_garage(device_page):
     page = device_page
     signed_in(page)
     page.goto("/my-builds.html")
-    menu = page.locator("#mb-track-menu > summary")
-    menu.wait_for(state="visible", timeout=10000)
-    assert "Track your car?" in menu.inner_text()
-    assert menu.bounding_box()["height"] >= 44
-    menu.click()
+    # My Sessions and Leaderboards are two plain buttons beside Add vehicle, not a drop-down (October 2026).
+    assert page.locator("#mb-track-menu").count() == 0
     btn = page.locator("#mb-track-btn")
-    btn.wait_for(state="visible", timeout=5000)
-    assert "My Track Sessions" in btn.inner_text()
+    btn.wait_for(state="visible", timeout=10000)
+    assert "My Sessions" in btn.inner_text()
+    assert btn.bounding_box()["height"] >= 44
     assert btn.get_attribute("href") == "track.html"
-    assert page.locator("#mb-boards-btn").get_attribute("href") == "leaderboards.html"
-    # No track data in this mock: Track Sessions is faded, Leaderboards never is.
+    boards = page.locator("#mb-boards-btn")
+    expect(boards).to_be_visible()
+    assert "Leaderboards" in boards.inner_text()
+    assert boards.get_attribute("href") == "leaderboards.html"
+    # No track data in this mock: My Sessions is faded, Leaderboards never is.
     assert "is-quiet" in btn.get_attribute("class")
-    assert "is-quiet" not in page.locator("#mb-boards-btn").get_attribute("class")
-    page.mouse.click(5, 5)
-    btn.wait_for(state="hidden", timeout=5000)
+    assert "is-quiet" not in boards.get_attribute("class")
     assert overflow_width(page) <= 0
     assert page.errors == [], diagnostics(page)
 

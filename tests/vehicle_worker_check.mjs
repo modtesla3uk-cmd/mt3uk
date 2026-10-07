@@ -179,6 +179,18 @@ ok(r.status === 200 && r.body.car.model === 'Model Q' && r.body.car.version === 
 ok(JSON.parse(kv.get('car-details:cara1')).model === 'Model Q' && JSON.parse(kv.get('car-details:cara1')).drive === 'RWD', 'and they are saved to the car');
 r = await call('POST', '/track/admin/cars?key=secret', { carId: 'cara1', drive: '' });
 ok(r.status === 200 && r.body.car.set === false && r.body.car.model === 'Model Q', 'only the settings sent change; clearing the driven wheels goes back to the model\'s');
+// Kerb weight and pads on the row: the admin sets the weight, the pads come from the car's mods in My Garage.
+kv.set('car-details:cara1', JSON.stringify(Object.assign(JSON.parse(kv.get('car-details:cara1')), { specs: { brakes: { status: 'up', fields: { frontPads: 'Pagid RSL29', rearPads: 'Pagid RS29' } } } })));
+r = await call('POST', '/track/admin/cars?key=secret', { carId: 'cara1', weight: '1847.6' });
+ok(r.status === 200 && r.body.car.weight === 1848 && r.body.car.pads === 'Front: Pagid RSL29, rear: Pagid RS29' && JSON.parse(kv.get('car-details:cara1')).weight === 1848, 'the admin sets the kerb weight, and the row shows the pads fitted: ' + JSON.stringify([r.body.car.weight, r.body.car.pads]));
+r = await call('POST', '/track/admin/cars?key=secret', { carId: 'cara1', weight: '50' });
+ok(r.status === 200 && r.body.car.weight === '' && !('weight' in JSON.parse(kv.get('car-details:cara1'))), 'a silly weight clears it');
+r = await call('POST', '/track/admin/cars?key=secret', { carId: 'cara1', weight: '1900' });
+r = await call('POST', '/track/admin/cars?key=secret', { carId: 'cara1', drive: '' });
+ok(r.body.car.weight === 1900, 'a save without the weight keeps it');
+r = await call('POST', '/track/admin/cars?key=secret', { carId: 'cara1', weight: '' });
+ok(r.body.car.weight === '', 'and an empty one clears it');
+{ const d = JSON.parse(kv.get('car-details:cara1')); delete d.specs; kv.set('car-details:cara1', JSON.stringify(d)); }
 r = await call('POST', '/track/admin/cars?key=secret', { carId: 'nope', model: 'x' });
 ok(r.status === 404, 'a car that does not exist is refused');
 // A stale record: its photos are gone, so no owner, no live photo and no sessions.

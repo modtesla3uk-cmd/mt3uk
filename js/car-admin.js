@@ -1,6 +1,6 @@
 /*
   track-admin.html, Members' cars panel: every car and bike in members' garages with its settings (type, make,
-  model, version, year and driven wheels), from the worker's /track/admin/cars (admin key). Save on a row sends the
+  model, version, year, driven wheels and kerb weight) and the pads fitted, from the worker's /track/admin/cars (admin key). Save on a row sends the
   changed settings; the worker writes them to the car, stamps its sessions and refreshes its leaderboard rows.
   The Make, Model and Version drop-downs offer the vehicle library's choices (js/vehicle-data.js) and Type it in,
   which opens a text box for anything else.
@@ -28,6 +28,8 @@
   var V = window.MT3UKVehicles;
   function makesOf(type) { return V && V.loaded ? Object.keys(V[type === 'bike' ? 'bike' : 'car'] || {}) : []; }
   function modelsOf(type, make) { return V && V.loaded ? ((V[type === 'bike' ? 'bike' : 'car'] || {})[make] || []) : []; }
+  // The vehicle list's kerb weight for the car's make, model and version, shown as the box's placeholder.
+  function libWeight(c) { return V && V.loaded && V.weight ? V.weight({ make: c.make, model: c.model, version: c.version, vehicleType: c.vehicleType }) : null; }
   function versionsOf(c) { return V && V.loaded ? V.versionsFor({ make: c.make, model: c.model, vehicleType: c.vehicleType }) : []; }
   function options(list) { return list.map(function (x) { return '<option value="' + esc(x) + '"></option>'; }).join(''); }
   function matches(c, q) {
@@ -53,7 +55,7 @@
     if (c.stale) {
       // Nothing holds this record: no owner, no live photo names it and no sessions. Only Remove.
       return '<tr class="mc-row is-stale" data-car="' + esc(c.carId) + '"><td data-label="Owner">Owner not known</td>' +
-        '<td data-label="Car" colspan="7"><b>' + esc(c.car || 'A vehicle') + '</b><span class="mc-badge">Stale</span><span class="iv-sub">' +
+        '<td data-label="Car" colspan="9"><b>' + esc(c.car || 'A vehicle') + '</b><span class="mc-badge">Stale</span><span class="iv-sub">' +
         (c.photos ? 'Its ' + c.photos + ' photo' + (c.photos === 1 ? ' has' : 's have') + ' been deleted or moved to another car' : 'No photos') + ', no sessions. Safe to remove.</span></td>' +
         '<td><button type="button" class="danger iv-act mc-remove">Remove</button></td></tr>';
     }
@@ -68,6 +70,8 @@
       '<td data-label="Year"><input type="number" class="mc-year" min="1950" max="' + (new Date().getFullYear() + 1) + '" value="' + esc(c.year || '') + '" aria-label="Year"></td>' +
       '<td data-label="Driven wheels"><select class="mc-drive" aria-label="Driven wheels"><option value=""' + (c.set ? '' : ' selected') + '>' + (c.drive ? 'From the model (' + c.drive + ')' : 'Not known') + '</option>' +
         DRIVES.map(function (d) { return '<option value="' + d + '"' + (c.set && c.drive === d ? ' selected' : '') + '>' + d + '</option>'; }).join('') + '</select></td>' +
+      '<td data-label="Kerb weight (kg)"><input type="number" class="mc-weight" min="300" max="4000" step="5" value="' + esc(c.weight || '') + '" placeholder="' + esc(libWeight(c) ? 'Maker ' + libWeight(c) : 'Not known') + '" aria-label="Kerb weight in kg"></td>' +
+      '<td data-label="Pads">' + (c.pads ? esc(c.pads) : '<span class="iv-sub">Not set</span>') + '</td>' +
       '<td><button type="button" class="secondary iv-act mc-save">Save</button></td></tr>';
   }
   // What a Make, Model or Version drop-down holds: the typed words when Type it in is chosen.
@@ -100,7 +104,7 @@
     var stale = cars.filter(function (c) { return c.stale; }).length;
     listEl.innerHTML = cars.length ? '<p class="iv-note">' + cars.length + ' vehicle' + (cars.length === 1 ? '' : 's') + (q ? ', ' + shown.length + ' shown' : '') + ', ' + cars.filter(function (c) { return !c.model && !c.stale; }).length + ' with no model' +
       (stale ? ', ' + stale + ' stale (no owner, no live photos, no sessions). <button type="button" class="secondary iv-act" id="mc-remove-stale">Remove all stale</button>' : '.') + '</p>' +
-      '<table class="iv-table tk-table mc-table"><thead><tr><th>Owner</th><th>Car</th><th>Type</th><th>Make</th><th>Model</th><th>Version</th><th>Year</th><th>Driven wheels</th><th></th></tr></thead><tbody>' +
+      '<table class="iv-table tk-table mc-table"><thead><tr><th>Owner</th><th>Car</th><th>Type</th><th>Make</th><th>Model</th><th>Version</th><th>Year</th><th>Driven wheels</th><th>Kerb weight (kg)</th><th>Pads</th><th></th></tr></thead><tbody>' +
       shown.map(rowHtml).join('') + '</tbody></table>' : '<p class="empty">No cars yet.</p>';
   }
   function load() {
@@ -162,7 +166,7 @@
     if (!btn) return;
     var row = btn.closest('tr'), carId = row.getAttribute('data-car'), c = findCar(carId) || {};
     var body = { carId: carId, vehicleType: row.querySelector('.mc-type').value, make: picked(row, 'mc-make'), model: picked(row, 'mc-model'),
-      version: picked(row, 'mc-version'), year: row.querySelector('.mc-year').value.trim(), drive: row.querySelector('.mc-drive').value };
+      version: picked(row, 'mc-version'), year: row.querySelector('.mc-year').value.trim(), drive: row.querySelector('.mc-drive').value, weight: row.querySelector('.mc-weight').value.trim() };
     btn.disabled = true;
     note('Saving ' + (c.car || 'the car') + '...');
     call('POST', body).then(function (d) {

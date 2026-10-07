@@ -5601,7 +5601,23 @@ function cleanCarModel(body, knownMake) {
   if (DRIVES.indexOf(body.drive) !== -1) out.drive = body.drive;
   var year = parseInt(body.year, 10);
   if (year >= 1950 && year <= new Date().getUTCFullYear() + 1) out.year = year;
+  // The kerb weight in kg, set by the owner (a stripped car) or the admin; an empty one goes back to the vehicle
+  // list's figure for the model and version.
+  var weight = trackNum(body.weight, 300, 4000);
+  if (weight !== null) out.weight = Math.round(weight);
   return out;
+}
+
+// The pads a car has fitted, from the Brakes section of its mods in My Garage: "Pagid RSL29" when the same both ends,
+// else "Front: X, rear: Y" (shown on the car's page and the Members' cars panel).
+function carPadsText(details) {
+  var f = details && details.specs && details.specs.brakes && details.specs.brakes.fields;
+  if (!f) return '';
+  var front = cleanModText(f.frontPads || f.pads, 60), rear = cleanModText(f.rearPads, 60);
+  if (!front && !rear) return '';
+  if (!rear || front === rear) return front;
+  if (!front) return 'Rear: ' + rear;
+  return 'Front: ' + front + ', rear: ' + rear;
 }
 
 function joinParts(parts, sep) {
@@ -6676,6 +6692,7 @@ async function handleMyBuildsGet(request, env) {
       model: (details && details.model) || '',
       version: (details && details.version) || '',
       year: (details && details.year) || '',
+      weight: (details && details.weight) || '',
       specs: (details && details.specs) || null,
       plans: (details && details.plans) || [],
       view: specsToView(details && details.specs, true, mods),
@@ -7344,6 +7361,8 @@ async function refreshTrackBoard(env, boardKey, carId) {
     };
     if (mine.tyreMake) entry.tyreMake = mine.tyreMake;
     if (mine.tyreModel) entry.tyreModel = mine.tyreModel;
+    // The owner's or the admin's kerb weight; the leaderboard falls back to the vehicle list's.
+    if (details && details.weight) entry.weight = details.weight;
     if (mine.type === 'drag') { entry.quarter = mine.quarter; entry.quarterSpeed = mine.quarterSpeed; entry.s60 = mine.s60; }
     else entry.time = mine.bestTime;
     board.push(entry);
@@ -8345,7 +8364,7 @@ async function handleTrackPublic(request, env) {
   var viewer = request.headers.get('X-Session-Token') ? await resolveSession(request, env) : null;
   var res = json({
     success: true,
-    car: { id: carId, name: record.name || '', make: (details && details.make) || '', vehicleType: (details && details.vehicleType) || '', drive: carDrive(details, await getVehicleDrives(env)), model: (details && details.model) || '', version: (details && details.version) || '', year: (details && details.year) || '', photo: (record.photos || [])[0] || '', owner: ownerEmail ? (publicName(await getProfileRecord(env, ownerEmail)) || 'MT3UK member') : '' },
+    car: { id: carId, name: record.name || '', make: (details && details.make) || '', vehicleType: (details && details.vehicleType) || '', drive: carDrive(details, await getVehicleDrives(env)), model: (details && details.model) || '', version: (details && details.version) || '', year: (details && details.year) || '', weight: (details && details.weight) || '', pads: carPadsText(details), photo: (record.photos || [])[0] || '', owner: ownerEmail ? (publicName(await getProfileRecord(env, ownerEmail)) || 'MT3UK member') : '' },
     mine: !!viewer && viewer === ownerEmail,
     sessions: await getJsonKey(env, 'track-public:' + carId, [])
   });
@@ -9503,7 +9522,8 @@ function adminCarRow(carId, record, details, drives, owner, email, sessions, liv
   return { carId: carId, car: record.name || '', owner: owner, email: email || '', sessions: sessions || 0, photos: (record.photos || []).length,
     livePhotos: livePhotos || 0, stale: carRecordStale(email, livePhotos, sessions),
     garageOnly: record.garageOnly === true, make: details.make || '', model: details.model || '', version: details.version || '', year: details.year || '',
-    vehicleType: details.vehicleType || 'car', drive: carDrive(details, drives), set: DRIVES.indexOf(details.drive) !== -1 };
+    vehicleType: details.vehicleType || 'car', drive: carDrive(details, drives), set: DRIVES.indexOf(details.drive) !== -1,
+    weight: details.weight || '', pads: carPadsText(details) };
 }
 async function handleTrackAdminCars(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
@@ -9526,7 +9546,7 @@ async function handleTrackAdminCars(request, env) {
     var clean = cleanCarModel(body, details.make);
     // The admin can type any model, with or without a make.
     if ('model' in body && clean.model === undefined) { var typed = cleanModText(body.model, 50); if (typed) clean.model = typed; }
-    ['make', 'model', 'version', 'year', 'vehicleType', 'drive'].forEach(function (k) {
+    ['make', 'model', 'version', 'year', 'vehicleType', 'drive', 'weight'].forEach(function (k) {
       if (!(k in body)) return;
       if (clean[k] !== undefined) details[k] = clean[k]; else delete details[k];
     });
@@ -10065,14 +10085,14 @@ async function handleMyBuildsCarUpdate(request, env) {
   // Model and the mods list from the builder (js/mods-builder.js). The
   // public mods list on every photo is made from the specs.
   var details = null;
-  var hasModel = body && ('model' in body || 'version' in body || 'year' in body || 'make' in body || 'vehicleType' in body || 'drive' in body);
+  var hasModel = body && ('model' in body || 'version' in body || 'year' in body || 'make' in body || 'vehicleType' in body || 'drive' in body || 'weight' in body);
   var hasSpecs = body && body.specs && typeof body.specs === 'object';
   if (hasModel || hasSpecs || (body && Array.isArray(body.plans))) {
     details = (await getCarDetails(env, realCarId)) || {};
     if (hasModel) {
       // Only the ones sent change; an empty one clears it.
       var model = cleanCarModel(body, details.make);
-      ['make', 'model', 'version', 'year', 'vehicleType', 'drive'].forEach(function (k) {
+      ['make', 'model', 'version', 'year', 'vehicleType', 'drive', 'weight'].forEach(function (k) {
         if (!(k in body)) return;
         if (model[k] !== undefined) details[k] = model[k];
         else delete details[k];
@@ -10094,7 +10114,7 @@ async function handleMyBuildsCarUpdate(request, env) {
 
   var carOut = Object.assign({}, record);
   if (details) {
-    ['make', 'vehicleType', 'model', 'version', 'year', 'specs', 'plans'].forEach(function (k) { if (details[k] !== undefined) carOut[k] = details[k]; });
+    ['make', 'vehicleType', 'model', 'version', 'year', 'weight', 'specs', 'plans'].forEach(function (k) { if (details[k] !== undefined) carOut[k] = details[k]; });
   }
   var viewDetails = details || (await getCarDetails(env, realCarId));
   carOut.view = specsToView(viewDetails && viewDetails.specs, true, record.mods);

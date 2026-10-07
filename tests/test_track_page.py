@@ -60,6 +60,7 @@ class FakeWorker:
         self.copy = None
         # The link preview picture set's version, for the share links.
         self.shareVersion = 0
+        self.public_car = {}
         self.courses = []
         self.courses_added = []
         self.course_error = ""
@@ -231,7 +232,7 @@ class FakeWorker:
                 entries = [{"carId": "car1", "sessionId": best["id"], "car": CAR["name"], "model": "Model 3", "owner": "Rich", "time": best["bestTime"], "date": best["date"], "conditions": best.get("conditions"), "mods": ["KW V3 coilovers"], "sessions": len(mine)}]
             data = {"success": True, "entries": custom if custom is not None else entries}
         elif path == "/track/public":
-            data = {"success": True, "car": {"id": "car1", "name": CAR["name"], "model": "Model 3", "owner": "Rich"}, "mine": False, "sessions": [s for s in self.index if s.get("privacy") in ("build", "board")]}
+            data = {"success": True, "car": dict({"id": "car1", "name": CAR["name"], "model": "Model 3", "owner": "Rich"}, **self.public_car), "mine": False, "sessions": [s for s in self.index if s.get("privacy") in ("build", "board")]}
         elif path == "/track/copy":
             data = {"success": True, "copy": self.copy or {}}
         elif path == "/share/versions":
@@ -2718,6 +2719,26 @@ def test_a_shared_session_and_a_build_page_have_their_own_share_button(page):
     page.locator(".tp-head [data-tp-share]").click()
     expect(page.locator(".mt3uk-share-pop .mt3uk-share-title")).to_have_text("Share this build")
     assert "track.html%3Fcar%3Dcar1" in page.locator(".mt3uk-share-pop [data-channel='whatsapp']").get_attribute("href")
+
+
+def test_a_build_page_shows_its_kerb_weight_and_pads(page):
+    """A car's page says its kerb weight (the owner's figure, else the vehicle list's for the model) and the pads
+    fitted, and each shared session names the pads it was run on."""
+    fake = FakeWorker()
+    fake.index.append(dict(fake.index[0], id="padded", privacy="board", pads="Pagid RSL29", date="2026-06-02"))
+    fake.public_car = {"version": "Performance", "pads": "Front: Pagid RSL29, rear: Pagid RS29"}
+    open_page(page, fake, path="/track.html?car=car1")
+    kit = page.locator("#tp-car-kit")
+    expect(kit).to_contain_text("Kerb weight 1,845 kg (maker's figure)")
+    expect(kit).to_contain_text("Pads: Front: Pagid RSL29, rear: Pagid RS29")
+    expect(page.locator(".tp-row[data-sid='padded']")).to_contain_text("Pagid RSL29")
+    fake.public_car = {"version": "Performance", "weight": 1790}
+    page.reload()
+    expect(page.locator("#tp-car-kit")).to_have_text("Kerb weight 1,790 kg (owner's figure)")
+    # No version: the model's own figure from the vehicle list, and no pads line.
+    fake.public_car = {}
+    page.reload()
+    expect(page.locator("#tp-car-kit")).to_have_text("Kerb weight 1,765 kg (maker's figure)")
 
 
 @all_devices

@@ -80,7 +80,14 @@
     });
     return fastP;
   }
-  function seen() { try { return JSON.parse(localStorage.getItem(SEEN) || 'null'); } catch (e) { return null; } }
+  // The list from the last look. Keys saved before October 2026 carried the leader's name as a third part: it is
+  // dropped, so the change of format does not mark every board New once.
+  function seen() {
+    try {
+      var list = JSON.parse(localStorage.getItem(SEEN) || 'null');
+      return Array.isArray(list) ? list.map(function (k) { return String(k).split('|').slice(0, 2).join('|'); }) : null;
+    } catch (e) { return null; }
+  }
   function rowHtml(x, isNew) {
     return '<a href="' + esc(x.href) + '"><span class="lh-where"><b>' + esc(x.where) + (isNew ? ' <span class="lh-new">New</span>' : '') + '</b><span>' + esc(x.who) + (x.car ? ', ' + esc(x.car) : '') + ' &middot; ' + esc(x.what) + '</span></span><span class="lh-time">' + esc(x.res) + '</span></a>';
   }

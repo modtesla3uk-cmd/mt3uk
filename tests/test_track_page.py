@@ -1526,6 +1526,12 @@ def test_the_sessions_bulb_shows_fastest_right_now_and_lights_up_when_a_leader_c
     bulb.click()
     expect(page.locator(".page-hero .lh-fast-pop a").first.locator(".lh-new")).to_have_text("New")
     expect(page.locator(".page-hero .lh-fast-pop a").nth(1).locator(".lh-new")).to_have_count(0)
+    # A list remembered by the old format (board, time and the leader's name) still counts as seen.
+    page.evaluate("localStorage.setItem('mt3ukLapsFastSeen', JSON.stringify(['track-board:thruxton:main|1:19.90|Kit', 'drag-board:santa-pod|10.84 s|Kit']))")
+    open_page(page, fake, "/track.html", signed_in=True)
+    page.locator(".page-hero .lh-fast-pop").wait_for(state="attached")
+    expect(page.locator(".page-hero .laps-tip-bulbbtn")).not_to_have_class(re.compile("is-lit"))
+    expect(page.locator(".page-hero .lh-fast-pop .lh-new")).to_have_count(0)
     # A leader's nickname or car name changing is not a new leader: nothing is lit or marked New.
     fake.counts = json.loads(json.dumps(fake.counts))
     fake.counts["leaders"]["track-board:thruxton:main"] = [{"car": "Venom II", "owner": "Kit Chambers", "model": "Model S", "time": 79.9}]

@@ -380,7 +380,22 @@
     .tp-mapcard:not(.is-full) .tp-mrow .tp-mv { text-align: right; }
   }
   /* Phones keep the order: speed chart, map, corner table. */
-  @media (max-width: 780px) { .tp-g-map > .tp-grid { display: contents; } .tp-o-speed { order: 1; } .tp-mapcard { order: 2; } .tp-o-corner { order: 3; } }
+  @media (max-width: 780px) { .tp-g-map > .tp-grid { display: contents; } body:not(.has-order) .tp-o-speed { order: 1; } body:not(.has-order) .tp-mapcard { order: 2; } body:not(.has-order) .tp-o-corner { order: 3; } }
+  /* Movable panels: a grip handle in each panel's heading (drag, or the arrow keys). */
+  .tp-move { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 32px; height: 32px; margin: -4px 2px -4px -6px; padding: 0; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--steel); cursor: grab; touch-action: none; }
+  .tp-move .icon { width: 18px; height: 18px; fill: currentColor; stroke: none; }
+  .tp-move:hover, .tp-move:focus-visible { background: var(--paper-2); color: var(--ink); }
+  .tp-move:focus-visible { outline: 2px solid var(--orange); outline-offset: -2px; }
+  [data-tile].is-moving { opacity: 0.7; outline: 2px dashed var(--orange); outline-offset: 2px; }
+  body.is-dragging .tp-cmp-col { min-height: 56px; border-radius: var(--radius); outline: 1px dashed var(--hairline-strong); outline-offset: 4px; }
+  body.is-dragging { user-select: none; }
+  .tp-drop { height: 6px; margin: 4px 0; border-radius: 3px; background: var(--orange); }
+  .tp-cmp-wide > .tp-g2 { margin-top: 14px; }
+  .tp-cmp-col:not(.tp-cmp-wide) > .tp-section { margin-top: 0; }
+  .tp-cmp-col:not(.tp-cmp-wide) > .tp-section .tp-head { margin-bottom: 6px; }
+  .tp-laps summary .tp-move { margin-left: -2px; }
+  .tp-head .tp-move { align-self: center; }
+  .tp-mapcard.is-full .tp-move { display: none; }
   .tp-field[hidden] { display: none; }
   .tp-f3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
   .tp-tyres { display: block; margin-bottom: 14px; }
@@ -761,7 +776,7 @@
   .tp-car-from .icon { width: 16px; height: 16px; color: var(--steel); flex: none; }
   .tp-grid { display: grid; gap: 14px; margin-bottom: 14px; }
   .tp-grid > * { min-width: 0; }
-  @media (min-width: 781px) { .tp-g-map { grid-template-columns: 1.25fr 1fr; align-items: start; } .tp-g2 { grid-template-columns: 1fr 1fr; align-items: start; } }
+  @media (min-width: 781px) { .tp-g-map { grid-template-columns: 1.25fr 1fr; align-items: start; } .tp-g2 { grid-template-columns: 1fr 1fr; align-items: start; } .tp-cmp-col:not(.tp-cmp-wide) .tp-g2 { grid-template-columns: 1fr; } }
   .tp-chart-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 12px; margin: 4px 0 8px; }
   .tp-chart-head h3 { margin: 0; }
   .tp-chart-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 12px; font-size: 0.8rem; color: var(--steel); margin-top: 6px; }
@@ -1100,12 +1115,12 @@
 </script>
 
 <script src="js/track-parse.js?v=20270128" defer></script>
-<script src="js/track-view.js?v=20270110" defer></script>
+<script src="js/track-view.js?v=20270111" defer></script>
 <script src="js/tyre-data.js?v=20270210"></script>
 <script src="js/pad-data.js?v=20270210"></script>
 <script src="js/vehicle-data.js?v=20270210" defer></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20270222" defer></script>
+<script src="js/track-page.js?v=20270223" defer></script>
 <script src="js/laps-panels.js?v=3" defer></script>
 <script src="js/laps-tip.js?v=20270104" defer></script>
 <script src="js/share.js" defer></script>

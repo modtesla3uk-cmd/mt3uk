@@ -6031,3 +6031,59 @@ def test_every_session_says_which_logger_recorded_it(page, tmp_path):
     page.set_input_files("#tp-file", str(g))
     page.locator("#tp-result").wait_for()
     expect(page.locator("#tp-logger")).to_have_value("VBOX (Racelogic)")
+
+
+def test_the_compare_panels_can_be_moved_by_their_handles(page):
+    """Each Compare laps panel has a grip handle: dragging it moves the panel up or down or into another column, the
+    arrow keys do the same, Home puts them back, and the order is kept per browser. Hidden in full screen."""
+    fake = FakeWorker()
+    save_thruxton_with_a_member_board(page, fake)
+
+    def order():
+        return page.evaluate("""() => Object.fromEntries([...document.querySelectorAll('#tp-app [data-col]')].map(c => [c.dataset.col, [...c.querySelectorAll(':scope > [data-tile]')].map(t => t.dataset.tile)]))""")
+    first = order()
+    assert first["left"] == ["speed", "corners"] and first["right"] == ["map"]
+    # Everything after the columns is in the full-width row: the grip chart, Laps, What we spotted, over time, the
+    # line and name requests and Session settings, each with a handle.
+    assert first["wide"][:3] == ["grip", "laps", "spotted"] and "settings" in first["wide"] and "overtime" in first["wide"]
+    assert page.locator("#tp-app [data-move]").count() == len(first["left"]) + len(first["right"]) + len(first["wide"])
+    assert page.locator('[data-resize="timeline"]').count() == 1
+    # Drag Corner by corner above the speed charts: the handle at the foot of the screen, the speed panel above it.
+    handle = page.locator('[data-tile="corners"] [data-move]')
+    handle.scroll_into_view_if_needed()
+    page.evaluate("y => window.scrollTo({ top: window.scrollY + y - 100, behavior: 'instant' })", page.locator('[data-tile="speed"]').bounding_box()["y"])
+    page.wait_for_timeout(100)
+    hb = handle.bounding_box()
+    target = page.locator('[data-tile="speed"]').bounding_box()
+    drop_y = target["y"] + 30
+    assert 90 < drop_y < target["y"] + target["height"] / 2 and hb["y"] < page.viewport_size["height"], (hb, target)
+    page.mouse.move(hb["x"] + hb["width"] / 2, hb["y"] + hb["height"] / 2)
+    page.mouse.down()
+    page.mouse.move(target["x"] + target["width"] / 2, drop_y, steps=6)
+    page.mouse.up()
+    assert order()["left"] == ["corners", "speed"]
+    # Kept for next time.
+    page.reload()
+    page.locator("#tp-speed path, #tp-speed polyline").first.wait_for()
+    assert order()["left"] == ["corners", "speed"]
+    # The arrow keys: right moves a panel to the next column, Home puts everything back.
+    sh = page.locator('[data-tile="speed"] [data-move]')
+    sh.focus()
+    page.keyboard.press("ArrowRight")
+    assert order()["left"] == ["corners"] and order()["right"] == ["map", "speed"]
+    page.keyboard.press("ArrowUp")
+    assert order()["right"] == ["speed", "map"]
+    # Session settings can come up into a column too, and the Laps handle does not fold the list.
+    page.locator('[data-tile="settings"] [data-move]').focus()
+    page.keyboard.press("ArrowLeft")
+    assert order()["right"] == ["speed", "map", "settings"]
+    was_open = page.locator("#tp-laps").evaluate("el => el.open")
+    page.locator('[data-tile="laps"] [data-move]').click()
+    assert page.locator("#tp-laps").evaluate("el => el.open") == was_open
+    page.keyboard.press("Home")
+    assert order() == first
+    assert page.evaluate("localStorage.getItem('mt3ukLapsOrder')") is None
+    # Phone: no sideways scroll with a moved panel.
+    page.keyboard.press("ArrowRight")
+    page.set_viewport_size({"width": 390, "height": 844})
+    assert page.evaluate("document.documentElement.scrollWidth") <= 390

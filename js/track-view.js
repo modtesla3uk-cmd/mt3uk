@@ -782,9 +782,9 @@
 
   // ---------- Best lap per session ----------
   // points [{ date, time, wet, mine, label }], mods [{ date 'YYYY-MM', label }]
-  function timeline(svg, points, mods) {
+  function timeline(svg, points, mods, opts) {
     svg.innerHTML = '';
-    var W = width(svg, 900), H = 300;
+    var W = width(svg, 900), H = (opts && opts.H) || 300;
     svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
     if (!points.length) return;
     var m = { l: 56, r: 20, t: 36, b: 30 };

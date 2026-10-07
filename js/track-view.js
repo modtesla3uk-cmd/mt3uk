@@ -313,13 +313,14 @@
       var behind = gapS !== null && posA && posB && m.letter === (gapS >= 0 ? 'B' : 'A');
       if (inView) {
         if (!behind) { m.g.setAttribute('visibility', 'hidden'); return; }
-        // In view: no arrow, just the pill above the car's dot.
-        var gl = m.letter + ', ' + Math.abs(gapS).toFixed(1) + ' s behind', gw = gl.length * 7.2 + 16;
+        // In view: no arrow, just the pill by the car's dot, on the side away from its speed label (lap B's speed
+        // sits up and to the left of its dot, lap A's down and to the right), so neither covers the other.
+        var gl = m.letter + ', ' + Math.abs(gapS).toFixed(1) + ' s behind', gw = gl.length * 7.2 + 16, py0 = m.letter === 'B' ? 12 : -36;
         moveMarker(m, q[0], q[1]);
         m.rot.setAttribute('visibility', 'hidden');
         m.label.textContent = gl;
-        m.pill.setAttribute('x', (-gw / 2).toFixed(1)); m.pill.setAttribute('y', -36); m.pill.setAttribute('width', gw.toFixed(1));
-        m.label.setAttribute('x', 0); m.label.setAttribute('y', -21.5); m.label.setAttribute('text-anchor', 'middle');
+        m.pill.setAttribute('x', (-gw / 2).toFixed(1)); m.pill.setAttribute('y', py0); m.pill.setAttribute('width', gw.toFixed(1));
+        m.label.setAttribute('x', 0); m.label.setAttribute('y', py0 + 14.5); m.label.setAttribute('text-anchor', 'middle');
         m.g.setAttribute('visibility', 'visible');
         return;
       }

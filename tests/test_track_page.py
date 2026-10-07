@@ -4420,6 +4420,8 @@ FOLLOW_HARNESS = """async ([steps]) => {
       out[name].after = { toLeader: dist(c2, xy(a)), toMid: dist(c2, mid), maxStep };
     }
     out[name].edgeA = edge('A'); out[name].edgeB = edge('B');
+    const eb = [...svg.querySelectorAll('g.tv-edge')].find(x => x.querySelector('text').textContent.startsWith('B'));
+    out[name].edgeBPillY = eb ? Number(eb.querySelector('rect').getAttribute('y')) : null;
     out[name].viewW = svg.viewBox.baseVal.width;
   }
   return out;
@@ -4460,6 +4462,9 @@ def test_follow_glides_between_both_cars_and_the_leader(page):
     # the leader has nothing.
     assert r["both"]["after"]["toMid"] < 0.5, r["both"]
     assert r["both"]["edgeA"] is None and r["both"]["edgeB"] == "B, 1.9 s behind", r["both"]
+    # The gap pill sits below lap B's dot, clear of its speed bubble (up and to the left of the dot in full screen on a
+    # phone on its side), which it used to cover.
+    assert r["both"]["edgeBPillY"] > 8, r["both"]
     # The slower car drops back: the view glides to the leader, not one jump.
     assert r["apart"]["now"]["toLeader"] > 0.25 * w, r["apart"]
     assert r["apart"]["after"]["toLeader"] < 0.5, r["apart"]
@@ -6089,6 +6094,12 @@ def test_the_compare_panels_can_be_moved_by_their_handles(page):
     assert page.locator("#tp-board > [data-tile] > [data-size]").count() == len(first)
     assert page.locator("#tp-board [data-move]").count() == len(first)
     assert span("speed") == "7" and span("map") == "5" and span("settings") == "12" and span("overtime") == "12"
+    # Packed: Corner by corner starts straight under the speed charts, not under the taller map beside them.
+    sb = page.locator('[data-tile="speed"]').bounding_box()
+    cb = page.locator('[data-tile="corners"]').bounding_box()
+    mb = page.locator('[data-tile="map"]').bounding_box()
+    assert mb["height"] > sb["height"] + 100, (mb, sb)
+    assert abs(cb["y"] - (sb["y"] + sb["height"] + 14)) < 3, (sb, cb)
     assert page.locator('[data-resize="timeline"]').count() == 1
     # Drag the grip chart in front of Corner by corner (they share a row): the tile lands where the marker was.
     handle = page.locator('[data-tile="grip"] [data-move]')

@@ -3432,7 +3432,7 @@
   var resizeTick = null;
   function redrawSized() {
     if (resizeTick) return;
-    resizeTick = requestAnimationFrame(function () { resizeTick = null; if (view && view.s && document.getElementById('tp-map2')) drawCompare(view.s, true); drawTimeline(); });
+    resizeTick = requestAnimationFrame(function () { resizeTick = null; if (view && view.s && document.getElementById('tp-map2')) drawCompare(view.s, true); drawTimeline(); packBoard(); });
   }
   function wireResize(root) {
     (root || document).querySelectorAll('[data-resize]').forEach(function (h) {
@@ -3475,6 +3475,20 @@
   // Tiles whose height is a chart drawn to size (the key in sizeOf), not a box that scrolls.
   var CHART_TILE = { speed: 'speed', map: 'map', overtime: 'timeline' };
   var MAP_BASE = 380;
+  // Packing: the grid's rows are 1px tall and each tile spans as many as its own height (plus the gap), measured
+  // (ResizeObserver, redraws, a window resize), so the next tile starts straight under the one above it instead of
+  // under the tallest tile of the row, and the board has no empty blocks.
+  var BOARD_GAP = 14, packTick = null, packWatch = null;
+  function packBoard() {
+    var b = board();
+    if (!b) return;
+    [].forEach.call(b.querySelectorAll(':scope > [data-tile], :scope > .tp-landing'), function (t) {
+      var h = t.getBoundingClientRect().height;
+      t.style.setProperty('--rows', Math.max(1, Math.ceil(h) + BOARD_GAP));
+    });
+  }
+  function packSoon() { if (packTick) return; packTick = requestAnimationFrame(function () { packTick = null; packBoard(); }); }
+  window.addEventListener('resize', packSoon);
   function moveHtml(what) { return '<button type="button" class="tp-move" data-move aria-label="Move the ' + what + ' panel: drag it, or use the arrow keys" title="Drag to move this panel. Arrow keys move it, - and + change its width, Home puts every panel back">' + icon('grip') + '</button>'; }
   function board() { return document.getElementById('tp-board'); }
   function tilesOf(b) { return b ? [].slice.call(b.querySelectorAll(':scope > [data-tile]')) : []; }
@@ -3532,8 +3546,10 @@
       setSpan(t, (l.span && l.span[k]) || DEFAULT_SPAN[k] || 12);
       setHeight(t, l.height && l.height[k]);
       if (!t.querySelector(':scope > [data-size]')) t.insertAdjacentHTML('beforeend', '<div class="tp-size" data-size role="separator" aria-label="Drag to resize this panel" title="Drag sideways for the width, up or down for the height. Double tap to put it back"></div>');
+      if (window.ResizeObserver) { if (!packWatch) packWatch = new ResizeObserver(packSoon); if (!t.getAttribute('data-packed')) { t.setAttribute('data-packed', '1'); packWatch.observe(t); } }
     });
     wireMove(); wireSize();
+    packBoard();
   }
   function resetLayout() {
     var b = board();
@@ -3541,6 +3557,7 @@
     defaultOrder.forEach(function (k) { var t = b.querySelector(':scope > [data-tile="' + k + '"]'); if (t) b.appendChild(t); });
     saveLayout(null);
     tilesOf(b).forEach(function (t) { setSpan(t, DEFAULT_SPAN[keyOf(t)] || 12); setHeight(t, 0); });
+    packSoon();
   }
   // Where a dragged tile lands next to the tile under the pointer: before it when the pointer is towards its top left.
   function beforeOf(el, e) { var r = el.getBoundingClientRect(); return (e.clientX - r.left) / r.width + (e.clientY - r.top) / r.height < 1; }
@@ -3568,13 +3585,13 @@
         if (!dragging) return;
         edgeScroll(e);
         var under = underPointer(e, tile, marker), other = under && under.closest('[data-tile]');
-        if (other && other !== tile && other.parentNode === b) b.insertBefore(marker, beforeOf(other, e) ? other : other.nextSibling);
+        if (other && other !== tile && other.parentNode === b) { b.insertBefore(marker, beforeOf(other, e) ? other : other.nextSibling); packSoon(); }
       });
       function done() {
         if (!dragging) return;
         dragging = false; tile.classList.remove('is-moving'); document.body.classList.remove('is-dragging');
         if (marker && marker.parentNode) { b.insertBefore(tile, marker); marker.remove(); storeLayout(); redrawSized(); }
-        marker = null;
+        marker = null; packSoon();
       }
       h.addEventListener('pointerup', done); h.addEventListener('pointercancel', done);
       h.addEventListener('keydown', function (e) {

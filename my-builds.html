@@ -917,7 +917,8 @@
   .mb-mods-next { display: flex; gap: 10px; align-items: flex-start; margin: 0 0 16px; padding: 12px 14px; border-radius: var(--radius-sm); background: #fdf3ef; font-size: 0.9rem; color: var(--ink-2, var(--ink)); }
   .mb-mods-next .icon { width: 18px; height: 18px; color: var(--orange); flex-shrink: 0; margin-top: 2px; }
   #mb-car-make-select, #mb-car-model-select, #mb-car-version-select, #mb-car-year-select, #mb-car-drive-select, #mb-car-weight { min-height: 36px; }
-  #mb-car-weight { width: 150px; }
+  /* The Kerb weight box is a text box, not a drop-down: no chevron, and room for its placeholder. */
+  #mb-car-weight { width: 250px; background-image: none; padding-right: 12px; }
   .mb-model-pick .chip[hidden], .mb-model-other { display: none; }
   .mb-car-color-select:disabled { opacity: 0.6; background: #eceef2; color: #6b7385; cursor: not-allowed; }
   /* Model, version and year stay together. */
@@ -928,7 +929,7 @@
   .mb-car-spec .mb-version-typed { width: auto; max-width: 220px; margin-top: 0; }
   @media (max-width: 780px) {
     .mb-car-spec { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); width: 100%; }
-    .mb-car-spec #mb-car-version-select { max-width: none; width: 100%; grid-column: 1 / -1; }
+    .mb-car-spec #mb-car-version-select, .mb-car-spec #mb-car-weight { max-width: none; width: 100%; grid-column: 1 / -1; }
     .mb-car-spec .mb-car-color-select { width: 100%; }
   }
 
@@ -3290,7 +3291,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!carWeightInput) return;
       var current = findCar(currentCarId) || {};
       var lib = V && V.weight ? V.weight({ make: carMakeSelect.value, model: carModelSelect.value, version: carVersionSelect.value, vehicleType: current.vehicleType }) : null;
-      carWeightInput.placeholder = lib ? 'Kerb weight: maker ' + lib + ' kg' : 'Kerb weight (kg)';
+      carWeightInput.placeholder = lib ? 'Kerb weight ' + lib + ' kg (maker)' : 'Kerb weight (kg)';
     }
     // Driven wheels follow the make, model, version and year picked, until the owner picks them.
     function workOutCarDrive() {

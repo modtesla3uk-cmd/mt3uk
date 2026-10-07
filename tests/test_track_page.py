@@ -3835,7 +3835,10 @@ def test_admin_tyres_maker_data(page):
     row.locator('[data-f="ev"]').select_option("Yes")
     page.get_by_role("button", name="Save maker data").click()
     expect(page.locator("#ty-note")).to_have_text("Saved. Track sessions use it straight away.")
-    assert puts[-1]["info"] == {"Michelin|Pilot Sport 4S": {"category": "Performance road", "wetGrip": "A", "noise": 71, "ev": True}}
+    # The make's models are posted with the file's figures and the change on top.
+    ps4s = puts[-1]["info"]["Michelin|Pilot Sport 4S"]
+    assert {k: ps4s[k] for k in ("category", "wetGrip", "noise", "ev")} == {"category": "Performance road", "wetGrip": "A", "noise": 71, "ev": True}
+    assert "Michelin|Pilot Sport 4" in puts[-1]["info"] and not any(k.startswith("Pirelli|") for k in puts[-1]["info"])
     # Opening it again shows what was saved.
     page.locator('[data-info="Michelin"]').click()
     expect(page.locator('.ty-info-row[data-model="Pilot Sport 4S"] [data-f="wetGrip"]')).to_have_value("A")

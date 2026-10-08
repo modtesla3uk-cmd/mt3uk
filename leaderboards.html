@@ -354,16 +354,17 @@
      share button at the far right; under it one row of Back (with its word), the other page as a labelled button and
      Add a session at the right; the tip's bulb at the right end of the What is...? line. */
   @media (min-width: 781px) {
-    .page-hero .wrap { grid-template-columns: auto auto minmax(0, 1fr) auto; column-gap: 14px; row-gap: 0; position: relative; }
+    .page-hero .wrap { grid-template-columns: auto auto minmax(0, 1fr) auto auto; column-gap: 14px; row-gap: 0; position: relative; }
     .page-hero .wrap .tp-hero-row h1 { grid-column: 1 / -1; grid-row: 1; margin: 0; display: flex; align-items: center; justify-self: stretch; text-align: left; }
     .page-hero .wrap .tp-hero-row h1 .mt3uk-share-dot { float: none; margin: 0 0 0 auto; align-self: center; flex: none; }
     .page-hero .wrap .tp-hero-top { grid-column: 1; grid-row: 2; align-self: center; margin-top: 16px; gap: 14px; flex-wrap: nowrap; }
     .page-hero .wrap .tp-hero-row .tp-lb-pill.tp-round { grid-column: 2; grid-row: 2; justify-self: start; align-self: center; margin-top: 16px; min-width: 190px; }
     .page-hero .wrap .tp-hero-actions:not([hidden]) { display: contents; }
-    .page-hero .wrap .tp-hero-row .tp-hero-actions .tp-lb-pill { grid-column: 4; grid-row: 2; align-self: center; justify-self: end; margin-top: 16px; min-width: 190px; min-height: 52px; padding: 0 26px; font-size: 1.02rem; gap: 10px; }
-    .page-hero .wrap .tp-what { grid-column: 1 / -1; grid-row: 4; justify-self: stretch; text-align: left; margin-top: 12px; padding-right: 60px; }
+    .page-hero .wrap .tp-hero-row .tp-hero-actions .tp-lb-pill { grid-column: 5; grid-row: 2; align-self: center; justify-self: end; margin-top: 16px; min-width: 190px; min-height: 52px; padding: 0 26px; font-size: 1.02rem; gap: 10px; }
+    .page-hero .wrap .tp-what { grid-column: 3; grid-row: 2; align-self: center; justify-self: start; text-align: left; margin: 16px 0 0 10px; }
+    .page-hero .wrap .tp-what[open] { grid-column: 1 / -1; grid-row: 3; justify-self: stretch; margin: 12px 0 0; padding-right: 60px; }
     .page-hero .wrap .tp-what p, .page-hero .wrap .tp-what .tp-what-body { margin-left: 0; margin-right: 0; }
-    .page-hero .wrap .tp-hero-actions .laps-tip-bulbbtn { grid-column: 1 / -1; grid-row: 4; justify-self: end; align-self: start; margin-top: 8px; width: 44px; height: 44px; z-index: 1; }
+    .page-hero .wrap .tp-hero-actions .laps-tip-bulbbtn { grid-column: 4; grid-row: 2; justify-self: end; align-self: center; margin-top: 16px; width: 44px; height: 44px; z-index: 1; }
   }
   /* The share button sits just after the title, not over at the far right on a phone. */
   .lb-hero .tp-what summary { color: #b9c0cf; }

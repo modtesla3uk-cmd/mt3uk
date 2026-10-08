@@ -942,8 +942,8 @@ def test_the_upload_tip_shows_on_the_leaderboard_and_sessions_and_folds(page):
     # It starts shut, just the bulb, beside Add a session.
     expect(tip.locator(".laps-tip-body")).to_be_hidden()
     a, k = page.locator("#lb-add-session").bounding_box(), bulb.bounding_box()
-    # On desktop, as on a phone, it sits at the far right of the What is the Leaderboard? row, under Add a session.
-    assert k["y"] >= a["y"] + a["height"] - 2 and abs((k["x"] + k["width"]) - (a["x"] + a["width"])) < 6
+    # On desktop, as on a phone, it sits on the button row, just left of Add a session.
+    assert abs(k["y"] - a["y"]) < 12 and k["x"] + k["width"] <= a["x"] + 2 and a["x"] - (k["x"] + k["width"]) < 40
     bulb.click()
     expect(bulb).to_have_attribute("aria-expanded", "true")
     expect(tip.locator(".laps-tip-body b")).to_have_text("Tip: the more you upload, the more the board tells you")

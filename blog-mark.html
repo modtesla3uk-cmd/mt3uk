@@ -25,7 +25,7 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Article","headline":"Terry the Tesla: Mark's Deep Blue Model Y","author":{"@type":"Person","name":"Mark Littledale"},"publisher":{"@type":"Organization","name":"MT3UK"},"datePublished":"2026-10-15","image":"https://mt3uk.com/images/blog/owner-interviews/mark/arch-rear.jpg","mainEntityOfPage":"https://mt3uk.com/blog-mark.html"}
 </script>
-<link rel="stylesheet" href="css/site-header.css">
+<link rel="stylesheet" href="css/site-header.css?v=20271008">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 
@@ -1275,6 +1275,14 @@
       </div>
       </div>
     </div>
+    <div class="nav-bell" id="nav-bell">
+      <button type="button" class="nav-bell-btn" id="nav-bell-btn" aria-label="Notifications" aria-expanded="false" aria-controls="nav-bell-panel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="nav-bell-count" id="nav-bell-count" hidden></span></button>
+      <div class="nav-bell-panel" id="nav-bell-panel" role="dialog" aria-label="Notifications" hidden></div>
+    </div>
+    <button type="button" class="nav-chat" id="nav-chat" aria-label="Messages" aria-controls="mt3uk-chat" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.6A8 8 0 1 1 21 12z"/></svg><span class="nav-chat-count" id="nav-chat-count" hidden></span></button>
+    <a class="nav-profile" id="nav-profile" href="signin.html?next=%2Fprofile.html" aria-label="Sign in to your profile" title="Sign in"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg></a>
+    <a class="nav-profile nav-garage" id="nav-garage" href="signin.html?next=%2Fmy-builds.html" aria-label="Sign in to My Garage" title="My Garage"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21V9l9-5 9 5v12"/><path d="M7 21v-8h10v8M7 17h10"/></svg></a>
+    <script>(function(){try{if(!localStorage.getItem('mt3ukMyBuildsSession'))return;var p=document.getElementById('nav-profile'),g=document.getElementById('nav-garage');p.href='profile.html';p.setAttribute('aria-label','My Profile');p.title='My Profile';g.href='my-builds.html';g.setAttribute('aria-label','My Garage');}catch(e){}})();</script>
     <div class="nav-search" id="nav-search">
       <button type="button" class="nav-search-toggle" id="nav-search-toggle" aria-expanded="false" aria-controls="nav-search-panel" aria-label="Search">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
@@ -1544,8 +1552,8 @@
 <script src="js/signin-prompt.js" defer></script>
 <script src="js/share.js" defer></script>
 <script src="js/account-bar.js?v=15" defer></script>
-<script src="js/notify-bell.js?v=2" defer></script>
-<script src="js/messenger.js" defer></script>
+<script src="js/notify-bell.js?v=4" defer></script>
+<script src="js/messenger.js?v=2" defer></script>
 <script src="js/search.js" defer></script>
 
 </body>

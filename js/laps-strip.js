@@ -85,7 +85,7 @@
     previewState().then(function (st) {
       var shut = st !== 'open' && st !== 'approved';
       notes.forEach(function (n) { n.hidden = !shut; });
-      if (!shut) return;
+      if (!shut) { links.forEach(function (a) { a.removeAttribute('data-laps-add'); }); return; }
       if (notes.length) noteWords(st).then(function (html) { notes.forEach(function (n) { n.innerHTML = html; }); });
       links.forEach(function (a) {
         a.href = st === 'out' ? 'laps-signin.html' : 'track.html';

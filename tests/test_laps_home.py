@@ -74,12 +74,24 @@ def test_the_redirect_from_the_laps_address_goes_on_to_sessions_once_seen(page):
     assert page.url.endswith("/laps.html")
 
 
-def test_play_intro_on_sessions_opens_the_front_page(page):
+def test_play_intro_is_a_worded_link_in_the_footer_not_the_header(page):
     from test_track_page import FakeWorker, open_page
     open_page(page, FakeWorker())
-    link = page.locator("#tp-play-intro")
+    assert page.locator("header #tp-play-intro").count() == 0
+    link = page.locator("footer #tp-play-intro")
     expect(link).to_have_text("Play intro")
     assert link.get_attribute("href") == "laps.html"
+
+
+def test_the_header_icons_are_in_the_page_before_any_script_runs(page):
+    """The bell, messages, profile and garage icons are in the header markup, so they do not pop in after load."""
+    page.route("**/js/notify-bell.js*", lambda r: r.abort())
+    page.route("**/js/messenger.js*", lambda r: r.abort())
+    page.goto("/track.html")
+    for i in ("nav-bell", "nav-chat", "nav-profile", "nav-garage"):
+        assert page.locator("#" + i).count() == 1, i
+    box = page.locator("#nav-garage").bounding_box()
+    assert box["height"] >= 44 or page.viewport_size["width"] > 780
 
 
 def test_the_hero_picture_comes_from_the_sharing_panel(page):

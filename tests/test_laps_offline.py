@@ -282,13 +282,29 @@ def test_an_approved_member_gets_the_icon_the_footer_link_and_the_offer(page):
     assert page.evaluate("localStorage.getItem('mt3ukLapsOfflineAccess')") == "a@example.com|1"
 
 
-def test_a_member_who_already_switched_it_on_keeps_it_when_access_is_taken_away(page):
+def test_taking_access_away_switches_offline_mode_off_for_a_member_who_had_it_on(page):
+    """The admin takes access away: the icon, the footer link, the Profile switch and the kept copy and circuits all go."""
     fake = FakeWorker()
     fake.offline_access = False
-    page.add_init_script("localStorage.setItem('mt3ukLapsOffline', '1');")
+    page.add_init_script("localStorage.setItem('mt3ukLapsOffline', '1'); localStorage.setItem('mt3ukLapsOfflineCircuits', JSON.stringify([{id:'thruxton',name:'Thruxton'}]));")
     open_signed_in(page, fake)
+    page.wait_for_function("localStorage.getItem('mt3ukLapsOffline') === null")
+    expect(page.locator("#nav-offline")).to_be_hidden()
+    expect(page.locator("#tp-offline")).to_be_hidden()
+    assert page.evaluate("localStorage.getItem('mt3ukLapsOfflineCircuits')") is None
+    assert page.evaluate("MT3UKOffline.enabled && MT3UKOffline.enabled()") in (False, None, 0)
+
+
+def test_a_member_whose_access_is_still_unknown_keeps_offline_mode_until_the_answer_comes(page):
+    """With no answer cached yet (for example no signal), a device that already has Offline mode on is left alone."""
+    fake = FakeWorker()
+    page.add_init_script("localStorage.setItem('mt3ukLapsOffline', '1');")
+    link = open_signed_in(page, fake)
     expect(page.locator("#nav-offline")).to_be_visible()
-    expect(page.locator("#tp-offline")).to_have_text("Offline mode: on")
+    page.evaluate("localStorage.removeItem('mt3ukLapsOfflineAccess')")
+    go_offline(page, link)
+    page.reload()
+    expect(page.locator("#nav-offline")).to_be_visible()
 
 
 def test_the_last_answer_about_access_still_holds_with_no_signal(page):

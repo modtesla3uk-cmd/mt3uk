@@ -1007,17 +1007,40 @@
   // answer is kept for the member, so it still holds with no signal.
   var ACCESS_KEY = 'mt3ukLapsOfflineAccess';
   function allowed() {
-    if (enabled()) return true;
     // Signed in, the list decides, the admin's own account included, so adding and taking away can be tested on it.
-    // The admin viewer token only counts when nobody is signed in on this browser.
-    if (token()) return ls(ACCESS_KEY) === (ls(EMAIL_KEY) || '').toLowerCase() + '|1';
+    // Until the page has an answer for this member, a device that already has Offline mode on keeps it (it may be
+    // opening with no signal). The admin viewer token only counts when nobody is signed in on this browser.
+    if (token()) {
+      var seen = ls(ACCESS_KEY), mine = (ls(EMAIL_KEY) || '').toLowerCase();
+      if (!seen || seen.slice(0, seen.lastIndexOf('|')) !== mine) return enabled();
+      return seen === mine + '|1';
+    }
+    if (enabled()) return true;
     return adminViewer();
+  }
+  // Access taken away: Offline mode goes off, the kept copy, circuits and maps are removed. Anything waiting to be
+  // sent stays in the queue, so no session is lost.
+  function revokeAccess() {
+    ls(ON_KEY, null); ls(KEPT_KEY, null); ls('mt3ukLapsOfflineAt', null);
+    ls(CIRCUITS_KEY, null); ls('mt3ukLapsOfflineCircuit', null); ls('mt3ukLapsOfflineCircuitName', null);
+    progress = ''; preparing = false;
+    labels(); drawBar();
+    return Promise.all([ask({ type: 'laps-offline-off' }).catch(function () {}), kvAll().then(function (all) {
+      var who = ':' + (ls(EMAIL_KEY) || '') + ':';
+      return Promise.all(all.filter(function (x) { var k = String(x.key); return (k.indexOf('get' + who) === 0 || k.indexOf('pins' + who) === 0); }).map(function (x) { return kvDel(x.key); }));
+    }).catch(function () {})]).then(function () {
+      labels(); drawBar(); markKept();
+      document.dispatchEvent(new CustomEvent('mt3uk-offline-change'));
+    });
   }
   function checkAccess() {
     if (!token() || offline) return Promise.resolve();
     return getJson('/laps/offline/access').then(function (d) {
       if (d.status === 401) ls(ACCESS_KEY, null);
-      else if (d.success) ls(ACCESS_KEY, (ls(EMAIL_KEY) || '').toLowerCase() + '|' + (d.access ? '1' : '0'));
+      else if (d.success) {
+        ls(ACCESS_KEY, (ls(EMAIL_KEY) || '').toLowerCase() + '|' + (d.access ? '1' : '0'));
+        if (!d.access && enabled()) return revokeAccess();
+      }
       labels();
     }, function () { /* keep the last answer */ });
   }

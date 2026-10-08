@@ -7,7 +7,7 @@ import gzip
 import json
 import re
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, quote, urlparse
 
 import pytest
 from playwright.sync_api import expect
@@ -772,8 +772,9 @@ def day_session(sid, time, best, laps, date="2026-07-14", venue="Castle Combe", 
 
 
 def into_track(page, name):
-    """From the main list (one line for each track) to that track's own page."""
-    page.locator("#tp-sess-list a.tp-trackrow", has_text=name).click()
+    """To a track's own page. The main list no longer links to it (a track's row only steps down to its layouts), so go by the address."""
+    key = page.locator("#tp-sess-list .tp-trackrow", has_text=name).get_attribute("data-track-toggle")
+    page.goto("/track.html?mycar=car1&at=" + quote(key, safe=""))
     expect(page.locator(".tp-head h2")).to_have_text(name)
 
 
@@ -1299,8 +1300,8 @@ def test_a_drive_with_no_day_group_is_listed_on_its_own(page):
     fake.index.append(summary(drive))
     open_page(page, fake)
     expect(page.locator(".tp-daygroup")).to_have_count(0)
-    expect(page.locator("#tp-sess-list a.tp-trackrow")).to_have_count(1)
-    expect(page.locator("#tp-sess-list a.tp-trackrow")).to_contain_text("Drive")
+    expect(page.locator("#tp-sess-list .tp-trackrow")).to_have_count(1)
+    expect(page.locator("#tp-sess-list .tp-trackrow")).to_contain_text("Drive")
 
 
 def test_a_lap_in_a_file_with_no_time_stamps_is_timed(page):
@@ -1346,8 +1347,8 @@ def test_delete_a_whole_day_from_its_group(page):
     expect(page.locator("#tp-saved")).to_contain_text("Deleted all 4 sessions for this day (Castle Combe - 14 Jul 2026)")
     assert sorted(fake.sessions) == ["keep1"]
     # Nothing is left at Castle Combe, so it is back on the list, which has the Thruxton session.
-    expect(page.locator("#tp-sess-list a.tp-trackrow")).to_have_count(1)
-    expect(page.locator("#tp-sess-list a.tp-trackrow")).to_contain_text("Thruxton")
+    expect(page.locator("#tp-sess-list .tp-trackrow")).to_have_count(1)
+    expect(page.locator("#tp-sess-list .tp-trackrow")).to_contain_text("Thruxton")
 
 
 def test_sessions_of_one_track_day_can_be_compared_with_each_other_even_at_an_unlisted_track(page):
@@ -2172,7 +2173,9 @@ def test_a_session_has_a_my_sessions_button_beside_back(page):
     expect(page.locator(".page-hero #tp-home")).to_be_visible()
     # And from the list.
     page.goto("/track.html")
-    page.locator("#tp-sess-list a.tp-trackrow").first.click()
+    page.locator("#tp-sess-list .tp-trackrow").first.click()
+    page.locator("#tp-sess-list [data-layout-toggle]").first.click()
+    page.locator("#tp-sess-list .tp-daygroup-title, #tp-sess-list a.tp-row[data-sid]").first.click()
     page.locator("#tp-sess-list a.tp-row[data-sid]").first.click()
     expect(page.locator(".tp-session-head")).to_be_visible()
     home = page.locator(".page-hero #tp-home")
@@ -2181,7 +2184,7 @@ def test_a_session_has_a_my_sessions_button_beside_back(page):
     expect(page.locator(".page-hero .tp-back")).to_be_visible()
     home.click()
     expect(page).to_have_url(re.compile(r"track\.html$"))
-    expect(page.locator("#tp-sess-list a.tp-trackrow").first).to_be_visible()
+    expect(page.locator("#tp-sess-list .tp-trackrow").first).to_be_visible()
     expect(page.locator(".page-hero #tp-home")).to_have_count(0)
 
 
@@ -2199,7 +2202,7 @@ def test_cars_are_separate_from_sessions(page):
     expect(page.locator("#tp-car-add-open")).to_have_count(0)
     expect(page.locator(".tp-refresh")).to_have_text("")
     expect(page.locator(".tp-for")).to_have_text("Arctic Three")
-    expect(page.locator(".tp-list a.tp-trackrow")).to_have_count(1)
+    expect(page.locator(".tp-list .tp-trackrow")).to_have_count(1)
     expect(page.locator("#tp-lb-pill")).to_have_attribute("href", "leaderboards.html")
     page.get_by_role("link", name="Add a session").click()
     page.set_input_files("#tp-file", str(FIXTURE))
@@ -2651,7 +2654,7 @@ def test_the_main_list_is_one_line_for_each_track_and_opens_that_tracks_page(pag
                   dict(shared_session("b1", "brands", "Brands Hatch", "indy", 60, "2026-05-01", privacy="private"), layout="Indy"),
                   dict(shared_session("b2", "brands", "Brands Hatch", "gp", 120, "2026-05-02"), layout="Grand Prix")]
     open_page(page, fake)
-    rows = page.locator("#tp-sess-list a.tp-trackrow")
+    rows = page.locator("#tp-sess-list .tp-trackrow")
     # One line for each track, whatever the layout, with the count and the last day; nothing else to work out.
     expect(rows).to_have_count(2)
     expect(rows.nth(0)).to_contain_text("Brands Hatch")
@@ -2664,15 +2667,17 @@ def test_the_main_list_is_one_line_for_each_track_and_opens_that_tracks_page(pag
     expect(rows.locator("b")).to_have_text(["Brands Hatch", "Thruxton"])
     page.locator("#tp-sort").select_option("most")
     expect(rows).to_have_count(2)
-    # A line opens that track's own page with every session there, a day at a time.
+    # A line only steps down to its layouts; the track's own page (every session there, a day at a time) is reached by address.
     rows.filter(has_text="Brands Hatch").click()
+    expect(page).to_have_url(re.compile(r"track\.html$"))
+    into_track(page, "Brands Hatch")
     expect(page.locator(".tp-head h2")).to_have_text("Brands Hatch")
     expect(page.locator(".tp-head .tp-for")).to_contain_text("2 sessions")
     expect(page.locator(".tp-daygroup")).to_have_count(2)
     expect(page.locator(".tp-daygroup h3")).to_have_text(["2 May 2026 on Brands Hatch, Grand Prix", "1 May 2026 on Brands Hatch, Indy"])
     # Back goes to the list.
     page.locator(".tp-back").click()
-    expect(page.locator("#tp-sess-list a.tp-trackrow")).to_have_count(2)
+    expect(page.locator("#tp-sess-list .tp-trackrow")).to_have_count(2)
     # Phone: no sideways scroll.
     page.set_viewport_size({"width": 390, "height": 844})
     assert page.evaluate("document.documentElement.scrollWidth") <= 390
@@ -2736,8 +2741,9 @@ def test_a_tracks_chevron_drops_down_its_layouts_and_one_opens_only_those_sessio
     expect(brands.locator(".tp-layoutwrap", has_text="Indy").locator(".tp-layout-sessions")).to_be_visible()
     page.reload()
     expect(page.locator("#tp-sess-list .tp-trackwrap", has_text="Brands Hatch").locator(".tp-layouts")).to_be_hidden()
-    # The track line itself still opens every session there on its own page.
-    page.locator("#tp-sess-list a.tp-trackrow", has_text="Brands Hatch").click()
+    # The track line only steps down; it never opens a page of its own.
+    expect(page).to_have_url(re.compile(r"track\.html$"))
+    into_track(page, "Brands Hatch")
     expect(page.locator(".tp-head h2")).to_have_text("Brands Hatch")
     expect(page.locator(".tp-head .tp-for")).to_contain_text("4 sessions")
     # Phone: no sideways scroll with a drop-down open.
@@ -2766,7 +2772,7 @@ def test_find_a_track_session_or_date_from_the_main_list(page):
     open_page(page, fake)
     box = page.locator("#tp-find")
     results = page.locator("#tp-find-results a.tp-row[data-sid]")
-    expect(page.locator("#tp-sess-list a.tp-trackrow")).to_have_count(3)
+    expect(page.locator("#tp-sess-list .tp-trackrow")).to_have_count(3)
     expect(page.locator("#tp-find-panel")).to_be_hidden()
     page.locator("#tp-find-toggle").click()
     expect(page.locator("#tp-find-panel")).to_be_visible()
@@ -2792,7 +2798,7 @@ def test_find_a_track_session_or_date_from_the_main_list(page):
     # Clear brings the track lines back.
     page.get_by_role("button", name="Clear").click()
     expect(box).to_have_value("")
-    expect(page.locator("#tp-sess-list a.tp-trackrow")).to_have_count(3)
+    expect(page.locator("#tp-sess-list .tp-trackrow")).to_have_count(3)
     expect(page.locator("#tp-sort")).to_be_visible()
 
 
@@ -2870,7 +2876,7 @@ def test_find_sessions_between_two_dates(page):
     expect(results).to_have_count(1)
     page.get_by_role("button", name="Clear").click()
     expect(page.locator("#tp-find-range")).to_be_hidden()
-    expect(page.locator("#tp-sess-list a.tp-trackrow")).to_have_count(3)
+    expect(page.locator("#tp-sess-list .tp-trackrow")).to_have_count(3)
     # Phone: no sideways scroll.
     page.set_viewport_size({"width": 390, "height": 844})
     page.get_by_role("button", name="Between dates").click()
@@ -2881,7 +2887,7 @@ def test_the_main_list_has_no_sort_when_there_is_only_one_track(page):
     fake = FakeWorker(earlier=False)
     fake.index = [shared_session("a1", "thruxton", "Thruxton", "main", 100)]
     open_page(page, fake)
-    expect(page.locator("#tp-sess-list a.tp-trackrow")).to_have_count(1)
+    expect(page.locator("#tp-sess-list .tp-trackrow")).to_have_count(1)
     expect(page.locator("#tp-sort")).to_have_count(0)
 
 
@@ -6423,20 +6429,45 @@ def test_the_sessions_tree_steps_down_one_arrow_at_a_time_with_compact_dates(pag
     expect(day.locator(".tp-day-sub")).to_have_text("3 sessions, fastest 1:21.10")
     expect(day.locator(".tp-daygroup-best")).to_be_hidden()
     expect(day.locator("[data-day-edit]")).to_be_hidden()
+    # A folded private day carries a small lock.
+    expect(day.locator(".tp-day-priv")).to_have_attribute("aria-label", "Only me")
     day.locator(".tp-daygroup-title[data-day-toggle]").click()
-    # An open date shows only its fastest session; its arrow lists them all, and Show only the fastest goes back.
+    # An open date lists every session at once: no fastest-only step.
     expect(day.locator("[data-day-edit]")).to_be_visible()
-    expect(day.locator(".tp-daygroup-best .tp-row")).to_be_visible()
-    expect(day.locator(".tp-daygroup-all")).to_be_hidden()
-    day.locator("[data-day-all]").click()
-    expect(day.locator(".tp-daygroup-all")).to_be_visible()
+    expect(day.locator(".tp-daygroup-best")).to_have_count(0)
+    expect(day.locator(".tp-daygroup-less")).to_have_count(0)
+    expect(day.locator("[data-day-all], [data-day-fast]")).to_have_count(0)
     expect(day.locator(".tp-daygroup-all .tp-row")).to_have_count(3)
-    expect(day.locator(".tp-daygroup-best")).to_be_hidden()
-    day.locator(".tp-daygroup-less").click()
-    expect(day.locator(".tp-daygroup-all")).to_be_hidden()
-    expect(day.locator(".tp-daygroup-best .tp-row")).to_be_visible()
     expect(day).to_have_attribute("data-open", "true")
+    expect(day.locator(".tp-day-priv")).to_be_hidden()
 
+
+
+def test_a_folded_day_shows_an_eye_when_shared_a_lock_when_private_and_a_track_row_never_opens_a_page(page):
+    """The track's row only steps down to its layouts; a folded date carries a small eye (shared) or lock (private)."""
+    fake = FakeWorker(earlier=False)
+    _many_days(fake, 2)
+    for entry in fake.index:
+        if entry["date"] == "2026-05-01":
+            entry["privacy"] = "board"
+        if entry["id"] == "g1":
+            entry["privacy"] = "board"
+    open_page(page, fake)
+    wrap = page.locator("#tp-sess-list .tp-trackwrap", has_text="Castle Combe")
+    wrap.locator(".tp-trackrow").click()
+    expect(page).to_have_url(re.compile(r"track\.html$"))
+    expect(wrap.locator(".tp-layouts")).to_be_visible()
+    wrap.locator("[data-layout-toggle]").click()
+    shared = wrap.locator('.tp-daygroup[data-day$="2026-05-01"]')
+    private = wrap.locator('.tp-daygroup[data-day$="2026-05-02"]')
+    mixed = wrap.locator(".tp-daygroup", has_text="14 Jul 2026")
+    expect(shared.locator(".tp-day-priv")).to_have_attribute("aria-label", "Shared")
+    expect(shared.locator(".tp-day-priv .icon")).to_be_visible()
+    expect(private.locator(".tp-day-priv")).to_have_attribute("aria-label", "Only me")
+    expect(mixed.locator(".tp-day-priv")).to_have_attribute("aria-label", "Some sessions shared")
+    # The icon sits just left of the arrow, on the same row.
+    pb, ab = shared.locator(".tp-day-priv").bounding_box(), shared.locator(".tp-day-arrow").bounding_box()
+    assert pb["x"] + pb["width"] <= ab["x"] + 2 and abs((pb["y"] + pb["height"] / 2) - (ab["y"] + ab["height"] / 2)) < 6, (pb, ab)
 
 
 def test_a_bulk_edit_stays_on_the_day_that_was_changed(page):

@@ -909,7 +909,7 @@
       var tk = trackKeyOf(x);
       openTracks[tk] = true;
       openLayouts[tk + '|' + layoutKeyOf(x)] = true;
-      if (dayKey(x)) { openDays[dayKey(x)] = true; allDays[dayKey(x)] = true; }
+      if (dayKey(x)) { openDays[dayKey(x)] = true; }
     });
     if (saved.length) storeListOpen();
   }
@@ -1064,11 +1064,9 @@
     list = filteredList(list);
     if (!list.length) return '<div class="card tp-empty">' + icon('flag') + '<p>No sessions match those filters.</p></div>';
     return trackEntries(list).map(function (t) {
-      var q = 'mycar=' + encodeURIComponent(carId) + '&at=' + encodeURIComponent(t.key);
-      var lastDay = niceDate(t.last.slice(0, 10)), open = filterOpenAll || !!openTracks[t.key];
+            var lastDay = niceDate(t.last.slice(0, 10)), open = filterOpenAll || !!openTracks[t.key];
       var here = list.filter(function (x) { return trackKeyOf(x) === t.key; }), lays = layoutEntries(here);
-      return '<div class="tp-trackwrap" data-track="' + esc(t.key) + '"><a class="tp-row tp-trackrow" href="track.html?' + esc(q) + '" data-go="' + esc(q) + '"><span class="tp-row-main"><b>' + esc(t.name) + '</b><span>' + t.n + ' session' + (t.n === 1 ? '' : 's') + ', last ' + esc(lastDay) + '</span></span></a>' +
-        '<button type="button" class="tp-track-toggle" data-track-toggle="' + esc(t.key) + '" aria-expanded="' + open + '" aria-label="' + (open ? 'Hide' : 'Show') + ' the layouts at ' + esc(t.name) + '">' + icon('chev') + '</button>' +
+      return '<div class="tp-trackwrap" data-track="' + esc(t.key) + '"><button type="button" class="tp-row tp-trackrow" data-track-toggle="' + esc(t.key) + '" aria-expanded="' + open + '" aria-label="' + (open ? 'Hide' : 'Show') + ' the layouts at ' + esc(t.name) + '"><span class="tp-row-main"><b>' + esc(t.name) + '</b><span>' + t.n + ' session' + (t.n === 1 ? '' : 's') + ', last ' + esc(lastDay) + '</span></span>' + icon('chev') + '</button>' +
         '<div class="tp-layouts"' + (open ? '' : ' hidden') + '>' + lays.map(function (l) {
           var lk = t.key + '|' + l.key, lopen = filterOpenAll || !!openLayouts[lk];
           var rows = here.filter(function (x) { return layoutKeyOf(x) === l.key; }).sort(function (x, y) { return whenOf(x) < whenOf(y) ? 1 : whenOf(x) > whenOf(y) ? -1 : 0; });
@@ -1260,13 +1258,11 @@
       esc([s.type === 'drag' ? (s.runs || 0) + ' run' + (s.runs === 1 ? '' : 's') : (s.laps || 0) + (s.type === 'sprint' ? ' run' : ' lap') + (s.laps === 1 ? '' : 's'), s.conditions, s.pads].filter(Boolean).join(', ')) + (fastest ? ' <b class="tp-fastest">Fastest</b>' : '') + '</span></span>' +
       '<span class="tp-row-res">' + esc(sessionResult(s)) + '</span>' + (s.privacy !== undefined ? privacyPill(s.privacy, s.street) : '');
     if (expand) return '<div class="tp-row tp-dayfast" data-sid="' + esc(s.id) + '"><a class="tp-row-link" href="track.html?s=' + esc(s.id) + '" data-go="s=' + esc(s.id) + '">' + inner + '</a>' +
-      '<button type="button" class="tp-day-expand" ' + (tile ? 'data-day-all' : 'data-day-toggle') + ' aria-expanded="false" aria-label="Show all ' + expand + ' sessions of this day">' + icon('chev') + '</button></div>';
+      '<button type="button" class="tp-day-expand" data-day-toggle aria-expanded="false" aria-label="Show all ' + expand + ' sessions of this day">' + icon('chev') + '</button></div>';
     return '<a class="tp-row" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '">' + inner + icon('chev') + '</a>';
   }
   // The list as rows, with a day at one track in a card of its own when it has two or more sessions.
   var openDays = {};
-  // In the Sessions tree an open date shows its fastest session; its arrow then lists every session (allDays).
-  var allDays = {};
   // The battery used in one session, in points of charge (Track Mode files carry it).
   function chargeUsed(x) { return x.soc && x.soc.length === 2 ? Math.max(0, x.soc[0] - x.soc[1]) : null; }
   // A day's charge: on track, and on drives that day between the runs, from the sessions that have it.
@@ -1291,6 +1287,12 @@
   function groupCountHtml(count, n, open, many) {
     return many ? '' : '<span class="tp-daygroup-count"><span class="tp-small">' + count + '</span></span>';
   }
+  // Whether a day is shared, as a small eye or lock on its collapsed tile: all shared, none, or a mix.
+  function dayPrivacyHtml(g) {
+    var n = g.filter(function (x) { return x.privacy && x.privacy !== 'private'; }).length;
+    var word = n === g.length ? 'Shared' : n ? 'Some sessions shared' : 'Only me';
+    return '<span class="tp-day-priv" role="img" title="' + word + '" aria-label="' + word + '">' + icon(n ? 'eye' : 'lock') + '</span>';
+  }
   // tile: the Sessions tree, where every date is one compact tile (the date, how many sessions and the fastest, an arrow) until its arrow is pressed.
   function sessionListHtml(list, owner, all, tile) {
     var groups = {}, order = [];
@@ -1314,15 +1316,16 @@
       var fast = g.filter(function (x) { return score(x) > 0; }).sort(function (a, b) { return score(a) - score(b); })[0];
       var key = k, many = g.length > 1, open = tile ? !!openDays[key] : (openDays[key] || !fast || g.length === 1), count = g.length + ' session' + (many ? 's' : '');
       var best = fast && fast.type !== 'drag' ? V.fmtLap(fast.bestTime) : '';
-      return '<div class="card tp-daygroup' + (tile ? ' tp-day-tile' : '') + '"' + (tile ? ' data-all="' + (allDays[key] ? 'true' : 'false') + '"' : '') + ' data-open="' + (open ? 'true' : 'false') + '" data-many="' + (many ? 'true' : 'false') + '" data-day="' + esc(key) + '">' +
+      return '<div class="card tp-daygroup' + (tile ? ' tp-day-tile' : '') + '"' + ' data-open="' + (open ? 'true' : 'false') + '" data-many="' + (many ? 'true' : 'false') + '" data-day="' + esc(key) + '">' +
         '<div class="tp-daygroup-head">' + groupTitleHtml(niceDate(g[0].date) + ' on ' + trackName(g[0]), niceDate(g[0].date) + ' on ' + trackName(g[0]) + ', ' + count, open, many || tile, count + (best ? (many ? ', fastest ' : ', ') + best : '')) +
         (owner ? '<button type="button" class="tp-daygroup-share" role="switch" data-day-share data-ids="' + esc(g.map(function (x) { return x.id; }).join(',')) + '" data-what="' + esc(niceDate(g[0].date) + ' at ' + trackName(g[0])) + '" aria-checked="' + (g.every(function (x) { return x.privacy && x.privacy !== 'private'; }) ? 'true' : 'false') + '" aria-label="' + (many ? 'Share all ' + g.length + ' sessions' : 'Share this session') + '"><span>Shared</span><span class="tp-track"></span></button>' : '') +
         groupCountHtml(count, g.length, open, many) +
+        (tile && owner ? dayPrivacyHtml(g) : '') +
         (tile ? '<button type="button" class="tp-day-arrow" data-day-toggle aria-expanded="' + (open ? 'true' : 'false') + '" aria-label="' + (open ? 'Hide' : 'Show') + ' the ' + count + ' on ' + esc(niceDate(g[0].date)) + '">' + icon('chev') + '</button>' : '') + '</div>' +
         (dayCharge(g, drives) ? '<p class="tp-small tp-daygroup-charge">' + esc(dayCharge(g, drives)) + '</p>' : '') +
-        (fast && many ? '<div class="tp-daygroup-best"><span class="tp-small tp-daygroup-label">Fastest session of the day, <span class="tp-daygroup-count"><span class="tp-small">' + count + '</span></span></span>' + dayRow(fast, g.indexOf(fast) + 1, false, g.length, tile) + '</div>' : '') +
+        (fast && many && !tile ? '<div class="tp-daygroup-best"><span class="tp-small tp-daygroup-label">Fastest session of the day, <span class="tp-daygroup-count"><span class="tp-small">' + count + '</span></span></span>' + dayRow(fast, g.indexOf(fast) + 1, false, g.length) + '</div>' : '') +
         '<div class="tp-list tp-daygroup-all">' + g.map(function (x, i) { return dayRow(x, i + 1, many && x === fast); }).join('') +
-        (fast && many ? '<button type="button" class="tp-daygroup-less" ' + (tile ? 'data-day-fast' : 'data-day-toggle') + ' aria-expanded="true">Show only the fastest of the ' + count + icon('chev') + '</button>' : '') +
+        (fast && many && !tile ? '<button type="button" class="tp-daygroup-less" data-day-toggle aria-expanded="true">Show only the fastest of the ' + count + icon('chev') + '</button>' : '') +
         (drives.length ? '<span class="tp-small tp-daygroup-label tp-drives-label">Drives between runs (' + drives.length + ')</span>' + drives.map(sessionRow).join('') : '') +
         (owner ? addToDayButton(g[0], many) : '') +
         (owner ? '<button type="button" class="btn btn-danger btn-sm tp-daygroup-delete" data-day-delete data-ids="' + esc(g.concat(drives).map(function (x) { return x.id; }).join(',')) + '" data-label="' + esc(trackName(g[0])) + '" data-date="' + esc(niceDate(g[0].date)) + '">' + icon('trash') + (many ? 'Delete this day' : 'Delete this session') + '</button>' : '') + '</div>' + (owner ? dayEditButton(g) : '') + '</div>';
@@ -1446,7 +1449,7 @@
         justSaved = { text: failed ? failed + ' of the ' + ids.length + ' sessions at ' + what + ' could not be changed. Try again.' : (ids.length === 1 ? 'The session at ' + what + ' is updated.' : 'All ' + ids.length + ' sessions at ' + what + ' are updated.') };
         // The list redraws; stay on the day that was changed, open, rather than going back to the top.
         var dkey = box && box.getAttribute('data-day');
-        if (dkey) { openDays[dkey] = true; allDays[dkey] = true; storeListOpen(); focusDay(dkey); }
+        if (dkey) { openDays[dkey] = true; storeListOpen(); focusDay(dkey); }
         route();
       });
     });
@@ -1609,14 +1612,6 @@
   document.addEventListener('click', function (e) {
     var x = e.target.closest && e.target.closest('#tp-saved-x');
     if (x && x.closest('#tp-saved')) x.closest('#tp-saved').remove();
-  });
-  // In the Sessions tree: the arrow beside the fastest session lists every session of that date, and Show only the fastest goes back.
-  document.addEventListener('click', function (e) {
-    var b = e.target.closest && e.target.closest('[data-day-all], [data-day-fast]');
-    if (!b) return;
-    var box = b.closest('.tp-daygroup'), all = b.hasAttribute('data-day-all');
-    box.setAttribute('data-all', all ? 'true' : 'false');
-    allDays[box.getAttribute('data-day')] = all;
   });
   // A day's group opens and closes from its heading, and stays as chosen when the list is drawn again.
   document.addEventListener('click', function (e) {

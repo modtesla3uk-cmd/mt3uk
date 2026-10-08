@@ -429,6 +429,21 @@
     .page-hero .tp-hero-actions .tp-lb-pill:not(.is-preview) .icon { width: 24px; height: 24px; }
     .page-hero .tp-hero-actions .tp-lb-pill:not(.is-preview) span { display: none; }
   }
+  /* Desktop (781px and up): the same layout as a phone. The title first, at the left, with its icon after the word and the
+     share button at the far right; under it one row of Back (with its word), the other page as a labelled button and
+     Add a session at the right; the tip's bulb at the right end of the What is...? line. */
+  @media (min-width: 781px) {
+    .page-hero .wrap { grid-template-columns: auto auto minmax(0, 1fr) auto; column-gap: 14px; row-gap: 0; position: relative; }
+    .page-hero .wrap .tp-hero-row h1 { grid-column: 1 / -1; grid-row: 1; margin: 0; display: flex; align-items: center; justify-self: stretch; text-align: left; }
+    .page-hero .wrap .tp-hero-row h1 .mt3uk-share-dot { float: none; margin: 0 0 0 auto; align-self: center; flex: none; }
+    .page-hero .wrap .tp-hero-top { grid-column: 1; grid-row: 2; align-self: center; margin-top: 16px; gap: 14px; flex-wrap: nowrap; }
+    .page-hero .wrap .tp-hero-row .tp-lb-pill.tp-round { grid-column: 2; grid-row: 2; justify-self: start; align-self: center; margin-top: 16px; min-width: 190px; }
+    .page-hero .wrap .tp-hero-actions:not([hidden]) { display: contents; }
+    .page-hero .wrap .tp-hero-row .tp-hero-actions .tp-lb-pill { grid-column: 4; grid-row: 2; align-self: center; justify-self: end; margin-top: 16px; min-width: 190px; min-height: 52px; padding: 0 26px; font-size: 1.02rem; gap: 10px; }
+    .page-hero .wrap .tp-what { grid-column: 1 / -1; grid-row: 4; justify-self: stretch; text-align: left; margin-top: 12px; padding-right: 60px; }
+    .page-hero .wrap .tp-what p, .page-hero .wrap .tp-what .tp-what-body { margin-left: 0; margin-right: 0; }
+    .page-hero .wrap .tp-hero-actions .laps-tip-bulbbtn { grid-column: 1 / -1; grid-row: 4; justify-self: end; align-self: start; margin-top: 8px; width: 44px; height: 44px; z-index: 1; }
+  }
   .tp-play { margin: 8px 0 12px; display: grid; gap: 10px; }
   .tp-play-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
   .tp-play .btn .icon { width: 16px; height: 16px; }
@@ -1242,7 +1257,7 @@
 <script src="js/pad-data.js?v=20270210"></script>
 <script src="js/vehicle-data.js?v=20270210" defer></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20271014" defer></script>
+<script src="js/track-page.js?v=20271016" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20270104" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

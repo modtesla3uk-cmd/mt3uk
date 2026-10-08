@@ -942,8 +942,8 @@ def test_the_upload_tip_shows_on_the_leaderboard_and_sessions_and_folds(page):
     # It starts shut, just the bulb, beside Add a session.
     expect(tip.locator(".laps-tip-body")).to_be_hidden()
     a, k = page.locator("#lb-add-session").bounding_box(), bulb.bounding_box()
-    # On desktop it sits beside Add a session, at the right, on the What is the Leaderboard? row.
-    assert k["x"] >= a["x"] + a["width"] and abs((k["y"] + k["height"] / 2) - (a["y"] + a["height"] / 2)) < 6
+    # On desktop, as on a phone, it sits at the far right of the What is the Leaderboard? row, under Add a session.
+    assert k["y"] >= a["y"] + a["height"] - 2 and abs((k["x"] + k["width"]) - (a["x"] + a["width"])) < 6
     bulb.click()
     expect(bulb).to_have_attribute("aria-expanded", "true")
     expect(tip.locator(".laps-tip-body b")).to_have_text("Tip: the more you upload, the more the board tells you")
@@ -1585,12 +1585,13 @@ def test_the_leaderboard_has_my_sessions_at_the_top_and_add_a_session_under_it(p
     expect(mine).to_have_attribute("href", "track.html")
     expect(add).to_have_text("Add a session")
     m, a = mine.bounding_box(), add.bounding_box()
-    # On desktop Add a session sits under My Sessions at the right, on the What is the Leaderboard? row, and the banner stays short.
+    # On desktop the layout is the phone's: the title first, then Back (with its word), My Sessions and Add a session on one row, Add at the right.
     assert m["height"] >= 50 and a["height"] >= 40, (m, a)
-    assert a["y"] >= m["y"] + m["height"] - 2 and a["x"] + a["width"] > m["x"] + m["width"] / 2 and a["x"] + a["width"] <= m["x"] + m["width"] + 2
-    assert page.locator(".page-hero").bounding_box()["height"] < 190
+    assert abs(a["y"] - m["y"]) < 6 and a["x"] >= m["x"] + m["width"], (m, a)
+    assert page.locator("#lb-page-back").inner_text().strip() == "Back"
+    assert page.locator(".page-hero h1").bounding_box()["y"] < m["y"]
+    assert page.locator(".page-hero").bounding_box()["height"] < 230
     back = page.locator("#lb-page-back").bounding_box()
-    # My Sessions, Back and the title share the top row.
     assert abs(m["y"] + m["height"] / 2 - (back["y"] + back["height"] / 2)) < 4
     expect(page.locator(".lb-hero h1 .mt3uk-share-dot")).to_be_visible()
     add.click()
@@ -1774,9 +1775,11 @@ def test_sessions_has_add_a_session_under_leaderboards(page):
     add, lb = page.locator("#tp-hero-add"), page.locator("#tp-lb-pill")
     expect(add).to_be_visible()
     a, l = add.bounding_box(), lb.bounding_box()
-    # On desktop it sits at the right on the What are Sessions? row, under Leaderboards, and the banner stays short.
-    assert a["y"] >= l["y"] + l["height"] - 2 and a["x"] + a["width"] <= l["x"] + l["width"] + 2, (a, l)
-    assert page.locator(".page-hero").bounding_box()["height"] < 190
+    # On desktop it is laid out as on a phone: Back (with its word), Leaderboards and Add a session on one row, Add at the right.
+    assert abs(a["y"] - l["y"]) < 6 and a["x"] >= l["x"] + l["width"], (a, l)
+    assert page.locator(".page-hero .tp-hero-top .back-link").inner_text().strip() == "Back"
+    assert page.locator(".page-hero h1").bounding_box()["y"] < l["y"]
+    assert page.locator(".page-hero").bounding_box()["height"] < 230
     expect(page.locator("#tp-app").get_by_role("link", name="Add a session", exact=True)).to_have_count(0)
     add.click()
     expect(page).to_have_url(re.compile(r"/track\.html\?add=1&car="))

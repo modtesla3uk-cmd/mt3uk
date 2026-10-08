@@ -33,6 +33,7 @@
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   var ICON = {
     off: '<path d="M2 8.8a15 15 0 0 1 4-2.4M22 8.8a15 15 0 0 0-9-3.7M5 12.9a10 10 0 0 1 3.2-2M19 12.9a10 10 0 0 0-3.4-2.2M8.5 16.4a5 5 0 0 1 7 0M12 20h.01M3 3l18 18"/>',
+    circle: '<circle cx="12" cy="12" r="10.5" fill="currentColor" stroke="none"/><g transform="translate(12 12) scale(.58) translate(-12 -12)" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8M3 3v5h5M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16M16 16h5v5"/></g>',
     check: '<path d="M20 6 9 17l-5-5"/>',
     sync: '<path d="M21 12a9 9 0 0 1-15.5 6.2L3 16M3 12A9 9 0 0 1 18.5 5.8L21 8M21 3v5h-5M3 21v-5h5"/>',
     x: '<path d="M18 6 6 18M6 6l12 12"/>'
@@ -164,22 +165,30 @@
     closed = false;
     if (offline) startPoll(); else { stopPoll(); setTimeout(sync, 800); }
     drawBar();
+    drawHeaderIcon();
     document.dispatchEvent(new CustomEvent(offline ? 'mt3uk-offline-start' : 'mt3uk-offline-end'));
   }
   // A request that never reached the worker. The browser can say it is online with no signal, so this counts.
   function noteNetworkError() { set(true); }
+  // Does the worker answer, and quickly? A weak signal can leave a request hanging for a minute or more, which is as
+  // good as no signal here, so an answer slower than the limit counts as none.
+  function ping() {
+    var ctl = window.AbortController ? new AbortController() : null;
+    var timer = ctl ? setTimeout(function () { ctl.abort(); }, window.MT3UK_OFFLINE_PING_MS || 8000) : null;
+    return fetch(API + '/track/copy', { cache: 'no-store', signal: ctl ? ctl.signal : undefined }).then(function (r) { clearTimeout(timer); return !!r; }, function () { clearTimeout(timer); return false; });
+  }
   function startPoll() {
     if (pollTimer) return;
     pollTimer = setInterval(function () {
       if (navigator.onLine === false) return;
-      fetch(API + '/track/copy', { cache: 'no-store' }).then(function (r) { if (r) set(false); }).catch(function () { /* still no signal */ });
+      ping().then(function (ok) { if (ok) set(false); });
     }, window.MT3UK_OFFLINE_POLL_MS || 12000);
   }
   function stopPoll() { if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } }
   window.addEventListener('offline', function () { set(true); });
   window.addEventListener('online', function () {
     // The browser says it is back: check the worker answers before saying so.
-    fetch(API + '/track/copy', { cache: 'no-store' }).then(function () { set(false); }).catch(function () { set(true); });
+    ping().then(function (ok) { set(!ok); });
   });
   if (offline) startPoll();
 
@@ -197,6 +206,7 @@
       if (!b) return;
       if (b.getAttribute('data-lo') === 'close') { closed = true; barMsg = null; drawBar(); }
       else if (b.getAttribute('data-lo') === 'on') setEnabled(true);
+
     });
     return el;
   }
@@ -212,7 +222,7 @@
     var el = bar();
     if (barMsg) {
       el.hidden = false; el.className = 'lo-bar is-' + barMsg.kind;
-      el.innerHTML = '<span class="lo-ico">' + icon(barMsg.kind === 'ok' ? 'check' : 'sync') + '</span><div class="lo-text">' + barMsg.html + '</div><button type="button" class="lo-x" data-lo="close" aria-label="Close">' + icon('x') + '</button>';
+      el.innerHTML = '<span class="lo-ico">' + icon(barMsg.kind === 'ok' || barMsg.kind === 'info' ? 'check' : 'sync') + '</span><div class="lo-text">' + barMsg.html + '</div><button type="button" class="lo-x" data-lo="close" aria-label="Close">' + icon('x') + '</button>';
       return;
     }
     if (!offline || closed) { el.hidden = true; return; }
@@ -349,6 +359,7 @@
   }
   // The card at the top of the member's list: what is waiting, with a way to send it and to remove it.
   function renderPending() {
+    drawHeaderIcon();
     var box = document.getElementById('lo-pending');
     if (!box) return Promise.resolve();
     return qAll().then(function (jobs) {
@@ -478,6 +489,7 @@
     });
   }
   function labels() {
+    drawHeaderIcon();
     var on = enabled();
     // Profile's Offline mode card is for Laps (js/laps-shared.js marks the page); on mt3uk.com it stays hidden.
     var card = document.getElementById('offline-mode');
@@ -518,6 +530,8 @@
   // on: true asks first (unless confirmed is true: the one-time offer is already the question).
   function setEnabled(on, confirmed) {
     if (!on) {
+      // With no signal the copy cannot be fetched again, so Laps could not open next time: ask first.
+      if (offline && !window.confirm('You have no signal. If you turn Offline mode off now, Laps cannot open again until you are back online. Turn it off?')) return Promise.resolve();
       ls(ON_KEY, null); ls(KEPT_KEY, null); ls('mt3ukLapsOfflineAt', null);
       progress = ''; preparing = false;
       labels(); drawBar();
@@ -555,6 +569,49 @@
     t.disabled = true;
     setEnabled(!enabled());
   });
+
+  // ---------- The icon in the header ----------
+  // A button beside the bell on the Laps header (for the admin only for now) that turns Offline mode on and off. Muted while it is off, green while
+  // it is on, orange while the device actually has no signal (with a green dot if it is on); a small number says how
+  // many sessions wait to be sent. With a signal a press switches it (on asks first, off is at once); with no signal it
+  // cannot be switched on, and switching it off would lose the copy, so a press shows what works instead.
+  var iconCount = 0;
+  function drawHeaderIcon() {
+    var head = document.querySelector('header .laps-logo');
+    var anchor = document.getElementById('nav-bell');
+    var el = document.getElementById('nav-offline');
+    // Held back while Offline mode is tried out, like the offer card: only a browser with the admin viewer token has the
+    // icon. Take `!adminViewer()` out of this line to show it to every member.
+    if (!head || !anchor || !adminViewer()) { if (el) el.hidden = true; return; }
+    var on = enabled();
+    if (!el) {
+      el = document.createElement('button');
+      el.type = 'button'; el.id = 'nav-offline'; el.className = 'nav-chat nav-offline'; el.setAttribute('role', 'switch');
+      el.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICON.circle + '</svg><span class="nav-chat-count" id="nav-offline-count" hidden></span>';
+      el.addEventListener('click', pressIcon);
+      anchor.parentNode.insertBefore(el, anchor);
+    }
+    el.hidden = false;
+    el.classList.toggle('is-on', on);
+    el.classList.toggle('is-offline', offline);
+        el.setAttribute('aria-checked', on ? 'true' : 'false');
+    el.disabled = preparing;
+    var label = 'Offline mode: ' + (preparing ? 'getting ready' : on ? 'on' : 'off') + (offline ? '. You have no signal' : '');
+    el.setAttribute('aria-label', label);
+    el.title = label + (offline ? '. Tap for details' : on ? '. Tap to turn off' : '. Tap to turn on');
+    qAll().then(function (jobs) {
+      iconCount = jobs.length;
+      var c = document.getElementById('nav-offline-count');
+      if (c) { c.hidden = !iconCount; c.textContent = iconCount > 9 ? '9+' : String(iconCount); }
+    });
+  }
+  function pressIcon() {
+    if (offline) { barMsg = null; closed = false; drawBar(); return; }
+    if (enabled()) {
+      setEnabled(false);
+      say('info', '<b>Offline mode is off.</b> The copy of Laps kept on this device has been removed.', 6000);
+    } else setEnabled(true);
+  }
 
   // ---------- The offer, once ----------
   function adminViewer() {
@@ -609,6 +666,8 @@
   window.MT3UKOffline = {
     isOffline: function () { return offline; },
     isNetworkError: isNetworkError,
+    // How long a read may take before a copy kept on the device is used instead (a weak signal).
+    readTimeout: function () { return window.MT3UK_READ_TIMEOUT_MS || 15000; },
     noteNetworkError: noteNetworkError,
     remember: remember,
     recall: recall,

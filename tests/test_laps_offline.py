@@ -22,8 +22,12 @@ class Link:
     def __init__(self, fake):
         self.fake = fake
         self.down = False
+        # A weak signal: the request is sent and never answered.
+        self.hang = False
 
     def handler(self, route):
+        if self.hang:
+            return
         if self.down:
             route.abort("connectionfailed")
         else:
@@ -46,9 +50,9 @@ def go_online(page, link):
     page.evaluate("window.dispatchEvent(new Event('online'))")
 
 
-def open_signed_in(page, fake):
+def open_signed_in(page, fake, admin=False):
     page.add_init_script("window.MT3UK_OFFLINE_ASK_DELAY = 999999;")
-    open_page(page, fake)
+    open_page(page, fake, admin=admin)
     link = with_link(page, fake)
     expect(page.locator("#tp-lb-pill")).to_be_visible()
     return link
@@ -138,6 +142,46 @@ def test_the_list_offline_comes_from_what_the_device_kept_and_says_so(page):
     expect(page.locator("#tp-old-note")).to_have_count(0, timeout=15000)
 
 
+def test_a_weak_signal_that_never_answers_counts_as_offline_when_the_device_has_a_copy(page):
+    """A request that hangs (a weak signal) is given up on after the read timeout, and the copy kept on the device is
+    shown, with the offline bar. Nothing is cut short when there is no copy to fall back on."""
+    fake = FakeWorker()
+    page.add_init_script("window.MT3UK_READ_TIMEOUT_MS = 700; window.MT3UK_OFFLINE_PING_MS = 500;")
+    link = open_signed_in(page, fake)
+    expect(page.locator("#lo-bar")).to_be_hidden()
+    link.hang = True
+    page.evaluate("document.dispatchEvent(new CustomEvent('mt3uk-offline-end'))")
+    expect(page.locator("#tp-old-note")).to_contain_text("You are offline", timeout=8000)
+    expect(page.locator("#lo-bar")).to_contain_text("You're in offline mode.")
+    expect(page.locator("#tp-lb-pill")).to_be_visible()
+    # Back to a working signal: the poll finds the worker answering and the real list returns.
+    link.hang = False
+    expect(page.locator("#tp-old-note")).to_have_count(0, timeout=30000)
+    expect(page.locator("#lo-bar")).to_be_hidden()
+
+
+def test_a_slow_read_with_no_copy_is_not_cut_short(page):
+    """With nothing kept on the device a slow answer is waited for, as it always was (the garage can be slow)."""
+    fake = FakeWorker()
+    page.add_init_script("window.MT3UK_READ_TIMEOUT_MS = 300;")
+    reply = fake.reply
+
+    def slow(route):
+        try:
+            page.wait_for_timeout(1200)
+            reply(route)
+        except Exception:
+            pass  # the page was closed while this answer was still on its way
+
+    fake.reply = slow
+    open_page(page, fake)
+    expect(page.locator("#tp-lb-pill")).to_be_visible(timeout=20000)
+    page.wait_for_timeout(600)
+    expect(page.locator("#lo-bar")).to_be_hidden()
+    expect(page.locator("#tp-old-note")).to_have_count(0)
+    page.unroute_all(behavior="ignoreErrors")
+
+
 def test_a_session_not_opened_before_says_it_is_not_on_the_device(page):
     fake = FakeWorker()
     link = open_signed_in(page, fake)
@@ -159,6 +203,101 @@ def test_the_one_time_offer_is_made_once_and_not_now_is_remembered(page):
     page.wait_for_selector("#tp-lb-pill")
     page.wait_for_timeout(600)
     expect(page.locator("#lo-offer")).to_have_count(0)
+
+
+def test_the_header_icon_is_held_back_from_members_who_are_not_the_admin(page):
+    """While Offline mode is tried out only a browser with the admin viewer token has the icon (the footer link stays)."""
+    fake = FakeWorker()
+    open_signed_in(page, fake)
+    expect(page.locator("#nav-offline")).to_have_count(0)
+    expect(page.locator("#tp-offline")).to_have_text("Offline mode: off")
+
+
+def test_the_header_icon_is_a_button_that_turns_offline_mode_on_and_off(page):
+    """A switch beside the bell: off to start with, a press asks first (Cancel leaves it off), and when it is on a press
+    turns it off at once."""
+    fake = FakeWorker()
+    open_signed_in(page, fake, admin=True)
+    icon = page.locator("#nav-offline")
+    expect(icon).to_be_visible()
+    expect(icon).to_have_attribute("role", "switch")
+    expect(icon).to_have_attribute("aria-checked", "false")
+    expect(icon).to_have_attribute("aria-label", "Offline mode: off")
+    # It sits beside the other header icons.
+    assert page.evaluate("document.getElementById('nav-offline').nextElementSibling.id") == "nav-bell"
+    icon.click()
+    expect(page.locator("#lo-confirm")).to_contain_text("Keep Laps on this device?")
+    page.locator("#lo-confirm").get_by_role("button", name="Cancel").click()
+    expect(icon).to_have_attribute("aria-checked", "false")
+    assert page.evaluate("localStorage.getItem('mt3ukLapsOffline')") is None
+
+
+def test_with_offline_mode_on_a_press_of_the_icon_turns_it_off(page):
+    page.add_init_script("localStorage.setItem('mt3ukLapsOffline','1');localStorage.setItem('mt3ukLapsOfflineKept','42');localStorage.setItem('mt3ukLapsOfflineAt', String(Date.now()));")
+    fake = FakeWorker()
+    open_signed_in(page, fake, admin=True)
+    icon = page.locator("#nav-offline")
+    expect(icon).to_have_attribute("aria-checked", "true")
+    expect(icon).to_have_attribute("aria-label", "Offline mode: on")
+    expect(page.locator("#tp-offline")).to_have_text("Offline mode: on")
+    icon.click()
+    expect(icon).to_have_attribute("aria-checked", "false")
+    assert page.evaluate("localStorage.getItem('mt3ukLapsOffline')") is None
+    expect(page.locator("#tp-offline")).to_have_text("Offline mode: off")
+    expect(page.locator("#lo-bar")).to_contain_text("Offline mode is off.")
+
+
+def test_offline_with_no_signal_the_icon_turns_orange_and_a_press_shows_details(page):
+    fake = FakeWorker()
+    link = open_signed_in(page, fake, admin=True)
+    icon = page.locator("#nav-offline")
+    go_offline(page, link)
+    expect(icon).to_have_class(re.compile(r"is-offline"))
+    expect(icon).to_have_attribute("aria-label", "Offline mode: off. You have no signal")
+    # A session added offline shows as a number on the icon.
+    page.locator("#lo-bar [data-lo='close']").click()
+    add_thruxton(page)
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator("#nav-offline-count")).to_have_text("1")
+    # A press cannot switch it on with no signal: it brings back what works.
+    expect(page.locator("#lo-bar")).to_be_hidden()
+    icon.click()
+    expect(page.locator("#lo-bar")).to_contain_text("You're in offline mode.")
+    expect(icon).to_have_attribute("aria-checked", "false")
+    go_online(page, link)
+    expect(page.locator("#lo-bar")).to_contain_text("1 session sent", timeout=15000)
+    expect(icon).not_to_have_class(re.compile(r"is-offline"))
+    expect(page.locator("#nav-offline-count")).to_be_hidden()
+
+
+def test_turning_offline_mode_off_with_no_signal_asks_first_because_the_copy_cannot_come_back(page):
+    page.add_init_script("localStorage.setItem('mt3ukLapsOffline','1');localStorage.setItem('mt3ukLapsOfflineKept','42');")
+    fake = FakeWorker()
+    link = open_signed_in(page, fake, admin=True)
+    go_offline(page, link)
+    asked = []
+
+    def refuse(d):
+        asked.append(d.message)
+        d.dismiss()
+
+    page.once("dialog", refuse)
+    page.locator("#tp-offline").click()
+    page.wait_for_timeout(300)
+    assert asked and "cannot open again until you are back online" in asked[0]
+    expect(page.locator("#nav-offline")).to_have_attribute("aria-checked", "true")
+    assert page.evaluate("localStorage.getItem('mt3ukLapsOffline')") == "1"
+
+
+def test_the_header_icon_is_the_size_of_its_neighbours_on_a_phone(page):
+    fake = FakeWorker()
+    page.set_viewport_size({"width": 390, "height": 800})
+    open_signed_in(page, fake, admin=True)
+    box = page.locator("#nav-offline").bounding_box()
+    chat = page.locator("#nav-chat").bounding_box()
+    assert abs(box["height"] - chat["height"]) < 1 and box["width"] <= chat["width"] + 4, (box, chat)
+    # Nothing in the header runs off the side of the phone.
+    assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
 
 
 def test_the_offer_is_held_back_from_members_who_are_not_the_admin(page):

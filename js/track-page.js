@@ -95,7 +95,19 @@
       }
     }
     var off = window.MT3UKOffline;
+    // A weak signal: a read that has not answered in `readTimeout` while this device holds a copy of its answer is
+    // given up on and the copy is used (and the page says it is offline). With no copy it waits as long as it ever
+    // did, and a write is never cut short, so a slow save is not lost.
+    var timedOut = false, timer = null;
+    if (off && method === 'GET' && window.AbortController && cacheableRead(path)) {
+      var ctl = new AbortController();
+      opts.signal = ctl.signal;
+      timer = setTimeout(function () {
+        off.recall(path).then(function (c) { if (c) { timedOut = true; ctl.abort(); } });
+      }, off.readTimeout());
+    }
     return ready.then(function () { return fetch(API + path, opts); }).then(function (r) {
+      clearTimeout(timer);
       return r.json().catch(function () { return {}; }).then(function (d) {
         d.status = r.status;
         // What the worker says about the member's cars and sessions is kept on the device, to show with no signal.
@@ -103,6 +115,8 @@
         return d;
       });
     }, function (err) {
+      clearTimeout(timer);
+      if (timedOut) { err = new TypeError('The signal is too weak: no answer in time'); err.offline = true; }
       if (!off || !off.isNetworkError(err)) throw err;
       off.noteNetworkError();
       if (method === 'GET') return off.recall(path).then(function (c) { if (c) return c; throw err; });
@@ -110,6 +124,10 @@
       e.offline = true;
       throw e;
     });
+  }
+  // The reads the device keeps an answer for (js/laps-offline.js, cacheable): the only ones a weak signal gives up on.
+  function cacheableRead(path) {
+    return /^\/(my-builds|track\/sessions|track\/tracks|track\/copy|track\/access|tyres|pads|vehicles)(\?|$)/.test(path) || path.indexOf('/track/session?id=') === 0;
   }
   function adminViewerToken() {
     try {

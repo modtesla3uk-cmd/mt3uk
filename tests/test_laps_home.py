@@ -242,8 +242,9 @@ def test_the_leaderboard_invites_members_without_early_access_to_join(page):
     expect(page.locator("#lb-preview")).to_contain_text("Ask for a place")
 
 
-def test_a_visitor_to_the_leaderboard_sees_join_the_early_preview_the_size_of_my_sessions(page):
-    """Signed out: Join the early preview (to the Laps sign-up) is the same size as My Sessions on desktop, the
+def test_a_visitor_to_the_leaderboard_sees_join_the_early_preview_the_height_of_my_sessions(page):
+    """Signed out: Join the early preview (to the Laps sign-up) is the same height as My Sessions on desktop, on the What is
+    the Leaderboard? row at the right, the
     note no longer asks them to join a list, and What is the Leaderboard? says what is there once the preview ends."""
     def reply(r):
         body = COUNTS if "/track/counts" in r.request.url else {"success": True}
@@ -256,8 +257,11 @@ def test_a_visitor_to_the_leaderboard_sees_join_the_early_preview_the_size_of_my
     expect(join).to_have_attribute("href", "laps-signin.html")
     expect(page.locator("#lb-preview")).to_have_text("Early preview. Anyone can browse the leaderboards. Adding your own laps is open to early testers while we finish Laps.")
     mine, j = page.locator("#lb-my-sessions").bounding_box(), join.bounding_box()
-    # On desktop it sits on the What is the Leaderboard? row, under My Sessions and within its right edge.
-    assert j["y"] >= mine["y"] + mine["height"] - 2 and j["x"] + j["width"] <= mine["x"] + mine["width"] + 2, (mine, j)
+    # On desktop the banner is short: Join the early preview shares the row with My Sessions and the What is the
+    # Leaderboard? fold, at the right, the same height as My Sessions.
+    what = page.locator("#lb-what summary").bounding_box()
+    assert abs(j["y"] - mine["y"]) <= 2 and abs(j["height"] - mine["height"]) <= 2, (mine, j)
+    assert mine["x"] + mine["width"] <= what["x"] and what["x"] + what["width"] <= j["x"], (mine, what, j)
     assert not join.evaluate("e => e.scrollWidth > e.clientWidth")
     page.locator("#lb-what summary").click()
     expect(page.locator("#lb-what .tp-what-list li")).to_have_count(4)

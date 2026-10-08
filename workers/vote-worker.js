@@ -7771,6 +7771,45 @@ async function handleTrackAccessAdmin(request, env) {
   return json({ success: true, open: a.open, imported: a.imported, allowed: a.allowed, pending: a.pending });
 }
 
+// ---- Laps offline mode: who is offered it ----------------------------------
+// Offline mode is being tried out, so the header icon, the one-time offer, the footer link and the Profile switch only
+// show for members the admin has approved, until Open to all members is switched on (Access group of track-admin.html,
+// js/laps-offline-admin.js). One KV key (laps-offline-access), read with get(): the page asks once per load.
+var LAPS_OFFLINE_KEY = 'laps-offline-access';
+async function getLapsOfflineAccess(env) {
+  var a = await getJsonKey(env, LAPS_OFFLINE_KEY, {});
+  return { open: !!a.open, allowed: Array.isArray(a.allowed) ? a.allowed : [] };
+}
+async function handleLapsOfflineAccess(request, env) {
+  var email = await resolveSession(request, env);
+  if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
+  var a = await getLapsOfflineAccess(env), e = accessEmail(email);
+  return json({ success: true, access: a.open || a.allowed.some(function (x) { return x.email === e; }), open: a.open });
+}
+async function handleLapsOfflineAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  var a = await getLapsOfflineAccess(env);
+  if (request.method === 'GET') return json({ success: true, open: a.open, allowed: a.allowed });
+  var body;
+  try { body = await request.json(); } catch (er) { return json({ success: false, message: 'Invalid request body' }, 400); }
+  var action = String(body.action || ''), e = accessEmail(body.email);
+  if (action === 'open') {
+    a.open = !!body.open;
+  } else if (action === 'add' || action === 'revoke') {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) return json({ success: false, message: 'That does not look like an email address.' }, 400);
+    if (action === 'add') {
+      if (!a.allowed.some(function (x) { return x.email === e; })) {
+        var nm = '';
+        try { nm = (publicName(await getProfileRecord(env, e)) || '').slice(0, 60); } catch (er) { nm = ''; }
+        a.allowed.push({ email: e, name: nm, at: new Date().toISOString() });
+        a.allowed = a.allowed.slice(-500);
+      }
+    } else a.allowed = a.allowed.filter(function (x) { return x.email !== e; });
+  } else return json({ success: false, message: 'Unknown action' }, 400);
+  await env.VOTES.put(LAPS_OFFLINE_KEY, JSON.stringify(a));
+  return json({ success: true, open: a.open, allowed: a.allowed });
+}
+
 async function handleTrackSessionsList(request, env) {
   var email = await resolveSession(request, env);
   if (!email) return json({ success: false, message: 'Please sign in again' }, 401);
@@ -11560,6 +11599,12 @@ export default {
     }
     if (url.pathname === '/cars/public' && request.method === 'GET') {
       return handleCarPublic(request, env);
+    }
+    if (url.pathname === '/laps/offline/access' && request.method === 'GET') {
+      return handleLapsOfflineAccess(request, env);
+    }
+    if (url.pathname === '/laps/offline/admin' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleLapsOfflineAdmin(request, env);
     }
     if (url.pathname === '/track/access' && request.method === 'GET') {
       return handleTrackAccess(request, env);

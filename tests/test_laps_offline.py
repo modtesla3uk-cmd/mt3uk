@@ -205,12 +205,46 @@ def test_the_one_time_offer_is_made_once_and_not_now_is_remembered(page):
     expect(page.locator("#lo-offer")).to_have_count(0)
 
 
-def test_the_header_icon_is_held_back_from_members_who_are_not_the_admin(page):
-    """While Offline mode is tried out only a browser with the admin viewer token has the icon (the footer link stays)."""
+def test_offline_mode_is_held_back_from_members_the_admin_has_not_approved(page):
+    """While Offline mode is tried out the icon, the footer link and the one-time offer only show for the admin and for
+    approved members (Offline mode panel of track-admin.html)."""
     fake = FakeWorker()
-    open_signed_in(page, fake)
+    fake.offline_access = False
+    page.add_init_script("window.MT3UK_OFFLINE_ASK_DELAY = 300;")
+    open_page(page, fake)
+    page.wait_for_selector("#tp-lb-pill")
+    page.wait_for_timeout(900)
     expect(page.locator("#nav-offline")).to_have_count(0)
-    expect(page.locator("#tp-offline")).to_have_text("Offline mode: off")
+    expect(page.locator("#tp-offline")).to_be_hidden()
+    expect(page.locator("#lo-offer")).to_have_count(0)
+
+
+def test_an_approved_member_gets_the_icon_the_footer_link_and_the_offer(page):
+    fake = FakeWorker()
+    page.add_init_script("window.MT3UK_OFFLINE_ASK_DELAY = 300;")
+    open_page(page, fake)
+    expect(page.locator("#nav-offline")).to_be_visible()
+    expect(page.locator("#tp-offline")).to_be_visible()
+    expect(page.locator("#lo-offer")).to_be_visible()
+    assert page.evaluate("localStorage.getItem('mt3ukLapsOfflineAccess')") == "a@example.com|1"
+
+
+def test_a_member_who_already_switched_it_on_keeps_it_when_access_is_taken_away(page):
+    fake = FakeWorker()
+    fake.offline_access = False
+    page.add_init_script("localStorage.setItem('mt3ukLapsOffline', '1');")
+    open_signed_in(page, fake)
+    expect(page.locator("#nav-offline")).to_be_visible()
+    expect(page.locator("#tp-offline")).to_have_text("Offline mode: on")
+
+
+def test_the_last_answer_about_access_still_holds_with_no_signal(page):
+    fake = FakeWorker()
+    link = open_signed_in(page, fake)
+    expect(page.locator("#nav-offline")).to_be_visible()
+    go_offline(page, link)
+    page.reload()
+    expect(page.locator("#nav-offline")).to_be_visible()
 
 
 def test_the_header_icon_is_a_button_that_turns_offline_mode_on_and_off(page):
@@ -300,13 +334,14 @@ def test_the_header_icon_is_the_size_of_its_neighbours_on_a_phone(page):
     assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
 
 
-def test_the_offer_is_held_back_from_members_who_are_not_the_admin(page):
-    """While Offline mode is tried out only a browser with the admin viewer token is offered it."""
+def test_the_offer_is_held_back_from_members_who_are_not_approved(page):
+    """While Offline mode is tried out only the admin and approved members are offered it."""
+    fake = FakeWorker()
+    fake.offline_access = False
     page.add_init_script("window.MT3UK_OFFLINE_ASK_DELAY = 0;")
-    open_page(page, FakeWorker())
+    open_page(page, fake)
     page.wait_for_timeout(800)
     expect(page.locator("#lo-offer")).to_have_count(0)
-    expect(page.locator("#tp-offline")).to_have_text("Offline mode: off")
 
 
 def test_no_offer_for_someone_signed_out(page):
@@ -330,7 +365,8 @@ def test_the_laps_footer_has_the_offline_switch(page):
 def test_profile_has_an_offline_mode_switch_on_laps_only(page):
     page.add_init_script("window.MT3UK_OFFLINE_ASK_DELAY = 999999;")
     page.add_init_script("navigator.serviceWorker && (navigator.serviceWorker.register = () => new Promise(() => {}))")
-    page.route("**/%s/**" % API_HOST, lambda route: route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": False}), headers={"Access-Control-Allow-Origin": "*"}))
+    page.add_init_script("localStorage.setItem('mt3ukMyBuildsSession','tok');localStorage.setItem('mt3ukMyBuildsEmail','a@example.com');")
+    page.route("**/%s/**" % API_HOST, lambda route: route.fulfill(status=200, content_type="application/json", body=json.dumps({"success": True, "access": True}), headers={"Access-Control-Allow-Origin": "*"}))
     page.goto("/profile.html")
     page.wait_for_timeout(500)
     assert page.evaluate("document.getElementById('offline-mode').hidden") is True

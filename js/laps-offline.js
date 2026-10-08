@@ -493,8 +493,9 @@
     var on = enabled();
     // Profile's Offline mode card is for Laps (js/laps-shared.js marks the page); on mt3uk.com it stays hidden.
     var card = document.getElementById('offline-mode');
-    if (card && document.documentElement.classList.contains('laps-shared')) card.hidden = false;
+    if (card) card.hidden = !(allowed() && document.documentElement.classList.contains('laps-shared'));
     [].slice.call(document.querySelectorAll('[data-offline-toggle]')).forEach(function (el) {
+      el.hidden = !allowed();
       if (el.getAttribute('role') === 'switch') { el.setAttribute('aria-checked', on ? 'true' : 'false'); }
       else el.textContent = 'Offline mode: ' + (preparing ? 'getting ready...' : on ? 'on' : 'off');
       el.disabled = false;
@@ -580,9 +581,8 @@
     var head = document.querySelector('header .laps-logo');
     var anchor = document.getElementById('nav-bell');
     var el = document.getElementById('nav-offline');
-    // Held back while Offline mode is tried out, like the offer card: only a browser with the admin viewer token has the
-    // icon. Take `!adminViewer()` out of this line to show it to every member.
-    if (!head || !anchor || !adminViewer()) { if (el) el.hidden = true; return; }
+    // Held back while Offline mode is tried out, like the offer card (see allowed()).
+    if (!head || !anchor || !allowed()) { if (el) el.hidden = true; return; }
     var on = enabled();
     if (!el) {
       el = document.createElement('button');
@@ -620,13 +620,28 @@
       return !!(v && v.token && v.expires > Date.now());
     } catch (e) { return false; }
   }
+  // Who is offered Offline mode while it is tried out: the admin's browser, a member the admin approved (or everyone once
+  // Open to all members is on, Access group of track-admin.html), and anyone who already switched it on. The worker's
+  // answer is kept for the member, so it still holds with no signal.
+  var ACCESS_KEY = 'mt3ukLapsOfflineAccess';
+  function allowed() {
+    if (adminViewer() || enabled()) return true;
+    return !!token() && ls(ACCESS_KEY) === (ls(EMAIL_KEY) || '').toLowerCase() + '|1';
+  }
+  function checkAccess() {
+    if (!token() || offline) return Promise.resolve();
+    return getJson('/laps/offline/access').then(function (d) {
+      if (d.status === 401) ls(ACCESS_KEY, null);
+      else if (d.success) ls(ACCESS_KEY, (ls(EMAIL_KEY) || '').toLowerCase() + '|' + (d.access ? '1' : '0'));
+      labels();
+    }, function () { /* keep the last answer */ });
+  }
   function offer() {
     // An automated browser (the site's tests) is not asked unless a test sets the delay itself: the card sits over the
     // bottom of the page and would block clicks in tests that know nothing about it.
     if (navigator.webdriver && window.MT3UK_OFFLINE_ASK_DELAY == null) return;
-    // Held back while Offline mode is tried out: only a browser that has the admin viewer token (left by entering the
-    // admin key on an admin page, a month at a time) is offered it. Take this line out to offer it to every member.
-    if (!adminViewer()) return;
+    // Held back while Offline mode is tried out: only the admin's browser and members the admin approved are offered it.
+    if (!allowed()) return;
     if (!/(^|\/)(track|leaderboards|laps)\.html$/.test(location.pathname)) return;
     if (enabled() || ls(ASKED_KEY) || !token() || offline || !('serviceWorker' in navigator)) return;
     if (document.getElementById('lo-offer')) return;
@@ -655,7 +670,8 @@
     }
     if (!offline) pendingCount().then(function (n) { if (n) sync(); });
     if (offline) drawBar();
-    setTimeout(offer, window.MT3UK_OFFLINE_ASK_DELAY != null ? window.MT3UK_OFFLINE_ASK_DELAY : 3500);
+    var known = checkAccess();
+    setTimeout(function () { known.then(offer); }, window.MT3UK_OFFLINE_ASK_DELAY != null ? window.MT3UK_OFFLINE_ASK_DELAY : 3500);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
   // A footer or Profile card drawn after load (shared pages swap the Laps footer in) gets its words too.

@@ -573,6 +573,32 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   r = await call('POST', '/track/access/admin?key=secret', { action: 'open', open: false });
   r = await call('GET', '/track/sessions', undefined, 'tok-c');
   ok(r.status === 403, 'and closed again');
+
+  // Laps offline mode: who is offered it
+  r = await call('GET', '/laps/offline/access');
+  ok(r.status === 401, 'offline mode: a visitor gets the sign in answer');
+  r = await call('GET', '/laps/offline/access', undefined, 'tok-c');
+  ok(r.status === 200 && r.body.access === false, 'offline mode: a member is not offered it to start with');
+  r = await call('GET', '/laps/offline/admin');
+  ok(r.status === 401, 'offline mode: the admin list needs the admin key');
+  r = await call('POST', '/laps/offline/admin?key=secret', { action: 'add', email: C.toUpperCase() });
+  ok(r.body.allowed.length === 1 && r.body.allowed[0].email === C, 'offline mode: adding keeps the email in lower case');
+  await call('POST', '/laps/offline/admin?key=secret', { action: 'add', email: C });
+  r = await call('GET', '/laps/offline/admin?key=secret');
+  ok(r.body.allowed.length === 1 && r.body.open === false, 'offline mode: adding twice does not repeat them');
+  r = await call('GET', '/laps/offline/access', undefined, 'tok-c');
+  ok(r.body.access === true, 'offline mode: an approved member is offered it');
+  r = await call('POST', '/laps/offline/admin?key=secret', { action: 'revoke', email: C });
+  r = await call('GET', '/laps/offline/access', undefined, 'tok-c');
+  ok(r.body.access === false, 'offline mode: taking it away works');
+  await call('POST', '/laps/offline/admin?key=secret', { action: 'open', open: true });
+  r = await call('GET', '/laps/offline/access', undefined, 'tok-c');
+  ok(r.body.access === true && r.body.open === true, 'offline mode: open to all members offers it to everyone');
+  await call('POST', '/laps/offline/admin?key=secret', { action: 'open', open: false });
+  r = await call('POST', '/laps/offline/admin?key=secret', { action: 'bad' });
+  ok(r.status === 400, 'offline mode: an unknown action is refused');
+  r = await call('POST', '/laps/offline/admin?key=secret', { action: 'add', email: 'nope' });
+  ok(r.status === 400, 'offline mode: a bad email is refused');
   // Members who already had sessions keep using it
   kv.set('track-index:' + (await mod.ownerKey(D)), JSON.stringify([{ id: 'old1' }]));
   r = await call('GET', '/track/access', undefined, 'tok-d');

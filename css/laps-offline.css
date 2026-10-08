@@ -55,3 +55,5 @@
 .nav-offline:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-sm); }
 @media (max-width: 780px) { .nav-offline svg { width: 30px; height: 25px; } }
 .lo-bar.is-info { background: #16233d; }
+/* Held back for members who are not offered Offline mode yet (laps-offline.js allowed()): the footer link and the Profile switch. */
+[data-offline-toggle][hidden] { display: none !important; }

@@ -107,6 +107,8 @@ class FakeWorker:
             data = {"success": True, "cars": [CAR] + list(getattr(self, "extra_cars", []))}
         elif path == "/track/sessions" and req.method == "GET" and self.access != "approved":
             status, data = 403, {"success": False, "needsAccess": True}
+        elif path == "/laps/offline/access" and req.method == "GET":
+            data = {"success": True, "access": getattr(self, "offline_access", True)}
         elif path == "/track/access" and req.method == "GET":
             data = {"success": True, "access": self.access}
         elif path == "/track/access/request" and req.method == "POST":

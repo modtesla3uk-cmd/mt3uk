@@ -78,6 +78,16 @@
       <h3 class="sub-head">Add someone</h3>
       <form class="iv-toolbar" id="ac-add-form"><input type="email" id="ac-add-email" placeholder="Member's email" aria-label="Member's email" autocomplete="off"><button type="submit">Approve by email</button></form>
     </details>
+    <details class="collapsible" id="offline-wrap">
+      <summary><h3 class="panel-title">Offline mode <span class="summary-count" id="offline-count"></span></h3></summary>
+      <p class="iv-note">Offline mode keeps Laps on a member's device so it opens with no signal. While it is tried out, its icon in the Laps header, the one-time offer, the footer link and the Profile switch only show for the members you approve here, and for you. <b>Open to all members</b> offers it to everyone. A member who has already switched it on keeps it either way.</p>
+      <p class="iv-note" id="of-note" role="status"></p>
+      <div class="iv-toolbar"><button type="button" class="tk-switch" role="switch" id="of-open" aria-checked="false"><span class="tk-track"></span>Open to all members</button></div>
+      <h3 class="sub-head">Approved members</h3>
+      <div id="of-allowed"></div>
+      <h3 class="sub-head">Add someone</h3>
+      <form class="iv-toolbar" id="of-add-form"><input type="email" id="of-add-email" placeholder="Member's email" aria-label="Member's email" autocomplete="off"><button type="submit">Give access</button></form>
+    </details>
     <details class="collapsible" id="signin-wrap">
       <summary><h3 class="panel-title">Sign-in and sign-up <span class="summary-count" id="signups-count"></span></h3></summary>
       <p class="iv-note">How signing in and joining works on laps.mt3uk.com. A sign-in is kept per address, so the emailed link always comes back to laps.mt3uk.com when it was asked for there.</p>
@@ -299,6 +309,7 @@
 <script src="js/track-parse.js?v=20270129" defer></script>
 <script src="js/track-view.js?v=20270115" defer></script>
 <script src="js/track-access-admin.js?v=20270105" defer></script>
+<script src="js/laps-offline-admin.js?v=1" defer></script>
 <script src="js/track-usage-admin.js?v=20270101" defer></script>
 <script src="js/laps-signin-admin.js?v=20270104" defer></script>
 <script src="js/laps-signups-admin.js?v=20270107" defer></script>

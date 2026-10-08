@@ -260,10 +260,14 @@
     .tp-list-head .tp-sub { font-size: 0.8rem; }
     .tp-list-head .chip { min-height: 40px; }
     .tp-list-head .tp-refresh, .tp-list-head .tp-find-toggle, .tp-list-head .tp-others { width: 40px; }
-    .tp-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0 0; align-items: end; }
+    .tp-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0 0; }
     .tp-tools .tp-sort { width: auto; }
     .tp-tools .tp-filters { display: contents; }
-    .tp-tools .tp-filter, .tp-tools .tp-filters .tp-field { margin: 0; max-width: none; min-width: 0; }
+    .tp-tools .tp-field, .tp-tools .tp-filter, .tp-tools .tp-filters .tp-field { margin: 0; max-width: none; min-width: 0; }
+    .tp-tools { align-items: start; }
+    /* The vehicle box is one slim row: the name and its session count together. */
+    .tp-vbox button.tp-vcurrent { min-height: 38px; padding: 2px 12px; }
+    .tp-vbox button.tp-vcurrent .tp-vtext { display: flex; flex-direction: row; align-items: baseline; gap: 8px; flex-wrap: wrap; }
     .tp-tools .tp-field label { font-size: 0.72rem; margin-bottom: 2px; }
     .tp-tools .field { min-height: 40px; padding-top: 0; padding-bottom: 0; font-size: 0.9rem; }
   }
@@ -1233,7 +1237,7 @@
 <script src="js/pad-data.js?v=20270210"></script>
 <script src="js/vehicle-data.js?v=20270210" defer></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20271011" defer></script>
+<script src="js/track-page.js?v=20271012" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20270104" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

@@ -938,7 +938,7 @@
       '<div id="tp-car-add-wrap" hidden>' + addCarHtml(false) + '</div></div>';
     // One tight row: the title and the car at the left, search, refresh, units and What others see (an eye) at the right.
     var othersChip = car.virtual ? '' : '<a class="chip tp-others" href="track.html?car=' + encodeURIComponent(car.id) + '" data-go="car=' + esc(encodeURIComponent(car.id)) + '" aria-label="What others see" title="What others see">' + icon('eye') + '</a>';
-    h += '<div class="tp-section"><div class="tp-head tp-list-head"><div class="tp-head-title"><h2>Sessions</h2><p class="tp-sub tp-for">' + esc(car.name) + '</p></div><div class="tp-head-side">' + findToggleHtml(m) + refreshChip() + unitsChip() + othersChip + '</div></div>';
+    h += '<div class="tp-section"><div class="tp-head tp-list-head"><div class="tp-head-title"><h2>Sessions</h2></div><div class="tp-head-side">' + findToggleHtml(m) + refreshChip() + unitsChip() + othersChip + '</div></div>';
     // Add a session is in the page heading, under Leaderboards (heroAdd).
     heroAddCar = car.id;
     h += findPanelHtml(m);

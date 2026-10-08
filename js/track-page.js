@@ -877,7 +877,20 @@
     pendingDay = key; clearTimeout(pendingTimer);
     pendingTimer = setTimeout(function () { pendingDay = null; }, 15000);
   }
+  // Leaving a session (Exit session, Back) lands on the list at the row it came from, not at the top: the last session shown is
+  // looked for once the list is drawn.
+  var lastSession = null;
+  function showLastSession() {
+    if (!lastSession || document.getElementById('tp-session-bar')) return;
+    var row = [].filter.call(app.querySelectorAll('.tp-row[data-sid]'), function (x) { return x.getAttribute('data-sid') === lastSession && x.offsetParent !== null; })[0];
+    if (!row) return;
+    lastSession = null;
+    row.scrollIntoView({ block: 'center' });
+    row.classList.add('is-flash');
+    setTimeout(function () { row.classList.remove('is-flash'); }, 1600);
+  }
   function showPendingDay() {
+    showLastSession();
     if (!pendingDay) return;
     var el = [].filter.call(app.querySelectorAll('.tp-daygroup[data-day]'), function (x) { return x.getAttribute('data-day') === pendingDay; })[0];
     if (!el) return;
@@ -3254,6 +3267,7 @@
   }
   function drawSession() {
     var s = view.s;
+    lastSession = s.id;
     // Add a session stays in the page heading on the owner's own session, for the same car.
     heroAddCar = s.mine && s.carId ? s.carId : null;
     heroAdd();

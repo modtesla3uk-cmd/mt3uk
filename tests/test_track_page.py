@@ -6470,3 +6470,24 @@ def test_skip_to_and_exit_session_share_one_row_on_a_phone(page):
     skip, exit_ = page.locator("#tp-skip").bounding_box(), page.locator("#tp-exit").bounding_box()
     assert abs((skip["y"] + skip["height"] / 2) - (exit_["y"] + exit_["height"] / 2)) < 6, (skip, exit_)
     assert skip["x"] + skip["width"] <= exit_["x"] + 1 and exit_["x"] + exit_["width"] <= 390, (skip, exit_)
+
+
+def test_exiting_a_session_lands_on_the_list_at_the_row_it_came_from(page):
+    """Exit session (and Back) return to the list at the session that was open, not at the top of the page."""
+    fake = FakeWorker(earlier=False)
+    _many_days(fake, 12)
+    open_page(page, fake)
+    page.set_viewport_size({"width": 1100, "height": 700})
+    wrap = page.locator("#tp-sess-list .tp-trackwrap", has_text="Castle Combe")
+    wrap.locator("[data-track-toggle]").click()
+    wrap.locator("[data-layout-toggle]").click()
+    day = wrap.locator('.tp-daygroup[data-day$="2026-05-01"]')
+    day.scroll_into_view_if_needed()
+    day.locator(".tp-daygroup-title").click()
+    day.locator('a.tp-row[data-sid="a0"]').click()
+    expect(page).to_have_url(re.compile(r"track\.html\?s=a0$"))
+    page.locator("#tp-exit").click()
+    expect(page.locator("#tp-sess-list")).to_be_visible()
+    page.wait_for_timeout(600)
+    pos = page.evaluate("(() => { const r = document.querySelector('a.tp-row[data-sid=\"a0\"]').getBoundingClientRect(); return [r.top, r.bottom, innerHeight, scrollY]; })()")
+    assert pos[3] > 200 and 0 <= pos[0] < pos[2] and pos[1] <= pos[2] + 2, pos

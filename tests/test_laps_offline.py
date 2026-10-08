@@ -859,3 +859,24 @@ def test_laps_opens_with_no_network_once_offline_mode_is_on(browser):
         assert page.evaluate("caches.keys().then(k => k.some(n => n.indexOf('laps-offline') !== -1 || n.indexOf('laps-tiles') !== -1))") is False
     finally:
         context.close()
+
+
+def test_a_kept_circuit_says_how_many_sessions_it_holds_and_can_be_refreshed(page):
+    """Profile's list shows 'N sessions kept' for each circuit, and Refresh kept circuits keeps them all again."""
+    page.add_init_script("localStorage.setItem('mt3ukLapsOffline', '1'); window.MT3UK_TILE_WAIT_MS = 300;")
+    fake = FakeWorker()
+    open_signed_in(page, fake)
+    other_members_session(page, fake)
+    page.goto("/leaderboards.html?type=track")
+    page.wait_for_function("window.MT3UKOffline && MT3UKOffline.addCircuit")
+    page.evaluate("""document.body.insertAdjacentHTML('beforeend',
+      '<div id="x"><ul data-offline-circuits></ul><button type="button" data-circuit-refresh hidden>Refresh kept circuits</button><p data-offline-status></p></div>')""")
+    page.evaluate("MT3UKOffline.addCircuit('thruxton', 'Thruxton')")
+    row = page.locator("#x [data-offline-circuits] li")
+    expect(row).to_contain_text("Thruxton")
+    expect(row).to_contain_text("sessions kept", timeout=15000)
+    refresh = page.locator("#x [data-circuit-refresh]")
+    expect(refresh).to_be_visible()
+    refresh.click()
+    expect(page.locator("#x [data-offline-status]")).to_contain_text("Refreshed", timeout=15000)
+    expect(row).to_contain_text("sessions kept")

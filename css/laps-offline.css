@@ -68,6 +68,7 @@
 .lo-circuits { list-style: none; margin: 4px 0 8px; padding: 0; display: grid; gap: 6px; }
 .lo-circuits[hidden] { display: none; }
 .lo-circuits li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 4px 4px 12px; border: 1px solid var(--hairline); border-radius: var(--radius-sm); }
+.lo-kept-count { display: block; color: var(--muted, #667); font-size: 12px; }
 .lo-count { font-weight: 400; color: var(--steel, #5b6475); margin-left: 6px; }
 /* The cloud button on a Sessions track row: a second way to keep a circuit, for the keyboard and for anyone who has not found the hold. */
 .tp-keep { position: absolute; top: 4px; right: 10px; width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--steel, #5b6475); cursor: pointer; }

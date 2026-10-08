@@ -27,7 +27,7 @@
 <meta name="twitter:image" content="https://mt3uk.com/images/MT3UK_RED_BLK_BG.png">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
 <link rel="stylesheet" href="css/site-header.css?v=20271016">
-<link rel="stylesheet" href="css/laps-offline.css?v=11">
+<link rel="stylesheet" href="css/laps-offline.css?v=12">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 
@@ -605,7 +605,7 @@
   </nav>
 </header></template>
 <script src="js/laps-shared.js?v=20270201"></script>
-<script src="js/laps-offline.js?v=16" defer></script>
+<script src="js/laps-offline.js?v=17" defer></script>
 <script src="js/laps-logo.js?v=1" defer></script>
 
 <section class="page-hero" data-no-share>
@@ -677,6 +677,7 @@
             <p class="app-text">Keep a copy of Laps on this device so it opens with no signal. At the track you can open your past sessions and maps, and add a session from a file already on your device: it is sent when you are back online. Whether you have the file offline depends on your logger.</p>
             <div class="lo-field"><span>Circuits kept offline <b class="lo-count" data-offline-circuit-count></b></span><ul class="lo-circuits" data-offline-circuits hidden></ul>
               <select class="field" data-offline-circuit aria-label="Add a circuit to keep offline"><option value="">Add a circuit...</option></select>
+              <button type="button" class="btn btn-secondary btn-sm" data-circuit-refresh hidden>Refresh kept circuits</button>
               <p class="pf-muted">Each kept circuit has all its leaderboards and your sessions there on this device. You can also hold a circuit on the Leaderboard or Sessions pages.</p></div>
             <p class="pf-muted" data-offline-status role="status"></p>
           </div>

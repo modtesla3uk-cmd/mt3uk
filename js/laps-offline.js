@@ -653,14 +653,38 @@
   // The kept circuits as a list with Remove, wherever a [data-offline-circuits] list is.
   function drawCircuitList() {
     var list = circuits();
-    [].slice.call(document.querySelectorAll('[data-offline-circuits]')).forEach(function (ul) {
-      ul.innerHTML = list.map(function (c) {
-        return '<li><span>' + esc(c.name || c.id) + '</span><button type="button" class="btn btn-ghost btn-sm" data-circuit-remove="' + esc(c.id) + '" aria-label="Take ' + esc(c.name || c.id) + ' off this device">Remove</button></li>';
-      }).join('');
-      ul.hidden = !list.length;
-    });
     [].slice.call(document.querySelectorAll('[data-offline-circuit]')).forEach(function (sel) { sel.disabled = list.length >= MAX_CIRCUITS; });
     [].slice.call(document.querySelectorAll('[data-offline-circuit-count]')).forEach(function (el) { el.textContent = list.length + ' of ' + MAX_CIRCUITS + ' kept'; });
+    [].slice.call(document.querySelectorAll('[data-circuit-refresh]')).forEach(function (b) { b.hidden = !list.length; });
+    var uls = [].slice.call(document.querySelectorAll('[data-offline-circuits]'));
+    if (!uls.length) return Promise.resolve();
+    // How many sessions each circuit holds on this device is the pinned list for it.
+    return kvAll().then(function (all) {
+      var prefix = 'pins:' + (ls(EMAIL_KEY) || '') + ':', counts = {};
+      all.forEach(function (x) { if (String(x.key).indexOf(prefix) === 0 && x.value && x.value.ids) counts[String(x.key).slice(prefix.length)] = x.value.ids.length; });
+      return counts;
+    }, function () { return {}; }).then(function (counts) {
+      uls.forEach(function (ul) {
+        ul.innerHTML = list.map(function (c) {
+          var n = counts[c.id];
+          var kept = typeof n === 'number' ? ' <small class="lo-kept-count">' + n + (n === 1 ? ' session' : ' sessions') + ' kept</small>' : '';
+          return '<li><span>' + esc(c.name || c.id) + kept + '</span><button type="button" class="btn btn-ghost btn-sm" data-circuit-remove="' + esc(c.id) + '" aria-label="Take ' + esc(c.name || c.id) + ' off this device">Remove</button></li>';
+        }).join('');
+        ul.hidden = !list.length;
+      });
+    });
+  }
+  // Profile's Refresh kept circuits: keep every kept circuit's boards and sessions again, so new top times come in.
+  function refreshCircuits() {
+    var out = document.querySelector('[data-offline-status]');
+    function note(t) { if (out) out.textContent = t; }
+    if (!enabled()) { note('Turn Offline mode on first.'); return Promise.resolve(false); }
+    if (offline) { note('You need a signal to refresh your kept circuits.'); return Promise.resolve(false); }
+    note('Refreshing your kept circuits...');
+    return keepAllCircuits(function (t) { note(t); }).then(function (t) {
+      note('Refreshed: ' + t.boards + (t.boards === 1 ? ' board' : ' boards') + ' and ' + t.sessions + (t.sessions === 1 ? ' session' : ' sessions') + ' kept.');
+      return drawCircuitList().then(function () { return true; });
+    }, function () { note('Your kept circuits could not be refreshed. Try again with a better signal.'); return false; });
   }
 
   // ---------- Holding a circuit to keep it ----------
@@ -910,6 +934,12 @@
     holdKeep(val, name).then(function () { labels(); });
   });
   document.addEventListener('click', function (e) {
+    var rf = e.target.closest && e.target.closest('[data-circuit-refresh]');
+    if (!rf) return;
+    rf.disabled = true;
+    refreshCircuits().then(function () { rf.disabled = false; });
+  });
+  document.addEventListener('click', function (e) {
     var rm = e.target.closest && e.target.closest('[data-circuit-remove]');
     if (!rm) return;
     var id = rm.getAttribute('data-circuit-remove'), c = circuits().filter(function (x) { return x.id === id; })[0];
@@ -1067,6 +1097,7 @@
     holdKeep: holdKeep,
     markKept: markKept,
     refreshCopy: refreshCopy,
+    refreshCircuits: refreshCircuits,
     localSession: localSession,
     setEnabled: setEnabled,
     labels: labels

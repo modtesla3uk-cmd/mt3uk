@@ -1304,7 +1304,7 @@
   // #1 is the earliest. Street runs and drives that are not timed on a track stay on their own.
   function dayKey(s) {
     if (s.type === 'other' || s.street || !s.date) return '';
-    return [s.type === 'sprint' ? 'sprint' : s.type === 'drag' ? 'drag' : 'circuit', s.venueId || s.venue || '', s.layoutId || '', s.organizer || '', s.date].join('|');
+    return [s.type === 'sprint' ? 'sprint' : s.type === 'drag' ? 'drag' : 'circuit', s.venueId || s.venue || '', s.layoutId || '', s.layoutId ? '' : s.organizer || '', s.date].join('|');
   }
   function byTime(a, b) { return (a.time || '').localeCompare(b.time || '') || (a.id < b.id ? -1 : 1); }
   // Where a session falls in its day at its track, from the sessions we know of: { n: 2, of: 5 }, or null on its own.
@@ -1385,7 +1385,7 @@
       var key = k, many = g.length > 1, open = tile ? !!openDays[key] : (openDays[key] || !fast || g.length === 1), count = g.length + ' session' + (many ? 's' : '');
       var best = fast && fast.type !== 'drag' ? V.fmtLap(fast.bestTime) : '';
       return '<div class="card tp-daygroup' + (tile ? ' tp-day-tile' : '') + '"' + ' data-open="' + (open ? 'true' : 'false') + '" data-many="' + (many ? 'true' : 'false') + '" data-day="' + esc(key) + '">' +
-        '<div class="tp-daygroup-head">' + groupTitleHtml(niceDate(g[0].date) + ' on ' + trackName(g[0]), niceDate(g[0].date) + ' on ' + trackName(g[0]) + ', ' + count, open, many || tile, count + (best ? (many ? ', fastest ' : ', ') + best : '')) +
+        '<div class="tp-daygroup-head">' + groupTitleHtml(tile ? niceDate(g[0].date) : niceDate(g[0].date) + ' on ' + trackName(g[0]), niceDate(g[0].date) + ' on ' + trackName(g[0]) + ', ' + count, open, many || tile, count + (best ? (many ? ', fastest ' : ', ') + best : '')) +
         (owner ? '<button type="button" class="tp-daygroup-share" role="switch" data-day-share data-ids="' + esc(g.map(function (x) { return x.id; }).join(',')) + '" data-what="' + esc(niceDate(g[0].date) + ' at ' + trackName(g[0])) + '" aria-checked="' + (g.every(function (x) { return x.privacy && x.privacy !== 'private'; }) ? 'true' : 'false') + '" aria-label="' + (many ? 'Share all ' + g.length + ' sessions' : 'Share this session') + '"><span>Shared</span><span class="tp-track"></span></button>' : '') +
         groupCountHtml(count, g.length, open, many) +
         (tile && owner ? dayPrivacyHtml(g) : '') +

@@ -6692,6 +6692,34 @@ def test_picked_sessions_can_be_cleared_and_ctrl_click_picks(page):
     assert page.evaluate("document.documentElement.scrollWidth") <= 390
 
 
+def test_the_dates_under_every_layout_line_up_in_one_column_and_show_just_the_date(page):
+    """In the Sessions tree the dates under a layout step in once, in the same column under every layout, with no second
+    rule, and a date tile says only the date (the track and layout are in the rows above it)."""
+    fake = FakeWorker(earlier=False)
+    for sid, lid, lay, date, best, t in (("l1", "b19", "B19 May Sprint 2023", "2023-05-20", 75.62, "10:00"), ("l2", "b19", "B19 May Sprint 2023", "2023-05-20", 76.5, "11:00"),
+                                         ("l3", "ray", "Ray Heal Memorial 2022", "2022-07-16", 80.69, "10:00"), ("l4", "ray", "Ray Heal Memorial 2022", "2022-07-23", 80.54, "12:00")):
+        r = dict(day_session(sid, t, best, 4, date=date, venue="Lydden Hill", venue_id="lydden"), layoutId=lid, layout=lay)
+        fake.sessions[sid] = dict(r)
+        fake.index.append(summary(r))
+    open_page(page, fake)
+    for width in (1000, 390):
+        page.set_viewport_size({"width": width, "height": 900})
+        wrap = page.locator("#tp-sess-list .tp-trackwrap", has_text="Lydden Hill")
+        if wrap.locator(".tp-layouts").is_hidden():
+            wrap.locator(".tp-trackrow").click()
+        for b in wrap.locator("[data-layout-toggle]").all():
+            if b.get_attribute("aria-expanded") != "true":
+                b.click()
+        tiles = wrap.locator(".tp-day-tile")
+        expect(tiles).to_have_count(3)
+        xs = [t.bounding_box()["x"] for t in tiles.all()]
+        assert max(xs) - min(xs) < 1, (width, xs)
+        layout_x = wrap.locator(".tp-layoutrow").first.bounding_box()["x"]
+        assert xs[0] > layout_x + 4, (width, xs, layout_x)
+        assert wrap.locator(".tp-layout-sessions").first.evaluate("e => getComputedStyle(e).borderLeftWidth") == "0px"
+    expect(wrap.locator(".tp-day-tile h3")).to_have_text(["20 May 2023", "23 Jul 2022", "16 Jul 2022"])
+
+
 def test_a_bulk_edit_stays_on_the_day_that_was_changed(page):
     """After Apply the list redraws, but the page stays on the day that was edited (open, in view) instead of jumping back
     to the top."""

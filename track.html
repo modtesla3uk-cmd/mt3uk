@@ -317,9 +317,11 @@
   .tp-layoutrow .tp-row-main b { font-size: 0.9rem; }
   .tp-layoutrow > .icon { transition: transform 0.15s; }
   .tp-layoutrow[aria-expanded="true"] > .icon { transform: rotate(90deg); }
-  .tp-layout-sessions { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin: 6px 0 4px; padding-left: 10px; border-left: 2px solid var(--hairline); }
+  /* One rule for the whole tree (the layouts'): the dates under a layout step in once, no rule of their own, so every date
+     tile under every layout starts in the same column. */
+  .tp-layout-sessions { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin: 6px 0 4px 14px; padding-left: 0; border-left: 0; }
   .tp-layout-sessions[hidden] { display: none; }
-  @media (max-width: 780px) { .tp-layouts { margin-left: 10px; padding-left: 8px; } .tp-layout-sessions { padding-left: 6px; } }
+  @media (max-width: 780px) { .tp-layouts { margin-left: 10px; padding-left: 8px; } .tp-layout-sessions { margin-left: 10px; } }
   .tp-tracklist { gap: 8px; }
   .tp-sort { width: 180px; }
   @media (max-width: 780px) { .tp-sort { width: 100%; } }
@@ -956,7 +958,7 @@
   .tp-day-tile[data-open="true"] .tp-day-priv { display: none; }
   .tp-day-tile[data-open="true"] .tp-day-priv + .tp-day-arrow { margin-left: auto; }
   .tp-day-tile[data-open="false"] .tp-daygroup-count { display: none; }
-  .tp-day-tile .tp-day-titles h3 { font-size: 0.9rem; }
+  .tp-day-tile .tp-day-titles h3 { font-family: var(--font-body); font-size: 0.9rem; font-weight: 700; line-height: 1.3; }
   /* Picking some of a day's sessions (hold on a row): the picked rows are tinted and outlined, and the bulk edit changes only them. */
   .tp-daygroup .tp-pickable { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; -webkit-user-drag: none; }
   .tp-daygroup .tp-pickable.is-picked { background: color-mix(in srgb, var(--orange) 14%, var(--paper)); box-shadow: inset 4px 0 0 var(--orange), 0 0 0 2px var(--orange); }
@@ -1275,7 +1277,7 @@
 <script src="js/vehicle-data.js?v=20270210" defer></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
 <script src="js/laps-offline.js?v=6" defer></script>
-<script src="js/track-page.js?v=20271026" defer></script>
+<script src="js/track-page.js?v=20271027" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20270104" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

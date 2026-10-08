@@ -936,10 +936,11 @@
     // Your vehicles: a list that folds away to the one picked. Its sessions are listed below.
     var h = '<div class="card tp-news" id="tp-news" role="status" hidden></div><div class="card tp-since" id="tp-since" role="status" hidden></div>' + '<div class="tp-section tp-vehicles"><div class="tp-vbox" id="tp-cars">' + vehiclesHtml(m, car) + '</div>' +
       '<div id="tp-car-add-wrap" hidden>' + addCarHtml(false) + '</div></div>';
-    h += '<div class="tp-section"><div class="tp-head"><div><h2>Sessions</h2><p class="tp-sub tp-for">' + esc(car.name) + '</p></div>' + findToggleHtml(m) + refreshChip() + unitsChip() + '</div>';
-    // Add a session is in the page heading, under Leaderboards (heroAdd); What others see stays here.
+    // One tight row: the title and the car at the left, search, refresh, units and What others see (an eye) at the right.
+    var othersChip = car.virtual ? '' : '<a class="chip tp-others" href="track.html?car=' + encodeURIComponent(car.id) + '" data-go="car=' + esc(encodeURIComponent(car.id)) + '" aria-label="What others see" title="What others see">' + icon('eye') + '</a>';
+    h += '<div class="tp-section"><div class="tp-head tp-list-head"><div class="tp-head-title"><h2>Sessions</h2><p class="tp-sub tp-for">' + esc(car.name) + '</p></div><div class="tp-head-side">' + findToggleHtml(m) + refreshChip() + unitsChip() + othersChip + '</div></div>';
+    // Add a session is in the page heading, under Leaderboards (heroAdd).
     heroAddCar = car.id;
-    if (!car.virtual) h += '<div class="tp-actions"><a class="btn btn-secondary" href="track.html?car=' + encodeURIComponent(car.id) + '" data-go="car=' + esc(encodeURIComponent(car.id)) + '">What others see</a></div>';
     h += findPanelHtml(m);
     h += '<div id="tp-tracks">';
     if (!list.length) h += '<div class="card tp-empty">' + icon('flag') + '<p>No sessions for ' + esc(car.name) + ' yet. Add the file from your lap timer to get started.</p></div>';

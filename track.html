@@ -247,6 +247,26 @@
   .tp-tools { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 16px; margin: 14px 0 0; }
   .tp-filters { display: flex; flex-wrap: wrap; gap: 8px 10px; }
   .tp-filters .tp-field { min-width: 150px; max-width: 220px; }
+  /* The Sessions list, tightened for a phone: small headings, one row for the title and its buttons, and the sort and filter drop-downs two to a row. */
+  .tp-others { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 44px; padding: 0; }
+  .tp-others .icon { width: 20px; height: 20px; }
+  .tp-list-head { align-items: center; flex-wrap: nowrap; gap: 8px; }
+  .tp-list-head .tp-head-title { flex: 1 1 auto; min-width: 0; }
+  .tp-list-head .tp-sub { margin: 2px 0 0; }
+  .tp-list-head .tp-head-side { flex: none; gap: 6px; flex-wrap: nowrap; }
+  @media (max-width: 780px) {
+    .tp-vhead h2 { font-size: 0.95rem; }
+    .tp-list-head h2 { font-size: 1.15rem; }
+    .tp-list-head .tp-sub { font-size: 0.8rem; }
+    .tp-list-head .chip { min-height: 40px; }
+    .tp-list-head .tp-refresh, .tp-list-head .tp-find-toggle, .tp-list-head .tp-others { width: 40px; }
+    .tp-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0 0; align-items: end; }
+    .tp-tools .tp-sort { width: auto; }
+    .tp-tools .tp-filters { display: contents; }
+    .tp-tools .tp-filter, .tp-tools .tp-filters .tp-field { margin: 0; max-width: none; min-width: 0; }
+    .tp-tools .tp-field label { font-size: 0.72rem; margin-bottom: 2px; }
+    .tp-tools .field { min-height: 40px; padding-top: 0; padding-bottom: 0; font-size: 0.9rem; }
+  }
   .tp-filter-note { display: flex; align-items: center; gap: 10px; margin: 8px 0 0; color: var(--steel); }
   .tp-filter-note .chip { min-height: 32px; }
   @media (max-width: 560px) { .tp-filters { width: 100%; } .tp-filters .tp-field { flex: 1 1 45%; min-width: 0; max-width: none; } }
@@ -368,13 +388,13 @@
      Under it one row: Back, the other page as a labelled button (Leaderboards or My Sessions), and Add a session as a
      round orange plus at the right. The tip's bulb sits at the right of the What is...? line. Same on track.html. */
   @media (max-width: 780px) {
-    .page-hero .wrap { grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 10px; row-gap: 0; position: relative; }
+    .page-hero .wrap { grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 12px; row-gap: 0; position: relative; }
     .page-hero .tp-hero-row h1 { grid-column: 1 / -1; grid-row: 1; margin: 0; display: flex; align-items: center; gap: 0; justify-self: stretch; text-align: left; }
     .page-hero .tp-hero-row h1 .mt3uk-share-dot { float: none; margin: 0 0 0 auto; align-self: center; flex: none; }
     .page-hero .tp-hero-top { grid-column: 1; grid-row: 2; align-self: center; margin-top: 14px; }
     .page-hero .tp-hero-top .back-link { width: 40px; height: 40px; min-height: 40px; padding: 0; gap: 0; justify-content: center; border-radius: 50%; font-size: 0; }
     .page-hero .tp-hero-top .back-link .icon { width: 20px; height: 20px; }
-    .page-hero .tp-hero-row .tp-lb-pill.tp-round { grid-column: 2; grid-row: 2; justify-self: start; align-self: center; margin-top: 14px; width: auto; min-width: 0; height: 44px; min-height: 44px; padding: 0 12px; gap: 5px; border-radius: 22px; font-size: 0.85rem; }
+    .page-hero .tp-hero-row .tp-lb-pill.tp-round { grid-column: 2; grid-row: 2; justify-self: start; align-self: center; margin-top: 14px; width: 132px; min-width: 0; height: 44px; min-height: 44px; padding: 0 8px; justify-content: center; white-space: nowrap; gap: 5px; border-radius: 22px; font-size: 0.85rem; }
     .page-hero .tp-hero-row .tp-lb-pill.tp-round .icon { width: 16px; height: 16px; }
     /* On a session or the Add page My Sessions (beside Back) keeps its words, with more room after Back. */
     .page-hero .tp-hero-top { gap: 12px; flex-wrap: nowrap; }
@@ -382,7 +402,7 @@
     .page-hero .tp-hero-top .back-link.tp-home .icon { width: 16px; height: 16px; }
     /* Leaderboards gives way to its round icon when Back and My Sessions both need the room. */
     @media (max-width: 380px) {
-      .page-hero .tp-hero-top:has(.tp-home) + .tp-hero-row .tp-lb-pill.tp-round { width: 44px; padding: 0; gap: 0; font-size: 0; }
+      .page-hero .tp-hero-top:has(.tp-home) + .tp-hero-row .tp-lb-pill.tp-round { width: 44px; min-width: 0; padding: 0; gap: 0; font-size: 0; }
       .page-hero .tp-hero-top:has(.tp-home) + .tp-hero-row .tp-lb-pill.tp-round .icon { width: 22px; height: 22px; }
     }
     .page-hero .tp-hero-actions:not([hidden]) { display: contents; }
@@ -1213,7 +1233,7 @@
 <script src="js/pad-data.js?v=20270210"></script>
 <script src="js/vehicle-data.js?v=20270210" defer></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20271010" defer></script>
+<script src="js/track-page.js?v=20271011" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20270104" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

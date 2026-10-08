@@ -38,7 +38,7 @@ LAPS_PAGES = ("laps", "track", "leaderboards", "laps-signin")
 SHARED_PAGES = ("profile", "my-builds")
 SHARED_SCRIPT = '<script src="js/laps-shared.js?v=20270201"></script>'
 # Bump the ?v= tag when css/site-header.css changes, as browsers and Cloudflare keep the old file under the old tag.
-STYLESHEET = '<link rel="stylesheet" href="css/site-header.css?v=20271008">'
+STYLESHEET = '<link rel="stylesheet" href="css/site-header.css?v=20271015">'
 
 # Every public page, and the menu link shown as active on it.
 PAGES = {

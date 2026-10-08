@@ -30,7 +30,7 @@
 <meta name="twitter:description" content="The Laps by MT3UK leaderboard: real lap times from EVs at UK circuits, sprints, hill climbs and drag strips, from members' own lap timers. Filter by model, tyres and conditions.">
 <meta name="twitter:image" content="https://mt3uk.com/images/track-preview/share.jpg">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
-<link rel="stylesheet" href="css/site-header.css?v=20271008">
+<link rel="stylesheet" href="css/site-header.css?v=20271015">
 <link rel="stylesheet" href="css/laps-strip.css?v=2">
 <link rel="stylesheet" href="css/laps-panels.css?v=1">
 <style>
@@ -284,7 +284,7 @@
   .lb-hero h1 { color: #ffffff; }
   .lb-hero p { color: #d3d8e2; }
   .lb-hero .back-link { color: #b9c0cf; }
-  .lb-hero h1 .lb-trophy { flex: none; width: 0.9em; height: 0.9em; margin-right: 10px; vertical-align: -0.08em; color: #f58a68; stroke-width: 2.2; }
+  .lb-hero h1 .lb-trophy { flex: none; width: 0.9em; height: 0.9em; margin-left: 10px; vertical-align: -0.08em; color: #f58a68; stroke-width: 2.2; }
   .lb-hero .tp-lb-pill { background: #ffffff; color: var(--ink); }
   .lb-hero .tp-lb-pill:hover { background: #eef1f6; color: var(--ink); }
   /* Add a session, at the top of the Leaderboard: the orange call to action. */
@@ -323,33 +323,35 @@
   .lb-hero .laps-tip-pop[hidden] { display: none; }
   .lb-hero .laps-tip-pop b { color: #fff; }
   .lb-hero .laps-tip-pop p { margin: 0; color: #d3d8e2; font-size: 0.92rem; }
-  /* Phones: one row of round buttons above the title (Back, then My Sessions or Leaderboards as an icon, then Add a
-     session, and the tip's bulb on the Leaderboard), so the title and the board come further up. Same on track.html. */
+  /* Phones: the title first, at the left, with its icon straight after the word and the share button at the far right.
+     Under it one row: Back, the other page as a labelled button (Leaderboards or My Sessions), and Add a session as a
+     round orange plus at the right. The tip's bulb sits at the right of the What is...? line. Same on track.html. */
   @media (max-width: 780px) {
-    .page-hero .wrap { grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 8px; }
-    .page-hero .tp-hero-top { grid-column: 1; grid-row: 1; align-self: center; }
-    .page-hero .tp-hero-top .back-link { width: 44px; height: 44px; min-height: 44px; padding: 0; gap: 0; justify-content: center; border-radius: 50%; font-size: 0; }
+    .page-hero .wrap { grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 6px; row-gap: 0; position: relative; }
+    .page-hero .tp-hero-row h1 { grid-column: 1 / -1; grid-row: 1; margin: 0; display: flex; align-items: center; gap: 0; justify-self: stretch; text-align: left; }
+    .page-hero .tp-hero-row h1 .mt3uk-share-dot { float: none; margin: 0 0 0 auto; align-self: center; flex: none; }
+    .page-hero .tp-hero-top { grid-column: 1; grid-row: 2; align-self: center; margin-top: 14px; }
+    .page-hero .tp-hero-top .back-link { width: 40px; height: 40px; min-height: 40px; padding: 0; gap: 0; justify-content: center; border-radius: 50%; font-size: 0; }
     .page-hero .tp-hero-top .back-link .icon { width: 20px; height: 20px; }
-    .page-hero .tp-hero-row .tp-lb-pill.tp-round { grid-column: 2; grid-row: 1; justify-self: end; align-self: center; width: 44px; min-width: 0; height: 44px; min-height: 44px; padding: 0; gap: 0; border-radius: 50%; font-size: 0; }
-    .page-hero .tp-hero-row .tp-lb-pill.tp-round .icon { width: 22px; height: 22px; }
-    .page-hero .tp-hero-actions { grid-column: 3; grid-row: 1; margin-top: 0; gap: 8px; }
-    .page-hero .tp-hero-actions .tp-lb-pill { min-width: 0; min-height: 44px; padding: 0 16px; font-size: 0.92rem; }
-    /* Add a session is a round orange plus on a phone, as on Sessions (not once the early preview gate has reworded it). */
-    .page-hero .tp-hero-actions .tp-lb-pill.lb-add:not(.is-preview) { width: 44px; height: 44px; padding: 0; gap: 0; border-radius: 50%; font-size: 0; }
-    .page-hero .tp-hero-actions .tp-lb-pill.lb-add:not(.is-preview) .icon { width: 24px; height: 24px; }
-    .page-hero .tp-hero-actions .tp-lb-pill.lb-add:not(.is-preview) span { display: none; }
-    .page-hero .tp-hero-row h1 { grid-column: 1 / -1; grid-row: 2; margin: 12px 0 0; }
-    .page-hero .tp-what { grid-column: 1 / -1; grid-row: 3; }
-    .tp-hero-actions .laps-tip-bulbbtn { width: 44px; height: 44px; }
+    .page-hero .tp-hero-row .tp-lb-pill.tp-round { grid-column: 2; grid-row: 2; justify-self: start; align-self: center; margin-top: 14px; width: auto; min-width: 0; height: 44px; min-height: 44px; padding: 0 12px; gap: 5px; border-radius: 22px; font-size: 0.85rem; }
+    .page-hero .tp-hero-row .tp-lb-pill.tp-round .icon { width: 16px; height: 16px; }
+    .page-hero .tp-hero-actions:not([hidden]) { display: contents; }
+    .page-hero .tp-hero-actions .tp-lb-pill { grid-column: 3; grid-row: 2; align-self: center; margin-top: 14px; min-width: 0; min-height: 44px; }
+    /* Add a session keeps its words where the row has room, and is a round orange plus on the narrowest phones (and, once the early preview gate has reworded it, takes its own row). */
+    .page-hero .tp-hero-actions .tp-lb-pill:not(.is-preview) { width: auto; height: 44px; padding: 0 12px; gap: 5px; border-radius: 22px; font-size: 0.85rem; }
+    .page-hero .tp-hero-actions .tp-lb-pill:not(.is-preview) .icon { width: 16px; height: 16px; }
+    .page-hero .tp-hero-actions .tp-lb-pill.is-preview { width: auto; padding: 0 12px; gap: 5px; border-radius: 22px; font-size: 0.85rem; }
+    .page-hero .tp-what { grid-column: 1 / -1; grid-row: 4; margin-top: 10px; justify-self: stretch; text-align: left; padding-right: 54px; }
+    .page-hero .tp-what summary { min-height: 44px; display: flex; align-items: center; }
+    .tp-hero-actions .laps-tip-bulbbtn { grid-column: 1 / -1; grid-row: 4; justify-self: end; align-self: start; margin-top: 10px; width: 44px; height: 44px; z-index: 1; }
+  }
+  @media (max-width: 351px) {
+    .page-hero .tp-hero-actions .tp-lb-pill:not(.is-preview) { width: 44px; padding: 0; gap: 0; border-radius: 50%; font-size: 0; }
+    .page-hero .tp-hero-actions .tp-lb-pill:not(.is-preview) .icon { width: 24px; height: 24px; }
+    .page-hero .tp-hero-actions .tp-lb-pill:not(.is-preview) span { display: none; }
   }
   @media (max-width: 400px) { .page-hero .tp-hero-actions .tp-lb-pill.is-preview .icon { display: none; } .page-hero .tp-hero-actions .tp-lb-pill.is-preview { padding: 0 14px; } }
-  /* On a phone the title and the What is...? link are centred. */
-  @media (max-width: 780px) {
-    .page-hero .tp-hero-row h1 { justify-self: center; }
-    .page-hero .tp-what { justify-self: center; text-align: center; }
-  }
   /* The share button sits just after the title, not over at the far right on a phone. */
-  @media (max-width: 780px) { .lb-hero h1 .mt3uk-share-dot { float: none; margin: 0 0 0 12px; align-self: center; } }
   .lb-hero .tp-what summary { color: #b9c0cf; }
   .lb-hero .tp-what p { color: #d3d8e2; }
   .lb-bar { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 16px; margin-bottom: 16px; }
@@ -531,7 +533,7 @@
 <section class="page-hero lb-hero">
   <div class="wrap">
     <div class="tp-hero-top"><a href="index.html" class="back-link" id="lb-page-back" aria-label="Back to MT3UK"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</a></div>
-    <div class="tp-hero-row"><h1><svg class="icon lb-trophy" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/></svg>Leaderboard</h1><a href="track.html" class="tp-lb-pill tp-round" id="lb-my-sessions" aria-label="My Sessions" title="My Sessions"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M10 2h4"/></svg>My Sessions</a><div class="tp-hero-actions lb-actions"><a href="track.html?add=1" class="tp-lb-pill lb-add" id="lb-add-session" data-laps-add aria-label="Add a session" title="Add a session"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Add a session</span></a><div data-laps-tip="bulb"><span class="laps-tip-bulbbtn laps-tip-wait" aria-hidden="true"><svg class="icon laps-tip-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.3 1 2.1h5c0-.8.4-1.6 1-2.1A6 6 0 0 0 12 3Z"/></svg></span></div></div></div>
+    <div class="tp-hero-row"><h1>Leaderboard<svg class="icon lb-trophy" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/></svg></h1><a href="track.html" class="tp-lb-pill tp-round" id="lb-my-sessions" aria-label="My Sessions" title="My Sessions"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M10 2h4"/></svg>My Sessions</a><div class="tp-hero-actions lb-actions"><a href="track.html?add=1" class="tp-lb-pill lb-add" id="lb-add-session" data-laps-add aria-label="Add a session" title="Add a session"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Add a session</span></a><div data-laps-tip="bulb"><span class="laps-tip-bulbbtn laps-tip-wait" aria-hidden="true"><svg class="icon laps-tip-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.3 1 2.1h5c0-.8.4-1.6 1-2.1A6 6 0 0 0 12 3Z"/></svg></span></div></div></div>
     <details class="tp-what" id="lb-what"><summary>What is the Leaderboard?</summary><div class="tp-what-body"><p>Real times from EVs on tracks, drag strips and hill climbs, straight from members&rsquo; own lap timers. Every car&rsquo;s fastest, with the tyres, pads and setup behind it.</p><ul class="tp-what-list"><li><b>A board for every track.</b> Track days, sprints, hill climbs and drag strips, each layout on its own, with the fastest lap, run or quarter mile for every car.</li><li><b>Open a time to see the lap.</b> Every row opens the session: the lap on the satellite map, speed, braking and cornering g, and the car&rsquo;s tyres, pads and setup.</li><li><b>Compare like with like.</b> Filter by model, conditions, driven wheels, tyres or kerb weight, or switch to Compare tyres and Compare pads to see what works best at each track.</li><li><b>Anyone can look.</b> The boards are open to everyone. Adding your own laps is for early testers while we finish Laps; once the preview ends, every member can upload a session from their lap timer and go straight on the board.</li></ul></div></details>
   </div>
 </section>
@@ -697,7 +699,7 @@
 <script src="js/share.js?v=20270301" defer></script>
 <script src="js/laps-logo.js?v=1" defer></script>
 <script src="js/account-bar.js?v=15" defer></script>
-<script src="js/laps-strip.js?v=7" defer></script>
+<script src="js/laps-strip.js?v=8" defer></script>
 <script src="js/signin-prompt.js" defer></script>
 <script src="js/notify-bell.js?v=4" defer></script>
 <script src="js/messenger.js?v=2" defer></script>

@@ -318,12 +318,24 @@ nav {
 .nav-chat-count[hidden] { display: none; }
 /* On a phone the header icons are bigger: 44px touch targets, with Profile and My Garage (the main ones) largest. */
 @media (max-width: 780px) {
-  .nav-bell-btn, .nav-chat, .nav-profile { width: 42px; height: 44px; }
+  .nav-bell-btn, .nav-chat, .nav-profile { width: 36px; height: 44px; }
   .nav-profile svg { width: 27px; height: 27px; }
   .nav-bell-btn svg, .nav-chat svg { width: 24px; height: 24px; }
   .nav-bell-count, .nav-chat-count { top: 3px; right: 1px; }
-  .nav-search-toggle { width: 42px; height: 44px; }
+  .nav-search-toggle { width: 36px; height: 44px; }
   .nav-search-toggle svg { width: 24px; height: 24px; }
+  /* The Laps wordmark is a little smaller so the bell never touches "by MT3UK". */
+  .nav-center:has(> .laps-logo) { margin-right: 20px; }
+  .logo.laps-logo { gap: 6px; }
+  .logo.laps-logo .laps-logo-mark { width: 24px; height: 24px; }
+  .logo.laps-logo .laps-logo-name { font-size: 1.2rem; }
+  .logo.laps-logo .laps-logo-by { font-size: 0.68rem; }
+}
+/* The very narrowest phones have no room for "by MT3UK" beside the five header icons. */
+@media (max-width: 340px) {
+  .logo.laps-logo .laps-logo-by { display: none; }
+  .nav-bell-btn, .nav-chat, .nav-profile, .nav-search-toggle { width: 33px; }
+  .nav-center:has(> .laps-logo) { margin-right: 8px; }
 }
 .nav-bell-count {
   position: absolute;

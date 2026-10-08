@@ -213,8 +213,11 @@ def test_members_with_early_access_are_asked_to_add_their_session(page):
     page.goto("/leaderboards.html")
     expect(page.locator("#lb-add-session")).to_have_text("Add a session")
     expect(page.locator("#lb-preview")).to_be_hidden()
-    # On a phone it is a round plus, as on Sessions.
+    # On a phone it keeps its words, as on Sessions, and is a round plus only on the narrowest phones.
     page.set_viewport_size({"width": 390, "height": 800})
+    b = page.locator("#lb-add-session").bounding_box()
+    assert abs(b["height"] - 44) < 2 and b["width"] > 90, b
+    page.set_viewport_size({"width": 320, "height": 800})
     b = page.locator("#lb-add-session").bounding_box()
     assert abs(b["width"] - 44) < 2 and abs(b["height"] - 44) < 2, b
     expect(page.locator("#lb-add-session span")).to_be_hidden()

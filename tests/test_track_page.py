@@ -1594,23 +1594,29 @@ def test_the_leaderboard_has_my_sessions_at_the_top_and_add_a_session_under_it(p
     expect(page.locator(".lb-hero h1 .mt3uk-share-dot")).to_be_visible()
     add.click()
     expect(page).to_have_url(re.compile(r"/track\.html\?add=1$"))
-    # On a phone Back and My Sessions are round icon buttons on one row with Add a session and the bulb, above the
-    # centred title, with the share button just after the title.
+    # On a phone the title comes first, at the left, with its trophy straight after the word and the share button at the
+    # far right. Under it Back, My Sessions (with its words) and Add a session (with its words) share a row, and the bulb
+    # sits at the right of the What is the Leaderboard? line.
     page.set_viewport_size({"width": 390, "height": 844})
     page.goto("/leaderboards.html")
     mine, add, back = page.locator("#lb-my-sessions"), page.locator("#lb-add-session"), page.locator("#lb-page-back")
     expect(mine).to_be_visible()
     b, k, h, a = mine.bounding_box(), back.bounding_box(), page.locator(".lb-hero h1").bounding_box(), add.bounding_box()
-    assert k["width"] <= 46 and b["width"] <= 46 and abs(b["width"] - b["height"]) < 1, (k, b)
+    assert k["width"] <= 46 and abs(k["width"] - k["height"]) < 1, k
+    assert b["width"] > 90 and a["width"] > 90, (b, a)
     expect(mine).to_have_attribute("aria-label", "My Sessions")
-    bulb = page.locator(".lb-hero .laps-tip-bulbbtn").bounding_box()
     centre = lambda r: r["y"] + r["height"] / 2
-    assert abs(centre(b) - centre(k)) < 3 and abs(centre(a) - centre(k)) < 3 and abs(centre(bulb) - centre(k)) < 3
-    assert k["x"] + k["width"] < b["x"] < a["x"] < bulb["x"] and bulb["x"] + bulb["width"] <= 375
-    assert h["y"] >= a["y"] + a["height"] - 2
-    assert abs((h["x"] + h["width"] / 2) - 195) < 12, h
-    d = page.locator(".lb-hero h1 .mt3uk-share-dot").bounding_box()
-    assert d["x"] < 330 and abs(d["y"] + d["height"] / 2 - (h["y"] + h["height"] / 2)) < 12
+    assert abs(centre(b) - centre(k)) < 4 and abs(centre(a) - centre(k)) < 4
+    assert k["x"] + k["width"] < b["x"] < a["x"] and a["x"] + a["width"] <= 375
+    assert h["y"] + h["height"] <= k["y"] + 2, "The title is above the buttons"
+    assert h["x"] < 24, h
+    trophy, d = page.locator(".lb-hero h1 svg.lb-trophy").bounding_box(), page.locator(".lb-hero h1 .mt3uk-share-dot").bounding_box()
+    word = page.evaluate("(() => { const r = document.createRange(); r.selectNodeContents(document.querySelector('.lb-hero h1')); const s = [...document.querySelector('.lb-hero h1').childNodes].find(n => n.nodeType === 3); const q = document.createRange(); q.selectNodeContents(s); return q.getBoundingClientRect().right; })()")
+    assert trophy["x"] >= word - 1 and trophy["x"] - word < 20, (trophy, word)
+    assert d["x"] + d["width"] >= 390 - 24 and abs(centre(d) - centre(h)) < 12, d
+    bulb = page.locator(".lb-hero .laps-tip-bulbbtn").bounding_box()
+    what = page.locator(".lb-hero .tp-what summary").bounding_box()
+    assert bulb["x"] + bulb["width"] >= 390 - 24 and bulb["y"] >= a["y"] + a["height"] - 2 and abs(centre(bulb) - centre(what)) < 8, (bulb, what)
     assert page.evaluate("document.documentElement.scrollWidth") <= 390
 
 
@@ -1779,6 +1785,11 @@ def test_sessions_has_add_a_session_under_leaderboards(page):
     expect(page.locator("#tp-hero-add")).to_be_visible()
     assert "car=" in page.locator("#tp-hero-add").get_attribute("href")
     page.set_viewport_size({"width": 390, "height": 800})
+    b = page.locator("#tp-hero-add").bounding_box()
+    assert abs(b["height"] - 44) < 2 and b["width"] > 90, b
+    expect(page.locator("#tp-hero-add span")).to_be_visible()
+    # On the narrowest phones it is a round plus again.
+    page.set_viewport_size({"width": 320, "height": 800})
     b = page.locator("#tp-hero-add").bounding_box()
     assert abs(b["width"] - 44) < 2 and abs(b["height"] - 44) < 2, b
     expect(page.locator("#tp-hero-add span")).to_be_hidden()

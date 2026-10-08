@@ -89,7 +89,11 @@
       if (notes.length) noteWords(st).then(function (html) { notes.forEach(function (n) { n.innerHTML = html; }); });
       links.forEach(function (a) {
         a.href = st === 'out' ? 'laps-signin.html' : 'track.html';
-        a.innerHTML = SPARK + (st === 'pending' ? 'You\u2019re on the list' : 'Join the early preview');
+        var words = st === 'pending' ? 'You\u2019re on the list' : 'Join the early preview';
+        // In a page heading on a phone the row is tight, so the button says Join preview (its full words stay as the label).
+        var tight = a.closest('.page-hero') && window.matchMedia && window.matchMedia('(max-width: 780px)').matches && st !== 'pending';
+        a.innerHTML = SPARK + (tight ? 'Join preview' : words);
+        if (tight) a.setAttribute('aria-label', words);
         a.classList.add('is-preview');
         if (st === 'pending' && a.classList.contains('btn-accent')) { a.classList.remove('btn-accent'); a.classList.add('btn-secondary'); }
         a.removeAttribute('data-laps-add');

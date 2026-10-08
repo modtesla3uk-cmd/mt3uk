@@ -6528,23 +6528,27 @@ def test_holding_sessions_of_a_day_picks_them_and_the_bulk_edit_changes_only_tho
     day = wrap.locator(".tp-daygroup", has_text="14 Jul 2026")
     day.locator(".tp-daygroup-title[data-day-toggle]").click()
     edit = day.locator("[data-day-edit]")
-    expect(edit).to_contain_text("Edit all 3 sessions")
-    expect(day.locator(".tp-pick-hint")).to_be_visible()
+    expect(edit).to_have_text("Quick edit")
+    expect(day.locator(".tp-pick-hint")).to_contain_text("Quick edit changes the conditions, air temperature, tyres, brake pads or logger on all 3 sessions at once")
+    expect(edit).to_have_attribute("title", re.compile("all 3 sessions at once"))
+    # Every session row says what pressing it does.
+    expect(day.locator('a.tp-row[data-sid="g1"]')).to_have_attribute("title", "Open to view")
     expect(day.locator("[data-pickbar]")).to_be_hidden()
     row = lambda sid: day.locator('a.tp-row[data-sid="%s"]' % sid)
     # Hold on one: picked, highlighted, and the session does not open.
     _hold(page, row("g1"))
     expect(page).to_have_url(re.compile(r"track\.html(\?mycar=[^&]*)?$"))
     expect(row("g1")).to_have_class(re.compile("is-picked"))
-    expect(edit).to_contain_text("Edit the 1 selected session")
+    expect(edit).to_have_text("Quick edit 1 selected")
+    expect(day.locator(".tp-pick-hint")).to_contain_text("Quick edit will change only the 1 selected session")
     expect(day.locator("[data-pick-count]")).to_have_text("1 selected")
     # With one picked a tap picks more (and unpicks) instead of opening the session.
     row("g3").click()
     row("g2").click()
-    expect(edit).to_contain_text("Edit the 3 selected sessions")
+    expect(edit).to_have_text("Quick edit 3 selected")
     row("g2").click()
     expect(row("g2")).not_to_have_class(re.compile("is-picked"))
-    expect(edit).to_contain_text("Edit the 2 selected sessions")
+    expect(edit).to_have_text("Quick edit 2 selected")
     expect(page).to_have_url(re.compile(r"track\.html(\?mycar=[^&]*)?$"))
     edit.click()
     form = page.locator("#tp-dayedit")
@@ -6573,7 +6577,7 @@ def test_picked_sessions_can_be_cleared_and_ctrl_click_picks(page):
     day.locator("[data-pick-clear]").click()
     expect(day.locator("a.tp-row.is-picked")).to_have_count(0)
     expect(day.locator("[data-pickbar]")).to_be_hidden()
-    expect(day.locator("[data-day-edit]")).to_contain_text("Edit all 3 sessions")
+    expect(day.locator("[data-day-edit]")).to_have_text("Quick edit")
     assert page.evaluate("document.documentElement.scrollWidth") <= 390
 
 

@@ -1279,7 +1279,7 @@
     }).catch(function () { failed('Your sessions could not be loaded. Check your connection and try again.'); });
   }
   function sessionRow(s, carName) {
-    return '<a class="tp-row" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '"><span class="tp-row-main"><b>' + esc(trackName(s)) + '</b><span>' + esc(niceDate(s.date)) + (s.conditions ? ', ' + esc(s.conditions) : '') + (TYPE_WORD[s.type] ? ', ' + TYPE_WORD[s.type] : '') + (s.tyres ? ', ' + esc(s.tyres) : '') + (s.pads ? ', ' + esc(s.pads) : '') + '</span>' + (carName ? '<span class="tp-row-car">' + esc(carName) + '</span>' : '') + '</span>' +
+    return '<a class="tp-row" title="Open to view" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '"><span class="tp-row-main"><b>' + esc(trackName(s)) + '</b><span>' + esc(niceDate(s.date)) + (s.conditions ? ', ' + esc(s.conditions) : '') + (TYPE_WORD[s.type] ? ', ' + TYPE_WORD[s.type] : '') + (s.tyres ? ', ' + esc(s.tyres) : '') + (s.pads ? ', ' + esc(s.pads) : '') + '</span>' + (carName ? '<span class="tp-row-car">' + esc(carName) + '</span>' : '') + '</span>' +
       '<span class="tp-row-res">' + esc(sessionResult(s)) + '</span>' + (s.privacy !== undefined ? privacyPill(s.privacy, s.street) : '') + icon('chev') + '</a>';
   }
   // Sessions at the same track on the same day are grouped, in time of day order, and numbered by it:
@@ -1303,9 +1303,9 @@
     var inner = '<span class="tp-daygroup-no">#' + n + '</span><span class="tp-row-main"><b>' + (s.time ? esc(s.time) : 'Time not known') + '</b><span>' +
       esc([s.type === 'drag' ? (s.runs || 0) + ' run' + (s.runs === 1 ? '' : 's') : (s.laps || 0) + (s.type === 'sprint' ? ' run' : ' lap') + (s.laps === 1 ? '' : 's'), s.conditions, s.tyres, s.pads].filter(Boolean).join(', ')) + (fastest ? ' <b class="tp-fastest">Fastest</b>' : '') + '</span></span>' +
       '<span class="tp-row-res">' + esc(sessionResult(s)) + '</span>' + (s.privacy !== undefined ? privacyPill(s.privacy, s.street) : '');
-    if (expand) return '<div class="tp-row tp-dayfast" data-sid="' + esc(s.id) + '"><a class="tp-row-link" href="track.html?s=' + esc(s.id) + '" data-go="s=' + esc(s.id) + '">' + inner + '</a>' +
+    if (expand) return '<div class="tp-row tp-dayfast" data-sid="' + esc(s.id) + '"><a class="tp-row-link" title="Open to view" href="track.html?s=' + esc(s.id) + '" data-go="s=' + esc(s.id) + '">' + inner + '</a>' +
       '<button type="button" class="tp-day-expand" data-day-toggle aria-expanded="false" aria-label="Show all ' + expand + ' sessions of this day">' + icon('chev') + '</button></div>';
-    return '<a class="tp-row tp-pickable' + (pickedIds[s.id] ? ' is-picked' : '') + '" draggable="false" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '">' + inner + icon('chev') + '</a>';
+    return '<a class="tp-row tp-pickable' + (pickedIds[s.id] ? ' is-picked' : '') + '" draggable="false" title="Open to view" href="track.html?s=' + esc(s.id) + '" data-sid="' + esc(s.id) + '" data-go="s=' + esc(s.id) + '">' + inner + icon('chev') + '</a>';
   }
   // Sessions picked by holding on them (or Ctrl/Cmd/Shift-click): the day's bulk edit then changes only those.
   var pickedIds = {};
@@ -1396,12 +1396,18 @@
   // for when they were left off or set wrong on every file of the day. Anything left blank stays as it is on each session.
   function dayEditButton(g) {
     var many = g.length > 1, picked = many ? g.filter(function (x) { return pickedIds[x.id]; }) : [], use = picked.length ? picked : g;
-    return (many ? '<p class="tp-small tp-pick-hint">' + icon('info') + '<span>Hold a session to pick just some of them, then edit only those.</span></p>' +
-        '<div class="tp-pickbar" data-pickbar' + (picked.length ? '' : ' hidden') + '><span data-pick-count>' + picked.length + ' selected</span><button type="button" class="btn btn-ghost btn-sm" data-pick-clear>Clear selection</button></div>' : '') +
-      '<button type="button" class="btn btn-secondary btn-sm tp-daygroup-edit" data-day-edit data-all-ids="' + esc(g.map(function (x) { return x.id; }).join(',')) + '" data-ids="' + esc(use.map(function (x) { return x.id; }).join(',')) + '"' + (picked.length ? ' data-picked' : '') + ' data-what="' + esc(niceDate(g[0].date) + ' at ' + trackName(g[0])) + '">' + icon('sliders') + editLabel(many, picked.length, g.length) + '</button>';
+    return '<p class="tp-small tp-pick-hint" data-pick-hint>' + icon('info') + '<span>' + editHint(many, picked.length, g.length) + '</span></p>' +
+      (many ? '<div class="tp-pickbar" data-pickbar' + (picked.length ? '' : ' hidden') + '><span data-pick-count>' + picked.length + ' selected</span><button type="button" class="btn btn-ghost btn-sm" data-pick-clear>Clear selection</button></div>' : '') +
+      '<button type="button" class="btn btn-secondary btn-sm tp-daygroup-edit" data-day-edit title="' + esc(editHint(many, picked.length, g.length)) + '" data-all-ids="' + esc(g.map(function (x) { return x.id; }).join(',')) + '" data-ids="' + esc(use.map(function (x) { return x.id; }).join(',')) + '"' + (picked.length ? ' data-picked' : '') + ' data-what="' + esc(niceDate(g[0].date) + ' at ' + trackName(g[0])) + '">' + icon('sliders') + editLabel(many, picked.length, g.length) + '</button>';
   }
-  function editLabel(many, picked, total) {
-    return !many ? 'Edit the session' : picked ? 'Edit ' + (picked === 1 ? 'the 1 selected session' : 'the ' + picked + ' selected sessions') : 'Edit all ' + total + ' sessions';
+  function editLabel(many, picked) {
+    return picked ? 'Quick edit ' + picked + ' selected' : 'Quick edit';
+  }
+  // What the Quick edit button does, shown beside it and as its tooltip.
+  function editHint(many, picked, total) {
+    return !many ? 'Quick edit changes this session\'s conditions, air temperature, tyres, brake pads or logger without opening it.'
+      : picked ? 'Quick edit will change only the ' + (picked === 1 ? '1 selected session' : picked + ' selected sessions') + '. Tap a session to add or remove it.'
+      : 'Quick edit changes the conditions, air temperature, tyres, brake pads or logger on all ' + total + ' sessions at once. Hold a session to pick just some of them.';
   }
   // The tyres and brake pads from the car's last session before the earliest of these sessions, if it had any.
   function previousKit(m, ids) {
@@ -1535,7 +1541,11 @@
     var btn = box.querySelector('[data-day-edit]'), bar = box.querySelector('[data-pickbar]');
     btn.setAttribute('data-ids', (picked.length ? picked : btn.getAttribute('data-all-ids').split(',')).join(','));
     if (picked.length) btn.setAttribute('data-picked', ''); else btn.removeAttribute('data-picked');
-    btn.innerHTML = icon('sliders') + editLabel(true, picked.length, rows.length);
+    btn.innerHTML = icon('sliders') + editLabel(true, picked.length);
+    var hint = editHint(true, picked.length, rows.length);
+    btn.setAttribute('title', hint);
+    var hs = box.querySelector('[data-pick-hint] span');
+    if (hs) hs.textContent = hint;
     if (bar) { bar.hidden = !picked.length; bar.querySelector('[data-pick-count]').textContent = picked.length + ' selected'; }
     var form = document.getElementById('tp-dayedit');
     if (form && box.contains(form)) form.remove();

@@ -17,30 +17,30 @@
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "images/laps/apple-touch-icon.png",
+      "src": "images/laps/loop/apple-touch-icon.png",
       "sizes": "180x180",
       "type": "image/png"
     },
     {
-      "src": "images/laps/icon-192.png",
+      "src": "images/laps/loop/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "images/laps/icon-512.png",
+      "src": "images/laps/loop/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "images/laps/icon-maskable-192.png",
+      "src": "images/laps/loop/icon-maskable-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "images/laps/icon-maskable-512.png",
+      "src": "images/laps/loop/icon-maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -53,7 +53,7 @@
       "url": "/track.html?add=1",
       "icons": [
         {
-          "src": "images/laps/icon-192.png",
+          "src": "images/laps/loop/icon-192.png",
           "sizes": "192x192"
         }
       ]
@@ -64,7 +64,7 @@
       "url": "/leaderboards.html",
       "icons": [
         {
-          "src": "images/laps/icon-192.png",
+          "src": "images/laps/loop/icon-192.png",
           "sizes": "192x192"
         }
       ]

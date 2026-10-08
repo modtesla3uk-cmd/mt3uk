@@ -3207,7 +3207,7 @@
                 (firstName ? '<strong>' + esc(firstName) + '</strong>' + (masked ? ' <span class="hp-join-email">&middot; ' + esc(masked) + '</span>' : '')
                   : '<strong>' + esc(masked || 'a member') + '</strong>');
               var actions = document.getElementById('hp-join-actions');
-              actions.innerHTML = '<a href="my-builds.html#add-photo" class="hp-join-primary">Add your photo</a><a href="my-builds.html" class="hp-join-garage">My Garage<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a><a href="#" class="hp-join-signout">Sign out</a>';
+              actions.innerHTML = '<a href="my-builds.html#add-photo" class="hp-join-primary">Add photos</a><a href="my-builds.html" class="hp-join-garage">My Garage<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a><a href="#" class="hp-join-signout">Sign out</a>';
               actions.querySelector('.hp-join-signout').addEventListener('click', function (e) {
                 e.preventDefault();
                 if (window.mt3ukSignOut) { window.mt3ukSignOut(); return; }

@@ -63,3 +63,11 @@ def test_plain_my_garage_still_opens_on_sign_in_and_the_car_name_follows_the_mod
     page.locator("#mb-submit-carname").fill("My own name")
     page.locator('#mb-submit-form [data-model-field] label.chip').nth(1).click()
     assert page.locator("#mb-submit-carname").input_value() == "My own name"
+
+
+def test_the_signed_in_homepage_hero_has_an_add_photos_shortcut(page):
+    page.add_init_script("localStorage.setItem('mt3ukMyBuildsSession', 's1.test'); localStorage.setItem('mt3ukMyBuildsEmail', 'member@example.com')")
+    page.goto("/index.html")
+    link = page.locator('#hp-join-actions a.hp-join-primary')
+    assert link.inner_text() == "Add photos"
+    assert link.get_attribute("href") == "my-builds.html#add-photo"

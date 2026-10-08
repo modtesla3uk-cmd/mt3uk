@@ -1,5 +1,13 @@
 [
   {
+    "file": "aubergine.jpg",
+    "caption": "AUBERGINE",
+    "name": "RichardHC",
+    "color": "Green",
+    "added": "2026-10-08",
+    "group": "aubergine.jpg"
+  },
+  {
     "file": "team-red--by-mark-smith-3.jpeg",
     "caption": "TEAM RED",
     "name": "Teamred",
@@ -648,6 +656,7 @@
       "LED interior dash",
       "Teslogic v2 transmitter"
     ],
+    "votable": false,
     "color": "Green",
     "added": "2026-09-21",
     "group": "model-3-front-end.jpg"

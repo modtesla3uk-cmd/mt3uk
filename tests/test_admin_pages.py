@@ -2066,3 +2066,85 @@ def test_admin_gives_nicknames_to_members_without_one(page):
     page.locator("#nick-fill-btn").click()
     expect(page.locator("#nick-fill-status")).to_have_text("Done: 3 members given a nickname (RHughes, ABrown, CDavies), 40 already had one, 2 with no name to make one from, 1 cleared theirs, 46 in all.")
     assert calls == ["POST"]
+
+
+def test_removing_a_subscriber_can_email_them_or_not(page):
+    """The Subscribers panel's Email them when removed switch (on by default) decides whether the delete asks the
+    worker to email the member (notify=0 when off), and the confirm says which."""
+    calls, messages = [], []
+    members = [{"email": "gone@example.com", "firstName": "Gone", "lastName": "Member", "nickname": "", "files": []}]
+
+    def api(route):
+        req = route.request
+        parsed = urlparse(req.url)
+        if parsed.path == "/gallery/admin/subscribers" and req.method == "DELETE":
+            calls.append(parse_qs(parsed.query))
+            body = {"success": True}
+        elif parsed.path == "/gallery/admin/subscribers":
+            body = {"success": True, "subscribers": ["gone@example.com"], "details": members}
+        else:
+            body = {"success": True}
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(body), headers={"Access-Control-Allow-Origin": "*"})
+    page.route("**/%s/**" % API_HOST, api)
+    page.add_init_script("sessionStorage.setItem('mt3ukAdminKey', 'test-key')")
+    page.goto("/admin.html")
+    page.locator("#subscribers-wrap > summary").click()
+    switch = page.locator("#sub-remove-email")
+    expect(switch).to_have_attribute("aria-checked", "true")
+
+    def accept(dialog):
+        messages.append(dialog.message)
+        dialog.accept()
+    page.on("dialog", accept)
+    page.locator(".delete-subscriber-btn").first.click()
+    for _ in range(50):
+        if calls:
+            break
+        page.wait_for_timeout(100)
+    assert "notify" not in calls[0] and "emailed" in messages[0]
+
+    switch.click()
+    expect(switch).to_have_attribute("aria-checked", "false")
+    page.locator(".delete-subscriber-btn").first.click()
+    for _ in range(50):
+        if len(calls) > 1:
+            break
+        page.wait_for_timeout(100)
+    assert calls[1].get("notify") == ["0"] and "will not be emailed" in messages[1]
+
+
+def test_laps_members_list_removes_a_laps_only_account_with_or_without_the_email(page):
+    """The Laps members list on the Sign-in and sign-up panel of track-admin.html shows the Laps-only accounts; Remove
+    asks the worker to remove one (notify false when the Email them switch is off) and the list redraws."""
+    members = [{"email": "pat@example.com", "name": "Pat Lee", "since": "2026-10-01T10:00:00Z"}, {"email": "rae@example.com", "name": "", "since": "2026-10-05T10:00:00Z"}]
+    posts, messages = [], []
+
+    def api(route):
+        req = route.request
+        path = urlparse(req.url).path
+        if path == "/laps/members/admin" and req.method == "POST":
+            sent = json.loads(req.post_data)
+            posts.append(sent)
+            members[:] = [m for m in members if m["email"] != sent["remove"]]
+            body = {"success": True, "emailed": sent["notify"], "members": members}
+        elif path == "/laps/members/admin":
+            body = {"success": True, "members": members}
+        else:
+            body = {"success": True}
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(body), headers={"Access-Control-Allow-Origin": "*"})
+    page.route("**/%s/**" % API_HOST, api)
+    page.add_init_script("sessionStorage.setItem('mt3ukAdminKey', 'test-key')")
+    page.goto("/track-admin.html")
+    page.locator("#signin-wrap > summary").click()
+    expect(page.locator("#lm-list tbody tr")).to_have_count(2)
+    expect(page.locator("#lm-list")).to_contain_text("Pat Lee")
+    expect(page.locator("#lm-email")).to_have_attribute("aria-checked", "true")
+    page.on("dialog", lambda d: (messages.append(d.message), d.accept()))
+    page.locator('.lm-remove[data-email="pat@example.com"]').click()
+    expect(page.locator("#lm-list tbody tr")).to_have_count(1)
+    assert posts[0] == {"remove": "pat@example.com", "notify": True} and "emailed to say they are unsubscribed" in messages[0]
+    page.locator("#lm-email").click()
+    expect(page.locator("#lm-email")).to_have_attribute("aria-checked", "false")
+    page.locator('.lm-remove[data-email="rae@example.com"]').click()
+    expect(page.locator("#lm-list")).to_contain_text("No Laps-only accounts")
+    assert posts[1] == {"remove": "rae@example.com", "notify": False} and "without an email" in messages[1]

@@ -1088,6 +1088,64 @@ async function handleProfileUpdate(request, env) {
     showName: saved.showName === 'name' ? 'name' : 'nickname', hideRealName: !!saved.hideRealName, emailsOff: !!saved.emailsOff, modQuestionsOff: !!saved.modQuestionsOff });
 }
 
+// A person who leaves or is removed comes off the early access list (approved and waiting) and the New Laps sign-ups
+// list, so neither panel on track-admin.html, nor the bell, keeps counting them.
+async function removeFromLapsLists(env, email) {
+  var em = accessEmail(email), changed = false;
+  var acc = await getTrackAccess(env);
+  var allowed = acc.allowed.filter(function (x) { return x.email !== em; });
+  var pending = acc.pending.filter(function (x) { return x.email !== em; });
+  if (allowed.length !== acc.allowed.length || pending.length !== acc.pending.length) {
+    acc.allowed = allowed; acc.pending = pending;
+    await putTrackAccess(env, acc);
+    changed = true;
+  }
+  var signups = await getJsonKey(env, LAPS_SIGNUPS_KEY, []);
+  var kept = signups.filter(function (x) { return x.email !== em; });
+  if (kept.length !== signups.length) { await env.VOTES.put(LAPS_SIGNUPS_KEY, JSON.stringify(kept)); changed = true; }
+  if (changed) await bumpAdminStamp(env);
+}
+
+// Told when a member is unsubscribed (they leave, or MT3UK removes them): what happened, and a link to subscribe
+// again. A Laps-only account (KV laps-account:) gets the Laps by MT3UK version and its own sign-up page; everyone
+// else the MT3UK one, which also names Laps. Whether to send is worked out before anything is deleted (the member
+// must have existed and not have switched emails off), then the email goes once they are gone. Never sent to an
+// address that was not a member.
+async function unsubscribeNoticePlan(env, email) {
+  var isMember = (await env.VOTES.get('subscriber:' + email)) !== null;
+  var lapsOnly = !isMember && (await env.VOTES.get(lapsAccountKey(email))) !== null;
+  if (!isMember && !lapsOnly) return null;
+  if (!(await wantsEmails(env, email))) return null;
+  return { lapsOnly: lapsOnly };
+}
+
+async function sendUnsubscribedEmail(env, email, plan, byAdmin, wiped) {
+  if (!plan) return false;
+  var who = byAdmin ? 'MT3UK has ended your' : 'As you asked, we have ended your';
+  var subject, from, body;
+  if (plan.lapsOnly) {
+    subject = 'You have been unsubscribed from Laps by MT3UK';
+    from = 'Laps by MT3UK <' + MY_BUILDS_FROM_EMAIL + '>';
+    body = 'Hello,\n\n' + who + ' Laps by MT3UK account and signed you out.' + (wiped ? ' Your cars, track sessions and settings have been removed.' : '') +
+      '\n\nChanged your mind? You can subscribe again, it is free:\n\n' + LAPS_SITE_URL + '/laps-signin.html#si-join' +
+      '\n\nIf this was not what you expected, please get in touch: ' + MY_BUILDS_SITE_URL + '/contact.html';
+  } else {
+    subject = 'You have been unsubscribed from MT3UK';
+    from = MY_BUILDS_FROM_EMAIL;
+    body = 'Hello,\n\n' + who + ' MT3UK membership and signed you out.' + (wiped ? ' Your builds, track sessions and settings have been removed.' : '') +
+      '\n\nChanged your mind? You can subscribe again, it is free:\n\n' + MY_BUILDS_SITE_URL + '/signin.html#si-join' +
+      '\n\nYou can join Laps by MT3UK again here:\n\n' + LAPS_SITE_URL + '/laps-signin.html#si-join' +
+      '\n\nIf this was not what you expected, please get in touch: ' + MY_BUILDS_SITE_URL + '/contact.html';
+  }
+  try {
+    await env.SEND_EMAIL.send(new EmailMessage(MY_BUILDS_FROM_EMAIL, email, rawEmail(from, email, subject, body)));
+    return true;
+  } catch (err) {
+    console.log('Unsubscribed email failed:', err.message);
+    return false;
+  }
+}
+
 // Leave MT3UK: deletes the member's builds and everything kept about them.
 // Comments stay, under the name they were posted with.
 async function deleteMemberAccount(env, email) {
@@ -1098,6 +1156,7 @@ async function deleteMemberAccount(env, email) {
   for (var c = 0; c < noPhotoCars.length; c++) await deleteCarRecord(env, noPhotoCars[c]);
   await env.VOTES.delete(memberCarsKey(email));
   await env.VOTES.delete(lapsAccountKey(email));
+  await removeFromLapsLists(env, email);
 
   var fr = await getFriends(env, email);
   var others = fr.friends.concat(fr.incoming.map(function (r) { return r.email; }), fr.outgoing.map(function (r) { return r.email; }));
@@ -1149,7 +1208,9 @@ async function handleProfileLeave(request, env) {
   var body;
   try { body = await request.json(); } catch (e) { body = {}; }
   if (!body || body.confirm !== 'LEAVE') return json({ success: false, message: 'Type LEAVE to confirm' }, 400);
+  var plan = await unsubscribeNoticePlan(env, email);
   await deleteMemberAccount(env, email);
+  await sendUnsubscribedEmail(env, email, plan, false, true);
   return json({ success: true });
 }
 
@@ -4223,12 +4284,18 @@ async function handleGalleryAdminSubscriberDelete(request, env) {
       if (sidecar.carId) await clearSidecarCarId(env, file);
     }
   }
+  var plan = await unsubscribeNoticePlan(env, email);
   await env.VOTES.delete('subscriber:' + email);
   await env.VOTES.delete('profile:' + email);
   await env.VOTES.delete('subscriber-since:' + email);
+  await env.VOTES.delete(lapsAccountKey(email));
+  // End every sign-in on every device: a removed member is signed out at their next request, not left signed in.
+  await env.VOTES.put(sessionVersionKey(email), String((await getSessionVersion(env, email)) + 1), { expirationTtl: 181 * 24 * 60 * 60 });
   if (files.length) await triggerManifestRebuild(env);
+  var emailed = url.searchParams.get('notify') === '0' ? false : await sendUnsubscribedEmail(env, email, plan, true, false);
+  await removeFromLapsLists(env, email);
 
-  return json({ success: true });
+  return json({ success: true, emailed: emailed });
 }
 
 async function handleCommentLike(request, env, ctx) {
@@ -6308,6 +6375,44 @@ async function handleLapsSigninPublic(request, env) {
   res.headers.set('Cache-Control', 'public, max-age=60');
   return res;
 }
+// The Laps members list on the Sign-in and sign-up panel of track-admin.html: the Laps-only accounts (KV
+// laps-account:, joined on Laps while MT3UK membership was switched off), with Remove. list() is fine, this is an
+// admin route. Remove does what leaving does (their cars, sessions, sign-ins, early access and New Laps sign-ups
+// entry), and emails them that they are unsubscribed, with a link to subscribe again, unless notify is false. A full
+// MT3UK member is refused: they are removed on the Subscribers panel of admin.html.
+async function lapsMembersList(env) {
+  var out = [], cursor;
+  do {
+    var page = await env.VOTES.list({ prefix: 'laps-account:', cursor: cursor, limit: 1000 });
+    for (var i = 0; i < page.keys.length && out.length < 2000; i++) {
+      var email = page.keys[i].name.slice('laps-account:'.length);
+      var rec = await getJsonKey(env, page.keys[i].name, {});
+      var profile = await getProfileRecord(env, email);
+      out.push({ email: email, name: [profile.firstName, profile.lastName].filter(Boolean).join(' '), since: rec.since || '' });
+    }
+    cursor = page.list_complete ? null : page.cursor;
+  } while (cursor && out.length < 2000);
+  out.sort(function (a, b) { return String(b.since).localeCompare(String(a.since)); });
+  return out;
+}
+async function handleLapsMembersAdmin(request, env) {
+  if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
+  if (request.method === 'POST') {
+    var body;
+    try { body = await request.json(); } catch (e) { return json({ success: false, message: 'Invalid request body' }, 400); }
+    var email = accessEmail(body && body.remove);
+    if (!email) return json({ success: false, message: 'Say which account to remove.' }, 400);
+    if ((await env.VOTES.get('subscriber:' + email)) !== null) return json({ success: false, message: 'That person is an MT3UK member. Remove them on the Subscribers panel of admin.html.' }, 400);
+    if ((await env.VOTES.get(lapsAccountKey(email))) === null) return json({ success: false, message: 'That is not a Laps-only account.' }, 404);
+    var plan = await unsubscribeNoticePlan(env, email);
+    await deleteMemberAccount(env, email);
+    var emailed = body.notify === false ? false : await sendUnsubscribedEmail(env, email, plan, true, true);
+    await bumpAdminStamp(env);
+    return json({ success: true, emailed: emailed, members: await lapsMembersList(env) });
+  }
+  return json({ success: true, members: await lapsMembersList(env) });
+}
+
 async function handleLapsSigninAdmin(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
   if (request.method === 'POST') {
@@ -11379,6 +11484,9 @@ export default {
     }
     if (url.pathname === '/laps/signups/admin' && (request.method === 'GET' || request.method === 'POST')) {
       return handleLapsSignupsAdmin(request, env);
+    }
+    if (url.pathname === '/laps/members/admin' && (request.method === 'GET' || request.method === 'POST')) {
+      return handleLapsMembersAdmin(request, env);
     }
     if (url.pathname === '/laps/signin/admin' && (request.method === 'GET' || request.method === 'POST')) {
       return handleLapsSigninAdmin(request, env);

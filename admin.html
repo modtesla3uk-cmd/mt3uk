@@ -141,6 +141,10 @@
         <button type="button" class="secondary" id="send-digest-btn">Send subscribers email now</button>
         <span class="card-meta" id="send-digest-status">Emails the list of members to modtesla3uk@gmail.com. It also goes out every day at 8pm.</span>
       </div>
+      <div class="digest-row">
+        <button type="button" class="tk-switch" id="sub-remove-email" role="switch" aria-checked="true"><span class="tk-track"></span><span>Email them when removed</span></button>
+        <span class="card-meta">On: a removed member is emailed to say they are unsubscribed, with a link to subscribe again. Off: they are signed out without an email.</span>
+      </div>
       <div class="add-subscriber-row">
         <input type="text" id="new-subscriber-first" placeholder="First name" autocomplete="off">
         <input type="text" id="new-subscriber-last" placeholder="Last name" autocomplete="off">
@@ -703,6 +707,8 @@
       });
   });
 
+  var removeEmailSw = document.getElementById('sub-remove-email');
+  if (removeEmailSw) removeEmailSw.addEventListener('click', function () { removeEmailSw.setAttribute('aria-checked', String(removeEmailSw.getAttribute('aria-checked') !== 'true')); });
   subscribersEl.addEventListener('click', function (e) {
     var key = keyInput.value.trim();
     var card = e.target.closest('.subscriber-card');
@@ -784,9 +790,11 @@
 
     var deleteBtn = e.target.closest('.delete-subscriber-btn');
     if (deleteBtn) {
-      if (!confirm('Delete subscriber "' + email + '"? Their photos will go back to unclaimed.')) return;
+      var removeSw = document.getElementById('sub-remove-email');
+      var tellThem = !removeSw || removeSw.getAttribute('aria-checked') === 'true';
+      if (!confirm('Delete subscriber "' + email + '"? Their photos will go back to unclaimed, they will be signed out, and ' + (tellThem ? 'they will be emailed to say they are unsubscribed, with a link to subscribe again.' : 'they will not be emailed.'))) return;
       deleteBtn.disabled = true;
-      fetch(API + '/gallery/admin/subscribers?key=' + encodeURIComponent(key) + '&email=' + encodeURIComponent(email), {
+      fetch(API + '/gallery/admin/subscribers?key=' + encodeURIComponent(key) + '&email=' + encodeURIComponent(email) + (tellThem ? '' : '&notify=0'), {
         method: 'DELETE'
       })
         .then(function (res) { return res.json(); })

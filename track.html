@@ -418,10 +418,14 @@
     .page-hero .tp-hero-top { gap: 12px; flex-wrap: nowrap; }
     .page-hero .tp-hero-top .back-link.tp-home { width: auto; height: 44px; min-height: 44px; padding: 0 12px; gap: 5px; border-radius: 22px; font-size: 0.85rem; }
     .page-hero .tp-hero-top .back-link.tp-home .icon { width: 16px; height: 16px; }
-    /* Leaderboards gives way to its round icon when Back and My Sessions both need the room. */
-    @media (max-width: 380px) {
+    /* On a session or the Add page the row holds four buttons (Back, My Sessions, Leaderboards, Add a session): Leaderboards and
+       Add a session give way to their round icons up to 560px wide, so nothing overlaps. */
+    @media (max-width: 560px) {
       .page-hero .tp-hero-top:has(.tp-home) + .tp-hero-row .tp-lb-pill.tp-round { width: 44px; min-width: 0; padding: 0; gap: 0; font-size: 0; }
       .page-hero .tp-hero-top:has(.tp-home) + .tp-hero-row .tp-lb-pill.tp-round .icon { width: 22px; height: 22px; }
+      .page-hero .tp-hero-top:has(.tp-home) + .tp-hero-row .tp-hero-actions .tp-lb-pill:not(.is-preview) { width: 44px; padding: 0; gap: 0; border-radius: 50%; font-size: 0; }
+      .page-hero .tp-hero-top:has(.tp-home) + .tp-hero-row .tp-hero-actions .tp-lb-pill:not(.is-preview) .icon { width: 24px; height: 24px; }
+      .page-hero .tp-hero-top:has(.tp-home) + .tp-hero-row .tp-hero-actions .tp-lb-pill:not(.is-preview) span { display: none; }
     }
     .page-hero .tp-hero-actions:not([hidden]) { display: contents; }
     .page-hero .tp-hero-actions .tp-lb-pill { grid-column: 3; grid-row: 2; align-self: center; margin-top: 14px; min-width: 0; min-height: 44px; }

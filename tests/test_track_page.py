@@ -1798,13 +1798,18 @@ def test_sessions_has_add_a_session_under_leaderboards(page):
     add.click()
     expect(page).to_have_url(re.compile(r"/track\.html\?add=1&car="))
     expect(page.locator("#tp-hero-actions")).to_be_hidden()
-    # On the owner's own session it is there too, for that car; on a phone it is a round plus.
+    # On the owner's own session it is there too, for that car. The row there also holds Back, My Sessions and Leaderboards, so
+    # up to 560px wide it is a round plus (see test_the_heading_buttons_on_a_session_never_overlap_on_a_phone); wider it has its words.
     own = day_session("own1", "10:00", 95.0, 4)
     fake.sessions["own1"] = dict(own, carId="car1")
     page.goto("/track.html?s=own1")
     expect(page.locator("#tp-hero-add")).to_be_visible()
     assert "car=" in page.locator("#tp-hero-add").get_attribute("href")
     page.set_viewport_size({"width": 390, "height": 800})
+    b = page.locator("#tp-hero-add").bounding_box()
+    assert abs(b["height"] - 44) < 2 and abs(b["width"] - 44) < 2, b
+    expect(page.locator("#tp-hero-add span")).to_be_hidden()
+    page.set_viewport_size({"width": 700, "height": 800})
     b = page.locator("#tp-hero-add").bounding_box()
     assert abs(b["height"] - 44) < 2 and b["width"] > 90, b
     expect(page.locator("#tp-hero-add span")).to_be_visible()
@@ -5492,6 +5497,29 @@ def save_fixture_session(page, fake):
     expect(page.locator("#tp-result .tp-notice.is-ok")).to_contain_text("timed laps")
     page.get_by_role("button", name="Save session").click()
     expect(page).to_have_url(re.compile(r"track\.html\?s=new1"))
+
+
+def test_the_heading_buttons_on_a_session_never_overlap_on_a_phone(page):
+    """On a session the heading row holds Back, My Sessions, Leaderboards and Add a session. At phone widths none may overlap
+    another or run off the screen (Leaderboards and Add a session give way to their round icons)."""
+    fake = FakeWorker()
+    save_fixture_session(page, fake)
+    for width in (560, 412, 390, 360, 340, 320):
+        page.set_viewport_size({"width": width, "height": 900})
+        page.wait_for_timeout(250)
+        boxes = {}
+        for name, sel in (("back", ".page-hero .tp-hero-top .back-link:not(.tp-home)"), ("home", ".page-hero .tp-hero-top .tp-home"),
+                          ("lb", "#tp-lb-pill"), ("add", "#tp-hero-add")):
+            loc = page.locator(sel).first
+            expect(loc).to_be_visible()
+            boxes[name] = loc.bounding_box()
+        names = list(boxes)
+        for i, a_ in enumerate(names):
+            assert boxes[a_]["x"] >= 0 and boxes[a_]["x"] + boxes[a_]["width"] <= width + 1, (width, a_, boxes[a_])
+            for b_ in names[i + 1:]:
+                A, B = boxes[a_], boxes[b_]
+                overlap = A["x"] < B["x"] + B["width"] - 1 and B["x"] < A["x"] + A["width"] - 1 and A["y"] < B["y"] + B["height"] - 1 and B["y"] < A["y"] + A["height"] - 1
+                assert not overlap, (width, a_, b_, A, B)
 
 
 def test_a_session_warns_when_a_faster_pass_crosses_the_lines_the_other_way_round(page):

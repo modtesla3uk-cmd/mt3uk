@@ -479,7 +479,7 @@
       delete v.review;
       if (!r.added) {
         if (v.type === 'circuit') v.layouts.push({ name: known ? 'New layout' : 'Full circuit', length: r.lapLength ? Math.round(r.lapLength) : '', startLine: r.startLine });
-        if (v.type === 'sprint') v.layouts.push({ name: known ? 'New course' : 'Course', length: r.lapLength ? Math.round(r.lapLength) : '', startLine: r.startLine, finishLine: r.finishLine });
+        if (v.type === 'sprint') v.layouts.push({ name: r.organizer || (known ? 'New course' : 'Course'), organizer: r.organizer || '', length: r.lapLength ? Math.round(r.lapLength) : '', startLine: r.startLine, finishLine: r.finishLine });
       }
       openForm(v);
       call('POST', '/track/admin/requests', { id: id, action: 'approve' });

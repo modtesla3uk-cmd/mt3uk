@@ -2024,6 +2024,28 @@ def test_admin_tracks_panel_sets_up_a_requested_track(device_page):
     assert page.errors == [], diagnostics(page)
 
 
+@all_devices
+def test_set_up_by_hand_fills_in_the_organiser_a_member_typed(device_page):
+    """A sprint request carries the organiser the member typed: Set up by hand opens the course named for it, with
+    the Organiser box filled in, so the course is listed under that organiser."""
+    page = device_page
+    page.mock_state["track_admin_request_list"] = [{
+        "id": "r2", "at": "2026-09-30T10:00:00Z", "from": "a***@example.com", "kind": "sprint", "name": "Shelsley Walsh",
+        "organizer": "Ray Heal Memorial 2022", "venueId": "shelsley-walsh", "lat": 52.26, "lng": -2.41, "lapLength": 876,
+        "startLine": [[52.264945, -2.4098672], [52.2651634, -2.4098402]], "finishLine": [[52.259899, -2.4135109], [52.2598692, -2.4138598]],
+        "outline": [[52.265, -2.41], [52.26, -2.413]]}]
+    page.add_init_script("sessionStorage.setItem('mt3ukAdminKey', 'test-key')")
+    page.goto("/track-admin.html")
+    page.locator("#tracks-wrap > summary").click()
+    req = page.locator("#tk-requests .tk-req")
+    req.wait_for(timeout=10000)
+    req.get_by_role("button", name="Set up by hand").click()
+    form = page.locator("#tk-form")
+    last = form.locator(".tk-layout").last
+    assert last.locator('[data-l="organizer"]').input_value() == "Ray Heal Memorial 2022"
+    assert last.locator('[data-l="name"]').input_value() == "Ray Heal Memorial 2022"
+
+
 def test_leaderboard_track_list_can_be_sorted(page):
     fake = FakeWorker()
     fake.index = [dict(EARLIER, id="sh1", privacy="board", bestTime=101.2)]

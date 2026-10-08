@@ -437,6 +437,8 @@ def api_reply(url, method, post_data, state):
         if method == "POST":
             state.setdefault("track_admin_requests", []).append(json.loads(post_data or "{}"))
             return {"success": True}
+        if state.get("track_admin_request_list"):
+            return {"success": True, "requests": state["track_admin_request_list"]}
         return {"success": True, "requests": [{"id": "r1", "at": "2026-09-30T10:00:00Z", "from": "a***@example.com", "kind": "circuit", "name": "Old Airfield",
                                                "lat": 53.1, "lng": -1.1, "lapLength": 2100, "startLine": [[53.1, -1.1], [53.1001, -1.1001]], "outline": [[53.1, -1.1], [53.105, -1.11], [53.11, -1.1], [53.1, -1.1]]}]}
     if path == "/track/sessions" and method == "GET":

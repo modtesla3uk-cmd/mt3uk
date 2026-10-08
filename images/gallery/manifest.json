@@ -1,11 +1,20 @@
 [
   {
+    "file": "sun-is-shining.jpg",
+    "caption": "SUN IS SHINING",
+    "name": "RichardHC",
+    "votable": false,
+    "color": "Green",
+    "added": "2026-10-08",
+    "group": "sun-is-shining.jpg"
+  },
+  {
     "file": "aubergine.jpg",
     "caption": "AUBERGINE",
     "name": "RichardHC",
     "color": "Green",
     "added": "2026-10-08",
-    "group": "aubergine.jpg"
+    "group": "sun-is-shining.jpg"
   },
   {
     "file": "team-red--by-mark-smith-3.jpeg",

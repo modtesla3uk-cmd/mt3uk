@@ -6522,3 +6522,20 @@ def test_exiting_a_session_lands_on_the_list_at_the_row_it_came_from(page):
     page.wait_for_timeout(600)
     pos = page.evaluate("(() => { const r = document.querySelector('a.tp-row[data-sid=\"a0\"]').getBoundingClientRect(); return [r.top, r.bottom, innerHeight, scrollY]; })()")
     assert pos[3] > 200 and 0 <= pos[0] < pos[2] and pos[1] <= pos[2] + 2, pos
+
+
+def test_the_heading_buttons_are_a_placeholder_while_the_list_loads(page):
+    """A signed-in member sees Add a session as a soft placeholder at once (so the heading does not jump) while the
+    list loads; a signed-out visitor is not held a place."""
+    page.add_init_script("localStorage.setItem('mt3ukMyBuildsSession', 's1.test')")
+    held = []
+    page.route(re.compile(r"workers\.dev"), lambda route: held.append(route))  # never answers, so the page stays loading
+    page.goto("/track.html")
+    expect(page.locator("#tp-hero-actions")).to_be_visible()
+    expect(page.locator("#tp-hero-add")).to_have_class(re.compile("is-wait"))
+    assert page.locator("#tp-hero-add").evaluate("e => getComputedStyle(e).pointerEvents") == "none"
+    expect(page.locator("#tp-hero-actions .laps-tip-bulbbtn")).to_be_visible()
+    page.evaluate("localStorage.clear()")
+    page.add_init_script("localStorage.removeItem('mt3ukMyBuildsSession')")
+    page.goto("/track.html")
+    expect(page.locator("#tp-hero-actions")).to_be_hidden()

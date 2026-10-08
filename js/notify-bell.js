@@ -6,37 +6,51 @@
   var API = 'https://late-darkness-ebc8.modtesla3uk.workers.dev';
   var SESSION_KEY = 'mt3ukMyBuildsSession';
   var search = document.getElementById('nav-search');
-  if (!search || document.getElementById('nav-bell')) return;
+  // Run once: the bell's own markup is now in the page, so a flag says the script has already been here.
+  if (!search || window.__mt3ukBell) return;
+  window.__mt3ukBell = true;
 
-  var wrap = document.createElement('div');
-  wrap.className = 'nav-bell';
-  wrap.id = 'nav-bell';
-  wrap.innerHTML =
-    '<button type="button" class="nav-bell-btn" id="nav-bell-btn" aria-label="Notifications" aria-expanded="false" aria-controls="nav-bell-panel">' +
-      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>' +
-      '<span class="nav-bell-count" id="nav-bell-count" hidden></span>' +
-    '</button>' +
-    '<div class="nav-bell-panel" id="nav-bell-panel" role="dialog" aria-label="Notifications" hidden></div>';
-  search.parentNode.insertBefore(wrap, search);
+  // The icons are in the header markup (partials/header.html), so they are there from the first paint; a page without
+  // them gets them added here.
+  var wrap = document.getElementById('nav-bell');
+  if (!wrap) {
+    wrap = document.createElement('div');
+    wrap.className = 'nav-bell';
+    wrap.id = 'nav-bell';
+    wrap.innerHTML =
+      '<button type="button" class="nav-bell-btn" id="nav-bell-btn" aria-label="Notifications" aria-expanded="false" aria-controls="nav-bell-panel">' +
+        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>' +
+        '<span class="nav-bell-count" id="nav-bell-count" hidden></span>' +
+      '</button>' +
+      '<div class="nav-bell-panel" id="nav-bell-panel" role="dialog" aria-label="Notifications" hidden></div>';
+    search.parentNode.insertBefore(wrap, search);
+  }
 
   // A person icon next to the bell goes to My Profile (or Sign In first).
-  var profileLink = document.createElement('a');
-  profileLink.className = 'nav-profile';
-  profileLink.id = 'nav-profile';
-  profileLink.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>';
+  var profileLink = document.getElementById('nav-profile');
+  if (!profileLink) {
+    profileLink = document.createElement('a');
+    profileLink.className = 'nav-profile';
+    profileLink.id = 'nav-profile';
+    profileLink.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>';
+    search.parentNode.insertBefore(profileLink, search);
+  }
   function setProfileLink() {
     var signedIn = !!session();
     profileLink.href = signedIn ? 'profile.html' : 'signin.html?next=' + encodeURIComponent('/profile.html');
     profileLink.setAttribute('aria-label', signedIn ? 'My Profile' : 'Sign in to your profile');
     profileLink.title = signedIn ? 'My Profile' : 'Sign in';
   }
-  search.parentNode.insertBefore(profileLink, search);
 
   // A garage icon after it goes to My Garage (or Sign In first). Relative, so on laps.mt3uk.com it stays there.
-  var garageLink = document.createElement('a');
-  garageLink.className = 'nav-profile nav-garage';
-  garageLink.id = 'nav-garage';
-  garageLink.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21V9l9-5 9 5v12"/><path d="M7 21v-8h10v8M7 17h10"/></svg>';
+  var garageLink = document.getElementById('nav-garage');
+  if (!garageLink) {
+    garageLink = document.createElement('a');
+    garageLink.className = 'nav-profile nav-garage';
+    garageLink.id = 'nav-garage';
+    garageLink.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21V9l9-5 9 5v12"/><path d="M7 21v-8h10v8M7 17h10"/></svg>';
+    search.parentNode.insertBefore(garageLink, search);
+  }
   function setGarageLink() {
     var signedIn = !!session();
     garageLink.href = signedIn ? 'my-builds.html' : 'signin.html?next=' + encodeURIComponent('/my-builds.html');
@@ -44,7 +58,6 @@
     garageLink.title = 'My Garage';
     if (/(^|\/)my-builds\.html$/i.test(location.pathname)) garageLink.setAttribute('aria-current', 'page');
   }
-  search.parentNode.insertBefore(garageLink, search);
 
   var btn = wrap.querySelector('#nav-bell-btn');
   var count = wrap.querySelector('#nav-bell-count');

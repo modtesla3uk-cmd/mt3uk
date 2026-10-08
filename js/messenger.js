@@ -63,11 +63,6 @@
   // ---------- Styles ----------
   var style = document.createElement('style');
   style.textContent = [
-    '.nav-chat{position:relative;display:inline-flex;align-items:center;justify-content:center;width:38px;height:34px;border:0;background:none;color:var(--ink,#16233d);cursor:pointer;padding:0}',
-    '.nav-chat:hover{opacity:.65}',
-    '.nav-chat svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round}',
-    '.nav-chat-count{position:absolute;top:0;right:2px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:#e8542a;color:#fff;font:700 .66rem/17px "IBM Plex Sans",sans-serif;text-align:center}',
-    '.nav-chat-count[hidden]{display:none}',
     '#mt3uk-chat{position:fixed;right:16px;bottom:16px;z-index:420;width:340px;height:min(500px,calc(100dvh - 120px));display:flex;flex-direction:column;background:#fff;color:#16233d;border-radius:18px;box-shadow:0 18px 50px rgba(10,16,30,.35);overflow:hidden;font-family:"IBM Plex Sans",sans-serif;opacity:0;transform:translateY(16px) scale(.98);transition:opacity .18s ease,transform .18s ease}',
     '#mt3uk-chat.is-open{opacity:1;transform:none}',
     '#mt3uk-chat[hidden]{display:none}',
@@ -201,14 +196,18 @@
   document.head.appendChild(style);
 
   // ---------- Header icon ----------
-  var icon = document.createElement('button');
-  icon.type = 'button';
-  icon.className = 'nav-chat';
-  icon.id = 'nav-chat';
-  icon.setAttribute('aria-label', 'Messages');
-  icon.setAttribute('aria-controls', 'mt3uk-chat');
-  icon.setAttribute('aria-expanded', 'false');
-  icon.innerHTML = CHAT_ICON + '<span class="nav-chat-count" id="nav-chat-count" hidden></span>';
+  // The icon is in the header markup (partials/header.html); a page without it gets one added here.
+  var icon = document.getElementById('nav-chat');
+  if (!icon) {
+    icon = document.createElement('button');
+    icon.type = 'button';
+    icon.className = 'nav-chat';
+    icon.id = 'nav-chat';
+    icon.setAttribute('aria-label', 'Messages');
+    icon.setAttribute('aria-controls', 'mt3uk-chat');
+    icon.setAttribute('aria-expanded', 'false');
+    icon.innerHTML = CHAT_ICON + '<span class="nav-chat-count" id="nav-chat-count" hidden></span>';
+  }
   function placeIcon() {
     if (icon.parentNode) return;
     var before = document.getElementById('nav-profile') || document.getElementById('nav-search');

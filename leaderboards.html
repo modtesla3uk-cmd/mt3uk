@@ -30,7 +30,7 @@
 <meta name="twitter:description" content="The Laps by MT3UK leaderboard: real lap times from EVs at UK circuits, sprints, hill climbs and drag strips, from members' own lap timers. Filter by model, tyres and conditions.">
 <meta name="twitter:image" content="https://mt3uk.com/images/track-preview/share.jpg">
 <script defer src="https://cloud.umami.is/script.js" data-website-id="999f92a7-c648-449a-bdba-c89dd7929201"></script>
-<link rel="stylesheet" href="css/site-header.css">
+<link rel="stylesheet" href="css/site-header.css?v=20271008">
 <link rel="stylesheet" href="css/laps-strip.css?v=2">
 <link rel="stylesheet" href="css/laps-panels.css?v=1">
 <style>
@@ -293,6 +293,9 @@
   .lb-hero .tp-lb-pill.lb-add:hover { background: #d24a23; color: #fff; }
   /* Add a session sits under My Sessions, the same size, with the tip's light bulb at the far right. Shared with
      track.html, where Add a session sits under Leaderboards. */
+  /* Add a session waits for the early preview answer (js/laps-strip.js) before it shows, so it is not seen changing into Join the early preview. It shows anyway after 2.5 seconds. */
+  .lb-actions .lb-add[data-laps-add] { visibility: hidden; animation: lb-add-show 0s 2.5s forwards; }
+  @keyframes lb-add-show { to { visibility: visible; } }
   .tp-hero-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; position: relative; }
   .tp-hero-actions[hidden] { display: none; }
   .page-hero .tp-hero-row .tp-lb-pill { min-width: 176px; justify-content: center; }
@@ -493,7 +496,6 @@
   <nav>
     <div class="nav-center">
       <a href="track.html" class="logo laps-logo" aria-label="Laps by MT3UK, early preview"><span class="laps-logo-early" aria-hidden="true">Early preview</span><svg class="laps-logo-mark" viewBox="0 0 64 64" aria-hidden="true"><rect x="27" y="3" width="10" height="6" rx="2" fill="currentColor"/><circle cx="32" cy="36" r="21" fill="none" stroke="currentColor" stroke-opacity=".22" stroke-width="7"/><path d="M32 15A21 21 0 1 1 11 36" fill="none" stroke="#e8542a" stroke-width="7" stroke-linecap="round"/><path d="M32 36 43 25" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><circle cx="32" cy="36" r="3.4" fill="currentColor"/></svg><span class="laps-logo-name">Laps</span><span class="laps-logo-by">by MT3UK</span></a>
-      <a href="laps.html" class="laps-intro" id="tp-play-intro" aria-label="Play intro"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m10 8.5 5 3.5-5 3.5Z"/></svg><span>Play intro</span></a>
     <div class="navlinks" id="navlinks">
       <a href="signin.html" class="nav-link-mobile">Sign Up / Sign In</a>
       <a href="track.html" class="nav-link nav-link-track">Sessions <span class="early-badge">Early preview</span></a>
@@ -503,6 +505,14 @@
       <a href="https://mt3uk.com/" class="nav-link nav-link-back"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Back to MT3UK</a>
       </div>
     </div>
+    <div class="nav-bell" id="nav-bell">
+      <button type="button" class="nav-bell-btn" id="nav-bell-btn" aria-label="Notifications" aria-expanded="false" aria-controls="nav-bell-panel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="nav-bell-count" id="nav-bell-count" hidden></span></button>
+      <div class="nav-bell-panel" id="nav-bell-panel" role="dialog" aria-label="Notifications" hidden></div>
+    </div>
+    <button type="button" class="nav-chat" id="nav-chat" aria-label="Messages" aria-controls="mt3uk-chat" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.6A8 8 0 1 1 21 12z"/></svg><span class="nav-chat-count" id="nav-chat-count" hidden></span></button>
+    <a class="nav-profile" id="nav-profile" href="signin.html?next=%2Fprofile.html" aria-label="Sign in to your profile" title="Sign in"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg></a>
+    <a class="nav-profile nav-garage" id="nav-garage" href="signin.html?next=%2Fmy-builds.html" aria-label="Sign in to My Garage" title="My Garage"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21V9l9-5 9 5v12"/><path d="M7 21v-8h10v8M7 17h10"/></svg></a>
+    <script>(function(){try{if(!localStorage.getItem('mt3ukMyBuildsSession'))return;var p=document.getElementById('nav-profile'),g=document.getElementById('nav-garage');p.href='profile.html';p.setAttribute('aria-label','My Profile');p.title='My Profile';g.href='my-builds.html';g.setAttribute('aria-label','My Garage');}catch(e){}})();</script>
     <div class="nav-search" id="nav-search" data-scope="laps">
       <button type="button" class="nav-search-toggle" id="nav-search-toggle" aria-expanded="false" aria-controls="nav-search-panel" aria-label="Search">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
@@ -521,7 +531,7 @@
 <section class="page-hero lb-hero">
   <div class="wrap">
     <div class="tp-hero-top"><a href="index.html" class="back-link" id="lb-page-back" aria-label="Back to MT3UK"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</a></div>
-    <div class="tp-hero-row"><h1><svg class="icon lb-trophy" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/></svg>Leaderboard</h1><a href="track.html" class="tp-lb-pill tp-round" id="lb-my-sessions" aria-label="My Sessions" title="My Sessions"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M10 2h4"/></svg>My Sessions</a><div class="tp-hero-actions lb-actions"><a href="track.html?add=1" class="tp-lb-pill lb-add" id="lb-add-session" data-laps-add aria-label="Add a session" title="Add a session"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Add a session</span></a><div data-laps-tip="bulb"></div></div></div>
+    <div class="tp-hero-row"><h1><svg class="icon lb-trophy" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h3a3 3 0 0 1-3 4M7 5H4a3 3 0 0 0 3 4"/></svg>Leaderboard</h1><a href="track.html" class="tp-lb-pill tp-round" id="lb-my-sessions" aria-label="My Sessions" title="My Sessions"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M10 2h4"/></svg>My Sessions</a><div class="tp-hero-actions lb-actions"><a href="track.html?add=1" class="tp-lb-pill lb-add" id="lb-add-session" data-laps-add aria-label="Add a session" title="Add a session"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Add a session</span></a><div data-laps-tip="bulb"><span class="laps-tip-bulbbtn laps-tip-wait" aria-hidden="true"><svg class="icon laps-tip-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.3 1 2.1h5c0-.8.4-1.6 1-2.1A6 6 0 0 0 12 3Z"/></svg></span></div></div></div>
     <details class="tp-what" id="lb-what"><summary>What is the Leaderboard?</summary><div class="tp-what-body"><p>Real times from EVs on tracks, drag strips and hill climbs, straight from members&rsquo; own lap timers. Every car&rsquo;s fastest, with the tyres, pads and setup behind it.</p><ul class="tp-what-list"><li><b>A board for every track.</b> Track days, sprints, hill climbs and drag strips, each layout on its own, with the fastest lap, run or quarter mile for every car.</li><li><b>Open a time to see the lap.</b> Every row opens the session: the lap on the satellite map, speed, braking and cornering g, and the car&rsquo;s tyres, pads and setup.</li><li><b>Compare like with like.</b> Filter by model, conditions, driven wheels, tyres or kerb weight, or switch to Compare tyres and Compare pads to see what works best at each track.</li><li><b>Anyone can look.</b> The boards are open to everyone. Adding your own laps is for early testers while we finish Laps; once the preview ends, every member can upload a session from their lap timer and go straight on the board.</li></ul></div></details>
   </div>
 </section>
@@ -538,7 +548,7 @@
   <div class="wrap footer-row">
     <a href="track.html" class="logo laps-logo footer-logo" aria-label="Laps by MT3UK"><svg class="laps-logo-mark" viewBox="0 0 64 64" aria-hidden="true"><rect x="27" y="3" width="10" height="6" rx="2" fill="currentColor"/><circle cx="32" cy="36" r="21" fill="none" stroke="currentColor" stroke-opacity=".22" stroke-width="7"/><path d="M32 15A21 21 0 1 1 11 36" fill="none" stroke="#e8542a" stroke-width="7" stroke-linecap="round"/><path d="M32 36 43 25" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><circle cx="32" cy="36" r="3.4" fill="currentColor"/></svg><span class="laps-logo-name">Laps</span><span class="laps-logo-by">by MT3UK</span></a>
     <span class="footer-text">Lap times and leaderboards for modified and electric cars &middot; from the <a href="https://mt3uk.com/" class="footer-inline-link">MT3UK</a> community</span>
-    <span class="footer-links"><a href="privacy.html">Privacy</a> <a href="contact.html">Contact</a> <a href="https://mt3uk.com/">Back to MT3UK</a></span>
+    <span class="footer-links"><a href="laps.html" id="tp-play-intro">Play intro</a> <a href="privacy.html">Privacy</a> <a href="contact.html">Contact</a> <a href="https://mt3uk.com/">Back to MT3UK</a></span>
   </div>
 </footer>
 
@@ -687,10 +697,10 @@
 <script src="js/share.js?v=20270301" defer></script>
 <script src="js/laps-logo.js?v=1" defer></script>
 <script src="js/account-bar.js?v=15" defer></script>
-<script src="js/laps-strip.js?v=6" defer></script>
+<script src="js/laps-strip.js?v=7" defer></script>
 <script src="js/signin-prompt.js" defer></script>
-<script src="js/notify-bell.js?v=2" defer></script>
-<script src="js/messenger.js" defer></script>
+<script src="js/notify-bell.js?v=4" defer></script>
+<script src="js/messenger.js?v=2" defer></script>
 <script src="js/search.js?v=20261219" defer></script>
 
 </body>

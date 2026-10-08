@@ -354,8 +354,11 @@
   function heroAdd() {
     var box = document.getElementById('tp-hero-actions'), a = document.getElementById('tp-hero-add');
     if (!box || !a) return;
-    box.hidden = !heroAddCar;
+    // While the list is still loading (track.html shows the box as a placeholder, .is-waiting), it stays.
+    box.hidden = !heroAddCar && !box.classList.contains('is-waiting');
     if (!heroAddCar) return;
+    box.classList.remove('is-waiting');
+    a.classList.remove('is-wait');
     var q = 'add=1&car=' + encodeURIComponent(heroAddCar);
     a.href = 'track.html?' + q;
     a.setAttribute('data-go', q);
@@ -372,7 +375,18 @@
   // loaded, say) must not draw over the view that replaced it.
   var routeSeq = 0;
   function stale(my) { return my !== routeSeq; }
+  // The heading's Add a session is a placeholder until the first view has drawn (heroAdd), then the real button or gone.
+  function heroSettle() {
+    var box = document.getElementById('tp-hero-actions'), a = document.getElementById('tp-hero-add');
+    if (box) box.classList.remove('is-waiting');
+    if (a) a.classList.remove('is-wait');
+    heroAdd();
+  }
   function route() {
+    var done = routeView();
+    Promise.resolve(done).then(heroSettle, heroSettle);
+  }
+  function routeView() {
     routeSeq++;
     stopPlay();
     syncPageBack();
@@ -710,7 +724,7 @@
   function showHome() {
     loading();
     var my = routeSeq;
-    Promise.all([getMine(), getLibrary(), getCopy()]).then(function (r) {
+    return Promise.all([getMine(), getLibrary(), getCopy()]).then(function (r) {
       if (stale(my)) return;
       var m = r[0], c = r[2] || {};
       if (m && m.gate) return showGate();

@@ -37,7 +37,8 @@ LAPS_PAGES = ("laps", "track", "leaderboards", "laps-signin")
 # stays on Laps instead of being sent to mt3uk.com.
 SHARED_PAGES = ("profile", "my-builds")
 SHARED_SCRIPT = '<script src="js/laps-shared.js?v=20270201"></script>'
-STYLESHEET = '<link rel="stylesheet" href="css/site-header.css">'
+# Bump the ?v= tag when css/site-header.css changes, as browsers and Cloudflare keep the old file under the old tag.
+STYLESHEET = '<link rel="stylesheet" href="css/site-header.css?v=20271008">'
 
 # Every public page, and the menu link shown as active on it.
 PAGES = {
@@ -122,7 +123,10 @@ def build(page):
     else:
         html = re.sub(r"<header>.*?</header>", lambda m: render_header(page), original, count=1, flags=re.S)
         html = re.sub(r"<footer>.*?</footer>", lambda m: render_footer(page), html, count=1, flags=re.S)
-    if STYLESHEET not in html:
+    sheet = re.compile(r'<link rel="stylesheet" href="css/site-header\.css[^"]*">')
+    if sheet.search(html):
+        html = sheet.sub(lambda m: STYLESHEET, html)
+    else:
         html = html.replace("<style>", STYLESHEET + "\n<style>", 1)
     return original, html
 

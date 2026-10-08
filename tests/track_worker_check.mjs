@@ -595,6 +595,15 @@ ok(r.body.entries.length === 0, 'and it stays off when the member saves it again
   r = await call('GET', '/laps/offline/access', undefined, 'tok-c');
   ok(r.body.access === true && r.body.open === true, 'offline mode: open to all members offers it to everyone');
   await call('POST', '/laps/offline/admin?key=secret', { action: 'open', open: false });
+  r = await call('GET', '/laps/offline/admin?key=secret&members=1');
+  ok(Array.isArray(r.body.members) && r.body.members.some(m => m.email === A && m.account === 'mt3uk'), 'offline mode: the lookup lists the Laps members');
+  ok(r.body.members.every(m => m.access === false), 'offline mode: and says nobody has access to start with');
+  await call('POST', '/laps/offline/admin?key=secret', { action: 'add', email: A });
+  r = await call('GET', '/laps/offline/admin?key=secret&members=1');
+  ok(r.body.members.find(m => m.email === A).access === true && r.body.members.find(m => m.email === B).access === false, 'offline mode: and who was given access');
+  await call('POST', '/laps/offline/admin?key=secret', { action: 'revoke', email: A });
+  r = await call('GET', '/laps/offline/admin');
+  ok(r.status === 401, 'offline mode: the lookup needs the admin key');
   r = await call('POST', '/laps/offline/admin?key=secret', { action: 'bad' });
   ok(r.status === 400, 'offline mode: an unknown action is refused');
   r = await call('POST', '/laps/offline/admin?key=secret', { action: 'add', email: 'nope' });

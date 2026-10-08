@@ -732,17 +732,33 @@
   // worker itself, which also carries push notifications), then loads the page again, so what the member sees is what
   // is live now.
   function refreshChip() { return '<button type="button" class="chip tp-refresh" data-refresh aria-label="Refresh this page from the latest version" title="Refresh">' + icon('refresh') + '</button>'; }
+  // Refresh. With no signal it touches nothing and does not reload (a reload could not find the page): it reads the
+  // list again from the copy on the device, so sessions added, changed or removed here show. With Offline mode on and a
+  // signal it sends what is waiting and refreshes the copy kept on the device, then draws again. Otherwise it fetches the
+  // page's own files afresh and reloads. It never deletes the Offline mode copy or its map pictures (the caches that
+  // begin mt3uk-laps-): clearing those is what left a page that could not open with no signal.
   app.addEventListener('click', function (e) {
     var b = e.target.closest('[data-refresh]');
     if (!b || b.disabled) return;
+    var off = window.MT3UKOffline;
+    if (off && off.isOffline && off.isOffline()) {
+      mine = null;
+      if (off.say) off.say('info', '<b>Offline.</b> Showing the copy kept on this device, with anything you added or changed here.', 6000);
+      route();
+      return;
+    }
     b.disabled = true;
     var label = b.querySelector('span');
     if (label) label.textContent = 'Refreshing...';
+    if (off && off.enabled && off.enabled() && off.refreshCopy) {
+      off.refreshCopy().then(function () { mine = null; library = null; copy = null; route(); });
+      return;
+    }
     var urls = [].slice.call(document.querySelectorAll('script[src], link[rel="stylesheet"]')).map(function (el) { return el.src || el.href; })
       .filter(function (u) { return u && u.indexOf(location.origin) === 0; });
     urls.push(new URL('data/tracks.json', location.href).href);
     var jobs = urls.map(function (u) { return fetch(u, { cache: 'reload' }).catch(function () {}); });
-    try { if (window.caches && caches.keys) jobs.push(caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return caches.delete(k); })); }).catch(function () {})); } catch (err) {}
+    try { if (window.caches && caches.keys) jobs.push(caches.keys().then(function (ks) { return Promise.all(ks.filter(function (k) { return k.indexOf('mt3uk-laps-') !== 0; }).map(function (k) { return caches.delete(k); })); }).catch(function () {})); } catch (err) {}
     try { if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) jobs.push(navigator.serviceWorker.getRegistrations().then(function (rs) { return Promise.all(rs.map(function (r) { return r.update(); })); }).catch(function () {})); } catch (err) {}
     Promise.all(jobs).then(function () { mine = null; library = null; copy = null; location.reload(); });
   });

@@ -488,6 +488,14 @@
       return prepare(report);
     });
   }
+  // Refresh with a signal and Offline mode on: send what is waiting, then keep the pages, cars and latest sessions again.
+  // Never throws; resolves true when the copy was refreshed.
+  function refreshCopy() {
+    if (!enabled() || offline) return Promise.resolve(false);
+    return Promise.resolve(token() ? sync() : null).catch(function () {}).then(function () {
+      return keepCopy(function () {});
+    }).then(function () { labels(); return true; }, function () { return false; });
+  }
   function labels() {
     drawHeaderIcon();
     var on = enabled();
@@ -625,8 +633,11 @@
   // answer is kept for the member, so it still holds with no signal.
   var ACCESS_KEY = 'mt3ukLapsOfflineAccess';
   function allowed() {
-    if (adminViewer() || enabled()) return true;
-    return !!token() && ls(ACCESS_KEY) === (ls(EMAIL_KEY) || '').toLowerCase() + '|1';
+    if (enabled()) return true;
+    // Signed in, the list decides, the admin's own account included, so adding and taking away can be tested on it.
+    // The admin viewer token only counts when nobody is signed in on this browser.
+    if (token()) return ls(ACCESS_KEY) === (ls(EMAIL_KEY) || '').toLowerCase() + '|1';
+    return adminViewer();
   }
   function checkAccess() {
     if (!token() || offline) return Promise.resolve();
@@ -693,6 +704,8 @@
     pending: qAll,
     sync: sync,
     enabled: enabled,
+    say: say,
+    refreshCopy: refreshCopy,
     setEnabled: setEnabled,
     labels: labels
   };

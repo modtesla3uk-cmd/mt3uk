@@ -247,6 +247,68 @@ def test_the_last_answer_about_access_still_holds_with_no_signal(page):
     expect(page.locator("#nav-offline")).to_be_visible()
 
 
+def test_the_admin_signed_in_follows_the_list_like_anyone_so_adding_and_taking_away_can_be_tested(page):
+    fake = FakeWorker()
+    fake.offline_access = False
+    open_signed_in(page, fake, admin=True)
+    expect(page.locator("#nav-offline")).to_have_count(0)
+    expect(page.locator("#tp-offline")).to_be_hidden()
+
+
+def test_the_admin_with_nobody_signed_in_still_has_it_with_the_viewer_token(page):
+    page.add_init_script("localStorage.setItem('mt3ukAdminViewer', JSON.stringify({token:'admintoken1234567890', expires: Date.now() + 864e5}));")
+    page.route("**/%s/**" % API_HOST, FakeWorker().reply)
+    page.goto("/track.html")
+    expect(page.locator("#nav-offline")).to_be_visible()
+
+
+STUB_CACHES = """
+if (window.caches) {
+  caches.keys = () => Promise.resolve(['mt3uk-shell-v10', 'mt3uk-laps-offline-v1', 'mt3uk-laps-tiles-v1']);
+  caches.delete = (k) => { const d = JSON.parse(sessionStorage.getItem('cacheDeleted') || '[]'); d.push(k); sessionStorage.setItem('cacheDeleted', JSON.stringify(d)); return Promise.resolve(true); };
+}
+"""
+
+
+def test_refresh_with_no_signal_does_not_reload_or_clear_the_copy_and_shows_what_was_saved_here(page):
+    """Refresh with no signal read the list again from the copy on the device. It used to clear every cache and reload,
+    which left a page that could not open."""
+    page.add_init_script(STUB_CACHES)
+    fake = FakeWorker()
+    link = open_signed_in(page, fake)
+    go_offline(page, link)
+    add_thruxton(page)
+    page.get_by_role("button", name="Save session").click()
+    expect(page.locator("#lo-pending")).to_contain_text("1 session waiting to be sent")
+    page.evaluate("window.__marker = 1")
+    page.locator(".tp-refresh").first.click()
+    expect(page.locator("#lo-bar")).to_contain_text("Showing the copy kept on this device")
+    expect(page.locator("#lo-pending")).to_contain_text("1 session waiting to be sent")
+    assert page.evaluate("window.__marker") == 1, "the page was not reloaded"
+    assert page.evaluate("JSON.parse(sessionStorage.getItem('cacheDeleted') || '[]')") == [], "nothing kept on the device was cleared"
+
+
+def test_refresh_with_offline_mode_on_keeps_the_offline_copy_and_does_not_reload(page):
+    page.add_init_script(STUB_CACHES)
+    page.add_init_script("localStorage.setItem('mt3ukLapsOffline', '1');")
+    open_signed_in(page, FakeWorker())
+    page.evaluate("window.__marker = 1")
+    page.locator(".tp-refresh").first.click()
+    page.wait_for_timeout(800)
+    assert page.evaluate("window.__marker") == 1, "the page was not reloaded"
+    assert page.evaluate("JSON.parse(sessionStorage.getItem('cacheDeleted') || '[]')") == [], "the offline copy and its maps were not cleared"
+
+
+def test_refresh_without_offline_mode_still_reloads_but_leaves_the_laps_caches_alone(page):
+    page.add_init_script(STUB_CACHES)
+    open_signed_in(page, FakeWorker())
+    page.evaluate("window.__marker = 1")
+    with page.expect_navigation():
+        page.locator(".tp-refresh").first.click()
+    deleted = page.evaluate("JSON.parse(sessionStorage.getItem('cacheDeleted') || '[]')")
+    assert deleted == ["mt3uk-shell-v10"], deleted
+
+
 def test_the_header_icon_is_a_button_that_turns_offline_mode_on_and_off(page):
     """A switch beside the bell: off to start with, a press asks first (Cancel leaves it off), and when it is on a press
     turns it off at once."""

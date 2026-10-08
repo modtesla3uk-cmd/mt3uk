@@ -421,6 +421,55 @@ def test_admin_offline_mode_panel_gives_access_to_members_and_opens_to_all(page)
     assert [c["action"] for c in calls] == ["add", "revoke", "open"]
 
 
+def test_admin_offline_mode_panel_finds_laps_members_and_can_add_the_admins_own_account(page):
+    state = {"open": False, "allowed": []}
+    members = [{"email": "admin@example.com", "name": "", "account": "mt3uk"},
+               {"email": "ann@example.com", "name": "Ann B", "account": "mt3uk"},
+               {"email": "lap@example.com", "name": "", "account": "laps"}]
+    calls = []
+
+    def offline(route):
+        req = route.request
+        if req.method == "POST":
+            body = json.loads(req.post_data)
+            calls.append(body)
+            if body["action"] == "add":
+                state["allowed"].append({"email": body["email"], "name": "", "at": "2026-10-02T09:00:00Z"})
+            elif body["action"] == "revoke":
+                state["allowed"] = [a for a in state["allowed"] if a["email"] != body["email"]]
+        data = dict(state, success=True)
+        if "members=1" in req.url:
+            data["members"] = [dict(m, access=any(a["email"] == m["email"] for a in state["allowed"])) for m in members]
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(data), headers={"Access-Control-Allow-Origin": "*"})
+    open_admin(page, "track-admin.html")
+    page.add_init_script("localStorage.setItem('mt3ukMyBuildsEmail', 'admin@example.com')")
+    page.route("**/laps/offline/admin**", offline)
+    page.reload()
+    page.locator("#offline-wrap summary").click()
+    # The admin's own account has a button of its own.
+    expect(page.locator("#of-me")).to_have_text("Add me (admin@example.com)")
+    page.get_by_role("button", name="Show Laps members").click()
+    rows = page.locator("#of-members tbody tr")
+    expect(rows).to_have_count(3)
+    expect(page.locator("#of-members")).to_contain_text("(you)")
+    expect(page.locator("#of-members")).to_contain_text("Laps only")
+    # Type to narrow it down, then give access.
+    page.fill("#of-find", "ann")
+    expect(rows).to_have_count(1)
+    rows.first.get_by_role("button", name="Give access").click()
+    expect(page.locator("#of-allowed")).to_contain_text("ann@example.com")
+    expect(rows.first).to_contain_text("Has access")
+    # Testing on the admin's own account: add, then take away.
+    page.fill("#of-find", "")
+    page.locator("#of-me").click()
+    expect(page.locator("#of-allowed")).to_contain_text("admin@example.com")
+    expect(page.locator("#of-me")).to_have_text("Take me away (admin@example.com)")
+    page.once("dialog", lambda d: d.accept())
+    page.locator("#of-me").click()
+    expect(page.locator("#of-allowed")).not_to_contain_text("admin@example.com")
+    assert [(c["action"], c["email"]) for c in calls] == [("add", "ann@example.com"), ("add", "admin@example.com"), ("revoke", "admin@example.com")]
+
+
 def test_admin_can_add_the_current_testers_to_the_early_access_list(page):
     state = {"open": False, "imported": "", "pending": [], "allowed": []}
 

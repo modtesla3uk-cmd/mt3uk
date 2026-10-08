@@ -85,6 +85,10 @@
       <div class="iv-toolbar"><button type="button" class="tk-switch" role="switch" id="of-open" aria-checked="false"><span class="tk-track"></span>Open to all members</button></div>
       <h3 class="sub-head">Approved members</h3>
       <div id="of-allowed"></div>
+      <h3 class="sub-head">Find a Laps member</h3>
+      <p class="iv-note">Everyone who can sign in to Laps. Type part of a name or email, then give access or take it away. Your own account is marked "you" when you are signed in to Laps in this browser, so you can test adding and taking away on it: while you are signed in, the list decides for you too.</p>
+      <div class="iv-toolbar"><input type="search" id="of-find" placeholder="Name or email" aria-label="Find a Laps member" autocomplete="off"><button type="button" class="secondary" id="of-load">Show Laps members</button><button type="button" class="secondary" id="of-me" hidden>Add me</button></div>
+      <div id="of-members"></div>
       <h3 class="sub-head">Add someone</h3>
       <form class="iv-toolbar" id="of-add-form"><input type="email" id="of-add-email" placeholder="Member's email" aria-label="Member's email" autocomplete="off"><button type="submit">Give access</button></form>
     </details>
@@ -309,7 +313,7 @@
 <script src="js/track-parse.js?v=20270129" defer></script>
 <script src="js/track-view.js?v=20270115" defer></script>
 <script src="js/track-access-admin.js?v=20270105" defer></script>
-<script src="js/laps-offline-admin.js?v=1" defer></script>
+<script src="js/laps-offline-admin.js?v=2" defer></script>
 <script src="js/track-usage-admin.js?v=20270101" defer></script>
 <script src="js/laps-signin-admin.js?v=20270104" defer></script>
 <script src="js/laps-signups-admin.js?v=20270107" defer></script>

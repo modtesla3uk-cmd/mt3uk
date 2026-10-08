@@ -7786,10 +7786,44 @@ async function handleLapsOfflineAccess(request, env) {
   var a = await getLapsOfflineAccess(env), e = accessEmail(email);
   return json({ success: true, access: a.open || a.allowed.some(function (x) { return x.email === e; }), open: a.open });
 }
+// Everyone who can sign in to Laps, for the Offline mode panel's lookup: the MT3UK members (subscriber:) and the Laps-only
+// accounts (laps-account:), with whether each is offered Offline mode now. Names come from the Laps sign-ups list and the
+// approved lists where known. Admin only and asked for on demand, so list() is fine.
+async function lapsOfflineMembers(env, a) {
+  var names = {}, out = {}, i;
+  (await getJsonKey(env, LAPS_SIGNUPS_KEY, [])).forEach(function (x) { if (x && x.email && x.name) names[x.email] = x.name; });
+  var ta = await getTrackAccess(env);
+  ta.allowed.concat(ta.pending).forEach(function (x) { if (x && x.email && x.name && !names[x.email]) names[x.email] = x.name; });
+  a.allowed.forEach(function (x) { if (x && x.email && x.name && !names[x.email]) names[x.email] = x.name; });
+  async function scan(prefix, kind) {
+    var cursor, pages = 0;
+    do {
+      var page = await env.VOTES.list({ prefix: prefix, limit: 1000, cursor: cursor });
+      for (i = 0; i < page.keys.length; i++) {
+        var em = accessEmail(page.keys[i].name.slice(prefix.length));
+        if (em && !out[em]) out[em] = { email: em, name: names[em] || '', account: kind };
+      }
+      cursor = page.list_complete ? undefined : page.cursor; pages++;
+    } while (cursor && pages < 20);
+  }
+  await scan('subscriber:', 'mt3uk');
+  await scan('laps-account:', 'laps');
+  var list = Object.keys(out).map(function (k) {
+    var m = out[k];
+    m.access = a.open || a.allowed.some(function (x) { return x.email === m.email; });
+    return m;
+  });
+  list.sort(function (x, y) { return (x.name || x.email).toLowerCase() < (y.name || y.email).toLowerCase() ? -1 : 1; });
+  return list.slice(0, 3000);
+}
 async function handleLapsOfflineAdmin(request, env) {
   if (!eventsAdminAuthorised(request, env)) return json({ success: false, message: 'Unauthorised' }, 401);
   var a = await getLapsOfflineAccess(env);
-  if (request.method === 'GET') return json({ success: true, open: a.open, allowed: a.allowed });
+  if (request.method === 'GET') {
+    var reply = { success: true, open: a.open, allowed: a.allowed };
+    if (new URL(request.url).searchParams.get('members')) reply.members = await lapsOfflineMembers(env, a);
+    return json(reply);
+  }
   var body;
   try { body = await request.json(); } catch (er) { return json({ success: false, message: 'Invalid request body' }, 400); }
   var action = String(body.action || ''), e = accessEmail(body.email);

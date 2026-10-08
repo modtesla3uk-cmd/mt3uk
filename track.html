@@ -203,6 +203,14 @@
   .tp-dayedit h3 { margin: 0 0 4px; font-size: 1rem; }
   .tp-dayedit .tp-switch { margin: 6px 0; }
   .tp-dayedit .tp-actions { margin-top: 10px; }
+  /* The bulk edit is a compact two-column form, no wider than it needs to be: Conditions and Sharing, the temperature and weather, the tyres and the pads side by side, then the logger. */
+  .tp-dayedit { max-width: 680px; }
+  .tp-dayedit .tp-de-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 18px; align-items: start; }
+  .tp-dayedit .tp-de-grid > .tp-field, .tp-dayedit .tp-de-grid > .tp-weather-row { margin: 0; }
+  .tp-dayedit .tp-weather-row { align-self: end; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+  .tp-dayedit .tp-de-kit .tp-switch { min-height: 40px; margin: 2px 0; }
+  .tp-dayedit .tp-tyre-note { margin: 0 0 6px; }
+  @media (max-width: 640px) { .tp-dayedit .tp-de-grid { grid-template-columns: 1fr; } }
   .tp-daygroup-all { margin-top: 8px; gap: 8px; }
   .tp-daygroup[data-open="false"] .tp-daygroup-all { display: none; }
   .tp-daygroup[data-open="true"] .tp-daygroup-best { display: none; }
@@ -1258,7 +1266,7 @@
 <script src="js/pad-data.js?v=20270210"></script>
 <script src="js/vehicle-data.js?v=20270210" defer></script>
 <script src="js/track-line-image.js?v=20261110" defer></script>
-<script src="js/track-page.js?v=20271016" defer></script>
+<script src="js/track-page.js?v=20271017" defer></script>
 <script src="js/laps-panels.js?v=4" defer></script>
 <script src="js/laps-tip.js?v=20270104" defer></script>
 <script src="js/share.js?v=20270301" defer></script>

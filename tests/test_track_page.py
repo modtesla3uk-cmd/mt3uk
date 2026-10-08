@@ -1081,6 +1081,20 @@ def test_edit_every_session_on_a_day_at_once(page):
     expect(page.locator("#tp-saved")).to_contain_text("are updated")
     expect(page.locator("#tp-dayedit")).to_have_count(0)
     assert all(v.get("tyreMake") == "Michelin" and v.get("tyreModel") == "Pilot Sport 4S" and v["conditions"] == "Wet" for v in fake.sessions.values()), fake.sessions
+    # Sharing is one of the options: Shared (after a confirm) or Only me, applied to every session of the day.
+    page.on("dialog", lambda d: d.accept())
+    page.locator("#tp-saved-x").click()
+    page.locator("[data-day-edit]").click()
+    page.locator("#tp-dayedit [data-share] button[data-v='board']").click()
+    page.locator("[data-day-edit-apply]").click()
+    expect(page.locator("#tp-saved")).to_contain_text("are updated")
+    assert all(v["privacy"] == "board" and v["conditions"] == "Wet" for v in fake.sessions.values()), fake.sessions
+    page.locator("#tp-saved-x").click()
+    page.locator("[data-day-edit]").click()
+    page.locator("#tp-dayedit [data-share] button[data-v='private']").click()
+    page.locator("[data-day-edit-apply]").click()
+    expect(page.locator("#tp-saved")).to_contain_text("are updated")
+    assert all(v["privacy"] == "private" for v in fake.sessions.values()), fake.sessions
 
 
 def test_the_sessions_list_can_be_filtered_by_logger_tyres_and_pads(page):

@@ -1387,14 +1387,17 @@
     var sel = picked ? (n === 1 ? 'the selected session' : 'the ' + n + ' selected sessions') : n > 1 ? 'all ' + n + ' sessions' : 'the session';
     return '<div class="card tp-fields tp-dayedit" id="tp-dayedit"><h3>Edit ' + sel + ' on ' + esc(what) + '</h3>' +
       '<p class="tp-small">Only what you set here changes; anything left blank stays as it is on each session.</p>' +
+      '<div class="tp-de-grid">' +
       '<div class="tp-field"><span class="tp-lbl">Conditions</span><div class="tp-chips" data-cond>' + ['Dry', 'Damp', 'Wet'].map(function (c) { return '<button type="button" class="chip" data-v="' + c + '" aria-pressed="false">' + c + '</button>'; }).join('') + '</div></div>' +
+      '<div class="tp-field"><span class="tp-lbl">Sharing</span><div class="tp-chips" data-share>' + [['board', 'Shared'], ['private', 'Only me']].map(function (c) { return '<button type="button" class="chip" data-v="' + c[0] + '" aria-pressed="false">' + c[1] + '</button>'; }).join('') + '</div></div>' +
       '<div class="tp-field"><label for="tp-de-temp">Air temperature (°C)</label><input class="field" id="tp-de-temp" inputmode="numeric" placeholder="Leave as it is"></div>' +
       '<div class="tp-weather-row"><button type="button" class="btn btn-secondary btn-sm" id="tp-de-weather">Fill in from weather</button><p class="tp-src" id="tp-de-src"></p></div>' +
-      '<button type="button" class="tp-switch" role="switch" id="tp-de-tyres-on" aria-checked="false"><span>Change the tyres</span><span class="tp-track"></span></button>' +
-      '<div id="tp-de-tyres" hidden>' + tyreFields('tp-de-tyre', {}) + '</div>' +
-      '<button type="button" class="tp-switch" role="switch" id="tp-de-pads-on" aria-checked="false"><span>Change the brake pads</span><span class="tp-track"></span></button>' +
-      '<div id="tp-de-pads" hidden>' + padFields('tp-de-pad', { same: true }) + '</div>' +
+      '<div class="tp-de-kit"><button type="button" class="tp-switch" role="switch" id="tp-de-tyres-on" aria-checked="false"><span>Change the tyres</span><span class="tp-track"></span></button>' +
+      '<div id="tp-de-tyres" hidden>' + tyreFields('tp-de-tyre', {}) + '</div></div>' +
+      '<div class="tp-de-kit"><button type="button" class="tp-switch" role="switch" id="tp-de-pads-on" aria-checked="false"><span>Change the brake pads</span><span class="tp-track"></span></button>' +
+      '<div id="tp-de-pads" hidden>' + padFields('tp-de-pad', { same: true }) + '</div></div>' +
       loggerFields('tp-de-logger', '', false).replace('Choose the logger', 'Leave as it is') +
+      '</div>' +
       '<div class="tp-actions"><button type="button" class="btn btn-primary" data-day-edit-apply>' + icon('check') + 'Apply to ' + sel + '</button><button type="button" class="btn btn-ghost" data-day-edit-cancel>Cancel</button></div><p class="tp-status" id="tp-de-status" role="status"></p></div>';
   }
   document.addEventListener('click', function (e) {
@@ -1423,12 +1426,14 @@
         sw.setAttribute('aria-checked', 'true'); fields.hidden = false;
       });
     });
-    form.querySelector('[data-cond]').addEventListener('click', function (ev) {
-      var c = ev.target.closest('button[data-v]');
-      if (!c) return;
-      var on = c.getAttribute('aria-pressed') !== 'true';
-      form.querySelectorAll('[data-cond] button').forEach(function (x) { x.classList.remove('is-on'); x.setAttribute('aria-pressed', 'false'); });
-      if (on) { c.classList.add('is-on'); c.setAttribute('aria-pressed', 'true'); }
+    ['data-cond', 'data-share'].forEach(function (attr) {
+      form.querySelector('[' + attr + ']').addEventListener('click', function (ev) {
+        var c = ev.target.closest('button[data-v]');
+        if (!c) return;
+        var on = c.getAttribute('aria-pressed') !== 'true';
+        form.querySelectorAll('[' + attr + '] button').forEach(function (x) { x.classList.remove('is-on'); x.setAttribute('aria-pressed', 'false'); });
+        if (on) { c.classList.add('is-on'); c.setAttribute('aria-pressed', 'true'); }
+      });
     });
     ['tyres', 'pads'].forEach(function (k) {
       var sw = document.getElementById('tp-de-' + k + '-on'), fields = document.getElementById('tp-de-' + k);
@@ -1457,12 +1462,15 @@
     form.querySelector('[data-day-edit-apply]').addEventListener('click', function () {
       var body = {}, cond = form.querySelector('[data-cond] button.is-on'), t = document.getElementById('tp-de-temp').value.trim(), lg = loggerValue('tp-de-logger');
       if (cond) body.conditions = cond.getAttribute('data-v');
+      var shareChip = form.querySelector('[data-share] button.is-on');
+      if (shareChip) body.privacy = shareChip.getAttribute('data-v');
       if (t !== '' && isFinite(parseFloat(t))) { body.temp = parseFloat(t); body.tempSource = dayWeather && parseFloat(t) === dayWeather.temp ? 'weather' : 'member'; if (body.tempSource === 'weather') body.weather = dayWeather; }
       if (document.getElementById('tp-de-tyres-on').getAttribute('aria-checked') === 'true') Object.assign(body, tyrePayload(readTyre('tp-de-tyre')));
       if (document.getElementById('tp-de-pads-on').getAttribute('aria-checked') === 'true') Object.assign(body, padPayload(readPads('tp-de-pad')));
       if (lg) body.logger = lg;
       var st = document.getElementById('tp-de-status');
       if (!Object.keys(body).length) { st.textContent = 'Set at least one thing to change first.'; st.className = 'tp-status is-error'; return; }
+      if (body.privacy === 'board' && !window.confirm((ids.length === 1 ? 'Share this session' : 'Share these ' + ids.length + ' sessions') + ' at ' + what + '? Members will see ' + (ids.length === 1 ? 'it' : 'them') + ' on your car\'s page, and on the track\'s leaderboard where it has one.')) return;
       var btn = form.querySelector('[data-day-edit-apply]');
       btn.disabled = true; st.textContent = 'Saving...'; st.className = 'tp-status';
       var chain = Promise.resolve(), failed = 0;

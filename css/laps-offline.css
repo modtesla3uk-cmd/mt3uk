@@ -46,12 +46,12 @@
    Windows "always available offline" badge. Green means Offline mode is on; grey means it is off (normal, online);
    orange means there is no signal and nothing is kept. Same size and spacing as the Messages icon beside it. */
 .nav-offline { color: #8a93a3; }
-.nav-offline svg { width: 29px; height: 24px; fill: none; stroke: none; }
+.nav-offline svg { width: 34px; height: 28px; fill: none; stroke: none; }
 .nav-offline:hover { opacity: 0.8; }
 .nav-offline[hidden] { display: none; }
 .nav-offline[aria-checked="true"] { color: #2e9d4a; }
 .nav-offline.is-offline[aria-checked="false"] { color: var(--orange, #e8542a); }
 .nav-offline:disabled { cursor: progress; opacity: 0.45; }
 .nav-offline:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-sm); }
-@media (max-width: 780px) { .nav-offline svg { width: 26px; height: 21px; } }
+@media (max-width: 780px) { .nav-offline svg { width: 30px; height: 25px; } }
 .lo-bar.is-info { background: #16233d; }

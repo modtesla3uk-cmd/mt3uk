@@ -2046,6 +2046,20 @@ def test_set_up_by_hand_fills_in_the_organiser_a_member_typed(device_page):
     assert last.locator('[data-l="name"]').input_value() == "Ray Heal Memorial 2022"
 
 
+@all_devices
+def test_a_sprint_course_with_no_organiser_shows_its_name_in_the_organiser_box(device_page):
+    """A course saved with a name and no organiser is listed on the Add page by its name, so the admin's Organiser box
+    shows that name rather than looking empty."""
+    page = device_page
+    page.add_init_script("sessionStorage.setItem('mt3ukAdminKey', 'test-key')")
+    page.goto("/track-admin.html")
+    page.locator("#tracks-wrap > summary").click()
+    page.locator("#tk-list").wait_for(timeout=10000)
+    page.locator('#tk-list [data-edit="shelsley-walsh"]').click()
+    org = page.locator('#tk-form .tk-layout [data-l="organizer"]').first
+    assert org.input_value() == "Hill climb"
+
+
 def test_leaderboard_track_list_can_be_sorted(page):
     fake = FakeWorker()
     fake.index = [dict(EARLIER, id="sh1", privacy="board", bestTime=101.2)]

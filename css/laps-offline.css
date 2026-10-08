@@ -1,0 +1,43 @@
+/* Offline mode on the Laps pages (js/laps-offline.js): the bar that says so, the offer, and the queue card. */
+.lo-bar { position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 2500; display: flex; align-items: flex-start; gap: 10px; max-width: 760px; margin: 0 auto; padding: 12px 14px; border-radius: var(--radius); background: #16233d; color: #fff; font-family: var(--font-body); font-size: 0.88rem; line-height: 1.45; box-shadow: 0 6px 24px rgba(22, 35, 61, 0.35); }
+.lo-bar[hidden], .lo-offer[hidden], .lo-pending[hidden] { display: none; }
+.lo-bar.is-ok { background: #17663f; }
+.lo-bar.is-warn { background: #8a3a12; }
+.lo-bar .lo-ico { flex: none; display: inline-flex; margin-top: 2px; }
+.lo-bar .icon { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.lo-text { flex: 1; min-width: 0; }
+.lo-x { flex: none; width: 44px; height: 44px; margin: -10px -10px -10px 0; display: inline-flex; align-items: center; justify-content: center; background: none; border: 0; color: inherit; cursor: pointer; border-radius: var(--radius-sm); }
+.lo-x:focus-visible, .lo-link:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.lo-link { background: none; border: 0; padding: 0; font: inherit; color: #ffc9b3; text-decoration: underline; cursor: pointer; min-height: 24px; }
+
+.lo-offer { position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 2400; max-width: 460px; margin: 0 auto; padding: 16px; font-family: var(--font-body); box-shadow: 0 6px 24px rgba(22, 35, 61, 0.28); }
+.lo-offer h3 { margin: 0 0 6px; font-size: 1rem; }
+.lo-offer p { margin: 0 0 12px; font-size: 0.9rem; line-height: 1.5; }
+.lo-offer .lo-small { margin: 10px 0 0; }
+.lo-ticks { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 6px; font-size: 0.9rem; line-height: 1.4; }
+.lo-ticks li { display: flex; gap: 8px; align-items: flex-start; }
+.lo-ticks .icon { flex: none; width: 18px; height: 18px; margin-top: 1px; fill: none; stroke: #17663f; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.lo-confirm { z-index: 2600; max-width: 520px; }
+.lo-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.lo-small { font-size: 0.82rem; color: #5b6577; }
+
+.lo-pending { margin-bottom: 16px; padding: 16px; font-family: var(--font-body); border-color: #e8542a; }
+.lo-pending h3 { margin: 0 0 4px; font-size: 1rem; }
+.lo-pending .lo-small { margin: 0 0 10px; }
+.lo-list { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; }
+.lo-list li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border: 1px solid var(--hairline); border-radius: var(--radius-sm); }
+.lo-list li > div { display: grid; gap: 2px; min-width: 0; }
+.lo-list b { overflow-wrap: anywhere; }
+.lo-when { font-size: 0.82rem; color: #5b6577; }
+.lo-err { font-size: 0.85rem; color: #b3261e; }
+.lo-list li.is-bad { border-color: #b3261e; }
+
+/* The switch row on Profile */
+.lo-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.lo-row p { margin: 0; }
+.lo-switch { flex: none; position: relative; width: 52px; height: 32px; border: 0; border-radius: var(--radius-pill); background: #c4cad4; cursor: pointer; padding: 0; min-width: 52px; }
+.lo-switch::after { content: ""; position: absolute; top: 4px; left: 4px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: transform 0.15s; }
+.lo-switch[aria-checked="true"] { background: #17663f; }
+.lo-switch[aria-checked="true"]::after { transform: translateX(20px); }
+.lo-switch:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+@media (max-width: 780px) { .lo-bar, .lo-offer { left: 8px; right: 8px; bottom: 8px; } }

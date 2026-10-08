@@ -94,8 +94,21 @@
           .then(function (gz) { opts.body = gz; }, function () {});
       }
     }
+    var off = window.MT3UKOffline;
     return ready.then(function () { return fetch(API + path, opts); }).then(function (r) {
-      return r.json().catch(function () { return {}; }).then(function (d) { d.status = r.status; return d; });
+      return r.json().catch(function () { return {}; }).then(function (d) {
+        d.status = r.status;
+        // What the worker says about the member's cars and sessions is kept on the device, to show with no signal.
+        if (off && method === 'GET') off.remember(path, d);
+        return d;
+      });
+    }, function (err) {
+      if (!off || !off.isNetworkError(err)) throw err;
+      off.noteNetworkError();
+      if (method === 'GET') return off.recall(path).then(function (c) { if (c) return c; throw err; });
+      var e = new Error('You are offline, and this needs a connection.');
+      e.offline = true;
+      throw e;
     });
   }
   function adminViewerToken() {
@@ -159,6 +172,12 @@
     });
   }
   var mine = null;
+  // Offline mode: shown above anything drawn from what this device kept the last time it was online.
+  function oldNote(at) {
+    var when = new Date(at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    return '<div class="tp-notice is-warn" id="tp-old-note" role="status">' + icon('info') + '<div>You are offline, so this is what was on this device on ' + esc(when) + '. Anything new appears when you are online again.</div></div>';
+  }
+  function isOffline() { return !!(window.MT3UKOffline && window.MT3UKOffline.isOffline()); }
   // 'car' or 'bike': the vehicle of the session or Add page on show, for the words on it.
   var VW = 'car';
   function vwOf(c) { return c && c.vehicleType === 'bike' ? 'bike' : 'car'; }
@@ -177,7 +196,11 @@
       if (r[0].status === 401) return null;
       // Early preview: not on the approved list yet. Not kept, so approval shows on the next visit.
       if (r[1].status === 403 && r[1].needsAccess) return { gate: true, cars: r[0].cars || [], sessions: [] };
-      mine = { cars: (r[0].cars || []), sessions: r[1].sessions || [] };
+      var got = { cars: (r[0].cars || []), sessions: r[1].sessions || [] };
+      // The answer kept on this device from the last time there was a connection: shown, but not remembered, so the
+      // real list is fetched as soon as the page is online again.
+      if (r[0].cachedAt || r[1].cachedAt) { got.cachedAt = Math.min(r[0].cachedAt || Infinity, r[1].cachedAt || Infinity); return got; }
+      mine = got;
       return mine;
     });
   }
@@ -304,6 +327,10 @@
   // Back to the view before, or to q when there is none to go back to.
   function goBack(q) { if (backDepth() > 0) history.back(); else go(q); }
   window.addEventListener('popstate', route);
+  // Offline mode: back online, or the sessions kept on the device have been sent: the list is fetched afresh.
+  function listAgain() { mine = null; counts = null; if (!location.search) showHome(); }
+  document.addEventListener('mt3uk-offline-end', function () { library = null; listAgain(); });
+  document.addEventListener('mt3uk-offline-synced', listAgain);
   app.addEventListener('click', function (e) {
     var a = e.target.closest('a[data-go]');
     if (a && !e.metaKey && !e.ctrlKey) {
@@ -742,9 +769,12 @@
         h += myCarsHtml(m);
       }
       // Sessions just saved from a batch: say so at the top.
-      if (justSaved && (justSaved.batch || justSaved.text)) { h = savedHtml(justSaved) + h; justSaved = null; }
+      if (justSaved && (justSaved.batch || justSaved.text || justSaved.queued)) { h = savedHtml(justSaved) + h; justSaved = null; }
       app.innerHTML = h;
       heroAdd();
+      // Offline mode: an old list is marked, and sessions saved on the device and waiting to be sent are listed.
+      if (m && m.cachedAt) app.insertAdjacentHTML('afterbegin', oldNote(m.cachedAt));
+      if (window.MT3UKOffline && m) window.MT3UKOffline.drawPending(app);
       // A member with no sessions yet sees What are Sessions? open, so they see what Laps does.
       var what = document.querySelector('.page-hero .tp-what');
       if (what && m && !(m.sessions || []).length) what.open = true;
@@ -2844,18 +2874,37 @@
   // Tell MT3UK about a course it cannot place on a leaderboard: a venue we do not list, a listed venue whose layout
   // was not recognised, or a layout with no official start line yet (the member's line is offered for it). Track days
   // find their own lap line, so this cannot wait for the member to tap one.
+  // A request to MT3UK for a track: best effort, and kept on the device to send later when there is no connection.
+  function sendRequest(body) {
+    var off = window.MT3UKOffline;
+    var keep = function () { if (off) off.queueCall('POST', '/track/requests', body, 'Track request: ' + (body.name || 'new track')); };
+    if (off && off.isOffline()) { keep(); return Promise.resolve(); }
+    return api('POST', '/track/requests', body).catch(function (e) { if (off && off.isNetworkError(e)) keep(); });
+  }
+  // With no connection (or a request that never reaches the worker) a session and its readings are kept on this
+  // device and sent later (js/laps-offline.js). carPut: the car with no photo yet, made when it is sent.
+  function queuedLabel(a, sess) { return (sess.venue || a.venueName || 'Session') + (sess.date ? ', ' + sess.date : '') + (a.car && a.car.name ? ' (' + a.car.name + ')' : ''); }
+  function savePost(a, body, rd, sess, carPut) {
+    var off = window.MT3UKOffline;
+    var keep = function () { return off.queueSession({ label: queuedLabel(a, sess), post: body, source: sourceOf(rd), carPut: carPut || null }).then(function () { return { success: true, queued: true }; }); };
+    if (off && (off.isOffline() || carPut)) return keep();
+    return api('POST', '/track/sessions', body, true).catch(function (e) {
+      if (off && off.isNetworkError(e)) return keep();
+      throw e;
+    });
+  }
   function requestCourse(a, s) {
     if (s.type !== 'track' && s.type !== 'sprint') return;
     if (a.addedLayout) return;
     var ownLine = s.layoutId && !s.officialLines && s.startLine && ((a.lib.venues || []).filter(function (vv) { return vv.id === s.venueId; })[0] || { layouts: [] }).layouts.filter(function (l) { return l.id === s.layoutId && !l.startLine; }).length;
     if (!(a.requestStart || ownLine || !s.layoutId)) return;
     var tr = traceOutline(s), out = tr.out, lap = tr.lap;
-    return api('POST', '/track/requests', { kind: s.type === 'sprint' ? 'sprint' : 'circuit', hill: s.type === 'sprint' && isHillSession(s, a.lib), name: a.venueName || s.venue || '', venueId: s.venueId || '', layoutId: ownLine ? s.layoutId : '', organizer: s.type === 'sprint' ? (a.organizer || s.organizer || '') : '', startLine: s.startLine, finishLine: s.finishLine || null, lapLength: lap ? lap[lap.length - 1][0] : null, outline: out, note: s.type === 'sprint' ? (s.venueId ? 'Course not recognised' : 'New sprint or hill climb') : s.venueId ? 'Layout not recognised' : 'New track' }).catch(function () {});
+    return sendRequest({ kind: s.type === 'sprint' ? 'sprint' : 'circuit', hill: s.type === 'sprint' && isHillSession(s, a.lib), name: a.venueName || s.venue || '', venueId: s.venueId || '', layoutId: ownLine ? s.layoutId : '', organizer: s.type === 'sprint' ? (a.organizer || s.organizer || '') : '', startLine: s.startLine, finishLine: s.finishLine || null, lapLength: lap ? lap[lap.length - 1][0] : null, outline: out, note: s.type === 'sprint' ? (s.venueId ? 'Course not recognised' : 'New sprint or hill climb') : s.venueId ? 'Layout not recognised' : 'New track' });
   }
   // Several files: each is timed on its own and saved as its own session, with the settings chosen
   // above. A file that gives no laps or runs is left out and listed.
-  function saveBatch(a, carId) {
-    var items = (a.list || []).filter(function (x) { return x.rd && !x.mergedInto; }), opts = analysisOpts(a), made = [], skipped = [], siblingLine = null, noReadings = [];
+  function saveBatch(a, carId, carPut) {
+    var items = (a.list || []).filter(function (x) { return x.rd && !x.mergedInto; }), opts = analysisOpts(a), made = [], skipped = [], siblingLine = null, noReadings = [], queued = 0;
     // Files with real time stamps first: a file the car wrote with no time stamps may have no start line of its own,
     // so it borrows the one found on the files from the same upload.
     var ordered = items.filter(function (x) { return !x.rd.timeRebuilt; }).concat(items.filter(function (x) { return x.rd.timeRebuilt; }));
@@ -2877,16 +2926,17 @@
         if (!drive && !(a.session && a.session.addedCourse && s1.layoutId)) requestCourse(a, s1);
         var body = postBody(a, carId, s1);
         if (drive) { body.privacy = 'private'; body.venueName = ''; }
-        return api('POST', '/track/sessions', body, true).then(function (d) {
+        return savePost(a, body, x.rd, s1, carPut).then(function (d) {
           if (!d.success) { skipped.push({ name: x.f.name, reason: d.message || 'Could not save it.' }); return; }
+          if (d.queued) { queued++; return; }
           made.push(d.session.id);
           return keepReadings(d.session.id, x.rd).then(function (r) { if (r && r.kept === false) noReadings.push(x.f.name); });
         });
       });
     });
     return chain.then(function () {
-      if (!made.length) throw new Error('None of those files could be saved. ' + (skipped[0] ? skipped[0].name + ': ' + skipped[0].reason : ''));
-      return { success: true, batch: made.length, ids: made, skipped: skipped, noReadings: noReadings };
+      if (!made.length && !queued) throw new Error('None of those files could be saved. ' + (skipped[0] ? skipped[0].name + ': ' + skipped[0].reason : ''));
+      return { success: true, batch: made.length + queued, queued: queued, ids: made, skipped: skipped, noReadings: noReadings };
     });
   }
   function saveSession(btn) {
@@ -2897,26 +2947,43 @@
     // A drag run at a strip we do not list: save it, and tell MT3UK about the strip.
     if (s.type === 'drag' && !s.atVenue && !a.street && s.runs && s.runs[0]) {
       var stripEl = document.getElementById('tp-req-name');
-      api('POST', '/track/requests', { kind: 'drag', name: (stripEl && stripEl.value.trim()) || a.venueName || '', lat: s.runs[0].lat, lng: s.runs[0].lng, note: 'Drag run saved at a strip we do not list' }).catch(function () {});
+      sendRequest({ kind: 'drag', name: (stripEl && stripEl.value.trim()) || a.venueName || '', lat: s.runs[0].lat, lng: s.runs[0].lng, note: 'Drag run saved at a strip we do not list' });
     }
     s.fileName = (a.files || []).map(function (f) { return f.name; }).join(', ').slice(0, 200);
+    // No connection: the session is kept on this device (js/laps-offline.js). Changing a saved session and adding a new
+    // track to the list need the worker, so they wait.
+    if (isOffline() && a.replaceId) { status('Adding the file to a saved session needs a connection. Try again when you are online.', 'error'); return; }
+    if (isOffline() && a.addNow && canAddNow(a, s)) { status('Adding a new track to the list needs a connection. Switch off "Add this track now" and the session is kept on this device, and MT3UK is told about the track when it is sent.', 'error'); return; }
     btn.disabled = true;
     status('Saving...');
+    var carPut = null, offNow = isOffline();
     var carReady = a.car.virtual && !a.replaceId
-      ? api('PUT', '/my-builds/car', { carId: a.car.id }).then(function (d) { if (!d.success) throw new Error(d.message || 'Could not set up the car'); a.car.id = d.car.id; a.car.virtual = false; mine = null; counts = null; return d.car.id; })
+      ? (offNow ? Promise.resolve(null) : api('PUT', '/my-builds/car', { carId: a.car.id }).catch(function (e) { if (window.MT3UKOffline && window.MT3UKOffline.isNetworkError(e)) return null; throw e; }))
+        .then(function (d) {
+          // Offline: the car is made when the session is sent.
+          if (!d) { carPut = a.drive && a.drive !== a.car.drive ? { carId: a.car.id, drive: a.drive } : { carId: a.car.id }; return a.car.id; }
+          if (!d.success) throw new Error(d.message || 'Could not set up the car'); a.car.id = d.car.id; a.car.virtual = false; mine = null; counts = null; return d.car.id;
+        })
       : Promise.resolve(a.car.id);
     carReady.then(function (carId) {
       // A choice of driven wheels that differs from the car's is kept on the car for next time.
-      if (a.drive && a.car && a.drive !== a.car.drive) { a.car.drive = a.drive; mine = null; api('PUT', '/my-builds/car', { carId: carId, drive: a.drive }).catch(function () {}); }
+      if (a.drive && a.car && a.drive !== a.car.drive && !carPut) {
+        a.car.drive = a.drive; mine = null;
+        var driveBody = { carId: carId, drive: a.drive };
+        if (offNow) { if (window.MT3UKOffline) window.MT3UKOffline.queueCall('PUT', '/my-builds/car', driveBody, 'Driven wheels for your car'); }
+        else api('PUT', '/my-builds/car', driveBody).catch(function (e) { if (window.MT3UKOffline && window.MT3UKOffline.isNetworkError(e)) window.MT3UKOffline.queueCall('PUT', '/my-builds/car', driveBody, 'Driven wheels for your car'); });
+      }
       return (a.addNow && !a.replaceId && canAddNow(a, s) ? addCourseNow(a) : Promise.resolve(false)).then(function (added) {
         if (added) { s = a.session; status('Saving...'); } else requestCourse(a, s);
         if (a.replaceId) return api('PUT', '/track/session', { id: a.replaceId, session: s, venueName: a.venueName || '' }, true);
-        if ((a.list || []).filter(function (x) { return x.rd && !x.mergedInto; }).length > 1) return saveBatch(a, carId);
-        return api('POST', '/track/sessions', postBody(a, carId, s), true);
+        if ((a.list || []).filter(function (x) { return x.rd && !x.mergedInto; }).length > 1) return saveBatch(a, carId, carPut);
+        return savePost(a, postBody(a, carId, s), a.rd, s, carPut);
       });
     }).then(function (d) {
       if (!d.success) throw new Error(d.message || 'Could not save the session.');
       mine = null; counts = null;
+      // Kept on this device: the list says so, and shows what is waiting.
+      if (d.queued) { justSaved = { batch: d.batch || 1, queued: d.queued === true ? 1 : d.queued, ids: d.ids || [], skipped: d.skipped || [] }; go('', false, true); return; }
       if (d.batch) { justSaved = { batch: d.batch, ids: d.ids || [], skipped: d.skipped || [], noReadings: d.noReadings || [], joined: (a.list || []).filter(function (x) { return x.merged; }).length }; go('', false, true); return; }
       justSaved = { files: (a.files || []).length || 1 };
       // A changed session was edited in place of its own page, so that page is redrawn in the same history entry.
@@ -3327,8 +3394,12 @@
         view.members = ((b && b.entries) || []).filter(function (e) { return e.sessionId && e.sessionId !== d.session.id && e.carId !== d.session.carId && !mineIds[e.sessionId] && e.time; }).slice(0, 50);
         view.members.forEach(function (e) { view.memberById[e.sessionId] = e; });
         drawSession();
+        if (d.cachedAt) app.insertAdjacentHTML('afterbegin', oldNote(d.cachedAt));
       });
-    }).catch(function (err) { if (window.console) console.error(err); failed('This session could not be loaded. Check your connection and try again.'); });
+    }).catch(function (err) {
+      if (window.console) console.error(err);
+      failed(isOffline() ? 'This session is not on this device. Open it once while you are online and it will be here next time you are offline.' : 'This session could not be loaded. Check your connection and try again.');
+    });
   }
   // Skip to section: lists the sections this session page has and scrolls to the one chosen.
   var SKIP_TO = [['#tp-headline', 'Best lap and headline times'], ['#compare', 'Compare laps'], ['#tp-mapcard', 'Map'], ['#tp-gbox', 'G-force and speed'], ['[data-tile="corners"]', 'Corner by corner'],
@@ -3410,6 +3481,13 @@
   // Set when a session has just been saved, so the page it opens on says so once.
   var justSaved = null;
   function savedHtml(j) {
+    if (j.queued) {
+      return '<div class="tp-notice is-ok tp-saved" id="tp-saved" role="status">' + icon('check') + '<div><b>Saved on this device</b><br>' + (j.queued === 1 ? 'Your session is' : j.queued + ' sessions are') +
+        ' kept here because there is no connection. ' + (j.queued === 1 ? 'It is' : 'They are') + ' sent when you are next online with Laps open, and your changes are synced then.' +
+        (j.batch > j.queued ? '<br><span class="tp-small">' + (j.batch - j.queued) + ' more saved now.</span>' : '') +
+        (j.skipped && j.skipped.length ? '<br><span class="tp-small">' + j.skipped.length + ' file' + (j.skipped.length === 1 ? ' was' : 's were') + ' not saved: ' + esc(j.skipped.map(function (x) { return x.name + ' (' + x.reason + ')'; }).join('; ')) + '</span>' : '') +
+        '</div><button type="button" class="tp-saved-x" id="tp-saved-x" aria-label="Dismiss">' + icon('x') + '</button></div>';
+    }
     if (j.text) return '<div class="tp-notice is-ok tp-saved" id="tp-saved" role="status">' + icon('check') + '<div><b>Done</b><br>' + esc(j.text) + '</div><button type="button" class="tp-saved-x" id="tp-saved-x" aria-label="Dismiss">' + icon('x') + '</button></div>';
     if (j.batch) {
       return '<div class="tp-notice is-ok tp-saved" id="tp-saved" role="status">' + icon('check') + '<div><b>Saved</b><br>' + (j.split ? 'Split into ' : '') + j.batch + ' session' + (j.batch === 1 ? '' : 's') + (j.split ? '.' : (j.joined ? ' saved. ' + j.joined + (j.joined === 1 ? ' has' : ' have') + ' the car\'s Track Mode data joined on.' : ' saved, one for each file.')) + ' They are grouped by day below.' +

@@ -1,4 +1,17 @@
-const CACHE_NAME = 'mt3uk-shell-v9';
+const CACHE_NAME = 'mt3uk-shell-v10';
+// The copy of Laps kept on a device that has switched Offline mode on (js/laps-offline.js asks for it with a
+// message). Kept apart so the shell cache's clean-up never deletes it, and removed when the member switches it off.
+const LAPS_CACHE = 'mt3uk-laps-offline-v1';
+// The satellite map tiles seen (or fetched ahead for the member's sessions) while Offline mode is on, so a session's
+// map has its picture with no signal. Tiles are fetched with CORS so they are stored at their real size.
+const TILE_CACHE = 'mt3uk-laps-tiles-v1';
+const TILE_HOST = 'server.arcgisonline.com';
+const TILE_MAX = 2500;
+const LAPS_PAGES = ['/laps.html', '/track.html', '/leaderboards.html', '/laps-signin.html'];
+const LAPS_FILES = [
+  '/data/tracks.json', '/data/tyres.json', '/data/pads.json', '/data/vehicles.json', '/laps-manifest.json',
+  '/images/laps/favicon.svg', '/images/laps/icon-192.png', '/images/laps/apple-touch-icon.png'
+];
 const PRECACHE_URLS = [
   '/index.html',
   '/shop.html',
@@ -28,7 +41,7 @@ self.addEventListener('activate', function (event) {
     caches.keys()
       .then(function (keys) {
         return Promise.all(
-          keys.filter(function (key) { return key !== CACHE_NAME; })
+          keys.filter(function (key) { return key !== CACHE_NAME && key !== LAPS_CACHE && key !== TILE_CACHE; })
             .map(function (key) { return caches.delete(key); })
         );
       })
@@ -38,12 +51,30 @@ self.addEventListener('activate', function (event) {
 
 self.addEventListener('fetch', function (event) {
   var request = event.request;
+  if (request.method === 'GET' && new URL(request.url).hostname === TILE_HOST && request.url.indexOf('/tile/') !== -1) {
+    event.respondWith(tileResponse(request));
+    return;
+  }
   if (request.method !== 'GET' || new URL(request.url).origin !== self.location.origin) return;
 
   var pathname = new URL(request.url).pathname;
   var isDynamicManifest = pathname !== '/manifest.json' && pathname.slice(-13) === 'manifest.json';
-  if (pathname.indexOf('/data/') === 0 || isDynamicManifest) {
-    event.respondWith(fetch(request));
+  if (isDynamicManifest) {
+    event.respondWith(fetch(request).catch(function () { return caches.match(request); }));
+    return;
+  }
+  // The data files come from the network first (they change with the site). A copy is kept only for a device with
+  // Offline mode on, so the track list is there with no signal.
+  if (pathname.indexOf('/data/') === 0) {
+    event.respondWith(
+      fetch(request).then(function (response) {
+        if (response.ok) {
+          var copy = response.clone();
+          caches.open(LAPS_CACHE).then(function (cache) { return cache.keys().then(function (ks) { if (ks.length) cache.put(request, copy); }); });
+        }
+        return response;
+      }).catch(function () { return caches.match(request, { ignoreSearch: true }); })
+    );
     return;
   }
 
@@ -56,7 +87,13 @@ self.addEventListener('fetch', function (event) {
           return response;
         })
         .catch(function () {
-          return caches.match(request).then(function (cached) {
+          // A page of Laps kept for Offline mode opens whatever its address carries after the page name
+          // (track.html?s=..., ?add=1), and the front of the site stands in for a bare address.
+          return caches.match(request, { ignoreSearch: true }).then(function (cached) {
+            if (cached) return cached;
+            if (pathname.slice(-1) === '/') return caches.match(pathname + 'index.html');
+            return null;
+          }).then(function (cached) {
             return cached || caches.match('/offline.html');
           });
         })
@@ -77,7 +114,7 @@ self.addEventListener('fetch', function (event) {
           }
           return response;
         })
-        .catch(function () { return caches.match(request); })
+        .catch(function () { return caches.match(request, { ignoreSearch: true }); })
     );
     return;
   }
@@ -95,6 +132,85 @@ self.addEventListener('fetch', function (event) {
       });
     })
   );
+});
+
+// Offline mode (js/laps-offline.js): keep the Laps pages, their scripts and styles and the data files in LAPS_CACHE,
+// or remove them. The scripts and styles are found from the pages' own tags, so a new script is kept without a
+// change here. A file that cannot be fetched is left out; the reply says how many were kept.
+function lapsKeep(cache, url, found) {
+  return fetch(url, { cache: 'reload' }).then(function (response) {
+    if (!response.ok) return null;
+    var path = new URL(url, self.location.origin).pathname;
+    var copy = response.clone();
+    return cache.put(new Request(url), copy).then(function () {
+      if (/\.html$/i.test(path)) {
+        return response.text().then(function (html) {
+          var re = /(?:src|href)="([^"#]+\.(?:js|css)[^"]*)"/g, m;
+          while ((m = re.exec(html))) {
+            var u = new URL(m[1], self.location.origin + path);
+            if (u.origin === self.location.origin) found[u.pathname + u.search] = 1;
+          }
+        });
+      }
+    }).then(function () { return true; });
+  }).catch(function () { return null; });
+}
+function lapsPrecache() {
+  return caches.open(LAPS_CACHE).then(function (cache) {
+    var found = {}, kept = 0, total = 0;
+    return Promise.all(LAPS_PAGES.map(function (u) { total++; return lapsKeep(cache, u, found).then(function (ok) { if (ok) kept++; }); })).then(function () {
+      var rest = LAPS_FILES.concat(Object.keys(found));
+      total += rest.length;
+      return Promise.all(rest.map(function (u) { return lapsKeep(cache, u, {}).then(function (ok) { if (ok) kept++; }); }));
+    }).then(function () { return { kept: kept, total: total }; });
+  });
+}
+// A map tile: from the kept copy when there is one; otherwise from the network, and kept when Offline mode is on.
+// With Offline mode off the tile is fetched exactly as the page asked, so nothing changes for anyone else.
+function tileTrim(cache) {
+  return cache.keys().then(function (keys) {
+    if (keys.length <= TILE_MAX) return;
+    return Promise.all(keys.slice(0, keys.length - TILE_MAX + 200).map(function (k) { return cache.delete(k); }));
+  });
+}
+function tileResponse(request) {
+  return caches.has(LAPS_CACHE).then(function (on) {
+    if (!on) return fetch(request);
+    return caches.open(TILE_CACHE).then(function (cache) {
+      return cache.match(request.url).then(function (hit) {
+        if (hit) return hit;
+        return fetch(request.url, { mode: 'cors' }).then(function (response) {
+          if (response.ok) cache.put(request.url, response.clone()).then(function () { return tileTrim(cache); });
+          return response;
+        }).catch(function () { return fetch(request); });
+      });
+    });
+  });
+}
+function tilesKeep(urls) {
+  return caches.open(TILE_CACHE).then(function (cache) {
+    var kept = 0, at = 0;
+    function worker() {
+      if (at >= urls.length) return Promise.resolve();
+      var u = urls[at++];
+      return cache.match(u).then(function (hit) {
+        if (hit) { kept++; return null; }
+        return fetch(u, { mode: 'cors' }).then(function (r) { if (r.ok) { kept++; return cache.put(u, r); } }).catch(function () {});
+      }).then(worker);
+    }
+    return Promise.all([worker(), worker(), worker(), worker()]).then(function () { return tileTrim(cache); }).then(function () { return { kept: kept, total: urls.length }; });
+  });
+}
+self.addEventListener('message', function (event) {
+  var data = event.data || {}, port = event.ports && event.ports[0];
+  if (data.type === 'laps-offline-on') {
+    event.waitUntil(lapsPrecache().then(function (r) { if (port) port.postMessage({ ok: r.kept > 0, kept: r.kept, total: r.total }); }, function () { if (port) port.postMessage({ ok: false }); }));
+  } else if (data.type === 'laps-offline-tiles') {
+    var urls = (data.urls || []).filter(function (u) { return typeof u === 'string' && u.indexOf('https://' + TILE_HOST + '/') === 0; }).slice(0, 1500);
+    event.waitUntil(tilesKeep(urls).then(function (r) { if (port) port.postMessage({ ok: true, kept: r.kept, total: r.total }); }, function () { if (port) port.postMessage({ ok: false }); }));
+  } else if (data.type === 'laps-offline-off') {
+    event.waitUntil(Promise.all([caches.delete(LAPS_CACHE), caches.delete(TILE_CACHE)]).then(function () { if (port) port.postMessage({ ok: true }); }));
+  }
 });
 
 // Push notifications, turned on per device in My Garage. The worker sends
